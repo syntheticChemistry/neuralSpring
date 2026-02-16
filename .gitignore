@@ -1,0 +1,18 @@
+# Data (downloaded, computed — not tracked)
+data/
+*.csv.gz
+*.nc
+*.pt
+*.pth
+*.onnx
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
