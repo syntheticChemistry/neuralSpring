@@ -31,15 +31,27 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status
+## Current Status: 75/75 PASS
 
-| Experiment | Domain | Status | Key Question |
-|------------|--------|--------|--------------|
-| 001: Neural Surrogate | Function approximation | Phase 0 | MLP vs RBF on benchmark + FAO-56 |
-| 002: Transformer Inference | Language/Protein foundation | Phase 0 | Can we reproduce self-attention from scratch? |
-| 003: Sequence Forecasting | Time series (weather) | Phase 0 | LSTM/GRU on real Michigan weather data |
-| 004: Transfer Learning | Domain adaptation | Phase 0 | Michigan ET0 model → different climates |
-| 005: Isomorphic Catalog | Cross-domain analysis | Phase 0 | Map shared primitives to BarraCUDA ops |
+### Phase 0 — Synthetic Baselines (48/48)
+
+| Experiment | Domain | Tests | Key Question |
+|------------|--------|-------|--------------|
+| 001: Neural Surrogate | Function approximation | 11/11 | MLP vs RBF on benchmark + FAO-56 |
+| 002: Transformer Inference | Language/Protein foundation | 18/18 | Can we reproduce self-attention from scratch? |
+| 003: Sequence Forecasting | Time series (weather) | 5/5 | LSTM/GRU on real Michigan weather data |
+| 004: Transfer Learning | Domain adaptation | 6/6 | Michigan ET0 model → different climates |
+| 005: Isomorphic Catalog | Cross-domain analysis | 8/8 | Map shared primitives to BarraCUDA ops |
+
+### Phase 0+ — Scholarly Reproductions (27/27)
+
+| Study | Paper | Tests | Key Result |
+|-------|-------|-------|------------|
+| 001: PINN Burgers | Raissi et al. (2019) JCP | 6/6 | 5.1% L2 error, shock front captured |
+| 002: DeepONet | Lu et al. (2021) NMI | 5/5 | 1.2% mean L2 on operator learning |
+| 003: LeNet-5 MNIST | LeCun et al. (1998) | 5/5 | 98.89% accuracy (Conv+Pool+FC) |
+| 004: LSTM ERA5 | Gauch et al. (2021) HESS | 5/5 | NSE=0.849 on real ERA5 weather |
+| 005: Quantized | Dettmers (2022), Frantar (2023) | 6/6 | INT8: 0.017% loss, INT4: 0.79% loss |
 
 ## Quick Start
 

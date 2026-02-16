@@ -45,6 +45,26 @@ run_experiment "Exp 005: Isomorphic Pattern Catalog" \
 
 echo ""
 echo "================================================================"
+echo "  Phase 0+: Scholarly Reproduction Studies"
+echo "================================================================"
+
+run_experiment "Study 001: PINN Burgers (Raissi 2019)" \
+    control/pinn/pinn_burgers.py
+
+run_experiment "Study 002: DeepONet Antiderivative (Lu 2021)" \
+    control/deeponet/deeponet_antideriv.py
+
+run_experiment "Study 003: LeNet-5 MNIST (LeCun 1998)" \
+    control/lenet/lenet_mnist.py
+
+run_experiment "Study 004: LSTM ERA5 Weather (Gauch 2021)" \
+    control/lstm_weather/lstm_era5.py
+
+run_experiment "Study 005: Quantized Inference (Q8/Q4)" \
+    control/quantized/quantized_inference.py
+
+echo ""
+echo "================================================================"
 echo "  GRAND SUMMARY"
 echo "  Total: $PASS PASS, $FAIL FAIL out of $((PASS + FAIL)) experiments"
 echo "================================================================"
