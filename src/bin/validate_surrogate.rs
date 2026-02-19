@@ -7,7 +7,7 @@
 //! ## Provenance
 //!
 //! Python baseline: `control/surrogate/surrogate_validation.py`
-//! Run: 2026-02-16, Eastgate, Python 3.10, PyTorch 2.9.0+cu128, seed=42
+//! Run: 2026-02-16, Eastgate, Python 3.10, `PyTorch` 2.9.0+cu128, seed=42
 //! Command: `python3 control/surrogate/surrogate_validation.py`
 //! Reference: [`SURROGATE_PROVENANCE`](neural_spring::provenance::SURROGATE_PROVENANCE)
 

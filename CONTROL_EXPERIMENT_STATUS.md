@@ -1,10 +1,10 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 18, 2026
+**Last updated**: February 19, 2026
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 75/75 quantitative checks PASS (48 Phase 0 + 27 Phase 0+)
+**Grand Total**: 75/75 Python PASS (48 Phase 0 + 27 Phase 0+) + 285/285 Rust validation PASS (43 native + 242 BarraCUDA)
 
 ---
 
@@ -111,10 +111,15 @@
 | Branch-Trunk (DeepONet) | Study 002 | elementwise_mul + sum_reduce |
 | Quantized GEMV | Study 005 | gemv_q4.wgsl, gemv_q8.wgsl |
 | Dequantization | Study 005 | dequant_q4.wgsl, dequant_q8.wgsl |
+| Softmax (full pipeline) | ML inference | softmax_simple.wgsl |
+| Multi-Head Attention | ML inference | attention_matmul/softmax/apply.wgsl (evolved MHA) |
+| GELU (pipeline) | ML inference | gelu.wgsl |
+| MLP end-to-end | ML inference | matmul + add + relu + softmax |
+| Transformer encoder block | ML inference | LayerNorm + MHA + FFN + residuals |
 
 ---
 
-## Quality Gates (added 2026-02-18)
+## Quality Gates (updated 2026-02-19)
 
 | Gate | Tool | Status |
 |------|------|--------|
@@ -122,11 +127,12 @@
 | Python format | `ruff format` | **PASS** — 14 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 75/75 |
-| Rust test | `cargo test` | **PASS** — 23 unit tests |
+| Rust test | `cargo test` | **PASS** — 34 unit tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
-| Rust validate | `validate_surrogate`, `validate_transformer`, `validate_metrics` | **PASS** — 21/21 |
+| neuralSpring validate | `make validate-native` (surrogate, transformer, metrics) | **PASS** — 43/43 |
+| BarraCUDA validate | `make validate-barracuda` (stats, linalg, special, optimize, precision, tensor, tensor_f64, quantized, linalg_ext, ml_inference) | **PASS** — 242/242 |
 | CI | GitHub Actions: `baselines.yml` (Python), `rust.yml` (Rust) | Configured |
 
 ## Audit Remediation (2026-02-18)
@@ -143,9 +149,45 @@ Key fixes applied during comprehensive audit:
 - **Ruff**: Fixed 441 lint issues (unused imports, f-strings, import ordering, unused variables).
 - **Rust scaffolding**: Created `Cargo.toml`, `src/lib.rs`, `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, 3 validation binaries.
 - **Cross-validation**: Rust tests hardcode Python-computed values to verify cross-language agreement to <1e-12.
-- **Test suite**: 48 Python tests (pytest) + 23 Rust tests + 21 validation binary checks.
+- **Test suite**: 48 Python tests (pytest) + 34 Rust unit tests + 285 validation binary checks (43 native + 242 BarraCUDA).
 - **Data provenance**: Documented all datasets in `specs/DATA_PROVENANCE.md`.
 - **Infrastructure**: `Makefile`, `justfile`, `.pre-commit-config.yaml`, two GitHub Actions CI workflows.
+
+### BarraCUDA CPU Integration (2026-02-19)
+
+Following the hotSpring pattern, `barracuda` is a direct path dependency. Nine
+validation binaries call `barracuda::*` primitives and compare against analytical /
+NIST DLMF / Python-derived baselines. No abstraction layer — each Spring evolves independently.
+
+- **`validate_barracuda_stats`** (13 checks): variance, std\_dev, pearson, covariance, spearman, norm\_cdf/pdf/ppf
+- **`validate_barracuda_linalg`** (17 checks): solve\_f64, lu\_det, lu\_solve, eigh\_f64, cholesky\_f64, tridiagonal\_solve
+- **`validate_barracuda_special`** (26 checks): gamma, factorial, erf/erfc, bessel J0/J1/I0/K0, Legendre, Hermite, Laguerre
+- **`validate_barracuda_optimize`** (10 checks): nelder\_mead (Rosenbrock, Rastrigin), bisect, brent
+- **`validate_barracuda_precision`** (12 checks): elementwise add/mul/fma, dot product, Kahan sum
+- **`validate_barracuda_tensor`** (84 checks): unified Tensor/WGSL path — relu, gelu, sigmoid, softmax, layer\_norm, matmul, add/sub/mul + tanh, exp, log, sqrt, div, scalar ops, reductions, swish, mish, losses, transpose, evolved ops
+- **`validate_barracuda_tensor_f64`** (35 checks): f64 GPU ops — roundtrip, SumReduce, FusedMapReduce, NormReduce, VarianceReduce, WeightedDot, MaxAbsDiff, CosineSimilarity
+- **`validate_barracuda_quantized`** (15 checks): Q4/Q8 dequantization, quantized GEMV
+- **`validate_barracuda_linalg_ext`** (17 checks): SVD, LU inverse, generalized eigendecomposition
+- **`validate_barracuda_ml_inference`** (13 checks): MLP (3-layer, softmax) + pre-norm transformer encoder block vs Python/NumPy baselines
+
+Benchmark binaries: `bench_barracuda_tensor`, `bench_mlp_inference`, `bench_transformer_block`, `bench_fused_inference`.
+
+New infrastructure modules: `src/validation.rs` (`ValidationHarness`), `src/tolerances.rs`, `src/provenance.rs`.
+Locally evolved ops: `src/evolved/mha.rs` (MHA workaround), `src/evolved/layer_norm.rs`, `src/evolved/log_softmax.rs`.
+Fused pipeline: `src/evolved/fused_pipeline.rs` (ShaderCache + helpers), `src/evolved/fused_mlp.rs` (FusedMlp), `src/evolved/fused_transformer.rs` (FusedTransformer).
+
+### Fused ToadStool Pipeline (2026-02-19)
+
+Eliminates per-op dispatch overhead by pre-compiling shaders, pre-allocating
+buffers, and recording all compute passes into a single `CommandEncoder`:
+
+| Model | Per-Op (GPU) | Fused (GPU) | Speedup |
+|-------|-------------|-------------|---------|
+| MLP | 4.0 ms | 92 µs | **43.6×** |
+| Transformer | 13.3 ms | 174 µs | **76.6×** |
+
+Includes GPU-resident head-split/concat WGSL shaders and batched fused
+attention, eliminating all CPU round-trips from the MHA workaround.
 
 ## Evolution Roadmap
 
@@ -153,6 +195,7 @@ Key fixes applied during comprehensive audit:
 |-------|-------|--------|
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (27 checks) | **COMPLETE** |
-| 1 | BarraCUDA Rust port (surrogate, transformer, metrics) | **SCAFFOLDED** — see `specs/EVOLUTION_MAPPING.md` |
+| 1a | neuralSpring Rust validation (43 checks) | **COMPLETE** — surrogate, transformer, metrics |
+| 1b | BarraCUDA validation (242 checks) | **COMPLETE** — stats, linalg, special, optimize, precision, tensor (84), tensor_f64 (35), quantized, linalg_ext, ml_inference (13) |
 | 2 | Quantized inference on GPU | Planned |
 | 3 | Cross-spring integration | Planned |

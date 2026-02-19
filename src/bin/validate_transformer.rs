@@ -7,7 +7,7 @@
 //! ## Provenance
 //!
 //! Python baseline: `control/transformer/transformer_inference.py`
-//! Run: 2026-02-16, Eastgate, Python 3.10, NumPy 2.2.6, seed=42
+//! Run: 2026-02-16, Eastgate, Python 3.10, `NumPy` 2.2.6, seed=42
 //! Command: `python3 control/transformer/transformer_inference.py`
 //! Reference: [`TRANSFORMER_PROVENANCE`](neural_spring::provenance::TRANSFORMER_PROVENANCE)
 
@@ -59,7 +59,12 @@ fn main() {
 
     // --- GELU properties ---
 
-    h.check_abs("GELU(0) == 0", gelu(0.0), 0.0, tolerances::GELU_CROSS_PYTHON);
+    h.check_abs(
+        "GELU(0) == 0",
+        gelu(0.0),
+        0.0,
+        tolerances::GELU_CROSS_PYTHON,
+    );
 
     h.check_abs(
         "GELU(10) ≈ 10",

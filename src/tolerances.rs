@@ -96,7 +96,7 @@ pub const METRIC_EXACT: f64 = 1e-14;
 /// Benchmark functions (Rastrigin) may be lower due to multimodality.
 pub const SURROGATE_R2_MIN: f64 = 0.40;
 
-/// Transformer NumPy vs `PyTorch`: max absolute difference.
+/// Transformer `NumPy` vs `PyTorch`: max absolute difference.
 ///
 /// IEEE 754 f64 summation order is the only source of difference.
 /// Measured max: 2.22e-16. Tolerance: 1e-10.
@@ -131,6 +131,82 @@ pub const QUANT_INT8_DEGRADATION: f64 = 0.01;
 /// Measured: 0.79%. Threshold: 5%.
 pub const QUANT_INT4_DEGRADATION: f64 = 0.05;
 
+// ═══════════════════════════════════════════════════════════════════
+// Tensor / WGSL shader tolerances (f32 compute)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Exact f32 operations via WGSL (`ReLU`, add, sub, mul, scalar mul).
+///
+/// f32 has ~7.2 significant digits. For operations that are exact
+/// in real arithmetic (e.g., max(0, x), a + b), WGSL produces
+/// bit-exact results. 1e-6 allows one digit of slack.
+pub const TENSOR_EXACT_F32: f64 = 1e-6;
+
+/// Transcendental f32 ops via WGSL (GELU, sigmoid, softmax, exp).
+///
+/// WGSL implementations of erf/exp/tanh may use polynomial
+/// approximations that differ from CPU libm. 1e-3 is conservative
+/// for f32 transcendentals.
+pub const TENSOR_TRANSCENDENTAL_F32: f64 = 1e-3;
+
+/// `MatMul` and reduction ops via WGSL (f32 accumulation).
+///
+/// Dot products accumulate rounding errors proportional to √n for
+/// random inputs. For small matrices (n ≤ 64), 1e-2 is generous;
+/// for larger matrices, relative error checks are preferred.
+pub const TENSOR_MATMUL_F32: f64 = 1e-2;
+
+/// Normalization ops via WGSL (layer norm, RMS norm, batch norm).
+///
+/// Involves mean, variance, and division — multiple f32 reductions.
+/// 1e-3 accounts for accumulated f32 rounding in the norm pipeline.
+pub const TENSOR_NORM_F32: f64 = 1e-3;
+
+// ═══════════════════════════════════════════════════════════════════
+// GPU f64 shader tolerances (SHADER_F64 path)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Exact f64 operations via WGSL `SHADER_F64` (sum, dot, add, mul).
+///
+/// GPU f64 arithmetic is IEEE 754 compliant on NVIDIA.  For exact
+/// operations the only error is accumulation order (non-deterministic
+/// parallel reduction).  1e-10 is conservative for arrays up to 10k.
+pub const GPU_F64_EXACT: f64 = 1e-10;
+
+/// Transcendental f64 ops via WGSL `SHADER_F64` (exp, log, sqrt, erf).
+///
+/// GPU implementations may use polynomial approximations that differ
+/// from CPU libm.  On NVIDIA (`sm_89`+) these are accurate to ~1 ULP;
+/// on NVK/older drivers the `exp_f64`/`log_f64` workarounds may cost
+/// a few extra ULPs.  1e-8 accommodates all validated hardware.
+pub const GPU_F64_TRANSCENDENTAL: f64 = 1e-8;
+
+/// Statistical reductions via f64 WGSL (variance, std, correlation).
+///
+/// Two-pass algorithms (mean then variance) compound reduction error.
+/// 1e-9 for arrays up to 10k elements.
+pub const GPU_F64_STATS: f64 = 1e-9;
+
+// ═══════════════════════════════════════════════════════════════════
+// ML inference pipeline tolerances (f32 multi-op chains)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Multi-op ML pipeline (MLP: 3× matmul + 2× `ReLU` + softmax).
+///
+/// Each f32 matmul accumulates O(√k) rounding for inner dimension k.
+/// Chaining 3 linear layers with non-linearities compounds error.
+/// 1e-2 matches the single-`matmul` tolerance since the MLP is small
+/// (max inner dim = 64).
+pub const ML_MLP_F32: f64 = TENSOR_MATMUL_F32;
+
+/// Multi-op transformer pipeline (6+ `matmul` stages, `LayerNorm`, GELU).
+///
+/// A transformer encoder block chains `LayerNorm` → QKV projections →
+/// scaled dot-product attention → output projection → FFN (2× matmul).
+/// Each stage compounds f32 error. 0.05 is conservative for small
+/// configs (`d_model`=32, `seq_len`=8).
+pub const ML_TRANSFORMER_F32: f64 = 0.05;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -160,6 +236,15 @@ mod tests {
             PINN_L2_ERROR_MAX,
             QUANT_INT8_DEGRADATION,
             QUANT_INT4_DEGRADATION,
+            TENSOR_EXACT_F32,
+            TENSOR_TRANSCENDENTAL_F32,
+            TENSOR_MATMUL_F32,
+            TENSOR_NORM_F32,
+            GPU_F64_EXACT,
+            GPU_F64_TRANSCENDENTAL,
+            GPU_F64_STATS,
+            ML_MLP_F32,
+            ML_TRANSFORMER_F32,
         ];
         for (i, &t) in tols.iter().enumerate() {
             assert!(t > 0.0, "tolerance index {i} must be positive, got {t}");

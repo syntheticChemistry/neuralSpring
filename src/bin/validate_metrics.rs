@@ -7,7 +7,7 @@
 //! ## Provenance
 //!
 //! Expected values: analytically derived (pure arithmetic, no iteration).
-//! Verified via `python3 -c` one-liners against NumPy 2.2.6.
+//! Verified via `python3 -c` one-liners against `NumPy` 2.2.6.
 //! Reference: [`METRICS_REFS`](neural_spring::provenance::METRICS_REFS)
 
 use neural_spring::metrics;
@@ -36,7 +36,10 @@ fn main() {
     );
 
     let y_bad = [10.0, 20.0, 30.0, 40.0, 50.0];
-    h.check_bool("R² worse-than-mean < 0", metrics::r_squared(&y, &y_bad) < 0.0);
+    h.check_bool(
+        "R² worse-than-mean < 0",
+        metrics::r_squared(&y, &y_bad) < 0.0,
+    );
 
     // SS_res = 0.75, SS_tot = 2.0 => R² = 0.625
     let yt3 = [1.0, 2.0, 3.0];

@@ -10,12 +10,21 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 
 [dependencies]
 # BarraCUDA shared crate — use primitives instead of reinventing math.
-# When barracuda primitives exist (reduce ops, linalg, pipeline), use them.
-# Uncomment when barracuda is ready; neuralSpring evolves independently.
-# barracuda = { path = "../phase1/toadstool/crates/barracuda" }
+# Path dep matches hotSpring pattern: each Spring evolves independently.
+barracuda = { path = "../phase1/toadstool/crates/barracuda" }
 
+bytemuck = { version = "1.14", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# Async runtime for Tensor-based validation (WgpuDevice::new() is async).
+tokio = { version = "1.35", features = ["rt-multi-thread", "macros"] }
+
+# Must match barracuda's wgpu version (22) to avoid type conflicts.
+wgpu = { version = "22", default-features = false, features = [
+    "wgsl",
+    "vulkan-portability",
+] }
 
 [dev-dependencies]
 approx = "0.5"
@@ -25,6 +34,8 @@ approx = "0.5"
 # - Hardcoded expected values from provenance.rs
 # - Tolerances from tolerances.rs (no ad-hoc magic numbers)
 # - Exit code 0 (all pass) or 1 (any fail)
+
+# --- neuralSpring-native validation ---
 
 [[bin]]
 name = "validate_surrogate"
@@ -37,6 +48,70 @@ path = "src/bin/validate_transformer.rs"
 [[bin]]
 name = "validate_metrics"
 path = "src/bin/validate_metrics.rs"
+
+# --- BarraCUDA CPU primitive validation ---
+
+[[bin]]
+name = "validate_barracuda_stats"
+path = "src/bin/validate_barracuda_stats.rs"
+
+[[bin]]
+name = "validate_barracuda_linalg"
+path = "src/bin/validate_barracuda_linalg.rs"
+
+[[bin]]
+name = "validate_barracuda_special"
+path = "src/bin/validate_barracuda_special.rs"
+
+[[bin]]
+name = "validate_barracuda_optimize"
+path = "src/bin/validate_barracuda_optimize.rs"
+
+[[bin]]
+name = "validate_barracuda_precision"
+path = "src/bin/validate_barracuda_precision.rs"
+
+[[bin]]
+name = "validate_barracuda_tensor"
+path = "src/bin/validate_barracuda_tensor.rs"
+
+[[bin]]
+name = "validate_barracuda_quantized"
+path = "src/bin/validate_barracuda_quantized.rs"
+
+[[bin]]
+name = "validate_barracuda_linalg_ext"
+path = "src/bin/validate_barracuda_linalg_ext.rs"
+
+[[bin]]
+name = "validate_barracuda_tensor_f64"
+path = "src/bin/validate_barracuda_tensor_f64.rs"
+
+# --- ML Inference Validation ---
+
+[[bin]]
+name = "validate_barracuda_ml_inference"
+path = "src/bin/validate_barracuda_ml_inference.rs"
+
+# --- Benchmark ---
+
+[[bin]]
+name = "bench_barracuda_tensor"
+path = "src/bin/bench_barracuda_tensor.rs"
+
+[[bin]]
+name = "bench_mlp_inference"
+path = "src/bin/bench_mlp_inference.rs"
+
+[[bin]]
+name = "bench_transformer_block"
+path = "src/bin/bench_transformer_block.rs"
+
+[[bin]]
+name = "bench_fused_inference"
+path = "src/bin/bench_fused_inference.rs"
+
+# --- Meta ---
 
 [[bin]]
 name = "validate_all"

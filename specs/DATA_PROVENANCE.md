@@ -1,6 +1,6 @@
 # neuralSpring — Data Provenance
 
-**Last Updated**: February 18, 2026
+**Last Updated**: February 19, 2026
 **Purpose**: Document all external datasets, APIs, and pre-trained assets used in validation experiments. Every data source must be public, reproducible, and free of access restrictions.
 
 ---

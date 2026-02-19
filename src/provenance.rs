@@ -82,7 +82,7 @@ pub const TRANSFORMER_PROVENANCE: BaselineProvenance = BaselineProvenance {
 // Cross-language reference values (Python-computed, hardcoded in Rust)
 // ═══════════════════════════════════════════════════════════════════
 
-/// Softmax([1,2,3,4,5]) computed by `NumPy` 2.2.6.
+/// Softmax of `[1,2,3,4,5]` computed by `NumPy` 2.2.6.
 pub const SOFTMAX_1_TO_5: [f64; 5] = [
     1.165_623_095_603_961e-2,
     3.168_492_079_612_427e-2,
@@ -93,7 +93,7 @@ pub const SOFTMAX_1_TO_5: [f64; 5] = [
 
 /// GELU reference values at selected points, computed by `NumPy` 2.2.6.
 ///
-/// Format: (input, expected_output)
+/// Format: (input, `expected_output`)
 pub const GELU_REFERENCE: [(f64, f64); 6] = [
     (-2.0, -4.540_230_591_222_494e-2),
     (-1.0, -1.588_080_093_917_233e-1),
@@ -124,7 +124,7 @@ pub const ACKLEY_REFERENCE: [(f64, f64, f64); 4] = [
     (1.0, 1.0, 3.625_384_938_440_363),
     (2.5, -1.3, 8.772_020_879_614_113),
     (0.5, 0.5, 4.253_654_026_568_412),
-    (-3.0, 2.0, 7.988_910_810_518_700),
+    (-3.0, 2.0, 7.988_910_810_518_7),
 ];
 
 /// Analytical reference source for benchmark functions.
@@ -165,7 +165,9 @@ mod tests {
 
     #[test]
     fn benchmark_references_have_global_minima() {
-        assert!(RASTRIGIN_REFERENCE.iter().any(|(x, y, _)| *x == 1.0 && *y == 1.0));
+        assert!(RASTRIGIN_REFERENCE
+            .iter()
+            .any(|(x, y, _)| *x == 1.0 && *y == 1.0));
         assert!(ROSENBROCK_REFERENCE.iter().any(|(_, _, f)| *f == 0.0));
     }
 }

@@ -97,13 +97,7 @@ impl ValidationHarness {
     }
 
     /// Combined absolute-or-relative check (matches hotSpring convention).
-    pub fn check_abs_or_rel(
-        &mut self,
-        label: &str,
-        observed: f64,
-        expected: f64,
-        tolerance: f64,
-    ) {
+    pub fn check_abs_or_rel(&mut self, label: &str, observed: f64, expected: f64, tolerance: f64) {
         let abs_err = (observed - expected).abs();
         let rel_err = if expected.abs() > 1e-14 {
             abs_err / expected.abs()
@@ -163,7 +157,7 @@ impl ValidationHarness {
     }
 
     #[must_use]
-    pub fn total_count(&self) -> usize {
+    pub const fn total_count(&self) -> usize {
         self.checks.len()
     }
 

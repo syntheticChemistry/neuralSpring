@@ -9,9 +9,21 @@
 use std::process::{self, Command};
 
 const BINARIES: &[&str] = &[
+    // neuralSpring-native validation
     "validate_surrogate",
     "validate_transformer",
     "validate_metrics",
+    // BarraCUDA CPU primitive validation
+    "validate_barracuda_stats",
+    "validate_barracuda_linalg",
+    "validate_barracuda_special",
+    "validate_barracuda_optimize",
+    "validate_barracuda_precision",
+    "validate_barracuda_tensor",
+    "validate_barracuda_tensor_f64",
+    "validate_barracuda_quantized",
+    "validate_barracuda_linalg_ext",
+    "validate_barracuda_ml_inference",
 ];
 
 fn main() {

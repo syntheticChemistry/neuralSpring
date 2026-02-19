@@ -1,7 +1,16 @@
 //! Statistical metrics for validation (R², RMSE, MAE, NSE).
 //!
-//! These should eventually delegate to `barracuda::reduce` primitives
-//! rather than reimplementing reduction ops.
+//! ## `BarraCUDA` Integration
+//!
+//! `barracuda::stats` provides building blocks (`variance`, `pearson_correlation`,
+//! `covariance`) validated in `validate_barracuda_stats`. These metrics compose
+//! those primitives into domain-specific measures. When barracuda adds GPU-resident
+//! `mse_loss` / `mae_loss` Tensor ops, we can delegate the hot path there.
+//!
+//! Re-exports from barracuda for convenience:
+//!
+//! - [`barracuda::stats::correlation::variance`]
+//! - [`barracuda::stats::pearson_correlation`]
 
 /// Coefficient of determination.
 ///

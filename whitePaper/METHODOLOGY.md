@@ -183,16 +183,36 @@ Each reproduction follows the same framework as Phase 0 but targets a published 
 
 ## Combined: 75 checks across 10 experiments (48 Phase 0 + 27 Phase 0+)
 
-## Phase 1: Rust Validation Scaffolding
+## Phase 1: Rust Validation
 
-The Rust layer cross-validates Python baselines using hardcoded expected values (hotSpring pattern):
+The Rust layer cross-validates Python baselines using hardcoded expected values (hotSpring pattern).
+BarraCUDA integration validates 242 GPU/CPU checks across 10 domains.
+
+### neuralSpring-native (43 checks)
 
 | Component | Checks | Pattern |
 |-----------|--------|---------|
-| `validate_surrogate` | 5 | Global minima + known-values for Rastrigin, Rosenbrock, Ackley |
-| `validate_transformer` | 6 | Softmax properties + GELU known-values |
+| `validate_surrogate` | 15 | Global minima + known-values for Rastrigin, Rosenbrock, Ackley |
+| `validate_transformer` | 18 | Softmax properties + GELU known-values |
 | `validate_metrics` | 10 | R², RMSE, MAE, NSE against analytical expectations |
-| Rust unit tests | 23 | Cross-language validation (Python-computed values hardcoded in Rust) |
+| Rust unit tests | 34 | Cross-language validation (Python-computed values hardcoded in Rust) |
+
+### BarraCUDA (242 checks)
+
+| Component | Checks | Pattern |
+|-----------|--------|---------|
+| stats, linalg, special, optimize | 66 | Analytical / NIST DLMF reference values |
+| precision (f64 CPU shaders) | 12 | Exact f64 |
+| Tensor API (CPU + GPU) | 84 | WGSL unified path, all activations/ops |
+| Tensor f64 API | 35 | f64 GPU ops |
+| quantized (Q4/Q8) | 15 | Hand-constructed test vectors |
+| linalg ext (SVD, gen eigh) | 17 | Analytical solutions |
+| ML inference (MLP + Transformer) | 13 | Python/NumPy baselines |
+
+### Fused ToadStool Pipeline
+
+Pre-compiles shaders, pre-allocates buffers, records all compute passes into a
+single `CommandEncoder`. Speedup: MLP 43×, Transformer 78× vs per-op dispatch.
 
 Quality gates: `cargo clippy` (pedantic + nursery), `cargo fmt`, `cargo doc`, `unsafe_code = "forbid"`.
 
@@ -202,6 +222,8 @@ Quality gates: `cargo clippy` (pedantic + nursery), `cargo fmt`, `cargo doc`, `u
 |-------|-------|-----------|--------|
 | 0 | Python/PyTorch baselines (48 checks) | Science correctness | **COMPLETE** |
 | 0+ | Scholarly reproductions (27 checks) | Published result fidelity | **COMPLETE** |
-| 1 | BarraCUDA Rust port | WGSL shader correctness | **SCAFFOLDED** |
+| 1a | neuralSpring Rust validation (43 checks) | Cross-language agreement | **COMPLETE** |
+| 1b | BarraCUDA validation (242 checks) | WGSL shader correctness | **COMPLETE** |
+| 1c | Fused ToadStool pipeline | Single-encoder dispatch | **COMPLETE** |
 | 2 | Quantized inference on GPU | Q4/Q8 deployment | Planned (Study 005 validates the math) |
 | 3 | Cross-spring integration | Live surrogates | Planned |

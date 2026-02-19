@@ -24,6 +24,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # BarraCUDA is a path dependency at ../phase1/toadstool/crates/barracuda.
+      # In CI we need the sibling repo checked out at the expected relative path.
+      - name: Checkout ecoPrimals (barracuda dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ecoPrimals
+          path: ../phase1/toadstool
+          sparse-checkout: crates/barracuda
+
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -57,13 +66,20 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
 
-  validate:
+  validate-native:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: test
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Checkout ecoPrimals (barracuda dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ecoPrimals
+          path: ../phase1/toadstool
+          sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -79,11 +95,67 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
 
-      - name: Validate surrogate
+      - name: Validate surrogate (15 checks)
         run: cargo run --bin validate_surrogate
 
-      - name: Validate transformer
+      - name: Validate transformer (18 checks)
         run: cargo run --bin validate_transformer
 
-      - name: Validate metrics
+      - name: Validate metrics (10 checks)
         run: cargo run --bin validate_metrics
+
+  validate-barracuda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout ecoPrimals (barracuda dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ecoPrimals
+          path: ../phase1/toadstool
+          sparse-checkout: crates/barracuda
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
+
+      - name: Validate barracuda stats (13 checks)
+        run: cargo run --bin validate_barracuda_stats
+
+      - name: Validate barracuda linalg (17 checks)
+        run: cargo run --bin validate_barracuda_linalg
+
+      - name: Validate barracuda special (26 checks)
+        run: cargo run --bin validate_barracuda_special
+
+      - name: Validate barracuda optimize (10 checks)
+        run: cargo run --bin validate_barracuda_optimize
+
+      - name: Validate barracuda precision (12 checks)
+        run: cargo run --bin validate_barracuda_precision
+
+      - name: Validate barracuda tensor (unified WGSL + evolved ops, 84 checks)
+        run: cargo run --bin validate_barracuda_tensor
+
+      - name: Validate barracuda tensor f64 (SHADER_F64 GPU ops, 35 checks)
+        run: cargo run --bin validate_barracuda_tensor_f64
+
+      - name: Validate barracuda quantized (15 checks)
+        run: cargo run --bin validate_barracuda_quantized
+
+      - name: Validate barracuda linalg_ext (17 checks)
+        run: cargo run --bin validate_barracuda_linalg_ext

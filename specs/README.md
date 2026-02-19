@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: February 18, 2026
-**Status**: Phase 0 + Phase 0+ complete — 75/75 quantitative checks (48 synthetic + 27 scholarly)
+**Last Updated**: February 19, 2026
+**Status**: Phase 0/0+ complete (75/75 Python) + Phase 1 complete (285/285 Rust: 43 native + 242 BarraCUDA)
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -12,8 +12,10 @@
 |--------|-------|
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 27/27 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
+| Phase 1a (native Rust) | 43/43 PASS — surrogate, transformer, metrics validation |
+| Phase 1b (BarraCUDA) | 242/242 PASS — stats, linalg, special, optimize, precision, tensor (84), tensor_f64 (35), quantized, linalg_ext, ml_inference (13) |
 | Isomorphism Theorem | 6 primitives explain ALL neural architectures. BarraCUDA covers all 6 |
-| BarraCUDA primitive coverage | GEMM, Attention, Normalization, Conv2d, LSTM cell, Autograd, Quantized GEMV |
+| BarraCUDA primitive coverage | GEMM, Attention, Norm, Conv2d, LSTM, Autograd, Q-GEMV + stats, linalg, special, optimize |
 | Faculty (evolution) | Dolson (CSE, MSU) — counterdiabatic evolution, MODES |
 | Faculty (genomics) | Liu (CMSE, MSU) — HMM, phylogenetics |
 | Faculty (biology) | Waters (MMG, MSU) — game theory, cooperation |

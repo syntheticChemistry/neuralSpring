@@ -31,15 +31,79 @@ lint-rust:
 test-python:
     python3 -m pytest tests/ -v --tb=short
 
-# Rust unit tests (23 tests)
+# Rust unit tests (34 tests)
 test-rust:
     cargo test
 
-# hotSpring validation binaries (30 checks)
-validate:
+# All validation binaries (285 checks)
+validate: validate-native validate-barracuda
+
+# neuralSpring-native (43 checks)
+validate-native:
     cargo run --bin validate_surrogate
     cargo run --bin validate_transformer
     cargo run --bin validate_metrics
+
+# BarraCUDA primitives (CPU slice + unified Tensor/WGSL path)
+validate-barracuda:
+    cargo run --bin validate_barracuda_stats
+    cargo run --bin validate_barracuda_linalg
+    cargo run --bin validate_barracuda_special
+    cargo run --bin validate_barracuda_optimize
+    cargo run --bin validate_barracuda_precision
+    NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+    NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+    cargo run --bin validate_barracuda_tensor_f64
+    cargo run --bin validate_barracuda_quantized
+    cargo run --bin validate_barracuda_linalg_ext
+    cargo run --bin validate_barracuda_ml_inference
+
+# ML inference validation only (MLP + Transformer)
+validate-ml:
+    cargo run --bin validate_barracuda_ml_inference
+
+# Tensor on explicit CPU software backend
+validate-tensor-cpu:
+    NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+
+# Tensor on explicit GPU backend
+validate-tensor-gpu:
+    NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+
+# Tensor on BOTH — proves WGSL math is universal across hardware
+validate-tensor-all:
+    @echo "── Tensor validation: CPU software backend ──"
+    NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+    @echo ""
+    @echo "── Tensor validation: GPU backend ──"
+    NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+    @echo ""
+    @echo "── Tensor WGSL math is universal across hardware ──"
+
+# Benchmark tensor ops on current backend
+bench-tensor:
+    cargo run --release --bin bench_barracuda_tensor
+
+# Benchmark CPU vs GPU side by side
+bench-tensor-compare:
+    @echo "── Benchmark: CPU software backend ──"
+    NEURALSPRING_BACKEND=cpu cargo run --release --bin bench_barracuda_tensor
+    @echo ""
+    @echo "── Benchmark: GPU backend ──"
+    NEURALSPRING_BACKEND=gpu cargo run --release --bin bench_barracuda_tensor
+
+# Benchmark ML inference (MLP + Transformer)
+bench-ml:
+    cargo run --release --bin bench_mlp_inference
+    cargo run --release --bin bench_transformer_block
+
+# Fused pipeline benchmark (CPU + GPU, 4-way comparison)
+bench-fused:
+    @echo "── Fused Pipeline: CPU ──"
+    NEURALSPRING_BACKEND=cpu cargo run --release --bin bench_fused_inference
+    @echo ""
+    @echo "── Fused Pipeline: GPU ──"
+    NEURALSPRING_BACKEND=gpu cargo run --release --bin bench_fused_inference
 
 # Full Python baseline suite (75/75, ~6 min)
 baselines:

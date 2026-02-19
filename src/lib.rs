@@ -28,6 +28,8 @@
 //! | `sequence` | `control/sequence/` | `lstm_cell.wgsl` + `gru_cell.wgsl` |
 //! | `metrics` | shared across all | `FusedMapReduceF64` |
 
+pub mod evolved;
+pub mod gpu;
 pub mod metrics;
 pub mod provenance;
 pub mod sequence;

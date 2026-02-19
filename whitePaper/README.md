@@ -3,7 +3,8 @@
 ## The Isomorphic Learning Engine
 
 **Status**: Phase 0 + Phase 0+ complete — **75/75 quantitative checks pass** (48 synthetic + 27 scholarly)
-**Rust**: Phase 1 scaffolded — 4 library modules, 3 validation binaries, 23 unit tests, 21 binary checks
+**Rust**: Phase 1 complete — 9 library modules, 18 binaries, 34 unit tests, 285 binary checks (43 native + 242 BarraCUDA)
+**Fused Pipeline**: 43–78× speedup via single-encoder dispatch. GPU-resident head-split/concat and batched attention.
 
 ### Key Results — Phase 0 (Synthetic Baselines)
 
@@ -96,16 +97,57 @@ Christopher Waters' quorum sensing work frames bacterial cooperation as an evolu
 | **Tier 2** | Mhatre et al. (2020) "One gene, multiple ecological strategies: a biofilm regulator is a capacitor for sustainable diversity." PNAS 117:21647-21657 | Single regulatory node enabling phenotypic diversity = single constrained system producing diverse specialized primals |
 | **Tier 2** | Srivastava et al. (2011) "Integration of Cyclic di-GMP and Quorum Sensing in the Control of vpsT and aphA." J Bacteriology 193:6331-41 | Multi-input regulatory network = attention mechanism analog. Multiple noisy signals integrated through learned weights |
 
-### Phase 1 Rust Scaffolding (February 2026)
+### Phase 1 Rust Validation (February 2026)
 
-The audit produced a Rust validation layer that cross-checks Python baselines:
+The audit produced a Rust validation layer that cross-checks Python baselines.
+BarraCUDA CPU primitives are validated following the hotSpring pattern.
+
+#### neuralSpring-native modules (43 checks)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
 | `metrics.rs` | `compute_r2`, `compute_rmse`, `compute_mae` | 3 unit + 10 binary | R², RMSE, MAE, NSE at analytical known-values |
-| `surrogate.rs` | `rastrigin_2d`, `rosenbrock_2d`, `ackley_2d` | 6 unit + 5 binary | Global minima + 12 Python-computed reference points |
-| `transformer.rs` | `softmax`, `gelu_numpy` | 7 unit + 6 binary | Element-wise match against NumPy to <1e-12 |
+| `surrogate.rs` | `rastrigin_2d`, `rosenbrock_2d`, `ackley_2d` | 6 unit + 15 binary | Global minima + 12 Python-computed reference points |
+| `transformer.rs` | `softmax`, `gelu_numpy` | 7 unit + 18 binary | Element-wise match against NumPy to <1e-12 |
 | `sequence.rs` | `create_sequences`, `persistence_forecast`, `seasonal_tmax` | 7 unit | Window construction, sigmoid/tanh gates |
+
+#### BarraCUDA Primitives (242 checks)
+
+| Validation Binary | BarraCUDA Module | Checks | Reference Source |
+|-------------------|------------------|--------|-----------------|
+| `validate_barracuda_stats` | `stats::{variance, pearson, covariance, norm_*}` | 13 | Analytical formulas |
+| `validate_barracuda_linalg` | `linalg::{solve, lu, eigh, cholesky, tridiag}` | 17 | Analytical solutions |
+| `validate_barracuda_special` | `special::{gamma, erf, bessel, polynomials}` | 26 | NIST DLMF values |
+| `validate_barracuda_optimize` | `optimize::{nelder_mead, bisect, brent}` | 10 | Analytical minima/roots |
+| `validate_barracuda_precision` | `shaders::precision::cpu` (add, mul, fma, dot) | 12 | Exact f64 |
+| `validate_barracuda_tensor` | Tensor API (84 ops, CPU + GPU) | 84 | WGSL unified path |
+| `validate_barracuda_tensor_f64` | Tensor f64 API (GPU ops) | 35 | f64 GPU ops |
+| `validate_barracuda_quantized` | Q4/Q8 dequant, GEMV | 15 | Hand-constructed |
+| `validate_barracuda_linalg_ext` | SVD, LU inverse, gen eigh | 17 | Analytical |
+| `validate_barracuda_ml_inference` | MLP + Transformer end-to-end | 13 | Python/NumPy baselines |
+
+#### Fused ToadStool Pipeline (43–78× speedup)
+
+Per-op dispatch overhead (~200 µs per `queue.submit()`) dominated GPU inference.
+The fused pipeline pre-compiles shaders, pre-allocates buffers, and records all
+compute passes into a single `CommandEncoder`:
+
+| Model | Per-Op (GPU) | Fused (GPU) | Python/NumPy | Speedup vs Per-Op |
+|-------|-------------|-------------|--------------|-------------------|
+| MLP (4→64→64→10) | 4.0 ms | **92 µs** | 23 µs | **43.6×** |
+| Transformer (d=32,h=4,seq=8) | 13.3 ms | **174 µs** | 77 µs | **76.6×** |
+
+New GPU-resident WGSL shaders (head-split, head-concat, batched attention)
+eliminate all CPU round-trips from the Multi-Head Attention pipeline.
+See `specs/BENCHMARK_ANALYSIS.md` for the full 4-way comparison at multiple scales.
+
+#### Infrastructure
+
+| Module | Purpose |
+|--------|---------|
+| `validation.rs` | `ValidationHarness` — hotSpring pattern (check\_abs, check\_rel, exit 0/1) |
+| `tolerances.rs` | Centralized tolerance constants with mathematical justification |
+| `provenance.rs` | Python baseline metadata (script, commit, date, command, environment) |
 
 Quality gates: `cargo clippy` (pedantic+nursery, `-D warnings`), `cargo fmt`, `cargo doc`, `unsafe_code = "forbid"`.
 
@@ -113,15 +155,22 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module promotion path.
 
 ### BarraCUDA Primitive Coverage After Extensions
 
-| Primitive | Phase 0/0+ Status | Faculty Extension Target |
-|-----------|-------------------|------------------------|
-| GEMM | Validated (surrogate, transformer, PINN) | Liu: sequence alignment, phylogenetic likelihood |
-| Attention | Validated (transformer, DeepONet) | Waters: regulatory network graph attention |
-| Normalization | Validated (LayerNorm, BatchNorm) | Stable across all extensions |
-| Conv2d | Validated (LeNet-5) | Dolson: spatial evolution patterns |
-| LSTM cell | Validated (ERA5 weather) | Liu: HMM forward/backward (equivalent structure) |
-| Autograd | Validated (PINN Burgers) | Bazavov: lattice QCD force computation |
-| Quantized GEMV | Validated (INT8/INT4) | Deployment: all models at inference |
-| Evolutionary optimization | NOT YET | **Gap**: Dolson's MODES + counterdiabatic protocols |
-| Gillespie simulation | NOT YET | **Gap**: Waters' stochastic c-di-GMP dynamics |
-| HMM Viterbi | NOT YET | **Gap**: Liu's PhyloNet-HMM decoding |
+| Primitive | Phase 0/0+ | Phase 1 (CPU+GPU) | Faculty Extension |
+|-----------|------------|--------------------|--------------------|
+| GEMM | Validated | **84/84** (Tensor API) | Liu: sequence alignment |
+| Attention | Validated | **13/13** (ML inference) | Waters: graph attention |
+| Normalization | Validated | **Evolved** (GPU-resident) | Stable across all |
+| Conv2d | Validated | — | Dolson: spatial evolution |
+| LSTM cell | Validated | — | Liu: HMM forward/backward |
+| Autograd | Validated | — | Bazavov: lattice QCD |
+| Quantized GEMV | Validated | **15/15** | Deployment: all models |
+| **Stats** | — | **13/13 PASS** | Building blocks for metrics |
+| **Linear Algebra** | — | **34/34 PASS** (linalg + ext) | Physics solvers, PDE |
+| **Special Functions** | — | **26/26 PASS** | Liu: phylogenetic likelihood |
+| **Optimization** | — | **10/10 PASS** | Dolson: landscape search |
+| **Tensor f64** | — | **35/35 PASS** | High-precision compute |
+| **Precision** | — | **12/12 PASS** | Numerical verification |
+| **Fused Pipeline** | — | **43–78× speedup** | Single-encoder dispatch |
+| Evolutionary optimization | NOT YET | NOT YET | **Gap**: Dolson's MODES |
+| Gillespie simulation | NOT YET | NOT YET | **Gap**: Waters' c-di-GMP |
+| HMM Viterbi | NOT YET | NOT YET | **Gap**: Liu's PhyloNet-HMM |

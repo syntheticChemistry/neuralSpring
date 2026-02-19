@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: February 12, 2026
+**Last Updated**: February 19, 2026
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---
@@ -113,5 +113,26 @@ neuralSpring validates the ML primitives that all springs consume:
 | Conv2d | Study 003 | wetSpring (spectral image analysis), future vision |
 | Autograd | Study 001 | hotSpring (force computation), groundSpring (sensitivity) |
 | Attention | Exp 002 | biomeOS PathwayLearner, neuralAPI capability routing |
+
+### BarraCUDA Primitives Validated (Phase 1b — February 2026)
+
+`barracuda` path dependency added; 9 validation binaries call `barracuda::*` directly.
+The `tensor` binary exercises the **unified Tensor/WGSL path** — same shaders that run on GPU.
+
+| Binary | Module | Checks | Status |
+|--------|--------|--------|--------|
+| `validate_barracuda_stats` | `stats::{variance, pearson, cov, spearman, norm_*}` | 13 | **PASS** |
+| `validate_barracuda_linalg` | `linalg::{solve, lu_*, eigh, cholesky, tridiag}` | 17 | **PASS** |
+| `validate_barracuda_special` | `special::{gamma, erf, bessel_*, legendre, hermite, laguerre}` | 26 | **PASS** |
+| `validate_barracuda_optimize` | `optimize::{nelder_mead, bisect, brent}` | 10 | **PASS** |
+| `validate_barracuda_precision` | `shaders::precision::cpu` (add, mul, fma, dot, sum) | 12 | **PASS** |
+| `validate_barracuda_tensor` | Tensor API: relu, gelu, sigmoid, softmax, layer\_norm, matmul, mse\_loss + tanh, exp, log, sqrt, div, scalar ops, reductions, swish, mish, losses, transpose, evolved ops | 84 | **PASS** |
+| `validate_barracuda_tensor_f64` | f64 GPU ops: roundtrip, SumReduce, FusedMapReduce, NormReduce, VarianceReduce, WeightedDot, MaxAbsDiff, CosineSimilarity | 35 | **PASS** |
+| `validate_barracuda_quantized` | `shaders::quantized` (dequant Q4/Q8, GEMV) | 15 | **PASS** |
+| `validate_barracuda_linalg_ext` | `linalg::{svd_*, lu_inverse, gen_eigh}` | 17 | **PASS** |
+| `validate_barracuda_ml_inference` | ML inference: MLP + Transformer end-to-end vs Python/NumPy baselines | 13 | **PASS** |
+| **Total** | | **242** | **ALL PASS** |
+
+---
 
 neuralSpring is the validation layer. ToadStool is the implementation layer. The springs are the application layers.

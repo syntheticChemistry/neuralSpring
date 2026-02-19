@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 18, 2026
+**Last Updated**: February 19, 2026
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -19,16 +19,35 @@
 
 ### Tier A — Direct Rewire (ready for Rust port)
 
-| Python Module | Rust Module | WGSL Shader | Pipeline Stage | Blocker |
-|---------------|-------------|-------------|----------------|---------|
-| `transformer/` softmax | `transformer::softmax` | `attention.wgsl` (softmax stage) | Inference | **None** — implemented |
-| `transformer/` GELU | `transformer::gelu` | elementwise | Inference | **None** — implemented |
+| Python Module | Rust Module | WGSL Shader | Pipeline Stage | Status |
+|---------------|-------------|-------------|----------------|--------|
+| `transformer/` softmax | `transformer::softmax` | `attention.wgsl` (softmax stage) | Inference | **VALIDATED** (18 checks) |
+| `transformer/` GELU | `transformer::gelu` | elementwise | Inference | **VALIDATED** (18 checks) |
 | `transformer/` LayerNorm | `transformer::layer_norm` (stub) | `layer_norm.wgsl` | Inference | Implement norm |
 | `transformer/` SDPA | `transformer::sdpa` (stub) | `attention.wgsl` | Inference | Implement QKV matmul |
-| `surrogate/` Rastrigin | `surrogate::rastrigin_2d` | N/A (test function) | Validation | **None** — implemented |
-| `surrogate/` Rosenbrock | `surrogate::rosenbrock_2d` | N/A (test function) | Validation | **None** — implemented |
-| `surrogate/` Ackley | `surrogate::ackley_2d` | N/A (test function) | Validation | **None** — implemented |
-| `surrogate/` R²/RMSE/MAE | `metrics::*` | `FusedMapReduceF64` | Validation | **None** — implemented |
+| `surrogate/` Rastrigin | `surrogate::rastrigin_2d` | N/A (test function) | Validation | **VALIDATED** (15 checks) |
+| `surrogate/` Rosenbrock | `surrogate::rosenbrock_2d` | N/A (test function) | Validation | **VALIDATED** (15 checks) |
+| `surrogate/` Ackley | `surrogate::ackley_2d` | N/A (test function) | Validation | **VALIDATED** (15 checks) |
+| `surrogate/` R²/RMSE/MAE | `metrics::*` | `FusedMapReduceF64` | Validation | **VALIDATED** (10 checks) |
+
+### Tier A+ — BarraCUDA CPU Primitives (validated 2026-02-19)
+
+Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
+Follows hotSpring pattern: `ValidationHarness`, hardcoded expected, exit 0/1.
+
+| BarraCUDA Module | Validation Binary | Checks | Status |
+|------------------|-------------------|--------|--------|
+| `stats::{variance, std_dev, pearson, covariance, spearman, norm_*}` | `validate_barracuda_stats` | 13 | **PASS** |
+| `linalg::{solve_f64, lu_det, lu_solve, eigh_f64, cholesky_f64, tridiag}` | `validate_barracuda_linalg` | 17 | **PASS** |
+| `special::{gamma, factorial, erf, bessel, legendre, hermite, laguerre}` | `validate_barracuda_special` | 26 | **PASS** |
+| `optimize::{nelder_mead, bisect, brent}` | `validate_barracuda_optimize` | 10 | **PASS** |
+| `shaders::precision::cpu` (add, mul, fma, dot, kahan\_sum) | `validate_barracuda_precision` | 12 | **PASS** |
+| **Tensor API** (relu, gelu, sigmoid, softmax, layer\_norm, matmul, mse\_loss + tanh, exp, log, sqrt, div, scalar ops, reductions, swish, mish, losses, transpose, evolved ops) | `validate_barracuda_tensor` | 84 | **PASS** |
+| **Tensor f64 API** (roundtrip, SumReduce, FusedMapReduce, NormReduce, VarianceReduce, WeightedDot, MaxAbsDiff, CosineSimilarity) | `validate_barracuda_tensor_f64` | 35 | **PASS** |
+| `shaders::quantized` (dequant Q4/Q8, GEMV) | `validate_barracuda_quantized` | 15 | **PASS** |
+| `linalg::{svd\_\*, lu\_inverse, gen\_eigh}` | `validate_barracuda_linalg_ext` | 17 | **PASS** |
+| **ML Inference** (MLP + Transformer end-to-end vs Python baselines) | `validate_barracuda_ml_inference` | 13 | **PASS** |
+| **Total** | **10 binaries** | **242** | **ALL PASS** |
 
 ### Tier B — Adapt (needs training infrastructure)
 
@@ -76,7 +95,9 @@ For each Rust module → GPU promotion:
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
-| Phase 0 (Python baselines) | **75/75 PASS** | 10 experiments |
-| Phase 1 (Rust validation) | **Scaffolded** | 3 modules, 10 tests, 2 validation binaries |
+| Phase 0 (Python baselines) | **75/75 PASS** | 10 experiments, 48 pytest |
+| Phase 1a (neuralSpring Rust) | **43/43 PASS** | 9 modules, 34 unit tests, 3 validation binaries |
+| Phase 1b (BarraCUDA) | **242/242 PASS** | 10 validation binaries, incl. unified Tensor/WGSL path (84), tensor_f64 (35), ml_inference (13), evolved ops |
+| Phase 1c (Fused pipeline) | **43–78× speedup** | Single-encoder dispatch, GPU-resident head-split/concat, batched attention |
 | Phase 2 (GPU shaders) | **Planned** | Mapping documented above |
 | Phase 3 (Sovereign pipeline) | **Planned** | Depends on Phase 2 |
