@@ -106,11 +106,102 @@ to optimize 6 ops, not 600.
 
 ### Grand Total: 48 checks across 5 experiments
 
+## Phase 0+: Scholarly Reproduction Studies
+
+Each reproduction follows the same framework as Phase 0 but targets a published result:
+1. **Paper identification** — peer-reviewed paper with reproducible methodology
+2. **Faithful reimplementation** — Python/PyTorch following the paper's method
+3. **Validation against published results** — quantitative checks vs paper's reported values
+4. **Tolerance justification** — documented rationale for any departure from exact reproduction
+5. **Isomorphic analysis** — map new ops to BarraCUDA WGSL shaders
+
+### Study 001: PINN Burgers' Equation (6 checks)
+
+**Paper**: Raissi, Perdikaris, Karniadakis (2019) "Physics-informed neural networks." JCP 378:686-707
+
+| Check | Target |
+|-------|--------|
+| IC validation (Cole-Hopf exact) | error < 1e-6 |
+| BC validation | error < 1e-15 |
+| Training convergence | best loss < 0.01 |
+| L2 relative error | < 15% (paper: 0.06% with L-BFGS) |
+| Shock steepening detected | gradient increase confirmed |
+| Op analysis (autograd) | GEMM + tanh + autograd mapped |
+
+**Tolerance**: 5.1% vs paper's 0.06% — our Adam-only optimizer vs paper's Adam + L-BFGS. L-BFGS is a P1 BarraCUDA gap.
+
+### Study 002: DeepONet Antiderivative (5 checks)
+
+**Paper**: Lu et al. (2021) "Learning nonlinear operators." Nature Machine Intelligence 3:218-229
+
+| Check | Target |
+|-------|--------|
+| Data generation (1000 train) | Polynomial basis functions |
+| Mean L2 error | < 5% |
+| RMSE | < 0.05 |
+| Specific operators (2/3 < 0.1) | u(x)=1, u(x)=x, u(x)=sin(πx) |
+| Architecture analysis | Branch-trunk ≈ encoder-decoder |
+
+### Study 003: LeNet-5 MNIST (5 checks)
+
+**Paper**: LeCun et al. (1998) "Gradient-based learning." Proc IEEE 86(11):2278-2324
+
+| Check | Target |
+|-------|--------|
+| MNIST loaded | 60,000 train, 10,000 test |
+| Test accuracy | ≥ 98.5% (paper: ~99.05%) |
+| All digits ≥ 95% | Per-digit accuracy |
+| Feature map dimensions | (1,16,5,5) correct |
+| Op analysis (Conv + Pool + FC) | Mapped to BarraCUDA |
+
+### Study 004: LSTM ERA5 Weather (5 checks)
+
+**Data**: Open-Meteo ERA5 reanalysis (ECMWF Copernicus), East Lansing MI, 2020-2023
+
+| Check | Target |
+|-------|--------|
+| Data loaded (real ERA5) | ≥ 1000 days |
+| NSE | > 0.80 |
+| RMSE | < 5.0°C |
+| Multi-horizon analysis | 1d/3d/7d completed |
+| Op analysis (LSTM cell) | Mapped to BarraCUDA |
+
+### Study 005: Quantized Inference (6 checks)
+
+**Papers**: Dettmers et al. (2022) NeurIPS, Frantar et al. (2023) ICLR
+
+| Check | Target |
+|-------|--------|
+| FP32 baseline R² | > 0.99 |
+| INT8 degradation | < 1% R² |
+| INT4 degradation | < 5% R² |
+| Throughput benchmark | Completed |
+| Memory analysis | FP32→Q4 compression ratio |
+| BarraCUDA mapping | gemv_q4/q8 validated |
+
+### Grand Total: 27 checks across 5 studies
+
+## Combined: 75 checks across 10 experiments (48 Phase 0 + 27 Phase 0+)
+
+## Phase 1: Rust Validation Scaffolding
+
+The Rust layer cross-validates Python baselines using hardcoded expected values (hotSpring pattern):
+
+| Component | Checks | Pattern |
+|-----------|--------|---------|
+| `validate_surrogate` | 5 | Global minima + known-values for Rastrigin, Rosenbrock, Ackley |
+| `validate_transformer` | 6 | Softmax properties + GELU known-values |
+| `validate_metrics` | 10 | R², RMSE, MAE, NSE against analytical expectations |
+| Rust unit tests | 23 | Cross-language validation (Python-computed values hardcoded in Rust) |
+
+Quality gates: `cargo clippy` (pedantic + nursery), `cargo fmt`, `cargo doc`, `unsafe_code = "forbid"`.
+
 ## Evolution Roadmap
 
-| Phase | Focus | Validates |
-|-------|-------|-----------|
-| 0 | Python/PyTorch baselines | Science correctness |
-| 1 | BarraCUDA Rust port | WGSL shader correctness |
-| 2 | Quantized inference | Q4/Q8 deployment |
-| 3 | Cross-spring integration | Live surrogates |
+| Phase | Focus | Validates | Status |
+|-------|-------|-----------|--------|
+| 0 | Python/PyTorch baselines (48 checks) | Science correctness | **COMPLETE** |
+| 0+ | Scholarly reproductions (27 checks) | Published result fidelity | **COMPLETE** |
+| 1 | BarraCUDA Rust port | WGSL shader correctness | **SCAFFOLDED** |
+| 2 | Quantized inference on GPU | Q4/Q8 deployment | Planned (Study 005 validates the math) |
+| 3 | Cross-spring integration | Live surrogates | Planned |

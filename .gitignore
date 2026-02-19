@@ -1,5 +1,6 @@
 # Data (downloaded, computed — not tracked)
 data/
+results/
 *.csv.gz
 *.nc
 *.pt
@@ -12,6 +13,13 @@ __pycache__/
 *.pyo
 .venv/
 *.egg-info/
+
+# Rust
+target/
+Cargo.lock
+
+# pytest
+.pytest_cache/
 
 # OS
 .DS_Store

@@ -19,7 +19,6 @@ validates the mapping, and produces the definitive op catalog that
 guides BarraCUDA's neuralSpring evolution.
 """
 
-import json
 import sys
 from pathlib import Path
 
@@ -28,6 +27,7 @@ import numpy as np
 try:
     import torch
     import torch.nn as nn
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -180,7 +180,7 @@ ARCHITECTURES = {
         "params": 4673,
         "layers": 3,
         "ops_per_sample": {
-            "gemm_input": 1,   # 6→64
+            "gemm_input": 1,  # 6→64
             "gemm_hidden": 1,  # 64→64
             "gemm_output": 1,  # 64→1
             "relu": 2,
@@ -201,13 +201,13 @@ ARCHITECTURES = {
         "params": 4513,
         "layers": 1,
         "ops_per_timestep": {
-            "input_gate": 1,   # sigmoid(W_i x + U_i h + b_i)
+            "input_gate": 1,  # sigmoid(W_i x + U_i h + b_i)
             "forget_gate": 1,  # sigmoid(W_f x + U_f h + b_f)
-            "cell_gate": 1,    # tanh(W_c x + U_c h + b_c)
+            "cell_gate": 1,  # tanh(W_c x + U_c h + b_c)
             "output_gate": 1,  # sigmoid(W_o x + U_o h + b_o)
             "cell_update": 1,  # c = f*c + i*g
             "hidden_update": 1,  # h = o*tanh(c)
-            "fc_output": 1,    # Linear head
+            "fc_output": 1,  # Linear head
         },
         "barracuda_mapping": {
             "input_gate": "lstm_cell.wgsl",
@@ -236,8 +236,12 @@ PRIMITIVES = {
     "Attention": {
         "description": "Scaled dot-product attention = learned routing",
         "flop_fraction": "10-30% in transformers, 0% in CNN/MLP",
-        "barracuda": ["attention.wgsl", "mha_output.wgsl",
-                       "causal_attn.wgsl", "flash_attention.wgsl"],
+        "barracuda": [
+            "attention.wgsl",
+            "mha_output.wgsl",
+            "causal_attn.wgsl",
+            "flash_attention.wgsl",
+        ],
         "appears_in": ["llama", "openfold", "vit"],
     },
     "Normalization": {
@@ -273,8 +277,7 @@ PRIMITIVES = {
     "Quantization": {
         "description": "Deployment compression (Q4, Q8, FP16)",
         "flop_fraction": "Same ops, reduced precision → higher throughput",
-        "barracuda": ["dequant_q4.wgsl", "dequant_q8.wgsl",
-                       "gemv_q4.wgsl", "gemv_q8.wgsl"],
+        "barracuda": ["dequant_q4.wgsl", "dequant_q8.wgsl", "gemv_q4.wgsl", "gemv_q8.wgsl"],
         "appears_in": ["llama.cpp", "vit (int8)", "mlp (deployment)"],
     },
 }
@@ -283,8 +286,12 @@ PRIMITIVES = {
 def validate_barracuda_coverage():
     """Check that BarraCUDA has WGSL shaders for all identified primitives."""
     barracuda_shaders_dir = (
-        Path(__file__).parent.parent.parent.parent /
-        "phase1" / "toadstool" / "crates" / "barracuda" / "src"
+        Path(__file__).parent.parent.parent.parent
+        / "phase1"
+        / "toadstool"
+        / "crates"
+        / "barracuda"
+        / "src"
     )
 
     known_shaders = set()
@@ -306,6 +313,7 @@ def validate_barracuda_coverage():
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main():
     total_passed = 0
     total_failed = 0
@@ -319,14 +327,14 @@ def main():
     # ------------------------------------------------------------------
     print("\n--- Part 1: Architecture Survey ---")
     print(f"\n  {'Architecture':<35s} {'Domain':<20s} {'Params':<15s}")
-    print(f"  {'-'*70}")
+    print(f"  {'-' * 70}")
 
-    for key, arch in ARCHITECTURES.items():
+    for _key, arch in ARCHITECTURES.items():
         params_str = f"{arch['params']:>12,}"
         print(f"  {arch['name']:<35s} {arch['domain']:<20s} {params_str}")
 
     print(f"\n  Architectures cataloged: {len(ARCHITECTURES)}")
-    print(f"  [PASS] Architecture survey completed")
+    print("  [PASS] Architecture survey completed")
     total_passed += 1
 
     # ------------------------------------------------------------------
@@ -335,7 +343,7 @@ def main():
     print("\n--- Part 2: Fundamental Primitive Extraction ---")
     print(f"\n  The {len(PRIMITIVES)} isomorphic primitives:")
     print(f"  {'Primitive':<20s} {'Domains':<12s} {'FLOPs':<30s}")
-    print(f"  {'-'*62}")
+    print(f"  {'-' * 62}")
 
     for name, prim in PRIMITIVES.items():
         n_domains = len(prim["appears_in"])
@@ -367,7 +375,7 @@ def main():
 
     domains = sorted(set(a["domain"] for a in ARCHITECTURES.values()))
     arch_by_domain = {}
-    for key, arch in ARCHITECTURES.items():
+    for key, arch in ARCHITECTURES.items():  # noqa: B007 — key stored in dict
         arch_by_domain[arch["domain"]] = key
 
     # Build isomorphism matrix
@@ -394,17 +402,19 @@ def main():
     # Count shared primitives between domain pairs
     shared_count = 0
     for i in range(len(domains)):
-        for j in range(i+1, len(domains)):
+        for j in range(i + 1, len(domains)):
             shared = np.sum(iso_matrix[:, i] & iso_matrix[:, j])
             if shared > 0:
                 shared_count += 1
 
     if shared_count > 0:
-        print(f"\n  [PASS] Cross-domain sharing detected "
-              f"({shared_count} domain pairs share primitives)")
+        print(
+            f"\n  [PASS] Cross-domain sharing detected "
+            f"({shared_count} domain pairs share primitives)"
+        )
         total_passed += 1
     else:
-        print(f"\n  [FAIL] No cross-domain sharing")
+        print("\n  [FAIL] No cross-domain sharing")
         total_failed += 1
 
     # ------------------------------------------------------------------
@@ -421,57 +431,56 @@ def main():
 
         print(f"  BarraCUDA shaders found: {len(known_shaders)}")
         print(f"  neuralSpring needs: {len(needed_shaders)}")
-        print(f"  Covered: {len(covered)}/{len(needed_shaders)} "
-              f"({coverage_pct:.0f}%)")
+        print(f"  Covered: {len(covered)}/{len(needed_shaders)} ({coverage_pct:.0f}%)")
 
         if missing:
             print(f"  Missing: {', '.join(sorted(missing))}")
         else:
-            print(f"  All needed shaders present!")
+            print("  All needed shaders present!")
 
         if coverage_pct >= 70:
-            print(f"  [PASS] BarraCUDA coverage ≥ 70%")
+            print("  [PASS] BarraCUDA coverage ≥ 70%")
             total_passed += 1
         else:
             print(f"  [FAIL] BarraCUDA coverage {coverage_pct:.0f}% < 70%")
             total_failed += 1
     else:
-        print(f"  BarraCUDA shader directory not found (standalone run)")
-        print(f"  Listing needed WGSL shaders from catalog:")
+        print("  BarraCUDA shader directory not found (standalone run)")
+        print("  Listing needed WGSL shaders from catalog:")
         for shader in sorted(needed_shaders):
             print(f"    - {shader}.wgsl")
-        print(f"  [PASS] Shader catalog generated (no BarraCUDA dir to verify)")
+        print("  [PASS] Shader catalog generated (no BarraCUDA dir to verify)")
         total_passed += 1
 
     # ------------------------------------------------------------------
     # Part 5: Quantization Analysis
     # ------------------------------------------------------------------
     print("\n--- Part 5: Quantization Path ---")
-    print(f"\n  Precision vs throughput trade-off:")
+    print("\n  Precision vs throughput trade-off:")
     print(f"  {'Format':<10s} {'Bits':<6s} {'Relative Throughput':<25s} {'Use Case'}")
-    print(f"  {'-'*70}")
+    print(f"  {'-' * 70}")
     print(f"  {'FP64':<10s} {'64':<6s} {'1× (baseline)':<25s} {'Science validation'}")
     print(f"  {'FP32':<10s} {'32':<6s} {'2×':<25s} {'Training'}")
     print(f"  {'FP16':<10s} {'16':<6s} {'4×':<25s} {'Inference'}")
     print(f"  {'Q8':<10s} {'8':<6s} {'8×':<25s} {'Edge deployment'}")
     print(f"  {'Q4':<10s} {'4':<6s} {'16×':<25s} {'Consumer GPU inference'}")
 
-    print(f"\n  BarraCUDA quantized ops:")
-    print(f"    dequant_q4.wgsl — 4-bit dequantization")
-    print(f"    dequant_q8.wgsl — 8-bit dequantization")
-    print(f"    gemv_q4.wgsl   — quantized matrix-vector multiply")
-    print(f"    gemv_q8.wgsl   — quantized matrix-vector multiply")
+    print("\n  BarraCUDA quantized ops:")
+    print("    dequant_q4.wgsl — 4-bit dequantization")
+    print("    dequant_q8.wgsl — 8-bit dequantization")
+    print("    gemv_q4.wgsl   — quantized matrix-vector multiply")
+    print("    gemv_q8.wgsl   — quantized matrix-vector multiply")
 
-    print(f"\n  Isomorphic insight: llama.cpp's GGML Q4 quantization and")
-    print(f"  BarraCUDA's gemv_q4.wgsl solve the SAME problem.")
-    print(f"  [PASS] Quantization path analyzed")
+    print("\n  Isomorphic insight: llama.cpp's GGML Q4 quantization and")
+    print("  BarraCUDA's gemv_q4.wgsl solve the SAME problem.")
+    print("  [PASS] Quantization path analyzed")
     total_passed += 1
 
     # ------------------------------------------------------------------
     # Part 6: The Isomorphism Theorem
     # ------------------------------------------------------------------
-    print(f"\n--- Part 6: The Isomorphism Theorem ---")
-    print(f"""
+    print("\n--- Part 6: The Isomorphism Theorem ---")
+    print("""
   THEOREM: All neural architectures decompose into compositions of:
 
     1. GEMM (matrix multiply)     — the universal workhorse
@@ -493,7 +502,7 @@ def main():
   BarraCUDA already has WGSL shaders for ALL SIX primitives.
   neuralSpring proves they produce correct learning.
 """)
-    print(f"  [PASS] Isomorphism theorem stated and validated")
+    print("  [PASS] Isomorphism theorem stated and validated")
     total_passed += 1
 
     # ------------------------------------------------------------------
@@ -508,9 +517,7 @@ def main():
                 super().__init__()
                 self.attn = nn.MultiheadAttention(d, heads, batch_first=True)
                 self.norm1 = nn.LayerNorm(d)
-                self.ffn = nn.Sequential(
-                    nn.Linear(d, ff), nn.GELU(), nn.Linear(ff, d)
-                )
+                self.ffn = nn.Sequential(nn.Linear(d, ff), nn.GELU(), nn.Linear(ff, d))
                 self.norm2 = nn.LayerNorm(d)
 
             def forward(self, x):
@@ -519,23 +526,24 @@ def main():
                 f = self.ffn(x)
                 return self.norm2(x + f)
 
+        torch.manual_seed(42)
         model = MiniTransformer()
         x = torch.randn(1, 8, 32)
         y = model(x)
 
         # Verify output shape and finiteness
         if y.shape == (1, 8, 32) and torch.isfinite(y).all():
-            print(f"  [PASS] Mini-transformer produces correct output shape")
+            print("  [PASS] Mini-transformer produces correct output shape")
             total_passed += 1
         else:
-            print(f"  [FAIL] Mini-transformer output issue")
+            print("  [FAIL] Mini-transformer output issue")
             total_failed += 1
 
         # Count parameters
         n_params = sum(p.numel() for p in model.parameters())
         print(f"  Parameters: {n_params:,}")
-        print(f"  Layers: MHA + LN + FFN(GELU) + LN")
-        print(f"  This IS the fundamental block of GPT/LLaMA/ViT/OpenFold")
+        print("  Layers: MHA + LN + FFN(GELU) + LN")
+        print("  This IS the fundamental block of GPT/LLaMA/ViT/OpenFold")
 
     # ------------------------------------------------------------------
     # Key Findings
@@ -544,23 +552,23 @@ def main():
     print("KEY FINDINGS:")
     print(f"{'=' * 72}")
 
-    print(f"\n1. Six Fundamental Primitives explain ALL architectures")
-    print(f"   GEMM, Attention, Normalization, Nonlinearity, Reduction, Gating")
+    print("\n1. Six Fundamental Primitives explain ALL architectures")
+    print("   GEMM, Attention, Normalization, Nonlinearity, Reduction, Gating")
 
-    print(f"\n2. GEMM dominates (60-90% of FLOPs in every architecture)")
-    print(f"   gemm_f64.wgsl + gemv_q4.wgsl are the critical shaders")
+    print("\n2. GEMM dominates (60-90% of FLOPs in every architecture)")
+    print("   gemm_f64.wgsl + gemv_q4.wgsl are the critical shaders")
 
-    print(f"\n3. BarraCUDA has shaders for all 6 primitives")
-    print(f"   neuralSpring experiments validate the math behind each")
+    print("\n3. BarraCUDA has shaders for all 6 primitives")
+    print("   neuralSpring experiments validate the math behind each")
 
-    print(f"\n4. The evolution path:")
-    print(f"   Phase 0: Python/PyTorch baselines (this) — validate the science")
-    print(f"   Phase 1: BarraCUDA validation — prove WGSL shaders match")
-    print(f"   Phase 2: Quantized inference — Q4/Q8 on consumer GPU")
-    print(f"   Phase 3: Full integration — sovereign ML on ToadStool")
+    print("\n4. The evolution path:")
+    print("   Phase 0: Python/PyTorch baselines (this) — validate the science")
+    print("   Phase 1: BarraCUDA validation — prove WGSL shaders match")
+    print("   Phase 2: Quantized inference — Q4/Q8 on consumer GPU")
+    print("   Phase 3: Full integration — sovereign ML on ToadStool")
 
-    print(f"\n5. Isomorphic patterns mean ONE engine serves ALL domains")
-    print(f"   The Rust evolution team needs to optimize 6 ops, not 600")
+    print("\n5. Isomorphic patterns mean ONE engine serves ALL domains")
+    print("   The Rust evolution team needs to optimize 6 ops, not 600")
 
     # ------------------------------------------------------------------
     # Summary

@@ -1,45 +1,97 @@
 {
-  "_source": "neuralSpring Experiment 001 — Neural Surrogate Validation",
+  "_source": "neuralSpring Experiment 001 \u2014 Neural Surrogate Validation",
   "_description": "Compare MLP neural surrogate against RBF interpolation on standard benchmarks and FAO-56 ET0",
   "_neuralspring_question": "Can a small neural network match or beat classical surrogates for scientific functions?",
-
   "benchmark_functions": {
     "rastrigin_2d": {
       "formula": "20 + x^2 - 10*cos(2*pi*x) + y^2 - 10*cos(2*pi*y)",
-      "domain": [[-5.12, 5.12], [-5.12, 5.12]],
+      "domain": [
+        [
+          -5.12,
+          5.12
+        ],
+        [
+          -5.12,
+          5.12
+        ]
+      ],
       "global_min": 0.0,
-      "global_min_at": [0.0, 0.0],
+      "global_min_at": [
+        0.0,
+        0.0
+      ],
       "characteristics": "Highly multimodal, many local minima"
     },
     "rosenbrock_2d": {
       "formula": "(1-x)^2 + 100*(y - x^2)^2",
-      "domain": [[-5, 10], [-5, 10]],
+      "domain": [
+        [
+          -5,
+          10
+        ],
+        [
+          -5,
+          10
+        ]
+      ],
       "global_min": 0.0,
-      "global_min_at": [1.0, 1.0],
+      "global_min_at": [
+        1.0,
+        1.0
+      ],
       "characteristics": "Narrow curved valley"
     },
     "ackley_2d": {
       "formula": "-20*exp(-0.2*sqrt(0.5*(x^2+y^2))) - exp(0.5*(cos(2*pi*x)+cos(2*pi*y))) + e + 20",
-      "domain": [[-5, 5], [-5, 5]],
+      "domain": [
+        [
+          -5,
+          5
+        ],
+        [
+          -5,
+          5
+        ]
+      ],
       "global_min": 0.0,
-      "global_min_at": [0.0, 0.0],
+      "global_min_at": [
+        0.0,
+        0.0
+      ],
       "characteristics": "Nearly flat outer region with deep central well"
     }
   },
-
   "fao56_surrogate": {
     "_description": "Learn FAO-56 ET0 as a function of (tmax, tmin, rh, wind, radiation)",
-    "_cross_spring": "airSpring — validated ET0 implementation",
+    "_cross_spring": "airSpring \u2014 validated ET0 implementation",
     "input_ranges": {
-      "tmax_c": [10, 45],
-      "tmin_c": [0, 30],
-      "rhmax_pct": [30, 100],
-      "rhmin_pct": [10, 80],
-      "wind_km_h": [1, 30],
-      "sunshine_hours": [2, 14]
+      "tmax_c": [
+        10,
+        45
+      ],
+      "tmin_c": [
+        0,
+        30
+      ],
+      "rhmax_pct": [
+        30,
+        100
+      ],
+      "rhmin_pct": [
+        10,
+        80
+      ],
+      "wind_km_h": [
+        1,
+        30
+      ],
+      "sunshine_hours": [
+        2,
+        14
+      ]
     },
     "reference_day": {
-      "latitude_deg_n": 50.80,
+      "latitude_deg_n": 50.8,
       "altitude_m": 100,
       "day_of_year": 187
     },
@@ -47,29 +99,40 @@
     "n_test": 500,
     "accuracy_target_rmse": 0.15
   },
-
   "mlp_config": {
-    "hidden_layers": [64, 64],
+    "hidden_layers": [
+      64,
+      64
+    ],
     "activation": "relu",
     "epochs": 500,
     "learning_rate": 0.001,
     "batch_size": 64
   },
-
   "rbf_config": {
     "kernel": "thin_plate_spline",
     "smoothing": 0.0
   },
-
   "acceptance_criteria": {
     "benchmark_r2_min": {
-      "_note": "Rastrigin is multimodal — random samples struggle. This is WHY hotSpring's SparsitySampler matters.",
-      "rastrigin_2d": 0.40,
+      "_note": "Rastrigin is multimodal \u2014 random samples struggle. This is WHY hotSpring's SparsitySampler matters.",
+      "rastrigin_2d": 0.4,
       "rosenbrock_2d": 0.95,
-      "ackley_2d": 0.90
+      "ackley_2d": 0.9
     },
-    "fao56_surrogate_rmse_max": 0.20,
+    "fao56_surrogate_rmse_max": 0.2,
     "fao56_r2_min": 0.95,
     "mlp_matches_rbf": true
+  },
+  "_provenance": {
+    "baseline_date": "2026-02-16",
+    "hardware": "Eastgate i9-12900K, 32GB DDR5, RTX 4070 12GB",
+    "os": "Pop!_OS 22.04",
+    "python": "3.10",
+    "pytorch": "2.9.0+cu128",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3",
+    "result": "11/11 PASS",
+    "command": "python3 control/surrogate/surrogate_validation.py"
   }
 }

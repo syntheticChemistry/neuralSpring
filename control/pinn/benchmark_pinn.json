@@ -5,22 +5,36 @@
   "_github": "https://github.com/maziarraissi/PINNs (MIT License)",
   "_pytorch_replication": "https://github.com/oscar-rincon/ReScience-PINNs",
   "_neuralspring_question": "Can an MLP learn the solution to a nonlinear PDE by embedding physics in the loss function?",
-
   "burgers_equation": {
     "pde": "u_t + u * u_x - (0.01/pi) * u_xx = 0",
-    "domain_x": [-1.0, 1.0],
-    "domain_t": [0.0, 1.0],
+    "domain_x": [
+      -1.0,
+      1.0
+    ],
+    "domain_t": [
+      0.0,
+      1.0
+    ],
     "viscosity": 0.01,
     "initial_condition": "u(0, x) = -sin(pi * x)",
     "boundary_conditions": "u(t, -1) = u(t, 1) = 0"
   },
-
   "network": {
-    "layers": [2, 20, 20, 20, 20, 20, 20, 20, 20, 1],
+    "layers": [
+      2,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      1
+    ],
     "activation": "tanh",
     "initialization": "xavier_normal"
   },
-
   "training": {
     "n_collocation": 10000,
     "n_boundary": 100,
@@ -30,25 +44,31 @@
     "optimizer_lbfgs_max_iter": 50000,
     "_note": "Paper uses Adam + L-BFGS. We do Adam-only for simplicity, then optionally L-BFGS."
   },
-
   "reference_solution": {
     "method": "analytical via Cole-Hopf transform",
     "n_test_x": 256,
     "n_test_t": 100,
     "_note": "Burgers' equation with viscosity 0.01/pi has an exact solution via Cole-Hopf transformation"
   },
-
   "acceptance_criteria": {
     "l2_relative_error_max": 0.15,
     "paper_reported_error": 0.0006,
     "_note": "Paper achieves ~0.06% with L-BFGS. Adam-only with cosine annealing targets <15%. This is a baseline for BarraCUDA evolution."
   },
-
   "barracuda_mapping": {
-    "forward_pass": "gemm_f64.wgsl (8 layers × 20 neurons)",
+    "forward_pass": "gemm_f64.wgsl (8 layers \u00d7 20 neurons)",
     "activation": "tanh (elementwise)",
     "autograd": "fd_gradient_f64.wgsl (PDE residual computation)",
     "optimizer": "nn::Optimizer::Adam, nn::Optimizer::LBFGS",
     "loss": "mse_loss (data + physics residual)"
+  },
+  "_provenance": {
+    "baseline_date": "2026-02-16",
+    "hardware": "Eastgate i9-12900K, 32GB DDR5, RTX 4070 12GB",
+    "os": "Pop!_OS 22.04",
+    "python": "3.10",
+    "pytorch": "2.9.0+cu128",
+    "result": "6/6 PASS (L2 ~5.1%)",
+    "command": "python3 control/pinn/pinn_burgers.py"
   }
 }

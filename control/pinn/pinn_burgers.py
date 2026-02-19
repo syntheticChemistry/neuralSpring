@@ -36,7 +36,6 @@ BarraCUDA connection:
 """
 
 import json
-import math
 import sys
 import time
 from pathlib import Path
@@ -47,6 +46,7 @@ try:
     import torch
     import torch.nn as nn
     import torch.optim as optim
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -56,8 +56,8 @@ except ImportError:
 # Exact solution via Cole-Hopf transformation
 # ---------------------------------------------------------------------------
 
-def burgers_exact(t: np.ndarray, x: np.ndarray,
-                   nu: float = 0.01 / np.pi) -> np.ndarray:
+
+def burgers_exact(t: np.ndarray, x: np.ndarray, nu: float = 0.01 / np.pi) -> np.ndarray:
     """
     Exact solution to Burgers' equation via Cole-Hopf transformation.
 
@@ -73,7 +73,7 @@ def burgers_exact(t: np.ndarray, x: np.ndarray,
     if np.isscalar(x):
         x = np.array([x])
 
-    T, X = np.meshgrid(t, x, indexing='ij')  # (nt, nx)
+    T, X = np.meshgrid(t, x, indexing="ij")  # (nt, nx)
     U = np.zeros_like(T)
 
     for i in range(len(t)):
@@ -86,8 +86,7 @@ def burgers_exact(t: np.ndarray, x: np.ndarray,
     return U
 
 
-def _burgers_point(t: float, x: float, nu: float,
-                     n_quad: int = 2000) -> float:
+def _burgers_point(t: float, x: float, nu: float, n_quad: int = 2000) -> float:
     """Evaluate exact Burgers' solution at a single (t, x) point."""
     # Quadrature over extended domain (wider than [-1,1] for accuracy)
     xi = np.linspace(-3, 3, n_quad)
@@ -96,7 +95,7 @@ def _burgers_point(t: float, x: float, nu: float,
     # Cole-Hopf: φ(0,ξ) = exp(-1/(2ν) ∫₀^ξ u₀(s)ds)
     # ∫₀^ξ -sin(πs)ds = (cos(πξ)-1)/π
     phi_0 = -(np.cos(np.pi * xi) - 1.0) / (2.0 * np.pi * nu)
-    gaussian = -(xi - x)**2 / (4.0 * nu * t)
+    gaussian = -((xi - x) ** 2) / (4.0 * nu * t)
 
     # Numerical stability: work in log-space
     log_integrand = phi_0 + gaussian
@@ -117,17 +116,19 @@ def _burgers_point(t: float, x: float, nu: float,
 # PINN architecture
 # ---------------------------------------------------------------------------
 
+
 class PINNBurgers(nn.Module):
     """
     Physics-Informed Neural Network for Burgers' equation.
     Architecture: [2, 20, 20, 20, 20, 20, 20, 20, 20, 1]
     (8 hidden layers with 20 neurons each, tanh activation)
     """
+
     def __init__(self, layers: list):
         super().__init__()
         self.layers = nn.ModuleList()
         for i in range(len(layers) - 1):
-            layer = nn.Linear(layers[i], layers[i+1])
+            layer = nn.Linear(layers[i], layers[i + 1])
             # Xavier initialization (as in the paper)
             nn.init.xavier_normal_(layer.weight)
             nn.init.zeros_(layer.bias)
@@ -136,14 +137,14 @@ class PINNBurgers(nn.Module):
     def forward(self, t: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
         """Forward pass: (t, x) → u(t, x)"""
         h = torch.cat([t, x], dim=1)
-        for i, layer in enumerate(self.layers[:-1]):
+        for _i, layer in enumerate(self.layers[:-1]):
             h = torch.tanh(layer(h))
         return self.layers[-1](h)
 
 
-def pde_residual(model: PINNBurgers,
-                  t: torch.Tensor, x: torch.Tensor,
-                  nu: float = 0.01 / np.pi) -> torch.Tensor:
+def pde_residual(
+    model: PINNBurgers, t: torch.Tensor, x: torch.Tensor, nu: float = 0.01 / np.pi
+) -> torch.Tensor:
     """
     Compute PDE residual: f = u_t + u * u_x - ν * u_xx
 
@@ -156,14 +157,11 @@ def pde_residual(model: PINNBurgers,
     u = model(t, x)
 
     # First derivatives
-    u_t = torch.autograd.grad(u, t, grad_outputs=torch.ones_like(u),
-                                create_graph=True)[0]
-    u_x = torch.autograd.grad(u, x, grad_outputs=torch.ones_like(u),
-                                create_graph=True)[0]
+    u_t = torch.autograd.grad(u, t, grad_outputs=torch.ones_like(u), create_graph=True)[0]
+    u_x = torch.autograd.grad(u, x, grad_outputs=torch.ones_like(u), create_graph=True)[0]
 
     # Second derivative
-    u_xx = torch.autograd.grad(u_x, x, grad_outputs=torch.ones_like(u_x),
-                                 create_graph=True)[0]
+    u_xx = torch.autograd.grad(u_x, x, grad_outputs=torch.ones_like(u_x), create_graph=True)[0]
 
     # PDE residual
     f = u_t + u * u_x - nu * u_xx
@@ -174,10 +172,17 @@ def pde_residual(model: PINNBurgers,
 # Training
 # ---------------------------------------------------------------------------
 
-def train_pinn(model: PINNBurgers, n_collocation: int = 10000,
-                n_bc: int = 100, n_ic: int = 100,
-                adam_epochs: int = 10000, adam_lr: float = 0.001,
-                nu: float = 0.01 / np.pi, verbose: bool = True) -> dict:
+
+def train_pinn(
+    model: PINNBurgers,
+    n_collocation: int = 10000,
+    n_bc: int = 100,
+    n_ic: int = 100,
+    adam_epochs: int = 10000,
+    adam_lr: float = 0.001,
+    nu: float = 0.01 / np.pi,
+    verbose: bool = True,
+) -> dict:
     """
     Train the PINN with Adam optimizer.
 
@@ -194,7 +199,7 @@ def train_pinn(model: PINNBurgers, n_collocation: int = 10000,
     t_bc = rng.uniform(0, 1, (n_bc, 1)).astype(np.float32)
     x_bc_left = -np.ones((n_bc // 2, 1), dtype=np.float32)
     x_bc_right = np.ones((n_bc - n_bc // 2, 1), dtype=np.float32)
-    t_bc_all = np.vstack([t_bc[:n_bc//2], t_bc[n_bc//2:]])
+    t_bc_all = np.vstack([t_bc[: n_bc // 2], t_bc[n_bc // 2 :]])
     x_bc_all = np.vstack([x_bc_left, x_bc_right])
     u_bc_all = np.zeros((n_bc, 1), dtype=np.float32)
 
@@ -215,12 +220,11 @@ def train_pinn(model: PINNBurgers, n_collocation: int = 10000,
     x_coll_t = torch.tensor(x_coll)
 
     optimizer = optim.Adam(model.parameters(), lr=adam_lr)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=adam_epochs,
-                                                       eta_min=1e-6)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=adam_epochs, eta_min=1e-6)
     history = {"loss": [], "loss_data": [], "loss_physics": []}
 
     t0 = time.time()
-    best_loss = float('inf')
+    best_loss = float("inf")
 
     for epoch in range(adam_epochs):
         optimizer.zero_grad()
@@ -234,7 +238,7 @@ def train_pinn(model: PINNBurgers, n_collocation: int = 10000,
 
         # Physics loss (PDE residual)
         f_pred = pde_residual(model, t_coll_t, x_coll_t, nu)
-        loss_physics = torch.mean(f_pred ** 2)
+        loss_physics = torch.mean(f_pred**2)
 
         # Total loss
         loss = loss_data + loss_physics
@@ -251,11 +255,13 @@ def train_pinn(model: PINNBurgers, n_collocation: int = 10000,
             history["loss_data"].append(loss_data.item())
             history["loss_physics"].append(loss_physics.item())
             if verbose and epoch % 2000 == 0:
-                lr = optimizer.param_groups[0]['lr']
-                print(f"    Epoch {epoch:>6d}: loss={loss.item():.6f} "
-                      f"(data={loss_data.item():.6f}, "
-                      f"physics={loss_physics.item():.6f}, "
-                      f"lr={lr:.2e})")
+                lr = optimizer.param_groups[0]["lr"]
+                print(
+                    f"    Epoch {epoch:>6d}: loss={loss.item():.6f} "
+                    f"(data={loss_data.item():.6f}, "
+                    f"physics={loss_physics.item():.6f}, "
+                    f"lr={lr:.2e})"
+                )
 
     wall_time = time.time() - t0
     return {"history": history, "wall_time": wall_time, "best_loss": best_loss}
@@ -265,8 +271,10 @@ def train_pinn(model: PINNBurgers, n_collocation: int = 10000,
 # Evaluation
 # ---------------------------------------------------------------------------
 
-def evaluate_pinn(model: PINNBurgers, nu: float = 0.01 / np.pi,
-                   n_x: int = 256, n_t: int = 100) -> dict:
+
+def evaluate_pinn(
+    model: PINNBurgers, nu: float = 0.01 / np.pi, n_x: int = 256, n_t: int = 100
+) -> dict:
     """Evaluate PINN against exact solution on a grid."""
     x = np.linspace(-1, 1, n_x)
     t = np.linspace(0, 1, n_t)
@@ -276,7 +284,7 @@ def evaluate_pinn(model: PINNBurgers, nu: float = 0.01 / np.pi,
     U_exact = burgers_exact(t, x, nu)
 
     # PINN prediction
-    T_grid, X_grid = np.meshgrid(t, x, indexing='ij')
+    T_grid, X_grid = np.meshgrid(t, x, indexing="ij")
     t_flat = torch.tensor(T_grid.flatten()[:, None], dtype=torch.float32)
     x_flat = torch.tensor(X_grid.flatten()[:, None], dtype=torch.float32)
 
@@ -286,8 +294,7 @@ def evaluate_pinn(model: PINNBurgers, nu: float = 0.01 / np.pi,
     U_pred = u_flat.reshape(n_t, n_x)
 
     # Metrics
-    l2_error = np.sqrt(np.sum((U_exact - U_pred)**2)) / \
-               np.sqrt(np.sum(U_exact**2))
+    l2_error = np.sqrt(np.sum((U_exact - U_pred) ** 2)) / np.sqrt(np.sum(U_exact**2))
     max_error = np.max(np.abs(U_exact - U_pred))
     mean_error = np.mean(np.abs(U_exact - U_pred))
 
@@ -306,6 +313,7 @@ def evaluate_pinn(model: PINNBurgers, nu: float = 0.01 / np.pi,
 # Validation harness
 # ---------------------------------------------------------------------------
 
+
 def check_max(label: str, computed: float, maximum: float) -> bool:
     ok = computed <= maximum
     status = "PASS" if ok else "FAIL"
@@ -320,7 +328,26 @@ def check_min(label: str, computed: float, minimum: float) -> bool:
     return ok
 
 
-def main():
+def main() -> int:
+    """Run PINN Burgers' equation validation.  Returns 0 / 1 / 77.
+
+    Provenance
+    ----------
+    Baseline produced: 2026-02-16, Eastgate, Python 3.10, PyTorch 2.9.0+cu128.
+    Paper: Raissi et al. (2019) JCP 378:686-707, doi:10.1016/j.jcp.2018.10.045.
+    Result: 6/6 PASS (L2 ~5.1% with Adam-only).
+    Tolerance rationale:
+      * L2 < 15%: paper achieves 0.06% with Adam+L-BFGS.  Adam-only (no
+        L-BFGS) converges to ~5%.  15% allows headroom for stochastic
+        variation while catching catastrophic training failures.  Gap to paper
+        is a documented limitation, not a bug.
+      * IC error < 1e-6: Cole-Hopf at t=0 is exact to machine precision.
+      * BC error < 0.01: exact BC for this viscosity yields values ~1e-15;
+        0.01 catches any implementation error.
+      * Best loss < 0.01: empirical convergence target; consistently achieved.
+      * Shock steepening > 1.5×: Burgers' equation steepens by construction;
+        ratio < 1.5 would indicate the network flattened the solution.
+    """
     benchmark_path = Path(__file__).parent / "benchmark_pinn.json"
     with open(benchmark_path) as f:
         benchmark = json.load(f)
@@ -336,7 +363,7 @@ def main():
 
     if not HAS_TORCH:
         print("  [SKIP] PyTorch required for PINN training")
-        return 0
+        return 77
 
     nu = benchmark["burgers_equation"]["viscosity"] / np.pi
     layers = benchmark["network"]["layers"]
@@ -401,7 +428,7 @@ def main():
     print(f"  Best loss:  {best_loss:.6f}")
 
     if best_loss < 0.01:
-        print(f"  [PASS] Training converged (best loss < 0.01)")
+        print("  [PASS] Training converged (best loss < 0.01)")
         total_passed += 1
     else:
         print(f"  [FAIL] Training did not converge (best = {best_loss:.6f})")
@@ -413,22 +440,19 @@ def main():
     print("\n--- Part 3: Evaluation vs Exact Solution ---")
 
     ref = benchmark["reference_solution"]
-    eval_result = evaluate_pinn(model, nu,
-                                 n_x=ref["n_test_x"],
-                                 n_t=ref["n_test_t"])
+    eval_result = evaluate_pinn(model, nu, n_x=ref["n_test_x"], n_t=ref["n_test_t"])
 
     l2_err = eval_result["l2_relative_error"]
     max_err = eval_result["max_abs_error"]
     mean_err = eval_result["mean_abs_error"]
 
-    print(f"  L2 relative error: {l2_err:.6f} ({l2_err*100:.2f}%)")
+    print(f"  L2 relative error: {l2_err:.6f} ({l2_err * 100:.2f}%)")
     print(f"  Max absolute error: {max_err:.6f}")
     print(f"  Mean absolute error: {mean_err:.6f}")
-    print(f"  Paper reported: ~0.06% (with L-BFGS)")
+    print("  Paper reported: ~0.06% (with L-BFGS)")
 
     criteria = benchmark["acceptance_criteria"]
-    if check_max("L2 relative error", l2_err,
-                  criteria["l2_relative_error_max"]):
+    if check_max("L2 relative error", l2_err, criteria["l2_relative_error_max"]):
         total_passed += 1
     else:
         total_failed += 1
@@ -438,7 +462,6 @@ def main():
     # ------------------------------------------------------------------
     print("\n--- Part 4: Solution Snapshots ---")
     snapshots = [0.0, 0.25, 0.5, 0.75, 1.0]
-    x = eval_result["x"]
     t = eval_result["t"]
 
     for t_snap in snapshots:
@@ -455,31 +478,32 @@ def main():
     gradient_t1 = np.max(np.abs(np.diff(u_t1)))
 
     if gradient_t1 > gradient_t0 * 1.5:
-        print(f"  [PASS] Shock steepening captured "
-              f"(gradient: {gradient_t0:.4f} → {gradient_t1:.4f})")
+        print(
+            f"  [PASS] Shock steepening captured (gradient: {gradient_t0:.4f} → {gradient_t1:.4f})"
+        )
         total_passed += 1
     else:
-        print(f"  [FAIL] No shock steepening detected")
+        print("  [FAIL] No shock steepening detected")
         total_failed += 1
 
     # ------------------------------------------------------------------
     # Part 5: Op analysis
     # ------------------------------------------------------------------
     print("\n--- Part 5: BarraCUDA Op Mapping ---")
-    print(f"  Forward pass per collocation point:")
-    print(f"    8× GEMM (20×20): gemm_f64.wgsl")
-    print(f"    8× tanh: elementwise transcendental")
-    print(f"    Total FLOPs: ~{2*8*20*20:,}")
-    print(f"\n  Autograd (PDE residual):")
-    print(f"    u_t, u_x: 2× backward pass through full network")
-    print(f"    u_xx: 1× second derivative (backward of backward)")
-    print(f"    → BarraCUDA: fd_gradient_f64.wgsl or custom autograd")
-    print(f"\n  Training loop:")
-    print(f"    10,000 Adam steps × (forward + backward + PDE residual)")
-    print(f"    = ~60,000 full network evaluations")
-    print(f"\n  Key insight: PINN = standard MLP training + physics loss")
-    print(f"  The ONLY new thing is computing PDE residuals via autograd")
-    print(f"  [PASS] Op analysis completed")
+    print("  Forward pass per collocation point:")
+    print("    8× GEMM (20×20): gemm_f64.wgsl")
+    print("    8× tanh: elementwise transcendental")
+    print(f"    Total FLOPs: ~{2 * 8 * 20 * 20:,}")
+    print("\n  Autograd (PDE residual):")
+    print("    u_t, u_x: 2× backward pass through full network")
+    print("    u_xx: 1× second derivative (backward of backward)")
+    print("    → BarraCUDA: fd_gradient_f64.wgsl or custom autograd")
+    print("\n  Training loop:")
+    print("    10,000 Adam steps × (forward + backward + PDE residual)")
+    print("    = ~60,000 full network evaluations")
+    print("\n  Key insight: PINN = standard MLP training + physics loss")
+    print("  The ONLY new thing is computing PDE residuals via autograd")
+    print("  [PASS] Op analysis completed")
     total_passed += 1
 
     # ------------------------------------------------------------------
@@ -489,24 +513,25 @@ def main():
     print("KEY FINDINGS:")
     print(f"{'=' * 72}")
 
-    print(f"\n1. PINN reproduces Burgers' equation solution")
-    print(f"   L2 relative error: {l2_err*100:.2f}% "
-          f"(paper: 0.06% with L-BFGS)")
-    print(f"   Adam-only baseline achieves {'<5%' if l2_err < 0.05 else f'{l2_err*100:.1f}%'} error")
+    print("\n1. PINN reproduces Burgers' equation solution")
+    print(f"   L2 relative error: {l2_err * 100:.2f}% (paper: 0.06% with L-BFGS)")
+    print(
+        f"   Adam-only baseline achieves {'<5%' if l2_err < 0.05 else f'{l2_err * 100:.1f}%'} error"
+    )
 
-    print(f"\n2. The shock front is correctly captured")
-    print(f"   Nonlinear steepening from smooth IC to near-discontinuity")
-    print(f"   This tests the network's ability to learn sharp gradients")
+    print("\n2. The shock front is correctly captured")
+    print("   Nonlinear steepening from smooth IC to near-discontinuity")
+    print("   This tests the network's ability to learn sharp gradients")
 
-    print(f"\n3. PINNs are just MLPs with physics in the loss")
-    print(f"   No new architecture — same GEMM + tanh as Exp 001's surrogates")
-    print(f"   The innovation is: loss = data_loss + PDE_residual_loss")
-    print(f"   BarraCUDA needs: autograd for computing PDE residuals")
+    print("\n3. PINNs are just MLPs with physics in the loss")
+    print("   No new architecture — same GEMM + tanh as Exp 001's surrogates")
+    print("   The innovation is: loss = data_loss + PDE_residual_loss")
+    print("   BarraCUDA needs: autograd for computing PDE residuals")
 
-    print(f"\n4. BarraCUDA evolution path:")
-    print(f"   Phase 1: Validate gemm_f64 + tanh forward pass")
-    print(f"   Phase 2: Implement autograd (reverse-mode AD)")
-    print(f"   Phase 3: PINN training on GPU with fd_gradient_f64.wgsl")
+    print("\n4. BarraCUDA evolution path:")
+    print("   Phase 1: Validate gemm_f64 + tanh forward pass")
+    print("   Phase 2: Implement autograd (reverse-mode AD)")
+    print("   Phase 3: PINN training on GPU with fd_gradient_f64.wgsl")
 
     # ------------------------------------------------------------------
     # Summary

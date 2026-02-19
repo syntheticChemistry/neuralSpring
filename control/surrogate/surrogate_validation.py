@@ -21,7 +21,6 @@ Reference:
 """
 
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -33,6 +32,7 @@ try:
     import torch
     import torch.nn as nn
     import torch.optim as optim
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -42,50 +42,54 @@ AIRSPRING_FAO56 = Path(__file__).parent.parent.parent.parent / "airSpring" / "co
 sys.path.insert(0, str(AIRSPRING_FAO56))
 
 from penman_monteith import (
-    saturation_vapour_pressure,
-    slope_vapour_pressure_curve,
-    atmospheric_pressure,
-    psychrometric_constant,
-    wind_speed_at_2m,
-    mean_saturation_vapour_pressure,
     actual_vapour_pressure_rh,
-    extraterrestrial_radiation,
-    daylight_hours,
-    solar_radiation_from_sunshine,
+    atmospheric_pressure,
     clear_sky_radiation,
-    net_shortwave_radiation,
-    net_longwave_radiation,
+    daylight_hours,
+    extraterrestrial_radiation,
     fao56_penman_monteith,
+    mean_saturation_vapour_pressure,
+    net_longwave_radiation,
+    net_shortwave_radiation,
+    psychrometric_constant,
+    slope_vapour_pressure_curve,
+    solar_radiation_from_sunshine,
+    wind_speed_at_2m,
 )
-
 
 # ---------------------------------------------------------------------------
 # Benchmark functions
 # ---------------------------------------------------------------------------
 
+
 def rastrigin_2d(x: np.ndarray) -> np.ndarray:
-    return 20 + x[:, 0]**2 - 10*np.cos(2*np.pi*x[:, 0]) + \
-           x[:, 1]**2 - 10*np.cos(2*np.pi*x[:, 1])
+    return (
+        20
+        + x[:, 0] ** 2
+        - 10 * np.cos(2 * np.pi * x[:, 0])
+        + x[:, 1] ** 2
+        - 10 * np.cos(2 * np.pi * x[:, 1])
+    )
 
 
 def rosenbrock_2d(x: np.ndarray) -> np.ndarray:
-    return (1 - x[:, 0])**2 + 100*(x[:, 1] - x[:, 0]**2)**2
+    return (1 - x[:, 0]) ** 2 + 100 * (x[:, 1] - x[:, 0] ** 2) ** 2
 
 
 def ackley_2d(x: np.ndarray) -> np.ndarray:
-    a, b, c = 20, 0.2, 2*np.pi
+    a, b, c = 20, 0.2, 2 * np.pi
     d = 2
-    sum1 = x[:, 0]**2 + x[:, 1]**2
-    sum2 = np.cos(c*x[:, 0]) + np.cos(c*x[:, 1])
-    return -a * np.exp(-b * np.sqrt(sum1/d)) - np.exp(sum2/d) + a + np.e
+    sum1 = x[:, 0] ** 2 + x[:, 1] ** 2
+    sum2 = np.cos(c * x[:, 0]) + np.cos(c * x[:, 1])
+    return -a * np.exp(-b * np.sqrt(sum1 / d)) - np.exp(sum2 / d) + a + np.e
 
 
 # ---------------------------------------------------------------------------
 # FAO-56 ET₀ as a function of weather inputs
 # ---------------------------------------------------------------------------
 
-def compute_et0_vectorized(inputs: np.ndarray,
-                            lat: float, alt: float, doy: int) -> np.ndarray:
+
+def compute_et0_vectorized(inputs: np.ndarray, lat: float, alt: float, doy: int) -> np.ndarray:
     """
     Compute ET₀ for N input vectors.
     inputs: (N, 6) = [tmax, tmin, rhmax, rhmin, wind_km_h, sunshine_hours]
@@ -132,6 +136,7 @@ def compute_et0_vectorized(inputs: np.ndarray,
 # MLP surrogate (PyTorch)
 # ---------------------------------------------------------------------------
 
+
 class MLPSurrogate(nn.Module):
     def __init__(self, input_dim: int, hidden: list, output_dim: int = 1):
         super().__init__()
@@ -148,9 +153,14 @@ class MLPSurrogate(nn.Module):
         return self.net(x).squeeze(-1)
 
 
-def train_mlp(X_train: np.ndarray, y_train: np.ndarray,
-              hidden: list, epochs: int = 500,
-              lr: float = 0.001, batch_size: int = 64) -> 'MLPSurrogate':
+def train_mlp(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    hidden: list,
+    epochs: int = 500,
+    lr: float = 0.001,
+    batch_size: int = 64,
+) -> "MLPSurrogate":
     """Train MLP surrogate on data."""
     model = MLPSurrogate(X_train.shape[1], hidden)
 
@@ -161,11 +171,10 @@ def train_mlp(X_train: np.ndarray, y_train: np.ndarray,
     loss_fn = nn.MSELoss()
 
     dataset = torch.utils.data.TensorDataset(X_t, y_t)
-    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
-                                          shuffle=True)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     model.train()
-    for epoch in range(epochs):
+    for _epoch in range(epochs):
         for batch_x, batch_y in loader:
             optimizer.zero_grad()
             pred = model(batch_x)
@@ -176,7 +185,7 @@ def train_mlp(X_train: np.ndarray, y_train: np.ndarray,
     return model
 
 
-def predict_mlp(model: 'MLPSurrogate', X: np.ndarray) -> np.ndarray:
+def predict_mlp(model: "MLPSurrogate", X: np.ndarray) -> np.ndarray:
     model.eval()
     with torch.no_grad():
         X_t = torch.tensor(X, dtype=torch.float32)
@@ -187,33 +196,32 @@ def predict_mlp(model: 'MLPSurrogate', X: np.ndarray) -> np.ndarray:
 # NumPy MLP fallback (no PyTorch)
 # ---------------------------------------------------------------------------
 
+
 class NumpyMLP:
     """Minimal MLP in pure NumPy for validation without PyTorch."""
+
     def __init__(self, layers: list, seed: int = 42):
         rng = np.random.default_rng(seed)
         self.weights = []
         self.biases = []
         for i in range(len(layers) - 1):
             scale = np.sqrt(2.0 / layers[i])
-            self.weights.append(rng.normal(0, scale, (layers[i], layers[i+1])))
-            self.biases.append(np.zeros(layers[i+1]))
+            self.weights.append(rng.normal(0, scale, (layers[i], layers[i + 1])))
+            self.biases.append(np.zeros(layers[i + 1]))
 
     def forward(self, X: np.ndarray) -> np.ndarray:
         h = X
-        for i, (W, b) in enumerate(zip(self.weights, self.biases)):
+        for i, (W, b) in enumerate(zip(self.weights, self.biases, strict=True)):
             h = h @ W + b
             if i < len(self.weights) - 1:
                 h = np.maximum(0, h)  # ReLU
         return h.squeeze(-1)
 
-    def train(self, X: np.ndarray, y: np.ndarray,
-              epochs: int = 500, lr: float = 0.001):
+    def train(self, X: np.ndarray, y: np.ndarray, epochs: int = 500, lr: float = 0.001):
         """Simple gradient descent with numerical gradients."""
-        for epoch in range(epochs):
+        for _epoch in range(epochs):
             pred = self.forward(X)
-            loss = np.mean((pred - y) ** 2)
-            if epoch % 100 == 0:
-                pass  # Silent training
+            _loss = np.mean((pred - y) ** 2)  # noqa: F841 — kept for debugging
 
             # Numerical gradient (slow but correct)
             eps = 1e-5
@@ -233,6 +241,7 @@ class NumpyMLP:
 # Statistical metrics
 # ---------------------------------------------------------------------------
 
+
 def compute_r2(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     ss_res = np.sum((y_true - y_pred) ** 2)
     ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
@@ -251,11 +260,11 @@ def compute_mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 # Validation harness
 # ---------------------------------------------------------------------------
 
+
 def check(label: str, computed: float, low: float, high: float) -> bool:
     ok = low <= computed <= high
     status = "PASS" if ok else "FAIL"
-    print(f"  [{status}] {label}: {computed:.4f} "
-          f"(expected [{low:.4f}, {high:.4f}])")
+    print(f"  [{status}] {label}: {computed:.4f} (expected [{low:.4f}, {high:.4f}])")
     return ok
 
 
@@ -273,7 +282,22 @@ def check_max(label: str, computed: float, maximum: float) -> bool:
     return ok
 
 
-def main():
+def main() -> int:
+    """Run surrogate validation.  Returns 0 (pass), 1 (fail), or 77 (skip).
+
+    Provenance
+    ----------
+    Baseline produced: 2026-02-16, Eastgate, Python 3.10, PyTorch 2.9.0+cu128.
+    Result: 11/11 PASS (R² thresholds from benchmark_surrogate.json).
+    Thresholds rationale:
+      * Rastrigin R²≥0.40: multimodal — random sampling is provably poor here;
+        hotSpring SparsitySampler addresses this.  0.40 is generous for random.
+      * Rosenbrock R²≥0.95: unimodal valley — both RBF and MLP achieve >0.99.
+      * Ackley R²≥0.90: moderate difficulty — both methods exceed 0.95.
+      * FAO-56 RMSE≤0.15 mm/day: agronomic precision (FAO irrigation guides
+        cite ±0.2 mm/day as acceptable instrumentation error).
+      * FAO-56 R²≥0.95: smooth 6→1 mapping; both methods exceed 0.999.
+    """
     benchmark_path = Path(__file__).parent / "benchmark_surrogate.json"
     with open(benchmark_path) as f:
         benchmark = json.load(f)
@@ -283,9 +307,13 @@ def main():
 
     print("=" * 72)
     print("neuralSpring Exp 001: Neural Surrogate Validation")
-    print(f"  PyTorch: {'v' + torch.__version__ if HAS_TORCH else 'not available (NumPy fallback)'}")
+    print(
+        f"  PyTorch: {'v' + torch.__version__ if HAS_TORCH else 'not available (NumPy fallback)'}"
+    )
     print("=" * 72)
 
+    # Seed 42: arbitrary but fixed for deterministic sampling across runs.
+    # All results in CONTROL_EXPERIMENT_STATUS.md were produced with this seed.
     rng = np.random.default_rng(42)
 
     # ------------------------------------------------------------------
@@ -307,16 +335,20 @@ def main():
         print(f"\n  === {fname} ===")
 
         # Generate training data
-        X_train = np.column_stack([
-            rng.uniform(domain[0][0], domain[0][1], n_train),
-            rng.uniform(domain[1][0], domain[1][1], n_train),
-        ])
+        X_train = np.column_stack(
+            [
+                rng.uniform(domain[0][0], domain[0][1], n_train),
+                rng.uniform(domain[1][0], domain[1][1], n_train),
+            ]
+        )
         y_train = func(X_train)
 
-        X_test = np.column_stack([
-            rng.uniform(domain[0][0], domain[0][1], n_test),
-            rng.uniform(domain[1][0], domain[1][1], n_test),
-        ])
+        X_test = np.column_stack(
+            [
+                rng.uniform(domain[0][0], domain[0][1], n_test),
+                rng.uniform(domain[1][0], domain[1][1], n_test),
+            ]
+        )
         y_test = func(X_test)
 
         # Normalize for MLP
@@ -337,16 +369,22 @@ def main():
         # MLP surrogate
         if HAS_TORCH:
             mlp_config = benchmark["mlp_config"]
-            model = train_mlp(X_train_n, y_train_n,
-                              hidden=mlp_config["hidden_layers"],
-                              epochs=mlp_config["epochs"],
-                              lr=mlp_config["learning_rate"],
-                              batch_size=mlp_config["batch_size"])
+            model = train_mlp(
+                X_train_n,
+                y_train_n,
+                hidden=mlp_config["hidden_layers"],
+                epochs=mlp_config["epochs"],
+                lr=mlp_config["learning_rate"],
+                batch_size=mlp_config["batch_size"],
+            )
             y_mlp_n = predict_mlp(model, X_test_n)
             y_mlp = y_mlp_n * y_std + y_mean
         else:
-            mlp = NumpyMLP([2, 32, 32, 1])
-            y_mlp = np.zeros(n_test)  # Placeholder
+            print("  [SKIP] PyTorch required for MLP training")
+            print(f"\n{'=' * 72}")
+            print("SKIPPED: PyTorch not available — cannot run MLP validation")
+            print(f"{'=' * 72}")
+            return 77
 
         r2_mlp = compute_r2(y_test, y_mlp)
         rmse_mlp = compute_rmse(y_test, y_mlp)
@@ -382,34 +420,36 @@ def main():
     n_test_et0 = fao56_cfg["n_test"]
 
     # Generate training data by sampling input space
-    X_et0_train = np.column_stack([
-        rng.uniform(ranges["tmax_c"][0], ranges["tmax_c"][1], n_train_et0),
-        rng.uniform(ranges["tmin_c"][0], ranges["tmin_c"][1], n_train_et0),
-        rng.uniform(ranges["rhmax_pct"][0], ranges["rhmax_pct"][1], n_train_et0),
-        rng.uniform(ranges["rhmin_pct"][0], ranges["rhmin_pct"][1], n_train_et0),
-        rng.uniform(ranges["wind_km_h"][0], ranges["wind_km_h"][1], n_train_et0),
-        rng.uniform(ranges["sunshine_hours"][0], ranges["sunshine_hours"][1], n_train_et0),
-    ])
+    X_et0_train = np.column_stack(
+        [
+            rng.uniform(ranges["tmax_c"][0], ranges["tmax_c"][1], n_train_et0),
+            rng.uniform(ranges["tmin_c"][0], ranges["tmin_c"][1], n_train_et0),
+            rng.uniform(ranges["rhmax_pct"][0], ranges["rhmax_pct"][1], n_train_et0),
+            rng.uniform(ranges["rhmin_pct"][0], ranges["rhmin_pct"][1], n_train_et0),
+            rng.uniform(ranges["wind_km_h"][0], ranges["wind_km_h"][1], n_train_et0),
+            rng.uniform(ranges["sunshine_hours"][0], ranges["sunshine_hours"][1], n_train_et0),
+        ]
+    )
 
     print(f"  Computing ET₀ for {n_train_et0} training points...")
     y_et0_train = compute_et0_vectorized(
-        X_et0_train, ref["latitude_deg_n"], ref["altitude_m"],
-        ref["day_of_year"]
+        X_et0_train, ref["latitude_deg_n"], ref["altitude_m"], ref["day_of_year"]
     )
 
-    X_et0_test = np.column_stack([
-        rng.uniform(ranges["tmax_c"][0], ranges["tmax_c"][1], n_test_et0),
-        rng.uniform(ranges["tmin_c"][0], ranges["tmin_c"][1], n_test_et0),
-        rng.uniform(ranges["rhmax_pct"][0], ranges["rhmax_pct"][1], n_test_et0),
-        rng.uniform(ranges["rhmin_pct"][0], ranges["rhmin_pct"][1], n_test_et0),
-        rng.uniform(ranges["wind_km_h"][0], ranges["wind_km_h"][1], n_test_et0),
-        rng.uniform(ranges["sunshine_hours"][0], ranges["sunshine_hours"][1], n_test_et0),
-    ])
+    X_et0_test = np.column_stack(
+        [
+            rng.uniform(ranges["tmax_c"][0], ranges["tmax_c"][1], n_test_et0),
+            rng.uniform(ranges["tmin_c"][0], ranges["tmin_c"][1], n_test_et0),
+            rng.uniform(ranges["rhmax_pct"][0], ranges["rhmax_pct"][1], n_test_et0),
+            rng.uniform(ranges["rhmin_pct"][0], ranges["rhmin_pct"][1], n_test_et0),
+            rng.uniform(ranges["wind_km_h"][0], ranges["wind_km_h"][1], n_test_et0),
+            rng.uniform(ranges["sunshine_hours"][0], ranges["sunshine_hours"][1], n_test_et0),
+        ]
+    )
 
     print(f"  Computing ET₀ for {n_test_et0} test points...")
     y_et0_test = compute_et0_vectorized(
-        X_et0_test, ref["latitude_deg_n"], ref["altitude_m"],
-        ref["day_of_year"]
+        X_et0_test, ref["latitude_deg_n"], ref["altitude_m"], ref["day_of_year"]
     )
 
     print(f"  ET₀ train range: [{y_et0_train.min():.2f}, {y_et0_train.max():.2f}] mm/day")
@@ -426,9 +466,8 @@ def main():
     X_test_n = (X_et0_test - X_mean_et0) / X_std_et0
 
     # RBF surrogate for ET₀
-    print(f"  Training RBF surrogate...")
-    rbf_et0 = RBFInterpolator(X_et0_train, y_et0_train,
-                                kernel="thin_plate_spline")
+    print("  Training RBF surrogate...")
+    rbf_et0 = RBFInterpolator(X_et0_train, y_et0_train, kernel="thin_plate_spline")
     y_rbf_et0 = rbf_et0(X_et0_test)
     r2_rbf_et0 = compute_r2(y_et0_test, y_rbf_et0)
     rmse_rbf_et0 = compute_rmse(y_et0_test, y_rbf_et0)
@@ -436,14 +475,15 @@ def main():
 
     # MLP surrogate for ET₀
     if HAS_TORCH:
-        print(f"  Training MLP surrogate (6→64→64→1)...")
-        model_et0 = train_mlp(X_train_n, y_train_n,
-                               hidden=[64, 64],
-                               epochs=1000, lr=0.001, batch_size=64)
+        print("  Training MLP surrogate (6→64→64→1)...")
+        model_et0 = train_mlp(
+            X_train_n, y_train_n, hidden=[64, 64], epochs=1000, lr=0.001, batch_size=64
+        )
         y_mlp_et0_n = predict_mlp(model_et0, X_test_n)
         y_mlp_et0 = y_mlp_et0_n * y_std_et0 + y_mean_et0
     else:
-        y_mlp_et0 = y_et0_test  # Placeholder
+        print("  [SKIP] PyTorch required for MLP ET₀ surrogate")
+        return 77
 
     r2_mlp_et0 = compute_r2(y_et0_test, y_mlp_et0)
     rmse_mlp_et0 = compute_rmse(y_et0_test, y_mlp_et0)
@@ -460,8 +500,7 @@ def main():
     else:
         total_failed += 1
 
-    if check_max("ET₀ MLP RMSE", rmse_mlp_et0,
-                  fao56_cfg["accuracy_target_rmse"]):
+    if check_max("ET₀ MLP RMSE", rmse_mlp_et0, fao56_cfg["accuracy_target_rmse"]):
         total_passed += 1
     else:
         total_failed += 1
@@ -479,8 +518,9 @@ def main():
         y_sub = y_train_n[:n_s]
 
         if HAS_TORCH:
-            model_sub = train_mlp(X_sub, y_sub, hidden=[64, 64],
-                                   epochs=500, lr=0.001, batch_size=min(64, n_s))
+            model_sub = train_mlp(
+                X_sub, y_sub, hidden=[64, 64], epochs=500, lr=0.001, batch_size=min(64, n_s)
+            )
             y_pred_n = predict_mlp(model_sub, X_test_n)
             y_pred = y_pred_n * y_std_et0 + y_mean_et0
             r2 = compute_r2(y_et0_test, y_pred)
@@ -489,7 +529,7 @@ def main():
 
     # Check that more data helps
     if HAS_TORCH and len(sample_sizes) >= 2:
-        print(f"  [PASS] Training efficiency analysis completed")
+        print("  [PASS] Training efficiency analysis completed")
         total_passed += 1
 
     # ------------------------------------------------------------------
@@ -500,24 +540,24 @@ def main():
     if HAS_TORCH:
         param_count = sum(p.numel() for p in model_et0.parameters())
         print(f"  MLP parameters: {param_count}")
-        print(f"  Architecture: 6 → 64 → 64 → 1")
-        print(f"\n  Operations per forward pass:")
-        print(f"    MatMul (GEMM):  3 (6×64, 64×64, 64×1)")
-        print(f"    BiasAdd:        3")
-        print(f"    ReLU:           2 (hidden layers)")
-        print(f"    Total FLOPs:    ~{2*(6*64 + 64*64 + 64*1):,}")
-        print(f"\n  Operations per backward pass (training):")
-        print(f"    Same MatMuls (transposed) + gradient accumulation")
-        print(f"    Adam optimizer: 3 momentum updates")
-        print(f"\n  BarraCUDA mapping:")
-        print(f"    GEMM/GEMV     → gemm_f64.wgsl / gemv_q4.wgsl")
-        print(f"    ReLU          → nn::ReLU")
-        print(f"    Adam          → nn::Optimizer::Adam")
-        print(f"    Loss (MSE)    → mse_loss")
-        print(f"\n  [PASS] Op count analysis completed")
+        print("  Architecture: 6 → 64 → 64 → 1")
+        print("\n  Operations per forward pass:")
+        print("    MatMul (GEMM):  3 (6×64, 64×64, 64×1)")
+        print("    BiasAdd:        3")
+        print("    ReLU:           2 (hidden layers)")
+        print(f"    Total FLOPs:    ~{2 * (6 * 64 + 64 * 64 + 64 * 1):,}")
+        print("\n  Operations per backward pass (training):")
+        print("    Same MatMuls (transposed) + gradient accumulation")
+        print("    Adam optimizer: 3 momentum updates")
+        print("\n  BarraCUDA mapping:")
+        print("    GEMM/GEMV     → gemm_f64.wgsl / gemv_q4.wgsl")
+        print("    ReLU          → nn::ReLU")
+        print("    Adam          → nn::Optimizer::Adam")
+        print("    Loss (MSE)    → mse_loss")
+        print("\n  [PASS] Op count analysis completed")
         total_passed += 1
     else:
-        print(f"  [SKIP] Requires PyTorch for op counting")
+        print("  [SKIP] Requires PyTorch for op counting")
 
     # ------------------------------------------------------------------
     # Part 5: Key Findings
@@ -526,26 +566,28 @@ def main():
     print("KEY FINDINGS:")
     print(f"{'=' * 72}")
 
-    print(f"\n1. Surrogate Accuracy (benchmark functions):")
-    print(f"   MLP (2×64) matches or exceeds RBF on standard benchmarks")
-    print(f"   Both achieve R² > 0.95 with 500 training points")
+    print("\n1. Surrogate Accuracy (benchmark functions):")
+    print("   MLP (2×64) matches or exceeds RBF on standard benchmarks")
+    print("   Both achieve R² > 0.95 with 500 training points")
 
-    print(f"\n2. FAO-56 ET₀ Surrogate:")
+    print("\n2. FAO-56 ET₀ Surrogate:")
     print(f"   RBF: R²={r2_rbf_et0:.4f}, RMSE={rmse_rbf_et0:.4f} mm/day")
     print(f"   MLP: R²={r2_mlp_et0:.4f}, RMSE={rmse_mlp_et0:.4f} mm/day")
-    print(f"   A tiny MLP can replace the FAO-56 equation chain with "
-          f"{'< 0.15' if rmse_mlp_et0 < 0.15 else f'{rmse_mlp_et0:.2f}'} mm/day error")
+    print(
+        f"   A tiny MLP can replace the FAO-56 equation chain with "
+        f"{'< 0.15' if rmse_mlp_et0 < 0.15 else f'{rmse_mlp_et0:.2f}'} mm/day error"
+    )
 
-    print(f"\n3. Isomorphic Patterns:")
-    print(f"   The MLP surrogate uses the same MatMul+ReLU+Adam primitives")
-    print(f"   that appear in transformers (Exp 002), LSTMs (Exp 003), and")
-    print(f"   transfer learning (Exp 004). BarraCUDA's gemm_f64.wgsl is")
-    print(f"   the universal workhorse.")
+    print("\n3. Isomorphic Patterns:")
+    print("   The MLP surrogate uses the same MatMul+ReLU+Adam primitives")
+    print("   that appear in transformers (Exp 002), LSTMs (Exp 003), and")
+    print("   transfer learning (Exp 004). BarraCUDA's gemm_f64.wgsl is")
+    print("   the universal workhorse.")
 
-    print(f"\n4. Implications for BarraCUDA:")
-    print(f"   - MLP training needs: GEMM, ReLU, Adam, MSE loss → all in barracuda")
-    print(f"   - Inference needs: GEMM, ReLU → quantizable (gemv_q4.wgsl)")
-    print(f"   - ET₀ surrogate could run 1000× faster than equation chain")
+    print("\n4. Implications for BarraCUDA:")
+    print("   - MLP training needs: GEMM, ReLU, Adam, MSE loss → all in barracuda")
+    print("   - Inference needs: GEMM, ReLU → quantizable (gemv_q4.wgsl)")
+    print("   - ET₀ surrogate could run 1000× faster than equation chain")
 
     # ------------------------------------------------------------------
     # Summary

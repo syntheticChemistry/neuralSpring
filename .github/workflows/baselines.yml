@@ -1,0 +1,83 @@
+name: neuralSpring Baselines
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'control/**'
+      - 'scripts/**'
+      - '.github/workflows/baselines.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'control/**'
+      - 'scripts/**'
+
+jobs:
+  baselines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r control/requirements.txt
+
+      - name: Check airSpring dependency
+        run: |
+          if [ ! -d "../airSpring" ]; then
+            echo "::warning::airSpring not found — FAO-56-dependent experiments may use fallbacks"
+          fi
+
+      - name: Run all baselines
+        run: bash scripts/run_all_baselines.sh
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r control/requirements.txt
+          pip install pytest
+
+      - name: Run unit tests
+        run: python3 -m pytest tests/ -v --tb=short
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint Python
+        run: ruff check control/ scripts/ tests/
+
+      - name: Format check
+        run: ruff format --check control/ tests/

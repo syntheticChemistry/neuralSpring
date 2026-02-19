@@ -1,8 +1,9 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 16, 2026
+**Last updated**: February 18, 2026
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
-**Python**: 3.10, PyTorch 2.9.0+cu128
+**Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
+**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 75/75 quantitative checks PASS (48 Phase 0 + 27 Phase 0+)
 
 ---
@@ -113,12 +114,45 @@
 
 ---
 
+## Quality Gates (added 2026-02-18)
+
+| Gate | Tool | Status |
+|------|------|--------|
+| Python lint | `ruff check` (E/F/W/I/N/UP/B/A/SIM) | **PASS** — 0 errors |
+| Python format | `ruff format` | **PASS** — 14 files conformant |
+| Python tests | `pytest tests/` | **PASS** — 48 tests |
+| Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 75/75 |
+| Rust test | `cargo test` | **PASS** — 23 unit tests |
+| Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
+| Rust format | `cargo fmt --check` | **PASS** |
+| Rust doc | `cargo doc --no-deps` | **PASS** |
+| Rust validate | `validate_surrogate`, `validate_transformer`, `validate_metrics` | **PASS** — 21/21 |
+| CI | GitHub Actions: `baselines.yml` (Python), `rust.yml` (Rust) | Configured |
+
+## Audit Remediation (2026-02-18)
+
+Key fixes applied during comprehensive audit:
+
+- **Silent-pass bug**: All 8 PyTorch-dependent scripts now return exit 77 (SKIP) when PyTorch is missing instead of silently passing.
+- **DeepONet `.repeat()` bug**: Fixed `np.repeat(n, 0)` → `np.tile()` for correct array broadcasting.
+- **Transfer learning scope bug**: Fixed `result_ft` used outside loop; strengthened domain gap and fine-tuning checks.
+- **Determinism**: Added explicit `torch.manual_seed(42)` + `np.random.seed(42)` to LeNet-5 and isomorphic catalog.
+- **ERA5 robustness**: Added 3-retry with exponential backoff, 60s timeout, safer `np.load` (no `allow_pickle`).
+- **Dependencies**: Pinned all versions in `control/requirements.txt` for reproducibility.
+- **Provenance**: Added provenance docstrings and tolerance justifications to all 10 scripts.
+- **Ruff**: Fixed 441 lint issues (unused imports, f-strings, import ordering, unused variables).
+- **Rust scaffolding**: Created `Cargo.toml`, `src/lib.rs`, `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, 3 validation binaries.
+- **Cross-validation**: Rust tests hardcode Python-computed values to verify cross-language agreement to <1e-12.
+- **Test suite**: 48 Python tests (pytest) + 23 Rust tests + 21 validation binary checks.
+- **Data provenance**: Documented all datasets in `specs/DATA_PROVENANCE.md`.
+- **Infrastructure**: `Makefile`, `justfile`, `.pre-commit-config.yaml`, two GitHub Actions CI workflows.
+
 ## Evolution Roadmap
 
 | Phase | Focus | Status |
 |-------|-------|--------|
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (27 checks) | **COMPLETE** |
-| 1 | BarraCUDA Rust port | Planned |
+| 1 | BarraCUDA Rust port (surrogate, transformer, metrics) | **SCAFFOLDED** — see `specs/EVOLUTION_MAPPING.md` |
 | 2 | Quantized inference on GPU | Planned |
 | 3 | Cross-spring integration | Planned |

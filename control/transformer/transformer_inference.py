@@ -22,16 +22,14 @@ BarraCUDA has: attention, mha, causal_attn, cross_attn, flash_attention,
 rope, alibi, sparse_attn — this experiment validates the math.
 """
 
-import json
 import math
 import sys
-from pathlib import Path
 
 import numpy as np
 
 try:
     import torch
-    import torch.nn as nn
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -41,6 +39,7 @@ except ImportError:
 # NumPy implementation of core transformer ops
 # ---------------------------------------------------------------------------
 
+
 def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
     """Numerically stable softmax."""
     x_max = np.max(x, axis=axis, keepdims=True)
@@ -48,9 +47,9 @@ def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
     return exp_x / np.sum(exp_x, axis=axis, keepdims=True)
 
 
-def scaled_dot_product_attention(Q: np.ndarray, K: np.ndarray,
-                                   V: np.ndarray,
-                                   mask: np.ndarray = None) -> tuple:
+def scaled_dot_product_attention(
+    Q: np.ndarray, K: np.ndarray, V: np.ndarray, mask: np.ndarray = None
+) -> tuple:
     """
     Scaled dot-product attention (Vaswani et al. 2017).
 
@@ -78,11 +77,15 @@ def scaled_dot_product_attention(Q: np.ndarray, K: np.ndarray,
     return output, weights
 
 
-def multi_head_attention_numpy(X: np.ndarray,
-                                 W_q: np.ndarray, W_k: np.ndarray,
-                                 W_v: np.ndarray, W_o: np.ndarray,
-                                 n_heads: int,
-                                 mask: np.ndarray = None) -> tuple:
+def multi_head_attention_numpy(
+    X: np.ndarray,
+    W_q: np.ndarray,
+    W_k: np.ndarray,
+    W_v: np.ndarray,
+    W_o: np.ndarray,
+    n_heads: int,
+    mask: np.ndarray = None,
+) -> tuple:
     """
     Multi-head attention in pure NumPy.
 
@@ -116,8 +119,9 @@ def multi_head_attention_numpy(X: np.ndarray,
     return output, attn_weights
 
 
-def layer_norm_numpy(x: np.ndarray, gamma: np.ndarray,
-                      beta: np.ndarray, eps: float = 1e-5) -> np.ndarray:
+def layer_norm_numpy(
+    x: np.ndarray, gamma: np.ndarray, beta: np.ndarray, eps: float = 1e-5
+) -> np.ndarray:
     """Layer normalization."""
     mean = np.mean(x, axis=-1, keepdims=True)
     var = np.var(x, axis=-1, keepdims=True)
@@ -130,8 +134,9 @@ def gelu_numpy(x: np.ndarray) -> np.ndarray:
     return 0.5 * x * (1 + np.tanh(np.sqrt(2 / np.pi) * (x + 0.044715 * x**3)))
 
 
-def feed_forward_numpy(x: np.ndarray, W1: np.ndarray, b1: np.ndarray,
-                         W2: np.ndarray, b2: np.ndarray) -> np.ndarray:
+def feed_forward_numpy(
+    x: np.ndarray, W1: np.ndarray, b1: np.ndarray, W2: np.ndarray, b2: np.ndarray
+) -> np.ndarray:
     """Transformer feed-forward network: Linear → GELU → Linear."""
     h = gelu_numpy(x @ W1 + b1)
     return h @ W2 + b2
@@ -148,8 +153,8 @@ def causal_mask(seq_len: int) -> np.ndarray:
 # Validation harness
 # ---------------------------------------------------------------------------
 
-def check_close(label: str, a: np.ndarray, b: np.ndarray,
-                 atol: float = 1e-5) -> bool:
+
+def check_close(label: str, a: np.ndarray, b: np.ndarray, atol: float = 1e-5) -> bool:
     diff = np.max(np.abs(a - b))
     ok = diff <= atol
     status = "PASS" if ok else "FAIL"
@@ -164,7 +169,27 @@ def check_min(label: str, computed: float, minimum: float) -> bool:
     return ok
 
 
-def main():
+def main() -> int:
+    """Run transformer inference validation.  Returns 0 (pass) or 1 (fail).
+
+    Provenance
+    ----------
+    Baseline produced: 2026-02-16, Eastgate, Python 3.10, PyTorch 2.9.0+cu128.
+    Result: 18/18 PASS.  NumPy implementations validated against PyTorch.
+    Tolerance rationale:
+      * 1e-10 (NumPy vs PyTorch f64): both operate in IEEE-754 float64;
+        difference is purely from summation order.  Machine epsilon ~1.1e-16,
+        so 1e-10 is conservative (≈1e6 × eps).
+      * 1e-7 (softmax sum-to-one): accumulated rounding across d_model=32
+        elements; theoretical bound ~d_model × eps ≈ 3.5e-15, so 1e-7 is
+        generous.
+      * 1e-6 (causal mask leak): exp(-1e9) < 1e-434, so any leak above 1e-6
+        indicates a mask construction error, not floating-point drift.
+      * 1e-5 (LayerNorm mean≈0): after normalization, residual is bounded by
+        eps parameter (1e-5); this tolerance matches the eps.
+      * 1e-3 (LayerNorm var≈1): variance computation accumulates error over
+        d_model terms; 1e-3 is ~30× eps × d_model.
+    """
     total_passed = 0
     total_failed = 0
 
@@ -194,17 +219,17 @@ def main():
     all_positive = np.all(np_softmax >= 0)
 
     if all_sum_1:
-        print(f"  [PASS] Softmax rows sum to 1.0")
+        print("  [PASS] Softmax rows sum to 1.0")
         total_passed += 1
     else:
-        print(f"  [FAIL] Softmax rows don't sum to 1.0")
+        print("  [FAIL] Softmax rows don't sum to 1.0")
         total_failed += 1
 
     if all_positive:
-        print(f"  [PASS] Softmax outputs are non-negative")
+        print("  [PASS] Softmax outputs are non-negative")
         total_passed += 1
     else:
-        print(f"  [FAIL] Softmax has negative values")
+        print("  [FAIL] Softmax has negative values")
         total_failed += 1
 
     if HAS_TORCH:
@@ -229,10 +254,10 @@ def main():
     # Weights should be valid attention distribution
     weight_sums = np.sum(weights_np, axis=-1)
     if np.allclose(weight_sums, 1.0, atol=1e-7):
-        print(f"  [PASS] Attention weights sum to 1.0 per query")
+        print("  [PASS] Attention weights sum to 1.0 per query")
         total_passed += 1
     else:
-        print(f"  [FAIL] Attention weights don't sum to 1.0")
+        print("  [FAIL] Attention weights don't sum to 1.0")
         total_failed += 1
 
     # Output shape should match V
@@ -248,9 +273,7 @@ def main():
         K_t = torch.tensor(K, dtype=torch.float64).unsqueeze(0)
         V_t = torch.tensor(V, dtype=torch.float64).unsqueeze(0)
 
-        pt_out = torch.nn.functional.scaled_dot_product_attention(
-            Q_t, K_t, V_t
-        ).squeeze(0).numpy()
+        pt_out = torch.nn.functional.scaled_dot_product_attention(Q_t, K_t, V_t).squeeze(0).numpy()
 
         if check_close("SDPA vs PyTorch", output_np, pt_out, atol=1e-10):
             total_passed += 1
@@ -277,7 +300,7 @@ def main():
 
     # First token should only attend to itself
     if np.abs(causal_weights[0, 0] - 1.0) < 1e-6:
-        print(f"  [PASS] First token self-attention weight ≈ 1.0")
+        print("  [PASS] First token self-attention weight ≈ 1.0")
         total_passed += 1
     else:
         print(f"  [FAIL] First token weight: {causal_weights[0, 0]:.6f}")
@@ -293,9 +316,7 @@ def main():
     W_v = rng.standard_normal((d_model, d_model)).astype(np.float64) * 0.1
     W_o = rng.standard_normal((d_model, d_model)).astype(np.float64) * 0.1
 
-    mha_out, mha_weights = multi_head_attention_numpy(
-        X, W_q, W_k, W_v, W_o, n_heads
-    )
+    mha_out, mha_weights = multi_head_attention_numpy(X, W_q, W_k, W_v, W_o, n_heads)
 
     if mha_out.shape == (seq_len, d_model):
         print(f"  [PASS] MHA output shape: {mha_out.shape}")
@@ -317,7 +338,7 @@ def main():
         print(f"  [PASS] All {n_heads} heads have valid attention distributions")
         total_passed += 1
     else:
-        print(f"  [FAIL] Some heads have invalid distributions")
+        print("  [FAIL] Some heads have invalid distributions")
         total_failed += 1
 
     # ------------------------------------------------------------------
@@ -335,14 +356,14 @@ def main():
     vars_ = np.var(normed, axis=-1)
 
     if np.allclose(means, 0, atol=1e-5):
-        print(f"  [PASS] LayerNorm mean ≈ 0")
+        print("  [PASS] LayerNorm mean ≈ 0")
         total_passed += 1
     else:
         print(f"  [FAIL] LayerNorm mean: {means}")
         total_failed += 1
 
     if np.allclose(vars_, 1.0, atol=1e-3):
-        print(f"  [PASS] LayerNorm variance ≈ 1")
+        print("  [PASS] LayerNorm variance ≈ 1")
         total_passed += 1
     else:
         print(f"  [FAIL] LayerNorm variance: {vars_}")
@@ -351,7 +372,7 @@ def main():
     # GELU
     gelu_at_0 = gelu_numpy(np.array([0.0]))[0]
     if abs(gelu_at_0) < 1e-6:
-        print(f"  [PASS] GELU(0) ≈ 0")
+        print("  [PASS] GELU(0) ≈ 0")
         total_passed += 1
     else:
         print(f"  [FAIL] GELU(0) = {gelu_at_0}")
@@ -390,7 +411,7 @@ def main():
         print(f"  [PASS] Full block output shape: {block_out.shape}")
         total_passed += 1
     else:
-        print(f"  [FAIL] Block output shape mismatch")
+        print("  [FAIL] Block output shape mismatch")
         total_failed += 1
 
     # Residual connections should preserve information
@@ -398,19 +419,19 @@ def main():
     corr = np.corrcoef(X.flatten(), block_out.flatten())[0, 1]
     print(f"  Input-output correlation: {corr:.4f}")
     if not np.isnan(corr):
-        print(f"  [PASS] Block produces finite, correlated output")
+        print("  [PASS] Block produces finite, correlated output")
         total_passed += 1
     else:
-        print(f"  [FAIL] Block produces NaN output")
+        print("  [FAIL] Block produces NaN output")
         total_failed += 1
 
     # ------------------------------------------------------------------
     # Part 7: Isomorphic Op Catalog
     # ------------------------------------------------------------------
     print("\n--- Part 7: Isomorphic Operation Catalog ---")
-    print(f"\n  Transformer block ops and their cross-domain equivalents:")
+    print("\n  Transformer block ops and their cross-domain equivalents:")
     print(f"  {'Op':<25s} {'Transformer':<20s} {'BarraCUDA WGSL':<25s}")
-    print(f"  {'-'*70}")
+    print(f"  {'-' * 70}")
     print(f"  {'MatMul (QKV proj)':<25s} {'3× d²':<20s} {'gemm_f64.wgsl':<25s}")
     print(f"  {'MatMul (attn scores)':<25s} {'n_h × s²':<20s} {'attention.wgsl':<25s}")
     print(f"  {'Softmax':<25s} {'n_h × s²':<20s} {'(in attention.wgsl)':<25s}")
@@ -422,8 +443,8 @@ def main():
     print(f"  {'Causal mask':<25s} {'s²':<20s} {'causal_attn.wgsl':<25s}")
     print(f"  {'RoPE (position)':<25s} {'s × d':<20s} {'rope.wgsl':<25s}")
 
-    print(f"\n  Total MatMuls per block: 8 (the universal bottleneck)")
-    print(f"  [PASS] Isomorphic catalog completed")
+    print("\n  Total MatMuls per block: 8 (the universal bottleneck)")
+    print("  [PASS] Isomorphic catalog completed")
     total_passed += 1
 
     # ------------------------------------------------------------------
@@ -433,22 +454,22 @@ def main():
     print("KEY FINDINGS:")
     print(f"{'=' * 72}")
 
-    print(f"\n1. Self-Attention Implementation:")
+    print("\n1. Self-Attention Implementation:")
     print(f"   NumPy SDPA matches PyTorch to {'<1e-10' if HAS_TORCH else 'N/A'} precision")
-    print(f"   Causal mask correctly blocks future token attention")
+    print("   Causal mask correctly blocks future token attention")
 
-    print(f"\n2. Transformer Block = 8 MatMuls + Softmax + LayerNorm + GELU")
-    print(f"   This is the SAME across llama.cpp, OpenFold, ViT")
-    print(f"   BarraCUDA has WGSL shaders for ALL of these")
+    print("\n2. Transformer Block = 8 MatMuls + Softmax + LayerNorm + GELU")
+    print("   This is the SAME across llama.cpp, OpenFold, ViT")
+    print("   BarraCUDA has WGSL shaders for ALL of these")
 
-    print(f"\n3. Isomorphic Insight:")
-    print(f"   The attention mechanism IS a surrogate — it learns which")
-    print(f"   inputs to weight for each output. Exp 001's MLP surrogate")
-    print(f"   and Exp 002's attention share MatMul as their core op.")
+    print("\n3. Isomorphic Insight:")
+    print("   The attention mechanism IS a surrogate — it learns which")
+    print("   inputs to weight for each output. Exp 001's MLP surrogate")
+    print("   and Exp 002's attention share MatMul as their core op.")
 
-    print(f"\n4. BarraCUDA Readiness:")
-    print(f"   attention, mha, causal_attn, flash_attention, rope, alibi")
-    print(f"   All exist in barracuda — neuralSpring proves the math.")
+    print("\n4. BarraCUDA Readiness:")
+    print("   attention, mha, causal_attn, flash_attention, rope, alibi")
+    print("   All exist in barracuda — neuralSpring proves the math.")
 
     # ------------------------------------------------------------------
     # Summary

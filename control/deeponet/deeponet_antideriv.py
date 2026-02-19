@@ -29,11 +29,8 @@ BarraCUDA connection:
   - This is the foundation for learned operators in physics
 """
 
-import json
-import math
 import sys
 import time
-from pathlib import Path
 
 import numpy as np
 
@@ -41,6 +38,7 @@ try:
     import torch
     import torch.nn as nn
     import torch.optim as optim
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -50,8 +48,10 @@ except ImportError:
 # Data generation
 # ---------------------------------------------------------------------------
 
-def generate_functions(n_funcs: int, n_sensors: int, n_output: int,
-                        max_degree: int = 5, seed: int = 42) -> dict:
+
+def generate_functions(
+    n_funcs: int, n_sensors: int, n_output: int, max_degree: int = 5, seed: int = 42
+) -> dict:
     """
     Generate random polynomial functions and their antiderivatives.
     u(x) = Σ aₖ xᵏ  →  G(u)(y) = Σ aₖ/(k+1) yᵏ⁺¹
@@ -62,7 +62,7 @@ def generate_functions(n_funcs: int, n_sensors: int, n_output: int,
     y_output = np.linspace(0, 1, n_output)
 
     U_sensors = np.zeros((n_funcs, n_sensors))  # u at sensor locations
-    G_output = np.zeros((n_funcs, n_output))     # ∫₀ʸ u(τ)dτ at output locs
+    G_output = np.zeros((n_funcs, n_output))  # ∫₀ʸ u(τ)dτ at output locs
 
     coeffs_all = []
 
@@ -80,20 +80,21 @@ def generate_functions(n_funcs: int, n_sensors: int, n_output: int,
         # G(u)(y) = Σ aₖ/(k+1) yᵏ⁺¹
         g_vals = np.zeros(n_output)
         for k, a in enumerate(coeffs):
-            g_vals += a / (k + 1) * y_output**(k + 1)
+            g_vals += a / (k + 1) * y_output ** (k + 1)
         G_output[i] = g_vals
 
     return {
         "U_sensors": U_sensors,  # (n_funcs, n_sensors)
-        "G_output": G_output,    # (n_funcs, n_output)
+        "G_output": G_output,  # (n_funcs, n_output)
         "x_sensors": x_sensors,  # (n_sensors,)
-        "y_output": y_output,    # (n_output,)
+        "y_output": y_output,  # (n_output,)
     }
 
 
 # ---------------------------------------------------------------------------
 # DeepONet architecture
 # ---------------------------------------------------------------------------
+
 
 class DeepONet(nn.Module):
     """
@@ -103,8 +104,8 @@ class DeepONet(nn.Module):
     Trunk: y → Rᵖ
     Output: <Branch(u), Trunk(y)> + bias
     """
-    def __init__(self, n_sensors: int, branch_layers: list,
-                  trunk_layers: list, p: int):
+
+    def __init__(self, n_sensors: int, branch_layers: list, trunk_layers: list, p: int):
         super().__init__()
 
         # Branch network
@@ -129,8 +130,7 @@ class DeepONet(nn.Module):
 
         self.bias = nn.Parameter(torch.zeros(1))
 
-    def forward(self, u_sensors: torch.Tensor,
-                 y: torch.Tensor) -> torch.Tensor:
+    def forward(self, u_sensors: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """
         u_sensors: (batch, n_sensors)
         y: (batch, 1) or (batch, n_output, 1)
@@ -154,18 +154,19 @@ class DeepONet(nn.Module):
 # Training
 # ---------------------------------------------------------------------------
 
-def train_deeponet(model, U_train, G_train, y_output,
-                     epochs=5000, lr=0.001, batch_size=64):
+
+def train_deeponet(model, U_train, G_train, y_output, epochs=5000, lr=0.001, batch_size=64):
     """Train DeepONet on operator learning task."""
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs,
-                                                       eta_min=1e-6)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
     loss_fn = nn.MSELoss()
 
     U_t = torch.tensor(U_train, dtype=torch.float32)
     G_t = torch.tensor(G_train, dtype=torch.float32)
-    y_t = torch.tensor(y_output.reshape(1, -1, 1).repeat(len(U_train), 0),
-                         dtype=torch.float32)
+    # Broadcast y_output to (n_train, n_output, 1) for batch evaluation.
+    # np.tile is used instead of np.repeat to replicate along axis 0.
+    y_tiled = np.tile(y_output.reshape(1, -1, 1), (len(U_train), 1, 1))
+    y_t = torch.tensor(y_tiled, dtype=torch.float32)
 
     n = len(U_train)
     t0 = time.time()
@@ -187,8 +188,7 @@ def train_deeponet(model, U_train, G_train, y_output,
             with torch.no_grad():
                 full_pred = model(U_t[:200], y_t[:200])
                 full_loss = loss_fn(full_pred, G_t[:200]).item()
-            print(f"    Epoch {epoch:>5d}: train_loss={loss.item():.6f}, "
-                  f"val_loss={full_loss:.6f}")
+            print(f"    Epoch {epoch:>5d}: train_loss={loss.item():.6f}, val_loss={full_loss:.6f}")
 
     return time.time() - t0
 
@@ -197,7 +197,23 @@ def train_deeponet(model, U_train, G_train, y_output,
 # Main
 # ---------------------------------------------------------------------------
 
-def main():
+
+def main() -> int:
+    """Run DeepONet antiderivative validation.  Returns 0 / 1 / 77.
+
+    Provenance
+    ----------
+    Baseline produced: 2026-02-16, Eastgate, Python 3.10, PyTorch 2.9.0+cu128.
+    Paper: Lu et al. (2021) NMI 3:218-229, doi:10.1038/s42256-021-00302-5.
+    Result: 5/5 PASS (mean L2 ~1.2%).
+    Tolerance rationale:
+      * Mean L2 < 5%: paper reports ~1% on polynomial antiderivatives.
+        5% accommodates Adam-only training variance.
+      * RMSE < 0.05: antiderivatives of low-degree polynomials on [0,1]
+        have max magnitude ~1, so 0.05 ≈ 5% absolute error.
+      * Specific operators within 0.1: tests u=1, u=x, u=sin(πx); 0.1 is
+        a generous floor for well-behaved analytic integrals.
+    """
     total_passed = 0
     total_failed = 0
 
@@ -208,8 +224,8 @@ def main():
     print("=" * 72)
 
     if not HAS_TORCH:
-        print("  [SKIP] PyTorch required")
-        return 0
+        print("  [SKIP] PyTorch required for DeepONet training")
+        return 77
 
     # ------------------------------------------------------------------
     # Part 1: Data generation
@@ -226,17 +242,13 @@ def main():
 
     print(f"  Functions: {n_train} train, {n_test} test")
     print(f"  Sensors: {n_sensors} (input), Output points: {n_output}")
-    print(f"  u range: [{train_data['U_sensors'].min():.2f}, "
-          f"{train_data['U_sensors'].max():.2f}]")
-    print(f"  G range: [{train_data['G_output'].min():.2f}, "
-          f"{train_data['G_output'].max():.2f}]")
-    print(f"  [PASS] Data generated")
+    print(f"  u range: [{train_data['U_sensors'].min():.2f}, {train_data['U_sensors'].max():.2f}]")
+    print(f"  G range: [{train_data['G_output'].min():.2f}, {train_data['G_output'].max():.2f}]")
+    print("  [PASS] Data generated")
     total_passed += 1
 
-    # Verify a known case: u(x) = 1 → G(u)(y) = y
-    u_const = np.ones(n_sensors)
+    # Known case for reference: u(x) = 1 → G(u)(y) = y
     y_pts = train_data["y_output"]
-    g_exact = y_pts  # ∫₀ʸ 1 dτ = y
 
     # ------------------------------------------------------------------
     # Part 2: DeepONet training
@@ -244,20 +256,20 @@ def main():
     print("\n--- Part 2: DeepONet Training ---")
 
     p = 40  # output dimension of branch/trunk
-    model = DeepONet(n_sensors,
-                      branch_layers=[100, 100],
-                      trunk_layers=[100, 100],
-                      p=p)
+    model = DeepONet(n_sensors, branch_layers=[100, 100], trunk_layers=[100, 100], p=p)
 
     n_params = sum(par.numel() for par in model.parameters())
-    print(f"  Architecture: Branch(50→100→100→{p}), "
-          f"Trunk(1→100→100→{p})")
+    print(f"  Architecture: Branch(50→100→100→{p}), Trunk(1→100→100→{p})")
     print(f"  Parameters: {n_params:,}")
 
     wall_time = train_deeponet(
-        model, train_data["U_sensors"], train_data["G_output"],
+        model,
+        train_data["U_sensors"],
+        train_data["G_output"],
         train_data["y_output"],
-        epochs=5000, lr=0.001, batch_size=128,
+        epochs=5000,
+        lr=0.001,
+        batch_size=128,
     )
     print(f"  Training time: {wall_time:.1f}s")
 
@@ -269,8 +281,7 @@ def main():
     U_test = torch.tensor(test_data["U_sensors"], dtype=torch.float32)
     G_test = test_data["G_output"]
     y_test = torch.tensor(
-        test_data["y_output"].reshape(1, -1, 1).repeat(n_test, 0),
-        dtype=torch.float32
+        np.tile(test_data["y_output"].reshape(1, -1, 1), (n_test, 1, 1)), dtype=torch.float32
     )
 
     model.eval()
@@ -280,29 +291,30 @@ def main():
     # Metrics
     l2_errors = []
     for i in range(n_test):
-        err = np.sqrt(np.sum((G_test[i] - G_pred[i])**2)) / \
-              (np.sqrt(np.sum(G_test[i]**2)) + 1e-10)
+        err = np.sqrt(np.sum((G_test[i] - G_pred[i]) ** 2)) / (
+            np.sqrt(np.sum(G_test[i] ** 2)) + 1e-10
+        )
         l2_errors.append(err)
 
     mean_l2 = np.mean(l2_errors)
     median_l2 = np.median(l2_errors)
     max_l2 = np.max(l2_errors)
-    rmse = np.sqrt(np.mean((G_test - G_pred)**2))
+    rmse = np.sqrt(np.mean((G_test - G_pred) ** 2))
 
-    print(f"  Mean L2 relative error: {mean_l2:.6f} ({mean_l2*100:.2f}%)")
+    print(f"  Mean L2 relative error: {mean_l2:.6f} ({mean_l2 * 100:.2f}%)")
     print(f"  Median L2 error: {median_l2:.6f}")
     print(f"  Max L2 error: {max_l2:.6f}")
     print(f"  RMSE: {rmse:.6f}")
 
     if mean_l2 < 0.05:
-        print(f"  [PASS] Mean L2 error < 5%")
+        print("  [PASS] Mean L2 error < 5%")
         total_passed += 1
     else:
-        print(f"  [FAIL] Mean L2 error = {mean_l2*100:.2f}%")
+        print(f"  [FAIL] Mean L2 error = {mean_l2 * 100:.2f}%")
         total_failed += 1
 
     if rmse < 0.05:
-        print(f"  [PASS] RMSE < 0.05")
+        print("  [PASS] RMSE < 0.05")
         total_passed += 1
     else:
         print(f"  [FAIL] RMSE = {rmse:.6f}")
@@ -352,19 +364,19 @@ def main():
     # Part 5: Architecture analysis
     # ------------------------------------------------------------------
     print("\n--- Part 5: DeepONet Architecture Analysis ---")
-    print(f"  Branch net: u(x₁..x₅₀) → R⁴⁰ (encodes input function)")
-    print(f"  Trunk net: y → R⁴⁰ (encodes query location)")
-    print(f"  Output: <Branch, Trunk> + bias (dot product)")
-    print(f"\n  Isomorphic pattern:")
-    print(f"    Branch net ≈ Encoder (BERT, ResNet backbone)")
-    print(f"    Trunk net ≈ Decoder query (transformer Q)")
-    print(f"    Dot product ≈ Attention score computation")
-    print(f"    DeepONet IS attention between functions and locations")
-    print(f"\n  BarraCUDA mapping:")
-    print(f"    Branch MLP → gemm_f64.wgsl (3 layers)")
-    print(f"    Trunk MLP → gemm_f64.wgsl (3 layers)")
-    print(f"    Dot product → elementwise_mul_f64 + sum_reduce_f64")
-    print(f"  [PASS] Architecture analysis completed")
+    print("  Branch net: u(x₁..x₅₀) → R⁴⁰ (encodes input function)")
+    print("  Trunk net: y → R⁴⁰ (encodes query location)")
+    print("  Output: <Branch, Trunk> + bias (dot product)")
+    print("\n  Isomorphic pattern:")
+    print("    Branch net ≈ Encoder (BERT, ResNet backbone)")
+    print("    Trunk net ≈ Decoder query (transformer Q)")
+    print("    Dot product ≈ Attention score computation")
+    print("    DeepONet IS attention between functions and locations")
+    print("\n  BarraCUDA mapping:")
+    print("    Branch MLP → gemm_f64.wgsl (3 layers)")
+    print("    Trunk MLP → gemm_f64.wgsl (3 layers)")
+    print("    Dot product → elementwise_mul_f64 + sum_reduce_f64")
+    print("  [PASS] Architecture analysis completed")
     total_passed += 1
 
     # ------------------------------------------------------------------
@@ -373,16 +385,16 @@ def main():
     print(f"\n{'=' * 72}")
     print("KEY FINDINGS:")
     print(f"{'=' * 72}")
-    print(f"\n1. DeepONet learns the antiderivative operator")
-    print(f"   Mean L2 error: {mean_l2*100:.2f}%")
-    print(f"   Maps functions to functions (not points to points)")
-    print(f"\n2. Branch-trunk is isomorphic to encoder-decoder attention")
-    print(f"   The dot product output IS a learned inner product")
-    print(f"   Same primitive as Exp 002's attention mechanism")
-    print(f"\n3. Operator learning extends surrogates (Exp 001)")
-    print(f"   Exp 001: point → point (MLP surrogate)")
-    print(f"   Study 002: function → function (DeepONet)")
-    print(f"   Both use GEMM as the core op")
+    print("\n1. DeepONet learns the antiderivative operator")
+    print(f"   Mean L2 error: {mean_l2 * 100:.2f}%")
+    print("   Maps functions to functions (not points to points)")
+    print("\n2. Branch-trunk is isomorphic to encoder-decoder attention")
+    print("   The dot product output IS a learned inner product")
+    print("   Same primitive as Exp 002's attention mechanism")
+    print("\n3. Operator learning extends surrogates (Exp 001)")
+    print("   Exp 001: point → point (MLP surrogate)")
+    print("   Study 002: function → function (DeepONet)")
+    print("   Both use GEMM as the core op")
 
     total = total_passed + total_failed
     print(f"\n{'=' * 72}")

@@ -1,0 +1,52 @@
+[workspace]
+
+[package]
+name = "neural-spring"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "Validation harness proving BarraCUDA Rust/WGSL primitives reproduce Python ML baselines"
+repository = "https://github.com/ecoPrimals/neuralSpring"
+
+[dependencies]
+# BarraCUDA shared crate — use primitives instead of reinventing math.
+# When barracuda primitives exist (reduce ops, linalg, pipeline), use them.
+# Uncomment when barracuda is ready; neuralSpring evolves independently.
+# barracuda = { path = "../phase1/toadstool/crates/barracuda" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+approx = "0.5"
+
+# Validation binaries follow the hotSpring pattern:
+# - ValidationHarness with check_abs / check_rel / check_abs_or_rel
+# - Hardcoded expected values from provenance.rs
+# - Tolerances from tolerances.rs (no ad-hoc magic numbers)
+# - Exit code 0 (all pass) or 1 (any fail)
+
+[[bin]]
+name = "validate_surrogate"
+path = "src/bin/validate_surrogate.rs"
+
+[[bin]]
+name = "validate_transformer"
+path = "src/bin/validate_transformer.rs"
+
+[[bin]]
+name = "validate_metrics"
+path = "src/bin/validate_metrics.rs"
+
+[[bin]]
+name = "validate_all"
+path = "src/bin/validate_all.rs"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"

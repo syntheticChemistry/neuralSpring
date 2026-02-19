@@ -27,8 +27,6 @@ BarraCUDA connection:
   - This validates recurrent learning on REAL data
 """
 
-import json
-import math
 import sys
 import time
 from pathlib import Path
@@ -37,6 +35,7 @@ import numpy as np
 
 try:
     import requests
+
     HAS_REQUESTS = True
 except ImportError:
     HAS_REQUESTS = False
@@ -45,6 +44,7 @@ try:
     import torch
     import torch.nn as nn
     import torch.optim as optim
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -54,6 +54,7 @@ except ImportError:
 # Data loading (Open-Meteo ERA5)
 # ---------------------------------------------------------------------------
 
+
 def fetch_open_meteo(lat: float, lon: float, start: str, end: str) -> dict:
     """Fetch daily weather from Open-Meteo Archive API (ERA5 reanalysis)."""
     url = "https://archive-api.open-meteo.com/v1/archive"
@@ -62,18 +63,30 @@ def fetch_open_meteo(lat: float, lon: float, start: str, end: str) -> dict:
         "longitude": lon,
         "start_date": start,
         "end_date": end,
-        "daily": ",".join([
-            "temperature_2m_max",
-            "temperature_2m_min",
-            "precipitation_sum",
-            "wind_speed_10m_max",
-            "relative_humidity_2m_mean",
-        ]),
+        "daily": ",".join(
+            [
+                "temperature_2m_max",
+                "temperature_2m_min",
+                "precipitation_sum",
+                "wind_speed_10m_max",
+                "relative_humidity_2m_mean",
+            ]
+        ),
         "timezone": "America/Detroit",
     }
 
-    resp = requests.get(url, params=params, timeout=30)
-    resp.raise_for_status()
+    for attempt in range(3):
+        try:
+            resp = requests.get(url, params=params, timeout=60)
+            resp.raise_for_status()
+            break
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            if attempt == 2:
+                raise
+            print(f"    API attempt {attempt + 1} failed: {exc}, retrying...")
+            import time as _time
+
+            _time.sleep(2**attempt)
     data = resp.json()
     daily = data["daily"]
 
@@ -96,23 +109,28 @@ def generate_synthetic_weather(n_days: int = 1461, seed: int = 42) -> dict:
     noise = np.zeros(n_days)
     noise[0] = rng.normal(0, 3)
     for i in range(1, n_days):
-        noise[i] = 0.7 * noise[i-1] + rng.normal(0, 3) * 0.71
+        noise[i] = 0.7 * noise[i - 1] + rng.normal(0, 3) * 0.71
 
     tmax = seasonal_tmax + noise
     tmin = tmax - 10 + rng.normal(0, 1.5, n_days)
     tmin = np.minimum(tmin, tmax - 2).astype(np.float32)
     tmax = tmax.astype(np.float32)
 
-    precip = np.where(rng.random(n_days) < 0.35,
-                       rng.exponential(6, n_days), 0).astype(np.float32)
+    precip = np.where(rng.random(n_days) < 0.35, rng.exponential(6, n_days), 0).astype(np.float32)
     wind = (8 + 5 * rng.standard_normal(n_days)).clip(0.5, 40).astype(np.float32)
-    humidity = (65 + 15 * np.sin(2*np.pi*(doy-200)/365) +
-                rng.normal(0, 8, n_days)).clip(20, 100).astype(np.float32)
+    humidity = (
+        (65 + 15 * np.sin(2 * np.pi * (doy - 200) / 365) + rng.normal(0, 8, n_days))
+        .clip(20, 100)
+        .astype(np.float32)
+    )
 
     return {
         "date": [f"synth-day-{i}" for i in range(n_days)],
-        "tmax": tmax, "tmin": tmin, "precip": precip,
-        "wind": wind, "humidity": humidity,
+        "tmax": tmax,
+        "tmin": tmin,
+        "precip": precip,
+        "wind": wind,
+        "humidity": humidity,
     }
 
 
@@ -122,7 +140,8 @@ def load_weather_data() -> tuple:
     cache_file = cache_dir / "east_lansing_era5_2020_2023.npz"
 
     if cache_file.exists():
-        data = dict(np.load(cache_file, allow_pickle=True))
+        with np.load(cache_file) as npz:
+            data = {key: npz[key] for key in npz.files}
         return data, "cached ERA5"
 
     if HAS_REQUESTS:
@@ -138,9 +157,11 @@ def load_weather_data() -> tuple:
                 data[key] = arr
 
             cache_dir.mkdir(parents=True, exist_ok=True)
-            np.savez(cache_file, **{k: v for k, v in data.items()
-                                     if k != "date"},
-                      dates=np.array(data["date"]))
+            np.savez(
+                cache_file,
+                **{k: v for k, v in data.items() if k != "date"},
+                dates=np.array(data["date"]),
+            )
             return data, "Open-Meteo ERA5 (live)"
         except Exception as e:
             print(f"    API failed: {e}")
@@ -153,9 +174,10 @@ def load_weather_data() -> tuple:
 # Sequence dataset
 # ---------------------------------------------------------------------------
 
-def create_multivariate_sequences(features: np.ndarray, target: np.ndarray,
-                                    seq_len: int = 14,
-                                    horizon: int = 1) -> tuple:
+
+def create_multivariate_sequences(
+    features: np.ndarray, target: np.ndarray, seq_len: int = 14, horizon: int = 1
+) -> tuple:
     """
     features: (n_days, n_features)
     target: (n_days,)
@@ -164,7 +186,7 @@ def create_multivariate_sequences(features: np.ndarray, target: np.ndarray,
     n = len(target)
     X, y = [], []
     for i in range(seq_len, n - horizon + 1):
-        X.append(features[i-seq_len:i])
+        X.append(features[i - seq_len : i])
         y.append(target[i + horizon - 1])
     return np.array(X), np.array(y)
 
@@ -173,12 +195,11 @@ def create_multivariate_sequences(features: np.ndarray, target: np.ndarray,
 # Models
 # ---------------------------------------------------------------------------
 
+
 class MultiVarLSTM(nn.Module):
-    def __init__(self, n_features: int, hidden_dim: int = 64,
-                  n_layers: int = 2):
+    def __init__(self, n_features: int, hidden_dim: int = 64, n_layers: int = 2):
         super().__init__()
-        self.lstm = nn.LSTM(n_features, hidden_dim, n_layers,
-                             batch_first=True, dropout=0.1)
+        self.lstm = nn.LSTM(n_features, hidden_dim, n_layers, batch_first=True, dropout=0.1)
         self.head = nn.Sequential(
             nn.Linear(hidden_dim, 32),
             nn.ReLU(),
@@ -194,24 +215,44 @@ class MultiVarLSTM(nn.Module):
 # Metrics (hydrology-standard)
 # ---------------------------------------------------------------------------
 
-def nse(y_true, y_pred):
+
+def nse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """Nash-Sutcliffe Efficiency (standard hydrology metric)."""
-    return 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true))**2)
+    return float(1 - np.sum((y_true - y_pred) ** 2) / np.sum((y_true - np.mean(y_true)) ** 2))
 
 
-def rmse(y_true, y_pred):
-    return np.sqrt(np.mean((y_true - y_pred)**2))
+def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Root mean squared error."""
+    return float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
 
 
-def mae(y_true, y_pred):
-    return np.mean(np.abs(y_true - y_pred))
+def mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Mean absolute error."""
+    return float(np.mean(np.abs(y_true - y_pred)))
 
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
-def main():
+
+def main() -> int:
+    """Run LSTM ERA5 weather forecasting validation.  Returns 0 / 1 / 77.
+
+    Provenance
+    ----------
+    Baseline produced: 2026-02-16, Eastgate, Python 3.10, PyTorch 2.9.0+cu128.
+    Data: Open-Meteo ERA5 reanalysis (ECMWF Copernicus Climate Data Store).
+    Location: East Lansing MI 42.73°N 84.48°W (airSpring study site).
+    Period: 2020-01-01 to 2023-12-31 (1461 days).
+    Result: 5/5 PASS (NSE=0.849, RMSE=3.46°C on 1-day Tmax forecast).
+    Tolerance rationale:
+      * NSE > 0.80: standard hydrology "good model" threshold (Moriasi et al.
+        2007, Trans. ASABE 50:885-900).  LSTM achieves ~0.85 on 4 years.
+      * RMSE < 5.0°C: daily Tmax forecast within 5°C is useful for
+        irrigation scheduling; persistence baseline achieves ~3.5°C on
+        autocorrelated data.
+    """
     total_passed = 0
     total_failed = 0
 
@@ -222,8 +263,8 @@ def main():
     print("=" * 72)
 
     if not HAS_TORCH:
-        print("  [SKIP] PyTorch required")
-        return 0
+        print("  [SKIP] PyTorch required for LSTM training")
+        return 77
 
     # ------------------------------------------------------------------
     # Part 1: Load data
@@ -233,16 +274,20 @@ def main():
     n_days = len(weather["tmax"])
     print(f"  Source: {source}")
     print(f"  Days: {n_days}")
-    print(f"  Tmax range: [{weather['tmax'].min():.1f}, "
-          f"{weather['tmax'].max():.1f}] °C")
+    print(f"  Tmax range: [{weather['tmax'].min():.1f}, {weather['tmax'].max():.1f}] °C")
     print(f"  [PASS] Data loaded ({n_days} days)")
     total_passed += 1
 
     # Build feature matrix
-    features_raw = np.column_stack([
-        weather["tmax"], weather["tmin"], weather["precip"],
-        weather["wind"], weather["humidity"],
-    ])
+    features_raw = np.column_stack(
+        [
+            weather["tmax"],
+            weather["tmin"],
+            weather["precip"],
+            weather["wind"],
+            weather["humidity"],
+        ]
+    )
     target_raw = weather["tmax"]
 
     # Normalize
@@ -261,15 +306,14 @@ def main():
     seq_len = 14
     horizon = 1
 
-    X_all, y_all = create_multivariate_sequences(features, target,
-                                                   seq_len, horizon)
+    X_all, y_all = create_multivariate_sequences(features, target, seq_len, horizon)
     n = len(X_all)
     n_train = int(0.6 * n)
     n_val = int(0.2 * n)
 
     X_train, y_train = X_all[:n_train], y_all[:n_train]
-    X_val, y_val = X_all[n_train:n_train+n_val], y_all[n_train:n_train+n_val]
-    X_test, y_test = X_all[n_train+n_val:], y_all[n_train+n_val:]
+    X_val, y_val = X_all[n_train : n_train + n_val], y_all[n_train : n_train + n_val]
+    X_test, y_test = X_all[n_train + n_val :], y_all[n_train + n_val :]
 
     print(f"  Split: {n_train} train, {n_val} val, {len(X_test)} test")
 
@@ -278,8 +322,7 @@ def main():
     print(f"  Parameters: {n_params:,}")
 
     optimizer = optim.Adam(model.parameters(), lr=0.002)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50,
-                                                       eta_min=1e-5)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-5)
     loss_fn = nn.MSELoss()
 
     X_tr_t = torch.tensor(X_train)
@@ -305,7 +348,7 @@ def main():
             with torch.no_grad():
                 val_pred = model(X_val_t).numpy()
             val_nse = nse(y_val, val_pred)
-            print(f"    Epoch {epoch+1:>3d}: val_NSE={val_nse:.4f}")
+            print(f"    Epoch {epoch + 1:>3d}: val_NSE={val_nse:.4f}")
 
     wall_time = time.time() - t0
     print(f"  Training time: {wall_time:.1f}s")
@@ -333,18 +376,17 @@ def main():
     y_persist = X_test[:, -1, 0] * tgt_std + tgt_mean
     persist_nse = nse(y_test_orig, y_persist)
     persist_rmse = rmse(y_test_orig, y_persist)
-    print(f"\n  Persistence baseline: NSE={persist_nse:.4f}, "
-          f"RMSE={persist_rmse:.2f} °C")
+    print(f"\n  Persistence baseline: NSE={persist_nse:.4f}, RMSE={persist_rmse:.2f} °C")
 
     if test_nse > 0.80:
-        print(f"  [PASS] NSE > 0.80")
+        print("  [PASS] NSE > 0.80")
         total_passed += 1
     else:
         print(f"  [FAIL] NSE = {test_nse:.4f}")
         total_failed += 1
 
     if test_rmse < 5.0:
-        print(f"  [PASS] RMSE < 5.0 °C")
+        print("  [PASS] RMSE < 5.0 °C")
         total_passed += 1
     else:
         print(f"  [FAIL] RMSE = {test_rmse:.2f} °C")
@@ -355,21 +397,20 @@ def main():
     # ------------------------------------------------------------------
     print("\n--- Part 4: Multi-Horizon Forecast ---")
     for h in [1, 3, 7]:
-        X_h, y_h = create_multivariate_sequences(features, target,
-                                                    seq_len, h)
+        X_h, y_h = create_multivariate_sequences(features, target, seq_len, h)
         n_h = len(X_h)
-        X_te_h = X_h[int(0.8*n_h):]
-        y_te_h = y_h[int(0.8*n_h):]
+        X_te_h = X_h[int(0.8 * n_h) :]
+        y_te_h = y_h[int(0.8 * n_h) :]
 
         model_h = MultiVarLSTM(5, 64, 2)
-        X_tr_h = torch.tensor(X_h[:int(0.8*n_h)])
-        y_tr_h = torch.tensor(y_h[:int(0.8*n_h)])
+        X_tr_h = torch.tensor(X_h[: int(0.8 * n_h)])
+        y_tr_h = torch.tensor(y_h[: int(0.8 * n_h)])
         ds_h = torch.utils.data.TensorDataset(X_tr_h, y_tr_h)
         dl_h = torch.utils.data.DataLoader(ds_h, batch_size=64, shuffle=True)
         opt_h = optim.Adam(model_h.parameters(), lr=0.002)
 
         model_h.train()
-        for ep in range(30):
+        for _ep in range(30):
             for bx, by in dl_h:
                 opt_h.zero_grad()
                 loss_fn(model_h(bx), by).backward()
@@ -386,22 +427,22 @@ def main():
         rmse_h = rmse(y_te_o, yp_o)
         print(f"    Horizon {h:>2d}d: NSE={nse_h:.4f}, RMSE={rmse_h:.2f} °C")
 
-    print(f"  [PASS] Multi-horizon analysis completed")
+    print("  [PASS] Multi-horizon analysis completed")
     total_passed += 1
 
     # ------------------------------------------------------------------
     # Part 5: Op analysis
     # ------------------------------------------------------------------
     print("\n--- Part 5: BarraCUDA LSTM Op Mapping ---")
-    print(f"  LSTM(5→64, 2 layers) per timestep:")
-    print(f"    Layer 1: 4 gates × (5+64) input × 64 hidden = 17,664 FLOPs")
-    print(f"    Layer 2: 4 gates × (64+64) input × 64 hidden = 32,768 FLOPs")
-    print(f"    × 14 timesteps = ~705,000 FLOPs per sample")
-    print(f"\n  BarraCUDA: lstm_cell.wgsl handles all gate computations")
-    print(f"  Head: gemm_f64.wgsl (64→32→1)")
-    print(f"\n  Real data validates the full pipeline:")
-    print(f"  API → normalize → LSTM → denormalize → physical units")
-    print(f"  [PASS] Op analysis completed")
+    print("  LSTM(5→64, 2 layers) per timestep:")
+    print("    Layer 1: 4 gates × (5+64) input × 64 hidden = 17,664 FLOPs")
+    print("    Layer 2: 4 gates × (64+64) input × 64 hidden = 32,768 FLOPs")
+    print("    × 14 timesteps = ~705,000 FLOPs per sample")
+    print("\n  BarraCUDA: lstm_cell.wgsl handles all gate computations")
+    print("  Head: gemm_f64.wgsl (64→32→1)")
+    print("\n  Real data validates the full pipeline:")
+    print("  API → normalize → LSTM → denormalize → physical units")
+    print("  [PASS] Op analysis completed")
     total_passed += 1
 
     # ------------------------------------------------------------------
@@ -410,14 +451,14 @@ def main():
     print(f"\n{'=' * 72}")
     print("KEY FINDINGS:")
     print(f"{'=' * 72}")
-    print(f"\n1. Multivariate LSTM on REAL ERA5 data:")
+    print("\n1. Multivariate LSTM on REAL ERA5 data:")
     print(f"   NSE={test_nse:.4f}, RMSE={test_rmse:.2f}°C (1-day forecast)")
-    print(f"   Uses 5 weather variables as input, not just temperature")
-    print(f"\n2. Multi-horizon: accuracy degrades with forecast distance")
-    print(f"   This is physically correct — weather is chaotic")
-    print(f"\n3. LSTM gates on real data validated:")
-    print(f"   lstm_cell.wgsl handles: forget, input, cell, output gates")
-    print(f"   Same ops for hydrology (Gauch), finance, NLP sequences")
+    print("   Uses 5 weather variables as input, not just temperature")
+    print("\n2. Multi-horizon: accuracy degrades with forecast distance")
+    print("   This is physically correct — weather is chaotic")
+    print("\n3. LSTM gates on real data validated:")
+    print("   lstm_cell.wgsl handles: forget, input, cell, output gates")
+    print("   Same ops for hydrology (Gauch), finance, NLP sequences")
 
     total = total_passed + total_failed
     print(f"\n{'=' * 72}")
