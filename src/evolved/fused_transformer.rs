@@ -21,7 +21,7 @@
 
 use super::fused_pipeline::{
     self as fp, Dev, HeadShapeParams, LayerNormParams,
-    MatMulParams, GeluParams, ShaderCache,
+    MatMulParams, MatmulConfig, GeluParams, ShaderCache,
 };
 
 /// Pre-built fused Transformer encoder block.
@@ -97,6 +97,7 @@ pub struct FusedTransformer {
     bg_ff2: wgpu::BindGroup,
     bg_ff2_add: wgpu::BindGroup,
     bg_res2: wgpu::BindGroup,
+    mm_config: MatmulConfig,
 }
 
 #[derive(Clone, Copy)]
@@ -253,11 +254,14 @@ impl FusedTransformer {
         let bg_ln1 = fp::bind_group(&device, &shaders.layer_norm,
             &[&input_buf, &ln1_out, &ln1_params], "tf_bg_ln1");
 
-        let bg_q = fp::bind_group(&device, &shaders.matmul,
+        let mm_config = MatmulConfig::from_device(&device);
+        let (proj_pipe, _) = fp::select_matmul(&shaders, seq as u32, d as u32, d as u32, &mm_config);
+
+        let bg_q = fp::bind_group(&device, proj_pipe,
             &[&ln1_out, &w_q, &q_proj, &mm_q_params], "tf_bg_q");
-        let bg_k = fp::bind_group(&device, &shaders.matmul,
+        let bg_k = fp::bind_group(&device, proj_pipe,
             &[&ln1_out, &w_k, &k_proj, &mm_k_params], "tf_bg_k");
-        let bg_v = fp::bind_group(&device, &shaders.matmul,
+        let bg_v = fp::bind_group(&device, proj_pipe,
             &[&ln1_out, &w_v, &v_proj, &mm_v_params], "tf_bg_v");
 
         let bg_hs_q = fp::bind_group(&device, &shaders.head_split,
@@ -273,7 +277,7 @@ impl FusedTransformer {
         let bg_hc = fp::bind_group(&device, &shaders.head_concat,
             &[&attn_out, &attn_concat, &head_concat_params], "tf_bg_hc");
 
-        let bg_wo = fp::bind_group(&device, &shaders.matmul,
+        let bg_wo = fp::bind_group(&device, proj_pipe,
             &[&attn_concat, &w_o, &wo_out, &mm_wo_params], "tf_bg_wo");
 
         // residual1 = input + wo_out
@@ -283,7 +287,8 @@ impl FusedTransformer {
         let bg_ln2 = fp::bind_group(&device, &shaders.layer_norm,
             &[&residual1, &ln2_out, &ln2_params], "tf_bg_ln2");
 
-        let bg_ff1 = fp::bind_group(&device, &shaders.matmul,
+        let (ff1_pipe, _) = fp::select_matmul(&shaders, seq as u32, d as u32, d_ff as u32, &mm_config);
+        let bg_ff1 = fp::bind_group(&device, ff1_pipe,
             &[&ln2_out, &w_ff1, &ff1_out, &mm_ff1_params], "tf_bg_ff1");
 
         let bg_ff1_add = fp::bind_group(&device, &shaders.add,
@@ -292,7 +297,8 @@ impl FusedTransformer {
         let bg_gelu = fp::bind_group(&device, &shaders.gelu,
             &[&ff1_bias_out, &ff1_gelu, &gelu_params], "tf_bg_gelu");
 
-        let bg_ff2 = fp::bind_group(&device, &shaders.matmul,
+        let (ff2_pipe, _) = fp::select_matmul(&shaders, seq as u32, d_ff as u32, d as u32, &mm_config);
+        let bg_ff2 = fp::bind_group(&device, ff2_pipe,
             &[&ff1_gelu, &w_ff2, &ff2_out, &mm_ff2_params], "tf_bg_ff2");
 
         let bg_ff2_add = fp::bind_group(&device, &shaders.add,
@@ -317,6 +323,7 @@ impl FusedTransformer {
             bg_hs_q, bg_hs_k, bg_hs_v,
             bg_attn, bg_hc, bg_wo, bg_res1, bg_ln2,
             bg_ff1, bg_ff1_add, bg_gelu, bg_ff2, bg_ff2_add, bg_res2,
+            mm_config,
         }
     }
 
@@ -352,17 +359,21 @@ impl FusedTransformer {
 
         let mut enc = fp::new_encoder(&self.device, "fused_transformer");
 
+        let (proj_pipe, proj_disp) = fp::select_matmul(&self.shaders, seq, d, d, &self.mm_config);
+        let (ff1_pipe, ff1_disp) = fp::select_matmul(&self.shaders, seq, d, d_ff, &self.mm_config);
+        let (ff2_pipe, ff2_disp) = fp::select_matmul(&self.shaders, seq, d_ff, d, &self.mm_config);
+
         // 1. Layer norm 1
         fp::record_pass(&mut enc, &self.shaders.layer_norm, &self.bg_ln1,
             fp::elementwise_dispatch(seq), "ln1");
 
-        // 2. Q/K/V projections (matmul)
-        fp::record_pass(&mut enc, &self.shaders.matmul, &self.bg_q,
-            fp::matmul_dispatch(seq, d), "proj_q");
-        fp::record_pass(&mut enc, &self.shaders.matmul, &self.bg_k,
-            fp::matmul_dispatch(seq, d), "proj_k");
-        fp::record_pass(&mut enc, &self.shaders.matmul, &self.bg_v,
-            fp::matmul_dispatch(seq, d), "proj_v");
+        // 2. Q/K/V projections (routed matmul)
+        fp::record_pass(&mut enc, proj_pipe, &self.bg_q,
+            proj_disp(seq, d), "proj_q");
+        fp::record_pass(&mut enc, proj_pipe, &self.bg_k,
+            proj_disp(seq, d), "proj_k");
+        fp::record_pass(&mut enc, proj_pipe, &self.bg_v,
+            proj_disp(seq, d), "proj_v");
 
         // 3. Head split
         fp::record_pass(&mut enc, &self.shaders.head_split, &self.bg_hs_q,
@@ -381,8 +392,8 @@ impl FusedTransformer {
             fp::elementwise_dispatch(sd), "hc");
 
         // 6. Output projection (Wo)
-        fp::record_pass(&mut enc, &self.shaders.matmul, &self.bg_wo,
-            fp::matmul_dispatch(seq, d), "proj_wo");
+        fp::record_pass(&mut enc, proj_pipe, &self.bg_wo,
+            proj_disp(seq, d), "proj_wo");
 
         // 7. Residual 1: input + attn_output
         fp::record_pass(&mut enc, &self.shaders.add, &self.bg_res1,
@@ -393,16 +404,16 @@ impl FusedTransformer {
             fp::elementwise_dispatch(seq), "ln2");
 
         // 9. FFN layer 1: matmul + add + gelu
-        fp::record_pass(&mut enc, &self.shaders.matmul, &self.bg_ff1,
-            fp::matmul_dispatch(seq, d_ff), "ff1_mm");
+        fp::record_pass(&mut enc, ff1_pipe, &self.bg_ff1,
+            ff1_disp(seq, d_ff), "ff1_mm");
         fp::record_pass(&mut enc, &self.shaders.add, &self.bg_ff1_add,
             fp::elementwise_dispatch(seq * d_ff), "ff1_add");
         fp::record_pass(&mut enc, &self.shaders.gelu, &self.bg_gelu,
             fp::elementwise_dispatch(seq * d_ff), "ff1_gelu");
 
         // 10. FFN layer 2: matmul + add
-        fp::record_pass(&mut enc, &self.shaders.matmul, &self.bg_ff2,
-            fp::matmul_dispatch(seq, d), "ff2_mm");
+        fp::record_pass(&mut enc, ff2_pipe, &self.bg_ff2,
+            ff2_disp(seq, d), "ff2_mm");
         fp::record_pass(&mut enc, &self.shaders.add, &self.bg_ff2_add,
             fp::elementwise_dispatch(sd), "ff2_add");
 

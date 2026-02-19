@@ -111,6 +111,10 @@ path = "src/bin/bench_transformer_block.rs"
 name = "bench_fused_inference"
 path = "src/bin/bench_fused_inference.rs"
 
+[[bin]]
+name = "bench_scaling"
+path = "src/bin/bench_scaling.rs"
+
 # --- Meta ---
 
 [[bin]]

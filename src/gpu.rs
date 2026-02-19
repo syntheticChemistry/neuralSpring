@@ -85,6 +85,27 @@ impl Gpu {
         }
     }
 
+    /// Create with the CPU software backend (llvmpipe).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no CPU adapter is available.
+    pub async fn new_cpu() -> Result<Self, String> {
+        Self::create_relaxed("cpu").await
+    }
+
+    /// Create with a discrete/integrated GPU backend.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no GPU adapter is available.
+    pub async fn new_gpu() -> Result<Self, String> {
+        match WgpuDevice::new_gpu().await {
+            Ok(dev) => Ok(Self::from_device(Arc::new(dev))),
+            Err(e) => Err(format!("gpu: {e}")),
+        }
+    }
+
     /// Raw `wgpu::Device` handle — for pipeline creation and buffer ops.
     #[must_use]
     pub fn device(&self) -> &wgpu::Device {

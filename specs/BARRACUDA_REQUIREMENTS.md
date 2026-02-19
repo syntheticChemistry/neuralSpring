@@ -58,6 +58,8 @@
 | **Phylogenetic likelihood** | Liu: SATé 2009, cophylogenetics 2023 | Felsenstein pruning on trees. GEMM at each internal node, parallel across trees | High |
 | **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | Study 001 used Adam-only (5.1% L2 error). Paper achieves 0.06% with Adam + L-BFGS. Adding L-BFGS closes the gap | Medium |
 | **Directed evolution framework** | Dolson 2022 (eLife) | Artificial selection methods for microbial optimization. Connects neuralSpring to wetSpring wet lab | Medium |
+| **Lanczos eigensolve** | Kachkovskiy: JAMS 2016, GAFA 2018 | Hessian eigenvalue analysis for understanding loss landscape curvature. Large sparse matrix diagonalization — shared with hotSpring/groundSpring | Medium |
+| **Sparse matrix-vector product** | Kachkovskiy (all) | Inner-loop of Lanczos. Required for sparse attention, Hessian-vector products, and spectral analysis of weight matrices | Medium |
 
 ---
 

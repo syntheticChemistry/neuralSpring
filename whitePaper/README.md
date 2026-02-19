@@ -2,53 +2,111 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 0 + Phase 0+ complete — **75/75 quantitative checks pass** (48 synthetic + 27 scholarly)
-**Rust**: Phase 1 complete — 9 library modules, 18 binaries, 34 unit tests, 285 binary checks (43 native + 242 BarraCUDA)
-**Fused Pipeline**: 43–78× speedup via single-encoder dispatch. GPU-resident head-split/concat and batched attention.
+**Status**: Working draft
+**Date**: February 19, 2026
+**License**: AGPL-3.0-or-later
 
-### Key Results — Phase 0 (Synthetic Baselines)
+---
 
-| Experiment | Domain | Tests | Key Finding |
-|------------|--------|-------|-------------|
-| 001 Neural Surrogate | Function approx + FAO-56 | 11/11 | MLP (4,673 params) replaces FAO-56 chain at R²=0.999, RMSE=0.07 mm/day |
-| 002 Transformer | Self-attention mechanics | 18/18 | NumPy SDPA matches PyTorch to <1e-10. Same ops as llama.cpp/OpenFold/ViT |
-| 003 Sequence | LSTM/GRU weather forecast | 5/5 | LSTM R²≈0.93 on Michigan Tmax, competitive with persistence baseline |
-| 004 Transfer | Michigan→NM/CA adaptation | 6/6 | Domain gap 0.33 R² (NM); fine-tuning with 200 samples bridges it |
-| 005 Isomorphic | Cross-domain op catalog | 8/8 | 6 primitives explain ALL architectures. BarraCUDA covers all 6 |
+### Document Index
 
-### Key Results — Phase 0+ (Scholarly Reproductions)
+| Document | Audience | Description |
+|----------|----------|-------------|
+| [STUDY.md](STUDY.md) | Technical | Main study: experiments, results, BarraCUDA evolution |
+| [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) | ToadStool team | Shader evolution narrative: Python → CPU → GPU |
+| `specs/BENCHMARK_ANALYSIS.md` | Engineering | Full 3-way benchmark with analysis |
+| `specs/TOADSTOOL_HANDOFF.md` | Engineering | 11 BarraCUDA shortcomings + local fixes |
+| `wateringHole/handoffs/` | Cross-project | Formal handoffs (date-stamped) |
 
-| Study | Paper | Tests | Key Finding |
-|-------|-------|-------|-------------|
-| 001 PINN Burgers | Raissi et al. (2019) JCP | 6/6 | L2 error 5.1% with Adam-only (paper: 0.06% with L-BFGS). Validates MLP + autograd for PDE solving |
-| 002 DeepONet | Lu et al. (2021) Nat Mach Intel | 5/5 | 1.2% mean L2 on operator learning. Branch-trunk = encoder-decoder attention |
-| 003 LeNet-5 MNIST | LeCun et al. (1998) | 5/5 | 98.89% accuracy. Validates Conv2d + MaxPool + FC pipeline |
-| 004 LSTM ERA5 | Real Open-Meteo data | 5/5 | NSE=0.849, RMSE=3.46°C on 4 years of Michigan weather |
-| 005 Quantized | INT8/INT4 inference | 6/6 | INT8: 0.017% accuracy loss, INT4: 0.79% loss. Same pipeline as llama.cpp GGML |
+---
+
+### What This Study Is
+
+neuralSpring validates machine learning primitives on consumer hardware using
+BarraCUDA's WGSL shader library — the same library hotSpring uses for nuclear
+physics. The central claim: **all neural architectures decompose into six
+fundamental primitives**, and a single engine optimizing those primitives in
+WGSL serves every domain.
+
+### Three Questions
+
+1. **Can neural surrogates replace equation chains?**
+   Yes. MLP surrogate for FAO-56 ET₀ achieves R²>0.999 with 2000 training
+   samples. Same 6-layer pipeline replaces the full Penman-Monteith chain.
+
+2. **Can compiled WGSL shaders beat Python/NumPy for ML inference?**
+   Yes, at scale. GPU (RTX 4070) is **104× faster** than single-thread Python
+   at 103M FLOPs. CPU (llvmpipe) is **3.9× faster** at the same scale.
+   Both execute the same WGSL source — ToadStool compiles to x86 or Vulkan.
+
+3. **Does the hotSpring progression (Python > CPU > GPU) hold for ML?**
+   Yes, at crossover scales. The 3-way benchmark achieves
+   **GPU < CPU < Python** at MLP large (3.1M FLOPs) and Transformer medium
+   (103M FLOPs). GPU dominates CPU by 4–80× at every scale.
+
+---
+
+### Key Results Summary
+
+**Phase 0/0+**: 75/75 Python PASS (48 synthetic + 27 scholarly reproductions)
+**Phase 1**: 285/285 Rust validation PASS (43 native + 242 BarraCUDA)
+
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
+| 0+ | Scholarly reproductions — 5 studies, 27 checks | **Complete** |
+| 1a | Rust validation layer — 43 native checks | **Complete** |
+| 1b | BarraCUDA validation — 242 checks (10 domains) | **Complete** |
+| 1c | Fused pipeline — 46–78× speedup | **Complete** |
+| 1d | 3-way benchmark + double-buffered shaders | **Complete** |
+
+#### 3-Way Benchmark Highlights (Phase 1d)
+
+| Scale | Py(1t) | CPU | GPU | GPU/CPU |
+|-------|--------|-----|-----|---------|
+| MLP large (3.1M FLOPs) | 3.0 ms | **2.7 ms** | **178 µs** | 15× |
+| TF medium (103M FLOPs) | 59 ms | **15.1 ms** | **566 µs** | 27× |
+| TF xlarge (6.6B FLOPs) | 232 ms | 1.42 s | **17.8 ms** | **80×** |
+
+Correctness: max diff 1.49e-8 (MLP), 1.10e-6 (Transformer) — same WGSL,
+same math, both backends.
+
+---
 
 ### The Isomorphism Theorem
 
 All neural architectures decompose into compositions of six fundamental primitives:
 
-1. **GEMM** (matrix multiply) — 60-90% of all FLOPs
+1. **GEMM** (matrix multiply) — 60–90% of all FLOPs
 2. **Attention** (scaled dot-product) — learned routing
 3. **Normalization** (LN/BN/RMS) — scale stabilization
 4. **Nonlinearity** (ReLU/GELU/SiLU) — feature carving
 5. **Reduction** (sum/mean/max) — aggregation
 6. **Gating** (sigmoid × value) — information filtering
 
-A single engine optimizing these 6 ops in WGSL serves every domain.
+A single engine optimizing these 6 ops in WGSL serves every domain:
+language (llama.cpp), protein (OpenFold), vision (ViT), physics (hotSpring),
+time series (weather), and quantized deployment.
 
-### Key Research Questions Answered
+---
 
-1. **Can neural surrogates replace equation chains?** Yes — MLP surrogate for FAO-56 achieves R²>0.999 with 2000 training samples
-2. **Is self-attention correct from scratch?** Yes — NumPy matches PyTorch to machine precision
-3. **Can LSTM learn weather patterns?** Yes — R²≈0.93 for 1-day Tmax forecasts
-4. **Does transfer learning work across climates?** Yes — fine-tuning with 200 NM samples recovers most of the domain gap
-5. **Are architectures isomorphic?** Yes — 6 primitives, all in BarraCUDA
-6. **Can PINNs solve PDEs from scratch?** Yes — Burgers' equation solved to 5.1% L2 error with Adam-only
-7. **Can operators be learned?** Yes — DeepONet learns the antiderivative operator to 1.2% L2
-8. **Does quantization preserve accuracy?** Yes — INT8 costs 0.017%, INT4 costs 0.79%
+### BarraCUDA Shader Evolution
+
+The same pattern hotSpring demonstrated for nuclear physics — Python control,
+then Rust/WGSL evolution — applies to ML inference:
+
+| Stage | What Happened | Result |
+|-------|---------------|--------|
+| Python control | NumPy/PyTorch baselines for all 10 experiments | 75/75 PASS |
+| BarraCUDA validation | 242 checks across 10 modules (CPU + GPU) | 242/242 PASS |
+| Fused pipeline | Single-encoder dispatch, eliminate per-op overhead | **46–78× over per-op** |
+| BLAS-evolved CPU shader | 32×32 tiles, vec4, 8×4 micro-kernel, k-unroll | CPU beats Py at 3M+ FLOPs |
+| Double-buffered GPU shader | Load/compute overlap, 2×2 micro-kernel | **10–12% faster at scale** |
+| 4-tier router | DeviceCapabilities-driven matmul selection | Best kernel per dispatch |
+
+See [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) for the full technical narrative.
+
+---
 
 ### Cross-Spring Connection
 
@@ -56,121 +114,51 @@ A single engine optimizing these 6 ops in WGSL serves every domain.
 |--------|----------|-------------------|
 | airSpring | FAO-56 ET₀ model | Surrogate target, real weather data |
 | groundSpring | Noise labels, uncertainty | Training robustness, domain gap quantification |
-| hotSpring | Physics surrogates (RBF) | Neural surrogate comparison (MLP vs RBF) |
+| hotSpring | Physics surrogates (RBF), BarraCUDA patterns | Shader evolution methodology, benchmark patterns |
 | wetSpring | Taxonomy pipelines | Future: learned classifiers, HMM for metagenomics |
 
 ---
 
-## Next Phase: Paper Review Candidates
+### Research Questions Answered
 
-neuralSpring's Phase 0/0+ validates ML primitives in isolation. The faculty network reveals three professors whose work drives the next phase — applying validated primitives to real scientific problems.
+1. **Can neural surrogates replace equation chains?** Yes — MLP for FAO-56 at R²>0.999
+2. **Is self-attention correct from scratch?** Yes — NumPy matches PyTorch to <1e-10
+3. **Can LSTM learn weather patterns?** Yes — R²≈0.93, NSE=0.849 on real ERA5
+4. **Does transfer learning work across climates?** Yes — 200 NM samples recover domain gap
+5. **Are architectures isomorphic?** Yes — 6 primitives, all in BarraCUDA
+6. **Can PINNs solve PDEs?** Yes — Burgers' equation to 5.1% L2 error
+7. **Can operators be learned?** Yes — DeepONet to 1.2% L2 error
+8. **Does quantization preserve accuracy?** Yes — INT8: 0.017% loss, INT4: 0.79%
+9. **Can WGSL beat Python for ML?** Yes — CPU 3.9× faster at 103M, GPU 104× faster
+10. **Does the hotSpring progression hold?** Yes — GPU < CPU < Python at crossover
 
-### Constrained Evolution & Evolutionary Computation (Dolson)
+---
 
-Emily Dolson's work is the closest published analog to the constrained evolution methodology described in `gen3/CONSTRAINED_EVOLUTION_FORMAL.md`. Reproducing her work would externally validate the theoretical framework underlying all of ecoPrimals.
+### Reproduction
 
-| Priority | Paper | Why |
-|----------|-------|-----|
-| **Tier 1** | Iram, Dolson et al. (2020) "Controlling the speed and trajectory of evolution with counterdiabatic driving." Nature Physics | **Critical**: Counterdiabatic protocols for steering evolution under constraint. This is the physics formalization of what ecoPrimals does with Rust's type system. Reproducing the computational protocol validates the gen3 thesis |
-| **Tier 1** | Dolson et al. (2019) "The MODES Toolbox: Measurements of Open-Ended Dynamics in Evolving Systems." Artificial Life 25(1):50-73 | Metrics for measuring whether a system produces genuine novelty. Apply MODES metrics to BarraCUDA's own evolution — does constrained evolution produce open-ended innovation? |
-| **Tier 2** | Dolson & Ofria (2018) "Ecological Theory Provides Insights about Evolutionary Computation." GECCO | Ecological dynamics in evolutionary algorithms. Maps directly to primal competition/cooperation in biomeOS — primals as species in an ecosystem |
-| **Tier 2** | Dolson et al. (2022) "Artificial selection methods from evolutionary computing show promise for directed evolution of microbes." eLife 11:e79665 | Computational → wet lab bridge. If selection algorithms work for microbes, they work for BarraCUDA shader optimization |
-| **Tier 2** | Foreback, Bohm, Dolson (2025) "Leveraging Heterogeneous Controller Representations for Evolutionary Swarm Robotics." IEEE | Heterogeneous controller representations = different primals with different architectures. Swarm robotics optimization ↔ NUCLEUS deployment optimization |
+```bash
+# Phase 0/0+ Python baselines (75/75)
+pip install -r control/requirements.txt
+bash scripts/run_all_baselines.sh
 
-### HMM & Phylogenetic Inference (Liu)
+# Phase 1 Rust validation (285/285)
+cargo test
+make validate
 
-Kevin Liu's sequence analysis methods exercise the same GEMM + state-space primitives that neuralSpring validates. His HMM work is a natural bridge to learned sequence models.
+# 3-way benchmark (Python vs CPU vs GPU)
+cargo run --release --bin bench_scaling
+```
 
-| Priority | Paper | Why |
-|----------|-------|-----|
-| **Tier 1** | Liu et al. (2014) "An HMM-based Comparative Genomic Framework for Detecting Introgression in Eukaryotes." PLoS Comp Bio 10:e1003649 | PhyloNet-HMM = Hidden Markov Model on genomic data. Validates LSTM/sequence model primitives from a completely different angle — HMM forward/backward/Viterbi are matrix chain multiplications |
-| **Tier 2** | Liu et al. (2009) "Rapid and accurate large-scale coestimation of sequence alignments and phylogenetic trees." Science 324:1561-1564 | SATé's divide-and-conquer + iterative refinement = surrogate + optimization loop. Benchmark for GEMM-heavy computation at massive scale |
-| **Tier 2** | Liu et al. (2015) "Interspecific Introgressive Origin of Genomic Diversity in the House Mouse." PNAS 112:196-201 | Gene flow detection = transfer learning analog. Introgression between species = knowledge transfer between domains. Exp 004 (transfer learning) from a genomics perspective |
+---
 
-### Game Theory & Cooperation Dynamics (Waters)
+### Next Phase: Faculty-Driven Paper Candidates
 
-Christopher Waters' quorum sensing work frames bacterial cooperation as an evolutionary game theory problem — directly connected to neuralSpring's optimization landscape analysis.
+Three professors from the master's program (Dolson, Liu, Bazavov) and one from
+undergrad (Waters) provide the next wave of reproduction targets — moving from
+"validate ML primitives" to "apply ML to real science."
 
-| Priority | Paper | Why |
-|----------|-------|-----|
-| **Tier 2** | Bruger & Waters (2018) "Maximizing Growth Yield and Dispersal via QS Promotes Cooperation." AEM 84:e00402-18 | Game-theoretic optimization of cooperative behavior. Evolutionary strategy landscapes — the bacterial "fitness landscape" is the same mathematical object as a neural network's loss landscape |
-| **Tier 2** | Mhatre et al. (2020) "One gene, multiple ecological strategies: a biofilm regulator is a capacitor for sustainable diversity." PNAS 117:21647-21657 | Single regulatory node enabling phenotypic diversity = single constrained system producing diverse specialized primals |
-| **Tier 2** | Srivastava et al. (2011) "Integration of Cyclic di-GMP and Quorum Sensing in the Control of vpsT and aphA." J Bacteriology 193:6331-41 | Multi-input regulatory network = attention mechanism analog. Multiple noisy signals integrated through learned weights |
-
-### Phase 1 Rust Validation (February 2026)
-
-The audit produced a Rust validation layer that cross-checks Python baselines.
-BarraCUDA CPU primitives are validated following the hotSpring pattern.
-
-#### neuralSpring-native modules (43 checks)
-
-| Rust Module | Python Source | Tests | Cross-Validation |
-|-------------|-------------|-------|------------------|
-| `metrics.rs` | `compute_r2`, `compute_rmse`, `compute_mae` | 3 unit + 10 binary | R², RMSE, MAE, NSE at analytical known-values |
-| `surrogate.rs` | `rastrigin_2d`, `rosenbrock_2d`, `ackley_2d` | 6 unit + 15 binary | Global minima + 12 Python-computed reference points |
-| `transformer.rs` | `softmax`, `gelu_numpy` | 7 unit + 18 binary | Element-wise match against NumPy to <1e-12 |
-| `sequence.rs` | `create_sequences`, `persistence_forecast`, `seasonal_tmax` | 7 unit | Window construction, sigmoid/tanh gates |
-
-#### BarraCUDA Primitives (242 checks)
-
-| Validation Binary | BarraCUDA Module | Checks | Reference Source |
-|-------------------|------------------|--------|-----------------|
-| `validate_barracuda_stats` | `stats::{variance, pearson, covariance, norm_*}` | 13 | Analytical formulas |
-| `validate_barracuda_linalg` | `linalg::{solve, lu, eigh, cholesky, tridiag}` | 17 | Analytical solutions |
-| `validate_barracuda_special` | `special::{gamma, erf, bessel, polynomials}` | 26 | NIST DLMF values |
-| `validate_barracuda_optimize` | `optimize::{nelder_mead, bisect, brent}` | 10 | Analytical minima/roots |
-| `validate_barracuda_precision` | `shaders::precision::cpu` (add, mul, fma, dot) | 12 | Exact f64 |
-| `validate_barracuda_tensor` | Tensor API (84 ops, CPU + GPU) | 84 | WGSL unified path |
-| `validate_barracuda_tensor_f64` | Tensor f64 API (GPU ops) | 35 | f64 GPU ops |
-| `validate_barracuda_quantized` | Q4/Q8 dequant, GEMV | 15 | Hand-constructed |
-| `validate_barracuda_linalg_ext` | SVD, LU inverse, gen eigh | 17 | Analytical |
-| `validate_barracuda_ml_inference` | MLP + Transformer end-to-end | 13 | Python/NumPy baselines |
-
-#### Fused ToadStool Pipeline (43–78× speedup)
-
-Per-op dispatch overhead (~200 µs per `queue.submit()`) dominated GPU inference.
-The fused pipeline pre-compiles shaders, pre-allocates buffers, and records all
-compute passes into a single `CommandEncoder`:
-
-| Model | Per-Op (GPU) | Fused (GPU) | Python/NumPy | Speedup vs Per-Op |
-|-------|-------------|-------------|--------------|-------------------|
-| MLP (4→64→64→10) | 4.0 ms | **92 µs** | 23 µs | **43.6×** |
-| Transformer (d=32,h=4,seq=8) | 13.3 ms | **174 µs** | 77 µs | **76.6×** |
-
-New GPU-resident WGSL shaders (head-split, head-concat, batched attention)
-eliminate all CPU round-trips from the Multi-Head Attention pipeline.
-See `specs/BENCHMARK_ANALYSIS.md` for the full 4-way comparison at multiple scales.
-
-#### Infrastructure
-
-| Module | Purpose |
-|--------|---------|
-| `validation.rs` | `ValidationHarness` — hotSpring pattern (check\_abs, check\_rel, exit 0/1) |
-| `tolerances.rs` | Centralized tolerance constants with mathematical justification |
-| `provenance.rs` | Python baseline metadata (script, commit, date, command, environment) |
-
-Quality gates: `cargo clippy` (pedantic+nursery, `-D warnings`), `cargo fmt`, `cargo doc`, `unsafe_code = "forbid"`.
-
-See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module promotion path.
-
-### BarraCUDA Primitive Coverage After Extensions
-
-| Primitive | Phase 0/0+ | Phase 1 (CPU+GPU) | Faculty Extension |
-|-----------|------------|--------------------|--------------------|
-| GEMM | Validated | **84/84** (Tensor API) | Liu: sequence alignment |
-| Attention | Validated | **13/13** (ML inference) | Waters: graph attention |
-| Normalization | Validated | **Evolved** (GPU-resident) | Stable across all |
-| Conv2d | Validated | — | Dolson: spatial evolution |
-| LSTM cell | Validated | — | Liu: HMM forward/backward |
-| Autograd | Validated | — | Bazavov: lattice QCD |
-| Quantized GEMV | Validated | **15/15** | Deployment: all models |
-| **Stats** | — | **13/13 PASS** | Building blocks for metrics |
-| **Linear Algebra** | — | **34/34 PASS** (linalg + ext) | Physics solvers, PDE |
-| **Special Functions** | — | **26/26 PASS** | Liu: phylogenetic likelihood |
-| **Optimization** | — | **10/10 PASS** | Dolson: landscape search |
-| **Tensor f64** | — | **35/35 PASS** | High-precision compute |
-| **Precision** | — | **12/12 PASS** | Numerical verification |
-| **Fused Pipeline** | — | **43–78× speedup** | Single-encoder dispatch |
-| Evolutionary optimization | NOT YET | NOT YET | **Gap**: Dolson's MODES |
-| Gillespie simulation | NOT YET | NOT YET | **Gap**: Waters' c-di-GMP |
-| HMM Viterbi | NOT YET | NOT YET | **Gap**: Liu's PhyloNet-HMM |
+**Priority targets**:
+1. Iram, Dolson et al. (2020) — counterdiabatic driving (Nature Physics)
+2. Dolson et al. (2019) — MODES open-ended evolution metrics
+3. Liu et al. (2014) — PhyloNet-HMM genomic inference
+4. Bruger & Waters (2018) — quorum sensing game theory

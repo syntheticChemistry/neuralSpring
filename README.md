@@ -53,20 +53,32 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 | 004: LSTM ERA5 | Gauch et al. (2021) HESS | 5/5 | NSE=0.849 on real ERA5 weather |
 | 005: Quantized | Dettmers (2022), Frantar (2023) | 6/6 | INT8: 0.017% loss, INT4: 0.79% loss |
 
-### BarraCUDA Fused Pipeline — 43–78× Speedup
+### 3-Way Benchmark: Python vs BarraCUDA CPU vs GPU
 
-Per-op dispatch overhead (bind group + `queue.submit()` per operation) dominated
-small-tensor inference. The fused pipeline pre-compiles all shaders, pre-allocates
-buffers, and records all compute passes into a **single** `CommandEncoder`:
+Target: **Python (slowest) < CPU < GPU (fastest)** — following the hotSpring pattern.
 
-| Model | Per-Op (GPU) | Fused (GPU) | Speedup | Python/NumPy |
-|-------|-------------|-------------|---------|--------------|
-| MLP (4→64→64→10) | 4.0 ms | **92 µs** | **43.6×** | 23 µs |
-| Transformer (d=32,h=4,seq=8) | 13.3 ms | **174 µs** | **76.6×** | 77 µs |
+The fused pipeline pre-compiles all shaders, pre-allocates buffers, and records
+all compute passes into a **single** `CommandEncoder`. A **4-tier shader router**
+driven by `DeviceCapabilities` selects the optimal matmul kernel per dispatch:
 
-GPU-resident head-split/concat WGSL shaders and batched fused attention
-eliminate all CPU round-trips. See `specs/BENCHMARK_ANALYSIS.md` for the full
-3-way comparison at multiple model scales.
+| Tier | Shader | Key Technique |
+|------|--------|---------------|
+| Tiny M,N | naive | Direct global reads |
+| CPU | cpu-tiled | 32×32 double-buffered, 8×4 micro-kernel, vec4, 4× k-unroll |
+| GPU (small) | tiled | 16×16 shared-memory (high occupancy) |
+| GPU (large) | gpu-evolved | 32×32 double-buffered, 2×2 micro-kernel, vec4, 4× k-unroll |
+
+#### Key Results (RTX 4070 + llvmpipe vs Python/NumPy single-thread)
+
+| Scale | Py(1t) | CPU | GPU | CPU/Py | GPU/Py | GPU/CPU |
+|-------|--------|-----|-----|--------|--------|---------|
+| **MLP large** (3.1M) | 3.0 ms | **2.7 ms** | **178 µs** | **1.1× faster** | **16.8× faster** | 15.1× |
+| **TF medium** (103M) | 59 ms | **15.1 ms** | **566 µs** | **3.9× faster** | **104× faster** | 26.8× |
+| **TF xlarge** (6.6B) | 232 ms | 1.42 s | **17.8 ms** | — | **13.1× faster** | **79.9×** |
+
+Progression check: **✓ GPU < CPU < Py** at MLP large + TF medium. GPU dominates
+CPU at every scale (4–80×). See `specs/BENCHMARK_ANALYSIS.md` for the full
+5-scale three-way comparison.
 
 ## Quick Start
 
@@ -132,9 +144,12 @@ pattern as hotSpring). The ToadStool team absorbs at their pace.
 | `evolved::layer_norm` | GPU→CPU→GPU round-trip | ~5× (eliminates readback) |
 | `evolved::log_softmax` | Same round-trip pattern | ~5× |
 | `evolved::mha` | MHA projection dispatch bug | Correctness fix |
-| `evolved::fused_pipeline` | Per-op dispatch overhead | **43–78×** |
+| `evolved::fused_pipeline` | Per-op dispatch overhead | **46–78×** |
+| `evolved::matmul_cpu_tiled.wgsl` | Naive matmul on CPU | Double-buffered, 8×4 micro-kernel |
+| `evolved::matmul_gpu_evolved.wgsl` | No GPU-optimized matmul | Double-buffered, 2×2 micro-kernel |
+| `fused_pipeline::MatmulConfig` | No kernel routing | 4-tier `DeviceCapabilities` routing |
 
-Full catalog: `specs/TOADSTOOL_HANDOFF.md` (10 issues).
+Full catalog: `specs/TOADSTOOL_HANDOFF.md` (11 issues).
 Formal handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_HANDOFF_FEB19_2026.md`
 
 ## Evolution Roadmap
@@ -142,7 +157,8 @@ Formal handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_HANDOFF_FEB19_2026
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (75/75)
 - **Phase 1a**: neuralSpring Rust validation **COMPLETE** (43 checks — surrogate, transformer, metrics)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (242 checks — 10 domains including ML inference)
-- **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (43–78× speedup via single-encoder dispatch)
+- **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
+- **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
 - **Phase 2**: Quantized inference — Q4/Q8 models on consumer GPU
 - **Phase 3**: Cross-spring integration — live surrogate for Penny Irrigation
 
@@ -207,9 +223,11 @@ neuralSpring/
 │       ├── bench_fused_inference.rs   # Fused pipeline 4-way benchmark
 │       └── validate_all.rs          # Meta-binary: runs all validators
 │   ├── evolved/                #   Locally evolved BarraCUDA ops
-│       ├── fused_pipeline.rs        # ShaderCache + fused dispatch helpers
+│       ├── fused_pipeline.rs        # ShaderCache + shader router + fused dispatch
 │       ├── fused_mlp.rs             # Fused MLP (9 passes, 1 submit)
 │       ├── fused_transformer.rs     # Fused Transformer (18 passes, 1 submit)
+│       ├── matmul_cpu_tiled.wgsl    # CPU matmul (32x32 double-buffered, vec4, 8x4, k-unroll)
+│       ├── matmul_gpu_evolved.wgsl  # GPU matmul (32x32 double-buffered, 2x2, vec4, k-unroll)
 │       ├── mha.rs                   # MHA workaround (dispatch bug)
 │       ├── layer_norm.rs            # GPU-resident layer norm
 │       └── log_softmax.rs           # GPU-resident log-softmax
@@ -260,4 +278,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Audit remediation: February 18, 2026 | BarraCUDA validation: February 19, 2026 | Fused pipeline: February 19, 2026*
+*Initialized: February 16, 2026 | Audit remediation: February 18, 2026 | BarraCUDA validation: February 19, 2026 | 3-way benchmark + double-buffered shaders: February 19, 2026*

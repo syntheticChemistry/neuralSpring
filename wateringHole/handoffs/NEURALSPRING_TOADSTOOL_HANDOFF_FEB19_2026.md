@@ -14,10 +14,16 @@ neuralSpring has completed a full validation pass of BarraCUDA's ML primitives:
 domains, on both GPU (RTX 4070, Vulkan) and CPU (llvmpipe, software Vulkan).
 All checks pass on both backends.
 
-During this work, we identified and evolved around **10 BarraCUDA shortcomings**.
+During this work, we identified and evolved around **11 BarraCUDA shortcomings**.
 The fused ToadStool pipeline — our most significant local evolution — achieves
-**43–78× speedup** over per-op dispatch by collapsing N `queue.submit()` calls
-to 1.
+**46–78× speedup** over per-op dispatch by collapsing N `queue.submit()` calls
+to 1. A **4-tier shader router** with `DeviceCapabilities`-driven kernel selection
+provides device-optimized matmul for both CPU and GPU. Both evolved shaders use
+double-buffered tiles (learned from hotSpring), vec4 B-tile storage, micro-kernel
+register blocking, and 4× k-unroll. The 3-way benchmark (Python vs CPU vs GPU)
+achieves **GPU 80–104× faster than Python** at scale and
+**CPU 3.9× faster than Python** at TF medium (103M FLOPs).
+GPU dominates CPU by **4–80×** at every scale.
 
 **Key findings:**
 1. BarraCUDA's WGSL math is **correct** — max abs diff vs Python/NumPy is
@@ -317,8 +323,13 @@ Additional domain-specific primitives:
 | 8 | MHA z-dim dispatch | High | `evolved::mha` | **Pending** |
 | 9 | Softmax pooled buffers | Medium | Re-upload logits | **Pending** |
 | 10 | Dispatch overhead | **Critical** | Fused pipeline + shaders | **Pending** |
+| 11 | Naive matmul on CPU/GPU | High | 4-tier double-buffered shader router + `DeviceCapabilities` | **Pending** |
 
 Issues #1 and #4 are highest impact — fixing them would retire most local evolutions.
+Issue #11 is critical for performance: the naive matmul shader has zero cache reuse.
+The 4-tier router provides: CPU double-buffered 8×4 micro-kernel (crosses over at 3M FLOPs),
+GPU double-buffered 2×2 micro-kernel (10–12% improvement at large scale, 80× over CPU),
+and tiered GPU selection (16×16 for occupancy at small, 32×32 for throughput at large).
 
 ---
 
@@ -342,6 +353,7 @@ These are domain-specific and will not be upstreamed:
 5. **`WgpuDevice::new_cpu_relaxed()`** — small addition, enables CPU validation
 6. **`TensorSession` extension** — wire MatMul/ReLU/GELU/LayerNorm/Softmax/Attention through session batching. This retires the fused pipeline
 7. **Absorb head-split/concat/batched-attention shaders** into `barracuda::shaders::attention/`
+8. **Absorb `matmul_cpu_tiled.wgsl`** into `barracuda::shaders::math/` and implement kernel router in `kernel_router.rs` to select per backend+dimensions
 
 ---
 
@@ -363,5 +375,8 @@ make check
 
 ---
 
-*neuralSpring validation complete. 285/285 PASS. 10 shortcomings documented.
-Fused pipeline achieves 43–78× speedup. Ready for ToadStool absorption.*
+*neuralSpring validation complete. 285/285 PASS. 11 shortcomings documented.
+Fused pipeline achieves 46–78× speedup. BLAS-evolved shader router with
+`DeviceCapabilities`-driven kernel selection achieves CPU beats single-thread
+Python at 3M+ FLOPs, Transformer 4.3× faster at 103M FLOPs. Ready for
+ToadStool absorption.*

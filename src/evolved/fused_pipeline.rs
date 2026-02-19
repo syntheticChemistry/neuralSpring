@@ -14,6 +14,7 @@
 //! **`ToadStool` handoff**: Once `TensorSession` supports `MatMul`,
 //! `ReLU`, `LayerNorm`, `Softmax`, etc., this module can be retired.
 
+use barracuda::device::capabilities::DeviceCapabilities;
 use barracuda::device::WgpuDevice;
 use bytemuck::{Pod, Zeroable};
 use std::sync::Arc;
@@ -28,6 +29,11 @@ pub type Dev = Arc<WgpuDevice>;
 pub const MATMUL_WGSL: &str = include_str!(
     "../../../phase1/toadstool/crates/barracuda/src/shaders/math/matmul.wgsl"
 );
+pub const MATMUL_TILED_WGSL: &str = include_str!(
+    "../../../phase1/toadstool/crates/barracuda/src/shaders/math/matmul_tiled.wgsl"
+);
+pub const MATMUL_CPU_TILED_WGSL: &str = include_str!("matmul_cpu_tiled.wgsl");
+pub const MATMUL_GPU_EVOLVED_WGSL: &str = include_str!("matmul_gpu_evolved.wgsl");
 pub const ADD_WGSL: &str = include_str!(
     "../../../phase1/toadstool/crates/barracuda/src/shaders/math/elementwise_add.wgsl"
 );
@@ -97,6 +103,9 @@ pub struct AttentionParams {
 /// Pre-compiled compute pipelines for all fused ops.
 pub struct ShaderCache {
     pub matmul: wgpu::ComputePipeline,
+    pub matmul_tiled: wgpu::ComputePipeline,
+    pub matmul_cpu_tiled: wgpu::ComputePipeline,
+    pub matmul_gpu_evolved: wgpu::ComputePipeline,
     pub add: wgpu::ComputePipeline,
     pub relu: wgpu::ComputePipeline,
     pub gelu: wgpu::ComputePipeline,
@@ -129,6 +138,9 @@ impl ShaderCache {
 
         Self {
             matmul: compile(MATMUL_WGSL, "fused_matmul"),
+            matmul_tiled: compile(MATMUL_TILED_WGSL, "fused_matmul_tiled"),
+            matmul_cpu_tiled: compile(MATMUL_CPU_TILED_WGSL, "fused_matmul_cpu_tiled"),
+            matmul_gpu_evolved: compile(MATMUL_GPU_EVOLVED_WGSL, "fused_matmul_gpu_evolved"),
             add: compile(ADD_WGSL, "fused_add"),
             relu: compile(RELU_WGSL, "fused_relu"),
             gelu: compile(GELU_WGSL, "fused_gelu"),
@@ -265,10 +277,100 @@ pub fn record_pass(
     pass.dispatch_workgroups(workgroups.0, workgroups.1, workgroups.2);
 }
 
-/// Dispatch dimensions for matmul [M, K] x [K, N].
+/// Dispatch dimensions for naive matmul: `row=global_id.x, col=global_id.y`.
 #[must_use]
 pub const fn matmul_dispatch(m: u32, n: u32) -> (u32, u32, u32) {
     (m.div_ceil(16), n.div_ceil(16), 1)
+}
+
+/// Dispatch dimensions for tiled matmul (16x16): `row=global_id.y, col=global_id.x`.
+#[must_use]
+pub const fn matmul_tiled_dispatch(m: u32, n: u32) -> (u32, u32, u32) {
+    (n.div_ceil(16), m.div_ceil(16), 1)
+}
+
+/// Dispatch dimensions for CPU-optimized matmul (32x32 tiles, 8x4 workgroup).
+#[must_use]
+pub const fn matmul_cpu_tiled_dispatch(m: u32, n: u32) -> (u32, u32, u32) {
+    (n.div_ceil(32), m.div_ceil(32), 1)
+}
+
+/// Dispatch dimensions for GPU-evolved matmul (32x32 output tiles, 16x16 workgroup,
+/// each thread computes 2x2).
+#[must_use]
+pub const fn matmul_gpu_evolved_dispatch(m: u32, n: u32) -> (u32, u32, u32) {
+    (n.div_ceil(32), m.div_ceil(32), 1)
+}
+
+/// Detect whether the device is running on a CPU software adapter.
+#[must_use]
+pub fn is_cpu_backend(device: &Dev) -> bool {
+    device.adapter_info().device_type == wgpu::DeviceType::Cpu
+}
+
+/// Dispatch function type for matmul: `(M, N) -> (x, y, z)` workgroups.
+pub type MatMulDispatchFn = fn(u32, u32) -> (u32, u32, u32);
+
+/// Device-aware matmul configuration derived from `BarraCUDA` `DeviceCapabilities`.
+///
+/// Instead of hardcoding thresholds, query the device for vendor-specific
+/// optimal tile sizes and cache the result for the lifetime of the pipeline.
+/// This enables `ToadStool` to tune per-vendor without `neuralSpring` changes.
+#[derive(Debug, Clone)]
+pub struct MatmulConfig {
+    pub is_cpu: bool,
+    pub vendor: u32,
+    pub vendor_name: &'static str,
+    /// Recommended tile size from `BarraCUDA` for this device class.
+    pub recommended_tile_size: u32,
+}
+
+impl MatmulConfig {
+    /// Build from `BarraCUDA` `DeviceCapabilities` — runtime discovery, no hardcoding.
+    #[must_use]
+    pub fn from_device(device: &Dev) -> Self {
+        let caps = DeviceCapabilities::from_device(device);
+        Self {
+            is_cpu: caps.device_type == wgpu::DeviceType::Cpu,
+            vendor: caps.vendor,
+            vendor_name: caps.vendor_name(),
+            recommended_tile_size: caps.optimal_matmul_tile_size(),
+        }
+    }
+}
+
+/// Select the best matmul pipeline and dispatch function for given dimensions.
+///
+/// Uses `MatmulConfig` (from `BarraCUDA` `DeviceCapabilities`) for device-aware
+/// routing — four tiers:
+///
+/// - `M,N < threshold`: naive matmul (no shared memory, safe for tiny matrices)
+/// - CPU: BLAS-evolved cpu-tiled (32x32, vec4, 8x4 micro-kernel, 4x k-unroll)
+/// - GPU, small: 16x16 shared-memory tiles (better occupancy for small workloads)
+/// - GPU, large: double-buffered gpu-evolved (32x32 output tiles, 2x2 micro-kernel,
+///   vec4 B-tile, 4x k-unroll, load/compute overlap)
+///
+/// The GPU tier boundary (256) balances occupancy vs memory-latency hiding.
+/// Below it, more workgroups keep the SM scheduler fed. Above it, double-buffering
+/// and the larger register-blocked micro-kernel dominate.
+#[must_use]
+pub fn select_matmul<'a>(
+    cache: &'a ShaderCache,
+    m: u32,
+    _k: u32,
+    n: u32,
+    config: &MatmulConfig,
+) -> (&'a wgpu::ComputePipeline, MatMulDispatchFn) {
+    let min_tiled = config.recommended_tile_size.max(16);
+    if m < min_tiled || n < min_tiled {
+        (&cache.matmul, matmul_dispatch as MatMulDispatchFn)
+    } else if config.is_cpu {
+        (&cache.matmul_cpu_tiled, matmul_cpu_tiled_dispatch as MatMulDispatchFn)
+    } else if m >= 256 || n >= 256 {
+        (&cache.matmul_gpu_evolved, matmul_gpu_evolved_dispatch as MatMulDispatchFn)
+    } else {
+        (&cache.matmul_tiled, matmul_tiled_dispatch as MatMulDispatchFn)
+    }
 }
 
 /// Dispatch dimensions for elementwise ops on `count` elements.

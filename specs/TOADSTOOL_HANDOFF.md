@@ -339,13 +339,77 @@ These eliminate the CPU round-trips in the evolved MHA workaround.
 
 | Pipeline | MLP | Transformer | Speedup vs Per-Op |
 |----------|-----|-------------|-------------------|
-| Per-op | 4.0 ms | 13.3 ms | 1.0× |
-| **Fused** | **92 µs** | **174 µs** | **43.6× / 76.6×** |
+| Per-op | 4.5 ms | 12.8 ms | 1.0× |
+| **Fused** | **97 µs** | **164 µs** | **46× / 78×** |
 
 **Suggested upstream**: Integrate fused dispatch patterns into
 `TensorSession`. Extend session ops to include `MatMul`, `ReLU`, `GELU`,
 `LayerNorm`, `Softmax`, `Attention`. This would make the local fused
 pipeline unnecessary.
+
+---
+
+## 11. 4-Tier Shader Router — Double-Buffered, `DeviceCapabilities`-Driven
+
+**Location**: `src/evolved/fused_pipeline.rs` (`select_matmul`, `MatmulConfig`),
+`src/evolved/matmul_cpu_tiled.wgsl`, `src/evolved/matmul_gpu_evolved.wgsl`
+
+**Problem**: The naive `matmul.wgsl` reads K elements from global memory
+per output element — zero cache reuse. Meanwhile NumPy calls OpenBLAS
+with hand-tuned AVX-512 cache-tiled GEMM. On CPU (llvmpipe), the naive
+shader compiles to LLVM IR that thrashes cache at every K-step.
+On GPU, the standard 16×16 tiled shader misses memory-latency hiding
+opportunities at large matrix sizes.
+
+**Local fix**: `DeviceCapabilities`-driven 4-tier shader router:
+
+| Condition | Shader | Tile | Key Optimization |
+|-----------|--------|------|-----------------|
+| M or N < threshold | `matmul.wgsl` (naive) | none | Safe for small M |
+| CPU, large M,N | `matmul_cpu_tiled.wgsl` | 32×32 | Double-buffered, BLAS-evolved |
+| GPU, small M,N | `matmul_tiled.wgsl` | 16×16 | High SM occupancy |
+| GPU, large M,N (≥256) | `matmul_gpu_evolved.wgsl` | 32×32 | Double-buffered, register-blocked |
+
+Threshold from `DeviceCapabilities::optimal_matmul_tile_size()`. The `MatmulConfig`
+struct caches device capabilities at pipeline creation.
+
+**CPU shader** (`matmul_cpu_tiled.wgsl` — mirrors OpenBLAS/BLIS):
+
+| Optimization | BLAS Equivalent | Implementation |
+|---|---|---|
+| 32×32 tiles | Panel size / L1 blocking | `TILE = 32`, `var<workgroup>` tiles |
+| Double-buffered tiles | Software pipelining / prefetch | Two tile sets, load NEXT while computing CURRENT |
+| vec4 B-tile storage | Aligned 16-byte SIMD loads | `array<vec4<f32>, 256>` → `movaps` |
+| 8×4 micro-kernel | Mr × Nr register blocking | 8 `vec4` accumulators, 32 FMAs/k-step |
+| 4× k-loop unroll | ILP from independent FMA chains | `k += 4u` with 4 independent loads |
+| `fma()` intrinsic | FMA3 instructions | WGSL `fma()` → LLVM `fmuladd` |
+
+**GPU shader** (`matmul_gpu_evolved.wgsl` — learned from hotSpring double-buffering):
+
+| Optimization | Purpose | Implementation |
+|---|---|---|
+| Double-buffered tiles | Overlap memory latency with compute | Two tile pairs, GPU pipelines load+FMA |
+| vec4 B-tile storage | Coalesced 128-bit transactions | `array<vec4<f32>, 256>` |
+| 2×2 micro-kernel | Double arithmetic intensity | 4 accumulators, 32×32 output from 16×16 WG |
+| 4× k-loop unroll | Warp-level ILP | 4 independent FMA chains |
+| Tiered selection | Occupancy vs throughput | 16×16 for small, 32×32 for large (threshold: 256) |
+
+**Results** (3-way benchmark, Python 1-thread vs CPU vs GPU):
+
+| Scale | Py(1t) | CPU | GPU | CPU/Py | GPU/Py | GPU/CPU |
+|-------|--------|-----|-----|--------|--------|---------|
+| MLP large (3.1M) | 3.0 ms | **2.7 ms** | **178 µs** | **1.1× faster** | 16.8× faster | 15.1× |
+| TF medium (103M) | 59 ms | **15.1 ms** | **566 µs** | **3.9× faster** | 104× faster | 26.8× |
+| TF xlarge (6.6B) | 232 ms | 1.42 s | **17.8 ms** | 6.1× slower | 13.1× faster | **79.9×** |
+
+Progression: **✓ GPU < CPU < Py** at MLP large + TF medium.
+GPU dominates CPU by 4–80× at every scale.
+
+**Suggested upstream**:
+1. Add `matmul_cpu_tiled.wgsl` and `matmul_gpu_evolved.wgsl` to `barracuda/src/shaders/math/`
+2. Wire `DeviceCapabilities` into `KernelRouter` for automatic matmul variant selection
+3. Add panel packing shader for large-scale CPU matmul (addresses L3 saturation)
+4. Extend tiered pattern to other ops: CPU vs GPU layer_norm, softmax kernels
 
 ---
 
@@ -363,6 +427,7 @@ pipeline unnecessary.
 | 8 | MHA projection dispatch | `evolved::mha` | Pending |
 | 9 | Softmax on pooled buffers | Re-upload before softmax | Pending |
 | 10 | Per-op dispatch overhead | `evolved::fused_pipeline` | Pending |
+| 11 | Naive matmul on CPU/GPU | 4-tier shader router + double-buffered evolved shaders | Pending |
 
 Once ToadStool absorbs these fixes, the local evolutions in
 `neuralSpring/src/evolved/` can be retired.
