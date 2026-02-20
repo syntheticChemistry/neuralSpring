@@ -1,4 +1,7 @@
-# neuralSpring → ToadStool: Shader Evolution & 3-Way Benchmark Handoff
+# [SUPERSEDED] neuralSpring → ToadStool: Shader Evolution & 3-Way Benchmark Handoff
+
+> **Superseded by:** `NEURALSPRING_TOADSTOOL_HANDOFF_FEB20_2026.md` (consolidated)
+> This document is a fossil record. See the consolidated handoff for current status.
 
 **Date:** 2026-02-19
 **From:** neuralSpring (ML / isomorphic learning Spring)

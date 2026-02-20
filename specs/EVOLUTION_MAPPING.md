@@ -88,19 +88,33 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### Tier C — New (GPU-specific, no Python equivalent)
 
-| Capability | WGSL Shader | Pipeline Stage | Blocker |
-|------------|-------------|----------------|---------|
-| Flash attention | `flash_attention.wgsl` | Inference | Algorithm implementation |
-| Fused LayerNorm+GELU | fused kernel | Inference | Kernel fusion framework |
-| Batched GEMM | `gemm_f64.wgsl` (batched) | Training / EA | Batch dispatch |
-| Population fitness eval | batch `gemm_f64` + selection | Evolution (Dolson 011–015) | GA/ES framework |
-| HMM forward (fused) | `hmm_forward_log.wgsl` | Genomics (Liu 016–018) | Log-domain matmul chain |
-| Pairwise distance | `pairwise_distance.wgsl` | Alignment (Liu 017) | One thread per pair |
-| GPU ODE integrator (RK4) | `rk4_batch.wgsl` | Biology (Waters 020–021) | Elementwise RHS |
-| Spatial stencil | `stencil_1d.wgsl` | Cooperation (Waters 019) | Neighbor averaging |
-| Tridiag eigensolver | `tridiag_eigh.wgsl` | Spectral (Kachkovskiy 022–023) | Bisection + inverse iteration |
-| GPU PRNG (Xoshiro256**) | `xoshiro256ss.wgsl` | All stochastic algorithms | `jump()` for independent streams |
-| Gillespie SSA | GPU PRNG + exp sampling | Biology (Waters) | New primitive |
+| Capability | WGSL Shader | Pipeline Stage | Blocker | ToadStool Leverage |
+|------------|-------------|----------------|---------|-------------------|
+| Flash attention | `flash_attention.wgsl` | Inference | Algorithm implementation | — |
+| Fused LayerNorm+GELU | fused kernel | Inference | Kernel fusion framework | `TensorSession` extension |
+| Batched GEMM | `gemm_f64.wgsl` (batched) | Training / EA | Batch dispatch | `KernelRouter` |
+| Population fitness eval | `batch_gemv.wgsl` | Evolution (Dolson 011–015) | GA/ES framework | `StatefulPipeline` for gen loop |
+| HMM forward (fused) | `hmm_forward_log.wgsl` | Genomics (Liu 016–018) | Log-domain matmul chain | `StatefulPipeline` for T steps |
+| Pairwise distance | `pairwise_distance.wgsl` | Alignment (Liu 017) | One thread per pair | — (embarrassingly parallel) |
+| GPU ODE integrator (RK4) | `rk4_batch.wgsl` | Biology (Waters 020–021) | Elementwise RHS | `StatefulPipeline` + `ReduceScalarPipeline` |
+| Spatial stencil | `stencil_1d.wgsl` | Cooperation (Waters 019) | Neighbor averaging | — (reuse conv1d) |
+| Tridiag eigensolver | `tridiag_eigh.wgsl` | Spectral (Kachkovskiy 022–023) | Bisection + inverse iteration | NAK-optimized eigh available |
+| GPU PRNG (Xoshiro256**) | `xoshiro256ss.wgsl` | All stochastic algorithms | `jump()` for independent streams | — |
+| Gillespie SSA | GPU PRNG + exp sampling | Biology (Waters) | New primitive | `StatefulPipeline` |
+
+### ToadStool Infrastructure Available for GPU Promotion
+
+ToadStool (reviewed `82f953c8`, Feb 19, 2026) provides infrastructure
+directly usable for Phase 0++ GPU promotion without waiting for the
+11 shortcomings to be absorbed:
+
+| Capability | API | Use Case |
+|------------|-----|----------|
+| `StatefulPipeline` | `staging::StatefulPipeline::run_iterations(chain, buf, n)` | EA gen loops, ODE integration, HMM chains — GPU-resident state, scalar-only readback |
+| `ReduceScalarPipeline` | `pipeline::ReduceScalarPipeline::sum_f64(buf)` | Fitness aggregation, log-likelihood, convergence checks — 8 bytes readback |
+| `KernelRouter` | `device::KernelRouter::route(workload)` | 4-tier matmul selection, device-aware kernel dispatch |
+| `GpuDriverProfile` | `device::capabilities::GpuDriverProfile` | Per-driver shader specialization (NAK workarounds vs proprietary) |
+| NAK eigensolve | `batched_eigh_nak_optimized_f64.wgsl` | Drop-in 2–4× faster eigensolve for Anderson localization (Paper 023) |
 
 ---
 
@@ -142,5 +156,11 @@ For each Rust module → GPU promotion:
 | Phase 1b (BarraCUDA) | **242/242 PASS** | 10 validation binaries, incl. Tensor/WGSL (84), tensor_f64 (35), ml_inference (13) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU port) | **Planned** | All 13 Phase 0++ modules are Tier A |
-| Phase 3 (GPU acceleration) | **Planned** | 7 new primitives identified above |
-| Phase 4 (Sovereign pipeline) | **Planned** | Unidirectional streaming via ToadStool |
+| Phase 3 (GPU acceleration) | **Planned** | 7 new primitives + 7 shader designs in handoff |
+| Phase 4 (Sovereign pipeline) | **Planned** | `StatefulPipeline` + `ReduceScalarPipeline` available |
+
+### ToadStool Shortcoming Status
+
+**Reviewed:** ToadStool commit `82f953c8` (Feb 19, 2026) — HEAD as of Feb 20.
+**Result:** 0 of 11 neuralSpring shortcomings absorbed. All `src/evolved/`
+workarounds remain active. See `specs/TOADSTOOL_HANDOFF.md` for full details.

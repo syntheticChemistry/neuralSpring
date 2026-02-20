@@ -1,4 +1,7 @@
-# neuralSpring → ToadStool: BarraCUDA ML Validation & Fused Pipeline Handoff
+# [SUPERSEDED] neuralSpring → ToadStool: BarraCUDA ML Validation & Fused Pipeline Handoff
+
+> **Superseded by:** `NEURALSPRING_TOADSTOOL_HANDOFF_FEB20_2026.md` (consolidated)
+> This document is a fossil record. See the consolidated handoff for current status.
 
 **Date:** 2026-02-19
 **From:** neuralSpring (ML / isomorphic learning Spring)

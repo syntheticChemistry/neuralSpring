@@ -1,309 +1,495 @@
-# neuralSpring → ToadStool: Phase 0++ Complete — 23 Papers, New Primitives, GPU Promotion Map
+# neuralSpring → ToadStool: Consolidated Handoff — 11 Shortcomings, Shader Designs, GPU Promotion
 
-**Date:** 2026-02-20
+**Date:** 2026-02-20 (consolidated)
 **From:** neuralSpring (ML / isomorphic learning / scholarly reproduction Spring)
 **To:** ToadStool / BarraCUDA core team
 **License:** AGPL-3.0-or-later
-**Supersedes:** `NEURALSPRING_TOADSTOOL_HANDOFF_FEB19_2026.md` (11 shortcomings — all still pending)
+**ToadStool reviewed:** commit `82f953c8` (Feb 19, 2026) — HEAD as of Feb 20
+**Supersedes:** All three prior handoffs (Feb 19 ML, Feb 19 Shader, Feb 20 Phase 0++)
 
 ---
 
 ## Executive Summary
 
-neuralSpring has completed the entire paper review queue: **23 experiments**
-across 5 scientific disciplines (ML, evolutionary computation, phylogenetics,
-game theory/regulatory biology, spectral theory). Every experiment has both
-a Python baseline and a Rust validation binary. Grand total: **599/599 PASS**
-(190 Python + 167 Rust native + 242 BarraCUDA).
+neuralSpring has completed **23 experiments** across 5 scientific disciplines
+with **599/599 PASS** (190 Python + 167 Rust native + 242 BarraCUDA). During
+this work, we identified and evolved around **11 BarraCUDA shortcomings**,
+built a **46–78× faster fused pipeline**, and identified **7 new GPU-promotable
+algorithmic patterns** from Phase 0++ scholarly reproductions.
 
-The Phase 0++ buildout (13 new papers since Feb 19) introduces **7 new
-algorithmic patterns** that map directly to BarraCUDA GPU primitives. This
-handoff catalogs what was built, what the ToadStool team can absorb, and the
-priority order for GPU promotion.
+**ToadStool status (reviewed `82f953c8`):** None of the 11 neuralSpring
+shortcomings have been absorbed. ToadStool work since Feb 15 focused on
+hotSpring absorption (NAK eigensolve, `StatefulPipeline`, `ReduceScalarPipeline`,
+`CellListGpu`), deep debt (wgpu v22, sleep elimination, zero-copy), and
+sovereign compute (Phases 0–3). This is expected — different Springs feeding
+different evolution vectors.
 
-**What changed since Feb 19:**
-- 7 new Python experiments (58 new Python checks)
-- 7 new Rust library modules (7 new crate modules, ~2000 lines)
-- 7 new Rust validation binaries (57 new native checks)
-- Deterministic Xoshiro256** PRNG for reproducible stochastic algorithms
-- New algorithmic patterns: ODE integration, eigendecomposition, distance matrices, spatial cooperation
-
-**The 11 BarraCUDA shortcomings from Feb 19 remain unresolved.** They are
-documented in `specs/TOADSTOOL_HANDOFF.md` and the recommended absorption
-order is unchanged. This handoff focuses on **new content** only.
+**New ToadStool capabilities relevant to neuralSpring:**
+- `StatefulPipeline` — iterative GPU-resident simulation (directly usable for EA loops, ODE integration)
+- `ReduceScalarPipeline` — two-pass GPU reduction returning 8 bytes (usable for fitness evaluation)
+- `KernelRouter` — workload→hardware routing infrastructure (wire matmul tiering into this)
+- `GpuDriverProfile` — already imported into `MatmulConfig`
 
 ---
 
-## 1. New Modules and Their BarraCUDA Relevance
+## Part 1: The 11 Shortcomings (Priority-Ordered)
 
-### 1.1 Evolutionary Computation (Dolson — Papers 011–015)
+### Tier 1 — Critical Performance
 
-| Module | Paper | Core Algorithm | BarraCUDA Primitive |
-|--------|-------|----------------|---------------------|
-| `counterdiabatic.rs` | 011 | NK landscape + Wright-Fisher + CD schedule | `gemm_f64` (fitness eval), `softmax.wgsl` (Boltzmann) |
-| `modes.rs` | 012 | Change/novelty/complexity/ecology metrics | `reduce_sum`, `elementwise` |
-| `eco_dynamics.rs` | 013 | Multi-niche EA, Shannon diversity | batch GEMM (fitness), `reduce_sum` |
-| `directed_evolution.rs` | 014 | 5 selection algorithms (lexicase, tournament, etc.) | batch GEMM, `reduce_max`, `argmax` |
-| `swarm_robotics.rs` | 015 | Heterogeneous controller evolution | batch GEMM (3 controller types), `reduce_sum` |
+#### S-01: Per-Op Command Submission (46–78× penalty)
 
-**Key insight for BarraCUDA**: All 5 Dolson papers evaluate fitness as a
-matrix-vector product or a small GEMM. A **batch fitness evaluation kernel**
-— dispatching population × genome × niche fitness in one GPU pass — would
-accelerate all of them. The population sizes are 100–500, genome lengths
-8–50, and niche counts 1–5. These are small enough for shared-memory
-tiling but large enough to benefit from GPU parallelism when the outer
-evolutionary loop runs 100–500 generations.
+Each `Tensor` operation creates its own `CommandEncoder`, dispatches one
+compute pass, and calls `queue.submit()`. A 9-op MLP submits 9 command
+buffers at ~200 µs each = 1.8 ms dispatch for ~5 µs compute.
 
-### 1.2 Phylogenetics & Alignment (Liu — Papers 016–018)
+**Local fix:** `src/evolved/fused_pipeline.rs` — pre-compile all shaders,
+pre-allocate all intermediate buffers, pre-create all bind groups once.
+Record all compute passes into one `CommandEncoder`, submit once.
 
-| Module | Paper | Core Algorithm | BarraCUDA Primitive |
-|--------|-------|----------------|---------------------|
-| `hmm.rs` | 016 | Forward/backward/Viterbi/posterior | `gemm_f64` chain (T × α), log-domain numerics |
-| `sate_alignment.rs` | 017 | Pairwise distance + neighbor-joining + alignment | `gemm_f64` (N×N distance matrix), `reduce_min` |
-| `introgression.rs` | 018 | PhyloNet-HMM + likelihood ratio test | `gemm_f64` chain (reuses `hmm.rs`), log-sum-exp |
+**Result:** MLP 92 µs (43.6×), Transformer 174 µs (76.6×) vs per-op.
 
-**Key insight for BarraCUDA**: The HMM forward algorithm is a **matrix chain
-multiplication** in log-domain: `log(α_t) = log(A^T · α_{t-1}) + log(B · o_t)`.
-For T=500 loci and N=2 states, this is 500 sequential 2×2 matmuls. The
-bottleneck is latency (sequential), not throughput. A **batched log-domain
-GEMM chain** primitive — or better, a fused HMM forward kernel — would
-directly port Papers 016–018 to GPU.
+**Suggested upstream:** Extend `TensorSession` ops from `{Add, Mul, Fma, Scale}`
+to include `{MatMul, ReLU, GELU, LayerNorm, Softmax, Attention}`. The session
+already batches into one encoder — just wire the missing ops. This retires
+`fused_pipeline.rs`, `fused_mlp.rs`, and `fused_transformer.rs`.
 
-The pairwise distance matrix (Paper 017) is an O(N²) computation that maps
-directly to a GPU kernel: each thread computes the Hamming/Jukes-Cantor
-distance between one pair of sequences.
-
-### 1.3 Game Theory & Regulatory Biology (Waters — Papers 019–021)
-
-| Module | Paper | Core Algorithm | BarraCUDA Primitive |
-|--------|-------|----------------|---------------------|
-| `game_theory.rs` | 019 | Prisoner's Dilemma, Snowdrift, replicator dynamics, QS | `gemm_f64` (payoff), `softmax.wgsl` (replicator) |
-| `regulatory_network.rs` | 020 | GRN ODE with Hill activation/repression | `elementwise` (Hill fn), RK4 integration |
-| `signal_integration.rs` | 021 | Two-input Hill function (biological AND gate) | `elementwise` (multiplicative attention) |
-
-**Key insight for BarraCUDA**: Papers 020–021 both use **ODE integration
-with Hill function kinetics**. The ODE right-hand side is purely elementwise
-(Hill activation/repression + linear degradation). A **GPU-parallel RK4
-integrator** for systems of ODEs would accelerate both papers, and would
-also benefit any future multi-agent simulation where each agent has internal
-dynamics (e.g., primal metabolic networks).
-
-The spatial cooperation model (Paper 019) uses a **1D stencil** to compute
-neighborhood averages. This maps to a GPU stencil convolution kernel.
-
-### 1.4 Spectral Theory (Kachkovskiy — Papers 022–023)
-
-| Module | Paper | Core Algorithm | BarraCUDA Primitive |
-|--------|-------|----------------|---------------------|
-| `spectral_commutativity.rs` | 022 | Commutator, distance to normal, Frobenius norm | `gemm_f64`, `reduce_sum` |
-| `anderson_localization.rs` | 023 | Tridiagonal Hamiltonian, Jacobi eigensolver, IPR | `tridiag`, `eigh_f64`, `reduce_sum` |
-
-**Key insight for BarraCUDA**: Paper 023 uses a **symmetric tridiagonal
-eigensolver** (Jacobi iteration). BarraCUDA already has `tridiag` (Thomas
-algorithm for tridiagonal systems) and `eigh_f64` (general symmetric
-eigenvalue). A **specialized tridiagonal eigensolver** (Householder reduction
-→ bisection → inverse iteration) would be faster for the Aubry-André model's
-N×N matrices where N=50–200. Paper 022's `gemm_f64` for commutator
-computation ([A,B] = AB - BA) is directly served by existing primitives.
+**ToadStool note:** `StatefulPipeline` demonstrates this exact pattern for MD
+workloads. The `KernelDispatch` struct is the right abstraction — extend it to
+ML ops.
 
 ---
 
-## 2. New Algorithmic Patterns for GPU Promotion
+#### S-02: Naive Matmul — Zero Cache Reuse (CPU 3× slower than Python)
 
-| Pattern | Papers | Computation | Proposed BarraCUDA Primitive |
-|---------|--------|-------------|------------------------------|
-| **Batch fitness eval** | 011–015 | Population × genome fitness | `batch_gemv` or `batch_gemm` with population dim |
-| **HMM forward chain** | 016–018 | Sequential log-domain matmul | `hmm_forward_log.wgsl` (fused log-sum-exp chain) |
-| **Pairwise distance** | 017 | O(N²) Hamming/JC distance | `pairwise_distance.wgsl` (one thread per pair) |
-| **ODE integration (RK4)** | 020–021 | Parallel multi-system ODE | `rk4_batch.wgsl` (elementwise RHS + 4 stages) |
-| **Spatial stencil** | 019 | 1D/2D neighborhood average | `stencil_1d.wgsl` (or reuse conv1d) |
-| **Tridiag eigensolver** | 022–023 | Symmetric tridiag eigenvalues | `tridiag_eigh.wgsl` (bisection + inverse iteration) |
-| **Replicator dynamics** | 019 | Softmax-like frequency update | Existing `softmax.wgsl` + `elementwise` |
+`matmul.wgsl` reads K elements from global memory per output element — zero
+tile reuse. NumPy calls OpenBLAS with hand-tuned cache-tiled GEMM. The naive
+shader compiles to LLVM IR that thrashes cache at every K-step.
 
-### Recommended Absorption Order
+**Local fix:** 4-tier `DeviceCapabilities`-driven shader router in
+`fused_pipeline.rs`:
 
-1. **Batch GEMM/GEMV** — serves all 5 Dolson papers plus any future EA work.
-   Already partially available via matmul; needs a population dimension.
-2. **Pairwise distance kernel** — simple, high-value, directly maps to GPU.
-   One thread per pair, no synchronization needed.
-3. **GPU-parallel RK4** — serves Papers 020–021 and any future ODE work.
-   Elementwise RHS + 4 fused Euler steps per kernel launch.
-4. **Fused HMM forward** — serves Papers 016–018 and any future HMM work.
-   Log-domain matmul chain with scaling, minimizes kernel launches.
-5. **Tridiagonal eigensolver** — serves Papers 022–023. Specialized algorithm
-   is much faster than general `eigh_f64` for tridiagonal structure.
-6. **Spatial stencil** — serves Paper 019. Could reuse existing conv1d.
+| Condition | Shader | Tile | Key Optimization |
+|-----------|--------|------|-----------------|
+| M or N < threshold | `matmul.wgsl` (naive) | none | Safe for small M |
+| CPU, large M,N | `matmul_cpu_tiled.wgsl` | 32×32 | Double-buffered, 8×4 µkernel |
+| GPU, small M,N | `matmul_tiled.wgsl` | 16×16 | High SM occupancy |
+| GPU, large M,N (≥256) | `matmul_gpu_evolved.wgsl` | 32×32 | Double-buffered, 2×2 µkernel |
 
----
+**Results (CPU beats single-thread Python at crossover):**
 
-## 3. Deterministic PRNG for Stochastic Algorithms
+| Scale | FLOPs | Py(1t) | CPU | GPU | CPU/Py | GPU/Py |
+|-------|-------|--------|-----|-----|--------|--------|
+| MLP large | 3.1M | 3.0 ms | **2.7 ms** | **178 µs** | **1.1× faster** | 16.8× |
+| TF medium | 103M | 59 ms | **15.1 ms** | **566 µs** | **3.9× faster** | 104× |
 
-The Phase 0++ papers required stochastic algorithms (mutation, sampling,
-random initialization). We implemented a deterministic **Xoshiro256\*\***
-PRNG in `src/rng.rs` (189 lines) providing:
+**Suggested upstream:**
+1. Add `matmul_cpu_tiled.wgsl` and `matmul_gpu_evolved.wgsl` to `barracuda/src/shaders/math/`
+2. Wire `DeviceCapabilities` into `KernelRouter::route()` for matmul variant selection
+3. Both shaders use the same binding layout as existing `matmul.wgsl` — drop-in
 
-- Uniform f64 in [0, 1)
-- Normal distribution (Box-Muller transform)
-- Uniform usize in [0, n)
-- Categorical sampling (weighted)
-- Multinomial sampling
-- Choose k distinct indices
-- Random permutation
-- Bernoulli mask
-
-This is seeded from a SplitMix64 state initializer for reproducibility.
-**All stochastic algorithms use seed=42** for deterministic validation.
-
-The PRNG is pure Rust with no external dependencies and no `unsafe` code.
-If BarraCUDA needs a GPU-side PRNG for parallel population evaluation,
-Xoshiro256** has excellent parallelization properties (each thread can
-use `jump()` to get independent streams from a single seed).
+**Shader designs delivered:** `neuralSpring/src/evolved/matmul_cpu_tiled.wgsl` (263 lines),
+`neuralSpring/src/evolved/matmul_gpu_evolved.wgsl` (302 lines). Ready for copy.
 
 ---
 
-## 4. Validation Infrastructure Additions
+### Tier 2 — Correctness Bugs
 
-### New Tolerances
+#### S-03: MHA Projection Dispatch Bug (z-dimension)
 
-| Constant | Value | Justification |
-|----------|-------|---------------|
-| `CD_COMPARABLE_DIST` | 0.01 | L1 distance in 32-dim simplex |
-| `ADIABATIC_KL_GAP` | 0.05 | KL nats for Fisher information discretization |
-| `HMM_POSTERIOR_SUM` | 1e-8 | Forward-backward scaling over T≤5000 |
-| `QS_VARIANCE_MAX` | 0.05 | Late-stage cooperation stability |
+**File:** `barracuda/src/ops/mha/projections.rs` lines 165–167
 
-### New Provenance Records
+```rust
+let workgroups_z = params.seq_len.div_ceil(16);  // BUG
+```
 
-7 new `BaselineProvenance` constants in `src/provenance.rs`, one per paper
-(015, 017, 018, 020, 021, 022, 023). Each traces to a specific Python script,
-git commit, and seed.
+Shader uses `@workgroup_size(16, 16, 1)` — z workgroup size is 1. With
+`seq_len=8`, `div_ceil(16)=1` dispatches only `global_id.z=0`. Positions 1–7
+produce zeros.
 
-### CI Updates
+**Fix (one line each):**
+```rust
+// project_with_head_split:
+let workgroups_z = params.seq_len;       // was .div_ceil(16)
+// concat_and_project:
+let workgroups_z = params.d_model;       // was .div_ceil(16)
+```
 
-7 new validation steps in `.github/workflows/rust.yml` under the
-`validate-native` job. Total CI validation: 26 binaries.
-
----
-
-## 5. BarraCUDA Usage Inventory
-
-Complete catalog of how neuralSpring uses BarraCUDA, organized by usage pattern:
-
-### Direct `barracuda::*` Calls (10 validation binaries, 242 checks)
-
-| BarraCUDA Domain | Checks | Key Functions |
-|------------------|--------|---------------|
-| `stats` | 13 | `variance`, `std_dev`, `pearson_correlation`, `covariance`, `norm_cdf` |
-| `linalg` | 17 | `solve_f64`, `lu_det`, `eigh_f64`, `cholesky_f64`, `tridiag_solve` |
-| `linalg_ext` | 17 | `svd_f64`, `lu_inverse`, `gen_eigh_f64` |
-| `special` | 26 | `gamma`, `erf`, `bessel_j`, `legendre_p`, `hermite_h`, `laguerre_l` |
-| `optimize` | 10 | `nelder_mead`, `bisect`, `brent` |
-| `precision` | 12 | f64 add, mul, fma, dot, Kahan sum |
-| `Tensor API` | 84 | 84 ops (activations, losses, reductions, evolved) |
-| `Tensor f64` | 35 | GPU f64 reductions and fused maps |
-| `quantized` | 15 | Q4/Q8 dequant, quantized GEMV |
-| `ML inference` | 13 | MLP + Transformer end-to-end |
-
-### Locally Evolved Ops (7 modules in `src/evolved/`)
-
-| Module | Workaround | Retires When |
-|--------|------------|--------------|
-| `layer_norm.rs` | GPU-resident (no readback) | `Tensor::from_buffer` is `pub` |
-| `log_softmax.rs` | GPU-resident (no readback) | `Tensor::from_buffer` is `pub` |
-| `mha.rs` | Decomposed MHA (avoids z-dispatch bug) | MHA z-dimension fix |
-| `fused_pipeline.rs` | Single-encoder dispatch + shader cache | `TensorSession` extension |
-| `fused_mlp.rs` | Fused 9-pass MLP | `TensorSession` MLP support |
-| `fused_transformer.rs` | Fused 18-pass transformer | `TensorSession` transformer support |
-| `matmul_*.wgsl` (2) | Double-buffered CPU + GPU matmul | Upstream kernel router |
-
-### WGSL Shaders Ready for Upstream
-
-| Shader | Purpose | Location |
-|--------|---------|----------|
-| `HEAD_SPLIT_WGSL` | `[seq, d_model]` → `[n_heads, seq, d_head]` | `fused_pipeline.rs` inline |
-| `HEAD_CONCAT_WGSL` | Reverse of head-split | `fused_pipeline.rs` inline |
-| `BATCHED_ATTENTION_WGSL` | Fused QK^T/√d → softmax → ·V | `fused_pipeline.rs` inline |
-| `matmul_cpu_tiled.wgsl` | 32×32 double-buffered, 8×4 micro-kernel | `evolved/` |
-| `matmul_gpu_evolved.wgsl` | 32×32 double-buffered, 2×2 micro-kernel | `evolved/` |
+**Local fix:** `src/evolved/mha.rs` decomposes MHA into matmul + CPU head-split
++ `attention()` + matmul. Fused pipeline uses GPU-resident head-split/concat shaders.
 
 ---
 
-## 6. Unresolved Items from Feb 19 (11 Issues)
+#### S-04: Softmax on Pooled Buffers (incorrect normalization)
 
-All 11 issues from the previous handoff remain pending. Summary:
+**File:** `barracuda/src/shaders/activation/softmax_simple.wgsl`
 
-| Priority | Issue | Impact |
-|----------|-------|--------|
-| **Critical** | Per-op command submission | 46–78× penalty |
-| **Critical** | Naive matmul (no tiling) | CPU 3× slower than Python |
-| **High** | `Tensor::from_buffer` `pub(crate)` | Forces 2 round-trips |
-| **High** | MHA z-dimension dispatch bug | Correctness (tokens 1–7 zeroed) |
-| **Medium** | `layer_norm` round-trip | 5× penalty |
-| **Medium** | `log_softmax` round-trip | 5× penalty |
-| **Medium** | `science_limits()` CPU failure | Blocks CPU validation |
-| **Medium** | Softmax pooled buffer corruption | Correctness |
-| **Low** | `leaky_relu` Params mismatch | wgpu panic |
-| **Low** | `elu` Params mismatch | wgpu panic |
+```wgsl
+let N = arrayLength(&input);  // physical buffer, not logical tensor
+```
 
-Full details with code locations and suggested fixes: `specs/TOADSTOOL_HANDOFF.md`.
+When pool returns an oversized buffer (64 elements for a 10-element tensor),
+softmax normalizes over 64 elements. Extra zeros contribute `exp(0 - max_logit)`
+to the denominator, corrupting probabilities.
 
----
+**Fix:** Pass logical size via uniform buffer:
+```wgsl
+struct Params { logical_size: u32, }
+@group(0) @binding(2) var<uniform> params: Params;
+// Use params.logical_size instead of arrayLength(&input)
+```
 
-## 7. Learnings Relevant to ToadStool Evolution
-
-### 7.1 Deterministic Stochastic Validation
-
-For stochastic algorithms (EA, Monte Carlo, ODE with noise), **bit-for-bit
-reproducibility across Python and Rust is not achievable** due to different
-PRNG implementations (Python: PCG64, Rust: Xoshiro256**). The validation
-strategy is **qualitative property checking**: verify inequalities,
-monotonicity, stability, and relationships rather than exact numerical match.
-
-This means the validation harness needs `check_bool` (property holds?),
-`check_lower` (value above threshold?), and `check_upper` (value below
-threshold?) in addition to `check_abs` (numerical match within tolerance).
-
-### 7.2 Cross-Domain Primitive Convergence
-
-The 23-paper catalog confirms the isomorphism thesis with concrete evidence:
-**GEMM appears in 18/23 experiments**, `reduce_sum` in 20/23, and
-`elementwise` operations in 23/23. The long tail of domain-specific
-primitives (ODE integration, eigendecomposition, HMM chain) is small:
-only 4 truly new patterns emerged from 13 papers.
-
-### 7.3 Unidirectional Streaming Opportunity
-
-Several Phase 0++ patterns are naturally suited to **ToadStool's
-unidirectional streaming** model:
-
-- **EA generation loop**: Upload population → GPU fitness eval → download
-  fitness → CPU selection/mutation → repeat. The fitness evaluation is
-  entirely GPU-side with no intermediate readback.
-- **HMM forward**: Upload observation sequence → sequential GPU matmul
-  chain → download final log-likelihood. Each step writes to the same
-  GPU buffer (ping-pong).
-- **ODE integration**: Upload initial state → GPU RK4 steps → download
-  final state. The entire trajectory stays GPU-resident.
-
-In all cases, the dispatch overhead dominates the compute. **Reducing
-round-trips from O(T) to O(1)** — exactly what ToadStool's streaming
-architecture provides — would unlock the GPU advantage at these scales.
-
-### 7.4 The Phase 0++ Modules Are Tier A (Direct Port)
-
-All 13 new Rust modules are **pure math** with no framework dependencies,
-no PyTorch training loops, and no real data requirements. They use only:
-- Arithmetic (add, mul, div, sqrt, exp, ln)
-- Matrix operations (GEMM, transpose, elementwise)
-- Reductions (sum, mean, max, argmax)
-- Sorting (partial sort for selection algorithms)
-
-This makes them ideal **Tier A** candidates for direct BarraCUDA CPU port,
-followed by GPU promotion. No adaptation layer needed.
+**Local fix:** Re-upload logits before softmax to force exact-size buffer.
 
 ---
 
-## 8. Reproduction Commands
+#### S-05: `leaky_relu_wgsl` Params Mismatch (wgpu panic)
+
+**File:** `barracuda/src/ops/leaky_relu_wgsl.rs` line 46
+
+Rust `Params` has `{ size: u32 }` (4 bytes). WGSL expects
+`{ size: u32, negative_slope: f32 }` (8 bytes). Causes wgpu validation panic.
+
+**Fix:**
+```rust
+#[repr(C)]
+struct Params { size: u32, negative_slope: f32 }
+let params = Params { size: size as u32, negative_slope };
+```
+
+---
+
+#### S-06: `elu_wgsl` Params Mismatch (same pattern)
+
+**File:** `barracuda/src/ops/elu_wgsl.rs` line 46
+
+Same as S-05. Rust has `{ size: u32 }`, WGSL expects `{ size: u32, alpha: f32 }`.
+
+**Fix:** Add `alpha: f32` to Rust `Params`.
+
+---
+
+### Tier 3 — Performance (Round-Trips)
+
+#### S-07: `Tensor::from_buffer` is `pub(crate)` (forces 2 round-trips)
+
+**File:** `barracuda/src/tensor.rs` line 90
+
+External crates cannot construct a `Tensor` from an existing `wgpu::Buffer`.
+Forces `layer_norm_wgsl` and `log_softmax_wgsl` to `read_buffer` (GPU→CPU)
+then `Tensor::new()` (CPU→GPU) per op.
+
+**Fix (one character):**
+```rust
+pub fn from_buffer(buffer: wgpu::Buffer, shape: Vec<usize>, device: Arc<WgpuDevice>) -> Self
+```
+
+This single change retires S-08 and S-09 below.
+
+---
+
+#### S-08: `layer_norm_wgsl` GPU→CPU→GPU Round-Trip (5× penalty)
+
+**File:** `barracuda/src/ops/layer_norm_wgsl.rs` lines 179–182
+
+```rust
+let output_data = crate::utils::read_buffer(device, &output_buffer, size)?;
+Ok(Tensor::new(output_data, shape.to_vec(), device.clone()))
+```
+
+**Fix:** `Ok(Tensor::from_buffer(output_buffer, shape.to_vec(), device.clone()))`
+(requires S-07 first)
+
+**Local fix:** `src/evolved/layer_norm.rs` — same shader, returns raw buffer.
+Stock: 1.7 ms GPU. Evolved: 329 µs GPU.
+
+---
+
+#### S-09: `log_softmax_wgsl` GPU→CPU→GPU Round-Trip (same pattern)
+
+**File:** `barracuda/src/ops/log_softmax_wgsl.rs` lines 175–178
+
+Same as S-08. Same fix. Same local evolution in `src/evolved/log_softmax.rs`.
+
+---
+
+#### S-10: `WgpuDevice::new_cpu()` Requires `science_limits()` (blocks CPU)
+
+**File:** `barracuda/src/device/wgpu_device/creation.rs` line 30
+
+`science_limits()` requests 512 MB `max_storage_buffer_binding_size`. llvmpipe
+caps at 128 MB. `new_cpu()` always fails on standard CPU software rasterizers.
+
+**Fix:** Add fallback:
+```rust
+pub async fn new_cpu_relaxed() -> Result<Self> {
+    // Use adapter.limits() instead of science_limits()
+}
+```
+
+Or make `new_cpu()` fall back to adapter limits when `science_limits()` fails.
+
+**Local fix:** `src/gpu.rs` `create_relaxed()` uses `Limits::downlevel_defaults()`.
+
+---
+
+### Tier 4 — Low Priority
+
+#### S-11: `TensorSession` Limited to `{Add, Mul, Fma, Scale}`
+
+**File:** `barracuda/src/session.rs` lines 92–118
+
+`SessionOp` enum only has 4 variants. ML inference needs `MatMul`, `ReLU`,
+`GELU`, `LayerNorm`, `Softmax`, `Attention`.
+
+**Fix:** Extend enum and wire through session batching. The session already
+batches into one encoder — just add the missing op variants and shader pipelines.
+
+This is the highest-impact upstream change — it would retire the entire
+`src/evolved/` directory (7 modules, ~1500 lines).
+
+---
+
+## Part 2: WGSL Shader Designs for Upstream
+
+### 2.1 Delivered Shaders (ready to copy)
+
+| Shader | Location | Lines | Purpose |
+|--------|----------|-------|---------|
+| `matmul_cpu_tiled.wgsl` | `src/evolved/` | 263 | CPU: 32×32 double-buffered, vec4, 8×4 µkernel |
+| `matmul_gpu_evolved.wgsl` | `src/evolved/` | 302 | GPU: 32×32 double-buffered, vec4, 2×2 µkernel |
+| `HEAD_SPLIT_WGSL` | `fused_pipeline.rs` inline | ~30 | `[seq, d_model]` → `[heads, seq, d_head]` |
+| `HEAD_CONCAT_WGSL` | `fused_pipeline.rs` inline | ~30 | Reverse of head-split |
+| `BATCHED_ATTENTION_WGSL` | `fused_pipeline.rs` inline | ~60 | Fused QK^T/√d → softmax → ·V |
+
+All use same binding layout as existing BarraCUDA shaders. Drop-in additions.
+
+### 2.2 Phase 0++ GPU Promotion Shader Designs (proposed)
+
+These are the 7 new algorithmic patterns from the 23-paper catalog. Each maps
+to a concrete WGSL kernel design.
+
+#### `batch_gemv.wgsl` — Population Fitness Evaluation (Papers 011–015)
+
+```wgsl
+// Dispatch: (pop_size, genome_len/16, niche_count)
+// Each thread computes fitness[pop][niche] = Σ_j genome[pop][j] * landscape[niche][j]
+@group(0) @binding(0) var<storage, read> genomes: array<f32>;      // [pop_size × genome_len]
+@group(0) @binding(1) var<storage, read> landscape: array<f32>;    // [niche_count × genome_len]
+@group(0) @binding(2) var<storage, read_write> fitness: array<f32>; // [pop_size × niche_count]
+@group(0) @binding(3) var<uniform> params: BatchGemvParams;        // pop_size, genome_len, niche_count
+
+@compute @workgroup_size(16, 16, 1)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    // gid.x = population index, gid.y = niche index (tiled)
+    // Shared-memory tiling of landscape rows for reuse across population
+}
+```
+
+**Serves:** All 5 Dolson papers. Population 100–500, genome 8–50, niches 1–5.
+**BarraCUDA integration:** Wire into `KernelRouter` as `ComputeWorkload::BatchGemv`.
+
+#### `hmm_forward_log.wgsl` — HMM Forward Chain (Papers 016–018)
+
+```wgsl
+// Log-domain forward: log(α_t) = log(A^T · α_{t-1}) + log(B · o_t)
+// Sequential over T, parallel over states. Uses log-sum-exp for numerical stability.
+// For T=500, N=2 states: 500 sequential 2×2 matmuls.
+// Key optimization: ping-pong between two N-element buffers (no allocation per step).
+@group(0) @binding(0) var<storage, read> log_trans: array<f32>;     // [N × N] log transition
+@group(0) @binding(1) var<storage, read> log_emit: array<f32>;      // [T × N] log emission
+@group(0) @binding(2) var<storage, read_write> alpha: array<f32>;   // [2 × N] ping-pong
+@group(0) @binding(3) var<uniform> params: HmmParams;               // T, N, current_t
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    // Each thread computes one state's forward probability
+    // log-sum-exp over all source states, add emission
+}
+```
+
+**Serves:** Papers 016–018. Reuses `ReduceScalarPipeline` for final log-likelihood.
+**Integration:** Dispatch T times from `StatefulPipeline::run_iterations()`.
+
+#### `pairwise_distance.wgsl` — Sequence Distance Matrix (Paper 017)
+
+```wgsl
+// One thread per pair (i,j), i < j. Computes Hamming or Jukes-Cantor distance.
+// For N=100 sequences of length L=500: 4950 pairs, trivially parallel.
+@group(0) @binding(0) var<storage, read> sequences: array<u32>;     // [N × L] packed bases
+@group(0) @binding(1) var<storage, read_write> distances: array<f32>; // [N × N]
+@group(0) @binding(2) var<uniform> params: DistParams;              // N, L, metric
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let pair_idx = gid.x;
+    // Decode (i, j) from triangular index
+    // Count mismatches, apply JC correction: d = -3/4 * ln(1 - 4p/3)
+}
+```
+
+**Serves:** Paper 017 (SATé alignment). No synchronization needed. Pure embarrassingly parallel.
+
+#### `rk4_batch.wgsl` — Parallel ODE Integration (Papers 020–021)
+
+```wgsl
+// Batch RK4 for M independent ODE systems, each with D state variables.
+// Each thread handles one system. 4 stages per kernel launch.
+// RHS is elementwise: Hill functions + linear degradation.
+@group(0) @binding(0) var<storage, read_write> state: array<f32>;   // [M × D]
+@group(0) @binding(1) var<storage, read> params_ode: array<f32>;    // [M × P] per-system parameters
+@group(0) @binding(2) var<uniform> params: Rk4Params;               // M, D, P, dt
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let sys = gid.x;
+    // k1 = dt * f(state)
+    // k2 = dt * f(state + k1/2)
+    // k3 = dt * f(state + k2/2)
+    // k4 = dt * f(state + k3)
+    // state += (k1 + 2*k2 + 2*k3 + k4) / 6
+}
+```
+
+**Serves:** Papers 020–021. Dispatch N_steps times from `StatefulPipeline`.
+State stays GPU-resident. Only scalar readback for convergence check.
+
+#### `stencil_1d.wgsl` — Spatial Neighborhood Average (Paper 019)
+
+```wgsl
+// 1D stencil: out[i] = average(in[i-r..i+r]) for cooperation/defection grids.
+// Shared-memory halo exchange pattern.
+@group(0) @binding(0) var<storage, read> input: array<f32>;
+@group(0) @binding(1) var<storage, read_write> output: array<f32>;
+@group(0) @binding(2) var<uniform> params: StencilParams;  // N, radius
+
+var<workgroup> tile: array<f32, 288>;  // 256 + 2*16 halo
+
+@compute @workgroup_size(256)
+fn main(@builtin(local_invocation_id) lid: vec3<u32>,
+        @builtin(global_invocation_id) gid: vec3<u32>) {
+    // Load center + halo into shared memory
+    // Compute average of radius-neighborhood
+}
+```
+
+**Serves:** Paper 019 spatial cooperation. Could reuse BarraCUDA's conv1d.
+
+#### `tridiag_eigh.wgsl` — Tridiagonal Eigensolver (Papers 022–023)
+
+```wgsl
+// Bisection + inverse iteration for symmetric tridiagonal eigenvalue problem.
+// Much faster than general Jacobi for tridiagonal structure.
+// Paper 023: N=50–200 Aubry-André/Anderson Hamiltonians.
+@group(0) @binding(0) var<storage, read> diag: array<f32>;         // [N] diagonal
+@group(0) @binding(1) var<storage, read> offdiag: array<f32>;      // [N-1] off-diagonal
+@group(0) @binding(2) var<storage, read_write> eigenvalues: array<f32>; // [N]
+@group(0) @binding(3) var<storage, read_write> eigenvectors: array<f32>; // [N × N]
+@group(0) @binding(4) var<uniform> params: TridiagParams;          // N, tol, max_iter
+
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+    // Each thread finds one eigenvalue via bisection on Sturm count
+    // Then inverse iteration for eigenvector
+}
+```
+
+**Serves:** Papers 022–023. Specialized for tridiagonal structure — O(N²) vs O(N³) Jacobi.
+
+#### `xoshiro256ss.wgsl` — GPU PRNG (All stochastic algorithms)
+
+```wgsl
+// Xoshiro256** for GPU-side parallel random number generation.
+// Each thread uses jump() to get an independent stream from shared seed.
+struct Rng { s0: u32, s1: u32, s2: u32, s3: u32, }
+
+fn rotl(x: u32, k: u32) -> u32 { return (x << k) | (x >> (32u - k)); }
+
+fn next(rng: ptr<function, Rng>) -> u32 {
+    let result = rotl((*rng).s1 * 5u, 7u) * 9u;
+    let t = (*rng).s1 << 9u;
+    (*rng).s2 ^= (*rng).s0;
+    (*rng).s3 ^= (*rng).s1;
+    (*rng).s1 ^= (*rng).s2;
+    (*rng).s0 ^= (*rng).s3;
+    (*rng).s2 ^= t;
+    (*rng).s3 = rotl((*rng).s3, 11u);
+    return result;
+}
+
+fn uniform_f32(rng: ptr<function, Rng>) -> f32 {
+    return f32(next(rng) >> 8u) / 16777216.0;
+}
+```
+
+**Serves:** All stochastic Phase 0++ algorithms (EA mutation, MC sampling, initialization).
+Foundation for GPU-side population evaluation without CPU round-trips.
+
+---
+
+## Part 3: Recommended Absorption Order
+
+| Priority | Item | Effort | Impact | Retires |
+|----------|------|--------|--------|---------|
+| 1 | **`from_buffer` → `pub`** (S-07) | 1 char | High | S-08, S-09 |
+| 2 | **MHA z-dispatch** (S-03) | 2 lines | Correctness | `evolved::mha` |
+| 3 | **`leaky_relu`/`elu` Params** (S-05, S-06) | 4 lines | Correctness | — |
+| 4 | **Softmax logical size** (S-04) | 10 lines | Correctness | Re-upload workaround |
+| 5 | **`new_cpu_relaxed()`** (S-10) | 20 lines | Unblocks CPU | `gpu::create_relaxed()` |
+| 6 | **Add matmul shaders** (S-02) | Copy + wire | Performance | Evolved matmul shaders |
+| 7 | **Extend `TensorSession`** (S-01, S-11) | Medium | 46–78× perf | All `evolved/` modules |
+| 8 | **Absorb attention shaders** | Copy | Completeness | Inline WGSL in fused_pipeline |
+
+---
+
+## Part 4: neuralSpring Evolved Code Inventory
+
+These modules retire when their corresponding shortcomings are absorbed:
+
+| Module | Lines | Workaround For | Retires When |
+|--------|-------|----------------|--------------|
+| `evolved/layer_norm.rs` | ~80 | S-08 (GPU→CPU→GPU round-trip) | S-07 absorbed |
+| `evolved/log_softmax.rs` | ~80 | S-09 (GPU→CPU→GPU round-trip) | S-07 absorbed |
+| `evolved/mha.rs` | ~150 | S-03 (z-dispatch bug) | S-03 absorbed |
+| `evolved/fused_pipeline.rs` | ~550 | S-01 (per-op dispatch) | S-11 absorbed |
+| `evolved/fused_mlp.rs` | ~250 | S-01 (per-op dispatch) | S-11 absorbed |
+| `evolved/fused_transformer.rs` | ~400 | S-01 (per-op dispatch) | S-11 absorbed |
+| `evolved/matmul_cpu_tiled.wgsl` | 263 | S-02 (naive matmul) | Shader absorbed |
+| `evolved/matmul_gpu_evolved.wgsl` | 302 | S-02 (naive matmul) | Shader absorbed |
+| **Total** | **~2075** | | |
+
+---
+
+## Part 5: ToadStool Capabilities for neuralSpring GPU Promotion
+
+New ToadStool infrastructure directly usable for Phase 0++ GPU promotion:
+
+| ToadStool Capability | neuralSpring Use Case | Integration Point |
+|---------------------|----------------------|-------------------|
+| `StatefulPipeline` | EA generation loops (Papers 011–015), ODE integration (020–021), HMM chains (016–018) | `run_iterations()` for N GPU steps, scalar readback for convergence |
+| `ReduceScalarPipeline` | Fitness aggregation (sum/max over population), log-likelihood (HMM) | `scalar_buffer()` for zero-copy pipeline chaining |
+| `KernelRouter` | 4-tier matmul selection, future per-op device routing | Wire `MatmulConfig` logic into `KernelRouter::route()` |
+| `GpuDriverProfile` | Per-driver shader specialization (NAK vs proprietary) | Already captured in `MatmulConfig` |
+| NAK-optimized `batched_eigh_nak_optimized_f64.wgsl` | Anderson localization (Paper 023) eigensolver | Drop-in replacement for Jacobi iteration |
+
+---
+
+## Part 6: Cross-Paper Primitive Convergence
+
+From 23 papers, the primitive usage confirms the isomorphism thesis:
+
+| Primitive | Papers Using It | BarraCUDA Shader |
+|-----------|----------------|-----------------|
+| GEMM | 18/23 | `matmul.wgsl` + evolved variants |
+| `reduce_sum` | 20/23 | `sum_reduce_f64.wgsl` |
+| `elementwise` | 23/23 | Various activation shaders |
+| Softmax | 8/23 | `softmax_simple.wgsl` |
+| ODE integration | 3/23 | Proposed `rk4_batch.wgsl` |
+| Eigendecomposition | 3/23 | `batched_eigh_*.wgsl` + proposed `tridiag_eigh.wgsl` |
+| HMM chain | 3/23 | Proposed `hmm_forward_log.wgsl` |
+
+---
+
+## Reproduction
 
 ```bash
 # Full Python baselines (190/190 PASS, ~10 min)
@@ -312,22 +498,13 @@ bash scripts/run_all_baselines.sh
 # Full Rust validation (409/409 PASS, ~10 sec)
 make validate
 
-# Just the new Phase 0++ validators
-cargo run --release --bin validate_swarm_robotics
-cargo run --release --bin validate_sate_alignment
-cargo run --release --bin validate_introgression
-cargo run --release --bin validate_regulatory_network
-cargo run --release --bin validate_signal_integration
-cargo run --release --bin validate_spectral_commutativity
-cargo run --release --bin validate_anderson_localization
-
 # All quality gates
 make check
 ```
 
 ---
 
-*neuralSpring Phase 0++ complete. 23 papers, 599/599 PASS. 7 new algorithmic
-patterns identified for GPU promotion. 11 prior shortcomings remain pending.
-Deterministic PRNG infrastructure in place. All modules Tier A — ready for
-direct BarraCUDA CPU port and GPU acceleration via unidirectional streaming.*
+*neuralSpring: 23 papers, 599/599 PASS, 11 shortcomings documented with fixes,
+7 GPU shader designs proposed, 5 delivered. ToadStool `StatefulPipeline` +
+`ReduceScalarPipeline` + `KernelRouter` provide the infrastructure for
+Phase 0++ GPU promotion. Absorption order prioritized by effort/impact.*

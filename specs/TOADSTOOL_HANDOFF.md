@@ -5,116 +5,213 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 pattern.  Each section names the issue, the local fix, and a suggested
 one-line upstream change for the ToadStool team to absorb.
 
----
-
-## 1. `layer_norm_wgsl` GPU→CPU→GPU Round-Trip
-
-**File**: `barracuda/src/ops/layer_norm_wgsl.rs` lines 179-182
-
-```rust
-// After dispatching the WGSL shader:
-let output_data = crate::utils::read_buffer(device, &output_buffer, size)?;
-Ok(Tensor::new(output_data, shape.to_vec(), device.clone()))
-```
-
-**Problem**: After the compute shader writes results to `output_buffer`, the
-data is read back to CPU (`read_buffer`) and then uploaded again via
-`Tensor::new()`.  Any pipeline that chains `layer_norm → matmul → softmax`
-pays a full GPU→CPU→GPU round-trip per normalization.
-
-**Local fix**: `neuralSpring/src/evolved/layer_norm.rs` — dispatches the
-same WGSL shader but returns the raw `wgpu::Buffer` directly, skipping
-the readback.  Result stays GPU-resident.
-
-**Validation**: `validate_barracuda_tensor` passes identical numerical
-checks for both stock `layer_norm_wgsl` and `evolved::layer_norm` on
-GPU (RTX 4070) and CPU (llvmpipe).  46/46 checks pass on both backends.
-
-**Suggested upstream change**:
-Replace the `read_buffer` + `Tensor::new()` with `Tensor::from_buffer()`:
-```rust
-Ok(Tensor::from_buffer(output_buffer, shape.to_vec(), device.clone()))
-```
-This requires making `Tensor::from_buffer` `pub` (currently `pub(crate)`).
+**Last reviewed:** ToadStool commit `82f953c8` (Feb 19, 2026) — HEAD as of Feb 20.
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_HANDOFF_FEB20_2026.md`
 
 ---
 
-## 2. `log_softmax_wgsl` GPU→CPU→GPU Round-Trip
+## Resolution Status
 
-**File**: `barracuda/src/ops/log_softmax_wgsl.rs` lines 175-178
+ToadStool has been highly active (80+ commits since Feb 15) with hotSpring
+absorption (NAK eigensolve, `StatefulPipeline`, `ReduceScalarPipeline`,
+`CellListGpu`), deep debt sessions (wgpu v22, sleep elimination, zero-copy),
+and sovereign compute (Phases 0–3). **None of the 11 neuralSpring shortcomings
+have been addressed.** All ToadStool work focused on hotSpring feedback, deep
+debt, and infrastructure — not neuralSpring evolution items.
 
-```rust
-let output_data = crate::utils::read_buffer(device, &output_buffer, size)?;
-Ok(Tensor::new(output_data, shape.to_vec(), device.clone()))
-```
+| # | Shortcoming | Severity | Local Fix | Upstream Status |
+|---|-------------|----------|-----------|-----------------|
+| 1 | Per-op submission (S-01) | **Critical** | Fused pipeline | **Not absorbed** |
+| 2 | Naive matmul (S-02) | **Critical** | 4-tier shader router | **Not absorbed** |
+| 3 | MHA z-dispatch bug (S-03) | **High** | `evolved::mha` | **Not absorbed** |
+| 4 | Softmax pooled buffers (S-04) | **Medium** | Re-upload logits | **Not absorbed** |
+| 5 | `leaky_relu` Params mismatch (S-05) | **Low** | Cannot workaround | **Not absorbed** |
+| 6 | `elu` Params mismatch (S-06) | **Low** | Cannot workaround | **Not absorbed** |
+| 7 | `from_buffer` `pub(crate)` (S-07) | **High** | Raw buffer mgmt | **Not absorbed** |
+| 8 | `layer_norm` round-trip (S-08) | **Medium** | `evolved::layer_norm` | **Not absorbed** |
+| 9 | `log_softmax` round-trip (S-09) | **Medium** | `evolved::log_softmax` | **Not absorbed** |
+| 10 | `science_limits()` CPU (S-10) | **Medium** | `create_relaxed()` | **Not absorbed** |
+| 11 | `TensorSession` limited (S-11) | **High** | Fused pipeline | **Not absorbed** |
 
-**Problem**: Same pattern as `layer_norm_wgsl` — unnecessary round-trip.
+### What we absorbed from ToadStool
 
-**Local fix**: `neuralSpring/src/evolved/log_softmax.rs` — same approach,
-keeps result in GPU buffer.
+| ToadStool Evolution | neuralSpring Action |
+|---|---|
+| `WORKGROUP_SIZE_1D` / `WORKGROUP_SIZE_2D` constants | Imported into dispatch functions (replaces hardcoded 256/16) |
+| `GpuDriverProfile` | Captured in `MatmulConfig` for future per-driver specialization |
+| wgpu v22 API | Already matched since initial port |
+| `probe::seed_cache_from_heuristics()` | Called automatically by `WgpuDevice::from_existing()` |
+| WGSL shader stability | All 8 `include_str!` shaders verified unchanged — no drift |
 
-**Validation**: 46/46 checks pass.  Evolved log-softmax matches analytical
-expected values to within `TENSOR_TRANSCENDENTAL_F32` (1e-3) tolerance.
+### New ToadStool capabilities available for leverage
 
-**Suggested upstream change**: Same as layer_norm — use `from_buffer`.
+| Capability | API | neuralSpring Use Case |
+|------------|-----|----------------------|
+| `StatefulPipeline` | `staging::StatefulPipeline::run_iterations()` | EA loops, ODE integration, HMM chains |
+| `ReduceScalarPipeline` | `pipeline::ReduceScalarPipeline::sum_f64()` | Fitness aggregation, log-likelihood |
+| `KernelRouter` | `device::KernelRouter::route()` | 4-tier matmul selection |
+| NAK eigensolve | `batched_eigh_nak_optimized_f64.wgsl` | Anderson localization eigensolver |
+
+Once ToadStool absorbs the 11 fixes above, the local evolutions in
+`neuralSpring/src/evolved/` (~2075 lines) can be retired entirely.
 
 ---
 
-## 3. `Tensor::from_buffer` is `pub(crate)`
+## 1. Per-Op Command Submission (S-01)
 
-**File**: `barracuda/src/tensor.rs`
+**Impact:** 46–78× penalty.
 
-**Problem**: External crates cannot construct a `Tensor` from an existing
-`wgpu::Buffer`.  This forces the round-trip pattern seen in ops #1 and #2,
-and prevents external crates from building GPU-resident pipelines.
-
-**Suggested upstream change**:
-```rust
-// Change:
-pub(crate) fn from_buffer(/* ... */) -> Self
-// To:
-pub fn from_buffer(/* ... */) -> Self
-```
-
-This single change would retire both local evolutions above.
-
----
-
-## 4. Per-Op Command Submission (No Batching)
-
-**Problem**: Each Tensor operation creates its own `CommandEncoder`,
-dispatches one compute pass, and submits it individually.  A chained
-sequence like `relu → layer_norm → matmul → softmax` submits 4 separate
-command buffers.  On GPU this means 4 submission round-trips; on CPU
-(llvmpipe) the overhead is per-submit fence synchronization.
+Each Tensor operation creates its own `CommandEncoder`, dispatches one
+compute pass, and submits it individually.  A chained sequence like
+`relu → layer_norm → matmul → softmax` submits 4 separate command
+buffers.
 
 BarraCUDA's `TensorContext` provides `begin_batch()` / `end_batch()` for
 batched dispatch, but Tensor ops do not use it.
 
-**Local workaround**: neuralSpring's evolved ops accept raw buffers and
-can be composed into a single `CommandEncoder` with multiple compute
-passes before a single `queue.submit()`.
+**Local workaround:** `src/evolved/fused_pipeline.rs` + `fused_mlp.rs` +
+`fused_transformer.rs` — pre-compile shaders, pre-allocate buffers,
+record all passes in one `CommandEncoder`, submit once.
 
-**Suggested upstream change**: Wire Tensor ops through `TensorContext`
-batching, or add a `Tensor::chain()` API that accumulates compute passes
-into one submission.
+**Result:** MLP 92 µs (43.6×), Transformer 174 µs (76.6×) vs per-op.
+
+**Suggested upstream:** Extend `TensorSession` ops from
+`{Add, Mul, Fma, Scale}` to include
+`{MatMul, ReLU, GELU, LayerNorm, Softmax, Attention}`.
+
+**ToadStool note:** `StatefulPipeline::KernelDispatch` is the right
+abstraction for this — it already records multiple dispatches into one
+encoder submit. Wire ML ops through the same pattern.
 
 ---
 
-## 5. `WgpuDevice` `science_limits()` Incompatible With CPU Software
+## 2. Naive Matmul — Zero Cache Reuse (S-02)
 
-**Problem**: `WgpuDevice::new_cpu()` requests `science_limits()` (512 MB
-`max_storage_buffer_binding_size`) which llvmpipe cannot provide (caps at
-128 MB).  This means `new_cpu()` always fails on standard CPU software
-rasterizers.
+**Impact:** CPU 3× slower than Python. GPU misses memory-latency hiding.
 
-**Local fix**: `neuralSpring/src/gpu.rs` `create_relaxed()` manually
-creates a `wgpu::Device` with `Limits::downlevel_defaults()` and wraps
-it via `WgpuDevice::from_existing()`.
+`matmul.wgsl` reads K elements from global memory per output element.
+NumPy calls OpenBLAS with hand-tuned cache-tiled GEMM.
 
-**Suggested upstream change**: Add a `WgpuDevice::new_cpu_relaxed()` or
-make `new_cpu()` fall back to the adapter's own limits when
-`science_limits()` cannot be satisfied.
+**Local fix:** 4-tier `DeviceCapabilities`-driven shader router.
+Shaders: `matmul_cpu_tiled.wgsl` (263 lines), `matmul_gpu_evolved.wgsl`
+(302 lines). Both double-buffered, vec4 B-tile, k-loop unrolled.
+
+**Result:** CPU 1.1× faster than Python at MLP large (3.1M FLOPs).
+GPU 104× faster at TF medium (103M FLOPs).
+
+**Suggested upstream:**
+1. Copy shaders to `barracuda/src/shaders/math/`
+2. Wire into `KernelRouter` using `DeviceCapabilities::device_type`
+
+---
+
+## 3. `Tensor::from_buffer` is `pub(crate)` (S-07)
+
+**File:** `barracuda/src/tensor.rs` line 90
+
+External crates cannot construct a `Tensor` from an existing
+`wgpu::Buffer`.  Forces the round-trip pattern in S-08 and S-09.
+
+**Suggested fix (one character):**
+```rust
+pub fn from_buffer(/* ... */) -> Self
+```
+
+This retires both S-08 and S-09 local evolutions.
+
+---
+
+## 4. `layer_norm_wgsl` GPU→CPU→GPU Round-Trip (S-08)
+
+**File:** `barracuda/src/ops/layer_norm_wgsl.rs` lines 179–182
+
+```rust
+let output_data = crate::utils::read_buffer(device, &output_buffer, size)?;
+Ok(Tensor::new(output_data, shape.to_vec(), device.clone()))
+```
+
+**Local fix:** `src/evolved/layer_norm.rs` — dispatches same WGSL shader,
+returns raw `wgpu::Buffer`. Stock: 1.7 ms GPU. Evolved: 329 µs GPU.
+
+**Suggested fix:** Replace with `Tensor::from_buffer()` (requires S-07).
+
+---
+
+## 5. `log_softmax_wgsl` GPU→CPU→GPU Round-Trip (S-09)
+
+Same pattern as S-08. Same fix. Local fix: `src/evolved/log_softmax.rs`.
+
+---
+
+## 6. MHA Projection Dispatch Bug (S-03)
+
+**File:** `barracuda/src/ops/mha/projections.rs` lines 165–167
+
+Shaders use `@workgroup_size(16, 16, 1)` — z-size is 1. But dispatch
+divides by 16:
+
+```rust
+let workgroups_z = params.seq_len.div_ceil(16);  // BUG: should be seq_len
+```
+
+With `seq_len=8`, only 1 z-workgroup dispatched. Positions 1–7 zeroed.
+
+**Fix:**
+```rust
+let workgroups_z = params.seq_len;   // project_with_head_split
+let workgroups_z = params.d_model;   // concat_and_project
+```
+
+**Local fix:** `src/evolved/mha.rs` decomposes MHA into separate matmuls.
+
+---
+
+## 7. Softmax Incorrect on Pooled Buffers (S-04)
+
+**File:** `barracuda/src/shaders/activation/softmax_simple.wgsl`
+
+```wgsl
+let N = arrayLength(&input);   // physical buffer, not logical tensor
+```
+
+Oversized pooled buffers corrupt softmax denominator.
+
+**Fix:** Pass `logical_size` via uniform buffer.
+
+**Local fix:** Re-upload logits before softmax to force exact-size buffer.
+
+---
+
+## 8. `leaky_relu_wgsl` Params Mismatch (S-05)
+
+Rust `Params` is 4 bytes. WGSL expects 8 bytes. Causes wgpu panic.
+
+**Fix:** Add `negative_slope: f32` to Rust `Params` struct.
+
+---
+
+## 9. `elu_wgsl` Params Mismatch (S-06)
+
+Same as S-05. Add `alpha: f32` to Rust `Params`.
+
+---
+
+## 10. `WgpuDevice::new_cpu()` Requires `science_limits()` (S-10)
+
+`science_limits()` requests 512 MB. llvmpipe caps at 128 MB. `new_cpu()`
+always fails on standard CPU software rasterizers.
+
+**Fix:** Add `new_cpu_relaxed()` or fallback to adapter limits.
+
+**Local fix:** `src/gpu.rs` `create_relaxed()`.
+
+---
+
+## 11. `TensorSession` Limited to `{Add, Mul, Fma, Scale}` (S-11)
+
+ML inference requires `{MatMul, ReLU, GELU, LayerNorm, Softmax, Attention}`.
+
+**Fix:** Extend `SessionOp` enum and wire through session batching.
 
 ---
 
@@ -124,7 +221,7 @@ make `new_cpu()` fall back to the adapter's own limits when
 
 Full analysis: `specs/BENCHMARK_ANALYSIS.md`
 
-**MLP (4→64→64→10)**:
+**MLP (4→64→64→10):**
 
 | Backend | Median | Throughput |
 |---------|--------|------------|
@@ -132,7 +229,7 @@ Full analysis: `specs/BENCHMARK_ANALYSIS.md`
 | BarraCUDA CPU (llvmpipe) | 4.7 ms | 211 inf/s |
 | BarraCUDA GPU (RTX 4070) | 4.0 ms | 247 inf/s |
 
-**Transformer encoder block (d=32, h=4, seq=8)**:
+**Transformer encoder block (d=32, h=4, seq=8):**
 
 | Backend | Median | Throughput |
 |---------|--------|------------|
@@ -140,312 +237,20 @@ Full analysis: `specs/BENCHMARK_ANALYSIS.md`
 | BarraCUDA CPU (llvmpipe) | 11.0 ms | 91 blk/s |
 | BarraCUDA GPU (RTX 4070) | 13.8 ms | 73 blk/s |
 
-**Root cause**: Per-op `queue.submit()` + bind group creation (~200 µs
-per op) dominates compute (~5 µs total). GPU ≈ CPU because tensors are
-too small to amortize launch latency. `TensorSession` batching would
-reduce MLP to ~250 µs (single submit).
+**Root cause:** Per-op `queue.submit()`. GPU ≈ CPU because tensors are
+too small to amortize launch latency.
 
-Max abs diff vs Python: MLP 1.5e-8, Transformer 1.1e-6.
-
-### Tensor Ops
-
-Collected with `bench_barracuda_tensor` (release build, 20 iterations,
-3 warmup):
-
-### GPU — NVIDIA RTX 4070 (Vulkan)
-
-| Op | Median | Min | Max |
-|----|--------|-----|-----|
-| relu | 1.7ms | 1.2ms | 2.3ms |
-| gelu_wgsl | 85µs | 75µs | 117µs |
-| sigmoid | 68µs | 62µs | 93µs |
-| softmax | 4.1ms | 3.8ms | 5.2ms |
-| layer_norm_wgsl (stock) | 1.7ms | 1.5ms | 2.2ms |
-| matmul | 3.4ms | 2.6ms | 5.1ms |
-| add | 7µs | 6µs | 221µs |
-| mse_loss | 191µs | 98µs | 567µs |
-| **evolved::layer_norm (no RT)** | **329µs** | **253µs** | **1.1ms** |
-| **evolved::log_softmax (no RT)** | **317µs** | **143µs** | **715µs** |
-
-### CPU — llvmpipe (Vulkan)
-
-| Op | Median | Min | Max |
-|----|--------|-----|-----|
-| relu | 887µs | 668µs | 1.0ms |
-| gelu_wgsl | 723µs | 309µs | 981µs |
-| sigmoid | 651µs | 541µs | 827µs |
-| softmax | 144.8ms | 124.8ms | 172.7ms |
-| layer_norm_wgsl (stock) | 902µs | 844µs | 1.0ms |
-| matmul | 810µs | 684µs | 1.1ms |
-| add | 56µs | 52µs | 84µs |
-| mse_loss | 60.7ms | 502µs | 123.5ms |
-| **evolved::layer_norm (no RT)** | **897µs** | **573µs** | **1.3ms** |
-| **evolved::log_softmax (no RT)** | **995µs** | **553µs** | **1.0ms** |
-
----
-
-## 6. `leaky_relu_wgsl` Params Mismatch (Rust 4B vs WGSL 8B)
-
-**File**: `barracuda/src/ops/leaky_relu_wgsl.rs` lines 46-48
-
-```rust
-struct Params {
-    size: u32,
-}
-```
-
-**WGSL**: `barracuda/src/shaders/activation/leaky_relu.wgsl` lines 9-12
-
-```wgsl
-struct Params {
-    size: u32,
-    negative_slope: f32,
-}
-```
-
-**Problem**: The Rust `Params` struct is 4 bytes (only `size`), but the
-WGSL shader expects 8 bytes (`size` + `negative_slope`).  This causes a
-wgpu validation panic: "Buffer is bound with size 4 where the shader
-expects 8".  The `negative_slope` parameter is never set from Rust.
-
-**Suggested upstream change**: Add `negative_slope: f32` to the Rust
-`Params` struct and expose it as a parameter on `leaky_relu_wgsl()`.
-
----
-
-## 7. `elu_wgsl` Params Mismatch (Same Pattern)
-
-**File**: `barracuda/src/ops/elu_wgsl.rs` lines 46-48
-
-**WGSL**: `barracuda/src/shaders/activation/elu.wgsl` lines 9-12
-
-**Problem**: Same as `leaky_relu_wgsl` — Rust has `{ size: u32 }` but
-WGSL expects `{ size: u32, alpha: f32 }`.  Causes wgpu panic.
-
-**Suggested upstream change**: Add `alpha: f32` to Rust `Params`.
-
----
-
-## 8. MHA Projection Dispatch Bug (z-dimension)
-
-**File**: `barracuda/src/ops/mha/projections.rs`
-
-**Shader**: `barracuda/src/shaders/attention/mha_projection.wgsl` and
-`barracuda/src/shaders/tensor/mha_output.wgsl`
-
-Both shaders use `@workgroup_size(16, 16, 1)` — the z-dimension has
-size **1** per workgroup.  But the Rust dispatch code divides by 16:
-
-```rust
-// projections.rs:project_with_head_split()
-let workgroups_z = params.seq_len.div_ceil(16);  // BUG: should be div_ceil(1)
-
-// projections.rs:concat_and_project()
-let workgroups_z = params.d_model.div_ceil(16);   // BUG: should be div_ceil(1)
-```
-
-**Problem**: With `seq_len=8` and `div_ceil(16)=1`, only **1** workgroup
-is dispatched in z, covering `global_id.z=0` only.  Sequence positions
-1–7 are never computed; their output stays at zero.  Similarly for the
-output projection: `d_model=32` / 16 = 2 workgroups, covering only
-`global_id.z` values 0–1 instead of 0–31.
-
-**Impact**: `multi_head_attention()` produces mostly-zero outputs for any
-non-trivial seq_len / d_model.  The MLP pipeline is unaffected because
-it does not use MHA.
-
-**Local fix**: `neuralSpring/src/evolved/mha.rs` — decomposes MHA into:
-1. `matmul` for Q/K/V projections (verified correct)
-2. CPU-side head-split / concat (unavoidable until barracuda adds `permute`)
-3. `attention()` for SDPA (dispatch is correct: z = `batch * heads`)
-4. `matmul` for output projection
-
-**Validation**: `validate_barracuda_ml_inference` transformer checks now
-pass 6/6, with max abs diff ~1.1e-6 vs Python.
-
-**Suggested upstream change**: Fix the dispatch in `projections.rs`:
-```rust
-// project_with_head_split:
-let workgroups_z = params.seq_len;   // workgroup_size.z = 1
-
-// concat_and_project:
-let workgroups_z = params.d_model;   // workgroup_size.z = 1
-```
-
----
-
-## 9. Softmax Incorrect on Pooled Buffers
-
-**File**: `barracuda/src/shaders/activation/softmax_simple.wgsl`
-
-```wgsl
-let N = arrayLength(&input);   // physical buffer length, not logical tensor size
-```
-
-**Problem**: When the `add` operation returns a pooled output buffer
-(via `TensorContext::acquire_pooled_output`), the buffer may be **larger**
-than the tensor's logical size.  The softmax shader normalizes over
-`arrayLength(&input)` which returns the physical buffer size.
-
-For example: an MLP's final layer produces shape `[1, 10]` = 10 elements.
-If the pool returns a 64-element buffer (reused from a previous hidden
-layer), softmax normalizes over 64 elements.  The extra 54 elements are
-uninitialized (typically zero), contributing `exp(0 - max_logit)` to the
-denominator.  The resulting probabilities no longer sum to 1.
-
-**Impact**: Any softmax on a tensor whose buffer came from the pool
-(i.e., was produced by `add`, `matmul`, or other ops using `TensorContext`)
-will produce incorrect results whenever the pool returns an oversized
-buffer.  Fresh tensors from `Tensor::from_data()` are unaffected.
-
-**Local fix**: In ML inference pipelines, re-upload logits before softmax:
-```rust
-let logit_data = logits.to_vec()?;
-Tensor::from_data(&logit_data, logits.shape().to_vec(), device.clone())?
-    .softmax()?
-```
-This forces an exact-size buffer.
-
-**Suggested upstream change**: Pass the logical tensor size via a uniform
-buffer to the softmax shader, or ensure `acquire_pooled_output(size)`
-returns an **exact-size** buffer (not larger).
-
----
-
----
-
-## 10. Fused Pipeline — Eliminating Dispatch Overhead
-
-**Location**: `src/evolved/fused_pipeline.rs`, `fused_mlp.rs`, `fused_transformer.rs`
-
-**Problem**: BarraCUDA's per-op dispatch creates a new `CommandEncoder`,
-bind groups, and `queue.submit()` for each tensor operation. At ~200 µs
-per submit, a 9-op MLP wastes 1.8 ms in dispatch alone while actual
-compute takes ~5 µs. Python/NumPy does the same MLP in 23 µs.
-
-**Local fix**: Pre-compile all shaders, pre-allocate all intermediate
-buffers, and pre-create all bind groups **once**. Record all compute
-passes into a **single** `CommandEncoder` and submit once. This collapses
-N submissions into 1.
-
-**New GPU shaders** (inline WGSL in `fused_pipeline.rs`):
-- `HEAD_SPLIT_WGSL`: `[seq, d_model]` → `[n_heads, seq, d_head]` index remapping
-- `HEAD_CONCAT_WGSL`: reverse of head_split
-- `BATCHED_ATTENTION_WGSL`: fused Q·K^T/√d → softmax → ·V for all heads
-
-These eliminate the CPU round-trips in the evolved MHA workaround.
-
-**Results** (RTX 4070, Vulkan):
+### Fused Pipeline (Single-Encoder)
 
 | Pipeline | MLP | Transformer | Speedup vs Per-Op |
 |----------|-----|-------------|-------------------|
 | Per-op | 4.5 ms | 12.8 ms | 1.0× |
 | **Fused** | **97 µs** | **164 µs** | **46× / 78×** |
 
-**Suggested upstream**: Integrate fused dispatch patterns into
-`TensorSession`. Extend session ops to include `MatMul`, `ReLU`, `GELU`,
-`LayerNorm`, `Softmax`, `Attention`. This would make the local fused
-pipeline unnecessary.
+### 3-Way Scaling (Fused + Evolved Shaders)
 
----
-
-## 11. 4-Tier Shader Router — Double-Buffered, `DeviceCapabilities`-Driven
-
-**Location**: `src/evolved/fused_pipeline.rs` (`select_matmul`, `MatmulConfig`),
-`src/evolved/matmul_cpu_tiled.wgsl`, `src/evolved/matmul_gpu_evolved.wgsl`
-
-**Problem**: The naive `matmul.wgsl` reads K elements from global memory
-per output element — zero cache reuse. Meanwhile NumPy calls OpenBLAS
-with hand-tuned AVX-512 cache-tiled GEMM. On CPU (llvmpipe), the naive
-shader compiles to LLVM IR that thrashes cache at every K-step.
-On GPU, the standard 16×16 tiled shader misses memory-latency hiding
-opportunities at large matrix sizes.
-
-**Local fix**: `DeviceCapabilities`-driven 4-tier shader router:
-
-| Condition | Shader | Tile | Key Optimization |
-|-----------|--------|------|-----------------|
-| M or N < threshold | `matmul.wgsl` (naive) | none | Safe for small M |
-| CPU, large M,N | `matmul_cpu_tiled.wgsl` | 32×32 | Double-buffered, BLAS-evolved |
-| GPU, small M,N | `matmul_tiled.wgsl` | 16×16 | High SM occupancy |
-| GPU, large M,N (≥256) | `matmul_gpu_evolved.wgsl` | 32×32 | Double-buffered, register-blocked |
-
-Threshold from `DeviceCapabilities::optimal_matmul_tile_size()`. The `MatmulConfig`
-struct caches device capabilities at pipeline creation.
-
-**CPU shader** (`matmul_cpu_tiled.wgsl` — mirrors OpenBLAS/BLIS):
-
-| Optimization | BLAS Equivalent | Implementation |
-|---|---|---|
-| 32×32 tiles | Panel size / L1 blocking | `TILE = 32`, `var<workgroup>` tiles |
-| Double-buffered tiles | Software pipelining / prefetch | Two tile sets, load NEXT while computing CURRENT |
-| vec4 B-tile storage | Aligned 16-byte SIMD loads | `array<vec4<f32>, 256>` → `movaps` |
-| 8×4 micro-kernel | Mr × Nr register blocking | 8 `vec4` accumulators, 32 FMAs/k-step |
-| 4× k-loop unroll | ILP from independent FMA chains | `k += 4u` with 4 independent loads |
-| `fma()` intrinsic | FMA3 instructions | WGSL `fma()` → LLVM `fmuladd` |
-
-**GPU shader** (`matmul_gpu_evolved.wgsl` — learned from hotSpring double-buffering):
-
-| Optimization | Purpose | Implementation |
-|---|---|---|
-| Double-buffered tiles | Overlap memory latency with compute | Two tile pairs, GPU pipelines load+FMA |
-| vec4 B-tile storage | Coalesced 128-bit transactions | `array<vec4<f32>, 256>` |
-| 2×2 micro-kernel | Double arithmetic intensity | 4 accumulators, 32×32 output from 16×16 WG |
-| 4× k-loop unroll | Warp-level ILP | 4 independent FMA chains |
-| Tiered selection | Occupancy vs throughput | 16×16 for small, 32×32 for large (threshold: 256) |
-
-**Results** (3-way benchmark, Python 1-thread vs CPU vs GPU):
-
-| Scale | Py(1t) | CPU | GPU | CPU/Py | GPU/Py | GPU/CPU |
-|-------|--------|-----|-----|--------|--------|---------|
-| MLP large (3.1M) | 3.0 ms | **2.7 ms** | **178 µs** | **1.1× faster** | 16.8× faster | 15.1× |
-| TF medium (103M) | 59 ms | **15.1 ms** | **566 µs** | **3.9× faster** | 104× faster | 26.8× |
-| TF xlarge (6.6B) | 232 ms | 1.42 s | **17.8 ms** | 6.1× slower | 13.1× faster | **79.9×** |
-
-Progression: **✓ GPU < CPU < Py** at MLP large + TF medium.
-GPU dominates CPU by 4–80× at every scale.
-
-**Suggested upstream**:
-1. Add `matmul_cpu_tiled.wgsl` and `matmul_gpu_evolved.wgsl` to `barracuda/src/shaders/math/`
-2. Wire `DeviceCapabilities` into `KernelRouter` for automatic matmul variant selection
-3. Add panel packing shader for large-scale CPU matmul (addresses L3 saturation)
-4. Extend tiered pattern to other ops: CPU vs GPU layer_norm, softmax kernels
-
----
-
-## Resolution Status
-
-**Last reviewed**: ToadStool commit `82f953c8` (Feb 19, 2026).
-
-ToadStool has been highly active (80+ commits since Feb 15) with deep debt
-sessions, wgpu v22 migration, `GpuDriverProfile`, `WORKGROUP_SIZE_1D/2D`
-constants, concurrency hardening, and sovereign compute. However, **none of
-the 11 neuralSpring handoff items have been addressed** — all work focused
-on hotSpring feedback, deep debt, and infrastructure.
-
-| # | Shortcoming | Local Fix | Upstream Absorbed |
-|---|-------------|-----------|-------------------|
-| 1 | `layer_norm` round-trip | `evolved::layer_norm` | **Not absorbed** (reviewed `82f953c8`) |
-| 2 | `log_softmax` round-trip | `evolved::log_softmax` | **Not absorbed** |
-| 3 | `from_buffer` `pub(crate)` | Raw buffer management | **Not absorbed** |
-| 4 | Per-op submission | Manual encoder batching | **Not absorbed** |
-| 5 | `science_limits()` CPU | `create_relaxed()` | **Not absorbed** (`new_with_limits` exists but still defaults to 512 MB) |
-| 6 | `leaky_relu` Params mismatch | Skip (cannot workaround) | **Not absorbed** |
-| 7 | `elu` Params mismatch | Skip (cannot workaround) | **Not absorbed** |
-| 8 | MHA projection dispatch | `evolved::mha` | **Not absorbed** |
-| 9 | Softmax on pooled buffers | Re-upload before softmax | **Not absorbed** |
-| 10 | Per-op dispatch overhead | `evolved::fused_pipeline` | **Not absorbed** |
-| 11 | Naive matmul on CPU/GPU | 4-tier shader router + double-buffered evolved shaders | **Not absorbed** |
-
-### What we absorbed from ToadStool (Feb 19 alignment)
-
-| ToadStool Evolution | neuralSpring Action |
-|---|---|
-| `WORKGROUP_SIZE_1D` / `WORKGROUP_SIZE_2D` constants | Imported into dispatch functions (replaces hardcoded 256/16) |
-| `GpuDriverProfile` | Captured in `MatmulConfig` for future per-driver specialization |
-| wgpu v22 API | Already matched since initial port |
-| `probe::seed_cache_from_heuristics()` | Called automatically by `WgpuDevice::from_existing()` (our path) |
-| WGSL shader stability | All 8 `include_str!` shaders unchanged — verified no drift |
-
-Once ToadStool absorbs the 11 fixes above, the local evolutions in
-`neuralSpring/src/evolved/` can be retired.
+| Scale | Py(1t) | CPU | GPU | CPU/Py | GPU/Py |
+|-------|--------|-----|-----|--------|--------|
+| MLP large (3.1M) | 3.0 ms | **2.7 ms** | **178 µs** | **1.1× faster** | 16.8× |
+| TF medium (103M) | 59 ms | **15.1 ms** | **566 µs** | **3.9× faster** | 104× |
+| TF xlarge (6.6B) | 232 ms | 1.42 s | **17.8 ms** | — | **13.1× faster** |
