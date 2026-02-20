@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 12, 2026
+**Last Updated**: February 20, 2026
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -35,27 +35,27 @@
 
 | # | Paper | Journal | Year | Faculty | Why | Status |
 |---|-------|---------|------|---------|-----|--------|
-| 11 | Iram, Dolson et al. "Controlling the speed and trajectory of evolution with counterdiabatic driving" | Nature Physics | 2020 | Dolson | **Critical**: Closest published analog to ecoPrimals constrained evolution thesis. Reproducing the computational protocol validates gen3/CONSTRAINED_EVOLUTION_FORMAL.md | Queued |
-| 12 | Dolson et al. "The MODES Toolbox: Measurements of Open-Ended Dynamics in Evolving Systems" | Artificial Life 25(1):50-73 | 2019 | Dolson | Metrics for open-ended evolution. Apply to BarraCUDA's own evolution — does constrained evolution produce novelty? | Queued |
-| 13 | Dolson & Ofria "Ecological Theory Provides Insights about Evolutionary Computation" | GECCO | 2018 | Dolson | Ecological dynamics in evolutionary algorithms. Primals as species in biomeOS | Queued |
-| 14 | Dolson et al. "Artificial selection methods from evolutionary computing show promise for directed evolution of microbes" | eLife 11:e79665 | 2022 | Dolson | Computational → wet lab bridge. Selection algorithms for microbial optimization | Queued |
-| 15 | Foreback, Bohm, Dolson "Leveraging Heterogeneous Controller Representations for Evolutionary Swarm Robotics" | IEEE | 2025 | Dolson | Heterogeneous controllers = different primal architectures. Swarm ↔ NUCLEUS | Queued |
+| 11 | Iram, Dolson et al. "Controlling the speed and trajectory of evolution with counterdiabatic driving" | Nature Physics | 2020 | Dolson | **Critical**: Closest published analog to ecoPrimals constrained evolution thesis. Reproducing the computational protocol validates gen3/CONSTRAINED_EVOLUTION_FORMAL.md | **Complete** — `control/counterdiabatic/counterdiabatic_evolution.py` (11/11 PASS) |
+| 12 | Dolson et al. "The MODES Toolbox: Measurements of Open-Ended Dynamics in Evolving Systems" | Artificial Life 25(1):50-73 | 2019 | Dolson | Metrics for open-ended evolution. Apply to BarraCUDA's own evolution — does constrained evolution produce novelty? | **Complete** — `control/modes/modes_toolbox.py` (9/9 PASS) |
+| 13 | Dolson & Ofria "Ecological Theory Provides Insights about Evolutionary Computation" | GECCO | 2018 | Dolson | Ecological dynamics in evolutionary algorithms. Primals as species in biomeOS | **Complete** — `control/eco_dynamics/eco_dynamics.py` (7/7 PASS) |
+| 14 | Dolson et al. "Artificial selection methods from evolutionary computing show promise for directed evolution of microbes" | eLife 11:e79665 | 2022 | Dolson | Computational → wet lab bridge. Selection algorithms for microbial optimization | **Complete** — `control/directed_evolution/directed_evolution.py` (8/8 PASS) |
+| 15 | Foreback, Bohm, Dolson "Leveraging Heterogeneous Controller Representations for Evolutionary Swarm Robotics" | IEEE | 2025 | Dolson | Heterogeneous controllers = different primal architectures. Swarm ↔ NUCLEUS | **Complete** — `control/swarm_robotics/swarm_robotics.py` (11/11 PASS) |
 
 ### HMM & Phylogenetic Inference (Liu)
 
 | # | Paper | Journal | Year | Faculty | Why | Status |
 |---|-------|---------|------|---------|-----|--------|
-| 16 | Liu et al. "An HMM-based Comparative Genomic Framework for Detecting Introgression" | PLoS Comp Bio 10:e1003649 | 2014 | Liu | PhyloNet-HMM: HMM on genomic data. Forward/backward/Viterbi = matrix chain multiplication — same GEMM primitive | Queued |
-| 17 | Liu et al. "Rapid and accurate large-scale coestimation of sequence alignments and phylogenetic trees" (SATé) | Science 324:1561-1564 | 2009 | Liu | Divide-and-conquer + iterative refinement at massive scale. GEMM benchmark | Queued |
-| 18 | Liu et al. "Interspecific Introgressive Origin of Genomic Diversity in the House Mouse" | PNAS 112:196-201 | 2015 | Liu | Gene flow detection = transfer learning analog. Introgression = knowledge transfer between species | Queued |
+| 16 | Liu et al. "An HMM-based Comparative Genomic Framework for Detecting Introgression" | PLoS Comp Bio 10:e1003649 | 2014 | Liu | PhyloNet-HMM: HMM on genomic data. Forward/backward/Viterbi = matrix chain multiplication — same GEMM primitive | **Complete** — `control/hmm_phylo/hmm_phylo.py` (10/10 PASS) |
+| 17 | Liu et al. "Rapid and accurate large-scale coestimation of sequence alignments and phylogenetic trees" (SATé) | Science 324:1561-1564 | 2009 | Liu | Divide-and-conquer + iterative refinement at massive scale. GEMM benchmark | **Complete** — `control/sate_alignment/sate_alignment.py` (8/8 PASS) |
+| 18 | Liu et al. "Interspecific Introgressive Origin of Genomic Diversity in the House Mouse" | PNAS 112:196-201 | 2015 | Liu | Gene flow detection = transfer learning analog. Introgression = knowledge transfer between species | **Complete** — `control/introgression/introgression.py` (8/8 PASS) |
 
 ### Game Theory & Cooperation Dynamics (Waters)
 
 | # | Paper | Journal | Year | Faculty | Why | Status |
 |---|-------|---------|------|---------|-----|--------|
-| 19 | Bruger & Waters "Maximizing Growth Yield and Dispersal via QS Promotes Cooperation" | AEM 84:e00402-18 | 2018 | Waters | Game-theoretic optimization. Bacterial fitness landscape = neural network loss landscape | Queued |
-| 20 | Mhatre et al. "One gene, multiple ecological strategies" | PNAS 117:21647-21657 | 2020 | Waters | Capacitor for diversity — single constrained system producing diverse primals | Queued |
-| 21 | Srivastava et al. "Integration of Cyclic di-GMP and Quorum Sensing" | J Bacteriology 193:6331-41 | 2011 | Waters | Multi-input regulatory network = attention mechanism analog | Queued |
+| 19 | Bruger & Waters "Maximizing Growth Yield and Dispersal via QS Promotes Cooperation" | AEM 84:e00402-18 | 2018 | Waters | Game-theoretic optimization. Bacterial fitness landscape = neural network loss landscape | **Complete** — `control/game_theory/game_theory.py` (8/8 PASS) |
+| 20 | Mhatre et al. "One gene, multiple ecological strategies" | PNAS 117:21647-21657 | 2020 | Waters | Capacitor for diversity — single constrained system producing diverse primals | **Complete** — `control/regulatory_network/regulatory_network.py` (7/7 PASS) |
+| 21 | Srivastava et al. "Integration of Cyclic di-GMP and Quorum Sensing" | J Bacteriology 193:6331-41 | 2011 | Waters | Multi-input regulatory network = attention mechanism analog | **Complete** — `control/signal_integration/signal_integration.py` (8/8 PASS) |
 
 ### Spectral Theory & Optimization Landscapes (Kachkovskiy)
 
@@ -65,25 +65,40 @@ training dynamics and optimization landscapes through spectral theory.
 
 | # | Paper | Journal | Year | Faculty | Why | Status |
 |---|-------|---------|------|---------|-----|--------|
-| 22 | Kachkovskiy & Safarov "Distance to normal elements in C*-algebras of real rank zero" | JAMS 29:61-80 | 2016 | Kachkovskiy | Approximate commutativity of operators — when do neural network layers approximately commute? Mathematical foundation for understanding why skip connections and residual networks work: layers that almost commute can be reordered without catastrophic information loss | Queued |
-| 23 | Bourgain & Kachkovskiy "Anderson localization for two interacting quasiperiodic particles" | GAFA 29:3-43 | 2018 | Kachkovskiy | Localization in disordered systems — connects to loss landscape analysis. Local minima in neural networks = localized states in disordered Hamiltonians. The spectral theory of weight matrices determines training dynamics | Queued |
+| 22 | Kachkovskiy & Safarov "Distance to normal elements in C*-algebras of real rank zero" | JAMS 29:61-80 | 2016 | Kachkovskiy | Approximate commutativity of operators — when do neural network layers approximately commute? Mathematical foundation for understanding why skip connections and residual networks work: layers that almost commute can be reordered without catastrophic information loss | **Complete** — `control/spectral_commutativity/spectral_commutativity.py` (8/8 PASS) |
+| 23 | Bourgain & Kachkovskiy "Anderson localization for two interacting quasiperiodic particles" | GAFA 29:3-43 | 2018 | Kachkovskiy | Localization in disordered systems — connects to loss landscape analysis. Local minima in neural networks = localized states in disordered Hamiltonians. The spectral theory of weight matrices determines training dynamics | **Complete** — `control/anderson_localization/anderson_localization.py` (8/8 PASS) |
 
 ---
 
-## Priority Ranking (Top 5)
+## Completion Summary
 
-1. **Paper 11 (Iram/Dolson 2020)** — Nature Physics — validates core ecoPrimals thesis
-2. **Paper 12 (Dolson 2019)** — MODES — metrics for measuring BarraCUDA evolution
-3. **Paper 16 (Liu 2014)** — PhyloNet-HMM — bridges neuralSpring ↔ wetSpring genomics
-4. **Paper 19 (Bruger/Waters 2018)** — Cooperation game theory — loss landscape biology
-5. **Paper 14 (Dolson 2022)** — eLife directed evolution — computational ↔ biological bridge
+**All 23 papers complete as of February 20, 2026.** No queued items remain.
+
+| Faculty | Papers | Python Checks | Rust Checks |
+|---------|--------|---------------|-------------|
+| Dolson (MSU CS) | 011–015 (5) | 46 | 50 |
+| Liu (MSU CSE) | 016–018 (3) | 26 | 38 |
+| Waters (MSU Micro) | 019–021 (3) | 23 | 21 |
+| Kachkovskiy (MSU Math) | 022–023 (2) | 16 | 16 |
+| **Total Phase 0++** | **13** | **111** | **125** |
+
+---
+
+## GPU Promotion Priority (Next Phase)
+
+1. **Papers 016–018 (Liu)** — HMM forward/backward is a GEMM chain, direct port to `hmm_forward_log.wgsl`
+2. **Papers 011–015 (Dolson)** — Batch fitness evaluation → `batch_gemm` with population dim
+3. **Papers 022–023 (Kachkovskiy)** — Tridiagonal eigensolver → specialized `tridiag_eigh.wgsl`
+4. **Papers 020–021 (Waters)** — GPU-parallel RK4 for ODE systems → `rk4_batch.wgsl`
+5. **Paper 017 (Liu)** — Pairwise distance matrix → `pairwise_distance.wgsl`
 
 ---
 
 ## Notes
 
-- Paper 11 is the single most important paper in the entire ecosystem — it externally validates the constrained evolution methodology
-- Papers 16-18 (Liu) bridge neuralSpring to wetSpring's metagenomics work
-- Papers 19-21 (Waters) connect optimization theory to real biological dynamics
-- Dolson papers (11-15) form a coherent sequence from theory → metrics → applications
-- All candidate papers use computational methods reproducible in Python/PyTorch before Rust evolution
+- Paper 011 is the single most important paper in the entire ecosystem — it externally validates the constrained evolution methodology
+- Papers 016–018 (Liu) bridge neuralSpring to wetSpring's metagenomics work
+- Papers 019–021 (Waters) connect optimization theory to real biological dynamics
+- Papers 022–023 (Kachkovskiy) provide the mathematical foundation for understanding loss landscapes and training dynamics
+- Dolson papers (011–015) form a coherent sequence from theory → metrics → applications → swarm
+- All 13 Phase 0++ modules are Tier A (pure math, direct port) — ready for BarraCUDA CPU evolution

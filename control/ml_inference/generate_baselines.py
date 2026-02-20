@@ -14,12 +14,14 @@ Provenance:
 
 import json
 import math
+
 import numpy as np
 
 np.random.seed(42)
 
 
 # ── MLP: input(4) -> 64 -> 64 -> 10 with ReLU ──────────────────────────
+
 
 def generate_mlp_baseline():
     """3-layer MLP with ReLU activations, softmax output."""
@@ -61,6 +63,7 @@ def generate_mlp_baseline():
 
 
 # ── Transformer encoder block ───────────────────────────────────────────
+
 
 def generate_transformer_baseline():
     """Single pre-norm transformer encoder block.
@@ -106,7 +109,7 @@ def generate_transformer_baseline():
         return gamma * (t - mean) / np.sqrt(var + eps) + beta
 
     def gelu(t):
-        return 0.5 * t * (1.0 + np.tanh(math.sqrt(2.0 / math.pi) * (t + 0.044715 * t ** 3)))
+        return 0.5 * t * (1.0 + np.tanh(math.sqrt(2.0 / math.pi) * (t + 0.044715 * t**3)))
 
     def sdpa(q, k, v, d_k):
         scores = (q @ k.T) / math.sqrt(d_k)
@@ -182,13 +185,14 @@ if __name__ == "__main__":
     mlp = generate_mlp_baseline()
     with open(os.path.join(out_dir, "mlp_baseline.json"), "w") as f:
         json.dump(mlp, f, indent=2)
-    print(f"MLP: predicted class={mlp['predicted_class']}, "
-          f"top prob={max(mlp['output']):.4f}")
+    print(f"MLP: predicted class={mlp['predicted_class']}, top prob={max(mlp['output']):.4f}")
 
     tfm = generate_transformer_baseline()
     with open(os.path.join(out_dir, "transformer_baseline.json"), "w") as f:
         json.dump(tfm, f, indent=2)
-    print(f"Transformer: output shape={tfm['output_shape']}, "
-          f"output norm={np.linalg.norm(tfm['output']):.4f}")
+    print(
+        f"Transformer: output shape={tfm['output_shape']}, "
+        f"output norm={np.linalg.norm(tfm['output']):.4f}"
+    )
 
     print("Baselines written.")

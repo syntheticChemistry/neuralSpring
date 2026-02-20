@@ -49,6 +49,60 @@ path = "src/bin/validate_transformer.rs"
 name = "validate_metrics"
 path = "src/bin/validate_metrics.rs"
 
+# --- Phase 0++ Paper Reproduction Validation ---
+
+[[bin]]
+name = "validate_counterdiabatic"
+path = "src/bin/validate_counterdiabatic.rs"
+
+[[bin]]
+name = "validate_modes"
+path = "src/bin/validate_modes.rs"
+
+[[bin]]
+name = "validate_eco_dynamics"
+path = "src/bin/validate_eco_dynamics.rs"
+
+[[bin]]
+name = "validate_directed_evolution"
+path = "src/bin/validate_directed_evolution.rs"
+
+[[bin]]
+name = "validate_hmm"
+path = "src/bin/validate_hmm.rs"
+
+[[bin]]
+name = "validate_introgression"
+path = "src/bin/validate_introgression.rs"
+
+[[bin]]
+name = "validate_game_theory"
+path = "src/bin/validate_game_theory.rs"
+
+[[bin]]
+name = "validate_sate_alignment"
+path = "src/bin/validate_sate_alignment.rs"
+
+[[bin]]
+name = "validate_signal_integration"
+path = "src/bin/validate_signal_integration.rs"
+
+[[bin]]
+name = "validate_swarm_robotics"
+path = "src/bin/validate_swarm_robotics.rs"
+
+[[bin]]
+name = "validate_regulatory_network"
+path = "src/bin/validate_regulatory_network.rs"
+
+[[bin]]
+name = "validate_spectral_commutativity"
+path = "src/bin/validate_spectral_commutativity.rs"
+
+[[bin]]
+name = "validate_anderson_localization"
+path = "src/bin/validate_anderson_localization.rs"
+
 # --- BarraCUDA CPU primitive validation ---
 
 [[bin]]

@@ -11,10 +11,18 @@
 //! buffers, and record multiple compute passes into a **single**
 //! `CommandEncoder` with one `queue.submit()`.
 //!
+//! ## `BarraCUDA` alignment (`ToadStool` `82f953c8`, Feb 19, 2026)
+//!
+//! Dispatch functions now use `barracuda`'s [`WORKGROUP_SIZE_1D`] (256)
+//! and [`WORKGROUP_SIZE_2D`] (16) constants.  [`MatmulConfig`] captures
+//! [`GpuDriverProfile`] for future per-driver kernel specialization.
+//!
 //! **`ToadStool` handoff**: Once `TensorSession` supports `MatMul`,
 //! `ReLU`, `LayerNorm`, `Softmax`, etc., this module can be retired.
 
-use barracuda::device::capabilities::DeviceCapabilities;
+use barracuda::device::capabilities::{
+    DeviceCapabilities, GpuDriverProfile, WORKGROUP_SIZE_1D, WORKGROUP_SIZE_2D,
+};
 use barracuda::device::WgpuDevice;
 use bytemuck::{Pod, Zeroable};
 use std::sync::Arc;
@@ -24,31 +32,33 @@ pub type Dev = Arc<WgpuDevice>;
 
 // ═══════════════════════════════════════════════════════════════════
 // WGSL shader sources (inlined from barracuda for fused dispatch)
+//
+// IMPORTANT: These `include_str!` paths assume the ecoPrimals monorepo
+// layout where barracuda lives at `../phase1/toadstool/crates/barracuda`
+// relative to neuralSpring's Cargo.toml. This matches the path dependency
+// in Cargo.toml and the CI checkout in `.github/workflows/rust.yml`.
+// If the monorepo structure changes, both Cargo.toml and these paths
+// must be updated together.
 // ═══════════════════════════════════════════════════════════════════
 
-pub const MATMUL_WGSL: &str = include_str!(
-    "../../../phase1/toadstool/crates/barracuda/src/shaders/math/matmul.wgsl"
-);
-pub const MATMUL_TILED_WGSL: &str = include_str!(
-    "../../../phase1/toadstool/crates/barracuda/src/shaders/math/matmul_tiled.wgsl"
-);
+pub const MATMUL_WGSL: &str =
+    include_str!("../../../phase1/toadstool/crates/barracuda/src/shaders/math/matmul.wgsl");
+pub const MATMUL_TILED_WGSL: &str =
+    include_str!("../../../phase1/toadstool/crates/barracuda/src/shaders/math/matmul_tiled.wgsl");
 pub const MATMUL_CPU_TILED_WGSL: &str = include_str!("matmul_cpu_tiled.wgsl");
 pub const MATMUL_GPU_EVOLVED_WGSL: &str = include_str!("matmul_gpu_evolved.wgsl");
 pub const ADD_WGSL: &str = include_str!(
     "../../../phase1/toadstool/crates/barracuda/src/shaders/math/elementwise_add.wgsl"
 );
-pub const RELU_WGSL: &str = include_str!(
-    "../../../phase1/toadstool/crates/barracuda/src/shaders/activation/relu.wgsl"
-);
-pub const GELU_WGSL: &str = include_str!(
-    "../../../phase1/toadstool/crates/barracuda/src/shaders/activation/gelu.wgsl"
-);
+pub const RELU_WGSL: &str =
+    include_str!("../../../phase1/toadstool/crates/barracuda/src/shaders/activation/relu.wgsl");
+pub const GELU_WGSL: &str =
+    include_str!("../../../phase1/toadstool/crates/barracuda/src/shaders/activation/gelu.wgsl");
 pub const SOFTMAX_WGSL: &str = include_str!(
     "../../../phase1/toadstool/crates/barracuda/src/shaders/activation/softmax_simple.wgsl"
 );
-pub const LAYER_NORM_WGSL: &str = include_str!(
-    "../../../phase1/toadstool/crates/barracuda/src/shaders/norm/layer_norm.wgsl"
-);
+pub const LAYER_NORM_WGSL: &str =
+    include_str!("../../../phase1/toadstool/crates/barracuda/src/shaders/norm/layer_norm.wgsl");
 
 // ═══════════════════════════════════════════════════════════════════
 // Params structs (matching WGSL uniform layouts)
@@ -160,13 +170,15 @@ impl ShaderCache {
 /// Create a storage buffer with initial f32 data.
 #[must_use]
 pub fn buf_init(device: &Dev, data: &[f32], label: &str) -> wgpu::Buffer {
-    device.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some(label),
-        contents: bytemuck::cast_slice(data),
-        usage: wgpu::BufferUsages::STORAGE
-            | wgpu::BufferUsages::COPY_SRC
-            | wgpu::BufferUsages::COPY_DST,
-    })
+    device
+        .device()
+        .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some(label),
+            contents: bytemuck::cast_slice(data),
+            usage: wgpu::BufferUsages::STORAGE
+                | wgpu::BufferUsages::COPY_SRC
+                | wgpu::BufferUsages::COPY_DST,
+        })
 }
 
 /// Create an empty storage buffer for `count` f32 values.
@@ -187,16 +199,23 @@ pub fn buf_empty(device: &Dev, count: usize, label: &str) -> wgpu::Buffer {
 /// Create a uniform buffer from a `Pod` struct.
 #[must_use]
 pub fn buf_uniform<T: Pod>(device: &Dev, data: &T, label: &str) -> wgpu::Buffer {
-    device.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some(label),
-        contents: bytemuck::bytes_of(data),
-        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-    })
+    device
+        .device()
+        .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some(label),
+            contents: bytemuck::bytes_of(data),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        })
 }
 
 /// Read `count` f32 values from a GPU buffer.
+///
+/// # Panics
+///
+/// Panics if the GPU buffer map fails — this indicates a driver-level error
+/// with no meaningful recovery path.
 #[must_use]
-#[allow(clippy::expect_used, clippy::missing_panics_doc)]
+#[allow(clippy::expect_used)]
 pub fn readback(device: &Dev, buffer: &wgpu::Buffer, count: usize) -> Vec<f32> {
     #[allow(clippy::cast_possible_truncation)]
     let byte_size = (count * 4) as u64;
@@ -206,9 +225,11 @@ pub fn readback(device: &Dev, buffer: &wgpu::Buffer, count: usize) -> Vec<f32> {
         usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
-    let mut encoder = device.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("readback_encoder"),
-    });
+    let mut encoder = device
+        .device()
+        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("readback_encoder"),
+        });
     encoder.copy_buffer_to_buffer(buffer, 0, &staging, 0, byte_size);
     device.queue().submit(Some(encoder.finish()));
 
@@ -218,7 +239,9 @@ pub fn readback(device: &Dev, buffer: &wgpu::Buffer, count: usize) -> Vec<f32> {
         tx.send(r).ok();
     });
     device.device().poll(wgpu::Maintain::Wait);
-    rx.recv().expect("map_async channel").expect("map_async failed");
+    rx.recv()
+        .expect("map_async channel")
+        .expect("map_async failed");
 
     let mapped = slice.get_mapped_range();
     let result: Vec<f32> = bytemuck::cast_slice(&mapped).to_vec();
@@ -249,11 +272,13 @@ pub fn bind_group(
             resource: buf.as_entire_binding(),
         })
         .collect();
-    device.device().create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some(label),
-        layout: &layout,
-        entries: &entries,
-    })
+    device
+        .device()
+        .create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some(label),
+            layout: &layout,
+            entries: &entries,
+        })
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -278,15 +303,27 @@ pub fn record_pass(
 }
 
 /// Dispatch dimensions for naive matmul: `row=global_id.x, col=global_id.y`.
+///
+/// Uses `barracuda`'s [`WORKGROUP_SIZE_2D`] to match `@workgroup_size(16, 16)`.
 #[must_use]
 pub const fn matmul_dispatch(m: u32, n: u32) -> (u32, u32, u32) {
-    (m.div_ceil(16), n.div_ceil(16), 1)
+    (
+        m.div_ceil(WORKGROUP_SIZE_2D),
+        n.div_ceil(WORKGROUP_SIZE_2D),
+        1,
+    )
 }
 
 /// Dispatch dimensions for tiled matmul (16x16): `row=global_id.y, col=global_id.x`.
+///
+/// Uses `barracuda`'s [`WORKGROUP_SIZE_2D`] to match `@workgroup_size(16, 16)`.
 #[must_use]
 pub const fn matmul_tiled_dispatch(m: u32, n: u32) -> (u32, u32, u32) {
-    (n.div_ceil(16), m.div_ceil(16), 1)
+    (
+        n.div_ceil(WORKGROUP_SIZE_2D),
+        m.div_ceil(WORKGROUP_SIZE_2D),
+        1,
+    )
 }
 
 /// Dispatch dimensions for CPU-optimized matmul (32x32 tiles, 8x4 workgroup).
@@ -311,11 +348,16 @@ pub fn is_cpu_backend(device: &Dev) -> bool {
 /// Dispatch function type for matmul: `(M, N) -> (x, y, z)` workgroups.
 pub type MatMulDispatchFn = fn(u32, u32) -> (u32, u32, u32);
 
-/// Device-aware matmul configuration derived from `BarraCUDA` `DeviceCapabilities`.
+/// Device-aware matmul configuration derived from `BarraCUDA` `DeviceCapabilities`
+/// and [`GpuDriverProfile`].
 ///
 /// Instead of hardcoding thresholds, query the device for vendor-specific
 /// optimal tile sizes and cache the result for the lifetime of the pipeline.
 /// This enables `ToadStool` to tune per-vendor without `neuralSpring` changes.
+///
+/// Since `82f953c8` (`ToadStool` Feb 19), `GpuDriverProfile` provides richer
+/// driver/compiler/arch detection. We capture it here for future per-driver
+/// kernel specialization (e.g., NVK vs proprietary NVIDIA, RADV vs AMDGPU-PRO).
 #[derive(Debug, Clone)]
 pub struct MatmulConfig {
     pub is_cpu: bool,
@@ -323,6 +365,8 @@ pub struct MatmulConfig {
     pub vendor_name: &'static str,
     /// Recommended tile size from `BarraCUDA` for this device class.
     pub recommended_tile_size: u32,
+    /// Driver profile for future per-driver kernel specialization.
+    pub driver_profile: GpuDriverProfile,
 }
 
 impl MatmulConfig {
@@ -330,11 +374,13 @@ impl MatmulConfig {
     #[must_use]
     pub fn from_device(device: &Dev) -> Self {
         let caps = DeviceCapabilities::from_device(device);
+        let driver_profile = GpuDriverProfile::from_device(device);
         Self {
             is_cpu: caps.device_type == wgpu::DeviceType::Cpu,
             vendor: caps.vendor,
             vendor_name: caps.vendor_name(),
             recommended_tile_size: caps.optimal_matmul_tile_size(),
+            driver_profile,
         }
     }
 }
@@ -361,22 +407,33 @@ pub fn select_matmul<'a>(
     n: u32,
     config: &MatmulConfig,
 ) -> (&'a wgpu::ComputePipeline, MatMulDispatchFn) {
-    let min_tiled = config.recommended_tile_size.max(16);
+    let min_tiled = config.recommended_tile_size.max(WORKGROUP_SIZE_2D);
     if m < min_tiled || n < min_tiled {
         (&cache.matmul, matmul_dispatch as MatMulDispatchFn)
     } else if config.is_cpu {
-        (&cache.matmul_cpu_tiled, matmul_cpu_tiled_dispatch as MatMulDispatchFn)
+        (
+            &cache.matmul_cpu_tiled,
+            matmul_cpu_tiled_dispatch as MatMulDispatchFn,
+        )
     } else if m >= 256 || n >= 256 {
-        (&cache.matmul_gpu_evolved, matmul_gpu_evolved_dispatch as MatMulDispatchFn)
+        (
+            &cache.matmul_gpu_evolved,
+            matmul_gpu_evolved_dispatch as MatMulDispatchFn,
+        )
     } else {
-        (&cache.matmul_tiled, matmul_tiled_dispatch as MatMulDispatchFn)
+        (
+            &cache.matmul_tiled,
+            matmul_tiled_dispatch as MatMulDispatchFn,
+        )
     }
 }
 
 /// Dispatch dimensions for elementwise ops on `count` elements.
+///
+/// Uses `barracuda`'s [`WORKGROUP_SIZE_1D`] to match `@workgroup_size(256)`.
 #[must_use]
 pub const fn elementwise_dispatch(count: u32) -> (u32, u32, u32) {
-    (count.div_ceil(256), 1, 1)
+    (count.div_ceil(WORKGROUP_SIZE_1D), 1, 1)
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -512,9 +569,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 /// Create a fresh `CommandEncoder`.
 #[must_use]
 pub fn new_encoder(device: &Dev, label: &str) -> wgpu::CommandEncoder {
-    device.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some(label),
-    })
+    device
+        .device()
+        .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some(label) })
 }
 
 /// Submit an encoder and wait for completion (blocking).
@@ -524,7 +581,13 @@ pub fn submit_and_wait(device: &Dev, encoder: wgpu::CommandEncoder) {
 }
 
 /// Dispatch for batched attention: `(d_head/16, seq/16, n_heads)`.
+///
+/// Uses `barracuda`'s [`WORKGROUP_SIZE_2D`] to match `@workgroup_size(16, 16, 1)`.
 #[must_use]
 pub const fn attention_dispatch(d_head: u32, seq_len: u32, n_heads: u32) -> (u32, u32, u32) {
-    (d_head.div_ceil(16), seq_len.div_ceil(16), n_heads)
+    (
+        d_head.div_ceil(WORKGROUP_SIZE_2D),
+        seq_len.div_ceil(WORKGROUP_SIZE_2D),
+        n_heads,
+    )
 }

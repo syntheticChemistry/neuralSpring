@@ -10,8 +10,23 @@
 //! - Returns `wgpu::Buffer` output (stays on GPU)
 //! - Only reads back on explicit request
 //!
-//! Once `ToadStool` upstreams fixes (e.g. making `Tensor::from_buffer` public),
-//! these evolutions can be retired.
+//! ## `ToadStool` alignment (reviewed `82f953c8`, Feb 19, 2026)
+//!
+//! `ToadStool` has evolved significantly (80+ commits since Feb 15): wgpu v22
+//! migration, `WORKGROUP_SIZE_1D`/`WORKGROUP_SIZE_2D` constants,
+//! `GpuDriverProfile` for data-driven shader specialization, concurrency
+//! hardening, and deep-debt compliance.  We now import these primitives.
+//!
+//! **All 11 neuralSpring handoff items remain pending** in `ToadStool`.  Until
+//! they are absorbed, these evolutions cannot be retired:
+//!
+//! - `Tensor::from_buffer` still `pub(crate)` — blocks #1, #2, #3
+//! - Per-op command submission still present — blocks #4, #10
+//! - `science_limits()` still 512 MB — blocks #5
+//! - `leaky_relu` / `elu` params still mismatched — blocks #6, #7
+//! - MHA z-dispatch still buggy — blocks #8
+//! - Softmax `arrayLength` on pooled buffers — blocks #9
+//! - 4-tier shader router not absorbed — blocks #11
 
 pub mod fused_mlp;
 pub mod fused_pipeline;

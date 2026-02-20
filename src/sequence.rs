@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! Sequence forecasting primitives.
 //!
 //! Rust implementations of time-series operations used in Exp 003
@@ -41,7 +43,10 @@ pub fn create_sequences(data: &[f64], seq_len: usize, horizon: usize) -> (Vec<Ve
 /// the last timestep.
 #[must_use]
 pub fn persistence_forecast(windows: &[Vec<f64>]) -> Vec<f64> {
-    windows.iter().map(|w| *w.last().unwrap_or(&0.0)).collect()
+    windows
+        .iter()
+        .map(|w| w.last().copied().unwrap_or_default())
+        .collect()
 }
 
 /// Seasonal climatology: sinusoidal temperature model for Michigan.
@@ -129,5 +134,25 @@ mod tests {
         assert_relative_eq!(tanh_activation(0.0), 0.0);
         assert!(tanh_activation(100.0) > 0.99);
         assert!(tanh_activation(-100.0) < -0.99);
+    }
+
+    #[test]
+    fn sequence_ops_deterministic() {
+        let data: Vec<f64> = (0..100).map(f64::from).collect();
+        let (inp1, tgt1) = create_sequences(&data, 14, 1);
+        let (inp2, tgt2) = create_sequences(&data, 14, 1);
+        assert_eq!(inp1, inp2, "create_sequences must be bit-identical");
+        assert_eq!(tgt1, tgt2, "create_sequences targets must be bit-identical");
+
+        let pred1 = persistence_forecast(&inp1);
+        let pred2 = persistence_forecast(&inp2);
+        assert_eq!(pred1, pred2, "persistence must be bit-identical");
+    }
+
+    #[test]
+    fn seasonal_tmax_deterministic() {
+        let run1: Vec<f64> = (0..365).map(seasonal_tmax).collect();
+        let run2: Vec<f64> = (0..365).map(seasonal_tmax).collect();
+        assert_eq!(run1, run2, "seasonal_tmax must be bit-identical");
     }
 }

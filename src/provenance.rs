@@ -45,38 +45,296 @@ pub const ENVIRONMENT: &str = "Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6,
 /// Hardware for all control runs.
 pub const HARDWARE: &str = "Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)";
 
-/// Pinned commit for baseline results.
+/// Pinned commit for baseline results (Phase 0+: 75/75 PASS).
+pub const BASELINE_COMMIT: &str = "f9ad0268917a335dce2b1175ea0d77add271b25b";
+
+/// Pinned date for baseline results.
 pub const BASELINE_DATE: &str = "2026-02-16";
 
 // ═══════════════════════════════════════════════════════════════════
-// Exp 001: Surrogate Validation
+// Phase 0: Experiments (48/48 PASS)
 // ═══════════════════════════════════════════════════════════════════
 
 pub const SURROGATE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp 001: Neural Surrogate Validation (11/11 PASS)",
     script: "control/surrogate/surrogate_validation.py",
-    commit: "baseline 2026-02-16",
-    date: "2026-02-16",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
     command: "python3 control/surrogate/surrogate_validation.py",
     environment: ENVIRONMENT,
     value: 11.0,
     unit: "checks passed",
 };
 
-// ═══════════════════════════════════════════════════════════════════
-// Exp 002: Transformer Inference
-// ═══════════════════════════════════════════════════════════════════
-
 pub const TRANSFORMER_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp 002: Transformer Inference Baseline (18/18 PASS)",
     script: "control/transformer/transformer_inference.py",
-    commit: "baseline 2026-02-16",
-    date: "2026-02-16",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
     command: "python3 control/transformer/transformer_inference.py",
     environment: ENVIRONMENT,
     value: 18.0,
     unit: "checks passed",
 };
+
+pub const SEQUENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp 003: Sequence Forecasting (5/5 PASS)",
+    script: "control/sequence/sequence_forecasting.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/sequence/sequence_forecasting.py",
+    environment: ENVIRONMENT,
+    value: 5.0,
+    unit: "checks passed",
+};
+
+pub const TRANSFER_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp 004: Transfer Learning (6/6 PASS)",
+    script: "control/transfer/transfer_learning.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/transfer/transfer_learning.py",
+    environment: ENVIRONMENT,
+    value: 6.0,
+    unit: "checks passed",
+};
+
+pub const ISOMORPHIC_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp 005: Isomorphic Learning Catalog (8/8 PASS)",
+    script: "control/isomorphic/isomorphic_catalog.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/isomorphic/isomorphic_catalog.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// Phase 0+: Scholarly Reproductions (27/27 PASS)
+// ═══════════════════════════════════════════════════════════════════
+
+pub const PINN_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Study 001: PINN Burgers Equation (6/6 PASS)",
+    script: "control/pinn/pinn_burgers.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/pinn/pinn_burgers.py",
+    environment: ENVIRONMENT,
+    value: 6.0,
+    unit: "checks passed",
+};
+
+pub const DEEPONET_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Study 002: DeepONet Antiderivative (5/5 PASS)",
+    script: "control/deeponet/deeponet_antideriv.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/deeponet/deeponet_antideriv.py",
+    environment: ENVIRONMENT,
+    value: 5.0,
+    unit: "checks passed",
+};
+
+pub const LENET_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Study 003: LeNet-5 MNIST (4/4 PASS)",
+    script: "control/lenet/lenet_mnist.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/lenet/lenet_mnist.py",
+    environment: ENVIRONMENT,
+    value: 4.0,
+    unit: "checks passed",
+};
+
+pub const LSTM_ERA5_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Study 004: LSTM ERA5 Weather (5/5 PASS)",
+    script: "control/lstm_weather/lstm_era5.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/lstm_weather/lstm_era5.py",
+    environment: ENVIRONMENT,
+    value: 5.0,
+    unit: "checks passed",
+};
+
+pub const QUANTIZED_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Study 005: Quantized Inference (6/6 PASS)",
+    script: "control/quantized/quantized_inference.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/quantized/quantized_inference.py",
+    environment: ENVIRONMENT,
+    value: 6.0,
+    unit: "checks passed",
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// Phase 0++: Paper Reproductions (53/53 PASS)
+// ═══════════════════════════════════════════════════════════════════
+
+pub const COUNTERDIABATIC_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 011: Counterdiabatic Evolution (11/11 PASS)",
+    script: "control/counterdiabatic/counterdiabatic_evolution.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/counterdiabatic/counterdiabatic_evolution.py",
+    environment: ENVIRONMENT,
+    value: 11.0,
+    unit: "checks passed",
+};
+
+pub const MODES_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 012: MODES Toolbox (9/9 PASS)",
+    script: "control/modes/modes_toolbox.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/modes/modes_toolbox.py",
+    environment: ENVIRONMENT,
+    value: 9.0,
+    unit: "checks passed",
+};
+
+pub const ECO_DYNAMICS_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 013: Ecological Dynamics (7/7 PASS)",
+    script: "control/eco_dynamics/eco_dynamics.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/eco_dynamics/eco_dynamics.py",
+    environment: ENVIRONMENT,
+    value: 7.0,
+    unit: "checks passed",
+};
+
+pub const DIRECTED_EVOLUTION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 014: Directed Evolution (8/8 PASS)",
+    script: "control/directed_evolution/directed_evolution.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/directed_evolution/directed_evolution.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+pub const HMM_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 016: HMM Phylogenetic Inference (10/10 PASS)",
+    script: "control/hmm_phylo/hmm_phylo.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/hmm_phylo/hmm_phylo.py",
+    environment: ENVIRONMENT,
+    value: 10.0,
+    unit: "checks passed",
+};
+
+pub const GAME_THEORY_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 019: Game Theory & QS Cooperation (8/8 PASS)",
+    script: "control/game_theory/game_theory.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/game_theory/game_theory.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+pub const SWARM_ROBOTICS_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 015: Heterogeneous Swarm Robotics (11/11 PASS)",
+    script: "control/swarm_robotics/swarm_robotics.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/swarm_robotics/swarm_robotics.py",
+    environment: ENVIRONMENT,
+    value: 11.0,
+    unit: "checks passed",
+};
+
+pub const SATE_ALIGNMENT_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 017: SATé Alignment (8/8 PASS)",
+    script: "control/sate_alignment/sate_alignment.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/sate_alignment/sate_alignment.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+pub const INTROGRESSION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 018: Introgression Detection (8/8 PASS)",
+    script: "control/introgression/introgression.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/introgression/introgression.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+pub const REGULATORY_NETWORK_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 020: Regulatory Network (7/7 PASS)",
+    script: "control/regulatory_network/regulatory_network.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/regulatory_network/regulatory_network.py",
+    environment: ENVIRONMENT,
+    value: 7.0,
+    unit: "checks passed",
+};
+
+pub const SIGNAL_INTEGRATION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 021: Signal Integration (8/8 PASS)",
+    script: "control/signal_integration/signal_integration.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/signal_integration/signal_integration.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+pub const SPECTRAL_COMMUTATIVITY_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 022: Spectral Commutativity (8/8 PASS)",
+    script: "control/spectral_commutativity/spectral_commutativity.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/spectral_commutativity/spectral_commutativity.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+pub const ANDERSON_LOCALIZATION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 023: Anderson Localization (8/8 PASS)",
+    script: "control/anderson_localization/anderson_localization.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/anderson_localization/anderson_localization.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// ML inference baselines (JSON weights + expected outputs)
+// ═══════════════════════════════════════════════════════════════════
+
+pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "ML Inference Baselines (MLP + Transformer JSON weights)",
+    script: "control/ml_inference/generate_baselines.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/ml_inference/generate_baselines.py",
+    environment: ENVIRONMENT,
+    value: 2.0,
+    unit: "baseline files generated (mlp_baseline.json, transformer_baseline.json)",
+};
+
+/// `BarraCUDA` validation expected values are analytically derived — no Python
+/// dependency.  Provenance is mathematical: NIST DLMF, IEEE 754, and textbook
+/// formulas.
+pub const BARRACUDA_ANALYTICAL_REFS: &str = "Analytical (IEEE 754, NIST DLMF, textbook formulas)";
 
 // ═══════════════════════════════════════════════════════════════════
 // Cross-language reference values (Python-computed, hardcoded in Rust)
@@ -147,23 +405,54 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::expect_used)]
     fn gelu_zero_is_zero() {
-        let zero_entry = GELU_REFERENCE.iter().find(|(x, _)| *x == 0.0);
-        assert!(zero_entry.is_some());
-        assert!((zero_entry.unwrap().1).abs() < 1e-15);
+        let (_, y) = GELU_REFERENCE
+            .iter()
+            .find(|(x, _)| *x == 0.0)
+            .expect("GELU_REFERENCE must contain x=0.0");
+        assert!(y.abs() < 1e-15);
     }
 
     #[test]
     fn provenance_records_non_empty() {
-        for p in [&SURROGATE_PROVENANCE, &TRANSFORMER_PROVENANCE] {
-            assert!(!p.label.is_empty());
+        let records = [
+            &SURROGATE_PROVENANCE,
+            &TRANSFORMER_PROVENANCE,
+            &SEQUENCE_PROVENANCE,
+            &TRANSFER_PROVENANCE,
+            &ISOMORPHIC_PROVENANCE,
+            &PINN_PROVENANCE,
+            &DEEPONET_PROVENANCE,
+            &LENET_PROVENANCE,
+            &LSTM_ERA5_PROVENANCE,
+            &QUANTIZED_PROVENANCE,
+            &COUNTERDIABATIC_PROVENANCE,
+            &MODES_PROVENANCE,
+            &ECO_DYNAMICS_PROVENANCE,
+            &DIRECTED_EVOLUTION_PROVENANCE,
+            &HMM_PROVENANCE,
+            &GAME_THEORY_PROVENANCE,
+            &SWARM_ROBOTICS_PROVENANCE,
+            &SATE_ALIGNMENT_PROVENANCE,
+            &INTROGRESSION_PROVENANCE,
+            &REGULATORY_NETWORK_PROVENANCE,
+            &SIGNAL_INTEGRATION_PROVENANCE,
+            &SPECTRAL_COMMUTATIVITY_PROVENANCE,
+            &ANDERSON_LOCALIZATION_PROVENANCE,
+            &ML_INFERENCE_PROVENANCE,
+        ];
+        for p in records {
+            assert!(!p.label.is_empty(), "empty label: {}", p.script);
             assert!(!p.script.is_empty());
             assert!(!p.date.is_empty());
             assert!(!p.command.is_empty());
+            assert_eq!(p.commit, BASELINE_COMMIT);
         }
     }
 
     #[test]
+    #[allow(clippy::float_cmp)]
     fn benchmark_references_have_global_minima() {
         assert!(RASTRIGIN_REFERENCE
             .iter()

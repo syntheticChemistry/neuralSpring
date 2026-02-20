@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: February 19, 2026
-**Status**: Phase 0/0+ complete (75/75 Python) + Phase 1 complete (285/285 Rust: 43 native + 242 BarraCUDA)
+**Last Updated**: February 20, 2026
+**Status**: Phase 0/0+/0++ complete (190/190 Python) + Phase 1 complete (409/409 Rust: 167 native + 242 BarraCUDA)
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -11,8 +11,9 @@
 | Metric | Value |
 |--------|-------|
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
-| Phase 0+ (Scholarly) | 27/27 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
-| Phase 1a (native Rust) | 43/43 PASS — surrogate, transformer, metrics validation |
+| Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
+| Phase 0++ (Papers) | 111/111 PASS — 13 papers across Dolson, Liu, Waters, Kachkovskiy |
+| Phase 1a (native Rust) | 167/167 PASS — 16 validation binaries |
 | Phase 1b (BarraCUDA) | 242/242 PASS — stats, linalg, special, optimize, precision, tensor (84), tensor_f64 (35), quantized, linalg_ext, ml_inference (13) |
 | Isomorphism Theorem | 6 primitives explain ALL neural architectures. BarraCUDA covers all 6 |
 | BarraCUDA primitive coverage | GEMM, Attention, Norm, Conv2d, LSTM, Autograd, Q-GEMV + stats, linalg, special, optimize |
@@ -29,7 +30,7 @@
 
 | Spec | Status | Description |
 |------|--------|-------------|
-| [PAPER_REVIEW_QUEUE.md](PAPER_REVIEW_QUEUE.md) | Active | Papers to review/reproduce, prioritized by tier |
+| [PAPER_REVIEW_QUEUE.md](PAPER_REVIEW_QUEUE.md) | **Complete** | 23/23 papers reproduced — now tracking GPU promotion priority |
 | [BARRACUDA_REQUIREMENTS.md](BARRACUDA_REQUIREMENTS.md) | Active | GPU kernel requirements and gap analysis |
 | [EVOLUTION_MAPPING.md](EVOLUTION_MAPPING.md) | Active | Python → Rust → GPU module mapping (Tier A/B/C) |
 | [DATA_PROVENANCE.md](DATA_PROVENANCE.md) | Active | All dataset sources, accession numbers, licenses |

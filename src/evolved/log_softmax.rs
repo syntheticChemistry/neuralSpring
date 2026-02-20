@@ -17,6 +17,7 @@
 //! ```
 
 use crate::gpu::Gpu;
+use barracuda::device::capabilities::WORKGROUP_SIZE_1D;
 use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
 
@@ -148,7 +149,7 @@ pub fn log_softmax(
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bind_group, &[]);
 
-        let workgroups = (batch_size as u32).div_ceil(256);
+        let workgroups = (batch_size as u32).div_ceil(WORKGROUP_SIZE_1D);
         pass.dispatch_workgroups(workgroups, 1, 1);
     }
 

@@ -20,8 +20,8 @@
 #![allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
 
 use super::fused_pipeline::{
-    self as fp, Dev, HeadShapeParams, LayerNormParams,
-    MatMulParams, MatmulConfig, GeluParams, ShaderCache,
+    self as fp, Dev, GeluParams, HeadShapeParams, LayerNormParams, MatMulParams, MatmulConfig,
+    ShaderCache,
 };
 
 /// Pre-built fused Transformer encoder block.
@@ -194,22 +194,37 @@ impl FusedTransformer {
         let output_buf = fp::buf_empty(&device, sd, "tf_output");
 
         // Param buffers
-        let ln1_params = fp::buf_uniform(&device, &LayerNormParams {
-            size: sd as u32,
-            feature_size: d as u32,
-            epsilon: cfg.epsilon,
-        }, "tf_ln1_p");
+        let ln1_params = fp::buf_uniform(
+            &device,
+            &LayerNormParams {
+                size: sd as u32,
+                feature_size: d as u32,
+                epsilon: cfg.epsilon,
+            },
+            "tf_ln1_p",
+        );
 
-        let ln2_params = fp::buf_uniform(&device, &LayerNormParams {
-            size: sd as u32,
-            feature_size: d as u32,
-            epsilon: cfg.epsilon,
-        }, "tf_ln2_p");
+        let ln2_params = fp::buf_uniform(
+            &device,
+            &LayerNormParams {
+                size: sd as u32,
+                feature_size: d as u32,
+                epsilon: cfg.epsilon,
+            },
+            "tf_ln2_p",
+        );
 
         let mm_proj = |label: &str| {
-            fp::buf_uniform(&device, &MatMulParams {
-                m: seq as u32, k: d as u32, n: d as u32, _padding: 0,
-            }, label)
+            fp::buf_uniform(
+                &device,
+                &MatMulParams {
+                    m: seq as u32,
+                    k: d as u32,
+                    n: d as u32,
+                    _padding: 0,
+                },
+                label,
+            )
         };
         #[allow(clippy::similar_names)]
         let mm_q_params = mm_proj("tf_mm_q_p");
@@ -219,110 +234,263 @@ impl FusedTransformer {
         let mm_v_params = mm_proj("tf_mm_v_p");
         let mm_wo_params = mm_proj("tf_mm_wo_p");
 
-        let mm_ff1_params = fp::buf_uniform(&device, &MatMulParams {
-            m: seq as u32, k: d as u32, n: d_ff as u32, _padding: 0,
-        }, "tf_mm_ff1_p");
-        let mm_ff2_params = fp::buf_uniform(&device, &MatMulParams {
-            m: seq as u32, k: d_ff as u32, n: d as u32, _padding: 0,
-        }, "tf_mm_ff2_p");
+        let mm_ff1_params = fp::buf_uniform(
+            &device,
+            &MatMulParams {
+                m: seq as u32,
+                k: d as u32,
+                n: d_ff as u32,
+                _padding: 0,
+            },
+            "tf_mm_ff1_p",
+        );
+        let mm_ff2_params = fp::buf_uniform(
+            &device,
+            &MatMulParams {
+                m: seq as u32,
+                k: d_ff as u32,
+                n: d as u32,
+                _padding: 0,
+            },
+            "tf_mm_ff2_p",
+        );
 
-        let head_split_params = fp::buf_uniform(&device, &HeadShapeParams {
-            seq_len: seq as u32,
-            d_model: d as u32,
-            n_heads: n_heads as u32,
-            d_head: d_head as u32,
-        }, "tf_hs_p");
-        let head_concat_params = fp::buf_uniform(&device, &HeadShapeParams {
-            seq_len: seq as u32,
-            d_model: d as u32,
-            n_heads: n_heads as u32,
-            d_head: d_head as u32,
-        }, "tf_hc_p");
+        let head_split_params = fp::buf_uniform(
+            &device,
+            &HeadShapeParams {
+                seq_len: seq as u32,
+                d_model: d as u32,
+                n_heads: n_heads as u32,
+                d_head: d_head as u32,
+            },
+            "tf_hs_p",
+        );
+        let head_concat_params = fp::buf_uniform(
+            &device,
+            &HeadShapeParams {
+                seq_len: seq as u32,
+                d_model: d as u32,
+                n_heads: n_heads as u32,
+                d_head: d_head as u32,
+            },
+            "tf_hc_p",
+        );
 
         #[allow(clippy::cast_precision_loss)]
         let scale = 1.0 / (d_head as f32).sqrt();
-        let attn_params = fp::buf_uniform(&device, &BAttnParams {
-            n_heads: n_heads as u32, seq_len: seq as u32,
-            d_head: d_head as u32, scale,
-        }, "tf_battn_p");
+        let attn_params = fp::buf_uniform(
+            &device,
+            &BAttnParams {
+                n_heads: n_heads as u32,
+                seq_len: seq as u32,
+                d_head: d_head as u32,
+                scale,
+            },
+            "tf_battn_p",
+        );
 
-        let gelu_params = fp::buf_uniform(&device, &GeluParams {
-            size: (seq * d_ff) as u32,
-        }, "tf_gelu_p");
+        let gelu_params = fp::buf_uniform(
+            &device,
+            &GeluParams {
+                size: (seq * d_ff) as u32,
+            },
+            "tf_gelu_p",
+        );
 
         // Bind groups
-        let bg_ln1 = fp::bind_group(&device, &shaders.layer_norm,
-            &[&input_buf, &ln1_out, &ln1_params], "tf_bg_ln1");
+        let bg_ln1 = fp::bind_group(
+            &device,
+            &shaders.layer_norm,
+            &[&input_buf, &ln1_out, &ln1_params],
+            "tf_bg_ln1",
+        );
 
         let mm_config = MatmulConfig::from_device(&device);
-        let (proj_pipe, _) = fp::select_matmul(&shaders, seq as u32, d as u32, d as u32, &mm_config);
+        let (proj_pipe, _) =
+            fp::select_matmul(&shaders, seq as u32, d as u32, d as u32, &mm_config);
 
-        let bg_q = fp::bind_group(&device, proj_pipe,
-            &[&ln1_out, &w_q, &q_proj, &mm_q_params], "tf_bg_q");
-        let bg_k = fp::bind_group(&device, proj_pipe,
-            &[&ln1_out, &w_k, &k_proj, &mm_k_params], "tf_bg_k");
-        let bg_v = fp::bind_group(&device, proj_pipe,
-            &[&ln1_out, &w_v, &v_proj, &mm_v_params], "tf_bg_v");
+        let bg_q = fp::bind_group(
+            &device,
+            proj_pipe,
+            &[&ln1_out, &w_q, &q_proj, &mm_q_params],
+            "tf_bg_q",
+        );
+        let bg_k = fp::bind_group(
+            &device,
+            proj_pipe,
+            &[&ln1_out, &w_k, &k_proj, &mm_k_params],
+            "tf_bg_k",
+        );
+        let bg_v = fp::bind_group(
+            &device,
+            proj_pipe,
+            &[&ln1_out, &w_v, &v_proj, &mm_v_params],
+            "tf_bg_v",
+        );
 
-        let bg_hs_q = fp::bind_group(&device, &shaders.head_split,
-            &[&q_proj, &q_split, &head_split_params], "tf_bg_hs_q");
-        let bg_hs_k = fp::bind_group(&device, &shaders.head_split,
-            &[&k_proj, &k_split, &head_split_params], "tf_bg_hs_k");
-        let bg_hs_v = fp::bind_group(&device, &shaders.head_split,
-            &[&v_proj, &v_split, &head_split_params], "tf_bg_hs_v");
+        let bg_hs_q = fp::bind_group(
+            &device,
+            &shaders.head_split,
+            &[&q_proj, &q_split, &head_split_params],
+            "tf_bg_hs_q",
+        );
+        let bg_hs_k = fp::bind_group(
+            &device,
+            &shaders.head_split,
+            &[&k_proj, &k_split, &head_split_params],
+            "tf_bg_hs_k",
+        );
+        let bg_hs_v = fp::bind_group(
+            &device,
+            &shaders.head_split,
+            &[&v_proj, &v_split, &head_split_params],
+            "tf_bg_hs_v",
+        );
 
-        let bg_attn = fp::bind_group(&device, &shaders.attention,
-            &[&q_split, &k_split, &v_split, &attn_out, &attn_params], "tf_bg_attn");
+        let bg_attn = fp::bind_group(
+            &device,
+            &shaders.attention,
+            &[&q_split, &k_split, &v_split, &attn_out, &attn_params],
+            "tf_bg_attn",
+        );
 
-        let bg_hc = fp::bind_group(&device, &shaders.head_concat,
-            &[&attn_out, &attn_concat, &head_concat_params], "tf_bg_hc");
+        let bg_hc = fp::bind_group(
+            &device,
+            &shaders.head_concat,
+            &[&attn_out, &attn_concat, &head_concat_params],
+            "tf_bg_hc",
+        );
 
-        let bg_wo = fp::bind_group(&device, proj_pipe,
-            &[&attn_concat, &w_o, &wo_out, &mm_wo_params], "tf_bg_wo");
+        let bg_wo = fp::bind_group(
+            &device,
+            proj_pipe,
+            &[&attn_concat, &w_o, &wo_out, &mm_wo_params],
+            "tf_bg_wo",
+        );
 
         // residual1 = input + wo_out
-        let bg_res1 = fp::bind_group(&device, &shaders.add,
-            &[&input_buf, &wo_out, &residual1], "tf_bg_res1");
+        let bg_res1 = fp::bind_group(
+            &device,
+            &shaders.add,
+            &[&input_buf, &wo_out, &residual1],
+            "tf_bg_res1",
+        );
 
-        let bg_ln2 = fp::bind_group(&device, &shaders.layer_norm,
-            &[&residual1, &ln2_out, &ln2_params], "tf_bg_ln2");
+        let bg_ln2 = fp::bind_group(
+            &device,
+            &shaders.layer_norm,
+            &[&residual1, &ln2_out, &ln2_params],
+            "tf_bg_ln2",
+        );
 
-        let (ff1_pipe, _) = fp::select_matmul(&shaders, seq as u32, d as u32, d_ff as u32, &mm_config);
-        let bg_ff1 = fp::bind_group(&device, ff1_pipe,
-            &[&ln2_out, &w_ff1, &ff1_out, &mm_ff1_params], "tf_bg_ff1");
+        let (ff1_pipe, _) =
+            fp::select_matmul(&shaders, seq as u32, d as u32, d_ff as u32, &mm_config);
+        let bg_ff1 = fp::bind_group(
+            &device,
+            ff1_pipe,
+            &[&ln2_out, &w_ff1, &ff1_out, &mm_ff1_params],
+            "tf_bg_ff1",
+        );
 
-        let bg_ff1_add = fp::bind_group(&device, &shaders.add,
-            &[&ff1_out, &b_ff1, &ff1_bias_out], "tf_bg_ff1_add");
+        let bg_ff1_add = fp::bind_group(
+            &device,
+            &shaders.add,
+            &[&ff1_out, &b_ff1, &ff1_bias_out],
+            "tf_bg_ff1_add",
+        );
 
-        let bg_gelu = fp::bind_group(&device, &shaders.gelu,
-            &[&ff1_bias_out, &ff1_gelu, &gelu_params], "tf_bg_gelu");
+        let bg_gelu = fp::bind_group(
+            &device,
+            &shaders.gelu,
+            &[&ff1_bias_out, &ff1_gelu, &gelu_params],
+            "tf_bg_gelu",
+        );
 
-        let (ff2_pipe, _) = fp::select_matmul(&shaders, seq as u32, d_ff as u32, d as u32, &mm_config);
-        let bg_ff2 = fp::bind_group(&device, ff2_pipe,
-            &[&ff1_gelu, &w_ff2, &ff2_out, &mm_ff2_params], "tf_bg_ff2");
+        let (ff2_pipe, _) =
+            fp::select_matmul(&shaders, seq as u32, d_ff as u32, d as u32, &mm_config);
+        let bg_ff2 = fp::bind_group(
+            &device,
+            ff2_pipe,
+            &[&ff1_gelu, &w_ff2, &ff2_out, &mm_ff2_params],
+            "tf_bg_ff2",
+        );
 
-        let bg_ff2_add = fp::bind_group(&device, &shaders.add,
-            &[&ff2_out, &b_ff2, &ff2_bias_out], "tf_bg_ff2_add");
+        let bg_ff2_add = fp::bind_group(
+            &device,
+            &shaders.add,
+            &[&ff2_out, &b_ff2, &ff2_bias_out],
+            "tf_bg_ff2_add",
+        );
 
         // output = residual1 + ff2_bias_out
-        let bg_res2 = fp::bind_group(&device, &shaders.add,
-            &[&residual1, &ff2_bias_out, &output_buf], "tf_bg_res2");
+        let bg_res2 = fp::bind_group(
+            &device,
+            &shaders.add,
+            &[&residual1, &ff2_bias_out, &output_buf],
+            "tf_bg_res2",
+        );
 
         Self {
-            shaders, device, cfg,
-            w_q, w_k, w_v, w_o, w_ff1, b_ff1, w_ff2, b_ff2,
-            input_buf, ln1_out, q_proj, k_proj, v_proj,
-            q_split, k_split, v_split, attn_out, attn_concat,
-            wo_out, residual1, ln2_out,
-            ff1_out, ff1_bias_out, ff1_gelu, ff2_out, ff2_bias_out, output_buf,
-            ln1_params, ln2_params,
-            mm_q_params, mm_k_params, mm_v_params, mm_wo_params,
-            mm_ff1_params, mm_ff2_params,
-            head_split_params, head_concat_params, attn_params, gelu_params,
-            bg_ln1, bg_q, bg_k, bg_v,
-            bg_hs_q, bg_hs_k, bg_hs_v,
-            bg_attn, bg_hc, bg_wo, bg_res1, bg_ln2,
-            bg_ff1, bg_ff1_add, bg_gelu, bg_ff2, bg_ff2_add, bg_res2,
+            shaders,
+            device,
+            cfg,
+            w_q,
+            w_k,
+            w_v,
+            w_o,
+            w_ff1,
+            b_ff1,
+            w_ff2,
+            b_ff2,
+            input_buf,
+            ln1_out,
+            q_proj,
+            k_proj,
+            v_proj,
+            q_split,
+            k_split,
+            v_split,
+            attn_out,
+            attn_concat,
+            wo_out,
+            residual1,
+            ln2_out,
+            ff1_out,
+            ff1_bias_out,
+            ff1_gelu,
+            ff2_out,
+            ff2_bias_out,
+            output_buf,
+            ln1_params,
+            ln2_params,
+            mm_q_params,
+            mm_k_params,
+            mm_v_params,
+            mm_wo_params,
+            mm_ff1_params,
+            mm_ff2_params,
+            head_split_params,
+            head_concat_params,
+            attn_params,
+            gelu_params,
+            bg_ln1,
+            bg_q,
+            bg_k,
+            bg_v,
+            bg_hs_q,
+            bg_hs_k,
+            bg_hs_v,
+            bg_attn,
+            bg_hc,
+            bg_wo,
+            bg_res1,
+            bg_ln2,
+            bg_ff1,
+            bg_ff1_add,
+            bg_gelu,
+            bg_ff2,
+            bg_ff2_add,
+            bg_res2,
             mm_config,
         }
     }
@@ -331,7 +499,9 @@ impl FusedTransformer {
     ///
     /// Returns output `[seq_len, d_model]` as CPU `Vec<f32>`.
     pub fn forward(&self, input: &[f32]) -> Vec<f32> {
-        self.device.queue().write_buffer(&self.input_buf, 0, bytemuck::cast_slice(input));
+        self.device
+            .queue()
+            .write_buffer(&self.input_buf, 0, bytemuck::cast_slice(input));
 
         let encoder = self.encode();
         fp::submit_and_wait(&self.device, encoder);
@@ -341,7 +511,9 @@ impl FusedTransformer {
 
     /// Run forward pass without readback (for throughput benchmarking).
     pub fn forward_no_readback(&self, input: &[f32]) {
-        self.device.queue().write_buffer(&self.input_buf, 0, bytemuck::cast_slice(input));
+        self.device
+            .queue()
+            .write_buffer(&self.input_buf, 0, bytemuck::cast_slice(input));
 
         let encoder = self.encode();
         self.device.queue().submit(Some(encoder.finish()));
@@ -364,62 +536,128 @@ impl FusedTransformer {
         let (ff2_pipe, ff2_disp) = fp::select_matmul(&self.shaders, seq, d_ff, d, &self.mm_config);
 
         // 1. Layer norm 1
-        fp::record_pass(&mut enc, &self.shaders.layer_norm, &self.bg_ln1,
-            fp::elementwise_dispatch(seq), "ln1");
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.layer_norm,
+            &self.bg_ln1,
+            fp::elementwise_dispatch(seq),
+            "ln1",
+        );
 
         // 2. Q/K/V projections (routed matmul)
-        fp::record_pass(&mut enc, proj_pipe, &self.bg_q,
-            proj_disp(seq, d), "proj_q");
-        fp::record_pass(&mut enc, proj_pipe, &self.bg_k,
-            proj_disp(seq, d), "proj_k");
-        fp::record_pass(&mut enc, proj_pipe, &self.bg_v,
-            proj_disp(seq, d), "proj_v");
+        fp::record_pass(&mut enc, proj_pipe, &self.bg_q, proj_disp(seq, d), "proj_q");
+        fp::record_pass(&mut enc, proj_pipe, &self.bg_k, proj_disp(seq, d), "proj_k");
+        fp::record_pass(&mut enc, proj_pipe, &self.bg_v, proj_disp(seq, d), "proj_v");
 
         // 3. Head split
-        fp::record_pass(&mut enc, &self.shaders.head_split, &self.bg_hs_q,
-            fp::elementwise_dispatch(sd), "hs_q");
-        fp::record_pass(&mut enc, &self.shaders.head_split, &self.bg_hs_k,
-            fp::elementwise_dispatch(sd), "hs_k");
-        fp::record_pass(&mut enc, &self.shaders.head_split, &self.bg_hs_v,
-            fp::elementwise_dispatch(sd), "hs_v");
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.head_split,
+            &self.bg_hs_q,
+            fp::elementwise_dispatch(sd),
+            "hs_q",
+        );
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.head_split,
+            &self.bg_hs_k,
+            fp::elementwise_dispatch(sd),
+            "hs_k",
+        );
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.head_split,
+            &self.bg_hs_v,
+            fp::elementwise_dispatch(sd),
+            "hs_v",
+        );
 
         // 4. Batched attention
-        fp::record_pass(&mut enc, &self.shaders.attention, &self.bg_attn,
-            fp::attention_dispatch(d_head, seq, n_heads), "attn");
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.attention,
+            &self.bg_attn,
+            fp::attention_dispatch(d_head, seq, n_heads),
+            "attn",
+        );
 
         // 5. Head concat
-        fp::record_pass(&mut enc, &self.shaders.head_concat, &self.bg_hc,
-            fp::elementwise_dispatch(sd), "hc");
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.head_concat,
+            &self.bg_hc,
+            fp::elementwise_dispatch(sd),
+            "hc",
+        );
 
         // 6. Output projection (Wo)
-        fp::record_pass(&mut enc, proj_pipe, &self.bg_wo,
-            proj_disp(seq, d), "proj_wo");
+        fp::record_pass(
+            &mut enc,
+            proj_pipe,
+            &self.bg_wo,
+            proj_disp(seq, d),
+            "proj_wo",
+        );
 
         // 7. Residual 1: input + attn_output
-        fp::record_pass(&mut enc, &self.shaders.add, &self.bg_res1,
-            fp::elementwise_dispatch(sd), "res1");
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.add,
+            &self.bg_res1,
+            fp::elementwise_dispatch(sd),
+            "res1",
+        );
 
         // 8. Layer norm 2
-        fp::record_pass(&mut enc, &self.shaders.layer_norm, &self.bg_ln2,
-            fp::elementwise_dispatch(seq), "ln2");
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.layer_norm,
+            &self.bg_ln2,
+            fp::elementwise_dispatch(seq),
+            "ln2",
+        );
 
         // 9. FFN layer 1: matmul + add + gelu
-        fp::record_pass(&mut enc, ff1_pipe, &self.bg_ff1,
-            ff1_disp(seq, d_ff), "ff1_mm");
-        fp::record_pass(&mut enc, &self.shaders.add, &self.bg_ff1_add,
-            fp::elementwise_dispatch(seq * d_ff), "ff1_add");
-        fp::record_pass(&mut enc, &self.shaders.gelu, &self.bg_gelu,
-            fp::elementwise_dispatch(seq * d_ff), "ff1_gelu");
+        fp::record_pass(
+            &mut enc,
+            ff1_pipe,
+            &self.bg_ff1,
+            ff1_disp(seq, d_ff),
+            "ff1_mm",
+        );
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.add,
+            &self.bg_ff1_add,
+            fp::elementwise_dispatch(seq * d_ff),
+            "ff1_add",
+        );
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.gelu,
+            &self.bg_gelu,
+            fp::elementwise_dispatch(seq * d_ff),
+            "ff1_gelu",
+        );
 
         // 10. FFN layer 2: matmul + add
-        fp::record_pass(&mut enc, ff2_pipe, &self.bg_ff2,
-            ff2_disp(seq, d), "ff2_mm");
-        fp::record_pass(&mut enc, &self.shaders.add, &self.bg_ff2_add,
-            fp::elementwise_dispatch(sd), "ff2_add");
+        fp::record_pass(&mut enc, ff2_pipe, &self.bg_ff2, ff2_disp(seq, d), "ff2_mm");
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.add,
+            &self.bg_ff2_add,
+            fp::elementwise_dispatch(sd),
+            "ff2_add",
+        );
 
         // 11. Residual 2: residual1 + ffn_output
-        fp::record_pass(&mut enc, &self.shaders.add, &self.bg_res2,
-            fp::elementwise_dispatch(sd), "res2");
+        fp::record_pass(
+            &mut enc,
+            &self.shaders.add,
+            &self.bg_res2,
+            fp::elementwise_dispatch(sd),
+            "res2",
+        );
 
         enc
     }

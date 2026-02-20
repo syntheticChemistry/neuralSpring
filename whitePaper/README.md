@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Working draft
-**Date**: February 19, 2026
+**Status**: Working draft — Phase 0++ complete
+**Date**: February 20, 2026
 **License**: AGPL-3.0-or-later
 
 ---
@@ -16,6 +16,7 @@
 | [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) | ToadStool team | Shader evolution narrative: Python → CPU → GPU |
 | `specs/BENCHMARK_ANALYSIS.md` | Engineering | Full 3-way benchmark with analysis |
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | 11 BarraCUDA shortcomings + local fixes |
+| `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `wateringHole/handoffs/` | Cross-project | Formal handoffs (date-stamped) |
 
 ---
@@ -27,6 +28,15 @@ BarraCUDA's WGSL shader library — the same library hotSpring uses for nuclear
 physics. The central claim: **all neural architectures decompose into six
 fundamental primitives**, and a single engine optimizing those primitives in
 WGSL serves every domain.
+
+### What This Study Is Not
+
+- Not a machine learning framework (no training loops, no autograd)
+- Not a competitor to PyTorch/JAX (uses them as baselines)
+- Not limited to ML — the Phase 0++ papers span evolutionary biology, phylogenetics, game theory, spectral analysis, and regulatory networks
+- Not GPU-dependent — all validation runs on CPU (llvmpipe) and GPU (Vulkan)
+
+---
 
 ### Three Questions
 
@@ -48,14 +58,16 @@ WGSL serves every domain.
 
 ### Key Results Summary
 
-**Phase 0/0+**: 75/75 Python PASS (48 synthetic + 27 scholarly reproductions)
-**Phase 1**: 285/285 Rust validation PASS (43 native + 242 BarraCUDA)
+**Phase 0/0+/0++**: 190/190 Python PASS (48 synthetic + 31 scholarly + 111 paper reproductions)
+**Phase 1**: 409/409 Rust validation PASS (167 native + 242 BarraCUDA)
+**Grand Total**: 599/599 PASS
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
-| 0+ | Scholarly reproductions — 5 studies, 27 checks | **Complete** |
-| 1a | Rust validation layer — 43 native checks | **Complete** |
+| 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
+| 0++ | Paper reproductions — 13 papers, 111 checks | **Complete** |
+| 1a | Rust validation layer — 167 native checks (16 binaries) | **Complete** |
 | 1b | BarraCUDA validation — 242 checks (10 domains) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -86,7 +98,35 @@ All neural architectures decompose into compositions of six fundamental primitiv
 
 A single engine optimizing these 6 ops in WGSL serves every domain:
 language (llama.cpp), protein (OpenFold), vision (ViT), physics (hotSpring),
-time series (weather), and quantized deployment.
+time series (weather), evolution (Dolson), phylogenetics (Liu), game theory
+(Waters), spectral analysis (Kachkovskiy), and quantized deployment.
+
+---
+
+### Phase 0++ — Scholarly Reproduction Catalog
+
+The 13 Phase 0++ papers span 4 faculty research groups and 5 scientific
+disciplines, demonstrating that the same computational primitives (GEMM,
+reduction, softmax, elementwise, ODE integration, eigendecomposition) appear
+across all domains:
+
+| Faculty | Papers | Disciplines | Key Primitives |
+|---------|--------|-------------|----------------|
+| **Dolson** (MSU CS) | 011–015 | Evolutionary computation, swarm robotics | Tournament/lexicase selection, fitness GEMM, mutation |
+| **Liu** (MSU CSE) | 016–018 | Phylogenetics, genomics, alignment | HMM forward/backward (GEMM chain), NJ tree, introgression |
+| **Waters** (MSU Micro) | 019–021 | Game theory, regulatory biology | Replicator dynamics (softmax), ODE (Hill functions), AND gate |
+| **Kachkovskiy** (MSU Math) | 022–023 | Spectral theory, quantum mechanics | Eigendecomposition, commutator, IPR, localization |
+
+#### Cross-Domain Primitive Usage
+
+| Primitive | Dolson | Liu | Waters | Kachkovskiy |
+|-----------|--------|-----|--------|-------------|
+| GEMM / MatMul | Fitness evaluation | HMM forward/backward, distance matrix | Payoff matrix | — |
+| Reduction (sum/mean) | Population statistics | Log-likelihood | Population averages | IPR, norm |
+| Softmax / Boltzmann | Counterdiabatic driving | — | Replicator dynamics | — |
+| Elementwise | Mutation, fitness | Sequence operations | ODE derivatives | Hamiltonian construction |
+| Eigendecomposition | — | — | — | Jacobi eigensolver, spectral analysis |
+| ODE integration | — | — | RK4 for GRN, signal dynamics | — |
 
 ---
 
@@ -97,7 +137,7 @@ then Rust/WGSL evolution — applies to ML inference:
 
 | Stage | What Happened | Result |
 |-------|---------------|--------|
-| Python control | NumPy/PyTorch baselines for all 10 experiments | 75/75 PASS |
+| Python control | NumPy/PyTorch baselines for all 23 experiments | 190/190 PASS |
 | BarraCUDA validation | 242 checks across 10 modules (CPU + GPU) | 242/242 PASS |
 | Fused pipeline | Single-encoder dispatch, eliminate per-op overhead | **46–78× over per-op** |
 | BLAS-evolved CPU shader | 32×32 tiles, vec4, 8×4 micro-kernel, k-unroll | CPU beats Py at 3M+ FLOPs |
@@ -108,6 +148,23 @@ See [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) for the full technical narr
 
 ---
 
+### BarraCUDA Evolution Opportunities from Phase 0++
+
+The Phase 0++ papers reveal new algorithmic patterns that could benefit from
+BarraCUDA GPU acceleration:
+
+| Pattern | Papers | Current | Opportunity |
+|---------|--------|---------|-------------|
+| **Batch fitness evaluation** | 011–015 | CPU loop over population | GPU-parallel fitness eval (batch GEMM) |
+| **HMM forward/backward chain** | 016–018 | Sequential matrix multiply | Batched GEMM chain with log-domain numerics |
+| **Replicator dynamics** | 019 | CPU ODE integration | GPU elementwise + softmax per timestep |
+| **ODE integration (RK4)** | 020–021 | CPU RK4 loop | GPU-parallel multi-system ODE integration |
+| **Eigendecomposition** | 022–023 | CPU Jacobi iteration | GPU tridiagonal eigensolver (Householder → bisection) |
+| **Distance matrix** | 017 | O(N²) pairwise | GPU-parallel pairwise computation |
+| **Spatial cooperation** | 019 | CPU neighborhood scan | GPU stencil convolution |
+
+---
+
 ### Cross-Spring Connection
 
 | Spring | Provides | neuralSpring Uses |
@@ -115,11 +172,11 @@ See [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) for the full technical narr
 | airSpring | FAO-56 ET₀ model | Surrogate target, real weather data |
 | groundSpring | Noise labels, uncertainty | Training robustness, domain gap quantification |
 | hotSpring | Physics surrogates (RBF), BarraCUDA patterns | Shader evolution methodology, benchmark patterns |
-| wetSpring | Taxonomy pipelines | Future: learned classifiers, HMM for metagenomics |
+| wetSpring | Taxonomy pipelines | HMM chains for phylogenetics (Papers 016–018), metagenomics bridge |
 
 ---
 
-### Research Questions Answered
+### Research Questions Answered (23 Papers)
 
 1. **Can neural surrogates replace equation chains?** Yes — MLP for FAO-56 at R²>0.999
 2. **Is self-attention correct from scratch?** Yes — NumPy matches PyTorch to <1e-10
@@ -131,17 +188,30 @@ See [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) for the full technical narr
 8. **Does quantization preserve accuracy?** Yes — INT8: 0.017% loss, INT4: 0.79%
 9. **Can WGSL beat Python for ML?** Yes — CPU 3.9× faster at 103M, GPU 104× faster
 10. **Does the hotSpring progression hold?** Yes — GPU < CPU < Python at crossover
+11. **Can evolution be controlled?** Yes — counterdiabatic driving outperforms naive (Paper 011)
+12. **Can open-endedness be measured?** Yes — MODES metrics distinguish open vs closed (Paper 012)
+13. **Do EAs behave as ecological communities?** Yes — niche dynamics, FDS (Paper 013)
+14. **Does lexicase outperform tournament?** Yes — higher diversity + Pareto (Paper 014)
+15. **Do heterogeneous controllers help?** Yes — more diversity, comparable fitness (Paper 015)
+16. **Is HMM forward/backward a GEMM chain?** Yes — bridges neuralSpring → wetSpring (Paper 016)
+17. **Can iterative coestimation improve alignment?** Yes — SATé refinement (Paper 017)
+18. **Can introgression be detected via HMM?** Yes — PhyloNet-HMM + LRT (Paper 018)
+19. **Does QS resolve cooperation dilemmas?** Yes — game theory + spatial (Paper 019)
+20. **Can one gene produce multiple strategies?** Yes — bistability in GRN (Paper 020)
+21. **Is signal integration a biological AND gate?** Yes — two-input Hill (Paper 021)
+22. **Do skip connections reduce commutativity?** Yes — residual layers commute better (Paper 022)
+23. **Does disorder produce localization?** Yes — Aubry-André transition at W_c=2t (Paper 023)
 
 ---
 
 ### Reproduction
 
 ```bash
-# Phase 0/0+ Python baselines (75/75)
+# Phase 0/0+/0++ Python baselines (190/190)
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Phase 1 Rust validation (285/285)
+# Phase 1 Rust validation (409/409)
 cargo test
 make validate
 
@@ -151,14 +221,22 @@ cargo run --release --bin bench_scaling
 
 ---
 
-### Next Phase: Faculty-Driven Paper Candidates
+### Next Phase: BarraCUDA CPU Evolution
 
-Three professors from the master's program (Dolson, Liu, Bazavov) and one from
-undergrad (Waters) provide the next wave of reproduction targets — moving from
-"validate ML primitives" to "apply ML to real science."
+With all 23 papers validated in Python and Rust, the next evolution step is
+**BarraCUDA CPU implementations**: pure Rust math matching Python baselines,
+proving the math is portable without an interpreter. Then **BarraCUDA GPU
+acceleration** via ToadStool's unidirectional streaming, massively reducing
+dispatch and round-trips.
 
-**Priority targets**:
-1. Iram, Dolson et al. (2020) — counterdiabatic driving (Nature Physics)
-2. Dolson et al. (2019) — MODES open-ended evolution metrics
-3. Liu et al. (2014) — PhyloNet-HMM genomic inference
-4. Bruger & Waters (2018) — quorum sensing game theory
+Priority targets for GPU promotion:
+1. **HMM forward/backward** (Papers 016–018) — GEMM chain, direct port
+2. **Batch fitness evaluation** (Papers 011–015) — parallel population eval
+3. **Eigendecomposition** (Papers 022–023) — tridiagonal eigensolver
+4. **ODE integration** (Papers 020–021) — parallel multi-system RK4
+5. **Distance matrix** (Paper 017) — O(N²) pairwise → GPU parallel
+
+---
+
+*23 papers. 5 disciplines. 4 faculty. 190 Python + 409 Rust = 599 total checks.
+All green. Paper queue cleared. Ready for BarraCUDA CPU evolution.*

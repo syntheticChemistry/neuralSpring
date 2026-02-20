@@ -16,7 +16,6 @@ __pycache__/
 
 # Rust
 target/
-Cargo.lock
 
 # pytest
 .pytest_cache/

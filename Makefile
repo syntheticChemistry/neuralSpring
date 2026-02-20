@@ -5,7 +5,7 @@
 #         make lint     — lint + format check
 #         make baselines — full Python suite (~6 min)
 
-.PHONY: check lint test validate validate-native validate-barracuda validate-ml validate-tensor-cpu validate-tensor-gpu validate-tensor-all bench-tensor bench-tensor-compare bench-ml bench-fused baselines lint-python lint-rust test-python test-rust fix fmt
+.PHONY: check lint test validate validate-native validate-barracuda validate-ml validate-tensor-cpu validate-tensor-gpu validate-tensor-all bench-tensor bench-tensor-compare bench-ml bench-fused baselines lint-python lint-rust test-python test-rust fix fmt coverage
 
 check: lint test validate
 	@echo ""
@@ -89,6 +89,13 @@ bench-fused:
 
 baselines:
 	bash scripts/run_all_baselines.sh
+
+coverage:
+	cargo llvm-cov --lib --html
+	@echo "Coverage report: target/llvm-cov/html/index.html"
+
+coverage-json:
+	cargo llvm-cov --lib --json --output-path target/llvm-cov/coverage.json
 
 fix:
 	ruff check --fix control/ scripts/ tests/

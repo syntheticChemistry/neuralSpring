@@ -1,10 +1,10 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 19, 2026
+**Last updated**: February 20, 2026
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 75/75 Python PASS (48 Phase 0 + 27 Phase 0+) + 285/285 Rust validation PASS (43 native + 242 BarraCUDA)
+**Grand Total**: 190/190 Python PASS (48 Phase 0 + 31 Phase 0+ + 111 Phase 0++) + 409/409 Rust validation PASS (167 native + 242 BarraCUDA)
 
 ---
 
@@ -14,25 +14,43 @@
 |----|-------|--------|-------|--------|
 | Exp 001 | Neural Surrogate Validation | MLP vs RBF + FAO-56 | 11/11 | **PASS** |
 | Exp 002 | Transformer Inference Baseline | Self-attention from scratch | 18/18 | **PASS** |
-| Exp 003 | Sequence Forecasting | LSTM/GRU weather time series | 5/5 | **PASS** |
-| Exp 004 | Transfer Learning | Michigan → NM/CA adaptation | 6/6 | **PASS** |
+| Exp 003 | Sequence Forecasting | LSTM/GRU on real ERA5 weather | 5/5 | **PASS** |
+| Exp 004 | Transfer Learning | Real 3-city ERA5 (MI/NM/CA) adaptation | 6/6 | **PASS** |
 | Exp 005 | Isomorphic Pattern Catalog | Cross-domain op mapping | 8/8 | **PASS** |
 
-## Phase 0+ — Scholarly Reproduction Studies (27/27 PASS)
+## Phase 0+ — Scholarly Reproduction Studies (31/31 PASS)
 
 | ID | Title | Paper | Tests | Status |
 |----|-------|-------|-------|--------|
-| Study 001 | PINN Burgers' Equation | Raissi et al. (2019) JCP 378:686 | 6/6 | **PASS** |
-| Study 002 | DeepONet Antiderivative | Lu et al. (2021) NMI 3:218 | 5/5 | **PASS** |
+| Study 001 | PINN Burgers' Equation | Raissi et al. (2019) JCP 378:686 | 8/8 | **PASS** (+paper ref validation) |
+| Study 002 | DeepONet Antiderivative | Lu et al. (2021) NMI 3:218 | 7/7 | **PASS** (+paper ref validation) |
 | Study 003 | LeNet-5 MNIST | LeCun et al. (1998) Proc IEEE 86 | 5/5 | **PASS** |
 | Study 004 | LSTM ERA5 Weather | Gauch et al. (2021) HESS 25:2045 | 5/5 | **PASS** |
-| Study 005 | Quantized Inference | Dettmers (2022) + Frantar (2023) | 6/6 | **PASS** |
+| Study 005 | Quantized Inference | Dettmers (2022) + Frantar (2023) | 6/6 | **PASS** (real ERA5 data) |
+
+## Phase 0++ — Paper Reproductions (111/111 PASS)
+
+| ID | Title | Paper | Tests | Status |
+|----|-------|-------|-------|--------|
+| Paper 011 | Counterdiabatic Evolution | Iram/Dolson (2020) Nature Physics 17:135 | 11/11 | **PASS** |
+| Paper 012 | MODES Toolbox | Dolson et al. (2019) Artif Life 25(1):50 | 9/9 | **PASS** |
+| Paper 013 | Ecological Dynamics in EC | Dolson & Ofria (2018) GECCO Companion | 7/7 | **PASS** |
+| Paper 014 | Directed Evolution Selection | Dolson et al. (2022) eLife 11:e79665 | 8/8 | **PASS** |
+| Paper 015 | Heterogeneous Swarm Robotics | Foreback/Dolson (2025) IEEE | 11/11 | **PASS** |
+| Paper 016 | HMM Forward/Backward/Viterbi | Liu et al. (2014) PLoS Comp Bio 10:e1003649 | 10/10 | **PASS** |
+| Paper 017 | SATé Alignment | Liu et al. (2009) Science 324:1561 | 8/8 | **PASS** |
+| Paper 018 | Introgression Detection | Liu et al. (2015) PNAS 112:196 | 8/8 | **PASS** |
+| Paper 019 | Game Theory & QS Cooperation | Bruger & Waters (2018) AEM 84:e00402-18 | 8/8 | **PASS** |
+| Paper 020 | Regulatory Network | Mhatre et al. (2020) PNAS 117:21647 | 7/7 | **PASS** |
+| Paper 021 | Signal Integration | Srivastava et al. (2011) J Bacteriol 193:6331 | 8/8 | **PASS** |
+| Paper 022 | Spectral Commutativity | Kachkovskiy & Safarov (2016) JAMS 29:61 | 8/8 | **PASS** |
+| Paper 023 | Anderson Localization | Bourgain & Kachkovskiy (2018) GAFA 29:3 | 8/8 | **PASS** |
 
 ---
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (43 checks)
+### Phase 1a: neuralSpring-Native Validation (167 checks)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -40,6 +58,19 @@
 | `surrogate.rs` | `rastrigin_2d`, `rosenbrock_2d`, `ackley_2d` | 6 unit + 15 binary | Global minima + 12 Python-computed reference points |
 | `transformer.rs` | `softmax`, `gelu_numpy` | 7 unit + 18 binary | Element-wise match against NumPy to <1e-12 |
 | `sequence.rs` | `create_sequences`, `persistence_forecast`, `seasonal_tmax` | 7 unit | Window construction, sigmoid/tanh gates |
+| `counterdiabatic.rs` | NK landscape, Boltzmann, CD schedule | 19 binary | CD vs naive protocol comparison |
+| `modes.rs` | change, novelty, complexity, ecology | 9 binary | Open vs closed system metrics |
+| `eco_dynamics.rs` | multi-niche EA, diversity indices | 7 binary | Competitive exclusion, FDS |
+| `directed_evolution.rs` | 5 selection algorithms | 7 binary | Structured vs random selection |
+| `hmm.rs` | forward, backward, Viterbi, posterior | 17 binary | Genomic-scale HMM, no underflow |
+| `game_theory.rs` | PD, Snowdrift, replicator, QS spatial | 8 binary | QS cooperation stabilization |
+| `swarm_robotics.rs` | heterogeneous controllers, swarm EA | 7 binary | Heterogeneous > homogeneous |
+| `sate_alignment.rs` | NJ tree, progressive alignment | 8 binary | Iterative refinement improves |
+| `introgression.rs` | PhyloNet-HMM, LRT | 13 binary | Introgression detection |
+| `regulatory_network.rs` | Hill ODE, bistability | 5 binary | Environment-dependent switching |
+| `signal_integration.rs` | Two-input Hill, AND gate | 8 binary | Multiplicative attention analog |
+| `spectral_commutativity.rs` | commutator, distance to normal | 8 binary | Skip connections reduce commutativity |
+| `anderson_localization.rs` | Aubry-André, IPR | 8 binary | Localization transition |
 
 ### Phase 1b: BarraCUDA Primitives (242 checks)
 
@@ -107,12 +138,12 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python lint | `ruff check` (E/F/W/I/N/UP/B/A/SIM) | **PASS** — 0 errors |
 | Python format | `ruff format` | **PASS** — 14 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
-| Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 75/75 |
+| Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 190/190 |
 | Rust test | `cargo test` | **PASS** — 34 unit tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
-| neuralSpring validate | `make validate-native` | **PASS** — 43/43 |
+| neuralSpring validate | `make validate-native` | **PASS** — 167/167 |
 | BarraCUDA validate | `make validate-barracuda` | **PASS** — 242/242 |
 | CI | GitHub Actions: `baselines.yml` + `rust.yml` | Configured |
 
@@ -123,8 +154,9 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Phase | Focus | Status |
 |-------|-------|--------|
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
-| 0+ | Scholarly reproductions (27 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (43 checks) | **COMPLETE** |
+| 0+ | Scholarly reproductions (29 checks) | **COMPLETE** |
+| 0++ | Paper reproductions (111 checks) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (167 checks) | **COMPLETE** |
 | 1b | BarraCUDA validation (242 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |

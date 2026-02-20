@@ -14,9 +14,7 @@
 
 #![allow(clippy::cast_possible_truncation)]
 
-use super::fused_pipeline::{
-    self as fp, Dev, MatMulParams, MatmulConfig, ShaderCache,
-};
+use super::fused_pipeline::{self as fp, Dev, MatMulParams, MatmulConfig, ShaderCache};
 
 /// Pre-built fused MLP pipeline with all GPU resources allocated.
 ///
@@ -63,12 +61,7 @@ impl FusedMlp {
     /// `biases`: `[b0, b1, b2]` as flat f32 slices.
     #[must_use]
     #[allow(clippy::too_many_lines)]
-    pub fn new(
-        device: Dev,
-        weights: [&[f32]; 3],
-        biases: [&[f32]; 3],
-        dims: MlpDims,
-    ) -> Self {
+    pub fn new(device: Dev, weights: [&[f32]; 3], biases: [&[f32]; 3], dims: MlpDims) -> Self {
         let shaders = ShaderCache::new(&device);
         let mm_config = fp::MatmulConfig::from_device(&device);
 
@@ -128,27 +121,90 @@ impl FusedMlp {
         });
 
         // Bind groups — router selects naive for M=1 (single sample)
-        let (mm0_pipe, _) = fp::select_matmul(&shaders, 1, dims.input as u32, dims.hidden1 as u32, &mm_config);
-        let (mm1_pipe, _) = fp::select_matmul(&shaders, 1, dims.hidden1 as u32, dims.hidden2 as u32, &mm_config);
-        let (mm2_pipe, _) = fp::select_matmul(&shaders, 1, dims.hidden2 as u32, dims.output as u32, &mm_config);
+        let (mm0_pipe, _) = fp::select_matmul(
+            &shaders,
+            1,
+            dims.input as u32,
+            dims.hidden1 as u32,
+            &mm_config,
+        );
+        let (mm1_pipe, _) = fp::select_matmul(
+            &shaders,
+            1,
+            dims.hidden1 as u32,
+            dims.hidden2 as u32,
+            &mm_config,
+        );
+        let (mm2_pipe, _) = fp::select_matmul(
+            &shaders,
+            1,
+            dims.hidden2 as u32,
+            dims.output as u32,
+            &mm_config,
+        );
         let bg_mm = [
-            fp::bind_group(&device, mm0_pipe, &[&input_buf, &w[0], &mm_out[0], &mm_params[0]], "mlp_bg_mm0"),
-            fp::bind_group(&device, mm1_pipe, &[&relu_out[0], &w[1], &mm_out[1], &mm_params[1]], "mlp_bg_mm1"),
-            fp::bind_group(&device, mm2_pipe, &[&relu_out[1], &w[2], &mm_out[2], &mm_params[2]], "mlp_bg_mm2"),
+            fp::bind_group(
+                &device,
+                mm0_pipe,
+                &[&input_buf, &w[0], &mm_out[0], &mm_params[0]],
+                "mlp_bg_mm0",
+            ),
+            fp::bind_group(
+                &device,
+                mm1_pipe,
+                &[&relu_out[0], &w[1], &mm_out[1], &mm_params[1]],
+                "mlp_bg_mm1",
+            ),
+            fp::bind_group(
+                &device,
+                mm2_pipe,
+                &[&relu_out[1], &w[2], &mm_out[2], &mm_params[2]],
+                "mlp_bg_mm2",
+            ),
         ];
         // add: (a, b, output)
         let bg_add = [
-            fp::bind_group(&device, &shaders.add, &[&mm_out[0], &b[0], &add_out[0]], "mlp_bg_add0"),
-            fp::bind_group(&device, &shaders.add, &[&mm_out[1], &b[1], &add_out[1]], "mlp_bg_add1"),
-            fp::bind_group(&device, &shaders.add, &[&mm_out[2], &b[2], &softmax_in], "mlp_bg_add2"),
+            fp::bind_group(
+                &device,
+                &shaders.add,
+                &[&mm_out[0], &b[0], &add_out[0]],
+                "mlp_bg_add0",
+            ),
+            fp::bind_group(
+                &device,
+                &shaders.add,
+                &[&mm_out[1], &b[1], &add_out[1]],
+                "mlp_bg_add1",
+            ),
+            fp::bind_group(
+                &device,
+                &shaders.add,
+                &[&mm_out[2], &b[2], &softmax_in],
+                "mlp_bg_add2",
+            ),
         ];
         // relu: (input, output)
         let bg_relu = [
-            fp::bind_group(&device, &shaders.relu, &[&add_out[0], &relu_out[0]], "mlp_bg_relu0"),
-            fp::bind_group(&device, &shaders.relu, &[&add_out[1], &relu_out[1]], "mlp_bg_relu1"),
+            fp::bind_group(
+                &device,
+                &shaders.relu,
+                &[&add_out[0], &relu_out[0]],
+                "mlp_bg_relu0",
+            ),
+            fp::bind_group(
+                &device,
+                &shaders.relu,
+                &[&add_out[1], &relu_out[1]],
+                "mlp_bg_relu1",
+            ),
         ];
         // softmax: (input, output)
-        let bg_softmax = fp::bind_group(&device, &shaders.softmax, &[&softmax_in, &softmax_out], "mlp_bg_softmax");
+        let bg_softmax = fp::bind_group(
+            &device,
+            &shaders.softmax,
+            &[&softmax_in, &softmax_out],
+            "mlp_bg_softmax",
+        );
 
         Self {
             shaders,
@@ -170,79 +226,68 @@ impl FusedMlp {
         }
     }
 
+    /// Record all 9 compute passes (3× matmul + 3× add + 2× relu + softmax)
+    /// into the given encoder.
+    fn record_passes(&self, encoder: &mut wgpu::CommandEncoder) {
+        let layer_dims = [
+            (self.dims.input, self.dims.hidden1),
+            (self.dims.hidden1, self.dims.hidden2),
+            (self.dims.hidden2, self.dims.output),
+        ];
+
+        for (i, &(k, n)) in layer_dims.iter().enumerate() {
+            let (mm_pipe, mm_disp) =
+                fp::select_matmul(&self.shaders, 1, k as u32, n as u32, &self.mm_config);
+            fp::record_pass(encoder, mm_pipe, &self.bg_mm[i], mm_disp(1, n as u32), "mm");
+            fp::record_pass(
+                encoder,
+                &self.shaders.add,
+                &self.bg_add[i],
+                fp::elementwise_dispatch(n as u32),
+                "add",
+            );
+            if i < 2 {
+                fp::record_pass(
+                    encoder,
+                    &self.shaders.relu,
+                    &self.bg_relu[i],
+                    fp::elementwise_dispatch(n as u32),
+                    "relu",
+                );
+            }
+        }
+
+        fp::record_pass(
+            encoder,
+            &self.shaders.softmax,
+            &self.bg_softmax,
+            fp::elementwise_dispatch(self.dims.output as u32),
+            "softmax",
+        );
+    }
+
     /// Upload input data and run a fused forward pass.
     ///
     /// Returns the softmax output as a CPU `Vec<f32>`.
     pub fn forward(&self, input: &[f32]) -> Vec<f32> {
-        // Upload input
-        self.device.queue().write_buffer(&self.input_buf, 0, bytemuck::cast_slice(input));
+        self.device
+            .queue()
+            .write_buffer(&self.input_buf, 0, bytemuck::cast_slice(input));
 
         let mut encoder = fp::new_encoder(&self.device, "fused_mlp_forward");
-
-        let (mm0_pipe, mm0_disp) = fp::select_matmul(&self.shaders, 1, self.dims.input as u32, self.dims.hidden1 as u32, &self.mm_config);
-        let (mm1_pipe, mm1_disp) = fp::select_matmul(&self.shaders, 1, self.dims.hidden1 as u32, self.dims.hidden2 as u32, &self.mm_config);
-        let (mm2_pipe, mm2_disp) = fp::select_matmul(&self.shaders, 1, self.dims.hidden2 as u32, self.dims.output as u32, &self.mm_config);
-
-        // Layer 1: matmul -> add -> relu
-        fp::record_pass(&mut encoder, mm0_pipe, &self.bg_mm[0],
-            mm0_disp(1, self.dims.hidden1 as u32), "mlp_mm0");
-        fp::record_pass(&mut encoder, &self.shaders.add, &self.bg_add[0],
-            fp::elementwise_dispatch(self.dims.hidden1 as u32), "mlp_add0");
-        fp::record_pass(&mut encoder, &self.shaders.relu, &self.bg_relu[0],
-            fp::elementwise_dispatch(self.dims.hidden1 as u32), "mlp_relu0");
-
-        // Layer 2: matmul -> add -> relu
-        fp::record_pass(&mut encoder, mm1_pipe, &self.bg_mm[1],
-            mm1_disp(1, self.dims.hidden2 as u32), "mlp_mm1");
-        fp::record_pass(&mut encoder, &self.shaders.add, &self.bg_add[1],
-            fp::elementwise_dispatch(self.dims.hidden2 as u32), "mlp_add1");
-        fp::record_pass(&mut encoder, &self.shaders.relu, &self.bg_relu[1],
-            fp::elementwise_dispatch(self.dims.hidden2 as u32), "mlp_relu1");
-
-        // Layer 3: matmul -> add -> softmax
-        fp::record_pass(&mut encoder, mm2_pipe, &self.bg_mm[2],
-            mm2_disp(1, self.dims.output as u32), "mlp_mm2");
-        fp::record_pass(&mut encoder, &self.shaders.add, &self.bg_add[2],
-            fp::elementwise_dispatch(self.dims.output as u32), "mlp_add2");
-        fp::record_pass(&mut encoder, &self.shaders.softmax, &self.bg_softmax,
-            fp::elementwise_dispatch(self.dims.output as u32), "mlp_softmax");
-
+        self.record_passes(&mut encoder);
         fp::submit_and_wait(&self.device, encoder);
-
         fp::readback(&self.device, &self.softmax_out, self.dims.output)
     }
 
     /// Run forward pass without readback (for throughput benchmarking).
     pub fn forward_no_readback(&self, input: &[f32]) {
-        self.device.queue().write_buffer(&self.input_buf, 0, bytemuck::cast_slice(input));
+        self.device
+            .queue()
+            .write_buffer(&self.input_buf, 0, bytemuck::cast_slice(input));
 
         let mut encoder = fp::new_encoder(&self.device, "fused_mlp_no_readback");
-
-        let (mm0_pipe, mm0_disp) = fp::select_matmul(&self.shaders, 1, self.dims.input as u32, self.dims.hidden1 as u32, &self.mm_config);
-        let (mm1_pipe, mm1_disp) = fp::select_matmul(&self.shaders, 1, self.dims.hidden1 as u32, self.dims.hidden2 as u32, &self.mm_config);
-        let (mm2_pipe, mm2_disp) = fp::select_matmul(&self.shaders, 1, self.dims.hidden2 as u32, self.dims.output as u32, &self.mm_config);
-
-        fp::record_pass(&mut encoder, mm0_pipe, &self.bg_mm[0],
-            mm0_disp(1, self.dims.hidden1 as u32), "mm0");
-        fp::record_pass(&mut encoder, &self.shaders.add, &self.bg_add[0],
-            fp::elementwise_dispatch(self.dims.hidden1 as u32), "add0");
-        fp::record_pass(&mut encoder, &self.shaders.relu, &self.bg_relu[0],
-            fp::elementwise_dispatch(self.dims.hidden1 as u32), "relu0");
-
-        fp::record_pass(&mut encoder, mm1_pipe, &self.bg_mm[1],
-            mm1_disp(1, self.dims.hidden2 as u32), "mm1");
-        fp::record_pass(&mut encoder, &self.shaders.add, &self.bg_add[1],
-            fp::elementwise_dispatch(self.dims.hidden2 as u32), "add1");
-        fp::record_pass(&mut encoder, &self.shaders.relu, &self.bg_relu[1],
-            fp::elementwise_dispatch(self.dims.hidden2 as u32), "relu1");
-
-        fp::record_pass(&mut encoder, mm2_pipe, &self.bg_mm[2],
-            mm2_disp(1, self.dims.output as u32), "mm2");
-        fp::record_pass(&mut encoder, &self.shaders.add, &self.bg_add[2],
-            fp::elementwise_dispatch(self.dims.output as u32), "add2");
-        fp::record_pass(&mut encoder, &self.shaders.softmax, &self.bg_softmax,
-            fp::elementwise_dispatch(self.dims.output as u32), "sm");
-
+        self.record_passes(&mut encoder);
         self.device.queue().submit(Some(encoder.finish()));
         self.device.device().poll(wgpu::Maintain::Wait);
     }

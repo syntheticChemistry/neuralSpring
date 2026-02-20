@@ -42,11 +42,56 @@ struct Scale {
 }
 
 const SCALES: &[Scale] = &[
-    Scale { name: "tiny",   input: 4,   hidden: 64,   output: 10,  seq: 8,   d_model: 32,   n_heads: 4,  d_ff: 128  },
-    Scale { name: "small",  input: 32,  hidden: 128,  output: 32,  seq: 32,  d_model: 128,  n_heads: 8,  d_ff: 512  },
-    Scale { name: "medium", input: 128, hidden: 512,  output: 128, seq: 64,  d_model: 256,  n_heads: 8,  d_ff: 1024 },
-    Scale { name: "large",  input: 256, hidden: 1024, output: 256, seq: 128, d_model: 512,  n_heads: 8,  d_ff: 2048 },
-    Scale { name: "xlarge", input: 512, hidden: 2048, output: 512, seq: 256, d_model: 1024, n_heads: 16, d_ff: 4096 },
+    Scale {
+        name: "tiny",
+        input: 4,
+        hidden: 64,
+        output: 10,
+        seq: 8,
+        d_model: 32,
+        n_heads: 4,
+        d_ff: 128,
+    },
+    Scale {
+        name: "small",
+        input: 32,
+        hidden: 128,
+        output: 32,
+        seq: 32,
+        d_model: 128,
+        n_heads: 8,
+        d_ff: 512,
+    },
+    Scale {
+        name: "medium",
+        input: 128,
+        hidden: 512,
+        output: 128,
+        seq: 64,
+        d_model: 256,
+        n_heads: 8,
+        d_ff: 1024,
+    },
+    Scale {
+        name: "large",
+        input: 256,
+        hidden: 1024,
+        output: 256,
+        seq: 128,
+        d_model: 512,
+        n_heads: 8,
+        d_ff: 2048,
+    },
+    Scale {
+        name: "xlarge",
+        input: 512,
+        hidden: 2048,
+        output: 512,
+        seq: 256,
+        d_model: 1024,
+        n_heads: 16,
+        d_ff: 4096,
+    },
 ];
 
 #[allow(clippy::cast_precision_loss)]
@@ -111,7 +156,10 @@ fn bench_python_scaling() -> PythonResults {
         "/control/ml_inference/bench_scaling.py"
     );
     let output = Command::new("python3").arg(script).output().ok();
-    let empty = PythonResults { multi_thread: vec![], single_thread: vec![] };
+    let empty = PythonResults {
+        multi_thread: vec![],
+        single_thread: vec![],
+    };
     let Some(output) = output else { return empty };
     if !output.status.success() {
         return empty;
@@ -232,7 +280,10 @@ async fn main() {
     let cpu_gpu = Gpu::new_cpu().await;
     let cpu_results = match &cpu_gpu {
         Ok(g) => {
-            eprintln!("  Adapter: {} ({:?}, {:?})", g.adapter_name, g.device_type, g.backend);
+            eprintln!(
+                "  Adapter: {} ({:?}, {:?})",
+                g.adapter_name, g.device_type, g.backend
+            );
             Some(bench_backend(g.wgpu_device()))
         }
         Err(e) => {
@@ -246,7 +297,10 @@ async fn main() {
     let gpu_gpu = Gpu::new_gpu().await;
     let gpu_results = match &gpu_gpu {
         Ok(g) => {
-            eprintln!("  Adapter: {} ({:?}, {:?})", g.adapter_name, g.device_type, g.backend);
+            eprintln!(
+                "  Adapter: {} ({:?}, {:?})",
+                g.adapter_name, g.device_type, g.backend
+            );
             Some(bench_backend(g.wgpu_device()))
         }
         Err(e) => {
@@ -267,7 +321,11 @@ async fn main() {
     for (i, scale) in SCALES.iter().enumerate() {
         let h = scale.hidden;
         let flops: usize = 2 * (scale.input * h + h * h + h * scale.output);
-        let py_1t = py.single_thread.iter().find(|(n, _, _)| n == scale.name).map_or(0.0, |(_, m, _)| *m);
+        let py_1t = py
+            .single_thread
+            .iter()
+            .find(|(n, _, _)| n == scale.name)
+            .map_or(0.0, |(_, m, _)| *m);
         let cpu_us = cpu_results.as_ref().map_or(0.0, |r| r.mlp_us[i]);
         let gpu_us = gpu_results.as_ref().map_or(0.0, |r| r.mlp_us[i]);
 
@@ -300,7 +358,11 @@ async fn main() {
         let heads = scale.n_heads;
         let d_head = d / heads;
         let flops: usize = 2 * seq * (4 * d * d + 2 * d * dff) + 2 * heads * seq * seq * d_head;
-        let py_1t = py.single_thread.iter().find(|(n, _, _)| n == scale.name).map_or(0.0, |(_, _, t)| *t);
+        let py_1t = py
+            .single_thread
+            .iter()
+            .find(|(n, _, _)| n == scale.name)
+            .map_or(0.0, |(_, _, t)| *t);
         let cpu_us = cpu_results.as_ref().map_or(0.0, |r| r.tf_us[i]);
         let gpu_us = gpu_results.as_ref().map_or(0.0, |r| r.tf_us[i]);
 
@@ -323,19 +385,34 @@ async fn main() {
     eprintln!("  (✓ = target ordering achieved)");
     eprintln!();
     for (i, scale) in SCALES.iter().enumerate() {
-        let py_1t_mlp = py.single_thread.iter().find(|(n, _, _)| n == scale.name).map_or(0.0, |(_, m, _)| *m);
-        let py_1t_tf = py.single_thread.iter().find(|(n, _, _)| n == scale.name).map_or(0.0, |(_, _, t)| *t);
+        let py_1t_mlp = py
+            .single_thread
+            .iter()
+            .find(|(n, _, _)| n == scale.name)
+            .map_or(0.0, |(_, m, _)| *m);
+        let py_1t_tf = py
+            .single_thread
+            .iter()
+            .find(|(n, _, _)| n == scale.name)
+            .map_or(0.0, |(_, _, t)| *t);
         let cpu_mlp = cpu_results.as_ref().map_or(0.0, |r| r.mlp_us[i]);
         let gpu_mlp = gpu_results.as_ref().map_or(0.0, |r| r.mlp_us[i]);
         let cpu_tf = cpu_results.as_ref().map_or(0.0, |r| r.tf_us[i]);
         let gpu_tf = gpu_results.as_ref().map_or(0.0, |r| r.tf_us[i]);
 
         let check = |py: f64, cpu: f64, gpu: f64| -> &'static str {
-            if py <= 0.0 || cpu <= 0.0 || gpu <= 0.0 { return "N/A"; }
-            if gpu < cpu && cpu < py { "✓ GPU < CPU < Py" }
-            else if gpu < cpu { "~ GPU < CPU (CPU still > Py)" }
-            else if gpu < py { "~ GPU < Py (but CPU > GPU)" }
-            else { "✗ not yet" }
+            if py <= 0.0 || cpu <= 0.0 || gpu <= 0.0 {
+                return "N/A";
+            }
+            if gpu < cpu && cpu < py {
+                "✓ GPU < CPU < Py"
+            } else if gpu < cpu {
+                "~ GPU < CPU (CPU still > Py)"
+            } else if gpu < py {
+                "~ GPU < Py (but CPU > GPU)"
+            } else {
+                "✗ not yet"
+            }
         };
 
         eprintln!(

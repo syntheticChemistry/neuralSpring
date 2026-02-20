@@ -415,19 +415,37 @@ GPU dominates CPU by 4–80× at every scale.
 
 ## Resolution Status
 
+**Last reviewed**: ToadStool commit `82f953c8` (Feb 19, 2026).
+
+ToadStool has been highly active (80+ commits since Feb 15) with deep debt
+sessions, wgpu v22 migration, `GpuDriverProfile`, `WORKGROUP_SIZE_1D/2D`
+constants, concurrency hardening, and sovereign compute. However, **none of
+the 11 neuralSpring handoff items have been addressed** — all work focused
+on hotSpring feedback, deep debt, and infrastructure.
+
 | # | Shortcoming | Local Fix | Upstream Absorbed |
 |---|-------------|-----------|-------------------|
-| 1 | `layer_norm` round-trip | `evolved::layer_norm` | Pending |
-| 2 | `log_softmax` round-trip | `evolved::log_softmax` | Pending |
-| 3 | `from_buffer` `pub(crate)` | Raw buffer management | Pending |
-| 4 | Per-op submission | Manual encoder batching | Pending |
-| 5 | `science_limits()` CPU | `create_relaxed()` | Pending |
-| 6 | `leaky_relu` Params mismatch | Skip (cannot workaround) | Pending |
-| 7 | `elu` Params mismatch | Skip (cannot workaround) | Pending |
-| 8 | MHA projection dispatch | `evolved::mha` | Pending |
-| 9 | Softmax on pooled buffers | Re-upload before softmax | Pending |
-| 10 | Per-op dispatch overhead | `evolved::fused_pipeline` | Pending |
-| 11 | Naive matmul on CPU/GPU | 4-tier shader router + double-buffered evolved shaders | Pending |
+| 1 | `layer_norm` round-trip | `evolved::layer_norm` | **Not absorbed** (reviewed `82f953c8`) |
+| 2 | `log_softmax` round-trip | `evolved::log_softmax` | **Not absorbed** |
+| 3 | `from_buffer` `pub(crate)` | Raw buffer management | **Not absorbed** |
+| 4 | Per-op submission | Manual encoder batching | **Not absorbed** |
+| 5 | `science_limits()` CPU | `create_relaxed()` | **Not absorbed** (`new_with_limits` exists but still defaults to 512 MB) |
+| 6 | `leaky_relu` Params mismatch | Skip (cannot workaround) | **Not absorbed** |
+| 7 | `elu` Params mismatch | Skip (cannot workaround) | **Not absorbed** |
+| 8 | MHA projection dispatch | `evolved::mha` | **Not absorbed** |
+| 9 | Softmax on pooled buffers | Re-upload before softmax | **Not absorbed** |
+| 10 | Per-op dispatch overhead | `evolved::fused_pipeline` | **Not absorbed** |
+| 11 | Naive matmul on CPU/GPU | 4-tier shader router + double-buffered evolved shaders | **Not absorbed** |
 
-Once ToadStool absorbs these fixes, the local evolutions in
+### What we absorbed from ToadStool (Feb 19 alignment)
+
+| ToadStool Evolution | neuralSpring Action |
+|---|---|
+| `WORKGROUP_SIZE_1D` / `WORKGROUP_SIZE_2D` constants | Imported into dispatch functions (replaces hardcoded 256/16) |
+| `GpuDriverProfile` | Captured in `MatmulConfig` for future per-driver specialization |
+| wgpu v22 API | Already matched since initial port |
+| `probe::seed_cache_from_heuristics()` | Called automatically by `WgpuDevice::from_existing()` (our path) |
+| WGSL shader stability | All 8 `include_str!` shaders unchanged — verified no drift |
+
+Once ToadStool absorbs the 11 fixes above, the local evolutions in
 `neuralSpring/src/evolved/` can be retired.

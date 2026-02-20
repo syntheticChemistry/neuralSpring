@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# neuralSpring — Run all Phase 0 + Phase 0+ Python/PyTorch baselines
+# neuralSpring — Run all Phase 0 + Phase 0+ + Phase 0++ Python/PyTorch baselines
 #
 # Exit codes per script:
 #   0  = all checks PASS
@@ -52,7 +52,7 @@ run_experiment() {
 }
 
 echo "================================================================"
-echo "  neuralSpring Phase 0 + Phase 0+ — Full Baseline Suite"
+echo "  neuralSpring Phase 0 + Phase 0+ + Phase 0++ — Full Baseline Suite"
 echo "  $(date)"
 echo "================================================================"
 
@@ -90,6 +90,50 @@ run_experiment "Study 004: LSTM ERA5 Weather (Gauch 2021)" \
 
 run_experiment "Study 005: Quantized Inference (Q8/Q4)" \
     control/quantized/quantized_inference.py
+
+echo ""
+echo "================================================================"
+echo "  Phase 0++: Paper Reproductions"
+echo "================================================================"
+
+run_experiment "Paper 011: Counterdiabatic Evolution (Iram/Dolson 2020)" \
+    control/counterdiabatic/counterdiabatic_evolution.py
+
+run_experiment "Paper 012: MODES Toolbox (Dolson 2019)" \
+    control/modes/modes_toolbox.py
+
+run_experiment "Paper 013: Ecological Dynamics (Dolson & Ofria 2018)" \
+    control/eco_dynamics/eco_dynamics.py
+
+run_experiment "Paper 014: Directed Evolution (Dolson 2022)" \
+    control/directed_evolution/directed_evolution.py
+
+run_experiment "Paper 016: HMM Forward/Backward/Viterbi (Liu 2014)" \
+    control/hmm_phylo/hmm_phylo.py
+
+run_experiment "Paper 019: Game Theory & QS Cooperation (Bruger/Waters 2018)" \
+    control/game_theory/game_theory.py
+
+run_experiment "Paper 015: Heterogeneous Swarm Robotics (Foreback/Dolson 2025)" \
+    control/swarm_robotics/swarm_robotics.py
+
+run_experiment "Paper 017: SATé Alignment (Liu 2009)" \
+    control/sate_alignment/sate_alignment.py
+
+run_experiment "Paper 018: Introgression Detection (Liu 2015)" \
+    control/introgression/introgression.py
+
+run_experiment "Paper 020: Regulatory Network (Mhatre/Waters 2020)" \
+    control/regulatory_network/regulatory_network.py
+
+run_experiment "Paper 021: Signal Integration (Srivastava/Waters 2011)" \
+    control/signal_integration/signal_integration.py
+
+run_experiment "Paper 022: Spectral Commutativity (Kachkovskiy 2016)" \
+    control/spectral_commutativity/spectral_commutativity.py
+
+run_experiment "Paper 023: Anderson Localization (Bourgain/Kachkovskiy 2018)" \
+    control/anderson_localization/anderson_localization.py
 
 echo ""
 echo "================================================================"

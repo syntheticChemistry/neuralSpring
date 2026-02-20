@@ -311,25 +311,32 @@ Additional domain-specific primitives:
 
 ## 7. Resolution Status
 
+**Reviewed ToadStool `82f953c8` (Feb 19, 2026)**: 80+ commits since Feb 15
+focused on deep debt, sovereign compute, wgpu v22, and concurrency. None of
+the 11 neuralSpring items were addressed. All remain pending.
+
 | # | Issue | Severity | Local Fix | Upstream Status |
 |---|-------|----------|-----------|-----------------|
-| 1 | `from_buffer` `pub(crate)` | High | Raw buffer mgmt | **Pending** |
-| 2 | `layer_norm` round-trip | Medium | `evolved::layer_norm` | **Pending** |
-| 3 | `log_softmax` round-trip | Medium | `evolved::log_softmax` | **Pending** |
-| 4 | Per-op submission | **Critical** | Fused pipeline | **Pending** |
-| 5 | `science_limits()` CPU | Medium | `create_relaxed()` | **Pending** |
-| 6 | `leaky_relu` Params | Low | Cannot workaround | **Pending** |
-| 7 | `elu` Params | Low | Cannot workaround | **Pending** |
-| 8 | MHA z-dim dispatch | High | `evolved::mha` | **Pending** |
-| 9 | Softmax pooled buffers | Medium | Re-upload logits | **Pending** |
-| 10 | Dispatch overhead | **Critical** | Fused pipeline + shaders | **Pending** |
-| 11 | Naive matmul on CPU/GPU | High | 4-tier double-buffered shader router + `DeviceCapabilities` | **Pending** |
+| 1 | `from_buffer` `pub(crate)` | High | Raw buffer mgmt | **Not absorbed** |
+| 2 | `layer_norm` round-trip | Medium | `evolved::layer_norm` | **Not absorbed** |
+| 3 | `log_softmax` round-trip | Medium | `evolved::log_softmax` | **Not absorbed** |
+| 4 | Per-op submission | **Critical** | Fused pipeline | **Not absorbed** |
+| 5 | `science_limits()` CPU | Medium | `create_relaxed()` | **Not absorbed** |
+| 6 | `leaky_relu` Params | Low | Cannot workaround | **Not absorbed** |
+| 7 | `elu` Params | Low | Cannot workaround | **Not absorbed** |
+| 8 | MHA z-dim dispatch | High | `evolved::mha` | **Not absorbed** |
+| 9 | Softmax pooled buffers | Medium | Re-upload logits | **Not absorbed** |
+| 10 | Dispatch overhead | **Critical** | Fused pipeline + shaders | **Not absorbed** |
+| 11 | Naive matmul on CPU/GPU | High | 4-tier double-buffered shader router + `DeviceCapabilities` | **Not absorbed** |
 
 Issues #1 and #4 are highest impact — fixing them would retire most local evolutions.
 Issue #11 is critical for performance: the naive matmul shader has zero cache reuse.
 The 4-tier router provides: CPU double-buffered 8×4 micro-kernel (crosses over at 3M FLOPs),
 GPU double-buffered 2×2 micro-kernel (10–12% improvement at large scale, 80× over CPU),
 and tiered GPU selection (16×16 for occupancy at small, 32×32 for throughput at large).
+
+neuralSpring has aligned with ToadStool's new primitives (`WORKGROUP_SIZE_1D/2D`,
+`GpuDriverProfile`) where applicable. WGSL shaders verified unchanged — no drift.
 
 ---
 

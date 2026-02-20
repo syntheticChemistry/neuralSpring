@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! Transformer primitive validation against Python baselines.
 //!
-//! Phase 1 stub — will implement softmax, scaled dot-product attention,
-//! layer norm, and GELU using `BarraCUDA` primitives.
+//! Provides CPU-reference softmax and GELU implementations validated against
+//! `NumPy` 2.2.6.  Full transformer inference (SDPA, `LayerNorm`, MHA, FFN)
+//! is implemented in the fused GPU pipeline (`evolved::fused_transformer`)
+//! and validated end-to-end by `validate_barracuda_ml_inference`.
 //!
 //! ## Python Baseline Provenance
 //!
@@ -14,6 +18,13 @@
 //! | `LayerNorm` var≈1 | 1e-3 | accumulated f64 error over `d_model` |
 
 /// Numerically stable softmax over a slice.
+///
+/// ```
+/// # use neural_spring::transformer::softmax;
+/// let s = softmax(&[1.0, 2.0, 3.0]);
+/// assert!((s.iter().sum::<f64>() - 1.0).abs() < 1e-12);
+/// assert!(s.iter().all(|&v| v >= 0.0));
+/// ```
 #[must_use]
 pub fn softmax(x: &[f64]) -> Vec<f64> {
     let max = x.iter().copied().fold(f64::NEG_INFINITY, f64::max);
@@ -23,6 +34,12 @@ pub fn softmax(x: &[f64]) -> Vec<f64> {
 }
 
 /// GELU activation (approximate, matching `PyTorch` `gelu('tanh')`).
+///
+/// ```
+/// # use neural_spring::transformer::gelu;
+/// assert!((gelu(0.0) - 0.0).abs() < 1e-12);
+/// assert!(gelu(5.0) > 4.9);
+/// ```
 #[must_use]
 pub fn gelu(x: f64) -> f64 {
     use std::f64::consts::PI;
@@ -100,5 +117,21 @@ mod tests {
         for (x, expected) in &cases {
             assert_relative_eq!(gelu(*x), *expected, epsilon = 1e-12);
         }
+    }
+
+    #[test]
+    fn softmax_deterministic() {
+        let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let run1 = softmax(&x);
+        let run2 = softmax(&x);
+        assert_eq!(run1, run2, "softmax must be bit-identical across runs");
+    }
+
+    #[test]
+    fn gelu_deterministic() {
+        let inputs = [-2.0, -1.0, 0.0, 0.5, 1.0, 3.0];
+        let run1: Vec<f64> = inputs.iter().map(|&x| gelu(x)).collect();
+        let run2: Vec<f64> = inputs.iter().map(|&x| gelu(x)).collect();
+        assert_eq!(run1, run2, "gelu must be bit-identical across runs");
     }
 }

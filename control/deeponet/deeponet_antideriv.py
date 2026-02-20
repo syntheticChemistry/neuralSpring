@@ -361,9 +361,39 @@ def main() -> int:
         total_failed += 1
 
     # ------------------------------------------------------------------
-    # Part 5: Architecture analysis
+    # Part 5: Paper-reported reference validation (Lu et al. 2021)
     # ------------------------------------------------------------------
-    print("\n--- Part 5: DeepONet Architecture Analysis ---")
+    print("\n--- Part 5: Paper Reference Validation ---")
+    print("  Lu et al. (2021) NMI: test MSE ≈ 9.27e-7 (50k steps, 10k functions)")
+    print("  Our implementation: 5k steps, 1k functions, Adam-only")
+
+    our_mse = float(np.mean((G_test - G_pred) ** 2))
+    paper_mse = 9.27e-7
+    oom_gap = np.log10(our_mse / paper_mse) if paper_mse > 0 else float("inf")
+    print(f"  Paper test MSE: {paper_mse:.2e}")
+    print(f"  Our test MSE:   {our_mse:.2e}")
+    print(f"  Gap: {oom_gap:.1f} orders of magnitude")
+    print("  Expected gap: 1-2 OOM (10× fewer steps, 10× fewer training functions)")
+    print("  Ref: lululxvi/deeponet on GitHub")
+
+    if oom_gap < 4.0:
+        print(f"  [PASS] Within 4 OOM of paper result (gap={oom_gap:.1f})")
+        total_passed += 1
+    else:
+        print(f"  [FAIL] Gap to paper result too large ({oom_gap:.1f} OOM)")
+        total_failed += 1
+
+    if our_mse < 1e-2:
+        print(f"  [PASS] Our MSE ({our_mse:.2e}) < 1e-2 threshold")
+        total_passed += 1
+    else:
+        print(f"  [FAIL] Our MSE ({our_mse:.2e}) exceeds 1e-2 threshold")
+        total_failed += 1
+
+    # ------------------------------------------------------------------
+    # Part 6: Architecture analysis
+    # ------------------------------------------------------------------
+    print("\n--- Part 6: DeepONet Architecture Analysis ---")
     print("  Branch net: u(x₁..x₅₀) → R⁴⁰ (encodes input function)")
     print("  Trunk net: y → R⁴⁰ (encodes query location)")
     print("  Output: <Branch, Trunk> + bias (dot product)")

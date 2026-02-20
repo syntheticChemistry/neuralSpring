@@ -20,6 +20,7 @@
 //! ```
 
 use crate::gpu::Gpu;
+use barracuda::device::capabilities::WORKGROUP_SIZE_1D;
 use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
 
@@ -156,7 +157,7 @@ pub fn layer_norm(
         pass.set_bind_group(0, &bind_group, &[]);
 
         let num_batches = (count / feature_size) as u32;
-        let workgroups = num_batches.div_ceil(256);
+        let workgroups = num_batches.div_ceil(WORKGROUP_SIZE_1D);
         pass.dispatch_workgroups(workgroups, 1, 1);
     }
 

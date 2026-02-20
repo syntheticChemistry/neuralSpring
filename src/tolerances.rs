@@ -132,6 +132,34 @@ pub const QUANT_INT8_DEGRADATION: f64 = 0.01;
 pub const QUANT_INT4_DEGRADATION: f64 = 0.05;
 
 // ═══════════════════════════════════════════════════════════════════
+// Phase 0++ evolutionary / stochastic algorithm tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// Counterdiabatic protocol: max gap between CD and naive for the
+/// comparison to be considered "comparable" (not a strict improvement).
+///
+/// 0.01 L1 distance is a tight threshold — the mean-field Wright-Fisher
+/// operates in a 32-dimensional simplex where total variation is at most 2.
+pub const CD_COMPARABLE_DIST: f64 = 0.01;
+
+/// Adiabaticity gap: max excess KL for CD over naive before failing.
+///
+/// CD should stay closer to equilibrium; 0.05 nats allows for numerical
+/// noise in the Fisher information discretization (1000 grid points).
+pub const ADIABATIC_KL_GAP: f64 = 0.05;
+
+/// HMM posterior: row-sum tolerance (should sum to 1.0).
+///
+/// Forward-backward accumulates rounding from T matrix-vector products.
+/// For T ≤ 5000 with scaling, 1e-8 is conservative.
+pub const HMM_POSTERIOR_SUM: f64 = 1e-8;
+
+/// QS cooperation variance: max variance in late cooperation frequency.
+///
+/// A stabilized QS model should not oscillate beyond this level.
+pub const QS_VARIANCE_MAX: f64 = 0.05;
+
+// ═══════════════════════════════════════════════════════════════════
 // Tensor / WGSL shader tolerances (f32 compute)
 // ═══════════════════════════════════════════════════════════════════
 
@@ -212,9 +240,16 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(clippy::assertions_on_constants)]
     fn tolerance_ordering() {
-        assert!(EXACT_F64 < CROSS_LANGUAGE);
-        assert!(SOFTMAX_CROSS_PYTHON < CROSS_LANGUAGE);
+        assert!(
+            EXACT_F64 < CROSS_LANGUAGE,
+            "exact should be tighter than cross-language"
+        );
+        assert!(
+            SOFTMAX_CROSS_PYTHON < CROSS_LANGUAGE,
+            "softmax should be tighter than cross-language"
+        );
     }
 
     #[test]
@@ -240,6 +275,10 @@ mod tests {
             TENSOR_TRANSCENDENTAL_F32,
             TENSOR_MATMUL_F32,
             TENSOR_NORM_F32,
+            CD_COMPARABLE_DIST,
+            ADIABATIC_KL_GAP,
+            HMM_POSTERIOR_SUM,
+            QS_VARIANCE_MAX,
             GPU_F64_EXACT,
             GPU_F64_TRANSCENDENTAL,
             GPU_F64_STATS,

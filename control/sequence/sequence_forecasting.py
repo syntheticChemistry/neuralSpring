@@ -30,73 +30,35 @@ try:
 except ImportError:
     HAS_TORCH = False
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.open_meteo import generate_synthetic_weather, load_or_fetch_location  # noqa: E402
 
 # ---------------------------------------------------------------------------
-# Data generation (synthetic Michigan weather if no real data)
+# Data loading: real ERA5 (preferred) → synthetic fallback (last resort)
 # ---------------------------------------------------------------------------
 
 
-def generate_michigan_weather(n_days: int = 730, seed: int = 42) -> dict:
+def load_weather() -> tuple[dict, str]:
+    """Load real ERA5 weather via Open-Meteo, fall back to synthetic.
+
+    Returns (weather_dict, source_description).
+    weather_dict has keys: tmax, tmin, precip, wind, humidity.
     """
-    Generate realistic Michigan daily weather for 2 years.
-    Uses sinusoidal seasonal pattern + AR(1) day-to-day autocorrelation.
-    """
-    rng = np.random.default_rng(seed)
-    doy = np.arange(n_days) % 365
+    try:
+        data = load_or_fetch_location("east_lansing_mi")
+        n = len(data["tmax"])
+        if n >= 365:
+            data["n_days"] = n
+            data["doy"] = np.arange(n) % 365
+            return data, f"ERA5 reanalysis, East Lansing MI, {n} days (Open-Meteo)"
+        print(f"  WARNING: ERA5 data too short ({n} days), falling back to synthetic")
+    except Exception as exc:
+        print(f"  WARNING: Open-Meteo fetch failed: {exc}, falling back to synthetic")
 
-    # Seasonal pattern: Michigan climate normals
-    seasonal_tmax = 8.5 + 15.0 * np.sin(2 * np.pi * (doy - 100) / 365)
-    seasonal_tmin = seasonal_tmax - 10.0
-
-    # AR(1) weather noise (day-to-day correlation ~0.7)
-    noise = np.zeros(n_days)
-    noise[0] = rng.normal(0, 3)
-    for i in range(1, n_days):
-        noise[i] = 0.7 * noise[i - 1] + rng.normal(0, 3) * 0.71
-
-    tmax = seasonal_tmax + noise
-    tmin = seasonal_tmin + noise * 0.8 + rng.normal(0, 1.5, n_days)
-    tmin = np.minimum(tmin, tmax - 2.0)
-
-    precip = np.zeros(n_days)
-    rain_prob = 0.35 - 0.10 * np.cos(2 * np.pi * (doy - 180) / 365)
-    for i in range(n_days):
-        if rng.random() < rain_prob[i]:
-            precip[i] = rng.exponential(6.0)
-
-    return {
-        "tmax": tmax,
-        "tmin": tmin,
-        "precip": precip,
-        "doy": doy,
-        "n_days": n_days,
-    }
-
-
-def load_real_weather() -> dict:
-    """Try to load real Open-Meteo data from airSpring cache."""
-    import pandas as pd
-
-    patterns = [
-        Path(__file__).parent.parent.parent.parent / "airSpring" / "data" / "open_meteo",
-        Path(__file__).parent.parent.parent / "data" / "weather",
-    ]
-
-    for data_dir in patterns:
-        if data_dir.exists():
-            csvs = list(data_dir.glob("*_daily.csv"))
-            if csvs:
-                df = pd.read_csv(csvs[0])
-                if "tmax_c" in df.columns and len(df) > 100:
-                    return {
-                        "tmax": df["tmax_c"].values,
-                        "tmin": df["tmin_c"].values,
-                        "precip": df.get("precip_mm", np.zeros(len(df))).values,
-                        "doy": np.arange(len(df)) % 365,
-                        "n_days": len(df),
-                        "source": str(csvs[0]),
-                    }
-    return None
+    data = generate_synthetic_weather(730)
+    data["n_days"] = len(data["tmax"])
+    data["doy"] = np.arange(data["n_days"]) % 365
+    return data, "synthetic Michigan weather (seed=42, 2 years)"
 
 
 # ---------------------------------------------------------------------------
@@ -235,14 +197,16 @@ def main() -> int:
 
     Provenance
     ----------
-    Baseline produced: 2026-02-16, Eastgate, Python 3.10, PyTorch 2.9.0+cu128.
-    Result: 5/5 PASS on synthetic Michigan weather (seed=42).
+    Baseline produced: 2026-02-19, Eastgate, Python 3.10, PyTorch 2.9.0+cu128.
+    Data: ERA5 reanalysis, East Lansing MI (42.73°N, 84.48°W), 2020-2023,
+          via Open-Meteo Archive API.  Synthetic fallback if API unavailable.
+    Result: 5/5 PASS on real ERA5 weather.
     Tolerance rationale:
-      * R²>0.80: 1-day Tmax on autocorrelated weather is achievable by
-        persistence alone (~0.93 R²).  0.80 is a floor for any learned model.
-      * LSTM within 0.10 R² of persistence: 1-day horizon favors persistence
-        on AR(1) data; neural advantage appears at 3+ day horizons.  0.10 is
-        generous to avoid false negatives on short horizons.
+      * R²>0.65: real ERA5 weather is noisier than synthetic.  Persistence
+        gets ~0.81 R² on real data; 0.65 is a reasonable floor for a small
+        LSTM on 1-2 years of daily data.
+      * LSTM within 0.10 R² of persistence: 1-day horizon favors persistence;
+        neural advantage appears at longer horizons.
     """
     total_passed = 0
     total_failed = 0
@@ -256,19 +220,8 @@ def main() -> int:
         print("  [SKIP] PyTorch required for LSTM/GRU training")
         return 77
 
-    # Load data — need at least 365 days for seasonal learning
-    real = load_real_weather()
-    if real and real["n_days"] >= 365:
-        weather = real
-        data_source = real.get("source", "airSpring real data")
-        print(f"\n  Using REAL weather data: {data_source}")
-    else:
-        weather = generate_michigan_weather(730, seed=42)
-        data_source = "synthetic Michigan weather (2 years)"
-        if real:
-            print(f"\n  Real data too short ({real['n_days']} days < 365). Using {data_source}")
-        else:
-            print(f"\n  Using {data_source}")
+    weather, data_source = load_weather()
+    print(f"\n  Data: {data_source}")
 
     tmax = weather["tmax"]
     print(f"  Days: {len(tmax)}, range: [{tmax.min():.1f}, {tmax.max():.1f}] °C")
@@ -330,11 +283,12 @@ def main() -> int:
         print("  [FAIL] LSTM far below persistence")
         total_failed += 1
 
-    if r2_lstm > 0.80:
-        print("  [PASS] LSTM R² > 0.80")
+    r2_floor = 0.65
+    if r2_lstm > r2_floor:
+        print(f"  [PASS] LSTM R² > {r2_floor}")
         total_passed += 1
     else:
-        print(f"  [FAIL] LSTM R² = {r2_lstm:.4f} < 0.80")
+        print(f"  [FAIL] LSTM R² = {r2_lstm:.4f} < {r2_floor}")
         total_failed += 1
 
     # ------------------------------------------------------------------
@@ -351,11 +305,11 @@ def main() -> int:
     r2_gru = compute_r2(y_test_orig, y_gru_orig)
     print(f"  GRU:  RMSE={rmse_gru:.2f}°C, R²={r2_gru:.4f}")
 
-    if r2_gru > 0.80:
-        print("  [PASS] GRU R² > 0.80")
+    if r2_gru > r2_floor:
+        print(f"  [PASS] GRU R² > {r2_floor}")
         total_passed += 1
     else:
-        print(f"  [FAIL] GRU R² = {r2_gru:.4f} < 0.80")
+        print(f"  [FAIL] GRU R² = {r2_gru:.4f} < {r2_floor}")
         total_failed += 1
 
     # ------------------------------------------------------------------

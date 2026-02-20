@@ -31,7 +31,7 @@ lint-rust:
 test-python:
     python3 -m pytest tests/ -v --tb=short
 
-# Rust unit tests (34 tests)
+# Rust unit tests (42 tests)
 test-rust:
     cargo test
 
@@ -108,6 +108,15 @@ bench-fused:
 # Full Python baseline suite (75/75, ~6 min)
 baselines:
     bash scripts/run_all_baselines.sh
+
+# Library test coverage report (requires cargo-llvm-cov)
+coverage:
+    cargo llvm-cov --lib --html
+    @echo "Coverage report: target/llvm-cov/html/index.html"
+
+# Coverage as JSON (for CI thresholds)
+coverage-json:
+    cargo llvm-cov --lib --json --output-path target/llvm-cov/coverage.json
 
 # Auto-fix Python lint issues
 fix:

@@ -25,6 +25,7 @@ Method:
   4. Measure accuracy degradation and speedup
 """
 
+import copy
 import sys
 import time
 from pathlib import Path
@@ -40,9 +41,10 @@ try:
 except ImportError:
     HAS_TORCH = False
 
-# Import airSpring ET₀ for data generation
+# Import airSpring ET₀ for computation
 AIRSPRING_FAO56 = Path(__file__).parent.parent.parent.parent / "airSpring" / "control" / "fao56"
 sys.path.insert(0, str(AIRSPRING_FAO56))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from penman_monteith import (
     actual_vapour_pressure_rh,
@@ -59,6 +61,7 @@ from penman_monteith import (
     solar_radiation_from_sunshine,
     wind_speed_at_2m,
 )
+from shared.open_meteo import DAILY_VARS_ET0, LOCATIONS, load_or_fetch_location
 
 # ---------------------------------------------------------------------------
 # ET₀ computation (reused from Exp 001)
@@ -167,6 +170,48 @@ def apply_quantized_weights(model: nn.Module, quantized_state: dict):
 
 
 # ---------------------------------------------------------------------------
+# Data: real ERA5 weather → FAO-56 ET₀
+# ---------------------------------------------------------------------------
+
+
+def _load_real_et0_data() -> tuple[np.ndarray, np.ndarray, str]:
+    """Load real ERA5 weather, compute ET₀ targets. Falls back to synthetic."""
+    loc = LOCATIONS["east_lansing_mi"]
+    try:
+        data = load_or_fetch_location("east_lansing_mi", variables=DAILY_VARS_ET0)
+        tmax = data["tmax"]
+        tmin = data["tmin"]
+        rhmax = data["rhmax"]
+        rhmin = data["rhmin"]
+        wind = data["wind"]
+        solar = data["solar"]
+        X = np.column_stack([tmax, tmin, rhmax, rhmin, wind, solar])
+        y = compute_et0_batch(X, lat=loc["lat"], alt=loc["alt"])
+        valid = np.isfinite(y) & (y > 0)
+        return (
+            X[valid],
+            y[valid],
+            f"ERA5 reanalysis, East Lansing MI, {int(valid.sum())} valid days",
+        )
+    except Exception as exc:
+        print(f"  WARNING: Open-Meteo fetch failed: {exc}, falling back to synthetic")
+
+    rng = np.random.default_rng(42)
+    n_total = 3500
+    ranges = {
+        "tmax": (10, 45),
+        "tmin": (0, 30),
+        "rhmax": (30, 100),
+        "rhmin": (10, 80),
+        "wind": (1, 30),
+        "sun": (2, 14),
+    }
+    X = np.column_stack([rng.uniform(*ranges[k], n_total) for k in ranges])
+    y = compute_et0_batch(X)
+    return X, y, f"synthetic random weather (seed=42, {n_total} samples)"
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -207,29 +252,13 @@ def main() -> int:
     # ------------------------------------------------------------------
     print("\n--- Part 1: FP32 Baseline (ET₀ Surrogate) ---")
 
-    rng = np.random.default_rng(42)
-    n_train, n_test = 3000, 500
-    ranges = {
-        "tmax": (10, 45),
-        "tmin": (0, 30),
-        "rhmax": (30, 100),
-        "rhmin": (10, 80),
-        "wind": (1, 30),
-        "sun": (2, 14),
-    }
+    X_all, y_all, data_source = _load_real_et0_data()
+    print(f"  Data: {data_source} ({len(y_all)} samples)")
 
-    X_train = np.column_stack(
-        [
-            rng.uniform(*ranges[k], n_train)
-            for k in ["tmax", "tmin", "rhmax", "rhmin", "wind", "sun"]
-        ]
-    )
-    y_train = compute_et0_batch(X_train)
-
-    X_test = np.column_stack(
-        [rng.uniform(*ranges[k], n_test) for k in ["tmax", "tmin", "rhmax", "rhmin", "wind", "sun"]]
-    )
-    y_test = compute_et0_batch(X_test)
+    n_train = min(3000, int(0.85 * len(y_all)))
+    n_test = len(y_all) - n_train
+    X_train, X_test = X_all[:n_train], X_all[n_train:]
+    y_train, y_test = y_all[:n_train], y_all[n_train:]
 
     # Normalize
     X_mean, X_std = X_train.mean(0), X_train.std(0) + 1e-8
@@ -299,8 +328,6 @@ def main() -> int:
     # Part 3: Simulated INT4 quantization
     # ------------------------------------------------------------------
     print("\n--- Part 3: Simulated INT4 Quantization ---")
-
-    import copy
 
     model_q4 = copy.deepcopy(model)
     q4_state = quantize_model_manual(model_q4, n_bits=4)

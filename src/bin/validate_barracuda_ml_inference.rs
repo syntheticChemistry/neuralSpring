@@ -94,6 +94,45 @@ fn t(data: &[f32], shape: Vec<usize>, device: &Dev) -> Tensor {
 // MLP validation
 // ═════════════════════════════════════════════════════════════════════════
 
+fn mlp_forward(input: &Tensor, weights: &[Tensor], biases: &[Tensor]) -> Result<Tensor, String> {
+    let e = |err: barracuda::error::BarracudaError| err.to_string();
+
+    let h1 = input
+        .clone()
+        .matmul(&weights[0])
+        .map_err(&e)?
+        .add(&biases[0])
+        .map_err(&e)?
+        .relu()
+        .map_err(&e)?;
+
+    let h2 = h1
+        .matmul(&weights[1])
+        .map_err(&e)?
+        .add(&biases[1])
+        .map_err(&e)?
+        .relu()
+        .map_err(&e)?;
+
+    // barracuda's buffer pool can return oversized buffers — softmax uses
+    // arrayLength() on the physical buffer, not the logical tensor size.
+    // Re-upload to force an exact-size buffer.
+    let logits = h2
+        .matmul(&weights[2])
+        .map_err(&e)?
+        .add(&biases[2])
+        .map_err(&e)?;
+    let logit_data = logits.to_vec().map_err(&e)?;
+    Tensor::from_data(
+        &logit_data,
+        logits.shape().to_vec(),
+        logits.device().clone(),
+    )
+    .map_err(&e)?
+    .softmax()
+    .map_err(&e)
+}
+
 fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -114,7 +153,6 @@ fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
         }
     };
 
-    // Upload weights as [rows, cols] matrices and biases as [1, cols] rows
     let mut weights = Vec::new();
     let mut biases = Vec::new();
     for (i, w_data) in baseline.weights.iter().enumerate() {
@@ -127,49 +165,7 @@ fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
     }
 
     let input = t(&baseline.input, vec![1, baseline.input.len()], device);
-
-    // Forward pass
-    let result = (|| -> Result<Tensor, String> {
-        let e = |err: barracuda::error::BarracudaError| err.to_string();
-
-        // Layer 1: linear + ReLU
-        let h1 = input
-            .matmul(&weights[0])
-            .map_err(&e)?
-            .add(&biases[0])
-            .map_err(&e)?
-            .relu()
-            .map_err(&e)?;
-
-        // Layer 2: linear + ReLU
-        let h2 = h1
-            .matmul(&weights[1])
-            .map_err(&e)?
-            .add(&biases[1])
-            .map_err(&e)?
-            .relu()
-            .map_err(&e)?;
-
-        // Layer 3: linear + softmax
-        // NOTE: barracuda's buffer pool can return oversized buffers.
-        // The softmax WGSL shader uses arrayLength() on the physical buffer,
-        // not the logical tensor size, causing incorrect normalization.
-        // Workaround: re-upload to force an exact-size buffer.
-        let logits = h2
-            .matmul(&weights[2])
-            .map_err(&e)?
-            .add(&biases[2])
-            .map_err(&e)?;
-        let logit_data = logits.to_vec().map_err(&e)?;
-        Tensor::from_data(
-            &logit_data,
-            logits.shape().to_vec(),
-            logits.device().clone(),
-        )
-        .map_err(&e)?
-        .softmax()
-        .map_err(&e)
-    })();
+    let result = mlp_forward(&input, &weights, &biases);
 
     match result {
         Ok(output) => {

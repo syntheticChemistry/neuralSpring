@@ -861,7 +861,7 @@ fn validate_transpose(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match mat.transpose() {
         Ok(out) => {
             let v = readback(&out);
-            h.check_bool("transpose shape [3,2]", out.shape() == &[3, 2]);
+            h.check_bool("transpose shape [3,2]", *out.shape() == [3, 2]);
             h.check_abs(
                 "transpose [0,0] = 1",
                 f64::from(v[0]),

@@ -66,6 +66,57 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
 
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout ecoPrimals (barracuda dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ecoPrimals
+          path: ../phase1/toadstool
+          sparse-checkout: crates/barracuda
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-cov-${{ hashFiles('Cargo.toml') }}
+
+      - name: Collect coverage
+        run: cargo llvm-cov --lib --json --output-path coverage.json
+
+      - name: Check coverage threshold (90%)
+        run: |
+          COV=$(python3 -c "import json; d=json.load(open('coverage.json')); print(f\"{d['data'][0]['totals']['lines']['percent']:.1f}\")")
+          echo "Library line coverage: ${COV}%"
+          python3 -c "
+          import json, sys
+          d = json.load(open('coverage.json'))
+          pct = d['data'][0]['totals']['lines']['percent']
+          if pct < 90:
+              print(f'FAIL: {pct:.1f}% < 90% target')
+              sys.exit(1)
+          print(f'PASS: {pct:.1f}% >= 90% target')
+          "
+
   validate-native:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -103,6 +154,45 @@ jobs:
 
       - name: Validate metrics (10 checks)
         run: cargo run --bin validate_metrics
+
+      - name: Validate counterdiabatic (19 checks)
+        run: cargo run --bin validate_counterdiabatic
+
+      - name: Validate MODES (9 checks)
+        run: cargo run --bin validate_modes
+
+      - name: Validate eco dynamics (7 checks)
+        run: cargo run --bin validate_eco_dynamics
+
+      - name: Validate directed evolution (7 checks)
+        run: cargo run --bin validate_directed_evolution
+
+      - name: Validate HMM (17 checks)
+        run: cargo run --bin validate_hmm
+
+      - name: Validate game theory (8 checks)
+        run: cargo run --bin validate_game_theory
+
+      - name: Validate swarm robotics (7 checks)
+        run: cargo run --bin validate_swarm_robotics
+
+      - name: Validate SATé alignment (8 checks)
+        run: cargo run --bin validate_sate_alignment
+
+      - name: Validate introgression (13 checks)
+        run: cargo run --bin validate_introgression
+
+      - name: Validate regulatory network (5 checks)
+        run: cargo run --bin validate_regulatory_network
+
+      - name: Validate signal integration (8 checks)
+        run: cargo run --bin validate_signal_integration
+
+      - name: Validate spectral commutativity (8 checks)
+        run: cargo run --bin validate_spectral_commutativity
+
+      - name: Validate Anderson localization (8 checks)
+        run: cargo run --bin validate_anderson_localization
 
   validate-barracuda:
     runs-on: ubuntu-latest
@@ -159,3 +249,6 @@ jobs:
 
       - name: Validate barracuda linalg_ext (17 checks)
         run: cargo run --bin validate_barracuda_linalg_ext
+
+      - name: Validate barracuda ml_inference (13 checks)
+        run: cargo run --bin validate_barracuda_ml_inference

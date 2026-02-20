@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! Statistical metrics for validation (R², RMSE, MAE, NSE).
 //!
 //! ## `BarraCUDA` Integration
@@ -13,6 +15,12 @@
 //! - [`barracuda::stats::pearson_correlation`]
 
 /// Coefficient of determination.
+///
+/// ```
+/// # use neural_spring::metrics::r_squared;
+/// let y = [1.0, 2.0, 3.0, 4.0, 5.0];
+/// assert!((r_squared(&y, &y) - 1.0).abs() < 1e-12);
+/// ```
 ///
 /// # Panics
 ///
@@ -104,5 +112,23 @@ mod tests {
         let y_true = [1.0, 2.0, 3.0];
         let y_pred = [1.1, 2.1, 3.1];
         assert_relative_eq!(rmse(&y_true, &y_pred), 0.1, epsilon = 1e-10);
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn metrics_deterministic() {
+        let y_true = [1.0, 2.0, 3.0, 4.0, 5.0];
+        let y_pred = [1.1, 2.2, 2.9, 4.1, 4.8];
+        let r2_a = r_squared(&y_true, &y_pred);
+        let r2_b = r_squared(&y_true, &y_pred);
+        assert_eq!(r2_a, r2_b, "r_squared must be bit-identical across runs");
+
+        let rmse_a = rmse(&y_true, &y_pred);
+        let rmse_b = rmse(&y_true, &y_pred);
+        assert_eq!(rmse_a, rmse_b, "rmse must be bit-identical across runs");
+
+        let mae_a = mae(&y_true, &y_pred);
+        let mae_b = mae(&y_true, &y_pred);
+        assert_eq!(mae_a, mae_b, "mae must be bit-identical across runs");
     }
 }

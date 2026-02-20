@@ -12,17 +12,63 @@ to establish a fair single-core comparison against BarraCUDA CPU shaders.
 import math
 import os
 import time
+
 import numpy as np
 
 WARMUP = 10
 ITERATIONS = 200
 
 SCALES = [
-    {"name": "tiny",    "input": 4,    "hidden": 64,   "output": 10,  "seq": 8,   "d": 32,   "heads": 4,  "dff": 128},
-    {"name": "small",   "input": 32,   "hidden": 128,  "output": 32,  "seq": 32,  "d": 128,  "heads": 8,  "dff": 512},
-    {"name": "medium",  "input": 128,  "hidden": 512,  "output": 128, "seq": 64,  "d": 256,  "heads": 8,  "dff": 1024},
-    {"name": "large",   "input": 256,  "hidden": 1024, "output": 256, "seq": 128, "d": 512,  "heads": 8,  "dff": 2048},
-    {"name": "xlarge",  "input": 512,  "hidden": 2048, "output": 512, "seq": 256, "d": 1024, "heads": 16, "dff": 4096},
+    {
+        "name": "tiny",
+        "input": 4,
+        "hidden": 64,
+        "output": 10,
+        "seq": 8,
+        "d": 32,
+        "heads": 4,
+        "dff": 128,
+    },
+    {
+        "name": "small",
+        "input": 32,
+        "hidden": 128,
+        "output": 32,
+        "seq": 32,
+        "d": 128,
+        "heads": 8,
+        "dff": 512,
+    },
+    {
+        "name": "medium",
+        "input": 128,
+        "hidden": 512,
+        "output": 128,
+        "seq": 64,
+        "d": 256,
+        "heads": 8,
+        "dff": 1024,
+    },
+    {
+        "name": "large",
+        "input": 256,
+        "hidden": 1024,
+        "output": 256,
+        "seq": 128,
+        "d": 512,
+        "heads": 8,
+        "dff": 2048,
+    },
+    {
+        "name": "xlarge",
+        "input": 512,
+        "hidden": 2048,
+        "output": 512,
+        "seq": 256,
+        "d": 1024,
+        "heads": 16,
+        "dff": 4096,
+    },
 ]
 
 
@@ -111,7 +157,7 @@ def run_all_scales():
         b2 = make_random((1, out), 7)
         weights = [w0, w1, w2]
         biases = [b0, b1, b2]
-        mlp_us = bench_fn(lambda: mlp_forward(x_mlp, weights, biases))
+        mlp_us = bench_fn(lambda _x=x_mlp, _w=weights, _b=biases: mlp_forward(_x, _w, _b))
 
         d, dff, seq = s["d"], s["dff"], s["seq"]
         x_tf = make_random((seq, d), 10)
@@ -125,7 +171,7 @@ def run_all_scales():
             "wff2": make_random((dff, d), 17),
             "bff2": make_random((1, d), 18),
         }
-        tf_us = bench_fn(lambda: transformer_forward(x_tf, w_tf, s))
+        tf_us = bench_fn(lambda _xt=x_tf, _wt=w_tf, _s=s: transformer_forward(_xt, _wt, _s))
         results.append((s["name"], mlp_us, tf_us))
     return results
 
@@ -153,5 +199,5 @@ if __name__ == "__main__":
     hdr = f"{'Scale':>8}  {'MLP(mt)':>10}  {'MLP(1t)':>10}  {'TF(mt)':>10}  {'TF(1t)':>10}"
     print(hdr)
     print("-" * len(hdr))
-    for (name, m_mt, t_mt), (_, m_st, t_st) in zip(mt_results, st_results):
+    for (name, m_mt, t_mt), (_, m_st, t_st) in zip(mt_results, st_results, strict=True):
         print(f"{name:>8}  {m_mt:>10.1f}  {m_st:>10.1f}  {t_mt:>10.1f}  {t_st:>10.1f}")

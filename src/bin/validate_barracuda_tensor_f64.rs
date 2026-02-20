@@ -105,7 +105,7 @@ fn validate_f64_roundtrip(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── SumReduceF64 ───────────────────────────────────────────────────────
 
 fn validate_sum_reduce(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let data: Vec<f64> = (1..=100).map(|i| i as f64).collect();
+    let data: Vec<f64> = (1..=100).map(f64::from).collect();
     let expected_sum = 5050.0;
     let expected_max = 100.0;
     let expected_min = 1.0;
@@ -361,8 +361,9 @@ fn validate_weighted_dot(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let vec_a: Vec<f64> = vec![1.0, 2.0, 3.0];
     let vec_b: Vec<f64> = vec![4.0, 5.0, 6.0];
     let weights: Vec<f64> = vec![1.0, 2.0, 3.0];
-    let expected_dot = 1.0 * 4.0 + 2.0 * 5.0 + 3.0 * 6.0;
-    let expected_weighted = 1.0 * 1.0 * 4.0 + 2.0 * 2.0 * 5.0 + 3.0 * 3.0 * 6.0;
+    let expected_dot = 3.0f64.mul_add(6.0, 1.0f64.mul_add(4.0, 2.0 * 5.0));
+    let expected_weighted =
+        (3.0 * 3.0f64).mul_add(6.0, (1.0 * 1.0f64).mul_add(4.0, 2.0 * 2.0 * 5.0));
     let expected_norm_sq = 1.0 + 4.0 + 9.0;
 
     match wd.dot(&vec_a, &vec_b) {

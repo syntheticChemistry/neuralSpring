@@ -1,7 +1,11 @@
-//! MLP surrogate validation against Python baselines.
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Benchmark functions and surrogate validation against Python baselines.
 //!
-//! Phase 1 stub — will implement forward-pass MLP using `BarraCUDA`'s
-//! `gemm_f64` and `nn::ReLU` primitives.
+//! Provides Rastrigin, Rosenbrock, and Ackley benchmark functions validated
+//! against `NumPy` 2.2.6 reference values.  MLP forward-pass inference is
+//! implemented in the fused GPU pipeline (`evolved::fused_mlp`); this module
+//! contains the analytical functions that the surrogate models approximate.
 //!
 //! ## Python Baseline Provenance
 //!
@@ -17,6 +21,12 @@ use std::f64::consts::{E, PI};
 /// Benchmark function: Rastrigin 2-D.
 ///
 /// f(x,y) = 20 + x² − 10 cos(2πx) + y² − 10 cos(2πy)
+///
+/// ```
+/// # use neural_spring::surrogate::rastrigin_2d;
+/// assert!((rastrigin_2d(0.0, 0.0) - 0.0).abs() < 1e-12);
+/// assert!((rastrigin_2d(1.0, 1.0) - 2.0).abs() < 1e-12);
+/// ```
 #[must_use]
 pub fn rastrigin_2d(x: f64, y: f64) -> f64 {
     let term_x = x.mul_add(x, 10.0f64.mul_add(-(2.0 * PI * x).cos(), 0.0));
@@ -25,6 +35,11 @@ pub fn rastrigin_2d(x: f64, y: f64) -> f64 {
 }
 
 /// Benchmark function: Rosenbrock 2-D.
+///
+/// ```
+/// # use neural_spring::surrogate::rosenbrock_2d;
+/// assert!((rosenbrock_2d(1.0, 1.0) - 0.0).abs() < 1e-12);
+/// ```
 #[must_use]
 pub fn rosenbrock_2d(x: f64, y: f64) -> f64 {
     let dx = 1.0 - x;
@@ -33,6 +48,11 @@ pub fn rosenbrock_2d(x: f64, y: f64) -> f64 {
 }
 
 /// Benchmark function: Ackley 2-D.
+///
+/// ```
+/// # use neural_spring::surrogate::ackley_2d;
+/// assert!((ackley_2d(0.0, 0.0) - 0.0).abs() < 1e-12);
+/// ```
 #[must_use]
 pub fn ackley_2d(x: f64, y: f64) -> f64 {
     let amplitude = 20.0_f64;
@@ -91,6 +111,30 @@ mod tests {
         assert_relative_eq!(ackley_2d(1.0, 1.0), 3.625_384_938_440_363, epsilon = 1e-12);
         assert_relative_eq!(ackley_2d(2.5, -1.3), 8.772_020_879_614_113, epsilon = 1e-12);
         assert_relative_eq!(ackley_2d(0.5, 0.5), 4.253_654_026_568_412, epsilon = 1e-12);
-        assert_relative_eq!(ackley_2d(-3.0, 2.0), 7.988_910_810_518_700, epsilon = 1e-12);
+        assert_relative_eq!(ackley_2d(-3.0, 2.0), 7.988_910_810_518_7, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn rastrigin_deterministic() {
+        let points = [(1.0, 1.0), (2.5, -1.3), (0.5, 0.5), (-3.0, 2.0)];
+        let run1: Vec<f64> = points.iter().map(|&(x, y)| rastrigin_2d(x, y)).collect();
+        let run2: Vec<f64> = points.iter().map(|&(x, y)| rastrigin_2d(x, y)).collect();
+        assert_eq!(run1, run2, "rastrigin must be bit-identical across runs");
+    }
+
+    #[test]
+    fn rosenbrock_deterministic() {
+        let points = [(1.0, 1.0), (2.5, -1.3), (0.5, 0.5), (-3.0, 2.0)];
+        let run1: Vec<f64> = points.iter().map(|&(x, y)| rosenbrock_2d(x, y)).collect();
+        let run2: Vec<f64> = points.iter().map(|&(x, y)| rosenbrock_2d(x, y)).collect();
+        assert_eq!(run1, run2, "rosenbrock must be bit-identical across runs");
+    }
+
+    #[test]
+    fn ackley_deterministic() {
+        let points = [(1.0, 1.0), (2.5, -1.3), (0.5, 0.5), (-3.0, 2.0)];
+        let run1: Vec<f64> = points.iter().map(|&(x, y)| ackley_2d(x, y)).collect();
+        let run2: Vec<f64> = points.iter().map(|&(x, y)| ackley_2d(x, y)).collect();
+        assert_eq!(run1, run2, "ackley must be bit-identical across runs");
     }
 }

@@ -28,6 +28,7 @@ def load_json(name):
 
 # ── MLP ─────────────────────────────────────────────────────────────
 
+
 def mlp_forward(x, weights, biases):
     hidden = x
     for i in range(len(weights) - 1):
@@ -43,7 +44,7 @@ def bench_mlp():
     x = np.array(b["input"], dtype=np.float32)
     weights = [
         np.array(w, dtype=np.float32).reshape(s)
-        for w, s in zip(b["weights"], b["weight_shapes"])
+        for w, s in zip(b["weights"], b["weight_shapes"], strict=True)
     ]
     biases = [np.array(bi, dtype=np.float32) for bi in b["biases"]]
 
@@ -79,6 +80,7 @@ def bench_mlp():
 
 
 # ── Transformer ──────────────────────────────────────────────────────
+
 
 def layer_norm(t, eps=1e-5):
     mean = t.mean(axis=-1, keepdims=True)
@@ -186,8 +188,8 @@ if __name__ == "__main__":
 
     print("\n" + "=" * 60)
     print("Summary (median):")
-    print(f"  MLP:         {mlp_med:.1f}µs ({1_000_000/mlp_med:.0f} inf/s)")
-    print(f"  Transformer: {tfm_med:.1f}µs ({1_000_000/tfm_med:.0f} blocks/s)")
+    print(f"  MLP:         {mlp_med:.1f}µs ({1_000_000 / mlp_med:.0f} inf/s)")
+    print(f"  Transformer: {tfm_med:.1f}µs ({1_000_000 / tfm_med:.0f} blocks/s)")
     print("=" * 60)
 
     # Machine-readable output for Rust benchmark harness
