@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 #![allow(
     clippy::cast_precision_loss,
@@ -185,5 +185,44 @@ mod tests {
         }
         let mean = sum / f64::from(n);
         assert!(mean.abs() < 0.1, "normal mean={mean}");
+    }
+
+    #[test]
+    fn determinism_rerun_identical() {
+        let run = || {
+            let mut rng = Rng::new(42);
+            (0..100).map(|_| rng.uniform()).collect::<Vec<_>>()
+        };
+        let a = run();
+        let b = run();
+        assert_eq!(
+            a, b,
+            "two runs with same seed must produce identical sequences"
+        );
+    }
+
+    #[test]
+    fn determinism_normal_rerun_identical() {
+        let run = || {
+            let mut rng = Rng::new(42);
+            (0..100).map(|_| rng.normal()).collect::<Vec<_>>()
+        };
+        let a = run();
+        let b = run();
+        assert_eq!(a, b, "normal() must be deterministic");
+    }
+
+    #[test]
+    fn determinism_categorical_rerun_identical() {
+        let run = || {
+            let mut rng = Rng::new(42);
+            let probs = [0.2, 0.3, 0.5];
+            (0..100)
+                .map(|_| rng.categorical(&probs))
+                .collect::<Vec<_>>()
+        };
+        let a = run();
+        let b = run();
+        assert_eq!(a, b, "categorical() must be deterministic");
     }
 }

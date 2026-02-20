@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Meta-validation binary: runs all `validate_*` binaries and aggregates results.
 //!
@@ -38,6 +38,20 @@ const BINARIES: &[&str] = &[
     "validate_barracuda_quantized",
     "validate_barracuda_linalg_ext",
     "validate_barracuda_ml_inference",
+    // BarraCUDA CPU ports (Phase 0++ modules → barracuda math)
+    "validate_barracuda_spectral",
+    "validate_barracuda_anderson",
+    "validate_barracuda_regulatory",
+    "validate_barracuda_signal",
+    "validate_barracuda_hmm",
+    "validate_barracuda_introgression",
+    "validate_barracuda_counterdiabatic",
+    "validate_barracuda_modes",
+    "validate_barracuda_eco",
+    "validate_barracuda_directed",
+    "validate_barracuda_swarm",
+    "validate_barracuda_sate",
+    "validate_barracuda_game",
 ];
 
 fn main() {

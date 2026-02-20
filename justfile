@@ -31,20 +31,40 @@ lint-rust:
 test-python:
     python3 -m pytest tests/ -v --tb=short
 
-# Rust unit tests (42 tests)
+# Rust unit tests (139 unit + 6 doc-tests)
 test-rust:
     cargo test
 
-# All validation binaries (285 checks)
-validate: validate-native validate-barracuda
+# All validation binaries (532 checks across 39 binaries)
+validate: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
 
-# neuralSpring-native (43 checks)
+# neuralSpring quick (3 bins: surrogate, transformer, metrics)
 validate-native:
     cargo run --bin validate_surrogate
     cargo run --bin validate_transformer
     cargo run --bin validate_metrics
 
-# BarraCUDA primitives (CPU slice + unified Tensor/WGSL path)
+# neuralSpring paper validators (13 bins, 167 total native checks)
+validate-native-papers:
+    cargo run --bin validate_counterdiabatic
+    cargo run --bin validate_modes
+    cargo run --bin validate_eco_dynamics
+    cargo run --bin validate_directed_evolution
+    cargo run --bin validate_hmm
+    cargo run --bin validate_game_theory
+    cargo run --bin validate_regulatory_network
+    cargo run --bin validate_signal_integration
+    cargo run --bin validate_swarm_robotics
+    cargo run --bin validate_sate_alignment
+    cargo run --bin validate_introgression
+    cargo run --bin validate_spectral_commutativity
+    cargo run --bin validate_anderson_localization
+
+# Run everything (39 binaries, 532 checks)
+validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
+    @echo "━━━ All 39 validation binaries ━━━"
+
+# BarraCUDA primitives (10 bins, 242 checks)
 validate-barracuda:
     cargo run --bin validate_barracuda_stats
     cargo run --bin validate_barracuda_linalg
@@ -57,6 +77,22 @@ validate-barracuda:
     cargo run --bin validate_barracuda_quantized
     cargo run --bin validate_barracuda_linalg_ext
     cargo run --bin validate_barracuda_ml_inference
+
+# Phase 2: BarraCUDA CPU ports (13 bins, 123 checks)
+validate-barracuda-cpu:
+    cargo run --bin validate_barracuda_spectral
+    cargo run --bin validate_barracuda_anderson
+    cargo run --bin validate_barracuda_regulatory
+    cargo run --bin validate_barracuda_signal
+    cargo run --bin validate_barracuda_hmm
+    cargo run --bin validate_barracuda_introgression
+    cargo run --bin validate_barracuda_counterdiabatic
+    cargo run --bin validate_barracuda_modes
+    cargo run --bin validate_barracuda_eco
+    cargo run --bin validate_barracuda_directed
+    cargo run --bin validate_barracuda_swarm
+    cargo run --bin validate_barracuda_sate
+    cargo run --bin validate_barracuda_game
 
 # ML inference validation only (MLP + Transformer)
 validate-ml:
@@ -105,7 +141,7 @@ bench-fused:
     @echo "── Fused Pipeline: GPU ──"
     NEURALSPRING_BACKEND=gpu cargo run --release --bin bench_fused_inference
 
-# Full Python baseline suite (75/75, ~6 min)
+# Full Python baseline suite (190/190, ~10 min)
 baselines:
     bash scripts/run_all_baselines.sh
 

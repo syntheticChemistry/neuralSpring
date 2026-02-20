@@ -2,7 +2,7 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Working draft — Phase 0++ complete
+**Status**: Working draft — Phase 2 complete
 **Date**: February 20, 2026
 **License**: AGPL-3.0-or-later
 
@@ -59,8 +59,8 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 190/190 Python PASS (48 synthetic + 31 scholarly + 111 paper reproductions)
-**Phase 1**: 409/409 Rust validation PASS (167 native + 242 BarraCUDA)
-**Grand Total**: 599/599 PASS
+**Phase 1**: 532/532 Rust validation PASS (167 native + 242 BarraCUDA primitives + 123 CPU ports)
+**Grand Total**: 722/722 PASS
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
@@ -71,6 +71,7 @@ WGSL serves every domain.
 | 1b | BarraCUDA validation — 242 checks (10 domains) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
+| 2 | BarraCUDA CPU ports — 13 modules, 123 checks | **Complete** |
 
 #### 3-Way Benchmark Highlights (Phase 1d)
 
@@ -148,6 +149,28 @@ See [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) for the full technical narr
 
 ---
 
+### Phase 2 — BarraCUDA CPU Port Findings
+
+All 13 Phase 0++ modules ported to BarraCUDA CPU math, proving the
+hand-rolled Rust math is reproducible via BarraCUDA's pure-Rust primitives:
+
+| Primitive | Modules Using It | Precision Finding |
+|-----------|-----------------|-------------------|
+| `rk45_solve` | regulatory, signal, game | Machine-precision agreement with hand-rolled RK4 |
+| `eigh_f64` | spectral, anderson | ~1e-3 at n=8, ~0.1 at n=16 — Jacobi eigensolver accuracy gap |
+| `solve_f64` | hmm, swarm | Machine precision for linear systems |
+| `chi_squared_sf` | introgression | Correctly reproduces LRT p-values |
+| `stats::variance` | all 13 modules | Cross-validates hand-rolled statistics |
+| `pearson_correlation` | modes | Validates complexity trend analysis |
+
+**Key discovery:** BarraCUDA's Jacobi eigensolver (`eigh_f64`) has a
+significant accuracy gap at n≥8. This is flagged as the #1 ToadStool
+handoff item — a GPU-accelerated Lanczos or divide-and-conquer eigensolver
+would resolve this for both hotSpring (nuclear physics) and neuralSpring
+(spectral analysis).
+
+---
+
 ### BarraCUDA Evolution Opportunities from Phase 0++
 
 The Phase 0++ papers reveal new algorithmic patterns that could benefit from
@@ -211,7 +234,7 @@ BarraCUDA GPU acceleration:
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Phase 1 Rust validation (409/409)
+# Rust validation (532/532)
 cargo test
 make validate
 
@@ -221,13 +244,12 @@ cargo run --release --bin bench_scaling
 
 ---
 
-### Next Phase: BarraCUDA CPU Evolution
+### Next Phase: BarraCUDA GPU Evolution
 
-With all 23 papers validated in Python and Rust, the next evolution step is
-**BarraCUDA CPU implementations**: pure Rust math matching Python baselines,
-proving the math is portable without an interpreter. Then **BarraCUDA GPU
-acceleration** via ToadStool's unidirectional streaming, massively reducing
-dispatch and round-trips.
+Phase 2 (BarraCUDA CPU ports) is complete: all 13 Phase 0++ modules validated
+against BarraCUDA CPU math primitives (123 checks). The next step is
+**BarraCUDA GPU acceleration** via ToadStool's unidirectional streaming,
+massively reducing dispatch and round-trips.
 
 Priority targets for GPU promotion:
 1. **HMM forward/backward** (Papers 016–018) — GEMM chain, direct port
@@ -238,5 +260,5 @@ Priority targets for GPU promotion:
 
 ---
 
-*23 papers. 5 disciplines. 4 faculty. 190 Python + 409 Rust = 599 total checks.
-All green. Paper queue cleared. Ready for BarraCUDA CPU evolution.*
+*23 papers. 5 disciplines. 4 faculty. 190 Python + 532 Rust = 722 total checks.
+All green. Paper queue cleared. Phase 2 complete. Ready for BarraCUDA GPU evolution.*

@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
 **Last Updated**: February 20, 2026
-**Status**: Phase 0/0+/0++ complete (190/190 Python) + Phase 1 complete (409/409 Rust: 167 native + 242 BarraCUDA)
+**Status**: Phase 0/0+/0++ complete (190/190 Python) + Phase 1–2 complete (532/532 Rust: 167 native + 242 BarraCUDA primitives + 123 BarraCUDA CPU ports)
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---

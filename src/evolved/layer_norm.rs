@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! GPU-resident layer normalization — no round-trip.
 //!
@@ -195,5 +195,74 @@ const fn bgl_uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
             min_binding_size: None,
         },
         count: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::cast_precision_loss, clippy::expect_used)]
+
+    use super::*;
+
+    fn cpu_layer_norm(data: &[f32], feature_size: usize, epsilon: f32) -> Vec<f32> {
+        let mut out = data.to_vec();
+        for batch in out.chunks_exact_mut(feature_size) {
+            let mean: f32 = batch.iter().sum::<f32>() / feature_size as f32;
+            let var: f32 =
+                batch.iter().map(|x| (x - mean) * (x - mean)).sum::<f32>() / feature_size as f32;
+            let inv_std = 1.0 / (var + epsilon).sqrt();
+            for x in batch.iter_mut() {
+                *x = (*x - mean) * inv_std;
+            }
+        }
+        out
+    }
+
+    #[tokio::test]
+    async fn layer_norm_matches_cpu_reference() {
+        let Ok(gpu) = Gpu::new().await else { return };
+
+        let input = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let shape = vec![2, 4];
+        let epsilon = 1e-5_f32;
+
+        let input_buf = gpu
+            .upload_f32(&input)
+            .expect("upload_f32 should succeed for test data");
+        let result = layer_norm(&gpu, &input_buf, &shape, epsilon)
+            .expect("layer_norm dispatch should succeed");
+        let output = result.readback(&gpu).expect("readback should succeed");
+
+        let expected = cpu_layer_norm(&input, 4, epsilon);
+        for (i, (got, want)) in output.iter().zip(expected.iter()).enumerate() {
+            assert!(
+                (got - want).abs() < 1e-3,
+                "element {i}: got {got}, want {want}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn layer_norm_output_has_correct_shape() {
+        let Ok(gpu) = Gpu::new().await else { return };
+
+        let input = vec![0.0_f32; 12];
+        let shape = vec![3, 4];
+        let input_buf = gpu.upload_f32(&input).expect("upload_f32 should succeed");
+        let result = layer_norm(&gpu, &input_buf, &shape, 1e-5).expect("layer_norm should succeed");
+
+        assert_eq!(result.shape, vec![3, 4]);
+        assert_eq!(result.count, 12);
+    }
+
+    #[test]
+    fn layer_norm_rejects_empty_shape() {
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let Ok(gpu) = Gpu::new().await else { return };
+            let buf = gpu.create_buffer_f32(4).expect("buf");
+            let result = layer_norm(&gpu, &buf, &[], 1e-5);
+            assert!(result.is_err());
+        });
     }
 }

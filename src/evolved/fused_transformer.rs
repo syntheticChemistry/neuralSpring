@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Fused Transformer encoder block — single encoder, single submit.
 //!
@@ -660,5 +660,66 @@ impl FusedTransformer {
         );
 
         enc
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use barracuda::device::WgpuDevice;
+    use std::sync::Arc;
+
+    fn test_device() -> Option<Dev> {
+        let rt = tokio::runtime::Runtime::new().ok()?;
+        rt.block_on(async { WgpuDevice::new().await.ok().map(|d| Arc::new(d) as Dev) })
+    }
+
+    #[test]
+    fn transformer_dims_helpers() {
+        let cfg = TransformerDims {
+            seq_len: 8,
+            d_model: 32,
+            n_heads: 4,
+            d_ff: 64,
+            epsilon: 1e-5,
+        };
+        assert_eq!(cfg.d_head(), 8);
+        assert_eq!(cfg.sd(), 256);
+    }
+
+    #[test]
+    fn fused_transformer_output_shape() {
+        let Some(device) = test_device() else { return };
+
+        let cfg = TransformerDims {
+            seq_len: 4,
+            d_model: 8,
+            n_heads: 2,
+            d_ff: 16,
+            epsilon: 1e-5,
+        };
+        let sd = cfg.sd();
+        let d = cfg.d_model;
+        let d_ff = cfg.d_ff;
+
+        let weights = TransformerWeightsRef {
+            w_q: &vec![0.01_f32; d * d],
+            w_k: &vec![0.01_f32; d * d],
+            w_v: &vec![0.01_f32; d * d],
+            w_o: &vec![0.01_f32; d * d],
+            w_ff1: &vec![0.01_f32; d * d_ff],
+            b_ff1: &vec![0.0_f32; d_ff],
+            w_ff2: &vec![0.01_f32; d_ff * d],
+            b_ff2: &vec![0.0_f32; d],
+        };
+
+        let tf = FusedTransformer::new(device, &weights, cfg);
+        let input = vec![0.5_f32; sd];
+        let output = tf.forward(&input);
+
+        assert_eq!(output.len(), sd);
+        for (i, &v) in output.iter().enumerate() {
+            assert!(v.is_finite(), "output element {i} is not finite: {v}");
+        }
     }
 }

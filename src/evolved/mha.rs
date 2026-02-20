@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Locally evolved Multi-Head Attention.
 //!
@@ -113,4 +113,70 @@ fn head_concat(
     }
 
     Tensor::from_data(&out, vec![seq, d_model], device.clone())
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::*;
+
+    fn test_device() -> Option<Dev> {
+        let rt = tokio::runtime::Runtime::new().ok()?;
+        rt.block_on(async { WgpuDevice::new().await.ok().map(|d| Arc::new(d) as Dev) })
+    }
+
+    #[test]
+    fn head_split_concat_roundtrip() {
+        let Some(device) = test_device() else { return };
+
+        let seq = 4;
+        let heads = 2;
+        let d_head = 3;
+        let d_model = heads * d_head;
+        #[allow(clippy::cast_precision_loss)]
+        let data: Vec<f32> = (0..seq * d_model).map(|i| i as f32).collect();
+
+        let flat = Tensor::from_data(&data, vec![seq, d_model], device.clone()).expect("from_data");
+        let split = head_split(&flat, seq, heads, d_head, &device).expect("head_split");
+        assert_eq!(split.shape(), &[1, heads, seq, d_head]);
+
+        let reconstructed = head_concat(&split, seq, heads, d_head, &device).expect("head_concat");
+        assert_eq!(reconstructed.shape(), &[seq, d_model]);
+
+        let out = reconstructed.to_vec().expect("to_vec");
+        for (i, (&got, &want)) in out.iter().zip(data.iter()).enumerate() {
+            assert!(
+                (got - want).abs() < 1e-6,
+                "roundtrip mismatch at {i}: got {got}, want {want}"
+            );
+        }
+    }
+
+    #[test]
+    fn head_split_layout_is_correct() {
+        let Some(device) = test_device() else { return };
+
+        let seq = 2;
+        let heads = 2;
+        let d_head = 2;
+        let d_model = heads * d_head;
+        // [seq=2, d_model=4]: row0=[0,1,2,3], row1=[4,5,6,7]
+        #[allow(clippy::cast_precision_loss)]
+        let data: Vec<f32> = (0..8).map(|i| i as f32).collect();
+
+        let flat = Tensor::from_data(&data, vec![seq, d_model], device.clone()).expect("from_data");
+        let split = head_split(&flat, seq, heads, d_head, &device).expect("head_split");
+        let out = split.to_vec().expect("to_vec");
+
+        // head 0: seq0=[0,1], seq1=[4,5] → [0,1,4,5]
+        // head 1: seq0=[2,3], seq1=[6,7] → [2,3,6,7]
+        let expected = [0.0, 1.0, 4.0, 5.0, 2.0, 3.0, 6.0, 7.0];
+        for (i, (&got, &want)) in out.iter().zip(expected.iter()).enumerate() {
+            assert!(
+                (got - want).abs() < 1e-6,
+                "split layout at {i}: got {got}, want {want}"
+            );
+        }
+    }
 }

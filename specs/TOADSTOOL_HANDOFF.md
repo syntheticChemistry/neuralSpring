@@ -254,3 +254,71 @@ too small to amortize launch latency.
 | MLP large (3.1M) | 3.0 ms | **2.7 ms** | **178 µs** | **1.1× faster** | 16.8× |
 | TF medium (103M) | 59 ms | **15.1 ms** | **566 µs** | **3.9× faster** | 104× |
 | TF xlarge (6.6B) | 232 ms | 1.42 s | **17.8 ms** | — | **13.1× faster** |
+
+---
+
+## Phase 2 — BarraCUDA CPU Port Findings
+
+**Date**: February 20, 2026
+**Status**: All 13 Phase 0++ modules ported to BarraCUDA CPU math. 123/123 checks PASS.
+
+### Primitives Validated
+
+| Primitive | Modules | Precision | Status |
+|-----------|---------|-----------|--------|
+| `numerical::rk45_solve` | regulatory, signal, game | Machine ε | **Excellent** — direct RK4 replacement |
+| `linalg::solve_f64` | hmm, swarm | Machine ε | **Excellent** — stationary distributions |
+| `linalg::eigh_f64` | spectral, anderson | ~1e-3 (n=8) | **Accuracy gap** — see below |
+| `special::chi_squared_sf` | introgression | 1e-10 | **Excellent** — LRT p-values |
+| `stats::variance` | all 13 modules | Machine ε | **Excellent** — cross-validation |
+| `stats::pearson_correlation` | modes | Machine ε | **Excellent** — trend analysis |
+
+### Critical: eigh_f64 Accuracy Gap (S-12)
+
+| Matrix Size | Reconstruction Error | Eigenvalue Error | LAPACK Reference |
+|------------|---------------------|-----------------|-----------------|
+| n=4 | ~1e-6 | ~1e-8 | 1e-14 |
+| n=8 | ~1e-3 | ~1e-5 | 1e-14 |
+| n=16 | ~0.01 | ~0.1 | 1e-14 |
+| n=32 | ~0.7 | ~0.5 | 1e-14 |
+
+**Root cause**: Jacobi iteration converges slowly for larger matrices.
+LAPACK uses Householder tridiagonalization + QR iteration (O(n²) per eigenvalue).
+
+**Impact**: Papers 022 (spectral commutativity) and 023 (Anderson localization)
+require relaxed tolerances. All physical phenomena still detectable.
+
+**Suggested fix**: Implement Householder → tridiagonal → bisection eigensolver
+in BarraCUDA. ToadStool's NAK eigensolve (`batched_eigh_nak_optimized_f64.wgsl`)
+may already address this on GPU — needs cross-validation.
+
+### Absorption Candidates
+
+These neuralSpring evolutions are ready for ToadStool absorption:
+
+| Module | Lines | What It Does | ToadStool Target |
+|--------|-------|-------------|-----------------|
+| `evolved::fused_pipeline` | 520 | Single-encoder dispatch, shader cache | `StatefulPipeline` extension |
+| `evolved::fused_mlp` | 180 | Fused MLP inference pipeline | ML op batching |
+| `evolved::fused_transformer` | 290 | Fused Transformer inference | ML op batching |
+| `evolved::matmul_cpu_tiled.wgsl` | 263 | CPU tiled matmul | `KernelRouter` shader |
+| `evolved::matmul_gpu_evolved.wgsl` | 302 | GPU tiled matmul | `KernelRouter` shader |
+| `evolved::layer_norm` | 120 | GPU-resident LN (no round-trip) | `ops::layer_norm_wgsl` fix |
+| `evolved::log_softmax` | 110 | GPU-resident log-softmax | `ops::log_softmax_wgsl` fix |
+| `evolved::mha` | 190 | MHA dispatch workaround | `ops::mha` z-dispatch fix |
+
+Total: ~1975 LOC that can be retired once ToadStool absorbs.
+
+### New BarraCUDA Primitives Suggested
+
+From the Phase 0++ paper analysis, these new primitives would benefit
+both neuralSpring and other Springs:
+
+| Primitive | Use Case | Papers |
+|-----------|----------|--------|
+| `linalg::batch_matmul` | HMM forward/backward chain | 016–018 |
+| `ea::batch_fitness` | Population-parallel fitness evaluation | 011–015 |
+| `numerical::batch_rk45` | Multi-system ODE integration | 020–021 |
+| `linalg::pairwise_distance` | O(N²) distance matrix | 017 |
+| `ea::tournament_select` | GPU-parallel tournament selection | 011–015 |
+| `stencil::neighborhood_scan` | Spatial cooperation model | 019 |

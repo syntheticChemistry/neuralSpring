@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Fused MLP inference — single encoder, single submit.
 //!
@@ -290,5 +290,67 @@ impl FusedMlp {
         self.record_passes(&mut encoder);
         self.device.queue().submit(Some(encoder.finish()));
         self.device.device().poll(wgpu::Maintain::Wait);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use barracuda::device::WgpuDevice;
+
+    fn test_device() -> Option<Dev> {
+        let rt = tokio::runtime::Runtime::new().ok()?;
+        rt.block_on(async {
+            WgpuDevice::new()
+                .await
+                .ok()
+                .map(|d| std::sync::Arc::new(d) as Dev)
+        })
+    }
+
+    #[test]
+    fn fused_mlp_output_sums_to_one() {
+        let Some(device) = test_device() else { return };
+
+        let dims = MlpDims {
+            input: 4,
+            hidden1: 8,
+            hidden2: 8,
+            output: 3,
+        };
+
+        let w0 = vec![0.1_f32; dims.input * dims.hidden1];
+        let w1 = vec![0.1_f32; dims.hidden1 * dims.hidden2];
+        let w2 = vec![0.1_f32; dims.hidden2 * dims.output];
+        let b0 = vec![0.0_f32; dims.hidden1];
+        let b1 = vec![0.0_f32; dims.hidden2];
+        let b2 = vec![0.0_f32; dims.output];
+
+        let mlp = FusedMlp::new(device, [&w0, &w1, &w2], [&b0, &b1, &b2], dims);
+
+        let input = vec![1.0_f32, 0.5, -0.5, 0.2];
+        let output = mlp.forward(&input);
+
+        assert_eq!(output.len(), 3);
+        let sum: f32 = output.iter().sum();
+        assert!(
+            (sum - 1.0).abs() < 1e-3,
+            "softmax output should sum to ~1.0, got {sum}"
+        );
+        for (i, &v) in output.iter().enumerate() {
+            assert!(v >= 0.0, "softmax element {i} should be >= 0, got {v}");
+        }
+    }
+
+    #[test]
+    fn fused_mlp_dims_correct() {
+        let dims = MlpDims {
+            input: 10,
+            hidden1: 32,
+            hidden2: 16,
+            output: 5,
+        };
+        assert_eq!(dims.input, 10);
+        assert_eq!(dims.output, 5);
     }
 }

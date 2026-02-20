@@ -252,3 +252,71 @@ jobs:
 
       - name: Validate barracuda ml_inference (13 checks)
         run: cargo run --bin validate_barracuda_ml_inference
+
+  validate-barracuda-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout ecoPrimals (barracuda dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ecoPrimals
+          path: ../phase1/toadstool
+          sparse-checkout: crates/barracuda
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
+
+      - name: Validate barracuda spectral (10 checks)
+        run: cargo run --bin validate_barracuda_spectral
+
+      - name: Validate barracuda anderson (7 checks)
+        run: cargo run --bin validate_barracuda_anderson
+
+      - name: Validate barracuda regulatory (6 checks)
+        run: cargo run --bin validate_barracuda_regulatory
+
+      - name: Validate barracuda signal (14 checks)
+        run: cargo run --bin validate_barracuda_signal
+
+      - name: Validate barracuda hmm (14 checks)
+        run: cargo run --bin validate_barracuda_hmm
+
+      - name: Validate barracuda introgression (11 checks)
+        run: cargo run --bin validate_barracuda_introgression
+
+      - name: Validate barracuda counterdiabatic (7 checks)
+        run: cargo run --bin validate_barracuda_counterdiabatic
+
+      - name: Validate barracuda modes (7 checks)
+        run: cargo run --bin validate_barracuda_modes
+
+      - name: Validate barracuda eco (6 checks)
+        run: cargo run --bin validate_barracuda_eco
+
+      - name: Validate barracuda directed (7 checks)
+        run: cargo run --bin validate_barracuda_directed
+
+      - name: Validate barracuda swarm (10 checks)
+        run: cargo run --bin validate_barracuda_swarm
+
+      - name: Validate barracuda sate (6 checks)
+        run: cargo run --bin validate_barracuda_sate
+
+      - name: Validate barracuda game (5 checks)
+        run: cargo run --bin validate_barracuda_game

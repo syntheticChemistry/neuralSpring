@@ -5,7 +5,7 @@
 #         make lint     — lint + format check
 #         make baselines — full Python suite (~6 min)
 
-.PHONY: check lint test validate validate-native validate-barracuda validate-ml validate-tensor-cpu validate-tensor-gpu validate-tensor-all bench-tensor bench-tensor-compare bench-ml bench-fused baselines lint-python lint-rust test-python test-rust fix fmt coverage
+.PHONY: check lint test validate validate-native validate-native-papers validate-all validate-barracuda validate-barracuda-cpu validate-ml validate-tensor-cpu validate-tensor-gpu validate-tensor-all bench-tensor bench-tensor-compare bench-ml bench-fused baselines lint-python lint-rust test-python test-rust fix fmt coverage
 
 check: lint test validate
 	@echo ""
@@ -30,12 +30,30 @@ test-python:
 test-rust:
 	cargo test
 
-validate: validate-native validate-barracuda
+validate: validate-all
 
 validate-native:
 	cargo run --bin validate_surrogate
 	cargo run --bin validate_transformer
 	cargo run --bin validate_metrics
+
+validate-native-papers:
+	cargo run --bin validate_counterdiabatic
+	cargo run --bin validate_modes
+	cargo run --bin validate_eco_dynamics
+	cargo run --bin validate_directed_evolution
+	cargo run --bin validate_hmm
+	cargo run --bin validate_game_theory
+	cargo run --bin validate_regulatory_network
+	cargo run --bin validate_signal_integration
+	cargo run --bin validate_swarm_robotics
+	cargo run --bin validate_sate_alignment
+	cargo run --bin validate_introgression
+	cargo run --bin validate_spectral_commutativity
+	cargo run --bin validate_anderson_localization
+
+validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
+	@echo "━━━ All 39 validation binaries ━━━"
 
 validate-barracuda:
 	cargo run --bin validate_barracuda_stats
@@ -49,6 +67,21 @@ validate-barracuda:
 	cargo run --bin validate_barracuda_quantized
 	cargo run --bin validate_barracuda_linalg_ext
 	cargo run --bin validate_barracuda_ml_inference
+
+validate-barracuda-cpu:
+	cargo run --bin validate_barracuda_spectral
+	cargo run --bin validate_barracuda_anderson
+	cargo run --bin validate_barracuda_regulatory
+	cargo run --bin validate_barracuda_signal
+	cargo run --bin validate_barracuda_hmm
+	cargo run --bin validate_barracuda_introgression
+	cargo run --bin validate_barracuda_counterdiabatic
+	cargo run --bin validate_barracuda_modes
+	cargo run --bin validate_barracuda_eco
+	cargo run --bin validate_barracuda_directed
+	cargo run --bin validate_barracuda_swarm
+	cargo run --bin validate_barracuda_sate
+	cargo run --bin validate_barracuda_game
 
 validate-tensor-cpu:
 	NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor

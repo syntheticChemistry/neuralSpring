@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! 4-way ML inference benchmark: Python/NumPy, `BarraCUDA` per-op,
 //! `BarraCUDA` fused CPU, `BarraCUDA` fused GPU.

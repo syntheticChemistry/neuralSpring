@@ -40,7 +40,7 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 190/190 Python PASS + 409/409 Rust PASS
+## Current Status: 190/190 Python PASS + 532/532 Rust PASS
 
 ### Phase 0 — Synthetic Baselines (48/48)
 
@@ -80,11 +80,34 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 | 022: Spectral Commutativity | Kachkovskiy & Safarov (2016) JAMS | 8/8 | Skip connections reduce commutativity distance |
 | 023: Anderson Localization | Bourgain & Kachkovskiy (2018) GAFA | 8/8 | Disorder → localization transition |
 
-### Rust Validation (167 native + 242 BarraCUDA = 409 PASS)
+### Rust Validation (167 native + 242 BarraCUDA primitives + 123 BarraCUDA CPU ports = 532 PASS)
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, hardcoded expected values, explicit
 pass/fail exit codes, centralized tolerances.
+
+### Phase 2 — BarraCUDA CPU Ports (123/123)
+
+All 13 Phase 0++ modules validated against BarraCUDA CPU math primitives:
+
+| Binary | Paper | BarraCUDA Primitives | Checks |
+|--------|-------|---------------------|--------|
+| `validate_barracuda_spectral` | 022 | `linalg::eigh_f64` | 10/10 |
+| `validate_barracuda_anderson` | 023 | `linalg::eigh_f64` | 7/7 |
+| `validate_barracuda_regulatory` | 020 | `numerical::rk45_solve` | 6/6 |
+| `validate_barracuda_signal` | 021 | `numerical::rk45_solve` | 14/14 |
+| `validate_barracuda_hmm` | 016 | `stats::variance`, `linalg::solve_f64` | 14/14 |
+| `validate_barracuda_introgression` | 018 | `special::chi_squared_sf/cdf` | 11/11 |
+| `validate_barracuda_counterdiabatic` | 011 | `stats::variance` | 7/7 |
+| `validate_barracuda_modes` | 012 | `stats::variance`, `pearson_correlation` | 7/7 |
+| `validate_barracuda_eco` | 013 | `stats::variance` | 6/6 |
+| `validate_barracuda_directed` | 014 | `stats::variance` | 7/7 |
+| `validate_barracuda_swarm` | 015 | `linalg::solve_f64`, `stats::variance` | 10/10 |
+| `validate_barracuda_sate` | 017 | `stats::variance` | 6/6 |
+| `validate_barracuda_game` | 019 | `numerical::rk45_solve`, `stats::variance` | 5/5 |
+
+Key finding: `rk45_solve` achieves machine-precision agreement with hand-rolled RK4.
+`eigh_f64` has documented accuracy gap (~1e-3 at n=8) — flagged for ToadStool eigensolver upgrade.
 
 ### 3-Way Benchmark: Python vs BarraCUDA CPU vs GPU
 
@@ -122,11 +145,12 @@ bash scripts/run_all_baselines.sh
 pip install pytest
 python3 -m pytest tests/ -v
 
-# Rust validation (109 unit + 6 doc-tests + 409 binary checks)
+# Rust validation (139 unit + 6 doc-tests + 532 binary checks)
 cargo test
-make validate              # all 26 validation binaries
-make validate-native       # neuralSpring: 16 binaries (167 checks)
+make validate              # all 39 validation binaries
+make validate-native       # neuralSpring: 3 quick binaries (surrogate, transformer, metrics)
 make validate-barracuda    # BarraCUDA: 10 binaries (242 checks)
+make validate-barracuda-cpu  # Phase 2: 13 BarraCUDA CPU port binaries (123 checks)
 
 # Benchmark fused pipeline (CPU + GPU)
 make bench-fused
@@ -189,7 +213,8 @@ Formal handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_HANDOFF_FEB20_2026
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (242 checks — 10 domains including ML inference)
 - **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
-- **Phase 2**: BarraCUDA CPU implementations for Phase 0++ — pure Rust math matching Python baselines
+- **Phase 2**: BarraCUDA CPU implementations for Phase 0++ — **COMPLETE** (123 checks)
+- **Phase 2a**: metalForge hardware characterization — dispatch, cache, bandwidth profiling
 - **Phase 3**: BarraCUDA GPU acceleration — ToadStool unidirectional streaming
 - **Phase 4**: Cross-spring integration — live surrogate for Penny Irrigation
 
@@ -203,13 +228,14 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 190/190 PASS |
-| Rust tests | `cargo test` | 109 unit + 6 doc-tests PASS |
+| Rust tests | `cargo test` | 139 unit + 6 doc-tests PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery) |
 | Rust coverage | `make coverage` | Target ≥90% (llvm-cov) |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
-| neuralSpring validate | `make validate-native` | 167/167 PASS |
-| BarraCUDA validate | `make validate-barracuda` | 242/242 PASS |
+| neuralSpring validate | `make validate-native validate-native-papers` | 167/167 PASS |
+| BarraCUDA validate | `make validate-barracuda validate-barracuda-cpu` | 365/365 PASS (242 primitives + 123 CPU ports) |
+| BarraCUDA CPU ports | `make validate-barracuda-cpu` | 123/123 PASS |
 
 CI: `.github/workflows/baselines.yml` (Python) + `.github/workflows/rust.yml` (Rust + coverage)
 
@@ -266,7 +292,7 @@ neuralSpring/
 │   ├── signal_integration.rs   #   Two-input Hill AND gate
 │   ├── spectral_commutativity.rs # Commutator, distance to normal
 │   ├── anderson_localization.rs  # Aubry-André model, IPR, Jacobi eigensolver
-│   └── bin/                    #   Validation binaries (26 total)
+│   └── bin/                    #   Validation binaries (39 total)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
 │       ├── validate_metrics.rs             # 10 checks
@@ -283,9 +309,9 @@ neuralSpring/
 │       ├── validate_introgression.rs       # 13 checks
 │       ├── validate_spectral_commutativity.rs # 8 checks
 │       ├── validate_anderson_localization.rs  # 8 checks
-│       ├── validate_barracuda_*.rs         # 10 BarraCUDA binaries (242 checks)
+│       ├── validate_barracuda_*.rs         # 10 BarraCUDA primitives (242 checks) + 13 CPU ports (123 checks)
 │       ├── bench_fused_inference.rs        # Fused pipeline 4-way benchmark
-│       └── validate_all.rs                 # Meta-binary: runs all 26 validators
+│       └── validate_all.rs                 # Meta-binary: runs all 39 validators
 │   ├── evolved/                #   Locally evolved BarraCUDA ops
 │       ├── fused_pipeline.rs        # ShaderCache + shader router + fused dispatch
 │       ├── fused_mlp.rs             # Fused MLP (9 passes, 1 submit)
@@ -296,6 +322,7 @@ neuralSpring/
 │       ├── layer_norm.rs            # GPU-resident layer norm
 │       └── log_softmax.rs           # GPU-resident log-softmax
 ├── tests/                      # Python unit tests (pytest)
+├── metalForge/                 # Hardware characterization (following hotSpring pattern)
 ├── specs/                      # Specifications & tracking
 │   ├── EVOLUTION_MAPPING.md    #   Python → Rust → GPU mapping
 │   ├── DATA_PROVENANCE.md      #   Dataset sources & licenses
@@ -308,7 +335,7 @@ neuralSpring/
 │   └── run_all_baselines.sh    #   Orchestrates all 23 Python runs
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
-│   └── rust.yml                #   Rust test + clippy + validate (26 binaries)
+│   └── rust.yml                #   Rust test + clippy + validate (39 binaries)
 ├── Cargo.toml                  # Rust manifest
 ├── Makefile                    # Task runner
 ├── justfile                    # Task runner alt (just)
@@ -334,4 +361,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Phase 0++ complete: February 20, 2026 | 23 papers, 190 Python + 409 Rust = 599 total checks | Paper queue cleared — ready for BarraCUDA CPU evolution*
+*Initialized: February 16, 2026 | Phase 0++ complete: February 20, 2026 | 23 papers, 190 Python + 532 Rust = 722 total checks | BarraCUDA CPU ports complete — ready for GPU evolution*

@@ -147,6 +147,60 @@ path = "src/bin/validate_barracuda_tensor_f64.rs"
 name = "validate_barracuda_ml_inference"
 path = "src/bin/validate_barracuda_ml_inference.rs"
 
+# --- BarraCUDA CPU Ports (Phase 0++ algorithms via barracuda primitives) ---
+
+[[bin]]
+name = "validate_barracuda_spectral"
+path = "src/bin/validate_barracuda_spectral.rs"
+
+[[bin]]
+name = "validate_barracuda_anderson"
+path = "src/bin/validate_barracuda_anderson.rs"
+
+[[bin]]
+name = "validate_barracuda_regulatory"
+path = "src/bin/validate_barracuda_regulatory.rs"
+
+[[bin]]
+name = "validate_barracuda_signal"
+path = "src/bin/validate_barracuda_signal.rs"
+
+[[bin]]
+name = "validate_barracuda_hmm"
+path = "src/bin/validate_barracuda_hmm.rs"
+
+[[bin]]
+name = "validate_barracuda_introgression"
+path = "src/bin/validate_barracuda_introgression.rs"
+
+[[bin]]
+name = "validate_barracuda_counterdiabatic"
+path = "src/bin/validate_barracuda_counterdiabatic.rs"
+
+[[bin]]
+name = "validate_barracuda_modes"
+path = "src/bin/validate_barracuda_modes.rs"
+
+[[bin]]
+name = "validate_barracuda_eco"
+path = "src/bin/validate_barracuda_eco.rs"
+
+[[bin]]
+name = "validate_barracuda_directed"
+path = "src/bin/validate_barracuda_directed.rs"
+
+[[bin]]
+name = "validate_barracuda_swarm"
+path = "src/bin/validate_barracuda_swarm.rs"
+
+[[bin]]
+name = "validate_barracuda_sate"
+path = "src/bin/validate_barracuda_sate.rs"
+
+[[bin]]
+name = "validate_barracuda_game"
+path = "src/bin/validate_barracuda_game.rs"
+
 # --- Benchmark ---
 
 [[bin]]

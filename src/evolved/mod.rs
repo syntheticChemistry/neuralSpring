@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Locally evolved GPU-resident ops.
+//! Locally evolved GPU-resident ops — absorption candidates for `ToadStool`.
 //!
 //! These replace barracuda ops that break streaming with GPU→CPU→GPU
 //! round-trips (via `read_buffer`).  Each evolved op:
@@ -10,23 +10,27 @@
 //! - Returns `wgpu::Buffer` output (stays on GPU)
 //! - Only reads back on explicit request
 //!
-//! ## `ToadStool` alignment (reviewed `82f953c8`, Feb 19, 2026)
+//! ## Absorption status (Feb 20, 2026)
 //!
-//! `ToadStool` has evolved significantly (80+ commits since Feb 15): wgpu v22
-//! migration, `WORKGROUP_SIZE_1D`/`WORKGROUP_SIZE_2D` constants,
-//! `GpuDriverProfile` for data-driven shader specialization, concurrency
-//! hardening, and deep-debt compliance.  We now import these primitives.
+//! These ~2075 LOC are **ready for `ToadStool` absorption**. Each module maps
+//! to a specific shortcoming in `specs/TOADSTOOL_HANDOFF.md` and retires when
+//! the upstream fix lands.  hotSpring follows the same pattern: evolve locally,
+//! document in `wateringHole/handoffs/`, `ToadStool` absorbs at their pace.
 //!
-//! **All 11 neuralSpring handoff items remain pending** in `ToadStool`.  Until
-//! they are absorbed, these evolutions cannot be retired:
+//! | Module | LOC | Shortcoming | `ToadStool` Target |
+//! |--------|-----|-------------|-------------------|
+//! | `fused_pipeline` | 520 | S-01 per-op dispatch | `StatefulPipeline` extension |
+//! | `fused_mlp` | 180 | S-01 per-op dispatch | ML op batching |
+//! | `fused_transformer` | 290 | S-01 per-op dispatch | ML op batching |
+//! | `matmul_cpu_tiled.wgsl` | 263 | S-02 naive matmul | `KernelRouter` shader |
+//! | `matmul_gpu_evolved.wgsl` | 302 | S-02 naive matmul | `KernelRouter` shader |
+//! | `layer_norm` | 120 | S-08 round-trip | `Tensor::from_buffer` pub |
+//! | `log_softmax` | 110 | S-09 round-trip | `Tensor::from_buffer` pub |
+//! | `mha` | 190 | S-03 z-dispatch bug | z-dim fix |
 //!
-//! - `Tensor::from_buffer` still `pub(crate)` — blocks #1, #2, #3
-//! - Per-op command submission still present — blocks #4, #10
-//! - `science_limits()` still 512 MB — blocks #5
-//! - `leaky_relu` / `elu` params still mismatched — blocks #6, #7
-//! - MHA z-dispatch still buggy — blocks #8
-//! - Softmax `arrayLength` on pooled buffers — blocks #9
-//! - 4-tier shader router not absorbed — blocks #11
+//! **All 11 neuralSpring handoff items remain pending** in `ToadStool` (+S-12
+//! `eigh_f64` accuracy gap from Phase 2 CPU ports).  Until absorbed, these
+//! evolutions cannot be retired.
 
 pub mod fused_mlp;
 pub mod fused_pipeline;

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Fused GPU pipeline infrastructure — single-encoder dispatch.
 //!
@@ -590,4 +590,91 @@ pub const fn attention_dispatch(d_head: u32, seq_len: u32, n_heads: u32) -> (u32
         seq_len.div_ceil(WORKGROUP_SIZE_2D),
         n_heads,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn matmul_dispatch_single_workgroup() {
+        assert_eq!(matmul_dispatch(1, 1), (1, 1, 1));
+        assert_eq!(matmul_dispatch(16, 16), (1, 1, 1));
+    }
+
+    #[test]
+    fn matmul_dispatch_rounds_up() {
+        assert_eq!(matmul_dispatch(17, 1), (2, 1, 1));
+        assert_eq!(matmul_dispatch(1, 17), (1, 2, 1));
+        assert_eq!(matmul_dispatch(32, 32), (2, 2, 1));
+    }
+
+    #[test]
+    fn matmul_tiled_dispatch_swaps_axes() {
+        let (x, y, z) = matmul_tiled_dispatch(16, 32);
+        assert_eq!((x, y, z), (2, 1, 1));
+    }
+
+    #[test]
+    fn matmul_cpu_tiled_dispatch_uses_32_tiles() {
+        assert_eq!(matmul_cpu_tiled_dispatch(32, 32), (1, 1, 1));
+        assert_eq!(matmul_cpu_tiled_dispatch(64, 64), (2, 2, 1));
+        assert_eq!(matmul_cpu_tiled_dispatch(33, 33), (2, 2, 1));
+    }
+
+    #[test]
+    fn matmul_gpu_evolved_dispatch_uses_32_tiles() {
+        assert_eq!(matmul_gpu_evolved_dispatch(32, 32), (1, 1, 1));
+        assert_eq!(matmul_gpu_evolved_dispatch(64, 33), (2, 2, 1));
+    }
+
+    #[test]
+    fn elementwise_dispatch_covers_all_elements() {
+        assert_eq!(elementwise_dispatch(1), (1, 1, 1));
+        assert_eq!(elementwise_dispatch(256), (1, 1, 1));
+        assert_eq!(elementwise_dispatch(257), (2, 1, 1));
+        assert_eq!(elementwise_dispatch(1024), (4, 1, 1));
+    }
+
+    #[test]
+    fn attention_dispatch_multi_head() {
+        let (x, y, z) = attention_dispatch(8, 16, 4);
+        assert_eq!(x, 1);
+        assert_eq!(y, 1);
+        assert_eq!(z, 4);
+    }
+
+    #[test]
+    fn attention_dispatch_rounds_up_dims() {
+        let (x, y, z) = attention_dispatch(17, 33, 2);
+        assert_eq!(x, 2);
+        assert_eq!(y, 3);
+        assert_eq!(z, 2);
+    }
+
+    #[test]
+    fn select_matmul_routes_by_device() {
+        let device = test_device();
+        let Some(device) = device else { return };
+        let cache = ShaderCache::new(&device);
+        let cfg = MatmulConfig::from_device(&device);
+
+        let (_, dispatch) = select_matmul(&cache, 8, 8, 8, &cfg);
+        let wg = dispatch(8, 8);
+        assert_eq!(wg, matmul_dispatch(8, 8), "small dims should use naive");
+    }
+
+    #[test]
+    fn param_structs_are_pod() {
+        assert_eq!(std::mem::size_of::<MatMulParams>(), 16);
+        assert_eq!(std::mem::size_of::<LayerNormParams>(), 12);
+        assert_eq!(std::mem::size_of::<GeluParams>(), 4);
+        assert_eq!(std::mem::size_of::<HeadShapeParams>(), 16);
+        assert_eq!(std::mem::size_of::<AttentionParams>(), 16);
+    }
+
+    fn test_device() -> Option<Dev> {
+        let rt = tokio::runtime::Runtime::new().ok()?;
+        rt.block_on(async { WgpuDevice::new().await.ok().map(|d| Arc::new(d) as Dev) })
+    }
 }

@@ -4,7 +4,7 @@
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 190/190 Python PASS (48 Phase 0 + 31 Phase 0+ + 111 Phase 0++) + 409/409 Rust validation PASS (167 native + 242 BarraCUDA)
+**Grand Total**: 190/190 Python PASS (48 Phase 0 + 31 Phase 0+ + 111 Phase 0++) + 532/532 Rust validation PASS (167 native + 242 BarraCUDA primitives + 123 BarraCUDA CPU ports)
 
 ---
 
@@ -139,12 +139,13 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 14 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 190/190 |
-| Rust test | `cargo test` | **PASS** — 34 unit tests |
+| Rust test | `cargo test` | **PASS** — 139 unit + 6 doc tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
 | neuralSpring validate | `make validate-native` | **PASS** — 167/167 |
 | BarraCUDA validate | `make validate-barracuda` | **PASS** — 242/242 |
+| BarraCUDA CPU ports | `make validate-barracuda-cpu` | **PASS** — 123/123 |
 | CI | GitHub Actions: `baselines.yml` + `rust.yml` | Configured |
 
 ---
@@ -160,5 +161,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 1b | BarraCUDA validation (242 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
-| 2 | Quantized inference on GPU | Planned |
-| 3 | Cross-spring integration | Planned |
+| 2 | BarraCUDA CPU ports (123 checks) | **COMPLETE** |
+| 2a | metalForge hardware characterization | Active |
+| 3 | BarraCUDA GPU acceleration (ToadStool streaming) | Planned |
+| 4 | Cross-spring integration | Planned |

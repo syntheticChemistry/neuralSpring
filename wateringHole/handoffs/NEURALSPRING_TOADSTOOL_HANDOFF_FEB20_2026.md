@@ -12,10 +12,14 @@
 ## Executive Summary
 
 neuralSpring has completed **23 experiments** across 5 scientific disciplines
-with **599/599 PASS** (190 Python + 167 Rust native + 242 BarraCUDA). During
-this work, we identified and evolved around **11 BarraCUDA shortcomings**,
-built a **46–78× faster fused pipeline**, and identified **7 new GPU-promotable
-algorithmic patterns** from Phase 0++ scholarly reproductions.
+with **722/722 PASS** (190 Python + 167 Rust native + 242 BarraCUDA primitives
++ 123 BarraCUDA CPU ports). Phase 2 (BarraCUDA CPU ports) is **complete** —
+all 13 Phase 0++ modules validated against BarraCUDA CPU math primitives,
+proving hand-rolled Rust is reproducible via barracuda's pure-Rust library.
+During this work, we identified and evolved around **11 BarraCUDA shortcomings**
+(+1 new: S-12 `eigh_f64` accuracy gap), built a **46–78× faster fused
+pipeline**, and identified **7 new GPU-promotable algorithmic patterns** from
+Phase 0++ scholarly reproductions.
 
 **ToadStool status (reviewed `82f953c8`):** None of the 11 neuralSpring
 shortcomings have been absorbed. ToadStool work since Feb 15 focused on
@@ -495,8 +499,11 @@ From 23 papers, the primitive usage confirms the isomorphism thesis:
 # Full Python baselines (190/190 PASS, ~10 min)
 bash scripts/run_all_baselines.sh
 
-# Full Rust validation (409/409 PASS, ~10 sec)
+# Full Rust validation (532/532 PASS, ~15 sec)
 make validate
+
+# BarraCUDA CPU ports only (123/123 PASS)
+make validate-barracuda-cpu
 
 # All quality gates
 make check
@@ -504,7 +511,46 @@ make check
 
 ---
 
-*neuralSpring: 23 papers, 599/599 PASS, 11 shortcomings documented with fixes,
-7 GPU shader designs proposed, 5 delivered. ToadStool `StatefulPipeline` +
-`ReduceScalarPipeline` + `KernelRouter` provide the infrastructure for
-Phase 0++ GPU promotion. Absorption order prioritized by effort/impact.*
+## Phase 2 Addendum: BarraCUDA CPU Port Findings (Feb 20, 2026)
+
+All 13 Phase 0++ modules ported to BarraCUDA CPU math. 123/123 checks PASS.
+
+### Primitives Validated
+
+| Primitive | Modules | Precision |
+|-----------|---------|-----------|
+| `numerical::rk45_solve` | regulatory, signal, game | Machine ε — direct RK4 replacement |
+| `linalg::solve_f64` | hmm, swarm | Machine ε — stationary distributions |
+| `linalg::eigh_f64` | spectral, anderson | ~1e-3 (n=8) — see S-12 below |
+| `special::chi_squared_sf` | introgression | 1e-10 — LRT p-values |
+| `stats::variance` | all 13 modules | Machine ε — cross-validation |
+| `stats::pearson_correlation` | modes | Machine ε — trend analysis |
+
+### S-12: eigh_f64 Accuracy Gap (NEW)
+
+| Matrix Size | Reconstruction Error | LAPACK Reference |
+|-------------|---------------------|------------------|
+| n=4 | ~1e-6 | 1e-14 |
+| n=8 | ~1e-3 | 1e-14 |
+| n=16 | ~0.01 | 1e-14 |
+| n=32 | ~0.7 | 1e-14 |
+
+Jacobi iteration converges slowly for larger matrices. ToadStool's NAK
+eigensolver may resolve this on GPU. Suggested CPU fix: Householder →
+tridiagonal → bisection.
+
+### New Absorption Candidates from Phase 2
+
+| Primitive | Use Case | Papers |
+|-----------|----------|--------|
+| `linalg::batch_matmul` | HMM forward/backward chain | 016–018 |
+| `ea::batch_fitness` | Population-parallel fitness evaluation | 011–015 |
+| `numerical::batch_rk45` | Multi-system ODE integration | 020–021 |
+
+---
+
+*neuralSpring: 23 papers, 722/722 PASS, 12 shortcomings documented (11 original
++ S-12 eigh accuracy gap), 7 GPU shader designs proposed, 5 delivered,
+13 BarraCUDA CPU ports complete. Phase 2 done — ready for GPU evolution.
+ToadStool `StatefulPipeline` + `ReduceScalarPipeline` + `KernelRouter`
+provide the infrastructure for Phase 3 GPU promotion.*

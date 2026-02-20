@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! GPU-resident log-softmax — no round-trip.
 //!
@@ -187,5 +187,73 @@ const fn bgl_uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
             min_binding_size: None,
         },
         count: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::*;
+
+    fn cpu_log_softmax(data: &[f32], feature_size: usize) -> Vec<f32> {
+        let mut out = Vec::with_capacity(data.len());
+        for batch in data.chunks_exact(feature_size) {
+            let max = batch.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+            let sum_exp: f32 = batch.iter().map(|&x| (x - max).exp()).sum();
+            let log_sum = sum_exp.ln() + max;
+            for &x in batch {
+                out.push(x - log_sum);
+            }
+        }
+        out
+    }
+
+    #[tokio::test]
+    async fn log_softmax_matches_cpu_reference() {
+        let Ok(gpu) = Gpu::new().await else { return };
+
+        let input = vec![1.0_f32, 2.0, 3.0, 4.0];
+        let shape = vec![1, 4];
+
+        let input_buf = gpu.upload_f32(&input).expect("upload_f32 should succeed");
+        let result =
+            log_softmax(&gpu, &input_buf, &shape).expect("log_softmax dispatch should succeed");
+        let output = result.readback(&gpu).expect("readback should succeed");
+
+        let expected = cpu_log_softmax(&input, 4);
+        for (i, (got, want)) in output.iter().zip(expected.iter()).enumerate() {
+            assert!(
+                (got - want).abs() < 1e-3,
+                "element {i}: got {got}, want {want}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn log_softmax_output_is_negative() {
+        let Ok(gpu) = Gpu::new().await else { return };
+
+        let input = vec![0.5_f32, 1.5, 0.2, 2.0, 0.1, 0.3, 0.8, 1.0];
+        let shape = vec![2, 4];
+
+        let input_buf = gpu.upload_f32(&input).expect("upload_f32 should succeed");
+        let result = log_softmax(&gpu, &input_buf, &shape).expect("log_softmax should succeed");
+        let output = result.readback(&gpu).expect("readback should succeed");
+
+        for (i, &v) in output.iter().enumerate() {
+            assert!(v <= 0.0, "log_softmax element {i} should be <= 0, got {v}");
+        }
+    }
+
+    #[test]
+    fn log_softmax_rejects_empty_shape() {
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        rt.block_on(async {
+            let Ok(gpu) = Gpu::new().await else { return };
+            let buf = gpu.create_buffer_f32(4).expect("buf");
+            let result = log_softmax(&gpu, &buf, &[]);
+            assert!(result.is_err());
+        });
     }
 }

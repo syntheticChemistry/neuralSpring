@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! GPU compute wrapper for `neuralSpring` validation and benchmarking.
 //!
@@ -220,5 +220,59 @@ impl Gpu {
 
         let dev = WgpuDevice::from_existing(Arc::new(device), Arc::new(queue), info);
         Ok(Self::from_device(Arc::new(dev)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::*;
+
+    #[tokio::test]
+    async fn gpu_new_succeeds() {
+        let Ok(gpu) = Gpu::new().await else { return };
+        assert!(!gpu.adapter_name.is_empty());
+    }
+
+    #[tokio::test]
+    async fn gpu_upload_and_readback_roundtrip() {
+        let Ok(gpu) = Gpu::new().await else { return };
+        let data = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0];
+        let buf = gpu.upload_f32(&data).expect("upload_f32 should succeed");
+        let out = gpu
+            .read_buffer_f32(&buf, data.len())
+            .expect("read_buffer_f32 should succeed");
+        for (i, (&got, &want)) in out.iter().zip(data.iter()).enumerate() {
+            assert!(
+                (got - want).abs() < 1e-7,
+                "roundtrip mismatch at {i}: got {got}, want {want}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn gpu_create_empty_buffer() {
+        let Ok(gpu) = Gpu::new().await else { return };
+        let buf = gpu.create_buffer_f32(64).expect("should create buffer");
+        let out = gpu
+            .read_buffer_f32(&buf, 64)
+            .expect("read_buffer_f32 should succeed");
+        assert_eq!(out.len(), 64);
+    }
+
+    #[tokio::test]
+    async fn gpu_compile_trivial_shader() {
+        let Ok(gpu) = Gpu::new().await else { return };
+        let _module =
+            gpu.compile_shader("@compute @workgroup_size(1) fn main() {}", "test_trivial");
+    }
+
+    #[tokio::test]
+    async fn gpu_wgpu_device_accessible() {
+        let Ok(gpu) = Gpu::new().await else { return };
+        let _device = gpu.wgpu_device();
+        let _raw_device = gpu.device();
+        let _raw_queue = gpu.queue();
     }
 }
