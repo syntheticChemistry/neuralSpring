@@ -20,8 +20,7 @@
     clippy::cast_sign_loss,
     clippy::doc_markdown,
     clippy::imprecise_flops,
-    clippy::missing_const_for_fn,
-    clippy::must_use_candidate
+    clippy::missing_const_for_fn
 )]
 
 use crate::rng::Rng;
@@ -335,5 +334,79 @@ mod tests {
             0.1,
         );
         assert_eq!(m.ctrl_type, ControllerType::BehaviorTree);
+    }
+
+    #[test]
+    fn create_controller_has_correct_params() {
+        let mut rng = Rng::new(42);
+        for ct in [
+            ControllerType::NeuralNet,
+            ControllerType::BehaviorTree,
+            ControllerType::RuleBased,
+        ] {
+            let c = create_controller(ct, &mut rng);
+            assert_eq!(c.ctrl_type, ct);
+            assert_eq!(c.params.len(), ct.param_len());
+        }
+    }
+
+    #[test]
+    fn controller_forward_all_types() {
+        let mut rng = Rng::new(42);
+        for ct in [
+            ControllerType::NeuralNet,
+            ControllerType::BehaviorTree,
+            ControllerType::RuleBased,
+        ] {
+            let c = create_controller(ct, &mut rng);
+            let action = controller_forward(&c, 0.5);
+            assert!(action < 5, "action must be valid (< 5)");
+        }
+    }
+
+    #[test]
+    fn behavior_forward_returns_valid() {
+        let params: Vec<f64> = (0..10).map(|i| f64::from(i) / 10.0).collect();
+        assert!(behavior_forward(&params, 0.5) < 5);
+    }
+
+    #[test]
+    fn rule_forward_returns_valid() {
+        assert!(rule_forward(&[0.3, 0.6, 0.1, 0.8], 0.5) < 5);
+    }
+
+    #[test]
+    fn controller_type_as_usize_roundtrip() {
+        assert_eq!(ControllerType::NeuralNet.as_usize(), 0);
+        assert_eq!(ControllerType::BehaviorTree.as_usize(), 1);
+        assert_eq!(ControllerType::RuleBased.as_usize(), 2);
+    }
+
+    #[test]
+    fn swarm_simulation_runs() {
+        let mut rng = Rng::new(42);
+        let ctrl = create_controller(ControllerType::NeuralNet, &mut rng);
+        let mut sim = SwarmSimulation::new(&mut rng);
+        let fitness = sim.run(&ctrl);
+        assert!(
+            fitness >= 0.0 && fitness <= 1.0,
+            "fitness should be in [0,1]"
+        );
+    }
+
+    #[test]
+    fn run_evolution_homogeneous_produces_results() {
+        let result = run_evolution_homogeneous(42);
+        assert!(!result.mean_fitness.is_empty());
+        assert!(!result.diversity.is_empty());
+        assert!(result.mean_fitness.iter().all(|f| f.is_finite()));
+    }
+
+    #[test]
+    fn run_evolution_heterogeneous_produces_results() {
+        let result = run_evolution_heterogeneous(42);
+        assert!(!result.mean_fitness.is_empty());
+        assert!(!result.diversity.is_empty());
+        assert!(result.diversity.iter().any(|&d| d > 0.0));
     }
 }

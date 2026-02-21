@@ -4,7 +4,7 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
 **Last reviewed:** ToadStool commit `dc540afd` (Session 25, Feb 20, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_HANDOFF_FEB20_2026.md`
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_HANDOFF_FEB21_2026.md`
 
 ---
 

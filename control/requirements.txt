@@ -3,7 +3,7 @@
 #
 # Environment: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
 # Python: 3.10
-# Last validated: 2026-02-19 (132/132 PASS)
+# Last validated: 2026-02-21 (206/206 PASS)
 
 numpy==2.2.6
 scipy==1.15.3

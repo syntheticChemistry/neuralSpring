@@ -6,7 +6,6 @@
     clippy::cast_sign_loss,
     clippy::doc_markdown,
     clippy::many_single_char_names,
-    clippy::must_use_candidate,
     clippy::needless_range_loop,
     clippy::suboptimal_flops
 )]
@@ -101,6 +100,7 @@ pub fn generate_pa_matrix(
 }
 
 /// Compute per-gene frequency (fraction of genomes containing each gene).
+#[must_use]
 pub fn gene_frequencies(pa: &[f64], n_genes: usize, n_genomes: usize) -> Vec<f64> {
     let mut freqs = vec![0.0; n_genes];
     for i in 0..n_genes {
@@ -111,6 +111,7 @@ pub fn gene_frequencies(pa: &[f64], n_genes: usize, n_genomes: usize) -> Vec<f64
 }
 
 /// Partition pangenome into (core, accessory, singleton) counts.
+#[must_use]
 pub fn partition_pangenome(
     freqs: &[f64],
     n_genomes: usize,
@@ -127,6 +128,7 @@ pub fn partition_pangenome(
 }
 
 /// Histogram of gene frequencies (excluding core and absent).
+#[must_use]
 pub fn frequency_spectrum(freqs: &[f64], n_bins: usize) -> Vec<f64> {
     let mut counts = vec![0.0_f64; n_bins];
     for &f in freqs {
@@ -139,6 +141,7 @@ pub fn frequency_spectrum(freqs: &[f64], n_bins: usize) -> Vec<f64> {
 }
 
 /// Neutral U-shaped frequency spectrum (Wright-Fisher 1/f(1-f)).
+#[must_use]
 pub fn neutral_spectrum(n_bins: usize) -> Vec<f64> {
     let mut spec = vec![0.0_f64; n_bins];
     for i in 0..n_bins {
@@ -157,6 +160,7 @@ pub fn neutral_spectrum(n_bins: usize) -> Vec<f64> {
 }
 
 /// Chi-squared statistic comparing observed spectrum to expected fractions.
+#[must_use]
 pub fn spectrum_chi_squared(observed: &[f64], expected_frac: &[f64]) -> f64 {
     let total: f64 = observed.iter().sum();
     if total == 0.0 {
@@ -173,6 +177,7 @@ pub fn spectrum_chi_squared(observed: &[f64], expected_frac: &[f64]) -> f64 {
 }
 
 /// Per-gene chi-squared test for environmental association (2x2 contingency).
+#[must_use]
 pub fn env_association_chi2(
     pa: &[f64],
     n_genes: usize,
@@ -218,6 +223,7 @@ pub fn env_association_chi2(
 }
 
 /// Selection coefficient: L2 deviation of normalized spectrum from neutral.
+#[must_use]
 pub fn selection_coefficient(observed: &[f64], neutral: &[f64]) -> f64 {
     let total: f64 = observed.iter().sum();
     if total == 0.0 {
@@ -232,6 +238,7 @@ pub fn selection_coefficient(observed: &[f64], neutral: &[f64]) -> f64 {
 }
 
 /// Shannon diversity of gene repertoire sizes across genomes.
+#[must_use]
 pub fn gene_repertoire_diversity(pa: &[f64], n_genes: usize, n_genomes: usize) -> f64 {
     let mut sizes = vec![0_usize; n_genomes];
     for j in 0..n_genomes {
@@ -261,6 +268,7 @@ pub fn gene_repertoire_diversity(pa: &[f64], n_genes: usize, n_genomes: usize) -
 }
 
 /// Pairwise Jaccard distance between genomes (columns of PA matrix).
+#[must_use]
 pub fn jaccard_distance_matrix(pa: &[f64], n_genes: usize, n_genomes: usize) -> Vec<f64> {
     let mut dist = vec![0.0_f64; n_genomes * n_genomes];
     for i in 0..n_genomes {
@@ -348,5 +356,51 @@ mod tests {
         let pa1 = generate_pa_matrix(4, 10, 0.3, 0.1, &mut r1, &env);
         let pa2 = generate_pa_matrix(4, 10, 0.3, 0.1, &mut r2, &env);
         assert_eq!(pa1, pa2);
+    }
+
+    #[test]
+    fn gene_frequencies_bounded() {
+        let mut rng = Rng::new(42);
+        let env = vec![0, 0, 1, 1];
+        let pa = generate_pa_matrix(4, 20, 0.3, 0.1, &mut rng, &env);
+        let freqs = gene_frequencies(&pa, 20, 4);
+        assert_eq!(freqs.len(), 20);
+        assert!(freqs.iter().all(|&f| (0.0..=1.0).contains(&f)));
+    }
+
+    #[test]
+    fn frequency_spectrum_sums_correctly() {
+        let freqs = vec![0.1, 0.3, 0.5, 0.7, 0.9, 0.2, 0.4, 0.6, 0.8, 0.95];
+        let spec = frequency_spectrum(&freqs, 5);
+        assert_eq!(spec.len(), 5);
+        let total: f64 = spec.iter().sum();
+        assert_eq!(total, freqs.len() as f64);
+    }
+
+    #[test]
+    fn env_association_chi2_nonneg() {
+        let mut rng = Rng::new(42);
+        let env = vec![0, 0, 1, 1];
+        let pa = generate_pa_matrix(4, 10, 0.3, 0.1, &mut rng, &env);
+        let chi2 = env_association_chi2(&pa, 10, 4, &env);
+        assert_eq!(chi2.len(), 10);
+        assert!(chi2.iter().all(|&v| v >= 0.0));
+    }
+
+    #[test]
+    fn selection_coefficient_nonneg() {
+        let obs = vec![5.0, 10.0, 15.0, 12.0, 8.0];
+        let neu = vec![0.2, 0.2, 0.2, 0.2, 0.2];
+        let s = selection_coefficient(&obs, &neu);
+        assert!(s >= 0.0 && s.is_finite());
+    }
+
+    #[test]
+    fn gene_repertoire_diversity_positive() {
+        let mut rng = Rng::new(42);
+        let env = vec![0, 0, 1, 1];
+        let pa = generate_pa_matrix(4, 20, 0.3, 0.1, &mut rng, &env);
+        let d = gene_repertoire_diversity(&pa, 20, 4);
+        assert!(d >= 0.0 && d.is_finite());
     }
 }

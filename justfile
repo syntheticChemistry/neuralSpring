@@ -31,11 +31,11 @@ lint-rust:
 test-python:
     python3 -m pytest tests/ -v --tb=short
 
-# Rust unit tests (139 unit + 6 doc-tests)
+# Rust unit tests (181 unit + 6 doc-tests, 90.55% coverage)
 test-rust:
     cargo test
 
-# All validation binaries (532 checks across 39 binaries)
+# All validation binaries (67 via validate_all)
 validate: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
 
 # neuralSpring quick (3 bins: surrogate, transformer, metrics)
@@ -44,7 +44,7 @@ validate-native:
     cargo run --bin validate_transformer
     cargo run --bin validate_metrics
 
-# neuralSpring paper validators (13 bins, 167 total native checks)
+# neuralSpring paper validators (16 bins)
 validate-native-papers:
     cargo run --bin validate_counterdiabatic
     cargo run --bin validate_modes
@@ -59,10 +59,13 @@ validate-native-papers:
     cargo run --bin validate_introgression
     cargo run --bin validate_spectral_commutativity
     cargo run --bin validate_anderson_localization
+    cargo run --bin validate_pangenome_selection
+    cargo run --bin validate_meta_population
+    cargo run --bin validate_sequence
 
-# Run everything (39 binaries, 532 checks)
+# Run everything (or: cargo run --release --bin validate_all)
 validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
-    @echo "━━━ All 39 validation binaries ━━━"
+    @echo "━━━ All validation binaries PASS ━━━"
 
 # BarraCUDA primitives (10 bins, 242 checks)
 validate-barracuda:
@@ -78,7 +81,7 @@ validate-barracuda:
     cargo run --bin validate_barracuda_linalg_ext
     cargo run --bin validate_barracuda_ml_inference
 
-# Phase 2: BarraCUDA CPU ports (13 bins, 123 checks)
+# Phase 2: BarraCUDA CPU ports (15 bins)
 validate-barracuda-cpu:
     cargo run --bin validate_barracuda_spectral
     cargo run --bin validate_barracuda_anderson
@@ -93,6 +96,8 @@ validate-barracuda-cpu:
     cargo run --bin validate_barracuda_swarm
     cargo run --bin validate_barracuda_sate
     cargo run --bin validate_barracuda_game
+    cargo run --bin validate_barracuda_pangenome
+    cargo run --bin validate_barracuda_meta_pop
 
 # ML inference validation only (MLP + Transformer)
 validate-ml:
@@ -137,7 +142,7 @@ bench-ml:
 #   See metalForge/fossils/bench/bench_fused_inference.rs for the fossil record.
 #   Use bench-ml for current ML benchmarks.
 
-# Full Python baseline suite (190/190, ~10 min)
+# Full Python baseline suite (206/206, ~10 min)
 baselines:
     bash scripts/run_all_baselines.sh
 

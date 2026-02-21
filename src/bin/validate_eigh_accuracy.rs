@@ -19,6 +19,7 @@
 
 use neural_spring::eigh;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -107,7 +108,12 @@ fn validate_anderson_hamiltonian(h: &mut ValidationHarness) {
     let err = hqr.reconstruction_error(&a);
     eprintln!("  Anderson n=32, W=4: HQR err={err:.2e}");
 
-    h.check_abs("Anderson Hamiltonian n=32 reconstruction", err, 0.0, 1e-10);
+    h.check_abs(
+        "Anderson Hamiltonian n=32 reconstruction",
+        err,
+        0.0,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     // Eigenvalues should be real and bounded by Gershgorin
     let max_eig = hqr
@@ -134,7 +140,8 @@ fn validate_anderson_hamiltonian(h: &mut ValidationHarness) {
 
     h.check_bool(
         "eigenvalues within Gershgorin bounds",
-        max_eig <= max_gershgorin + 1e-10 && min_eig >= -max_gershgorin - 1e-10,
+        max_eig <= max_gershgorin + tolerances::CROSS_LANGUAGE
+            && min_eig >= -max_gershgorin - tolerances::CROSS_LANGUAGE,
     );
 }
 
@@ -166,12 +173,12 @@ fn validate_orthogonality(h: &mut ValidationHarness) {
         "n=32 eigenvector orthogonality (diagonal)",
         max_diag_err,
         0.0,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
     h.check_abs(
         "n=32 eigenvector orthogonality (off-diagonal)",
         max_off,
         0.0,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 }

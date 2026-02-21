@@ -13,6 +13,7 @@ const BINARIES: &[&str] = &[
     "validate_surrogate",
     "validate_transformer",
     "validate_metrics",
+    "validate_sequence",
     // Phase 0++ paper reproduction validation
     "validate_counterdiabatic",
     "validate_modes",

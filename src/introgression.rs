@@ -149,4 +149,40 @@ mod tests {
             / path.len() as f64;
         assert!(acc > 0.55);
     }
+
+    #[test]
+    fn ils_only_hmm_valid() {
+        let hmm = ils_only_hmm();
+        assert_eq!(hmm.num_states(), 1);
+        let mut rng = Rng::new(42);
+        let (states, obs) = generate_ils_only_loci(100, &mut rng);
+        assert_eq!(states.len(), 100);
+        assert_eq!(obs.len(), 100);
+        let (_, loglik) = hmm.forward(&obs);
+        assert!(loglik.is_finite());
+    }
+
+    #[test]
+    fn log_likelihood_ratio_sign() {
+        assert!(log_likelihood_ratio(-100.0, -150.0) > 0.0);
+        assert!((log_likelihood_ratio(-100.0, -100.0)).abs() < 1e-10);
+    }
+
+    #[test]
+    fn detect_introgression_returns_path() {
+        let hmm = phylonet_hmm();
+        let mut rng = Rng::new(42);
+        let (_, obs) = generate_synthetic_loci(200, &hmm, &mut rng);
+        let (path, loglik) = detect_introgression(&hmm, &obs);
+        assert_eq!(path.len(), 200);
+        assert!(loglik.is_finite());
+    }
+
+    #[test]
+    fn introgression_fraction_bounded() {
+        let path = vec![0, 0, 1, 1, 0, 1, 0, 0, 1, 1];
+        let frac = introgression_fraction(&path);
+        assert!((0.0..=1.0).contains(&frac));
+        assert!((frac - 0.5).abs() < 1e-10);
+    }
 }

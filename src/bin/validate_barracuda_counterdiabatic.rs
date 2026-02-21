@@ -26,6 +26,7 @@
 use neural_spring::counterdiabatic::{
     boltzmann_distribution, kl_divergence, run_protocol_deterministic, NkLandscape,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -77,7 +78,12 @@ fn validate_boltzmann_variance(h: &mut ValidationHarness) {
     let barracuda_var = barracuda::stats::correlation::variance(&p).unwrap_or(f64::NAN);
 
     let sum: f64 = p.iter().sum();
-    h.check_abs("Boltzmann distribution sums to 1", sum, 1.0, 1e-12);
+    h.check_abs(
+        "Boltzmann distribution sums to 1",
+        sum,
+        1.0,
+        tolerances::EXACT_F64,
+    );
 
     h.check_bool(
         &format!("Boltzmann variance finite ({barracuda_var:.6})"),
@@ -108,5 +114,5 @@ fn validate_protocol_kl(h: &mut ValidationHarness) {
     );
 
     let kl_self = kl_divergence(&[0.25, 0.25, 0.25, 0.25], &[0.25, 0.25, 0.25, 0.25]);
-    h.check_abs("KL(p||p) == 0", kl_self, 0.0, 1e-12);
+    h.check_abs("KL(p||p) == 0", kl_self, 0.0, tolerances::EXACT_F64);
 }

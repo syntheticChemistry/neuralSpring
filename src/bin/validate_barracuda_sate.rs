@@ -28,6 +28,7 @@ use neural_spring::rng::Rng;
 use neural_spring::sate_alignment::{
     generate_tree_guided_sequences, neighbor_joining, pairwise_distance_matrix, progressive_align,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -58,7 +59,7 @@ fn validate_distance_matrix_symmetry(h: &mut ValidationHarness) {
         "distance matrix symmetric (D[i,j]==D[j,i])",
         max_sym_err,
         0.0,
-        1e-12,
+        tolerances::EXACT_F64,
     );
 }
 
@@ -82,7 +83,7 @@ fn validate_distance_variance(h: &mut ValidationHarness) {
     );
     h.check_bool(
         "pairwise distances non-negative",
-        upper_tri.iter().all(|&x| x >= -1e-12),
+        upper_tri.iter().all(|&x| x >= -tolerances::EXACT_F64),
     );
 }
 

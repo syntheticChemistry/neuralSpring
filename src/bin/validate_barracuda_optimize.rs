@@ -9,6 +9,7 @@
 //!
 //! Expected values: analytical (Rosenbrock min at (1,1), Rastrigin at (0,0)).
 
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -61,7 +62,12 @@ fn main() {
     let f_sqrt2 = |x: f64| x.mul_add(x, -2.0);
     match barracuda::optimize::bisect(f_sqrt2, 1.0, 2.0, 1e-12, 100) {
         Ok(root) => {
-            h.check_abs("bisect(x²-2) ≈ √2", root, std::f64::consts::SQRT_2, 1e-10);
+            h.check_abs(
+                "bisect(x²-2) ≈ √2",
+                root,
+                std::f64::consts::SQRT_2,
+                tolerances::CROSS_LANGUAGE,
+            );
         }
         Err(e) => h.check_bool(&format!("bisect √2 [ERROR: {e}]"), false),
     }
@@ -70,7 +76,7 @@ fn main() {
     let f_cbrt = |x: f64| (x * x).mul_add(x, -1.0);
     match barracuda::optimize::bisect(f_cbrt, 0.5, 2.0, 1e-12, 100) {
         Ok(root) => {
-            h.check_abs("bisect(x³-1) ≈ 1.0", root, 1.0, 1e-10);
+            h.check_abs("bisect(x³-1) ≈ 1.0", root, 1.0, tolerances::CROSS_LANGUAGE);
         }
         Err(e) => h.check_bool(&format!("bisect cbrt [ERROR: {e}]"), false),
     }
@@ -83,7 +89,7 @@ fn main() {
                 "brent(sin(x)-0.5) ≈ π/6",
                 result.root,
                 std::f64::consts::FRAC_PI_6,
-                1e-10,
+                tolerances::CROSS_LANGUAGE,
             );
         }
         Err(e) => h.check_bool(&format!("brent sin [ERROR: {e}]"), false),

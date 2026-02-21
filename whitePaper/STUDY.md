@@ -215,7 +215,7 @@ See `whitePaper/BARRACUDA_EVOLUTION.md` for the full technical narrative.
 |-------|-------|-------------|--------|
 | 0 | Python baselines (48 checks) | Validate the science | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Reproduce published results | **COMPLETE** |
-| 1a | neuralSpring Rust validation | 22 modules, 183 checks (18 binaries) | **COMPLETE** |
+| 1a | neuralSpring Rust validation | 26 modules, 181 lib tests, 67 binaries (90.55% coverage) | **COMPLETE** |
 | 1b | BarraCUDA validation | 12 domains, 272 checks (CPU + GPU + FFT) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | 46–78× speedup via single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |

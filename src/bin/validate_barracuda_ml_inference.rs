@@ -26,6 +26,7 @@
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::evolved::mha::multi_head_attention_2d;
+use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
@@ -394,26 +395,17 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
 
 #[tokio::main]
 async fn main() {
-    let dev = match WgpuDevice::new().await {
-        Ok(d) => d,
-        Err(e) => {
-            eprintln!("SKIP: {e}");
-            eprintln!("  0/0 checks — skipping gracefully");
-            std::process::exit(0);
-        }
+    let Ok(gpu) = Gpu::new().await else {
+        eprintln!("  0/0 checks — skipping gracefully");
+        std::process::exit(0);
     };
-
-    let info = dev.adapter_info();
     eprintln!(
-        "Adapter: {} ({:?}, {:?})",
-        info.name, info.device_type, info.backend,
+        "  adapter: {} ({:?}, {:?})",
+        gpu.adapter_name, gpu.device_type, gpu.backend,
     );
-    let device: Dev = Arc::new(dev);
+    let device: Dev = gpu.wgpu_device().clone();
 
-    let label = format!(
-        "barracuda_ml_inference[{}]",
-        std::env::var("NEURALSPRING_BACKEND").unwrap_or_else(|_| "auto".to_string()),
-    );
+    let label = format!("barracuda_ml_inference[{}]", gpu.adapter_name);
     let mut h = ValidationHarness::new(&label);
 
     validate_mlp(&mut h, &device);

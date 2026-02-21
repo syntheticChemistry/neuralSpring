@@ -102,16 +102,13 @@ fn validate_eigh_reconstruct(h: &mut ValidationHarness, rng: &mut Rng, _n: usize
                 recon_err
             };
 
-            // barracuda Jacobi eigensolver: ~1e-3 relative error at n=8.
-            // ToadStool handoff: upgrade to divide-and-conquer for machine precision.
-            let barracuda_eigh_tol = 0.01;
             h.check_upper(
                 &format!(
                     "V*D*V^T ≈ A (n={n_small}, rel_err={rel_err:.2e}, {} eigenvalues)",
                     eig.eigenvalues.len()
                 ),
                 rel_err,
-                barracuda_eigh_tol,
+                tolerances::EIGH_JACOBI_RECONSTRUCT,
             );
         }
         Err(e) => {
@@ -129,7 +126,7 @@ fn validate_eigenvalues_match_handrolled(h: &mut ValidationHarness, rng: &mut Rn
     h.check_upper(
         &format!("hand-rolled: symmetric dist_normal ({d_handrolled:.2e})"),
         d_handrolled,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     let flat: Vec<f64> = sym.iter().flat_map(|row| row.iter().copied()).collect();
@@ -203,12 +200,10 @@ fn validate_distance_via_eigenvalues(h: &mut ValidationHarness, rng: &mut Rng, _
                 .map(|(a, b)| (a - b).abs())
                 .fold(0.0_f64, f64::max);
 
-            // barracuda eigh accuracy gap: ~1e-5 eigenvalue agreement at n=8.
-            let barracuda_eigh_tol = 1e-3;
             h.check_upper(
                 &format!("singular values via ATA/AAT agree (max_diff={max_diff:.2e})"),
                 max_diff,
-                barracuda_eigh_tol,
+                tolerances::EIGH_JACOBI_EIGENVALUE,
             );
         }
         _ => {

@@ -18,6 +18,7 @@ use neural_spring::pangenome_selection::{
     selection_coefficient, spectrum_chi_squared,
 };
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -77,9 +78,10 @@ fn main() {
     // Check 7: Jaccard distances valid (symmetric, diag=0, [0,1])
     let jd = jaccard_distance_matrix(&pa, n_genes, n_genomes);
     let symmetric = (0..n_genomes).all(|i| {
-        (0..n_genomes).all(|j| (jd[i * n_genomes + j] - jd[j * n_genomes + i]).abs() < 1e-12)
+        (0..n_genomes)
+            .all(|j| (jd[i * n_genomes + j] - jd[j * n_genomes + i]).abs() < tolerances::EXACT_F64)
     });
-    let diag_zero = (0..n_genomes).all(|i| jd[i * n_genomes + i].abs() < 1e-12);
+    let diag_zero = (0..n_genomes).all(|i| jd[i * n_genomes + i].abs() < tolerances::EXACT_F64);
     let in_range = jd.iter().all(|&d| (0.0..=1.0).contains(&d));
     let mut upper = Vec::new();
     for i in 0..n_genomes {

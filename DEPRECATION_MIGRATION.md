@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 20, 2026
+**Date**: February 21, 2026 (post-audit)
 **ToadStool HEAD**: `dc540afd` (Session 25)
-**Status**: Migration complete — deprecated modules fossilized
+**Status**: Migration complete — deprecated modules fossilized, S-03b locally resolved via WGSL shaders
 
 All 11 neuralSpring shortcomings (S-01 through S-11) are absorbed by
 ToadStool. Deprecated workaround modules have been removed from the
@@ -42,25 +42,30 @@ See `metalForge/fossils/FOSSIL_RECORD.md` for the full inventory.
 | `bench_barracuda_tensor` | Evolved `layer_norm`/`log_softmax` → native `Tensor::layer_norm_wgsl()`/`log_softmax_wgsl()` | Feb 20 |
 | `validate_barracuda_tensor` | Same rewiring (earlier) | Feb 20 |
 | `gpu.rs` | CPU path → `WgpuDevice::new_cpu_relaxed()` | Feb 20 |
+| 7 GPU binaries | Duplicated device init (~800 LOC) → unified `Gpu::new()` | Feb 21 |
+| 10 validation binaries | Hardcoded tolerances → centralized `tolerances.rs` constants | Feb 21 |
 
 ---
 
-## Still Active in `src/evolved/` (2 modules)
+## Still Active in `src/evolved/` (3 modules)
 
 | Module | LOC | Why active | Path to absorption |
 |--------|-----|-----------|-------------------|
-| `mha.rs` | 182 | Native `Tensor::multi_head_attention` projection shaders hang (S-03b) | ToadStool: debug `project_with_head_split` GPU execution |
+| `mod.rs` | ~50 | WGSL shader exports (`batch_fitness_eval`, `rk4_parallel`, `mean_reduce`) | Absorb into `barracuda::ops` |
+| `mha.rs` | 182 | Evolved MHA with GPU head_split/head_concat shaders (S-03b locally resolved) | ToadStool native MHA when projection shaders stabilize |
 | `hmm_forward_gpu.rs` | 270 | No BarraCUDA equivalent | Candidate for `ops::hmm` |
 
-### S-03b: Native MHA Projection Shader Hang
+### S-03b: Locally Resolved via WGSL Head Split/Concat Shaders
 
-The z-dispatch fix (S-03) was absorbed, but the native
-`Tensor::multi_head_attention` hangs during execution on
-RTX 4070 / Vulkan. The evolved MHA (matmul + CPU head
-split/concat + attention) works correctly and remains active.
+The z-dispatch fix (S-03) was absorbed by ToadStool. The native
+`Tensor::multi_head_attention` projection shaders hang on RTX 4070 / Vulkan,
+but S-03b is locally resolved via dedicated `head_split.wgsl` and
+`head_concat.wgsl` shaders validated by `validate_mha_gpu` (10/10 PASS at
+production sizes up to B=4, S=128, H=8, d=512).
 
 **Binaries using evolved MHA**:
 - `validate_barracuda_ml_inference`
+- `validate_mha_gpu` (GPU head_split/head_concat validation)
 - `bench_transformer_block`
 
 ---
@@ -72,7 +77,7 @@ split/concat + attention) works correctly and remains active.
 | ~~Done~~ | Rewire `validate_barracuda_tensor` | **Complete** |
 | ~~Done~~ | Rewire `gpu.rs` to `new_cpu_relaxed()` | **Complete** |
 | ~~Done~~ | Rewire `bench_barracuda_tensor` to native ops | **Complete** |
-| ~~P1~~ | Migrate MHA to native — **blocked by S-03b** | Kept evolved::mha |
+| ~~P1~~ | Migrate MHA to native — **S-03b locally resolved** (head_split/head_concat WGSL) | Kept evolved::mha + GPU shaders |
 | ~~P2~~ | Migrate fused benchmarks | **Fossilized** |
 | ~~P3~~ | Remove WGSL shaders | **Fossilized** |
 | ~~P4~~ | Remove evolved modules | **Fossilized** (except mha + hmm) |

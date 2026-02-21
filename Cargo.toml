@@ -52,6 +52,12 @@ path = "src/bin/validate_metrics.rs"
 # --- Phase 0++ Paper Reproduction Validation ---
 
 [[bin]]
+name = "validate_sequence"
+path = "src/bin/validate_sequence.rs"
+
+# --- Phase 0++ Paper Reproduction Validation (53/53 Python PASS) ---
+
+[[bin]]
 name = "validate_counterdiabatic"
 path = "src/bin/validate_counterdiabatic.rs"
 

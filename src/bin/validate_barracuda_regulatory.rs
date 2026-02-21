@@ -27,6 +27,7 @@ use neural_spring::regulatory_network::{
     env_params, integrate_grn, phenotype_classifier, shannon_diversity, GrnParams,
     ENV_NUTRIENT_POOR, ENV_NUTRIENT_RICH, ENV_STRESS,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -71,7 +72,7 @@ fn validate_rk45_vs_rk4(h: &mut ValidationHarness) {
                     &format!("{component}: RK4={r4:.4} vs RK45={r45:.4}"),
                     *r4,
                     *r45,
-                    0.01,
+                    tolerances::ODE_INTEGRATOR_AGREEMENT,
                 );
             }
         }

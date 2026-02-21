@@ -27,6 +27,7 @@ use neural_spring::signal_integration::{
     classify_logic_gate, integrate_ode, logic_gate_sweep, two_input_hill, LogicGate, OdeParams,
     OdeState,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -103,19 +104,19 @@ fn validate_rk45_vs_rk4(h: &mut ValidationHarness) {
                 &format!("cdg: RK4={rk4_cdg:.4} vs RK45={y_cdg:.4}"),
                 rk4_cdg,
                 y_cdg,
-                0.01,
+                tolerances::ODE_INTEGRATOR_AGREEMENT,
             );
             h.check_abs(
                 &format!("ai: RK4={rk4_ai:.4} vs RK45={y_ai:.4}"),
                 rk4_ai,
                 y_ai,
-                0.01,
+                tolerances::ODE_INTEGRATOR_AGREEMENT,
             );
             h.check_abs(
                 &format!("vps_t: RK4={rk4_vps_t:.4} vs RK45={y_vps_t:.4}"),
                 rk4_vps_t,
                 y_vps_t,
-                0.01,
+                tolerances::ODE_INTEGRATOR_AGREEMENT,
             );
 
             h.check_bool(

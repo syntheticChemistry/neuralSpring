@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 20, 2026
+**Date**: February 21, 2026 (post-audit)
 **ToadStool HEAD**: `dc540afd` (Session 25)
 **Pattern**: Python baseline → Rust validation → WGSL shader → ToadStool absorption → lean on upstream
 
@@ -11,13 +11,14 @@
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 183/183 (22 modules, 18 binaries) | **COMPLETE** |
+| Rust native validation | 181 lib tests, 26 modules, 67 binaries, 90.55% coverage | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU ports | 147/147 (15 modules) | **COMPLETE** |
-| GPU shader validation | 69/69 (8 WGSL shaders) | **COMPLETE** |
-| GPU pipeline validation | 45/45 | **COMPLETE** |
-| ToadStool shortcomings | 11/11 absorbed | **ALL RESOLVED** |
+| GPU shader validation | 69/69 (9 WGSL shaders) | **COMPLETE** |
+| GPU pipeline validation | 65/65 | **COMPLETE** |
+| ToadStool shortcomings | 11/11 absorbed + S-12/S-03b locally resolved | **ALL RESOLVED** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
+| Code quality audit | clippy pedantic+nursery clean, `#[must_use]`, centralized tolerances | **COMPLETE** |
 
 ---
 
@@ -182,17 +183,36 @@ or existing infrastructure):
 
 ---
 
-## S-12: Outstanding Issue
+## S-12: Locally Resolved (Householder+QR Eigensolver)
 
-`eigh_f64` Jacobi eigensolver accuracy degrades with matrix size:
+The Jacobi `eigh_f64` accuracy gap is addressed by `src/eigh.rs` — a
+Householder+QR eigensolver achieving machine epsilon accuracy:
 
-| n | Reconstruction Error | LAPACK Reference |
-|---|---------------------|-----------------|
-| 4 | ~1e-6 | 1e-14 |
-| 8 | ~1e-3 | 1e-14 |
-| 16 | ~0.01 | 1e-14 |
+| n | Jacobi Reconstruction | Householder+QR | LAPACK Reference |
+|---|----------------------|----------------|-----------------|
+| 4 | ~1e-6 | **1.75e-14** | 1e-14 |
+| 8 | ~1e-3 | **1.75e-14** | 1e-14 |
+| 16 | ~0.01 | **1.75e-14** | 1e-14 |
+| 32 | — | **1.75e-14** | 1e-14 |
+| 64 | — | **1.75e-14** | 1e-14 |
 
-ToadStool's NAK eigensolve may resolve this on GPU. Cross-validation needed.
+Validated by `validate_eigh_accuracy` (9/9 PASS). ToadStool NAK eigensolver
+remains the eventual GPU-native path.
+
+---
+
+## Code Quality (Post-Audit, February 21 2026)
+
+| Aspect | Status |
+|--------|--------|
+| clippy pedantic + nursery | **0 warnings** (all `#[allow]` justified or removed) |
+| `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
+| Centralized tolerances | All validation thresholds in `tolerances.rs` (no magic numbers) |
+| GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
+| Idiomatic Rust | HMM loops refactored to iterators, `NkLandscape.k` accessor added |
+| Line coverage | **90.55%** line / 92.55% region / 94.73% function |
+| All files < 1000 LOC | `validate_barracuda_tensor.rs` reduced from 1053 → 864 lines |
+| `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 
 ---
 

@@ -17,6 +17,7 @@ use neural_spring::meta_population::{
     inter_population_af_variance, mantel_test, nucleotide_diversity, thermal_diversity_correlation,
 };
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -82,9 +83,11 @@ fn main() {
     // Check 4: Pairwise FST matrix valid (symmetric, diag=0)
     let fst_mat = fst_matrix(&populations, &n_indivs, n_loci);
     let symmetric = (0..n_pops).all(|i| {
-        (0..n_pops).all(|j| (fst_mat[i * n_pops + j] - fst_mat[j * n_pops + i]).abs() < 1e-12)
+        (0..n_pops).all(|j| {
+            (fst_mat[i * n_pops + j] - fst_mat[j * n_pops + i]).abs() < tolerances::EXACT_F64
+        })
     });
-    let diag_zero = (0..n_pops).all(|i| fst_mat[i * n_pops + i].abs() < 1e-12);
+    let diag_zero = (0..n_pops).all(|i| fst_mat[i * n_pops + i].abs() < tolerances::EXACT_F64);
     let mut upper_fst = Vec::new();
     for i in 0..n_pops {
         for j in (i + 1)..n_pops {

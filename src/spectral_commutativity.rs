@@ -15,7 +15,7 @@
 //! ## `BarraCUDA` connection
 //!
 //! - Matrix multiplication A×B: `barracuda::ops::matmul` (GEMM f64)
-//! - Commutator [A,B] = AB − BA: two GEMM + elementwise subtract
+//! - Commutator \[A,B\] = AB − BA: two GEMM + elementwise subtract
 //! - Frobenius norm: `barracuda::ops::NormReduceF64`
 //! - Distance to normal: composed from commutator + Frobenius (GPU pipeline)
 
@@ -46,6 +46,10 @@ pub fn transpose(a: &[Vec<f64>]) -> Vec<Vec<f64>> {
 }
 
 /// Matrix multiplication C = A @ B.
+///
+/// CPU reference implementation for validation.  The GPU equivalent is
+/// `barracuda::ops::matmul` / `gemm_f64.wgsl`.  This stays CPU-side so
+/// GPU validation binaries have an independent reference to compare against.
 #[must_use]
 #[allow(clippy::many_single_char_names)]
 pub fn mat_mul(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {

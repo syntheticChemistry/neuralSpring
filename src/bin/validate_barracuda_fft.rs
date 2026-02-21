@@ -28,105 +28,10 @@ use neural_spring::fft::{
     complex_energy, complex_energy_f64, constant_signal, constant_signal_f64, cosine_signal,
     cosine_signal_f64, delta_signal, delta_signal_f64, max_abs_diff, max_abs_diff_f64,
 };
+use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
-
-async fn create_device_relaxed(selector: &str) -> barracuda::error::Result<WgpuDevice> {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::all(),
-        ..Default::default()
-    });
-
-    let adapters: Vec<wgpu::Adapter> = instance.enumerate_adapters(wgpu::Backends::all());
-
-    let adapter = if selector == "cpu" {
-        adapters
-            .into_iter()
-            .find(|a| a.get_info().device_type == wgpu::DeviceType::Cpu)
-    } else if let Ok(idx) = selector.parse::<usize>() {
-        adapters.into_iter().nth(idx)
-    } else {
-        let sel = selector.to_ascii_lowercase();
-        adapters
-            .into_iter()
-            .find(|a| a.get_info().name.to_ascii_lowercase().contains(&sel))
-    }
-    .ok_or_else(|| {
-        barracuda::error::BarracudaError::device(format!("No adapter matches '{selector}'"))
-    })?;
-
-    let info = adapter.get_info();
-    let mut features = wgpu::Features::empty();
-    let adapter_features = adapter.features();
-    if adapter_features.contains(wgpu::Features::SHADER_F64) {
-        features |= wgpu::Features::SHADER_F64;
-    }
-
-    let (device, queue) = adapter
-        .request_device(
-            &wgpu::DeviceDescriptor {
-                label: Some("neuralSpring FFT validation (relaxed)"),
-                required_features: features,
-                required_limits: wgpu::Limits::downlevel_defaults(),
-                memory_hints: wgpu::MemoryHints::default(),
-            },
-            None,
-        )
-        .await
-        .map_err(|e| barracuda::error::BarracudaError::device(format!("Device creation: {e}")))?;
-
-    Ok(WgpuDevice::from_existing(
-        Arc::new(device),
-        Arc::new(queue),
-        info,
-    ))
-}
-
-async fn resolve_device() -> Option<(Arc<WgpuDevice>, String)> {
-    let selector = std::env::var("NEURALSPRING_BACKEND")
-        .unwrap_or_default()
-        .trim()
-        .to_ascii_lowercase();
-
-    if selector == "list" {
-        let adapters = WgpuDevice::enumerate_adapters();
-        eprintln!("Available wgpu adapters:");
-        for (i, info) in adapters.iter().enumerate() {
-            eprintln!(
-                "  [{i}] {name} ({ty:?}, {backend:?})",
-                name = info.name,
-                ty = info.device_type,
-                backend = info.backend,
-            );
-        }
-        std::process::exit(0);
-    }
-
-    let (result, label) = match selector.as_str() {
-        "gpu" => (WgpuDevice::new_gpu().await, "gpu".to_owned()),
-        "" | "auto" => (WgpuDevice::new().await, "auto".to_owned()),
-        other => {
-            let result = create_device_relaxed(other).await;
-            (result, other.to_owned())
-        }
-    };
-
-    match result {
-        Ok(dev) => {
-            let info = dev.adapter_info();
-            eprintln!(
-                "  adapter: {} ({:?}, {:?})",
-                info.name, info.device_type, info.backend,
-            );
-            Some((Arc::new(dev), label))
-        }
-        Err(err) => {
-            eprintln!("SKIP [{label}]: {err}");
-            None
-        }
-    }
-}
 
 // ═════════════════════════════════════════════════════════════════════
 // Validation checks
@@ -616,12 +521,17 @@ fn validate_rfft_cosine_energy(h: &mut ValidationHarness, device: &Arc<WgpuDevic
 
 #[tokio::main]
 async fn main() {
-    let Some((device, label)) = resolve_device().await else {
+    let Ok(gpu) = Gpu::new().await else {
         eprintln!("  0/0 checks — skipping gracefully (no GPU/CPU adapter)");
         std::process::exit(0);
     };
+    eprintln!(
+        "  adapter: {} ({:?}, {:?})",
+        gpu.adapter_name, gpu.device_type, gpu.backend,
+    );
+    let device = gpu.wgpu_device().clone();
 
-    let harness_name = format!("barracuda_fft[{label}]");
+    let harness_name = format!("barracuda_fft[{}]", gpu.adapter_name);
     let mut h = ValidationHarness::new(&harness_name);
 
     // f32 FFT (Fft1D / Ifft1D) — 12 checks

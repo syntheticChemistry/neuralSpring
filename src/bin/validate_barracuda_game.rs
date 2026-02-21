@@ -26,6 +26,7 @@
 use neural_spring::game_theory::{
     prisoners_dilemma_payoff, qs_cooperation_model, replicator_dynamics, QsConfig,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -87,11 +88,11 @@ fn validate_replicator_via_rk45(h: &mut ValidationHarness) {
                 ),
                 hand_final[0],
                 rk45_norm[0],
-                0.05,
+                tolerances::ADIABATIC_KL_GAP,
             );
             h.check_bool(
                 "RK45 replicator final sums ≈ 1",
-                (rk45_norm[0] + rk45_norm[1] - 1.0).abs() < 0.01,
+                (rk45_norm[0] + rk45_norm[1] - 1.0).abs() < tolerances::CD_COMPARABLE_DIST,
             );
         }
         Err(e) => {

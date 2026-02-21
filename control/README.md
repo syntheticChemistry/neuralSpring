@@ -54,10 +54,12 @@ python3 control/surrogate/surrogate_validation.py
 | `signal_integration/` | Paper 021: Signal integration | Srivastava et al. 2011 | 8 |
 | `spectral_commutativity/` | Paper 022: C*-algebra distance | Kachkovskiy & Safarov 2016 | 8 |
 | `anderson_localization/` | Paper 023: Anderson localization | Bourgain & Kachkovskiy 2018 | 8 |
+| `pangenome_selection/` | Paper 024: Pangenome selection | Liu et al. (genomics) | 8 |
+| `meta_population/` | Paper 025: Meta-population dynamics | Liu et al. (population genetics) | 8 |
 | `shared/` | Open-Meteo ERA5 fetch/cache | CC BY 4.0 | — |
 | `ml_inference/` | Benchmark + baseline generation | Scaling analysis | — |
 
-**Total: 190/190 PASS** (48 Phase 0 + 31 Phase 0+ + 111 Phase 0++)
+**Total: 206/206 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++)
 
 ## Data Sources
 

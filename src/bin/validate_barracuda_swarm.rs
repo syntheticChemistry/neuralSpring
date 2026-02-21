@@ -27,6 +27,7 @@ use neural_spring::swarm_robotics::{
     create_controller, run_evolution_heterogeneous, run_evolution_homogeneous, shannon_diversity,
     ControllerType,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -54,7 +55,12 @@ fn validate_controller_weight_solve(h: &mut ValidationHarness) {
     match barracuda::linalg::solve_f64(&a, &b_vec, 4) {
         Ok(x) => {
             for (i, (&xi, &bi)) in x.iter().zip(b.iter()).enumerate() {
-                h.check_abs(&format!("solve(I,b)[{i}] == b[{i}]"), xi, bi, 1e-10);
+                h.check_abs(
+                    &format!("solve(I,b)[{i}] == b[{i}]"),
+                    xi,
+                    bi,
+                    tolerances::CROSS_LANGUAGE,
+                );
             }
         }
         Err(e) => {
@@ -107,6 +113,11 @@ fn validate_type_diversity(h: &mut ValidationHarness) {
     let div_homo = shannon_diversity(&types_homo);
     let div_hetero = shannon_diversity(&types_hetero);
 
-    h.check_abs("homogeneous diversity = 0", div_homo, 0.0, 1e-12);
+    h.check_abs(
+        "homogeneous diversity = 0",
+        div_homo,
+        0.0,
+        tolerances::EXACT_F64,
+    );
     h.check_lower("heterogeneous diversity > 0", div_hetero, 0.0);
 }

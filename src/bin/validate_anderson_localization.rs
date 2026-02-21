@@ -25,7 +25,7 @@ fn is_symmetric(h: &[Vec<f64>]) -> bool {
     let n = h.len();
     for i in 0..n {
         for j in (i + 1)..n {
-            if (h[i][j] - h[j][i]).abs() > 1e-12 {
+            if (h[i][j] - h[j][i]).abs() > tolerances::EXACT_F64 {
                 return false;
             }
         }

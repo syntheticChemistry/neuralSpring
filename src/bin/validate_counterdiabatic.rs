@@ -76,7 +76,8 @@ fn main() {
 
         // Core paper claim: CD reaches target closer than naive (or comparable)
         let cd_better = cd_r.final_dist < naive_r.final_dist;
-        let cd_comparable = (cd_r.final_dist - naive_r.final_dist).abs() < 0.01;
+        let cd_comparable =
+            (cd_r.final_dist - naive_r.final_dist).abs() < tolerances::CD_COMPARABLE_DIST;
         h.check_bool(
             &format!(
                 "K={k}: CD final_dist ({:.6}) <= naive ({:.6})",
@@ -88,7 +89,8 @@ fn main() {
         // Adiabaticity: CD mean KL <= naive mean KL (or within tolerance)
         let naive_mean_kl: f64 = naive_r.mean_kl.iter().sum::<f64>() / naive_r.mean_kl.len() as f64;
         let cd_mean_kl: f64 = cd_r.mean_kl.iter().sum::<f64>() / cd_r.mean_kl.len() as f64;
-        let adiabatic = cd_mean_kl <= naive_mean_kl || (cd_mean_kl - naive_mean_kl) < 0.05;
+        let adiabatic = cd_mean_kl <= naive_mean_kl
+            || (cd_mean_kl - naive_mean_kl) < tolerances::ADIABATIC_KL_GAP;
         h.check_bool(
             &format!("K={k}: CD adiabatic (KL {cd_mean_kl:.6} vs {naive_mean_kl:.6})"),
             adiabatic,
@@ -101,7 +103,7 @@ fn main() {
         "KL(uniform, uniform) ≈ 0",
         kl_divergence(&p, &p),
         0.0,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     h.finish();

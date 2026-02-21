@@ -30,7 +30,6 @@
     clippy::doc_markdown,
     clippy::items_after_statements,
     clippy::many_single_char_names,
-    clippy::must_use_candidate,
     clippy::needless_range_loop,
     clippy::similar_names,
     clippy::suboptimal_flops
@@ -66,6 +65,7 @@ pub fn anderson_hamiltonian_random(n: usize, t: f64, w: f64, rng: &mut Rng) -> V
 }
 
 /// Aubry-André quasiperiodic potential: V_n = W * cos(2π*α*n + φ).
+#[must_use]
 pub fn aubry_andre_potential(n: usize, w: f64, alpha: f64, phi: f64) -> Vec<f64> {
     (0..n)
         .map(|i| (2.0 * PI * alpha).mul_add(i as f64, phi).cos() * w)
@@ -73,6 +73,7 @@ pub fn aubry_andre_potential(n: usize, w: f64, alpha: f64, phi: f64) -> Vec<f64>
 }
 
 /// Aubry-André Hamiltonian: hopping -t plus quasiperiodic diagonal.
+#[must_use]
 pub fn aubry_andre_hamiltonian(n: usize, t: f64, w: f64, alpha: f64, phi: f64) -> Vec<Vec<f64>> {
     let v = aubry_andre_potential(n, w, alpha, phi);
     let mut h = vec![vec![0.0; n]; n];
@@ -88,11 +89,13 @@ pub fn aubry_andre_hamiltonian(n: usize, t: f64, w: f64, alpha: f64, phi: f64) -
 
 /// Inverse participation ratio: IPR = sum(|ψ_n|⁴).
 /// Extended: IPR ~ 1/N. Localized: IPR >> 1/N.
+#[must_use]
 pub fn ipr(psi: &[f64]) -> f64 {
     psi.iter().map(|&x| x * x).map(|p| p * p).sum()
 }
 
 /// Mean IPR over columns of eigenvector matrix.
+#[must_use]
 pub fn mean_ipr(eigenvectors: &[Vec<f64>]) -> f64 {
     if eigenvectors.is_empty() {
         return 0.0;
@@ -109,6 +112,7 @@ pub fn mean_ipr(eigenvectors: &[Vec<f64>]) -> f64 {
 /// Jacobi eigensolver for real symmetric matrix.
 /// Returns (eigenvalues, eigenvectors as columns).
 /// Eigenvectors normalized to unit L2 norm.
+#[must_use]
 pub fn jacobi_eigh(matrix: &[Vec<f64>]) -> (Vec<f64>, Vec<Vec<f64>>) {
     let n = matrix.len();
     let mut a: Vec<Vec<f64>> = matrix.to_vec();
@@ -186,6 +190,7 @@ pub fn jacobi_eigh(matrix: &[Vec<f64>]) -> (Vec<f64>, Vec<Vec<f64>>) {
 
 /// Two-particle Hamiltonian on tensor product space.
 /// H = H₁ ⊗ I + I ⊗ H₁ + U * δ(same site). Uses Aubry-André for H₁.
+#[must_use]
 pub fn two_particle_hamiltonian(n: usize, t: f64, w: f64, u: f64, alpha: f64) -> Vec<Vec<f64>> {
     let h1 = aubry_andre_hamiltonian(n, t, w, alpha, 0.0);
     let dim = n * n;

@@ -22,6 +22,7 @@ use neural_spring::spectral_commutativity::{
     commutativity_ratio, commutator, distance_to_normal, identity_matrix, random_matrix,
     random_symmetric, skip_commutativity, spectral_gap_approx,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -33,18 +34,18 @@ fn main() {
     let sym = random_symmetric(n, &mut rng);
     let d_sym = distance_to_normal(&sym);
     h.check_upper(
-        &format!("symmetric (normal) dist_normal ({d_sym:.2e}) < 1e-10"),
+        &format!("symmetric (normal) dist_normal ({d_sym:.2e}) < CROSS_LANGUAGE"),
         d_sym,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     // Check 2: Identity is normal (distance = 0)
     let identity = identity_matrix(n);
     let d_id = distance_to_normal(&identity);
     h.check_upper(
-        &format!("identity dist_normal ({d_id:.2e}) < 1e-14"),
+        &format!("identity dist_normal ({d_id:.2e}) < ZERO_DETECTION"),
         d_id,
-        1e-14,
+        tolerances::ZERO_DETECTION,
     );
 
     // Check 3: Skip connections reduce commutativity
@@ -84,9 +85,9 @@ fn main() {
         .sum::<f64>()
         .sqrt();
     h.check_upper(
-        &format!("antisymmetry ||[A,B]+[B,A]|| ({err:.2e}) < 1e-10"),
+        &format!("antisymmetry ||[A,B]+[B,A]|| ({err:.2e}) < CROSS_LANGUAGE"),
         err,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     // Check 6: Distance-to-normal non-negative (sample 50)
@@ -97,17 +98,17 @@ fn main() {
         min_d = min_d.min(d);
     }
     h.check_lower(
-        &format!("min distance ({min_d:.2e}) >= -1e-12"),
+        &format!("min distance ({min_d:.2e}) >= -EXACT_F64"),
         min_d,
-        -1e-12,
+        -tolerances::EXACT_F64,
     );
 
     // Check 7: Spectral gap ≈ 0 for normal (symmetric)
     let gap_sym = spectral_gap_approx(&sym);
     h.check_upper(
-        &format!("normal spectral gap ({gap_sym:.2e}) < 1e-10"),
+        &format!("normal spectral gap ({gap_sym:.2e}) < CROSS_LANGUAGE"),
         gap_sym,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     // Check 8: BarraCUDA connection documented

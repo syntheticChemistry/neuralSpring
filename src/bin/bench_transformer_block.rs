@@ -32,6 +32,7 @@
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::evolved::mha::multi_head_attention_2d;
+use neural_spring::gpu::Gpu;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -180,21 +181,16 @@ fn readback(t: &Tensor) -> Vec<f32> {
 #[tokio::main]
 #[allow(clippy::expect_used)]
 async fn main() {
-    let dev = match WgpuDevice::new().await {
-        Ok(d) => d,
-        Err(e) => {
-            eprintln!("SKIP: {e}");
-            return;
-        }
+    let Ok(gpu) = Gpu::new().await else {
+        eprintln!("SKIP — no adapter");
+        return;
     };
-
-    let info = dev.adapter_info();
     eprintln!(
         "Transformer Block Benchmark: {} ({:?}, {:?})",
-        info.name, info.device_type, info.backend,
+        gpu.adapter_name, gpu.device_type, gpu.backend,
     );
 
-    let device: Dev = Arc::new(dev);
+    let device: Dev = gpu.wgpu_device().clone();
     let baseline = load_baseline();
     let cfg = &baseline.config;
 

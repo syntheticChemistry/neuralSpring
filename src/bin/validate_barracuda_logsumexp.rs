@@ -21,37 +21,10 @@
 use barracuda::device::WgpuDevice;
 use barracuda::ops::logsumexp::LogSumExp;
 use barracuda::tensor::Tensor;
+use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
-
-async fn resolve_device() -> Option<Arc<WgpuDevice>> {
-    let selector = std::env::var("NEURALSPRING_BACKEND")
-        .unwrap_or_default()
-        .trim()
-        .to_ascii_lowercase();
-
-    let result = match selector.as_str() {
-        "gpu" => WgpuDevice::new_gpu().await,
-        "" | "auto" => WgpuDevice::new().await,
-        _ => return None,
-    };
-
-    match result {
-        Ok(dev) => {
-            let info = dev.adapter_info();
-            eprintln!(
-                "  adapter: {} ({:?}, {:?})",
-                info.name, info.device_type, info.backend
-            );
-            Some(Arc::new(dev))
-        }
-        Err(e) => {
-            eprintln!("  SKIP: {e}");
-            None
-        }
-    }
-}
 
 fn cpu_logsumexp(values: &[f32]) -> f32 {
     let max_val = values.iter().copied().fold(f32::NEG_INFINITY, f32::max);
@@ -68,10 +41,15 @@ fn cpu_logsumexp(values: &[f32]) -> f32 {
 
 #[tokio::main]
 async fn main() {
-    let Some(device) = resolve_device().await else {
+    let Ok(gpu) = Gpu::new().await else {
         eprintln!("  0/0 checks — no adapter");
         std::process::exit(0);
     };
+    eprintln!(
+        "  adapter: {} ({:?}, {:?})",
+        gpu.adapter_name, gpu.device_type, gpu.backend,
+    );
+    let device = gpu.wgpu_device().clone();
 
     let mut h = ValidationHarness::new("barracuda_logsumexp");
 

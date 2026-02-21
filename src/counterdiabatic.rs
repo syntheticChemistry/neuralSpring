@@ -31,7 +31,6 @@ const FISHER_EPS: f64 = 1e-10;
 #[derive(Debug, Clone)]
 pub struct NkLandscape {
     n: usize,
-    #[allow(dead_code)]
     k: usize,
     /// neighbors[i] = K indices (other loci) that affect locus i
     neighbors: Vec<Vec<usize>>,
@@ -79,6 +78,12 @@ impl NkLandscape {
     }
 
     /// Fitness for all 2^N genotypes (genotype g = integer 0..2^N).
+    /// Number of epistatic interactions per locus.
+    #[must_use]
+    pub const fn k(&self) -> usize {
+        self.k
+    }
+
     #[allow(clippy::cast_possible_truncation)]
     #[must_use]
     pub fn all_fitnesses(&self) -> Vec<f64> {

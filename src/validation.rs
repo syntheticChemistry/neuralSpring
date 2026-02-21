@@ -12,6 +12,7 @@
 //! binary (`validate_*`) uses [`ValidationHarness`] to accumulate
 //! checks and produce a deterministic exit code.
 
+use crate::tolerances;
 use std::process;
 
 /// How a tolerance threshold is applied.
@@ -99,7 +100,7 @@ impl ValidationHarness {
     /// Combined absolute-or-relative check (matches hotSpring convention).
     pub fn check_abs_or_rel(&mut self, label: &str, observed: f64, expected: f64, tolerance: f64) {
         let abs_err = (observed - expected).abs();
-        let rel_err = if expected.abs() > 1e-14 {
+        let rel_err = if expected.abs() > tolerances::ZERO_DETECTION {
             abs_err / expected.abs()
         } else {
             abs_err
@@ -245,5 +246,59 @@ mod tests {
         assert_eq!(h.passed_count(), 0);
         assert_eq!(h.total_count(), 0);
         assert!(h.all_passed());
+    }
+
+    #[test]
+    fn check_lower_pass_and_fail() {
+        let mut h = ValidationHarness::new("test");
+        h.check_lower("above", 5.0, 3.0);
+        assert!(h.checks[0].passed);
+        h.check_lower("below", 1.0, 3.0);
+        assert!(!h.checks[1].passed);
+    }
+
+    #[test]
+    fn check_upper_pass_and_fail() {
+        let mut h = ValidationHarness::new("test");
+        h.check_upper("below", 1.0, 3.0);
+        assert!(h.checks[0].passed);
+        h.check_upper("above", 5.0, 3.0);
+        assert!(!h.checks[1].passed);
+    }
+
+    #[test]
+    fn check_abs_or_rel_near_zero() {
+        let mut h = ValidationHarness::new("test");
+        h.check_abs_or_rel("near_zero_pass", 1e-16, 0.0, 1e-10);
+        assert!(h.checks[0].passed);
+        h.check_abs_or_rel("near_zero_fail", 1.0, 0.0, 1e-10);
+        assert!(!h.checks[1].passed);
+    }
+
+    #[test]
+    fn check_abs_or_rel_relative_mode() {
+        let mut h = ValidationHarness::new("test");
+        h.check_abs_or_rel("rel_pass", 100.000_001, 100.0, 1e-6);
+        assert!(h.checks[0].passed);
+    }
+
+    #[test]
+    fn check_rel_pass_and_fail() {
+        let mut h = ValidationHarness::new("test");
+        h.check_rel("close", 1.001, 1.0, 0.01);
+        assert!(h.checks[0].passed);
+        h.check_rel("far", 2.0, 1.0, 0.01);
+        assert!(!h.checks[1].passed);
+    }
+
+    #[test]
+    fn mixed_pass_fail_counts() {
+        let mut h = ValidationHarness::new("test");
+        h.check_bool("ok", true);
+        h.check_bool("fail", false);
+        h.check_abs("ok2", 1.0, 1.0, 1e-10);
+        assert_eq!(h.passed_count(), 2);
+        assert_eq!(h.total_count(), 3);
+        assert!(!h.all_passed());
     }
 }

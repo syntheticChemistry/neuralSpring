@@ -40,7 +40,7 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 206/206 Python PASS + 760/760 Rust+GPU PASS = 966 total
+## Current Status: 206/206 Python PASS + 760/760 Rust+GPU PASS = 966 total validation checks
 
 **ToadStool `dc540afd`**: All 11 shortcomings (S-01..S-11) **ABSORBED**.
 Validation rewired to native BarraCUDA ops. `src/evolved/` documented
@@ -86,11 +86,12 @@ for retirement. See `specs/TOADSTOOL_HANDOFF.md`.
 | 024: Pangenome Selection | Anderson (2024) | 8/8 | Gene gain/loss dynamics, selection signatures |
 | 025: Meta-Population | Anderson (2024) | 8/8 | FST, isolation-by-distance, thermal adaptation |
 
-### Rust Validation (183 native + 272 BarraCUDA primitives + 147 BarraCUDA CPU ports = 602 PASS)
+### Rust Validation (760 PASS across 67 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
-hotSpring pattern: `ValidationHarness`, hardcoded expected values, explicit
-pass/fail exit codes, centralized tolerances.
+hotSpring pattern: `ValidationHarness`, centralized `tolerances.rs` constants,
+explicit pass/fail exit codes. Library code: 181 unit tests + 6 doc tests,
+90.55% line coverage (92.55% region, 94.73% function) via `llvm-cov`.
 
 ### Phase 2 — BarraCUDA CPU Ports (147/147)
 
@@ -153,9 +154,9 @@ bash scripts/run_all_baselines.sh
 pip install pytest
 python3 -m pytest tests/ -v
 
-# Rust validation (142 unit + 6 doc-tests + 760 binary checks)
+# Rust validation (181 unit + 6 doc-tests, 90% coverage)
 cargo test
-cargo run --release --bin validate_all   # all 65 validation binaries
+cargo run --release --bin validate_all   # all 67 validation binaries
 
 # All quality gates at once
 make check    # or: just check
@@ -239,7 +240,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (206/206 — 25 experiments)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (183 checks — 18 validation binaries, 22 modules)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (181 lib tests, 67 validation binaries, 26 modules + 3 evolved, 90.55% line coverage)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -300,12 +301,12 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 206/206 PASS |
-| Rust tests | `cargo test` | 135 unit + 6 doc-tests PASS |
+| Rust tests | `cargo test` | 181 unit + 6 doc-tests PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery) |
-| Rust coverage | `make coverage` | Target ≥90% (llvm-cov) |
+| Rust coverage | `cargo llvm-cov --lib` | **90.55%** line (target ≥90%) |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
-| neuralSpring validate | `make validate-native validate-native-papers` | 183/183 PASS |
+| neuralSpring validate | `cargo run --release --bin validate_all` | 67 binaries PASS |
 | BarraCUDA validate | `make validate-barracuda` | 272/272 PASS |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | 147/147 PASS |
 | GPU shader validate | `make validate-gpu` | 69/69 PASS (9 paper shaders) |
@@ -347,10 +348,10 @@ neuralSpring/
 │   ├── meta_population/       #   Paper 025: Meta-population differentiation
 │   ├── shared/                 #   Shared utilities (Open-Meteo, etc.)
 │   └── requirements.txt        #   Pinned dependencies
-├── src/                        # Phase 1 Rust library (22 modules)
+├── src/                        # Rust library (26 modules + 3 evolved)
 │   ├── lib.rs                  #   Crate root
 │   ├── validation.rs           #   ValidationHarness (hotSpring pattern)
-│   ├── tolerances.rs           #   Centralized tolerance constants
+│   ├── tolerances.rs           #   Centralized tolerance constants (all numeric thresholds)
 │   ├── provenance.rs           #   Python baseline metadata
 │   ├── rng.rs                  #   Deterministic Xoshiro256** PRNG
 │   ├── metrics.rs              #   R², RMSE, MAE, NSE
@@ -362,19 +363,20 @@ neuralSpring/
 │   ├── eco_dynamics.rs         #   Multi-niche EA, diversity indices
 │   ├── directed_evolution.rs   #   5 selection algorithms
 │   ├── swarm_robotics.rs       #   Heterogeneous controller EA
-│   ├── hmm.rs                  #   Forward/backward/Viterbi/posterior
+│   ├── hmm.rs                  #   Forward/backward/Viterbi/posterior (idiomatic iterators)
 │   ├── sate_alignment.rs       #   NJ tree + progressive alignment
 │   ├── introgression.rs        #   PhyloNet-HMM introgression detection
 │   ├── game_theory.rs          #   PD, Snowdrift, replicator, QS spatial
 │   ├── regulatory_network.rs   #   GRN ODE with Hill functions
 │   ├── signal_integration.rs   #   Two-input Hill AND gate
 │   ├── spectral_commutativity.rs # Commutator, distance to normal
-│   ├── anderson_localization.rs  # Aubry-André model, IPR, Jacobi eigensolver
+│   ├── anderson_localization.rs  # Aubry-André model, IPR
 │   ├── pangenome_selection.rs   # PA matrix, gene frequency, selection dynamics
 │   ├── meta_population.rs       # FST, Mantel test, thermal adaptation
+│   ├── eigh.rs                  #   Householder+QR eigensolver (resolved S-12)
 │   ├── fft.rs                   #   FFT validation helpers (analytical DFT refs)
-│   ├── gpu.rs                   #   GPU compute wrapper (NEURALSPRING_BACKEND env)
-│   └── bin/                    #   Validation binaries (55 total)
+│   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
+│   └── bin/                    #   72 binaries (67 validation + 5 bench)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
 │       ├── validate_metrics.rs             # 10 checks
@@ -394,8 +396,12 @@ neuralSpring/
 │       ├── validate_barracuda_*.rs         # 12 BarraCUDA primitives (272) + 15 CPU ports (147)
 │       ├── validate_gpu_*.rs              # 8 GPU shader binaries (69 checks)
 │       ├── validate_cross_dispatch*.rs    # Cross-dispatch parity (45 checks)
+│       ├── validate_eigh_accuracy.rs      # Householder+QR eigensolver (9 checks)
+│       ├── validate_mha_gpu.rs            # GPU head_split/head_concat (10 checks)
+│       ├── bench_*.rs                     # 5 benchmark binaries
 │       └── validate_all.rs                 # Meta-binary: runs all validators
-│   ├── evolved/                #   Active evolutions (2 modules)
+│   ├── evolved/                #   Active evolutions (3 modules)
+│       ├── mod.rs                   # WGSL shader exports (batch_fitness, rk4, mean_reduce)
 │       ├── mha.rs                   # MHA (native projection shaders hang, S-03b)
 │       └── hmm_forward_gpu.rs       # GPU HMM forward orchestration
 ├── tests/                      # Python unit tests (pytest)
@@ -445,4 +451,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | ToadStool absorption complete: February 20, 2026 | 25 papers, 206 Python + 760 Rust+GPU = 966 total checks | All 11 shortcomings absorbed + S-12/S-03b locally resolved — 12 WGSL shaders, 4 pure GPU pipelines*
+*Initialized: February 16, 2026 | ToadStool absorption complete: February 20, 2026 | Audit: February 21, 2026 | 25 papers, 206 Python + 760 Rust+GPU = 966 validation checks | 181 lib tests, 90.55% line coverage | All 11 shortcomings absorbed + S-12/S-03b locally resolved — 26 modules, 67 validation binaries, 12 WGSL shaders*

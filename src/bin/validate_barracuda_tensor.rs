@@ -28,137 +28,24 @@
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
+use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 
-/// Create a `WgpuDevice` using the adapter's own limits (not barracuda's 512MB
-/// science limits). This lets llvmpipe/CPU software adapters work for
-/// validation — our tensors are tiny, no large-buffer science needed.
-async fn create_device_relaxed(selector: &str) -> barracuda::error::Result<WgpuDevice> {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::all(),
-        ..Default::default()
-    });
-
-    let adapters: Vec<wgpu::Adapter> = instance.enumerate_adapters(wgpu::Backends::all());
-
-    let adapter = if selector == "cpu" {
-        adapters
-            .into_iter()
-            .find(|a| a.get_info().device_type == wgpu::DeviceType::Cpu)
-    } else if let Ok(idx) = selector.parse::<usize>() {
-        adapters.into_iter().nth(idx)
-    } else {
-        let sel = selector.to_ascii_lowercase();
-        adapters
-            .into_iter()
-            .find(|a| a.get_info().name.to_ascii_lowercase().contains(&sel))
-    }
-    .ok_or_else(|| {
-        barracuda::error::BarracudaError::device(format!("No adapter matches '{selector}'"))
-    })?;
-
-    let info = adapter.get_info();
-    let mut features = wgpu::Features::empty();
-    let adapter_features = adapter.features();
-    if adapter_features.contains(wgpu::Features::SHADER_F64) {
-        features |= wgpu::Features::SHADER_F64;
-    }
-    if adapter_features.contains(wgpu::Features::SHADER_F16) {
-        features |= wgpu::Features::SHADER_F16;
-    }
-    if adapter_features.contains(wgpu::Features::TIMESTAMP_QUERY) {
-        features |= wgpu::Features::TIMESTAMP_QUERY;
-    }
-
-    let (device, queue) = adapter
-        .request_device(
-            &wgpu::DeviceDescriptor {
-                label: Some("neuralSpring validation (relaxed limits)"),
-                required_features: features,
-                required_limits: wgpu::Limits::downlevel_defaults(),
-                memory_hints: wgpu::MemoryHints::default(),
-            },
-            None,
-        )
-        .await
-        .map_err(|e| barracuda::error::BarracudaError::device(format!("Device creation: {e}")))?;
-
-    Ok(WgpuDevice::from_existing(
-        Arc::new(device),
-        Arc::new(queue),
-        info,
-    ))
-}
-
-/// Resolve `NEURALSPRING_BACKEND` to a concrete `WgpuDevice`.
-///
-/// | Value | Behaviour |
-/// |-------|-----------|
-/// | `auto` (default) | Best available via `WgpuDevice::new()` |
-/// | `cpu` | `WgpuDevice::new_cpu()` — force CPU software rasterizer |
-/// | `gpu` | `WgpuDevice::new_gpu()` — force discrete / integrated GPU |
-/// | `list` | Print all adapters and exit |
-/// | `llvmpipe`, `nvidia`, … | Name-match via `WgpuDevice::with_adapter_selector()` |
-/// | `0`, `1`, … | Adapter index via `WgpuDevice::from_adapter_index()` |
-async fn resolve_device() -> Option<(Arc<WgpuDevice>, String)> {
-    let selector = std::env::var("NEURALSPRING_BACKEND")
-        .unwrap_or_default()
-        .trim()
-        .to_ascii_lowercase();
-
-    if selector == "list" {
-        let adapters = WgpuDevice::enumerate_adapters();
-        eprintln!("Available wgpu adapters:");
-        for (i, info) in adapters.iter().enumerate() {
-            eprintln!(
-                "  [{i}] {name} ({ty:?}, {backend:?})",
-                name = info.name,
-                ty = info.device_type,
-                backend = info.backend,
-            );
-        }
-        std::process::exit(0);
-    }
-
-    let (result, label) = match selector.as_str() {
-        "gpu" => (WgpuDevice::new_gpu().await, "gpu".to_owned()),
-        "" | "auto" => (WgpuDevice::new().await, "auto".to_owned()),
-        // CPU and name/index selectors: use relaxed limits (llvmpipe caps at 128MB)
-        other => {
-            let result = create_device_relaxed(other).await;
-            (result, other.to_owned())
-        }
-    };
-
-    match result {
-        Ok(dev) => {
-            let info = dev.adapter_info();
-            eprintln!(
-                "  adapter: {} ({:?}, {:?})",
-                info.name, info.device_type, info.backend,
-            );
-            Some((Arc::new(dev), label))
-        }
-        Err(err) => {
-            eprintln!("SKIP [{label}]: {err}");
-            if selector == "cpu" {
-                eprintln!("  Hint: try NEURALSPRING_BACKEND=llvmpipe to select by name");
-            }
-            None
-        }
-    }
-}
-
 #[tokio::main]
 async fn main() {
-    let Some((device, label)) = resolve_device().await else {
+    let Ok(gpu) = Gpu::new().await else {
         eprintln!("  0/0 checks — skipping gracefully");
         std::process::exit(0);
     };
+    eprintln!(
+        "  adapter: {} ({:?}, {:?})",
+        gpu.adapter_name, gpu.device_type, gpu.backend,
+    );
+    let device = gpu.wgpu_device().clone();
 
-    let harness_name = format!("barracuda_tensor[{label}]");
+    let harness_name = format!("barracuda_tensor[{}]", gpu.adapter_name);
     let mut h = ValidationHarness::new(&harness_name);
 
     validate_relu(&mut h, &device);
@@ -179,8 +66,7 @@ async fn main() {
     validate_losses_extended(&mut h, &device);
     validate_transpose(&mut h, &device);
 
-    validate_native_layer_norm(&mut h, &device);
-    validate_native_log_softmax(&mut h, &device);
+    validate_log_softmax(&mut h, &device);
     validate_leaky_relu(&mut h, &device);
     validate_elu(&mut h, &device);
 
@@ -252,10 +138,30 @@ fn validate_gelu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input.gelu_wgsl() {
         Ok(out) => {
             let v = readback(&out);
-            h.check_abs("gelu(0) == 0", f64::from(v[2]), 0.0, 1e-5);
-            h.check_abs("gelu(1) ≈ 0.8412", f64::from(v[3]), 0.8412, 0.01);
-            h.check_abs("gelu(-2) ≈ -0.0454", f64::from(v[0]), -0.0454, 0.01);
-            h.check_abs("gelu(3) ≈ 3.0", f64::from(v[5]), 3.0, 0.01);
+            h.check_abs(
+                "gelu(0) == 0",
+                f64::from(v[2]),
+                0.0,
+                tolerances::TENSOR_EXACT_F32,
+            );
+            h.check_abs(
+                "gelu(1) ≈ 0.8412",
+                f64::from(v[3]),
+                0.8412,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+            h.check_abs(
+                "gelu(-2) ≈ -0.0454",
+                f64::from(v[0]),
+                -0.0454,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+            h.check_abs(
+                "gelu(3) ≈ 3.0",
+                f64::from(v[5]),
+                3.0,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
             h.check_bool("gelu monotonic: g(1) < g(2)", v[3] < v[4]);
         }
         Err(e) => h.check_bool(&format!("gelu_wgsl [ERROR: {e}]"), false),
@@ -267,14 +173,29 @@ fn validate_sigmoid(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input.sigmoid() {
         Ok(out) => {
             let v = readback(&out);
-            h.check_abs("sigmoid(0) == 0.5", f64::from(v[2]), 0.5, 1e-5);
-            h.check_abs("sigmoid(-10) ≈ 0", f64::from(v[0]), 0.0, 1e-3);
-            h.check_abs("sigmoid(10) ≈ 1", f64::from(v[4]), 1.0, 1e-3);
+            h.check_abs(
+                "sigmoid(0) == 0.5",
+                f64::from(v[2]),
+                0.5,
+                tolerances::TENSOR_EXACT_F32,
+            );
+            h.check_abs(
+                "sigmoid(-10) ≈ 0",
+                f64::from(v[0]),
+                0.0,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+            h.check_abs(
+                "sigmoid(10) ≈ 1",
+                f64::from(v[4]),
+                1.0,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
             h.check_abs(
                 "sigmoid symmetry",
                 f64::from(v[1]) + f64::from(v[3]),
                 1.0,
-                1e-5,
+                tolerances::TENSOR_EXACT_F32,
             );
         }
         Err(e) => h.check_bool(&format!("sigmoid [ERROR: {e}]"), false),
@@ -287,7 +208,7 @@ fn validate_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = readback(&out);
             let sum: f64 = v.iter().map(|&x| f64::from(x)).sum();
-            h.check_abs("softmax sums to 1", sum, 1.0, 1e-5);
+            h.check_abs("softmax sums to 1", sum, 1.0, tolerances::TENSOR_EXACT_F32);
             h.check_bool("softmax ordering: s[0] < s[4]", v[0] < v[4]);
             h.check_bool("softmax all positive", v.iter().all(|&x| x > 0.0));
             let lse: f64 =
@@ -298,7 +219,7 @@ fn validate_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
                 "softmax[4] analytical",
                 f64::from(v[4]),
                 expected_last,
-                1e-4,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
             );
         }
         Err(e) => h.check_bool(&format!("softmax [ERROR: {e}]"), false),
@@ -343,7 +264,12 @@ fn validate_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
             );
 
             let out_mean: f64 = v.iter().map(|&x| f64::from(x)).sum::<f64>() / 4.0;
-            h.check_abs("layer_norm zero-mean", out_mean, 0.0, 1e-4);
+            h.check_abs(
+                "layer_norm zero-mean",
+                out_mean,
+                0.0,
+                tolerances::TENSOR_NORM_F32,
+            );
         }
         Err(e) => h.check_bool(&format!("layer_norm_wgsl [ERROR: {e}]"), false),
     }
@@ -484,7 +410,12 @@ fn validate_mse_loss(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match pred.mse_loss(target) {
         Ok(out) => {
             let v = readback(&out);
-            h.check_abs("mse(same) == 0", f64::from(v[0]), 0.0, 1e-6);
+            h.check_abs(
+                "mse(same) == 0",
+                f64::from(v[0]),
+                0.0,
+                tolerances::TENSOR_EXACT_F32,
+            );
         }
         Err(e) => h.check_bool(&format!("mse_loss [ERROR: {e}]"), false),
     }
@@ -494,7 +425,12 @@ fn validate_mse_loss(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match pred2.mse_loss(target2) {
         Ok(out) => {
             let v = readback(&out);
-            h.check_abs("mse([1,2,3],[4,5,6]) == 9", f64::from(v[0]), 9.0, 0.01);
+            h.check_abs(
+                "mse([1,2,3],[4,5,6]) == 9",
+                f64::from(v[0]),
+                9.0,
+                tolerances::TENSOR_MATMUL_F32,
+            );
         }
         Err(e) => h.check_bool(&format!("mse_loss known [ERROR: {e}]"), false),
     }
@@ -507,15 +443,35 @@ fn validate_tanh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input.tanh() {
         Ok(out) => {
             let v = readback(&out);
-            h.check_abs("tanh(0) == 0", f64::from(v[2]), 0.0, 1e-5);
-            h.check_abs("tanh(1) ≈ 0.7616", f64::from(v[3]), 0.7616, 0.01);
-            h.check_abs("tanh(-10) ≈ -1", f64::from(v[0]), -1.0, 1e-3);
-            h.check_abs("tanh(10) ≈ 1", f64::from(v[4]), 1.0, 1e-3);
+            h.check_abs(
+                "tanh(0) == 0",
+                f64::from(v[2]),
+                0.0,
+                tolerances::TENSOR_EXACT_F32,
+            );
+            h.check_abs(
+                "tanh(1) ≈ 0.7616",
+                f64::from(v[3]),
+                0.7616,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+            h.check_abs(
+                "tanh(-10) ≈ -1",
+                f64::from(v[0]),
+                -1.0,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+            h.check_abs(
+                "tanh(10) ≈ 1",
+                f64::from(v[4]),
+                1.0,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
             h.check_abs(
                 "tanh antisymmetry",
                 f64::from(v[1]) + f64::from(v[3]),
                 0.0,
-                1e-5,
+                tolerances::TENSOR_EXACT_F32,
             );
         }
         Err(e) => h.check_bool(&format!("tanh [ERROR: {e}]"), false),
@@ -878,51 +834,9 @@ fn validate_transpose(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     }
 }
 
-// ── Native ops (formerly evolved — now fixed upstream in BarraCUDA) ──────
+// ── Log-softmax (fixed upstream in BarraCUDA — formerly S-04 workaround) ─
 
-fn validate_native_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let data = [1.0_f32, 2.0, 3.0, 4.0];
-    let eps = 1e-5_f32;
-
-    let input = tensor(&data, vec![1, 4], device);
-    match input.layer_norm_wgsl(eps) {
-        Ok(out) => {
-            let v = readback(&out);
-            let mean = 2.5_f64;
-            let var = data
-                .iter()
-                .map(|&x| (f64::from(x) - mean).powi(2))
-                .sum::<f64>()
-                / 4.0;
-            let std = (var + f64::from(eps)).sqrt();
-
-            h.check_abs(
-                "layer_norm_wgsl[0]",
-                f64::from(v[0]),
-                (1.0 - mean) / std,
-                tolerances::TENSOR_NORM_F32,
-            );
-            h.check_abs(
-                "layer_norm_wgsl[1]",
-                f64::from(v[1]),
-                (2.0 - mean) / std,
-                tolerances::TENSOR_NORM_F32,
-            );
-            h.check_abs(
-                "layer_norm_wgsl[3]",
-                f64::from(v[3]),
-                (4.0 - mean) / std,
-                tolerances::TENSOR_NORM_F32,
-            );
-
-            let out_mean: f64 = v.iter().map(|&x| f64::from(x)).sum::<f64>() / 4.0;
-            h.check_abs("layer_norm_wgsl zero-mean", out_mean, 0.0, 1e-4);
-        }
-        Err(e) => h.check_bool(&format!("layer_norm_wgsl [ERROR: {e}]"), false),
-    }
-}
-
-fn validate_native_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
+fn validate_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let data = [1.0_f32, 2.0, 3.0];
 
     let input = tensor(&data, vec![1, 3], device);
@@ -955,7 +869,12 @@ fn validate_native_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevic
             );
 
             let log_sum: f64 = v.iter().map(|&x| f64::from(x).exp()).sum::<f64>().ln();
-            h.check_abs("log_softmax_wgsl logsumexp ≈ 0", log_sum, 0.0, 1e-4);
+            h.check_abs(
+                "log_softmax_wgsl logsumexp ≈ 0",
+                log_sum,
+                0.0,
+                tolerances::TENSOR_NORM_F32,
+            );
         }
         Err(e) => h.check_bool(&format!("log_softmax_wgsl [ERROR: {e}]"), false),
     }

@@ -82,16 +82,18 @@ impl Hmm {
     }
 
     /// Forward algorithm returning full result including scales for backward.
-    #[allow(clippy::needless_range_loop)]
     #[must_use]
     pub fn forward_full(&self, obs: &[usize]) -> ForwardResult {
         let t_len = obs.len();
         let mut alpha = vec![vec![0.0; self.n]; t_len];
         let mut scales = vec![0.0; t_len];
 
-        for j in 0..self.n {
-            let ob0 = obs[0].min(self.m - 1);
-            alpha[0][j] = self.initial[j] * self.emission[j][ob0];
+        let ob0 = obs[0].min(self.m - 1);
+        for (a, (&init, em)) in alpha[0]
+            .iter_mut()
+            .zip(self.initial.iter().zip(self.emission.iter()))
+        {
+            *a = init * em[ob0];
         }
         scales[0] = alpha[0].iter().sum();
         if scales[0] > 0.0 {
@@ -101,12 +103,13 @@ impl Hmm {
         }
 
         for t in 1..t_len {
+            let obt = obs[t].min(self.m - 1);
             for j in 0..self.n {
-                let mut sum = 0.0;
-                for i in 0..self.n {
-                    sum += alpha[t - 1][i] * self.transition[i][j];
-                }
-                let obt = obs[t].min(self.m - 1);
+                let sum: f64 = alpha[t - 1]
+                    .iter()
+                    .zip(self.transition.iter())
+                    .map(|(&a, tr)| a * tr[j])
+                    .sum();
                 alpha[t][j] = sum * self.emission[j][obt];
             }
             scales[t] = alpha[t].iter().sum();
@@ -126,33 +129,31 @@ impl Hmm {
     }
 
     /// Backward algorithm. Requires scales from forward pass.
-    #[allow(clippy::needless_range_loop)]
     #[must_use]
     pub fn backward(&self, obs: &[usize], scales: &[f64]) -> Vec<Vec<f64>> {
         let t_len = obs.len();
         let mut beta = vec![vec![0.0; self.n]; t_len];
-        for j in 0..self.n {
-            beta[t_len - 1][j] = 1.0;
-        }
+        beta[t_len - 1].fill(1.0);
 
         for t in (0..t_len.saturating_sub(1)).rev() {
             let ob_next = obs[t + 1].min(self.m - 1);
-            for i in 0..self.n {
-                let mut sum = 0.0;
-                for j in 0..self.n {
-                    sum += self.transition[i][j] * self.emission[j][ob_next] * beta[t + 1][j];
-                }
-                if t + 1 < scales.len() && scales[t + 1] > 0.0 {
-                    sum /= scales[t + 1];
-                }
-                beta[t][i] = sum;
+            for (i, tr_row) in self.transition.iter().enumerate() {
+                let sum: f64 = tr_row
+                    .iter()
+                    .zip(self.emission.iter().zip(beta[t + 1].iter()))
+                    .map(|(&a_ij, (em_j, &b_j))| a_ij * em_j[ob_next] * b_j)
+                    .sum();
+                beta[t][i] = if t + 1 < scales.len() && scales[t + 1] > 0.0 {
+                    sum / scales[t + 1]
+                } else {
+                    sum
+                };
             }
         }
         beta
     }
 
     /// Viterbi algorithm: most likely state sequence. Returns (path, `log_prob`).
-    #[allow(clippy::needless_range_loop)]
     #[must_use]
     pub fn viterbi(&self, obs: &[usize]) -> (Vec<usize>, f64) {
         let t_len = obs.len();
@@ -171,37 +172,30 @@ impl Hmm {
         let mut delta = vec![vec![0.0; self.n]; t_len];
         let mut psi = vec![vec![0usize; self.n]; t_len];
 
-        for j in 0..self.n {
-            let ob0 = obs[0].min(self.m - 1);
-            delta[0][j] = log_pi[j] + log_b[j][ob0];
+        let ob0 = obs[0].min(self.m - 1);
+        for (d, (&lp, lb)) in delta[0].iter_mut().zip(log_pi.iter().zip(log_b.iter())) {
+            *d = lp + lb[ob0];
         }
 
         for t in 1..t_len {
             let obt = obs[t].min(self.m - 1);
             for j in 0..self.n {
-                let mut best = f64::NEG_INFINITY;
-                let mut best_i = 0;
-                for i in 0..self.n {
-                    let v = delta[t - 1][i] + log_a[i][j];
-                    if v > best {
-                        best = v;
-                        best_i = i;
-                    }
-                }
+                let (best_i, best) = (0..self.n)
+                    .map(|i| (i, delta[t - 1][i] + log_a[i][j]))
+                    .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+                    .unwrap_or((0, f64::NEG_INFINITY));
                 psi[t][j] = best_i;
                 delta[t][j] = best + log_b[j][obt];
             }
         }
 
         let mut path = vec![0; t_len];
-        let mut best = f64::NEG_INFINITY;
-        for j in 0..self.n {
-            if delta[t_len - 1][j] > best {
-                best = delta[t_len - 1][j];
-                path[t_len - 1] = j;
-            }
-        }
-        let log_prob = best;
+        let (best_j, log_prob) = delta[t_len - 1]
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+            .map_or((0, f64::NEG_INFINITY), |(i, &v)| (i, v));
+        path[t_len - 1] = best_j;
 
         for t in (0..t_len.saturating_sub(1)).rev() {
             path[t] = psi[t + 1][path[t + 1]];

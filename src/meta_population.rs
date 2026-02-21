@@ -6,7 +6,6 @@
     clippy::cast_sign_loss,
     clippy::doc_markdown,
     clippy::many_single_char_names,
-    clippy::must_use_candidate,
     clippy::suboptimal_flops,
     clippy::needless_range_loop,
     clippy::too_many_arguments,
@@ -102,6 +101,7 @@ pub fn generate_population(
 /// Compute per-locus allele frequency from a genotype matrix.
 ///
 /// Genotypes are 0/1/2; frequency = column mean / 2.
+#[must_use]
 pub fn allele_frequencies(pop: &[f64], n_individuals: usize, n_loci: usize) -> Vec<f64> {
     let mut freqs = vec![0.0; n_loci];
     for j in 0..n_loci {
@@ -114,6 +114,7 @@ pub fn allele_frequencies(pop: &[f64], n_individuals: usize, n_loci: usize) -> V
 /// Nucleotide diversity (pi) within a population.
 ///
 /// pi = mean over loci of `2 * p * (1-p) * n/(n-1)`
+#[must_use]
 pub fn nucleotide_diversity(pop: &[f64], n_individuals: usize, n_loci: usize) -> f64 {
     if n_individuals < 2 {
         return 0.0;
@@ -128,6 +129,7 @@ pub fn nucleotide_diversity(pop: &[f64], n_individuals: usize, n_loci: usize) ->
 }
 
 /// Weir & Cockerham (1984) FST estimator for two populations.
+#[must_use]
 pub fn pairwise_fst(pop_a: &[f64], n_a: usize, pop_b: &[f64], n_b: usize, n_loci: usize) -> f64 {
     let freq_a = allele_frequencies(pop_a, n_a, n_loci);
     let freq_b = allele_frequencies(pop_b, n_b, n_loci);
@@ -171,6 +173,7 @@ pub fn pairwise_fst(pop_a: &[f64], n_a: usize, pop_b: &[f64], n_b: usize, n_loci
 }
 
 /// Global FST across multiple populations.
+#[must_use]
 pub fn global_fst(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usize) -> f64 {
     let n_pops = populations.len();
     let ns: Vec<f64> = n_individuals.iter().map(|&n| n as f64).collect();
@@ -228,6 +231,7 @@ pub fn global_fst(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usi
 }
 
 /// Build pairwise FST matrix (n_pops x n_pops, flat row-major).
+#[must_use]
 pub fn fst_matrix(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usize) -> Vec<f64> {
     let n = populations.len();
     let mut mat = vec![0.0_f64; n * n];
@@ -248,6 +252,7 @@ pub fn fst_matrix(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usi
 }
 
 /// Euclidean distance matrix from 2D coordinates.
+#[must_use]
 pub fn geographic_distance_matrix(coords: &[(f64, f64)]) -> Vec<f64> {
     let n = coords.len();
     let mut dist = vec![0.0_f64; n * n];
@@ -264,6 +269,7 @@ pub fn geographic_distance_matrix(coords: &[(f64, f64)]) -> Vec<f64> {
 }
 
 /// Pearson correlation between upper-triangle elements of two square matrices.
+#[must_use]
 pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
     let mut xs = Vec::new();
     let mut ys = Vec::new();
@@ -326,6 +332,7 @@ pub fn mantel_test(
 }
 
 /// Pearson correlation between temperature and nucleotide diversity.
+#[must_use]
 pub fn thermal_diversity_correlation(pi_values: &[f64], temperatures: &[f64]) -> f64 {
     let n = pi_values.len();
     if n < 2 {
@@ -349,6 +356,7 @@ pub fn thermal_diversity_correlation(pi_values: &[f64], temperatures: &[f64]) ->
 }
 
 /// Mean allele frequency variance across populations (inter-population).
+#[must_use]
 pub fn inter_population_af_variance(
     populations: &[Vec<f64>],
     n_individuals: &[usize],
@@ -425,5 +433,80 @@ mod tests {
         let (a2, p2) = run();
         assert_eq!(a1, a2, "ancestral frequencies must be deterministic");
         assert_eq!(p1, p2, "population genotypes must be deterministic");
+    }
+
+    #[test]
+    fn global_fst_positive() {
+        let mut rng = Rng::new(42);
+        let n_loci = 20;
+        let anc: Vec<f64> = (0..n_loci).map(|_| rng.beta(2.0, 2.0)).collect();
+        let pops: Vec<Vec<f64>> = [70.0, 85.0]
+            .iter()
+            .map(|&t| generate_population(10, n_loci, &anc, 0.15, t, 65.0, 90.0, 4, &mut rng))
+            .collect();
+        let n_indivs = vec![10; 2];
+        let gfst = global_fst(&pops, &n_indivs, n_loci);
+        assert!(gfst.is_finite(), "global FST must be finite");
+    }
+
+    #[test]
+    fn fst_matrix_symmetric_and_diag_zero() {
+        let mut rng = Rng::new(42);
+        let n_loci = 15;
+        let n_pops = 3;
+        let anc: Vec<f64> = (0..n_loci).map(|_| rng.beta(2.0, 2.0)).collect();
+        let temps = [70.0, 78.0, 85.0];
+        let pops: Vec<Vec<f64>> = temps
+            .iter()
+            .map(|&t| generate_population(8, n_loci, &anc, 0.15, t, 65.0, 90.0, 3, &mut rng))
+            .collect();
+        let n_indivs = vec![8; n_pops];
+        let fst_mat = fst_matrix(&pops, &n_indivs, n_loci);
+        for i in 0..n_pops {
+            assert!(fst_mat[i * n_pops + i].abs() < 1e-10);
+            for j in 0..n_pops {
+                assert!((fst_mat[i * n_pops + j] - fst_mat[j * n_pops + i]).abs() < 1e-10);
+            }
+        }
+    }
+
+    #[test]
+    fn matrix_correlation_perfect() {
+        let a = vec![0.0, 1.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0];
+        let r = matrix_correlation(&a, &a, 3);
+        assert!((r - 1.0).abs() < 1e-10, "self-correlation should be 1.0");
+    }
+
+    #[test]
+    fn mantel_test_produces_finite() {
+        let mut rng = Rng::new(42);
+        let n = 4;
+        let a: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
+        let b: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
+        let (r, p) = mantel_test(&a, &b, n, 99, &mut rng);
+        assert!(r.is_finite());
+        assert!(p >= 0.0 && p <= 1.0);
+    }
+
+    #[test]
+    fn thermal_diversity_correlation_bounded() {
+        let pi = vec![0.1, 0.2, 0.3, 0.4];
+        let temps = vec![65.0, 72.0, 80.0, 90.0];
+        let r = thermal_diversity_correlation(&pi, &temps);
+        assert!(r.abs() <= 1.0 + 1e-10);
+    }
+
+    #[test]
+    fn inter_pop_af_variance_positive() {
+        let mut rng = Rng::new(42);
+        let n_loci = 15;
+        let anc: Vec<f64> = (0..n_loci).map(|_| rng.beta(2.0, 2.0)).collect();
+        let pops: Vec<Vec<f64>> = [70.0, 85.0]
+            .iter()
+            .map(|&t| generate_population(8, n_loci, &anc, 0.15, t, 65.0, 90.0, 3, &mut rng))
+            .collect();
+        let n_indivs = vec![8; 2];
+        let v = inter_population_af_variance(&pops, &n_indivs, n_loci);
+        assert!(v >= 0.0 && v.is_finite());
     }
 }

@@ -79,7 +79,12 @@ fn main() {
     let gamma = hmm.posterior(&gen_obs);
     for (t, row) in gamma.iter().enumerate().take(5) {
         let sum: f64 = row.iter().sum();
-        h.check_abs(&format!("posterior gamma[{t}] sums to 1"), sum, 1.0, 1e-8);
+        h.check_abs(
+            &format!("posterior gamma[{t}] sums to 1"),
+            sum,
+            1.0,
+            tolerances::HMM_POSTERIOR_SUM,
+        );
     }
 
     let posterior_acc = gamma

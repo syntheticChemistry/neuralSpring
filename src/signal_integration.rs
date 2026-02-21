@@ -322,4 +322,44 @@ mod tests {
         assert!(low < 0.3);
         assert!(high > 0.7);
     }
+
+    #[test]
+    fn dose_response_ai_sigmoidal() {
+        let dr = dose_response_ai(5.0, 50, 1.0, 1.0, 2.0, 2.0);
+        assert_eq!(dr.len(), 50);
+        let low: f64 = dr.iter().take(5).map(|(_, v)| v).sum::<f64>() / 5.0;
+        let high: f64 = dr.iter().rev().take(5).map(|(_, v)| v).sum::<f64>() / 5.0;
+        assert!(low < 0.3);
+        assert!(high > 0.7);
+    }
+
+    #[test]
+    fn logic_gate_sweep_covers_all_combos() {
+        let sweep = logic_gate_sweep(1.0, 1.0, 2.0, 2.0);
+        assert_eq!(sweep.len(), 4);
+        for &(_, val) in &sweep {
+            assert!(val >= 0.0 && val.is_finite());
+        }
+    }
+
+    #[test]
+    fn classify_logic_gate_variants() {
+        assert_eq!(classify_logic_gate(2.0, 2.0, 1.0, 1.0), LogicGate::OnOn);
+        assert_eq!(classify_logic_gate(0.1, 0.1, 1.0, 1.0), LogicGate::OffOff);
+        assert_eq!(classify_logic_gate(2.0, 0.1, 1.0, 1.0), LogicGate::OnOff);
+        assert_eq!(classify_logic_gate(0.1, 2.0, 1.0, 1.0), LogicGate::OffOn);
+    }
+
+    #[test]
+    fn integrate_ode_length() {
+        let y0 = OdeState {
+            cdg: 0.5,
+            ai: 0.5,
+            vps_t: 0.0,
+            biofilm: 0.0,
+        };
+        let params = OdeParams::default();
+        let trace = integrate_ode(1.0, 0.1, &y0, &params);
+        assert_eq!(trace.len(), 11);
+    }
 }

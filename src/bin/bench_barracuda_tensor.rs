@@ -15,8 +15,8 @@
 
 #![allow(clippy::cast_precision_loss)]
 
-use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
+use neural_spring::gpu::Gpu;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -25,23 +25,18 @@ const ITERATIONS: usize = 20;
 
 #[tokio::main]
 async fn main() {
-    let dev = match WgpuDevice::new().await {
-        Ok(d) => d,
-        Err(e) => {
-            eprintln!("SKIP: {e}");
-            return;
-        }
+    let Ok(gpu) = Gpu::new().await else {
+        eprintln!("SKIP — no adapter");
+        return;
     };
-
-    let info = dev.adapter_info();
     eprintln!(
         "Benchmark: {} ({:?}, {:?})",
-        info.name, info.device_type, info.backend,
+        gpu.adapter_name, gpu.device_type, gpu.backend,
     );
     eprintln!("Warmup: {WARMUP}, iterations: {ITERATIONS}");
     eprintln!();
 
-    let device = Arc::new(dev);
+    let device = gpu.wgpu_device().clone();
     let results = vec![
         bench_op("relu", &device, |dev| {
             let t = mk_tensor(&[256, 256], dev);

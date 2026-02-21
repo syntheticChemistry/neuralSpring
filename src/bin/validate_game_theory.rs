@@ -17,6 +17,7 @@ use neural_spring::game_theory::{
     prisoners_dilemma_payoff, qs_cooperation_model, replicator_dynamics, snowdrift_payoff,
     spatial_cooperation, QsConfig,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -94,9 +95,9 @@ fn main() {
     // Part 5: QS stabilizes
     let variance = variance_last_n(&qs_result.coop_freq, 100);
     h.check_upper(
-        &format!("QS variance ({variance:.6}) < 0.05"),
+        &format!("QS variance ({variance:.6}) < QS_VARIANCE_MAX"),
         variance,
-        0.05,
+        tolerances::QS_VARIANCE_MAX,
     );
 
     // Part 6: Connection documented

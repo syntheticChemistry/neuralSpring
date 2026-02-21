@@ -188,4 +188,52 @@ mod tests {
         let a = vec![1.0f32, 2.0, 3.0];
         assert!(max_abs_diff(&a, &a) < 1e-12);
     }
+
+    #[test]
+    fn delta_signal_f64_structure() {
+        let d = delta_signal_f64(8);
+        assert_eq!(d.len(), 16);
+        assert!((d[0] - 1.0).abs() < f64::EPSILON);
+        for &v in &d[1..] {
+            assert!(v.abs() < f64::EPSILON);
+        }
+    }
+
+    #[test]
+    fn constant_signal_f64_structure() {
+        let c = constant_signal_f64(4);
+        assert_eq!(c.len(), 8);
+        for k in 0..4 {
+            assert!((c[k * 2] - 1.0).abs() < f64::EPSILON);
+            assert!(c[k * 2 + 1].abs() < f64::EPSILON);
+        }
+    }
+
+    #[test]
+    fn cosine_signal_f64_energy() {
+        let c = cosine_signal_f64(8, 1);
+        let e = complex_energy_f64(&c);
+        assert!((e - 4.0).abs() < 1e-10, "f64 cosine energy should be N/2");
+    }
+
+    #[test]
+    fn complex_energy_f64_delta() {
+        let d = delta_signal_f64(16);
+        let e = complex_energy_f64(&d);
+        assert!((e - 1.0).abs() < 1e-14);
+    }
+
+    #[test]
+    fn max_abs_diff_f64_identical() {
+        let a = vec![1.0_f64, 2.0, 3.0];
+        assert!(max_abs_diff_f64(&a, &a) < 1e-14);
+    }
+
+    #[test]
+    fn max_abs_diff_f64_known() {
+        let a = vec![1.0, 2.0, 3.0];
+        let b = vec![1.1, 2.0, 2.7];
+        let d = max_abs_diff_f64(&a, &b);
+        assert!((d - 0.3).abs() < 1e-10);
+    }
 }

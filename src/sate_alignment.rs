@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! `SATé`: Iterative co-estimation of MSA and phylogenetic tree.
+//! `SATe`: Iterative co-estimation of MSA and phylogenetic tree.
 //!
 //! Port of `control/sate_alignment/sate_alignment.py`.
 //!
 //! Liu et al. (2009) "Rapid and accurate large-scale coestimation of
-//! sequence alignments and phylogenetic trees" (`SATé`)
+//! sequence alignments and phylogenetic trees" (`SATe`)
 //! Science 324:1561-1564.
 //!
 //! Computational core: distance matrix (GEMM-equivalent) + neighbor-joining
@@ -22,6 +22,15 @@
 //!
 //! [`WGSL_PAIRWISE_HAMMING`] — pairwise Hamming distance matrix. One
 //! thread per sequence pair. Validated in `validate_gpu_sate`.
+
+// Domain-inherent: bioinformatics matrix algorithms require casts and
+// index-based loops that clippy flags but cannot be meaningfully refactored.
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::needless_range_loop
+)]
 
 use crate::rng::Rng;
 
@@ -51,10 +60,11 @@ fn jukes_cantor(p: f64) -> f64 {
     if p >= 0.75 {
         return JC_SATURATION;
     }
-    -0.75 * (1.0_f64 - (4.0 / 3.0) * p).ln()
+    -0.75 * (4.0_f64 / 3.0).mul_add(-p, 1.0).ln()
 }
 
 /// Compute N×N pairwise distance matrix (GEMM-equivalent).
+#[must_use]
 pub fn pairwise_distance_matrix(seqs: &[Vec<u8>], use_jc: bool) -> Vec<Vec<f64>> {
     let n = seqs.len();
     let mut d = vec![vec![0.0; n]; n];
@@ -73,6 +83,7 @@ pub fn pairwise_distance_matrix(seqs: &[Vec<u8>], use_jc: bool) -> Vec<Vec<f64>>
 pub type NjJoin = (usize, usize, f64, f64);
 
 /// Neighbor-joining tree construction. Returns N-1 joins.
+#[must_use]
 pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
     let n = d.len();
     if n <= 1 {
@@ -82,7 +93,7 @@ pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
         return vec![(0, 1, d[0][1] / 2.0, d[0][1] / 2.0)];
     }
 
-    let mut dist: Vec<Vec<f64>> = d.iter().map(Vec::clone).collect();
+    let mut dist: Vec<Vec<f64>> = d.to_vec();
     let mut active: Vec<usize> = (0..n).collect();
     let mut next_node = n;
     let mut tree = Vec::new();
@@ -105,7 +116,7 @@ pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
                     .filter(|&&k| k != j)
                     .map(|&k| dist[j][k])
                     .sum();
-                let q = (nn - 2) as f64 * dist[i][j] - s_i - s_j;
+                let q = ((nn - 2) as f64).mul_add(dist[i][j], -s_i) - s_j;
                 if q < min_q {
                     min_q = q;
                     join_i = i;
@@ -150,9 +161,11 @@ pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
         active.push(u);
     }
 
-    let mut it = active.into_iter();
-    let i = it.next().unwrap_or(0);
-    let j = it.next().unwrap_or(1);
+    let [i, j] = match *active.as_slice() {
+        [a, b, ..] => [a, b],
+        [a] => [a, 0],
+        [] => [0, 1],
+    };
     let len = dist[i][j] / 2.0;
     tree.push((i, j, len, len));
     tree
@@ -216,6 +229,7 @@ fn align_pair(seq_a: &[u8], seq_b: &[u8]) -> (Vec<u8>, Vec<u8>) {
 }
 
 /// Progressive alignment (caterpillar guide tree).
+#[must_use]
 pub fn progressive_align(seqs: &[Vec<u8>], _tree: &[NjJoin]) -> Vec<Vec<u8>> {
     if seqs.is_empty() {
         return vec![];
@@ -265,6 +279,7 @@ pub fn progressive_align(seqs: &[Vec<u8>], _tree: &[NjJoin]) -> Vec<Vec<u8>> {
 }
 
 /// Sum-of-pairs alignment score. Higher is better.
+#[must_use]
 pub fn alignment_score(aln: &[Vec<u8>]) -> f64 {
     let n = aln.len();
     if n == 0 {
@@ -287,6 +302,7 @@ pub fn alignment_score(aln: &[Vec<u8>]) -> f64 {
 
 /// Robinson-Foulds topological distance (symmetric difference of splits).
 /// Simplified: count edges in tree1 not in tree2 (as unordered pairs).
+#[must_use]
 pub fn robinson_foulds(tree1: &[NjJoin], tree2: &[NjJoin]) -> usize {
     let pairs1: std::collections::HashSet<(usize, usize)> = tree1
         .iter()
@@ -300,11 +316,13 @@ pub fn robinson_foulds(tree1: &[NjJoin], tree2: &[NjJoin]) -> usize {
 }
 
 /// Generate root DNA sequence (A=0, C=1, G=2, T=3).
+#[must_use]
 pub fn generate_root_sequence(length: usize, rng: &mut Rng) -> Vec<u8> {
     (0..length).map(|_| rng.usize(4) as u8).collect()
 }
 
 /// Mutate sequence along branch with substitution rate.
+#[must_use]
 pub fn mutate_along_branch(seq: &[u8], rate: f64, rng: &mut Rng) -> Vec<u8> {
     let mut out = seq.to_vec();
     let n = seq.len();
@@ -322,6 +340,7 @@ pub fn mutate_along_branch(seq: &[u8], rate: f64, rng: &mut Rng) -> Vec<u8> {
 }
 
 /// Generate tree-guided sequences.
+#[must_use]
 pub fn generate_tree_guided_sequences(
     n_seqs: usize,
     seq_len: usize,

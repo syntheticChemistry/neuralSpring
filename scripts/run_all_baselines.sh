@@ -135,6 +135,12 @@ run_experiment "Paper 022: Spectral Commutativity (Kachkovskiy 2016)" \
 run_experiment "Paper 023: Anderson Localization (Bourgain/Kachkovskiy 2018)" \
     control/anderson_localization/anderson_localization.py
 
+run_experiment "Paper 024: Pangenome Selection (Liu genomics)" \
+    control/pangenome_selection/pangenome_selection.py
+
+run_experiment "Paper 025: Meta-Population Dynamics (Liu population genetics)" \
+    control/meta_population/meta_population.py
+
 echo ""
 echo "================================================================"
 echo "  GRAND SUMMARY"

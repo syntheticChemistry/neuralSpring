@@ -60,12 +60,17 @@ fn validate_erf(h: &mut ValidationHarness) {
         0.0,
         tolerances::EXACT_F64,
     );
-    h.check_abs("erf(5) ≈ 1", barracuda::special::erf(5.0), 1.0, 1e-6);
+    h.check_abs(
+        "erf(5) ≈ 1",
+        barracuda::special::erf(5.0),
+        1.0,
+        tolerances::SPECIAL_FUNCTION_F64,
+    );
     h.check_abs(
         "erf(1) ≈ 0.8427",
         barracuda::special::erf(1.0),
         0.842_700_792_949_715,
-        1e-6,
+        tolerances::SPECIAL_FUNCTION_F64,
     );
     h.check_abs(
         "erf(-1) == -erf(1)",
@@ -111,7 +116,7 @@ fn validate_bessel(h: &mut ValidationHarness) {
         "J₀(2.4048) ≈ 0",
         barracuda::special::bessel_j0(2.404_825_557_695_773),
         0.0,
-        1e-3,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
     );
 }
 

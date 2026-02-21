@@ -1,10 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 21, 2026
+**Last updated**: February 21, 2026 (post-audit)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
-**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 206/206 Python PASS (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++) + 760/760 Rust+GPU validation PASS (183 native + 272 BarraCUDA primitives + 147 BarraCUDA CPU ports + 69 GPU shaders + 65 GPU pipeline + 5 GPU PRNG + 19 Phase 4d) = **966 total checks**
+**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 90.55% line coverage
+**Grand Total**: 206/206 Python PASS (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++) + 760/760 Rust+GPU validation PASS (183 native + 272 BarraCUDA primitives + 147 BarraCUDA CPU ports + 69 GPU shaders + 65 GPU pipeline + 5 GPU PRNG + 19 Phase 4d) = **966 total validation checks**
+**Library**: 181 unit tests + 6 doc tests = 187 total | 26 modules + 3 evolved | 67 validation binaries + 5 bench = 72 binaries
 **ToadStool**: All 11 shortcomings (S-01..S-11) **ABSORBED** at `dc540afd`
 
 ---
@@ -53,7 +54,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (183 checks)
+### Phase 1a: neuralSpring-Native Validation (181 lib tests, 67 validation binaries, 26 modules)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -230,7 +231,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 14 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 135 unit + 6 doc tests |
+| Rust test | `cargo test` | **PASS** — 181 unit + 6 doc tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -251,7 +252,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (183 checks, 18 binaries) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (181 lib tests, 67 binaries, 26 modules, 90.55% coverage) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |

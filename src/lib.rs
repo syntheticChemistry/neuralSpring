@@ -63,18 +63,6 @@ pub mod pangenome_selection;
 pub mod provenance;
 pub mod regulatory_network;
 pub mod rng;
-#[allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::doc_markdown,
-    clippy::implicit_clone,
-    clippy::many_single_char_names,
-    clippy::must_use_candidate,
-    clippy::needless_range_loop,
-    clippy::suboptimal_flops,
-    clippy::if_not_else
-)]
 pub mod sate_alignment;
 pub mod sequence;
 pub mod signal_integration;

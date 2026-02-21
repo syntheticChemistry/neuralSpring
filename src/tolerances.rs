@@ -32,6 +32,14 @@ pub const EXACT_F64: f64 = 1e-12;
 /// 1e-10 accounts for these differences.
 pub const CROSS_LANGUAGE: f64 = 1e-10;
 
+/// Threshold for treating a value as effectively zero.
+///
+/// Used in combined absolute-or-relative error checks where division
+/// by the expected value would amplify noise.  Below this threshold,
+/// absolute error is used instead of relative error.  Slightly tighter
+/// than machine epsilon to avoid false triggers on legitimate small values.
+pub const ZERO_DETECTION: f64 = 1e-14;
+
 // ═══════════════════════════════════════════════════════════════════
 // Benchmark function tolerances
 // ═══════════════════════════════════════════════════════════════════
@@ -75,6 +83,13 @@ pub const GELU_CROSS_PYTHON: f64 = EXACT_F64;
 ///
 /// At x = 10, GELU(10) ≈ 10.0 to within 1e-6.
 pub const GELU_LARGE_INPUT: f64 = 1e-6;
+
+/// Special function evaluations (erf, bessel, norm\_cdf, norm\_ppf).
+///
+/// `barracuda::special` implementations use polynomial/Chebyshev approximations
+/// for erf, bessel\_j0/j1, norm\_cdf, and norm\_ppf.  These achieve ~6 digits
+/// of accuracy in f64 at reference points (NIST DLMF, A&S tables).
+pub const SPECIAL_FUNCTION_F64: f64 = 1e-6;
 
 // ═══════════════════════════════════════════════════════════════════
 // Metric tolerances
@@ -356,6 +371,37 @@ pub const ML_MLP_F32: f64 = TENSOR_MATMUL_F32;
 /// configs (`d_model`=32, `seq_len`=8).
 pub const ML_TRANSFORMER_F32: f64 = 0.05;
 
+// ═══════════════════════════════════════════════════════════════════
+// Eigenvalue decomposition (barracuda Jacobi eigensolver)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Jacobi eigensolver: matrix reconstruction relative error (f64, n≤8).
+///
+/// `barracuda::linalg::eigh_f64` uses classic Jacobi rotations which
+/// converge to ~1e-2 relative reconstruction error at n=8.  LAPACK's
+/// divide-and-conquer achieves 1e-14.  `ToadStool` handoff: upgrade to
+/// `divide_and_conquer` for machine-precision eigendecomposition.
+pub const EIGH_JACOBI_RECONSTRUCT: f64 = 1e-2;
+
+/// Jacobi eigensolver: eigenvalue agreement (f64, n≤8).
+///
+/// Eigenvalue accuracy is tighter than reconstruction because orthogonal
+/// similarity transforms preserve the spectrum even when eigenvectors
+/// are only approximate.
+pub const EIGH_JACOBI_EIGENVALUE: f64 = 1e-3;
+
+// ═══════════════════════════════════════════════════════════════════
+// ODE integrator agreement
+// ═══════════════════════════════════════════════════════════════════
+
+/// RK4 vs RK45 integrator agreement on identical ODEs.
+///
+/// Fixed-step RK4 and adaptive RK45 produce slightly different
+/// trajectories due to step-size strategy.  For well-behaved systems
+/// (regulatory networks, signal integration, game replicator dynamics)
+/// the final-state difference is bounded by ~1e-2.
+pub const ODE_INTEGRATOR_AGREEMENT: f64 = 1e-2;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -378,12 +424,14 @@ mod tests {
         let tols = [
             EXACT_F64,
             CROSS_LANGUAGE,
+            ZERO_DETECTION,
             BENCHMARK_GLOBAL_MIN,
             BENCHMARK_CROSS_PYTHON,
             SOFTMAX_SUM,
             SOFTMAX_CROSS_PYTHON,
             GELU_CROSS_PYTHON,
             GELU_LARGE_INPUT,
+            SPECIAL_FUNCTION_F64,
             METRIC_EXACT,
             SURROGATE_R2_MIN,
             TRANSFORMER_NUMPY_VS_PYTORCH,
@@ -423,6 +471,9 @@ mod tests {
             GPU_SPATIAL_PAYOFF_F32,
             GPU_BATCH_IPR_F32,
             GPU_HAMMING_F32,
+            EIGH_JACOBI_RECONSTRUCT,
+            EIGH_JACOBI_EIGENVALUE,
+            ODE_INTEGRATOR_AGREEMENT,
         ];
         for (i, &t) in tols.iter().enumerate() {
             assert!(t > 0.0, "tolerance index {i} must be positive, got {t}");

@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
-    clippy::doc_markdown,
-    clippy::must_use_candidate,
-    clippy::suboptimal_flops
-)]
+#![allow(clippy::doc_markdown, clippy::suboptimal_flops)]
 
 //! Regulatory network and diversity capacitor (Paper 020).
 //!
@@ -74,6 +70,7 @@ impl Default for GrnParams {
 }
 
 /// RHS of GRN ODE: d\[state\]/dt.
+#[must_use]
 pub fn grn_rhs(x: &[f64; 4], env_signal: f64, p: &GrnParams) -> [f64; 4] {
     let [sasa, bio, mot, vir] = *x;
     let dsasa = p.a_s * env_signal / (0.5 + env_signal) - p.d_s * sasa;
@@ -84,6 +81,7 @@ pub fn grn_rhs(x: &[f64; 4], env_signal: f64, p: &GrnParams) -> [f64; 4] {
 }
 
 /// Single RK4 step.
+#[must_use]
 pub fn rk4_step(x: &[f64; 4], env_signal: f64, p: &GrnParams, dt: f64) -> [f64; 4] {
     let k1 = grn_rhs(x, env_signal, p);
     let x2 = [
@@ -116,6 +114,7 @@ pub fn rk4_step(x: &[f64; 4], env_signal: f64, p: &GrnParams, dt: f64) -> [f64; 
 }
 
 /// Integrate GRN ODE to near steady state.
+#[must_use]
 pub fn integrate_grn(
     x0: &[f64; 4],
     env_signal: f64,
@@ -135,6 +134,7 @@ pub fn integrate_grn(
 }
 
 /// Classify dominant strategy: 0=biofilm, 1=motility, 2=virulence.
+#[must_use]
 pub fn phenotype_classifier(x: &[f64; 4]) -> usize {
     let bio = x[1];
     let mot = x[2];
@@ -153,6 +153,7 @@ pub fn phenotype_classifier(x: &[f64; 4]) -> usize {
 }
 
 /// Shannon diversity H = -sum(p * ln(p)) for p > 0.
+#[must_use]
 pub fn shannon_diversity(counts: &[f64]) -> f64 {
     let total: f64 = counts.iter().sum();
     if total <= 0.0 {
@@ -174,6 +175,7 @@ pub const ENV_NUTRIENT_POOR: (f64, f64, f64, f64) = (0.2, 0.4, 0.3, 0.9);
 pub const ENV_STRESS: (f64, f64, f64, f64) = (0.6, 0.35, 0.4, 0.5);
 
 /// Build params for an environment (`K_b`, `K_m`, `K_v` from env).
+#[must_use]
 pub fn env_params(k_b: f64, k_m: f64, k_v: f64) -> GrnParams {
     GrnParams {
         k_b,

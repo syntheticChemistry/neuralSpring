@@ -24,7 +24,9 @@
 )]
 
 use barracuda::device::WgpuDevice;
+use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
@@ -45,20 +47,15 @@ struct HeadParams {
 
 #[tokio::main]
 async fn main() {
-    let dev = match WgpuDevice::new().await {
-        Ok(d) => {
-            let info = d.adapter_info();
-            eprintln!(
-                "  adapter: {} ({:?}, {:?})",
-                info.name, info.device_type, info.backend
-            );
-            Arc::new(d)
-        }
-        Err(e) => {
-            eprintln!("  SKIP: {e}");
-            std::process::exit(0);
-        }
+    let Ok(gpu) = Gpu::new().await else {
+        eprintln!("  SKIP — no adapter");
+        std::process::exit(0);
     };
+    eprintln!(
+        "  adapter: {} ({:?}, {:?})",
+        gpu.adapter_name, gpu.device_type, gpu.backend,
+    );
+    let dev = gpu.wgpu_device().clone();
 
     let mut h = ValidationHarness::new("mha_gpu_s03b");
 
@@ -103,7 +100,7 @@ fn validate_head_split(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
         "head_split layout matches CPU",
         f64::from(max_err),
         0.0,
-        1e-6,
+        tolerances::TENSOR_EXACT_F32,
     );
     h.check_bool("head_split output length", gpu_out.len() == expected.len());
 }
@@ -141,7 +138,7 @@ fn validate_head_concat(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
         "head_concat layout matches CPU",
         f64::from(max_err),
         0.0,
-        1e-6,
+        tolerances::TENSOR_EXACT_F32,
     );
 }
 
@@ -169,7 +166,7 @@ fn validate_split_concat_roundtrip(h: &mut ValidationHarness, dev: &Arc<WgpuDevi
         "split->concat roundtrip exact",
         f64::from(max_err),
         0.0,
-        1e-6,
+        tolerances::TENSOR_EXACT_F32,
     );
 }
 
@@ -212,7 +209,7 @@ fn validate_larger_sizes(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
             &format!("head_split {label}"),
             f64::from(split_err),
             0.0,
-            1e-6,
+            tolerances::TENSOR_EXACT_F32,
         );
 
         // Roundtrip
@@ -228,7 +225,7 @@ fn validate_larger_sizes(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
             &format!("split->concat roundtrip {label}"),
             f64::from(rt_err),
             0.0,
-            1e-6,
+            tolerances::TENSOR_EXACT_F32,
         );
     }
 }
