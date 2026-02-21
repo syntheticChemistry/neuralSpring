@@ -317,6 +317,32 @@ pub const ANDERSON_LOCALIZATION_PROVENANCE: BaselineProvenance = BaselineProvena
 };
 
 // ═══════════════════════════════════════════════════════════════════
+// Phase 0++: Empirical Corollary — R. Anderson (16/16 PASS)
+// ═══════════════════════════════════════════════════════════════════
+
+pub const PANGENOME_SELECTION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 024: Pangenome Selection (8/8 PASS)",
+    script: "control/pangenome_selection/pangenome_selection.py",
+    commit: BASELINE_COMMIT,
+    date: "2026-02-20",
+    command: "python3 control/pangenome_selection/pangenome_selection.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+pub const META_POPULATION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 025: Meta-Population Differentiation (8/8 PASS)",
+    script: "control/meta_population/meta_population.py",
+    commit: BASELINE_COMMIT,
+    date: "2026-02-20",
+    command: "python3 control/meta_population/meta_population.py",
+    environment: ENVIRONMENT,
+    value: 8.0,
+    unit: "checks passed",
+};
+
+// ═══════════════════════════════════════════════════════════════════
 // ML inference baselines (JSON weights + expected outputs)
 // ═══════════════════════════════════════════════════════════════════
 
@@ -335,6 +361,13 @@ pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
 /// dependency.  Provenance is mathematical: NIST DLMF, IEEE 754, and textbook
 /// formulas.
 pub const BARRACUDA_ANALYTICAL_REFS: &str = "Analytical (IEEE 754, NIST DLMF, textbook formulas)";
+
+/// FFT validation: analytical DFT pairs + Parseval's theorem.
+///
+/// No Python dependency — all expected values derive from the definition of
+/// the Discrete Fourier Transform (Cooley & Tukey, 1965; FFTW docs).
+pub const FFT_ANALYTICAL_REFS: &str =
+    "Analytical (DFT definition, Parseval's theorem, Cooley-Tukey 1965)";
 
 // ═══════════════════════════════════════════════════════════════════
 // Cross-language reference values (Python-computed, hardcoded in Rust)
@@ -441,6 +474,8 @@ mod tests {
             &SPECTRAL_COMMUTATIVITY_PROVENANCE,
             &ANDERSON_LOCALIZATION_PROVENANCE,
             &ML_INFERENCE_PROVENANCE,
+            &PANGENOME_SELECTION_PROVENANCE,
+            &META_POPULATION_PROVENANCE,
         ];
         for p in records {
             assert!(!p.label.is_empty(), "empty label: {}", p.script);

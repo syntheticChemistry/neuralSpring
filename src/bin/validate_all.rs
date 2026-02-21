@@ -27,6 +27,8 @@ const BINARIES: &[&str] = &[
     "validate_introgression",
     "validate_spectral_commutativity",
     "validate_anderson_localization",
+    "validate_pangenome_selection",
+    "validate_meta_population",
     // BarraCUDA CPU primitive validation
     "validate_barracuda_stats",
     "validate_barracuda_linalg",
@@ -52,6 +54,38 @@ const BINARIES: &[&str] = &[
     "validate_barracuda_swarm",
     "validate_barracuda_sate",
     "validate_barracuda_game",
+    "validate_barracuda_pangenome",
+    "validate_barracuda_meta_pop",
+    // BarraCUDA extended validation
+    "validate_barracuda_fft",
+    "validate_barracuda_logsumexp",
+    // GPU shader validation (Phase 3c)
+    "validate_gpu_hmm_forward",
+    "validate_gpu_batch_fitness",
+    "validate_gpu_rk4",
+    // Pure GPU pipeline + cross-dispatch (Phase 3d)
+    "validate_gpu_stateful_pipeline",
+    "validate_gpu_pure_workload",
+    "validate_cross_dispatch",
+    // GPU shader validation — expanded coverage (Phase 3c+)
+    "validate_gpu_pangenome",   // Paper 024 — Jaccard distance
+    "validate_gpu_meta_pop",    // Paper 025 — locus variance
+    "validate_gpu_game_theory", // Paper 019 — spatial payoff stencil
+    "validate_gpu_anderson",    // Papers 022-023 — batch IPR
+    "validate_gpu_sate",        // Paper 017 — pairwise Hamming
+    // Cross-dispatch (Phase 3d+)
+    "validate_cross_dispatch_genomics",
+    "validate_cross_dispatch_extended",
+    // Pure GPU end-to-end pipelines (Phase 4b)
+    "validate_gpu_pipeline_hmm",
+    "validate_gpu_pipeline_ecology",
+    "validate_gpu_pipeline_spectral",
+    "validate_gpu_pipeline_genomics",
+    // GPU PRNG (Phase 4c)
+    "validate_gpu_prng",
+    // ToadStool issue resolution (Phase 4d)
+    "validate_eigh_accuracy",
+    "validate_mha_gpu",
 ];
 
 fn main() {

@@ -13,6 +13,13 @@
 //! Core thesis: computational selection algorithms (tournament, lexicase,
 //! down-sampled lexicase) outperform random and truncation selection for
 //! multi-objective optimization in directed evolution.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Multi-objective fitness: `barracuda::stats::variance` (per-chunk statistics)
+//! - Tournament selection: `barracuda::ops::batch_gemm` (fitness comparison)
+//! - Lexicase selection: sequential per-case filtering (not GPU-friendly)
+//! - Population evolution: `barracuda::ops::batch_gemm` (genotype × weight)
 
 use crate::rng::Rng;
 

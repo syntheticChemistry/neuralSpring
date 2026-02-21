@@ -88,7 +88,7 @@ fn validate_posterior_variance(h: &mut ValidationHarness) {
 }
 
 /// Solve for stationary distribution: π A = π with sum(π) = 1.
-/// Use (A^T - I) with last row replaced by [1,1], b = [0, 1].
+/// Use (A^T - I) with last row replaced by \[1,1\], b = \[0, 1\].
 fn validate_stationary_distribution(h: &mut ValidationHarness) {
     let trans = [vec![0.7, 0.3], vec![0.4, 0.6]];
     let at: Vec<Vec<f64>> = (0..2)

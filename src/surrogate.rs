@@ -4,8 +4,10 @@
 //!
 //! Provides Rastrigin, Rosenbrock, and Ackley benchmark functions validated
 //! against `NumPy` 2.2.6 reference values.  MLP forward-pass inference is
-//! implemented in the fused GPU pipeline (`evolved::fused_mlp`); this module
-//! contains the analytical functions that the surrogate models approximate.
+//! validated via `validate_barracuda_ml_inference` using native `BarraCUDA`
+//! `Tensor` ops (fused MLP pipeline fossilized after S-01..S-11 absorption).
+//! This module contains the analytical functions that the surrogate models
+//! approximate.
 //!
 //! ## Python Baseline Provenance
 //!

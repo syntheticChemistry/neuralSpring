@@ -12,6 +12,13 @@
 //! `doi:10.1162/artl_a_00280`
 //!
 //! Four metrics: Change, Novelty, Complexity, Ecology.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Change metric: `barracuda::ops::SumReduceF64` (temporal difference)
+//! - Novelty metric: `barracuda::ops::pairwise_distance` (Hamming between lineages)
+//! - Complexity metric: `barracuda::ops::FusedMapReduceF64` (genome variance)
+//! - Ecology metric: scalar reduction (Shannon entropy of type counts)
 
 /// Rate of novel type appearance over time.
 ///

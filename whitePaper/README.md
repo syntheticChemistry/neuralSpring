@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Working draft — Phase 2 complete
-**Date**: February 20, 2026
+**Status**: Phase 4d complete — 966 total checks
+**Date**: February 21, 2026
 **License**: AGPL-3.0-or-later
 
 ---
@@ -58,20 +58,23 @@ WGSL serves every domain.
 
 ### Key Results Summary
 
-**Phase 0/0+/0++**: 190/190 Python PASS (48 synthetic + 31 scholarly + 111 paper reproductions)
-**Phase 1**: 532/532 Rust validation PASS (167 native + 242 BarraCUDA primitives + 123 CPU ports)
-**Grand Total**: 722/722 PASS
+**Phase 0/0+/0++**: 206/206 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
+**Phase 1–4d**: 760/760 Rust+GPU validation PASS (183 native + 272 BarraCUDA primitives + 147 CPU ports + 69 GPU shaders + 65 GPU pipelines + 5 GPU PRNG + 19 Phase 4d)
+**Grand Total**: 966/966 PASS
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
-| 0++ | Paper reproductions — 13 papers, 111 checks | **Complete** |
-| 1a | Rust validation layer — 167 native checks (16 binaries) | **Complete** |
-| 1b | BarraCUDA validation — 242 checks (10 domains) | **Complete** |
+| 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
+| 1a | Rust validation layer — 183 native checks (18 binaries) | **Complete** |
+| 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
-| 2 | BarraCUDA CPU ports — 13 modules, 123 checks | **Complete** |
+| 2 | BarraCUDA CPU ports — 15 modules, 147 checks | **Complete** |
+| 3a | BarraCUDA FFT validation — 24 analytical checks | **Complete** |
+| 3b | GPU streaming (`StatefulPipeline` + `UnidirectionalPipeline`) | **Complete** |
+| 3c | Shader evolution (9 WGSL shaders, 69 checks) | **Complete** |
 
 #### 3-Way Benchmark Highlights (Phase 1d)
 
@@ -106,7 +109,7 @@ time series (weather), evolution (Dolson), phylogenetics (Liu), game theory
 
 ### Phase 0++ — Scholarly Reproduction Catalog
 
-The 13 Phase 0++ papers span 4 faculty research groups and 5 scientific
+The 15 Phase 0++ papers span 4 faculty research groups and 5 scientific
 disciplines, demonstrating that the same computational primitives (GEMM,
 reduction, softmax, elementwise, ODE integration, eigendecomposition) appear
 across all domains:
@@ -117,6 +120,7 @@ across all domains:
 | **Liu** (MSU CSE) | 016–018 | Phylogenetics, genomics, alignment | HMM forward/backward (GEMM chain), NJ tree, introgression |
 | **Waters** (MSU Micro) | 019–021 | Game theory, regulatory biology | Replicator dynamics (softmax), ODE (Hill functions), AND gate |
 | **Kachkovskiy** (MSU Math) | 022–023 | Spectral theory, quantum mechanics | Eigendecomposition, commutator, IPR, localization |
+| **Liu** (MSU CSE) | 024–025 | Genomics, population genetics | Pangenome selection, meta-population dynamics |
 
 #### Cross-Domain Primitive Usage
 
@@ -138,8 +142,8 @@ then Rust/WGSL evolution — applies to ML inference:
 
 | Stage | What Happened | Result |
 |-------|---------------|--------|
-| Python control | NumPy/PyTorch baselines for all 23 experiments | 190/190 PASS |
-| BarraCUDA validation | 242 checks across 10 modules (CPU + GPU) | 242/242 PASS |
+| Python control | NumPy/PyTorch baselines for all 25 papers | 206/206 PASS |
+| BarraCUDA validation | 272 checks across 12 modules (CPU + GPU + FFT) | 272/272 PASS |
 | Fused pipeline | Single-encoder dispatch, eliminate per-op overhead | **46–78× over per-op** |
 | BLAS-evolved CPU shader | 32×32 tiles, vec4, 8×4 micro-kernel, k-unroll | CPU beats Py at 3M+ FLOPs |
 | Double-buffered GPU shader | Load/compute overlap, 2×2 micro-kernel | **10–12% faster at scale** |
@@ -151,7 +155,7 @@ See [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) for the full technical narr
 
 ### Phase 2 — BarraCUDA CPU Port Findings
 
-All 13 Phase 0++ modules ported to BarraCUDA CPU math, proving the
+All 15 Phase 0++ modules ported to BarraCUDA CPU math, proving the
 hand-rolled Rust math is reproducible via BarraCUDA's pure-Rust primitives:
 
 | Primitive | Modules Using It | Precision Finding |
@@ -160,7 +164,7 @@ hand-rolled Rust math is reproducible via BarraCUDA's pure-Rust primitives:
 | `eigh_f64` | spectral, anderson | ~1e-3 at n=8, ~0.1 at n=16 — Jacobi eigensolver accuracy gap |
 | `solve_f64` | hmm, swarm | Machine precision for linear systems |
 | `chi_squared_sf` | introgression | Correctly reproduces LRT p-values |
-| `stats::variance` | all 13 modules | Cross-validates hand-rolled statistics |
+| `stats::variance` | all 15 modules | Cross-validates hand-rolled statistics |
 | `pearson_correlation` | modes | Validates complexity trend analysis |
 
 **Key discovery:** BarraCUDA's Jacobi eigensolver (`eigh_f64`) has a
@@ -199,7 +203,7 @@ BarraCUDA GPU acceleration:
 
 ---
 
-### Research Questions Answered (23 Papers)
+### Research Questions Answered (25 Papers)
 
 1. **Can neural surrogates replace equation chains?** Yes — MLP for FAO-56 at R²>0.999
 2. **Is self-attention correct from scratch?** Yes — NumPy matches PyTorch to <1e-10
@@ -224,41 +228,59 @@ BarraCUDA GPU acceleration:
 21. **Is signal integration a biological AND gate?** Yes — two-input Hill (Paper 021)
 22. **Do skip connections reduce commutativity?** Yes — residual layers commute better (Paper 022)
 23. **Does disorder produce localization?** Yes — Aubry-André transition at W_c=2t (Paper 023)
+24. **Can pangenome selection improve fitness?** Yes — selection on pangenome graph structure (Paper 024)
+25. **Do meta-populations exhibit source-sink dynamics?** Yes — spatial structure affects gene flow (Paper 025)
 
 ---
 
 ### Reproduction
 
 ```bash
-# Phase 0/0+/0++ Python baselines (190/190)
+# Phase 0/0+/0++ Python baselines (206/206)
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (532/532)
+# Rust validation (760/760)
 cargo test
 make validate
 
-# 3-way benchmark (Python vs CPU vs GPU)
-cargo run --release --bin bench_scaling
+# Tensor op benchmark (native BarraCUDA)
+cargo run --release --bin bench_barracuda_tensor
 ```
 
 ---
 
-### Next Phase: BarraCUDA GPU Evolution
+### Phase 3 — GPU Evolution (In Progress)
 
-Phase 2 (BarraCUDA CPU ports) is complete: all 13 Phase 0++ modules validated
-against BarraCUDA CPU math primitives (123 checks). The next step is
-**BarraCUDA GPU acceleration** via ToadStool's unidirectional streaming,
-massively reducing dispatch and round-trips.
+Phase 3a (BarraCUDA FFT validation) is complete — 24 analytical checks against
+ToadStool's Cooley-Tukey WGSL shader (Parseval's theorem, inverse round-trip,
+known DFT pairs). This was absorbed directly from ToadStool; no local shader
+was needed.
 
-Priority targets for GPU promotion:
-1. **HMM forward/backward** (Papers 016–018) — GEMM chain, direct port
-2. **Batch fitness evaluation** (Papers 011–015) — parallel population eval
-3. **Eigendecomposition** (Papers 022–023) — tridiagonal eigensolver
-4. **ODE integration** (Papers 020–021) — parallel multi-system RK4
-5. **Distance matrix** (Paper 017) — O(N²) pairwise → GPU parallel
+Phase 3b focuses on **GPU-resident streaming** via `StatefulPipeline` and
+`UnidirectionalPipeline`, reducing CPU-GPU dispatch round-trips for iterative
+workloads. Phase 3c evolves local shaders for ToadStool absorption — following
+the hotSpring pattern of evolve-locally, handoff, retire-when-absorbed.
+
+#### GPU Promotion Priorities
+
+| Priority | Target | Papers | Strategy |
+|----------|--------|--------|----------|
+| 1 | **HMM forward/backward** | 016–018 | GEMM chain → `StatefulPipeline` |
+| 2 | **Batch fitness evaluation** | 011–015 | Population eval → batch GEMM shader |
+| 3 | **Eigendecomposition** | 022–023 | Tridiagonal eigensolver (Householder → bisection) |
+| 4 | **ODE integration (GPU RK4)** | 020–021 | Multi-system parallel ODE integration |
+| 5 | **Distance matrix** | 017 | O(N²) pairwise → GPU parallel |
+| 6 | **FFT-accelerated spectral** | 022–023 | Eigenvalue estimation via FFT-based Krylov |
+| 7 | **Spatial cooperation** | 019 | Neighborhood scan → GPU stencil convolution |
+
+#### metalForge Shader Evolution
+
+Local WGSL shaders are developed in `metalForge/shaders/` following the
+hotSpring pattern: evolve → validate → handoff → ToadStool absorbs → retire.
+See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*23 papers. 5 disciplines. 4 faculty. 190 Python + 532 Rust = 722 total checks.
-All green. Paper queue cleared. Phase 2 complete. Ready for BarraCUDA GPU evolution.*
+*25 papers. 5 disciplines. 4 faculty. 206 Python + 760 Rust+GPU = 966 total checks.
+All green. Paper queue cleared. Phase 4d complete.*

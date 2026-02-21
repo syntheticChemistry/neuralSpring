@@ -16,6 +16,12 @@
 //!
 //! Core thesis: `SasA` acts as a capacitor for diversity — one regulatory
 //! element producing multiple phenotypes (biofilm, motility, virulence).
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Hill activation/repression: elementwise ops (`barracuda::ops::elementwise`)
+//! - ODE integration (RK4): `barracuda::numerical::rk45_solve` or GPU `rk4_parallel.wgsl`
+//! - Steady-state phenotype scan: batch parallel ODE over parameter grid
 
 /// Hill activation: a * x^n / (K^n + x^n).
 fn hill_activation(x: f64, a: f64, k: f64, n: f64) -> f64 {

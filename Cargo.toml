@@ -103,6 +103,16 @@ path = "src/bin/validate_spectral_commutativity.rs"
 name = "validate_anderson_localization"
 path = "src/bin/validate_anderson_localization.rs"
 
+# --- Phase 0++ Paper Reproduction: R. Anderson (Pangenomics) ---
+
+[[bin]]
+name = "validate_pangenome_selection"
+path = "src/bin/validate_pangenome_selection.rs"
+
+[[bin]]
+name = "validate_meta_population"
+path = "src/bin/validate_meta_population.rs"
+
 # --- BarraCUDA CPU primitive validation ---
 
 [[bin]]
@@ -201,6 +211,14 @@ path = "src/bin/validate_barracuda_sate.rs"
 name = "validate_barracuda_game"
 path = "src/bin/validate_barracuda_game.rs"
 
+[[bin]]
+name = "validate_barracuda_pangenome"
+path = "src/bin/validate_barracuda_pangenome.rs"
+
+[[bin]]
+name = "validate_barracuda_meta_pop"
+path = "src/bin/validate_barracuda_meta_pop.rs"
+
 # --- Benchmark ---
 
 [[bin]]
@@ -216,12 +234,104 @@ name = "bench_transformer_block"
 path = "src/bin/bench_transformer_block.rs"
 
 [[bin]]
-name = "bench_fused_inference"
-path = "src/bin/bench_fused_inference.rs"
+name = "bench_phase0pp_kernels"
+path = "src/bin/bench_phase0pp_kernels.rs"
 
 [[bin]]
-name = "bench_scaling"
-path = "src/bin/bench_scaling.rs"
+name = "bench_gpu_kernels"
+path = "src/bin/bench_gpu_kernels.rs"
+
+[[bin]]
+name = "validate_eigh_accuracy"
+path = "src/bin/validate_eigh_accuracy.rs"
+
+[[bin]]
+name = "validate_mha_gpu"
+path = "src/bin/validate_mha_gpu.rs"
+
+[[bin]]
+name = "validate_barracuda_fft"
+path = "src/bin/validate_barracuda_fft.rs"
+
+[[bin]]
+name = "validate_barracuda_logsumexp"
+path = "src/bin/validate_barracuda_logsumexp.rs"
+
+# --- Phase 3c: GPU shader validation (metalForge) ---
+
+[[bin]]
+name = "validate_gpu_hmm_forward"
+path = "src/bin/validate_gpu_hmm_forward.rs"
+
+[[bin]]
+name = "validate_gpu_batch_fitness"
+path = "src/bin/validate_gpu_batch_fitness.rs"
+
+[[bin]]
+name = "validate_gpu_prng"
+path = "src/bin/validate_gpu_prng.rs"
+
+[[bin]]
+name = "validate_gpu_rk4"
+path = "src/bin/validate_gpu_rk4.rs"
+
+# --- Phase 3d: Pure GPU workload + StatefulPipeline + cross-dispatch ---
+
+[[bin]]
+name = "validate_gpu_stateful_pipeline"
+path = "src/bin/validate_gpu_stateful_pipeline.rs"
+
+[[bin]]
+name = "validate_gpu_pure_workload"
+path = "src/bin/validate_gpu_pure_workload.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_hmm"
+path = "src/bin/validate_gpu_pipeline_hmm.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_ecology"
+path = "src/bin/validate_gpu_pipeline_ecology.rs"
+
+[[bin]]
+name = "validate_cross_dispatch"
+path = "src/bin/validate_cross_dispatch.rs"
+
+[[bin]]
+name = "validate_gpu_pangenome"
+path = "src/bin/validate_gpu_pangenome.rs"
+
+[[bin]]
+name = "validate_gpu_sate"
+path = "src/bin/validate_gpu_sate.rs"
+
+[[bin]]
+name = "validate_gpu_anderson"
+path = "src/bin/validate_gpu_anderson.rs"
+
+[[bin]]
+name = "validate_gpu_game_theory"
+path = "src/bin/validate_gpu_game_theory.rs"
+
+[[bin]]
+name = "validate_gpu_meta_pop"
+path = "src/bin/validate_gpu_meta_pop.rs"
+
+[[bin]]
+name = "validate_cross_dispatch_genomics"
+path = "src/bin/validate_cross_dispatch_genomics.rs"
+
+[[bin]]
+name = "validate_cross_dispatch_extended"
+path = "src/bin/validate_cross_dispatch_extended.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_spectral"
+path = "src/bin/validate_gpu_pipeline_spectral.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_genomics"
+path = "src/bin/validate_gpu_pipeline_genomics.rs"
 
 # --- Meta ---
 

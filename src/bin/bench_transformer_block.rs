@@ -29,9 +29,9 @@
 
 #![allow(clippy::cast_precision_loss)]
 
+use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::evolved::mha::multi_head_attention_2d;
-use neural_spring::gpu::Gpu;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -79,7 +79,7 @@ struct GpuWeights {
     b_ff2: Tensor,
 }
 
-type Dev = Arc<barracuda::device::WgpuDevice>;
+type Dev = Arc<WgpuDevice>;
 
 #[allow(clippy::expect_used)]
 fn load_baseline() -> TransformerBaseline {
@@ -119,7 +119,9 @@ fn upload_weights(b: &TransformerBaseline, device: &Dev) -> GpuWeights {
 
 /// Full pre-norm transformer encoder block forward pass.
 ///
-/// Uses evolved MHA (workaround for barracuda projection dispatch bug).
+/// Uses evolved MHA (matmul projections + CPU head reshape).
+/// Native `Tensor::multi_head_attention` projection shaders hang;
+/// documented for `ToadStool` as S-03b.
 fn transformer_forward(
     input: &Tensor,
     w: &GpuWeights,
@@ -132,7 +134,6 @@ fn transformer_forward(
         .reshape(vec![cfg.seq_len, cfg.d_model])
         .map_err(|e_| e_.to_string())?;
 
-    // ── Pre-norm attention (evolved MHA) ─────────────────────────────
     let normed1 = x.clone().layer_norm_wgsl(cfg.epsilon).map_err(&e)?;
 
     let attn_proj = multi_head_attention_2d(
@@ -179,20 +180,21 @@ fn readback(t: &Tensor) -> Vec<f32> {
 #[tokio::main]
 #[allow(clippy::expect_used)]
 async fn main() {
-    let gpu = match Gpu::new().await {
-        Ok(g) => g,
+    let dev = match WgpuDevice::new().await {
+        Ok(d) => d,
         Err(e) => {
             eprintln!("SKIP: {e}");
             return;
         }
     };
 
+    let info = dev.adapter_info();
     eprintln!(
         "Transformer Block Benchmark: {} ({:?}, {:?})",
-        gpu.adapter_name, gpu.device_type, gpu.backend,
+        info.name, info.device_type, info.backend,
     );
 
-    let device = gpu.wgpu_device().clone();
+    let device: Dev = Arc::new(dev);
     let baseline = load_baseline();
     let cfg = &baseline.config;
 

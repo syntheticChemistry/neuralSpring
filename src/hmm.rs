@@ -7,8 +7,26 @@
 //! Liu et al. (2014) "An HMM-based Comparative Genomic Framework for
 //! Detecting Introgression in the Presence of Incomplete Lineage Sorting"
 //! `PLoS` Computational Biology 10(4):e1003649.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Forward/backward: sequential GEMV chain → `barracuda::staging::StatefulPipeline`
+//! - Log-domain numerics: `barracuda::ops::logsumexp` (5/5 PASS)
+//! - Transition GEMM: `barracuda::ops::matmul`
+//!
+//! ## WGSL shader (absorption-ready)
+//!
+//! [`WGSL_HMM_FORWARD_LOG`] — log-domain HMM forward pass. One thread
+//! per hidden state, logsumexp reduction per step. Validated in
+//! `validate_gpu_hmm_forward` (13/13 PASS).
 
 use crate::rng::Rng;
+
+/// WGSL shader: log-domain HMM forward pass.
+///
+/// Absorption target: `barracuda::ops::hmm` or `StatefulPipeline`.
+/// Validated: `validate_gpu_hmm_forward` (13/13 PASS).
+pub const WGSL_HMM_FORWARD_LOG: &str = include_str!("../metalForge/shaders/hmm_forward_log.wgsl");
 
 const LOG_EPS: f64 = 1e-300;
 

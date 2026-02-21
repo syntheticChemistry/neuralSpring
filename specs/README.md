@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: February 20, 2026
-**Status**: Phase 0/0+/0++ complete (190/190 Python) + Phase 1–2 complete (532/532 Rust: 167 native + 242 BarraCUDA primitives + 123 BarraCUDA CPU ports)
+**Last Updated**: February 21, 2026
+**Status**: Phase 0–4d complete (206/206 Python + 760/760 Rust+GPU) = **966 total checks**
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -12,9 +12,14 @@
 |--------|-------|
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
-| Phase 0++ (Papers) | 111/111 PASS — 13 papers across Dolson, Liu, Waters, Kachkovskiy |
-| Phase 1a (native Rust) | 167/167 PASS — 16 validation binaries |
-| Phase 1b (BarraCUDA) | 242/242 PASS — stats, linalg, special, optimize, precision, tensor (84), tensor_f64 (35), quantized, linalg_ext, ml_inference (13) |
+| Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
+| Phase 1a (native Rust) | 183/183 PASS — 18 validation binaries |
+| Phase 1b (BarraCUDA) | 272/272 PASS — stats, linalg, special, optimize, precision, tensor (90), tensor_f64 (35), quantized, linalg_ext, ml_inference (13), FFT (24), LogSumExp (5) |
+| Phase 2 (CPU ports) | 147/147 |
+| Phase 3c (GPU shaders) | 69/69 |
+| Phase 3d (pipelines) | 65/65 |
+| Phase 4c (PRNG) | 5/5 |
+| Phase 4d (S-12/S-03b) | 19/19 |
 | Isomorphism Theorem | 6 primitives explain ALL neural architectures. BarraCUDA covers all 6 |
 | BarraCUDA primitive coverage | GEMM, Attention, Norm, Conv2d, LSTM, Autograd, Q-GEMV + stats, linalg, special, optimize |
 | Faculty (evolution) | Dolson (CSE, MSU) — counterdiabatic evolution, MODES |
@@ -30,18 +35,31 @@
 
 | Spec | Status | Description |
 |------|--------|-------------|
-| [PAPER_REVIEW_QUEUE.md](PAPER_REVIEW_QUEUE.md) | **Complete** | 23/23 papers reproduced — now tracking GPU promotion priority |
+| [PAPER_REVIEW_QUEUE.md](PAPER_REVIEW_QUEUE.md) | **Complete** | 25/25 papers reproduced — now tracking GPU promotion priority |
 | [BARRACUDA_REQUIREMENTS.md](BARRACUDA_REQUIREMENTS.md) | Active | GPU kernel requirements and gap analysis |
 | [EVOLUTION_MAPPING.md](EVOLUTION_MAPPING.md) | Active | Python → Rust → GPU module mapping (Tier A/B/C) |
 | [DATA_PROVENANCE.md](DATA_PROVENANCE.md) | Active | All dataset sources, accession numbers, licenses |
+
+### Shader Evolution & Hardware
+
+| Spec | Status | Description |
+|------|--------|-------------|
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 11 BarraCUDA shortcomings + metalForge shader evolutions |
+| [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
+| `metalForge/shaders/ABSORPTION_TRACKER.md` | Active | Shader evolution lifecycle tracker (hotSpring pattern) |
 
 ### Existing Documentation (in parent directories)
 
 | Document | Location | Description |
 |----------|----------|-------------|
-| CONTROL_EXPERIMENT_STATUS.md | `../` | All 10 experiments with detailed results |
+| CONTROL_EXPERIMENT_STATUS.md | `../` | All experiments + phases with detailed results |
 | whitePaper/STUDY.md | `../whitePaper/` | Full study with Phase 0 + Phase 0+ results |
+| whitePaper/BARRACUDA_EVOLUTION.md | `../whitePaper/` | Shader evolution narrative through Phase 3 |
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework for all experiments |
+| BARRACUDA_USAGE.md | `specs/` | Comprehensive BarraCUDA usage audit and evolution path |
+| metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
+| metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
+| metalForge/gpu/nvidia/HARDWARE.md | `../metalForge/` | RTX 4070 hardware characterization |
 
 ---
 

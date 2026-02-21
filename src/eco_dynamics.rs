@@ -16,6 +16,13 @@
 //!
 //! Core thesis: EA populations behave like ecological communities —
 //! competitive exclusion, niche partitioning, frequency-dependent selection.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Gaussian kernel niche fitness: `barracuda::ops::pairwise_distance` + elementwise exp
+//! - Batch fitness evaluation: `barracuda::ops::batch_gemm` (population × niche matrix)
+//! - Species diversity metrics: `barracuda::stats::variance` + entropy reduction
+//! - Hamming distance for genotype comparison: `barracuda::ops::pairwise_distance`
 
 use crate::rng::Rng;
 use std::collections::{HashMap, HashSet};

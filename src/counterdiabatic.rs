@@ -11,6 +11,13 @@
 //!
 //! Model: Wright-Fisher population dynamics on NK fitness landscapes.
 //! CD protocol minimizes geodesic length via Fisher information metric.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - NK fitness evaluation: `barracuda::ops::batch_gemm` (population × landscape)
+//! - Boltzmann distribution: `barracuda::ops::softmax` (free energy → probabilities)
+//! - Fisher information: `barracuda::ops::FusedMapReduceF64` (gradient inner product)
+//! - Geodesic distance: scalar reduction (L2 norm of Fisher transport)
 
 use crate::rng::Rng;
 

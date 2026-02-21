@@ -113,12 +113,9 @@ bench-ml:
 	cargo run --release --bin bench_mlp_inference
 	cargo run --release --bin bench_transformer_block
 
-bench-fused:
-	@echo "── Fused Pipeline: CPU ──"
-	NEURALSPRING_BACKEND=cpu cargo run --release --bin bench_fused_inference
-	@echo ""
-	@echo "── Fused Pipeline: GPU ──"
-	NEURALSPRING_BACKEND=gpu cargo run --release --bin bench_fused_inference
+# bench-fused: REMOVED — bench_fused_inference fossilized (S-01..S-11 absorbed).
+#   See metalForge/fossils/bench/bench_fused_inference.rs for the fossil record.
+#   Use bench-ml for current ML benchmarks.
 
 baselines:
 	bash scripts/run_all_baselines.sh

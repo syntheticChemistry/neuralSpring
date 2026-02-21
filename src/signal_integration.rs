@@ -14,6 +14,12 @@
 //!
 //! Core thesis: The vpsT promoter integrates two inputs (cdg AND ai)
 //! as a biological AND gate — maps to multi-input attention.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Two-input Hill AND gate: elementwise ops (`barracuda::ops::elementwise`)
+//! - vpsT ODE integration: `barracuda::numerical::rk45_solve` or GPU `rk4_parallel.wgsl`
+//! - Dose-response surface: batch parallel ODE over 2D parameter grid
 
 use crate::rng::Rng;
 

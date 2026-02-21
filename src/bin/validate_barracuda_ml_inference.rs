@@ -23,14 +23,14 @@
 
 #![allow(clippy::cast_precision_loss)]
 
+use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::evolved::mha::multi_head_attention_2d;
-use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 
-type Dev = Arc<barracuda::device::WgpuDevice>;
+type Dev = Arc<WgpuDevice>;
 
 // ═════════════════════════════════════════════════════════════════════════
 // JSON structures
@@ -276,8 +276,9 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
 
         let x = input.reshape(vec![seq, d]).map_err(|e_| e_.to_string())?;
 
-        // Pre-norm attention (evolved: manual MHA to work around barracuda
-        // projection dispatch bug — see evolved/mha.rs)
+        // Pre-norm attention (evolved MHA: matmul projections + CPU head
+        // reshape — native Tensor::multi_head_attention projection shaders
+        // hang; documented for ToadStool absorption S-03b)
         let normed1 = x.clone().layer_norm_wgsl(cfg.epsilon).map_err(&e)?;
 
         let attn_proj =
@@ -393,8 +394,8 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
 
 #[tokio::main]
 async fn main() {
-    let gpu = match Gpu::new().await {
-        Ok(g) => g,
+    let dev = match WgpuDevice::new().await {
+        Ok(d) => d,
         Err(e) => {
             eprintln!("SKIP: {e}");
             eprintln!("  0/0 checks — skipping gracefully");
@@ -402,11 +403,12 @@ async fn main() {
         }
     };
 
-    let device = gpu.wgpu_device().clone();
+    let info = dev.adapter_info();
     eprintln!(
         "Adapter: {} ({:?}, {:?})",
-        gpu.adapter_name, gpu.device_type, gpu.backend,
+        info.name, info.device_type, info.backend,
     );
+    let device: Dev = Arc::new(dev);
 
     let label = format!(
         "barracuda_ml_inference[{}]",

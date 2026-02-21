@@ -10,14 +10,13 @@
 //! NEURALSPRING_BACKEND=cpu  cargo run --release --bin bench_barracuda_tensor
 //! ```
 //!
-//! Reports per-op warm latency (median of N iterations), plus a comparison
-//! of stock vs evolved ops to quantify round-trip overhead.
+//! Reports per-op warm latency (median of N iterations).
+//! All ops now use native `BarraCUDA` Tensor APIs (no evolved workarounds).
 
 #![allow(clippy::cast_precision_loss)]
 
+use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
-use neural_spring::evolved;
-use neural_spring::gpu::Gpu;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -26,22 +25,23 @@ const ITERATIONS: usize = 20;
 
 #[tokio::main]
 async fn main() {
-    let gpu = match Gpu::new().await {
-        Ok(g) => g,
+    let dev = match WgpuDevice::new().await {
+        Ok(d) => d,
         Err(e) => {
             eprintln!("SKIP: {e}");
             return;
         }
     };
 
+    let info = dev.adapter_info();
     eprintln!(
         "Benchmark: {} ({:?}, {:?})",
-        gpu.adapter_name, gpu.device_type, gpu.backend,
+        info.name, info.device_type, info.backend,
     );
     eprintln!("Warmup: {WARMUP}, iterations: {ITERATIONS}");
     eprintln!();
 
-    let device = gpu.wgpu_device().clone();
+    let device = Arc::new(dev);
     let results = vec![
         bench_op("relu", &device, |dev| {
             let t = mk_tensor(&[256, 256], dev);
@@ -94,8 +94,18 @@ async fn main() {
                 let _ = pred.clone().mse_loss(target.clone());
             }
         }),
-        bench_evolved_layer_norm(&gpu),
-        bench_evolved_log_softmax(&gpu),
+        bench_op("layer_norm_wgsl (native)", &device, |dev| {
+            let t = mk_tensor(&[64, 256], dev);
+            move || {
+                let _ = t.clone().layer_norm_wgsl(1e-5);
+            }
+        }),
+        bench_op("log_softmax_wgsl (native)", &device, |dev| {
+            let t = mk_tensor(&[64, 256], dev);
+            move || {
+                let _ = t.clone().log_softmax_wgsl();
+            }
+        }),
     ];
 
     eprintln!("{:<30} {:>12} {:>12} {:>12}", "op", "median", "min", "max");
@@ -148,50 +158,6 @@ where
     }
 
     (name.to_owned(), timings)
-}
-
-fn bench_evolved_layer_norm(gpu: &Gpu) -> (String, Vec<Duration>) {
-    let shape = [64_usize, 256];
-    let count: usize = shape.iter().product();
-    let data: Vec<f32> = (0..count).map(|i| (i as f32) * 0.001).collect();
-
-    #[allow(clippy::expect_used)]
-    let input_buf = gpu.upload_f32(&data).expect("upload for bench");
-
-    for _ in 0..WARMUP {
-        let _ = evolved::layer_norm::layer_norm(gpu, &input_buf, &shape, 1e-5);
-    }
-
-    let mut timings = Vec::with_capacity(ITERATIONS);
-    for _ in 0..ITERATIONS {
-        let start = Instant::now();
-        let _ = evolved::layer_norm::layer_norm(gpu, &input_buf, &shape, 1e-5);
-        timings.push(start.elapsed());
-    }
-
-    ("evolved::layer_norm (no RT)".to_owned(), timings)
-}
-
-fn bench_evolved_log_softmax(gpu: &Gpu) -> (String, Vec<Duration>) {
-    let shape = [64_usize, 256];
-    let count: usize = shape.iter().product();
-    let data: Vec<f32> = (0..count).map(|i| (i as f32) * 0.001).collect();
-
-    #[allow(clippy::expect_used)]
-    let input_buf = gpu.upload_f32(&data).expect("upload for bench");
-
-    for _ in 0..WARMUP {
-        let _ = evolved::log_softmax::log_softmax(gpu, &input_buf, &shape);
-    }
-
-    let mut timings = Vec::with_capacity(ITERATIONS);
-    for _ in 0..ITERATIONS {
-        let start = Instant::now();
-        let _ = evolved::log_softmax::log_softmax(gpu, &input_buf, &shape);
-        timings.push(start.elapsed());
-    }
-
-    ("evolved::log_softmax (no RT)".to_owned(), timings)
 }
 
 // ── Formatting ─────────────────────────────────────────────────────────

@@ -28,8 +28,6 @@
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
-use neural_spring::evolved;
-use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
@@ -181,9 +179,10 @@ async fn main() {
     validate_losses_extended(&mut h, &device);
     validate_transpose(&mut h, &device);
 
-    let gpu = Gpu::from_device(device);
-    validate_evolved_layer_norm(&mut h, &gpu);
-    validate_evolved_log_softmax(&mut h, &gpu);
+    validate_native_layer_norm(&mut h, &device);
+    validate_native_log_softmax(&mut h, &device);
+    validate_leaky_relu(&mut h, &device);
+    validate_elu(&mut h, &device);
 
     h.finish();
 }
@@ -773,10 +772,8 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Extended activations ────────────────────────────────────────────────
 
 fn validate_activations_extended(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    // NOTE: leaky_relu_wgsl has a barracuda bug — Rust Params struct is 4 bytes
-    // (size: u32) but the WGSL shader expects 8 bytes (size: u32, negative_slope: f32).
-    // Documented in specs/TOADSTOOL_HANDOFF.md for upstream fix.
-    // Skipping until barracuda fixes the mismatch.
+    // leaky_relu and elu bugs (S-05, S-06) now fixed upstream — tested in
+    // validate_leaky_relu() and validate_elu() below.
 
     let input2 = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device);
     match input2.swish_wgsl() {
@@ -796,10 +793,6 @@ fn validate_activations_extended(h: &mut ValidationHarness, device: &Arc<WgpuDev
         }
         Err(e) => h.check_bool(&format!("swish [ERROR: {e}]"), false),
     }
-
-    // NOTE: elu_wgsl has the same barracuda bug as leaky_relu_wgsl — Rust Params
-    // is 4 bytes but WGSL expects 8 bytes (size: u32, alpha: f32).
-    // Documented in specs/TOADSTOOL_HANDOFF.md for upstream fix.
 
     let input4 = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device);
     match input4.mish_wgsl() {
@@ -885,109 +878,144 @@ fn validate_transpose(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     }
 }
 
-// ── Evolved ops (GPU-resident, no round-trip) ──────────────────────────
+// ── Native ops (formerly evolved — now fixed upstream in BarraCUDA) ──────
 
-fn validate_evolved_layer_norm(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_native_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let data = [1.0_f32, 2.0, 3.0, 4.0];
-    let shape = [1, 4];
     let eps = 1e-5_f32;
 
-    let input_buf = match gpu.upload_f32(&data) {
-        Ok(buf) => buf,
-        Err(e) => {
-            h.check_bool(&format!("evolved layer_norm upload [ERROR: {e}]"), false);
-            return;
+    let input = tensor(&data, vec![1, 4], device);
+    match input.layer_norm_wgsl(eps) {
+        Ok(out) => {
+            let v = readback(&out);
+            let mean = 2.5_f64;
+            let var = data
+                .iter()
+                .map(|&x| (f64::from(x) - mean).powi(2))
+                .sum::<f64>()
+                / 4.0;
+            let std = (var + f64::from(eps)).sqrt();
+
+            h.check_abs(
+                "layer_norm_wgsl[0]",
+                f64::from(v[0]),
+                (1.0 - mean) / std,
+                tolerances::TENSOR_NORM_F32,
+            );
+            h.check_abs(
+                "layer_norm_wgsl[1]",
+                f64::from(v[1]),
+                (2.0 - mean) / std,
+                tolerances::TENSOR_NORM_F32,
+            );
+            h.check_abs(
+                "layer_norm_wgsl[3]",
+                f64::from(v[3]),
+                (4.0 - mean) / std,
+                tolerances::TENSOR_NORM_F32,
+            );
+
+            let out_mean: f64 = v.iter().map(|&x| f64::from(x)).sum::<f64>() / 4.0;
+            h.check_abs("layer_norm_wgsl zero-mean", out_mean, 0.0, 1e-4);
         }
-    };
-
-    match evolved::layer_norm::layer_norm(gpu, &input_buf, &shape, eps) {
-        Ok(out) => match out.readback(gpu) {
-            Ok(v) => {
-                let mean = 2.5_f64;
-                let var = [1.0, 2.0, 3.0, 4.0]
-                    .iter()
-                    .map(|&x| (x - mean).powi(2))
-                    .sum::<f64>()
-                    / 4.0;
-                let std = (var + f64::from(eps)).sqrt();
-
-                h.check_abs(
-                    "evolved::layer_norm[0]",
-                    f64::from(v[0]),
-                    (1.0 - mean) / std,
-                    tolerances::TENSOR_NORM_F32,
-                );
-                h.check_abs(
-                    "evolved::layer_norm[1]",
-                    f64::from(v[1]),
-                    (2.0 - mean) / std,
-                    tolerances::TENSOR_NORM_F32,
-                );
-                h.check_abs(
-                    "evolved::layer_norm[3]",
-                    f64::from(v[3]),
-                    (4.0 - mean) / std,
-                    tolerances::TENSOR_NORM_F32,
-                );
-
-                let out_mean: f64 = v.iter().map(|&x| f64::from(x)).sum::<f64>() / 4.0;
-                h.check_abs("evolved::layer_norm zero-mean", out_mean, 0.0, 1e-4);
-            }
-            Err(e) => h.check_bool(&format!("evolved layer_norm readback [ERROR: {e}]"), false),
-        },
-        Err(e) => h.check_bool(&format!("evolved layer_norm [ERROR: {e}]"), false),
+        Err(e) => h.check_bool(&format!("layer_norm_wgsl [ERROR: {e}]"), false),
     }
 }
 
-fn validate_evolved_log_softmax(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_native_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let data = [1.0_f32, 2.0, 3.0];
-    let shape = [1, 3];
 
-    let input_buf = match gpu.upload_f32(&data) {
-        Ok(buf) => buf,
-        Err(e) => {
-            h.check_bool(&format!("evolved log_softmax upload [ERROR: {e}]"), false);
-            return;
+    let input = tensor(&data, vec![1, 3], device);
+    match input.log_softmax_wgsl() {
+        Ok(out) => {
+            let v = readback(&out);
+            h.check_bool("log_softmax_wgsl all negative", v.iter().all(|&x| x < 0.0));
+
+            let max_val = 3.0_f64;
+            let lse = ((-2.0_f64).exp() + (-1.0_f64).exp() + 0.0_f64.exp()).ln();
+            let expected: Vec<f64> = data.iter().map(|&x| f64::from(x) - max_val - lse).collect();
+
+            h.check_abs(
+                "log_softmax_wgsl[0]",
+                f64::from(v[0]),
+                expected[0],
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+            h.check_abs(
+                "log_softmax_wgsl[1]",
+                f64::from(v[1]),
+                expected[1],
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+            h.check_abs(
+                "log_softmax_wgsl[2]",
+                f64::from(v[2]),
+                expected[2],
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+
+            let log_sum: f64 = v.iter().map(|&x| f64::from(x).exp()).sum::<f64>().ln();
+            h.check_abs("log_softmax_wgsl logsumexp ≈ 0", log_sum, 0.0, 1e-4);
         }
-    };
+        Err(e) => h.check_bool(&format!("log_softmax_wgsl [ERROR: {e}]"), false),
+    }
+}
 
-    match evolved::log_softmax::log_softmax(gpu, &input_buf, &shape) {
-        Ok(out) => match out.readback(gpu) {
-            Ok(v) => {
-                h.check_bool(
-                    "evolved::log_softmax all negative",
-                    v.iter().all(|&x| x < 0.0),
-                );
+// ── Activations now fixed upstream (S-05, S-06) ────────────────────────
 
-                let max_val = 3.0_f64;
-                let lse = ((-2.0_f64).exp() + (-1.0_f64).exp() + 0.0_f64.exp()).ln();
-                let expected: Vec<f64> =
-                    data.iter().map(|&x| f64::from(x) - max_val - lse).collect();
+fn validate_leaky_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
+    let input = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device);
+    match input.leaky_relu_wgsl_with_slope(0.01) {
+        Ok(out) => {
+            let v = readback(&out);
+            h.check_abs(
+                "leaky_relu(-2, 0.01) ≈ -0.02",
+                f64::from(v[0]),
+                -0.02,
+                tolerances::TENSOR_EXACT_F32,
+            );
+            h.check_abs(
+                "leaky_relu(0) == 0",
+                f64::from(v[2]),
+                0.0,
+                tolerances::TENSOR_EXACT_F32,
+            );
+            h.check_abs(
+                "leaky_relu(2) == 2",
+                f64::from(v[4]),
+                2.0,
+                tolerances::TENSOR_EXACT_F32,
+            );
+        }
+        Err(e) => h.check_bool(&format!("leaky_relu [ERROR: {e}]"), false),
+    }
+}
 
-                h.check_abs(
-                    "evolved::log_softmax[0]",
-                    f64::from(v[0]),
-                    expected[0],
-                    tolerances::TENSOR_TRANSCENDENTAL_F32,
-                );
-                h.check_abs(
-                    "evolved::log_softmax[1]",
-                    f64::from(v[1]),
-                    expected[1],
-                    tolerances::TENSOR_TRANSCENDENTAL_F32,
-                );
-                h.check_abs(
-                    "evolved::log_softmax[2]",
-                    f64::from(v[2]),
-                    expected[2],
-                    tolerances::TENSOR_TRANSCENDENTAL_F32,
-                );
-
-                let log_sum: f64 = v.iter().map(|&x| f64::from(x).exp()).sum::<f64>().ln();
-                h.check_abs("evolved::log_softmax logsumexp ≈ 0", log_sum, 0.0, 1e-4);
-            }
-            Err(e) => h.check_bool(&format!("evolved log_softmax readback [ERROR: {e}]"), false),
-        },
-        Err(e) => h.check_bool(&format!("evolved log_softmax [ERROR: {e}]"), false),
+fn validate_elu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
+    let input = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device);
+    match input.elu_wgsl() {
+        Ok(out) => {
+            let v = readback(&out);
+            let expect_neg2 = (-2.0_f64).exp_m1();
+            h.check_abs(
+                "elu(-2, 1.0)",
+                f64::from(v[0]),
+                expect_neg2,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
+            h.check_abs(
+                "elu(0) == 0",
+                f64::from(v[2]),
+                0.0,
+                tolerances::TENSOR_EXACT_F32,
+            );
+            h.check_abs(
+                "elu(2) == 2",
+                f64::from(v[4]),
+                2.0,
+                tolerances::TENSOR_EXACT_F32,
+            );
+        }
+        Err(e) => h.check_bool(&format!("elu [ERROR: {e}]"), false),
     }
 }

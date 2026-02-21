@@ -216,6 +216,127 @@ pub const GPU_F64_TRANSCENDENTAL: f64 = 1e-8;
 pub const GPU_F64_STATS: f64 = 1e-9;
 
 // ═══════════════════════════════════════════════════════════════════
+// FFT tolerances (Cooley-Tukey radix-2 via WGSL)
+// ═══════════════════════════════════════════════════════════════════
+
+/// FFT inverse round-trip: `IFFT(FFT(x)) == x` (f32).
+///
+/// The butterfly has O(log N) stages, each accumulating f32 rounding.
+/// For N ≤ 1024, max element-wise error is well within 1e-3.
+pub const FFT_INVERSE_F32: f64 = 1e-3;
+
+/// FFT inverse round-trip (f64 precision).
+///
+/// Double-precision butterflies lose ~1 ULP per stage.  For N ≤ 1024
+/// (10 stages), 1e-10 is conservative.
+pub const FFT_INVERSE_F64: f64 = 1e-10;
+
+/// FFT Parseval's theorem: `||x||² == ||X||²/N` (f32).
+///
+/// Parseval equality relates time-domain and frequency-domain energy.
+/// The ratio should be 1.0; accumulated f32 rounding for N ≤ 1024
+/// stays within 1e-3.
+pub const FFT_PARSEVAL_F32: f64 = 1e-3;
+
+/// FFT known DFT pair: delta→constant, constant→delta (f32).
+///
+/// Analytically exact transforms verified element-wise.  Single butterfly
+/// pass for delta/constant; 1e-5 accommodates f32 twiddle factor precision.
+pub const FFT_KNOWN_PAIR_F32: f64 = 1e-5;
+
+/// FFT cosine energy concentration (f32).
+///
+/// A pure cosine at frequency f should have energy only at bins f and N-f.
+/// Leakage into other bins should be below this threshold.
+pub const FFT_SPECTRAL_LEAKAGE_F32: f64 = 1e-4;
+
+/// FFT Parseval's theorem (f64).
+///
+/// Energy conservation in double-precision butterflies.  For N ≤ 1024
+/// the ratio `freq_energy / time_energy` should be 1.0 within 1e-10.
+pub const FFT_PARSEVAL_F64: f64 = 1e-10;
+
+/// FFT known DFT pair (f64): delta→constant, constant→delta.
+///
+/// Analytically exact transforms verified element-wise at f64 precision.
+pub const FFT_KNOWN_PAIR_F64: f64 = 1e-10;
+
+/// FFT cosine energy concentration (f64).
+///
+/// Leakage into off-peak bins for a pure cosine input (f64).
+pub const FFT_SPECTRAL_LEAKAGE_F64: f64 = 1e-10;
+
+/// RFFT output shape: N real inputs → N/2+1 complex outputs.
+///
+/// The RFFT exploits conjugate symmetry of real-valued signals.
+/// Shape validation is exact (boolean check), but energy tolerance
+/// for the compacted spectrum uses f32 FFT thresholds since `Rfft`
+/// delegates to `Fft1D` (f32) internally.
+pub const RFFT_DC_COMPONENT_F32: f64 = 1e-3;
+
+// ═══════════════════════════════════════════════════════════════════
+// GPU shader tolerances (metalForge Phase 3c shaders)
+// ═══════════════════════════════════════════════════════════════════
+
+/// GPU HMM forward: log-likelihood agreement with CPU reference (f32).
+///
+/// The GPU shader uses f32 logsumexp (max-subtract trick).  The CPU
+/// reference uses f64 scaled forward.  For T ≤ 100 observations and
+/// N ≤ 10 states, the f32 → f64 gap plus log-domain rounding stays
+/// within 0.5 (log-likelihood absolute difference).
+pub const GPU_HMM_LOG_LIKELIHOOD_F32: f64 = 0.5;
+
+/// GPU HMM forward: per-state alpha agreement with CPU (f32).
+///
+/// Each timestep accumulates f32 logsumexp error.  For T ≤ 100,
+/// max per-element absolute difference is within 0.1.
+pub const GPU_HMM_ALPHA_F32: f64 = 0.1;
+
+/// GPU batch fitness: linear fitness dot-product (f32).
+///
+/// Population fitness = genotype · weights.  For `genome_len` ≤ 64,
+/// f32 dot-product rounding is within 1e-4.
+pub const GPU_FITNESS_F32: f64 = 1e-4;
+
+/// GPU RK4: ODE integration agreement with CPU (f32).
+///
+/// Multi-step RK4 accumulates rounding per step.  For `n_steps` ≤ 1000
+/// with dt ≤ 0.01, the per-variable error stays within 1e-2.
+pub const GPU_RK4_F32: f64 = 1e-2;
+
+/// GPU Jaccard distance: pairwise binary set distance (f32).
+///
+/// Jaccard = 1 - |A∩B|/|A∪B|. The numerator and denominator are
+/// integer counts, but f32 accumulation of 0/1 values for `n_genes` ≤ 1000
+/// produces exact sums. The division is the only rounding source.
+pub const GPU_JACCARD_F32: f64 = 1e-4;
+
+/// GPU locus variance: per-locus allele frequency variance (f32).
+///
+/// One-pass Welford variance for `n_pops` ≤ 64 populations.  The f32
+/// mean/variance computation loses ~2 digits vs f64.  1e-3 accommodates.
+pub const GPU_LOCUS_VARIANCE_F32: f64 = 1e-3;
+
+/// GPU spatial payoff: PD stencil fitness (f32).
+///
+/// Payoff accumulates 8 neighbor contributions using f32 arithmetic.
+/// Since `b` and `c` are encoded as integer×1000 and divided, the only
+/// rounding is in the division and sum of 8 terms.  1e-3 accommodates.
+pub const GPU_SPATIAL_PAYOFF_F32: f64 = 1e-3;
+
+/// GPU batch IPR: inverse participation ratio (f32).
+///
+/// `IPR = sum(|ψ_i|^4)` accumulates `dim` fourth-power terms in f32.
+/// For `dim` ≤ 64, f32 sum is accurate to ~4 digits.  1e-3 accommodates.
+pub const GPU_BATCH_IPR_F32: f64 = 1e-3;
+
+/// GPU pairwise Hamming: proportional Hamming distance (f32).
+///
+/// Hamming = `diff_count` / `seq_len`.  The count is exact (integer);
+/// the division is the only f32 rounding source.  1e-6 is conservative.
+pub const GPU_HAMMING_F32: f64 = 1e-6;
+
+// ═══════════════════════════════════════════════════════════════════
 // ML inference pipeline tolerances (f32 multi-op chains)
 // ═══════════════════════════════════════════════════════════════════
 
@@ -284,6 +405,24 @@ mod tests {
             GPU_F64_STATS,
             ML_MLP_F32,
             ML_TRANSFORMER_F32,
+            FFT_INVERSE_F32,
+            FFT_INVERSE_F64,
+            FFT_PARSEVAL_F32,
+            FFT_PARSEVAL_F64,
+            FFT_KNOWN_PAIR_F32,
+            FFT_KNOWN_PAIR_F64,
+            FFT_SPECTRAL_LEAKAGE_F32,
+            FFT_SPECTRAL_LEAKAGE_F64,
+            RFFT_DC_COMPONENT_F32,
+            GPU_HMM_LOG_LIKELIHOOD_F32,
+            GPU_HMM_ALPHA_F32,
+            GPU_FITNESS_F32,
+            GPU_RK4_F32,
+            GPU_JACCARD_F32,
+            GPU_LOCUS_VARIANCE_F32,
+            GPU_SPATIAL_PAYOFF_F32,
+            GPU_BATCH_IPR_F32,
+            GPU_HAMMING_F32,
         ];
         for (i, &t) in tols.iter().enumerate() {
             assert!(t > 0.0, "tolerance index {i} must be positive, got {t}");

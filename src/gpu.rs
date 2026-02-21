@@ -81,17 +81,24 @@ impl Gpu {
                 Ok(dev) => Ok(Self::from_device(Arc::new(dev))),
                 Err(e) => Err(format!("auto: {e}")),
             },
-            other => Self::create_relaxed(other).await,
+            "cpu" => Self::new_cpu().await,
+            other => Self::select_adapter(other).await,
         }
     }
 
     /// Create with the CPU software backend (llvmpipe).
     ///
+    /// Uses `BarraCUDA`'s `new_cpu_relaxed()` which requests
+    /// `downlevel_defaults` limits (llvmpipe caps at 128 MB).
+    ///
     /// # Errors
     ///
     /// Returns an error if no CPU adapter is available.
     pub async fn new_cpu() -> Result<Self, String> {
-        Self::create_relaxed("cpu").await
+        match WgpuDevice::new_cpu_relaxed().await {
+            Ok(dev) => Ok(Self::from_device(Arc::new(dev))),
+            Err(e) => Err(format!("cpu: {e}")),
+        }
     }
 
     /// Create with a discrete/integrated GPU backend.
@@ -165,12 +172,10 @@ impl Gpu {
             .map_err(|e| format!("read_buffer_f32: {e}"))
     }
 
-    /// Create a device with relaxed limits for CPU software adapters.
+    /// Select a specific adapter by name substring or enumeration index.
     ///
-    /// `barracuda`'s `science_limits()` requests 512 MB which llvmpipe
-    /// cannot provide.  We use `downlevel_defaults` instead — our
-    /// validation tensors are tiny.
-    async fn create_relaxed(selector: &str) -> Result<Self, String> {
+    /// Uses relaxed limits so CPU software adapters (llvmpipe) work.
+    async fn select_adapter(selector: &str) -> Result<Self, String> {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
@@ -178,11 +183,7 @@ impl Gpu {
 
         let adapters: Vec<wgpu::Adapter> = instance.enumerate_adapters(wgpu::Backends::all());
 
-        let adapter = if selector == "cpu" {
-            adapters
-                .into_iter()
-                .find(|a| a.get_info().device_type == wgpu::DeviceType::Cpu)
-        } else if let Ok(idx) = selector.parse::<usize>() {
+        let adapter = if let Ok(idx) = selector.parse::<usize>() {
             adapters.into_iter().nth(idx)
         } else {
             let sel = selector.to_ascii_lowercase();

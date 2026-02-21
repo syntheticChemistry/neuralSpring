@@ -11,6 +11,13 @@
 //! Core thesis: Quantifies how close an operator is to being normal.
 //! For neural networks: skip connections and residual layers relate to
 //! approximate commutativity.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Matrix multiplication A×B: `barracuda::ops::matmul` (GEMM f64)
+//! - Commutator [A,B] = AB − BA: two GEMM + elementwise subtract
+//! - Frobenius norm: `barracuda::ops::NormReduceF64`
+//! - Distance to normal: composed from commutator + Frobenius (GPU pipeline)
 
 #![allow(clippy::cast_precision_loss)]
 

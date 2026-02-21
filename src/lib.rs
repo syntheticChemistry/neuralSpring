@@ -42,18 +42,24 @@
 //! | `signal_integration` | `control/signal_integration/` | ODE `elementwise` + Hill |
 //! | `spectral_commutativity` | `control/spectral_commutativity/` | `gemm_f64` + eigendecomp |
 //! | `anderson_localization` | `control/anderson_localization/` | tridiag solve + eigendecomp |
+//! | `pangenome_selection` | `control/pangenome_selection/` | sparse GEMM + chi-squared reduce |
+//! | `meta_population` | `control/meta_population/` | variance decomp + `pearson` |
 
 pub mod anderson_localization;
 pub mod counterdiabatic;
 pub mod directed_evolution;
 pub mod eco_dynamics;
+pub mod eigh;
 pub mod evolved;
+pub mod fft;
 pub mod game_theory;
 pub mod gpu;
 pub mod hmm;
 pub mod introgression;
+pub mod meta_population;
 pub mod metrics;
 pub mod modes;
+pub mod pangenome_selection;
 pub mod provenance;
 pub mod regulatory_network;
 pub mod rng;

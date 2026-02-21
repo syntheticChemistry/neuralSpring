@@ -45,7 +45,8 @@ The single biggest performance bottleneck in BarraCUDA ML inference is
 **Root cause**: `queue.submit()` on Vulkan has ~500 µs fixed overhead.
 An MLP with 9 ops pays 9 × 500 µs = 4.5 ms in submission alone.
 
-**Local fix**: `evolved::fused_pipeline` — single encoder, single submit.
+**Local fix** (fossilized): `evolved::fused_pipeline` — single encoder, single submit.
+Now replaced by `TensorSession` (S-01/S-11 absorbed).
 
 ### 2. Matmul Cache Tiling (S-02)
 
@@ -93,14 +94,22 @@ ToadStool's NAK eigensolver (GPU) may resolve this.
 
 ## Evolution Targets
 
-| Target | Current | Proposed | Impact |
-|--------|---------|----------|--------|
-| Fused dispatch | Local `evolved::fused_pipeline` | ToadStool `StatefulPipeline` | Retire 600 LOC |
-| Tiled matmul | Local WGSL shaders | ToadStool `KernelRouter` | Retire 565 LOC |
-| Eigensolver | Jacobi (1e-3 at n=8) | Lanczos / divide-and-conquer | 1e-14 precision |
-| Batched fitness | CPU loop | GPU parallel eval | EA papers 011–015 |
-| HMM chain | Sequential matmul | Batched GEMM | Papers 016–018 |
-| Multi-system ODE | Sequential rk45 | GPU parallel integration | Papers 020–021 |
+| Target | Previous | Current | Status |
+|--------|----------|---------|--------|
+| Fused dispatch | ~~`evolved::fused_pipeline`~~ (fossilized) | ToadStool `TensorSession` | **ABSORBED** (S-01/S-11) |
+| Tiled matmul | ~~local WGSL shaders~~ (fossilized) | ToadStool `KernelRouter` | **ABSORBED** (S-02) |
+| Layer norm/log-softmax | ~~local GPU-resident ops~~ (fossilized) | Native `Tensor::*_wgsl()` | **ABSORBED** (S-08/S-09) |
+| MHA z-dispatch | `evolved::mha` (active, S-03b) | Native `ops::mha` hangs | **PARTIAL** (S-03 → S-03b) |
+| Eigensolver | Jacobi (1e-3 at n=8) | ToadStool NAK eigensolve | S-12 outstanding |
+| Batched fitness | CPU loop | `batch_fitness_eval.wgsl` | **Validated** (20/20) |
+| HMM chain | Sequential matmul | `hmm_forward_log.wgsl` | **Validated** (13/13) |
+| Multi-system ODE | Sequential rk45 | `rk4_parallel.wgsl` | **Validated** (8/8) |
+| Pairwise Jaccard | CPU O(N²×G) | `pairwise_jaccard.wgsl` | **Validated** (6/6) |
+| Locus variance | CPU loop per locus | `locus_variance.wgsl` | **Validated** (7/7) |
+| Spatial payoff | CPU stencil loop | `spatial_payoff.wgsl` | **Validated** (5/5) |
+| Batch IPR | CPU eigenvector scan | `batch_ipr.wgsl` | **Validated** (5/5) |
+| Pairwise Hamming | CPU O(N²×L) | `pairwise_hamming.wgsl` | **Validated** (5/5) |
+| Cross-dispatch | Manual routing | `barracuda::dispatch` | **Validated** (16/16) |
 
 ---
 
@@ -108,11 +117,67 @@ ToadStool's NAK eigensolver (GPU) may resolve this.
 
 ```
 metalForge/
-├── README.md              ← this file (dispatch characterization)
-└── gpu/
-    └── nvidia/
-        └── DISPATCH.md    ← RTX 4070 dispatch latency measurements
+├── README.md              ← this file
+├── CROSS_SYSTEM_DISPATCH.md ← GPU→CPU→NPU dispatch strategy
+├── gpu/
+│   └── nvidia/
+│       ├── DISPATCH.md    ← RTX 4070 dispatch latency measurements
+│       └── HARDWARE.md    ← RTX 4070 hardware characterization
+├── shaders/               ← Phase 3+4c WGSL evolution (12 shaders, absorption candidates)
+│   ├── ABSORPTION_TRACKER.md  ← lifecycle tracker for all shaders
+│   ├── hmm_forward_log.wgsl   ← HMM forward pass, log-domain (Papers 016–018)
+│   ├── batch_fitness_eval.wgsl ← Parallel population fitness (Papers 011–015)
+│   ├── rk4_parallel.wgsl      ← Multi-system ODE integration (Papers 020–021)
+│   ├── mean_reduce.wgsl       ← Scalar mean reduction (chained after fitness)
+│   ├── pairwise_jaccard.wgsl  ← Pairwise Jaccard distance (Paper 024)
+│   ├── locus_variance.wgsl    ← Per-locus AF variance (Paper 025)
+│   ├── spatial_payoff.wgsl    ← PD spatial stencil (Paper 019)
+│   ├── batch_ipr.wgsl         ← Batch IPR computation (Papers 022–023)
+│   ├── pairwise_hamming.wgsl  ← Pairwise Hamming distance (Paper 017)
+│   ├── head_split.wgsl       ← GPU head split for MHA: [B,S,D] → [B,H,S,D/H], absorption target: barracuda::ops::mha
+│   ├── head_concat.wgsl      ← GPU head concat for MHA: [B,H,S,D/H] → [B,S,D], absorption target: barracuda::ops::mha
+│   └── xoshiro128ss.wgsl     ← GPU-parallel PRNG, Xoshiro128** (all stochastic)
+└── fossils/               ← Absorbed evolved code (see FOSSIL_RECORD.md)
+    ├── evolved_s01_s11/   ← Deprecated workaround modules (~2,864 LOC)
+    └── bench/             ← Deprecated fused benchmarks (~1,127 LOC)
 ```
+
+---
+
+## Shader Evolution Workflow
+
+Following the hotSpring pattern, metalForge now includes a `shaders/`
+directory for WGSL evolution. The lifecycle is:
+
+1. **Evolve**: Write WGSL targeting a specific paper workload
+2. **Orchestrate**: Rust dispatch code in `src/evolved/` using raw `wgpu::Buffer`
+3. **Validate**: `ValidationHarness` binary against Python controls
+4. **Benchmark**: Add to `gpu/nvidia/` dispatch characterization
+5. **Handoff**: Document in `wateringHole/handoffs/` for ToadStool
+6. **Retire**: When ToadStool absorbs, remove local code
+
+### Active Shader Evolutions (Phase 3c + 4c — 12 shaders, 84/84 PASS)
+
+| Shader | Target Workload | GPU Strategy | Rust Export |
+|--------|----------------|--------------|-------------|
+| `hmm_forward_log.wgsl` | HMM forward chain (016–018) | Log-domain logsumexp, one thread/state | `hmm::WGSL_HMM_FORWARD_LOG` |
+| `batch_fitness_eval.wgsl` | EA population eval (011–015) | One thread/individual, dot-product fitness | `evolved::WGSL_BATCH_FITNESS_EVAL` |
+| `rk4_parallel.wgsl` | ODE integration (020–021) | One thread/system, full RK4 stepping | `evolved::WGSL_RK4_PARALLEL` |
+| `mean_reduce.wgsl` | Fitness aggregation | Workgroup reduction → scalar | `evolved::WGSL_MEAN_REDUCE` |
+| `pairwise_jaccard.wgsl` | Pangenome distance (024) | One thread/pair, O(G) per pair | `pangenome_selection::WGSL_PAIRWISE_JACCARD` |
+| `locus_variance.wgsl` | Locus AF variance (025) | One thread/locus, population variance | `meta_population::WGSL_LOCUS_VARIANCE` |
+| `spatial_payoff.wgsl` | PD stencil (019) | One thread/cell, Moore neighborhood | `game_theory::WGSL_SPATIAL_PAYOFF` |
+| `batch_ipr.wgsl` | IPR computation (022–023) | One thread/eigenvector, sum of 4th powers | `anderson_localization::WGSL_BATCH_IPR` |
+| `pairwise_hamming.wgsl` | Hamming distance (017) | One thread/pair, count diffs | `sate_alignment::WGSL_PAIRWISE_HAMMING` |
+| `head_split.wgsl` | MHA head split | [B,S,D] → [B,H,S,D/H] data movement | `evolved::WGSL_HEAD_SPLIT` |
+| `head_concat.wgsl` | MHA head concat | [B,H,S,D/H] → [B,S,D] data movement | `evolved::WGSL_HEAD_CONCAT` |
+| `xoshiro128ss.wgsl` | GPU PRNG (all stochastic) | One thread/stream, 4×u32 state | `rng::WGSL_XOSHIRO128SS` |
+
+Following the hotSpring pattern, each WGSL shader is exported as a `pub const`
+from its parent Rust library module. ToadStool/BarraCUDA can absorb these by
+importing the constant and copying the WGSL source directly.
+
+See `shaders/ABSORPTION_TRACKER.md` for the full tracker.
 
 ---
 
@@ -124,9 +189,11 @@ metalForge/
 | NPU (Akida) characterization | Matmul cache tiling analysis |
 | Cache line behavior | Workgroup occupancy vs tensor size |
 | Register space probing | Shared memory pressure in tiled kernels |
+| MD cell-list shaders (WGSL) | HMM/ODE/fitness shaders (WGSL) |
+| Physics → ToadStool absorption | ML/bio → ToadStool absorption |
 
-Both feed findings to ToadStool via `wateringHole/handoffs/`.
+Both feed findings and shaders to ToadStool via `wateringHole/handoffs/`.
 
 ---
 
-*Hardware characterization for ML dispatch — following the hotSpring metalForge pattern.*
+*Hardware characterization + shader evolution for ML dispatch — following the hotSpring metalForge pattern.*

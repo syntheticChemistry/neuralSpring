@@ -3,7 +3,9 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::missing_const_for_fn
+    clippy::many_single_char_names,
+    clippy::missing_const_for_fn,
+    clippy::suboptimal_flops
 )]
 
 //! Deterministic pseudo-random number generator for reproducible experiments.
@@ -13,6 +15,12 @@
 //! algorithms without external dependencies.
 
 use std::f64::consts::PI;
+
+/// WGSL shader: GPU-parallel PRNG (Xoshiro128**).
+///
+/// Absorption target: `barracuda::ops::prng`.
+/// Validated: `validate_gpu_prng` (5/5 PASS).
+pub const WGSL_XOSHIRO128SS: &str = include_str!("../metalForge/shaders/xoshiro128ss.wgsl");
 
 /// Deterministic PRNG based on Xoshiro256**.
 #[derive(Debug, Clone)]
@@ -108,6 +116,47 @@ impl Rng {
     /// Fill a slice with `uniform() < threshold` coin flips.
     pub fn bernoulli_mask(&mut self, n: usize, p: f64) -> Vec<bool> {
         (0..n).map(|_| self.uniform() < p).collect()
+    }
+
+    /// Alias for `uniform()` — `f64` in `[0, 1)`.
+    pub fn next_f64(&mut self) -> f64 {
+        self.uniform()
+    }
+
+    /// Gamma variate via Marsaglia & Tsang (2000) for shape >= 1,
+    /// with Ahrens-Dieter shift for shape < 1.
+    pub fn gamma(&mut self, shape: f64) -> f64 {
+        if shape < 1.0 {
+            return self.gamma(shape + 1.0) * self.uniform().max(1e-300).powf(1.0 / shape);
+        }
+        let d = shape - 1.0 / 3.0;
+        let c = 1.0 / (9.0 * d).sqrt();
+        loop {
+            let x = self.normal();
+            let v_base = 1.0 + c * x;
+            if v_base <= 0.0 {
+                continue;
+            }
+            let v = v_base * v_base * v_base;
+            let u = self.uniform().max(1e-300);
+            if u < 1.0 - 0.0331 * (x * x) * (x * x) {
+                return d * v;
+            }
+            if u.ln() < 0.5 * x * x + d * (1.0 - v + v.ln()) {
+                return d * v;
+            }
+        }
+    }
+
+    /// Beta(α, β) variate via the gamma ratio method.
+    pub fn beta(&mut self, alpha: f64, beta_param: f64) -> f64 {
+        let x = self.gamma(alpha);
+        let y = self.gamma(beta_param);
+        let sum = x + y;
+        if sum < 1e-300 {
+            return 0.5;
+        }
+        x / sum
     }
 }
 

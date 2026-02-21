@@ -133,13 +133,9 @@ bench-ml:
     cargo run --release --bin bench_mlp_inference
     cargo run --release --bin bench_transformer_block
 
-# Fused pipeline benchmark (CPU + GPU, 4-way comparison)
-bench-fused:
-    @echo "── Fused Pipeline: CPU ──"
-    NEURALSPRING_BACKEND=cpu cargo run --release --bin bench_fused_inference
-    @echo ""
-    @echo "── Fused Pipeline: GPU ──"
-    NEURALSPRING_BACKEND=gpu cargo run --release --bin bench_fused_inference
+# bench-fused: REMOVED — bench_fused_inference fossilized (S-01..S-11 absorbed).
+#   See metalForge/fossils/bench/bench_fused_inference.rs for the fossil record.
+#   Use bench-ml for current ML benchmarks.
 
 # Full Python baseline suite (190/190, ~10 min)
 baselines:

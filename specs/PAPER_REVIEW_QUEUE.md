@@ -68,11 +68,30 @@ training dynamics and optimization landscapes through spectral theory.
 | 22 | Kachkovskiy & Safarov "Distance to normal elements in C*-algebras of real rank zero" | JAMS 29:61-80 | 2016 | Kachkovskiy | Approximate commutativity of operators — when do neural network layers approximately commute? Mathematical foundation for understanding why skip connections and residual networks work: layers that almost commute can be reordered without catastrophic information loss | **Complete** — `control/spectral_commutativity/spectral_commutativity.py` (8/8 PASS) |
 | 23 | Bourgain & Kachkovskiy "Anderson localization for two interacting quasiperiodic particles" | GAFA 29:3-43 | 2018 | Kachkovskiy | Localization in disordered systems — connects to loss landscape analysis. Local minima in neural networks = localized states in disordered Hamiltonians. The spectral theory of weight matrices determines training dynamics | **Complete** — `control/anderson_localization/anderson_localization.py` (8/8 PASS) |
 
+### Constrained Evolution in Nature — Empirical Corollary (R. Anderson)
+
+Rika Anderson (Carleton College) provides the empirical biological evidence for
+the constrained evolution thesis that Dolson formalizes computationally. Her
+pangenomics work shows that gene gain/loss in bacteria is driven by environmental
+selection — the biological version of feature selection in machine learning.
+
+| # | Paper | Journal | Year | Faculty | Why | Status |
+|---|-------|---------|------|---------|-----|--------|
+| 24 | Moulana, Anderson et al. "Selection is a significant driver of gene gain and loss in the pangenome of Sulfurovum" | mSystems 5:e00673-19 | 2020 | R. Anderson | **Constrained evolution of bacterial functional repertoires.** Different vent environments select for different gene complements — like Lenski's 12 populations finding 12 different solutions. Gene gain/loss dynamics ↔ feature selection and pruning in neural networks | **Complete** — `control/pangenome_selection/pangenome_selection.py` (8/8 PASS) |
+| 25 | Campbell, Anderson et al. "*Sulfolobus islandicus* meta-populations in Yellowstone National Park hot springs" | Env Microbiol 19:2392-2405 | 2017 | R. Anderson | Population differentiation under thermal constraint. Same hot springs as Taq polymerase. Geographic isolation → independent evolutionary trajectories. Direct analog to swarm robotics (Dolson Paper 015): different populations in isolated environments evolve different strategies | **Complete** — `control/meta_population/meta_population.py` (8/8 PASS) |
+
+**Why this matters for neuralSpring**: Dolson's counterdiabatic driving (Paper 011)
+shows how to *control* evolution computationally. Anderson's pangenomics shows how
+evolution *actually behaves* in constrained natural systems. Together they complete
+the constrained evolution argument: Dolson proves the theory, Anderson provides the
+empirical biology, and neuralSpring validates the computational primitives that
+bridge them.
+
 ---
 
 ## Completion Summary
 
-**All 23 papers complete as of February 20, 2026.** No queued items remain.
+**All 25 papers complete as of February 20, 2026.** No queued items remain.
 
 | Faculty | Papers | Python Checks | Rust Checks |
 |---------|--------|---------------|-------------|
@@ -80,17 +99,23 @@ training dynamics and optimization landscapes through spectral theory.
 | Liu (MSU CSE) | 016–018 (3) | 26 | 38 |
 | Waters (MSU Micro) | 019–021 (3) | 23 | 21 |
 | Kachkovskiy (MSU Math) | 022–023 (2) | 16 | 16 |
-| **Total Phase 0++** | **13** | **111** | **125** |
+| R. Anderson (Carleton) | 024–025 (2) | 16 | 16 |
+| **Total Phase 0++** | **15** | **127** | **141** |
 
 ---
 
-## GPU Promotion Priority (Next Phase)
+## GPU Promotion Priority
 
-1. **Papers 016–018 (Liu)** — HMM forward/backward is a GEMM chain, direct port to `hmm_forward_log.wgsl`
-2. **Papers 011–015 (Dolson)** — Batch fitness evaluation → `batch_gemm` with population dim
-3. **Papers 022–023 (Kachkovskiy)** — Tridiagonal eigensolver → specialized `tridiag_eigh.wgsl`
-4. **Papers 020–021 (Waters)** — GPU-parallel RK4 for ODE systems → `rk4_batch.wgsl`
-5. **Paper 017 (Liu)** — Pairwise distance matrix → `pairwise_distance.wgsl`
+1. ~~**Papers 016–018 (Liu)** — HMM forward/backward~~ → `hmm_forward_log.wgsl` **DONE** (13/13 + pipeline 5/5)
+2. ~~**Papers 011–015 (Dolson)** — Batch fitness evaluation~~ → `batch_fitness_eval.wgsl` **DONE** (20/20)
+3. **Papers 022–023 (Kachkovskiy)** — Tridiagonal eigensolver → specialized `tridiag_eigh.wgsl` (**Pending** — ToadStool NAK eigensolve)
+4. ~~**Papers 020–021 (Waters)** — GPU-parallel RK4~~ → `rk4_parallel.wgsl` **DONE** (8/8 + pipeline 5/5)
+5. ~~**Paper 017 (Liu)** — Pairwise distance matrix~~ → `pairwise_hamming.wgsl` **DONE** (5/5)
+6. ~~**Paper 024 (Anderson)** — Pairwise Jaccard~~ → `pairwise_jaccard.wgsl` **DONE** (6/6 + pipeline 5/5)
+7. ~~**Paper 019 (Waters)** — Spatial PD payoff~~ → `spatial_payoff.wgsl` **DONE** (5/5 + pipeline 5/5)
+8. ~~**Papers 022–023** — Batch IPR~~ → `batch_ipr.wgsl` **DONE** (5/5 + pipeline 5/5)
+9. ~~**All stochastic** — GPU PRNG~~ → `xoshiro128ss.wgsl` **DONE** (5/5)
+10. **GPU PRNG → Wright-Fisher / Gillespie** — stochastic GPU pipelines (**Next**)
 
 ---
 

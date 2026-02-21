@@ -11,6 +11,19 @@
 //!
 //! Model: 1D Anderson Hamiltonian (tridiagonal) with random or
 //! quasiperiodic (Aubry-André) disorder. IPR measures localization.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Eigendecomposition: `barracuda::linalg::eigh_f64` (Jacobi, improving via NAK)
+//! - IPR computation: `barracuda::ops::FusedMapReduceF64` (sum of 4th powers)
+//! - Disorder sweep: embarrassingly parallel (batch eigensolve over W values)
+//! - Aubry-André potential: elementwise cosine (`barracuda::ops::elementwise`)
+//!
+//! ## WGSL shader (absorption-ready)
+//!
+//! [`WGSL_BATCH_IPR`] — batch inverse participation ratio. One thread
+//! per eigenvector, computes `sum(|ψ_i|^4)`. Validated in
+//! `validate_gpu_anderson`.
 
 #![allow(
     clippy::cast_precision_loss,
@@ -24,6 +37,12 @@
 )]
 
 use crate::rng::Rng;
+
+/// WGSL shader: batch IPR from eigenvector data.
+///
+/// Absorption target: `barracuda::ops::batch_reduce` or `FusedMapReduceF64`.
+/// Validated: `validate_gpu_anderson`.
+pub const WGSL_BATCH_IPR: &str = include_str!("../metalForge/shaders/batch_ipr.wgsl");
 use std::f64::consts::PI;
 
 /// Golden ratio φ = (1 + √5) / 2 (irrational for quasiperiodicity).

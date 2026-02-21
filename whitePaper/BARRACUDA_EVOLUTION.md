@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: February 19, 2026
+**Date**: February 21, 2026
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
 **Methodology**: Python control → Rust validation → WGSL shader evolution
 
@@ -209,17 +209,281 @@ dependent compute operations with a single scalar output (loss or energy).
 
 ## 6. Evolved Code Inventory
 
-| Module | Lines | Purpose | Upstream Recommendation |
-|--------|-------|---------|------------------------|
-| `fused_pipeline.rs` | 408 | ShaderCache + 4-tier router + dispatch helpers | Integrate into `TensorSession` |
-| `fused_mlp.rs` | 253 | Fused MLP (9 passes, 1 submit) | Template for session-based ML ops |
-| `fused_transformer.rs` | 409 | Fused Transformer (18 passes, 1 submit) | Template for session-based ML ops |
-| `matmul_cpu_tiled.wgsl` | 263 | Double-buffered CPU matmul | Add to `barracuda/src/shaders/math/` |
-| `matmul_gpu_evolved.wgsl` | 302 | Double-buffered GPU matmul | Add to `barracuda/src/shaders/math/` |
-| `layer_norm.rs` | 199 | GPU-resident layer norm | Make `from_buffer` public |
-| `log_softmax.rs` | 192 | GPU-resident log-softmax | Make `from_buffer` public |
-| `mha.rs` | 116 | MHA projection workaround | Fix z-dim dispatch bug |
-| `gpu.rs` | 225 | Device wrapper with CPU/GPU creation | Relax `science_limits()` for llvmpipe |
+### Fossilized (absorbed — `metalForge/fossils/evolved_s01_s11/`)
 
-Total locally evolved: **~2,367 lines of Rust + 565 lines of WGSL**.
-All retireable once ToadStool absorbs the upstream changes.
+| Module | Lines | Shortcoming | Absorbed Into |
+|--------|-------|-------------|---------------|
+| `fused_pipeline.rs` | 680 | S-01 | `TensorSession` |
+| `fused_mlp.rs` | 356 | S-01/S-11 | `TensorSession` ML ops |
+| `fused_transformer.rs` | 725 | S-01/S-11 | `TensorSession` ML ops |
+| `matmul_cpu_tiled.wgsl` | 270 | S-02 | `ops::matmul` CpuTiled32 |
+| `matmul_gpu_evolved.wgsl` | 306 | S-02 | `ops::matmul` GpuEvolved32 |
+| `layer_norm.rs` | 268 | S-08 | `Tensor::layer_norm_wgsl()` |
+| `log_softmax.rs` | 259 | S-09 | `Tensor::log_softmax_wgsl()` |
+
+Total fossilized: **~2,864 LOC** (removed from active compilation Feb 20, 2026).
+
+### Still Active
+
+| Module | Lines | Why Active |
+|--------|-------|-----------|
+| `mha.rs` | 182 | S-03b: native projection shaders hang |
+| `hmm_forward_gpu.rs` | 270 | No BarraCUDA equivalent |
+| `gpu.rs` | 225 | Device wrapper (rewired to `new_cpu_relaxed`) |
+
+---
+
+## 7. Phase 3 — GPU Streaming Evolution
+
+### 7.1 FFT Validation (Phase 3a — Complete)
+
+ToadStool's BarraCUDA team shipped `ops::fft` — a Cooley-Tukey radix-2
+implementation in WGSL, covering f32 complex (`Fft1D`/`Ifft1D`), f64 complex
+(`Fft1DF64`), and real-to-complex (`Rfft`). Session 25 fixed three GPU FFT bugs
+(fossil `floor_f64` calls, missing sin/cos kernel deps, inverse twiddle conjugation)
+and added GPU-validated f64 tests. We now validate **24 analytical checks**:
+
+**f32 FFT (Fft1D / Ifft1D) — 12 checks:**
+
+| Check | Method | Tolerance |
+|-------|--------|-----------|
+| Inverse round-trip (N=16) | `IFFT(FFT(x)) == x` | 1e-3 |
+| Parseval's theorem (N=32) | `‖x‖² == ‖FFT(x)‖²/N` | 1e-3 |
+| Delta → constant DFT pair | Analytical DFT definition | 1e-5 |
+| Constant → delta DFT pair | Analytical DFT definition | 1e-5 |
+| Cosine concentration | Energy at ±f bins | 1e-4 |
+| Larger round-trip (N=256) | `IFFT(FFT(x)) == x` | 1e-3 |
+| Multi-frequency synthesis | 3-frequency sum, bin check | boolean |
+
+**Rfft (real-to-complex, f32) — 4 checks:**
+
+| Check | Method | Tolerance |
+|-------|--------|-----------|
+| Output shape | N → [N/2+1, 2] | exact |
+| DC component | X[0].re == N for constant signal | 1e-3 |
+| Off-peak energy | ≈ 0 for constant | 1e-3 |
+| Cosine energy | Significant energy at target bin | boolean |
+
+**f64 FFT (Fft1DF64) — 8 checks (requires SHADER_F64):**
+
+| Check | Method | Tolerance |
+|-------|--------|-----------|
+| Inverse round-trip (N=16) | `IFFT(FFT(x))/N == x` | 1e-10 |
+| Parseval's theorem (N=32) | `‖x‖² == ‖FFT(x)‖²/N` | 1e-10 |
+| Delta → constant DFT pair | All real=1, imag=0 | 1e-10 |
+| Constant → delta DFT pair | X[0]=N, off-peak≈0 | 1e-10 |
+| Cosine concentration | Energy at ±f bins | 1e-10 |
+
+The f64 round-trip error achieved 2.78e-16 (essentially machine epsilon),
+confirming ToadStool's WGSL f64 butterfly is IEEE 754 compliant.
+
+No local shader was needed — we absorbed directly from ToadStool. This is the
+ideal absorption pattern: upstream ships, Spring validates, upstream iterates.
+
+### 7.2 GPU Streaming Targets (Phase 3b — Complete)
+
+The goal is to move iterative workloads from CPU loops to GPU-resident pipelines
+using `StatefulPipeline` (state stays on GPU between iterations) and
+`UnidirectionalPipeline` (data streams in, results stream out):
+
+| Workload | Papers | CPU Pattern | GPU Target |
+|----------|--------|-------------|------------|
+| HMM forward chain | 016–018 | Sequential GEMM | `StatefulPipeline` with log-domain GEMM shader |
+| Population fitness | 011–015 | Loop over individuals | Batch GEMM shader (N individuals × M traits) |
+| ODE integration | 020–021 | CPU RK4 loop | GPU-parallel multi-system RK4 shader |
+| Eigendecomposition | 022–023 | CPU Jacobi | Tridiagonal + bisection shader |
+| Pangenome selection | 024 | CPU pairwise Jaccard | `pairwise_jaccard.wgsl` — GPU O(N²) similarity |
+| Meta-population | 025 | CPU locus variance | `locus_variance.wgsl` — GPU allele-frequency variance |
+
+### 7.3 Shader Evolution for Absorption (Phase 3c–4d — 12 shaders)
+
+Following hotSpring's pattern, WGSL shaders are developed in `metalForge/shaders/`,
+validated against CPU references, and documented for ToadStool absorption.
+
+**12 WGSL shaders validated**, 93/93 PASS (RTX 4070).
+
+| Shader | Validation Binary | Checks | Absorption Target |
+|--------|-------------------|--------|-------------------|
+| `hmm_forward_log.wgsl` | `validate_gpu_hmm_forward` | 13/13 | `ops::hmm` or `StatefulPipeline` |
+| `batch_fitness_eval.wgsl` | `validate_gpu_batch_fitness` | 20/20 | `ops::batch_gemm` |
+| `rk4_parallel.wgsl` | `validate_gpu_rk4` | 8/8 | `ops::ode` |
+| `mean_reduce.wgsl` | `validate_gpu_pure_workload` | 7/7 | `ReduceScalarPipeline` |
+| `pairwise_jaccard.wgsl` | `validate_gpu_pangenome` | 6/6 | `ops::pairwise_distance` |
+| `locus_variance.wgsl` | `validate_gpu_meta_pop` | 7/7 | `ops::VarianceReduceF64` |
+| `spatial_payoff.wgsl` | `validate_gpu_game_theory` | 5/5 | `ops::stencil` |
+| `batch_ipr.wgsl` | `validate_gpu_anderson` | 5/5 | `ops::batch_reduce` |
+| `pairwise_hamming.wgsl` | `validate_gpu_sate` | 5/5 | `ops::pairwise_distance` |
+| `xoshiro128ss.wgsl` | `validate_gpu_prng` | 5/5 | `ops::prng` |
+| `head_split.wgsl` | `validate_mha_gpu` | 5/5 | `ops::mha` |
+| `head_concat.wgsl` | `validate_mha_gpu` | 5/5 | `ops::mha` |
+
+Planned (not yet implemented):
+
+| Shader | Target Op | Absorption Target |
+|--------|-----------|-------------------|
+| `tridiag_eigensolver.wgsl` | Eigendecomposition | `linalg::eigh_gpu` |
+| `pairwise_distance.wgsl` | Distance matrix | `ops::pairwise_distance` |
+
+Each shader follows the hotSpring lifecycle: evolve → validate → handoff → absorb → retire.
+See `metalForge/shaders/ABSORPTION_TRACKER.md` for the full lifecycle tracker.
+
+---
+
+## 8. Phase 4a: Performance Parity Benchmarks
+
+The `bench_phase0pp_kernels` binary compares pure Rust math (neuralSpring) to single-thread NumPy
+at identical problem sizes across 7 Phase 0++ kernels. This proves where the evolution path delivers
+and where GPU acceleration is essential.
+
+| Kernel | Paper | Rust µs | Python µs | Speedup |
+|--------|-------|---------|-----------|---------|
+| HMM forward (3×5000) | 016-018 | 330.0 | 12007.6 | 36.4× |
+| Replicator dynamics (10k steps) | 019 | 150.0 | 34937.4 | 232.9× |
+| Commutator ‖[A,B]‖_F (64×64) | 022 | 334.6 | 23.3 | 0.1× |
+| NK fitness (N=10,K=2, 1000 genotypes) | 011 | 17.9 | 14087.2 | 787.1× |
+| Pairwise Hamming (20×500) | 017 | 34.3 | 408.3 | 11.9× |
+| Jaccard distance (30×500) | 024 | 142.3 | 2045.4 | 14.4× |
+| RK4 GRN ODE (2000 steps) | 020-021 | 218.6 | 24659.8 | 112.8× |
+| **TOTAL** | | **1227.8** | **88169.0** | **71.8×** |
+
+**Narrative:** Rust pure math is 71.8× faster than single-thread NumPy overall. GEMM-heavy
+operations (commutator: 0.1×) show why GPU WGSL acceleration via BarraCUDA matters — at small
+matrix sizes, NumPy's OpenBLAS-backed GEMM dominates. The evolution path (Python → Rust CPU →
+BarraCUDA GPU) delivers dramatic speedups for elementwise, reduction, and ODE workloads; for dense
+GEMM the GPU path is the only way to beat optimized BLAS.
+
+---
+
+## 9. ToadStool Absorption Complete (Feb 20, 2026)
+
+**All 11 neuralSpring shortcomings (S-01 through S-11) are now absorbed by
+ToadStool at commit `dc540afd` (Session 25).**
+
+Key absorption commit: `fbedd222` — extended `TensorSession` with
+`{MatMul, ReLU, GELU, Softmax, LayerNorm}` and single-encoder batch
+dispatch. This directly addresses the per-op overhead documented in
+Sections 1–2 above.
+
+### Rewiring completed
+
+- `validate_barracuda_tensor` rewired from `evolved::layer_norm`/`log_softmax` to
+  native `Tensor::layer_norm_wgsl()`/`log_softmax_wgsl()` — **90/90 PASS**
+- `bench_barracuda_tensor` rewired from `evolved::layer_norm`/`log_softmax` to
+  native `Tensor::layer_norm_wgsl()`/`log_softmax_wgsl()`
+- `leaky_relu` (S-05) and `elu` (S-06) tests added — both passing natively
+- `gpu.rs` CPU path rewired to `WgpuDevice::new_cpu_relaxed()` (S-10)
+- All deprecated evolved modules fossilized in `metalForge/fossils/`
+- `bench_fused_inference` and `bench_scaling` fossilized (deep fused pipeline coupling)
+
+### S-03b: Native MHA Projection Shader Hang
+
+While S-03 (z-dispatch `div_ceil(16)` → `div_ceil(1)`) was absorbed, the native
+`Tensor::multi_head_attention` hangs during GPU execution on RTX 4070 / Vulkan.
+The evolved MHA (matmul projections + CPU head split/concat + attention) works
+correctly and remains active in `src/evolved/mha.rs`. Filed as S-03b for
+ToadStool to debug the `project_with_head_split` / `concat_and_project` GPU
+execution flow.
+
+### What remains active
+
+- `evolved::mha` — MHA workaround (S-03b, blocked on native shader hang)
+- `evolved::hmm_forward_gpu` — metalForge shader evolution (no BarraCUDA equivalent)
+
+See `metalForge/fossils/FOSSIL_RECORD.md` for the complete fossil inventory.
+
+---
+
+## 10. GPU WGSL Kernel Benchmarks + GPU PRNG (Phase 4c)
+
+### GPU Dispatch Crossover
+
+The `bench_gpu_kernels` binary times WGSL shaders on RTX 4070 vs Rust CPU at matching
+problem sizes, revealing the fundamental crossover point for dispatch decisions.
+
+| Kernel | Scale | GPU µs | Rust CPU µs | Winner |
+|--------|-------|--------|-------------|--------|
+| Hamming | Small (20×500) | 1,589 | 34 | CPU 46× |
+| Hamming | **Large (200×1000)** | **1,675** | **7,089** | **GPU 4.2×** |
+| Jaccard | Small (30×500) | 1,659 | 142 | CPU 12× |
+| Jaccard | **Large (100×2000)** | **1,464** | **8,246** | **GPU 5.6×** |
+| Fitness | Small (1000×10) | 1,836 | 18 | CPU 102× |
+| Fitness | Large (50000×64) | 1,510 | — | — |
+
+**Finding:** GPU dispatch overhead is ~1.5ms fixed (Vulkan `queue.submit()` +
+readback). GPU compute time is negligible at all tested scales — the 5888 CUDA
+cores on the RTX 4070 complete these kernels in microseconds. The dispatch cost
+is amortized when:
+
+1. **CPU work exceeds ~1.5ms** — the natural crossover point, confirmed empirically.
+2. **Fused dispatch** (`TensorSession`, `StatefulPipeline`) — one submit for N ops.
+3. **Large workloads** — 200 seqs × 1000 sites gives 19,900 pairs → GPU 4.2× faster.
+
+This validates the cross-dispatch architecture: `barracuda::dispatch` routes small
+workloads to CPU and large workloads to GPU, with the threshold matching the
+empirical ~1.5ms crossover. `StatefulPipeline` eliminates the overhead entirely
+for iterative GPU-resident algorithms.
+
+### GPU PRNG: Xoshiro128**
+
+The `xoshiro128ss.wgsl` shader provides GPU-parallel pseudo-random number generation.
+Each thread maintains independent 4×u32 state (seeded via SplitMix32). Generates
+uniform f32 in [0, 1). State persists across dispatches for multi-call sequences.
+
+| Check | Status |
+|-------|--------|
+| Uniformity (mean ∈ [0.48, 0.52]) | **PASS** (0.4995) |
+| Range ([0, 1)) | **PASS** |
+| Determinism (same seed → same output) | **PASS** |
+| Independence (distinct thread sequences) | **PASS** |
+| Multi-call (state advances correctly) | **PASS** |
+
+Exported as `rng::WGSL_XOSHIRO128SS` for ToadStool absorption.
+
+**Impact:** Enables Wright-Fisher, Gillespie SSA, and parallel EA generation loops
+entirely on GPU via `StatefulPipeline` — no CPU round-trips for random number
+generation.
+
+---
+
+## 11. ToadStool Issue Resolution (Phase 4d)
+
+Phase 4d resolves two ToadStool shortcomings via local fixes, documented for
+absorption.
+
+### S-12 Resolution: Householder+QR Eigensolver
+
+BarraCUDA's `linalg::eigh_f64` uses Jacobi iteration, which degrades to ~1e-3
+relative error at n≥8 and ~0.1 at n=16. The local `src/eigh.rs` implements
+Householder tridiagonalization + QL implicit shifts (Wilkinson), achieving
+LAPACK-level accuracy at all matrix sizes.
+
+**Accuracy comparison**:
+
+| n | Householder+QR | Jacobi | Improvement |
+|---|----------------|--------|-------------|
+| 4 | 1.13e-14 | 2.21e-14 | 2× |
+| 8 | 3.05e-14 | 1.27e-1 | 4.2 trillion × |
+| 16 | 5.28e-14 | 1.64e+1 | 312 trillion × |
+| 32 | 1.83e-13 | 7.03e+1 | 383 trillion × |
+| 64 | 5.43e-13 | 1.69e+2 | 311 trillion × |
+
+Anderson Hamiltonian n=32: 1.75e-14 (vs Jacobi's ~70). Validation:
+`validate_eigh_accuracy` — **9/9 PASS**.
+
+### S-03b Partial Fix: GPU Head Split/Concat Shaders
+
+The native `Tensor::multi_head_attention` hangs during GPU execution on RTX 4070
+(Vulkan). The projection shaders (`project_with_head_split` / `concat_and_project`)
+are the suspected cause. Local GPU `head_split.wgsl` and `head_concat.wgsl` avoid
+this by decomposing MHA into validated ops:
+
+```
+matmul (Q,K,V projections) → head_split → attention → head_concat → matmul (Wo)
+```
+
+- `head_split.wgsl`: [B,S,D] → [B,H,S,D/H]
+- `head_concat.wgsl`: [B,H,S,D/H] → [B,S,D]
+
+Validation: `validate_mha_gpu` — **10/10 PASS**.
+
+**New check count**: 19 additional checks (9 + 10).

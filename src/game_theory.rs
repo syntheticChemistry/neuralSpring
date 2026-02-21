@@ -12,8 +12,27 @@
 //!
 //! Core thesis: quorum sensing (QS) promotes cooperation by linking
 //! individual growth yield to collective dispersal.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Replicator dynamics: 2×2 GEMV + normalization (small, CPU-only)
+//! - QS cooperation model: `barracuda::ops::batch_gemm` (fitness-weighted selection)
+//! - Spatial PD fitness stencil: `barracuda::ops::stencil` (GPU `spatial_payoff.wgsl`)
+//! - Population evolution: fitness proportional selection via `barracuda::stats`
+//!
+//! ## WGSL shader (absorption-ready)
+//!
+//! [`WGSL_SPATIAL_PAYOFF`] — spatial PD payoff stencil. One thread per
+//! grid cell, Moore neighborhood with periodic boundary. Validated in
+//! `validate_gpu_game_theory`.
 
 use crate::rng::Rng;
+
+/// WGSL shader: spatial PD payoff stencil on a 2D grid.
+///
+/// Absorption target: `barracuda::ops::stencil`.
+/// Validated: `validate_gpu_game_theory`.
+pub const WGSL_SPATIAL_PAYOFF: &str = include_str!("../metalForge/shaders/spatial_payoff.wgsl");
 
 /// Standard prisoner's dilemma payoff matrix.
 ///

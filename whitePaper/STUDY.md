@@ -6,8 +6,8 @@ neuralSpring validates the computational foundations of machine learning across
 ten experiments spanning function approximation, transformer attention, sequence
 forecasting, transfer learning, cross-domain architecture analysis, physics-informed
 neural networks, operator learning, convolutional networks, real-data LSTM, and
-quantized inference. All **75 quantitative checks pass** (48 Phase 0 + 27 Phase 0+).
-Phase 1 Rust validation adds **285 binary checks** (43 neuralSpring-native + 242 BarraCUDA). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
+quantized inference. All **206 quantitative checks pass** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++).
+Phase 1–4d Rust validation adds **760 Rust+GPU checks** (183 native + 272 BarraCUDA primitives + 147 CPU ports + 69 GPU shaders + 65 GPU pipelines + 5 GPU PRNG + 19 Phase 4d). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
 The 3-way benchmark (Python vs CPU vs GPU) with double-buffered evolved shaders
 achieves **GPU 104× faster** than Python at 103M FLOPs and **CPU 3.9× faster**
 at the same scale.
@@ -164,11 +164,11 @@ and time series simultaneously.
 ## Rust Validation Layer (Phase 1)
 
 The audit (February 2026) produced a Rust crate that cross-validates Python baselines.
-BarraCUDA integration (February 19, 2026) extended it to 242 GPU/CPU validation checks.
+BarraCUDA integration (February 19, 2026) extended it to 272 GPU/CPU validation checks.
 
-- **9 library modules**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances.rs`, `provenance.rs`, `gpu.rs`, `evolved/`
-- **18 binaries**: 3 native validators + 10 BarraCUDA validators + 5 benchmarks + 1 meta-runner
-- **34 Rust unit tests** with hardcoded Python reference values (cross-language agreement to <1e-12)
+- **22 library modules**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances.rs`, `provenance.rs`, `gpu.rs`, `evolved/`, plus 13 paper modules
+- **18 validation binaries**: native + BarraCUDA + GPU
+- **135 Rust unit tests** (plus 6 doc tests) with hardcoded Python reference values (cross-language agreement to <1e-12)
 - **Quality gates**: `clippy` (pedantic+nursery), `fmt`, `doc`, `unsafe_code = "forbid"`
 
 See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C promotion path from Rust to WGSL.
@@ -214,9 +214,9 @@ See `whitePaper/BARRACUDA_EVOLUTION.md` for the full technical narrative.
 | Phase | Focus | Deliverable | Status |
 |-------|-------|-------------|--------|
 | 0 | Python baselines (48 checks) | Validate the science | **COMPLETE** |
-| 0+ | Scholarly reproductions (27 checks) | Reproduce published results | **COMPLETE** |
-| 1a | neuralSpring Rust validation | Surrogate, transformer, metrics (43 checks) | **COMPLETE** |
-| 1b | BarraCUDA validation | 10 domains, 242 checks (CPU + GPU) | **COMPLETE** |
+| 0+ | Scholarly reproductions (31 checks) | Reproduce published results | **COMPLETE** |
+| 1a | neuralSpring Rust validation | 22 modules, 183 checks (18 binaries) | **COMPLETE** |
+| 1b | BarraCUDA validation | 12 domains, 272 checks (CPU + GPU + FFT) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | 46–78× speedup via single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |
 | 2 | ~~Quantized inference~~ | **DONE** — Q4/Q8 validated in Phase 0+ Study 005 | **VALIDATED** |
@@ -250,7 +250,7 @@ neuralSpring from "validate ML primitives" to "apply ML to real science."
 
 ### BarraCUDA Primitives Validated (2026-02-19)
 
-Following the hotSpring pattern, `neuralSpring` validates 242 BarraCUDA primitives (CPU + GPU):
+Following the hotSpring pattern, `neuralSpring` validates 272 BarraCUDA primitives (CPU + GPU + FFT):
 
 | Binary | Module | Checks | Reference |
 |--------|--------|--------|-----------|
@@ -259,11 +259,12 @@ Following the hotSpring pattern, `neuralSpring` validates 242 BarraCUDA primitiv
 | `validate_barracuda_special` | special (gamma, erf, bessel, polynomials) | 26 | NIST DLMF |
 | `validate_barracuda_optimize` | optimize (nelder_mead, bisect, brent) | 10 | Analytical |
 | `validate_barracuda_precision` | precision (add, mul, fma, dot, sum) | 12 | Exact f64 |
-| `validate_barracuda_tensor` | Tensor API (84 ops, CPU + GPU) | 84 | WGSL unified |
+| `validate_barracuda_tensor` | Tensor API (90 ops, CPU + GPU) | 90 | WGSL unified |
 | `validate_barracuda_tensor_f64` | Tensor f64 (GPU ops) | 35 | f64 GPU |
 | `validate_barracuda_quantized` | quantized (Q4/Q8 dequant, GEMV) | 15 | Hand-constructed |
 | `validate_barracuda_linalg_ext` | linalg ext (SVD, LU inv, gen eigh) | 17 | Analytical |
 | `validate_barracuda_ml_inference` | ML inference (MLP + Transformer) | 13 | Python baselines |
+| `validate_barracuda_fft` | FFT (f32 Fft1D/Ifft1D + f64 Fft1DF64 + Rfft) | 24 | Analytical (DFT definition) |
 
 ### Fused ToadStool Pipeline + Evolved Shaders (2026-02-19)
 

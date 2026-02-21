@@ -7,6 +7,13 @@
 //!
 //! Port of `control/introgression/introgression.py`.
 //! Uses [`crate::hmm::Hmm`] for forward, backward, and Viterbi.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Forward/backward/Viterbi: delegates to [`crate::hmm`] which maps to
+//!   `barracuda::staging::StatefulPipeline` and `barracuda::ops::logsumexp`
+//! - Likelihood ratio test: scalar reduction (chi-squared from `barracuda::stats`)
+//! - Gene tree topology switching: discrete HMM state space (GPU via `hmm_forward_log.wgsl`)
 
 #![allow(clippy::cast_precision_loss)]
 

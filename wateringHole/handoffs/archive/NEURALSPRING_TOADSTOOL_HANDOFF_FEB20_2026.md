@@ -4,7 +4,7 @@
 **From:** neuralSpring (ML / isomorphic learning / scholarly reproduction Spring)
 **To:** ToadStool / BarraCUDA core team
 **License:** AGPL-3.0-or-later
-**ToadStool reviewed:** commit `82f953c8` (Feb 19, 2026) — HEAD as of Feb 20
+**ToadStool reviewed:** commit `dc540afd` (Session 25, Feb 20, 2026)
 **Supersedes:** All three prior handoffs (Feb 19 ML, Feb 19 Shader, Feb 20 Phase 0++)
 
 ---
@@ -12,21 +12,19 @@
 ## Executive Summary
 
 neuralSpring has completed **23 experiments** across 5 scientific disciplines
-with **722/722 PASS** (190 Python + 167 Rust native + 242 BarraCUDA primitives
+with **728/728 PASS** (190 Python + 167 Rust native + 248 BarraCUDA primitives
 + 123 BarraCUDA CPU ports). Phase 2 (BarraCUDA CPU ports) is **complete** —
-all 13 Phase 0++ modules validated against BarraCUDA CPU math primitives,
-proving hand-rolled Rust is reproducible via barracuda's pure-Rust library.
-During this work, we identified and evolved around **11 BarraCUDA shortcomings**
-(+1 new: S-12 `eigh_f64` accuracy gap), built a **46–78× faster fused
-pipeline**, and identified **7 new GPU-promotable algorithmic patterns** from
-Phase 0++ scholarly reproductions.
+all 13 Phase 0++ modules validated against BarraCUDA CPU math primitives.
 
-**ToadStool status (reviewed `82f953c8`):** None of the 11 neuralSpring
-shortcomings have been absorbed. ToadStool work since Feb 15 focused on
-hotSpring absorption (NAK eigensolve, `StatefulPipeline`, `ReduceScalarPipeline`,
-`CellListGpu`), deep debt (wgpu v22, sleep elimination, zero-copy), and
-sovereign compute (Phases 0–3). This is expected — different Springs feeding
-different evolution vectors.
+**UPDATE (Feb 20, 2026 — ToadStool `dc540afd`):**
+
+**All 11 neuralSpring shortcomings (S-01 through S-11) are now ABSORBED.**
+Key commit: `fbedd222` (TensorSession ML ops — S-01/S-11). neuralSpring
+has rewired `validate_barracuda_tensor` from evolved workarounds to native
+BarraCUDA APIs (90/90 PASS), rewired `gpu.rs` CPU path to
+`WgpuDevice::new_cpu_relaxed()`, and documented `src/evolved/` (~3046 LOC)
+for retirement. The remaining active evolution is `hmm_forward_gpu` (metalForge
+shader, not a workaround). S-12 (`eigh_f64` accuracy gap) is still outstanding.
 
 **New ToadStool capabilities relevant to neuralSpring:**
 - `StatefulPipeline` — iterative GPU-resident simulation (directly usable for EA loops, ODE integration)
@@ -435,7 +433,7 @@ Foundation for GPU-side population evaluation without CPU round-trips.
 | Priority | Item | Effort | Impact | Retires |
 |----------|------|--------|--------|---------|
 | 1 | **`from_buffer` → `pub`** (S-07) | 1 char | High | S-08, S-09 |
-| 2 | **MHA z-dispatch** (S-03) | 2 lines | Correctness | `evolved::mha` |
+| 2 | **MHA projection shader hang** (S-03b — z-dispatch fixed but native MHA hangs on RTX 4070/Vulkan) | Investigation | Correctness | `evolved::mha` |
 | 3 | **`leaky_relu`/`elu` Params** (S-05, S-06) | 4 lines | Correctness | — |
 | 4 | **Softmax logical size** (S-04) | 10 lines | Correctness | Re-upload workaround |
 | 5 | **`new_cpu_relaxed()`** (S-10) | 20 lines | Unblocks CPU | `gpu::create_relaxed()` |
@@ -447,19 +445,25 @@ Foundation for GPU-side population evaluation without CPU round-trips.
 
 ## Part 4: neuralSpring Evolved Code Inventory
 
-These modules retire when their corresponding shortcomings are absorbed:
+### Fossilized (Feb 20, 2026 — `metalForge/fossils/`)
 
-| Module | Lines | Workaround For | Retires When |
-|--------|-------|----------------|--------------|
-| `evolved/layer_norm.rs` | ~80 | S-08 (GPU→CPU→GPU round-trip) | S-07 absorbed |
-| `evolved/log_softmax.rs` | ~80 | S-09 (GPU→CPU→GPU round-trip) | S-07 absorbed |
-| `evolved/mha.rs` | ~150 | S-03 (z-dispatch bug) | S-03 absorbed |
-| `evolved/fused_pipeline.rs` | ~550 | S-01 (per-op dispatch) | S-11 absorbed |
-| `evolved/fused_mlp.rs` | ~250 | S-01 (per-op dispatch) | S-11 absorbed |
-| `evolved/fused_transformer.rs` | ~400 | S-01 (per-op dispatch) | S-11 absorbed |
-| `evolved/matmul_cpu_tiled.wgsl` | 263 | S-02 (naive matmul) | Shader absorbed |
-| `evolved/matmul_gpu_evolved.wgsl` | 302 | S-02 (naive matmul) | Shader absorbed |
-| **Total** | **~2075** | | |
+| Module | Lines | Workaround For | Status |
+|--------|-------|----------------|--------|
+| `evolved/layer_norm.rs` | 268 | S-08 | Fossilized, rewired to native |
+| `evolved/log_softmax.rs` | 259 | S-09 | Fossilized, rewired to native |
+| `evolved/fused_pipeline.rs` | 680 | S-01 | Fossilized |
+| `evolved/fused_mlp.rs` | 356 | S-01/S-11 | Fossilized |
+| `evolved/fused_transformer.rs` | 725 | S-01/S-11 | Fossilized |
+| `evolved/matmul_cpu_tiled.wgsl` | 270 | S-02 | Fossilized |
+| `evolved/matmul_gpu_evolved.wgsl` | 306 | S-02 | Fossilized |
+| **Total** | **~2864** | | |
+
+### Still Active
+
+| Module | Lines | Issue | Status |
+|--------|-------|-------|--------|
+| `evolved/mha.rs` | 182 | S-03b (native MHA hangs) | Active |
+| `evolved/hmm_forward_gpu.rs` | 270 | No BarraCUDA equiv | Active |
 
 ---
 

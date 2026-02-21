@@ -4,18 +4,25 @@
 //!
 //! Provides CPU-reference softmax and GELU implementations validated against
 //! `NumPy` 2.2.6.  Full transformer inference (SDPA, `LayerNorm`, MHA, FFN)
-//! is implemented in the fused GPU pipeline (`evolved::fused_transformer`)
-//! and validated end-to-end by `validate_barracuda_ml_inference`.
+//! is validated end-to-end by `validate_barracuda_ml_inference` using native
+//! `BarraCUDA` `Tensor` ops (fused pipeline fossilized after S-01..S-11 absorption).
 //!
 //! ## Python Baseline Provenance
 //!
 //! | Check | Tolerance | Rationale |
 //! |-------|-----------|-----------|
-//! | NumPy vs `PyTorch` softmax | 1e-10 | IEEE-754 f64 summation order only |
-//! | NumPy vs `PyTorch` SDPA | 1e-10 | same |
+//! | `NumPy` vs `PyTorch` softmax | 1e-10 | IEEE-754 f64 summation order only |
+//! | `NumPy` vs `PyTorch` SDPA | 1e-10 | same |
 //! | Causal mask leak | 1e-6 | exp(-1e9) ≈ 0; any leak is a bug |
 //! | `LayerNorm` mean≈0 | 1e-5 | matches LN eps parameter |
 //! | `LayerNorm` var≈1 | 1e-3 | accumulated f64 error over `d_model` |
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Softmax: `barracuda::Tensor::softmax_wgsl()` (f32 GPU-resident)
+//! - GELU: `barracuda::Tensor::gelu_wgsl()` (f32 GPU-resident, tanh approx)
+//! - Full inference: `barracuda::TensorSession` single-encoder pipeline
+//!   validated by `validate_barracuda_ml_inference` (13/13 PASS)
 
 /// Numerically stable softmax over a slice.
 ///

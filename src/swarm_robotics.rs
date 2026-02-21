@@ -4,6 +4,13 @@
 //!
 //! Port of `control/swarm_robotics/swarm_robotics.py`.
 //! Foreback, Bohm, Dolson (2025) IEEE — heterogeneous controllers maintain diversity.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Neural controller forward pass: `barracuda::ops::matmul` + sigmoid activation
+//! - Behavior tree evaluation: not GPU-portable (branching control flow)
+//! - Swarm fitness aggregation: `barracuda::ops::SumReduceF64` (team score)
+//! - Heterogeneous population eval: `barracuda::ops::batch_gemm` (per-controller type)
 
 #![allow(
     clippy::cast_lossless,

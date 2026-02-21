@@ -194,6 +194,12 @@ jobs:
       - name: Validate Anderson localization (8 checks)
         run: cargo run --bin validate_anderson_localization
 
+      - name: Validate pangenome selection (8 checks)
+        run: cargo run --bin validate_pangenome_selection
+
+      - name: Validate meta-population (8 checks)
+        run: cargo run --bin validate_meta_population
+
   validate-barracuda:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -252,6 +258,9 @@ jobs:
 
       - name: Validate barracuda ml_inference (13 checks)
         run: cargo run --bin validate_barracuda_ml_inference
+
+      - name: Validate barracuda FFT (12 checks)
+        run: cargo run --bin validate_barracuda_fft
 
   validate-barracuda-cpu:
     runs-on: ubuntu-latest
@@ -320,3 +329,111 @@ jobs:
 
       - name: Validate barracuda game (5 checks)
         run: cargo run --bin validate_barracuda_game
+
+      - name: Validate barracuda pangenome (8 checks)
+        run: cargo run --bin validate_barracuda_pangenome
+
+      - name: Validate barracuda meta-population (8 checks)
+        run: cargo run --bin validate_barracuda_meta_pop
+
+      - name: Validate barracuda logsumexp (5 checks)
+        run: cargo run --bin validate_barracuda_logsumexp
+
+      # Phase 3c: metalForge GPU shader validation
+      - name: Validate GPU HMM forward shader (13 checks)
+        run: cargo run --bin validate_gpu_hmm_forward
+
+      - name: Validate GPU batch fitness shader (20 checks)
+        run: cargo run --bin validate_gpu_batch_fitness
+
+      - name: Validate GPU RK4 shader (8 checks)
+        run: cargo run --bin validate_gpu_rk4
+
+      # Phase 3d: Pure GPU workload + StatefulPipeline + cross-dispatch
+      - name: Validate GPU StatefulPipeline (10 checks)
+        run: cargo run --bin validate_gpu_stateful_pipeline
+
+      - name: Validate GPU pure workload chain (7 checks)
+        run: cargo run --bin validate_gpu_pure_workload
+
+      - name: Validate cross-dispatch GPU vs CPU (8 checks)
+        run: cargo run --bin validate_cross_dispatch
+
+      - name: Validate GPU pangenome Jaccard (6 checks)
+        run: cargo run --bin validate_gpu_pangenome
+
+      - name: Validate GPU meta-population variance (7 checks)
+        run: cargo run --bin validate_gpu_meta_pop
+
+      - name: Validate cross-dispatch genomics (8 checks)
+        run: cargo run --bin validate_cross_dispatch_genomics
+
+      - name: Validate GPU game theory spatial payoff (5 checks)
+        run: cargo run --bin validate_gpu_game_theory
+
+      - name: Validate GPU Anderson IPR (5 checks)
+        run: cargo run --bin validate_gpu_anderson
+
+      - name: Validate GPU SATe Hamming distance (5 checks)
+        run: cargo run --bin validate_gpu_sate
+
+      - name: Validate cross-dispatch extended (12 checks)
+        run: cargo run --bin validate_cross_dispatch_extended
+
+      # Phase 4b: Pure GPU end-to-end pipelines
+      - name: Validate GPU pipeline HMM (5 checks)
+        run: cargo run --release --bin validate_gpu_pipeline_hmm
+
+      - name: Validate GPU pipeline ecology (5 checks)
+        run: cargo run --release --bin validate_gpu_pipeline_ecology
+
+      - name: Validate GPU pipeline spectral (5 checks)
+        run: cargo run --release --bin validate_gpu_pipeline_spectral
+
+      - name: Validate GPU pipeline genomics (5 checks)
+        run: cargo run --release --bin validate_gpu_pipeline_genomics
+
+      # Phase 4c: GPU PRNG
+      - name: Validate GPU PRNG xoshiro128ss (5 checks)
+        run: cargo run --release --bin validate_gpu_prng
+
+      # Phase 4d: ToadStool issue resolution
+      - name: Validate eigh_accuracy S-12 (9 checks)
+        run: cargo run --release --bin validate_eigh_accuracy
+      - name: Validate MHA GPU head shaders S-03b (10 checks)
+        run: cargo run --release --bin validate_mha_gpu
+
+  benchmarks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout ecoPrimals (barracuda dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ecoPrimals
+          path: ../phase1/toadstool
+          sparse-checkout: crates/barracuda
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
+
+      - name: Run bench_phase0pp_kernels (Rust-only, no Python)
+        run: cargo run --release --bin bench_phase0pp_kernels
+
+      - name: Run bench_gpu_kernels (WGSL shader timing)
+        run: cargo run --release --bin bench_gpu_kernels

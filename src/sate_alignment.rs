@@ -10,8 +10,26 @@
 //!
 //! Computational core: distance matrix (GEMM-equivalent) + neighbor-joining
 //! + progressive alignment merging.
+//!
+//! ## `BarraCUDA` connection
+//!
+//! - Pairwise distance matrix: `barracuda::ops::pairwise_distance` (GPU `pairwise_hamming.wgsl`)
+//! - Jukes-Cantor correction: elementwise log transform
+//! - Neighbor-joining: sequential algorithm (CPU-only, not GPU-portable)
+//! - Progressive alignment: sequential merging (CPU-only)
+//!
+//! ## WGSL shader (absorption-ready)
+//!
+//! [`WGSL_PAIRWISE_HAMMING`] — pairwise Hamming distance matrix. One
+//! thread per sequence pair. Validated in `validate_gpu_sate`.
 
 use crate::rng::Rng;
+
+/// WGSL shader: pairwise Hamming distance for sequence comparison.
+///
+/// Absorption target: `barracuda::ops::pairwise_distance` or `cdist_wgsl`.
+/// Validated: `validate_gpu_sate`.
+pub const WGSL_PAIRWISE_HAMMING: &str = include_str!("../metalForge/shaders/pairwise_hamming.wgsl");
 
 const GAP: u8 = 4;
 const JC_SATURATION: f64 = 10.0;

@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 20, 2026
+**Last Updated**: February 21, 2026
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -51,6 +51,20 @@ candidates for BarraCUDA CPU port and subsequent GPU promotion.
 | `signal_integration/` | `signal_integration.rs` | 8 | `elementwise` | Two-input Hill AND gate |
 | `spectral_commutativity/` | `spectral_commutativity.rs` | 8 | `gemm_f64` | Commutator [A,B] |
 | `anderson_localization/` | `anderson_localization.rs` | 8 | `tridiag` + `eigh_f64` | Aubry-André, IPR |
+| `pangenome_selection/` | `pangenome_selection.rs` | 8 | sparse GEMM + chi-sq reduce | PA matrix, selection test |
+| `meta_population/` | `meta_population.rs` | 8 | variance decomp + `pearson` | FST, Mantel, thermal corr |
+
+### Tier A+ — BarraCUDA GPU Primitives (validated 2026-02-20)
+
+FFT validation pinned to ToadStool's Cooley-Tukey radix-2 WGSL implementation.
+
+| BarraCUDA Module | Validation Binary | Checks | Status |
+|------------------|-------------------|--------|--------|
+| `ops::fft::{Fft1D, Ifft1D, Fft1DF64, Rfft}` | `validate_barracuda_fft` | 24 | **PASS** (RTX 4070 Vulkan) |
+
+Validated properties: inverse round-trip (N=16, N=256), Parseval's theorem,
+delta→constant, constant→delta, cosine energy concentration, multi-frequency
+decomposition. All analytical (no Python baseline needed).
 
 ### Tier A+ — BarraCUDA CPU Primitives (validated 2026-02-19)
 
@@ -63,12 +77,14 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 | `special::{gamma, factorial, erf, bessel, legendre, hermite, laguerre}` | `validate_barracuda_special` | 26 | **PASS** |
 | `optimize::{nelder_mead, bisect, brent}` | `validate_barracuda_optimize` | 10 | **PASS** |
 | `shaders::precision::cpu` (add, mul, fma, dot, kahan\_sum) | `validate_barracuda_precision` | 12 | **PASS** |
-| **Tensor API** (84 ops including evolved) | `validate_barracuda_tensor` | 84 | **PASS** |
+| **Tensor API** (90 ops — native `layer_norm`, `log_softmax`, `leaky_relu`, `elu`) | `validate_barracuda_tensor` | 90 | **PASS** |
 | **Tensor f64 API** (GPU reductions + fused maps) | `validate_barracuda_tensor_f64` | 35 | **PASS** |
 | `shaders::quantized` (dequant Q4/Q8, GEMV) | `validate_barracuda_quantized` | 15 | **PASS** |
 | `linalg::{svd\_\*, lu\_inverse, gen\_eigh}` | `validate_barracuda_linalg_ext` | 17 | **PASS** |
 | **ML Inference** (MLP + Transformer end-to-end) | `validate_barracuda_ml_inference` | 13 | **PASS** |
-| **Total** | **10 binaries** | **242** | **ALL PASS** |
+| **FFT** (Fft1D/Ifft1D + Fft1DF64 + Rfft) | `validate_barracuda_fft` | 24 | **PASS** |
+| **LogSumExp** (numerically stable log-probability summation) | `validate_barracuda_logsumexp` | 5 | **PASS** |
+| **Total** | **12 binaries** | **272** | **ALL PASS** |
 
 ### Tier B — Adapt (needs training infrastructure)
 
@@ -104,9 +120,8 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### ToadStool Infrastructure Available for GPU Promotion
 
-ToadStool (reviewed `82f953c8`, Feb 19, 2026) provides infrastructure
-directly usable for Phase 0++ GPU promotion without waiting for the
-11 shortcomings to be absorbed:
+ToadStool (reviewed `dc540afd`, Feb 20, 2026 — all 11 shortcomings absorbed)
+provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |
 |------------|-----|----------|
@@ -131,6 +146,8 @@ Based on cross-paper primitive usage and BarraCUDA impact:
 | 5 | Tridiagonal eigensolver | 022–023 | High | Specialized for structure |
 | 6 | Spatial stencil | 019 | Low | Reuse conv1d |
 | 7 | GPU PRNG | All stochastic | Medium | Foundation for parallel EA |
+| 8 | Binary matrix reduction | 024 | Low | PA matrix row/col sums |
+| 9 | Parallel pairwise FST | 025 | Medium | ANOVA decomposition per-locus |
 
 ---
 
@@ -151,16 +168,118 @@ For each Rust module → GPU promotion:
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
-| Phase 0 (Python baselines) | **190/190 PASS** | 23 experiments, 48 pytest |
-| Phase 1a (neuralSpring Rust) | **167/167 PASS** | 20 modules, 109 unit tests, 16 validation binaries |
-| Phase 1b (BarraCUDA) | **242/242 PASS** | 10 validation binaries, incl. Tensor/WGSL (84), tensor_f64 (35), ml_inference (13) |
+| Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, 48 pytest |
+| Phase 1a (neuralSpring Rust) | **183/183 PASS** | 22 modules, 120 unit tests, 18 validation binaries |
+| Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
-| Phase 2 (BarraCUDA CPU port) | **Planned** | All 13 Phase 0++ modules are Tier A |
-| Phase 3 (GPU acceleration) | **Planned** | 7 new primitives + 7 shader designs in handoff |
-| Phase 4 (Sovereign pipeline) | **Planned** | `StatefulPipeline` + `ReduceScalarPipeline` available |
+| Phase 2 (BarraCUDA CPU ports) | **147/147 PASS** | All 15 Phase 0++ modules validated |
+| Phase 3a (FFT validation) | **24/24 PASS** | f32 Fft1D/Ifft1D + f64 Fft1DF64 + Rfft |
+| Phase 3b (GPU streaming) | **COMPLETE** | `StatefulPipeline` validated (10/10 PASS) |
+| Phase 3c (Shader evolution) | **COMPLETE** | 8 WGSL shaders, 69/69 PASS |
+| Phase 3d (Pure GPU + cross-dispatch) | **COMPLETE** | 45/45 PASS (SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12) |
+| Phase 4a (Performance benchmarks) | **COMPLETE** | 7 kernels, 71.8× overall speedup vs single-thread NumPy |
+| Phase 4b (Pure GPU end-to-end pipelines) | **COMPLETE** | 4 pipelines, 20/20 PASS (HMM, ecology, spectral, genomics) |
+| Phase 4c (GPU kernel benchmarks + PRNG) | **COMPLETE** | Crossover mapping (GPU wins at >1.5ms CPU work) + 5/5 PRNG PASS |
+| Phase 4d (ToadStool S-12 + S-03b) | **COMPLETE** | eigh LAPACK (9/9 PASS) + head_split/head_concat (10/10 PASS) |
+| Phase 4 (Sovereign pipeline) | **Active** | Cross-spring integration |
+
+### Phase 3c — metalForge Shader Evolution
+
+Following the hotSpring pattern (evolve → validate → handoff → absorb → retire),
+nine WGSL shaders (plus PRNG) are under development in `metalForge/shaders/`
+with Rust orchestration in `src/evolved/`:
+
+| Shader | Validation Binary | Papers | Status |
+|--------|-------------------|--------|--------|
+| `hmm_forward_log.wgsl` | `validate_gpu_hmm_forward` | 016–018 | **Compiled + validation binary** |
+| `batch_fitness_eval.wgsl` | `validate_gpu_batch_fitness` | 011–015 | **Compiled + validation binary** |
+| `rk4_parallel.wgsl` | `validate_gpu_rk4` | 020–021 | **Compiled + validation binary** |
+| `pairwise_jaccard.wgsl` | `validate_gpu_pangenome` | 024 | **Compiled + validation binary** |
+| `locus_variance.wgsl` | `validate_gpu_meta_pop` | 025 | **Compiled + validation binary** |
+| `spatial_payoff.wgsl` | `validate_gpu_game_theory` | 019 | **Compiled + validation binary** |
+| `batch_ipr.wgsl` | `validate_gpu_anderson` | 022-023 | **Compiled + validation binary** |
+| `pairwise_hamming.wgsl` | `validate_gpu_sate` | 017 | **Compiled + validation binary** |
+
+See `metalForge/shaders/ABSORPTION_TRACKER.md` for the full lifecycle tracker.
+
+### Phase 3d — Pure GPU Workload + Cross-Dispatch
+
+| Validation Binary | BarraCUDA API | Checks | Status |
+|-------------------|--------------|--------|--------|
+| `validate_gpu_stateful_pipeline` | `StatefulPipeline` | 10 | **10/10 PASS** |
+| `validate_gpu_pure_workload` | Multi-kernel chain | 7 | **7/7 PASS** |
+| `validate_cross_dispatch` | `DispatchConfig` | 8 | **8/8 PASS** |
+| `validate_cross_dispatch_genomics` | `DispatchConfig` + Jaccard/variance | 8 | **8/8 PASS** |
+
+### Phase 4a — Performance Benchmarks
+
+The `bench_phase0pp_kernels` binary compares Rust pure math to Python NumPy at identical problem
+sizes. Seven kernels, one per control script:
+
+| Kernel | Paper | Rust µs | Python µs | Speedup |
+|--------|-------|---------|-----------|---------|
+| HMM forward (3×5000) | 016-018 | 330.0 | 12007.6 | 36.4× |
+| Replicator dynamics (10k steps) | 019 | 150.0 | 34937.4 | 232.9× |
+| Commutator ‖[A,B]‖_F (64×64) | 022 | 334.6 | 23.3 | 0.1× |
+| NK fitness (N=10,K=2, 1000 genotypes) | 011 | 17.9 | 14087.2 | 787.1× |
+| Pairwise Hamming (20×500) | 017 | 34.3 | 408.3 | 11.9× |
+| Jaccard distance (30×500) | 024 | 142.3 | 2045.4 | 14.4× |
+| RK4 GRN ODE (2000 steps) | 020-021 | 218.6 | 24659.8 | 112.8× |
+| **TOTAL** | | **1227.8** | **88169.0** | **71.8×** |
+
+Rust pure math is 71.8× faster than single-thread NumPy overall. GEMM-heavy operations
+(commutator: 0.1×) show why GPU WGSL acceleration via BarraCUDA matters.
+
+### Phase 4b — Pure GPU End-to-End Pipelines
+
+Four pure GPU pipelines, each kernel-chain → mean_reduce, GPU-resident with scalar-only readback.
+Phase 3d+4b combined: **65/65 PASS** for pure GPU + cross-dispatch.
+
+| Validation Binary | Pipeline | Papers | Checks | Status |
+|-------------------|----------|--------|--------|--------|
+| `validate_gpu_pipeline_hmm` | HMM forward → mean_reduce | 016–018 | 5 | **5/5 PASS** |
+| `validate_gpu_pipeline_ecology` | spatial_payoff → mean_reduce | 019 | 5 | **5/5 PASS** |
+| `validate_gpu_pipeline_spectral` | batch_ipr → mean_reduce | 022–023 | 5 | **5/5 PASS** |
+| `validate_gpu_pipeline_genomics` | pairwise_jaccard → mean_reduce | 024 | 5 | **5/5 PASS** |
+
+### Phase 4c — GPU WGSL Kernel Benchmarks + GPU PRNG
+
+**bench_gpu_kernels**: Times WGSL shaders on RTX 4070 vs Rust CPU at small (paper-scale)
+and large (production-scale) sizes, revealing the dispatch crossover point.
+
+| Kernel | Scale | GPU µs | Rust CPU µs | Winner |
+|--------|-------|--------|-------------|--------|
+| Hamming | Small (20×500) | 1,589 | 34 | CPU 46× |
+| Hamming | **Large (200×1000)** | **1,675** | **7,089** | **GPU 4.2×** |
+| Jaccard | Small (30×500) | 1,659 | 142 | CPU 12× |
+| Jaccard | **Large (100×2000)** | **1,464** | **8,246** | **GPU 5.6×** |
+
+**Crossover**: GPU dispatch overhead ~1.5ms fixed. CPU wins below; GPU wins above.
+This is exactly what `barracuda::dispatch` routes and what metalForge documents.
+
+**validate_gpu_prng** (5/5 PASS): Xoshiro128** PRNG shader (`metalForge/shaders/xoshiro128ss.wgsl`).
+Validates uniformity, range, determinism, independence, multi-call state advancement.
+Exported as `rng::WGSL_XOSHIRO128SS` for ToadStool absorption.
+
+| Validation Binary | Shader | Checks | Status |
+|-------------------|--------|--------|--------|
+| `validate_gpu_prng` | `xoshiro128ss.wgsl` | 5 | **5/5 PASS** |
+
+### Phase 4d — ToadStool Issue Resolution (S-12 + S-03b)
+
+| Shortcoming | Description | Checks | Status |
+|-------------|-------------|--------|--------|
+| **S-12** | Householder+QR eigensolver — LAPACK-level accuracy at all matrix sizes | 9/9 | **PASS** |
+| **S-03b** | GPU head_split/head_concat WGSL shaders | 10/10 | **PASS** |
+
+**New files:** `src/eigh.rs`, `metalForge/shaders/head_split.wgsl`, `metalForge/shaders/head_concat.wgsl`  
+**New binaries:** `validate_eigh_accuracy`, `validate_mha_gpu`
 
 ### ToadStool Shortcoming Status
 
-**Reviewed:** ToadStool commit `82f953c8` (Feb 19, 2026) — HEAD as of Feb 20.
-**Result:** 0 of 11 neuralSpring shortcomings absorbed. All `src/evolved/`
-workarounds remain active. See `specs/TOADSTOOL_HANDOFF.md` for full details.
+**Reviewed:** ToadStool commit `dc540afd` (Session 25, Feb 20, 2026).
+**Result:** **11 of 11 neuralSpring shortcomings ABSORBED.** Key absorption
+commit: `fbedd222` (`TensorSession` ML ops). Validation binary
+`validate_barracuda_tensor` rewired from evolved ops to native BarraCUDA
+APIs — 90/90 PASS. `src/evolved/` workarounds documented for retirement.
+See `specs/TOADSTOOL_HANDOFF.md` for full details and migration plan.

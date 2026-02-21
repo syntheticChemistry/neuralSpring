@@ -48,7 +48,7 @@ fn make_config() -> barracuda::numerical::Rk45Config {
     }
 }
 
-/// RHS for vpsT ODE: d[cdg,ai,vpsT,biofilm]/dt. Deterministic (`noise_scale=0`).
+/// RHS for vpsT ODE: d\[cdg,ai,vpsT,biofilm\]/dt. Deterministic (`noise_scale=0`).
 fn vps_t_rhs(_t: f64, y: &[f64], params: &OdeParams) -> Vec<f64> {
     let cdg = y[0];
     let ai = y[1];
