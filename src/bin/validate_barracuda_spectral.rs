@@ -49,9 +49,8 @@ fn main() {
 /// eigenvalues and orthogonal eigenvectors.
 fn validate_eigh_symmetric(h: &mut ValidationHarness, rng: &mut Rng, n: usize) {
     let sym = random_symmetric(n, rng);
-    let flat: Vec<f64> = sym.iter().flat_map(|row| row.iter().copied()).collect();
 
-    match barracuda::linalg::eigh_f64(&flat, n) {
+    match barracuda::linalg::eigh_f64(&sym, n) {
         Ok(eig) => {
             h.check_bool(
                 &format!("eigh_f64 returns {n} eigenvalues"),
@@ -82,20 +81,19 @@ fn validate_eigh_symmetric(h: &mut ValidationHarness, rng: &mut Rng, n: usize) {
 fn validate_eigh_reconstruct(h: &mut ValidationHarness, rng: &mut Rng, _n: usize) {
     let n_small = 8;
     let sym = random_symmetric(n_small, rng);
-    let flat: Vec<f64> = sym.iter().flat_map(|row| row.iter().copied()).collect();
 
-    match barracuda::linalg::eigh_f64(&flat, n_small) {
+    match barracuda::linalg::eigh_f64(&sym, n_small) {
         Ok(eig) => {
             let reconstructed = eig.reconstruct();
 
-            let recon_err: f64 = flat
+            let recon_err: f64 = sym
                 .iter()
                 .zip(reconstructed.iter())
                 .map(|(a, b)| (a - b).powi(2))
                 .sum::<f64>()
                 .sqrt();
 
-            let norm: f64 = flat.iter().map(|x| x * x).sum::<f64>().sqrt();
+            let norm: f64 = sym.iter().map(|x| x * x).sum::<f64>().sqrt();
             let rel_err = if norm > 1e-14 {
                 recon_err / norm
             } else {
@@ -122,15 +120,14 @@ fn validate_eigh_reconstruct(h: &mut ValidationHarness, rng: &mut Rng, _n: usize
 fn validate_eigenvalues_match_handrolled(h: &mut ValidationHarness, rng: &mut Rng, n: usize) {
     let sym = random_symmetric(n, rng);
 
-    let d_handrolled = distance_to_normal(&sym);
+    let d_handrolled = distance_to_normal(&sym, n);
     h.check_upper(
         &format!("hand-rolled: symmetric dist_normal ({d_handrolled:.2e})"),
         d_handrolled,
         tolerances::CROSS_LANGUAGE,
     );
 
-    let flat: Vec<f64> = sym.iter().flat_map(|row| row.iter().copied()).collect();
-    match barracuda::linalg::eigh_f64(&flat, n) {
+    match barracuda::linalg::eigh_f64(&sym, n) {
         Ok(eig) => {
             let all_real = eig.eigenvalues.iter().all(|&v| v.is_finite());
             h.check_bool(
@@ -151,16 +148,13 @@ fn validate_eigenvalues_match_handrolled(h: &mut ValidationHarness, rng: &mut Rn
 fn validate_distance_via_eigenvalues(h: &mut ValidationHarness, rng: &mut Rng, _n: usize) {
     let n = 8;
     let sym = random_symmetric(n, rng);
-    let sym_t = transpose(&sym);
-    let ata = mat_mul(&sym_t, &sym);
-    let aat = mat_mul(&sym, &sym_t);
-
-    let flat_ata: Vec<f64> = ata.iter().flat_map(|r| r.iter().copied()).collect();
-    let flat_aat: Vec<f64> = aat.iter().flat_map(|r| r.iter().copied()).collect();
+    let sym_t = transpose(&sym, n);
+    let ata = mat_mul(&sym_t, &sym, n);
+    let aat = mat_mul(&sym, &sym_t, n);
 
     match (
-        barracuda::linalg::eigh_f64(&flat_ata, n),
-        barracuda::linalg::eigh_f64(&flat_aat, n),
+        barracuda::linalg::eigh_f64(&ata, n),
+        barracuda::linalg::eigh_f64(&aat, n),
     ) {
         (Ok(eig_ata), Ok(eig_aat)) => {
             let max_diff: f64 = eig_ata
@@ -182,15 +176,13 @@ fn validate_distance_via_eigenvalues(h: &mut ValidationHarness, rng: &mut Rng, _
     }
 
     let asym = random_matrix(n, rng);
-    let asym_t = transpose(&asym);
-    let ata2 = mat_mul(&asym_t, &asym);
-    let aat2 = mat_mul(&asym, &asym_t);
-    let flat_ata2: Vec<f64> = ata2.iter().flat_map(|r| r.iter().copied()).collect();
-    let flat_aat2: Vec<f64> = aat2.iter().flat_map(|r| r.iter().copied()).collect();
+    let asym_t = transpose(&asym, n);
+    let ata2 = mat_mul(&asym_t, &asym, n);
+    let aat2 = mat_mul(&asym, &asym_t, n);
 
     match (
-        barracuda::linalg::eigh_f64(&flat_ata2, n),
-        barracuda::linalg::eigh_f64(&flat_aat2, n),
+        barracuda::linalg::eigh_f64(&ata2, n),
+        barracuda::linalg::eigh_f64(&aat2, n),
     ) {
         (Ok(eig_ata), Ok(eig_aat)) => {
             let max_diff: f64 = eig_ata
@@ -218,28 +210,20 @@ fn validate_skip_analysis(h: &mut ValidationHarness, rng: &mut Rng, n: usize) {
     let w1 = random_matrix(n, rng);
     let w2 = random_matrix(n, rng);
 
-    let (raw, skip) = skip_commutativity(&w1, &w2);
+    let (raw, skip) = skip_commutativity(&w1, &w2, n);
     h.check_bool(
         &format!("skip ({skip:.6}) < raw ({raw:.6}) with barracuda eigh available"),
         skip < raw,
     );
 
     let eye = identity_matrix(n);
-    let r1: Vec<Vec<f64>> = (0..n)
-        .map(|i| {
-            (0..n)
-                .map(|j| 0.01f64.mul_add(w1[i][j], eye[i][j]))
-                .collect()
-        })
+    let r1: Vec<f64> = (0..n * n)
+        .map(|ij| 0.01f64.mul_add(w1[ij], eye[ij]))
         .collect();
-    let r2: Vec<Vec<f64>> = (0..n)
-        .map(|i| {
-            (0..n)
-                .map(|j| 0.01f64.mul_add(w2[i][j], eye[i][j]))
-                .collect()
-        })
+    let r2: Vec<f64> = (0..n * n)
+        .map(|ij| 0.01f64.mul_add(w2[ij], eye[ij]))
         .collect();
-    let comm_res = commutativity_ratio(&r1, &r2);
+    let comm_res = commutativity_ratio(&r1, &r2, n);
     h.check_upper(
         &format!("residual near-commute ({comm_res:.6}) < 0.5"),
         comm_res,

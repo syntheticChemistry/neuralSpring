@@ -43,14 +43,13 @@ fn main() {
 
 fn validate_distance_matrix_symmetry(h: &mut ValidationHarness) {
     let mut rng = Rng::new(42);
-    let seqs = generate_tree_guided_sequences(10, 80, 0.05, &mut rng);
-    let d = pairwise_distance_matrix(&seqs, true);
-    let n = d.len();
+    let (seqs, n_seqs, seq_len) = generate_tree_guided_sequences(10, 80, 0.05, &mut rng);
+    let d = pairwise_distance_matrix(&seqs, n_seqs, seq_len, true);
 
     let mut max_sym_err = 0.0_f64;
-    for i in 0..n {
-        for j in (i + 1)..n {
-            let err = (d[i][j] - d[j][i]).abs();
+    for i in 0..n_seqs {
+        for j in (i + 1)..n_seqs {
+            let err = (d[i * n_seqs + j] - d[j * n_seqs + i]).abs();
             max_sym_err = max_sym_err.max(err);
         }
     }
@@ -65,13 +64,13 @@ fn validate_distance_matrix_symmetry(h: &mut ValidationHarness) {
 
 fn validate_distance_variance(h: &mut ValidationHarness) {
     let mut rng = Rng::new(42);
-    let seqs = generate_tree_guided_sequences(15, 60, 0.05, &mut rng);
-    let d = pairwise_distance_matrix(&seqs, true);
+    let (seqs, n_seqs, seq_len) = generate_tree_guided_sequences(15, 60, 0.05, &mut rng);
+    let d = pairwise_distance_matrix(&seqs, n_seqs, seq_len, true);
 
     let mut upper_tri = Vec::new();
-    for i in 0..d.len() {
-        for j in (i + 1)..d.len() {
-            upper_tri.push(d[i][j]);
+    for i in 0..n_seqs {
+        for j in (i + 1)..n_seqs {
+            upper_tri.push(d[i * n_seqs + j]);
         }
     }
 
@@ -90,10 +89,11 @@ fn validate_distance_variance(h: &mut ValidationHarness) {
 fn validate_nj_tree(h: &mut ValidationHarness) {
     let mut rng = Rng::new(42);
     let n_seqs = 12;
-    let seqs = generate_tree_guided_sequences(n_seqs, 50, 0.05, &mut rng);
-    let d = pairwise_distance_matrix(&seqs, true);
+    let seq_len = 50;
+    let (seqs, n_seqs, seq_len) = generate_tree_guided_sequences(n_seqs, seq_len, 0.05, &mut rng);
+    let d = pairwise_distance_matrix(&seqs, n_seqs, seq_len, true);
 
-    let tree = neighbor_joining(&d);
+    let tree = neighbor_joining(&d, n_seqs);
 
     h.check_bool(
         &format!("NJ produces N-1 joins ({})", tree.len()),
@@ -103,9 +103,6 @@ fn validate_nj_tree(h: &mut ValidationHarness) {
     let total_len: f64 = tree.iter().map(|&(_, _, li, lj)| li + lj).sum();
     h.check_lower("NJ tree total length positive", total_len, 0.0);
 
-    let aln = progressive_align(&seqs, &tree);
-    h.check_bool(
-        "progressive align produces N sequences",
-        aln.len() == n_seqs,
-    );
+    let (_aln, aln_rows, _aln_len) = progressive_align(&seqs, n_seqs, seq_len, &tree);
+    h.check_bool("progressive align produces N sequences", aln_rows == n_seqs);
 }

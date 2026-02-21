@@ -24,6 +24,7 @@
 //! - Species diversity metrics: `barracuda::stats::variance` + entropy reduction
 //! - Hamming distance for genotype comparison: `barracuda::ops::pairwise_distance`
 
+use crate::primitives;
 use crate::rng::Rng;
 use std::collections::{HashMap, HashSet};
 
@@ -190,35 +191,24 @@ pub fn run_ea(
 /// Shannon diversity (equitability) of genotype frequency distribution.
 ///
 /// `H/H_max` where H = -sum(p*ln(p)), `H_max` = ln(S).
+/// Uses `&[u8]` references as `HashMap` keys to avoid cloning genotypes.
 #[must_use]
 pub fn shannon_diversity(population: &[Vec<u8>]) -> f64 {
-    let mut counts: HashMap<Vec<u8>, usize> = HashMap::new();
+    let mut counts: HashMap<&[u8], usize> = HashMap::new();
     for g in population {
-        *counts.entry(g.clone()).or_insert(0) += 1;
+        *counts.entry(g.as_slice()).or_insert(0) += 1;
     }
     let total = population.len() as f64;
-    let n_types = counts.len();
-    if n_types <= 1 {
-        return 0.0;
-    }
-    let mut h = 0.0;
-    for &c in counts.values() {
-        let p = c as f64 / total;
-        h -= p * (p + 1e-30).ln();
-    }
-    let h_max = (n_types as f64).ln();
-    if h_max <= 0.0 {
-        return 0.0;
-    }
-    h / h_max
+    let freqs: Vec<f64> = counts.values().map(|&c| c as f64 / total).collect();
+    primitives::shannon_equitability(&freqs)
 }
 
 /// Number of unique genotypes in the population.
 #[must_use]
 pub fn genotype_richness(population: &[Vec<u8>]) -> usize {
-    let mut seen: HashSet<Vec<u8>> = HashSet::new();
+    let mut seen: HashSet<&[u8]> = HashSet::new();
     for g in population {
-        seen.insert(g.clone());
+        seen.insert(g.as_slice());
     }
     seen.len()
 }
@@ -226,9 +216,9 @@ pub fn genotype_richness(population: &[Vec<u8>]) -> usize {
 /// Berger-Parker dominance: frequency of the most common genotype.
 #[must_use]
 pub fn dominance_index(population: &[Vec<u8>]) -> f64 {
-    let mut counts: HashMap<Vec<u8>, usize> = HashMap::new();
+    let mut counts: HashMap<&[u8], usize> = HashMap::new();
     for g in population {
-        *counts.entry(g.clone()).or_insert(0) += 1;
+        *counts.entry(g.as_slice()).or_insert(0) += 1;
     }
     let total = population.len();
     if total == 0 {

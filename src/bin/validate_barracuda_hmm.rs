@@ -70,9 +70,10 @@ fn validate_posterior_variance(h: &mut ValidationHarness) {
     let (_, obs) = hmm.generate_sequence(50, &mut rng);
 
     let gamma = hmm.posterior(&obs);
+    let n = hmm.num_states();
 
-    let state0_probs: Vec<f64> = gamma.iter().map(|row| row[0]).collect();
-    let state1_probs: Vec<f64> = gamma.iter().map(|row| row[1]).collect();
+    let state0_probs: Vec<f64> = gamma.chunks(n).map(|row| row[0]).collect();
+    let state1_probs: Vec<f64> = gamma.chunks(n).map(|row| row[1]).collect();
 
     let var0 = barracuda::stats::correlation::variance(&state0_probs).unwrap_or(f64::NAN);
     let var1 = barracuda::stats::correlation::variance(&state1_probs).unwrap_or(f64::NAN);
@@ -141,8 +142,9 @@ fn validate_posterior_sums(h: &mut ValidationHarness) {
     let (_, obs) = hmm.generate_sequence(50, &mut rng);
 
     let gamma = hmm.posterior(&obs);
+    let n = hmm.num_states();
 
-    for (t, row) in gamma.iter().enumerate().take(5) {
+    for (t, row) in gamma.chunks(n).enumerate().take(5) {
         let sum: f64 = row.iter().sum();
         h.check_abs(
             &format!("posterior gamma[{t}] sums to 1"),

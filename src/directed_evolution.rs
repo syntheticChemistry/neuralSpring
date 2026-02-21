@@ -14,12 +14,30 @@
 //! down-sampled lexicase) outperform random and truncation selection for
 //! multi-objective optimization in directed evolution.
 //!
+//! ## GPU-ready layout
+//!
+//! Population and fitnesses use **flat row-major `Vec<f64>`**:
+//! - Population: `pop[individual_i]` at `i * genome_len .. (i+1) * genome_len`
+//! - Fitnesses: `fitnesses[individual_i]` at `i * n_objectives .. (i+1) * n_objectives`
+//!
+//! Maps to GPU buffers for `barracuda::ops::batch_gemm`.
+//!
 //! ## `BarraCUDA` connection
 //!
 //! - Multi-objective fitness: `barracuda::stats::variance` (per-chunk statistics)
 //! - Tournament selection: `barracuda::ops::batch_gemm` (fitness comparison)
 //! - Lexicase selection: sequential per-case filtering (not GPU-friendly)
 //! - Population evolution: `barracuda::ops::batch_gemm` (genotype × weight)
+
+/// WGSL shader: multi-objective fitness evaluation (mean + 0.1×std per chunk).
+///
+/// One thread per (individual, objective) pair. Flat row-major genotype buffer.
+/// Paper 014 (Directed Evolution multi-objective).
+///
+/// Absorption target: `barracuda::ops::batch_gemm`.
+/// Validated: `validate_gpu_directed` (6/6 PASS).
+pub const WGSL_MULTI_OBJ_FITNESS: &str =
+    include_str!("../metalForge/shaders/multi_obj_fitness.wgsl");
 
 use crate::rng::Rng;
 
@@ -54,87 +72,117 @@ pub fn multi_objective_fitness(genotype: &[f64], n_objectives: usize) -> Vec<f64
 }
 
 /// Random selection: no fitness pressure.
+///
+/// Population and fitnesses are flat row-major: `pop_size × genome_len`, `pop_size × n_objectives`.
 pub fn random_selection(
-    population: &[Vec<f64>],
-    _fitnesses: &[Vec<f64>],
+    population: &[f64],
+    _fitnesses: &[f64],
+    pop_size: usize,
+    genome_len: usize,
+    _n_objectives: usize,
     n_select: usize,
     rng: &mut Rng,
-) -> Vec<Vec<f64>> {
-    (0..n_select)
-        .map(|_| population[rng.usize(population.len())].clone())
-        .collect()
+) -> Vec<f64> {
+    let mut out = Vec::with_capacity(n_select * genome_len);
+    for _ in 0..n_select {
+        let idx = rng.usize(pop_size);
+        out.extend_from_slice(&population[idx * genome_len..(idx + 1) * genome_len]);
+    }
+    out
 }
 
 /// Truncation: select top fraction by aggregate fitness.
 pub fn truncation_selection(
-    population: &[Vec<f64>],
-    fitnesses: &[Vec<f64>],
+    population: &[f64],
+    fitnesses: &[f64],
+    pop_size: usize,
+    genome_len: usize,
+    n_objectives: usize,
     n_select: usize,
     rng: &mut Rng,
-) -> Vec<Vec<f64>> {
-    let mut agg: Vec<(usize, f64)> = fitnesses
-        .iter()
-        .enumerate()
-        .map(|(i, f)| (i, f.iter().sum()))
+) -> Vec<f64> {
+    let mut agg: Vec<(usize, f64)> = (0..pop_size)
+        .map(|i| {
+            (
+                i,
+                fitnesses[i * n_objectives..(i + 1) * n_objectives]
+                    .iter()
+                    .sum(),
+            )
+        })
         .collect();
     agg.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
     let top_k = (n_select / 4).max(2).min(agg.len());
     let best_idx: Vec<usize> = agg.iter().rev().take(top_k).map(|x| x.0).collect();
-    (0..n_select)
-        .map(|_| population[best_idx[rng.usize(best_idx.len())]].clone())
-        .collect()
+    let mut out = Vec::with_capacity(n_select * genome_len);
+    for _ in 0..n_select {
+        let idx = best_idx[rng.usize(best_idx.len())];
+        out.extend_from_slice(&population[idx * genome_len..(idx + 1) * genome_len]);
+    }
+    out
 }
 
 /// Tournament selection: aggregate fitness comparison.
 pub fn tournament_selection(
-    population: &[Vec<f64>],
-    fitnesses: &[Vec<f64>],
+    population: &[f64],
+    fitnesses: &[f64],
+    pop_size: usize,
+    genome_len: usize,
+    n_objectives: usize,
     n_select: usize,
     rng: &mut Rng,
-) -> Vec<Vec<f64>> {
-    let agg: Vec<f64> = fitnesses.iter().map(|f| f.iter().sum()).collect();
-    let tournament_size = 5usize.min(population.len());
-    (0..n_select)
-        .map(|_| {
-            let contestants = rng.choose_distinct(population.len(), tournament_size);
-            let winner = contestants
+) -> Vec<f64> {
+    let agg: Vec<f64> = (0..pop_size)
+        .map(|i| {
+            fitnesses[i * n_objectives..(i + 1) * n_objectives]
                 .iter()
-                .max_by(|a, b| {
-                    agg[**a]
-                        .partial_cmp(&agg[**b])
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                })
-                .copied()
-                .unwrap_or(0);
-            population[winner].clone()
+                .sum()
         })
-        .collect()
+        .collect();
+    let tournament_size = 5usize.min(pop_size);
+    let mut out = Vec::with_capacity(n_select * genome_len);
+    for _ in 0..n_select {
+        let contestants = rng.choose_distinct(pop_size, tournament_size);
+        let winner = contestants
+            .iter()
+            .max_by(|a, b| {
+                agg[**a]
+                    .partial_cmp(&agg[**b])
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .copied()
+            .unwrap_or(0);
+        out.extend_from_slice(&population[winner * genome_len..(winner + 1) * genome_len]);
+    }
+    out
 }
 
 /// Lexicase selection: filter by shuffled per-case fitness.
 pub fn lexicase_selection(
-    population: &[Vec<f64>],
-    fitnesses: &[Vec<f64>],
+    population: &[f64],
+    fitnesses: &[f64],
+    pop_size: usize,
+    genome_len: usize,
+    n_objectives: usize,
     n_select: usize,
     rng: &mut Rng,
-) -> Vec<Vec<f64>> {
-    let n_obj = fitnesses[0].len();
-    let mut selected = Vec::with_capacity(n_select);
+) -> Vec<f64> {
+    let mut selected = Vec::with_capacity(n_select * genome_len);
     for _ in 0..n_select {
-        let mut candidates: Vec<usize> = (0..population.len()).collect();
-        let obj_order = rng.permutation(n_obj);
+        let mut candidates: Vec<usize> = (0..pop_size).collect();
+        let obj_order = rng.permutation(n_objectives);
         for obj in obj_order {
             if candidates.len() <= 1 {
                 break;
             }
             let best = candidates
                 .iter()
-                .map(|&i| fitnesses[i][obj])
+                .map(|&i| fitnesses[i * n_objectives + obj])
                 .fold(f64::NEG_INFINITY, f64::max);
-            candidates.retain(|&i| fitnesses[i][obj] >= best - EPSILON);
+            candidates.retain(|&i| fitnesses[i * n_objectives + obj] >= best - EPSILON);
         }
         let winner = candidates[rng.usize(candidates.len())];
-        selected.push(population[winner].clone());
+        selected.extend_from_slice(&population[winner * genome_len..(winner + 1) * genome_len]);
     }
     selected
 }
@@ -146,30 +194,32 @@ pub fn lexicase_selection(
     clippy::cast_precision_loss
 )]
 pub fn downsampled_lexicase_selection(
-    population: &[Vec<f64>],
-    fitnesses: &[Vec<f64>],
+    population: &[f64],
+    fitnesses: &[f64],
+    pop_size: usize,
+    genome_len: usize,
+    n_objectives: usize,
     n_select: usize,
     rng: &mut Rng,
-) -> Vec<Vec<f64>> {
-    let n_obj = fitnesses[0].len();
-    let n_sub = (n_obj as f64 * 0.5).ceil() as usize;
-    let n_sub = n_sub.max(2).min(n_obj);
-    let mut selected = Vec::with_capacity(n_select);
+) -> Vec<f64> {
+    let n_sub = (n_objectives as f64 * 0.5).ceil() as usize;
+    let n_sub = n_sub.max(2).min(n_objectives);
+    let mut selected = Vec::with_capacity(n_select * genome_len);
     for _ in 0..n_select {
-        let mut candidates: Vec<usize> = (0..population.len()).collect();
-        let obj_order = rng.choose_distinct(n_obj, n_sub);
+        let mut candidates: Vec<usize> = (0..pop_size).collect();
+        let obj_order = rng.choose_distinct(n_objectives, n_sub);
         for obj in obj_order {
             if candidates.len() <= 1 {
                 break;
             }
             let best = candidates
                 .iter()
-                .map(|&i| fitnesses[i][obj])
+                .map(|&i| fitnesses[i * n_objectives + obj])
                 .fold(f64::NEG_INFINITY, f64::max);
-            candidates.retain(|&i| fitnesses[i][obj] >= best - EPSILON);
+            candidates.retain(|&i| fitnesses[i * n_objectives + obj] >= best - EPSILON);
         }
         let winner = candidates[rng.usize(candidates.len())];
-        selected.push(population[winner].clone());
+        selected.extend_from_slice(&population[winner * genome_len..(winner + 1) * genome_len]);
     }
     selected
 }
@@ -177,10 +227,9 @@ pub fn downsampled_lexicase_selection(
 /// Count Pareto-optimal individuals.
 ///
 /// Individual i is dominated if exists j where all `fitnesses[j] >= fitnesses[i]`
-/// and at least one strict.
+/// and at least one strict. Fitnesses flat row-major: `n × n_objectives`.
 #[must_use]
-pub fn pareto_front_count(fitnesses: &[Vec<f64>]) -> usize {
-    let n = fitnesses.len();
+pub fn pareto_front_count(fitnesses: &[f64], n: usize, n_objectives: usize) -> usize {
     let mut is_pareto = vec![true; n];
     for i in 0..n {
         if !is_pareto[i] {
@@ -190,14 +239,11 @@ pub fn pareto_front_count(fitnesses: &[Vec<f64>]) -> usize {
             if i == j || !is_pareto[j] {
                 continue;
             }
-            let all_ge = fitnesses[j]
-                .iter()
-                .zip(fitnesses[i].iter())
-                .all(|(a, b)| a >= b);
-            let any_strict = fitnesses[j]
-                .iter()
-                .zip(fitnesses[i].iter())
-                .any(|(a, b)| a > b);
+            let base_i = i * n_objectives;
+            let base_j = j * n_objectives;
+            let all_ge = (0..n_objectives).all(|k| fitnesses[base_j + k] >= fitnesses[base_i + k]);
+            let any_strict =
+                (0..n_objectives).any(|k| fitnesses[base_j + k] > fitnesses[base_i + k]);
             if all_ge && any_strict {
                 is_pareto[i] = false;
                 break;
@@ -216,20 +262,19 @@ pub struct ExperimentResult {
 }
 
 #[allow(clippy::cast_precision_loss)]
-fn phenotype_diversity(fitnesses: &[Vec<f64>], rng: &mut Rng) -> f64 {
-    let n = 50.min(fitnesses.len());
-    if n < 2 {
+fn phenotype_diversity(fitnesses: &[f64], n: usize, n_objectives: usize, rng: &mut Rng) -> f64 {
+    let sample_size = 50.min(n);
+    if sample_size < 2 {
         return 0.0;
     }
-    let idx = rng.choose_distinct(fitnesses.len(), n);
-    let subset: Vec<&Vec<f64>> = idx.iter().map(|&i| &fitnesses[i]).collect();
-    let mut dists = Vec::with_capacity(n * (n - 1) / 2);
-    for i in 0..n {
-        for j in (i + 1)..n {
-            let d: f64 = subset[i]
-                .iter()
-                .zip(subset[j].iter())
-                .map(|(a, b)| (a - b).powi(2))
+    let idx = rng.choose_distinct(n, sample_size);
+    let mut dists = Vec::with_capacity(sample_size * (sample_size - 1) / 2);
+    for (ii, &i) in idx.iter().enumerate() {
+        for &j in idx.iter().skip(ii + 1) {
+            let base_i = i * n_objectives;
+            let base_j = j * n_objectives;
+            let d: f64 = (0..n_objectives)
+                .map(|k| (fitnesses[base_i + k] - fitnesses[base_j + k]).powi(2))
                 .sum::<f64>()
                 .sqrt();
             dists.push(d);
@@ -250,37 +295,54 @@ pub fn run_selection_experiment<F>(
     seed: u64,
 ) -> ExperimentResult
 where
-    F: Fn(&[Vec<f64>], &[Vec<f64>], usize, &mut Rng) -> Vec<Vec<f64>>,
+    F: Fn(&[f64], &[f64], usize, usize, usize, usize, &mut Rng) -> Vec<f64>,
 {
     let mut rng = Rng::new(seed);
-    let mut population: Vec<Vec<f64>> = (0..pop_size)
-        .map(|_| (0..n_loci).map(|_| rng.uniform()).collect())
-        .collect();
+    let mut population: Vec<f64> = (0..pop_size * n_loci).map(|_| rng.uniform()).collect();
 
     let mut diversity = Vec::with_capacity(n_gen);
     let mut pareto_front = Vec::with_capacity(n_gen);
     let mut mean_fitness = Vec::with_capacity(n_gen);
 
     for _ in 0..n_gen {
-        let fitnesses: Vec<Vec<f64>> = population
-            .iter()
-            .map(|g| multi_objective_fitness(g, n_objectives))
-            .collect();
+        let mut fitnesses: Vec<f64> = Vec::with_capacity(pop_size * n_objectives);
+        for i in 0..pop_size {
+            let genotype = &population[i * n_loci..(i + 1) * n_loci];
+            fitnesses.extend(multi_objective_fitness(genotype, n_objectives));
+        }
 
-        diversity.push(phenotype_diversity(&fitnesses, &mut rng));
-        pareto_front.push(pareto_front_count(&fitnesses));
-        mean_fitness
-            .push(fitnesses.iter().map(|f| f.iter().sum::<f64>()).sum::<f64>() / pop_size as f64);
-
-        let selected = selection_fn(&population, &fitnesses, pop_size, &mut rng);
-        population = selected
-            .into_iter()
-            .map(|ind| {
-                ind.into_iter()
-                    .map(|x| (x + rng.normal_params(0.0, mutation_rate)).clamp(0.0, 1.0))
-                    .collect()
+        diversity.push(phenotype_diversity(
+            &fitnesses,
+            pop_size,
+            n_objectives,
+            &mut rng,
+        ));
+        pareto_front.push(pareto_front_count(&fitnesses, pop_size, n_objectives));
+        let sum_all: f64 = (0..pop_size)
+            .map(|i| {
+                fitnesses[i * n_objectives..(i + 1) * n_objectives]
+                    .iter()
+                    .sum::<f64>()
             })
-            .collect();
+            .sum();
+        mean_fitness.push(sum_all / pop_size as f64);
+
+        let selected = selection_fn(
+            &population,
+            &fitnesses,
+            pop_size,
+            n_loci,
+            n_objectives,
+            pop_size,
+            &mut rng,
+        );
+        let mut next_pop = Vec::with_capacity(pop_size * n_loci);
+        for ind in selected.chunks_exact(n_loci) {
+            for &x in ind {
+                next_pop.push((x + rng.normal_params(0.0, mutation_rate)).clamp(0.0, 1.0));
+            }
+        }
+        population = next_pop;
     }
 
     ExperimentResult {
@@ -303,8 +365,8 @@ mod tests {
 
     #[test]
     fn pareto_front_count_bounded() {
-        let fits = vec![vec![1.0, 0.0], vec![0.0, 1.0], vec![0.5, 0.5]];
-        let c = pareto_front_count(&fits);
+        let fits = vec![1.0, 0.0, 0.0, 1.0, 0.5, 0.5]; // 3×2 flat
+        let c = pareto_front_count(&fits, 3, 2);
         assert!(c <= 3);
     }
 

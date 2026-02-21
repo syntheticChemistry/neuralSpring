@@ -44,7 +44,7 @@ validate-native:
     cargo run --bin validate_transformer
     cargo run --bin validate_metrics
 
-# neuralSpring paper validators (16 bins)
+# neuralSpring paper validators (18 bins)
 validate-native-papers:
     cargo run --bin validate_counterdiabatic
     cargo run --bin validate_modes
@@ -62,6 +62,8 @@ validate-native-papers:
     cargo run --bin validate_pangenome_selection
     cargo run --bin validate_meta_population
     cargo run --bin validate_sequence
+    cargo run --bin validate_pinn
+    cargo run --bin validate_deeponet
 
 # Run everything (or: cargo run --release --bin validate_all)
 validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
@@ -81,7 +83,7 @@ validate-barracuda:
     cargo run --bin validate_barracuda_linalg_ext
     cargo run --bin validate_barracuda_ml_inference
 
-# Phase 2: BarraCUDA CPU ports (15 bins)
+# Phase 2: BarraCUDA CPU ports (17 bins)
 validate-barracuda-cpu:
     cargo run --bin validate_barracuda_spectral
     cargo run --bin validate_barracuda_anderson
@@ -98,6 +100,8 @@ validate-barracuda-cpu:
     cargo run --bin validate_barracuda_game
     cargo run --bin validate_barracuda_pangenome
     cargo run --bin validate_barracuda_meta_pop
+    cargo run --bin validate_barracuda_pinn
+    cargo run --bin validate_barracuda_deeponet
 
 # ML inference validation only (MLP + Transformer)
 validate-ml:

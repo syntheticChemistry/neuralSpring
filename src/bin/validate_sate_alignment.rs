@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-only
 
 //! Validation binary: `SATé` alignment + phylogeny co-estimation (Paper 017).
 //!
@@ -27,14 +27,14 @@ fn main() {
 
     let n_seqs = 25_usize;
     let seq_len = 120;
-    let seqs = generate_tree_guided_sequences(n_seqs, seq_len, 0.05, &mut rng);
+    let (seqs, n_seqs, seq_len) = generate_tree_guided_sequences(n_seqs, seq_len, 0.05, &mut rng);
 
     // Part 1: Distance matrix symmetric
-    let d = pairwise_distance_matrix(&seqs, true);
+    let d = pairwise_distance_matrix(&seqs, n_seqs, seq_len, true);
     let mut sym_err = 0.0_f64;
-    for (i, row) in d.iter().enumerate().take(n_seqs) {
-        for (j, &v) in row.iter().enumerate().take(n_seqs) {
-            sym_err = sym_err.max((v - d[j][i]).abs());
+    for i in 0..n_seqs {
+        for j in 0..n_seqs {
+            sym_err = sym_err.max((d[i * n_seqs + j] - d[j * n_seqs + i]).abs());
         }
     }
     h.check_abs(
@@ -45,15 +45,15 @@ fn main() {
     );
 
     // Part 2: NJ produces N-1 joins
-    let tree = neighbor_joining(&d);
+    let tree = neighbor_joining(&d, n_seqs);
     h.check_bool(
         &format!("NJ produces N-1 joins ({})", tree.len()),
         tree.len() == n_seqs - 1,
     );
 
     // Part 3: Alignment score finite
-    let aln = progressive_align(&seqs, &tree);
-    let sc = alignment_score(&aln);
+    let (aln, aln_rows, aln_len) = progressive_align(&seqs, n_seqs, seq_len, &tree);
+    let sc = alignment_score(&aln, aln_rows, aln_len);
     h.check_bool(
         &format!("alignment score finite ({sc:.2})"),
         sc.is_finite() && sc > -1e6,
@@ -74,12 +74,12 @@ fn main() {
     );
 
     // Part 6: Hamming triangle inequality
-    let d_ham = pairwise_distance_matrix(&seqs, false);
+    let d_ham = pairwise_distance_matrix(&seqs, n_seqs, seq_len, false);
     let mut tri_ok = true;
     for i in 0..n_seqs {
         for j in 0..n_seqs {
             for k in 0..n_seqs {
-                if d_ham[i][j] > d_ham[i][k] + d_ham[k][j] + 1e-10 {
+                if d_ham[i * n_seqs + j] > d_ham[i * n_seqs + k] + d_ham[k * n_seqs + j] + 1e-10 {
                     tri_ok = false;
                 }
             }

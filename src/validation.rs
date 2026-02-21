@@ -15,6 +15,30 @@
 use crate::tolerances;
 use std::process;
 
+/// Unwrap a `Result` or record failure and early-return from the caller.
+///
+/// Replaces `.expect()` in validation binaries with graceful failure
+/// recording. On error, records a FAIL check in the harness and returns
+/// from the enclosing function.
+///
+/// # Usage
+///
+/// ```ignore
+/// let tensor = require!(harness, Tensor::from_data(&data, shape, dev), "create tensor");
+/// ```
+#[macro_export]
+macro_rules! require {
+    ($harness:expr, $result:expr, $label:expr) => {
+        match $result {
+            Ok(v) => v,
+            Err(e) => {
+                $harness.check_bool(&format!("{}: {}", $label, e), false);
+                return;
+            }
+        }
+    };
+}
+
 /// How a tolerance threshold is applied.
 #[derive(Debug, Clone, Copy)]
 pub enum ToleranceMode {
@@ -150,6 +174,28 @@ impl ValidationHarness {
             tolerance: 0.0,
             mode: ToleranceMode::Absolute,
         });
+    }
+
+    /// Try to unwrap a `Result`, recording a FAIL check if it errors.
+    ///
+    /// Returns `Some(value)` on success, `None` on failure (after recording
+    /// the error in the harness). Callers should early-return on `None`.
+    ///
+    /// This replaces `.expect()` in validation binaries — GPU/tensor
+    /// operations that fail are recorded as check failures rather than
+    /// panicking, so the harness can continue and report all failures.
+    pub fn require<T, E: std::fmt::Display>(
+        &mut self,
+        label: &str,
+        result: Result<T, E>,
+    ) -> Option<T> {
+        match result {
+            Ok(v) => Some(v),
+            Err(e) => {
+                self.check_bool(&format!("{label}: {e}"), false);
+                None
+            }
+        }
     }
 
     #[must_use]

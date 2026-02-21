@@ -62,6 +62,10 @@ name = "validate_counterdiabatic"
 path = "src/bin/validate_counterdiabatic.rs"
 
 [[bin]]
+name = "validate_deeponet"
+path = "src/bin/validate_deeponet.rs"
+
+[[bin]]
 name = "validate_modes"
 path = "src/bin/validate_modes.rs"
 
@@ -118,6 +122,10 @@ path = "src/bin/validate_pangenome_selection.rs"
 [[bin]]
 name = "validate_meta_population"
 path = "src/bin/validate_meta_population.rs"
+
+[[bin]]
+name = "validate_pinn"
+path = "src/bin/validate_pinn.rs"
 
 # --- BarraCUDA CPU primitive validation ---
 
@@ -194,6 +202,10 @@ name = "validate_barracuda_counterdiabatic"
 path = "src/bin/validate_barracuda_counterdiabatic.rs"
 
 [[bin]]
+name = "validate_barracuda_deeponet"
+path = "src/bin/validate_barracuda_deeponet.rs"
+
+[[bin]]
 name = "validate_barracuda_modes"
 path = "src/bin/validate_barracuda_modes.rs"
 
@@ -220,6 +232,10 @@ path = "src/bin/validate_barracuda_game.rs"
 [[bin]]
 name = "validate_barracuda_pangenome"
 path = "src/bin/validate_barracuda_pangenome.rs"
+
+[[bin]]
+name = "validate_barracuda_pinn"
+path = "src/bin/validate_barracuda_pinn.rs"
 
 [[bin]]
 name = "validate_barracuda_meta_pop"
@@ -263,6 +279,14 @@ path = "src/bin/validate_barracuda_fft.rs"
 name = "validate_barracuda_logsumexp"
 path = "src/bin/validate_barracuda_logsumexp.rs"
 
+[[bin]]
+name = "validate_barracuda_gpu_spectral"
+path = "src/bin/validate_barracuda_gpu_spectral.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_eco"
+path = "src/bin/validate_barracuda_gpu_eco.rs"
+
 # --- Phase 3c: GPU shader validation (metalForge) ---
 
 [[bin]]
@@ -296,6 +320,10 @@ name = "validate_gpu_pipeline_hmm"
 path = "src/bin/validate_gpu_pipeline_hmm.rs"
 
 [[bin]]
+name = "validate_gpu_pipeline_directed"
+path = "src/bin/validate_gpu_pipeline_directed.rs"
+
+[[bin]]
 name = "validate_gpu_pipeline_ecology"
 path = "src/bin/validate_gpu_pipeline_ecology.rs"
 
@@ -312,6 +340,10 @@ name = "validate_gpu_sate"
 path = "src/bin/validate_gpu_sate.rs"
 
 [[bin]]
+name = "validate_gpu_signal"
+path = "src/bin/validate_gpu_signal.rs"
+
+[[bin]]
 name = "validate_gpu_anderson"
 path = "src/bin/validate_gpu_anderson.rs"
 
@@ -320,8 +352,20 @@ name = "validate_gpu_game_theory"
 path = "src/bin/validate_gpu_game_theory.rs"
 
 [[bin]]
+name = "validate_gpu_swarm"
+path = "src/bin/validate_gpu_swarm.rs"
+
+[[bin]]
 name = "validate_gpu_meta_pop"
 path = "src/bin/validate_gpu_meta_pop.rs"
+
+[[bin]]
+name = "validate_gpu_modes"
+path = "src/bin/validate_gpu_modes.rs"
+
+[[bin]]
+name = "validate_gpu_directed"
+path = "src/bin/validate_gpu_directed.rs"
 
 [[bin]]
 name = "validate_cross_dispatch_genomics"
@@ -332,12 +376,24 @@ name = "validate_cross_dispatch_extended"
 path = "src/bin/validate_cross_dispatch_extended.rs"
 
 [[bin]]
+name = "validate_cross_dispatch_phase4e"
+path = "src/bin/validate_cross_dispatch_phase4e.rs"
+
+[[bin]]
 name = "validate_gpu_pipeline_spectral"
 path = "src/bin/validate_gpu_pipeline_spectral.rs"
 
 [[bin]]
 name = "validate_gpu_pipeline_genomics"
 path = "src/bin/validate_gpu_pipeline_genomics.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_modes"
+path = "src/bin/validate_gpu_pipeline_modes.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_signal"
+path = "src/bin/validate_gpu_pipeline_signal.rs"
 
 # --- Meta ---
 

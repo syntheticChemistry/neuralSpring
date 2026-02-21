@@ -19,19 +19,7 @@
 //! - ODE integration (RK4): `barracuda::numerical::rk45_solve` or GPU `rk4_parallel.wgsl`
 //! - Steady-state phenotype scan: batch parallel ODE over parameter grid
 
-/// Hill activation: a * x^n / (K^n + x^n).
-fn hill_activation(x: f64, a: f64, k: f64, n: f64) -> f64 {
-    let kn = k.powf(n);
-    let xn = if x > 0.0 { x.powf(n) } else { 0.0 };
-    a * xn / (kn + xn + 1e-20)
-}
-
-/// Hill repression: a * K^n / (K^n + x^n).
-fn hill_repression(x: f64, a: f64, k: f64, n: f64) -> f64 {
-    let kn = k.powf(n);
-    let xn = if x > 0.0 { x.powf(n) } else { 0.0 };
-    a * kn / (kn + xn + 1e-20)
-}
+use crate::primitives;
 
 /// GRN parameters. State: [sasa, biofilm, motility, virulence].
 #[derive(Debug, Clone)]
@@ -74,43 +62,16 @@ impl Default for GrnParams {
 pub fn grn_rhs(x: &[f64; 4], env_signal: f64, p: &GrnParams) -> [f64; 4] {
     let [sasa, bio, mot, vir] = *x;
     let dsasa = p.a_s * env_signal / (0.5 + env_signal) - p.d_s * sasa;
-    let dbio = hill_activation(sasa, p.a_b, p.k_b, p.n) - p.d_b * bio;
-    let dmot = hill_repression(sasa, p.a_m, p.k_m, p.n) - p.d_m * mot;
-    let dvir = hill_activation(sasa, p.a_v, p.k_v, p.n) - p.d_v * vir;
+    let dbio = primitives::hill_activation(sasa, p.a_b, p.k_b, p.n) - p.d_b * bio;
+    let dmot = primitives::hill_repression(sasa, p.a_m, p.k_m, p.n) - p.d_m * mot;
+    let dvir = primitives::hill_activation(sasa, p.a_v, p.k_v, p.n) - p.d_v * vir;
     [dsasa, dbio, dmot, dvir]
 }
 
-/// Single RK4 step.
+/// Single RK4 step (delegates to [`crate::primitives::rk4_step`]).
 #[must_use]
 pub fn rk4_step(x: &[f64; 4], env_signal: f64, p: &GrnParams, dt: f64) -> [f64; 4] {
-    let k1 = grn_rhs(x, env_signal, p);
-    let x2 = [
-        x[0] + 0.5 * dt * k1[0],
-        x[1] + 0.5 * dt * k1[1],
-        x[2] + 0.5 * dt * k1[2],
-        x[3] + 0.5 * dt * k1[3],
-    ];
-    let k2 = grn_rhs(&x2, env_signal, p);
-    let x3 = [
-        x[0] + 0.5 * dt * k2[0],
-        x[1] + 0.5 * dt * k2[1],
-        x[2] + 0.5 * dt * k2[2],
-        x[3] + 0.5 * dt * k2[3],
-    ];
-    let k3 = grn_rhs(&x3, env_signal, p);
-    let x4 = [
-        x[0] + dt * k3[0],
-        x[1] + dt * k3[1],
-        x[2] + dt * k3[2],
-        x[3] + dt * k3[3],
-    ];
-    let k4 = grn_rhs(&x4, env_signal, p);
-    [
-        x[0] + (dt / 6.0) * (k1[0] + 2.0 * k2[0] + 2.0 * k3[0] + k4[0]),
-        x[1] + (dt / 6.0) * (k1[1] + 2.0 * k2[1] + 2.0 * k3[1] + k4[1]),
-        x[2] + (dt / 6.0) * (k1[2] + 2.0 * k2[2] + 2.0 * k3[2] + k4[2]),
-        x[3] + (dt / 6.0) * (k1[3] + 2.0 * k2[3] + 2.0 * k3[3] + k4[3]),
-    ]
+    primitives::rk4_step(x, dt, |y| grn_rhs(y, env_signal, p))
 }
 
 /// Integrate GRN ODE to near steady state.
@@ -153,20 +114,11 @@ pub fn phenotype_classifier(x: &[f64; 4]) -> usize {
 }
 
 /// Shannon diversity H = -sum(p * ln(p)) for p > 0.
+///
+/// Delegates to [`crate::primitives::shannon_entropy_from_counts`].
 #[must_use]
 pub fn shannon_diversity(counts: &[f64]) -> f64 {
-    let total: f64 = counts.iter().sum();
-    if total <= 0.0 {
-        return 0.0;
-    }
-    let mut h = 0.0;
-    for &c in counts {
-        if c > 1e-15 {
-            let p = c / total;
-            h -= p * (p + 1e-20).ln();
-        }
-    }
-    h
+    primitives::shannon_entropy_from_counts(counts)
 }
 
 /// Environment configurations (signal, K_b, K_m, K_v).
@@ -191,16 +143,16 @@ mod tests {
 
     #[test]
     fn hill_activation_monotonic() {
-        let a = hill_activation(0.0, 1.0, 0.5, 2.0);
-        let b = hill_activation(0.5, 1.0, 0.5, 2.0);
-        let c = hill_activation(1.0, 1.0, 0.5, 2.0);
+        let a = primitives::hill_activation(0.0, 1.0, 0.5, 2.0);
+        let b = primitives::hill_activation(0.5, 1.0, 0.5, 2.0);
+        let c = primitives::hill_activation(1.0, 1.0, 0.5, 2.0);
         assert!(a < b && b < c, "activation should be monotonic");
     }
 
     #[test]
     fn hill_repression_decreasing() {
-        let a = hill_repression(0.1, 1.0, 0.5, 2.0);
-        let b = hill_repression(1.0, 1.0, 0.5, 2.0);
+        let a = primitives::hill_repression(0.1, 1.0, 0.5, 2.0);
+        let b = primitives::hill_repression(1.0, 1.0, 0.5, 2.0);
         assert!(a > b, "repression should decrease with x");
     }
 

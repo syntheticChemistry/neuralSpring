@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 20, 2026
+**Last Updated**: February 21, 2026 (post deep-evolution audit)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -135,4 +135,45 @@ S-01, S-02, S-08, S-09 absorbed and fossilized. Remaining:
 
 ---
 
-*Barracuda usage audit — neuralSpring, February 20, 2026.*
+---
+
+## Deep Evolution Alignment (February 21, 2026)
+
+### GPU-Ready Modules (flat row-major layout)
+
+These modules now use flat `Vec<f64>` layouts that match GPU buffer bindings
+directly — no conversion needed for `Tensor::from_data` or raw `wgpu::Buffer`:
+
+| Module | Before | After | BarraCUDA Target |
+|--------|--------|-------|------------------|
+| `hmm.rs` | `Vec<Vec<f64>>` | Flat `Vec<f64>` (N×N, N×M, T×N) | `ops::hmm` / `StatefulPipeline` |
+| `spectral_commutativity.rs` | `Vec<Vec<f64>>` | Flat `Vec<f64>` (N×N) | `ops::matmul` (GEMM f64) |
+| `directed_evolution.rs` | `Vec<Vec<f64>>` | Flat `Vec<f64>` (pop×genome, pop×obj) | `ops::batch_gemm` |
+| `sate_alignment.rs` | `Vec<Vec<u8>>` / `Vec<Vec<f64>>` | Flat `Vec<u8>` (n×len), `Vec<f64>` (n×n) | `ops::pairwise_distance` |
+| `anderson_localization.rs` | `Vec<Vec<f64>>` | Flat `Vec<f64>` (N×N) | `linalg::eigh_f64` |
+| `pinn.rs` | Scalar + grid | `Vec<f64>` flat grid | `tensor::{matmul, tanh}` |
+| `deeponet.rs` | Scalar + poly | `Vec<f64>` flat grid | `tensor::{matmul, dot}` |
+
+### Consolidated Primitives (candidates for barracuda expansion)
+
+| neuralSpring Primitive | BarraCUDA Equivalent | Status |
+|----------------------|---------------------|--------|
+| `primitives::shannon_entropy` | `stats::entropy` | **New candidate** |
+| `primitives::hill_activation` | `numerical::hill` | **New candidate** |
+| `primitives::sigmoid` | `ops::sigmoid` (f32 GPU exists) | f64 CPU candidate |
+| `primitives::rk4_step::<N>` | `numerical::rk45_solve` | Complementary (fixed vs adaptive) |
+| `primitives::LOG_GUARD` | `numerical::constants` | **New candidate** |
+| `primitives::DIVISION_GUARD` | `numerical::constants` | **New candidate** |
+
+### Next Absorption Targets (ordered by readiness)
+
+1. **HMM flat layout → `ops::hmm`**: `Hmm::from_flat()` provides GPU-native
+   entry; `evolved/hmm_forward_gpu.rs` is the reference dispatcher (270 LOC)
+2. **Spectral flat layout → `ops::matmul`**: `mat_mul(a, b, n)` is the CPU
+   reference for GEMM f64 validation
+3. **`require!` pattern → `barracuda::testing`**: Reusable across all Springs
+4. **Shannon entropy → `stats::entropy`**: Well-tested, 8 unit tests
+5. **Hill functions → `numerical::hill`**: Used by regulatory biology + signal
+   integration across neuralSpring and potentially hotSpring
+
+*Barracuda usage audit — neuralSpring, February 21, 2026.*

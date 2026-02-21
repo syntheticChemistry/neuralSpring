@@ -11,13 +11,13 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::needless_range_loop,
-    clippy::expect_used,
     clippy::many_single_char_names,
     clippy::doc_markdown,
     clippy::suboptimal_flops
 )]
 
 use neural_spring::eigh;
+use neural_spring::require;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -56,7 +56,7 @@ fn validate_accuracy(h: &mut ValidationHarness, n: usize) {
     let hqr_err = hqr.reconstruction_error(&a);
 
     // BarraCUDA Jacobi
-    let jacobi = barracuda::linalg::eigh_f64(&a, n).expect("jacobi eigh");
+    let jacobi = require!(h, barracuda::linalg::eigh_f64(&a, n), "jacobi eigh");
     let jacobi_recon = jacobi.reconstruct();
     let jacobi_err: f64 = jacobi_recon
         .iter()

@@ -28,6 +28,7 @@ fn main() {
         vec![vec![0.1, 0.4, 0.5], vec![0.6, 0.3, 0.1]],
         vec![0.6, 0.4],
     );
+    let n = hmm.num_states();
 
     // Part 1: Forward algorithm
     let obs = vec![0, 1, 2, 0, 2];
@@ -38,7 +39,7 @@ fn main() {
         log_lik.is_finite() && log_lik < 0.0,
     );
 
-    for (t, row) in alpha.iter().enumerate() {
+    for (t, row) in alpha.chunks(n).enumerate() {
         let sum: f64 = row.iter().sum();
         h.check_abs(
             &format!("forward alpha[{t}] sums to 1"),
@@ -75,9 +76,9 @@ fn main() {
         viterbi_prob.is_finite(),
     );
 
-    // Part 3: Posterior
+    // Part 3: Posterior (flat T×N)
     let gamma = hmm.posterior(&gen_obs);
-    for (t, row) in gamma.iter().enumerate().take(5) {
+    for (t, row) in gamma.chunks(n).enumerate().take(5) {
         let sum: f64 = row.iter().sum();
         h.check_abs(
             &format!("posterior gamma[{t}] sums to 1"),
@@ -88,7 +89,7 @@ fn main() {
     }
 
     let posterior_acc = gamma
-        .iter()
+        .chunks(n)
         .zip(true_states.iter())
         .filter(|(row, &s)| {
             row.iter()
@@ -143,7 +144,6 @@ fn main() {
     let max_diff = alpha_lib
         .iter()
         .zip(alpha_manual.iter())
-        .flat_map(|(a, b)| a.iter().zip(b.iter()))
         .map(|(a, b)| (a - b).abs())
         .fold(0.0_f64, f64::max);
 
@@ -200,16 +200,17 @@ fn gamma_sample(rng: &mut Rng, alpha: f64) -> f64 {
 }
 
 #[allow(clippy::needless_range_loop)]
-fn manual_forward(hmm: &Hmm, obs: &[usize]) -> Vec<Vec<f64>> {
+fn manual_forward(hmm: &Hmm, obs: &[usize]) -> Vec<f64> {
     let n = hmm.num_states();
-    let mut alpha = vec![vec![0.0; n]; obs.len()];
+    let m = hmm.num_symbols();
+    let mut alpha = vec![0.0; obs.len() * n];
 
     for j in 0..n {
-        alpha[0][j] = hmm.initial[j] * hmm.emission[j][obs[0]];
+        alpha[j] = hmm.initial[j] * hmm.emission[j * m + obs[0]];
     }
-    let s0: f64 = alpha[0].iter().sum();
+    let s0: f64 = alpha[..n].iter().sum();
     if s0 > 0.0 {
-        for v in &mut alpha[0] {
+        for v in &mut alpha[..n] {
             *v /= s0;
         }
     }
@@ -218,13 +219,13 @@ fn manual_forward(hmm: &Hmm, obs: &[usize]) -> Vec<Vec<f64>> {
         for j in 0..n {
             let mut sum = 0.0;
             for i in 0..n {
-                sum += alpha[t - 1][i] * hmm.transition[i][j];
+                sum += alpha[(t - 1) * n + i] * hmm.transition[i * n + j];
             }
-            alpha[t][j] = sum * hmm.emission[j][obs[t]];
+            alpha[t * n + j] = sum * hmm.emission[j * m + obs[t]];
         }
-        let s: f64 = alpha[t].iter().sum();
+        let s: f64 = alpha[t * n..(t + 1) * n].iter().sum();
         if s > 0.0 {
-            for v in &mut alpha[t] {
+            for v in &mut alpha[t * n..(t + 1) * n] {
                 *v /= s;
             }
         }

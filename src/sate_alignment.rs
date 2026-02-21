@@ -11,6 +11,13 @@
 //! Computational core: distance matrix (GEMM-equivalent) + neighbor-joining
 //! + progressive alignment merging.
 //!
+//! ## GPU-ready layout
+//!
+//! Sequences and matrices use **flat row-major**:
+//! - Sequences: `seqs[i]` at `i * seq_len .. (i+1) * seq_len`
+//! - Distance matrix: `d[i,j]` at `i * n + j`
+//! - Alignment: `aln[i,c]` at `i * aln_len + c`
+//!
 //! ## `BarraCUDA` connection
 //!
 //! - Pairwise distance matrix: `barracuda::ops::pairwise_distance` (GPU `pairwise_hamming.wgsl`)
@@ -64,16 +71,25 @@ fn jukes_cantor(p: f64) -> f64 {
 }
 
 /// Compute N×N pairwise distance matrix (GEMM-equivalent).
+///
+/// Sequences flat row-major: `seqs[i]` at `i * seq_len .. (i+1) * seq_len`.
+/// Returns flat row-major `n×n`: `d[i,j]` at `i * n + j`.
 #[must_use]
-pub fn pairwise_distance_matrix(seqs: &[Vec<u8>], use_jc: bool) -> Vec<Vec<f64>> {
-    let n = seqs.len();
-    let mut d = vec![vec![0.0; n]; n];
-    for i in 0..n {
-        for j in (i + 1)..n {
-            let p = hamming_distance(&seqs[i], &seqs[j]);
+pub fn pairwise_distance_matrix(
+    seqs: &[u8],
+    n_seqs: usize,
+    seq_len: usize,
+    use_jc: bool,
+) -> Vec<f64> {
+    let mut d = vec![0.0; n_seqs * n_seqs];
+    for i in 0..n_seqs {
+        let seq_i = &seqs[i * seq_len..(i + 1) * seq_len];
+        for j in (i + 1)..n_seqs {
+            let seq_j = &seqs[j * seq_len..(j + 1) * seq_len];
+            let p = hamming_distance(seq_i, seq_j);
             let dist = if use_jc { jukes_cantor(p) } else { p };
-            d[i][j] = dist;
-            d[j][i] = dist;
+            d[i * n_seqs + j] = dist;
+            d[j * n_seqs + i] = dist;
         }
     }
     d
@@ -83,17 +99,24 @@ pub fn pairwise_distance_matrix(seqs: &[Vec<u8>], use_jc: bool) -> Vec<Vec<f64>>
 pub type NjJoin = (usize, usize, f64, f64);
 
 /// Neighbor-joining tree construction. Returns N-1 joins.
+///
+/// Distance matrix flat row-major `n×n`: `d[i,j]` at `i * n + j`.
 #[must_use]
-pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
-    let n = d.len();
+pub fn neighbor_joining(d: &[f64], n: usize) -> Vec<NjJoin> {
     if n <= 1 {
         return vec![];
     }
     if n == 2 {
-        return vec![(0, 1, d[0][1] / 2.0, d[0][1] / 2.0)];
+        return vec![(0, 1, d[1] / 2.0, d[1] / 2.0)];
     }
 
-    let mut dist: Vec<Vec<f64>> = d.to_vec();
+    let max_nodes = 2 * n - 1;
+    let mut dist = vec![0.0; max_nodes * max_nodes];
+    for i in 0..n {
+        for j in 0..n {
+            dist[i * max_nodes + j] = d[i * n + j];
+        }
+    }
     let mut active: Vec<usize> = (0..n).collect();
     let mut next_node = n;
     let mut tree = Vec::new();
@@ -109,14 +132,15 @@ pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
                 let s_i: f64 = active
                     .iter()
                     .filter(|&&k| k != i)
-                    .map(|&k| dist[i][k])
+                    .map(|&k| dist[i * max_nodes + k])
                     .sum();
                 let s_j: f64 = active
                     .iter()
                     .filter(|&&k| k != j)
-                    .map(|&k| dist[j][k])
+                    .map(|&k| dist[j * max_nodes + k])
                     .sum();
-                let q = ((nn - 2) as f64).mul_add(dist[i][j], -s_i) - s_j;
+                let d_ij = dist[i * max_nodes + j];
+                let q = ((nn - 2) as f64).mul_add(d_ij, -s_i) - s_j;
                 if q < min_q {
                     min_q = q;
                     join_i = i;
@@ -128,32 +152,29 @@ pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
         let s_i: f64 = active
             .iter()
             .filter(|&&k| k != join_i)
-            .map(|&k| dist[join_i][k])
+            .map(|&k| dist[join_i * max_nodes + k])
             .sum();
         let s_j: f64 = active
             .iter()
             .filter(|&&k| k != join_j)
-            .map(|&k| dist[join_j][k])
+            .map(|&k| dist[join_j * max_nodes + k])
             .sum();
-        let len_i = (0.5 * (dist[join_i][join_j] + (s_i - s_j) / (nn - 2) as f64)).max(0.0);
-        let len_j = (dist[join_i][join_j] - len_i).max(0.0);
+        let d_ij = dist[join_i * max_nodes + join_j];
+        let len_i = (0.5 * (d_ij + (s_i - s_j) / (nn - 2) as f64)).max(0.0);
+        let len_j = (d_ij - len_i).max(0.0);
 
         tree.push((join_i, join_j, len_i, len_j));
 
         let u = next_node;
         next_node += 1;
 
-        let curr_n = dist.len();
-        for row in &mut dist {
-            row.push(0.0);
-        }
-        dist.push(vec![0.0; curr_n + 1]);
-
         for &k in &active {
             if k != join_i && k != join_j {
-                let d_uk = 0.5 * (dist[join_i][k] + dist[join_j][k] - dist[join_i][join_j]);
-                dist[u][k] = d_uk;
-                dist[k][u] = d_uk;
+                let d_uk = 0.5
+                    * (dist[join_i * max_nodes + k] + dist[join_j * max_nodes + k]
+                        - dist[join_i * max_nodes + join_j]);
+                dist[u * max_nodes + k] = d_uk;
+                dist[k * max_nodes + u] = d_uk;
             }
         }
 
@@ -166,7 +187,7 @@ pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
         [a] => [a, 0],
         [] => [0, 1],
     };
-    let len = dist[i][j] / 2.0;
+    let len = dist[i * max_nodes + j] / 2.0;
     tree.push((i, j, len, len));
     tree
 }
@@ -175,12 +196,13 @@ pub fn neighbor_joining(d: &[Vec<f64>]) -> Vec<NjJoin> {
 fn align_pair(seq_a: &[u8], seq_b: &[u8]) -> (Vec<u8>, Vec<u8>) {
     let len_m = seq_a.len();
     let len_n = seq_b.len();
-    let mut f = vec![vec![0.0; len_n + 1]; len_m + 1];
+    let cols = len_n + 1;
+    let mut f = vec![0.0; (len_m + 1) * cols];
     for idx_i in 1..=len_m {
-        f[idx_i][0] = idx_i as f64;
+        f[idx_i * cols] = idx_i as f64;
     }
     for idx_j in 1..=len_n {
-        f[0][idx_j] = idx_j as f64;
+        f[idx_j] = idx_j as f64;
     }
     for idx_i in 1..=len_m {
         for idx_j in 1..=len_n {
@@ -189,9 +211,9 @@ fn align_pair(seq_a: &[u8], seq_b: &[u8]) -> (Vec<u8>, Vec<u8>) {
             } else {
                 1.0
             };
-            f[idx_i][idx_j] = (f[idx_i - 1][idx_j - 1] + cost)
-                .min(f[idx_i - 1][idx_j] + 1.0)
-                .min(f[idx_i][idx_j - 1] + 1.0);
+            f[idx_i * cols + idx_j] = (f[(idx_i - 1) * cols + idx_j - 1] + cost)
+                .min(f[(idx_i - 1) * cols + idx_j] + 1.0)
+                .min(f[idx_i * cols + idx_j - 1] + 1.0);
         }
     }
 
@@ -207,13 +229,15 @@ fn align_pair(seq_a: &[u8], seq_b: &[u8]) -> (Vec<u8>, Vec<u8>) {
         };
         if idx_i > 0
             && idx_j > 0
-            && (f[idx_i][idx_j] - (f[idx_i - 1][idx_j - 1] + cost)).abs() < 1e-10
+            && (f[idx_i * cols + idx_j] - (f[(idx_i - 1) * cols + idx_j - 1] + cost)).abs() < 1e-10
         {
             aln_a.push(seq_a[idx_i - 1]);
             aln_b.push(seq_b[idx_j - 1]);
             idx_i -= 1;
             idx_j -= 1;
-        } else if idx_i > 0 && (f[idx_i][idx_j] - (f[idx_i - 1][idx_j] + 1.0)).abs() < 1e-10 {
+        } else if idx_i > 0
+            && (f[idx_i * cols + idx_j] - (f[(idx_i - 1) * cols + idx_j] + 1.0)).abs() < 1e-10
+        {
             aln_a.push(seq_a[idx_i - 1]);
             aln_b.push(GAP);
             idx_i -= 1;
@@ -229,22 +253,32 @@ fn align_pair(seq_a: &[u8], seq_b: &[u8]) -> (Vec<u8>, Vec<u8>) {
 }
 
 /// Progressive alignment (caterpillar guide tree).
+///
+/// Sequences flat row-major. Returns `(aln_flat, n_seqs, aln_len)`.
 #[must_use]
-pub fn progressive_align(seqs: &[Vec<u8>], _tree: &[NjJoin]) -> Vec<Vec<u8>> {
-    if seqs.is_empty() {
-        return vec![];
+pub fn progressive_align(
+    seqs: &[u8],
+    n_seqs: usize,
+    seq_len: usize,
+    _tree: &[NjJoin],
+) -> (Vec<u8>, usize, usize) {
+    if n_seqs == 0 {
+        return (vec![], 0, 0);
     }
-    if seqs.len() == 1 {
-        return vec![seqs[0].clone()];
+    if n_seqs == 1 {
+        return (seqs[0..seq_len].to_vec(), 1, seq_len);
     }
 
-    let (a, b) = align_pair(&seqs[0], &seqs[1]);
+    let first = &seqs[0..seq_len];
+    let second = &seqs[seq_len..2 * seq_len];
+    let (a, b) = align_pair(first, second);
     let mut merged = vec![a, b];
 
-    for seq in seqs.iter().skip(2) {
+    for i in 2..n_seqs {
+        let seq = &seqs[i * seq_len..(i + 1) * seq_len];
         let guide: Vec<u8> = merged[0].iter().copied().filter(|&x| x != GAP).collect();
         let guide_ref: Vec<u8> = if guide.is_empty() {
-            seqs[0].clone()
+            first.to_vec()
         } else {
             guide
         };
@@ -253,7 +287,7 @@ pub fn progressive_align(seqs: &[Vec<u8>], _tree: &[NjJoin]) -> Vec<Vec<u8>> {
         let non_gap_cols: Vec<usize> = merged[0]
             .iter()
             .enumerate()
-            .filter_map(|(i, &x)| if x == GAP { None } else { Some(i) })
+            .filter_map(|(idx, &x)| if x == GAP { None } else { Some(idx) })
             .collect();
 
         let mut i_old = 0;
@@ -275,22 +309,30 @@ pub fn progressive_align(seqs: &[Vec<u8>], _tree: &[NjJoin]) -> Vec<Vec<u8>> {
         expanded.push(new_row);
         merged = expanded;
     }
-    merged
+
+    let n_rows = merged.len();
+    let aln_len = merged[0].len();
+    let mut flat = Vec::with_capacity(n_rows * aln_len);
+    for row in &merged {
+        flat.extend_from_slice(row);
+    }
+    (flat, n_rows, aln_len)
 }
 
 /// Sum-of-pairs alignment score. Higher is better.
+///
+/// Alignment flat row-major: `aln[i,c]` at `i * aln_len + c`.
 #[must_use]
-pub fn alignment_score(aln: &[Vec<u8>]) -> f64 {
-    let n = aln.len();
-    if n == 0 {
+pub fn alignment_score(aln: &[u8], n_seqs: usize, aln_len: usize) -> f64 {
+    if n_seqs == 0 {
         return 0.0;
     }
-    let l = aln[0].len();
     let mut sp = 0.0;
-    for i in 0..n {
-        for j in (i + 1)..n {
-            for c in 0..l {
-                let (a, b) = (aln[i][c], aln[j][c]);
+    for i in 0..n_seqs {
+        for j in (i + 1)..n_seqs {
+            for c in 0..aln_len {
+                let a = aln[i * aln_len + c];
+                let b = aln[j * aln_len + c];
                 if a != GAP && b != GAP {
                     sp += if a == b { 1.0 } else { -0.5 };
                 }
@@ -340,19 +382,22 @@ pub fn mutate_along_branch(seq: &[u8], rate: f64, rng: &mut Rng) -> Vec<u8> {
 }
 
 /// Generate tree-guided sequences.
+///
+/// Returns flat row-major `(seqs_flat, n_seqs, seq_len)`.
 #[must_use]
 pub fn generate_tree_guided_sequences(
     n_seqs: usize,
     seq_len: usize,
     branch_rate: f64,
     rng: &mut Rng,
-) -> Vec<Vec<u8>> {
+) -> (Vec<u8>, usize, usize) {
     let root = generate_root_sequence(seq_len, rng);
-    let mut seqs = vec![root.clone()];
+    let mut flat = Vec::with_capacity(n_seqs * seq_len);
+    flat.extend_from_slice(&root);
     for _ in 1..n_seqs {
-        seqs.push(mutate_along_branch(&root, branch_rate, rng));
+        flat.extend(mutate_along_branch(&root, branch_rate, rng));
     }
-    seqs
+    (flat, n_seqs, seq_len)
 }
 
 #[cfg(test)]
@@ -374,11 +419,11 @@ mod tests {
     #[test]
     fn distance_matrix_symmetric() {
         let mut rng = Rng::new(42);
-        let seqs = generate_tree_guided_sequences(5, 50, 0.05, &mut rng);
-        let d = pairwise_distance_matrix(&seqs, true);
+        let (seqs, n, len) = generate_tree_guided_sequences(5, 50, 0.05, &mut rng);
+        let d = pairwise_distance_matrix(&seqs, n, len, true);
         for i in 0..5 {
             for j in 0..5 {
-                assert!((d[i][j] - d[j][i]).abs() < 1e-12);
+                assert!((d[i * 5 + j] - d[j * 5 + i]).abs() < 1e-12);
             }
         }
     }
@@ -386,20 +431,20 @@ mod tests {
     #[test]
     fn nj_produces_n_minus_1_joins() {
         let mut rng = Rng::new(42);
-        let seqs = generate_tree_guided_sequences(10, 80, 0.05, &mut rng);
-        let d = pairwise_distance_matrix(&seqs, true);
-        let tree = neighbor_joining(&d);
+        let (seqs, n, len) = generate_tree_guided_sequences(10, 80, 0.05, &mut rng);
+        let d = pairwise_distance_matrix(&seqs, n, len, true);
+        let tree = neighbor_joining(&d, n);
         assert_eq!(tree.len(), 9);
     }
 
     #[test]
     fn alignment_score_non_negative_reasonable() {
         let mut rng = Rng::new(42);
-        let seqs = generate_tree_guided_sequences(5, 30, 0.03, &mut rng);
-        let d = pairwise_distance_matrix(&seqs, true);
-        let tree = neighbor_joining(&d);
-        let aln = progressive_align(&seqs, &tree);
-        let sc = alignment_score(&aln);
+        let (seqs, n, len) = generate_tree_guided_sequences(5, 30, 0.03, &mut rng);
+        let d = pairwise_distance_matrix(&seqs, n, len, true);
+        let tree = neighbor_joining(&d, n);
+        let (aln, n_rows, aln_len) = progressive_align(&seqs, n, len, &tree);
+        let sc = alignment_score(&aln, n_rows, aln_len);
         assert!(sc > -1e6);
     }
 }

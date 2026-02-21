@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 #!/usr/bin/env python3
 """
 neuralSpring Paper 11 — Counterdiabatic Driving of Evolution

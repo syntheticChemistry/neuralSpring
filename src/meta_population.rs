@@ -166,7 +166,7 @@ pub fn pairwise_fst(pop_a: &[f64], n_a: usize, pop_b: &[f64], n_b: usize, n_loci
         denominator += a + b + c;
     }
 
-    if denominator.abs() < 1e-15 {
+    if denominator.abs() < crate::primitives::DIVISION_GUARD {
         return 0.0;
     }
     numerator / denominator
@@ -224,7 +224,7 @@ pub fn global_fst(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usi
         denominator += a + b + c_val;
     }
 
-    if denominator.abs() < 1e-15 {
+    if denominator.abs() < crate::primitives::DIVISION_GUARD {
         return 0.0;
     }
     numerator / denominator
@@ -293,7 +293,7 @@ pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
         sy += (y - my).powi(2);
     }
     let denom = (sx * sy).sqrt();
-    if denom < 1e-15 {
+    if denom < crate::primitives::DIVISION_GUARD {
         return 0.0;
     }
     cov / denom
@@ -349,7 +349,7 @@ pub fn thermal_diversity_correlation(pi_values: &[f64], temperatures: &[f64]) ->
         sy += (temperatures[i] - my).powi(2);
     }
     let denom = (sx * sy).sqrt();
-    if denom < 1e-15 {
+    if denom < crate::primitives::DIVISION_GUARD {
         return 0.0;
     }
     cov / denom
@@ -485,7 +485,7 @@ mod tests {
         let b: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
         let (r, p) = mantel_test(&a, &b, n, 99, &mut rng);
         assert!(r.is_finite());
-        assert!(p >= 0.0 && p <= 1.0);
+        assert!((0.0..=1.0).contains(&p));
     }
 
     #[test]

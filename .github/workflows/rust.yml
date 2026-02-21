@@ -200,6 +200,15 @@ jobs:
       - name: Validate meta-population (8 checks)
         run: cargo run --bin validate_meta_population
 
+      - name: Validate sequence (7 checks)
+        run: cargo run --bin validate_sequence
+
+      - name: Validate PINN (9 checks)
+        run: cargo run --bin validate_pinn
+
+      - name: Validate DeepONet (18 checks)
+        run: cargo run --bin validate_deeponet
+
   validate-barracuda:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -336,6 +345,12 @@ jobs:
       - name: Validate barracuda meta-population (8 checks)
         run: cargo run --bin validate_barracuda_meta_pop
 
+      - name: Validate barracuda PINN (6 checks)
+        run: cargo run --bin validate_barracuda_pinn
+
+      - name: Validate barracuda DeepONet (9 checks)
+        run: cargo run --bin validate_barracuda_deeponet
+
       - name: Validate barracuda logsumexp (5 checks)
         run: cargo run --bin validate_barracuda_logsumexp
 
@@ -380,6 +395,19 @@ jobs:
       - name: Validate cross-dispatch extended (12 checks)
         run: cargo run --bin validate_cross_dispatch_extended
 
+      # Phase 3c expansion: additional GPU shader validators
+      - name: Validate GPU modes pairwise_l2 (9 checks)
+        run: cargo run --bin validate_gpu_modes
+
+      - name: Validate GPU directed multi_obj_fitness (10 checks)
+        run: cargo run --bin validate_gpu_directed
+
+      - name: Validate GPU signal hill_gate (13 checks)
+        run: cargo run --bin validate_gpu_signal
+
+      - name: Validate GPU swarm nn_forward (8 checks)
+        run: cargo run --bin validate_gpu_swarm
+
       # Phase 4b: Pure GPU end-to-end pipelines
       - name: Validate GPU pipeline HMM (5 checks)
         run: cargo run --release --bin validate_gpu_pipeline_hmm
@@ -393,6 +421,19 @@ jobs:
       - name: Validate GPU pipeline genomics (5 checks)
         run: cargo run --release --bin validate_gpu_pipeline_genomics
 
+      - name: Validate GPU pipeline modes (7 checks)
+        run: cargo run --release --bin validate_gpu_pipeline_modes
+
+      - name: Validate GPU pipeline directed (8 checks)
+        run: cargo run --release --bin validate_gpu_pipeline_directed
+
+      - name: Validate GPU pipeline signal (8 checks)
+        run: cargo run --release --bin validate_gpu_pipeline_signal
+
+      # Phase 4e: cross-dispatch expansion
+      - name: Validate cross-dispatch Phase 4e (17 checks)
+        run: cargo run --release --bin validate_cross_dispatch_phase4e
+
       # Phase 4c: GPU PRNG
       - name: Validate GPU PRNG xoshiro128ss (5 checks)
         run: cargo run --release --bin validate_gpu_prng
@@ -402,6 +443,13 @@ jobs:
         run: cargo run --release --bin validate_eigh_accuracy
       - name: Validate MHA GPU head shaders S-03b (10 checks)
         run: cargo run --release --bin validate_mha_gpu
+
+      # Phase 5a: BarraCUDA GPU Tensor validation
+      - name: Validate BarraCUDA GPU spectral (12 checks)
+        run: cargo run --release --bin validate_barracuda_gpu_spectral
+
+      - name: Validate BarraCUDA GPU eco (20 checks)
+        run: cargo run --release --bin validate_barracuda_gpu_eco
 
   benchmarks:
     runs-on: ubuntu-latest

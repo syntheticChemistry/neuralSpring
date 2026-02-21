@@ -136,6 +136,35 @@ pub const SEQUENCE_R2_MIN: f64 = 0.80;
 /// 15% is the acceptance threshold.
 pub const PINN_L2_ERROR_MAX: f64 = 0.15;
 
+/// PINN Cole-Hopf initial condition: u(0,x) = -sin(πx).
+///
+/// The Cole-Hopf transformation at t=0 reduces to the IC analytically.
+/// Machine precision applies (no iteration or quadrature).
+pub const PINN_IC_EXACT: f64 = EXACT_F64;
+
+/// PINN boundary condition: u(t,±1) ≈ 0.
+///
+/// For ν = 0.01/π, the boundary values are exponentially small.
+/// 0.01 catches implementation errors in the Cole-Hopf quadrature.
+pub const PINN_BC_TOLERANCE: f64 = 0.01;
+
+/// PINN shock steepening ratio: gradient(t=1) / gradient(t=0).
+///
+/// Burgers' equation steepens by construction. A ratio below 1.5
+/// would indicate the solution failed to develop a shock front.
+pub const PINN_SHOCK_RATIO_MIN: f64 = 1.5;
+
+/// `DeepONet` antiderivative: max error for known analytical operators.
+///
+/// Tests u=1→y, u=x→y²/2, u=x²→y³/3. These are exact integrations
+/// of low-degree polynomials, so machine precision applies.
+pub const DEEPONET_EXACT_ANTIDERIV: f64 = EXACT_F64;
+
+/// `DeepONet` dataset generation: polynomial evaluation consistency.
+///
+/// Verifying that eval + antiderivative round-trip is exact.
+pub const DEEPONET_POLYNOMIAL_EXACT: f64 = EXACT_F64;
+
 /// INT8 quantization: max R² degradation from FP32.
 ///
 /// Measured: 0.017%. Threshold: 1%.
@@ -351,6 +380,24 @@ pub const GPU_BATCH_IPR_F32: f64 = 1e-3;
 /// the division is the only f32 rounding source.  1e-6 is conservative.
 pub const GPU_HAMMING_F32: f64 = 1e-6;
 
+/// GPU multi-objective fitness: per-chunk mean + 0.1*std (f32).
+///
+/// Directed evolution Paper 014. Each (individual, objective) pair computes
+/// mean and population std over a genome chunk. f32 vs f64 CPU gives ~1e-3.
+pub const GPU_MULTI_OBJ_FITNESS_F32: f64 = 1e-3;
+
+/// GPU pairwise L2: MODES novelty metric distance (f32).
+///
+/// L2 = sqrt(sum((a\[d\]-b\[d\])²)).  f32 squared-diff accumulation plus
+/// sqrt produces ~4–5 digit accuracy.  1e-3 accommodates dim ≤ 64.
+pub const GPU_MODES_L2_F32: f64 = 1e-3;
+
+/// GPU two-input Hill: AND gate vs CPU `signal_integration::two_input_hill` (f32).
+///
+/// WGSL `pow` is transcendental; f32 vs f64 CPU produces ~3 digits
+/// agreement.  1e-3 accommodates GPU Hill vs CPU reference.
+pub const GPU_HILL_F32: f64 = 1e-3;
+
 // ═══════════════════════════════════════════════════════════════════
 // ML inference pipeline tolerances (f32 multi-op chains)
 // ═══════════════════════════════════════════════════════════════════
@@ -438,6 +485,11 @@ mod tests {
             CAUSAL_MASK_LEAK,
             SEQUENCE_R2_MIN,
             PINN_L2_ERROR_MAX,
+            PINN_IC_EXACT,
+            PINN_BC_TOLERANCE,
+            PINN_SHOCK_RATIO_MIN,
+            DEEPONET_EXACT_ANTIDERIV,
+            DEEPONET_POLYNOMIAL_EXACT,
             QUANT_INT8_DEGRADATION,
             QUANT_INT4_DEGRADATION,
             TENSOR_EXACT_F32,
@@ -471,6 +523,9 @@ mod tests {
             GPU_SPATIAL_PAYOFF_F32,
             GPU_BATCH_IPR_F32,
             GPU_HAMMING_F32,
+            GPU_MULTI_OBJ_FITNESS_F32,
+            GPU_MODES_L2_F32,
+            GPU_HILL_F32,
             EIGH_JACOBI_RECONSTRUCT,
             EIGH_JACOBI_EIGENVALUE,
             ODE_INTEGRATOR_AGREEMENT,

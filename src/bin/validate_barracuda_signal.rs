@@ -17,11 +17,7 @@
 //! Python baseline: `control/signal_integration/signal_integration.py`
 //! Rust baseline: `validate_signal_integration`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::signal_integration::{
     classify_logic_gate, integrate_ode, logic_gate_sweep, two_input_hill, LogicGate, OdeParams,
@@ -86,7 +82,10 @@ fn validate_rk45_vs_rk4(h: &mut ValidationHarness) {
     let y0_arr = [y0.cdg, y0.ai, y0.vps_t, y0.biofilm];
 
     let trace = integrate_ode(20.0, 0.01, &y0, &params);
-    let rk4_final = trace.last().expect("trace non-empty");
+    let Some(rk4_final) = trace.last() else {
+        h.check_bool("trace non-empty", false);
+        return;
+    };
     let rk4_cdg = rk4_final.cdg;
     let rk4_ai = rk4_final.ai;
     let rk4_vps_t = rk4_final.vps_t;

@@ -21,11 +21,10 @@ use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
-fn is_symmetric(h: &[Vec<f64>]) -> bool {
-    let n = h.len();
+fn is_symmetric(h: &[f64], n: usize) -> bool {
     for i in 0..n {
         for j in (i + 1)..n {
-            if (h[i][j] - h[j][i]).abs() > tolerances::EXACT_F64 {
+            if (h[i * n + j] - h[j * n + i]).abs() > tolerances::EXACT_F64 {
                 return false;
             }
         }
@@ -40,63 +39,55 @@ fn main() {
     let n = 32;
     let t = 1.0;
 
-    // Hamiltonian is Hermitian (symmetric)
     let h_rand = anderson_hamiltonian_random(n, t, 1.0, &mut rng);
-    h.check_bool("Anderson H is symmetric", is_symmetric(&h_rand));
+    h.check_bool("Anderson H is symmetric", is_symmetric(&h_rand, n));
 
-    // Eigenvalues real
-    let (eigvals, _) = jacobi_eigh(&h_rand);
+    let (eigvals, _) = jacobi_eigh(&h_rand, n);
     let all_real = eigvals.iter().all(|&x| x.is_finite() && !x.is_nan());
     h.check_bool("All eigenvalues real and finite", all_real);
 
-    // Weak disorder → extended (low IPR)
     rng = Rng::new(42);
     let h_weak = anderson_hamiltonian_random(n, t, 0.5, &mut rng);
-    let (_, ev_weak) = jacobi_eigh(&h_weak);
-    let ipr_weak = mean_ipr(&ev_weak);
+    let (_, ev_weak) = jacobi_eigh(&h_weak, n);
+    let ipr_weak = mean_ipr(&ev_weak, n);
 
-    // Strong disorder → localized (high IPR)
     rng = Rng::new(42);
     let h_strong = anderson_hamiltonian_random(n, t, 8.0, &mut rng);
-    let (_, ev_strong) = jacobi_eigh(&h_strong);
-    let ipr_strong = mean_ipr(&ev_strong);
+    let (_, ev_strong) = jacobi_eigh(&h_strong, n);
+    let ipr_strong = mean_ipr(&ev_strong, n);
     h.check_lower("Strong disorder: localized (IPR > 0.05)", ipr_strong, 0.05);
     h.check_bool(
         "Extended (weak) has lower IPR than localized (strong)",
         ipr_weak < ipr_strong,
     );
 
-    // IPR trend: stronger disorder gives higher mean IPR
     rng = Rng::new(42);
     let w_vals = [0.5, 1.0, 2.0, 4.0];
     let ipr_vals = disorder_sweep(n, t, &w_vals, &mut rng);
     let trend = ipr_vals.len() >= 2 && ipr_vals[ipr_vals.len() - 1] > ipr_vals[0];
     h.check_bool("IPR trend: strong disorder (W=4) > weak (W=0.5)", trend);
 
-    // Aubry-André transition near W_c = 2
     let alpha = 1.0 / GOLDEN_RATIO;
     let h_below = aubry_andre_hamiltonian(n, t, 1.5, alpha, 0.0);
     let h_above = aubry_andre_hamiltonian(n, t, 3.0, alpha, 0.0);
-    let (_, ev_below) = jacobi_eigh(&h_below);
-    let (_, ev_above) = jacobi_eigh(&h_above);
-    let ipr_below = mean_ipr(&ev_below);
-    let ipr_above = mean_ipr(&ev_above);
+    let (_, ev_below) = jacobi_eigh(&h_below, n);
+    let (_, ev_above) = jacobi_eigh(&h_above, n);
+    let ipr_below = mean_ipr(&ev_below, n);
+    let ipr_above = mean_ipr(&ev_above, n);
     h.check_bool(
         "Aubry-André: W<W_c has lower IPR than W>W_c",
         ipr_below < ipr_above,
     );
 
-    // Two-particle: finite, normalized
     let n2 = 6;
     let h2 = two_particle_hamiltonian(n2, t, 2.0, 0.5, alpha);
-    let (eig2, ev2) = jacobi_eigh(&h2);
-    let all_finite = eig2.iter().all(|&x| x.is_finite())
-        && ev2.iter().all(|row| row.iter().all(|&x| x.is_finite()));
+    let dim = n2 * n2;
+    let (eig2, ev2) = jacobi_eigh(&h2, dim);
+    let all_finite = eig2.iter().all(|&x| x.is_finite()) && ev2.iter().all(|&x| x.is_finite());
     h.check_bool("Two-particle: all finite", all_finite);
 
-    let dim = n2 * n2;
     let norms_ok = (0..dim).all(|k| {
-        let norm: f64 = ev2.iter().map(|row| row[k] * row[k]).sum();
+        let norm: f64 = (0..dim).map(|i| ev2[i * dim + k] * ev2[i * dim + k]).sum();
         (norm - 1.0).abs() < tolerances::CROSS_LANGUAGE
     });
     h.check_bool("Two-particle: eigenvectors normalized", norms_ok);

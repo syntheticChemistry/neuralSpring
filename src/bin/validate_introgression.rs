@@ -64,7 +64,8 @@ fn main() {
 
     // 4. Posterior sums to 1 per locus
     let gamma = hmm.posterior(&obs);
-    for (t, row) in gamma.iter().enumerate().take(5) {
+    let n = hmm.num_states();
+    for (t, row) in gamma.chunks(n).enumerate().take(5) {
         let sum: f64 = row.iter().sum();
         h.check_abs(
             &format!("posterior gamma[{t}] sums to 1"),

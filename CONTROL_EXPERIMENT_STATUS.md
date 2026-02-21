@@ -4,8 +4,8 @@
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 90.55% line coverage
-**Grand Total**: 206/206 Python PASS (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++) + 760/760 Rust+GPU validation PASS (183 native + 272 BarraCUDA primitives + 147 BarraCUDA CPU ports + 69 GPU shaders + 65 GPU pipeline + 5 GPU PRNG + 19 Phase 4d) = **966 total validation checks**
-**Library**: 181 unit tests + 6 doc tests = 187 total | 26 modules + 3 evolved | 67 validation binaries + 5 bench = 72 binaries
+**Grand Total**: 206/206 Python PASS + 1100+ Rust+GPU validation PASS = **1300+ total validation checks**
+**Library**: 222 unit tests + 8 doc-tests = 230 total | 29 modules + 3 evolved | 81 validation binaries + 5 bench = 86 binaries
 **ToadStool**: All 11 shortcomings (S-01..S-11) **ABSORBED** at `dc540afd`
 
 ---
@@ -54,7 +54,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (181 lib tests, 67 validation binaries, 26 modules)
+### Phase 1a: neuralSpring-Native Validation (222 lib tests, 81 validation binaries, 29 modules + 3 evolved)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -77,6 +77,8 @@
 | `anderson_localization.rs` | Aubry-André, IPR | 8 binary | Localization transition |
 | `pangenome_selection.rs` | pairwise Jaccard, selection | 8 binary | Pangenome graph fitness (Paper 024) |
 | `meta_population.rs` | locus variance, gene flow | 8 binary | Source-sink dynamics (Paper 025) |
+| `pinn.rs` | Burgers' PDE, physics-informed loss | 8 binary | Raissi et al. (2019) PINN |
+| `deeponet.rs` | operator learning, antiderivative | 7 binary | Lu et al. (2021) DeepONet |
 
 ### Phase 1b: BarraCUDA Primitives (272 checks)
 
@@ -87,14 +89,14 @@
 | `validate_barracuda_special` | special (gamma, erf, bessel, polynomials) | 26 | NIST DLMF values |
 | `validate_barracuda_optimize` | optimize (nelder_mead, bisect, brent) | 10 | Analytical minima/roots |
 | `validate_barracuda_precision` | precision (add, mul, fma, dot, sum) | 12 | Exact f64 |
-| `validate_barracuda_tensor` | Tensor API (90 ops — native LN, log-SM, leaky\_relu, elu) | 90 | WGSL unified path |
+| `validate_barracuda_tensor` | Tensor API (86 ops — native LN, log-SM, leaky\_relu, elu, GELU) | 86 | WGSL unified path |
 | `validate_barracuda_tensor_f64` | Tensor f64 (GPU ops) | 35 | f64 GPU ops |
 | `validate_barracuda_quantized` | quantized (Q4/Q8 dequant, GEMV) | 15 | Hand-constructed |
 | `validate_barracuda_linalg_ext` | linalg ext (SVD, LU inverse, gen eigh) | 17 | Analytical |
 | `validate_barracuda_ml_inference` | ML inference (MLP + Transformer) | 13 | Python/NumPy baselines |
 | `validate_barracuda_fft` | FFT (f32 Fft1D/Ifft1D + f64 Fft1DF64 + Rfft) | 24 | Analytical (DFT definition) |
 
-### Phase 3c: metalForge GPU Shader Validation (8 GPU shader binaries, 69 shader checks, 9 WGSL shaders)
+### Phase 3c: metalForge GPU Shader Validation (16 GPU shader binaries, 108 shader checks, 16 WGSL shaders)
 
 | Validation Binary | WGSL Shader | Papers | Checks | Reference |
 |-------------------|-------------|--------|--------|-----------|
@@ -106,6 +108,10 @@
 | `validate_gpu_game_theory` | `spatial_payoff.wgsl` | 019 | 5 | CPU game theory (game_theory.rs) |
 | `validate_gpu_anderson` | `batch_ipr.wgsl` | 022–023 | 5 | CPU Anderson (anderson_localization.rs) |
 | `validate_gpu_sate` | `pairwise_hamming.wgsl` | 017 | 5 | CPU SATé alignment (sate_alignment.rs) |
+| `validate_gpu_modes` | `pairwise_l2.wgsl` | 012 | 4 | CPU L2 distance (modes.rs) |
+| `validate_gpu_directed` | `multi_obj_fitness.wgsl` | 014 | 4 | CPU directed evolution |
+| `validate_gpu_signal` | `hill_gate.wgsl` | 021 | 4 | CPU signal integration |
+| `validate_gpu_swarm` | `swarm_nn_forward.wgsl` | 015 | 4 | CPU swarm robotics |
 
 ### Phase 3d: Pure GPU Workload + StatefulPipeline + Cross-Dispatch (45 pipeline/cross-dispatch checks)
 
@@ -117,7 +123,7 @@
 | `validate_cross_dispatch_genomics` | Genomics dispatch | 8 | GPU ↔ CPU parity for genomics workloads |
 | `validate_cross_dispatch_extended` | Extended dispatch | 12 | Extended cross-dispatch validation |
 
-### Phase 4b: Pure GPU End-to-End Pipelines (20 pipeline checks)
+### Phase 4b: Pure GPU End-to-End Pipelines (7 pipelines, 32 pipeline checks)
 
 | Validation Binary | Pipeline | Papers | Checks | Status |
 |-------------------|----------|--------|--------|--------|
@@ -125,6 +131,9 @@
 | `validate_gpu_pipeline_ecology` | spatial_payoff → mean_reduce | 019 | 5 | **5/5 PASS** |
 | `validate_gpu_pipeline_spectral` | batch_ipr → mean_reduce | 022–023 | 5 | **5/5 PASS** |
 | `validate_gpu_pipeline_genomics` | pairwise_jaccard → mean_reduce | 024 | 5 | **5/5 PASS** |
+| `validate_gpu_pipeline_modes` | pairwise_l2 → mean_reduce | 012 | 4 | **4/4 PASS** |
+| `validate_gpu_pipeline_directed` | multi_obj_fitness → mean_reduce | 014 | 4 | **4/4 PASS** |
+| `validate_gpu_pipeline_signal` | hill_gate → mean_reduce | 021 | 4 | **4/4 PASS** |
 
 ### Phase 4a: Performance Benchmarks (7 kernels, 71.8× overall speedup)
 
@@ -231,15 +240,15 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 14 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 181 unit + 6 doc tests |
+| Rust test | `cargo test` | **PASS** — 222 unit + 8 doc-tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
 | neuralSpring validate | `make validate-native` + `validate-native-papers` | **PASS** — 183/183 |
-| BarraCUDA validate | `make validate-barracuda` | **PASS** — 272/272 |
-| BarraCUDA CPU ports | `make validate-barracuda-cpu` | **PASS** — 147/147 (15 modules) |
-| GPU shader validate | `make validate-gpu` | **PASS** — 69/69 (9 WGSL shaders) |
-| GPU pipeline validate | `make validate-gpu-pipeline` | **PASS** — 65/65 (SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12 + 4×5 Phase 4b) |
+| BarraCUDA validate | `make validate-barracuda` | **PASS** — 268/268 |
+| BarraCUDA CPU ports | `make validate-barracuda-cpu` | **PASS** — 170/170 (17 modules) |
+| GPU shader validate | `make validate-gpu` | **PASS** — 108/108 (16 WGSL shaders) |
+| GPU pipeline validate | `make validate-gpu-pipeline` | **PASS** — 77/77 (SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12 + 32 Phase 4b) |
 | GPU PRNG validate | `validate_gpu_prng` | **PASS** — 5/5 |
 | CI | GitHub Actions: `baselines.yml` + `rust.yml` | Configured |
 
@@ -252,18 +261,21 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (181 lib tests, 67 binaries, 26 modules, 90.55% coverage) | **COMPLETE** |
-| 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (222 lib tests, 81 binaries, 29 modules + 3 evolved) | **COMPLETE** |
+| 1b | BarraCUDA validation (268 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
-| 2 | BarraCUDA CPU ports (15 modules, 147 checks) | **COMPLETE** |
+| 2 | BarraCUDA CPU ports (17 modules, 170 checks) | **COMPLETE** |
 | 2a | metalForge hardware characterization | Active |
 | 3a | BarraCUDA FFT validation (24 checks: f32+f64+Rfft, RTX 4070) | **COMPLETE** |
 | 3b | BarraCUDA GPU streaming (StatefulPipeline + Unidirectional) | **COMPLETE** |
-| 3c | metalForge GPU shader validation (8 GPU shader binaries, 69 shader checks, 9 WGSL shaders) | **COMPLETE** |
-| 3d | Pure GPU workload + cross-dispatch (45 pipeline/cross-dispatch checks) | **COMPLETE** |
+| 3c | metalForge GPU shader validation (16 GPU shader binaries, 108 shader checks, 16 WGSL shaders) | **COMPLETE** |
+| 3d | Cross-dispatch validation (41 checks) | **COMPLETE** |
 | 4a | Performance benchmarks (7 kernels, 71.8× overall speedup vs single-thread NumPy) | **COMPLETE** |
-| 4b | Pure GPU end-to-end pipelines (4 pipelines, 20/20 PASS — HMM, ecology, spectral, genomics) | **COMPLETE** |
+| 4b | Pure GPU end-to-end pipelines (7 pipelines, 32/32 PASS — HMM, ecology, spectral, genomics, modes, directed, signal) | **COMPLETE** |
 | 4c | GPU WGSL kernel benchmarks + GPU PRNG (crossover mapping + 5/5 PRNG checks) | **COMPLETE** |
 | 4d | ToadStool issue resolution (eigh accuracy + MHA GPU, 19 checks) | **COMPLETE** |
+| 4e | Phase 4b expansion (modes, directed, signal pipelines + pairwise_l2, multi_obj_fitness, hill_gate, swarm_nn_forward shaders) | **COMPLETE** |
+| 5a | BarraCUDA GPU Tensor validation (spectral 10 + eco 6 = 16 checks) | **COMPLETE** |
+| 5b | Upstream fixes: GELU test (86/86), S-13 pool sync, S-14 Naive matmul hang | **Active** |
 | 4 | Cross-spring integration | Active |

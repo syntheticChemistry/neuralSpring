@@ -8,14 +8,16 @@
 
 ## Quick Status
 
+Rust modules (29 total) include `pinn.rs` (Study 001 PINN Burgers) and `deeponet.rs` (Study 002 DeepONet antiderivative) alongside the 25-paper reproduction modules.
+
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 181 lib tests, 26 modules, 67 binaries, 90.55% coverage | **COMPLETE** |
+| Rust native validation | 219 lib tests, 29 modules, 78 binaries, 90.55% coverage | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
-| BarraCUDA CPU ports | 147/147 (15 modules) | **COMPLETE** |
-| GPU shader validation | 69/69 (9 WGSL shaders) | **COMPLETE** |
-| GPU pipeline validation | 65/65 | **COMPLETE** |
+| BarraCUDA CPU ports | 170/170 (17 modules) | **COMPLETE** |
+| GPU shader validation | 85/85 (16 WGSL shaders) | **COMPLETE** |
+| GPU pipeline validation | 77/77 | **COMPLETE** |
 | ToadStool shortcomings | 11/11 absorbed + S-12/S-03b locally resolved | **ALL RESOLVED** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | Code quality audit | clippy pedantic+nursery clean, `#[must_use]`, centralized tolerances | **COMPLETE** |
@@ -39,6 +41,10 @@ with `ValidationHarness`, and documented binding layouts.
 | `spatial_payoff.wgsl` | Game theory (019) | `validate_gpu_game_theory` | 5/5 | `barracuda::ops::stencil` |
 | `batch_ipr.wgsl` | Spectral/Anderson (022–023) | `validate_gpu_anderson` | 5/5 | `barracuda::ops::batch_reduce` |
 | `pairwise_hamming.wgsl` | Alignment (017) | `validate_gpu_sate` | 5/5 | `barracuda::ops::pairwise_distance` |
+| `pairwise_l2.wgsl` | MODES novelty (012) | `validate_gpu_modes` | 4/4 | `barracuda::ops::pairwise_distance` |
+| `multi_obj_fitness.wgsl` | Directed evolution (014) | `validate_gpu_directed` | 4/4 | `barracuda::ops::batch_gemm` |
+| `swarm_nn_forward.wgsl` | Swarm robotics (015) | `validate_gpu_swarm` | 4/4 | `barracuda::ops` (NN inference) |
+| `hill_gate.wgsl` | Signal integration (021) | `validate_gpu_signal` | 4/4 | `barracuda::ops` (Hill gate) |
 
 ### WGSL exports (hotSpring pattern)
 
@@ -56,6 +62,8 @@ its parent Rust library module, making absorption a single-import operation:
 | `game_theory::WGSL_SPATIAL_PAYOFF` | `src/game_theory.rs` |
 | `anderson_localization::WGSL_BATCH_IPR` | `src/anderson_localization.rs` |
 | `sate_alignment::WGSL_PAIRWISE_HAMMING` | `src/sate_alignment.rs` |
+
+*Additional shaders `pairwise_l2`, `multi_obj_fitness`, `swarm_nn_forward`, `hill_gate` validated by `validate_gpu_modes`, `validate_gpu_directed`, `validate_gpu_swarm`, `validate_gpu_signal` — export-from-module pending.*
 
 ### Shader binding layouts (for ToadStool absorption)
 
@@ -163,7 +171,7 @@ or existing infrastructure):
 | `staging::StatefulPipeline` | Iterative GPU RK4 | `validate_gpu_stateful_pipeline` (10/10) |
 | `dispatch::{dispatch_for, DispatchTarget}` | CPU/GPU parity | `validate_cross_dispatch` (8/8) |
 | `WgpuDevice::new_cpu_relaxed` | CPU software adapter | `gpu.rs` (S-10 absorbed) |
-| `stats::*`, `linalg::*`, `numerical::*`, `special::*` | 15 paper modules | 15 CPU port binaries (147/147) |
+| `stats::*`, `linalg::*`, `numerical::*`, `special::*` | 17 paper modules | 17 CPU port binaries (170/170) |
 
 ---
 
@@ -209,7 +217,12 @@ remains the eventual GPU-native path.
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
 | Centralized tolerances | All validation thresholds in `tolerances.rs` (no magic numbers) |
 | GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
-| Idiomatic Rust | HMM loops refactored to iterators, `NkLandscape.k` accessor added |
+| Idiomatic Rust | HMM flat row-major layout, spectral flat layout, `NkLandscape.k` accessor |
+| Consolidated math primitives | Shannon, Hill, sigmoid, RK4 centralized in `primitives.rs` — no duplicated math |
+| GPU-ready flat layouts | HMM, spectral, anderson_localization, directed_evolution, sate_alignment use flat row-major `Vec<f64>` — direct GPU buffer upload |
+| Graceful error handling | `require!` macro replaces `.expect()` in all validation binaries — no panic on GPU failure |
+| Zero-copy genotype handling | `eco_dynamics.rs` uses `&[u8]` / `HashSet<&[u8]>` — avoids `Vec<u8>` clones |
+| SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
 | Line coverage | **90.55%** line / 92.55% region / 94.73% function |
 | All files < 1000 LOC | `validate_barracuda_tensor.rs` reduced from 1053 → 864 lines |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |

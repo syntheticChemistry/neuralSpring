@@ -16,12 +16,13 @@
 //!
 //! Set `NEURALSPRING_BACKEND=cpu|gpu|auto`.
 
-#![allow(clippy::cast_precision_loss, clippy::expect_used)]
+#![allow(clippy::cast_precision_loss)]
 
 use barracuda::device::WgpuDevice;
 use barracuda::ops::logsumexp::LogSumExp;
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::require;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
@@ -66,12 +67,15 @@ fn validate_basic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let data = vec![1.0_f32, 2.0, 3.0, 4.0];
     let expected = cpu_logsumexp(&data);
 
-    let tensor =
-        Tensor::from_data(&data, vec![data.len()], device.clone()).expect("tensor creation");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&data, vec![data.len()], device.clone()),
+        "tensor creation"
+    );
 
     match LogSumExp::new(tensor).execute() {
         Ok(result) => {
-            let result_data = result.to_vec().expect("readback");
+            let result_data = require!(h, result.to_vec(), "readback");
             let gpu_val = result_data[0];
             h.check_abs(
                 &format!("basic [1,2,3,4]: {gpu_val:.6} vs {expected:.6}"),
@@ -90,12 +94,15 @@ fn validate_hmm_like(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let data: Vec<f32> = vec![-5.0, -3.0, -8.0, -2.5, -6.0];
     let expected = cpu_logsumexp(&data);
 
-    let tensor =
-        Tensor::from_data(&data, vec![data.len()], device.clone()).expect("tensor creation");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&data, vec![data.len()], device.clone()),
+        "tensor creation"
+    );
 
     match LogSumExp::new(tensor).execute() {
         Ok(result) => {
-            let result_data = result.to_vec().expect("readback");
+            let result_data = require!(h, result.to_vec(), "readback");
             let gpu_val = result_data[0];
             h.check_abs(
                 &format!("HMM-like [-5,-3,-8,-2.5,-6]: {gpu_val:.6} vs {expected:.6}"),
@@ -114,12 +121,15 @@ fn validate_negative_values(h: &mut ValidationHarness, device: &Arc<WgpuDevice>)
     let data: Vec<f32> = vec![-100.0, -99.0, -101.0];
     let expected = cpu_logsumexp(&data);
 
-    let tensor =
-        Tensor::from_data(&data, vec![data.len()], device.clone()).expect("tensor creation");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&data, vec![data.len()], device.clone()),
+        "tensor creation"
+    );
 
     match LogSumExp::new(tensor).execute() {
         Ok(result) => {
-            let result_data = result.to_vec().expect("readback");
+            let result_data = require!(h, result.to_vec(), "readback");
             let gpu_val = result_data[0];
             h.check_abs(
                 &format!("large negative: {gpu_val:.4} vs {expected:.4}"),
@@ -138,11 +148,15 @@ fn validate_single_element(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) 
     let data = vec![42.0_f32];
     let expected = 42.0_f32;
 
-    let tensor = Tensor::from_data(&data, vec![1], device.clone()).expect("tensor creation");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&data, vec![1], device.clone()),
+        "tensor creation"
+    );
 
     match LogSumExp::new(tensor).execute() {
         Ok(result) => {
-            let result_data = result.to_vec().expect("readback");
+            let result_data = require!(h, result.to_vec(), "readback");
             let gpu_val = result_data[0];
             h.check_abs(
                 &format!("single [42]: {gpu_val:.6} vs {expected:.6}"),
@@ -164,11 +178,15 @@ fn validate_equal_values(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     #[allow(clippy::cast_precision_loss)]
     let expected = val + (n as f32).ln();
 
-    let tensor = Tensor::from_data(&data, vec![n], device.clone()).expect("tensor creation");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&data, vec![n], device.clone()),
+        "tensor creation"
+    );
 
     match LogSumExp::new(tensor).execute() {
         Ok(result) => {
-            let result_data = result.to_vec().expect("readback");
+            let result_data = require!(h, result.to_vec(), "readback");
             let gpu_val = result_data[0];
             h.check_abs(
                 &format!("equal [1.0; 8]: {gpu_val:.6} vs {expected:.6} (1 + ln8)"),

@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
 **Last Updated**: February 21, 2026
-**Status**: Phase 0–4d complete (206/206 Python + 760/760 Rust+GPU) = **966 total checks**
+**Status**: Phase 5b active — 206/206 Python + 1100+ Rust+GPU = **1300+ total checks**
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,13 +13,14 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Phase 1a (native Rust) | 183/183 PASS — 18 validation binaries |
-| Phase 1b (BarraCUDA) | 272/272 PASS — stats, linalg, special, optimize, precision, tensor (90), tensor_f64 (35), quantized, linalg_ext, ml_inference (13), FFT (24), LogSumExp (5) |
-| Phase 2 (CPU ports) | 147/147 |
-| Phase 3c (GPU shaders) | 69/69 |
-| Phase 3d (pipelines) | 65/65 |
-| Phase 4c (PRNG) | 5/5 |
-| Phase 4d (S-12/S-03b) | 19/19 |
+| Phase 1a (native Rust) | 183/183 PASS — 21 validation binaries (incl. pinn, deeponet, sequence) |
+| Phase 1b (BarraCUDA) | 268/268 PASS — stats, linalg, special, optimize, precision, tensor (86), tensor_f64 (35), quantized, linalg_ext, ml_inference (13), FFT (24) |
+| Phase 2 (CPU ports) | 170/170 PASS — 17 modules |
+| Phase 3c (GPU shaders) | 108/108 PASS — 16 WGSL shaders |
+| Phase 3d (cross-dispatch) | 41/41 PASS |
+| Phase 4 (pipelines+PRNG+MHA+eigh) | PASS — GPU pipelines, PRNG, MHA, eigendecomposition |
+| Phase 5a (GPU Tensor) | 16/16 PASS — spectral (10) + eco (6) |
+| Phase 5b (upstream fixes) | Active — GELU fix, S-13 pool sync, S-14 Naive matmul |
 | Isomorphism Theorem | 6 primitives explain ALL neural architectures. BarraCUDA covers all 6 |
 | BarraCUDA primitive coverage | GEMM, Attention, Norm, Conv2d, LSTM, Autograd, Q-GEMV + stats, linalg, special, optimize |
 | Faculty (evolution) | Dolson (CSE, MSU) — counterdiabatic evolution, MODES |

@@ -54,6 +54,8 @@ validate-native-papers:
 	cargo run --bin validate_pangenome_selection
 	cargo run --bin validate_meta_population
 	cargo run --bin validate_sequence
+	cargo run --bin validate_pinn
+	cargo run --bin validate_deeponet
 
 validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
 	@echo "━━━ All validation binaries PASS ━━━"
@@ -87,6 +89,8 @@ validate-barracuda-cpu:
 	cargo run --bin validate_barracuda_game
 	cargo run --bin validate_barracuda_pangenome
 	cargo run --bin validate_barracuda_meta_pop
+	cargo run --bin validate_barracuda_pinn
+	cargo run --bin validate_barracuda_deeponet
 
 validate-tensor-cpu:
 	NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor

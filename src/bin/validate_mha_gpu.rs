@@ -16,7 +16,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
     clippy::many_single_char_names,
     clippy::doc_markdown,
     clippy::similar_names,
@@ -25,6 +24,7 @@
 
 use barracuda::device::WgpuDevice;
 use neural_spring::gpu::Gpu;
+use neural_spring::require;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -88,7 +88,11 @@ fn validate_head_split(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
         }
     }
 
-    let gpu_out = run_head_split(dev, &input, batch, seq, d_model, heads, d_head);
+    let gpu_out = require!(
+        h,
+        run_head_split(dev, &input, batch, seq, d_model, heads, d_head),
+        "head_split readback"
+    );
 
     let max_err = gpu_out
         .iter()
@@ -126,7 +130,11 @@ fn validate_head_concat(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
         }
     }
 
-    let gpu_out = run_head_concat(dev, &input, batch, seq, d_model, heads, d_head);
+    let gpu_out = require!(
+        h,
+        run_head_concat(dev, &input, batch, seq, d_model, heads, d_head),
+        "head_concat readback"
+    );
 
     let max_err = gpu_out
         .iter()
@@ -153,8 +161,16 @@ fn validate_split_concat_roundtrip(h: &mut ValidationHarness, dev: &Arc<WgpuDevi
     let n = (batch * seq * d_model) as usize;
     let input: Vec<f32> = (0..n).map(|_| rng.uniform() as f32).collect();
 
-    let split = run_head_split(dev, &input, batch, seq, d_model, heads, d_head);
-    let roundtrip = run_head_concat(dev, &split, batch, seq, d_model, heads, d_head);
+    let split = require!(
+        h,
+        run_head_split(dev, &input, batch, seq, d_model, heads, d_head),
+        "head_split readback"
+    );
+    let roundtrip = require!(
+        h,
+        run_head_concat(dev, &split, batch, seq, d_model, heads, d_head),
+        "head_concat readback"
+    );
 
     let max_err = input
         .iter()
@@ -197,7 +213,11 @@ fn validate_larger_sizes(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
             }
         }
 
-        let gpu_split = run_head_split(dev, &input, batch, seq, d_model, heads, d_head);
+        let gpu_split = require!(
+            h,
+            run_head_split(dev, &input, batch, seq, d_model, heads, d_head),
+            "head_split readback"
+        );
 
         let split_err = gpu_split
             .iter()
@@ -213,7 +233,11 @@ fn validate_larger_sizes(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
         );
 
         // Roundtrip
-        let roundtrip = run_head_concat(dev, &gpu_split, batch, seq, d_model, heads, d_head);
+        let roundtrip = require!(
+            h,
+            run_head_concat(dev, &gpu_split, batch, seq, d_model, heads, d_head),
+            "head_concat readback"
+        );
 
         let rt_err = input
             .iter()
@@ -240,7 +264,7 @@ fn run_head_split(
     d_model: u32,
     heads: u32,
     d_head: u32,
-) -> Vec<f32> {
+) -> Result<Vec<f32>, impl std::fmt::Display> {
     let total = (batch * heads * seq * d_head) as usize;
     dispatch_head_shader(
         dev,
@@ -267,7 +291,7 @@ fn run_head_concat(
     d_model: u32,
     heads: u32,
     d_head: u32,
-) -> Vec<f32> {
+) -> Result<Vec<f32>, impl std::fmt::Display> {
     let total = (batch * seq * d_model) as usize;
     dispatch_head_shader(
         dev,
@@ -293,7 +317,7 @@ fn dispatch_head_shader(
     input: &[f32],
     output_count: usize,
     params: HeadParams,
-) -> Vec<f32> {
+) -> Result<Vec<f32>, impl std::fmt::Display> {
     let device = dev.device();
     let queue = dev.queue();
 
@@ -382,7 +406,6 @@ fn dispatch_head_shader(
     device.poll(wgpu::Maintain::Wait);
 
     dev.read_buffer_f32(&out_buf, output_count)
-        .expect("readback")
 }
 
 const fn storage_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {

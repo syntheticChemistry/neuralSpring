@@ -29,6 +29,7 @@ use neural_spring::fft::{
     cosine_signal_f64, delta_signal, delta_signal_f64, max_abs_diff, max_abs_diff_f64,
 };
 use neural_spring::gpu::Gpu;
+use neural_spring::require;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
@@ -37,20 +38,20 @@ use std::sync::Arc;
 // Validation checks
 // ═════════════════════════════════════════════════════════════════════
 
-#[allow(clippy::expect_used)]
 fn validate_inverse_roundtrip(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 16_u32;
     let input_data: Vec<f32> = (0..n * 2).map(|i| ((i as f32) * 0.1).sin()).collect();
 
-    let tensor = Tensor::from_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("FFT input tensor creation");
-
-    let fft = Fft1D::new(tensor, n).expect("FFT creation");
-    let spectrum = fft.execute().expect("FFT execution");
-
-    let ifft = Ifft1D::new(spectrum, n).expect("IFFT creation");
-    let reconstructed = ifft.execute().expect("IFFT execution");
-    let result = reconstructed.to_vec().expect("readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&input_data, vec![n as usize, 2], device.clone()),
+        "FFT input tensor"
+    );
+    let fft = require!(h, Fft1D::new(tensor, n), "FFT creation");
+    let spectrum = require!(h, fft.execute(), "FFT execution");
+    let ifft = require!(h, Ifft1D::new(spectrum, n), "IFFT creation");
+    let reconstructed = require!(h, ifft.execute(), "IFFT execution");
+    let result = require!(h, reconstructed.to_vec(), "readback");
 
     let diff = max_abs_diff(&input_data, &result);
     h.check_upper(
@@ -60,18 +61,19 @@ fn validate_inverse_roundtrip(h: &mut ValidationHarness, device: &Arc<WgpuDevice
     );
 }
 
-#[allow(clippy::expect_used)]
 fn validate_parseval(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 32_u32;
     let input_data = cosine_signal(n as usize, 3);
     let time_energy = complex_energy(&input_data);
 
-    let tensor = Tensor::from_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("Parseval input tensor");
-
-    let fft = Fft1D::new(tensor, n).expect("Parseval FFT");
-    let spectrum = fft.execute().expect("Parseval FFT execute");
-    let spec_data = spectrum.to_vec().expect("Parseval readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&input_data, vec![n as usize, 2], device.clone()),
+        "Parseval input"
+    );
+    let fft = require!(h, Fft1D::new(tensor, n), "Parseval FFT");
+    let spectrum = require!(h, fft.execute(), "Parseval FFT execute");
+    let spec_data = require!(h, spectrum.to_vec(), "Parseval readback");
     let freq_energy = complex_energy(&spec_data) / f64::from(n);
 
     let ratio = if time_energy > 1e-14 {
@@ -88,17 +90,18 @@ fn validate_parseval(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     );
 }
 
-#[allow(clippy::expect_used)]
 fn validate_delta_to_constant(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 8_u32;
     let input_data = delta_signal(n as usize);
 
-    let tensor = Tensor::from_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("delta input tensor");
-
-    let fft = Fft1D::new(tensor, n).expect("delta FFT");
-    let spectrum = fft.execute().expect("delta FFT execute");
-    let spec = spectrum.to_vec().expect("delta readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&input_data, vec![n as usize, 2], device.clone()),
+        "delta input"
+    );
+    let fft = require!(h, Fft1D::new(tensor, n), "delta FFT");
+    let spectrum = require!(h, fft.execute(), "delta FFT execute");
+    let spec = require!(h, spectrum.to_vec(), "delta readback");
 
     let mut max_real_err = 0.0f64;
     let mut max_imag_err = 0.0f64;
@@ -119,17 +122,18 @@ fn validate_delta_to_constant(h: &mut ValidationHarness, device: &Arc<WgpuDevice
     );
 }
 
-#[allow(clippy::expect_used)]
 fn validate_constant_to_delta(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 8_u32;
     let input_data = constant_signal(n as usize);
 
-    let tensor = Tensor::from_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("constant input tensor");
-
-    let fft = Fft1D::new(tensor, n).expect("constant FFT");
-    let spectrum = fft.execute().expect("constant FFT execute");
-    let spec = spectrum.to_vec().expect("constant readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&input_data, vec![n as usize, 2], device.clone()),
+        "constant input"
+    );
+    let fft = require!(h, Fft1D::new(tensor, n), "constant FFT");
+    let spectrum = require!(h, fft.execute(), "constant FFT execute");
+    let spec = require!(h, spectrum.to_vec(), "constant readback");
 
     h.check_abs(
         "constant → delta: X[0].re == N",
@@ -156,18 +160,19 @@ fn validate_constant_to_delta(h: &mut ValidationHarness, device: &Arc<WgpuDevice
     );
 }
 
-#[allow(clippy::expect_used)]
 fn validate_cosine_concentration(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 32_u32;
     let freq = 5_usize;
     let input_data = cosine_signal(n as usize, freq);
 
-    let tensor = Tensor::from_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("cosine input tensor");
-
-    let fft = Fft1D::new(tensor, n).expect("cosine FFT");
-    let spectrum = fft.execute().expect("cosine FFT execute");
-    let spec = spectrum.to_vec().expect("cosine readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&input_data, vec![n as usize, 2], device.clone()),
+        "cosine input tensor"
+    );
+    let fft = require!(h, Fft1D::new(tensor, n), "cosine FFT");
+    let spectrum = require!(h, fft.execute(), "cosine FFT execute");
+    let spec = require!(h, spectrum.to_vec(), "cosine readback");
 
     let total_energy = complex_energy(&spec);
 
@@ -193,7 +198,6 @@ fn validate_cosine_concentration(h: &mut ValidationHarness, device: &Arc<WgpuDev
     );
 }
 
-#[allow(clippy::expect_used)]
 fn validate_larger_roundtrip(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 256_u32;
     let input_data: Vec<f32> = (0..n * 2)
@@ -205,15 +209,16 @@ fn validate_larger_roundtrip(h: &mut ValidationHarness, device: &Arc<WgpuDevice>
         })
         .collect();
 
-    let tensor = Tensor::from_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("N=256 input tensor");
-
-    let fft = Fft1D::new(tensor, n).expect("N=256 FFT");
-    let spectrum = fft.execute().expect("N=256 FFT execute");
-
-    let ifft = Ifft1D::new(spectrum, n).expect("N=256 IFFT");
-    let reconstructed = ifft.execute().expect("N=256 IFFT execute");
-    let result = reconstructed.to_vec().expect("N=256 readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&input_data, vec![n as usize, 2], device.clone()),
+        "N=256 input tensor"
+    );
+    let fft = require!(h, Fft1D::new(tensor, n), "N=256 FFT");
+    let spectrum = require!(h, fft.execute(), "N=256 FFT execute");
+    let ifft = require!(h, Ifft1D::new(spectrum, n), "N=256 IFFT");
+    let reconstructed = require!(h, ifft.execute(), "N=256 IFFT execute");
+    let result = require!(h, reconstructed.to_vec(), "N=256 readback");
 
     let diff = max_abs_diff(&input_data, &result);
     h.check_upper(
@@ -223,7 +228,6 @@ fn validate_larger_roundtrip(h: &mut ValidationHarness, device: &Arc<WgpuDevice>
     );
 }
 
-#[allow(clippy::expect_used)]
 fn validate_multi_frequency(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 64_u32;
     let mut input_data = vec![0.0f32; n as usize * 2];
@@ -240,12 +244,14 @@ fn validate_multi_frequency(h: &mut ValidationHarness, device: &Arc<WgpuDevice>)
         }
     }
 
-    let tensor = Tensor::from_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("multi-freq input tensor");
-
-    let fft = Fft1D::new(tensor, n).expect("multi-freq FFT");
-    let spectrum = fft.execute().expect("multi-freq FFT execute");
-    let spec = spectrum.to_vec().expect("multi-freq readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&input_data, vec![n as usize, 2], device.clone()),
+        "multi-freq input tensor"
+    );
+    let fft = require!(h, Fft1D::new(tensor, n), "multi-freq FFT");
+    let spectrum = require!(h, fft.execute(), "multi-freq FFT execute");
+    let spec = require!(h, spectrum.to_vec(), "multi-freq readback");
 
     let bin4_energy =
         f64::from(spec[4 * 2].mul_add(spec[4 * 2], spec[4 * 2 + 1] * spec[4 * 2 + 1]));
@@ -270,7 +276,6 @@ fn validate_multi_frequency(h: &mut ValidationHarness, device: &Arc<WgpuDevice>)
 // f64 FFT validation (requires SHADER_F64)
 // ═════════════════════════════════════════════════════════════════════
 
-#[allow(clippy::expect_used)]
 async fn validate_f64_inverse_roundtrip(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 16_u32;
     let pi = std::f64::consts::PI;
@@ -281,17 +286,22 @@ async fn validate_f64_inverse_roundtrip(h: &mut ValidationHarness, device: &Arc<
     }
     let original = input_data.clone();
 
-    let tensor = Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("f64 FFT input tensor");
-    let fft = Fft1DF64::new(tensor, n).expect("f64 FFT creation");
-    let spectrum = fft.execute().await.expect("f64 FFT execute");
-
-    let spec_data = spectrum.to_f64_vec().expect("f64 spectrum readback");
-    let inv_tensor = Tensor::from_f64_data(&spec_data, vec![n as usize, 2], device.clone())
-        .expect("f64 IFFT input");
-    let ifft = Fft1DF64::new(inv_tensor, n).expect("f64 IFFT creation");
-    let recovered_raw = ifft.execute_inverse().await.expect("f64 IFFT execute");
-    let recovered = recovered_raw.to_f64_vec().expect("f64 IFFT readback");
+    let tensor = require!(
+        h,
+        Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone()),
+        "f64 FFT input tensor"
+    );
+    let fft = require!(h, Fft1DF64::new(tensor, n), "f64 FFT creation");
+    let spectrum = require!(h, fft.execute().await, "f64 FFT execute");
+    let spec_data = require!(h, spectrum.to_f64_vec(), "f64 spectrum readback");
+    let inv_tensor = require!(
+        h,
+        Tensor::from_f64_data(&spec_data, vec![n as usize, 2], device.clone()),
+        "f64 IFFT input"
+    );
+    let ifft = require!(h, Fft1DF64::new(inv_tensor, n), "f64 IFFT creation");
+    let recovered_raw = require!(h, ifft.execute_inverse().await, "f64 IFFT execute");
+    let recovered = require!(h, recovered_raw.to_f64_vec(), "f64 IFFT readback");
 
     let scaled: Vec<f64> = recovered.iter().map(|&v| v / f64::from(n)).collect();
     let diff = max_abs_diff_f64(&original, &scaled);
@@ -302,17 +312,19 @@ async fn validate_f64_inverse_roundtrip(h: &mut ValidationHarness, device: &Arc<
     );
 }
 
-#[allow(clippy::expect_used)]
 async fn validate_f64_parseval(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 32_u32;
     let input_data = cosine_signal_f64(n as usize, 3);
     let time_energy = complex_energy_f64(&input_data);
 
-    let tensor = Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("f64 Parseval input");
-    let fft = Fft1DF64::new(tensor, n).expect("f64 Parseval FFT");
-    let spectrum = fft.execute().await.expect("f64 Parseval execute");
-    let spec_data = spectrum.to_f64_vec().expect("f64 Parseval readback");
+    let tensor = require!(
+        h,
+        Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone()),
+        "f64 Parseval input"
+    );
+    let fft = require!(h, Fft1DF64::new(tensor, n), "f64 Parseval FFT");
+    let spectrum = require!(h, fft.execute().await, "f64 Parseval execute");
+    let spec_data = require!(h, spectrum.to_f64_vec(), "f64 Parseval readback");
     let freq_energy = complex_energy_f64(&spec_data) / f64::from(n);
 
     let ratio = if time_energy > 1e-14 {
@@ -329,16 +341,18 @@ async fn validate_f64_parseval(h: &mut ValidationHarness, device: &Arc<WgpuDevic
     );
 }
 
-#[allow(clippy::expect_used)]
 async fn validate_f64_delta_to_constant(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 8_u32;
     let input_data = delta_signal_f64(n as usize);
 
-    let tensor = Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("f64 delta input");
-    let fft = Fft1DF64::new(tensor, n).expect("f64 delta FFT");
-    let spectrum = fft.execute().await.expect("f64 delta execute");
-    let spec = spectrum.to_f64_vec().expect("f64 delta readback");
+    let tensor = require!(
+        h,
+        Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone()),
+        "f64 delta input"
+    );
+    let fft = require!(h, Fft1DF64::new(tensor, n), "f64 delta FFT");
+    let spectrum = require!(h, fft.execute().await, "f64 delta execute");
+    let spec = require!(h, spectrum.to_f64_vec(), "f64 delta readback");
 
     let mut max_real_err = 0.0f64;
     let mut max_imag_err = 0.0f64;
@@ -359,16 +373,18 @@ async fn validate_f64_delta_to_constant(h: &mut ValidationHarness, device: &Arc<
     );
 }
 
-#[allow(clippy::expect_used)]
 async fn validate_f64_constant_to_delta(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 8_u32;
     let input_data = constant_signal_f64(n as usize);
 
-    let tensor = Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("f64 constant input");
-    let fft = Fft1DF64::new(tensor, n).expect("f64 constant FFT");
-    let spectrum = fft.execute().await.expect("f64 constant execute");
-    let spec = spectrum.to_f64_vec().expect("f64 constant readback");
+    let tensor = require!(
+        h,
+        Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone()),
+        "f64 constant input"
+    );
+    let fft = require!(h, Fft1DF64::new(tensor, n), "f64 constant FFT");
+    let spectrum = require!(h, fft.execute().await, "f64 constant execute");
+    let spec = require!(h, spectrum.to_f64_vec(), "f64 constant readback");
 
     h.check_abs(
         "f64 constant → delta: X[0].re == N",
@@ -394,17 +410,19 @@ async fn validate_f64_constant_to_delta(h: &mut ValidationHarness, device: &Arc<
     );
 }
 
-#[allow(clippy::expect_used)]
 async fn validate_f64_cosine_concentration(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 32_u32;
     let freq = 5_usize;
     let input_data = cosine_signal_f64(n as usize, freq);
 
-    let tensor = Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone())
-        .expect("f64 cosine input");
-    let fft = Fft1DF64::new(tensor, n).expect("f64 cosine FFT");
-    let spectrum = fft.execute().await.expect("f64 cosine execute");
-    let spec = spectrum.to_f64_vec().expect("f64 cosine readback");
+    let tensor = require!(
+        h,
+        Tensor::from_f64_data(&input_data, vec![n as usize, 2], device.clone()),
+        "f64 cosine input"
+    );
+    let fft = require!(h, Fft1DF64::new(tensor, n), "f64 cosine FFT");
+    let spectrum = require!(h, fft.execute().await, "f64 cosine execute");
+    let spec = require!(h, spectrum.to_f64_vec(), "f64 cosine readback");
 
     let total_energy = complex_energy_f64(&spec);
     let peak_energy = {
@@ -432,7 +450,6 @@ async fn validate_f64_cosine_concentration(h: &mut ValidationHarness, device: &A
 // Rfft validation (real-to-complex, f32)
 // ═════════════════════════════════════════════════════════════════════
 
-#[allow(clippy::expect_used)]
 fn validate_rfft_shape(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 16_u32;
     let data: Vec<f32> = (0..n)
@@ -445,10 +462,13 @@ fn validate_rfft_shape(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         })
         .collect();
 
-    let tensor =
-        Tensor::from_data(&data, vec![n as usize], device.clone()).expect("Rfft input tensor");
-    let rfft = Rfft::new(tensor, n).expect("Rfft creation");
-    let spectrum = rfft.execute().expect("Rfft execute");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&data, vec![n as usize], device.clone()),
+        "Rfft input tensor"
+    );
+    let rfft = require!(h, Rfft::new(tensor, n), "Rfft creation");
+    let spectrum = require!(h, rfft.execute(), "Rfft execute");
 
     let expected_points = (n as usize / 2) + 1;
     h.check_bool(
@@ -457,15 +477,18 @@ fn validate_rfft_shape(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     );
 }
 
-#[allow(clippy::expect_used)]
 fn validate_rfft_dc_component(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 16_u32;
     let data = vec![1.0f32; n as usize];
 
-    let tensor = Tensor::from_data(&data, vec![n as usize], device.clone()).expect("Rfft DC input");
-    let rfft = Rfft::new(tensor, n).expect("Rfft DC creation");
-    let spectrum = rfft.execute().expect("Rfft DC execute");
-    let spec = spectrum.to_vec().expect("Rfft DC readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&data, vec![n as usize], device.clone()),
+        "Rfft DC input"
+    );
+    let rfft = require!(h, Rfft::new(tensor, n), "Rfft DC creation");
+    let spectrum = require!(h, rfft.execute(), "Rfft DC execute");
+    let spec = require!(h, spectrum.to_vec(), "Rfft DC readback");
 
     h.check_abs(
         "Rfft DC component: X[0].re == N for constant signal",
@@ -487,7 +510,7 @@ fn validate_rfft_dc_component(h: &mut ValidationHarness, device: &Arc<WgpuDevice
     );
 }
 
-#[allow(clippy::expect_used, clippy::cast_precision_loss)]
+#[allow(clippy::cast_precision_loss)]
 fn validate_rfft_cosine_energy(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 32_u32;
     let freq = 5_usize;
@@ -501,11 +524,14 @@ fn validate_rfft_cosine_energy(h: &mut ValidationHarness, device: &Arc<WgpuDevic
         })
         .collect();
 
-    let tensor =
-        Tensor::from_data(&data, vec![n as usize], device.clone()).expect("Rfft cosine input");
-    let rfft = Rfft::new(tensor, n).expect("Rfft cosine creation");
-    let spectrum = rfft.execute().expect("Rfft cosine execute");
-    let spec = spectrum.to_vec().expect("Rfft cosine readback");
+    let tensor = require!(
+        h,
+        Tensor::from_data(&data, vec![n as usize], device.clone()),
+        "Rfft cosine input"
+    );
+    let rfft = require!(h, Rfft::new(tensor, n), "Rfft cosine creation");
+    let spectrum = require!(h, rfft.execute(), "Rfft cosine execute");
+    let spec = require!(h, spectrum.to_vec(), "Rfft cosine readback");
 
     let bin_energy =
         f64::from(spec[freq * 2].mul_add(spec[freq * 2], spec[freq * 2 + 1] * spec[freq * 2 + 1]));

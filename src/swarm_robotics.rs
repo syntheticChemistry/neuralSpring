@@ -23,6 +23,17 @@
     clippy::missing_const_for_fn
 )]
 
+/// WGSL shader: batch neural network forward pass for swarm controllers.
+///
+/// One thread per (controller, evaluation) pair. Architecture: 1 input →
+/// 4 hidden (sigmoid) → 5 output (sigmoid) → argmax action.
+/// Paper 015 (Swarm Robotics).
+///
+/// Absorption target: `barracuda::ops::batch_gemm`.
+/// Validated: `validate_gpu_swarm` (9/9 PASS).
+pub const WGSL_SWARM_NN_FORWARD: &str = include_str!("../metalForge/shaders/swarm_nn_forward.wgsl");
+
+use crate::primitives;
 use crate::rng::Rng;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -66,11 +77,7 @@ impl Controller {
 }
 
 fn sigmoid(x: f64) -> f64 {
-    if x >= 0.0 {
-        1.0 / (1.0 + (-x).exp())
-    } else {
-        x.exp() / (1.0 + x.exp())
-    }
+    primitives::sigmoid(x)
 }
 
 #[must_use]
@@ -195,14 +202,8 @@ pub fn shannon_diversity(types: &[ControllerType]) -> f64 {
     for &t in types {
         counts[t.as_usize()] += 1;
     }
-    let mut h = 0.0;
-    for &c in &counts {
-        if c > 0 {
-            let p = c as f64 / n;
-            h -= p * p.ln();
-        }
-    }
-    h
+    let freqs: Vec<f64> = counts.iter().map(|&c| c as f64 / n).collect();
+    primitives::shannon_entropy(&freqs)
 }
 
 pub fn create_controller(ctrl_type: ControllerType, rng: &mut Rng) -> Controller {
@@ -388,10 +389,7 @@ mod tests {
         let ctrl = create_controller(ControllerType::NeuralNet, &mut rng);
         let mut sim = SwarmSimulation::new(&mut rng);
         let fitness = sim.run(&ctrl);
-        assert!(
-            fitness >= 0.0 && fitness <= 1.0,
-            "fitness should be in [0,1]"
-        );
+        assert!((0.0..=1.0).contains(&fitness), "fitness should be in [0,1]");
     }
 
     #[test]

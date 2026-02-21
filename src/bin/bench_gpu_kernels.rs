@@ -280,14 +280,19 @@ fn bench_pairwise_hamming_with_cpu(gpu: &Gpu, n_seqs: u32, seq_len: u32) -> GpuB
     let mut gpu_result = bench_pairwise_hamming(gpu, n_seqs, seq_len, "large");
 
     let mut rng = Rng::new(42);
-    let seqs: Vec<Vec<u8>> = (0..n_seqs)
-        .map(|_| (0..seq_len).map(|_| rng.usize(4) as u8).collect())
+    let seqs: Vec<u8> = (0..(n_seqs * seq_len) as usize)
+        .map(|_| rng.usize(4) as u8)
         .collect();
 
     let cpu_timings: Vec<Duration> = (0..50)
         .map(|_| {
             let start = Instant::now();
-            let _ = sate_alignment::pairwise_distance_matrix(&seqs, false);
+            let _ = sate_alignment::pairwise_distance_matrix(
+                &seqs,
+                n_seqs as usize,
+                seq_len as usize,
+                false,
+            );
             start.elapsed()
         })
         .collect();

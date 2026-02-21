@@ -47,6 +47,7 @@
 
 pub mod anderson_localization;
 pub mod counterdiabatic;
+pub mod deeponet;
 pub mod directed_evolution;
 pub mod eco_dynamics;
 pub mod eigh;
@@ -60,6 +61,8 @@ pub mod meta_population;
 pub mod metrics;
 pub mod modes;
 pub mod pangenome_selection;
+pub mod pinn;
+pub mod primitives;
 pub mod provenance;
 pub mod regulatory_network;
 pub mod rng;

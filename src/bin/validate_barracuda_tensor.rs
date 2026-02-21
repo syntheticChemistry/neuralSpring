@@ -29,6 +29,7 @@
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::require;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
@@ -75,23 +76,29 @@ async fn main() {
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
-#[allow(clippy::expect_used)]
-fn tensor(data: &[f32], shape: Vec<usize>, device: &Arc<WgpuDevice>) -> Tensor {
-    Tensor::from_data(data, shape, device.clone()).expect("Tensor::from_data: GPU buffer alloc")
+fn tensor(
+    data: &[f32],
+    shape: Vec<usize>,
+    device: &Arc<WgpuDevice>,
+) -> Result<Tensor, barracuda::error::BarracudaError> {
+    Tensor::from_data(data, shape, device.clone())
 }
 
-#[allow(clippy::expect_used)]
-fn readback(t: &Tensor) -> Vec<f32> {
-    t.to_vec().expect("tensor readback from GPU")
+fn readback(t: &Tensor) -> Result<Vec<f32>, barracuda::error::BarracudaError> {
+    t.to_vec()
 }
 
 // ── Activations ─────────────────────────────────────────────────────────
 
 fn validate_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[-2.0, -1.0, 0.0, 0.5, 1.0, 3.0], vec![6], device);
+    let input = require!(
+        h,
+        tensor(&[-2.0, -1.0, 0.0, 0.5, 1.0, 3.0], vec![6], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input.relu() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "relu(-2) == 0",
                 f64::from(v[0]),
@@ -134,10 +141,14 @@ fn validate_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 }
 
 fn validate_gelu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0, 3.0], vec![6], device);
+    let input = require!(
+        h,
+        tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0, 3.0], vec![6], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input.gelu_wgsl() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "gelu(0) == 0",
                 f64::from(v[2]),
@@ -156,10 +167,13 @@ fn validate_gelu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
                 -0.0454,
                 tolerances::TENSOR_TRANSCENDENTAL_F32,
             );
+            // True GELU(3) = 0.5*3*(1+erf(3/√2)) ≈ 2.9964 (not 3.0).
+            // Previous test used 3.0 which is ~0.004 away — outside 1e-3 tol.
+            // Provenance: scipy.special.erf → 2.996_362_607_918_227.
             h.check_abs(
-                "gelu(3) ≈ 3.0",
+                "gelu(3) ≈ 2.9964",
                 f64::from(v[5]),
-                3.0,
+                2.996_362_607_918_227,
                 tolerances::TENSOR_TRANSCENDENTAL_F32,
             );
             h.check_bool("gelu monotonic: g(1) < g(2)", v[3] < v[4]);
@@ -169,10 +183,14 @@ fn validate_gelu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 }
 
 fn validate_sigmoid(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[-10.0, -1.0, 0.0, 1.0, 10.0], vec![5], device);
+    let input = require!(
+        h,
+        tensor(&[-10.0, -1.0, 0.0, 1.0, 10.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input.sigmoid() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "sigmoid(0) == 0.5",
                 f64::from(v[2]),
@@ -203,10 +221,14 @@ fn validate_sigmoid(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 }
 
 fn validate_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[1.0, 2.0, 3.0, 4.0, 5.0], vec![5], device);
+    let input = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0, 4.0, 5.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input.softmax() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             let sum: f64 = v.iter().map(|&x| f64::from(x)).sum();
             h.check_abs("softmax sums to 1", sum, 1.0, tolerances::TENSOR_EXACT_F32);
             h.check_bool("softmax ordering: s[0] < s[4]", v[0] < v[4]);
@@ -230,12 +252,16 @@ fn validate_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 
 fn validate_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let data = [1.0_f32, 2.0, 3.0, 4.0];
-    let input = tensor(&data, vec![1, 4], device);
+    let input = require!(
+        h,
+        tensor(&data, vec![1, 4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     let eps = 1e-5_f32;
 
     match input.layer_norm_wgsl(eps) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             let mean = 2.5_f64;
             let var = [1.0, 2.0, 3.0, 4.0]
                 .iter()
@@ -278,12 +304,20 @@ fn validate_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Arithmetic ──────────────────────────────────────────────────────────
 
 fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let lhs = tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device);
-    let rhs = tensor(&[5.0, 6.0, 7.0, 8.0], vec![4], device);
+    let lhs = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let rhs = require!(
+        h,
+        tensor(&[5.0, 6.0, 7.0, 8.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
 
     match lhs.add(&rhs) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "add [0] = 6",
                 f64::from(v[0]),
@@ -300,11 +334,19 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("add [ERROR: {e}]"), false),
     }
 
-    let lhs2 = tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device);
-    let rhs2 = tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device);
+    let lhs2 = require!(
+        h,
+        tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let rhs2 = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match lhs2.sub(&rhs2) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "sub [0] = 9",
                 f64::from(v[0]),
@@ -321,11 +363,19 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("sub [ERROR: {e}]"), false),
     }
 
-    let lhs3 = tensor(&[2.0, 3.0, 4.0, 5.0], vec![4], device);
-    let rhs3 = tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device);
+    let lhs3 = require!(
+        h,
+        tensor(&[2.0, 3.0, 4.0, 5.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let rhs3 = require!(
+        h,
+        tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match lhs3.mul(&rhs3) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "mul [0] = 20",
                 f64::from(v[0]),
@@ -346,12 +396,20 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── MatMul ──────────────────────────────────────────────────────────────
 
 fn validate_matmul(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let mat_a = tensor(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3], device);
-    let mat_b = tensor(&[7.0, 8.0, 9.0, 10.0, 11.0, 12.0], vec![3, 2], device);
+    let mat_a = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let mat_b = require!(
+        h,
+        tensor(&[7.0, 8.0, 9.0, 10.0, 11.0, 12.0], vec![3, 2], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
 
     match mat_a.matmul(&mat_b) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "matmul [0,0] = 58",
                 f64::from(v[0]),
@@ -380,11 +438,19 @@ fn validate_matmul(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("matmul [ERROR: {e}]"), false),
     }
 
-    let identity = tensor(&[1.0, 0.0, 0.0, 1.0], vec![2, 2], device);
-    let vec_x = tensor(&[3.0, 7.0], vec![2, 1], device);
+    let identity = require!(
+        h,
+        tensor(&[1.0, 0.0, 0.0, 1.0], vec![2, 2], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let vec_x = require!(
+        h,
+        tensor(&[3.0, 7.0], vec![2, 1], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match identity.matmul(&vec_x) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "I @ x [0] = 3",
                 f64::from(v[0]),
@@ -405,11 +471,19 @@ fn validate_matmul(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Losses ──────────────────────────────────────────────────────────────
 
 fn validate_mse_loss(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let pred = tensor(&[1.0, 2.0, 3.0], vec![3], device);
-    let target = tensor(&[1.0, 2.0, 3.0], vec![3], device);
+    let pred = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let target = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match pred.mse_loss(target) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "mse(same) == 0",
                 f64::from(v[0]),
@@ -420,11 +494,19 @@ fn validate_mse_loss(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("mse_loss [ERROR: {e}]"), false),
     }
 
-    let pred2 = tensor(&[1.0, 2.0, 3.0], vec![3], device);
-    let target2 = tensor(&[4.0, 5.0, 6.0], vec![3], device);
+    let pred2 = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let target2 = require!(
+        h,
+        tensor(&[4.0, 5.0, 6.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match pred2.mse_loss(target2) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "mse([1,2,3],[4,5,6]) == 9",
                 f64::from(v[0]),
@@ -439,10 +521,14 @@ fn validate_mse_loss(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Tanh ────────────────────────────────────────────────────────────────
 
 fn validate_tanh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[-10.0, -1.0, 0.0, 1.0, 10.0], vec![5], device);
+    let input = require!(
+        h,
+        tensor(&[-10.0, -1.0, 0.0, 1.0, 10.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input.tanh() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "tanh(0) == 0",
                 f64::from(v[2]),
@@ -481,10 +567,14 @@ fn validate_tanh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Exp / Log / Sqrt ────────────────────────────────────────────────────
 
 fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let exp_input = tensor(&[0.0, 1.0, 2.0, -1.0], vec![4], device);
+    let exp_input = require!(
+        h,
+        tensor(&[0.0, 1.0, 2.0, -1.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match exp_input.exp_wgsl() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "exp(0) == 1",
                 f64::from(v[0]),
@@ -507,10 +597,14 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("exp_wgsl [ERROR: {e}]"), false),
     }
 
-    let log_input = tensor(&[1.0, std::f32::consts::E, 10.0], vec![3], device);
+    let log_input = require!(
+        h,
+        tensor(&[1.0, std::f32::consts::E, 10.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match log_input.log_wgsl() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "log(1) == 0",
                 f64::from(v[0]),
@@ -533,10 +627,14 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("log_wgsl [ERROR: {e}]"), false),
     }
 
-    let sqrt_input = tensor(&[0.0, 1.0, 4.0, 9.0, 16.0], vec![5], device);
+    let sqrt_input = require!(
+        h,
+        tensor(&[0.0, 1.0, 4.0, 9.0, 16.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match sqrt_input.sqrt_wgsl() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "sqrt(0) == 0",
                 f64::from(v[0]),
@@ -563,11 +661,15 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Scalar ops ──────────────────────────────────────────────────────────
 
 fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[2.0, 4.0, 6.0, 8.0], vec![4], device);
+    let input = require!(
+        h,
+        tensor(&[2.0, 4.0, 6.0, 8.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
 
     match input.mul_scalar(3.0) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "mul_scalar [0] = 6",
                 f64::from(v[0]),
@@ -584,10 +686,14 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("mul_scalar [ERROR: {e}]"), false),
     }
 
-    let input2 = tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device);
+    let input2 = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input2.add_scalar(10.0) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "add_scalar [0] = 11",
                 f64::from(v[0]),
@@ -604,10 +710,14 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("add_scalar [ERROR: {e}]"), false),
     }
 
-    let input3 = tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device);
+    let input3 = require!(
+        h,
+        tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input3.div_scalar(5.0) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "div_scalar [0] = 2",
                 f64::from(v[0]),
@@ -628,11 +738,19 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Element-wise div ────────────────────────────────────────────────────
 
 fn validate_div(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let lhs = tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device);
-    let rhs = tensor(&[2.0, 4.0, 5.0, 8.0], vec![4], device);
+    let lhs = require!(
+        h,
+        tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let rhs = require!(
+        h,
+        tensor(&[2.0, 4.0, 5.0, 8.0], vec![4], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match lhs.div(&rhs) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "div [0] = 5",
                 f64::from(v[0]),
@@ -653,11 +771,15 @@ fn validate_div(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Reductions ──────────────────────────────────────────────────────────
 
 fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[1.0, 2.0, 3.0, 4.0, 5.0], vec![5], device);
+    let input = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0, 4.0, 5.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
 
     match input.sum() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "sum([1..5]) == 15",
                 f64::from(v[0]),
@@ -668,10 +790,14 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("sum [ERROR: {e}]"), false),
     }
 
-    let input2 = tensor(&[2.0, 4.0, 6.0, 8.0, 10.0], vec![5], device);
+    let input2 = require!(
+        h,
+        tensor(&[2.0, 4.0, 6.0, 8.0, 10.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input2.mean() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "mean([2,4,6,8,10]) == 6",
                 f64::from(v[0]),
@@ -682,10 +808,14 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("mean [ERROR: {e}]"), false),
     }
 
-    let input3 = tensor(&[3.0, 1.0, 7.0, 2.0, 5.0], vec![5], device);
+    let input3 = require!(
+        h,
+        tensor(&[3.0, 1.0, 7.0, 2.0, 5.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input3.max() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "max([3,1,7,2,5]) == 7",
                 f64::from(v[0]),
@@ -696,10 +826,14 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("max [ERROR: {e}]"), false),
     }
 
-    let input4 = tensor(&[3.0, 1.0, 7.0, 2.0, 5.0], vec![5], device);
+    let input4 = require!(
+        h,
+        tensor(&[3.0, 1.0, 7.0, 2.0, 5.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input4.min() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "min([3,1,7,2,5]) == 1",
                 f64::from(v[0]),
@@ -710,10 +844,14 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("min [ERROR: {e}]"), false),
     }
 
-    let input5 = tensor(&[3.0, 4.0], vec![2], device);
+    let input5 = require!(
+        h,
+        tensor(&[3.0, 4.0], vec![2], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input5.norm() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "norm([3,4]) == 5",
                 f64::from(v[0]),
@@ -731,10 +869,14 @@ fn validate_activations_extended(h: &mut ValidationHarness, device: &Arc<WgpuDev
     // leaky_relu and elu bugs (S-05, S-06) now fixed upstream — tested in
     // validate_leaky_relu() and validate_elu() below.
 
-    let input2 = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device);
+    let input2 = require!(
+        h,
+        tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input2.swish_wgsl() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "swish(0) == 0",
                 f64::from(v[2]),
@@ -750,10 +892,14 @@ fn validate_activations_extended(h: &mut ValidationHarness, device: &Arc<WgpuDev
         Err(e) => h.check_bool(&format!("swish [ERROR: {e}]"), false),
     }
 
-    let input4 = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device);
+    let input4 = require!(
+        h,
+        tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input4.mish_wgsl() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "mish(0) == 0",
                 f64::from(v[2]),
@@ -772,11 +918,19 @@ fn validate_activations_extended(h: &mut ValidationHarness, device: &Arc<WgpuDev
 // ── Extended losses ─────────────────────────────────────────────────────
 
 fn validate_losses_extended(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let pred = tensor(&[1.0, 2.0, 3.0], vec![3], device);
-    let target = tensor(&[4.0, 5.0, 6.0], vec![3], device);
+    let pred = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let target = require!(
+        h,
+        tensor(&[4.0, 5.0, 6.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match pred.mae_loss(&target) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "mae([1,2,3],[4,5,6]) == 3",
                 f64::from(v[0]),
@@ -787,11 +941,19 @@ fn validate_losses_extended(h: &mut ValidationHarness, device: &Arc<WgpuDevice>)
         Err(e) => h.check_bool(&format!("mae_loss [ERROR: {e}]"), false),
     }
 
-    let pred2 = tensor(&[1.0, 2.0, 3.0], vec![3], device);
-    let target2 = tensor(&[1.0, 2.0, 3.0], vec![3], device);
+    let pred2 = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
+    let target2 = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0], vec![3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match pred2.huber_loss(&target2, 1.0) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "huber(same, delta=1) == 0",
                 f64::from(v[0]),
@@ -806,10 +968,14 @@ fn validate_losses_extended(h: &mut ValidationHarness, device: &Arc<WgpuDevice>)
 // ── Transpose ───────────────────────────────────────────────────────────
 
 fn validate_transpose(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let mat = tensor(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3], device);
+    let mat = require!(
+        h,
+        tensor(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], vec![2, 3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match mat.transpose() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_bool("transpose shape [3,2]", *out.shape() == [3, 2]);
             h.check_abs(
                 "transpose [0,0] = 1",
@@ -839,10 +1005,14 @@ fn validate_transpose(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 fn validate_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let data = [1.0_f32, 2.0, 3.0];
 
-    let input = tensor(&data, vec![1, 3], device);
+    let input = require!(
+        h,
+        tensor(&data, vec![1, 3], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input.log_softmax_wgsl() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_bool("log_softmax_wgsl all negative", v.iter().all(|&x| x < 0.0));
 
             let max_val = 3.0_f64;
@@ -883,10 +1053,14 @@ fn validate_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Activations now fixed upstream (S-05, S-06) ────────────────────────
 
 fn validate_leaky_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device);
+    let input = require!(
+        h,
+        tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input.leaky_relu_wgsl_with_slope(0.01) {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_abs(
                 "leaky_relu(-2, 0.01) ≈ -0.02",
                 f64::from(v[0]),
@@ -911,10 +1085,14 @@ fn validate_leaky_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 }
 
 fn validate_elu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device);
+    let input = require!(
+        h,
+        tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device),
+        "Tensor::from_data: GPU buffer alloc"
+    );
     match input.elu_wgsl() {
         Ok(out) => {
-            let v = readback(&out);
+            let v = require!(h, readback(&out), "tensor readback from GPU");
             let expect_neg2 = (-2.0_f64).exp_m1();
             h.check_abs(
                 "elu(-2, 1.0)",

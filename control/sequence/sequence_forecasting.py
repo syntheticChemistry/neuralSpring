@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 #!/usr/bin/env python3
 """
 neuralSpring Experiment 003 — Sequence Forecasting (LSTM/GRU)

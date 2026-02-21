@@ -13,6 +13,7 @@
 //! |--------|-----------|-------------------|
 //! | `mha` | Native projection shaders hang (S-03b) — GPU `head_split`/`head_concat` shaders ready | `ToadStool`: replace fused projection with `matmul` + `head_split.wgsl` / `head_concat.wgsl` |
 //! | `hmm_forward_gpu` | No `BarraCUDA` equivalent | Candidate for `ops::hmm` |
+//! | `tensor_sync` | S-13: `PooledBuffer` drop-before-completion race — `gpu_fence`, `fenced_matmul`, `materialize` | `ToadStool`: add `device.poll(Wait)` in `PooledBuffer::drop` before returning to pool |
 //!
 //! ## WGSL shader inventory (absorption-ready)
 //!
@@ -31,6 +32,10 @@
 //! | `WGSL_BATCH_FITNESS_EVAL` | (multi-paper) | `validate_gpu_batch_fitness` | 20/20 | `barracuda::ops::batch_gemm` |
 //! | `WGSL_RK4_PARALLEL` | (multi-paper) | `validate_gpu_rk4` | 8/8 | `barracuda::ops::ode` |
 //! | `WGSL_MEAN_REDUCE` | (aggregation) | `validate_gpu_pure_workload` | 7/7 | `barracuda::pipeline::ReduceScalarPipeline` |
+//! | [`modes::WGSL_PAIRWISE_L2`] | `modes` | `validate_gpu_modes` | 15/15 | `barracuda::ops::pairwise_distance` |
+//! | [`directed_evolution::WGSL_MULTI_OBJ_FITNESS`] | `directed_evolution` | `validate_gpu_directed` | 6/6 | `barracuda::ops::batch_gemm` |
+//! | [`swarm_robotics::WGSL_SWARM_NN_FORWARD`] | `swarm_robotics` | `validate_gpu_swarm` | 9/9 | `barracuda::ops::batch_gemm` |
+//! | [`signal_integration::WGSL_HILL_GATE`] | `signal_integration` | `validate_gpu_signal` | 9/9 | `barracuda::ops::elementwise` |
 //!
 //! [`hmm::WGSL_HMM_FORWARD_LOG`]: crate::hmm::WGSL_HMM_FORWARD_LOG
 //! [`pangenome_selection::WGSL_PAIRWISE_JACCARD`]: crate::pangenome_selection::WGSL_PAIRWISE_JACCARD
@@ -38,9 +43,14 @@
 //! [`game_theory::WGSL_SPATIAL_PAYOFF`]: crate::game_theory::WGSL_SPATIAL_PAYOFF
 //! [`anderson_localization::WGSL_BATCH_IPR`]: crate::anderson_localization::WGSL_BATCH_IPR
 //! [`sate_alignment::WGSL_PAIRWISE_HAMMING`]: crate::sate_alignment::WGSL_PAIRWISE_HAMMING
+//! [`modes::WGSL_PAIRWISE_L2`]: crate::modes::WGSL_PAIRWISE_L2
+//! [`directed_evolution::WGSL_MULTI_OBJ_FITNESS`]: crate::directed_evolution::WGSL_MULTI_OBJ_FITNESS
+//! [`swarm_robotics::WGSL_SWARM_NN_FORWARD`]: crate::swarm_robotics::WGSL_SWARM_NN_FORWARD
+//! [`signal_integration::WGSL_HILL_GATE`]: crate::signal_integration::WGSL_HILL_GATE
 
 pub mod hmm_forward_gpu;
 pub mod mha;
+pub mod tensor_sync;
 
 /// WGSL shader: GPU-resident head split for MHA.
 ///

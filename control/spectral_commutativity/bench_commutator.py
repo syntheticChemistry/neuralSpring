@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 #!/usr/bin/env python3
 """Benchmark: Commutator Frobenius norm (64×64 matrices)."""
 import os

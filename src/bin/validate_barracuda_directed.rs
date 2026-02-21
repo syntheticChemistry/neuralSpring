@@ -55,12 +55,15 @@ fn validate_multi_objective_variance(h: &mut ValidationHarness) {
 }
 
 fn validate_pareto_front(h: &mut ValidationHarness) {
-    let fits = vec![vec![1.0, 0.0], vec![0.0, 1.0], vec![0.5, 0.5]];
-    let count = pareto_front_count(&fits);
+    // Flat row-major: 3 individuals × 2 objectives
+    let fits: Vec<f64> = vec![1.0, 0.0, 0.0, 1.0, 0.5, 0.5];
+    let n = 3;
+    let n_obj = 2;
+    let count = pareto_front_count(&fits, n, n_obj);
 
-    let var_per_obj: Vec<f64> = (0..2)
+    let var_per_obj: Vec<f64> = (0..n_obj)
         .map(|j| {
-            let col: Vec<f64> = fits.iter().map(|f| f[j]).collect();
+            let col: Vec<f64> = (0..n).map(|i| fits[i * n_obj + j]).collect();
             barracuda::stats::correlation::variance(&col).unwrap_or(f64::NAN)
         })
         .collect();

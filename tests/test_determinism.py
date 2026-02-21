@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 #!/usr/bin/env python3
 """Determinism tests: verify that control scripts produce identical results
 across runs with the same seed.

@@ -487,3 +487,135 @@ matmul (Q,K,V projections) → head_split → attention → head_concat → matm
 Validation: `validate_mha_gpu` — **10/10 PASS**.
 
 **New check count**: 19 additional checks (9 + 10).
+
+---
+
+## 12. Phase 4e: Domain Modules + GPU Pipelines (February 21, 2026)
+
+Phase 4e adds two new Rust domain modules, four new GPU shaders, and completes
+module flattening for GPU-ready absorption.
+
+### New Rust Domain Modules
+
+| Module | Domain | Key Operations |
+|--------|--------|----------------|
+| `pinn.rs` | Burgers' PDE (Paper 028) | Cole-Hopf transform, MLP forward, finite-difference residual |
+| `deeponet.rs` | Operator networks (Paper 029) | Branch-trunk operator, polynomial evaluation |
+
+Both modules validate against BarraCUDA CPU via the Tensor API: matmul, tanh,
+dot product. No local shaders — they consume `barracuda::tensor` buffer input.
+
+### Four New GPU Domain Shaders
+
+| Shader | Paper | Validation Binary | Absorption Target |
+|--------|-------|-------------------|-------------------|
+| `pairwise_l2.wgsl` | 012 (MODES novelty) | `validate_gpu_modes` | `barracuda::ops::pairwise_distance` |
+| `multi_obj_fitness.wgsl` | 014 (Directed evolution) | `validate_gpu_directed` | `barracuda::ops::batch_gemm` |
+| `swarm_nn_forward.wgsl` | 015 (Swarm robotics) | `validate_gpu_swarm` | `barracuda::ops::batch_gemm` |
+| `hill_gate.wgsl` | 021 (Signal integration) | `validate_gpu_signal` | `barracuda::ops::elementwise` |
+
+Three new GPU pipelines chain these shaders to `mean_reduce.wgsl` for fitness
+aggregation.
+
+### Module Flattening Complete
+
+Two modules converted from nested to flat layouts:
+
+| Module | Before | After |
+|--------|--------|-------|
+| `directed_evolution.rs` | `Vec<Vec<f64>>` genotypes | Flat `Vec<f64>` (pop×genome) |
+| `sate_alignment.rs` | `Vec<Vec<u8>>` sequences | Flat `Vec<u8>` (n×len) |
+
+All domain modules now use GPU-ready flat row-major layouts.
+
+### Phase 4e Summary
+
+- **95 new validation checks** across pinn, deeponet, modes, directed, swarm, signal
+- **4 new WGSL shaders**: pairwise_l2, multi_obj_fitness, swarm_nn_forward, hill_gate
+- **3 new GPU pipelines** chaining to mean_reduce
+- **Module flattening**: directed_evolution, sate_alignment → flat layouts
+
+---
+
+## 13. Deep Evolution: GPU-Ready Layouts (February 21, 2026)
+
+Following the hotSpring pattern of evolving Rust implementations toward
+GPU absorption, neuralSpring underwent a deep structural evolution:
+
+### Flat Row-Major Matrices
+
+HMM and spectral commutativity modules converted from `Vec<Vec<f64>>`
+(heap-per-row) to flat `Vec<f64>` with row-major indexing. This is the
+GPU-native layout — flat buffers upload directly to `wgpu::Buffer`
+without conversion.
+
+| Module | Before | After | GPU Benefit |
+|--------|--------|-------|-------------|
+| `hmm.rs` | `Vec<Vec<f64>>` transition, emission, alpha | Flat `Vec<f64>` with stride `n` | Direct upload to `hmm_forward_log.wgsl` buffers |
+| `spectral_commutativity.rs` | `Vec<Vec<f64>>` for all matrix ops | Flat `Vec<f64>` with explicit `n` dimension | Direct upload to `barracuda::ops::matmul` |
+| `ForwardResult` | Nested alpha, requires row allocation | Flat with `alpha_at(t)` slice accessor | Zero-copy slicing for GPU readback comparison |
+
+### Consolidated Mathematical Primitives
+
+Six variants of Shannon entropy, three Hill kinetics, two sigmoid, and
+two RK4 integration — all centralized into `src/primitives.rs`. Module-local
+magic numbers (`1e-15`, `1e-300`, `1e-20`) promoted to named constants
+(`DIVISION_GUARD`, `LOG_GUARD`, `HILL_EPS`).
+
+### Graceful GPU Error Handling
+
+The `require!` macro replaces `.expect()` across all validation binaries.
+When GPU operations fail (adapter unavailable, buffer allocation, shader
+compilation), the harness records a FAIL and continues rather than panicking.
+This is essential for CI where GPU adapters may vary.
+
+```rust
+// Before: panics on GPU failure
+let tensor = Tensor::from_data(&data, shape, device.clone()).expect("alloc");
+
+// After: records failure, continues validation
+let tensor = require!(h, Tensor::from_data(&data, shape, device.clone()), "alloc");
+```
+
+### Write → Absorb → Lean Alignment
+
+These changes align neuralSpring's Rust implementations with the hotSpring
+absorption pattern:
+
+1. **Flat buffers** match GPU binding layouts documented in `EVOLUTION_READINESS.md`
+2. **Named constants** match ToadStool's `tolerances` pattern
+3. **Graceful errors** support the cross-backend validation that ToadStool requires
+4. **`Hmm::from_flat()`** constructor provides the GPU-native entry point
+
+---
+
+## Phase 5b: Upstream Issue Resolution
+
+### S-13: `PooledBuffer` Drop-Before-Completion Race
+
+`BarraCUDA`'s `BufferPool` returns buffers to the pool in `PooledBuffer::drop`
+without waiting for the GPU to finish using them. Sequential operations that
+produce intermediate tensors (dropped before readback) trigger buffer reuse
+races — data corruption or driver hangs.
+
+**Local fix**: `evolved::tensor_sync` provides `gpu_fence`, `materialize`,
+and `fenced_matmul` as sync primitives. The proper upstream fix is
+`device.poll(Wait)` in `PooledBuffer::drop` or generation-tracked recycling.
+
+### S-14: Naive Matmul Hang for Small Square Matrices
+
+The Naive matmul tier (`matmul.wgsl`, selected when M or N < 32) hangs
+indefinitely on the RTX 4070 Vulkan driver when the binary exceeds a certain
+complexity threshold. Non-square inputs always work. The Tiled16 tier is
+unaffected.
+
+**Hypothesis**: Pipeline cache pressure from complex binaries triggers a
+driver-level hang during `create_compute_pipeline` or `dispatch_workgroups`.
+
+**Recommendation**: Remove the Naive tier; use Tiled16 for all sizes.
+
+### GELU Test Fix
+
+The `gelu(3) ≈ 3.0` test used the wrong expected value. True GELU(3) =
+2.996362607918227 (from `scipy.special.erf`). The WGSL implementation was
+correct — only the test expectation was wrong. Now 86/86 PASS.

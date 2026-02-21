@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 #!/usr/bin/env python3
 """Benchmark: HMM forward algorithm (scaled, T=5000, N=3, M=4)."""
 import os

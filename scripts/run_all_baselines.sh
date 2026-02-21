@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # neuralSpring — Run all Phase 0 + Phase 0+ + Phase 0++ Python/PyTorch baselines
 #
 # Exit codes per script:

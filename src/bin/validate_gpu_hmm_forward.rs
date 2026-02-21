@@ -93,25 +93,19 @@ fn genomic_hmm() -> Hmm {
 
 /// Convert Hmm parameters to f32 log-domain for GPU shader.
 fn hmm_to_log_f32(hmm: &Hmm) -> (Vec<f32>, Vec<f32>) {
-    let n = hmm.num_states();
     let log_initial: Vec<f32> = hmm.initial.iter().map(|&p| (p as f32).ln()).collect();
-    let log_trans: Vec<f32> = hmm
-        .transition
-        .iter()
-        .flat_map(|row| row.iter().map(|&p| (p as f32).ln()))
-        .collect();
-    let _ = n;
+    let log_trans: Vec<f32> = hmm.transition.iter().map(|&p| (p as f32).ln()).collect();
     (log_initial, log_trans)
 }
 
 /// Convert observation sequence to f32 log-emission matrix (T × N).
 fn obs_to_log_emissions(hmm: &Hmm, obs: &[usize]) -> Vec<f32> {
     let n = hmm.num_states();
-    let m = hmm.emission[0].len();
+    let m = hmm.num_symbols();
     obs.iter()
         .flat_map(|&o| {
             let oi = o.min(m - 1);
-            (0..n).map(move |j| (hmm.emission[j][oi] as f32).ln())
+            (0..n).map(move |j| (hmm.emission[j * m + oi] as f32).ln())
         })
         .collect()
 }

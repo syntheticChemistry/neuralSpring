@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 #!/usr/bin/env python3
 """
 neuralSpring Experiment 001 — Neural Surrogate Validation
@@ -21,6 +23,7 @@ Reference:
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -37,9 +40,25 @@ try:
 except ImportError:
     HAS_TORCH = False
 
-# Import airSpring's FAO-56 for the ET₀ surrogate target
-AIRSPRING_FAO56 = Path(__file__).parent.parent.parent.parent / "airSpring" / "control" / "fao56"
-sys.path.insert(0, str(AIRSPRING_FAO56))
+# Discover airSpring's FAO-56 for the ET₀ surrogate target.
+# Runtime discovery: check environment, then sibling primal, then fallback.
+# Per wateringHole standards, primals discover peers at runtime —
+# no hardcoded cross-primal paths.
+_AIRSPRING_FAO56 = None
+for candidate in [
+    os.environ.get("AIRSPRING_FAO56_PATH"),
+    str(Path(__file__).parent.parent.parent.parent / "airSpring" / "control" / "fao56"),
+]:
+    if candidate and Path(candidate).is_dir():
+        _AIRSPRING_FAO56 = candidate
+        break
+
+if _AIRSPRING_FAO56 is None:
+    raise RuntimeError(
+        "airSpring FAO-56 module not found. Set AIRSPRING_FAO56_PATH or "
+        "ensure airSpring is a sibling directory of neuralSpring."
+    )
+sys.path.insert(0, _AIRSPRING_FAO56)
 
 from penman_monteith import (
     actual_vapour_pressure_rh,

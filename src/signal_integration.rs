@@ -21,17 +21,28 @@
 //! - vpsT ODE integration: `barracuda::numerical::rk45_solve` or GPU `rk4_parallel.wgsl`
 //! - Dose-response surface: batch parallel ODE over 2D parameter grid
 
-use crate::rng::Rng;
+/// WGSL shader: two-input Hill AND gate over 2D grid.
+///
+/// One thread per (cdg, ai) pair. Computes `Vmax × Hill(cdg) × Hill(ai)`.
+/// Paper 021 (Signal Integration).
+///
+/// Absorption target: `barracuda::ops::elementwise`.
+/// Validated: `validate_gpu_signal` (9/9 PASS).
+pub const WGSL_HILL_GATE: &str = include_str!("../metalForge/shaders/hill_gate.wgsl");
 
-const EPS: f64 = 1e-30;
+use crate::primitives;
+use crate::rng::Rng;
 
 /// Two-input Hill function: AND gate for vpsT activation.
 ///
 /// `f(cdg, ai) = Vmax * (cdg^n1 / (K1^n1 + cdg^n1)) * (ai^n2 / (K2^n2 + ai^n2))`
+///
+/// Composes two [`crate::primitives::hill_activation`] calls (amplitude=1) then
+/// scales by `vmax`.
 #[must_use]
 pub fn two_input_hill(cdg: f64, ai: f64, vmax: f64, k1: f64, k2: f64, n1: f64, n2: f64) -> f64 {
-    let h1 = cdg.powf(n1) / (k1.powf(n1) + cdg.powf(n1) + EPS);
-    let h2 = ai.powf(n2) / (k2.powf(n2) + ai.powf(n2) + EPS);
+    let h1 = primitives::hill_activation(cdg, 1.0, k1, n1);
+    let h2 = primitives::hill_activation(ai, 1.0, k2, n2);
     vmax * h1 * h2
 }
 
@@ -153,28 +164,13 @@ fn ode_rhs(y: &[f64; 4], params: &OdeParams, rng: &mut Rng) -> [f64; 4] {
     [d_cdg, d_ai, d_vps_t, d_biofilm]
 }
 
-/// Single RK4 step.
-#[must_use]
-#[allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::similar_names
-)]
+/// Single RK4 step (delegates to [`crate::primitives::rk4_step`]).
+///
+/// Note: the stochastic noise in `ode_rhs` means each sub-step evaluation
+/// draws fresh noise. This matches the original implementation and the
+/// Python baseline behavior.
 fn rk4_step(y: &[f64; 4], _t: f64, dt: f64, params: &OdeParams, rng: &mut Rng) -> [f64; 4] {
-    let half_dt = 0.5 * dt;
-    let k1 = ode_rhs(y, params, rng);
-    let y2: [f64; 4] = std::array::from_fn(|i| half_dt.mul_add(k1[i], y[i]));
-    let k2 = ode_rhs(&y2, params, rng);
-    let y3: [f64; 4] = std::array::from_fn(|i| half_dt.mul_add(k2[i], y[i]));
-    let k3 = ode_rhs(&y3, params, rng);
-    let y4: [f64; 4] = std::array::from_fn(|i| dt.mul_add(k3[i], y[i]));
-    let k4 = ode_rhs(&y4, params, rng);
-
-    let dt6 = dt / 6.0;
-    std::array::from_fn(|i| {
-        let sum_k = 2.0f64.mul_add(k3[i], 2.0f64.mul_add(k2[i], k1[i]) + k4[i]);
-        dt6.mul_add(sum_k, y[i])
-    })
+    primitives::rk4_step(y, dt, |state| ode_rhs(state, params, rng))
 }
 
 /// Integrate vpsT regulatory ODE with RK4.

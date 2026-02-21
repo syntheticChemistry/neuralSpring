@@ -195,17 +195,13 @@ fn validate_small(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_seqs = 8_usize;
     let seq_len = 50_usize;
     let flat = generate_test_sequences(n_seqs, seq_len, 42);
+    let seqs_u8: Vec<u8> = flat.iter().map(|&v| v as u8).collect();
 
-    let seqs: Vec<Vec<u8>> = flat
-        .chunks(seq_len)
-        .map(|chunk| chunk.iter().map(|&v| v as u8).collect())
-        .collect();
-
-    let cpu_matrix = pairwise_distance_matrix(&seqs, false);
+    let cpu_matrix = pairwise_distance_matrix(&seqs_u8, n_seqs, seq_len, false);
     let mut cpu_upper = Vec::new();
     for i in 0..n_seqs {
         for j in (i + 1)..n_seqs {
-            cpu_upper.push(cpu_matrix[i][j]);
+            cpu_upper.push(cpu_matrix[i * n_seqs + j]);
         }
     }
 
@@ -238,17 +234,13 @@ fn validate_larger(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_seqs = 20_usize;
     let seq_len = 200_usize;
     let flat = generate_test_sequences(n_seqs, seq_len, 77);
+    let seqs_u8: Vec<u8> = flat.iter().map(|&v| v as u8).collect();
 
-    let seqs: Vec<Vec<u8>> = flat
-        .chunks(seq_len)
-        .map(|chunk| chunk.iter().map(|&v| v as u8).collect())
-        .collect();
-
-    let cpu_matrix = pairwise_distance_matrix(&seqs, false);
+    let cpu_matrix = pairwise_distance_matrix(&seqs_u8, n_seqs, seq_len, false);
     let mut cpu_upper = Vec::new();
     for i in 0..n_seqs {
         for j in (i + 1)..n_seqs {
-            cpu_upper.push(cpu_matrix[i][j]);
+            cpu_upper.push(cpu_matrix[i * n_seqs + j]);
         }
     }
 

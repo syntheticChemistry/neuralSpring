@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 #!/usr/bin/env python3
 """Benchmark: NK fitness landscape evaluation (N=10, K=2, 1000 genotypes)."""
 import os

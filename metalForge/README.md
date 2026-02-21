@@ -109,6 +109,10 @@ ToadStool's NAK eigensolver (GPU) may resolve this.
 | Spatial payoff | CPU stencil loop | `spatial_payoff.wgsl` | **Validated** (5/5) |
 | Batch IPR | CPU eigenvector scan | `batch_ipr.wgsl` | **Validated** (5/5) |
 | Pairwise Hamming | CPU O(N²×L) | `pairwise_hamming.wgsl` | **Validated** (5/5) |
+| Pairwise L2 | CPU O(N²×D) | `pairwise_l2.wgsl` | **Validated** (15/15) |
+| Multi-obj fitness | CPU per-chunk stats | `multi_obj_fitness.wgsl` | **Validated** (6/6) |
+| Swarm NN forward | CPU per-controller | `swarm_nn_forward.wgsl` | **Validated** (9/9) |
+| Hill AND gate | CPU elementwise | `hill_gate.wgsl` | **Validated** (9/9) |
 | Cross-dispatch | Manual routing | `barracuda::dispatch` | **Validated** (16/16) |
 
 ---
@@ -123,7 +127,8 @@ metalForge/
 │   └── nvidia/
 │       ├── DISPATCH.md    ← RTX 4070 dispatch latency measurements
 │       └── HARDWARE.md    ← RTX 4070 hardware characterization
-├── shaders/               ← Phase 3+4c WGSL evolution (12 shaders, absorption candidates)
+├── ABSORPTION_MANIFEST.md ← comprehensive absorption inventory (hotSpring pattern)
+├── shaders/               ← Phase 3+4c+4e WGSL evolution (16 shaders, absorption candidates)
 │   ├── ABSORPTION_TRACKER.md  ← lifecycle tracker for all shaders
 │   ├── hmm_forward_log.wgsl   ← HMM forward pass, log-domain (Papers 016–018)
 │   ├── batch_fitness_eval.wgsl ← Parallel population fitness (Papers 011–015)
@@ -134,8 +139,12 @@ metalForge/
 │   ├── spatial_payoff.wgsl    ← PD spatial stencil (Paper 019)
 │   ├── batch_ipr.wgsl         ← Batch IPR computation (Papers 022–023)
 │   ├── pairwise_hamming.wgsl  ← Pairwise Hamming distance (Paper 017)
-│   ├── head_split.wgsl       ← GPU head split for MHA: [B,S,D] → [B,H,S,D/H], absorption target: barracuda::ops::mha
-│   ├── head_concat.wgsl      ← GPU head concat for MHA: [B,H,S,D/H] → [B,S,D], absorption target: barracuda::ops::mha
+│   ├── pairwise_l2.wgsl      ← Pairwise L2 distance (Paper 012 — MODES)
+│   ├── multi_obj_fitness.wgsl ← Multi-objective fitness (Paper 014 — Directed Evo)
+│   ├── swarm_nn_forward.wgsl ← Batch NN forward pass (Paper 015 — Swarm Robotics)
+│   ├── hill_gate.wgsl        ← Two-input Hill AND gate (Paper 021 — Signal)
+│   ├── head_split.wgsl       ← GPU head split for MHA: [B,S,D] → [B,H,S,D/H]
+│   ├── head_concat.wgsl      ← GPU head concat for MHA: [B,H,S,D/H] → [B,S,D]
 │   └── xoshiro128ss.wgsl     ← GPU-parallel PRNG, Xoshiro128** (all stochastic)
 └── fossils/               ← Absorbed evolved code (see FOSSIL_RECORD.md)
     ├── evolved_s01_s11/   ← Deprecated workaround modules (~2,864 LOC)
@@ -156,7 +165,7 @@ directory for WGSL evolution. The lifecycle is:
 5. **Handoff**: Document in `wateringHole/handoffs/` for ToadStool
 6. **Retire**: When ToadStool absorbs, remove local code
 
-### Active Shader Evolutions (Phase 3c + 4c — 12 shaders, 84/84 PASS)
+### Active Shader Evolutions (Phase 3c + 4c + 4e — 16 shaders, 123/123 PASS)
 
 | Shader | Target Workload | GPU Strategy | Rust Export |
 |--------|----------------|--------------|-------------|
@@ -172,6 +181,10 @@ directory for WGSL evolution. The lifecycle is:
 | `head_split.wgsl` | MHA head split | [B,S,D] → [B,H,S,D/H] data movement | `evolved::WGSL_HEAD_SPLIT` |
 | `head_concat.wgsl` | MHA head concat | [B,H,S,D/H] → [B,S,D] data movement | `evolved::WGSL_HEAD_CONCAT` |
 | `xoshiro128ss.wgsl` | GPU PRNG (all stochastic) | One thread/stream, 4×u32 state | `rng::WGSL_XOSHIRO128SS` |
+| `pairwise_l2.wgsl` | MODES pairwise L2 (012) | One thread/pair, Euclidean in feature space | `modes::WGSL_PAIRWISE_L2` |
+| `multi_obj_fitness.wgsl` | Multi-obj fitness (014) | One thread/(individual,objective), mean+std | `directed_evolution::WGSL_MULTI_OBJ_FITNESS` |
+| `swarm_nn_forward.wgsl` | Swarm NN forward (015) | One thread/(controller,eval), 1→4→5 MLP | `swarm_robotics::WGSL_SWARM_NN_FORWARD` |
+| `hill_gate.wgsl` | Hill AND gate (021) | One thread/(cdg,ai), two-input Hill | `signal_integration::WGSL_HILL_GATE` |
 
 Following the hotSpring pattern, each WGSL shader is exported as a `pub const`
 from its parent Rust library module. ToadStool/BarraCUDA can absorb these by

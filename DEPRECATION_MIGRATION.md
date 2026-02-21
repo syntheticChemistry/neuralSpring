@@ -70,6 +70,20 @@ production sizes up to B=4, S=128, H=8, d=512).
 
 ---
 
+## Deep Evolution (Sessions 1-2 Audit)
+
+| Change | Scope | Impact |
+|--------|-------|--------|
+| `primitives.rs` module | 8 library modules | Shannon (6 variants), Hill (3), sigmoid (2), RK4 (2) centralized; magic numbers (`1e-15`, `1e-300`, `1e-20`) promoted to named constants |
+| Flat row-major HMM | `hmm.rs` + 5 binaries | `Vec<Vec<f64>>` → flat `Vec<f64>` for transition, emission, alpha, posterior — GPU buffer-ready |
+| Flat row-major spectral | `spectral_commutativity.rs` + 3 binaries | All matrix ops → flat `Vec<f64>` with explicit `n` dimension |
+| `require!` macro | `validation.rs` + 8 binaries | All `.expect()` → graceful `require!(h, result, label)` — no panic on GPU failure |
+| Zero-copy genotypes | `eco_dynamics.rs` | `Vec<u8>` → `&[u8]`, `HashSet<Vec<u8>>` → `HashSet<&[u8]>` |
+| SPDX headers | 40 Python/shell files | All files have `AGPL-3.0-or-later` identifier |
+| Runtime discovery | `surrogate_validation.py` | Cross-primal `airSpring` path → env var + sibling probe |
+
+---
+
 ## Migration Complete
 
 | Priority | Action | Status |

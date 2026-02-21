@@ -84,4 +84,47 @@ Each shader follows this lifecycle:
 
 ---
 
+## Absorption Readiness (February 21, 2026)
+
+### GPU-Ready Library Modules
+
+Library modules now use flat row-major layouts that match shader binding
+layouts, reducing the conversion barrier for ToadStool absorption:
+
+| Module | Layout | Shader Buffer Match |
+|--------|--------|---------------------|
+| `hmm.rs` | Flat `Vec<f64>` (T×N) | `hmm_forward_log.wgsl` `@binding(2) prev_alpha: array<f32>` |
+| `spectral_commutativity.rs` | Flat `Vec<f64>` (N×N) | `barracuda::ops::matmul` flat buffer input |
+| `primitives.rs` | Centralized math constants | Shader `const` declarations (e.g. `LOG_GUARD`) |
+| `anderson_localization.rs` | Flat `Vec<f64>` (N×N) | `batch_ipr.wgsl` `@binding(0) hamiltonians: array<f32>` |
+| `directed_evolution.rs` | Flat `Vec<f64>` (pop×genome) | `multi_obj_fitness.wgsl` `@binding(0) genotypes: array<f32>` |
+| `sate_alignment.rs` | Flat `Vec<u8>` (n×len) | `pairwise_hamming.wgsl` `@binding(0) sequences: array<u32>` |
+| `pinn.rs` | Scalar + grid ops | `barracuda::tensor` matmul+tanh buffer input |
+| `deeponet.rs` | Scalar + polynomial | `barracuda::tensor` matmul buffer input |
+
+### Validation Robustness
+
+All validation binaries use `require!` macro for GPU operations, enabling
+graceful degradation when specific adapters or features are unavailable.
+This supports the cross-backend validation pattern required by ToadStool
+(GPU → CPU → NPU parity testing).
+
+### Next Absorption Targets
+
+Following the hotSpring lifecycle (evolve → validate → handoff → absorb → retire):
+
+| Shader | Status | Next Step |
+|--------|--------|-----------|
+| `hmm_forward_log.wgsl` | Validated (13/13), flat layout ready | Handoff to `barracuda::ops::hmm` |
+| `batch_fitness_eval.wgsl` | Validated (20/20) | Handoff to `barracuda::ops::batch_gemm` |
+| `rk4_parallel.wgsl` | Validated (8/8) | Handoff to `barracuda::ops::ode` |
+| `pairwise_jaccard.wgsl` | Validated (6/6), flat layout ready | Handoff to `barracuda::ops::pairwise_distance` |
+| `head_split.wgsl` / `head_concat.wgsl` | Validated (10/10) | Handoff to `barracuda::ops::mha` |
+| `pairwise_l2.wgsl` | Validated (15/15) | Handoff to `barracuda::ops::pairwise_distance` |
+| `multi_obj_fitness.wgsl` | Validated (6/6) | Handoff to `barracuda::ops::batch_gemm` |
+| `swarm_nn_forward.wgsl` | Validated (9/9) | Handoff to `barracuda::ops::batch_gemm` |
+| `hill_gate.wgsl` | Validated (9/9) | Handoff to `barracuda::ops::elementwise` |
+
+---
+
 *Shader evolution tracker — following the hotSpring metalForge pattern.*

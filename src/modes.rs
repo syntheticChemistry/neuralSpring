@@ -20,6 +20,15 @@
 //! - Complexity metric: `barracuda::ops::FusedMapReduceF64` (genome variance)
 //! - Ecology metric: scalar reduction (Shannon entropy of type counts)
 
+/// WGSL shader: pairwise L2 distance for novelty search.
+///
+/// One thread per upper-triangular pair, computes Euclidean distance
+/// in feature space. Paper 012 (MODES novelty metric).
+///
+/// Absorption target: `barracuda::ops::pairwise_distance`.
+/// Validated: `validate_gpu_modes` (15/15 PASS).
+pub const WGSL_PAIRWISE_L2: &str = include_str!("../metalForge/shaders/pairwise_l2.wgsl");
+
 /// Rate of novel type appearance over time.
 ///
 /// `change[0] = 0`, `change[t] = lineage_counts[t] - lineage_counts[t-1]`.
@@ -61,7 +70,11 @@ pub fn novelty_metric(type_features: &[Vec<f64>]) -> Vec<f64> {
     novelty
 }
 
-fn l2_distance(a: &[f64], b: &[f64]) -> f64 {
+/// L2 (Euclidean) distance between two feature vectors.
+///
+/// Used by `novelty_metric`. Exposed for GPU validation.
+#[must_use]
+pub fn l2_distance(a: &[f64], b: &[f64]) -> f64 {
     let n = a.len().min(b.len());
     let sum_sq: f64 = a
         .iter()
@@ -97,7 +110,7 @@ pub fn complexity_metric(complexities: &[f64]) -> (f64, bool) {
         sum_t2 += t_f * t_f;
     }
     let denom = (n as f64).mul_add(sum_t2, -(sum_t * sum_t));
-    let slope = if denom.abs() < 1e-15 {
+    let slope = if denom.abs() < crate::primitives::DIVISION_GUARD {
         0.0
     } else {
         (n as f64).mul_add(sum_times_c, -(sum_t * sum_c)) / denom
@@ -108,6 +121,7 @@ pub fn complexity_metric(complexities: &[f64]) -> (f64, bool) {
 /// Shannon equitability at each timestep: `H/H_max`.
 ///
 /// p = abd/sum(abd), H = -sum(p*ln(p)), `H_max` = ln(S).
+/// Delegates to [`crate::primitives::shannon_equitability`].
 #[must_use]
 pub fn ecology_metric(abundances: &[Vec<f64>]) -> Vec<f64> {
     abundances
@@ -117,18 +131,8 @@ pub fn ecology_metric(abundances: &[Vec<f64>]) -> Vec<f64> {
             if sum <= 0.0 {
                 return 0.0;
             }
-            let p: Vec<f64> = abd.iter().filter(|&&x| x > 0.0).map(|&x| x / sum).collect();
-            let s = p.len();
-            if s <= 1 {
-                return 0.0;
-            }
-            let h: f64 = p.iter().map(|x| -x * x.ln()).sum();
-            let h_max = (s as f64).ln();
-            if h_max <= 0.0 {
-                0.0
-            } else {
-                h / h_max
-            }
+            let freqs: Vec<f64> = abd.iter().map(|&x| x / sum).collect();
+            crate::primitives::shannon_equitability(&freqs)
         })
         .collect()
 }

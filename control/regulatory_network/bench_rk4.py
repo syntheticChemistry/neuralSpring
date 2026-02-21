@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 #!/usr/bin/env python3
 """Benchmark: RK4 integration of 3-variable GRN ODE (2000 steps, dt=0.01)."""
 import os

@@ -27,6 +27,7 @@ use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::evolved::mha::multi_head_attention_2d;
 use neural_spring::gpu::Gpu;
+use neural_spring::require;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
@@ -81,14 +82,16 @@ struct TransformerBaseline {
 // Helpers
 // ═════════════════════════════════════════════════════════════════════════
 
-#[allow(clippy::expect_used)]
-fn readback(t: &Tensor) -> Vec<f32> {
-    t.to_vec().expect("GPU readback failed")
+fn readback(t: &Tensor) -> Result<Vec<f32>, barracuda::error::BarracudaError> {
+    t.to_vec()
 }
 
-#[allow(clippy::expect_used)]
-fn t(data: &[f32], shape: Vec<usize>, device: &Dev) -> Tensor {
-    Tensor::from_data(data, shape, device.clone()).expect("tensor upload")
+fn t(
+    data: &[f32],
+    shape: Vec<usize>,
+    device: &Dev,
+) -> Result<Tensor, barracuda::error::BarracudaError> {
+    Tensor::from_data(data, shape, device.clone())
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -158,19 +161,31 @@ fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
     let mut biases = Vec::new();
     for (i, w_data) in baseline.weights.iter().enumerate() {
         let [rows, cols] = baseline.weight_shapes[i];
-        weights.push(t(w_data, vec![rows, cols], device));
+        weights.push(require!(
+            h,
+            t(w_data, vec![rows, cols], device),
+            "tensor upload"
+        ));
     }
     for b_data in &baseline.biases {
         let cols = b_data.len();
-        biases.push(t(b_data, vec![1, cols], device));
+        biases.push(require!(
+            h,
+            t(b_data, vec![1, cols], device),
+            "tensor upload"
+        ));
     }
 
-    let input = t(&baseline.input, vec![1, baseline.input.len()], device);
+    let input = require!(
+        h,
+        t(&baseline.input, vec![1, baseline.input.len()], device),
+        "tensor upload"
+    );
     let result = mlp_forward(&input, &weights, &biases);
 
     match result {
         Ok(output) => {
-            let probs = readback(&output);
+            let probs = require!(h, readback(&output), "GPU readback failed");
 
             // Check predicted class matches
             let predicted = probs
@@ -257,17 +272,53 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
     let d = cfg.d_model;
     let d_ff = cfg.d_ff;
 
-    let input = t(&baseline.input, baseline.input_shape.to_vec(), device);
+    let input = require!(
+        h,
+        t(&baseline.input, baseline.input_shape.to_vec(), device),
+        "tensor upload"
+    );
 
-    let w_q = t(&baseline.weights.w_q, vec![d, d], device);
-    let w_k = t(&baseline.weights.w_k, vec![d, d], device);
-    let w_v = t(&baseline.weights.w_v, vec![d, d], device);
-    let w_o = t(&baseline.weights.w_o, vec![d, d], device);
-    let w_ff1 = t(&baseline.weights.w_ff1, vec![d, d_ff], device);
-    let w_ff2 = t(&baseline.weights.w_ff2, vec![d_ff, d], device);
+    let w_q = require!(
+        h,
+        t(&baseline.weights.w_q, vec![d, d], device),
+        "tensor upload"
+    );
+    let w_k = require!(
+        h,
+        t(&baseline.weights.w_k, vec![d, d], device),
+        "tensor upload"
+    );
+    let w_v = require!(
+        h,
+        t(&baseline.weights.w_v, vec![d, d], device),
+        "tensor upload"
+    );
+    let w_o = require!(
+        h,
+        t(&baseline.weights.w_o, vec![d, d], device),
+        "tensor upload"
+    );
+    let w_ff1 = require!(
+        h,
+        t(&baseline.weights.w_ff1, vec![d, d_ff], device),
+        "tensor upload"
+    );
+    let w_ff2 = require!(
+        h,
+        t(&baseline.weights.w_ff2, vec![d_ff, d], device),
+        "tensor upload"
+    );
 
-    let b_ff1_row = t(&baseline.weights.b_ff1, vec![1, d_ff], device);
-    let b_ff2_row = t(&baseline.weights.b_ff2, vec![1, d], device);
+    let b_ff1_row = require!(
+        h,
+        t(&baseline.weights.b_ff1, vec![1, d_ff], device),
+        "tensor upload"
+    );
+    let b_ff2_row = require!(
+        h,
+        t(&baseline.weights.b_ff2, vec![1, d], device),
+        "tensor upload"
+    );
 
     let result = (|| -> Result<Tensor, String> {
         let e = |err: barracuda::error::BarracudaError| err.to_string();
@@ -311,7 +362,7 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
 
     match result {
         Ok(output) => {
-            let out_data = readback(&output);
+            let out_data = require!(h, readback(&output), "GPU readback failed");
 
             h.check_bool(
                 "Transformer output shape matches",

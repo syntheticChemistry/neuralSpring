@@ -44,12 +44,11 @@ fn main() {
 fn validate_barracuda_eigh_vs_jacobi(h: &mut ValidationHarness, rng: &mut Rng) {
     let n = 16;
     let ham = anderson_hamiltonian_random(n, 1.0, 2.0, rng);
-    let flat: Vec<f64> = ham.iter().flat_map(|row| row.iter().copied()).collect();
 
-    let (mut jacobi_vals, _) = jacobi_eigh(&ham);
+    let (mut jacobi_vals, _) = jacobi_eigh(&ham, n);
     jacobi_vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
-    match barracuda::linalg::eigh_f64(&flat, n) {
+    match barracuda::linalg::eigh_f64(&ham, n) {
         Ok(eig) => {
             h.check_bool(
                 &format!("barracuda returns {n} eigenvalues"),
@@ -62,8 +61,6 @@ fn validate_barracuda_eigh_vs_jacobi(h: &mut ValidationHarness, rng: &mut Rng) {
                 .map(|(a, b)| (a - b).abs())
                 .fold(0.0_f64, f64::max);
 
-            // barracuda Jacobi eigensolver: ~0.1 eigenvalue error at n=16
-            // (limited iterations). ToadStool handoff: Lanczos for machine precision.
             h.check_upper(
                 &format!("eigenvalues agree (max_diff={max_diff:.2e})"),
                 max_diff,
@@ -93,12 +90,9 @@ fn validate_barracuda_aubry_andre(h: &mut ValidationHarness) {
     let h_below = aubry_andre_hamiltonian(n, 1.0, 1.5, alpha, 0.0);
     let h_above = aubry_andre_hamiltonian(n, 1.0, 3.0, alpha, 0.0);
 
-    let flat_below: Vec<f64> = h_below.iter().flat_map(|r| r.iter().copied()).collect();
-    let flat_above: Vec<f64> = h_above.iter().flat_map(|r| r.iter().copied()).collect();
-
     match (
-        barracuda::linalg::eigh_f64(&flat_below, n),
-        barracuda::linalg::eigh_f64(&flat_above, n),
+        barracuda::linalg::eigh_f64(&h_below, n),
+        barracuda::linalg::eigh_f64(&h_above, n),
     ) {
         (Ok(eig_below), Ok(eig_above)) => {
             let ipr_below = barracuda_mean_ipr_from_vecs(&eig_below.eigenvectors, n);
@@ -125,12 +119,9 @@ fn validate_barracuda_disorder_trend(h: &mut ValidationHarness) {
     let h_weak = anderson_hamiltonian_random(n, 1.0, 0.5, &mut rng);
     let h_strong = anderson_hamiltonian_random(n, 1.0, 8.0, &mut rng);
 
-    let flat_weak: Vec<f64> = h_weak.iter().flat_map(|r| r.iter().copied()).collect();
-    let flat_strong: Vec<f64> = h_strong.iter().flat_map(|r| r.iter().copied()).collect();
-
     if let (Ok(eig_weak), Ok(eig_strong)) = (
-        barracuda::linalg::eigh_f64(&flat_weak, n),
-        barracuda::linalg::eigh_f64(&flat_strong, n),
+        barracuda::linalg::eigh_f64(&h_weak, n),
+        barracuda::linalg::eigh_f64(&h_strong, n),
     ) {
         let ipr_weak = barracuda_mean_ipr_from_vecs(&eig_weak.eigenvectors, n);
         let ipr_strong = barracuda_mean_ipr_from_vecs(&eig_strong.eigenvectors, n);
@@ -150,13 +141,11 @@ fn validate_barracuda_disorder_trend(h: &mut ValidationHarness) {
         h.check_bool("barracuda disorder IPR [SKIPPED]", false);
     }
 
-    // Cross-validate: barracuda eigenvalues match hand-rolled for same input
     let h_test = anderson_hamiltonian_random(n, 1.0, 2.0, &mut rng);
-    let flat_test: Vec<f64> = h_test.iter().flat_map(|r| r.iter().copied()).collect();
-    let (mut jacobi_vals, _) = jacobi_eigh(&h_test);
+    let (mut jacobi_vals, _) = jacobi_eigh(&h_test, n);
     jacobi_vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
-    match barracuda::linalg::eigh_f64(&flat_test, n) {
+    match barracuda::linalg::eigh_f64(&h_test, n) {
         Ok(eig) => {
             let max_diff: f64 = jacobi_vals
                 .iter()

@@ -55,6 +55,8 @@ ToadStool's `UnidirectionalPipeline` reduces round-trips; BarraCUDA's
 |----------|--------|--------|--------|
 | EA fitness routing | `batch_fitness_eval.wgsl` | `validate_cross_dispatch` | **8/8 PASS** |
 | Genomics (Jaccard + variance) | `pairwise_jaccard.wgsl` + `locus_variance.wgsl` | `validate_cross_dispatch_genomics` | **8/8 PASS** |
+| Extended (Papers 017, 019, 022–023) | Hamming, spatial_payoff, batch_ipr | `validate_cross_dispatch_extended` | **12/12 PASS** |
+| Phase 4e (Papers 012, 014, 015, 021) | pairwise_l2, multi_obj_fitness, swarm_nn_forward, hill_gate | `validate_cross_dispatch_phase4e` | **13/13 PASS** |
 
 ### GPU→CPU (Phase 1d — validated)
 
@@ -99,7 +101,7 @@ for iterative workloads.
 | `StatefulPipeline` | HMM chain, ODE loops | **Validated** (10/10 PASS) |
 | `ReduceScalarPipeline` | Log-likelihood, convergence | Available (local mean_reduce validated) |
 | `KernelRouter` | 4-tier matmul | **Absorbed** (S-02) — replaces local shaders |
-| `DispatchConfig` | CPU/GPU routing | **Validated** (8/8 PASS) |
+| `DispatchConfig` | CPU/GPU routing | **Validated** (8+8+12+13 = 41 cross-dispatch PASS) |
 | `DeviceCapabilities` | Per-substrate dispatch | Already used |
 
 ---

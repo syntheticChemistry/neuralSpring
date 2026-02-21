@@ -32,7 +32,7 @@ fn main() {
 
     // Check 1: Normal (symmetric) matrices have distance ≈ 0
     let sym = random_symmetric(n, &mut rng);
-    let d_sym = distance_to_normal(&sym);
+    let d_sym = distance_to_normal(&sym, n);
     h.check_upper(
         &format!("symmetric (normal) dist_normal ({d_sym:.2e}) < CROSS_LANGUAGE"),
         d_sym,
@@ -41,7 +41,7 @@ fn main() {
 
     // Check 2: Identity is normal (distance = 0)
     let identity = identity_matrix(n);
-    let d_id = distance_to_normal(&identity);
+    let d_id = distance_to_normal(&identity, n);
     h.check_upper(
         &format!("identity dist_normal ({d_id:.2e}) < ZERO_DETECTION"),
         d_id,
@@ -51,7 +51,7 @@ fn main() {
     // Check 3: Skip connections reduce commutativity
     let w1 = random_matrix(n, &mut rng);
     let w2 = random_matrix(n, &mut rng);
-    let (raw, skip) = skip_commutativity(&w1, &w2);
+    let (raw, skip) = skip_commutativity(&w1, &w2, n);
     h.check_bool(&format!("skip ({skip:.6}) < raw ({raw:.6})"), skip < raw);
 
     // Check 4: Residual layers (I+eps*W) nearly commute for small eps
@@ -59,14 +59,10 @@ fn main() {
     let w2_r = random_matrix(n, &mut rng);
     let eps = 0.01_f64;
     let eye = identity_matrix(n);
-    let r1: Vec<Vec<f64>> = (0..n)
-        .map(|i| (0..n).map(|j| eye[i][j] + eps * w1_r[i][j]).collect())
-        .collect();
-    let r2: Vec<Vec<f64>> = (0..n)
-        .map(|i| (0..n).map(|j| eye[i][j] + eps * w2_r[i][j]).collect())
-        .collect();
-    let comm_res = commutativity_ratio(&r1, &r2);
-    let comm_raw = commutativity_ratio(&w1_r, &w2_r);
+    let r1: Vec<f64> = (0..n * n).map(|ij| eye[ij] + eps * w1_r[ij]).collect();
+    let r2: Vec<f64> = (0..n * n).map(|ij| eye[ij] + eps * w2_r[ij]).collect();
+    let comm_res = commutativity_ratio(&r1, &r2, n);
+    let comm_raw = commutativity_ratio(&w1_r, &w2_r, n);
     h.check_bool(
         &format!("residual ({comm_res:.6}) < raw ({comm_raw:.6})"),
         comm_res < comm_raw,
@@ -75,12 +71,11 @@ fn main() {
     // Check 5: Commutator anti-symmetry [A,B] = -[B,A]
     let a = random_matrix(n, &mut rng);
     let b = random_matrix(n, &mut rng);
-    let ab = commutator(&a, &b);
-    let ba = commutator(&b, &a);
+    let ab = commutator(&a, &b, n);
+    let ba = commutator(&b, &a, n);
     let err: f64 = ab
         .iter()
         .zip(ba.iter())
-        .flat_map(|(ra, rb)| ra.iter().zip(rb.iter()))
         .map(|(&x, &y)| (x + y).powi(2))
         .sum::<f64>()
         .sqrt();
@@ -94,7 +89,7 @@ fn main() {
     let mut min_d = f64::MAX;
     for _ in 0..50 {
         let m = random_matrix(n, &mut rng);
-        let d = distance_to_normal(&m);
+        let d = distance_to_normal(&m, n);
         min_d = min_d.min(d);
     }
     h.check_lower(
@@ -104,7 +99,7 @@ fn main() {
     );
 
     // Check 7: Spectral gap ≈ 0 for normal (symmetric)
-    let gap_sym = spectral_gap_approx(&sym);
+    let gap_sym = spectral_gap_approx(&sym, n);
     h.check_upper(
         &format!("normal spectral gap ({gap_sym:.2e}) < CROSS_LANGUAGE"),
         gap_sym,

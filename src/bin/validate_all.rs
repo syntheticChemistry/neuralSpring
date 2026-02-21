@@ -30,6 +30,8 @@ const BINARIES: &[&str] = &[
     "validate_anderson_localization",
     "validate_pangenome_selection",
     "validate_meta_population",
+    "validate_pinn",
+    "validate_deeponet",
     // BarraCUDA CPU primitive validation
     "validate_barracuda_stats",
     "validate_barracuda_linalg",
@@ -57,6 +59,8 @@ const BINARIES: &[&str] = &[
     "validate_barracuda_game",
     "validate_barracuda_pangenome",
     "validate_barracuda_meta_pop",
+    "validate_barracuda_pinn",
+    "validate_barracuda_deeponet",
     // BarraCUDA extended validation
     "validate_barracuda_fft",
     "validate_barracuda_logsumexp",
@@ -74,19 +78,30 @@ const BINARIES: &[&str] = &[
     "validate_gpu_game_theory", // Paper 019 — spatial payoff stencil
     "validate_gpu_anderson",    // Papers 022-023 — batch IPR
     "validate_gpu_sate",        // Paper 017 — pairwise Hamming
+    "validate_gpu_modes",       // Paper 012 — pairwise L2 distance
+    "validate_gpu_directed",    // Paper 014 — multi-objective fitness
+    "validate_gpu_swarm",       // Paper 015 — neural net forward
+    "validate_gpu_signal",      // Paper 021 — Hill function gate
     // Cross-dispatch (Phase 3d+)
     "validate_cross_dispatch_genomics",
     "validate_cross_dispatch_extended",
+    "validate_cross_dispatch_phase4e",
     // Pure GPU end-to-end pipelines (Phase 4b)
     "validate_gpu_pipeline_hmm",
     "validate_gpu_pipeline_ecology",
     "validate_gpu_pipeline_spectral",
     "validate_gpu_pipeline_genomics",
+    "validate_gpu_pipeline_modes",
+    "validate_gpu_pipeline_directed",
+    "validate_gpu_pipeline_signal",
     // GPU PRNG (Phase 4c)
     "validate_gpu_prng",
     // ToadStool issue resolution (Phase 4d)
     "validate_eigh_accuracy",
     "validate_mha_gpu",
+    // BarraCUDA GPU tensor validation (Phase 5a)
+    "validate_barracuda_gpu_spectral",
+    "validate_barracuda_gpu_eco",
 ];
 
 fn main() {

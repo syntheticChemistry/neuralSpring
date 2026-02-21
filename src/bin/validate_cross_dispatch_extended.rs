@@ -390,24 +390,23 @@ fn validate_ipr_parity(h: &mut ValidationHarness, gpu: &Gpu) {
     let phi = 0.0_f64;
 
     let h_mat = aubry_andre_hamiltonian(n, t, w, alpha, phi);
-    let (_eigvals, ev) = jacobi_eigh(&h_mat);
+    let (_eigvals, ev) = jacobi_eigh(&h_mat, n);
 
-    let n_vecs = ev[0].len();
-    let mut flat: Vec<f32> = Vec::with_capacity(n * n_vecs);
-    for k in 0..n_vecs {
+    let mut flat: Vec<f32> = Vec::with_capacity(n * n);
+    for k in 0..n {
         for i in 0..n {
-            flat.push(ev[i][k] as f32);
+            flat.push(ev[i * n + k] as f32);
         }
     }
 
-    let cpu_ipr: Vec<f64> = (0..n_vecs)
+    let cpu_ipr: Vec<f64> = (0..n)
         .map(|k| {
-            let col: Vec<f64> = ev.iter().map(|row| row[k]).collect();
+            let col: Vec<f64> = (0..n).map(|i| ev[i * n + k]).collect();
             ipr(&col)
         })
         .collect();
 
-    match gpu_batch_ipr(gpu, &flat, n as u32, n_vecs as u32) {
+    match gpu_batch_ipr(gpu, &flat, n as u32, n as u32) {
         Ok(gpu_ipr) => {
             let max_diff: f64 = gpu_ipr
                 .iter()

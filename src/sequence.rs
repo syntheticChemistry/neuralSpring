@@ -62,10 +62,10 @@ pub fn seasonal_tmax(doy: u32) -> f64 {
 
 /// Sigmoid activation (used in LSTM/GRU gates).
 ///
-/// σ(x) = 1 / (1 + exp(-x))
+/// Delegates to [`crate::primitives::sigmoid`] (numerically stable).
 #[must_use]
 pub fn sigmoid(x: f64) -> f64 {
-    1.0 / (1.0 + (-x).exp())
+    crate::primitives::sigmoid(x)
 }
 
 /// Tanh activation (used in LSTM cell state).

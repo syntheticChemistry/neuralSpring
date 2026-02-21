@@ -36,6 +36,7 @@
 //! `validate_gpu_pangenome` (6/6 PASS, max error ~1e-8).
 //! - Jaccard distance: pairwise GEMV
 
+use crate::primitives;
 use crate::rng::Rng;
 
 /// WGSL shader: pairwise Jaccard distance from a pangenome PA matrix.
@@ -257,14 +258,8 @@ pub fn gene_repertoire_diversity(pa: &[f64], n_genes: usize, n_genomes: usize) -
     }
 
     let total = n_genomes as f64;
-    let mut h = 0.0;
-    for &c in counts.values() {
-        let p = c as f64 / total;
-        if p > 1e-15 {
-            h -= p * (p + 1e-20).ln();
-        }
-    }
-    h
+    let freqs: Vec<f64> = counts.values().map(|&c| c as f64 / total).collect();
+    primitives::shannon_entropy(&freqs)
 }
 
 /// Pairwise Jaccard distance between genomes (columns of PA matrix).

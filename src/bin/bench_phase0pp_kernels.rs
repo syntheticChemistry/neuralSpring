@@ -33,13 +33,17 @@ use std::process::Command;
 use std::time::{Duration, Instant};
 
 use neural_spring::counterdiabatic::NkLandscape;
+use neural_spring::directed_evolution::multi_objective_fitness;
 use neural_spring::game_theory;
 use neural_spring::hmm::Hmm;
+use neural_spring::modes::l2_distance;
 use neural_spring::pangenome_selection;
 use neural_spring::regulatory_network::{self, GrnParams};
 use neural_spring::rng::Rng;
 use neural_spring::sate_alignment;
+use neural_spring::signal_integration::two_input_hill;
 use neural_spring::spectral_commutativity;
+use neural_spring::swarm_robotics::neural_forward;
 
 const WARMUP: usize = 10;
 const ITERATIONS: usize = 200;
@@ -62,6 +66,10 @@ fn main() {
         bench_hamming(),
         bench_jaccard(),
         bench_rk4_grn(),
+        bench_pairwise_l2(),
+        bench_multi_obj_fitness(),
+        bench_hill_gate(),
+        bench_swarm_nn_forward(),
     ];
 
     if with_python {
@@ -141,11 +149,11 @@ fn bench_replicator() -> BenchResult {
 fn bench_commutator() -> BenchResult {
     let mut rng = Rng::new(42);
     let dim = 64;
-    let a = make_random_matrix(dim, &mut rng);
-    let b = make_random_matrix(dim, &mut rng);
+    let a = spectral_commutativity::random_matrix(dim, &mut rng);
+    let b = spectral_commutativity::random_matrix(dim, &mut rng);
 
     let timings = bench_kernel(|| {
-        let _ = spectral_commutativity::commutativity_ratio(&a, &b);
+        let _ = spectral_commutativity::commutativity_ratio(&a, &b, dim);
     });
     let us = median_us(&timings);
 
@@ -198,12 +206,10 @@ fn bench_hamming() -> BenchResult {
     let mut rng = Rng::new(42);
     let n_seqs = 20;
     let seq_len = 500;
-    let seqs: Vec<Vec<u8>> = (0..n_seqs)
-        .map(|_| (0..seq_len).map(|_| (rng.usize(4)) as u8).collect())
-        .collect();
+    let seqs: Vec<u8> = (0..n_seqs * seq_len).map(|_| rng.usize(4) as u8).collect();
 
     let timings = bench_kernel(|| {
-        let _ = sate_alignment::pairwise_distance_matrix(&seqs, false);
+        let _ = sate_alignment::pairwise_distance_matrix(&seqs, n_seqs, seq_len, false);
     });
     let us = median_us(&timings);
 
@@ -266,6 +272,137 @@ fn bench_rk4_grn() -> BenchResult {
         rust_us: us,
         python_us: None,
         python_script: "control/regulatory_network/bench_rk4.py".into(),
+    }
+}
+
+// ── Benchmark: Pairwise L2 Distance (Paper 012 - MODES) ────────────────
+
+fn bench_pairwise_l2() -> BenchResult {
+    let n = 10_usize;
+    let dim = 8_usize;
+    let features: Vec<f64> = (0..n * dim).map(|i| (i as f64) * 0.1).collect();
+
+    let timings = bench_kernel(|| {
+        let mut dists = Vec::with_capacity(n * (n - 1) / 2);
+        for i in 0..n {
+            for j in (i + 1)..n {
+                dists.push(l2_distance(
+                    &features[i * dim..(i + 1) * dim],
+                    &features[j * dim..(j + 1) * dim],
+                ));
+            }
+        }
+        std::hint::black_box(dists);
+    });
+    let us = median_us(&timings);
+
+    println!("BENCH_PAIRWISE_L2_10x8_RUST_US={us:.1}");
+
+    BenchResult {
+        name: "Pairwise L2 distance (10×8)".into(),
+        kernel_tag: "PAIRWISE_L2_10x8".into(),
+        papers: "012".into(),
+        rust_us: us,
+        python_us: None,
+        python_script: "control/modes/bench_pairwise_l2.py".into(),
+    }
+}
+
+// ── Benchmark: Multi-objective Fitness (Paper 014 - Directed Evolution) ─
+
+fn bench_multi_obj_fitness() -> BenchResult {
+    let pop_size = 100_usize;
+    let genome_len = 30_usize;
+    let n_objectives = 3_usize;
+    let mut rng = Rng::new(42);
+    let population: Vec<f64> = (0..pop_size * genome_len).map(|_| rng.uniform()).collect();
+
+    let timings = bench_kernel(|| {
+        let mut all = Vec::with_capacity(pop_size * n_objectives);
+        for i in 0..pop_size {
+            all.extend(multi_objective_fitness(
+                &population[i * genome_len..(i + 1) * genome_len],
+                n_objectives,
+            ));
+        }
+        std::hint::black_box(all);
+    });
+    let us = median_us(&timings);
+
+    println!("BENCH_MULTI_OBJ_FITNESS_100x30x3_RUST_US={us:.1}");
+
+    BenchResult {
+        name: "Multi-objective fitness (100×30×3)".into(),
+        kernel_tag: "MULTI_OBJ_FITNESS_100x30x3".into(),
+        papers: "014".into(),
+        rust_us: us,
+        python_us: None,
+        python_script: "control/directed_evolution/bench_multi_obj.py".into(),
+    }
+}
+
+// ── Benchmark: Two-input Hill Function (Paper 021 - Signal Integration) ─
+
+fn bench_hill_gate() -> BenchResult {
+    let nx = 50_usize;
+    let ny = 50_usize;
+    let cdg_vals: Vec<f64> = (0..nx).map(|i| i as f64 * 0.1).collect();
+    let ai_vals: Vec<f64> = (0..ny).map(|i| i as f64 * 0.1).collect();
+
+    let timings = bench_kernel(|| {
+        let mut out = Vec::with_capacity(nx * ny);
+        for &cdg in &cdg_vals {
+            for &ai in &ai_vals {
+                out.push(two_input_hill(cdg, ai, 1.0, 0.5, 0.3, 2.0, 2.0));
+            }
+        }
+        std::hint::black_box(out);
+    });
+    let us = median_us(&timings);
+
+    println!("BENCH_HILL_GATE_50x50_RUST_US={us:.1}");
+
+    BenchResult {
+        name: "Two-input Hill grid (50×50)".into(),
+        kernel_tag: "HILL_GATE_50x50".into(),
+        papers: "021".into(),
+        rust_us: us,
+        python_us: None,
+        python_script: "control/signal_integration/bench_hill_gate.py".into(),
+    }
+}
+
+// ── Benchmark: Swarm NN Forward Pass (Paper 015 - Swarm Robotics) ────────
+
+fn bench_swarm_nn_forward() -> BenchResult {
+    let n_ctrl = 20_usize;
+    let n_eval = 50_usize;
+    let mut rng = Rng::new(123);
+    let all_params: Vec<Vec<f64>> = (0..n_ctrl)
+        .map(|_| (0..33).map(|_| rng.uniform()).collect())
+        .collect();
+    let inputs: Vec<f64> = (0..n_eval).map(|i| (i as f64) / n_eval as f64).collect();
+
+    let timings = bench_kernel(|| {
+        let mut actions = Vec::with_capacity(n_ctrl * n_eval);
+        for ctrl_params in &all_params {
+            for &sense in &inputs {
+                actions.push(neural_forward(ctrl_params, sense));
+            }
+        }
+        std::hint::black_box(actions);
+    });
+    let us = median_us(&timings);
+
+    println!("BENCH_SWARM_NN_20x50_RUST_US={us:.1}");
+
+    BenchResult {
+        name: "Swarm NN forward (20×50)".into(),
+        kernel_tag: "SWARM_NN_20x50".into(),
+        papers: "015".into(),
+        rust_us: us,
+        python_us: None,
+        python_script: "control/swarm_robotics/bench_swarm_nn.py".into(),
     }
 }
 
@@ -412,10 +549,4 @@ fn make_stochastic_row(n: usize, rng: &mut Rng) -> Vec<f64> {
     let raw: Vec<f64> = (0..n).map(|_| rng.uniform() + 1e-6).collect();
     let sum: f64 = raw.iter().sum();
     raw.iter().map(|&v| v / sum).collect()
-}
-
-fn make_random_matrix(dim: usize, rng: &mut Rng) -> Vec<Vec<f64>> {
-    (0..dim)
-        .map(|_| (0..dim).map(|_| rng.normal()).collect())
-        .collect()
 }
