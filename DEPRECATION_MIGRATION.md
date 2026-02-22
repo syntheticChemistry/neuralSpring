@@ -46,7 +46,7 @@ See `metalForge/fossils/FOSSIL_RECORD.md` for the full inventory.
 | `validate_barracuda_tensor` | Same rewiring (earlier) | Feb 20 |
 | `gpu.rs` | CPU path → `WgpuDevice::new_cpu_relaxed()` | Feb 20 |
 | 7 GPU binaries | Duplicated device init (~800 LOC) → unified `Gpu::new()` | Feb 21 |
-| 10 validation binaries | Hardcoded tolerances → centralized `tolerances.rs` constants | Feb 21 |
+| 10 validation binaries | Hardcoded tolerances → centralized tolerances/ module constants | Feb 21 |
 
 ---
 

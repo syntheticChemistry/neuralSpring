@@ -93,6 +93,8 @@ bridge them.
 
 **All 25 papers complete as of February 20, 2026.** No queued items remain.
 
+Session 42 verified: all `cargo fmt`, `clippy` (pedantic), and `doc` gates pass clean. 264 lib + 9 integration tests.
+
 | Faculty | Papers | Python Checks | Rust Checks |
 |---------|--------|---------------|-------------|
 | Dolson (MSU CS) | 011–015 (5) | 46 | 50 |
@@ -182,7 +184,7 @@ Study 005 uses integer arithmetic (Q8/Q4), not Tensor ops — gT is N/A.
 | Tier | Papers Covered | Total | Coverage | Delta |
 |------|---------------|-------|----------|-------|
 | Python control (Py) | 25/25 | 206 checks | **100%** | — |
-| Rust CPU (Rs) | 25/25 | 255+ checks | **100%** | — |
+| Rust CPU (Rs) | 25/25 | 264+ lib + 9 integration checks | **100%** | — |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** | +12pp (was 84%) |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** | +20pp (was 72%) |
 | metalForge WGSL (mF) | 15/25 | 108 checks | **100%**† | — |
@@ -235,7 +237,7 @@ via `validate_barracuda_quantized` (CPU primitive path).
 
 ---
 
-## Upstream Parity & Capability Dispatch (Session 40)
+## Upstream Parity & Capability Dispatch (Sessions 40, 42)
 
 All 15 Phase 0++ papers have been validated through the full 7-tier stack.
 6 GPU validators have dual-path upstream parity (local vs barracuda wrapper,
@@ -243,6 +245,61 @@ All 15 Phase 0++ papers have been validated through the full 7-tier stack.
 (`Gpu::dispatch_1d`) with runtime hardware validation. Spectral theory
 validator cross-validates dense Householder+QR vs tridiag Sturm bisection
 (17/17 PASS, max diff 2.89e-15). All controls use open data and open systems.
+
+---
+
+## Multi-Hardware Validation Summary (Session 42)
+
+Each paper's controls run on open data and open systems. The progression
+validates correctness at every hardware tier:
+
+### Tier 1: Open Data Controls (Python)
+- **25/25 papers** (206 checks) use open data exclusively
+- Sources: in-code synthetic (deterministic seed 42), Open-Meteo ERA5 (CC BY 4.0),
+  MNIST (CC BY-SA 3.0), published reference data (MIT/Apache-2.0)
+- No proprietary, paywalled, or access-restricted data
+- Python baseline drift detection: `control/check_drift.sh` (all 25 baselines)
+
+### Tier 2: BarraCUDA CPU (Rust native)
+- **24/25 papers** (203 checks, 96% coverage)
+- Pure Rust math: `stats::variance`, `linalg::eigh_f64`, `numerical::rk45_solve`,
+  `special::chi_squared_sf`, `optimize::nelder_mead`
+- Gap: Exp 005 (analytical-only) — no numerical computation
+- Key finding: `rk45_solve` achieves machine-precision parity with hand-rolled RK4
+
+### Tier 3: BarraCUDA GPU (Tensor API)
+- **23/25 papers** (98+ checks, 92% coverage)
+- GPU Tensor ops: `matmul`, `transpose`, `tanh`, `sigmoid`, `add`, `mul`
+- f32 GPU vs f64 CPU agreement: < 1e-3 for most operations
+- Gaps: Exp 005 (analytical), Study 005 (integer Q4/Q8 — validated separately)
+- S-15 workaround: data magnitude ≥ 0.5
+
+### Tier 4: metalForge WGSL (Domain-Specific GPU Kernels)
+- **15/25 papers** (108 checks, 100% of applicable papers)
+- 17 WGSL shaders: `batch_fitness`, `pairwise_l2`, `hmm_forward_log`,
+  `rk4_parallel`, `spatial_payoff`, `batch_ipr`, `hill_gate`, etc.
+- 13/17 absorbed upstream into BarraCUDA; 4 local (S-03b, PRNG, swarm)
+
+### Tier 5: GPU Pipeline (Multi-Kernel Chains)
+- **15/25 papers** (94 checks, 100% of applicable papers)
+- Chained domain→reduce pipelines: HMM, ecology, spectral, genomics, modes,
+  directed evolution, signal integration
+- Single-encoder dispatch: 46-78× speedup over per-op
+
+### Tier 6: Cross-Dispatch (CPU↔GPU Parity)
+- **15/15 Phase 0++ papers** (49 checks, 100%)
+- CPU ↔ GPU routing preserves correctness to machine precision
+- 6 dual-path upstream parity validators: 0.00e0 diff (bit-identical)
+
+### Tier 7: metalForge Mixed Hardware
+- **Capability-based dispatch**: 12 validators use `Gpu::dispatch_1d()` with
+  runtime hardware validation via `GpuCapabilities`
+- **Cross-eigensolver**: Dense Householder+QR vs tridiag Sturm bisection agree
+  at machine epsilon (2.89e-15 at n=64)
+- **RTX 4070 + llvmpipe**: Validated on both GPU (Vulkan) and CPU (software)
+  backends via the same WGSL source
+- **4-tier kernel router**: DeviceCapabilities-driven matmul selection — best
+  kernel per hardware configuration
 
 ---
 

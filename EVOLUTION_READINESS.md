@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 22, 2026 (post-Session 40 sync)
+**Date**: February 22, 2026 (post-Sessions 40, 42 sync)
 **ToadStool HEAD**: `d45fdfb3` (Session 39)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → ToadStool absorption → lean on upstream
 
@@ -36,7 +36,7 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | Upstream parity (dual-path) | 6 GPU validators | **6/6 PASS, 0.00e0 diff** (bit-identical) |
 | ReduceScalarPipeline | f64 mean IPR via GPU reduce | **5.55e-17 diff** (machine ε) |
 | Spectral theory stack | Lanczos, Anderson, Hofstadter, Lyapunov, eigh×Sturm | **17/17 PASS** (hotSpring lineage) |
-| Capability-based dispatch | 12 validators + evolved HMM use `Gpu::dispatch_1d` | **Runtime-validated** (Session 40) |
+| Capability-based dispatch | 12 validators + evolved HMM use `Gpu::dispatch_1d` | **Runtime-validated** (Sessions 40, 42) |
 | Upstream vs local benchmark | 6 kernels, RTX 4070 | **0.92–1.16×** overhead (negligible) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | Grand total checks | **1604+** (206 Py + 1398+ Rust/GPU) | **ALL GREEN** |
@@ -335,7 +335,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo test --lib` | **264 tests PASS** (up from 255) |
 | `cargo test --test integration` | **9 integration tests PASS** (new) |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
-| Centralized tolerances | Split into `tolerances/mod.rs` (constants) + `tolerances/registry.rs` (runtime introspection) — 18 new `NamedTolerance` entries in registry, zero inline magic numbers |
+| Centralized tolerances | Split into tolerances/ module (`mod.rs` + `registry.rs`) — 18 new `NamedTolerance` entries in registry, zero inline magic numbers |
 | GPU validation helpers | Shared `gpu_readback`, `max_abs_diff_gpu_vs_cpu`, `gpu_tensor!` macro — deduplicated ~400 LOC from 24 binaries |
 | GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
 | Idiomatic Rust | HMM flat row-major layout, spectral flat layout, `NkLandscape.k` accessor, `mul_add` for FMA, infallible casts via `From` |

@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 22, 2026 (Session 40 — capability-based dispatch, cross-eigensolver)
+**Last Updated**: February 22, 2026 (Session 42 — deep audit + capability-based dispatch)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -213,5 +213,5 @@ directly — no conversion needed for `Tensor::from_data` or raw `wgpu::Buffer`:
 5. **Hill functions → `numerical::hill`**: Used by regulatory biology + signal
    integration across neuralSpring and potentially hotSpring
 
-*Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15.
+*Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15. Session 42: deep audit complete, all quality gates clean.
 Session 39 sync: S-13 fixed, 5 shaders absorbed upstream (generalized variants), Conv2D/Pool WGSL available.*

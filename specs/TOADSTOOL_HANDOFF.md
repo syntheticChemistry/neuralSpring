@@ -3,7 +3,7 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `d45fdfb3` (Session 40, Feb 22, 2026)
+**Last reviewed:** ToadStool commit `d45fdfb3` (Session 40, Session 42 deep audit, Feb 22, 2026)
 **Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V9_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
 
 ---
@@ -259,7 +259,7 @@ Full diagnosis: `wateringHole/handoffs/`
 
 ---
 
-## Capability-Based Dispatch (Session 40)
+## Capability-Based Dispatch (Sessions 40, 42)
 
 All 12 core GPU validators (batch_fitness, anderson, game_theory, sate, pangenome,
 meta_pop, modes, directed, swarm, signal, rk4) plus the evolved `hmm_forward_gpu`
@@ -308,7 +308,7 @@ Comprehensive codebase audit and debt resolution:
 - Added 3 new constants: `INTROGRESSION_FRACTION_ABS`, `INTROGRESSION_FPR_MAX`, `GENE_TREE_CONCORDANT_MIN`
 - Registered 18 previously unregistered tolerances in the runtime `NamedTolerance` registry
 - Replaced all inline magic numbers in validation binaries with named tolerances
-- Split `tolerances.rs` (1028 lines) into `tolerances/mod.rs` (696) + `tolerances/registry.rs` (341)
+- Split tolerances/ module (1028 lines) into `tolerances/mod.rs` (696) + `tolerances/registry.rs` (341)
 
 ### Provenance
 
@@ -318,7 +318,7 @@ Comprehensive codebase audit and debt resolution:
 
 - **9 new determinism tests**: introgression, regulatory_network, pangenome_selection, meta_population, sate_alignment, signal_integration, game_theory, spectral_commutativity, anderson_localization (total: 16)
 - **9 new integration tests** (`tests/integration.rs`): cross-module consistency, provenance round-trip, tolerance registry lookup, validation harness, HMM/softmax/GELU/benchmark provenance verification
-- Library tests: 255 → **264**
+- Library tests: **264 lib + 9 integration tests** (up from 255 lib)
 
 ### Dependency Analysis
 
@@ -332,3 +332,12 @@ All external dependencies are pure Rust — zero C/C++ wrapper crates:
 - Arithmetic: `a * b + c` → `a.mul_add(b, c)` (FMA)
 - `const fn` where applicable
 - `non_upper_case_globals` → proper naming convention
+
+### Session 42 Deep Audit (February 22, 2026)
+
+- fmt/clippy/doc all clean (0 warnings)
+- GPU validation helpers deduplicated (23 binaries → shared validation.rs)
+- Tolerance module split (mod.rs + registry.rs, 18 new registry entries)
+- 9 new determinism tests, 9 new integration tests
+- Python drift detection script (control/check_drift.sh)
+- Pure Rust dependency tree verified

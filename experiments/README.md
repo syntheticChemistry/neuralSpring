@@ -22,6 +22,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 008 | Upstream BarraCUDA Rewiring | Feb 22, 2026 | 6 bio ops + f64 HMM wired, 0.92–1.16× overhead |
 | 009 | Dual-Path Parity & Spectral Theory | Feb 22, 2026 | 6/6 bit-identical, spectral 14/14, ReduceScalarPipeline |
 | 010 | Capability-Based Dispatch & Cross-Eigensolver | Feb 22, 2026 | 12 validators use `dispatch_1d`, eigh vs Sturm 2.89e-15 |
+| 011 | Session 42 Deep Audit — Code Quality & Debt Resolution | Feb 22, 2026 | 264 lib + 9 integration, all fmt/clippy/doc clean, tolerances split, GPU helpers deduplicated |
 
 ---
 
@@ -211,7 +212,7 @@ neuralSpring, and update all handoffs to reflect the new state.
 
 1. **Pulled** ToadStool `77f70b2e..d45fdfb3` (243 files, +14k/-4.7k lines).
 2. **Audited** barracuda changes: 79 files changed in the barracuda crate.
-3. **Verified** 255/255 lib tests PASS, all 115+ binaries compile.
+3. **Verified** 264/264 lib tests + 9 integration tests PASS, all 119 binaries compile.
 4. **Identified** 5 shaders absorbed upstream as generalized variants:
    - `pairwise_l2` (closed-form pair decode), `multi_obj_fitness` (Bessel correction),
    - `hill_gate` (mode generalization), `swarm_nn_forward` (generic MLP),
@@ -454,6 +455,72 @@ cross-validated on the same matrix — a gap in the spectral theory stack.
 | Spectral theory checks | 14/14 | **17/17** (+3 eigh cross-validation) |
 | Total validation checks | 1604+ | 1607+ |
 | Handoff version | V8 | V9 |
+
+---
+
+## Experiment 011: Session 42 Deep Audit — Code Quality & Debt Resolution
+
+**Date**: February 22, 2026
+**Hardware**: i9-12900K, RTX 4070 12GB, Pop!_OS 22.04
+**Researcher**: Eastgate
+
+### Why
+
+The full codebase had grown through 40+ sessions of feature development. A
+comprehensive audit was needed to enforce idiomatic Rust, eliminate technical
+debt, centralize patterns, and verify the codebase met wateringHole standards
+before the next evolution phase.
+
+### What
+
+1. **Formatting & Linting**: Fixed 33 `cargo fmt` violations and 123 `cargo clippy`
+   warnings (pedantic + nursery + `unwrap_used` + `expect_used`). All checks now pass
+   with zero warnings.
+
+2. **Documentation**: Fixed 1 `cargo doc` warning (unresolved link). All rustdoc clean.
+
+3. **Tolerance Centralization**: Replaced 3 inline magic numbers in validation binaries
+   with named constants. Added 18 previously unregistered tolerances to the runtime
+   `all_tolerances()` registry, making them discoverable via `tolerance_by_name()`.
+
+4. **Module Split**: Split `tolerances.rs` (1028 lines → over limit) into
+   `tolerances/mod.rs` (696 lines, constants) + `tolerances/registry.rs` (341 lines,
+   introspection). Both under 1000-line wateringHole guideline.
+
+5. **GPU Helper Deduplication**: Extracted `gpu_readback()`, `max_abs_diff_f32()`,
+   `max_abs_diff_gpu_vs_cpu()`, `gpu_tensor()`, and `gpu_tensor!` macro from 23
+   validation binaries into shared `validation.rs`. Removed ~400 lines of duplicated code.
+
+6. **Provenance Enhancement**: Added exact Python commands, NumPy/SciPy versions, and
+   environment details for `SOFTMAX_1_TO_5`, `GELU_REFERENCE`, and `RASTRIGIN_REFERENCE`.
+
+7. **Test Coverage Expansion**: Added 9 determinism tests (introgression, regulatory,
+   pangenome, meta-population, SATé, signal, game theory, spectral, Anderson). Created
+   `tests/integration.rs` with 9 cross-module integration tests.
+
+8. **Dependency Analysis**: Confirmed the entire stack (neuralSpring + BarraCUDA) is
+   pure Rust — zero C/C++ wrappers, no FFI.
+
+9. **Drift Detection**: Created `control/check_drift.sh` to re-run all 25 Python
+   baselines and verify no baseline drift. Ready for CI integration.
+
+### Findings
+
+- **No unsafe code**: `#![forbid(unsafe_code)]` enforced, zero violations.
+- **All files under 1000 LOC**: Largest is `tolerances/mod.rs` at 696 lines.
+- **264 lib + 9 integration tests PASS**: Up from 255 lib tests.
+- **94.9% line coverage** maintained.
+- **Pure Rust dependency tree**: No external C/C++ dependencies anywhere.
+- **All fmt/clippy/doc gates**: Zero warnings across all checks.
+
+### Surprises
+
+- `cargo clippy` with pedantic+nursery found 123 warnings in code that had been
+  passing standard clippy for months. Most were `cast_lossless`, `mul_add`, and
+  `redundant_clone` — easy fixes but numerous.
+- The `((VAR++))` bash arithmetic pattern returns exit code 1 when VAR=0 under
+  `set -euo pipefail`, causing the drift detection script to exit prematurely.
+  Changed to `VAR=$((VAR + 1))`.
 
 ---
 

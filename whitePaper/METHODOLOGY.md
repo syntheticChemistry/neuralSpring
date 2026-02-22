@@ -196,8 +196,8 @@ BarraCUDA integration extended it to 1100+ Rust+GPU checks across 115 validation
 | `validate_transformer` | 18 | Softmax properties + GELU known-values |
 | `validate_metrics` | 10 | R², RMSE, MAE, NSE against analytical expectations |
 | 15 Phase 0++ validation binaries | 188 | Paper-specific checks across all domains |
-| Rust unit tests | 255 | Cross-language validation (94.9% line coverage) |
-| Rust doc-tests | 9 | API contract verification |
+| Rust library tests | 264 | Cross-language validation (94.9% line coverage) |
+| Rust integration tests | 9 | Cross-module consistency verification |
 
 ### BarraCUDA (275+ checks)
 
@@ -226,7 +226,7 @@ cross-dispatch binaries, and 7 pure-GPU pipeline binaries.
 ### Quality Gates
 
 `cargo clippy` (pedantic + nursery), `cargo fmt`, `cargo doc`, `unsafe_code = "forbid"`.
-Centralized `tolerances.rs` with 58 named constants. `require!` macro for graceful
+Centralized `tolerances/` module with 58 named constants. `require!` macro for graceful
 GPU error handling.
 
 ## Evolution Roadmap
@@ -236,7 +236,7 @@ GPU error handling.
 | 0 | Python/PyTorch baselines (48 checks) | Science correctness | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Published result fidelity | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty | **COMPLETE** |
-| 1a | neuralSpring Rust validation (255 lib tests) | Cross-language agreement | **COMPLETE** |
+| 1a | neuralSpring Rust validation (264 lib + 9 integration tests) | Cross-language agreement | **COMPLETE** |
 | 1b | BarraCUDA validation (275+ checks) | WGSL shader correctness | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | Single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |

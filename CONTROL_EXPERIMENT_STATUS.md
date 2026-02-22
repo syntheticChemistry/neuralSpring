@@ -1,12 +1,12 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 22, 2026 (Session 40 — capability-based dispatch + cross-eigensolver)
+**Last updated**: February 22, 2026 (Session 40 + Session 42 deep audit — capability-based dispatch + cross-eigensolver)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 94.9% line coverage
 **Grand Total**: 206/206 Python PASS + 1401+ Rust+GPU validation PASS = **1607+ total validation checks**
-**Library**: 255 unit tests + 9 doc-tests = 264 total | 31 modules + 2 evolved | 119 validation/bench binaries (incl. upstream wrapper + parity validators)
-**Session 40**: Capability-based dispatch (12 validators + HMM), cross-eigensolver validation (eigh vs Sturm 2.89e-15), spectral theory 17/17 PASS
+**Library**: 264 lib tests + 9 integration tests | 31 modules + 2 evolved | 119 validation/bench binaries (incl. upstream wrapper + parity validators)
+**Session 40 + Session 42 deep audit**: Capability-based dispatch (12 validators + HMM), cross-eigensolver validation (eigh vs Sturm 2.89e-15), spectral theory 17/17 PASS
 **ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** at `77f70b2e` | S-16 FIXED | S-14/S-15 workaround documented
 **Open Data**: All 25 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -56,7 +56,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (255 lib tests, 119 validation binaries, 31 modules + 3 evolved)
+### Phase 1a: neuralSpring-Native Validation (264 lib tests + 9 integration tests, 119 validation binaries, 31 modules + 3 evolved)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -244,7 +244,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 46 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 255 unit + 9 doc-tests |
+| Rust test | `cargo test` | **PASS** — 264 lib tests + 9 integration tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -265,7 +265,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (255 lib tests, 119 binaries, 31 modules + 3 evolved) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (264 lib tests + 9 integration tests, 119 binaries, 31 modules + 3 evolved) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -320,7 +320,7 @@ All tiers use exclusively open data and open systems (see `specs/DATA_PROVENANCE
 | Tier | Coverage | Checks | Status | Delta |
 |------|----------|--------|--------|-------|
 | Python control (Py) | 25/25 (100%) | 206 | **ALL PASS** | — |
-| Rust CPU (Rs) | 25/25 (100%) | 255+ lib + binaries | **ALL PASS** | — |
+| Rust CPU (Rs) | 25/25 (100%) | 264+ lib + binaries | **ALL PASS** | — |
 | BarraCUDA CPU (bC) | 24/25 (96%) | 203 | **ALL PASS** | +12pp |
 | BarraCUDA GPU Tensor (gT) | 23/25 (92%) | 98+ | **ALL PASS** | +20pp |
 | metalForge WGSL (mF) | 15/15† (100%) | 108 | **ALL PASS** | — |
