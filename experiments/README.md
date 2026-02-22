@@ -23,7 +23,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 009 | Dual-Path Parity & Spectral Theory | Feb 22, 2026 | 6/6 bit-identical, spectral 14/14, ReduceScalarPipeline |
 | 010 | Capability-Based Dispatch & Cross-Eigensolver | Feb 22, 2026 | 12 validators use `dispatch_1d`, eigh vs Sturm 2.89e-15 |
 | 011 | Session 42 Deep Audit — Code Quality & Debt Resolution | Feb 22, 2026 | 264 lib + 9 integration, all fmt/clippy/doc clean, tolerances split, GPU helpers deduplicated |
-| 012 | ToadStool Sync — d45fdfb3 → 5437c170 (10 commits) | Feb 22, 2026 | 4 new bio-op wrappers, `cpu_conv_pool` exposed, 19 new WGSL shaders, doc rename |
+| 012 | ToadStool Sync — d45fdfb3 → 5437c170 (10 commits) | Feb 22, 2026 | 4 new bio-op wrappers benchmarked (0.72–1.10×), LeNet-5 full bC 13/13, cross-spring lineage |
 
 ---
 
@@ -563,21 +563,23 @@ state, verify build compatibility, and document what became available.
   All 264 lib tests + 9 integration tests pass without modification.
 - **BarraCUDA → BarraCuda doc rename**: The crate name is still `barracuda`
   (no code changes needed). The rename is docs/comments only.
-- **4 new bio-op wrappers** match the metalForge shaders we evolved locally.
-  These are candidates for upstream parity validators (same pattern as the
-  existing 6 bio ops in `bench_upstream_vs_local`).
-- **`cpu_conv_pool` exposure**: `conv2d`, `max_pool2d`, `avg_pool2d` are now
-  `pub` in barracuda. This unblocks full LeNet-5 BarraCUDA validation
-  (conv → pool → FC chain) as a future enhancement.
+- **4 new bio-op wrappers benchmarked** (HillGateGpu, MultiObjFitnessGpu,
+  PairwiseL2Gpu, SwarmNnGpu): all show negligible overhead vs local
+  metalForge dispatch (0.97×–1.10×). Total: 10 kernels in upstream parity bench.
+- **LeNet-5 full bC validation**: `cpu_conv_pool::{conv2d, max_pool2d}` wired
+  for Conv(1→6,5×5,pad=2) → ReLU → MaxPool(2) → Conv(6→16,5×5) → ReLU →
+  MaxPool(2) → FC chain. **13/13 PASS** (was 5/5 FC-only).
+- **Cross-spring shader lineage documented**: Tracked provenance of all
+  shared primitives across hotSpring (precision, physics), wetSpring (bio),
+  and neuralSpring (ML, evolution) contributions to BarraCuda.
 - **19 new WGSL shaders**: chi_squared_f64, rk45_f64, factorial_f64,
   cubic_spline_eval_f64, trapz_f64, etc. GPU paths now exist for operations
   neuralSpring currently uses only on CPU.
 
 ### Next Steps
 
-1. Add upstream parity validators for the 4 new bio-op wrappers
-2. Wire `cpu_conv_pool` for full LeNet-5 bC validation
-3. Explore GPU paths for chi_squared, RK45 via new f64 WGSL shaders
+1. Explore GPU paths for chi_squared, RK45 via new f64 WGSL shaders
+2. Wire TaxonomyFcGpu, KmerHistogramGpu, UniFracPropagateGpu for wetSpring parity
 
 ---
 

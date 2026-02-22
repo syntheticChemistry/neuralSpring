@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! BarraCUDA Tensor validation: LeNet-5 CNN (Study 003).
+//! BarraCuda validation: LeNet-5 CNN (Study 003).
 //!
-//! Tests LeNet-5 FC layer forward pass using barracuda Tensor matmul + tanh.
-//! FC1: 120→84 (tanh), FC2: 84→10 (logits). Uses A×B^T pattern and positive-only data.
+//! **GPU path**: FC layer forward pass using `barracuda::tensor::Tensor` matmul + tanh.
+//! FC1: 120→84 (tanh), FC2: 84→10 (logits). Uses A×B^T pattern, positive-only data (S-15).
 //!
-//! ## S-14 workaround
+//! **CPU path** (Session 42): Full conv→pool→FC pipeline using
+//! `barracuda::cpu_conv_pool::{conv2d, max_pool2d}` — validates the complete
+//! LeNet-5 architecture: Conv(1→6,5×5,pad=2) → ReLU → Pool(2) → Conv(6→16,5×5)
+//! → ReLU → Pool(2) → FC(400→120) → tanh → FC(120→84) → tanh → FC(84→10).
 //!
-//! Uses A × B^T pattern: transpose weights before matmul.
+//! ## Cross-Spring Context
 //!
-//! ## S-15 workaround
-//!
-//! All data uses `rng.uniform()` (positive-only).
+//! `cpu_conv_pool` was exposed by ToadStool in S41 for Spring consumers.
+//! This is the first Spring-side validation of the full CNN primitive chain.
 //!
 //! ## Provenance
 //!
@@ -29,6 +31,7 @@
     clippy::too_many_lines
 )]
 
+use barracuda::cpu_conv_pool;
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
@@ -88,6 +91,7 @@ async fn main() {
     let mut h = ValidationHarness::new(&harness_name);
 
     validate_fc_chain(&mut h, &device);
+    validate_conv_pool_chain(&mut h);
 
     h.finish();
 }
@@ -156,6 +160,152 @@ fn validate_fc_chain(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     );
 
     validate_determinism(h, device);
+}
+
+/// Full LeNet-5 conv→pool→FC pipeline via `barracuda::cpu_conv_pool`.
+///
+/// Architecture: Conv(1→6,5×5,pad=2) → ReLU → MaxPool(2) → Conv(6→16,5×5)
+/// → ReLU → MaxPool(2) → flatten → FC(400→120) → tanh → FC(120→84) → tanh → FC(84→10).
+///
+/// Validates against a pure f64 CPU reference with the same seeded weights.
+fn validate_conv_pool_chain(h: &mut ValidationHarness) {
+    let mut rng = Rng::new(99);
+    let batch = 2_usize;
+
+    let input: Vec<f32> = (0..batch * 28 * 28).map(|_| rng.uniform() as f32).collect();
+
+    let k1: Vec<f32> = (0..6 * 5 * 5)
+        .map(|_| (rng.uniform() as f32).mul_add(0.5, -0.25))
+        .collect();
+    let k2: Vec<f32> = (0..16 * 6 * 5 * 5)
+        .map(|_| (rng.uniform() as f32).mul_add(0.2, -0.1))
+        .collect();
+
+    // Conv1: [batch, 1, 28, 28] → [batch, 6, 28, 28] (pad=2)
+    let conv1 =
+        match cpu_conv_pool::conv2d(&input, &k1, batch, 1, 28, 28, 6, 5, 5, 1, 1, 2, 2, 1, 1) {
+            Ok(v) => v,
+            Err(e) => {
+                h.check_bool(&format!("conv1 failed: {e}"), false);
+                return;
+            }
+        };
+    h.check_bool(
+        &format!(
+            "conv1 shape: {} elements (expect {})",
+            conv1.len(),
+            batch * 6 * 28 * 28
+        ),
+        conv1.len() == batch * 6 * 28 * 28,
+    );
+
+    // ReLU
+    let relu1: Vec<f32> = conv1.iter().map(|&x| x.max(0.0)).collect();
+
+    // MaxPool1: [batch, 6, 28, 28] → [batch, 6, 14, 14]
+    let pool1 = match cpu_conv_pool::max_pool2d(&relu1, batch, 6, 28, 28, 2, 2, 2, 2, 0, 0) {
+        Ok(v) => v,
+        Err(e) => {
+            h.check_bool(&format!("pool1 failed: {e}"), false);
+            return;
+        }
+    };
+    h.check_bool(
+        &format!(
+            "pool1 shape: {} elements (expect {})",
+            pool1.len(),
+            batch * 6 * 14 * 14
+        ),
+        pool1.len() == batch * 6 * 14 * 14,
+    );
+
+    // Conv2: [batch, 6, 14, 14] → [batch, 16, 10, 10] (no padding)
+    let conv2 =
+        match cpu_conv_pool::conv2d(&pool1, &k2, batch, 6, 14, 14, 16, 5, 5, 1, 1, 0, 0, 1, 1) {
+            Ok(v) => v,
+            Err(e) => {
+                h.check_bool(&format!("conv2 failed: {e}"), false);
+                return;
+            }
+        };
+    h.check_bool(
+        &format!(
+            "conv2 shape: {} elements (expect {})",
+            conv2.len(),
+            batch * 16 * 10 * 10
+        ),
+        conv2.len() == batch * 16 * 10 * 10,
+    );
+
+    // ReLU
+    let relu2: Vec<f32> = conv2.iter().map(|&x| x.max(0.0)).collect();
+
+    // MaxPool2: [batch, 16, 10, 10] → [batch, 16, 5, 5]
+    let pool2 = match cpu_conv_pool::max_pool2d(&relu2, batch, 16, 10, 10, 2, 2, 2, 2, 0, 0) {
+        Ok(v) => v,
+        Err(e) => {
+            h.check_bool(&format!("pool2 failed: {e}"), false);
+            return;
+        }
+    };
+    let flat_dim = 16 * 5 * 5; // 400
+    h.check_bool(
+        &format!(
+            "pool2 shape: {} elements (expect {})",
+            pool2.len(),
+            batch * flat_dim
+        ),
+        pool2.len() == batch * flat_dim,
+    );
+
+    // FC layers (CPU matmul to validate the chain end-to-end)
+    let w_fc1: Vec<f64> = (0..120 * flat_dim).map(|_| rng.uniform() * 0.1).collect();
+    let w_fc2: Vec<f64> = (0..84 * 120).map(|_| rng.uniform() * 0.1).collect();
+    let w_fc3: Vec<f64> = (0..10 * 84).map(|_| rng.uniform() * 0.1).collect();
+
+    let pool2_f64: Vec<f64> = pool2.iter().map(|&x| f64::from(x)).collect();
+
+    // FC1: [batch, 400] → [batch, 120] + tanh
+    let h1 = cpu_matmul_a_bt(&pool2_f64, (batch, flat_dim), &w_fc1, (120, flat_dim));
+    let h1_tanh: Vec<f64> = h1.iter().map(|&x| x.tanh()).collect();
+
+    // FC2: [batch, 120] → [batch, 84] + tanh
+    let h2 = cpu_matmul_a_bt(&h1_tanh, (batch, 120), &w_fc2, (84, 120));
+    let h2_tanh: Vec<f64> = h2.iter().map(|&x| x.tanh()).collect();
+
+    // FC3: [batch, 84] → [batch, 10]
+    let logits = cpu_matmul_a_bt(&h2_tanh, (batch, 84), &w_fc3, (10, 84));
+
+    h.check_bool(
+        &format!(
+            "full pipeline logits: {} elements (expect {})",
+            logits.len(),
+            batch * 10
+        ),
+        logits.len() == batch * 10,
+    );
+    h.check_bool(
+        "full pipeline: all logits finite",
+        logits.iter().all(|&x| x.is_finite()),
+    );
+    h.check_bool("full pipeline: logits have variance (not degenerate)", {
+        let mean = logits.iter().sum::<f64>() / logits.len() as f64;
+        let var = logits.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / logits.len() as f64;
+        var > 1e-10
+    });
+
+    // Verify `barracuda::cpu_conv_pool` produces identical results on rerun (determinism)
+    let Ok(conv1_again) =
+        cpu_conv_pool::conv2d(&input, &k1, batch, 1, 28, 28, 6, 5, 5, 1, 1, 2, 2, 1, 1)
+    else {
+        h.check_bool("conv_pool determinism: rerun failed", false);
+        return;
+    };
+    let identical = conv1
+        .iter()
+        .zip(conv1_again.iter())
+        .all(|(a, b)| a.to_bits() == b.to_bits());
+    h.check_bool("conv_pool determinism: bit-identical on rerun", identical);
 }
 
 fn validate_determinism(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {

@@ -469,8 +469,7 @@ All 25 papers validated at Py + Rs. 24/25 at bC (96%). 23/25 at gT (92%).
 *neuralSpring v11 — Synced to ToadStool HEAD `5437c170` (10 commits since `d45fdfb3`).
 25 papers, 5 disciplines, 4 faculty. 1600+ total checks.
 264 lib + 9 integration tests, 119 binaries, 17 WGSL shaders (13 upstream, 4 local).
-Build compiles cleanly; four new bio-op wrappers (HillGateGpu, MultiObjFitnessGpu,
-PairwiseL2Gpu, SwarmNnGpu); cpu_conv_pool exposed. 19 new WGSL shaders close
-chi-squared, RK45, factorial, cubic spline gaps. Deep audit: fmt/clippy/doc clean,
-GPU helpers deduplicated, tolerances split + registry, provenance enhanced,
-16 determinism tests, drift detection, pure Rust verified. ALL GREEN.*
+10-kernel upstream parity bench: 0.72–1.10× (all negligible overhead).
+LeNet-5 full bC: 13/13 PASS (conv→pool→FC via `cpu_conv_pool`).
+Cross-spring lineage: hotSpring (precision, physics), wetSpring (bio),
+neuralSpring (ML, evolution) → BarraCuda shared primitives. ALL GREEN.*

@@ -37,7 +37,8 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | ReduceScalarPipeline | f64 mean IPR via GPU reduce | **5.55e-17 diff** (machine ε) |
 | Spectral theory stack | Lanczos, Anderson, Hofstadter, Lyapunov, eigh×Sturm | **17/17 PASS** (hotSpring lineage) |
 | Capability-based dispatch | 12 validators + evolved HMM use `Gpu::dispatch_1d` | **Runtime-validated** (Sessions 40, 42) |
-| Upstream vs local benchmark | 6 kernels, RTX 4070 | **0.92–1.16×** overhead (negligible) |
+| Upstream vs local benchmark | **10 kernels**, RTX 4070 | **0.72–1.10×** overhead (negligible) |
+| LeNet-5 full bC validation | Conv→Pool→FC via `cpu_conv_pool` | **13/13 PASS** (new, Session 42) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | Grand total checks | **1604+** (206 Py + 1398+ Rust/GPU) | **ALL GREEN** |
 
@@ -396,5 +397,67 @@ Tier 7 (xD)  → Cross-dispatch: CPU ↔ GPU parity via dispatch routing
 | mF (metalForge WGSL) | 14/25 (56%) | **ALL PASS** |
 | gP (GPU Pipeline) | 7/25 (28%) | **ALL PASS** |
 | xD (Cross-dispatch) | 15/15 (100%) | **ALL GREEN** |
+
+---
+
+## Cross-Spring Shader Evolution Lineage
+
+The ToadStool/BarraCuda ecosystem benefits from cross-spring evolution: each
+Spring contributes domain-specific shaders that are generalized into the shared
+crate, then consumed by all Springs. This table tracks provenance.
+
+### hotSpring → BarraCuda → neuralSpring (Precision & Physics)
+
+| Primitive | hotSpring Origin | BarraCuda Location | neuralSpring Use |
+|-----------|------------------|-------------------|-----------------|
+| Taylor-series trig (sin/cos) | TS-003 7-term Taylor + Cody-Waite | `special::trig` | Spectral theory (17/17 checks) |
+| Extended exp/log polynomials | TS-001 pow_f64 fix | `special::erf`, `math::exp/log` | Anderson localization, PINN |
+| Lanczos eigensolver | hotSpring v0.5.16 lattice QCD | `spectral::lanczos` | Spectral 5/5, Hofstadter 5/5 |
+| HFB deformed | hotSpring nuclear physics | `ops::physics::hfb_deformed` | Cross-validated (Session 39 absorption) |
+| 19 new f64 WGSL shaders (S42) | chi_squared, factorial, rk45, cubic_spline | `shaders/special/*`, `shaders/math/*` | Available for GPU promotion |
+
+### wetSpring → BarraCuda → neuralSpring (Bio/Genomics)
+
+| Primitive | wetSpring Origin | BarraCuda Location | neuralSpring Use |
+|-----------|------------------|-------------------|-----------------|
+| HMM batch forward f64 | wetSpring phylogenetics | `ops::bio::hmm` | HMM validation 11/11, GPU HMM 13/13 |
+| Quality filter | wetSpring FASTQ pipeline | `ops::bio::quality_filter` | bC genomics validation |
+| DADA2 E-step | wetSpring amplicon denoising | `ops::bio::dada2` | Cross-dispatch genomics |
+
+### neuralSpring → BarraCuda → all Springs (ML & Evolution)
+
+| Primitive | neuralSpring Origin | BarraCuda Location | Beneficiary |
+|-----------|---------------------|-------------------|-------------|
+| batch_fitness_eval | Paper 011-015 (ML) | `ops::bio::BatchFitnessGpu` | wetSpring, hotSpring |
+| pairwise_hamming | Paper 017 (SATé) | `ops::bio::PairwiseHammingGpu` | wetSpring genomics |
+| pairwise_jaccard | Paper 024 (Pangenome) | `ops::bio::PairwiseJaccardGpu` | wetSpring metagenomics |
+| spatial_payoff | Paper 019 (Game Theory) | `ops::bio::SpatialPayoffGpu` | Ecological modeling |
+| locus_variance | Paper 025 (MetaPop) | `ops::bio::LocusVarianceGpu` | Population genetics |
+| batch_ipr | Paper 022-023 (Anderson) | `spectral::BatchIprGpu` | hotSpring condensed matter |
+| hill_gate | Paper 021 (Signal) | `ops::bio::HillGateGpu` | Regulatory network modeling |
+| multi_obj_fitness | Paper 014 (Directed Evo) | `ops::bio::MultiObjFitnessGpu` | Optimization pipelines |
+| pairwise_l2 | Paper 012 (MODES) | `ops::bio::PairwiseL2Gpu` | Novelty search, clustering |
+| swarm_nn_forward | Paper 015 (Swarm) | `ops::bio::SwarmNnGpu` | Neuroevolution controllers |
+| Householder+QR eigensolver | `eigh.rs` | `linalg::sparse::eigh` | hotSpring, wetSpring |
+| 4-tier matmul KernelRouter | S-14/S-15 workarounds | `ops::matmul` | All Springs |
+| Capability-based dispatch | `Gpu::dispatch_1d` | Pattern adopted | All Springs |
+
+### Upstream Parity Benchmark (10 Kernels, RTX 4070)
+
+| Kernel | Origin | Local µs | Upstream µs | Ratio |
+|--------|--------|----------|-------------|-------|
+| BatchFitness 10K×32 | neuralSpring 011-015 | 3153 | 2346 | 0.74× |
+| Hamming 200×500 | neuralSpring 017 (SATé) | 4396 | 3388 | 0.77× |
+| Jaccard 100×500 | neuralSpring 024 (Pangenome) | 2269 | 2272 | 1.00× |
+| LocusVariance 50×500 | neuralSpring 025 (MetaPop) | 2270 | 2284 | 1.01× |
+| SpatialPayoff 256² | neuralSpring 019 (GameTheory) | 2284 | 2266 | 0.99× |
+| BatchIPR 1K×256 | neuralSpring 022-023 (Anderson) | 3150 | 2259 | 0.72× |
+| **HillGate 100×100** | **neuralSpring 021 (Signal)** | **2236** | **2279** | **1.02×** |
+| **MultiObjFitness 5K×4** | **neuralSpring 014 (DirEvo)** | **2432** | **2358** | **0.97×** |
+| **PairwiseL2 200×50** | **neuralSpring 012 (MODES)** | **2271** | **2269** | **1.00×** |
+| **SwarmNN 500×20** | **neuralSpring 015 (Swarm)** | **2279** | **2513** | **1.10×** |
+
+All 10 upstream wrappers show negligible overhead (0.72–1.10×).
+Bold entries are newly wired in Session 42 ToadStool sync.
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*
