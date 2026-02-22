@@ -99,7 +99,7 @@
 | `validate_barracuda_ml_inference` | ML inference (MLP + Transformer) | 13 | Python/NumPy baselines |
 | `validate_barracuda_fft` | FFT (f32 Fft1D/Ifft1D + f64 Fft1DF64 + Rfft) | 24 | Analytical (DFT definition) |
 
-### Phase 3c: metalForge GPU Shader Validation (16 GPU shader binaries, 108 shader checks, 16 WGSL shaders)
+### Phase 3c: metalForge GPU Shader Validation (16 GPU shader binaries, 108 shader checks, 17 WGSL shaders)
 
 | Validation Binary | WGSL Shader | Papers | Checks | Reference |
 |-------------------|-------------|--------|--------|-----------|
@@ -250,7 +250,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | neuralSpring validate | `make validate-native` + `validate-native-papers` | **PASS** — 276/276 |
 | BarraCUDA validate | `make validate-barracuda` | **PASS** — 272/272 |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | **PASS** — 203/203 (24/25 papers, 96%) |
-| GPU shader validate | `make validate-gpu` | **PASS** — 108/108 (16 WGSL shaders) |
+| GPU shader validate | `make validate-gpu` | **PASS** — 108/108 (17 WGSL shaders, 13 upstream) |
 | GPU pipeline validate | `make validate-gpu-pipeline` | **PASS** — 77/77 (SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12 + 32 Phase 4b) |
 | GPU PRNG validate | `validate_gpu_prng` | **PASS** — 5/5 |
 | CI | GitHub Actions: `baselines.yml` + `rust.yml` | Configured |
@@ -272,7 +272,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 2a | metalForge hardware characterization | Active |
 | 3a | BarraCUDA FFT validation (24 checks: f32+f64+Rfft, RTX 4070) | **COMPLETE** |
 | 3b | BarraCUDA GPU streaming (StatefulPipeline + Unidirectional) | **COMPLETE** |
-| 3c | metalForge GPU shader validation (16 GPU shader binaries, 108 shader checks, 16 WGSL shaders) | **COMPLETE** |
+| 3c | metalForge GPU shader validation (16 GPU shader binaries, 108 shader checks, 17 WGSL shaders) | **COMPLETE** |
 | 3d | Cross-dispatch validation (49 checks — 6 validators, 15/15 papers) | **COMPLETE** |
 | 4a | Performance benchmarks (7 kernels, 71.8× overall speedup vs single-thread NumPy) | **COMPLETE** |
 | 4b | Pure GPU end-to-end pipelines (7 pipelines, 32/32 PASS) | **COMPLETE** |
@@ -307,7 +307,7 @@ magnitudes trigger the hang across all matmul tiers. Workaround: dense data ≥ 
 **S-16** ~~(High)~~ **FIXED**: transpose dispatch used `optimal_workgroup_size(256)` instead of
 shader's `@workgroup_size(16,16)`. One-line fix: `const TILE: u32 = 16`.
 
-Handoff: `wateringHole/handoffs/NEURALSPRING_V7_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`.
+Handoff: `wateringHole/handoffs/NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`.
 
 ### Full Validation Stack — All 25 Papers (February 22, 2026)
 

@@ -710,3 +710,38 @@ already used `Tensor` operations on GPU — counted toward gT coverage.
 | Cross-dispatch (xD) | 15/15 (100%) | **ALL GREEN** |
 
 Full handoff: `wateringHole/handoffs/`
+
+### Session 39 Sync: Upstream Absorption Wave (`d45fdfb3`)
+
+ToadStool's Session 39 (dead code sweep + evolution) absorbed 5 neuralSpring
+local shaders into barracuda's shader tree as generalized upstream variants:
+
+| Shader | Upstream Path | Evolution |
+|--------|---------------|-----------|
+| `pairwise_l2.wgsl` | `shaders/math/pairwise_l2` | Closed-form pair decode (O(1) vs O(N) linear search) |
+| `multi_obj_fitness.wgsl` | `shaders/bio/multi_obj_fitness` | Bessel correction (n-1 divisor), standardized params |
+| `hill_gate.wgsl` | `shaders/bio/hill_gate` | Mode 0 (paired) / mode 1 (grid) generalization |
+| `swarm_nn_forward.wgsl` | `shaders/bio/swarm_nn_forward` | Generic MLP via `SwarmParams{input_dim,hidden_dim,output_dim}`, clamped sigmoid |
+| `mean_reduce.wgsl` | `shaders/reduce/mean_reduce` | Effectively identical (barracuda credits neuralSpring as origin) |
+
+**Bug fixes flowing to neuralSpring** (via path dependency):
+- **S-13 FIXED**: `PooledBuffer` drop race condition — deferred return via pending queue + non-blocking device poll
+- **TS-003**: Trig precision — `sin_simple`/`cos_simple` upgraded to 7-term Taylor + Cody-Waite range reduction
+- **TS-001**: `pow_f64` fix — extended `exp_f64` to handle 2^k for |k| up to 1023
+- **TS-004**: `FusedMapReduceF64` — both passes encoded in single command encoder
+
+**New capabilities** (not yet leveraged):
+- `ops::nn/conv2d.wgsl` — batched Conv2D with stride, padding (LeNet-5 ready)
+- `ops::nn/maxpool2d.wgsl` — batched MaxPool2D
+- `ops::nn/avgpool2d.wgsl` — batched AvgPool2D
+- `cpu_conv_pool` module — CPU reference implementations
+- `esn_v2::export_weights/import_weights` — GPU-train → NPU-deploy
+
+**Shader absorption summary** (cumulative):
+
+| Category | Count | Status |
+|----------|-------|--------|
+| Identical copies (77f70b2e) | 8 | **Upstream** |
+| Generalized variants (d45fdfb3) | 5 | **Upstream** (local copies retained for validation) |
+| Still local-only | 4 | `head_split`, `head_concat`, `xoshiro128ss`, `swarm_nn_scores` |
+| **Total** | **17** | **13/17 absorbed** (76%) |

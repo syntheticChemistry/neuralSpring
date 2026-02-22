@@ -3,15 +3,16 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `77f70b2e` (Session 31h, Feb 22, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V7_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
+**Last reviewed:** ToadStool commit `d45fdfb3` (Session 39, Feb 22, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
 
 ---
 
 ## Resolution Status
 
 **All 12 neuralSpring shortcomings (S-01 through S-12) are now ABSORBED by
-ToadStool `77f70b2e`.** S-03b and S-13 have local workarounds. Key absorption commits:
+ToadStool `77f70b2e`.** S-13 **FIXED** upstream in Session 39 (`d45fdfb3`).
+S-03b has local workaround. Key absorption commits:
 
 | Commit | What It Did |
 |--------|-------------|
@@ -199,10 +200,11 @@ Local fossil: `metalForge/fossils/evolved_s01_s11/eigh_local.rs`.
 
 ## metalForge Shader Evolutions
 
-16 WGSL shaders in `metalForge/shaders/`. 8 now sourced from upstream barracuda
-(`77f70b2e`), 8 remain local pending absorption.
+17 WGSL shaders in `metalForge/shaders/`. 13 now have upstream equivalents in
+barracuda (8 identical at `77f70b2e`, 5 generalized variants at `d45fdfb3`).
+4 remain local-only.
 
-### Absorbed (shader source from barracuda)
+### Absorbed (identical — `77f70b2e`)
 
 | Shader | Upstream API | Status |
 |--------|-------------|--------|
@@ -215,18 +217,26 @@ Local fossil: `metalForge/fossils/evolved_s01_s11/eigh_local.rs`.
 | `spatial_payoff.wgsl` | `barracuda::ops::bio::spatial_payoff::WGSL_SPATIAL_PAYOFF` | **Absorbed** |
 | `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr::WGSL_BATCH_IPR` | **Absorbed** |
 
-### Still local (pending absorption)
+### Absorbed (generalized variants — Session 39, `d45fdfb3`)
 
-| Shader | Domain | Papers | Suggested upstream module |
-|--------|--------|--------|--------------------------|
-| `pairwise_l2.wgsl` | MODES novelty | 012 | `barracuda::ops::bio::pairwise_l2` |
-| `multi_obj_fitness.wgsl` | Directed evolution | 014 | `barracuda::ops::bio::multi_obj_fitness` |
-| `swarm_nn_forward.wgsl` | Swarm robotics | 015 | `barracuda::ops::bio::swarm_nn` |
-| `hill_gate.wgsl` | Signal integration | 021 | `barracuda::ops::bio::hill_gate` |
-| `mean_reduce.wgsl` | Aggregation | — | `barracuda::pipeline::ReduceScalarPipeline` |
-| `head_split.wgsl` | MHA | — | `barracuda::ops::mha` (fix S-03b first) |
-| `head_concat.wgsl` | MHA | — | `barracuda::ops::mha` (fix S-03b first) |
-| `xoshiro128ss.wgsl` | GPU PRNG | — | `barracuda::ops::prng` |
+| Shader | Upstream Path | Key Differences |
+|--------|---------------|-----------------|
+| `pairwise_l2.wgsl` | `barracuda::shaders::math::pairwise_l2` | Closed-form pair decode, different struct |
+| `multi_obj_fitness.wgsl` | `barracuda::shaders::bio::multi_obj_fitness` | Bessel correction (n-1), different params |
+| `hill_gate.wgsl` | `barracuda::shaders::bio::hill_gate` | Mode 0/1 generalization, `HillGateParams` |
+| `swarm_nn_forward.wgsl` | `barracuda::shaders::bio::swarm_nn_forward` | Generic MLP, `SwarmParams`, clamped sigmoid |
+| `mean_reduce.wgsl` | `barracuda::shaders::reduce::mean_reduce` | Effectively identical |
+
+Local copies retained for validation (validators depend on local binding layouts).
+
+### Still local (no upstream equivalent or significant API differences)
+
+| Shader | Domain | Suggested upstream module |
+|--------|--------|--------------------------|
+| `head_split.wgsl` | MHA | `barracuda::ops::mha` (fix S-03b first) |
+| `head_concat.wgsl` | MHA | `barracuda::ops::mha` (fix S-03b first) |
+| `xoshiro128ss.wgsl` | GPU PRNG | `barracuda::ops::prng` |
+| `swarm_nn_scores.wgsl` | Swarm (015) | New — no upstream equivalent |
 
 ---
 

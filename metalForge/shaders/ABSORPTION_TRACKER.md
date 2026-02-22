@@ -3,26 +3,22 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `77f70b2e` (Session 31h, Feb 22, 2026)
+**ToadStool HEAD**: `d45fdfb3` (Session 39, Feb 22, 2026)
 
 ---
 
-## Active Shaders
+## Active Shaders (still local — no upstream equivalent or upstream differs significantly)
 
 | Shader | Domain | Status | Validation Binary | Absorption Target |
 |--------|--------|--------|-------------------|-------------------|
-| `hmm_forward_log.wgsl` | Phylogenetics (016–018) | **Validated** | `validate_gpu_hmm_forward` | `barracuda::ops::hmm` or `StatefulPipeline` |
-| `batch_fitness_eval.wgsl` | Evolution (011–015) | **Validated** | `validate_gpu_batch_fitness` | `barracuda::ops::batch_gemm` |
-| `rk4_parallel.wgsl` | Regulatory/Signal (020–021) | **Validated** | `validate_gpu_rk4` | `barracuda::ops::ode` |
-| `mean_reduce.wgsl` | Fitness aggregation | **Validated** | `validate_gpu_pure_workload` | `barracuda::pipeline::ReduceScalarPipeline` |
-| `pairwise_jaccard.wgsl` | Pangenome (024) | **Validated** | `validate_gpu_pangenome` | `barracuda::ops::pairwise_distance` |
-| `locus_variance.wgsl` | Meta-population (025) | **Validated** | `validate_gpu_meta_pop` | `barracuda::ops::VarianceReduceF64` |
-| `spatial_payoff.wgsl` | Game theory (019) | **Validated** | `validate_gpu_game_theory` | `barracuda::ops::stencil` |
-| `batch_ipr.wgsl` | Spectral (022–023) | **Validated** | `validate_gpu_anderson` | `barracuda::ops::batch_reduce` |
-| `pairwise_hamming.wgsl` | Alignment (017) | **Validated** | `validate_gpu_sate` | `barracuda::ops::pairwise_distance` |
+| `head_split.wgsl` | MHA (attention) | **Validated** | `validate_mha_gpu` | `barracuda::ops::mha` (fix S-03b) |
+| `head_concat.wgsl` | MHA (attention) | **Validated** | `validate_mha_gpu` | `barracuda::ops::mha` (fix S-03b) |
 | `xoshiro128ss.wgsl` | Stochastic (PRNG) | **Validated** | `validate_gpu_prng` | `barracuda::ops::prng` |
-| `head_split.wgsl` | MHA (attention) | **Validated** | `validate_mha_gpu` | `barracuda` or `TensorSession` head ops |
-| `head_concat.wgsl` | MHA (attention) | **Validated** | `validate_mha_gpu` | `barracuda` or `TensorSession` head ops |
+| `swarm_nn_scores.wgsl` | Swarm (015) | **Validated** | `validate_gpu_pipeline_swarm` | No upstream equivalent |
+
+**Note**: `head_split`/`head_concat` have upstream equivalents at `barracuda::shaders::tensor/`
+but use different param structs (`HeadSplitParams` vs local `Params`). `xoshiro128ss` differs
+from `barracuda::shaders::misc::prng_xoshiro` in state model (persistent vs one-shot).
 
 ## Planned Shaders
 
@@ -31,7 +27,7 @@
 | `tridiag_eigensolver.wgsl` | Spectral (022–023) | P3 | Needs Householder → bisection design |
 | `logsumexp_reduce.wgsl` | HMM/phylogenetics | P2 | Complements `hmm_forward_log.wgsl` |
 
-## Retired (Absorbed by ToadStool `77f70b2e`)
+## Retired (Absorbed by ToadStool `d45fdfb3`)
 
 ### Evolved Modules (S-01 through S-11 — all absorbed)
 
@@ -47,6 +43,32 @@
 
 **Status**: All fossilized in `metalForge/fossils/evolved_s01_s11/`.
 Code removed from active compilation Feb 20, 2026.
+
+### Shaders Absorbed (Session 39, `d45fdfb3` — generalized variants)
+
+ToadStool absorbed 5 neuralSpring shaders as generalized upstream variants.
+Local copies remain for validation (our validators depend on the local binding layouts).
+
+| Shader | Upstream Path | Semantic Differences |
+|--------|---------------|---------------------|
+| `pairwise_l2.wgsl` | `barracuda::shaders::math::pairwise_l2` | Closed-form pair decoding (upstream) vs linear search (local). Different struct names (`PairwiseParams` vs `Params`) |
+| `multi_obj_fitness.wgsl` | `barracuda::shaders::bio::multi_obj_fitness` | Bessel correction `n-1` (upstream) vs population `n` (local). Different param names (`pop`/`n_obj` vs `pop_size`/`n_objectives`) |
+| `hill_gate.wgsl` | `barracuda::shaders::bio::hill_gate` | Mode 0/1 generalization (upstream) vs 2D-grid only (local). `HillGateParams` vs `HillParams` |
+| `swarm_nn_forward.wgsl` | `barracuda::shaders::bio::swarm_nn_forward` | Generic MLP with `SwarmParams{input_dim,hidden_dim,output_dim}` (upstream) vs fixed 1→4→5 (local). Clamped sigmoid |
+| `mean_reduce.wgsl` | `barracuda::shaders::reduce::mean_reduce` | Effectively identical (upstream credits neuralSpring as origin) |
+
+### Shaders Absorbed (Pre–Session 39, `77f70b2e` — identical copies)
+
+| Shader | Upstream API |
+|--------|-------------|
+| `hmm_forward_log.wgsl` | `barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32` |
+| `batch_fitness_eval.wgsl` | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` |
+| `rk4_parallel.wgsl` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` |
+| `pairwise_jaccard.wgsl` | `barracuda::ops::bio::pairwise_jaccard::WGSL_PAIRWISE_JACCARD` |
+| `pairwise_hamming.wgsl` | `barracuda::ops::bio::pairwise_hamming::WGSL_PAIRWISE_HAMMING` |
+| `locus_variance.wgsl` | `barracuda::ops::bio::locus_variance::WGSL_LOCUS_VARIANCE` |
+| `spatial_payoff.wgsl` | `barracuda::ops::bio::spatial_payoff::WGSL_SPATIAL_PAYOFF` |
+| `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr::WGSL_BATCH_IPR` |
 
 ### Still Active (Not Yet Absorbed)
 
@@ -81,6 +103,11 @@ Each shader follows this lifecycle:
 | `NAK` eigensolver | Anderson localization GPU | 022–023 | Available |
 | `Fft1DF64` | f64 FFT | — | New (Session 25) |
 | `GemmF64::WGSL` | f64 GEMM shader source | — | New (wetSpring v4) |
+| `ops::nn::conv2d.wgsl` | Batched Conv2D (LeNet-5 layers) | Study 003 | **New** (Session 39) — not yet wired to executor |
+| `ops::nn::maxpool2d.wgsl` | MaxPool2D (LeNet-5 pooling) | Study 003 | **New** (Session 39) — not yet wired to executor |
+| `ops::nn::avgpool2d.wgsl` | AvgPool2D (alternative pooling) | — | **New** (Session 39) — not yet wired to executor |
+| `cpu_conv_pool` | CPU Conv2D/MaxPool2D/AvgPool2D | Study 003 | **New** (Session 39) — CPU fallback |
+| `esn_v2::export_weights/import_weights` | GPU-train → NPU-deploy ESN | — | **New** (Session 39) |
 
 ---
 
@@ -115,15 +142,13 @@ Following the hotSpring lifecycle (evolve → validate → handoff → absorb �
 
 | Shader | Status | Next Step |
 |--------|--------|-----------|
-| `hmm_forward_log.wgsl` | Validated (13/13), flat layout ready | Handoff to `barracuda::ops::hmm` |
-| `batch_fitness_eval.wgsl` | Validated (20/20) | Handoff to `barracuda::ops::batch_gemm` |
-| `rk4_parallel.wgsl` | Validated (8/8) | Handoff to `barracuda::ops::ode` |
-| `pairwise_jaccard.wgsl` | Validated (6/6), flat layout ready | Handoff to `barracuda::ops::pairwise_distance` |
-| `head_split.wgsl` / `head_concat.wgsl` | Validated (10/10) | Handoff to `barracuda::ops::mha` |
-| `pairwise_l2.wgsl` | Validated (15/15) | Handoff to `barracuda::ops::pairwise_distance` |
-| `multi_obj_fitness.wgsl` | Validated (6/6) | Handoff to `barracuda::ops::batch_gemm` |
-| `swarm_nn_forward.wgsl` | Validated (9/9) | Handoff to `barracuda::ops::batch_gemm` |
-| `hill_gate.wgsl` | Validated (9/9) | Handoff to `barracuda::ops::elementwise` |
+| `head_split.wgsl` / `head_concat.wgsl` | Validated (10/10). Upstream variant exists with different params | Unify param structs; handoff to `barracuda::ops::mha` |
+| `xoshiro128ss.wgsl` | Validated (5/5). Upstream has different state model | Reconcile persistent-state vs one-shot; handoff to `barracuda::ops::prng` |
+| `swarm_nn_scores.wgsl` | Validated (pipeline PASS). No upstream equivalent | New handoff to `barracuda::ops::bio` |
+
+**Previously absorbed** (Session 39): `pairwise_l2`, `multi_obj_fitness`, `hill_gate`,
+`swarm_nn_forward`, `mean_reduce` — upstream has generalized variants. Local copies retained
+for validation compatibility; future migration to upstream binding layouts.
 
 ---
 

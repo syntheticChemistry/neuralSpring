@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 22, 2026 (post-Phase 5b full-stack validation)
-**ToadStool HEAD**: `77f70b2e` (Session 31h)
+**Date**: February 22, 2026 (post-Session 39 sync)
+**ToadStool HEAD**: `d45fdfb3` (Session 39)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → ToadStool absorption → lean on upstream
 
 ---
@@ -22,42 +22,62 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | metalForge WGSL (mF) | 14/25 papers (56%) | **ALL PASS** |
 | GPU Pipeline (gP) | 7/25 papers (28%) | **ALL PASS** |
 | Cross-dispatch (xD) | **15/15** Phase 0++ papers (100%) | **ALL GREEN** |
-| GPU shader validation | 108/108 (16 WGSL shaders) | **COMPLETE** |
+| GPU shader validation | 108/108 (17 WGSL shaders) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
 | ToadStool shortcomings absorbed | 12/12 (S-01..S-12) | **ALL ABSORBED** |
 | S-16 (transpose dispatch) | One-line fix | **FIXED** |
 | S-15 (matmul hang) | Root-caused: magnitude ≤ 0.1 | **WORKAROUND** (≥ 0.5 data) |
 | S-14 (naive matmul hang) | A×B^T pattern avoids | **WORKAROUND** |
+| S-13 (PooledBuffer race) | Deferred return + device poll | **FIXED** upstream (Session 39) |
+| TS-003 (trig precision) | 7-term Taylor + Cody-Waite | **FIXED** upstream (Session 36) |
+| TS-001 (pow_f64 precision) | Extended exp/log polynomials | **FIXED** upstream (Session 36) |
+| Shader absorption | 5 of 8 local shaders absorbed | **12/16 upstream** (Session 39) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | Grand total checks | **1560+** (206 Py + 1354+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
-## Tier A — Ready for ToadStool Absorption
+## Tier A — Shader Absorption Status
 
-These metalForge shaders are validated, documented, and ready for upstream
-absorption. Each has a CPU reference implementation, a validation binary
-with `ValidationHarness`, and documented binding layouts.
+### Absorbed Upstream (Session 39, `d45fdfb3` — generalized variants)
+
+ToadStool absorbed 5 neuralSpring shaders, evolving them into generalized
+upstream variants. Local copies retained for validation compatibility.
+
+| Shader | Upstream | Binary | Checks | Key Differences |
+|--------|----------|--------|--------|-----------------|
+| `pairwise_l2.wgsl` | `barracuda::shaders::math::pairwise_l2` | `validate_gpu_modes` | 15/15 | Closed-form pair decoding vs linear search |
+| `multi_obj_fitness.wgsl` | `barracuda::shaders::bio::multi_obj_fitness` | `validate_gpu_directed` | 6/6 | Bessel correction (n-1) vs population (n) |
+| `hill_gate.wgsl` | `barracuda::shaders::bio::hill_gate` | `validate_gpu_signal` | 9/9 | Mode 0/1 generalization vs 2D-grid only |
+| `swarm_nn_forward.wgsl` | `barracuda::shaders::bio::swarm_nn_forward` | `validate_gpu_swarm` | 9/9 | Generic MLP vs fixed 1→4→5, clamped sigmoid |
+| `mean_reduce.wgsl` | `barracuda::shaders::reduce::mean_reduce` | `validate_gpu_pure_workload` | 7/7 | Effectively identical |
+
+### Absorbed Upstream (Pre–Session 39, `77f70b2e` — identical copies)
+
+| Shader | Upstream API | Binary | Checks |
+|--------|-------------|--------|--------|
+| `hmm_forward_log.wgsl` | `barracuda::ops::bio::hmm` | `validate_gpu_hmm_forward` | 13/13 |
+| `batch_fitness_eval.wgsl` | `barracuda::ops::bio::batch_fitness` | `validate_gpu_batch_fitness` | 20/20 |
+| `rk4_parallel.wgsl` | `barracuda::ops::rk_stage` | `validate_gpu_rk4` | 8/8 |
+| `pairwise_jaccard.wgsl` | `barracuda::ops::bio::pairwise_jaccard` | `validate_gpu_pangenome` | 6/6 |
+| `pairwise_hamming.wgsl` | `barracuda::ops::bio::pairwise_hamming` | `validate_gpu_sate` | 5/5 |
+| `locus_variance.wgsl` | `barracuda::ops::bio::locus_variance` | `validate_gpu_meta_pop` | 7/7 |
+| `spatial_payoff.wgsl` | `barracuda::ops::bio::spatial_payoff` | `validate_gpu_game_theory` | 5/5 |
+| `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr` | `validate_gpu_anderson` | 5/5 |
+
+### Still Local (pending absorption)
 
 | Shader | Domain | Binary | Checks | Absorption Target |
 |--------|--------|--------|--------|-------------------|
-| `hmm_forward_log.wgsl` | Phylogenetics (016–018) | `validate_gpu_hmm_forward` | 13/13 | `barracuda::ops::hmm` |
-| `batch_fitness_eval.wgsl` | Evolutionary computation (011–015) | `validate_gpu_batch_fitness` | 20/20 | `barracuda::ops::batch_gemm` |
-| `rk4_parallel.wgsl` | Regulatory biology (020–021) | `validate_gpu_rk4` | 8/8 | `barracuda::ops::ode` |
-| `mean_reduce.wgsl` | Fitness aggregation | `validate_gpu_pure_workload` | 7/7 | `barracuda::pipeline::ReduceScalarPipeline` |
-| `pairwise_jaccard.wgsl` | Pangenome (024) | `validate_gpu_pangenome` | 6/6 | `barracuda::ops::pairwise_distance` |
-| `locus_variance.wgsl` | Meta-population (025) | `validate_gpu_meta_pop` | 7/7 | `barracuda::ops::VarianceReduceF64` |
-| `spatial_payoff.wgsl` | Game theory (019) | `validate_gpu_game_theory` | 5/5 | `barracuda::ops::stencil` |
-| `batch_ipr.wgsl` | Spectral/Anderson (022–023) | `validate_gpu_anderson` | 5/5 | `barracuda::ops::batch_reduce` |
-| `pairwise_hamming.wgsl` | Alignment (017) | `validate_gpu_sate` | 5/5 | `barracuda::ops::pairwise_distance` |
-| `pairwise_l2.wgsl` | MODES novelty (012) | `validate_gpu_modes` | 15/15 | `barracuda::ops::pairwise_distance` |
-| `multi_obj_fitness.wgsl` | Directed evolution (014) | `validate_gpu_directed` | 6/6 | `barracuda::ops::batch_gemm` |
-| `swarm_nn_forward.wgsl` | Swarm robotics (015) | `validate_gpu_swarm` | 9/9 | `barracuda::ops` (NN inference) |
-| `hill_gate.wgsl` | Signal integration (021) | `validate_gpu_signal` | 9/9 | `barracuda::ops` (Hill gate) |
+| `head_split.wgsl` | MHA (attention) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` (fix S-03b) |
+| `head_concat.wgsl` | MHA (attention) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` (fix S-03b) |
+| `xoshiro128ss.wgsl` | Stochastic (PRNG) | `validate_gpu_prng` | 5/5 | `barracuda::ops::prng` |
+| `swarm_nn_scores.wgsl` | Swarm (015) | `validate_gpu_pipeline_swarm` | PASS | No upstream equivalent |
 
 ### WGSL exports (forge crate — single source of truth)
 
-All 16 WGSL shaders are now centralized in `metalForge/forge/src/shaders.rs`.
+All 17 WGSL shaders are centralized in `metalForge/forge/src/shaders.rs`.
+13 have upstream equivalents (8 identical + 5 generalized variants); 4 are still local-only.
 Library modules re-export for backward compatibility:
 
 | Forge Constant | Library Re-Export |
@@ -191,7 +211,7 @@ or existing infrastructure):
 
 ---
 
-## BarraCUDA APIs — New in `77f70b2e` (Sessions 25–31h)
+## BarraCUDA APIs — New in `d45fdfb3` (Sessions 25–39)
 
 ### Now leveraged by neuralSpring
 
@@ -202,6 +222,10 @@ or existing infrastructure):
 | `ops::bio::{PairwiseHammingGpu, PairwiseJaccardGpu, LocusVarianceGpu, SpatialPayoffGpu, BatchFitnessGpu}` | Shader sources re-exported via forge | **Wired** (shaders absorbed) |
 | `spectral::BatchIprGpu` | Shader source re-exported via forge | **Wired** (shader absorbed) |
 | `ops::rk_stage::WGSL_RK4_PARALLEL` | Shader source re-exported via forge | **Wired** (shader absorbed) |
+| S-13 PooledBuffer race fix | Deferred return + device poll — flows via path dep | **Automatic** (Session 39) |
+| TS-003 trig precision | 7-term Taylor + Cody-Waite range reduction | **Automatic** (Session 36) |
+| TS-001 pow_f64 precision | Extended exp/log polynomials | **Automatic** (Session 36) |
+| TS-004 FusedMapReduceF64 fix | Single command encoder for both passes | **Automatic** (Session 36) |
 
 ### Available but not yet leveraged
 
@@ -217,6 +241,11 @@ or existing infrastructure):
 | `ReduceScalarPipeline::sum_f64` | Fitness aggregation | Available (local mean_reduce validated) |
 | `BatchedRK4F64` | CPU-threaded ODE parameter sweeps | Available |
 | `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` | GPU-native eigensolve for Anderson | Available |
+| `ops::nn::conv2d.wgsl` | Batched Conv2D — LeNet-5 conv layers | **New** (Session 39) — not yet wired to executor |
+| `ops::nn::maxpool2d.wgsl` | MaxPool2D — LeNet-5 pooling | **New** (Session 39) — not yet wired to executor |
+| `ops::nn::avgpool2d.wgsl` | AvgPool2D — alternative pooling | **New** (Session 39) — not yet wired to executor |
+| `cpu_conv_pool::{conv2d, max_pool2d, avg_pool2d}` | CPU reference Conv2D/Pool | **New** (Session 39) |
+| `esn_v2::export_weights/import_weights` | GPU-train → NPU-deploy pipeline | **New** (Session 39) |
 
 ---
 

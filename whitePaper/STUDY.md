@@ -170,7 +170,7 @@ BarraCUDA integration extended it to 1100+ GPU/CPU validation checks across 115 
 - **115 validation binaries + 5 bench**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch
 - **255 unit tests + 9 doc-tests**, 94.9% line coverage via `llvm-cov`
 - **Quality gates**: `clippy` (pedantic+nursery), `fmt`, `doc`, `unsafe_code = "forbid"`
-- **16 WGSL shaders** in `metalForge/shaders/` with validation binaries and absorption targets
+- **17 WGSL shaders** in `metalForge/shaders/` with validation binaries and absorption targets (13 upstream, 4 local)
 
 See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C promotion path from Rust to WGSL.
 
@@ -224,7 +224,7 @@ See `whitePaper/BARRACUDA_EVOLUTION.md` for the full technical narrative.
 | 2 | BarraCUDA CPU ports | 17 modules, 170 checks | **COMPLETE** |
 | 3a | BarraCUDA FFT | 24 analytical checks (f32/f64/Rfft) | **COMPLETE** |
 | 3b | GPU streaming | `StatefulPipeline` (10/10 PASS) | **COMPLETE** |
-| 3c | Shader evolution | 16 WGSL shaders, 108+ checks | **COMPLETE** |
+| 3c | Shader evolution | 17 WGSL shaders, 108+ checks | **COMPLETE** |
 | 3d | Cross-dispatch | GPU-CPU parity (41 checks) | **COMPLETE** |
 | 4a | Performance benchmarks | 7 kernels, 71.8× overall | **COMPLETE** |
 | 4b | GPU pipelines | 7 pipelines, 32 checks | **COMPLETE** |
@@ -246,7 +246,7 @@ All four faculty research groups have been reproduced in Phase 0++:
 | **Kachkovskiy** (MSU Math) | 022–023 | Spectral commutativity, Anderson localization |
 
 All 25 papers validated in Python (206/206) and BarraCUDA CPU (203/203, 24/25 papers),
-with 16 WGSL shaders evolved for GPU acceleration via metalForge.
+with 17 WGSL shaders evolved for GPU acceleration via metalForge (13 absorbed upstream, 4 local).
 
 ### BarraCUDA Primitives Validated
 

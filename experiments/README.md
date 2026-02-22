@@ -18,6 +18,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 004 | GPU Dispatch Overhead Characterization | Feb 19, 2026 | 1.5ms crossover point (GPU > CPU) |
 | 005 | L2 Megabatch Complexity Boundary | Feb 19, 2026 | GPU wins at 200x1000+ |
 | 006 | Phase 5b Full-Stack Buildout | Feb 22, 2026 | ALL GREEN: bC 96%, gT 92%, xD 100% |
+| 007 | Session 39 ToadStool Sync | Feb 22, 2026 | 5 shaders absorbed upstream, S-13 fixed, Conv2D/Pool available |
 
 ---
 
@@ -188,6 +189,65 @@ closes all gaps to reach ALL GREEN.
 | xD (Cross-dispatch) | 5/25 (20%) | **15/15 (100%)** |
 
 **ALL GREEN** across all applicable tiers. Grand total: 1560+ checks.
+
+---
+
+## Experiment 007: Session 39 ToadStool Sync
+
+**Date**: February 22, 2026
+**Hardware**: i9-12900K, RTX 4070 12GB, Pop!_OS 22.04, Vulkan (NVIDIA 570.x)
+**Researcher**: Eastgate
+
+### Why
+
+ToadStool committed Session 39 (`d45fdfb3`) — a massive dead-code sweep and
+shader absorption wave. Needed to pull, audit what changed, revalidate
+neuralSpring, and update all handoffs to reflect the new state.
+
+### What
+
+1. **Pulled** ToadStool `77f70b2e..d45fdfb3` (243 files, +14k/-4.7k lines).
+2. **Audited** barracuda changes: 79 files changed in the barracuda crate.
+3. **Verified** 255/255 lib tests PASS, all 115+ binaries compile.
+4. **Identified** 5 shaders absorbed upstream as generalized variants:
+   - `pairwise_l2` (closed-form pair decode), `multi_obj_fitness` (Bessel correction),
+   - `hill_gate` (mode generalization), `swarm_nn_forward` (generic MLP),
+   - `mean_reduce` (effectively identical).
+5. **Confirmed** bug fixes flowing via path dep: S-13 (buffer race), TS-003 (trig),
+   TS-001 (pow), TS-004 (FusedMapReduce).
+6. **Noted** new capabilities: Conv2D/MaxPool2D/AvgPool2D WGSL shaders,
+   `cpu_conv_pool` module, ESN weight export/import.
+7. **Updated** all docs: ABSORPTION_TRACKER, EVOLUTION_READINESS, forge shaders.rs,
+   ABSORPTION_MANIFEST, TOADSTOOL_HANDOFF, BARRACUDA_USAGE, BARRACUDA_EVOLUTION,
+   README, CONTROL_EXPERIMENT_STATUS, DEPRECATION_MIGRATION, CROSS_SPRING_EVOLUTION,
+   whitePaper/*.
+8. **Created** V8 handoff (supersedes V7). V7 archived.
+
+### What We Found
+
+- The upstream shader variants are improved: O(1) pair decode vs O(N) linear search
+  (pairwise_l2), Bessel correction for unbiased std (multi_obj_fitness), clamped
+  sigmoid for stability (swarm_nn_forward), mode generalization (hill_gate).
+- Local copies must be retained — our validators use local binding layouts via
+  `include_str!`. Future migration to upstream APIs when Rust wrappers are available.
+- S-13 fix is significant: the PooledBuffer race condition was a potential source of
+  non-determinism in GPU validation. Now eliminated upstream.
+- Conv2D/MaxPool2D/AvgPool2D WGSL shaders exist but aren't wired to GpuExecutor yet.
+  CPU fallback (`cpu_conv_pool`) is ready. This opens the path for full LeNet-5
+  validation beyond FC-only.
+- ToadStool reached 3,847+ tests, 589+ WGSL shaders, zero clippy warnings.
+
+### Result
+
+| Metric | Before (V7) | After (V8) |
+|--------|-------------|------------|
+| Shaders upstream | 8/16 (50%) | 13/17 (76%) |
+| S-13 status | Open | **FIXED** upstream |
+| ToadStool HEAD | `77f70b2e` | `d45fdfb3` |
+| neuralSpring tests | 255/255 PASS | 255/255 PASS (unchanged) |
+| Handoff version | V7 | V8 |
+
+No regressions. All validation checks unchanged.
 
 ---
 

@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `77f70b2e` (Session 31h, Feb 22, 2026)
+**ToadStool HEAD**: `d45fdfb3` (Session 39, Feb 22, 2026)
 
 ---
 

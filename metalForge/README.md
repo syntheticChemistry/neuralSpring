@@ -127,7 +127,7 @@ metalForge/
 │   ├── Cargo.toml             ← deps: barracuda (path), wgpu 22, bytemuck
 │   └── src/
 │       ├── lib.rs             ← crate root — absorption-friendly layout
-│       ├── shaders.rs         ← 16 WGSL sources as pub const (single source of truth)
+│       ├── shaders.rs         ← 17 WGSL sources as pub const (single source of truth)
 │       ├── bindings.rs        ← binding layouts + dispatch geometry per shader
 │       ├── dispatch.rs        ← GPU vs CPU crossover routing (empirical thresholds)
 │       └── bridge.rs          ← Gpu <-> barracuda::device::WgpuDevice bridge
@@ -169,7 +169,7 @@ from `forge::bindings`.
 
 | Module | Purpose | Tests |
 |--------|---------|-------|
-| `shaders.rs` | 16 WGSL sources as `pub const` (single source of truth) | 2 |
+| `shaders.rs` | 17 WGSL sources as `pub const` (single source of truth) | 2 |
 | `bindings.rs` | `ShaderLayout` structs with binding slots, workgroup sizes, dispatch notes | 3 |
 | `dispatch.rs` | GPU vs CPU crossover heuristics (empirical from bench data) | 10 |
 | `bridge.rs` | `Backend` enum, `create_device()`, buffer upload/readback | 3 |

@@ -2,10 +2,7 @@
 
 //! WGSL shader source catalog — single source of truth for validation.
 //!
-//! ## Upstream-sourced (absorbed by `BarraCUDA` / `ToadStool` `77f70b2e`)
-//!
-//! These 8 shaders are now re-exported from `barracuda`. The WGSL source is
-//! identical — `ToadStool` absorbed them from neuralSpring's metalForge.
+//! ## Upstream-sourced (identical — absorbed by ToadStool `77f70b2e`)
 //!
 //! | Constant | Upstream path |
 //! |----------|---------------|
@@ -18,18 +15,26 @@
 //! | [`BATCH_IPR`] | `barracuda::spectral::batch_ipr::WGSL_BATCH_IPR` |
 //! | [`PAIRWISE_HAMMING`] | `barracuda::ops::bio::pairwise_hamming::WGSL_PAIRWISE_HAMMING` |
 //!
-//! ## Still local (8 shaders, pending absorption)
+//! ## Upstream-sourced (generalized variants — absorbed by ToadStool `d45fdfb3`)
+//!
+//! Local copies retained for validation compatibility (different binding layouts).
+//!
+//! | Constant | Upstream | Difference |
+//! |----------|----------|------------|
+//! | [`PAIRWISE_L2`] | `barracuda::shaders::math::pairwise_l2` | Closed-form pair decode |
+//! | [`MULTI_OBJ_FITNESS`] | `barracuda::shaders::bio::multi_obj_fitness` | Bessel correction |
+//! | [`SWARM_NN_FORWARD`] | `barracuda::shaders::bio::swarm_nn_forward` | Generic MLP dims |
+//! | [`HILL_GATE`] | `barracuda::shaders::bio::hill_gate` | Mode 0/1 generalization |
+//! | [`MEAN_REDUCE`] | `barracuda::shaders::reduce::mean_reduce` | Effectively identical |
+//!
+//! ## Still local (4 shaders — no upstream equivalent)
 //!
 //! | Constant | Domain | Papers |
 //! |----------|--------|--------|
-//! | [`MEAN_REDUCE`] | Aggregation | — |
-//! | [`PAIRWISE_L2`] | MODES novelty | 012 |
-//! | [`MULTI_OBJ_FITNESS`] | Directed evo | 014 |
-//! | [`SWARM_NN_FORWARD`] | Swarm robotics | 015 |
-//! | [`HILL_GATE`] | Signal | 021 |
 //! | [`HEAD_SPLIT`] | MHA | — |
 //! | [`HEAD_CONCAT`] | MHA | — |
 //! | [`XOSHIRO128SS`] | PRNG | — |
+//! | [`SWARM_NN_SCORES`] | Swarm scores | 015 |
 
 // ── Upstream-sourced (re-exported from barracuda) ───────────────────
 
@@ -101,6 +106,11 @@ pub const HEAD_CONCAT: &str = include_str!("../../shaders/head_concat.wgsl");
 /// Generates uniform f32 in `[0, 1)`. State persists across dispatches.
 pub const XOSHIRO128SS: &str = include_str!("../../shaders/xoshiro128ss.wgsl");
 
+/// Swarm NN max-activation scores (Paper 015 — swarm robotics pipeline).
+///
+/// Extracts per-controller max activation for `mean_reduce` chaining.
+pub const SWARM_NN_SCORES: &str = include_str!("../../shaders/swarm_nn_scores.wgsl");
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -124,6 +134,7 @@ mod tests {
             ("HEAD_SPLIT", HEAD_SPLIT),
             ("HEAD_CONCAT", HEAD_CONCAT),
             ("XOSHIRO128SS", XOSHIRO128SS),
+            ("SWARM_NN_SCORES", SWARM_NN_SCORES),
         ];
         for (name, src) in shaders {
             assert!(
@@ -138,9 +149,9 @@ mod tests {
     }
 
     #[test]
-    fn shader_count_is_16() {
+    fn shader_count_is_17() {
         assert_eq!(
-            16,
+            17,
             [
                 HMM_FORWARD_LOG,
                 BATCH_FITNESS_EVAL,
@@ -158,6 +169,7 @@ mod tests {
                 HEAD_SPLIT,
                 HEAD_CONCAT,
                 XOSHIRO128SS,
+                SWARM_NN_SCORES,
             ]
             .len()
         );

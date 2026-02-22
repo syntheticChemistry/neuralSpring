@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `77f70b2e` (Session 31h, Feb 22, 2026)
+**ToadStool HEAD**: `d45fdfb3` (Session 39, Feb 22, 2026)
 **Last Updated**: February 22, 2026
 
 ---
@@ -30,25 +30,39 @@ fossilized in `metalForge/fossils/evolved_s01_s11/` (~3.4k LOC, incl. eigh_local
 
 ---
 
-## Ready for Absorption (Tier A — validated, WGSL exported, flat layouts)
+## Absorbed Shaders (Tier A — validated, upstream)
 
-These are complete, validated, and ready for ToadStool to absorb. Each has:
-- A `pub const WGSL_*` export from its domain library module
-- A validation binary proving GPU-CPU parity
-- Flat row-major data layouts matching GPU buffer bindings
+### Identical copies (absorbed at `77f70b2e`)
+
+| WGSL Shader | Upstream API | Domain | Validation | Checks |
+|-------------|-------------|--------|------------|--------|
+| `hmm_forward_log.wgsl` | `barracuda::ops::bio::hmm` | Phylogenetics 016–018 | `validate_gpu_hmm_forward` | 13/13 |
+| `pairwise_jaccard.wgsl` | `barracuda::ops::bio::pairwise_jaccard` | Pangenome 024 | `validate_gpu_pangenome` | 6/6 |
+| `locus_variance.wgsl` | `barracuda::ops::bio::locus_variance` | Meta-pop 025 | `validate_gpu_meta_pop` | 7/7 |
+| `spatial_payoff.wgsl` | `barracuda::ops::bio::spatial_payoff` | Game theory 019 | `validate_gpu_game_theory` | 5/5 |
+| `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr` | Spectral 022–023 | `validate_gpu_anderson` | 5/5 |
+| `pairwise_hamming.wgsl` | `barracuda::ops::bio::pairwise_hamming` | Alignment 017 | `validate_gpu_sate` | 5/5 |
+
+### Generalized variants (absorbed at `d45fdfb3` Session 39)
+
+Local copies retained for validation compatibility (different binding layouts).
+
+| WGSL Shader | Upstream Path | Validation | Checks | Key Difference |
+|-------------|---------------|------------|--------|----------------|
+| `pairwise_l2.wgsl` | `shaders::math::pairwise_l2` | `validate_gpu_modes` | 15/15 | O(1) pair decode |
+| `multi_obj_fitness.wgsl` | `shaders::bio::multi_obj_fitness` | `validate_gpu_directed` | 6/6 | Bessel correction |
+| `hill_gate.wgsl` | `shaders::bio::hill_gate` | `validate_gpu_signal` | 9/9 | Mode generalization |
+| `swarm_nn_forward.wgsl` | `shaders::bio::swarm_nn_forward` | `validate_gpu_swarm` | 9/9 | Generic MLP dims |
+| `mean_reduce.wgsl` | `shaders::reduce::mean_reduce` | `validate_gpu_pure_workload` | 7/7 | Identical |
+
+### Still local (pending absorption)
 
 | WGSL Shader | Library Export | Domain | Validation | Checks | Absorption Target |
 |-------------|--------------|--------|------------|--------|-------------------|
-| `hmm_forward_log.wgsl` | `hmm::WGSL_HMM_FORWARD_LOG` | Phylogenetics 016–018 | `validate_gpu_hmm_forward` | 13/13 | `barracuda::ops::hmm` |
-| `pairwise_jaccard.wgsl` | `pangenome_selection::WGSL_PAIRWISE_JACCARD` | Pangenome 024 | `validate_gpu_pangenome` | 6/6 | `barracuda::ops::pairwise_distance` |
-| `locus_variance.wgsl` | `meta_population::WGSL_LOCUS_VARIANCE` | Meta-pop 025 | `validate_gpu_meta_pop` | 7/7 | `barracuda::ops::VarianceReduceF64` |
-| `spatial_payoff.wgsl` | `game_theory::WGSL_SPATIAL_PAYOFF` | Game theory 019 | `validate_gpu_game_theory` | 5/5 | `barracuda::ops::stencil` |
-| `batch_ipr.wgsl` | `anderson_localization::WGSL_BATCH_IPR` | Spectral 022–023 | `validate_gpu_anderson` | 5/5 | `barracuda::ops::batch_reduce` |
-| `pairwise_hamming.wgsl` | `sate_alignment::WGSL_PAIRWISE_HAMMING` | Alignment 017 | `validate_gpu_sate` | 5/5 | `barracuda::ops::pairwise_distance` |
-| `pairwise_l2.wgsl` | `modes::WGSL_PAIRWISE_L2` | MODES 012 | `validate_gpu_modes` | 15/15 | `barracuda::ops::pairwise_distance` |
-| `multi_obj_fitness.wgsl` | `directed_evolution::WGSL_MULTI_OBJ_FITNESS` | Directed evo 014 | `validate_gpu_directed` | 6/6 | `barracuda::ops::batch_gemm` |
-| `swarm_nn_forward.wgsl` | `swarm_robotics::WGSL_SWARM_NN_FORWARD` | Swarm robotics 015 | `validate_gpu_swarm` | 9/9 | `barracuda::ops::batch_gemm` |
-| `hill_gate.wgsl` | `signal_integration::WGSL_HILL_GATE` | Signal 021 | `validate_gpu_signal` | 9/9 | `barracuda::ops::elementwise` |
+| `head_split.wgsl` | `evolved::WGSL_HEAD_SPLIT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` |
+| `head_concat.wgsl` | `evolved::WGSL_HEAD_CONCAT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` |
+| `xoshiro128ss.wgsl` | `rng::WGSL_XOSHIRO128SS` | PRNG | `validate_gpu_prng` | 5/5 | `barracuda::ops::prng` |
+| `swarm_nn_scores.wgsl` | `forge::shaders::SWARM_NN_SCORES` | Swarm 015 | `validate_gpu_pipeline_swarm` | PASS | No upstream equivalent |
 
 ### Cross-Dispatch Validators
 
@@ -66,16 +80,12 @@ These are complete, validated, and ready for ToadStool to absorb. Each has:
 | `validate_barracuda_gpu_spectral` | GPU Tensor matmul for commutator (Paper 022) | 8 | **8/8 PASS** |
 | `validate_barracuda_gpu_eco` | GPU Tensor matmul for eco dynamics (Paper 013) | 6 | **6/6 PASS** |
 
-### Cross-Domain Shaders (multi-paper)
+### Cross-Domain Shaders (multi-paper — also absorbed at 77f70b2e)
 
-| WGSL Shader | Library Export | Domain | Validation | Checks | Absorption Target |
-|-------------|--------------|--------|------------|--------|-------------------|
-| `batch_fitness_eval.wgsl` | `evolved::WGSL_BATCH_FITNESS_EVAL` | Evolution 011–015 | `validate_gpu_batch_fitness` | 20/20 | `barracuda::ops::batch_gemm` |
-| `rk4_parallel.wgsl` | `evolved::WGSL_RK4_PARALLEL` | Regulatory 020–021 | `validate_gpu_rk4` | 8/8 | `barracuda::ops::ode` |
-| `mean_reduce.wgsl` | `evolved::WGSL_MEAN_REDUCE` | Aggregation | `validate_gpu_pure_workload` | 7/7 | `barracuda::pipeline::ReduceScalarPipeline` |
-| `head_split.wgsl` | `evolved::WGSL_HEAD_SPLIT` | MHA (S-03b) | `validate_mha_gpu` | 10/10 | `barracuda::ops::mha` |
-| `head_concat.wgsl` | `evolved::WGSL_HEAD_CONCAT` | MHA (S-03b) | `validate_mha_gpu` | 10/10 | `barracuda::ops::mha` |
-| `xoshiro128ss.wgsl` | `rng::WGSL_XOSHIRO128SS` | PRNG | `validate_gpu_prng` | 5/5 | `barracuda::ops::prng` |
+| WGSL Shader | Upstream API | Domain | Validation | Checks |
+|-------------|-------------|--------|------------|--------|
+| `batch_fitness_eval.wgsl` | `barracuda::ops::bio::batch_fitness` | Evolution 011–015 | `validate_gpu_batch_fitness` | 20/20 |
+| `rk4_parallel.wgsl` | `barracuda::ops::rk_stage` | Regulatory 020–021 | `validate_gpu_rk4` | 8/8 |
 
 ---
 
@@ -170,7 +180,7 @@ that match GPU buffer bindings directly:
 **Total BarraCUDA primitive checks**: 275
 **Total BarraCUDA CPU port checks**: 170 (17 modules)
 **Total BarraCUDA GPU Tensor validation**: 14 (spectral 8, eco 6)
-**Total GPU shader checks**: 108 (16 WGSL)
+**Total GPU shader checks**: 108 (17 WGSL — 13 upstream, 4 local)
 **Total GPU pipeline checks**: 32 (7 pipelines)
 **Total cross-dispatch checks**: 41 (8+8+12+13)
 **Total lib tests**: 255 unit + 9 doc (94.9% line coverage)

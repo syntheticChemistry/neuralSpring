@@ -42,11 +42,11 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 206/206 Python PASS + 1354+ Rust+GPU PASS = 1560+ total validation checks
 
-**ToadStool `77f70b2e`**: All 12 shortcomings (S-01..S-12) **ABSORBED**.
-S-16 transpose dispatch **FIXED**. S-15 matmul hang **root-caused** (WGPU/Vulkan
-driver bug, magnitude ≤ 0.1), workaround documented. S-14 workaround (non-square shapes).
-Phase 5b full-stack buildout: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%)**.
-All Phase 0++ papers at **7/7 tiers**. 115 validation binaries, 31 modules.
+**ToadStool `d45fdfb3`** (Session 39): All shortcomings through S-12 **ABSORBED**.
+S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
+5 of 8 local WGSL shaders **absorbed upstream** as generalized variants.
+Phase 5b: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%)**.
+115 validation binaries, 31 modules. Conv2D/MaxPool2D/AvgPool2D WGSL now available upstream.
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 
 ### Phase 0 — Synthetic Baselines (48/48)
@@ -478,8 +478,8 @@ neuralSpring/
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
 │   └── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete
 ├── wateringHole/handoffs/      # Cross-project handoffs (ToadStool/BarraCUDA)
-│   ├── NEURALSPRING_V7_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md  # Phase 5b full-stack handoff
-│   └── archive/               #   Superseded handoffs (V1-V6)
+│   ├── NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md  # Session 39 sync handoff
+│   └── archive/               #   Superseded handoffs (V1-V7)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-005)
 ├── whitePaper/                 # Study documentation
@@ -520,4 +520,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Phase 5b complete: February 22, 2026 | 25 papers, 206 Python + 1354+ Rust+GPU = 1560+ validation checks | 255 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 115 validation binaries, 16 WGSL shaders (8 upstream, 8 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%)*
+*Initialized: February 16, 2026 | Phase 5b complete: February 22, 2026 | 25 papers, 206 Python + 1354+ Rust+GPU = 1560+ validation checks | 255 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 115 validation binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%)*

@@ -220,7 +220,7 @@ BarraCUDA integration extended it to 1100+ Rust+GPU checks across 115 validation
 
 ### GPU Shaders + Pipelines (180+ checks)
 
-16 WGSL shaders in `metalForge/shaders/`, validated via GPU shader binaries,
+17 WGSL shaders in `metalForge/shaders/`, validated via GPU shader binaries,
 cross-dispatch binaries, and 7 pure-GPU pipeline binaries.
 
 ### Quality Gates
@@ -241,7 +241,7 @@ GPU error handling.
 | 1c | Fused ToadStool pipeline | Single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |
 | 2 | BarraCUDA CPU ports (170 checks) | CPU math fidelity | **COMPLETE** |
-| 3 | GPU shader evolution (16 WGSL + pipelines) | GPU-CPU parity | **COMPLETE** |
+| 3 | GPU shader evolution (17 WGSL + pipelines) | GPU-CPU parity | **COMPLETE** |
 | 4 | Performance + domain expansion | PINN, DeepONet, MHA, eigh | **COMPLETE** |
 | 5a | BarraCUDA GPU Tensor | Spectral + eco GPU validation | **COMPLETE** |
 | 5b | Upstream fixes (S-13, S-14) | Pool sync, driver hang | **Active** |

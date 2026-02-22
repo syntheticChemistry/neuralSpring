@@ -15,7 +15,7 @@
 | [STUDY.md](STUDY.md) | Technical | Main study: experiments, results, BarraCUDA evolution |
 | [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) | ToadStool team | Shader evolution narrative: Python → CPU → GPU |
 | `specs/BENCHMARK_ANALYSIS.md` | Engineering | Full 3-way benchmark with analysis |
-| `specs/TOADSTOOL_HANDOFF.md` | Engineering | 12 BarraCUDA shortcomings — all absorbed at `77f70b2e` |
+| `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all through S-13 fixed at `d45fdfb3` |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (hotSpring pattern) |
 | `wateringHole/handoffs/` | Cross-project | V6 GPU Tensor handoff + evolution (Feb 22, 2026) |
@@ -80,7 +80,7 @@ magnitude trigger WGPU/Vulkan driver bug), workaround applied to all validators.
 | 2 | BarraCUDA CPU ports — 24/25 papers, 203 checks (96%) | **Complete** |
 | 3a | BarraCUDA FFT validation — 24 analytical checks | **Complete** |
 | 3b | GPU streaming (`StatefulPipeline` + `UnidirectionalPipeline`) | **Complete** |
-| 3c | Shader evolution (16 WGSL shaders, 108 checks) | **Complete** |
+| 3c | Shader evolution (17 WGSL shaders, 108 checks) | **Complete** |
 | 3d | Cross-dispatch (6 validators, 49 checks, 15/15 papers) | **Complete** |
 | 4 | Phase 4a–4e: GPU pipelines, PRNG, MHA, eigendecomposition | **Complete** |
 | 5a | GPU Tensor validation (7 original domains, 43 checks) | **Complete** |
@@ -303,7 +303,7 @@ ToadStool's Cooley-Tukey WGSL shader. Absorbed directly from ToadStool.
 Phase 3b (GPU-resident streaming): `StatefulPipeline` and
 `UnidirectionalPipeline` validated (10/10 PASS).
 
-Phase 3c (shader evolution): 16 WGSL shaders validated, all following
+Phase 3c (shader evolution): 17 WGSL shaders validated, all following
 the hotSpring lifecycle: evolve-locally, handoff, retire-when-absorbed.
 
 Phase 3d (cross-dispatch): GPU-CPU parity validated across 4 dispatch
@@ -330,4 +330,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 3 evolved. 255 lib tests, 94.9% coverage. 206 Python + 1354+ Rust+GPU = 1560+ total checks.
-Phase 5b complete: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%). S-16 fixed, S-15 root-caused. 115 validation binaries, 16 WGSL shaders.*
+Phase 5b complete: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%). S-16 fixed, S-15 root-caused. 115 validation binaries, 17 WGSL shaders (13 upstream, 4 local). Session 39 sync: S-13 fixed, 5 shaders absorbed upstream.*

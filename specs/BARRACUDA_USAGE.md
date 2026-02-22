@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 22, 2026 (post Phase 5b full-stack buildout)
+**Last Updated**: February 22, 2026 (post Session 39 sync — `d45fdfb3`)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -82,6 +82,20 @@
 | `staging::StatefulPipeline` | HMM chain, ODE loops, iterative EA | Eliminate CPU loop over GPU dispatches |
 | `staging::UnidirectionalPipeline` | Streaming fitness eval | Reduce round-trips from O(T) to O(1) |
 | `pipeline::ReduceScalarPipeline` | Log-likelihood, convergence checks | Scalar-only readback |
+
+### New in Session 39 (`d45fdfb3`) — NN Compute and Bug Fixes
+
+| BarraCUDA Module | Use Case | Status |
+|-----------------|----------|--------|
+| `ops::nn::conv2d.wgsl` | Batched Conv2D (LeNet-5 conv layers) | Available — not yet wired to executor |
+| `ops::nn::maxpool2d.wgsl` | MaxPool2D (LeNet-5 pooling) | Available — not yet wired to executor |
+| `ops::nn::avgpool2d.wgsl` | AvgPool2D (alternative pooling) | Available — not yet wired to executor |
+| `cpu_conv_pool::{conv2d, max_pool2d, avg_pool2d}` | CPU reference implementations | Available — used by CpuExecutor |
+| `esn_v2::export_weights/import_weights` | GPU-train → NPU-deploy pipeline | Available |
+| S-13 PooledBuffer race fix | Deferred return + device poll | **Flows automatically** via path dep |
+| TS-003 trig precision | 7-term Taylor + Cody-Waite range reduction | **Flows automatically** via path dep |
+| TS-001 pow_f64 precision | Extended exp/log polynomials | **Flows automatically** via path dep |
+| TS-004 FusedMapReduceF64 fix | Single command encoder | **Flows automatically** via path dep |
 
 ### Low Priority — Future Features
 
@@ -198,4 +212,5 @@ directly — no conversion needed for `Tensor::from_data` or raw `wgpu::Buffer`:
 5. **Hill functions → `numerical::hill`**: Used by regulatory biology + signal
    integration across neuralSpring and potentially hotSpring
 
-*Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15.*
+*Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15.
+Session 39 sync: S-13 fixed, 5 shaders absorbed upstream (generalized variants), Conv2D/Pool WGSL available.*
