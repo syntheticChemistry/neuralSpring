@@ -14,7 +14,12 @@
 //! |--------|-----------|-------------------|
 //! | `mha` | Native projection shaders hang (S-03b) — GPU `head_split`/`head_concat` shaders ready | `ToadStool`: replace fused projection with `matmul` + `head_split.wgsl` / `head_concat.wgsl` |
 //! | `hmm_forward_gpu` | Shader absorbed; local dispatch wrapper pending retirement | Migrate callers to `barracuda::ops::bio::HmmBatchForwardF64` |
-//! | `tensor_sync` | S-13: `PooledBuffer` drop-before-completion race — `gpu_fence`, `fenced_matmul`, `materialize` | `ToadStool`: add `device.poll(Wait)` in `PooledBuffer::drop` before returning to pool |
+//!
+//! ## Fossilized (Session 40)
+//!
+//! | Module | Reason | Location |
+//! |--------|--------|----------|
+//! | `tensor_sync` | S-13 **FIXED** upstream at `d45fdfb3` — zero callers remain | `metalForge/fossils/evolved_s13/` |
 //!
 //! ## Retirement checklist
 //!
@@ -60,7 +65,6 @@
 
 pub mod hmm_forward_gpu;
 pub mod mha;
-pub mod tensor_sync;
 
 /// WGSL shader: GPU-resident head split for MHA.
 ///

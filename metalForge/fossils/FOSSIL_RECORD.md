@@ -43,6 +43,15 @@ To trace what each shortcoming was and how ToadStool fixed it, see
 
 **Total fossilized bench code**: ~2,533 LOC (Rust + Python)
 
+### evolved_s13/ — PooledBuffer Race Workaround
+
+| File | LOC | Shortcoming | BarraCUDA Fix | Status |
+|------|-----|-------------|---------------|--------|
+| `tensor_sync.rs` | 179 | S-13 (PooledBuffer drop-before-completion race) | `d45fdfb3` — device.poll(Wait) in PooledBuffer::drop | **FIXED upstream** |
+
+Provided `gpu_fence`, `materialize`, `fenced_matmul` — proving the correctness
+of the sync approach. Zero callers remained after upstream fix at `d45fdfb3`.
+
 ## What Remains Active
 
 Two evolved modules survive in `src/evolved/`:
@@ -61,6 +70,7 @@ Two evolved modules survive in `src/evolved/`:
 | Feb 20, 2026 | neuralSpring completes rewiring to native APIs; deprecated modules fossilized |
 | Feb 22, 2026 | `bench_inference.py` and `bench_scaling.py` moved from `control/` to fossils (orphaned by fossilized Rust) |
 | Feb 22, 2026 | `eigh_local.rs` fossilized — `barracuda::ops::linalg::eigh_householder_qr` (`77f70b2e`) absorbed S-12 |
+| Feb 22, 2026 | `tensor_sync.rs` fossilized — S-13 `PooledBuffer` race **FIXED** upstream at `d45fdfb3` (Session 39). Zero callers |
 
 ## How to Revive
 

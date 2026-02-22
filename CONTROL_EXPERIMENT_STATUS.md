@@ -5,7 +5,7 @@
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 94.9% line coverage
 **Grand Total**: 206/206 Python PASS + 1401+ Rust+GPU validation PASS = **1607+ total validation checks**
-**Library**: 258 unit tests + 9 doc-tests = 267 total | 31 modules + 3 evolved | 119 validation/bench binaries (incl. upstream wrapper + parity validators)
+**Library**: 255 unit tests + 9 doc-tests = 264 total | 31 modules + 2 evolved | 119 validation/bench binaries (incl. upstream wrapper + parity validators)
 **Session 40**: Capability-based dispatch (12 validators + HMM), cross-eigensolver validation (eigh vs Sturm 2.89e-15), spectral theory 17/17 PASS
 **ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** at `77f70b2e` | S-16 FIXED | S-14/S-15 workaround documented
 **Open Data**: All 25 papers use open data and open systems — zero proprietary or paywalled sources

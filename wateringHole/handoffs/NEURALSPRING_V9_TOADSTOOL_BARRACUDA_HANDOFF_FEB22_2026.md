@@ -388,7 +388,7 @@ See `whitePaper/CROSS_SPRING_SHADER_LINEAGE.md` for the full map.
 
 | Metric | Value |
 |--------|-------|
-| Library tests | 258 PASS, 1 ignored |
+| Library tests | 255 PASS |
 | Doc-tests | 9 PASS |
 | Validation binaries | 119 |
 | Line coverage | 94.9% |
@@ -407,5 +407,5 @@ See `specs/PAPER_REVIEW_QUEUE.md` for the full 7-tier matrix.
 ---
 
 *neuralSpring v9 — 25 papers, 5 disciplines, 4 faculty. 1607+ total checks.
-258 lib tests, 119 binaries, 17 WGSL shaders (13 upstream, 4 local).
+258 lib tests, 119 binaries, 17 WGSL shaders (13 upstream, 4 local). tensor_sync fossilized (S-13 fixed).
 Capability-based dispatch. Cross-eigensolver validation. ALL GREEN.*

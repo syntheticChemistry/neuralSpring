@@ -46,7 +46,7 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
 13/17 WGSL shaders **absorbed upstream** (8 identical + 5 generalized).
 Phase 5c: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 6/6 uP (bit-identical)**.
-119 validation binaries, 31 modules, 258 lib tests. Capability-based dispatch (Session 40).
+119 validation binaries, 31 modules, 255 lib tests. Capability-based dispatch (Session 40).
 Cross-eigensolver validation: eigh vs Sturm 2.89e-15 diff. Spectral theory 17/17 PASS.
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 
@@ -132,7 +132,7 @@ Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at mach
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, centralized `tolerances.rs` constants,
-explicit pass/fail exit codes. Library code: 258 unit tests + 9 doc-tests,
+explicit pass/fail exit codes. Library code: 255 unit tests + 9 doc-tests,
 94.9% line coverage via `llvm-cov`.
 
 ### Phase 2 — BarraCUDA CPU Ports (203/203)
@@ -298,7 +298,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (206/206 — 25 experiments)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (255 lib tests, 119 validation binaries, 31 modules + 3 evolved, 94.9% line coverage)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (255 lib tests, 119 validation binaries, 31 modules + 2 evolved, 94.9% line coverage)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -361,7 +361,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 206/206 PASS |
-| Rust tests | `cargo test` | 258 unit + 9 doc-tests PASS |
+| Rust tests | `cargo test` | 255 unit + 9 doc-tests PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery) |
 | Rust coverage | `cargo llvm-cov --lib` | **94.9%** line (target ≥90%) |
 | Rust format | `cargo fmt --check` | clean |
@@ -410,7 +410,7 @@ neuralSpring/
 │   ├── meta_population/       #   Paper 025: Meta-population differentiation
 │   ├── shared/                 #   Shared utilities (Open-Meteo, etc.)
 │   └── requirements.txt        #   Pinned dependencies
-├── src/                        # Rust library (29 modules + 3 evolved)
+├── src/                        # Rust library (29 modules + 2 evolved)
 │   ├── lib.rs                  #   Crate root
 │   ├── validation.rs           #   ValidationHarness (hotSpring pattern)
 │   ├── tolerances.rs           #   Centralized tolerance constants (all numeric thresholds)
@@ -465,7 +465,7 @@ neuralSpring/
 │       ├── validate_mha_gpu.rs            # GPU head_split/head_concat (10 checks)
 │       ├── bench_*.rs                     # 6 benchmark binaries
 │       └── validate_all.rs                 # Meta-binary: runs all validators
-│   ├── evolved/                #   Active evolutions (3 modules)
+│   ├── evolved/                #   Active evolutions (2 modules)
 │       ├── mod.rs                   # WGSL shader exports (batch_fitness, rk4, mean_reduce)
 │       ├── mha.rs                   # MHA (native projection shaders hang, S-03b)
 │       └── hmm_forward_gpu.rs       # GPU HMM forward orchestration
@@ -526,4 +526,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Session 40: February 22, 2026 | 25 papers, 206 Python + 1401+ Rust+GPU = 1607+ validation checks | 258 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 119 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 6/6 (100%) | Upstream wrappers: 6 bio ops + f64 HMM batch + spectral theory validated, 0.92–1.16× overhead, dual-path parity 0.00e0 diff | Capability-based dispatch (12 validators), cross-eigensolver validation (2.89e-15), GpuCapabilities, RuntimeEnvironment, tolerance introspection | V9 handoff*
+*Initialized: February 16, 2026 | Session 40: February 22, 2026 | 25 papers, 206 Python + 1401+ Rust+GPU = 1607+ validation checks | 255 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 119 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 6/6 (100%) | Upstream wrappers: 6 bio ops + f64 HMM batch + spectral theory validated, 0.92–1.16× overhead, dual-path parity 0.00e0 diff | Capability-based dispatch (12 validators), cross-eigensolver validation (2.89e-15), GpuCapabilities, RuntimeEnvironment, tolerance introspection | V9 handoff*

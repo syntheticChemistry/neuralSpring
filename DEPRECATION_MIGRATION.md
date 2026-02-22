@@ -9,7 +9,7 @@ ToadStool at `77f70b2e`. Deprecated workaround modules have been removed
 from the active codebase and fossilized in `metalForge/fossils/evolved_s01_s11/`.
 S-12 (eigensolver) resolved via Householder+QR — `src/eigh.rs` delegates
 to upstream. Three new shortcomings (S-14, S-15, S-16) discovered during
-Phase 5b full-stack validation — see `wateringHole/handoffs/NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`.
+Phase 5b full-stack validation — see `wateringHole/handoffs/NEURALSPRING_V9_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`.
 
 ---
 
@@ -50,13 +50,19 @@ See `metalForge/fossils/FOSSIL_RECORD.md` for the full inventory.
 
 ---
 
-## Still Active in `src/evolved/` (3 modules)
+## Still Active in `src/evolved/` (2 modules + exports)
 
 | Module | LOC | Why active | Path to absorption |
 |--------|-----|-----------|-------------------|
 | `mod.rs` | ~50 | WGSL shader exports (`batch_fitness_eval`, `rk4_parallel`, `mean_reduce`) | Absorb into `barracuda::ops` |
 | `mha.rs` | 182 | Evolved MHA with GPU head_split/head_concat shaders (S-03b locally resolved) | ToadStool native MHA when projection shaders stabilize |
 | `hmm_forward_gpu.rs` | 270 | No BarraCUDA equivalent | Candidate for `ops::hmm` |
+
+## Newly Fossilized (Session 40)
+
+| Module | LOC | Reason | Location |
+|--------|-----|--------|----------|
+| `tensor_sync.rs` | 179 | S-13 **FIXED** upstream at `d45fdfb3`. Zero callers remain | `metalForge/fossils/evolved_s13/` |
 
 ### S-03b: Locally Resolved via WGSL Head Split/Concat Shaders
 
@@ -101,8 +107,6 @@ production sizes up to B=4, S=128, H=8, d=512).
 
 ---
 
----
-
 ## Phase 5a: New BarraCUDA Shortcomings Discovered
 
 GPU `Tensor` validation across 7 domains uncovered 3 new bugs:
@@ -113,7 +117,7 @@ GPU `Tensor` validation across 7 domains uncovered 3 new bugs:
 | S-15 | Matmul hang with negative or sparse f32 input data | Critical | Characterized, workaround (positive-only data) |
 | S-16 | 2D transpose dispatch uses `optimal_workgroup_size` (256) instead of tile size (16) | High | Root cause confirmed, one-line fix identified |
 
-See `wateringHole/handoffs/NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
+See `wateringHole/handoffs/NEURALSPRING_V9_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
 for full diagnosis, reproduction steps, and recommended fixes.
 
 ---

@@ -605,9 +605,9 @@ without waiting for the GPU to finish using them. Sequential operations that
 produce intermediate tensors (dropped before readback) trigger buffer reuse
 races — data corruption or driver hangs.
 
-**Local fix**: `evolved::tensor_sync` provides `gpu_fence`, `materialize`,
-and `fenced_matmul` as sync primitives. The proper upstream fix is
-`device.poll(Wait)` in `PooledBuffer::drop` or generation-tracked recycling.
+**Local fix** (now fossilized): `evolved::tensor_sync` provided `gpu_fence`, `materialize`,
+and `fenced_matmul` as sync primitives. **FIXED upstream** at `d45fdfb3` — module
+fossilized to `metalForge/fossils/evolved_s13/` (Session 40, zero callers remaining).
 
 ### S-14: Naive Matmul Hang for Small Square Matrices
 

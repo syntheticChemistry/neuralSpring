@@ -8,8 +8,8 @@
 //!
 //! ## S-13: `PooledBuffer` drop-before-completion race
 //!
-//! `BarraCUDA`'s buffer pool returns buffers on drop without GPU sync.
-//! See `evolved::tensor_sync` for analysis and local fix primitives.
+//! `BarraCUDA`'s buffer pool had a drop-before-completion race (S-13).
+//! **FIXED** upstream at `d45fdfb3`. See `metalForge/fossils/evolved_s13/` for history.
 //!
 //! ## S-14: Naive matmul hang for square matrices in complex binaries
 //!
