@@ -168,10 +168,7 @@ fn gpu_nn_forward(
         });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bg, &[]);
-        let workgroup_count: u32 = (n_actions)
-            .div_ceil(256)
-            .try_into()
-            .map_err(|_| format!("workgroup count overflow: {n_actions} actions"))?;
+        let workgroup_count = gpu.dispatch_1d(n_actions as u32, 256);
         pass.dispatch_workgroups(workgroup_count, 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));

@@ -255,7 +255,7 @@ fn gpu_rk4(
         });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(n_systems.div_ceil(64), 1, 1);
+        pass.dispatch_workgroups(gpu.dispatch_1d(n_systems, 64), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));
 

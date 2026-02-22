@@ -206,7 +206,7 @@ fn gpu_spatial_payoff(
         });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups((grid_size * grid_size).div_ceil(256), 1, 1);
+        pass.dispatch_workgroups(gpu.dispatch_1d(grid_size * grid_size, 256), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));
 

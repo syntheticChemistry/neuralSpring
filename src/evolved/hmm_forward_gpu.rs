@@ -169,7 +169,7 @@ pub fn hmm_forward_gpu(
     });
 
     #[allow(clippy::cast_possible_truncation)]
-    let workgroup_count = (n_states as u32).div_ceil(256);
+    let workgroup_count = gpu.dispatch_1d(n_states as u32, 256);
 
     let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
         label: Some("hmm_forward_encoder"),

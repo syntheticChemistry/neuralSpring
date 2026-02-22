@@ -24,6 +24,7 @@ use barracuda::spectral::{
 use neural_spring::anderson_localization::{
     aubry_andre_hamiltonian, jacobi_eigh, GOLDEN_RATIO as NS_GOLDEN,
 };
+use neural_spring::eigh::eigh_householder_qr;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
@@ -40,6 +41,8 @@ fn main() {
     validate_hofstadter_structure(&mut h);
     validate_band_detection(&mut h);
     validate_lyapunov_weak_disorder(&mut h);
+    validate_eigh_vs_sturm(&mut h);
+    validate_eigh_vs_sturm_large(&mut h);
 
     h.finish();
 }
@@ -229,5 +232,85 @@ fn validate_lyapunov_weak_disorder(h: &mut ValidationHarness) {
         ),
         rel_error,
         tolerances::KAPPUS_WEGNER_REL,
+    );
+}
+
+/// Cross-validate dense Householder+QR (eigh) vs tridiagonal Sturm bisection
+/// on a tridiagonal Anderson matrix embedded as dense.
+fn validate_eigh_vs_sturm(h: &mut ValidationHarness) {
+    let n = 64;
+    let disorder = 3.0;
+    let seed = 42;
+
+    let (diag, off_diag) = anderson_hamiltonian(n, disorder, seed);
+    let sturm_evals = find_all_eigenvalues(&diag, &off_diag);
+
+    // Build the same tridiagonal matrix as a dense n×n for Householder+QR
+    let mut dense = vec![0.0_f64; n * n];
+    for i in 0..n {
+        dense[i * n + i] = diag[i];
+        if i + 1 < n {
+            dense[i * n + (i + 1)] = off_diag[i];
+            dense[(i + 1) * n + i] = off_diag[i];
+        }
+    }
+    let eigh_result = eigh_householder_qr(&dense, n);
+    let mut eigh_evals = eigh_result.eigenvalues.clone();
+    eigh_evals.sort_by(f64::total_cmp);
+
+    let max_diff: f64 = sturm_evals
+        .iter()
+        .zip(eigh_evals.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0_f64, f64::max);
+
+    h.check_upper(
+        &format!("eigh vs Sturm n=64 W=3: max eigval diff {max_diff:.2e}"),
+        max_diff,
+        tolerances::SPECTRAL_EIGENSOLVER_CROSS,
+    );
+
+    // Also check that both return the same count
+    h.check_bool(
+        &format!(
+            "eigh vs Sturm: same count ({} vs {})",
+            eigh_evals.len(),
+            sturm_evals.len()
+        ),
+        eigh_evals.len() == sturm_evals.len(),
+    );
+}
+
+/// Larger-scale cross-validation: n=200 strongly disordered.
+fn validate_eigh_vs_sturm_large(h: &mut ValidationHarness) {
+    let n = 200;
+    let disorder = 6.0;
+    let seed = 99;
+
+    let (diag, off_diag) = anderson_hamiltonian(n, disorder, seed);
+    let sturm_evals = find_all_eigenvalues(&diag, &off_diag);
+
+    let mut dense = vec![0.0_f64; n * n];
+    for i in 0..n {
+        dense[i * n + i] = diag[i];
+        if i + 1 < n {
+            dense[i * n + (i + 1)] = off_diag[i];
+            dense[(i + 1) * n + i] = off_diag[i];
+        }
+    }
+    let eigh_result = eigh_householder_qr(&dense, n);
+    let mut eigh_evals = eigh_result.eigenvalues.clone();
+    eigh_evals.sort_by(f64::total_cmp);
+
+    let max_diff: f64 = sturm_evals
+        .iter()
+        .zip(eigh_evals.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0_f64, f64::max);
+
+    h.check_upper(
+        &format!("eigh vs Sturm n=200 W=6: max eigval diff {max_diff:.2e}"),
+        max_diff,
+        tolerances::SPECTRAL_EIGENSOLVER_CROSS,
     );
 }

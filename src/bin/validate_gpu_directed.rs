@@ -126,7 +126,7 @@ fn gpu_multi_obj_fitness(
         ],
     });
 
-    let workgroups = (pop_size * n_objectives).div_ceil(256);
+    let workgroups = gpu.dispatch_1d(pop_size * n_objectives, 256);
     let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
         label: Some("multi_obj_fitness_encoder"),
     });

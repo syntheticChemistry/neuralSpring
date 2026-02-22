@@ -160,7 +160,7 @@ fn gpu_pairwise_l2(gpu: &Gpu, features_flat: &[f32], n: u32, dim: u32) -> Result
         });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups((n_pairs as u32).div_ceil(256), 1, 1);
+        pass.dispatch_workgroups(gpu.dispatch_1d(n_pairs as u32, 256), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));
 

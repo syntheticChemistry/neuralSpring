@@ -162,7 +162,7 @@ fn gpu_locus_variance(
         });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(n_loci.div_ceil(256), 1, 1);
+        pass.dispatch_workgroups(gpu.dispatch_1d(n_loci, 256), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));
 

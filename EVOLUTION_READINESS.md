@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 22, 2026 (post-Session 39 sync)
+**Date**: February 22, 2026 (post-Session 40 sync)
 **ToadStool HEAD**: `d45fdfb3` (Session 39)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → ToadStool absorption → lean on upstream
 
@@ -15,7 +15,7 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 255 lib tests, 31 modules, 115 binaries | **COMPLETE** |
+| Rust native validation | 258 lib tests, 31 modules, 115 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -35,7 +35,8 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | Upstream wrapper validation | 6 bio ops + f64 HMM | **23/23 PASS** (new) |
 | Upstream parity (dual-path) | 6 GPU validators | **6/6 PASS, 0.00e0 diff** (bit-identical) |
 | ReduceScalarPipeline | f64 mean IPR via GPU reduce | **5.55e-17 diff** (machine ε) |
-| Spectral theory stack | Lanczos, Anderson, Hofstadter, Lyapunov | **14/14 PASS** (hotSpring lineage) |
+| Spectral theory stack | Lanczos, Anderson, Hofstadter, Lyapunov, eigh×Sturm | **17/17 PASS** (hotSpring lineage) |
+| Capability-based dispatch | 12 validators + evolved HMM use `Gpu::dispatch_1d` | **Runtime-validated** (Session 40) |
 | Upstream vs local benchmark | 6 kernels, RTX 4070 | **0.92–1.16×** overhead (negligible) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | Grand total checks | **1604+** (206 Py + 1398+ Rust/GPU) | **ALL GREEN** |

@@ -50,6 +50,15 @@ async fn main() {
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
+            let caps = &g.capabilities;
+            eprintln!(
+                "  capabilities: wg_x={}, dispatch_max={}, buffers={}, f64={}, f16={}",
+                caps.max_compute_workgroup_size_x,
+                caps.max_compute_workgroups_per_dimension,
+                caps.max_storage_buffers_per_shader_stage,
+                caps.supports_f64,
+                caps.supports_f16,
+            );
             g
         }
         Err(e) => {
@@ -198,7 +207,7 @@ fn gpu_batch_fitness(
         });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(pop_size.div_ceil(256), 1, 1);
+        pass.dispatch_workgroups(gpu.dispatch_1d(pop_size, 256), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));
 

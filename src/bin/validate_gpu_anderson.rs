@@ -164,7 +164,7 @@ fn gpu_batch_ipr(
         });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(n_vectors.div_ceil(256), 1, 1);
+        pass.dispatch_workgroups(gpu.dispatch_1d(n_vectors, 256), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));
 

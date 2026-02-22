@@ -85,6 +85,12 @@ impl GpuCapabilities {
             .div_ceil(workgroup_size)
             .min(self.max_compute_workgroups_per_dimension)
     }
+
+    /// Whether the hardware supports the given WGSL `@workgroup_size(n)`.
+    #[must_use]
+    pub fn supports_workgroup(&self, shader_workgroup: u32) -> bool {
+        shader_workgroup <= self.max_compute_workgroup_size_x
+    }
 }
 
 /// GPU context for `neuralSpring` workloads.
@@ -209,6 +215,25 @@ impl Gpu {
     #[must_use]
     pub fn compile_shader(&self, source: &str, label: &str) -> wgpu::ShaderModule {
         self.wgpu_device.compile_shader(source, Some(label))
+    }
+
+    /// Compute the number of workgroups for a 1D dispatch, validated
+    /// against runtime-discovered hardware limits.
+    ///
+    /// `shader_wg` is the shader's `@workgroup_size(N)` value.
+    /// Returns the workgroup count needed to cover `n_items`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the hardware does not support the shader's workgroup size.
+    #[must_use]
+    pub fn dispatch_1d(&self, n_items: u32, shader_wg: u32) -> u32 {
+        assert!(
+            self.capabilities.supports_workgroup(shader_wg),
+            "shader @workgroup_size({shader_wg}) exceeds hardware limit ({})",
+            self.capabilities.max_compute_workgroup_size_x,
+        );
+        self.capabilities.dispatch_count(n_items, shader_wg)
     }
 
     /// Allocate a GPU storage buffer for `count` f32 values.

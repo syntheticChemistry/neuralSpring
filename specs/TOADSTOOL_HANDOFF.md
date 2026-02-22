@@ -256,3 +256,29 @@ elements have `|x| ≤ 0.1` triggers the hang. The workaround (`rng.uniform() * 
 ensures all elements ≥ 0.5. This affects all matmul tiers, not just Naive.
 
 Full diagnosis: `wateringHole/handoffs/`
+
+---
+
+## Capability-Based Dispatch (Session 40)
+
+All 12 core GPU validators (batch_fitness, anderson, game_theory, sate, pangenome,
+meta_pop, modes, directed, swarm, signal, rk4) plus the evolved `hmm_forward_gpu`
+module now use `Gpu::dispatch_1d()` instead of hardcoded `.div_ceil(256)`.
+
+`dispatch_1d` validates the shader's `@workgroup_size(N)` against runtime-discovered
+`max_compute_workgroup_size_x` (panics on incompatible hardware) and clamps
+workgroup counts to `max_compute_workgroups_per_dimension`.
+
+Capabilities are logged at startup for observability:
+```
+capabilities: wg_x=256, dispatch_max=65535, buffers=12, f64=true, f16=true
+```
+
+### Cross-Eigensolver Validation
+
+`validate_barracuda_spectral_theory` now includes `eigh_vs_sturm` checks:
+- Dense Householder+QR (`eigh_householder_qr`) vs tridiag Sturm bisection
+  (`find_all_eigenvalues`) on Anderson Hamiltonians
+- n=64 W=3: max eigval diff `2.89e-15` (machine epsilon agreement)
+- n=200 W=6: max eigval diff `1.42e-14`
+- **17/17 checks PASS** (up from 14)
