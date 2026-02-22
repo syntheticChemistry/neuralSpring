@@ -17,16 +17,18 @@
 //! - Paper 017: `SATé` Alignment (Liu et al., 2009)
 //! - Paper 018: Introgression Detection (Liu et al., 2015)
 //!
-//! ## Absorption target
+//! ## Absorption status (`ToadStool` `77f70b2e`)
 //!
-//! `barracuda::ops::hmm` or `staging::StatefulPipeline` extension.
-//! See `metalForge/shaders/ABSORPTION_TRACKER.md`.
+//! Shader source absorbed as `barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32`.
+//! `BarraCUDA` also provides `HmmBatchForwardF64` for f64 batch dispatch.
+//! This local dispatch module will be retired once validation binaries migrate
+//! to the upstream `HmmBatchForwardF64` API.
 
 use crate::gpu::Gpu;
 use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
 
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/hmm_forward_log.wgsl");
+const WGSL_SOURCE: &str = barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32;
 
 /// Uniform params matching the WGSL `HmmParams` struct.
 #[repr(C)]

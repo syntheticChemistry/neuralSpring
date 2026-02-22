@@ -2,17 +2,18 @@
 
 //! Locally evolved GPU-resident ops and WGSL shader exports.
 //!
-//! ## Absorption status (Feb 21, 2026 — `ToadStool` `dc540afd`)
+//! ## Absorption status (Feb 22, 2026 — `ToadStool` `77f70b2e`)
 //!
-//! S-01 through S-11 absorbed by `ToadStool`. Deprecated workarounds
-//! fossilized in `metalForge/fossils/evolved_s01_s11/`.
+//! S-01 through S-11 absorbed by `ToadStool` (`dc540afd`). S-12 (eigh)
+//! absorbed (`77f70b2e`). 8 of 16 WGSL shaders now sourced from upstream
+//! `barracuda` (`ops::bio::*`, `ops::rk_stage`, `spectral::batch_ipr`).
 //!
 //! ## Active Rust evolutions
 //!
 //! | Module | Why active | Path to absorption |
 //! |--------|-----------|-------------------|
 //! | `mha` | Native projection shaders hang (S-03b) — GPU `head_split`/`head_concat` shaders ready | `ToadStool`: replace fused projection with `matmul` + `head_split.wgsl` / `head_concat.wgsl` |
-//! | `hmm_forward_gpu` | No `BarraCUDA` equivalent | Candidate for `ops::hmm` |
+//! | `hmm_forward_gpu` | Shader absorbed; local dispatch wrapper pending retirement | Migrate callers to `barracuda::ops::bio::HmmBatchForwardF64` |
 //! | `tensor_sync` | S-13: `PooledBuffer` drop-before-completion race — `gpu_fence`, `fenced_matmul`, `materialize` | `ToadStool`: add `device.poll(Wait)` in `PooledBuffer::drop` before returning to pool |
 //!
 //! ## Retirement checklist

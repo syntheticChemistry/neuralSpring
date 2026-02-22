@@ -3,15 +3,15 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `dc540afd` (Session 25, Feb 20, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_HANDOFF_FEB21_2026.md`
+**Last reviewed:** ToadStool commit `77f70b2e` (Session 31h, Feb 22, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V4_ABSORPTION_HANDOFF_FEB22_2026.md`
 
 ---
 
 ## Resolution Status
 
-**All 11 neuralSpring shortcomings (S-01 through S-11) are now ABSORBED by
-ToadStool `dc540afd`.** Key absorption commits:
+**All 12 neuralSpring shortcomings (S-01 through S-12) are now ABSORBED by
+ToadStool `77f70b2e`.** S-03b and S-13 have local workarounds. Key absorption commits:
 
 | Commit | What It Did |
 |--------|-------------|
@@ -186,50 +186,44 @@ too small to amortize launch latency.
 | `stats::variance` | all 13 modules | Machine ε | **Excellent** |
 | `stats::pearson_correlation` | modes | Machine ε | **Excellent** |
 
-### S-12: eigh_f64 — RESOLVED (Householder+QR)
+### S-12: eigh_f64 — ABSORBED (`77f70b2e`)
 
-**Local fix**: `src/eigh.rs` — Householder tridiagonalization + QL implicit shifts (Wilkinson) replaces Jacobi.
+**Upstream fix**: `barracuda::ops::linalg::eigh_householder_qr` absorbed neuralSpring's
+Householder+QR implementation verbatim. `src/eigh.rs` now delegates to upstream.
+Local fossil: `metalForge/fossils/evolved_s01_s11/eigh_local.rs`.
 
-**Accuracy table**:
-
-| n | Householder+QR | Jacobi | Improvement |
-|---|----------------|--------|-------------|
-| 4 | 1.13e-14 | 2.21e-14 | 2× |
-| 8 | 3.05e-14 | 1.27e-1 | 4.2 trillion × |
-| 16 | 5.28e-14 | 1.64e+1 | 312 trillion × |
-| 32 | 1.83e-13 | 7.03e+1 | 383 trillion × |
-| 64 | 5.43e-13 | 1.69e+2 | 311 trillion × |
-
-- Anderson Hamiltonian n=32: 1.75e-14 (vs Jacobi's ~70)
-- Validation: `validate_eigh_accuracy` (9/9 PASS)
-- **Absorption target**: `barracuda::linalg::eigh_f64` — replace Jacobi with Householder+QR
+- Validation: `validate_eigh_accuracy` (9/9 PASS, delegated)
+- ToadStool also added `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` for GPU-native eigensolve
 
 ---
 
 ## metalForge Shader Evolutions
 
-Following the hotSpring pattern, these WGSL shaders are developed in
-`metalForge/shaders/` with Rust orchestration in `src/evolved/`:
+16 WGSL shaders in `metalForge/shaders/`. 8 now sourced from upstream barracuda
+(`77f70b2e`), 8 remain local pending absorption.
 
-| Shader | Rust Module | Papers | Absorption Target |
-|--------|-------------|--------|-------------------|
-| `hmm_forward_log.wgsl` | `evolved::hmm_forward_gpu` | 016–018 | `barracuda::ops::hmm` |
-| `head_split.wgsl` | *(bin-level)* | — | `barracuda::ops::mha::head_split` |
-| `head_concat.wgsl` | *(bin-level)* | — | `barracuda::ops::mha::head_concat` |
-| `batch_fitness_eval.wgsl` | *(bin-level)* | 011–015 | `barracuda::ops::batch_gemm` |
-| `rk4_parallel.wgsl` | *(bin-level)* | 020–021 | `barracuda::ops::ode` |
-| `mean_reduce.wgsl` | *(bin-level)* | 011–015 | `barracuda::pipeline::ReduceScalarPipeline` |
+### Absorbed (shader source from barracuda)
 
-See `metalForge/shaders/ABSORPTION_TRACKER.md` for lifecycle tracking.
+| Shader | Upstream API | Status |
+|--------|-------------|--------|
+| `hmm_forward_log.wgsl` | `barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32` | **Absorbed** |
+| `batch_fitness_eval.wgsl` | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` | **Absorbed** |
+| `rk4_parallel.wgsl` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` | **Absorbed** |
+| `pairwise_jaccard.wgsl` | `barracuda::ops::bio::pairwise_jaccard::WGSL_PAIRWISE_JACCARD` | **Absorbed** |
+| `pairwise_hamming.wgsl` | `barracuda::ops::bio::pairwise_hamming::WGSL_PAIRWISE_HAMMING` | **Absorbed** |
+| `locus_variance.wgsl` | `barracuda::ops::bio::locus_variance::WGSL_LOCUS_VARIANCE` | **Absorbed** |
+| `spatial_payoff.wgsl` | `barracuda::ops::bio::spatial_payoff::WGSL_SPATIAL_PAYOFF` | **Absorbed** |
+| `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr::WGSL_BATCH_IPR` | **Absorbed** |
 
-### New BarraCUDA Primitives Suggested
+### Still local (pending absorption)
 
-| Primitive | Use Case | Papers |
-|-----------|----------|--------|
-| `ops::mha::head_split` / `head_concat` | [B,S,D]↔[B,H,S,D/H] — decompose native MHA projection (S-03b fix) | — |
-| `linalg::batch_matmul` | HMM forward/backward chain | 016–018 |
-| `ea::batch_fitness` | Population-parallel fitness evaluation | 011–015 |
-| `numerical::batch_rk45` | Multi-system ODE integration | 020–021 |
-| `linalg::pairwise_distance` | O(N²) distance matrix | 017 |
-| `ea::tournament_select` | GPU-parallel tournament selection | 011–015 |
-| `stencil::neighborhood_scan` | Spatial cooperation model | 019 |
+| Shader | Domain | Papers | Suggested upstream module |
+|--------|--------|--------|--------------------------|
+| `pairwise_l2.wgsl` | MODES novelty | 012 | `barracuda::ops::bio::pairwise_l2` |
+| `multi_obj_fitness.wgsl` | Directed evolution | 014 | `barracuda::ops::bio::multi_obj_fitness` |
+| `swarm_nn_forward.wgsl` | Swarm robotics | 015 | `barracuda::ops::bio::swarm_nn` |
+| `hill_gate.wgsl` | Signal integration | 021 | `barracuda::ops::bio::hill_gate` |
+| `mean_reduce.wgsl` | Aggregation | — | `barracuda::pipeline::ReduceScalarPipeline` |
+| `head_split.wgsl` | MHA | — | `barracuda::ops::mha` (fix S-03b first) |
+| `head_concat.wgsl` | MHA | — | `barracuda::ops::mha` (fix S-03b first) |
+| `xoshiro128ss.wgsl` | GPU PRNG | — | `barracuda::ops::prng` |

@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 22, 2026 (post-forge)
-**ToadStool HEAD**: `dc540afd` (Session 25)
+**Date**: February 22, 2026 (post-absorption)
+**ToadStool HEAD**: `77f70b2e` (Session 31h)
 **Pattern**: Python baseline → Rust validation → WGSL shader → ToadStool absorption → lean on upstream
 
 ---
@@ -18,7 +18,7 @@ Rust modules (29 total) include `pinn.rs` (Study 001 PINN Burgers) and `deeponet
 | BarraCUDA CPU ports | 170/170 (17 modules) | **COMPLETE** |
 | GPU shader validation | 85/85 (16 WGSL shaders) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
-| ToadStool shortcomings | 11/11 absorbed + S-12/S-03b locally resolved | **ALL RESOLVED** |
+| ToadStool shortcomings | 12/12 absorbed (S-12 upstream) + S-03b locally workaround | **ALL RESOLVED** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | Code quality audit | clippy pedantic+nursery clean, `#[must_use]`, centralized tolerances | **COMPLETE** |
 
@@ -182,37 +182,43 @@ or existing infrastructure):
 
 ---
 
-## BarraCUDA APIs Available but Not Yet Leveraged
+## BarraCUDA APIs — New in `77f70b2e` (Sessions 25–31h)
+
+### Now leveraged by neuralSpring
+
+| API | Use | Status |
+|-----|-----|--------|
+| `ops::linalg::eigh_householder_qr` | `src/eigh.rs` delegates to upstream | **Wired** (S-12 absorbed) |
+| `ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32` | Shader source for HMM GPU forward | **Wired** (shader absorbed) |
+| `ops::bio::{PairwiseHammingGpu, PairwiseJaccardGpu, LocusVarianceGpu, SpatialPayoffGpu, BatchFitnessGpu}` | Shader sources re-exported via forge | **Wired** (shaders absorbed) |
+| `spectral::BatchIprGpu` | Shader source re-exported via forge | **Wired** (shader absorbed) |
+| `ops::rk_stage::WGSL_RK4_PARALLEL` | Shader source re-exported via forge | **Wired** (shader absorbed) |
+
+### Available but not yet leveraged
 
 | API | Potential Use | Status |
 |-----|--------------|--------|
-| `TensorSession::{matmul, relu, gelu, softmax, layer_norm}` | Fused ML inference (evolved pipeline fossilized) | Available (S-01/S-11 absorbed) |
-| `KernelRouter` 4-tier matmul | Tiled matmul (local shaders fossilized) | Available (S-02 absorbed) |
+| `ops::bio::HmmBatchForwardF64` | Replace local `hmm_forward_gpu` dispatch entirely | Available (dispatch migration pending) |
+| `spectral::{anderson_*, hofstadter_*, lanczos}` | Replace local model construction code | Available |
+| `numerical::rk45_solve` | Adaptive ODE (Dormand-Prince) | Available |
 | Native `Tensor::multi_head_attention` | Replace evolved MHA | **Blocked** (S-03b: projection shader hang) |
+| `ops::bio::{FelsensteinGpu, GillespieGpu, SmithWatermanGpu}` | Future paper extensions | Available |
+| `ops::bio::{RfBatchInferenceGpu, TreeInferenceGpu}` | Future ML forest workloads | Available |
+| `ops::linalg::{InverseF64, LinSolveF64}` | GPU dense linear algebra | Available |
 | `ReduceScalarPipeline::sum_f64` | Fitness aggregation | Available (local mean_reduce validated) |
-| `BatchedRK4F64` | CPU-threaded ODE parameter sweeps | New (Session 25) |
-| `ops::filter::{Filter, FilterOperation}` | GPU stream compaction | New (Session 25) |
-| `GemmF64::WGSL` | f64 GEMM shader source | New (wetSpring v4) |
-| `Tensor::from_arc_buffer` / `try_arc_buffer` | Zero-copy buffer sharing | New (Session 18) |
-| `NAK` eigensolve | Anderson localization GPU | Addresses S-12 accuracy gap |
+| `BatchedRK4F64` | CPU-threaded ODE parameter sweeps | Available |
+| `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` | GPU-native eigensolve for Anderson | Available |
 
 ---
 
-## S-12: Locally Resolved (Householder+QR Eigensolver)
+## S-12: Absorbed Upstream (`77f70b2e`)
 
-The Jacobi `eigh_f64` accuracy gap is addressed by `src/eigh.rs` — a
-Householder+QR eigensolver achieving machine epsilon accuracy:
+neuralSpring's Householder+QR eigensolver was absorbed by ToadStool as
+`barracuda::ops::linalg::eigh_householder_qr`. `src/eigh.rs` now delegates
+to upstream. The local fossil is preserved at `metalForge/fossils/evolved_s01_s11/eigh_local.rs`.
 
-| n | Jacobi Reconstruction | Householder+QR | LAPACK Reference |
-|---|----------------------|----------------|-----------------|
-| 4 | ~1e-6 | **1.75e-14** | 1e-14 |
-| 8 | ~1e-3 | **1.75e-14** | 1e-14 |
-| 16 | ~0.01 | **1.75e-14** | 1e-14 |
-| 32 | — | **1.75e-14** | 1e-14 |
-| 64 | — | **1.75e-14** | 1e-14 |
-
-Validated by `validate_eigh_accuracy` (9/9 PASS). ToadStool NAK eigensolver
-remains the eventual GPU-native path.
+Validated by `validate_eigh_accuracy` (9/9 PASS). ToadStool also added
+NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 
 ---
 

@@ -28,8 +28,9 @@ To trace what each shortcoming was and how ToadStool fixed it, see
 | `log_softmax.rs` | 259 | S-09 (readback) | `Tensor::log_softmax_wgsl()` | Absorbed |
 | `matmul_cpu_tiled.wgsl` | 270 | S-02 (single kernel) | `ops::matmul` 4-tier `KernelRouter` | Absorbed |
 | `matmul_gpu_evolved.wgsl` | 306 | S-02 (single kernel) | `ops::matmul` 4-tier `KernelRouter` | Absorbed |
+| `eigh_local.rs` | 543 | S-12 (Jacobi accuracy) | `ops::linalg::eigh_householder_qr` | Absorbed |
 
-**Total fossilized evolved code**: ~2,864 LOC
+**Total fossilized evolved code**: ~3,407 LOC
 
 ### bench/ — Fused Inference Benchmarks
 
@@ -59,6 +60,7 @@ Two evolved modules survive in `src/evolved/`:
 | Feb 19, 2026 | ToadStool `dc540afd` absorbs all 11 shortcomings |
 | Feb 20, 2026 | neuralSpring completes rewiring to native APIs; deprecated modules fossilized |
 | Feb 22, 2026 | `bench_inference.py` and `bench_scaling.py` moved from `control/` to fossils (orphaned by fossilized Rust) |
+| Feb 22, 2026 | `eigh_local.rs` fossilized — `barracuda::ops::linalg::eigh_householder_qr` (`77f70b2e`) absorbed S-12 |
 
 ## How to Revive
 
