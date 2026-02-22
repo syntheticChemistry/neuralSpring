@@ -2,7 +2,7 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5c complete — 1607+ total checks, ALL GREEN
+**Status**: Phase 5c complete — 1600+ total checks, ALL GREEN
 **Date**: February 22, 2026 (Session 40+42 — deep audit + capability-based dispatch + cross-eigensolver)
 **License**: AGPL-3.0-or-later
 
@@ -61,8 +61,8 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 206/206 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
-**Phase 1–5c**: 1401+ Rust+GPU validation PASS (264 lib + 9 integration tests + 119 binaries across 31 modules + 2 evolved)
-**Grand Total**: 1607+ PASS — **ALL GREEN** across all applicable tiers
+**Phase 1–5c**: 1400+ Rust+GPU validation PASS (264 lib + 9 integration tests + 119 binaries across 31 modules + 2 evolved)
+**Grand Total**: 1600+ PASS — **ALL GREEN** across all applicable tiers
 
 Phase 5b achieved full-stack validation: **24/25 papers at BarraCUDA CPU (96%),
 23/25 at GPU Tensor (92%), 15/15 Phase 0++ at Cross-dispatch (100%)**. S-16

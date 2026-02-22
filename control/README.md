@@ -74,7 +74,7 @@ python3 control/surrogate/surrogate_validation.py
 
 All scripts use `seed=42` for reproducibility. Stochastic experiments
 (training-based) have relaxed validation thresholds documented in
-`src/tolerances.rs`. Deterministic experiments should produce bitwise-identical
+`src/tolerances/`. Deterministic experiments should produce bitwise-identical
 results across runs.
 
 ## License

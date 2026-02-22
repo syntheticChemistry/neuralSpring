@@ -128,7 +128,7 @@ S-16 transpose dispatch **FIXED**. S-15 matmul hang **root-caused** and workarou
 **Capability-based dispatch**: 12 validators + evolved HMM use `Gpu::dispatch_1d()` with runtime hardware validation.
 Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at machine epsilon (2.89e-15 at n=64).
 
-### Rust Validation (1401+ PASS across 119 validation binaries)
+### Rust Validation (1400+ PASS across 119 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module constants,
@@ -485,7 +485,7 @@ neuralSpring/
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
 │   └── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete
 ├── wateringHole/handoffs/      # Cross-project handoffs (ToadStool/BarraCUDA)
-│   ├── NEURALSPRING_V9_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md  # Session 40 handoff
+│   ├── NEURALSPRING_V10_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md  # Session 42 handoff (current)
 │   └── archive/               #   Superseded handoffs (V1-V8)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-010)

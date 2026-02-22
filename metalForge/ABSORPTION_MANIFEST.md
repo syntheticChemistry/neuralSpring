@@ -114,7 +114,7 @@ ToadStool absorption.
 | Component | Purpose | LOC |
 |-----------|---------|-----|
 | `validation.rs` | `ValidationHarness` pass/fail framework | ~120 |
-| `tolerances.rs` | Centralized tolerance constants (58 named) | ~450 |
+| `tolerances/` | Centralized tolerance constants + runtime introspection (20+ named) | ~1037 |
 | `provenance.rs` | Python baseline metadata | ~80 |
 | `metrics.rs` | R², RMSE, MAE, NSE | ~150 |
 | `fft.rs` | Analytical DFT reference values | ~100 |

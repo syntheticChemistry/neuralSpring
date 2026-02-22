@@ -166,7 +166,7 @@ and time series simultaneously.
 The audit (February 2026) produced a Rust crate that cross-validates Python baselines.
 BarraCUDA integration extended it to 1400+ GPU/CPU validation checks across 119 binaries.
 
-- **31 library modules + 3 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances.rs` (58 named constants), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
+- **31 library modules + 2 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances/` (20+ named constants + runtime registry), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
 - **115 validation binaries + 5 bench**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch
 - **264 lib tests + 9 integration tests**, 94.9% line coverage via `llvm-cov`
 - **Quality gates**: `clippy` (pedantic+nursery), `fmt`, `doc`, `unsafe_code = "forbid"`

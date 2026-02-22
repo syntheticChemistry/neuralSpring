@@ -52,6 +52,16 @@ To trace what each shortcoming was and how ToadStool fixed it, see
 Provided `gpu_fence`, `materialize`, `fenced_matmul` — proving the correctness
 of the sync approach. Zero callers remained after upstream fix at `d45fdfb3`.
 
+### diagnostics/ — S-15 Investigation Scripts
+
+| File | LOC | Why fossilized |
+|------|-----|----------------|
+| `validate_barracuda_gpu_s15_diagnostic.rs` | ~90 | S-15 matmul hang diagnostic — used to root-cause the WGPU/Vulkan driver bug. Not in Cargo.toml |
+| `validate_barracuda_gpu_minimal_test.rs` | ~50 | Minimal S-15 repro case — smallest possible matmul to isolate hang. Not in Cargo.toml |
+
+These diagnostic scripts were one-off investigation tools. The findings are
+documented in `specs/TOADSTOOL_HANDOFF.md` (S-15 section) and the V10 handoff.
+
 ## What Remains Active
 
 Two evolved modules survive in `src/evolved/`:
