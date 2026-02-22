@@ -2,7 +2,8 @@
 
 > **Pattern**: `hotSpring` evolve → validate → hand off → absorb → fossil  
 > **Spring**: neuralSpring (Feb 2026)  
-> **Absorbed by**: ToadStool `77f70b2e` / BarraCUDA 0.2+
+> **Absorbed by**: ToadStool `77f70b2e` / BarraCUDA 0.2+  
+> **ToadStool HEAD**: `5437c170` (Session 42) — absorption span `d45fdfb3`..`5437c170`
 
 ## Purpose
 
@@ -60,7 +61,7 @@ of the sync approach. Zero callers remained after upstream fix at `d45fdfb3`.
 | `validate_barracuda_gpu_minimal_test.rs` | ~50 | Minimal S-15 repro case — smallest possible matmul to isolate hang. Not in Cargo.toml |
 
 These diagnostic scripts were one-off investigation tools. The findings are
-documented in `specs/TOADSTOOL_HANDOFF.md` (S-15 section) and the V10 handoff.
+documented in `specs/TOADSTOOL_HANDOFF.md` (S-15 section) and the V11 handoff.
 
 ## What Remains Active
 

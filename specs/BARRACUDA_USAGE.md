@@ -84,7 +84,7 @@
 | `staging::UnidirectionalPipeline` | Streaming fitness eval | Reduce round-trips from O(T) to O(1) |
 | `pipeline::ReduceScalarPipeline` | Log-likelihood, convergence checks | Scalar-only readback |
 
-### New in Session 39 (`d45fdfb3`) — NN Compute and Bug Fixes
+### New in Session 42 (`5437c170`) — NN Compute and Bug Fixes
 
 | BarraCUDA Module | Use Case | Status |
 |-----------------|----------|--------|
@@ -214,4 +214,4 @@ directly — no conversion needed for `Tensor::from_data` or raw `wgpu::Buffer`:
    integration across neuralSpring and potentially hotSpring
 
 *Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15. Session 42: deep audit complete, all quality gates clean.
-Session 39 sync: S-13 fixed, 5 shaders absorbed upstream (generalized variants), Conv2D/Pool WGSL available.*
+Session 42 sync: S-13 fixed, 5 shaders absorbed upstream (generalized variants), Conv2D/Pool WGSL available.*

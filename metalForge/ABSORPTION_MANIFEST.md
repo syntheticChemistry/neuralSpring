@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `d45fdfb3` (Session 39, Feb 22, 2026)
+**ToadStool HEAD**: `5437c170` (Session 42, Feb 22, 2026)
 **Last Updated**: February 22, 2026
 
 ---
@@ -43,7 +43,7 @@ fossilized in `metalForge/fossils/evolved_s01_s11/` (~3.4k LOC, incl. eigh_local
 | `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr` | Spectral 022–023 | `validate_gpu_anderson` | 5/5 |
 | `pairwise_hamming.wgsl` | `barracuda::ops::bio::pairwise_hamming` | Alignment 017 | `validate_gpu_sate` | 5/5 |
 
-### Generalized variants (absorbed at `d45fdfb3` Session 39)
+### Generalized variants (absorbed at `5437c170` Session 42)
 
 Local copies retained for validation compatibility (different binding layouts).
 

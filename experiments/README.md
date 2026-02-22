@@ -23,6 +23,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 009 | Dual-Path Parity & Spectral Theory | Feb 22, 2026 | 6/6 bit-identical, spectral 14/14, ReduceScalarPipeline |
 | 010 | Capability-Based Dispatch & Cross-Eigensolver | Feb 22, 2026 | 12 validators use `dispatch_1d`, eigh vs Sturm 2.89e-15 |
 | 011 | Session 42 Deep Audit — Code Quality & Debt Resolution | Feb 22, 2026 | 264 lib + 9 integration, all fmt/clippy/doc clean, tolerances split, GPU helpers deduplicated |
+| 012 | ToadStool Sync — d45fdfb3 → 5437c170 (10 commits) | Feb 22, 2026 | 4 new bio-op wrappers, `cpu_conv_pool` exposed, 19 new WGSL shaders, doc rename |
 
 ---
 
@@ -521,6 +522,62 @@ before the next evolution phase.
 - The `((VAR++))` bash arithmetic pattern returns exit code 1 when VAR=0 under
   `set -euo pipefail`, causing the drift detection script to exit prematurely.
   Changed to `VAR=$((VAR + 1))`.
+
+---
+
+## Experiment 012: ToadStool Sync — d45fdfb3 → 5437c170
+
+**Date**: February 22, 2026
+**Hardware**: i9-12900K, RTX 4070 12GB, Pop!_OS 22.04
+**Researcher**: Eastgate
+
+### Why
+
+ToadStool had evolved 10 commits since our last sync point (`d45fdfb3`, Session 39).
+Three sessions of upstream work (S39, S40, S41, S42) added significant new APIs
+and absorbed more Spring shaders. neuralSpring needed to catch up to the current
+state, verify build compatibility, and document what became available.
+
+### What
+
+1. **Reviewed** 10 ToadStool commits: S39 (Spring shader absorption, S-14/S-15/S-16
+   fixes, FlatTree), S40 (Richards PDE, moving window stats), S41 (api exposure,
+   f64 shader fixes, stale doc archive), S42 (19 new WGSL shaders, doc rename).
+
+2. **Build verification**: `cargo check` compiles cleanly against ToadStool HEAD
+   `5437c170` with zero warnings. No breaking changes in barracuda API.
+
+3. **Updated** ToadStool HEAD references from `d45fdfb3` to `5437c170` across
+   14 live documentation files.
+
+4. **Documented** newly available APIs that neuralSpring can now use:
+   - `ops::bio::HillGateGpu` — generalized Hill function dispatch
+   - `ops::bio::MultiObjFitnessGpu` — multi-objective fitness with Bessel correction
+   - `ops::bio::PairwiseL2Gpu` — pairwise L2 with O(1) pair decode
+   - `ops::bio::SwarmNnGpu` — generic MLP forward with clamped sigmoid
+   - `cpu_conv_pool::{conv2d, max_pool2d, avg_pool2d}` — CPU reference conv/pool
+
+### Findings
+
+- **Zero breaking changes**: The entire BarraCUDA API is backward-compatible.
+  All 264 lib tests + 9 integration tests pass without modification.
+- **BarraCUDA → BarraCuda doc rename**: The crate name is still `barracuda`
+  (no code changes needed). The rename is docs/comments only.
+- **4 new bio-op wrappers** match the metalForge shaders we evolved locally.
+  These are candidates for upstream parity validators (same pattern as the
+  existing 6 bio ops in `bench_upstream_vs_local`).
+- **`cpu_conv_pool` exposure**: `conv2d`, `max_pool2d`, `avg_pool2d` are now
+  `pub` in barracuda. This unblocks full LeNet-5 BarraCUDA validation
+  (conv → pool → FC chain) as a future enhancement.
+- **19 new WGSL shaders**: chi_squared_f64, rk45_f64, factorial_f64,
+  cubic_spline_eval_f64, trapz_f64, etc. GPU paths now exist for operations
+  neuralSpring currently uses only on CPU.
+
+### Next Steps
+
+1. Add upstream parity validators for the 4 new bio-op wrappers
+2. Wire `cpu_conv_pool` for full LeNet-5 bC validation
+3. Explore GPU paths for chi_squared, RK45 via new f64 WGSL shaders
 
 ---
 

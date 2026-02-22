@@ -42,7 +42,7 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 206/206 Python PASS + 1400+ Rust+GPU PASS = 1600+ total validation checks
 
-**ToadStool `d45fdfb3`** (Session 39): All shortcomings through S-12 **ABSORBED**.
+**ToadStool `5437c170`** (Session 42): All shortcomings through S-12 **ABSORBED**.
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
 13/17 WGSL shaders **absorbed upstream** (8 identical + 5 generalized).
 Phase 5c: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 6/6 uP (bit-identical)**.
@@ -485,7 +485,7 @@ neuralSpring/
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
 │   └── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete
 ├── wateringHole/handoffs/      # Cross-project handoffs (ToadStool/BarraCUDA)
-│   ├── NEURALSPRING_V10_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md  # Session 42 handoff (current)
+│   ├── NEURALSPRING_V11_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md  # Session 42 handoff (current)
 │   └── archive/               #   Superseded handoffs (V1-V8)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-010)
@@ -527,4 +527,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40+42: February 22, 2026 | 25 papers, 206 Python + 1400+ Rust+GPU = 1600+ validation checks | 264 lib + 9 integration tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 119 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 6/6 (100%) | Session 42: deep audit — fmt/clippy/doc clean, GPU helpers deduplicated, tolerances split, 16 determinism tests, drift detection, pure Rust verified | V10 handoff*
+*Initialized: February 16, 2026 | Sessions 40+42: February 22, 2026 | 25 papers, 206 Python + 1400+ Rust+GPU = 1600+ validation checks | 264 lib + 9 integration tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 119 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 6/6 (100%) | Session 42: deep audit — fmt/clippy/doc clean, GPU helpers deduplicated, tolerances split, 16 determinism tests, drift detection, pure Rust verified | V11 handoff*

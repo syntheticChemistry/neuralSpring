@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `d45fdfb3` (Session 39, Feb 22, 2026)
+**ToadStool HEAD**: `5437c170` (Session 42, Feb 22, 2026)
 
 ---
 
@@ -27,7 +27,7 @@ from `barracuda::shaders::misc::prng_xoshiro` in state model (persistent vs one-
 | `tridiag_eigensolver.wgsl` | Spectral (022–023) | P3 | Needs Householder → bisection design |
 | `logsumexp_reduce.wgsl` | HMM/phylogenetics | P2 | Complements `hmm_forward_log.wgsl` |
 
-## Retired (Absorbed by ToadStool `d45fdfb3`)
+## Retired (Absorbed by ToadStool `5437c170`)
 
 ### Evolved Modules (S-01 through S-11 — all absorbed)
 
@@ -44,7 +44,7 @@ from `barracuda::shaders::misc::prng_xoshiro` in state model (persistent vs one-
 **Status**: All fossilized in `metalForge/fossils/evolved_s01_s11/`.
 Code removed from active compilation Feb 20, 2026.
 
-### Shaders Absorbed (Session 39, `d45fdfb3` — generalized variants)
+### Shaders Absorbed (Session 42, `5437c170` — generalized variants)
 
 ToadStool absorbed 5 neuralSpring shaders as generalized upstream variants.
 Local copies remain for validation (our validators depend on the local binding layouts).

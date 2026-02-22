@@ -3,15 +3,15 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `d45fdfb3` (Session 40, Session 42 deep audit, Feb 22, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V10_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
+**Last reviewed:** ToadStool commit `5437c170` (Session 40, Session 42 deep audit, Feb 22, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V11_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
 
 ---
 
 ## Resolution Status
 
 **All 12 neuralSpring shortcomings (S-01 through S-12) are now ABSORBED by
-ToadStool `77f70b2e`.** S-13 **FIXED** upstream in Session 39 (`d45fdfb3`).
+ToadStool `77f70b2e`.** S-13 **FIXED** upstream in Session 42 (`5437c170`).
 S-03b has local workaround. Key absorption commits:
 
 | Commit | What It Did |
@@ -201,7 +201,7 @@ Local fossil: `metalForge/fossils/evolved_s01_s11/eigh_local.rs`.
 ## metalForge Shader Evolutions
 
 17 WGSL shaders in `metalForge/shaders/`. 13 now have upstream equivalents in
-barracuda (8 identical at `77f70b2e`, 5 generalized variants at `d45fdfb3`).
+barracuda (8 identical at `77f70b2e`, 5 generalized variants at `5437c170`).
 4 remain local-only.
 
 ### Absorbed (identical — `77f70b2e`)
@@ -217,7 +217,7 @@ barracuda (8 identical at `77f70b2e`, 5 generalized variants at `d45fdfb3`).
 | `spatial_payoff.wgsl` | `barracuda::ops::bio::spatial_payoff::WGSL_SPATIAL_PAYOFF` | **Absorbed** |
 | `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr::WGSL_BATCH_IPR` | **Absorbed** |
 
-### Absorbed (generalized variants — Session 39, `d45fdfb3`)
+### Absorbed (generalized variants — Session 42, `5437c170`)
 
 | Shader | Upstream Path | Key Differences |
 |--------|---------------|-----------------|

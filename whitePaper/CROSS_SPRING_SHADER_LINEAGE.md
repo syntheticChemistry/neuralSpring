@@ -6,7 +6,7 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `d45fdfb3` (Session 39) |
+| ToadStool HEAD | `5437c170` (Session 42) |
 | Last updated | Feb 22, 2026 (Session 42 deep audit) |
 | BarraCUDA shader count | 589+ WGSL (zero orphans) |
 
@@ -39,10 +39,10 @@
 | `hmm_forward_log.wgsl` | `shaders/ml/` | `77f70b2e` (S-25) | Identical copy |
 | `batch_fitness_eval.wgsl` | `shaders/ml/` | `77f70b2e` (S-25) | Identical copy |
 | `rk4_parallel.wgsl` | `shaders/numerical/` | `77f70b2e` (S-25) | Identical copy |
-| `pairwise_l2.wgsl` | `shaders/math/` | `d45fdfb3` (S-39) | Generalized variant |
-| `multi_obj_fitness.wgsl` | `shaders/bio/` | `d45fdfb3` (S-39) | Generalized variant |
-| `hill_gate.wgsl` | `shaders/bio/` | `d45fdfb3` (S-39) | Generalized variant |
-| `swarm_nn_forward.wgsl` | `shaders/bio/` | `d45fdfb3` (S-39) | Generalized variant |
+| `pairwise_l2.wgsl` | `shaders/math/` | `5437c170` (S-42) | Generalized variant |
+| `multi_obj_fitness.wgsl` | `shaders/bio/` | `5437c170` (S-42) | Generalized variant |
+| `hill_gate.wgsl` | `shaders/bio/` | `5437c170` (S-42) | Generalized variant |
+| `swarm_nn_forward.wgsl` | `shaders/bio/` | `5437c170` (S-42) | Generalized variant |
 
 ### hotSpring → BarraCUDA (20+ contributions)
 
@@ -177,7 +177,7 @@ Feb 21  neuralSpring: 8 identical-copy shaders → BarraCUDA 77f70b2e (S-25)
         wetSpring: hmm_forward_f64, ani, dnds, pangenome_classify → BarraCUDA (S-27)
         hotSpring: ESN shaders, Dirac staggered, CG kernels → BarraCUDA (S-26)
 
-Feb 22  neuralSpring: 5 generalized-variant shaders → BarraCUDA d45fdfb3 (S-39)
+Feb 22  neuralSpring: 5 generalized-variant shaders → BarraCUDA 5437c170 (S-42)
         hotSpring: HFB spherical + deformed (10 shaders) → BarraCUDA (S-39)
         ToadStool: Dead code sweep, S-13 PooledBuffer race fix
         neuralSpring: Rewire to upstream APIs, validate, benchmark

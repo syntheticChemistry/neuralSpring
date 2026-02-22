@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: February 22, 2026 (post-Sessions 40, 42 sync)
-**ToadStool HEAD**: `d45fdfb3` (Session 39)
+**ToadStool HEAD**: `5437c170` (Session 42)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → ToadStool absorption → lean on upstream
 
 ---
@@ -45,7 +45,26 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 
 ## Tier A — Shader Absorption Status
 
-### Absorbed Upstream (Session 39, `d45fdfb3` — generalized variants)
+### ToadStool Evolution Since Last Sync (d45fdfb3 → 5437c170, 10 commits)
+
+| Session | Key Changes for neuralSpring |
+|---------|----------------------------|
+| S39 | Absorb all Spring shaders (7 bio ops, 11 HFB physics, 3 wetSpring WGSL); S-14/S-15/S-16 fixes; `FlatTree`, `sparse_eigh`, `execute_to_buffer` |
+| S40 | Richards PDE solver, moving window GPU stats |
+| S41 | `cpu_conv_pool` made `pub` (conv2d, max_pool2d, avg_pool2d); 6 f64 shader compile bugs fixed; APIs exposed for Springs |
+| S42 | 19 new WGSL shaders (chi_squared_f64, rk45_f64, factorial_f64, cubic_spline_f64, etc.); BarraCUDA → BarraCuda doc rename |
+
+**New wrapper APIs available** (not yet used by neuralSpring):
+
+| API | Domain | Replaces |
+|-----|--------|----------|
+| `ops::bio::HillGateGpu` | Signal integration (021) | Local `hill_gate.wgsl` dispatch |
+| `ops::bio::MultiObjFitnessGpu` | Directed evolution (014) | Local `multi_obj_fitness.wgsl` dispatch |
+| `ops::bio::PairwiseL2Gpu` | MODES (012) | Local `pairwise_l2.wgsl` dispatch |
+| `ops::bio::SwarmNnGpu` | Swarm robotics (015) | Local `swarm_nn_forward.wgsl` dispatch |
+| `cpu_conv_pool::{conv2d, max_pool2d, avg_pool2d}` | LeNet-5 (Study 003) | Python-only conv2d/pool |
+
+### Absorbed Upstream (Session 42, `5437c170` — generalized variants)
 
 ToadStool absorbed 5 neuralSpring shaders, evolving them into generalized
 upstream variants. Local copies retained for validation compatibility.
@@ -217,7 +236,7 @@ or existing infrastructure):
 
 ---
 
-## BarraCUDA APIs — New in `d45fdfb3` (Sessions 25–39)
+## BarraCUDA APIs — New in `5437c170` (Sessions 25–42)
 
 ### Now leveraged by neuralSpring
 

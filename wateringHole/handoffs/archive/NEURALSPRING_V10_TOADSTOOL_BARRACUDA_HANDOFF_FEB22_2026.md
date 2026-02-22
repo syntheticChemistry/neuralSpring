@@ -5,7 +5,7 @@
 **To:** ToadStool / BarraCUDA core team
 **License:** AGPL-3.0-or-later
 **Supersedes:** `archive/NEURALSPRING_V9_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
-**ToadStool HEAD:** `d45fdfb3` (Session 39)
+**ToadStool HEAD:** `5437c170` (Session 42)
 
 ---
 
@@ -333,7 +333,7 @@ No C FFI, no system libraries, no `cc` build scripts. This means:
 | `spatial_payoff.wgsl` | `WGSL_SPATIAL_PAYOFF` | `SpatialPayoffGpu` |
 | `batch_ipr.wgsl` | `WGSL_BATCH_IPR` | `BatchIprGpu` |
 
-### 5.2 Absorbed (Generalized — `d45fdfb3`)
+### 5.2 Absorbed (Generalized — `5437c170`)
 
 | Shader | Upstream Improvement |
 |--------|---------------------|

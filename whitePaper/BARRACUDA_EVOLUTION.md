@@ -606,7 +606,7 @@ produce intermediate tensors (dropped before readback) trigger buffer reuse
 races — data corruption or driver hangs.
 
 **Local fix** (now fossilized): `evolved::tensor_sync` provided `gpu_fence`, `materialize`,
-and `fenced_matmul` as sync primitives. **FIXED upstream** at `d45fdfb3` — module
+and `fenced_matmul` as sync primitives. **FIXED upstream** at `5437c170` — module
 fossilized to `metalForge/fossils/evolved_s13/` (Session 40, zero callers remaining).
 
 ### S-14: Naive Matmul Hang for Small Square Matrices
@@ -711,9 +711,9 @@ already used `Tensor` operations on GPU — counted toward gT coverage.
 
 Full handoff: `wateringHole/handoffs/`
 
-### Session 39 Sync: Upstream Absorption Wave (`d45fdfb3`)
+### Session 42 Sync: Upstream Absorption Wave (`5437c170`)
 
-ToadStool's Session 39 (dead code sweep + evolution) absorbed 5 neuralSpring
+ToadStool's Session 42 (dead code sweep + evolution) absorbed 5 neuralSpring
 local shaders into barracuda's shader tree as generalized upstream variants:
 
 | Shader | Upstream Path | Evolution |
@@ -742,6 +742,6 @@ local shaders into barracuda's shader tree as generalized upstream variants:
 | Category | Count | Status |
 |----------|-------|--------|
 | Identical copies (77f70b2e) | 8 | **Upstream** |
-| Generalized variants (d45fdfb3) | 5 | **Upstream** (local copies retained for validation) |
+| Generalized variants (5437c170) | 5 | **Upstream** (local copies retained for validation) |
 | Still local-only | 4 | `head_split`, `head_concat`, `xoshiro128ss`, `swarm_nn_scores` |
 | **Total** | **17** | **13/17 absorbed** (76%) |
