@@ -15,7 +15,7 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 258 lib tests, 31 modules, 115 binaries | **COMPLETE** |
+| Rust native validation | 258 lib tests, 31 modules, 119 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |

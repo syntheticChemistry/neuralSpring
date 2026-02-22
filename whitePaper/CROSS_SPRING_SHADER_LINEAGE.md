@@ -7,7 +7,7 @@
 | Field | Value |
 |-------|-------|
 | ToadStool HEAD | `d45fdfb3` (Session 39) |
-| Last updated | Feb 22, 2026 |
+| Last updated | Feb 22, 2026 (Session 40) |
 | BarraCUDA shader count | 589+ WGSL (zero orphans) |
 
 ---

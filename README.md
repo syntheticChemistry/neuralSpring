@@ -40,13 +40,14 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 206/206 Python PASS + 1398+ Rust+GPU PASS = 1604+ total validation checks
+## Current Status: 206/206 Python PASS + 1401+ Rust+GPU PASS = 1607+ total validation checks
 
 **ToadStool `d45fdfb3`** (Session 39): All shortcomings through S-12 **ABSORBED**.
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
-5 of 8 local WGSL shaders **absorbed upstream** as generalized variants.
-Phase 5b: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%)**.
-119 validation binaries, 31 modules. Conv2D/MaxPool2D/AvgPool2D WGSL now available upstream.
+13/17 WGSL shaders **absorbed upstream** (8 identical + 5 generalized).
+Phase 5c: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 6/6 uP (bit-identical)**.
+119 validation binaries, 31 modules, 258 lib tests. Capability-based dispatch (Session 40).
+Cross-eigensolver validation: eigh vs Sturm 2.89e-15 diff. Spectral theory 17/17 PASS.
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 
 ### Phase 0 — Synthetic Baselines (48/48)
@@ -123,13 +124,15 @@ S-16 transpose dispatch **FIXED**. S-15 matmul hang **root-caused** and workarou
 6 cross-dispatch binaries, 49 checks, all PASS.
 
 **Upstream parity (uP)**: 6/6 GPU validators have dual-path local↔upstream parity checks (all 0.00e0 diff — bit-identical).
-`ReduceScalarPipeline` f64 mean validated (5.55e-17 diff). `barracuda::spectral` theory stack validated (14/14 PASS).
+`ReduceScalarPipeline` f64 mean validated (5.55e-17 diff). `barracuda::spectral` theory stack validated (17/17 PASS).
+**Capability-based dispatch**: 12 validators + evolved HMM use `Gpu::dispatch_1d()` with runtime hardware validation.
+Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at machine epsilon (2.89e-15 at n=64).
 
-### Rust Validation (1398+ PASS across 119 validation binaries)
+### Rust Validation (1401+ PASS across 119 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, centralized `tolerances.rs` constants,
-explicit pass/fail exit codes. Library code: 255 unit tests + 9 doc-tests,
+explicit pass/fail exit codes. Library code: 258 unit tests + 9 doc-tests,
 94.9% line coverage via `llvm-cov`.
 
 ### Phase 2 — BarraCUDA CPU Ports (203/203)
@@ -358,7 +361,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 206/206 PASS |
-| Rust tests | `cargo test` | 255 unit + 9 doc-tests PASS |
+| Rust tests | `cargo test` | 258 unit + 9 doc-tests PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery) |
 | Rust coverage | `cargo llvm-cov --lib` | **94.9%** line (target ≥90%) |
 | Rust format | `cargo fmt --check` | clean |
@@ -481,10 +484,10 @@ neuralSpring/
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
 │   └── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete
 ├── wateringHole/handoffs/      # Cross-project handoffs (ToadStool/BarraCUDA)
-│   ├── NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md  # Session 39 sync handoff
-│   └── archive/               #   Superseded handoffs (V1-V7)
+│   ├── NEURALSPRING_V9_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md  # Session 40 handoff
+│   └── archive/               #   Superseded handoffs (V1-V8)
 ├── experiments/                # Experiment journals (hotSpring pattern)
-│   └── README.md              #   Journal index (001-005)
+│   └── README.md              #   Journal index (001-010)
 ├── whitePaper/                 # Study documentation
 ├── scripts/
 │   └── run_all_baselines.sh    #   Orchestrates all 23 Python runs
@@ -514,7 +517,7 @@ neuralSpring/
 | `metalForge/ABSORPTION_MANIFEST.md` | Comprehensive absorption inventory (APIs, shaders, counts) |
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
-| `wateringHole/handoffs/` | Formal ToadStool handoffs (V7 current: Phase 5b full-stack) |
+| `wateringHole/handoffs/` | Formal ToadStool handoffs (V9 current: Session 40) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 
 ## License
@@ -523,4 +526,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Phase 5c complete: February 22, 2026 | 25 papers, 206 Python + 1398+ Rust+GPU = 1604+ validation checks | 258 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 119 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 6/6 (100%) | Upstream wrappers: 6 bio ops + f64 HMM batch + spectral theory validated, 0.92–1.16× overhead, dual-path parity 0.00e0 diff | GpuCapabilities runtime discovery, RuntimeEnvironment, tolerance introspection*
+*Initialized: February 16, 2026 | Session 40: February 22, 2026 | 25 papers, 206 Python + 1401+ Rust+GPU = 1607+ validation checks | 258 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 119 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 6/6 (100%) | Upstream wrappers: 6 bio ops + f64 HMM batch + spectral theory validated, 0.92–1.16× overhead, dual-path parity 0.00e0 diff | Capability-based dispatch (12 validators), cross-eigensolver validation (2.89e-15), GpuCapabilities, RuntimeEnvironment, tolerance introspection | V9 handoff*

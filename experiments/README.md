@@ -19,6 +19,9 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 005 | L2 Megabatch Complexity Boundary | Feb 19, 2026 | GPU wins at 200x1000+ |
 | 006 | Phase 5b Full-Stack Buildout | Feb 22, 2026 | ALL GREEN: bC 96%, gT 92%, xD 100% |
 | 007 | Session 39 ToadStool Sync | Feb 22, 2026 | 5 shaders absorbed upstream, S-13 fixed, Conv2D/Pool available |
+| 008 | Upstream BarraCUDA Rewiring | Feb 22, 2026 | 6 bio ops + f64 HMM wired, 0.92–1.16× overhead |
+| 009 | Dual-Path Parity & Spectral Theory | Feb 22, 2026 | 6/6 bit-identical, spectral 14/14, ReduceScalarPipeline |
+| 010 | Capability-Based Dispatch & Cross-Eigensolver | Feb 22, 2026 | 12 validators use `dispatch_1d`, eigh vs Sturm 2.89e-15 |
 
 ---
 
@@ -384,6 +387,73 @@ for Kachkovskiy spectral theory) is validated for the first time by neuralSpring
 | Spectral theory checks | 0 | 14 (Lanczos + Anderson + Hofstadter + Lyapunov) |
 | Total validation checks | 1583+ | 1604+ |
 | Validation binaries | 118 | 119 |
+
+---
+
+## Experiment 010: Capability-Based Dispatch & Cross-Eigensolver Validation
+
+**Date**: February 22, 2026 (Session 40)
+**Type**: Infrastructure / Validation / Cross-Algorithm
+**Hardware**: i9-12900K, RTX 4070 12GB, Pop!_OS 22.04, Vulkan (NVIDIA 570.x)
+
+### Why
+
+All 30+ GPU validators used hardcoded `.div_ceil(256)` for workgroup dispatch,
+ignoring runtime hardware limits (`max_compute_workgroup_size_x`,
+`max_compute_workgroups_per_dimension`). This is fragile — would silently fail
+on devices with smaller workgroup limits (WebGPU mobile, browser targets).
+
+Additionally, the dense Householder+QR eigensolver (`eigh_householder_qr`) and
+the tridiagonal Sturm bisection (`find_all_eigenvalues`) had never been
+cross-validated on the same matrix — a gap in the spectral theory stack.
+
+### What
+
+1. **Added `GpuCapabilities::supports_workgroup()`** — validates that a shader's
+   `@workgroup_size(N)` is compatible with hardware.
+
+2. **Added `Gpu::dispatch_1d(n_items, shader_wg)`** — convenience method that
+   validates workgroup compatibility (panics on incompatible hardware) and
+   returns the clamped workgroup count.
+
+3. **Wired `dispatch_1d` into 12 core GPU validators** — batch_fitness, anderson,
+   game_theory, sate, pangenome, meta_pop, modes, directed, swarm, signal,
+   rk4, plus the evolved `hmm_forward_gpu` module.
+
+4. **Added startup capability logging** — validators now report discovered
+   hardware limits: `wg_x=256, dispatch_max=65535, buffers=12, f64=true, f16=true`.
+
+5. **Cross-validated eigensolvers** — added `validate_eigh_vs_sturm` and
+   `validate_eigh_vs_sturm_large` to `validate_barracuda_spectral_theory`:
+   - n=64 W=3: max eigval diff **2.89e-15** (machine epsilon)
+   - n=200 W=6: max eigval diff **1.42e-14** (machine epsilon)
+   Both eigensolvers agree perfectly on the same tridiagonal Anderson Hamiltonians.
+
+### What We Found
+
+- RTX 4070 reports `max_compute_workgroup_size_x=256`, which means our
+  `@workgroup_size(256)` shaders are at the hardware limit. Any device with
+  a smaller limit would have silently dispatched wrong.
+
+- `max_compute_workgroups_per_dimension=65535` means dispatches up to
+  256 × 65535 = 16.7M work items are safe. Beyond that, the clamp in
+  `dispatch_count` would truncate — producing wrong results. For our workloads
+  (populations of ~10k max), this is not a concern.
+
+- The eigensolver cross-validation proves that Householder+QR (O(n³), works on
+  any symmetric matrix) and Sturm bisection (O(n) per eigenvalue, tridiagonal
+  only) produce identical results at machine precision. This confirms both
+  implementations in BarraCUDA are correct.
+
+### Result
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Validators using capability dispatch | 0 | 12 + evolved HMM |
+| Hardcoded dispatch patterns | 30+ | 18 remaining (pipeline, bench, cross-dispatch) |
+| Spectral theory checks | 14/14 | **17/17** (+3 eigh cross-validation) |
+| Total validation checks | 1604+ | 1607+ |
+| Handoff version | V8 | V9 |
 
 ---
 

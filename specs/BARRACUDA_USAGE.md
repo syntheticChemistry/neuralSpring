@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 22, 2026 (post Session 39 sync — `d45fdfb3`)
+**Last Updated**: February 22, 2026 (Session 40 — capability-based dispatch, cross-eigensolver)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -13,7 +13,8 @@
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
 | `device::WgpuDevice` | `gpu.rs`, all FFT/tensor/ML binaries | GPU device creation and management |
-| `device::capabilities::WORKGROUP_SIZE_*` | `evolved/mha.rs`, `evolved/hmm_forward_gpu.rs` | Shader workgroup sizing |
+| `device::capabilities::WORKGROUP_SIZE_*` | `evolved/mha.rs` | Shader workgroup sizing (legacy) |
+| `device.limits()` / `device.features()` | `gpu.rs` (`GpuCapabilities`) | Runtime hardware discovery — workgroup limits, f64/f16 support, buffer sizes |
 
 ### Statistics
 

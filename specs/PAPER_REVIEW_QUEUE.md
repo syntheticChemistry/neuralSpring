@@ -235,6 +235,17 @@ via `validate_barracuda_quantized` (CPU primitive path).
 
 ---
 
+## Upstream Parity & Capability Dispatch (Session 40)
+
+All 15 Phase 0++ papers have been validated through the full 7-tier stack.
+6 GPU validators have dual-path upstream parity (local vs barracuda wrapper,
+0.00e0 diff — bit-identical). 12 validators use capability-based dispatch
+(`Gpu::dispatch_1d`) with runtime hardware validation. Spectral theory
+validator cross-validates dense Householder+QR vs tridiag Sturm bisection
+(17/17 PASS, max diff 2.89e-15). All controls use open data and open systems.
+
+---
+
 ## Notes
 
 - Paper 011 is the single most important paper in the entire ecosystem — it externally validates the constrained evolution methodology

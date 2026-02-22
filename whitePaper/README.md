@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5b complete — 1560+ total checks, ALL GREEN
-**Date**: February 22, 2026 (post-Phase 5b full-stack validation)
+**Status**: Phase 5c complete — 1607+ total checks, ALL GREEN
+**Date**: February 22, 2026 (Session 40 — capability-based dispatch + cross-eigensolver)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -19,7 +19,7 @@
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all through S-13 fixed at `d45fdfb3` |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V6 GPU Tensor handoff + evolution (Feb 22, 2026) |
+| `wateringHole/handoffs/` | Cross-project | V9 ToadStool absorption handoff (Session 40) |
 
 ---
 
@@ -61,8 +61,8 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 206/206 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
-**Phase 1–5b**: 1354+ Rust+GPU validation PASS (255 lib tests + 115 binaries across 31 modules)
-**Grand Total**: 1560+ PASS — **ALL GREEN** across all applicable tiers
+**Phase 1–5c**: 1401+ Rust+GPU validation PASS (258 lib tests + 119 binaries across 31 modules)
+**Grand Total**: 1607+ PASS — **ALL GREEN** across all applicable tiers
 
 Phase 5b achieved full-stack validation: **24/25 papers at BarraCUDA CPU (96%),
 23/25 at GPU Tensor (92%), 15/15 Phase 0++ at Cross-dispatch (100%)**. S-16
@@ -74,7 +74,7 @@ magnitude trigger WGPU/Vulkan driver bug), workaround applied to all validators.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 255 lib tests, 115 binaries, 31 modules | **Complete** |
+| 1a | Rust validation layer — 258 lib tests, 119 binaries, 31 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -86,6 +86,7 @@ magnitude trigger WGPU/Vulkan driver bug), workaround applied to all validators.
 | 4 | Phase 4a–4e: GPU pipelines, PRNG, MHA, eigendecomposition | **Complete** |
 | 5a | GPU Tensor validation (7 original domains, 43 checks) | **Complete** |
 | 5b | Full-stack buildout (bC 24/25, gT 23/25, xD 15/15) | **Complete** |
+| 5c | Upstream parity, spectral theory, capability dispatch, cross-eigensolver | **Complete** |
 
 #### 3-Way Benchmark Highlights (Phase 1d)
 
@@ -286,7 +287,7 @@ Full handoff: `wateringHole/handoffs/`
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (255 lib tests + 115 binaries)
+# Rust validation (258 lib tests + 119 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -330,5 +331,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 3 evolved. 255 lib tests, 94.9% coverage. 206 Python + 1354+ Rust+GPU = 1560+ total checks.
-Phase 5b complete: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%). S-16 fixed, S-15 root-caused. 115 validation binaries, 17 WGSL shaders (13 upstream, 4 local). Session 39 sync: S-13 fixed, 5 shaders absorbed upstream.*
+*25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 3 evolved. 258 lib tests, 94.9% coverage. 206 Python + 1401+ Rust+GPU = 1607+ total checks.
+Phase 5c complete: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 6/6 (bit-identical). S-16 fixed, S-15 root-caused. 119 validation binaries, 17 WGSL shaders (13 upstream, 4 local). Session 40: capability-based dispatch, cross-eigensolver validation (17/17 spectral), V9 handoff.*
