@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5b active — 1300+ total checks
-**Date**: February 22, 2026 (updated)
+**Status**: Phase 5b complete — 1560+ total checks, ALL GREEN
+**Date**: February 22, 2026 (post-Phase 5b full-stack validation)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -17,7 +17,8 @@
 | `specs/BENCHMARK_ANALYSIS.md` | Engineering | Full 3-way benchmark with analysis |
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | 12 BarraCUDA shortcomings — all absorbed at `77f70b2e` |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
-| `wateringHole/handoffs/` | Cross-project | Formal handoffs (date-stamped) |
+| `experiments/README.md` | Engineering | Experiment journals (hotSpring pattern) |
+| `wateringHole/handoffs/` | Cross-project | V6 GPU Tensor handoff + evolution (Feb 22, 2026) |
 
 ---
 
@@ -59,30 +60,31 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 206/206 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
-**Phase 1–5b**: 1100+ Rust+GPU validation PASS (237 lib tests + 81 binaries across 29 modules)
-**Grand Total**: 1300+ PASS
+**Phase 1–5b**: 1354+ Rust+GPU validation PASS (255 lib tests + 115 binaries across 31 modules)
+**Grand Total**: 1560+ PASS — **ALL GREEN** across all applicable tiers
 
-Phase 5b includes: GELU test fix (86/86 tensor PASS), S-13 pool-sync primitives
-(`evolved::tensor_sync`), S-14 Naive matmul driver-hang characterization, and
-10 missing binary registrations in Cargo.toml.
+Phase 5b achieved full-stack validation: **24/25 papers at BarraCUDA CPU (96%),
+23/25 at GPU Tensor (92%), 15/15 Phase 0++ at Cross-dispatch (100%)**. S-16
+transpose dispatch **fixed**. S-15 matmul hang **root-caused** (elements ≤ 0.1
+magnitude trigger WGPU/Vulkan driver bug), workaround applied to all validators.
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 237 lib tests, 81 binaries, 29 modules | **Complete** |
+| 1a | Rust validation layer — 255 lib tests, 115 binaries, 31 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
-| 2 | BarraCUDA CPU ports — 17 modules, 170 checks | **Complete** |
+| 2 | BarraCUDA CPU ports — 24/25 papers, 203 checks (96%) | **Complete** |
 | 3a | BarraCUDA FFT validation — 24 analytical checks | **Complete** |
 | 3b | GPU streaming (`StatefulPipeline` + `UnidirectionalPipeline`) | **Complete** |
 | 3c | Shader evolution (16 WGSL shaders, 108 checks) | **Complete** |
-| 3d | Cross-dispatch validation (GPU↔CPU parity, 41 checks) | **Complete** |
+| 3d | Cross-dispatch (6 validators, 49 checks, 15/15 papers) | **Complete** |
 | 4 | Phase 4a–4e: GPU pipelines, PRNG, MHA, eigendecomposition | **Complete** |
-| 5a | BarraCUDA GPU Tensor validation (spectral 10, eco 6) | **Complete** |
-| 5b | Upstream fixes: GELU test, S-13 pool sync, S-14 Naive matmul | **Active** |
+| 5a | GPU Tensor validation (7 original domains, 43 checks) | **Complete** |
+| 5b | Full-stack buildout (bC 24/25, gT 23/25, xD 15/15) | **Complete** |
 
 #### 3-Way Benchmark Highlights (Phase 1d)
 
@@ -163,7 +165,7 @@ See [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) for the full technical narr
 
 ### Phase 2 — BarraCUDA CPU Port Findings
 
-All 15 Phase 0++ modules ported to BarraCUDA CPU math, proving the
+24/25 papers ported to BarraCUDA CPU math (96%), proving the
 hand-rolled Rust math is reproducible via BarraCUDA's pure-Rust primitives:
 
 | Primitive | Modules Using It | Precision Finding |
@@ -198,6 +200,40 @@ BarraCUDA GPU acceleration:
 | **Eigendecomposition** | 022–023 | CPU Jacobi iteration | GPU tridiagonal eigensolver (Householder → bisection) |
 | **Distance matrix** | 017 | O(N²) pairwise | GPU-parallel pairwise computation |
 | **Spatial cooperation** | 019 | CPU neighborhood scan | GPU stencil convolution |
+
+---
+
+### Phase 5b — Full-Stack Validation (ALL GREEN)
+
+The final validation layer: do BarraCUDA GPU `Tensor` operations produce
+identical results to CPU f64 references? Phase 5b expands from the initial
+7 domains to **23 papers** across all tiers. S-16 **fixed**, S-15 **root-caused**.
+
+| Tier | Coverage | Status |
+|------|----------|--------|
+| Python control (Py) | 25/25 (100%) | **ALL PASS** |
+| Rust CPU (Rs) | 25/25 (100%) | **ALL PASS** |
+| BarraCUDA CPU (bC) | 24/25 (96%) | **ALL GREEN** |
+| BarraCUDA GPU Tensor (gT) | 23/25 (92%) | **ALL GREEN** |
+| metalForge WGSL (mF) | 14/25 (56%) | **ALL PASS** |
+| GPU Pipeline (gP) | 7/25 (28%) | **ALL PASS** |
+| Cross-dispatch (xD) | 15/15 (100%) | **ALL GREEN** |
+
+The validation progression proves math portability at each level:
+1. Open data + Python → reproducible science
+2. Rust native → same math, type-safe
+3. BarraCUDA CPU → pure Rust math matches
+4. BarraCUDA GPU Tensor → math is portable CPU → GPU
+5. metalForge WGSL → domain-specific GPU kernels validated
+6. GPU Pipeline → end-to-end multi-kernel chains
+7. Cross-dispatch → CPU ↔ GPU parity via routing
+
+**Bug resolution:**
+- **S-16** (transpose dispatch): **FIXED** — `const TILE: u32 = 16`
+- **S-15** (matmul hang): **Root-caused** — elements ≤ 0.1 magnitude trigger WGPU/Vulkan driver bug. Workaround: all data ≥ 0.5
+- **S-14** (naive matmul): Workaround — A×B^T pattern avoids hang
+
+Full handoff: `wateringHole/handoffs/`
 
 ---
 
@@ -249,7 +285,7 @@ BarraCUDA GPU acceleration:
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (237 lib + 81 binaries)
+# Rust validation (255 lib tests + 115 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -293,5 +329,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 2 core studies. 5 disciplines. 4 faculty. 29 modules + 3 evolved. 237 lib tests, 94.9% coverage. 206 Python + 1100+ Rust+GPU = 1300+ total checks.
-All green. Paper queue cleared. Phase 5b active. 3 upstream fixes ready for ToadStool absorption. metalForge forge crate in progress.*
+*25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 3 evolved. 255 lib tests, 94.9% coverage. 206 Python + 1354+ Rust+GPU = 1560+ total checks.
+Phase 5b complete: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%). S-16 fixed, S-15 root-caused. 115 validation binaries, 16 WGSL shaders.*

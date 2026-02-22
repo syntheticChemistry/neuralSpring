@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
 """
 neuralSpring Paper 023 — Anderson Localization for Two Interacting
 Quasiperiodic Particles
@@ -60,7 +59,9 @@ def aubry_andre_potential(n: int, w: float, alpha: float, phi: float) -> np.ndar
     return w * np.cos(2 * np.pi * alpha * np.arange(n) + phi)
 
 
-def aubry_andre_hamiltonian(n: int, t: float, w: float, alpha: float, phi: float = 0.0) -> np.ndarray:
+def aubry_andre_hamiltonian(
+    n: int, t: float, w: float, alpha: float, phi: float = 0.0
+) -> np.ndarray:
     """Aubry-André Hamiltonian: hopping + quasiperiodic diagonal."""
     v = aubry_andre_potential(n, w, alpha, phi)
     h = np.zeros((n, n))
@@ -101,7 +102,9 @@ def two_particle_hamiltonian(n: int, t: float, w: float, u: float, seed: int = 4
                 for m in range(n):
                     idx_a = i * n + j
                     idx_b = k * n + m
-                    h2[idx_a, idx_b] = h1[i, k] * (1 if j == m else 0) + h1[j, m] * (1 if i == k else 0)
+                    h2[idx_a, idx_b] = h1[i, k] * (1 if j == m else 0) + h1[j, m] * (
+                        1 if i == k else 0
+                    )
                     if i == k == j == m:
                         h2[idx_a, idx_b] += u
     return h2
@@ -111,7 +114,7 @@ def main() -> int:
     """Reproduce Bourgain & Kachkovskiy (2018) Anderson localization."""
     total_passed = 0
     total_failed = 0
-    rng = np.random.default_rng(42)
+    np.random.default_rng(42)
 
     print("=" * 72)
     print("neuralSpring Paper 023: Anderson Localization (Bourgain & Kachkovskiy 2018)")
@@ -119,7 +122,7 @@ def main() -> int:
 
     n = 64
     t = T_HOPPING
-    w_c = 2 * t  # Aubry-André critical disorder
+    2 * t  # Aubry-André critical disorder
 
     # ------------------------------------------------------------------
     # Check 1: Hamiltonian is Hermitian (symmetric for real case)
@@ -207,7 +210,7 @@ def main() -> int:
         print(f"  [PASS] W<W_c: IPR={ipr_below:.4f}, W>W_c: IPR={ipr_above:.4f} (transition)")
         total_passed += 1
     else:
-        print(f"  [FAIL] Aubry-André transition not observed")
+        print("  [FAIL] Aubry-André transition not observed")
         total_failed += 1
 
     # ------------------------------------------------------------------
@@ -217,7 +220,7 @@ def main() -> int:
     n2 = 8
     h2 = two_particle_hamiltonian(n2, t, 2.0, u=0.5, seed=42)
     eig2, ev2 = np.linalg.eigh(h2)
-    norms = np.sqrt(np.sum(ev2 ** 2, axis=0))
+    norms = np.sqrt(np.sum(ev2**2, axis=0))
     normalized = np.allclose(norms, 1.0)
     finite = np.all(np.isfinite(eig2)) and np.all(np.isfinite(ev2))
     if normalized and finite:

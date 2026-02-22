@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
 """
 neuralSpring Paper 025 — Meta-Population Differentiation
 
@@ -36,7 +35,6 @@ BarraCUDA connection:
 import sys
 
 import numpy as np
-
 
 # ---------------------------------------------------------------------------
 # Population Genetics Primitives
@@ -134,10 +132,18 @@ def weir_cockerham_fst(populations: list[np.ndarray]) -> float:
         s2 = np.sum(ns * (p_i - p_bar) ** 2) / ((n_pops - 1) * n_bar)
         h_bar = np.sum(ns * 2.0 * p_i * (1.0 - p_i)) / n_total
 
-        n_c = (n_total - np.sum(ns ** 2) / n_total) / (n_pops - 1)
+        n_c = (n_total - np.sum(ns**2) / n_total) / (n_pops - 1)
 
-        a = (n_bar / n_c) * (s2 - (1.0 / (n_bar - 1)) * (p_bar * (1 - p_bar) - ((n_pops - 1) / n_pops) * s2 - 0.25 * h_bar))
-        b = (n_bar / (n_bar - 1)) * (p_bar * (1 - p_bar) - ((n_pops - 1) / n_pops) * s2 - ((2 * n_bar - 1) / (4 * n_bar)) * h_bar)
+        a = (n_bar / n_c) * (
+            s2
+            - (1.0 / (n_bar - 1))
+            * (p_bar * (1 - p_bar) - ((n_pops - 1) / n_pops) * s2 - 0.25 * h_bar)
+        )
+        b = (n_bar / (n_bar - 1)) * (
+            p_bar * (1 - p_bar)
+            - ((n_pops - 1) / n_pops) * s2
+            - ((2 * n_bar - 1) / (4 * n_bar)) * h_bar
+        )
         c = 0.5 * h_bar
 
         numerator += a
@@ -252,7 +258,12 @@ def main() -> int:
     print("=" * 72)
 
     populations = generate_populations(
-        n_pops, n_loci, n_individuals, fst_target, rng, temperatures,
+        n_pops,
+        n_loci,
+        n_individuals,
+        fst_target,
+        rng,
+        temperatures,
     )
 
     # ------------------------------------------------------------------
@@ -260,7 +271,7 @@ def main() -> int:
     # ------------------------------------------------------------------
     print("\n--- Check 1: Allele Frequencies Valid ---")
     all_valid = True
-    for i, pop in enumerate(populations):
+    for _i, pop in enumerate(populations):
         af = allele_frequencies(pop)
         if not (np.all(af >= 0.0) and np.all(af <= 1.0)):
             all_valid = False

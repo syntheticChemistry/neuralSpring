@@ -82,7 +82,12 @@ fn validate_seasonal_model(h: &mut ValidationHarness) {
 
     h.check_bool("summer > 20°C", summer > 20.0);
     h.check_bool("winter < 0°C", winter < 0.0);
-    h.check_abs("annual mean ≈ 8.5°C (DC offset)", annual_mean, 8.5, 0.5);
+    h.check_abs(
+        "annual mean ≈ 8.5°C (DC offset)",
+        annual_mean,
+        tolerances::SEASONAL_ANNUAL_MEAN,
+        tolerances::SEASONAL_ANNUAL_MEAN_TOL,
+    );
     h.check_bool("summer > winter", summer > winter);
 }
 

@@ -413,7 +413,7 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
                 "Transformer output norm within 10%",
                 norm,
                 expected_norm,
-                0.1,
+                tolerances::ML_PIPELINE_NORM_REL,
             );
 
             // Spot-check first and last elements

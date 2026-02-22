@@ -558,6 +558,69 @@ pub const EIGH_JACOBI_EIGENVALUE: f64 = 1e-3;
 /// the final-state difference is bounded by ~1e-2.
 pub const ODE_INTEGRATOR_AGREEMENT: f64 = 1e-2;
 
+// ═══════════════════════════════════════════════════════════════════
+// Statistical critical values (chi-squared tables)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Chi-squared critical value for df=9 at p < 0.05.
+///
+/// From standard chi-squared tables (Pearson 1900).  Used by pangenome
+/// frequency-spectrum deviation from neutral.
+pub const CHI2_CRITICAL_DF9_P05: f64 = 16.92;
+
+/// Chi-squared critical value for df=1 at p < 0.05.
+///
+/// Standard threshold for 2×2 contingency tests.  Used by pangenome
+/// environment-association per-gene tests.
+pub const CHI2_CRITICAL_DF1_P05: f64 = 3.84;
+
+/// Minimum environment-associated genes for pangenome selection signal.
+///
+/// With 200 genes and ~10% under selection, at least 5 should pass
+/// the per-gene chi-squared test (df=1, p < 0.05).
+pub const PANGENOME_MIN_ASSOCIATED_GENES: f64 = 5.0;
+
+// ═══════════════════════════════════════════════════════════════════
+// Miscellaneous validation thresholds
+// ═══════════════════════════════════════════════════════════════════
+
+/// Swarm fitness comparison tolerance (heterogeneous >= homogeneous - tol).
+///
+/// Heterogeneous swarms may not always exceed homogeneous fitness,
+/// but should be within 2.0 fitness units (mean-of-last-10 scale).
+/// Foreback, Bohm, Dolson (2025).
+pub const SWARM_FITNESS_COMPARISON: f64 = 2.0;
+
+/// PINN finite-difference PDE residual upper bound.
+///
+/// Mean absolute PDE residual of the Cole-Hopf exact solution evaluated
+/// on a coarse FD grid (10×40).  FD truncation error dominates at
+/// O(Δt + Δx²) ≈ O(0.1).  10.0 is generous for the coarse grid.
+pub const PINN_FD_RESIDUAL_MAX: f64 = 10.0;
+
+/// Seasonal temperature model annual mean (DC offset ≈ 8.5°C).
+///
+/// The synthetic cosine model `T(d) = 8.5 - 17·cos(2πd/365)` has
+/// mean 8.5°C.  Tolerance 0.5°C for discrete sampling (365 points).
+pub const SEASONAL_ANNUAL_MEAN: f64 = 8.5;
+
+/// Seasonal temperature model mean tolerance.
+pub const SEASONAL_ANNUAL_MEAN_TOL: f64 = 0.5;
+
+/// Eco-dynamics dominance comparison tolerance.
+///
+/// Multi-niche dominance should not exceed single-niche by more
+/// than 0.3 (fraction scale 0–1).  Allows for stochastic run
+/// variance with seed=42.
+pub const ECO_DOMINANCE_COMPARISON: f64 = 0.3;
+
+/// ML inference pipeline output norm relative tolerance (10%).
+///
+/// Multi-stage f32 tensor pipelines (MLP, Transformer) accumulate
+/// rounding across matmul + activation + normalization.  Output
+/// vector norm should agree within 10% of the Python baseline norm.
+pub const ML_PIPELINE_NORM_REL: f64 = 0.1;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -658,6 +721,15 @@ mod tests {
             SIGNAL_DYNAMIC_RANGE_MIN,
             BARRACUDA_GPU_ECO_F32,
             SPECTRAL_COMMUTATIVITY_EPS,
+            CHI2_CRITICAL_DF9_P05,
+            CHI2_CRITICAL_DF1_P05,
+            PANGENOME_MIN_ASSOCIATED_GENES,
+            SWARM_FITNESS_COMPARISON,
+            PINN_FD_RESIDUAL_MAX,
+            SEASONAL_ANNUAL_MEAN,
+            SEASONAL_ANNUAL_MEAN_TOL,
+            ECO_DOMINANCE_COMPARISON,
+            ML_PIPELINE_NORM_REL,
         ];
         for (i, &t) in tols.iter().enumerate() {
             assert!(t > 0.0, "tolerance index {i} must be positive, got {t}");

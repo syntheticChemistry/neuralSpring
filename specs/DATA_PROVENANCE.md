@@ -1,6 +1,6 @@
 # neuralSpring — Data Provenance
 
-**Last Updated**: February 19, 2026
+**Last Updated**: February 22, 2026
 **Purpose**: Document all external datasets, APIs, and pre-trained assets used in validation experiments. Every data source must be public, reproducible, and free of access restrictions.
 
 ---
@@ -46,7 +46,16 @@
 | Paper 13 (Eco Dynamics) | Multi-niche NK landscape | Generated in-code | N/A — computational model | N/A | Dolson & Ofria (2018) GECCO. Multi-niche Gaussian fitness, N=20 loci, 1-8 niches. |
 | Paper 14 (Directed Evo) | Multi-objective landscape | Generated in-code | N/A — computational model | N/A | Dolson et al. (2022) eLife. 5 selection algorithms, 4-objective fitness. |
 | Paper 16 (HMM Phylo) | HMM transition/emission | Generated in-code | N/A — computational model | N/A | Liu et al. (2014) PLoS Comp Bio. 2-state weather HMM + 4-state phylo HMM. |
+| Paper 15 (Swarm) | Swarm controllers + arenas | Generated in-code | N/A — computational model | N/A | Foreback/Dolson (2025) IEEE. Heterogeneous swarm controllers, simulated arenas. |
+| Paper 17 (SATé) | Random sequences + NJ tree | Generated in-code | N/A — computational model | N/A | Liu et al. (2009) Science. Random DNA-like sequences, progressive alignment. |
+| Paper 18 (Introgression) | Simulated gene flow + HMM | Generated in-code | N/A — computational model | N/A | Liu et al. (2015) PNAS. 3-taxon gene flow, likelihood-ratio test. |
 | Paper 19 (Game Theory) | Payoff matrices + QS model | Generated in-code | N/A — computational model | N/A | Bruger & Waters (2018) AEM. PD, snowdrift, QS cooperation, spatial PD. |
+| Paper 20 (Regulatory) | Hill ODE + bistability | Generated in-code | N/A — computational model | N/A | Mhatre et al. (2020) PNAS. Hill-function gene regulatory network, RK4 integration. |
+| Paper 21 (Signal) | Two-input Hill gate | Generated in-code | N/A — computational model | N/A | Srivastava et al. (2011) J Bacteriol. cGMP + QS AND gate, multi-input regulatory network. |
+| Paper 22 (Spectral) | Random matrices + commutator | Generated in-code | N/A — pure math | N/A | Kachkovskiy & Safarov (2016) JAMS. Random symmetric matrices, skip-connection analysis. |
+| Paper 23 (Anderson) | Aubry-André Hamiltonian | Generated in-code | N/A — pure math | N/A | Bourgain & Kachkovskiy (2018) GAFA. Quasiperiodic lattice, IPR localization. |
+| Paper 24 (Pangenome) | Simulated gene content | Generated in-code | N/A — computational model | N/A | Moulana/Anderson (2020) mSystems. Pairwise Jaccard on simulated pangenome content. |
+| Paper 25 (Meta-pop) | Simulated populations | Generated in-code | N/A — computational model | N/A | Campbell/Anderson (2017) Env Microbiol. Locus variance, migration, isolation. |
 
 ---
 

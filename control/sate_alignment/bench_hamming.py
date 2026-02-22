@@ -2,7 +2,9 @@
 
 #!/usr/bin/env python3
 """Benchmark: Pairwise Hamming distance matrix (20 sequences × 500 sites)."""
+
 import os
+
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -26,7 +28,7 @@ def hamming_distance(a: np.ndarray, b: np.ndarray) -> float:
 def pairwise_hamming(seqs: list[np.ndarray]) -> np.ndarray:
     """Compute N×N pairwise Hamming distance matrix."""
     n = len(seqs)
-    L = len(seqs[0])
+    len(seqs[0])
     D = np.zeros((n, n))
     for i in range(n):
         for j in range(i + 1, n):

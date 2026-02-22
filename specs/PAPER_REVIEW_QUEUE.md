@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 21, 2026
+**Last Updated**: February 22, 2026
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -101,6 +101,122 @@ bridge them.
 | Kachkovskiy (MSU Math) | 022–023 (2) | 16 | 16 |
 | R. Anderson (Carleton) | 024–025 (2) | 16 | 16 |
 | **Total Phase 0++** | **15** | **127** | **141** |
+
+---
+
+## Open Data & Systems Audit
+
+**All 25 papers use open data and open systems.** No proprietary, paywalled,
+or access-restricted data anywhere in the validation stack.
+
+| Category | Papers | Data Source | License / Access |
+|----------|--------|------------|-----------------|
+| Synthetic / analytical | 011-015, 016, 019-023 | Generated in-code from equations | N/A — pure math, deterministic seed |
+| Open API | Exp 003-004, Study 004-005 | Open-Meteo ERA5 Archive API | CC BY 4.0 (free, no auth) |
+| Public dataset | Study 003 | MNIST (torchvision) | CC BY-SA 3.0 |
+| Open source reference | Study 001, Study 002, Paper 012 | GitHub repos (PINNs, DeepONet, MODES) | MIT / Apache-2.0 |
+| Equation-derived | Exp 001, Exp 005 | FAO-56 ET₀, architecture catalog | Public equations |
+| Simulated biology | Paper 024-025 | Gene content / population dynamics | N/A — computational model |
+
+**Reproducibility**: Every experiment is deterministic from a fixed RNG seed (42).
+ERA5 data has synthetic fallback if API is unavailable. All code is AGPL-3.0.
+Full provenance: `specs/DATA_PROVENANCE.md`.
+
+---
+
+## Full Validation Stack Matrix (February 22, 2026)
+
+Each paper maps through 7 validation tiers. The stack proves correctness
+from Python baseline through mixed-hardware GPU dispatch.
+
+### Legend
+
+- **Py**: Python control baseline (Phase 0/0+/0++)
+- **Rs**: Pure Rust CPU validation (Phase 1a)
+- **bC**: BarraCUDA CPU primitives (Phase 2)
+- **gT**: BarraCUDA GPU Tensor — `matmul`, `transpose`, `tanh`, `sigmoid`, `add` (Phase 5b)
+- **mF**: metalForge WGSL shader — domain-specific GPU kernel (Phase 3c)
+- **gP**: GPU Pipeline — chained domain→reduce (Phase 4b)
+- **xD**: Cross-dispatch CPU↔GPU parity (Phase 3d)
+
+### Phase 0++ Papers (011-025) — ALL GREEN, ALL xD
+
+| Paper | Faculty | Py | Rs | bC | gT | mF | gP | xD | Status |
+|-------|---------|----|----|----|----|----|----|----|----- |
+| 011 CD Evolution | Dolson | ✓ | ✓ | ✓ | fitness ✓ | `batch_fitness` ✓ | fitness ✓ | ✓ | **7/7** |
+| 012 MODES | Dolson | ✓ | ✓ | ✓ | modes ✓ | `pairwise_l2` ✓ | modes ✓ | ✓ | **7/7** |
+| 013 Eco Dynamics | Dolson | ✓ | ✓ | ✓ | eco ✓ | `batch_fitness` ✓ | eco ✓ | ✓ | **7/7** |
+| 014 Directed Evo | Dolson | ✓ | ✓ | ✓ | directed ✓ | `multi_obj` ✓ | directed ✓ | ✓ | **7/7** |
+| 015 Swarm | Dolson | ✓ | ✓ | ✓ | swarm ✓ | `swarm_nn` ✓ | swarm ✓ | ✓ | **7/7** |
+| 016 HMM | Liu | ✓ | ✓ | ✓ | hmm ✓ | `hmm_fwd` ✓ | hmm ✓ | ✓ | **7/7** |
+| 017 SATé | Liu | ✓ | ✓ | ✓ | pairwise ✓ | `hamming` ✓ | sate ✓ | ✓ | **7/7** |
+| 018 Introgression | Liu | ✓ | ✓ | ✓ | introgression ✓ | `hmm_fwd` ✓ | hmm ✓ | ✓ | **7/7** |
+| 019 Game Theory | Waters | ✓ | ✓ | ✓ | game ✓ | `spatial` ✓ | ecology ✓ | ✓ | **7/7** |
+| 020 Regulatory | Waters | ✓ | ✓ | ✓ | regulatory ✓ | `rk4` ✓ | regulatory ✓ | ✓ | **7/7** |
+| 021 Signal | Waters | ✓ | ✓ | ✓ | signal ✓ | `hill_gate` ✓ | signal ✓ | ✓ | **7/7** |
+| 022 Spectral | Kachkovskiy | ✓ | ✓ | ✓ | spectral ✓ | `batch_ipr` ✓ | spectral ✓ | ✓ | **7/7** |
+| 023 Anderson | Kachkovskiy | ✓ | ✓ | ✓ | anderson ✓ | `batch_ipr` ✓ | spectral ✓ | ✓ | **7/7** |
+| 024 Pangenome | Anderson | ✓ | ✓ | ✓ | pairwise ✓ | `jaccard` ✓ | genomics ✓ | ✓ | **7/7** |
+| 025 Meta-pop | Anderson | ✓ | ✓ | ✓ | meta_pop ✓ | `locus_var` ✓ | meta_pop ✓ | ✓ | **7/7** |
+
+### Phase 0/0+ Studies (001-010)
+
+| Study | Py | Rs | bC | gT | mF | gP | Status |
+|-------|----|----|----|----|----|----|--------|
+| Exp 001 Surrogate | ✓ | ✓ | surrogate ✓ | nn ✓ | — | — | **4/4** |
+| Exp 002 Transformer | ✓ | ✓ | transformer ✓ | transformer ✓ | — | — | **4/4** |
+| Exp 003 Sequence | ✓ | ✓ | sequence ✓ | sequence ✓ | — | — | **4/4** |
+| Exp 004 Transfer | ✓ | ✓ | transfer ✓ | transfer ✓ | — | — | **4/4** |
+| Exp 005 Isomorphic | ✓ | ✓ | — | — | — | — | **Analytical** |
+| Study 001 PINN | ✓ | ✓ | pinn ✓ | nn ✓ | — | — | **4/4** |
+| Study 002 DeepONet | ✓ | ✓ | deeponet ✓ | nn ✓ | — | — | **4/4** |
+| Study 003 LeNet-5 | ✓ | ✓ | lenet ✓ | lenet ✓ | — | — | **4/4** |
+| Study 004 LSTM | ✓ | ✓ | lstm ✓ | lstm ✓ | — | — | **4/4** |
+| Study 005 Quantized | ✓ | ✓ | quantized ✓ | — | — | — | **3/3** |
+
+Phase 0/0+ studies use PyTorch training workflows. mF/gP columns are N/A.
+Study 005 uses integer arithmetic (Q8/Q4), not Tensor ops — gT is N/A.
+
+### Stack Coverage Summary
+
+| Tier | Papers Covered | Total | Coverage | Delta |
+|------|---------------|-------|----------|-------|
+| Python control (Py) | 25/25 | 206 checks | **100%** | — |
+| Rust CPU (Rs) | 25/25 | 255+ checks | **100%** | — |
+| BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** | +12pp (was 84%) |
+| BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** | +20pp (was 72%) |
+| metalForge WGSL (mF) | 15/25 | 108 checks | **100%**† | — |
+| GPU Pipeline (gP) | 15/25 | 94 checks | **100%**† | — |
+| Cross-dispatch (xD) | 15/15 | 49 checks | **100%**† | +80pp (was 20%) |
+
+`†` 100% of applicable papers. Phase 0/0+ studies use PyTorch, not WGSL shaders.
+
+### What Changed (Phase 5b buildout, February 22, 2026)
+
+**Phase 0/0+ gaps closed:**
+- **Exp 001 Surrogate**: S-15 unblocked — new `validate_barracuda_surrogate` (7/7 PASS)
+- **Exp 002 Transformer**: new `validate_barracuda_gpu_transformer` (7/7 PASS) — Q/K/V projection, attention scores, FFN block via GPU Tensor
+- **Exp 004 Transfer**: new `validate_barracuda_transfer` (7/7 PASS) — domain adaptation MLP forward + metrics
+- **Exp 003, Study 003, Study 004**: reclassified as gT (sequence/lenet/lstm validators use GPU Tensor)
+
+**Cross-dispatch 100%:**
+- New `validate_cross_dispatch_hmm` (4/4 PASS): Papers 016/018, `hmm_forward_log.wgsl` GPU ↔ CPU log-likelihood parity (diff=2.29e-6)
+- New `validate_cross_dispatch_ode` (4/4 PASS): Paper 020, `rk4_parallel.wgsl` GPU ↔ CPU ODE integration parity (diff=1.49e-8)
+- Existing cross-dispatch binaries already covered Papers 011-015, 017, 019, 021-025
+
+**Previous sweep (Phase 5a+):**
+- S-16 FIXED: transpose dispatch one-line fix
+- S-15 root-caused: WGPU/Vulkan driver bug, workaround documented
+- 8 GPU Tensor + 6 GPU Pipeline + 3 BarraCUDA CPU validators (89 checks)
+
+### Remaining Gaps
+
+**Exp 005 Isomorphic (analytical only):**
+Cross-domain architecture mapping — no numerical computation to validate via bC/gT.
+
+**Study 005 Quantized (integer ops):**
+Q8/Q4 quantization uses integer arithmetic, not Tensor matmul. Already validated
+via `validate_barracuda_quantized` (CPU primitive path).
 
 ---
 

@@ -186,7 +186,7 @@ Each reproduction follows the same framework as Phase 0 but targets a published 
 ## Phase 1–5b: Rust Validation
 
 The Rust layer cross-validates Python baselines using hardcoded expected values (hotSpring pattern).
-BarraCUDA integration extended it to 1100+ Rust+GPU checks across 81 validation binaries.
+BarraCUDA integration extended it to 1100+ Rust+GPU checks across 115 validation binaries.
 
 ### neuralSpring-native
 
@@ -196,7 +196,7 @@ BarraCUDA integration extended it to 1100+ Rust+GPU checks across 81 validation 
 | `validate_transformer` | 18 | Softmax properties + GELU known-values |
 | `validate_metrics` | 10 | R², RMSE, MAE, NSE against analytical expectations |
 | 15 Phase 0++ validation binaries | 188 | Paper-specific checks across all domains |
-| Rust unit tests | 237 | Cross-language validation (94.9% line coverage) |
+| Rust unit tests | 255 | Cross-language validation (94.9% line coverage) |
 | Rust doc-tests | 9 | API contract verification |
 
 ### BarraCUDA (275+ checks)
@@ -236,7 +236,7 @@ GPU error handling.
 | 0 | Python/PyTorch baselines (48 checks) | Science correctness | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Published result fidelity | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty | **COMPLETE** |
-| 1a | neuralSpring Rust validation (237 lib tests) | Cross-language agreement | **COMPLETE** |
+| 1a | neuralSpring Rust validation (255 lib tests) | Cross-language agreement | **COMPLETE** |
 | 1b | BarraCUDA validation (275+ checks) | WGSL shader correctness | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | Single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |

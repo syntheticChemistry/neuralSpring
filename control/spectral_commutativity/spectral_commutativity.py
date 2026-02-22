@@ -22,8 +22,6 @@ BarraCUDA connection:
   - Residual layers (I + W): elementwise add
 """
 
-# SPDX-License-Identifier: AGPL-3.0-only
-
 import sys
 
 import numpy as np
@@ -116,9 +114,7 @@ def spectral_gap_to_normal(a: np.ndarray) -> float:
 # ---------------------------------------------------------------------------
 
 
-def sample_distance_to_normal(
-    n: int, n_samples: int = 100, seed: int = 42
-) -> np.ndarray:
+def sample_distance_to_normal(n: int, n_samples: int = 100, seed: int = 42) -> np.ndarray:
     """Sample many random matrices, return distribution of distance-to-normal."""
     rng = np.random.default_rng(seed)
     dists = []
@@ -187,7 +183,7 @@ def main() -> int:
         print("  [PASS] Skip connections reduce commutativity")
         total_passed += 1
     else:
-        print(f"  [FAIL] Expected skip < raw")
+        print("  [FAIL] Expected skip < raw")
         total_failed += 1
 
     # Check 4: Residual layers (I+eps*W) approximately commute for small eps
@@ -206,7 +202,7 @@ def main() -> int:
         print("  [PASS] Small-epsilon residual layers nearly commute")
         total_passed += 1
     else:
-        print(f"  [FAIL] Expected residual < raw")
+        print("  [FAIL] Expected residual < raw")
         total_failed += 1
 
     # Check 5: Commutator anti-symmetry [A,B] = -[B,A]

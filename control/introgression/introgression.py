@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
 """
 neuralSpring Paper 018 — PhyloNet-HMM for Introgression Detection
 
@@ -244,7 +243,6 @@ def main() -> int:
     total_failed = 0
     seed = 42
     n_loci = 500
-    introg_frac = 0.30
 
     print("=" * 72)
     print("neuralSpring Paper 018: PhyloNet-HMM Introgression Detection")
@@ -254,9 +252,7 @@ def main() -> int:
     trans, emission, initial = build_phylonet_hmm()
     model = PhyloNetHMM(trans, emission, initial)
 
-    true_states, obs = generate_synthetic_loci(
-        n_loci, trans, emission, initial, seed=seed
-    )
+    true_states, obs = generate_synthetic_loci(n_loci, trans, emission, initial, seed=seed)
     true_introg_frac = np.mean(true_states == 1)
 
     # ------------------------------------------------------------------
@@ -321,8 +317,7 @@ def main() -> int:
     tol_frac = 0.15
     if abs(detected_frac - true_introg_frac) <= tol_frac:
         print(
-            f"  [PASS] Detected {detected_frac:.3f} vs true {true_introg_frac:.3f} "
-            f"(tol={tol_frac})"
+            f"  [PASS] Detected {detected_frac:.3f} vs true {true_introg_frac:.3f} (tol={tol_frac})"
         )
         total_passed += 1
     else:

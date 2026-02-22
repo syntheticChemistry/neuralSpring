@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
 """
 neuralSpring Paper 020 — Regulatory Network & Diversity Capacitor
 
@@ -286,7 +285,7 @@ def main() -> int:
         profiles.append(ss)
     profiles = np.array(profiles)
     diff = np.max(np.abs(profiles[0] - profiles[1])) > 0.05
-    print(f"  Max diff between env profiles: {np.max(np.abs(profiles[0]-profiles[1])):.4f}")
+    print(f"  Max diff between env profiles: {np.max(np.abs(profiles[0] - profiles[1])):.4f}")
     if diff:
         print("  [PASS] Environments produce distinct profiles")
         total_passed += 1
@@ -324,8 +323,7 @@ def main() -> int:
     print("\n--- Check 4: Shannon Diversity > 0 ---")
     p_div = {**base_params, "K_m": 0.7, "K_b": 0.2}
     strategies = [
-        phenotype_classifier(integrate_grn(x0, s, p_div))
-        for s in [0.05, 0.25, 0.5, 0.75, 0.95]
+        phenotype_classifier(integrate_grn(x0, s, p_div)) for s in [0.05, 0.25, 0.5, 0.75, 0.95]
     ]
     counts = np.bincount(strategies, minlength=3) / len(strategies)
     H = shannon_diversity(counts)

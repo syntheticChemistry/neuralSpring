@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
 """
 neuralSpring Paper 021 — Signal Integration in Vibrio cholerae
 
@@ -141,9 +140,21 @@ def integrate_ode(
 
     def rhs(t, yy):
         return _ode_rhs(
-            t, yy, cell_density, cdg_synth, cdg_deg,
-            ai_prod, ai_decay, vps_degradation,
-            vmax, k1, k2, n1, n2, noise_scale, rng
+            t,
+            yy,
+            cell_density,
+            cdg_synth,
+            cdg_deg,
+            ai_prod,
+            ai_decay,
+            vps_degradation,
+            vmax,
+            k1,
+            k2,
+            n1,
+            n2,
+            noise_scale,
+            rng,
         )
 
     for i in range(1, n_steps):
@@ -179,7 +190,9 @@ def logic_gate_sweep(k1: float = 1.0, k2: float = 1.0, n1: float = 2.0, n2: floa
     return {label: _hill(cdg, ai, 1.0, k1, k2, n1, n2) for cdg, ai, label in cases}
 
 
-def dose_response_cdg(ai_fixed: float, k1: float = 1.0, k2: float = 1.0, n1: float = 2.0, n2: float = 2.0) -> tuple:
+def dose_response_cdg(
+    ai_fixed: float, k1: float = 1.0, k2: float = 1.0, n1: float = 2.0, n2: float = 2.0
+) -> tuple:
     """Sweep cdg with ai fixed."""
     cdg_vals = np.logspace(-2, 1, 50)
     vps = np.array([_hill(c, ai_fixed, 1.0, k1, k2, n1, n2) for c in cdg_vals])
@@ -254,7 +267,9 @@ def main() -> int:
     and_ok = off_off < threshold and on_off < threshold and off_on < threshold and on_on > threshold
 
     if and_ok:
-        print(f"  [PASS] AND: OFF/OFF={off_off:.4f}, ON/OFF={on_off:.4f}, OFF/ON={off_on:.4f}, ON/ON={on_on:.4f}")
+        print(
+            f"  [PASS] AND: OFF/OFF={off_off:.4f}, ON/OFF={on_off:.4f}, OFF/ON={off_on:.4f}, ON/ON={on_on:.4f}"
+        )
         total_passed += 1
     else:
         print(f"  [FAIL] AND gate violated: {lg}")
@@ -267,7 +282,7 @@ def main() -> int:
         print("  [PASS] Each input alone insufficient (on/off and off/on → low)")
         total_passed += 1
     else:
-        print(f"  [FAIL] Single input produces high output")
+        print("  [FAIL] Single input produces high output")
         total_failed += 1
 
     # ------------------------------------------------------------------
@@ -284,10 +299,12 @@ def main() -> int:
     sigmoidal = low_end < mid_val < high_end and low_end < 0.3 and high_end > 0.7
 
     if sigmoidal:
-        print(f"  [PASS] CDG dose-response sigmoidal (low={low_end:.4f}, mid={mid_val:.4f}, high={high_end:.4f})")
+        print(
+            f"  [PASS] CDG dose-response sigmoidal (low={low_end:.4f}, mid={mid_val:.4f}, high={high_end:.4f})"
+        )
         total_passed += 1
     else:
-        print(f"  [FAIL] Dose-response not sigmoidal")
+        print("  [FAIL] Dose-response not sigmoidal")
         total_failed += 1
 
     # ------------------------------------------------------------------
@@ -305,7 +322,7 @@ def main() -> int:
         print(f"  [PASS] Higher density → higher ai ({ai_low:.4f} vs {ai_high:.4f})")
         total_passed += 1
     else:
-        print(f"  [FAIL] Cell density did not increase ai")
+        print("  [FAIL] Cell density did not increase ai")
         total_failed += 1
 
     # ------------------------------------------------------------------
@@ -316,10 +333,12 @@ def main() -> int:
     bio_high = high_result["biofilm"][-1]
     bio_low = low_result["biofilm"][-1]
     if bio_high > bio_low:
-        print(f"  [PASS] Biofilm proportional to vpsT (high inputs → more biofilm: {bio_high:.4f} > {bio_low:.4f})")
+        print(
+            f"  [PASS] Biofilm proportional to vpsT (high inputs → more biofilm: {bio_high:.4f} > {bio_low:.4f})"
+        )
         total_passed += 1
     else:
-        print(f"  [FAIL] Biofilm not proportional to vpsT")
+        print("  [FAIL] Biofilm not proportional to vpsT")
         total_failed += 1
 
     # ------------------------------------------------------------------
@@ -328,7 +347,7 @@ def main() -> int:
     att_prod = multiplicative_attention(2.0, 2.0, k1, k2)
     hill_val = _hill(2.0, 2.0, 1.0, k1, k2, 2.0, 2.0)
     if abs(att_prod - hill_val) < 0.01:
-        print(f"  [PASS] Integration = multiplicative attention (product of sigmoids)")
+        print("  [PASS] Integration = multiplicative attention (product of sigmoids)")
         total_passed += 1
     else:
         print(f"  [FAIL] Attention mismatch: att={att_prod:.4f}, hill={hill_val:.4f}")

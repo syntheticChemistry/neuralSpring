@@ -2,7 +2,9 @@
 
 #!/usr/bin/env python3
 """Benchmark: Commutator Frobenius norm (64×64 matrices)."""
+
 import os
+
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"

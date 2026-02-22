@@ -112,6 +112,27 @@ pub fn neural_forward(params: &[f64], sense: f64) -> usize {
         .map_or(0, |(i, _)| i)
 }
 
+/// Max output-layer activation (before argmax). For mean_reduce pipeline validation.
+#[must_use]
+pub fn neural_forward_max_score(params: &[f64], sense: f64) -> f64 {
+    let mut h = [0.0_f64; 4];
+    for (i, (&w, &b)) in params[0..4].iter().zip(params[4..8].iter()).enumerate() {
+        h[i] = sigmoid(sense.mul_add(w, b));
+    }
+    let mut best = f64::NEG_INFINITY;
+    for j in 0..5 {
+        let mut sum = params[28 + j];
+        for (i, &hv) in h.iter().enumerate() {
+            sum += hv * params[8 + i * 5 + j];
+        }
+        let o_j = sigmoid(sum);
+        if o_j > best {
+            best = o_j;
+        }
+    }
+    best
+}
+
 #[allow(clippy::cast_possible_truncation)]
 #[must_use]
 pub fn behavior_forward(params: &[f64], sense: f64) -> usize {

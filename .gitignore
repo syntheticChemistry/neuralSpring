@@ -20,6 +20,17 @@ target/
 # pytest
 .pytest_cache/
 
+# Editor / IDE
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+*.orig
+.idea/
+*.iml
+.vscode/
+
 # OS
 .DS_Store
 Thumbs.db

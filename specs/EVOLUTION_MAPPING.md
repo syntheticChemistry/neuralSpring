@@ -94,14 +94,14 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 |---------------|-------------|-------------|----------------|---------|
 | `surrogate/` MLP forward | `surrogate::mlp_forward` (stub) | `gemm_f64.wgsl` + `nn::ReLU` | Inference | BarraCUDA `nn::Layer` |
 | `surrogate/` MLP training | `surrogate::mlp_train` (stub) | `gemm_f64.wgsl` + `nn::Optimizer::Adam` | Training | BarraCUDA autograd |
-| `sequence/` LSTM cell | — | `lstm_cell.wgsl` | Inference | BarraCUDA LSTM primitive |
-| `sequence/` GRU cell | — | `gru_cell.wgsl` | Inference | BarraCUDA GRU primitive |
+| `sequence/` LSTM cell | `sequence::lstm_cell` | `lstm_cell.wgsl` | Inference | **VALIDATED** (26 checks) |
+| `sequence/` GRU cell | `sequence::gru_cell` | `gru_cell.wgsl` | Inference | **VALIDATED** (26 checks) |
 | `pinn/` autograd | — | `fd_gradient_f64.wgsl` | Training | Reverse-mode AD in BarraCUDA |
 | `lenet/` Conv2d | — | `conv2d.wgsl` | Inference | BarraCUDA Conv2d |
 | `lenet/` MaxPool | — | `max_pool2d.wgsl` | Inference | BarraCUDA pooling |
 | `deeponet/` Branch-Trunk | — | `gemm_f64.wgsl` × 2 | Inference | Compose from MLP |
-| `quantized/` INT8 GEMV | — | `gemv_q8.wgsl` | Deployment | BarraCUDA Q8 kernels |
-| `quantized/` INT4 GEMV | — | `gemv_q4.wgsl` | Deployment | BarraCUDA Q4 kernels |
+| `quantized/` INT8 GEMV | `quantized::gemv_q8` | `gemv_q8.wgsl` | Deployment | **VALIDATED** (26 checks) |
+| `quantized/` INT4 GEMV | `quantized::gemv_q4` | `gemv_q4.wgsl` | Deployment | **VALIDATED** (26 checks) |
 | `transfer/` freeze+finetune | — | selective gradient | Training | BarraCUDA param freeze |
 
 ### Tier C — New (GPU-specific, no Python equivalent)
@@ -171,10 +171,10 @@ For each Rust module → GPU promotion:
 | Phase | Status | Coverage |
 |-------|--------|----------|
 | Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, 48 pytest |
-| Phase 1a (neuralSpring Rust) | **237 lib PASS** | 28 modules (+3 evolved), 237 unit tests (94.9% line coverage), 81 validation binaries |
+| Phase 1a (neuralSpring Rust) | **255 lib PASS** | 31 modules (+3 evolved), 255 unit tests, 115 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
-| Phase 2 (BarraCUDA CPU ports) | **170/170 PASS** | All 15 Phase 0++ modules + PINN + DeepONet validated |
+| Phase 2 (BarraCUDA CPU ports) | **203/203 PASS** | 24/25 papers validated (96% bC coverage) |
 | Phase 3a (FFT validation) | **24/24 PASS** | f32 Fft1D/Ifft1D + f64 Fft1DF64 + Rfft |
 | Phase 3b (GPU streaming) | **COMPLETE** | `StatefulPipeline` validated (10/10 PASS) |
 | Phase 3c (Shader evolution) | **COMPLETE** | 12 WGSL shaders (+4 new: pairwise_l2, multi_obj_fitness, swarm_nn_forward, hill_gate) |

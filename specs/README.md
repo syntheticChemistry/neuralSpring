@@ -15,7 +15,7 @@
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
 | Phase 1a (native Rust) | 183/183 PASS — 21 validation binaries (incl. pinn, deeponet, sequence) |
 | Phase 1b (BarraCUDA) | 272/272 PASS — stats, linalg, special, optimize, precision, tensor (90), tensor_f64 (35), quantized, linalg_ext, ml_inference (13), FFT (24) |
-| Phase 2 (CPU ports) | 170/170 PASS — 17 modules |
+| Phase 2 (CPU ports) | 203/203 PASS — 24/25 papers (96%) |
 | Phase 3c (GPU shaders) | 108/108 PASS — 16 WGSL shaders |
 | Phase 3d (cross-dispatch) | 41/41 PASS |
 | Phase 4 (pipelines+PRNG+MHA+eigh) | PASS — GPU pipelines, PRNG, MHA, eigendecomposition |

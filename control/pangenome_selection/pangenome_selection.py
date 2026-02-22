@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
 """
 neuralSpring Paper 024 — Pangenome Selection Dynamics
 
@@ -33,7 +32,6 @@ BarraCUDA connection:
 import sys
 
 import numpy as np
-
 
 # ---------------------------------------------------------------------------
 # Gene Presence/Absence Matrix
@@ -147,7 +145,7 @@ def spectrum_chi_squared(
         return 0.0
     expected = expected_frac * total
     chi2 = 0.0
-    for o, e in zip(observed, expected):
+    for o, e in zip(observed, expected, strict=False):
         if e > 0.5:
             chi2 += (o - e) ** 2 / e
     return chi2
@@ -185,8 +183,7 @@ def env_association_chi2(
         expected_b = (a + b) * (b + d) / n if n > 0 else 0
         expected_c = (c + d) * (a + c) / n if n > 0 else 0
         expected_d = (c + d) * (b + d) / n if n > 0 else 0
-        for obs, exp in [(a, expected_a), (b, expected_b),
-                         (c, expected_c), (d, expected_d)]:
+        for obs, exp in [(a, expected_a), (b, expected_b), (c, expected_c), (d, expected_d)]:
             if exp > 0.5:
                 chi2_vals[i] += (obs - exp) ** 2 / exp
 
@@ -268,9 +265,12 @@ def main() -> int:
     print("=" * 72)
 
     pa = generate_pa_matrix(
-        n_genomes, n_genes,
-        core_frac=0.25, singleton_frac=0.10,
-        rng=rng, env_labels=env_labels,
+        n_genomes,
+        n_genes,
+        core_frac=0.25,
+        singleton_frac=0.10,
+        rng=rng,
+        env_labels=env_labels,
     )
 
     # ------------------------------------------------------------------
@@ -328,8 +328,9 @@ def main() -> int:
     # chi2 > 3.84 → p < 0.05 for df=1
     n_associated = int(np.sum(chi2_per_gene > 3.84))
     frac_associated = n_associated / n_genes
-    print(f"  Genes with env association (p<0.05): {n_associated}/{n_genes}"
-          f" ({frac_associated:.1%})")
+    print(
+        f"  Genes with env association (p<0.05): {n_associated}/{n_genes} ({frac_associated:.1%})"
+    )
     if n_associated > 5:
         print("  [PASS] Env-associated genes detected")
         total_passed += 1

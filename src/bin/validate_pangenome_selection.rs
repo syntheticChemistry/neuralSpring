@@ -49,18 +49,24 @@ fn main() {
     let neu_spec = neutral_spectrum(10);
     let chi2 = spectrum_chi_squared(&obs_spec, &neu_spec);
     h.check_lower(
-        &format!("chi2={chi2:.2} > 16.92 (selection signal)"),
+        &format!(
+            "chi2={chi2:.2} > {} (selection signal)",
+            tolerances::CHI2_CRITICAL_DF9_P05
+        ),
         chi2,
-        16.92,
+        tolerances::CHI2_CRITICAL_DF9_P05,
     );
 
     // Check 4: Environment-associated genes detected (chi2 > 3.84 for df=1)
     let chi2_per_gene = env_association_chi2(&pa, n_genes, n_genomes, &env_labels);
-    let n_associated = chi2_per_gene.iter().filter(|&&v| v > 3.84).count();
+    let n_associated = chi2_per_gene
+        .iter()
+        .filter(|&&v| v > tolerances::CHI2_CRITICAL_DF1_P05)
+        .count();
     h.check_lower(
         &format!("env-associated genes: {n_associated}/200"),
         n_associated as f64,
-        5.0,
+        tolerances::PANGENOME_MIN_ASSOCIATED_GENES,
     );
 
     // Check 5: Selection coefficient > 0.01

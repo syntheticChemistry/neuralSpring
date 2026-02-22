@@ -240,7 +240,6 @@ class NumpyMLP:
         """Simple gradient descent with numerical gradients."""
         for _epoch in range(epochs):
             pred = self.forward(X)
-            _loss = np.mean((pred - y) ** 2)  # noqa: F841 — kept for debugging
 
             # Numerical gradient (slow but correct)
             eps = 1e-5

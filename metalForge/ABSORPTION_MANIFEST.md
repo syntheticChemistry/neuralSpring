@@ -109,7 +109,7 @@ ToadStool absorption.
 | `metrics.rs` | R², RMSE, MAE, NSE | ~150 |
 | `fft.rs` | Analytical DFT reference values | ~100 |
 | `eigh.rs` | Eigensolver → delegates to `barracuda` (S-12 absorbed) | ~40 |
-| 81 validation binaries | Correctness proof suite | ~9k |
+| 115 validation binaries | Correctness proof suite | ~9k |
 | 5 benchmark binaries | Performance comparison suite | ~1k |
 
 ---
@@ -173,7 +173,7 @@ that match GPU buffer bindings directly:
 **Total GPU shader checks**: 108 (16 WGSL)
 **Total GPU pipeline checks**: 32 (7 pipelines)
 **Total cross-dispatch checks**: 41 (8+8+12+13)
-**Total lib tests**: 237 unit + 9 doc (94.9% line coverage)
+**Total lib tests**: 255 unit + 9 doc (94.9% line coverage)
 **Grand total validation**: 1307 (206 Python + 1101 Rust+GPU)
 
 ---

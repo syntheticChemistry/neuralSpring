@@ -1,12 +1,15 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 21, 2026 (post-audit)
-**ToadStool HEAD**: `dc540afd` (Session 25)
+**Date**: February 22, 2026 (post-Phase 5a GPU Tensor validation)
+**ToadStool HEAD**: `77f70b2e` (Session 31h)
 **Status**: Migration complete — deprecated modules fossilized, S-03b locally resolved via WGSL shaders
 
-All 11 neuralSpring shortcomings (S-01 through S-11) are absorbed by
-ToadStool. Deprecated workaround modules have been removed from the
-active codebase and fossilized in `metalForge/fossils/evolved_s01_s11/`.
+All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
+ToadStool at `77f70b2e`. Deprecated workaround modules have been removed
+from the active codebase and fossilized in `metalForge/fossils/evolved_s01_s11/`.
+S-12 (eigensolver) resolved via Householder+QR — `src/eigh.rs` delegates
+to upstream. Three new shortcomings (S-14, S-15, S-16) discovered during
+Phase 5b full-stack validation — see `wateringHole/handoffs/NEURALSPRING_V7_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`.
 
 ---
 
@@ -95,6 +98,23 @@ production sizes up to B=4, S=128, H=8, d=512).
 | ~~P2~~ | Migrate fused benchmarks | **Fossilized** |
 | ~~P3~~ | Remove WGSL shaders | **Fossilized** |
 | ~~P4~~ | Remove evolved modules | **Fossilized** (except mha + hmm) |
+
+---
+
+---
+
+## Phase 5a: New BarraCUDA Shortcomings Discovered
+
+GPU `Tensor` validation across 7 domains uncovered 3 new bugs:
+
+| # | Shortcoming | Severity | Status |
+|---|-------------|----------|--------|
+| S-14 | Naive matmul hang (small square matrices, complex binaries) | Medium | Characterized, workaround (non-square shapes) |
+| S-15 | Matmul hang with negative or sparse f32 input data | Critical | Characterized, workaround (positive-only data) |
+| S-16 | 2D transpose dispatch uses `optimal_workgroup_size` (256) instead of tile size (16) | High | Root cause confirmed, one-line fix identified |
+
+See `wateringHole/handoffs/NEURALSPRING_V7_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
+for full diagnosis, reproduction steps, and recommended fixes.
 
 ---
 

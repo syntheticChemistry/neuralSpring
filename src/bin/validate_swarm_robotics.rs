@@ -13,6 +13,7 @@
 #![allow(clippy::cast_precision_loss)]
 
 use neural_spring::swarm_robotics::{run_evolution_heterogeneous, run_evolution_homogeneous};
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn mean_last_n(v: &[f64], n: usize) -> f64 {
@@ -50,8 +51,11 @@ fn main() {
 
     // Heterogeneous >= homogeneous (within tolerance)
     h.check_bool(
-        &format!("heterogeneous ({final_het:.4}) >= homogeneous ({final_homo:.4}) - 2.0"),
-        final_het >= final_homo - 2.0,
+        &format!(
+            "heterogeneous ({final_het:.4}) >= homogeneous ({final_homo:.4}) - {}",
+            tolerances::SWARM_FITNESS_COMPARISON
+        ),
+        final_het >= final_homo - tolerances::SWARM_FITNESS_COMPARISON,
     );
 
     // Both achieve positive fitness

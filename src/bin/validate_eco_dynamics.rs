@@ -51,10 +51,11 @@ fn main() {
     let multi_dom = *r_multi.dominance.last().unwrap_or(&0.0);
     h.check_bool(
         &format!(
-            "multi-niche dominance ({multi_dom:.4}) < single+0.3 ({:.4})",
-            final_dom + 0.3
+            "multi-niche dominance ({multi_dom:.4}) < single+{} ({:.4})",
+            tolerances::ECO_DOMINANCE_COMPARISON,
+            final_dom + tolerances::ECO_DOMINANCE_COMPARISON
         ),
-        multi_dom < final_dom + 0.3,
+        multi_dom < final_dom + tolerances::ECO_DOMINANCE_COMPARISON,
     );
 
     // Part 3: Frequency-dependent selection

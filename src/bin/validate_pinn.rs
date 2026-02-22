@@ -116,7 +116,11 @@ fn main() {
     let residuals = pde_residual_fd(&grid_res, &t_res, &x_res, BURGERS_NU);
     let mean_abs_residual = residuals.iter().map(|r| r.abs()).sum::<f64>() / residuals.len() as f64;
 
-    h.check_upper("FD PDE residual mean (exact soln)", mean_abs_residual, 10.0);
+    h.check_upper(
+        "FD PDE residual mean (exact soln)",
+        mean_abs_residual,
+        tolerances::PINN_FD_RESIDUAL_MAX,
+    );
 
     // ── Part 6: MLP forward pass (tanh layers) ──
 

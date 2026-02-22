@@ -200,6 +200,21 @@ jobs:
       - name: Validate meta-population (8 checks)
         run: cargo run --bin validate_meta_population
 
+      - name: Validate LeNet-5 (22 checks)
+        run: cargo run --bin validate_lenet
+
+      - name: Validate transfer learning (11 checks)
+        run: cargo run --bin validate_transfer
+
+      - name: Validate isomorphic catalog (8 checks)
+        run: cargo run --bin validate_isomorphic
+
+      - name: Validate LSTM/GRU cell primitives
+        run: cargo run --bin validate_lstm
+
+      - name: Validate quantized inference
+        run: cargo run --bin validate_quantized
+
       - name: Validate sequence (7 checks)
         run: cargo run --bin validate_sequence
 
@@ -450,6 +465,21 @@ jobs:
 
       - name: Validate BarraCUDA GPU eco (20 checks)
         run: cargo run --release --bin validate_barracuda_gpu_eco
+
+      - name: Validate BarraCUDA GPU HMM (8 checks)
+        run: cargo run --release --bin validate_barracuda_gpu_hmm
+
+      - name: Validate BarraCUDA GPU fitness (8 checks)
+        run: cargo run --release --bin validate_barracuda_gpu_fitness
+
+      - name: Validate BarraCUDA GPU neural net (8 checks)
+        run: cargo run --release --bin validate_barracuda_gpu_nn
+
+      - name: Validate BarraCUDA GPU pairwise (8 checks)
+        run: cargo run --release --bin validate_barracuda_gpu_pairwise
+
+      - name: Validate BarraCUDA GPU Anderson (8 checks)
+        run: cargo run --release --bin validate_barracuda_gpu_anderson
 
   benchmarks:
     runs-on: ubuntu-latest

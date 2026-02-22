@@ -2,7 +2,9 @@
 
 #!/usr/bin/env python3
 """Benchmark: Replicator dynamics (2-strategy PD, 10000 steps, dt=0.001)."""
+
 import os
+
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"

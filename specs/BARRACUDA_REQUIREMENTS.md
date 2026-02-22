@@ -137,6 +137,34 @@ The `tensor` binary exercises the **unified Tensor/WGSL path** — same shaders 
 | `validate_barracuda_logsumexp` | LogSumExp: numerically stable summation in log-probability space (HMM, softmax) | 5 | **PASS** |
 | **Total** | | **272** | **ALL PASS** |
 
+### BarraCUDA GPU Tensor — CPU vs GPU Validation (Phase 5a — February 22, 2026)
+
+7 domain-specific validators exercise `Tensor::matmul`, `transpose`, `tanh`, `add`
+on a live RTX 4070 Vulkan backend. Each check compares GPU f32 output against
+CPU f64 reference with calibrated tolerances.
+
+| Binary | Domain | Checks | Status | Notes |
+|--------|--------|--------|--------|-------|
+| `validate_barracuda_gpu_spectral` | Kachkovskiy spectral | 10/10 | **PASS** | `A x B^T` workaround for S-14 |
+| `validate_barracuda_gpu_eco` | Dolson eco dynamics | 6/6 | **PASS** | Fitness matrices, carrying capacity |
+| `validate_barracuda_gpu_hmm` | Liu HMM | 5/5 | **PASS** | Transition, emission, Viterbi score |
+| `validate_barracuda_gpu_fitness` | Dolson fitness landscapes | 7/7 | **PASS** | NK landscape, epistasis, ruggedness |
+| `validate_barracuda_gpu_nn` | PINN / DeepONet | 5/5 | **PASS** | MLP forward, tanh activations. S-15 workaround |
+| `validate_barracuda_gpu_pairwise` | SATé / Pangenome | 5/5 | **PASS** | S-16 fixed (transpose dispatch) |
+| `validate_barracuda_gpu_anderson` | Anderson localization | 7/7 | **PASS** | S-15 workaround (data ≥ 0.5) |
+| **Total** | | **98+** | **ALL GREEN** | S-16 fixed, S-15 root-caused, 23/25 gT coverage |
+
+**Shortcomings discovered in Phase 5a:**
+
+| ID | Summary | Severity | Status |
+|----|---------|----------|--------|
+| S-14 | Naive matmul hang — small square inputs (N < 32) in complex binaries | Medium | Workaround applied (`A x B^T`) |
+| S-15 | Matmul hang — negative or sparse f32 input data | Critical | Blocks anderson validator |
+| S-16 | 2D transpose dispatches wrong workgroup count (256 vs 16) | High | Blocks Gram matrix; fix identified |
+
+Full diagnosis and reproduction steps: `wateringHole/handoffs/archive/NEURALSPRING_V6_BARRACUDA_GPU_HANDOFF_FEB22_2026.md`
+Current handoff: `wateringHole/handoffs/NEURALSPRING_V7_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
+
 ---
 
 neuralSpring is the validation layer. ToadStool is the implementation layer. The springs are the application layers.

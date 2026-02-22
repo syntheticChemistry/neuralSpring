@@ -7,7 +7,7 @@ ten experiments spanning function approximation, transformer attention, sequence
 forecasting, transfer learning, cross-domain architecture analysis, physics-informed
 neural networks, operator learning, convolutional networks, real-data LSTM, and
 quantized inference. All **206 quantitative checks pass** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++).
-Phase 1–5b Rust validation adds **1100+ Rust+GPU checks** (237 lib tests + 81 validation binaries across 29 modules + 3 evolved, 94.9% line coverage). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
+Phase 1–5b Rust validation adds **1100+ Rust+GPU checks** (255 lib tests + 115 validation binaries across 31 modules + 3 evolved, 94.9% line coverage). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
 The 3-way benchmark (Python vs CPU vs GPU) with double-buffered evolved shaders
 achieves **GPU 104× faster** than Python at 103M FLOPs and **CPU 3.9× faster**
 at the same scale.
@@ -164,11 +164,11 @@ and time series simultaneously.
 ## Rust Validation Layer (Phase 1–5b)
 
 The audit (February 2026) produced a Rust crate that cross-validates Python baselines.
-BarraCUDA integration extended it to 1100+ GPU/CPU validation checks across 81 binaries.
+BarraCUDA integration extended it to 1100+ GPU/CPU validation checks across 115 binaries.
 
-- **29 library modules + 3 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances.rs` (58 named constants), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
-- **81 validation binaries + 5 bench**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch
-- **237 unit tests + 9 doc-tests**, 94.9% line coverage via `llvm-cov`
+- **31 library modules + 3 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances.rs` (58 named constants), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
+- **115 validation binaries + 5 bench**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch
+- **255 unit tests + 9 doc-tests**, 94.9% line coverage via `llvm-cov`
 - **Quality gates**: `clippy` (pedantic+nursery), `fmt`, `doc`, `unsafe_code = "forbid"`
 - **16 WGSL shaders** in `metalForge/shaders/` with validation binaries and absorption targets
 
@@ -217,7 +217,7 @@ See `whitePaper/BARRACUDA_EVOLUTION.md` for the full technical narrative.
 | 0 | Python baselines (48 checks) | Validate the science | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Reproduce published results | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty, 5 disciplines | **COMPLETE** |
-| 1a | neuralSpring Rust validation | 29 modules, 237 lib tests, 81 binaries (94.9% coverage) | **COMPLETE** |
+| 1a | neuralSpring Rust validation | 31 modules, 255 lib tests, 115 binaries (94.9% coverage) | **COMPLETE** |
 | 1b | BarraCUDA validation | 12 domains, 275 checks (CPU + GPU + FFT) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | 46–78× speedup via single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |
@@ -245,7 +245,7 @@ All four faculty research groups have been reproduced in Phase 0++:
 | **Waters** (MSU Micro) | 019–021 | Game theory, regulatory networks, signal integration |
 | **Kachkovskiy** (MSU Math) | 022–023 | Spectral commutativity, Anderson localization |
 
-All 15 papers validated in Python (127/127) and Rust (170/170 CPU ports),
+All 25 papers validated in Python (206/206) and BarraCUDA CPU (203/203, 24/25 papers),
 with 16 WGSL shaders evolved for GPU acceleration via metalForge.
 
 ### BarraCUDA Primitives Validated

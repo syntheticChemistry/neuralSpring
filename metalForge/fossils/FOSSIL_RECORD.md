@@ -2,7 +2,7 @@
 
 > **Pattern**: `hotSpring` evolve → validate → hand off → absorb → fossil  
 > **Spring**: neuralSpring (Feb 2026)  
-> **Absorbed by**: ToadStool `dc540afd` / BarraCUDA 0.2+
+> **Absorbed by**: ToadStool `77f70b2e` / BarraCUDA 0.2+
 
 ## Purpose
 
@@ -57,7 +57,7 @@ Two evolved modules survive in `src/evolved/`:
 | Date | Event |
 |------|-------|
 | Jan 2026 | neuralSpring begins evolving workarounds for S-01 through S-11 |
-| Feb 19, 2026 | ToadStool `dc540afd` absorbs all 11 shortcomings |
+| Feb 19-22, 2026 | ToadStool `dc540afd`→`77f70b2e` absorbs all 12 shortcomings (S-01..S-12) |
 | Feb 20, 2026 | neuralSpring completes rewiring to native APIs; deprecated modules fossilized |
 | Feb 22, 2026 | `bench_inference.py` and `bench_scaling.py` moved from `control/` to fossils (orphaned by fossilized Rust) |
 | Feb 22, 2026 | `eigh_local.rs` fossilized — `barracuda::ops::linalg::eigh_householder_qr` (`77f70b2e`) absorbed S-12 |

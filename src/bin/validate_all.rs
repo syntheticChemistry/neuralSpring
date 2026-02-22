@@ -13,6 +13,11 @@ const BINARIES: &[&str] = &[
     "validate_surrogate",
     "validate_transformer",
     "validate_metrics",
+    "validate_lenet",
+    "validate_transfer",
+    "validate_isomorphic",
+    "validate_lstm",
+    "validate_quantized",
     "validate_sequence",
     // Phase 0++ paper reproduction validation
     "validate_counterdiabatic",
@@ -99,9 +104,39 @@ const BINARIES: &[&str] = &[
     // ToadStool issue resolution (Phase 4d)
     "validate_eigh_accuracy",
     "validate_mha_gpu",
+    // BarraCUDA CPU: Phase 0/0+ S-15-safe validators
+    "validate_barracuda_sequence",
+    "validate_barracuda_lenet",
+    "validate_barracuda_lstm",
+    "validate_barracuda_surrogate",
+    "validate_barracuda_transfer",
     // BarraCUDA GPU tensor validation (Phase 5a)
     "validate_barracuda_gpu_spectral",
     "validate_barracuda_gpu_eco",
+    "validate_barracuda_gpu_hmm",
+    "validate_barracuda_gpu_fitness",
+    "validate_barracuda_gpu_nn",
+    "validate_barracuda_gpu_pairwise",
+    "validate_barracuda_gpu_anderson",
+    "validate_barracuda_gpu_modes",
+    "validate_barracuda_gpu_directed",
+    "validate_barracuda_gpu_swarm",
+    "validate_barracuda_gpu_game",
+    "validate_barracuda_gpu_introgression",
+    "validate_barracuda_gpu_regulatory",
+    "validate_barracuda_gpu_signal",
+    "validate_barracuda_gpu_meta_pop",
+    "validate_barracuda_gpu_transformer",
+    // GPU Pipeline: expanded coverage (Phase 4b+)
+    "validate_gpu_pipeline_fitness",
+    "validate_gpu_pipeline_eco",
+    "validate_gpu_pipeline_swarm",
+    "validate_gpu_pipeline_sate",
+    "validate_gpu_pipeline_regulatory",
+    "validate_gpu_pipeline_meta_pop",
+    // Cross-dispatch: expanded coverage (Phase 3d++)
+    "validate_cross_dispatch_hmm",
+    "validate_cross_dispatch_ode",
 ];
 
 fn main() {

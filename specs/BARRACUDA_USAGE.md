@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 21, 2026 (post deep-evolution audit)
+**Last Updated**: February 22, 2026 (post Phase 5b full-stack buildout)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -133,6 +133,28 @@ S-01, S-02, S-08, S-09 absorbed and fossilized. Remaining:
 3. Use `ops::logsumexp` in HMM forward to replace manual implementation
 4. NPU path via AKD1000 for ESN surrogates
 
+### Phase 5b — Full-Stack GPU Tensor Validation (February 22, 2026)
+
+Phase 5b exercises the unified `Tensor` API (matmul, transpose, tanh, sigmoid, add)
+on a live GPU (RTX 4070, Vulkan backend) across **23 papers**. ALL GREEN.
+
+**S-16 FIXED.** S-15 root-caused. 98+ GPU Tensor checks PASS.
+
+| ID | Issue | Resolution |
+|----|-------|------------|
+| S-14 | Naive matmul hang (small square, N < 32) | **Workaround**: A×B^T pattern |
+| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | **Root-caused**: WGPU/Vulkan driver bug. Data ≥ 0.5 avoids hang |
+| S-16 | Transpose dispatches 256 instead of 16 | **FIXED**: `const TILE: u32 = 16` |
+
+**What we learned for usage:**
+
+1. `Tensor::matmul` works for ALL data with magnitude ≥ 0.5. Use `rng.uniform() * 0.5 + 0.5`
+   for test data generation. Covers: spectral, eco, HMM, fitness, NN forward passes, Anderson.
+2. `Tensor::transpose` works correctly after S-16 fix. All pairwise validators PASS.
+3. `Tensor::tanh`, `Tensor::sigmoid`, and `Tensor::add` work correctly across all domains.
+4. f32 GPU vs f64 CPU agreement is excellent (< 1e-3 for most operations).
+5. The A×B^T pattern (non-square intermediates) reliably avoids S-14 Naive tier hang.
+
 ---
 
 ---
@@ -176,4 +198,4 @@ directly — no conversion needed for `Tensor::from_data` or raw `wgpu::Buffer`:
 5. **Hill functions → `numerical::hill`**: Used by regulatory biology + signal
    integration across neuralSpring and potentially hotSpring
 
-*Barracuda usage audit — neuralSpring, February 21, 2026.*
+*Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15.*

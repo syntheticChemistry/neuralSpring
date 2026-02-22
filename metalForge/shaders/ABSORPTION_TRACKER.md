@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `dc540afd` (Session 25, Feb 20, 2026)
+**ToadStool HEAD**: `77f70b2e` (Session 31h, Feb 22, 2026)
 
 ---
 
@@ -31,7 +31,7 @@
 | `tridiag_eigensolver.wgsl` | Spectral (022–023) | P3 | Needs Householder → bisection design |
 | `logsumexp_reduce.wgsl` | HMM/phylogenetics | P2 | Complements `hmm_forward_log.wgsl` |
 
-## Retired (Absorbed by ToadStool `dc540afd`)
+## Retired (Absorbed by ToadStool `77f70b2e`)
 
 ### Evolved Modules (S-01 through S-11 — all absorbed)
 

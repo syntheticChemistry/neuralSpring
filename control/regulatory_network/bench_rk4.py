@@ -2,7 +2,9 @@
 
 #!/usr/bin/env python3
 """Benchmark: RK4 integration of 3-variable GRN ODE (2000 steps, dt=0.01)."""
+
 import os
+
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -36,19 +38,19 @@ def grn_rhs(state: np.ndarray, signal: float, params: dict) -> np.ndarray:
     K, n = params["K"], params["n"]
     gamma = params["gamma"]
 
-    db = alpha_b * hill_activation(signal, 1.0, K, n) * hill_repression(
-        motility, 1.0, K, n
-    ) - gamma * biofilm
-    dm = alpha_m * hill_repression(biofilm, 1.0, K, n) * hill_activation(
-        virulence, 1.0, K, n
-    ) - gamma * motility
+    db = (
+        alpha_b * hill_activation(signal, 1.0, K, n) * hill_repression(motility, 1.0, K, n)
+        - gamma * biofilm
+    )
+    dm = (
+        alpha_m * hill_repression(biofilm, 1.0, K, n) * hill_activation(virulence, 1.0, K, n)
+        - gamma * motility
+    )
     dv = alpha_v * hill_activation(biofilm, 1.0, K, n) - gamma * virulence
     return np.array([db, dm, dv])
 
 
-def rk4_step(
-    x: np.ndarray, signal: float, params: dict, dt: float
-) -> np.ndarray:
+def rk4_step(x: np.ndarray, signal: float, params: dict, dt: float) -> np.ndarray:
     """Single RK4 step."""
     k1 = grn_rhs(x, signal, params)
     k2 = grn_rhs(x + 0.5 * dt * k1, signal, params)
@@ -103,6 +105,6 @@ if __name__ == "__main__":
     print(f"RK4_GRN_2000_US={median_us:.1f}")
     print()
     print(f"Python/NumPy RK4 GRN benchmark — NumPy {np.__version__}")
-    print(f"  Config: 3-variable GRN (biofilm, motility, virulence)")
+    print("  Config: 3-variable GRN (biofilm, motility, virulence)")
     print(f"  {n_steps} RK4 steps, dt={dt}, 4 RHS evals/step = {n_steps * 4} calls")
     print(f"  Median: {median_us:.1f} µs over {ITERATIONS} iterations (warmup={WARMUP})")

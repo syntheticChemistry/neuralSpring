@@ -4,7 +4,7 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
 **Last reviewed:** ToadStool commit `77f70b2e` (Session 31h, Feb 22, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V4_ABSORPTION_HANDOFF_FEB22_2026.md`
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V7_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
 
 ---
 
@@ -172,8 +172,8 @@ too small to amortize launch latency.
 
 ## Phase 2 — BarraCUDA CPU Port Findings
 
-**Date**: February 21, 2026
-**Status**: All 15 Phase 0++ modules (+PINN, +DeepONet) ported to BarraCUDA CPU math. 170/170 checks PASS.
+**Date**: February 22, 2026
+**Status**: 24/25 papers ported to BarraCUDA CPU math. 203/203 checks PASS (96% coverage).
 
 ### Primitives Validated
 
@@ -227,3 +227,22 @@ Local fossil: `metalForge/fossils/evolved_s01_s11/eigh_local.rs`.
 | `head_split.wgsl` | MHA | — | `barracuda::ops::mha` (fix S-03b first) |
 | `head_concat.wgsl` | MHA | — | `barracuda::ops::mha` (fix S-03b first) |
 | `xoshiro128ss.wgsl` | GPU PRNG | — | `barracuda::ops::prng` |
+
+---
+
+## Phase 5a/5b Shortcomings
+
+Discovered during GPU `Tensor` validation across 23 scientific domains.
+
+| # | Shortcoming | Severity | Root Cause | Status |
+|---|-------------|----------|------------|--------|
+| S-14 | Naive matmul hang (small square matrices) | Medium | Driver/binary complexity interaction (RTX 4070 Vulkan) | **Workaround**: A×B^T pattern |
+| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | Critical | WGPU/Vulkan driver bug (RTX 4070) — not sign or sparsity | **Root-caused**: data ≥ 0.5 avoids hang |
+| S-16 | 2D transpose dispatch uses wrong divisor | High | `execute_2d()` uses 256 instead of tile size 16 | **FIXED**: `const TILE: u32 = 16` |
+
+**S-15 clarification**: Phase 5a initially attributed the hang to negative values
+or sparsity. Phase 5b root-caused it to element *magnitude*: any matrix where many
+elements have `|x| ≤ 0.1` triggers the hang. The workaround (`rng.uniform() * 0.5 + 0.5`)
+ensures all elements ≥ 0.5. This affects all matmul tiers, not just Naive.
+
+Full diagnosis: `wateringHole/handoffs/`

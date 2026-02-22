@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
 """
 neuralSpring Paper 015 — Heterogeneous Controller Representations for Swarm Robotics
 
@@ -100,10 +99,7 @@ def run_foraging(controllers: list[tuple[int, np.ndarray]], rng: np.random.Gener
     for _ in range(N_STEPS):
         for a in range(N_AGENTS):
             x, y = agent_pos[a]
-            dists = [
-                np.sqrt((fp[0] - x) ** 2 + (fp[1] - y) ** 2)
-                for fp in food_pos
-            ]
+            dists = [np.sqrt((fp[0] - x) ** 2 + (fp[1] - y) ** 2) for fp in food_pos]
             min_d = min(dists) if dists else GRID_SIZE
             sense = 1.0 / (1.0 + min_d / GRID_SIZE)
 
@@ -131,14 +127,11 @@ def run_foraging_hetero(
     collected = 0
     moves = [(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)]
 
-    for step in range(N_STEPS):
+    for _step in range(N_STEPS):
         for a in range(N_AGENTS):
             ctrl_type, params = population[a % len(population)]
             x, y = agent_pos[a]
-            dists = [
-                np.sqrt((fp[0] - x) ** 2 + (fp[1] - y) ** 2)
-                for fp in food_pos
-            ]
+            dists = [np.sqrt((fp[0] - x) ** 2 + (fp[1] - y) ** 2) for fp in food_pos]
             min_d = min(dists) if dists else GRID_SIZE
             sense = 1.0 / (1.0 + min_d / GRID_SIZE)
 
@@ -179,6 +172,7 @@ def tournament_select(
 def shannon_diversity(types: list[int]) -> float:
     """Shannon diversity index of controller type distribution."""
     from collections import Counter
+
     counts = Counter(types)
     n = len(types)
     if n == 0:
@@ -206,11 +200,10 @@ def run_evolution_homogeneous(rng: np.random.Generator) -> dict:
     diversity_trace = []
     fitness_trace = []
 
-    for gen in range(N_GEN):
-        fitnesses = np.array([
-            run_foraging([population[i]] * N_AGENTS, rng)
-            for i in range(POP_SIZE)
-        ])
+    for _gen in range(N_GEN):
+        fitnesses = np.array(
+            [run_foraging([population[i]] * N_AGENTS, rng) for i in range(POP_SIZE)]
+        )
         fitness_trace.append(float(np.mean(fitnesses)))
         diversity_trace.append(shannon_diversity([TYPE_NEURAL] * POP_SIZE))
 
@@ -229,11 +222,10 @@ def run_evolution_heterogeneous(rng: np.random.Generator) -> dict:
     diversity_trace = []
     fitness_trace = []
 
-    for gen in range(N_GEN):
-        fitnesses = np.array([
-            run_foraging([population[i]] * N_AGENTS, rng)
-            for i in range(POP_SIZE)
-        ])
+    for _gen in range(N_GEN):
+        fitnesses = np.array(
+            [run_foraging([population[i]] * N_AGENTS, rng) for i in range(POP_SIZE)]
+        )
         fitness_trace.append(float(np.mean(fitnesses)))
         diversity_trace.append(shannon_diversity([p[0] for p in population]))
 
@@ -290,10 +282,15 @@ def main() -> int:
     f_rule = np.mean([run_foraging([c] * N_AGENTS, rng) for c in rule_only])
 
     at_least_one_solves = max(f_neural, f_behavior, f_rule) > 0
-    checks.extend([
-        ("At least one controller type achieves positive fitness", at_least_one_solves),
-        ("All controller types evaluate without error", np.isfinite(f_neural + f_behavior + f_rule)),
-    ])
+    checks.extend(
+        [
+            ("At least one controller type achieves positive fitness", at_least_one_solves),
+            (
+                "All controller types evaluate without error",
+                np.isfinite(f_neural + f_behavior + f_rule),
+            ),
+        ]
+    )
 
     rng = np.random.default_rng(SEED)
     mut_neural = mutate((TYPE_NEURAL, np.zeros(33)), rng)

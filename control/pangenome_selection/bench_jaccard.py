@@ -2,7 +2,9 @@
 
 #!/usr/bin/env python3
 """Benchmark: Pairwise Jaccard distance matrix (30 genomes × 500 genes)."""
+
 import os
+
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"

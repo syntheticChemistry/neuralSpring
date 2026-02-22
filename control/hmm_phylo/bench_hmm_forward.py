@@ -2,7 +2,9 @@
 
 #!/usr/bin/env python3
 """Benchmark: HMM forward algorithm (scaled, T=5000, N=3, M=4)."""
+
 import os
+
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"

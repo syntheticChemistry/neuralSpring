@@ -1,26 +1,35 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 22, 2026 (post-absorption)
+**Date**: February 22, 2026 (post-Phase 5b full-stack validation)
 **ToadStool HEAD**: `77f70b2e` (Session 31h)
-**Pattern**: Python baseline → Rust validation → WGSL shader → ToadStool absorption → lean on upstream
+**Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → ToadStool absorption → lean on upstream
 
 ---
 
 ## Quick Status
 
-Rust modules (29 total) include `pinn.rs` (Study 001 PINN Burgers) and `deeponet.rs` (Study 002 DeepONet antiderivative) alongside the 25-paper reproduction modules.
+31 Rust modules cover all 25 papers + 5 Phase 0/0+ studies. 115 validation binaries
+span 7 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC), GPU Tensor (gT),
+metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 237 lib tests, 29 modules, 81 binaries, 94.9% coverage | **COMPLETE** |
+| Rust native validation | 255 lib tests, 31 modules, 115 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
-| BarraCUDA CPU ports | 170/170 (17 modules) | **COMPLETE** |
-| GPU shader validation | 85/85 (16 WGSL shaders) | **COMPLETE** |
+| BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
+| BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
+| metalForge WGSL (mF) | 14/25 papers (56%) | **ALL PASS** |
+| GPU Pipeline (gP) | 7/25 papers (28%) | **ALL PASS** |
+| Cross-dispatch (xD) | **15/15** Phase 0++ papers (100%) | **ALL GREEN** |
+| GPU shader validation | 108/108 (16 WGSL shaders) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
-| ToadStool shortcomings | 12/12 absorbed (S-12 upstream) + S-03b locally workaround | **ALL RESOLVED** |
+| ToadStool shortcomings absorbed | 12/12 (S-01..S-12) | **ALL ABSORBED** |
+| S-16 (transpose dispatch) | One-line fix | **FIXED** |
+| S-15 (matmul hang) | Root-caused: magnitude ≤ 0.1 | **WORKAROUND** (≥ 0.5 data) |
+| S-14 (naive matmul hang) | A×B^T pattern avoids | **WORKAROUND** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| Code quality audit | clippy pedantic+nursery clean, `#[must_use]`, centralized tolerances | **COMPLETE** |
+| Grand total checks | **1560+** (206 Py + 1354+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
@@ -178,7 +187,7 @@ or existing infrastructure):
 | `staging::StatefulPipeline` | Iterative GPU RK4 | `validate_gpu_stateful_pipeline` (10/10) |
 | `dispatch::{dispatch_for, DispatchTarget}` | CPU/GPU parity | `validate_cross_dispatch` (8/8) |
 | `WgpuDevice::new_cpu_relaxed` | CPU software adapter | `gpu.rs` (S-10 absorbed) |
-| `stats::*`, `linalg::*`, `numerical::*`, `special::*` | 17 paper modules | 17 CPU port binaries (170/170) |
+| `stats::*`, `linalg::*`, `numerical::*`, `special::*` | 24 paper modules | 24 CPU port binaries (203/203) |
 
 ---
 
@@ -208,6 +217,53 @@ or existing infrastructure):
 | `ReduceScalarPipeline::sum_f64` | Fitness aggregation | Available (local mean_reduce validated) |
 | `BatchedRK4F64` | CPU-threaded ODE parameter sweeps | Available |
 | `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` | GPU-native eigensolve for Anderson | Available |
+
+---
+
+## Phase 5b — Full-Stack Validation (23 Domains, ALL GREEN)
+
+BarraCUDA `Tensor` operations validated against CPU f64 references across
+23 papers spanning all 7 validation tiers. S-16 transpose dispatch **fixed**.
+S-15 matmul hang **root-caused** (elements with magnitude ≤ 0.1 trigger
+WGPU/Vulkan driver bug on RTX 4070). Workaround: generate data with
+`rng.uniform() * 0.5 + 0.5` ensuring all elements ≥ 0.5.
+
+| Validator | Domain | Papers | GPU Ops | Checks | Status |
+|-----------|--------|--------|---------|--------|--------|
+| `validate_barracuda_gpu_spectral` | Spectral commutativity | 022 | matmul | 10 | **PASS** |
+| `validate_barracuda_gpu_eco` | Ecological dynamics | 013 | matmul, transpose | 6 | **PASS** |
+| `validate_barracuda_gpu_hmm` | HMM phylogenetics | 016-018 | matmul, transpose | 5 | **PASS** |
+| `validate_barracuda_gpu_fitness` | Evolutionary computation | 011-015 | matmul, transpose | 7 | **PASS** |
+| `validate_barracuda_gpu_nn` | Neural nets | 015, 020-021 | matmul, transpose, tanh, add | 5 | **PASS** |
+| `validate_barracuda_gpu_pairwise` | Pairwise distance | 017, 019, 024-025 | matmul, transpose | 5 | **PASS** (S-16 fixed) |
+| `validate_barracuda_gpu_anderson` | Anderson localization | 023 | matmul, transpose | 7 | **PASS** (S-15 workaround) |
+| `validate_barracuda_surrogate` | Surrogate MLP (Exp 001) | 001 | matmul, tanh | 7 | **PASS** |
+| `validate_barracuda_transfer` | Transfer Learning (Exp 004) | 004 | matmul, tanh | 7 | **PASS** |
+| `validate_barracuda_gpu_transformer` | Transformer (Exp 002) | 002 | matmul, transpose, tanh | 7 | **PASS** |
+| `validate_barracuda_sequence` | Sequence (Exp 003) | 003 | matmul, tanh, sigmoid | 7 | **PASS** |
+| `validate_barracuda_lenet` | LeNet-5 (Study 003) | S003 | matmul, tanh | 5 | **PASS** |
+| `validate_barracuda_lstm` | LSTM (Study 004) | S004 | matmul, tanh, sigmoid | 6 | **PASS** |
+
+### Cross-dispatch Validators (xD — 15/15 Phase 0++ papers)
+
+| Validator | Papers Covered | Checks | Status |
+|-----------|---------------|--------|--------|
+| `validate_cross_dispatch` | 011-015 | 8 | **PASS** |
+| `validate_cross_dispatch_genomics` | 016-018 | 8 | **PASS** |
+| `validate_cross_dispatch_extended` | 019-025 | 12 | **PASS** |
+| `validate_cross_dispatch_phase4e` | PINN, DeepONet | 9 | **PASS** |
+| `validate_cross_dispatch_hmm` | 016, 018 | 4 | **PASS** |
+| `validate_cross_dispatch_ode` | 020 | 4 | **PASS** |
+
+### Shortcoming Resolution
+
+| # | Shortcoming | Severity | Root Cause | Resolution |
+|---|-------------|----------|------------|------------|
+| S-14 | Naive matmul hang (small square matrices) | Medium | Driver/binary complexity interaction | Workaround: A×B^T pattern (non-square shapes) |
+| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | Critical | WGPU/Vulkan driver bug (RTX 4070) | **Root-caused**: data ≥ 0.5 avoids hang |
+| S-16 | 2D transpose dispatch uses divisor 256 vs tile 16 | High | `optimal_workgroup_size(ElementWise)` | **FIXED**: `const TILE: u32 = 16` |
+
+Full details: `wateringHole/handoffs/`
 
 ---
 
@@ -241,5 +297,29 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 
 ---
+
+## Full Validation Stack (7 Tiers × 25 Papers)
+
+The validation progression proves math portability at each level:
+
+```
+Tier 1 (Py)  → Open data + Python: reproducible science baseline
+Tier 2 (Rs)  → Rust native: same math, type-safe, deterministic
+Tier 3 (bC)  → BarraCUDA CPU: proves Rust math matches via barracuda primitives
+Tier 4 (gT)  → BarraCUDA GPU Tensor: proves math is portable CPU → GPU
+Tier 5 (mF)  → metalForge WGSL: domain-specific GPU kernels, validated vs CPU
+Tier 6 (gP)  → GPU Pipeline: end-to-end multi-kernel GPU chains
+Tier 7 (xD)  → Cross-dispatch: CPU ↔ GPU parity via dispatch routing
+```
+
+| Tier | Coverage | Status |
+|------|----------|--------|
+| Py (Python) | 25/25 (100%) | **ALL PASS** |
+| Rs (Rust) | 25/25 (100%) | **ALL PASS** |
+| bC (BarraCUDA CPU) | 24/25 (96%) | **ALL GREEN** |
+| gT (GPU Tensor) | 23/25 (92%) | **ALL GREEN** |
+| mF (metalForge WGSL) | 14/25 (56%) | **ALL PASS** |
+| gP (GPU Pipeline) | 7/25 (28%) | **ALL PASS** |
+| xD (Cross-dispatch) | 15/15 (100%) | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

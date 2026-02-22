@@ -54,6 +54,26 @@ path = "src/bin/validate_transformer.rs"
 name = "validate_metrics"
 path = "src/bin/validate_metrics.rs"
 
+[[bin]]
+name = "validate_lenet"
+path = "src/bin/validate_lenet.rs"
+
+[[bin]]
+name = "validate_transfer"
+path = "src/bin/validate_transfer.rs"
+
+[[bin]]
+name = "validate_isomorphic"
+path = "src/bin/validate_isomorphic.rs"
+
+[[bin]]
+name = "validate_lstm"
+path = "src/bin/validate_lstm.rs"
+
+[[bin]]
+name = "validate_quantized"
+path = "src/bin/validate_quantized.rs"
+
 # --- Phase 0++ Paper Reproduction Validation ---
 
 [[bin]]
@@ -133,6 +153,18 @@ name = "validate_pinn"
 path = "src/bin/validate_pinn.rs"
 
 # --- BarraCUDA CPU primitive validation ---
+
+[[bin]]
+name = "validate_barracuda_sequence"
+path = "src/bin/validate_barracuda_sequence.rs"
+
+[[bin]]
+name = "validate_barracuda_lenet"
+path = "src/bin/validate_barracuda_lenet.rs"
+
+[[bin]]
+name = "validate_barracuda_lstm"
+path = "src/bin/validate_barracuda_lstm.rs"
 
 [[bin]]
 name = "validate_barracuda_stats"
@@ -243,6 +275,14 @@ name = "validate_barracuda_pinn"
 path = "src/bin/validate_barracuda_pinn.rs"
 
 [[bin]]
+name = "validate_barracuda_surrogate"
+path = "src/bin/validate_barracuda_surrogate.rs"
+
+[[bin]]
+name = "validate_barracuda_transfer"
+path = "src/bin/validate_barracuda_transfer.rs"
+
+[[bin]]
 name = "validate_barracuda_meta_pop"
 path = "src/bin/validate_barracuda_meta_pop.rs"
 
@@ -291,6 +331,62 @@ path = "src/bin/validate_barracuda_gpu_spectral.rs"
 [[bin]]
 name = "validate_barracuda_gpu_eco"
 path = "src/bin/validate_barracuda_gpu_eco.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_hmm"
+path = "src/bin/validate_barracuda_gpu_hmm.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_fitness"
+path = "src/bin/validate_barracuda_gpu_fitness.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_nn"
+path = "src/bin/validate_barracuda_gpu_nn.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_pairwise"
+path = "src/bin/validate_barracuda_gpu_pairwise.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_anderson"
+path = "src/bin/validate_barracuda_gpu_anderson.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_introgression"
+path = "src/bin/validate_barracuda_gpu_introgression.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_regulatory"
+path = "src/bin/validate_barracuda_gpu_regulatory.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_signal"
+path = "src/bin/validate_barracuda_gpu_signal.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_meta_pop"
+path = "src/bin/validate_barracuda_gpu_meta_pop.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_modes"
+path = "src/bin/validate_barracuda_gpu_modes.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_directed"
+path = "src/bin/validate_barracuda_gpu_directed.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_swarm"
+path = "src/bin/validate_barracuda_gpu_swarm.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_transformer"
+path = "src/bin/validate_barracuda_gpu_transformer.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_game"
+path = "src/bin/validate_barracuda_gpu_game.rs"
 
 # --- Phase 3c: GPU shader validation (metalForge) ---
 
@@ -381,6 +477,14 @@ name = "validate_cross_dispatch_extended"
 path = "src/bin/validate_cross_dispatch_extended.rs"
 
 [[bin]]
+name = "validate_cross_dispatch_hmm"
+path = "src/bin/validate_cross_dispatch_hmm.rs"
+
+[[bin]]
+name = "validate_cross_dispatch_ode"
+path = "src/bin/validate_cross_dispatch_ode.rs"
+
+[[bin]]
 name = "validate_cross_dispatch_phase4e"
 path = "src/bin/validate_cross_dispatch_phase4e.rs"
 
@@ -400,6 +504,30 @@ path = "src/bin/validate_gpu_pipeline_modes.rs"
 name = "validate_gpu_pipeline_signal"
 path = "src/bin/validate_gpu_pipeline_signal.rs"
 
+[[bin]]
+name = "validate_gpu_pipeline_fitness"
+path = "src/bin/validate_gpu_pipeline_fitness.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_eco"
+path = "src/bin/validate_gpu_pipeline_eco.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_swarm"
+path = "src/bin/validate_gpu_pipeline_swarm.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_sate"
+path = "src/bin/validate_gpu_pipeline_sate.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_regulatory"
+path = "src/bin/validate_gpu_pipeline_regulatory.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_meta_pop"
+path = "src/bin/validate_gpu_pipeline_meta_pop.rs"
+
 # --- Meta ---
 
 [[bin]]
@@ -414,3 +542,4 @@ pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 unwrap_used = "warn"
 expect_used = "warn"
+

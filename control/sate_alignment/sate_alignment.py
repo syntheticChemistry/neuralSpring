@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-only
 """
 neuralSpring Paper 017 — SATé: Iterative Co-estimation of MSA and Phylogeny
 
@@ -47,9 +46,7 @@ def generate_root_sequence(length: int, seed: int = 42) -> np.ndarray:
     return rng.integers(0, 4, size=length)
 
 
-def mutate_along_branch(
-    seq: np.ndarray, rate: float, rng: np.random.Generator
-) -> np.ndarray:
+def mutate_along_branch(seq: np.ndarray, rate: float, rng: np.random.Generator) -> np.ndarray:
     """Mutate sequence with Jukes-Cantor rate (equal prob A,C,G,T)."""
     out = seq.copy()
     n_sites = len(seq)
@@ -136,7 +133,7 @@ def neighbor_joining(D: np.ndarray) -> list[tuple[int, int, float, float]]:
     # Work on a copy with node indices
     active = set(range(n))
     dist = D.copy()
-    node_to_idx = {i: i for i in range(n)}
+    {i: i for i in range(n)}
     next_node = n
     tree = []
 
@@ -146,8 +143,8 @@ def neighbor_joining(D: np.ndarray) -> list[tuple[int, int, float, float]]:
         nn = len(idx_list)
         q_size = dist.shape[0]
         Q = np.full((q_size, q_size), np.inf)
-        for ii, i in enumerate(idx_list):
-            for jj, j in enumerate(idx_list):
+        for _ii, i in enumerate(idx_list):
+            for _jj, j in enumerate(idx_list):
                 if i >= j:
                     continue
                 s_i = sum(dist[i, k] for k in idx_list if k != i)
@@ -224,8 +221,10 @@ def align_pair(seq_a: np.ndarray, seq_b: np.ndarray) -> tuple[np.ndarray, np.nda
     i, j = m, n
     gap = 4  # Use 4 as gap character
     while i > 0 or j > 0:
-        if i > 0 and j > 0 and F[i, j] == F[i - 1, j - 1] + (
-            0 if seq_a[i - 1] == seq_b[j - 1] else 1
+        if (
+            i > 0
+            and j > 0
+            and F[i, j] == F[i - 1, j - 1] + (0 if seq_a[i - 1] == seq_b[j - 1] else 1)
         ):
             a_aln.append(seq_a[i - 1])
             b_aln.append(seq_b[j - 1])
