@@ -123,7 +123,7 @@ S-16 transpose dispatch **FIXED**. S-15 matmul hang **root-caused** and workarou
 **Cross-dispatch (xD)**: 15/15 Phase 0++ papers have GPU ↔ CPU parity validation.
 6 cross-dispatch binaries, 49 checks, all PASS.
 
-**Upstream parity (uP)**: 6/6 GPU validators have dual-path local↔upstream parity checks (all 0.00e0 diff — bit-identical).
+**Upstream parity (uP)**: 10/10 GPU validators have dual-path local↔upstream parity checks (9 bit-identical, 1 Bessel diff 1.95e-3).
 `ReduceScalarPipeline` f64 mean validated (5.55e-17 diff). `barracuda::spectral` theory stack validated (17/17 PASS).
 **Capability-based dispatch**: 12 validators + evolved HMM use `Gpu::dispatch_1d()` with runtime hardware validation.
 Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at machine epsilon (2.89e-15 at n=64).

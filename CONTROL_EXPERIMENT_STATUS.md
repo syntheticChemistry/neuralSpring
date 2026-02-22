@@ -28,7 +28,7 @@
 |----|-------|-------|-------|--------|
 | Study 001 | PINN Burgers' Equation | Raissi et al. (2019) JCP 378:686 | 8/8 | **PASS** (+paper ref validation) |
 | Study 002 | DeepONet Antiderivative | Lu et al. (2021) NMI 3:218 | 7/7 | **PASS** (+paper ref validation) |
-| Study 003 | LeNet-5 MNIST | LeCun et al. (1998) Proc IEEE 86 | 5/5 | **PASS** |
+| Study 003 | LeNet-5 MNIST | LeCun et al. (1998) Proc IEEE 86 | 5/5 + 8 bC conv/pool | **PASS** |
 | Study 004 | LSTM ERA5 Weather | Gauch et al. (2021) HESS 25:2045 | 5/5 | **PASS** |
 | Study 005 | Quantized Inference | Dettmers (2022) + Frantar (2023) | 6/6 | **PASS** (real ERA5 data) |
 

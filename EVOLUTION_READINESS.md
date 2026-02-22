@@ -32,8 +32,8 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | TS-003 (trig precision) | 7-term Taylor + Cody-Waite | **FIXED** upstream (Session 36) |
 | TS-001 (pow_f64 precision) | Extended exp/log polynomials | **FIXED** upstream (Session 36) |
 | Shader absorption | 5 of 8 local shaders absorbed | **13/17 upstream** (Session 39) |
-| Upstream wrapper validation | 6 bio ops + f64 HMM | **23/23 PASS** (new) |
-| Upstream parity (dual-path) | 6 GPU validators | **6/6 PASS, 0.00e0 diff** (bit-identical) |
+| Upstream wrapper validation | **10 bio ops** + f64 HMM | **33/33 PASS** |
+| Upstream parity (dual-path) | **10 GPU validators** | **10/10 PASS** (3 bit-identical, 1 Bessel diff 1.95e-3) |
 | ReduceScalarPipeline | f64 mean IPR via GPU reduce | **5.55e-17 diff** (machine ε) |
 | Spectral theory stack | Lanczos, Anderson, Hofstadter, Lyapunov, eigh×Sturm | **17/17 PASS** (hotSpring lineage) |
 | Capability-based dispatch | 12 validators + evolved HMM use `Gpu::dispatch_1d` | **Runtime-validated** (Sessions 40, 42) |

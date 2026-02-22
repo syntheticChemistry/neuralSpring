@@ -303,6 +303,7 @@ mod tests {
             GPU_BATCH_IPR_F32,
             GPU_HAMMING_F32,
             GPU_MULTI_OBJ_FITNESS_F32,
+            GPU_UPSTREAM_MULTI_OBJ_PARITY_F32,
             GPU_MODES_L2_F32,
             GPU_HILL_F32,
             EIGH_JACOBI_RECONSTRUCT,

@@ -23,10 +23,12 @@
     clippy::similar_names
 )]
 
+use barracuda::ops::bio::{HillGateGpu, HillGateParams};
 use neural_spring::gpu::Gpu;
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/hill_gate.wgsl");
@@ -54,6 +56,7 @@ async fn main() {
     validate_and_gate_corners(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
     validate_larger_grid(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -393,6 +396,89 @@ fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu) {
         Err(e) => {
             h.check_bool(&format!("32×32 grid: dispatch failed — {e}"), false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let nx = 10_usize;
+    let ny = 10_usize;
+    let cdg_f32: Vec<f32> = make_linear_grid(nx, 0.01, 5.0)
+        .iter()
+        .map(|&x| x as f32)
+        .collect();
+    let ai_f32: Vec<f32> = make_linear_grid(ny, 0.01, 5.0)
+        .iter()
+        .map(|&x| x as f32)
+        .collect();
+
+    let params = HillParams {
+        nx: nx as u32,
+        ny: ny as u32,
+        vmax: 1.0,
+        k1: 1.0,
+        k2: 1.0,
+        n1: 2.0,
+        n2: 2.0,
+        _pad: 0,
+    };
+
+    let local = gpu_hill_grid(gpu, &cdg_f32, &ai_f32, &params);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = HillGateGpu::new(dev);
+    let input_a = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("cdg"),
+        contents: bytemuck::cast_slice(&cdg_f32),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let input_b = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("ai"),
+        contents: bytemuck::cast_slice(&ai_f32),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let n_total = nx * ny;
+    let output = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("hill_output"),
+        size: (n_total * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(
+        &input_a,
+        &input_b,
+        &output,
+        &HillGateParams {
+            n_a: 10,
+            n_b: 10,
+            mode: 1,
+            _pad: 0,
+            k_a: 1.0,
+            k_b: 1.0,
+            n_a_exp: 2.0,
+            n_b_exp: 2.0,
+            vmax: 1.0,
+            _pad2: 0.0,
+            _pad3: 0.0,
+            _pad4: 0.0,
+        },
+    );
+    let upstream = gpu.read_buffer_f32(&output, n_total);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l
+                .iter()
+                .zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs HillGateGpu diff {max_diff:.2e}"),
+                max_diff,
+                tolerances::GPU_HILL_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

@@ -23,7 +23,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 009 | Dual-Path Parity & Spectral Theory | Feb 22, 2026 | 6/6 bit-identical, spectral 14/14, ReduceScalarPipeline |
 | 010 | Capability-Based Dispatch & Cross-Eigensolver | Feb 22, 2026 | 12 validators use `dispatch_1d`, eigh vs Sturm 2.89e-15 |
 | 011 | Session 42 Deep Audit — Code Quality & Debt Resolution | Feb 22, 2026 | 264 lib + 9 integration, all fmt/clippy/doc clean, tolerances split, GPU helpers deduplicated |
-| 012 | ToadStool Sync — d45fdfb3 → 5437c170 (10 commits) | Feb 22, 2026 | 4 new bio-op wrappers benchmarked (0.72–1.10×), LeNet-5 full bC 13/13, cross-spring lineage |
+| 012 | ToadStool Sync — d45fdfb3 → 5437c170 (10 commits) | Feb 22, 2026 | 10-kernel bench (0.72–1.10×), 10/10 upstream parity (3 bit-identical), LeNet-5 full bC 13/13, cross-spring lineage |
 
 ---
 
@@ -575,6 +575,14 @@ state, verify build compatibility, and document what became available.
 - **19 new WGSL shaders**: chi_squared_f64, rk45_f64, factorial_f64,
   cubic_spline_eval_f64, trapz_f64, etc. GPU paths now exist for operations
   neuralSpring currently uses only on CPU.
+
+5. **Upstream parity validators added** to all 4 GPU validators (signal, directed,
+   modes, swarm). Each runs both local metalForge shader and upstream BarraCuda
+   wrapper with identical input, then compares output. Results:
+   - HillGateGpu vs local: **0.00e0** (bit-identical)
+   - PairwiseL2Gpu vs local: **0.00e0** (bit-identical)
+   - SwarmNnGpu vs local: **bit-exact u32** (bit-identical)
+   - MultiObjFitnessGpu vs local: **1.95e-3** (Bessel n-1 vs population n)
 
 ### Next Steps
 

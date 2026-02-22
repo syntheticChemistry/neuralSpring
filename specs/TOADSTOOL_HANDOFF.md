@@ -229,6 +229,24 @@ barracuda (8 identical at `77f70b2e`, 5 generalized variants at `5437c170`).
 
 Local copies retained for validation (validators depend on local binding layouts).
 
+### Upstream Parity Verification (10/10 PASS)
+
+All 10 absorbed shaders have dual-path validators comparing local metalForge
+dispatch output vs upstream BarraCuda wrapper output.
+
+| Shader | Wrapper | Parity Diff | Status |
+|--------|---------|-------------|--------|
+| `batch_fitness_eval.wgsl` | `BatchFitnessGpu` | 0.00e0 | **bit-identical** |
+| `pairwise_hamming.wgsl` | `PairwiseHammingGpu` | 0.00e0 | **bit-identical** |
+| `pairwise_jaccard.wgsl` | `PairwiseJaccardGpu` | 0.00e0 | **bit-identical** |
+| `locus_variance.wgsl` | `LocusVarianceGpu` | 0.00e0 | **bit-identical** |
+| `spatial_payoff.wgsl` | `SpatialPayoffGpu` | 0.00e0 | **bit-identical** |
+| `batch_ipr.wgsl` | `BatchIprGpu` | 0.00e0 | **bit-identical** |
+| `hill_gate.wgsl` | `HillGateGpu` | 0.00e0 | **bit-identical** |
+| `pairwise_l2.wgsl` | `PairwiseL2Gpu` | 0.00e0 | **bit-identical** |
+| `multi_obj_fitness.wgsl` | `MultiObjFitnessGpu` | 1.95e-3 | **PASS** (Bessel n-1 vs n) |
+| `swarm_nn_forward.wgsl` | `SwarmNnGpu` | 0 (u32) | **bit-exact** |
+
 ### Still local (no upstream equivalent or significant API differences)
 
 | Shader | Domain | Suggested upstream module |

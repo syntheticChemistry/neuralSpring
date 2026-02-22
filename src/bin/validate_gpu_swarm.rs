@@ -23,10 +23,13 @@
     clippy::similar_names
 )]
 
+use barracuda::ops::bio::swarm_nn::SwarmNnParams;
+use barracuda::ops::bio::SwarmNnGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::swarm_robotics::{create_controller, neural_forward, ControllerType};
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/swarm_nn_forward.wgsl");
@@ -198,6 +201,7 @@ async fn main() {
     validate_single_controller(&mut h, &gpu);
     validate_batch(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -331,6 +335,76 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("determinism: dispatch failed", false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let n_controllers = 10_u32;
+    let n_evals = 5_u32;
+    let n_actions = (n_controllers * n_evals) as usize;
+    let weights_per_ctrl = 33_u32;
+
+    let mut rng = Rng::new(42);
+    let weights: Vec<f32> = (0..n_controllers * weights_per_ctrl)
+        .map(|_| (rng.uniform() as f32).mul_add(2.0, -1.0))
+        .collect();
+    let inputs: Vec<f32> = (0..n_controllers * n_evals)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+
+    let local = gpu_nn_forward(gpu, &weights, &inputs, n_controllers, n_evals);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = SwarmNnGpu::new(dev);
+    let weights_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("weights"),
+        contents: bytemuck::cast_slice(&weights),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let inputs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("inputs"),
+        contents: bytemuck::cast_slice(&inputs),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let actions_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("actions"),
+        size: (n_actions * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(
+        &weights_buf,
+        &inputs_buf,
+        &actions_buf,
+        &SwarmNnParams {
+            n_controllers,
+            n_evals,
+            input_dim: 1,
+            hidden_dim: 4,
+            output_dim: 5,
+            _pad0: 0,
+            _pad1: 0,
+            _pad2: 0,
+        },
+    );
+
+    let upstream_raw = gpu.read_buffer_f32(&actions_buf, n_actions);
+    let upstream: Result<Vec<u32>, _> =
+        upstream_raw.map(|f32_vec| bytemuck::cast_slice::<f32, u32>(&f32_vec).to_vec());
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let bit_exact = l.iter().zip(u.iter()).all(|(&a, &b)| a == b);
+            h.check_bool(
+                &format!(
+                    "upstream parity: local vs SwarmNnGpu bit-exact u32 ({} actions)",
+                    l.len()
+                ),
+                bit_exact,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

@@ -24,11 +24,13 @@
     clippy::similar_names
 )]
 
+use barracuda::ops::bio::MultiObjFitnessGpu;
 use neural_spring::directed_evolution::multi_objective_fitness;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/multi_obj_fitness.wgsl");
@@ -167,6 +169,7 @@ async fn main() {
     validate_batch(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
     validate_uniform_genotype(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -303,6 +306,59 @@ fn validate_uniform_genotype(h: &mut ValidationHarness, gpu: &Gpu) {
         Err(e) => {
             h.check_bool(&format!("uniform genotype: dispatch failed — {e}"), false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let pop_size = 10_u32;
+    let genome_len = 40_u32;
+    let n_objectives = 4_u32;
+
+    let mut rng = Rng::new(42);
+    let genotypes_f32: Vec<f32> = (0..(pop_size * genome_len) as usize)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+
+    let local = gpu_multi_obj_fitness(gpu, &genotypes_f32, pop_size, genome_len, n_objectives);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = MultiObjFitnessGpu::new(dev);
+    let genotypes_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("genotypes"),
+        contents: bytemuck::cast_slice(&genotypes_f32),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let n_fitness = (pop_size * n_objectives) as usize;
+    let fitness_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("fitness"),
+        size: (n_fitness * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(
+        &genotypes_buf,
+        &fitness_buf,
+        pop_size,
+        genome_len,
+        n_objectives,
+    );
+    let upstream = gpu.read_buffer_f32(&fitness_buf, n_fitness);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l
+                .iter()
+                .zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs MultiObjFitnessGpu diff {max_diff:.2e}"),
+                max_diff,
+                tolerances::GPU_UPSTREAM_MULTI_OBJ_PARITY_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

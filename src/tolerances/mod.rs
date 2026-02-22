@@ -520,6 +520,12 @@ pub const GPU_HAMMING_F32: f64 = 1e-6;
 /// mean and population std over a genome chunk. f32 vs f64 CPU gives ~1e-3.
 pub const GPU_MULTI_OBJ_FITNESS_F32: f64 = 1e-3;
 
+/// Upstream parity: local `metalForge` vs `BarraCuda` `MultiObjFitnessGpu` (f32).
+///
+/// Upstream uses Bessel correction (n-1) for std; local uses population n.
+/// Observed diff ~2e-3, so 5e-3 accommodates the known algorithmic difference.
+pub const GPU_UPSTREAM_MULTI_OBJ_PARITY_F32: f64 = 5e-3;
+
 /// GPU pairwise L2: MODES novelty metric distance (f32).
 ///
 /// L2 = sqrt(sum((a\[d\]-b\[d\])²)).  f32 squared-diff accumulation plus

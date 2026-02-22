@@ -23,10 +23,12 @@
     clippy::similar_names
 )]
 
+use barracuda::ops::bio::PairwiseL2Gpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::modes::l2_distance;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/pairwise_l2.wgsl");
@@ -53,6 +55,7 @@ async fn main() {
     validate_small_features(&mut h, &gpu);
     validate_known_distances(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -275,6 +278,58 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("determinism: dispatch failed", false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let n = 5_u32;
+    let dim = 3_u32;
+    let features: Vec<Vec<f64>> = vec![
+        vec![0.0, 0.0, 0.0],
+        vec![1.0, 0.0, 0.0],
+        vec![0.0, 1.0, 0.0],
+        vec![0.0, 0.0, 1.0],
+        vec![1.0, 1.0, 1.0],
+    ];
+    let flat: Vec<f32> = features
+        .iter()
+        .flat_map(|v| v.iter().map(|&x| x as f32))
+        .collect();
+
+    let local = gpu_pairwise_l2(gpu, &flat, n, dim);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = PairwiseL2Gpu::new(dev);
+    let input_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("features"),
+        contents: bytemuck::cast_slice(&flat),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let n_pairs = 5 * 4 / 2;
+    let output_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("distances"),
+        size: (n_pairs * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(&input_buf, &output_buf, n, dim);
+    let upstream = gpu.read_buffer_f32(&output_buf, n_pairs);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l
+                .iter()
+                .zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs PairwiseL2Gpu diff {max_diff:.2e}"),
+                max_diff,
+                tolerances::GPU_MODES_L2_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

@@ -470,6 +470,7 @@ All 25 papers validated at Py + Rs. 24/25 at bC (96%). 23/25 at gT (92%).
 25 papers, 5 disciplines, 4 faculty. 1600+ total checks.
 264 lib + 9 integration tests, 119 binaries, 17 WGSL shaders (13 upstream, 4 local).
 10-kernel upstream parity bench: 0.72–1.10× (all negligible overhead).
+10/10 upstream parity validators: 3 bit-identical, 1 Bessel diff 1.95e-3.
 LeNet-5 full bC: 13/13 PASS (conv→pool→FC via `cpu_conv_pool`).
 Cross-spring lineage: hotSpring (precision, physics), wetSpring (bio),
 neuralSpring (ML, evolution) → BarraCuda shared primitives. ALL GREEN.*
