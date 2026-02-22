@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 21, 2026 (Phase 4e: PINN/DeepONet + 4 new GPU shaders + 3 GPU pipelines + flat layouts)
+**Last Updated**: February 22, 2026 (Post deep audit: zero clippy warnings, tolerance registry, drift detection)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -97,8 +97,8 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 | `sequence/` LSTM cell | `sequence::lstm_cell` | `lstm_cell.wgsl` | Inference | **VALIDATED** (26 checks) |
 | `sequence/` GRU cell | `sequence::gru_cell` | `gru_cell.wgsl` | Inference | **VALIDATED** (26 checks) |
 | `pinn/` autograd | — | `fd_gradient_f64.wgsl` | Training | Reverse-mode AD in BarraCUDA |
-| `lenet/` Conv2d | — | `conv2d.wgsl` | Inference | BarraCUDA Conv2d |
-| `lenet/` MaxPool | — | `max_pool2d.wgsl` | Inference | BarraCUDA pooling |
+| `lenet/` Conv2d | — | `conv2d.wgsl` | Inference | `barracuda::ops::conv2d::Conv2D` (available, not yet wired) |
+| `lenet/` MaxPool | — | `max_pool2d.wgsl` | Inference | `barracuda::ops::maxpool2d::MaxPool2D` (available, not yet wired) |
 | `deeponet/` Branch-Trunk | — | `gemm_f64.wgsl` × 2 | Inference | Compose from MLP |
 | `quantized/` INT8 GEMV | `quantized::gemv_q8` | `gemv_q8.wgsl` | Deployment | **VALIDATED** (26 checks) |
 | `quantized/` INT4 GEMV | `quantized::gemv_q4` | `gemv_q4.wgsl` | Deployment | **VALIDATED** (26 checks) |
@@ -166,12 +166,12 @@ For each Rust module → GPU promotion:
 
 ---
 
-## Current Status (February 21, 2026)
+## Current Status (February 22, 2026)
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
-| Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, 48 pytest |
-| Phase 1a (neuralSpring Rust) | **255 lib PASS** | 31 modules (+3 evolved), 255 unit tests, 115 validation binaries |
+| Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, drift detection via `control/check_drift.sh` |
+| Phase 1a (neuralSpring Rust) | **264 lib + 9 integration PASS** | 31 modules (+3 evolved), 264 unit tests, 9 integration tests, 119 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU ports) | **203/203 PASS** | 24/25 papers validated (96% bC coverage) |

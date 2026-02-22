@@ -233,13 +233,24 @@ or existing infrastructure):
 | TS-001 pow_f64 precision | Extended exp/log polynomials | **Automatic** (Session 36) |
 | TS-004 FusedMapReduceF64 fix | Single command encoder for both passes | **Automatic** (Session 36) |
 
-### Available but not yet leveraged
+### Validated via BarraCUDA CPU binaries (Tier 3)
+
+These APIs are already validated in dedicated Tier 3 (bC) binaries:
+
+| API | Validated By | Checks |
+|-----|-------------|--------|
+| `ops::bio::HmmBatchForwardF64` | `validate_barracuda_hmm_f64` | 11/11 PASS |
+| `spectral::{anderson_*, hofstadter_*, lanczos}` | `validate_barracuda_spectral_theory` | 17/17 PASS |
+| `numerical::rk45_solve` | `validate_barracuda_regulatory`, `validate_barracuda_signal`, `validate_barracuda_game` | 20+ PASS |
+| `ops::linalg::eigh_householder_qr` | `validate_eigh_accuracy` | 9/9 PASS |
+
+Local Tier 2 (Rust native) implementations intentionally retained as independent
+cross-validation references. Both tiers matching Python proves portability.
+
+### Available for future leverage
 
 | API | Potential Use | Status |
 |-----|--------------|--------|
-| `ops::bio::HmmBatchForwardF64` | Replace local `hmm_forward_gpu` dispatch entirely | Available (dispatch migration pending) |
-| `spectral::{anderson_*, hofstadter_*, lanczos}` | Replace local model construction code | Available |
-| `numerical::rk45_solve` | Adaptive ODE (Dormand-Prince) | Available |
 | Native `Tensor::multi_head_attention` | Replace evolved MHA | **Blocked** (S-03b: projection shader hang) |
 | `ops::bio::{FelsensteinGpu, GillespieGpu, SmithWatermanGpu}` | Future paper extensions | Available |
 | `ops::bio::{RfBatchInferenceGpu, TreeInferenceGpu}` | Future ML forest workloads | Available |
@@ -247,10 +258,9 @@ or existing infrastructure):
 | `ReduceScalarPipeline::sum_f64` | Fitness aggregation | Available (local mean_reduce validated) |
 | `BatchedRK4F64` | CPU-threaded ODE parameter sweeps | Available |
 | `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` | GPU-native eigensolve for Anderson | Available |
-| `ops::nn::conv2d.wgsl` | Batched Conv2D — LeNet-5 conv layers | **New** (Session 39) — not yet wired to executor |
-| `ops::nn::maxpool2d.wgsl` | MaxPool2D — LeNet-5 pooling | **New** (Session 39) — not yet wired to executor |
-| `ops::nn::avgpool2d.wgsl` | AvgPool2D — alternative pooling | **New** (Session 39) — not yet wired to executor |
-| `cpu_conv_pool::{conv2d, max_pool2d, avg_pool2d}` | CPU reference Conv2D/Pool | **New** (Session 39) |
+| `ops::conv2d::Conv2D` | Batched Conv2D — LeNet-5 conv layers | **New** (Session 39) — not yet wired to executor |
+| `ops::maxpool2d::MaxPool2D` | MaxPool2D — LeNet-5 pooling | **New** (Session 39) — not yet wired to executor |
+| `ops::avgpool2d::AvgPool2D` | AvgPool2D — alternative pooling | **New** (Session 39) — not yet wired to executor |
 | `esn_v2::export_weights/import_weights` | GPU-train → NPU-deploy pipeline | **New** (Session 39) |
 
 ---
