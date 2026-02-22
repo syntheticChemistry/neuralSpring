@@ -39,10 +39,10 @@ pub struct BaselineProvenance {
 // Environment
 // ═══════════════════════════════════════════════════════════════════
 
-/// Python environment for all control runs.
+/// Python environment for all control runs (frozen at baseline time).
 pub const ENVIRONMENT: &str = "Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3";
 
-/// Hardware for all control runs.
+/// Hardware for all control runs (frozen at baseline time).
 pub const HARDWARE: &str = "Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)";
 
 /// Pinned commit for baseline results (Phase 0+: 75/75 PASS).
@@ -50,6 +50,44 @@ pub const BASELINE_COMMIT: &str = "f9ad0268917a335dce2b1175ea0d77add271b25b";
 
 /// Pinned date for baseline results.
 pub const BASELINE_DATE: &str = "2026-02-16";
+
+/// Runtime-detected execution environment.
+///
+/// Discovers Rust version, OS, and architecture at runtime rather than
+/// relying on hardcoded strings. Each primal carries self-knowledge.
+#[derive(Debug, Clone)]
+pub struct RuntimeEnvironment {
+    pub rust_version: String,
+    pub os: String,
+    pub arch: String,
+    pub neuralspring_version: String,
+}
+
+impl RuntimeEnvironment {
+    /// Discover the current execution environment.
+    #[must_use]
+    pub fn discover() -> Self {
+        Self {
+            rust_version: format!(
+                "rustc {} (edition {})",
+                env!("CARGO_PKG_RUST_VERSION", "unknown"),
+                "2021"
+            ),
+            os: std::env::consts::OS.to_owned(),
+            arch: std::env::consts::ARCH.to_owned(),
+            neuralspring_version: env!("CARGO_PKG_VERSION").to_owned(),
+        }
+    }
+
+    /// Summary string for logging and provenance records.
+    #[must_use]
+    pub fn summary(&self) -> String {
+        format!(
+            "neuralSpring v{} | {} {} | {}",
+            self.neuralspring_version, self.os, self.arch, self.rust_version
+        )
+    }
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // Phase 0: Experiments (48/48 PASS)
@@ -493,5 +531,16 @@ mod tests {
             .iter()
             .any(|(x, y, _)| *x == 1.0 && *y == 1.0));
         assert!(ROSENBROCK_REFERENCE.iter().any(|(_, _, f)| *f == 0.0));
+    }
+
+    #[test]
+    fn runtime_environment_discovery() {
+        let env = RuntimeEnvironment::discover();
+        assert!(!env.os.is_empty());
+        assert!(!env.arch.is_empty());
+        assert!(!env.neuralspring_version.is_empty());
+        let summary = env.summary();
+        assert!(summary.contains("neuralSpring"));
+        assert!(summary.contains(&env.os));
     }
 }

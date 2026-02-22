@@ -24,6 +24,7 @@ use barracuda::spectral::{
 use neural_spring::anderson_localization::{
     aubry_andre_hamiltonian, jacobi_eigh, GOLDEN_RATIO as NS_GOLDEN,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -76,11 +77,10 @@ fn validate_aubry_andre_spectrum_parity(h: &mut ValidationHarness) {
         .map(|(a, b)| (a - b).abs())
         .fold(0.0_f64, f64::max);
 
-    // Comparing Jacobi (dense) vs Sturm bisection (tridiag): ~1e-2 solver difference is expected
     h.check_upper(
         &format!("Aubry-André n=64 spectrum parity: max eigval diff {max_diff:.2e}"),
         max_diff,
-        0.05,
+        tolerances::SPECTRAL_EIGENSOLVER_CROSS,
     );
 }
 
@@ -177,7 +177,7 @@ fn validate_level_spacing_localized(h: &mut ValidationHarness) {
             "level spacing W=8: r={r:.4} ≈ Poisson {POISSON_R:.4}, diff={diff_from_poisson:.4}"
         ),
         diff_from_poisson,
-        0.05,
+        tolerances::LEVEL_SPACING_POISSON_TOL,
     );
 }
 
@@ -228,6 +228,6 @@ fn validate_lyapunov_weak_disorder(h: &mut ValidationHarness) {
             "Kappus-Wegner: γ(W={w})={gamma_avg:.6} vs W²/96={theory:.6}, rel error {rel_error:.2}"
         ),
         rel_error,
-        0.5,
+        tolerances::KAPPUS_WEGNER_REL,
     );
 }

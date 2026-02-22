@@ -40,22 +40,82 @@ use std::sync::Arc;
 /// # Ok(())
 /// # }
 /// ```
+/// Runtime-discovered GPU capabilities.
+///
+/// Queried from the adapter at initialization time — no hardcoded
+/// assumptions about buffer sizes, workgroup limits, or feature support.
+#[derive(Debug, Clone)]
+pub struct GpuCapabilities {
+    pub max_buffer_size: u64,
+    pub max_compute_workgroup_size_x: u32,
+    pub max_compute_workgroups_per_dimension: u32,
+    pub max_storage_buffers_per_shader_stage: u32,
+    pub supports_f64: bool,
+    pub supports_f16: bool,
+    pub supports_timestamp_query: bool,
+}
+
+impl GpuCapabilities {
+    fn from_device_and_adapter(device: &wgpu::Device, features: wgpu::Features) -> Self {
+        let limits = device.limits();
+        Self {
+            max_buffer_size: limits.max_buffer_size,
+            max_compute_workgroup_size_x: limits.max_compute_workgroup_size_x,
+            max_compute_workgroups_per_dimension: limits.max_compute_workgroups_per_dimension,
+            max_storage_buffers_per_shader_stage: limits.max_storage_buffers_per_shader_stage,
+            supports_f64: features.contains(wgpu::Features::SHADER_F64),
+            supports_f16: features.contains(wgpu::Features::SHADER_F16),
+            supports_timestamp_query: features.contains(wgpu::Features::TIMESTAMP_QUERY),
+        }
+    }
+
+    /// Optimal workgroup size for 1D compute dispatches.
+    ///
+    /// Returns the smaller of the requested size and the hardware limit.
+    #[must_use]
+    pub fn workgroup_size(&self, preferred: u32) -> u32 {
+        preferred.min(self.max_compute_workgroup_size_x)
+    }
+
+    /// Number of workgroups needed to cover `n_items` with the given
+    /// workgroup size, clamped to the hardware maximum.
+    #[must_use]
+    pub fn dispatch_count(&self, n_items: u32, workgroup_size: u32) -> u32 {
+        n_items
+            .div_ceil(workgroup_size)
+            .min(self.max_compute_workgroups_per_dimension)
+    }
+}
+
+/// GPU context for `neuralSpring` workloads.
+///
+/// Wraps `WgpuDevice` with runtime-discovered capabilities.
+/// Exposes raw `wgpu` handles for direct buffer management.
 pub struct Gpu {
     wgpu_device: Arc<WgpuDevice>,
     pub adapter_name: String,
     pub device_type: wgpu::DeviceType,
     pub backend: wgpu::Backend,
+    pub capabilities: GpuCapabilities,
 }
 
 impl Gpu {
     /// Create from a `WgpuDevice` (already initialised).
+    ///
+    /// Queries adapter capabilities at construction time — no
+    /// hardcoded assumptions carried forward.
     #[must_use]
     pub fn from_device(dev: Arc<WgpuDevice>) -> Self {
         let info = dev.adapter_info();
+        let caps = GpuCapabilities::from_device_and_adapter(
+            dev.device(),
+            dev.device().features(),
+        );
         Self {
             adapter_name: info.name.clone(),
             device_type: info.device_type,
             backend: info.backend,
+            capabilities: caps,
             wgpu_device: dev,
         }
     }
@@ -231,12 +291,27 @@ impl Gpu {
             features |= wgpu::Features::TIMESTAMP_QUERY;
         }
 
+        let adapter_limits = adapter.limits();
+        let relaxed = wgpu::Limits::downlevel_defaults();
+        let limits = wgpu::Limits {
+            max_buffer_size: adapter_limits.max_buffer_size.max(relaxed.max_buffer_size),
+            max_compute_workgroup_size_x: adapter_limits.max_compute_workgroup_size_x,
+            max_compute_workgroup_size_y: adapter_limits.max_compute_workgroup_size_y,
+            max_compute_workgroup_size_z: adapter_limits.max_compute_workgroup_size_z,
+            max_compute_workgroups_per_dimension: adapter_limits
+                .max_compute_workgroups_per_dimension,
+            max_storage_buffers_per_shader_stage: adapter_limits
+                .max_storage_buffers_per_shader_stage
+                .max(relaxed.max_storage_buffers_per_shader_stage),
+            ..relaxed
+        };
+
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
-                    label: Some("neuralSpring validation (relaxed limits)"),
+                    label: Some("neuralSpring (capability-probed)"),
                     required_features: features,
-                    required_limits: wgpu::Limits::downlevel_defaults(),
+                    required_limits: limits,
                     memory_hints: wgpu::MemoryHints::default(),
                 },
                 None,
@@ -300,5 +375,24 @@ mod tests {
         let _device = gpu.wgpu_device();
         let _raw_device = gpu.device();
         let _raw_queue = gpu.queue();
+    }
+
+    #[tokio::test]
+    async fn gpu_capabilities_discovered() {
+        let Ok(gpu) = Gpu::new().await else { return };
+        let caps = &gpu.capabilities;
+        assert!(caps.max_buffer_size > 0, "buffer size should be positive");
+        assert!(
+            caps.max_compute_workgroup_size_x > 0,
+            "workgroup size should be positive"
+        );
+        assert!(
+            caps.max_compute_workgroups_per_dimension > 0,
+            "dispatch limit should be positive"
+        );
+        let wg = caps.workgroup_size(256);
+        assert!(wg > 0 && wg <= 256);
+        let dc = caps.dispatch_count(1024, wg);
+        assert!(dc > 0);
     }
 }

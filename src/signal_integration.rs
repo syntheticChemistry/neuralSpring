@@ -111,7 +111,7 @@ impl Default for OdeParams {
 }
 
 /// ODE state: [cdg, ai, vpsT, biofilm]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct OdeState {
     pub cdg: f64,
     pub ai: f64,
@@ -179,7 +179,7 @@ fn rk4_step(y: &[f64; 4], _t: f64, dt: f64, params: &OdeParams, rng: &mut Rng) -
 pub fn integrate_ode(t_end: f64, dt: f64, y0: &OdeState, params: &OdeParams) -> Vec<OdeState> {
     let n_steps = (t_end / dt).ceil() as usize + 1;
     let mut trace = Vec::with_capacity(n_steps);
-    trace.push(y0.clone());
+    trace.push(*y0);
 
     let mut rng = Rng::new(params.seed);
     let mut y = y0.to_array();

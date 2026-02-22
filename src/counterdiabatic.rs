@@ -170,12 +170,13 @@ pub fn compute_cd_schedule(f0: &[f64], f1: &[f64], t: usize, beta: f64) -> Vec<f
     }
 
     let integrand: Vec<f64> = fisher_info.iter().map(|g| g.sqrt()).collect();
-    let mut cumulative: Vec<f64> = Vec::with_capacity(N_STEPS + 1);
-    let mut cum = 0.0;
-    for &v in &integrand {
-        cum += v / n_steps_f;
-        cumulative.push(cum);
-    }
+    let mut cumulative: Vec<f64> = integrand
+        .iter()
+        .scan(0.0, |acc, &v| {
+            *acc += v / n_steps_f;
+            Some(*acc)
+        })
+        .collect();
     let total = cumulative.last().copied().unwrap_or(1.0).max(1e-300);
     for c in &mut cumulative {
         *c /= total;

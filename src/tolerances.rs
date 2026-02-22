@@ -621,6 +621,114 @@ pub const ECO_DOMINANCE_COMPARISON: f64 = 0.3;
 /// vector norm should agree within 10% of the Python baseline norm.
 pub const ML_PIPELINE_NORM_REL: f64 = 0.1;
 
+// ═══════════════════════════════════════════════════════════════════
+// Upstream parity and reduce pipeline (Phase 5c)
+// ═══════════════════════════════════════════════════════════════════
+
+/// `ReduceScalarPipeline::sum_f64` vs CPU sum agreement.
+///
+/// GPU f64 parallel reduction has non-deterministic summation order.
+/// For arrays up to 10k elements, the diff is within machine epsilon.
+pub const GPU_REDUCE_F64: f64 = 1e-10;
+
+/// Spectral theory: Jacobi (dense) vs Sturm bisection (tridiag)
+/// eigenvalue agreement.
+///
+/// Two fundamentally different eigensolvers produce spectra that
+/// differ by ~1e-2 for n=64 Aubry-André Hamiltonians.
+pub const SPECTRAL_EIGENSOLVER_CROSS: f64 = 0.05;
+
+/// Spectral theory: Kappus-Wegner anomaly γ(E=0) ≈ W²/96 for
+/// small disorder.
+///
+/// Statistical agreement with the Kappus-Wegner formula requires
+/// many realizations.  50% relative error threshold for N=5000, 50 realizations.
+pub const KAPPUS_WEGNER_REL: f64 = 0.5;
+
+/// Spectral theory: level spacing ratio distance from Poisson (localized).
+///
+/// For strong Anderson disorder (W=8), the mean spacing ratio should
+/// be within 0.05 of the Poisson value 2ln(2)-1 ≈ 0.386.
+pub const LEVEL_SPACING_POISSON_TOL: f64 = 0.05;
+
+/// Shannon diversity lower bound for swarm heterogeneity checks.
+///
+/// Guards against division-by-zero in entropy calculations.
+pub const DIVERSITY_EPSILON: f64 = 1e-10;
+
+/// Variance floor for GPU locus variance readback.
+///
+/// Prevents false negatives when variance is legitimately near zero.
+pub const VARIANCE_FLOOR: f64 = -1e-6;
+
+/// Hill gate / regulatory / introgression bounds tolerance (f32 GPU).
+///
+/// GPU Hill-function dispatch bounds checks need a small slack
+/// to account for f32 rounding at boundary values.
+pub const GPU_BOUNDS_SLACK_F32: f64 = 1e-5;
+
+// ═══════════════════════════════════════════════════════════════════
+// Runtime introspection (primal self-knowledge)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Named tolerance for runtime introspection.
+///
+/// Allows primals to discover and describe available tolerances
+/// without hardcoded assumptions about what's defined.
+#[derive(Debug, Clone, Copy)]
+pub struct NamedTolerance {
+    pub name: &'static str,
+    pub value: f64,
+    pub category: &'static str,
+}
+
+/// All tolerances in the system, queryable at runtime.
+///
+/// Each primal can discover what tolerances exist, what categories
+/// they belong to, and what values they have — no hardcoded knowledge
+/// of the tolerance namespace required.
+#[must_use]
+pub fn all_tolerances() -> &'static [NamedTolerance] {
+    &[
+        NamedTolerance { name: "EXACT_F64", value: EXACT_F64, category: "machine" },
+        NamedTolerance { name: "CROSS_LANGUAGE", value: CROSS_LANGUAGE, category: "machine" },
+        NamedTolerance { name: "ZERO_DETECTION", value: ZERO_DETECTION, category: "machine" },
+        NamedTolerance { name: "GPU_FITNESS_F32", value: GPU_FITNESS_F32, category: "gpu_shader" },
+        NamedTolerance { name: "GPU_HAMMING_F32", value: GPU_HAMMING_F32, category: "gpu_shader" },
+        NamedTolerance { name: "GPU_JACCARD_F32", value: GPU_JACCARD_F32, category: "gpu_shader" },
+        NamedTolerance { name: "GPU_LOCUS_VARIANCE_F32", value: GPU_LOCUS_VARIANCE_F32, category: "gpu_shader" },
+        NamedTolerance { name: "GPU_SPATIAL_PAYOFF_F32", value: GPU_SPATIAL_PAYOFF_F32, category: "gpu_shader" },
+        NamedTolerance { name: "GPU_BATCH_IPR_F32", value: GPU_BATCH_IPR_F32, category: "gpu_shader" },
+        NamedTolerance { name: "GPU_REDUCE_F64", value: GPU_REDUCE_F64, category: "gpu_pipeline" },
+        NamedTolerance { name: "SPECTRAL_EIGENSOLVER_CROSS", value: SPECTRAL_EIGENSOLVER_CROSS, category: "spectral" },
+        NamedTolerance { name: "TENSOR_EXACT_F32", value: TENSOR_EXACT_F32, category: "tensor" },
+        NamedTolerance { name: "TENSOR_MATMUL_F32", value: TENSOR_MATMUL_F32, category: "tensor" },
+        NamedTolerance { name: "FFT_INVERSE_F32", value: FFT_INVERSE_F32, category: "fft" },
+        NamedTolerance { name: "FFT_INVERSE_F64", value: FFT_INVERSE_F64, category: "fft" },
+    ]
+}
+
+/// Look up a tolerance by name at runtime. Returns `None` if not found.
+#[must_use]
+pub fn tolerance_by_name(name: &str) -> Option<f64> {
+    all_tolerances()
+        .iter()
+        .find(|t| t.name == name)
+        .map(|t| t.value)
+}
+
+/// List all tolerance categories available in the system.
+#[must_use]
+pub fn categories() -> Vec<&'static str> {
+    let mut cats: Vec<&str> = all_tolerances()
+        .iter()
+        .map(|t| t.category)
+        .collect();
+    cats.sort_unstable();
+    cats.dedup();
+    cats
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -636,6 +744,17 @@ mod tests {
             SOFTMAX_CROSS_PYTHON < CROSS_LANGUAGE,
             "softmax should be tighter than cross-language"
         );
+    }
+
+    #[test]
+    fn introspection_works() {
+        let all = all_tolerances();
+        assert!(!all.is_empty());
+        assert!(tolerance_by_name("EXACT_F64").is_some());
+        assert!(tolerance_by_name("NONEXISTENT").is_none());
+        let cats = categories();
+        assert!(cats.contains(&"machine"));
+        assert!(cats.contains(&"gpu_shader"));
     }
 
     #[test]

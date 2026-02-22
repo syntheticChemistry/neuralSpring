@@ -401,7 +401,7 @@ fn validate_reduce_pipeline_mean(h: &mut ValidationHarness, gpu: &Gpu) {
                             "ReduceScalarPipeline mean IPR: GPU {gpu_mean:.8} vs CPU {cpu_mean:.8}, diff {diff:.2e}"
                         ),
                         diff,
-                        1e-10,
+                        tolerances::GPU_REDUCE_F64,
                     );
                 }
                 Err(e) => h.check_bool(&format!("ReduceScalarPipeline sum failed: {e}"), false),
