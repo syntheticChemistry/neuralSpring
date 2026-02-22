@@ -44,13 +44,8 @@
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
 use neural_spring::require;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
-
-const TOL: f64 = 1e-3;
-
-fn readback(t: &Tensor) -> Result<Vec<f32>, String> {
-    t.to_vec().map_err(|e| format!("readback: {e}"))
-}
 
 #[tokio::main]
 async fn main() {
@@ -105,16 +100,36 @@ fn validate_matmul_2x3(
         "B(3×2)"
     );
     let out = match mat_a.matmul(&mat_b) {
-        Ok(t) => require!(h, readback(&t), "matmul readback"),
+        Ok(t) => require!(h, t.to_vec(), "readback"),
         Err(e) => {
             h.check_bool(&format!("matmul 2×3: {e}"), false);
             return;
         }
     };
-    h.check_abs("matmul [0,0] = 58", f64::from(out[0]), 58.0, TOL);
-    h.check_abs("matmul [0,1] = 64", f64::from(out[1]), 64.0, TOL);
-    h.check_abs("matmul [1,0] = 139", f64::from(out[2]), 139.0, TOL);
-    h.check_abs("matmul [1,1] = 154", f64::from(out[3]), 154.0, TOL);
+    h.check_abs(
+        "matmul [0,0] = 58",
+        f64::from(out[0]),
+        58.0,
+        tolerances::BARRACUDA_GPU_ECO_F32,
+    );
+    h.check_abs(
+        "matmul [0,1] = 64",
+        f64::from(out[1]),
+        64.0,
+        tolerances::BARRACUDA_GPU_ECO_F32,
+    );
+    h.check_abs(
+        "matmul [1,0] = 139",
+        f64::from(out[2]),
+        139.0,
+        tolerances::BARRACUDA_GPU_ECO_F32,
+    );
+    h.check_abs(
+        "matmul [1,1] = 154",
+        f64::from(out[3]),
+        154.0,
+        tolerances::BARRACUDA_GPU_ECO_F32,
+    );
 }
 
 fn validate_matmul_3x2(
@@ -140,7 +155,7 @@ fn validate_matmul_3x2(
         "B(2×3)"
     );
     let out = match mat_a.matmul(&mat_b) {
-        Ok(t) => require!(h, readback(&t), "matmul readback"),
+        Ok(t) => require!(h, t.to_vec(), "readback"),
         Err(e) => {
             h.check_bool(&format!("matmul 3×2: {e}"), false);
             return;
@@ -148,8 +163,18 @@ fn validate_matmul_3x2(
     };
     // [3×2] × [2×3] = [3×3]
     // Row 0: [1,2] · [7,8,9; 10,11,12] = [27, 30, 33]
-    h.check_abs("matmul [0,0] = 27", f64::from(out[0]), 27.0, TOL);
-    h.check_abs("matmul [0,2] = 33", f64::from(out[2]), 33.0, TOL);
+    h.check_abs(
+        "matmul [0,0] = 27",
+        f64::from(out[0]),
+        27.0,
+        tolerances::BARRACUDA_GPU_ECO_F32,
+    );
+    h.check_abs(
+        "matmul [0,2] = 33",
+        f64::from(out[2]),
+        33.0,
+        tolerances::BARRACUDA_GPU_ECO_F32,
+    );
 }
 
 fn validate_cpu_commutator(h: &mut ValidationHarness) {

@@ -387,10 +387,7 @@ fn validate_eco_extreme_niche(h: &mut ValidationHarness, gpu: &Gpu) {
             );
         }
         Err(e) => {
-            h.check_bool(
-                &format!("eco extreme niche: dispatch failed — {e}"),
-                false,
-            );
+            h.check_bool(&format!("eco extreme niche: dispatch failed — {e}"), false);
         }
     }
 }
@@ -424,10 +421,7 @@ fn validate_eco_diverse_genotypes(h: &mut ValidationHarness, gpu: &Gpu) {
             );
         }
         Err(e) => {
-            h.check_bool(
-                &format!("eco diverse: dispatch failed — {e}"),
-                false,
-            );
+            h.check_bool(&format!("eco diverse: dispatch failed — {e}"), false);
         }
     }
 }

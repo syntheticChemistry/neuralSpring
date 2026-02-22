@@ -26,36 +26,12 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, ValidationHarness};
 use std::sync::Arc;
 
 type Dev = Arc<barracuda::device::WgpuDevice>;
-
-fn tensor(
-    h: &mut ValidationHarness,
-    data: &[f32],
-    shape: &[usize],
-    device: &Dev,
-) -> Option<Tensor> {
-    match Tensor::from_data(data, shape.to_vec(), device.clone()) {
-        Ok(t) => Some(t),
-        Err(e) => {
-            h.check_bool(&format!("Tensor::from_data: {e}"), false);
-            None
-        }
-    }
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("readback: {e}"), false);
-            None
-        }
-    }
-}
 
 #[tokio::main]
 async fn main() {
@@ -110,12 +86,8 @@ fn validate_batch_alpha_transition(h: &mut ValidationHarness, device: &Dev) {
     let alpha_f32: Vec<f32> = alpha_f64.iter().map(|&x| x as f32).collect();
     let trans_f32: Vec<f32> = trans.iter().map(|&x| x as f32).collect();
 
-    let Some(alpha_t) = tensor(h, &alpha_f32, &[n_time, n_states], device) else {
-        return;
-    };
-    let Some(trans_t) = tensor(h, &trans_f32, &[n_states, n_states], device) else {
-        return;
-    };
+    let alpha_t = gpu_tensor!(h, &alpha_f32, &[n_time, n_states], device);
+    let trans_t = gpu_tensor!(h, &trans_f32, &[n_states, n_states], device);
     let trans_t_t = match trans_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -130,7 +102,7 @@ fn validate_batch_alpha_transition(h: &mut ValidationHarness, device: &Dev) {
             return;
         }
     };
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
@@ -179,12 +151,8 @@ fn validate_emission_scoring(h: &mut ValidationHarness, device: &Dev) {
     let obs_f32: Vec<f32> = obs_f64.iter().map(|&x| x as f32).collect();
     let wt_f32: Vec<f32> = weights_f64.iter().map(|&x| x as f32).collect();
 
-    let Some(obs_t) = tensor(h, &obs_f32, &[n_time, n_features], device) else {
-        return;
-    };
-    let Some(wt_t) = tensor(h, &wt_f32, &[n_features, n_states], device) else {
-        return;
-    };
+    let obs_t = gpu_tensor!(h, &obs_f32, &[n_time, n_features], device);
+    let wt_t = gpu_tensor!(h, &wt_f32, &[n_features, n_states], device);
     let out_t = match obs_t.matmul(&wt_t) {
         Ok(t) => t,
         Err(e) => {
@@ -192,7 +160,7 @@ fn validate_emission_scoring(h: &mut ValidationHarness, device: &Dev) {
             return;
         }
     };
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
@@ -215,12 +183,8 @@ fn validate_stationary_dot(h: &mut ValidationHarness, device: &Dev) {
     let trans: Vec<f32> = vec![0.7, 0.2, 0.1, 0.1, 0.6, 0.3, 0.2, 0.2, 0.6];
 
     let pi_batch: Vec<f32> = pi.iter().cycle().take(3 * 10).copied().collect();
-    let Some(pi_t) = tensor(h, &pi_batch, &[10, 3], device) else {
-        return;
-    };
-    let Some(a_t) = tensor(h, &trans, &[3, 3], device) else {
-        return;
-    };
+    let pi_t = gpu_tensor!(h, &pi_batch, &[10, 3], device);
+    let a_t = gpu_tensor!(h, &trans, &[3, 3], device);
 
     let out_t = match pi_t.matmul(&a_t) {
         Ok(t) => t,
@@ -229,7 +193,7 @@ fn validate_stationary_dot(h: &mut ValidationHarness, device: &Dev) {
             return;
         }
     };
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 

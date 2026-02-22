@@ -25,35 +25,12 @@
     clippy::too_many_lines
 )]
 
-use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-/// Macro: create tensor or record fail and return.
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("tensor readback: {e}"), false);
-            None
-        }
-    }
-}
 
 fn cpu_pop_optima_dot(pop: &[Vec<f64>], optima: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let n_pop = pop.len();
@@ -85,20 +62,6 @@ fn cpu_gram_matrix(pop: &[Vec<f64>]) -> Vec<Vec<f64>> {
         }
     }
     gram
-}
-
-fn max_abs_diff_f32_f64(gpu: &[f32], cpu: &[Vec<f64>]) -> f64 {
-    let n_pop = cpu.len();
-    let n_niches = cpu[0].len();
-    let mut max_diff = 0.0_f64;
-    for i in 0..n_pop {
-        for j in 0..n_niches {
-            let idx = i * n_niches + j;
-            let d = (f64::from(gpu[idx]) - cpu[i][j]).abs();
-            max_diff = max_diff.max(d);
-        }
-    }
-    max_diff
 }
 
 #[tokio::main]
@@ -157,8 +120,8 @@ fn validate_pop_optima_matmul(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let pop_t = tensor!(h, &pop_flat, &[n_pop, dim], device);
-    let optima_t = tensor!(h, &optima_flat, &[n_niches, dim], device);
+    let pop_t = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let optima_t = gpu_tensor!(h, &optima_flat, &[n_niches, dim], device);
 
     let optima_t_t = match optima_t.transpose() {
         Ok(t) => t,
@@ -176,10 +139,11 @@ fn validate_pop_optima_matmul(
         }
     };
 
-    let Some(dots_gpu) = readback(h, &dots_t) else {
+    let Some(dots_gpu) = gpu_readback(h, &dots_t) else {
         return;
     };
-    let max_diff = max_abs_diff_f32_f64(&dots_gpu, &cpu_dots);
+    let cpu_flat: Vec<f64> = cpu_dots.iter().flat_map(|r| r.iter().copied()).collect();
+    let max_diff = max_abs_diff_gpu_vs_cpu(&dots_gpu, &cpu_flat);
 
     h.check_upper(
         &format!("pop × optima^T: max diff GPU vs CPU ({max_diff:.2e})"),
@@ -207,8 +171,8 @@ fn validate_self_similarity(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let pop_t1 = tensor!(h, &pop_flat, &[n_pop, dim], device);
-    let pop_t2 = tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let pop_t1 = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let pop_t2 = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
     let pop_t2_t = match pop_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -225,7 +189,7 @@ fn validate_self_similarity(
         }
     };
 
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
     let mut max_diff = 0.0_f64;
@@ -251,8 +215,8 @@ fn validate_ones_ones_t(h: &mut ValidationHarness, device: &Arc<barracuda::devic
     let ones_row: Vec<f32> = vec![1.0; n * dim];
     let ones_col: Vec<f32> = vec![1.0; dim * n];
 
-    let a_t = tensor!(h, &ones_row, &[n, dim], device);
-    let b_t = tensor!(h, &ones_col, &[dim, n], device);
+    let a_t = gpu_tensor!(h, &ones_row, &[n, dim], device);
+    let b_t = gpu_tensor!(h, &ones_col, &[dim, n], device);
 
     let out_t = match a_t.matmul(&b_t) {
         Ok(t) => t,
@@ -262,7 +226,7 @@ fn validate_ones_ones_t(h: &mut ValidationHarness, device: &Arc<barracuda::devic
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
     let expected = dim as f32;
@@ -288,8 +252,8 @@ fn validate_non_negative_norms(
 
     let pop_flat: Vec<f32> = (0..n_pop * dim).map(|_| rng.uniform() as f32).collect();
 
-    let pop_t1 = tensor!(h, &pop_flat, &[n_pop, dim], device);
-    let pop_t2 = tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let pop_t1 = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let pop_t2 = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
     let pop_t2_t = match pop_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -306,7 +270,7 @@ fn validate_non_negative_norms(
         }
     };
 
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
     let min_diag = (0..n_pop)
@@ -333,8 +297,8 @@ fn validate_symmetry(h: &mut ValidationHarness, device: &Arc<barracuda::device::
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let pop_t1 = tensor!(h, &pop_flat, &[n_pop, dim], device);
-    let pop_t2 = tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let pop_t1 = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let pop_t2 = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
     let pop_t2_t = match pop_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -351,7 +315,7 @@ fn validate_symmetry(h: &mut ValidationHarness, device: &Arc<barracuda::device::
         }
     };
 
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
     let mut max_asym = 0.0_f64;
@@ -378,8 +342,8 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::devic
     let pop_flat: Vec<f32> = (0..n_pop * dim).map(|_| rng.uniform() as f32).collect();
     let optima_flat: Vec<f32> = (0..n_niches * dim).map(|_| rng.uniform() as f32).collect();
 
-    let pop_t1 = tensor!(h, &pop_flat, &[n_pop, dim], device);
-    let optima_t1 = tensor!(h, &optima_flat, &[n_niches, dim], device);
+    let pop_t1 = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let optima_t1 = gpu_tensor!(h, &optima_flat, &[n_niches, dim], device);
     let opt_t1 = match optima_t1.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -394,12 +358,12 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::devic
             return;
         }
     };
-    let Some(out1) = readback(h, &out1_t) else {
+    let Some(out1) = gpu_readback(h, &out1_t) else {
         return;
     };
 
-    let pop_t2 = tensor!(h, &pop_flat, &[n_pop, dim], device);
-    let optima_t2 = tensor!(h, &optima_flat, &[n_niches, dim], device);
+    let pop_t2 = gpu_tensor!(h, &pop_flat, &[n_pop, dim], device);
+    let optima_t2 = gpu_tensor!(h, &optima_flat, &[n_niches, dim], device);
     let opt_t2 = match optima_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -414,7 +378,7 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::devic
             return;
         }
     };
-    let Some(out2) = readback(h, &out2_t) else {
+    let Some(out2) = gpu_readback(h, &out2_t) else {
         return;
     };
 

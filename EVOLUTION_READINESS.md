@@ -15,7 +15,7 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 255 lib tests, 31 modules, 119 binaries | **COMPLETE** |
+| Rust native validation | 264 lib + 9 integration tests, 31 modules, 119 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -315,23 +315,32 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 
 ---
 
-## Code Quality (Post-Audit, February 21 2026)
+## Code Quality (Post-Deep-Audit, February 22 2026)
 
 | Aspect | Status |
 |--------|--------|
-| clippy pedantic + nursery | **0 warnings** (all `#[allow]` justified or removed) |
+| `cargo fmt` | **Clean** — zero formatting violations |
+| `cargo clippy` pedantic + nursery | **0 warnings** (all `#[allow]` audited and justified) |
+| `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
+| `cargo test --lib` | **264 tests PASS** (up from 255) |
+| `cargo test --test integration` | **9 integration tests PASS** (new) |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
-| Centralized tolerances | All validation thresholds in `tolerances.rs` (no magic numbers) |
+| Centralized tolerances | Split into `tolerances/mod.rs` (constants) + `tolerances/registry.rs` (runtime introspection) — 18 new `NamedTolerance` entries in registry, zero inline magic numbers |
+| GPU validation helpers | Shared `gpu_readback`, `max_abs_diff_gpu_vs_cpu`, `gpu_tensor!` macro — deduplicated ~400 LOC from 24 binaries |
 | GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
-| Idiomatic Rust | HMM flat row-major layout, spectral flat layout, `NkLandscape.k` accessor |
+| Idiomatic Rust | HMM flat row-major layout, spectral flat layout, `NkLandscape.k` accessor, `mul_add` for FMA, infallible casts via `From` |
 | Consolidated math primitives | Shannon, Hill, sigmoid, RK4 centralized in `primitives.rs` — no duplicated math |
 | GPU-ready flat layouts | HMM, spectral, anderson_localization, directed_evolution, sate_alignment use flat row-major `Vec<f64>` — direct GPU buffer upload |
 | Graceful error handling | `require!` macro replaces `.expect()` in all validation binaries — no panic on GPU failure |
 | Zero-copy genotype handling | `eco_dynamics.rs` uses `&[u8]` / `HashSet<&[u8]>` — avoids `Vec<u8>` clones |
+| Provenance | All hardcoded validation targets sourced with script, commit, date, exact command |
+| Determinism tests | **16 tests** covering all stochastic modules (up from 7) |
 | SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
 | Line coverage | **94.9%** line via `llvm-cov` |
-| All files < 1000 LOC | `validate_barracuda_tensor.rs` reduced from 1053 → 864 lines |
+| All files < 1000 LOC | Largest: `validate_barracuda_tensor.rs` at 966 lines |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
+| Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |
+| External dependencies | All pure Rust — zero C/C++ wrapper crates |
 
 ---
 

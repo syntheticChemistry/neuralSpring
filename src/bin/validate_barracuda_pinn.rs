@@ -34,10 +34,6 @@ fn t(data: &[f32], shape: Vec<usize>, device: &Dev) -> Result<Tensor, String> {
     Tensor::from_data(data, shape, device.clone()).map_err(|e| e.to_string())
 }
 
-fn readback(tensor: &Tensor) -> Result<Vec<f32>, String> {
-    tensor.to_vec().map_err(|e| e.to_string())
-}
-
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
@@ -105,7 +101,7 @@ fn validate_mlp_forward_barracuda(h: &mut ValidationHarness, device: &Dev) {
     let biased = require!(h, mm.add(&b).map_err(|e| e.to_string()), "add bias");
     let activated = require!(h, biased.tanh().map_err(|e| e.to_string()), "tanh");
 
-    let result = require!(h, readback(&activated), "readback");
+    let result = require!(h, activated.to_vec(), "readback");
 
     let expected_0 = (0.5_f64).tanh();
     let expected_1 = (-0.3_f64).tanh();

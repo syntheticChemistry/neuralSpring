@@ -120,10 +120,6 @@ fn mlp_forward(input: &Tensor, weights: &MlpWeights) -> Result<Tensor, String> {
     .map_err(|e| e.to_string())
 }
 
-fn readback(t: &Tensor) -> Result<Vec<f32>, String> {
-    t.to_vec().map_err(|e| format!("GPU readback: {e}"))
-}
-
 #[tokio::main]
 async fn main() {
     let gpu = match Gpu::new().await {
@@ -167,7 +163,7 @@ async fn main() {
     // Correctness check
     match mlp_forward(&input, &weights) {
         Ok(output) => {
-            let probs = match readback(&output) {
+            let probs = match output.to_vec() {
                 Ok(p) => p,
                 Err(e) => {
                     eprintln!("  Readback ERROR: {e}");

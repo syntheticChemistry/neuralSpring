@@ -28,39 +28,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("readback: {e}"), false);
-            None
-        }
-    }
-}
-
-fn max_abs_diff_flat(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
-}
 
 #[tokio::main]
 async fn main() {
@@ -90,7 +62,7 @@ async fn main() {
 }
 
 /// Check 1: HMM transition probability matrix via matmul.
-/// alpha_batch (n_seqs × n_states) × A^T (n_states × n_states) → transition output.
+/// `alpha_batch` (`n_seqs` × `n_states`) × A^T (`n_states` × `n_states`) → transition output.
 fn validate_transition_matmul(
     h: &mut ValidationHarness,
     device: &Arc<barracuda::device::WgpuDevice>,
@@ -124,8 +96,8 @@ fn validate_transition_matmul(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let alpha_t = tensor!(h, &alpha_flat, &[n_seqs, n_states], device);
-    let trans_t = tensor!(h, &trans_flat, &[n_states, n_states], device);
+    let alpha_t = gpu_tensor!(h, &alpha_flat, &[n_seqs, n_states], device);
+    let trans_t = gpu_tensor!(h, &trans_flat, &[n_states, n_states], device);
     let trans_t_t = match trans_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -142,10 +114,10 @@ fn validate_transition_matmul(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_out);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_out);
     h.check_upper(
         &format!("transition matmul: max diff ({max_diff:.2e})"),
         max_diff,
@@ -154,7 +126,7 @@ fn validate_transition_matmul(
 }
 
 /// Check 2: Emission probability via matmul.
-/// obs_features (n_seqs × n_obs) × B^T (n_states × n_obs)^T → (n_seqs × n_states).
+/// `obs_features` (`n_seqs` × `n_obs`) × B^T (`n_states` × `n_obs`)^T → (`n_seqs` × `n_states`).
 fn validate_emission_matmul(
     h: &mut ValidationHarness,
     device: &Arc<barracuda::device::WgpuDevice>,
@@ -180,14 +152,17 @@ fn validate_emission_matmul(
         }
     }
 
-    let obs_flat: Vec<f32> = obs.iter().flat_map(|r| r.iter().map(|&x| x as f32)).collect();
+    let obs_flat: Vec<f32> = obs
+        .iter()
+        .flat_map(|r| r.iter().map(|&x| x as f32))
+        .collect();
     let emission_flat: Vec<f32> = emission
         .iter()
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let obs_t = tensor!(h, &obs_flat, &[n_seqs, n_obs], device);
-    let emission_t = tensor!(h, &emission_flat, &[n_states, n_obs], device);
+    let obs_t = gpu_tensor!(h, &obs_flat, &[n_seqs, n_obs], device);
+    let emission_t = gpu_tensor!(h, &emission_flat, &[n_states, n_obs], device);
     let emission_t_t = match emission_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -204,10 +179,10 @@ fn validate_emission_matmul(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_out);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_out);
     h.check_upper(
         &format!("emission matmul: max diff ({max_diff:.2e})"),
         max_diff,
@@ -246,8 +221,8 @@ fn validate_state_posterior(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let trans_t = tensor!(h, &trans_flat, &[n_seqs, n_states], device);
-    let emission_t = tensor!(h, &emission_flat, &[n_seqs, n_states], device);
+    let trans_t = gpu_tensor!(h, &trans_flat, &[n_seqs, n_states], device);
+    let emission_t = gpu_tensor!(h, &emission_flat, &[n_seqs, n_states], device);
 
     let posterior_t = match trans_t.mul(&emission_t) {
         Ok(t) => t,
@@ -257,10 +232,10 @@ fn validate_state_posterior(
         }
     };
 
-    let Some(out) = readback(h, &posterior_t) else {
+    let Some(out) = gpu_readback(h, &posterior_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_posterior);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_posterior);
     h.check_upper(
         &format!("state posterior (trans × emit): max diff ({max_diff:.2e})"),
         max_diff,
@@ -268,8 +243,8 @@ fn validate_state_posterior(
     );
 }
 
-/// Check 4: All probabilities in [0, 1].
-/// Use row-normalized alpha and transition matrix (stochastic) so output stays in [0,1].
+/// Check 4: All probabilities in \[0, 1\].
+/// Use row-normalized alpha and transition matrix (stochastic) so output stays in \[0,1\].
 fn validate_probabilities_in_unit_interval(
     h: &mut ValidationHarness,
     device: &Arc<barracuda::device::WgpuDevice>,
@@ -281,7 +256,7 @@ fn validate_probabilities_in_unit_interval(
     let mut alpha: Vec<Vec<f64>> = (0..n_seqs)
         .map(|_| (0..n_states).map(|_| rng.uniform()).collect())
         .collect();
-    for row in alpha.iter_mut() {
+    for row in &mut alpha {
         let s: f64 = row.iter().sum();
         if s > 0.0 {
             for x in row.iter_mut() {
@@ -292,7 +267,7 @@ fn validate_probabilities_in_unit_interval(
     let mut trans: Vec<Vec<f64>> = (0..n_states)
         .map(|_| (0..n_states).map(|_| rng.uniform()).collect())
         .collect();
-    for row in trans.iter_mut() {
+    for row in &mut trans {
         let s: f64 = row.iter().sum();
         if s > 0.0 {
             for x in row.iter_mut() {
@@ -310,8 +285,8 @@ fn validate_probabilities_in_unit_interval(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let alpha_t = tensor!(h, &alpha_flat, &[n_seqs, n_states], device);
-    let trans_t = tensor!(h, &trans_flat, &[n_states, n_states], device);
+    let alpha_t = gpu_tensor!(h, &alpha_flat, &[n_seqs, n_states], device);
+    let trans_t = gpu_tensor!(h, &trans_flat, &[n_states, n_states], device);
     let trans_t_t = match trans_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -328,13 +303,13 @@ fn validate_probabilities_in_unit_interval(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
     let in_range = out
         .iter()
-        .all(|&x| x >= 0.0_f32 && x <= 1.0_f32 + 1e-5_f32);
+        .all(|&x| (0.0_f32..=1.0_f32 + 1e-5_f32).contains(&x));
     h.check_bool(
         "all transition output values in [0, 1] (or small numerical overflow)",
         in_range,
@@ -342,16 +317,17 @@ fn validate_probabilities_in_unit_interval(
 }
 
 /// Check 5: Determinism.
-fn validate_determinism(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(46);
     let n_states = 4_usize;
     let n_seqs = 10_usize;
 
-    let alpha_flat: Vec<f32> = (0..n_seqs * n_states).map(|_| rng.uniform() as f32).collect();
-    let trans_flat: Vec<f32> = (0..n_states * n_states).map(|_| rng.uniform() as f32).collect();
+    let alpha_flat: Vec<f32> = (0..n_seqs * n_states)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let trans_flat: Vec<f32> = (0..n_states * n_states)
+        .map(|_| rng.uniform() as f32)
+        .collect();
 
     let run = |_: u32| -> Option<Vec<f32>> {
         let a = Tensor::from_data(&alpha_flat, vec![n_seqs, n_states], device.clone()).ok()?;

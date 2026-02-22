@@ -3,7 +3,7 @@
 //! `BarraCUDA` GPU validation: directed evolution multi-objective (Paper 014).
 //!
 //! Validates that `BarraCUDA` `Tensor` matmul on GPU correctly computes
-//! multi-objective fitness: fitness = genotype × objective_weights^T.
+//! multi-objective fitness: fitness = genotype × `objective_weights^T`.
 //! Domain: 5 selection algorithms evaluated on multi-objective fitness.
 //!
 //! ## S-14 workaround
@@ -28,32 +28,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("tensor readback: {e}"), false);
-            None
-        }
-    }
-}
 
 fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let rows = a.len();
@@ -68,13 +47,6 @@ fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
         }
     }
     out
-}
-
-fn max_abs_diff_flat(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
 }
 
 #[tokio::main]
@@ -131,8 +103,8 @@ fn validate_multi_objective_fitness(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let gen_t = tensor!(h, &gen_flat, &[pop, genome_len], device);
-    let obj_t = tensor!(h, &obj_flat, &[n_objectives, genome_len], device);
+    let gen_t = gpu_tensor!(h, &gen_flat, &[pop, genome_len], device);
+    let obj_t = gpu_tensor!(h, &obj_flat, &[n_objectives, genome_len], device);
     let obj_t_t = match obj_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -149,12 +121,12 @@ fn validate_multi_objective_fitness(
         }
     };
 
-    let Some(fit_gpu) = readback(h, &fit_t) else {
+    let Some(fit_gpu) = gpu_readback(h, &fit_t) else {
         return;
     };
 
     let cpu_flat: Vec<f64> = cpu_fitness.iter().flat_map(|r| r.iter().copied()).collect();
-    let diff = max_abs_diff_flat(&fit_gpu, &cpu_flat);
+    let diff = max_abs_diff_gpu_vs_cpu(&fit_gpu, &cpu_flat);
 
     h.check_upper(
         &format!("multi-objective fitness via matmul: max diff ({diff:.2e})"),
@@ -186,7 +158,7 @@ fn validate_pareto_rank_ordering(
         .map(|(i, row)| (i, row.iter().sum()))
         .collect();
     let mut cpu_sorted = cpu_combined;
-    cpu_sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+    cpu_sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
     let gen_flat: Vec<f32> = genotype
         .iter()
@@ -197,8 +169,8 @@ fn validate_pareto_rank_ordering(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let gen_t = tensor!(h, &gen_flat, &[pop, genome_len], device);
-    let obj_t = tensor!(h, &obj_flat, &[n_objectives, genome_len], device);
+    let gen_t = gpu_tensor!(h, &gen_flat, &[pop, genome_len], device);
+    let obj_t = gpu_tensor!(h, &obj_flat, &[n_objectives, genome_len], device);
     let obj_t_t = match obj_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -215,7 +187,7 @@ fn validate_pareto_rank_ordering(
         }
     };
 
-    let Some(fit_gpu) = readback(h, &fit_t) else {
+    let Some(fit_gpu) = gpu_readback(h, &fit_t) else {
         return;
     };
 
@@ -225,7 +197,7 @@ fn validate_pareto_rank_ordering(
         .map(|(i, chunk)| (i, chunk.iter().map(|&x| f64::from(x)).sum()))
         .collect();
     let mut gpu_sorted = gpu_combined;
-    gpu_sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+    gpu_sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
     let order_preserved = cpu_sorted
         .iter()
@@ -238,22 +210,21 @@ fn validate_pareto_rank_ordering(
     );
 }
 
-fn validate_fitness_finite(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_fitness_finite(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(99);
     let pop = 25_usize;
     let genome_len = 12_usize;
     let n_objectives = 4_usize;
 
-    let gen_flat: Vec<f32> = (0..pop * genome_len).map(|_| rng.uniform() as f32).collect();
+    let gen_flat: Vec<f32> = (0..pop * genome_len)
+        .map(|_| rng.uniform() as f32)
+        .collect();
     let obj_flat: Vec<f32> = (0..n_objectives * genome_len)
         .map(|_| rng.uniform() as f32)
         .collect();
 
-    let gen_t = tensor!(h, &gen_flat, &[pop, genome_len], device);
-    let obj_t = tensor!(h, &obj_flat, &[n_objectives, genome_len], device);
+    let gen_t = gpu_tensor!(h, &gen_flat, &[pop, genome_len], device);
+    let obj_t = gpu_tensor!(h, &obj_flat, &[n_objectives, genome_len], device);
     let obj_t_t = match obj_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -270,7 +241,7 @@ fn validate_fitness_finite(
         }
     };
 
-    let Some(fit) = readback(h, &fit_t) else {
+    let Some(fit) = gpu_readback(h, &fit_t) else {
         return;
     };
 
@@ -307,8 +278,8 @@ fn validate_per_objective_agreement(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let gen_t = tensor!(h, &gen_flat, &[pop, genome_len], device);
-    let obj_t = tensor!(h, &obj_flat, &[n_objectives, genome_len], device);
+    let gen_t = gpu_tensor!(h, &gen_flat, &[pop, genome_len], device);
+    let obj_t = gpu_tensor!(h, &obj_flat, &[n_objectives, genome_len], device);
     let obj_t_t = match obj_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -325,7 +296,7 @@ fn validate_per_objective_agreement(
         }
     };
 
-    let Some(fit_gpu) = readback(h, &fit_t) else {
+    let Some(fit_gpu) = gpu_readback(h, &fit_t) else {
         return;
     };
 
@@ -339,37 +310,29 @@ fn validate_per_objective_agreement(
     }
 
     h.check_upper(
-        &format!(
-            "per-objective agreement: max diff ({max_per_obj_diff:.2e})"
-        ),
+        &format!("per-objective agreement: max diff ({max_per_obj_diff:.2e})"),
         max_per_obj_diff,
         tolerances::BARRACUDA_GPU_ECO_F32,
     );
 }
 
-fn validate_determinism(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(42);
     let pop = 25_usize;
     let genome_len = 12_usize;
     let n_objectives = 4_usize;
 
-    let gen_flat: Vec<f32> = (0..pop * genome_len).map(|_| rng.uniform() as f32).collect();
+    let gen_flat: Vec<f32> = (0..pop * genome_len)
+        .map(|_| rng.uniform() as f32)
+        .collect();
     let obj_flat: Vec<f32> = (0..n_objectives * genome_len)
         .map(|_| rng.uniform() as f32)
         .collect();
 
     let run = |_: u32| -> Option<Vec<f32>> {
-        let g =
-            Tensor::from_data(&gen_flat, vec![pop, genome_len], device.clone()).ok()?;
-        let o = Tensor::from_data(
-            &obj_flat,
-            vec![n_objectives, genome_len],
-            device.clone(),
-        )
-        .ok()?;
+        let g = Tensor::from_data(&gen_flat, vec![pop, genome_len], device.clone()).ok()?;
+        let o =
+            Tensor::from_data(&obj_flat, vec![n_objectives, genome_len], device.clone()).ok()?;
         let ot = o.transpose().ok()?;
         let out = g.matmul(&ot).ok()?;
         out.to_vec().ok()

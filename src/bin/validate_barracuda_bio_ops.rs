@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Upstream BarraCUDA bio-op wrapper validation.
+//! Upstream `BarraCUDA` bio-op wrapper validation.
 //!
 //! Validates the **barracuda Rust wrapper APIs** (not local metalForge shaders)
-//! for 6 bio ops that ToadStool absorbed from neuralSpring. Each wrapper
+//! for 6 bio ops that `ToadStool` absorbed from `neuralSpring`. Each wrapper
 //! encapsulates shader dispatch — this proves the upstream API produces
 //! correct results against CPU references.
 //!
@@ -97,7 +97,12 @@ fn validate_batch_fitness(h: &mut ValidationHarness, gpu: &Gpu) {
         .collect();
     let weights: Vec<f32> = (0..genome_len).map(|_| rng.uniform() as f32).collect();
 
-    let cpu = cpu_batch_fitness(&population, &weights, pop_size as usize, genome_len as usize);
+    let cpu = cpu_batch_fitness(
+        &population,
+        &weights,
+        pop_size as usize,
+        genome_len as usize,
+    );
 
     let pop_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("pop"),
@@ -296,8 +301,7 @@ fn validate_pairwise_jaccard(h: &mut ValidationHarness, gpu: &Gpu) {
 fn cpu_locus_variance(freqs: &[f32], n_pops: usize, n_loci: usize) -> Vec<f32> {
     (0..n_loci)
         .map(|l| {
-            let mean: f32 =
-                (0..n_pops).map(|p| freqs[p * n_loci + l]).sum::<f32>() / n_pops as f32;
+            let mean: f32 = (0..n_pops).map(|p| freqs[p * n_loci + l]).sum::<f32>() / n_pops as f32;
             let var: f32 = (0..n_pops)
                 .map(|p| {
                     let d = freqs[p * n_loci + l] - mean;
@@ -320,9 +324,7 @@ fn validate_locus_variance(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_loci = 50_u32;
     let mut rng = Rng::new(25);
 
-    let freqs: Vec<f32> = (0..n_pops * n_loci)
-        .map(|_| rng.uniform() as f32)
-        .collect();
+    let freqs: Vec<f32> = (0..n_pops * n_loci).map(|_| rng.uniform() as f32).collect();
 
     let cpu = cpu_locus_variance(&freqs, n_pops as usize, n_loci as usize);
 
@@ -353,7 +355,10 @@ fn validate_locus_variance(h: &mut ValidationHarness, gpu: &Gpu) {
                 tolerances::GPU_LOCUS_VARIANCE_F32,
             );
             h.check_bool(
-                &format!("LocusVarianceGpu: correct locus count ({})", gpu_result.len()),
+                &format!(
+                    "LocusVarianceGpu: correct locus count ({})",
+                    gpu_result.len()
+                ),
                 gpu_result.len() == n_loci as usize,
             );
         }
@@ -366,8 +371,14 @@ fn validate_locus_variance(h: &mut ValidationHarness, gpu: &Gpu) {
 fn cpu_spatial_fitness(grid: &[u32], grid_size: usize, b: f32, c: f32) -> Vec<f32> {
     let n = grid_size as i32;
     let neighbors: [(i32, i32); 8] = [
-        (-1, -1), (-1, 0), (-1, 1), (0, -1),
-        (0, 1), (1, -1), (1, 0), (1, 1),
+        (-1, -1),
+        (-1, 0),
+        (-1, 1),
+        (0, -1),
+        (0, 1),
+        (1, -1),
+        (1, 0),
+        (1, 1),
     ];
     let mut fitness = Vec::with_capacity(grid_size * grid_size);
     for i in 0..grid_size {
@@ -446,7 +457,7 @@ fn validate_spatial_payoff(h: &mut ValidationHarness, gpu: &Gpu) {
 
 // ─── Batch IPR (Papers 022–023 — Anderson localization) ──────────────
 
-/// Upstream BarraCUDA definition: IPR = Σ|ψ_i|⁴ (raw, not reciprocal).
+/// Upstream `BarraCUDA` definition: `IPR` = `Σ|ψ_i|⁴` (raw, not reciprocal).
 fn cpu_batch_ipr(eigenvectors: &[f32], dim: usize, n_vectors: usize) -> Vec<f32> {
     (0..n_vectors)
         .map(|v| {

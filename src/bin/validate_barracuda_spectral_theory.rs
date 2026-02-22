@@ -17,9 +17,9 @@
 )]
 
 use barracuda::spectral::{
-    almost_mathieu_hamiltonian, anderson_hamiltonian, detect_bands, find_all_eigenvalues,
-    hofstadter_butterfly, lanczos, lanczos_eigenvalues, level_spacing_ratio, lyapunov_averaged,
-    lyapunov_exponent, anderson_potential, GOLDEN_RATIO as BARRACUDA_GOLDEN, POISSON_R,
+    almost_mathieu_hamiltonian, anderson_hamiltonian, anderson_potential, detect_bands,
+    find_all_eigenvalues, hofstadter_butterfly, lanczos, lanczos_eigenvalues, level_spacing_ratio,
+    lyapunov_averaged, lyapunov_exponent, GOLDEN_RATIO as BARRACUDA_GOLDEN, POISSON_R,
 };
 use neural_spring::anderson_localization::{
     aubry_andre_hamiltonian, jacobi_eigh, GOLDEN_RATIO as NS_GOLDEN,
@@ -99,7 +99,15 @@ fn validate_anderson_hamiltonian_spectrum(h: &mut ValidationHarness) {
         &format!("Anderson n=50 W=4: got {} eigenvalues", evals.len()),
         evals.len() == n,
     );
-    let bandwidth = evals.last().unwrap() - evals.first().unwrap();
+    let Some(last) = evals.last() else {
+        h.check_bool("Anderson eigenvalues: non-empty", false);
+        return;
+    };
+    let Some(first) = evals.first() else {
+        h.check_bool("Anderson eigenvalues: non-empty", false);
+        return;
+    };
+    let bandwidth = last - first;
     h.check_lower(
         &format!("Anderson W=4 bandwidth {bandwidth:.2} > 4 (clean=4, disorder widens)"),
         bandwidth,
@@ -120,18 +128,20 @@ fn validate_lanczos_vs_exact(h: &mut ValidationHarness) {
     let lanczos_evals = lanczos_eigenvalues(&tridiag);
 
     h.check_bool(
-        &format!("Lanczos produced {} eigenvalues from 8×10 2D Anderson", lanczos_evals.len()),
+        &format!(
+            "Lanczos produced {} eigenvalues from 8×10 2D Anderson",
+            lanczos_evals.len()
+        ),
         !lanczos_evals.is_empty(),
     );
 
-    let tridiag_3d = lanczos(
-        &barracuda::spectral::clean_3d_lattice(3),
-        20,
-        99,
-    );
+    let tridiag_3d = lanczos(&barracuda::spectral::clean_3d_lattice(3), 20, 99);
     let lanc_3d_evals = lanczos_eigenvalues(&tridiag_3d);
     h.check_bool(
-        &format!("Lanczos 3D clean lattice 3×3×3: got {} eigenvalues", lanc_3d_evals.len()),
+        &format!(
+            "Lanczos 3D clean lattice 3×3×3: got {} eigenvalues",
+            lanc_3d_evals.len()
+        ),
         !lanc_3d_evals.is_empty(),
     );
 }
@@ -205,8 +215,8 @@ fn validate_hofstadter_structure(h: &mut ValidationHarness) {
 }
 
 fn validate_band_detection(h: &mut ValidationHarness) {
-    let mut evals: Vec<f64> = (0..20).map(|i| i as f64 * 0.1).collect();
-    evals.extend((0..20).map(|i| 10.0 + i as f64 * 0.1));
+    let mut evals: Vec<f64> = (0..20).map(|i| f64::from(i).mul_add(0.1, 0.0)).collect();
+    evals.extend((0..20).map(|i| f64::from(i).mul_add(0.1, 10.0)));
     let bands = detect_bands(&evals, 2.0);
     h.check_bool(
         &format!("band detection: {} bands from gapped spectrum", bands.len()),
@@ -255,7 +265,7 @@ fn validate_eigh_vs_sturm(h: &mut ValidationHarness) {
         }
     }
     let eigh_result = eigh_householder_qr(&dense, n);
-    let mut eigh_evals = eigh_result.eigenvalues.clone();
+    let mut eigh_evals = eigh_result.eigenvalues;
     eigh_evals.sort_by(f64::total_cmp);
 
     let max_diff: f64 = sturm_evals
@@ -299,7 +309,7 @@ fn validate_eigh_vs_sturm_large(h: &mut ValidationHarness) {
         }
     }
     let eigh_result = eigh_householder_qr(&dense, n);
-    let mut eigh_evals = eigh_result.eigenvalues.clone();
+    let mut eigh_evals = eigh_result.eigenvalues;
     eigh_evals.sort_by(f64::total_cmp);
 
     let max_diff: f64 = sturm_evals

@@ -221,7 +221,12 @@ fn gpu_hmm_forward(
     let gpu_alpha = gpu.read_buffer_f32(&final_buf, n_states)?;
 
     let max_a = gpu_alpha.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-    let log_lik: f32 = max_a + gpu_alpha.iter().map(|&a| (a - max_a).exp()).sum::<f32>().ln();
+    let log_lik: f32 = max_a
+        + gpu_alpha
+            .iter()
+            .map(|&a| (a - max_a).exp())
+            .sum::<f32>()
+            .ln();
     Ok(log_lik)
 }
 
@@ -281,16 +286,11 @@ fn validate_hmm_parity(h: &mut ValidationHarness, gpu: &Gpu) {
         Ok(gpu_ll) => {
             let diff = (f64::from(gpu_ll) - cpu_ll).abs();
             h.check_upper(
-                &format!(
-                    "HMM log-lik parity: GPU={gpu_ll:.4} vs CPU={cpu_ll:.4}, diff={diff:.2e}"
-                ),
+                &format!("HMM log-lik parity: GPU={gpu_ll:.4} vs CPU={cpu_ll:.4}, diff={diff:.2e}"),
                 diff,
                 tolerances::GPU_HMM_LOG_LIKELIHOOD_F32,
             );
-            h.check_bool(
-                "HMM log-lik negative",
-                cpu_ll < 0.0,
-            );
+            h.check_bool("HMM log-lik negative", cpu_ll < 0.0);
         }
         Err(e) => {
             h.check_bool(&format!("HMM parity: GPU failed — {e}"), false);

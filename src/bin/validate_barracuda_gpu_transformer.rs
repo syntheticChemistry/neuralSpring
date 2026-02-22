@@ -29,32 +29,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("tensor readback: {e}"), false);
-            None
-        }
-    }
-}
 
 /// CPU A × B^T: A is M×K (Vec of rows), B is N×K (Vec of rows).
 fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
@@ -80,13 +59,6 @@ fn flatten_f32(data: &[Vec<f64>]) -> Vec<f32> {
 
 fn flatten_f64(data: &[Vec<f64>]) -> Vec<f64> {
     data.iter().flat_map(|r| r.iter().copied()).collect()
-}
-
-fn max_abs_diff(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
 }
 
 #[tokio::main]
@@ -117,10 +89,7 @@ async fn main() {
 
 /// Q = X·Wq^T and K = X·Wk^T for single-head attention.
 /// `seq_len=8`, `d_model=16`, `d_k=16`.
-fn validate_qk_projection(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_qk_projection(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(42);
     let seq_len = 8_usize;
     let d_model = 16_usize;
@@ -142,10 +111,10 @@ fn validate_qk_projection(
     let cpu_k = cpu_a_bt(&x, &wk);
 
     let x_flat = flatten_f32(&x);
-    let x_t_q = tensor!(h, &x_flat, &[seq_len, d_model], device);
-    let x_t_k = tensor!(h, &x_flat, &[seq_len, d_model], device);
-    let wq_t = tensor!(h, &flatten_f32(&wq), &[d_k, d_model], device);
-    let wk_t = tensor!(h, &flatten_f32(&wk), &[d_k, d_model], device);
+    let x_t_q = gpu_tensor!(h, &x_flat, &[seq_len, d_model], device);
+    let x_t_k = gpu_tensor!(h, &x_flat, &[seq_len, d_model], device);
+    let wq_t = gpu_tensor!(h, &flatten_f32(&wq), &[d_k, d_model], device);
+    let wk_t = gpu_tensor!(h, &flatten_f32(&wk), &[d_k, d_model], device);
 
     let wq_t_t = match wq_t.transpose() {
         Ok(t) => t,
@@ -177,18 +146,18 @@ fn validate_qk_projection(
         }
     };
 
-    let Some(q_gpu) = readback(h, &gpu_q_t) else {
+    let Some(q_gpu) = gpu_readback(h, &gpu_q_t) else {
         return;
     };
-    let Some(k_gpu) = readback(h, &gpu_k_t) else {
+    let Some(k_gpu) = gpu_readback(h, &gpu_k_t) else {
         return;
     };
 
     let cpu_q_flat = flatten_f64(&cpu_q);
     let cpu_k_flat = flatten_f64(&cpu_k);
 
-    let diff_q = max_abs_diff(&q_gpu, &cpu_q_flat);
-    let diff_k = max_abs_diff(&k_gpu, &cpu_k_flat);
+    let diff_q = max_abs_diff_gpu_vs_cpu(&q_gpu, &cpu_q_flat);
+    let diff_k = max_abs_diff_gpu_vs_cpu(&k_gpu, &cpu_k_flat);
 
     h.check_upper("Q projection", diff_q, tolerances::BARRACUDA_GPU_ECO_F32);
     h.check_upper("K projection", diff_k, tolerances::BARRACUDA_GPU_ECO_F32);
@@ -214,8 +183,8 @@ fn validate_attention_scores(
 
     let cpu_scores = cpu_a_bt(&q, &k);
 
-    let q_t = tensor!(h, &flatten_f32(&q), &[seq_len, d_k], device);
-    let k_t = tensor!(h, &flatten_f32(&k), &[seq_len, d_k], device);
+    let q_t = gpu_tensor!(h, &flatten_f32(&q), &[seq_len, d_k], device);
+    let k_t = gpu_tensor!(h, &flatten_f32(&k), &[seq_len, d_k], device);
 
     let k_t_t = match k_t.transpose() {
         Ok(t) => t,
@@ -233,23 +202,20 @@ fn validate_attention_scores(
         }
     };
 
-    let Some(scores) = readback(h, &scores_t) else {
+    let Some(scores) = gpu_readback(h, &scores_t) else {
         return;
     };
 
     h.check_bool("scores shape (8×8)", scores.len() == 64);
 
     let cpu_scores_flat = flatten_f64(&cpu_scores);
-    let diff = max_abs_diff(&scores, &cpu_scores_flat);
+    let diff = max_abs_diff_gpu_vs_cpu(&scores, &cpu_scores_flat);
     h.check_upper("attention scores", diff, tolerances::BARRACUDA_GPU_ECO_F32);
 }
 
 /// FFN: hidden = X·W1^T → tanh → output = hidden·W2^T.
 /// `d_model=16`, `d_ff=32`.
-fn validate_ffn_block(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_ffn_block(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(44);
     let seq_len = 8_usize;
     let d_model = 16_usize;
@@ -274,9 +240,9 @@ fn validate_ffn_block(
         .collect();
     let cpu_output = cpu_a_bt(&cpu_hidden_tanh, &w2);
 
-    let x_t = tensor!(h, &flatten_f32(&x), &[seq_len, d_model], device);
-    let w1_t = tensor!(h, &flatten_f32(&w1), &[d_ff, d_model], device);
-    let w2_t = tensor!(h, &flatten_f32(&w2), &[d_model, d_ff], device);
+    let x_t = gpu_tensor!(h, &flatten_f32(&x), &[seq_len, d_model], device);
+    let w1_t = gpu_tensor!(h, &flatten_f32(&w1), &[d_ff, d_model], device);
+    let w2_t = gpu_tensor!(h, &flatten_f32(&w2), &[d_model, d_ff], device);
 
     let w1_t_t = match w1_t.transpose() {
         Ok(t) => t,
@@ -307,7 +273,7 @@ fn validate_ffn_block(
             return;
         }
     };
-    let Some(hidden_gpu) = readback(h, &hidden_tanh_t) else {
+    let Some(hidden_gpu) = gpu_readback(h, &hidden_tanh_t) else {
         return;
     };
     let out_t = match hidden_tanh_t.matmul(&w2_t_t) {
@@ -317,33 +283,26 @@ fn validate_ffn_block(
             return;
         }
     };
-    let Some(out_gpu) = readback(h, &out_t) else {
+    let Some(out_gpu) = gpu_readback(h, &out_t) else {
         return;
     };
 
     let cpu_hidden_tanh_flat = flatten_f64(&cpu_hidden_tanh);
     let cpu_output_flat = flatten_f64(&cpu_output);
 
-    let diff_hidden = max_abs_diff(&hidden_gpu, &cpu_hidden_tanh_flat);
-    let diff_output = max_abs_diff(&out_gpu, &cpu_output_flat);
+    let diff_hidden = max_abs_diff_gpu_vs_cpu(&hidden_gpu, &cpu_hidden_tanh_flat);
+    let diff_output = max_abs_diff_gpu_vs_cpu(&out_gpu, &cpu_output_flat);
 
     h.check_upper(
         "FFN hidden",
         diff_hidden,
         tolerances::TENSOR_TRANSCENDENTAL_F32,
     );
-    h.check_upper(
-        "FFN output",
-        diff_output,
-        tolerances::BARRACUDA_GPU_ECO_F32,
-    );
+    h.check_upper("FFN output", diff_output, tolerances::BARRACUDA_GPU_ECO_F32);
 }
 
 /// Run Q projection twice, check bit-identical readback.
-fn validate_determinism(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(45);
     let seq_len = 8_usize;
     let d_model = 16_usize;

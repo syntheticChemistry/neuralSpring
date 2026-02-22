@@ -6,11 +6,20 @@
 //! Complements `tests/test_determinism.py` (Python side) with Rust-native
 //! rerun-identical checks for all seeded algorithms.
 
+use crate::anderson_localization;
 use crate::counterdiabatic::{compute_cd_schedule, NkLandscape};
 use crate::directed_evolution::{lexicase_selection, run_selection_experiment};
 use crate::eco_dynamics::{self, MultiNicheLandscape};
+use crate::game_theory::{qs_cooperation_model, QsConfig};
 use crate::hmm;
+use crate::introgression;
+use crate::meta_population;
+use crate::pangenome_selection;
+use crate::regulatory_network::{integrate_grn, GrnParams};
 use crate::rng::Rng;
+use crate::sate_alignment;
+use crate::signal_integration::{integrate_ode, OdeParams, OdeState};
+use crate::spectral_commutativity;
 use crate::swarm_robotics;
 
 #[test]
@@ -85,4 +94,166 @@ fn eco_dynamics_deterministic() {
     let r2 = eco_dynamics::run_ea(&landscape, 50, 10, 0.05, true, 5, 42);
     assert_eq!(r1.mean_fitness, r2.mean_fitness);
     assert_eq!(r1.dominance, r2.dominance);
+}
+
+#[test]
+fn introgression_deterministic() {
+    let hmm = introgression::phylonet_hmm();
+    let (states1, obs1) = {
+        let mut rng = Rng::new(42);
+        introgression::generate_synthetic_loci(200, &hmm, &mut rng)
+    };
+    let (states2, obs2) = {
+        let mut rng = Rng::new(42);
+        introgression::generate_synthetic_loci(200, &hmm, &mut rng)
+    };
+    assert_eq!(
+        states1, states2,
+        "introgression synthetic states must be bitwise identical"
+    );
+    assert_eq!(
+        obs1, obs2,
+        "introgression synthetic observations must be bitwise identical"
+    );
+}
+
+#[test]
+#[allow(clippy::float_cmp)]
+fn regulatory_network_deterministic() {
+    let p = GrnParams::default();
+    let x0 = [0.5, 0.1, 0.5, 0.1];
+    let r1 = integrate_grn(&x0, 0.5, &p, 2000, 0.02);
+    let r2 = integrate_grn(&x0, 0.5, &p, 2000, 0.02);
+    assert_eq!(r1, r2, "GRN integration must be bitwise identical");
+}
+
+#[test]
+fn pangenome_selection_deterministic() {
+    let env = vec![0, 0, 1, 1];
+    let pa1 = {
+        let mut rng = Rng::new(42);
+        pangenome_selection::generate_pa_matrix(4, 20, 0.3, 0.1, &mut rng, &env)
+    };
+    let pa2 = {
+        let mut rng = Rng::new(42);
+        pangenome_selection::generate_pa_matrix(4, 20, 0.3, 0.1, &mut rng, &env)
+    };
+    assert_eq!(pa1, pa2, "pangenome PA matrix must be bitwise identical");
+}
+
+#[test]
+fn meta_population_deterministic() {
+    let run = || {
+        let mut rng = Rng::new(42);
+        let anc: Vec<f64> = (0..10).map(|_| rng.beta(2.0, 2.0)).collect();
+        let pop =
+            meta_population::generate_population(5, 10, &anc, 0.15, 70.0, 65.0, 90.0, 2, &mut rng);
+        (anc, pop)
+    };
+    let (a1, p1) = run();
+    let (a2, p2) = run();
+    assert_eq!(
+        a1, a2,
+        "meta_population ancestral frequencies must be bitwise identical"
+    );
+    assert_eq!(
+        p1, p2,
+        "meta_population genotypes must be bitwise identical"
+    );
+}
+
+#[test]
+fn sate_alignment_deterministic() {
+    let (seqs1, n1, len1) = {
+        let mut rng = Rng::new(42);
+        sate_alignment::generate_tree_guided_sequences(5, 50, 0.05, &mut rng)
+    };
+    let (seqs2, n2, len2) = {
+        let mut rng = Rng::new(42);
+        sate_alignment::generate_tree_guided_sequences(5, 50, 0.05, &mut rng)
+    };
+    assert_eq!(n1, n2);
+    assert_eq!(len1, len2);
+    assert_eq!(
+        seqs1, seqs2,
+        "SATE tree-guided sequences must be bitwise identical"
+    );
+}
+
+#[test]
+fn signal_integration_deterministic() {
+    let y0 = OdeState {
+        cdg: 0.1,
+        ai: 0.1,
+        vps_t: 0.0,
+        biofilm: 0.0,
+    };
+    let params = OdeParams {
+        seed: 42,
+        ..OdeParams::default()
+    };
+    let trace1 = integrate_ode(1.0, 0.1, &y0, &params);
+    let trace2 = integrate_ode(1.0, 0.1, &y0, &params);
+    assert_eq!(trace1.len(), trace2.len());
+    for (a, b) in trace1.iter().zip(trace2.iter()) {
+        assert_eq!(a.cdg.to_bits(), b.cdg.to_bits());
+        assert_eq!(a.ai.to_bits(), b.ai.to_bits());
+        assert_eq!(a.vps_t.to_bits(), b.vps_t.to_bits());
+        assert_eq!(a.biofilm.to_bits(), b.biofilm.to_bits());
+    }
+}
+
+#[test]
+fn game_theory_deterministic() {
+    let config = QsConfig {
+        pop_size: 100,
+        n_gen: 50,
+        qs_threshold: 0.3,
+        cooperation_cost: 0.1,
+        cooperation_benefit: 0.3,
+        dispersal_bonus: 0.5,
+        mutation_rate: 0.02,
+        seed: 42,
+    };
+    let r1 = qs_cooperation_model(&config);
+    let r2 = qs_cooperation_model(&config);
+    assert_eq!(r1.coop_freq, r2.coop_freq);
+    assert_eq!(r1.mean_fitness, r2.mean_fitness);
+}
+
+#[test]
+fn spectral_commutativity_deterministic() {
+    let m1 = {
+        let mut rng = Rng::new(42);
+        spectral_commutativity::random_matrix(8, &mut rng)
+    };
+    let m2 = {
+        let mut rng = Rng::new(42);
+        spectral_commutativity::random_matrix(8, &mut rng)
+    };
+    assert_eq!(
+        m1, m2,
+        "spectral_commutativity random_matrix must be bitwise identical"
+    );
+}
+
+#[test]
+fn anderson_localization_deterministic() {
+    let w_vals = [1.0, 2.0, 3.0];
+    let sweep1 = {
+        let mut rng = Rng::new(42);
+        anderson_localization::disorder_sweep(16, 1.0, &w_vals, &mut rng)
+    };
+    let sweep2 = {
+        let mut rng = Rng::new(42);
+        anderson_localization::disorder_sweep(16, 1.0, &w_vals, &mut rng)
+    };
+    assert_eq!(sweep1.len(), sweep2.len());
+    for (a, b) in sweep1.iter().zip(sweep2.iter()) {
+        assert_eq!(
+            a.to_bits(),
+            b.to_bits(),
+            "Anderson disorder sweep IPR must be bitwise identical"
+        );
+    }
 }

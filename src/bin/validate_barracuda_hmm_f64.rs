@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Upstream BarraCUDA HMM batch forward validation (f64).
+//! Upstream `BarraCUDA` HMM batch forward validation (f64).
 //!
 //! Validates `HmmBatchForwardF64` — the upstream GPU HMM wrapper that
 //! absorbs wetSpring's `hmm_forward_f64.wgsl` and replaces neuralSpring's
@@ -10,14 +10,14 @@
 //! |----------|----------------|----------|
 //! | Precision | f32 | **f64** |
 //! | Batching | Single sequence | **N sequences parallel** |
-//! | Shader | metalForge local | BarraCUDA built-in |
+//! | Shader | metalForge local | `BarraCUDA` built-in |
 //! | Origin | neuralSpring | **wetSpring** (absorbed Session 27) |
 //!
 //! ## Cross-Spring Evolution
 //!
 //! neuralSpring evolved the f32 HMM forward shader (Paper 016), which
-//! ToadStool absorbed. wetSpring independently evolved a f64 batch variant
-//! (dN/dS workloads needed f64 precision). ToadStool absorbed both —
+//! `ToadStool` absorbed. wetSpring independently evolved a f64 batch variant
+//! (dN/dS workloads needed f64 precision). `ToadStool` absorbed both —
 //! now neuralSpring benefits from wetSpring's f64 precision upgrade.
 
 #![allow(
@@ -122,7 +122,7 @@ fn dispatch_hmm_f64(
     let device = gpu.device();
 
     let n_seqs = obs_batch.len() as u32;
-    let n_steps = obs_batch.iter().map(|s| s.len()).max().unwrap_or(0) as u32;
+    let n_steps = obs_batch.iter().map(Vec::len).max().unwrap_or(0) as u32;
 
     // Flatten observations (row-major: [n_seqs × n_steps])
     let mut obs_flat: Vec<u32> = Vec::with_capacity((n_seqs * n_steps) as usize);
@@ -130,9 +130,8 @@ fn dispatch_hmm_f64(
         for &o in seq {
             obs_flat.push(o as u32);
         }
-        for _ in seq.len()..(n_steps as usize) {
-            obs_flat.push(0);
-        }
+        let pad_len = (n_steps as usize).saturating_sub(seq.len());
+        obs_flat.extend(std::iter::repeat_n(0, pad_len));
     }
 
     let log_trans_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -156,7 +155,7 @@ fn dispatch_hmm_f64(
         usage: wgpu::BufferUsages::STORAGE,
     });
 
-    let alpha_size = (n_seqs as u64) * (n_steps as u64) * (params.n_states as u64) * 8;
+    let alpha_size = u64::from(n_seqs) * u64::from(n_steps) * u64::from(params.n_states) * 8;
     let log_alpha_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("log_alpha"),
         size: alpha_size,
@@ -165,7 +164,7 @@ fn dispatch_hmm_f64(
     });
     let log_lik_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("log_lik"),
-        size: (n_seqs as u64) * 8,
+        size: u64::from(n_seqs) * 8,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
@@ -334,7 +333,7 @@ fn validate_log_likelihood_ordering(h: &mut ValidationHarness, gpu: &Gpu) {
     let obs_long: Vec<usize> = vec![0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2];
 
     let max_len = obs_long.len();
-    let mut short_padded = obs_short.clone();
+    let mut short_padded = obs_short;
     short_padded.resize(max_len, 0);
 
     match dispatch_hmm_f64(gpu, &op, &params, &[short_padded, obs_long]) {

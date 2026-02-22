@@ -28,39 +28,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("readback: {e}"), false);
-            None
-        }
-    }
-}
-
-fn max_abs_diff_flat(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
-}
 
 fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let rows = a.len();
@@ -127,8 +99,8 @@ fn validate_batch_fitness(h: &mut ValidationHarness, device: &Arc<barracuda::dev
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let gen_t = tensor!(h, &gen_flat, &[pop, dim], device);
-    let tr_t = tensor!(h, &traits_flat, &[n_traits, dim], device);
+    let gen_t = gpu_tensor!(h, &gen_flat, &[pop, dim], device);
+    let tr_t = gpu_tensor!(h, &traits_flat, &[n_traits, dim], device);
     let tr_t_t = match tr_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -144,12 +116,12 @@ fn validate_batch_fitness(h: &mut ValidationHarness, device: &Arc<barracuda::dev
             return;
         }
     };
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
     let cpu_flat: Vec<f64> = cpu_dots.iter().flat_map(|r| r.iter().copied()).collect();
-    let diff = max_abs_diff_flat(&out, &cpu_flat);
+    let diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_flat);
     h.check_upper(
         &format!("batch fitness: max diff ({diff:.2e})"),
         diff,
@@ -189,8 +161,8 @@ fn validate_multi_objective(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let gen_t = tensor!(h, &gen_flat, &[pop, dim], device);
-    let obj_t = tensor!(h, &obj_flat, &[n_obj, dim], device);
+    let gen_t = gpu_tensor!(h, &gen_flat, &[pop, dim], device);
+    let obj_t = gpu_tensor!(h, &obj_flat, &[n_obj, dim], device);
     let obj_t_t = match obj_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -206,12 +178,12 @@ fn validate_multi_objective(
             return;
         }
     };
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
     let cpu_flat: Vec<f64> = cpu_dots.iter().flat_map(|r| r.iter().copied()).collect();
-    let diff = max_abs_diff_flat(&out, &cpu_flat);
+    let diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_flat);
     h.check_upper(
         &format!("multi-objective: max diff ({diff:.2e})"),
         diff,
@@ -251,8 +223,8 @@ fn validate_population_ranking(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let met_t = tensor!(h, &met_flat, &[n_gen, dim], device);
-    let rw_t = tensor!(h, &rw_flat, &[n_rank, dim], device);
+    let met_t = gpu_tensor!(h, &met_flat, &[n_gen, dim], device);
+    let rw_t = gpu_tensor!(h, &rw_flat, &[n_rank, dim], device);
     let rw_t_t = match rw_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -268,12 +240,12 @@ fn validate_population_ranking(
             return;
         }
     };
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
     let cpu_flat: Vec<f64> = cpu_dots.iter().flat_map(|r| r.iter().copied()).collect();
-    let diff = max_abs_diff_flat(&out, &cpu_flat);
+    let diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_flat);
     h.check_upper(
         &format!("population ranking: max diff ({diff:.2e})"),
         diff,

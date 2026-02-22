@@ -88,7 +88,7 @@ impl GpuCapabilities {
 
     /// Whether the hardware supports the given WGSL `@workgroup_size(n)`.
     #[must_use]
-    pub fn supports_workgroup(&self, shader_workgroup: u32) -> bool {
+    pub const fn supports_workgroup(&self, shader_workgroup: u32) -> bool {
         shader_workgroup <= self.max_compute_workgroup_size_x
     }
 }
@@ -113,10 +113,7 @@ impl Gpu {
     #[must_use]
     pub fn from_device(dev: Arc<WgpuDevice>) -> Self {
         let info = dev.adapter_info();
-        let caps = GpuCapabilities::from_device_and_adapter(
-            dev.device(),
-            dev.device().features(),
-        );
+        let caps = GpuCapabilities::from_device_and_adapter(dev.device(), dev.device().features());
         Self {
             adapter_name: info.name.clone(),
             device_type: info.device_type,

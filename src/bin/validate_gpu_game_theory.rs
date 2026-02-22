@@ -338,6 +338,7 @@ fn validate_all_cooperators(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
+#[allow(clippy::many_single_char_names)]
 fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
     let grid_size = 10_u32;
     let b = 3.0_f32;
@@ -351,11 +352,13 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
     let device = gpu.device();
     let op = SpatialPayoffGpu::new(dev);
     let grid_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("grid"), contents: bytemuck::cast_slice(&grid),
+        label: Some("grid"),
+        contents: bytemuck::cast_slice(&grid),
         usage: wgpu::BufferUsages::STORAGE,
     });
     let fit_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("fit"), size: (n_cells * 4) as u64,
+        label: Some("fit"),
+        size: (n_cells * 4) as u64,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
@@ -364,12 +367,15 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match (local, upstream) {
         (Ok(l), Ok(u)) => {
-            let max_diff: f64 = l.iter().zip(u.iter())
+            let max_diff: f64 = l
+                .iter()
+                .zip(u.iter())
                 .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
                 .fold(0.0_f64, f64::max);
             h.check_upper(
                 &format!("upstream parity: local vs SpatialPayoffGpu diff {max_diff:.2e}"),
-                max_diff, tolerances::GPU_SPATIAL_PAYOFF_F32,
+                max_diff,
+                tolerances::GPU_SPATIAL_PAYOFF_F32,
             );
         }
         _ => h.check_bool("upstream parity: dispatch failed", false),

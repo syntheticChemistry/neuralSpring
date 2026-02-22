@@ -31,7 +31,7 @@ use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
 use neural_spring::require;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{check_gpu_points, ValidationHarness};
 use std::sync::Arc;
 
 #[tokio::main]
@@ -88,13 +88,6 @@ fn readback(t: &Tensor) -> Result<Vec<f32>, barracuda::error::BarracudaError> {
     t.to_vec()
 }
 
-/// Batch-check readback values against expected (label, index, expected, tolerance).
-fn check_points(h: &mut ValidationHarness, v: &[f32], checks: &[(&str, usize, f64, f64)]) {
-    for &(label, idx, expected, tol) in checks {
-        h.check_abs(label, f64::from(v[idx]), expected, tol);
-    }
-}
-
 // ── Activations ─────────────────────────────────────────────────────────
 
 fn validate_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
@@ -107,7 +100,7 @@ fn validate_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -143,7 +136,7 @@ fn validate_gelu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
             // True GELU(3) = 0.5*3*(1+erf(3/√2)) ≈ 2.9964 (not 3.0).
             // Previous test used 3.0 which is ~0.004 away — outside 1e-3 tol.
             // Provenance: scipy.special.erf → 2.996_362_607_918_227.
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -169,7 +162,7 @@ fn validate_sigmoid(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tex = tolerances::TENSOR_EXACT_F32;
             let ttf = tolerances::TENSOR_TRANSCENDENTAL_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -240,7 +233,7 @@ fn validate_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
             let std = (var + f64::from(eps)).sqrt();
 
             let tol = tolerances::TENSOR_NORM_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -280,7 +273,7 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[("add [0] = 6", 0, 6.0, tol), ("add [3] = 12", 3, 12.0, tol)],
@@ -303,7 +296,7 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[("sub [0] = 9", 0, 9.0, tol), ("sub [3] = 36", 3, 36.0, tol)],
@@ -326,7 +319,7 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -357,7 +350,7 @@ fn validate_matmul(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_MATMUL_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -385,7 +378,7 @@ fn validate_matmul(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_MATMUL_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -466,7 +459,7 @@ fn validate_tanh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
                 tolerances::TENSOR_EXACT_F32,
             );
             let tol = tolerances::TENSOR_TRANSCENDENTAL_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -498,7 +491,7 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let ttf = tolerances::TENSOR_TRANSCENDENTAL_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -520,7 +513,7 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let ttf = tolerances::TENSOR_TRANSCENDENTAL_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -542,7 +535,7 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -569,7 +562,7 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -590,7 +583,7 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -611,7 +604,7 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -641,7 +634,7 @@ fn validate_div(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[("div [0] = 5", 0, 5.0, tol), ("div [3] = 5", 3, 5.0, tol)],
@@ -861,7 +854,7 @@ fn validate_transpose(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_bool("transpose shape [3,2]", *out.shape() == [3, 2]);
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -895,7 +888,7 @@ fn validate_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
             let expected: Vec<f64> = data.iter().map(|&x| f64::from(x) - max_val - lse).collect();
 
             let tol = tolerances::TENSOR_TRANSCENDENTAL_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -929,7 +922,7 @@ fn validate_leaky_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tol = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[
@@ -953,7 +946,7 @@ fn validate_elu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             let tex = tolerances::TENSOR_EXACT_F32;
-            check_points(
+            check_gpu_points(
                 h,
                 &v,
                 &[

@@ -30,32 +30,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("tensor readback: {e}"), false);
-            None
-        }
-    }
-}
 
 /// CPU Gram matrix: A × A^T for A [n×dim].
 fn cpu_gram(a: &[Vec<f64>]) -> Vec<Vec<f64>> {
@@ -99,10 +78,7 @@ async fn main() {
     h.finish();
 }
 
-fn validate_pairwise_l2(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_pairwise_l2(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(42);
     let n_agents = 15_usize;
     let dim = 8_usize;
@@ -118,8 +94,8 @@ fn validate_pairwise_l2(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let feat_t = tensor!(h, &feat_flat, &[n_agents, dim], device);
-    let feat_t2 = tensor!(h, &feat_flat, &[n_agents, dim], device);
+    let feat_t = gpu_tensor!(h, &feat_flat, &[n_agents, dim], device);
+    let feat_t2 = gpu_tensor!(h, &feat_flat, &[n_agents, dim], device);
     let feat_t2_t = match feat_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -136,7 +112,7 @@ fn validate_pairwise_l2(
         }
     };
 
-    let Some(gram_gpu) = readback(h, &gram_t) else {
+    let Some(gram_gpu) = gpu_readback(h, &gram_t) else {
         return;
     };
 
@@ -156,10 +132,7 @@ fn validate_pairwise_l2(
     );
 }
 
-fn validate_self_distance(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_self_distance(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(123);
     let n_agents = 15_usize;
     let dim = 8_usize;
@@ -173,8 +146,8 @@ fn validate_self_distance(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let feat_t = tensor!(h, &feat_flat, &[n_agents, dim], device);
-    let feat_t2 = tensor!(h, &feat_flat, &[n_agents, dim], device);
+    let feat_t = gpu_tensor!(h, &feat_flat, &[n_agents, dim], device);
+    let feat_t2 = gpu_tensor!(h, &feat_flat, &[n_agents, dim], device);
     let feat_t2_t = match feat_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -191,14 +164,14 @@ fn validate_self_distance(
         }
     };
 
-    let Some(gram_gpu) = readback(h, &gram_t) else {
+    let Some(gram_gpu) = gpu_readback(h, &gram_t) else {
         return;
     };
 
     let mut max_diag_d2 = 0.0_f64;
     for i in 0..n_agents {
         let g_ii = f64::from(gram_gpu[i * n_agents + i]);
-        let d2_ii = g_ii + g_ii - 2.0 * g_ii;
+        let d2_ii = (-2.0_f64).mul_add(g_ii, g_ii + g_ii);
         max_diag_d2 = max_diag_d2.max(d2_ii.abs());
     }
 
@@ -226,8 +199,8 @@ fn validate_triangle_inequality(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let feat_t = tensor!(h, &feat_flat, &[n_agents, dim], device);
-    let feat_t2 = tensor!(h, &feat_flat, &[n_agents, dim], device);
+    let feat_t = gpu_tensor!(h, &feat_flat, &[n_agents, dim], device);
+    let feat_t2 = gpu_tensor!(h, &feat_flat, &[n_agents, dim], device);
     let feat_t2_t = match feat_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -244,7 +217,7 @@ fn validate_triangle_inequality(
         }
     };
 
-    let Some(gram_gpu) = readback(h, &gram_t) else {
+    let Some(gram_gpu) = gpu_readback(h, &gram_t) else {
         return;
     };
 
@@ -258,13 +231,16 @@ fn validate_triangle_inequality(
                 let g_ij = f64::from(gram_gpu[i * n_agents + j]);
                 let g_ik = f64::from(gram_gpu[i * n_agents + k]);
                 let g_jk = f64::from(gram_gpu[j * n_agents + k]);
-                let d_ij_sq = g_ii + g_jj - 2.0 * g_ij;
-                let d_ik_sq = g_ii + g_kk - 2.0 * g_ik;
-                let d_jk_sq = g_jj + g_kk - 2.0 * g_jk;
+                let d_ij_sq = (-2.0_f64).mul_add(g_ij, g_ii + g_jj);
+                let d_ik_sq = (-2.0_f64).mul_add(g_ik, g_ii + g_kk);
+                let d_jk_sq = (-2.0_f64).mul_add(g_jk, g_jj + g_kk);
                 let d_ij = d_ij_sq.max(0.0).sqrt();
                 let d_ik = d_ik_sq.max(0.0).sqrt();
                 let d_jk = d_jk_sq.max(0.0).sqrt();
-                if !(d_ik <= d_ij + d_jk + 1e-5) {
+                if d_ik
+                    .partial_cmp(&(d_ij + d_jk + 1e-5))
+                    .is_some_and(std::cmp::Ordering::is_gt)
+                {
                     tri_ok = false;
                 }
             }
@@ -274,10 +250,7 @@ fn validate_triangle_inequality(
     h.check_bool("triangle inequality: d(i,k) ≤ d(i,j) + d(j,k)", tri_ok);
 }
 
-fn validate_symmetry(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_symmetry(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(77);
     let n_agents = 15_usize;
     let dim = 8_usize;
@@ -291,8 +264,8 @@ fn validate_symmetry(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let feat_t = tensor!(h, &feat_flat, &[n_agents, dim], device);
-    let feat_t2 = tensor!(h, &feat_flat, &[n_agents, dim], device);
+    let feat_t = gpu_tensor!(h, &feat_flat, &[n_agents, dim], device);
+    let feat_t2 = gpu_tensor!(h, &feat_flat, &[n_agents, dim], device);
     let feat_t2_t = match feat_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -309,7 +282,7 @@ fn validate_symmetry(
         }
     };
 
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
 
@@ -329,10 +302,7 @@ fn validate_symmetry(
     );
 }
 
-fn validate_determinism(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(42);
     let n_agents = 15_usize;
     let dim = 8_usize;

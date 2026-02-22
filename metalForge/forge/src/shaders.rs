@@ -2,7 +2,7 @@
 
 //! WGSL shader source catalog — single source of truth for validation.
 //!
-//! ## Upstream-sourced (identical — absorbed by ToadStool `77f70b2e`)
+//! ## Upstream-sourced (identical — absorbed by `ToadStool` `77f70b2e`)
 //!
 //! | Constant | Upstream path |
 //! |----------|---------------|
@@ -15,7 +15,7 @@
 //! | [`BATCH_IPR`] | `barracuda::spectral::batch_ipr::WGSL_BATCH_IPR` |
 //! | [`PAIRWISE_HAMMING`] | `barracuda::ops::bio::pairwise_hamming::WGSL_PAIRWISE_HAMMING` |
 //!
-//! ## Upstream-sourced (generalized variants — absorbed by ToadStool `d45fdfb3`)
+//! ## Upstream-sourced (generalized variants — absorbed by `ToadStool` `d45fdfb3`)
 //!
 //! Local copies retained for validation compatibility (different binding layouts).
 //!

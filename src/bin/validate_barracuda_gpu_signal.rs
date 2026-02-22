@@ -3,7 +3,7 @@
 //! `BarraCUDA` GPU validation: Signal integration (Paper 021).
 //!
 //! Validates GPU `Tensor::matmul` + `Tensor::tanh` for multi-input signal
-//! integration (cGMP + QS): combined_signal = tanh(signals × gate_weights^T).
+//! integration (cGMP + QS): `combined_signal` = tanh(signals × `gate_weights^T`).
 //!
 //! ## S-14 workaround
 //!
@@ -27,39 +27,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("readback: {e}"), false);
-            None
-        }
-    }
-}
-
-fn max_abs_diff_flat(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
-}
 
 #[tokio::main]
 async fn main() {
@@ -88,7 +60,7 @@ async fn main() {
     h.finish();
 }
 
-/// CPU reference: signals (n_samples × n_signals) × weights^T (n_outputs × n_signals)^T.
+/// CPU reference: signals (`n_samples` × `n_signals`) × weights^T (`n_outputs` × `n_signals`)^T.
 fn cpu_matmul_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let rows = a.len();
     let cols = b.len();
@@ -105,7 +77,7 @@ fn cpu_matmul_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
 }
 
 /// Check 1: Two-input regulatory signal via matmul.
-/// signals (n_samples × n_signals) × gate_weights^T (n_outputs × n_signals)^T.
+/// signals (`n_samples` × `n_signals`) × `gate_weights^T` (`n_outputs` × `n_signals`)^T.
 fn validate_two_input_regulatory_signal(
     h: &mut ValidationHarness,
     device: &Arc<barracuda::device::WgpuDevice>,
@@ -134,8 +106,8 @@ fn validate_two_input_regulatory_signal(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let signals_t = tensor!(h, &signals_flat, &[n_samples, n_signals], device);
-    let weights_t = tensor!(h, &weights_flat, &[n_outputs, n_signals], device);
+    let signals_t = gpu_tensor!(h, &signals_flat, &[n_samples, n_signals], device);
+    let weights_t = gpu_tensor!(h, &weights_flat, &[n_outputs, n_signals], device);
     let weights_t_t = match weights_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -152,10 +124,10 @@ fn validate_two_input_regulatory_signal(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_flat);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_flat);
     h.check_upper(
         &format!("two-input regulatory signal matmul: max diff ({max_diff:.2e})"),
         max_diff,
@@ -192,8 +164,8 @@ fn validate_signal_combination_weights(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let signals_t = tensor!(h, &signals_flat, &[n_samples, n_signals], device);
-    let weights_t = tensor!(h, &weights_flat, &[n_outputs, n_signals], device);
+    let signals_t = gpu_tensor!(h, &signals_flat, &[n_samples, n_signals], device);
+    let weights_t = gpu_tensor!(h, &weights_flat, &[n_outputs, n_signals], device);
     let weights_t_t = match weights_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -210,10 +182,10 @@ fn validate_signal_combination_weights(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_flat);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_flat);
     h.check_upper(
         &format!("signal combination weights: max diff ({max_diff:.2e})"),
         max_diff,
@@ -222,7 +194,7 @@ fn validate_signal_combination_weights(
 }
 
 /// Check 3: tanh gate response.
-/// combined_signal = tanh(signals × gate_weights^T).
+/// `combined_signal` = tanh(signals × `gate_weights^T`).
 fn validate_tanh_gate_response(
     h: &mut ValidationHarness,
     device: &Arc<barracuda::device::WgpuDevice>,
@@ -254,8 +226,8 @@ fn validate_tanh_gate_response(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let signals_t = tensor!(h, &signals_flat, &[n_samples, n_signals], device);
-    let weights_t = tensor!(h, &weights_flat, &[n_outputs, n_signals], device);
+    let signals_t = gpu_tensor!(h, &signals_flat, &[n_samples, n_signals], device);
+    let weights_t = gpu_tensor!(h, &weights_flat, &[n_outputs, n_signals], device);
     let weights_t_t = match weights_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -279,10 +251,10 @@ fn validate_tanh_gate_response(
         }
     };
 
-    let Some(out) = readback(h, &act_t) else {
+    let Some(out) = gpu_readback(h, &act_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_tanh);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_tanh);
     h.check_upper(
         &format!("tanh gate response: max diff ({max_diff:.2e})"),
         max_diff,
@@ -300,11 +272,15 @@ fn validate_and_gate_output_structure(
     let n_signals = 4_usize;
     let n_outputs = 3_usize;
 
-    let signals_flat: Vec<f32> = (0..n_samples * n_signals).map(|_| rng.uniform() as f32).collect();
-    let weights_flat: Vec<f32> = (0..n_outputs * n_signals).map(|_| rng.uniform() as f32).collect();
+    let signals_flat: Vec<f32> = (0..n_samples * n_signals)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let weights_flat: Vec<f32> = (0..n_outputs * n_signals)
+        .map(|_| rng.uniform() as f32)
+        .collect();
 
-    let signals_t = tensor!(h, &signals_flat, &[n_samples, n_signals], device);
-    let weights_t = tensor!(h, &weights_flat, &[n_outputs, n_signals], device);
+    let signals_t = gpu_tensor!(h, &signals_flat, &[n_samples, n_signals], device);
+    let weights_t = gpu_tensor!(h, &weights_flat, &[n_outputs, n_signals], device);
     let weights_t_t = match weights_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -328,39 +304,44 @@ fn validate_and_gate_output_structure(
         }
     };
 
-    let Some(out) = readback(h, &act_t) else {
+    let Some(out) = gpu_readback(h, &act_t) else {
         return;
     };
 
     let correct_shape = out.len() == n_samples * n_outputs;
     h.check_bool(
-        &format!("AND gate output shape n_samples×n_outputs ({} elements)", out.len()),
+        &format!(
+            "AND gate output shape n_samples×n_outputs ({} elements)",
+            out.len()
+        ),
         correct_shape,
     );
 
     let in_range = out
         .iter()
-        .all(|&x| x >= -1.0_f32 - 1e-5_f32 && x <= 1.0_f32 + 1e-5_f32);
+        .all(|&x| (-1.0_f32 - 1e-5_f32..=1.0_f32 + 1e-5_f32).contains(&x));
     h.check_bool("AND gate output in [-1, 1]", in_range);
 }
 
 /// Check 5: Determinism.
-fn validate_determinism(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(46);
     let n_samples = 16_usize;
     let n_signals = 4_usize;
     let n_outputs = 3_usize;
 
-    let signals_flat: Vec<f32> = (0..n_samples * n_signals).map(|_| rng.uniform() as f32).collect();
-    let weights_flat: Vec<f32> = (0..n_outputs * n_signals).map(|_| rng.uniform() as f32).collect();
+    let signals_flat: Vec<f32> = (0..n_samples * n_signals)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let weights_flat: Vec<f32> = (0..n_outputs * n_signals)
+        .map(|_| rng.uniform() as f32)
+        .collect();
 
     let run = |_: u32| -> Option<Vec<f32>> {
-        let s = Tensor::from_data(&signals_flat, vec![n_samples, n_signals], device.clone())
-            .ok()?;
-        let w = Tensor::from_data(&weights_flat, vec![n_outputs, n_signals], device.clone()).ok()?;
+        let s =
+            Tensor::from_data(&signals_flat, vec![n_samples, n_signals], device.clone()).ok()?;
+        let w =
+            Tensor::from_data(&weights_flat, vec![n_outputs, n_signals], device.clone()).ok()?;
         let wt = w.transpose().ok()?;
         let mm = s.matmul(&wt).ok()?;
         let act = mm.tanh().ok()?;

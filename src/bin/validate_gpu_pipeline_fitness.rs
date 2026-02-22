@@ -94,12 +94,7 @@ async fn main() {
 
 // ── CPU reference ──────────────────────────────────────────────────
 
-fn cpu_mean_fitness(
-    genotypes: &[f32],
-    weights: &[f32],
-    pop_size: usize,
-    genome_len: usize,
-) -> f32 {
+fn cpu_mean_fitness(genotypes: &[f32], weights: &[f32], pop_size: usize, genome_len: usize) -> f32 {
     let total: f32 = (0..pop_size)
         .map(|i| {
             let base = i * genome_len;
@@ -308,7 +303,13 @@ fn validate_small_population(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cpu_mean = cpu_mean_fitness(&genotypes, &weights, pop_size, genome_len);
 
-    match gpu_mean_fitness(gpu, &genotypes, &weights, pop_size as u32, genome_len as u32) {
+    match gpu_mean_fitness(
+        gpu,
+        &genotypes,
+        &weights,
+        pop_size as u32,
+        genome_len as u32,
+    ) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("fitness small 8×16: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -334,7 +335,13 @@ fn validate_larger_population(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cpu_mean = cpu_mean_fitness(&genotypes, &weights, pop_size, genome_len);
 
-    match gpu_mean_fitness(gpu, &genotypes, &weights, pop_size as u32, genome_len as u32) {
+    match gpu_mean_fitness(
+        gpu,
+        &genotypes,
+        &weights,
+        pop_size as u32,
+        genome_len as u32,
+    ) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("fitness larger 64×32: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -360,7 +367,13 @@ fn validate_uniform_weights(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cpu_mean = cpu_mean_fitness(&genotypes, &weights, pop_size, genome_len);
 
-    match gpu_mean_fitness(gpu, &genotypes, &weights, pop_size as u32, genome_len as u32) {
+    match gpu_mean_fitness(
+        gpu,
+        &genotypes,
+        &weights,
+        pop_size as u32,
+        genome_len as u32,
+    ) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("fitness uniform weights: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -384,7 +397,13 @@ fn validate_zero_genotype(h: &mut ValidationHarness, gpu: &Gpu) {
     let genotypes: Vec<f32> = vec![0.0; pop_size * genome_len];
     let weights: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0];
 
-    match gpu_mean_fitness(gpu, &genotypes, &weights, pop_size as u32, genome_len as u32) {
+    match gpu_mean_fitness(
+        gpu,
+        &genotypes,
+        &weights,
+        pop_size as u32,
+        genome_len as u32,
+    ) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("fitness zero genotype: mean={gpu_mean:.6} vs 0"),
@@ -411,8 +430,20 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         .collect();
     let weights: Vec<f32> = (0..genome_len).map(|_| rng.uniform() as f32).collect();
 
-    let r1 = gpu_mean_fitness(gpu, &genotypes, &weights, pop_size as u32, genome_len as u32);
-    let r2 = gpu_mean_fitness(gpu, &genotypes, &weights, pop_size as u32, genome_len as u32);
+    let r1 = gpu_mean_fitness(
+        gpu,
+        &genotypes,
+        &weights,
+        pop_size as u32,
+        genome_len as u32,
+    );
+    let r2 = gpu_mean_fitness(
+        gpu,
+        &genotypes,
+        &weights,
+        pop_size as u32,
+        genome_len as u32,
+    );
 
     match (r1, r2) {
         (Ok(a), Ok(b)) => {

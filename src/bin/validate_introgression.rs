@@ -84,7 +84,7 @@ fn main() {
         &format!("detected frac ({detected_frac:.3}) near true ({true_frac:.3})"),
         detected_frac,
         true_frac,
-        0.15,
+        tolerances::INTROGRESSION_FRACTION_ABS,
     );
 
     // 6. FPR low when no introgression
@@ -92,18 +92,24 @@ fn main() {
     let (path_ils, _) = detect_introgression(&hmm, &obs_ils);
     let fp_rate = introgression_fraction(&path_ils);
     h.check_upper(
-        &format!("FPR when no introgression ({fp_rate:.3}) < 0.25"),
+        &format!(
+            "FPR when no introgression ({fp_rate:.3}) < {}",
+            tolerances::INTROGRESSION_FPR_MAX
+        ),
         fp_rate,
-        0.25,
+        tolerances::INTROGRESSION_FPR_MAX,
     );
 
     // 7. Gene tree topology frequencies sensible
     let concordant = obs.iter().filter(|&&o| o == 0).count() as f64 / obs.len() as f64;
     let introg_like = obs.iter().filter(|&&o| o == 1).count() as f64 / obs.len() as f64;
     h.check_lower(
-        &format!("concordant frac ({concordant:.3}) > 0.2"),
+        &format!(
+            "concordant frac ({concordant:.3}) > {}",
+            tolerances::GENE_TREE_CONCORDANT_MIN
+        ),
         concordant,
-        0.2,
+        tolerances::GENE_TREE_CONCORDANT_MIN,
     );
     h.check_lower(
         &format!("introg-like frac ({introg_like:.3}) > 0.05"),

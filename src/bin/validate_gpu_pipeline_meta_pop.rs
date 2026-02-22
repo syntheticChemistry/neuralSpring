@@ -95,11 +95,7 @@ async fn main() {
 
 // ── CPU reference ──────────────────────────────────────────────────
 
-fn cpu_mean_locus_variance(
-    allele_freqs: &[f32],
-    n_pops: usize,
-    n_loci: usize,
-) -> f32 {
+fn cpu_mean_locus_variance(allele_freqs: &[f32], n_pops: usize, n_loci: usize) -> f32 {
     let mut total = 0.0_f32;
     for locus in 0..n_loci {
         let mut sum = 0.0_f32;
@@ -140,11 +136,7 @@ fn gpu_mean_locus_variance(
 
     let variance_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("chain_variance_bgl"),
-        entries: &[
-            storage_ro_entry(0),
-            storage_rw_entry(1),
-            uniform_entry(2),
-        ],
+        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
     });
 
     let variance_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -295,18 +287,11 @@ fn validate_meta_pop_small(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_pops = 4_usize;
     let n_loci = 12_usize;
     let mut rng = Rng::new(42);
-    let allele_freqs: Vec<f32> = (0..n_pops * n_loci)
-        .map(|_| rng.uniform() as f32)
-        .collect();
+    let allele_freqs: Vec<f32> = (0..n_pops * n_loci).map(|_| rng.uniform() as f32).collect();
 
     let cpu_mean = cpu_mean_locus_variance(&allele_freqs, n_pops, n_loci);
 
-    match gpu_mean_locus_variance(
-        gpu,
-        &allele_freqs,
-        n_pops as u32,
-        n_loci as u32,
-    ) {
+    match gpu_mean_locus_variance(gpu, &allele_freqs, n_pops as u32, n_loci as u32) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("meta_pop small 4×12: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -325,18 +310,11 @@ fn validate_meta_pop_larger(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_pops = 8_usize;
     let n_loci = 32_usize;
     let mut rng = Rng::new(777);
-    let allele_freqs: Vec<f32> = (0..n_pops * n_loci)
-        .map(|_| rng.uniform() as f32)
-        .collect();
+    let allele_freqs: Vec<f32> = (0..n_pops * n_loci).map(|_| rng.uniform() as f32).collect();
 
     let cpu_mean = cpu_mean_locus_variance(&allele_freqs, n_pops, n_loci);
 
-    match gpu_mean_locus_variance(
-        gpu,
-        &allele_freqs,
-        n_pops as u32,
-        n_loci as u32,
-    ) {
+    match gpu_mean_locus_variance(gpu, &allele_freqs, n_pops as u32, n_loci as u32) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("meta_pop larger 8×32: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -356,12 +334,7 @@ fn validate_meta_pop_uniform(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_loci = 8_usize;
     let allele_freqs: Vec<f32> = vec![0.5; n_pops * n_loci];
 
-    match gpu_mean_locus_variance(
-        gpu,
-        &allele_freqs,
-        n_pops as u32,
-        n_loci as u32,
-    ) {
+    match gpu_mean_locus_variance(gpu, &allele_freqs, n_pops as u32, n_loci as u32) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("meta_pop uniform: mean variance={gpu_mean:.6} vs 0"),
@@ -371,10 +344,7 @@ fn validate_meta_pop_uniform(h: &mut ValidationHarness, gpu: &Gpu) {
             );
         }
         Err(e) => {
-            h.check_bool(
-                &format!("meta_pop uniform: dispatch failed — {e}"),
-                false,
-            );
+            h.check_bool(&format!("meta_pop uniform: dispatch failed — {e}"), false);
         }
     }
 }
@@ -385,19 +355,15 @@ fn validate_meta_pop_differentiated(h: &mut ValidationHarness, gpu: &Gpu) {
     let mut allele_freqs = vec![0.0_f32; n_pops * n_loci];
     for pop in 0..n_pops {
         for locus in 0..n_loci {
-            allele_freqs[pop * n_loci + locus] =
-                (pop as f32 * 0.2 + locus as f32 * 0.05).clamp(0.01, 0.99);
+            allele_freqs[pop * n_loci + locus] = (pop as f32)
+                .mul_add(0.2, locus as f32 * 0.05)
+                .clamp(0.01, 0.99);
         }
     }
 
     let cpu_mean = cpu_mean_locus_variance(&allele_freqs, n_pops, n_loci);
 
-    match gpu_mean_locus_variance(
-        gpu,
-        &allele_freqs,
-        n_pops as u32,
-        n_loci as u32,
-    ) {
+    match gpu_mean_locus_variance(gpu, &allele_freqs, n_pops as u32, n_loci as u32) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("meta_pop differentiated: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -419,22 +385,10 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_pops = 6_usize;
     let n_loci = 16_usize;
     let mut rng = Rng::new(99);
-    let allele_freqs: Vec<f32> = (0..n_pops * n_loci)
-        .map(|_| rng.uniform() as f32)
-        .collect();
+    let allele_freqs: Vec<f32> = (0..n_pops * n_loci).map(|_| rng.uniform() as f32).collect();
 
-    let r1 = gpu_mean_locus_variance(
-        gpu,
-        &allele_freqs,
-        n_pops as u32,
-        n_loci as u32,
-    );
-    let r2 = gpu_mean_locus_variance(
-        gpu,
-        &allele_freqs,
-        n_pops as u32,
-        n_loci as u32,
-    );
+    let r1 = gpu_mean_locus_variance(gpu, &allele_freqs, n_pops as u32, n_loci as u32);
+    let r2 = gpu_mean_locus_variance(gpu, &allele_freqs, n_pops as u32, n_loci as u32);
 
     match (r1, r2) {
         (Ok(a), Ok(b)) => {

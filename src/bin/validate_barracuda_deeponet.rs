@@ -36,10 +36,6 @@ fn t(data: &[f32], shape: Vec<usize>, device: &Dev) -> Result<Tensor, String> {
     Tensor::from_data(data, shape, device.clone()).map_err(|e| e.to_string())
 }
 
-fn readback(tensor: &Tensor) -> Result<Vec<f32>, String> {
-    tensor.to_vec().map_err(|e| e.to_string())
-}
-
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
@@ -118,7 +114,7 @@ fn validate_dot_product_barracuda(h: &mut ValidationHarness, device: &Dev) {
     let tr = require!(h, t(&trunk, vec![4, 1], device), "create trunk tensor");
 
     let dot = require!(h, b.matmul(&tr).map_err(|e| e.to_string()), "dot product");
-    let result = require!(h, readback(&dot), "readback dot");
+    let result = require!(h, dot.to_vec(), "readback");
 
     h.check_abs(
         "barracuda branch·trunk",

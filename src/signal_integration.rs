@@ -120,7 +120,7 @@ pub struct OdeState {
 }
 
 impl OdeState {
-    const fn to_array(&self) -> [f64; 4] {
+    const fn to_array(self) -> [f64; 4] {
         [self.cdg, self.ai, self.vps_t, self.biofilm]
     }
 

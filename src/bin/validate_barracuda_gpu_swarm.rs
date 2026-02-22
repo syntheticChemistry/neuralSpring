@@ -28,32 +28,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("tensor readback: {e}"), false);
-            None
-        }
-    }
-}
 
 fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let rows = a.len();
@@ -78,13 +57,6 @@ fn flatten_f32(data: &[Vec<f64>]) -> Vec<f32> {
 
 fn flatten_f64(data: &[Vec<f64>]) -> Vec<f64> {
     data.iter().flat_map(|r| r.iter().copied()).collect()
-}
-
-fn max_abs_diff(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
 }
 
 #[tokio::main]
@@ -139,12 +111,7 @@ fn validate_nn_forward_pass(
     let h1_linear = cpu_a_bt(&input, &w1);
     let h1_biased: Vec<Vec<f64>> = h1_linear
         .iter()
-        .map(|row| {
-            row.iter()
-                .zip(bias1.iter())
-                .map(|(&v, &b)| v + b)
-                .collect()
-        })
+        .map(|row| row.iter().zip(bias1.iter()).map(|(&v, &b)| v + b).collect())
         .collect();
     let h1_tanh: Vec<Vec<f64>> = h1_biased
         .iter()
@@ -153,15 +120,11 @@ fn validate_nn_forward_pass(
     let out_linear = cpu_a_bt(&h1_tanh, &w2);
     let cpu_out: Vec<f64> = out_linear
         .iter()
-        .flat_map(|row| {
-            row.iter()
-                .zip(bias2.iter())
-                .map(|(&v, &b)| (v + b).tanh())
-        })
+        .flat_map(|row| row.iter().zip(bias2.iter()).map(|(&v, &b)| (v + b).tanh()))
         .collect();
 
-    let inp_t = tensor!(h, &flatten_f32(&input), &[n_robots, input_dim], device);
-    let w1_t = tensor!(h, &flatten_f32(&w1), &[hidden_dim, input_dim], device);
+    let inp_t = gpu_tensor!(h, &flatten_f32(&input), &[n_robots, input_dim], device);
+    let w1_t = gpu_tensor!(h, &flatten_f32(&w1), &[hidden_dim, input_dim], device);
     let w1_t_t = match w1_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -169,7 +132,7 @@ fn validate_nn_forward_pass(
             return;
         }
     };
-    let w2_t = tensor!(h, &flatten_f32(&w2), &[output_dim, hidden_dim], device);
+    let w2_t = gpu_tensor!(h, &flatten_f32(&w2), &[output_dim, hidden_dim], device);
     let w2_t_t = match w2_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -198,7 +161,12 @@ fn validate_nn_forward_pass(
             return;
         }
     };
-    let h1_biased_t = match h1_t.add(&tensor!(h, &bias1_broadcast, &[n_robots, hidden_dim], device)) {
+    let h1_biased_t = match h1_t.add(&gpu_tensor!(
+        h,
+        &bias1_broadcast,
+        &[n_robots, hidden_dim],
+        device
+    )) {
         Ok(t) => t,
         Err(e) => {
             h.check_bool(&format!("add bias1: {e}"), false);
@@ -219,7 +187,12 @@ fn validate_nn_forward_pass(
             return;
         }
     };
-    let out_t = match out_linear_t.add(&tensor!(h, &bias2_broadcast, &[n_robots, output_dim], device)) {
+    let out_t = match out_linear_t.add(&gpu_tensor!(
+        h,
+        &bias2_broadcast,
+        &[n_robots, output_dim],
+        device
+    )) {
         Ok(t) => match t.tanh() {
             Ok(a) => a,
             Err(e) => {
@@ -233,11 +206,11 @@ fn validate_nn_forward_pass(
         }
     };
 
-    let Some(out_gpu) = readback(h, &out_t) else {
+    let Some(out_gpu) = gpu_readback(h, &out_t) else {
         return;
     };
 
-    let diff = max_abs_diff(&out_gpu, &cpu_out);
+    let diff = max_abs_diff_gpu_vs_cpu(&out_gpu, &cpu_out);
     h.check_upper(
         &format!("NN forward pass: max diff ({diff:.2e})"),
         diff,
@@ -258,11 +231,15 @@ fn validate_heterogeneous_outputs_differ(
     let mut robot_outputs: Vec<Vec<f32>> = Vec::with_capacity(n_robots);
     for _robot in 0..n_robots {
         let inp: Vec<f32> = (0..input_dim).map(|_| rng.uniform() as f32).collect();
-        let w1: Vec<f32> = (0..hidden_dim * input_dim).map(|_| rng.uniform() as f32).collect();
-        let w2: Vec<f32> = (0..output_dim * hidden_dim).map(|_| rng.uniform() as f32).collect();
+        let w1: Vec<f32> = (0..hidden_dim * input_dim)
+            .map(|_| rng.uniform() as f32)
+            .collect();
+        let w2: Vec<f32> = (0..output_dim * hidden_dim)
+            .map(|_| rng.uniform() as f32)
+            .collect();
 
-        let inp_t = tensor!(h, &inp, &[1, input_dim], device);
-        let w1_t = tensor!(h, &w1, &[hidden_dim, input_dim], device);
+        let inp_t = gpu_tensor!(h, &inp, &[1, input_dim], device);
+        let w1_t = gpu_tensor!(h, &w1, &[hidden_dim, input_dim], device);
         let w1_t_t = match w1_t.transpose() {
             Ok(t) => t,
             Err(e) => {
@@ -283,7 +260,7 @@ fn validate_heterogeneous_outputs_differ(
                 return;
             }
         };
-        let w2_t = tensor!(h, &w2, &[output_dim, hidden_dim], device);
+        let w2_t = gpu_tensor!(h, &w2, &[output_dim, hidden_dim], device);
         let w2_t_t = match w2_t.transpose() {
             Ok(t) => t,
             Err(e) => {
@@ -304,7 +281,7 @@ fn validate_heterogeneous_outputs_differ(
                 return;
             }
         };
-        let Some(out) = readback(h, &out_t) else {
+        let Some(out) = gpu_readback(h, &out_t) else {
             return;
         };
         robot_outputs.push(out);
@@ -348,8 +325,8 @@ fn validate_tanh_activation(
     let cpu_linear = cpu_a_bt(&input, &w1);
     let cpu_tanh: Vec<f64> = flatten_f64(&cpu_linear).iter().map(|&x| x.tanh()).collect();
 
-    let inp_t = tensor!(h, &flatten_f32(&input), &[n_robots, input_dim], device);
-    let w1_t = tensor!(h, &flatten_f32(&w1), &[hidden_dim, input_dim], device);
+    let inp_t = gpu_tensor!(h, &flatten_f32(&input), &[n_robots, input_dim], device);
+    let w1_t = gpu_tensor!(h, &flatten_f32(&w1), &[hidden_dim, input_dim], device);
     let w1_t_t = match w1_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -372,11 +349,11 @@ fn validate_tanh_activation(
         }
     };
 
-    let Some(out) = readback(h, &act_t) else {
+    let Some(out) = gpu_readback(h, &act_t) else {
         return;
     };
 
-    let diff = max_abs_diff(&out, &cpu_tanh);
+    let diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_tanh);
     h.check_upper(
         &format!("tanh activation: max diff ({diff:.2e})"),
         diff,
@@ -387,10 +364,7 @@ fn validate_tanh_activation(
     h.check_bool("tanh output in (-1, 1)", in_range);
 }
 
-fn validate_output_finite(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_output_finite(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(77);
     let n_robots = 10_usize;
     let input_dim = 6_usize;
@@ -407,8 +381,8 @@ fn validate_output_finite(
         .map(|_| (0..hidden_dim).map(|_| rng.uniform()).collect())
         .collect();
 
-    let inp_t = tensor!(h, &flatten_f32(&input), &[n_robots, input_dim], device);
-    let w1_t = tensor!(h, &flatten_f32(&w1), &[hidden_dim, input_dim], device);
+    let inp_t = gpu_tensor!(h, &flatten_f32(&input), &[n_robots, input_dim], device);
+    let w1_t = gpu_tensor!(h, &flatten_f32(&w1), &[hidden_dim, input_dim], device);
     let w1_t_t = match w1_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -416,7 +390,7 @@ fn validate_output_finite(
             return;
         }
     };
-    let w2_t = tensor!(h, &flatten_f32(&w2), &[output_dim, hidden_dim], device);
+    let w2_t = gpu_tensor!(h, &flatten_f32(&w2), &[output_dim, hidden_dim], device);
     let w2_t_t = match w2_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -452,7 +426,7 @@ fn validate_output_finite(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
@@ -462,19 +436,22 @@ fn validate_output_finite(
     );
 }
 
-fn validate_determinism(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(42);
     let n_robots = 10_usize;
     let input_dim = 6_usize;
     let hidden_dim = 8_usize;
     let output_dim = 3_usize;
 
-    let inp: Vec<f32> = (0..n_robots * input_dim).map(|_| rng.uniform() as f32).collect();
-    let w1: Vec<f32> = (0..hidden_dim * input_dim).map(|_| rng.uniform() as f32).collect();
-    let w2: Vec<f32> = (0..output_dim * hidden_dim).map(|_| rng.uniform() as f32).collect();
+    let inp: Vec<f32> = (0..n_robots * input_dim)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let w1: Vec<f32> = (0..hidden_dim * input_dim)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let w2: Vec<f32> = (0..output_dim * hidden_dim)
+        .map(|_| rng.uniform() as f32)
+        .collect();
 
     let run = |_: u32| -> Option<Vec<f32>> {
         let i = Tensor::from_data(&inp, vec![n_robots, input_dim], device.clone()).ok()?;

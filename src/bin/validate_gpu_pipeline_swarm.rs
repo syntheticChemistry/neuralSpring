@@ -105,8 +105,8 @@ fn cpu_mean_swarm_scores(
             .iter()
             .map(|&x| f64::from(x))
             .collect();
-        for eval in 0..n_evals {
-            total += neural_forward_max_score(&ctrl_params, f64::from(inputs[eval])) as f32;
+        for input in inputs.iter().take(n_evals) {
+            total += neural_forward_max_score(&ctrl_params, f64::from(*input)) as f32;
         }
     }
     total / (n_controllers * n_evals) as f32
@@ -314,13 +314,7 @@ fn validate_swarm_small(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cpu_mean = cpu_mean_swarm_scores(&params, &inputs, n_controllers, n_evals);
 
-    match gpu_mean_swarm_scores(
-        gpu,
-        &params,
-        &inputs,
-        n_controllers as u32,
-        n_evals as u32,
-    ) {
+    match gpu_mean_swarm_scores(gpu, &params, &inputs, n_controllers as u32, n_evals as u32) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("swarm small 4×5: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -352,13 +346,7 @@ fn validate_swarm_larger(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cpu_mean = cpu_mean_swarm_scores(&params, &inputs, n_controllers, n_evals);
 
-    match gpu_mean_swarm_scores(
-        gpu,
-        &params,
-        &inputs,
-        n_controllers as u32,
-        n_evals as u32,
-    ) {
+    match gpu_mean_swarm_scores(gpu, &params, &inputs, n_controllers as u32, n_evals as u32) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("swarm larger 10×8: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -383,13 +371,7 @@ fn validate_swarm_single_controller(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cpu_mean = cpu_mean_swarm_scores(&params, &inputs, n_controllers, n_evals);
 
-    match gpu_mean_swarm_scores(
-        gpu,
-        &params,
-        &inputs,
-        n_controllers as u32,
-        n_evals as u32,
-    ) {
+    match gpu_mean_swarm_scores(gpu, &params, &inputs, n_controllers as u32, n_evals as u32) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("swarm single ctrl 1×6: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -399,10 +381,7 @@ fn validate_swarm_single_controller(h: &mut ValidationHarness, gpu: &Gpu) {
             );
         }
         Err(e) => {
-            h.check_bool(
-                &format!("swarm single ctrl: dispatch failed — {e}"),
-                false,
-            );
+            h.check_bool(&format!("swarm single ctrl: dispatch failed — {e}"), false);
         }
     }
 }
@@ -422,13 +401,7 @@ fn validate_swarm_random_inputs(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cpu_mean = cpu_mean_swarm_scores(&params, &inputs, n_controllers, n_evals);
 
-    match gpu_mean_swarm_scores(
-        gpu,
-        &params,
-        &inputs,
-        n_controllers as u32,
-        n_evals as u32,
-    ) {
+    match gpu_mean_swarm_scores(gpu, &params, &inputs, n_controllers as u32, n_evals as u32) {
         Ok(gpu_mean) => {
             h.check_abs(
                 &format!("swarm random inputs 3×4: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
@@ -459,20 +432,8 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         .collect();
     let inputs: Vec<f32> = vec![0.1, 0.3, 0.7, 0.9];
 
-    let r1 = gpu_mean_swarm_scores(
-        gpu,
-        &params,
-        &inputs,
-        n_controllers as u32,
-        n_evals as u32,
-    );
-    let r2 = gpu_mean_swarm_scores(
-        gpu,
-        &params,
-        &inputs,
-        n_controllers as u32,
-        n_evals as u32,
-    );
+    let r1 = gpu_mean_swarm_scores(gpu, &params, &inputs, n_controllers as u32, n_evals as u32);
+    let r2 = gpu_mean_swarm_scores(gpu, &params, &inputs, n_controllers as u32, n_evals as u32);
 
     match (r1, r2) {
         (Ok(a), Ok(b)) => {

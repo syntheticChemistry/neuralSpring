@@ -34,39 +34,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("readback: {e}"), false);
-            None
-        }
-    }
-}
-
-fn max_abs_diff(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
-}
 
 /// CPU A × B^T: A is M×K (Vec of rows), B is N×K (Vec of rows).
 fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
@@ -137,8 +109,8 @@ fn validate_single_layer(h: &mut ValidationHarness, device: &Arc<barracuda::devi
     let cpu_linear = cpu_a_bt(&input, &weight);
     let cpu_tanh: Vec<f64> = flatten_f64(&cpu_linear).iter().map(|&x| x.tanh()).collect();
 
-    let inp_t = tensor!(h, &flatten_f32(&input), &[batch, in_dim], device);
-    let wt_t = tensor!(h, &flatten_f32(&weight), &[out_dim, in_dim], device);
+    let inp_t = gpu_tensor!(h, &flatten_f32(&input), &[batch, in_dim], device);
+    let wt_t = gpu_tensor!(h, &flatten_f32(&weight), &[out_dim, in_dim], device);
     let wt_t_t = match wt_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -161,11 +133,11 @@ fn validate_single_layer(h: &mut ValidationHarness, device: &Arc<barracuda::devi
             return;
         }
     };
-    let Some(out) = readback(h, &act_t) else {
+    let Some(out) = gpu_readback(h, &act_t) else {
         return;
     };
 
-    let diff = max_abs_diff(&out, &cpu_tanh);
+    let diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_tanh);
     h.check_upper(
         &format!("single layer matmul+tanh: max diff ({diff:.2e})"),
         diff,
@@ -198,8 +170,8 @@ fn validate_two_layer_mlp(h: &mut ValidationHarness, device: &Arc<barracuda::dev
         .collect();
     let cpu_out = flatten_f64(&cpu_a_bt(&h1_tanh, &w2));
 
-    let inp_t = tensor!(h, &flatten_f32(&input), &[batch, in_dim], device);
-    let w1_t = tensor!(h, &flatten_f32(&w1), &[hidden, in_dim], device);
+    let inp_t = gpu_tensor!(h, &flatten_f32(&input), &[batch, in_dim], device);
+    let w1_t = gpu_tensor!(h, &flatten_f32(&w1), &[hidden, in_dim], device);
     let w1_t_t = match w1_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -207,7 +179,7 @@ fn validate_two_layer_mlp(h: &mut ValidationHarness, device: &Arc<barracuda::dev
             return;
         }
     };
-    let w2_t = tensor!(h, &flatten_f32(&w2), &[out_dim, hidden], device);
+    let w2_t = gpu_tensor!(h, &flatten_f32(&w2), &[out_dim, hidden], device);
     let w2_t_t = match w2_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -236,11 +208,11 @@ fn validate_two_layer_mlp(h: &mut ValidationHarness, device: &Arc<barracuda::dev
             return;
         }
     };
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
-    let diff = max_abs_diff(&out, &cpu_out);
+    let diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_out);
     h.check_upper(
         &format!("2-layer MLP: max diff ({diff:.2e})"),
         diff,
@@ -274,8 +246,8 @@ fn validate_bias_add(h: &mut ValidationHarness, device: &Arc<barracuda::device::
         .flat_map(|row| row.iter().zip(bias_f64.iter()).map(|(&v, &b)| v + b))
         .collect();
 
-    let inp_t = tensor!(h, &flatten_f32(&input), &[batch, in_dim], device);
-    let wt_t = tensor!(h, &flatten_f32(&weight), &[out_dim, in_dim], device);
+    let inp_t = gpu_tensor!(h, &flatten_f32(&input), &[batch, in_dim], device);
+    let wt_t = gpu_tensor!(h, &flatten_f32(&weight), &[out_dim, in_dim], device);
     let wt_t_t = match wt_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -290,7 +262,7 @@ fn validate_bias_add(h: &mut ValidationHarness, device: &Arc<barracuda::device::
         .take(batch * out_dim)
         .map(|&x| x as f32)
         .collect();
-    let bias_t = tensor!(h, &bias_row, &[batch, out_dim], device);
+    let bias_t = gpu_tensor!(h, &bias_row, &[batch, out_dim], device);
 
     let mm = match inp_t.matmul(&wt_t_t) {
         Ok(t) => t,
@@ -306,11 +278,11 @@ fn validate_bias_add(h: &mut ValidationHarness, device: &Arc<barracuda::device::
             return;
         }
     };
-    let Some(out) = readback(h, &biased) else {
+    let Some(out) = gpu_readback(h, &biased) else {
         return;
     };
 
-    let diff = max_abs_diff(&out, &cpu_biased);
+    let diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_biased);
     h.check_upper(
         &format!("matmul+bias: max diff ({diff:.2e})"),
         diff,

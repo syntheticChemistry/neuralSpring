@@ -322,7 +322,12 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_genes = 50_u32;
     let env_labels: Vec<usize> = (0..5).map(|_| 0).chain((0..5).map(|_| 1)).collect();
     let pa = generate_pa_matrix(
-        n_genomes as usize, n_genes as usize, 0.25, 0.10, &mut rng, &env_labels,
+        n_genomes as usize,
+        n_genes as usize,
+        0.25,
+        0.10,
+        &mut rng,
+        &env_labels,
     );
     let pa_f32: Vec<f32> = pa.iter().map(|&v| v as f32).collect();
     let n_pairs = (n_genomes * (n_genomes - 1) / 2) as usize;
@@ -333,11 +338,13 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
     let device = gpu.device();
     let op = PairwiseJaccardGpu::new(dev);
     let pa_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("pa"), contents: bytemuck::cast_slice(&pa_f32),
+        label: Some("pa"),
+        contents: bytemuck::cast_slice(&pa_f32),
         usage: wgpu::BufferUsages::STORAGE,
     });
     let dist_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("dist"), size: (n_pairs * 4) as u64,
+        label: Some("dist"),
+        size: (n_pairs * 4) as u64,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
@@ -346,12 +353,15 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match (local, upstream) {
         (Ok(l), Ok(u)) => {
-            let max_diff: f64 = l.iter().zip(u.iter())
+            let max_diff: f64 = l
+                .iter()
+                .zip(u.iter())
                 .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
                 .fold(0.0_f64, f64::max);
             h.check_upper(
                 &format!("upstream parity: local vs PairwiseJaccardGpu diff {max_diff:.2e}"),
-                max_diff, tolerances::GPU_JACCARD_F32,
+                max_diff,
+                tolerances::GPU_JACCARD_F32,
             );
         }
         _ => h.check_bool("upstream parity: dispatch failed", false),

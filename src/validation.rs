@@ -248,6 +248,107 @@ impl ValidationHarness {
     }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// GPU tensor validation helpers (shared across 24+ validation binaries)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Attempt GPU tensor readback, recording a FAIL check on error.
+///
+/// Returns `Some(data)` on success, `None` on failure.
+/// The caller should early-return on `None`.
+pub fn gpu_readback(
+    h: &mut ValidationHarness,
+    tensor: &barracuda::tensor::Tensor,
+) -> Option<Vec<f32>> {
+    match tensor.to_vec() {
+        Ok(data) => Some(data),
+        Err(e) => {
+            h.check_bool(&format!("GPU readback: {e}"), false);
+            None
+        }
+    }
+}
+
+/// Compute the maximum absolute difference between two f32 slices.
+///
+/// Used by GPU validation binaries to compare GPU output against
+/// GPU output (both f32).
+#[must_use]
+pub fn max_abs_diff_f32(a: &[f32], b: &[f32]) -> f64 {
+    a.iter()
+        .zip(b.iter())
+        .map(|(x, y)| f64::from((x - y).abs()))
+        .fold(0.0_f64, f64::max)
+}
+
+/// Compute the maximum absolute difference between GPU f32 output
+/// and CPU f64 reference values.
+///
+/// The promotion to f64 before comparison avoids f32 rounding
+/// masking real errors.
+#[must_use]
+pub fn max_abs_diff_gpu_vs_cpu(gpu: &[f32], cpu: &[f64]) -> f64 {
+    gpu.iter()
+        .zip(cpu.iter())
+        .map(|(&g, &c)| (f64::from(g) - c).abs())
+        .fold(0.0_f64, f64::max)
+}
+
+/// Batch-check readback values against expected (label, index, expected, tolerance).
+///
+/// Shared helper that replaces `check_points` duplicated across tensor
+/// validation binaries.
+pub fn check_gpu_points(
+    h: &mut ValidationHarness,
+    data: &[f32],
+    checks: &[(&str, usize, f64, f64)],
+) {
+    for &(label, idx, expected, tol) in checks {
+        h.check_abs(label, f64::from(data[idx]), expected, tol);
+    }
+}
+
+/// Create a tensor from data, recording a FAIL check on error.
+///
+/// Returns `Some(tensor)` on success, `None` on failure.
+pub fn gpu_tensor(
+    h: &mut ValidationHarness,
+    data: &[f32],
+    shape: &[usize],
+    device: &std::sync::Arc<barracuda::device::WgpuDevice>,
+) -> Option<barracuda::tensor::Tensor> {
+    match barracuda::tensor::Tensor::from_data(data, shape.to_vec(), device.clone()) {
+        Ok(t) => Some(t),
+        Err(e) => {
+            h.check_bool(&format!("tensor create: {e}"), false);
+            None
+        }
+    }
+}
+
+/// Create a GPU tensor, or record FAIL and return from the enclosing function.
+///
+/// This macro replaces the `tensor!` macro duplicated across 14+ GPU
+/// validation binaries.
+///
+/// # Usage
+///
+/// ```ignore
+/// let t = gpu_tensor!(harness, &data, &[rows, cols], device);
+/// ```
+#[macro_export]
+macro_rules! gpu_tensor {
+    ($harness:expr, $data:expr, $shape:expr, $device:expr) => {
+        match barracuda::tensor::Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
+            Ok(t) => t,
+            Err(e) => {
+                $harness.check_bool(&format!("tensor create: {}", e), false);
+                return;
+            }
+        }
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

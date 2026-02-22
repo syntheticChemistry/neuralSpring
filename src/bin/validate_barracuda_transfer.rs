@@ -17,7 +17,7 @@
     clippy::items_after_statements,
     clippy::many_single_char_names,
     clippy::similar_names,
-    clippy::suboptimal_flops,
+    clippy::suboptimal_flops
 )]
 
 use barracuda::device::WgpuDevice;
@@ -27,24 +27,13 @@ use neural_spring::metrics::{r_squared, rmse};
 use neural_spring::require;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
 
 type Dev = Arc<WgpuDevice>;
 
 fn t(data: &[f32], shape: Vec<usize>, device: &Dev) -> Result<Tensor, String> {
     Tensor::from_data(data, shape, device.clone()).map_err(|e| e.to_string())
-}
-
-fn readback(tensor: &Tensor) -> Result<Vec<f32>, String> {
-    tensor.to_vec().map_err(|e| e.to_string())
-}
-
-fn max_abs_diff(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
 }
 
 /// CPU A × B^T reference for MLP forward.
@@ -98,15 +87,9 @@ fn validate_mlp_forward(h: &mut ValidationHarness, device: &Dev) {
     const H1: usize = 32;
     const OUT: usize = 1;
 
-    let input: Vec<f64> = (0..IN)
-        .map(|_| rng.uniform() * 0.5 + 0.5)
-        .collect();
-    let w1: Vec<f64> = (0..(H1 * IN))
-        .map(|_| rng.uniform() * 0.5 + 0.5)
-        .collect();
-    let w2: Vec<f64> = (0..(OUT * H1))
-        .map(|_| rng.uniform() * 0.5 + 0.5)
-        .collect();
+    let input: Vec<f64> = (0..IN).map(|_| rng.uniform() * 0.5 + 0.5).collect();
+    let w1: Vec<f64> = (0..(H1 * IN)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
+    let w2: Vec<f64> = (0..(OUT * H1)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
 
     let h1_linear = cpu_matmul_a_bt(&input, (1, IN), &w1, (H1, IN));
     let h1_tanh: Vec<f64> = h1_linear.iter().map(|&x| x.tanh()).collect();
@@ -126,8 +109,8 @@ fn validate_mlp_forward(h: &mut ValidationHarness, device: &Dev) {
     );
     let h1_tanh_t = require!(h, h1_linear_t.tanh().map_err(|e| e.to_string()), "FC1 tanh");
 
-    let h1_out = require!(h, readback(&h1_tanh_t), "readback FC1");
-    let diff_fc1 = max_abs_diff(&h1_out, &h1_tanh);
+    let h1_out = require!(h, h1_tanh_t.to_vec(), "readback FC1");
+    let diff_fc1 = max_abs_diff_gpu_vs_cpu(&h1_out, &h1_tanh);
     h.check_upper(
         "FC1 accuracy",
         diff_fc1,
@@ -141,9 +124,9 @@ fn validate_mlp_forward(h: &mut ValidationHarness, device: &Dev) {
         h1_tanh_t.matmul(&w2_t_t).map_err(|e| e.to_string()),
         "FC2 matmul"
     );
-    let gpu_out = require!(h, readback(&h2_linear_t), "readback FC2");
+    let gpu_out = require!(h, h2_linear_t.to_vec(), "readback FC2");
 
-    let diff_fc2 = max_abs_diff(&gpu_out, &cpu_out);
+    let diff_fc2 = max_abs_diff_gpu_vs_cpu(&gpu_out, &cpu_out);
     h.check_upper("FC2 accuracy", diff_fc2, tolerances::BARRACUDA_GPU_ECO_F32);
 }
 
@@ -154,12 +137,8 @@ fn validate_domain_adaptation(h: &mut ValidationHarness, device: &Dev) {
     const H1: usize = 32;
     const OUT: usize = 1;
 
-    let w1: Vec<f64> = (0..(H1 * IN))
-        .map(|_| rng.uniform() * 0.5 + 0.5)
-        .collect();
-    let w2: Vec<f64> = (0..(OUT * H1))
-        .map(|_| rng.uniform() * 0.5 + 0.5)
-        .collect();
+    let w1: Vec<f64> = (0..(H1 * IN)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
+    let w2: Vec<f64> = (0..(OUT * H1)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
     let w1_f32: Vec<f32> = w1.iter().map(|&x| x as f32).collect();
     let w2_f32: Vec<f32> = w2.iter().map(|&x| x as f32).collect();
 
@@ -200,8 +179,8 @@ fn validate_domain_adaptation(h: &mut ValidationHarness, device: &Dev) {
         return;
     };
 
-    let diff_source = max_abs_diff(&gpu_source, &cpu_source);
-    let diff_target = max_abs_diff(&gpu_target, &cpu_target);
+    let diff_source = max_abs_diff_gpu_vs_cpu(&gpu_source, &cpu_source);
+    let diff_target = max_abs_diff_gpu_vs_cpu(&gpu_target, &cpu_target);
 
     h.check_upper(
         "domain adaptation: source GPU matches CPU",
@@ -271,6 +250,9 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Dev) {
         return;
     };
 
-    let identical = r1.iter().zip(r2.iter()).all(|(a, b)| a.to_bits() == b.to_bits());
+    let identical = r1
+        .iter()
+        .zip(r2.iter())
+        .all(|(a, b)| a.to_bits() == b.to_bits());
     h.check_bool("determinism: two runs bit-identical", identical);
 }

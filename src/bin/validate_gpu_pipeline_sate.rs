@@ -139,11 +139,7 @@ fn gpu_mean_pairwise_hamming(
 
     let hamming_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("chain_hamming_bgl"),
-        entries: &[
-            storage_ro_entry(0),
-            storage_rw_entry(1),
-            uniform_entry(2),
-        ],
+        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
     });
 
     let hamming_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -362,10 +358,7 @@ fn validate_sate_identical(h: &mut ValidationHarness, gpu: &Gpu) {
             );
         }
         Err(e) => {
-            h.check_bool(
-                &format!("sate identical: dispatch failed — {e}"),
-                false,
-            );
+            h.check_bool(&format!("sate identical: dispatch failed — {e}"), false);
         }
     }
 }
@@ -392,10 +385,7 @@ fn validate_sate_all_differ(h: &mut ValidationHarness, gpu: &Gpu) {
             );
         }
         Err(e) => {
-            h.check_bool(
-                &format!("sate all differ: dispatch failed — {e}"),
-                false,
-            );
+            h.check_bool(&format!("sate all differ: dispatch failed — {e}"), false);
         }
     }
 }

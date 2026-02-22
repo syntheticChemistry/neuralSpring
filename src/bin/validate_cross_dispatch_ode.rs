@@ -68,13 +68,7 @@ fn validate_dispatch_routing(h: &mut ValidationHarness) {
 // ── CPU RK4 reference (Hill ODE, matches rk4_parallel.wgsl) ───────
 
 #[allow(clippy::cast_sign_loss)]
-fn cpu_rk4_hill(
-    initial: &[f32],
-    coeffs: &[f32],
-    dim: usize,
-    n_steps: usize,
-    dt: f32,
-) -> Vec<f32> {
+fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt: f32) -> Vec<f32> {
     fn hill(x: f32, k: f32, n: f32) -> f32 {
         let xn = x.powf(n);
         xn / (k.powf(n) + xn)
@@ -280,10 +274,10 @@ fn validate_rk4_parity(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let initial: Vec<f32> = vec![1.0, 0.5, 0.0, 0.0];
     let coeffs: Vec<f32> = vec![
-        1.0, 0.5, 0.0,  // y0: prod=1, deg=0.5, activator=y0
-        0.5, 0.3, 0.0,  // y1: prod=0.5, deg=0.3, activator=y0
-        0.3, 0.2, 1.0,  // y2: prod=0.3, deg=0.2, activator=y1
-        0.2, 0.1, 2.0,  // y3: prod=0.2, deg=0.1, activator=y2
+        1.0, 0.5, 0.0, // y0: prod=1, deg=0.5, activator=y0
+        0.5, 0.3, 0.0, // y1: prod=0.5, deg=0.3, activator=y0
+        0.3, 0.2, 1.0, // y2: prod=0.3, deg=0.2, activator=y1
+        0.2, 0.1, 2.0, // y3: prod=0.2, deg=0.1, activator=y2
     ];
     let n_coeffs = coeffs.len() as u32;
 

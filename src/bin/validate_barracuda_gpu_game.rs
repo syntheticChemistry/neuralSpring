@@ -3,7 +3,7 @@
 //! `BarraCUDA` GPU validation: game-theoretic payoff evaluation (Paper 019).
 //!
 //! Validates that `BarraCUDA` `Tensor` matmul on GPU correctly computes
-//! payoff = strategy_vector × payoff_matrix^T for QS cooperation games.
+//! payoff = `strategy_vector` × `payoff_matrix^T` for QS cooperation games.
 //! Domain: game-theoretic payoff evaluation for quorum sensing cooperation.
 //!
 //! ## S-14 workaround
@@ -29,32 +29,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("tensor readback: {e}"), false);
-            None
-        }
-    }
-}
 
 fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let rows = a.len();
@@ -69,13 +48,6 @@ fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
         }
     }
     out
-}
-
-fn max_abs_diff_flat(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
 }
 
 #[tokio::main]
@@ -140,12 +112,12 @@ fn validate_payoff_matrix_matmul(
 
     let mut all_gpu: Vec<f32> = Vec::with_capacity(n_agents * n_strategies * n_games);
     for g in 0..n_games {
-        let strat_t = tensor!(h, &strat_flat, &[n_agents, n_strategies], device);
+        let strat_t = gpu_tensor!(h, &strat_flat, &[n_agents, n_strategies], device);
         let pay_flat: Vec<f32> = payoff_matrices[g]
             .iter()
             .flat_map(|r| r.iter().map(|&x| x as f32))
             .collect();
-        let pay_t = tensor!(h, &pay_flat, &[n_strategies, n_strategies], device);
+        let pay_t = gpu_tensor!(h, &pay_flat, &[n_strategies, n_strategies], device);
         let pay_t_t = match pay_t.transpose() {
             Ok(t) => t,
             Err(e) => {
@@ -160,13 +132,13 @@ fn validate_payoff_matrix_matmul(
                 return;
             }
         };
-        let Some(out) = readback(h, &out_t) else {
+        let Some(out) = gpu_readback(h, &out_t) else {
             return;
         };
         all_gpu.extend_from_slice(&out);
     }
 
-    let diff = max_abs_diff_flat(&all_gpu, &cpu_payoffs);
+    let diff = max_abs_diff_gpu_vs_cpu(&all_gpu, &cpu_payoffs);
     h.check_upper(
         &format!("payoff matrix matmul: max diff ({diff:.2e})"),
         diff,
@@ -210,8 +182,8 @@ fn validate_pd_payoff_structure(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let strat_t = tensor!(h, &strat_flat, &[n_agents, n_strategies], device);
-    let pay_t = tensor!(h, &pay_flat, &[n_strategies, n_strategies], device);
+    let strat_t = gpu_tensor!(h, &strat_flat, &[n_agents, n_strategies], device);
+    let pay_t = gpu_tensor!(h, &pay_flat, &[n_strategies, n_strategies], device);
     let pay_t_t = match pay_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -228,7 +200,7 @@ fn validate_pd_payoff_structure(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
@@ -284,8 +256,8 @@ fn validate_spatial_payoff_aggregation(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let strat_t = tensor!(h, &strat_flat, &[n_agents, n_strategies], device);
-    let pay_t = tensor!(h, &pay_flat, &[n_strategies, n_strategies], device);
+    let strat_t = gpu_tensor!(h, &strat_flat, &[n_agents, n_strategies], device);
+    let pay_t = gpu_tensor!(h, &pay_flat, &[n_strategies, n_strategies], device);
     let pay_t_t = match pay_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -302,7 +274,7 @@ fn validate_spatial_payoff_aggregation(
         }
     };
 
-    let Some(local_gpu) = readback(h, &local_t) else {
+    let Some(local_gpu) = gpu_readback(h, &local_t) else {
         return;
     };
 
@@ -333,19 +305,20 @@ fn validate_spatial_payoff_aggregation(
     );
 }
 
-fn validate_payoff_finite(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_payoff_finite(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(77);
     let n_agents = 20_usize;
     let n_strategies = 4_usize;
 
-    let strat_flat: Vec<f32> = (0..n_agents * n_strategies).map(|_| rng.uniform() as f32).collect();
-    let pay_flat: Vec<f32> = (0..n_strategies * n_strategies).map(|_| rng.uniform() as f32).collect();
+    let strat_flat: Vec<f32> = (0..n_agents * n_strategies)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let pay_flat: Vec<f32> = (0..n_strategies * n_strategies)
+        .map(|_| rng.uniform() as f32)
+        .collect();
 
-    let strat_t = tensor!(h, &strat_flat, &[n_agents, n_strategies], device);
-    let pay_t = tensor!(h, &pay_flat, &[n_strategies, n_strategies], device);
+    let strat_t = gpu_tensor!(h, &strat_flat, &[n_agents, n_strategies], device);
+    let pay_t = gpu_tensor!(h, &pay_flat, &[n_strategies, n_strategies], device);
     let pay_t_t = match pay_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -362,7 +335,7 @@ fn validate_payoff_finite(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
@@ -372,16 +345,17 @@ fn validate_payoff_finite(
     );
 }
 
-fn validate_determinism(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(42);
     let n_agents = 20_usize;
     let n_strategies = 4_usize;
 
-    let strat_flat: Vec<f32> = (0..n_agents * n_strategies).map(|_| rng.uniform() as f32).collect();
-    let pay_flat: Vec<f32> = (0..n_strategies * n_strategies).map(|_| rng.uniform() as f32).collect();
+    let strat_flat: Vec<f32> = (0..n_agents * n_strategies)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let pay_flat: Vec<f32> = (0..n_strategies * n_strategies)
+        .map(|_| rng.uniform() as f32)
+        .collect();
 
     let run = |_: u32| -> Option<Vec<f32>> {
         let s =

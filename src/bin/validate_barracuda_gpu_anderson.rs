@@ -34,32 +34,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("readback: {e}"), false);
-            None
-        }
-    }
-}
 
 fn cpu_gram(rows: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let n = rows.len();
@@ -73,19 +52,6 @@ fn cpu_gram(rows: &[Vec<f64>]) -> Vec<Vec<f64>> {
         }
     }
     g
-}
-
-fn max_abs_diff_2d(gpu: &[f32], cpu: &[Vec<f64>]) -> f64 {
-    let n = cpu.len();
-    let cols = cpu[0].len();
-    let mut max_d = 0.0_f64;
-    for i in 0..n {
-        for j in 0..cols {
-            let d = (f64::from(gpu[i * cols + j]) - cpu[i][j]).abs();
-            max_d = max_d.max(d);
-        }
-    }
-    max_d
 }
 
 #[tokio::main]
@@ -133,8 +99,8 @@ fn validate_wavefunction_gram(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let p_t1 = tensor!(h, &flat, &[m, n], device);
-    let p_t2 = tensor!(h, &flat, &[m, n], device);
+    let p_t1 = gpu_tensor!(h, &flat, &[m, n], device);
+    let p_t2 = gpu_tensor!(h, &flat, &[m, n], device);
     let p_t2_t = match p_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -149,11 +115,12 @@ fn validate_wavefunction_gram(
             return;
         }
     };
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
 
-    let diff = max_abs_diff_2d(&gram, &cpu);
+    let cpu_flat: Vec<f64> = cpu.iter().flat_map(|r| r.iter().copied()).collect();
+    let diff = max_abs_diff_gpu_vs_cpu(&gram, &cpu_flat);
     h.check_upper(
         &format!("Ψ Gram: max diff ({diff:.2e})"),
         diff,
@@ -217,8 +184,8 @@ fn validate_hamiltonian_product(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let psi_t = tensor!(h, &psi_flat, &[m, n], device);
-    let h_t = tensor!(h, &h_flat, &[n, n], device);
+    let psi_t = gpu_tensor!(h, &psi_flat, &[m, n], device);
+    let h_t = gpu_tensor!(h, &h_flat, &[n, n], device);
     let h_t_t = match h_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -234,11 +201,12 @@ fn validate_hamiltonian_product(
             return;
         }
     };
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
 
-    let diff = max_abs_diff_2d(&out, &cpu_psi_h);
+    let cpu_psi_h_flat: Vec<f64> = cpu_psi_h.iter().flat_map(|r| r.iter().copied()).collect();
+    let diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_psi_h_flat);
     h.check_upper(
         &format!("Ψ×H^T: max diff ({diff:.2e})"),
         diff,
@@ -325,8 +293,8 @@ fn validate_gershgorin_bounds(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let psi_t = tensor!(h, &psi_flat, &[m, n], device);
-    let h_t = tensor!(h, &h_flat, &[n, n], device);
+    let psi_t = gpu_tensor!(h, &psi_flat, &[m, n], device);
+    let h_t = gpu_tensor!(h, &h_flat, &[n, n], device);
     let h_t_t = match h_t.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -342,11 +310,12 @@ fn validate_gershgorin_bounds(
             return;
         }
     };
-    let Some(gpu_out) = readback(h, &out_t) else {
+    let Some(gpu_out) = gpu_readback(h, &out_t) else {
         return;
     };
 
-    let diff = max_abs_diff_2d(&gpu_out, &cpu_psi_h);
+    let cpu_psi_h_flat: Vec<f64> = cpu_psi_h.iter().flat_map(|r| r.iter().copied()).collect();
+    let diff = max_abs_diff_gpu_vs_cpu(&gpu_out, &cpu_psi_h_flat);
     h.check_upper(
         &format!("Gershgorin Ψ×H^T: max diff ({diff:.2e})"),
         diff,

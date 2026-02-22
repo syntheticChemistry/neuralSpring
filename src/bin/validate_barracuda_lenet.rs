@@ -35,7 +35,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::require;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
 
 const BATCH: usize = 4;
@@ -51,15 +51,13 @@ fn tensor(
     Tensor::from_data(data, shape, device.clone())
 }
 
-fn max_abs_diff(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
-}
-
 /// CPU A × B^T
-fn cpu_matmul_a_bt(a: &[f64], shape_a: (usize, usize), b: &[f64], shape_b: (usize, usize)) -> Vec<f64> {
+fn cpu_matmul_a_bt(
+    a: &[f64],
+    shape_a: (usize, usize),
+    b: &[f64],
+    shape_b: (usize, usize),
+) -> Vec<f64> {
     let (m, k) = shape_a;
     let (n, _) = shape_b;
     let mut out = vec![0.0_f64; m * n];
@@ -114,25 +112,33 @@ fn validate_fc_chain(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         tensor(&input_f32, vec![BATCH, FC1_IN], device),
         "Tensor::from_data input"
     );
-    let w1_t = require!(h, tensor(&w1_f32, vec![FC1_OUT, FC1_IN], device), "Tensor::from_data W1");
+    let w1_t = require!(
+        h,
+        tensor(&w1_f32, vec![FC1_OUT, FC1_IN], device),
+        "Tensor::from_data W1"
+    );
     let w1_t_t = require!(h, w1_t.transpose(), "W1 transpose");
     let h1_linear_t = require!(h, inp_t.matmul(&w1_t_t), "FC1 matmul");
     let h1_tanh_t = require!(h, h1_linear_t.tanh(), "FC1 tanh");
     let h1_out = require!(h, h1_tanh_t.to_vec(), "readback FC1");
 
-    let diff_fc1 = max_abs_diff(&h1_out, &h1_tanh);
+    let diff_fc1 = max_abs_diff_gpu_vs_cpu(&h1_out, &h1_tanh);
     h.check_upper(
         &format!("FC1 matmul+tanh accuracy (diff={diff_fc1:.2e})"),
         diff_fc1,
         tolerances::TENSOR_TRANSCENDENTAL_F32,
     );
 
-    let w2_t = require!(h, tensor(&w2_f32, vec![FC2_OUT, FC1_OUT], device), "Tensor::from_data W2");
+    let w2_t = require!(
+        h,
+        tensor(&w2_f32, vec![FC2_OUT, FC1_OUT], device),
+        "Tensor::from_data W2"
+    );
     let w2_t_t = require!(h, w2_t.transpose(), "W2 transpose");
     let h2_linear_t = require!(h, h1_tanh_t.matmul(&w2_t_t), "FC2 matmul");
     let out = require!(h, h2_linear_t.to_vec(), "readback FC2");
 
-    let diff_fc2 = max_abs_diff(&out, &cpu_out);
+    let diff_fc2 = max_abs_diff_gpu_vs_cpu(&out, &cpu_out);
     h.check_upper(
         &format!("FC2 matmul accuracy (diff={diff_fc2:.2e})"),
         diff_fc2,
@@ -155,8 +161,12 @@ fn validate_fc_chain(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 fn validate_determinism(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let mut rng = Rng::new(77);
     let input: Vec<f32> = (0..BATCH * FC1_IN).map(|_| rng.uniform() as f32).collect();
-    let w1: Vec<f32> = (0..FC1_OUT * FC1_IN).map(|_| rng.uniform() as f32).collect();
-    let w2: Vec<f32> = (0..FC2_OUT * FC1_OUT).map(|_| rng.uniform() as f32).collect();
+    let w1: Vec<f32> = (0..FC1_OUT * FC1_IN)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let w2: Vec<f32> = (0..FC2_OUT * FC1_OUT)
+        .map(|_| rng.uniform() as f32)
+        .collect();
 
     let run = || -> Option<Vec<f32>> {
         let i = Tensor::from_data(&input, vec![BATCH, FC1_IN], device.clone()).ok()?;
@@ -179,6 +189,9 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         return;
     };
 
-    let identical = r1.iter().zip(r2.iter()).all(|(a, b)| a.to_bits() == b.to_bits());
+    let identical = r1
+        .iter()
+        .zip(r2.iter())
+        .all(|(a, b)| a.to_bits() == b.to_bits());
     h.check_bool("determinism: two runs bit-identical", identical);
 }

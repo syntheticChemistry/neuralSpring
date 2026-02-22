@@ -82,10 +82,6 @@ struct TransformerBaseline {
 // Helpers
 // ═════════════════════════════════════════════════════════════════════════
 
-fn readback(t: &Tensor) -> Result<Vec<f32>, barracuda::error::BarracudaError> {
-    t.to_vec()
-}
-
 fn t(
     data: &[f32],
     shape: Vec<usize>,
@@ -185,7 +181,7 @@ fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
 
     match result {
         Ok(output) => {
-            let probs = require!(h, readback(&output), "GPU readback failed");
+            let probs = require!(h, output.to_vec(), "readback");
 
             // Check predicted class matches
             let predicted = probs
@@ -362,7 +358,7 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
 
     match result {
         Ok(output) => {
-            let out_data = require!(h, readback(&output), "GPU readback failed");
+            let out_data = require!(h, output.to_vec(), "readback");
 
             h.check_bool(
                 "Transformer output shape matches",

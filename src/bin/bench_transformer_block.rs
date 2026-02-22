@@ -173,10 +173,6 @@ fn transformer_forward(
     after_attn.add(&ffn_out).map_err(&e)
 }
 
-fn readback(t: &Tensor) -> Result<Vec<f32>, String> {
-    t.to_vec().map_err(|e| format!("GPU readback: {e}"))
-}
-
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
@@ -225,7 +221,7 @@ async fn main() {
     // Correctness check
     match transformer_forward(&input, &weights, cfg, &device) {
         Ok(output) => {
-            let out_data = match readback(&output) {
+            let out_data = match output.to_vec() {
                 Ok(d) => d,
                 Err(e) => {
                     eprintln!("  Readback ERROR: {e}");

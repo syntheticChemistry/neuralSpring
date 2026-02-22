@@ -28,39 +28,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("readback: {e}"), false);
-            None
-        }
-    }
-}
-
-fn max_abs_diff_flat(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
-}
 
 #[tokio::main]
 async fn main() {
@@ -106,7 +78,7 @@ fn cpu_matmul_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
 }
 
 /// Check 1: Migration matrix computation via matmul.
-/// new_freq = migration (P×P) × freq (P×L). Use freq stored (L×P), migration.matmul(freq.transpose()).
+/// `new_freq` = migration (P×P) × freq (P×L). Use freq stored (L×P), migration.matmul(freq.transpose()).
 fn validate_migration_matmul(
     h: &mut ValidationHarness,
     device: &Arc<barracuda::device::WgpuDevice>,
@@ -140,8 +112,8 @@ fn validate_migration_matmul(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let migration_t = tensor!(h, &migration_flat, &[n_pops, n_pops], device);
-    let freq_t = tensor!(h, &freq_flat, &[n_pops, n_loci], device);
+    let migration_t = gpu_tensor!(h, &migration_flat, &[n_pops, n_pops], device);
+    let freq_t = gpu_tensor!(h, &freq_flat, &[n_pops, n_loci], device);
 
     let out_t = match migration_t.matmul(&freq_t) {
         Ok(t) => t,
@@ -151,10 +123,10 @@ fn validate_migration_matmul(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_out);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_out);
     h.check_upper(
         &format!("migration matmul: max diff ({max_diff:.2e})"),
         max_diff,
@@ -196,8 +168,8 @@ fn validate_allele_frequency_update(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let migration_t = tensor!(h, &migration_flat, &[n_pops, n_pops], device);
-    let freq_t = tensor!(h, &freq_flat, &[n_pops, n_loci], device);
+    let migration_t = gpu_tensor!(h, &migration_flat, &[n_pops, n_pops], device);
+    let freq_t = gpu_tensor!(h, &freq_flat, &[n_pops, n_loci], device);
 
     let out_t = match migration_t.matmul(&freq_t) {
         Ok(t) => t,
@@ -207,10 +179,10 @@ fn validate_allele_frequency_update(
         }
     };
 
-    let Some(out) = readback(h, &out_t) else {
+    let Some(out) = gpu_readback(h, &out_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_out);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_out);
     h.check_upper(
         &format!("allele frequency update: max diff ({max_diff:.2e})"),
         max_diff,
@@ -218,7 +190,7 @@ fn validate_allele_frequency_update(
     );
 }
 
-/// Check 3: Covariance via matmul (pop × pop^T). pop (n_pops × n_loci) × pop^T.
+/// Check 3: Covariance via matmul (pop × pop^T). pop (`n_pops` × `n_loci`) × pop^T.
 fn validate_covariance_matmul(
     h: &mut ValidationHarness,
     device: &Arc<barracuda::device::WgpuDevice>,
@@ -239,8 +211,8 @@ fn validate_covariance_matmul(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let pop_t1 = tensor!(h, &pop_flat, &[n_pops, n_loci], device);
-    let pop_t2 = tensor!(h, &pop_flat, &[n_pops, n_loci], device);
+    let pop_t1 = gpu_tensor!(h, &pop_flat, &[n_pops, n_loci], device);
+    let pop_t2 = gpu_tensor!(h, &pop_flat, &[n_pops, n_loci], device);
     let pop_t2_t = match pop_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -257,10 +229,10 @@ fn validate_covariance_matmul(
         }
     };
 
-    let Some(out) = readback(h, &gram_t) else {
+    let Some(out) = gpu_readback(h, &gram_t) else {
         return;
     };
-    let max_diff = max_abs_diff_flat(&out, &cpu_flat);
+    let max_diff = max_abs_diff_gpu_vs_cpu(&out, &cpu_flat);
     h.check_upper(
         &format!("covariance pop × pop^T: max diff ({max_diff:.2e})"),
         max_diff,
@@ -269,18 +241,15 @@ fn validate_covariance_matmul(
 }
 
 /// Check 4: FST-related structure — covariance diagonal non-negative.
-fn validate_fst_structure(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_fst_structure(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(45);
     let n_pops = 6_usize;
     let n_loci = 10_usize;
 
     let pop_flat: Vec<f32> = (0..n_pops * n_loci).map(|_| rng.uniform() as f32).collect();
 
-    let pop_t1 = tensor!(h, &pop_flat, &[n_pops, n_loci], device);
-    let pop_t2 = tensor!(h, &pop_flat, &[n_pops, n_loci], device);
+    let pop_t1 = gpu_tensor!(h, &pop_flat, &[n_pops, n_loci], device);
+    let pop_t2 = gpu_tensor!(h, &pop_flat, &[n_pops, n_loci], device);
     let pop_t2_t = match pop_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -297,7 +266,7 @@ fn validate_fst_structure(
         }
     };
 
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
     let min_diag = (0..n_pops)
@@ -312,10 +281,7 @@ fn validate_fst_structure(
 }
 
 /// Check 5: Determinism.
-fn validate_determinism(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     let mut rng = Rng::new(46);
     let n_pops = 6_usize;
     let n_loci = 10_usize;

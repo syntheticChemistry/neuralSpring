@@ -375,11 +375,13 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
     let device = gpu.device();
     let op = LocusVarianceGpu::new(dev);
     let freq_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("freqs"), contents: bytemuck::cast_slice(&af_f32),
+        label: Some("freqs"),
+        contents: bytemuck::cast_slice(&af_f32),
         usage: wgpu::BufferUsages::STORAGE,
     });
     let var_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("var"), size: (n_loci * 4) as u64,
+        label: Some("var"),
+        size: (n_loci * 4) as u64,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
@@ -388,12 +390,15 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match (local, upstream) {
         (Ok(l), Ok(u)) => {
-            let max_diff: f64 = l.iter().zip(u.iter())
+            let max_diff: f64 = l
+                .iter()
+                .zip(u.iter())
                 .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
                 .fold(0.0_f64, f64::max);
             h.check_upper(
                 &format!("upstream parity: local vs LocusVarianceGpu diff {max_diff:.2e}"),
-                max_diff, tolerances::GPU_LOCUS_VARIANCE_F32,
+                max_diff,
+                tolerances::GPU_LOCUS_VARIANCE_F32,
             );
         }
         _ => h.check_bool("upstream parity: dispatch failed", false),

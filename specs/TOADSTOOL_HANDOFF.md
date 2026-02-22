@@ -282,3 +282,53 @@ capabilities: wg_x=256, dispatch_max=65535, buffers=12, f64=true, f16=true
 - n=64 W=3: max eigval diff `2.89e-15` (machine epsilon agreement)
 - n=200 W=6: max eigval diff `1.42e-14`
 - **17/17 checks PASS** (up from 14)
+
+---
+
+## Deep Audit (February 22, 2026 — Sessions 41–42)
+
+Comprehensive codebase audit and debt resolution:
+
+### Code Quality
+
+- **`cargo fmt`**: Fixed 33 files (2,521 lines of diff) — now zero violations
+- **`cargo clippy`**: Fixed 123 warnings (pedantic + nursery + `unwrap_used` + `expect_used`) — now zero warnings
+- **`cargo doc`**: Fixed 1 broken rustdoc link — now zero warnings
+- **All `#[allow]` attributes audited**: `dead_code` (1, field used but not read yet), cast lints (deliberate numeric narrowing), `float_cmp` (determinism tests), `expect_used` (test-only) — all justified
+- **Zero mocks, stubs, `todo!`, or `unimplemented!`** in production code
+
+### Deduplication
+
+- Extracted shared GPU validation helpers into `src/validation.rs`: `gpu_readback`, `max_abs_diff_gpu_vs_cpu`, `check_gpu_points`, `gpu_tensor!` macro
+- Migrated 24 validation binaries from local copies to shared helpers (~400 LOC removed)
+- Eliminated local `fn readback`, `fn max_abs_diff`, `macro_rules! tensor` from all binaries
+
+### Tolerance Centralization
+
+- Added 3 new constants: `INTROGRESSION_FRACTION_ABS`, `INTROGRESSION_FPR_MAX`, `GENE_TREE_CONCORDANT_MIN`
+- Registered 18 previously unregistered tolerances in the runtime `NamedTolerance` registry
+- Replaced all inline magic numbers in validation binaries with named tolerances
+- Split `tolerances.rs` (1028 lines) into `tolerances/mod.rs` (696) + `tolerances/registry.rs` (341)
+
+### Provenance
+
+- Added explicit `python3` commands and environment details to `SOFTMAX_1_TO_5`, `GELU_REFERENCE`, `RASTRIGIN_REFERENCE`
+
+### Test Coverage
+
+- **9 new determinism tests**: introgression, regulatory_network, pangenome_selection, meta_population, sate_alignment, signal_integration, game_theory, spectral_commutativity, anderson_localization (total: 16)
+- **9 new integration tests** (`tests/integration.rs`): cross-module consistency, provenance round-trip, tolerance registry lookup, validation harness, HMM/softmax/GELU/benchmark provenance verification
+- Library tests: 255 → **264**
+
+### Dependency Analysis
+
+All external dependencies are pure Rust — zero C/C++ wrapper crates:
+- `barracuda` (workspace), `bytemuck` (GPU Pod), `serde`/`serde_json` (JSON baselines, 3 files), `tokio` (wgpu async), `wgpu` (GPU), `approx` (dev-only)
+
+### Idiomatic Rust Evolution
+
+- `unwrap()` → `let-else` / `unwrap_or(Ordering::Equal)` across all non-test code
+- Casts: `as u64` → `u64::from()`, `as f64` → `f64::from()` (infallible)
+- Arithmetic: `a * b + c` → `a.mul_add(b, c)` (FMA)
+- `const fn` where applicable
+- `non_upper_case_globals` → proper naming convention

@@ -341,11 +341,13 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
     let device = gpu.device();
     let op = PairwiseHammingGpu::new(dev);
     let seq_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("seqs"), contents: bytemuck::cast_slice(&flat),
+        label: Some("seqs"),
+        contents: bytemuck::cast_slice(&flat),
         usage: wgpu::BufferUsages::STORAGE,
     });
     let dist_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("dist"), size: (n_pairs * 4) as u64,
+        label: Some("dist"),
+        size: (n_pairs * 4) as u64,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
@@ -354,12 +356,15 @@ fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match (local, upstream) {
         (Ok(l), Ok(u)) => {
-            let max_diff: f64 = l.iter().zip(u.iter())
+            let max_diff: f64 = l
+                .iter()
+                .zip(u.iter())
                 .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
                 .fold(0.0_f64, f64::max);
             h.check_upper(
                 &format!("upstream parity: local vs PairwiseHammingGpu diff {max_diff:.2e}"),
-                max_diff, tolerances::GPU_HAMMING_F32,
+                max_diff,
+                tolerances::GPU_HAMMING_F32,
             );
         }
         _ => h.check_bool("upstream parity: dispatch failed", false),

@@ -38,7 +38,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::require;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
 
 const BATCH: usize = 4;
@@ -57,15 +57,13 @@ fn tensor(
     Tensor::from_data(data, shape, device.clone())
 }
 
-fn max_abs_diff(gpu: &[f32], cpu: &[f64]) -> f64 {
-    gpu.iter()
-        .zip(cpu.iter())
-        .map(|(&g, &c)| (f64::from(g) - c).abs())
-        .fold(0.0_f64, f64::max)
-}
-
 /// CPU A × B^T
-fn cpu_matmul_a_bt(a: &[f64], shape_a: (usize, usize), b: &[f64], shape_b: (usize, usize)) -> Vec<f64> {
+fn cpu_matmul_a_bt(
+    a: &[f64],
+    shape_a: (usize, usize),
+    b: &[f64],
+    shape_b: (usize, usize),
+) -> Vec<f64> {
     let (m, k) = shape_a;
     let (n, _) = shape_b;
     let mut out = vec![0.0_f64; m * n];
@@ -175,9 +173,7 @@ fn validate_lstm_pipeline(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let concat0_f32: Vec<f32> = concat0.iter().map(|&x| x as f32).collect();
     let w_f_f32: Vec<f32> = w_f.iter().map(|&x| x as f32).collect();
     let b_f_f32: Vec<f32> = b_f.iter().map(|&x| x as f32).collect();
-    let bias_broadcast: Vec<f32> = (0..BATCH)
-        .flat_map(|_| b_f_f32.iter().copied())
-        .collect();
+    let bias_broadcast: Vec<f32> = (0..BATCH).flat_map(|_| b_f_f32.iter().copied()).collect();
 
     let concat_t = require!(
         h,
@@ -200,7 +196,7 @@ fn validate_lstm_pipeline(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let forget_act = require!(h, forget_t.sigmoid(), "sigmoid");
     let forget_out = require!(h, forget_act.to_vec(), "readback forget");
 
-    let diff_single = max_abs_diff(&forget_out, &forget0_cpu);
+    let diff_single = max_abs_diff_gpu_vs_cpu(&forget_out, &forget0_cpu);
     h.check_upper(
         &format!("single-step forget gate (diff={diff_single:.2e})"),
         diff_single,
@@ -215,14 +211,22 @@ fn validate_lstm_pipeline(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         tensor(&concat0_f32, vec![BATCH, gate_dim], device),
         "Tensor concat for input gate"
     );
-    let w_i_t = require!(h, tensor(&w_i_f32, vec![HIDDEN_DIM, gate_dim], device), "W_i");
+    let w_i_t = require!(
+        h,
+        tensor(&w_i_f32, vec![HIDDEN_DIM, gate_dim], device),
+        "W_i"
+    );
     let w_i_tt = require!(h, w_i_t.transpose(), "W_i^T");
     let raw_i_t = require!(h, concat_t.matmul(&w_i_tt), "matmul input");
-    let bias_i_t = require!(h, tensor(&bias_i_bc, vec![BATCH, HIDDEN_DIM], device), "bias_i");
+    let bias_i_t = require!(
+        h,
+        tensor(&bias_i_bc, vec![BATCH, HIDDEN_DIM], device),
+        "bias_i"
+    );
     let input_t = require!(h, raw_i_t.add(&bias_i_t), "add bias input");
     let input_act = require!(h, input_t.sigmoid(), "sigmoid input");
     let input_out = require!(h, input_act.to_vec(), "readback input");
-    let diff_i = max_abs_diff(&input_out, &input0_cpu);
+    let diff_i = max_abs_diff_gpu_vs_cpu(&input_out, &input0_cpu);
     h.check_upper(
         &format!("single-step input gate (diff={diff_i:.2e})"),
         diff_i,
@@ -237,14 +241,22 @@ fn validate_lstm_pipeline(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         tensor(&concat0_f32, vec![BATCH, gate_dim], device),
         "Tensor concat for candidate"
     );
-    let w_c_t = require!(h, tensor(&w_c_f32, vec![HIDDEN_DIM, gate_dim], device), "W_c");
+    let w_c_t = require!(
+        h,
+        tensor(&w_c_f32, vec![HIDDEN_DIM, gate_dim], device),
+        "W_c"
+    );
     let w_c_tt = require!(h, w_c_t.transpose(), "W_c^T");
     let raw_c_t = require!(h, concat_t2.matmul(&w_c_tt), "matmul candidate");
-    let bias_c_t = require!(h, tensor(&bias_c_bc, vec![BATCH, HIDDEN_DIM], device), "bias_c");
+    let bias_c_t = require!(
+        h,
+        tensor(&bias_c_bc, vec![BATCH, HIDDEN_DIM], device),
+        "bias_c"
+    );
     let cand_t = require!(h, raw_c_t.add(&bias_c_t), "add bias cand");
     let cand_act = require!(h, cand_t.tanh(), "tanh candidate");
     let cand_out = require!(h, cand_act.to_vec(), "readback candidate");
-    let diff_c = max_abs_diff(&cand_out, &candidate0_cpu);
+    let diff_c = max_abs_diff_gpu_vs_cpu(&cand_out, &candidate0_cpu);
     h.check_upper(
         &format!("single-step cell candidate (diff={diff_c:.2e})"),
         diff_c,
@@ -259,14 +271,22 @@ fn validate_lstm_pipeline(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         tensor(&concat0_f32, vec![BATCH, gate_dim], device),
         "Tensor concat for output gate"
     );
-    let w_o_t = require!(h, tensor(&w_o_f32, vec![HIDDEN_DIM, gate_dim], device), "W_o");
+    let w_o_t = require!(
+        h,
+        tensor(&w_o_f32, vec![HIDDEN_DIM, gate_dim], device),
+        "W_o"
+    );
     let w_o_tt = require!(h, w_o_t.transpose(), "W_o^T");
     let raw_o_t = require!(h, concat_t3.matmul(&w_o_tt), "matmul output");
-    let bias_o_t = require!(h, tensor(&bias_o_bc, vec![BATCH, HIDDEN_DIM], device), "bias_o");
+    let bias_o_t = require!(
+        h,
+        tensor(&bias_o_bc, vec![BATCH, HIDDEN_DIM], device),
+        "bias_o"
+    );
     let output_t = require!(h, raw_o_t.add(&bias_o_t), "add bias output");
     let output_act = require!(h, output_t.sigmoid(), "sigmoid output");
     let output_out = require!(h, output_act.to_vec(), "readback output");
-    let diff_o = max_abs_diff(&output_out, &output0_cpu);
+    let diff_o = max_abs_diff_gpu_vs_cpu(&output_out, &output0_cpu);
     h.check_upper(
         &format!("single-step output gate (diff={diff_o:.2e})"),
         diff_o,
@@ -298,7 +318,7 @@ fn validate_lstm_pipeline(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let input_mul_cand_t = require!(h, input_vals_t.mul(&cand_vals_t), "input*cand");
     let cell_t = require!(h, forget_mul_c_t.add(&input_mul_cand_t), "cell");
     let cell_out = require!(h, cell_t.to_vec(), "readback cell");
-    let diff_cell = max_abs_diff(&cell_out, &cell0_cpu);
+    let diff_cell = max_abs_diff_gpu_vs_cpu(&cell_out, &cell0_cpu);
     h.check_upper(
         &format!("cell state update (diff={diff_cell:.2e})"),
         diff_cell,
@@ -313,7 +333,7 @@ fn validate_lstm_pipeline(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let cell_tanh_t = require!(h, cell_t.tanh(), "tanh(cell)");
     let hidden_t = require!(h, output_vals_t.mul(&cell_tanh_t), "hidden");
     let hidden_out = require!(h, hidden_t.to_vec(), "readback hidden");
-    let diff_h = max_abs_diff(&hidden_out, &hidden0_cpu);
+    let diff_h = max_abs_diff_gpu_vs_cpu(&hidden_out, &hidden0_cpu);
     h.check_upper(
         &format!("hidden state (diff={diff_h:.2e})"),
         diff_h,
@@ -327,8 +347,12 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let mut rng = Rng::new(123);
     let gate_dim = INPUT_DIM + HIDDEN_DIM;
 
-    let concat: Vec<f32> = (0..BATCH * gate_dim).map(|_| rng.uniform() as f32).collect();
-    let w: Vec<f32> = (0..HIDDEN_DIM * gate_dim).map(|_| rng.uniform() as f32).collect();
+    let concat: Vec<f32> = (0..BATCH * gate_dim)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let w: Vec<f32> = (0..HIDDEN_DIM * gate_dim)
+        .map(|_| rng.uniform() as f32)
+        .collect();
 
     let run = || -> Option<Vec<f32>> {
         let c = Tensor::from_data(&concat, vec![BATCH, gate_dim], device.clone()).ok()?;
@@ -348,6 +372,9 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         return;
     };
 
-    let identical = r1.iter().zip(r2.iter()).all(|(a, b)| a.to_bits() == b.to_bits());
+    let identical = r1
+        .iter()
+        .zip(r2.iter())
+        .all(|(a, b)| a.to_bits() == b.to_bits());
     h.check_bool("determinism: two runs bit-identical", identical);
 }

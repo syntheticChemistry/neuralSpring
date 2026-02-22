@@ -137,8 +137,7 @@ fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt:
             .collect();
         let k4 = deriv(&y4, coeffs, dim);
         for d in 0..dim {
-            let weighted =
-                2.0f32.mul_add(k2[d], k1[d]) + 2.0f32.mul_add(k3[d], k4[d]);
+            let weighted = 2.0f32.mul_add(k2[d], k1[d]) + 2.0f32.mul_add(k3[d], k4[d]);
             y[d] = sixth_dt.mul_add(weighted, y[d]);
         }
     }
@@ -381,8 +380,7 @@ fn validate_regulatory_single(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_steps = 50_u32;
     let dt = 0.02_f32;
 
-    let cpu_mean =
-        cpu_mean_final_state(&initial, &coeffs, 1, dim as usize, n_steps as usize, dt);
+    let cpu_mean = cpu_mean_final_state(&initial, &coeffs, 1, dim as usize, n_steps as usize, dt);
 
     match gpu_mean_rk4(gpu, &initial, &coeffs, 1, dim, n_steps, dt, 6) {
         Ok(gpu_mean) => {
@@ -402,9 +400,7 @@ fn validate_regulatory_single(h: &mut ValidationHarness, gpu: &Gpu) {
 fn validate_regulatory_multi(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_systems = 4_usize;
     let dim = 2_usize;
-    let initial: Vec<f32> = vec![
-        1.0, 0.3, 0.8, 0.2, 0.6, 0.5, 0.9, 0.1,
-    ];
+    let initial: Vec<f32> = vec![1.0, 0.3, 0.8, 0.2, 0.6, 0.5, 0.9, 0.1];
     let coeffs: Vec<f32> = vec![
         0.5, 0.1, 1.0, 0.3, 0.2, 0.0, // sys0
         0.4, 0.15, 1.0, 0.25, 0.25, 0.0, // sys1
@@ -414,14 +410,7 @@ fn validate_regulatory_multi(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_steps = 30_u32;
     let dt = 0.01_f32;
 
-    let cpu_mean = cpu_mean_final_state(
-        &initial,
-        &coeffs,
-        n_systems,
-        dim,
-        n_steps as usize,
-        dt,
-    );
+    let cpu_mean = cpu_mean_final_state(&initial, &coeffs, n_systems, dim, n_steps as usize, dt);
 
     match gpu_mean_rk4(
         gpu,
@@ -454,8 +443,7 @@ fn validate_regulatory_decay(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_steps = 100_u32;
     let dt = 0.02_f32;
 
-    let cpu_mean =
-        cpu_mean_final_state(&initial, &coeffs, 1, dim as usize, n_steps as usize, dt);
+    let cpu_mean = cpu_mean_final_state(&initial, &coeffs, 1, dim as usize, n_steps as usize, dt);
 
     match gpu_mean_rk4(gpu, &initial, &coeffs, 1, dim, n_steps, dt, 3) {
         Ok(gpu_mean) => {
@@ -467,10 +455,7 @@ fn validate_regulatory_decay(h: &mut ValidationHarness, gpu: &Gpu) {
             );
         }
         Err(e) => {
-            h.check_bool(
-                &format!("regulatory decay: dispatch failed — {e}"),
-                false,
-            );
+            h.check_bool(&format!("regulatory decay: dispatch failed — {e}"), false);
         }
     }
 }
@@ -490,10 +475,7 @@ fn validate_regulatory_steady(h: &mut ValidationHarness, gpu: &Gpu) {
             );
         }
         Err(e) => {
-            h.check_bool(
-                &format!("regulatory steady: dispatch failed — {e}"),
-                false,
-            );
+            h.check_bool(&format!("regulatory steady: dispatch failed — {e}"), false);
         }
     }
 }

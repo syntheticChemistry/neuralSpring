@@ -33,32 +33,11 @@
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
 use std::sync::Arc;
-
-macro_rules! tensor {
-    ($h:expr, $data:expr, $shape:expr, $device:expr) => {
-        match Tensor::from_data($data, $shape.to_vec(), $device.clone()) {
-            Ok(t) => t,
-            Err(e) => {
-                $h.check_bool(&format!("Tensor::from_data: {}", e), false);
-                return;
-            }
-        }
-    };
-}
-
-fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
-    match t.to_vec() {
-        Ok(v) => Some(v),
-        Err(e) => {
-            h.check_bool(&format!("readback: {e}"), false);
-            None
-        }
-    }
-}
 
 fn cpu_gram(data: &[Vec<f64>]) -> Vec<Vec<f64>> {
     let size = data.len();
@@ -87,19 +66,6 @@ fn cpu_cross(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
         }
     }
     out
-}
-
-fn max_abs_diff_2d(gpu: &[f32], cpu: &[Vec<f64>]) -> f64 {
-    let rows = cpu.len();
-    let cols = cpu[0].len();
-    let mut max_diff = 0.0_f64;
-    for row_idx in 0..rows {
-        for col_idx in 0..cols {
-            let diff_val = (f64::from(gpu[row_idx * cols + col_idx]) - cpu[row_idx][col_idx]).abs();
-            max_diff = max_diff.max(diff_val);
-        }
-    }
-    max_diff
 }
 
 #[tokio::main]
@@ -144,8 +110,8 @@ fn validate_gram_matrix(h: &mut ValidationHarness, device: &Arc<barracuda::devic
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let x_t1 = tensor!(h, &flat, &[n, d], device);
-    let x_t2 = tensor!(h, &flat, &[n, d], device);
+    let x_t1 = gpu_tensor!(h, &flat, &[n, d], device);
+    let x_t2 = gpu_tensor!(h, &flat, &[n, d], device);
     let x_t2_t = match x_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -160,11 +126,12 @@ fn validate_gram_matrix(h: &mut ValidationHarness, device: &Arc<barracuda::devic
             return;
         }
     };
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
 
-    let diff = max_abs_diff_2d(&gram, &cpu);
+    let cpu_flat: Vec<f64> = cpu.iter().flat_map(|r| r.iter().copied()).collect();
+    let diff = max_abs_diff_gpu_vs_cpu(&gram, &cpu_flat);
     h.check_upper(
         &format!("Gram X×X^T: max diff ({diff:.2e})"),
         diff,
@@ -199,8 +166,8 @@ fn validate_cross_distance(
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let a_t = tensor!(harness, &a_flat, &[n1, dim], device);
-    let b_t = tensor!(harness, &b_flat, &[n2, dim], device);
+    let a_t = gpu_tensor!(harness, &a_flat, &[n1, dim], device);
+    let b_t = gpu_tensor!(harness, &b_flat, &[n2, dim], device);
     let b_t_t = match b_t.transpose() {
         Ok(transposed) => transposed,
         Err(err) => {
@@ -215,11 +182,12 @@ fn validate_cross_distance(
             return;
         }
     };
-    let Some(cross) = readback(harness, &cross_t) else {
+    let Some(cross) = gpu_readback(harness, &cross_t) else {
         return;
     };
 
-    let diff = max_abs_diff_2d(&cross, &cpu);
+    let cpu_flat: Vec<f64> = cpu.iter().flat_map(|r| r.iter().copied()).collect();
+    let diff = max_abs_diff_gpu_vs_cpu(&cross, &cpu_flat);
     harness.check_upper(
         &format!("cross-distance A×B^T: max diff ({diff:.2e})"),
         diff,
@@ -240,8 +208,8 @@ fn validate_symmetry(h: &mut ValidationHarness, device: &Arc<barracuda::device::
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let x_t1 = tensor!(h, &flat, &[n, d], device);
-    let x_t2 = tensor!(h, &flat, &[n, d], device);
+    let x_t1 = gpu_tensor!(h, &flat, &[n, d], device);
+    let x_t2 = gpu_tensor!(h, &flat, &[n, d], device);
     let x_t2_t = match x_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -256,7 +224,7 @@ fn validate_symmetry(h: &mut ValidationHarness, device: &Arc<barracuda::device::
             return;
         }
     };
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
 
@@ -289,8 +257,8 @@ fn validate_diagonal_norms(h: &mut ValidationHarness, device: &Arc<barracuda::de
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
 
-    let x_t1 = tensor!(h, &flat, &[n, d], device);
-    let x_t2 = tensor!(h, &flat, &[n, d], device);
+    let x_t1 = gpu_tensor!(h, &flat, &[n, d], device);
+    let x_t2 = gpu_tensor!(h, &flat, &[n, d], device);
     let x_t2_t = match x_t2.transpose() {
         Ok(t) => t,
         Err(e) => {
@@ -305,7 +273,7 @@ fn validate_diagonal_norms(h: &mut ValidationHarness, device: &Arc<barracuda::de
             return;
         }
     };
-    let Some(gram) = readback(h, &gram_t) else {
+    let Some(gram) = gpu_readback(h, &gram_t) else {
         return;
     };
 
