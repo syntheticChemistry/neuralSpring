@@ -3,15 +3,15 @@
 **Parent**: ecoPrimals/neuralSpring
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `dc540afd` (Session 25, Feb 20, 2026)
-**Last Updated**: February 21, 2026
+**ToadStool HEAD**: `77f70b2e` (Session 31h, Feb 22, 2026)
+**Last Updated**: February 22, 2026
 
 ---
 
 ## Already Absorbed by ToadStool
 
-S-01 through S-11 — all resolved in ToadStool `dc540afd`. Local workarounds
-fossilized in `metalForge/fossils/evolved_s01_s11/` (~2.9k LOC).
+S-01 through S-12 — all resolved in ToadStool `77f70b2e`. Local workarounds
+fossilized in `metalForge/fossils/evolved_s01_s11/` (~3.4k LOC, incl. eigh_local.rs).
 
 | Shortcoming | Fix | ToadStool Commit | Replacement API |
 |-------------|-----|-----------------|-----------------|
@@ -26,6 +26,7 @@ fossilized in `metalForge/fossils/evolved_s01_s11/` (~2.9k LOC).
 | S-09 log_softmax round-trip | `from_pooled_buffer` | `81a6fd4b` | `Tensor::log_softmax_wgsl()` |
 | S-10 science_limits CPU | `new_cpu_relaxed()` | `dc540afd` | `Gpu::new_cpu_relaxed()` |
 | S-11 TensorSession limited | ML ops in SessionOp | `fbedd222` | `TensorSession::{matmul, relu, gelu}` |
+| S-12 eigh_f64 accuracy | Householder+QR eigensolver | `77f70b2e` | `barracuda::ops::linalg::eigh_householder_qr` |
 
 ---
 
@@ -107,7 +108,7 @@ ToadStool absorption.
 | `provenance.rs` | Python baseline metadata | ~80 |
 | `metrics.rs` | R², RMSE, MAE, NSE | ~150 |
 | `fft.rs` | Analytical DFT reference values | ~100 |
-| `eigh.rs` | Householder+QR eigensolver (S-12 workaround) | ~200 |
+| `eigh.rs` | Eigensolver → delegates to `barracuda` (S-12 absorbed) | ~40 |
 | 81 validation binaries | Correctness proof suite | ~9k |
 | 5 benchmark binaries | Performance comparison suite | ~1k |
 

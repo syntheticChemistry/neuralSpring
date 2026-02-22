@@ -41,10 +41,10 @@ with `ValidationHarness`, and documented binding layouts.
 | `spatial_payoff.wgsl` | Game theory (019) | `validate_gpu_game_theory` | 5/5 | `barracuda::ops::stencil` |
 | `batch_ipr.wgsl` | Spectral/Anderson (022–023) | `validate_gpu_anderson` | 5/5 | `barracuda::ops::batch_reduce` |
 | `pairwise_hamming.wgsl` | Alignment (017) | `validate_gpu_sate` | 5/5 | `barracuda::ops::pairwise_distance` |
-| `pairwise_l2.wgsl` | MODES novelty (012) | `validate_gpu_modes` | 4/4 | `barracuda::ops::pairwise_distance` |
-| `multi_obj_fitness.wgsl` | Directed evolution (014) | `validate_gpu_directed` | 4/4 | `barracuda::ops::batch_gemm` |
-| `swarm_nn_forward.wgsl` | Swarm robotics (015) | `validate_gpu_swarm` | 4/4 | `barracuda::ops` (NN inference) |
-| `hill_gate.wgsl` | Signal integration (021) | `validate_gpu_signal` | 4/4 | `barracuda::ops` (Hill gate) |
+| `pairwise_l2.wgsl` | MODES novelty (012) | `validate_gpu_modes` | 15/15 | `barracuda::ops::pairwise_distance` |
+| `multi_obj_fitness.wgsl` | Directed evolution (014) | `validate_gpu_directed` | 6/6 | `barracuda::ops::batch_gemm` |
+| `swarm_nn_forward.wgsl` | Swarm robotics (015) | `validate_gpu_swarm` | 9/9 | `barracuda::ops` (NN inference) |
+| `hill_gate.wgsl` | Signal integration (021) | `validate_gpu_signal` | 9/9 | `barracuda::ops` (Hill gate) |
 
 ### WGSL exports (forge crate — single source of truth)
 

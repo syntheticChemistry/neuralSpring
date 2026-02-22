@@ -3,7 +3,7 @@
 ## The Isomorphic Learning Engine
 
 **Status**: Phase 5b active — 1300+ total checks
-**Date**: February 21, 2026 (updated)
+**Date**: February 22, 2026 (updated)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -15,7 +15,7 @@
 | [STUDY.md](STUDY.md) | Technical | Main study: experiments, results, BarraCUDA evolution |
 | [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) | ToadStool team | Shader evolution narrative: Python → CPU → GPU |
 | `specs/BENCHMARK_ANALYSIS.md` | Engineering | Full 3-way benchmark with analysis |
-| `specs/TOADSTOOL_HANDOFF.md` | Engineering | 11 BarraCUDA shortcomings + local fixes |
+| `specs/TOADSTOOL_HANDOFF.md` | Engineering | 12 BarraCUDA shortcomings — all absorbed at `77f70b2e` |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `wateringHole/handoffs/` | Cross-project | Formal handoffs (date-stamped) |
 
@@ -169,17 +169,18 @@ hand-rolled Rust math is reproducible via BarraCUDA's pure-Rust primitives:
 | Primitive | Modules Using It | Precision Finding |
 |-----------|-----------------|-------------------|
 | `rk45_solve` | regulatory, signal, game | Machine-precision agreement with hand-rolled RK4 |
-| `eigh_f64` | spectral, anderson | ~1e-3 at n=8, ~0.1 at n=16 — Jacobi eigensolver accuracy gap |
+| `eigh_f64` | spectral, anderson | 1.75e-14 at n=32 — Householder+QR (S-12 absorbed at `77f70b2e`) |
 | `solve_f64` | hmm, swarm | Machine precision for linear systems |
 | `chi_squared_sf` | introgression | Correctly reproduces LRT p-values |
 | `stats::variance` | all 15 modules | Cross-validates hand-rolled statistics |
 | `pearson_correlation` | modes | Validates complexity trend analysis |
 
-**Key discovery:** BarraCUDA's Jacobi eigensolver (`eigh_f64`) has a
-significant accuracy gap at n≥8. This is flagged as the #1 ToadStool
-handoff item — a GPU-accelerated Lanczos or divide-and-conquer eigensolver
-would resolve this for both hotSpring (nuclear physics) and neuralSpring
-(spectral analysis).
+**Key discovery (resolved):** BarraCUDA's original Jacobi eigensolver had a
+significant accuracy gap at n≥8. This was resolved as S-12 — ToadStool
+absorbed neuralSpring's Householder+QR implementation at `77f70b2e`, achieving
+machine-epsilon accuracy (1.75e-14 at n=32). ToadStool also added a GPU-native
+NAK eigensolve (`batched_eigh_nak_optimized_f64.wgsl`) for both hotSpring
+and neuralSpring use cases.
 
 ---
 

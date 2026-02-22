@@ -42,7 +42,8 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 206/206 Python PASS + 1100+ Rust+GPU PASS = 1300+ total validation checks
 
-**ToadStool `dc540afd`**: All 11 shortcomings (S-01..S-11) **ABSORBED**.
+**ToadStool `77f70b2e`**: All 12 shortcomings (S-01..S-12) **ABSORBED**.
+S-12 eigensolver upgraded to Householder+QR (machine-epsilon accuracy).
 Validation rewired to native BarraCUDA ops. `src/evolved/` documented
 for retirement. See `specs/TOADSTOOL_HANDOFF.md`.
 
@@ -118,7 +119,7 @@ All 15 Phase 0++ modules + PINN + DeepONet validated against BarraCUDA CPU math 
 | `validate_barracuda_deeponet` | 002 | `barracuda::tensor::{matmul, dot}` | 9/9 |
 
 Key finding: `rk45_solve` achieves machine-precision agreement with hand-rolled RK4.
-`eigh_f64` has documented accuracy gap (~1e-3 at n=8) — flagged for ToadStool eigensolver upgrade.
+`eigh_f64` upgraded to Householder+QR at `77f70b2e` (S-12 absorbed) — 1.75e-14 at n=32.
 
 ### 3-Way Benchmark: Python vs BarraCUDA CPU vs GPU
 
@@ -195,12 +196,13 @@ Each Spring evolves independently; the BarraCUDA team absorbs changes asynchrono
 | **FFT** (Cooley-Tukey 1D f32, inverse, Parseval) | 12 checks (analytical DFT) | `validate_barracuda_fft` |
 | **LogSumExp** (numerical stability for HMM/softmax) | 5 checks (analytical) | `validate_barracuda_logsumexp` |
 
-### ToadStool Absorption (all 11 shortcomings RESOLVED)
+### ToadStool Absorption (all 12 shortcomings ABSORBED)
 
-All 11 neuralSpring shortcomings (S-01..S-11) have been absorbed by ToadStool
-at commit `dc540afd`. The `src/evolved/` workaround modules (~3046 LOC) are
-documented for retirement. Only `evolved::hmm_forward_gpu` remains active
-(metalForge shader evolution, not a workaround).
+All 12 neuralSpring shortcomings (S-01..S-12) have been absorbed by ToadStool
+at commit `77f70b2e`. S-12 (eigensolver accuracy) resolved via Householder+QR —
+`src/eigh.rs` now delegates to upstream. The `src/evolved/` workaround modules
+(~3046 LOC) are documented for retirement. `evolved::hmm_forward_gpu` remains
+active (metalForge shader evolution, not a workaround).
 
 | Shortcoming | Fix | Validated |
 |-------------|-----|-----------|
@@ -215,6 +217,7 @@ documented for retirement. Only `evolved::hmm_forward_gpu` remains active
 | S-09 log_softmax round-trip | `from_pooled_buffer` | ✓ (native test) |
 | S-10 science_limits CPU | `new_cpu_relaxed()` | ✓ (gpu.rs rewired) |
 | S-11 TensorSession limited | ML ops in SessionOp | ✓ |
+| S-12 eigh_f64 accuracy | Householder+QR (`77f70b2e`) | ✓ (1.75e-14 at n=32) |
 
 Full details: `specs/TOADSTOOL_HANDOFF.md` | `EVOLUTION_READINESS.md` | `DEPRECATION_MIGRATION.md`
 
@@ -425,7 +428,7 @@ neuralSpring/
 ├── specs/                      # Specifications & tracking
 │   ├── EVOLUTION_MAPPING.md    #   Python → Rust → GPU mapping
 │   ├── DATA_PROVENANCE.md      #   Dataset sources & licenses
-│   ├── TOADSTOOL_HANDOFF.md    #   11 BarraCUDA shortcomings + local fixes
+│   ├── TOADSTOOL_HANDOFF.md    #   12 BarraCUDA shortcomings — all absorbed
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
 │   └── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete
 ├── wateringHole/handoffs/      # Cross-project handoffs (ToadStool/BarraCUDA)

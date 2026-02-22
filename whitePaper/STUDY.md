@@ -281,7 +281,7 @@ the optimal matmul kernel for every dispatch:
 At scale, the evolved shaders achieve: GPU **104× faster** than Python at TF
 medium (103M FLOPs), CPU **3.9× faster** at the same scale.
 
-11 BarraCUDA shortcomings documented in `specs/TOADSTOOL_HANDOFF.md`.
+12 BarraCUDA shortcomings documented in `specs/TOADSTOOL_HANDOFF.md` — all absorbed at `77f70b2e`.
 Full 3-way benchmark in `specs/BENCHMARK_ANALYSIS.md`.
 Shader evolution narrative in `whitePaper/BARRACUDA_EVOLUTION.md`.
 

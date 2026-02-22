@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: February 21, 2026
+**Date**: February 22, 2026
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
 **Methodology**: Python control → Rust validation → WGSL shader evolution
 
@@ -291,7 +291,7 @@ using `StatefulPipeline` (state stays on GPU between iterations) and
 | HMM forward chain | 016–018 | Sequential GEMM | `StatefulPipeline` with log-domain GEMM shader |
 | Population fitness | 011–015 | Loop over individuals | Batch GEMM shader (N individuals × M traits) |
 | ODE integration | 020–021 | CPU RK4 loop | GPU-parallel multi-system RK4 shader |
-| Eigendecomposition | 022–023 | CPU Jacobi | Tridiagonal + bisection shader |
+| Eigendecomposition | 022–023 | CPU Householder+QR (S-12 absorbed) | NAK GPU eigensolve available |
 | Pangenome selection | 024 | CPU pairwise Jaccard | `pairwise_jaccard.wgsl` — GPU O(N²) similarity |
 | Meta-population | 025 | CPU locus variance | `locus_variance.wgsl` — GPU allele-frequency variance |
 
@@ -321,7 +321,7 @@ Planned (not yet implemented):
 
 | Shader | Target Op | Absorption Target |
 |--------|-----------|-------------------|
-| `tridiag_eigensolver.wgsl` | Eigendecomposition | `linalg::eigh_gpu` |
+| `tridiag_eigensolver.wgsl` | Eigendecomposition | `linalg::eigh_gpu` — **resolved** via NAK eigensolve (`77f70b2e`) |
 | `pairwise_distance.wgsl` | Distance matrix | `ops::pairwise_distance` |
 
 Each shader follows the hotSpring lifecycle: evolve → validate → handoff → absorb → retire.
@@ -354,10 +354,12 @@ GEMM the GPU path is the only way to beat optimized BLAS.
 
 ---
 
-## 9. ToadStool Absorption Complete (Feb 20, 2026)
+## 9. ToadStool Absorption Complete (Feb 22, 2026)
 
-**All 11 neuralSpring shortcomings (S-01 through S-11) are now absorbed by
-ToadStool at commit `dc540afd` (Session 25).**
+**All 12 neuralSpring shortcomings (S-01 through S-12) are now absorbed by
+ToadStool at commit `77f70b2e` (Session 31h).** S-12 (eigensolver accuracy)
+was the final shortcoming — resolved by absorbing neuralSpring's Householder+QR
+implementation upstream.
 
 Key absorption commit: `fbedd222` — extended `TensorSession` with
 `{MatMul, ReLU, GELU, Softmax, LayerNorm}` and single-encoder batch
@@ -450,14 +452,16 @@ generation.
 Phase 4d resolves two ToadStool shortcomings via local fixes, documented for
 absorption.
 
-### S-12 Resolution: Householder+QR Eigensolver
+### S-12 Resolution: Householder+QR Eigensolver — ABSORBED
 
-BarraCUDA's `linalg::eigh_f64` uses Jacobi iteration, which degrades to ~1e-3
-relative error at n≥8 and ~0.1 at n=16. The local `src/eigh.rs` implements
+BarraCUDA's original `linalg::eigh_f64` used Jacobi iteration, which degraded to
+~1e-3 relative error at n≥8 and ~0.1 at n=16. neuralSpring implemented
 Householder tridiagonalization + QL implicit shifts (Wilkinson), achieving
-LAPACK-level accuracy at all matrix sizes.
+LAPACK-level accuracy. **ToadStool absorbed this at `77f70b2e`** — `src/eigh.rs`
+now delegates to `barracuda::ops::linalg::eigh_householder_qr`. Local fossil
+preserved at `metalForge/fossils/evolved_s01_s11/eigh_local.rs`.
 
-**Accuracy comparison**:
+**Accuracy comparison (historical)**:
 
 | n | Householder+QR | Jacobi | Improvement |
 |---|----------------|--------|-------------|
@@ -468,7 +472,10 @@ LAPACK-level accuracy at all matrix sizes.
 | 64 | 5.43e-13 | 1.69e+2 | 311 trillion × |
 
 Anderson Hamiltonian n=32: 1.75e-14 (vs Jacobi's ~70). Validation:
-`validate_eigh_accuracy` — **9/9 PASS**.
+`validate_eigh_accuracy` — **9/9 PASS** (now delegated to upstream).
+
+ToadStool also added `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` for GPU-native
+eigensolve — available for Anderson localization and hotSpring nuclear physics.
 
 ### S-03b Partial Fix: GPU Head Split/Concat Shaders
 

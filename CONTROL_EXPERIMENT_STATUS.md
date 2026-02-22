@@ -6,7 +6,7 @@
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 94.9% line coverage
 **Grand Total**: 206/206 Python PASS + 1100+ Rust+GPU validation PASS = **1300+ total validation checks**
 **Library**: 237 unit tests + 9 doc-tests = 246 total | 29 modules + 3 evolved | 81 validation binaries + 5 bench = 86 binaries
-**ToadStool**: All 11 shortcomings (S-01..S-11) **ABSORBED** at `dc540afd`
+**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** at `77f70b2e`
 
 ---
 
@@ -108,10 +108,10 @@
 | `validate_gpu_game_theory` | `spatial_payoff.wgsl` | 019 | 5 | CPU game theory (game_theory.rs) |
 | `validate_gpu_anderson` | `batch_ipr.wgsl` | 022–023 | 5 | CPU Anderson (anderson_localization.rs) |
 | `validate_gpu_sate` | `pairwise_hamming.wgsl` | 017 | 5 | CPU SATé alignment (sate_alignment.rs) |
-| `validate_gpu_modes` | `pairwise_l2.wgsl` | 012 | 4 | CPU L2 distance (modes.rs) |
-| `validate_gpu_directed` | `multi_obj_fitness.wgsl` | 014 | 4 | CPU directed evolution |
-| `validate_gpu_signal` | `hill_gate.wgsl` | 021 | 4 | CPU signal integration |
-| `validate_gpu_swarm` | `swarm_nn_forward.wgsl` | 015 | 4 | CPU swarm robotics |
+| `validate_gpu_modes` | `pairwise_l2.wgsl` | 012 | 15 | CPU L2 distance (modes.rs) |
+| `validate_gpu_directed` | `multi_obj_fitness.wgsl` | 014 | 6 | CPU directed evolution |
+| `validate_gpu_signal` | `hill_gate.wgsl` | 021 | 9 | CPU signal integration |
+| `validate_gpu_swarm` | `swarm_nn_forward.wgsl` | 015 | 9 | CPU swarm robotics |
 
 ### Phase 3d: Pure GPU Workload + StatefulPipeline + Cross-Dispatch (45 pipeline/cross-dispatch checks)
 
