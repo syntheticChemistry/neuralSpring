@@ -47,9 +47,12 @@ fn main() {
         .count() as f64
         / path.len() as f64;
     h.check_lower(
-        &format!("Viterbi accuracy ({accuracy:.4}) > chance+0.05 (0.55)"),
+        &format!(
+            "Viterbi accuracy ({accuracy:.4}) > 0.5+{}",
+            tolerances::HMM_DECODE_ACCURACY_MIN
+        ),
         accuracy,
-        0.55,
+        0.5 + tolerances::HMM_DECODE_ACCURACY_MIN,
     );
 
     // 3. Introgression model preferred over ILS-only (LRT)
@@ -105,7 +108,7 @@ fn main() {
     h.check_lower(
         &format!("introg-like frac ({introg_like:.3}) > 0.05"),
         introg_like,
-        0.05,
+        tolerances::INTROGRESSION_FRACTION_MIN,
     );
 
     // 8. Viterbi log-prob finite

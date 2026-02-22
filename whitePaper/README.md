@@ -59,7 +59,7 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 206/206 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
-**Phase 1–5b**: 1100+ Rust+GPU validation PASS (222 lib tests + 78 binaries across 29 modules)
+**Phase 1–5b**: 1100+ Rust+GPU validation PASS (237 lib tests + 81 binaries across 29 modules)
 **Grand Total**: 1300+ PASS
 
 Phase 5b includes: GELU test fix (86/86 tensor PASS), S-13 pool-sync primitives
@@ -71,7 +71,7 @@ Phase 5b includes: GELU test fix (86/86 tensor PASS), S-13 pool-sync primitives
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 222 lib tests, 78 binaries, 29 modules | **Complete** |
+| 1a | Rust validation layer — 237 lib tests, 81 binaries, 29 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -248,9 +248,9 @@ BarraCUDA GPU acceleration:
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (760/760)
+# Rust validation (237 lib + 81 binaries)
 cargo test
-make validate
+cargo run --release --bin validate_all
 
 # Tensor op benchmark (native BarraCUDA)
 cargo run --release --bin bench_barracuda_tensor
@@ -258,17 +258,19 @@ cargo run --release --bin bench_barracuda_tensor
 
 ---
 
-### Phase 3 — GPU Evolution (In Progress)
+### Phase 3 — GPU Evolution (Complete)
 
-Phase 3a (BarraCUDA FFT validation) is complete — 24 analytical checks against
-ToadStool's Cooley-Tukey WGSL shader (Parseval's theorem, inverse round-trip,
-known DFT pairs). This was absorbed directly from ToadStool; no local shader
-was needed.
+Phase 3a (BarraCUDA FFT validation): 24 analytical checks against
+ToadStool's Cooley-Tukey WGSL shader. Absorbed directly from ToadStool.
 
-Phase 3b focuses on **GPU-resident streaming** via `StatefulPipeline` and
-`UnidirectionalPipeline`, reducing CPU-GPU dispatch round-trips for iterative
-workloads. Phase 3c evolves local shaders for ToadStool absorption — following
-the hotSpring pattern of evolve-locally, handoff, retire-when-absorbed.
+Phase 3b (GPU-resident streaming): `StatefulPipeline` and
+`UnidirectionalPipeline` validated (10/10 PASS).
+
+Phase 3c (shader evolution): 16 WGSL shaders validated, all following
+the hotSpring lifecycle: evolve-locally, handoff, retire-when-absorbed.
+
+Phase 3d (cross-dispatch): GPU-CPU parity validated across 4 dispatch
+binaries (41 checks).
 
 #### GPU Promotion Priorities
 
@@ -290,5 +292,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 2 core studies. 5 disciplines. 4 faculty. 29 modules. 206 Python + 1100+ Rust+GPU = 1300+ total checks.
-All green. Paper queue cleared. Phase 5b active. 3 upstream fixes ready for ToadStool absorption.*
+*25 papers + 2 core studies. 5 disciplines. 4 faculty. 29 modules + 3 evolved. 237 lib tests, 94.9% coverage. 206 Python + 1100+ Rust+GPU = 1300+ total checks.
+All green. Paper queue cleared. Phase 5b active. 3 upstream fixes ready for ToadStool absorption. metalForge forge crate in progress.*

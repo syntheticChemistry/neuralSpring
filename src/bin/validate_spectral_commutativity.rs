@@ -57,7 +57,7 @@ fn main() {
     // Check 4: Residual layers (I+eps*W) nearly commute for small eps
     let w1_r = random_matrix(n, &mut rng);
     let w2_r = random_matrix(n, &mut rng);
-    let eps = 0.01_f64;
+    let eps = tolerances::SPECTRAL_COMMUTATIVITY_EPS;
     let eye = identity_matrix(n);
     let r1: Vec<f64> = (0..n * n).map(|ij| eye[ij] + eps * w1_r[ij]).collect();
     let r2: Vec<f64> = (0..n * n).map(|ij| eye[ij] + eps * w2_r[ij]).collect();

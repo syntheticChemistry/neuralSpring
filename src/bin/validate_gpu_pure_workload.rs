@@ -37,6 +37,12 @@
 //! - Paper 013: Ecological Dynamics (Dolson & Ofria, 2018)
 //! - Paper 014: Directed Evolution (Dolson et al., 2022)
 //! - Paper 015: Swarm Robotics (Foreback/Dolson, 2025)
+//!
+//! ## Provenance
+//!
+//! GPU pipeline: `batch_fitness_eval` → `mean_reduce` (multi-kernel chain).
+//! Validates: kernel composition with scalar-only readback.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

@@ -15,6 +15,12 @@
 //! ## Papers validated
 //!
 //! - Paper 024: Pangenome Selection Dynamics (Anderson, 2024)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `pangenome_selection::jaccard_distance_matrix` (upper-triangle pairwise).
+//! WGSL shader: `metalForge/shaders/pairwise_jaccard.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,
@@ -290,7 +296,9 @@ fn validate_identity_diagonal(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match gpu_pairwise_jaccard(gpu, &pa_f32, n_genomes, n_genes) {
         Ok(gpu_dist) => {
-            let all_zero = gpu_dist.iter().all(|&d| d.abs() < 1e-6);
+            let all_zero = gpu_dist
+                .iter()
+                .all(|&d| d.abs() < tolerances::GPU_JACCARD_F32 as f32);
             h.check_bool(
                 &format!(
                     "identical genomes: all Jaccard=0 (max={:.2e})",

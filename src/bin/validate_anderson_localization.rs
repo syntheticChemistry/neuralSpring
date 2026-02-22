@@ -55,7 +55,11 @@ fn main() {
     let h_strong = anderson_hamiltonian_random(n, t, 8.0, &mut rng);
     let (_, ev_strong) = jacobi_eigh(&h_strong, n);
     let ipr_strong = mean_ipr(&ev_strong, n);
-    h.check_lower("Strong disorder: localized (IPR > 0.05)", ipr_strong, 0.05);
+    h.check_lower(
+        "Strong disorder: localized (IPR > 0.05)",
+        ipr_strong,
+        tolerances::IPR_LOCALIZATION_MIN,
+    );
     h.check_bool(
         "Extended (weak) has lower IPR than localized (strong)",
         ipr_weak < ipr_strong,

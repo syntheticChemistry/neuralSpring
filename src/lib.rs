@@ -45,6 +45,9 @@
 //! | `pangenome_selection` | `control/pangenome_selection/` | sparse GEMM + chi-squared reduce |
 //! | `meta_population` | `control/meta_population/` | variance decomp + `pearson` |
 
+#[cfg(test)]
+mod determinism_tests;
+
 pub mod anderson_localization;
 pub mod counterdiabatic;
 pub mod deeponet;

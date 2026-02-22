@@ -82,40 +82,40 @@ struct GpuWeights {
 
 type Dev = Arc<WgpuDevice>;
 
-#[allow(clippy::expect_used)]
-fn load_baseline() -> TransformerBaseline {
+fn load_baseline() -> Result<TransformerBaseline, String> {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/control/ml_inference/transformer_baseline.json"
     );
-    let data = std::fs::read_to_string(path)
-        .expect("transformer_baseline.json not found — run generate_baselines.py first");
-    serde_json::from_str(&data).expect("invalid transformer_baseline.json")
+    let data = std::fs::read_to_string(path).map_err(|e| {
+        format!("transformer_baseline.json not found — run generate_baselines.py first: {e}")
+    })?;
+    serde_json::from_str(&data).map_err(|e| format!("invalid transformer_baseline.json: {e}"))
 }
 
-#[allow(clippy::expect_used)]
-fn upload_weights(b: &TransformerBaseline, device: &Dev) -> GpuWeights {
+fn upload_weights(b: &TransformerBaseline, device: &Dev) -> Result<GpuWeights, String> {
     let d = b.config.d_model;
     let d_ff = b.config.d_ff;
     let seq = b.config.seq_len;
-    let t = |data: &[f32], shape: Vec<usize>| -> Tensor {
-        Tensor::from_data(data, shape, device.clone()).expect("weight upload")
+    let t = |data: &[f32], shape: Vec<usize>, label: &str| -> Result<Tensor, String> {
+        Tensor::from_data(data, shape, device.clone())
+            .map_err(|e| format!("weight upload {label}: {e}"))
     };
 
-    GpuWeights {
-        w_q: t(&b.weights.w_q, vec![d, d]),
-        w_k: t(&b.weights.w_k, vec![d, d]),
-        w_v: t(&b.weights.w_v, vec![d, d]),
-        w_o: t(&b.weights.w_o, vec![d, d]),
-        w_ff1: t(&b.weights.w_ff1, vec![d, d_ff]),
-        b_ff1: t(&b.weights.b_ff1, vec![1, d_ff])
+    Ok(GpuWeights {
+        w_q: t(&b.weights.w_q, vec![d, d], "w_q")?,
+        w_k: t(&b.weights.w_k, vec![d, d], "w_k")?,
+        w_v: t(&b.weights.w_v, vec![d, d], "w_v")?,
+        w_o: t(&b.weights.w_o, vec![d, d], "w_o")?,
+        w_ff1: t(&b.weights.w_ff1, vec![d, d_ff], "w_ff1")?,
+        b_ff1: t(&b.weights.b_ff1, vec![1, d_ff], "b_ff1")?
             .broadcast(vec![seq, d_ff])
-            .expect("b_ff1 broadcast"),
-        w_ff2: t(&b.weights.w_ff2, vec![d_ff, d]),
-        b_ff2: t(&b.weights.b_ff2, vec![1, d])
+            .map_err(|e| format!("b_ff1 broadcast: {e}"))?,
+        w_ff2: t(&b.weights.w_ff2, vec![d_ff, d], "w_ff2")?,
+        b_ff2: t(&b.weights.b_ff2, vec![1, d], "b_ff2")?
             .broadcast(vec![seq, d])
-            .expect("b_ff2 broadcast"),
-    }
+            .map_err(|e| format!("b_ff2 broadcast: {e}"))?,
+    })
 }
 
 /// Full pre-norm transformer encoder block forward pass.
@@ -173,13 +173,11 @@ fn transformer_forward(
     after_attn.add(&ffn_out).map_err(&e)
 }
 
-#[allow(clippy::expect_used)]
-fn readback(t: &Tensor) -> Vec<f32> {
-    t.to_vec().expect("GPU readback failed")
+fn readback(t: &Tensor) -> Result<Vec<f32>, String> {
+    t.to_vec().map_err(|e| format!("GPU readback: {e}"))
 }
 
 #[tokio::main]
-#[allow(clippy::expect_used)]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         eprintln!("SKIP — no adapter");
@@ -191,7 +189,13 @@ async fn main() {
     );
 
     let device: Dev = gpu.wgpu_device().clone();
-    let baseline = load_baseline();
+    let baseline = match load_baseline() {
+        Ok(b) => b,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            std::process::exit(1);
+        }
+    };
     let cfg = &baseline.config;
 
     eprintln!(
@@ -199,18 +203,35 @@ async fn main() {
         cfg.d_model, cfg.n_heads, cfg.d_ff, cfg.seq_len,
     );
 
-    let input = Tensor::from_data(
+    let input = match Tensor::from_data(
         &baseline.input,
         baseline.input_shape.to_vec(),
         device.clone(),
-    )
-    .expect("input upload");
-    let weights = upload_weights(&baseline, &device);
+    ) {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("ERROR: input upload: {e}");
+            std::process::exit(1);
+        }
+    };
+    let weights = match upload_weights(&baseline, &device) {
+        Ok(w) => w,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            std::process::exit(1);
+        }
+    };
 
     // Correctness check
     match transformer_forward(&input, &weights, cfg, &device) {
         Ok(output) => {
-            let out_data = readback(&output);
+            let out_data = match readback(&output) {
+                Ok(d) => d,
+                Err(e) => {
+                    eprintln!("  Readback ERROR: {e}");
+                    return;
+                }
+            };
             let max_diff: f64 = out_data
                 .iter()
                 .zip(baseline.output.iter())

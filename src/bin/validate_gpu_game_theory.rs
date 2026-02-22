@@ -10,6 +10,12 @@
 //! ## Papers validated
 //!
 //! - Paper 019: Game Theory (spatial prisoner's dilemma)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `game_theory::spatial_cooperation` (seed=42, 10×10 grid).
+//! WGSL shader: `metalForge/shaders/spatial_payoff.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

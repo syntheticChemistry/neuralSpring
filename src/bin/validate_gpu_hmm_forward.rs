@@ -22,6 +22,12 @@
 //! ## Backend selection
 //!
 //! Set `NEURALSPRING_BACKEND=cpu|gpu|auto`.
+//!
+//! ## Provenance
+//!
+//! CPU reference: `hmm::Hmm::forward` (seed=42, 2-state 20-obs).
+//! WGSL shader: `metalForge/shaders/hmm_forward_log.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

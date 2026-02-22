@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Validation binary: `SATé` alignment + phylogeny co-estimation (Paper 017).
 //!
@@ -79,7 +79,9 @@ fn main() {
     for i in 0..n_seqs {
         for j in 0..n_seqs {
             for k in 0..n_seqs {
-                if d_ham[i * n_seqs + j] > d_ham[i * n_seqs + k] + d_ham[k * n_seqs + j] + 1e-10 {
+                if d_ham[i * n_seqs + j]
+                    > d_ham[i * n_seqs + k] + d_ham[k * n_seqs + j] + tolerances::CROSS_LANGUAGE
+                {
                     tri_ok = false;
                 }
             }

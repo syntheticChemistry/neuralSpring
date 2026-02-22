@@ -9,6 +9,12 @@
 //! ## Papers validated
 //!
 //! - Paper 014: Directed Evolution (multi-objective fitness)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `directed_evolution::multi_objective_fitness` (seed=42, `pop_size`=10 `n_objectives`=4).
+//! WGSL shader: `metalForge/shaders/multi_obj_fitness.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

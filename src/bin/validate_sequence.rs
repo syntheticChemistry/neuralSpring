@@ -94,7 +94,11 @@ fn validate_sigmoid(h: &mut ValidationHarness) {
         1.0,
         tolerances::EXACT_F64,
     );
-    h.check_upper("σ(-100) < 0.01", sigmoid(-100.0), 0.01);
+    h.check_upper(
+        &format!("σ(-100) < {}", tolerances::REGULATORY_RESPONSE_MIN),
+        sigmoid(-100.0),
+        tolerances::REGULATORY_RESPONSE_MIN,
+    );
     h.check_lower("σ(100) > 0.99", sigmoid(100.0), 0.99);
 }
 

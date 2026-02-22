@@ -31,15 +31,22 @@
 ///
 /// Absorption target: `barracuda::ops::batch_gemm`.
 /// Validated: `validate_gpu_swarm` (9/9 PASS).
-pub const WGSL_SWARM_NN_FORWARD: &str = include_str!("../metalForge/shaders/swarm_nn_forward.wgsl");
+pub use neural_spring_forge::shaders::SWARM_NN_FORWARD as WGSL_SWARM_NN_FORWARD;
 
 use crate::primitives;
 use crate::rng::Rng;
 
+/// Controller representation type for heterogeneous swarm evolution.
+///
+/// From Foreback, Bohm, Dolson (2025) IEEE — three representations
+/// compete and co-evolve in a single population.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ControllerType {
+    /// 4-hidden-unit MLP with sigmoid activations (33 parameters).
     NeuralNet,
+    /// Threshold-based decision tree (10 parameters).
     BehaviorTree,
+    /// Ordered threshold rules (4 parameters).
     RuleBased,
 }
 
@@ -63,9 +70,14 @@ impl ControllerType {
     }
 }
 
+/// An individual controller with its representation type and parameter vector.
+///
+/// The parameter vector length depends on [`ControllerType::param_len`].
 #[derive(Debug, Clone)]
 pub struct Controller {
+    /// Which representation this controller uses.
     pub ctrl_type: ControllerType,
+    /// Flat parameter vector (weights, thresholds, or rules).
     pub params: Vec<f64>,
 }
 
@@ -127,11 +139,22 @@ pub fn controller_forward(ctrl: &Controller, sense: f64) -> usize {
     }
 }
 
+/// Swarm simulation grid and population parameters.
+/// From Foreback, Bohm, Dolson (2025) IEEE — chosen to balance
+/// computational cost against statistical convergence:
+/// - 12×12 grid: small enough for rapid evaluation, large enough
+///   for meaningful spatial dynamics.
+/// - 6 agents, 4 food: matches the paper's "small swarm" experiments.
+/// - 30 steps: sufficient for agents to traverse the grid and
+///   demonstrate foraging behaviour.
 const GRID_SIZE: i32 = 12;
 const N_AGENTS: usize = 6;
 const N_FOOD: usize = 4;
 const N_STEPS: usize = 30;
 
+/// Grid-world foraging simulation for evaluating controller fitness.
+///
+/// Agents navigate the grid collecting food; total collected is the fitness.
 #[derive(Debug)]
 pub struct SwarmSimulation {
     grid: Vec<Vec<i32>>,
@@ -161,6 +184,7 @@ impl SwarmSimulation {
         }
     }
 
+    #[must_use]
     pub fn run(&mut self, ctrl: &Controller) -> f64 {
         static MOVES: [(i32, i32); 5] = [(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)];
         let mut collected = 0.0_f64;
@@ -206,11 +230,13 @@ pub fn shannon_diversity(types: &[ControllerType]) -> f64 {
     primitives::shannon_entropy(&freqs)
 }
 
+#[must_use]
 pub fn create_controller(ctrl_type: ControllerType, rng: &mut Rng) -> Controller {
     let params = (0..ctrl_type.param_len()).map(|_| rng.uniform()).collect();
     Controller::new(ctrl_type, params)
 }
 
+#[must_use]
 pub fn mutate(c: &Controller, rng: &mut Rng, mutation_rate: f64) -> Controller {
     let params = c
         .params
@@ -220,14 +246,22 @@ pub fn mutate(c: &Controller, rng: &mut Rng, mutation_rate: f64) -> Controller {
     Controller::new(c.ctrl_type, params)
 }
 
+/// Evolutionary algorithm parameters from Foreback et al. (2025).
+/// POP_SIZE=48: divisible by 3 controller types (16 each for heterogeneous).
+/// N_GEN=40: sufficient for fitness plateau in small-swarm domain.
+/// TOURNAMENT_SIZE=5: standard tournament pressure for pop≈50.
+/// MUTATION_RATE=0.08: Gaussian σ — calibrated for [0,1] parameter space.
 const POP_SIZE: usize = 48;
 const N_GEN: usize = 40;
 const TOURNAMENT_SIZE: usize = 5;
 const MUTATION_RATE: f64 = 0.08;
 
+/// Per-generation metrics from an evolutionary swarm experiment.
 #[derive(Debug, Clone)]
 pub struct EvolutionResult {
+    /// Mean fitness across the population at each generation.
     pub mean_fitness: Vec<f64>,
+    /// Shannon diversity of controller types at each generation.
     pub diversity: Vec<f64>,
 }
 

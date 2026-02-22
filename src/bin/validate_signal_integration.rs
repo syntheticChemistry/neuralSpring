@@ -17,6 +17,7 @@ use neural_spring::signal_integration::{
     dose_response_cdg, integrate_ode, logic_gate_sweep, two_input_hill, LogicGate, OdeParams,
     OdeState,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn with_density(p: &OdeParams, cell_density: f64) -> OdeParams {
@@ -139,7 +140,7 @@ fn main() {
         "integration = multiplicative attention",
         att_cdg * att_ai,
         hill_val,
-        0.01,
+        tolerances::SIGNAL_DYNAMIC_RANGE_MIN,
     );
 
     h.check_bool("BarraCUDA connection documented", true);

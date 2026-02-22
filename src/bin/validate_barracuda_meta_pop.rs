@@ -118,7 +118,11 @@ fn validate_fst_via_barracuda(
     let af_var = inter_population_af_variance(populations, n_indivs, n_loci);
 
     // FST and inter-pop AF variance should both be positive for differentiated pops
-    h.check_lower(&format!("global FST > 0.01 ({gfst:.4})"), gfst, 0.01);
+    h.check_lower(
+        &format!("global FST > {} ({gfst:.4})", tolerances::META_POP_FST_MIN),
+        gfst,
+        tolerances::META_POP_FST_MIN,
+    );
     h.check_lower(
         &format!("inter-pop AF variance > 0 ({af_var:.6})"),
         af_var,

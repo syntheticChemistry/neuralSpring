@@ -16,6 +16,12 @@
 //!
 //! - Paper 020: Regulatory Network (Mhatre et al., 2020)
 //! - Paper 021: Signal Integration (Srivastava et al., 2011)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `regulatory_network::rk4_step` (Hill ODE integration).
+//! WGSL shader: `metalForge/shaders/rk4_parallel.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

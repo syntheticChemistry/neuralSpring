@@ -40,6 +40,11 @@ pub const CROSS_LANGUAGE: f64 = 1e-10;
 /// than machine epsilon to avoid false triggers on legitimate small values.
 pub const ZERO_DETECTION: f64 = 1e-14;
 
+/// `norm_ppf` at extreme quantiles (0.975) uses polynomial approximation.
+///
+/// Less accurate than the CDF. A&S 26.2.17 gives ~4 decimal digits.
+pub const NORM_PPF_TAIL: f64 = 0.01;
+
 // ═══════════════════════════════════════════════════════════════════
 // Benchmark function tolerances
 // ═══════════════════════════════════════════════════════════════════
@@ -55,6 +60,20 @@ pub const BENCHMARK_GLOBAL_MIN: f64 = EXACT_F64;
 /// Cross-validated against `NumPy` 2.2.6 at 4 reference points per function.
 /// Differences arise from transcendental evaluation (cos, exp, sqrt).
 pub const BENCHMARK_CROSS_PYTHON: f64 = CROSS_LANGUAGE;
+
+/// Nelder-Mead convergence to known minimum position.
+///
+/// 3 digits sufficient for stochastic simplex.
+pub const OPTIMIZER_POSITION: f64 = 1e-3;
+
+/// Nelder-Mead on multimodal (Rastrigin) — may find local basin.
+pub const OPTIMIZER_POSITION_MULTIMODAL: f64 = 0.1;
+
+/// Function value at converged minimum.
+pub const OPTIMIZER_VALUE_AT_MIN: f64 = 1e-4;
+
+/// Function value bound for multimodal convergence.
+pub const OPTIMIZER_VALUE_MULTIMODAL: f64 = 1.0;
 
 // ═══════════════════════════════════════════════════════════════════
 // Transformer primitive tolerances
@@ -175,6 +194,18 @@ pub const QUANT_INT8_DEGRADATION: f64 = 0.01;
 /// Measured: 0.79%. Threshold: 5%.
 pub const QUANT_INT4_DEGRADATION: f64 = 0.05;
 
+/// INT8 dequantization: max per-element error.
+///
+/// 256 quantization levels in `[-128, 127]` produce at most 0.5
+/// quantization step error per element.
+pub const QUANT_Q8_ELEMENT_ERROR: f64 = 0.5;
+
+/// INT4 dequantization: max per-element error.
+///
+/// 16 quantization levels produce at most 1.0 quantization step
+/// error per element.
+pub const QUANT_Q4_ELEMENT_ERROR: f64 = 1.0;
+
 // ═══════════════════════════════════════════════════════════════════
 // Phase 0++ evolutionary / stochastic algorithm tolerances
 // ═══════════════════════════════════════════════════════════════════
@@ -202,6 +233,84 @@ pub const HMM_POSTERIOR_SUM: f64 = 1e-8;
 ///
 /// A stabilized QS model should not oscillate beyond this level.
 pub const QS_VARIANCE_MAX: f64 = 0.05;
+
+/// IPR localization threshold: `IPR > 1/N` indicates localization.
+///
+/// For `N = 20`, the extended (delocalized) baseline is `IPR ≈ 1/N = 0.05`.
+/// Localized states have `IPR >> 0.05`. The check verifies `mean_IPR > 0.05`
+/// at strong disorder (`W/t = 10`), confirming Anderson localization.
+pub const IPR_LOCALIZATION_MIN: f64 = 0.05;
+
+/// HMM Viterbi accuracy: minimum fraction of correctly decoded states.
+///
+/// A well-specified HMM should decode > 50% of states correctly.
+/// The weather HMM (2-state) with long sequences achieves ~70%.
+pub const HMM_DECODE_ACCURACY_MIN: f64 = 0.05;
+
+/// Introgression detection: minimum detected introgression fraction.
+///
+/// Under the PhyloNet-HMM model, true introgression fraction is ~0.2.
+/// The detector should identify > 5% introgression loci.
+pub const INTROGRESSION_FRACTION_MIN: f64 = 0.05;
+
+/// Game theory cooperation: minimum QS cooperation frequency.
+///
+/// At signal threshold below carrying capacity, QS-mediated
+/// cooperation should be detectable (cooperation frequency > 5%).
+pub const GAME_COOPERATION_MIN: f64 = 0.05;
+
+/// Regulatory network: minimum Hill function response.
+///
+/// For non-zero inputs above the activation threshold, the Hill
+/// function should produce a measurable response (> 1%).
+pub const REGULATORY_RESPONSE_MIN: f64 = 0.01;
+
+/// Eco-dynamics mean fitness improvement: EA should improve.
+///
+/// Over 10 generations with tournament selection, mean fitness
+/// should increase by at least 8% from the random initial population.
+pub const ECO_FITNESS_IMPROVEMENT_MIN: f64 = 0.08;
+
+/// Pangenome selection: minimum positive selection signal (dN/dS > 1).
+///
+/// The test sequence has elevated nonsynonymous substitutions;
+/// the chi-squared p-value should indicate significance.
+pub const PANGENOME_SELECTION_P_MIN: f64 = 0.01;
+
+/// Meta-population `F_ST` threshold: differentiation above drift alone.
+///
+/// With `F_ST` = 0.1 target, the observed `F_ST` should exceed 1% to
+/// demonstrate measurable genetic structure.
+pub const META_POP_FST_MIN: f64 = 0.01;
+
+/// Meta-population inter-population allele frequency variance.
+///
+/// With `F_ST > 0`, allele frequency variance across populations
+/// should exceed 0.1% (0.001) to confirm genetic structure.
+pub const META_POP_AF_VARIANCE_MIN: f64 = 0.001;
+
+/// Phylo HMM Viterbi margin: excess accuracy over chance for
+/// 4-state phylo HMM on 5000 observations. Tighter than the
+/// 2-state weather HMM because more states make the problem harder.
+pub const HMM_PHYLO_DECODE_MARGIN: f64 = 0.02;
+
+/// Signal integration: minimum dynamic range of Hill gate response.
+///
+/// The Hill function should produce distinguishable high and low
+/// outputs. A dynamic range < 1% indicates a degenerate gate.
+pub const SIGNAL_DYNAMIC_RANGE_MIN: f64 = 0.01;
+
+// ═══════════════════════════════════════════════════════════════════
+// Phase 0++ stochastic model tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// `BarraCUDA` Tensor matmul chain for eco dynamics (f32 accumulation).
+pub const BARRACUDA_GPU_ECO_F32: f64 = 1e-3;
+
+/// ‖\[A,B\]‖_F / ‖A‖‖B‖ threshold for approximate commutativity.
+///
+/// Relaxed because random matrices are generically non-commuting.
+pub const SPECTRAL_COMMUTATIVITY_EPS: f64 = 0.01;
 
 // ═══════════════════════════════════════════════════════════════════
 // Tensor / WGSL shader tolerances (f32 compute)
@@ -472,8 +581,13 @@ mod tests {
             EXACT_F64,
             CROSS_LANGUAGE,
             ZERO_DETECTION,
+            NORM_PPF_TAIL,
             BENCHMARK_GLOBAL_MIN,
             BENCHMARK_CROSS_PYTHON,
+            OPTIMIZER_POSITION,
+            OPTIMIZER_POSITION_MULTIMODAL,
+            OPTIMIZER_VALUE_AT_MIN,
+            OPTIMIZER_VALUE_MULTIMODAL,
             SOFTMAX_SUM,
             SOFTMAX_CROSS_PYTHON,
             GELU_CROSS_PYTHON,
@@ -492,6 +606,8 @@ mod tests {
             DEEPONET_POLYNOMIAL_EXACT,
             QUANT_INT8_DEGRADATION,
             QUANT_INT4_DEGRADATION,
+            QUANT_Q8_ELEMENT_ERROR,
+            QUANT_Q4_ELEMENT_ERROR,
             TENSOR_EXACT_F32,
             TENSOR_TRANSCENDENTAL_F32,
             TENSOR_MATMUL_F32,
@@ -529,6 +645,19 @@ mod tests {
             EIGH_JACOBI_RECONSTRUCT,
             EIGH_JACOBI_EIGENVALUE,
             ODE_INTEGRATOR_AGREEMENT,
+            IPR_LOCALIZATION_MIN,
+            HMM_DECODE_ACCURACY_MIN,
+            INTROGRESSION_FRACTION_MIN,
+            GAME_COOPERATION_MIN,
+            REGULATORY_RESPONSE_MIN,
+            ECO_FITNESS_IMPROVEMENT_MIN,
+            PANGENOME_SELECTION_P_MIN,
+            META_POP_FST_MIN,
+            META_POP_AF_VARIANCE_MIN,
+            HMM_PHYLO_DECODE_MARGIN,
+            SIGNAL_DYNAMIC_RANGE_MIN,
+            BARRACUDA_GPU_ECO_F32,
+            SPECTRAL_COMMUTATIVITY_EPS,
         ];
         for (i, &t) in tols.iter().enumerate() {
             assert!(t > 0.0, "tolerance index {i} must be positive, got {t}");

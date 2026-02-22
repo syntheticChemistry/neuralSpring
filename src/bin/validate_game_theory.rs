@@ -84,12 +84,12 @@ fn main() {
     h.check_lower(
         &format!("spatial cooperation ({spatial_coop:.4}) > 0.05"),
         spatial_coop,
-        0.05,
+        tolerances::GAME_COOPERATION_MIN,
     );
 
     h.check_bool(
         &format!("spatial ({spatial_coop:.4}) above baseline"),
-        spatial_coop > 0.01,
+        spatial_coop > tolerances::REGULATORY_RESPONSE_MIN,
     );
 
     // Part 5: QS stabilizes

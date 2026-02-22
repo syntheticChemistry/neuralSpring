@@ -23,8 +23,8 @@
 |---------------|-------------|-------------|----------------|--------|
 | `transformer/` softmax | `transformer::softmax` | `attention.wgsl` (softmax stage) | Inference | **VALIDATED** (18 checks) |
 | `transformer/` GELU | `transformer::gelu` | elementwise | Inference | **VALIDATED** (18 checks) |
-| `transformer/` LayerNorm | `transformer::layer_norm` (stub) | `layer_norm.wgsl` | Inference | Implement norm |
-| `transformer/` SDPA | `transformer::sdpa` (stub) | `attention.wgsl` | Inference | Implement QKV matmul |
+| `transformer/` LayerNorm | `Tensor::layer_norm_wgsl()` | `layer_norm.wgsl` | Inference | **ABSORBED** — native BarraCUDA (S-08) |
+| `transformer/` SDPA | `TensorSession::attention()` | `attention.wgsl` | Inference | **ABSORBED** — native BarraCUDA (S-11) |
 | `surrogate/` Rastrigin | `surrogate::rastrigin_2d` | N/A (test function) | Validation | **VALIDATED** (15 checks) |
 | `surrogate/` Rosenbrock | `surrogate::rosenbrock_2d` | N/A (test function) | Validation | **VALIDATED** (15 checks) |
 | `surrogate/` Ackley | `surrogate::ackley_2d` | N/A (test function) | Validation | **VALIDATED** (15 checks) |
@@ -171,7 +171,7 @@ For each Rust module → GPU promotion:
 | Phase | Status | Coverage |
 |-------|--------|----------|
 | Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, 48 pytest |
-| Phase 1a (neuralSpring Rust) | **219 lib PASS** | 28 modules (+3 evolved), 219 unit tests, 78 validation binaries |
+| Phase 1a (neuralSpring Rust) | **237 lib PASS** | 28 modules (+3 evolved), 237 unit tests (94.9% line coverage), 81 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU ports) | **170/170 PASS** | All 15 Phase 0++ modules + PINN + DeepONet validated |

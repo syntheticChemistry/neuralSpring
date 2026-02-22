@@ -26,6 +26,12 @@
 //! **`ToadStool` absorption**: The Naive matmul tier should be removed
 //! or replaced with Tiled16 for all sizes. The `SMALL_MATRIX_THRESHOLD`
 //! cutoff at 32 exposes a driver-dependent hang.
+//!
+//! ## Provenance
+//!
+//! GPU Tensor: `barracuda::Tensor::matmul` for spectral commutativity (Paper 022).
+//! CPU: spectral commutator, identity, Frobenius norm validation.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

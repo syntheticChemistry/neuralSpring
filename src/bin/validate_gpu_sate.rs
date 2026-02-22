@@ -9,6 +9,12 @@
 //! ## Papers validated
 //!
 //! - Paper 017: SATé Alignment (Liu et al., 2009)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `sate_alignment::pairwise_distance_matrix` (seed=42, n_seqs=8 seq_len=50).
+//! WGSL shader: `metalForge/shaders/pairwise_hamming.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,
@@ -281,7 +287,9 @@ fn validate_identical_sequences(h: &mut ValidationHarness, gpu: &Gpu) {
     match gpu_pairwise_hamming(gpu, &flat, n_seqs, seq_len) {
         Ok(gpu_dist) => {
             let max_dist = gpu_dist.iter().map(|v| v.abs()).fold(0.0_f32, f32::max);
-            let all_zero = gpu_dist.iter().all(|&d| d.abs() < 1e-6);
+            let all_zero = gpu_dist
+                .iter()
+                .all(|&d| d.abs() < tolerances::GPU_HAMMING_F32 as f32);
             h.check_bool(
                 &format!("identical sequences: all Hamming=0 (max={max_dist:.2e})"),
                 all_zero,

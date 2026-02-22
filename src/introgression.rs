@@ -79,11 +79,13 @@ fn ils_only_generating_hmm() -> Hmm {
 }
 
 /// Generate synthetic loci with no introgression (for FPR test).
+#[must_use]
 pub fn generate_ils_only_loci(n_loci: usize, rng: &mut Rng) -> (Vec<usize>, Vec<usize>) {
     ils_only_generating_hmm().generate_sequence(n_loci, rng)
 }
 
 /// Generate synthetic gene tree observations from PhyloNet-HMM.
+#[must_use]
 pub fn generate_synthetic_loci(
     n_loci: usize,
     hmm: &Hmm,

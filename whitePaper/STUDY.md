@@ -7,7 +7,7 @@ ten experiments spanning function approximation, transformer attention, sequence
 forecasting, transfer learning, cross-domain architecture analysis, physics-informed
 neural networks, operator learning, convolutional networks, real-data LSTM, and
 quantized inference. All **206 quantitative checks pass** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++).
-Phase 1–4d Rust validation adds **760 Rust+GPU checks** (183 native + 272 BarraCUDA primitives + 147 CPU ports + 69 GPU shaders + 65 GPU pipelines + 5 GPU PRNG + 19 Phase 4d). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
+Phase 1–5b Rust validation adds **1100+ Rust+GPU checks** (237 lib tests + 81 validation binaries across 29 modules + 3 evolved, 94.9% line coverage). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
 The 3-way benchmark (Python vs CPU vs GPU) with double-buffered evolved shaders
 achieves **GPU 104× faster** than Python at 103M FLOPs and **CPU 3.9× faster**
 at the same scale.
@@ -161,15 +161,16 @@ and time series simultaneously.
 **Result**: INT8: 0.017% accuracy loss, 3.9× compression. INT4: 0.79% loss, 7.3× compression.  
 **BarraCUDA**: Same pipeline as llama.cpp GGML → `gemv_q4.wgsl`, `gemv_q8.wgsl`, `dequant_q4.wgsl`
 
-## Rust Validation Layer (Phase 1)
+## Rust Validation Layer (Phase 1–5b)
 
 The audit (February 2026) produced a Rust crate that cross-validates Python baselines.
-BarraCUDA integration (February 19, 2026) extended it to 272 GPU/CPU validation checks.
+BarraCUDA integration extended it to 1100+ GPU/CPU validation checks across 81 binaries.
 
-- **22 library modules**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances.rs`, `provenance.rs`, `gpu.rs`, `evolved/`, plus 13 paper modules
-- **18 validation binaries**: native + BarraCUDA + GPU
-- **135 Rust unit tests** (plus 6 doc tests) with hardcoded Python reference values (cross-language agreement to <1e-12)
+- **29 library modules + 3 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances.rs` (58 named constants), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
+- **81 validation binaries + 5 bench**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch
+- **237 unit tests + 9 doc-tests**, 94.9% line coverage via `llvm-cov`
 - **Quality gates**: `clippy` (pedantic+nursery), `fmt`, `doc`, `unsafe_code = "forbid"`
+- **16 WGSL shaders** in `metalForge/shaders/` with validation binaries and absorption targets
 
 See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C promotion path from Rust to WGSL.
 
@@ -209,48 +210,47 @@ technique was learned from hotSpring's double-buffered staging pattern.
 
 See `whitePaper/BARRACUDA_EVOLUTION.md` for the full technical narrative.
 
-## Future Evolution
+## Evolution Roadmap
 
 | Phase | Focus | Deliverable | Status |
 |-------|-------|-------------|--------|
 | 0 | Python baselines (48 checks) | Validate the science | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Reproduce published results | **COMPLETE** |
-| 1a | neuralSpring Rust validation | 26 modules, 181 lib tests, 67 binaries (90.55% coverage) | **COMPLETE** |
-| 1b | BarraCUDA validation | 12 domains, 272 checks (CPU + GPU + FFT) | **COMPLETE** |
+| 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty, 5 disciplines | **COMPLETE** |
+| 1a | neuralSpring Rust validation | 29 modules, 237 lib tests, 81 binaries (94.9% coverage) | **COMPLETE** |
+| 1b | BarraCUDA validation | 12 domains, 275 checks (CPU + GPU + FFT) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | 46–78× speedup via single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |
-| 2 | ~~Quantized inference~~ | **DONE** — Q4/Q8 validated in Phase 0+ Study 005 | **VALIDATED** |
-| 3 | llama.cpp parity | Reproduce llama.cpp inference in BarraCUDA | Planned |
-| 4 | Cross-spring surrogates | Live ET₀ surrogate for Penny Irrigation | Planned |
+| 2 | BarraCUDA CPU ports | 17 modules, 170 checks | **COMPLETE** |
+| 3a | BarraCUDA FFT | 24 analytical checks (f32/f64/Rfft) | **COMPLETE** |
+| 3b | GPU streaming | `StatefulPipeline` (10/10 PASS) | **COMPLETE** |
+| 3c | Shader evolution | 16 WGSL shaders, 108+ checks | **COMPLETE** |
+| 3d | Cross-dispatch | GPU-CPU parity (41 checks) | **COMPLETE** |
+| 4a | Performance benchmarks | 7 kernels, 71.8× overall | **COMPLETE** |
+| 4b | GPU pipelines | 7 pipelines, 32 checks | **COMPLETE** |
+| 4c | GPU PRNG | Xoshiro128** (5/5 PASS) | **COMPLETE** |
+| 4d | ToadStool issue resolution | S-12 eigensolver + S-03b MHA (19 checks) | **COMPLETE** |
+| 4e | Domain modules + GPU | PINN, DeepONet, 4 new shaders, 95 checks | **COMPLETE** |
+| 5a | BarraCUDA GPU Tensor | Spectral (8) + eco (6) | **COMPLETE** |
+| 5b | Upstream fixes | S-13 pool sync, S-14 Naive matmul | **Active** |
 
-## Next Phase: Faculty-Driven Paper Candidates
+## Faculty-Driven Paper Reproductions (All Completed)
 
-Three professors from the master's program (Dolson, Liu, Bazavov) and one from
-undergrad (Waters) provide the next wave of reproduction targets. These move
-neuralSpring from "validate ML primitives" to "apply ML to real science."
+All four faculty research groups have been reproduced in Phase 0++:
 
-### Priority Reproduction Targets
+| Faculty | Papers | Key Result |
+|---------|--------|------------|
+| **Dolson** (MSU CS) | 011–015 | Counterdiabatic driving, MODES, eco dynamics, lexicase, swarm |
+| **Liu** (MSU CSE) | 016–018, 024–025 | HMM phylogenetics, SATé, introgression, pangenome, meta-pop |
+| **Waters** (MSU Micro) | 019–021 | Game theory, regulatory networks, signal integration |
+| **Kachkovskiy** (MSU Math) | 022–023 | Spectral commutativity, Anderson localization |
 
-1. **Iram, Dolson et al. (2020) "Controlling the speed and trajectory of evolution
-   with counterdiabatic driving." Nature Physics** — Closest published analog to
-   ecoPrimals' constrained evolution methodology. Reproducing the computational
-   protocol would externally validate `gen3/CONSTRAINED_EVOLUTION_FORMAL.md`.
+All 15 papers validated in Python (127/127) and Rust (170/170 CPU ports),
+with 16 WGSL shaders evolved for GPU acceleration via metalForge.
 
-2. **Dolson et al. (2019) MODES Toolbox (Artificial Life)** — Metrics for open-ended
-   evolution. Apply to BarraCUDA's own evolution history to measure whether
-   constrained evolution produces genuine novelty.
+### BarraCUDA Primitives Validated
 
-3. **Liu et al. (2014) PhyloNet-HMM (PLoS Comp Bio)** — Hidden Markov Model on
-   genomic data. HMM forward/backward/Viterbi = matrix chain multiplication — the
-   same GEMM primitive, different domain. Bridges to wetSpring metagenomics.
-
-4. **Bruger & Waters (2018) QS Cooperation (AEM)** — Game-theoretic optimization
-   of bacterial cooperation. The bacterial "fitness landscape" is the same
-   mathematical object as a neural network's loss landscape.
-
-### BarraCUDA Primitives Validated (2026-02-19)
-
-Following the hotSpring pattern, `neuralSpring` validates 272 BarraCUDA primitives (CPU + GPU + FFT):
+Following the hotSpring pattern, `neuralSpring` validates 275+ BarraCUDA primitives (CPU + GPU + FFT):
 
 | Binary | Module | Checks | Reference |
 |--------|--------|--------|-----------|
@@ -285,11 +285,14 @@ medium (103M FLOPs), CPU **3.9× faster** at the same scale.
 Full 3-way benchmark in `specs/BENCHMARK_ANALYSIS.md`.
 Shader evolution narrative in `whitePaper/BARRACUDA_EVOLUTION.md`.
 
-### BarraCUDA Gaps Identified
+### BarraCUDA Gaps Resolved
 
-| Gap | Required For | Effort |
-|-----|-------------|--------|
-| Evolutionary optimization (GA/ES) | Dolson counterdiabatic protocols | Medium |
-| HMM Viterbi decoding | Liu PhyloNet-HMM | Medium |
-| Gillespie stochastic simulation | Waters c-di-GMP dynamics | Low |
-| MODES metrics computation | Dolson open-ended evolution | Low |
+All gaps identified during Phase 0+ have been addressed via local Rust
+implementations validated against BarraCUDA CPU math and GPU WGSL shaders:
+
+| Gap | Resolution | Shader / Module |
+|-----|-----------|-----------------|
+| Evolutionary optimization (GA/ES) | `counterdiabatic.rs` + `batch_fitness_eval.wgsl` | Phase 0++ Paper 011 |
+| HMM Viterbi decoding | `hmm.rs` + `hmm_forward_log.wgsl` | Phase 0++ Paper 016 |
+| Gillespie stochastic simulation | `regulatory_network.rs` + `rk4_parallel.wgsl` | Phase 0++ Paper 020 |
+| MODES metrics computation | `modes.rs` + `pairwise_l2.wgsl` | Phase 0++ Paper 012 |

@@ -26,6 +26,12 @@
 //!
 //! - Paper 020: Regulatory Network (Mhatre et al., 2020)
 //! - Paper 021: Signal Integration (Srivastava et al., 2011)
+//!
+//! ## Provenance
+//!
+//! GPU pipeline: `StatefulPipeline` API (`rk4_parallel` iteration).
+//! Validates: end-to-end GPU-resident computation with scalar-only readback.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

@@ -26,6 +26,20 @@ use std::sync::Arc;
 ///
 /// Wraps `WgpuDevice` with relaxed limits (llvmpipe caps at 128 MB)
 /// and exposes raw `wgpu` handles for direct buffer management.
+///
+/// # Example
+///
+/// ```no_run
+/// # async fn example() -> Result<(), String> {
+/// use neural_spring::gpu::Gpu;
+///
+/// let gpu = Gpu::new().await?;
+/// let buf = gpu.upload_f32(&[1.0, 2.0, 3.0])?;
+/// let data = gpu.read_buffer_f32(&buf, 3)?;
+/// assert_eq!(data.len(), 3);
+/// # Ok(())
+/// # }
+/// ```
 pub struct Gpu {
     wgpu_device: Arc<WgpuDevice>,
     pub adapter_name: String,

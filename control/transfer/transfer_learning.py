@@ -25,6 +25,7 @@ transfer for fine-tuning.
 """
 
 import copy
+import os
 import sys
 from pathlib import Path
 
@@ -39,9 +40,22 @@ try:
 except ImportError:
     HAS_TORCH = False
 
-# Import airSpring's ET₀
-AIRSPRING_FAO56 = Path(__file__).parent.parent.parent.parent / "airSpring" / "control" / "fao56"
-sys.path.insert(0, str(AIRSPRING_FAO56))
+# Discover airSpring's FAO-56 at runtime.
+# Per wateringHole standards, primals discover peers via env var or sibling path.
+_AIRSPRING_FAO56 = None
+for _candidate in [
+    os.environ.get("AIRSPRING_FAO56_PATH"),
+    str(Path(__file__).parent.parent.parent.parent / "airSpring" / "control" / "fao56"),
+]:
+    if _candidate and Path(_candidate).is_dir():
+        _AIRSPRING_FAO56 = _candidate
+        break
+if _AIRSPRING_FAO56 is None:
+    raise RuntimeError(
+        "airSpring FAO-56 module not found. Set AIRSPRING_FAO56_PATH or "
+        "ensure airSpring is a sibling directory of neuralSpring."
+    )
+sys.path.insert(0, _AIRSPRING_FAO56)
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from penman_monteith import (

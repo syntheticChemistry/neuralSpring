@@ -13,6 +13,12 @@
 //!   → Cross-dispatch GPU ↔ CPU (this binary)
 //!   → metalForge cross-system (GPU → NPU → CPU)
 //! ```
+//!
+//! ## Provenance
+//!
+//! CPU/GPU dispatch: Phase 4e (`pairwise_l2`, `multi_obj`, `swarm_nn`, `hill_gate`).
+//! Validates: `DispatchConfig` routing for domain shaders.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

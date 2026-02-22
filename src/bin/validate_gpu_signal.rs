@@ -9,6 +9,12 @@
 //! ## Papers validated
 //!
 //! - Paper 021: Signal Integration (two-input Hill function / AND gate)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `signal_integration::two_input_hill` (seed=0, 10×10 grid).
+//! WGSL shader: `metalForge/shaders/hill_gate.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

@@ -13,6 +13,7 @@
 //! Format follows llama.cpp `Q4_0` and `Q8_0` block layout.
 
 use barracuda::shaders::quantized;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -40,9 +41,24 @@ fn validate_q8_dequant(h: &mut ValidationHarness) {
     data[5] = 127_u8; // +127
 
     let result = quantized::dequant_q8_cpu(&data, 4);
-    h.check_abs("Q8 dequant[0] = 10", f64::from(result[0]), 10.0, 0.5);
-    h.check_abs("Q8 dequant[1] = -10", f64::from(result[1]), -10.0, 0.5);
-    h.check_abs("Q8 dequant[2] = 0", f64::from(result[2]), 0.0, 0.5);
+    h.check_abs(
+        "Q8 dequant[0] = 10",
+        f64::from(result[0]),
+        10.0,
+        tolerances::QUANT_Q8_ELEMENT_ERROR,
+    );
+    h.check_abs(
+        "Q8 dequant[1] = -10",
+        f64::from(result[1]),
+        -10.0,
+        tolerances::QUANT_Q8_ELEMENT_ERROR,
+    );
+    h.check_abs(
+        "Q8 dequant[2] = 0",
+        f64::from(result[2]),
+        0.0,
+        tolerances::QUANT_Q8_ELEMENT_ERROR,
+    );
 
     // Length check
     h.check_bool("Q8 dequant length == 4", result.len() == 4);
@@ -61,8 +77,18 @@ fn validate_q4_dequant(h: &mut ValidationHarness) {
     data[2] = 0x88; // low=8→0, high=8→0
 
     let result = quantized::dequant_q4_cpu(&data, 2);
-    h.check_abs("Q4 dequant zero pair", f64::from(result[0]), 0.0, 0.5);
-    h.check_abs("Q4 dequant zero pair[1]", f64::from(result[1]), 0.0, 0.5);
+    h.check_abs(
+        "Q4 dequant zero pair",
+        f64::from(result[0]),
+        0.0,
+        tolerances::QUANT_Q4_ELEMENT_ERROR,
+    );
+    h.check_abs(
+        "Q4 dequant zero pair[1]",
+        f64::from(result[1]),
+        0.0,
+        tolerances::QUANT_Q4_ELEMENT_ERROR,
+    );
 
     // Length check
     h.check_bool("Q4 dequant length == 2", result.len() == 2);
@@ -88,7 +114,12 @@ fn validate_quantized_gemv(h: &mut ValidationHarness) {
         quantized::gemv_quantized_cpu(&a_quant, &input, rows, cols, quantized::QuantType::Q8_0);
 
     // output[0] = sum(1.0 * 1.0 for 32 elements) = 32.0 (approximately, due to f16 scale)
-    h.check_abs("Q8 GEMV ones·ones ≈ 32", f64::from(output[0]), 32.0, 1.0);
+    h.check_abs(
+        "Q8 GEMV ones·ones ≈ 32",
+        f64::from(output[0]),
+        32.0,
+        tolerances::QUANT_Q4_ELEMENT_ERROR,
+    );
 
     h.check_bool("Q8 GEMV output length == 1", output.len() == rows);
 }

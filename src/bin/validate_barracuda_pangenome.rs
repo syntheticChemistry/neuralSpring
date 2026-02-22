@@ -29,6 +29,7 @@ use neural_spring::pangenome_selection::{
     selection_coefficient, spectrum_chi_squared,
 };
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -118,7 +119,14 @@ fn validate_selection_spectrum(h: &mut ValidationHarness) {
     let spec_var = barracuda::stats::correlation::variance(&obs_spec).unwrap_or(f64::NAN);
 
     h.check_lower(&format!("chi2={chi2:.2} > 16.92 (selection)"), chi2, 16.92);
-    h.check_lower(&format!("selection coeff={s:.4} > 0.01"), s, 0.01);
+    h.check_lower(
+        &format!(
+            "selection coeff={s:.4} > {}",
+            tolerances::PANGENOME_SELECTION_P_MIN
+        ),
+        s,
+        tolerances::PANGENOME_SELECTION_P_MIN,
+    );
     h.check_bool(
         &format!("spectrum variance finite ({spec_var:.4})"),
         spec_var.is_finite() && spec_var >= 0.0,

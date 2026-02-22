@@ -12,6 +12,12 @@
 //!   → Cross-dispatch GPU ↔ CPU (this binary)
 //!   → metalForge cross-system (GPU → NPU → CPU)
 //! ```
+//!
+//! ## Provenance
+//!
+//! CPU/GPU dispatch: extended domain (`spatial_payoff`, `batch_ipr`, `pairwise_hamming`).
+//! Validates: stencil, `batch_reduce`, hamming GPU↔CPU parity.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

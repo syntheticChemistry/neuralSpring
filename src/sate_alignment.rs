@@ -45,9 +45,18 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::pairwise_distance` or `cdist_wgsl`.
 /// Validated: `validate_gpu_sate`.
-pub const WGSL_PAIRWISE_HAMMING: &str = include_str!("../metalForge/shaders/pairwise_hamming.wgsl");
+pub use neural_spring_forge::shaders::PAIRWISE_HAMMING as WGSL_PAIRWISE_HAMMING;
 
+/// Gap character sentinel in the 0-3 nucleotide encoding (A=0, C=1, G=2, T=3).
+/// Value 4 is the first integer outside the valid nucleotide range,
+/// standard in bioinformatics integer-encoded alignments.
 const GAP: u8 = 4;
+
+/// Saturation ceiling for Jukes-Cantor distance when p ≥ 0.75.
+/// At p = 3/4 the JC formula -3/4 * ln(1 - 4p/3) diverges.
+/// We cap at 10.0 following standard phylogenetic practice (e.g.
+/// PHYLIP, Bio++), which represents effectively infinite divergence
+/// while remaining finite for matrix operations.
 const JC_SATURATION: f64 = 10.0;
 
 /// Hamming distance: proportion of differing sites.
@@ -446,5 +455,50 @@ mod tests {
         let (aln, n_rows, aln_len) = progressive_align(&seqs, n, len, &tree);
         let sc = alignment_score(&aln, n_rows, aln_len);
         assert!(sc > -1e6);
+    }
+
+    #[test]
+    fn robinson_foulds_identical_trees() {
+        let mut rng = Rng::new(42);
+        let (seqs, n, len) = generate_tree_guided_sequences(6, 40, 0.05, &mut rng);
+        let d = pairwise_distance_matrix(&seqs, n, len, true);
+        let tree = neighbor_joining(&d, n);
+        assert_eq!(robinson_foulds(&tree, &tree), 0);
+    }
+
+    #[test]
+    fn robinson_foulds_different_trees() {
+        let mut rng = Rng::new(42);
+        let (seqs, n, len) = generate_tree_guided_sequences(6, 40, 0.05, &mut rng);
+        let d1 = pairwise_distance_matrix(&seqs, n, len, true);
+        let tree1 = neighbor_joining(&d1, n);
+        let d2 = pairwise_distance_matrix(&seqs, n, len, false);
+        let tree2 = neighbor_joining(&d2, n);
+        let rf = robinson_foulds(&tree1, &tree2);
+        assert!(rf <= 2 * (n - 3));
+    }
+
+    #[test]
+    fn jc_saturated_returns_ceiling() {
+        assert!((jukes_cantor(0.76) - JC_SATURATION).abs() < 1e-10);
+    }
+
+    #[test]
+    fn align_pair_gap_insertion() {
+        let a: Vec<u8> = vec![0, 1, 2, 3];
+        let b: Vec<u8> = vec![0, 3];
+        let (aln_a, aln_b) = align_pair(&a, &b);
+        assert_eq!(aln_a.len(), aln_b.len());
+        assert!(aln_a.contains(&0));
+        assert!(aln_b.contains(&3));
+    }
+
+    #[test]
+    fn progressive_align_single_sequence() {
+        let seqs = vec![0u8, 1, 2, 3];
+        let (aln, n, len) = progressive_align(&seqs, 1, 4, &[]);
+        assert_eq!(n, 1);
+        assert_eq!(len, 4);
+        assert_eq!(aln, seqs);
     }
 }

@@ -43,7 +43,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::pairwise_distance`.
 /// Validated: `validate_gpu_pangenome` (6/6 PASS).
-pub const WGSL_PAIRWISE_JACCARD: &str = include_str!("../metalForge/shaders/pairwise_jaccard.wgsl");
+pub use neural_spring_forge::shaders::PAIRWISE_JACCARD as WGSL_PAIRWISE_JACCARD;
 
 /// Generate a synthetic gene presence/absence matrix.
 ///

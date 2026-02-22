@@ -12,6 +12,12 @@
 //!
 //! Absorption target: `barracuda::ops::mha` --- replace fused projection
 //! shaders with matmul + head_split/head_concat.
+//!
+//! ## Provenance
+//!
+//! CPU reference: manual head_split/head_concat (layout permutation).
+//! WGSL shaders: `metalForge/shaders/head_split.wgsl`, `metalForge/shaders/head_concat.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

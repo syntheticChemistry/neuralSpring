@@ -64,11 +64,12 @@ fn main() {
 
     h.check_lower(
         &format!(
-            "Viterbi accuracy ({accuracy:.4}) > chance+0.05 ({:.4})",
-            chance + 0.05
+            "Viterbi accuracy ({accuracy:.4}) > chance+{} ({:.4})",
+            tolerances::HMM_DECODE_ACCURACY_MIN,
+            chance + tolerances::HMM_DECODE_ACCURACY_MIN
         ),
         accuracy,
-        chance + 0.05,
+        chance + tolerances::HMM_DECODE_ACCURACY_MIN,
     );
 
     h.check_bool(
@@ -103,10 +104,11 @@ fn main() {
 
     h.check_bool(
         &format!(
-            "posterior accuracy ({posterior_acc:.4}) >= Viterbi-0.05 ({:.4})",
-            accuracy - 0.05
+            "posterior accuracy ({posterior_acc:.4}) >= Viterbi-{} ({:.4})",
+            tolerances::HMM_DECODE_ACCURACY_MIN,
+            accuracy - tolerances::HMM_DECODE_ACCURACY_MIN
         ),
-        posterior_acc >= accuracy - 0.05,
+        posterior_acc >= accuracy - tolerances::HMM_DECODE_ACCURACY_MIN,
     );
 
     // Part 4: Phylo HMM (genomic scale)
@@ -130,11 +132,12 @@ fn main() {
 
     h.check_lower(
         &format!(
-            "phylo Viterbi ({phylo_acc:.4}) > chance+0.02 ({:.4})",
-            phylo_chance + 0.02
+            "phylo Viterbi ({phylo_acc:.4}) > chance+{} ({:.4})",
+            tolerances::HMM_PHYLO_DECODE_MARGIN,
+            phylo_chance + tolerances::HMM_PHYLO_DECODE_MARGIN
         ),
         phylo_acc,
-        phylo_chance + 0.02,
+        phylo_chance + tolerances::HMM_PHYLO_DECODE_MARGIN,
     );
 
     // Part 5: GEMM equivalence (manual forward matches library)

@@ -21,6 +21,7 @@ validates the mapping, and produces the definitive op catalog that
 guides BarraCUDA's neuralSpring evolution.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -287,17 +288,25 @@ PRIMITIVES = {
 
 def validate_barracuda_coverage():
     """Check that BarraCUDA has WGSL shaders for all identified primitives."""
-    barracuda_shaders_dir = (
-        Path(__file__).parent.parent.parent.parent
-        / "phase1"
-        / "toadstool"
-        / "crates"
-        / "barracuda"
-        / "src"
-    )
+    # Runtime discovery: env var first, then sibling primal path.
+    barracuda_shaders_dir = None
+    for candidate in [
+        os.environ.get("BARRACUDA_SRC_PATH"),
+        str(
+            Path(__file__).parent.parent.parent.parent
+            / "phase1"
+            / "toadstool"
+            / "crates"
+            / "barracuda"
+            / "src"
+        ),
+    ]:
+        if candidate and Path(candidate).is_dir():
+            barracuda_shaders_dir = Path(candidate)
+            break
 
     known_shaders = set()
-    if barracuda_shaders_dir.exists():
+    if barracuda_shaders_dir is not None and barracuda_shaders_dir.exists():
         for wgsl in barracuda_shaders_dir.rglob("*.wgsl"):
             known_shaders.add(wgsl.stem)
 

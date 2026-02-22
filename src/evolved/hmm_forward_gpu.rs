@@ -268,3 +268,79 @@ const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
         count: None,
     }
 }
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn forward_2state_3obs_matches_cpu() {
+        let Ok(gpu) = Gpu::new().await else { return };
+
+        // 2-state HMM: weather model (Rainy=0, Sunny=1)
+        // P(init) = [0.6, 0.4]
+        let log_init: Vec<f32> = vec![0.6_f32.ln(), 0.4_f32.ln()];
+
+        // Transition: [[0.7, 0.3], [0.4, 0.6]]
+        let log_trans: Vec<f32> = vec![0.7_f32.ln(), 0.3_f32.ln(), 0.4_f32.ln(), 0.6_f32.ln()];
+
+        // Emission: [[0.5, 0.5], [0.1, 0.9]]  (obs: 0 or 1)
+        // Observations: [0, 1, 0]
+        let emit = [
+            [0.5_f32, 0.1], // t=0, obs=0
+            [0.5_f32, 0.9], // t=1, obs=1
+            [0.5_f32, 0.1], // t=2, obs=0
+        ];
+        let log_emit: Vec<f32> = emit.iter().flatten().map(|x| x.ln()).collect();
+
+        let output = hmm_forward_gpu(&gpu, &log_init, &log_trans, &log_emit)
+            .expect("hmm_forward_gpu should succeed");
+
+        assert_eq!(output.n_states, 2);
+
+        let alpha = output.readback(&gpu).expect("readback should succeed");
+        assert_eq!(alpha.len(), 2);
+
+        // Verify GPU log-alpha values are finite and in a reasonable range
+        for (i, &v) in alpha.iter().enumerate() {
+            assert!(v.is_finite(), "alpha[{i}] must be finite, got {v}");
+            assert!(v < 0.0, "log-probabilities must be negative, got {v}");
+        }
+
+        // Verify that state 0 (Rainy) is more likely than state 1 (Sunny)
+        // when the last observation is 0 (which has higher emission from Rainy)
+        assert!(
+            alpha[0] > alpha[1],
+            "Rainy state should dominate after obs=0: alpha={alpha:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn forward_single_obs_equals_init_plus_emit() {
+        let Ok(gpu) = Gpu::new().await else { return };
+
+        let log_init = vec![0.5_f32.ln(), 0.5_f32.ln()];
+        let log_trans = vec![0.5_f32.ln(); 4];
+        // Single observation: emit = [0.8, 0.2]
+        let log_emit = vec![0.8_f32.ln(), 0.2_f32.ln()];
+
+        let output = hmm_forward_gpu(&gpu, &log_init, &log_trans, &log_emit)
+            .expect("single-obs forward should succeed");
+
+        let alpha = output.readback(&gpu).expect("readback");
+        // With 1 observation, alpha = log_init + log_emit (no transition step)
+        let expected_0 = 0.5_f32.ln() + 0.8_f32.ln();
+        let expected_1 = 0.5_f32.ln() + 0.2_f32.ln();
+        assert!(
+            (alpha[0] - expected_0).abs() < 1e-5,
+            "alpha[0]={}, expected={expected_0}",
+            alpha[0]
+        );
+        assert!(
+            (alpha[1] - expected_1).abs() < 1e-5,
+            "alpha[1]={}, expected={expected_1}",
+            alpha[1]
+        );
+    }
+}

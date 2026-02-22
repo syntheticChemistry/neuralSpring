@@ -12,6 +12,7 @@
 //! Result: 7/7 PASS (seed=42, `n_loci`=20, `pop_size`=200, 300 gen)
 
 use neural_spring::eco_dynamics::{run_ea, MultiNicheLandscape};
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -30,7 +31,7 @@ fn main() {
     h.check_lower(
         &format!("single-niche dominance ({final_dom:.4}) > 0.08"),
         final_dom,
-        0.08,
+        tolerances::ECO_FITNESS_IMPROVEMENT_MIN,
     );
 
     // Part 2: Niche differentiation (4 niches)

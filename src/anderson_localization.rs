@@ -47,7 +47,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::batch_reduce` or `FusedMapReduceF64`.
 /// Validated: `validate_gpu_anderson`.
-pub const WGSL_BATCH_IPR: &str = include_str!("../metalForge/shaders/batch_ipr.wgsl");
+pub use neural_spring_forge::shaders::BATCH_IPR as WGSL_BATCH_IPR;
 use std::f64::consts::PI;
 
 /// Golden ratio φ = (1 + √5) / 2 (irrational for quasiperiodicity).
@@ -57,6 +57,7 @@ pub const GOLDEN_RATIO: f64 = 1.618_033_988_749_895;
 ///
 /// `H[i,i]` = V_i with V_i ~ uniform[-W/2, W/2]. Off-diagonal = -t.
 /// Returns flat row-major n×n matrix.
+#[must_use]
 pub fn anderson_hamiltonian_random(n: usize, t: f64, w: f64, rng: &mut Rng) -> Vec<f64> {
     let mut h = vec![0.0; n * n];
     for i in 0..n {
@@ -229,6 +230,7 @@ pub fn two_particle_hamiltonian(n: usize, t: f64, w: f64, u: f64, alpha: f64) ->
 }
 
 /// Disorder strength sweep: compute mean IPR for each W.
+#[must_use]
 pub fn disorder_sweep(n: usize, t: f64, w_vals: &[f64], rng: &mut Rng) -> Vec<f64> {
     w_vals
         .iter()

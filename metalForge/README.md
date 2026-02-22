@@ -121,14 +121,22 @@ ToadStool's NAK eigensolver (GPU) may resolve this.
 
 ```
 metalForge/
-├── README.md              ← this file
-├── CROSS_SYSTEM_DISPATCH.md ← GPU→CPU→NPU dispatch strategy
+├── README.md                  ← this file
+├── CROSS_SYSTEM_DISPATCH.md   ← GPU→CPU→NPU dispatch strategy
+├── ABSORPTION_MANIFEST.md     ← comprehensive absorption inventory (hotSpring pattern)
+├── forge/                     ← Rust crate for ToadStool absorption (hotSpring pattern)
+│   ├── Cargo.toml             ← deps: barracuda (path), wgpu 22, bytemuck
+│   └── src/
+│       ├── lib.rs             ← crate root — absorption-friendly layout
+│       ├── shaders.rs         ← 16 WGSL sources as pub const (single source of truth)
+│       ├── bindings.rs        ← binding layouts + dispatch geometry per shader
+│       ├── dispatch.rs        ← GPU vs CPU crossover routing (empirical thresholds)
+│       └── bridge.rs          ← Gpu <-> barracuda::device::WgpuDevice bridge
 ├── gpu/
 │   └── nvidia/
-│       ├── DISPATCH.md    ← RTX 4070 dispatch latency measurements
-│       └── HARDWARE.md    ← RTX 4070 hardware characterization
-├── ABSORPTION_MANIFEST.md ← comprehensive absorption inventory (hotSpring pattern)
-├── shaders/               ← Phase 3+4c+4e WGSL evolution (16 shaders, absorption candidates)
+│       ├── DISPATCH.md        ← RTX 4070 dispatch latency measurements
+│       └── HARDWARE.md        ← RTX 4070 hardware characterization
+├── shaders/                   ← Phase 3+4c+4e WGSL evolution (16 shaders, absorption candidates)
 │   ├── ABSORPTION_TRACKER.md  ← lifecycle tracker for all shaders
 │   ├── hmm_forward_log.wgsl   ← HMM forward pass, log-domain (Papers 016–018)
 │   ├── batch_fitness_eval.wgsl ← Parallel population fitness (Papers 011–015)
@@ -139,17 +147,40 @@ metalForge/
 │   ├── spatial_payoff.wgsl    ← PD spatial stencil (Paper 019)
 │   ├── batch_ipr.wgsl         ← Batch IPR computation (Papers 022–023)
 │   ├── pairwise_hamming.wgsl  ← Pairwise Hamming distance (Paper 017)
-│   ├── pairwise_l2.wgsl      ← Pairwise L2 distance (Paper 012 — MODES)
-│   ├── multi_obj_fitness.wgsl ← Multi-objective fitness (Paper 014 — Directed Evo)
-│   ├── swarm_nn_forward.wgsl ← Batch NN forward pass (Paper 015 — Swarm Robotics)
-│   ├── hill_gate.wgsl        ← Two-input Hill AND gate (Paper 021 — Signal)
-│   ├── head_split.wgsl       ← GPU head split for MHA: [B,S,D] → [B,H,S,D/H]
-│   ├── head_concat.wgsl      ← GPU head concat for MHA: [B,H,S,D/H] → [B,S,D]
-│   └── xoshiro128ss.wgsl     ← GPU-parallel PRNG, Xoshiro128** (all stochastic)
-└── fossils/               ← Absorbed evolved code (see FOSSIL_RECORD.md)
-    ├── evolved_s01_s11/   ← Deprecated workaround modules (~2,864 LOC)
-    └── bench/             ← Deprecated fused benchmarks (~1,127 LOC)
+│   ├── pairwise_l2.wgsl       ← Pairwise L2 distance (Paper 012 — MODES)
+│   ├── multi_obj_fitness.wgsl  ← Multi-objective fitness (Paper 014 — Directed Evo)
+│   ├── swarm_nn_forward.wgsl  ← Batch NN forward pass (Paper 015 — Swarm Robotics)
+│   ├── hill_gate.wgsl         ← Two-input Hill AND gate (Paper 021 — Signal)
+│   ├── head_split.wgsl        ← GPU head split for MHA: [B,S,D] → [B,H,S,D/H]
+│   ├── head_concat.wgsl       ← GPU head concat for MHA: [B,H,S,D/H] → [B,S,D]
+│   └── xoshiro128ss.wgsl      ← GPU-parallel PRNG, Xoshiro128** (all stochastic)
+└── fossils/                   ← Absorbed evolved code (see FOSSIL_RECORD.md)
+    ├── evolved_s01_s11/       ← Deprecated workaround modules (~2,864 LOC)
+    └── bench/                 ← Deprecated fused benchmarks (~1,127 LOC)
 ```
+
+---
+
+## Forge Crate (`metalForge/forge/`)
+
+Following the hotSpring `metalForge/forge` pattern, neuralSpring now packages
+all WGSL shaders and dispatch logic in a dedicated Rust crate. `ToadStool` can
+absorb shaders by copying from `forge::shaders` and using the binding layouts
+from `forge::bindings`.
+
+| Module | Purpose | Tests |
+|--------|---------|-------|
+| `shaders.rs` | 16 WGSL sources as `pub const` (single source of truth) | 2 |
+| `bindings.rs` | `ShaderLayout` structs with binding slots, workgroup sizes, dispatch notes | 3 |
+| `dispatch.rs` | GPU vs CPU crossover heuristics (empirical from bench data) | 10 |
+| `bridge.rs` | `Backend` enum, `create_device()`, buffer upload/readback | 3 |
+
+Library modules in `src/` re-export shaders from forge:
+`pub use neural_spring_forge::shaders::HMM_FORWARD_LOG as WGSL_HMM_FORWARD_LOG;`
+
+This means downstream code (validation binaries) is unchanged — they still
+import via `neural_spring::hmm::WGSL_HMM_FORWARD_LOG` — but the single source
+of truth is now in forge.
 
 ---
 
@@ -209,4 +240,4 @@ Both feed findings and shaders to ToadStool via `wateringHole/handoffs/`.
 
 ---
 
-*Hardware characterization + shader evolution for ML dispatch — following the hotSpring metalForge pattern.*
+*Hardware characterization + shader evolution + forge crate for ML dispatch — following the hotSpring metalForge pattern.*

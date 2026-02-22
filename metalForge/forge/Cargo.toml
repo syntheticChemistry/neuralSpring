@@ -1,0 +1,27 @@
+[package]
+name = "neural-spring-forge"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "ML dispatch, shader catalog, and BarraCUDA bridge for ToadStool absorption"
+repository = "https://github.com/ecoPrimals/neuralSpring"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+# Justified: inline format args are clearer in GPU dispatch code.
+uninlined_format_args = "allow"
+
+[dependencies]
+barracuda = { path = "../../../phase1/toadstool/crates/barracuda" }
+bytemuck = { version = "1.14", features = ["derive"] }
+wgpu = { version = "22", default-features = false, features = [
+    "wgsl",
+    "vulkan-portability",
+] }
+
+[dev-dependencies]
+tokio = { version = "1.35", features = ["rt-multi-thread", "macros"] }

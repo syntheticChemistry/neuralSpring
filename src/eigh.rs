@@ -18,12 +18,13 @@
 //! The tridiagonal form also enables `tridiag_eigh.wgsl` (bisection +
 //! inverse iteration on GPU).
 
+// Domain-inherent: eigenvalue algorithms use single-letter mathematical
+// variables (n, m, k, s, c, p, g, z) and index-based loops that map
+// directly to textbook formulations (Golub & Van Loan, ch. 8).
 #![allow(
-    clippy::cast_precision_loss,
     clippy::many_single_char_names,
     clippy::needless_range_loop,
-    clippy::similar_names,
-    clippy::suboptimal_flops
+    clippy::similar_names
 )]
 
 /// Result of symmetric eigenvalue decomposition A = V·D·Vᵀ.
@@ -81,6 +82,7 @@ impl EighResult {
 ///
 /// Panics if `a.len() != n * n` or `n == 0`.
 #[must_use]
+#[allow(clippy::suboptimal_flops)]
 pub fn eigh_householder_qr(a: &[f64], n: usize) -> EighResult {
     assert!(n > 0 && a.len() == n * n, "invalid matrix dimensions");
 
@@ -134,7 +136,7 @@ pub fn eigh_householder_qr(a: &[f64], n: usize) -> EighResult {
 }
 
 /// Analytic 2×2 eigensolver (no iteration needed).
-#[allow(clippy::suspicious_operation_groupings)]
+#[allow(clippy::suboptimal_flops, clippy::suspicious_operation_groupings)]
 fn eigh_2x2(a: &[f64]) -> EighResult {
     let a00 = a[0];
     let a01 = a[1];
@@ -172,6 +174,7 @@ fn eigh_2x2(a: &[f64]) -> EighResult {
 ///
 /// Returns (diagonal, off-diagonal, Q) where T has `diag[i]` on diagonal
 /// and `off_diag[i]` on the super/sub-diagonal (length n-1).
+#[allow(clippy::suboptimal_flops)]
 fn householder_tridiag(a: &[f64], n: usize) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
     let mut work = a.to_vec();
 
@@ -259,6 +262,7 @@ fn householder_tridiag(a: &[f64], n: usize) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
 ///
 /// Input: tridiagonal matrix as (diagonal, off-diagonal).
 /// Returns (eigenvalues, eigenvector matrix Z of the tridiagonal form).
+#[allow(clippy::suboptimal_flops)]
 fn ql_implicit(diag_in: &[f64], off_in: &[f64], n: usize) -> (Vec<f64>, Vec<f64>) {
     let mut d = diag_in.to_vec();
     let mut e = vec![0.0; n];
@@ -345,6 +349,7 @@ fn ql_implicit(diag_in: &[f64], off_in: &[f64], n: usize) -> (Vec<f64>, Vec<f64>
 }
 
 #[cfg(test)]
+#[allow(clippy::suboptimal_flops)]
 mod tests {
     use super::*;
 

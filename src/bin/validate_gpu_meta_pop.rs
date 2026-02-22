@@ -15,6 +15,12 @@
 //! ## Papers validated
 //!
 //! - Paper 025: Meta-Population Differentiation (Anderson, 2024)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `meta_population::inter_population_af_variance` (per-locus variance).
+//! WGSL shader: `metalForge/shaders/locus_variance.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,
@@ -303,7 +309,9 @@ fn validate_uniform_pops(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match gpu_locus_variance(gpu, &af_f32, n_pops, n_loci) {
         Ok(gpu_var) => {
-            let all_zero = gpu_var.iter().all(|&v| v.abs() < 1e-6);
+            let all_zero = gpu_var
+                .iter()
+                .all(|&v| v.abs() < tolerances::GPU_LOCUS_VARIANCE_F32 as f32);
             h.check_bool(
                 &format!(
                     "uniform AF=0.5: all variance≈0 (max={:.2e})",

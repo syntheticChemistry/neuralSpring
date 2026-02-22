@@ -19,6 +19,12 @@
 //! - Paper 013: Ecological Dynamics (Dolson & Ofria, 2018)
 //! - Paper 014: Directed Evolution (Dolson et al., 2022)
 //! - Paper 015: Swarm Robotics (Foreback/Dolson, 2025)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `directed_evolution::multi_objective_fitness` (linear dot-product).
+//! WGSL shader: `metalForge/shaders/batch_fitness_eval.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

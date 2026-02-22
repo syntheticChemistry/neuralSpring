@@ -15,6 +15,15 @@
 //! | `hmm_forward_gpu` | No `BarraCUDA` equivalent | Candidate for `ops::hmm` |
 //! | `tensor_sync` | S-13: `PooledBuffer` drop-before-completion race — `gpu_fence`, `fenced_matmul`, `materialize` | `ToadStool`: add `device.poll(Wait)` in `PooledBuffer::drop` before returning to pool |
 //!
+//! ## Retirement checklist
+//!
+//! A module can be retired (moved to `metalForge/fossils/`) when **all** of:
+//!
+//! 1. Upstream fix is merged into `BarraCUDA` or `ToadStool` main branch.
+//! 2. `neuralSpring` validation binary passes using the upstream API.
+//! 3. No downstream code imports from the evolved module.
+//! 4. A fossil record commit documents the retirement (what, why, upstream SHA).
+//!
 //! ## WGSL shader inventory (absorption-ready)
 //!
 //! Following the hotSpring pattern, each WGSL shader is exported as a
@@ -60,7 +69,7 @@ pub mod tensor_sync;
 ///
 /// Absorption target: `barracuda::ops::mha`.
 /// Validated: `validate_mha_gpu` (10/10 PASS).
-pub const WGSL_HEAD_SPLIT: &str = include_str!("../../metalForge/shaders/head_split.wgsl");
+pub use neural_spring_forge::shaders::HEAD_SPLIT as WGSL_HEAD_SPLIT;
 
 /// WGSL shader: GPU-resident head concatenation for MHA.
 ///
@@ -70,7 +79,7 @@ pub const WGSL_HEAD_SPLIT: &str = include_str!("../../metalForge/shaders/head_sp
 ///
 /// Absorption target: `barracuda::ops::mha`.
 /// Validated: `validate_mha_gpu` (10/10 PASS).
-pub const WGSL_HEAD_CONCAT: &str = include_str!("../../metalForge/shaders/head_concat.wgsl");
+pub use neural_spring_forge::shaders::HEAD_CONCAT as WGSL_HEAD_CONCAT;
 
 /// WGSL shader: parallel EA population fitness evaluation.
 ///
@@ -79,8 +88,7 @@ pub const WGSL_HEAD_CONCAT: &str = include_str!("../../metalForge/shaders/head_c
 ///
 /// Absorption target: `barracuda::ops::batch_gemm`.
 /// Validated: `validate_gpu_batch_fitness` (20/20 PASS).
-pub const WGSL_BATCH_FITNESS_EVAL: &str =
-    include_str!("../../metalForge/shaders/batch_fitness_eval.wgsl");
+pub use neural_spring_forge::shaders::BATCH_FITNESS_EVAL as WGSL_BATCH_FITNESS_EVAL;
 
 /// WGSL shader: parallel RK4 ODE integration.
 ///
@@ -89,10 +97,10 @@ pub const WGSL_BATCH_FITNESS_EVAL: &str =
 ///
 /// Absorption target: `barracuda::ops::ode`.
 /// Validated: `validate_gpu_rk4` (8/8 PASS).
-pub const WGSL_RK4_PARALLEL: &str = include_str!("../../metalForge/shaders/rk4_parallel.wgsl");
+pub use neural_spring_forge::shaders::RK4_PARALLEL as WGSL_RK4_PARALLEL;
 
 /// WGSL shader: scalar mean reduction (chained after fitness evaluation).
 ///
 /// Absorption target: `barracuda::pipeline::ReduceScalarPipeline`.
 /// Validated: `validate_gpu_pure_workload` (7/7 PASS).
-pub const WGSL_MEAN_REDUCE: &str = include_str!("../../metalForge/shaders/mean_reduce.wgsl");
+pub use neural_spring_forge::shaders::MEAN_REDUCE as WGSL_MEAN_REDUCE;

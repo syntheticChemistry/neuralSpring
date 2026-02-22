@@ -27,6 +27,7 @@ use neural_spring::anderson_localization::{
     anderson_hamiltonian_random, aubry_andre_hamiltonian, ipr, jacobi_eigh, GOLDEN_RATIO,
 };
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -132,9 +133,12 @@ fn validate_barracuda_disorder_trend(h: &mut ValidationHarness) {
         );
 
         h.check_lower(
-            &format!("strong disorder IPR > 0.05 ({ipr_strong:.4})"),
+            &format!(
+                "strong disorder IPR > {} ({ipr_strong:.4})",
+                tolerances::IPR_LOCALIZATION_MIN
+            ),
             ipr_strong,
-            0.05,
+            tolerances::IPR_LOCALIZATION_MIN,
         );
     } else {
         h.check_bool("barracuda disorder eigh failed", false);

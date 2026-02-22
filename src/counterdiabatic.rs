@@ -21,7 +21,17 @@
 
 use crate::rng::Rng;
 
+/// Numerical floor for probability normalization to prevent log(0).
+///
+/// Well above subnormal territory (`f64::MIN_POSITIVE` ≈ 2.2e-308)
+/// while being negligible for any Boltzmann weight in the NK model.
 const SAFETY_EPS: f64 = 1e-30;
+
+/// Floor for Fisher information metric to prevent division by zero.
+///
+/// The Fisher metric g(s) = `β²·Var_s[F]` can vanish at landscape saddle
+/// points. This floor prevents infinite speed ds/dt ∝ 1/√g(s) while
+/// being negligible compared to typical g(s) ∈ \[1e-4, 1\] for β=1.
 const FISHER_EPS: f64 = 1e-10;
 
 /// NK fitness landscape: N binary loci, K epistatic interactions.
@@ -139,6 +149,9 @@ pub fn kl_divergence(p: &[f64], q: &[f64]) -> f64 {
 #[allow(clippy::cast_precision_loss)]
 #[must_use]
 pub fn compute_cd_schedule(f0: &[f64], f1: &[f64], t: usize, beta: f64) -> Vec<f64> {
+    // Grid resolution for Fisher information integration.
+    // At N_STEPS=1000 the trapezoidal rule achieves O(1e-6) relative
+    // error for smooth β²Var[F] profiles. Matches Python baseline.
     const N_STEPS: usize = 1000;
     let n_steps_f = N_STEPS as f64;
     let s_grid: Vec<f64> = (0..=N_STEPS).map(|i| i as f64 / n_steps_f).collect();

@@ -31,11 +31,11 @@ lint-rust:
 test-python:
     python3 -m pytest tests/ -v --tb=short
 
-# Rust unit tests (181 unit + 6 doc-tests, 90.55% coverage)
+# Rust unit tests (237 unit + 9 doc-tests, 94.9% coverage)
 test-rust:
     cargo test
 
-# All validation binaries (67 via validate_all)
+# Validation subset (full suite: cargo run --release --bin validate_all — 81 binaries)
 validate: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
 
 # neuralSpring quick (3 bins: surrogate, transformer, metrics)
@@ -69,7 +69,7 @@ validate-native-papers:
 validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
     @echo "━━━ All validation binaries PASS ━━━"
 
-# BarraCUDA primitives (10 bins, 242 checks)
+# BarraCUDA primitives (11 bins, 275+ checks)
 validate-barracuda:
     cargo run --bin validate_barracuda_stats
     cargo run --bin validate_barracuda_linalg
@@ -102,6 +102,41 @@ validate-barracuda-cpu:
     cargo run --bin validate_barracuda_meta_pop
     cargo run --bin validate_barracuda_pinn
     cargo run --bin validate_barracuda_deeponet
+
+# GPU shader validators (requires GPU adapter — not in default `validate`)
+validate-gpu:
+    cargo run --bin validate_gpu_hmm_forward
+    cargo run --bin validate_gpu_batch_fitness
+    cargo run --bin validate_gpu_rk4
+    cargo run --bin validate_gpu_pure_workload
+    cargo run --bin validate_gpu_pangenome
+    cargo run --bin validate_gpu_meta_pop
+    cargo run --bin validate_gpu_game_theory
+    cargo run --bin validate_gpu_anderson
+    cargo run --bin validate_gpu_sate
+    cargo run --bin validate_gpu_modes
+    cargo run --bin validate_gpu_directed
+    cargo run --bin validate_gpu_swarm
+    cargo run --bin validate_gpu_signal
+    cargo run --bin validate_gpu_prng
+    cargo run --bin validate_gpu_stateful_pipeline
+    cargo run --bin validate_gpu_pipeline_hmm
+    cargo run --bin validate_gpu_pipeline_spectral
+    cargo run --bin validate_gpu_pipeline_ecology
+    cargo run --bin validate_gpu_pipeline_genomics
+    cargo run --bin validate_gpu_pipeline_modes
+    cargo run --bin validate_gpu_pipeline_signal
+    cargo run --bin validate_gpu_pipeline_directed
+    cargo run --bin validate_barracuda_fft
+    cargo run --bin validate_barracuda_logsumexp
+    cargo run --bin validate_barracuda_gpu_eco
+    cargo run --bin validate_barracuda_gpu_spectral
+    cargo run --bin validate_cross_dispatch
+    cargo run --bin validate_cross_dispatch_extended
+    cargo run --bin validate_cross_dispatch_genomics
+    cargo run --bin validate_cross_dispatch_phase4e
+    cargo run --bin validate_eigh_accuracy
+    cargo run --bin validate_mha_gpu
 
 # ML inference validation only (MLP + Transformer)
 validate-ml:

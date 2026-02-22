@@ -103,12 +103,12 @@ ToadStool absorption.
 | Component | Purpose | LOC |
 |-----------|---------|-----|
 | `validation.rs` | `ValidationHarness` pass/fail framework | ~120 |
-| `tolerances.rs` | Centralized tolerance constants | ~450 |
+| `tolerances.rs` | Centralized tolerance constants (58 named) | ~450 |
 | `provenance.rs` | Python baseline metadata | ~80 |
 | `metrics.rs` | R², RMSE, MAE, NSE | ~150 |
 | `fft.rs` | Analytical DFT reference values | ~100 |
 | `eigh.rs` | Householder+QR eigensolver (S-12 workaround) | ~200 |
-| 78 validation binaries | Correctness proof suite | ~8k |
+| 81 validation binaries | Correctness proof suite | ~9k |
 | 5 benchmark binaries | Performance comparison suite | ~1k |
 
 ---
@@ -172,7 +172,28 @@ that match GPU buffer bindings directly:
 **Total GPU shader checks**: 108 (16 WGSL)
 **Total GPU pipeline checks**: 32 (7 pipelines)
 **Total cross-dispatch checks**: 41 (8+8+12+13)
-**Grand total validation**: 1291 (206 Python + 1085 Rust+GPU)
+**Total lib tests**: 237 unit + 9 doc (94.9% line coverage)
+**Grand total validation**: 1307 (206 Python + 1101 Rust+GPU)
+
+---
+
+## BarraCUDA API Usage Summary
+
+| Category | APIs Used | Source Files |
+|----------|----------|-------------|
+| **Device** | `WgpuDevice`, `WgpuDevice::new_cpu_relaxed()` | `gpu.rs`, 15+ validation binaries |
+| **Tensor** | `Tensor::from_data`, `matmul`, `relu`, `gelu`, `softmax_wgsl`, `layer_norm_wgsl`, `log_softmax_wgsl`, `leaky_relu_wgsl`, `elu_wgsl`, `from_buffer` | `validate_barracuda_tensor.rs`, `bench_*.rs` |
+| **Statistics** | `variance`, `pearson_correlation`, `covariance`, `norm_cdf`, `norm_pdf`, `norm_ppf` | `validate_barracuda_stats.rs`, 8 CPU port binaries |
+| **Linear Algebra** | `solve_f64`, `eigh_f64`, `cholesky_f64`, `lu_*`, `tridiag`, `svd_*`, `gen_eigh_f64` | `validate_barracuda_linalg*.rs`, `validate_eigh_accuracy.rs` |
+| **Special Functions** | `gamma`, `erf`, `bessel_*`, `legendre`, `hermite`, `laguerre`, `chi_squared_*` | `validate_barracuda_special.rs` |
+| **Optimization** | `nelder_mead`, `bisect`, `brent` | `validate_barracuda_optimize.rs` |
+| **Tensor f64** | `SumReduceF64`, `FusedMapReduceF64`, `NormReduceF64`, `VarianceReduceF64`, `MaxAbsDiffF64`, `CosineSimilarityF64`, `WeightedDotF64` | `validate_barracuda_tensor_f64.rs` |
+| **FFT** | `Fft1D`, `Ifft1D`, `Fft1DF64`, `Rfft` | `validate_barracuda_fft.rs` |
+| **LogSumExp** | `LogSumExp` | `validate_barracuda_logsumexp.rs` |
+| **Shaders** | `quantized::{dequant_q4, dequant_q8, gemv_q4, gemv_q8}`, `precision::cpu::*` | `validate_barracuda_quantized.rs`, `validate_barracuda_precision.rs` |
+| **Staging** | `StatefulPipeline`, `KernelDispatch`, `StatefulConfig` | `validate_gpu_stateful_pipeline.rs` |
+| **Dispatch** | `dispatch_for`, `DispatchTarget` | 4 cross-dispatch binaries |
+| **Error** | `BarracudaError` | `evolved/mha.rs`, `validate_barracuda_stats.rs` |
 
 ---
 

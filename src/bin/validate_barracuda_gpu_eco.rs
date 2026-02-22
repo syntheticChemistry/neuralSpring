@@ -20,7 +20,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
     clippy::similar_names,
     clippy::needless_range_loop,
     clippy::too_many_lines
@@ -29,10 +28,9 @@
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
-
-const TOL: f64 = 1e-3;
 
 /// Macro: create tensor or record fail and return.
 macro_rules! tensor {
@@ -47,8 +45,14 @@ macro_rules! tensor {
     };
 }
 
-fn readback(t: &Tensor) -> Vec<f32> {
-    t.to_vec().expect("tensor readback")
+fn readback(h: &mut ValidationHarness, t: &Tensor) -> Option<Vec<f32>> {
+    match t.to_vec() {
+        Ok(v) => Some(v),
+        Err(e) => {
+            h.check_bool(&format!("tensor readback: {e}"), false);
+            None
+        }
+    }
 }
 
 fn cpu_pop_optima_dot(pop: &[Vec<f64>], optima: &[Vec<f64>]) -> Vec<Vec<f64>> {
@@ -172,13 +176,15 @@ fn validate_pop_optima_matmul(
         }
     };
 
-    let dots_gpu = readback(&dots_t);
+    let Some(dots_gpu) = readback(h, &dots_t) else {
+        return;
+    };
     let max_diff = max_abs_diff_f32_f64(&dots_gpu, &cpu_dots);
 
     h.check_upper(
         &format!("pop × optima^T: max diff GPU vs CPU ({max_diff:.2e})"),
         max_diff,
-        TOL,
+        tolerances::BARRACUDA_GPU_ECO_F32,
     );
 }
 
@@ -219,7 +225,9 @@ fn validate_self_similarity(
         }
     };
 
-    let gram = readback(&gram_t);
+    let Some(gram) = readback(h, &gram_t) else {
+        return;
+    };
     let mut max_diff = 0.0_f64;
     for i in 0..n_pop {
         for j in 0..n_pop {
@@ -232,7 +240,7 @@ fn validate_self_similarity(
     h.check_upper(
         &format!("pop × pop^T ≈ CPU Gram (n=8, max diff {max_diff:.2e})"),
         max_diff,
-        TOL,
+        tolerances::BARRACUDA_GPU_ECO_F32,
     );
 }
 
@@ -254,7 +262,9 @@ fn validate_ones_ones_t(h: &mut ValidationHarness, device: &Arc<barracuda::devic
         }
     };
 
-    let out = readback(&out_t);
+    let Some(out) = readback(h, &out_t) else {
+        return;
+    };
     let expected = dim as f32;
     let max_diff: f64 = out
         .iter()
@@ -264,7 +274,7 @@ fn validate_ones_ones_t(h: &mut ValidationHarness, device: &Arc<barracuda::devic
     h.check_upper(
         &format!("ones × ones^T = {dim} (max diff {max_diff:.2e})"),
         max_diff,
-        TOL,
+        tolerances::BARRACUDA_GPU_ECO_F32,
     );
 }
 
@@ -296,7 +306,9 @@ fn validate_non_negative_norms(
         }
     };
 
-    let gram = readback(&gram_t);
+    let Some(gram) = readback(h, &gram_t) else {
+        return;
+    };
     let min_diag = (0..n_pop)
         .map(|i| f64::from(gram[i * n_pop + i]))
         .fold(f64::INFINITY, f64::min);
@@ -339,7 +351,9 @@ fn validate_symmetry(h: &mut ValidationHarness, device: &Arc<barracuda::device::
         }
     };
 
-    let gram = readback(&gram_t);
+    let Some(gram) = readback(h, &gram_t) else {
+        return;
+    };
     let mut max_asym = 0.0_f64;
     for i in 0..n_pop {
         for j in 0..n_pop {
@@ -351,7 +365,7 @@ fn validate_symmetry(h: &mut ValidationHarness, device: &Arc<barracuda::device::
     h.check_upper(
         &format!("pop × pop^T symmetric (|G_ij - G_ji| ≤ {max_asym:.2e})"),
         max_asym,
-        TOL,
+        tolerances::BARRACUDA_GPU_ECO_F32,
     );
 }
 
@@ -380,7 +394,9 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::devic
             return;
         }
     };
-    let out1 = readback(&out1_t);
+    let Some(out1) = readback(h, &out1_t) else {
+        return;
+    };
 
     let pop_t2 = tensor!(h, &pop_flat, &[n_pop, dim], device);
     let optima_t2 = tensor!(h, &optima_flat, &[n_niches, dim], device);
@@ -398,7 +414,9 @@ fn validate_determinism(h: &mut ValidationHarness, device: &Arc<barracuda::devic
             return;
         }
     };
-    let out2 = readback(&out2_t);
+    let Some(out2) = readback(h, &out2_t) else {
+        return;
+    };
 
     let bit_identical = out1
         .iter()

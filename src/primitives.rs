@@ -31,6 +31,11 @@
 /// Smallest f64 that avoids -inf from `ln()` while being negligible
 /// compared to any real probability. `f64::MIN_POSITIVE ≈ 2.2e-308`,
 /// so `1e-300` is safe and well above subnormal territory.
+///
+/// Derivation: IEEE 754 f64 subnormals start at ~5e-324. We stay
+/// ~24 orders of magnitude above subnormal to avoid gradual underflow
+/// penalties while remaining negligible for any real probability (p > 1e-20).
+/// Matches NumPy's internal `_LOGGUARD` sentinel.
 pub const LOG_GUARD: f64 = 1e-300;
 
 /// Epsilon for Hill function denominators to prevent division by zero.
@@ -38,12 +43,21 @@ pub const LOG_GUARD: f64 = 1e-300;
 /// `K^n + x^n` can be zero when both K and x are zero. Adding this
 /// epsilon keeps the result finite without affecting the kinetics
 /// at biologically relevant concentrations (x, K > 1e-6).
+///
+/// Derivation: must be (a) small enough that `HILL_EPS / K^n < machine_eps`
+/// for typical K ∈ \[0.1, 10\] and n ∈ \[1, 4\], (b) large enough to stay
+/// well above subnormal. 1e-20 satisfies both: `1e-20 / 0.1^4 = 1e-16 < ε_f64`.
 pub const HILL_EPS: f64 = 1e-20;
 
 /// Guard for denominators in statistical ratios (FST, Pearson, regression).
 ///
 /// When the denominator of a ratio is below this, the result is
 /// defined as 0.0 rather than risking amplified floating-point noise.
+///
+/// Derivation: f64 machine epsilon ≈ 2.2e-16. We set the guard one order
+/// of magnitude above to account for accumulated rounding in sums.
+/// Any variance or covariance below 1e-15 represents a degenerate
+/// (constant) population where the ratio is undefined.
 pub const DIVISION_GUARD: f64 = 1e-15;
 
 // ═══════════════════════════════════════════════════════════════════

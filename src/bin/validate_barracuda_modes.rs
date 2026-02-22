@@ -24,6 +24,7 @@
 )]
 
 use neural_spring::modes::{complexity_metric, score_system};
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -90,7 +91,7 @@ fn validate_complexity_correlation(h: &mut ValidationHarness) {
     );
     h.check_bool(
         &format!("pearson(t, complexity) finite ({barracuda_corr:.6})"),
-        barracuda_corr.is_finite() && barracuda_corr.abs() <= 1.0 + 1e-10,
+        barracuda_corr.is_finite() && barracuda_corr.abs() <= 1.0 + tolerances::CROSS_LANGUAGE,
     );
 }
 

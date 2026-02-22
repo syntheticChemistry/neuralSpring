@@ -9,6 +9,12 @@
 //! ## Papers validated
 //!
 //! - Paper 012: MODES (novelty metric via pairwise L2 distance)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `modes::l2_distance` (seed=0, 5×3 pairwise features).
+//! WGSL shader: `metalForge/shaders/pairwise_l2.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

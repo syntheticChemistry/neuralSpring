@@ -46,12 +46,13 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::VarianceReduceF64`.
 /// Validated: `validate_gpu_meta_pop` (7/7 PASS).
-pub const WGSL_LOCUS_VARIANCE: &str = include_str!("../metalForge/shaders/locus_variance.wgsl");
+pub use neural_spring_forge::shaders::LOCUS_VARIANCE as WGSL_LOCUS_VARIANCE;
 
 /// Generate synthetic diploid genotype data for one population.
 ///
 /// Returns a flat `Vec<f64>` of shape `(n_individuals, n_loci)` row-major.
 /// Values are 0, 1, or 2 (allele counts).
+#[must_use]
 pub fn generate_population(
     n_individuals: usize,
     n_loci: usize,
@@ -300,6 +301,7 @@ pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
 }
 
 /// Mantel test: correlation between distance matrices with permutation p-value.
+#[must_use]
 pub fn mantel_test(
     dist_a: &[f64],
     dist_b: &[f64],

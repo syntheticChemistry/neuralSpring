@@ -146,7 +146,12 @@ fn validate_distribution(h: &mut ValidationHarness) {
 
     // norm_ppf(0.975) ≈ 1.96
     let ppf_975 = barracuda::stats::norm_ppf(0.975);
-    h.check_abs("norm_ppf(0.975) ≈ 1.96", ppf_975, 1.96, 0.01);
+    h.check_abs(
+        "norm_ppf(0.975) ≈ 1.96",
+        ppf_975,
+        1.96,
+        tolerances::NORM_PPF_TAIL,
+    );
 }
 
 fn check_result(

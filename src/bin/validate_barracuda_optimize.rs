@@ -27,9 +27,23 @@ fn main() {
 
     match barracuda::optimize::nelder_mead(rosenbrock, &x0, &bounds, 10_000, 1e-10) {
         Ok((x_best, f_best, n_evals)) => {
-            h.check_abs("NM Rosenbrock x[0] ≈ 1", x_best[0], 1.0, 1e-3);
-            h.check_abs("NM Rosenbrock x[1] ≈ 1", x_best[1], 1.0, 1e-3);
-            h.check_upper("NM Rosenbrock f < 1e-4", f_best, 1e-4);
+            h.check_abs(
+                "NM Rosenbrock x[0] ≈ 1",
+                x_best[0],
+                1.0,
+                tolerances::OPTIMIZER_POSITION,
+            );
+            h.check_abs(
+                "NM Rosenbrock x[1] ≈ 1",
+                x_best[1],
+                1.0,
+                tolerances::OPTIMIZER_POSITION,
+            );
+            h.check_upper(
+                "NM Rosenbrock f < OPTIMIZER_VALUE_AT_MIN",
+                f_best,
+                tolerances::OPTIMIZER_VALUE_AT_MIN,
+            );
             h.check_bool("NM Rosenbrock converged", n_evals > 0);
         }
         Err(e) => h.check_bool(&format!("NM Rosenbrock [ERROR: {e}]"), false),
@@ -51,9 +65,23 @@ fn main() {
 
     match barracuda::optimize::nelder_mead(rastrigin, &x0_rast, &bounds_rast, 5_000, 1e-10) {
         Ok((x_best, f_best, _)) => {
-            h.check_abs("NM Rastrigin x[0] ≈ 0", x_best[0], 0.0, 0.1);
-            h.check_abs("NM Rastrigin x[1] ≈ 0", x_best[1], 0.0, 0.1);
-            h.check_upper("NM Rastrigin f < 1.0", f_best, 1.0);
+            h.check_abs(
+                "NM Rastrigin x[0] ≈ 0",
+                x_best[0],
+                0.0,
+                tolerances::OPTIMIZER_POSITION_MULTIMODAL,
+            );
+            h.check_abs(
+                "NM Rastrigin x[1] ≈ 0",
+                x_best[1],
+                0.0,
+                tolerances::OPTIMIZER_POSITION_MULTIMODAL,
+            );
+            h.check_upper(
+                "NM Rastrigin f < OPTIMIZER_VALUE_MULTIMODAL",
+                f_best,
+                tolerances::OPTIMIZER_VALUE_MULTIMODAL,
+            );
         }
         Err(e) => h.check_bool(&format!("NM Rastrigin [ERROR: {e}]"), false),
     }

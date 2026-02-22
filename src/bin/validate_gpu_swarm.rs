@@ -9,12 +9,17 @@
 //! ## Papers validated
 //!
 //! - Paper 015: Swarm Robotics (neural net controller inference)
+//!
+//! ## Provenance
+//!
+//! CPU reference: `swarm_robotics::neural_forward` (seed=42, batch 10×8).
+//! WGSL shader: `metalForge/shaders/swarm_nn_forward.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
-    clippy::expect_used,
     clippy::similar_names
 )]
 
@@ -163,14 +168,11 @@ fn gpu_nn_forward(
         });
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(
-            (n_actions)
-                .div_ceil(256)
-                .try_into()
-                .expect("workgroup count fits u32"),
-            1,
-            1,
-        );
+        let workgroup_count: u32 = (n_actions)
+            .div_ceil(256)
+            .try_into()
+            .map_err(|_| format!("workgroup count overflow: {n_actions} actions"))?;
+        pass.dispatch_workgroups(workgroup_count, 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));
 

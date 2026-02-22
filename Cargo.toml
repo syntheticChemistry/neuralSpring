@@ -1,4 +1,5 @@
 [workspace]
+members = [".", "metalForge/forge"]
 
 [package]
 name = "neural-spring"
@@ -12,6 +13,10 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 # BarraCUDA shared crate — use primitives instead of reinventing math.
 # Path dep matches hotSpring pattern: each Spring evolves independently.
 barracuda = { path = "../phase1/toadstool/crates/barracuda" }
+
+# Local forge crate — shader catalog, binding layouts, dispatch routing.
+# Single source of truth for WGSL shaders; ToadStool absorbs from here.
+neural-spring-forge = { path = "metalForge/forge" }
 
 bytemuck = { version = "1.14", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }

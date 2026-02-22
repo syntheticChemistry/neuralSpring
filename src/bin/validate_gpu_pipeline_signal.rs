@@ -21,6 +21,12 @@
 //!   ↓  (single queue.submit — NO CPU round-trip)
 //! Readback: 4 bytes
 //! ```
+//!
+//! ## Provenance
+//!
+//! GPU pipeline: hill_gate → mean_reduce.
+//! Validates: end-to-end GPU-resident computation with scalar-only readback.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

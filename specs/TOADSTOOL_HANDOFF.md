@@ -172,8 +172,8 @@ too small to amortize launch latency.
 
 ## Phase 2 — BarraCUDA CPU Port Findings
 
-**Date**: February 20, 2026
-**Status**: All 13 Phase 0++ modules ported to BarraCUDA CPU math. 123/123 checks PASS.
+**Date**: February 21, 2026
+**Status**: All 15 Phase 0++ modules (+PINN, +DeepONet) ported to BarraCUDA CPU math. 170/170 checks PASS.
 
 ### Primitives Validated
 

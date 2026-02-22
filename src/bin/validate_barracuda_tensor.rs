@@ -88,6 +88,13 @@ fn readback(t: &Tensor) -> Result<Vec<f32>, barracuda::error::BarracudaError> {
     t.to_vec()
 }
 
+/// Batch-check readback values against expected (label, index, expected, tolerance).
+fn check_points(h: &mut ValidationHarness, v: &[f32], checks: &[(&str, usize, f64, f64)]) {
+    for &(label, idx, expected, tol) in checks {
+        h.check_abs(label, f64::from(v[idx]), expected, tol);
+    }
+}
+
 // ── Activations ─────────────────────────────────────────────────────────
 
 fn validate_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
@@ -99,41 +106,18 @@ fn validate_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input.relu() {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "relu(-2) == 0",
-                f64::from(v[0]),
-                0.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "relu(-1) == 0",
-                f64::from(v[1]),
-                0.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "relu(0) == 0",
-                f64::from(v[2]),
-                0.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "relu(0.5) == 0.5",
-                f64::from(v[3]),
-                0.5,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "relu(1) == 1",
-                f64::from(v[4]),
-                1.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "relu(3) == 3",
-                f64::from(v[5]),
-                3.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("relu(-2) == 0", 0, 0.0, tol),
+                    ("relu(-1) == 0", 1, 0.0, tol),
+                    ("relu(0) == 0", 2, 0.0, tol),
+                    ("relu(0.5) == 0.5", 3, 0.5, tol),
+                    ("relu(1) == 1", 4, 1.0, tol),
+                    ("relu(3) == 3", 5, 3.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("relu [ERROR: {e}]"), false),
@@ -155,26 +139,18 @@ fn validate_gelu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
                 0.0,
                 tolerances::TENSOR_EXACT_F32,
             );
-            h.check_abs(
-                "gelu(1) ≈ 0.8412",
-                f64::from(v[3]),
-                0.8412,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "gelu(-2) ≈ -0.0454",
-                f64::from(v[0]),
-                -0.0454,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
+            let tol = tolerances::TENSOR_TRANSCENDENTAL_F32;
             // True GELU(3) = 0.5*3*(1+erf(3/√2)) ≈ 2.9964 (not 3.0).
             // Previous test used 3.0 which is ~0.004 away — outside 1e-3 tol.
             // Provenance: scipy.special.erf → 2.996_362_607_918_227.
-            h.check_abs(
-                "gelu(3) ≈ 2.9964",
-                f64::from(v[5]),
-                2.996_362_607_918_227,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            check_points(
+                h,
+                &v,
+                &[
+                    ("gelu(1) ≈ 0.8412", 3, 0.8412, tol),
+                    ("gelu(-2) ≈ -0.0454", 0, -0.0454, tol),
+                    ("gelu(3) ≈ 2.9964", 5, 2.996_362_607_918_227, tol),
+                ],
             );
             h.check_bool("gelu monotonic: g(1) < g(2)", v[3] < v[4]);
         }
@@ -191,29 +167,22 @@ fn validate_sigmoid(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input.sigmoid() {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "sigmoid(0) == 0.5",
-                f64::from(v[2]),
-                0.5,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "sigmoid(-10) ≈ 0",
-                f64::from(v[0]),
-                0.0,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "sigmoid(10) ≈ 1",
-                f64::from(v[4]),
-                1.0,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            let tex = tolerances::TENSOR_EXACT_F32;
+            let ttf = tolerances::TENSOR_TRANSCENDENTAL_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("sigmoid(0) == 0.5", 2, 0.5, tex),
+                    ("sigmoid(-10) ≈ 0", 0, 0.0, ttf),
+                    ("sigmoid(10) ≈ 1", 4, 1.0, ttf),
+                ],
             );
             h.check_abs(
                 "sigmoid symmetry",
                 f64::from(v[1]) + f64::from(v[3]),
                 1.0,
-                tolerances::TENSOR_EXACT_F32,
+                tex,
             );
         }
         Err(e) => h.check_bool(&format!("sigmoid [ERROR: {e}]"), false),
@@ -270,23 +239,15 @@ fn validate_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
                 / 4.0;
             let std = (var + f64::from(eps)).sqrt();
 
-            h.check_abs(
-                "layer_norm[0]",
-                f64::from(v[0]),
-                (1.0 - mean) / std,
-                tolerances::TENSOR_NORM_F32,
-            );
-            h.check_abs(
-                "layer_norm[1]",
-                f64::from(v[1]),
-                (2.0 - mean) / std,
-                tolerances::TENSOR_NORM_F32,
-            );
-            h.check_abs(
-                "layer_norm[3]",
-                f64::from(v[3]),
-                (4.0 - mean) / std,
-                tolerances::TENSOR_NORM_F32,
+            let tol = tolerances::TENSOR_NORM_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("layer_norm[0]", 0, (1.0 - mean) / std, tol),
+                    ("layer_norm[1]", 1, (2.0 - mean) / std, tol),
+                    ("layer_norm[3]", 3, (4.0 - mean) / std, tol),
+                ],
             );
 
             let out_mean: f64 = v.iter().map(|&x| f64::from(x)).sum::<f64>() / 4.0;
@@ -318,17 +279,11 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match lhs.add(&rhs) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "add [0] = 6",
-                f64::from(v[0]),
-                6.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "add [3] = 12",
-                f64::from(v[3]),
-                12.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[("add [0] = 6", 0, 6.0, tol), ("add [3] = 12", 3, 12.0, tol)],
             );
         }
         Err(e) => h.check_bool(&format!("add [ERROR: {e}]"), false),
@@ -347,17 +302,11 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match lhs2.sub(&rhs2) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "sub [0] = 9",
-                f64::from(v[0]),
-                9.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "sub [3] = 36",
-                f64::from(v[3]),
-                36.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[("sub [0] = 9", 0, 9.0, tol), ("sub [3] = 36", 3, 36.0, tol)],
             );
         }
         Err(e) => h.check_bool(&format!("sub [ERROR: {e}]"), false),
@@ -376,17 +325,14 @@ fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match lhs3.mul(&rhs3) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "mul [0] = 20",
-                f64::from(v[0]),
-                20.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "mul [3] = 200",
-                f64::from(v[3]),
-                200.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("mul [0] = 20", 0, 20.0, tol),
+                    ("mul [3] = 200", 3, 200.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("mul [ERROR: {e}]"), false),
@@ -410,29 +356,16 @@ fn validate_matmul(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match mat_a.matmul(&mat_b) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "matmul [0,0] = 58",
-                f64::from(v[0]),
-                58.0,
-                tolerances::TENSOR_MATMUL_F32,
-            );
-            h.check_abs(
-                "matmul [0,1] = 64",
-                f64::from(v[1]),
-                64.0,
-                tolerances::TENSOR_MATMUL_F32,
-            );
-            h.check_abs(
-                "matmul [1,0] = 139",
-                f64::from(v[2]),
-                139.0,
-                tolerances::TENSOR_MATMUL_F32,
-            );
-            h.check_abs(
-                "matmul [1,1] = 154",
-                f64::from(v[3]),
-                154.0,
-                tolerances::TENSOR_MATMUL_F32,
+            let tol = tolerances::TENSOR_MATMUL_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("matmul [0,0] = 58", 0, 58.0, tol),
+                    ("matmul [0,1] = 64", 1, 64.0, tol),
+                    ("matmul [1,0] = 139", 2, 139.0, tol),
+                    ("matmul [1,1] = 154", 3, 154.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("matmul [ERROR: {e}]"), false),
@@ -451,17 +384,14 @@ fn validate_matmul(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match identity.matmul(&vec_x) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "I @ x [0] = 3",
-                f64::from(v[0]),
-                3.0,
-                tolerances::TENSOR_MATMUL_F32,
-            );
-            h.check_abs(
-                "I @ x [1] = 7",
-                f64::from(v[1]),
-                7.0,
-                tolerances::TENSOR_MATMUL_F32,
+            let tol = tolerances::TENSOR_MATMUL_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("I @ x [0] = 3", 0, 3.0, tol),
+                    ("I @ x [1] = 7", 1, 7.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("matmul identity [ERROR: {e}]"), false),
@@ -535,23 +465,15 @@ fn validate_tanh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
                 0.0,
                 tolerances::TENSOR_EXACT_F32,
             );
-            h.check_abs(
-                "tanh(1) ≈ 0.7616",
-                f64::from(v[3]),
-                0.7616,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "tanh(-10) ≈ -1",
-                f64::from(v[0]),
-                -1.0,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "tanh(10) ≈ 1",
-                f64::from(v[4]),
-                1.0,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            let tol = tolerances::TENSOR_TRANSCENDENTAL_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("tanh(1) ≈ 0.7616", 3, 0.7616, tol),
+                    ("tanh(-10) ≈ -1", 0, -1.0, tol),
+                    ("tanh(10) ≈ 1", 4, 1.0, tol),
+                ],
             );
             h.check_abs(
                 "tanh antisymmetry",
@@ -575,23 +497,15 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match exp_input.exp_wgsl() {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "exp(0) == 1",
-                f64::from(v[0]),
-                1.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "exp(1) ≈ e",
-                f64::from(v[1]),
-                std::f64::consts::E,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "exp(-1) ≈ 1/e",
-                f64::from(v[3]),
-                1.0 / std::f64::consts::E,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            let ttf = tolerances::TENSOR_TRANSCENDENTAL_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("exp(0) == 1", 0, 1.0, tolerances::TENSOR_EXACT_F32),
+                    ("exp(1) ≈ e", 1, std::f64::consts::E, ttf),
+                    ("exp(-1) ≈ 1/e", 3, 1.0 / std::f64::consts::E, ttf),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("exp_wgsl [ERROR: {e}]"), false),
@@ -605,23 +519,15 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match log_input.log_wgsl() {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "log(1) == 0",
-                f64::from(v[0]),
-                0.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "log(e) ≈ 1",
-                f64::from(v[1]),
-                1.0,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "log(10) ≈ 2.3026",
-                f64::from(v[2]),
-                10.0_f64.ln(),
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            let ttf = tolerances::TENSOR_TRANSCENDENTAL_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("log(1) == 0", 0, 0.0, tolerances::TENSOR_EXACT_F32),
+                    ("log(e) ≈ 1", 1, 1.0, ttf),
+                    ("log(10) ≈ 2.3026", 2, 10.0_f64.ln(), ttf),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("log_wgsl [ERROR: {e}]"), false),
@@ -635,23 +541,15 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match sqrt_input.sqrt_wgsl() {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "sqrt(0) == 0",
-                f64::from(v[0]),
-                0.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "sqrt(4) == 2",
-                f64::from(v[2]),
-                2.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "sqrt(9) == 3",
-                f64::from(v[3]),
-                3.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("sqrt(0) == 0", 0, 0.0, tol),
+                    ("sqrt(4) == 2", 2, 2.0, tol),
+                    ("sqrt(9) == 3", 3, 3.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("sqrt_wgsl [ERROR: {e}]"), false),
@@ -670,17 +568,14 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input.mul_scalar(3.0) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "mul_scalar [0] = 6",
-                f64::from(v[0]),
-                6.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "mul_scalar [3] = 24",
-                f64::from(v[3]),
-                24.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("mul_scalar [0] = 6", 0, 6.0, tol),
+                    ("mul_scalar [3] = 24", 3, 24.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("mul_scalar [ERROR: {e}]"), false),
@@ -694,17 +589,14 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input2.add_scalar(10.0) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "add_scalar [0] = 11",
-                f64::from(v[0]),
-                11.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "add_scalar [3] = 14",
-                f64::from(v[3]),
-                14.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("add_scalar [0] = 11", 0, 11.0, tol),
+                    ("add_scalar [3] = 14", 3, 14.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("add_scalar [ERROR: {e}]"), false),
@@ -718,17 +610,14 @@ fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input3.div_scalar(5.0) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "div_scalar [0] = 2",
-                f64::from(v[0]),
-                2.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "div_scalar [3] = 8",
-                f64::from(v[3]),
-                8.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("div_scalar [0] = 2", 0, 2.0, tol),
+                    ("div_scalar [3] = 8", 3, 8.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("div_scalar [ERROR: {e}]"), false),
@@ -751,17 +640,11 @@ fn validate_div(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match lhs.div(&rhs) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "div [0] = 5",
-                f64::from(v[0]),
-                5.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "div [3] = 5",
-                f64::from(v[3]),
-                5.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[("div [0] = 5", 0, 5.0, tol), ("div [3] = 5", 3, 5.0, tol)],
             );
         }
         Err(e) => h.check_bool(&format!("div [ERROR: {e}]"), false),
@@ -977,23 +860,15 @@ fn validate_transpose(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
             h.check_bool("transpose shape [3,2]", *out.shape() == [3, 2]);
-            h.check_abs(
-                "transpose [0,0] = 1",
-                f64::from(v[0]),
-                1.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "transpose [0,1] = 4",
-                f64::from(v[1]),
-                4.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "transpose [1,0] = 2",
-                f64::from(v[2]),
-                2.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("transpose [0,0] = 1", 0, 1.0, tol),
+                    ("transpose [0,1] = 4", 1, 4.0, tol),
+                    ("transpose [1,0] = 2", 2, 2.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("transpose [ERROR: {e}]"), false),
@@ -1019,23 +894,15 @@ fn validate_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
             let lse = ((-2.0_f64).exp() + (-1.0_f64).exp() + 0.0_f64.exp()).ln();
             let expected: Vec<f64> = data.iter().map(|&x| f64::from(x) - max_val - lse).collect();
 
-            h.check_abs(
-                "log_softmax_wgsl[0]",
-                f64::from(v[0]),
-                expected[0],
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "log_softmax_wgsl[1]",
-                f64::from(v[1]),
-                expected[1],
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "log_softmax_wgsl[2]",
-                f64::from(v[2]),
-                expected[2],
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            let tol = tolerances::TENSOR_TRANSCENDENTAL_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("log_softmax_wgsl[0]", 0, expected[0], tol),
+                    ("log_softmax_wgsl[1]", 1, expected[1], tol),
+                    ("log_softmax_wgsl[2]", 2, expected[2], tol),
+                ],
             );
 
             let log_sum: f64 = v.iter().map(|&x| f64::from(x).exp()).sum::<f64>().ln();
@@ -1061,23 +928,15 @@ fn validate_leaky_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input.leaky_relu_wgsl_with_slope(0.01) {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "leaky_relu(-2, 0.01) ≈ -0.02",
-                f64::from(v[0]),
-                -0.02,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "leaky_relu(0) == 0",
-                f64::from(v[2]),
-                0.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "leaky_relu(2) == 2",
-                f64::from(v[4]),
-                2.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tol = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    ("leaky_relu(-2, 0.01) ≈ -0.02", 0, -0.02, tol),
+                    ("leaky_relu(0) == 0", 2, 0.0, tol),
+                    ("leaky_relu(2) == 2", 4, 2.0, tol),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("leaky_relu [ERROR: {e}]"), false),
@@ -1093,24 +952,20 @@ fn validate_elu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     match input.elu_wgsl() {
         Ok(out) => {
             let v = require!(h, readback(&out), "tensor readback from GPU");
-            let expect_neg2 = (-2.0_f64).exp_m1();
-            h.check_abs(
-                "elu(-2, 1.0)",
-                f64::from(v[0]),
-                expect_neg2,
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-            h.check_abs(
-                "elu(0) == 0",
-                f64::from(v[2]),
-                0.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-            h.check_abs(
-                "elu(2) == 2",
-                f64::from(v[4]),
-                2.0,
-                tolerances::TENSOR_EXACT_F32,
+            let tex = tolerances::TENSOR_EXACT_F32;
+            check_points(
+                h,
+                &v,
+                &[
+                    (
+                        "elu(-2, 1.0)",
+                        0,
+                        (-2.0_f64).exp_m1(),
+                        tolerances::TENSOR_TRANSCENDENTAL_F32,
+                    ),
+                    ("elu(0) == 0", 2, 0.0, tex),
+                    ("elu(2) == 2", 4, 2.0, tex),
+                ],
             );
         }
         Err(e) => h.check_bool(&format!("elu [ERROR: {e}]"), false),

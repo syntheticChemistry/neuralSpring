@@ -38,7 +38,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::hmm` or `StatefulPipeline`.
 /// Validated: `validate_gpu_hmm_forward` (13/13 PASS).
-pub const WGSL_HMM_FORWARD_LOG: &str = include_str!("../metalForge/shaders/hmm_forward_log.wgsl");
+pub use neural_spring_forge::shaders::HMM_FORWARD_LOG as WGSL_HMM_FORWARD_LOG;
 
 /// Discrete HMM with N hidden states and M observation symbols.
 ///
@@ -291,6 +291,7 @@ impl Hmm {
     }
 
     /// Generate (states, observations) from the model.
+    #[must_use]
     pub fn generate_sequence(&self, length: usize, rng: &mut Rng) -> (Vec<usize>, Vec<usize>) {
         let mut states = vec![0; length];
         let mut observations = vec![0; length];

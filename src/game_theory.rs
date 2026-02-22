@@ -32,7 +32,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::stencil`.
 /// Validated: `validate_gpu_game_theory`.
-pub const WGSL_SPATIAL_PAYOFF: &str = include_str!("../metalForge/shaders/spatial_payoff.wgsl");
+pub use neural_spring_forge::shaders::SPATIAL_PAYOFF as WGSL_SPATIAL_PAYOFF;
 
 /// Standard prisoner's dilemma payoff matrix.
 ///

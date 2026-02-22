@@ -9,6 +9,12 @@
 //! ## Papers validated
 //!
 //! - Papers 022-023: Anderson Localization / Spectral
+//!
+//! ## Provenance
+//!
+//! CPU reference: `anderson_localization::mean_ipr` (seed=0, Aubry-André n=16).
+//! WGSL shader: `metalForge/shaders/batch_ipr.wgsl`
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

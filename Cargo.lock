@@ -686,8 +686,19 @@ dependencies = [
  "approx",
  "barracuda",
  "bytemuck",
+ "neural-spring-forge",
  "serde",
  "serde_json",
+ "tokio",
+ "wgpu",
+]
+
+[[package]]
+name = "neural-spring-forge"
+version = "0.1.0"
+dependencies = [
+ "barracuda",
+ "bytemuck",
  "tokio",
  "wgpu",
 ]

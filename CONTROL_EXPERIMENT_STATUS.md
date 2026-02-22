@@ -3,9 +3,9 @@
 **Last updated**: February 21, 2026 (post-audit)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
-**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 90.55% line coverage
+**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 94.9% line coverage
 **Grand Total**: 206/206 Python PASS + 1100+ Rust+GPU validation PASS = **1300+ total validation checks**
-**Library**: 222 unit tests + 8 doc-tests = 230 total | 29 modules + 3 evolved | 81 validation binaries + 5 bench = 86 binaries
+**Library**: 237 unit tests + 9 doc-tests = 246 total | 29 modules + 3 evolved | 81 validation binaries + 5 bench = 86 binaries
 **ToadStool**: All 11 shortcomings (S-01..S-11) **ABSORBED** at `dc540afd`
 
 ---
@@ -54,7 +54,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (222 lib tests, 81 validation binaries, 29 modules + 3 evolved)
+### Phase 1a: neuralSpring-Native Validation (237 lib tests, 81 validation binaries, 29 modules + 3 evolved)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -240,7 +240,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 14 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 222 unit + 8 doc-tests |
+| Rust test | `cargo test` | **PASS** — 237 unit + 9 doc-tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -261,7 +261,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (222 lib tests, 81 binaries, 29 modules + 3 evolved) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (237 lib tests, 81 binaries, 29 modules + 3 evolved) | **COMPLETE** |
 | 1b | BarraCUDA validation (268 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |

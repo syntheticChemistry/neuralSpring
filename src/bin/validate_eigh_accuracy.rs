@@ -7,6 +7,12 @@
 //! LAPACK-level accuracy where Jacobi degrades.
 //!
 //! This binary provides the evidence for ToadStool to absorb the fix.
+//!
+//! ## Provenance
+//!
+//! CPU reference: `eigh::eigh_householder_qr` vs `barracuda::linalg::eigh_f64` (Jacobi).
+//! Validates: analytical reconstruction error, orthogonality, Gershgorin bounds.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,
@@ -70,13 +76,14 @@ fn validate_accuracy(h: &mut ValidationHarness, n: usize) {
         jacobi_err / hqr_err.max(1e-300)
     );
 
-    // HQR must beat Jacobi's known limits
+    // HQR reconstruction error scales as O(n² ε_mach) where ε_mach ≈ 1e-16.
+    // Each tier is sized for the expected error growth at that matrix dimension.
     let tol = match n {
-        4 => 1e-10,
-        8 => 1e-8,
-        16 => 1e-6,
-        32 => 1e-4,
-        _ => 1e-2,
+        4 => tolerances::CROSS_LANGUAGE,
+        8 => tolerances::GPU_F64_TRANSCENDENTAL,
+        16 => tolerances::SPECIAL_FUNCTION_F64,
+        32 => tolerances::GPU_FITNESS_F32,
+        _ => tolerances::EIGH_JACOBI_RECONSTRUCT,
     };
 
     h.check_abs(

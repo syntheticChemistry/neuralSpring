@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+// PRNG internals: u64→f64 casts lose precision by design; single-char state
+// variables (`s`, `x`, `u`, `v`) match Blackman & Vigna's reference; and
+// mul_add / complex float expressions are intentional for the algorithm.
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::many_single_char_names,
-    clippy::missing_const_for_fn,
     clippy::suboptimal_flops
 )]
 
@@ -20,7 +22,7 @@ use std::f64::consts::PI;
 ///
 /// Absorption target: `barracuda::ops::prng`.
 /// Validated: `validate_gpu_prng` (5/5 PASS).
-pub const WGSL_XOSHIRO128SS: &str = include_str!("../metalForge/shaders/xoshiro128ss.wgsl");
+pub use neural_spring_forge::shaders::XOSHIRO128SS as WGSL_XOSHIRO128SS;
 
 /// Deterministic PRNG based on Xoshiro256**.
 #[derive(Debug, Clone)]
@@ -41,6 +43,7 @@ impl Rng {
     }
 
     /// Raw u64 output (xoshiro256**).
+    #[must_use]
     pub const fn next_u64(&mut self) -> u64 {
         let result = (self.s[1].wrapping_mul(5)).rotate_left(7).wrapping_mul(9);
         let t = self.s[1] << 17;
@@ -54,11 +57,13 @@ impl Rng {
     }
 
     /// Uniform `f64` in `[0, 1)`.
+    #[must_use]
     pub fn uniform(&mut self) -> f64 {
         (self.next_u64() >> 11) as f64 / ((1u64 << 53) as f64)
     }
 
     /// Standard normal via Box-Muller transform.
+    #[must_use]
     pub fn normal(&mut self) -> f64 {
         let u1 = self.uniform().max(1e-300);
         let u2 = self.uniform();
@@ -66,16 +71,19 @@ impl Rng {
     }
 
     /// Normal with given mean and standard deviation.
+    #[must_use]
     pub fn normal_params(&mut self, mean: f64, std: f64) -> f64 {
         std.mul_add(self.normal(), mean)
     }
 
     /// Uniform integer in `[0, n)`.
-    pub fn usize(&mut self, n: usize) -> usize {
+    #[must_use]
+    pub const fn usize(&mut self, n: usize) -> usize {
         (self.next_u64() % n as u64) as usize
     }
 
     /// Choose index from a probability distribution (categorical sample).
+    #[must_use]
     pub fn categorical(&mut self, probs: &[f64]) -> usize {
         let u = self.uniform();
         let mut cum = 0.0;
@@ -89,6 +97,7 @@ impl Rng {
     }
 
     /// Multinomial sample: draw `n` items from a probability distribution.
+    #[must_use]
     pub fn multinomial(&mut self, n: usize, probs: &[f64]) -> Vec<f64> {
         let mut counts = vec![0.0; probs.len()];
         for _ in 0..n {
@@ -98,6 +107,7 @@ impl Rng {
     }
 
     /// Choose `k` distinct indices from `[0, n)` (Fisher-Yates partial).
+    #[must_use]
     pub fn choose_distinct(&mut self, n: usize, k: usize) -> Vec<usize> {
         let mut indices: Vec<usize> = (0..n).collect();
         let k = k.min(n);
@@ -109,22 +119,26 @@ impl Rng {
     }
 
     /// Random permutation of `[0, n)`.
+    #[must_use]
     pub fn permutation(&mut self, n: usize) -> Vec<usize> {
         self.choose_distinct(n, n)
     }
 
     /// Fill a slice with `uniform() < threshold` coin flips.
+    #[must_use]
     pub fn bernoulli_mask(&mut self, n: usize, p: f64) -> Vec<bool> {
         (0..n).map(|_| self.uniform() < p).collect()
     }
 
     /// Alias for `uniform()` — `f64` in `[0, 1)`.
+    #[must_use]
     pub fn next_f64(&mut self) -> f64 {
         self.uniform()
     }
 
     /// Gamma variate via Marsaglia & Tsang (2000) for shape >= 1,
     /// with Ahrens-Dieter shift for shape < 1.
+    #[must_use]
     pub fn gamma(&mut self, shape: f64) -> f64 {
         if shape < 1.0 {
             return self.gamma(shape + 1.0) * self.uniform().max(1e-300).powf(1.0 / shape);
@@ -149,6 +163,7 @@ impl Rng {
     }
 
     /// Beta(α, β) variate via the gamma ratio method.
+    #[must_use]
     pub fn beta(&mut self, alpha: f64, beta_param: f64) -> f64 {
         let x = self.gamma(alpha);
         let y = self.gamma(beta_param);

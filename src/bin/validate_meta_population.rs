@@ -78,7 +78,11 @@ fn main() {
 
     // Check 3: Global FST > 0.01
     let gfst = global_fst(&populations, &n_indivs, n_loci);
-    h.check_lower(&format!("global FST={gfst:.4}"), gfst, 0.01);
+    h.check_lower(
+        &format!("global FST={gfst:.4}"),
+        gfst,
+        tolerances::META_POP_FST_MIN,
+    );
 
     // Check 4: Pairwise FST matrix valid (symmetric, diag=0)
     let fst_mat = fst_matrix(&populations, &n_indivs, n_loci);
@@ -118,7 +122,11 @@ fn main() {
 
     // Check 7: Populations are distinguishable (inter-pop AF variance > 0.001)
     let af_var = inter_population_af_variance(&populations, &n_indivs, n_loci);
-    h.check_lower(&format!("inter-pop AF variance={af_var:.4}"), af_var, 0.001);
+    h.check_lower(
+        &format!("inter-pop AF variance={af_var:.4}"),
+        af_var,
+        tolerances::META_POP_AF_VARIANCE_MIN,
+    );
 
     // Check 8: Algorithm validated
     h.check_bool("meta_population algorithm validated", true);

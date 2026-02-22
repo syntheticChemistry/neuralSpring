@@ -153,7 +153,7 @@ mod tests {
     // Run alone (--test-threads=1) — concurrent wgpu Instance sharing
     // causes BindGroupLayout invalidation across parallel tests.
     #[tokio::test]
-    #[ignore]
+    #[ignore = "wgpu Instance sharing across parallel tests invalidates BindGroupLayouts — run with --test-threads=1"]
     async fn sequential_square_matmul_with_fence() {
         let dev = match WgpuDevice::new().await {
             Ok(d) => Arc::new(d),

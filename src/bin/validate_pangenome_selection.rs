@@ -65,7 +65,11 @@ fn main() {
 
     // Check 5: Selection coefficient > 0.01
     let s = selection_coefficient(&obs_spec, &neu_spec);
-    h.check_lower(&format!("selection coefficient={s:.4}"), s, 0.01);
+    h.check_lower(
+        &format!("selection coefficient={s:.4}"),
+        s,
+        tolerances::PANGENOME_SELECTION_P_MIN,
+    );
 
     // Check 6: Gene repertoire diversity > 0
     let diversity = gene_repertoire_diversity(&pa, n_genes, n_genomes);

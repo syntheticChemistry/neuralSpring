@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 21, 2026 (post-audit)
+**Date**: February 22, 2026 (post-forge)
 **ToadStool HEAD**: `dc540afd` (Session 25)
 **Pattern**: Python baseline → Rust validation → WGSL shader → ToadStool absorption → lean on upstream
 
@@ -13,7 +13,7 @@ Rust modules (29 total) include `pinn.rs` (Study 001 PINN Burgers) and `deeponet
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 219 lib tests, 29 modules, 78 binaries, 90.55% coverage | **COMPLETE** |
+| Rust native validation | 237 lib tests, 29 modules, 81 binaries, 94.9% coverage | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU ports | 170/170 (17 modules) | **COMPLETE** |
 | GPU shader validation | 85/85 (16 WGSL shaders) | **COMPLETE** |
@@ -46,24 +46,31 @@ with `ValidationHarness`, and documented binding layouts.
 | `swarm_nn_forward.wgsl` | Swarm robotics (015) | `validate_gpu_swarm` | 4/4 | `barracuda::ops` (NN inference) |
 | `hill_gate.wgsl` | Signal integration (021) | `validate_gpu_signal` | 4/4 | `barracuda::ops` (Hill gate) |
 
-### WGSL exports (hotSpring pattern)
+### WGSL exports (forge crate — single source of truth)
 
-Following the hotSpring pattern, each shader is exported as a `pub const` from
-its parent Rust library module, making absorption a single-import operation:
+All 16 WGSL shaders are now centralized in `metalForge/forge/src/shaders.rs`.
+Library modules re-export for backward compatibility:
 
-| Rust Export | Module |
-|-------------|--------|
-| `hmm::WGSL_HMM_FORWARD_LOG` | `src/hmm.rs` |
-| `pangenome_selection::WGSL_PAIRWISE_JACCARD` | `src/pangenome_selection.rs` |
-| `meta_population::WGSL_LOCUS_VARIANCE` | `src/meta_population.rs` |
-| `evolved::WGSL_BATCH_FITNESS_EVAL` | `src/evolved/mod.rs` |
-| `evolved::WGSL_RK4_PARALLEL` | `src/evolved/mod.rs` |
-| `evolved::WGSL_MEAN_REDUCE` | `src/evolved/mod.rs` |
-| `game_theory::WGSL_SPATIAL_PAYOFF` | `src/game_theory.rs` |
-| `anderson_localization::WGSL_BATCH_IPR` | `src/anderson_localization.rs` |
-| `sate_alignment::WGSL_PAIRWISE_HAMMING` | `src/sate_alignment.rs` |
+| Forge Constant | Library Re-Export |
+|----------------|-------------------|
+| `forge::shaders::HMM_FORWARD_LOG` | `hmm::WGSL_HMM_FORWARD_LOG` |
+| `forge::shaders::PAIRWISE_JACCARD` | `pangenome_selection::WGSL_PAIRWISE_JACCARD` |
+| `forge::shaders::LOCUS_VARIANCE` | `meta_population::WGSL_LOCUS_VARIANCE` |
+| `forge::shaders::BATCH_FITNESS_EVAL` | `evolved::WGSL_BATCH_FITNESS_EVAL` |
+| `forge::shaders::RK4_PARALLEL` | `evolved::WGSL_RK4_PARALLEL` |
+| `forge::shaders::MEAN_REDUCE` | `evolved::WGSL_MEAN_REDUCE` |
+| `forge::shaders::SPATIAL_PAYOFF` | `game_theory::WGSL_SPATIAL_PAYOFF` |
+| `forge::shaders::BATCH_IPR` | `anderson_localization::WGSL_BATCH_IPR` |
+| `forge::shaders::PAIRWISE_HAMMING` | `sate_alignment::WGSL_PAIRWISE_HAMMING` |
+| `forge::shaders::PAIRWISE_L2` | `modes::WGSL_PAIRWISE_L2` |
+| `forge::shaders::MULTI_OBJ_FITNESS` | `directed_evolution::WGSL_MULTI_OBJ_FITNESS` |
+| `forge::shaders::SWARM_NN_FORWARD` | `swarm_robotics::WGSL_SWARM_NN_FORWARD` |
+| `forge::shaders::HILL_GATE` | `signal_integration::WGSL_HILL_GATE` |
+| `forge::shaders::HEAD_SPLIT` | `evolved::WGSL_HEAD_SPLIT` |
+| `forge::shaders::HEAD_CONCAT` | `evolved::WGSL_HEAD_CONCAT` |
+| `forge::shaders::XOSHIRO128SS` | `rng::WGSL_XOSHIRO128SS` |
 
-*Additional shaders `pairwise_l2`, `multi_obj_fitness`, `swarm_nn_forward`, `hill_gate` validated by `validate_gpu_modes`, `validate_gpu_directed`, `validate_gpu_swarm`, `validate_gpu_signal` — export-from-module pending.*
+Binding layouts and dispatch geometry documented in `forge::bindings`.
 
 ### Shader binding layouts (for ToadStool absorption)
 
@@ -223,7 +230,7 @@ remains the eventual GPU-native path.
 | Graceful error handling | `require!` macro replaces `.expect()` in all validation binaries — no panic on GPU failure |
 | Zero-copy genotype handling | `eco_dynamics.rs` uses `&[u8]` / `HashSet<&[u8]>` — avoids `Vec<u8>` clones |
 | SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
-| Line coverage | **90.55%** line / 92.55% region / 94.73% function |
+| Line coverage | **94.9%** line via `llvm-cov` |
 | All files < 1000 LOC | `validate_barracuda_tensor.rs` reduced from 1053 → 864 lines |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 

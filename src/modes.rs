@@ -27,7 +27,7 @@
 ///
 /// Absorption target: `barracuda::ops::pairwise_distance`.
 /// Validated: `validate_gpu_modes` (15/15 PASS).
-pub const WGSL_PAIRWISE_L2: &str = include_str!("../metalForge/shaders/pairwise_l2.wgsl");
+pub use neural_spring_forge::shaders::PAIRWISE_L2 as WGSL_PAIRWISE_L2;
 
 /// Rate of novel type appearance over time.
 ///

@@ -25,6 +25,12 @@
 //! ## Papers validated
 //!
 //! All Phase 0++ papers (011–023): parity between GPU and CPU implementations.
+//!
+//! ## Provenance
+//!
+//! CPU/GPU dispatch: `BarraCUDA` `DispatchConfig` routes by workload size.
+//! Validates: GPU↔CPU parity (`batch_fitness`) via `dispatch_for`.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

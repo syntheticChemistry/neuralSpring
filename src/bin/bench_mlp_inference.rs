@@ -42,39 +42,39 @@ struct MlpWeights {
     b: Vec<Tensor>,
 }
 
-#[allow(clippy::expect_used)]
-fn load_baseline() -> MlpBaseline {
+fn load_baseline() -> Result<MlpBaseline, String> {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/control/ml_inference/mlp_baseline.json"
     );
-    let data = std::fs::read_to_string(path)
-        .expect("mlp_baseline.json not found — run generate_baselines.py first");
-    serde_json::from_str(&data).expect("invalid mlp_baseline.json")
+    let data = std::fs::read_to_string(path).map_err(|e| {
+        format!("mlp_baseline.json not found — run generate_baselines.py first: {e}")
+    })?;
+    serde_json::from_str(&data).map_err(|e| format!("invalid mlp_baseline.json: {e}"))
 }
 
-#[allow(clippy::expect_used)]
 fn upload_weights(
     baseline: &MlpBaseline,
     device: &Arc<barracuda::device::WgpuDevice>,
-) -> MlpWeights {
+) -> Result<MlpWeights, String> {
     let mut w = Vec::with_capacity(baseline.weights.len());
     let mut b = Vec::with_capacity(baseline.biases.len());
 
     for (i, weights) in baseline.weights.iter().enumerate() {
         let [rows, cols] = baseline.weight_shapes[i];
         let t = Tensor::from_data(weights, vec![rows, cols], device.clone())
-            .expect("weight upload failed");
+            .map_err(|e| format!("weight upload layer {i}: {e}"))?;
         w.push(t);
     }
 
-    for bias in &baseline.biases {
+    for (i, bias) in baseline.biases.iter().enumerate() {
         let cols = bias.len();
-        let t = Tensor::from_data(bias, vec![1, cols], device.clone()).expect("bias upload failed");
+        let t = Tensor::from_data(bias, vec![1, cols], device.clone())
+            .map_err(|e| format!("bias upload layer {i}: {e}"))?;
         b.push(t);
     }
 
-    MlpWeights { w, b }
+    Ok(MlpWeights { w, b })
 }
 
 fn mlp_forward(input: &Tensor, weights: &MlpWeights) -> Result<Tensor, String> {
@@ -120,13 +120,11 @@ fn mlp_forward(input: &Tensor, weights: &MlpWeights) -> Result<Tensor, String> {
     .map_err(|e| e.to_string())
 }
 
-#[allow(clippy::expect_used)]
-fn readback(t: &Tensor) -> Vec<f32> {
-    t.to_vec().expect("GPU readback failed")
+fn readback(t: &Tensor) -> Result<Vec<f32>, String> {
+    t.to_vec().map_err(|e| format!("GPU readback: {e}"))
 }
 
 #[tokio::main]
-#[allow(clippy::expect_used)]
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => g,
@@ -142,16 +140,40 @@ async fn main() {
     );
 
     let device = gpu.wgpu_device().clone();
-    let baseline = load_baseline();
+    let baseline = match load_baseline() {
+        Ok(b) => b,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            std::process::exit(1);
+        }
+    };
 
-    let input = Tensor::from_data(&baseline.input, vec![baseline.input.len()], device.clone())
-        .expect("input upload failed");
-    let weights = upload_weights(&baseline, &device);
+    let input = match Tensor::from_data(&baseline.input, vec![baseline.input.len()], device.clone())
+    {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("ERROR: input upload: {e}");
+            std::process::exit(1);
+        }
+    };
+    let weights = match upload_weights(&baseline, &device) {
+        Ok(w) => w,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            std::process::exit(1);
+        }
+    };
 
     // Correctness check
     match mlp_forward(&input, &weights) {
         Ok(output) => {
-            let probs = readback(&output);
+            let probs = match readback(&output) {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("  Readback ERROR: {e}");
+                    return;
+                }
+            };
             let predicted = probs
                 .iter()
                 .enumerate()

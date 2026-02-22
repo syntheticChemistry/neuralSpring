@@ -183,47 +183,65 @@ Each reproduction follows the same framework as Phase 0 but targets a published 
 
 ## Combined: 75 checks across 10 experiments (48 Phase 0 + 27 Phase 0+)
 
-## Phase 1: Rust Validation
+## Phase 1–5b: Rust Validation
 
 The Rust layer cross-validates Python baselines using hardcoded expected values (hotSpring pattern).
-BarraCUDA integration validates 242 GPU/CPU checks across 10 domains.
+BarraCUDA integration extended it to 1100+ Rust+GPU checks across 81 validation binaries.
 
-### neuralSpring-native (43 checks)
+### neuralSpring-native
 
 | Component | Checks | Pattern |
 |-----------|--------|---------|
 | `validate_surrogate` | 15 | Global minima + known-values for Rastrigin, Rosenbrock, Ackley |
 | `validate_transformer` | 18 | Softmax properties + GELU known-values |
 | `validate_metrics` | 10 | R², RMSE, MAE, NSE against analytical expectations |
-| Rust unit tests | 34 | Cross-language validation (Python-computed values hardcoded in Rust) |
+| 15 Phase 0++ validation binaries | 188 | Paper-specific checks across all domains |
+| Rust unit tests | 237 | Cross-language validation (94.9% line coverage) |
+| Rust doc-tests | 9 | API contract verification |
 
-### BarraCUDA (242 checks)
+### BarraCUDA (275+ checks)
 
 | Component | Checks | Pattern |
 |-----------|--------|---------|
 | stats, linalg, special, optimize | 66 | Analytical / NIST DLMF reference values |
 | precision (f64 CPU shaders) | 12 | Exact f64 |
-| Tensor API (CPU + GPU) | 84 | WGSL unified path, all activations/ops |
+| Tensor API (CPU + GPU) | 90 | WGSL unified path, all activations/ops |
 | Tensor f64 API | 35 | f64 GPU ops |
 | quantized (Q4/Q8) | 15 | Hand-constructed test vectors |
 | linalg ext (SVD, gen eigh) | 17 | Analytical solutions |
 | ML inference (MLP + Transformer) | 13 | Python/NumPy baselines |
+| FFT (f32/f64/Rfft) | 24 | Analytical DFT definition |
+| LogSumExp | 5 | Log-domain stability |
 
-### Fused ToadStool Pipeline
+### BarraCUDA CPU Ports (170 checks)
 
-Pre-compiles shaders, pre-allocates buffers, records all compute passes into a
-single `CommandEncoder`. Speedup: MLP 43×, Transformer 78× vs per-op dispatch.
+17 modules validated against BarraCUDA CPU math primitives (`rk45_solve`,
+`eigh_f64`, `solve_f64`, `chi_squared_sf`, `stats::variance`, `pearson_correlation`).
 
-Quality gates: `cargo clippy` (pedantic + nursery), `cargo fmt`, `cargo doc`, `unsafe_code = "forbid"`.
+### GPU Shaders + Pipelines (180+ checks)
+
+16 WGSL shaders in `metalForge/shaders/`, validated via GPU shader binaries,
+cross-dispatch binaries, and 7 pure-GPU pipeline binaries.
+
+### Quality Gates
+
+`cargo clippy` (pedantic + nursery), `cargo fmt`, `cargo doc`, `unsafe_code = "forbid"`.
+Centralized `tolerances.rs` with 58 named constants. `require!` macro for graceful
+GPU error handling.
 
 ## Evolution Roadmap
 
 | Phase | Focus | Validates | Status |
 |-------|-------|-----------|--------|
 | 0 | Python/PyTorch baselines (48 checks) | Science correctness | **COMPLETE** |
-| 0+ | Scholarly reproductions (27 checks) | Published result fidelity | **COMPLETE** |
-| 1a | neuralSpring Rust validation (43 checks) | Cross-language agreement | **COMPLETE** |
-| 1b | BarraCUDA validation (242 checks) | WGSL shader correctness | **COMPLETE** |
+| 0+ | Scholarly reproductions (31 checks) | Published result fidelity | **COMPLETE** |
+| 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty | **COMPLETE** |
+| 1a | neuralSpring Rust validation (237 lib tests) | Cross-language agreement | **COMPLETE** |
+| 1b | BarraCUDA validation (275+ checks) | WGSL shader correctness | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | Single-encoder dispatch | **COMPLETE** |
-| 2 | Quantized inference on GPU | Q4/Q8 deployment | Planned (Study 005 validates the math) |
-| 3 | Cross-spring integration | Live surrogates | Planned |
+| 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |
+| 2 | BarraCUDA CPU ports (170 checks) | CPU math fidelity | **COMPLETE** |
+| 3 | GPU shader evolution (16 WGSL + pipelines) | GPU-CPU parity | **COMPLETE** |
+| 4 | Performance + domain expansion | PINN, DeepONet, MHA, eigh | **COMPLETE** |
+| 5a | BarraCUDA GPU Tensor | Spectral + eco GPU validation | **COMPLETE** |
+| 5b | Upstream fixes (S-13, S-14) | Pool sync, driver hang | **Active** |

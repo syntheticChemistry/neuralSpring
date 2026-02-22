@@ -121,11 +121,16 @@ async fn main() {
 
 // ── Tensor helper ──────────────────────────────────────────────────────
 
-#[allow(clippy::expect_used)]
 fn mk_tensor(shape: &[usize], dev: &Arc<barracuda::device::WgpuDevice>) -> Tensor {
     let count: usize = shape.iter().product();
     let data: Vec<f32> = (0..count).map(|i| (i as f32) * 0.001).collect();
-    Tensor::from_data(&data, shape.to_vec(), dev.clone()).expect("mk_tensor: GPU alloc")
+    match Tensor::from_data(&data, shape.to_vec(), dev.clone()) {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("FATAL: mk_tensor GPU alloc: {e}");
+            std::process::exit(1);
+        }
+    }
 }
 
 // ── Benchmark harness ──────────────────────────────────────────────────

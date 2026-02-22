@@ -16,6 +16,7 @@ use neural_spring::regulatory_network::{
     env_params, integrate_grn, phenotype_classifier, shannon_diversity, GrnParams,
     ENV_NUTRIENT_POOR, ENV_NUTRIENT_RICH, ENV_STRESS,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -56,7 +57,7 @@ fn main() {
 
     h.check_bool(
         &format!("environments distinct (max_diff={max_diff:.4})"),
-        max_diff > 0.05,
+        max_diff > tolerances::GAME_COOPERATION_MIN,
     );
 
     // Check 3: Multiple strategies exist (Shannon > 0 or ≥2 distinct phenotypes)
@@ -117,7 +118,7 @@ fn main() {
 
     h.check_bool(
         &format!("KO reduces diversity (WT={h_wt:.4}, KO={h_ko:.4})"),
-        h_ko <= h_wt + 0.01,
+        h_ko <= h_wt + tolerances::REGULATORY_RESPONSE_MIN,
     );
 
     // Check 5: Algorithm validated

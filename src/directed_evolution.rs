@@ -36,11 +36,15 @@
 ///
 /// Absorption target: `barracuda::ops::batch_gemm`.
 /// Validated: `validate_gpu_directed` (6/6 PASS).
-pub const WGSL_MULTI_OBJ_FITNESS: &str =
-    include_str!("../metalForge/shaders/multi_obj_fitness.wgsl");
+pub use neural_spring_forge::shaders::MULTI_OBJ_FITNESS as WGSL_MULTI_OBJ_FITNESS;
 
 use crate::rng::Rng;
 
+/// Tolerance for lexicase selection: candidates within EPSILON of the
+/// best fitness on a given objective are retained. Set to 1e-8 to
+/// match Dolson et al. 2022 (eLife 11:e79665) — tight enough to
+/// discriminate meaningfully different fitnesses, loose enough to
+/// account for floating-point rounding in multi-objective sums.
 const EPSILON: f64 = 1e-8;
 
 /// Compute fitness on multiple objectives.
@@ -74,6 +78,7 @@ pub fn multi_objective_fitness(genotype: &[f64], n_objectives: usize) -> Vec<f64
 /// Random selection: no fitness pressure.
 ///
 /// Population and fitnesses are flat row-major: `pop_size × genome_len`, `pop_size × n_objectives`.
+#[must_use]
 pub fn random_selection(
     population: &[f64],
     _fitnesses: &[f64],
@@ -92,6 +97,7 @@ pub fn random_selection(
 }
 
 /// Truncation: select top fraction by aggregate fitness.
+#[must_use]
 pub fn truncation_selection(
     population: &[f64],
     fitnesses: &[f64],
@@ -123,6 +129,7 @@ pub fn truncation_selection(
 }
 
 /// Tournament selection: aggregate fitness comparison.
+#[must_use]
 pub fn tournament_selection(
     population: &[f64],
     fitnesses: &[f64],
@@ -158,6 +165,7 @@ pub fn tournament_selection(
 }
 
 /// Lexicase selection: filter by shuffled per-case fitness.
+#[must_use]
 pub fn lexicase_selection(
     population: &[f64],
     fitnesses: &[f64],
@@ -188,6 +196,7 @@ pub fn lexicase_selection(
 }
 
 /// Down-sampled lexicase: use random subset (50%) of objectives.
+#[must_use]
 #[allow(
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
@@ -284,6 +293,7 @@ fn phenotype_diversity(fitnesses: &[f64], n: usize, n_objectives: usize, rng: &m
 }
 
 /// Run EA with a given selection algorithm, track multi-objective metrics.
+#[must_use]
 #[allow(clippy::cast_precision_loss)]
 pub fn run_selection_experiment<F>(
     selection_fn: F,
@@ -395,6 +405,13 @@ mod tests {
             .sum::<f64>()
             / 10.0;
         assert!(tourn > rand, "tournament {tourn} > random {rand}");
+    }
+
+    #[test]
+    fn downsampled_lexicase_runs_and_selects() {
+        let r = run_selection_experiment(downsampled_lexicase_selection, 40, 4, 100, 30, 0.03, 42);
+        assert_eq!(r.mean_fitness.len(), 30);
+        assert!(r.pareto_front.iter().all(|&p| p > 0));
     }
 
     #[test]

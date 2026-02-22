@@ -8,6 +8,12 @@
 //! - Determinism (same seed → same output)
 //! - Independence (different threads → different sequences)
 //! - Multi-call (state advance produces different output)
+//!
+//! ## Provenance
+//!
+//! WGSL shader: `metalForge/shaders/xoshiro128ss.wgsl`
+//! Validates: uniformity, determinism, independence (analytical).
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

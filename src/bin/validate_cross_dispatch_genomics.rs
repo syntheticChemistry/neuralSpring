@@ -26,6 +26,12 @@
 //!
 //! - Paper 024: Pangenome Selection Dynamics (Anderson, 2024)
 //! - Paper 025: Meta-Population Differentiation (Anderson, 2024)
+//!
+//! ## Provenance
+//!
+//! CPU/GPU dispatch: genomics (Jaccard + locus variance) via `DispatchConfig`.
+//! Validates: `pairwise_jaccard`, `locus_variance` GPU↔CPU parity.
+//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,

@@ -37,8 +37,10 @@ To trace what each shortcoming was and how ToadStool fixed it, see
 |------|-----|----------------|
 | `bench_fused_inference.rs` | 688 | Deep coupling to fused_pipeline/fused_mlp/fused_transformer; replaced by native TensorSession benchmarks |
 | `bench_scaling.rs` | 439 | Same fused dependencies; scaling now benchmarked via native Tensor ops |
+| `bench_inference.py` | 200 | Python baseline for fused inference benchmark; only consumer was `bench_fused_inference.rs` |
+| `bench_scaling.py` | 206 | Python scaling benchmark; only consumer was `bench_scaling.rs` |
 
-**Total fossilized bench code**: ~1,127 LOC
+**Total fossilized bench code**: ~2,533 LOC (Rust + Python)
 
 ## What Remains Active
 
@@ -56,6 +58,7 @@ Two evolved modules survive in `src/evolved/`:
 | Jan 2026 | neuralSpring begins evolving workarounds for S-01 through S-11 |
 | Feb 19, 2026 | ToadStool `dc540afd` absorbs all 11 shortcomings |
 | Feb 20, 2026 | neuralSpring completes rewiring to native APIs; deprecated modules fossilized |
+| Feb 22, 2026 | `bench_inference.py` and `bench_scaling.py` moved from `control/` to fossils (orphaned by fossilized Rust) |
 
 ## How to Revive
 
