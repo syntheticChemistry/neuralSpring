@@ -69,7 +69,7 @@ S-03b has local workaround. Key absorption commits:
 |------------|-----|----------------------|
 | `TensorSession` ML ops | `session::{matmul, relu, gelu, softmax, layer_norm, run}` | Replace `evolved::fused_mlp` / `fused_transformer` |
 | `StatefulPipeline` | `staging::StatefulPipeline::run_iterations()` | EA loops, ODE integration, HMM chains |
-| `ReduceScalarPipeline` | `pipeline::ReduceScalarPipeline::sum_f64()` | Fitness aggregation, log-likelihood |
+| `ReduceScalarPipeline` | `pipeline::ReduceScalarPipeline::sum_f64()` | **Wired** — Anderson mean IPR (5.55e-17 diff) |
 | `KernelRouter` 4-tier matmul | `ops::matmul` with `MatMulTier` | Replace `evolved::matmul_*.wgsl` |
 | NAK eigensolve | `batched_eigh_nak_optimized_f64.wgsl` | Anderson localization eigensolver |
 | `Fft1DF64` | `ops::fft::Fft1DF64` | f64 FFT — **now validated** (8/8, SHADER_F64) |

@@ -321,4 +321,70 @@ APIs that grew from its own shader contributions.
 
 ---
 
+## Experiment 009: Dual-Path Upstream Parity & Spectral Theory Stack
+
+**Date**: February 22, 2026 (post-Experiment 008)
+**Type**: Integration / Validation / Cross-Spring Lineage
+
+### Why
+
+Experiment 008 validated upstream wrappers in isolation. This experiment goes
+deeper: every existing GPU validator now runs BOTH local `include_str!` dispatch
+AND upstream wrapper dispatch on the same data, proving bit-identical results.
+Additionally, the `barracuda::spectral` theory stack (originated in hotSpring
+for Kachkovskiy spectral theory) is validated for the first time by neuralSpring.
+
+### What
+
+1. **Dual-path upstream parity** — 6 existing GPU validators (`validate_gpu_batch_fitness`,
+   `validate_gpu_sate`, `validate_gpu_pangenome`, `validate_gpu_meta_pop`,
+   `validate_gpu_game_theory`, `validate_gpu_anderson`) each gain an
+   `upstream_parity` function that dispatches via the barracuda wrapper and
+   compares against local dispatch. All 6 produce **0.00e0 diff** (bit-identical).
+
+2. **ReduceScalarPipeline wiring** — The Anderson validator now chains
+   `BatchIprGpu` → f64 buffer → `ReduceScalarPipeline::sum_f64` → mean IPR.
+   Diff vs CPU mean: **5.55e-17** (machine epsilon).
+
+3. **Created `validate_barracuda_spectral_theory.rs`** — validates 14 checks
+   against the `barracuda::spectral` stack:
+   - Golden ratio constant parity (neuralSpring vs barracuda)
+   - Aubry-André spectrum parity (Jacobi dense vs Sturm tridiag: 1.23e-2)
+   - Anderson Hamiltonian construction (eigenvalue count, bandwidth)
+   - Lanczos eigensolve (2D Anderson 8×10, 3D clean 3×3×3)
+   - Lyapunov exponents (strong vs weak disorder ordering, positivity)
+   - Level-spacing statistics (GOE-like for clean, Poisson for localized)
+   - Hofstadter butterfly structure (21 rational α, 2100 eigenvalues)
+   - Band detection in gapped spectra
+   - Kappus-Wegner anomaly: γ(W=0.5) ≈ W²/96 to 6% relative error
+
+   **Cross-spring lineage**: hotSpring (Kachkovskiy spectral theory) → barracuda
+   → neuralSpring validates. The spectral functions carry "Provenance: hotSpring
+   v0.6.0" headers in the barracuda source.
+
+### What We Found
+
+- **Bit-identical parity**: All 6 GPU validators confirm local and upstream
+  dispatch produce exactly the same results (0.00e0 diff). This is the
+  strongest possible proof that absorbed shaders are unchanged.
+
+- **ReduceScalarPipeline**: f64 GPU reduction achieves machine-epsilon accuracy
+  (5.55e-17), validating the pipeline for future use in large-scale reductions.
+
+- **Spectral theory**: All 14 checks pass. The Lanczos eigensolver correctly
+  handles sparse 2D/3D Anderson matrices. Level-spacing ratio reliably
+  distinguishes localized (Poisson) from extended (GOE) phases.
+
+### Result
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Upstream parity checks | 0 | 6 (all 0.00e0 diff) |
+| ReduceScalarPipeline | Not wired | 5.55e-17 diff |
+| Spectral theory checks | 0 | 14 (Lanczos + Anderson + Hofstadter + Lyapunov) |
+| Total validation checks | 1583+ | 1604+ |
+| Validation binaries | 118 | 119 |
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

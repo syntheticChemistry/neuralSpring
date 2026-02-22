@@ -33,9 +33,12 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | TS-001 (pow_f64 precision) | Extended exp/log polynomials | **FIXED** upstream (Session 36) |
 | Shader absorption | 5 of 8 local shaders absorbed | **13/17 upstream** (Session 39) |
 | Upstream wrapper validation | 6 bio ops + f64 HMM | **23/23 PASS** (new) |
+| Upstream parity (dual-path) | 6 GPU validators | **6/6 PASS, 0.00e0 diff** (bit-identical) |
+| ReduceScalarPipeline | f64 mean IPR via GPU reduce | **5.55e-17 diff** (machine ε) |
+| Spectral theory stack | Lanczos, Anderson, Hofstadter, Lyapunov | **14/14 PASS** (hotSpring lineage) |
 | Upstream vs local benchmark | 6 kernels, RTX 4070 | **0.92–1.16×** overhead (negligible) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| Grand total checks | **1583+** (206 Py + 1377+ Rust/GPU) | **ALL GREEN** |
+| Grand total checks | **1604+** (206 Py + 1398+ Rust/GPU) | **ALL GREEN** |
 
 ---
 

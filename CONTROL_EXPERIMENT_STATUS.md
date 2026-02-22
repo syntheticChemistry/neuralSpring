@@ -4,8 +4,8 @@
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 94.9% line coverage
-**Grand Total**: 206/206 Python PASS + 1377+ Rust+GPU validation PASS = **1583+ total validation checks**
-**Library**: 256 unit tests + 9 doc-tests = 265 total | 31 modules + 3 evolved | 118 validation/bench binaries (incl. upstream wrapper validators)
+**Grand Total**: 206/206 Python PASS + 1398+ Rust+GPU validation PASS = **1604+ total validation checks**
+**Library**: 255 unit tests + 9 doc-tests = 264 total | 31 modules + 3 evolved | 119 validation/bench binaries (incl. upstream wrapper + parity validators)
 **ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** at `77f70b2e` | S-16 FIXED | S-14/S-15 workaround documented
 **Open Data**: All 25 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -55,7 +55,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (255 lib tests, 115 validation binaries, 31 modules + 3 evolved)
+### Phase 1a: neuralSpring-Native Validation (255 lib tests, 119 validation binaries, 31 modules + 3 evolved)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -264,7 +264,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (255 lib tests, 115 binaries, 31 modules + 3 evolved) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (255 lib tests, 119 binaries, 31 modules + 3 evolved) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -281,6 +281,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 4e | PINN/DeepONet + new GPU domains | **COMPLETE** |
 | 5a | BarraCUDA GPU Tensor validation (7 original domains, 43 checks) | **COMPLETE** |
 | 5b | Full-stack buildout: bC 24/25, gT 23/25, xD 15/15 — S-16 fixed, S-15 root-caused | **COMPLETE** |
+| 5c | Upstream parity (6/6 dual-path 0.00e0) + ReduceScalarPipeline + spectral theory (14/14) | **COMPLETE** |
 | 4 | Cross-spring integration | Active |
 
 ### Phase 5a: BarraCUDA GPU Tensor Validation (7 domains, 43 checks)

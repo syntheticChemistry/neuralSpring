@@ -29,11 +29,13 @@
     clippy::similar_names
 )]
 
+use barracuda::ops::bio::LocusVarianceGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::meta_population::{allele_frequencies, generate_population};
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/locus_variance.wgsl");
@@ -61,6 +63,7 @@ async fn main() {
     validate_larger_variance(&mut h, &gpu);
     validate_uniform_pops(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -352,6 +355,48 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("determinism: dispatch failed", false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let (populations, n_pops, n_loci, n_individuals) = make_test_data(42);
+    let all_freqs: Vec<Vec<f64>> = populations
+        .iter()
+        .map(|pop| allele_frequencies(pop, n_individuals, n_loci))
+        .collect();
+    let af_f32: Vec<f32> = all_freqs
+        .iter()
+        .flat_map(|af| af.iter().map(|&v| v as f32))
+        .collect();
+
+    let local = gpu_locus_variance(gpu, &af_f32, n_pops as u32, n_loci as u32);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = LocusVarianceGpu::new(dev);
+    let freq_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("freqs"), contents: bytemuck::cast_slice(&af_f32),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let var_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("var"), size: (n_loci * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(&freq_buf, &var_buf, n_pops as u32, n_loci as u32);
+    let upstream = gpu.read_buffer_f32(&var_buf, n_loci);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l.iter().zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs LocusVarianceGpu diff {max_diff:.2e}"),
+                max_diff, tolerances::GPU_LOCUS_VARIANCE_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

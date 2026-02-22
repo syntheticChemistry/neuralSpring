@@ -137,6 +137,10 @@ const BINARIES: &[&str] = &[
     // Cross-dispatch: expanded coverage (Phase 3d++)
     "validate_cross_dispatch_hmm",
     "validate_cross_dispatch_ode",
+    // Upstream wrapper + parity validation (Phase 5c)
+    "validate_barracuda_bio_ops",
+    "validate_barracuda_hmm_f64",
+    "validate_barracuda_spectral_theory",
 ];
 
 fn main() {

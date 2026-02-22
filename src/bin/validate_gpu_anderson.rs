@@ -26,12 +26,15 @@
     clippy::doc_markdown
 )]
 
+use barracuda::pipeline::ReduceScalarPipeline;
+use barracuda::spectral::BatchIprGpu;
 use neural_spring::anderson_localization::{
     aubry_andre_hamiltonian, ipr, jacobi_eigh, GOLDEN_RATIO,
 };
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/batch_ipr.wgsl");
@@ -60,6 +63,8 @@ async fn main() {
     validate_transition(&mut h, &gpu);
     validate_uniform_vector(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
+    validate_reduce_pipeline_mean(&mut h, &gpu);
 
     h.finish();
 }
@@ -358,6 +363,92 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("determinism: dispatch failed", false);
         }
+    }
+}
+
+fn validate_reduce_pipeline_mean(h: &mut ValidationHarness, gpu: &Gpu) {
+    let n = 64_usize;
+    let t = 1.0_f64;
+    let w = 2.0_f64;
+    let h_mat = aubry_andre_hamiltonian(n, t, w, GOLDEN_RATIO, 0.0);
+    let (_, ev) = jacobi_eigh(&h_mat, n);
+
+    let cpu_iprs: Vec<f64> = (0..n)
+        .map(|k| {
+            let col: Vec<f64> = (0..n).map(|i| ev[i * n + k]).collect();
+            ipr(&col)
+        })
+        .collect();
+    let cpu_mean = cpu_iprs.iter().sum::<f64>() / cpu_iprs.len() as f64;
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    match ReduceScalarPipeline::new(Arc::clone(&dev), n) {
+        Ok(reducer) => {
+            let ipr_bytes: Vec<u8> = cpu_iprs.iter()
+                .flat_map(|v| v.to_le_bytes())
+                .collect();
+            let ipr_buf = gpu.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("ipr_f64"),
+                contents: &ipr_bytes,
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            });
+            match reducer.sum_f64(&ipr_buf) {
+                Ok(gpu_sum) => {
+                    let gpu_mean = gpu_sum / n as f64;
+                    let diff = (gpu_mean - cpu_mean).abs();
+                    h.check_upper(
+                        &format!(
+                            "ReduceScalarPipeline mean IPR: GPU {gpu_mean:.8} vs CPU {cpu_mean:.8}, diff {diff:.2e}"
+                        ),
+                        diff,
+                        1e-10,
+                    );
+                }
+                Err(e) => h.check_bool(&format!("ReduceScalarPipeline sum failed: {e}"), false),
+            }
+        }
+        Err(e) => h.check_bool(&format!("ReduceScalarPipeline::new failed: {e}"), false),
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let n = 32_usize;
+    let dim = n as u32;
+    let n_vectors = n as u32;
+    let t = 1.0_f64;
+    let w = 1.0_f64;
+    let h_matrix = aubry_andre_hamiltonian(n, t, w, GOLDEN_RATIO, 0.0);
+    let (_, eigvecs) = jacobi_eigh(&h_matrix, n);
+    let flat: Vec<f32> = eigvecs.iter().map(|&v| v as f32).collect();
+
+    let local = gpu_batch_ipr(gpu, &flat, dim, n_vectors);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = BatchIprGpu::new(dev);
+    let ev_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("ev"), contents: bytemuck::cast_slice(&flat),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let ipr_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("ipr"), size: u64::from(n_vectors) * 4,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(&ev_buf, &ipr_buf, dim, n_vectors);
+    let upstream = gpu.read_buffer_f32(&ipr_buf, n_vectors as usize);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l.iter().zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs BatchIprGpu diff {max_diff:.2e}"),
+                max_diff, tolerances::GPU_BATCH_IPR_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

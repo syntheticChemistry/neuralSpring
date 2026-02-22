@@ -40,13 +40,13 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 206/206 Python PASS + 1377+ Rust+GPU PASS = 1583+ total validation checks
+## Current Status: 206/206 Python PASS + 1398+ Rust+GPU PASS = 1604+ total validation checks
 
 **ToadStool `d45fdfb3`** (Session 39): All shortcomings through S-12 **ABSORBED**.
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
 5 of 8 local WGSL shaders **absorbed upstream** as generalized variants.
 Phase 5b: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%)**.
-115 validation binaries, 31 modules. Conv2D/MaxPool2D/AvgPool2D WGSL now available upstream.
+119 validation binaries, 31 modules. Conv2D/MaxPool2D/AvgPool2D WGSL now available upstream.
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 
 ### Phase 0 — Synthetic Baselines (48/48)
@@ -122,7 +122,10 @@ S-16 transpose dispatch **FIXED**. S-15 matmul hang **root-caused** and workarou
 **Cross-dispatch (xD)**: 15/15 Phase 0++ papers have GPU ↔ CPU parity validation.
 6 cross-dispatch binaries, 49 checks, all PASS.
 
-### Rust Validation (1354+ PASS across 115 validation binaries)
+**Upstream parity (uP)**: 6/6 GPU validators have dual-path local↔upstream parity checks (all 0.00e0 diff — bit-identical).
+`ReduceScalarPipeline` f64 mean validated (5.55e-17 diff). `barracuda::spectral` theory stack validated (14/14 PASS).
+
+### Rust Validation (1398+ PASS across 119 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, centralized `tolerances.rs` constants,
@@ -194,7 +197,7 @@ python3 -m pytest tests/ -v
 
 # Rust validation (237 unit + 9 doc-tests, 94.9% coverage)
 cargo test
-cargo run --release --bin validate_all   # all 115 validation binaries
+cargo run --release --bin validate_all   # all 119 validation binaries
 
 # All quality gates at once
 make check    # or: just check
@@ -292,7 +295,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (206/206 — 25 experiments)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (255 lib tests, 115 validation binaries, 31 modules + 3 evolved, 94.9% line coverage)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (255 lib tests, 119 validation binaries, 31 modules + 3 evolved, 94.9% line coverage)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -360,7 +363,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Rust coverage | `cargo llvm-cov --lib` | **94.9%** line (target ≥90%) |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
-| neuralSpring validate | `cargo run --release --bin validate_all` | 115 binaries PASS |
+| neuralSpring validate | `cargo run --release --bin validate_all` | 119 binaries PASS |
 | BarraCUDA CPU validate | `make validate-barracuda` | 272/272 PASS |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | 203/203 PASS (24/25 papers) |
 | GPU Tensor validate | Phase 5b validators | 98+ checks (23/25 gT, S-15/S-16 resolved) |
@@ -435,7 +438,7 @@ neuralSpring/
 │   ├── primitives.rs            #   Consolidated math: Shannon, Hill, sigmoid, RK4
 │   ├── fft.rs                   #   FFT validation helpers (analytical DFT refs)
 │   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
-│   └── bin/                    #   120 binaries (115 validation + 5 bench)
+│   └── bin/                    #   122 binaries (119 validation + 6 bench)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
 │       ├── validate_metrics.rs             # 10 checks
@@ -457,7 +460,7 @@ neuralSpring/
 │       ├── validate_cross_dispatch*.rs    # 6 cross-dispatch validators (49 checks, 15/15 papers)
 │       ├── validate_eigh_accuracy.rs      # Householder+QR eigensolver (9 checks)
 │       ├── validate_mha_gpu.rs            # GPU head_split/head_concat (10 checks)
-│       ├── bench_*.rs                     # 5 benchmark binaries
+│       ├── bench_*.rs                     # 6 benchmark binaries
 │       └── validate_all.rs                 # Meta-binary: runs all validators
 │   ├── evolved/                #   Active evolutions (3 modules)
 │       ├── mod.rs                   # WGSL shader exports (batch_fitness, rk4, mean_reduce)
@@ -487,7 +490,7 @@ neuralSpring/
 │   └── run_all_baselines.sh    #   Orchestrates all 23 Python runs
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
-│   └── rust.yml                #   Rust test + clippy + validate (115 binaries)
+│   └── rust.yml                #   Rust test + clippy + validate (119 binaries)
 ├── Cargo.toml                  # Rust manifest
 ├── Makefile                    # Task runner
 ├── justfile                    # Task runner alt (just)
@@ -520,4 +523,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Phase 5b complete: February 22, 2026 | 25 papers, 206 Python + 1377+ Rust+GPU = 1583+ validation checks | 256 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 118 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) | Upstream wrappers: 6 bio ops + f64 HMM batch validated, 0.92–1.16× overhead*
+*Initialized: February 16, 2026 | Phase 5b complete: February 22, 2026 | 25 papers, 206 Python + 1398+ Rust+GPU = 1604+ validation checks | 255 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 119 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 6/6 (100%) | Upstream wrappers: 6 bio ops + f64 HMM batch + spectral theory validated, 0.92–1.16× overhead, dual-path parity 0.00e0 diff*

@@ -25,10 +25,12 @@
     clippy::expect_used
 )]
 
+use barracuda::ops::bio::SpatialPayoffGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/spatial_payoff.wgsl");
@@ -56,6 +58,7 @@ async fn main() {
     validate_larger_grid(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
     validate_all_cooperators(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -332,6 +335,44 @@ fn validate_all_cooperators(h: &mut ValidationHarness, gpu: &Gpu) {
         Err(e) => {
             h.check_bool(&format!("all cooperators: dispatch failed — {e}"), false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let grid_size = 10_u32;
+    let b = 3.0_f32;
+    let c = 1.0_f32;
+    let grid = make_grid(grid_size as usize, 42);
+    let n_cells = (grid_size * grid_size) as usize;
+
+    let local = gpu_spatial_payoff(gpu, &grid, grid_size, b, c);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = SpatialPayoffGpu::new(dev);
+    let grid_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("grid"), contents: bytemuck::cast_slice(&grid),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let fit_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("fit"), size: (n_cells * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(&grid_buf, &fit_buf, grid_size, b, c);
+    let upstream = gpu.read_buffer_f32(&fit_buf, n_cells);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l.iter().zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs SpatialPayoffGpu diff {max_diff:.2e}"),
+                max_diff, tolerances::GPU_SPATIAL_PAYOFF_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

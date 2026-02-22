@@ -29,11 +29,13 @@
     clippy::similar_names
 )]
 
+use barracuda::ops::bio::PairwiseJaccardGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::pangenome_selection::{generate_pa_matrix, jaccard_distance_matrix};
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/pairwise_jaccard.wgsl");
@@ -61,6 +63,7 @@ async fn main() {
     validate_larger_pa(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
     validate_identity_diagonal(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -310,6 +313,48 @@ fn validate_identity_diagonal(h: &mut ValidationHarness, gpu: &Gpu) {
         Err(e) => {
             h.check_bool(&format!("identity: dispatch failed — {e}"), false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let mut rng = Rng::new(42);
+    let n_genomes = 10_u32;
+    let n_genes = 50_u32;
+    let env_labels: Vec<usize> = (0..5).map(|_| 0).chain((0..5).map(|_| 1)).collect();
+    let pa = generate_pa_matrix(
+        n_genomes as usize, n_genes as usize, 0.25, 0.10, &mut rng, &env_labels,
+    );
+    let pa_f32: Vec<f32> = pa.iter().map(|&v| v as f32).collect();
+    let n_pairs = (n_genomes * (n_genomes - 1) / 2) as usize;
+
+    let local = gpu_pairwise_jaccard(gpu, &pa_f32, n_genomes, n_genes);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = PairwiseJaccardGpu::new(dev);
+    let pa_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("pa"), contents: bytemuck::cast_slice(&pa_f32),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let dist_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("dist"), size: (n_pairs * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(&pa_buf, &dist_buf, n_genomes, n_genes);
+    let upstream = gpu.read_buffer_f32(&dist_buf, n_pairs);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l.iter().zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs PairwiseJaccardGpu diff {max_diff:.2e}"),
+                max_diff, tolerances::GPU_JACCARD_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

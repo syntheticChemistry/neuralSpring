@@ -24,11 +24,13 @@
     clippy::needless_range_loop
 )]
 
+use barracuda::ops::bio::PairwiseHammingGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::sate_alignment::pairwise_distance_matrix;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/pairwise_hamming.wgsl");
@@ -63,6 +65,7 @@ async fn main() {
     validate_larger(&mut h, &gpu);
     validate_identical_sequences(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -323,5 +326,42 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("determinism: dispatch failed", false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let n_seqs = 8_u32;
+    let seq_len = 50_u32;
+    let flat = generate_test_sequences(n_seqs as usize, seq_len as usize, 42);
+    let n_pairs = (n_seqs * (n_seqs - 1) / 2) as usize;
+
+    let local = gpu_pairwise_hamming(gpu, &flat, n_seqs, seq_len);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = PairwiseHammingGpu::new(dev);
+    let seq_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("seqs"), contents: bytemuck::cast_slice(&flat),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let dist_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("dist"), size: (n_pairs * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(&seq_buf, &dist_buf, n_seqs, seq_len);
+    let upstream = gpu.read_buffer_f32(&dist_buf, n_pairs);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l.iter().zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs PairwiseHammingGpu diff {max_diff:.2e}"),
+                max_diff, tolerances::GPU_HAMMING_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }

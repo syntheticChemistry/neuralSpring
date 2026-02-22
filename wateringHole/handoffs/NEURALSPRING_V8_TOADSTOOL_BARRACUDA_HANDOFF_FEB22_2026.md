@@ -149,7 +149,7 @@ Same as V7. Local `head_split.wgsl`/`head_concat.wgsl` decompose MHA.
 
 | API | Current Use | Opportunity |
 |-----|------------|-------------|
-| `ReduceScalarPipeline::sum_f64` | Not used (local `mean_reduce`) | Fitness aggregation, log-likelihood |
+| `ReduceScalarPipeline::sum_f64` | **Wired** (Anderson mean IPR, 5.55e-17 diff) | Fitness aggregation, log-likelihood |
 | `BatchedRK4F64` | Not used | CPU-threaded ODE parameter sweeps |
 | `ops::bio::{FelsensteinGpu, GillespieGpu}` | Not used | Future paper extensions |
 | `ops::linalg::{InverseF64, LinSolveF64}` | Not used | GPU dense linear algebra |
@@ -179,7 +179,9 @@ Same as V7. Local `head_split.wgsl`/`head_concat.wgsl` decompose MHA.
 | P1 | Wire `cpu_conv_pool` for LeNet-5 conv/pool layers | Blocked: `pub(crate)` — needs ToadStool to expose |
 | P2 | Wire `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` for Paper 023 | GPU-native Anderson eigensolve |
 | P2 | Migrate validators to upstream shader binding layouts | Retire 5 local shader copies |
-| P3 | Wire `ReduceScalarPipeline::sum_f64` for pipeline validators | Replace local `mean_reduce.wgsl` |
+| P3 | ~~Wire `ReduceScalarPipeline::sum_f64` for pipeline validators~~ | **DONE** — mean IPR validated |
+| P3 | Wire `barracuda::spectral` theory stack (Lanczos, Hofstadter) | **DONE** — 14/14 PASS |
+| P3 | Add dual-path upstream parity to all 6 GPU validators | **DONE** — 6/6 at 0.00e0 diff |
 
 ---
 

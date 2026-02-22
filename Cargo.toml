@@ -211,6 +211,10 @@ name = "validate_barracuda_hmm_f64"
 path = "src/bin/validate_barracuda_hmm_f64.rs"
 
 [[bin]]
+name = "validate_barracuda_spectral_theory"
+path = "src/bin/validate_barracuda_spectral_theory.rs"
+
+[[bin]]
 name = "bench_upstream_vs_local"
 path = "src/bin/bench_upstream_vs_local.rs"
 

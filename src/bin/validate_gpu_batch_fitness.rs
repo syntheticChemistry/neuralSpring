@@ -32,10 +32,12 @@
     clippy::cast_possible_truncation
 )]
 
+use barracuda::ops::bio::BatchFitnessGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/batch_fitness_eval.wgsl");
@@ -64,6 +66,7 @@ async fn main() {
     validate_zero_genotype(&mut h, &gpu);
     validate_larger_population(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
+    validate_upstream_parity(&mut h, &gpu);
 
     h.finish();
 }
@@ -356,6 +359,50 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("determinism: dispatch failed", false);
         }
+    }
+}
+
+fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
+    let pop_size = 32_u32;
+    let genome_len = 8_u32;
+    let mut rng = Rng::new(42);
+    let population: Vec<f32> = (0..pop_size * genome_len)
+        .map(|_| rng.uniform() as f32)
+        .collect();
+    let weights: Vec<f32> = (0..genome_len).map(|_| rng.uniform() as f32).collect();
+
+    let local = gpu_batch_fitness(gpu, &population, &weights, pop_size, genome_len);
+
+    let dev = Arc::clone(gpu.wgpu_device());
+    let device = gpu.device();
+    let op = BatchFitnessGpu::new(dev);
+    let pop_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("pop"), contents: bytemuck::cast_slice(&population),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let wt_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("wt"), contents: bytemuck::cast_slice(&weights),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let fit_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("fit"), size: u64::from(pop_size) * 4,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    op.dispatch(&pop_buf, &wt_buf, &fit_buf, pop_size, genome_len);
+    let upstream = gpu.read_buffer_f32(&fit_buf, pop_size as usize);
+
+    match (local, upstream) {
+        (Ok(l), Ok(u)) => {
+            let max_diff: f64 = l.iter().zip(u.iter())
+                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
+                .fold(0.0_f64, f64::max);
+            h.check_upper(
+                &format!("upstream parity: local vs BatchFitnessGpu diff {max_diff:.2e}"),
+                max_diff, tolerances::GPU_FITNESS_F32,
+            );
+        }
+        _ => h.check_bool("upstream parity: dispatch failed", false),
     }
 }
 

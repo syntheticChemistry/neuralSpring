@@ -180,7 +180,12 @@ Feb 21  neuralSpring: 8 identical-copy shaders → BarraCUDA 77f70b2e (S-25)
 Feb 22  neuralSpring: 5 generalized-variant shaders → BarraCUDA d45fdfb3 (S-39)
         hotSpring: HFB spherical + deformed (10 shaders) → BarraCUDA (S-39)
         ToadStool: Dead code sweep, S-13 PooledBuffer race fix
-        neuralSpring: Rewire to upstream APIs, validate, benchmark ← THIS SESSION
+        neuralSpring: Rewire to upstream APIs, validate, benchmark
+
+        neuralSpring: 6/6 dual-path upstream parity (0.00e0 bit-identical)
+        neuralSpring: ReduceScalarPipeline f64 mean IPR (5.55e-17 diff)
+        neuralSpring: barracuda::spectral theory stack validated (14/14 PASS)
+        Cross-spring: hotSpring spectral theory → barracuda → neuralSpring validates
 ```
 
 ---
@@ -195,4 +200,5 @@ Feb 22  neuralSpring: 5 generalized-variant shaders → BarraCUDA d45fdfb3 (S-39
 | Upstream bio ops validator | `src/bin/validate_barracuda_bio_ops.rs` |
 | Upstream HMM f64 validator | `src/bin/validate_barracuda_hmm_f64.rs` |
 | Local vs upstream benchmark | `src/bin/bench_upstream_vs_local.rs` |
+| Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | V8 handoff document | `wateringHole/handoffs/NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md` |
