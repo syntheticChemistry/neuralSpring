@@ -380,7 +380,7 @@ neuralSpring/
 │   ├── anderson_localization.rs  # Aubry-André model, IPR
 │   ├── pangenome_selection.rs   # PA matrix, gene frequency, selection dynamics
 │   ├── meta_population.rs       # FST, Mantel test, thermal adaptation
-│   ├── eigh.rs                  #   Householder+QR eigensolver (resolved S-12)
+│   ├── eigh.rs                  #   Eigensolver → delegates to barracuda (S-12 absorbed)
 │   ├── pinn.rs                  #   Physics-informed NN (Raissi et al.)
 │   ├── deeponet.rs              #   Operator learning (Lu et al.)
 │   ├── primitives.rs            #   Consolidated math: Shannon, Hill, sigmoid, RK4
@@ -449,7 +449,8 @@ neuralSpring/
 |----------|-------------|
 | `specs/EVOLUTION_MAPPING.md` | Tier A/B/C mapping from Python modules → Rust → WGSL shaders |
 | `specs/DATA_PROVENANCE.md` | All dataset sources, accession numbers, and licenses |
-| `specs/TOADSTOOL_HANDOFF.md` | 11 BarraCUDA shortcomings and local workarounds |
+| `specs/TOADSTOOL_HANDOFF.md` | 12 BarraCUDA shortcomings and resolution status |
+| `specs/CROSS_SPRING_EVOLUTION.md` | Cross-spring shader/primitive provenance (hotSpring/wetSpring/neuralSpring) |
 | `specs/BENCHMARK_ANALYSIS.md` | Python vs BarraCUDA CPU vs GPU + fused pipeline results |
 | `specs/PAPER_REVIEW_QUEUE.md` | 25 papers — all complete |
 | `whitePaper/BARRACUDA_EVOLUTION.md` | Shader evolution narrative: Python → CPU → GPU |
@@ -465,4 +466,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | ToadStool absorption complete: February 20, 2026 | Audit: February 21, 2026 | 25 papers, 206 Python + 1100+ Rust+GPU = 1300+ validation checks | 237 lib tests, 94.9% line coverage | All 11 shortcomings absorbed + S-12/S-03b locally resolved — 29 modules, 81 validation binaries, 16 WGSL shaders*
+*Initialized: February 16, 2026 | ToadStool `77f70b2e` absorption sync: February 22, 2026 | 25 papers, 206 Python + 1100+ Rust+GPU = 1300+ validation checks | 237 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, 8/16 shaders upstream — 29 modules, 81 validation binaries, 16 WGSL shaders (8 upstream, 8 local)*
