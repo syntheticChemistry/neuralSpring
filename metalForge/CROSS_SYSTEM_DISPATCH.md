@@ -45,7 +45,7 @@ ToadStool's `UnidirectionalPipeline` reduces round-trips; BarraCUDA's
 
 | Workload | BarraCUDA Module | Binary | Status |
 |----------|-----------------|--------|--------|
-| All 15 paper modules | `stats`, `linalg`, `numerical`, `special` | `validate_barracuda_*` (15 binaries) | **147/147 PASS** |
+| All 17 paper modules | `stats`, `linalg`, `numerical`, `special` | `validate_barracuda_*` (17 binaries) | **170/170 PASS** |
 | Tensor API (90 ops) | `tensor::Tensor` | `validate_barracuda_tensor` | **90/90 PASS** |
 | f64 GPU ops | `ops::*_f64` | `validate_barracuda_tensor_f64` | **35/35 PASS** |
 

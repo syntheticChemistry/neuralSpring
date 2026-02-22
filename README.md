@@ -406,7 +406,7 @@ neuralSpring/
 │       ├── validate_introgression.rs       # 13 checks
 │       ├── validate_spectral_commutativity.rs # 8 checks
 │       ├── validate_anderson_localization.rs  # 8 checks
-│       ├── validate_barracuda_*.rs         # 12 BarraCUDA primitives (272) + 15 CPU ports (147)
+│       ├── validate_barracuda_*.rs         # 12 BarraCUDA primitives (272) + 17 CPU ports (170)
 │       ├── validate_gpu_*.rs              # 8 GPU shader binaries (69 checks)
 │       ├── validate_cross_dispatch*.rs    # Cross-dispatch parity (45 checks)
 │       ├── validate_eigh_accuracy.rs      # Householder+QR eigensolver (9 checks)
@@ -437,7 +437,7 @@ neuralSpring/
 │   └── run_all_baselines.sh    #   Orchestrates all 23 Python runs
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
-│   └── rust.yml                #   Rust test + clippy + validate (55 binaries)
+│   └── rust.yml                #   Rust test + clippy + validate (86 binaries)
 ├── Cargo.toml                  # Rust manifest
 ├── Makefile                    # Task runner
 ├── justfile                    # Task runner alt (just)

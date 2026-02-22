@@ -89,7 +89,7 @@
 | `validate_barracuda_special` | special (gamma, erf, bessel, polynomials) | 26 | NIST DLMF values |
 | `validate_barracuda_optimize` | optimize (nelder_mead, bisect, brent) | 10 | Analytical minima/roots |
 | `validate_barracuda_precision` | precision (add, mul, fma, dot, sum) | 12 | Exact f64 |
-| `validate_barracuda_tensor` | Tensor API (86 ops — native LN, log-SM, leaky\_relu, elu, GELU) | 86 | WGSL unified path |
+| `validate_barracuda_tensor` | Tensor API (90 ops — native LN, log-SM, leaky\_relu, elu, GELU) | 90 | WGSL unified path |
 | `validate_barracuda_tensor_f64` | Tensor f64 (GPU ops) | 35 | f64 GPU ops |
 | `validate_barracuda_quantized` | quantized (Q4/Q8 dequant, GEMV) | 15 | Hand-constructed |
 | `validate_barracuda_linalg_ext` | linalg ext (SVD, LU inverse, gen eigh) | 17 | Analytical |
@@ -245,7 +245,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
 | neuralSpring validate | `make validate-native` + `validate-native-papers` | **PASS** — 183/183 |
-| BarraCUDA validate | `make validate-barracuda` | **PASS** — 268/268 |
+| BarraCUDA validate | `make validate-barracuda` | **PASS** — 272/272 |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | **PASS** — 170/170 (17 modules) |
 | GPU shader validate | `make validate-gpu` | **PASS** — 108/108 (16 WGSL shaders) |
 | GPU pipeline validate | `make validate-gpu-pipeline` | **PASS** — 77/77 (SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12 + 32 Phase 4b) |
@@ -262,7 +262,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
 | 1a | neuralSpring Rust validation (237 lib tests, 81 binaries, 29 modules + 3 evolved) | **COMPLETE** |
-| 1b | BarraCUDA validation (268 checks) | **COMPLETE** |
+| 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
 | 2 | BarraCUDA CPU ports (17 modules, 170 checks) | **COMPLETE** |

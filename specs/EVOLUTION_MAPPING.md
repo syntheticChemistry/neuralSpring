@@ -122,7 +122,7 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### ToadStool Infrastructure Available for GPU Promotion
 
-ToadStool (reviewed `dc540afd`, Feb 20, 2026 — all 11 shortcomings absorbed)
+ToadStool (reviewed `77f70b2e`, Feb 22, 2026 — all 12 shortcomings absorbed)
 provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |
@@ -317,8 +317,8 @@ GPU-ready layout evolution completed for `anderson_localization.rs` (flat N×N H
 
 ### ToadStool Shortcoming Status
 
-**Reviewed:** ToadStool commit `dc540afd` (Session 25, Feb 20, 2026).
-**Result:** **11 of 11 neuralSpring shortcomings ABSORBED.** Key absorption
+**Reviewed:** ToadStool commit `77f70b2e` (Session 31h, Feb 22, 2026).
+**Result:** **12 of 12 neuralSpring shortcomings ABSORBED.** Key absorption
 commit: `fbedd222` (`TensorSession` ML ops). Validation binary
 `validate_barracuda_tensor` rewired from evolved ops to native BarraCUDA
 APIs — 90/90 PASS. `src/evolved/` workarounds documented for retirement.

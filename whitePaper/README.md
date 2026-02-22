@@ -75,7 +75,7 @@ Phase 5b includes: GELU test fix (86/86 tensor PASS), S-13 pool-sync primitives
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
-| 2 | BarraCUDA CPU ports — 15 modules, 147 checks | **Complete** |
+| 2 | BarraCUDA CPU ports — 17 modules, 170 checks | **Complete** |
 | 3a | BarraCUDA FFT validation — 24 analytical checks | **Complete** |
 | 3b | GPU streaming (`StatefulPipeline` + `UnidirectionalPipeline`) | **Complete** |
 | 3c | Shader evolution (16 WGSL shaders, 108 checks) | **Complete** |

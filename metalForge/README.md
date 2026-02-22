@@ -81,14 +81,13 @@ wins due to zero dispatch overhead.
 | `rk45_solve` | 4D ODE, t=20 | **machine ε** | Matches hand-rolled RK4 exactly |
 | `solve_f64` | Dense linear system | **machine ε** | LU-based, excellent |
 | `chi_squared_sf` | LRT p-value | **1e-10** | Matches scipy reference |
-| `eigh_f64` | n=8 symmetric | **~1e-3** | Jacobi eigensolver accuracy gap |
-| `eigh_f64` | n=16 symmetric | **~0.1** | Degrades with dimension |
+| `eigh_f64` | n=32 symmetric | **1.75e-14** | Householder+QR (S-12 absorbed at `77f70b2e`) |
 | `stats::variance` | Population stats | **machine ε** | Two-pass algorithm, stable |
 
-**Critical gap**: `eigh_f64` uses Jacobi iteration, which has O(n³) cost
-and ~1e-3 relative error for n≥8. LAPACK achieves 1e-14. This affects
-spectral analysis (Paper 022) and Anderson localization (Paper 023).
-ToadStool's NAK eigensolver (GPU) may resolve this.
+**S-12 resolved**: `eigh_f64` originally used Jacobi iteration (~1e-3 at n≥8).
+neuralSpring evolved Householder+QR (LAPACK-level accuracy), which ToadStool
+absorbed at `77f70b2e`. `src/eigh.rs` now delegates to upstream. ToadStool also
+added GPU-native NAK eigensolve (`batched_eigh_nak_optimized_f64.wgsl`).
 
 ---
 
@@ -100,7 +99,7 @@ ToadStool's NAK eigensolver (GPU) may resolve this.
 | Tiled matmul | ~~local WGSL shaders~~ (fossilized) | ToadStool `KernelRouter` | **ABSORBED** (S-02) |
 | Layer norm/log-softmax | ~~local GPU-resident ops~~ (fossilized) | Native `Tensor::*_wgsl()` | **ABSORBED** (S-08/S-09) |
 | MHA z-dispatch | `evolved::mha` (active, S-03b) | Native `ops::mha` hangs | **PARTIAL** (S-03 → S-03b) |
-| Eigensolver | Jacobi (1e-3 at n=8) | ToadStool NAK eigensolve | S-12 outstanding |
+| Eigensolver | ~~Jacobi~~ | Householder+QR → upstream (`77f70b2e`) + NAK GPU | **ABSORBED** (S-12) |
 | Batched fitness | CPU loop | `batch_fitness_eval.wgsl` | **Validated** (20/20) |
 | HMM chain | Sequential matmul | `hmm_forward_log.wgsl` | **Validated** (13/13) |
 | Multi-system ODE | Sequential rk45 | `rk4_parallel.wgsl` | **Validated** (8/8) |

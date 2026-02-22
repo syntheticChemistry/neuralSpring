@@ -73,7 +73,7 @@
 | `ops::logsumexp` / `logsumexp_wgsl` | `hmm_forward_gpu` manual logsumexp | Correctness + perf | Need to verify API compatibility |
 | Native `ops::mha` | `evolved::mha` (S-03b) | Retire 182 LOC | Projection shaders hang on RTX 4070 |
 | `ops::pairwise_distance` | Hand-rolled distance in SATé (017) | Correctness | None — ready to integrate |
-| `linalg::batched_eigh_gpu` | `eigh_f64` accuracy gap (S-12) | Fix 1e-3 gap at n=8 | Verify NAK solver accuracy |
+| `linalg::batched_eigh_gpu` | `eigh_f64` — **S-12 ABSORBED** (`77f70b2e`) | Householder+QR upstream | NAK GPU eigensolve also available |
 
 ### Medium Priority — Streaming and Pipeline
 

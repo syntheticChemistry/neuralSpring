@@ -4,8 +4,8 @@
 //!
 //! ## Absorption status (Feb 22, 2026 — `ToadStool` `77f70b2e`)
 //!
-//! S-01 through S-11 absorbed by `ToadStool` (`dc540afd`). S-12 (eigh)
-//! absorbed (`77f70b2e`). 8 of 16 WGSL shaders now sourced from upstream
+//! S-01 through S-12 absorbed by `ToadStool` (`77f70b2e`). 8 of 16 WGSL
+//! shaders now sourced from upstream
 //! `barracuda` (`ops::bio::*`, `ops::rk_stage`, `spectral::batch_ipr`).
 //!
 //! ## Active Rust evolutions
