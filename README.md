@@ -40,7 +40,7 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 206/206 Python PASS + 1354+ Rust+GPU PASS = 1560+ total validation checks
+## Current Status: 206/206 Python PASS + 1377+ Rust+GPU PASS = 1583+ total validation checks
 
 **ToadStool `d45fdfb3`** (Session 39): All shortcomings through S-12 **ABSORBED**.
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
@@ -520,4 +520,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Phase 5b complete: February 22, 2026 | 25 papers, 206 Python + 1354+ Rust+GPU = 1560+ validation checks | 255 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 115 validation binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%)*
+*Initialized: February 16, 2026 | Phase 5b complete: February 22, 2026 | 25 papers, 206 Python + 1377+ Rust+GPU = 1583+ validation checks | 256 lib tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 118 validation/bench binaries, 17 WGSL shaders (13 upstream, 4 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) | Upstream wrappers: 6 bio ops + f64 HMM batch validated, 0.92–1.16× overhead*

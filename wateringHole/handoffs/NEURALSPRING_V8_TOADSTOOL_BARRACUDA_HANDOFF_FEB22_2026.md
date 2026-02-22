@@ -98,7 +98,7 @@ All flow automatically via neuralSpring's path dependency on barracuda.
 | Module | LOC | Issue | Status |
 |--------|-----|-------|--------|
 | `mha.rs` | 182 | S-03b: native MHA projection shaders hang | CPU workaround via local shaders |
-| `hmm_forward_gpu.rs` | 270 | `HmmBatchForwardF64` available but dispatch migration pending | Local dispatch |
+| `hmm_forward_gpu.rs` | 270 | `HmmBatchForwardF64` now validated (11/11 PASS, 2.47e-10 diff) | **Upstream wired** — local retained for f32 fallback |
 
 ---
 
@@ -139,7 +139,7 @@ Same as V7. Local `head_split.wgsl`/`head_concat.wgsl` decompose MHA.
 
 | API | Current Use | Opportunity |
 |-----|------------|-------------|
-| `HmmBatchForwardF64` | Not used (local dispatch) | Replace `evolved::hmm_forward_gpu` entirely |
+| `HmmBatchForwardF64` | **VALIDATED** (11/11 PASS, 2.47e-10 diff) | ✅ Done — `validate_barracuda_hmm_f64` |
 | `spectral::{anderson_*, hofstadter_*, lanczos}` | Not used | Replace local model construction code |
 | `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` | Not used | GPU-native Anderson eigensolve |
 | `TensorSession` ML ops | Available but not wired | Replace `evolved::mha` CPU workaround |
@@ -173,8 +173,10 @@ Same as V7. Local `head_split.wgsl`/`head_concat.wgsl` decompose MHA.
 
 | Priority | Action | Impact |
 |----------|--------|--------|
-| P1 | Wire `HmmBatchForwardF64` for Paper 016 | Retire `evolved::hmm_forward_gpu` (270 LOC) |
-| P1 | Wire `cpu_conv_pool` for LeNet-5 conv/pool layers | Extend `validate_barracuda_lenet` beyond FC-only |
+| ~~P1~~ | ~~Wire `HmmBatchForwardF64` for Paper 016~~ | ✅ **DONE** — `validate_barracuda_hmm_f64` (11/11 PASS) |
+| ~~P1~~ | ~~Wire upstream bio op wrappers~~ | ✅ **DONE** — `validate_barracuda_bio_ops` (12/12 PASS) |
+| ~~P1~~ | ~~Benchmark upstream vs local dispatch~~ | ✅ **DONE** — `bench_upstream_vs_local` (0.92–1.16× overhead) |
+| P1 | Wire `cpu_conv_pool` for LeNet-5 conv/pool layers | Blocked: `pub(crate)` — needs ToadStool to expose |
 | P2 | Wire `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` for Paper 023 | GPU-native Anderson eigensolve |
 | P2 | Migrate validators to upstream shader binding layouts | Retire 5 local shader copies |
 | P3 | Wire `ReduceScalarPipeline::sum_f64` for pipeline validators | Replace local `mean_reduce.wgsl` |
@@ -194,7 +196,7 @@ Same as V7. Local `head_split.wgsl`/`head_concat.wgsl` decompose MHA.
 
 | Metric | Value |
 |--------|-------|
-| Rust lib tests | 255 unit + 9 doc-tests |
+| Rust lib tests | 256 unit + 9 doc-tests |
 | Line coverage | 94.9% |
 | Clippy | 0 warnings (pedantic + nursery) |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |

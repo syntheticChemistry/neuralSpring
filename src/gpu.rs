@@ -186,6 +186,17 @@ impl Gpu {
             .map_err(|e| format!("read_buffer_f32: {e}"))
     }
 
+    /// Read f64 data back from a GPU buffer (blocking).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the GPU readback fails.
+    pub fn read_buffer_f64(&self, buffer: &wgpu::Buffer, count: usize) -> Result<Vec<f64>, String> {
+        self.wgpu_device
+            .read_buffer_f64(buffer, count)
+            .map_err(|e| format!("read_buffer_f64: {e}"))
+    }
+
     /// Select a specific adapter by name substring or enumeration index.
     ///
     /// Uses relaxed limits so CPU software adapters (llvmpipe) work.

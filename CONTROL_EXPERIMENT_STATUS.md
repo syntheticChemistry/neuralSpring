@@ -4,8 +4,8 @@
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 94.9% line coverage
-**Grand Total**: 206/206 Python PASS + 1354+ Rust+GPU validation PASS = **1560+ total validation checks**
-**Library**: 255 unit tests + 9 doc-tests = 264 total | 31 modules + 3 evolved | 115 validation binaries + 5 bench = 120 binaries
+**Grand Total**: 206/206 Python PASS + 1377+ Rust+GPU validation PASS = **1583+ total validation checks**
+**Library**: 256 unit tests + 9 doc-tests = 265 total | 31 modules + 3 evolved | 118 validation/bench binaries (incl. upstream wrapper validators)
 **ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** at `77f70b2e` | S-16 FIXED | S-14/S-15 workaround documented
 **Open Data**: All 25 papers use open data and open systems — zero proprietary or paywalled sources
 

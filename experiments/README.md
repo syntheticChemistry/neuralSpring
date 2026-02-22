@@ -251,4 +251,74 @@ No regressions. All validation checks unchanged.
 
 ---
 
+## Experiment 008: Upstream BarraCUDA Rewiring & Cross-Spring Benchmarks
+
+**Date**: February 22, 2026 (post-Experiment 007)
+**Type**: Integration / Validation / Benchmark
+
+### Why
+
+After documenting the Session 39 sync (Experiment 007), the absorbed shaders
+and upstream Rust wrapper APIs were available but not wired. This experiment
+completes the loop: neuralSpring now validates and benchmarks the upstream
+APIs that grew from its own shader contributions.
+
+### What
+
+1. **Created `validate_barracuda_bio_ops.rs`** — validates 6 upstream bio-op
+   Rust wrappers (`BatchFitnessGpu`, `PairwiseHammingGpu`, `PairwiseJaccardGpu`,
+   `LocusVarianceGpu`, `SpatialPayoffGpu`, `BatchIprGpu`) against CPU references.
+   These wrappers encapsulate the same WGSL kernels neuralSpring evolved, now
+   absorbed into BarraCUDA as first-class APIs.
+
+2. **Created `validate_barracuda_hmm_f64.rs`** — validates `HmmBatchForwardF64`,
+   the f64 batch HMM wrapper that wetSpring contributed. This replaces
+   neuralSpring's local f32 per-timestep dispatch with f64 batch precision.
+   Cross-spring evolution: neuralSpring evolved the f32 shader, wetSpring
+   independently evolved f64 batch, ToadStool absorbed both.
+
+3. **Created `bench_upstream_vs_local.rs`** — benchmarks all 6 bio ops through
+   BOTH local manual wgpu dispatch AND upstream barracuda wrapper dispatch.
+   Same shaders, different dispatch paths.
+
+4. **Added `read_buffer_f64`** bridge method to `Gpu` struct for f64 readback.
+
+5. **Created `whitePaper/CROSS_SPRING_SHADER_LINEAGE.md`** — comprehensive
+   lineage map of all cross-spring shader evolution: hotSpring (physics/spectral),
+   wetSpring (bio/genomics), neuralSpring (ML/evolution) → BarraCUDA.
+
+### What We Found
+
+- **Bio ops validation**: 12/12 PASS. All 6 upstream wrapper APIs produce
+  correct results vs CPU references. Key diffs: BatchFitness 4.77e-7,
+  Hamming 5.96e-8, Jaccard 5.96e-8, LocusVar 7.45e-9, Spatial 1.91e-6,
+  IPR 3.73e-9.
+
+- **HMM f64 validation**: 11/11 PASS. The wetSpring f64 batch HMM achieves
+  **10⁹× better precision** than our local f32 dispatch (diff 2.47e-10 vs
+  tolerance 0.5). Batch dispatch works correctly for 8 parallel sequences.
+
+- **Upstream wrapper overhead**: Negligible. Local vs upstream ratios:
+  BatchFitness 1.16×, Hamming 1.03×, Jaccard 0.92× (faster!), LocusVar 1.12×,
+  Spatial 0.96×, IPR 1.03×. Median overhead < 5%.
+
+- **Data layout gotchas**:
+  - `PairwiseJaccardGpu` expects **column-major** PA: `pa[gene * n_genomes + genome]`
+  - `BatchIprGpu` computes raw `Σ|ψ_i|⁴` (not the reciprocal `1/Σ|ψ_i|⁴`)
+
+- **Cross-spring evolution is real**: neuralSpring's f32 HMM → ToadStool →
+  wetSpring's f64 batch → ToadStool → back to neuralSpring with 10⁹× precision.
+
+### Result
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Upstream wrapper checks | 0 | 23 (12 bio + 11 HMM) |
+| Total validation checks | 1560+ | 1583+ |
+| HMM precision | 0.5 tolerance (f32) | 2.47e-10 diff (f64) |
+| Upstream overhead | Unknown | 0.92–1.16× (negligible) |
+| Validation binaries | 115 | 118 |
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

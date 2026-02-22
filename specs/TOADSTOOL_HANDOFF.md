@@ -103,7 +103,7 @@ are now superseded by native BarraCUDA APIs. Documented in `evolved/mod.rs`.
 | Module | LOC | Issue | Binary | Checks |
 |--------|-----|-------|--------|--------|
 | `mha` | 182 | S-03b: native projection shaders hang — **GPU `head_split.wgsl`/`head_concat.wgsl` now available** | `validate_barracuda_ml_inference`, `bench_transformer_block` | 17 |
-| `hmm_forward_gpu` | 270 | No BarraCUDA equivalent | `validate_gpu_hmm_forward` | 13/13 |
+| `hmm_forward_gpu` | 270 | `HmmBatchForwardF64` validated (11/11 PASS) — local retained for f32 fallback | `validate_barracuda_hmm_f64` | 11/11 |
 
 ### S-03b: MHA — PARTIAL FIX (GPU head split/concat shaders)
 

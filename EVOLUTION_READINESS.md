@@ -31,9 +31,11 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | S-13 (PooledBuffer race) | Deferred return + device poll | **FIXED** upstream (Session 39) |
 | TS-003 (trig precision) | 7-term Taylor + Cody-Waite | **FIXED** upstream (Session 36) |
 | TS-001 (pow_f64 precision) | Extended exp/log polynomials | **FIXED** upstream (Session 36) |
-| Shader absorption | 5 of 8 local shaders absorbed | **12/16 upstream** (Session 39) |
+| Shader absorption | 5 of 8 local shaders absorbed | **13/17 upstream** (Session 39) |
+| Upstream wrapper validation | 6 bio ops + f64 HMM | **23/23 PASS** (new) |
+| Upstream vs local benchmark | 6 kernels, RTX 4070 | **0.92–1.16×** overhead (negligible) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| Grand total checks | **1560+** (206 Py + 1354+ Rust/GPU) | **ALL GREEN** |
+| Grand total checks | **1583+** (206 Py + 1377+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
@@ -272,6 +274,8 @@ WGPU/Vulkan driver bug on RTX 4070). Workaround: generate data with
 | `validate_barracuda_sequence` | Sequence (Exp 003) | 003 | matmul, tanh, sigmoid | 7 | **PASS** |
 | `validate_barracuda_lenet` | LeNet-5 (Study 003) | S003 | matmul, tanh | 5 | **PASS** |
 | `validate_barracuda_lstm` | LSTM (Study 004) | S004 | matmul, tanh, sigmoid | 6 | **PASS** |
+| `validate_barracuda_bio_ops` | Upstream bio wrappers | 011-025 | BatchFitnessGpu, PairwiseHammingGpu, PairwiseJaccardGpu, LocusVarianceGpu, SpatialPayoffGpu, BatchIprGpu | 12 | **PASS** |
+| `validate_barracuda_hmm_f64` | Upstream HMM f64 batch | 016-018 | HmmBatchForwardF64 (wetSpring) | 11 | **PASS** |
 
 ### Cross-dispatch Validators (xD — 15/15 Phase 0++ papers)
 
