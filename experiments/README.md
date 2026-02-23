@@ -25,6 +25,9 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 011 | Session 42 Deep Audit — Code Quality & Debt Resolution | Feb 22, 2026 | 264 lib + 9 integration, all fmt/clippy/doc clean, tolerances split, GPU helpers deduplicated |
 | 012 | ToadStool Sync — d45fdfb3 → 5437c170 (10 commits) | Feb 22, 2026 | 10-kernel bench (0.72–1.10×), 10/10 upstream parity (3 bit-identical), LeNet-5 full bC 13/13, cross-spring lineage |
 | 013 | Session 43 — Experiment Buildouts, CPU/GPU Parity, Mixed Hardware | Feb 22, 2026 | 4 new WGSL shaders (18/18), 5 upstream wrappers (41/41), CPU/GPU parity (17/17), mixed-hardware dispatch (16/16+16/16) |
+| 014 | Session 44 — Multi-GPU Portability, Benchmarks, Reverse Pipeline | Feb 23, 2026 | 131/131 on RTX 4070 + TITAN V NVK, 178.5× Rust vs Python, 2 bC bugs fixed, 4 new validators (30/30) |
+| 015 | Session 45 — Pure GPU Promotion Phase A | Feb 23, 2026 | 27 CPU→GPU promotions via Dispatcher, gpu_ops + gpu_dispatch modules, 27/27 PASS |
+| 016 | Session 46 — Pure GPU Promotion Phase B | Feb 23, 2026 | 11 more ops: HMM backward/Viterbi, meta-pop stats, replicator, Hill activation. 20/20, ~90% GPU |
 
 ---
 
@@ -671,6 +674,221 @@ dispatch infrastructure for GPU-NPU-CPU routing.
 | `src/bin/validate_cpu_gpu_parity.rs` | 17/17 PASS |
 | `src/bin/validate_toadstool_dispatch.rs` | 16/16 PASS |
 | `src/bin/validate_mixed_dispatch.rs` | 16/16 PASS |
+
+---
+
+## Experiment 014: Session 44 — Multi-GPU Portability, Benchmarks, and Reverse Pipeline
+
+**Date**: February 23, 2026
+**Hardware**: i9-12900K, RTX 4070 12 GB (Vulkan, proprietary), TITAN V 12 GB (NVK GV100, open-source)
+**Researcher**: Eastgate
+**ToadStool HEAD**: `5437c170` + 2 upstream bug fixes
+
+### Why
+
+neuralSpring's thesis: **prove all math is correct on GPU first, then reverse-
+engineer for CPU and older GPU.** Session 44 validates this by running the full
+suite on a second GPU (TITAN V, Volta architecture, NVK open-source driver) and
+establishing quantitative Python-vs-Rust benchmarks.
+
+### What
+
+1. **Multi-GPU validation**: Ran all 131 `validate_all` binaries on RTX 4070
+   (default) and TITAN V (`NEURALSPRING_BACKEND=titan`). Both produce bit-identical
+   results, proving WGSL math portability across GPU generations and driver stacks.
+
+2. **Upstream BarraCUDA bug fixes**: Fixed `Tensor::mean()` crash (wrong entry
+   point `"main"` vs shader's `mean_reduce`) and chi-squared expected value
+   precision (textbook-rounded vs full-precision computed values).
+
+3. **New validators** (4): `validate_gpu_pipeline_wright_fisher` (WF step →
+   mean reduce in single CommandEncoder, zero CPU round-trips),
+   `validate_gpu_pipeline_gillespie` (Gillespie SSA → mean reduce on-GPU),
+   `validate_barracuda_gpu_lenet` (Conv2d + MaxPool2d via Tensor API),
+   `validate_barracuda_transformer` (full layer: Q/K/V projections, attention
+   scores, FFN block, residual connections, global softmax).
+
+4. **Pure Rust vs Python/NumPy benchmarks**: Created 4 missing Python benchmark
+   scripts (`bench_pairwise_l2.py`, `bench_multi_obj.py`, `bench_hill_gate.py`,
+   `bench_swarm_nn.py`). Ran `bench_phase0pp_kernels --with-python` for all 11
+   kernels: overall **178.5× speedup** for Rust over single-thread Python/NumPy.
+
+5. **Multi-GPU tensor and inference benchmarks**: Ran `bench_barracuda_tensor`,
+   `bench_mlp_inference`, `bench_transformer_block` on both RTX 4070 and TITAN V.
+
+### What We Found
+
+- **Bit-identical multi-GPU**: 131/131 PASS on RTX 4070, 143+ additional on
+  TITAN V. No numerical divergence between proprietary and open-source drivers.
+
+- **Mean reduce bug**: BarraCUDA's `ops/mean.rs` used `entry_point: "main"` but
+  `mean_reduce.wgsl` exports `fn mean_reduce`. Also had a double-division bug
+  (Rust re-dividing the already-computed mean). Fixed both.
+
+- **Chi-squared precision**: Expected values in the validator were textbook-rounded
+  (e.g., `0.950`) while BarraCUDA computes full precision. Updated to computed values.
+
+- **Rust vs Python**: 178.5× overall. Individual kernel speedups range from 0.4×
+  (commutator — NumPy BLAS-optimized matmul) to 551× (swarm NN forward). The
+  one case where Python wins confirms the reverse pipeline motivation: BLAS-level
+  CPU optimization is a separate concern from GPU math correctness.
+
+- **`Tensor::softmax()` is global, not row-wise**: Discovered during transformer
+  validation. BarraCUDA softmax normalizes over all elements, not per-row. For
+  attention weights, row-wise softmax requires `ScaledDotProductAttention` or
+  manual per-row dispatch. Global softmax is correct for classification logits.
+
+### Surprises
+
+1. TITAN V (2017 Volta, 5120 CUDA cores) matches RTX 4070 (2023 Ada, 5888 cores)
+   in validation correctness but shows expected latency differences in benchmarks.
+   The NVK open-source driver handles all WGSL shaders without issue.
+
+2. The mean_reduce bug had been latent since the shader was created — no validator
+   previously exercised `Tensor::mean()` as a standalone operation.
+
+3. The chi-squared "bug" was really a documentation/expected-value precision issue,
+   not a math error. BarraCUDA's implementation is more precise than the textbook.
+
+### Artifacts
+
+| File | Role |
+|------|------|
+| `src/bin/validate_gpu_pipeline_wright_fisher.rs` | WF step → mean reduce pipeline |
+| `src/bin/validate_gpu_pipeline_gillespie.rs` | Gillespie → mean reduce pipeline |
+| `src/bin/validate_barracuda_gpu_lenet.rs` | Conv2d + MaxPool2d GPU validation |
+| `src/bin/validate_barracuda_transformer.rs` | Full transformer layer bC validation |
+| `control/modes/bench_pairwise_l2.py` | Python benchmark: pairwise L2 |
+| `control/directed_evolution/bench_multi_obj.py` | Python benchmark: multi-obj fitness |
+| `control/signal_integration/bench_hill_gate.py` | Python benchmark: Hill function |
+| `control/swarm_robotics/bench_swarm_nn.py` | Python benchmark: swarm NN forward |
+| `specs/BENCHMARK_ANALYSIS.md` | Updated with Session 44 multi-GPU results |
+| `specs/PAPER_REVIEW_QUEUE.md` | Updated with Session 44 validators |
+
+### Result
+
+| Metric | Before (Session 43) | After (Session 44) |
+|--------|---------------------|---------------------|
+| GPUs validated | 1 (RTX 4070) | **2** (RTX 4070 + TITAN V NVK) |
+| Validation binaries | 127 | **131** |
+| `validate_all` | 127/127 | **131/131** (+ 143 on Titan V) |
+| Upstream bC bugs fixed | 0 | **2** (mean_reduce, chi_squared) |
+| Python benchmark coverage | 7/11 kernels | **11/11 kernels** |
+| Rust vs Python speedup | Partial | **178.5× overall** |
+
+---
+
+## Experiment 015: Session 45 — Pure GPU Promotion Phase A
+
+**Date**: February 23, 2026
+**Hardware**: i9-12900K, RTX 4070 12 GB (Vulkan), TITAN V 12 GB (NVK)
+**Researcher**: Eastgate
+**ToadStool HEAD**: `5437c170`
+
+### Why
+
+neuralSpring had validated all math across 8 tiers (Python → Rust → BarraCUDA CPU → GPU Tensor → metalForge → Pipeline → Cross-dispatch → Multi-GPU), but many production-path computations still ran on CPU even when GPU hardware was available. Session 45 aimed to create a **capability-based GPU dispatch layer** that routes all operations to GPU when available, with CPU fallback.
+
+### What
+
+1. **Created `gpu_ops.rs`** — 27 GPU-accelerated functions using the BarraCUDA `Tensor` API:
+   matmul, transpose, frobenius_norm, softmax, l2_distance, pearson_correlation,
+   variance, mean, neural_forward, hmm_forward_step, rk4_step, fitness_evaluation,
+   diversity_metrics, tree_distance, logsumexp, log_likelihood, pca_project,
+   chi_squared, hamming_distance, jaccard_similarity, and more.
+
+2. **Created `gpu_dispatch.rs`** — `Dispatcher` struct with capability-based routing:
+   detects GPU availability at construction, dispatches to `gpu_ops` when hardware
+   supports the operation, falls back to CPU otherwise. Zero configuration required.
+
+3. **Created `validate_gpu_promotion.rs`** — 27-check validator exercising all
+   dispatched operations via the `Dispatcher` with CPU reference comparison.
+
+### Findings
+
+- **27/27 PASS** on RTX 4070 (proprietary Vulkan)
+- **27/27 PASS** on TITAN V (NVK open-source Vulkan)
+- All results match CPU references within f32→f64 tolerance
+- `Tensor` API ownership model requires careful management: methods like `matmul`,
+  `softmax`, `sigmoid` consume `self`, while `add`, `mul`, `transpose` borrow `&self`
+- The `Dispatcher` pattern cleanly separates capability detection from operation dispatch
+
+### Result
+
+| Metric | Before | After |
+|--------|--------|-------|
+| CPU-bound production ops | ~38 | ~11 |
+| GPU-dispatched ops | 0 | **27** |
+| Validation binaries | 131 | **132** |
+| `validate_all` | 131/131 | **132/132** |
+
+---
+
+## Experiment 016: Session 46 — Pure GPU Promotion Phase B
+
+**Date**: February 23, 2026
+**Hardware**: i9-12900K, RTX 4070 12 GB (Vulkan), TITAN V 12 GB (NVK)
+**Researcher**: Eastgate
+**ToadStool HEAD**: `5437c170`
+
+### Why
+
+Phase A promoted 27 "straightforward" operations — those with direct Tensor API
+equivalents. Phase B tackled the harder cases: HMM backward/Viterbi (multi-step
+GEMV chains), meta-population statistics (column reductions, variance decomposition),
+replicator dynamics (2×2 GEMV), and correcting a pseudo-GPU Hill activation to a
+genuine GPU pipeline.
+
+### What
+
+1. **HMM backward step** (`hmm_backward_step_gpu`): GPU GEMV — `β_{t+1} ⊙ emit →
+   weighted @ A^T / scale`. Uses `Tensor::mul`, `transpose`, `matmul`.
+
+2. **HMM Viterbi step** (`hmm_viterbi_step_gpu`): GPU score matrix via `broadcast +
+   add + max_dim`, with CPU argmax (BarraCUDA `max_dim` returns values, not indices).
+
+3. **Meta-population statistics** (6 ops): `allele_frequencies_gpu` (column `sum_dim`),
+   `nucleotide_diversity_gpu` (allele freq → elementwise → `mean`),
+   `matrix_correlation_gpu` (upper-triangle → `pearson_correlation_gpu`),
+   `geographic_distance_matrix_gpu` (pairwise Euclidean via `l2_distance_gpu`),
+   `thermal_diversity_correlation_gpu` (→ `pearson_correlation_gpu`),
+   `inter_population_af_variance_gpu` (per-pop allele freq → variance → mean).
+
+4. **Replicator dynamics** (`replicator_step_gpu`): 2×2 payoff matrix GEMV via
+   `Tensor::matmul`, with CPU update for the nonlinear `x + dt*x*(f - f̄)` step.
+
+5. **Hill activation** (refactored): Previously computed on CPU and uploaded result.
+   Now genuine GPU pipeline: `log_wgsl → mul_scalar → exp_wgsl → add → div → mul_scalar`.
+
+### Findings
+
+- **20/20 PASS** on RTX 4070 (proprietary Vulkan)
+- **20/20 PASS** on TITAN V (NVK open-source Vulkan)
+- BarraCUDA `max_dim` lacks argmax — Viterbi requires hybrid GPU/CPU approach
+- Hill activation's `x^n` via `exp(n * ln(x))` is numerically stable with `x.max(1e-30)` guard
+- Replicator dynamics GEMV is correct but the nonlinear update requires CPU — full GPU
+  would need a custom WGSL shader
+- `validate_all`: **133/133 PASS, 0 FAIL**
+- GPU coverage estimate: **~90%** of production math
+
+### Surprises
+
+1. The `hill_activation_batch_gpu` had been a pseudo-GPU function (CPU compute, GPU upload)
+   since its creation. Refactoring to genuine GPU compute exposed the need for careful
+   guard values to prevent `ln(0)`.
+
+2. The HMM Viterbi hybrid approach (GPU matrix ops + CPU argmax) is actually well-suited
+   to the Tensor API's strengths — bulk linear algebra on GPU, small sequential logic on CPU.
+
+### Result
+
+| Metric | Before (S45) | After (S46) |
+|--------|-------------|-------------|
+| GPU-dispatched ops | 27 | **38** |
+| CPU-only remaining | ~11 | ~4 (ODE loops, FST, introgression chain) |
+| GPU coverage | ~70% | **~90%** |
+| Validation binaries | 132 | **133** |
+| `validate_all` | 132/132 | **133/133** |
 
 ---
 

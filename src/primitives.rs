@@ -16,11 +16,20 @@
 //! | Sigmoid | swarm_robotics, sequence | `primitives::sigmoid` |
 //! | RK4 step | regulatory_network, signal_integration | `primitives::rk4_step` |
 //!
-//! ## BarraCUDA evolution
+//! ## `BarraCUDA` evolution path
 //!
-//! When BarraCUDA absorbs these (e.g. `barracuda::stats::shannon_entropy`,
-//! `barracuda::ops::elementwise::hill_activation`), this module becomes a
-//! thin re-export layer — the API stays stable for consumers.
+//! | Primitive | `BarraCUDA` equivalent | Status |
+//! |-----------|------------------------|--------|
+//! | `shannon_entropy` | `FusedMapReduceF64::shannon_entropy` | Available (GPU path) |
+//! | `sigmoid` | `Tensor::sigmoid()` / `Sigmoid` op | Available (GPU path) |
+//! | `hill_activation` | `HillFunctionF64` / `hill_gate.wgsl` | Available (GPU, activation only) |
+//! | `hill_repression` | Not yet exposed | Pending upstream |
+//! | `rk4_step` | `BatchedOdeRK4F64` / `rk4_parallel.wgsl` | Available (GPU batch) |
+//! | `LOG_GUARD`, `HILL_EPS`, `DIVISION_GUARD` | None | CPU guards, stay here |
+//!
+//! Migration: GPU callers should prefer `barracuda` equivalents for throughput.
+//! CPU callers keep using this module.  When upstream adds `hill_repression`,
+//! this module becomes a thin re-export layer.
 
 // ═══════════════════════════════════════════════════════════════════
 // Numerical safety constants

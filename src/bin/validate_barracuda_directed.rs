@@ -17,11 +17,7 @@
 //! Python baseline: `control/directed_evolution/directed_evolution.py`
 //! Rust baseline: `validate_directed_evolution`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::directed_evolution::{
     lexicase_selection, multi_objective_fitness, pareto_front_count, run_selection_experiment,

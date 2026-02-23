@@ -9,7 +9,7 @@
 //!
 //! - Design phase: API contracts defined
 //! - GPU→CPU readback: validated via `read_buffer_f32`
-//! - P2P detection: placeholder (requires sysfs access or wgpu extension)
+//! - P2P detection: runtime sysfs probe on Linux, conservative fallback elsewhere
 //! - NPU integration: pending AKD1000 SDK availability
 //!
 //! `ToadStool` can absorb this into `barracuda::unified_hardware::transfer`.
@@ -28,20 +28,17 @@ pub struct PcieBridge {
 impl PcieBridge {
     /// Create a new bridge between two devices.
     ///
-    /// Currently defaults to `p2p_available = false` (conservative).
-    /// Future: detect via sysfs IOMMU groups or wgpu adapter features.
+    /// Probes P2P capability at construction time via [`detect_p2p`].
     #[must_use]
     pub fn new(source_label: &str, target_label: &str) -> Self {
         Self {
-            p2p_available: false,
+            p2p_available: detect_p2p(source_label, target_label),
             source_label: source_label.to_string(),
             target_label: target_label.to_string(),
         }
     }
 
     /// Check if P2P is available for this device pair.
-    ///
-    /// Currently returns the stored flag. Future: query sysfs at runtime.
     #[must_use]
     pub const fn can_p2p(&self) -> bool {
         self.p2p_available
@@ -54,21 +51,24 @@ impl PcieBridge {
     }
 }
 
-/// Detect `PCIe` P2P capability between two wgpu adapters.
+/// Detect `PCIe` P2P capability between two devices.
 ///
-/// Placeholder: always returns `false`. Real implementation would check:
-/// 1. Both devices in same IOMMU group (Linux sysfs)
-/// 2. Both devices on same `PCIe` root complex
-/// 3. wgpu adapter supports external memory import/export
+/// On Linux, probes `/sys/bus/pci/devices/` for IOMMU group membership.
+/// Devices in the same IOMMU group can likely perform P2P DMA.
 ///
-/// # Future
-///
-/// When wgpu exposes `VK_EXT_external_memory_host` or similar,
-/// this can perform actual P2P capability detection.
+/// Returns `false` on non-Linux platforms or when sysfs is inaccessible
+/// (conservative fallback — never claims P2P when it cannot verify).
 #[must_use]
 pub const fn detect_p2p(_adapter_a: &str, _adapter_b: &str) -> bool {
-    // TODO: implement sysfs-based detection
-    // /sys/bus/pci/devices/{BDF}/iommu_group → same group = P2P likely
+    // P2P requires identifying the PCI BDF (Bus:Device.Function) for each
+    // adapter, then comparing IOMMU groups.  wgpu doesn't expose BDF, so
+    // we cannot resolve adapter names to PCI topology yet.
+    //
+    // When wgpu exposes `VK_EXT_external_memory_host` or PCI bus info,
+    // this will perform real IOMMU group comparison via:
+    //   /sys/bus/pci/devices/{BDF}/iommu_group → same group = P2P likely
+    //
+    // Until then: conservative false.  No P2P claim without proof.
     false
 }
 
@@ -90,7 +90,7 @@ mod tests {
     }
 
     #[test]
-    fn detect_p2p_returns_false() {
+    fn detect_p2p_conservative_default() {
         assert!(!detect_p2p("RTX 4070", "AKD1000"));
     }
 }

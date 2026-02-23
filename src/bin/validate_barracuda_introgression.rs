@@ -17,11 +17,7 @@
 //! Python baseline: `control/introgression/introgression.py`
 //! Rust baseline: `validate_introgression`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::introgression::{
     detect_introgression, generate_synthetic_loci, ils_only_hmm, introgression_fraction,

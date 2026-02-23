@@ -66,16 +66,27 @@ fn provenance_records_reference_consistent_environment() {
 #[test]
 fn tolerance_registry_covers_all_categories() {
     let cats = tolerances::categories();
-    assert!(cats.contains(&"machine"), "missing machine category");
-    assert!(cats.contains(&"gpu_shader"), "missing gpu_shader category");
-    assert!(cats.contains(&"tensor"), "missing tensor category");
-    assert!(cats.contains(&"fft"), "missing fft category");
-    assert!(
-        cats.contains(&"evolutionary"),
-        "missing evolutionary category"
-    );
-    assert!(cats.contains(&"physics"), "missing physics category");
-    assert!(cats.contains(&"numerical"), "missing numerical category");
+    for expected in [
+        "machine",
+        "benchmark",
+        "transformer",
+        "metric",
+        "training",
+        "evolutionary",
+        "gpu_shader",
+        "gpu_f64",
+        "gpu_pipeline",
+        "tensor",
+        "fft",
+        "physics",
+        "spectral",
+        "numerical",
+        "statistical",
+        "linalg",
+        "ml_pipeline",
+    ] {
+        assert!(cats.contains(&expected), "missing category: {expected}");
+    }
 }
 
 #[test]

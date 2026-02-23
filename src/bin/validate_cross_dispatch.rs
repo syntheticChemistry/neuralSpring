@@ -32,11 +32,7 @@
 //! Validates: GPU↔CPU parity (`batch_fitness`) via `dispatch_for`.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::cast_possible_truncation
-)]
+#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
 use std::time::Instant;
 

@@ -47,10 +47,11 @@ fn load_baseline() -> Result<MlpBaseline, String> {
         env!("CARGO_MANIFEST_DIR"),
         "/control/ml_inference/mlp_baseline.json"
     );
-    let data = std::fs::read_to_string(path).map_err(|e| {
+    let file = std::fs::File::open(path).map_err(|e| {
         format!("mlp_baseline.json not found — run generate_baselines.py first: {e}")
     })?;
-    serde_json::from_str(&data).map_err(|e| format!("invalid mlp_baseline.json: {e}"))
+    serde_json::from_reader(std::io::BufReader::new(file))
+        .map_err(|e| format!("invalid mlp_baseline.json: {e}"))
 }
 
 fn upload_weights(

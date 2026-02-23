@@ -1,13 +1,15 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 22, 2026 (Session 40 + Session 42 deep audit — capability-based dispatch + cross-eigensolver)
-**Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12GB, Pop!_OS 22.04)
+**Last updated**: February 23, 2026 (Sessions 44–46 — multi-GPU + benchmarks + pure GPU promotion)
+**Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 94.9% line coverage
-**Grand Total**: 206/206 Python PASS + 1400+ Rust+GPU validation PASS = **1600+ total validation checks**
-**Library**: 264 lib tests + 9 integration tests | 31 modules + 2 evolved | 119 validation/bench binaries (incl. upstream wrapper + parity validators)
-**Session 40 + Session 42 deep audit**: Capability-based dispatch (12 validators + HMM), cross-eigensolver validation (eigh vs Sturm 2.89e-15), spectral theory 17/17 PASS
-**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** at `77f70b2e` | S-16 FIXED | S-14/S-15 workaround documented
+**Grand Total**: 206/206 Python PASS + 1600+ Rust+GPU validation PASS = **1800+ total validation checks**
+**Library**: 264 lib tests + 9 integration tests | 31 modules + 2 evolved + gpu_ops/gpu_dispatch | 133 validation/bench binaries
+**Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
+**GPU Promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math)
+**Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels)
+**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-16 FIXED | S-14/S-15 workaround | 2 new fixes (Session 44)
 **Open Data**: All 25 papers use open data and open systems — zero proprietary or paywalled sources
 
 ---

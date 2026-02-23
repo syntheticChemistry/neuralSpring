@@ -18,11 +18,7 @@
 //! Python baseline: `control/meta_population/meta_population.py`
 //! Rust baseline: `validate_meta_population` (8/8 PASS)
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::meta_population::{
     allele_frequencies, fst_matrix, generate_population, geographic_distance_matrix, global_fst,

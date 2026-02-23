@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 22, 2026 (Post deep audit: zero clippy warnings, tolerance registry, drift detection)
+**Last Updated**: February 23, 2026 (Session 44: multi-GPU, Conv2d/MaxPool GPU, transformer bC)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -97,8 +97,8 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 | `sequence/` LSTM cell | `sequence::lstm_cell` | `lstm_cell.wgsl` | Inference | **VALIDATED** (26 checks) |
 | `sequence/` GRU cell | `sequence::gru_cell` | `gru_cell.wgsl` | Inference | **VALIDATED** (26 checks) |
 | `pinn/` autograd | — | `fd_gradient_f64.wgsl` | Training | Reverse-mode AD in BarraCUDA |
-| `lenet/` Conv2d | — | `conv2d.wgsl` | Inference | `barracuda::ops::conv2d::Conv2D` (available, not yet wired) |
-| `lenet/` MaxPool | — | `max_pool2d.wgsl` | Inference | `barracuda::ops::maxpool2d::MaxPool2D` (available, not yet wired) |
+| `lenet/` Conv2d | `Tensor::conv2d()` | `conv2d.wgsl` | Inference | **WIRED** — `validate_barracuda_gpu_lenet` (Session 44) |
+| `lenet/` MaxPool | `Tensor::maxpool2d()` | `max_pool2d.wgsl` | Inference | **WIRED** — `validate_barracuda_gpu_lenet` (Session 44) |
 | `deeponet/` Branch-Trunk | — | `gemm_f64.wgsl` × 2 | Inference | Compose from MLP |
 | `quantized/` INT8 GEMV | `quantized::gemv_q8` | `gemv_q8.wgsl` | Deployment | **VALIDATED** (26 checks) |
 | `quantized/` INT4 GEMV | `quantized::gemv_q4` | `gemv_q4.wgsl` | Deployment | **VALIDATED** (26 checks) |

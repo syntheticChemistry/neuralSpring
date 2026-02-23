@@ -201,4 +201,4 @@ Feb 22  neuralSpring: 5 generalized-variant shaders → BarraCUDA 5437c170 (S-42
 | Upstream HMM f64 validator | `src/bin/validate_barracuda_hmm_f64.rs` |
 | Local vs upstream benchmark | `src/bin/bench_upstream_vs_local.rs` |
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
-| V12 handoff document | `wateringHole/handoffs/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md` |
+| V14 handoff document | `wateringHole/handoffs/NEURALSPRING_V14_SESSION46_HANDOFF_FEB23_2026.md` |

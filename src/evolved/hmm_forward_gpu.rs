@@ -67,14 +67,10 @@ impl HmmForwardOutput {
 /// * `log_trans` — log transition matrix, N×N row-major
 /// * `log_emissions` — log emission matrix, T×N row-major (T observations, N states)
 ///
-/// # Panics
-///
-/// Panics if `log_trans.len() != N*N` or `log_emissions.len()` is not a
-/// multiple of N.
-///
 /// # Errors
 ///
-/// Returns an error if shader compilation or buffer operations fail.
+/// Returns an error if inputs are malformed (wrong lengths), or if
+/// shader compilation / buffer operations fail.
 #[allow(clippy::too_many_lines)]
 pub fn hmm_forward_gpu(
     gpu: &Gpu,
@@ -83,17 +79,24 @@ pub fn hmm_forward_gpu(
     log_emissions: &[f32],
 ) -> Result<HmmForwardOutput, String> {
     let n_states = log_initial.len();
+    if n_states == 0 {
+        return Err("log_initial must be non-empty".into());
+    }
     let n_obs = log_emissions.len() / n_states;
-    assert_eq!(
-        log_trans.len(),
-        n_states * n_states,
-        "log_trans must be N×N"
-    );
-    assert_eq!(
-        log_emissions.len(),
-        n_obs * n_states,
-        "log_emissions must be T×N"
-    );
+    if log_trans.len() != n_states * n_states {
+        return Err(format!(
+            "log_trans length {} != N*N ({})",
+            log_trans.len(),
+            n_states * n_states,
+        ));
+    }
+    if log_emissions.len() != n_obs * n_states {
+        return Err(format!(
+            "log_emissions length {} not a multiple of N ({})",
+            log_emissions.len(),
+            n_states,
+        ));
+    }
 
     let device = gpu.device();
     let queue = gpu.queue();

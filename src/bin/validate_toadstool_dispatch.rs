@@ -6,7 +6,7 @@
 //! correctly recommend GPU vs CPU for various workload sizes, and that
 //! both paths produce identical results when exercised.
 
-#![allow(clippy::cast_precision_loss, clippy::expect_used)]
+#![allow(clippy::cast_precision_loss)]
 
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::dispatch::{

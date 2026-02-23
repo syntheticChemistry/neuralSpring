@@ -12,12 +12,12 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
     clippy::too_many_arguments
 )]
 
 use barracuda::ops::bio::taxonomy_fc::TaxonomyFcGpu;
 use neural_spring::gpu::Gpu;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
@@ -174,7 +174,7 @@ fn validate_simple_classify(h: &mut ValidationHarness, gpu: &Gpu, op: &TaxonomyF
                 "simple classify: max |GPU - CPU| < 1e-10",
                 max_err,
                 0.0,
-                1e-10,
+                tolerances::GPU_F64_EXACT,
             );
         }
         Err(e) => {
@@ -223,7 +223,7 @@ fn validate_all_features_present(h: &mut ValidationHarness, gpu: &Gpu, op: &Taxo
                 "all features present: score = log_prior + sum(log_probs)",
                 max_err,
                 0.0,
-                1e-10,
+                tolerances::GPU_F64_EXACT,
             );
         }
         Err(e) => {
@@ -269,7 +269,10 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu, op: &TaxonomyFcGpu
 
     match (r1, r2) {
         (Ok(s1), Ok(s2)) => {
-            let identical = s1.iter().zip(s2.iter()).all(|(a, b)| (a - b).abs() < 1e-15);
+            let identical = s1
+                .iter()
+                .zip(s2.iter())
+                .all(|(a, b)| (a - b).abs() < tolerances::ZERO_DETECTION);
             h.check_bool("determinism: two runs identical", identical);
         }
         _ => {

@@ -49,6 +49,7 @@
 mod determinism_tests;
 
 pub mod anderson_localization;
+pub mod bench;
 pub mod counterdiabatic;
 pub mod deeponet;
 pub mod directed_evolution;
@@ -58,6 +59,8 @@ pub mod evolved;
 pub mod fft;
 pub mod game_theory;
 pub mod gpu;
+pub mod gpu_dispatch;
+pub mod gpu_ops;
 pub mod hmm;
 pub mod introgression;
 pub mod lenet;

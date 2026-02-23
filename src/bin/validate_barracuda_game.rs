@@ -17,11 +17,7 @@
 //! Python baseline: `control/game_theory/game_theory.py`
 //! Rust baseline: `validate_game_theory`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::game_theory::{
     prisoners_dilemma_payoff, qs_cooperation_model, replicator_dynamics, QsConfig,

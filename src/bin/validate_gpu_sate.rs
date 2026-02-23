@@ -19,7 +19,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
     clippy::doc_markdown,
     clippy::needless_range_loop
 )]

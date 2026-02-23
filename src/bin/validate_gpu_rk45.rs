@@ -19,19 +19,16 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
     clippy::suboptimal_flops,
     clippy::too_many_lines
 )]
 
 use neural_spring::gpu::Gpu;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/rk45_adaptive.wgsl");
-
-/// Tolerance for RK45 f32 accumulation over 6 stages.
-const TOL_RK45_F32: f64 = 5e-4;
 
 #[tokio::main]
 async fn main() {
@@ -66,8 +63,8 @@ fn hill(x: f32, k: f32, n: f32) -> f32 {
 }
 
 /// CPU Dormand-Prince single step with Hill function RHS.
-/// RHS for variable d: prod * hill(y[`act_idx`], 0.5, 2.0) - deg * y[d]
-/// where coeffs[d*3] = prod, coeffs[d*3+1] = deg, coeffs[d*3+2] = `act_idx`
+/// RHS for variable d: prod * hill(y\[`act_idx`\], 0.5, 2.0) - deg * y\[d\]
+/// where coeffs\[d*3\] = prod, coeffs\[d*3+1\] = deg, coeffs\[d*3+2\] = `act_idx`
 fn cpu_rk45_step(
     state: &[f32],
     coeffs: &[f32],
@@ -320,7 +317,7 @@ fn validate_single_step(h: &mut ValidationHarness, gpu: &Gpu) {
                     &format!("single step y[{d}]: GPU={g:.6} vs CPU={c:.6}"),
                     f64::from(g),
                     f64::from(c),
-                    TOL_RK45_F32,
+                    tolerances::GPU_RK45_F32,
                 );
             }
         }
@@ -362,7 +359,7 @@ fn validate_multi_system(h: &mut ValidationHarness, gpu: &Gpu) {
                 for d in 0..dim as usize {
                     let g = gpu_result[sys * dim as usize + d];
                     let c = cpu[d];
-                    if (f64::from(g) - f64::from(c)).abs() > TOL_RK45_F32 {
+                    if (f64::from(g) - f64::from(c)).abs() > tolerances::GPU_RK45_F32 {
                         all_match = false;
                     }
                 }
@@ -397,8 +394,9 @@ fn validate_error_estimate(h: &mut ValidationHarness, gpu: &Gpu) {
                 .map(|(&o, &n)| (n - o).abs())
                 .fold(0.0f32, f32::max);
             let error_max = error.iter().copied().fold(0.0f32, f32::max);
-            let sane = state_change_max > 1e-6_f32 && error_max < 100.0 * state_change_max
-                || state_change_max <= 1e-6_f32;
+            let negligible = tolerances::TENSOR_EXACT_F32 as f32;
+            let sane = state_change_max > negligible && error_max < 100.0 * state_change_max
+                || state_change_max <= negligible;
             h.check_bool("error estimate: same order as state change (sanity)", sane);
         }
         Err(e) => {

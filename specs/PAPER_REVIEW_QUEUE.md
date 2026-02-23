@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 22, 2026
+**Last Updated**: February 23, 2026 (Session 45, 46)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -93,7 +93,9 @@ bridge them.
 
 **All 25 papers complete as of February 20, 2026.** No queued items remain.
 
-Session 42 verified: all `cargo fmt`, `clippy` (pedantic), and `doc` gates pass clean. 264 lib + 9 integration tests.
+Session 44 verified: all `cargo fmt`, `clippy` (pedantic), and `doc` gates pass clean.
+`validate_all`: 133/133 PASS on RTX 4070, 143+ additional checks on Titan V (NVK).
+264 lib + 9 integration tests. 2 upstream BarraCUDA bugs fixed.
 
 | Faculty | Papers | Python Checks | Rust Checks |
 |---------|--------|---------------|-------------|
@@ -126,10 +128,10 @@ Full provenance: `specs/DATA_PROVENANCE.md`.
 
 ---
 
-## Full Validation Stack Matrix (February 22, 2026)
+## Full Validation Stack Matrix (February 23, 2026)
 
-Each paper maps through 7 validation tiers. The stack proves correctness
-from Python baseline through mixed-hardware GPU dispatch.
+Each paper maps through 10 validation tiers. The stack proves correctness
+from Python baseline through multi-GPU portability to pure GPU dispatch.
 
 ### Legend
 
@@ -140,6 +142,8 @@ from Python baseline through mixed-hardware GPU dispatch.
 - **mF**: metalForge WGSL shader — domain-specific GPU kernel (Phase 3c)
 - **gP**: GPU Pipeline — chained domain→reduce (Phase 4b)
 - **xD**: Cross-dispatch CPU↔GPU parity (Phase 3d)
+- **mG**: Multi-GPU — RTX 4070 (proprietary) + TITAN V (NVK open-source) (Phase 5d)
+- **gD**: GPU dispatch — `gpu_dispatch::Dispatcher` routes CPU ops to GPU (Phase 5e)
 
 ### Phase 0++ Papers (011-025) — ALL GREEN, ALL xD
 
@@ -172,7 +176,7 @@ from Python baseline through mixed-hardware GPU dispatch.
 | Exp 005 Isomorphic | ✓ | ✓ | — | — | — | — | **Analytical** |
 | Study 001 PINN | ✓ | ✓ | pinn ✓ | nn ✓ | — | — | **4/4** |
 | Study 002 DeepONet | ✓ | ✓ | deeponet ✓ | nn ✓ | — | — | **4/4** |
-| Study 003 LeNet-5 | ✓ | ✓ | lenet ✓ | lenet ✓ | — | — | **4/4** |
+| Study 003 LeNet-5 | ✓ | ✓ | lenet ✓ | lenet+Conv2d/MaxPool GPU ✓ | — | — | **4/4** |
 | Study 004 LSTM | ✓ | ✓ | lstm ✓ | lstm ✓ | — | — | **4/4** |
 | Study 005 Quantized | ✓ | ✓ | quantized ✓ | — | — | — | **3/3** |
 
@@ -233,7 +237,8 @@ via `validate_barracuda_quantized` (CPU primitive path).
 7. ~~**Paper 019 (Waters)** — Spatial PD payoff~~ → `spatial_payoff.wgsl` **DONE** (5/5 + pipeline 5/5)
 8. ~~**Papers 022–023** — Batch IPR~~ → `batch_ipr.wgsl` **DONE** (5/5 + pipeline 5/5)
 9. ~~**All stochastic** — GPU PRNG~~ → `xoshiro128ss.wgsl` **DONE** (5/5)
-10. **GPU PRNG → Wright-Fisher / Gillespie** — stochastic GPU pipelines (**Next**)
+10. ~~**GPU PRNG → Wright-Fisher / Gillespie** — stochastic GPU pipelines~~ → `validate_gpu_pipeline_wright_fisher` (4/4) + `validate_gpu_pipeline_gillespie` (6/6) **DONE** (Session 44)
+11. ~~**GPU dispatch (38 ops)** — capability-based runtime dispatch~~ → `gpu_ops` + `gpu_dispatch` **DONE** (Phase A: 27/27, Phase B: 20/20, Sessions 45–46)
 
 ---
 
@@ -291,7 +296,7 @@ validates correctness at every hardware tier:
 - CPU ↔ GPU routing preserves correctness to machine precision
 - 6 dual-path upstream parity validators: 0.00e0 diff (bit-identical)
 
-### Tier 7: metalForge Mixed Hardware
+### Tier 7: metalForge Mixed Hardware (Session 43)
 - **Capability-based dispatch**: 12 validators use `Gpu::dispatch_1d()` with
   runtime hardware validation via `GpuCapabilities`
 - **Cross-eigensolver**: Dense Householder+QR vs tridiag Sturm bisection agree
@@ -300,6 +305,31 @@ validates correctness at every hardware tier:
   backends via the same WGSL source
 - **4-tier kernel router**: DeviceCapabilities-driven matmul selection — best
   kernel per hardware configuration
+
+### Tier 8: Multi-GPU Portability (Session 44)
+- **RTX 4070** (Ada Lovelace, proprietary Vulkan): **133/133 PASS**
+- **TITAN V** (Volta GV100, NVK open-source Vulkan): **143+ additional PASS**
+- Results are **bit-identical** across architectures and driver stacks
+- Same WGSL source, different silicon generations (2017 vs 2023)
+- `NEURALSPRING_BACKEND=titan` selects Titan V adapter at runtime
+- Proves: GPU math portability is not dependent on a specific vendor driver
+
+### Tier 9: GPU Dispatch — Pure GPU Promotion (Sessions 45–46)
+- **38 CPU→GPU promotions** via `gpu_dispatch::Dispatcher` (Phase A: 27, Phase B: 11)
+- Capability-based routing: GPU when available, CPU fallback otherwise
+- `validate_gpu_promotion`: **27/27 PASS** (both GPUs)
+- `validate_gpu_phase_b`: **20/20 PASS** (both GPUs)
+- Covers: HMM (forward/backward/Viterbi), statistics (variance/correlation/allele freq),
+  distances (L2/Hamming/Jaccard/geographic), ML (neural_forward/softmax/PCA),
+  bio (fitness/diversity/Hill/replicator), ODE (RK4 step)
+- **~90% of production math** has GPU path. Remaining ~10%: full ODE loops, FST, introgression chain
+- All per-paper controls still use open data: Python baselines validate independently
+
+### Tier 10: metalForge Mixed Hardware (Future)
+- **Capability-based dispatch across GPU + NPU + CPU**
+- Infrastructure ready: `mixed.rs` (MixedSubstrate), `pcie_bridge.rs` (PCIe cost model)
+- Validated: 16/16 dispatch routing + 16/16 mixed dispatch checks (Session 43)
+- Next: Exercise on actual NPU hardware, optimize transfer cost model
 
 ---
 
@@ -336,3 +366,102 @@ and mixed-hardware dispatch:
 
 These extend wetSpring-origin APIs (Taxonomy, Kmer, UniFrac, Gillespie) and chi² functions
 validated from neuralSpring; GillespieGpu benefits all Springs for stochastic simulation.
+
+### Session 44 Validators (February 23, 2026)
+
+Gap-closure validators: stochastic GPU pipelines and missing tier coverage.
+
+| Validator | Checks | Purpose |
+|-----------|--------|---------|
+| `validate_gpu_pipeline_wright_fisher` | 4/4 | Wright-Fisher → mean_reduce pipeline (Papers 024-025) |
+| `validate_gpu_pipeline_gillespie` | 4/4 | Gillespie SSA → mean_reduce pipeline (Papers 013, 020) |
+| `validate_barracuda_gpu_lenet` | 5/5 | `Tensor::conv2d` + `Tensor::maxpool2d` GPU WGSL (Study 003 gT) |
+| `validate_barracuda_transformer` | 7/7 | Full transformer layer via BarraCUDA Tensor (Exp 002 bC) |
+
+**Stochastic pipelines**: Wright-Fisher and Gillespie now have GPU pipeline
+validators that chain domain shader → mean_reduce with scalar-only readback.
+This completes the GPU Promotion Priority item 10 (GPU PRNG → stochastic pipelines).
+
+**Conv2d/MaxPool GPU**: First Spring-side exercise of `barracuda::ops::conv2d::Conv2D`
+and `barracuda::ops::maxpool2d::MaxPool2D` GPU WGSL shaders. Validates single-channel
+conv → relu → pool pipeline against f64 CPU reference.
+
+**Transformer bC tier**: Closes the gap where Exp 002 had only a GPU-specific validator
+(`validate_barracuda_gpu_transformer`). The new bC-tier validator covers Q/K/V projections,
+attention scores, FFN block, residual connections, global softmax, and a full layer forward
+pass (sans row-wise softmax — `Tensor::softmax()` is global; row-wise requires
+`ScaledDotProductAttention` which is tested separately).
+
+### Multi-GPU Validation (Session 44)
+
+All Session 44 validators validated on **both** discrete GPUs:
+
+| Validator | RTX 4070 (NVIDIA) | TITAN V (NVK GV100) |
+|-----------|------------------|---------------------|
+| `validate_barracuda_transformer` | **12/12 PASS** | **12/12 PASS** |
+| `validate_barracuda_gpu_lenet` | **8/8 PASS** | **8/8 PASS** |
+| `validate_gpu_pipeline_wright_fisher` | **4/4 PASS** | **4/4 PASS** |
+| `validate_gpu_pipeline_gillespie` | **6/6 PASS** | **6/6 PASS** |
+
+Results are bit-identical across proprietary (NVIDIA Vulkan) and open-source (NVK)
+drivers, proving math portability across GPU architectures and driver stacks.
+`NEURALSPRING_BACKEND=titan` selects Titan V; default selects RTX 4070.
+
+Extended Titan V NVK sweep (Session 44):
+
+| Validator | Titan V (NVK) Checks |
+|-----------|---------------------|
+| `validate_gpu_hmm_forward` | **13/13 PASS** |
+| `validate_gpu_batch_fitness` | **21/21 PASS** |
+| `validate_gpu_rk4` | **8/8 PASS** |
+| `validate_gpu_prng` | **5/5 PASS** |
+| `validate_gpu_wright_fisher` | **4/4 PASS** |
+| `validate_gpu_pipeline_hmm` | **5/5 PASS** |
+| `validate_gpu_pipeline_fitness` | **5/5 PASS** |
+| `validate_cpu_gpu_parity` | **17/17 PASS** |
+| `validate_barracuda_gpu_spectral` | **10/10 PASS** |
+| `validate_barracuda_gpu_eco` | **6/6 PASS** |
+| `validate_barracuda_gpu_hmm` | **5/5 PASS** |
+| `validate_barracuda_gpu_fitness` | **7/7 PASS** |
+| `validate_barracuda_gpu_transformer` | **7/7 PASS** |
+| `validate_barracuda_tensor` | **86/86 PASS** |
+
+**143 additional checks on Titan V NVK** — all bit-identical with RTX 4070.
+
+### BarraCUDA Upstream Fixes (Session 44)
+
+Two upstream BarraCUDA bugs discovered and fixed during validation:
+
+1. **`mean_reduce` entry point mismatch**: `ops/mean.rs` referenced `entry_point: "main"`
+   but `mean_reduce.wgsl` shader defines `fn mean_reduce(...)`. Also fixed double-divide
+   bug where Rust code re-divided by n after the shader already computed the mean.
+   Previously caused `validate_barracuda_tensor` to fail (85/86).
+
+2. **Chi-squared expected values**: `validate_barracuda_chi_squared` used textbook-rounded
+   reference values (e.g., 0.950 for CDF critical values). BarraCUDA's implementation
+   is more precise (0.949956). Updated expected values to full precision.
+   Previously 10/13, now 13/13.
+
+### Full Suite Result (Session 46)
+
+`validate_all`: **133/133 PASS, 0 FAIL** (RTX 4070, Vulkan)
+
+### Session 45 (February 23, 2026)
+
+**GPU promotion (Phase A)**: New `validate_gpu_promotion` binary validates all 27 CPU→GPU
+promotions (27/27 PASS on RTX 4070 and TITAN V NVK). The `gpu_dispatch` module
+provides runtime capability-based GPU/CPU dispatch; `gpu_ops` provides GPU paths
+for all previously CPU-bound ops (matmul, transpose, frobenius_norm, softmax,
+l2_distance, hmm_forward_step, neural_forward, etc.).
+
+### Session 46 (February 23, 2026)
+
+**GPU promotion (Phase B)**: `validate_gpu_phase_b` (20/20 PASS on RTX 4070 + TITAN V NVK).
+11 new GPU operations added to `gpu_ops` and `gpu_dispatch`:
+- **HMM**: backward step (GEMV), Viterbi step (broadcast + max_dim + argmax)
+- **Meta-population**: allele_frequencies (column-sum), nucleotide_diversity,
+  matrix_correlation, geographic_distance_matrix, thermal_diversity_correlation,
+  inter_population_af_variance
+- **Game theory**: replicator dynamics step (2×2 GEMV)
+- **Hill activation**: fixed from pseudo-GPU to genuine GPU (log→exp pipeline)
+- `validate_all`: **133/133 PASS, 0 FAIL**. ~90% of production math now has GPU path.

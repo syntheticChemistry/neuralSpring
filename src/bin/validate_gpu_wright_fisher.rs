@@ -18,12 +18,12 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
     clippy::missing_const_for_fn,
     clippy::too_many_lines
 )]
 
 use neural_spring::gpu::Gpu;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
@@ -232,7 +232,11 @@ fn validate_neutral_drift(h: &mut ValidationHarness, gpu: &Gpu) {
         Ok(freq_out) => {
             let mean: f64 = freq_out.iter().map(|&x| f64::from(x)).sum::<f64>() / n_total as f64;
             let diff = (mean - 0.5).abs();
-            h.check_upper("neutral drift: |mean - 0.5| within 0.05", diff, 0.05);
+            h.check_upper(
+                "neutral drift: |mean - 0.5| within QS_VARIANCE_MAX",
+                diff,
+                tolerances::QS_VARIANCE_MAX,
+            );
         }
         Err(e) => {
             h.check_bool(&format!("neutral drift: dispatch failed — {e}"), false);

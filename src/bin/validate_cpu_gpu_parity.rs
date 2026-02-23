@@ -24,7 +24,6 @@
 
 #![allow(
     clippy::cast_precision_loss,
-    clippy::expect_used,
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::many_single_char_names,
@@ -46,8 +45,13 @@ fn main() {
     // Special functions: pure CPU, no wgpu needed
     validate_special_functions(&mut h);
 
-    // Try to get GPU and CPU devices for Tensor parity
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            h.check_bool(&format!("tokio runtime: {e}"), false);
+            h.finish();
+        }
+    };
     let (gpu_dev, cpu_dev) = rt.block_on(async {
         (
             WgpuDevice::new_gpu().await.ok().map(Arc::new),
@@ -176,7 +180,7 @@ async fn validate_matmul_parity(h: &mut ValidationHarness, device: &Arc<WgpuDevi
     h.check_upper(
         &format!("{label} matmul vs naive Rust (32×32×32)"),
         f64::from(max_diff),
-        1e-3,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
     );
 }
 
@@ -283,8 +287,7 @@ async fn validate_reduction_parity(
     if let Ok(sum_t) = t.sum() {
         if let Ok(v) = sum_t.to_vec() {
             if let Some(&got) = v.first() {
-                // f32 accumulation over 256 elements: allow ~1e-4 relative
-                let tol = f64::from(ref_sum.abs()).max(1.0) * 1e-4;
+                let tol = f64::from(ref_sum.abs()).max(1.0) * tolerances::GPU_FITNESS_F32;
                 h.check_abs(
                     &format!("{label} sum vs manual"),
                     f64::from(got),
@@ -359,7 +362,7 @@ async fn validate_cross_hardware_matmul(
     h.check_upper(
         "GPU vs CPU matmul (cross-hardware)",
         f64::from(max_diff),
-        1e-4,
+        tolerances::GPU_FITNESS_F32,
     );
 }
 
@@ -385,7 +388,11 @@ async fn validate_cross_hardware_activations(
             .zip(c.iter())
             .map(|(a, b)| (a - b).abs())
             .fold(0.0f32, f32::max);
-        h.check_upper("GPU vs CPU ReLU", f64::from(max_diff), 1e-5);
+        h.check_upper(
+            "GPU vs CPU ReLU",
+            f64::from(max_diff),
+            tolerances::TENSOR_EXACT_F32,
+        );
     }
 }
 
@@ -426,10 +433,11 @@ fn validate_conv_pool_parity(h: &mut ValidationHarness) {
     match out {
         Ok(v) => {
             let expected = [1.0, 2.0, 3.0, 4.0];
+            let tol = tolerances::TENSOR_EXACT_F32 as f32;
             let ok = v.len() == expected.len()
                 && v.iter()
                     .zip(expected.iter())
-                    .all(|(a, b)| (a - b).abs() < 1e-6);
+                    .all(|(a, b)| (a - b).abs() < tol);
             h.check_bool("conv2d 1x1 identity", ok);
         }
         Err(e) => h.check_bool(&format!("conv2d: {e}"), false),
@@ -442,10 +450,11 @@ fn validate_conv_pool_parity(h: &mut ValidationHarness) {
         Ok(v) => {
             // 2x2 output: max of each 2x2 block -> 5, 7, 13, 15
             let expected = [5.0, 7.0, 13.0, 15.0];
+            let tol = tolerances::TENSOR_EXACT_F32 as f32;
             let ok = v.len() == expected.len()
                 && v.iter()
                     .zip(expected.iter())
-                    .all(|(a, b)| (a - b).abs() < 1e-6);
+                    .all(|(a, b)| (a - b).abs() < tol);
             h.check_bool("max_pool2d 2x2", ok);
         }
         Err(e) => h.check_bool(&format!("max_pool2d: {e}"), false),

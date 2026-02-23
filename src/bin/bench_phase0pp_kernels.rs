@@ -415,7 +415,8 @@ fn run_python_benchmarks(results: &mut [BenchResult]) {
         let script = &r.python_script;
         eprintln!("  Running {script} ...");
 
-        let output = Command::new("python3")
+        let python = std::env::var("NEURALSPRING_PYTHON").unwrap_or_else(|_| "python3".to_string());
+        let output = Command::new(&python)
             .arg(script)
             .env("OPENBLAS_NUM_THREADS", "1")
             .env("MKL_NUM_THREADS", "1")

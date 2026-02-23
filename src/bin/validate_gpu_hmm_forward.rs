@@ -32,7 +32,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
     clippy::similar_names,
     clippy::too_many_lines
 )]

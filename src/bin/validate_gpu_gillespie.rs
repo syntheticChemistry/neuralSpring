@@ -15,14 +15,11 @@
 //! Upstream: `barracuda::ops::bio::gillespie::GillespieGpu`
 //! Algorithm: Gillespie (1977) direct method with mass-action propensities.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::expect_used
-)]
+#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
 use barracuda::ops::bio::gillespie::{GillespieConfig, GillespieGpu};
 use neural_spring::gpu::Gpu;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 #[tokio::main]
@@ -119,7 +116,7 @@ fn validate_simple_decay(h: &mut ValidationHarness, gpu: &Gpu) {
             &format!("simple_decay trajectory {t}: A+B conservation"),
             total,
             100.0,
-            1e-6,
+            tolerances::TENSOR_EXACT_F32,
         );
     }
 
@@ -134,7 +131,7 @@ fn validate_simple_decay(h: &mut ValidationHarness, gpu: &Gpu) {
         h.check_upper(
             &format!("simple_decay trajectory {t}: time <= t_max"),
             tm,
-            10.0 + 1e-6,
+            10.0 + tolerances::TENSOR_EXACT_F32,
         );
     }
 }
@@ -184,7 +181,7 @@ fn validate_conservation(h: &mut ValidationHarness, gpu: &Gpu) {
             &format!("conservation trajectory {t}: A[t]+B[t] == 100"),
             a + b,
             100.0,
-            1e-9,
+            tolerances::GPU_F64_STATS,
         );
     }
 }
@@ -238,7 +235,9 @@ fn validate_multiple_trajectories(h: &mut ValidationHarness, gpu: &Gpu) {
 
     // Stochastic should produce variation: not all final A identical
     let first_a_val = final_a[0];
-    let all_same = final_a.iter().all(|&a| (a - first_a_val).abs() < 1e-9);
+    let all_same = final_a
+        .iter()
+        .all(|&a| (a - first_a_val).abs() < tolerances::GPU_F64_STATS);
     h.check_bool("multiple_trajectories: variation in final A", !all_same);
 
     // All final A >= 0, all final B >= 0

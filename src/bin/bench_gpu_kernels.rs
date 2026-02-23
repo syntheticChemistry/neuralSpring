@@ -16,7 +16,6 @@
     clippy::cast_sign_loss,
     clippy::many_single_char_names,
     clippy::needless_range_loop,
-    clippy::expect_used,
     clippy::too_many_lines,
     clippy::too_many_arguments,
     clippy::doc_markdown

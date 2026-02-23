@@ -19,7 +19,6 @@
 
 #![allow(
     clippy::cast_precision_loss,
-    clippy::expect_used,
     clippy::needless_range_loop,
     clippy::similar_names
 )]

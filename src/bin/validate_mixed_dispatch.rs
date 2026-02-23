@@ -12,7 +12,7 @@
 //! - `pcie_bridge::PcieBridge` — device pair abstraction
 //! - `pcie_bridge::detect_p2p` — P2P capability detection
 
-#![allow(clippy::cast_precision_loss, clippy::expect_used)]
+#![allow(clippy::cast_precision_loss)]
 
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::mixed::{
@@ -111,9 +111,8 @@ fn validate_pcie_bridge(h: &mut ValidationHarness) {
         cost.estimated_us() > 0.0,
     );
 
-    // detect_p2p placeholder returns false
     h.check_bool(
-        "detect_p2p: placeholder returns false",
+        "detect_p2p: conservative false without PCI topology",
         !detect_p2p("GPU", "NPU"),
     );
 }

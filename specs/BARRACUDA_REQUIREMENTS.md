@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: February 22, 2026 (Session 42)
+**Last Updated**: February 23, 2026 (Session 44 — multi-GPU + benchmarks)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---
@@ -163,7 +163,7 @@ CPU f64 reference with calibrated tolerances.
 | S-16 | 2D transpose dispatches wrong workgroup count (256 vs 16) | High | Blocks Gram matrix; fix identified |
 
 Full diagnosis and reproduction steps: `wateringHole/handoffs/archive/NEURALSPRING_V6_BARRACUDA_GPU_HANDOFF_FEB22_2026.md`
-Current handoff: `wateringHole/handoffs/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md`
+Current handoff: `wateringHole/handoffs/NEURALSPRING_V14_SESSION46_HANDOFF_FEB23_2026.md`
 
 ---
 

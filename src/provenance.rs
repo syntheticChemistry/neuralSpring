@@ -65,14 +65,13 @@ pub struct RuntimeEnvironment {
 
 impl RuntimeEnvironment {
     /// Discover the current execution environment.
+    ///
+    /// All fields are derived from compile-time or runtime introspection —
+    /// no hardcoded strings.  Primal self-knowledge only.
     #[must_use]
     pub fn discover() -> Self {
         Self {
-            rust_version: format!(
-                "rustc {} (edition {})",
-                env!("CARGO_PKG_RUST_VERSION", "unknown"),
-                "2021"
-            ),
+            rust_version: format!("rustc {}", env!("CARGO_PKG_RUST_VERSION", "unknown"),),
             os: std::env::consts::OS.to_owned(),
             arch: std::env::consts::ARCH.to_owned(),
             neuralspring_version: env!("CARGO_PKG_VERSION").to_owned(),
@@ -399,6 +398,19 @@ pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
 /// dependency.  Provenance is mathematical: NIST DLMF, IEEE 754, and textbook
 /// formulas.
 pub const BARRACUDA_ANALYTICAL_REFS: &str = "Analytical (IEEE 754, NIST DLMF, textbook formulas)";
+
+/// Chi-squared distribution reference values.
+///
+/// PDF/CDF validated against `SciPy` 1.15.3 `scipy.stats.chi2`.
+/// Moments and test statistic are analytically derived.
+///
+/// Provenance:
+/// ```text
+/// python3 -c "from scipy.stats import chi2; print(chi2.pdf(2,3), chi2.pdf(0,3), chi2.pdf(5,1))"
+/// python3 -c "from scipy.stats import chi2; print(chi2.cdf(3.84,1), chi2.cdf(5.99,2), chi2.cdf(0,5))"
+/// ```
+/// Environment: `SciPy` 1.15.3, Python 3.10.12, 2026-02-16
+pub const CHI_SQUARED_REFS: &str = "SciPy 1.15.3 chi2 + analytical moments (Pearson 1900)";
 
 /// FFT validation: analytical DFT pairs + Parseval's theorem.
 ///

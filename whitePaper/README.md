@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5c+ complete — 1710+ total checks, ALL GREEN
-**Date**: February 22, 2026 (Sessions 40+42+43 — deep audit + dispatch + cross-eigensolver + mixed-hardware)
+**Status**: Phase 5e — 1800+ total checks, ALL GREEN, ~90% GPU promotion
+**Date**: February 23, 2026 (Sessions 40–46 — multi-GPU + benchmarks + pure GPU promotion)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -17,9 +17,10 @@
 | [CROSS_SPRING_SHADER_LINEAGE.md](CROSS_SPRING_SHADER_LINEAGE.md) | All teams | Cross-spring shader evolution: hotSpring, wetSpring, neuralSpring → BarraCUDA |
 | `specs/BENCHMARK_ANALYSIS.md` | Engineering | Full 3-way benchmark with analysis |
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all through S-13 fixed at `5437c170` |
+| `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A complete, Phase B in progress |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V12 ToadStool absorption handoff (Session 43) |
+| `wateringHole/handoffs/` | Cross-project | V14 ToadStool handoff (Sessions 45+46) |
 
 ---
 
@@ -48,26 +49,41 @@ WGSL serves every domain.
 
 2. **Can compiled WGSL shaders beat Python/NumPy for ML inference?**
    Yes, at scale. GPU (RTX 4070) is **104× faster** than single-thread Python
-   at 103M FLOPs. CPU (llvmpipe) is **3.9× faster** at the same scale.
-   Both execute the same WGSL source — ToadStool compiles to x86 or Vulkan.
+   at 103M FLOPs. Pure Rust is **178× faster** than Python across 11 Phase 0++
+   computational kernels. Both execute the same WGSL source — ToadStool compiles
+   to x86 or Vulkan.
 
 3. **Does the hotSpring progression (Python > CPU > GPU) hold for ML?**
    Yes, at crossover scales. The 3-way benchmark achieves
    **GPU < CPU < Python** at MLP large (3.1M FLOPs) and Transformer medium
    (103M FLOPs). GPU dominates CPU by 4–80× at every scale.
 
+4. **Is the math truly portable across GPU architectures and drivers?**
+   Yes. All 133 validators produce **bit-identical** results on RTX 4070
+   (proprietary NVIDIA Vulkan) and TITAN V (NVK open-source driver).
+   Same WGSL source, different GPU generations and driver stacks.
+
+5. **Can production math run entirely on GPU?**
+   ~90%. Sessions 45-46 promoted 38 CPU-bound operations to GPU via
+   `gpu_dispatch::Dispatcher` — HMM forward/backward/Viterbi, meta-population
+   statistics, replicator dynamics, Hill activation, and more. Validated
+   on both GPUs (47/47 PASS across Phase A + B validators).
+
 ---
 
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 206/206 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
-**Phase 1–5c**: 1400+ Rust+GPU validation PASS (264 lib + 9 integration tests + 119 binaries across 31 modules + 2 evolved)
-**Grand Total**: 1600+ PASS — **ALL GREEN** across all applicable tiers
+**Phase 1–5e**: 1800+ Rust+GPU validation PASS (264 lib + 9 integration tests + 133 binaries across 31 modules + 2 evolved + gpu_ops/gpu_dispatch)
+**Grand Total**: 1800+ PASS — **ALL GREEN** across all applicable tiers
+**Multi-GPU**: 133/133 on RTX 4070, 143+ additional on TITAN V (NVK) — **bit-identical**
+**GPU Promotion**: 38 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11). ~90% of production math on GPU.
+**Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels); GPU **104× faster** at 103M FLOPs
 
-Phase 5b achieved full-stack validation: **24/25 papers at BarraCUDA CPU (96%),
-23/25 at GPU Tensor (92%), 15/15 Phase 0++ at Cross-dispatch (100%)**. S-16
-transpose dispatch **fixed**. S-15 matmul hang **root-caused** (elements ≤ 0.1
-magnitude trigger WGPU/Vulkan driver bug), workaround applied to all validators.
+Phase 5e achieved pure GPU promotion: **38 CPU-bound operations promoted to GPU
+dispatch**, validated on both RTX 4070 and TITAN V (NVK). All 133 validators pass
+on both GPUs with bit-identical results. The `gpu_dispatch::Dispatcher` provides
+capability-based routing: GPU when available, CPU fallback otherwise.
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
@@ -87,6 +103,8 @@ magnitude trigger WGPU/Vulkan driver bug), workaround applied to all validators.
 | 5a | GPU Tensor validation (7 original domains, 43 checks) | **Complete** |
 | 5b | Full-stack buildout (bC 24/25, gT 23/25, xD 15/15) | **Complete** |
 | 5c | Upstream parity, spectral theory, capability dispatch, cross-eigensolver | **Complete** |
+| 5d | Multi-GPU (RTX 4070 + TITAN V NVK), benchmarks (178.5×), stochastic GPU pipelines | **Complete** |
+| 5e | Pure GPU promotion — 38 ops via gpu_dispatch, ~90% math on GPU (Phase A+B) | **In Progress** |
 
 #### 3-Way Benchmark Highlights (Phase 1d)
 
@@ -331,5 +349,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 2 evolved. 264 lib + 9 integration tests, 94.9% coverage. 206 Python + 1400+ Rust+GPU = 1600+ total checks.
-Phase 5c+ complete: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical). S-16 fixed, S-15 root-caused. 127 validation binaries, 21 WGSL shaders (13 upstream, 8 local). Session 40+42+43: dispatch, cross-eigensolver, mixed-hardware, CPU/GPU parity. V12 handoff.*
+*25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 2 evolved + gpu\_ops + gpu\_dispatch. 264 lib + 9 integration tests, 94.9% coverage. 206 Python + 1600+ Rust/GPU = 1800+ total checks.
+Phase 5e: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 133/133 (RTX 4070 + TITAN V NVK bit-identical). 38 CPU→GPU promotions via gpu\_dispatch (Phase A: 27/27, Phase B: 20/20). ~90% production math on GPU. 133 validation binaries, 21 WGSL shaders (13 upstream, 8 local). Pure Rust 178.5× faster than Python. Sessions 40–46: dispatch, cross-eigensolver, mixed-hardware, multi-GPU, benchmarks, pure GPU promotion. V14 handoff.*

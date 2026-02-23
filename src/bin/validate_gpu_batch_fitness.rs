@@ -26,11 +26,7 @@
 //! WGSL shader: `metalForge/shaders/batch_fitness_eval.wgsl`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::cast_possible_truncation
-)]
+#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
 use barracuda::ops::bio::BatchFitnessGpu;
 use neural_spring::gpu::Gpu;

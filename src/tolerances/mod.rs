@@ -698,5 +698,19 @@ pub const VARIANCE_FLOOR: f64 = -1e-6;
 /// to account for f32 rounding at boundary values.
 pub const GPU_BOUNDS_SLACK_F32: f64 = 1e-5;
 
+/// GPU logsumexp f32 tolerance.
+///
+/// Logsumexp accumulates via max-subtract + exp + sum + log; f32
+/// precision limits the result to ~7 significant digits.  1e-4
+/// tolerates the exp/log round-trip.
+pub const GPU_LOGSUMEXP_F32: f64 = 1e-4;
+
+/// GPU RK45 adaptive integrator f32 tolerance.
+///
+/// Dormand-Prince 5(4) has 6 stages of f32 multiply-add.  The
+/// accumulated rounding from the Butcher tableau coefficients
+/// requires ~5e-4 tolerance vs exact CPU f64 reference.
+pub const GPU_RK45_F32: f64 = 5e-4;
+
 mod registry;
 pub use registry::{all_tolerances, categories, tolerance_by_name, NamedTolerance};

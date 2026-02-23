@@ -17,11 +17,7 @@
 //! Python baseline: `control/swarm_robotics/swarm_robotics.py`
 //! Rust baseline: `validate_swarm_robotics`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::swarm_robotics::{
     create_controller, run_evolution_heterogeneous, run_evolution_homogeneous, shannon_diversity,

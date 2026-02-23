@@ -25,10 +25,13 @@ pub struct NamedTolerance {
 /// Each primal can discover what tolerances exist, what categories
 /// they belong to, and what values they have — no hardcoded knowledge
 /// of the tolerance namespace required.
+///
+/// Complete: every public constant in `tolerances::` is registered.
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub const fn all_tolerances() -> &'static [NamedTolerance] {
     &[
+        // ── Machine precision ──────────────────────────────────────────
         NamedTolerance {
             name: "EXACT_F64",
             value: EXACT_F64,
@@ -45,64 +48,164 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             category: "machine",
         },
         NamedTolerance {
-            name: "GPU_FITNESS_F32",
-            value: GPU_FITNESS_F32,
-            category: "gpu_shader",
+            name: "NORM_PPF_TAIL",
+            value: NORM_PPF_TAIL,
+            category: "machine",
+        },
+        // ── Benchmark functions ────────────────────────────────────────
+        NamedTolerance {
+            name: "BENCHMARK_GLOBAL_MIN",
+            value: BENCHMARK_GLOBAL_MIN,
+            category: "benchmark",
         },
         NamedTolerance {
-            name: "GPU_HAMMING_F32",
-            value: GPU_HAMMING_F32,
-            category: "gpu_shader",
+            name: "BENCHMARK_CROSS_PYTHON",
+            value: BENCHMARK_CROSS_PYTHON,
+            category: "benchmark",
         },
         NamedTolerance {
-            name: "GPU_JACCARD_F32",
-            value: GPU_JACCARD_F32,
-            category: "gpu_shader",
+            name: "OPTIMIZER_POSITION",
+            value: OPTIMIZER_POSITION,
+            category: "benchmark",
         },
         NamedTolerance {
-            name: "GPU_LOCUS_VARIANCE_F32",
-            value: GPU_LOCUS_VARIANCE_F32,
-            category: "gpu_shader",
+            name: "OPTIMIZER_POSITION_MULTIMODAL",
+            value: OPTIMIZER_POSITION_MULTIMODAL,
+            category: "benchmark",
         },
         NamedTolerance {
-            name: "GPU_SPATIAL_PAYOFF_F32",
-            value: GPU_SPATIAL_PAYOFF_F32,
-            category: "gpu_shader",
+            name: "OPTIMIZER_VALUE_AT_MIN",
+            value: OPTIMIZER_VALUE_AT_MIN,
+            category: "benchmark",
         },
         NamedTolerance {
-            name: "GPU_BATCH_IPR_F32",
-            value: GPU_BATCH_IPR_F32,
-            category: "gpu_shader",
+            name: "OPTIMIZER_VALUE_MULTIMODAL",
+            value: OPTIMIZER_VALUE_MULTIMODAL,
+            category: "benchmark",
+        },
+        // ── Transformer primitives ─────────────────────────────────────
+        NamedTolerance {
+            name: "SOFTMAX_SUM",
+            value: SOFTMAX_SUM,
+            category: "transformer",
         },
         NamedTolerance {
-            name: "GPU_REDUCE_F64",
-            value: GPU_REDUCE_F64,
-            category: "gpu_pipeline",
+            name: "SOFTMAX_CROSS_PYTHON",
+            value: SOFTMAX_CROSS_PYTHON,
+            category: "transformer",
         },
         NamedTolerance {
-            name: "SPECTRAL_EIGENSOLVER_CROSS",
-            value: SPECTRAL_EIGENSOLVER_CROSS,
-            category: "spectral",
+            name: "GELU_CROSS_PYTHON",
+            value: GELU_CROSS_PYTHON,
+            category: "transformer",
         },
         NamedTolerance {
-            name: "TENSOR_EXACT_F32",
-            value: TENSOR_EXACT_F32,
-            category: "tensor",
+            name: "GELU_LARGE_INPUT",
+            value: GELU_LARGE_INPUT,
+            category: "transformer",
         },
         NamedTolerance {
-            name: "TENSOR_MATMUL_F32",
-            value: TENSOR_MATMUL_F32,
-            category: "tensor",
+            name: "SPECIAL_FUNCTION_F64",
+            value: SPECIAL_FUNCTION_F64,
+            category: "transformer",
+        },
+        // ── Metrics ────────────────────────────────────────────────────
+        NamedTolerance {
+            name: "METRIC_EXACT",
+            value: METRIC_EXACT,
+            category: "metric",
+        },
+        // ── Training / model (Python baselines) ────────────────────────
+        NamedTolerance {
+            name: "SURROGATE_R2_MIN",
+            value: SURROGATE_R2_MIN,
+            category: "training",
         },
         NamedTolerance {
-            name: "FFT_INVERSE_F32",
-            value: FFT_INVERSE_F32,
-            category: "fft",
+            name: "TRANSFORMER_NUMPY_VS_PYTORCH",
+            value: TRANSFORMER_NUMPY_VS_PYTORCH,
+            category: "training",
         },
         NamedTolerance {
-            name: "FFT_INVERSE_F64",
-            value: FFT_INVERSE_F64,
-            category: "fft",
+            name: "CAUSAL_MASK_LEAK",
+            value: CAUSAL_MASK_LEAK,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "SEQUENCE_R2_MIN",
+            value: SEQUENCE_R2_MIN,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "PINN_L2_ERROR_MAX",
+            value: PINN_L2_ERROR_MAX,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "PINN_IC_EXACT",
+            value: PINN_IC_EXACT,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "PINN_BC_TOLERANCE",
+            value: PINN_BC_TOLERANCE,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "PINN_SHOCK_RATIO_MIN",
+            value: PINN_SHOCK_RATIO_MIN,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "DEEPONET_EXACT_ANTIDERIV",
+            value: DEEPONET_EXACT_ANTIDERIV,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "DEEPONET_POLYNOMIAL_EXACT",
+            value: DEEPONET_POLYNOMIAL_EXACT,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "QUANT_INT8_DEGRADATION",
+            value: QUANT_INT8_DEGRADATION,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "QUANT_INT4_DEGRADATION",
+            value: QUANT_INT4_DEGRADATION,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "QUANT_Q8_ELEMENT_ERROR",
+            value: QUANT_Q8_ELEMENT_ERROR,
+            category: "training",
+        },
+        NamedTolerance {
+            name: "QUANT_Q4_ELEMENT_ERROR",
+            value: QUANT_Q4_ELEMENT_ERROR,
+            category: "training",
+        },
+        // ── Evolutionary / stochastic algorithms ───────────────────────
+        NamedTolerance {
+            name: "CD_COMPARABLE_DIST",
+            value: CD_COMPARABLE_DIST,
+            category: "evolutionary",
+        },
+        NamedTolerance {
+            name: "ADIABATIC_KL_GAP",
+            value: ADIABATIC_KL_GAP,
+            category: "evolutionary",
+        },
+        NamedTolerance {
+            name: "HMM_POSTERIOR_SUM",
+            value: HMM_POSTERIOR_SUM,
+            category: "evolutionary",
+        },
+        NamedTolerance {
+            name: "QS_VARIANCE_MAX",
+            value: QS_VARIANCE_MAX,
+            category: "evolutionary",
         },
         NamedTolerance {
             name: "HMM_DECODE_ACCURACY_MIN",
@@ -160,19 +263,9 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             category: "evolutionary",
         },
         NamedTolerance {
-            name: "SWARM_FITNESS_COMPARISON",
-            value: SWARM_FITNESS_COMPARISON,
+            name: "HMM_PHYLO_DECODE_MARGIN",
+            value: HMM_PHYLO_DECODE_MARGIN,
             category: "evolutionary",
-        },
-        NamedTolerance {
-            name: "IPR_LOCALIZATION_MIN",
-            value: IPR_LOCALIZATION_MIN,
-            category: "physics",
-        },
-        NamedTolerance {
-            name: "SPECTRAL_COMMUTATIVITY_EPS",
-            value: SPECTRAL_COMMUTATIVITY_EPS,
-            category: "physics",
         },
         NamedTolerance {
             name: "SIGNAL_DYNAMIC_RANGE_MIN",
@@ -180,13 +273,290 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             category: "evolutionary",
         },
         NamedTolerance {
+            name: "SWARM_FITNESS_COMPARISON",
+            value: SWARM_FITNESS_COMPARISON,
+            category: "evolutionary",
+        },
+        // ── Stochastic model ───────────────────────────────────────────
+        NamedTolerance {
+            name: "BARRACUDA_GPU_ECO_F32",
+            value: BARRACUDA_GPU_ECO_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "SPECTRAL_COMMUTATIVITY_EPS",
+            value: SPECTRAL_COMMUTATIVITY_EPS,
+            category: "physics",
+        },
+        // ── Tensor / WGSL shader (f32 compute) ────────────────────────
+        NamedTolerance {
+            name: "TENSOR_EXACT_F32",
+            value: TENSOR_EXACT_F32,
+            category: "tensor",
+        },
+        NamedTolerance {
+            name: "TENSOR_TRANSCENDENTAL_F32",
+            value: TENSOR_TRANSCENDENTAL_F32,
+            category: "tensor",
+        },
+        NamedTolerance {
+            name: "TENSOR_MATMUL_F32",
+            value: TENSOR_MATMUL_F32,
+            category: "tensor",
+        },
+        NamedTolerance {
+            name: "TENSOR_NORM_F32",
+            value: TENSOR_NORM_F32,
+            category: "tensor",
+        },
+        // ── GPU f64 shader ─────────────────────────────────────────────
+        NamedTolerance {
+            name: "GPU_F64_EXACT",
+            value: GPU_F64_EXACT,
+            category: "gpu_f64",
+        },
+        NamedTolerance {
+            name: "GPU_F64_TRANSCENDENTAL",
+            value: GPU_F64_TRANSCENDENTAL,
+            category: "gpu_f64",
+        },
+        NamedTolerance {
+            name: "GPU_F64_STATS",
+            value: GPU_F64_STATS,
+            category: "gpu_f64",
+        },
+        // ── FFT ────────────────────────────────────────────────────────
+        NamedTolerance {
+            name: "FFT_INVERSE_F32",
+            value: FFT_INVERSE_F32,
+            category: "fft",
+        },
+        NamedTolerance {
+            name: "FFT_INVERSE_F64",
+            value: FFT_INVERSE_F64,
+            category: "fft",
+        },
+        NamedTolerance {
+            name: "FFT_PARSEVAL_F32",
+            value: FFT_PARSEVAL_F32,
+            category: "fft",
+        },
+        NamedTolerance {
+            name: "FFT_PARSEVAL_F64",
+            value: FFT_PARSEVAL_F64,
+            category: "fft",
+        },
+        NamedTolerance {
+            name: "FFT_KNOWN_PAIR_F32",
+            value: FFT_KNOWN_PAIR_F32,
+            category: "fft",
+        },
+        NamedTolerance {
+            name: "FFT_KNOWN_PAIR_F64",
+            value: FFT_KNOWN_PAIR_F64,
+            category: "fft",
+        },
+        NamedTolerance {
+            name: "FFT_SPECTRAL_LEAKAGE_F32",
+            value: FFT_SPECTRAL_LEAKAGE_F32,
+            category: "fft",
+        },
+        NamedTolerance {
+            name: "FFT_SPECTRAL_LEAKAGE_F64",
+            value: FFT_SPECTRAL_LEAKAGE_F64,
+            category: "fft",
+        },
+        NamedTolerance {
+            name: "RFFT_DC_COMPONENT_F32",
+            value: RFFT_DC_COMPONENT_F32,
+            category: "fft",
+        },
+        // ── GPU shader (metalForge Phase 3c) ───────────────────────────
+        NamedTolerance {
+            name: "GPU_HMM_LOG_LIKELIHOOD_F32",
+            value: GPU_HMM_LOG_LIKELIHOOD_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_HMM_ALPHA_F32",
+            value: GPU_HMM_ALPHA_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_FITNESS_F32",
+            value: GPU_FITNESS_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_RK4_F32",
+            value: GPU_RK4_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_JACCARD_F32",
+            value: GPU_JACCARD_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_LOCUS_VARIANCE_F32",
+            value: GPU_LOCUS_VARIANCE_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_SPATIAL_PAYOFF_F32",
+            value: GPU_SPATIAL_PAYOFF_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_BATCH_IPR_F32",
+            value: GPU_BATCH_IPR_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_HAMMING_F32",
+            value: GPU_HAMMING_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_MULTI_OBJ_FITNESS_F32",
+            value: GPU_MULTI_OBJ_FITNESS_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_UPSTREAM_MULTI_OBJ_PARITY_F32",
+            value: GPU_UPSTREAM_MULTI_OBJ_PARITY_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_MODES_L2_F32",
+            value: GPU_MODES_L2_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_HILL_F32",
+            value: GPU_HILL_F32,
+            category: "gpu_shader",
+        },
+        // ── ML inference pipeline ──────────────────────────────────────
+        NamedTolerance {
+            name: "ML_MLP_F32",
+            value: ML_MLP_F32,
+            category: "ml_pipeline",
+        },
+        NamedTolerance {
+            name: "ML_TRANSFORMER_F32",
+            value: ML_TRANSFORMER_F32,
+            category: "ml_pipeline",
+        },
+        // ── Eigenvalue decomposition ───────────────────────────────────
+        NamedTolerance {
+            name: "EIGH_JACOBI_RECONSTRUCT",
+            value: EIGH_JACOBI_RECONSTRUCT,
+            category: "linalg",
+        },
+        NamedTolerance {
+            name: "EIGH_JACOBI_EIGENVALUE",
+            value: EIGH_JACOBI_EIGENVALUE,
+            category: "linalg",
+        },
+        // ── ODE integrator agreement ───────────────────────────────────
+        NamedTolerance {
+            name: "ODE_INTEGRATOR_AGREEMENT",
+            value: ODE_INTEGRATOR_AGREEMENT,
+            category: "numerical",
+        },
+        // ── Statistical critical values ────────────────────────────────
+        NamedTolerance {
+            name: "CHI2_CRITICAL_DF9_P05",
+            value: CHI2_CRITICAL_DF9_P05,
+            category: "statistical",
+        },
+        NamedTolerance {
+            name: "CHI2_CRITICAL_DF1_P05",
+            value: CHI2_CRITICAL_DF1_P05,
+            category: "statistical",
+        },
+        NamedTolerance {
+            name: "PANGENOME_MIN_ASSOCIATED_GENES",
+            value: PANGENOME_MIN_ASSOCIATED_GENES,
+            category: "statistical",
+        },
+        // ── Physics ────────────────────────────────────────────────────
+        NamedTolerance {
+            name: "IPR_LOCALIZATION_MIN",
+            value: IPR_LOCALIZATION_MIN,
+            category: "physics",
+        },
+        NamedTolerance {
+            name: "SPECTRAL_EIGENSOLVER_CROSS",
+            value: SPECTRAL_EIGENSOLVER_CROSS,
+            category: "spectral",
+        },
+        NamedTolerance {
+            name: "KAPPUS_WEGNER_REL",
+            value: KAPPUS_WEGNER_REL,
+            category: "spectral",
+        },
+        NamedTolerance {
+            name: "LEVEL_SPACING_POISSON_TOL",
+            value: LEVEL_SPACING_POISSON_TOL,
+            category: "spectral",
+        },
+        // ── GPU pipeline (Phase 5c) ───────────────────────────────────
+        NamedTolerance {
+            name: "GPU_REDUCE_F64",
+            value: GPU_REDUCE_F64,
+            category: "gpu_pipeline",
+        },
+        // ── Miscellaneous validation ───────────────────────────────────
+        NamedTolerance {
             name: "PINN_FD_RESIDUAL_MAX",
             value: PINN_FD_RESIDUAL_MAX,
             category: "numerical",
         },
         NamedTolerance {
-            name: "BARRACUDA_GPU_ECO_F32",
-            value: BARRACUDA_GPU_ECO_F32,
+            name: "SEASONAL_ANNUAL_MEAN",
+            value: SEASONAL_ANNUAL_MEAN,
+            category: "numerical",
+        },
+        NamedTolerance {
+            name: "SEASONAL_ANNUAL_MEAN_TOL",
+            value: SEASONAL_ANNUAL_MEAN_TOL,
+            category: "numerical",
+        },
+        NamedTolerance {
+            name: "ECO_DOMINANCE_COMPARISON",
+            value: ECO_DOMINANCE_COMPARISON,
+            category: "evolutionary",
+        },
+        NamedTolerance {
+            name: "ML_PIPELINE_NORM_REL",
+            value: ML_PIPELINE_NORM_REL,
+            category: "ml_pipeline",
+        },
+        NamedTolerance {
+            name: "DIVERSITY_EPSILON",
+            value: DIVERSITY_EPSILON,
+            category: "numerical",
+        },
+        NamedTolerance {
+            name: "VARIANCE_FLOOR",
+            value: VARIANCE_FLOOR,
+            category: "numerical",
+        },
+        NamedTolerance {
+            name: "GPU_LOGSUMEXP_F32",
+            value: GPU_LOGSUMEXP_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_RK45_F32",
+            value: GPU_RK45_F32,
+            category: "gpu_shader",
+        },
+        NamedTolerance {
+            name: "GPU_BOUNDS_SLACK_F32",
+            value: GPU_BOUNDS_SLACK_F32,
             category: "gpu_shader",
         },
     ]
@@ -234,109 +604,54 @@ mod tests {
         assert!(tolerance_by_name("EXACT_F64").is_some());
         assert!(tolerance_by_name("NONEXISTENT").is_none());
         let cats = categories();
-        assert!(cats.contains(&"machine"));
-        assert!(cats.contains(&"gpu_shader"));
+        for expected in [
+            "machine",
+            "benchmark",
+            "transformer",
+            "metric",
+            "training",
+            "evolutionary",
+            "gpu_shader",
+            "gpu_f64",
+            "gpu_pipeline",
+            "tensor",
+            "fft",
+            "physics",
+            "spectral",
+            "numerical",
+            "statistical",
+            "linalg",
+            "ml_pipeline",
+        ] {
+            assert!(cats.contains(&expected), "missing category: {expected}");
+        }
     }
 
     #[test]
-    fn all_positive() {
-        let tols = [
-            EXACT_F64,
-            CROSS_LANGUAGE,
-            ZERO_DETECTION,
-            NORM_PPF_TAIL,
-            BENCHMARK_GLOBAL_MIN,
-            BENCHMARK_CROSS_PYTHON,
-            OPTIMIZER_POSITION,
-            OPTIMIZER_POSITION_MULTIMODAL,
-            OPTIMIZER_VALUE_AT_MIN,
-            OPTIMIZER_VALUE_MULTIMODAL,
-            SOFTMAX_SUM,
-            SOFTMAX_CROSS_PYTHON,
-            GELU_CROSS_PYTHON,
-            GELU_LARGE_INPUT,
-            SPECIAL_FUNCTION_F64,
-            METRIC_EXACT,
-            SURROGATE_R2_MIN,
-            TRANSFORMER_NUMPY_VS_PYTORCH,
-            CAUSAL_MASK_LEAK,
-            SEQUENCE_R2_MIN,
-            PINN_L2_ERROR_MAX,
-            PINN_IC_EXACT,
-            PINN_BC_TOLERANCE,
-            PINN_SHOCK_RATIO_MIN,
-            DEEPONET_EXACT_ANTIDERIV,
-            DEEPONET_POLYNOMIAL_EXACT,
-            QUANT_INT8_DEGRADATION,
-            QUANT_INT4_DEGRADATION,
-            QUANT_Q8_ELEMENT_ERROR,
-            QUANT_Q4_ELEMENT_ERROR,
-            TENSOR_EXACT_F32,
-            TENSOR_TRANSCENDENTAL_F32,
-            TENSOR_MATMUL_F32,
-            TENSOR_NORM_F32,
-            CD_COMPARABLE_DIST,
-            ADIABATIC_KL_GAP,
-            HMM_POSTERIOR_SUM,
-            QS_VARIANCE_MAX,
-            GPU_F64_EXACT,
-            GPU_F64_TRANSCENDENTAL,
-            GPU_F64_STATS,
-            ML_MLP_F32,
-            ML_TRANSFORMER_F32,
-            FFT_INVERSE_F32,
-            FFT_INVERSE_F64,
-            FFT_PARSEVAL_F32,
-            FFT_PARSEVAL_F64,
-            FFT_KNOWN_PAIR_F32,
-            FFT_KNOWN_PAIR_F64,
-            FFT_SPECTRAL_LEAKAGE_F32,
-            FFT_SPECTRAL_LEAKAGE_F64,
-            RFFT_DC_COMPONENT_F32,
-            GPU_HMM_LOG_LIKELIHOOD_F32,
-            GPU_HMM_ALPHA_F32,
-            GPU_FITNESS_F32,
-            GPU_RK4_F32,
-            GPU_JACCARD_F32,
-            GPU_LOCUS_VARIANCE_F32,
-            GPU_SPATIAL_PAYOFF_F32,
-            GPU_BATCH_IPR_F32,
-            GPU_HAMMING_F32,
-            GPU_MULTI_OBJ_FITNESS_F32,
-            GPU_UPSTREAM_MULTI_OBJ_PARITY_F32,
-            GPU_MODES_L2_F32,
-            GPU_HILL_F32,
-            EIGH_JACOBI_RECONSTRUCT,
-            EIGH_JACOBI_EIGENVALUE,
-            ODE_INTEGRATOR_AGREEMENT,
-            IPR_LOCALIZATION_MIN,
-            HMM_DECODE_ACCURACY_MIN,
-            INTROGRESSION_FRACTION_MIN,
-            INTROGRESSION_FRACTION_ABS,
-            INTROGRESSION_FPR_MAX,
-            GENE_TREE_CONCORDANT_MIN,
-            GAME_COOPERATION_MIN,
-            REGULATORY_RESPONSE_MIN,
-            ECO_FITNESS_IMPROVEMENT_MIN,
-            PANGENOME_SELECTION_P_MIN,
-            META_POP_FST_MIN,
-            META_POP_AF_VARIANCE_MIN,
-            HMM_PHYLO_DECODE_MARGIN,
-            SIGNAL_DYNAMIC_RANGE_MIN,
-            BARRACUDA_GPU_ECO_F32,
-            SPECTRAL_COMMUTATIVITY_EPS,
-            CHI2_CRITICAL_DF9_P05,
-            CHI2_CRITICAL_DF1_P05,
-            PANGENOME_MIN_ASSOCIATED_GENES,
-            SWARM_FITNESS_COMPARISON,
-            PINN_FD_RESIDUAL_MAX,
-            SEASONAL_ANNUAL_MEAN,
-            SEASONAL_ANNUAL_MEAN_TOL,
-            ECO_DOMINANCE_COMPARISON,
-            ML_PIPELINE_NORM_REL,
-        ];
-        for (i, &t) in tols.iter().enumerate() {
-            assert!(t > 0.0, "tolerance index {i} must be positive, got {t}");
+    fn registry_complete() {
+        let all = all_tolerances();
+        assert!(
+            all.len() >= 90,
+            "registry should contain all tolerances, got {}",
+            all.len()
+        );
+    }
+
+    #[test]
+    fn all_finite_and_documented() {
+        let known_negative = ["VARIANCE_FLOOR"];
+        for t in all_tolerances() {
+            assert!(t.value.is_finite(), "{} must be finite", t.name);
+            assert!(!t.name.is_empty(), "tolerance name must not be empty");
+            assert!(!t.category.is_empty(), "category must not be empty");
+            if !known_negative.contains(&t.name) {
+                assert!(
+                    t.value > 0.0,
+                    "{} must be positive, got {}",
+                    t.name,
+                    t.value
+                );
+            }
         }
     }
 }

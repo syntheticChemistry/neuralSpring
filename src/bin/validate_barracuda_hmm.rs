@@ -18,11 +18,7 @@
 //! Python baseline: `control/hmm_phylo/hmm_phylo.py`
 //! Rust baseline: `validate_hmm`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::hmm::Hmm;
 use neural_spring::rng::Rng;

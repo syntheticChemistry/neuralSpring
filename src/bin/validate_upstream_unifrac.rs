@@ -9,15 +9,12 @@
 //!
 //! Upstream: [`barracuda::ops::bio::unifrac_propagate::UniFracPropagateGpu`]
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::expect_used
-)]
+#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
 use barracuda::ops::bio::unifrac_propagate::{UniFracConfig, UniFracPropagateGpu};
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
@@ -177,7 +174,7 @@ fn validate_leaf_init(h: &mut ValidationHarness, gpu: &Gpu, op: &UniFracPropagat
                 "leaf_init 3 leaves × 2 samples: GPU leaf portion matches CPU",
                 max_err,
                 0.0,
-                1e-12,
+                tolerances::EXACT_F64,
             );
         }
         Err(e) => {
@@ -200,9 +197,9 @@ fn validate_larger_tree(h: &mut ValidationHarness, gpu: &Gpu, op: &UniFracPropag
         _pad: 0,
     };
 
-    let mut parent: Vec<i32> = (0..i32::try_from(n_leaves).expect("n_leaves fits in i32"))
-        .map(|_| i32::try_from(n_leaves).expect("n_leaves fits in i32"))
-        .collect();
+    #[allow(clippy::cast_possible_wrap)]
+    let n_leaves_i32 = n_leaves as i32;
+    let mut parent: Vec<i32> = vec![n_leaves_i32; n_leaves as usize];
     parent.push(-1); // root
     let branch_len: Vec<f64> = (0..n_nodes).map(|i| 0.1 * (f64::from(i) + 1.0)).collect();
 
@@ -224,7 +221,7 @@ fn validate_larger_tree(h: &mut ValidationHarness, gpu: &Gpu, op: &UniFracPropag
                 "leaf_init 10×5: GPU leaf portion matches CPU",
                 max_err,
                 0.0,
-                1e-12,
+                tolerances::EXACT_F64,
             );
         }
         Err(e) => {

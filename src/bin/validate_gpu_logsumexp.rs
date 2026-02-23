@@ -14,21 +14,15 @@
 //!
 //! CPU reference: inline `cpu_logsumexp`. WGSL: `metalForge/shaders/logsumexp_reduce.wgsl`.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::expect_used
-)]
+#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
 const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/logsumexp_reduce.wgsl");
-
-/// GPU f32 logsumexp tolerance (numerical stability).
-const TOL_LOGSUMEXP_F32: f64 = 1e-4;
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -186,7 +180,7 @@ fn validate_small_batch(h: &mut ValidationHarness, gpu: &Gpu) {
                     "small batch 4×8: max GPU-CPU diff ({max_diff:.2e}) within logsumexp f32 tolerance"
                 ),
                 max_diff,
-                TOL_LOGSUMEXP_F32,
+                tolerances::GPU_LOGSUMEXP_F32,
             );
         }
         Err(e) => {
@@ -215,7 +209,7 @@ fn validate_known_values(h: &mut ValidationHarness, gpu: &Gpu) {
                     "known values [[0,0,0],[1,2,3]]: max GPU-CPU diff ({max_diff:.2e}), row0≈ln(3), row1≈3.4076"
                 ),
                 max_diff,
-                TOL_LOGSUMEXP_F32,
+                tolerances::GPU_LOGSUMEXP_F32,
             );
         }
         Err(e) => {
@@ -249,7 +243,7 @@ fn validate_large_batch(h: &mut ValidationHarness, gpu: &Gpu) {
                     "large batch 64×128: max GPU-CPU diff ({max_diff:.2e}) within logsumexp f32 tolerance"
                 ),
                 max_diff,
-                TOL_LOGSUMEXP_F32,
+                tolerances::GPU_LOGSUMEXP_F32,
             );
         }
         Err(e) => {

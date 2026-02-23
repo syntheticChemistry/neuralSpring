@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 22, 2026 (Session 43 — upstream expansion + mixed hardware)
+**Last Updated**: February 23, 2026 (Sessions 44–46 — multi-GPU + benchmarks + pure GPU promotion)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -246,4 +246,83 @@ directly — no conversion needed for `Tensor::from_data` or raw `wgpu::Buffer`:
 5. **Hill functions → `numerical::hill`**: Used by regulatory biology + signal
    integration across neuralSpring and potentially hotSpring
 
-*Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15. Session 43: upstream expansion (Gillespie, wetSpring trio, chi²), CPU/GPU parity, mixed-hardware dispatch. Session 42: deep audit complete, all quality gates clean.*
+---
+
+## Session 44 — Multi-GPU Portability & Upstream Bug Fixes (February 23, 2026)
+
+**New hardware:** TITAN V 12 GB (NVK open-source Vulkan driver, Volta GV100)
+**Key result:** 131/131 validators PASS on both RTX 4070 and TITAN V — bit-identical
+
+### New APIs Exercised
+
+| API | Validator | Checks | Finding |
+|-----|-----------|--------|---------|
+| `Tensor::conv2d()` | `validate_barracuda_gpu_lenet` | 8/8 | Conv2d WGSL shader works via Tensor API |
+| `Tensor::maxpool2d()` | `validate_barracuda_gpu_lenet` | (incl.) | MaxPool2d WGSL shader works via Tensor API |
+| `Tensor::softmax()` | `validate_barracuda_transformer` | (incl.) | Global softmax (not row-wise — document for attention usage) |
+| `Tensor::mean()` | `validate_barracuda_tensor` | (incl.) | Fixed: entry point + double-divide bug |
+
+### Upstream Bugs Fixed
+
+| Bug | Location | Fix |
+|-----|----------|-----|
+| mean_reduce entry point | `ops/mean.rs` | `"main"` → `"mean_reduce"`, single-f32 readback |
+| chi-squared expected values | `validate_barracuda_chi_squared.rs` | Textbook-rounded → full-precision computed |
+
+### Benchmark Findings (Rust vs Python)
+
+Pure Rust is **178.5× faster** than single-thread Python/NumPy across 11 Phase 0++ kernels.
+Exception: commutator (64×64) — NumPy's BLAS matmul is 2.5× faster than pure Rust loops.
+This validates the reverse pipeline: prove math on GPU, then optimize CPU with BLAS techniques.
+
+### Multi-GPU Adapter Selection
+
+`NEURALSPRING_BACKEND=titan` selects TITAN V; default selects RTX 4070.
+Implemented via `Gpu::new()` adapter name-substring matching in `src/gpu.rs`.
+
+---
+
+## Sessions 45–46 — Pure GPU Promotion via Tensor API (February 23, 2026)
+
+### New Modules
+
+| Module | Purpose | Tensor Methods Used |
+|--------|---------|-------------------|
+| `gpu_ops.rs` | 38 GPU-accelerated functions | All major Tensor ops |
+| `gpu_dispatch.rs` | Capability-based runtime dispatch | `WgpuDevice` detection |
+
+### New Tensor API Usage Patterns
+
+| Pattern | Functions | Key Methods |
+|---------|----------|-------------|
+| GEMV chain | hmm_forward_step, hmm_backward_step, replicator_step | `matmul`, `mul`, `transpose` |
+| Broadcast + reduce | hmm_viterbi_step | `broadcast`, `add`, `max_dim` |
+| Column reduction | allele_frequencies | `sum_dim(0)`, `div_scalar` |
+| Transcendental pipeline | hill_activation_batch | `log_wgsl`, `mul_scalar`, `exp_wgsl` |
+| Elementwise compose | nucleotide_diversity, pearson_correlation | `mul`, `sub`, `add`, `mean` |
+| Dimension reduction | variance, logsumexp | `mean_dim`, `sum_dim` |
+
+### API Gaps Identified
+
+| Gap | Impact | Workaround |
+|-----|--------|------------|
+| No `argmax_dim()` | Viterbi needs indices, not just max values | CPU argmax after `max_dim` readback |
+| No `pow_scalar(n)` | Hill activation `x^n` | `exp(n * ln(x))` pipeline |
+| No `softmax_dim(axis)` | Row-wise attention softmax | `ScaledDotProductAttention` |
+| No `div(other)` (elementwise) | Ratio computation | Uploaded reciprocal + `mul` |
+
+### Ownership Model (Documented)
+
+**Consuming** (`self`): `matmul`, `softmax`, `sigmoid`, `gelu_wgsl`, `log_wgsl`, `exp_wgsl`, `sqrt_wgsl`, `broadcast`
+
+**Borrowing** (`&self`): `transpose`, `add`, `sub`, `mul`, `sum`, `mean`, `max`, `norm`, `mul_scalar`, `add_scalar`, `div_scalar`, `sum_dim`, `mean_dim`, `max_dim`, `min_dim`, `reshape`, `to_vec`
+
+### Validation
+
+| Validator | Checks | Status |
+|-----------|--------|--------|
+| `validate_gpu_promotion` | 27/27 | PASS (both GPUs) |
+| `validate_gpu_phase_b` | 20/20 | PASS (both GPUs) |
+| `validate_all` | 133/133 | ALL GREEN |
+
+*Barracuda usage audit — neuralSpring, February 23, 2026. Phase 5e: bC 24/25, gT 23/25, xD 15/15, mG 133/133 (RTX 4070 + TITAN V NVK bit-identical). 38 CPU→GPU promotions via gpu\_dispatch. ~90% production math on GPU. Sessions 45–46: pure GPU promotion. Session 44: multi-GPU, 178.5×. Session 43: upstream expansion, mixed-hardware. Session 42: deep audit.*

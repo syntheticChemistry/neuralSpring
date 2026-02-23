@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `5437c170` (Session 40, Session 42 deep audit, Feb 22, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md`
+**Last reviewed:** ToadStool commit `5437c170` + 2 upstream fixes (Session 44, Feb 23, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V14_SESSION46_HANDOFF_FEB23_2026.md`
 
 ---
 
@@ -398,3 +398,105 @@ neuralSpring built 4 new WGSL shaders validated and ready for ToadStool absorpti
 
 `validate_cpu_gpu_parity` (17/17 PASS): Tensor API produces identical results on GPU (RTX 4070 Vulkan)
 and CPU (llvmpipe). Cross-hardware MatMul and ReLU are **bit-identical**.
+
+---
+
+## Session 44 — Multi-GPU Portability & Bug Fixes (February 23, 2026)
+
+### Upstream Bug Fixes (P0 — action required for ToadStool)
+
+| Bug | File | Fix | Impact |
+|-----|------|-----|--------|
+| `Tensor::mean()` crash | `ops/mean.rs` | `entry_point: "main"` → `"mean_reduce"`, single-f32 readback, remove double-divide | Any caller of `Tensor::mean()` |
+| Chi-squared precision | validator-side only | Updated expected values to full precision | Documentation quality |
+
+### Multi-GPU Validation
+
+| GPU | Driver | Architecture | Result |
+|-----|--------|-------------|--------|
+| RTX 4070 | NVIDIA proprietary | Ada Lovelace | **131/131 PASS** |
+| TITAN V | NVK open-source | Volta (GV100) | **143+ PASS** |
+
+All results **bit-identical** across driver stacks. WGSL shaders are fully portable.
+
+### New Validators (4 files)
+
+| Validator | Checks | Absorption Relevance |
+|-----------|--------|---------------------|
+| `validate_gpu_pipeline_wright_fisher` | 4/4 | Chains `wright_fisher_step.wgsl` → `mean_reduce.wgsl` in single encoder |
+| `validate_gpu_pipeline_gillespie` | 6/6 | Chains `GillespieGpu` output → `mean_reduce.wgsl` |
+| `validate_barracuda_gpu_lenet` | 8/8 | First exercise of `Tensor::conv2d()` + `Tensor::maxpool2d()` |
+| `validate_barracuda_transformer` | 12/12 | Full transformer layer via Tensor API; found global-only softmax behavior |
+
+### Tensor API Findings for ToadStool
+
+| Finding | Recommendation |
+|---------|----------------|
+| `Tensor::softmax()` is global (all elements), not row-wise | Add `Tensor::softmax_dim(axis)` or document that row-wise requires `ScaledDotProductAttention` |
+| `Tensor::mean()` was broken (wrong entry point + double-divide) | Already fixed locally; needs upstream merge |
+| No fused `Tensor::layer_norm()` method | Shader exists but no Tensor API method |
+
+### Performance Data for ToadStool Optimization
+
+Pure Rust is 178.5× faster than single-thread Python/NumPy. Exception: dense matmul
+(commutator 64×64) where NumPy BLAS is 2.5× faster. Opportunity for BarraCUDA's CPU
+matmul to adopt tiling/SIMD techniques from `whitePaper/BARRACUDA_EVOLUTION.md`.
+
+### NVK Compatibility for ToadStool CI
+
+NVK handles all 21 neuralSpring WGSL shaders without modification on Volta hardware.
+Consider adding NVK to ToadStool CI for open-source driver compatibility testing.
+
+---
+
+## Sessions 45–46 — Pure GPU Promotion (Phase A+B)
+
+### What Changed
+
+neuralSpring created `gpu_ops.rs` and `gpu_dispatch.rs` — a capability-based
+runtime dispatch layer that routes 38 previously CPU-bound operations to GPU
+via the BarraCUDA `Tensor` API. The `Dispatcher` detects GPU availability at
+construction and falls back to CPU when hardware is unavailable.
+
+### Tensor API Learnings for ToadStool
+
+| Finding | Impact | Recommendation |
+|---------|--------|----------------|
+| `matmul`, `softmax`, `sigmoid`, `gelu_wgsl`, `log_wgsl`, `exp_wgsl`, `sqrt_wgsl`, `broadcast` consume `self` | Requires cloning or careful ownership chains | Document consuming vs borrowing methods in Tensor API docs |
+| `max_dim` returns values only, no argmax indices | Viterbi requires CPU argmax after GPU max | Add `argmax_dim()` to Tensor API |
+| `x^n` via `exp(n * ln(x))` is numerically stable with guard | Good pattern for GPU power functions | Consider `Tensor::pow_scalar()` method |
+| 2×2 GEMV works through `matmul` with `[1,2] × [2,2]` | Correct but dispatch overhead dominates at small sizes | Fused elementwise-matmul for small matrices |
+| Column sum via `sum_dim(0)` works for allele frequencies | Clean API for reductions along arbitrary dimension | Already good |
+| `broadcast` + `add` for outer-product-like patterns | Viterbi score matrix construction works | Already good |
+| Global `softmax` vs per-row softmax remains | Attention still needs `ScaledDotProductAttention` | Add `softmax_dim(axis)` |
+
+### GPU-Promoted Operations (38 total)
+
+**Phase A (27 ops, Session 45):**
+matmul, transpose, frobenius_norm, softmax, l2_distance, pearson_correlation,
+variance, mean, neural_forward, hmm_forward_step, rk4_step, fitness_evaluation,
+diversity_metrics, tree_distance, logsumexp, log_likelihood, pca_project,
+chi_squared, hamming_distance, jaccard_similarity, batch_fitness, locus_variance,
+spatial_payoff, geographic_distances, pairwise_distances, and more.
+
+**Phase B (11 ops, Session 46):**
+hmm_backward_step, hmm_viterbi_step, allele_frequencies, nucleotide_diversity,
+matrix_correlation, geographic_distance_matrix, thermal_diversity_correlation,
+inter_population_af_variance, replicator_step, hill_activation_batch.
+
+### Remaining CPU-Only (~10% of production math)
+
+| Operation | Why CPU-Only | Absorption Path |
+|-----------|-------------|----------------|
+| Full ODE loops (`integrate_ode`, `integrate_grn`) | Sequential time-stepping with state dependency | `StatefulPipeline` + GPU PRNG for stochastic terms |
+| FST variance decomposition | Multi-step between/within variance | Custom `fst_decompose.wgsl` shader |
+| Introgression HMM chain | Full forward → backward → Viterbi sequence | Compose `hmm_forward_step` + `hmm_backward_step` + `hmm_viterbi_step` |
+| Viterbi argmax | `max_dim` returns values only | Needs `argmax_dim()` in Tensor API |
+
+### Validation
+
+| Validator | Checks | Hardware |
+|-----------|--------|----------|
+| `validate_gpu_promotion` | **27/27 PASS** | RTX 4070 + TITAN V NVK |
+| `validate_gpu_phase_b` | **20/20 PASS** | RTX 4070 + TITAN V NVK |
+| `validate_all` | **133/133 PASS** | RTX 4070 |

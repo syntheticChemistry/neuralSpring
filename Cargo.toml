@@ -592,7 +592,31 @@ path = "src/bin/validate_gpu_pipeline_regulatory.rs"
 name = "validate_gpu_pipeline_meta_pop"
 path = "src/bin/validate_gpu_pipeline_meta_pop.rs"
 
+[[bin]]
+name = "validate_gpu_pipeline_wright_fisher"
+path = "src/bin/validate_gpu_pipeline_wright_fisher.rs"
+
+[[bin]]
+name = "validate_gpu_pipeline_gillespie"
+path = "src/bin/validate_gpu_pipeline_gillespie.rs"
+
+[[bin]]
+name = "validate_barracuda_gpu_lenet"
+path = "src/bin/validate_barracuda_gpu_lenet.rs"
+
+[[bin]]
+name = "validate_barracuda_transformer"
+path = "src/bin/validate_barracuda_transformer.rs"
+
 # --- Meta ---
+
+[[bin]]
+name = "validate_gpu_promotion"
+path = "src/bin/validate_gpu_promotion.rs"
+
+[[bin]]
+name = "validate_gpu_phase_b"
+path = "src/bin/validate_gpu_phase_b.rs"
 
 [[bin]]
 name = "validate_all"

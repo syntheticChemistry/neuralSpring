@@ -17,11 +17,7 @@
 //! Python baseline: `control/regulatory_network/regulatory_network.py`
 //! Rust baseline: `validate_regulatory_network` (7/7 PASS)
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::regulatory_network::{
     env_params, integrate_grn, phenotype_classifier, shannon_diversity, GrnParams,

@@ -17,11 +17,7 @@
 //! Python baseline: `control/modes/modes_toolbox.py`
 //! Rust baseline: `validate_modes`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::similar_names
-)]
+#![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
 use neural_spring::modes::{complexity_metric, score_system};
 use neural_spring::tolerances;

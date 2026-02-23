@@ -24,7 +24,6 @@
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
-    clippy::expect_used,
     clippy::too_many_lines,
     clippy::needless_range_loop
 )]
@@ -36,11 +35,18 @@ use barracuda::ops::bio::{
 };
 use barracuda::spectral::BatchIprGpu;
 use bytemuck::{Pod, Zeroable};
+use neural_spring::bench::BenchResult;
+use neural_spring::bench::{
+    self, alloc_f32, bind_entry as be, buf_desc, create_pipeline, BindingKind, DispatchParams,
+};
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
 use wgpu::util::DeviceExt;
+
+const SR: BindingKind = BindingKind::StorageRead;
+const SW: BindingKind = BindingKind::StorageWrite;
+const UNI: BindingKind = BindingKind::Uniform;
 
 const WARMUP: usize = 10;
 const ITERATIONS: usize = 100;
@@ -80,14 +86,7 @@ async fn main() {
         bench_swarm_nn(&gpu),
     ];
 
-    print_summary(&results);
-}
-
-struct BenchResult {
-    name: String,
-    origin: &'static str,
-    local_us: f64,
-    upstream_us: f64,
+    bench::print_summary(&results);
 }
 
 // ─── Batch Fitness ───────────────────────────────────────────────────
@@ -142,20 +141,24 @@ fn bench_fitness(gpu: &Gpu) -> BenchResult {
         ],
     });
     let wg = pop_size.div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &fit_buf,
-        readback_count: pop_size as usize,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &fit_buf,
+            readback_count: pop_size as usize,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     // Upstream dispatch
     let op = BatchFitnessGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, pop_size as usize);
         op.dispatch(&pop_buf, &wt_buf, &out, pop_size, genome_len);
         gpu.read_buffer_f32(&out, pop_size as usize).ok();
@@ -208,19 +211,23 @@ fn bench_hamming(gpu: &Gpu) -> BenchResult {
         entries: &[be(0, &seq_buf), be(1, &dist_buf), be(2, &params_buf)],
     });
     let wg = (n_pairs as u32).div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &dist_buf,
-        readback_count: n_pairs,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &dist_buf,
+            readback_count: n_pairs,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = PairwiseHammingGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_pairs);
         op.dispatch(&seq_buf, &out, n_seqs, seq_len);
         gpu.read_buffer_f32(&out, n_pairs).ok();
@@ -275,19 +282,23 @@ fn bench_jaccard(gpu: &Gpu) -> BenchResult {
         entries: &[be(0, &pa_buf), be(1, &dist_buf), be(2, &params_buf)],
     });
     let wg = (n_pairs as u32).div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &dist_buf,
-        readback_count: n_pairs,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &dist_buf,
+            readback_count: n_pairs,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = PairwiseJaccardGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_pairs);
         op.dispatch(&pa_buf, &out, n_genomes, n_genes);
         gpu.read_buffer_f32(&out, n_pairs).ok();
@@ -340,19 +351,23 @@ fn bench_locus_var(gpu: &Gpu) -> BenchResult {
         entries: &[be(0, &freq_buf), be(1, &var_buf), be(2, &params_buf)],
     });
     let wg = n_loci.div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &var_buf,
-        readback_count: n_loci as usize,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &var_buf,
+            readback_count: n_loci as usize,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = LocusVarianceGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_loci as usize);
         op.dispatch(&freq_buf, &out, n_pops, n_loci);
         gpu.read_buffer_f32(&out, n_loci as usize).ok();
@@ -413,19 +428,23 @@ fn bench_spatial(gpu: &Gpu) -> BenchResult {
         entries: &[be(0, &grid_buf), be(1, &fit_buf), be(2, &params_buf)],
     });
     let wg = (grid_size * grid_size).div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &fit_buf,
-        readback_count: n_cells,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &fit_buf,
+            readback_count: n_cells,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = SpatialPayoffGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_cells);
         op.dispatch(&grid_buf, &out, grid_size, 3.0, 1.0);
         gpu.read_buffer_f32(&out, n_cells).ok();
@@ -477,19 +496,23 @@ fn bench_ipr(gpu: &Gpu) -> BenchResult {
         entries: &[be(0, &ev_buf), be(1, &ipr_buf), be(2, &params_buf)],
     });
     let wg = n_vectors.div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &ipr_buf,
-        readback_count: n_vectors as usize,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &ipr_buf,
+            readback_count: n_vectors as usize,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = BatchIprGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_vectors as usize);
         op.dispatch(&ev_buf, &out, dim, n_vectors);
         gpu.read_buffer_f32(&out, n_vectors as usize).ok();
@@ -568,19 +591,23 @@ fn bench_hill_gate(gpu: &Gpu) -> BenchResult {
         ],
     });
     let wg = (nx * ny).div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &out_buf,
-        readback_count: n_total,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &out_buf,
+            readback_count: n_total,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = HillGateGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_total);
         op.dispatch(
             &cdg_buf,
@@ -662,19 +689,23 @@ fn bench_multi_obj(gpu: &Gpu) -> BenchResult {
         entries: &[be(0, &gen_buf), be(1, &fit_buf), be(2, &params_buf)],
     });
     let wg = (pop_size * n_objectives).div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &fit_buf,
-        readback_count: n_fitness,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &fit_buf,
+            readback_count: n_fitness,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = MultiObjFitnessGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_fitness);
         op.dispatch(&gen_buf, &out, pop_size, genome_len, n_objectives);
         gpu.read_buffer_f32(&out, n_fitness).ok();
@@ -728,19 +759,23 @@ fn bench_pairwise_l2(gpu: &Gpu) -> BenchResult {
         entries: &[be(0, &feat_buf), be(1, &dist_buf), be(2, &params_buf)],
     });
     let wg = (n_pairs as u32).div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &dist_buf,
-        readback_count: n_pairs,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &dist_buf,
+            readback_count: n_pairs,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = PairwiseL2Gpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_pairs);
         op.dispatch(&feat_buf, &out, n, dim);
         gpu.read_buffer_f32(&out, n_pairs).ok();
@@ -810,19 +845,23 @@ fn bench_swarm_nn(gpu: &Gpu) -> BenchResult {
         ],
     });
     let wg = (n_controllers * n_evals).div_ceil(256);
-    let local_us = time_dispatch(&DispatchParams {
-        device,
-        queue,
-        gpu,
-        pipeline: &pipeline,
-        bg: &bg,
-        workgroups: wg,
-        readback_buf: &act_buf,
-        readback_count: n_total,
-    });
+    let local_us = bench::time_dispatch(
+        &DispatchParams {
+            device,
+            queue,
+            gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: wg,
+            readback_buf: &act_buf,
+            readback_count: n_total,
+        },
+        WARMUP,
+        ITERATIONS,
+    );
 
     let op = SwarmNnGpu::new(Arc::clone(gpu.wgpu_device()));
-    let upstream_us = time_upstream(gpu, WARMUP, ITERATIONS, || {
+    let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_total);
         op.dispatch(
             &wt_buf,
@@ -848,192 +887,4 @@ fn bench_swarm_nn(gpu: &Gpu) -> BenchResult {
         local_us,
         upstream_us,
     }
-}
-
-// ─── Timing Helpers ──────────────────────────────────────────────────
-
-struct DispatchParams<'a> {
-    device: &'a wgpu::Device,
-    queue: &'a wgpu::Queue,
-    gpu: &'a Gpu,
-    pipeline: &'a wgpu::ComputePipeline,
-    bg: &'a wgpu::BindGroup,
-    workgroups: u32,
-    readback_buf: &'a wgpu::Buffer,
-    readback_count: usize,
-}
-
-fn time_dispatch(params: &DispatchParams<'_>) -> f64 {
-    for _ in 0..WARMUP {
-        dispatch_once(params);
-    }
-    let mut timings = Vec::with_capacity(ITERATIONS);
-    for _ in 0..ITERATIONS {
-        let start = Instant::now();
-        dispatch_once(params);
-        timings.push(start.elapsed());
-    }
-    median_us(&timings)
-}
-
-fn dispatch_once(params: &DispatchParams<'_>) {
-    let mut enc = params
-        .device
-        .create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
-    {
-        let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
-        pass.set_pipeline(params.pipeline);
-        pass.set_bind_group(0, params.bg, &[]);
-        pass.dispatch_workgroups(params.workgroups, 1, 1);
-    }
-    params.queue.submit(std::iter::once(enc.finish()));
-    let _ = params
-        .gpu
-        .read_buffer_f32(params.readback_buf, params.readback_count);
-}
-
-fn time_upstream<F: FnMut()>(gpu: &Gpu, warmup: usize, iters: usize, mut f: F) -> f64 {
-    let _ = gpu;
-    for _ in 0..warmup {
-        f();
-    }
-    let mut timings = Vec::with_capacity(iters);
-    for _ in 0..iters {
-        let start = Instant::now();
-        f();
-        timings.push(start.elapsed());
-    }
-    median_us(&timings)
-}
-
-fn median_us(timings: &[Duration]) -> f64 {
-    let mut sorted: Vec<f64> = timings
-        .iter()
-        .map(|d| d.as_nanos() as f64 / 1000.0)
-        .collect();
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    sorted[sorted.len() / 2]
-}
-
-fn print_summary(results: &[BenchResult]) {
-    eprintln!();
-    eprintln!("╔════════════════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!(
-        "║  LOCAL vs UPSTREAM — Same Shaders, Different Dispatch Paths                           ║"
-    );
-    eprintln!("╚════════════════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!(
-        "{:<35} {:>30} {:>10} {:>10} {:>10}",
-        "Kernel", "Origin", "Local µs", "Upstr µs", "Ratio"
-    );
-    eprintln!("{}", "─".repeat(99));
-    for r in results {
-        let ratio = r.upstream_us / r.local_us;
-        let marker = if ratio < 1.1 {
-            "≈"
-        } else if ratio > 1.5 {
-            "⚠"
-        } else {
-            "~"
-        };
-        eprintln!(
-            "{:<35} {:>30} {:>10.1} {:>10.1} {:>8.2}× {marker}",
-            r.name, r.origin, r.local_us, r.upstream_us, ratio
-        );
-    }
-    eprintln!("{}", "─".repeat(99));
-    eprintln!("≈ = negligible overhead, ~ = minor overhead, ⚠ = investigate");
-    eprintln!(
-        "Upstream wrappers re-create params buffer per dispatch (expected ~0.5-1µs overhead)."
-    );
-}
-
-// ─── Buffer / Pipeline Helpers ───────────────────────────────────────
-
-fn alloc_f32(device: &wgpu::Device, count: usize) -> wgpu::Buffer {
-    device.create_buffer(&wgpu::BufferDescriptor {
-        label: None,
-        size: (count * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    })
-}
-
-fn buf_desc<'a, T: Pod>(
-    label: &'a str,
-    data: &'a [T],
-    usage: wgpu::BufferUsages,
-) -> wgpu::util::BufferInitDescriptor<'a> {
-    wgpu::util::BufferInitDescriptor {
-        label: Some(label),
-        contents: bytemuck::cast_slice(data),
-        usage,
-    }
-}
-
-fn be(binding: u32, buf: &wgpu::Buffer) -> wgpu::BindGroupEntry<'_> {
-    wgpu::BindGroupEntry {
-        binding,
-        resource: buf.as_entire_binding(),
-    }
-}
-
-const SR: BK = BK::SR;
-const SW: BK = BK::SW;
-const UNI: BK = BK::Uni;
-
-#[derive(Copy, Clone)]
-enum BK {
-    SR,
-    SW,
-    Uni,
-}
-
-fn create_pipeline(
-    device: &wgpu::Device,
-    shader: &wgpu::ShaderModule,
-    entry: &str,
-    bindings: &[BK],
-) -> (wgpu::ComputePipeline, wgpu::BindGroupLayout) {
-    let entries: Vec<wgpu::BindGroupLayoutEntry> = bindings
-        .iter()
-        .enumerate()
-        .map(|(i, k)| {
-            let (ty, ro) = match k {
-                BK::SR => (wgpu::BufferBindingType::Storage { read_only: true }, true),
-                BK::SW => (wgpu::BufferBindingType::Storage { read_only: false }, false),
-                BK::Uni => (wgpu::BufferBindingType::Uniform, true),
-            };
-            let _ = ro;
-            wgpu::BindGroupLayoutEntry {
-                binding: i as u32,
-                visibility: wgpu::ShaderStages::COMPUTE,
-                ty: wgpu::BindingType::Buffer {
-                    ty,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }
-        })
-        .collect();
-    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: None,
-        entries: &entries,
-    });
-    let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: None,
-        bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
-    });
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: None,
-        layout: Some(&pl),
-        module: shader,
-        entry_point: entry,
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-    (pipeline, bgl)
 }

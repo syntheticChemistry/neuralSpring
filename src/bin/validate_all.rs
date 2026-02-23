@@ -156,6 +156,15 @@ const BINARIES: &[&str] = &[
     "validate_cpu_gpu_parity",
     "validate_toadstool_dispatch",
     "validate_mixed_dispatch",
+    // Session 44: stochastic GPU pipelines + gap closure
+    "validate_gpu_pipeline_wright_fisher",
+    "validate_gpu_pipeline_gillespie",
+    "validate_barracuda_gpu_lenet",
+    "validate_barracuda_transformer",
+    // Session 45: GPU promotion — all CPU math → GPU dispatch
+    "validate_gpu_promotion",
+    // Session 46: Phase B — HMM backward/Viterbi, meta-pop, game theory, Hill GPU
+    "validate_gpu_phase_b",
 ];
 
 fn main() {

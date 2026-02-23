@@ -25,7 +25,6 @@
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
-    clippy::expect_used,
     clippy::similar_names,
     clippy::many_single_char_names,
     clippy::needless_range_loop

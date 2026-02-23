@@ -138,14 +138,14 @@ fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
         env!("CARGO_MANIFEST_DIR"),
         "/control/ml_inference/mlp_baseline.json"
     );
-    let data = match std::fs::read_to_string(path) {
-        Ok(d) => d,
+    let file = match std::fs::File::open(path) {
+        Ok(f) => f,
         Err(e) => {
             h.check_bool(&format!("MLP baseline load [{e}]"), false);
             return;
         }
     };
-    let baseline: MlpBaseline = match serde_json::from_str(&data) {
+    let baseline: MlpBaseline = match serde_json::from_reader(std::io::BufReader::new(file)) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool(&format!("MLP baseline parse [{e}]"), false);
@@ -248,14 +248,15 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
         env!("CARGO_MANIFEST_DIR"),
         "/control/ml_inference/transformer_baseline.json"
     );
-    let data = match std::fs::read_to_string(path) {
-        Ok(d) => d,
+    let file = match std::fs::File::open(path) {
+        Ok(f) => f,
         Err(e) => {
             h.check_bool(&format!("Transformer baseline load [{e}]"), false);
             return;
         }
     };
-    let baseline: TransformerBaseline = match serde_json::from_str(&data) {
+    let baseline: TransformerBaseline = match serde_json::from_reader(std::io::BufReader::new(file))
+    {
         Ok(b) => b,
         Err(e) => {
             h.check_bool(&format!("Transformer baseline parse [{e}]"), false);

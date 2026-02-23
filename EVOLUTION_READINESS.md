@@ -1,27 +1,30 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 22, 2026 (post-Sessions 40, 42, 43)
-**ToadStool HEAD**: `5437c170` (Session 42+43)
-**Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → ToadStool absorption → lean on upstream
+**Date**: February 23, 2026 (post-Sessions 40, 42, 43, 44, 45, 46)
+**ToadStool HEAD**: `5437c170` (Session 42+43) + 2 upstream fixes (Session 44)
+**Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Multi-GPU → ToadStool absorption → lean on upstream
+**Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
 ---
 
 ## Quick Status
 
-31 Rust modules cover all 25 papers + 5 Phase 0/0+ studies. 127 validation binaries
-span 8 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC), GPU Tensor (gT),
-metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD), and Mixed-hardware (mH).
+31 Rust modules cover all 25 papers + 5 Phase 0/0+ studies. 132 validation binaries
+span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC), GPU Tensor (gT),
+metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD), Mixed-hardware (mH),
+and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 264 lib + 9 integration + 26 forge tests, 31 modules, 127 binaries | **COMPLETE** |
+| Rust native validation | 264 lib + 9 integration + 26 forge tests, 31 modules, 132 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
-| metalForge WGSL (mF) | 14/25 papers (56%) | **ALL PASS** |
-| GPU Pipeline (gP) | 7/25 papers (28%) | **ALL PASS** |
+| metalForge WGSL (mF) | 15/25 papers (60%) | **ALL PASS** |
+| GPU Pipeline (gP) | 9/25 papers (36%) | **ALL PASS** |
 | Cross-dispatch (xD) | **15/15** Phase 0++ papers (100%) | **ALL GREEN** |
+| Multi-GPU validation | RTX 4070 + TITAN V (NVK) | **Bit-identical** |
 | GPU shader validation | 126/126 (21 WGSL shaders) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
 | ToadStool shortcomings absorbed | 12/12 (S-01..S-12) | **ALL ABSORBED** |
@@ -44,8 +47,18 @@ metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD), and Mixed-hardware
 | Session 43: CPU vs GPU parity | Tensor API: MatMul, ReLU, Sigmoid, Tanh, Sum, erf, gamma, conv, pool | **17/17 PASS** |
 | Session 43: dispatch routing | metalForge substrate heuristics (8 domains) | **16/16 PASS** |
 | Session 43: mixed-hardware | MixedSubstrate, TransferCost, PcieBridge, cost model | **16/16 PASS** |
+| Session 44: multi-GPU | RTX 4070 + TITAN V (NVK GV100): 131/131 PASS | **ALL GREEN** |
+| Session 45: GPU promotion (Phase A) | `validate_gpu_promotion` 27/27 PASS (RTX 4070 + TITAN V NVK) | **ALL GREEN** |
+| Session 46: GPU promotion (Phase B) | `validate_gpu_phase_b` 20/20 PASS (RTX 4070 + TITAN V NVK) | **ALL GREEN** |
+| Session 44: stochastic pipelines | WF→reduce + Gillespie→reduce (zero CPU round-trips) | **10/10 PASS** |
+| Session 44: Conv2d/MaxPool GPU | `Tensor::conv2d` + `Tensor::maxpool2d` WGSL shaders | **8/8 PASS** |
+| Session 44: transformer bC | Full layer: Q/K/V, attention, FFN, residual, softmax | **12/12 PASS** |
+| Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
+| Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| Grand total checks | **1710+** (206 Py + 1504+ Rust/GPU) | **ALL GREEN** |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 38 promoted ops (Phase A+B) | **133 binaries** |
+| `validate_all` | **133/133 PASS** (RTX 4070) + TITAN V NVK | **ALL GREEN** |
+| Grand total checks | **1800+** (206 Py + 1600+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
