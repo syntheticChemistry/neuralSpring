@@ -10,27 +10,35 @@
 //! Expected values: analytical (textbook linear algebra).
 //! Cross-validated against `NumPy` 1.26 / `SciPy` 1.15.3.
 
+use barracuda::device::WgpuDevice;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 
 fn main() {
+    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let device = rt
+        .block_on(async { WgpuDevice::new().await })
+        .map(Arc::new)
+        .expect("GPU device");
+
     let mut h = ValidationHarness::new("barracuda_linalg");
 
-    validate_solve(&mut h);
+    validate_solve(&mut h, &device);
     validate_lu(&mut h);
     validate_eigh(&mut h);
-    validate_cholesky(&mut h);
+    validate_cholesky(&mut h, &device);
     validate_tridiagonal(&mut h);
 
     h.finish();
 }
 
-fn validate_solve(h: &mut ValidationHarness) {
+fn validate_solve(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let a = vec![2.0, 1.0, 1.0, 3.0];
     let b = vec![5.0, 8.0];
 
     // A = [[2, 1], [1, 3]], b = [5, 8] => x = [7/5, 11/5] = [1.4, 2.2]
-    match barracuda::linalg::solve_f64(&a, &b, 2) {
+    match barracuda::linalg::solve_f64(device.clone(), &a, &b, 2) {
         Ok(x) => {
             h.check_abs("solve x[0] == 1.4", x[0], 1.4, tolerances::CROSS_LANGUAGE);
             h.check_abs("solve x[1] == 2.2", x[1], 2.2, tolerances::CROSS_LANGUAGE);
@@ -41,7 +49,7 @@ fn validate_solve(h: &mut ValidationHarness) {
     // 3x3 identity => x = b
     let eye3 = vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
     let b3 = vec![3.0, 7.0, 11.0];
-    match barracuda::linalg::solve_f64(&eye3, &b3, 3) {
+    match barracuda::linalg::solve_f64(device.clone(), &eye3, &b3, 3) {
         Ok(x) => {
             h.check_abs("solve(I,b)[0] == 3", x[0], 3.0, tolerances::EXACT_F64);
             h.check_abs("solve(I,b)[1] == 7", x[1], 7.0, tolerances::EXACT_F64);
@@ -99,10 +107,10 @@ fn validate_eigh(h: &mut ValidationHarness) {
     }
 }
 
-fn validate_cholesky(h: &mut ValidationHarness) {
+fn validate_cholesky(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     // A = [[4, 2], [2, 5]] => L = [[2, 0], [1, 2]]
     let spd = vec![4.0, 2.0, 2.0, 5.0];
-    match barracuda::linalg::cholesky_f64(&spd, 2) {
+    match barracuda::linalg::cholesky_f64(device.clone(), &spd, 2) {
         Ok(chol) => {
             h.check_abs("chol L[0,0]==2", chol.l[0], 2.0, tolerances::CROSS_LANGUAGE);
             h.check_abs("chol L[1,0]==1", chol.l[2], 1.0, tolerances::CROSS_LANGUAGE);

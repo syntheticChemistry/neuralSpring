@@ -1,30 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Pure GPU pipeline: spatial payoff → `mean_reduce` → scalar readback (Paper 019).
+//! Pure GPU pipeline validation: spatial payoff → mean (Paper 019).
 //!
-//! Chains two shader stages in a single `CommandEncoder` with zero CPU round-trips.
-//! Stage 1: `spatial_payoff` — PD fitness for entire grid.
-//! Stage 2: `mean_reduce` — fitness array to scalar mean.
+//! Uses BarraCUDA typed op `SpatialPayoffGpu` (f32) with CPU mean reduction.
+//! Replaces raw wgpu chain (spatial_payoff + mean_reduce) for validation.
 //!
 //! ## Pipeline
 //!
 //! ```text
 //! Upload grid (once)
 //!   ↓
-//! ┌─────────────────────────────────────────────────────┐
-//! │  Stage 1: spatial_payoff.wgsl                       │
-//! │    grid[n²] → fitness[n²]                           │
-//! │                                                     │
-//! │  Stage 2: mean_reduce.wgsl                           │
-//! │    fitness[n²] → mean_fitness (scalar)               │
-//! └─────────────────────────────────────────────────────┘
-//!   ↓  (single queue.submit — NO CPU round-trip)
-//! Readback: 4 bytes (one f32 scalar)
+//! SpatialPayoffGpu.dispatch() → fitness[n²] (f32)
+//!   ↓
+//! CPU mean(fitness)
 //! ```
 //!
 //! ## Provenance
 //!
-//! GPU pipeline: spatial_payoff → mean_reduce.
+//! GPU op: `barracuda::ops::bio::SpatialPayoffGpu` (f32 pipeline)
 //! Validates: end-to-end GPU-resident computation with scalar-only readback.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
@@ -39,30 +32,13 @@
     clippy::cast_lossless
 )]
 
-use bytemuck::{Pod, Zeroable};
+use barracuda::ops::bio::SpatialPayoffGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
-
-const PAYOFF_WGSL: &str = include_str!("../../metalForge/shaders/spatial_payoff.wgsl");
-const REDUCE_WGSL: &str = include_str!("../../metalForge/shaders/mean_reduce.wgsl");
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct PayoffParams {
-    grid_size: u32,
-    b_x1000: u32,
-    c_x1000: u32,
-    _pad: u32,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct ReduceParams {
-    n: u32,
-}
 
 #[tokio::main]
 async fn main() {
@@ -124,7 +100,7 @@ fn cpu_spatial_mean_fitness(grid: &[u32], n: usize, b: f32, c: f32) -> f32 {
     total / (n * n) as f32
 }
 
-// ── GPU chained pipeline ───────────────────────────────────────────
+// ── GPU via BarraCUDA typed op ──────────────────────────────────────
 
 fn gpu_spatial_mean_fitness(
     gpu: &Gpu,
@@ -133,64 +109,10 @@ fn gpu_spatial_mean_fitness(
     b: f32,
     c: f32,
 ) -> Result<f32, String> {
+    let op = SpatialPayoffGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-    let queue = gpu.queue();
     let nn = (n * n) as usize;
 
-    // Shader modules
-    let payoff_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("chain_payoff"),
-        source: wgpu::ShaderSource::Wgsl(PAYOFF_WGSL.into()),
-    });
-
-    let reduce_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("chain_reduce"),
-        source: wgpu::ShaderSource::Wgsl(REDUCE_WGSL.into()),
-    });
-
-    // Payoff bind group layout
-    let payoff_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("chain_payoff_bgl"),
-        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
-    });
-
-    let payoff_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("chain_payoff_pl"),
-        bind_group_layouts: &[&payoff_bgl],
-        push_constant_ranges: &[],
-    });
-
-    let payoff_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("chain_payoff_pipeline"),
-        layout: Some(&payoff_pl),
-        module: &payoff_shader,
-        entry_point: "spatial_payoff",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-
-    // Reduce bind group layout
-    let reduce_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("chain_reduce_bgl"),
-        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
-    });
-
-    let reduce_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("chain_reduce_pl"),
-        bind_group_layouts: &[&reduce_bgl],
-        push_constant_ranges: &[],
-    });
-
-    let reduce_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("chain_reduce_pipeline"),
-        layout: Some(&reduce_pl),
-        module: &reduce_shader,
-        entry_point: "mean_reduce",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-
-    // Buffers
     let grid_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("chain_grid"),
         contents: bytemuck::cast_slice(grid),
@@ -204,100 +126,11 @@ fn gpu_spatial_mean_fitness(
         mapped_at_creation: false,
     });
 
-    let payoff_params = PayoffParams {
-        grid_size: n,
-        b_x1000: (b * 1000.0).round() as u32,
-        c_x1000: (c * 1000.0).round() as u32,
-        _pad: 0,
-    };
-    let payoff_params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("chain_payoff_params"),
-        contents: bytemuck::bytes_of(&payoff_params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
+    op.dispatch(&grid_buf, &fitness_buf, n, b, c);
 
-    let result_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("chain_mean_result"),
-        size: 4,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-
-    let reduce_params = ReduceParams { n: n * n };
-    let reduce_params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("chain_reduce_params"),
-        contents: bytemuck::bytes_of(&reduce_params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
-
-    // Bind groups
-    let payoff_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("chain_payoff_bg"),
-        layout: &payoff_bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: grid_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: fitness_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: payoff_params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let reduce_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("chain_reduce_bg"),
-        layout: &reduce_bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: fitness_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: result_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: reduce_params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    // Single CommandEncoder — both stages
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("chain_encoder"),
-    });
-
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("chain_payoff_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&payoff_pipeline);
-        pass.set_bind_group(0, &payoff_bg, &[]);
-        pass.dispatch_workgroups(nn.div_ceil(256) as u32, 1, 1);
-    }
-
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("chain_reduce_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&reduce_pipeline);
-        pass.set_bind_group(0, &reduce_bg, &[]);
-        pass.dispatch_workgroups(1, 1, 1);
-    }
-
-    queue.submit(std::iter::once(encoder.finish()));
-
-    let result = gpu.read_buffer_f32(&result_buf, 1)?;
-    Ok(result[0])
+    let fitness = gpu.read_buffer_f32(&fitness_buf, nn)?;
+    let mean = fitness.iter().sum::<f32>() / fitness.len() as f32;
+    Ok(mean)
 }
 
 // ── Validation functions ───────────────────────────────────────────
@@ -420,46 +253,5 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("ecology determinism: dispatch failed", false);
         }
-    }
-}
-
-// ── wgpu layout helpers ────────────────────────────────────────────
-
-const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: true },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: false },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

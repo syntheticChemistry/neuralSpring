@@ -7,7 +7,7 @@
 //! against the CPU reference within documented tolerance.
 //!
 //! Coverage:
-//! - Linear algebra: matmul, transpose, frobenius_norm, commutator, distance_to_normal
+//! - Linear algebra: matmul, transpose, `frobenius_norm`, commutator, `distance_to_normal`
 //! - Activations: softmax, boltzmann, GELU
 //! - Reductions: mean, sum, max, variance
 //! - Statistics: L2 distance, Shannon entropy, Pearson correlation, chi-squared

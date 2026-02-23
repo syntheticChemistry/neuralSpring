@@ -1,31 +1,28 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Pure GPU pipeline: swarm_nn_scores → `mean_reduce` → scalar readback (Paper 015).
+//! GPU pipeline validation: swarm_nn_scores (local shader) + CPU mean (Paper 015).
 //!
-//! Chains two shader stages in a single `CommandEncoder` with zero CPU round-trips.
-//! Stage 1: `swarm_nn_forward_scores` — max output activation per (controller, eval).
-//! Stage 2: `mean_reduce` — scores array to scalar mean.
+//! `swarm_nn_scores.wgsl` outputs f32 scores (max activation per controller/eval);
+//! BarraCUDA `SwarmNnGpu` maps to `swarm_nn_forward` (u32 actions), not scores.
+//! Keeps local shader via `include_str!` for the scores variant.
+//!
+//! Stage 1: swarm_nn_forward_scores → scores[n_controllers × n_evals].
+//! Stage 2: CPU mean over scores (no mean_reduce shader).
 //!
 //! ## Pipeline
 //!
 //! ```text
 //! Upload params + inputs (once)
 //!   ↓
-//! ┌─────────────────────────────────────────────────────┐
-//! │  Stage 1: swarm_nn_scores.wgsl                      │
-//! │    NN forward → scores[n_controllers × n_evals]      │
-//! │                                                     │
-//! │  Stage 2: mean_reduce.wgsl                           │
-//! │    scores[] → mean_score (scalar)                     │
-//! └─────────────────────────────────────────────────────┘
-//!   ↓  (single queue.submit — NO CPU round-trip)
-//! Readback: 4 bytes (one f32 scalar)
+//! swarm_nn_forward_scores (local WGSL) → scores[]
+//!   ↓
+//! CPU mean(scores) → scalar
 //! ```
 //!
 //! ## Provenance
 //!
-//! GPU pipeline: swarm_nn_scores → mean_reduce.
-//! Validates: mean of tanh-like (sigmoid) output activations across swarm controllers.
+//! Shader: local `metalForge/shaders/swarm_nn_scores.wgsl`.
+//! Validates: mean of tanh-like output activations across swarm controllers.
 
 #![allow(
     clippy::cast_precision_loss,
@@ -47,19 +44,12 @@ use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
 const SWARM_WGSL: &str = include_str!("../../metalForge/shaders/swarm_nn_scores.wgsl");
-const REDUCE_WGSL: &str = include_str!("../../metalForge/shaders/mean_reduce.wgsl");
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
 struct SwarmConfig {
     n_controllers: u32,
     n_evals: u32,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct ReduceParams {
-    n: u32,
 }
 
 #[tokio::main]
@@ -111,7 +101,7 @@ fn cpu_mean_swarm_scores(
     total / (n_controllers * n_evals) as f32
 }
 
-// ── GPU chained pipeline ───────────────────────────────────────────
+// ── GPU scores dispatch + CPU mean ──────────────────────────────────
 
 fn gpu_mean_swarm_scores(
     gpu: &Gpu,
@@ -121,17 +111,11 @@ fn gpu_mean_swarm_scores(
     n_evals: u32,
 ) -> Result<f32, String> {
     let device = gpu.device();
-    let queue = gpu.queue();
     let n_total = (n_controllers * n_evals) as usize;
 
     let swarm_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("chain_swarm"),
         source: wgpu::ShaderSource::Wgsl(SWARM_WGSL.into()),
-    });
-
-    let reduce_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("chain_swarm_reduce"),
-        source: wgpu::ShaderSource::Wgsl(REDUCE_WGSL.into()),
     });
 
     let swarm_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -155,26 +139,6 @@ fn gpu_mean_swarm_scores(
         layout: Some(&swarm_pl),
         module: &swarm_shader,
         entry_point: "swarm_nn_forward_scores",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-
-    let reduce_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("chain_swarm_reduce_bgl"),
-        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
-    });
-
-    let reduce_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("chain_swarm_reduce_pl"),
-        bind_group_layouts: &[&reduce_bgl],
-        push_constant_ranges: &[],
-    });
-
-    let reduce_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("chain_swarm_reduce_pipeline"),
-        layout: Some(&reduce_pl),
-        module: &reduce_shader,
-        entry_point: "mean_reduce",
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -208,20 +172,6 @@ fn gpu_mean_swarm_scores(
         usage: wgpu::BufferUsages::UNIFORM,
     });
 
-    let result_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("chain_swarm_mean_result"),
-        size: 4,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-
-    let reduce_params = ReduceParams { n: n_total as u32 };
-    let reduce_params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("chain_swarm_reduce_params"),
-        contents: bytemuck::bytes_of(&reduce_params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
-
     let swarm_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("chain_swarm_bg"),
         layout: &swarm_bgl,
@@ -245,25 +195,6 @@ fn gpu_mean_swarm_scores(
         ],
     });
 
-    let reduce_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("chain_swarm_reduce_bg"),
-        layout: &reduce_bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: scores_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: result_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: reduce_params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
     let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
         label: Some("chain_swarm_encoder"),
     });
@@ -278,20 +209,50 @@ fn gpu_mean_swarm_scores(
         pass.dispatch_workgroups(n_total.div_ceil(256) as u32, 1, 1);
     }
 
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("chain_swarm_reduce_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&reduce_pipeline);
-        pass.set_bind_group(0, &reduce_bg, &[]);
-        pass.dispatch_workgroups(1, 1, 1);
+    gpu.queue().submit(std::iter::once(encoder.finish()));
+
+    let scores = gpu.read_buffer_f32(&scores_buf, n_total)?;
+    let mean = scores.iter().sum::<f32>() / scores.len() as f32;
+    Ok(mean)
+}
+
+const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only: true },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
     }
+}
 
-    queue.submit(std::iter::once(encoder.finish()));
+const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only: false },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
+}
 
-    let result = gpu.read_buffer_f32(&result_buf, 1)?;
-    Ok(result[0])
+const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Uniform,
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
 }
 
 // ── Validation functions ───────────────────────────────────────────
@@ -444,46 +405,5 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("swarm determinism: dispatch failed", false);
         }
-    }
-}
-
-// ── wgpu layout helpers ────────────────────────────────────────────
-
-const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: true },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: false },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

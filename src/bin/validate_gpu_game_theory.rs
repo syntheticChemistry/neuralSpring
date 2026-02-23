@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: spatial PD payoff via `metalForge` WGSL shader.
+//! GPU validation: spatial PD payoff via `BarraCUDA` `SpatialPayoffGpu`.
 //!
-//! Validates `metalForge/shaders/spatial_payoff.wgsl` against CPU PD payoff
-//! stencil from `game_theory.rs`. The GPU shader computes fitness for each
+//! Validates `barracuda::ops::bio::SpatialPayoffGpu` against CPU PD payoff
+//! stencil from `game_theory.rs`. The GPU op computes fitness for each
 //! cell in a 2D grid using Moore neighborhood (8 neighbors) with periodic
 //! boundary.
 //!
@@ -14,7 +14,7 @@
 //! ## Provenance
 //!
 //! CPU reference: `game_theory::spatial_cooperation` (seed=42, 10×10 grid).
-//! WGSL shader: `metalForge/shaders/spatial_payoff.wgsl`
+//! GPU op: `barracuda::ops::bio::SpatialPayoffGpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
@@ -31,8 +31,6 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
-
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/spatial_payoff.wgsl");
 
 #[tokio::main]
 async fn main() {
@@ -51,24 +49,15 @@ async fn main() {
         }
     };
 
+    let op = SpatialPayoffGpu::new(Arc::clone(gpu.wgpu_device()));
     let mut h = ValidationHarness::new("gpu_game_theory");
 
-    validate_small_grid(&mut h, &gpu);
-    validate_larger_grid(&mut h, &gpu);
-    validate_determinism(&mut h, &gpu);
-    validate_all_cooperators(&mut h, &gpu);
-    validate_upstream_parity(&mut h, &gpu);
+    validate_small_grid(&mut h, &gpu, &op);
+    validate_larger_grid(&mut h, &gpu, &op);
+    validate_determinism(&mut h, &gpu, &op);
+    validate_all_cooperators(&mut h, &gpu, &op);
 
     h.finish();
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Params {
-    grid_size: u32,
-    b_x1000: u32,
-    c_x1000: u32,
-    _pad: u32,
 }
 
 /// CPU reference: PD payoff stencil over Moore neighborhood (8 neighbors) with periodic boundary.
@@ -111,42 +100,14 @@ fn cpu_spatial_fitness(grid: &[u32], grid_size: usize, b: f32, c: f32) -> Vec<f3
 
 fn gpu_spatial_payoff(
     gpu: &Gpu,
+    op: &SpatialPayoffGpu,
     grid: &[u32],
     grid_size: u32,
     b: f32,
     c: f32,
 ) -> Result<Vec<f32>, String> {
     let device = gpu.device();
-    let queue = gpu.queue();
-
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("spatial_payoff"),
-        source: wgpu::ShaderSource::Wgsl(WGSL_SOURCE.into()),
-    });
-
-    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("spatial_payoff_bgl"),
-        entries: &[
-            storage_entry(0, true),
-            storage_entry(1, false),
-            uniform_entry(2),
-        ],
-    });
-
-    let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("spatial_payoff_pl"),
-        bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
-    });
-
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("spatial_payoff_pipeline"),
-        layout: Some(&pl),
-        module: &shader,
-        entry_point: "spatial_payoff",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
+    let n_cells = (grid_size * grid_size) as usize;
 
     let grid_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("grid"),
@@ -154,7 +115,6 @@ fn gpu_spatial_payoff(
         usage: wgpu::BufferUsages::STORAGE,
     });
 
-    let n_cells = (grid_size * grid_size) as usize;
     let fitness_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("fitness"),
         size: (n_cells * 4) as u64,
@@ -162,52 +122,7 @@ fn gpu_spatial_payoff(
         mapped_at_creation: false,
     });
 
-    let b_x1000 = (b * 1000.0) as u32;
-    let c_x1000 = (c * 1000.0) as u32;
-    let params = Params {
-        grid_size,
-        b_x1000,
-        c_x1000,
-        _pad: 0,
-    };
-    let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("params"),
-        contents: bytemuck::bytes_of(&params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
-
-    let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("spatial_payoff_bg"),
-        layout: &bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: grid_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: fitness_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("spatial_payoff_encoder"),
-    });
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("spatial_payoff_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(gpu.dispatch_1d(grid_size * grid_size, 256), 1, 1);
-    }
-    queue.submit(std::iter::once(encoder.finish()));
+    op.dispatch(&grid_buf, &fitness_buf, grid_size, b, c);
 
     gpu.read_buffer_f32(&fitness_buf, n_cells)
 }
@@ -219,7 +134,7 @@ fn make_grid(grid_size: usize, seed: u64) -> Vec<u32> {
         .collect()
 }
 
-fn validate_small_grid(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_small_grid(h: &mut ValidationHarness, gpu: &Gpu, op: &SpatialPayoffGpu) {
     let grid_size = 10_usize;
     let seed = 42_u64;
     let b = 3.0_f32;
@@ -228,7 +143,7 @@ fn validate_small_grid(h: &mut ValidationHarness, gpu: &Gpu) {
     let grid = make_grid(grid_size, seed);
     let cpu_fitness = cpu_spatial_fitness(&grid, grid_size, b, c);
 
-    match gpu_spatial_payoff(gpu, &grid, grid_size as u32, b, c) {
+    match gpu_spatial_payoff(gpu, op, &grid, grid_size as u32, b, c) {
         Ok(gpu_fitness) => {
             h.check_bool(
                 &format!("small grid: correct cell count ({})", gpu_fitness.len()),
@@ -253,7 +168,7 @@ fn validate_small_grid(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu, op: &SpatialPayoffGpu) {
     let grid_size = 20_usize;
     let seed = 77_u64;
     let b = 3.0_f32;
@@ -262,7 +177,7 @@ fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu) {
     let grid = make_grid(grid_size, seed);
     let cpu_fitness = cpu_spatial_fitness(&grid, grid_size, b, c);
 
-    match gpu_spatial_payoff(gpu, &grid, grid_size as u32, b, c) {
+    match gpu_spatial_payoff(gpu, op, &grid, grid_size as u32, b, c) {
         Ok(gpu_fitness) => {
             let max_diff: f64 = gpu_fitness
                 .iter()
@@ -285,7 +200,7 @@ fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu, op: &SpatialPayoffGpu) {
     let grid_size = 10_usize;
     let seed = 42_u64;
     let b = 3.0_f32;
@@ -293,8 +208,8 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let grid = make_grid(grid_size, seed);
 
-    let run1 = gpu_spatial_payoff(gpu, &grid, grid_size as u32, b, c);
-    let run2 = gpu_spatial_payoff(gpu, &grid, grid_size as u32, b, c);
+    let run1 = gpu_spatial_payoff(gpu, op, &grid, grid_size as u32, b, c);
+    let run2 = gpu_spatial_payoff(gpu, op, &grid, grid_size as u32, b, c);
 
     match (run1, run2) {
         (Ok(r1), Ok(r2)) => {
@@ -310,7 +225,7 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_all_cooperators(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_all_cooperators(h: &mut ValidationHarness, gpu: &Gpu, op: &SpatialPayoffGpu) {
     let grid_size = 10_usize;
     let b = 3.0_f32;
     let c = 1.0_f32;
@@ -318,7 +233,7 @@ fn validate_all_cooperators(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let grid: Vec<u32> = vec![1; grid_size * grid_size];
 
-    match gpu_spatial_payoff(gpu, &grid, grid_size as u32, b, c) {
+    match gpu_spatial_payoff(gpu, op, &grid, grid_size as u32, b, c) {
         Ok(gpu_fitness) => {
             let max_diff: f64 = gpu_fitness
                 .iter()
@@ -334,75 +249,5 @@ fn validate_all_cooperators(h: &mut ValidationHarness, gpu: &Gpu) {
         Err(e) => {
             h.check_bool(&format!("all cooperators: dispatch failed — {e}"), false);
         }
-    }
-}
-
-#[allow(clippy::many_single_char_names)]
-fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
-    let grid_size = 10_u32;
-    let b = 3.0_f32;
-    let c = 1.0_f32;
-    let grid = make_grid(grid_size as usize, 42);
-    let n_cells = (grid_size * grid_size) as usize;
-
-    let local = gpu_spatial_payoff(gpu, &grid, grid_size, b, c);
-
-    let dev = Arc::clone(gpu.wgpu_device());
-    let device = gpu.device();
-    let op = SpatialPayoffGpu::new(dev);
-    let grid_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("grid"),
-        contents: bytemuck::cast_slice(&grid),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let fit_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("fit"),
-        size: (n_cells * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    op.dispatch(&grid_buf, &fit_buf, grid_size, b, c);
-    let upstream = gpu.read_buffer_f32(&fit_buf, n_cells);
-
-    match (local, upstream) {
-        (Ok(l), Ok(u)) => {
-            let max_diff: f64 = l
-                .iter()
-                .zip(u.iter())
-                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
-                .fold(0.0_f64, f64::max);
-            h.check_upper(
-                &format!("upstream parity: local vs SpatialPayoffGpu diff {max_diff:.2e}"),
-                max_diff,
-                tolerances::GPU_SPATIAL_PAYOFF_F32,
-            );
-        }
-        _ => h.check_bool("upstream parity: dispatch failed", false),
-    }
-}
-
-const fn storage_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

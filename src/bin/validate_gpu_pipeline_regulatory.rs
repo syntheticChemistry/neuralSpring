@@ -1,30 +1,27 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Pure GPU pipeline: rk4_parallel → `mean_reduce` → scalar readback (Paper 020).
+//! GPU pipeline validation: RK4 ODE (upstream WGSL) + CPU mean (Paper 020).
 //!
-//! Chains two shader stages in a single `CommandEncoder` with zero CPU round-trips.
-//! Stage 1: `rk4_step` — RK4 ODE integration for N systems.
-//! Stage 2: `mean_reduce` — final state array to scalar mean.
+//! Uses `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` for the ODE shader.
+//! BatchedOdeRK4F64 targets a fixed QS/c-di-GMP ODE; this validator uses the
+//! generic Hill-function RK4 shader from BarraCUDA for regulatory networks.
+//!
+//! Stage 1: rk4_step (WGSL_RK4_PARALLEL) → state_out.
+//! Stage 2: CPU mean over state_out.
 //!
 //! ## Pipeline
 //!
 //! ```text
 //! Upload states + coeffs (once)
 //!   ↓
-//! ┌─────────────────────────────────────────────────────┐
-//! │  Stage 1: rk4_parallel.wgsl                         │
-//! │    state → state_out (n_steps of RK4)                │
-//! │                                                     │
-//! │  Stage 2: mean_reduce.wgsl                           │
-//! │    state_out[] → mean (scalar)                        │
-//! └─────────────────────────────────────────────────────┘
-//!   ↓  (single queue.submit — NO CPU round-trip)
-//! Readback: 4 bytes (one f32 scalar)
+//! rk4_step (barracuda WGSL) → state_out
+//!   ↓
+//! CPU mean(state_out) → scalar
 //! ```
 //!
 //! ## Provenance
 //!
-//! GPU pipeline: rk4_parallel → mean_reduce.
+//! Shader: `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL`.
 //! Validates: regulatory network mean final state (Mhatre et al., 2020).
 
 #![allow(
@@ -38,14 +35,12 @@
     clippy::cast_lossless
 )]
 
+use barracuda::ops::rk_stage::WGSL_RK4_PARALLEL;
 use bytemuck::{Pod, Zeroable};
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
-
-const RK4_WGSL: &str = include_str!("../../metalForge/shaders/rk4_parallel.wgsl");
-const REDUCE_WGSL: &str = include_str!("../../metalForge/shaders/mean_reduce.wgsl");
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -55,12 +50,6 @@ struct OdeParams {
     n_steps: u32,
     dt: f32,
     n_coeffs: u32,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct ReduceParams {
-    n: u32,
 }
 
 #[tokio::main]
@@ -165,7 +154,7 @@ fn cpu_mean_final_state(
     total / n_total as f32
 }
 
-// ── GPU chained pipeline ───────────────────────────────────────────
+// ── GPU RK4 dispatch + CPU mean ────────────────────────────────────
 
 #[allow(clippy::too_many_arguments)]
 fn gpu_mean_rk4(
@@ -184,12 +173,7 @@ fn gpu_mean_rk4(
 
     let rk4_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("chain_rk4"),
-        source: wgpu::ShaderSource::Wgsl(RK4_WGSL.into()),
-    });
-
-    let reduce_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("chain_regulatory_reduce"),
-        source: wgpu::ShaderSource::Wgsl(REDUCE_WGSL.into()),
+        source: wgpu::ShaderSource::Wgsl(WGSL_RK4_PARALLEL.into()),
     });
 
     let rk4_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -214,26 +198,6 @@ fn gpu_mean_rk4(
         layout: Some(&rk4_pl),
         module: &rk4_shader,
         entry_point: "rk4_step",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-
-    let reduce_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("chain_regulatory_reduce_bgl"),
-        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
-    });
-
-    let reduce_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("chain_regulatory_reduce_pl"),
-        bind_group_layouts: &[&reduce_bgl],
-        push_constant_ranges: &[],
-    });
-
-    let reduce_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("chain_regulatory_reduce_pipeline"),
-        layout: Some(&reduce_pl),
-        module: &reduce_shader,
-        entry_point: "mean_reduce",
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -277,20 +241,6 @@ fn gpu_mean_rk4(
         mapped_at_creation: false,
     });
 
-    let result_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("chain_regulatory_mean_result"),
-        size: 4,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-
-    let reduce_params = ReduceParams { n: n_total as u32 };
-    let reduce_params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("chain_regulatory_reduce_params"),
-        contents: bytemuck::bytes_of(&reduce_params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
-
     let rk4_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("chain_rk4_bg"),
         layout: &rk4_bgl,
@@ -318,25 +268,6 @@ fn gpu_mean_rk4(
         ],
     });
 
-    let reduce_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("chain_regulatory_reduce_bg"),
-        layout: &reduce_bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: state_out_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: result_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: reduce_params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
     let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
         label: Some("chain_regulatory_encoder"),
     });
@@ -351,20 +282,50 @@ fn gpu_mean_rk4(
         pass.dispatch_workgroups(n_systems.div_ceil(64), 1, 1);
     }
 
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("chain_regulatory_reduce_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&reduce_pipeline);
-        pass.set_bind_group(0, &reduce_bg, &[]);
-        pass.dispatch_workgroups(1, 1, 1);
-    }
-
     queue.submit(std::iter::once(encoder.finish()));
 
-    let result = gpu.read_buffer_f32(&result_buf, 1)?;
-    Ok(result[0])
+    let state_out = gpu.read_buffer_f32(&state_out_buf, n_total)?;
+    let mean = state_out.iter().sum::<f32>() / state_out.len() as f32;
+    Ok(mean)
+}
+
+const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only: true },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
+}
+
+const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only: false },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
+}
+
+const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Uniform,
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
 }
 
 // ── Validation functions ───────────────────────────────────────────
@@ -499,46 +460,5 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("regulatory determinism: dispatch failed", false);
         }
-    }
-}
-
-// ── wgpu layout helpers ────────────────────────────────────────────
-
-const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: true },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: false },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

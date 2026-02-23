@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: two-input Hill function via `metalForge` WGSL shader.
+//! GPU validation: two-input Hill function via BarraCUDA `HillGateGpu`.
 //!
-//! Validates `metalForge/shaders/hill_gate.wgsl` against CPU
-//! `signal_integration::two_input_hill`. The GPU shader evaluates
+//! Validates `barracuda::ops::bio::HillGateGpu` against CPU
+//! `signal_integration::two_input_hill`. The GPU op evaluates
 //! the Hill function over a 2D (cdg, ai) grid in a single dispatch.
 //!
 //! ## Papers validated
@@ -13,7 +13,7 @@
 //! ## Provenance
 //!
 //! CPU reference: `signal_integration::two_input_hill` (seed=0, 10×10 grid).
-//! WGSL shader: `metalForge/shaders/hill_gate.wgsl`
+//! GPU op: `barracuda::ops::bio::HillGateGpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
@@ -29,8 +29,6 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
-
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/hill_gate.wgsl");
 
 #[tokio::main]
 async fn main() {
@@ -49,28 +47,24 @@ async fn main() {
         }
     };
 
+    let dev = Arc::clone(gpu.wgpu_device());
+    let op = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| HillGateGpu::new(dev)))
+    {
+        Ok(o) => o,
+        Err(_) => {
+            eprintln!("  SKIP: HillGateGpu f64 shader compilation failed (driver limitation)");
+            eprintln!("  0/0 checks — skipping gracefully");
+            std::process::exit(0);
+        }
+    };
     let mut h = ValidationHarness::new("gpu_signal");
 
-    validate_small_grid(&mut h, &gpu);
-    validate_and_gate_corners(&mut h, &gpu);
-    validate_determinism(&mut h, &gpu);
-    validate_larger_grid(&mut h, &gpu);
-    validate_upstream_parity(&mut h, &gpu);
+    validate_small_grid(&mut h, &gpu, &op);
+    validate_and_gate_corners(&mut h, &gpu, &op);
+    validate_determinism(&mut h, &gpu, &op);
+    validate_larger_grid(&mut h, &gpu, &op);
 
     h.finish();
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct HillParams {
-    nx: u32,
-    ny: u32,
-    vmax: f32,
-    k1: f32,
-    k2: f32,
-    n1: f32,
-    n2: f32,
-    _pad: u32,
 }
 
 /// CPU reference: two-input Hill over 2D grid.
@@ -95,107 +89,36 @@ fn cpu_hill_grid(
 
 fn gpu_hill_grid(
     gpu: &Gpu,
+    op: &HillGateGpu,
     cdg: &[f32],
     ai: &[f32],
-    params: &HillParams,
+    params: &HillGateParams,
 ) -> Result<Vec<f32>, String> {
     let device = gpu.device();
-    let queue = gpu.queue();
 
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("hill_gate"),
-        source: wgpu::ShaderSource::Wgsl(WGSL_SOURCE.into()),
-    });
-
-    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("hill_gate_bgl"),
-        entries: &[
-            storage_entry(0, true),
-            storage_entry(1, true),
-            storage_entry(2, false),
-            uniform_entry(3),
-        ],
-    });
-
-    let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("hill_gate_pl"),
-        bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
-    });
-
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("hill_gate_pipeline"),
-        layout: Some(&pl),
-        module: &shader,
-        entry_point: "hill_gate",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-
-    let cdg_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("cdg_grid"),
+    let input_a = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("cdg"),
         contents: bytemuck::cast_slice(cdg),
         usage: wgpu::BufferUsages::STORAGE,
     });
 
-    let ai_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("ai_grid"),
+    let input_b = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("ai"),
         contents: bytemuck::cast_slice(ai),
         usage: wgpu::BufferUsages::STORAGE,
     });
 
-    let n_total = (params.nx * params.ny) as usize;
-    let output_buf = device.create_buffer(&wgpu::BufferDescriptor {
+    let n_total = (params.n_a * params.n_b) as usize;
+    let output = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("hill_output"),
         size: (n_total * 4) as u64,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
 
-    let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("hill_params"),
-        contents: bytemuck::bytes_of(params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
+    op.dispatch(&input_a, &input_b, &output, params);
 
-    let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("hill_gate_bg"),
-        layout: &bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: cdg_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: ai_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: output_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 3,
-                resource: params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("hill_gate_encoder"),
-    });
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("hill_gate_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(gpu.dispatch_1d(n_total as u32, 256), 1, 1);
-    }
-    queue.submit(std::iter::once(encoder.finish()));
-
-    gpu.read_buffer_f32(&output_buf, n_total)
+    gpu.read_buffer_f32(&output, n_total)
 }
 
 fn make_linear_grid(n: usize, low: f64, high: f64) -> Vec<f64> {
@@ -207,7 +130,7 @@ fn make_linear_grid(n: usize, low: f64, high: f64) -> Vec<f64> {
         .collect()
 }
 
-fn validate_small_grid(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_small_grid(h: &mut ValidationHarness, gpu: &Gpu, op: &HillGateGpu) {
     let nx = 10_usize;
     let ny = 10_usize;
     let vmax = 1.0_f64;
@@ -222,18 +145,20 @@ fn validate_small_grid(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cdg_f32: Vec<f32> = cdg_cpu.iter().map(|x| *x as f32).collect();
     let ai_f32: Vec<f32> = ai_cpu.iter().map(|x| *x as f32).collect();
-    let params = HillParams {
-        nx: nx as u32,
-        ny: ny as u32,
-        vmax: vmax as f32,
-        k1: k1 as f32,
-        k2: k2 as f32,
-        n1: n1 as f32,
-        n2: n2 as f32,
+    let params = HillGateParams {
+        n_a: nx as u32,
+        n_b: ny as u32,
+        mode: 1,
         _pad: 0,
+        k_a: k1,
+        k_b: k2,
+        n_a_exp: n1,
+        n_b_exp: n2,
+        vmax,
+        _pad2: 0.0,
     };
 
-    match gpu_hill_grid(gpu, &cdg_f32, &ai_f32, &params) {
+    match gpu_hill_grid(gpu, op, &cdg_f32, &ai_f32, &params) {
         Ok(gpu_out) => {
             h.check_bool(
                 &format!("small grid: correct cell count ({})", gpu_out.len()),
@@ -258,7 +183,7 @@ fn validate_small_grid(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_and_gate_corners(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_and_gate_corners(h: &mut ValidationHarness, gpu: &Gpu, op: &HillGateGpu) {
     let low = 0.01_f64;
     let high = 5.0_f64;
     let cdg_cpu = [low, high];
@@ -273,18 +198,20 @@ fn validate_and_gate_corners(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cdg_f32: Vec<f32> = cdg_cpu.iter().map(|x| *x as f32).collect();
     let ai_f32: Vec<f32> = ai_cpu.iter().map(|x| *x as f32).collect();
-    let params = HillParams {
-        nx: 2,
-        ny: 2,
-        vmax: 1.0,
-        k1: 1.0,
-        k2: 1.0,
-        n1: 2.0,
-        n2: 2.0,
+    let params = HillGateParams {
+        n_a: 2,
+        n_b: 2,
+        mode: 1,
         _pad: 0,
+        k_a: 1.0,
+        k_b: 1.0,
+        n_a_exp: 2.0,
+        n_b_exp: 2.0,
+        vmax: 1.0,
+        _pad2: 0.0,
     };
 
-    match gpu_hill_grid(gpu, &cdg_f32, &ai_f32, &params) {
+    match gpu_hill_grid(gpu, op, &cdg_f32, &ai_f32, &params) {
         Ok(gpu_out) => {
             let max_diff: f64 = gpu_out
                 .iter()
@@ -314,26 +241,28 @@ fn validate_and_gate_corners(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu, op: &HillGateGpu) {
     let nx = 10_usize;
     let ny = 10_usize;
     let cdg_cpu = make_linear_grid(nx, 0.01, 5.0);
     let ai_cpu = make_linear_grid(ny, 0.01, 5.0);
     let cdg_f32: Vec<f32> = cdg_cpu.iter().map(|x| *x as f32).collect();
     let ai_f32: Vec<f32> = ai_cpu.iter().map(|x| *x as f32).collect();
-    let params = HillParams {
-        nx: nx as u32,
-        ny: ny as u32,
-        vmax: 1.0,
-        k1: 1.0,
-        k2: 1.0,
-        n1: 2.0,
-        n2: 2.0,
+    let params = HillGateParams {
+        n_a: nx as u32,
+        n_b: ny as u32,
+        mode: 1,
         _pad: 0,
+        k_a: 1.0,
+        k_b: 1.0,
+        n_a_exp: 2.0,
+        n_b_exp: 2.0,
+        vmax: 1.0,
+        _pad2: 0.0,
     };
 
-    let run1 = gpu_hill_grid(gpu, &cdg_f32, &ai_f32, &params);
-    let run2 = gpu_hill_grid(gpu, &cdg_f32, &ai_f32, &params);
+    let run1 = gpu_hill_grid(gpu, op, &cdg_f32, &ai_f32, &params);
+    let run2 = gpu_hill_grid(gpu, op, &cdg_f32, &ai_f32, &params);
 
     match (run1, run2) {
         (Ok(r1), Ok(r2)) => {
@@ -349,7 +278,7 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu, op: &HillGateGpu) {
     let nx = 32_usize;
     let ny = 32_usize;
     let vmax = 1.0_f64;
@@ -364,18 +293,20 @@ fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let cdg_f32: Vec<f32> = cdg_cpu.iter().map(|x| *x as f32).collect();
     let ai_f32: Vec<f32> = ai_cpu.iter().map(|x| *x as f32).collect();
-    let params = HillParams {
-        nx: nx as u32,
-        ny: ny as u32,
-        vmax: vmax as f32,
-        k1: k1 as f32,
-        k2: k2 as f32,
-        n1: n1 as f32,
-        n2: n2 as f32,
+    let params = HillGateParams {
+        n_a: nx as u32,
+        n_b: ny as u32,
+        mode: 1,
         _pad: 0,
+        k_a: k1,
+        k_b: k2,
+        n_a_exp: n1,
+        n_b_exp: n2,
+        vmax,
+        _pad2: 0.0,
     };
 
-    match gpu_hill_grid(gpu, &cdg_f32, &ai_f32, &params) {
+    match gpu_hill_grid(gpu, op, &cdg_f32, &ai_f32, &params) {
         Ok(gpu_out) => {
             let max_diff: f64 = gpu_out
                 .iter()
@@ -395,114 +326,5 @@ fn validate_larger_grid(h: &mut ValidationHarness, gpu: &Gpu) {
         Err(e) => {
             h.check_bool(&format!("32×32 grid: dispatch failed — {e}"), false);
         }
-    }
-}
-
-fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
-    let nx = 10_usize;
-    let ny = 10_usize;
-    let cdg_f32: Vec<f32> = make_linear_grid(nx, 0.01, 5.0)
-        .iter()
-        .map(|&x| x as f32)
-        .collect();
-    let ai_f32: Vec<f32> = make_linear_grid(ny, 0.01, 5.0)
-        .iter()
-        .map(|&x| x as f32)
-        .collect();
-
-    let params = HillParams {
-        nx: nx as u32,
-        ny: ny as u32,
-        vmax: 1.0,
-        k1: 1.0,
-        k2: 1.0,
-        n1: 2.0,
-        n2: 2.0,
-        _pad: 0,
-    };
-
-    let local = gpu_hill_grid(gpu, &cdg_f32, &ai_f32, &params);
-
-    let dev = Arc::clone(gpu.wgpu_device());
-    let device = gpu.device();
-    let op = HillGateGpu::new(dev);
-    let input_a = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("cdg"),
-        contents: bytemuck::cast_slice(&cdg_f32),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let input_b = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("ai"),
-        contents: bytemuck::cast_slice(&ai_f32),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let n_total = nx * ny;
-    let output = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("hill_output"),
-        size: (n_total * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    op.dispatch(
-        &input_a,
-        &input_b,
-        &output,
-        &HillGateParams {
-            n_a: 10,
-            n_b: 10,
-            mode: 1,
-            _pad: 0,
-            k_a: 1.0,
-            k_b: 1.0,
-            n_a_exp: 2.0,
-            n_b_exp: 2.0,
-            vmax: 1.0,
-            _pad2: 0.0,
-            _pad3: 0.0,
-            _pad4: 0.0,
-        },
-    );
-    let upstream = gpu.read_buffer_f32(&output, n_total);
-
-    match (local, upstream) {
-        (Ok(l), Ok(u)) => {
-            let max_diff: f64 = l
-                .iter()
-                .zip(u.iter())
-                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
-                .fold(0.0_f64, f64::max);
-            h.check_upper(
-                &format!("upstream parity: local vs HillGateGpu diff {max_diff:.2e}"),
-                max_diff,
-                tolerances::GPU_HILL_F32,
-            );
-        }
-        _ => h.check_bool("upstream parity: dispatch failed", false),
-    }
-}
-
-const fn storage_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

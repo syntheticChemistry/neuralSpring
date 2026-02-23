@@ -72,7 +72,7 @@ async fn main() {
 
 // ─── Batch Fitness (Papers 011–015) ──────────────────────────────────
 
-fn cpu_batch_fitness(pop: &[f32], weights: &[f32], pop_size: usize, genome_len: usize) -> Vec<f32> {
+fn cpu_batch_fitness(pop: &[f64], weights: &[f64], pop_size: usize, genome_len: usize) -> Vec<f64> {
     (0..pop_size)
         .map(|i| {
             let base = i * genome_len;
@@ -91,10 +91,8 @@ fn validate_batch_fitness(h: &mut ValidationHarness, gpu: &Gpu) {
     let genome_len = 16_u32;
     let mut rng = Rng::new(42);
 
-    let population: Vec<f32> = (0..pop_size * genome_len)
-        .map(|_| rng.uniform() as f32)
-        .collect();
-    let weights: Vec<f32> = (0..genome_len).map(|_| rng.uniform() as f32).collect();
+    let population: Vec<f64> = (0..pop_size * genome_len).map(|_| rng.uniform()).collect();
+    let weights: Vec<f64> = (0..genome_len).map(|_| rng.uniform()).collect();
 
     let cpu = cpu_batch_fitness(
         &population,
@@ -115,19 +113,19 @@ fn validate_batch_fitness(h: &mut ValidationHarness, gpu: &Gpu) {
     });
     let fitness_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("fitness"),
-        size: u64::from(pop_size) * 4,
+        size: u64::from(pop_size) * 8,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
 
     op.dispatch(&pop_buf, &weight_buf, &fitness_buf, pop_size, genome_len);
 
-    match gpu.read_buffer_f32(&fitness_buf, pop_size as usize) {
+    match gpu.read_buffer_f64(&fitness_buf, pop_size as usize) {
         Ok(gpu_result) => {
             let max_diff: f64 = gpu_result
                 .iter()
                 .zip(cpu.iter())
-                .map(|(&g, &c)| (f64::from(g) - f64::from(c)).abs())
+                .map(|(&g, &c)| (g - c).abs())
                 .fold(0.0_f64, f64::max);
             h.check_upper(
                 &format!("BatchFitnessGpu: max diff {max_diff:.2e} ({pop_size}×{genome_len})"),
@@ -297,17 +295,17 @@ fn validate_pairwise_jaccard(h: &mut ValidationHarness, gpu: &Gpu) {
 
 // ─── Locus Variance (Paper 025 — Meta-population) ───────────────────
 
-fn cpu_locus_variance(freqs: &[f32], n_pops: usize, n_loci: usize) -> Vec<f32> {
+fn cpu_locus_variance(freqs: &[f64], n_pops: usize, n_loci: usize) -> Vec<f64> {
     (0..n_loci)
         .map(|l| {
-            let mean: f32 = (0..n_pops).map(|p| freqs[p * n_loci + l]).sum::<f32>() / n_pops as f32;
-            let var: f32 = (0..n_pops)
+            let mean: f64 = (0..n_pops).map(|p| freqs[p * n_loci + l]).sum::<f64>() / n_pops as f64;
+            let var: f64 = (0..n_pops)
                 .map(|p| {
                     let d = freqs[p * n_loci + l] - mean;
                     d * d
                 })
-                .sum::<f32>()
-                / n_pops as f32;
+                .sum::<f64>()
+                / n_pops as f64;
             var
         })
         .collect()
@@ -323,7 +321,7 @@ fn validate_locus_variance(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_loci = 50_u32;
     let mut rng = Rng::new(25);
 
-    let freqs: Vec<f32> = (0..n_pops * n_loci).map(|_| rng.uniform() as f32).collect();
+    let freqs: Vec<f64> = (0..n_pops * n_loci).map(|_| rng.uniform()).collect();
 
     let cpu = cpu_locus_variance(&freqs, n_pops as usize, n_loci as usize);
 
@@ -334,19 +332,19 @@ fn validate_locus_variance(h: &mut ValidationHarness, gpu: &Gpu) {
     });
     let var_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("variance"),
-        size: u64::from(n_loci) * 4,
+        size: u64::from(n_loci) * 8,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
 
     op.dispatch(&freq_buf, &var_buf, n_pops, n_loci);
 
-    match gpu.read_buffer_f32(&var_buf, n_loci as usize) {
+    match gpu.read_buffer_f64(&var_buf, n_loci as usize) {
         Ok(gpu_result) => {
             let max_diff: f64 = gpu_result
                 .iter()
                 .zip(cpu.iter())
-                .map(|(&g, &c)| (f64::from(g) - f64::from(c)).abs())
+                .map(|(&g, &c)| (g - c).abs())
                 .fold(0.0_f64, f64::max);
             h.check_upper(
                 &format!("LocusVarianceGpu: max diff {max_diff:.2e} ({n_pops}×{n_loci})"),

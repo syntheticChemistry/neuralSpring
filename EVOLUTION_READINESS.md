@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 23, 2026 (post-Sessions 40, 42, 43, 44, 45, 46)
-**ToadStool HEAD**: `6ee71f07` + 2 local fixes pending absorption (mean_reduce, chi²)
+**Date**: February 23, 2026 (Sessions 40–48)
+**ToadStool HEAD**: `b41ee5f4` (Session 47 + S45/S46/S49 absorption)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -57,14 +57,20 @@ and Multi-GPU (mG).
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 38 promoted ops (Phase A+B) | **133 binaries** |
-| `validate_all` | **133/133 PASS** (RTX 4070) + TITAN V NVK | **ALL GREEN** |
+| `validate_all` | **132/133 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
+| Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
+| Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
+| Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
+| Session 48: HillGateGpu f64 | Graceful skip on RTX 4070 (driver limitation) | **f32 path validated** |
+| Session 47: MHA S-03b | Z-dimension dispatch fix upstream (ToadStool S46) | **FIXED** |
+| Session 47: evolved/hmm_forward_gpu | Retired; HmmBatchForwardF64 (wetSpring) primary | **Fossil** `metalForge/fossils/evolved_hmm_forward_gpu/` |
 | Grand total checks | **1800+** (206 Py + 1600+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
 ## Tier A — Shader Absorption Status
 
-### ToadStool Evolution Since Last Sync (d45fdfb3 → 5437c170, 10 commits)
+### ToadStool Evolution Since Last Sync (Session 47: b41ee5f4)
 
 | Session | Key Changes for neuralSpring |
 |---------|----------------------------|

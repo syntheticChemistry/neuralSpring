@@ -2,9 +2,9 @@
 
 //! Cross-dispatch validation: same math on GPU vs CPU, parity proof.
 //!
-//! Demonstrates `BarraCUDA`'s dispatch system by running identical
-//! computations on both GPU (WGSL shader) and CPU (Rust math), then
-//! validating that results agree within f32 tolerance.
+//! Uses `BarraCUDA` typed op APIs (`BatchFitnessGpu`) to run identical
+//! computations on both GPU and CPU, then validates that results agree
+//! within f64 tolerance.
 //!
 //! ## What this proves
 //!
@@ -28,30 +28,22 @@
 //!
 //! ## Provenance
 //!
-//! CPU/GPU dispatch: `BarraCUDA` `DispatchConfig` routes by workload size.
-//! Validates: GPU↔CPU parity (`batch_fitness`) via `dispatch_for`.
+//! CPU/GPU dispatch: `BarraCUDA` typed op `BatchFitnessGpu` (f64).
+//! Validates: GPU↔CPU parity via `barracuda::ops::bio::BatchFitnessGpu`.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
+use std::sync::Arc;
 use std::time::Instant;
 
 use barracuda::dispatch::{dispatch_for, DispatchTarget};
-use bytemuck::{Pod, Zeroable};
+use barracuda::ops::bio::BatchFitnessGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
-
-const FITNESS_WGSL: &str = include_str!("../../metalForge/shaders/batch_fitness_eval.wgsl");
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct FitnessParams {
-    pop_size: u32,
-    genome_len: u32,
-}
 
 #[tokio::main]
 async fn main() {
@@ -84,11 +76,11 @@ async fn main() {
 // ── CPU reference ──────────────────────────────────────────────────
 
 fn cpu_batch_fitness(
-    population: &[f32],
-    weights: &[f32],
+    population: &[f64],
+    weights: &[f64],
     pop_size: usize,
     genome_len: usize,
-) -> Vec<f32> {
+) -> Vec<f64> {
     (0..pop_size)
         .map(|i| {
             let base = i * genome_len;
@@ -99,47 +91,17 @@ fn cpu_batch_fitness(
         .collect()
 }
 
-// ── GPU batch fitness ──────────────────────────────────────────────
+// ── GPU batch fitness (BarraCUDA BatchFitnessGpu, f64) ─────────────
 
 fn gpu_batch_fitness(
     gpu: &Gpu,
-    population: &[f32],
-    weights: &[f32],
+    population: &[f64],
+    weights: &[f64],
     pop_size: u32,
     genome_len: u32,
-) -> Result<Vec<f32>, String> {
+) -> Result<Vec<f64>, String> {
     let device = gpu.device();
-    let queue = gpu.queue();
-
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("xd_fitness"),
-        source: wgpu::ShaderSource::Wgsl(FITNESS_WGSL.into()),
-    });
-
-    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("xd_bgl"),
-        entries: &[
-            storage_ro_entry(0),
-            storage_ro_entry(1),
-            storage_rw_entry(2),
-            uniform_entry(3),
-        ],
-    });
-
-    let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("xd_pl"),
-        bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
-    });
-
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("xd_pipeline"),
-        layout: Some(&pl),
-        module: &shader,
-        entry_point: "batch_fitness_linear",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
+    let op = BatchFitnessGpu::new(Arc::clone(gpu.wgpu_device()));
 
     let pop_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_pop"),
@@ -155,59 +117,14 @@ fn gpu_batch_fitness(
 
     let fitness_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("xd_fitness_out"),
-        size: u64::from(pop_size) * 4,
+        size: u64::from(pop_size) * 8,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
 
-    let params = FitnessParams {
-        pop_size,
-        genome_len,
-    };
-    let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("xd_params"),
-        contents: bytemuck::bytes_of(&params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
+    op.dispatch(&pop_buf, &weight_buf, &fitness_buf, pop_size, genome_len);
 
-    let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("xd_bg"),
-        layout: &bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: pop_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: weight_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: fitness_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 3,
-                resource: params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("xd_encoder"),
-    });
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("xd_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(pop_size.div_ceil(256), 1, 1);
-    }
-    queue.submit(std::iter::once(encoder.finish()));
-
-    gpu.read_buffer_f32(&fitness_buf, pop_size as usize)
+    gpu.read_buffer_f64(&fitness_buf, pop_size as usize)
 }
 
 // ── Validation functions ───────────────────────────────────────────
@@ -232,10 +149,8 @@ fn validate_parity_small(h: &mut ValidationHarness, gpu: &Gpu) {
     let genome_len = 4_u32;
     let mut rng = Rng::new(42);
 
-    let population: Vec<f32> = (0..pop_size * genome_len)
-        .map(|_| rng.uniform() as f32)
-        .collect();
-    let weights: Vec<f32> = (0..genome_len).map(|_| rng.uniform() as f32).collect();
+    let population: Vec<f64> = (0..pop_size * genome_len).map(|_| rng.uniform()).collect();
+    let weights: Vec<f64> = (0..genome_len).map(|_| rng.uniform()).collect();
 
     let cpu = cpu_batch_fitness(
         &population,
@@ -249,7 +164,7 @@ fn validate_parity_small(h: &mut ValidationHarness, gpu: &Gpu) {
             let max_diff: f64 = gpu_result
                 .iter()
                 .zip(cpu.iter())
-                .map(|(&g, &c)| (f64::from(g) - f64::from(c)).abs())
+                .map(|(&g, &c)| (g - c).abs())
                 .fold(0.0_f64, f64::max);
 
             h.check_bool(
@@ -268,10 +183,8 @@ fn validate_parity_large(h: &mut ValidationHarness, gpu: &Gpu) {
     let genome_len = 32_u32;
     let mut rng = Rng::new(999);
 
-    let population: Vec<f32> = (0..pop_size * genome_len)
-        .map(|_| rng.uniform() as f32)
-        .collect();
-    let weights: Vec<f32> = (0..genome_len).map(|_| rng.uniform() as f32).collect();
+    let population: Vec<f64> = (0..pop_size * genome_len).map(|_| rng.uniform()).collect();
+    let weights: Vec<f64> = (0..genome_len).map(|_| rng.uniform()).collect();
 
     let cpu = cpu_batch_fitness(
         &population,
@@ -285,7 +198,7 @@ fn validate_parity_large(h: &mut ValidationHarness, gpu: &Gpu) {
             let max_diff: f64 = gpu_result
                 .iter()
                 .zip(cpu.iter())
-                .map(|(&g, &c)| (f64::from(g) - f64::from(c)).abs())
+                .map(|(&g, &c)| (g - c).abs())
                 .fold(0.0_f64, f64::max);
 
             h.check_bool(
@@ -308,8 +221,8 @@ fn validate_parity_extremes(h: &mut ValidationHarness, gpu: &Gpu) {
     let pop_size = 16_u32;
     let genome_len = 8_u32;
 
-    let weights: Vec<f32> = vec![1.0; genome_len as usize];
-    let population: Vec<f32> = vec![0.0; (pop_size * genome_len) as usize];
+    let weights: Vec<f64> = vec![1.0; genome_len as usize];
+    let population: Vec<f64> = vec![0.0; (pop_size * genome_len) as usize];
 
     let cpu_zero = cpu_batch_fitness(
         &population,
@@ -323,7 +236,7 @@ fn validate_parity_extremes(h: &mut ValidationHarness, gpu: &Gpu) {
             let all_zero = gpu_result
                 .iter()
                 .zip(cpu_zero.iter())
-                .all(|(&g, &c)| (g - c).abs() < f32::EPSILON);
+                .all(|(&g, &c)| (g - c).abs() < f64::EPSILON);
             h.check_bool("parity zero: GPU == CPU (all zeros)", all_zero);
         }
         Err(e) => {
@@ -331,8 +244,8 @@ fn validate_parity_extremes(h: &mut ValidationHarness, gpu: &Gpu) {
         }
     }
 
-    let population_neg: Vec<f32> = (0..pop_size * genome_len)
-        .map(|i| -(i as f32) * 0.01)
+    let population_neg: Vec<f64> = (0..pop_size * genome_len)
+        .map(|i| -f64::from(i) * 0.01)
         .collect();
 
     let cpu_neg = cpu_batch_fitness(
@@ -347,7 +260,7 @@ fn validate_parity_extremes(h: &mut ValidationHarness, gpu: &Gpu) {
             let max_diff: f64 = gpu_result
                 .iter()
                 .zip(cpu_neg.iter())
-                .map(|(&g, &c)| (f64::from(g) - f64::from(c)).abs())
+                .map(|(&g, &c)| (g - c).abs())
                 .fold(0.0_f64, f64::max);
 
             h.check_bool(
@@ -366,10 +279,8 @@ fn validate_timing(h: &mut ValidationHarness, gpu: &Gpu) {
     let genome_len = 64_u32;
     let mut rng = Rng::new(42);
 
-    let population: Vec<f32> = (0..pop_size * genome_len)
-        .map(|_| rng.uniform() as f32)
-        .collect();
-    let weights: Vec<f32> = (0..genome_len).map(|_| rng.uniform() as f32).collect();
+    let population: Vec<f64> = (0..pop_size * genome_len).map(|_| rng.uniform()).collect();
+    let weights: Vec<f64> = (0..genome_len).map(|_| rng.uniform()).collect();
 
     let cpu_start = Instant::now();
     let cpu = cpu_batch_fitness(
@@ -389,7 +300,7 @@ fn validate_timing(h: &mut ValidationHarness, gpu: &Gpu) {
             let max_diff: f64 = gpu_fitness
                 .iter()
                 .zip(cpu.iter())
-                .map(|(&g, &c)| (f64::from(g) - f64::from(c)).abs())
+                .map(|(&g, &c)| (g - c).abs())
                 .fold(0.0_f64, f64::max);
 
             h.check_bool(
@@ -400,46 +311,5 @@ fn validate_timing(h: &mut ValidationHarness, gpu: &Gpu) {
         Err(e) => {
             h.check_bool(&format!("timing: dispatch failed — {e}"), false);
         }
-    }
-}
-
-// ── wgpu layout helpers ────────────────────────────────────────────
-
-const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: true },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: false },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

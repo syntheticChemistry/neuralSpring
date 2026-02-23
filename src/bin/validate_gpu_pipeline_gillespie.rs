@@ -1,26 +1,21 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Pure GPU pipeline: Gillespie SSA → `mean_reduce` → scalar readback.
+//! GPU pipeline validation: `GillespieGpu` (`BarraCUDA`) + CPU mean.
 //!
-//! Validates the stochastic simulation → scalar reduction pattern.
-//! Stage 1: `GillespieGpu::simulate` — parallel SSA trajectories on GPU.
-//! Stage 2: `mean_reduce.wgsl` — final species counts → scalar mean.
+//! Replaces raw `mean_reduce` shader with `GillespieGpu` typed op + CPU mean.
+//! Stage 1: GillespieGpu.simulate → `final_states` (f64, per trajectory).
+//! Stage 2: CPU extracts relevant values and computes mean.
 //!
 //! ## Pipeline
 //!
 //! ```text
-//! GillespieGpu (upstream barracuda) → final_states\[n_traj × n_species\]
-//!   ↓  (upload to GPU buffer)
-//! ┌─────────────────────────────────────────────────────────┐
-//! │  mean_reduce.wgsl                                       │
-//! │    final_states → mean (scalar)                          │
-//! └─────────────────────────────────────────────────────────┘
-//!   ↓  (single queue.submit — scalar readback only)
-//! Readback: 4 bytes
+//! GillespieGpu.simulate → final_states[n_traj × n_species]
+//!   ↓
+//! CPU mean (totals or species counts) → scalar
 //! ```
 //!
-//! This validates the GPU-resident reduce pattern for stochastic outputs,
-//! proving that only a scalar summary needs to cross the `PCIe` bus.
+//! This validates the Gillespie SSA GPU output; reduction to scalar
+//! is done on CPU (no `mean_reduce` shader).
 //!
 //! ## Papers validated
 //!
@@ -29,8 +24,8 @@
 //!
 //! ## Provenance
 //!
-//! Upstream: `barracuda::ops::bio::gillespie::GillespieGpu`
-//! Reduce: `metalForge/shaders/mean_reduce.wgsl`
+//! Typed op: `barracuda::ops::bio::gillespie::GillespieGpu`.
+//! Reduction: CPU mean over `final_states`.
 
 #![allow(
     clippy::cast_precision_loss,
@@ -42,19 +37,9 @@
 )]
 
 use barracuda::ops::bio::gillespie::{GillespieConfig, GillespieGpu};
-use bytemuck::{Pod, Zeroable};
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
-use wgpu::util::DeviceExt;
-
-const REDUCE_WGSL: &str = include_str!("../../metalForge/shaders/mean_reduce.wgsl");
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct ReduceParams {
-    n: u32,
-}
 
 fn make_seeds(n_trajectories: usize) -> Vec<u32> {
     let mut seeds = Vec::with_capacity(n_trajectories * 4);
@@ -69,89 +54,6 @@ fn make_seeds(n_trajectories: usize) -> Vec<u32> {
         }
     }
     seeds
-}
-
-/// Upload f32 data to GPU, run `mean_reduce`, return scalar.
-fn gpu_mean_reduce(gpu: &Gpu, data: &[f32]) -> Result<f32, String> {
-    let device = gpu.device();
-    let queue = gpu.queue();
-    let n = data.len() as u32;
-
-    let reduce_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("pipe_gill_reduce"),
-        source: wgpu::ShaderSource::Wgsl(REDUCE_WGSL.into()),
-    });
-    let reduce_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("pipe_gill_bgl"),
-        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
-    });
-    let reduce_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("pipe_gill_pl"),
-        bind_group_layouts: &[&reduce_bgl],
-        push_constant_ranges: &[],
-    });
-    let reduce_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("pipe_gill_pipeline"),
-        layout: Some(&reduce_pl),
-        module: &reduce_shader,
-        entry_point: "mean_reduce",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-
-    let data_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("pipe_gill_data"),
-        contents: bytemuck::cast_slice(data),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let result_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("pipe_gill_result"),
-        size: 4,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    let params = ReduceParams { n };
-    let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("pipe_gill_params"),
-        contents: bytemuck::bytes_of(&params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
-
-    let reduce_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("pipe_gill_bg"),
-        layout: &reduce_bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: data_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: result_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("pipe_gill_encoder"),
-    });
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("pipe_gill_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&reduce_pipeline);
-        pass.set_bind_group(0, &reduce_bg, &[]);
-        pass.dispatch_workgroups(1, 1, 1);
-    }
-    queue.submit(std::iter::once(encoder.finish()));
-
-    let result = gpu.read_buffer_f32(&result_buf, 1)?;
-    Ok(result[0])
 }
 
 fn run_gillespie(
@@ -224,37 +126,20 @@ fn validate_conservation_reduce(h: &mut ValidationHarness, gpu: &Gpu) {
         return;
     };
 
-    // Compute A+B for each trajectory, reduce to mean total
-    let totals: Vec<f32> = (0..n_traj)
-        .map(|t| (result.states[t * n_species] + result.states[t * n_species + 1]) as f32)
+    let totals: Vec<f64> = (0..n_traj)
+        .map(|t| result.states[t * n_species] + result.states[t * n_species + 1])
         .collect();
-    let cpu_mean = totals.iter().sum::<f32>() / totals.len() as f32;
+    let cpu_mean = totals.iter().sum::<f64>() / totals.len() as f64;
 
-    match gpu_mean_reduce(gpu, &totals) {
-        Ok(gpu_mean) => {
-            h.check_abs(
-                &format!("conservation reduce: GPU mean={gpu_mean:.2} vs CPU={cpu_mean:.2}"),
-                f64::from(gpu_mean),
-                f64::from(cpu_mean),
-                tolerances::GPU_FITNESS_F32,
-            );
-            h.check_abs(
-                "conservation reduce: mean total ≈ 100",
-                f64::from(gpu_mean),
-                100.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
-        Err(e) => {
-            h.check_bool(
-                &format!("conservation reduce: dispatch failed — {e}"),
-                false,
-            );
-        }
-    }
+    h.check_abs(
+        &format!("conservation reduce: mean total={cpu_mean:.2} ≈ 100"),
+        cpu_mean,
+        100.0,
+        tolerances::TENSOR_EXACT_F32,
+    );
 }
 
-/// Reduce final species-A counts to scalar mean.
+/// Mean of final species-A counts (CPU reduction).
 fn validate_mean_species_a(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_traj = 8_usize;
     let n_species = 2_usize;
@@ -264,62 +149,38 @@ fn validate_mean_species_a(h: &mut ValidationHarness, gpu: &Gpu) {
         return;
     };
 
-    let final_a: Vec<f32> = (0..n_traj)
-        .map(|t| result.states[t * n_species] as f32)
-        .collect();
-    let cpu_mean = final_a.iter().sum::<f32>() / final_a.len() as f32;
+    let final_a: Vec<f64> = (0..n_traj).map(|t| result.states[t * n_species]).collect();
+    let cpu_mean = final_a.iter().sum::<f64>() / final_a.len() as f64;
 
-    match gpu_mean_reduce(gpu, &final_a) {
-        Ok(gpu_mean) => {
-            h.check_abs(
-                &format!("mean species A: GPU={gpu_mean:.2} vs CPU={cpu_mean:.2}"),
-                f64::from(gpu_mean),
-                f64::from(cpu_mean),
-                tolerances::GPU_FITNESS_F32,
-            );
-            // At t=2, E[A] = 100 * e^(-2) ≈ 13.5 — mean should be in plausible range
-            h.check_bool(
-                &format!("mean species A: {gpu_mean:.1} in plausible range [0, 100]"),
-                (0.0..=100.0).contains(&gpu_mean),
-            );
-        }
-        Err(e) => {
-            h.check_bool(&format!("mean species A: dispatch failed — {e}"), false);
-        }
-    }
+    h.check_bool(
+        &format!("mean species A: {cpu_mean:.1} in plausible range [0, 100]"),
+        (0.0..=100.0).contains(&cpu_mean),
+    );
 }
 
-/// Same data → identical GPU `mean_reduce` result.
+/// Same seed → identical Gillespie output (determinism).
 fn validate_reduce_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_traj = 4_usize;
-    let n_species = 2_usize;
 
-    let Some(result) = run_gillespie(gpu, n_traj) else {
-        h.check_bool("reduce determinism: SSA failed", false);
-        return;
-    };
-
-    let final_a: Vec<f32> = (0..n_traj)
-        .map(|t| result.states[t * n_species] as f32)
-        .collect();
-
-    let r1 = gpu_mean_reduce(gpu, &final_a);
-    let r2 = gpu_mean_reduce(gpu, &final_a);
+    let r1 = run_gillespie(gpu, n_traj);
+    let r2 = run_gillespie(gpu, n_traj);
 
     match (r1, r2) {
-        (Ok(a), Ok(b)) => {
+        (Some(a), Some(b)) => {
+            let mean_a: f64 = a.states.iter().sum::<f64>() / a.states.len() as f64;
+            let mean_b: f64 = b.states.iter().sum::<f64>() / b.states.len() as f64;
             h.check_bool(
-                &format!("reduce determinism: run1={a:.6} == run2={b:.6}"),
-                (a - b).abs() < f32::EPSILON,
+                &format!("reduce determinism: run1 mean={mean_a:.6} == run2 mean={mean_b:.6}"),
+                (mean_a - mean_b).abs() < f64::EPSILON,
             );
         }
         _ => {
-            h.check_bool("reduce determinism: dispatch failed", false);
+            h.check_bool("reduce determinism: SSA failed", false);
         }
     }
 }
 
-/// 16 trajectories reduced to single scalar via pipeline.
+/// 16 trajectories; CPU mean of species A.
 fn validate_multi_trajectory_reduce(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_traj = 16_usize;
     let n_species = 2_usize;
@@ -329,64 +190,11 @@ fn validate_multi_trajectory_reduce(h: &mut ValidationHarness, gpu: &Gpu) {
         return;
     };
 
-    let final_a: Vec<f32> = (0..n_traj)
-        .map(|t| result.states[t * n_species] as f32)
-        .collect();
-    let cpu_mean = final_a.iter().sum::<f32>() / final_a.len() as f32;
+    let final_a: Vec<f64> = (0..n_traj).map(|t| result.states[t * n_species]).collect();
+    let cpu_mean = final_a.iter().sum::<f64>() / final_a.len() as f64;
 
-    match gpu_mean_reduce(gpu, &final_a) {
-        Ok(gpu_mean) => {
-            h.check_abs(
-                &format!("multi-trajectory: GPU={gpu_mean:.2} vs CPU={cpu_mean:.2} (16 traj)"),
-                f64::from(gpu_mean),
-                f64::from(cpu_mean),
-                tolerances::GPU_FITNESS_F32,
-            );
-        }
-        Err(e) => {
-            h.check_bool(
-                &format!("multi-trajectory reduce: dispatch failed — {e}"),
-                false,
-            );
-        }
-    }
-}
-
-const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: true },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: false },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
+    h.check_bool(
+        &format!("multi-trajectory: mean species A={cpu_mean:.2} (16 traj)"),
+        cpu_mean.is_finite() && (0.0..=100.0).contains(&cpu_mean),
+    );
 }

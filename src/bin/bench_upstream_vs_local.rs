@@ -624,8 +624,6 @@ fn bench_hill_gate(gpu: &Gpu) -> BenchResult {
                 n_b_exp: 2.0,
                 vmax: 1.0,
                 _pad2: 0.0,
-                _pad3: 0.0,
-                _pad4: 0.0,
             },
         );
         gpu.read_buffer_f32(&out, n_total).ok();

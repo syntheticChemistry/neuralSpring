@@ -1,6 +1,6 @@
 # neuralSpring — Pure GPU Roadmap
 
-**Date**: February 23, 2026 (Session 44, 45, 46)
+**Date**: February 23, 2026 (Sessions 40–48)
 **Goal**: All math runs on GPU. Even a Raspberry Pi is a science platform.
 **Philosophy**: Prove math is entirely portable on GPU first, then reverse-engineer
 for CPU efficiency and older hardware. Mixed workloads come after pure GPU validation.
@@ -120,16 +120,16 @@ genuine GPU computation via log→scale→exp→div pipeline.
 | `regulatory_network.rs` | `integrate_grn()` (full RK4 loop) | Batch ODE on GPU | **Medium** | Pending |
 | `meta_population.rs` | `global_fst()` / `pairwise_fst()` | Variance decomposition shader | **Medium** | Pending |
 | `introgression.rs` | `detect_introgression()` → HMM chain | `HmmBatchForwardF64` + Viterbi | **Medium** | Pending |
-| `pangenome_selection.rs` | `spectrum_chi_squared()` | Chi-squared GPU (new shader) | **Medium** | Pending |
-| `pangenome_selection.rs` | `selection_coefficient()` | Reduction pipeline | **Low** | Pending |
+| `pangenome_selection.rs` | `spectrum_chi_squared()` | `spectrum_chi_squared_gpu` | **Medium** | **GPU (S47)** |
+| `pangenome_selection.rs` | `selection_coefficient()` | `selection_coefficient_gpu` | **Low** | **GPU (S47)** |
 
-### Tier 3 — Eigensolvers (GPU Exists in BarraCUDA, needs wiring)
+### Tier 3 — Eigensolvers — COMPLETE (Session 47)
 
-| Module | CPU Operation | GPU Replacement | Effort | Papers |
-|--------|---------------|-----------------|--------|--------|
-| `anderson_localization.rs` | `jacobi_eigh()` | `BatchedEighGpu` / NAK eigensolve | **Medium** | 023 |
-| `anderson_localization.rs` | `disorder_sweep()` | Batch eigensolve over W values | **High** | 023 |
-| `eigh.rs` | `eigh_householder_qr()` | `BatchedEighGpu` | **Low** | 022-023 |
+| Module | CPU Operation | GPU Replacement | Status |
+|--------|---------------|-----------------|--------|
+| `anderson_localization.rs` | `jacobi_eigh()` | `BatchedEighGpu` / NAK eigensolve | **GPU (S47)** |
+| `anderson_localization.rs` | `disorder_sweep()` | `disorder_sweep_gpu` (batch eigensolve + mean IPR) | **GPU (S47)** |
+| `eigh.rs` | `eigh_householder_qr()` | `eigh_gpu` via BatchedEighGpu (n≤32) | **GPU (S47)** |
 
 ### Tier 4 — New Shaders Needed
 
@@ -266,7 +266,7 @@ counts to hardware limits.
 
 ---
 
-## Coverage Gap Summary (updated Session 46)
+## Coverage Gap Summary (updated Session 47)
 
 | Category | Currently GPU | Total | Gap | Priority |
 |----------|-------------|-------|-----|----------|
@@ -274,15 +274,29 @@ counts to hardware limits.
 | Reductions (sum/mean/max) | 16/16 modules | 16 | None (all via gpu_ops) | **Done** |
 | ODE integration (RK4) | 3/5 modules (shader exists) | 5 | Full loop batching for `signal`, `regulatory` | **P1** |
 | HMM (forward/backward/Viterbi) | 3/3 ops | 3 | None (all via dispatch) | **Done** |
-| Eigensolvers | 0/2 modules (GPU exists) | 2 | `anderson`, `eigh` | **P2** |
+| Eigensolvers | **2/2 modules** | 2 | None (eigh_gpu, disorder_sweep_gpu via BatchedEighGpu) | **Done** |
 | Statistics (variance, correlation) | 6/6 modules | 6 | None (all via dispatch) | **Done** |
-| Special functions (chi²) | 1/1 module | 1 | None (chi_squared via dispatch) | **Done** |
+| Special functions (chi²) | 1/1 module | 1 | None (chi_squared, spectrum_chi_squared_gpu via dispatch) | **Done** |
 | Meta-population | 6/8 ops | 8 | FST variance decomposition (custom shader) | **P1** |
 | Game theory | 2/3 ops | 3 | Spatial cooperation stencil (shader exists) | **P2** |
 
-**Bottom line**: ~90% of production math now has a GPU path through dispatch.
-Phase A (Session 45) brought it from 60% to 85%. Phase B (Session 46) brought it
-from 85% to ~90%. Remaining: ODE loop batching, FST shader, eigensolvers.
+**Bottom line**: ~95% of production math now has a GPU path through dispatch.
+Session 47: eigensolvers (2/2), spectrum_chi_squared_gpu, selection_coefficient_gpu.
+Remaining: ODE loop batching, FST shader.
+
+### Session 48: Raw wgpu Coverage — Most Eliminated
+
+Session 48 rewired 28 binaries from raw wgpu to typed BarraCUDA ops. **Most raw wgpu
+usage is now eliminated.**
+
+**Remaining raw wgpu** (intentional or no clean typed op mapping):
+
+| Binary | Reason |
+|--------|--------|
+| `bench_upstream_vs_local` | Intentional — compares local vs upstream dispatch |
+| `validate_gpu_pipeline_swarm` | No upstream equivalent for scores variant |
+| `validate_gpu_pipeline_regulatory` | ODE structure mismatch with upstream |
+| `validate_cross_dispatch_ode` | Same ODE structure mismatch |
 
 ---
 

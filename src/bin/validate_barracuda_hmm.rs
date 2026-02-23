@@ -20,17 +20,25 @@
 
 #![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
+use barracuda::device::WgpuDevice;
 use neural_spring::hmm::Hmm;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 
 fn main() {
+    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let device = rt
+        .block_on(async { WgpuDevice::new().await })
+        .map(Arc::new)
+        .expect("GPU device");
+
     let mut h = ValidationHarness::new("barracuda_hmm");
 
     validate_forward_log_likelihood(&mut h);
     validate_posterior_variance(&mut h);
-    validate_stationary_distribution(&mut h);
+    validate_stationary_distribution(&mut h, &device);
     validate_posterior_sums(&mut h);
 
     h.finish();
@@ -86,7 +94,7 @@ fn validate_posterior_variance(h: &mut ValidationHarness) {
 
 /// Solve for stationary distribution: π A = π with sum(π) = 1.
 /// Use (A^T - I) with last row replaced by \[1,1\], b = \[0, 1\].
-fn validate_stationary_distribution(h: &mut ValidationHarness) {
+fn validate_stationary_distribution(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let trans = [vec![0.7, 0.3], vec![0.4, 0.6]];
     let at: Vec<Vec<f64>> = (0..2)
         .map(|j| (0..2).map(|i| trans[i][j]).collect())
@@ -99,7 +107,7 @@ fn validate_stationary_distribution(h: &mut ValidationHarness) {
     m[3] = 1.0;
     let b = vec![0.0, 1.0];
 
-    match barracuda::linalg::solve_f64(&m, &b, 2) {
+    match barracuda::linalg::solve_f64(device.clone(), &m, &b, 2) {
         Ok(pi) => {
             let sum: f64 = pi.iter().sum();
             h.check_abs(

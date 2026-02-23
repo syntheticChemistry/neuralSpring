@@ -2,12 +2,13 @@
 
 //! Cross-dispatch validation: RK4 ODE integration (Paper 020).
 //!
-//! Validates GPU ↔ CPU parity for the RK4 parallel integrator using
-//! `rk4_parallel.wgsl` shader vs CPU RK4 for the Hill-ODE system.
+//! Validates GPU ↔ CPU parity for the RK4 parallel integrator.
+//! Uses upstream `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` shader source
+//! (generic Hill-function ODE) vs CPU RK4 for the Hill-ODE system.
 //!
-//! The `rk4_parallel.wgsl` shader implements a generic Hill-function ODE
-//! (prod * hill(activator, k, n) - deg * y) matching the regulatory network
-//! dynamics from Paper 020.
+//! Note: `BatchedOdeRK4F64` targets the specialized QS/c-di-GMP ODE and
+//! cannot map to this generic Hill-ODE. We use the upstream WGSL constant
+//! instead of the local metalForge `include_str`.
 
 #![allow(
     clippy::cast_precision_loss,
@@ -18,13 +19,12 @@
 )]
 
 use barracuda::dispatch::{dispatch_for, DispatchTarget};
+use barracuda::ops::rk_stage::WGSL_RK4_PARALLEL;
 use bytemuck::{Pod, Zeroable};
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
-
-const RK4_WGSL: &str = include_str!("../../metalForge/shaders/rk4_parallel.wgsl");
 
 #[tokio::main]
 async fn main() {
@@ -121,7 +121,7 @@ fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt:
     y
 }
 
-// ── GPU RK4 (rk4_parallel.wgsl) ───────────────────────────────────
+// ── GPU RK4 (upstream WGSL_RK4_PARALLEL) ─────────────────────────
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -149,7 +149,7 @@ fn gpu_rk4(
 
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("xd_rk4"),
-        source: wgpu::ShaderSource::Wgsl(RK4_WGSL.into()),
+        source: wgpu::ShaderSource::Wgsl(WGSL_RK4_PARALLEL.into()),
     });
 
     let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -263,6 +263,47 @@ fn gpu_rk4(
     gpu.read_buffer_f32(&state_out_buf, (n_systems * dim) as usize)
 }
 
+// ── wgpu layout helpers ──────────────────────────────────────────
+
+const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only: true },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
+}
+
+const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only: false },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
+}
+
+const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Uniform,
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
+}
+
 // ── RK4 parity validation ───────────────────────────────────────
 
 fn validate_rk4_parity(h: &mut ValidationHarness, gpu: &Gpu) {
@@ -322,46 +363,5 @@ fn validate_rk4_parity(h: &mut ValidationHarness, gpu: &Gpu) {
         Err(e) => {
             h.check_bool(&format!("RK4 parity: GPU failed — {e}"), false);
         }
-    }
-}
-
-// ── wgpu layout helpers ────────────────────────────────────────────
-
-const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: true },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: false },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

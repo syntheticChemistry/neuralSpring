@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: Fermi imitation stencil via `metalForge` WGSL shader.
+//! GPU validation: Fermi imitation stencil via `BarraCUDA` `StencilCooperationGpu` API.
 //!
-//! Validates `metalForge/shaders/stencil_cooperation.wgsl` against CPU reference.
+//! Validates `barracuda::ops::bio::StencilCooperationGpu` against CPU reference.
 //! The GPU shader updates each cell's strategy by comparing fitness with a
 //! deterministic neighbor; adoption probability follows the Fermi function.
 //!
@@ -12,8 +12,8 @@
 //!
 //! ## Provenance
 //!
-//! CPU reference: inline `cpu_stencil_update`, `cpu_pd_fitness`.
-//! WGSL: `metalForge/shaders/stencil_cooperation.wgsl`
+//! Upstream: `barracuda::ops::bio::StencilCooperationGpu` (f64 pipeline)
+//! CPU reference: inline `cpu_stencil_update`, `cpu_pd_fitness`
 
 #![allow(
     clippy::cast_precision_loss,
@@ -22,26 +22,17 @@
     clippy::cast_sign_loss
 )]
 
+use barracuda::ops::bio::StencilCooperationGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
-
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/stencil_cooperation.wgsl");
-
-#[repr(C)]
-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct StencilParams {
-    grid_size: u32,
-    kappa_x1000: u32,
-    step: u32,
-    _pad: u32,
-}
 
 /// PD payoff stencil over Moore neighborhood (8 neighbors) with periodic boundary.
 /// (1,1)→b-c, (1,0)→-c, (0,1)→b, (0,0)→0.0.
 #[must_use]
-fn cpu_pd_fitness(grid: &[u32], grid_size: usize, b: f32, c: f32) -> Vec<f32> {
+fn cpu_pd_fitness(grid: &[u32], grid_size: usize, b: f64, c: f64) -> Vec<f64> {
     let n = grid_size as i32;
     let neighbors: [(i32, i32); 8] = [
         (-1, -1),
@@ -58,7 +49,7 @@ fn cpu_pd_fitness(grid: &[u32], grid_size: usize, b: f32, c: f32) -> Vec<f32> {
     for i in 0..grid_size {
         for j in 0..grid_size {
             let me = grid[i * grid_size + j];
-            let mut total = 0.0_f32;
+            let mut total = 0.0_f64;
             for (di, dj) in &neighbors {
                 let ni = ((i as i32 + di).rem_euclid(n)) as usize;
                 let nj = ((j as i32 + dj).rem_euclid(n)) as usize;
@@ -78,9 +69,9 @@ fn cpu_pd_fitness(grid: &[u32], grid_size: usize, b: f32, c: f32) -> Vec<f32> {
 
 fn cpu_stencil_update(
     strategies: &[u32],
-    fitness: &[f32],
+    fitness: &[f64],
     grid_size: usize,
-    kappa: f32,
+    kappa: f64,
     step: u32,
 ) -> Vec<u32> {
     let n = grid_size as i32;
@@ -145,43 +136,13 @@ fn read_buffer_u32(gpu: &Gpu, buffer: &wgpu::Buffer, count: usize) -> Result<Vec
 fn gpu_stencil(
     gpu: &Gpu,
     strategies: &[u32],
-    fitness: &[f32],
+    fitness: &[f64],
     grid_size: u32,
-    kappa: f32,
+    kappa: f64,
     step: u32,
 ) -> Result<Vec<u32>, String> {
     let device = gpu.device();
-    let queue = gpu.queue();
-
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("stencil_cooperation"),
-        source: wgpu::ShaderSource::Wgsl(WGSL_SOURCE.into()),
-    });
-
-    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("stencil_bgl"),
-        entries: &[
-            storage_entry(0, true),
-            storage_entry(1, true),
-            storage_entry(2, false),
-            uniform_entry(3),
-        ],
-    });
-
-    let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("stencil_pl"),
-        bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
-    });
-
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("stencil_pipeline"),
-        layout: Some(&pl),
-        module: &shader,
-        entry_point: "stencil_update",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
+    let op = StencilCooperationGpu::new(Arc::clone(gpu.wgpu_device()));
 
     let strategies_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("strategies"),
@@ -203,55 +164,14 @@ fn gpu_stencil(
         mapped_at_creation: false,
     });
 
-    let kappa_x1000 = (kappa * 1000.0) as u32;
-    let params = StencilParams {
+    op.dispatch(
+        &strategies_buf,
+        &fitness_buf,
+        &new_strategies_buf,
         grid_size,
-        kappa_x1000,
+        kappa,
         step,
-        _pad: 0,
-    };
-    let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("params"),
-        contents: bytemuck::bytes_of(&params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
-
-    let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("stencil_bg"),
-        layout: &bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: strategies_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: fitness_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: new_strategies_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 3,
-                resource: params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("stencil_encoder"),
-    });
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("stencil_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(gpu.dispatch_1d(grid_size * grid_size, 256), 1, 1);
-    }
-    queue.submit(std::iter::once(encoder.finish()));
+    );
 
     read_buffer_u32(gpu, &new_strategies_buf, n_cells)
 }
@@ -284,10 +204,10 @@ async fn main() {
 
 fn validate_basic_update(h: &mut ValidationHarness, gpu: &Gpu) {
     let grid_size = 6_usize;
-    let kappa = 0.1_f32;
+    let kappa = 0.1_f64;
     let step = 0_u32;
-    let b = 3.0_f32;
-    let c = 1.0_f32;
+    let b = 3.0_f64;
+    let c = 1.0_f64;
 
     let mut rng = Rng::new(42);
     let strategies: Vec<u32> = (0..grid_size * grid_size)
@@ -314,10 +234,10 @@ fn validate_basic_update(h: &mut ValidationHarness, gpu: &Gpu) {
 
 fn validate_all_cooperators(h: &mut ValidationHarness, gpu: &Gpu) {
     let grid_size = 6_usize;
-    let kappa = 0.1_f32;
+    let kappa = 0.1_f64;
     let step = 0_u32;
-    let b = 3.0_f32;
-    let c = 1.0_f32;
+    let b = 3.0_f64;
+    let c = 1.0_f64;
 
     let strategies: Vec<u32> = vec![1; grid_size * grid_size];
     let fitness = cpu_pd_fitness(&strategies, grid_size, b, c);
@@ -338,15 +258,15 @@ fn validate_all_cooperators(h: &mut ValidationHarness, gpu: &Gpu) {
 
 fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
     let grid_size = 6_usize;
-    let kappa = 0.1_f32;
+    let kappa = 0.1_f64;
     let step = 0_u32;
 
     let mut rng = Rng::new(42);
     let strategies: Vec<u32> = (0..grid_size * grid_size)
         .map(|_| u32::from(rng.uniform() >= 0.5))
         .collect();
-    let b = 3.0_f32;
-    let c = 1.0_f32;
+    let b = 3.0_f64;
+    let c = 1.0_f64;
     let fitness = cpu_pd_fitness(&strategies, grid_size, b, c);
 
     let run1 = gpu_stencil(gpu, &strategies, &fitness, grid_size as u32, kappa, step);
@@ -360,31 +280,5 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("determinism: dispatch failed", false);
         }
-    }
-}
-
-const fn storage_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

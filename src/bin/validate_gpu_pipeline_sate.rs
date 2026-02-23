@@ -1,30 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Pure GPU pipeline: pairwise_hamming → `mean_reduce` → scalar readback (Paper 017).
+//! Pure GPU pipeline validation: pairwise_hamming → mean (Paper 017).
 //!
-//! Chains two shader stages in a single `CommandEncoder` with zero CPU round-trips.
-//! Stage 1: `pairwise_hamming` — proportional Hamming for all n*(n-1)/2 pairs.
-//! Stage 2: `mean_reduce` — distance array to scalar mean.
+//! Uses BarraCUDA typed op `PairwiseHammingGpu` (f32) with CPU mean reduction.
+//! Replaces raw wgpu chain (pairwise_hamming + mean_reduce) for validation.
 //!
 //! ## Pipeline
 //!
 //! ```text
 //! Upload sequences (once)
 //!   ↓
-//! ┌─────────────────────────────────────────────────────┐
-//! │  Stage 1: pairwise_hamming.wgsl                     │
-//! │    sequences → distances[n_pairs]                    │
-//! │                                                     │
-//! │  Stage 2: mean_reduce.wgsl                           │
-//! │    distances[] → mean_distance (scalar)               │
-//! └─────────────────────────────────────────────────────┘
-//!   ↓  (single queue.submit — NO CPU round-trip)
-//! Readback: 4 bytes (one f32 scalar)
+//! PairwiseHammingGpu.dispatch() → distances[n_pairs] (f32)
+//!   ↓
+//! CPU mean(distances)
 //! ```
 //!
 //! ## Provenance
 //!
-//! GPU pipeline: pairwise_hamming → mean_reduce.
+//! GPU op: `barracuda::ops::bio::PairwiseHammingGpu` (f32 pipeline)
 //! Validates: SATé alignment mean pairwise distance (Liu et al., 2009).
 
 #![allow(
@@ -39,30 +32,13 @@
     clippy::needless_range_loop
 )]
 
-use bytemuck::{Pod, Zeroable};
+use barracuda::ops::bio::PairwiseHammingGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
-
-const HAMMING_WGSL: &str = include_str!("../../metalForge/shaders/pairwise_hamming.wgsl");
-const REDUCE_WGSL: &str = include_str!("../../metalForge/shaders/mean_reduce.wgsl");
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct HammingParams {
-    n_seqs: u32,
-    seq_len: u32,
-    _pad0: u32,
-    _pad1: u32,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
-struct ReduceParams {
-    n: u32,
-}
 
 #[tokio::main]
 async fn main() {
@@ -114,7 +90,7 @@ fn cpu_mean_pairwise_hamming(sequences: &[u32], n_seqs: usize, seq_len: usize) -
     total / n_pairs as f32
 }
 
-// ── GPU chained pipeline ───────────────────────────────────────────
+// ── GPU via BarraCUDA typed op ──────────────────────────────────────
 
 fn gpu_mean_pairwise_hamming(
     gpu: &Gpu,
@@ -122,59 +98,9 @@ fn gpu_mean_pairwise_hamming(
     n_seqs: u32,
     seq_len: u32,
 ) -> Result<f32, String> {
+    let op = PairwiseHammingGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-    let queue = gpu.queue();
     let n_pairs = (n_seqs * (n_seqs - 1) / 2) as usize;
-
-    let hamming_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("chain_hamming"),
-        source: wgpu::ShaderSource::Wgsl(HAMMING_WGSL.into()),
-    });
-
-    let reduce_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("chain_sate_reduce"),
-        source: wgpu::ShaderSource::Wgsl(REDUCE_WGSL.into()),
-    });
-
-    let hamming_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("chain_hamming_bgl"),
-        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
-    });
-
-    let hamming_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("chain_hamming_pl"),
-        bind_group_layouts: &[&hamming_bgl],
-        push_constant_ranges: &[],
-    });
-
-    let hamming_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("chain_hamming_pipeline"),
-        layout: Some(&hamming_pl),
-        module: &hamming_shader,
-        entry_point: "pairwise_hamming",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-
-    let reduce_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("chain_sate_reduce_bgl"),
-        entries: &[storage_ro_entry(0), storage_rw_entry(1), uniform_entry(2)],
-    });
-
-    let reduce_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("chain_sate_reduce_pl"),
-        bind_group_layouts: &[&reduce_bgl],
-        push_constant_ranges: &[],
-    });
-
-    let reduce_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("chain_sate_reduce_pipeline"),
-        layout: Some(&reduce_pl),
-        module: &reduce_shader,
-        entry_point: "mean_reduce",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
 
     let seq_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("chain_sate_sequences"),
@@ -189,98 +115,11 @@ fn gpu_mean_pairwise_hamming(
         mapped_at_creation: false,
     });
 
-    let hamming_params = HammingParams {
-        n_seqs,
-        seq_len,
-        _pad0: 0,
-        _pad1: 0,
-    };
-    let hamming_params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("chain_sate_hamming_params"),
-        contents: bytemuck::bytes_of(&hamming_params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
+    op.dispatch(&seq_buf, &dist_buf, n_seqs, seq_len);
 
-    let result_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("chain_sate_mean_result"),
-        size: 4,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-
-    let reduce_params = ReduceParams { n: n_pairs as u32 };
-    let reduce_params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("chain_sate_reduce_params"),
-        contents: bytemuck::bytes_of(&reduce_params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
-
-    let hamming_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("chain_hamming_bg"),
-        layout: &hamming_bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: seq_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: dist_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: hamming_params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let reduce_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("chain_sate_reduce_bg"),
-        layout: &reduce_bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: dist_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: result_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: reduce_params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("chain_sate_encoder"),
-    });
-
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("chain_hamming_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&hamming_pipeline);
-        pass.set_bind_group(0, &hamming_bg, &[]);
-        pass.dispatch_workgroups(n_pairs.div_ceil(256) as u32, 1, 1);
-    }
-
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("chain_sate_reduce_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&reduce_pipeline);
-        pass.set_bind_group(0, &reduce_bg, &[]);
-        pass.dispatch_workgroups(1, 1, 1);
-    }
-
-    queue.submit(std::iter::once(encoder.finish()));
-
-    let result = gpu.read_buffer_f32(&result_buf, 1)?;
-    Ok(result[0])
+    let distances = gpu.read_buffer_f32(&dist_buf, n_pairs)?;
+    let mean = distances.iter().sum::<f32>() / distances.len() as f32;
+    Ok(mean)
 }
 
 // ── Validation functions ───────────────────────────────────────────
@@ -407,46 +246,5 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         _ => {
             h.check_bool("sate determinism: dispatch failed", false);
         }
-    }
-}
-
-// ── wgpu layout helpers ────────────────────────────────────────────
-
-const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: true },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: false },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

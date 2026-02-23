@@ -11,15 +11,23 @@
 //! Expected values: analytical solutions for small systems.
 //! SVD reference: A = U Σ V^T for known matrices.
 
+use barracuda::device::WgpuDevice;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 
 fn main() {
+    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let device = rt
+        .block_on(async { WgpuDevice::new().await })
+        .map(Arc::new)
+        .expect("GPU device");
+
     let mut h = ValidationHarness::new("barracuda_linalg_ext");
 
     validate_svd(&mut h);
     validate_lu_inverse(&mut h);
-    validate_gen_eigh(&mut h);
+    validate_gen_eigh(&mut h, &device);
 
     h.finish();
 }
@@ -112,7 +120,7 @@ fn validate_lu_inverse(h: &mut ValidationHarness) {
     }
 }
 
-fn validate_gen_eigh(h: &mut ValidationHarness) {
+fn validate_gen_eigh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     // Generalized eigenvalue problem: A x = λ B x
     // When B = I, this reduces to standard eigenvalue problem A x = λ x
     // A = [[3,1],[1,3]], eigenvalues = 2 and 4
@@ -134,7 +142,7 @@ fn validate_gen_eigh(h: &mut ValidationHarness) {
     let a2 = vec![4.0, 2.0, 2.0, 4.0];
     let b2 = vec![2.0, 0.0, 0.0, 2.0];
 
-    match barracuda::linalg::gen_eigh::gen_eigh_f64(&a2, &b2, 2) {
+    match barracuda::linalg::gen_eigh::gen_eigh_f64(device.clone(), &a2, &b2, 2) {
         Ok(result) => {
             let l0 = result.eigenvalues[0].min(result.eigenvalues[1]);
             let l1 = result.eigenvalues[0].max(result.eigenvalues[1]);

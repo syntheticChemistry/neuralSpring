@@ -19,17 +19,25 @@
 
 #![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
+use barracuda::device::WgpuDevice;
 use neural_spring::swarm_robotics::{
     create_controller, run_evolution_heterogeneous, run_evolution_homogeneous, shannon_diversity,
     ControllerType,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 
 fn main() {
+    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let device = rt
+        .block_on(async { WgpuDevice::new().await })
+        .map(Arc::new)
+        .expect("GPU device");
+
     let mut h = ValidationHarness::new("barracuda_swarm");
 
-    validate_controller_weight_solve(&mut h);
+    validate_controller_weight_solve(&mut h, &device);
     validate_evolution_fitness(&mut h);
     validate_type_diversity(&mut h);
 
@@ -38,7 +46,7 @@ fn main() {
 
 /// Validate that a trivial linear system (from controller param extraction)
 /// is solved correctly by barracuda.
-fn validate_controller_weight_solve(h: &mut ValidationHarness) {
+fn validate_controller_weight_solve(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let mut rng = neural_spring::rng::Rng::new(42);
     let ctrl = create_controller(ControllerType::NeuralNet, &mut rng);
     let b = &ctrl.params[4..8];
@@ -48,7 +56,7 @@ fn validate_controller_weight_solve(h: &mut ValidationHarness) {
     ];
     let b_vec: Vec<f64> = b.to_vec();
 
-    match barracuda::linalg::solve_f64(&a, &b_vec, 4) {
+    match barracuda::linalg::solve_f64(device.clone(), &a, &b_vec, 4) {
         Ok(x) => {
             for (i, (&xi, &bi)) in x.iter().zip(b.iter()).enumerate() {
                 h.check_abs(

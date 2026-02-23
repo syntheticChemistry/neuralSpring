@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: batch inverse participation ratio via `metalForge` WGSL shader.
+//! GPU validation: batch inverse participation ratio via BarraCUDA `BatchIprGpu`.
 //!
-//! Validates `metalForge/shaders/batch_ipr.wgsl` against CPU IPR computation
-//! from `anderson_localization.rs`.  The GPU shader computes IPR = sum(|ψ_i|^4)
+//! Validates `barracuda::spectral::BatchIprGpu` against CPU IPR computation
+//! from `anderson_localization.rs`.  The GPU op computes IPR = sum(|ψ_i|^4)
 //! for each eigenvector in a single dispatch.
 //!
 //! ## Papers validated
@@ -13,7 +13,7 @@
 //! ## Provenance
 //!
 //! CPU reference: `anderson_localization::mean_ipr` (seed=0, Aubry-André n=16).
-//! WGSL shader: `metalForge/shaders/batch_ipr.wgsl`
+//! GPU op: `barracuda::spectral::BatchIprGpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
@@ -36,7 +36,33 @@ use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/batch_ipr.wgsl");
+fn gpu_batch_ipr(
+    gpu: &Gpu,
+    op: &BatchIprGpu,
+    eigenvectors: &[f32],
+    dim: u32,
+    n_vectors: u32,
+) -> Result<Vec<f32>, String> {
+    let device = gpu.device();
+    let n_vectors_usize = n_vectors as usize;
+
+    let ev_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("eigenvectors"),
+        contents: bytemuck::cast_slice(eigenvectors),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+
+    let ipr_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("ipr_out"),
+        size: (n_vectors_usize * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    op.dispatch(&ev_buf, &ipr_buf, dim, n_vectors);
+
+    gpu.read_buffer_f32(&ipr_buf, n_vectors_usize)
+}
 
 #[tokio::main]
 async fn main() {
@@ -55,122 +81,20 @@ async fn main() {
         }
     };
 
+    let op = BatchIprGpu::new(Arc::clone(gpu.wgpu_device()));
     let mut h = ValidationHarness::new("gpu_anderson");
 
-    validate_extended_state(&mut h, &gpu);
-    validate_localized_state(&mut h, &gpu);
-    validate_transition(&mut h, &gpu);
-    validate_uniform_vector(&mut h, &gpu);
-    validate_determinism(&mut h, &gpu);
-    validate_upstream_parity(&mut h, &gpu);
+    validate_extended_state(&mut h, &gpu, &op);
+    validate_localized_state(&mut h, &gpu, &op);
+    validate_transition(&mut h, &gpu, &op);
+    validate_uniform_vector(&mut h, &gpu, &op);
+    validate_determinism(&mut h, &gpu, &op);
     validate_reduce_pipeline_mean(&mut h, &gpu);
 
     h.finish();
 }
 
-#[repr(C)]
-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Params {
-    dim: u32,
-    n_vectors: u32,
-}
-
-fn gpu_batch_ipr(
-    gpu: &Gpu,
-    eigenvectors: &[f32],
-    dim: u32,
-    n_vectors: u32,
-) -> Result<Vec<f32>, String> {
-    let device = gpu.device();
-    let queue = gpu.queue();
-
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("batch_ipr"),
-        source: wgpu::ShaderSource::Wgsl(WGSL_SOURCE.into()),
-    });
-
-    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("batch_ipr_bgl"),
-        entries: &[
-            storage_entry(0, true),
-            storage_entry(1, false),
-            uniform_entry(2),
-        ],
-    });
-
-    let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("batch_ipr_pl"),
-        bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
-    });
-
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("batch_ipr_pipeline"),
-        layout: Some(&pl),
-        module: &shader,
-        entry_point: "batch_ipr",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
-
-    let ev_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("eigenvectors"),
-        contents: bytemuck::cast_slice(eigenvectors),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-
-    let n_vectors_usize = n_vectors as usize;
-    let ipr_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("ipr_out"),
-        size: (n_vectors_usize * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-
-    let params = Params { dim, n_vectors };
-    let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("params"),
-        contents: bytemuck::bytes_of(&params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
-
-    let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("batch_ipr_bg"),
-        layout: &bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: ev_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: ipr_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("batch_ipr_encoder"),
-    });
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("batch_ipr_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(gpu.dispatch_1d(n_vectors, 256), 1, 1);
-    }
-    queue.submit(std::iter::once(encoder.finish()));
-
-    gpu.read_buffer_f32(&ipr_buf, n_vectors_usize)
-}
-
-fn validate_extended_state(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_extended_state(h: &mut ValidationHarness, gpu: &Gpu, op: &BatchIprGpu) {
     let n = 16_usize;
     let t = 1.0_f64;
     let w = 1.0_f64; // below transition
@@ -194,7 +118,7 @@ fn validate_extended_state(h: &mut ValidationHarness, gpu: &Gpu) {
         })
         .collect();
 
-    match gpu_batch_ipr(gpu, &flat, n as u32, n as u32) {
+    match gpu_batch_ipr(gpu, op, &flat, n as u32, n as u32) {
         Ok(gpu_ipr) => {
             let max_diff: f64 = gpu_ipr
                 .iter()
@@ -214,7 +138,7 @@ fn validate_extended_state(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_localized_state(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_localized_state(h: &mut ValidationHarness, gpu: &Gpu, op: &BatchIprGpu) {
     let n = 16_usize;
     let t = 1.0_f64;
     let w = 4.0_f64; // above transition
@@ -238,7 +162,7 @@ fn validate_localized_state(h: &mut ValidationHarness, gpu: &Gpu) {
         })
         .collect();
 
-    match gpu_batch_ipr(gpu, &flat, n as u32, n as u32) {
+    match gpu_batch_ipr(gpu, op, &flat, n as u32, n as u32) {
         Ok(gpu_ipr) => {
             let max_diff: f64 = gpu_ipr
                 .iter()
@@ -258,7 +182,7 @@ fn validate_localized_state(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_transition(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_transition(h: &mut ValidationHarness, gpu: &Gpu, op: &BatchIprGpu) {
     let n = 16_usize;
     let t = 1.0_f64;
     let alpha = 1.0 / GOLDEN_RATIO;
@@ -284,8 +208,8 @@ fn validate_transition(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 
     match (
-        gpu_batch_ipr(gpu, &flat_below, n as u32, n as u32),
-        gpu_batch_ipr(gpu, &flat_above, n as u32, n as u32),
+        gpu_batch_ipr(gpu, op, &flat_below, n as u32, n as u32),
+        gpu_batch_ipr(gpu, op, &flat_above, n as u32, n as u32),
     ) {
         (Ok(ipr_below), Ok(ipr_above)) => {
             let mean_below: f64 =
@@ -306,14 +230,14 @@ fn validate_transition(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_uniform_vector(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_uniform_vector(h: &mut ValidationHarness, gpu: &Gpu, op: &BatchIprGpu) {
     let n = 64_usize;
     let scale = 1.0 / (n as f64).sqrt();
     let expected_ipr = 1.0 / (n as f64); // IPR = n * (1/n)^2 = 1/n
 
     let uniform: Vec<f32> = (0..n).map(|_| scale as f32).collect();
 
-    match gpu_batch_ipr(gpu, &uniform, n as u32, 1) {
+    match gpu_batch_ipr(gpu, op, &uniform, n as u32, 1) {
         Ok(gpu_ipr) => {
             let got = f64::from(gpu_ipr[0]);
             let diff = (got - expected_ipr).abs();
@@ -331,7 +255,7 @@ fn validate_uniform_vector(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
+fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu, op: &BatchIprGpu) {
     let n = 16_usize;
     let t = 1.0_f64;
     let w = 2.0_f64;
@@ -348,8 +272,8 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
         }
     }
 
-    let run1 = gpu_batch_ipr(gpu, &flat, n as u32, n as u32);
-    let run2 = gpu_batch_ipr(gpu, &flat, n as u32, n as u32);
+    let run1 = gpu_batch_ipr(gpu, op, &flat, n as u32, n as u32);
+    let run2 = gpu_batch_ipr(gpu, op, &flat, n as u32, n as u32);
 
     match (run1, run2) {
         (Ok(r1), Ok(r2)) => {
@@ -407,77 +331,5 @@ fn validate_reduce_pipeline_mean(h: &mut ValidationHarness, gpu: &Gpu) {
             }
         }
         Err(e) => h.check_bool(&format!("ReduceScalarPipeline::new failed: {e}"), false),
-    }
-}
-
-fn validate_upstream_parity(h: &mut ValidationHarness, gpu: &Gpu) {
-    let n = 32_usize;
-    let dim = n as u32;
-    let n_vectors = n as u32;
-    let t = 1.0_f64;
-    let w = 1.0_f64;
-    let h_matrix = aubry_andre_hamiltonian(n, t, w, GOLDEN_RATIO, 0.0);
-    let (_, eigvecs) = jacobi_eigh(&h_matrix, n);
-    let flat: Vec<f32> = eigvecs.iter().map(|&v| v as f32).collect();
-
-    let local = gpu_batch_ipr(gpu, &flat, dim, n_vectors);
-
-    let dev = Arc::clone(gpu.wgpu_device());
-    let device = gpu.device();
-    let op = BatchIprGpu::new(dev);
-    let ev_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("ev"),
-        contents: bytemuck::cast_slice(&flat),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let ipr_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("ipr"),
-        size: u64::from(n_vectors) * 4,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    op.dispatch(&ev_buf, &ipr_buf, dim, n_vectors);
-    let upstream = gpu.read_buffer_f32(&ipr_buf, n_vectors as usize);
-
-    match (local, upstream) {
-        (Ok(l), Ok(u)) => {
-            let max_diff: f64 = l
-                .iter()
-                .zip(u.iter())
-                .map(|(&a, &b)| (f64::from(a) - f64::from(b)).abs())
-                .fold(0.0_f64, f64::max);
-            h.check_upper(
-                &format!("upstream parity: local vs BatchIprGpu diff {max_diff:.2e}"),
-                max_diff,
-                tolerances::GPU_BATCH_IPR_F32,
-            );
-        }
-        _ => h.check_bool("upstream parity: dispatch failed", false),
-    }
-}
-
-const fn storage_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

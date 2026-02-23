@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: February 23, 2026 (Sessions 40, 42, 44, 45–46)
+**Date**: February 23, 2026 (Sessions 40–48)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK)
 **Methodology**: Python control → Rust validation → WGSL shader evolution → multi-GPU portability
 
@@ -227,8 +227,7 @@ Total fossilized: **~2,864 LOC** (removed from active compilation Feb 20, 2026).
 
 | Module | Lines | Why Active |
 |--------|-------|-----------|
-| `mha.rs` | 182 | S-03b: native projection shaders hang |
-| `hmm_forward_gpu.rs` | 270 | No BarraCUDA equivalent |
+| `mha.rs` | 182 | S-03b FIXED upstream (Session 47); kept until full native MHA validation |
 | `gpu.rs` | 225 | Device wrapper (rewired to `new_cpu_relaxed`) |
 
 ---
@@ -388,8 +387,8 @@ execution flow.
 
 ### What remains active
 
-- `evolved::mha` — MHA workaround (S-03b, blocked on native shader hang)
-- `evolved::hmm_forward_gpu` — metalForge shader evolution (no BarraCUDA equivalent)
+- `evolved::mha` — MHA workaround (S-03b FIXED upstream; kept until full native MHA validation)
+- ~~`evolved::hmm_forward_gpu`~~ — **RETIRED** Session 47 (HmmBatchForwardF64 wetSpring primary)
 
 See `metalForge/fossils/FOSSIL_RECORD.md` for the complete fossil inventory.
 
@@ -887,4 +886,62 @@ The evolution now reads:
 Python control → Rust native → BarraCUDA CPU → BarraCUDA GPU Tensor
   → metalForge WGSL → GPU Pipeline → Cross-dispatch → Multi-GPU
   → gpu_dispatch (38 ops, ~90%) → metalForge mixed hardware
+  → Session 47: typed ops (10 validators), MHA S-03b fixed, HMM retired
 ```
+
+---
+
+## Session 47: Typed Op Rewiring (February 23, 2026)
+
+### The Evolution Trajectory
+
+```
+raw wgpu dispatch  →  local shaders  →  absorbed shaders  →  typed Rust APIs
+      (early)            (metalForge)     (BarraCUDA)          (Session 47)
+```
+
+### Cross-Spring Convergence Narrative
+
+Session 47 completed the typed op migration: 10 validation binaries that previously
+dispatched raw wgpu buffers now use typed BarraCUDA ops (`BatchFitnessGpu`,
+`PairwiseHammingGpu`, `PairwiseJaccardGpu`, `LocusVarianceGpu`, `SpatialPayoffGpu`,
+`MultiObjFitnessGpu`, `PairwiseL2Gpu`, `BatchIprGpu`, `SwarmNnGpu`, `HillGateGpu`).
+Cross-spring absorption is **complete** — neuralSpring's domain validators consume
+the same typed APIs that wetSpring and hotSpring contribute to BarraCUDA.
+
+- **HMM**: wetSpring's `HmmBatchForwardF64` is now the primary path; neuralSpring's
+  `evolved/hmm_forward_gpu.rs` retired (351 LOC fossilized).
+- **Eigensolve**: hotSpring's `BatchedEighGpu` is now the eigensolve path via
+  `eigh_gpu`, `disorder_sweep_gpu`.
+- **MHA S-03b**: Fixed upstream (z-dimension dispatch) — flows from ToadStool S46.
+
+---
+
+## Session 48: Mass Typed Op Migration (February 23, 2026)
+
+### Evolution from Raw wgpu → Typed Ops Across 28 Binaries
+
+Session 48 completed the mass rewiring: 28 validation and benchmark binaries converted
+from raw wgpu dispatch (include_str! local shaders + manual pipeline/bindgroup/encoder
+creation) to modern BarraCUDA typed op APIs. This removes thousands of lines of
+boilerplate and validates the upstream ToadStool/BarraCUDA APIs directly.
+
+- **Pipeline validators** (15): All now use typed BarraCUDA ops + CPU mean instead of
+  raw wgpu shader chains. Tests the upstream API directly.
+- **Cross-dispatch validators** (6): All use typed BarraCUDA ops.
+- **Standalone validators** (2): wright_fisher → WrightFisherGpu (f64), stencil →
+  StencilCooperationGpu (f64).
+- **bench_gpu_kernels.rs**: 5 benchmarks now use typed ops.
+
+### Benchmark Shows GPU Advantage at Scale
+
+| Kernel | GPU | Rust CPU | GPU Advantage |
+|--------|-----|----------|---------------|
+| Large Hamming | 5.6 ms | 8.2 ms | 1.4× |
+| Large Jaccard | 5.6 ms | 13.3 ms | 2.4× |
+| Large Fitness (50000×64) | 6 ms | — | — |
+
+### HillGateGpu f64 Graceful Skip
+
+On RTX 4070, HillGateGpu f64 is skipped gracefully due to driver limitation. f32 path
+remains validated.

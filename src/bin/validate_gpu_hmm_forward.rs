@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: HMM forward pass via `metalForge` WGSL shader.
+//! GPU validation: HMM forward pass via upstream `HmmBatchForwardF64`.
 //!
-//! Validates `metalForge/shaders/hmm_forward_log.wgsl` against the CPU
-//! reference in `src/hmm.rs`.  The GPU shader uses f32 log-domain
-//! arithmetic; the CPU reference uses f64 scaled forward.  Both should
-//! produce equivalent log-likelihood values within documented tolerance.
+//! Validates the upstream `BarraCUDA` HMM forward pass (f64 batch GPU shader)
+//! against the CPU reference in `src/hmm.rs`. Replaces the local f32 evolved
+//! dispatch with the upstream f64 API — strictly better precision.
 //!
 //! Evolution path:
 //! ```text
-//! Python (hmmlearn) → Rust CPU (hmm.rs) → BarraCUDA CPU (stats/linalg)
-//!   → GPU WGSL shader (hmm_forward_log.wgsl) → ToadStool absorption
+//! Python (hmmlearn) → Rust CPU (hmm.rs) → local f32 GPU (retired)
+//!   → upstream HmmBatchForwardF64 (wetSpring f64, absorbed by ToadStool)
 //! ```
 //!
 //! ## Papers validated
@@ -19,15 +18,10 @@
 //! - Paper 017: `SATé` Alignment (Liu et al., 2009)
 //! - Paper 018: Introgression Detection (Liu et al., 2015)
 //!
-//! ## Backend selection
-//!
-//! Set `NEURALSPRING_BACKEND=cpu|gpu|auto`.
-//!
 //! ## Provenance
 //!
 //! CPU reference: `hmm::Hmm::forward` (seed=42, 2-state 20-obs).
-//! WGSL shader: `metalForge/shaders/hmm_forward_log.wgsl`
-//! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
+//! GPU shader: `barracuda::ops::bio::hmm::HmmBatchForwardF64` (wetSpring origin)
 
 #![allow(
     clippy::cast_precision_loss,
@@ -36,11 +30,14 @@
     clippy::too_many_lines
 )]
 
+use barracuda::ops::bio::HmmBatchForwardF64;
 use neural_spring::gpu::Gpu;
 use neural_spring::hmm::Hmm;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
+use wgpu::util::DeviceExt;
 
 #[tokio::main]
 async fn main() {
@@ -70,7 +67,6 @@ async fn main() {
     h.finish();
 }
 
-/// 2-state weather HMM (same as `validate_barracuda_hmm.rs`).
 fn weather_hmm() -> Hmm {
     Hmm::new(
         vec![vec![0.7, 0.3], vec![0.4, 0.6]],
@@ -79,7 +75,6 @@ fn weather_hmm() -> Hmm {
     )
 }
 
-/// 3-state genomic HMM (simplified PhyloNet-HMM from Paper 016).
 fn genomic_hmm() -> Hmm {
     Hmm::new(
         vec![
@@ -96,90 +91,144 @@ fn genomic_hmm() -> Hmm {
     )
 }
 
-/// Convert Hmm parameters to f32 log-domain for GPU shader.
-fn hmm_to_log_f32(hmm: &Hmm) -> (Vec<f32>, Vec<f32>) {
-    let log_initial: Vec<f32> = hmm.initial.iter().map(|&p| (p as f32).ln()).collect();
-    let log_trans: Vec<f32> = hmm.transition.iter().map(|&p| (p as f32).ln()).collect();
-    (log_initial, log_trans)
+struct HmmF64Params {
+    n_states: u32,
+    n_symbols: u32,
+    log_trans: Vec<f64>,
+    log_emit: Vec<f64>,
+    log_pi: Vec<f64>,
 }
 
-/// Convert observation sequence to f32 log-emission matrix (T × N).
-fn obs_to_log_emissions(hmm: &Hmm, obs: &[usize]) -> Vec<f32> {
-    let n = hmm.num_states();
-    let m = hmm.num_symbols();
-    obs.iter()
-        .flat_map(|&o| {
-            let oi = o.min(m - 1);
-            (0..n).map(move |j| (hmm.emission[j * m + oi] as f32).ln())
-        })
-        .collect()
+fn hmm_to_f64_params(hmm: &Hmm) -> HmmF64Params {
+    let n_states = hmm.num_states();
+    let n_symbols = hmm.num_symbols();
+    let log_trans: Vec<f64> = hmm.transition.iter().map(|&p| p.ln()).collect();
+    let log_emit: Vec<f64> = hmm.emission.iter().map(|&p| p.ln()).collect();
+    let log_pi: Vec<f64> = hmm.initial.iter().map(|&p| p.ln()).collect();
+    HmmF64Params {
+        n_states: n_states as u32,
+        n_symbols: n_symbols as u32,
+        log_trans,
+        log_emit,
+        log_pi,
+    }
+}
+
+fn dispatch_hmm_f64(
+    gpu: &Gpu,
+    op: &HmmBatchForwardF64,
+    params: &HmmF64Params,
+    obs_batch: &[Vec<usize>],
+) -> Result<(Vec<f64>, Vec<f64>), String> {
+    let device = gpu.device();
+    let n_seqs = obs_batch.len() as u32;
+    let n_steps = obs_batch.iter().map(Vec::len).max().unwrap_or(0) as u32;
+
+    let mut obs_flat: Vec<u32> = Vec::with_capacity((n_seqs * n_steps) as usize);
+    for seq in obs_batch {
+        for &o in seq {
+            obs_flat.push(o as u32);
+        }
+        let pad_len = (n_steps as usize).saturating_sub(seq.len());
+        obs_flat.extend(std::iter::repeat_n(0, pad_len));
+    }
+
+    let log_trans_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("log_trans"),
+        contents: bytemuck::cast_slice(&params.log_trans),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let log_emit_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("log_emit"),
+        contents: bytemuck::cast_slice(&params.log_emit),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let log_pi_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("log_pi"),
+        contents: bytemuck::cast_slice(&params.log_pi),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let obs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("observations"),
+        contents: bytemuck::cast_slice(&obs_flat),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+
+    let alpha_size = u64::from(n_seqs) * u64::from(n_steps) * u64::from(params.n_states) * 8;
+    let log_alpha_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("log_alpha"),
+        size: alpha_size,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    let log_lik_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("log_lik"),
+        size: u64::from(n_seqs) * 8,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    op.dispatch(
+        params.n_states,
+        params.n_symbols,
+        n_steps,
+        n_seqs,
+        &log_trans_buf,
+        &log_emit_buf,
+        &log_pi_buf,
+        &obs_buf,
+        &log_alpha_buf,
+        &log_lik_buf,
+    )
+    .map_err(|e| format!("HMM dispatch: {e}"))?;
+
+    let alpha_count = (n_seqs * n_steps * params.n_states) as usize;
+    let alpha = gpu.read_buffer_f64(&log_alpha_buf, alpha_count)?;
+    let log_lik = gpu.read_buffer_f64(&log_lik_buf, n_seqs as usize)?;
+    Ok((alpha, log_lik))
 }
 
 fn validate_2state_weather(h: &mut ValidationHarness, gpu: &Gpu) {
+    let dev = Arc::clone(gpu.wgpu_device());
+    let op = match HmmBatchForwardF64::new(dev) {
+        Ok(op) => op,
+        Err(e) => {
+            h.check_bool(&format!("HmmBatchForwardF64::new failed — {e}"), false);
+            return;
+        }
+    };
+
     let hmm = weather_hmm();
+    let params = hmm_to_f64_params(&hmm);
     let mut rng = Rng::new(42);
     let (_, obs) = hmm.generate_sequence(20, &mut rng);
-
     let (cpu_alpha, cpu_ll) = hmm.forward(&obs);
-    let (log_initial, log_trans) = hmm_to_log_f32(&hmm);
-    let log_emissions = obs_to_log_emissions(&hmm, &obs);
 
-    match neural_spring::evolved::hmm_forward_gpu::hmm_forward_gpu(
-        gpu,
-        &log_initial,
-        &log_trans,
-        &log_emissions,
-    ) {
-        Ok(output) => {
-            match output.readback(gpu) {
-                Ok(gpu_alpha) => {
-                    // GPU alpha is in log-domain; CPU alpha is in probability domain (scaled).
-                    // Compare: GPU log-alpha vs CPU log(alpha * product(scales))
-                    // For a simpler check: verify GPU alpha values are finite and ordered correctly.
-                    let all_finite = gpu_alpha.iter().all(|v| v.is_finite());
-                    h.check_bool("2-state weather: GPU alpha all finite", all_finite);
+    match dispatch_hmm_f64(gpu, &op, &params, &[obs]) {
+        Ok((alpha, log_lik)) => {
+            let gpu_ll = log_lik[0];
+            let all_finite = alpha.iter().all(|v| v.is_finite());
+            h.check_bool("2-state weather: GPU alpha all finite", all_finite);
 
-                    // GPU log-likelihood = logsumexp(final alpha)
-                    let max_a = gpu_alpha.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-                    let gpu_ll: f32 = max_a
-                        + gpu_alpha
-                            .iter()
-                            .map(|&a| (a - max_a).exp())
-                            .sum::<f32>()
-                            .ln();
-
-                    h.check_bool(
-                        &format!("2-state weather: GPU LL finite ({gpu_ll:.4})"),
-                        gpu_ll.is_finite(),
-                    );
-                    h.check_bool(
-                        "2-state weather: GPU LL negative (probability < 1)",
-                        gpu_ll < 0.0,
-                    );
-
-                    #[allow(clippy::cast_possible_truncation)]
-                    let cpu_ll_f32 = cpu_ll as f32;
-                    h.check_abs(
-                        &format!(
-                            "2-state weather: GPU LL ≈ CPU LL ({gpu_ll:.4} vs {cpu_ll_f32:.4})"
-                        ),
-                        f64::from(gpu_ll),
-                        f64::from(cpu_ll_f32),
-                        tolerances::GPU_HMM_LOG_LIKELIHOOD_F32,
-                    );
-
-                    // Check CPU reference is sane
-                    h.check_bool(
-                        &format!("2-state weather: CPU LL finite ({cpu_ll:.4})"),
-                        cpu_ll.is_finite(),
-                    );
-
-                    let _ = cpu_alpha;
-                }
-                Err(e) => {
-                    h.check_bool(&format!("2-state weather: readback failed — {e}"), false);
-                }
-            }
+            h.check_bool(
+                &format!("2-state weather: GPU LL finite ({gpu_ll:.6})"),
+                gpu_ll.is_finite(),
+            );
+            h.check_bool(
+                "2-state weather: GPU LL negative (probability < 1)",
+                gpu_ll < 0.0,
+            );
+            h.check_abs(
+                &format!("2-state weather: GPU LL ≈ CPU LL ({gpu_ll:.6} vs {cpu_ll:.6})"),
+                gpu_ll,
+                cpu_ll,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+            );
+            h.check_bool(
+                &format!("2-state weather: CPU LL finite ({cpu_ll:.6})"),
+                cpu_ll.is_finite(),
+            );
+            let _ = cpu_alpha;
         }
         Err(e) => {
             h.check_bool(
@@ -191,51 +240,35 @@ fn validate_2state_weather(h: &mut ValidationHarness, gpu: &Gpu) {
 }
 
 fn validate_3state_genomic(h: &mut ValidationHarness, gpu: &Gpu) {
+    let dev = Arc::clone(gpu.wgpu_device());
+    let op = match HmmBatchForwardF64::new(dev) {
+        Ok(op) => op,
+        Err(e) => {
+            h.check_bool(&format!("HmmBatchForwardF64::new failed — {e}"), false);
+            return;
+        }
+    };
+
     let hmm = genomic_hmm();
+    let params = hmm_to_f64_params(&hmm);
     let mut rng = Rng::new(123);
     let (_, obs) = hmm.generate_sequence(30, &mut rng);
-
     let (_, cpu_ll) = hmm.forward(&obs);
-    let (log_initial, log_trans) = hmm_to_log_f32(&hmm);
-    let log_emissions = obs_to_log_emissions(&hmm, &obs);
 
-    match neural_spring::evolved::hmm_forward_gpu::hmm_forward_gpu(
-        gpu,
-        &log_initial,
-        &log_trans,
-        &log_emissions,
-    ) {
-        Ok(output) => match output.readback(gpu) {
-            Ok(gpu_alpha) => {
-                let all_finite = gpu_alpha.iter().all(|v| v.is_finite());
-                h.check_bool("3-state genomic: GPU alpha all finite", all_finite);
-
-                let max_a = gpu_alpha.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-                let gpu_ll: f32 = max_a
-                    + gpu_alpha
-                        .iter()
-                        .map(|&a| (a - max_a).exp())
-                        .sum::<f32>()
-                        .ln();
-
-                h.check_bool(
-                    &format!("3-state genomic: GPU LL finite ({gpu_ll:.4})"),
-                    gpu_ll.is_finite(),
-                );
-
-                #[allow(clippy::cast_possible_truncation)]
-                let cpu_ll_f32 = cpu_ll as f32;
-                h.check_abs(
-                    &format!("3-state genomic: GPU LL ≈ CPU LL ({gpu_ll:.4} vs {cpu_ll_f32:.4})"),
-                    f64::from(gpu_ll),
-                    f64::from(cpu_ll_f32),
-                    tolerances::GPU_HMM_LOG_LIKELIHOOD_F32,
-                );
-            }
-            Err(e) => {
-                h.check_bool(&format!("3-state genomic: readback failed — {e}"), false);
-            }
-        },
+    match dispatch_hmm_f64(gpu, &op, &params, &[obs]) {
+        Ok((_, log_lik)) => {
+            let gpu_ll = log_lik[0];
+            h.check_bool(
+                &format!("3-state genomic: GPU LL finite ({gpu_ll:.6})"),
+                gpu_ll.is_finite(),
+            );
+            h.check_abs(
+                &format!("3-state genomic: GPU LL ≈ CPU LL ({gpu_ll:.6} vs {cpu_ll:.6})"),
+                gpu_ll,
+                cpu_ll,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+            );
+        }
         Err(e) => {
             h.check_bool(
                 &format!("3-state genomic: GPU dispatch failed — {e}"),
@@ -246,61 +279,76 @@ fn validate_3state_genomic(h: &mut ValidationHarness, gpu: &Gpu) {
 }
 
 fn validate_log_likelihood_sign(h: &mut ValidationHarness, gpu: &Gpu) {
+    let dev = Arc::clone(gpu.wgpu_device());
+    let op = match HmmBatchForwardF64::new(dev) {
+        Ok(op) => op,
+        Err(e) => {
+            h.check_bool(&format!("HmmBatchForwardF64::new failed — {e}"), false);
+            return;
+        }
+    };
+
     let hmm = weather_hmm();
+    let params = hmm_to_f64_params(&hmm);
     let obs_short: Vec<usize> = vec![0, 1, 2, 0, 1];
     let obs_long: Vec<usize> = vec![0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2];
 
-    let (log_initial, log_trans) = hmm_to_log_f32(&hmm);
+    let max_len = obs_long.len();
+    let mut short_padded = obs_short;
+    short_padded.resize(max_len, 0);
 
-    let log_emit_short = obs_to_log_emissions(&hmm, &obs_short);
-    let log_emit_long = obs_to_log_emissions(&hmm, &obs_long);
-
-    let ll_short = gpu_log_likelihood(gpu, &log_initial, &log_trans, &log_emit_short);
-    let ll_long = gpu_log_likelihood(gpu, &log_initial, &log_trans, &log_emit_long);
-
-    if let (Some(s), Some(l)) = (ll_short, ll_long) {
-        h.check_bool(&format!("LL sign: short > long ({s:.4} > {l:.4})"), s > l);
-    } else {
-        h.check_bool("LL sign: dispatch failed", false);
+    match dispatch_hmm_f64(gpu, &op, &params, &[short_padded, obs_long]) {
+        Ok((_, log_lik)) => {
+            h.check_bool(
+                &format!(
+                    "LL sign: short > long ({:.4} > {:.4})",
+                    log_lik[0], log_lik[1]
+                ),
+                log_lik[0] > log_lik[1],
+            );
+        }
+        Err(e) => h.check_bool(&format!("LL sign: dispatch failed — {e}"), false),
     }
 }
 
 fn validate_alpha_sum_property(h: &mut ValidationHarness, gpu: &Gpu) {
+    let dev = Arc::clone(gpu.wgpu_device());
+    let op = match HmmBatchForwardF64::new(dev) {
+        Ok(op) => op,
+        Err(e) => {
+            h.check_bool(&format!("HmmBatchForwardF64::new failed — {e}"), false);
+            return;
+        }
+    };
+
     let hmm = weather_hmm();
+    let params = hmm_to_f64_params(&hmm);
     let obs: Vec<usize> = vec![0, 1, 0, 2, 1];
 
-    let (log_initial, log_trans) = hmm_to_log_f32(&hmm);
-    let log_emissions = obs_to_log_emissions(&hmm, &obs);
-
-    match neural_spring::evolved::hmm_forward_gpu::hmm_forward_gpu(
-        gpu,
-        &log_initial,
-        &log_trans,
-        &log_emissions,
-    ) {
-        Ok(output) => match output.readback(gpu) {
-            Ok(gpu_alpha) => {
-                // In log-domain, "sum" = logsumexp.  The total should be finite.
-                let max_a = gpu_alpha.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-                let lse = max_a
-                    + gpu_alpha
-                        .iter()
-                        .map(|&a| (a - max_a).exp())
-                        .sum::<f32>()
-                        .ln();
-                h.check_bool(
-                    &format!("alpha sum property: logsumexp finite ({lse:.4})"),
-                    lse.is_finite(),
-                );
-                h.check_bool(
-                    "alpha sum property: logsumexp negative (prob < 1)",
-                    lse < 0.0,
-                );
-            }
-            Err(e) => {
-                h.check_bool(&format!("alpha sum: readback failed — {e}"), false);
-            }
-        },
+    match dispatch_hmm_f64(gpu, &op, &params, &[obs]) {
+        Ok((alpha, _)) => {
+            let n = params.n_states as usize;
+            let n_steps = 5;
+            let final_alpha: Vec<f64> = alpha[(n_steps - 1) * n..n_steps * n].to_vec();
+            let max_a = final_alpha
+                .iter()
+                .copied()
+                .fold(f64::NEG_INFINITY, f64::max);
+            let lse = max_a
+                + final_alpha
+                    .iter()
+                    .map(|&a| (a - max_a).exp())
+                    .sum::<f64>()
+                    .ln();
+            h.check_bool(
+                &format!("alpha sum property: logsumexp finite ({lse:.6})"),
+                lse.is_finite(),
+            );
+            h.check_bool(
+                "alpha sum property: logsumexp negative (prob < 1)",
+                lse < 0.0,
+            );
+        }
         Err(e) => {
             h.check_bool(&format!("alpha sum: dispatch failed — {e}"), false);
         }
@@ -308,68 +356,37 @@ fn validate_alpha_sum_property(h: &mut ValidationHarness, gpu: &Gpu) {
 }
 
 fn validate_longer_sequence(h: &mut ValidationHarness, gpu: &Gpu) {
+    let dev = Arc::clone(gpu.wgpu_device());
+    let op = match HmmBatchForwardF64::new(dev) {
+        Ok(op) => op,
+        Err(e) => {
+            h.check_bool(&format!("HmmBatchForwardF64::new failed — {e}"), false);
+            return;
+        }
+    };
+
     let hmm = genomic_hmm();
+    let params = hmm_to_f64_params(&hmm);
     let mut rng = Rng::new(999);
     let (_, obs) = hmm.generate_sequence(100, &mut rng);
-
     let (_, cpu_ll) = hmm.forward(&obs);
-    let (log_initial, log_trans) = hmm_to_log_f32(&hmm);
-    let log_emissions = obs_to_log_emissions(&hmm, &obs);
 
-    match neural_spring::evolved::hmm_forward_gpu::hmm_forward_gpu(
-        gpu,
-        &log_initial,
-        &log_trans,
-        &log_emissions,
-    ) {
-        Ok(output) => match output.readback(gpu) {
-            Ok(gpu_alpha) => {
-                let max_a = gpu_alpha.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-                let gpu_ll: f32 = max_a
-                    + gpu_alpha
-                        .iter()
-                        .map(|&a| (a - max_a).exp())
-                        .sum::<f32>()
-                        .ln();
-
-                #[allow(clippy::cast_possible_truncation)]
-                let cpu_ll_f32 = cpu_ll as f32;
-                h.check_abs(
-                    &format!("100-obs genomic: GPU LL ≈ CPU LL ({gpu_ll:.4} vs {cpu_ll_f32:.4})"),
-                    f64::from(gpu_ll),
-                    f64::from(cpu_ll_f32),
-                    tolerances::GPU_HMM_LOG_LIKELIHOOD_F32,
-                );
-
-                h.check_bool(
-                    &format!("100-obs genomic: GPU LL finite ({gpu_ll:.4})"),
-                    gpu_ll.is_finite(),
-                );
-            }
-            Err(e) => {
-                h.check_bool(&format!("100-obs: readback failed — {e}"), false);
-            }
-        },
+    match dispatch_hmm_f64(gpu, &op, &params, &[obs]) {
+        Ok((_, log_lik)) => {
+            let gpu_ll = log_lik[0];
+            h.check_abs(
+                &format!("100-obs genomic: GPU LL ≈ CPU LL ({gpu_ll:.6} vs {cpu_ll:.6})"),
+                gpu_ll,
+                cpu_ll,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+            );
+            h.check_bool(
+                &format!("100-obs genomic: GPU LL finite ({gpu_ll:.8})"),
+                gpu_ll.is_finite(),
+            );
+        }
         Err(e) => {
             h.check_bool(&format!("100-obs: dispatch failed — {e}"), false);
         }
     }
-}
-
-fn gpu_log_likelihood(
-    gpu: &Gpu,
-    log_initial: &[f32],
-    log_trans: &[f32],
-    log_emissions: &[f32],
-) -> Option<f32> {
-    let output = neural_spring::evolved::hmm_forward_gpu::hmm_forward_gpu(
-        gpu,
-        log_initial,
-        log_trans,
-        log_emissions,
-    )
-    .ok()?;
-    let alpha = output.readback(gpu).ok()?;
-    let max_a = alpha.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-    Some(max_a + alpha.iter().map(|&a| (a - max_a).exp()).sum::<f32>().ln())
 }

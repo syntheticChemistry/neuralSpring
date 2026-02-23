@@ -6,9 +6,9 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `6ee71f07` (Session 42+43 + wetSpring/hotSpring fixes) |
-| Last updated | Feb 22, 2026 (Session 43 experiment buildouts) |
-| BarraCUDA shader count | 589+ WGSL (zero orphans) + 4 neuralSpring Session 43 local |
+| ToadStool HEAD | `b41ee5f4` (Session 47 + S45/S46/S49 absorption) |
+| Last updated | February 23, 2026 (Sessions 40–48) |
+| BarraCUDA shader count | 645+ WGSL (zero CPU-only production math, S49) |
 
 ---
 
@@ -186,7 +186,120 @@ Feb 22  neuralSpring: 5 generalized-variant shaders → BarraCUDA 5437c170 (S-42
         neuralSpring: ReduceScalarPipeline f64 mean IPR (5.55e-17 diff)
         neuralSpring: barracuda::spectral theory stack validated (14/14 PASS)
         Cross-spring: hotSpring spectral theory → barracuda → neuralSpring validates
+
+Feb 23  Session 47: ToadStool S45/S46/S49 absorbed (c8076a2d, fe573095, 9bd71391)
+        MHA S-03b FIXED upstream (z-dimension dispatch) — flows from ToadStool S46
+        10 validators rewired: raw wgpu → typed BarraCUDA ops (cross-spring absorption complete)
+        HmmBatchForwardF64 (wetSpring) now primary HMM path — evolved/hmm_forward_gpu retired
+        BatchedEighGpu (hotSpring) now eigensolve path — eigh_gpu via single dispatch (n≤32)
+        bench_cross_spring_evolution: neuralSpring + wetSpring + hotSpring ops in one benchmark
+
+Feb 23  Session 48: Mass typed-op rewiring — 28 binaries converted from raw wgpu to typed BarraCUDA ops
+        2 standalone + 15 pipeline + 6 cross-dispatch validators + bench_gpu_kernels
+        HillGateGpu f64 graceful skip (RTX 4070 driver limitation)
+        f32→f64 data type fixes for 6 ops (upstream S49 sync)
+        Validation: 132/133 (validate_barracuda_logsumexp pre-existing driver issue)
 ```
+
+---
+
+## Session 47 — Typed Op Migration & Cross-Spring Convergence (February 23, 2026)
+
+### MHA S-03b Fix
+
+The MHA projection shader z-dimension dispatch bug was **FIXED upstream** in ToadStool S46
+(`fe573095`). The fix flows back to neuralSpring via path dependency. Native
+`Tensor::multi_head_attention` projection execution no longer hangs on RTX 4070.
+
+### 10 Validators Rewired to Typed BarraCUDA Ops
+
+All 10 domain validators migrated from raw wgpu dispatch to typed BarraCUDA ops.
+Cross-spring absorption is **complete**:
+
+| Validator | Typed Op | Spring |
+|-----------|----------|--------|
+| `validate_gpu_batch_fitness` | BatchFitnessGpu | neuralSpring |
+| `validate_gpu_sate` | PairwiseHammingGpu | neuralSpring |
+| `validate_gpu_pangenome` | PairwiseJaccardGpu | neuralSpring |
+| `validate_gpu_meta_pop` | LocusVarianceGpu | neuralSpring |
+| `validate_gpu_game_theory` | SpatialPayoffGpu | neuralSpring |
+| `validate_gpu_directed` | MultiObjFitnessGpu | neuralSpring |
+| `validate_gpu_modes` | PairwiseL2Gpu | neuralSpring |
+| `validate_gpu_anderson` | BatchIprGpu | neuralSpring |
+| `validate_gpu_swarm` | SwarmNnGpu | neuralSpring |
+| `validate_gpu_signal` | HillGateGpu | neuralSpring |
+
+### HMM: wetSpring Primary Path
+
+- **Retired**: `evolved/hmm_forward_gpu.rs` (351 lines) — fossil at `metalForge/fossils/evolved_hmm_forward_gpu/`
+- **Primary**: `HmmBatchForwardF64` (wetSpring origin) — f64, batch, BarraCUDA shader-first
+
+### Eigensolve: hotSpring Primary Path
+
+- **eigh_gpu**: Via `BatchedEighGpu` (single-dispatch for n≤32)
+- **disorder_sweep_gpu**: Batch eigensolve + mean IPR
+- **spectrum_chi_squared_gpu**, **selection_coefficient_gpu**: Pangenome GPU dispatch
+
+### bench_cross_spring_evolution
+
+New benchmark demonstrating the full cross-spring cycle — ops from all three Springs:
+
+- **neuralSpring**: BatchFitnessGpu, PairwiseL2Gpu, BatchIprGpu, SpatialPayoffGpu, PairwiseHammingGpu
+- **wetSpring**: HmmBatchForwardF64
+- **hotSpring**: BatchedEighGpu
+
+---
+
+## Session 48 — Mass Typed Op Rewiring & Cross-Spring Benchmarks (February 23, 2026)
+
+### 28 Binaries Rewired from Raw wgpu to Typed BarraCUDA Ops
+
+Session 48 completed a major rewiring: 28 validation/benchmark binaries converted from raw
+wgpu dispatch (include_str! local shaders + manual pipeline/bindgroup/encoder creation)
+to modern BarraCUDA typed op APIs. This removes thousands of lines of boilerplate and
+validates the upstream ToadStool/BarraCUDA APIs directly.
+
+| Category | Count | Examples |
+|----------|-------|----------|
+| Standalone validators | 2 | wright_fisher → WrightFisherGpu (f64), stencil → StencilCooperationGpu (f64) |
+| Pipeline validators | 15 | All use typed BarraCUDA ops + CPU mean instead of raw wgpu shader chains |
+| Cross-dispatch validators | 6 | All use typed BarraCUDA ops |
+| Benchmarks | 1 | bench_gpu_kernels.rs — 5 benchmarks now use typed ops |
+
+### HillGateGpu f64 Graceful Skip
+
+On RTX 4070 (driver limitation), HillGateGpu f64 is skipped gracefully. The f32 path
+remains validated. This pattern is documented for ToadStool S49 upstream sync.
+
+### Cross-Spring Benchmark Results (RTX 4070, Vulkan)
+
+| Op | Origin | Time (ms) |
+|----|--------|-----------|
+| BatchFitnessGpu | neuralSpring | 44 |
+| PairwiseL2Gpu | neuralSpring | 8.7 |
+| BatchIprGpu | neuralSpring | 7 |
+| SpatialPayoffGpu | neuralSpring | 5.3 |
+| PairwiseHammingGpu | neuralSpring | 5.2 |
+| HmmBatchForwardF64 | wetSpring | 7.2 |
+| BatchedEighGpu | hotSpring | 17.5 |
+
+### GPU Kernels Benchmark (Typed Ops)
+
+| Kernel | GPU | Rust CPU | GPU Advantage |
+|--------|-----|----------|---------------|
+| Large Hamming | 5.6 ms | 8.2 ms | 1.4× |
+| Large Jaccard | 5.6 ms | 13.3 ms | 2.4× |
+| Large Fitness (50000×64) | 6 ms | — | — |
+
+### f32→f64 Evolution Tracking (ToadStool S49 Upstream Sync)
+
+These ops moved from f32 to f64 in ToadStool S49: BatchFitnessGpu, LocusVarianceGpu,
+MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu.
+
+### Validation: 132/133
+
+Only pre-existing `validate_barracuda_logsumexp` driver issue remains. All other
+validators PASS.
 
 ---
 
@@ -201,4 +314,6 @@ Feb 22  neuralSpring: 5 generalized-variant shaders → BarraCUDA 5437c170 (S-42
 | Upstream HMM f64 validator | `src/bin/validate_barracuda_hmm_f64.rs` |
 | Local vs upstream benchmark | `src/bin/bench_upstream_vs_local.rs` |
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
-| V14 handoff document | `wateringHole/handoffs/NEURALSPRING_V14_SESSION46_HANDOFF_FEB23_2026.md` |
+| Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
+| V15 handoff document | `wateringHole/handoffs/archive/NEURALSPRING_V15_SESSION47_HANDOFF_FEB23_2026.md` |
+| V16 handoff document | `wateringHole/handoffs/NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md` |

@@ -454,6 +454,59 @@ impl Dispatcher {
             .map(|&xi| crate::primitives::hill_activation(xi, vmax, k, n_hill))
             .collect()
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Eigensolvers (Session 47 — GPU promotion)
+    // ═══════════════════════════════════════════════════════════════
+
+    /// Symmetric eigenvalue decomposition: GPU (`BatchedEighGpu`) if available.
+    #[must_use]
+    pub fn eigh(&self, a: &[f64], n: usize) -> (Vec<f64>, Vec<f64>) {
+        if let Some(dev) = self.wgpu_device() {
+            match crate::gpu_ops::eigh_gpu(a, n, dev) {
+                Ok(result) => return result,
+                Err(e) => eprintln!("[dispatch] eigh GPU failed: {e}"),
+            }
+        }
+        let r = crate::eigh::eigh_householder_qr(a, n);
+        (r.eigenvalues, r.eigenvectors)
+    }
+
+    /// Batch disorder sweep on GPU: eigensolve + mean IPR for all W values.
+    #[must_use]
+    pub fn disorder_sweep(
+        &self,
+        hamiltonians: &[f64],
+        n: usize,
+        batch_size: usize,
+    ) -> Option<Vec<f64>> {
+        let dev = self.wgpu_device()?;
+        crate::gpu_ops::disorder_sweep_gpu(hamiltonians, n, batch_size, dev).ok()
+    }
+
+    /// Spectrum chi-squared with GPU dispatch (pangenome selection).
+    #[must_use]
+    pub fn spectrum_chi_squared(&self, observed: &[f64], expected_frac: &[f64]) -> f64 {
+        if let Some(dev) = self.wgpu_device() {
+            match crate::gpu_ops::spectrum_chi_squared_gpu(observed, expected_frac, dev) {
+                Ok(result) => return result,
+                Err(e) => eprintln!("[dispatch] spectrum_chi_squared GPU failed: {e}"),
+            }
+        }
+        crate::pangenome_selection::spectrum_chi_squared(observed, expected_frac)
+    }
+
+    /// Selection coefficient with GPU dispatch (pangenome selection).
+    #[must_use]
+    pub fn selection_coefficient(&self, observed: &[f64], neutral: &[f64]) -> f64 {
+        if let Some(dev) = self.wgpu_device() {
+            match crate::gpu_ops::selection_coefficient_gpu(observed, neutral, dev) {
+                Ok(result) => return result,
+                Err(e) => eprintln!("[dispatch] selection_coefficient GPU failed: {e}"),
+            }
+        }
+        crate::pangenome_selection::selection_coefficient(observed, neutral)
+    }
 }
 
 fn cpu_hmm_backward_step(
@@ -541,9 +594,6 @@ fn cpu_pearson(x: &[f64], y: &[f64]) -> f64 {
 mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
-
-    // GPU dispatch tests validated via `validate_gpu_promotion` binary
-    // (27/27 PASS on both RTX 4070 and TITAN V NVK).
 
     #[test]
     fn cpu_only_dispatcher_works() {

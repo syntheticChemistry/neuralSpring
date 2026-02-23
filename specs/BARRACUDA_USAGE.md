@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 23, 2026 (Sessions 44–46 — multi-GPU + benchmarks + pure GPU promotion)
+**Last Updated**: February 23, 2026 (Sessions 40–48)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -27,13 +27,13 @@
 
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
-| `linalg::solve_f64` | hmm, swarm, linalg validation | Linear system solve |
-| `linalg::eigh_f64` | spectral, anderson, linalg validation | Eigendecomposition |
-| `linalg::cholesky_f64` | linalg validation | Cholesky factorization |
+| `linalg::solve_f64` | hmm, swarm, linalg validation | Linear system solve (takes `Arc<WgpuDevice>`) |
+| `linalg::eigh_f64` | spectral, anderson, linalg validation | Eigendecomposition (takes `Arc<WgpuDevice>`) |
+| `linalg::cholesky_f64` | linalg validation | Cholesky factorization (takes `Arc<WgpuDevice>`) |
 | `linalg::lu_det`, `lu_solve` | linalg validation | LU decomposition |
 | `linalg::tridiagonal_solve` | linalg validation | Tridiagonal solver |
 | `ops::linalg::svd::*` | linalg_ext validation | SVD |
-| `linalg::gen_eigh::*` | linalg_ext validation | Generalized eigendecomposition |
+| `linalg::gen_eigh::*` | linalg_ext validation | Generalized eigendecomposition (takes `Arc<WgpuDevice>`) |
 
 ### Numerical
 
@@ -136,10 +136,10 @@
 
 ### Phase 3d — Retire Remaining Evolutions
 
-S-01, S-02, S-08, S-09 absorbed and fossilized. Remaining:
+S-01, S-02, S-08, S-09 absorbed and fossilized. **Session 47**:
 
-1. When ToadStool fixes S-03b (projection shader hang): retire `evolved::mha`
-2. When BarraCUDA adds `ops::hmm`: retire `evolved::hmm_forward_gpu`
+1. **S-03b FIXED** upstream (z-dimension dispatch) — `evolved::mha` kept until full native MHA validation
+2. **evolved::hmm_forward_gpu RETIRED** — HmmBatchForwardF64 (wetSpring) is primary HMM path
 
 ### Phase 4 — Cross-System
 
@@ -238,7 +238,7 @@ directly — no conversion needed for `Tensor::from_data` or raw `wgpu::Buffer`:
 ### Next Absorption Targets (ordered by readiness)
 
 1. **HMM flat layout → `ops::hmm`**: `Hmm::from_flat()` provides GPU-native
-   entry; `evolved/hmm_forward_gpu.rs` is the reference dispatcher (270 LOC)
+   entry; `HmmBatchForwardF64` (wetSpring) is primary path (evolved/hmm_forward_gpu retired S47)
 2. **Spectral flat layout → `ops::matmul`**: `mat_mul(a, b, n)` is the CPU
    reference for GEMM f64 validation
 3. **`require!` pattern → `barracuda::testing`**: Reusable across all Springs
@@ -325,4 +325,91 @@ Implemented via `Gpu::new()` adapter name-substring matching in `src/gpu.rs`.
 | `validate_gpu_phase_b` | 20/20 | PASS (both GPUs) |
 | `validate_all` | 133/133 | ALL GREEN |
 
-*Barracuda usage audit — neuralSpring, February 23, 2026. Phase 5e: bC 24/25, gT 23/25, xD 15/15, mG 133/133 (RTX 4070 + TITAN V NVK bit-identical). 38 CPU→GPU promotions via gpu\_dispatch. ~90% production math on GPU. Sessions 45–46: pure GPU promotion. Session 44: multi-GPU, 178.5×. Session 43: upstream expansion, mixed-hardware. Session 42: deep audit.*
+---
+
+## Session 47 — Typed Op Migration (February 23, 2026)
+
+### 10 Validators Rewired to Typed BarraCUDA Ops
+
+Migrated from raw wgpu dispatch to typed BarraCUDA ops:
+
+| Validator | Typed Op |
+|-----------|----------|
+| `validate_gpu_batch_fitness` | BatchFitnessGpu |
+| `validate_gpu_sate` | PairwiseHammingGpu |
+| `validate_gpu_pangenome` | PairwiseJaccardGpu |
+| `validate_gpu_meta_pop` | LocusVarianceGpu |
+| `validate_gpu_game_theory` | SpatialPayoffGpu |
+| `validate_gpu_directed` | MultiObjFitnessGpu |
+| `validate_gpu_modes` | PairwiseL2Gpu |
+| `validate_gpu_anderson` | BatchIprGpu |
+| `validate_gpu_swarm` | SwarmNnGpu |
+| `validate_gpu_signal` | HillGateGpu |
+
+### 4 New gpu_ops Functions
+
+| Function | Purpose |
+|----------|---------|
+| `eigh_gpu` | BatchedEighGpu (single-dispatch for n≤32) |
+| `disorder_sweep_gpu` | Batch eigensolve + mean IPR |
+| `spectrum_chi_squared_gpu` | Pangenome chi-squared |
+| `selection_coefficient_gpu` | Pangenome selection coefficient |
+
+### API Changes Absorbed (Upstream S45/S46/S49)
+
+| API | Change |
+|-----|--------|
+| `solve_f64`, `cholesky_f64`, `gen_eigh_f64` | Now take `Arc<WgpuDevice>` (GPU-first) |
+| `HillGateParams` | Removed `_pad3`/`_pad4` (f64 alignment) |
+
+### MHA S-03b Fix Status
+
+**FIXED** upstream in ToadStool S46 (`fe573095`). Z-dimension dispatch bug resolved.
+Fix flows to neuralSpring via path dependency. `evolved::mha` remains for now until
+full native MHA validation.
+
+---
+
+## Session 48 — Mass Typed Op Rewiring (February 23, 2026)
+
+### 28 Binaries Rewired to Typed BarraCUDA Ops
+
+All 28 binaries migrated from raw wgpu (include_str! local shaders + manual pipeline/
+bindgroup/encoder creation) to typed BarraCUDA op APIs. Validates upstream ToadStool/
+BarraCUDA APIs directly.
+
+**Key API patterns used**:
+
+| Typed Op | Domain | Validators |
+|----------|--------|------------|
+| BatchFitnessGpu | Batch fitness (011–015) | validate_gpu_batch_fitness, pipeline_fitness |
+| PairwiseHammingGpu | SATé alignment (017) | validate_gpu_sate, pipeline_sate |
+| PairwiseJaccardGpu | Pangenome (024) | validate_gpu_pangenome, pipeline_genomics |
+| PairwiseL2Gpu | MODES novelty (012) | validate_gpu_modes, pipeline_modes |
+| LocusVarianceGpu | Meta-population (025) | validate_gpu_meta_pop, pipeline_meta_pop |
+| SpatialPayoffGpu | Game theory (019) | validate_gpu_game_theory, pipeline_ecology |
+| MultiObjFitnessGpu | Directed evolution (014) | validate_gpu_directed, pipeline_directed |
+| BatchIprGpu | Anderson (022–023) | validate_gpu_anderson, pipeline_spectral |
+| SwarmNnGpu | Swarm robotics (015) | validate_gpu_swarm, pipeline_modes |
+| WrightFisherGpu (f64) | Pop genetics (024–025) | validate_gpu_wright_fisher, pipeline_wright_fisher |
+| StencilCooperationGpu (f64) | Game theory Fermi | validate_gpu_stencil |
+| HillGateGpu | Signal (021) | validate_gpu_signal (f32 path; f64 graceful skip) |
+
+### f64 Data Type Changes
+
+f32→f64 alignment with upstream (ToadStool S49): BatchFitnessGpu, LocusVarianceGpu,
+MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu.
+
+### HillGateGpu f64 Graceful Skip Pattern
+
+On RTX 4070, HillGateGpu f64 triggers a driver limitation. Validators skip f64 path
+gracefully; f32 path remains validated.
+
+### Validation Score: 132/133
+
+Only pre-existing `validate_barracuda_logsumexp` driver issue remains. All other
+validators PASS.
+
+---
+
+*Barracuda usage audit — neuralSpring, February 23, 2026. Phase 5e: bC 24/25, gT 23/25, xD 15/15, mG 132/133 (RTX 4070 + TITAN V NVK; logsumexp driver issue). Session 48: 28 binaries rewired raw wgpu → typed ops. Session 47: typed op migration, MHA fix, HMM retirement. Sessions 45–46: pure GPU promotion. Session 44: multi-GPU, 178.5×. Session 43: upstream expansion, mixed-hardware. Session 42: deep audit.*

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: Wright-Fisher drift + selection via `metalForge` WGSL shader.
+//! GPU validation: Wright-Fisher drift + selection via `BarraCUDA` `WrightFisherGpu` API.
 //!
-//! Validates `metalForge/shaders/wright_fisher_step.wgsl` against statistical expectations.
+//! Validates `barracuda::ops::bio::WrightFisherGpu` against statistical expectations.
 //! Wright-Fisher is stochastic; we use statistical tests rather than exact comparison.
 //!
 //! ## Papers validated
@@ -12,7 +12,7 @@
 //!
 //! ## Provenance
 //!
-//! WGSL shader: `metalForge/shaders/wright_fisher_step.wgsl`
+//! Upstream: `barracuda::ops::bio::WrightFisherGpu` (f64 pipeline)
 //! PRNG: xoshiro128** seeded via `SplitMix32`
 
 #![allow(
@@ -22,12 +22,12 @@
     clippy::too_many_lines
 )]
 
+use barracuda::ops::bio::WrightFisherGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
-
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/wright_fisher_step.wgsl");
 
 #[tokio::main]
 async fn main() {
@@ -75,57 +75,17 @@ fn seed_prng(n_threads: usize, base_seed: u32) -> Vec<u32> {
     result
 }
 
-#[repr(C)]
-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct WfParams {
-    n_pops: u32,
-    n_loci: u32,
-    two_n: u32,
-    _pad: u32,
-}
-
 fn gpu_wright_fisher(
     gpu: &Gpu,
-    freq_in: &[f32],
-    selection: &[f32],
+    freq_in: &[f64],
+    selection: &[f64],
     prng_state: &[u32],
     n_pops: u32,
     n_loci: u32,
     two_n: u32,
-) -> Result<Vec<f32>, String> {
+) -> Result<Vec<f64>, String> {
     let device = gpu.device();
-    let queue = gpu.queue();
-
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("wright_fisher_step"),
-        source: wgpu::ShaderSource::Wgsl(WGSL_SOURCE.into()),
-    });
-
-    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("wf_bgl"),
-        entries: &[
-            storage_ro_entry(0),
-            storage_ro_entry(1),
-            storage_rw_entry(2),
-            storage_rw_entry(3),
-            uniform_entry(4),
-        ],
-    });
-
-    let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("wf_pl"),
-        bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
-    });
-
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("wf_pipeline"),
-        layout: Some(&pl),
-        module: &shader,
-        entry_point: "wright_fisher",
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
-        cache: None,
-    });
+    let op = WrightFisherGpu::new(Arc::clone(gpu.wgpu_device()));
 
     let freq_in_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("freq_in"),
@@ -142,7 +102,7 @@ fn gpu_wright_fisher(
     let n_total = (n_pops * n_loci) as usize;
     let freq_out_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("freq_out"),
-        size: (n_total * 4) as u64,
+        size: (n_total * 8) as u64,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
@@ -153,60 +113,17 @@ fn gpu_wright_fisher(
         usage: wgpu::BufferUsages::STORAGE,
     });
 
-    let params = WfParams {
+    op.dispatch(
+        &freq_in_buf,
+        &selection_buf,
+        &freq_out_buf,
+        &prng_buf,
         n_pops,
         n_loci,
         two_n,
-        _pad: 0,
-    };
-    let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("wf_params"),
-        contents: bytemuck::bytes_of(&params),
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
+    );
 
-    let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("wf_bg"),
-        layout: &bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: freq_in_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: selection_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: freq_out_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 3,
-                resource: prng_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 4,
-                resource: params_buf.as_entire_binding(),
-            },
-        ],
-    });
-
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("wf_encoder"),
-    });
-    {
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("wf_pass"),
-            timestamp_writes: None,
-        });
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
-        pass.dispatch_workgroups(gpu.dispatch_1d(n_pops * n_loci, 256), 1, 1);
-    }
-    queue.submit(std::iter::once(encoder.finish()));
-
-    gpu.read_buffer_f32(&freq_out_buf, n_total)
+    gpu.read_buffer_f64(&freq_out_buf, n_total)
 }
 
 fn validate_neutral_drift(h: &mut ValidationHarness, gpu: &Gpu) {
@@ -216,8 +133,8 @@ fn validate_neutral_drift(h: &mut ValidationHarness, gpu: &Gpu) {
     let two_n = 100_u32;
     let n_total = (n_pops * n_loci) as usize;
 
-    let freq_in: Vec<f32> = vec![0.5; n_total];
-    let selection: Vec<f32> = vec![0.0; n_loci as usize];
+    let freq_in: Vec<f64> = vec![0.5; n_total];
+    let selection: Vec<f64> = vec![0.0; n_loci as usize];
     let prng_state = seed_prng(n_total, 42);
 
     match gpu_wright_fisher(
@@ -230,7 +147,7 @@ fn validate_neutral_drift(h: &mut ValidationHarness, gpu: &Gpu) {
         two_n,
     ) {
         Ok(freq_out) => {
-            let mean: f64 = freq_out.iter().map(|&x| f64::from(x)).sum::<f64>() / n_total as f64;
+            let mean: f64 = freq_out.iter().sum::<f64>() / n_total as f64;
             let diff = (mean - 0.5).abs();
             h.check_upper(
                 "neutral drift: |mean - 0.5| within QS_VARIANCE_MAX",
@@ -251,8 +168,8 @@ fn validate_selection_bias(h: &mut ValidationHarness, gpu: &Gpu) {
     let two_n = 200_u32;
     let n_total = (n_pops * n_loci) as usize;
 
-    let freq_in: Vec<f32> = vec![0.5; n_total];
-    let selection: Vec<f32> = vec![0.1; n_loci as usize];
+    let freq_in: Vec<f64> = vec![0.5; n_total];
+    let selection: Vec<f64> = vec![0.1; n_loci as usize];
     let prng_state = seed_prng(n_total, 123);
 
     match gpu_wright_fisher(
@@ -265,7 +182,7 @@ fn validate_selection_bias(h: &mut ValidationHarness, gpu: &Gpu) {
         two_n,
     ) {
         Ok(freq_out) => {
-            let mean: f64 = freq_out.iter().map(|&x| f64::from(x)).sum::<f64>() / n_total as f64;
+            let mean: f64 = freq_out.iter().sum::<f64>() / n_total as f64;
             h.check_bool(
                 "selection bias: mean frequency > 0.5 after positive selection",
                 mean > 0.5,
@@ -283,8 +200,8 @@ fn validate_fixation_boundaries(h: &mut ValidationHarness, gpu: &Gpu) {
     let two_n = 100_u32;
     let n_total = (n_pops * n_loci) as usize;
 
-    let freq_in: Vec<f32> = vec![0.5; n_total];
-    let selection: Vec<f32> = vec![0.0; n_loci as usize];
+    let freq_in: Vec<f64> = vec![0.5; n_total];
+    let selection: Vec<f64> = vec![0.0; n_loci as usize];
     let prng_state = seed_prng(n_total, 999);
 
     match gpu_wright_fisher(
@@ -320,8 +237,8 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
     let two_n = 50_u32;
     let n_total = (n_pops * n_loci) as usize;
 
-    let freq_in: Vec<f32> = vec![0.5; n_total];
-    let selection: Vec<f32> = vec![0.05; n_loci as usize];
+    let freq_in: Vec<f64> = vec![0.5; n_total];
+    let selection: Vec<f64> = vec![0.05; n_loci as usize];
     let prng_state1 = seed_prng(n_total, 7777);
     let prng_state2 = seed_prng(n_total, 7777);
 
@@ -349,50 +266,11 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
             let identical = r1
                 .iter()
                 .zip(r2.iter())
-                .all(|(&a, &b)| (a - b).abs() < f32::EPSILON);
+                .all(|(&a, &b)| (a - b).abs() < f64::EPSILON);
             h.check_bool("determinism: same PRNG seed → identical output", identical);
         }
         _ => {
             h.check_bool("determinism: dispatch failed", false);
         }
-    }
-}
-
-const fn storage_ro_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: true },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn storage_rw_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Storage { read_only: false },
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
-
-const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty: wgpu::BindingType::Buffer {
-            ty: wgpu::BufferBindingType::Uniform,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
     }
 }

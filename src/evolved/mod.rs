@@ -2,18 +2,28 @@
 
 //! Locally evolved GPU-resident ops and WGSL shader exports.
 //!
-//! ## Absorption status (Feb 22, 2026 — `ToadStool` `77f70b2e`)
+//! ## Absorption status (Feb 23, 2026 — `ToadStool` `b41ee5f4`)
 //!
-//! S-01 through S-12 absorbed by `ToadStool` (`77f70b2e`). 8 of 16 WGSL
-//! shaders now sourced from upstream
-//! `barracuda` (`ops::bio::*`, `ops::rk_stage`, `spectral::batch_ipr`).
+//! S-01 through S-12 absorbed by `ToadStool`. 8 of 16 WGSL shaders sourced
+//! from upstream `barracuda` (`ops::bio::*`, `ops::rk_stage`, `spectral::batch_ipr`).
+//!
+//! ## Session 47: MHA S-03b fixed upstream (`ToadStool` `fe573095`)
+//!
+//! The MHA projection under-dispatch bug (z-dimension `div_ceil(16)` → `seq_len`)
+//! was fixed in `ToadStool` S46. The `mha` module is kept temporarily for backward
+//! compatibility until upstream MHA is validated end-to-end here.
+//!
+//! ## Session 47: `hmm_forward_gpu` retired
+//!
+//! The local f32 HMM forward dispatch has been retired. All callers now use
+//! upstream `barracuda::ops::bio::HmmBatchForwardF64` (f64, batch, wetSpring origin).
+//! Local module moved to `metalForge/fossils/evolved_hmm_forward_gpu/`.
 //!
 //! ## Active Rust evolutions
 //!
 //! | Module | Why active | Path to absorption |
 //! |--------|-----------|-------------------|
-//! | `mha` | Native projection shaders hang (S-03b) — GPU `head_split`/`head_concat` shaders ready | `ToadStool`: replace fused projection with `matmul` + `head_split.wgsl` / `head_concat.wgsl` |
-//! | `hmm_forward_gpu` | Shader absorbed; local dispatch wrapper pending retirement | Migrate callers to `barracuda::ops::bio::HmmBatchForwardF64` |
+//! | `mha` | S-03b fixed upstream (`fe573095`); needs end-to-end validation | Validate upstream MHA, then retire |
 //!
 //! ## Fossilized (Session 40)
 //!
@@ -63,7 +73,6 @@
 //! [`swarm_robotics::WGSL_SWARM_NN_FORWARD`]: crate::swarm_robotics::WGSL_SWARM_NN_FORWARD
 //! [`signal_integration::WGSL_HILL_GATE`]: crate::signal_integration::WGSL_HILL_GATE
 
-pub mod hmm_forward_gpu;
 pub mod mha;
 
 /// WGSL shader: GPU-resident head split for MHA.
