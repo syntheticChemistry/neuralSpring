@@ -4,7 +4,6 @@
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
-    clippy::doc_markdown,
     clippy::many_single_char_names,
     clippy::needless_range_loop,
     clippy::suboptimal_flops

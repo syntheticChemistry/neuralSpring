@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! S-12 resolution: Householder+QR eigensolver vs BarraCUDA Jacobi.
+//! S-12 resolution: Householder+QR eigensolver vs `BarraCUDA` Jacobi.
 //!
 //! Compares reconstruction error ‖A - V D Vᵀ‖_F at n = 4, 8, 16, 32, 64
 //! to demonstrate that the Householder+QR implementation achieves
 //! LAPACK-level accuracy where Jacobi degrades.
 //!
-//! This binary provides the evidence for ToadStool to absorb the fix.
+//! This binary provides the evidence for `ToadStool` to absorb the fix.
 //!
 //! ## Provenance
 //!
@@ -18,7 +18,6 @@
     clippy::cast_precision_loss,
     clippy::needless_range_loop,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::suboptimal_flops
 )]
 

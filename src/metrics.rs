@@ -131,4 +131,19 @@ mod tests {
         let mae_b = mae(&y_true, &y_pred);
         assert_eq!(mae_a, mae_b, "mae must be bit-identical across runs");
     }
+
+    #[test]
+    fn nse_equals_r_squared() {
+        let y_true = [1.0, 2.0, 3.0, 4.0, 5.0];
+        let y_pred = [1.1, 2.2, 2.9, 4.1, 4.8];
+        assert_relative_eq!(nse(&y_true, &y_pred), r_squared(&y_true, &y_pred));
+    }
+
+    #[test]
+    fn r_squared_constant_true() {
+        let y_true = [3.0, 3.0, 3.0];
+        let y_pred = [3.0, 3.1, 2.9];
+        let r2 = r_squared(&y_true, &y_pred);
+        assert!(r2.is_finite(), "constant y_true should not produce NaN");
+    }
 }

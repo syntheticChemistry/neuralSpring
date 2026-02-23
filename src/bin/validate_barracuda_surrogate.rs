@@ -13,8 +13,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::doc_markdown,
-    clippy::items_after_statements,
     clippy::many_single_char_names,
     clippy::similar_names,
     clippy::suboptimal_flops
@@ -103,11 +101,11 @@ fn validate_benchmark_functions(h: &mut ValidationHarness) {
 
 /// Build 2-layer MLP: input(4) → FC1(4→16) → tanh → FC2(16→4).
 fn validate_mlp_forward(h: &mut ValidationHarness, device: &Dev) {
-    let mut rng = Rng::new(42);
     const IN: usize = 4;
     const H1: usize = 16;
     const OUT: usize = 4;
 
+    let mut rng = Rng::new(42);
     // S-15 safe: values in [0.5, 1.0)
     let input: Vec<f64> = (0..IN).map(|_| rng.uniform() * 0.5 + 0.5).collect();
     let w1: Vec<f64> = (0..(H1 * IN)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
@@ -156,11 +154,11 @@ fn validate_mlp_forward(h: &mut ValidationHarness, device: &Dev) {
 
 /// Run MLP forward twice with same data, check bit-identical.
 fn validate_determinism(h: &mut ValidationHarness, device: &Dev) {
-    let mut rng = Rng::new(99);
     const IN: usize = 4;
     const H1: usize = 16;
     const OUT: usize = 4;
 
+    let mut rng = Rng::new(99);
     let input: Vec<f32> = (0..IN)
         .map(|_| (rng.uniform() * 0.5 + 0.5) as f32)
         .collect();

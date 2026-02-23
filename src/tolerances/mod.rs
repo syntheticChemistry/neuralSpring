@@ -712,5 +712,127 @@ pub const GPU_LOGSUMEXP_F32: f64 = 1e-4;
 /// requires ~5e-4 tolerance vs exact CPU f64 reference.
 pub const GPU_RK45_F32: f64 = 5e-4;
 
+// ═══════════════════════════════════════════════════════════════════
+// GPU promotion dispatch parity (CPU → GPU round-trip)
+// ═══════════════════════════════════════════════════════════════════
+
+/// GPU matmul vs CPU max element-wise difference (identity product).
+///
+/// f64 CPU → f32 GPU → f64 readback: identity product should be exact
+/// to ~7 decimal digits (f32 mantissa).  0.01 allows for accumulated
+/// rounding in the tile-based matmul kernel.
+pub const GPU_MATMUL_IDENTITY_F32: f64 = 0.01;
+
+/// GPU matmul vs CPU max element-wise difference (random product).
+///
+/// Random 8×8 f32 matmul accumulates 8 multiply-add rounding errors;
+/// worst-case element ~0.03 observed on llvmpipe/Vulkan.
+pub const GPU_MATMUL_RANDOM_F32: f64 = 0.05;
+
+/// GPU transpose vs CPU max element-wise difference.
+///
+/// Pure data movement — rounding only from f64→f32→f64 conversion.
+pub const GPU_TRANSPOSE_F32: f64 = 0.01;
+
+/// GPU Frobenius norm vs CPU absolute tolerance.
+///
+/// Single-pass norm reduction on f32, compared to f64 CPU reference.
+pub const GPU_FROBENIUS_F32: f64 = 0.01;
+
+/// GPU commutator `[A,B]` vs CPU max element-wise difference.
+///
+/// Two matmuls plus subtraction on f32; error accumulates from both
+/// products.  0.1 covers worst-case 4×4 random matrices.
+pub const GPU_COMMUTATOR_F32: f64 = 0.1;
+
+/// GPU `distance_to_normal` upper bound for known-symmetric matrices.
+///
+/// Symmetric matrix should have zero commutator; f32 rounding and
+/// two matmul round-trips give residual ≤ 0.05.
+pub const GPU_NORMAL_DISTANCE_SYMMETRIC_F32: f64 = 0.05;
+
+/// CPU `distance_to_normal` upper bound for known-symmetric matrices.
+///
+/// f64 CPU should give essentially zero for symmetric input.
+pub const CPU_NORMAL_DISTANCE_SYMMETRIC_F64: f64 = 1e-6;
+
+/// GPU softmax vs CPU max element-wise difference.
+///
+/// exp/sum/div chain on f32 vs f64 reference.
+pub const GPU_SOFTMAX_DISPATCH_F32: f64 = 0.01;
+
+/// GPU softmax sum-to-one tolerance.
+pub const GPU_SOFTMAX_SUM_F32: f64 = 0.01;
+
+/// GPU Boltzmann distribution vs CPU max element-wise difference.
+///
+/// Pre-scaled softmax; additional `mul_add` rounding vs CPU f64.
+pub const GPU_BOLTZMANN_F32: f64 = 0.05;
+
+/// GPU L2 distance vs CPU absolute tolerance.
+pub const GPU_L2_DISPATCH_F32: f64 = 0.01;
+
+/// GPU mean reduction vs CPU absolute tolerance.
+pub const GPU_MEAN_DISPATCH_F32: f64 = 0.01;
+
+/// GPU variance vs CPU absolute tolerance.
+///
+/// Two-pass (mean → residual → mean) on f32; 0.1 covers the
+/// catastrophic-cancellation rounding in small datasets.
+pub const GPU_VARIANCE_DISPATCH_F32: f64 = 0.1;
+
+/// GPU Shannon entropy vs CPU absolute tolerance.
+///
+/// log + mul + sum chain on f32; uniform(4) entropy ≈ 1.386.
+pub const GPU_ENTROPY_F32: f64 = 0.05;
+
+/// GPU Pearson correlation vs exact known value.
+///
+/// Perfect linear relationship: f32 rounding in variance chain.
+pub const GPU_PEARSON_F32: f64 = 0.05;
+
+/// GPU chi-squared statistic vs CPU absolute tolerance.
+///
+/// Large expected values (25) dampen the division rounding;
+/// 0.5 covers worst-case f32 error in the 4-bin test.
+pub const GPU_CHI_SQUARED_F32: f64 = 0.5;
+
+/// GPU GELU activation absolute tolerance.
+pub const GPU_GELU_F32: f64 = 0.01;
+
+/// GPU HMM forward step normalization tolerance.
+pub const GPU_HMM_STEP_F32: f64 = 0.01;
+
+/// GPU sum reduction absolute tolerance.
+pub const GPU_SUM_DISPATCH_F32: f64 = 0.1;
+
+/// GPU max reduction absolute tolerance.
+pub const GPU_MAX_DISPATCH_F32: f64 = 0.1;
+
+/// GPU KL divergence absolute tolerance.
+pub const GPU_KL_DISPATCH_F32: f64 = 0.01;
+
+/// Multi-objective fitness GPU vs CPU max element-wise difference.
+///
+/// Batch fitness evaluation on f64 GPU buffers; rounding from
+/// the multi-objective sum-of-squares pattern on 12-gene genotypes.
+pub const GPU_MULTI_OBJ_FITNESS_F64: f64 = 1e-2;
+
+/// GPU inter-population allele frequency variance vs CPU (f32).
+///
+/// Allele frequency variance across populations is computed per-locus
+/// on f32 GPU, then averaged.  The two-pass mean/variance pattern on
+/// f32 introduces ~2 digits of rounding vs f64 reference.  0.02
+/// accommodates 2–8 populations × 10–50 loci.
+pub const GPU_AF_VARIANCE_F32: f64 = 0.02;
+
+/// GPU HMM Viterbi log-probability gap (4-state, T≤50, f64 dispatch).
+///
+/// Viterbi path log-probability computed via stepwise GPU dispatch
+/// accumulates logsumexp-equivalent rounding per timestep.  For 4-state
+/// HMMs with T≤50, the gap between GPU-reconstructed and CPU reference
+/// stays within 2.0 nats.
+pub const GPU_HMM_VITERBI_LOGPROB_F64: f64 = 2.0;
+
 mod registry;
 pub use registry::{all_tolerances, categories, tolerance_by_name, NamedTolerance};

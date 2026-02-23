@@ -280,7 +280,7 @@ impl Dispatcher {
         crate::spectral_commutativity::distance_to_normal(a, n)
     }
 
-    /// Commutator [A,B] = AB - BA: GPU if available, CPU fallback.
+    /// Commutator `[A,B]` = AB - BA: GPU if available, CPU fallback.
     #[must_use]
     pub fn commutator(&self, a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
         if let Some(dev) = self.wgpu_device() {
@@ -595,13 +595,338 @@ mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
 
+    fn cpu() -> Dispatcher {
+        Dispatcher::cpu_only()
+    }
+
+    // ── Metadata ────────────────────────────────────────────────
+
     #[test]
-    fn cpu_only_dispatcher_works() {
-        let d = Dispatcher::cpu_only();
+    fn cpu_only_no_gpu() {
+        let d = cpu();
         assert!(!d.has_gpu());
         assert_eq!(d.backend(), Backend::Cpu);
+        assert!(d.capabilities().is_none());
+        assert_eq!(d.adapter_name(), "(none)");
+        assert!(d.wgpu_device().is_none());
+        assert!(d.gpu().is_none());
+    }
+
+    #[test]
+    fn backend_display() {
+        assert_eq!(format!("{}", Backend::Gpu), "GPU");
+        assert_eq!(format!("{}", Backend::Cpu), "CPU");
+    }
+
+    // ── Linear algebra ──────────────────────────────────────────
+
+    #[test]
+    fn cpu_mat_mul_identity() {
+        let d = cpu();
+        #[rustfmt::skip]
+        let eye = vec![
+            1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 1.0,
+        ];
+        let result = d.mat_mul(&eye, &eye, 3);
+        for (i, &v) in result.iter().enumerate() {
+            let expected = if i / 3 == i % 3 { 1.0 } else { 0.0 };
+            assert!((v - expected).abs() < 1e-15, "mat_mul identity [{i}]");
+        }
+    }
+
+    #[test]
+    fn cpu_frobenius_norm() {
+        let d = cpu();
+        let a = vec![3.0, 4.0];
+        assert!((d.frobenius_norm(&a) - 5.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn cpu_transpose() {
+        let d = cpu();
+        #[rustfmt::skip]
+        let a = vec![1.0, 2.0, 3.0, 4.0];
+        let t = d.transpose(&a, 2);
+        assert!((t[0] - 1.0).abs() < 1e-15);
+        assert!((t[1] - 3.0).abs() < 1e-15);
+        assert!((t[2] - 2.0).abs() < 1e-15);
+        assert!((t[3] - 4.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn cpu_distance_to_normal() {
+        let d = cpu();
+        #[rustfmt::skip]
+        let sym = vec![
+            2.0, 1.0,
+            1.0, 2.0,
+        ];
+        let dist = d.distance_to_normal(&sym, 2);
+        assert!(
+            dist < 1e-12,
+            "symmetric matrix should commute with transpose"
+        );
+    }
+
+    #[test]
+    fn cpu_commutator_symmetric_zero() {
+        let d = cpu();
+        let a = vec![1.0, 0.0, 0.0, 1.0];
+        let comm = d.commutator(&a, &a, 2);
+        for &v in &comm {
+            assert!(v.abs() < 1e-15, "A commutes with itself");
+        }
+    }
+
+    // ── Activations / distributions ─────────────────────────────
+
+    #[test]
+    fn cpu_softmax_sums_to_one() {
+        let d = cpu();
         let result = d.softmax(&[1.0, 2.0, 3.0]);
         let total: f64 = result.iter().sum();
         assert!((total - 1.0).abs() < 1e-12);
+        assert!(result[2] > result[1] && result[1] > result[0]);
+    }
+
+    #[test]
+    fn cpu_boltzmann_sums_to_one() {
+        let d = cpu();
+        let result = d.boltzmann(&[1.0, 2.0, 3.0], 1.0);
+        let total: f64 = result.iter().sum();
+        assert!((total - 1.0).abs() < 1e-12);
+    }
+
+    // ── Reductions / statistics ─────────────────────────────────
+
+    #[test]
+    fn cpu_l2_distance() {
+        let d = cpu();
+        let dist = d.l2_distance(&[0.0, 0.0], &[3.0, 4.0]);
+        assert!((dist - 5.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn cpu_shannon_entropy() {
+        let d = cpu();
+        let p = vec![0.25, 0.25, 0.25, 0.25];
+        let h = d.shannon_entropy(&p);
+        let expected = 4.0_f64.ln();
+        assert!((h - expected).abs() < 1e-10);
+    }
+
+    #[test]
+    fn cpu_mean() {
+        let d = cpu();
+        assert!((d.mean(&[1.0, 2.0, 3.0, 4.0]) - 2.5).abs() < 1e-15);
+        assert!((d.mean(&[]) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn cpu_variance() {
+        let d = cpu();
+        let v = d.variance(&[2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]);
+        assert!((v - 4.0).abs() < 1e-12);
+        assert!((d.variance(&[]) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn cpu_pearson_correlation() {
+        let d = cpu();
+        let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
+        let r = d.pearson_correlation(&x, &y);
+        assert!((r - 1.0).abs() < 1e-12, "perfect positive correlation");
+    }
+
+    #[test]
+    fn cpu_pearson_short() {
+        let d = cpu();
+        assert!((d.pearson_correlation(&[1.0], &[2.0]) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn cpu_pearson_zero_variance() {
+        let d = cpu();
+        let r = d.pearson_correlation(&[3.0, 3.0, 3.0], &[1.0, 2.0, 3.0]);
+        assert!((r - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn cpu_chi_squared() {
+        let d = cpu();
+        let obs = vec![10.0, 20.0, 30.0];
+        let exp = vec![20.0, 20.0, 20.0];
+        let chi2 = d.chi_squared(&obs, &exp);
+        assert!((chi2 - 10.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn cpu_chi_squared_zero_expected() {
+        let d = cpu();
+        let chi2 = d.chi_squared(&[5.0], &[0.0]);
+        assert!((chi2 - 0.0).abs() < 1e-15, "zero expected → 0 contribution");
+    }
+
+    // ── HMM ─────────────────────────────────────────────────────
+
+    #[test]
+    fn cpu_hmm_backward_step_basic() {
+        let d = cpu();
+        let beta_next = vec![1.0, 1.0];
+        #[rustfmt::skip]
+        let trans = vec![0.7, 0.3, 0.4, 0.6];
+        let emit = vec![0.5, 0.5];
+        let result = d.hmm_backward_step(&beta_next, &trans, &emit, 1.0, 2);
+        assert_eq!(result.len(), 2);
+        assert!((result[0] - 0.5).abs() < 1e-12);
+        assert!((result[1] - 0.5).abs() < 1e-12);
+    }
+
+    #[test]
+    fn cpu_hmm_backward_step_zero_scale() {
+        let d = cpu();
+        let result = d.hmm_backward_step(&[1.0], &[1.0], &[1.0], 0.0, 1);
+        assert!(result[0].is_finite(), "zero scale should use guard");
+    }
+
+    #[test]
+    fn cpu_hmm_viterbi_step() {
+        let d = cpu();
+        let delta_prev = vec![0.0_f64.ln(), (-1.0_f64).exp().ln()];
+        #[rustfmt::skip]
+        let log_trans = vec![
+            0.7_f64.ln(), 0.3_f64.ln(),
+            0.4_f64.ln(), 0.6_f64.ln(),
+        ];
+        let log_emit = vec![0.6_f64.ln(), 0.4_f64.ln()];
+        let (delta, psi) = d.hmm_viterbi_step(&delta_prev, &log_trans, &log_emit, 2);
+        assert_eq!(delta.len(), 2);
+        assert_eq!(psi.len(), 2);
+    }
+
+    // ── Population genetics ─────────────────────────────────────
+
+    #[test]
+    fn cpu_allele_frequencies() {
+        let d = cpu();
+        // 2 individuals × 2 loci, diploid division: sum / (2*n_ind)
+        let pop = vec![2.0, 0.0, 0.0, 2.0];
+        let freq = d.allele_frequencies(&pop, 2, 2);
+        assert_eq!(freq.len(), 2);
+        assert!((freq[0] - 0.5).abs() < 1e-12);
+        assert!((freq[1] - 0.5).abs() < 1e-12);
+    }
+
+    #[test]
+    fn cpu_nucleotide_diversity() {
+        let d = cpu();
+        let pop = vec![0.0, 1.0, 1.0, 0.0];
+        let pi = d.nucleotide_diversity(&pop, 2, 2);
+        assert!(pi >= 0.0);
+    }
+
+    #[test]
+    fn cpu_matrix_correlation() {
+        let d = cpu();
+        #[rustfmt::skip]
+        let a = vec![
+            0.0, 1.0, 2.0,
+            1.0, 0.0, 3.0,
+            2.0, 3.0, 0.0,
+        ];
+        let r = d.matrix_correlation(&a, &a, 3);
+        assert!((r - 1.0).abs() < 1e-10, "self-correlation = 1.0");
+    }
+
+    #[test]
+    fn cpu_geographic_distances() {
+        let d = cpu();
+        let coords = vec![(0.0, 0.0), (3.0, 4.0)];
+        let dist = d.geographic_distances(&coords);
+        assert_eq!(dist.len(), 4);
+        assert!((dist[0] - 0.0).abs() < 1e-12);
+        assert!((dist[1] - 5.0).abs() < 1e-12);
+        assert!((dist[3] - 0.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn cpu_thermal_diversity_correlation() {
+        let d = cpu();
+        let r = d.thermal_diversity_correlation(&[1.0, 2.0, 3.0], &[10.0, 20.0, 30.0]);
+        assert!((r - 1.0).abs() < 1e-10, "perfect linear → r≈1");
+    }
+
+    #[test]
+    fn cpu_thermal_diversity_short() {
+        let d = cpu();
+        let r = d.thermal_diversity_correlation(&[1.0], &[10.0]);
+        assert!((r - 0.0).abs() < 1e-15, "n<2 → 0");
+    }
+
+    // ── Game theory ─────────────────────────────────────────────
+
+    #[test]
+    fn cpu_replicator_step_preserves_simplex() {
+        let d = cpu();
+        let freq = [0.6, 0.4];
+        let payoff = [[3.0, 0.0], [5.0, 1.0]];
+        let next = d.replicator_step(&freq, &payoff, 0.01);
+        let sum: f64 = next.iter().sum();
+        assert!((sum - 1.0).abs() < 1e-12, "frequencies sum to 1");
+        assert!(next[0] >= 0.0 && next[1] >= 0.0, "non-negative");
+    }
+
+    // ── Regulatory ──────────────────────────────────────────────
+
+    #[test]
+    fn cpu_hill_activation_batch() {
+        let d = cpu();
+        let result = d.hill_activation_batch(&[0.0, 1.0, 10.0], 1.0, 1.0, 2.0);
+        assert_eq!(result.len(), 3);
+        assert!((result[0] - 0.0).abs() < 1e-10, "hill(0)≈0");
+        assert!((result[1] - 0.5).abs() < 0.01, "hill(k)≈Vmax/2");
+        assert!(result[2] > 0.9, "hill(10k)≈Vmax");
+    }
+
+    // ── Eigensolvers ────────────────────────────────────────────
+
+    #[test]
+    fn cpu_eigh_diagonal() {
+        let d = cpu();
+        let a = vec![2.0, 0.0, 0.0, 3.0];
+        let (vals, _vecs) = d.eigh(&a, 2);
+        let mut sorted = vals;
+        sorted.sort_by(|a, b| a.partial_cmp(b).expect("no NaN in eigenvalues"));
+        assert!((sorted[0] - 2.0).abs() < 1e-10);
+        assert!((sorted[1] - 3.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn cpu_disorder_sweep_no_gpu() {
+        let d = cpu();
+        assert!(d.disorder_sweep(&[1.0, 0.0, 0.0, 1.0], 2, 1).is_none());
+    }
+
+    // ── Pangenome selection ─────────────────────────────────────
+
+    #[test]
+    fn cpu_spectrum_chi_squared() {
+        let d = cpu();
+        let obs = vec![10.0, 20.0, 30.0];
+        let frac = vec![1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0];
+        let chi2 = d.spectrum_chi_squared(&obs, &frac);
+        assert!(chi2 >= 0.0);
+    }
+
+    #[test]
+    fn cpu_selection_coefficient() {
+        let d = cpu();
+        let obs = vec![10.0, 20.0, 30.0];
+        let neutral = vec![1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0];
+        let s = d.selection_coefficient(&obs, &neutral);
+        assert!(s.is_finite());
     }
 }

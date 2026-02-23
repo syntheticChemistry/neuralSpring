@@ -113,11 +113,11 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 | Batched GEMM | `gemm_f64.wgsl` (batched) | Training / EA | Batch dispatch | `KernelRouter` |
 | Population fitness eval | `batch_gemv.wgsl` | Evolution (Dolson 011–015) | GA/ES framework | `StatefulPipeline` for gen loop |
 | HMM forward (fused) | `hmm_forward_log.wgsl` | Genomics (Liu 016–018) | Log-domain matmul chain | `StatefulPipeline` for T steps |
-| Pairwise distance | `pairwise_distance.wgsl` | Alignment (Liu 017) | One thread per pair | — (embarrassingly parallel) |
-| GPU ODE integrator (RK4) | `rk4_batch.wgsl` | Biology (Waters 020–021) | Elementwise RHS | `StatefulPipeline` + `ReduceScalarPipeline` |
-| Spatial stencil | `stencil_1d.wgsl` | Cooperation (Waters 019) | Neighbor averaging | — (reuse conv1d) |
-| Tridiag eigensolver | `tridiag_eigh.wgsl` | Spectral (Kachkovskiy 022–023) | Bisection + inverse iteration | NAK-optimized eigh available |
-| GPU PRNG (Xoshiro256**) | `xoshiro256ss.wgsl` | All stochastic algorithms | `jump()` for independent streams | — |
+| Pairwise distance | `pairwise_hamming.wgsl`, `pairwise_jaccard.wgsl`, `pairwise_l2.wgsl` | Alignment (Liu 017) | — | **BUILT** — absorbed upstream |
+| GPU ODE integrator (RK4/RK45) | `rk4_parallel.wgsl`, `rk45_adaptive.wgsl` | Biology (Waters 020–021) | — | **BUILT** — `StatefulPipeline` + `ReduceScalarPipeline` |
+| Spatial stencil | `stencil_cooperation.wgsl` | Cooperation (Waters 019) | — | **BUILT** (Session 43, 3/3 PASS) |
+| Tridiag eigensolver | `batch_ipr.wgsl` + NAK-optimized eigh | Spectral (Kachkovskiy 022–023) | Bisection + inverse iteration | NAK-optimized eigh available |
+| GPU PRNG (Xoshiro128**) | `xoshiro128ss.wgsl` | All stochastic algorithms | — | **BUILT** (5/5 PASS) |
 | Gillespie SSA | GPU PRNG + exp sampling | Biology (Waters) | New primitive | `StatefulPipeline` |
 
 ### ToadStool Infrastructure Available for GPU Promotion
@@ -162,22 +162,22 @@ For each Rust module → GPU promotion:
 - [ ] WGSL shader exists in BarraCUDA or is planned
 - [ ] Validation binary follows hotSpring pattern (exit 0/1)
 - [ ] Performance meets or exceeds Python baseline
-- [ ] Test coverage ≥ 90% (analytical + round-trip + determinism)
+- [x] Test coverage ≥ 90% (92.7% line via `cargo llvm-cov`)
 
 ---
 
-## Current Status (February 22, 2026)
+## Current Status (February 23, 2026)
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
 | Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, drift detection via `control/check_drift.sh` |
-| Phase 1a (neuralSpring Rust) | **264 lib + 9 integration PASS** | 31 modules (+3 evolved), 264 unit tests, 9 integration tests, 119 validation binaries |
+| Phase 1a (neuralSpring Rust) | **374 lib + 9 integration PASS** | 31 modules (+3 evolved), 374 unit tests, 9 integration tests, 133 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU ports) | **203/203 PASS** | 24/25 papers validated (96% bC coverage) |
 | Phase 3a (FFT validation) | **24/24 PASS** | f32 Fft1D/Ifft1D + f64 Fft1DF64 + Rfft |
 | Phase 3b (GPU streaming) | **COMPLETE** | `StatefulPipeline` validated (10/10 PASS) |
-| Phase 3c (Shader evolution) | **COMPLETE** | 12 WGSL shaders (+4 new: pairwise_l2, multi_obj_fitness, swarm_nn_forward, hill_gate) |
+| Phase 3c (Shader evolution) | **COMPLETE** | 21 WGSL shaders (13 upstream + 8 local) |
 | Phase 3d (Pure GPU + cross-dispatch) | **COMPLETE** | 58/58 PASS (SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12 + xd-phase4e 13) |
 | Phase 4a (Performance benchmarks) | **COMPLETE** | 7 kernels, 71.8× overall speedup vs single-thread NumPy |
 | Phase 4b (Pure GPU end-to-end pipelines) | **COMPLETE** | 7 pipelines, 32/32 PASS (+modes, directed, signal) |

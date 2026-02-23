@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU pipeline validation: HillGateGpu (BarraCUDA) + CPU mean (Paper 021).
+//! GPU pipeline validation: `HillGateGpu` (`BarraCUDA`) + CPU mean (Paper 021).
 //!
-//! Replaces raw wgpu pipeline with typed BarraCUDA op: `barracuda::ops::bio::HillGateGpu`.
-//! Stage 1: HillGateGpu.dispatch → output[nx*ny] (f64).
+//! Replaces raw wgpu pipeline with typed `BarraCUDA` op: `barracuda::ops::bio::HillGateGpu`.
+//! Stage 1: HillGateGpu.dispatch → `output[nx*ny]` (f64).
 //! Stage 2: CPU mean over output.
 //!
 //! ## Pipeline
@@ -19,7 +19,7 @@
 //! ## Provenance
 //!
 //! Typed op: `barracuda::ops::bio::HillGateGpu` (f64).
-//! Validates: BarraCUDA Hill gate API with scalar summary.
+//! Validates: `BarraCUDA` Hill gate API with scalar summary.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
@@ -27,7 +27,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::cast_lossless
@@ -124,12 +123,9 @@ fn gpu_hill_mean(
 ) -> Result<f64, String> {
     let device = gpu.device();
     let dev = Arc::clone(gpu.wgpu_device());
-    let op = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| HillGateGpu::new(dev)))
-    {
-        Ok(o) => o,
-        Err(_) => {
-            return Err("HillGateGpu f64 shader compilation failed (driver limitation)".into())
-        }
+    let Ok(op) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| HillGateGpu::new(dev)))
+    else {
+        return Err("HillGateGpu f64 shader compilation failed (driver limitation)".into());
     };
     let n_total = (params.n_a * params.n_b) as usize;
 

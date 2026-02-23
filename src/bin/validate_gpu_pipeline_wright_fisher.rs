@@ -3,7 +3,7 @@
 //! GPU pipeline validation: `WrightFisherGpu` (`BarraCUDA`) + CPU mean (Papers 024-025).
 //!
 //! Replaces raw wgpu pipeline with typed `BarraCUDA` op: `barracuda::ops::bio::WrightFisherGpu`.
-//! Stage 1: WrightFisherGpu.dispatch → `freq_out`[`n_pops` × `n_loci`] (f64).
+//! Stage 1: WrightFisherGpu.dispatch → `freq_out[n_pops × n_loci]` (f64).
 //! Stage 2: CPU mean over `freq_out`.
 //!
 //! ## Pipeline

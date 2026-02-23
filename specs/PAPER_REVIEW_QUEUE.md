@@ -95,7 +95,7 @@ bridge them.
 
 Session 44 verified: all `cargo fmt`, `clippy` (pedantic), and `doc` gates pass clean.
 `validate_all`: 133/133 PASS on RTX 4070, 143+ additional checks on Titan V (NVK).
-264 lib + 9 integration tests. 2 upstream BarraCUDA bugs fixed.
+374 lib + 9 integration tests. 2 upstream BarraCUDA bugs fixed.
 
 | Faculty | Papers | Python Checks | Rust Checks |
 |---------|--------|---------------|-------------|
@@ -188,7 +188,7 @@ Study 005 uses integer arithmetic (Q8/Q4), not Tensor ops — gT is N/A.
 | Tier | Papers Covered | Total | Coverage | Delta |
 |------|---------------|-------|----------|-------|
 | Python control (Py) | 25/25 | 206 checks | **100%** | — |
-| Rust CPU (Rs) | 25/25 | 264+ lib + 9 integration checks | **100%** | — |
+| Rust CPU (Rs) | 25/25 | 374+ lib + 9 integration checks | **100%** | — |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** | +12pp (was 84%) |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** | +20pp (was 72%) |
 | metalForge WGSL (mF) | 15/25 | 108 checks | **100%**† | — |

@@ -10,12 +10,7 @@
     clippy::cast_precision_loss,
     clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::too_many_lines,
-    clippy::expect_used,
-    clippy::redundant_clone,
-    clippy::suboptimal_flops,
-    clippy::cast_lossless,
-    clippy::redundant_closure_for_method_calls
+    clippy::too_many_lines
 )]
 
 use neural_spring::game_theory;
@@ -24,10 +19,14 @@ use neural_spring::hmm::Hmm;
 use neural_spring::meta_population;
 use neural_spring::primitives;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let Ok(rt) = tokio::runtime::Runtime::new() else {
+        eprintln!("FATAL: could not create tokio runtime");
+        std::process::exit(1);
+    };
     let dispatcher = rt.block_on(Dispatcher::new());
 
     let mut h = ValidationHarness::new("validate_gpu_phase_b");
@@ -80,7 +79,11 @@ fn main() {
         .zip(gpu_beta.iter())
         .map(|(c, g)| (c - g).abs())
         .fold(0.0_f64, f64::max);
-    h.check_upper("hmm backward max_diff", beta_diff, 0.1);
+    h.check_upper(
+        "hmm backward max_diff",
+        beta_diff,
+        tolerances::GPU_HMM_ALPHA_F32,
+    );
 
     // Verify posterior sums to 1 using GPU backward
     // Verify GPU backward produces valid posterior: alpha * beta sums should be consistent
@@ -142,7 +145,11 @@ fn main() {
 
     let viterbi_logprob_diff =
         (delta.iter().copied().fold(f64::NEG_INFINITY, f64::max) - cpu_viterbi.1).abs();
-    h.check_upper("hmm viterbi logprob diff", viterbi_logprob_diff, 1.0);
+    h.check_upper(
+        "hmm viterbi logprob diff",
+        viterbi_logprob_diff,
+        tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 2.0,
+    );
 
     // ─── Allele frequencies ───────────────────────────────────────
 
@@ -156,25 +163,44 @@ fn main() {
         .zip(gpu_af.iter())
         .map(|(c, g)| (c - g).abs())
         .fold(0.0_f64, f64::max);
-    h.check_upper("allele_frequencies max_diff", af_diff, 0.01);
+    h.check_upper(
+        "allele_frequencies max_diff",
+        af_diff,
+        tolerances::GPU_TRANSPOSE_F32,
+    );
 
     // ─── Nucleotide diversity ─────────────────────────────────────
 
     let cpu_pi = meta_population::nucleotide_diversity(&pop, n_indiv, n_loci);
     let gpu_pi = dispatcher.nucleotide_diversity(&pop, n_indiv, n_loci);
-    h.check_abs("nucleotide_diversity", gpu_pi, cpu_pi, 0.05);
+    h.check_abs(
+        "nucleotide_diversity",
+        gpu_pi,
+        cpu_pi,
+        tolerances::GPU_PEARSON_F32,
+    );
 
     // ─── Matrix correlation ───────────────────────────────────────
 
     let mat_a = vec![0.0, 1.0, 2.0, 1.0, 0.0, 3.0, 2.0, 3.0, 0.0];
     let cpu_r = meta_population::matrix_correlation(&mat_a, &mat_a, 3);
     let gpu_r = dispatcher.matrix_correlation(&mat_a, &mat_a, 3);
-    h.check_abs("matrix_correlation self", gpu_r, cpu_r, 0.01);
+    h.check_abs(
+        "matrix_correlation self",
+        gpu_r,
+        cpu_r,
+        tolerances::GPU_TRANSPOSE_F32,
+    );
 
     let mat_b = vec![0.0, 3.0, 1.0, 3.0, 0.0, 2.0, 1.0, 2.0, 0.0];
     let cpu_r2 = meta_population::matrix_correlation(&mat_a, &mat_b, 3);
     let gpu_r2 = dispatcher.matrix_correlation(&mat_a, &mat_b, 3);
-    h.check_abs("matrix_correlation cross", gpu_r2, cpu_r2, 0.05);
+    h.check_abs(
+        "matrix_correlation cross",
+        gpu_r2,
+        cpu_r2,
+        tolerances::GPU_PEARSON_F32,
+    );
 
     // ─── Geographic distance matrix ──────────────────────────────
 
@@ -186,8 +212,17 @@ fn main() {
         .zip(gpu_dist.iter())
         .map(|(c, g)| (c - g).abs())
         .fold(0.0_f64, f64::max);
-    h.check_upper("geographic_distance max_diff", dist_diff, 0.01);
-    h.check_abs("geographic_distance (0,0)→(3,4)", gpu_dist[1], 5.0, 0.01);
+    h.check_upper(
+        "geographic_distance max_diff",
+        dist_diff,
+        tolerances::GPU_L2_DISPATCH_F32,
+    );
+    h.check_abs(
+        "geographic_distance (0,0)→(3,4)",
+        gpu_dist[1],
+        5.0,
+        tolerances::GPU_L2_DISPATCH_F32,
+    );
 
     // ─── Thermal diversity correlation ───────────────────────────
 
@@ -195,7 +230,12 @@ fn main() {
     let temps = vec![65.0, 72.0, 80.0, 90.0];
     let cpu_corr = meta_population::thermal_diversity_correlation(&pi_vals, &temps);
     let gpu_corr = dispatcher.thermal_diversity_correlation(&pi_vals, &temps);
-    h.check_abs("thermal_diversity_corr", gpu_corr, cpu_corr, 0.05);
+    h.check_abs(
+        "thermal_diversity_corr",
+        gpu_corr,
+        cpu_corr,
+        tolerances::GPU_PEARSON_F32,
+    );
 
     // ─── Replicator dynamics step ────────────────────────────────
 
@@ -203,11 +243,11 @@ fn main() {
     let freq = [0.5_f64, 0.5];
     let dt = 0.01;
     let cpu_step = {
-        let f0 = pd[0][0] * freq[0] + pd[0][1] * freq[1];
-        let f1 = pd[1][0] * freq[0] + pd[1][1] * freq[1];
-        let f_bar = freq[0] * f0 + freq[1] * f1;
-        let mut x0 = (freq[0] + dt * freq[0] * (f0 - f_bar)).max(0.0);
-        let mut x1 = (freq[1] + dt * freq[1] * (f1 - f_bar)).max(0.0);
+        let f0 = pd[0][0].mul_add(freq[0], pd[0][1] * freq[1]);
+        let f1 = pd[1][0].mul_add(freq[0], pd[1][1] * freq[1]);
+        let f_bar = freq[0].mul_add(f0, freq[1] * f1);
+        let mut x0 = (dt * freq[0]).mul_add(f0 - f_bar, freq[0]).max(0.0);
+        let mut x1 = (dt * freq[1]).mul_add(f1 - f_bar, freq[1]).max(0.0);
         let s = x0 + x1;
         if s > 0.0 {
             x0 /= s;
@@ -216,18 +256,28 @@ fn main() {
         [x0, x1]
     };
     let gpu_step = dispatcher.replicator_step(&freq, &pd, dt);
-    h.check_abs("replicator x[0]", gpu_step[0], cpu_step[0], 0.01);
-    h.check_abs("replicator x[1]", gpu_step[1], cpu_step[1], 0.01);
+    h.check_abs(
+        "replicator x[0]",
+        gpu_step[0],
+        cpu_step[0],
+        tolerances::GPU_HMM_STEP_F32,
+    );
+    h.check_abs(
+        "replicator x[1]",
+        gpu_step[1],
+        cpu_step[1],
+        tolerances::GPU_HMM_STEP_F32,
+    );
 
     // Multi-step replicator: run 100 steps and compare final state
     let mut cpu_x = freq;
     let mut gpu_x = freq;
     for _ in 0..100 {
-        let cf0 = pd[0][0] * cpu_x[0] + pd[0][1] * cpu_x[1];
-        let cf1 = pd[1][0] * cpu_x[0] + pd[1][1] * cpu_x[1];
-        let cf_bar = cpu_x[0] * cf0 + cpu_x[1] * cf1;
-        cpu_x[0] = (cpu_x[0] + dt * cpu_x[0] * (cf0 - cf_bar)).max(0.0);
-        cpu_x[1] = (cpu_x[1] + dt * cpu_x[1] * (cf1 - cf_bar)).max(0.0);
+        let cf0 = pd[0][0].mul_add(cpu_x[0], pd[0][1] * cpu_x[1]);
+        let cf1 = pd[1][0].mul_add(cpu_x[0], pd[1][1] * cpu_x[1]);
+        let cf_bar = cpu_x[0].mul_add(cf0, cpu_x[1] * cf1);
+        cpu_x[0] = (dt * cpu_x[0]).mul_add(cf0 - cf_bar, cpu_x[0]).max(0.0);
+        cpu_x[1] = (dt * cpu_x[1]).mul_add(cf1 - cf_bar, cpu_x[1]).max(0.0);
         let s = cpu_x[0] + cpu_x[1];
         if s > 0.0 {
             cpu_x[0] /= s;
@@ -235,11 +285,16 @@ fn main() {
         }
         gpu_x = dispatcher.replicator_step(&gpu_x, &pd, dt);
     }
-    h.check_abs("replicator 100-step x[0]", gpu_x[0], cpu_x[0], 0.05);
+    h.check_abs(
+        "replicator 100-step x[0]",
+        gpu_x[0],
+        cpu_x[0],
+        tolerances::GPU_PEARSON_F32,
+    );
 
     // ─── Hill activation batch ───────────────────────────────────
 
-    let hill_x: Vec<f64> = (1..=20).map(|i| i as f64 * 0.5).collect();
+    let hill_x: Vec<f64> = (1..=20).map(|i| f64::from(i) * 0.5).collect();
     let vmax = 1.0;
     let k = 2.0;
     let n_hill = 2.0;
@@ -253,14 +308,18 @@ fn main() {
         .zip(gpu_hill.iter())
         .map(|(c, g)| (c - g).abs())
         .fold(0.0_f64, f64::max);
-    h.check_upper("hill_activation_batch max_diff", hill_diff, 0.05);
+    h.check_upper(
+        "hill_activation_batch max_diff",
+        hill_diff,
+        tolerances::GPU_BOLTZMANN_F32,
+    );
 
     // Hill at saturation: x >> K should give ~Vmax
     h.check_abs(
         "hill saturation",
         *gpu_hill.last().unwrap_or(&0.0),
         vmax,
-        0.1,
+        tolerances::GPU_HMM_ALPHA_F32,
     );
 
     // ─── Inter-population AF variance ────────────────────────────
@@ -290,13 +349,13 @@ fn main() {
         2,
         &mut rng,
     );
-    let pops = vec![pop_a.clone(), pop_b.clone()];
+    let pops = vec![pop_a, pop_b];
     let n_indivs = vec![8_usize, 8];
 
     let cpu_af_var = meta_population::inter_population_af_variance(&pops, &n_indivs, n_loci_test);
 
     if let Some(dev) = dispatcher.wgpu_device() {
-        let pop_refs: Vec<&[f64]> = pops.iter().map(|p| p.as_slice()).collect();
+        let pop_refs: Vec<&[f64]> = pops.iter().map(Vec::as_slice).collect();
         match neural_spring::gpu_ops::inter_population_af_variance_gpu(
             &pop_refs,
             &n_indivs,
@@ -304,7 +363,12 @@ fn main() {
             dev,
         ) {
             Ok(gpu_af_var) => {
-                h.check_abs("inter_pop_af_variance", gpu_af_var, cpu_af_var, 0.02);
+                h.check_abs(
+                    "inter_pop_af_variance",
+                    gpu_af_var,
+                    cpu_af_var,
+                    tolerances::GPU_AF_VARIANCE_F32,
+                );
             }
             Err(e) => {
                 eprintln!("inter_pop_af_variance GPU error: {e}");
@@ -312,7 +376,12 @@ fn main() {
             }
         }
     } else {
-        h.check_abs("inter_pop_af_variance (CPU)", cpu_af_var, cpu_af_var, 1e-12);
+        h.check_abs(
+            "inter_pop_af_variance (CPU)",
+            cpu_af_var,
+            cpu_af_var,
+            tolerances::EXACT_F64,
+        );
     }
 
     // ─── Larger HMM: 4 states, 5 symbols ────────────────────────
@@ -362,7 +431,11 @@ fn main() {
         .zip(gpu_beta4.iter())
         .map(|(c, g)| (c - g).abs())
         .fold(0.0_f64, f64::max);
-    h.check_upper("hmm4 backward max_diff", beta4_diff, 0.5);
+    h.check_upper(
+        "hmm4 backward max_diff",
+        beta4_diff,
+        tolerances::GPU_HMM_LOG_LIKELIHOOD_F32,
+    );
 
     let (cpu_path4, cpu_lp4) = hmm4.viterbi(&obs4);
     let log_a4: Vec<f64> = hmm4
@@ -409,7 +482,11 @@ fn main() {
 
     let viterbi4_lp_diff =
         (delta4.iter().copied().fold(f64::NEG_INFINITY, f64::max) - cpu_lp4).abs();
-    h.check_upper("hmm4 viterbi logprob diff", viterbi4_lp_diff, 2.0);
+    h.check_upper(
+        "hmm4 viterbi logprob diff",
+        viterbi4_lp_diff,
+        tolerances::GPU_HMM_VITERBI_LOGPROB_F64,
+    );
 
     h.finish();
 }

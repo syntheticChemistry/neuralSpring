@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU kernel benchmarks: BarraCUDA typed op timing vs Rust CPU.
+//! GPU kernel benchmarks: `BarraCUDA` typed op timing vs Rust CPU.
 //!
 //! Completes the full Python → Rust CPU → GPU performance chain.
-//! Each benchmark uses BarraCUDA typed op APIs (`PairwiseHammingGpu`,
+//! Each benchmark uses `BarraCUDA` typed op APIs (`PairwiseHammingGpu`,
 //! `PairwiseJaccardGpu`, `BatchFitnessGpu`, `SpatialPayoffGpu`, `BatchIprGpu`)
 //! at the same problem size as its `bench_phase0pp_kernels` Rust CPU counterpart,
 //! so speedups are directly comparable.
@@ -19,8 +19,7 @@
     clippy::many_single_char_names,
     clippy::needless_range_loop,
     clippy::too_many_lines,
-    clippy::too_many_arguments,
-    clippy::doc_markdown
+    clippy::too_many_arguments
 )]
 
 use barracuda::ops::bio::{

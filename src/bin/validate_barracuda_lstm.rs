@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! BarraCUDA Tensor validation: LSTM weather forecast (Study 004).
+//! `BarraCUDA` Tensor validation: LSTM weather forecast (Study 004).
 //!
 //! Tests LSTM gate computations using barracuda Tensor. Validates forget, input,
 //! cell candidate, output gates, cell state update, and hidden state against
@@ -22,7 +22,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::doc_markdown,
     clippy::many_single_char_names,
     clippy::manual_let_else,
     clippy::similar_names,

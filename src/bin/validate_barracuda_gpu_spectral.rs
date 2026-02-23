@@ -194,7 +194,11 @@ fn validate_cpu_commutator(h: &mut ValidationHarness) {
     let comm: Vec<f64> = ab.iter().zip(ba.iter()).map(|(x, y)| x - y).collect();
     let norm = comm.iter().map(|x| x * x).sum::<f64>().sqrt();
 
-    h.check_lower(&format!("CPU ‖[A,B]‖_F > 0 ({norm:.4e})"), norm, 1e-10);
+    h.check_lower(
+        &format!("CPU ‖[A,B]‖_F > 0 ({norm:.4e})"),
+        norm,
+        tolerances::GPU_F64_EXACT,
+    );
     // [A,B] = -[B,A]
     let comm_ba: Vec<f64> = ba.iter().zip(ab.iter()).map(|(x, y)| x - y).collect();
     let sum: Vec<f64> = comm
@@ -230,11 +234,15 @@ fn validate_cpu_identity(h: &mut ValidationHarness) {
         .zip(ai.iter())
         .map(|(x, y)| (x - y).abs())
         .fold(0.0_f64, f64::max);
-    h.check_upper(&format!("CPU A×I = A (max diff {diff:.2e})"), diff, 1e-14);
+    h.check_upper(
+        &format!("CPU A×I = A (max diff {diff:.2e})"),
+        diff,
+        tolerances::ZERO_DETECTION,
+    );
 }
 
 fn validate_cpu_frobenius(h: &mut ValidationHarness) {
     let v = [3.0_f64, 4.0];
     let norm = v.iter().map(|x| x * x).sum::<f64>().sqrt();
-    h.check_abs("CPU ‖[3,4]‖_F = 5", norm, 5.0, 1e-14);
+    h.check_abs("CPU ‖[3,4]‖_F = 5", norm, 5.0, tolerances::ZERO_DETECTION);
 }

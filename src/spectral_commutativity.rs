@@ -215,4 +215,33 @@ mod tests {
         );
         assert!(diff < 1e-14, "transpose(transpose(A)) should equal A");
     }
+
+    #[test]
+    fn spectral_gap_approx_symmetric_zero() {
+        let mut rng = Rng::new(42);
+        let sym = random_symmetric(8, &mut rng);
+        let gap = spectral_gap_approx(&sym, 8);
+        assert!(
+            gap < 1e-10,
+            "symmetric matrix: AᵀA = AAᵀ, gap ≈ 0, got {gap}"
+        );
+    }
+
+    #[test]
+    fn spectral_gap_approx_identity() {
+        let n = 4;
+        let eye = identity_matrix(n);
+        let gap = spectral_gap_approx(&eye, n);
+        assert!(gap < 1e-15, "identity gap = 0");
+    }
+
+    #[test]
+    fn commutativity_ratio_identity() {
+        let n = 4;
+        let eye = identity_matrix(n);
+        let mut rng = Rng::new(42);
+        let a = random_matrix(n, &mut rng);
+        let ratio = commutativity_ratio(&eye, &a, n);
+        assert!(ratio < 1e-10, "I commutes with everything, ratio ≈ 0");
+    }
 }

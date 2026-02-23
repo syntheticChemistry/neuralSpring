@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: two-input Hill function via BarraCUDA `HillGateGpu`.
+//! GPU validation: two-input Hill function via `BarraCUDA` `HillGateGpu`.
 //!
 //! Validates `barracuda::ops::bio::HillGateGpu` against CPU
 //! `signal_integration::two_input_hill`. The GPU op evaluates
@@ -48,14 +48,11 @@ async fn main() {
     };
 
     let dev = Arc::clone(gpu.wgpu_device());
-    let op = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| HillGateGpu::new(dev)))
-    {
-        Ok(o) => o,
-        Err(_) => {
-            eprintln!("  SKIP: HillGateGpu f64 shader compilation failed (driver limitation)");
-            eprintln!("  0/0 checks — skipping gracefully");
-            std::process::exit(0);
-        }
+    let Ok(op) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| HillGateGpu::new(dev)))
+    else {
+        eprintln!("  SKIP: HillGateGpu f64 shader compilation failed (driver limitation)");
+        eprintln!("  0/0 checks — skipping gracefully");
+        std::process::exit(0);
     };
     let mut h = ValidationHarness::new("gpu_signal");
 

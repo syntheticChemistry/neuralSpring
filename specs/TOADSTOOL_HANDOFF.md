@@ -336,7 +336,7 @@ Comprehensive codebase audit and debt resolution:
 
 - **9 new determinism tests**: introgression, regulatory_network, pangenome_selection, meta_population, sate_alignment, signal_integration, game_theory, spectral_commutativity, anderson_localization (total: 16)
 - **9 new integration tests** (`tests/integration.rs`): cross-module consistency, provenance round-trip, tolerance registry lookup, validation harness, HMM/softmax/GELU/benchmark provenance verification
-- Library tests: **264 lib + 9 integration tests** (up from 255 lib)
+- Library tests: **374 lib + 9 integration tests** (up from 264 lib)
 
 ### Dependency Analysis
 
@@ -453,7 +453,7 @@ Consider adding NVK to ToadStool CI for open-source driver compatibility testing
 
 ### What Changed
 
-neuralSpring created `gpu_ops.rs` and `gpu_dispatch.rs` — a capability-based
+neuralSpring created `gpu_ops/` (6 submodules) and `gpu_dispatch.rs` — a capability-based
 runtime dispatch layer that routes 38 previously CPU-bound operations to GPU
 via the BarraCUDA `Tensor` API. The `Dispatcher` detects GPU availability at
 construction and falls back to CPU when hardware is unavailable.
@@ -514,7 +514,7 @@ commits since our last tracked commit:
 | `6ee71f07` | loop_unroller `substitute_loop_var` emits `u32` suffix (`"0"` → `"0u"`) | hotSpring v0.6.7 | **None** — affects `BatchedEighGpu` single-dispatch (not used by neuralSpring) |
 
 **Build**: `cargo check` clean, zero new warnings.
-**Validation**: 264 lib + 9 integration tests PASS. `validate_all`: **133/133 PASS** (RTX 4070).
+**Validation**: 374 lib + 9 integration tests PASS. `validate_all`: **133/133 PASS** (RTX 4070).
 
 ### Still Pending Absorption (neuralSpring → ToadStool)
 

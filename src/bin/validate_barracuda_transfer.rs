@@ -13,8 +13,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::doc_markdown,
-    clippy::items_after_statements,
     clippy::many_single_char_names,
     clippy::similar_names,
     clippy::suboptimal_flops
@@ -82,11 +80,11 @@ async fn main() {
 
 /// Build transfer MLP: input(6) → FC1(6→32) → tanh → FC2(32→1).
 fn validate_mlp_forward(h: &mut ValidationHarness, device: &Dev) {
-    let mut rng = Rng::new(42);
     const IN: usize = 6;
     const H1: usize = 32;
     const OUT: usize = 1;
 
+    let mut rng = Rng::new(42);
     let input: Vec<f64> = (0..IN).map(|_| rng.uniform() * 0.5 + 0.5).collect();
     let w1: Vec<f64> = (0..(H1 * IN)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
     let w2: Vec<f64> = (0..(OUT * H1)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
@@ -132,11 +130,11 @@ fn validate_mlp_forward(h: &mut ValidationHarness, device: &Dev) {
 
 /// Run same MLP with source and target domain inputs; verify GPU matches CPU for both.
 fn validate_domain_adaptation(h: &mut ValidationHarness, device: &Dev) {
-    let mut rng = Rng::new(123);
     const IN: usize = 6;
     const H1: usize = 32;
     const OUT: usize = 1;
 
+    let mut rng = Rng::new(123);
     let w1: Vec<f64> = (0..(H1 * IN)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
     let w2: Vec<f64> = (0..(OUT * H1)).map(|_| rng.uniform() * 0.5 + 0.5).collect();
     let w1_f32: Vec<f32> = w1.iter().map(|&x| x as f32).collect();
@@ -214,11 +212,11 @@ fn validate_metrics_parity(h: &mut ValidationHarness) {
 
 /// Run forward twice, check bit-identical.
 fn validate_determinism(h: &mut ValidationHarness, device: &Dev) {
-    let mut rng = Rng::new(77);
     const IN: usize = 6;
     const H1: usize = 32;
     const OUT: usize = 1;
 
+    let mut rng = Rng::new(77);
     let input: Vec<f32> = (0..IN)
         .map(|_| (rng.uniform() * 0.5 + 0.5) as f32)
         .collect();

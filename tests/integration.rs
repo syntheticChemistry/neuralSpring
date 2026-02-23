@@ -84,6 +84,7 @@ fn tolerance_registry_covers_all_categories() {
         "statistical",
         "linalg",
         "ml_pipeline",
+        "gpu_dispatch",
     ] {
         assert!(cats.contains(&expected), "missing category: {expected}");
     }

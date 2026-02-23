@@ -2,7 +2,6 @@
 
 #![allow(
     clippy::cast_precision_loss,
-    clippy::doc_markdown,
     clippy::similar_names,
     clippy::suboptimal_flops
 )]
@@ -24,7 +23,7 @@
 //! - MLP forward pass with tanh activation (inference only)
 //! - PDE residual evaluation via finite differences
 //!
-//! ## BarraCUDA connection
+//! ## `BarraCUDA` connection
 //!
 //! - Forward pass: `barracuda::ops::batch_gemm` (layer-wise matmul)
 //! - Activation: `barracuda::ops::elementwise::tanh`
@@ -33,9 +32,9 @@
 //!
 //! ## Note on training
 //!
-//! The Python baseline trains with PyTorch autograd (reverse-mode AD).
+//! The Python baseline trains with `PyTorch` autograd (reverse-mode AD).
 //! This Rust module validates the *mathematics* — exact solutions and
-//! inference primitives — not the training loop.  BarraCUDA training
+//! inference primitives — not the training loop.  `BarraCUDA` training
 //! will use `fd_gradient_f64.wgsl` or a future AD pipeline.
 
 use std::f64::consts::PI;
@@ -140,10 +139,10 @@ pub fn burgers_exact_grid(t_vals: &[f64], x_vals: &[f64], nu: f64) -> Vec<f64> {
 
 /// Dense layer: out = tanh(W·x + b) for a single input vector.
 ///
-/// `weights`: row-major (out_dim × in_dim)
-/// `bias`: (out_dim,)
-/// `input`: (in_dim,)
-/// Returns: (out_dim,)
+/// `weights`: row-major (`out_dim` × `in_dim`)
+/// `bias`: (`out_dim`,)
+/// `input`: (`in_dim`,)
+/// Returns: (`out_dim`,)
 #[must_use]
 pub fn dense_tanh(weights: &[f64], bias: &[f64], input: &[f64], out_dim: usize) -> Vec<f64> {
     let in_dim = input.len();
@@ -175,7 +174,7 @@ pub fn dense_linear(weights: &[f64], bias: &[f64], input: &[f64], out_dim: usize
 
 /// An MLP with tanh activations (PINN architecture).
 ///
-/// `layer_specs`: list of (weights_flat, bias, out_dim) for each layer.
+/// `layer_specs`: list of (`weights_flat`, bias, `out_dim`) for each layer.
 /// The last layer uses linear activation (no tanh).
 #[must_use]
 pub fn mlp_forward(input: &[f64], layers: &[(&[f64], &[f64], usize)]) -> Vec<f64> {

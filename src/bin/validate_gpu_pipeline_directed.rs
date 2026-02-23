@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Pure GPU pipeline validation: multi_obj_fitness → mean (Paper 014).
+//! Pure GPU pipeline validation: `multi_obj_fitness` → mean (Paper 014).
 //!
-//! Uses BarraCUDA typed op `MultiObjFitnessGpu` (f64) with CPU mean reduction.
-//! Replaces raw wgpu chain (multi_obj_fitness + mean_reduce) for validation.
+//! Uses `BarraCUDA` typed op `MultiObjFitnessGpu` (f64) with CPU mean reduction.
+//! Replaces raw wgpu chain (`multi_obj_fitness` + `mean_reduce`) for validation.
 //!
 //! ## Pipeline
 //!
@@ -26,7 +26,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::cast_lossless

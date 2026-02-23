@@ -27,6 +27,7 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
     clippy::similar_names
 )]
 
@@ -75,6 +76,7 @@ async fn main() {
     println!("═══════════════════════════════════════════════════════════════");
 }
 
+#[allow(clippy::too_many_lines)]
 fn bench_neuralspring_ops(gpu: &Gpu) {
     println!("--- neuralSpring origins (ML / evolution) ---");
     println!();
@@ -154,7 +156,9 @@ fn bench_neuralspring_ops(gpu: &Gpu) {
         for row in evecs.chunks_mut(dim as usize) {
             let norm: f32 = row.iter().map(|v| v * v).sum::<f32>().sqrt();
             if norm > 0.0 {
-                row.iter_mut().for_each(|v| *v /= norm);
+                for v in row.iter_mut() {
+                    *v /= norm;
+                }
             }
         }
         let ev_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {

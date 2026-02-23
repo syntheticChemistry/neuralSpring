@@ -2,18 +2,17 @@
 
 #![allow(
     clippy::cast_precision_loss,
-    clippy::doc_markdown,
     clippy::similar_names,
     clippy::suboptimal_flops
 )]
 
-//! DeepONet operator learning primitives for antiderivative computation.
+//! `DeepONet` operator learning primitives for antiderivative computation.
 //!
 //! Port of `control/deeponet/deeponet_antideriv.py` (Study 002).
 //!
 //! Reproduces key results from:
 //! Lu, Jin, Pang, Zhang, Karniadakis (2021)
-//! "Learning nonlinear operators via DeepONet based on the universal
+//! "Learning nonlinear operators via `DeepONet` based on the universal
 //!  approximation theorem of operators"
 //! Nature Machine Intelligence, Vol 3, pp 218-229.
 //!
@@ -23,7 +22,7 @@
 //! - Branch-trunk MLP inference (dot-product coupling)
 //! - Operator error metrics (L2 relative, RMSE)
 //!
-//! ## BarraCUDA connection
+//! ## `BarraCUDA` connection
 //!
 //! - Branch MLP: `barracuda::ops::batch_gemm` (sensor encoding)
 //! - Trunk MLP: `barracuda::ops::batch_gemm` (location encoding)
@@ -77,7 +76,7 @@ pub fn exact_antiderivative(coeffs: &[f64], y_points: &[f64]) -> Vec<f64> {
 
 /// Generate random polynomial and its antiderivative at given points.
 ///
-/// Returns (u_at_sensors, g_at_outputs, coefficients).
+/// Returns (`u_at_sensors`, `g_at_outputs`, coefficients).
 #[must_use]
 pub fn random_polynomial_pair(
     rng: &mut Rng,
@@ -94,7 +93,7 @@ pub fn random_polynomial_pair(
 
 /// Generate a dataset of random polynomials and antiderivatives.
 ///
-/// Returns (U_sensors, G_outputs) both row-major (n_funcs × n_points).
+/// Returns (`U_sensors`, `G_outputs`) both row-major (`n_funcs` × `n_points`).
 #[must_use]
 pub fn generate_dataset(
     n_funcs: usize,
@@ -119,7 +118,7 @@ pub fn generate_dataset(
 
 /// Dense layer: out = tanh(W·x + b).
 ///
-/// `weights`: row-major (out_dim × in_dim)
+/// `weights`: row-major (`out_dim` × `in_dim`)
 #[must_use]
 pub fn dense_tanh(weights: &[f64], bias: &[f64], input: &[f64], out_dim: usize) -> Vec<f64> {
     let in_dim = input.len();
@@ -164,7 +163,7 @@ pub fn mlp_forward(input: &[f64], layers: &[(&[f64], &[f64], usize)]) -> Vec<f64
     current
 }
 
-/// Branch-trunk dot product: <branch_out, trunk_out> + bias.
+/// Branch-trunk dot product: <`branch_out`, `trunk_out`> + bias.
 #[must_use]
 pub fn branch_trunk_dot(branch_out: &[f64], trunk_out: &[f64], bias: f64) -> f64 {
     branch_out

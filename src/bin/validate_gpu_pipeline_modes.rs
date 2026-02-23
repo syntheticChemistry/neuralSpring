@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Pure GPU pipeline validation: pairwise_l2 → mean (Paper 012).
+//! Pure GPU pipeline validation: `pairwise_l2` → mean (Paper 012).
 //!
-//! Uses BarraCUDA typed op `PairwiseL2Gpu` (f32) with CPU mean reduction.
-//! Replaces raw wgpu chain (pairwise_l2 + mean_reduce) for validation.
+//! Uses `BarraCUDA` typed op `PairwiseL2Gpu` (f32) with CPU mean reduction.
+//! Replaces raw wgpu chain (`pairwise_l2` + `mean_reduce`) for validation.
 //!
 //! ## Pipeline
 //!
@@ -26,7 +26,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::cast_lossless

@@ -2,7 +2,7 @@
 
 //! Cross-dispatch validation: Phase 4e domain shaders (GPU ↔ CPU parity).
 //!
-//! Uses BarraCUDA typed op APIs to validate GPU ↔ CPU parity for
+//! Uses `BarraCUDA` typed op APIs to validate GPU ↔ CPU parity for
 //! `PairwiseL2Gpu` (MODES Paper 012), `MultiObjFitnessGpu` (Directed Evolution
 //! Paper 014), `SwarmNnGpu` (Swarm Robotics Paper 015), and `HillGateGpu`
 //! (Signal Integration Paper 021).
@@ -274,7 +274,7 @@ fn validate_multi_obj_fitness_parity(h: &mut ValidationHarness, gpu: &Gpu) {
                     gpu_fitness.len()
                 ),
                 max_diff,
-                1e-2,
+                tolerances::GPU_MULTI_OBJ_FITNESS_F64,
             );
         }
         Err(e) => {
@@ -419,12 +419,9 @@ fn gpu_hill_gate(
 ) -> Result<Vec<f64>, String> {
     let device = gpu.device();
     let dev = Arc::clone(gpu.wgpu_device());
-    let op = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| HillGateGpu::new(dev)))
-    {
-        Ok(o) => o,
-        Err(_) => {
-            return Err("HillGateGpu f64 shader compilation failed (driver limitation)".into())
-        }
+    let Ok(op) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| HillGateGpu::new(dev)))
+    else {
+        return Err("HillGateGpu f64 shader compilation failed (driver limitation)".into());
     };
 
     let n_total = (params.n_a * params.n_b) as usize;

@@ -2,8 +2,8 @@
 
 //! Pure GPU pipeline validation: spatial payoff → mean (Paper 019).
 //!
-//! Uses BarraCUDA typed op `SpatialPayoffGpu` (f32) with CPU mean reduction.
-//! Replaces raw wgpu chain (spatial_payoff + mean_reduce) for validation.
+//! Uses `BarraCUDA` typed op `SpatialPayoffGpu` (f32) with CPU mean reduction.
+//! Replaces raw wgpu chain (`spatial_payoff` + `mean_reduce`) for validation.
 //!
 //! ## Pipeline
 //!
@@ -26,7 +26,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::cast_lossless

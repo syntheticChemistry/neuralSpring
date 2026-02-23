@@ -448,4 +448,93 @@ mod tests {
         assert_eq!(h.total_count(), 3);
         assert!(!h.all_passed());
     }
+
+    // ── require method ──────────────────────────────────────────
+
+    #[test]
+    fn require_ok_returns_value() {
+        let mut h = ValidationHarness::new("test");
+        let val: Option<i32> = h.require("op", Ok::<i32, String>(42));
+        assert_eq!(val, Some(42));
+        assert_eq!(h.total_count(), 0, "success records no check");
+    }
+
+    #[test]
+    fn require_err_records_fail() {
+        let mut h = ValidationHarness::new("test");
+        let val: Option<i32> = h.require("op", Err::<i32, &str>("boom"));
+        assert_eq!(val, None);
+        assert_eq!(h.total_count(), 1);
+        assert!(!h.checks[0].passed);
+        assert!(h.checks[0].label.contains("boom"));
+    }
+
+    // ── f32 diff helpers ────────────────────────────────────────
+
+    #[test]
+    fn max_abs_diff_f32_exact() {
+        assert!((max_abs_diff_f32(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0]) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn max_abs_diff_f32_nonzero() {
+        let diff = max_abs_diff_f32(&[1.0_f32, 5.0], &[1.0, 2.0]);
+        assert!((diff - 3.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn max_abs_diff_gpu_vs_cpu_promotion() {
+        let gpu = vec![1.0_f32, 2.0];
+        let cpu = vec![1.0_f64, 2.001];
+        let diff = max_abs_diff_gpu_vs_cpu(&gpu, &cpu);
+        assert!((diff - 0.001).abs() < 1e-5);
+    }
+
+    // ── check_gpu_points ────────────────────────────────────────
+
+    #[test]
+    fn check_gpu_points_pass_and_fail() {
+        let mut h = ValidationHarness::new("test");
+        let data = vec![1.0_f32, 2.5, 3.0];
+        let checks: Vec<(&str, usize, f64, f64)> = vec![
+            ("val0", 0, 1.0, 0.1),
+            ("val1", 1, 2.5, 0.01),
+            ("val2", 2, 999.0, 0.01),
+        ];
+        check_gpu_points(&mut h, &data, &checks);
+        assert_eq!(h.passed_count(), 2);
+        assert_eq!(h.total_count(), 3);
+    }
+
+    // ── ToleranceMode display ───────────────────────────────────
+
+    #[test]
+    fn tolerance_mode_display() {
+        assert_eq!(format!("{}", ToleranceMode::Absolute), "abs");
+        assert_eq!(format!("{}", ToleranceMode::Relative), "rel");
+        assert_eq!(format!("{}", ToleranceMode::UpperBound), "<");
+        assert_eq!(format!("{}", ToleranceMode::LowerBound), ">");
+    }
+
+    // ── Edge cases ──────────────────────────────────────────────
+
+    #[test]
+    fn check_abs_or_rel_abs_wins() {
+        let mut h = ValidationHarness::new("test");
+        h.check_abs_or_rel("abs_wins", 0.0001, 0.0, 0.001);
+        assert!(h.checks[0].passed, "abs diff < tolerance → pass");
+    }
+
+    #[test]
+    fn check_rel_large_expected() {
+        let mut h = ValidationHarness::new("test");
+        h.check_rel("large", 1_000_001.0, 1_000_000.0, 1e-4);
+        assert!(h.checks[0].passed, "1 part per million < 1e-4 rel");
+    }
+
+    #[test]
+    fn harness_name_preserved() {
+        let h = ValidationHarness::new("my_validation_binary");
+        assert_eq!(h.name, "my_validation_binary");
+    }
 }

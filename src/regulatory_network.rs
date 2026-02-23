@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::doc_markdown, clippy::suboptimal_flops)]
+#![allow(clippy::suboptimal_flops)]
 
 //! Regulatory network and diversity capacitor (Paper 020).
 //!
@@ -121,7 +121,7 @@ pub fn shannon_diversity(counts: &[f64]) -> f64 {
     primitives::shannon_entropy_from_counts(counts)
 }
 
-/// Environment configurations (signal, K_b, K_m, K_v).
+/// Environment configurations (signal, `K_b`, `K_m`, `K_v`).
 pub const ENV_NUTRIENT_RICH: (f64, f64, f64, f64) = (0.9, 0.3, 0.5, 0.8);
 pub const ENV_NUTRIENT_POOR: (f64, f64, f64, f64) = (0.2, 0.4, 0.3, 0.9);
 pub const ENV_STRESS: (f64, f64, f64, f64) = (0.6, 0.35, 0.4, 0.5);

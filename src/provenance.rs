@@ -460,7 +460,10 @@ pub const RASTRIGIN_REFERENCE: [(f64, f64, f64); 4] = [
     (-3.0, 2.0, 13.0),
 ];
 
-/// Rosenbrock 2D reference values.
+/// Rosenbrock 2D reference values, computed by `NumPy` 2.2.6.
+///
+/// Provenance: `python3 -c "f=lambda x,y: (1-x)**2 + 100*(y-x**2)**2; [print(x,y,f(x,y)) for x,y in [(1,1),(2.5,-1.3),(0.5,0.5),(-3,2)]]"`
+/// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
 pub const ROSENBROCK_REFERENCE: [(f64, f64, f64); 4] = [
     (1.0, 1.0, 0.0),
     (2.5, -1.3, 5702.5),
@@ -468,7 +471,10 @@ pub const ROSENBROCK_REFERENCE: [(f64, f64, f64); 4] = [
     (-3.0, 2.0, 4916.0),
 ];
 
-/// Ackley 2D reference values.
+/// Ackley 2D reference values, computed by `NumPy` 2.2.6.
+///
+/// Provenance: `python3 -c "import numpy as np; a=lambda x,y: -20*np.exp(-0.2*np.sqrt(0.5*(x**2+y**2))) - np.exp(0.5*(np.cos(2*np.pi*x)+np.cos(2*np.pi*y))) + np.e + 20; [print(x,y,a(x,y)) for x,y in [(1,1),(2.5,-1.3),(0.5,0.5),(-3,2)]]"`
+/// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
 pub const ACKLEY_REFERENCE: [(f64, f64, f64); 4] = [
     (1.0, 1.0, 3.625_384_938_440_363),
     (2.5, -1.3, 8.772_020_879_614_113),

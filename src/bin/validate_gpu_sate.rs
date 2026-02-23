@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: pairwise Hamming distance via BarraCUDA upstream API.
+//! GPU validation: pairwise Hamming distance via `BarraCUDA` upstream API.
 //!
 //! Validates `barracuda::ops::bio::PairwiseHammingGpu` against CPU
 //! Hamming distance computation from `sate_alignment.rs`.  The typed op
@@ -8,18 +8,17 @@
 //!
 //! ## Papers validated
 //!
-//! - Paper 017: SATé Alignment (Liu et al., 2009)
+//! - Paper 017: `SATé` Alignment (Liu et al., 2009)
 //!
 //! ## Provenance
 //!
-//! CPU reference: `sate_alignment::pairwise_distance_matrix` (seed=42, n_seqs=8 seq_len=50).
+//! CPU reference: `sate_alignment::pairwise_distance_matrix` (seed=42, `n_seqs=8` `seq_len=50`).
 //! Upstream API: `barracuda::ops::bio::PairwiseHammingGpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::doc_markdown,
     clippy::needless_range_loop
 )]
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU validation: batch inverse participation ratio via BarraCUDA `BatchIprGpu`.
+//! GPU validation: batch inverse participation ratio via `BarraCUDA` `BatchIprGpu`.
 //!
 //! Validates `barracuda::spectral::BatchIprGpu` against CPU IPR computation
-//! from `anderson_localization.rs`.  The GPU op computes IPR = sum(|ψ_i|^4)
+//! from `anderson_localization.rs`.  The GPU op computes IPR = `sum(|ψ_i|^4)`
 //! for each eigenvector in a single dispatch.
 //!
 //! ## Papers validated
@@ -21,8 +21,7 @@
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::needless_range_loop,
-    clippy::doc_markdown
+    clippy::needless_range_loop
 )]
 
 use barracuda::pipeline::ReduceScalarPipeline;

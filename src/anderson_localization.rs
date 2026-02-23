@@ -33,8 +33,6 @@
 
 #![allow(
     clippy::cast_precision_loss,
-    clippy::doc_markdown,
-    clippy::items_after_statements,
     clippy::many_single_char_names,
     clippy::needless_range_loop,
     clippy::similar_names,
@@ -55,7 +53,7 @@ pub const GOLDEN_RATIO: f64 = 1.618_033_988_749_895;
 
 /// Build 1D Anderson Hamiltonian with random diagonal disorder.
 ///
-/// `H[i,i]` = V_i with V_i ~ uniform[-W/2, W/2]. Off-diagonal = -t.
+/// `H[i,i]` = `V_i` with `V_i` ~ uniform[-W/2, W/2]. Off-diagonal = -t.
 /// Returns flat row-major n×n matrix.
 #[must_use]
 pub fn anderson_hamiltonian_random(n: usize, t: f64, w: f64, rng: &mut Rng) -> Vec<f64> {
@@ -71,7 +69,7 @@ pub fn anderson_hamiltonian_random(n: usize, t: f64, w: f64, rng: &mut Rng) -> V
     h
 }
 
-/// Aubry-André quasiperiodic potential: V_n = W * cos(2π*α*n + φ).
+/// Aubry-André quasiperiodic potential: `V_n` = W * cos(2π*α*n + φ).
 #[must_use]
 pub fn aubry_andre_potential(n: usize, w: f64, alpha: f64, phi: f64) -> Vec<f64> {
     (0..n)
@@ -95,7 +93,7 @@ pub fn aubry_andre_hamiltonian(n: usize, t: f64, w: f64, alpha: f64, phi: f64) -
     h
 }
 
-/// Inverse participation ratio: IPR = sum(|ψ_n|⁴).
+/// Inverse participation ratio: IPR = `sum(|ψ_n|⁴)`.
 /// Extended: IPR ~ 1/N. Localized: IPR >> 1/N.
 #[must_use]
 pub fn ipr(psi: &[f64]) -> f64 {
@@ -125,14 +123,14 @@ pub fn mean_ipr(eigenvectors: &[f64], n: usize) -> f64 {
 /// Eigenvectors normalized to unit L2 norm.
 #[must_use]
 pub fn jacobi_eigh(matrix: &[f64], n: usize) -> (Vec<f64>, Vec<f64>) {
+    const MAX_SWEEPS: usize = 400;
+    const TOL: f64 = 1e-12;
+
     let mut a = matrix.to_vec();
     let mut v = vec![0.0; n * n];
     for i in 0..n {
         v[i * n + i] = 1.0;
     }
-
-    const MAX_SWEEPS: usize = 400;
-    const TOL: f64 = 1e-12;
 
     for _ in 0..MAX_SWEEPS {
         let mut max_off = 0.0f64;

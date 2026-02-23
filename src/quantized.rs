@@ -242,4 +242,36 @@ mod tests {
         let err = relative_l2_error(&a, &b);
         assert!(err > 0.0);
     }
+
+    #[test]
+    fn gemv_q4_small() {
+        let matrix = vec![1.0, 2.0, 3.0, 4.0];
+        let vector = vec![1.0, 1.0];
+        let fp_result = gemv_f64(&matrix, &vector, 2, 2);
+
+        let mp = q4_params(&matrix);
+        let vp = q4_params(&vector);
+        let qm = quantize_q4(&matrix, &mp);
+        let qv = quantize_q4(&vector, &vp);
+        let q_result = gemv_q4(&qm, &qv, 2, 2, &mp, &vp);
+        let err = relative_l2_error(&q_result, &fp_result);
+        assert!(err < 0.15, "Q4 GEMV L2 error {err} < 15%");
+    }
+
+    #[test]
+    fn relative_l2_exact_match() {
+        let a = vec![1.0, 2.0, 3.0];
+        let err = relative_l2_error(&a, &a);
+        assert!(err < 1e-15, "identical vectors → 0 error");
+    }
+
+    #[test]
+    fn gemv_f64_3x2() {
+        let m = vec![1.0, 0.0, 0.0, 1.0, 1.0, 1.0];
+        let v = vec![3.0, 5.0];
+        let r = gemv_f64(&m, &v, 3, 2);
+        assert!((r[0] - 3.0).abs() < 1e-12);
+        assert!((r[1] - 5.0).abs() < 1e-12);
+        assert!((r[2] - 8.0).abs() < 1e-12);
+    }
 }

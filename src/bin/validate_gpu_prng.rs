@@ -18,8 +18,7 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
-    clippy::items_after_statements
+    clippy::too_many_lines
 )]
 
 use bytemuck::{Pod, Zeroable};
@@ -183,6 +182,10 @@ fn gpu_generate(
 
 #[tokio::main]
 async fn main() {
+    const N_THREADS: u32 = 1024;
+    const N_SAMPLES: u32 = 100;
+    const BASE_SEED: u32 = 42;
+
     let gpu = match Gpu::new().await {
         Ok(g) => {
             eprintln!(
@@ -199,10 +202,6 @@ async fn main() {
     };
 
     let mut h = ValidationHarness::new("gpu_prng");
-
-    const N_THREADS: u32 = 1024;
-    const N_SAMPLES: u32 = 100;
-    const BASE_SEED: u32 = 42;
 
     // Build initial state
     let state: Vec<u32> = (0..N_THREADS)

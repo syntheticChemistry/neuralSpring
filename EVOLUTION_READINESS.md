@@ -17,7 +17,7 @@ and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 264 lib + 9 integration + 26 forge tests, 31 modules, 132 binaries | **COMPLETE** |
+| Rust native validation | 374 lib + 9 integration + 26 forge tests, 31 modules, 132 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -376,19 +376,22 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 
 ---
 
-## Code Quality (Post-Deep-Audit, February 22 2026)
+## Code Quality (Post-Deep-Audit, February 23 2026)
 
 | Aspect | Status |
 |--------|--------|
 | `cargo fmt` | **Clean** — zero formatting violations |
-| `cargo clippy` pedantic + nursery | **0 warnings** (all `#[allow]` audited and justified) |
+| `cargo clippy` pedantic + nursery | **0 warnings** — `clippy::doc_markdown` fully resolved (31 files), all remaining `#[allow]` audited and justified |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **264 tests PASS** (up from 255) |
-| `cargo test --test integration` | **9 integration tests PASS** (new) |
+| `cargo test --lib` | **374 tests PASS** (up from 264) |
+| `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
-| Centralized tolerances | Split into tolerances/ module (`mod.rs` + `registry.rs`) — 18 new `NamedTolerance` entries in registry, zero inline magic numbers |
+| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `registry.rs`) — 42 `NamedTolerance` entries in registry (24 `gpu_dispatch` category), zero standalone inline magic numbers |
 | GPU validation helpers | Shared `gpu_readback`, `max_abs_diff_gpu_vs_cpu`, `gpu_tensor!` macro — deduplicated ~400 LOC from 24 binaries |
 | GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
+| Modular `gpu_ops/` | Refactored from monolithic 1328-line file into 6 focused submodules (`linalg`, `activation`, `reduction`, `bio`, `population`, `eigensolver`) — all under 1000 LOC |
+| GPU dispatch coverage | `Dispatcher` CPU-fallback paths: **33 tests** covering all 26 dispatched operations |
+| `GpuCapabilities` tested | Mock-based unit tests for `workgroup_size`, `dispatch_count`, `supports_workgroup` — no GPU required |
 | Idiomatic Rust | HMM flat row-major layout, spectral flat layout, `NkLandscape.k` accessor, `mul_add` for FMA, infallible casts via `From` |
 | Consolidated math primitives | Shannon, Hill, sigmoid, RK4 centralized in `primitives.rs` — no duplicated math |
 | GPU-ready flat layouts | HMM, spectral, anderson_localization, directed_evolution, sate_alignment use flat row-major `Vec<f64>` — direct GPU buffer upload |
@@ -397,7 +400,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | Provenance | All hardcoded validation targets sourced with script, commit, date, exact command |
 | Determinism tests | **16 tests** covering all stochastic modules (up from 7) |
 | SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
-| Line coverage | **94.9%** line via `llvm-cov` |
+| Line coverage | **92.7%** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
 | All files < 1000 LOC | Largest: `validate_barracuda_tensor.rs` at 966 lines |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 | Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |

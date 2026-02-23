@@ -52,13 +52,14 @@ See `metalForge/fossils/FOSSIL_RECORD.md` for the full inventory.
 
 ---
 
-## Still Active in `src/evolved/` (2 modules + exports)
+## Still Active in `src/evolved/` (2 modules)
 
 | Module | LOC | Why active | Path to absorption |
 |--------|-----|-----------|-------------------|
 | `mod.rs` | ~50 | WGSL shader exports (`batch_fitness_eval`, `rk4_parallel`, `mean_reduce`) | Absorb into `barracuda::ops` |
 | `mha.rs` | 182 | Evolved MHA with GPU head_split/head_concat shaders (S-03b locally resolved) | ToadStool native MHA when projection shaders stabilize |
-| `hmm_forward_gpu.rs` | 270 | No BarraCUDA equivalent | Candidate for `ops::hmm` |
+
+`hmm_forward_gpu.rs` retired to `metalForge/fossils/evolved_hmm_forward_gpu/` — `HmmBatchForwardF64` (wetSpring) is now primary.
 
 ## Newly Fossilized (Session 40)
 
@@ -116,12 +117,23 @@ GPU `Tensor` validation across 7 domains uncovered 3 new bugs:
 | # | Shortcoming | Severity | Status |
 |---|-------------|----------|--------|
 | S-14 | Naive matmul hang (small square matrices, complex binaries) | Medium | Characterized, workaround (non-square shapes) |
-| S-15 | Matmul hang with negative or sparse f32 input data | Critical | Characterized, workaround (positive-only data) |
-| S-16 | 2D transpose dispatch uses `optimal_workgroup_size` (256) instead of tile size (16) | High | Root cause confirmed, one-line fix identified |
+| S-15 | Matmul hang when elements ≤ 0.1 magnitude (WGPU/Vulkan driver bug) | Critical | **Root-caused**: data ≥ 0.5 avoids hang |
+| S-16 | 2D transpose dispatch uses `optimal_workgroup_size` (256) instead of tile size (16) | High | **FIXED**: `const TILE: u32 = 16` |
 
 See `wateringHole/handoffs/archive/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md`
 for full diagnosis, reproduction steps, and recommended fixes.
 
 ---
+
+## Session 49 — Deep Audit & Code Quality (February 23, 2026)
+
+| Change | Scope | Impact |
+|--------|-------|--------|
+| `gpu_ops.rs` → `gpu_ops/` | 6 submodules (linalg, activation, reduction, bio, population, eigensolver) | All files < 1000 LOC |
+| Tolerance centralization | 42 `NamedTolerance` entries in `tolerances/` registry | Zero standalone inline magic numbers in validation binaries |
+| `clippy::doc_markdown` resolved | 31 files (8 library + 23 binaries) | Allow removed, doc comments fixed |
+| `#![allow]` tightened | `validate_gpu_phase_b.rs` (9→4), `anderson_localization.rs`, `swarm_robotics.rs`, 4 binaries | Underlying code fixed, redundant suppression removed |
+| Test coverage push | 264→374 lib tests, 83%→92.7% line coverage | 110 new tests across 12 modules |
+| `.expect()` → graceful exits | All non-test production code | Zero `.expect()` / `.unwrap()` / `todo!()` in production |
 
 *Migration guide — neuralSpring rewired to modern ToadStool/BarraCUDA.*

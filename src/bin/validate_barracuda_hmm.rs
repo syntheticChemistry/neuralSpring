@@ -28,11 +28,17 @@ use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 
 fn main() {
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
-    let device = rt
-        .block_on(async { WgpuDevice::new().await })
-        .map(Arc::new)
-        .expect("GPU device");
+    let Ok(rt) = tokio::runtime::Runtime::new() else {
+        eprintln!("FATAL: could not create tokio runtime");
+        std::process::exit(1);
+    };
+    let device = match rt.block_on(async { WgpuDevice::new().await }).map(Arc::new) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("FATAL: could not create GPU device: {e}");
+            std::process::exit(1);
+        }
+    };
 
     let mut h = ValidationHarness::new("barracuda_hmm");
 

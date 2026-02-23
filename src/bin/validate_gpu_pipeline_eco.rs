@@ -2,9 +2,9 @@
 
 //! Pure GPU pipeline validation: batch fitness → mean (Paper 013).
 //!
-//! Uses BarraCUDA typed op `BatchFitnessGpu` (f64) with CPU mean reduction.
-//! Replaces raw wgpu chain (batch_fitness_eval + mean_reduce) for validation.
-//! Eco dynamics uses the same batch_fitness op as Paper 011; validates mean
+//! Uses `BarraCUDA` typed op `BatchFitnessGpu` (f64) with CPU mean reduction.
+//! Replaces raw wgpu chain (`batch_fitness_eval` + `mean_reduce`) for validation.
+//! Eco dynamics uses the same `batch_fitness` op as Paper 011; validates mean
 //! fitness across ecological niches.
 //!
 //! ## Pipeline
@@ -27,7 +27,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::cast_lossless

@@ -236,4 +236,87 @@ mod tests {
         let out = fc_forward(&[3.0], &w, &b, 1);
         assert!((out[0] - 7.0).abs() < 1e-12);
     }
+
+    #[test]
+    fn conv2d_multi_single_channel() {
+        let input = vec![1.0, 2.0, 3.0, 4.0]; // c_in=1, 2×2
+        let kernel = vec![1.0]; // c_out=1, c_in=1, kh=1, kw=1
+        let bias = vec![0.5];
+        let out = conv2d_multi(&Conv2dMultiParams {
+            input: &input,
+            c_in: 1,
+            h: 2,
+            w: 2,
+            kernel: &kernel,
+            c_out: 1,
+            kh: 1,
+            kw: 1,
+            bias: &bias,
+            pad: 0,
+        });
+        assert_eq!(out.len(), 4);
+        assert!((out[0] - 1.5).abs() < 1e-12);
+        assert!((out[3] - 4.5).abs() < 1e-12);
+    }
+
+    #[test]
+    fn conv2d_multi_two_output_channels() {
+        // c_in=1, 2×2 input, c_out=2 with identity kernels
+        let input = vec![1.0, 2.0, 3.0, 4.0];
+        let kernel = vec![1.0, 2.0]; // c_out=2, c_in=1, kh=1, kw=1
+        let bias = vec![0.0, 10.0];
+        let out = conv2d_multi(&Conv2dMultiParams {
+            input: &input,
+            c_in: 1,
+            h: 2,
+            w: 2,
+            kernel: &kernel,
+            c_out: 2,
+            kh: 1,
+            kw: 1,
+            bias: &bias,
+            pad: 0,
+        });
+        assert_eq!(out.len(), 8);
+        assert!((out[0] - 1.0).abs() < 1e-12, "ch0: 1*1+0");
+        assert!((out[4] - 12.0).abs() < 1e-12, "ch1: 2*1+10");
+    }
+
+    #[test]
+    fn conv2d_multi_with_padding() {
+        let input = vec![5.0]; // c_in=1, 1×1
+        let kernel = vec![1.0; 9]; // c_out=1, c_in=1, 3×3 all-ones
+        let bias = vec![0.0];
+        let out = conv2d_multi(&Conv2dMultiParams {
+            input: &input,
+            c_in: 1,
+            h: 1,
+            w: 1,
+            kernel: &kernel,
+            c_out: 1,
+            kh: 3,
+            kw: 3,
+            bias: &bias,
+            pad: 1,
+        });
+        assert_eq!(out.len(), 1);
+        assert!((out[0] - 5.0).abs() < 1e-12, "only center touches input");
+    }
+
+    #[test]
+    fn max_pool2d_4x4() {
+        #[rustfmt::skip]
+        let input = vec![
+            1.0, 3.0, 5.0, 7.0,
+            2.0, 4.0, 6.0, 8.0,
+            9.0, 0.0, 1.0, 2.0,
+            3.0, 4.0, 5.0, 6.0,
+        ];
+        let out = max_pool2d(&input, 4, 4);
+        assert_eq!(out.len(), 4);
+        assert!((out[0] - 4.0).abs() < 1e-12);
+        assert!((out[1] - 8.0).abs() < 1e-12);
+        assert!((out[2] - 9.0).abs() < 1e-12);
+        assert!((out[3] - 6.0).abs() < 1e-12);
+    }
 }

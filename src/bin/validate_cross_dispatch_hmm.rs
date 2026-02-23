@@ -7,12 +7,12 @@
 //!
 //! ## Buffer layout (`HmmBatchForwardF64`)
 //!
-//! - `log_trans`: [`n_states` × `n_states`] f64 row-major
-//! - `log_emit`: [`n_states` × `n_symbols`] f64 row-major
-//! - `log_pi`: [`n_states`] f64
-//! - `observations`: [`n_seqs` × `n_steps`] u32
-//! - `log_alpha_out`: [`n_seqs` × `n_steps` × `n_states`] f64
-//! - `log_lik_out`: [`n_seqs`] f64
+//! - `log_trans`: \[`n_states` × `n_states`\] f64 row-major
+//! - `log_emit`: \[`n_states` × `n_symbols`\] f64 row-major
+//! - `log_pi`: \[`n_states`\] f64
+//! - `observations`: \[`n_seqs` × `n_steps`\] u32
+//! - `log_alpha_out`: \[`n_seqs` × `n_steps` × `n_states`\] f64
+//! - `log_lik_out`: \[`n_seqs`\] f64
 
 #![allow(
     clippy::cast_precision_loss,
@@ -72,41 +72,42 @@ fn validate_dispatch_routing(h: &mut ValidationHarness) {
 
 // ── HMM parity: GPU vs CPU ───────────────────────────────────────
 
-fn gpu_hmm_forward(
-    gpu: &Gpu,
-    log_trans: &[f64],
-    log_emit: &[f64],
-    log_pi: &[f64],
-    observations: &[u32],
+struct HmmForwardParams<'a> {
+    log_trans: &'a [f64],
+    log_emit: &'a [f64],
+    log_pi: &'a [f64],
+    observations: &'a [u32],
     n_states: u32,
     n_symbols: u32,
     n_steps: u32,
     n_seqs: u32,
-) -> Result<f64, String> {
+}
+
+fn gpu_hmm_forward(gpu: &Gpu, params: &HmmForwardParams<'_>) -> Result<f64, String> {
     let device = gpu.device();
     let op = HmmBatchForwardF64::new(Arc::clone(gpu.wgpu_device())).map_err(|e| e.to_string())?;
 
     let log_trans_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_log_trans"),
-        contents: bytemuck::cast_slice(log_trans),
+        contents: bytemuck::cast_slice(params.log_trans),
         usage: wgpu::BufferUsages::STORAGE,
     });
     let log_emit_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_log_emit"),
-        contents: bytemuck::cast_slice(log_emit),
+        contents: bytemuck::cast_slice(params.log_emit),
         usage: wgpu::BufferUsages::STORAGE,
     });
     let log_pi_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_log_pi"),
-        contents: bytemuck::cast_slice(log_pi),
+        contents: bytemuck::cast_slice(params.log_pi),
         usage: wgpu::BufferUsages::STORAGE,
     });
     let obs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_observations"),
-        contents: bytemuck::cast_slice(observations),
+        contents: bytemuck::cast_slice(params.observations),
         usage: wgpu::BufferUsages::STORAGE,
     });
-    let log_alpha_size = (n_seqs * n_steps * n_states) as usize;
+    let log_alpha_size = (params.n_seqs * params.n_steps * params.n_states) as usize;
     let log_alpha_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("xd_log_alpha"),
         size: (log_alpha_size * 8) as u64,
@@ -115,16 +116,16 @@ fn gpu_hmm_forward(
     });
     let log_lik_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("xd_log_lik"),
-        size: (n_seqs as usize * 8) as u64,
+        size: (params.n_seqs as usize * 8) as u64,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
 
     op.dispatch(
-        n_states,
-        n_symbols,
-        n_steps,
-        n_seqs,
+        params.n_states,
+        params.n_symbols,
+        params.n_steps,
+        params.n_seqs,
         &log_trans_buf,
         &log_emit_buf,
         &log_pi_buf,
@@ -134,7 +135,7 @@ fn gpu_hmm_forward(
     )
     .map_err(|e| e.to_string())?;
 
-    let log_lik = gpu.read_buffer_f64(&log_lik_buf, n_seqs as usize)?;
+    let log_lik = gpu.read_buffer_f64(&log_lik_buf, params.n_seqs as usize)?;
     Ok(log_lik[0])
 }
 
@@ -182,14 +183,16 @@ fn validate_hmm_parity(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match gpu_hmm_forward(
         gpu,
-        &log_trans,
-        &log_emit,
-        &log_pi,
-        &observations,
-        n_states as u32,
-        n_symbols as u32,
-        seq_len as u32,
-        1,
+        &HmmForwardParams {
+            log_trans: &log_trans,
+            log_emit: &log_emit,
+            log_pi: &log_pi,
+            observations: &observations,
+            n_states: n_states as u32,
+            n_symbols: n_symbols as u32,
+            n_steps: seq_len as u32,
+            n_seqs: 1,
+        },
     ) {
         Ok(gpu_ll) => {
             let diff = (gpu_ll - cpu_ll).abs();

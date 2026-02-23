@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Validation: barracuda::spectral APIs vs neuralSpring CPU references.
+//! Validation: `barracuda::spectral` APIs vs neuralSpring CPU references.
 //!
 //! Cross-Spring lineage: hotSpring (Kachkovskiy spectral theory) → barracuda
 //! → validated here by neuralSpring. Proves the upstream spectral stack is
@@ -12,8 +12,7 @@
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::needless_range_loop,
-    clippy::doc_markdown
+    clippy::needless_range_loop
 )]
 
 use barracuda::spectral::{

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Phase 0++ kernel benchmarks: Rust (pure math) vs Python (NumPy).
+//! Phase 0++ kernel benchmarks: Rust (pure math) vs Python (`NumPy`).
 //!
 //! Runs each core computational kernel at the same problem size as its
 //! corresponding `control/<module>/bench_*.py` script, then compares
-//! median latencies to demonstrate BarraCUDA CPU parity and speedup.
+//! median latencies to demonstrate `BarraCUDA` CPU parity and speedup.
 //!
 //! ```text
 //! cargo run --release --bin bench_phase0pp_kernels
@@ -24,8 +24,7 @@
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::many_single_char_names,
-    clippy::needless_range_loop,
-    clippy::doc_markdown
+    clippy::needless_range_loop
 )]
 
 use std::io::{BufRead, BufReader};

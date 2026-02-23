@@ -18,7 +18,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::missing_const_for_fn,
     clippy::too_many_lines
 )]
 
@@ -56,7 +55,7 @@ async fn main() {
     h.finish();
 }
 
-fn splitmix32(state: &mut u32) -> u32 {
+const fn splitmix32(state: &mut u32) -> u32 {
     *state = state.wrapping_add(0x9e37_79b9);
     let mut z = *state;
     z = (z ^ (z >> 15)).wrapping_mul(0x85eb_ca6b);

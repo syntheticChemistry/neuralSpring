@@ -210,3 +210,96 @@ pub fn create_pipeline(
     });
     (pipeline, bgl)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn median_us_odd_count() {
+        let timings = vec![
+            Duration::from_micros(10),
+            Duration::from_micros(30),
+            Duration::from_micros(20),
+        ];
+        let med = median_us(&timings);
+        assert!((med - 20.0).abs() < 0.5, "median of [10,30,20] = 20µs");
+    }
+
+    #[test]
+    fn median_us_even_count() {
+        let timings = vec![
+            Duration::from_micros(10),
+            Duration::from_micros(40),
+            Duration::from_micros(20),
+            Duration::from_micros(30),
+        ];
+        let med = median_us(&timings);
+        assert!((med - 20.0).abs() < 1.0 || (med - 30.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn median_us_single() {
+        let timings = vec![Duration::from_micros(42)];
+        let med = median_us(&timings);
+        assert!((med - 42.0).abs() < 0.5);
+    }
+
+    #[test]
+    fn time_upstream_measures_closure() {
+        let mut counter = 0_u32;
+        let _t = time_upstream(2, 5, || {
+            counter += 1;
+        });
+        assert_eq!(counter, 7, "2 warmup + 5 iterations");
+    }
+
+    #[test]
+    fn bench_result_fields() {
+        let r = BenchResult {
+            name: "test_kernel".to_string(),
+            origin: "unit test",
+            local_us: 10.0,
+            upstream_us: 15.0,
+        };
+        assert_eq!(r.name, "test_kernel");
+        assert_eq!(r.origin, "unit test");
+        assert!((r.upstream_us / r.local_us - 1.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn print_summary_no_panic() {
+        let results = vec![
+            BenchResult {
+                name: "matmul".to_string(),
+                origin: "linalg",
+                local_us: 10.0,
+                upstream_us: 10.5,
+            },
+            BenchResult {
+                name: "softmax".to_string(),
+                origin: "activation",
+                local_us: 5.0,
+                upstream_us: 12.0,
+            },
+            BenchResult {
+                name: "reduce".to_string(),
+                origin: "reduction",
+                local_us: 8.0,
+                upstream_us: 10.0,
+            },
+        ];
+        print_summary(&results);
+    }
+
+    #[test]
+    fn binding_kind_copy() {
+        let a = BindingKind::StorageRead;
+        let b = a;
+        assert!(matches!(b, BindingKind::StorageRead));
+        let c = BindingKind::StorageWrite;
+        assert!(matches!(c, BindingKind::StorageWrite));
+        let d = BindingKind::Uniform;
+        assert!(matches!(d, BindingKind::Uniform));
+    }
+}

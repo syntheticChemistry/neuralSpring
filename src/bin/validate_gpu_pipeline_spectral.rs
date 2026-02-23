@@ -3,7 +3,7 @@
 //! GPU pipeline validation: `BatchIprGpu` (`BarraCUDA`) + CPU mean (Papers 022-023).
 //!
 //! Replaces raw wgpu pipeline with typed `BarraCUDA` op: `barracuda::spectral::BatchIprGpu`.
-//! Stage 1: BatchIprGpu.dispatch → `ipr_out`[`n_vectors`] (f32).
+//! Stage 1: BatchIprGpu.dispatch → `ipr_out[n_vectors]` (f32).
 //! Stage 2: CPU mean over `ipr_out`.
 //!
 //! ## Pipeline

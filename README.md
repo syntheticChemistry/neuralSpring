@@ -46,7 +46,7 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
 13/21 WGSL shaders **absorbed upstream** (8 identical + 5 generalized); 8 local (4 legacy + 4 new).
 Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**.
-133 validation binaries, 31 modules + gpu\_ops/gpu\_dispatch, 264 lib + 9 integration + 26 forge tests.
+133 validation binaries, 31 modules + gpu\_ops/ + gpu\_dispatch, 374 lib + 9 integration + 26 forge tests.
 **Multi-GPU**: 132/133 on RTX 4070 + TITAN V (NVK) — bit-identical.
 **Pure GPU promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math).
 **Benchmarks**: Pure Rust 178.5× faster than Python/NumPy (11 kernels).
@@ -133,9 +133,9 @@ Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at mach
 ### Rust Validation (1600+ PASS across 133 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
-hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module constants,
-explicit pass/fail exit codes. Library code: 264 unit tests + 9 integration tests,
-94.9% line coverage via `llvm-cov`.
+hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module (42 named
+constants), explicit pass/fail exit codes. Library code: 374 unit tests + 9
+integration tests, 92.7% line coverage via `llvm-cov`.
 
 ### Phase 2 — BarraCUDA CPU Ports (203/203)
 
@@ -201,7 +201,7 @@ bash control/check_drift.sh        # drift detection (re-runs baselines)
 pip install pytest
 python3 -m pytest tests/ -v
 
-# Rust validation (264 unit + 9 integration, 94.9% coverage)
+# Rust validation (374 unit + 9 integration, 92.7% coverage)
 cargo test --lib --test integration
 cargo run --release --bin validate_all   # all 132/133 validation binaries
 
@@ -313,7 +313,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (206/206 — 25 experiments)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (264 lib + 9 integration tests, 133 validation binaries, 31 modules + 2 evolved + gpu_ops/gpu_dispatch, 94.9% line coverage)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (374 lib + 9 integration tests, 133 validation binaries, 31 modules + 2 evolved + gpu_ops/ + gpu_dispatch, 92.7% line coverage)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -322,7 +322,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 - **Phase 2a**: metalForge hardware characterization — dispatch, cache, bandwidth profiling
 - **Phase 3a**: BarraCUDA FFT validation **COMPLETE** (24 checks — f32/f64/Rfft, Parseval, inverse, known pairs)
 - **Phase 3b**: BarraCUDA GPU streaming **COMPLETE** (`StatefulPipeline` — 10/10 PASS)
-- **Phase 3c**: metalForge GPU shader evolution **COMPLETE** (12 shaders + 4 new domain — pairwise_l2, multi_obj_fitness, swarm_nn_forward, hill_gate)
+- **Phase 3c**: metalForge GPU shader evolution **COMPLETE** (21 WGSL shaders — 13 upstream + 8 local)
 - **Phase 3d**: Pure GPU workload + cross-dispatch **COMPLETE** (45 checks — SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12)
 
 ### Phase 4a — Performance Benchmarks
@@ -361,7 +361,7 @@ Rust pure math is 71.8× faster than single-thread NumPy overall. GEMM-heavy ope
 - **Phase 4c**: GPU WGSL kernel benchmarks + GPU PRNG **COMPLETE** — Crossover mapping (GPU wins at >1.5ms CPU work) + Xoshiro128** PRNG shader (5/5 PASS, `xoshiro128ss.wgsl`). Foundation for stochastic GPU algorithms.
 - **Phase 4d**: ToadStool issue resolution **COMPLETE** — S-12 Householder+QR eigensolver (9/9 PASS), S-03b head_split/head_concat WGSL (10/10 PASS). New: `src/eigh.rs`, `metalForge/shaders/head_{split,concat}.wgsl`, `validate_eigh_accuracy`, `validate_mha_gpu`.
 - **Phase 4e**: PINN/DeepONet + new GPU domains **COMPLETE** (PINN 16+14, DeepONet 17+9, GPU modes 15, directed 6, swarm 9, signal 9 + 3 pipelines 12)
-- **Phase 5e**: Pure GPU promotion — **IN PROGRESS** (38 CPU→GPU ops via `gpu_dispatch::Dispatcher`, ~90% math on GPU, 47/47 PASS on RTX 4070 + TITAN V NVK)
+- **Phase 5e**: Pure GPU promotion — **COMPLETE** (38 CPU→GPU ops via `gpu_dispatch::Dispatcher`, ~90% math on GPU, 47/47 PASS on RTX 4070 + TITAN V NVK)
 - **Phase 4**: metalForge shader evolution toward ToadStool absorption — **Active**
   - Evolve library modules to inline WGSL (hotSpring pattern)
   - Replace hand-rolled math with `barracuda::*` primitives
@@ -377,9 +377,9 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 206/206 PASS |
-| Rust tests | `cargo test` | 264 unit + 9 integration PASS |
+| Rust tests | `cargo test` | 374 unit + 9 integration PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery) |
-| Rust coverage | `cargo llvm-cov --lib` | **94.9%** line (target ≥90%) |
+| Rust coverage | `cargo llvm-cov --lib` | **92.7%** line (target ≥90%) |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
 | neuralSpring validate | `cargo run --release --bin validate_all` | 132/133 binaries PASS |
@@ -426,7 +426,7 @@ neuralSpring/
 │   ├── meta_population/       #   Paper 025: Meta-population differentiation
 │   ├── shared/                 #   Shared utilities (Open-Meteo, etc.)
 │   └── requirements.txt        #   Pinned dependencies
-├── src/                        # Rust library (29 modules + 2 evolved + gpu_ops + gpu_dispatch)
+├── src/                        # Rust library (31 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
 │   ├── lib.rs                  #   Crate root
 │   ├── validation.rs           #   ValidationHarness (hotSpring pattern)
 │   ├── tolerances/             #   Centralized tolerance constants + runtime introspection
@@ -457,7 +457,7 @@ neuralSpring/
 │   ├── primitives.rs            #   Consolidated math: Shannon, Hill, sigmoid, RK4
 │   ├── fft.rs                   #   FFT validation helpers (analytical DFT refs)
 │   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
-│   ├── gpu_ops.rs               #   38 GPU-accelerated ops via BarraCUDA Tensor API
+│   ├── gpu_ops/                 #   38 GPU-accelerated ops (6 submodules: linalg, activation, reduction, bio, population, eigensolver)
 │   ├── gpu_dispatch.rs          #   Capability-based GPU/CPU dispatch (Dispatcher)
 │   └── bin/                    #   140 binaries (133 validation + validate_all + 6 bench)
 │       ├── validate_surrogate.rs           # 15 checks
@@ -544,4 +544,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40+42+43: February 22, 2026 | 25 papers, 206 Python + 1500+ Rust+GPU = 1710+ validation checks | 264 lib + 9 integration + 26 forge tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 127 validation + 6 bench binaries, 21 WGSL shaders (13 upstream, 8 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 10/10 (100%) | Session 48: V16 handoff*
+*Initialized: February 16, 2026 | Sessions 40–49: February 23, 2026 | 25 papers, 206 Python + 1600+ Rust+GPU = 1800+ validation checks | 374 lib + 9 integration + 26 forge tests, 92.7% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 133 validation + 6 bench binaries, 21 WGSL shaders (13 upstream, 8 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 9/25 (36%) · xD 15/15 (100%) · uP 10/10 (100%) | 42 named tolerances, 0 clippy warnings, `clippy::doc_markdown` fully resolved | Session 49: deep audit + coverage push*

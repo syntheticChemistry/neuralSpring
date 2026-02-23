@@ -3,11 +3,11 @@
 //! GPU pipeline validation: RK4 ODE (upstream WGSL) + CPU mean (Paper 020).
 //!
 //! Uses `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` for the ODE shader.
-//! BatchedOdeRK4F64 targets a fixed QS/c-di-GMP ODE; this validator uses the
-//! generic Hill-function RK4 shader from BarraCUDA for regulatory networks.
+//! `BatchedOdeRK4F64` targets a fixed QS/c-di-GMP ODE; this validator uses the
+//! generic Hill-function RK4 shader from `BarraCUDA` for regulatory networks.
 //!
-//! Stage 1: rk4_step (WGSL_RK4_PARALLEL) → state_out.
-//! Stage 2: CPU mean over state_out.
+//! Stage 1: `rk4_step` (`WGSL_RK4_PARALLEL`) → `state_out`.
+//! Stage 2: CPU mean over `state_out`.
 //!
 //! ## Pipeline
 //!
@@ -29,7 +29,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::cast_lossless

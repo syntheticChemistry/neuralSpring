@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! BarraCUDA Tensor validation: LSTM sequence model (Exp 003).
+//! `BarraCUDA` Tensor validation: LSTM sequence model (Exp 003).
 //!
 //! Tests LSTM gate computations using barracuda Tensor matmul + sigmoid + tanh.
-//! LSTM gates: forget = σ(W_f×x+b_f), input = σ(W_i×x+b_i), candidate = tanh(W_c×x+b_c),
-//! output = σ(W_o×x+b_o). Cell: c_t = forget×c_{t-1} + input×candidate. Hidden: h_t = output×tanh(c_t).
+//! LSTM gates: forget = `σ(W_f×x+b_f)`, input = `σ(W_i×x+b_i)`, candidate = `tanh(W_c×x+b_c)`,
+//! output = `σ(W_o×x+b_o)`. Cell: `c_t` = forget×c_{t-1} + input×candidate. Hidden: `h_t` = `output×tanh(c_t)`.
 //!
 //! ## S-14 workaround
 //!
@@ -21,7 +21,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::doc_markdown,
     clippy::many_single_char_names,
     clippy::manual_let_else,
     clippy::similar_names,
@@ -74,7 +73,7 @@ fn tensor(
     Tensor::from_data(data, shape, device.clone())
 }
 
-/// CPU A × B^T: A (rows_a × depth), B (rows_b × depth) → output (rows_a × rows_b)
+/// CPU A × B^T: A (`rows_a` × depth), B (`rows_b` × depth) → output (`rows_a` × `rows_b`)
 fn cpu_matmul_a_bt(
     a: &[f64],
     shape_a: (usize, usize),

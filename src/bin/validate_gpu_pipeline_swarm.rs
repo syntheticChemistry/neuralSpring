@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU pipeline validation: swarm_nn_scores (local shader) + CPU mean (Paper 015).
+//! GPU pipeline validation: `swarm_nn_scores` (local shader) + CPU mean (Paper 015).
 //!
 //! `swarm_nn_scores.wgsl` outputs f32 scores (max activation per controller/eval);
-//! BarraCUDA `SwarmNnGpu` maps to `swarm_nn_forward` (u32 actions), not scores.
+//! `BarraCUDA` `SwarmNnGpu` maps to `swarm_nn_forward` (u32 actions), not scores.
 //! Keeps local shader via `include_str!` for the scores variant.
 //!
-//! Stage 1: swarm_nn_forward_scores → scores[n_controllers × n_evals].
-//! Stage 2: CPU mean over scores (no mean_reduce shader).
+//! Stage 1: `swarm_nn_forward_scores` → scores[`n_controllers` × `n_evals`].
+//! Stage 2: CPU mean over scores (no `mean_reduce` shader).
 //!
 //! ## Pipeline
 //!
@@ -29,7 +29,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::cast_lossless

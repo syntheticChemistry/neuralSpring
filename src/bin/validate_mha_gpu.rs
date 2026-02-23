@@ -11,11 +11,11 @@
 //! by separating projection (matmul) from data movement (head split/concat).
 //!
 //! Absorption target: `barracuda::ops::mha` --- replace fused projection
-//! shaders with matmul + head_split/head_concat.
+//! shaders with matmul + `head_split/head_concat`.
 //!
 //! ## Provenance
 //!
-//! CPU reference: manual head_split/head_concat (layout permutation).
+//! CPU reference: manual `head_split/head_concat` (layout permutation).
 //! WGSL shaders: `metalForge/shaders/head_split.wgsl`, `metalForge/shaders/head_concat.wgsl`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
@@ -23,7 +23,6 @@
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::similar_names,
     clippy::suboptimal_flops
 )]

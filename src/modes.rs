@@ -264,4 +264,53 @@ mod tests {
         assert_relative_eq!(s1.change_total, s2.change_total, epsilon = 1e-10);
         assert_relative_eq!(s1.novelty_mean, s2.novelty_mean, epsilon = 1e-10);
     }
+
+    #[test]
+    fn l2_distance_known() {
+        let a = vec![0.0, 0.0];
+        let b = vec![3.0, 4.0];
+        assert_relative_eq!(l2_distance(&a, &b), 5.0, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn l2_distance_same() {
+        let a = vec![1.0, 2.0, 3.0];
+        assert_relative_eq!(l2_distance(&a, &a), 0.0, epsilon = 1e-15);
+    }
+
+    #[test]
+    fn ecology_zero_abundances() {
+        let abd = vec![vec![0.0, 0.0, 0.0]];
+        let eco = ecology_metric(&abd);
+        assert_relative_eq!(eco[0], 0.0, epsilon = 1e-15);
+    }
+
+    #[test]
+    fn complexity_single_point() {
+        let cpx = vec![5.0];
+        let (slope, inc) = complexity_metric(&cpx);
+        assert_relative_eq!(slope, 0.0, epsilon = 1e-15);
+        assert!(!inc);
+    }
+
+    #[test]
+    fn score_system_empty_inputs() {
+        let s = score_system(&[], &[], &[], &[]);
+        assert_relative_eq!(s.change_total, 0.0, epsilon = 1e-15);
+        assert_relative_eq!(s.novelty_mean, 0.0, epsilon = 1e-15);
+        assert_relative_eq!(s.ecology_mean, 0.0, epsilon = 1e-15);
+    }
+
+    #[test]
+    fn score_system_short_sequences() {
+        let s = score_system(
+            &[1, 2],
+            &[vec![1.0], vec![2.0]],
+            &[1.0, 2.0],
+            &[vec![0.5, 0.5], vec![0.3, 0.7]],
+        );
+        assert!(s.change_total >= 0.0);
+        assert!(s.novelty_final >= 0.0);
+        assert!(s.ecology_final >= 0.0);
+    }
 }

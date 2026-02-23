@@ -622,6 +622,10 @@ path = "src/bin/validate_gpu_phase_b.rs"
 name = "validate_all"
 path = "src/bin/validate_all.rs"
 
+[[bin]]
+name = "bench_cross_spring_evolution"
+path = "src/bin/bench_cross_spring_evolution.rs"
+
 [lints.rust]
 unsafe_code = "forbid"
 

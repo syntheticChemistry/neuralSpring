@@ -559,6 +559,127 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             value: GPU_BOUNDS_SLACK_F32,
             category: "gpu_shader",
         },
+        // ── GPU promotion dispatch parity ────────────────────────────────
+        NamedTolerance {
+            name: "GPU_MATMUL_IDENTITY_F32",
+            value: GPU_MATMUL_IDENTITY_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_MATMUL_RANDOM_F32",
+            value: GPU_MATMUL_RANDOM_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_TRANSPOSE_F32",
+            value: GPU_TRANSPOSE_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_FROBENIUS_F32",
+            value: GPU_FROBENIUS_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_COMMUTATOR_F32",
+            value: GPU_COMMUTATOR_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_NORMAL_DISTANCE_SYMMETRIC_F32",
+            value: GPU_NORMAL_DISTANCE_SYMMETRIC_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "CPU_NORMAL_DISTANCE_SYMMETRIC_F64",
+            value: CPU_NORMAL_DISTANCE_SYMMETRIC_F64,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_SOFTMAX_DISPATCH_F32",
+            value: GPU_SOFTMAX_DISPATCH_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_SOFTMAX_SUM_F32",
+            value: GPU_SOFTMAX_SUM_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_BOLTZMANN_F32",
+            value: GPU_BOLTZMANN_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_L2_DISPATCH_F32",
+            value: GPU_L2_DISPATCH_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_MEAN_DISPATCH_F32",
+            value: GPU_MEAN_DISPATCH_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_VARIANCE_DISPATCH_F32",
+            value: GPU_VARIANCE_DISPATCH_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_ENTROPY_F32",
+            value: GPU_ENTROPY_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_PEARSON_F32",
+            value: GPU_PEARSON_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_CHI_SQUARED_F32",
+            value: GPU_CHI_SQUARED_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_GELU_F32",
+            value: GPU_GELU_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_HMM_STEP_F32",
+            value: GPU_HMM_STEP_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_SUM_DISPATCH_F32",
+            value: GPU_SUM_DISPATCH_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_MAX_DISPATCH_F32",
+            value: GPU_MAX_DISPATCH_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_KL_DISPATCH_F32",
+            value: GPU_KL_DISPATCH_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_MULTI_OBJ_FITNESS_F64",
+            value: GPU_MULTI_OBJ_FITNESS_F64,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_AF_VARIANCE_F32",
+            value: GPU_AF_VARIANCE_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_HMM_VITERBI_LOGPROB_F64",
+            value: GPU_HMM_VITERBI_LOGPROB_F64,
+            category: "gpu_dispatch",
+        },
     ]
 }
 

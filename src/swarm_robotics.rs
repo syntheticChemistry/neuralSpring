@@ -18,9 +18,7 @@
     clippy::cast_possible_wrap,
     clippy::cast_precision_loss,
     clippy::cast_sign_loss,
-    clippy::doc_markdown,
-    clippy::imprecise_flops,
-    clippy::missing_const_for_fn
+    clippy::imprecise_flops
 )]
 
 /// WGSL shader: batch neural network forward pass for swarm controllers.
@@ -83,7 +81,7 @@ pub struct Controller {
 
 impl Controller {
     #[must_use]
-    pub fn new(ctrl_type: ControllerType, params: Vec<f64>) -> Self {
+    pub const fn new(ctrl_type: ControllerType, params: Vec<f64>) -> Self {
         Self { ctrl_type, params }
     }
 }
@@ -112,7 +110,7 @@ pub fn neural_forward(params: &[f64], sense: f64) -> usize {
         .map_or(0, |(i, _)| i)
 }
 
-/// Max output-layer activation (before argmax). For mean_reduce pipeline validation.
+/// Max output-layer activation (before argmax). For `mean_reduce` pipeline validation.
 #[must_use]
 pub fn neural_forward_max_score(params: &[f64], sense: f64) -> f64 {
     let mut h = [0.0_f64; 4];
@@ -268,10 +266,10 @@ pub fn mutate(c: &Controller, rng: &mut Rng, mutation_rate: f64) -> Controller {
 }
 
 /// Evolutionary algorithm parameters from Foreback et al. (2025).
-/// POP_SIZE=48: divisible by 3 controller types (16 each for heterogeneous).
-/// N_GEN=40: sufficient for fitness plateau in small-swarm domain.
-/// TOURNAMENT_SIZE=5: standard tournament pressure for pop≈50.
-/// MUTATION_RATE=0.08: Gaussian σ — calibrated for [0,1] parameter space.
+/// `POP_SIZE=48`: divisible by 3 controller types (16 each for heterogeneous).
+/// `N_GEN=40`: sufficient for fitness plateau in small-swarm domain.
+/// `TOURNAMENT_SIZE=5`: standard tournament pressure for pop≈50.
+/// `MUTATION_RATE=0.08`: Gaussian σ — calibrated for [0,1] parameter space.
 const POP_SIZE: usize = 48;
 const N_GEN: usize = 40;
 const TOURNAMENT_SIZE: usize = 5;

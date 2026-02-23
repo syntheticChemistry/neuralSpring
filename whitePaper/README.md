@@ -74,7 +74,7 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 206/206 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
-**Phase 1–5e**: 1800+ Rust+GPU validation PASS (264 lib + 9 integration tests + 133 binaries across 31 modules + 2 evolved + gpu_ops/gpu_dispatch)
+**Phase 1–5e**: 1800+ Rust+GPU validation PASS (374 lib + 9 integration tests + 133 binaries across 31 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
 **Grand Total**: 1800+ PASS — **ALL GREEN** across all applicable tiers
 **Multi-GPU**: 133/133 on RTX 4070, 143+ additional on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 38 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11). ~90% of production math on GPU.
@@ -90,7 +90,7 @@ capability-based routing: GPU when available, CPU fallback otherwise.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 264 lib + 9 integration tests, 119 binaries, 31 modules | **Complete** |
+| 1a | Rust validation layer — 374 lib + 9 integration tests, 133 binaries, 31 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -305,7 +305,7 @@ Full handoff: `wateringHole/handoffs/`
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (264 lib + 9 integration tests + 119 binaries)
+# Rust validation (374 lib + 9 integration tests + 133 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -349,5 +349,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 2 evolved + gpu\_ops + gpu\_dispatch. 264 lib + 9 integration tests, 94.9% coverage. 206 Python + 1600+ Rust/GPU = 1800+ total checks.
+*25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 2 evolved + gpu\_ops/ + gpu\_dispatch. 374 lib + 9 integration tests, 92.7% line coverage. 206 Python + 1600+ Rust/GPU = 1800+ total checks.
 Phase 5e: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 133/133 (RTX 4070 + TITAN V NVK bit-identical). 38 CPU→GPU promotions via gpu\_dispatch (Phase A: 27/27, Phase B: 20/20). ~90% production math on GPU. 133 validation binaries, 21 WGSL shaders (13 upstream, 8 local). Pure Rust 178.5× faster than Python. Sessions 40–48: dispatch, cross-eigensolver, mixed-hardware, multi-GPU, benchmarks, pure GPU promotion. V16 handoff.*

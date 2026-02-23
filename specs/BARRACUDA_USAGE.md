@@ -288,7 +288,7 @@ Implemented via `Gpu::new()` adapter name-substring matching in `src/gpu.rs`.
 
 | Module | Purpose | Tensor Methods Used |
 |--------|---------|-------------------|
-| `gpu_ops.rs` | 38 GPU-accelerated functions | All major Tensor ops |
+| `gpu_ops/` | 38 GPU-accelerated functions (6 submodules) | All major Tensor ops |
 | `gpu_dispatch.rs` | Capability-based runtime dispatch | `WgpuDevice` detection |
 
 ### New Tensor API Usage Patterns

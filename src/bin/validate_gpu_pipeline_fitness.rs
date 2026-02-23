@@ -2,8 +2,8 @@
 
 //! Pure GPU pipeline validation: batch fitness → mean (Paper 011).
 //!
-//! Uses BarraCUDA typed op `BatchFitnessGpu` (f64) with CPU mean reduction.
-//! Replaces raw wgpu chain (batch_fitness_eval + mean_reduce) for validation.
+//! Uses `BarraCUDA` typed op `BatchFitnessGpu` (f64) with CPU mean reduction.
+//! Replaces raw wgpu chain (`batch_fitness_eval` + `mean_reduce`) for validation.
 //!
 //! ## Pipeline
 //!
@@ -25,7 +25,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::many_single_char_names,
-    clippy::doc_markdown,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
     clippy::cast_lossless

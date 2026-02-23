@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 23, 2026 (Sessions 44–46 — multi-GPU + benchmarks + pure GPU promotion)
+**Last updated**: February 23, 2026 (Sessions 44–49 — multi-GPU + benchmarks + pure GPU promotion + deep audit)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
-**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 94.9% line coverage
+**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 92.7% line coverage
 **Grand Total**: 206/206 Python PASS + 1600+ Rust+GPU validation PASS = **1800+ total validation checks**
-**Library**: 264 lib tests + 9 integration tests | 31 modules + 2 evolved + gpu_ops/gpu_dispatch | 133 validation/bench binaries
+**Library**: 374 lib tests + 9 integration tests | 31 modules + 2 evolved + gpu_ops/ + gpu_dispatch | 133 validation/bench binaries
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math)
 **Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels)
@@ -58,7 +58,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (264 lib tests + 9 integration tests, 119 validation binaries, 31 modules + 3 evolved)
+### Phase 1a: neuralSpring-Native Validation (374 lib tests + 9 integration tests, 133 validation binaries, 31 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -102,7 +102,7 @@
 | `validate_barracuda_ml_inference` | ML inference (MLP + Transformer) | 13 | Python/NumPy baselines |
 | `validate_barracuda_fft` | FFT (f32 Fft1D/Ifft1D + f64 Fft1DF64 + Rfft) | 24 | Analytical (DFT definition) |
 
-### Phase 3c: metalForge GPU Shader Validation (16 GPU shader binaries, 108 shader checks, 17 WGSL shaders)
+### Phase 3c: metalForge GPU Shader Validation (16 GPU shader binaries, 108 shader checks, 21 WGSL shaders)
 
 | Validation Binary | WGSL Shader | Papers | Checks | Reference |
 |-------------------|-------------|--------|--------|-----------|
@@ -246,14 +246,14 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 46 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 264 lib tests + 9 integration tests |
+| Rust test | `cargo test` | **PASS** — 374 lib tests + 9 integration tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
 | neuralSpring validate | `make validate-native` + `validate-native-papers` | **PASS** — 276/276 |
 | BarraCUDA validate | `make validate-barracuda` | **PASS** — 272/272 |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | **PASS** — 203/203 (24/25 papers, 96%) |
-| GPU shader validate | `make validate-gpu` | **PASS** — 108/108 (17 WGSL shaders, 13 upstream) |
+| GPU shader validate | `make validate-gpu` | **PASS** — 108/108 (21 WGSL shaders, 13 upstream + 8 local) |
 | GPU pipeline validate | `make validate-gpu-pipeline` | **PASS** — 77/77 (SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12 + 32 Phase 4b) |
 | GPU PRNG validate | `validate_gpu_prng` | **PASS** — 5/5 |
 | CI | GitHub Actions: `baselines.yml` + `rust.yml` | Configured |
@@ -267,7 +267,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (264 lib tests + 9 integration tests, 119 binaries, 31 modules + 3 evolved) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (374 lib tests + 9 integration tests, 133 binaries, 31 modules + 2 evolved + gpu_ops/ + gpu_dispatch) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -275,7 +275,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 2a | metalForge hardware characterization | Active |
 | 3a | BarraCUDA FFT validation (24 checks: f32+f64+Rfft, RTX 4070) | **COMPLETE** |
 | 3b | BarraCUDA GPU streaming (StatefulPipeline + Unidirectional) | **COMPLETE** |
-| 3c | metalForge GPU shader validation (16 GPU shader binaries, 108 shader checks, 17 WGSL shaders) | **COMPLETE** |
+| 3c | metalForge GPU shader validation (16 GPU shader binaries, 108 shader checks, 21 WGSL shaders) | **COMPLETE** |
 | 3d | Cross-dispatch validation (49 checks — 6 validators, 15/15 papers) | **COMPLETE** |
 | 4a | Performance benchmarks (7 kernels, 71.8× overall speedup vs single-thread NumPy) | **COMPLETE** |
 | 4b | Pure GPU end-to-end pipelines (7 pipelines, 32/32 PASS) | **COMPLETE** |
@@ -322,7 +322,7 @@ All tiers use exclusively open data and open systems (see `specs/DATA_PROVENANCE
 | Tier | Coverage | Checks | Status | Delta |
 |------|----------|--------|--------|-------|
 | Python control (Py) | 25/25 (100%) | 206 | **ALL PASS** | — |
-| Rust CPU (Rs) | 25/25 (100%) | 264+ lib + binaries | **ALL PASS** | — |
+| Rust CPU (Rs) | 25/25 (100%) | 374+ lib + binaries | **ALL PASS** | — |
 | BarraCUDA CPU (bC) | 24/25 (96%) | 203 | **ALL PASS** | +12pp |
 | BarraCUDA GPU Tensor (gT) | 23/25 (92%) | 98+ | **ALL PASS** | +20pp |
 | metalForge WGSL (mF) | 15/15† (100%) | 108 | **ALL PASS** | — |

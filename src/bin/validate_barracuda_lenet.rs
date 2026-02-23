@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! BarraCuda validation: LeNet-5 CNN (Study 003).
+//! `BarraCuda` validation: LeNet-5 CNN (Study 003).
 //!
 //! **GPU path**: FC layer forward pass using `barracuda::tensor::Tensor` matmul + tanh.
 //! FC1: 120→84 (tanh), FC2: 84→10 (logits). Uses A×B^T pattern, positive-only data (S-15).
 //!
 //! **CPU path** (Session 42): Full conv→pool→FC pipeline using
 //! `barracuda::cpu_conv_pool::{conv2d, max_pool2d}` — validates the complete
-//! LeNet-5 architecture: Conv(1→6,5×5,pad=2) → ReLU → Pool(2) → Conv(6→16,5×5)
-//! → ReLU → Pool(2) → FC(400→120) → tanh → FC(120→84) → tanh → FC(84→10).
+//! LeNet-5 architecture: Conv(1→6,5×5,pad=2) → `ReLU` → Pool(2) → Conv(6→16,5×5)
+//! → `ReLU` → Pool(2) → FC(400→120) → tanh → FC(120→84) → tanh → FC(84→10).
 //!
 //! ## Cross-Spring Context
 //!
-//! `cpu_conv_pool` was exposed by ToadStool in S41 for Spring consumers.
+//! `cpu_conv_pool` was exposed by `ToadStool` in S41 for Spring consumers.
 //! This is the first Spring-side validation of the full CNN primitive chain.
 //!
 //! ## Provenance
@@ -22,7 +22,6 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::doc_markdown,
     clippy::many_single_char_names,
     clippy::manual_let_else,
     clippy::similar_names,
@@ -164,8 +163,8 @@ fn validate_fc_chain(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 
 /// Full LeNet-5 conv→pool→FC pipeline via `barracuda::cpu_conv_pool`.
 ///
-/// Architecture: Conv(1→6,5×5,pad=2) → ReLU → MaxPool(2) → Conv(6→16,5×5)
-/// → ReLU → MaxPool(2) → flatten → FC(400→120) → tanh → FC(120→84) → tanh → FC(84→10).
+/// Architecture: Conv(1→6,5×5,pad=2) → `ReLU` → MaxPool(2) → Conv(6→16,5×5)
+/// → `ReLU` → MaxPool(2) → flatten → FC(400→120) → tanh → FC(120→84) → tanh → FC(84→10).
 ///
 /// Validates against a pure f64 CPU reference with the same seeded weights.
 fn validate_conv_pool_chain(h: &mut ValidationHarness) {

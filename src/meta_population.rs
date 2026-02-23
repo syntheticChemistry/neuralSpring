@@ -4,7 +4,6 @@
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
-    clippy::doc_markdown,
     clippy::many_single_char_names,
     clippy::suboptimal_flops,
     clippy::needless_range_loop,
@@ -231,7 +230,7 @@ pub fn global_fst(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usi
     numerator / denominator
 }
 
-/// Build pairwise FST matrix (n_pops x n_pops, flat row-major).
+/// Build pairwise FST matrix (`n_pops` x `n_pops`, flat row-major).
 #[must_use]
 pub fn fst_matrix(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usize) -> Vec<f64> {
     let n = populations.len();

@@ -417,4 +417,77 @@ mod tests {
         let dc = caps.dispatch_count(1024, wg);
         assert!(dc > 0);
     }
+
+    // ── GpuCapabilities unit tests (no GPU hardware needed) ─────
+
+    fn mock_caps(wg_x: u32, max_dispatch: u32) -> GpuCapabilities {
+        GpuCapabilities {
+            max_buffer_size: 128 * 1024 * 1024,
+            max_compute_workgroup_size_x: wg_x,
+            max_compute_workgroups_per_dimension: max_dispatch,
+            max_storage_buffers_per_shader_stage: 8,
+            supports_f64: false,
+            supports_f16: false,
+            supports_timestamp_query: false,
+        }
+    }
+
+    #[test]
+    fn workgroup_size_clamped() {
+        let caps = mock_caps(128, 65535);
+        assert_eq!(caps.workgroup_size(256), 128);
+        assert_eq!(caps.workgroup_size(64), 64);
+        assert_eq!(caps.workgroup_size(128), 128);
+    }
+
+    #[test]
+    fn dispatch_count_exact() {
+        let caps = mock_caps(256, 65535);
+        assert_eq!(caps.dispatch_count(256, 256), 1);
+        assert_eq!(caps.dispatch_count(257, 256), 2);
+        assert_eq!(caps.dispatch_count(512, 256), 2);
+    }
+
+    #[test]
+    fn dispatch_count_clamped() {
+        let caps = mock_caps(256, 100);
+        assert_eq!(caps.dispatch_count(100_000, 256), 100);
+    }
+
+    #[test]
+    fn supports_workgroup_check() {
+        let caps = mock_caps(256, 65535);
+        assert!(caps.supports_workgroup(256));
+        assert!(caps.supports_workgroup(1));
+        assert!(!caps.supports_workgroup(512));
+    }
+
+    #[tokio::test]
+    async fn gpu_dispatch_1d_basic() {
+        let Ok(gpu) = Gpu::new().await else { return };
+        let wg = gpu.dispatch_1d(1024, 64);
+        assert!(wg > 0);
+    }
+
+    #[tokio::test]
+    async fn gpu_from_device_roundtrip() {
+        let Ok(gpu) = Gpu::new().await else { return };
+        let dev = gpu.wgpu_device().clone();
+        let gpu2 = Gpu::from_device(dev);
+        assert_eq!(gpu2.adapter_name, gpu.adapter_name);
+    }
+
+    #[tokio::test]
+    async fn gpu_new_cpu_if_available() {
+        if let Ok(gpu) = Gpu::new_cpu().await {
+            assert!(!gpu.adapter_name.is_empty());
+        }
+    }
+
+    #[tokio::test]
+    async fn gpu_new_gpu_if_available() {
+        if let Ok(gpu) = Gpu::new_gpu().await {
+            assert!(!gpu.adapter_name.is_empty());
+        }
+    }
 }

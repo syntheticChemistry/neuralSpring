@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::cast_precision_loss, clippy::doc_markdown)]
+#![allow(clippy::cast_precision_loss)]
 
 //! Shared mathematical primitives used across multiple science modules.
 //!
@@ -11,10 +11,10 @@
 //!
 //! | Primitive | Previously in | Now |
 //! |-----------|---------------|-----|
-//! | Shannon entropy | regulatory_network, eco_dynamics, pangenome, swarm, modes | `primitives::shannon_entropy` |
-//! | Hill activation/repression | regulatory_network, signal_integration | `primitives::hill_activation` / `hill_repression` |
-//! | Sigmoid | swarm_robotics, sequence | `primitives::sigmoid` |
-//! | RK4 step | regulatory_network, signal_integration | `primitives::rk4_step` |
+//! | Shannon entropy | `regulatory_network`, `eco_dynamics`, pangenome, swarm, modes | `primitives::shannon_entropy` |
+//! | Hill activation/repression | `regulatory_network`, `signal_integration` | `primitives::hill_activation` / `hill_repression` |
+//! | Sigmoid | `swarm_robotics`, sequence | `primitives::sigmoid` |
+//! | RK4 step | `regulatory_network`, `signal_integration` | `primitives::rk4_step` |
 //!
 //! ## `BarraCUDA` evolution path
 //!
@@ -44,7 +44,7 @@
 /// Derivation: IEEE 754 f64 subnormals start at ~5e-324. We stay
 /// ~24 orders of magnitude above subnormal to avoid gradual underflow
 /// penalties while remaining negligible for any real probability (p > 1e-20).
-/// Matches NumPy's internal `_LOGGUARD` sentinel.
+/// Matches `NumPy`'s internal `_LOGGUARD` sentinel.
 pub const LOG_GUARD: f64 = 1e-300;
 
 /// Epsilon for Hill function denominators to prevent division by zero.
@@ -73,7 +73,7 @@ pub const DIVISION_GUARD: f64 = 1e-15;
 // Shannon entropy
 // ═══════════════════════════════════════════════════════════════════
 
-/// Shannon entropy H = -sum(p_i * ln(p_i)) from pre-computed frequencies.
+/// Shannon entropy `H` = -`sum`(`p_i` * `ln`(`p_i`)) from pre-computed frequencies.
 ///
 /// Input `frequencies` should be non-negative and sum to ~1.0.
 /// Zero-frequency bins are skipped (0 * ln(0) = 0 by convention).
@@ -91,7 +91,7 @@ pub fn shannon_entropy(frequencies: &[f64]) -> f64 {
     h
 }
 
-/// Shannon equitability H/H_max where H_max = ln(S).
+/// Shannon equitability `H`/`H_max` where `H_max` = ln(S).
 ///
 /// Returns 0.0 for populations with 0 or 1 types. Returns a value in
 /// \[0, 1\] for well-behaved distributions (1.0 = perfectly uniform).

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU pipeline validation: HmmBatchForwardF64 (BarraCUDA) + CPU mean (Papers 016-018).
+//! GPU pipeline validation: `HmmBatchForwardF64` (`BarraCUDA`) + CPU mean (Papers 016-018).
 //!
-//! Replaces raw wgpu pipeline with typed BarraCUDA op: `barracuda::ops::bio::HmmBatchForwardF64`.
-//! Stage 1: HmmBatchForwardF64.dispatch → log_lik_out[n_seqs] (f64).
-//! Stage 2: CPU mean over log_lik_out.
+//! Replaces raw wgpu pipeline with typed `BarraCUDA` op: `barracuda::ops::bio::HmmBatchForwardF64`.
+//! Stage 1: HmmBatchForwardF64.dispatch → `log_lik_out[n_seqs]` (f64).
+//! Stage 2: CPU mean over `log_lik_out`.
 //!
 //! ## Pipeline
 //!
@@ -19,7 +19,7 @@
 //! ## Provenance
 //!
 //! Typed op: `barracuda::ops::bio::HmmBatchForwardF64` (f64).
-//! Validates: BarraCUDA HMM forward API with mean log-likelihood summary.
+//! Validates: `BarraCUDA` HMM forward API with mean log-likelihood summary.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
 #![allow(
@@ -27,7 +27,6 @@
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
     clippy::similar_names,
-    clippy::doc_markdown,
     clippy::needless_range_loop,
     clippy::manual_is_multiple_of,
     clippy::explicit_iter_loop
