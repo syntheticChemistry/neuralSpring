@@ -111,6 +111,32 @@ pub const XOSHIRO128SS: &str = include_str!("../../shaders/xoshiro128ss.wgsl");
 /// Extracts per-controller max activation for `mean_reduce` chaining.
 pub const SWARM_NN_SCORES: &str = include_str!("../../shaders/swarm_nn_scores.wgsl");
 
+// ── Phase 2a: New local shaders (Session 43 — evolving for ToadStool) ───
+
+/// Batched numerically-stable log-sum-exp reduction (Papers 016–018).
+///
+/// Each thread computes `logsumexp` over one row of a `[batch × width]` matrix.
+/// Uses the max-subtract trick: `max(x) + log(Σ exp(x_i - max(x)))`.
+pub const LOGSUMEXP_REDUCE: &str = include_str!("../../shaders/logsumexp_reduce.wgsl");
+
+/// Fermi imitation dynamics stencil update (Paper 019 — game theory).
+///
+/// Each thread updates one cell's strategy by comparing fitness with a
+/// Moore neighbor via the Fermi function `P = 1/(1+exp((f_self-f_nb)/κ))`.
+pub const STENCIL_COOPERATION: &str = include_str!("../../shaders/stencil_cooperation.wgsl");
+
+/// Adaptive Dormand-Prince RK45 single step (Papers 020–021).
+///
+/// One thread per ODE system. Computes 5th-order solution and embedded
+/// 4th-order error estimate for Hill-function regulatory network kinetics.
+pub const RK45_ADAPTIVE: &str = include_str!("../../shaders/rk45_adaptive.wgsl");
+
+/// Wright-Fisher drift + selection step (Papers 024–025).
+///
+/// Each thread handles one (population, locus) pair. Applies selection
+/// via fitness weighting, then binomial drift using inline xoshiro128**.
+pub const WRIGHT_FISHER_STEP: &str = include_str!("../../shaders/wright_fisher_step.wgsl");
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -135,6 +161,10 @@ mod tests {
             ("HEAD_CONCAT", HEAD_CONCAT),
             ("XOSHIRO128SS", XOSHIRO128SS),
             ("SWARM_NN_SCORES", SWARM_NN_SCORES),
+            ("LOGSUMEXP_REDUCE", LOGSUMEXP_REDUCE),
+            ("STENCIL_COOPERATION", STENCIL_COOPERATION),
+            ("RK45_ADAPTIVE", RK45_ADAPTIVE),
+            ("WRIGHT_FISHER_STEP", WRIGHT_FISHER_STEP),
         ];
         for (name, src) in shaders {
             assert!(
@@ -149,9 +179,9 @@ mod tests {
     }
 
     #[test]
-    fn shader_count_is_17() {
+    fn shader_count_is_21() {
         assert_eq!(
-            17,
+            21,
             [
                 HMM_FORWARD_LOG,
                 BATCH_FITNESS_EVAL,
@@ -170,6 +200,10 @@ mod tests {
                 HEAD_CONCAT,
                 XOSHIRO128SS,
                 SWARM_NN_SCORES,
+                LOGSUMEXP_REDUCE,
+                STENCIL_COOPERATION,
+                RK45_ADAPTIVE,
+                WRIGHT_FISHER_STEP,
             ]
             .len()
         );

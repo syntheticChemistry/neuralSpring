@@ -141,6 +141,21 @@ const BINARIES: &[&str] = &[
     "validate_barracuda_bio_ops",
     "validate_barracuda_hmm_f64",
     "validate_barracuda_spectral_theory",
+    // Session 43: new WGSL shader validators
+    "validate_gpu_logsumexp",
+    "validate_gpu_stencil",
+    "validate_gpu_rk45",
+    "validate_gpu_wright_fisher",
+    // Session 43: upstream wrapper validators
+    "validate_gpu_gillespie",
+    "validate_upstream_taxonomy",
+    "validate_upstream_kmer",
+    "validate_upstream_unifrac",
+    "validate_barracuda_chi_squared",
+    // Session 43: parity + dispatch validators
+    "validate_cpu_gpu_parity",
+    "validate_toadstool_dispatch",
+    "validate_mixed_dispatch",
 ];
 
 fn main() {

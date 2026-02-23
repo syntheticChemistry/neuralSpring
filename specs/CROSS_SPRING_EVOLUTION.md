@@ -86,6 +86,12 @@ precision across all f64 shader operations. The `HmmBatchForwardF64` wrapper
 provides the f64 batch counterpart to neuralSpring's f32 HMM forward shader.
 The Ada Lovelace workaround enables neuralSpring's GPU validation on RTX 4070.
 
+**Session 43 wetSpring parity (validated from neuralSpring):** `TaxonomyFcGpu`,
+`KmerHistogramGpu`, and `UniFracPropagateGpu` are wetSpring-origin APIs now
+validated from neuralSpring (`validate_upstream_taxonomy`, `validate_upstream_kmer`,
+`validate_upstream_unifrac`). `GillespieGpu` benefits all Springs for stochastic
+simulation — validated via `validate_gpu_gillespie` (20/20 PASS, f64 conservation).
+
 ### neuralSpring — ML Validation & Evolutionary Computation
 
 neuralSpring's domain is reproducing 25 computational biology papers with Rust

@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 22, 2026 (Session 42 — deep audit + capability-based dispatch)
+**Last Updated**: February 22, 2026 (Session 43 — upstream expansion + mixed hardware)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -172,6 +172,39 @@ on a live GPU (RTX 4070, Vulkan backend) across **23 papers**. ALL GREEN.
 
 ---
 
+## Session Evolution Narrative
+
+| Session | Key Evolution |
+|---------|----------------|
+| **Session 39** | First upstream wrappers — 6 bio ops (HMM, pairwise, batch fitness, etc.) |
+| **Session 42** | Full rewire — 10/10 upstream parity, LeNet-5 `cpu_conv_pool` |
+| **Session 43** | Upstream expansion (Gillespie, wetSpring trio, chi²), CPU vs GPU parity (bit-identical), mixed-hardware dispatch design |
+
+### Session 43 — Upstream Expansion & Mixed Hardware (February 22, 2026)
+
+**New APIs wired:**
+
+| API | Module | Validator | Purpose |
+|-----|--------|-----------|---------|
+| `GillespieGpu` | `ops::bio::gillespie` | `validate_gpu_gillespie` | f64 parallel SSA (stochastic simulation) |
+| `TaxonomyFcGpu` | `ops::bio::taxonomy_fc` | `validate_upstream_taxonomy` | f64 metagenomics |
+| `KmerHistogramGpu` | `ops::bio::kmer_histogram` | `validate_upstream_kmer` | k-mer histograms |
+| `UniFracPropagateGpu` | `ops::bio::unifrac_propagate` | `validate_upstream_unifrac` | tree propagation |
+| `chi_squared::*` | `special::chi_squared` | `validate_barracuda_chi_squared` | PDF/CDF/moments (within 1e-4 of SciPy) |
+
+**New dispatch heuristics** (`metalForge/forge/src/dispatch.rs`):
+
+| Heuristic | Threshold | Purpose |
+|-----------|-----------|---------|
+| `logsumexp_substrate(batch, width)` | batch×width > 20k → GPU | Batched logsumexp (HMM/phylo) |
+| `stochastic_substrate(n_pops, n_loci, two_n)` | n_pops×n_loci×two_n > 100k → GPU | Wright-Fisher / Gillespie |
+
+**CPU vs GPU parity:** `validate_cpu_gpu_parity` (17/17 PASS) — MatMul, ReLU, Sigmoid, Tanh, Sum
+bit-identical across GPU and CPU Tensor paths.
+
+**Mixed-hardware:** `metalForge/mixed.rs`, `pcie_bridge.rs` — transfer cost model, PCIe P2P
+DMA design; `validate_mixed_dispatch` (16/16 PASS).
+
 ---
 
 ## Deep Evolution Alignment (February 21, 2026)
@@ -213,5 +246,4 @@ directly — no conversion needed for `Tensor::from_data` or raw `wgpu::Buffer`:
 5. **Hill functions → `numerical::hill`**: Used by regulatory biology + signal
    integration across neuralSpring and potentially hotSpring
 
-*Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15. Session 42: deep audit complete, all quality gates clean.
-Session 42 sync: S-13 fixed, 5 shaders absorbed upstream (generalized variants), Conv2D/Pool WGSL available.*
+*Barracuda usage audit — neuralSpring, February 22, 2026. Phase 5b complete: bC 24/25, gT 23/25, xD 15/15. Session 43: upstream expansion (Gillespie, wetSpring trio, chi²), CPU/GPU parity, mixed-hardware dispatch. Session 42: deep audit complete, all quality gates clean.*

@@ -120,6 +120,34 @@ pub const fn batch_ipr_substrate(n_vectors: usize, dim: usize) -> Substrate {
     }
 }
 
+/// Recommend GPU vs CPU for batched logsumexp reduction.
+///
+/// - GPU wins when `batch * width` exceeds ~20k elements
+/// - Below that, the sequential per-row scan is faster on CPU
+#[must_use]
+pub const fn logsumexp_substrate(batch: usize, width: usize) -> Substrate {
+    let total_work = batch * width;
+    if total_work > 20_000 {
+        Substrate::Gpu
+    } else {
+        Substrate::Cpu
+    }
+}
+
+/// Recommend GPU vs CPU for stochastic population genetics simulation.
+///
+/// Wright-Fisher drift requires `2N` random draws per (population, locus).
+/// GPU wins when `n_pops * n_loci * two_n` is large.
+#[must_use]
+pub const fn stochastic_substrate(n_pops: usize, n_loci: usize, two_n: usize) -> Substrate {
+    let total_work = n_pops * n_loci * two_n;
+    if total_work > 100_000 {
+        Substrate::Gpu
+    } else {
+        Substrate::Cpu
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

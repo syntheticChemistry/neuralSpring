@@ -311,3 +311,28 @@ validates correctness at every hardware tier:
 - Papers 022–023 (Kachkovskiy) provide the mathematical foundation for understanding loss landscapes and training dynamics
 - Dolson papers (011–015) form a coherent sequence from theory → metrics → applications → swarm
 - All 13 Phase 0++ modules are Tier A (pure math, direct port) — ready for BarraCUDA CPU evolution
+
+---
+
+## Session 43 Validators (February 22, 2026)
+
+New validation binaries added in Session 43 for upstream BarraCUDA wrapper integration
+and mixed-hardware dispatch:
+
+| Validator | Checks | Purpose |
+|-----------|--------|---------|
+| `validate_gpu_gillespie` | 20/20 | `GillespieGpu` f64 parallel SSA |
+| `validate_upstream_taxonomy` | 3/3 | `TaxonomyFcGpu` f64 metagenomics |
+| `validate_upstream_kmer` | 3/3 | `KmerHistogramGpu` k-mer histograms |
+| `validate_upstream_unifrac` | 2/2 | `UniFracPropagateGpu` tree propagation |
+| `validate_barracuda_chi_squared` | 13/13 | `chi_squared::*` distribution functions |
+| `validate_gpu_logsumexp` | 5/5 | `logsumexp_reduce.wgsl` batched logsumexp |
+| `validate_gpu_stencil` | 3/3 | `stencil_cooperation.wgsl` Fermi imitation |
+| `validate_gpu_rk45` | 6/6 | `rk45_adaptive.wgsl` Dormand-Prince |
+| `validate_gpu_wright_fisher` | 4/4 | `wright_fisher_step.wgsl` stochastic |
+| `validate_cpu_gpu_parity` | 17/17 | CPU vs GPU Tensor bit-identical parity |
+| `validate_toadstool_dispatch` | 16/16 | `logsumexp_substrate`, `stochastic_substrate` heuristics |
+| `validate_mixed_dispatch` | 16/16 | PCIe transfer cost model |
+
+These extend wetSpring-origin APIs (Taxonomy, Kmer, UniFrac, Gillespie) and chi² functions
+validated from neuralSpring; GillespieGpu benefits all Springs for stochastic simulation.

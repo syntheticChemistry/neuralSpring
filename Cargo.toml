@@ -207,6 +207,14 @@ name = "validate_barracuda_bio_ops"
 path = "src/bin/validate_barracuda_bio_ops.rs"
 
 [[bin]]
+name = "validate_cpu_gpu_parity"
+path = "src/bin/validate_cpu_gpu_parity.rs"
+
+[[bin]]
+name = "validate_barracuda_chi_squared"
+path = "src/bin/validate_barracuda_chi_squared.rs"
+
+[[bin]]
 name = "validate_barracuda_hmm_f64"
 path = "src/bin/validate_barracuda_hmm_f64.rs"
 
@@ -422,6 +430,18 @@ path = "src/bin/validate_gpu_prng.rs"
 name = "validate_gpu_rk4"
 path = "src/bin/validate_gpu_rk4.rs"
 
+[[bin]]
+name = "validate_gpu_rk45"
+path = "src/bin/validate_gpu_rk45.rs"
+
+[[bin]]
+name = "validate_gpu_wright_fisher"
+path = "src/bin/validate_gpu_wright_fisher.rs"
+
+[[bin]]
+name = "validate_gpu_gillespie"
+path = "src/bin/validate_gpu_gillespie.rs"
+
 # --- Phase 3d: Pure GPU workload + StatefulPipeline + cross-dispatch ---
 
 [[bin]]
@@ -473,8 +493,36 @@ name = "validate_gpu_swarm"
 path = "src/bin/validate_gpu_swarm.rs"
 
 [[bin]]
+name = "validate_gpu_logsumexp"
+path = "src/bin/validate_gpu_logsumexp.rs"
+
+[[bin]]
+name = "validate_gpu_stencil"
+path = "src/bin/validate_gpu_stencil.rs"
+
+[[bin]]
+name = "validate_upstream_taxonomy"
+path = "src/bin/validate_upstream_taxonomy.rs"
+
+[[bin]]
+name = "validate_upstream_kmer"
+path = "src/bin/validate_upstream_kmer.rs"
+
+[[bin]]
+name = "validate_upstream_unifrac"
+path = "src/bin/validate_upstream_unifrac.rs"
+
+[[bin]]
 name = "validate_gpu_meta_pop"
 path = "src/bin/validate_gpu_meta_pop.rs"
+
+[[bin]]
+name = "validate_toadstool_dispatch"
+path = "src/bin/validate_toadstool_dispatch.rs"
+
+[[bin]]
+name = "validate_mixed_dispatch"
+path = "src/bin/validate_mixed_dispatch.rs"
 
 [[bin]]
 name = "validate_gpu_modes"

@@ -24,6 +24,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 010 | Capability-Based Dispatch & Cross-Eigensolver | Feb 22, 2026 | 12 validators use `dispatch_1d`, eigh vs Sturm 2.89e-15 |
 | 011 | Session 42 Deep Audit — Code Quality & Debt Resolution | Feb 22, 2026 | 264 lib + 9 integration, all fmt/clippy/doc clean, tolerances split, GPU helpers deduplicated |
 | 012 | ToadStool Sync — d45fdfb3 → 5437c170 (10 commits) | Feb 22, 2026 | 10-kernel bench (0.72–1.10×), 10/10 upstream parity (3 bit-identical), LeNet-5 full bC 13/13, cross-spring lineage |
+| 013 | Session 43 — Experiment Buildouts, CPU/GPU Parity, Mixed Hardware | Feb 22, 2026 | 4 new WGSL shaders (18/18), 5 upstream wrappers (41/41), CPU/GPU parity (17/17), mixed-hardware dispatch (16/16+16/16) |
 
 ---
 
@@ -588,6 +589,88 @@ state, verify build compatibility, and document what became available.
 
 1. Explore GPU paths for chi_squared, RK45 via new f64 WGSL shaders
 2. Wire TaxonomyFcGpu, KmerHistogramGpu, UniFracPropagateGpu for wetSpring parity
+
+---
+
+## Experiment 013: Session 43 — Experiment Buildouts, CPU/GPU Parity, Mixed Hardware
+
+**Date**: February 22, 2026
+**Hardware**: i9-12900K, RTX 4070 12 GB (Vulkan), llvmpipe (CPU)
+**ToadStool HEAD**: `5437c170` (unchanged from Session 42)
+
+### Motivation
+
+Extend neuralSpring's validation coverage across three axes: (1) new local WGSL
+shaders evolving for ToadStool absorption, (2) upstream BarraCuda wrapper
+integration for wetSpring parity and new f64 ops, and (3) mixed-hardware
+dispatch infrastructure for GPU-NPU-CPU routing.
+
+### Procedure
+
+1. **Phase 1: New WGSL shaders** — Built `logsumexp_reduce.wgsl` (batched
+   numerically-stable reduction, HMM/phylo), `stencil_cooperation.wgsl` (Fermi
+   imitation dynamics, game theory), `rk45_adaptive.wgsl` (Dormand-Prince with
+   Hill RHS, regulatory networks), `wright_fisher_step.wgsl` (binomial drift +
+   selection with inline xoshiro128**). Each with CPU reference validator.
+
+2. **Phase 2: Upstream wrappers** — Wired `GillespieGpu` (parallel SSA, 20/20),
+   `TaxonomyFcGpu` (Naive Bayes metagenomics, 3/3), `KmerHistogramGpu` (k-mer
+   histograms, 3/3), `UniFracPropagateGpu` (tree propagation, 2/2),
+   `chi_squared::*` (distribution + test statistic, 13/13).
+
+3. **Phase 3: Validation sweep** — 264 lib + 9 integration + 26 forge tests,
+   clippy 0 warnings, fmt clean. All 12 new validators pass (108/108 checks).
+
+4. **Phase 4: CPU vs GPU parity** — `validate_cpu_gpu_parity` exercises Tensor
+   API on both GPU and CPU devices for MatMul, ReLU, Sigmoid, Tanh, Sum, erf,
+   gamma, conv2d, max_pool2d. Cross-hardware comparison shows bit-identical
+   MatMul and ReLU results.
+
+5. **Phase 5: Mixed-hardware dispatch** — Built `mixed.rs` (`MixedSubstrate`,
+   `TransferCost`, PCIe cost model) and `pcie_bridge.rs` (`PcieBridge`, P2P
+   detection placeholder). Design doc at `metalForge/MIXED_HARDWARE_DESIGN.md`.
+   Validated: 16/16 dispatch routing + 16/16 mixed dispatch checks.
+
+### Findings
+
+- **GPU logsumexp**: max diff 4.77e-7 (f32) for 64×128 batch — well within tolerance
+- **RK45 adaptive**: GPU matches CPU Dormand-Prince at 5e-4 tolerance (f32 accumulation over 6 stages)
+- **Wright-Fisher**: neutral drift mean 0.4972 (expected 0.5), positive selection bias confirmed
+- **Gillespie SSA**: perfect A+B conservation (100.0 exact), stochastic variation confirmed across 16 trajectories
+- **CPU vs GPU parity**: cross-hardware MatMul produces bit-identical f32 results
+- **Transfer cost model**: GPU→CPU 1MB = 35.3 µs, GPU→NPU P2P 1MB = 134.7 µs, staged 139.7 µs
+
+### Surprises
+
+- Tensor API MatMul is **bit-identical** across GPU (RTX 4070 Vulkan) and CPU (llvmpipe),
+  suggesting deterministic IEEE 754 rounding in the WGSL matmul shader.
+- GillespieGpu f64 conservation is exact (not just within tolerance) — the integer-like
+  stoichiometry means no floating-point accumulation error.
+
+### Artifacts
+
+| File | Role |
+|------|------|
+| `metalForge/shaders/logsumexp_reduce.wgsl` | Batched log-sum-exp (max-subtract trick) |
+| `metalForge/shaders/stencil_cooperation.wgsl` | Fermi imitation dynamics stencil |
+| `metalForge/shaders/rk45_adaptive.wgsl` | Dormand-Prince RK45 with Hill RHS |
+| `metalForge/shaders/wright_fisher_step.wgsl` | Wright-Fisher drift+selection+xoshiro |
+| `metalForge/forge/src/mixed.rs` | MixedSubstrate + TransferCost |
+| `metalForge/forge/src/pcie_bridge.rs` | PcieBridge + P2P detection |
+| `metalForge/MIXED_HARDWARE_DESIGN.md` | Mixed-hardware dispatch design |
+| `metalForge/gpu/MIXED_HARDWARE_RESULTS.md` | Validation results |
+| `src/bin/validate_gpu_logsumexp.rs` | 5/5 PASS |
+| `src/bin/validate_gpu_stencil.rs` | 3/3 PASS |
+| `src/bin/validate_gpu_rk45.rs` | 6/6 PASS |
+| `src/bin/validate_gpu_wright_fisher.rs` | 4/4 PASS |
+| `src/bin/validate_gpu_gillespie.rs` | 20/20 PASS |
+| `src/bin/validate_upstream_taxonomy.rs` | 3/3 PASS |
+| `src/bin/validate_upstream_kmer.rs` | 3/3 PASS |
+| `src/bin/validate_upstream_unifrac.rs` | 2/2 PASS |
+| `src/bin/validate_barracuda_chi_squared.rs` | 13/13 PASS |
+| `src/bin/validate_cpu_gpu_parity.rs` | 17/17 PASS |
+| `src/bin/validate_toadstool_dispatch.rs` | 16/16 PASS |
+| `src/bin/validate_mixed_dispatch.rs` | 16/16 PASS |
 
 ---
 

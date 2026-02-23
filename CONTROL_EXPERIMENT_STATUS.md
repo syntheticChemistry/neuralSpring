@@ -332,3 +332,21 @@ All tiers use exclusively open data and open systems (see `specs/DATA_PROVENANCE
 **Phase 0++ papers: 15/15 at ALL 7 tiers. ALL GREEN.**
 **Phase 0/0+ studies: 9/10 at bC+gT (Exp 005 analytical only). ALL GREEN.**
 Full per-paper matrix: `specs/PAPER_REVIEW_QUEUE.md`.
+
+### Phase 6 — Session 43 Experiment Buildouts (February 22, 2026)
+
+| Validator | Domain | Checks | Status |
+|-----------|--------|--------|--------|
+| `validate_gpu_logsumexp` | Batched logsumexp (HMM/phylo) | 5/5 | **PASS** |
+| `validate_gpu_stencil` | Stencil cooperation (game theory) | 3/3 | **PASS** |
+| `validate_gpu_rk45` | Adaptive RK45 (regulatory ODE) | 6/6 | **PASS** |
+| `validate_gpu_wright_fisher` | Wright-Fisher drift+selection | 4/4 | **PASS** |
+| `validate_gpu_gillespie` | Gillespie SSA (upstream) | 20/20 | **PASS** |
+| `validate_upstream_taxonomy` | Taxonomy FC (wetSpring) | 3/3 | **PASS** |
+| `validate_upstream_kmer` | K-mer histogram (wetSpring) | 3/3 | **PASS** |
+| `validate_upstream_unifrac` | UniFrac propagation (wetSpring) | 2/2 | **PASS** |
+| `validate_barracuda_chi_squared` | Chi-squared distribution + test | 13/13 | **PASS** |
+| `validate_cpu_gpu_parity` | CPU vs GPU Tensor parity | 17/17 | **PASS** |
+| `validate_toadstool_dispatch` | Dispatch substrate routing | 16/16 | **PASS** |
+| `validate_mixed_dispatch` | Mixed-hardware dispatch | 16/16 | **PASS** |
+| **Total** | | **108/108** | **ALL PASS** |

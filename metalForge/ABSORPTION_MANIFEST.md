@@ -208,5 +208,45 @@ that match GPU buffer bindings directly:
 
 ---
 
+---
+
+## Session 43 — New Shaders + Upstream Wrappers (February 22, 2026)
+
+### New Local Shaders (4 — evolving for ToadStool absorption)
+
+| Shader | Lines | Entry Point | Workgroup | Domain |
+|--------|-------|-------------|-----------|--------|
+| `logsumexp_reduce.wgsl` | 42 | `logsumexp_reduce` | 256 | Batched numerically-stable logsumexp |
+| `stencil_cooperation.wgsl` | 73 | `stencil_update` | 256 | Fermi imitation dynamics (Moore neighborhood) |
+| `rk45_adaptive.wgsl` | 141 | `rk45_step` | 64 | Dormand-Prince RK45 with Hill function RHS |
+| `wright_fisher_step.wgsl` | 89 | `wright_fisher` | 256 | Binomial drift + selection + inline xoshiro128** |
+
+### New Upstream Wrappers Wired
+
+| API | BarraCuda Module | Validator | Checks |
+|-----|------------------|-----------|--------|
+| `GillespieGpu` | `ops::bio::gillespie` | `validate_gpu_gillespie` | 20/20 |
+| `TaxonomyFcGpu` | `ops::bio::taxonomy_fc` | `validate_upstream_taxonomy` | 3/3 |
+| `KmerHistogramGpu` | `ops::bio::kmer_histogram` | `validate_upstream_kmer` | 3/3 |
+| `UniFracPropagateGpu` | `ops::bio::unifrac_propagate` | `validate_upstream_unifrac` | 2/2 |
+| `chi_squared::*` | `special::chi_squared` | `validate_barracuda_chi_squared` | 13/13 |
+
+### New Infrastructure
+
+| Component | Location | Tests |
+|-----------|----------|-------|
+| `mixed.rs` | `metalForge/forge/src/mixed.rs` | 5 unit tests |
+| `pcie_bridge.rs` | `metalForge/forge/src/pcie_bridge.rs` | 3 unit tests |
+| `MIXED_HARDWARE_DESIGN.md` | `metalForge/MIXED_HARDWARE_DESIGN.md` | Design doc |
+
+### Totals
+
+- **Shader count**: 17 → 21 (4 new local)
+- **Forge tests**: 18 → 26 (8 new)
+- **Validation binaries**: 115 → 127 (12 new)
+- **New validation checks**: 108 across 12 validators
+
+---
+
 *Absorption manifest — neuralSpring, following the hotSpring pattern.*
 *Lifecycle: evolve → validate → export WGSL → handoff → ToadStool absorbs → retire.*

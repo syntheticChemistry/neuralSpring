@@ -745,3 +745,48 @@ local shaders into barracuda's shader tree as generalized upstream variants:
 | Generalized variants (5437c170) | 5 | **Upstream** (local copies retained for validation) |
 | Still local-only | 4 | `head_split`, `head_concat`, `xoshiro128ss`, `swarm_nn_scores` |
 | **Total** | **17** | **13/17 absorbed** (76%) |
+
+---
+
+## Session 43: Experiment Buildouts, CPU/GPU Parity, and Mixed Hardware
+
+**Date**: February 22, 2026
+
+Session 43 expanded neuralSpring's compute validation across three axes:
+
+### New Local WGSL Shaders (4 shaders for ToadStool absorption)
+
+| Shader | Domain | Validator | Checks |
+|--------|--------|-----------|--------|
+| `logsumexp_reduce.wgsl` | HMM/phylo batched reduction | `validate_gpu_logsumexp` | 5/5 |
+| `stencil_cooperation.wgsl` | Game theory Fermi imitation | `validate_gpu_stencil` | 3/3 |
+| `rk45_adaptive.wgsl` | Dormand-Prince ODE (Hill RHS) | `validate_gpu_rk45` | 6/6 |
+| `wright_fisher_step.wgsl` | Population genetics drift+selection | `validate_gpu_wright_fisher` | 4/4 |
+
+### Upstream Wrappers Wired (5 new BarraCuda APIs)
+
+| API | Domain | Validator | Checks |
+|-----|--------|-----------|--------|
+| `GillespieGpu` | Parallel SSA (f64, xoshiro PRNG) | `validate_gpu_gillespie` | 20/20 |
+| `TaxonomyFcGpu` | Metagenomics Naive Bayes (f64) | `validate_upstream_taxonomy` | 3/3 |
+| `KmerHistogramGpu` | k-mer frequency histograms | `validate_upstream_kmer` | 3/3 |
+| `UniFracPropagateGpu` | UniFrac tree propagation | `validate_upstream_unifrac` | 2/2 |
+| `chi_squared::*` | Chi-squared distribution + test | `validate_barracuda_chi_squared` | 13/13 |
+
+### CPU vs GPU Parity (Pure Rust Math Validation)
+
+`validate_cpu_gpu_parity` exercises the Tensor API on both GPU and CPU (llvmpipe):
+
+- MatMul 32×32: GPU vs Rust diff 2.8e-9, CPU vs Rust diff 2.3e-9, **cross-hardware bit-identical**
+- Activations (ReLU, Sigmoid, Tanh): GPU and CPU produce identical results
+- Special functions (erf, gamma): CPU f64 within 1e-6 of analytical values
+- Conv/Pool (`cpu_conv_pool`): exact match on identity kernel and 2×2 max pool
+
+### Mixed-Hardware Dispatch Infrastructure
+
+Built `metalForge/forge/src/mixed.rs` and `metalForge/forge/src/pcie_bridge.rs`:
+
+- `MixedSubstrate` enum: GpuOnly, CpuOnly, NpuOnly, GpuToNpu, NpuToGpu, GpuToCpu
+- `TransferCost` model: PCIe 4.0 x16 (31.5 GB/s) and x4 (7.9 GB/s) cost estimation
+- `PcieBridge`: device-pair abstraction with P2P capability detection (placeholder)
+- Validated: `validate_toadstool_dispatch` 16/16, `validate_mixed_dispatch` 16/16

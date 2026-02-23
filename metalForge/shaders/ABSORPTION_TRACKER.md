@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `5437c170` (Session 42, Feb 22, 2026)
+**ToadStool HEAD**: `5437c170` (Session 42+43, Feb 22, 2026)
 
 ---
 
@@ -15,6 +15,10 @@
 | `head_concat.wgsl` | MHA (attention) | **Validated** | `validate_mha_gpu` | `barracuda::ops::mha` (fix S-03b) |
 | `xoshiro128ss.wgsl` | Stochastic (PRNG) | **Validated** | `validate_gpu_prng` | `barracuda::ops::prng` |
 | `swarm_nn_scores.wgsl` | Swarm (015) | **Validated** | `validate_gpu_pipeline_swarm` | No upstream equivalent |
+| `logsumexp_reduce.wgsl` | HMM/phylo (016–018) | **Validated** | `validate_gpu_logsumexp` | `barracuda::ops::reduce` (batched logsumexp) |
+| `stencil_cooperation.wgsl` | Game theory (019) | **Validated** | `validate_gpu_stencil` | `barracuda::ops::stencil` (Fermi imitation) |
+| `rk45_adaptive.wgsl` | Regulatory ODE (020–021) | **Validated** | `validate_gpu_rk45` | `barracuda::ops::ode` (injectable RHS) |
+| `wright_fisher_step.wgsl` | PopGen (024–025) | **Validated** | `validate_gpu_wright_fisher` | `barracuda::ops::popgen` (drift+selection) |
 
 **Note**: `head_split`/`head_concat` have upstream equivalents at `barracuda::shaders::tensor/`
 but use different param structs (`HeadSplitParams` vs local `Params`). `xoshiro128ss` differs

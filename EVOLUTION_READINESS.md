@@ -1,28 +1,28 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 22, 2026 (post-Sessions 40, 42 sync)
-**ToadStool HEAD**: `5437c170` (Session 42)
+**Date**: February 22, 2026 (post-Sessions 40, 42, 43)
+**ToadStool HEAD**: `5437c170` (Session 42+43)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → ToadStool absorption → lean on upstream
 
 ---
 
 ## Quick Status
 
-31 Rust modules cover all 25 papers + 5 Phase 0/0+ studies. 115 validation binaries
-span 7 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC), GPU Tensor (gT),
-metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
+31 Rust modules cover all 25 papers + 5 Phase 0/0+ studies. 127 validation binaries
+span 8 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC), GPU Tensor (gT),
+metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD), and Mixed-hardware (mH).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 264 lib + 9 integration tests, 31 modules, 119 binaries | **COMPLETE** |
+| Rust native validation | 264 lib + 9 integration + 26 forge tests, 31 modules, 127 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
 | metalForge WGSL (mF) | 14/25 papers (56%) | **ALL PASS** |
 | GPU Pipeline (gP) | 7/25 papers (28%) | **ALL PASS** |
 | Cross-dispatch (xD) | **15/15** Phase 0++ papers (100%) | **ALL GREEN** |
-| GPU shader validation | 108/108 (17 WGSL shaders) | **COMPLETE** |
+| GPU shader validation | 126/126 (21 WGSL shaders) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
 | ToadStool shortcomings absorbed | 12/12 (S-01..S-12) | **ALL ABSORBED** |
 | S-16 (transpose dispatch) | One-line fix | **FIXED** |
@@ -32,15 +32,20 @@ metalForge WGSL (mF), GPU Pipeline (gP), and Cross-dispatch (xD).
 | TS-003 (trig precision) | 7-term Taylor + Cody-Waite | **FIXED** upstream (Session 36) |
 | TS-001 (pow_f64 precision) | Extended exp/log polynomials | **FIXED** upstream (Session 36) |
 | Shader absorption | 5 of 8 local shaders absorbed | **13/17 upstream** (Session 39) |
-| Upstream wrapper validation | **10 bio ops** + f64 HMM | **33/33 PASS** |
-| Upstream parity (dual-path) | **10 GPU validators** | **10/10 PASS** (3 bit-identical, 1 Bessel diff 1.95e-3) |
+| Upstream wrapper validation | **10 bio ops** + f64 HMM + Gillespie + wetSpring trio + chi² | **74/74 PASS** |
+| Upstream parity (dual-path) | **10 GPU validators** | **10/10 PASS** (9 bit-identical, 1 Bessel diff 1.95e-3) |
 | ReduceScalarPipeline | f64 mean IPR via GPU reduce | **5.55e-17 diff** (machine ε) |
 | Spectral theory stack | Lanczos, Anderson, Hofstadter, Lyapunov, eigh×Sturm | **17/17 PASS** (hotSpring lineage) |
 | Capability-based dispatch | 12 validators + evolved HMM use `Gpu::dispatch_1d` | **Runtime-validated** (Sessions 40, 42) |
 | Upstream vs local benchmark | **10 kernels**, RTX 4070 | **0.72–1.10×** overhead (negligible) |
 | LeNet-5 full bC validation | Conv→Pool→FC via `cpu_conv_pool` | **13/13 PASS** (new, Session 42) |
+| Session 43: new WGSL shaders | logsumexp, stencil, rk45, wright-fisher (4 shaders, 4 validators) | **18/18 PASS** |
+| Session 43: upstream wrappers | GillespieGpu, TaxonomyFcGpu, KmerHistogramGpu, UniFracPropagateGpu, chi² | **41/41 PASS** |
+| Session 43: CPU vs GPU parity | Tensor API: MatMul, ReLU, Sigmoid, Tanh, Sum, erf, gamma, conv, pool | **17/17 PASS** |
+| Session 43: dispatch routing | metalForge substrate heuristics (8 domains) | **16/16 PASS** |
+| Session 43: mixed-hardware | MixedSubstrate, TransferCost, PcieBridge, cost model | **16/16 PASS** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| Grand total checks | **1604+** (206 Py + 1398+ Rust/GPU) | **ALL GREEN** |
+| Grand total checks | **1710+** (206 Py + 1504+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
@@ -99,11 +104,15 @@ upstream variants. Local copies retained for validation compatibility.
 | `head_concat.wgsl` | MHA (attention) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` (fix S-03b) |
 | `xoshiro128ss.wgsl` | Stochastic (PRNG) | `validate_gpu_prng` | 5/5 | `barracuda::ops::prng` |
 | `swarm_nn_scores.wgsl` | Swarm (015) | `validate_gpu_pipeline_swarm` | PASS | No upstream equivalent |
+| `logsumexp_reduce.wgsl` | HMM/phylo (016–018) | `validate_gpu_logsumexp` | 5/5 | `barracuda::ops::reduce` (batched, Session 43) |
+| `stencil_cooperation.wgsl` | Game theory (019) | `validate_gpu_stencil` | 3/3 | `barracuda::ops::stencil` (Session 43) |
+| `rk45_adaptive.wgsl` | Regulatory ODE (020–021) | `validate_gpu_rk45` | 6/6 | `barracuda::ops::ode` (Session 43) |
+| `wright_fisher_step.wgsl` | PopGen (024–025) | `validate_gpu_wright_fisher` | 4/4 | `barracuda::ops::popgen` (Session 43) |
 
 ### WGSL exports (forge crate — single source of truth)
 
-All 17 WGSL shaders are centralized in `metalForge/forge/src/shaders.rs`.
-13 have upstream equivalents (8 identical + 5 generalized variants); 4 are still local-only.
+All 21 WGSL shaders are centralized in `metalForge/forge/src/shaders.rs`.
+13 have upstream equivalents (8 identical + 5 generalized variants); 8 are still local-only (4 legacy + 4 Session 43).
 Library modules re-export for backward compatibility:
 
 | Forge Constant | Library Re-Export |
@@ -189,12 +198,12 @@ Binding layouts and dispatch geometry documented in `forge::bindings`.
 
 ## Tier B — Planned (needs design work)
 
-| Shader | Domain | Priority | Blocker |
-|--------|--------|----------|---------|
-| `tridiag_eigensolver.wgsl` | Spectral (022–023) | P3 | Householder → bisection design |
-| `pairwise_distance.wgsl` | Alignment (017) | P4 | O(N²) dispatch geometry |
-| `stencil_cooperation.wgsl` | Game theory (019) | P5 | Neighborhood stencil pattern |
-| `logsumexp_reduce.wgsl` | HMM/phylogenetics | P2 | Complements `hmm_forward_log.wgsl` |
+| Shader | Domain | Priority | Status |
+|--------|--------|----------|--------|
+| `tridiag_eigensolver.wgsl` | Spectral (022–023) | P3 | Pending: Householder → bisection design |
+| `pairwise_distance.wgsl` | Alignment (017) | P4 | Pending: O(N²) dispatch geometry |
+| ~~`stencil_cooperation.wgsl`~~ | ~~Game theory (019)~~ | ~~P5~~ | **BUILT** (Session 43) — 3/3 PASS |
+| ~~`logsumexp_reduce.wgsl`~~ | ~~HMM/phylogenetics~~ | ~~P2~~ | **BUILT** (Session 43) — 5/5 PASS |
 
 ---
 
@@ -272,7 +281,10 @@ cross-validation references. Both tiers matching Python proves portability.
 | API | Potential Use | Status |
 |-----|--------------|--------|
 | Native `Tensor::multi_head_attention` | Replace evolved MHA | **Blocked** (S-03b: projection shader hang) |
-| `ops::bio::{FelsensteinGpu, GillespieGpu, SmithWatermanGpu}` | Future paper extensions | Available |
+| `ops::bio::{FelsensteinGpu, SmithWatermanGpu}` | Future paper extensions | Available |
+| `ops::bio::GillespieGpu` | Stochastic SSA (Papers 013, 020) | **Wired** (Session 43, 20/20 PASS) |
+| `ops::bio::{TaxonomyFcGpu, KmerHistogramGpu, UniFracPropagateGpu}` | wetSpring metagenomics | **Wired** (Session 43, 8/8 PASS) |
+| `special::chi_squared::*` | Pangenome selection (Paper 024) | **Wired** (Session 43, 13/13 PASS) |
 | `ops::bio::{RfBatchInferenceGpu, TreeInferenceGpu}` | Future ML forest workloads | Available |
 | `ops::linalg::{InverseF64, LinSolveF64}` | GPU dense linear algebra | Available |
 | `ReduceScalarPipeline::sum_f64` | Fitness aggregation | Available (local mean_reduce validated) |

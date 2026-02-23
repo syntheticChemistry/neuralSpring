@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5c complete — 1600+ total checks, ALL GREEN
-**Date**: February 22, 2026 (Session 40+42 — deep audit + capability-based dispatch + cross-eigensolver)
+**Status**: Phase 5c+ complete — 1710+ total checks, ALL GREEN
+**Date**: February 22, 2026 (Sessions 40+42+43 — deep audit + dispatch + cross-eigensolver + mixed-hardware)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -19,7 +19,7 @@
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all through S-13 fixed at `5437c170` |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V11 ToadStool absorption handoff (Session 42) |
+| `wateringHole/handoffs/` | Cross-project | V12 ToadStool absorption handoff (Session 43) |
 
 ---
 
@@ -332,4 +332,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 2 evolved. 264 lib + 9 integration tests, 94.9% coverage. 206 Python + 1400+ Rust+GPU = 1600+ total checks.
-Phase 5c complete: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 6/6 (bit-identical). S-16 fixed, S-15 root-caused. 119 validation binaries, 17 WGSL shaders (13 upstream, 4 local). Session 40+42: capability-based dispatch, cross-eigensolver validation (17/17 spectral), V11 handoff.*
+Phase 5c+ complete: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical). S-16 fixed, S-15 root-caused. 127 validation binaries, 21 WGSL shaders (13 upstream, 8 local). Session 40+42+43: dispatch, cross-eigensolver, mixed-hardware, CPU/GPU parity. V12 handoff.*

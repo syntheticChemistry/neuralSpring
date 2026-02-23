@@ -9,7 +9,7 @@ ToadStool at `77f70b2e`. Deprecated workaround modules have been removed
 from the active codebase and fossilized in `metalForge/fossils/evolved_s01_s11/`.
 S-12 (eigensolver) resolved via Householder+QR — `src/eigh.rs` delegates
 to upstream. Three new shortcomings (S-14, S-15, S-16) discovered during
-Phase 5b full-stack validation — see `wateringHole/handoffs/NEURALSPRING_V11_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`.
+Phase 5b+ full-stack validation — see `wateringHole/handoffs/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md`.
 
 ---
 
@@ -117,7 +117,7 @@ GPU `Tensor` validation across 7 domains uncovered 3 new bugs:
 | S-15 | Matmul hang with negative or sparse f32 input data | Critical | Characterized, workaround (positive-only data) |
 | S-16 | 2D transpose dispatch uses `optimal_workgroup_size` (256) instead of tile size (16) | High | Root cause confirmed, one-line fix identified |
 
-See `wateringHole/handoffs/NEURALSPRING_V11_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
+See `wateringHole/handoffs/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md`
 for full diagnosis, reproduction steps, and recommended fixes.
 
 ---

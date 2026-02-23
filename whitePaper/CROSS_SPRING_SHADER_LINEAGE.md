@@ -6,9 +6,9 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `5437c170` (Session 42) |
-| Last updated | Feb 22, 2026 (Session 42 deep audit) |
-| BarraCUDA shader count | 589+ WGSL (zero orphans) |
+| ToadStool HEAD | `5437c170` (Session 42+43) |
+| Last updated | Feb 22, 2026 (Session 43 experiment buildouts) |
+| BarraCUDA shader count | 589+ WGSL (zero orphans) + 4 neuralSpring Session 43 local |
 
 ---
 
@@ -201,4 +201,4 @@ Feb 22  neuralSpring: 5 generalized-variant shaders → BarraCUDA 5437c170 (S-42
 | Upstream HMM f64 validator | `src/bin/validate_barracuda_hmm_f64.rs` |
 | Local vs upstream benchmark | `src/bin/bench_upstream_vs_local.rs` |
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
-| V8 handoff document | `wateringHole/handoffs/NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md` |
+| V12 handoff document | `wateringHole/handoffs/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md` |

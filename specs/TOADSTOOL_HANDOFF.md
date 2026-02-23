@@ -4,7 +4,7 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
 **Last reviewed:** ToadStool commit `5437c170` (Session 40, Session 42 deep audit, Feb 22, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V11_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md`
 
 ---
 
@@ -359,3 +359,42 @@ All external dependencies are pure Rust — zero C/C++ wrapper crates:
 - 9 new determinism tests, 9 new integration tests
 - Python drift detection script (control/check_drift.sh)
 - Pure Rust dependency tree verified
+
+---
+
+## Session 43 — New Absorption Targets (February 22, 2026)
+
+neuralSpring built 4 new WGSL shaders validated and ready for ToadStool absorption:
+
+### New Shaders (4 files, all validated)
+
+| Shader | Entry Point | Domain | Absorption Target | Validator |
+|--------|-------------|--------|-------------------|-----------|
+| `logsumexp_reduce.wgsl` | `logsumexp_reduce` | Batched logsumexp (HMM/phylo) | `barracuda::ops::reduce` | `validate_gpu_logsumexp` 5/5 |
+| `stencil_cooperation.wgsl` | `stencil_update` | Fermi imitation dynamics | `barracuda::ops::stencil` | `validate_gpu_stencil` 3/3 |
+| `rk45_adaptive.wgsl` | `rk45_step` | Dormand-Prince RK45 (Hill RHS) | `barracuda::ops::ode` | `validate_gpu_rk45` 6/6 |
+| `wright_fisher_step.wgsl` | `wright_fisher` | Drift+selection+xoshiro | `barracuda::ops::popgen` | `validate_gpu_wright_fisher` 4/4 |
+
+### New Upstream Wrappers Successfully Wired
+
+| API | Checks | Key Finding |
+|-----|--------|-------------|
+| `GillespieGpu` | 20/20 | Perfect conservation (f64 integer stoichiometry) |
+| `TaxonomyFcGpu` | 3/3 | f64 log-posterior bit-exact GPU vs CPU |
+| `KmerHistogramGpu` | 3/3 | u32 histogram exact match |
+| `UniFracPropagateGpu` | 2/2 | f64 leaf init exact (1e-12 tolerance) |
+| `chi_squared::*` | 13/13 | PDF/CDF/moments/test all within 1e-4 of SciPy |
+
+### Mixed-Hardware Infrastructure (for future ToadStool absorption)
+
+| Component | Purpose | Absorption Target |
+|-----------|---------|-------------------|
+| `mixed.rs` | MixedSubstrate enum + TransferCost model | `barracuda::unified_hardware` |
+| `pcie_bridge.rs` | PcieBridge + P2P detection | `barracuda::unified_hardware::transfer` |
+| `logsumexp_substrate()` | Dispatch heuristic for logsumexp | `barracuda::dispatch` |
+| `stochastic_substrate()` | Dispatch heuristic for popgen | `barracuda::dispatch` |
+
+### CPU vs GPU Parity Validation
+
+`validate_cpu_gpu_parity` (17/17 PASS): Tensor API produces identical results on GPU (RTX 4070 Vulkan)
+and CPU (llvmpipe). Cross-hardware MatMul and ReLU are **bit-identical**.

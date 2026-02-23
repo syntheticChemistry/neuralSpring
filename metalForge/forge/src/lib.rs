@@ -28,4 +28,6 @@
 pub mod bindings;
 pub mod bridge;
 pub mod dispatch;
+pub mod mixed;
+pub mod pcie_bridge;
 pub mod shaders;
