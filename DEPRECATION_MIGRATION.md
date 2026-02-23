@@ -1,7 +1,7 @@
 # neuralSpring — Deprecation & Migration Guide
 
 **Date**: February 23, 2026 (post-Sessions 44–46)
-**ToadStool HEAD**: `6ee71f07` + 2 local fixes pending absorption (mean_reduce, chi²)
+**ToadStool HEAD**: `b41ee5f4` + 2 local fixes pending absorption (mean_reduce, chi²)
 **Status**: Migration complete — deprecated modules fossilized, S-03b locally resolved, gpu_dispatch active
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
@@ -11,7 +11,7 @@ S-12 (eigensolver) resolved via Householder+QR — `src/eigh.rs` delegates
 to upstream. Three new shortcomings (S-14, S-15, S-16) discovered during
 Phase 5b+ full-stack validation. Two upstream bugs fixed in Session 44
 (`Tensor::mean()` entry point, chi-squared expected values).
-See `wateringHole/handoffs/NEURALSPRING_V14_SESSION46_HANDOFF_FEB23_2026.md`.
+See `wateringHole/handoffs/NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md`.
 
 ---
 

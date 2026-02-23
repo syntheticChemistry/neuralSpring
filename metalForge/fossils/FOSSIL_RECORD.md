@@ -82,6 +82,7 @@ Two evolved modules survive in `src/evolved/`:
 | Feb 22, 2026 | `bench_inference.py` and `bench_scaling.py` moved from `control/` to fossils (orphaned by fossilized Rust) |
 | Feb 22, 2026 | `eigh_local.rs` fossilized — `barracuda::ops::linalg::eigh_householder_qr` (`77f70b2e`) absorbed S-12 |
 | Feb 22, 2026 | `tensor_sync.rs` fossilized — S-13 `PooledBuffer` race **FIXED** upstream at `d45fdfb3` (Session 39). Zero callers |
+| Feb 23, 2026 | `hmm_forward_log.wgsl` fossilized — absorbed by BarraCUDA `HmmBatchForwardF64` (wetSpring origin). Zero `include_str!` references remaining. Moved to `absorbed_shaders/`. |
 
 ## How to Revive
 

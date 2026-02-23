@@ -20,7 +20,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A complete, Phase B in progress |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V14 ToadStool handoff (Sessions 45+46) |
+| `wateringHole/handoffs/` | Cross-project | V16 ToadStool handoff (Session 48) |
 
 ---
 
@@ -350,4 +350,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *25 papers + 5 studies. 5 disciplines. 4 faculty. 31 modules + 2 evolved + gpu\_ops + gpu\_dispatch. 264 lib + 9 integration tests, 94.9% coverage. 206 Python + 1600+ Rust/GPU = 1800+ total checks.
-Phase 5e: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 133/133 (RTX 4070 + TITAN V NVK bit-identical). 38 CPU→GPU promotions via gpu\_dispatch (Phase A: 27/27, Phase B: 20/20). ~90% production math on GPU. 133 validation binaries, 21 WGSL shaders (13 upstream, 8 local). Pure Rust 178.5× faster than Python. Sessions 40–46: dispatch, cross-eigensolver, mixed-hardware, multi-GPU, benchmarks, pure GPU promotion. V14 handoff.*
+Phase 5e: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 133/133 (RTX 4070 + TITAN V NVK bit-identical). 38 CPU→GPU promotions via gpu\_dispatch (Phase A: 27/27, Phase B: 20/20). ~90% production math on GPU. 133 validation binaries, 21 WGSL shaders (13 upstream, 8 local). Pure Rust 178.5× faster than Python. Sessions 40–48: dispatch, cross-eigensolver, mixed-hardware, multi-GPU, benchmarks, pure GPU promotion. V16 handoff.*

@@ -42,12 +42,12 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 206/206 Python PASS + 1600+ Rust+GPU PASS = 1800+ total validation checks
 
-**ToadStool `6ee71f07`** (Sessions 42–46): All shortcomings through S-12 **ABSORBED**.
+**ToadStool `b41ee5f4`** (Session 48): All shortcomings through S-12 **ABSORBED**.
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
 13/21 WGSL shaders **absorbed upstream** (8 identical + 5 generalized); 8 local (4 legacy + 4 new).
 Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**.
 133 validation binaries, 31 modules + gpu\_ops/gpu\_dispatch, 264 lib + 9 integration + 26 forge tests.
-**Multi-GPU**: 133/133 on RTX 4070 + TITAN V (NVK) — bit-identical.
+**Multi-GPU**: 132/133 on RTX 4070 + TITAN V (NVK) — bit-identical.
 **Pure GPU promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math).
 **Benchmarks**: Pure Rust 178.5× faster than Python/NumPy (11 kernels).
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
@@ -203,7 +203,7 @@ python3 -m pytest tests/ -v
 
 # Rust validation (264 unit + 9 integration, 94.9% coverage)
 cargo test --lib --test integration
-cargo run --release --bin validate_all   # all 133 validation binaries
+cargo run --release --bin validate_all   # all 132/133 validation binaries
 
 # All quality gates at once
 make check    # or: just check
@@ -382,7 +382,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Rust coverage | `cargo llvm-cov --lib` | **94.9%** line (target ≥90%) |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
-| neuralSpring validate | `cargo run --release --bin validate_all` | 133 binaries PASS |
+| neuralSpring validate | `cargo run --release --bin validate_all` | 132/133 binaries PASS |
 | BarraCUDA CPU validate | `make validate-barracuda` | 272/272 PASS |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | 203/203 PASS (24/25 papers) |
 | GPU Tensor validate | Phase 5b validators | 98+ checks (23/25 gT, S-15/S-16 resolved) |
@@ -502,7 +502,7 @@ neuralSpring/
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
 │   └── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete
 ├── wateringHole/handoffs/      # Cross-project handoffs (ToadStool/BarraCUDA)
-│   ├── NEURALSPRING_V14_SESSION46_HANDOFF_FEB23_2026.md  # Sessions 45-46 handoff (current)
+│   ├── NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md  # Session 48 handoff (current)
 │   └── archive/               #   Superseded handoffs (V1-V13)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-016)
@@ -535,7 +535,7 @@ neuralSpring/
 | `metalForge/ABSORPTION_MANIFEST.md` | Comprehensive absorption inventory (APIs, shaders, counts) |
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
-| `wateringHole/handoffs/` | Formal ToadStool handoffs (V12 current: Session 43) |
+| `wateringHole/handoffs/` | Formal ToadStool handoffs (V16 current: Session 48) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 
 ## License
@@ -544,4 +544,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40+42+43: February 22, 2026 | 25 papers, 206 Python + 1500+ Rust+GPU = 1710+ validation checks | 264 lib + 9 integration + 26 forge tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 127 validation + 6 bench binaries, 21 WGSL shaders (13 upstream, 8 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 10/10 (100%) | Session 43: 4 new shaders, 5 upstream wrappers, CPU/GPU parity, mixed-hardware dispatch | V12 handoff*
+*Initialized: February 16, 2026 | Sessions 40+42+43: February 22, 2026 | 25 papers, 206 Python + 1500+ Rust+GPU = 1710+ validation checks | 264 lib + 9 integration + 26 forge tests, 94.9% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 127 validation + 6 bench binaries, 21 WGSL shaders (13 upstream, 8 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 14/25 (56%) · gP 7/25 (28%) · xD 15/15 (100%) · uP 10/10 (100%) | Session 48: V16 handoff*

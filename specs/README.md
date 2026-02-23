@@ -61,7 +61,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V14 ToadStool handoff (current, Sessions 45+46) |
+| wateringHole/handoffs/ | `../wateringHole/` | V16 ToadStool handoff (current, Session 48) |
 
 ---
 

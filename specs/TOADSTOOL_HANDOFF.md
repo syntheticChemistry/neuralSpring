@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `6ee71f07` + 2 local fixes pending absorption (Feb 23, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V14_SESSION46_HANDOFF_FEB23_2026.md`
+**Last reviewed:** ToadStool commit `b41ee5f4` + 2 local fixes pending absorption (Feb 23, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md`
 
 ---
 
@@ -505,7 +505,7 @@ inter_population_af_variance, replicator_step, hill_activation_batch.
 
 ## ToadStool Sync: `5437c170` → `6ee71f07` (2 commits)
 
-neuralSpring synced to ToadStool HEAD `6ee71f07` (Feb 23, 2026). Two bug-fix
+neuralSpring synced to ToadStool HEAD `b41ee5f4` (Feb 23, 2026). Two bug-fix
 commits since our last tracked commit:
 
 | Commit | Fix | Origin | neuralSpring Impact |
