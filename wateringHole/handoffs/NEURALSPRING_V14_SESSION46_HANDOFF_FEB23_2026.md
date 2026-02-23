@@ -3,7 +3,7 @@
 **Date**: February 23, 2026
 **From**: neuralSpring → ToadStool / BarraCUDA
 **Sessions**: 45–46
-**ToadStool HEAD**: `5437c170` + 2 upstream fixes (Session 44)
+**ToadStool HEAD**: `6ee71f07` + 2 local fixes pending absorption (mean_reduce, chi²)
 **Previous**: V13 (Session 44 — multi-GPU portability, benchmarks, bug fixes)
 **License**: AGPL-3.0-or-later
 

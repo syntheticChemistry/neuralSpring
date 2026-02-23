@@ -28,6 +28,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 014 | Session 44 — Multi-GPU Portability, Benchmarks, Reverse Pipeline | Feb 23, 2026 | 131/131 on RTX 4070 + TITAN V NVK, 178.5× Rust vs Python, 2 bC bugs fixed, 4 new validators (30/30) |
 | 015 | Session 45 — Pure GPU Promotion Phase A | Feb 23, 2026 | 27 CPU→GPU promotions via Dispatcher, gpu_ops + gpu_dispatch modules, 27/27 PASS |
 | 016 | Session 46 — Pure GPU Promotion Phase B | Feb 23, 2026 | 11 more ops: HMM backward/Viterbi, meta-pop stats, replicator, Hill activation. 20/20, ~90% GPU |
+| 017 | ToadStool Sync — 5437c170 → 6ee71f07 (2 commits) | Feb 23, 2026 | SNP/ODE/Jacobi/loop_unroller fixes. Zero neuralSpring impact. 133/133 PASS. |
 
 ---
 
@@ -889,6 +890,57 @@ genuine GPU pipeline.
 | GPU coverage | ~70% | **~90%** |
 | Validation binaries | 132 | **133** |
 | `validate_all` | 132/132 | **133/133** |
+
+---
+
+## Experiment 017: ToadStool Sync — 5437c170 → 6ee71f07
+
+**Date**: February 23, 2026
+**Hardware**: i9-12900K, RTX 4070 12 GB (Vulkan)
+**ToadStool HEAD**: `6ee71f07`
+
+### Why
+
+ToadStool had evolved 2 commits since our last sync (`5437c170`, Session 42).
+Both were bug fixes from sibling Springs (wetSpring, hotSpring). neuralSpring
+needed to verify build compatibility and re-validate against the new HEAD.
+
+### What
+
+1. **Reviewed** 2 commits: `b53dd2f6` (SNP BGL binding, ODE f64 builtins,
+   Jacobi eigenvector rotation — wetSpring Exp098) and `6ee71f07`
+   (loop_unroller u32 suffix — hotSpring v0.6.7).
+
+2. **Impact analysis**: Neither commit touches APIs used by neuralSpring.
+   SNP calling, batched QS ODE RK4 f64, and batched_eigh_single_dispatch
+   are unused. Loop unroller fix affects BatchedEighGpu (neuralSpring uses
+   Householder+QR via `eigh_f64`, not the batched Jacobi variant).
+
+3. **Build verification**: `cargo check` clean, zero new warnings.
+
+4. **Validation**: 264 lib + 9 integration PASS. `validate_all`: **133/133 PASS**.
+
+### What We Found
+
+- Zero regressions. Zero API changes affecting neuralSpring.
+- The loop_unroller fix (`"0"` → `"0u"` for WGSL u32 literals) is a
+  correctness fix for any shader using `@unroll_hint` with u32 function
+  parameters. neuralSpring's metalForge shaders don't use loop unrolling.
+- The Jacobi eigenvector fix (V rotation for all rows, not just k!=p&&k!=q)
+  is critical for eigendecomposition correctness. neuralSpring uses
+  `eigh_householder_qr` (not Jacobi), so unaffected.
+- Our 2 local fixes (mean_reduce entry point, chi-squared precision) from
+  Session 44 are still local and pending ToadStool absorption.
+
+### Result
+
+| Metric | Before | After |
+|--------|--------|-------|
+| ToadStool HEAD | `5437c170` | **`6ee71f07`** |
+| New upstream commits | 0 | **2** (bug fixes) |
+| neuralSpring impact | — | **Zero** |
+| `validate_all` | 133/133 | **133/133** |
+| Local fixes pending | 2 (mean_reduce, chi²) | **2** (unchanged) |
 
 ---
 

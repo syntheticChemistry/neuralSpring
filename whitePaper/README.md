@@ -16,7 +16,7 @@
 | [BARRACUDA_EVOLUTION.md](BARRACUDA_EVOLUTION.md) | ToadStool team | Shader evolution narrative: Python → CPU → GPU |
 | [CROSS_SPRING_SHADER_LINEAGE.md](CROSS_SPRING_SHADER_LINEAGE.md) | All teams | Cross-spring shader evolution: hotSpring, wetSpring, neuralSpring → BarraCUDA |
 | `specs/BENCHMARK_ANALYSIS.md` | Engineering | Full 3-way benchmark with analysis |
-| `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all through S-13 fixed at `5437c170` |
+| `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all through S-13 fixed at `6ee71f07` |
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A complete, Phase B in progress |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (hotSpring pattern) |

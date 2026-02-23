@@ -1,7 +1,7 @@
 # neuralSpring — Deprecation & Migration Guide
 
 **Date**: February 23, 2026 (post-Sessions 44–46)
-**ToadStool HEAD**: `5437c170` + 2 upstream fixes (Session 44)
+**ToadStool HEAD**: `6ee71f07` + 2 local fixes pending absorption (mean_reduce, chi²)
 **Status**: Migration complete — deprecated modules fossilized, S-03b locally resolved, gpu_dispatch active
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by

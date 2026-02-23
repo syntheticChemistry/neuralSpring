@@ -42,7 +42,7 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 206/206 Python PASS + 1600+ Rust+GPU PASS = 1800+ total validation checks
 
-**ToadStool `5437c170`** (Sessions 42–46): All shortcomings through S-12 **ABSORBED**.
+**ToadStool `6ee71f07`** (Sessions 42–46): All shortcomings through S-12 **ABSORBED**.
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
 13/21 WGSL shaders **absorbed upstream** (8 identical + 5 generalized); 8 local (4 legacy + 4 new).
 Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**.

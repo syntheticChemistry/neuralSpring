@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: February 23, 2026 (post-Sessions 40, 42, 43, 44, 45, 46)
-**ToadStool HEAD**: `5437c170` (Session 42+43) + 2 upstream fixes (Session 44)
+**ToadStool HEAD**: `6ee71f07` + 2 local fixes pending absorption (mean_reduce, chi²)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 

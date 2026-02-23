@@ -3,7 +3,7 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `5437c170` + 2 upstream fixes (Session 44, Feb 23, 2026)
+**Last reviewed:** ToadStool commit `6ee71f07` + 2 local fixes pending absorption (Feb 23, 2026)
 **Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V14_SESSION46_HANDOFF_FEB23_2026.md`
 
 ---
@@ -500,3 +500,25 @@ inter_population_af_variance, replicator_step, hill_activation_batch.
 | `validate_gpu_promotion` | **27/27 PASS** | RTX 4070 + TITAN V NVK |
 | `validate_gpu_phase_b` | **20/20 PASS** | RTX 4070 + TITAN V NVK |
 | `validate_all` | **133/133 PASS** | RTX 4070 |
+
+---
+
+## ToadStool Sync: `5437c170` → `6ee71f07` (2 commits)
+
+neuralSpring synced to ToadStool HEAD `6ee71f07` (Feb 23, 2026). Two bug-fix
+commits since our last tracked commit:
+
+| Commit | Fix | Origin | neuralSpring Impact |
+|--------|-----|--------|-------------------|
+| `b53dd2f6` | SNP BGL binding mismatch (6→5 storage); ODE f64 builtins (max/pow/clamp polyfills); Jacobi eigenvector rotation (all rows) | wetSpring Exp098 | **None** — neuralSpring doesn't use SNP, ODE f64, or Jacobi eigenvectors |
+| `6ee71f07` | loop_unroller `substitute_loop_var` emits `u32` suffix (`"0"` → `"0u"`) | hotSpring v0.6.7 | **None** — affects `BatchedEighGpu` single-dispatch (not used by neuralSpring) |
+
+**Build**: `cargo check` clean, zero new warnings.
+**Validation**: 264 lib + 9 integration tests PASS. `validate_all`: **133/133 PASS** (RTX 4070).
+
+### Still Pending Absorption (neuralSpring → ToadStool)
+
+| Fix | File | Applied Locally | Status |
+|-----|------|----------------|--------|
+| `Tensor::mean()` entry point + double-divide | `ops/mean.rs` | Session 44 | **Pending** — needs ToadStool commit |
+| Chi-squared expected value precision | neuralSpring validator only | Session 44 | **N/A** — validator-side only |

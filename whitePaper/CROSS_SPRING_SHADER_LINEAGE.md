@@ -6,7 +6,7 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `5437c170` (Session 42+43) |
+| ToadStool HEAD | `6ee71f07` (Session 42+43 + wetSpring/hotSpring fixes) |
 | Last updated | Feb 22, 2026 (Session 43 experiment buildouts) |
 | BarraCUDA shader count | 589+ WGSL (zero orphans) + 4 neuralSpring Session 43 local |
 
