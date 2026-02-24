@@ -11,7 +11,7 @@ S-12 (eigensolver) resolved via Householder+QR — `src/eigh.rs` delegates
 to upstream. Three new shortcomings (S-14, S-15, S-16) discovered during
 Phase 5b+ full-stack validation. Two upstream bugs fixed in Session 44
 (`Tensor::mean()` entry point, chi-squared expected values).
-See `wateringHole/handoffs/NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md`.
+See `wateringHole/handoffs/NEURALSPRING_V18_SESSION50_HANDOFF_FEB24_2026.md`.
 
 ---
 

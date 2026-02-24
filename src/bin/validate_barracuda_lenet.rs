@@ -78,8 +78,7 @@ fn cpu_matmul_a_bt(
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  0/0 checks — skipping gracefully");
-        std::process::exit(0);
+        neural_spring::validation::exit_no_gpu();
     };
     eprintln!(
         "  adapter: {} ({:?}, {:?})",

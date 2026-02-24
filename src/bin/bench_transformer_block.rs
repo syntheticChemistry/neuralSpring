@@ -83,11 +83,9 @@ struct GpuWeights {
 type Dev = Arc<WgpuDevice>;
 
 fn load_baseline() -> Result<TransformerBaseline, String> {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/control/ml_inference/transformer_baseline.json"
-    );
-    let file = std::fs::File::open(path).map_err(|e| {
+    let path =
+        neural_spring::validation::baseline_path("control/ml_inference/transformer_baseline.json");
+    let file = std::fs::File::open(&path).map_err(|e| {
         format!("transformer_baseline.json not found — run generate_baselines.py first: {e}")
     })?;
     serde_json::from_reader(std::io::BufReader::new(file))

@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `b41ee5f4` + 2 local fixes pending absorption (Feb 23, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md`
+**Last reviewed:** ToadStool commit `b41ee5f4` + 2 local fixes pending absorption (Feb 24, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V18_SESSION50_HANDOFF_FEB24_2026.md`
 
 ---
 
@@ -522,3 +522,48 @@ commits since our last tracked commit:
 |-----|------|----------------|--------|
 | `Tensor::mean()` entry point + double-divide | `ops/mean.rs` | Session 44 | **Pending** — needs ToadStool commit |
 | Chi-squared expected value precision | neuralSpring validator only | Session 44 | **N/A** — validator-side only |
+
+---
+
+## Session 50: baseCamp Primitives for ToadStool Absorption
+
+Session 50 added 5 baseCamp modules (82/82 PASS) implementing Biophysical
+AI Interpretability. These introduce general-purpose primitives suitable
+for upstream absorption.
+
+### Absorption Candidates
+
+| Primitive | Current Location | Generalized Form | BarraCUDA Target |
+|-----------|-----------------|-----------------|-----------------|
+| `graph_laplacian` | `agent_coordination.rs` | `D - A` from any adjacency matrix | `ops::linalg::laplacian` |
+| `effective_rank` | `neural_pgm.rs` | Entropy of normalized eigenvalues | `ops::linalg::effective_rank` |
+| `empirical_spectral_density` | `weight_spectral.rs` | Eigenvalue histogram | `ops::stats::histogram` |
+| `numerical_hessian` | `loss_landscape.rs` | Central finite differences | `ops::numerical::hessian` |
+| `level_spacing_ratio` | `weight_spectral.rs` | GOE/Poisson spectral stat | `ops::stats::level_spacing_ratio` |
+
+### GPU Shader Candidates for ToadStool
+
+| Shader | Description | Template |
+|--------|-------------|----------|
+| `symmetrize.wgsl` | `out[i,j] = (A[i,j] + A[j,i]) / 2` | Adapt from `transpose.wgsl` |
+| `histogram.wgsl` | Atomic histogram binning of eigenvalues | New pattern (workgroup atomics) |
+| `hessian_column.wgsl` | Parallel finite differences per dimension | Adapt from `batch_fitness_eval.wgsl` |
+| `laplacian.wgsl` | Row-sum → diagonal, subtract adjacency | Adapt from `spatial_payoff.wgsl` |
+| `metropolis.wgsl` | Parallel MCMC chains with acceptance | Adapt from `wright_fisher_step.wgsl` |
+
+### baseCamp eigh Usage (5 new consumers)
+
+All 5 baseCamp modules use `eigh_f64` (via `eigh.rs` → `barracuda::ops::linalg`):
+
+| Module | Input Matrix | Typical Size | Use |
+|--------|-------------|-------------|-----|
+| `weight_spectral` | Symmetrized `W^T W` | 64×64–512×512 | Spectral analysis of weight Hamiltonians |
+| `information_flow` | Attention Hamiltonian | seq_len × seq_len | Information localization |
+| `loss_landscape` | Numerical Hessian | n_params × n_params | Curvature analysis |
+| `neural_pgm` | Symmetrized transition | n_states × n_states | Effective rank |
+| `agent_coordination` | Disordered Laplacian | n_agents × n_agents | Coordination spectral analysis |
+
+**Note**: No new shortcomings discovered. S-15 (matmul magnitude ≤ 0.1) does not
+affect baseCamp — all matrices are synthetic with controllable magnitude.
+
+**Updated totals**: 36 modules, 138 binaries, 412 unit tests (up from 31/133/374).

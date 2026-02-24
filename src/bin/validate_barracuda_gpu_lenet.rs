@@ -97,11 +97,7 @@ async fn main() {
             );
             g
         }
-        Err(e) => {
-            eprintln!("  SKIP: {e} — no GPU/CPU adapter available");
-            eprintln!("  0/0 checks — skipping gracefully");
-            std::process::exit(0);
-        }
+        Err(_) => neural_spring::validation::exit_no_gpu(),
     };
     let device = gpu.wgpu_device().clone();
     let mut h = ValidationHarness::new("barracuda_gpu_lenet");

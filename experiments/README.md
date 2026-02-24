@@ -944,4 +944,143 @@ needed to verify build compatibility and re-validate against the new HEAD.
 
 ---
 
+## Experiment 018: Deep Debt Audit — Session 49
+
+**Date**: February 23, 2026
+**Hardware**: i9-12900K, RTX 4070 12 GB (Vulkan)
+**ToadStool HEAD**: `b41ee5f4`
+
+### Why
+
+Comprehensive code quality audit before crafting the ToadStool absorption
+handoff. Reviewed every file against wateringHole standards (1000-line max,
+AGPL-3.0, pure Rust, no unsafe, no mocks in production, capability-based
+design, primal autonomy).
+
+### What
+
+1. **`gpu_dispatch.rs` refactoring**: Introduced `gpu_or_cpu` private helper
+   that centralises the "try GPU, log-and-fallback" pattern. All 25 dispatch
+   methods now use it, eliminating the 8-line boilerplate per method.
+
+2. **`exit_no_gpu()` hardening**: Unified 79 validation/bench binaries to use
+   `validation::exit_no_gpu()`. When `NEURALSPRING_REQUIRE_GPU=1` is set, GPU
+   absence is a hard failure (exit 1) instead of a silent skip (exit 0).
+
+3. **`baseline_path()` data resolution**: Replaced 4 hardcoded
+   `concat!(env!("CARGO_MANIFEST_DIR"), ...)` paths with
+   `validation::baseline_path("control/...")` — a single source of truth.
+
+4. **Clippy + doc cleanup**: Fixed `unnecessary_map_or` (→ `is_ok_and`),
+   `manual_let_else`, private intra-doc link. Zero warnings across all targets.
+
+5. **EVOLUTION_MAPPING fix**: Corrected "stub" labels — `mlp_forward` exists
+   in `pinn.rs` and `deeponet.rs`, not as stubs in `surrogate.rs`.
+
+### What We Found
+
+- Zero TODO/FIXME/HACK/MOCK/STUB in any Rust source file.
+- Zero `unsafe` blocks (enforced by `forbid`).
+- Zero `.unwrap()` or `.expect()` in production code (all in `#[cfg(test)]`).
+- All 90+ tolerances are named, documented, and justified.
+- All provenance records include script, commit, date, environment, and command.
+- Max file size: 965 lines (`validate_barracuda_tensor.rs`) — under 1000.
+- 394 tests pass. 9 doc-tests pass. 3 doc-tests correctly `ignore`d (GPU).
+
+### Result
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Hardcoded paths | 4 (concat!) | **0** (all via `baseline_path`) |
+| GPU skip pattern | 3 variants, 79 files | **1 pattern** (`exit_no_gpu`) |
+| Dispatch boilerplate | 8 lines/method × 25 | **5 lines/method** via `gpu_or_cpu` |
+| Clippy warnings | 0 | **0** |
+| Doc warnings | 0 | **0** |
+| TODOs in src/ | 0 | **0** |
+| `cargo test` | 374+9+9 PASS | **374+9+9 PASS** |
+
+---
+
+## Experiment 019: baseCamp — Biophysical AI Interpretability — Session 50
+
+**Date**: February 24, 2026
+**Hardware**: i9-12900K (CPU-only for core primitives)
+**ToadStool HEAD**: `b41ee5f4`
+
+### Why
+
+Implement the core Rust library modules and validation binaries for the
+Biophysical AI Interpretability research program (5 sub-theses). These
+modules apply validated physics/biology primitives — spectral analysis,
+signal propagation, dynamical systems, game theory — to understanding
+AI systems as physical systems. This is neuralSpring's novel niche:
+**no prior work applies Anderson localization IPR to neural network
+weight matrices, or models LSTM gating as stencil propagation on a
+disordered lattice.**
+
+### What
+
+1. **`weight_spectral.rs` (nS-01)**: Weight-to-Hamiltonian symmetrization,
+   empirical spectral density, level spacing ratio, Marchenko-Pastur bounds
+   and departure, spectral entropy, activation IPR. Composes `eigh` and
+   `anderson_localization` primitives.
+
+2. **`information_flow.rs` (nS-02)**: Depth scale, gate disorder parameter,
+   gate saturation, information IPR, attention-to-Hamiltonian conversion,
+   MLP signal propagation (mean-field), Jacobian spectral radius.
+
+3. **`loss_landscape.rs` (nS-03)**: Numerical Hessian via finite differences,
+   Hessian spectrum, landscape flatness/sharpness, saddle index,
+   Metropolis-Hastings MCMC (Boltzmann sampling), transition barrier,
+   spectral gap. Validated against analytical quadratic and Rosenbrock.
+
+4. **`neural_pgm.rs` (nS-04)**: Weight-to-transition matrix (softmax
+   normalization), belief propagation chain (forward pass), KL divergence
+   NN vs PGM, layer spectral similarity, effective rank via eigenvalue
+   entropy, PGM complexity.
+
+5. **`agent_coordination.rs` (nS-05)**: Interaction graphs, graph Laplacian,
+   disordered Laplacian, coordination spectral analysis (IPR, level spacing,
+   algebraic connectivity), QS signaling dynamics, coordination fraction,
+   lattice agent generation (1D/2D/3D), dimensional coordination sweep.
+
+### Cross-Spring Connections
+
+| Sub-thesis | From hotSpring | From wetSpring |
+|:----------:|---------------|---------------|
+| nS-01 | — | Anderson QS (IPR, level spacing) |
+| nS-02 | — | QS signal propagation |
+| nS-03 | RK45, Boltzmann, energy minimization | — |
+| nS-04 | — | HMM phylogenetics |
+| nS-05 | — | Anderson QS dimensional analysis, game theory |
+
+### Result
+
+| Metric | Value |
+|--------|-------|
+| New library modules | 5 |
+| New validation binaries | 5 |
+| New checks (all PASS) | 82/82 |
+| Unit tests (lib total) | 412 |
+| Clippy warnings | 0 (pedantic + nursery) |
+| Doc warnings | 0 |
+| `cargo test --lib` | 412/412 PASS |
+| Max file size | Under 1000 lines |
+| `unsafe` blocks | 0 |
+| Determinism | All 5 validators pass re-run identity check |
+
+### GPU Evolution Candidates
+
+These modules are CPU-only. Priority GPU promotion targets:
+
+| Function | GPU Approach | Impact |
+|----------|-------------|--------|
+| `weight_to_hamiltonian` | Tensor matmul (`W^T * W`) | nS-01 bottleneck |
+| `numerical_hessian` | GPU parallel finite differences | nS-03 bottleneck |
+| `interaction_graph` | GPU pairwise distance | nS-05 scaling |
+| `belief_propagation_chain` | GPU batch GEMV (HMM pattern) | nS-04 scaling |
+| `boltzmann_sampling` | GPU parallel chain MCMC | nS-03 throughput |
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

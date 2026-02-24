@@ -548,8 +548,7 @@ fn validate_rfft_cosine_energy(h: &mut ValidationHarness, device: &Arc<WgpuDevic
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  0/0 checks — skipping gracefully (no GPU/CPU adapter)");
-        std::process::exit(0);
+        neural_spring::validation::exit_no_gpu();
     };
     eprintln!(
         "  adapter: {} ({:?}, {:?})",

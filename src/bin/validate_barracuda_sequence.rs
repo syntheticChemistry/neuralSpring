@@ -49,8 +49,7 @@ fn sigmoid_f64(x: f64) -> f64 {
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  0/0 checks — skipping gracefully");
-        std::process::exit(0);
+        neural_spring::validation::exit_no_gpu();
     };
     eprintln!(
         "  adapter: {} ({:?}, {:?})",

@@ -1,16 +1,18 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 23, 2026 (Sessions 44–49 — multi-GPU + benchmarks + pure GPU promotion + deep audit)
+**Last updated**: February 24, 2026 (Sessions 44–50 — multi-GPU + benchmarks + pure GPU promotion + deep debt audit + baseCamp)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
-**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid, 92.7% line coverage
-**Grand Total**: 206/206 Python PASS + 1600+ Rust+GPU validation PASS = **1800+ total validation checks**
-**Library**: 374 lib tests + 9 integration tests | 31 modules + 2 evolved + gpu_ops/ + gpu_dispatch | 133 validation/bench binaries
+**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
+**Grand Total**: 206/206 Python PASS + 1700+ Rust+GPU validation PASS = **1900+ total validation checks**
+**Library**: 412 lib tests + 9 integration tests | 36 modules + 2 evolved + gpu_ops/ + gpu_dispatch | 138 validation/bench binaries
+**baseCamp**: 5 biophysical AI modules + 5 validators (82/82 PASS) — Session 50
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math)
+**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings
 **Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels)
 **ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-16 FIXED | S-14/S-15 workaround | 2 new fixes (Session 44)
-**Open Data**: All 25 papers use open data and open systems — zero proprietary or paywalled sources
+**Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
 
 ---
 
@@ -352,3 +354,28 @@ Full per-paper matrix: `specs/PAPER_REVIEW_QUEUE.md`.
 | `validate_toadstool_dispatch` | Dispatch substrate routing | 16/16 | **PASS** |
 | `validate_mixed_dispatch` | Mixed-hardware dispatch | 16/16 | **PASS** |
 | **Total** | | **108/108** | **ALL PASS** |
+
+### Session 49 — Deep Debt Audit (February 23, 2026)
+
+Code quality hardening. No new validation checks; all existing checks confirmed passing.
+
+| Change | Scope | Impact |
+|--------|-------|--------|
+| `gpu_or_cpu` dispatch helper | `gpu_dispatch.rs` | 25 methods DRYed — centralised GPU/CPU fallback |
+| `exit_no_gpu()` | 79 validation/bench binaries | CI-fidelity: `NEURALSPRING_REQUIRE_GPU=1` exits 1 when GPU expected |
+| `baseline_path()` | 4 binaries | Data resolution via `validation::baseline_path`, no hardcoded `concat!` |
+| Clippy + doc cleanup | `gpu_dispatch.rs`, `validation.rs` | Zero clippy warnings, zero doc warnings |
+| EVOLUTION_MAPPING fix | `specs/EVOLUTION_MAPPING.md` | "stub" labels corrected — `mlp_forward` exists in `pinn.rs`/`deeponet.rs` |
+
+**Quality gates** (all pass):
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets -- -D warnings` | PASS (0 warnings) |
+| `cargo doc --no-deps` | PASS (0 warnings) |
+| `cargo test` | PASS (374 lib + 9 integration + 9 doc-tests) |
+| Max file size | 965 lines (under 1000 wateringHole limit) |
+| `unsafe` blocks | 0 (`forbid` enforced) |
+| TODO/FIXME/MOCK/STUB | 0 in src/ |
+| Hardcoded paths | 0 (all via `baseline_path`) |

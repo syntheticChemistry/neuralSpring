@@ -92,8 +92,8 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 | Python Module | Rust Module | WGSL Shader | Pipeline Stage | Blocker |
 |---------------|-------------|-------------|----------------|---------|
-| `surrogate/` MLP forward | `surrogate::mlp_forward` (stub) | `gemm_f64.wgsl` + `nn::ReLU` | Inference | BarraCUDA `nn::Layer` |
-| `surrogate/` MLP training | `surrogate::mlp_train` (stub) | `gemm_f64.wgsl` + `nn::Optimizer::Adam` | Training | BarraCUDA autograd |
+| `surrogate/` MLP forward | `pinn::mlp_forward`, `deeponet::mlp_forward` | `gemm_f64.wgsl` + `nn::ReLU` | Inference | Awaiting BarraCUDA `nn::Layer` for unified API |
+| `surrogate/` MLP training | — (planned) | `gemm_f64.wgsl` + `nn::Optimizer::Adam` | Training | Awaiting BarraCUDA autograd |
 | `sequence/` LSTM cell | `sequence::lstm_cell` | `lstm_cell.wgsl` | Inference | **VALIDATED** (26 checks) |
 | `sequence/` GRU cell | `sequence::gru_cell` | `gru_cell.wgsl` | Inference | **VALIDATED** (26 checks) |
 | `pinn/` autograd | — | `fd_gradient_f64.wgsl` | Training | Reverse-mode AD in BarraCUDA |
@@ -166,12 +166,12 @@ For each Rust module → GPU promotion:
 
 ---
 
-## Current Status (February 23, 2026)
+## Current Status (February 24, 2026)
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
 | Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, drift detection via `control/check_drift.sh` |
-| Phase 1a (neuralSpring Rust) | **374 lib + 9 integration PASS** | 31 modules (+3 evolved), 374 unit tests, 9 integration tests, 133 validation binaries |
+| Phase 1a (neuralSpring Rust) | **412 lib + 9 integration PASS** | 36 modules (+2 evolved), 412 unit tests, 9 integration tests, 138 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU ports) | **203/203 PASS** | 24/25 papers validated (96% bC coverage) |
@@ -354,3 +354,23 @@ uses `const N: usize` + `FnMut` closure.
 All validation binaries use `require!(h, result, label)` for GPU operations.
 No `.expect()` calls remain in validation code. Enables graceful CI runs
 on machines without GPU adapters.
+
+---
+
+## baseCamp Modules — GPU Evolution Path (Session 50)
+
+5 new baseCamp modules (82/82 PASS) are CPU-only. All use flat `Vec<f64>`
+layouts compatible with direct GPU buffer upload.
+
+| Module | Layout | GPU Ready | Promotion Pattern | Priority |
+|--------|--------|-----------|-------------------|----------|
+| `weight_spectral.rs` | Flat `Vec<f64>` (N×N) | **Yes** | `Tensor::matmul` for `W^T * W` | High |
+| `information_flow.rs` | Flat `Vec<f64>` (seq×seq) | **Yes** | `eigh_f64` (already GPU) | Medium |
+| `loss_landscape.rs` | Flat `Vec<f64>` (n×n) | **Yes** | `BatchFitnessGpu` for parallel Hessian eval | High |
+| `neural_pgm.rs` | Flat `Vec<f64>` (states×states) | **Yes** | `HmmBatchForwardF64` for BP chain | Medium |
+| `agent_coordination.rs` | Flat `Vec<f64>` (agents×agents) | **Yes** | `PairwiseL2Gpu` for interaction graph | Medium |
+
+All 5 modules use `eigh_f64` (via `eigh.rs` → `barracuda::ops::linalg`) which
+is already GPU-capable. The primary GPU promotion targets are the matrix
+construction steps (symmetrization, pairwise distance, finite differences),
+not the eigendecomposition itself.

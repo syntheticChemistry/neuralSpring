@@ -40,16 +40,17 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 206/206 Python PASS + 1600+ Rust+GPU PASS = 1800+ total validation checks
+## Current Status: 206/206 Python PASS + 1700+ Rust+GPU PASS = 1900+ total validation checks
 
 **ToadStool `b41ee5f4`** (Session 48): All shortcomings through S-12 **ABSORBED**.
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**.
 13/21 WGSL shaders **absorbed upstream** (8 identical + 5 generalized); 8 local (4 legacy + 4 new).
 Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**.
-133 validation binaries, 31 modules + gpu\_ops/ + gpu\_dispatch, 374 lib + 9 integration + 26 forge tests.
+138 validation binaries, 36 modules + gpu\_ops/ + gpu\_dispatch, 412 lib + 9 integration + 26 forge tests.
 **Multi-GPU**: 132/133 on RTX 4070 + TITAN V (NVK) — bit-identical.
 **Pure GPU promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math).
 **Benchmarks**: Pure Rust 178.5× faster than Python/NumPy (11 kernels).
+**baseCamp**: 5 new modules (biophysical AI interpretability) + 5 validation binaries (82/82 PASS).
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 
 ### Phase 0 — Synthetic Baselines (48/48)
@@ -92,6 +93,23 @@ See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 | 024: Pangenome Selection | Anderson (2024) | 8/8 | Gene gain/loss dynamics, selection signatures |
 | 025: Meta-Population | Anderson (2024) | 8/8 | FST, isolation-by-distance, thermal adaptation |
 
+### baseCamp — Biophysical AI Interpretability (82/82)
+
+Novel cross-domain research applying validated physics/biology primitives
+to understanding AI systems as physical systems. 5 new library modules,
+5 validation binaries composing existing primitives (`eigh`, `anderson_localization`,
+`hmm`, `game_theory`, `swarm_robotics`) with novel analysis pipelines.
+
+| Module | Sub-thesis | Validation | Checks | Key Primitive |
+|--------|-----------|-----------|--------|---------------|
+| `weight_spectral` | nS-01: Weight Matrices as Disordered Hamiltonians | `validate_weight_spectral` | 15/15 | ESD, IPR, level spacing ratio |
+| `information_flow` | nS-02: Information Flow as Wave Propagation | `validate_information_flow` | 15/15 | Depth scale, gate disorder, attention Hamiltonian |
+| `loss_landscape` | nS-03: Loss Landscapes as Energy Landscapes | `validate_loss_landscape` | 19/19 | Numerical Hessian, Boltzmann sampling |
+| `neural_pgm` | nS-04: Neural Networks as PGMs | `validate_neural_pgm` | 15/15 | Belief propagation, effective rank |
+| `agent_coordination` | nS-05: Multi-Agent AI as Quorum Sensing | `validate_agent_coordination` | 18/18 | Graph Laplacian, QS signaling |
+
+See `whitePaper/baseCamp/extensions.md` for the full research program.
+
 ### Phase 5b — Full-Stack Validation (23 domains, 98+ GPU Tensor checks)
 
 BarraCUDA `Tensor` ops (`matmul`, `transpose`, `tanh`, `sigmoid`, `add`, `mul`)
@@ -130,12 +148,12 @@ S-16 transpose dispatch **FIXED**. S-15 matmul hang **root-caused** and workarou
 **Capability-based dispatch**: 12 validators + evolved HMM use `Gpu::dispatch_1d()` with runtime hardware validation.
 Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at machine epsilon (2.89e-15 at n=64).
 
-### Rust Validation (1600+ PASS across 133 validation binaries)
+### Rust Validation (1700+ PASS across 138 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module (42 named
-constants), explicit pass/fail exit codes. Library code: 374 unit tests + 9
-integration tests, 92.7% line coverage via `llvm-cov`.
+constants), explicit pass/fail exit codes. Library code: 412 unit tests + 9
+integration tests. baseCamp modules add 82 analytical checks across 5 validators.
 
 ### Phase 2 — BarraCUDA CPU Ports (203/203)
 
@@ -201,9 +219,9 @@ bash control/check_drift.sh        # drift detection (re-runs baselines)
 pip install pytest
 python3 -m pytest tests/ -v
 
-# Rust validation (374 unit + 9 integration, 92.7% coverage)
+# Rust validation (412 unit + 9 integration)
 cargo test --lib --test integration
-cargo run --release --bin validate_all   # all 132/133 validation binaries
+cargo run --release --bin validate_all   # all 137/138 validation binaries
 
 # All quality gates at once
 make check    # or: just check
@@ -313,7 +331,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (206/206 — 25 experiments)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (374 lib + 9 integration tests, 133 validation binaries, 31 modules + 2 evolved + gpu_ops/ + gpu_dispatch, 92.7% line coverage)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (412 lib + 9 integration tests, 138 validation binaries, 36 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -377,12 +395,12 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 206/206 PASS |
-| Rust tests | `cargo test` | 374 unit + 9 integration PASS |
+| Rust tests | `cargo test` | 412 unit + 9 integration PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery) |
-| Rust coverage | `cargo llvm-cov --lib` | **92.7%** line (target ≥90%) |
+| Rust coverage | `cargo llvm-cov --lib` | target ≥90% |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
-| neuralSpring validate | `cargo run --release --bin validate_all` | 132/133 binaries PASS |
+| neuralSpring validate | `cargo run --release --bin validate_all` | 137/138 binaries PASS |
 | BarraCUDA CPU validate | `make validate-barracuda` | 272/272 PASS |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | 203/203 PASS (24/25 papers) |
 | GPU Tensor validate | Phase 5b validators | 98+ checks (23/25 gT, S-15/S-16 resolved) |
@@ -426,7 +444,7 @@ neuralSpring/
 │   ├── meta_population/       #   Paper 025: Meta-population differentiation
 │   ├── shared/                 #   Shared utilities (Open-Meteo, etc.)
 │   └── requirements.txt        #   Pinned dependencies
-├── src/                        # Rust library (31 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
+├── src/                        # Rust library (36 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
 │   ├── lib.rs                  #   Crate root
 │   ├── validation.rs           #   ValidationHarness (hotSpring pattern)
 │   ├── tolerances/             #   Centralized tolerance constants + runtime introspection
@@ -452,6 +470,11 @@ neuralSpring/
 │   ├── pangenome_selection.rs   # PA matrix, gene frequency, selection dynamics
 │   ├── meta_population.rs       # FST, Mantel test, thermal adaptation
 │   ├── eigh.rs                  #   Eigensolver → delegates to barracuda (S-12 absorbed)
+│   ├── weight_spectral.rs       #   baseCamp nS-01: Weight matrix spectral analysis
+│   ├── information_flow.rs      #   baseCamp nS-02: Information flow as wave propagation
+│   ├── loss_landscape.rs        #   baseCamp nS-03: Loss landscape characterization
+│   ├── neural_pgm.rs            #   baseCamp nS-04: Neural networks as PGMs
+│   ├── agent_coordination.rs    #   baseCamp nS-05: Multi-agent QS coordination
 │   ├── pinn.rs                  #   Physics-informed NN (Raissi et al.)
 │   ├── deeponet.rs              #   Operator learning (Lu et al.)
 │   ├── primitives.rs            #   Consolidated math: Shannon, Hill, sigmoid, RK4
@@ -459,7 +482,7 @@ neuralSpring/
 │   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
 │   ├── gpu_ops/                 #   38 GPU-accelerated ops (6 submodules: linalg, activation, reduction, bio, population, eigensolver)
 │   ├── gpu_dispatch.rs          #   Capability-based GPU/CPU dispatch (Dispatcher)
-│   └── bin/                    #   140 binaries (133 validation + validate_all + 6 bench)
+│   └── bin/                    #   145 binaries (138 validation + validate_all + 6 bench)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
 │       ├── validate_metrics.rs             # 10 checks
@@ -502,16 +525,17 @@ neuralSpring/
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
 │   └── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete
 ├── wateringHole/handoffs/      # Cross-project handoffs (ToadStool/BarraCUDA)
-│   ├── NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md  # Session 48 handoff (current)
-│   └── archive/               #   Superseded handoffs (V1-V13)
+│   ├── NEURALSPRING_V18_SESSION50_HANDOFF_FEB24_2026.md  # Session 50 handoff (current)
+│   └── archive/               #   Superseded handoffs (V1-V17)
 ├── experiments/                # Experiment journals (hotSpring pattern)
-│   └── README.md              #   Journal index (001-016)
+│   └── README.md              #   Journal index (001-018)
 ├── whitePaper/                 # Study documentation
+│   ├── baseCamp/              #   Per-faculty research briefings
 ├── scripts/
 │   └── run_all_baselines.sh    #   Orchestrates all 25 Python runs
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
-│   └── rust.yml                #   Rust test + clippy + validate (133 binaries)
+│   └── rust.yml                #   Rust test + clippy + validate (138 binaries)
 ├── Cargo.toml                  # Rust manifest
 ├── Makefile                    # Task runner
 ├── justfile                    # Task runner alt (just)
@@ -526,16 +550,17 @@ neuralSpring/
 |----------|-------------|
 | `specs/EVOLUTION_MAPPING.md` | Tier A/B/C mapping from Python modules → Rust → WGSL shaders |
 | `specs/DATA_PROVENANCE.md` | All dataset sources, accession numbers, and licenses |
-| `specs/TOADSTOOL_HANDOFF.md` | 12 BarraCUDA shortcomings and resolution status |
+| `specs/TOADSTOOL_HANDOFF.md` | 12 BarraCUDA shortcomings — all absorbed + absorption handoff |
 | `specs/CROSS_SPRING_EVOLUTION.md` | Cross-spring shader/primitive provenance (hotSpring/wetSpring/neuralSpring) |
 | `specs/BENCHMARK_ANALYSIS.md` | Python vs BarraCUDA CPU vs GPU + fused pipeline results |
-| `specs/PAPER_REVIEW_QUEUE.md` | 25 papers — all complete |
+| `specs/PAPER_REVIEW_QUEUE.md` | 25 papers — all complete + baseCamp controls |
 | `whitePaper/BARRACUDA_EVOLUTION.md` | Shader evolution narrative: Python → CPU → GPU |
 | `metalForge/forge/` | Rust crate: shader catalog, binding layouts, dispatch routing, bridge |
 | `metalForge/ABSORPTION_MANIFEST.md` | Comprehensive absorption inventory (APIs, shaders, counts) |
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
-| `wateringHole/handoffs/` | Formal ToadStool handoffs (V16 current: Session 48) |
+| `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
+| `wateringHole/handoffs/` | Formal ToadStool handoffs (V18 current: Session 50) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 
 ## License
@@ -544,4 +569,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–49: February 23, 2026 | 25 papers, 206 Python + 1600+ Rust+GPU = 1800+ validation checks | 374 lib + 9 integration + 26 forge tests, 92.7% line coverage | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 31 modules, 133 validation + 6 bench binaries, 21 WGSL shaders (13 upstream, 8 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 9/25 (36%) · xD 15/15 (100%) · uP 10/10 (100%) | 42 named tolerances, 0 clippy warnings, `clippy::doc_markdown` fully resolved | Session 49: deep audit + coverage push*
+*Initialized: February 16, 2026 | Sessions 40–50: February 24, 2026 | 25 papers, 206 Python + 1700+ Rust+GPU = 1900+ validation checks | 412 lib + 9 integration + 26 forge tests | 12/12 shortcomings absorbed, S-16 fixed, S-15 root-caused — 36 modules, 138 validation + 6 bench binaries, 21 WGSL shaders (13 upstream, 8 local) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 9/25 (36%) · xD 15/15 (100%) · uP 10/10 (100%) | 90+ named tolerances, 0 clippy warnings, 0 doc warnings | Session 50: baseCamp implementation — 5 biophysical AI modules (weight\_spectral, information\_flow, loss\_landscape, neural\_pgm, agent\_coordination) + 5 validation binaries (82/82 PASS)*

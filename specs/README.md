@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: February 23, 2026 (Sessions 44–46 — multi-GPU + benchmarks + pure GPU promotion)
-**Status**: Phase 5e — 206/206 Python + 1600+ Rust+GPU = **1800+ total checks**, ~90% GPU promotion
+**Last Updated**: February 24, 2026 (Sessions 44–50 — multi-GPU + benchmarks + pure GPU + deep debt audit + baseCamp)
+**Status**: Phase 5e — 206/206 Python + 1700+ Rust+GPU = **1900+ total checks**, ~90% GPU promotion
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 374 lib + 9 integration PASS — 133 binaries, 31 modules + gpu_ops/ + gpu_dispatch, 92.7% coverage |
+| Rust native validation | 412 lib + 9 integration PASS — 138 binaries, 36 modules + gpu_ops/ + gpu_dispatch |
 | BarraCUDA CPU (bC) | 24/25 papers (96%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/25 papers (92%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/25 papers, 17 shaders, 108 checks | ALL PASS |
@@ -61,7 +61,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V16 ToadStool handoff (current, Session 48) |
+| wateringHole/handoffs/ | `../wateringHole/` | V18 ToadStool handoff (current, Session 50) |
 
 ---
 

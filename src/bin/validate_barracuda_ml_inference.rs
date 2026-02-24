@@ -29,7 +29,7 @@ use neural_spring::evolved::mha::multi_head_attention_2d;
 use neural_spring::gpu::Gpu;
 use neural_spring::require;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{self, ValidationHarness};
 use std::sync::Arc;
 
 type Dev = Arc<WgpuDevice>;
@@ -134,11 +134,8 @@ fn mlp_forward(input: &Tensor, weights: &[Tensor], biases: &[Tensor]) -> Result<
 }
 
 fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/control/ml_inference/mlp_baseline.json"
-    );
-    let file = match std::fs::File::open(path) {
+    let path = validation::baseline_path("control/ml_inference/mlp_baseline.json");
+    let file = match std::fs::File::open(&path) {
         Ok(f) => f,
         Err(e) => {
             h.check_bool(&format!("MLP baseline load [{e}]"), false);
@@ -244,11 +241,8 @@ fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
 
 #[allow(clippy::too_many_lines)]
 fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/control/ml_inference/transformer_baseline.json"
-    );
-    let file = match std::fs::File::open(path) {
+    let path = validation::baseline_path("control/ml_inference/transformer_baseline.json");
+    let file = match std::fs::File::open(&path) {
         Ok(f) => f,
         Err(e) => {
             h.check_bool(&format!("Transformer baseline load [{e}]"), false);
@@ -444,8 +438,7 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  0/0 checks — skipping gracefully");
-        std::process::exit(0);
+        validation::exit_no_gpu();
     };
     eprintln!(
         "  adapter: {} ({:?}, {:?})",

@@ -53,8 +53,7 @@ struct HeadParams {
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  SKIP — no adapter");
-        std::process::exit(0);
+        neural_spring::validation::exit_no_gpu();
     };
     eprintln!(
         "  adapter: {} ({:?}, {:?})",

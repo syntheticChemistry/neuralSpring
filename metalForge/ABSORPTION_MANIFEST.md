@@ -183,8 +183,8 @@ that match GPU buffer bindings directly:
 **Total GPU shader checks**: 108 (17 WGSL — 13 upstream, 4 local)
 **Total GPU pipeline checks**: 32 (7 pipelines)
 **Total cross-dispatch checks**: 41 (8+8+12+13)
-**Total lib tests**: 264 lib + 9 integration (94.9% line coverage)
-**Grand total validation**: 1307 (206 Python + 1101 Rust+GPU)
+**Total lib tests**: 412 lib + 9 integration + 26 forge tests
+**Grand total validation**: 1900+ (206 Python + 1700+ Rust+GPU)
 
 ---
 

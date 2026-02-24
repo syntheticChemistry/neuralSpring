@@ -626,6 +626,27 @@ path = "src/bin/validate_all.rs"
 name = "bench_cross_spring_evolution"
 path = "src/bin/bench_cross_spring_evolution.rs"
 
+# ── baseCamp Sub-thesis validators ────────────────────────────────
+[[bin]]
+name = "validate_weight_spectral"
+path = "src/bin/validate_weight_spectral.rs"
+
+[[bin]]
+name = "validate_information_flow"
+path = "src/bin/validate_information_flow.rs"
+
+[[bin]]
+name = "validate_loss_landscape"
+path = "src/bin/validate_loss_landscape.rs"
+
+[[bin]]
+name = "validate_neural_pgm"
+path = "src/bin/validate_neural_pgm.rs"
+
+[[bin]]
+name = "validate_agent_coordination"
+path = "src/bin/validate_agent_coordination.rs"
+
 [lints.rust]
 unsafe_code = "forbid"
 

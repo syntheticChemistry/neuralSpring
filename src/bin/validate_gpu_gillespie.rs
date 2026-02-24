@@ -32,10 +32,7 @@ async fn main() {
             );
             g
         }
-        Err(e) => {
-            eprintln!("  SKIP: {e} — no GPU/CPU adapter available");
-            std::process::exit(0);
-        }
+        Err(_) => neural_spring::validation::exit_no_gpu(),
     };
 
     let mut h = ValidationHarness::new("gpu_gillespie");

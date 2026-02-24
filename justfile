@@ -31,12 +31,12 @@ lint-rust:
 test-python:
     python3 -m pytest tests/ -v --tb=short
 
-# Rust unit tests (237 unit + 9 doc-tests, 94.9% coverage)
+# Rust unit + integration tests
 test-rust:
     cargo test
 
-# Validation subset (full suite: cargo run --release --bin validate_all — 81 binaries)
-validate: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
+# Validation subset (full suite: cargo run --release --bin validate_all — 138 binaries)
+validate: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu validate-basecamp
 
 # neuralSpring quick (3 bins: surrogate, transformer, metrics)
 validate-native:
@@ -65,8 +65,16 @@ validate-native-papers:
     cargo run --bin validate_pinn
     cargo run --bin validate_deeponet
 
+# baseCamp: Biophysical AI Interpretability (5 bins, 82 checks)
+validate-basecamp:
+    cargo run --bin validate_weight_spectral
+    cargo run --bin validate_information_flow
+    cargo run --bin validate_loss_landscape
+    cargo run --bin validate_neural_pgm
+    cargo run --bin validate_agent_coordination
+
 # Run everything (or: cargo run --release --bin validate_all)
-validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
+validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu validate-basecamp
     @echo "━━━ All validation binaries PASS ━━━"
 
 # BarraCUDA primitives (11 bins, 275+ checks)

@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 23, 2026 (Session 45, 46)
+**Last Updated**: February 24, 2026 (Sessions 45–50)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -89,13 +89,102 @@ bridge them.
 
 ---
 
+## Phase 1 — baseCamp Papers (Biophysical AI Interpretability)
+
+These are neuralSpring's **novel cross-domain extensions**: applying validated
+physics and biology primitives to understanding AI systems as physical systems.
+Each sub-thesis grounds in published academic work and uses existing validated
+primitives. No new math — only novel composition.
+
+Full sub-thesis documents: `whitePaper/baseCamp/sub01_weight_hamiltonians.md`
+through `sub05_multiagent_qs.md`. Program overview: `whitePaper/baseCamp/extensions.md`.
+
+### Sub-Thesis 01: Weight Matrices as Disordered Hamiltonians
+
+| # | Paper | Journal | Year | Faculty | Why | Status |
+|---|-------|---------|------|---------|-----|--------|
+| B-01 | Martin & Mahoney "Implicit Self-Regularization in Deep Neural Networks" | JMLR 22(165):1-97 | 2021 | M. Mahoney (UC Berkeley) | Heavy-tailed spectral analysis of weight matrices; 5+1 training phases. ESD as generalization predictor. We extend with Anderson IPR/level spacing | **Queued** |
+| B-02 | Gurbuzbalaban, Hu, Simsekli, Zhu "From SGD to Spectra" | arXiv:2507.12709 | 2025 | U. Simsekli (Inria/ENS) | Dyson Brownian motion for singular values during SGD. We connect Dyson dynamics to Anderson localization transition | **Queued** |
+| B-03 | Ouyang "Rethinking Over-Smoothing in GNNs via Anderson Localization" | arXiv:2507.05263 | 2025 | — | Direct Anderson framework for GNN message passing. We extend to non-GNN architectures | **Queued** |
+
+**Primitives**: `eigh_f64`, `BatchIprGpu`, `spectral_commutativity.rs`, `anderson_localization.rs`
+**Experiments**: nS-101 through nS-106 (6 experiments)
+
+### Sub-Thesis 02: Information Flow as Wave Propagation in Neural Lattices
+
+| # | Paper | Journal | Year | Faculty | Why | Status |
+|---|-------|---------|------|---------|-----|--------|
+| B-04 | Schoenholz, Gilmer, Ganguli, Sohl-Dickstein "Deep Information Propagation" | ICLR | 2017 | S. Ganguli (Stanford) | Mean-field theory of signal propagation; edge-of-chaos criticality. We replace mean-field with exact Anderson diagnostics | **Queued** |
+| B-05 | Gu et al. "Improving the Gating Mechanism of Recurrent Neural Networks" | ICML | 2020 | — | Gate saturation and information flow in LSTMs. We formalize gate saturation as Anderson localization in the strong-disorder limit | **Queued** |
+| B-06 | Yang et al. "GLU Spectral Analysis" | — | 2025 | — | Frequency-domain analysis of gating mechanisms. We connect frequency-domain behavior to Anderson localization of high-frequency modes | **Queued** |
+
+**Primitives**: `hmm.rs`, `stencil_cooperation.wgsl`, `signal_integration.rs`, `gpu_dispatch::Dispatcher`
+**Experiments**: nS-201 through nS-206 (6 experiments)
+
+### Sub-Thesis 03: Loss Landscapes as Energy Landscapes
+
+| # | Paper | Journal | Year | Faculty | Why | Status |
+|---|-------|---------|------|---------|-----|--------|
+| B-07 | Ballard, Das, Martiniani, Wales "Insights into ML Models from Chemical Physics: an Energy Landscapes Approach" | Digital Discovery 3, RSC | 2024 | D. Wales (Cambridge) | EL4ML program: loss landscapes as energy landscapes with disconnectivity graphs. We bring GPU-accelerated eigensolver and RK45 | **Queued** |
+| B-08 | Pittorino et al. "Boltzmann Entropy and Neural Network Generalization" | — | 2025 | — | Weights as atomic coordinates, loss as potential energy. High-entropy states generalize better. We compute S(E) via GPU-accelerated sampling | **Queued** |
+| B-09 | Liu et al. "Loss Landscape Characterization without Over-Parametrization" | arXiv:2410.12455 | 2024 | — | Saddle point convergence guarantees. We connect saddle analysis to transition state theory from chemical physics | **Queued** |
+
+**Primitives**: `ode.rs` / `rk45_adaptive.wgsl`, `game_theory.rs`, `eigh_f64`, `gpu_dispatch::Dispatcher`
+**Experiments**: nS-301 through nS-305 (5 experiments)
+
+### Sub-Thesis 04: Neural Networks as Probabilistic Graphical Models
+
+| # | Paper | Journal | Year | Faculty | Why | Status |
+|---|-------|---------|------|---------|-----|--------|
+| B-10 | Li et al. "Deep Neural Networks as Infinite Tree-Structured PGMs" | arXiv:2305.17583 | 2023 | — | DNN forward prop as PGM belief propagation. We extract PGM from weight matrices via spectral decomposition | **Queued** |
+| B-11 | Nabarro et al. "Learning in Deep Factor Graphs with Gaussian Belief Propagation" | ICML | 2024 | Y.W. Teh (Oxford/DeepMind) | Factor graph representation of neural networks. We add uncertainty quantification via factor graph propagation | **Queued** |
+| B-12 | Conmy, Mavor-Parker et al. "Towards Automated Circuit Discovery" | NeurIPS | 2023 | N. Nanda | Open-source ACDC for circuit tracing. We apply to our small validated models and compare spectral circuit discovery | **Queued** |
+
+**Primitives**: `hmm.rs`, `eigh_f64`, `introgression.rs`, `spectral_commutativity.rs`
+**Experiments**: nS-401 through nS-406 (6 experiments)
+
+**Note**: We implement the METHODS on our own small models. We do NOT download,
+run, or interact with Claude, GPT, or any proprietary model.
+
+### Sub-Thesis 05: Multi-Agent AI Coordination as Quorum Sensing
+
+| # | Paper | Journal | Year | Faculty | Why | Status |
+|---|-------|---------|------|---------|-----|--------|
+| B-13 | SwarmSys "Decentralized Swarm-Inspired Agents for Scalable Reasoning" | arXiv:2510.10047 | 2025 | — | Pheromone-inspired multi-agent reinforcement. We apply Anderson localization to predict coordination phase transitions | **Queued** |
+| B-14 | "Emergent Collective Memory in Decentralized Multi-Agent AI Systems" | arXiv:2512.10166 | 2025 | — | Stigmergic coordination and collective memory. We map stigmergic traces to QS autoinducers and test Anderson threshold | **Queued** |
+| B-15 | Foreback & Dolson "Heterogeneous Swarm Controllers" | IEEE | 2025 | E. Dolson (MSU) | Already validated as Paper 015. We extend with QS-style signaling and Anderson interaction-graph analysis | **Complete** (base); **Queued** (extension) |
+
+**Primitives**: `swarm_robotics.rs`, `game_theory.rs`, `stencil_cooperation.wgsl`, `WrightFisherGpu`, `anderson_localization.rs`
+**Experiments**: nS-501 through nS-505 (5 experiments)
+
+### baseCamp Summary
+
+| Sub-Thesis | Grounding Papers | Experiments | Key Primitive | Rust Module | Checks | Priority |
+|:----------:|:----------------:|:-----------:|---------------|-------------|:------:|:--------:|
+| 01 Weight Hamiltonians | 3 (B-01 to B-03) | 6 | `eigh_f64`, `BatchIprGpu` | `weight_spectral.rs` | **15/15** | 1 |
+| 02 Information Flow | 3 (B-04 to B-06) | 6 | `hmm.rs`, `stencil_cooperation.wgsl` | `information_flow.rs` | **15/15** | 3 |
+| 03 Loss Landscapes | 3 (B-07 to B-09) | 5 | `rk45_adaptive.wgsl`, `eigh_f64` | `loss_landscape.rs` | **19/19** | 5 |
+| 04 Neural PGM | 3 (B-10 to B-12) | 6 | `hmm.rs`, `introgression.rs` | `neural_pgm.rs` | **15/15** | 2 |
+| 05 Multi-Agent QS | 3 (B-13 to B-15) | 5 | `anderson_localization.rs`, `game_theory.rs` | `agent_coordination.rs` | **18/18** | 4 |
+| **Total** | **15** | **28** | | **5 modules** | **82/82** | |
+
+Core Rust primitives: **ALL IMPLEMENTED** (Session 50, 82/82 PASS).
+Grounding paper reproductions: **QUEUED** (require full experimental runs).
+
+All baseCamp papers use open data only (our own trained models + algorithmic
+computation). No proprietary models, no external downloads, no API dependencies.
+
+---
+
 ## Completion Summary
 
 **All 25 papers complete as of February 20, 2026.** No queued items remain.
 
-Session 44 verified: all `cargo fmt`, `clippy` (pedantic), and `doc` gates pass clean.
+Session 49 verified: all `cargo fmt`, `clippy` (pedantic), and `doc` gates pass clean.
 `validate_all`: 133/133 PASS on RTX 4070, 143+ additional checks on Titan V (NVK).
-374 lib + 9 integration tests. 2 upstream BarraCUDA bugs fixed.
+374 lib + 9 integration tests + 9 doc-tests. 2 upstream BarraCUDA bugs fixed.
+Zero hardcoded paths, zero TODO/FIXME/MOCK/STUB, zero unsafe, zero clippy warnings.
+Per-faculty briefings: `whitePaper/baseCamp/`.
 
 | Faculty | Papers | Python Checks | Rust Checks |
 |---------|--------|---------------|-------------|
@@ -465,3 +554,130 @@ l2_distance, hmm_forward_step, neural_forward, etc.).
 - **Game theory**: replicator dynamics step (2×2 GEMV)
 - **Hill activation**: fixed from pseudo-GPU to genuine GPU (log→exp pipeline)
 - `validate_all`: **133/133 PASS, 0 FAIL**. ~90% of production math now has GPU path.
+
+---
+
+## Controls Verification: Open Data + Three Hardware Tiers (Session 49)
+
+Every paper control runs on open data, uses deterministic seeds, and validates
+at three hardware tiers (BarraCUDA CPU, BarraCUDA GPU, metalForge mixed).
+
+### BarraCUDA CPU Controls
+
+All 24 applicable papers (96%) validate Python → Rust → BarraCUDA CPU parity.
+Pure Rust math (stats, linalg, numerical, special) reproduces Python at
+machine precision or better.
+
+| Primitive | Papers Using | Max Diff vs Python |
+|-----------|-------------|-------------------|
+| `stats::variance` | 011–025 (all 15 P0++) | Machine ε |
+| `linalg::eigh_f64` | 022–023 | 1.75e-14 (n=32) |
+| `numerical::rk45_solve` | 019–021 | Machine ε |
+| `special::chi_squared_sf` | 018 | 1e-10 |
+| `linalg::solve_f64` | 016, 015 | Machine ε |
+| `stats::pearson_correlation` | 012 | Machine ε |
+
+### BarraCUDA GPU Controls
+
+All 23 applicable papers (92%) validate CPU → GPU Tensor parity. The
+`Tensor` API (matmul, transpose, sigmoid, tanh, add, mul, etc.) produces
+f32 results within 1e-3 of f64 CPU references across all domains.
+
+| Paper Group | GPU Op Validated | Max f32-f64 Diff |
+|-------------|-----------------|------------------|
+| 011–015 (Dolson) | BatchFitnessGpu, MultiObjFitnessGpu, SwarmNnGpu | < 1e-3 |
+| 016–018 (Liu) | HmmBatchForwardF64, PairwiseHammingGpu | < 1e-6 |
+| 019–021 (Waters) | SpatialPayoffGpu, StencilCooperationGpu, HillGateGpu | < 1e-3 |
+| 022–023 (Kachkovskiy) | BatchIprGpu, eigh_f64 | < 1e-7 |
+| 024–025 (Anderson) | PairwiseJaccardGpu, LocusVarianceGpu, WrightFisherGpu | < 1e-3 |
+
+### metalForge Mixed-Hardware Controls
+
+All 15 Phase 0++ papers have cross-dispatch validation (CPU ↔ GPU routing
+preserves correctness). Additionally:
+
+- **Multi-GPU**: RTX 4070 + TITAN V (NVK) produce bit-identical results for
+  all 133 validators.
+- **Pure GPU dispatch**: 38 CPU→GPU promotions validated (Phase A: 27/27,
+  Phase B: 20/20) — ~90% of production math.
+- **Mixed-hardware infrastructure**: `MixedSubstrate` routing and PCIe
+  transfer cost model validated (16/16 dispatch + 16/16 mixed checks).
+
+### Open Data Confirmation
+
+| Source Type | Papers | License |
+|-------------|--------|---------|
+| In-code synthetic (seed=42) | 011–023, 024–025 | N/A (pure math) |
+| Open-Meteo ERA5 | Exp 003–004, Study 004–005 | CC BY 4.0 |
+| MNIST | Study 003 | CC BY-SA 3.0 |
+| GitHub repos | Study 001–002, Paper 012 | MIT / Apache-2.0 |
+
+**No proprietary data. No API keys. No access-restricted sources.
+All experiments reproducible from scratch with deterministic seeds.**
+
+---
+
+## baseCamp Controls Verification (Session 50)
+
+baseCamp modules (5 sub-theses, 82 checks) follow the same controls
+framework. All data is in-code synthetic with deterministic seeds.
+
+### baseCamp — BarraCUDA CPU Controls
+
+All 5 baseCamp modules use `eigh_f64` (via `eigh.rs` → `barracuda::ops::linalg`)
+for eigendecomposition. This is the same `eigh_f64` validated at 1.75e-14
+accuracy (Householder+QR) in Phase 0++ papers 022–023.
+
+| Module | BarraCUDA Primitive | Validation |
+|--------|--------------------|----|
+| `weight_spectral` | `eigh_f64` | Hamiltonian symmetry, ESD normalization, IPR range |
+| `information_flow` | `eigh_f64` | Attention Hamiltonian spectral finiteness |
+| `loss_landscape` | `eigh_f64` | Hessian spectrum matches analytical quadratic |
+| `neural_pgm` | `eigh_f64` | Transition matrix spectral properties |
+| `agent_coordination` | `eigh_f64` | Laplacian smallest eigenvalue ≈ 0 |
+
+### baseCamp — BarraCUDA GPU Controls (Planned)
+
+baseCamp modules are CPU-only in Session 50. GPU promotion targets:
+
+| Module | GPU Candidate | BarraCUDA Pattern | Priority |
+|--------|-------------|------------------|----------|
+| `weight_spectral` | `weight_to_hamiltonian` | `Tensor::matmul` | High (bottleneck for large matrices) |
+| `loss_landscape` | `numerical_hessian` | `BatchFitnessGpu` (parallel eval) | High (O(n²) evaluations) |
+| `neural_pgm` | `belief_propagation_chain` | `HmmBatchForwardF64` (GEMV chain) | Medium |
+| `agent_coordination` | `interaction_graph` | `PairwiseL2Gpu` | Medium |
+| `loss_landscape` | `boltzmann_sampling` | `WrightFisherGpu` (parallel MCMC) | Low |
+
+When GPU promotion is implemented, controls will follow the same pattern
+as Phase 0++ papers: CPU reference → GPU result → diff within tolerance.
+
+### baseCamp — metalForge Mixed-Hardware Controls (Planned)
+
+After GPU promotion, baseCamp experiments will be validated across:
+
+1. **BarraCUDA CPU**: Pure Rust (current — 82/82 PASS)
+2. **BarraCUDA GPU**: Tensor API on RTX 4070 (planned)
+3. **metalForge mixed**: Cross-dispatch routing (planned)
+
+The `gpu_dispatch::Dispatcher` already provides the routing infrastructure.
+baseCamp GPU promotion requires adding 5 new methods to `Dispatcher`.
+
+### baseCamp — Open Data Confirmation
+
+| Source Type | Modules | License |
+|-------------|---------|---------|
+| In-code synthetic (seed=42) | All 5 baseCamp modules | N/A (pure math) |
+
+**All baseCamp experiments generate synthetic data programmatically.
+No model downloads. No external weights. No proprietary systems.
+Deterministic seed (42) ensures exact reproducibility.**
+
+### baseCamp Experiment-to-Paper Mapping
+
+| Sub-thesis | Grounding Papers | Open Access | Experiment Coverage |
+|:----------:|:----------------:|:-----------:|:-------------------:|
+| nS-01 | Martin & Mahoney (2021), Pennington & Worah (2017), Anderson (1958) | All open | 15/15 checks (analytical + synthetic) |
+| nS-02 | Schoenholz et al. (2017), Poole et al. (2016), Ganguli (2020) | All open | 15/15 checks (analytical + synthetic) |
+| nS-03 | Wales (2003), Li et al. (2018), Ghorbani et al. (2019) | All open | 19/19 checks (analytical quadratic + Rosenbrock) |
+| nS-04 | Koller & Friedman (2009), Hinton (2012), Murphy (2012) | All open | 15/15 checks (analytical + synthetic NN) |
+| nS-05 | Waters & Bassler (2005), Dolson et al. (2019), Anderson QS | All open | 18/18 checks (analytical + dimensional sweep) |

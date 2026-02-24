@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 23, 2026 (Sessions 40–48)
+**Last Updated**: February 24, 2026 (Sessions 40–50)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -412,4 +412,88 @@ validators PASS.
 
 ---
 
-*Barracuda usage audit — neuralSpring, February 23, 2026. Phase 5e: bC 24/25, gT 23/25, xD 15/15, mG 132/133 (RTX 4070 + TITAN V NVK; logsumexp driver issue). Session 48: 28 binaries rewired raw wgpu → typed ops. Session 47: typed op migration, MHA fix, HMM retirement. Sessions 45–46: pure GPU promotion. Session 44: multi-GPU, 178.5×. Session 43: upstream expansion, mixed-hardware. Session 42: deep audit.*
+## Session 49 — Deep Debt Audit (February 23, 2026)
+
+### Code Quality Hardening
+
+| Change | Barracuda Surface | Impact |
+|--------|------------------|--------|
+| `gpu_or_cpu` helper | `gpu_dispatch.rs` | Centralised all 25 GPU-fallback dispatch methods into a single `gpu_or_cpu` closure pattern. All `wgpu_device()` calls go through one path. |
+| `exit_no_gpu()` | 79 validation/bench binaries | Unified GPU unavailability handling: `NEURALSPRING_REQUIRE_GPU=1` → exit 1 (CI mode). Default → graceful skip. All binaries use `validation::exit_no_gpu()`. |
+| `baseline_path()` | 4 binaries (ML inference, benchmarks) | Replaced `concat!(env!("CARGO_MANIFEST_DIR"), ...)` with `validation::baseline_path()` for JSON baseline resolution. |
+| Zero debt | All src/ | No TODO, FIXME, HACK, MOCK, STUB. No hardcoded paths. No unsafe. |
+
+### BarraCUDA Absorption Summary (Full Stack)
+
+| Category | Count | Status |
+|----------|-------|--------|
+| Typed GPU ops in use | 12 (BatchFitness, PairwiseHamming, PairwiseJaccard, PairwiseL2, LocusVariance, SpatialPayoff, MultiObjFitness, BatchIpr, SwarmNn, WrightFisher, StencilCooperation, HillGate) | All validated |
+| Tensor API methods | 30+ (matmul, transpose, add, sub, mul, sigmoid, tanh, gelu, softmax, conv2d, maxpool2d, mean, sum, etc.) | All validated |
+| CPU primitives | 18 (variance, pearson, eigh, solve, cholesky, lu, svd, rk45, chi_squared, etc.) | All validated |
+| Shaders consumed | 13 upstream (absorbed) + 8 local | All validated |
+| Raw wgpu remaining | 4 binaries (bench_upstream_vs_local intentional, 3 ODE/pipeline not yet applicable) | Documented |
+| Feature flags needed | `unidirectional` (not yet enabled) | Medium priority |
+
+### What ToadStool Should Know
+
+1. **Dispatching model works**: The `gpu_or_cpu` pattern proves that capability-based routing via `wgpu_device()` is the right abstraction. ToadStool should consider absorbing this as a `BarraCUDA::dispatch()` primitive.
+
+2. **`exit_no_gpu` is a CI pattern**: All three Springs need the same GPU/no-GPU policy. This could become `barracuda::testing::require_gpu()`.
+
+3. **`baseline_path` is a testing primitive**: `env!("CARGO_MANIFEST_DIR")`-relative paths for control data should be a `barracuda::testing` utility.
+
+4. **f64 alignment complete**: All 12 typed ops now use f64 data types. The f32→f64 migration (Session 48) is a model for other Springs.
+
+5. **HillGateGpu f64 driver limitation persists**: RTX 4070 skips f64 path. TITAN V (NVK) untested for HillGate f64 specifically — worth investigating.
+
+---
+
+## Session 50 — baseCamp Biophysical AI Interpretability (February 24, 2026)
+
+### New BarraCUDA Usage in baseCamp Modules
+
+baseCamp modules primarily compose existing primitives. BarraCUDA surface:
+
+| Module | BarraCUDA Primitive | How Used |
+|--------|--------------------|----|
+| `weight_spectral.rs` | `eigh` (via `eigh.rs`) | Eigendecomposition of symmetrized weight Hamiltonians |
+| `information_flow.rs` | `eigh` (via `eigh.rs`) | Attention Hamiltonian spectral analysis |
+| `loss_landscape.rs` | `eigh` (via `eigh.rs`) | Hessian spectrum computation |
+| `neural_pgm.rs` | `eigh` (via `eigh.rs`) | Transition matrix spectral analysis |
+| `agent_coordination.rs` | `eigh` (via `eigh.rs`) | Disordered Laplacian eigendecomposition |
+| All 5 modules | `rng::Rng` | Deterministic seed-based stochastic generation |
+
+### GPU Promotion Candidates
+
+All 5 modules are CPU-only. GPU promotion uses existing patterns:
+
+| baseCamp Function | GPU Pattern | Existing BarraCUDA Analogue |
+|-------------------|-------------|---------------------------|
+| `weight_to_hamiltonian` (matmul) | Tensor matmul | 4-tier `KernelRouter` |
+| `numerical_hessian` (parallel evals) | Batch parallel | `BatchFitnessGpu` |
+| `belief_propagation_chain` (GEMV) | Batch GEMV | `HmmBatchForwardF64` |
+| `interaction_graph` (pairwise) | Pairwise distance | `PairwiseL2Gpu` |
+| `boltzmann_sampling` (MCMC) | Parallel chains | `WrightFisherGpu` |
+
+### General-Purpose Primitives for BarraCUDA Absorption
+
+| Primitive | Generalized Form | Potential Location |
+|-----------|-----------------|-------------------|
+| `graph_laplacian(adjacency)` | `D - A` | `ops::linalg` |
+| `effective_rank(eigenvalues)` | Entropy-based rank | `ops::linalg` |
+| `empirical_spectral_density(eigenvalues, bins)` | Histogram | `ops::stats` |
+| `numerical_hessian(f, x, h)` | Central FD Hessian | `ops::numerical` |
+| `level_spacing_ratio(eigenvalues)` | GOE/Poisson stat | `ops::stats` |
+
+### Updated Totals
+
+| Category | Before (S49) | After (S50) |
+|----------|-------------|-------------|
+| Library modules | 31 | **36** (+5 baseCamp) |
+| Validation binaries | 133 | **138** (+5 baseCamp) |
+| Unit tests | 374 | **412** (+38 baseCamp) |
+| BarraCUDA `eigh` consumers | 4 modules | **9** modules (+5 baseCamp) |
+
+---
+
+*Barracuda usage audit — neuralSpring, February 24, 2026. Session 50: 5 baseCamp modules (82/82 PASS) composing `eigh_f64` + `Rng` into novel AI interpretability pipelines. GPU promotion candidates identified — all map to existing BarraCUDA patterns. Phase 5e: bC 24/25, gT 23/25, xD 15/15, mG 132/133. Session 49: deep debt audit. Session 48: typed op migration. Sessions 45–46: pure GPU promotion. Session 44: multi-GPU, 178.5×.*

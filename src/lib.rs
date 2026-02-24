@@ -44,10 +44,21 @@
 //! | `anderson_localization` | `control/anderson_localization/` | tridiag solve + eigendecomp |
 //! | `pangenome_selection` | `control/pangenome_selection/` | sparse GEMM + chi-squared reduce |
 //! | `meta_population` | `control/meta_population/` | variance decomp + `pearson` |
+//!
+//! ## baseCamp Modules (Biophysical AI Interpretability)
+//!
+//! | Module | Sub-thesis | Experiments |
+//! |--------|-----------|-------------|
+//! | `weight_spectral` | nS-01: Weight Matrices as Disordered Hamiltonians | nS-101..106 |
+//! | `information_flow` | nS-02: Information Flow as Wave Propagation | nS-201..206 |
+//! | `loss_landscape` | nS-03: Loss Landscapes as Energy Landscapes | nS-301..305 |
+//! | `neural_pgm` | nS-04: Neural Networks as PGMs | nS-401..406 |
+//! | `agent_coordination` | nS-05: Multi-Agent AI as Quorum Sensing | nS-501..505 |
 
 #[cfg(test)]
 mod determinism_tests;
 
+pub mod agent_coordination;
 pub mod anderson_localization;
 pub mod bench;
 pub mod counterdiabatic;
@@ -62,11 +73,14 @@ pub mod gpu;
 pub mod gpu_dispatch;
 pub mod gpu_ops;
 pub mod hmm;
+pub mod information_flow;
 pub mod introgression;
 pub mod lenet;
+pub mod loss_landscape;
 pub mod meta_population;
 pub mod metrics;
 pub mod modes;
+pub mod neural_pgm;
 pub mod pangenome_selection;
 pub mod pinn;
 pub mod primitives;
@@ -83,3 +97,4 @@ pub mod swarm_robotics;
 pub mod tolerances;
 pub mod transformer;
 pub mod validation;
+pub mod weight_spectral;

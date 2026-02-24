@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 23, 2026 (Sessions 40–48)
+**Date**: February 24, 2026 (Sessions 40–50)
 **ToadStool HEAD**: `b41ee5f4` (Session 47 + S45/S46/S49 absorption)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
@@ -9,15 +9,15 @@
 
 ## Quick Status
 
-31 Rust modules cover all 25 papers + 5 Phase 0/0+ studies. 132 validation binaries
-span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC), GPU Tensor (gT),
-metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD), Mixed-hardware (mH),
-and Multi-GPU (mG).
+36 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses.
+138 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
+Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 374 lib + 9 integration + 26 forge tests, 31 modules, 132 binaries | **COMPLETE** |
+| Rust native validation | 412 lib + 9 integration + 26 forge tests, 36 modules, 138 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -493,5 +493,42 @@ crate, then consumed by all Springs. This table tracks provenance.
 
 All 10 upstream wrappers show negligible overhead (0.72–1.10×).
 Bold entries are newly wired in Session 42 ToadStool sync.
+
+### Session 50 — baseCamp Biophysical AI Interpretability (82/82 PASS)
+
+5 new library modules implementing cross-domain analysis of AI systems using
+validated physics/biology primitives. Each module composes existing neuralSpring
+primitives (`eigh`, `anderson_localization`, `hmm`, `game_theory`) into novel
+analysis pipelines. 412 unit tests, 0 clippy warnings, 0 doc warnings.
+
+| Module | Sub-thesis | Checks | Key Primitives |
+|--------|-----------|--------|----------------|
+| `weight_spectral` | nS-01: Weight Hamiltonians | 15/15 | ESD, IPR, level spacing ratio, Marchenko-Pastur |
+| `information_flow` | nS-02: Information Propagation | 15/15 | Depth scale, gate disorder, attention Hamiltonian |
+| `loss_landscape` | nS-03: Loss Landscapes | 19/19 | Numerical Hessian, Boltzmann MCMC, spectral gap |
+| `neural_pgm` | nS-04: Neural PGMs | 15/15 | Belief propagation, KL divergence, effective rank |
+| `agent_coordination` | nS-05: Multi-Agent QS | 18/18 | Graph Laplacian, QS signaling, dimensional sweep |
+
+**Evolution path:** These modules are CPU-only. GPU promotion candidates:
+- `weight_spectral::weight_to_hamiltonian` → Tensor matmul (symmetrized `W^T W`)
+- `loss_landscape::numerical_hessian` → GPU parallel finite differences
+- `agent_coordination::interaction_graph` → GPU pairwise distance
+- `neural_pgm::belief_propagation_chain` → GPU batch GEMV (HMM pattern)
+
+See `whitePaper/baseCamp/extensions.md` for the full research program.
+
+### Session 49 — Code Quality Status
+
+| Quality Gate | Status |
+|--------------|--------|
+| Hardcoded paths | **0** (all via `validation::baseline_path`) |
+| TODO/FIXME/MOCK/STUB | **0** in src/ |
+| `unsafe` blocks | **0** (`forbid` enforced) |
+| `.unwrap()` in non-test | **0** |
+| Clippy warnings | **0** (pedantic + nursery) |
+| Doc warnings | **0** |
+| Max file size | 965 lines (under 1000 wateringHole limit) |
+| Dispatch pattern | All 25 methods use `gpu_or_cpu` (DRY) |
+| GPU skip policy | All 79 binaries use `exit_no_gpu()` (CI-fidelity) |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

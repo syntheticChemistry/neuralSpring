@@ -13,6 +13,7 @@
 //! checks and produce a deterministic exit code.
 
 use crate::tolerances;
+use std::path::PathBuf;
 use std::process;
 
 /// Unwrap a `Result` or record failure and early-return from the caller.
@@ -246,6 +247,63 @@ impl ValidationHarness {
             process::exit(1);
         }
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Environment-driven runtime policy
+// ═══════════════════════════════════════════════════════════════════
+
+/// Whether `NEURALSPRING_REQUIRE_GPU=1` is set.
+///
+/// When `true`, validation binaries that cannot obtain a GPU adapter
+/// **must** exit 1 instead of silently skipping.  This is intended for
+/// CI pipelines that have a known-good GPU and want to catch adapter
+/// regressions.
+///
+/// Default behaviour (variable unset or `0`): binaries skip gracefully
+/// with exit 0 when no GPU is available, which is appropriate for
+/// headless / CPU-only build environments.
+#[must_use]
+pub fn gpu_required() -> bool {
+    std::env::var("NEURALSPRING_REQUIRE_GPU")
+        .is_ok_and(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+}
+
+/// Handle the absence of a GPU adapter in a validation binary.
+///
+/// If `NEURALSPRING_REQUIRE_GPU=1`, prints an error and exits 1.
+/// Otherwise, prints a skip message and exits 0.
+///
+/// Replaces the duplicated `let Ok(gpu) = Gpu::new().await else { … }`
+/// pattern across all GPU validation binaries.
+pub fn exit_no_gpu() -> ! {
+    if gpu_required() {
+        eprintln!("  FAIL: no GPU adapter (NEURALSPRING_REQUIRE_GPU=1)");
+        process::exit(1);
+    }
+    eprintln!("  0/0 checks — skipping gracefully (no GPU adapter)");
+    process::exit(0);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Data path resolution
+// ═══════════════════════════════════════════════════════════════════
+
+/// Resolve a workspace-relative path to an absolute path.
+///
+/// Uses `CARGO_MANIFEST_DIR` at compile time — this is the standard Rust
+/// mechanism for finding workspace resources and avoids runtime path
+/// assumptions.
+///
+/// # Example
+///
+/// ```ignore
+/// let p = baseline_path("control/ml_inference/mlp_baseline.json");
+/// let file = std::fs::File::open(&p)?;
+/// ```
+#[must_use]
+pub fn baseline_path(relative: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(relative)
 }
 
 // ═══════════════════════════════════════════════════════════════════

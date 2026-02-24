@@ -44,6 +44,11 @@ impl std::fmt::Display for Backend {
 /// Created once at startup, shared across all science modules.
 /// When GPU is available, operations route through `gpu_ops`;
 /// when unavailable (no adapter, CI, etc.), they use CPU references.
+///
+/// Every dispatched operation uses `gpu_or_cpu` — attempt
+/// GPU execution, log-and-fallback on error, or skip straight to CPU
+/// when no adapter is present.  This keeps each public method focused
+/// on *what* it computes rather than *how* dispatch works.
 pub struct Dispatcher {
     gpu: Option<Gpu>,
     prefer_gpu: bool,
@@ -136,186 +141,192 @@ impl Dispatcher {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Dispatched operations
+    // Core dispatch helper
+    // ═══════════════════════════════════════════════════════════════
+
+    /// Attempt `gpu_fn` on the GPU device; on failure (or absence) run `cpu_fn`.
+    ///
+    /// Centralises the "try GPU, log-and-fallback" pattern so each public
+    /// method only specifies *what* to compute on each backend.
+    fn gpu_or_cpu<T>(
+        &self,
+        op: &str,
+        gpu_fn: impl FnOnce(&Arc<WgpuDevice>) -> Result<T, String>,
+        cpu_fn: impl FnOnce() -> T,
+    ) -> T {
+        if let Some(dev) = self.wgpu_device() {
+            match gpu_fn(dev) {
+                Ok(result) => return result,
+                Err(e) => eprintln!("[dispatch] {op} GPU failed, falling back: {e}"),
+            }
+        }
+        cpu_fn()
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Dispatched operations — linear algebra
     // ═══════════════════════════════════════════════════════════════
 
     /// Matrix multiply: GPU if available, CPU fallback.
     #[must_use]
     pub fn mat_mul(&self, a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::mat_mul_gpu(a, b, n, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] mat_mul GPU failed, falling back: {e}"),
-            }
-        }
-        crate::spectral_commutativity::mat_mul(a, b, n)
+        self.gpu_or_cpu(
+            "mat_mul",
+            |dev| crate::gpu_ops::mat_mul_gpu(a, b, n, dev),
+            || crate::spectral_commutativity::mat_mul(a, b, n),
+        )
     }
 
     /// Frobenius norm: GPU if available, CPU fallback.
     #[must_use]
     pub fn frobenius_norm(&self, a: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::frobenius_norm_gpu(a, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] frobenius_norm GPU failed: {e}"),
-            }
-        }
-        crate::spectral_commutativity::frobenius_norm(a)
+        self.gpu_or_cpu(
+            "frobenius_norm",
+            |dev| crate::gpu_ops::frobenius_norm_gpu(a, dev),
+            || crate::spectral_commutativity::frobenius_norm(a),
+        )
     }
 
     /// Transpose: GPU if available, CPU fallback.
     #[must_use]
     pub fn transpose(&self, a: &[f64], n: usize) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::transpose_gpu(a, n, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] transpose GPU failed: {e}"),
-            }
-        }
-        crate::spectral_commutativity::transpose(a, n)
-    }
-
-    /// Softmax: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn softmax(&self, x: &[f64]) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::softmax_gpu(x, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] softmax GPU failed: {e}"),
-            }
-        }
-        crate::transformer::softmax(x)
-    }
-
-    /// Boltzmann distribution: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn boltzmann(&self, fitnesses: &[f64], beta: f64) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::boltzmann_gpu(fitnesses, beta, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] boltzmann GPU failed: {e}"),
-            }
-        }
-        crate::counterdiabatic::boltzmann_distribution(fitnesses, beta)
-    }
-
-    /// L2 distance: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn l2_distance(&self, a: &[f64], b: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::l2_distance_gpu(a, b, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] l2_distance GPU failed: {e}"),
-            }
-        }
-        crate::modes::l2_distance(a, b)
-    }
-
-    /// Shannon entropy: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn shannon_entropy(&self, p: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::shannon_entropy_gpu(p, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] shannon_entropy GPU failed: {e}"),
-            }
-        }
-        crate::primitives::shannon_entropy(p)
-    }
-
-    /// Mean: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn mean(&self, data: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::mean_gpu(data, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] mean GPU failed: {e}"),
-            }
-        }
-        if data.is_empty() {
-            0.0
-        } else {
-            data.iter().sum::<f64>() / data.len() as f64
-        }
-    }
-
-    /// Variance: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn variance(&self, data: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::variance_gpu(data, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] variance GPU failed: {e}"),
-            }
-        }
-        let n = data.len() as f64;
-        if n < 1.0 {
-            return 0.0;
-        }
-        let mean = data.iter().sum::<f64>() / n;
-        data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n
-    }
-
-    /// Pearson correlation: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn pearson_correlation(&self, x: &[f64], y: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::pearson_correlation_gpu(x, y, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] pearson GPU failed: {e}"),
-            }
-        }
-        cpu_pearson(x, y)
-    }
-
-    /// Distance to normal: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn distance_to_normal(&self, a: &[f64], n: usize) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::distance_to_normal_gpu(a, n, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] distance_to_normal GPU failed: {e}"),
-            }
-        }
-        crate::spectral_commutativity::distance_to_normal(a, n)
+        self.gpu_or_cpu(
+            "transpose",
+            |dev| crate::gpu_ops::transpose_gpu(a, n, dev),
+            || crate::spectral_commutativity::transpose(a, n),
+        )
     }
 
     /// Commutator `[A,B]` = AB - BA: GPU if available, CPU fallback.
     #[must_use]
     pub fn commutator(&self, a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::commutator_gpu(a, b, n, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] commutator GPU failed: {e}"),
-            }
-        }
-        crate::spectral_commutativity::commutator(a, b, n)
+        self.gpu_or_cpu(
+            "commutator",
+            |dev| crate::gpu_ops::commutator_gpu(a, b, n, dev),
+            || crate::spectral_commutativity::commutator(a, b, n),
+        )
+    }
+
+    /// Distance to normal: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn distance_to_normal(&self, a: &[f64], n: usize) -> f64 {
+        self.gpu_or_cpu(
+            "distance_to_normal",
+            |dev| crate::gpu_ops::distance_to_normal_gpu(a, n, dev),
+            || crate::spectral_commutativity::distance_to_normal(a, n),
+        )
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Dispatched operations — activations / distributions
+    // ═══════════════════════════════════════════════════════════════
+
+    /// Softmax: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn softmax(&self, x: &[f64]) -> Vec<f64> {
+        self.gpu_or_cpu(
+            "softmax",
+            |dev| crate::gpu_ops::softmax_gpu(x, dev),
+            || crate::transformer::softmax(x),
+        )
+    }
+
+    /// Boltzmann distribution: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn boltzmann(&self, fitnesses: &[f64], beta: f64) -> Vec<f64> {
+        self.gpu_or_cpu(
+            "boltzmann",
+            |dev| crate::gpu_ops::boltzmann_gpu(fitnesses, beta, dev),
+            || crate::counterdiabatic::boltzmann_distribution(fitnesses, beta),
+        )
+    }
+
+    /// Hill activation batch: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn hill_activation_batch(&self, x: &[f64], vmax: f64, k: f64, n_hill: f64) -> Vec<f64> {
+        self.gpu_or_cpu(
+            "hill_activation_batch",
+            |dev| crate::gpu_ops::hill_activation_batch_gpu(x, vmax, k, n_hill, dev),
+            || {
+                x.iter()
+                    .map(|&xi| crate::primitives::hill_activation(xi, vmax, k, n_hill))
+                    .collect()
+            },
+        )
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Dispatched operations — reductions / statistics
+    // ═══════════════════════════════════════════════════════════════
+
+    /// L2 distance: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn l2_distance(&self, a: &[f64], b: &[f64]) -> f64 {
+        self.gpu_or_cpu(
+            "l2_distance",
+            |dev| crate::gpu_ops::l2_distance_gpu(a, b, dev),
+            || crate::modes::l2_distance(a, b),
+        )
+    }
+
+    /// Shannon entropy: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn shannon_entropy(&self, p: &[f64]) -> f64 {
+        self.gpu_or_cpu(
+            "shannon_entropy",
+            |dev| crate::gpu_ops::shannon_entropy_gpu(p, dev),
+            || crate::primitives::shannon_entropy(p),
+        )
+    }
+
+    /// Mean: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn mean(&self, data: &[f64]) -> f64 {
+        self.gpu_or_cpu(
+            "mean",
+            |dev| crate::gpu_ops::mean_gpu(data, dev),
+            || {
+                if data.is_empty() {
+                    0.0
+                } else {
+                    data.iter().sum::<f64>() / data.len() as f64
+                }
+            },
+        )
+    }
+
+    /// Variance: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn variance(&self, data: &[f64]) -> f64 {
+        self.gpu_or_cpu(
+            "variance",
+            |dev| crate::gpu_ops::variance_gpu(data, dev),
+            || cpu_variance(data),
+        )
+    }
+
+    /// Pearson correlation: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn pearson_correlation(&self, x: &[f64], y: &[f64]) -> f64 {
+        self.gpu_or_cpu(
+            "pearson_correlation",
+            |dev| crate::gpu_ops::pearson_correlation_gpu(x, y, dev),
+            || cpu_pearson(x, y),
+        )
     }
 
     /// Chi-squared statistic: GPU if available, CPU fallback.
     #[must_use]
     pub fn chi_squared(&self, observed: &[f64], expected: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::chi_squared_gpu(observed, expected, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] chi_squared GPU failed: {e}"),
-            }
-        }
-        observed
-            .iter()
-            .zip(expected.iter())
-            .map(|(&o, &e)| {
-                if e.abs() < crate::primitives::LOG_GUARD {
-                    0.0
-                } else {
-                    (o - e).powi(2) / e
-                }
-            })
-            .sum()
+        self.gpu_or_cpu(
+            "chi_squared",
+            |dev| crate::gpu_ops::chi_squared_gpu(observed, expected, dev),
+            || cpu_chi_squared(observed, expected),
+        )
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Phase B dispatched operations
+    // Dispatched operations — HMM (Liu 016–018)
     // ═══════════════════════════════════════════════════════════════
 
     /// HMM backward step: GPU if available, CPU fallback.
@@ -328,20 +339,20 @@ impl Dispatcher {
         scale: f64,
         n_states: usize,
     ) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::hmm_backward_step_gpu(
-                beta_next,
-                transition,
-                emission_col,
-                scale,
-                n_states,
-                dev,
-            ) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] hmm_backward_step GPU failed: {e}"),
-            }
-        }
-        cpu_hmm_backward_step(beta_next, transition, emission_col, scale, n_states)
+        self.gpu_or_cpu(
+            "hmm_backward_step",
+            |dev| {
+                crate::gpu_ops::hmm_backward_step_gpu(
+                    beta_next,
+                    transition,
+                    emission_col,
+                    scale,
+                    n_states,
+                    dev,
+                )
+            },
+            || cpu_hmm_backward_step(beta_next, transition, emission_col, scale, n_states),
+        )
     }
 
     /// HMM Viterbi step: GPU if available, CPU fallback.
@@ -354,122 +365,104 @@ impl Dispatcher {
         log_emission_col: &[f64],
         n_states: usize,
     ) -> (Vec<f64>, Vec<usize>) {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::hmm_viterbi_step_gpu(
-                delta_prev,
-                log_transition,
-                log_emission_col,
-                n_states,
-                dev,
-            ) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] hmm_viterbi_step GPU failed: {e}"),
-            }
-        }
-        cpu_hmm_viterbi_step(delta_prev, log_transition, log_emission_col, n_states)
+        self.gpu_or_cpu(
+            "hmm_viterbi_step",
+            |dev| {
+                crate::gpu_ops::hmm_viterbi_step_gpu(
+                    delta_prev,
+                    log_transition,
+                    log_emission_col,
+                    n_states,
+                    dev,
+                )
+            },
+            || cpu_hmm_viterbi_step(delta_prev, log_transition, log_emission_col, n_states),
+        )
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Dispatched operations — population genetics (Campbell 025)
+    // ═══════════════════════════════════════════════════════════════
 
     /// Allele frequencies: GPU column-sum if available, CPU fallback.
     #[must_use]
     pub fn allele_frequencies(&self, pop: &[f64], n_individuals: usize, n_loci: usize) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::allele_frequencies_gpu(pop, n_individuals, n_loci, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] allele_frequencies GPU failed: {e}"),
-            }
-        }
-        crate::meta_population::allele_frequencies(pop, n_individuals, n_loci)
+        self.gpu_or_cpu(
+            "allele_frequencies",
+            |dev| crate::gpu_ops::allele_frequencies_gpu(pop, n_individuals, n_loci, dev),
+            || crate::meta_population::allele_frequencies(pop, n_individuals, n_loci),
+        )
     }
 
     /// Nucleotide diversity: GPU if available, CPU fallback.
     #[must_use]
     pub fn nucleotide_diversity(&self, pop: &[f64], n_individuals: usize, n_loci: usize) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::nucleotide_diversity_gpu(pop, n_individuals, n_loci, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] nucleotide_diversity GPU failed: {e}"),
-            }
-        }
-        crate::meta_population::nucleotide_diversity(pop, n_individuals, n_loci)
+        self.gpu_or_cpu(
+            "nucleotide_diversity",
+            |dev| crate::gpu_ops::nucleotide_diversity_gpu(pop, n_individuals, n_loci, dev),
+            || crate::meta_population::nucleotide_diversity(pop, n_individuals, n_loci),
+        )
     }
 
     /// Matrix correlation (upper triangle Pearson): GPU if available, CPU fallback.
     #[must_use]
     pub fn matrix_correlation(&self, a: &[f64], b: &[f64], n: usize) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::matrix_correlation_gpu(a, b, n, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] matrix_correlation GPU failed: {e}"),
-            }
-        }
-        crate::meta_population::matrix_correlation(a, b, n)
+        self.gpu_or_cpu(
+            "matrix_correlation",
+            |dev| crate::gpu_ops::matrix_correlation_gpu(a, b, n, dev),
+            || crate::meta_population::matrix_correlation(a, b, n),
+        )
     }
 
     /// Geographic distance matrix: GPU if available, CPU fallback.
     #[must_use]
     pub fn geographic_distances(&self, coords: &[(f64, f64)]) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::geographic_distance_matrix_gpu(coords, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] geographic_distances GPU failed: {e}"),
-            }
-        }
-        crate::meta_population::geographic_distance_matrix(coords)
+        self.gpu_or_cpu(
+            "geographic_distances",
+            |dev| crate::gpu_ops::geographic_distance_matrix_gpu(coords, dev),
+            || crate::meta_population::geographic_distance_matrix(coords),
+        )
     }
 
     /// Thermal diversity correlation: GPU Pearson if available, CPU fallback.
     #[must_use]
     pub fn thermal_diversity_correlation(&self, pi_values: &[f64], temperatures: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::thermal_diversity_correlation_gpu(pi_values, temperatures, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] thermal_diversity_correlation GPU failed: {e}"),
-            }
-        }
-        crate::meta_population::thermal_diversity_correlation(pi_values, temperatures)
+        self.gpu_or_cpu(
+            "thermal_diversity_correlation",
+            |dev| crate::gpu_ops::thermal_diversity_correlation_gpu(pi_values, temperatures, dev),
+            || crate::meta_population::thermal_diversity_correlation(pi_values, temperatures),
+        )
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Dispatched operations — game theory (Bruger/Waters 019)
+    // ═══════════════════════════════════════════════════════════════
 
     /// Replicator dynamics step: GPU matmul if available, CPU fallback.
     #[must_use]
     pub fn replicator_step(&self, freq: &[f64; 2], payoff: &[[f64; 2]; 2], dt: f64) -> [f64; 2] {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::replicator_step_gpu(freq, payoff, dt, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] replicator_step GPU failed: {e}"),
-            }
-        }
-        cpu_replicator_step(freq, payoff, dt)
-    }
-
-    /// Hill activation batch: GPU if available, CPU fallback.
-    #[must_use]
-    pub fn hill_activation_batch(&self, x: &[f64], vmax: f64, k: f64, n_hill: f64) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::hill_activation_batch_gpu(x, vmax, k, n_hill, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] hill_activation_batch GPU failed: {e}"),
-            }
-        }
-        x.iter()
-            .map(|&xi| crate::primitives::hill_activation(xi, vmax, k, n_hill))
-            .collect()
+        self.gpu_or_cpu(
+            "replicator_step",
+            |dev| crate::gpu_ops::replicator_step_gpu(freq, payoff, dt, dev),
+            || cpu_replicator_step(freq, payoff, dt),
+        )
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Eigensolvers (Session 47 — GPU promotion)
+    // Dispatched operations — eigensolvers (Session 47)
     // ═══════════════════════════════════════════════════════════════
 
     /// Symmetric eigenvalue decomposition: GPU (`BatchedEighGpu`) if available.
     #[must_use]
     pub fn eigh(&self, a: &[f64], n: usize) -> (Vec<f64>, Vec<f64>) {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::eigh_gpu(a, n, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] eigh GPU failed: {e}"),
-            }
-        }
-        let r = crate::eigh::eigh_householder_qr(a, n);
-        (r.eigenvalues, r.eigenvectors)
+        self.gpu_or_cpu(
+            "eigh",
+            |dev| crate::gpu_ops::eigh_gpu(a, n, dev),
+            || {
+                let r = crate::eigh::eigh_householder_qr(a, n);
+                (r.eigenvalues, r.eigenvectors)
+            },
+        )
     }
 
     /// Batch disorder sweep on GPU: eigensolve + mean IPR for all W values.
@@ -484,29 +477,52 @@ impl Dispatcher {
         crate::gpu_ops::disorder_sweep_gpu(hamiltonians, n, batch_size, dev).ok()
     }
 
-    /// Spectrum chi-squared with GPU dispatch (pangenome selection).
+    // ═══════════════════════════════════════════════════════════════
+    // Dispatched operations — pangenome selection (Moulana 024)
+    // ═══════════════════════════════════════════════════════════════
+
+    /// Spectrum chi-squared with GPU dispatch.
     #[must_use]
     pub fn spectrum_chi_squared(&self, observed: &[f64], expected_frac: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::spectrum_chi_squared_gpu(observed, expected_frac, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] spectrum_chi_squared GPU failed: {e}"),
-            }
-        }
-        crate::pangenome_selection::spectrum_chi_squared(observed, expected_frac)
+        self.gpu_or_cpu(
+            "spectrum_chi_squared",
+            |dev| crate::gpu_ops::spectrum_chi_squared_gpu(observed, expected_frac, dev),
+            || crate::pangenome_selection::spectrum_chi_squared(observed, expected_frac),
+        )
     }
 
-    /// Selection coefficient with GPU dispatch (pangenome selection).
+    /// Selection coefficient with GPU dispatch.
     #[must_use]
     pub fn selection_coefficient(&self, observed: &[f64], neutral: &[f64]) -> f64 {
-        if let Some(dev) = self.wgpu_device() {
-            match crate::gpu_ops::selection_coefficient_gpu(observed, neutral, dev) {
-                Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] selection_coefficient GPU failed: {e}"),
-            }
-        }
-        crate::pangenome_selection::selection_coefficient(observed, neutral)
+        self.gpu_or_cpu(
+            "selection_coefficient",
+            |dev| crate::gpu_ops::selection_coefficient_gpu(observed, neutral, dev),
+            || crate::pangenome_selection::selection_coefficient(observed, neutral),
+        )
     }
+}
+
+fn cpu_variance(data: &[f64]) -> f64 {
+    let n = data.len() as f64;
+    if n < 1.0 {
+        return 0.0;
+    }
+    let mean = data.iter().sum::<f64>() / n;
+    data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n
+}
+
+fn cpu_chi_squared(observed: &[f64], expected: &[f64]) -> f64 {
+    observed
+        .iter()
+        .zip(expected.iter())
+        .map(|(&o, &e)| {
+            if e.abs() < crate::primitives::LOG_GUARD {
+                0.0
+            } else {
+                (o - e).powi(2) / e
+            }
+        })
+        .sum()
 }
 
 fn cpu_hmm_backward_step(

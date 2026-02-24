@@ -37,13 +37,8 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    let gpu = match Gpu::new().await {
-        Ok(g) => g,
-        Err(e) => {
-            eprintln!("SKIP: {e}");
-            eprintln!("  0/0 checks — skipping gracefully");
-            std::process::exit(0);
-        }
+    let Ok(gpu) = Gpu::new().await else {
+        neural_spring::validation::exit_no_gpu();
     };
 
     eprintln!(

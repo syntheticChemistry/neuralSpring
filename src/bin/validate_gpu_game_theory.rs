@@ -42,11 +42,7 @@ async fn main() {
             );
             g
         }
-        Err(e) => {
-            eprintln!("  SKIP: {e} — no GPU/CPU adapter available");
-            eprintln!("  0/0 checks — skipping gracefully");
-            std::process::exit(0);
-        }
+        Err(_) => neural_spring::validation::exit_no_gpu(),
     };
 
     let op = SpatialPayoffGpu::new(Arc::clone(gpu.wgpu_device()));
