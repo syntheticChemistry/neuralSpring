@@ -76,7 +76,7 @@ fn validate_parseval(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let spec_data = require!(h, spectrum.to_vec(), "Parseval readback");
     let freq_energy = complex_energy(&spec_data) / f64::from(n);
 
-    let ratio = if time_energy > 1e-14 {
+    let ratio = if time_energy > neural_spring::tolerances::ZERO_DETECTION {
         freq_energy / time_energy
     } else {
         1.0
@@ -185,7 +185,7 @@ fn validate_cosine_concentration(h: &mut ValidationHarness, device: &Arc<WgpuDev
             + f64::from(re_neg.mul_add(re_neg, im_neg * im_neg))
     };
 
-    let leakage_fraction = if total_energy > 1e-14 {
+    let leakage_fraction = if total_energy > neural_spring::tolerances::ZERO_DETECTION {
         1.0 - peak_energy / total_energy
     } else {
         0.0
@@ -327,7 +327,7 @@ async fn validate_f64_parseval(h: &mut ValidationHarness, device: &Arc<WgpuDevic
     let spec_data = require!(h, spectrum.to_f64_vec(), "f64 Parseval readback");
     let freq_energy = complex_energy_f64(&spec_data) / f64::from(n);
 
-    let ratio = if time_energy > 1e-14 {
+    let ratio = if time_energy > neural_spring::tolerances::ZERO_DETECTION {
         freq_energy / time_energy
     } else {
         1.0
@@ -433,7 +433,7 @@ async fn validate_f64_cosine_concentration(h: &mut ValidationHarness, device: &A
         re_pos.mul_add(re_pos, im_pos * im_pos) + re_neg.mul_add(re_neg, im_neg * im_neg)
     };
 
-    let leakage_fraction = if total_energy > 1e-14 {
+    let leakage_fraction = if total_energy > neural_spring::tolerances::ZERO_DETECTION {
         1.0 - peak_energy / total_energy
     } else {
         0.0

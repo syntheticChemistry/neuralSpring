@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 24, 2026 (Sessions 40–50)
+**Last Updated**: February 24, 2026 (Sessions 40–55)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -302,13 +302,13 @@ Implemented via `Gpu::new()` adapter name-substring matching in `src/gpu.rs`.
 | Elementwise compose | nucleotide_diversity, pearson_correlation | `mul`, `sub`, `add`, `mean` |
 | Dimension reduction | variance, logsumexp | `mean_dim`, `sum_dim` |
 
-### API Gaps Identified
+### API Gaps (Updated — 2 Closed by ToadStool S52)
 
-| Gap | Impact | Workaround |
-|-----|--------|------------|
-| No `argmax_dim()` | Viterbi needs indices, not just max values | CPU argmax after `max_dim` readback |
+| Gap | Impact | Status |
+|-----|--------|--------|
+| ~~`argmax_dim()`~~ | Viterbi needs indices | **CLOSED** — `Tensor::argmax_dim(axis)` at `9abd6857` |
 | No `pow_scalar(n)` | Hill activation `x^n` | `exp(n * ln(x))` pipeline |
-| No `softmax_dim(axis)` | Row-wise attention softmax | `ScaledDotProductAttention` |
+| ~~`softmax_dim(axis)`~~ | Row-wise attention softmax | **CLOSED** — `Tensor::softmax_dim(axis)` at `9abd6857` |
 | No `div(other)` (elementwise) | Ratio computation | Uploaded reciprocal + `mul` |
 
 ### Ownership Model (Documented)
@@ -400,10 +400,24 @@ BarraCUDA APIs directly.
 f32→f64 alignment with upstream (ToadStool S49): BatchFitnessGpu, LocusVarianceGpu,
 MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu.
 
-### HillGateGpu f64 Graceful Skip Pattern
+### HillGateGpu f64 — S-17 Root Cause and Fix
 
-On RTX 4070, HillGateGpu f64 triggers a driver limitation. Validators skip f64 path
-gracefully; f32 path remains validated.
+**Root cause**: `hill_gate_f64.wgsl` uses native WGSL `pow(f64, f64)` which
+triggers NVVM compilation failure on RTX 4070 (Ada Lovelace, proprietary) and
+NAK assertion failure on TITAN V (NVK open-source). `compile_shader_f64` patches
+`exp()` and `log()` to polyfills but **does not patch `pow()`**.
+
+**Fix**: Replace `pow(` with `pow_f64(` in the shader source before compilation.
+`compile_shader_f64` → `inject_missing_math_f64` auto-injects the polyfill
+(uses `exp_f64(n * log_f64(base))` — proven in `gpu_ops::bio`'s Tensor pipeline).
+
+**Validation**: `validate_hillgate_f64_fix` 18/18 PASS on both GPUs. Max diff
+1.11e-16 (RTX 4070) / 2.22e-16 (TITAN V) — machine epsilon.
+
+**ToadStool action**: Extend `apply_transcendental_workaround` in
+`shaders/precision/mod.rs` to also replace `pow(` → `pow_f64(` when
+`needs_pow_f64_workaround()` is true. The detection already exists in
+`driver_profile.rs`. One-line addition to `patch_exp_log_in_code`.
 
 ### Validation Score: 132/133
 
@@ -491,9 +505,129 @@ All 5 modules are CPU-only. GPU promotion uses existing patterns:
 |----------|-------------|-------------|
 | Library modules | 31 | **36** (+5 baseCamp) |
 | Validation binaries | 133 | **138** (+5 baseCamp) |
-| Unit tests | 374 | **412** (+38 baseCamp) |
+| Unit tests | 374 | **459** (+38 baseCamp) |
 | BarraCUDA `eigh` consumers | 4 modules | **9** modules (+5 baseCamp) |
 
 ---
 
-*Barracuda usage audit — neuralSpring, February 24, 2026. Session 50: 5 baseCamp modules (82/82 PASS) composing `eigh_f64` + `Rng` into novel AI interpretability pipelines. GPU promotion candidates identified — all map to existing BarraCUDA patterns. Phase 5e: bC 24/25, gT 23/25, xD 15/15, mG 132/133. Session 49: deep debt audit. Session 48: typed op migration. Sessions 45–46: pure GPU promotion. Session 44: multi-GPU, 178.5×.*
+## Session 51 — Code Quality Evolution (February 24, 2026)
+
+### Structural Changes
+
+`gpu_dispatch.rs` refactored into `gpu_dispatch/` module directory:
+- `gpu_dispatch/mod.rs` — Dispatcher struct, `gpu_or_cpu` pattern, 25 dispatch methods
+- `gpu_dispatch/cpu_fallback.rs` — 6 CPU fallback implementations extracted
+
+The CPU fallbacks are now independently testable and candidates for
+`barracuda::stats` / `barracuda::bio` CPU reference absorption.
+
+**Variance convention difference**: `cpu_fallback::variance` uses **population
+variance** (÷N), matching GPU kernel convention. `barracuda::stats::variance`
+uses **sample variance** (÷(N-1)). Do NOT rewire — the conventions are
+intentionally different for GPU shader parity.
+
+### Hardcoding Evolution
+
+7 inline `1e-14` guards centralized to `tolerances::ZERO_DETECTION` across 5 bins.
+Algorithm convergence parameters (Nelder-Mead, bisect) remain correctly inline.
+
+### Dependency Audit
+
+All dependencies confirmed pure Rust. Only `-sys` crates are `linux-raw-sys`
+(kernel constants via wgpu) and `renderdoc-sys` (optional wgpu debug) — both
+unavoidable transitive dependencies with no C compilation.
+
+### Quality Gates
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` | 0 warnings (pedantic + nursery) |
+| `cargo clippy -p neural-spring-forge` | 0 warnings |
+| `cargo doc --no-deps` | 0 warnings (146 pages) |
+| `cargo test` | 459 lib + 9 doc PASS |
+| `cargo llvm-cov --lib` | 92.9% line coverage |
+
+---
+
+## Session 52 — ToadStool Sync & Cross-Spring Benchmarking (February 24, 2026)
+
+### ToadStool Sync (16 commits, `b41ee5f4` → `9abd6857`)
+
+| Absorption | Upstream API | Impact |
+|-----------|-------------|--------|
+| `xoshiro128ss.wgsl` | `barracuda::ops::prng_xoshiro` | PRNG local shader retired |
+| `logsumexp_reduce.wgsl` | `barracuda::ops::LogsumexpWgsl` | HMM/phylo numerics |
+| `stencil_cooperation.wgsl` | `barracuda::StencilCooperationGpu` | Game theory Fermi |
+| `wright_fisher_step.wgsl` | `barracuda::WrightFisherGpu` | Population genetics |
+| `rk45_adaptive.wgsl` | `barracuda::ops::rk45_adaptive` | Adaptive ODE |
+| `swarm_nn_scores.wgsl` | `barracuda::SwarmNnGpu` | Swarm robotics |
+
+**API gaps closed**: `Tensor::argmax_dim(axis)`, `Tensor::softmax_dim(axis)`.
+
+**Rewired**: `weight_spectral::level_spacing_ratio` → `barracuda::spectral::level_spacing_ratio`.
+
+**Only 2 local shaders remain**: `head_split.wgsl` + `head_concat.wgsl` (MHA S-03b workaround).
+
+### Cross-Spring Benchmark Results (RTX 4070, Vulkan, `--release`)
+
+| Op | Origin | Size | µs |
+|----|--------|------|----|
+| BatchFitnessGpu | neuralSpring | 1024×64 | 1,337 |
+| PairwiseL2Gpu | neuralSpring | 128×16 | 1,542 |
+| BatchIprGpu | neuralSpring | 32×64 | 2,027 |
+| SpatialPayoffGpu | neuralSpring | 32×32 | 1,450 |
+| PairwiseHammingGpu | neuralSpring | 64×100 | 1,682 |
+| HmmBatchForwardF64 | wetSpring | 4s×50t×32b | 2,141 |
+| BatchedEighGpu | hotSpring | 12×12×40 | 6,629 |
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `validate_all` | 137/138 PASS (1 pre-existing logsumexp driver issue) |
+| `cargo test --lib` | 459 PASS |
+| `cargo llvm-cov --lib` | 92.89% line coverage |
+
+---
+
+## Session 53 — Final f64 Typed Op Rewiring (February 24, 2026)
+
+### 5 Operations Rewired to Upstream f64 Typed Ops
+
+| Local Function | Old Path | Upstream API | Origin |
+|---------------|----------|-------------|--------|
+| `variance_gpu` | f32 Tensor (4 dispatches) | `VarianceReduceF64::population_variance` | hotSpring |
+| `pearson_correlation_gpu` | f32 Tensor (3+ dispatches) | `CorrelationF64::correlation` | wetSpring + hotSpring |
+| `shannon_entropy_gpu` | f32 Tensor (3 dispatches) | `FusedMapReduceF64::shannon_entropy` | wetSpring |
+| `cpu_fallback::pearson` | Local Rust | `barracuda::stats::pearson_correlation` | wetSpring |
+| `cpu_fallback::chi_squared` | Local Rust | `barracuda::special::chi_squared_statistic` | wetSpring |
+
+### Rewire Evolution Benchmark (10,000 elements)
+
+**RTX 4070 (Ada Lovelace)**
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Origin |
+|----|-----------------|-------------------|---------|--------|
+| Variance | 7,018 | 2,316 | **3.03×** | hotSpring Welford |
+| Pearson | 3,566 | 3,480 | **1.02×** | wetSpring + hotSpring |
+| Entropy | 3,989 | 1,662 | **2.40×** | wetSpring fused |
+
+**TITAN V (NVK)**
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Origin |
+|----|-----------------|-------------------|---------|--------|
+| Variance | 13,333 | 2,937 | **4.54×** | hotSpring Welford |
+| Pearson | 5,098 | 15,053 | 0.34× (NVK f64 cost) | wetSpring + hotSpring |
+| Entropy | 5,510 | 3,525 | **1.56×** | wetSpring fused |
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `validate_all` | 138/139 PASS (1 pre-existing logsumexp driver issue) |
+| `cargo test --lib` | 459 PASS |
+
+---
+
+*Barracuda usage audit — neuralSpring, February 24, 2026. Sessions 50–55: baseCamp 128/128 PASS, CPU↔GPU dispatch, metalForge mixed hardware. Session 53: Final f64 typed op rewiring — 5 ops delegated to upstream (variance 3×, entropy 2.4× faster). Phase 5e: bC 24/25, gT 23/25, xD 15/15, mG 141/142.*

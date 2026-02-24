@@ -2,10 +2,16 @@
 
 //! Locally evolved GPU-resident ops and WGSL shader exports.
 //!
-//! ## Absorption status (Feb 23, 2026 — `ToadStool` `b41ee5f4`)
+//! ## Absorption status (Feb 24, 2026 — `ToadStool` `9abd6857`, Sessions 50–53)
 //!
-//! S-01 through S-12 absorbed by `ToadStool`. 8 of 16 WGSL shaders sourced
-//! from upstream `barracuda` (`ops::bio::*`, `ops::rk_stage`, `spectral::batch_ipr`).
+//! S-01 through S-12 absorbed by `ToadStool`. All 16 WGSL shaders now have
+//! upstream equivalents in `barracuda` (`ops::bio::*`, `ops::rk_stage`,
+//! `spectral::batch_ipr`, `ops::prng`, `ops::LogsumexpWgsl`, typed bio ops).
+//! Only `head_split`/`head_concat` remain truly local (MHA S-03b workaround).
+//!
+//! WGSL constants below are **absorbed upstream but retained** for raw shader
+//! validation — our GPU pipeline validators depend on local binding layouts.
+//! See `metalForge/shaders/ABSORPTION_TRACKER.md` for the full status.
 //!
 //! ## Session 47: MHA S-03b fixed upstream (`ToadStool` `fe573095`)
 //!

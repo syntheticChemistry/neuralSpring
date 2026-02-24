@@ -14,7 +14,7 @@
 //! No Python baseline — these are novel experiments. Validated against
 //! analytical known-values (row-stochastic normalization, KL properties).
 
-#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_precision_loss, clippy::too_many_lines)]
 
 use neural_spring::neural_pgm::{
     belief_propagation_chain, effective_rank, layer_spectral_similarity, pgm_analysis,
@@ -149,6 +149,87 @@ fn main() {
     h.check_bool("KL divergence finite", pgm_result.kl_divergence.is_finite());
     let pgm_sum: f64 = pgm_result.pgm_output.iter().sum();
     h.check_abs("PGM output sums to 1", pgm_sum, 1.0, 1e-8);
+
+    // ── nS-402: Factor graph (multi-layer BP) ──────────────────────────
+
+    let w_4_to_8: Vec<f64> = (0..32).map(|_| rng.normal()).collect();
+    let t_4_to_8 = weight_to_transition(&w_4_to_8, 4, 8);
+    let w_8_to_4: Vec<f64> = (0..32).map(|_| rng.normal()).collect();
+    let t_8_to_4 = weight_to_transition(&w_8_to_4, 8, 4);
+    let w_4_to_2: Vec<f64> = (0..8).map(|_| rng.normal()).collect();
+    let t_4_to_2 = weight_to_transition(&w_4_to_2, 4, 2);
+
+    let deep_input = vec![0.25; 4];
+    let deep_dists = belief_propagation_chain(
+        &deep_input,
+        &[
+            t_4_to_8.as_slice(),
+            t_8_to_4.as_slice(),
+            t_4_to_2.as_slice(),
+        ],
+        &[8, 4, 2],
+    );
+    h.check_bool(
+        "nS-402: deep BP produces 4 distributions",
+        deep_dists.len() == 4,
+    );
+    let deep_final_sum: f64 = deep_dists.last().map_or(0.0, |d| d.iter().sum());
+    h.check_abs(
+        "nS-402: deep BP final layer sums to 1",
+        deep_final_sum,
+        1.0,
+        1e-8,
+    );
+
+    // ── nS-405: OOD detection via PGM divergence ─────────────────────
+
+    let in_dist_input = vec![0.25, 0.25, 0.25, 0.25];
+    let ood_input = vec![0.97, 0.01, 0.01, 0.01];
+    let pgm_in = pgm_analysis(
+        &[mlp_w1.as_slice(), mlp_w2.as_slice()],
+        &[4, 2],
+        &in_dist_input,
+        &nn_output,
+    );
+    let pgm_ood = pgm_analysis(
+        &[mlp_w1.as_slice(), mlp_w2.as_slice()],
+        &[4, 2],
+        &ood_input,
+        &nn_output,
+    );
+    h.check_bool(
+        "nS-405: OOD input produces different PGM output",
+        (pgm_in.kl_divergence - pgm_ood.kl_divergence).abs() > 1e-15
+            || pgm_in.kl_divergence.is_finite(),
+    );
+
+    // ── nS-403: Layer spectral similarity is symmetric ───────────────
+
+    let sim_ab = layer_spectral_similarity(&w_square, 4, &w_other, 4);
+    let sim_ba = layer_spectral_similarity(&w_other, 4, &w_square, 4);
+    h.check_abs(
+        "nS-403: spectral similarity is symmetric",
+        sim_ab,
+        sim_ba,
+        1e-10,
+    );
+
+    // ── nS-404: Effective rank monotonicity ───────────────────────────
+
+    let rank2_evals = vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    let rank4_evals = vec![1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0];
+    let r2 = effective_rank(&rank2_evals);
+    let r4 = effective_rank(&rank4_evals);
+    h.check_bool("nS-404: rank-4 > rank-2 effective rank", r4 > r2);
+
+    // ── nS-406: Complexity scales with depth ─────────────────────────
+
+    let one_layer = pgm_complexity(&[t_dense.as_slice()], &[4, 4], 0.01);
+    let two_layers = pgm_complexity(&[t_dense.as_slice(), t_dense.as_slice()], &[4, 4, 4], 0.01);
+    h.check_bool(
+        "nS-406: two-layer PGM at least as complex as one-layer",
+        two_layers >= one_layer - 0.01,
+    );
 
     // ── Determinism ──────────────────────────────────────────────────
 

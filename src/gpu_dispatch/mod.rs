@@ -16,6 +16,8 @@
 
 #![allow(clippy::cast_precision_loss)]
 
+mod cpu_fallback;
+
 use barracuda::device::WgpuDevice;
 use std::sync::Arc;
 
@@ -164,6 +166,66 @@ impl Dispatcher {
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // Mixed-hardware dispatch (metalForge integration)
+    // ═══════════════════════════════════════════════════════════════
+
+    /// Route a workload using the `metalForge` mixed-hardware cost model.
+    ///
+    /// Combines `dispatch.rs` substrate heuristics with `mixed.rs` transfer
+    /// cost estimation to select the optimal execution path. This is the
+    /// wiring point for `ToadStool` to absorb into `barracuda::unified_hardware`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn mixed_dispatch<T>(
+        &self,
+        op: &str,
+        compute_us: f64,
+        data_bytes: u64,
+        npu_available: bool,
+        needs_realtime: bool,
+        gpu_fn: impl FnOnce(&Arc<WgpuDevice>) -> Result<T, String>,
+        cpu_fn: impl FnOnce() -> T,
+    ) -> (T, neural_spring_forge::mixed::MixedSubstrate) {
+        use neural_spring_forge::mixed::{mixed_substrate, MixedSubstrate};
+
+        let substrate = mixed_substrate(
+            compute_us,
+            data_bytes,
+            self.has_gpu(),
+            npu_available,
+            needs_realtime,
+        );
+
+        match substrate {
+            MixedSubstrate::GpuOnly | MixedSubstrate::CpuToGpu => {
+                if let Some(dev) = self.wgpu_device() {
+                    match gpu_fn(dev) {
+                        Ok(result) => return (result, substrate),
+                        Err(e) => {
+                            eprintln!("[mixed-dispatch] {op} GPU failed, falling back: {e}");
+                        }
+                    }
+                }
+                (cpu_fn(), MixedSubstrate::CpuOnly)
+            }
+            MixedSubstrate::GpuToNpu | MixedSubstrate::NpuToGpu | MixedSubstrate::NpuOnly => {
+                eprintln!(
+                    "[mixed-dispatch] {op} NPU substrate selected but not available, using GPU"
+                );
+                if let Some(dev) = self.wgpu_device() {
+                    match gpu_fn(dev) {
+                        Ok(result) => return (result, substrate),
+                        Err(e) => {
+                            eprintln!("[mixed-dispatch] {op} GPU fallback failed: {e}");
+                        }
+                    }
+                }
+                (cpu_fn(), MixedSubstrate::CpuOnly)
+            }
+            MixedSubstrate::CpuOnly | MixedSubstrate::GpuToCpu => (cpu_fn(), substrate),
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // Dispatched operations — linear algebra
     // ═══════════════════════════════════════════════════════════════
 
@@ -301,7 +363,7 @@ impl Dispatcher {
         self.gpu_or_cpu(
             "variance",
             |dev| crate::gpu_ops::variance_gpu(data, dev),
-            || cpu_variance(data),
+            || cpu_fallback::variance(data),
         )
     }
 
@@ -311,7 +373,7 @@ impl Dispatcher {
         self.gpu_or_cpu(
             "pearson_correlation",
             |dev| crate::gpu_ops::pearson_correlation_gpu(x, y, dev),
-            || cpu_pearson(x, y),
+            || cpu_fallback::pearson(x, y),
         )
     }
 
@@ -321,7 +383,7 @@ impl Dispatcher {
         self.gpu_or_cpu(
             "chi_squared",
             |dev| crate::gpu_ops::chi_squared_gpu(observed, expected, dev),
-            || cpu_chi_squared(observed, expected),
+            || cpu_fallback::chi_squared(observed, expected),
         )
     }
 
@@ -351,7 +413,15 @@ impl Dispatcher {
                     dev,
                 )
             },
-            || cpu_hmm_backward_step(beta_next, transition, emission_col, scale, n_states),
+            || {
+                cpu_fallback::hmm_backward_step(
+                    beta_next,
+                    transition,
+                    emission_col,
+                    scale,
+                    n_states,
+                )
+            },
         )
     }
 
@@ -376,7 +446,14 @@ impl Dispatcher {
                     dev,
                 )
             },
-            || cpu_hmm_viterbi_step(delta_prev, log_transition, log_emission_col, n_states),
+            || {
+                cpu_fallback::hmm_viterbi_step(
+                    delta_prev,
+                    log_transition,
+                    log_emission_col,
+                    n_states,
+                )
+            },
         )
     }
 
@@ -444,7 +521,7 @@ impl Dispatcher {
         self.gpu_or_cpu(
             "replicator_step",
             |dev| crate::gpu_ops::replicator_step_gpu(freq, payoff, dt, dev),
-            || cpu_replicator_step(freq, payoff, dt),
+            || cpu_fallback::replicator_step(freq, payoff, dt),
         )
     }
 
@@ -499,110 +576,6 @@ impl Dispatcher {
             |dev| crate::gpu_ops::selection_coefficient_gpu(observed, neutral, dev),
             || crate::pangenome_selection::selection_coefficient(observed, neutral),
         )
-    }
-}
-
-fn cpu_variance(data: &[f64]) -> f64 {
-    let n = data.len() as f64;
-    if n < 1.0 {
-        return 0.0;
-    }
-    let mean = data.iter().sum::<f64>() / n;
-    data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n
-}
-
-fn cpu_chi_squared(observed: &[f64], expected: &[f64]) -> f64 {
-    observed
-        .iter()
-        .zip(expected.iter())
-        .map(|(&o, &e)| {
-            if e.abs() < crate::primitives::LOG_GUARD {
-                0.0
-            } else {
-                (o - e).powi(2) / e
-            }
-        })
-        .sum()
-}
-
-fn cpu_hmm_backward_step(
-    beta_next: &[f64],
-    transition: &[f64],
-    emission_col: &[f64],
-    scale: f64,
-    n_states: usize,
-) -> Vec<f64> {
-    let guard = crate::primitives::LOG_GUARD;
-    let safe_scale = if scale.abs() < guard { guard } else { scale };
-    let mut beta = vec![0.0; n_states];
-    for i in 0..n_states {
-        let mut sum = 0.0;
-        for j in 0..n_states {
-            sum += transition[i * n_states + j] * emission_col[j] * beta_next[j];
-        }
-        beta[i] = sum / safe_scale;
-    }
-    beta
-}
-
-fn cpu_hmm_viterbi_step(
-    delta_prev: &[f64],
-    log_transition: &[f64],
-    log_emission_col: &[f64],
-    n_states: usize,
-) -> (Vec<f64>, Vec<usize>) {
-    let mut delta_new = Vec::with_capacity(n_states);
-    let mut psi = Vec::with_capacity(n_states);
-    for j in 0..n_states {
-        let mut best_i = 0;
-        let mut best_val = f64::NEG_INFINITY;
-        for i in 0..n_states {
-            let val = delta_prev[i] + log_transition[i * n_states + j];
-            if val > best_val {
-                best_val = val;
-                best_i = i;
-            }
-        }
-        delta_new.push(best_val + log_emission_col[j]);
-        psi.push(best_i);
-    }
-    (delta_new, psi)
-}
-
-fn cpu_replicator_step(freq: &[f64; 2], payoff: &[[f64; 2]; 2], dt: f64) -> [f64; 2] {
-    let f0 = payoff[0][0].mul_add(freq[0], payoff[0][1] * freq[1]);
-    let f1 = payoff[1][0].mul_add(freq[0], payoff[1][1] * freq[1]);
-    let f_bar = freq[0].mul_add(f0, freq[1] * f1);
-
-    let mut x0 = (dt * freq[0]).mul_add(f0 - f_bar, freq[0]).max(0.0);
-    let mut x1 = (dt * freq[1]).mul_add(f1 - f_bar, freq[1]).max(0.0);
-    let sum = x0 + x1;
-    if sum > 0.0 {
-        x0 /= sum;
-        x1 /= sum;
-    }
-    [x0, x1]
-}
-
-fn cpu_pearson(x: &[f64], y: &[f64]) -> f64 {
-    let n = x.len() as f64;
-    if n < 2.0 {
-        return 0.0;
-    }
-    let mx = x.iter().sum::<f64>() / n;
-    let my = y.iter().sum::<f64>() / n;
-    let cov: f64 = x
-        .iter()
-        .zip(y.iter())
-        .map(|(&a, &b)| (a - mx) * (b - my))
-        .sum();
-    let vx: f64 = x.iter().map(|&a| (a - mx).powi(2)).sum();
-    let vy: f64 = y.iter().map(|&b| (b - my).powi(2)).sum();
-    let denom = (vx * vy).sqrt();
-    if denom < crate::primitives::LOG_GUARD {
-        0.0
-    } else {
-        cov / denom
     }
 }
 
@@ -828,7 +801,6 @@ mod tests {
     #[test]
     fn cpu_allele_frequencies() {
         let d = cpu();
-        // 2 individuals × 2 loci, diploid division: sum / (2*n_ind)
         let pop = vec![2.0, 0.0, 0.0, 2.0];
         let freq = d.allele_frequencies(&pop, 2, 2);
         assert_eq!(freq.len(), 2);
@@ -915,7 +887,7 @@ mod tests {
         let a = vec![2.0, 0.0, 0.0, 3.0];
         let (vals, _vecs) = d.eigh(&a, 2);
         let mut sorted = vals;
-        sorted.sort_by(|a, b| a.partial_cmp(b).expect("no NaN in eigenvalues"));
+        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         assert!((sorted[0] - 2.0).abs() < 1e-10);
         assert!((sorted[1] - 3.0).abs() < 1e-10);
     }

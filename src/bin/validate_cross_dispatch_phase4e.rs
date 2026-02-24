@@ -34,10 +34,9 @@
 use std::sync::Arc;
 
 use barracuda::dispatch::{dispatch_for, DispatchTarget};
+use barracuda::ops::bio::hill_gate::WGSL_HILL_GATE_F64;
 use barracuda::ops::bio::swarm_nn::SwarmNnParams;
-use barracuda::ops::bio::{
-    HillGateGpu, HillGateParams, MultiObjFitnessGpu, PairwiseL2Gpu, SwarmNnGpu,
-};
+use barracuda::ops::bio::{HillGateParams, MultiObjFitnessGpu, PairwiseL2Gpu, SwarmNnGpu};
 use neural_spring::directed_evolution::multi_objective_fitness;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
@@ -414,11 +413,34 @@ fn gpu_hill_gate(
     params: &HillGateParams,
 ) -> Result<Vec<f64>, String> {
     let device = gpu.device();
+    let queue = gpu.queue();
     let dev = Arc::clone(gpu.wgpu_device());
-    let Ok(op) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| HillGateGpu::new(dev)))
-    else {
-        return Err("HillGateGpu f64 shader compilation failed (driver limitation)".into());
-    };
+
+    let patched = patch_pow_to_polyfill(WGSL_HILL_GATE_F64);
+    let module = dev.compile_shader_f64(&patched, Some("hill_gate_f64_polyfill"));
+
+    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("HillGate BGL"),
+        entries: &[
+            bgl_entry(0, true),
+            bgl_entry(1, true),
+            bgl_entry(2, false),
+            bgl_entry(3, true),
+        ],
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("HillGate Layout"),
+        bind_group_layouts: &[&bgl],
+        push_constant_ranges: &[],
+    });
+    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+        label: Some("HillGate Pipeline (polyfill)"),
+        layout: Some(&layout),
+        module: &module,
+        entry_point: "main",
+        compilation_options: wgpu::PipelineCompilationOptions::default(),
+        cache: None,
+    });
 
     let n_total = (params.n_a * params.n_b) as usize;
     let cdg_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -437,10 +459,95 @@ fn gpu_hill_gate(
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
+    let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hill_params"),
+        contents: bytemuck::bytes_of(params),
+        usage: wgpu::BufferUsages::UNIFORM,
+    });
 
-    op.dispatch(&cdg_buf, &ai_buf, &output_buf, params);
+    let workgroups = (params.n_a * params.n_b).div_ceil(256);
+
+    let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: None,
+        layout: &bgl,
+        entries: &[
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: cdg_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: ai_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: output_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: params_buf.as_entire_binding(),
+            },
+        ],
+    });
+
+    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("HillGate Dispatch"),
+    });
+    {
+        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+            label: Some("HillGate Pass"),
+            timestamp_writes: None,
+        });
+        pass.set_pipeline(&pipeline);
+        pass.set_bind_group(0, &bg, &[]);
+        pass.dispatch_workgroups(workgroups, 1, 1);
+    }
+    queue.submit(std::iter::once(encoder.finish()));
 
     gpu.read_buffer_f64(&output_buf, n_total)
+}
+
+fn patch_pow_to_polyfill(shader: &str) -> String {
+    shader
+        .lines()
+        .map(|line| {
+            let trimmed = line.trim_start();
+            if trimmed.starts_with("//") {
+                return line.to_string();
+            }
+            line.find("//").map_or_else(
+                || line.replace("pow(", "pow_f64("),
+                |pos| {
+                    let code = &line[..pos];
+                    let comment = &line[pos..];
+                    format!("{}{comment}", code.replace("pow(", "pow_f64("))
+                },
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+const fn bgl_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {
+    let ty = if binding == 3 {
+        wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Uniform,
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        }
+    } else {
+        wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        }
+    };
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty,
+        count: None,
+    }
 }
 
 fn validate_hill_gate_parity(h: &mut ValidationHarness, gpu: &Gpu) {
@@ -485,11 +592,8 @@ fn validate_hill_gate_parity(h: &mut ValidationHarness, gpu: &Gpu) {
                     gpu_out.len()
                 ),
                 max_diff,
-                tolerances::GPU_HILL_F32,
+                tolerances::GPU_F64_TRANSCENDENTAL,
             );
-        }
-        Err(e) if e.contains("driver limitation") => {
-            eprintln!("  SKIP hill_gate: {e}");
         }
         Err(e) => {
             h.check_bool(&format!("hill_gate parity: failed — {e}"), false);

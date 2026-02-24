@@ -223,9 +223,13 @@ corresponds to the trainability region. This connects game theory
 All experiments use our Phase 0/0+/0++ trained models and open data.
 
 ```bash
-cargo run --release --bin validate_hessian_eigenvalues  # Exp-nS-301
-cargo run --release --bin validate_neb_pathway          # Exp-nS-302
-cargo run --release --bin validate_boltzmann_sampling    # Exp-nS-303
+cargo run --release --bin validate_loss_landscape   # 27/27 PASS (Sessions 50, 54)
+cargo run --release --bin validate_basecamp_gpu     # 14/14 PASS — pure GPU parity
 ```
+
+All experiments (nS-301 through nS-305) are validated in the consolidated
+`validate_loss_landscape` binary, including Hessian eigenvalues, transition
+barriers, Boltzmann sampling, cross-architecture dimension sweep, gradient
+descent trajectory tracking, and multi-barrier landscape analysis.
 
 No proprietary models. No external data.

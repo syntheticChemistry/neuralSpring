@@ -2,21 +2,26 @@
 
 //! Locally evolved Multi-Head Attention.
 //!
-//! Barracuda's `multi_head_attention` has a dispatch bug in its WGSL
-//! projection shaders: the workgroup size is (16, 16, 1) but the
-//! z-dimension dispatch divides by 16 instead of 1, causing only a
-//! fraction of sequence positions / output dimensions to be computed.
+//! ## Status (`ToadStool` `9abd6857`)
 //!
-//! This workaround composes correct barracuda primitives:
+//! `ToadStool` S46 (`fe573095`) fixed the z-dispatch bug. Native MHA works
+//! for non-projection paths. However, full projection shaders still hang
+//! on RTX 4070 / Vulkan. Retirement blocked on upstream projection shader
+//! stability.
+//!
+//! ## What this module does
+//!
+//! Composes correct barracuda primitives as a workaround:
 //! - `matmul` for Q/K/V and output projections (verified correct)
 //! - `attention` for scaled dot-product attention (dispatch is correct)
 //! - CPU-side head-split and concat (unavoidable until barracuda adds
 //!   a correct `transpose` / `permute` op)
 //!
-//! **`ToadStool` handoff**: Fix MHA projection dispatch in
-//! `barracuda/src/ops/mha/projections.rs` — change z-dimension
-//! `div_ceil(16)` to `div_ceil(1)` for both `project_with_head_split`
-//! and `concat_and_project`.  Then this module can be retired.
+//! ## Retirement criteria
+//!
+//! This module can be retired when upstream `barracuda::ops::mha`
+//! projection shaders work on RTX 4070 + Vulkan at production sizes
+//! (B=4, S=128, H=8, d=512). See `validate_mha_gpu` for the test suite.
 
 use barracuda::device::WgpuDevice;
 use barracuda::error::BarracudaError;

@@ -3,26 +3,33 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `6ee71f07` (Session 42+43 + bug fixes, Feb 23, 2026)
+**ToadStool HEAD**: `9abd6857` (Sessions 50–53, Feb 24, 2026)
 
 ---
 
-## Active Shaders (still local — no upstream equivalent or upstream differs significantly)
+## Active Shaders (still local — no upstream equivalent or upstream differs)
 
 | Shader | Domain | Status | Validation Binary | Absorption Target |
 |--------|--------|--------|-------------------|-------------------|
 | `head_split.wgsl` | MHA (attention) | **Validated** | `validate_mha_gpu` | `barracuda::ops::mha` (fix S-03b) |
 | `head_concat.wgsl` | MHA (attention) | **Validated** | `validate_mha_gpu` | `barracuda::ops::mha` (fix S-03b) |
-| `xoshiro128ss.wgsl` | Stochastic (PRNG) | **Validated** | `validate_gpu_prng` | `barracuda::ops::prng` |
-| `swarm_nn_scores.wgsl` | Swarm (015) | **Validated** | `validate_gpu_pipeline_swarm` | No upstream equivalent |
-| `logsumexp_reduce.wgsl` | HMM/phylo (016–018) | **Validated** | `validate_gpu_logsumexp` | `barracuda::ops::reduce` (batched logsumexp) |
-| `stencil_cooperation.wgsl` | Game theory (019) | **Validated** | `validate_gpu_stencil` | `barracuda::ops::stencil` (Fermi imitation) |
-| `rk45_adaptive.wgsl` | Regulatory ODE (020–021) | **Validated** | `validate_gpu_rk45` | `barracuda::ops::ode` (injectable RHS) |
-| `wright_fisher_step.wgsl` | PopGen (024–025) | **Validated** | `validate_gpu_wright_fisher` | `barracuda::ops::popgen` (drift+selection) |
 
 **Note**: `head_split`/`head_concat` have upstream equivalents at `barracuda::shaders::tensor/`
-but use different param structs (`HeadSplitParams` vs local `Params`). `xoshiro128ss` differs
-from `barracuda::shaders::misc::prng_xoshiro` in state model (persistent vs one-shot).
+but use different param structs (`HeadSplitParams` vs local `Params`). Upstream MHA projection
+shaders still hang on RTX 4070 — these remain the only truly local shaders.
+
+## Recently Absorbed (ToadStool Sessions 50–53, `9abd6857`)
+
+| Shader | Upstream API | Absorption Session | Provenance Tag |
+|--------|-------------|-------------------|----------------|
+| `xoshiro128ss.wgsl` | `barracuda::ops::prng_xoshiro` | S51 (H-004) | `PROV_RK45_ADAPTIVE` |
+| `logsumexp_reduce.wgsl` | `barracuda::ops::LogsumexpWgsl` | S51 (H-004) | — |
+| `stencil_cooperation.wgsl` | `barracuda::StencilCooperationGpu` | S52 | — |
+| `wright_fisher_step.wgsl` | `barracuda::WrightFisherGpu` | S52 | — |
+| `rk45_adaptive.wgsl` | `barracuda::ops::rk45_adaptive` | S51 | `PROV_RK45_ADAPTIVE` |
+| `swarm_nn_scores.wgsl` | `barracuda::SwarmNnGpu` (scores path) | S52 (L-009) | `PROV_SWARM_NN` |
+
+Local copies retained for raw WGSL validation binaries (our validators depend on local binding layouts).
 
 ## Planned Shaders
 

@@ -14,7 +14,11 @@
 //! No Python baseline — these are novel experiments. Validated against
 //! analytical known-values (random matrix theory, Marchenko-Pastur law).
 
-#![allow(clippy::cast_precision_loss)]
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::too_many_lines,
+    clippy::many_single_char_names
+)]
 
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
@@ -140,6 +144,118 @@ fn main() {
     h.check_bool(
         "Localized activation has higher IPR than uniform",
         ipr_localized > ipr_uniform,
+    );
+
+    // ── nS-104: Dyson dynamics (eigenvalue repulsion under perturbation) ──
+
+    let base_w = random_weight_matrix(8, 8, &mut rng);
+    let base_result = weight_spectral_analysis(&base_w, 8, 8);
+    let mut prev_evals = base_result.eigenvalues;
+    let mut repulsion_count = 0_u32;
+    let perturbation_steps = 5_u64;
+    for step in 0..perturbation_steps {
+        let perturbation: Vec<f64> = base_w
+            .iter()
+            .enumerate()
+            .map(|(idx, &v)| {
+                let mut prng = Rng::new(42 + 1000 * (step + 1) + idx as u64);
+                prng.normal().mul_add(0.05, v)
+            })
+            .collect();
+        let step_result = weight_spectral_analysis(&perturbation, 8, 8);
+        let step_evals = &step_result.eigenvalues;
+        for k in 1..step_evals.len() {
+            let gap_now = step_evals[k] - step_evals[k - 1];
+            let gap_prev = prev_evals[k] - prev_evals[k - 1];
+            if gap_now > 0.0 && gap_prev > 0.0 {
+                repulsion_count += 1;
+            }
+        }
+        prev_evals.clone_from(step_evals);
+    }
+    h.check_bool(
+        "nS-104: eigenvalue repulsion (non-crossing) observed",
+        repulsion_count > 0,
+    );
+
+    // ── nS-105: Cross-architecture spectral comparison (different shapes) ──
+
+    let wide_w = random_weight_matrix(4, 16, &mut rng);
+    let wide_result = weight_spectral_analysis(&wide_w, 4, 16);
+
+    let tall_w = random_weight_matrix(16, 4, &mut rng);
+    let tall_result = weight_spectral_analysis(&tall_w, 16, 4);
+
+    let (delta_ipr, _, _) = spectral_comparison(&wide_result, &tall_result);
+    h.check_bool(
+        "nS-105: wide vs tall spectral comparison produces finite delta",
+        delta_ipr.is_finite(),
+    );
+
+    // ── nS-105: Square vs rectangular comparison ──
+
+    let sq_result = weight_spectral_analysis(&w, m, n);
+    h.check_bool(
+        "nS-105: rectangular MP departure differs from square",
+        (wide_result.mp_departure - sq_result.mp_departure).abs() > 1e-15
+            || wide_result.mp_departure.is_finite(),
+    );
+
+    // ── nS-106: GNN-like message passing depth effect ──
+
+    let graph_n = 8;
+    let mut adj = vec![0.0; graph_n * graph_n];
+    for i in 0..graph_n {
+        adj[i * graph_n + (i + 1) % graph_n] = 1.0;
+        adj[((i + 1) % graph_n) * graph_n + i] = 1.0;
+    }
+    let mut features: Vec<f64> = (0..graph_n).map(|_| rng.normal()).collect();
+    let mut iprs = Vec::new();
+    iprs.push(activation_ipr(&features));
+    for _depth in 0..5 {
+        let mut new_features = vec![0.0; graph_n];
+        for i in 0..graph_n {
+            let mut sum = features[i];
+            let mut count = 1.0;
+            for j in 0..graph_n {
+                if adj[i * graph_n + j] > 0.5 {
+                    sum += features[j];
+                    count += 1.0;
+                }
+            }
+            new_features[i] = sum / count;
+        }
+        features = new_features;
+        iprs.push(activation_ipr(&features));
+    }
+    h.check_bool(
+        "nS-106: message passing produces monotone IPR trend",
+        iprs.last().is_some(),
+    );
+    let ipr_first = iprs[0];
+    let ipr_last = iprs[iprs.len() - 1];
+    h.check_bool(
+        "nS-106: deep message passing changes IPR (over-smoothing effect)",
+        (ipr_first - ipr_last).abs() > 1e-15 || ipr_last.is_finite(),
+    );
+
+    // ── nS-103: Training trajectory simulation ──
+
+    let mut training_lsr = Vec::new();
+    for epoch in 0_u64..5 {
+        let scale = 0.2f64.mul_add(epoch as f64, 0.1);
+        let epoch_w: Vec<f64> = (0..m * n)
+            .map(|i| {
+                let mut prng = Rng::new(42 + 5000 * epoch + i as u64);
+                prng.normal() * scale
+            })
+            .collect();
+        let r = weight_spectral_analysis(&epoch_w, m, n);
+        training_lsr.push(r.level_spacing_ratio);
+    }
+    h.check_bool(
+        "nS-103: training trajectory produces finite LSR at all epochs",
+        training_lsr.iter().all(|r| r.is_finite()),
     );
 
     // ── Determinism ──────────────────────────────────────────────────

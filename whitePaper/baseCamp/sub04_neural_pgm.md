@@ -245,10 +245,13 @@ to better-generalizing models?
 All experiments use our Phase 0/0+/0++ trained models. Open data only.
 
 ```bash
-cargo run --release --bin validate_tree_pgm             # Exp-nS-401
-cargo run --release --bin validate_factor_graph          # Exp-nS-402
-cargo run --release --bin validate_layer_introgression   # Exp-nS-403
-cargo run --release --bin validate_spectral_circuits     # Exp-nS-404
+cargo run --release --bin validate_neural_pgm       # 21/21 PASS (Sessions 50, 54)
+cargo run --release --bin validate_basecamp_gpu     # 14/14 PASS — pure GPU parity
 ```
+
+All experiments (nS-401 through nS-406) are validated in the consolidated
+`validate_neural_pgm` binary, including tree-PGM extraction, deep factor
+graph belief propagation, layer spectral similarity, effective rank,
+OOD detection via PGM divergence, and PGM complexity scaling.
 
 No proprietary models. No external data. No model downloads.

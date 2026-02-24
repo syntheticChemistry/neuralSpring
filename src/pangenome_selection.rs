@@ -368,7 +368,11 @@ mod tests {
         let spec = frequency_spectrum(&freqs, 5);
         assert_eq!(spec.len(), 5);
         let total: f64 = spec.iter().sum();
-        assert_eq!(total, freqs.len() as f64);
+        let expected = freqs.len() as f64;
+        assert!(
+            (total - expected).abs() < f64::EPSILON,
+            "frequency spectrum total {total} != expected {expected}"
+        );
     }
 
     #[test]

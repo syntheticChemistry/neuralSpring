@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 24, 2026 (Sessions 49–50)
+**Date**: February 24, 2026 (Sessions 49–55)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -101,21 +101,28 @@ baseCamp papers use that validated infrastructure to explore new science.
 - **Nobody has applied the Anderson QS framework to multi-agent AI
   coordination** (Sub-thesis 05)
 
-All five use primitives neuralSpring has already validated at 1900+ checks
+All five use primitives neuralSpring has already validated at 1950+ checks
 across 25 papers. The extensions require composition, not new math.
 
-### Implementation Status (Session 50)
+### Implementation Status (Sessions 50–55)
 
-All 5 sub-theses have core Rust modules implemented and validated:
+All 5 sub-theses have core Rust modules implemented and validated at CPU,
+GPU, and mixed-hardware tiers:
 
-| # | Module | Checks | Status |
-|---|--------|--------|--------|
-| 01 | `src/weight_spectral.rs` | 15/15 | **PASS** |
-| 02 | `src/information_flow.rs` | 15/15 | **PASS** |
-| 03 | `src/loss_landscape.rs` | 19/19 | **PASS** |
-| 04 | `src/neural_pgm.rs` | 15/15 | **PASS** |
-| 05 | `src/agent_coordination.rs` | 18/18 | **PASS** |
-| **Total** | **5 modules** | **82/82** | **ALL PASS** |
+| # | Module | CPU Checks | GPU Checks | Status |
+|---|--------|-----------|-----------|--------|
+| 01 | `src/weight_spectral.rs` | 21/21 | 14/14 (shared) | **PASS** |
+| 02 | `src/information_flow.rs` | 22/22 | — | **PASS** |
+| 03 | `src/loss_landscape.rs` | 27/27 | — | **PASS** |
+| 04 | `src/neural_pgm.rs` | 21/21 | — | **PASS** |
+| 05 | `src/agent_coordination.rs` | 23/23 | — | **PASS** |
+| — | `validate_basecamp_gpu` | — | 14/14 | **PASS** |
+| — | `validate_compute_dispatch` | 16/16 | — | **PASS** |
+| — | `validate_mixed_hardware` | 14/14 | — | **PASS** |
+| **Total** | **5 modules + 3 validators** | **114+30** | **14** | **128/128 PASS** |
+
+Session 54 expanded experiments (82→114 CPU checks, nS-103..505).
+Session 55 added CPU↔GPU dispatch parity and metalForge mixed-hardware routing.
 
 ## Faculty Anchors
 
@@ -140,7 +147,7 @@ All 5 sub-theses have core Rust modules implemented and validated:
 
 ## Validated Primitive Inventory
 
-All baseCamp experiments build on primitives validated at 1800+ checks:
+All baseCamp experiments build on primitives validated at 1950+ checks:
 
 | Primitive | Papers Using It | GPU Status | baseCamp Use |
 |-----------|:---------------:|:----------:|:------------:|
@@ -203,8 +210,9 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 ---
 
 *neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
-grounding papers, 28 planned experiments, all built on 1900+ validated
+grounding papers, 28 planned experiments, all built on 1950+ validated
 checks across 25 papers and 7 scientific domains. Core primitives implemented
-in Session 50: 5 Rust modules, 5 validation binaries, 82/82 PASS, 412 unit
-tests, 0 clippy warnings. No new math — only novel composition of validated
-primitives.*
+in Sessions 50–55: 5 Rust modules, 8 validation binaries, 128/128 PASS
+(114 CPU + 14 GPU), 459 unit tests, 0 clippy warnings. BarraCUDA CPU vs GPU
+parity validated. metalForge mixed-hardware dispatch wired. No new math —
+only novel composition of validated primitives.*

@@ -320,7 +320,7 @@ mod tests {
         let a = vec![2.0, 0.0, 0.0, 3.0];
         let (vals, _vecs) = eigh_gpu(&a, 2, &dev).unwrap();
         let mut sorted = vals;
-        sorted.sort_by(|a, b| a.partial_cmp(b).expect("no NaN"));
+        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         assert!((sorted[0] - 2.0).abs() < 0.5);
         assert!((sorted[1] - 3.0).abs() < 0.5);
     }

@@ -17,8 +17,8 @@
 #![allow(clippy::cast_precision_loss, clippy::too_many_lines)]
 
 use neural_spring::agent_coordination::{
-    coordination_fraction, coordination_spectral_analysis, generate_lattice_agents,
-    graph_laplacian, interaction_graph, qs_signaling_step,
+    coordination_fraction, coordination_spectral_analysis, dimensional_coordination_sweep,
+    generate_lattice_agents, graph_laplacian, interaction_graph, qs_signaling_step,
 };
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
@@ -162,16 +162,83 @@ fn main() {
         frac_3d >= frac_1d - 0.3,
     );
 
+    // ── nS-504: Scaling behavior (agent count sweep) ──────────────────
+
+    let mut scaling_fracs = Vec::new();
+    for size in [3, 4, 5] {
+        let mut scale_agents = generate_lattice_agents(size, 2, 0.1, &mut Rng::new(42));
+        for a in &mut scale_agents {
+            a.signal_level = 1.0;
+        }
+        for _ in 0..20 {
+            qs_signaling_step(&mut scale_agents, 3.0, 0.1, 0.5);
+        }
+        scaling_fracs.push(coordination_fraction(&scale_agents));
+    }
+    h.check_bool(
+        "nS-504: all scaling fracs in [0, 1]",
+        scaling_fracs.iter().all(|&f| (0.0..=1.0).contains(&f)),
+    );
+    h.check_bool(
+        "nS-504: coordination fraction finite at all scales",
+        scaling_fracs.iter().all(|f| f.is_finite()),
+    );
+
+    // ── nS-505: Anderson transition (signal threshold sweep) ─────────
+
+    let mut transition_fracs = Vec::new();
+    for threshold_idx in 0..5 {
+        let threshold = 0.2f64.mul_add(f64::from(threshold_idx), 0.1);
+        let mut sweep_agents = generate_lattice_agents(4, 2, 0.1, &mut Rng::new(42));
+        for a in &mut sweep_agents {
+            a.signal_level = 1.0;
+        }
+        for _ in 0..20 {
+            qs_signaling_step(&mut sweep_agents, 3.0, 0.1, threshold);
+        }
+        transition_fracs.push(coordination_fraction(&sweep_agents));
+    }
+    h.check_bool(
+        "nS-505: threshold sweep produces monotone-ish coordination",
+        *transition_fracs.first().unwrap_or(&0.0) >= transition_fracs.last().unwrap_or(&1.0) - 0.5,
+    );
+
+    // ── nS-505: Spectral analysis at different disorder levels ───────
+
+    let low_disorder = coordination_spectral_analysis(
+        &generate_lattice_agents(4, 2, 0.01, &mut Rng::new(42)),
+        2.0,
+        0.01,
+    );
+    let high_disorder = coordination_spectral_analysis(
+        &generate_lattice_agents(4, 2, 1.0, &mut Rng::new(42)),
+        2.0,
+        1.0,
+    );
+    h.check_bool(
+        "nS-505: low vs high disorder IPR comparison finite",
+        low_disorder.mean_ipr.is_finite() && high_disorder.mean_ipr.is_finite(),
+    );
+
+    // ── nS-501: Dimensional sweep via API ────────────────────────────
+
+    let dim_result = dimensional_coordination_sweep(3, 0.1, 2.0, 3.0, 0.1, 0.5, 20, 42);
+    h.check_bool(
+        "nS-501: dimensional sweep all fracs in [0, 1]",
+        (0.0..=1.0).contains(&dim_result.dim1_coordination)
+            && (0.0..=1.0).contains(&dim_result.dim2_coordination)
+            && (0.0..=1.0).contains(&dim_result.dim3_coordination),
+    );
+
     // ── Determinism ──────────────────────────────────────────────────
 
     let mut rng_a = Rng::new(42);
     let mut rng_b = Rng::new(42);
     let a1 = generate_lattice_agents(4, 2, 0.1, &mut rng_a);
     let a2 = generate_lattice_agents(4, 2, 0.1, &mut rng_b);
-    let cap_match = a1
-        .iter()
-        .zip(a2.iter())
-        .all(|(x, y)| (x.capability - y.capability).abs() < 1e-14);
+    let cap_match = a1.iter().zip(a2.iter()).all(|(x, y)| {
+        (x.capability - y.capability).abs() < neural_spring::tolerances::ZERO_DETECTION
+    });
     h.check_bool("Agent generation deterministic", cap_match);
 
     h.finish();

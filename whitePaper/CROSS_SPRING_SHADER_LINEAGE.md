@@ -6,8 +6,8 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `b41ee5f4` (Session 47 + S45/S46/S49 absorption) |
-| Last updated | February 23, 2026 (Sessions 40–48) |
+| ToadStool HEAD | `9abd6857` (Sessions 50–53 sync, Feb 24, 2026) |
+| Last updated | February 24, 2026 (Sessions 40–55) |
 | BarraCUDA shader count | 645+ WGSL (zero CPU-only production math, S49) |
 
 ---
@@ -103,6 +103,7 @@
 | ESN `export_weights`/`import_weights` | Weight persistence for evolved echo state networks |
 | Spectral theory (Lanczos, Anderson) | Shared `BatchIprGpu` API for Anderson localization |
 | `complex_f64.wgsl` | Foundation for any future complex-valued ML ops |
+| `VarianceReduceF64` (Welford) | **3–4.5× faster** than f32 Tensor variance, f64 precision (S-53 rewire) |
 
 ### neuralSpring benefits from wetSpring
 
@@ -115,6 +116,15 @@
 | `SmithWatermanGpu` | Available for sequence alignment validation (Paper 017) |
 | `GillespieGpu` | Available for stochastic eco-dynamics simulation |
 | `FelsensteinGpu` | Available for phylogenetic likelihood computation |
+| `FusedMapReduceF64` | **1.5–2.4× faster** entropy with fused f64 map-reduce (S-53 rewire) |
+
+### neuralSpring benefits from wetSpring + hotSpring combined
+
+| From both Springs | How neuralSpring uses it |
+|-------------------|------------------------|
+| `CorrelationF64` | Single-dispatch f64 Pearson correlation (wetSpring stats + hotSpring precision) |
+| `chi_squared_statistic` | CPU fallback chi-squared via barracuda::special (S-53 rewire) |
+| `pow_f64` polyfill (S-17) | hotSpring `math_f64.wgsl` + wetSpring constant fix → `HillGate` f64 works |
 
 ### wetSpring benefits from neuralSpring
 
@@ -303,6 +313,168 @@ validators PASS.
 
 ---
 
+## Sessions 50–52 — ToadStool Sync, Code Quality & Absorption (February 24, 2026)
+
+### ToadStool Sync (16 commits absorbed, `b41ee5f4` → `9abd6857`)
+
+Sessions 50–53 of ToadStool absorbed 6 additional neuralSpring shaders and
+closed 2 API gaps (`argmax_dim`, `softmax_dim`). The `level_spacing_ratio`
+function was rewired from local implementation to upstream `barracuda::spectral`.
+
+### 6 New Shader Absorptions
+
+| Shader | Upstream API | Session |
+|--------|-------------|---------|
+| `xoshiro128ss.wgsl` | `barracuda::ops::prng_xoshiro` | S51 |
+| `logsumexp_reduce.wgsl` | `barracuda::ops::LogsumexpWgsl` | S51 |
+| `stencil_cooperation.wgsl` | `barracuda::StencilCooperationGpu` | S52 |
+| `wright_fisher_step.wgsl` | `barracuda::WrightFisherGpu` | S52 |
+| `rk45_adaptive.wgsl` | `barracuda::ops::rk45_adaptive` | S51 |
+| `swarm_nn_scores.wgsl` | `barracuda::SwarmNnGpu` | S52 |
+
+Only `head_split.wgsl` and `head_concat.wgsl` remain truly local (MHA S-03b
+workaround — upstream projection shaders still hang on RTX 4070).
+
+### Code Quality Hardening
+
+- `gpu_dispatch.rs` refactored into `gpu_dispatch/` module (dispatcher + `cpu_fallback.rs`)
+- Population-vs-sample variance convention documented (CPU fallback ÷N vs barracuda ÷(N-1))
+- 7 inline `1e-14` guards centralized to `tolerances::ZERO_DETECTION`
+- All Clippy pedantic + nursery warnings resolved (0 warnings)
+- `cargo doc --no-deps` clean (0 warnings, 146 pages)
+
+### Cross-Spring Benchmark Results (RTX 4070, Vulkan, Release, Feb 24, 2026)
+
+| Op | Origin | Size | Time (µs) |
+|----|--------|------|-----------|
+| `BatchFitnessGpu` | neuralSpring (S-25) | 1024×64 | 1,337 |
+| `PairwiseL2Gpu` | neuralSpring (S-42) | 128×16 | 1,542 |
+| `BatchIprGpu` | neuralSpring (S-25) | 32×64 | 2,027 |
+| `SpatialPayoffGpu` | neuralSpring (S-25) | 32×32 | 1,450 |
+| `PairwiseHammingGpu` | neuralSpring (S-25) | 64×100 | 1,682 |
+| `HmmBatchForwardF64` | wetSpring (S-39) | 4s×50t×32b | 2,141 |
+| `BatchedEighGpu` | hotSpring (S-39) | 12×12×40 | 6,629 |
+
+**Key insight**: All three Springs' shaders run through the same unified
+BarraCUDA API on RTX 4070. A neuralSpring user calling `HmmBatchForwardF64`
+(wetSpring origin) or `BatchedEighGpu` (hotSpring origin) sees no difference
+from calling `BatchFitnessGpu` (neuralSpring origin). The absorption model
+works: evolve locally, validate, hand off, absorb upstream, retire local copy.
+
+### `bench_upstream_vs_local` (Known Limitation)
+
+HillGateGpu f64 causes NVVM compilation failure on RTX 4070, which cascades
+to device loss. This is a documented driver limitation. The f32 path works.
+Benchmarks for the other 9 kernels show negligible wrapper overhead (0.92–1.16×),
+consistent with Session 48 findings.
+
+### Validation Score
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
+| `cargo doc --no-deps` | 0 warnings (146 pages) |
+| `cargo test --lib` | 459 PASS |
+| `cargo llvm-cov --lib` | 92.89% line coverage |
+| `validate_all` | 141/142 PASS (1 pre-existing logsumexp driver issue) |
+
+### Evolution Timeline Update
+
+```
+Feb 24  Session 50: baseCamp biophysical AI interpretability (5 modules, 82/82 PASS)
+        Session 51: Code quality evolution — gpu_dispatch refactor, clippy, docs
+        ToadStool sync: 16 commits (b41ee5f4 → 9abd6857)
+          - 6 shaders absorbed (xoshiro, logsumexp, stencil, wright_fisher, rk45, swarm_nn)
+          - argmax_dim() and softmax_dim(axis) API gaps CLOSED
+          - level_spacing_ratio rewired to barracuda::spectral
+          - barracuda::tolerances created (shared ZERO_DETECTION)
+        Session 52: S-17 HillGate f64 pow polyfill fix — 3 validators upgraded (0 SKIP)
+        Session 53: Final rewiring — 5 ops delegated to upstream f64 typed ops
+          - variance_gpu → VarianceReduceF64 (hotSpring Welford)
+          - pearson_correlation_gpu → CorrelationF64 (wetSpring + hotSpring)
+          - shannon_entropy_gpu → FusedMapReduceF64 (wetSpring fused)
+          - cpu_fallback::pearson → barracuda::stats::pearson_correlation
+          - cpu_fallback::chi_squared → barracuda::special::chi_squared_statistic
+        Only 2 local shaders remain: head_split + head_concat (MHA S-03b)
+```
+
+---
+
+## Session 53 — Final Rewiring: f32 Tensor → f64 Upstream Typed Ops (February 24, 2026)
+
+### Rewiring Summary
+
+Five GPU/CPU operations rewired from local f32 Tensor pipelines to upstream
+f64 typed BarraCUDA ops. This completes the cross-spring absorption cycle —
+neuralSpring now consumes shaders evolved by all three Springs through
+unified upstream APIs.
+
+| Operation | Old Path | New Path | Origin Spring |
+|-----------|----------|----------|---------------|
+| `variance_gpu` | f32 Tensor (mean→sub→sq→mean, 4 dispatches) | `VarianceReduceF64` (Welford, single f64 shader) | hotSpring |
+| `pearson_correlation_gpu` | f32 Tensor (3+ dispatches) | `CorrelationF64` (single f64 shader) | wetSpring + hotSpring |
+| `shannon_entropy_gpu` | f32 Tensor (log→mul→sum, 3 dispatches) | `FusedMapReduceF64` (fused f64 map-reduce) | wetSpring |
+| `cpu_fallback::pearson` | Local Rust implementation | `barracuda::stats::correlation::pearson_correlation` | wetSpring |
+| `cpu_fallback::chi_squared` | Local Rust implementation | `barracuda::special::chi_squared_statistic` | wetSpring |
+
+### Benchmark: Old f32 Tensor → New f64 Upstream (10,000 elements)
+
+**RTX 4070 (Ada Lovelace, NVIDIA proprietary driver)**
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Origin |
+|----|-----------------|-------------------|---------|--------|
+| Variance | 7,018 | 2,316 | **3.03×** | hotSpring Welford |
+| Pearson | 3,566 | 3,480 | **1.02×** | wetSpring + hotSpring |
+| Entropy | 3,989 | 1,662 | **2.40×** | wetSpring fused |
+
+**TITAN V (Volta, NVK open-source driver)**
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Origin |
+|----|-----------------|-------------------|---------|--------|
+| Variance | 13,333 | 2,937 | **4.54×** | hotSpring Welford |
+| Pearson | 5,098 | 15,053 | 0.34× (NVK f64 overhead) | wetSpring + hotSpring |
+| Entropy | 5,510 | 3,525 | **1.56×** | wetSpring fused |
+
+**Key observations:**
+
+1. **Variance** benefits enormously — Welford's online algorithm in a single
+   f64 dispatch eliminates 4 separate f32 dispatches (upload, mean, subtract,
+   square, mean). The win is even larger on TITAN V/NVK (4.54×).
+
+2. **Entropy** benefits from fused map-reduce — a single f64 dispatch that
+   computes `-sum(p * ln(p))` eliminates 3 f32 dispatches (log, mul, sum).
+
+3. **Pearson** is dispatch-neutral on RTX 4070 but **regresses on TITAN V/NVK**
+   where the f64 correlation shader hits NVK's slower f64 path. This is an
+   acceptable trade-off: the precision upgrade (f32→f64) matters more than
+   the NVK slowdown for correctness-critical scientific computation.
+
+### Cross-Spring Evolution Benchmark (RTX 4070 + TITAN V)
+
+| Op | Origin | RTX 4070 (µs) | TITAN V (µs) |
+|----|--------|---------------|-------------|
+| `BatchFitnessGpu` 1024×64 | neuralSpring (S-25) | 1,678 | 2,494 |
+| `PairwiseL2Gpu` 128×16 | neuralSpring (S-42) | 2,137 | 2,093 |
+| `BatchIprGpu` 32×64 | neuralSpring (S-25) | 1,988 | 1,913 |
+| `SpatialPayoffGpu` 32×32 | neuralSpring (S-25) | 1,776 | 2,087 |
+| `PairwiseHammingGpu` 64×100 | neuralSpring (S-25) | 1,449 | 1,678 |
+| `HmmBatchForwardF64` 4s×50t×32b | wetSpring (S-39) | 1,981 | 5,136 |
+| `BatchedEighGpu` 12×12×40 | hotSpring (S-39) | 6,190 | 20,106 |
+
+### Validation: 141/142 PASS
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
+| `cargo test --lib` | 459 PASS |
+| `validate_all` | 141/142 PASS |
+
+Only `validate_barracuda_logsumexp` fails (pre-existing driver issue, S-16).
+
+---
+
 ## Files
 
 | Purpose | Path |
@@ -315,5 +487,6 @@ validators PASS.
 | Local vs upstream benchmark | `src/bin/bench_upstream_vs_local.rs` |
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
+| Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
 | V15 handoff document | `wateringHole/handoffs/archive/NEURALSPRING_V15_SESSION47_HANDOFF_FEB23_2026.md` |
 | V16 handoff document | `wateringHole/handoffs/NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md` |

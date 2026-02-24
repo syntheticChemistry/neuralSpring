@@ -382,8 +382,19 @@ mod tests {
         let a1 = generate_lattice_agents(4, 2, 0.1, &mut rng1);
         let a2 = generate_lattice_agents(4, 2, 0.1, &mut rng2);
         for (ag1, ag2) in a1.iter().zip(a2.iter()) {
-            assert_eq!(ag1.capability, ag2.capability);
-            assert_eq!(ag1.position, ag2.position);
+            assert!(
+                (ag1.capability - ag2.capability).abs() < f64::EPSILON,
+                "capability mismatch: {} vs {}",
+                ag1.capability,
+                ag2.capability
+            );
+            assert!(
+                ag1.position
+                    .iter()
+                    .zip(ag2.position.iter())
+                    .all(|(a, b)| (a - b).abs() < f64::EPSILON),
+                "position mismatch"
+            );
         }
     }
 }

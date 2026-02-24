@@ -90,7 +90,7 @@ fn validate_eigh_reconstruct(h: &mut ValidationHarness, rng: &mut Rng, _n: usize
                 .sqrt();
 
             let norm: f64 = sym.iter().map(|x| x * x).sum::<f64>().sqrt();
-            let rel_err = if norm > 1e-14 {
+            let rel_err = if norm > neural_spring::tolerances::ZERO_DETECTION {
                 recon_err / norm
             } else {
                 recon_err

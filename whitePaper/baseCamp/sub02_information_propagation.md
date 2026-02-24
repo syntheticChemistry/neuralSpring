@@ -228,9 +228,13 @@ The information propagation sub-thesis tests two predictions:
 All experiments use our Phase 0/0+ trained models. Deterministic seed (42).
 
 ```bash
-cargo run --release --bin validate_depth_scales          # Exp-nS-201
-cargo run --release --bin validate_gate_disorder          # Exp-nS-202
-cargo run --release --bin validate_attention_hamiltonian  # Exp-nS-204
+cargo run --release --bin validate_information_flow   # 22/22 PASS (Sessions 50, 54)
+cargo run --release --bin validate_basecamp_gpu       # 14/14 PASS — pure GPU parity
 ```
+
+All experiments (nS-201 through nS-206) are validated in the consolidated
+`validate_information_flow` binary, including depth scales, gate disorder,
+attention Hamiltonian, Hill activation analysis, edge-of-chaos sweep, and
+layer-by-layer IPR trajectory.
 
 No proprietary models. No external data.

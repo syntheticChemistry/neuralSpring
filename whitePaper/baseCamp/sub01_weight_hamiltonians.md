@@ -224,10 +224,11 @@ All experiments use weight matrices from neuralSpring's Phase 0/0+/0++
 training runs. Deterministic seed (42). Open data only.
 
 ```bash
-cargo run --release --bin validate_weight_spectral   # 15/15 PASS (Session 50)
+cargo run --release --bin validate_weight_spectral   # 21/21 PASS (Sessions 50, 54)
+cargo run --release --bin validate_basecamp_gpu      # 14/14 PASS — pure GPU parity
 ```
 
-### Validated Primitives (Session 50)
+### Validated Primitives (Sessions 50, 54)
 
 | Function | What It Tests | Check Count |
 |----------|--------------|-------------|
@@ -239,6 +240,10 @@ cargo run --release --bin validate_weight_spectral   # 15/15 PASS (Session 50)
 | `spectral_entropy` | Entropy positivity and finiteness | 1 |
 | `weight_spectral_analysis` | Full pipeline (low-rank vs random comparison) | 3 |
 | `activation_ipr` | IPR range and uniform baseline | 2 |
+| nS-104: Dyson dynamics | Eigenvalue repulsion under perturbation | 1 |
+| nS-105: Cross-architecture | Wide vs tall, rectangular MP departure | 2 |
+| nS-106: GNN message passing | Over-smoothing via repeated averaging | 2 |
+| nS-103: Training trajectory | LSR across simulated training epochs | 1 |
 | Determinism | Identical results with same seed | 1 |
 
 No proprietary models. No external datasets beyond our existing open baselines.

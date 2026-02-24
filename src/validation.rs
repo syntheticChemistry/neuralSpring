@@ -595,4 +595,121 @@ mod tests {
         let h = ValidationHarness::new("my_validation_binary");
         assert_eq!(h.name, "my_validation_binary");
     }
+
+    // ── baseline_path resolution ─────────────────────────────────
+
+    #[test]
+    fn baseline_path_is_absolute() {
+        let p = baseline_path("control/ml_inference/mlp_baseline.json");
+        assert!(p.is_absolute(), "baseline_path should return absolute path");
+        assert!(
+            p.ends_with("control/ml_inference/mlp_baseline.json"),
+            "path should end with relative component"
+        );
+    }
+
+    #[test]
+    fn baseline_path_different_inputs() {
+        let a = baseline_path("a.json");
+        let b = baseline_path("b.json");
+        assert_ne!(a, b, "different inputs → different paths");
+        assert_eq!(a.parent(), b.parent(), "same parent directory");
+    }
+
+    // ── gpu_required env detection ───────────────────────────────
+
+    #[test]
+    fn gpu_required_respects_env() {
+        let original = std::env::var("NEURALSPRING_REQUIRE_GPU").ok();
+        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "0");
+        assert!(!gpu_required(), "0 → false");
+
+        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "1");
+        assert!(gpu_required(), "1 → true");
+
+        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "true");
+        assert!(gpu_required(), "true → true");
+
+        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "TRUE");
+        assert!(gpu_required(), "TRUE → true");
+
+        std::env::remove_var("NEURALSPRING_REQUIRE_GPU");
+        assert!(!gpu_required(), "unset → false");
+
+        if let Some(v) = original {
+            std::env::set_var("NEURALSPRING_REQUIRE_GPU", v);
+        }
+    }
+
+    // ── require method edge cases ────────────────────────────────
+
+    #[test]
+    fn require_err_message_includes_error() {
+        let mut h = ValidationHarness::new("test");
+        let _: Option<i32> = h.require("create tensor", Err::<i32, &str>("device lost"));
+        assert!(
+            h.checks[0].label.contains("create tensor"),
+            "label should contain operation name"
+        );
+        assert!(
+            h.checks[0].label.contains("device lost"),
+            "label should contain error message"
+        );
+    }
+
+    #[test]
+    fn require_multiple_failures_accumulated() {
+        let mut h = ValidationHarness::new("test");
+        let _: Option<i32> = h.require("op1", Err::<i32, &str>("e1"));
+        let _: Option<i32> = h.require("op2", Err::<i32, &str>("e2"));
+        let _: Option<i32> = h.require("op3", Ok::<i32, &str>(1));
+        assert_eq!(h.total_count(), 2, "only failures recorded");
+        assert_eq!(h.passed_count(), 0);
+    }
+
+    // ── max_abs_diff edge cases ──────────────────────────────────
+
+    #[test]
+    fn max_abs_diff_f32_empty() {
+        let diff = max_abs_diff_f32(&[], &[]);
+        assert!((diff - 0.0).abs() < 1e-15, "empty → 0");
+    }
+
+    #[test]
+    fn max_abs_diff_gpu_vs_cpu_empty() {
+        let diff = max_abs_diff_gpu_vs_cpu(&[], &[]);
+        assert!((diff - 0.0).abs() < 1e-15, "empty → 0");
+    }
+
+    #[test]
+    fn max_abs_diff_gpu_vs_cpu_precision() {
+        let gpu = vec![0.1_f32];
+        let cpu = vec![0.1_f64];
+        let diff = max_abs_diff_gpu_vs_cpu(&gpu, &cpu);
+        assert!(
+            diff < 1e-6,
+            "f32 0.1 should be close to f64 0.1, got {diff}"
+        );
+    }
+
+    // ── check_abs boundary ───────────────────────────────────────
+
+    #[test]
+    fn check_abs_exact_boundary() {
+        let mut h = ValidationHarness::new("test");
+        h.check_abs("at_boundary", 1.0 + 1e-10, 1.0, 1e-10);
+        assert!(
+            !h.checks[0].passed,
+            "exactly at tolerance → fail (strict <)"
+        );
+    }
+
+    // ── check_abs_or_rel rel path ────────────────────────────────
+
+    #[test]
+    fn check_abs_or_rel_rel_path_only() {
+        let mut h = ValidationHarness::new("test");
+        h.check_abs_or_rel("rel_only", 1000.5, 1000.0, 1e-3);
+        assert!(h.checks[0].passed, "0.5/1000 = 5e-4 < 1e-3 → pass via rel");
+    }
 }

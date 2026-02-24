@@ -190,6 +190,65 @@ fn main() {
         mean_loss_lo < mean_loss_hi + 5.0,
     );
 
+    // ── nS-304: Cross-architecture comparison (dimension sweep) ──────
+
+    for dim in [2, 4, 8] {
+        let origin = vec![0.0; dim];
+        let result = landscape_analysis(&quadratic_loss, &origin, 1e-5, 0.1);
+        h.check_bool(
+            &format!("nS-304: quadratic dim={dim} saddle_index=0"),
+            result.saddle_index == 0,
+        );
+    }
+
+    // ── nS-304: Rosenbrock landscape at non-minimum ──────────────────
+
+    let rb_off = vec![0.0, 0.0];
+    let rb_off_result = landscape_analysis(&rosenbrock_loss, &rb_off, 1e-5, 0.1);
+    h.check_bool(
+        "nS-304: Rosenbrock loss at (0,0) > 0",
+        rb_off_result.loss > 0.5,
+    );
+
+    // ── nS-305: Training dynamics (gradient descent on quadratic) ────
+
+    let mut param_traj = vec![5.0, 3.0];
+    let lr = 0.1;
+    let mut loss_traj = Vec::new();
+    for _ in 0..20 {
+        let loss = quadratic_loss(&param_traj);
+        loss_traj.push(loss);
+        let grad: Vec<f64> = param_traj.iter().map(|&x| 2.0 * x).collect();
+        for (p, g) in param_traj.iter_mut().zip(grad.iter()) {
+            *p -= lr * g;
+        }
+    }
+    h.check_bool(
+        "nS-305: loss decreases during gradient descent",
+        loss_traj.last().unwrap_or(&f64::INFINITY) < loss_traj.first().unwrap_or(&0.0),
+    );
+
+    let final_loss = quadratic_loss(&param_traj);
+    h.check_bool("nS-305: converged near minimum", final_loss < 0.01);
+
+    // ── nS-305: Landscape along training trajectory ──────────────────
+
+    let mid_result = landscape_analysis(&quadratic_loss, &[2.5, 1.5], 1e-5, 0.1);
+    let end_result = landscape_analysis(&quadratic_loss, &param_traj, 1e-5, 0.1);
+    h.check_bool(
+        "nS-305: loss decreases along trajectory",
+        end_result.loss < mid_result.loss,
+    );
+
+    // ── nS-302: Multi-barrier landscape ──────────────────────────────
+
+    let barrier_12 = transition_barrier(0.0, 1.0, 5.0);
+    let barrier_23 = transition_barrier(1.0, 0.5, 3.0);
+    h.check_bool(
+        "nS-302: deeper minimum has higher barrier",
+        barrier_12 > barrier_23 - 0.5,
+    );
+
     // ── Determinism ──────────────────────────────────────────────────
 
     let h1 = numerical_hessian(&quadratic_loss, &params, 1e-5);

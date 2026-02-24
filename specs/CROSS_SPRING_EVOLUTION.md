@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `6ee71f07` + 2 local fixes pending absorption (Feb 23, 2026)
+**ToadStool HEAD**: `9abd6857` (Sessions 50–53 sync, Feb 24, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -157,8 +157,13 @@ now available to wetSpring for its genomics pipelines and to hotSpring for spect
 | `weighted_dot_f64` | hotSpring | f64 validation checks |
 | Ada Lovelace f64 workaround | wetSpring | RTX 4070 GPU support |
 | `SubstrateCapability` | hotSpring | Cross-dispatch routing |
-| `FusedMapReduceF64` | wetSpring | f64 tensor validation |
+| `FusedMapReduceF64` | wetSpring | **Production entropy** (2.4× faster, S-53 rewire) |
 | `cosine_similarity_f64` | wetSpring | f64 tensor validation |
+| `VarianceReduceF64` | hotSpring | **Production variance** (3–4.5× faster, S-53 rewire) |
+| `CorrelationF64` | wetSpring + hotSpring | **Production Pearson** (f64 precision, S-53 rewire) |
+| `chi_squared_statistic` | wetSpring | **CPU fallback chi²** (S-53 rewire) |
+| `pearson_correlation` | wetSpring | **CPU fallback Pearson** (S-53 rewire) |
+| `pow_f64` polyfill (S-17) | hotSpring + wetSpring | `HillGate` f64 works on all drivers |
 
 ---
 
@@ -210,24 +215,63 @@ empirical crossover points codified in `metalForge/forge/src/dispatch.rs`.
 
 ---
 
-## Validation Summary (Post-Rewire, Feb 22, 2026)
+## Validation Summary (Post-Rewire, Feb 24, 2026)
 
-All validation binaries pass after rewiring to upstream `77f70b2e`:
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
+| `cargo test --lib` | 459 PASS |
+| `validate_all` | 141/142 PASS |
 
-| Category | Binaries | Checks | Status |
-|----------|----------|--------|--------|
-| Lib tests | — | 237 + 9 doc | **PASS** |
-| Forge crate | — | 18 | **PASS** |
-| eigh accuracy (S-12 delegation) | 1 | 9 | **PASS** |
-| Anderson localization | 1 | 8 | **PASS** |
-| BarraCUDA linalg ext | 1 | 17 | **PASS** |
-| GPU HMM forward (rewired) | 1 | 13 | **PASS** |
-| GPU batch fitness (rewired) | 1 | 20 | **PASS** |
-| GPU RK4 parallel (rewired) | 1 | 8 | **PASS** |
-| GPU pangenome/meta-pop/game/anderson/sate | 5 | 28 | **PASS** |
-| GPU modes/directed/swarm/signal | 4 | 39 | **PASS** |
-| Cross-dispatch (4 binaries) | 4 | 41 | **PASS** |
-| BarraCUDA stats/FFT/logsumexp | 3 | 42 | **PASS** |
+Only `validate_barracuda_logsumexp` fails (pre-existing S-16 driver issue).
+
+---
+
+## Session 53 — Final f64 Typed Op Rewiring (February 24, 2026)
+
+### Rewiring: f32 Tensor → f64 Upstream Typed Ops
+
+Five operations rewired from local f32 Tensor pipelines to upstream f64 typed
+BarraCUDA ops, completing the cross-spring absorption cycle.
+
+| Operation | Old Path (f32 Tensor) | New Path (f64 Upstream) | Origin |
+|-----------|----------------------|------------------------|--------|
+| `variance_gpu` | mean→sub→sq→mean (4 dispatches) | `VarianceReduceF64` (Welford, 1 dispatch) | hotSpring |
+| `pearson_correlation_gpu` | dx/dy→mul→sum (3+ dispatches) | `CorrelationF64` (1 dispatch) | wetSpring + hotSpring |
+| `shannon_entropy_gpu` | log→mul→sum (3 dispatches) | `FusedMapReduceF64` (fused, 1 dispatch) | wetSpring |
+| `cpu_fallback::pearson` | Local Rust impl | `barracuda::stats::pearson_correlation` | wetSpring |
+| `cpu_fallback::chi_squared` | Local Rust impl | `barracuda::special::chi_squared_statistic` | wetSpring |
+
+### Benchmark: Old f32 Tensor → New f64 Upstream (10,000 elements)
+
+**RTX 4070 (Ada Lovelace)**
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Origin |
+|----|-----------------|-------------------|---------|--------|
+| Variance | 7,018 | 2,316 | **3.03×** | hotSpring Welford |
+| Pearson | 3,566 | 3,480 | **1.02×** | wetSpring + hotSpring |
+| Entropy | 3,989 | 1,662 | **2.40×** | wetSpring fused |
+
+**TITAN V (NVK)**
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Origin |
+|----|-----------------|-------------------|---------|--------|
+| Variance | 13,333 | 2,937 | **4.54×** | hotSpring Welford |
+| Pearson | 5,098 | 15,053 | 0.34× (NVK f64 overhead) | wetSpring + hotSpring |
+| Entropy | 5,510 | 3,525 | **1.56×** | wetSpring fused |
+
+### Cross-Spring Evolution Benchmark (RTX 4070 + TITAN V)
+
+| Op | Origin | RTX 4070 (µs) | TITAN V (µs) |
+|----|--------|---------------|-------------|
+| `BatchFitnessGpu` 1024×64 | neuralSpring | 1,678 | 2,494 |
+| `PairwiseL2Gpu` 128×16 | neuralSpring | 2,137 | 2,093 |
+| `BatchIprGpu` 32×64 | neuralSpring | 1,988 | 1,913 |
+| `SpatialPayoffGpu` 32×32 | neuralSpring | 1,776 | 2,087 |
+| `PairwiseHammingGpu` 64×100 | neuralSpring | 1,449 | 1,678 |
+| `HmmBatchForwardF64` 4s×50t×32b | wetSpring | 1,981 | 5,136 |
+| `BatchedEighGpu` 12×12×40 | hotSpring | 6,190 | 20,106 |
 
 ---
 

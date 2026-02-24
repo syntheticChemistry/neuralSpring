@@ -262,7 +262,7 @@ mod tests {
 
     #[test]
     fn depth_scale_finite_for_decay() {
-        let variances: Vec<f64> = (0..10).map(|i| (-0.5 * i as f64).exp()).collect();
+        let variances: Vec<f64> = (0..10).map(|i| (-0.5 * f64::from(i)).exp()).collect();
         let xi = depth_scale(&variances);
         assert!(
             xi > 0.0 && xi < 10.0,
@@ -338,6 +338,6 @@ mod tests {
         let gates = vec![0.1, 0.9, 0.5, 0.2, 0.8];
         let w1 = gate_disorder_parameter(&gates);
         let w2 = gate_disorder_parameter(&gates);
-        assert_eq!(w1, w2);
+        assert!((w1 - w2).abs() < f64::EPSILON, "determinism: {w1} != {w2}");
     }
 }

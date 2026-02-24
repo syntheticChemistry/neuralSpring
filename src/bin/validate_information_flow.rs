@@ -14,7 +14,7 @@
 //! No Python baseline — these are novel experiments. Validated against
 //! analytical known-values (information theory, Anderson diagnostics).
 
-#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_precision_loss, clippy::too_many_lines)]
 
 use neural_spring::information_flow::{
     attention_spectral_analysis, attention_to_hamiltonian, depth_scale, gate_disorder_parameter,
@@ -129,6 +129,82 @@ fn main() {
     h.check_bool(
         "Jacobian spectral radius finite and non-negative",
         rho.is_finite() && rho >= 0.0,
+    );
+
+    // ── nS-205: Hill activation analysis of LSTM-like gates ───────────
+
+    let gate_values: Vec<f64> = (0..50)
+        .map(|i| {
+            let x = f64::from(i) / 49.0;
+            1.0 / (1.0 + (-10.0 * (x - 0.5)).exp())
+        })
+        .collect();
+    let sat_steep = gate_saturation(&gate_values, 0.05);
+    h.check_bool("nS-205: steep sigmoid saturates", sat_steep > 0.0);
+
+    let gentle_gates: Vec<f64> = (0..50)
+        .map(|i| {
+            let x = f64::from(i) / 49.0;
+            1.0 / (1.0 + (-(x - 0.5)).exp())
+        })
+        .collect();
+    let sat_gentle = gate_saturation(&gentle_gates, 0.05);
+    h.check_bool(
+        "nS-205: steep sigmoid has more saturation than gentle",
+        sat_steep >= sat_gentle,
+    );
+
+    let disorder_steep = gate_disorder_parameter(&gate_values);
+    let disorder_gentle = gate_disorder_parameter(&gentle_gates);
+    h.check_bool(
+        "nS-205: steeper gates produce higher disorder",
+        disorder_steep >= disorder_gentle - 0.01,
+    );
+
+    // ── nS-206: Edge-of-chaos systematic sigma_w sweep ───────────────
+
+    let sweep_n = 4;
+    let mut rho_values = Vec::new();
+    for sigma_idx in 0_u64..5 {
+        let sigma = 0.3f64.mul_add(sigma_idx as f64, 0.1);
+        let sweep_w: Vec<f64> = (0..sweep_n * sweep_n)
+            .map(|i| {
+                let mut prng = Rng::new(42 + 10000 * sigma_idx + i as u64);
+                prng.normal() * sigma
+            })
+            .collect();
+        let sweep_pre: Vec<f64> = (0..sweep_n)
+            .map(|i| {
+                let mut prng = Rng::new(42 + 20000 + i as u64);
+                prng.normal()
+            })
+            .collect();
+        rho_values.push(jacobian_spectral_radius(&sweep_w, &sweep_pre, sweep_n));
+    }
+    h.check_bool(
+        "nS-206: spectral radius finite for all sigma_w",
+        rho_values.iter().all(|r| r.is_finite()),
+    );
+    h.check_bool(
+        "nS-206: spectral radius increases with sigma_w",
+        *rho_values.last().unwrap_or(&0.0) >= rho_values.first().unwrap_or(&f64::INFINITY) - 0.1,
+    );
+
+    // ── nS-203: Layer-by-layer IPR trajectory ────────────────────────
+
+    let multi_input: Vec<f64> = (0..8).map(|_| rng.normal()).collect();
+    let multi_w1: Vec<f64> = (0..8 * 8).map(|_| rng.normal() * 0.5).collect();
+    let multi_w2: Vec<f64> = (0..8 * 8).map(|_| rng.normal() * 0.5).collect();
+    let multi_w3: Vec<f64> = (0..8 * 8).map(|_| rng.normal() * 0.5).collect();
+    let multi_variances =
+        mlp_signal_propagation(&multi_input, &[&multi_w1, &multi_w2, &multi_w3], &[8, 8, 8]);
+    h.check_bool(
+        "nS-203: 4 variance measurements (input + 3 layers)",
+        multi_variances.len() == 4,
+    );
+    h.check_bool(
+        "nS-203: all layer variances positive",
+        multi_variances.iter().all(|&v| v > 0.0),
     );
 
     // ── Determinism ──────────────────────────────────────────────────

@@ -364,6 +364,143 @@ mod tests {
         let weights = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
         let t1 = weight_to_transition(&weights, 2, 3);
         let t2 = weight_to_transition(&weights, 2, 3);
-        assert_eq!(t1, t2);
+        assert!(
+            t1.iter()
+                .zip(t2.iter())
+                .all(|(a, b)| (a - b).abs() < f64::EPSILON),
+            "determinism: bit-identical runs must match"
+        );
+    }
+
+    #[test]
+    fn kl_divergence_mismatched_lengths() {
+        let p = vec![0.5, 0.5];
+        let q = vec![1.0];
+        assert!(pgm_nn_divergence(&p, &q).is_infinite());
+    }
+
+    #[test]
+    fn kl_divergence_empty() {
+        let p: Vec<f64> = vec![];
+        assert!(pgm_nn_divergence(&p, &p).is_infinite());
+    }
+
+    #[test]
+    fn transition_zero_row_no_panic() {
+        let weights = vec![0.0; 6];
+        let trans = weight_to_transition(&weights, 2, 3);
+        for &v in &trans {
+            assert!(v.is_finite(), "zero-weight rows must produce finite output");
+        }
+    }
+
+    #[test]
+    fn bp_chain_multi_layer() {
+        let input = vec![0.5, 0.5];
+        let w1 = vec![1.0, 0.0, 0.0, 1.0, 0.5, 0.5];
+        let w2 = vec![0.3, 0.7, 0.6, 0.4, 0.5, 0.5];
+        let t1 = weight_to_transition(&w1, 2, 3);
+        let t2 = weight_to_transition(&w2, 3, 2);
+        let dists = belief_propagation_chain(&input, &[t1.as_slice(), t2.as_slice()], &[3, 2]);
+        assert_eq!(dists.len(), 3, "input + 2 layers = 3 distributions");
+        for dist in &dists {
+            let sum: f64 = dist.iter().sum();
+            assert!((sum - 1.0).abs() < 1e-10, "normalization at {sum}");
+        }
+    }
+
+    #[test]
+    fn effective_rank_all_zeros() {
+        let eigenvalues = vec![0.0; 8];
+        let rank = effective_rank(&eigenvalues);
+        assert!(
+            rank.abs() < 1e-14,
+            "all-zero eigenvalues → rank 0, got {rank}"
+        );
+    }
+
+    #[test]
+    fn effective_rank_two_equal() {
+        let eigenvalues = vec![1.0, 1.0, 0.0, 0.0];
+        let rank = effective_rank(&eigenvalues);
+        assert!(
+            (rank - 2.0).abs() < 1e-10,
+            "two equal nonzero eigenvalues → rank 2, got {rank}"
+        );
+    }
+
+    #[test]
+    fn layer_spectral_similarity_different_sizes() {
+        let w1 = vec![1.0, 0.5, 0.5, 1.0];
+        let w2 = vec![1.0, 0.5, 0.3, 0.5, 1.0, 0.4, 0.3, 0.4, 1.0];
+        let sim = layer_spectral_similarity(&w1, 2, &w2, 3);
+        assert!(
+            sim.is_finite(),
+            "different-sized matrices should produce finite similarity"
+        );
+        assert!(
+            (-1.0..=1.0).contains(&sim),
+            "cosine similarity must be in [-1, 1], got {sim}"
+        );
+    }
+
+    #[test]
+    fn layer_spectral_similarity_zero_matrix() {
+        let zeros = vec![0.0; 4];
+        let sim = layer_spectral_similarity(&zeros, 2, &zeros, 2);
+        assert!(sim.abs() < 1e-14, "zero matrices → 0 similarity, got {sim}");
+    }
+
+    #[test]
+    fn pgm_complexity_measures_sparsity() {
+        let dense = vec![0.5; 12];
+        let sparse = vec![
+            0.001, 0.0, 0.0, 0.999, 0.0, 0.0, 0.001, 0.0, 0.0, 0.999, 0.0, 0.0,
+        ];
+        let dims = &[3, 4, 3];
+        let c_dense = pgm_complexity(&[dense.as_slice()], dims, 0.1);
+        let c_sparse = pgm_complexity(&[sparse.as_slice()], dims, 0.1);
+        assert!(
+            c_dense > c_sparse,
+            "dense ({c_dense}) should have higher complexity than sparse ({c_sparse})"
+        );
+    }
+
+    #[test]
+    fn pgm_complexity_empty() {
+        let c = pgm_complexity(&[], &[], 0.1);
+        assert!(c.abs() < 1e-14, "no layers → 0 complexity, got {c}");
+    }
+
+    #[test]
+    fn pgm_analysis_round_trip() {
+        let input = vec![0.5, 0.5];
+        let w1 = vec![1.0, 0.0, 0.0, 1.0];
+        let t1 = weight_to_transition(&w1, 2, 2);
+        let nn_output = t1[0..2].to_vec();
+        let result = pgm_analysis(&[w1.as_slice()], &[2], &input, &nn_output);
+        assert!(
+            result.kl_divergence.is_finite(),
+            "KL divergence must be finite"
+        );
+        assert_eq!(
+            result.per_layer_distributions.len(),
+            2,
+            "input + 1 layer = 2 distributions"
+        );
+    }
+
+    #[test]
+    fn pgm_analysis_kl_small_for_identity_like() {
+        let input = vec![0.25, 0.25, 0.25, 0.25];
+        let identity_like = vec![
+            10.0, 0.0, 0.0, 0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 10.0,
+        ];
+        let result = pgm_analysis(&[identity_like.as_slice()], &[4], &input, &input);
+        assert!(
+            result.kl_divergence < 0.01,
+            "identity-like transition should give near-zero KL, got {}",
+            result.kl_divergence
+        );
     }
 }

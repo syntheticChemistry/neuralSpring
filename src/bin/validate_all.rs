@@ -78,15 +78,16 @@ const BINARIES: &[&str] = &[
     "validate_gpu_pure_workload",
     "validate_cross_dispatch",
     // GPU shader validation — expanded coverage (Phase 3c+)
-    "validate_gpu_pangenome",   // Paper 024 — Jaccard distance
-    "validate_gpu_meta_pop",    // Paper 025 — locus variance
-    "validate_gpu_game_theory", // Paper 019 — spatial payoff stencil
-    "validate_gpu_anderson",    // Papers 022-023 — batch IPR
-    "validate_gpu_sate",        // Paper 017 — pairwise Hamming
-    "validate_gpu_modes",       // Paper 012 — pairwise L2 distance
-    "validate_gpu_directed",    // Paper 014 — multi-objective fitness
-    "validate_gpu_swarm",       // Paper 015 — neural net forward
-    "validate_gpu_signal",      // Paper 021 — Hill function gate
+    "validate_gpu_pangenome",    // Paper 024 — Jaccard distance
+    "validate_gpu_meta_pop",     // Paper 025 — locus variance
+    "validate_gpu_game_theory",  // Paper 019 — spatial payoff stencil
+    "validate_gpu_anderson",     // Papers 022-023 — batch IPR
+    "validate_gpu_sate",         // Paper 017 — pairwise Hamming
+    "validate_gpu_modes",        // Paper 012 — pairwise L2 distance
+    "validate_gpu_directed",     // Paper 014 — multi-objective fitness
+    "validate_gpu_swarm",        // Paper 015 — neural net forward
+    "validate_gpu_signal",       // Paper 021 — Hill function gate (polyfill)
+    "validate_hillgate_f64_fix", // S-17 — HillGate f64 pow() fix proof
     // Cross-dispatch (Phase 3d+)
     "validate_cross_dispatch_genomics",
     "validate_cross_dispatch_extended",
@@ -171,6 +172,11 @@ const BINARIES: &[&str] = &[
     "validate_loss_landscape",
     "validate_neural_pgm",
     "validate_agent_coordination",
+    // Session 54: baseCamp pure GPU workload validation
+    "validate_basecamp_gpu",
+    // Session 55: BarraCUDA CPU vs GPU dispatch + metalForge mixed hardware
+    "validate_compute_dispatch",
+    "validate_mixed_hardware",
 ];
 
 fn main() {

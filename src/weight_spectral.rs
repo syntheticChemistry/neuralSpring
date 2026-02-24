@@ -95,31 +95,11 @@ pub fn empirical_spectral_density(eigenvalues: &[f64], n_bins: usize) -> (Vec<f6
 /// For Poisson (localized states): mean r ≈ 0.386.
 ///
 /// Input eigenvalues must be sorted in ascending order.
+///
+/// Delegates to `barracuda::spectral::level_spacing_ratio` (upstream).
 #[must_use]
 pub fn level_spacing_ratio(eigenvalues: &[f64]) -> f64 {
-    if eigenvalues.len() < 3 {
-        return 0.0;
-    }
-
-    let spacings: Vec<f64> = eigenvalues.windows(2).map(|w| w[1] - w[0]).collect();
-
-    let mut sum_r = 0.0;
-    let mut count = 0usize;
-    for pair in spacings.windows(2) {
-        let (s1, s2) = (pair[0], pair[1]);
-        if s1.abs() < 1e-300 && s2.abs() < 1e-300 {
-            continue;
-        }
-        let r = s1.min(s2) / s1.max(s2).max(1e-300);
-        sum_r += r;
-        count += 1;
-    }
-
-    if count == 0 {
-        0.0
-    } else {
-        sum_r / count as f64
-    }
+    barracuda::spectral::level_spacing_ratio(eigenvalues)
 }
 
 /// GOE (Gaussian Orthogonal Ensemble) expected level spacing ratio.
@@ -285,7 +265,7 @@ mod tests {
 
     #[test]
     fn esd_sums_to_one() {
-        let eigenvalues: Vec<f64> = (0..20).map(|i| i as f64 * 0.5).collect();
+        let eigenvalues: Vec<f64> = (0..20).map(|i| f64::from(i) * 0.5).collect();
         let (_, counts) = empirical_spectral_density(&eigenvalues, 10);
         let sum: f64 = counts.iter().sum();
         assert!((sum - 1.0).abs() < 1e-12, "ESD should sum to 1, got {sum}");
@@ -293,7 +273,7 @@ mod tests {
 
     #[test]
     fn level_spacing_bounds() {
-        let sorted: Vec<f64> = (0..50).map(|i| i as f64).collect();
+        let sorted: Vec<f64> = (0..50).map(f64::from).collect();
         let r = level_spacing_ratio(&sorted);
         assert!(r > 0.9, "uniform spacing should have r near 1.0, got {r}");
     }
@@ -320,7 +300,7 @@ mod tests {
 
         let mut low_rank = vec![0.0; 64];
         for i in 0..8 {
-            low_rank[i * 8 + 0] = 1.0;
+            low_rank[i * 8] = 1.0;
         }
         let r_lowrank = weight_spectral_analysis(&low_rank, 8, 8);
 
@@ -336,7 +316,169 @@ mod tests {
         let w = random_weight_matrix(8, 8, &mut rng);
         let r1 = weight_spectral_analysis(&w, 8, 8);
         let r2 = weight_spectral_analysis(&w, 8, 8);
-        assert_eq!(r1.eigenvalues, r2.eigenvalues);
-        assert_eq!(r1.mean_ipr, r2.mean_ipr);
+        assert!(
+            r1.eigenvalues
+                .iter()
+                .zip(r2.eigenvalues.iter())
+                .all(|(a, b)| (a - b).abs() < f64::EPSILON),
+            "eigenvalue determinism failure"
+        );
+        assert!(
+            (r1.mean_ipr - r2.mean_ipr).abs() < f64::EPSILON,
+            "mean_ipr determinism: {} vs {}",
+            r1.mean_ipr,
+            r2.mean_ipr
+        );
+    }
+
+    // ── Edge cases for coverage ──────────────────────────────────
+
+    #[test]
+    fn esd_empty_eigenvalues() {
+        let (centers, counts) = empirical_spectral_density(&[], 10);
+        assert!(centers.is_empty());
+        assert!(counts.is_empty());
+    }
+
+    #[test]
+    fn esd_zero_bins() {
+        let (centers, counts) = empirical_spectral_density(&[1.0, 2.0], 0);
+        assert!(centers.is_empty());
+        assert!(counts.is_empty());
+    }
+
+    #[test]
+    fn esd_identical_eigenvalues() {
+        let eigenvalues = vec![5.0; 20];
+        let (_, counts) = empirical_spectral_density(&eigenvalues, 4);
+        let sum: f64 = counts.iter().sum();
+        assert!(
+            (sum - 1.0).abs() < 1e-12,
+            "ESD should sum to 1 even for identical values"
+        );
+    }
+
+    #[test]
+    fn level_spacing_too_few() {
+        assert!((level_spacing_ratio(&[]) - 0.0).abs() < 1e-15);
+        assert!((level_spacing_ratio(&[1.0]) - 0.0).abs() < 1e-15);
+        assert!((level_spacing_ratio(&[1.0, 2.0]) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn level_spacing_degenerate() {
+        let degen = vec![1.0; 10];
+        let r = level_spacing_ratio(&degen);
+        assert!(r.is_finite(), "degenerate eigenvalues should not NaN");
+    }
+
+    #[test]
+    fn mp_departure_empty() {
+        assert!((marchenko_pastur_departure(&[], 1.0) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn mp_departure_all_inside() {
+        let (lo, hi) = marchenko_pastur_bounds(1.0);
+        let eigenvalues = vec![f64::midpoint(lo, hi); 10];
+        let dep = marchenko_pastur_departure(&eigenvalues, 1.0);
+        assert!(
+            dep.abs() < 1e-14,
+            "all inside MP bounds → 0 departure, got {dep}"
+        );
+    }
+
+    #[test]
+    fn mp_departure_all_outside() {
+        let eigenvalues = vec![100.0; 10];
+        let dep = marchenko_pastur_departure(&eigenvalues, 1.0);
+        assert!(
+            (dep - 1.0).abs() < 1e-14,
+            "all outside MP bounds → 1.0 departure, got {dep}"
+        );
+    }
+
+    #[test]
+    fn spectral_entropy_empty() {
+        assert!((spectral_entropy(&[]) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn spectral_entropy_all_zero() {
+        assert!((spectral_entropy(&[0.0; 5]) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn spectral_entropy_single_nonzero() {
+        let s = spectral_entropy(&[0.0, 0.0, 5.0, 0.0]);
+        assert!(s.abs() < 1e-14, "single nonzero → 0 entropy, got {s}");
+    }
+
+    #[test]
+    fn spectral_comparison_signed() {
+        let mut rng = Rng::new(42);
+        let w1 = random_weight_matrix(4, 4, &mut rng);
+        let w2 = random_weight_matrix(4, 4, &mut rng);
+        let r1 = weight_spectral_analysis(&w1, 4, 4);
+        let r2 = weight_spectral_analysis(&w2, 4, 4);
+        let (d_ipr, d_lsr, d_ent) = spectral_comparison(&r1, &r2);
+        assert!(
+            (d_ipr - (r2.mean_ipr - r1.mean_ipr)).abs() < 1e-14,
+            "delta_ipr should be r2 - r1"
+        );
+        assert!(
+            (d_lsr - (r2.level_spacing_ratio - r1.level_spacing_ratio)).abs() < 1e-14,
+            "delta_lsr should be r2 - r1"
+        );
+        assert!(
+            (d_ent - (r2.spectral_entropy - r1.spectral_entropy)).abs() < 1e-14,
+            "delta_entropy should be r2 - r1"
+        );
+    }
+
+    #[test]
+    fn activation_ipr_zero_vector() {
+        let zeros = vec![0.0; 8];
+        let ipr_val = activation_ipr(&zeros);
+        assert!(ipr_val.abs() < 1e-14, "zero vector → 0 IPR, got {ipr_val}");
+    }
+
+    #[test]
+    fn activation_ipr_localized() {
+        let mut v = vec![0.0; 8];
+        v[3] = 5.0;
+        let ipr_val = activation_ipr(&v);
+        assert!(
+            (ipr_val - 1.0).abs() < 1e-12,
+            "single-neuron activation → IPR=1, got {ipr_val}"
+        );
+    }
+
+    #[test]
+    fn activation_ipr_uniform() {
+        let v = vec![1.0; 8];
+        let ipr_val = activation_ipr(&v);
+        assert!(
+            (ipr_val - 1.0 / 8.0).abs() < 1e-12,
+            "uniform activation → IPR=1/n, got {ipr_val}"
+        );
+    }
+
+    #[test]
+    fn full_analysis_identity_hamiltonian() {
+        let w: Vec<f64> = vec![1.0, 0.0, 0.0, 1.0];
+        let r = weight_spectral_analysis(&w, 2, 2);
+        assert_eq!(r.eigenvalues.len(), 4);
+        assert!(r.mean_ipr.is_finite());
+        assert!(r.level_spacing_ratio.is_finite());
+        assert!(r.spectral_entropy.is_finite());
+        assert!(r.mp_departure.is_finite());
+    }
+
+    #[test]
+    fn mp_bounds_non_unit_aspect() {
+        let (lo, hi) = marchenko_pastur_bounds(0.25);
+        assert!(lo >= 0.0, "lower bound must be non-negative");
+        assert!(hi > lo, "upper bound must exceed lower bound");
     }
 }

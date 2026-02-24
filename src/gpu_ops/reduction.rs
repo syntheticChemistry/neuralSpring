@@ -186,86 +186,45 @@ pub fn neural_forward_gpu(
     Ok(result.into_iter().map(f64::from).collect())
 }
 
-/// GPU Shannon entropy: -sum(p * ln(p)).
+/// GPU Shannon entropy: `-sum(p * ln(p))`.
 ///
-/// Replaces `primitives::shannon_entropy`.
-/// Uses Tensor log + mul + sum.
+/// Delegates to `barracuda::ops::fused_map_reduce_f64::FusedMapReduceF64`
+/// (f64 precision, fused map-reduce WGSL shader). Origin: wetSpring
+/// bio shaders → hotSpring precision infrastructure → `ToadStool`.
 ///
 /// # Errors
 ///
 /// Returns an error if GPU operations fail.
 pub fn shannon_entropy_gpu(probabilities: &[f64], device: &Arc<WgpuDevice>) -> Result<f64, String> {
-    let p_f32: Vec<f32> = probabilities
-        .iter()
-        .map(|&p| (p.max(crate::primitives::LOG_GUARD)) as f32)
-        .collect();
-    let n = p_f32.len();
+    use barracuda::ops::fused_map_reduce_f64::FusedMapReduceF64;
 
-    let p_for_log = Tensor::from_data(&p_f32, vec![n], device.clone())
-        .map_err(|e| format!("entropy_gpu upload_log: {e}"))?;
-    let p_for_mul = Tensor::from_data(&p_f32, vec![n], device.clone())
-        .map_err(|e| format!("entropy_gpu upload_mul: {e}"))?;
-
-    let log_p = p_for_log
-        .log_wgsl()
-        .map_err(|e| format!("entropy_gpu log: {e}"))?;
-
-    let p_log_p = p_for_mul
-        .mul(&log_p)
-        .map_err(|e| format!("entropy_gpu mul: {e}"))?;
-
-    let total = p_log_p.sum().map_err(|e| format!("entropy_gpu sum: {e}"))?;
-
-    let result = total
-        .to_vec()
-        .map_err(|e| format!("entropy_gpu readback: {e}"))?;
-
-    Ok(-f64::from(result[0]))
+    let op =
+        FusedMapReduceF64::new(device.clone()).map_err(|e| format!("entropy_gpu init: {e}"))?;
+    op.shannon_entropy(probabilities)
+        .map_err(|e| format!("entropy_gpu: {e}"))
 }
 
-/// GPU population variance: `E[x²] - E[x]²`.
+/// GPU population variance (divides by N) via Welford's algorithm.
 ///
-/// Replaces manual variance loops across modules.
+/// Delegates to `barracuda::ops::variance_reduce_f64::VarianceReduceF64`
+/// (f64 precision, Welford online WGSL shader). Origin: hotSpring
+/// precision infrastructure → `ToadStool`.
 ///
 /// # Errors
 ///
 /// Returns an error if GPU operations fail.
 pub fn variance_gpu(data: &[f64], device: &Arc<WgpuDevice>) -> Result<f64, String> {
-    let data_f32: Vec<f32> = data.iter().map(|&x| x as f32).collect();
-    let n = data_f32.len();
+    use barracuda::ops::variance_reduce_f64::VarianceReduceF64;
 
-    let t = Tensor::from_data(&data_f32, vec![n], device.clone())
-        .map_err(|e| format!("variance_gpu upload: {e}"))?;
-
-    let mean_t = t.mean().map_err(|e| format!("variance_gpu mean: {e}"))?;
-    let mean_val = mean_t
-        .to_vec()
-        .map_err(|e| format!("variance_gpu mean readback: {e}"))?[0];
-
-    let mean_vec = vec![mean_val; n];
-    let mean_broadcast = Tensor::from_data(&mean_vec, vec![n], device.clone())
-        .map_err(|e| format!("variance_gpu mean_vec: {e}"))?;
-
-    let diff = t
-        .sub(&mean_broadcast)
-        .map_err(|e| format!("variance_gpu sub: {e}"))?;
-    let sq = diff
-        .mul(&diff)
-        .map_err(|e| format!("variance_gpu sq: {e}"))?;
-    let var = sq.mean().map_err(|e| format!("variance_gpu var: {e}"))?;
-
-    let result = var
-        .to_vec()
-        .map_err(|e| format!("variance_gpu readback: {e}"))?;
-
-    Ok(f64::from(result[0]))
+    VarianceReduceF64::population_variance(device.clone(), data)
+        .map_err(|e| format!("variance_gpu: {e}"))
 }
 
 /// GPU Pearson correlation between two vectors.
 ///
-/// `r = cov(x,y) / (std_x * std_y)`.
-///
-/// Replaces `meta_population` Pearson correlation.
+/// Delegates to `barracuda::ops::correlation_f64_wgsl::CorrelationF64`
+/// (f64 precision, dedicated WGSL shader). Origin: wetSpring
+/// bio shaders → hotSpring precision infrastructure → `ToadStool`.
 ///
 /// # Errors
 ///
@@ -275,37 +234,11 @@ pub fn pearson_correlation_gpu(
     y: &[f64],
     device: &Arc<WgpuDevice>,
 ) -> Result<f64, String> {
-    let mean_x = mean_gpu(x, device)?;
-    let mean_y = mean_gpu(y, device)?;
+    use barracuda::ops::correlation_f64_wgsl::CorrelationF64;
 
-    let n = x.len();
-    let dx: Vec<f64> = x.iter().map(|&v| v - mean_x).collect();
-    let dy: Vec<f64> = y.iter().map(|&v| v - mean_y).collect();
-
-    let dx_f32: Vec<f32> = dx.iter().map(|&v| v as f32).collect();
-    let dy_f32: Vec<f32> = dy.iter().map(|&v| v as f32).collect();
-
-    let dx_t = Tensor::from_data(&dx_f32, vec![n], device.clone())
-        .map_err(|e| format!("pearson dx: {e}"))?;
-    let dy_t = Tensor::from_data(&dy_f32, vec![n], device.clone())
-        .map_err(|e| format!("pearson dy: {e}"))?;
-
-    let cov_t = dx_t.mul(&dy_t).map_err(|e| format!("pearson mul: {e}"))?;
-    let cov = cov_t
-        .sum()
-        .map_err(|e| format!("pearson cov sum: {e}"))?
-        .to_vec()
-        .map_err(|e| format!("pearson cov read: {e}"))?[0];
-
-    let var_x = variance_gpu(x, device)?;
-    let var_y = variance_gpu(y, device)?;
-
-    let denom = (var_x * var_y).sqrt() * n as f64;
-    if denom < crate::primitives::LOG_GUARD {
-        return Ok(0.0);
-    }
-
-    Ok(f64::from(cov) / denom)
+    let op = CorrelationF64::new(device.clone()).map_err(|e| format!("pearson_gpu init: {e}"))?;
+    op.correlation(x, y)
+        .map_err(|e| format!("pearson_gpu: {e}"))
 }
 
 /// GPU chi-squared statistic: sum((observed - expected)^2 / expected).

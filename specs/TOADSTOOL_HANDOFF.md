@@ -3,7 +3,7 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `b41ee5f4` + 2 local fixes pending absorption (Feb 24, 2026)
+**Last reviewed:** ToadStool commit `9abd6857` + 2 local fixes pending absorption (Feb 24, 2026)
 **Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V18_SESSION50_HANDOFF_FEB24_2026.md`
 
 ---
@@ -336,7 +336,7 @@ Comprehensive codebase audit and debt resolution:
 
 - **9 new determinism tests**: introgression, regulatory_network, pangenome_selection, meta_population, sate_alignment, signal_integration, game_theory, spectral_commutativity, anderson_localization (total: 16)
 - **9 new integration tests** (`tests/integration.rs`): cross-module consistency, provenance round-trip, tolerance registry lookup, validation harness, HMM/softmax/GELU/benchmark provenance verification
-- Library tests: **374 lib + 9 integration tests** (up from 264 lib)
+- Library tests: **459 lib + 9 integration tests** (up from 264 lib)
 
 ### Dependency Analysis
 
@@ -505,7 +505,7 @@ inter_population_af_variance, replicator_step, hill_activation_batch.
 
 ## ToadStool Sync: `5437c170` → `6ee71f07` (2 commits)
 
-neuralSpring synced to ToadStool HEAD `b41ee5f4` (Feb 23, 2026). Two bug-fix
+neuralSpring synced to ToadStool HEAD `9abd6857` (Feb 23, 2026). Two bug-fix
 commits since our last tracked commit:
 
 | Commit | Fix | Origin | neuralSpring Impact |
@@ -514,7 +514,7 @@ commits since our last tracked commit:
 | `6ee71f07` | loop_unroller `substitute_loop_var` emits `u32` suffix (`"0"` → `"0u"`) | hotSpring v0.6.7 | **None** — affects `BatchedEighGpu` single-dispatch (not used by neuralSpring) |
 
 **Build**: `cargo check` clean, zero new warnings.
-**Validation**: 374 lib + 9 integration tests PASS. `validate_all`: **133/133 PASS** (RTX 4070).
+**Validation**: 459 lib + 9 integration tests PASS. `validate_all`: **133/133 PASS** (RTX 4070).
 
 ### Still Pending Absorption (neuralSpring → ToadStool)
 
@@ -566,4 +566,86 @@ All 5 baseCamp modules use `eigh_f64` (via `eigh.rs` → `barracuda::ops::linalg
 **Note**: No new shortcomings discovered. S-15 (matmul magnitude ≤ 0.1) does not
 affect baseCamp — all matrices are synthetic with controllable magnitude.
 
-**Updated totals**: 36 modules, 138 binaries, 412 unit tests (up from 31/133/374).
+**Updated totals**: 36 modules, 142 binaries, 459 unit tests (up from 31/133/374).
+
+---
+
+## Session 55: Mixed-Hardware Dispatch Wiring
+
+Session 55 wired `metalForge::mixed::mixed_substrate()` into `Dispatcher::mixed_dispatch()`,
+creating an end-to-end dispatch path from science operation → substrate routing → GPU/CPU/NPU
+execution. This is ready for `ToadStool` to absorb into `barracuda::unified_hardware`.
+
+### New Absorption Candidates
+
+| Component | Current Location | `BarraCUDA` Target |
+|-----------|-----------------|-------------------|
+| `Dispatcher::mixed_dispatch()` | `gpu_dispatch/mod.rs` | `barracuda::unified_hardware::dispatch` |
+| `mixed_substrate()` | `metalForge/forge/src/mixed.rs` | `barracuda::unified_hardware::routing` |
+| `PcieBridge` | `metalForge/forge/src/pcie_bridge.rs` | `barracuda::unified_hardware::transfer` |
+
+### New Validators
+
+| Validator | Checks | Status |
+|-----------|--------|--------|
+| `validate_compute_dispatch` | 16 (routing + CPU↔GPU parity for 6 ops) | **PASS** |
+| `validate_mixed_hardware` | 14 (mixed routing + PCIe bridge + crossover) | **PASS** |
+
+---
+
+## S-17: HillGate f64 `pow()` Fix (Session 52, February 24, 2026)
+
+### Root Cause
+
+`hill_gate_f64.wgsl` uses native WGSL `pow(f64, f64)`. On both:
+- **RTX 4070 (Ada Lovelace, proprietary)**: NVVM compilation failure → device lost
+- **TITAN V (NVK, open-source)**: NAK assertion `alu.def.bit_size() == 32` → device lost
+
+`compile_shader_f64` → `for_driver_auto` → `apply_transcendental_workaround`
+patches `exp(` → `exp_f64(` and `log(` → `log_f64(`, but **does not patch `pow(`**.
+
+### Fix (Proven by neuralSpring)
+
+Replace `pow(` with `pow_f64(` in `hill_gate_f64.wgsl`. The existing
+`inject_missing_math_f64` auto-injects the `pow_f64` polyfill from `math_f64.wgsl`
+(uses `exp_f64(exponent * log_f64(base))` — identical to the approach in
+`gpu_ops::bio::hill_activation_batch_gpu`'s Tensor pipeline).
+
+### Validation
+
+| Adapter | Max GPU-CPU Diff | Checks |
+|---------|-----------------|--------|
+| RTX 4070 (Vulkan, proprietary) | 1.11e-16 | 18/18 PASS |
+| TITAN V (NVK, open-source) | 2.22e-16 | 18/18 PASS |
+
+Tests cover: 10×10, 32×32, 100×100 grids, AND gate corners, determinism,
+high exponents (n=8), and paired mode.
+
+### ToadStool Action (One-Line Fix)
+
+In `barracuda/src/shaders/precision/mod.rs`, extend `patch_exp_log_in_code`:
+
+```rust
+fn patch_exp_log_in_code(code: &str) -> String {
+    code.replace("exp(", "exp_f64(")
+        .replace("log(", "log_f64(")
+        .replace("pow(", "pow_f64(")  // S-17: native pow(f64) crashes NVVM/NAK
+}
+```
+
+The `needs_pow_f64_workaround()` detection already exists in `driver_profile.rs`.
+
+### Also Affected
+
+`hill_f64.wgsl` (element-wise Hill) uses the same native `pow(f64, f64)` pattern
+and likely has the same issue. Apply the same fix.
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `src/bin/validate_hillgate_f64_fix.rs` | Full proof-of-concept (18/18 PASS) |
+| `src/bin/validate_gpu_signal.rs` | Updated: uses polyfill path + f64 buffers (9/9 PASS) |
+| `barracuda/src/shaders/bio/hill_gate_f64.wgsl` | Needs `pow(` → `pow_f64(` |
+| `barracuda/src/shaders/math/hill_f64.wgsl` | Needs same fix |
+| `barracuda/src/shaders/precision/mod.rs` | `patch_exp_log_in_code` — add `pow` |

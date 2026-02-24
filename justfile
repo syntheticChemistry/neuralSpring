@@ -35,7 +35,7 @@ test-python:
 test-rust:
     cargo test
 
-# Validation subset (full suite: cargo run --release --bin validate_all — 138 binaries)
+# Validation subset (full suite: cargo run --release --bin validate_all — 139 binaries)
 validate: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu validate-basecamp
 
 # neuralSpring quick (3 bins: surrogate, transformer, metrics)

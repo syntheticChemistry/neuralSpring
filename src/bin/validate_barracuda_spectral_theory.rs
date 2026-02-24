@@ -54,7 +54,7 @@ fn validate_golden_ratio_parity(h: &mut ValidationHarness) {
             1.0 + BARRACUDA_GOLDEN
         ),
         diff,
-        1e-14,
+        neural_spring::tolerances::ZERO_DETECTION,
     );
 }
 

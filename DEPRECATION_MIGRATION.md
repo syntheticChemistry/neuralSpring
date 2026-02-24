@@ -1,7 +1,7 @@
 # neuralSpring — Deprecation & Migration Guide
 
 **Date**: February 23, 2026 (post-Sessions 44–46)
-**ToadStool HEAD**: `b41ee5f4` + 2 local fixes pending absorption (mean_reduce, chi²)
+**ToadStool HEAD**: `9abd6857` + 2 local fixes pending absorption (mean_reduce, chi²)
 **Status**: Migration complete — deprecated modules fossilized, S-03b locally resolved, gpu_dispatch active
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
@@ -11,7 +11,7 @@ S-12 (eigensolver) resolved via Householder+QR — `src/eigh.rs` delegates
 to upstream. Three new shortcomings (S-14, S-15, S-16) discovered during
 Phase 5b+ full-stack validation. Two upstream bugs fixed in Session 44
 (`Tensor::mean()` entry point, chi-squared expected values).
-See `wateringHole/handoffs/NEURALSPRING_V18_SESSION50_HANDOFF_FEB24_2026.md`.
+See `wateringHole/handoffs/NEURALSPRING_V19_SESSION51_HANDOFF_FEB24_2026.md`.
 
 ---
 
@@ -133,7 +133,7 @@ for full diagnosis, reproduction steps, and recommended fixes.
 | Tolerance centralization | 42 `NamedTolerance` entries in `tolerances/` registry | Zero standalone inline magic numbers in validation binaries |
 | `clippy::doc_markdown` resolved | 31 files (8 library + 23 binaries) | Allow removed, doc comments fixed |
 | `#![allow]` tightened | `validate_gpu_phase_b.rs` (9→4), `anderson_localization.rs`, `swarm_robotics.rs`, 4 binaries | Underlying code fixed, redundant suppression removed |
-| Test coverage push | 264→374 lib tests, 83%→92.7% line coverage | 110 new tests across 12 modules |
+| Test coverage push | 264→459 lib tests, 83%→92.9% line coverage | 110 new tests across 12 modules |
 | `.expect()` → graceful exits | All non-test production code | Zero `.expect()` / `.unwrap()` / `todo!()` in production |
 
 *Migration guide — neuralSpring rewired to modern ToadStool/BarraCUDA.*

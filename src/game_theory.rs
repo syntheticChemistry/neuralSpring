@@ -316,7 +316,12 @@ mod tests {
         let pd = prisoners_dilemma_payoff(3.0, 1.0);
         let t1 = replicator_dynamics(&[0.5, 0.5], &pd, 500, 0.01);
         let t2 = replicator_dynamics(&[0.5, 0.5], &pd, 500, 0.01);
-        assert_eq!(t1, t2);
+        for (step, (a, b)) in t1.iter().zip(t2.iter()).enumerate() {
+            assert!(
+                (a[0] - b[0]).abs() < f64::EPSILON && (a[1] - b[1]).abs() < f64::EPSILON,
+                "replicator dynamics not deterministic at step {step}"
+            );
+        }
 
         let config = QsConfig {
             pop_size: 100,

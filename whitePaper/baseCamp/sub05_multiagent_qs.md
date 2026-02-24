@@ -223,10 +223,13 @@ All experiments are algorithmic (computational models with deterministic
 seeds). No external data, no API dependencies.
 
 ```bash
-cargo run --release --bin validate_agent_anderson       # Exp-nS-501
-cargo run --release --bin validate_qs_swarm             # Exp-nS-502
-cargo run --release --bin validate_dimensional_agents    # Exp-nS-503
-cargo run --release --bin validate_agent_replicator      # Exp-nS-504
+cargo run --release --bin validate_agent_coordination   # 23/23 PASS (Sessions 50, 54)
+cargo run --release --bin validate_basecamp_gpu         # 14/14 PASS — pure GPU parity
 ```
+
+All experiments (nS-501 through nS-505) are validated in the consolidated
+`validate_agent_coordination` binary, including Anderson spectral analysis,
+QS signaling steps, dimensional topology comparison, agent scaling sweep,
+signal threshold transition, and disorder-level spectral comparison.
 
 No proprietary models. No model downloads.
