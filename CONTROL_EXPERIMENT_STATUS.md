@@ -1,18 +1,19 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 24, 2026 (Sessions 44–58 — multi-GPU + benchmarks + pure GPU promotion + deep debt audit + baseCamp + ToadStool sync + cross-spring benchmarking + baseCamp experiment expansion + GPU workload validation + CPU vs GPU dispatch + mixed-hardware + dispatch parity + metalForge PCIe + upstream dispatch rewiring + GpuDriverProfile)
+**Last updated**: February 24, 2026 (Sessions 44–60 — multi-GPU + benchmarks + pure GPU promotion + deep debt audit + baseCamp + ToadStool sync + cross-spring benchmarking + baseCamp experiment expansion + GPU workload validation + CPU vs GPU dispatch + mixed-hardware + dispatch parity + metalForge PCIe + upstream dispatch rewiring + GpuDriverProfile + S59 library/dispatch rewire + S60 cross-spring benchmark validation)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 206/206 Python PASS + 1820+ Rust+GPU validation PASS = **2020+ total validation checks**
-**Library**: 478 lib tests + 9 integration tests + 30 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 156 validation/bench binaries
+**Grand Total**: 206/206 Python PASS + 1840+ Rust+GPU validation PASS = **2050+ total validation checks**
+**Library**: 482 lib tests + 9 integration tests + 30 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 156 validation/bench binaries
 **baseCamp**: 5 biophysical AI modules + 7 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch PASS) — Sessions 50, 54, 56
 **Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware + 19/19 baseCamp dispatch + 17/17 parity + 23/23 PCIe
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math)
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings
 **Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels)
-**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-16 FIXED | S-14/S-15 workaround | HEAD `9404fdb4` (S50–59) | 11 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58)
+**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-16 FIXED | S-14/S-15 workaround | HEAD `9404fdb4` (S50–60) | 16 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58 + 2 dispatch S59 + 3 stats/linalg S59)
+**Cross-Spring**: 22/22 evolution checks PASS | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint)
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
 
 ---
@@ -61,7 +62,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (478 lib tests + 9 integration + 30 forge tests, 156 validation binaries, 36 modules + gpu_ops/ + gpu_dispatch/)
+### Phase 1a: neuralSpring-Native Validation (482 lib tests + 9 integration + 30 forge tests, 156 validation binaries, 36 modules + gpu_ops/ + gpu_dispatch/)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -249,7 +250,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 46 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 459 lib tests + 9 integration tests |
+| Rust test | `cargo test` | **PASS** — 482 lib tests + 9 integration tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -270,7 +271,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (478 lib + 9 integration + 30 forge tests, 156 binaries, 36 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (482 lib + 9 integration + 30 forge tests, 156 binaries, 36 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |

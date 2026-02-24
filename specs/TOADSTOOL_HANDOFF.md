@@ -3,11 +3,13 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `9404fdb4` (Sessions 50–59, Feb 24, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_V23_SESSION58_HANDOFF_FEB24_2026.md`
+**Last reviewed:** ToadStool commit `9404fdb4` (Sessions 50–60, Feb 24, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V25_S60_HANDOFF_FEB24_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
+**Session 59 sync:** 5 new rewires — `empirical_spectral_density`, `marchenko_pastur_bounds`, `effective_rank` to upstream stats/linalg; `gelu` + `hmm_forward_step` added to Dispatcher via upstream `domain_ops`; 3 dead WGSL re-exports removed from `evolved/`
+**Session 60 sync:** Benchmark validation pass — 22/22 cross-spring evolution checks, f64 typed ops benchmarked (Variance 2.46× hotSpring, Entropy 2.59× wetSpring), 482 lib tests, 145/146 validate_all
 
 ---
 
@@ -129,6 +131,47 @@ Validated at production sizes: B=4, S=128, H=8, d_head=64 (d_model=512). Validat
 | `bench_barracuda_tensor` | `evolved::layer_norm`/`log_softmax` | `Tensor::layer_norm_wgsl()`/`log_softmax_wgsl()` |
 | `validate_barracuda_ml_inference` | Uses `evolved::mha` (S-03b, cannot rewire yet) | Kept |
 | `bench_transformer_block` | Uses `evolved::mha` (S-03b, cannot rewire yet) | Kept |
+
+---
+
+## Session 59 — ToadStool S59 Sync + Rewiring (February 24, 2026)
+
+### 5 Functions Rewired to Upstream BarraCUDA
+
+| Local Function | Module | Upstream API | Absorbed In |
+|----------------|--------|-------------|-------------|
+| `empirical_spectral_density` | `weight_spectral` | `barracuda::stats::empirical_spectral_density` | S54 (M-011) |
+| `marchenko_pastur_bounds` | `weight_spectral` | `barracuda::stats::marchenko_pastur_bounds` | S54 (M-012) |
+| `effective_rank` | `neural_pgm` | `barracuda::linalg::effective_rank` | S54 (H-009) |
+| (new) `gelu` | `gpu_dispatch/dispatch_ops` | `barracuda::dispatch::gelu_dispatch` | S52 |
+| (new) `hmm_forward_step` | `gpu_dispatch/dispatch_ops` | `barracuda::dispatch::hmm_forward_dispatch` | S52 |
+
+### evolved/ Module Cleanup
+
+| Change | Details |
+|--------|---------|
+| Removed `WGSL_BATCH_FITNESS_EVAL` | Dead re-export — all callers use `barracuda::ops::batch_gemm` directly |
+| Removed `WGSL_RK4_PARALLEL` | Dead re-export — all callers use `barracuda::ops::rk_stage` directly |
+| Removed `WGSL_MEAN_REDUCE` | Dead re-export — all callers use `barracuda::pipeline::ReduceScalarPipeline` directly |
+| Kept `WGSL_HEAD_SPLIT` / `WGSL_HEAD_CONCAT` | Still needed for MHA S-03b workaround |
+
+### MHA Retirement Assessment
+
+`evolved/mha` NOT retired. Upstream `barracuda::ops::mha::MultiHeadAttention` exists
+(S52+) but projection shaders need validated end-to-end on RTX 4070 + Vulkan at
+production sizes (B=4, S=128, H=8, d=512). Status documented; awaiting hardware test.
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | 482 PASS |
+| `validate_all` | 145/146 PASS (1 pre-existing logsumexp driver issue) |
+| `cargo clippy (pedantic+nursery)` | 0 warnings |
+
+### Rewire Count
+
+Total rewired functions: **16** (11 from S56/S58 + 5 from S59)
 
 ---
 

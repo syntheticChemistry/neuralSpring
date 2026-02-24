@@ -2,12 +2,14 @@
 
 //! Locally evolved Multi-Head Attention.
 //!
-//! ## Status (`ToadStool` `9abd6857`)
+//! ## Status (`ToadStool` S59, `9404fdb4`)
 //!
 //! `ToadStool` S46 (`fe573095`) fixed the z-dispatch bug. Native MHA works
-//! for non-projection paths. However, full projection shaders still hang
-//! on RTX 4070 / Vulkan. Retirement blocked on upstream projection shader
-//! stability.
+//! for non-projection paths. Upstream `barracuda::ops::mha::MultiHeadAttention`
+//! exists with full projection+attention pipeline (S52+). However, full
+//! projection shaders still need validation on RTX 4070 / Vulkan at
+//! production sizes (B=4, S=128, H=8, d=512). Retirement blocked on
+//! hardware-validated end-to-end test via `validate_mha_gpu`.
 //!
 //! ## What this module does
 //!

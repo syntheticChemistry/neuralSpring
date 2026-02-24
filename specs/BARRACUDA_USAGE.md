@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 24, 2026 (Sessions 40–58)
+**Last Updated**: February 24, 2026 (Sessions 40–60)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -18,10 +18,12 @@
 
 ### Statistics
 
-| Module | Where Used (13 binaries) | Purpose |
-|--------|-------------------------|---------|
+| Module | Where Used | Purpose |
+|--------|-----------|---------|
 | `stats::correlation::variance` | counterdiabatic, modes, eco, directed, swarm, sate, game, hmm | Population variance for statistical checks |
-| `stats::pearson_correlation` | modes | Correlation between diversity metrics |
+| `stats::pearson_correlation` | modes, `cpu_fallback` | Correlation between diversity metrics |
+| `stats::empirical_spectral_density` | `weight_spectral` | Eigenvalue histogram (rewired S59, M-011) |
+| `stats::marchenko_pastur_bounds` | `weight_spectral` | Random matrix spectral bounds (rewired S59, M-012) |
 
 ### Linear Algebra
 
@@ -32,6 +34,7 @@
 | `linalg::cholesky_f64` | linalg validation | Cholesky factorization (takes `Arc<WgpuDevice>`) |
 | `linalg::lu_det`, `lu_solve` | linalg validation | LU decomposition |
 | `linalg::tridiagonal_solve` | linalg validation | Tridiagonal solver |
+| `linalg::effective_rank` | `neural_pgm` | Eigenvalue entropy rank (rewired S59, H-009) |
 | `ops::linalg::svd::*` | linalg_ext validation | SVD |
 | `linalg::gen_eigh::*` | linalg_ext validation | Generalized eigendecomposition (takes `Arc<WgpuDevice>`) |
 
@@ -669,7 +672,7 @@ unavoidable transitive dependencies with no C compilation.
 
 ## Session 58 — Upstream Dispatch Rewiring + GpuDriverProfile (February 24, 2026)
 
-### 7 Dispatcher Methods Rewired to Upstream domain_ops
+### 9 Dispatcher Methods Rewired to Upstream domain_ops
 
 | Dispatcher Method | Upstream Function | Notes |
 |-------------------|-------------------|-------|
@@ -680,6 +683,8 @@ unavoidable transitive dependencies with no C compilation.
 | `l2_distance` | `barracuda::dispatch::l2_distance_dispatch` | Direct delegation |
 | `mean` | `barracuda::dispatch::mean_dispatch` | Direct delegation |
 | `variance` | `barracuda::dispatch::variance_dispatch` | Direct delegation |
+| `gelu` | `barracuda::dispatch::gelu_dispatch` | S59 — CPU fallback: `transformer::gelu` |
+| `hmm_forward_step` | `barracuda::dispatch::hmm_forward_dispatch` | S59 — CPU fallback: `cpu_fallback::hmm_forward_step` |
 
 ### GpuDriverProfile Integration (hotSpring-evolved)
 
@@ -710,4 +715,50 @@ unavoidable transitive dependencies with no C compilation.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 24, 2026. Sessions 50–58: 11 functions rewired to upstream, GpuDriverProfile wired in, 156 binaries, 478 lib + 30 forge tests.*
+## Session 59 — Library + Dispatch Rewiring (February 24, 2026)
+
+### 3 Library Functions + 2 Dispatcher Methods Rewired
+
+| Function | Module | Upstream API | Absorbed In |
+|----------|--------|-------------|-------------|
+| `empirical_spectral_density` | `weight_spectral` | `barracuda::stats::empirical_spectral_density` | S54 (M-011) |
+| `marchenko_pastur_bounds` | `weight_spectral` | `barracuda::stats::marchenko_pastur_bounds` | S54 (M-012) |
+| `effective_rank` | `neural_pgm` | `barracuda::linalg::effective_rank` | S54 (H-009) |
+| `gelu` (Dispatcher) | `dispatch_ops` | `barracuda::dispatch::gelu_dispatch` | S52 |
+| `hmm_forward_step` (Dispatcher) | `dispatch_ops` | `barracuda::dispatch::hmm_forward_dispatch` | S52 |
+
+### Cumulative Rewire Count: 16
+
+| Session | Rewired | Running Total |
+|---------|---------|---------------|
+| S56 | 4 (graph, hessian, BP) | 4 |
+| S58 | 7 (domain\_ops dispatchers) | 11 |
+| S59 | 5 (ESD, MP, rank, gelu, hmm) | **16** |
+
+---
+
+## Session 60 — Cross-Spring Benchmark Validation (February 24, 2026)
+
+### Updated Validation
+
+| Gate | Result |
+|------|--------|
+| `validate_cross_spring_evolution` | **22/22 PASS** |
+| `cargo test --lib` | **482 PASS** |
+| `validate_all` | **145/146 PASS** |
+
+### Paper Controls Verification: Hardware Tiers
+
+All 25+5 papers confirmed working across three hardware tiers:
+
+| Tier | Coverage | Checks |
+|------|----------|--------|
+| BarraCUDA CPU | 24/25 papers (96%) | 203 checks |
+| BarraCUDA GPU | 23/25 papers (92%) | 98+ checks |
+| metalForge mixed | 15/15 applicable | 14/14 mixed + 16/16 dispatch |
+
+Open data confirmed: zero proprietary, zero paywalled, zero access-restricted sources.
+
+---
+
+*BarraCUDA usage audit — neuralSpring, February 24, 2026. Sessions 50–60: 16 functions rewired to upstream, GpuDriverProfile wired in, 156 binaries, 482 lib + 30 forge tests. Cross-spring evolution benchmarked: 22/22 PASS.*

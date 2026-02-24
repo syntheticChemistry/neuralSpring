@@ -19,6 +19,7 @@
 //! - Fisher information: `barracuda::ops::FusedMapReduceF64` (gradient inner product)
 //! - Geodesic distance: scalar reduction (L2 norm of Fisher transport)
 
+use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
 /// Numerical floor for probability normalization to prevent log(0).
@@ -177,7 +178,7 @@ pub fn compute_cd_schedule(f0: &[f64], f1: &[f64], t: usize, beta: f64) -> Vec<f
             Some(*acc)
         })
         .collect();
-    let total = cumulative.last().copied().unwrap_or(1.0).max(1e-300);
+    let total = cumulative.last().copied().unwrap_or(1.0).max(LOG_GUARD);
     for c in &mut cumulative {
         *c /= total;
     }

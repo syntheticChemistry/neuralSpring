@@ -14,9 +14,7 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::unwrap_used,
-    clippy::expect_used
+    clippy::similar_names
 )]
 
 use barracuda::device::WgpuDevice;
@@ -32,8 +30,17 @@ use std::time::Instant;
 const WARMUP: u32 = 3;
 const ITERS: u32 = 20;
 
+type BenchResult<T> = Result<T, Box<dyn std::error::Error>>;
+
 #[tokio::main]
 async fn main() {
+    if let Err(e) = run().await {
+        eprintln!("FAIL: {e}");
+        std::process::exit(1);
+    }
+}
+
+async fn run() -> BenchResult<()> {
     let gpu = match Gpu::new().await {
         Ok(g) => {
             eprintln!(
@@ -44,7 +51,7 @@ async fn main() {
         }
         Err(e) => {
             eprintln!("SKIP: {e}");
-            return;
+            return Ok(());
         }
     };
     let dev = Arc::clone(gpu.wgpu_device());
@@ -63,7 +70,7 @@ async fn main() {
     };
 
     println!("--- Variance ({n} elements) ---");
-    let old = bench_variance_old(&data, &dev);
+    let old = bench_variance_old(&data, &dev)?;
     let new = bench_variance_new(&data, &dev);
     report(
         "Variance (f32 Tensor)",
@@ -74,8 +81,8 @@ async fn main() {
     );
 
     println!("--- Pearson Correlation ({n} elements) ---");
-    let old = bench_pearson_old(&data, &data2, &dev);
-    let new = bench_pearson_new(&data, &data2, &dev);
+    let old = bench_pearson_old(&data, &data2, &dev)?;
+    let new = bench_pearson_new(&data, &data2, &dev)?;
     report(
         "Pearson (f32 Tensor)",
         old,
@@ -85,8 +92,8 @@ async fn main() {
     );
 
     println!("--- Shannon Entropy ({n} elements) ---");
-    let old = bench_entropy_old(&probs, &dev);
-    let new = bench_entropy_new(&probs, &dev);
+    let old = bench_entropy_old(&probs, &dev)?;
+    let new = bench_entropy_new(&probs, &dev)?;
     report(
         "Entropy (f32 Tensor)",
         old,
@@ -101,6 +108,7 @@ async fn main() {
     println!("  FusedMapReduceF64   : wetSpring fused map-reduce → ToadStool → neuralSpring");
     println!("  pow_f64 polyfill    : hotSpring math_f64.wgsl + wetSpring (zero+literal) fix → S-17 HillGate fix");
     println!("  HillGate f64        : neuralSpring metalForge → ToadStool absorption → S-17 pow polyfill");
+    Ok(())
 }
 
 fn report(old_name: &str, old_us: f64, new_name: &str, new_us: f64, origin: &str) {
@@ -111,27 +119,27 @@ fn report(old_name: &str, old_us: f64, new_name: &str, new_us: f64, origin: &str
     println!();
 }
 
-fn bench_variance_old(data: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
+fn bench_variance_old(data: &[f64], dev: &Arc<WgpuDevice>) -> BenchResult<f64> {
     let data_f32: Vec<f32> = data.iter().map(|&x| x as f32).collect();
     let n = data_f32.len();
     for _ in 0..WARMUP {
-        let t = Tensor::from_data(&data_f32, vec![n], dev.clone()).unwrap();
-        let m = t.mean().unwrap().to_vec().unwrap()[0];
+        let t = Tensor::from_data(&data_f32, vec![n], dev.clone())?;
+        let m = t.mean()?.to_vec()?[0];
         let mv = vec![m; n];
-        let mb = Tensor::from_data(&mv, vec![n], dev.clone()).unwrap();
-        let d = t.sub(&mb).unwrap();
-        let _ = d.mul(&d).unwrap().mean().unwrap().to_vec().unwrap();
+        let mb = Tensor::from_data(&mv, vec![n], dev.clone())?;
+        let d = t.sub(&mb)?;
+        let _ = d.mul(&d)?.mean()?.to_vec()?;
     }
     let start = Instant::now();
     for _ in 0..ITERS {
-        let t = Tensor::from_data(&data_f32, vec![n], dev.clone()).unwrap();
-        let m = t.mean().unwrap().to_vec().unwrap()[0];
+        let t = Tensor::from_data(&data_f32, vec![n], dev.clone())?;
+        let m = t.mean()?.to_vec()?[0];
         let mv = vec![m; n];
-        let mb = Tensor::from_data(&mv, vec![n], dev.clone()).unwrap();
-        let d = t.sub(&mb).unwrap();
-        let _ = d.mul(&d).unwrap().mean().unwrap().to_vec().unwrap();
+        let mb = Tensor::from_data(&mv, vec![n], dev.clone())?;
+        let d = t.sub(&mb)?;
+        let _ = d.mul(&d)?.mean()?.to_vec()?;
     }
-    start.elapsed().as_micros() as f64 / f64::from(ITERS)
+    Ok(start.elapsed().as_micros() as f64 / f64::from(ITERS))
 }
 
 fn bench_variance_new(data: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
@@ -145,26 +153,26 @@ fn bench_variance_new(data: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
     start.elapsed().as_micros() as f64 / f64::from(ITERS)
 }
 
-fn bench_pearson_old(x: &[f64], y: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
+fn bench_pearson_old(x: &[f64], y: &[f64], dev: &Arc<WgpuDevice>) -> BenchResult<f64> {
     let x_f32: Vec<f32> = x.iter().map(|&v| v as f32).collect();
     let y_f32: Vec<f32> = y.iter().map(|&v| v as f32).collect();
     let n = x_f32.len();
     for _ in 0..WARMUP {
-        let xt = Tensor::from_data(&x_f32, vec![n], dev.clone()).unwrap();
-        let yt = Tensor::from_data(&y_f32, vec![n], dev.clone()).unwrap();
-        let _ = xt.mul(&yt).unwrap().sum().unwrap().to_vec().unwrap();
+        let xt = Tensor::from_data(&x_f32, vec![n], dev.clone())?;
+        let yt = Tensor::from_data(&y_f32, vec![n], dev.clone())?;
+        let _ = xt.mul(&yt)?.sum()?.to_vec()?;
     }
     let start = Instant::now();
     for _ in 0..ITERS {
-        let xt = Tensor::from_data(&x_f32, vec![n], dev.clone()).unwrap();
-        let yt = Tensor::from_data(&y_f32, vec![n], dev.clone()).unwrap();
-        let _ = xt.mul(&yt).unwrap().sum().unwrap().to_vec().unwrap();
+        let xt = Tensor::from_data(&x_f32, vec![n], dev.clone())?;
+        let yt = Tensor::from_data(&y_f32, vec![n], dev.clone())?;
+        let _ = xt.mul(&yt)?.sum()?.to_vec()?;
     }
-    start.elapsed().as_micros() as f64 / f64::from(ITERS)
+    Ok(start.elapsed().as_micros() as f64 / f64::from(ITERS))
 }
 
-fn bench_pearson_new(x: &[f64], y: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
-    let op = CorrelationF64::new(dev.clone()).unwrap();
+fn bench_pearson_new(x: &[f64], y: &[f64], dev: &Arc<WgpuDevice>) -> BenchResult<f64> {
+    let op = CorrelationF64::new(dev.clone()).map_err(|e| format!("CorrelationF64 init: {e}"))?;
     for _ in 0..WARMUP {
         let _ = op.correlation(x, y);
     }
@@ -172,30 +180,31 @@ fn bench_pearson_new(x: &[f64], y: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
     for _ in 0..ITERS {
         let _ = op.correlation(x, y);
     }
-    start.elapsed().as_micros() as f64 / f64::from(ITERS)
+    Ok(start.elapsed().as_micros() as f64 / f64::from(ITERS))
 }
 
-fn bench_entropy_old(probs: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
+fn bench_entropy_old(probs: &[f64], dev: &Arc<WgpuDevice>) -> BenchResult<f64> {
     let p_f32: Vec<f32> = probs.iter().map(|&p| p.max(1e-30) as f32).collect();
     let n = p_f32.len();
     for _ in 0..WARMUP {
-        let pl = Tensor::from_data(&p_f32, vec![n], dev.clone()).unwrap();
-        let pm = Tensor::from_data(&p_f32, vec![n], dev.clone()).unwrap();
-        let lp = pl.log_wgsl().unwrap();
-        let _ = pm.mul(&lp).unwrap().sum().unwrap().to_vec().unwrap();
+        let pl = Tensor::from_data(&p_f32, vec![n], dev.clone())?;
+        let pm = Tensor::from_data(&p_f32, vec![n], dev.clone())?;
+        let lp = pl.log_wgsl()?;
+        let _ = pm.mul(&lp)?.sum()?.to_vec()?;
     }
     let start = Instant::now();
     for _ in 0..ITERS {
-        let pl = Tensor::from_data(&p_f32, vec![n], dev.clone()).unwrap();
-        let pm = Tensor::from_data(&p_f32, vec![n], dev.clone()).unwrap();
-        let lp = pl.log_wgsl().unwrap();
-        let _ = pm.mul(&lp).unwrap().sum().unwrap().to_vec().unwrap();
+        let pl = Tensor::from_data(&p_f32, vec![n], dev.clone())?;
+        let pm = Tensor::from_data(&p_f32, vec![n], dev.clone())?;
+        let lp = pl.log_wgsl()?;
+        let _ = pm.mul(&lp)?.sum()?.to_vec()?;
     }
-    start.elapsed().as_micros() as f64 / f64::from(ITERS)
+    Ok(start.elapsed().as_micros() as f64 / f64::from(ITERS))
 }
 
-fn bench_entropy_new(probs: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
-    let op = FusedMapReduceF64::new(dev.clone()).unwrap();
+fn bench_entropy_new(probs: &[f64], dev: &Arc<WgpuDevice>) -> BenchResult<f64> {
+    let op =
+        FusedMapReduceF64::new(dev.clone()).map_err(|e| format!("FusedMapReduceF64 init: {e}"))?;
     for _ in 0..WARMUP {
         let _ = op.shannon_entropy(probs);
     }
@@ -203,5 +212,5 @@ fn bench_entropy_new(probs: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
     for _ in 0..ITERS {
         let _ = op.shannon_entropy(probs);
     }
-    start.elapsed().as_micros() as f64 / f64::from(ITERS)
+    Ok(start.elapsed().as_micros() as f64 / f64::from(ITERS))
 }

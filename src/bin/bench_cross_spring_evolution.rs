@@ -18,6 +18,16 @@
 //! | `SpatialPayoffGpu` | neuralSpring (game theory) | `77f70b2e` (S-25) |
 //! | `PairwiseHammingGpu` | neuralSpring (`SATé`) | `77f70b2e` (S-25) |
 //!
+//! ## Dispatcher Rewiring (S58–S59)
+//!
+//! | Method | Upstream API | Lineage |
+//! |--------|-------------|---------|
+//! | `matmul` | `domain_ops::matmul_dispatch` | hotSpring precision (df64, `KernelRouter`) |
+//! | `softmax` | `domain_ops::softmax_dispatch` | hotSpring precision (f64 numerics) |
+//! | `gelu` | `domain_ops::gelu_dispatch` | neuralSpring ML → absorbed S52 |
+//! | `hmm_forward` | `domain_ops::hmm_forward_dispatch` | wetSpring bio (phylo) → absorbed S52 |
+//! | `ESD/MP/rank` | `stats` / `linalg` | neuralSpring spectral → absorbed S54 |
+//!
 //! ## Usage
 //!
 //! ```text
@@ -37,6 +47,7 @@ use barracuda::ops::bio::{
 use barracuda::ops::linalg::BatchedEighGpu;
 use barracuda::spectral::BatchIprGpu;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::rng::Rng;
 use std::sync::Arc;
 use std::time::Instant;
@@ -70,6 +81,7 @@ async fn main() {
     bench_neuralspring_ops(&gpu);
     bench_wetspring_ops(&gpu);
     bench_hotspring_ops(&gpu);
+    bench_rewired_dispatch().await;
 
     println!("═══════════════════════════════════════════════════════════════");
     println!("  All benchmarks complete.");
@@ -354,6 +366,152 @@ fn bench_hotspring_ops(gpu: &Gpu) {
         println!("  BatchedEighGpu 12×12×40     origin=hotSpring(S-39)    {us:>8.1} µs");
     }
 
+    println!();
+}
+
+struct BenchResult {
+    label: &'static str,
+    origin: &'static str,
+    sizes: Vec<(usize, f64, f64)>,
+}
+
+#[allow(clippy::too_many_lines)]
+async fn bench_rewired_dispatch() {
+    println!("--- Rewired Dispatcher Methods (S58+S59 cross-spring) ---");
+    println!();
+
+    let dispatcher = Dispatcher::new().await;
+    let cpu = Dispatcher::cpu_only();
+
+    let mut results: Vec<BenchResult> = Vec::new();
+
+    // matmul — hotSpring precision (KernelRouter, df64)
+    {
+        let mut sizes = Vec::new();
+        for n in [16, 32, 64, 128] {
+            let a: Vec<f64> = (0..n * n).map(|i| i as f64 * 0.001).collect();
+            let b: Vec<f64> = (0..n * n).map(|i| (n * n - i) as f64 * 0.001).collect();
+
+            let upstream = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(dispatcher.mat_mul(&a, &b, n));
+            });
+            let local = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(cpu.mat_mul(&a, &b, n));
+            });
+            sizes.push((n, upstream, local));
+        }
+        results.push(BenchResult {
+            label: "matmul",
+            origin: "hotSpring precision (S58)",
+            sizes,
+        });
+    }
+
+    // softmax — hotSpring numerics
+    {
+        let mut sizes = Vec::new();
+        for sz in [256, 1024, 4096] {
+            let x: Vec<f64> = (0..sz)
+                .map(|i| (i as f64 - sz as f64 / 2.0) * 0.01)
+                .collect();
+            let upstream = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(dispatcher.softmax(&x));
+            });
+            let local = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(cpu.softmax(&x));
+            });
+            sizes.push((sz, upstream, local));
+        }
+        results.push(BenchResult {
+            label: "softmax",
+            origin: "hotSpring precision (S58)",
+            sizes,
+        });
+    }
+
+    // gelu — neuralSpring ML, absorbed S52
+    {
+        let mut sizes = Vec::new();
+        for sz in [256, 1024, 4096] {
+            let x: Vec<f64> = (0..sz)
+                .map(|i| (i as f64 - sz as f64 / 2.0) * 0.01)
+                .collect();
+            let upstream = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(dispatcher.gelu(&x));
+            });
+            let local = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(cpu.gelu(&x));
+            });
+            sizes.push((sz, upstream, local));
+        }
+        results.push(BenchResult {
+            label: "gelu",
+            origin: "neuralSpring ML → S52 (S59)",
+            sizes,
+        });
+    }
+
+    // mean — hotSpring reduce precision
+    {
+        let mut sizes = Vec::new();
+        for sz in [256, 1024, 4096] {
+            let data: Vec<f64> = (0..sz).map(|i| i as f64 * 0.001).collect();
+            let upstream = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(dispatcher.mean(&data));
+            });
+            let local = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(cpu.mean(&data));
+            });
+            sizes.push((sz, upstream, local));
+        }
+        results.push(BenchResult {
+            label: "mean",
+            origin: "hotSpring reduce (S58)",
+            sizes,
+        });
+    }
+
+    // hmm_forward — wetSpring bio (phylogenetics), absorbed S52
+    {
+        let mut sizes = Vec::new();
+        for n in [4, 8, 16, 32] {
+            let alpha: Vec<f64> = {
+                let raw: Vec<f64> = (0..n).map(|i| (i + 1) as f64).collect();
+                let sum: f64 = raw.iter().sum();
+                raw.iter().map(|x| x / sum).collect()
+            };
+            let transition: Vec<f64> = (0..n * n)
+                .map(|i| ((i % n) + 1) as f64 / (n * (n + 1) / 2) as f64)
+                .collect();
+            let emission: Vec<f64> = vec![1.0 / n as f64; n];
+
+            let upstream = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(dispatcher.hmm_forward_step(
+                    &alpha,
+                    &transition,
+                    &emission,
+                    n,
+                ));
+            });
+            let local = time_op(WARMUP, ITERATIONS, || {
+                std::hint::black_box(cpu.hmm_forward_step(&alpha, &transition, &emission, n));
+            });
+            sizes.push((n, upstream, local));
+        }
+        results.push(BenchResult {
+            label: "hmm_forward",
+            origin: "wetSpring bio → S52 (S59)",
+            sizes,
+        });
+    }
+
+    for r in &results {
+        println!("  {:<14} origin={}", r.label, r.origin);
+        for (sz, up, loc) in &r.sizes {
+            let ratio = loc / up;
+            println!("    n={sz:<6} upstream {up:>10.1}µs  cpu {loc:>10.1}µs  ratio {ratio:.2}x");
+        }
+    }
     println!();
 }
 

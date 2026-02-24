@@ -27,6 +27,7 @@
 )]
 
 use crate::eigh::eigh_householder_qr;
+use crate::primitives::LOG_GUARD;
 
 /// Convert a weight matrix to a row-stochastic transition matrix.
 ///
@@ -48,7 +49,7 @@ pub fn weight_to_transition(weights: &[f64], n_rows: usize, n_cols: usize) -> Ve
             transition[row_start + j] = exp_val;
             sum += exp_val;
         }
-        if sum > 1e-300 {
+        if sum > LOG_GUARD {
             for j in 0..n_cols {
                 transition[row_start + j] /= sum;
             }
@@ -86,8 +87,8 @@ pub fn pgm_nn_divergence(nn_output: &[f64], pgm_output: &[f64]) -> f64 {
     }
     let mut kl = 0.0;
     for (i, &p) in nn_output.iter().enumerate() {
-        let q = pgm_output[i].max(1e-300);
-        if p > 1e-300 {
+        let q = pgm_output[i].max(LOG_GUARD);
+        if p > LOG_GUARD {
             kl += p * (p / q).ln();
         }
     }
@@ -124,7 +125,7 @@ pub fn layer_spectral_similarity(w1: &[f64], n1: usize, w2: &[f64], n2: usize) -
     let norm1: f64 = ev1.iter().map(|&x| x * x).sum::<f64>().sqrt();
     let norm2: f64 = ev2.iter().map(|&x| x * x).sum::<f64>().sqrt();
 
-    if norm1 < 1e-300 || norm2 < 1e-300 {
+    if norm1 < LOG_GUARD || norm2 < LOG_GUARD {
         return 0.0;
     }
     (dot / (norm1 * norm2)).clamp(-1.0, 1.0)
@@ -148,22 +149,11 @@ fn symmetrize_square(m: &[f64], n: usize) -> Vec<f64> {
 /// Full rank → rank_eff = n. Low rank → rank_eff << n.
 /// Used for circuit discovery: layers with low effective rank
 /// perform simple computations (single circuits).
+///
+/// Delegates to `barracuda::linalg::graph::effective_rank` (absorbed S54, H-009).
 #[must_use]
 pub fn effective_rank(eigenvalues: &[f64]) -> f64 {
-    let abs_vals: Vec<f64> = eigenvalues.iter().map(|&ev| ev.abs()).collect();
-    let total: f64 = abs_vals.iter().sum();
-    if total < 1e-300 {
-        return 0.0;
-    }
-
-    let mut entropy = 0.0;
-    for &v in &abs_vals {
-        let p = v / total;
-        if p > 1e-300 {
-            entropy -= p * p.ln();
-        }
-    }
-    entropy.exp()
+    barracuda::linalg::effective_rank(eigenvalues)
 }
 
 /// PGM graph complexity: number of significant transition probabilities.

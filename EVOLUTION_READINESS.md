@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 24, 2026 (Sessions 40–58)
-**ToadStool HEAD**: `9404fdb4` (S58–S59: ValidationHarness+pow_f64 absorbed, anderson correlated, ridge, NMF, ODE bio, dispatch domain ops)
+**Date**: February 24, 2026 (Sessions 40–60)
+**ToadStool HEAD**: `9404fdb4` (S58–S60: 16 functions rewired, cross-spring evolution benchmarked, GpuDriverProfile wired in)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -17,7 +17,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 478 lib + 9 integration + 30 forge tests, 36 modules, 156 binaries | **COMPLETE** |
+| Rust native validation | 482 lib + 9 integration + 30 forge tests, 36 modules, 156 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -569,7 +569,7 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **Confirmed absorptions** | `ValidationHarness`, `exit_no_gpu`, `require!` macro — all from neuralSpring, now in `barracuda::validation` |
 | **Consolidated** | 4 duplicate `patch_pow_to_polyfill` → `validation::patch_pow_to_polyfill` (shared) |
 | **New upstream available** | `barracuda::spectral::anderson` (3D correlated, sweep averaged, find_w_c), `barracuda::linalg::ridge`, `barracuda::linalg::nmf`, `barracuda::numerical::ode_bio`, `barracuda::dispatch::domain_ops`, `barracuda::device::driver_profile` |
-| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 478 lib ✓ · 144/145 validate_all (1 pre-existing logsumexp) |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 482 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
 
 ### Session 58 — Upstream Dispatch Rewiring + GpuDriverProfile
 
@@ -580,6 +580,6 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **Driver detection confirmed** | RTX 4070: Ada arch, NvidiaPtxas compiler, Throttled FP64 → Hybrid strategy, pow workaround needed |
 | **New validator** | `validate_cross_spring_evolution` (10/10 PASS): rewired method parity + driver profile + cross-spring benchmark |
 | **Total rewired functions** | 11 (4 from S56 + 7 from S58) — all delegating to upstream BarraCUDA |
-| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 478 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 482 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

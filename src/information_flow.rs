@@ -25,6 +25,7 @@
 
 use crate::anderson_localization::ipr;
 use crate::eigh::eigh_householder_qr;
+use crate::primitives::LOG_GUARD;
 
 /// Compute signal variance at each layer for depth-scale analysis.
 ///
@@ -35,7 +36,7 @@ use crate::eigh::eigh_householder_qr;
 /// Schoenholz et al. (2017): trainability requires `xi_c` → ∞.
 #[must_use]
 pub fn depth_scale(layer_variances: &[f64]) -> f64 {
-    if layer_variances.len() < 2 || layer_variances[0] < 1e-300 {
+    if layer_variances.len() < 2 || layer_variances[0] < LOG_GUARD {
         return f64::INFINITY;
     }
     let initial = layer_variances[0];
@@ -44,7 +45,7 @@ pub fn depth_scale(layer_variances: &[f64]) -> f64 {
     for (i, &var) in layer_variances.iter().enumerate().skip(1) {
         if var < threshold {
             let prev = layer_variances[i - 1];
-            if (prev - var).abs() < 1e-300 {
+            if (prev - var).abs() < LOG_GUARD {
                 return i as f64;
             }
             let frac = (prev - threshold) / (prev - var);
@@ -98,7 +99,7 @@ pub fn gate_saturation(gate_values: &[f64], threshold: f64) -> f64 {
 #[must_use]
 pub fn information_ipr(activations: &[f64]) -> f64 {
     let norm_sq: f64 = activations.iter().map(|&x| x * x).sum();
-    if norm_sq < 1e-300 {
+    if norm_sq < LOG_GUARD {
         return 0.0;
     }
     let normalized: Vec<f64> = activations.iter().map(|&x| x / norm_sq.sqrt()).collect();

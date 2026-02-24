@@ -26,6 +26,7 @@
 )]
 
 use crate::eigh::eigh_householder_qr;
+use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
 /// Compute numerical Hessian of a loss function at given parameters.
@@ -115,7 +116,7 @@ pub fn metropolis_step(
     let delta = proposed_loss - current_loss;
 
     let accept =
-        delta < 0.0 || (temperature > 1e-300 && rng.uniform() < (-delta / temperature).exp());
+        delta < 0.0 || (temperature > LOG_GUARD && rng.uniform() < (-delta / temperature).exp());
 
     if accept {
         (proposed, true)

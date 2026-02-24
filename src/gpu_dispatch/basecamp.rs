@@ -11,6 +11,7 @@
 //! - Sub-05: Agent interaction graph (pairwise L2)
 
 use super::Dispatcher;
+use crate::primitives::LOG_GUARD;
 
 impl Dispatcher {
     /// Weight-to-Hamiltonian construction + spectral analysis (Sub-01).
@@ -101,7 +102,7 @@ impl Dispatcher {
                 },
             );
             let sum: f64 = next.iter().sum();
-            let normalized: Vec<f64> = if sum > 1e-300 {
+            let normalized: Vec<f64> = if sum > LOG_GUARD {
                 next.iter().map(|&v| v / sum).collect()
             } else {
                 next
@@ -151,7 +152,7 @@ impl Dispatcher {
             for j in (i + 1)..n_agents {
                 let dist = upper_tri[idx];
                 idx += 1;
-                if dist < comm_range && dist > 1e-300 {
+                if dist < comm_range && dist > LOG_GUARD {
                     let weight = 1.0 / dist;
                     adj[i * n_agents + j] = weight;
                     adj[j * n_agents + i] = weight;

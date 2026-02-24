@@ -39,6 +39,7 @@
     clippy::suboptimal_flops
 )]
 
+use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
 /// WGSL shader: batch IPR from eigenvector data.
@@ -191,7 +192,7 @@ pub fn jacobi_eigh(matrix: &[f64], n: usize) -> (Vec<f64>, Vec<f64>) {
             .map(|i| v[i * n + k] * v[i * n + k])
             .sum::<f64>()
             .sqrt();
-        if norm > 1e-300 {
+        if norm > LOG_GUARD {
             for i in 0..n {
                 v[i * n + k] /= norm;
             }

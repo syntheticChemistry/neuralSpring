@@ -2,7 +2,7 @@
 
 //! Locally evolved GPU-resident ops and WGSL shader exports.
 //!
-//! ## Absorption status (Feb 24, 2026 — `ToadStool` `9abd6857`, Sessions 50–53)
+//! ## Absorption status (Feb 24, 2026 — `ToadStool` S59 `9404fdb4`)
 //!
 //! S-01 through S-12 absorbed by `ToadStool`. All 16 WGSL shaders now have
 //! upstream equivalents in `barracuda` (`ops::bio::*`, `ops::rk_stage`,
@@ -29,7 +29,7 @@
 //!
 //! | Module | Why active | Path to absorption |
 //! |--------|-----------|-------------------|
-//! | `mha` | S-03b fixed upstream (`fe573095`); needs end-to-end validation | Validate upstream MHA, then retire |
+//! | `mha` | S-03b fixed upstream (`fe573095`); upstream `ops::mha` exists (S52+) but projection shaders need RTX 4070 validation | Validate upstream MHA at production sizes, then retire |
 //!
 //! ## Fossilized (Session 40)
 //!
@@ -60,9 +60,9 @@
 //! | [`game_theory::WGSL_SPATIAL_PAYOFF`] | `game_theory` | `validate_gpu_game_theory` | 5/5 | `barracuda::ops::stencil` |
 //! | [`anderson_localization::WGSL_BATCH_IPR`] | `anderson_localization` | `validate_gpu_anderson` | 5/5 | `barracuda::ops::batch_reduce` |
 //! | [`sate_alignment::WGSL_PAIRWISE_HAMMING`] | `sate_alignment` | `validate_gpu_sate` | 5/5 | `barracuda::ops::pairwise_distance` |
-//! | `WGSL_BATCH_FITNESS_EVAL` | (multi-paper) | `validate_gpu_batch_fitness` | 20/20 | `barracuda::ops::batch_gemm` |
-//! | `WGSL_RK4_PARALLEL` | (multi-paper) | `validate_gpu_rk4` | 8/8 | `barracuda::ops::ode` |
-//! | `WGSL_MEAN_REDUCE` | (aggregation) | `validate_gpu_pure_workload` | 7/7 | `barracuda::pipeline::ReduceScalarPipeline` |
+//! | ~~`WGSL_BATCH_FITNESS_EVAL`~~ | (removed S59) | rewired to `barracuda::ops::batch_gemm` | — | absorbed |
+//! | ~~`WGSL_RK4_PARALLEL`~~ | (removed S59) | rewired to `barracuda::ops::rk_stage` | — | absorbed |
+//! | ~~`WGSL_MEAN_REDUCE`~~ | (removed S59) | rewired to `barracuda::pipeline::ReduceScalarPipeline` | — | absorbed |
 //! | [`modes::WGSL_PAIRWISE_L2`] | `modes` | `validate_gpu_modes` | 15/15 | `barracuda::ops::pairwise_distance` |
 //! | [`directed_evolution::WGSL_MULTI_OBJ_FITNESS`] | `directed_evolution` | `validate_gpu_directed` | 6/6 | `barracuda::ops::batch_gemm` |
 //! | [`swarm_robotics::WGSL_SWARM_NN_FORWARD`] | `swarm_robotics` | `validate_gpu_swarm` | 9/9 | `barracuda::ops::batch_gemm` |
@@ -101,26 +101,6 @@ pub use neural_spring_forge::shaders::HEAD_SPLIT as WGSL_HEAD_SPLIT;
 /// Validated: `validate_mha_gpu` (10/10 PASS).
 pub use neural_spring_forge::shaders::HEAD_CONCAT as WGSL_HEAD_CONCAT;
 
-/// WGSL shader: parallel EA population fitness evaluation.
-///
-/// One thread per individual, dot-product fitness against target vector.
-/// Spans Papers 011–015 (evolution workloads).
-///
-/// Absorption target: `barracuda::ops::batch_gemm`.
-/// Validated: `validate_gpu_batch_fitness` (20/20 PASS).
-pub use neural_spring_forge::shaders::BATCH_FITNESS_EVAL as WGSL_BATCH_FITNESS_EVAL;
-
-/// WGSL shader: parallel RK4 ODE integration.
-///
-/// One thread per system, full RK4 stepping with configurable step count.
-/// Spans Papers 020–021 (regulatory network / signal integration).
-///
-/// Absorption target: `barracuda::ops::ode`.
-/// Validated: `validate_gpu_rk4` (8/8 PASS).
-pub use neural_spring_forge::shaders::RK4_PARALLEL as WGSL_RK4_PARALLEL;
-
-/// WGSL shader: scalar mean reduction (chained after fitness evaluation).
-///
-/// Absorption target: `barracuda::pipeline::ReduceScalarPipeline`.
-/// Validated: `validate_gpu_pure_workload` (7/7 PASS).
-pub use neural_spring_forge::shaders::MEAN_REDUCE as WGSL_MEAN_REDUCE;
+// WGSL_BATCH_FITNESS_EVAL, WGSL_RK4_PARALLEL, WGSL_MEAN_REDUCE removed (S59 sync):
+// all callers have rewired to upstream `barracuda::ops::*` typed APIs.
+// Shader source still available via `neural_spring_forge::shaders::*` if needed.

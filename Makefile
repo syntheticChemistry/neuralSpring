@@ -5,7 +5,7 @@
 #         make lint     — lint + format check
 #         make baselines — full Python suite (~6 min)
 
-.PHONY: check lint test validate validate-native validate-native-papers validate-all validate-barracuda validate-barracuda-cpu validate-dispatch validate-ml validate-tensor-cpu validate-tensor-gpu validate-tensor-all bench-tensor bench-tensor-compare bench-ml bench-fused baselines lint-python lint-rust test-python test-rust fix fmt coverage
+.PHONY: check lint test validate validate-native validate-native-papers validate-all validate-barracuda validate-barracuda-cpu validate-dispatch validate-ml validate-tensor-cpu validate-tensor-gpu validate-tensor-all bench-tensor bench-tensor-compare bench-ml baselines lint-python lint-rust test-python test-rust fix fmt coverage
 
 check: lint test validate
 	@echo ""

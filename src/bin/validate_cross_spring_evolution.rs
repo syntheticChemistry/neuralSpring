@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Cross-spring evolution benchmark: validates and benchmarks the 7 Dispatcher
-//! methods rewired to upstream `barracuda::dispatch::domain_ops`, and reports
-//! driver profile information from `GpuDriverProfile` (hotSpring-evolved).
+//! Cross-spring evolution benchmark: validates and benchmarks the 16 functions
+//! rewired to upstream `barracuda` APIs, and reports driver profile information
+//! from `GpuDriverProfile` (hotSpring-evolved).
 //!
 //! ## What this proves
 //!
-//! - **Upstream rewiring**: all 7 core math ops delegate to `BarraCUDA`
-//!   `domain_ops` and produce correct results
+//! - **Upstream rewiring**: 9 Dispatcher methods + 3 library functions delegate
+//!   to upstream `BarraCUDA` and produce correct results
 //! - **Cross-spring evolution**: shaders and dispatch logic evolved from
 //!   hotSpring (precision), wetSpring (bio), and neuralSpring (validation)
 //! - **Driver awareness**: `GpuDriverProfile` correctly detects hardware
@@ -36,7 +36,9 @@
 use std::time::Instant;
 
 use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::neural_pgm;
 use neural_spring::validation::ValidationHarness;
+use neural_spring::weight_spectral;
 
 fn bench<F: FnOnce() -> T, T>(label: &str, f: F) -> (T, f64) {
     let start = Instant::now();
@@ -155,6 +157,87 @@ fn validate_rewired_variance(h: &mut ValidationHarness, dispatcher: &Dispatcher,
     h.check_abs("rewired variance parity", result, reference, 1e-8);
 }
 
+// ═══ S59 rewires: library functions delegating to upstream stats/linalg ═══
+
+fn validate_rewired_esd(h: &mut ValidationHarness) {
+    let eigenvalues: Vec<f64> = (0..100).map(|i| f64::from(i) * 0.1).collect();
+    let (centers, counts) = weight_spectral::empirical_spectral_density(&eigenvalues, 20);
+
+    h.check_bool("rewired ESD returns 20 bins", centers.len() == 20);
+    let sum: f64 = counts.iter().sum();
+    h.check_abs("rewired ESD sums to 1", sum, 1.0, 1e-12);
+}
+
+fn validate_rewired_mp_bounds(h: &mut ValidationHarness) {
+    let (lo, hi) = weight_spectral::marchenko_pastur_bounds(1.0);
+    h.check_abs("rewired MP lower bound γ=1", lo, 0.0, 1e-12);
+    h.check_abs("rewired MP upper bound γ=1", hi, 4.0, 1e-12);
+
+    let (lo2, hi2) = weight_spectral::marchenko_pastur_bounds(0.25);
+    h.check_bool("rewired MP bounds ordered", lo2 < hi2);
+}
+
+fn validate_rewired_effective_rank(h: &mut ValidationHarness) {
+    let full_rank = vec![1.0; 8];
+    let rank = neural_pgm::effective_rank(&full_rank);
+    h.check_abs("rewired effective_rank full", rank, 8.0, 1e-10);
+
+    let mut low_rank = vec![0.0; 8];
+    low_rank[0] = 1.0;
+    let rank_low = neural_pgm::effective_rank(&low_rank);
+    h.check_abs("rewired effective_rank single", rank_low, 1.0, 1e-10);
+}
+
+fn validate_rewired_gelu(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: &Dispatcher) {
+    let x: Vec<f64> = (-50..50).map(|i| f64::from(i) * 0.1).collect();
+
+    let (result, _) = bench("gelu upstream", || dispatcher.gelu(&x));
+    let (reference, _) = bench("gelu CPU ref", || cpu.gelu(&x));
+
+    h.check_abs(
+        "rewired gelu parity",
+        max_pairwise_diff(&result, &reference),
+        0.0,
+        1e-10,
+    );
+
+    h.check_abs("gelu(0) ≈ 0", result[50], 0.0, 1e-14);
+}
+
+fn validate_rewired_hmm_forward(
+    h: &mut ValidationHarness,
+    dispatcher: &Dispatcher,
+    cpu: &Dispatcher,
+) {
+    let n = 3;
+    let alpha = vec![0.5, 0.3, 0.2];
+    let transition = vec![0.7, 0.2, 0.1, 0.1, 0.8, 0.1, 0.2, 0.2, 0.6];
+    let emission = vec![0.4, 0.3, 0.3];
+
+    let (result, _) = bench("hmm_forward upstream", || {
+        dispatcher.hmm_forward_step(&alpha, &transition, &emission, n)
+    });
+    let (reference, _) = bench("hmm_forward CPU ref", || {
+        cpu.hmm_forward_step(&alpha, &transition, &emission, n)
+    });
+
+    h.check_abs(
+        "rewired hmm_forward alpha parity",
+        max_pairwise_diff(&result.0, &reference.0),
+        0.0,
+        1e-10,
+    );
+    h.check_abs(
+        "rewired hmm_forward scale parity",
+        result.1,
+        reference.1,
+        1e-10,
+    );
+
+    let alpha_sum: f64 = result.0.iter().sum();
+    h.check_abs("hmm_forward alpha normalized", alpha_sum, 1.0, 1e-10);
+}
+
 fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     if let Some(profile) = dispatcher.driver_profile() {
         eprintln!("[profile] Driver: {:?}", profile.driver);
@@ -234,6 +317,62 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
             "  matmul({n:>3}x{n:>3}): upstream {upstream_us:>8.1}µs  cpu {cpu_us:>8.1}µs  ratio {ratio:.2}x"
         );
     }
+
+    eprintln!();
+    eprintln!("--- S59 Rewired Ops Throughput ---\n");
+
+    for sz in [64_i32, 256, 1024, 4096] {
+        let data: Vec<f64> = (-50..(-50 + sz)).map(|i| f64::from(i) * 0.01).collect();
+
+        let start = Instant::now();
+        for _ in 0..100 {
+            std::hint::black_box(dispatcher.gelu(&data));
+        }
+        let upstream_us = start.elapsed().as_secs_f64() * 1e4;
+
+        let start = Instant::now();
+        for _ in 0..100 {
+            std::hint::black_box(cpu.gelu(&data));
+        }
+        let cpu_us = start.elapsed().as_secs_f64() * 1e4;
+
+        let ratio = cpu_us / upstream_us;
+        eprintln!(
+            "  gelu(n={sz:>5}): upstream {upstream_us:>8.1}µs  cpu {cpu_us:>8.1}µs  ratio {ratio:.2}x"
+        );
+    }
+
+    for n_states in [3, 8, 16, 32_usize] {
+        let alpha: Vec<f64> = (0..n_states).map(|i| (i + 1) as f64).collect();
+        let sum: f64 = alpha.iter().sum();
+        let alpha: Vec<f64> = alpha.iter().map(|x| x / sum).collect();
+        let transition: Vec<f64> = (0..n_states * n_states)
+            .map(|i| ((i % n_states) + 1) as f64 / (n_states * (n_states + 1) / 2) as f64)
+            .collect();
+        let emission: Vec<f64> = vec![1.0 / n_states as f64; n_states];
+
+        let start = Instant::now();
+        for _ in 0..100 {
+            std::hint::black_box(dispatcher.hmm_forward_step(
+                &alpha,
+                &transition,
+                &emission,
+                n_states,
+            ));
+        }
+        let upstream_us = start.elapsed().as_secs_f64() * 1e4;
+
+        let start = Instant::now();
+        for _ in 0..100 {
+            std::hint::black_box(cpu.hmm_forward_step(&alpha, &transition, &emission, n_states));
+        }
+        let cpu_us = start.elapsed().as_secs_f64() * 1e4;
+
+        let ratio = cpu_us / upstream_us;
+        eprintln!(
+            "  hmm_fwd(s={n_states:>3}): upstream {upstream_us:>8.1}µs  cpu {cpu_us:>8.1}µs  ratio {ratio:.2}x"
+        );
+    }
 }
 
 fn report_cross_spring_lineage() {
@@ -259,10 +398,13 @@ fn report_cross_spring_lineage() {
     eprintln!("  \u{2022} spatial_payoff, hill_gate, multi_obj_fitness");
     eprintln!("  \u{2022} eigh_householder_qr, batch_ipr, swarm_nn");
     eprintln!("  \u{2022} 4-tier matmul KernelRouter");
+    eprintln!("  \u{2022} empirical_spectral_density, marchenko_pastur_bounds (S54)");
+    eprintln!("  \u{2022} effective_rank (S54), gelu_dispatch + hmm_forward_dispatch (S52)");
     eprintln!();
     eprintln!("All three \u{2192} ToadStool (GPU sovereign pipeline):");
     eprintln!("  \u{2022} 599+ WGSL shaders (cross-spring evolved)");
-    eprintln!("  \u{2022} domain_ops dispatch (this benchmark validates rewiring)");
+    eprintln!("  \u{2022} domain_ops dispatch — 9 methods rewired (S58: 7, S59: +2)");
+    eprintln!("  \u{2022} stats/linalg — 3 library functions rewired (S59)");
     eprintln!("  \u{2022} GpuDriverProfile (this benchmark validates detection)");
 }
 
@@ -281,7 +423,7 @@ async fn main() {
         dispatcher.needs_pow_workaround(),
     );
 
-    eprintln!("\n--- Rewired Method Parity ---\n");
+    eprintln!("\n--- Rewired Dispatcher Methods (S58) ---\n");
     validate_rewired_matmul(&mut h, &dispatcher, &cpu);
     validate_rewired_frobenius(&mut h, &dispatcher, &cpu);
     validate_rewired_transpose(&mut h, &dispatcher, &cpu);
@@ -289,6 +431,13 @@ async fn main() {
     validate_rewired_l2(&mut h, &dispatcher, &cpu);
     validate_rewired_mean(&mut h, &dispatcher, &cpu);
     validate_rewired_variance(&mut h, &dispatcher, &cpu);
+
+    eprintln!("\n--- Rewired S59: Dispatcher + Library Functions ---\n");
+    validate_rewired_gelu(&mut h, &dispatcher, &cpu);
+    validate_rewired_hmm_forward(&mut h, &dispatcher, &cpu);
+    validate_rewired_esd(&mut h);
+    validate_rewired_mp_bounds(&mut h);
+    validate_rewired_effective_rank(&mut h);
 
     eprintln!("\n--- Driver Profile Validation ---\n");
     validate_driver_profile(&mut h, &dispatcher);

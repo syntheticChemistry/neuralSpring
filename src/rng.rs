@@ -16,6 +16,7 @@
 //! Provides the sampling primitives needed by evolutionary and stochastic
 //! algorithms without external dependencies.
 
+use crate::primitives::LOG_GUARD;
 use std::f64::consts::PI;
 
 /// WGSL shader: GPU-parallel PRNG (Xoshiro128**).
@@ -65,7 +66,7 @@ impl Rng {
     /// Standard normal via Box-Muller transform.
     #[must_use]
     pub fn normal(&mut self) -> f64 {
-        let u1 = self.uniform().max(1e-300);
+        let u1 = self.uniform().max(LOG_GUARD);
         let u2 = self.uniform();
         (-2.0 * u1.ln()).sqrt() * (2.0 * PI * u2).cos()
     }
@@ -141,7 +142,7 @@ impl Rng {
     #[must_use]
     pub fn gamma(&mut self, shape: f64) -> f64 {
         if shape < 1.0 {
-            return self.gamma(shape + 1.0) * self.uniform().max(1e-300).powf(1.0 / shape);
+            return self.gamma(shape + 1.0) * self.uniform().max(LOG_GUARD).powf(1.0 / shape);
         }
         let d = shape - 1.0 / 3.0;
         let c = 1.0 / (9.0 * d).sqrt();
@@ -152,7 +153,7 @@ impl Rng {
                 continue;
             }
             let v = v_base * v_base * v_base;
-            let u = self.uniform().max(1e-300);
+            let u = self.uniform().max(LOG_GUARD);
             if u < 1.0 - 0.0331 * (x * x) * (x * x) {
                 return d * v;
             }
@@ -168,7 +169,7 @@ impl Rng {
         let x = self.gamma(alpha);
         let y = self.gamma(beta_param);
         let sum = x + y;
-        if sum < 1e-300 {
+        if sum < LOG_GUARD {
             return 0.5;
         }
         x / sum

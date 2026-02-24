@@ -7,7 +7,7 @@ ten experiments spanning function approximation, transformer attention, sequence
 forecasting, transfer learning, cross-domain architecture analysis, physics-informed
 neural networks, operator learning, convolutional networks, real-data LSTM, and
 quantized inference. All **206 quantitative checks pass** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++).
-Phase 1–5e Rust validation adds **1750+ Rust+GPU checks** (459 lib + 9 integration tests + 142 validation binaries across 36 modules + 2 evolved + gpu_ops/ + gpu_dispatch). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
+Phase 1–5f Rust validation adds **1850+ Rust+GPU checks** (482 lib + 9 integration tests + 156 validation binaries across 36 modules + 2 evolved + gpu_ops/ + gpu_dispatch). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
 The 3-way benchmark (Python vs CPU vs GPU) with double-buffered evolved shaders
 achieves **GPU 104× faster** than Python at 103M FLOPs and **CPU 3.9× faster**
 at the same scale.
@@ -167,8 +167,8 @@ The audit (February 2026) produced a Rust crate that cross-validates Python base
 BarraCUDA integration extended it to 1750+ GPU/CPU validation checks across 142 binaries.
 
 - **36 modules + 2 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances/` (20+ named constants + runtime registry), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
-- **142 validation binaries + 6 bench**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch
-- **459 lib tests + 9 integration tests + 26 forge tests**
+- **156 validation binaries + 6 bench**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch + mixed-hardware + multi-GPU
+- **482 lib tests + 9 integration tests + 30 forge tests**
 - **Quality gates**: `clippy` (pedantic+nursery), `fmt`, `doc`, `unsafe_code = "forbid"`
 - **17 WGSL shaders** in `metalForge/shaders/` with validation binaries and absorption targets (13 upstream, 4 local)
 
@@ -217,7 +217,7 @@ See `whitePaper/BARRACUDA_EVOLUTION.md` for the full technical narrative.
 | 0 | Python baselines (48 checks) | Validate the science | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Reproduce published results | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty, 5 disciplines | **COMPLETE** |
-| 1a | neuralSpring Rust validation | 36 modules, 459 lib + 9 integration tests, 142 binaries | **COMPLETE** |
+| 1a | neuralSpring Rust validation | 36 modules, 482 lib + 9 integration tests, 156 binaries | **COMPLETE** |
 | 1b | BarraCUDA validation | 12 domains, 275 checks (CPU + GPU + FFT) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | 46–78× speedup via single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |

@@ -36,6 +36,10 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 022 | Session 52b — S-17 HillGate f64 `pow()` Fix | Feb 24, 2026 | `pow(f64)` crashes NVVM/NAK; polyfill fix 18/18 PASS both GPUs |
 | 023 | Session 54 — baseCamp Experiment Expansion & GPU Workload Validation | Feb 24, 2026 | 82→114 CPU + 14 GPU = 128/128, `validate_basecamp_gpu`, CPU↔GPU sub-epsilon parity |
 | 024 | Session 55 — BarraCUDA CPU vs GPU Dispatch + metalForge Mixed Hardware | Feb 24, 2026 | `mixed_dispatch()` wired, 16/16 compute dispatch + 14/14 mixed hardware, 141/142 all green |
+| 025 | Session 56 — ToadStool S53 Sync, Upstream Rewiring, Dispatch Validation | Feb 24, 2026 | 4 functions rewired, 89 new checks, metalForge PCIe tiers validated |
+| 026 | Session 58 — Cross-Spring Dispatch Rewiring + GpuDriverProfile | Feb 24, 2026 | 7 Dispatcher methods rewired, GpuDriverProfile wired, 11 total rewired |
+| 027 | Session 59 — S54-S59 Absorption Cycle: Library + Dispatch Rewiring | Feb 24, 2026 | 5 more rewires (ESD, MP, rank, gelu, hmm\_forward), 16 total, 3 dead WGSL removed |
+| 028 | Session 60 — Cross-Spring Evolution Benchmark Validation | Feb 24, 2026 | 22/22 cross-spring checks, Variance 2.46×, Entropy 2.59×, 482 lib tests |
 
 ---
 
@@ -1457,6 +1461,93 @@ mixed-hardware dispatch decisions.
 | hotSpring | df64_core, pow_f64, Fp64Strategy, GpuDriverProfile, Taylor trig, Lanczos |
 | wetSpring | HMM, ODE bio (5), NMF, Anderson localization, Ridge regression |
 | neuralSpring | ValidationHarness, batch_fitness, pairwise ops, eigh, KernelRouter |
+
+---
+
+## Experiment 027 — S54-S59 Absorption Cycle: Library + Dispatch Rewiring
+
+**Date**: February 24, 2026 (Session 59)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+
+### Motivation
+
+ToadStool S54 absorbed neuralSpring's `empirical_spectral_density`,
+`marchenko_pastur_bounds`, and `effective_rank` into `barracuda::stats` and
+`barracuda::linalg`. S52 absorbed `gelu_dispatch` and `hmm_forward_dispatch`
+into `barracuda::dispatch::domain_ops`. neuralSpring should complete the
+absorption cycle by rewiring local implementations to upstream.
+
+### Procedure
+
+1. Rewired 3 library functions to upstream stats/linalg:
+   - `weight_spectral::empirical_spectral_density` → `barracuda::stats`
+   - `weight_spectral::marchenko_pastur_bounds` → `barracuda::stats`
+   - `neural_pgm::effective_rank` → `barracuda::linalg`
+2. Added 2 new Dispatcher methods delegating to upstream dispatch:
+   - `gelu` → `barracuda::dispatch::gelu_dispatch`
+   - `hmm_forward_step` → `barracuda::dispatch::hmm_forward_dispatch`
+3. Removed 3 dead WGSL re-exports from `evolved/mod.rs`
+   (`WGSL_BATCH_FITNESS_EVAL`, `WGSL_RK4_PARALLEL`, `WGSL_MEAN_REDUCE`)
+4. Full validation: 482 lib, 145/146 validate_all, clippy clean
+
+### Results
+
+- 16 total functions now delegate to upstream BarraCUDA
+- 482 lib tests PASS (up from 478 — new tests for S59 rewires)
+- 3 dead re-exports removed (all callers already use upstream typed APIs)
+- Quality gates: fmt ✓ · clippy (pedantic+nursery) ✓ · doc ✓
+
+---
+
+## Experiment 028 — Cross-Spring Evolution Benchmark Validation
+
+**Date**: February 24, 2026 (Session 60)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+
+### Motivation
+
+With all 16 functions rewired, validate the full cross-spring evolution story:
+do hotSpring precision, wetSpring bio, and neuralSpring ML primitives work
+together correctly and efficiently through ToadStool?
+
+### Procedure
+
+1. Extended `validate_cross_spring_evolution` from 16→22 checks:
+   - `gelu` dispatch parity (upstream vs CPU)
+   - `hmm_forward_step` dispatch parity (alpha + scale)
+   - `empirical_spectral_density` (bin count, normalization)
+   - `marchenko_pastur_bounds` (exact γ=1 → [0,4])
+   - `effective_rank` (full rank = n, single = 1)
+2. Extended `bench_cross_spring_evolution` with rewired Dispatcher throughput:
+   matmul, softmax, gelu, mean, hmm_forward at multiple sizes
+3. Ran full benchmark suite:
+   - `bench_rewire_evolution`: f32→f64 typed op speedups
+   - `bench_cross_spring_evolution`: GPU typed ops + Dispatcher throughput
+4. Updated cross-spring evolution docs with benchmark data
+
+### Benchmark Results (RTX 4070, `--release`)
+
+| Metric | Value | Origin |
+|--------|-------|--------|
+| Variance f64 vs f32 | **2.46× faster** | hotSpring Welford |
+| Entropy f64 vs f32 | **2.59× faster** | wetSpring fused |
+| Pearson f64 vs f32 | **1.11× faster** | wetSpring + hotSpring |
+| `BatchFitnessGpu` 1024×64 | 1,274 µs | neuralSpring |
+| `HmmBatchForwardF64` 4s×50t×32b | 1,743 µs | wetSpring |
+| `BatchedEighGpu` 12×12×40 | 5,355 µs | hotSpring |
+
+### Key Finding: Dispatch Design Validates
+
+For n ≤ 4096 (validation workloads), upstream dispatch correctly routes to CPU —
+zero overhead. GPU benefits appear at production scales handled by typed GPU ops.
+The cross-spring architecture works exactly as designed.
+
+### Results
+
+- `validate_cross_spring_evolution`: **22/22 PASS**
+- `cargo test --lib`: **482 PASS**
+- `validate_all`: **145/146 PASS** (1 pre-existing upstream logsumexp)
+- All quality gates: PASS
 
 ---
 

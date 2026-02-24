@@ -44,6 +44,32 @@ pub fn chi_squared(observed: &[f64], expected: &[f64]) -> f64 {
     barracuda::special::chi_squared_statistic(observed, expected).unwrap_or(0.0)
 }
 
+/// HMM forward step: `alpha[j] = B[j] * sum_i(alpha_prev[i] * T[i,j])`, then normalize.
+///
+/// Returns `(alpha_new, scale)` where `scale = sum(alpha_new)` before normalization.
+pub fn hmm_forward_step(
+    alpha_prev: &[f64],
+    transition: &[f64],
+    emission_col: &[f64],
+    n_states: usize,
+) -> (Vec<f64>, f64) {
+    let mut alpha = vec![0.0; n_states];
+    for j in 0..n_states {
+        let mut sum = 0.0;
+        for i in 0..n_states {
+            sum += alpha_prev[i] * transition[i * n_states + j];
+        }
+        alpha[j] = sum * emission_col[j];
+    }
+    let scale: f64 = alpha.iter().sum();
+    if scale > 0.0 {
+        for a in &mut alpha {
+            *a /= scale;
+        }
+    }
+    (alpha, scale)
+}
+
 /// HMM backward step: `beta[i] = (1/scale) * sum_j(T[i,j] * B[j] * beta_next[j])`.
 pub fn hmm_backward_step(
     beta_next: &[f64],

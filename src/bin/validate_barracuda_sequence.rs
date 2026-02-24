@@ -43,7 +43,7 @@ const INPUT_DIM: usize = 6;
 const HIDDEN_DIM: usize = 4;
 
 fn sigmoid_f64(x: f64) -> f64 {
-    1.0 / (1.0 + (-x).exp())
+    neural_spring::primitives::sigmoid(x)
 }
 
 #[tokio::main]

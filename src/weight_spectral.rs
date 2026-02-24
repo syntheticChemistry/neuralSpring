@@ -30,6 +30,7 @@
 
 use crate::anderson_localization::{ipr, mean_ipr};
 use crate::eigh::eigh_householder_qr;
+use crate::primitives::LOG_GUARD;
 
 /// Symmetrize a rectangular weight matrix into a square Hamiltonian.
 ///
@@ -57,36 +58,11 @@ pub fn weight_to_hamiltonian(weights: &[f64], m: usize, n: usize) -> Vec<f64> {
 /// Empirical spectral density: histogram of eigenvalues into `n_bins` bins.
 ///
 /// Returns `(bin_centers, bin_counts)` normalized so that counts sum to 1.
+///
+/// Delegates to `barracuda::stats::empirical_spectral_density` (absorbed S54, M-011).
 #[must_use]
 pub fn empirical_spectral_density(eigenvalues: &[f64], n_bins: usize) -> (Vec<f64>, Vec<f64>) {
-    if eigenvalues.is_empty() || n_bins == 0 {
-        return (vec![], vec![]);
-    }
-    let min = eigenvalues.iter().copied().fold(f64::INFINITY, f64::min);
-    let max = eigenvalues
-        .iter()
-        .copied()
-        .fold(f64::NEG_INFINITY, f64::max);
-    let range = max - min;
-    let bin_width = if range < 1e-300 {
-        1.0
-    } else {
-        range / n_bins as f64
-    };
-
-    let mut counts = vec![0.0_f64; n_bins];
-    let n_total = eigenvalues.len() as f64;
-    for &ev in eigenvalues {
-        let idx = ((ev - min) / bin_width) as usize;
-        let idx = idx.min(n_bins - 1);
-        counts[idx] += 1.0 / n_total;
-    }
-
-    let centers: Vec<f64> = (0..n_bins)
-        .map(|i| (i as f64 + 0.5).mul_add(bin_width, min))
-        .collect();
-
-    (centers, counts)
+    barracuda::stats::empirical_spectral_density(eigenvalues, n_bins)
 }
 
 /// Level spacing ratio: r = min(s_i, s_{i+1}) / max(s_i, s_{i+1}).
@@ -112,12 +88,11 @@ pub const POISSON_LEVEL_SPACING: f64 = 0.386_29;
 /// random matrices with aspect ratio γ = m/n.
 ///
 /// Returns the MP bounds (λ_min, λ_max) for singular values squared.
+///
+/// Delegates to `barracuda::stats::marchenko_pastur_bounds` (absorbed S54, M-012).
 #[must_use]
 pub fn marchenko_pastur_bounds(gamma: f64) -> (f64, f64) {
-    let sq = gamma.sqrt();
-    let lambda_min = (1.0 - sq).powi(2);
-    let lambda_max = (1.0 + sq).powi(2);
-    (lambda_min, lambda_max)
+    barracuda::stats::marchenko_pastur_bounds(gamma)
 }
 
 /// Fraction of eigenvalues outside the Marchenko-Pastur bulk.
@@ -148,13 +123,13 @@ pub fn spectral_entropy(eigenvalues: &[f64]) -> f64 {
     }
     let abs_vals: Vec<f64> = eigenvalues.iter().map(|&ev| ev.abs()).collect();
     let total: f64 = abs_vals.iter().sum();
-    if total < 1e-300 {
+    if total < LOG_GUARD {
         return 0.0;
     }
     let mut entropy = 0.0;
     for &v in &abs_vals {
         let p = v / total;
-        if p > 1e-300 {
+        if p > LOG_GUARD {
             entropy -= p * p.ln();
         }
     }
@@ -256,7 +231,7 @@ pub fn spectral_comparison(
 #[must_use]
 pub fn activation_ipr(activations: &[f64]) -> f64 {
     let norm_sq: f64 = activations.iter().map(|&x| x * x).sum();
-    if norm_sq < 1e-300 {
+    if norm_sq < LOG_GUARD {
         return 0.0;
     }
     let normalized: Vec<f64> = activations.iter().map(|&x| x / norm_sq.sqrt()).collect();

@@ -31,6 +31,7 @@
 
 use crate::anderson_localization::mean_ipr;
 use crate::eigh::eigh_householder_qr;
+use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
 /// Agent in the coordination model.
@@ -57,7 +58,7 @@ pub fn interaction_graph(agents: &[Agent], comm_range: f64) -> Vec<f64> {
     for i in 0..n {
         for j in (i + 1)..n {
             let dist = euclidean_distance(&agents[i].position, &agents[j].position);
-            if dist < comm_range && dist > 1e-300 {
+            if dist < comm_range && dist > LOG_GUARD {
                 let weight = 1.0 / dist;
                 adj[i * n + j] = weight;
                 adj[j * n + i] = weight;
@@ -171,7 +172,7 @@ pub fn qs_signaling_step(
                 continue;
             }
             let dist = euclidean_distance(&positions[i], &positions[j]);
-            if dist < detection_radius && dist > 1e-300 {
+            if dist < detection_radius && dist > LOG_GUARD {
                 local_signal += signals[j] * (-signal_decay * dist).exp();
             }
         }
