@@ -834,5 +834,45 @@ pub const GPU_AF_VARIANCE_F32: f64 = 0.02;
 /// stays within 2.0 nats.
 pub const GPU_HMM_VITERBI_LOGPROB_F64: f64 = 2.0;
 
+// ═══════════════════════════════════════════════════════════════════
+// baseCamp dispatch parity (f64 GPU typed ops)
+// ═══════════════════════════════════════════════════════════════════
+
+/// GPU f64 variance dispatch parity: `VarianceReduceF64` vs CPU.
+///
+/// One-pass parallel variance accumulation on f64 GPU buffers introduces
+/// rounding from the per-workgroup partial-sum pattern.  Observed diff
+/// < 1e-9 for n ≤ 4096.  1e-8 provides margin for larger workloads.
+pub const GPU_VARIANCE_F64: f64 = 1e-8;
+
+/// GPU f64 Pearson correlation dispatch parity: `CorrelationF64` vs CPU.
+///
+/// GPU correlation requires two variance reductions plus a covariance
+/// reduction, each introducing independent rounding.  Observed diff
+/// < 1e-7 for n ≤ 256.
+pub const GPU_PEARSON_F64: f64 = 1e-6;
+
+/// GPU f64 Shannon entropy dispatch parity: `FusedMapReduceF64` vs CPU.
+///
+/// Entropy involves `ln()` transcendentals on GPU; f64 polyfill
+/// introduces ~4 digits less precision than native libm.  Observed
+/// diff < 5e-5 for n ≤ 100.
+pub const GPU_ENTROPY_F64: f64 = 1e-4;
+
+/// GPU Jacobi eigenvalue agreement in dispatch validation (f64).
+///
+/// Jacobi eigensolver eigenvalue accuracy (0.1 absolute) for the
+/// 16×16 Hamiltonians used in `validate_compute_dispatch` and
+/// `validate_basecamp_gpu`.  Wider than `EIGH_JACOBI_EIGENVALUE`
+/// (1e-3) because the dispatch path exercises larger matrices.
+pub const GPU_EIGH_DISPATCH_F64: f64 = 0.1;
+
+/// BP / PGM normalization sum: belief propagation output sums to 1.
+///
+/// Row-stochastic matrix multiplication preserves normalization to
+/// machine precision.  Multi-layer BP chains compound rounding but
+/// stay within 1e-8 for ≤ 10 layers at dim ≤ 64.
+pub const PGM_NORMALIZATION_SUM: f64 = 1e-8;
+
 mod registry;
 pub use registry::{all_tolerances, categories, tolerance_by_name, NamedTolerance};

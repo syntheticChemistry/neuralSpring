@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `9abd6857` (Sessions 50–53, Feb 24, 2026)
+**ToadStool HEAD**: `9404fdb4` (Sessions 50–59, Feb 24, 2026)
 
 ---
 
@@ -154,8 +154,8 @@ Following the hotSpring lifecycle (evolve → validate → handoff → absorb �
 | Shader | Status | Next Step |
 |--------|--------|-----------|
 | `head_split.wgsl` / `head_concat.wgsl` | Validated (10/10). Upstream variant exists with different params | Unify param structs; handoff to `barracuda::ops::mha` |
-| `xoshiro128ss.wgsl` | Validated (5/5). Upstream has different state model | Reconcile persistent-state vs one-shot; handoff to `barracuda::ops::prng` |
-| `swarm_nn_scores.wgsl` | Validated (pipeline PASS). No upstream equivalent | New handoff to `barracuda::ops::bio` |
+
+`xoshiro128ss.wgsl` and `swarm_nn_scores.wgsl` **ABSORBED** by ToadStool S51/S52.
 
 **Previously absorbed** (Session 39): `pairwise_l2`, `multi_obj_fitness`, `hill_gate`,
 `swarm_nn_forward`, `mean_reduce` — upstream has generalized variants. Local copies retained

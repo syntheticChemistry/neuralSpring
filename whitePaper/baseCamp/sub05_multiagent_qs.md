@@ -1,7 +1,7 @@
 # Sub-Thesis 05: Multi-Agent AI Coordination as Quorum Sensing
 
-**Date:** February 23, 2026
-**Status:** Core primitives implemented and validated (18/18 PASS)
+**Date:** February 24, 2026 (Session 58 — `graph_laplacian`/`disordered_laplacian` + 7 Dispatcher methods rewired to upstream)
+**Status:** Core primitives implemented and validated (23/23 PASS)
 **Module:** `src/agent_coordination.rs` | **Validator:** `src/bin/validate_agent_coordination.rs`
 **Domain:** Microbial ecology applied to multi-agent AI systems
 **Novelty:** No prior work applies the Anderson QS framework to predict
@@ -225,11 +225,19 @@ seeds). No external data, no API dependencies.
 ```bash
 cargo run --release --bin validate_agent_coordination   # 23/23 PASS (Sessions 50, 54)
 cargo run --release --bin validate_basecamp_gpu         # 14/14 PASS — pure GPU parity
+cargo run --release --bin validate_basecamp_dispatch    # 19/19 PASS — Dispatcher routing
+cargo run --release --bin validate_barracuda_parity     # 34/34 PASS — CPU↔GPU parity
 ```
 
 All experiments (nS-501 through nS-505) are validated in the consolidated
 `validate_agent_coordination` binary, including Anderson spectral analysis,
 QS signaling steps, dimensional topology comparison, agent scaling sweep,
 signal threshold transition, and disorder-level spectral comparison.
+
+### Upstream Rewiring (Session 56)
+
+`graph_laplacian` and `disordered_laplacian` now delegate to
+`barracuda::linalg::graph` (ToadStool `9404fdb4`). Public API unchanged;
+all 23 checks still pass.
 
 No proprietary models. No model downloads.

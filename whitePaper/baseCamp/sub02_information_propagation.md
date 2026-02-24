@@ -1,7 +1,7 @@
 # Sub-Thesis 02: Information Flow as Wave Propagation in Neural Lattices
 
-**Date:** February 23, 2026
-**Status:** Core primitives implemented and validated (15/15 PASS)
+**Date:** February 24, 2026 (Session 58 — Dispatcher `l2_distance`/`mean`/`variance` rewired to upstream `domain_ops`)
+**Status:** Core primitives implemented and validated (22/22 PASS)
 **Module:** `src/information_flow.rs` | **Validator:** `src/bin/validate_information_flow.rs`
 **Domain:** Statistical physics applied to recurrent and attention-based AI
 **Novelty:** No prior work models LSTM gating as stencil propagation on a
@@ -228,8 +228,10 @@ The information propagation sub-thesis tests two predictions:
 All experiments use our Phase 0/0+ trained models. Deterministic seed (42).
 
 ```bash
-cargo run --release --bin validate_information_flow   # 22/22 PASS (Sessions 50, 54)
+cargo run --release --bin validate_information_flow    # 22/22 PASS (Sessions 50, 54)
 cargo run --release --bin validate_basecamp_gpu       # 14/14 PASS — pure GPU parity
+cargo run --release --bin validate_basecamp_dispatch  # 19/19 PASS — Dispatcher routing (Session 55)
+cargo run --release --bin validate_barracuda_parity   # 34/34 PASS — CPU↔GPU parity (Session 56)
 ```
 
 All experiments (nS-201 through nS-206) are validated in the consolidated

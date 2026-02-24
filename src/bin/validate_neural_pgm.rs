@@ -56,7 +56,7 @@ fn main() {
     let mut all_normalized = true;
     for (layer, dist) in dists.iter().enumerate() {
         let sum: f64 = dist.iter().sum();
-        if (sum - 1.0).abs() > 1e-8 {
+        if (sum - 1.0).abs() > tolerances::PGM_NORMALIZATION_SUM {
             all_normalized = false;
             eprintln!("  Layer {layer} sum = {sum}");
         }
@@ -109,7 +109,7 @@ fn main() {
     let cross_sim = layer_spectral_similarity(&w_square, 4, &w_other, 4);
     h.check_bool(
         "Cross-similarity in [-1, 1]",
-        (-1.0..=1.0 + 1e-6).contains(&cross_sim),
+        (-1.0..=1.0 + tolerances::CROSS_LANGUAGE).contains(&cross_sim),
     );
 
     // ── nS-406: PGM complexity ───────────────────────────────────────
@@ -148,7 +148,12 @@ fn main() {
     h.check_bool("PGM output non-empty", !pgm_result.pgm_output.is_empty());
     h.check_bool("KL divergence finite", pgm_result.kl_divergence.is_finite());
     let pgm_sum: f64 = pgm_result.pgm_output.iter().sum();
-    h.check_abs("PGM output sums to 1", pgm_sum, 1.0, 1e-8);
+    h.check_abs(
+        "PGM output sums to 1",
+        pgm_sum,
+        1.0,
+        tolerances::PGM_NORMALIZATION_SUM,
+    );
 
     // ── nS-402: Factor graph (multi-layer BP) ──────────────────────────
 
@@ -178,7 +183,7 @@ fn main() {
         "nS-402: deep BP final layer sums to 1",
         deep_final_sum,
         1.0,
-        1e-8,
+        tolerances::PGM_NORMALIZATION_SUM,
     );
 
     // ── nS-405: OOD detection via PGM divergence ─────────────────────
@@ -199,7 +204,7 @@ fn main() {
     );
     h.check_bool(
         "nS-405: OOD input produces different PGM output",
-        (pgm_in.kl_divergence - pgm_ood.kl_divergence).abs() > 1e-15
+        (pgm_in.kl_divergence - pgm_ood.kl_divergence).abs() > tolerances::ZERO_DETECTION
             || pgm_in.kl_divergence.is_finite(),
     );
 
@@ -211,7 +216,7 @@ fn main() {
         "nS-403: spectral similarity is symmetric",
         sim_ab,
         sim_ba,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     // ── nS-404: Effective rank monotonicity ───────────────────────────

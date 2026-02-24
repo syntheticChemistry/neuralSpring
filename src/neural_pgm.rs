@@ -70,33 +70,7 @@ pub fn belief_propagation_chain(
     transition_matrices: &[&[f64]],
     layer_dims: &[usize],
 ) -> Vec<Vec<f64>> {
-    let mut distributions = Vec::with_capacity(transition_matrices.len() + 1);
-    distributions.push(input_dist.to_vec());
-
-    let mut current = input_dist.to_vec();
-    for (layer_idx, &trans) in transition_matrices.iter().enumerate() {
-        let n_in = current.len();
-        let n_out = layer_dims[layer_idx];
-        let mut next = vec![0.0; n_out];
-
-        for j in 0..n_out {
-            for i in 0..n_in {
-                next[j] = current[i].mul_add(trans[i * n_out + j], next[j]);
-            }
-        }
-
-        let sum: f64 = next.iter().sum();
-        if sum > 1e-300 {
-            for v in &mut next {
-                *v /= sum;
-            }
-        }
-
-        distributions.push(next.clone());
-        current = next;
-    }
-
-    distributions
+    barracuda::linalg::graph::belief_propagation_chain(input_dist, transition_matrices, layer_dims)
 }
 
 /// Compare PGM belief propagation output with neural network forward pass.

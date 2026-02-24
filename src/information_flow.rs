@@ -340,4 +340,148 @@ mod tests {
         let w2 = gate_disorder_parameter(&gates);
         assert!((w1 - w2).abs() < f64::EPSILON, "determinism: {w1} != {w2}");
     }
+
+    #[test]
+    fn depth_scale_edge_cases() {
+        assert!(depth_scale(&[]).is_infinite(), "empty → infinite");
+        assert!(depth_scale(&[1.0]).is_infinite(), "single → infinite");
+        assert!(
+            depth_scale(&[0.0, 0.0]).is_infinite(),
+            "zero initial → infinite"
+        );
+
+        let below_threshold = vec![1.0, 0.3];
+        let xi = depth_scale(&below_threshold);
+        assert!(xi.is_finite(), "below-threshold decay should resolve");
+        assert!(xi > 0.0 && xi < 2.0, "xi in (0, 2), got {xi}");
+
+        let just_above = vec![1.0, 0.37];
+        assert!(
+            depth_scale(&just_above).is_infinite(),
+            "above 1/e → infinite"
+        );
+    }
+
+    #[test]
+    fn gate_disorder_empty() {
+        assert!((gate_disorder_parameter(&[]) - 0.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn gate_saturation_empty() {
+        assert!((gate_saturation(&[], 0.1) - 0.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn gate_saturation_none_saturated() {
+        let gates = vec![0.5; 10];
+        let sat = gate_saturation(&gates, 0.1);
+        assert!(sat.abs() < f64::EPSILON, "mid-range → 0 saturation");
+    }
+
+    #[test]
+    fn information_ipr_zero_activations() {
+        let zeros = vec![0.0; 8];
+        assert!(
+            information_ipr(&zeros).abs() < f64::EPSILON,
+            "zero activations → 0 IPR"
+        );
+    }
+
+    #[test]
+    fn mlp_signal_propagation_basic() {
+        let input = vec![1.0, 0.5, -0.3, 0.8];
+        let w1: Vec<f64> = vec![
+            0.2, 0.1, 0.3, -0.1, -0.2, 0.4, 0.1, 0.2, 0.3, -0.3, 0.2, 0.1,
+        ];
+        let w2: Vec<f64> = vec![0.5, -0.2, 0.3, -0.4, 0.1, 0.6];
+        let vars = mlp_signal_propagation(&input, &[w1.as_slice(), w2.as_slice()], &[3, 2]);
+        assert_eq!(vars.len(), 3, "input + 2 layers = 3 variances");
+        assert!(vars[0] > 0.0, "input variance positive");
+        assert!(vars.iter().all(|v| v.is_finite()), "all variances finite");
+    }
+
+    #[test]
+    fn mlp_signal_propagation_single_layer() {
+        let input = vec![1.0, 1.0];
+        let w: Vec<f64> = vec![1.0, 0.0, 0.0, 1.0];
+        let vars = mlp_signal_propagation(&input, &[w.as_slice()], &[2]);
+        assert_eq!(vars.len(), 2);
+        assert!((vars[0] - 1.0).abs() < 1e-12, "identity preserves variance");
+    }
+
+    #[test]
+    fn attention_spectral_analysis_produces_results() {
+        let mut rng = Rng::new(42);
+        let n = 8;
+        let attention: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
+        let result = attention_spectral_analysis(&attention, n);
+        assert_eq!(result.eigenvalues.len(), n);
+        assert!(result.mean_ipr > 0.0, "IPR should be positive");
+        assert!(
+            result.level_spacing_ratio.is_finite(),
+            "LSR should be finite"
+        );
+        let sorted: Vec<f64> = result.eigenvalues;
+        for w in sorted.windows(2) {
+            assert!(w[0] <= w[1], "eigenvalues should be sorted");
+        }
+    }
+
+    #[test]
+    fn jacobian_spectral_radius_identity() {
+        let n = 4;
+        let mut weights = vec![0.0; n * n];
+        for i in 0..n {
+            weights[i * n + i] = 1.0;
+        }
+        let pre_act = vec![1.0; n]; // all positive → ReLU mask all 1
+        let rho = jacobian_spectral_radius(&weights, &pre_act, n);
+        assert!(
+            (rho - 1.0).abs() < 0.05,
+            "identity weight + all-positive pre-act → ρ ≈ 1, got {rho}"
+        );
+    }
+
+    #[test]
+    fn jacobian_spectral_radius_zero_pre_activations() {
+        let n = 4;
+        let mut rng = Rng::new(42);
+        let weights: Vec<f64> = (0..n * n).map(|_| rng.normal()).collect();
+        let pre_act = vec![-1.0; n]; // all negative → ReLU mask all 0
+        let rho = jacobian_spectral_radius(&weights, &pre_act, n);
+        assert!(
+            rho < 1e-10,
+            "all-negative pre-act → ρ ≈ 0 (dead ReLU), got {rho}"
+        );
+    }
+
+    #[test]
+    fn jacobian_spectral_radius_random() {
+        let mut rng = Rng::new(42);
+        let n = 8;
+        let weights: Vec<f64> = (0..n * n).map(|_| rng.normal()).collect();
+        let pre_act: Vec<f64> = (0..n).map(|_| rng.normal()).collect();
+        let rho = jacobian_spectral_radius(&weights, &pre_act, n);
+        assert!(
+            rho.is_finite() && rho >= 0.0,
+            "ρ must be finite and non-negative"
+        );
+    }
+
+    #[test]
+    fn mat_mul_transpose_symmetry() {
+        let mut rng = Rng::new(42);
+        let n = 4;
+        let a: Vec<f64> = (0..n * n).map(|_| rng.normal()).collect();
+        let ata = mat_mul_transpose(&a, n);
+        for i in 0..n {
+            for j in 0..n {
+                assert!(
+                    (ata[i * n + j] - ata[j * n + i]).abs() < 1e-12,
+                    "A^T A must be symmetric"
+                );
+            }
+        }
+    }
 }

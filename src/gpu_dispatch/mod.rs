@@ -16,8 +16,10 @@
 
 #![allow(clippy::cast_precision_loss)]
 
+mod basecamp;
 mod cpu_fallback;
 
+use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile};
 use barracuda::device::WgpuDevice;
 use std::sync::Arc;
 
@@ -44,16 +46,19 @@ impl std::fmt::Display for Backend {
 /// Capability-based dispatcher for GPU/CPU execution.
 ///
 /// Created once at startup, shared across all science modules.
-/// When GPU is available, operations route through `gpu_ops`;
-/// when unavailable (no adapter, CI, etc.), they use CPU references.
+/// When GPU is available, operations route through upstream
+/// `barracuda::dispatch::domain_ops` (cross-spring evolved from hotSpring
+/// precision shaders and wetSpring bio shaders). When unavailable,
+/// local CPU references are used.
 ///
-/// Every dispatched operation uses `gpu_or_cpu` — attempt
-/// GPU execution, log-and-fallback on error, or skip straight to CPU
-/// when no adapter is present.  This keeps each public method focused
-/// on *what* it computes rather than *how* dispatch works.
+/// The `driver_profile` field (from `barracuda::device::GpuDriverProfile`)
+/// provides hardware-adaptive f64 strategy, driver workaround detection,
+/// and optimal eigensolve configuration — evolved from hotSpring's
+/// core-streaming discovery work.
 pub struct Dispatcher {
     gpu: Option<Gpu>,
     prefer_gpu: bool,
+    driver_profile: Option<GpuDriverProfile>,
 }
 
 impl Dispatcher {
@@ -63,13 +68,18 @@ impl Dispatcher {
     pub async fn new() -> Self {
         match Gpu::new().await {
             Ok(gpu) => {
+                let profile = GpuDriverProfile::from_device(gpu.wgpu_device());
                 eprintln!(
-                    "[dispatch] GPU available: {} ({:?}, {:?})",
-                    gpu.adapter_name, gpu.device_type, gpu.backend,
+                    "[dispatch] GPU available: {} ({:?}, {:?}, f64={:?})",
+                    gpu.adapter_name,
+                    gpu.device_type,
+                    gpu.backend,
+                    profile.fp64_strategy(),
                 );
                 Self {
                     gpu: Some(gpu),
                     prefer_gpu: true,
+                    driver_profile: Some(profile),
                 }
             }
             Err(e) => {
@@ -77,6 +87,7 @@ impl Dispatcher {
                 Self {
                     gpu: None,
                     prefer_gpu: false,
+                    driver_profile: None,
                 }
             }
         }
@@ -88,15 +99,18 @@ impl Dispatcher {
         Self {
             gpu: None,
             prefer_gpu: false,
+            driver_profile: None,
         }
     }
 
     /// Create from an existing `Gpu` context.
     #[must_use]
-    pub const fn from_gpu(gpu: Gpu) -> Self {
+    pub fn from_gpu(gpu: Gpu) -> Self {
+        let profile = GpuDriverProfile::from_device(gpu.wgpu_device());
         Self {
             gpu: Some(gpu),
             prefer_gpu: true,
+            driver_profile: Some(profile),
         }
     }
 
@@ -140,6 +154,30 @@ impl Dispatcher {
     #[must_use]
     pub const fn gpu(&self) -> Option<&Gpu> {
         self.gpu.as_ref()
+    }
+
+    /// Upstream driver profile (hotSpring-evolved hardware detection).
+    #[must_use]
+    pub const fn driver_profile(&self) -> Option<&GpuDriverProfile> {
+        self.driver_profile.as_ref()
+    }
+
+    /// Hardware-adaptive f64 strategy: `Native` on compute-class GPUs
+    /// (Titan V, V100, A100 — 1:2 FP64:FP32), `Hybrid` on consumer
+    /// GPUs (RTX 4070 — 1:64 ratio, routes bulk math through df64 f32-pairs).
+    #[must_use]
+    pub fn fp64_strategy(&self) -> Fp64Strategy {
+        self.driver_profile
+            .as_ref()
+            .map_or(Fp64Strategy::Native, GpuDriverProfile::fp64_strategy)
+    }
+
+    /// Whether the GPU driver needs `pow(f64,f64)` polyfill workaround.
+    #[must_use]
+    pub fn needs_pow_workaround(&self) -> bool {
+        self.driver_profile
+            .as_ref()
+            .is_some_and(GpuDriverProfile::needs_pow_f64_workaround)
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -227,36 +265,39 @@ impl Dispatcher {
 
     // ═══════════════════════════════════════════════════════════════
     // Dispatched operations — linear algebra
+    // (mat_mul, frobenius_norm, transpose delegate to upstream
+    //  barracuda::dispatch::domain_ops which handles GPU/CPU routing
+    //  with size-based thresholds — cross-spring evolved from
+    //  hotSpring precision shaders + wetSpring bio shaders)
     // ═══════════════════════════════════════════════════════════════
 
-    /// Matrix multiply: GPU if available, CPU fallback.
+    /// Matrix multiply: delegates to upstream `barracuda::dispatch::matmul_dispatch`.
     #[must_use]
     pub fn mat_mul(&self, a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
-        self.gpu_or_cpu(
-            "mat_mul",
-            |dev| crate::gpu_ops::mat_mul_gpu(a, b, n, dev),
-            || crate::spectral_commutativity::mat_mul(a, b, n),
+        barracuda::dispatch::matmul_dispatch(a, b, n, n, n, self.wgpu_device()).unwrap_or_else(
+            |e| {
+                eprintln!("[dispatch] mat_mul upstream failed: {e}");
+                crate::spectral_commutativity::mat_mul(a, b, n)
+            },
         )
     }
 
-    /// Frobenius norm: GPU if available, CPU fallback.
+    /// Frobenius norm: delegates to upstream `barracuda::dispatch::frobenius_norm_dispatch`.
     #[must_use]
     pub fn frobenius_norm(&self, a: &[f64]) -> f64 {
-        self.gpu_or_cpu(
-            "frobenius_norm",
-            |dev| crate::gpu_ops::frobenius_norm_gpu(a, dev),
-            || crate::spectral_commutativity::frobenius_norm(a),
-        )
+        barracuda::dispatch::frobenius_norm_dispatch(a, self.wgpu_device()).unwrap_or_else(|e| {
+            eprintln!("[dispatch] frobenius_norm upstream failed: {e}");
+            crate::spectral_commutativity::frobenius_norm(a)
+        })
     }
 
-    /// Transpose: GPU if available, CPU fallback.
+    /// Transpose: delegates to upstream `barracuda::dispatch::transpose_dispatch`.
     #[must_use]
     pub fn transpose(&self, a: &[f64], n: usize) -> Vec<f64> {
-        self.gpu_or_cpu(
-            "transpose",
-            |dev| crate::gpu_ops::transpose_gpu(a, n, dev),
-            || crate::spectral_commutativity::transpose(a, n),
-        )
+        barracuda::dispatch::transpose_dispatch(a, n, n, self.wgpu_device()).unwrap_or_else(|e| {
+            eprintln!("[dispatch] transpose upstream failed: {e}");
+            crate::spectral_commutativity::transpose(a, n)
+        })
     }
 
     /// Commutator `[A,B]` = AB - BA: GPU if available, CPU fallback.
@@ -283,14 +324,13 @@ impl Dispatcher {
     // Dispatched operations — activations / distributions
     // ═══════════════════════════════════════════════════════════════
 
-    /// Softmax: GPU if available, CPU fallback.
+    /// Softmax: delegates to upstream `barracuda::dispatch::softmax_dispatch`.
     #[must_use]
     pub fn softmax(&self, x: &[f64]) -> Vec<f64> {
-        self.gpu_or_cpu(
-            "softmax",
-            |dev| crate::gpu_ops::softmax_gpu(x, dev),
-            || crate::transformer::softmax(x),
-        )
+        barracuda::dispatch::softmax_dispatch(x, self.wgpu_device()).unwrap_or_else(|e| {
+            eprintln!("[dispatch] softmax upstream failed: {e}");
+            crate::transformer::softmax(x)
+        })
     }
 
     /// Boltzmann distribution: GPU if available, CPU fallback.
@@ -321,14 +361,13 @@ impl Dispatcher {
     // Dispatched operations — reductions / statistics
     // ═══════════════════════════════════════════════════════════════
 
-    /// L2 distance: GPU if available, CPU fallback.
+    /// L2 distance: delegates to upstream `barracuda::dispatch::l2_distance_dispatch`.
     #[must_use]
     pub fn l2_distance(&self, a: &[f64], b: &[f64]) -> f64 {
-        self.gpu_or_cpu(
-            "l2_distance",
-            |dev| crate::gpu_ops::l2_distance_gpu(a, b, dev),
-            || crate::modes::l2_distance(a, b),
-        )
+        barracuda::dispatch::l2_distance_dispatch(a, b, self.wgpu_device()).unwrap_or_else(|e| {
+            eprintln!("[dispatch] l2_distance upstream failed: {e}");
+            crate::modes::l2_distance(a, b)
+        })
     }
 
     /// Shannon entropy: GPU if available, CPU fallback.
@@ -341,30 +380,26 @@ impl Dispatcher {
         )
     }
 
-    /// Mean: GPU if available, CPU fallback.
+    /// Mean: delegates to upstream `barracuda::dispatch::mean_dispatch`.
     #[must_use]
     pub fn mean(&self, data: &[f64]) -> f64 {
-        self.gpu_or_cpu(
-            "mean",
-            |dev| crate::gpu_ops::mean_gpu(data, dev),
-            || {
-                if data.is_empty() {
-                    0.0
-                } else {
-                    data.iter().sum::<f64>() / data.len() as f64
-                }
-            },
-        )
+        barracuda::dispatch::mean_dispatch(data, self.wgpu_device()).unwrap_or_else(|e| {
+            eprintln!("[dispatch] mean upstream failed: {e}");
+            if data.is_empty() {
+                0.0
+            } else {
+                data.iter().sum::<f64>() / data.len() as f64
+            }
+        })
     }
 
-    /// Variance: GPU if available, CPU fallback.
+    /// Variance: delegates to upstream `barracuda::dispatch::variance_dispatch`.
     #[must_use]
     pub fn variance(&self, data: &[f64]) -> f64 {
-        self.gpu_or_cpu(
-            "variance",
-            |dev| crate::gpu_ops::variance_gpu(data, dev),
-            || cpu_fallback::variance(data),
-        )
+        barracuda::dispatch::variance_dispatch(data, self.wgpu_device()).unwrap_or_else(|e| {
+            eprintln!("[dispatch] variance upstream failed: {e}");
+            cpu_fallback::variance(data)
+        })
     }
 
     /// Pearson correlation: GPU if available, CPU fallback.

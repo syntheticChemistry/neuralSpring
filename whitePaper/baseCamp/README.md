@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 24, 2026 (Session 50)
-**Status**: 25 papers + 5 baseCamp sub-theses, 1950+ checks, ~90% GPU promotion, zero debt
+**Last Updated**: February 24, 2026 (Session 58)
+**Status**: 25 papers + 5 baseCamp sub-theses, 2020+ checks, ~90% GPU promotion, 11 functions rewired to upstream BarraCUDA + GpuDriverProfile, zero debt
 
 ## Purpose
 
@@ -63,6 +63,26 @@ primitives.
 ---
 
 ## Infrastructure Summary
+
+### Upstream Rewiring (Sessions 56–58 — ToadStool `9404fdb4`)
+
+baseCamp functions delegate to upstream BarraCUDA. Session 58 additionally rewired
+7 core Dispatcher methods to `barracuda::dispatch::domain_ops` and wired in
+`GpuDriverProfile` for hardware-adaptive f64 strategy detection.
+
+| Local Function | Upstream | Sub-thesis | Session |
+|----------------|----------|-----------|---------|
+| `graph_laplacian` | `barracuda::linalg::graph` | Sub-05 | S56 |
+| `disordered_laplacian` | `barracuda::linalg::graph` | Sub-05 | S56 |
+| `belief_propagation_chain` | `barracuda::linalg::graph` | Sub-04 | S56 |
+| `numerical_hessian` | `barracuda::numerical` | Sub-03 | S56 |
+| `mat_mul` | `barracuda::dispatch::matmul_dispatch` | All | S58 |
+| `frobenius_norm` | `barracuda::dispatch::frobenius_norm_dispatch` | Sub-01 | S58 |
+| `transpose` | `barracuda::dispatch::transpose_dispatch` | Sub-01 | S58 |
+| `softmax` | `barracuda::dispatch::softmax_dispatch` | All | S58 |
+| `l2_distance` | `barracuda::dispatch::l2_distance_dispatch` | Sub-02 | S58 |
+| `mean` | `barracuda::dispatch::mean_dispatch` | All | S58 |
+| `variance` | `barracuda::dispatch::variance_dispatch` | All | S58 |
 
 ### Three-Tier Hardware Validation
 

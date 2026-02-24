@@ -680,6 +680,31 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             value: GPU_HMM_VITERBI_LOGPROB_F64,
             category: "gpu_dispatch",
         },
+        NamedTolerance {
+            name: "GPU_VARIANCE_F64",
+            value: GPU_VARIANCE_F64,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_PEARSON_F64",
+            value: GPU_PEARSON_F64,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_ENTROPY_F64",
+            value: GPU_ENTROPY_F64,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_EIGH_DISPATCH_F64",
+            value: GPU_EIGH_DISPATCH_F64,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "PGM_NORMALIZATION_SUM",
+            value: PGM_NORMALIZATION_SUM,
+            category: "gpu_dispatch",
+        },
     ]
 }
 
@@ -752,7 +777,7 @@ mod tests {
     fn registry_complete() {
         let all = all_tolerances();
         assert!(
-            all.len() >= 90,
+            all.len() >= 95,
             "registry should contain all tolerances, got {}",
             all.len()
         );

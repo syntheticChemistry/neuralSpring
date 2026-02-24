@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5e — 1950+ total checks, ALL GREEN, ~90% GPU promotion, mixed-hardware dispatch, zero debt
-**Date**: February 24, 2026 (Sessions 40–55 — multi-GPU + benchmarks + pure GPU + deep audit + baseCamp + dispatch + metalForge)
+**Status**: Phase 5f — 2020+ total checks, ALL GREEN, ~90% GPU promotion, mixed-hardware dispatch, 11 functions rewired to upstream + GpuDriverProfile, zero debt
+**Date**: February 24, 2026 (Sessions 40–58 — multi-GPU + benchmarks + pure GPU + deep audit + baseCamp + dispatch + metalForge + ToadStool S53–S59 sync + upstream dispatch rewiring + GpuDriverProfile)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A complete, Phase B in progress |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–018, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V18 ToadStool handoff + baseCamp cross-spring handoff V2 (Session 50) |
+| `wateringHole/handoffs/` | Cross-project | V23 ToadStool handoff (Session 58 — 11 functions rewired + GpuDriverProfile) |
 
 ---
 
@@ -61,7 +61,7 @@ WGSL serves every domain.
    (103M FLOPs). GPU dominates CPU by 4–80× at every scale.
 
 4. **Is the math truly portable across GPU architectures and drivers?**
-   Yes. All 141 validators produce **bit-identical** results on RTX 4070
+   Yes. All 156 validators produce **bit-identical** results on RTX 4070
    (proprietary NVIDIA Vulkan) and TITAN V (NVK open-source driver).
    Same WGSL source, different GPU generations and driver stacks.
 
@@ -76,16 +76,16 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 206/206 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
-**Phase 1–5e**: 1750+ Rust+GPU validation PASS (459 lib + 9 integration tests + 142 binaries across 36 modules + 2 evolved + gpu\_ops/ + gpu\_dispatch/)
+**Phase 1–5f**: 1820+ Rust+GPU validation PASS (478 lib + 9 integration + 30 forge tests + 156 binaries across 36 modules + gpu\_ops/ + gpu\_dispatch/)
 **Grand Total**: 1950+ PASS — **ALL GREEN** across all applicable tiers
-**Multi-GPU**: 141 validators on RTX 4070, 143+ additional on TITAN V (NVK) — **bit-identical**
+**Multi-GPU**: 156 validators on RTX 4070, 143+ additional on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 38 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11). ~90% of production math on GPU.
 **Mixed-Hardware**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model (GPU↔NPU↔CPU routing).
 **Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels); GPU **104× faster** at 103M FLOPs
 
 Phase 5e achieved pure GPU promotion and mixed-hardware dispatch: **38 CPU-bound
 operations promoted to GPU dispatch**, validated on both RTX 4070 and TITAN V (NVK).
-All 141 validators pass on RTX 4070 with bit-identical results on TITAN V. The
+All 156 validators pass on RTX 4070 with bit-identical results on TITAN V. The
 `gpu_dispatch::Dispatcher` provides capability-based routing: GPU when available,
 CPU fallback otherwise. `mixed_dispatch()` extends this with metalForge's
 cross-device cost model for GPU↔NPU↔CPU substrate selection.
@@ -95,7 +95,7 @@ cross-device cost model for GPU↔NPU↔CPU substrate selection.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 459 lib + 9 integration tests, 142 binaries, 36 modules | **Complete** |
+| 1a | Rust validation layer — 478 lib + 9 integration + 30 forge tests, 156 binaries, 36 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -310,7 +310,7 @@ Full handoff: `wateringHole/handoffs/`
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (459 lib + 9 integration tests + 142 binaries)
+# Rust validation (478 lib + 9 integration + 30 forge tests + 156 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -355,4 +355,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *25 papers + 5 studies + 5 baseCamp sub-theses. 5 disciplines. 4 faculty. 36 modules + 2 evolved + gpu\_ops/ + gpu\_dispatch. 459 lib + 9 integration tests. 206 Python + 1700+ Rust/GPU = 1900+ total checks.
-Phase 5e: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 141/142 (RTX 4070 + TITAN V NVK bit-identical). 38 CPU→GPU promotions via gpu\_dispatch (Phase A: 27/27, Phase B: 20/20). ~90% production math on GPU. 142 validation binaries, 21 WGSL shaders (13 upstream, 8 local). Pure Rust 178.5× faster than Python. Sessions 50–55: baseCamp (128/128 PASS) + CPU↔GPU dispatch + metalForge mixed hardware. V20 handoff.*
+Phase 5f: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 145/146 (RTX 4070 + TITAN V NVK bit-identical). 38 CPU→GPU promotions via gpu\_dispatch, 11 functions rewired to upstream domain\_ops + GpuDriverProfile. ~90% production math on GPU. 156 validation binaries, 21 WGSL shaders (19 upstream, 2 local). Pure Rust 178.5× faster than Python. Sessions 50–58: baseCamp (128/128 PASS) + CPU↔GPU dispatch + metalForge mixed hardware + upstream rewiring. V23 handoff.*

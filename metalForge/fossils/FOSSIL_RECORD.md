@@ -3,7 +3,7 @@
 > **Pattern**: `hotSpring` evolve → validate → hand off → absorb → fossil  
 > **Spring**: neuralSpring (Feb 2026)  
 > **Absorbed by**: ToadStool `77f70b2e` / BarraCUDA 0.2+  
-> **ToadStool HEAD**: `6ee71f07` — absorption span `d45fdfb3`..`5437c170`, bug fixes `5437c170`..`6ee71f07`
+> **ToadStool HEAD**: `9404fdb4` — absorption span `d45fdfb3`..`9404fdb4` (Sessions 42–59)
 
 ## Purpose
 

@@ -1,7 +1,7 @@
 # Sub-Thesis 04: Neural Networks as Probabilistic Graphical Models
 
-**Date:** February 23, 2026
-**Status:** Core primitives implemented and validated (15/15 PASS)
+**Date:** February 24, 2026 (Session 58 — `belief_propagation_chain` + 7 Dispatcher methods rewired to upstream)
+**Status:** Core primitives implemented and validated (21/21 PASS)
 **Module:** `src/neural_pgm.rs` | **Validator:** `src/bin/validate_neural_pgm.rs`
 **Domain:** Probabilistic inference applied to neural network interpretability
 **Novelty:** No prior work combines HMM introgression detection with PGM
@@ -245,13 +245,20 @@ to better-generalizing models?
 All experiments use our Phase 0/0+/0++ trained models. Open data only.
 
 ```bash
-cargo run --release --bin validate_neural_pgm       # 21/21 PASS (Sessions 50, 54)
-cargo run --release --bin validate_basecamp_gpu     # 14/14 PASS — pure GPU parity
+cargo run --release --bin validate_neural_pgm         # 21/21 PASS (Sessions 50, 54)
+cargo run --release --bin validate_basecamp_gpu       # 14/14 PASS — pure GPU parity
+cargo run --release --bin validate_basecamp_dispatch  # 19/19 PASS — Dispatcher routing
+cargo run --release --bin validate_barracuda_parity   # 34/34 PASS — CPU↔GPU parity
 ```
 
 All experiments (nS-401 through nS-406) are validated in the consolidated
 `validate_neural_pgm` binary, including tree-PGM extraction, deep factor
 graph belief propagation, layer spectral similarity, effective rank,
 OOD detection via PGM divergence, and PGM complexity scaling.
+
+### Upstream Rewiring (Session 56)
+
+`belief_propagation_chain` now delegates to `barracuda::linalg::graph::belief_propagation_chain`
+(ToadStool `9404fdb4`). Public API unchanged; all 21 checks still pass.
 
 No proprietary models. No external data. No model downloads.

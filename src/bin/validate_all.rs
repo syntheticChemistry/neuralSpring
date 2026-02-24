@@ -177,6 +177,12 @@ const BINARIES: &[&str] = &[
     // Session 55: BarraCUDA CPU vs GPU dispatch + metalForge mixed hardware
     "validate_compute_dispatch",
     "validate_mixed_hardware",
+    // Session 56: Dispatcher baseCamp, parity proof, metalForge PCIe
+    "validate_basecamp_dispatch",
+    "validate_barracuda_parity",
+    "validate_metalforge_pcie",
+    // Session 58: cross-spring evolution benchmark + GpuDriverProfile
+    "validate_cross_spring_evolution",
 ];
 
 fn main() {

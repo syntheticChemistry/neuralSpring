@@ -22,6 +22,7 @@
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::mixed::MixedSubstrate;
 use neural_spring_forge::pcie_bridge::PcieBridge;
@@ -97,7 +98,12 @@ async fn main() {
             "large workload routed to GPU",
             large_sub == MixedSubstrate::GpuOnly,
         );
-        h.check_abs("large variance CPU vs GPU parity", gpu_var, cpu_var, 1e-8);
+        h.check_abs(
+            "large variance CPU vs GPU parity",
+            gpu_var,
+            cpu_var,
+            tolerances::GPU_VARIANCE_F64,
+        );
     } else {
         h.check_bool(
             "large workload fallback to CPU (no GPU)",
@@ -187,7 +193,7 @@ async fn main() {
             "mixed dispatch: Pearson CPU vs GPU parity",
             mixed_pearson,
             cpu_pearson,
-            1e-6,
+            tolerances::GPU_PEARSON_F64,
         );
         h.check_bool(
             "mixed dispatch: correlation routed to GPU",

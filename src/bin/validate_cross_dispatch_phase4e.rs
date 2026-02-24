@@ -43,7 +43,7 @@ use neural_spring::rng::Rng;
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::swarm_robotics::neural_forward;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{patch_pow_to_polyfill, ValidationHarness};
 use wgpu::util::DeviceExt;
 
 #[tokio::main]
@@ -505,27 +505,6 @@ fn gpu_hill_gate(
     queue.submit(std::iter::once(encoder.finish()));
 
     gpu.read_buffer_f64(&output_buf, n_total)
-}
-
-fn patch_pow_to_polyfill(shader: &str) -> String {
-    shader
-        .lines()
-        .map(|line| {
-            let trimmed = line.trim_start();
-            if trimmed.starts_with("//") {
-                return line.to_string();
-            }
-            line.find("//").map_or_else(
-                || line.replace("pow(", "pow_f64("),
-                |pos| {
-                    let code = &line[..pos];
-                    let comment = &line[pos..];
-                    format!("{}{comment}", code.replace("pow(", "pow_f64("))
-                },
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
 }
 
 const fn bgl_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {

@@ -1,7 +1,7 @@
 # Sub-Thesis 01: Weight Matrices as Disordered Hamiltonians
 
-**Date:** February 23, 2026
-**Status:** Core primitives implemented and validated (15/15 PASS)
+**Date:** February 24, 2026 (Session 58 — Dispatcher `mat_mul`/`frobenius_norm`/`transpose` rewired to upstream `domain_ops`)
+**Status:** Core primitives implemented and validated (21/21 PASS)
 **Module:** `src/weight_spectral.rs` | **Validator:** `src/bin/validate_weight_spectral.rs`
 **Domain:** Random matrix theory applied to deep learning interpretability
 **Novelty:** No prior work applies Anderson localization IPR to neural network
@@ -224,8 +224,10 @@ All experiments use weight matrices from neuralSpring's Phase 0/0+/0++
 training runs. Deterministic seed (42). Open data only.
 
 ```bash
-cargo run --release --bin validate_weight_spectral   # 21/21 PASS (Sessions 50, 54)
-cargo run --release --bin validate_basecamp_gpu      # 14/14 PASS — pure GPU parity
+cargo run --release --bin validate_weight_spectral    # 21/21 PASS (Sessions 50, 54)
+cargo run --release --bin validate_basecamp_gpu       # 14/14 PASS — pure GPU parity
+cargo run --release --bin validate_basecamp_dispatch  # 19/19 PASS — Dispatcher routing (Session 55)
+cargo run --release --bin validate_barracuda_parity   # 34/34 PASS — CPU↔GPU parity (Session 56)
 ```
 
 ### Validated Primitives (Sessions 50, 54)

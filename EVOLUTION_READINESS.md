@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 24, 2026 (Sessions 40–55)
-**ToadStool HEAD**: `9abd6857` (Sessions 50–55 sync)
+**Date**: February 24, 2026 (Sessions 40–58)
+**ToadStool HEAD**: `9404fdb4` (S58–S59: ValidationHarness+pow_f64 absorbed, anderson correlated, ridge, NMF, ODE bio, dispatch domain ops)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -10,14 +10,14 @@
 ## Quick Status
 
 36 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses.
-142 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+156 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 459 lib + 9 integration + 26 forge tests, 36 modules, 142 binaries | **COMPLETE** |
+| Rust native validation | 478 lib + 9 integration + 30 forge tests, 36 modules, 156 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -56,8 +56,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 38 promoted ops (Phase A+B) | **133 binaries** |
-| `validate_all` (S-52) | **132/133 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 38 promoted ops (Phase A+B), 7 rewired to upstream domain_ops | **156 binaries** |
+| `validate_all` (S-58) | **145/146 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -71,8 +71,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **141/142 PASS** (RTX 4070; 1 logsumexp driver issue) | **ALL GREEN** |
-| Grand total checks | **1950+** (206 Py + 1750+ Rust/GPU) | **ALL GREEN** |
+| `validate_all` | **145/146 PASS** (RTX 4070; 1 logsumexp driver issue) | **ALL GREEN** |
+| Grand total checks | **2020+** (206 Py + 1820+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
@@ -517,11 +517,20 @@ analysis pipelines. 459 unit tests, 0 clippy warnings, 0 doc warnings.
 | `neural_pgm` | nS-04: Neural PGMs | 15/15 | Belief propagation, KL divergence, effective rank |
 | `agent_coordination` | nS-05: Multi-Agent QS | 18/18 | Graph Laplacian, QS signaling, dimensional sweep |
 
-**Evolution path:** These modules are CPU-only. GPU promotion candidates:
-- `weight_spectral::weight_to_hamiltonian` → Tensor matmul (symmetrized `W^T W`)
-- `loss_landscape::numerical_hessian` → GPU parallel finite differences
-- `agent_coordination::interaction_graph` → GPU pairwise distance
-- `neural_pgm::belief_propagation_chain` → GPU batch GEMV (HMM pattern)
+**GPU promotion (Session 55):** All 4 candidates now have `Dispatcher` methods
+routing to GPU or CPU fallback via `validate_basecamp_dispatch` (19/19 PASS).
+
+**Upstream rewiring (Session 56 — ToadStool `9404fdb4`):** 4 functions now
+delegate to upstream BarraCUDA, eliminating local implementations:
+
+| Local Function | Upstream Module | Effect |
+|----------------|----------------|--------|
+| `graph_laplacian` | `barracuda::linalg::graph` | Thin wrapper → upstream |
+| `disordered_laplacian` | `barracuda::linalg::graph` | Thin wrapper → upstream |
+| `belief_propagation_chain` | `barracuda::linalg::graph` | Thin wrapper → upstream |
+| `numerical_hessian` | `barracuda::numerical` | Thin wrapper → upstream |
+
+Public API preserved; callers unchanged. Validated via `cargo test --lib` (478 PASS).
 
 See `whitePaper/baseCamp/extensions.md` for the full research program.
 
@@ -536,7 +545,41 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | Clippy warnings | **0** (pedantic + nursery) |
 | Doc warnings | **0** |
 | Max file size | 965 lines (under 1000 wateringHole limit) |
-| Dispatch pattern | All 25 methods use `gpu_or_cpu` (DRY) |
+| Dispatch pattern | 7 core methods delegate to upstream `domain_ops`; remainder use `gpu_or_cpu` |
 | GPU skip policy | All 79 binaries use `exit_no_gpu()` (CI-fidelity) |
+
+### Session 56 — ToadStool S53 Sync + Upstream Rewiring
+
+| Action | Detail |
+|--------|--------|
+| **Pulled ToadStool HEAD** | `f78cf3b0` (absorbed Sessions 51–53 handoffs) |
+| **New upstream modules** | `barracuda::linalg::graph`, `barracuda::numerical`, `barracuda::ops::bio::swarm_nn`, `barracuda::ops::bio::xoshiro128ss` |
+| **Rewired 4 functions** | `graph_laplacian`, `disordered_laplacian`, `belief_propagation_chain`, `numerical_hessian` → delegate to upstream |
+| **3 new validators** | `validate_basecamp_dispatch` (19 checks), `validate_barracuda_parity` (34 checks), `validate_metalforge_pcie` (36 checks) |
+| **Total checks** | 2010+ (206 Python + 1810+ Rust+GPU) |
+| **Lib tests** | 478 PASS |
+| **Forge tests** | 30 PASS |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · doc ✓ |
+
+### Session 57 — ToadStool S58–S59 Sync
+
+| Action | Detail |
+|--------|--------|
+| **Pulled ToadStool HEAD** | `9404fdb4` (S58: df64/Fp64Strategy/ODE bio/NMF; S59: anderson correlated/ridge/ValidationHarness) |
+| **Confirmed absorptions** | `ValidationHarness`, `exit_no_gpu`, `require!` macro — all from neuralSpring, now in `barracuda::validation` |
+| **Consolidated** | 4 duplicate `patch_pow_to_polyfill` → `validation::patch_pow_to_polyfill` (shared) |
+| **New upstream available** | `barracuda::spectral::anderson` (3D correlated, sweep averaged, find_w_c), `barracuda::linalg::ridge`, `barracuda::linalg::nmf`, `barracuda::numerical::ode_bio`, `barracuda::dispatch::domain_ops`, `barracuda::device::driver_profile` |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 478 lib ✓ · 144/145 validate_all (1 pre-existing logsumexp) |
+
+### Session 58 — Upstream Dispatch Rewiring + GpuDriverProfile
+
+| Action | Detail |
+|--------|--------|
+| **Rewired 7 Dispatcher methods** | `mat_mul`, `frobenius_norm`, `transpose`, `softmax`, `l2_distance`, `mean`, `variance` → delegate to `barracuda::dispatch::domain_ops` |
+| **Wired GpuDriverProfile** | `Dispatcher` now exposes `driver_profile()`, `fp64_strategy()`, `needs_pow_workaround()` via upstream `barracuda::device::driver_profile` (hotSpring-evolved) |
+| **Driver detection confirmed** | RTX 4070: Ada arch, NvidiaPtxas compiler, Throttled FP64 → Hybrid strategy, pow workaround needed |
+| **New validator** | `validate_cross_spring_evolution` (10/10 PASS): rewired method parity + driver profile + cross-spring benchmark |
+| **Total rewired functions** | 11 (4 from S56 + 7 from S58) — all delegating to upstream BarraCUDA |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 478 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

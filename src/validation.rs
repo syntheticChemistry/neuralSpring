@@ -307,6 +307,41 @@ pub fn baseline_path(relative: &str) -> PathBuf {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// WGSL shader helpers
+// ═══════════════════════════════════════════════════════════════════
+
+/// Replace native `pow(` with `pow_f64(` in WGSL shader source.
+///
+/// Works around NVVM/NAK failure on `pow(f64, f64)` — the injected
+/// `pow_f64` polyfill uses `exp_f64(exponent * log_f64(base))` instead.
+/// Preserves comments (lines starting with `//` are left untouched;
+/// inline `// …` suffixes are preserved).
+///
+/// Consolidates 4 formerly-duplicated copies across validation binaries.
+/// Upstream `BarraCUDA` S59 now exposes `GpuDriverProfile::needs_pow_f64_workaround()`.
+#[must_use]
+pub fn patch_pow_to_polyfill(shader: &str) -> String {
+    shader
+        .lines()
+        .map(|line| {
+            let trimmed = line.trim_start();
+            if trimmed.starts_with("//") {
+                return line.to_string();
+            }
+            line.find("//").map_or_else(
+                || line.replace("pow(", "pow_f64("),
+                |pos| {
+                    let code = &line[..pos];
+                    let comment = &line[pos..];
+                    format!("{}{comment}", code.replace("pow(", "pow_f64("))
+                },
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // GPU tensor validation helpers (shared across 24+ validation binaries)
 // ═══════════════════════════════════════════════════════════════════
 

@@ -5,7 +5,7 @@
 #         make lint     — lint + format check
 #         make baselines — full Python suite (~6 min)
 
-.PHONY: check lint test validate validate-native validate-native-papers validate-all validate-barracuda validate-barracuda-cpu validate-ml validate-tensor-cpu validate-tensor-gpu validate-tensor-all bench-tensor bench-tensor-compare bench-ml bench-fused baselines lint-python lint-rust test-python test-rust fix fmt coverage
+.PHONY: check lint test validate validate-native validate-native-papers validate-all validate-barracuda validate-barracuda-cpu validate-dispatch validate-ml validate-tensor-cpu validate-tensor-gpu validate-tensor-all bench-tensor bench-tensor-compare bench-ml bench-fused baselines lint-python lint-rust test-python test-rust fix fmt coverage
 
 check: lint test validate
 	@echo ""
@@ -20,7 +20,7 @@ lint-python:
 	ruff format --check control/ tests/
 
 lint-rust:
-	cargo clippy -- -D warnings
+	cargo clippy --all-targets -- -D warnings -W clippy::pedantic -W clippy::nursery
 	cargo fmt --check
 	cargo doc --no-deps
 
@@ -57,7 +57,14 @@ validate-native-papers:
 	cargo run --bin validate_pinn
 	cargo run --bin validate_deeponet
 
-validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu
+validate-dispatch:
+	cargo run --bin validate_compute_dispatch
+	cargo run --bin validate_mixed_hardware
+	cargo run --bin validate_basecamp_dispatch
+	cargo run --bin validate_barracuda_parity
+	cargo run --bin validate_metalforge_pcie
+
+validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu validate-dispatch
 	@echo "━━━ All validation binaries PASS ━━━"
 
 validate-barracuda:

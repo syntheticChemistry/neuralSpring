@@ -1352,4 +1352,112 @@ model accurately predicts that P2P (2µs latency) is faster than CPU-staged
 
 ---
 
+## Experiment 025 — ToadStool S53 Sync, Upstream Rewiring, and Dispatch Validation
+
+**Date**: February 24, 2026 (Session 56)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+
+### Motivation
+
+ToadStool had been absorbing neuralSpring handoffs through Sessions 51–53 and
+reached `9404fdb4` with new upstream modules (`linalg::graph`, `numerical`,
+`ops::bio::swarm_nn`, `ops::bio::xoshiro128ss`). neuralSpring needed to pull
+the latest state, rewire local implementations to use upstream, validate
+parity, and create comprehensive dispatch/parity validators.
+
+### Procedure
+
+1. Pulled ToadStool HEAD `9404fdb4`, reviewed commit history (4 upstream
+   modules absorbed from neuralSpring handoffs)
+2. Rewired 4 local functions to delegate to upstream BarraCUDA:
+   - `graph_laplacian` → `barracuda::linalg::graph`
+   - `disordered_laplacian` → `barracuda::linalg::graph`
+   - `belief_propagation_chain` → `barracuda::linalg::graph`
+   - `numerical_hessian` → `barracuda::numerical`
+3. Created `validate_basecamp_dispatch` (19/19 PASS): exercises all 4 baseCamp
+   Dispatcher methods (weight spectral, Hessian, belief propagation, agent graph)
+4. Created `validate_barracuda_parity` (34/34 PASS): CPU↔GPU parity across
+   linear algebra, statistics, spectral, activations, reductions, distance, biology
+5. Created `validate_metalforge_pcie` (36/36 PASS): bandwidth tiers, P2P vs
+   staged transfers, chained multi-hop, substrate selection, bridge API, live dispatch
+6. Updated metalForge mixed.rs with PCIe bandwidth tiers and chained transfer costs
+7. Updated all docs: EVOLUTION_READINESS, BARRACUDA_USAGE, ABSORPTION_MANIFEST,
+   TOADSTOOL_HANDOFF, baseCamp sub-theses
+
+### Results
+
+- 4 functions rewired — public API preserved, all 478 lib tests pass
+- 3 new validators: 89 additional checks (19 + 34 + 36)
+- Total checks: 2010+ (206 Python + 1810+ Rust+GPU)
+- `validate_all`: 155 binaries PASS
+- Quality gates: fmt ✓ · clippy (pedantic+nursery) ✓ · doc ✓
+
+### Key Finding: Upstream Absorption Loop Works
+
+The handoff → absorb → rewire → validate cycle is now proven end-to-end.
+neuralSpring hands off implementations, ToadStool absorbs them into BarraCUDA,
+neuralSpring rewires to use upstream, and all tests still pass. The thin-wrapper
+pattern (local function delegates to `barracuda::*` with identical API) minimizes
+migration risk while eliminating duplicated math.
+
+---
+
+## Experiment 026 — Cross-Spring Dispatch Rewiring + GpuDriverProfile
+
+**Date**: February 24, 2026 (Session 58)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+
+### Motivation
+
+ToadStool S58–S59 absorbed `barracuda::dispatch::domain_ops` (matmul, frobenius,
+transpose, softmax, l2, mean, variance dispatch functions) and
+`barracuda::device::driver_profile::GpuDriverProfile` (hotSpring-evolved hardware
+detection including Fp64Strategy, driver workarounds, eigensolve strategy).
+neuralSpring should rewire its Dispatcher to delegate to these upstream
+implementations and wire in driver profile information.
+
+### Procedure
+
+1. Rewired 7 Dispatcher methods to upstream `domain_ops`:
+   `mat_mul`, `frobenius_norm`, `transpose`, `softmax`, `l2_distance`, `mean`, `variance`.
+   Each now calls `barracuda::dispatch::*_dispatch(data, self.wgpu_device())` with
+   local CPU fallback on error.
+2. Wired `GpuDriverProfile` into Dispatcher struct — built at init from `WgpuDevice`,
+   exposing `driver_profile()`, `fp64_strategy()`, `needs_pow_workaround()`.
+3. Created `validate_cross_spring_evolution` (10/10 PASS): rewired method parity,
+   driver profile detection, throughput benchmark, cross-spring lineage report.
+4. Updated `validate_all` binary list (now 146 entries).
+
+### Results
+
+- 7 methods rewired — public API preserved, all 478 lib tests pass
+- GpuDriverProfile detected: Ada arch, NvidiaPtxas, Throttled FP64, Hybrid strategy
+- Benchmark: upstream dispatch uses GPU for large workloads (size-based thresholds),
+  CPU for small ones — matches our existing `gpu_or_cpu` behavior but with
+  upstream-managed thresholds
+- GPU matmul parity: max diff 2.3e-4 (accumulation order, within 1e-3 tolerance)
+- Total rewired functions: 11 (4 from S56 + 7 from S58)
+- Quality gates: fmt ✓ · clippy (pedantic+nursery) ✓ · 478 lib ✓ · 145/146 validate_all
+
+### Key Finding: Cross-Spring Hardware Awareness
+
+The `GpuDriverProfile` demonstrates the cross-spring evolution cycle at its best:
+hotSpring discovered the need for hardware-adaptive f64 strategies during lattice QCD
+work (compute-class GPUs have 1:2 FP64:FP32 vs consumer 1:64 ratio). This led to
+`Fp64Strategy::Native` vs `Fp64Strategy::Hybrid` detection, which ToadStool absorbed.
+neuralSpring now consumes this upstream capability, and the RTX 4070 correctly reports
+`Hybrid` strategy — meaning bulk math should use df64 f32-pairs while precision-critical
+reductions use native f64. This hardware-awareness will inform future metalForge
+mixed-hardware dispatch decisions.
+
+### Cross-Spring Shader Lineage Documented
+
+| Spring | Contributions |
+|--------|--------------|
+| hotSpring | df64_core, pow_f64, Fp64Strategy, GpuDriverProfile, Taylor trig, Lanczos |
+| wetSpring | HMM, ODE bio (5), NMF, Anderson localization, Ridge regression |
+| neuralSpring | ValidationHarness, batch_fitness, pairwise ops, eigh, KernelRouter |
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

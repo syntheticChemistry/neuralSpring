@@ -22,6 +22,7 @@
 
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::dispatch::{batch_ipr_substrate, pairwise_substrate, Substrate};
 use neural_spring_forge::mixed::{mixed_substrate, MixedSubstrate};
@@ -98,7 +99,12 @@ async fn main() {
             &data,
         )
         .unwrap_or(f64::NAN);
-        h.check_abs("parity: variance CPU vs GPU", gpu_var, cpu_var, 1e-8);
+        h.check_abs(
+            "parity: variance CPU vs GPU",
+            gpu_var,
+            cpu_var,
+            tolerances::GPU_VARIANCE_F64,
+        );
     } else {
         h.check_bool("parity: variance CPU-only (no GPU)", cpu_var.is_finite());
     }
@@ -119,7 +125,12 @@ async fn main() {
             h.finish();
         };
         let gpu_pearson = corr_op.correlation(&x, &y).unwrap_or(f64::NAN);
-        h.check_abs("parity: Pearson CPU vs GPU", gpu_pearson, cpu_pearson, 1e-6);
+        h.check_abs(
+            "parity: Pearson CPU vs GPU",
+            gpu_pearson,
+            cpu_pearson,
+            tolerances::GPU_PEARSON_F64,
+        );
     } else {
         h.check_bool("parity: Pearson CPU-only (no GPU)", cpu_pearson.is_finite());
     }
@@ -143,7 +154,12 @@ async fn main() {
             h.finish();
         };
         let gpu_entropy = entropy_op.shannon_entropy(&probs).unwrap_or(f64::NAN);
-        h.check_abs("parity: entropy CPU vs GPU", gpu_entropy, cpu_entropy, 1e-4);
+        h.check_abs(
+            "parity: entropy CPU vs GPU",
+            gpu_entropy,
+            cpu_entropy,
+            tolerances::GPU_ENTROPY_F64,
+        );
     } else {
         h.check_bool("parity: entropy CPU-only (no GPU)", cpu_entropy.is_finite());
     }
@@ -158,7 +174,12 @@ async fn main() {
 
     if let Some(ref d) = dev {
         let gpu_chi2 = neural_spring::gpu_ops::chi_squared_gpu(&obs, &exp_v, d).unwrap_or(f64::NAN);
-        h.check_abs("parity: chi² CPU vs GPU", gpu_chi2, cpu_chi2, 0.5);
+        h.check_abs(
+            "parity: chi² CPU vs GPU",
+            gpu_chi2,
+            cpu_chi2,
+            tolerances::GPU_CHI_SQUARED_F32,
+        );
     } else {
         h.check_bool("parity: chi² CPU-only (no GPU)", cpu_chi2.is_finite());
     }
@@ -188,7 +209,10 @@ async fn main() {
                 .zip(gpu_evals.iter())
                 .map(|(c, g)| (c - g).abs())
                 .fold(0.0_f64, f64::max);
-            h.check_bool("parity: eigenvalues CPU vs GPU (tol 0.1)", max_diff < 0.1);
+            h.check_bool(
+                "parity: eigenvalues CPU vs GPU",
+                max_diff < tolerances::GPU_EIGH_DISPATCH_F64,
+            );
         } else {
             h.check_bool("parity: eigenvalue count mismatch", false);
         }
@@ -235,7 +259,7 @@ async fn main() {
             "dispatch-aware: large (2048) GPU parity",
             large_var_gpu,
             large_var_cpu,
-            1e-8,
+            tolerances::GPU_VARIANCE_F64,
         );
     } else {
         h.check_bool(

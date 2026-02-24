@@ -3,8 +3,8 @@
 **Parent**: ecoPrimals/neuralSpring
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `6ee71f07` (Session 42 + bug fixes, Feb 23, 2026)
-**Last Updated**: February 22, 2026
+**ToadStool HEAD**: `9404fdb4` (Sessions 50–59, Feb 24, 2026)
+**Last Updated**: February 24, 2026 (Session 58 — 7 Dispatcher methods rewired to upstream domain_ops + GpuDriverProfile)
 
 ---
 
@@ -55,14 +55,46 @@ Local copies retained for validation compatibility (different binding layouts).
 | `swarm_nn_forward.wgsl` | `shaders::bio::swarm_nn_forward` | `validate_gpu_swarm` | 9/9 | Generic MLP dims |
 | `mean_reduce.wgsl` | `shaders::reduce::mean_reduce` | `validate_gpu_pure_workload` | 7/7 | Identical |
 
+### Upstream rewiring (Session 56 — ToadStool `9404fdb4`)
+
+neuralSpring baseCamp functions now delegate to upstream BarraCUDA modules
+(ToadStool Sessions 51–53 absorbed these from our handoffs):
+
+| Local Function | Upstream Delegation | Module | Checks |
+|----------------|-------------------|--------|--------|
+| `agent_coordination::graph_laplacian` | `barracuda::linalg::graph::graph_laplacian` | Sub-05 | 23/23 PASS |
+| `agent_coordination::disordered_laplacian` | `barracuda::linalg::graph::disordered_laplacian` | Sub-05 | 23/23 PASS |
+| `neural_pgm::belief_propagation_chain` | `barracuda::linalg::graph::belief_propagation_chain` | Sub-04 | 21/21 PASS |
+| `loss_landscape::numerical_hessian` | `barracuda::numerical::numerical_hessian` | Sub-03 | 27/27 PASS |
+
+New upstream capabilities available (not yet wired):
+
+| Upstream Module | API | Potential Use |
+|----------------|-----|---------------|
+| `barracuda::linalg::graph::effective_rank` | `effective_rank(eigenvalues)` | Weight spectral analysis |
+| `barracuda::stats::spectral_density` | `empirical_spectral_density`, `marchenko_pastur_bounds` | Weight matrix RMT |
+| `barracuda::sample::metropolis` | `boltzmann_sampling` | Loss landscape MCMC exploration |
+| `barracuda::numerical::WGSL_HESSIAN_COLUMN` | GPU Hessian column shader | GPU-accelerated Hessian |
+| `barracuda::shaders::linalg::laplacian.wgsl` | GPU graph Laplacian | GPU-accelerated Sub-05 |
+| `barracuda::shaders::linalg::symmetrize.wgsl` | GPU symmetrization | Hessian/adjacency cleanup |
+
+### Newly absorbed (ToadStool S51–S52)
+
+| WGSL Shader | Upstream API | Absorption Session |
+|-------------|-------------|-------------------|
+| `xoshiro128ss.wgsl` | `barracuda::ops::prng_xoshiro` | S51 (H-004) |
+| `logsumexp_reduce.wgsl` | `barracuda::ops::LogsumexpWgsl` | S51 (H-004) |
+| `stencil_cooperation.wgsl` | `barracuda::StencilCooperationGpu` | S52 |
+| `wright_fisher_step.wgsl` | `barracuda::WrightFisherGpu` | S52 |
+| `rk45_adaptive.wgsl` | `barracuda::ops::rk45_adaptive` | S51 |
+| `swarm_nn_scores.wgsl` | `barracuda::SwarmNnGpu` | S52 (L-009) |
+
 ### Still local (pending absorption)
 
 | WGSL Shader | Library Export | Domain | Validation | Checks | Absorption Target |
 |-------------|--------------|--------|------------|--------|-------------------|
 | `head_split.wgsl` | `evolved::WGSL_HEAD_SPLIT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` |
 | `head_concat.wgsl` | `evolved::WGSL_HEAD_CONCAT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` |
-| `xoshiro128ss.wgsl` | `rng::WGSL_XOSHIRO128SS` | PRNG | `validate_gpu_prng` | 5/5 | `barracuda::ops::prng` |
-| `swarm_nn_scores.wgsl` | `forge::shaders::SWARM_NN_SCORES` | Swarm 015 | `validate_gpu_pipeline_swarm` | PASS | No upstream equivalent |
 
 ### Cross-Dispatch Validators
 
@@ -183,8 +215,10 @@ that match GPU buffer bindings directly:
 **Total GPU shader checks**: 108 (17 WGSL — 13 upstream, 4 local)
 **Total GPU pipeline checks**: 32 (7 pipelines)
 **Total cross-dispatch checks**: 41 (8+8+12+13)
-**Total lib tests**: 459 lib + 9 integration + 26 forge tests
-**Grand total validation**: 1950+ (206 Python + 1750+ Rust+GPU)
+**Total dispatch + parity checks**: 89 (16+14+19+17+23, Session 55–56)
+**Total lib tests**: 478 lib + 9 integration + 30 forge tests
+**Upstream rewired**: 4 functions delegating to `barracuda::linalg::graph` + `barracuda::numerical`
+**Grand total validation**: 2010+ (206 Python + 1810+ Rust+GPU)
 
 ---
 
@@ -245,6 +279,33 @@ that match GPU buffer bindings directly:
 - **Forge tests**: 18 → 26 (8 new)
 - **Validation binaries**: 115 → 127 (12 new)
 - **New validation checks**: 108 across 12 validators
+
+---
+
+### ToadStool S58–S59 Cross-Spring Absorptions (Confirmed in Session 57)
+
+ToadStool absorbed the following from neuralSpring and sibling Springs:
+
+| Absorbed | Origin | BarraCUDA Module |
+|----------|--------|-----------------|
+| `ValidationHarness` | neuralSpring | `barracuda::validation` |
+| `exit_no_gpu` / `gpu_required` | neuralSpring | `barracuda::validation` |
+| `require!` macro | neuralSpring | `barracuda::validation` |
+| `anderson_3d_correlated` | wetSpring | `barracuda::spectral::anderson` |
+| `anderson_sweep_averaged` | wetSpring | `barracuda::spectral::anderson` |
+| `find_w_c` | wetSpring | `barracuda::spectral::anderson` |
+| `ridge_regression` | wetSpring ESN | `barracuda::linalg::ridge` |
+| NMF (Euclidean + KL) | wetSpring | `barracuda::linalg::nmf` |
+| 5 ODE bio systems | wetSpring | `barracuda::numerical::ode_bio` |
+| `df64_core.wgsl` | hotSpring | `barracuda::shaders::math` |
+| `Fp64Strategy` / `GpuDriverProfile` | hotSpring | `barracuda::device::driver_profile` |
+| `pow_f64` polyfill fix | hotSpring | `needs_pow_f64_workaround()` |
+| Dispatch domain ops | cross-spring | `barracuda::dispatch::domain_ops` |
+
+**neuralSpring impact**: Our `ValidationHarness`, `exit_no_gpu`, and `require!` are
+now upstream. We keep our local copy (which adds `check_abs_or_rel`, `baseline_path`,
+GPU tensor helpers, `NEURALSPRING_REQUIRE_GPU` env var). Consolidated 4 duplicate
+`patch_pow_to_polyfill` functions into `validation::patch_pow_to_polyfill`.
 
 ---
 

@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 24, 2026 (Sessions 40–55)
+**Last Updated**: February 24, 2026 (Sessions 40–58)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -630,4 +630,84 @@ unavoidable transitive dependencies with no C compilation.
 
 ---
 
-*Barracuda usage audit — neuralSpring, February 24, 2026. Sessions 50–55: baseCamp 128/128 PASS, CPU↔GPU dispatch, metalForge mixed hardware. Session 53: Final f64 typed op rewiring — 5 ops delegated to upstream (variance 3×, entropy 2.4× faster). Phase 5e: bC 24/25, gT 23/25, xD 15/15, mG 141/142.*
+## Session 56 — ToadStool S53 Sync + Upstream Rewiring (February 24, 2026)
+
+### 4 Functions Rewired to Upstream BarraCUDA (`9404fdb4`)
+
+| Local Function | Module | Upstream Module | Sub-thesis |
+|----------------|--------|----------------|-----------|
+| `graph_laplacian` | `agent_coordination` | `barracuda::linalg::graph::graph_laplacian` | Sub-05 |
+| `disordered_laplacian` | `agent_coordination` | `barracuda::linalg::graph::disordered_laplacian` | Sub-05 |
+| `belief_propagation_chain` | `neural_pgm` | `barracuda::linalg::graph::belief_propagation_chain` | Sub-04 |
+| `numerical_hessian` | `loss_landscape` | `barracuda::numerical::numerical_hessian` | Sub-03 |
+
+### New Upstream Modules Consumed
+
+| Module | Purpose | Origin |
+|--------|---------|--------|
+| `barracuda::linalg::graph` | Graph Laplacians, belief propagation | neuralSpring Sub-04/05 handoff |
+| `barracuda::numerical` | Numerical Hessian via finite differences | neuralSpring Sub-03 handoff |
+| `barracuda::ops::bio::swarm_nn` | Swarm neural network forward pass | neuralSpring Paper 015 |
+| `barracuda::ops::bio::xoshiro128ss` | GPU-friendly PRNG | neuralSpring Paper 011 |
+
+### 3 New Validators
+
+| Validator | Checks | Purpose |
+|-----------|--------|---------|
+| `validate_basecamp_dispatch` | 19 | Dispatcher baseCamp GPU routing |
+| `validate_barracuda_parity` | 34 | CPU↔GPU bit-parity across all domains |
+| `validate_metalforge_pcie` | 36 | PCIe tiers, chained transfers, substrate selection |
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `validate_all` | 156 binaries (145/146 PASS, 1 pre-existing logsumexp) |
+| `cargo test --lib` | 478 PASS |
+| `cargo test -p neural-spring-forge --lib` | 30 PASS |
+| `cargo clippy (pedantic+nursery)` | 0 warnings |
+
+## Session 58 — Upstream Dispatch Rewiring + GpuDriverProfile (February 24, 2026)
+
+### 7 Dispatcher Methods Rewired to Upstream domain_ops
+
+| Dispatcher Method | Upstream Function | Notes |
+|-------------------|-------------------|-------|
+| `mat_mul` | `barracuda::dispatch::matmul_dispatch` | Square n×n → (n,n,n) adapter |
+| `frobenius_norm` | `barracuda::dispatch::frobenius_norm_dispatch` | Direct delegation |
+| `transpose` | `barracuda::dispatch::transpose_dispatch` | Square n → (n,n) adapter |
+| `softmax` | `barracuda::dispatch::softmax_dispatch` | Direct delegation |
+| `l2_distance` | `barracuda::dispatch::l2_distance_dispatch` | Direct delegation |
+| `mean` | `barracuda::dispatch::mean_dispatch` | Direct delegation |
+| `variance` | `barracuda::dispatch::variance_dispatch` | Direct delegation |
+
+### GpuDriverProfile Integration (hotSpring-evolved)
+
+| New Method | Upstream Source | Purpose |
+|------------|----------------|---------|
+| `driver_profile()` | `barracuda::device::driver_profile::GpuDriverProfile` | Full hardware detection |
+| `fp64_strategy()` | `GpuDriverProfile::fp64_strategy()` | Native vs Hybrid f64 routing |
+| `needs_pow_workaround()` | `GpuDriverProfile::needs_pow_f64_workaround()` | pow(f64) polyfill decision |
+
+### RTX 4070 Detected Profile
+
+| Field | Value |
+|-------|-------|
+| Driver | NvidiaProprietary |
+| Compiler | NvidiaPtxas |
+| Arch | Ada |
+| FP64 rate | Throttled (1:64) |
+| FP64 strategy | Hybrid |
+| Eigensolve | WarpPacked { wg_size: 32 } |
+
+### Cross-Spring Provenance
+
+| Spring | Contributions to BarraCUDA |
+|--------|---------------------------|
+| hotSpring | df64_core, pow_f64, Fp64Strategy, GpuDriverProfile, Taylor trig, Lanczos |
+| wetSpring | HMM, ODE bio (5 systems), NMF, Anderson localization, Ridge regression |
+| neuralSpring | ValidationHarness, batch_fitness, pairwise ops, eigh, KernelRouter |
+
+---
+
+*BarraCUDA usage audit — neuralSpring, February 24, 2026. Sessions 50–58: 11 functions rewired to upstream, GpuDriverProfile wired in, 156 binaries, 478 lib + 30 forge tests.*

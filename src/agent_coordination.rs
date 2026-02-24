@@ -81,15 +81,7 @@ fn euclidean_distance(a: &[f64], b: &[f64]) -> f64 {
 /// Returns flat row-major n×n matrix.
 #[must_use]
 pub fn graph_laplacian(adjacency: &[f64], n: usize) -> Vec<f64> {
-    let mut laplacian = vec![0.0; n * n];
-    for i in 0..n {
-        let degree: f64 = (0..n).map(|j| adjacency[i * n + j]).sum();
-        laplacian[i * n + i] = degree;
-        for j in 0..n {
-            laplacian[i * n + j] -= adjacency[i * n + j];
-        }
-    }
-    laplacian
+    barracuda::linalg::graph::graph_laplacian(adjacency, n)
 }
 
 /// Add disorder from agent heterogeneity to the Laplacian.
@@ -103,13 +95,8 @@ pub fn disordered_laplacian(
     agents: &[Agent],
     disorder_strength: f64,
 ) -> Vec<f64> {
-    let mut h = laplacian.to_vec();
-    let mean_cap = agents.iter().map(|a| a.capability).sum::<f64>() / n.max(1) as f64;
-    for i in 0..n {
-        let deviation = agents[i].capability - mean_cap;
-        h[i * n + i] += disorder_strength * deviation;
-    }
-    h
+    let heterogeneity: Vec<f64> = agents.iter().map(|a| a.capability).collect();
+    barracuda::linalg::graph::disordered_laplacian(laplacian, n, &heterogeneity, disorder_strength)
 }
 
 /// Coordination analysis via Anderson localization on the interaction graph.
@@ -396,5 +383,110 @@ mod tests {
                 "position mismatch"
             );
         }
+    }
+
+    #[test]
+    fn disordered_laplacian_adds_on_site() {
+        let agents = test_agents(4);
+        let adj = interaction_graph(&agents, 2.0);
+        let n = agents.len();
+        let lap = graph_laplacian(&adj, n);
+        let h = disordered_laplacian(&lap, n, &agents, 1.0);
+        let mut has_change = false;
+        for i in 0..n {
+            if (h[i * n + i] - lap[i * n + i]).abs() > 1e-15 {
+                has_change = true;
+            }
+            for j in 0..n {
+                if i != j {
+                    assert!(
+                        (h[i * n + j] - lap[i * n + j]).abs() < 1e-14,
+                        "off-diagonal should be unchanged"
+                    );
+                }
+            }
+        }
+        assert!(has_change, "disorder should modify at least one diagonal");
+    }
+
+    #[test]
+    fn coordination_fraction_empty() {
+        assert!((coordination_fraction(&[]) - 0.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn coordination_fraction_all_cooperating() {
+        let mut agents = test_agents(4);
+        for a in &mut agents {
+            a.cooperating = true;
+        }
+        assert!((coordination_fraction(&agents) - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn dimensional_coordination_sweep_produces_results() {
+        let result = dimensional_coordination_sweep(3, 0.1, 2.0, 3.0, 0.1, 0.5, 5, 42);
+        assert!(
+            (0.0..=1.0).contains(&result.dim1_coordination),
+            "1D coordination in [0,1]"
+        );
+        assert!(
+            (0.0..=1.0).contains(&result.dim2_coordination),
+            "2D coordination in [0,1]"
+        );
+        assert!(
+            (0.0..=1.0).contains(&result.dim3_coordination),
+            "3D coordination in [0,1]"
+        );
+        assert!(result.dim1_ipr > 0.0, "1D IPR positive");
+        assert!(result.dim2_ipr > 0.0, "2D IPR positive");
+        assert!(result.dim3_ipr > 0.0, "3D IPR positive");
+    }
+
+    #[test]
+    fn qs_signaling_with_no_neighbors() {
+        let agents_vec: Vec<Agent> = (0..4_u32)
+            .map(|i| Agent {
+                position: vec![100.0 * f64::from(i)],
+                capability: 1.0,
+                signal_level: 1.0,
+                cooperating: false,
+            })
+            .collect();
+        let mut agents = agents_vec;
+        qs_signaling_step(&mut agents, 0.5, 0.1, 0.5);
+        let none_cooperating = agents.iter().all(|a| !a.cooperating);
+        assert!(none_cooperating, "isolated agents should not cooperate");
+    }
+
+    #[test]
+    fn interaction_graph_no_edges_beyond_range() {
+        let agents: Vec<Agent> = (0..3_u32)
+            .map(|i| Agent {
+                position: vec![100.0 * f64::from(i)],
+                capability: 1.0,
+                signal_level: 0.0,
+                cooperating: false,
+            })
+            .collect();
+        let adj = interaction_graph(&agents, 1.0);
+        let total_weight: f64 = adj.iter().sum();
+        assert!(total_weight.abs() < 1e-14, "no edges expected");
+    }
+
+    #[test]
+    fn algebraic_connectivity_single_agent() {
+        let agents = vec![Agent {
+            position: vec![0.0],
+            capability: 1.0,
+            signal_level: 0.0,
+            cooperating: false,
+        }];
+        let result = coordination_spectral_analysis(&agents, 2.0, 0.1);
+        assert!(result.eigenvalues.len() == 1);
+        assert!(
+            result.algebraic_connectivity.abs() < 1e-10,
+            "single agent → zero algebraic connectivity"
+        );
     }
 }

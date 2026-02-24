@@ -207,6 +207,31 @@ pub struct WeightSpectralResult {
     pub mp_departure: f64,
 }
 
+/// Construct a `WeightSpectralResult` from pre-computed eigen-decomposition.
+///
+/// Used by [`crate::gpu_dispatch::Dispatcher::weight_spectral_analysis`]
+/// where the eigensolve is performed on GPU.
+#[must_use]
+pub fn spectral_result_from_decomposition(
+    mut eigenvalues: Vec<f64>,
+    eigenvectors: &[f64],
+    dim: usize,
+) -> WeightSpectralResult {
+    eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let ipr_val = mean_ipr(eigenvectors, dim);
+    let lsr = level_spacing_ratio(&eigenvalues);
+    let entropy = spectral_entropy(&eigenvalues);
+    let gamma = 1.0;
+    let mp_departure = marchenko_pastur_departure(&eigenvalues, gamma);
+    WeightSpectralResult {
+        eigenvalues,
+        mean_ipr: ipr_val,
+        level_spacing_ratio: lsr,
+        spectral_entropy: entropy,
+        mp_departure,
+    }
+}
+
 /// Compare spectral properties of two weight matrices.
 ///
 /// Returns (delta_ipr, delta_lsr, delta_entropy) as signed differences

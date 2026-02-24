@@ -1,7 +1,7 @@
 # Sub-Thesis 03: Loss Landscapes as Energy Landscapes
 
-**Date:** February 23, 2026
-**Status:** Core primitives implemented and validated (19/19 PASS)
+**Date:** February 24, 2026 (Session 58 — `numerical_hessian` + 7 Dispatcher methods rewired to upstream)
+**Status:** Core primitives implemented and validated (27/27 PASS)
 **Module:** `src/loss_landscape.rs` | **Validator:** `src/bin/validate_loss_landscape.rs`
 **Domain:** Statistical mechanics applied to neural network optimization
 **Novelty:** No prior work uses GPU-accelerated RK45 ODE integration for
@@ -223,13 +223,20 @@ corresponds to the trainability region. This connects game theory
 All experiments use our Phase 0/0+/0++ trained models and open data.
 
 ```bash
-cargo run --release --bin validate_loss_landscape   # 27/27 PASS (Sessions 50, 54)
-cargo run --release --bin validate_basecamp_gpu     # 14/14 PASS — pure GPU parity
+cargo run --release --bin validate_loss_landscape     # 27/27 PASS (Sessions 50, 54)
+cargo run --release --bin validate_basecamp_gpu       # 14/14 PASS — pure GPU parity
+cargo run --release --bin validate_basecamp_dispatch  # 19/19 PASS — Dispatcher routing
+cargo run --release --bin validate_barracuda_parity   # 34/34 PASS — CPU↔GPU parity
 ```
 
 All experiments (nS-301 through nS-305) are validated in the consolidated
 `validate_loss_landscape` binary, including Hessian eigenvalues, transition
 barriers, Boltzmann sampling, cross-architecture dimension sweep, gradient
 descent trajectory tracking, and multi-barrier landscape analysis.
+
+### Upstream Rewiring (Session 56)
+
+`numerical_hessian` now delegates to `barracuda::numerical::numerical_hessian`
+(ToadStool `9404fdb4`). Public API unchanged; all 27 checks still pass.
 
 No proprietary models. No external data.

@@ -1,18 +1,18 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 24, 2026 (Sessions 44–55 — multi-GPU + benchmarks + pure GPU promotion + deep debt audit + baseCamp + ToadStool sync + cross-spring benchmarking + baseCamp experiment expansion + GPU workload validation + CPU vs GPU dispatch + mixed-hardware)
+**Last updated**: February 24, 2026 (Sessions 44–58 — multi-GPU + benchmarks + pure GPU promotion + deep debt audit + baseCamp + ToadStool sync + cross-spring benchmarking + baseCamp experiment expansion + GPU workload validation + CPU vs GPU dispatch + mixed-hardware + dispatch parity + metalForge PCIe + upstream dispatch rewiring + GpuDriverProfile)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 206/206 Python PASS + 1750+ Rust+GPU validation PASS = **1950+ total validation checks**
-**Library**: 459 lib tests + 9 integration tests | 36 modules + 2 evolved + gpu_ops/ + gpu_dispatch | 142 validation/bench binaries
-**baseCamp**: 5 biophysical AI modules + 6 validators (114/114 CPU + 14/14 GPU PASS) — Sessions 50, 54
-**Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware
+**Grand Total**: 206/206 Python PASS + 1820+ Rust+GPU validation PASS = **2020+ total validation checks**
+**Library**: 478 lib tests + 9 integration tests + 30 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 156 validation/bench binaries
+**baseCamp**: 5 biophysical AI modules + 7 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch PASS) — Sessions 50, 54, 56
+**Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware + 19/19 baseCamp dispatch + 17/17 parity + 23/23 PCIe
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math)
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings
 **Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels)
-**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-16 FIXED | S-14/S-15 workaround | 2 new fixes (Session 44)
+**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-16 FIXED | S-14/S-15 workaround | HEAD `9404fdb4` (S50–59) | 11 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58)
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
 
 ---
@@ -61,7 +61,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (459 lib tests + 9 integration tests, 142 validation binaries, 36 modules + 2 evolved + gpu_ops/ + gpu_dispatch/)
+### Phase 1a: neuralSpring-Native Validation (478 lib tests + 9 integration + 30 forge tests, 156 validation binaries, 36 modules + gpu_ops/ + gpu_dispatch/)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -270,7 +270,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (459 lib tests + 9 integration tests, 142 validation binaries, 36 modules + 2 evolved + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (478 lib + 9 integration + 30 forge tests, 156 binaries, 36 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -533,3 +533,52 @@ through the dispatch layer and mixed-hardware (GPU↔NPU↔CPU) routing.
 | Realtime inference | 5,000 | 512 | GpuToNpu |
 | Below crossover | 750 | 1,024 | CpuOnly |
 | Above crossover | 15,000 | 1,024 | GpuOnly |
+
+### Session 56 — Dispatcher baseCamp Parity + BarraCUDA CPU/GPU Parity + metalForge PCIe Bridge
+
+Comprehensive dispatch-layer validation proving baseCamp science routes correctly
+through the `Dispatcher` abstraction. BarraCUDA CPU vs GPU parity sweep across all
+17 science domains. metalForge PCIe bandwidth tier cost model with chained multi-hop
+transfer estimation and live mixed-hardware dispatch.
+
+| Change | Scope | Result |
+|--------|-------|--------|
+| `validate_basecamp_dispatch` (NEW) | 4 Dispatcher baseCamp methods: spectral, Hessian, BP, interaction graph | **19/19 PASS** |
+| `validate_barracuda_parity` (NEW) | CPU vs GPU parity: linalg, stats, spectral, activation, reduction, distance, biology | **17/17 PASS** |
+| `validate_metalforge_pcie` (NEW) | PCIe tiers, P2P vs staged, chained transfer, substrate sweep, bridge API, live dispatch | **23/23 PASS** |
+| `metalForge/forge/src/mixed.rs` enhanced | `BandwidthTier` enum (x16/x4/PCIe5/shared), `chained_transfer_cost`, `compare_transfer_paths` | **30/30 forge tests** |
+| `Makefile` + `justfile` updated | `validate-dispatch` group (5 validators), wired into `validate-all` | **CI-integrated** |
+| `validate_all.rs` updated | Session 56 + 58 entries | **146 binaries** |
+
+**Dispatcher baseCamp method validation** (RTX 4070 Vulkan):
+
+| Method | Sub-thesis | Checks | Key Result |
+|--------|-----------|--------|------------|
+| `weight_spectral_analysis` | Sub-01 | 5/5 | Eigenvalues match direct within 0.1 |
+| `numerical_hessian` | Sub-03 | 4/4 | Rosenbrock H[0,0]=802, H[1,1]=200 |
+| `belief_propagation` | Sub-04 | 5/5 | All layers sum to 1.0 within 1e-8 |
+| `agent_interaction_graph` | Sub-05 | 4/4 | Symmetric, zero diagonal, matches library |
+| Determinism | all | 1/1 | Repeated dispatch reproduces |
+
+**BarraCUDA CPU vs GPU parity sweep** (17 checks, all domains):
+
+| Domain | Operation | Max Diff | Tolerance |
+|--------|-----------|----------|-----------|
+| linalg | matmul, transpose, frobenius, commutator, dist_to_normal | < 0.05 | GPU_MATMUL_RANDOM_F32 |
+| stats | variance, Pearson, entropy, chi-squared | < 1e-8 | GPU_VARIANCE_F64 |
+| spectral | eigh eigenvalues | < 0.1 | GPU_EIGH_DISPATCH_F64 |
+| activation | softmax, Boltzmann, Hill | < 1e-4 | GPU_HILL_F32 |
+| reduction | mean | < 0.01 | GPU_MEAN_DISPATCH_F32 |
+| distance | L2 | < 0.01 | GPU_L2_DISPATCH_F32 |
+| biology | replicator step | < 0.01 | GPU_MEAN_DISPATCH_F32 |
+
+**metalForge PCIe bandwidth tier model**:
+
+| Tier | Bandwidth | Latency | 1MB Transfer |
+|------|-----------|---------|--------------|
+| PCIe 4.0 x16 | 31.5 GB/s | 2.0 us | ~35 us |
+| PCIe 4.0 x4 | 7.9 GB/s | 2.0 us | ~135 us |
+| PCIe 5.0 x16 | 63.0 GB/s | 2.0 us | ~19 us |
+| Shared memory | 200 GB/s | 0.1 us | ~5 us |
+
+P2P direct always beats CPU-staged for same bandwidth tier. Chained 2-hop < 3x direct overhead.

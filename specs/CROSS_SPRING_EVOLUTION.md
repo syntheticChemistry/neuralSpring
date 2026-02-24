@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `9abd6857` (Sessions 50–53 sync, Feb 24, 2026)
+**ToadStool HEAD**: `9404fdb4` (Session 58 sync — 11 functions rewired to upstream, GpuDriverProfile wired in, Feb 24, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -272,6 +272,24 @@ BarraCUDA ops, completing the cross-spring absorption cycle.
 | `PairwiseHammingGpu` 64×100 | neuralSpring | 1,449 | 1,678 |
 | `HmmBatchForwardF64` 4s×50t×32b | wetSpring | 1,981 | 5,136 |
 | `BatchedEighGpu` 12×12×40 | hotSpring | 6,190 | 20,106 |
+
+### Session 58 — Upstream Dispatch Rewiring + GpuDriverProfile
+
+neuralSpring now delegates 7 core Dispatcher methods to upstream `domain_ops`
+and uses hotSpring-evolved `GpuDriverProfile` for hardware-adaptive f64 strategy.
+
+| Dispatcher Method | Upstream domain_ops | Cross-Spring Origin |
+|-------------------|--------------------|---------------------|
+| `mat_mul` | `matmul_dispatch` | hotSpring (tile kernels) |
+| `frobenius_norm` | `frobenius_norm_dispatch` | hotSpring (reduction) |
+| `transpose` | `transpose_dispatch` | neuralSpring (spectral) |
+| `softmax` | `softmax_dispatch` | neuralSpring (ML) |
+| `l2_distance` | `l2_distance_dispatch` | neuralSpring (MODES) |
+| `mean` | `mean_dispatch` | hotSpring (reduction) |
+| `variance` | `variance_dispatch` | hotSpring (Welford) |
+
+GpuDriverProfile on RTX 4070: Ada, NvidiaPtxas, Throttled FP64 → Hybrid
+(df64 f32-pair bulk, native f64 reductions). pow(f64) workaround: yes.
 
 ---
 

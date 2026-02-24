@@ -40,38 +40,7 @@ pub fn numerical_hessian(
     params: &[f64],
     epsilon: f64,
 ) -> Vec<f64> {
-    let n = params.len();
-    let mut hessian = vec![0.0; n * n];
-    let mut p = params.to_vec();
-
-    for i in 0..n {
-        for j in i..n {
-            p.copy_from_slice(params);
-            p[i] += epsilon;
-            p[j] += epsilon;
-            let fpp = loss_fn(&p);
-
-            p.copy_from_slice(params);
-            p[i] += epsilon;
-            p[j] -= epsilon;
-            let fpm = loss_fn(&p);
-
-            p.copy_from_slice(params);
-            p[i] -= epsilon;
-            p[j] += epsilon;
-            let fmp = loss_fn(&p);
-
-            p.copy_from_slice(params);
-            p[i] -= epsilon;
-            p[j] -= epsilon;
-            let fmm = loss_fn(&p);
-
-            let hij = (fpp - fpm - fmp + fmm) / (4.0 * epsilon * epsilon);
-            hessian[i * n + j] = hij;
-            hessian[j * n + i] = hij;
-        }
-    }
-    hessian
+    barracuda::numerical::numerical_hessian(loss_fn, params, epsilon)
 }
 
 /// Compute eigenvalues of the Hessian matrix.

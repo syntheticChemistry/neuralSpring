@@ -110,6 +110,86 @@ pub fn mixed_substrate(
     }
 }
 
+/// Bandwidth tier for a given `PCIe` link configuration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BandwidthTier {
+    /// `PCIe` 4.0 x16 (31.5 GB/s) — discrete GPU
+    Pcie4X16,
+    /// `PCIe` 4.0 x4 (7.9 GB/s) — NPU / M.2
+    Pcie4X4,
+    /// `PCIe` 5.0 x16 (63.0 GB/s) — next-gen GPU
+    Pcie5X16,
+    /// Shared memory / same die (~200 GB/s)
+    SharedMemory,
+}
+
+impl BandwidthTier {
+    /// Bandwidth in GB/s for this tier.
+    #[must_use]
+    pub const fn bandwidth_gbps(self) -> f64 {
+        match self {
+            Self::Pcie4X16 => PCIE4_X16_BANDWIDTH_GBPS,
+            Self::Pcie4X4 => PCIE4_X4_BANDWIDTH_GBPS,
+            Self::Pcie5X16 => 63.0,
+            Self::SharedMemory => 200.0,
+        }
+    }
+
+    /// Latency in microseconds for this tier.
+    #[must_use]
+    pub const fn latency_us(self) -> f64 {
+        match self {
+            Self::SharedMemory => 0.1,
+            _ => PCIE_DMA_LATENCY_US,
+        }
+    }
+}
+
+/// Transfer cost for a specific bandwidth tier.
+#[must_use]
+pub const fn transfer_cost_for_tier(bytes: u64, tier: BandwidthTier) -> TransferCost {
+    TransferCost {
+        bytes,
+        latency_us: tier.latency_us(),
+        bandwidth_gbps: tier.bandwidth_gbps(),
+    }
+}
+
+/// Chained substrate transfer: source → intermediate → target.
+///
+/// Models multi-hop transfers like GPU → CPU → NPU (when P2P is unavailable).
+/// Returns the total transfer cost for the two-hop path.
+#[must_use]
+pub fn chained_transfer_cost(
+    bytes: u64,
+    hop1_tier: BandwidthTier,
+    hop2_tier: BandwidthTier,
+) -> TransferCost {
+    let cost1 = transfer_cost_for_tier(bytes, hop1_tier);
+    let cost2 = transfer_cost_for_tier(bytes, hop2_tier);
+    TransferCost {
+        bytes,
+        latency_us: cost1.latency_us + cost2.latency_us + CPU_STAGED_LATENCY_US,
+        bandwidth_gbps: f64::min(hop1_tier.bandwidth_gbps(), hop2_tier.bandwidth_gbps()),
+    }
+}
+
+/// Compare direct P2P vs CPU-staged transfer for the same byte count.
+///
+/// Returns `(p2p_cost, staged_cost, p2p_is_faster)`.
+#[must_use]
+pub fn compare_transfer_paths(
+    bytes: u64,
+    direct_tier: BandwidthTier,
+    staged_hop1: BandwidthTier,
+    staged_hop2: BandwidthTier,
+) -> (TransferCost, TransferCost, bool) {
+    let p2p = transfer_cost_for_tier(bytes, direct_tier);
+    let staged = chained_transfer_cost(bytes, staged_hop1, staged_hop2);
+    let p2p_faster = p2p.estimated_us() < staged.estimated_us();
+    (p2p, staged, p2p_faster)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -147,5 +227,48 @@ mod tests {
     fn realtime_inference_uses_npu() {
         let sub = mixed_substrate(50_000.0, 1_048_576, true, true, true);
         assert_eq!(sub, MixedSubstrate::GpuToNpu);
+    }
+
+    #[test]
+    fn bandwidth_tier_values() {
+        assert!((BandwidthTier::Pcie4X16.bandwidth_gbps() - 31.5).abs() < 0.1);
+        assert!((BandwidthTier::Pcie4X4.bandwidth_gbps() - 7.9).abs() < 0.1);
+        assert!((BandwidthTier::Pcie5X16.bandwidth_gbps() - 63.0).abs() < 0.1);
+        assert!(BandwidthTier::SharedMemory.bandwidth_gbps() > 100.0);
+    }
+
+    #[test]
+    fn chained_slower_than_direct() {
+        let direct = transfer_cost_for_tier(1_048_576, BandwidthTier::Pcie4X4);
+        let chained =
+            chained_transfer_cost(1_048_576, BandwidthTier::Pcie4X16, BandwidthTier::Pcie4X4);
+        assert!(
+            chained.estimated_us() > direct.estimated_us(),
+            "2-hop should be slower: {:.1} vs {:.1}",
+            chained.estimated_us(),
+            direct.estimated_us()
+        );
+    }
+
+    #[test]
+    fn compare_transfer_paths_p2p_wins() {
+        let (p2p, staged, faster) = compare_transfer_paths(
+            4_194_304,
+            BandwidthTier::Pcie4X4,
+            BandwidthTier::Pcie4X16,
+            BandwidthTier::Pcie4X4,
+        );
+        assert!(faster, "P2P should beat staged for 4MB");
+        assert!(p2p.estimated_us() < staged.estimated_us());
+    }
+
+    #[test]
+    fn shared_memory_very_fast() {
+        let cost = transfer_cost_for_tier(1_048_576, BandwidthTier::SharedMemory);
+        assert!(
+            cost.estimated_us() < 10.0,
+            "shared memory 1MB should be <10µs, got {:.1}",
+            cost.estimated_us()
+        );
     }
 }

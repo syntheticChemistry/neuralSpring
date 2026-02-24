@@ -21,9 +21,9 @@ lint-python:
     ruff check control/ scripts/ tests/
     ruff format --check control/ tests/
 
-# Rust lint + format + doc
+# Rust lint + format + doc (pedantic + nursery enforced)
 lint-rust:
-    cargo clippy -- -D warnings
+    cargo clippy --all-targets -- -D warnings -W clippy::pedantic -W clippy::nursery
     cargo fmt --check
     cargo doc --no-deps
 
@@ -35,7 +35,7 @@ test-python:
 test-rust:
     cargo test
 
-# Validation subset (full suite: cargo run --release --bin validate_all — 139 binaries)
+# Validation subset (full suite: cargo run --release --bin validate_all — 145 binaries)
 validate: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu validate-basecamp
 
 # neuralSpring quick (3 bins: surrogate, transformer, metrics)
@@ -73,8 +73,16 @@ validate-basecamp:
     cargo run --bin validate_neural_pgm
     cargo run --bin validate_agent_coordination
 
+# Dispatch + parity + metalForge mixed hardware validators
+validate-dispatch:
+    cargo run --bin validate_compute_dispatch
+    cargo run --bin validate_mixed_hardware
+    cargo run --bin validate_basecamp_dispatch
+    cargo run --bin validate_barracuda_parity
+    cargo run --bin validate_metalforge_pcie
+
 # Run everything (or: cargo run --release --bin validate_all)
-validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu validate-basecamp
+validate-all: validate-native validate-native-papers validate-barracuda validate-barracuda-cpu validate-basecamp validate-dispatch
     @echo "━━━ All validation binaries PASS ━━━"
 
 # BarraCUDA primitives (11 bins, 275+ checks)

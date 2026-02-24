@@ -26,6 +26,7 @@
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_ops;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::weight_spectral;
 use std::sync::Arc;
@@ -79,8 +80,8 @@ async fn main() {
         .collect();
     let max_eval_diff = eval_diffs.iter().copied().fold(0.0_f64, f64::max);
     h.check_bool(
-        "Sub-01: GPU eigenvalues match CPU (tol 0.1)",
-        max_eval_diff < 0.1,
+        "Sub-01: GPU eigenvalues match CPU",
+        max_eval_diff < tolerances::GPU_EIGH_DISPATCH_F64,
     );
 
     // Disorder sweep: batch eigensolve
@@ -124,7 +125,7 @@ async fn main() {
         "Sub-02: GPU variance matches CPU (signal propagation)",
         gpu_var,
         cpu_var,
-        1e-6,
+        tolerances::GPU_VARIANCE_F64,
     );
 
     // Attention correlation via GPU Pearson
@@ -138,7 +139,7 @@ async fn main() {
         "Sub-02: GPU Pearson matches CPU (attention analysis)",
         gpu_pearson,
         cpu_pearson,
-        1e-4,
+        tolerances::GPU_PEARSON_F64,
     );
 
     // ═══════════════════════════════════════════════════════════════════
@@ -157,7 +158,7 @@ async fn main() {
         "Sub-03: GPU entropy matches CPU (landscape spectral entropy)",
         gpu_entropy,
         cpu_entropy,
-        1e-4,
+        tolerances::GPU_ENTROPY_F64,
     );
 
     // ═══════════════════════════════════════════════════════════════════
@@ -188,8 +189,8 @@ async fn main() {
         .map(|(c, g)| (c - g).abs())
         .fold(0.0_f64, f64::max);
     h.check_bool(
-        "Sub-04: GPU matmul matches CPU (tol 0.05, f32 path)",
-        matmul_max_diff < 0.05,
+        "Sub-04: GPU matmul matches CPU (f32 path)",
+        matmul_max_diff < tolerances::GPU_MATMUL_RANDOM_F32,
     );
 
     // ═══════════════════════════════════════════════════════════════════
@@ -205,7 +206,7 @@ async fn main() {
         "Sub-05: GPU chi² matches CPU (agent distribution)",
         gpu_chi2,
         cpu_chi2,
-        1e-2,
+        tolerances::GPU_KL_DISPATCH_F32,
     );
 
     // L2 distance for agent position comparisons
@@ -225,7 +226,7 @@ async fn main() {
         "Sub-05: GPU L2 distance matches CPU (agent positions)",
         gpu_l2,
         cpu_l2,
-        1e-2,
+        tolerances::GPU_L2_DISPATCH_F32,
     );
 
     // ═══════════════════════════════════════════════════════════════════
@@ -235,15 +236,30 @@ async fn main() {
     let data: Vec<f64> = (0..256).map(|_| rng.normal()).collect();
     let cpu_mean = data.iter().sum::<f64>() / data.len() as f64;
     let gpu_mean = gpu_ops::mean_gpu(&data, &dev).unwrap_or_else(|e| panic!("mean_gpu: {e}"));
-    h.check_abs("Cross: GPU mean matches CPU", gpu_mean, cpu_mean, 1e-3);
+    h.check_abs(
+        "Cross: GPU mean matches CPU",
+        gpu_mean,
+        cpu_mean,
+        tolerances::GPU_MEAN_DISPATCH_F32,
+    );
 
     let cpu_sum: f64 = data.iter().sum();
     let gpu_sum = gpu_ops::sum_gpu(&data, &dev).unwrap_or_else(|e| panic!("sum_gpu: {e}"));
-    h.check_abs("Cross: GPU sum matches CPU", gpu_sum, cpu_sum, 1e-1);
+    h.check_abs(
+        "Cross: GPU sum matches CPU",
+        gpu_sum,
+        cpu_sum,
+        tolerances::GPU_SUM_DISPATCH_F32,
+    );
 
     let cpu_max = data.iter().copied().fold(f64::NEG_INFINITY, f64::max);
     let gpu_max = gpu_ops::max_gpu(&data, &dev).unwrap_or_else(|e| panic!("max_gpu: {e}"));
-    h.check_abs("Cross: GPU max matches CPU", gpu_max, cpu_max, 1e-3);
+    h.check_abs(
+        "Cross: GPU max matches CPU",
+        gpu_max,
+        cpu_max,
+        tolerances::GPU_MAX_DISPATCH_F32,
+    );
 
     // ═══════════════════════════════════════════════════════════════════
     // KL divergence (PGM comparison metric)
@@ -267,7 +283,12 @@ async fn main() {
         .sum();
     let gpu_kl = gpu_ops::kl_divergence_gpu(&p, &q, &dev)
         .unwrap_or_else(|e| panic!("kl_divergence_gpu: {e}"));
-    h.check_abs("Cross: GPU KL divergence matches CPU", gpu_kl, cpu_kl, 1e-2);
+    h.check_abs(
+        "Cross: GPU KL divergence matches CPU",
+        gpu_kl,
+        cpu_kl,
+        tolerances::GPU_KL_DISPATCH_F32,
+    );
 
     h.finish();
 }

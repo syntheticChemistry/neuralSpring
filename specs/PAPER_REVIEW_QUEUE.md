@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 24, 2026 (Sessions 45–54)
+**Last Updated**: February 24, 2026 (Sessions 45–56)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -673,16 +673,17 @@ baseCamp modules are CPU-only in Session 50. GPU promotion targets:
 When GPU promotion is implemented, controls will follow the same pattern
 as Phase 0++ papers: CPU reference → GPU result → diff within tolerance.
 
-### baseCamp — metalForge Mixed-Hardware Controls (Planned)
+### baseCamp — Full Three-Tier Hardware Validation (COMPLETE)
 
-After GPU promotion, baseCamp experiments will be validated across:
+All baseCamp experiments validated across three hardware tiers:
 
-1. **BarraCUDA CPU**: Pure Rust (current — 82/82 PASS)
-2. **BarraCUDA GPU**: Tensor API on RTX 4070 (planned)
-3. **metalForge mixed**: Cross-dispatch routing (planned)
+1. **BarraCUDA CPU**: Pure Rust — 114/114 PASS (Sessions 50, 54)
+2. **BarraCUDA GPU**: Tensor API on RTX 4070 — 14/14 PASS (`validate_basecamp_gpu`)
+3. **Dispatcher routing**: GPU/CPU parity — 19/19 PASS (`validate_basecamp_dispatch`)
+4. **CPU↔GPU parity**: Cross-domain — 34/34 PASS (`validate_barracuda_parity`)
+5. **metalForge mixed**: PCIe tiers + substrate selection — 36/36 PASS (`validate_metalforge_pcie`)
 
-The `gpu_dispatch::Dispatcher` already provides the routing infrastructure.
-baseCamp GPU promotion requires adding 5 new methods to `Dispatcher`.
+**Total baseCamp checks**: 147 (114 CPU + 14 GPU + 19 dispatch) — all PASS.
 
 ### baseCamp — Open Data Confirmation
 
@@ -698,11 +699,11 @@ Deterministic seed (42) ensures exact reproducibility.**
 
 | Sub-thesis | Grounding Papers | Open Access | Experiment Coverage |
 |:----------:|:----------------:|:-----------:|:-------------------:|
-| nS-01 | Martin & Mahoney (2021), Pennington & Worah (2017), Anderson (1958) | All open | 15/15 checks (analytical + synthetic) |
-| nS-02 | Schoenholz et al. (2017), Poole et al. (2016), Ganguli (2020) | All open | 15/15 checks (analytical + synthetic) |
-| nS-03 | Wales (2003), Li et al. (2018), Ghorbani et al. (2019) | All open | 19/19 checks (analytical quadratic + Rosenbrock) |
-| nS-04 | Koller & Friedman (2009), Hinton (2012), Murphy (2012) | All open | 15/15 checks (analytical + synthetic NN) |
-| nS-05 | Waters & Bassler (2005), Dolson et al. (2019), Anderson QS | All open | 18/18 checks (analytical + dimensional sweep) |
+| nS-01 | Martin & Mahoney (2021), Pennington & Worah (2017), Anderson (1958) | All open | 21/21 checks (analytical + synthetic) |
+| nS-02 | Schoenholz et al. (2017), Poole et al. (2016), Ganguli (2020) | All open | 22/22 checks (analytical + synthetic) |
+| nS-03 | Wales (2003), Li et al. (2018), Ghorbani et al. (2019) | All open | 27/27 checks (`numerical_hessian` → upstream) |
+| nS-04 | Koller & Friedman (2009), Hinton (2012), Murphy (2012) | All open | 21/21 checks (`belief_propagation_chain` → upstream) |
+| nS-05 | Waters & Bassler (2005), Dolson et al. (2019), Anderson QS | All open | 23/23 checks (`graph_laplacian` → upstream) |
 
 ---
 
