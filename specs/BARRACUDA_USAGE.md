@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 25, 2026 (Sessions 40–64)
+**Last Updated**: February 25, 2026 (Sessions 40–67)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -663,7 +663,7 @@ unavoidable transitive dependencies with no C compilation.
 
 | Gate | Result |
 |------|--------|
-| `validate_all` | 156 binaries (145/146 PASS, 1 pre-existing logsumexp) |
+| `validate_all` | 159 binaries (147/148 PASS, 1 pre-existing logsumexp) |
 | `cargo test --lib` | 478 PASS |
 | `cargo test -p neural-spring-forge --lib` | 30 PASS |
 | `cargo clippy (pedantic+nursery)` | 0 warnings |
@@ -759,4 +759,40 @@ Open data confirmed: zero proprietary, zero paywalled, zero access-restricted so
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 25, 2026. Sessions 50–64: 16 functions rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 156 binaries, 500 lib + 43 forge tests. Cross-spring evolution benchmarked: 22/22 PASS.*
+---
+
+## Sessions 66–67b — Phase C GPU + CPU Parity + Dispatch Tiers (February 25, 2026)
+
+### New Dispatcher Methods (Session 66)
+
+| Method | GPU Path | CPU Fallback |
+|--------|----------|--------------|
+| `hmm_forward_chain` | `hmm_forward_chain_gpu` (T × forward_step) | `Hmm::from_flat` → `.forward()` |
+| `hmm_viterbi_chain` | `hmm_viterbi_chain_gpu` (T × viterbi_step) | `Hmm::from_flat` → `.viterbi()` |
+| `pairwise_fst` | `pairwise_fst_gpu` (allele_freq + W-C) | `meta_population::pairwise_fst` |
+| `global_fst` | `global_fst_gpu` (per-pop allele_freq) | `meta_population::global_fst` |
+| `inter_population_af_variance` | Existing gpu_op → dispatch | `meta_population::inter_population_af_variance` |
+
+GPU dispatch coverage: 38 ops → **44 ops** (~97% of production math).
+
+### CPU↔Python Parity (Session 67)
+
+`validate_cpu_math_parity`: 39/39 PASS at 1e-10 tolerance.
+Proves Rust CPU (library + Dispatcher::cpu_only()) = Python/NumPy.
+
+### Dispatch Tier Characterization (Session 67b)
+
+`bench_dispatch_tiers`: Library direct → Dispatcher::cpu_only() → Dispatcher::new() GPU.
+9/10 ops ≤1.04× CPU dispatch overhead. Per-call GPU driver-bound for small workloads.
+Motivates StatefulPipeline/UnidirectionalPipeline batching.
+
+### Updated Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **505 PASS** |
+| `validate_all` | **147/148 PASS** |
+| `validate_gpu_phase_c` | **18/18 PASS** |
+| `validate_cpu_math_parity` | **39/39 PASS** |
+
+*BarraCUDA usage audit — neuralSpring, February 25, 2026. Sessions 50–67: 16 functions rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 159 binaries, 505 lib + 43 forge tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops).*

@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–64, Feb 25, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V29_S64_HANDOFF_FEB25_2026.md`
+**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–67, Feb 25, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V30_S67_HANDOFF_FEB25_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
@@ -13,6 +13,8 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 **Session 61 sync:** V26 handoff, code quality sweep, 101+ tolerances, property tests, comprehensive evolution handoff
 **Session 62 sync:** S-03b **FULLY RESOLVED** upstream. ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved/mha.rs` now thin wrapper to `barracuda::ops::mha::MultiHeadAttention`. 500 lib tests, 145/146 validate_all.
 **Session 64 sync:** V29 handoff. BandwidthTier + NVK guard wired into Dispatcher. Cross-spring benchmarks: Variance 3.49×, Entropy 2.56×, Pearson 1.33×.
+**Session 66 sync:** Phase C GPU promotion — HMM chains, FST, introgression, AF variance. 44 CPU→GPU ops (~97%). validate_gpu_phase_c 18/18 PASS.
+**Session 67 sync:** V30 handoff. CPU↔Python parity 39/39 PASS (1e-10). Dispatch tier benchmarks: ≤1.04× CPU overhead (9/10 ops). Per-call GPU driver-bound → motivates pipeline batching.
 
 ---
 

@@ -1,6 +1,6 @@
 # ML Inference Benchmark: Python vs BarraCUDA CPU vs GPU
 
-**Date**: 2026-02-23 (updated Session 44)
+**Date**: 2026-02-25 (updated Sessions 44–67b)
 **Hardware**: i9-12900K, 32 GB DDR5, NVIDIA RTX 4070 12 GB (Vulkan), NVIDIA TITAN V 12 GB (NVK GV100)
 **Python**: NumPy 2.1.3 (OpenBLAS, single-thread)
 **BarraCUDA CPU**: llvmpipe (LLVM 15.0.7, 256-bit)
@@ -194,3 +194,47 @@ BarraCUDA GPU Tensor matmul path which is 100×+ faster than both.
 Titan V wins on transformer (larger memory bandwidth) while RTX 4070
 wins on small ops (newer compute cores, lower dispatch latency).
 Both produce **bit-identical** correctness results.
+
+---
+
+## Session 67b: Dispatch Tier Benchmarks (February 25, 2026)
+
+Three-tier architecture measures dispatch overhead:
+
+- **Tier 1**: Library direct calls (`neural_spring::*`)
+- **Tier 2**: `Dispatcher::cpu_only()` calls
+- **Tier 3**: `Dispatcher::new()` (GPU-capable) calls
+
+### Results (10 representative kernels, RTX 4070, median µs)
+
+| Kernel | Size | Library µs | CPU Dispatch µs | Overhead |
+|--------|------|-----------|-----------------|----------|
+| MatMul | 64×64 | 41.6 | 41.3 | 0.99× |
+| Variance | 4096 | 3.4 | 3.4 | 1.00× |
+| Pearson | 4096 | 6.1 | 6.1 | 1.00× |
+| Entropy | 256 | 0.7 | 0.8 | 1.03× |
+| Softmax | 256 | 1.2 | 1.2 | 1.00× |
+| L2 Distance | 256 | 0.1 | 0.1 | 1.04× |
+| Chi-squared | 100 | 0.1 | 0.1 | 1.00× |
+| Commutator | 32×32 | 12.9 | 12.8 | 1.00× |
+| HMM Forward | 3×500 | 7.5 | 7.5 | 1.01× |
+| Hill Batch | 2500 | 1.1 | 20.3 | 19.17×* |
+
+\* Hill batch outlier due to batch dispatch allocation; 9/10 ops ≤1.04×.
+
+### Key Findings
+
+1. **Dispatcher::cpu_only() is transparent**: ≤1.04× overhead for 9/10 ops
+2. **Per-call GPU dispatch is driver-bound**: ~1.5ms fixed cost per dispatch
+3. **GPU wins at scale**: For workloads > 1.5ms CPU time
+4. **Pipeline batching is essential**: StatefulPipeline / UnidirectionalPipeline
+   eliminate per-call overhead for sequential chains (HMM, ODE, etc.)
+
+### Combined Benchmark Narrative
+
+```
+Session 44:   Rust CPU 178.5× faster than Python/NumPy (7 kernels)
+Session 66:   Rust CPU 201.7× faster (11 kernels) + ~97% GPU coverage
+Session 67:   CPU = Python mathematically (39/39 PASS, 1e-10)
+Session 67b:  Dispatch layer is transparent (≤1.04× overhead 9/10 ops)
+```

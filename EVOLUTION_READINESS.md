@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 25, 2026 (Sessions 40–64)
-**ToadStool HEAD**: `02207c4a` (S58–S64: 16 functions rewired, S-03b fully resolved upstream, 21/21 shaders absorbed)
+**Date**: February 25, 2026 (Sessions 40–67)
+**ToadStool HEAD**: `02207c4a` (S58–S67: 16 functions rewired, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -10,14 +10,14 @@
 ## Quick Status
 
 36 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses.
-156 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+159 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 500 lib + 9 integration + 43 forge tests, 36 modules, 156 binaries | **COMPLETE** |
+| Rust native validation | 505 lib + 9 integration + 43 forge tests, 36 modules, 159 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -56,8 +56,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 38 promoted ops (Phase A+B), 7 rewired to upstream domain_ops | **156 binaries** |
-| `validate_all` (S-58) | **145/146 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **159 binaries** |
+| `validate_all` (S-67) | **147/148 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -71,8 +71,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **145/146 PASS** (RTX 4070; 1 logsumexp driver issue) | **ALL GREEN** |
-| Grand total checks | **2020+** (206 Py + 1820+ Rust/GPU) | **ALL GREEN** |
+| `validate_all` | **147/148 PASS** (RTX 4070; 1 logsumexp driver issue) | **ALL GREEN** |
+| Grand total checks | **2120+** (206 Py + 1910+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
@@ -588,5 +588,30 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **4 vestigial `#[allow]` attributes removed** | Underlying code fixed, redundant suppression removed |
 | **Line coverage** | **93.17%** via `cargo llvm-cov` |
 | **Lib tests** | **500 PASS** |
+
+### Session 66 — Phase C GPU Promotion (February 25, 2026)
+
+6 new `Dispatcher` methods, 3 new `gpu_ops` functions. HMM forward/Viterbi chains,
+pairwise/global FST, inter-population AF variance — all now GPU-dispatchable.
+`validate_gpu_phase_c` 18/18 PASS. GPU coverage: ~90% → ~97% of production math.
+
+|| Session 66: Phase C GPU promotion | 6 Dispatcher methods, 3 gpu_ops, validate_gpu_phase_c 18/18 | **~97% GPU** |
+|| Session 66: Python baselines | 25/25 PASS — zero drift, 201.7× Rust faster | **ALL GREEN** |
+
+### Session 67 — CPU Math Parity Validation (February 25, 2026)
+
+Cross-language parity: `control/generate_cpu_references.py` → JSON →
+`validate_cpu_math_parity` 39/39 PASS (9 primitives + 9 paper kernels + 6
+Dispatcher cpu_only). All within 1e-10 tolerance. Proves BarraCUDA CPU = Python/NumPy.
+
+|| Session 67: CPU↔Python parity | `validate_cpu_math_parity` 39/39 PASS (1e-10) | **ALL GREEN** |
+
+### Session 67b — Dispatch Tier Benchmarks (February 25, 2026)
+
+Three-tier benchmark: Library direct → Dispatcher::cpu_only() → Dispatcher::new() GPU.
+9/10 ops ≤1.04× CPU dispatch overhead. Per-call GPU driver-bound for small workloads —
+motivates StatefulPipeline/UnidirectionalPipeline batching for GPU-resident acceleration.
+
+|| Session 67b: Dispatch tiers | `bench_dispatch_tiers` — 9/10 ops ≤1.04× CPU overhead | **Transparent** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

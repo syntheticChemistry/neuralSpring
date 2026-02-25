@@ -216,7 +216,7 @@ that match GPU buffer bindings directly:
 **Total GPU pipeline checks**: 32 (7 pipelines)
 **Total cross-dispatch checks**: 41 (8+8+12+13)
 **Total dispatch + parity checks**: 89 (16+14+19+17+23, Session 55–56)
-**Total lib tests**: 501 lib + 9 integration + 30 forge tests
+**Total lib tests**: 505 lib + 9 integration + 43 forge tests
 **Upstream rewired**: 4 functions delegating to `barracuda::linalg::graph` + `barracuda::numerical`
 **Grand total validation**: 2010+ (206 Python + 1810+ Rust+GPU)
 

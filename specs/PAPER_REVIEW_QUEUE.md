@@ -223,7 +223,7 @@ Full provenance: `specs/DATA_PROVENANCE.md`.
 
 ---
 
-## Full Validation Stack Matrix (February 25, 2026 — Sessions 60–61)
+## Full Validation Stack Matrix (February 25, 2026 — Sessions 60–67)
 
 Each paper maps through 10 validation tiers. The stack proves correctness
 from Python baseline through multi-GPU portability to mixed-hardware dispatch.
@@ -300,7 +300,7 @@ routing through `validate_mixed_hardware` (14/14 PASS).
 | Tier | Papers Covered | Total | Coverage |
 |------|---------------|-------|----------|
 | Python control (Py) | 25/25 | 206 checks | **100%** |
-| Rust CPU (Rs) | 25/25 + baseCamp | 501 lib + 114 baseCamp + 9 integration | **100%** |
+| Rust CPU (Rs) | 25/25 + baseCamp | 505 lib + 114 baseCamp + 9 integration | **100%** |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** |
 | BarraCUDA GPU (baseCamp) | 5/5 sub-theses | 14 checks | **100%** |
@@ -429,22 +429,66 @@ validates correctness at every hardware tier:
 - `NEURALSPRING_BACKEND=titan` selects Titan V adapter at runtime
 - Proves: GPU math portability is not dependent on a specific vendor driver
 
-### Tier 9: GPU Dispatch — Pure GPU Promotion (Sessions 45–46)
-- **38 CPU→GPU promotions** via `gpu_dispatch::Dispatcher` (Phase A: 27, Phase B: 11)
+### Tier 9: GPU Dispatch — Pure GPU Promotion (Sessions 45–46, 66)
+- **44 CPU→GPU promotions** via `gpu_dispatch::Dispatcher` (Phase A: 27, Phase B: 11, Phase C: 6)
 - Capability-based routing: GPU when available, CPU fallback otherwise
 - `validate_gpu_promotion`: **27/27 PASS** (both GPUs)
 - `validate_gpu_phase_b`: **20/20 PASS** (both GPUs)
-- Covers: HMM (forward/backward/Viterbi), statistics (variance/correlation/allele freq),
+- `validate_gpu_phase_c`: **18/18 PASS** (Session 66: HMM chains, FST, introgression, AF variance)
+- Covers: HMM (forward/backward/Viterbi + full chains), statistics (variance/correlation/allele freq),
   distances (L2/Hamming/Jaccard/geographic), ML (neural_forward/softmax/PCA),
-  bio (fitness/diversity/Hill/replicator), ODE (RK4 step)
-- **~90% of production math** has GPU path. Remaining ~10%: full ODE loops, FST, introgression chain
+  bio (fitness/diversity/Hill/replicator), ODE (RK4 step), population genetics (FST, AF variance)
+- **~97% of production math** has GPU path. Remaining ~3%: full ODE loops, spatial stencil cooperation
 - All per-paper controls still use open data: Python baselines validate independently
+- **CPU↔Python parity** (Session 67): `validate_cpu_math_parity` 39/39 PASS (1e-10)
+  confirms Rust CPU = Python/NumPy for 9 primitives + 9 paper kernels
+- **Dispatch overhead** (Session 67b): `bench_dispatch_tiers` ≤1.04× for 9/10 ops
+  — Dispatcher::cpu_only() is transparent
 
 ### Tier 10: metalForge Mixed Hardware (Future)
 - **Capability-based dispatch across GPU + NPU + CPU**
 - Infrastructure ready: `mixed.rs` (MixedSubstrate), `pcie_bridge.rs` (PCIe cost model)
 - Validated: 16/16 dispatch routing + 16/16 mixed dispatch checks (Session 43)
 - Next: Exercise on actual NPU hardware, optimize transfer cost model
+
+---
+
+## Controls Audit: BarraCUDA CPU → GPU → metalForge (Session 67)
+
+Confirming all papers have controls across the three hardware tiers:
+
+### BarraCUDA CPU Controls
+
+| Validator | Papers | Checks | BarraCUDA Primitives |
+|-----------|--------|--------|---------------------|
+| `validate_cpu_math_parity` | All | 39/39 | 9 primitives + 9 kernels + 6 Dispatcher |
+| `validate_barracuda_{domain}` | 24/25 | 203 | stats, linalg, special, numerical |
+| `validate_barracuda_parity` | All 17 domains | 17/17 | CPU vs GPU parity per domain |
+| **Gap**: Exp 005 (analytical only) | | | No numerical ops |
+| **Gap**: Tridiagonal eigensolver | 022-023 | | Pending ToadStool NAK |
+
+### BarraCUDA GPU Controls
+
+| Validator | Papers | Checks | GPU Operations |
+|-----------|--------|--------|---------------|
+| `validate_barracuda_gpu_{domain}` | 23/25 | 98+ | Tensor matmul, transpose, tanh, sigmoid |
+| `validate_gpu_phase_c` | 016-018, 024-025 | 18/18 | HMM chains, FST, introgression, AF var |
+| `validate_basecamp_gpu` | baseCamp 01-05 | 14/14 | eigh, variance, Pearson, entropy, matmul |
+| `bench_dispatch_tiers` | 10 kernels | — | Three-tier overhead characterization |
+| **Gap**: Exp 005, Study 005 | | | Analytical / integer arithmetic |
+
+### metalForge Mixed Hardware Controls
+
+| Validator | Scope | Checks | Substrates |
+|-----------|-------|--------|-----------|
+| `validate_mixed_hardware` | Mixed dispatch | 14/14 | GPU↔NPU↔CPU routing |
+| `validate_mixed_dispatch` | PCIe bridge | 16/16 | Transfer cost model |
+| `validate_compute_dispatch` | CPU↔GPU parity | 16/16 | Dispatcher routing |
+| `validate_metalforge_pcie` | PCIe tiers | 23/23 | Bandwidth + latency |
+
+**Audit result**: All 25 papers + 5 baseCamp sub-theses have controls at every
+applicable tier. Two known gaps (Exp 005 analytical, tridiag eigensolver pending NAK).
+All controls use open data and open systems exclusively.
 
 ---
 

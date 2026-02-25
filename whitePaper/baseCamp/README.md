@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 25, 2026 (Session 61)
-**Status**: 25 papers + 5 baseCamp sub-theses, 2070+ checks, ~90% GPU promotion, 16 functions rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (22/22 PASS), zero debt, 93.17% coverage, 101+ named tolerances, 13 property tests
+**Last Updated**: February 25, 2026 (Sessions 61–67)
+**Status**: 25 papers + 5 baseCamp sub-theses, 2120+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 16 functions rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (22/22 PASS), zero debt, 93.17% coverage, 101+ named tolerances, 13 property tests
 
 ## Purpose
 
@@ -11,7 +11,7 @@ GPU Tensor → metalForge WGSL → pipeline → cross-dispatch → multi-GPU.
 
 Extension proposals identify where neuralSpring's validated primitives can
 serve larger fields of study, cross-domain science, and the gen3 baseCamp
-sub-theses — now that we have pure GPU execution for ~90% of production math.
+sub-theses — now that we have pure GPU execution for ~97% of production math.
 
 ## Faculty Summary
 
@@ -31,7 +31,8 @@ sub-theses — now that we have pure GPU execution for ~90% of production math.
 Python baseline (seed=42) → Rust CPU (provenance) → BarraCUDA CPU
   → GPU Tensor (WGSL) → metalForge shaders → GPU pipeline → cross-dispatch
     → multi-GPU (bit-identical RTX 4070 + TITAN V NVK)
-      → gpu_dispatch (~90% pure GPU)
+      → gpu_dispatch (~97% pure GPU, Phase C: HMM chains, FST, introgression)
+        → CPU↔Python parity (39/39 PASS, 1e-10 cross-language)
 ```
 
 ## Briefings
@@ -96,12 +97,14 @@ All baseCamp experiments inherit neuralSpring's validated three-tier pipeline:
 
 | Metric | Value |
 |--------|-------|
-| Pure Rust vs Python | 178.5x faster (11 kernels) |
+| Pure Rust vs Python | 201.7x faster (11 kernels) |
+| CPU↔Python parity | 39/39 PASS (1e-10 cross-language) |
+| Dispatch overhead | ≤1.04× for 9/10 ops (transparent) |
 | GPU vs Python | Up to 104x (transformer medium) |
 | GPU crossover | ~1.5 ms dispatch overhead |
 | Multi-GPU | Bit-identical (RTX 4070 + TITAN V NVK) |
 | Fused pipeline | 46-78x over per-op dispatch |
-| GPU math coverage | ~90% of production operations |
+| GPU math coverage | ~97% of production operations (Phase C complete) |
 
 ### Open Data
 

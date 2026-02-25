@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 501 lib + 9 integration PASS — 156 binaries, 36 modules + gpu_ops/ + gpu_dispatch |
+| Rust native validation | 505 lib + 9 integration PASS — 159 binaries, 36 modules + gpu_ops/ + gpu_dispatch |
 | BarraCUDA CPU (bC) | 24/25 papers (96%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/25 papers (92%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/25 papers, 17 shaders, 108 checks | ALL PASS |
@@ -45,7 +45,7 @@
 
 | Spec | Status | Description |
 |------|--------|-------------|
-| [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A complete (27 ops), Phase B partial (11 ops), ~90% |
+| [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
 | [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 12 BarraCUDA shortcomings — all absorbed; S-14/S-15/S-16 tracked |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
@@ -61,7 +61,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V29 ToadStool handoff (current, Sessions 60–64) |
+| wateringHole/handoffs/ | `../wateringHole/` | V30 ToadStool handoff (current, Sessions 66–67) |
 
 ---
 

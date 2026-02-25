@@ -283,6 +283,9 @@ counts to hardware limits.
 
 **Bottom line**: ~97% of production math has a GPU path through dispatch.
 Session 66: HMM chains, FST (pairwise + global), introgression, inter-pop AF variance.
+Session 67: CPU↔Python parity confirmed (39/39 PASS, 1e-10) — pure math preserved.
+Session 67b: Dispatch tier benchmarks confirm ≤1.04× CPU overhead (9/10 ops).
+Per-call GPU dispatch is driver-bound for small workloads — pipeline batching essential.
 Remaining: ODE full-loop batching, spatial stencil cooperation.
 
 ### Session 48: Raw wgpu Coverage — Most Eliminated

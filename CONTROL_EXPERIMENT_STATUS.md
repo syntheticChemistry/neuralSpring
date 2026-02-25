@@ -64,7 +64,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (500 lib tests + 9 integration + 43 forge tests, 156 validation binaries, 36 modules + gpu_ops/ + gpu_dispatch/)
+### Phase 1a: neuralSpring-Native Validation (505 lib tests + 9 integration + 43 forge tests, 159 validation binaries, 36 modules + gpu_ops/ + gpu_dispatch/)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -252,7 +252,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 46 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 500 lib tests + 9 integration tests |
+| Rust test | `cargo test` | **PASS** — 505 lib tests + 9 integration tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -273,7 +273,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (500 lib + 9 integration + 43 forge tests, 156 binaries, 36 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (505 lib + 9 integration + 43 forge tests, 159 binaries, 36 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -317,7 +317,7 @@ magnitudes trigger the hang across all matmul tiers. Workaround: dense data ≥ 
 **S-16** ~~(High)~~ **FIXED**: transpose dispatch used `optimal_workgroup_size(256)` instead of
 shader's `@workgroup_size(16,16)`. One-line fix: `const TILE: u32 = 16`.
 
-Handoff: `wateringHole/handoffs/NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`.
+Handoff: `wateringHole/handoffs/archive/NEURALSPRING_V8_TOADSTOOL_BARRACUDA_HANDOFF_FEB22_2026.md`.
 
 ### Full Validation Stack — All 25 Papers (February 22, 2026)
 

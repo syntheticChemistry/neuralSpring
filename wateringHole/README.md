@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V29** | `handoffs/NEURALSPRING_TOADSTOOL_V29_S64_HANDOFF_FEB25_2026.md` | Feb 25, 2026 | S64: forge v0.2.0, substrate/probe/inventory/workloads, chi²/KL WGSL extensions |
+| **V30** | `handoffs/NEURALSPRING_TOADSTOOL_V30_S67_HANDOFF_FEB25_2026.md` | Feb 25, 2026 | S66–67b: Phase C GPU (~97%), CPU↔Python parity 39/39, dispatch tier benchmarks, barracuda evolution review |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V28, 42 files).
+Superseded handoffs: `handoffs/archive/` (V1–V29, 43 files).
 
 ## Conventions
 

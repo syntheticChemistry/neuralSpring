@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 24, 2026 (Sessions 49–55)
+**Date**: February 25, 2026 (Sessions 49–67)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -211,7 +211,7 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 
 *neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
 grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
-2070+ validated checks across 25 papers and 7 scientific domains. Core
+2120+ validated checks across 25 papers and 7 scientific domains. Core
 primitives implemented in Sessions 50–55, quality-hardened Session 61: 5 Rust
 modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 501 unit
 tests, 0 clippy warnings, 93.17% coverage, 13 property tests. BarraCUDA CPU
