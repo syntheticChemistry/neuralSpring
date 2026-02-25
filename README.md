@@ -42,16 +42,16 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 206/206 Python PASS + 1910+ Rust+GPU PASS = 2120+ total validation checks
 
-**ToadStool `02207c4a`** (Sessions 60–69): All shortcomings through S-12 **ABSORBED**.
+**ToadStool `02207c4a`** (Sessions 60–70): All shortcomings through S-12 **ABSORBED**.
 S-13 (PooledBuffer race) **FIXED** upstream. S-16 transpose **FIXED**. S-15 **root-caused**. S-03b (MHA projection hangs) **FULLY RESOLVED** upstream.
 21/21 WGSL shaders **absorbed upstream**.
 Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**.
 **17 functions rewired to upstream** (S58: 7 domain\_ops, S59: +2 dispatch + 3 stats/linalg, S56: 4 baseCamp, S68: +1 boltzmann). **6 validator shader sources rewired** to upstream barracuda constants (S69).
 `GpuDriverProfile` wired in for f64 strategy detection (Hybrid on RTX 4070, Native on Titan V).
-505 lib tests, **90.43% coverage**, 104+ named tolerances, 13 property tests, 0 clippy warnings, 0 doc warnings.
-159 validation/bench binaries, 36 modules + gpu\_ops/ + gpu\_dispatch/, 505 lib + 9 integration + 43 forge tests.
-**Session 68 (deep audit)**: Zero ad-hoc tolerances in validation binaries — all use `tolerances::*`. Zero `unwrap()` in validation code (all `expect()` with context). Tolerances module smartly split by domain (CPU/GPU). All files ≤1000 lines.
-**Cross-spring evolution validated**: 22/22 PASS — hotSpring precision, wetSpring bio, neuralSpring ML.
+580 lib tests, **94.53% coverage**, 105+ named tolerances, 13 property tests, 0 clippy warnings, 0 doc warnings.
+159 validation/bench binaries, 36 modules + gpu\_ops/ + gpu\_dispatch/, 580 lib + 9 integration + 43 forge tests.
+**Session 70 (deep audit II)**: Coverage 90.43%→94.53% (+68 tests). GPU-path tests for all 44 `Dispatcher` operations. `gpu_dispatch/mod.rs` split (1332→860+483 lines). Tolerance registry: `SADDLE_EIGENVALUE_THRESHOLD` extracted. `bench.rs` magic numbers→named constants. `validate_cpu_math_parity.rs` evolved to streaming I/O. 100% SPDX AGPL-3.0-or-later compliance (211/211 files). Zero TODOs, zero mocks in production, zero hardcoded paths, all files ≤1000 lines. Remaining uncovered lines (5.5%) are exclusively GPU error-handling branches.
+**Session 68–69**: Zero ad-hoc tolerances — all use `tolerances::*`. Zero `unwrap()` in validation code. Cross-spring evolution validated: 22/22 PASS. 6 validator shader sources → upstream constants.
 **Phase C GPU**: 18/18 PASS — HMM chains, FST, introgression, AF variance. **201.7× faster** than Python.
 **CPU↔Python parity**: 39/39 PASS — every Rust CPU operation matches Python/NumPy within 1e-10.
 **Dispatch overhead**: ≤1.04× for 9/10 ops — Dispatcher::cpu\_only() is transparent.
@@ -60,7 +60,7 @@ Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-
 **Mixed-hardware dispatch**: `Dispatcher::mixed_dispatch()` wired to `metalForge` cost model (GPU↔NPU↔CPU).
 **Benchmarks**: Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Rust 201.7× faster than Python/NumPy (11 kernels).
 **baseCamp**: 5 modules + 8 validators (128/128 PASS: 114 CPU + 14 GPU) — Sessions 50–63.
-**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero ad-hoc magic numbers.
+**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero ad-hoc magic numbers | 100% SPDX headers.
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 
 ### Phase 0 — Synthetic Baselines (48/48)
@@ -233,7 +233,7 @@ bash control/check_drift.sh        # drift detection (re-runs baselines)
 pip install pytest
 python3 -m pytest tests/ -v
 
-# Rust validation (459 unit + 9 integration)
+# Rust validation (580 unit + 9 integration)
 cargo test --lib --test integration
 cargo run --release --bin validate_all   # all 147/148 validation binaries
 
@@ -409,7 +409,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 206/206 PASS |
-| Rust tests | `cargo test` | 500 unit + 9 integration PASS |
+| Rust tests | `cargo test` | 580 unit + 9 integration PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery) |
 | Rust coverage | `cargo llvm-cov --lib` | target ≥90% |
 | Rust format | `cargo fmt --check` | clean |
@@ -537,14 +537,18 @@ neuralSpring/
 │   ├── DATA_PROVENANCE.md      #   Dataset sources & licenses
 │   ├── TOADSTOOL_HANDOFF.md    #   12 BarraCUDA shortcomings — all absorbed
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
-│   └── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete
+│   ├── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete + baseCamp controls
+│   ├── BARRACUDA_REQUIREMENTS.md # BarraCUDA primitive requirements
+│   ├── BARRACUDA_USAGE.md      #   Module-level barracuda usage inventory
+│   ├── CROSS_SPRING_EVOLUTION.md # Cross-spring shader/primitive provenance
+│   └── PURE_GPU_ROADMAP.md     #   Pure GPU target: all math on GPU
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_TOADSTOOL_V32_S69_CROSS_SPRING_EVOLUTION_HANDOFF_FEB25_2026.md  # Current
-│   │   └── archive/           #   Superseded handoffs (V1–V29)
+│   │   ├── NEURALSPRING_TOADSTOOL_V33_S70_DEEP_AUDIT_EVOLUTION_HANDOFF_FEB25_2026.md  # Current
+│   │   └── archive/           #   Superseded handoffs (V1–V32)
 ├── experiments/                # Experiment journals (hotSpring pattern)
-│   └── README.md              #   Journal index (001-035)
+│   └── README.md              #   Journal index (001-038)
 ├── whitePaper/                 # Study documentation
 │   ├── baseCamp/              #   Per-faculty research briefings
 ├── scripts/
@@ -585,4 +589,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–69: February 25, 2026 | 25 papers + 5 baseCamp sub-theses, 206 Python + 1910+ Rust+GPU = 2120+ validation checks | 505 lib + 9 integration + 43 forge tests | 12/12 shortcomings absorbed, S-03b fully resolved upstream, S-16 fixed, S-15 root-caused, S-17 polyfill — 36 modules, 159 validation/bench binaries, 23 WGSL shaders (21 absorbed + 2 write-phase) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 | 104+ named tolerances, 0 clippy warnings, 90.43% coverage, 13 property tests, zero ad-hoc magic numbers | Sessions 50–69: baseCamp (147/147 PASS) + CPU↔GPU dispatch + metalForge mixed hardware + ToadStool S53–S62 sync + 17 functions + 6 shader sources rewired to upstream + GpuDriverProfile + BandwidthTier wired in + cross-spring evolution benchmarked (22/22 PASS) + S62: S-03b resolved, 21/21 shaders absorbed + S63: BandwidthTier + NVK guard + S64: forge v0.2.0 + S66: Phase C GPU (HMM chains, FST, introgression — 44 CPU→GPU ops, ~97% math) + S67: CPU↔Python parity 39/39 PASS (1e-10) + S67b: dispatch tier benchmarks (≤1.04× overhead 9/10 ops) + S68: deep debt audit (tolerance centralization, zero magic numbers, smart refactoring) + S69: 6 validator shader sources → upstream constants, cross-spring benchmarks refreshed*
+*Initialized: February 16, 2026 | Sessions 40–70: February 25, 2026 | 25 papers + 5 baseCamp sub-theses, 206 Python + 1910+ Rust+GPU = 2120+ validation checks | 580 lib + 9 integration + 43 forge tests | 12/12 shortcomings absorbed, S-03b fully resolved upstream, S-16 fixed, S-15 root-caused, S-17 polyfill — 36 modules, 159 validation/bench binaries, 23 WGSL shaders (21 absorbed + 2 write-phase) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 | 105+ named tolerances, 0 clippy warnings, 94.53% coverage, 13 property tests, zero ad-hoc magic numbers, 100% SPDX headers | Sessions 50–70: baseCamp (147/147 PASS) + CPU↔GPU dispatch + metalForge mixed hardware + ToadStool S53–S62 sync + 17 functions + 6 shader sources rewired to upstream + GpuDriverProfile + BandwidthTier wired in + cross-spring evolution benchmarked (22/22 PASS) + S62: S-03b resolved, 21/21 shaders absorbed + S63: BandwidthTier + NVK guard + S64: forge v0.2.0 + S66: Phase C GPU (HMM chains, FST, introgression — 44 CPU→GPU ops, ~97% math) + S67: CPU↔Python parity 39/39 PASS (1e-10) + S67b: dispatch tier benchmarks (≤1.04× overhead 9/10 ops) + S68: deep debt audit (tolerance centralization, zero magic numbers, smart refactoring) + S69: 6 validator shader sources → upstream constants, cross-spring benchmarks refreshed + S70: deep audit II (94.53% coverage, 580 tests, tolerance macro refactor, streaming I/O, 100% SPDX, all files ≤1000 lines)*

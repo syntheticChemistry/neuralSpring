@@ -6,8 +6,8 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `02207c4a` (Sessions 59–69 sync, Feb 25, 2026) |
-| Last updated | February 25, 2026 (Sessions 40–69) |
+| ToadStool HEAD | `02207c4a` (Sessions 59–70 sync, Feb 25, 2026) |
+| Last updated | February 25, 2026 (Sessions 40–70) |
 | BarraCUDA shader count | 645+ WGSL (zero CPU-only production math, S49) |
 | Shaders absorbed | 21/21 — all neuralSpring WGSL now upstream |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |

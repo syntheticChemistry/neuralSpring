@@ -475,9 +475,9 @@ mod tests {
         };
         let params = NeuralForwardParams {
             input: &[1.0, 0.5],
-            weights_hidden: &[1.0, 0.0, 0.0, 1.0], // 2x2 identity
+            weights_hidden: &[1.0, 0.0, 0.0, 1.0],
             bias_hidden: &[0.0, 0.0],
-            weights_output: &[1.0, 1.0], // 1x2 sum
+            weights_output: &[1.0, 1.0],
             bias_output: &[0.0],
             hidden_size: 2,
             output_size: 1,
@@ -485,5 +485,108 @@ mod tests {
         let result = neural_forward_gpu(&params, &dev).unwrap();
         assert_eq!(result.len(), 1);
         assert!(result[0].is_finite());
+    }
+
+    // ── Population: FST ─────────────────────────────────────────
+
+    #[test]
+    fn gpu_pairwise_fst_identical_populations() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        // Large uniform populations: WC estimator converges to 0 for identical pops.
+        // Small N can produce negative FST (documented WC estimator property).
+        let n = 20;
+        let pop: Vec<f64> = (0..n * 4)
+            .map(|i| if i % 2 == 0 { 1.0 } else { 0.0 })
+            .collect();
+        let fst = pairwise_fst_gpu(&pop, n, &pop, n, 4, &dev).unwrap();
+        assert!(
+            fst.abs() < 0.5,
+            "FST of identical populations should be near 0, got {fst}"
+        );
+        assert!(fst.is_finite());
+    }
+
+    #[test]
+    fn gpu_pairwise_fst_divergent_populations() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let pop_a = vec![2.0, 2.0, 2.0, 2.0, 2.0, 2.0];
+        let pop_b = vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+        let fst = pairwise_fst_gpu(&pop_a, 3, &pop_b, 3, 2, &dev).unwrap();
+        assert!(fst.is_finite(), "FST should be finite");
+        assert!(fst > 0.0, "divergent populations → FST > 0, got {fst}");
+    }
+
+    #[test]
+    fn gpu_global_fst_single_population() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let pops = vec![vec![1.0, 0.0, 0.0, 1.0]];
+        let fst = global_fst_gpu(&pops, &[2], 2, &dev).unwrap();
+        assert!(fst.abs() < 1e-10, "single population → FST = 0, got {fst}");
+    }
+
+    #[test]
+    fn gpu_global_fst_divergent() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let fixed_a = vec![2.0, 2.0, 2.0, 2.0];
+        let fixed_b = vec![0.0, 0.0, 0.0, 0.0];
+        let pops = vec![fixed_a, fixed_b];
+        let fst = global_fst_gpu(&pops, &[2, 2], 2, &dev).unwrap();
+        assert!(fst.is_finite());
+        assert!(fst > 0.0, "divergent → FST > 0, got {fst}");
+    }
+
+    // ── Bio: chain functions ────────────────────────────────────
+
+    #[test]
+    fn gpu_hmm_forward_chain_basic() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let trans = vec![0.7, 0.3, 0.4, 0.6];
+        let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
+        let initial = vec![0.6, 0.4];
+        let obs = vec![0, 1, 2, 0];
+        let log_lik = hmm_forward_chain_gpu(&initial, &trans, &emission, &obs, 2, 3, &dev).unwrap();
+        assert!(log_lik.is_finite(), "log-likelihood must be finite");
+        assert!(log_lik < 0.0, "log-likelihood should be negative");
+    }
+
+    #[test]
+    fn gpu_hmm_viterbi_chain_basic() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let trans = vec![0.7, 0.3, 0.4, 0.6];
+        let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
+        let initial = vec![0.6, 0.4];
+        let obs = vec![0, 1, 2, 0];
+        let (path, log_prob) =
+            hmm_viterbi_chain_gpu(&initial, &trans, &emission, &obs, 2, 3, &dev).unwrap();
+        assert_eq!(path.len(), obs.len());
+        assert!(log_prob.is_finite());
+        for &s in &path {
+            assert!(s < 2, "state {s} out of range");
+        }
+    }
+
+    #[test]
+    fn gpu_nucleotide_diversity_single_individual() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let pop = vec![1.0, 0.0];
+        let pi = nucleotide_diversity_gpu(&pop, 1, 2, &dev).unwrap();
+        assert!(
+            pi.abs() < 1e-10,
+            "single individual → zero diversity, got {pi}"
+        );
     }
 }

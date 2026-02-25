@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 25, 2026 (Sessions 44–69 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring benchmarks)
+**Last updated**: February 25, 2026 (Sessions 44–70 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring benchmarks)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 206/206 Python PASS + 1910+ Rust+GPU validation PASS = **2120+ total validation checks**
-**Library**: 505 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 159 validation/bench binaries
+**Library**: 580 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 159 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 7 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch PASS) — Sessions 50, 54, 56
@@ -13,7 +13,7 @@
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 44 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math)
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero ad-hoc tolerances | zero bare `unwrap()` in validation code
-**Coverage**: 90.43% line coverage (llvm-cov), 104+ named tolerances in centralized registry
+**Coverage**: 94.53% line coverage (llvm-cov), 105+ named tolerances in centralized registry
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels)
 **ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-03b **FULLY RESOLVED** upstream | S-16 FIXED | S-14/S-15 workaround | HEAD `02207c4a` (S50–69) | 17 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58 + 2 dispatch S59 + 3 stats/linalg S59 + 1 boltzmann S68) + 6 validator shader sources rewired to upstream constants (S69)
 **Cross-Spring**: 22/22 evolution checks PASS | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint)

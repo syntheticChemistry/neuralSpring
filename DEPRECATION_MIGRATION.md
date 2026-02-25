@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 25, 2026 (Sessions 44–67)
-**ToadStool HEAD**: `02207c4a` (S64: forge v0.2.0, substrate discovery, workload tracking, write-phase extensions)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 16 functions lean on upstream, CPU↔Python parity 39/39
+**Date**: February 25, 2026 (Sessions 44–70)
+**ToadStool HEAD**: `02207c4a` (S70: deep audit II — 94.53% coverage, 580 tests, 105+ tolerances)
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 17 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed

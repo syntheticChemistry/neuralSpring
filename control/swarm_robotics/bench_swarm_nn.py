@@ -62,5 +62,7 @@ if __name__ == "__main__":
     print(f"SWARM_NN_20x50_US={median_us:.1f}")
     print()
     print(f"Python/NumPy swarm NN benchmark — NumPy {np.__version__}")
-    print(f"  Config: {n_ctrl} controllers × {n_eval} evaluations = {n_ctrl*n_eval} forward passes")
+    print(
+        f"  Config: {n_ctrl} controllers × {n_eval} evaluations = {n_ctrl * n_eval} forward passes"
+    )
     print(f"  Median: {median_us:.1f} µs over {ITERATIONS} iterations (warmup={WARMUP})")

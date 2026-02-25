@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 25, 2026 (Sessions 40–69)
-**ToadStool HEAD**: `02207c4a` (S58–S69: 17 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep debt audit S68: 104+ tolerances, 90.43% coverage, zero ad-hoc magic numbers)
+**Date**: February 25, 2026 (Sessions 40–70)
+**ToadStool HEAD**: `02207c4a` (S58–S70: 17 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 105+ tolerances, 94.53% coverage (580 tests), 100% SPDX, zero ad-hoc magic numbers)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -17,7 +17,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 505 lib + 9 integration + 43 forge tests, 36 modules, 159 binaries | **COMPLETE** |
+| Rust native validation | 580 lib + 9 integration + 43 forge tests, 36 modules, 159 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |

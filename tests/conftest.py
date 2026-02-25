@@ -11,6 +11,9 @@ from pathlib import Path
 
 CONTROL = Path(__file__).parent.parent / "control"
 
+if str(CONTROL) not in sys.path:
+    sys.path.insert(0, str(CONTROL))
+
 _CONTROL_SUBDIRS = [
     "surrogate",
     "sequence",

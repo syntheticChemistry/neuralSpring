@@ -43,7 +43,7 @@ def gen_pearson():
 def gen_chi_squared():
     observed = [10.0, 20.0, 30.0]
     expected = [20.0, 20.0, 20.0]
-    chi2 = sum((o - e) ** 2 / e for o, e in zip(observed, expected))
+    chi2 = sum((o - e) ** 2 / e for o, e in zip(observed, expected, strict=True))
     return {"observed": observed, "expected_vals": expected, "expected": chi2}
 
 
@@ -66,7 +66,9 @@ def gen_gelu():
     xs = [-2.0, -1.0, 0.0, 0.5, 1.0, 2.0, 3.0]
     results = []
     for x in xs:
-        results.append(0.5 * x * (1.0 + math.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * x**3))))
+        results.append(
+            0.5 * x * (1.0 + math.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * x**3)))
+        )
     return {"inputs": xs, "expected": results}
 
 
@@ -88,7 +90,7 @@ def gen_frobenius():
 def gen_l2_distance():
     a = [1.0, 2.0, 3.0, 4.0]
     b = [5.0, 6.0, 7.0, 8.0]
-    d = float(np.sqrt(sum((ai - bi) ** 2 for ai, bi in zip(a, b))))
+    d = float(np.sqrt(sum((ai - bi) ** 2 for ai, bi in zip(a, b, strict=True))))
     return {"a": a, "b": b, "expected": d}
 
 
@@ -164,24 +166,136 @@ def gen_replicator():
 
 def gen_commutator():
     a = [
-        1.0, 0.5, 0.3, 0.1, 0.2, 0.4, 0.6, 0.8,
-        0.5, 2.0, 0.7, 0.2, 0.3, 0.5, 0.1, 0.9,
-        0.3, 0.7, 3.0, 0.4, 0.1, 0.6, 0.2, 0.7,
-        0.1, 0.2, 0.4, 4.0, 0.5, 0.3, 0.8, 0.1,
-        0.2, 0.3, 0.1, 0.5, 5.0, 0.7, 0.4, 0.6,
-        0.4, 0.5, 0.6, 0.3, 0.7, 6.0, 0.9, 0.2,
-        0.6, 0.1, 0.2, 0.8, 0.4, 0.9, 7.0, 0.3,
-        0.8, 0.9, 0.7, 0.1, 0.6, 0.2, 0.3, 8.0,
+        1.0,
+        0.5,
+        0.3,
+        0.1,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.5,
+        2.0,
+        0.7,
+        0.2,
+        0.3,
+        0.5,
+        0.1,
+        0.9,
+        0.3,
+        0.7,
+        3.0,
+        0.4,
+        0.1,
+        0.6,
+        0.2,
+        0.7,
+        0.1,
+        0.2,
+        0.4,
+        4.0,
+        0.5,
+        0.3,
+        0.8,
+        0.1,
+        0.2,
+        0.3,
+        0.1,
+        0.5,
+        5.0,
+        0.7,
+        0.4,
+        0.6,
+        0.4,
+        0.5,
+        0.6,
+        0.3,
+        0.7,
+        6.0,
+        0.9,
+        0.2,
+        0.6,
+        0.1,
+        0.2,
+        0.8,
+        0.4,
+        0.9,
+        7.0,
+        0.3,
+        0.8,
+        0.9,
+        0.7,
+        0.1,
+        0.6,
+        0.2,
+        0.3,
+        8.0,
     ]
     b = [
-        8.0, 0.2, 0.4, 0.6, 0.1, 0.3, 0.5, 0.7,
-        0.2, 7.0, 0.1, 0.5, 0.3, 0.4, 0.8, 0.6,
-        0.4, 0.1, 6.0, 0.3, 0.7, 0.2, 0.9, 0.5,
-        0.6, 0.5, 0.3, 5.0, 0.2, 0.8, 0.1, 0.4,
-        0.1, 0.3, 0.7, 0.2, 4.0, 0.6, 0.3, 0.9,
-        0.3, 0.4, 0.2, 0.8, 0.6, 3.0, 0.7, 0.1,
-        0.5, 0.8, 0.9, 0.1, 0.3, 0.7, 2.0, 0.4,
-        0.7, 0.6, 0.5, 0.4, 0.9, 0.1, 0.4, 1.0,
+        8.0,
+        0.2,
+        0.4,
+        0.6,
+        0.1,
+        0.3,
+        0.5,
+        0.7,
+        0.2,
+        7.0,
+        0.1,
+        0.5,
+        0.3,
+        0.4,
+        0.8,
+        0.6,
+        0.4,
+        0.1,
+        6.0,
+        0.3,
+        0.7,
+        0.2,
+        0.9,
+        0.5,
+        0.6,
+        0.5,
+        0.3,
+        5.0,
+        0.2,
+        0.8,
+        0.1,
+        0.4,
+        0.1,
+        0.3,
+        0.7,
+        0.2,
+        4.0,
+        0.6,
+        0.3,
+        0.9,
+        0.3,
+        0.4,
+        0.2,
+        0.8,
+        0.6,
+        3.0,
+        0.7,
+        0.1,
+        0.5,
+        0.8,
+        0.9,
+        0.1,
+        0.3,
+        0.7,
+        2.0,
+        0.4,
+        0.7,
+        0.6,
+        0.5,
+        0.4,
+        0.9,
+        0.1,
+        0.4,
+        1.0,
     ]
     am = np.array(a, dtype=np.float64).reshape(8, 8)
     bm = np.array(b, dtype=np.float64).reshape(8, 8)
@@ -203,7 +317,7 @@ def gen_hamming():
     distances = []
     for i in range(n_seqs):
         for j in range(i + 1, n_seqs):
-            diff = sum(1 for a, b in zip(seqs[i], seqs[j]) if a != b)
+            diff = sum(1 for a, b in zip(seqs[i], seqs[j], strict=True) if a != b)
             distances.append(diff / seq_len)
     return {
         "seqs_flat": [x for s in seqs for x in s],
@@ -245,10 +359,7 @@ def gen_pairwise_l2():
     for i in range(n):
         for j in range(i + 1, n):
             d = math.sqrt(
-                sum(
-                    (features[i * dim + k] - features[j * dim + k]) ** 2
-                    for k in range(dim)
-                )
+                sum((features[i * dim + k] - features[j * dim + k]) ** 2 for k in range(dim))
             )
             distances.append(d)
     return {

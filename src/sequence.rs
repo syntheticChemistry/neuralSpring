@@ -53,7 +53,7 @@ pub fn persistence_forecast(windows: &[Vec<f64>]) -> Vec<f64> {
 ///
 /// `tmax(doy) = 8.5 + 15.0 * sin(2π(doy - 100) / 365)`
 ///
-/// Matches the Python `generate_michigan_weather` seasonal component.
+/// Matches the Python `generate_synthetic_weather` seasonal component.
 #[must_use]
 pub fn seasonal_tmax(doy: u32) -> f64 {
     let doy_f = f64::from(doy % 365);

@@ -47,6 +47,78 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 033 | Session 66 — Phase C GPU Promotion: HMM Chains, FST, Introgression | Feb 25, 2026 | 6 new Dispatcher methods, 3 new gpu_ops (pairwise_fst, global_fst, HMM chains), validate_gpu_phase_c 18/18 PASS, ~97% GPU, 201.7× Python speedup, 25/25 baselines zero drift |
 | 034 | Session 67 — CPU Math Parity: Rust vs Python Cross-Language Validation | Feb 25, 2026 | generate_cpu_references.py → JSON, validate_cpu_math_parity 39/39 PASS (1e-10 tol), 9 primitives + 9 paper kernels + 6 Dispatcher cpu_only, proves BarraCUDA CPU = Python/NumPy |
 | 035 | Session 67b — Dispatch Tier Benchmarks: Library → CPU Dispatch → GPU | Feb 25, 2026 | bench_dispatch_tiers: 9/10 ops ≤1.04× CPU dispatch overhead, per-call GPU driver-bound for small workloads, motivates pipeline batching |
+| 036 | Session 68 — Deep Debt Audit: Quality Gates, Tolerance Centralization, Module Refactoring | Feb 25, 2026 | 104+ tolerances, zero ad-hoc magic numbers, zero bare `unwrap()`, tolerances module split (CPU/GPU), gpu_dispatch test serialization, 90.43% coverage |
+| 037 | Session 69 — Validator Shader Rewiring + Cross-Spring Benchmarks | Feb 25, 2026 | 6 validator shader sources → upstream constants, bench 10/10 ≈ or ~, cross-spring provenance map, V32 handoff |
+| 038 | Session 70 — Deep Audit II: Coverage Evolution, Macro Refactoring, BarraCUDA Inventory | Feb 25, 2026 | 94.53% coverage (580 tests), tolerance_registry! macro (891→257 lines), gpu_dispatch split (1332→860+483), streaming I/O, 100% SPDX, Python test fixes, V33 handoff |
+
+---
+
+## Experiment 038: Deep Audit II — Coverage Evolution, Macro Refactoring, BarraCUDA Inventory
+
+**Date**: February 25, 2026 (Session 70)
+**Hardware**: i9-12900K, RTX 4070 12GB, Pop!_OS 22.04
+**Researcher**: Eastgate
+**ToadStool HEAD**: `02207c4a`
+
+### Why
+
+Session 69 completed the shader-source lean phase. Session 70 performs the
+deepest code quality audit, targeting 94%+ coverage, modern idiomatic Rust,
+and comprehensive documentation for handoff to the ToadStool/BarraCUDA team.
+
+### What
+
+1. **Coverage evolution** (90.43% → 94.53%): Added 75 new tests targeting
+   uncovered GPU-path code in `gpu_dispatch/`, `gpu_ops/`, `gpu.rs`, and
+   `bench.rs`. Extracted GPU-dependent tests into `gpu_dispatch/tests_gpu.rs`
+   (483 lines) to bring `gpu_dispatch/mod.rs` under 1000 lines (1332→860).
+
+2. **Tolerance registry macro**: Replaced explicit `NamedTolerance` struct
+   literals with declarative `tolerance_registry!` macro (891→257 lines).
+   Added `SADDLE_EIGENVALUE_THRESHOLD` to centralize the last magic number
+   in `loss_landscape.rs`.
+
+3. **Benchmark constants**: Extracted magic numbers `1.1`, `1.5`, `1000.0`
+   from `bench.rs` into named constants: `RATIO_NEGLIGIBLE`, `RATIO_INVESTIGATE`,
+   `NANOS_PER_MICROSECOND`.
+
+4. **Streaming I/O**: Refactored `validate_cpu_math_parity.rs` from
+   `read_to_string` + `from_str` to `BufReader` + `from_reader` for
+   memory-efficient JSON loading.
+
+5. **Python fixes**: Updated test imports for renamed `generate_synthetic_weather`,
+   added `control/` to `sys.path`, fixed Ruff B905 (`zip()` strict) and
+   F841 (unused variable) lints.
+
+6. **SPDX verification**: Confirmed 211/211 Rust source files carry
+   `AGPL-3.0-or-later` SPDX headers.
+
+### What We Found
+
+- **Remaining uncovered lines** (5.5%) are exclusively GPU error-handling
+  branches (`map_err` on `wgpu` operations). These trigger only on device
+  loss — untestable without hardware fault injection.
+
+- **The tolerance macro reduced lines 3.5×** while preserving the full
+  runtime introspection API (`all_tolerances()`, `tolerance_by_name()`,
+  `categories()`). The macro is safe for adoption by other Springs.
+
+- **gpu_dispatch test extraction** revealed that the Dispatcher's GPU paths
+  had been untested (only CPU fallback was exercised). The new tests cover
+  all 44 operations through the GPU pathway.
+
+### Results
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | **PASS** |
+| `cargo clippy --all-targets -D warnings -W pedantic -W nursery` | **0 warnings** |
+| `cargo test --lib` | **580/580 PASS** |
+| `cargo test --test integration` | **9/9 PASS** |
+| `cargo test --doc` | **9/9 PASS** (3 ignored) |
+| `python3 -m pytest tests/` | **48/48 PASS** |
+| `ruff check` + `ruff format --check` | **PASS** |
+| `cargo llvm-cov --lib` | **94.53% line coverage** |
 
 ---
 

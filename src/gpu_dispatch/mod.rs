@@ -755,4 +755,108 @@ mod tests {
         assert!(adj[3] > 0.0, "symmetric: adj[1][0]");
         assert!(adj[2].abs() < 1e-15, "agents 0-2 outside range");
     }
+
+    // ── Dispatcher metadata (CPU-only) ────────────────────────
+
+    #[test]
+    fn cpu_fp64_strategy_native() {
+        let d = cpu();
+        assert_eq!(
+            d.fp64_strategy(),
+            barracuda::device::driver_profile::Fp64Strategy::Native
+        );
+    }
+
+    #[test]
+    fn cpu_needs_pow_workaround_false() {
+        let d = cpu();
+        assert!(!d.needs_pow_workaround());
+    }
+
+    #[test]
+    fn cpu_bandwidth_tier_unknown() {
+        let d = cpu();
+        assert_eq!(
+            d.bandwidth_tier(),
+            barracuda::unified_hardware::BandwidthTier::Unknown
+        );
+    }
+
+    #[test]
+    fn cpu_check_allocation_safe_ok() {
+        let d = cpu();
+        assert!(d.check_allocation_safe(1_000_000).is_ok());
+    }
+
+    #[test]
+    fn cpu_driver_profile_none() {
+        let d = cpu();
+        assert!(d.driver_profile().is_none());
+    }
+
+    // ── mixed_dispatch (CPU-only path) ─────────────────────────
+
+    #[test]
+    fn mixed_dispatch_cpu_only_small() {
+        let d = cpu();
+        let (result, substrate) = d.mixed_dispatch(
+            "test_add",
+            1.0,
+            32,
+            false,
+            false,
+            |_dev| Ok(42.0_f64),
+            || 42.0_f64,
+        );
+        assert!((result - 42.0).abs() < 1e-15);
+        assert_eq!(
+            substrate,
+            neural_spring_forge::mixed::MixedSubstrate::CpuOnly
+        );
+    }
+
+    #[test]
+    fn mixed_dispatch_cpu_only_large() {
+        let d = cpu();
+        let (result, _substrate) = d.mixed_dispatch(
+            "test_matmul",
+            1000.0,
+            8_000_000,
+            false,
+            false,
+            |_dev| Ok(99.0_f64),
+            || 99.0_f64,
+        );
+        assert!((result - 99.0).abs() < 1e-15);
+    }
+
+    // ── Dispatch ops via CPU fallback ──────────────────────────
+
+    #[test]
+    fn cpu_gelu_basic() {
+        let d = cpu();
+        let result = d.gelu(&[0.0, 1.0, -1.0]);
+        assert_eq!(result.len(), 3);
+        assert!((result[0] - 0.0).abs() < 1e-6, "gelu(0)≈0");
+        assert!(result[1] > 0.5, "gelu(1)>0.5");
+        assert!(result[2] < 0.0, "gelu(-1)<0");
+    }
+
+    #[test]
+    fn cpu_hmm_forward_step_basic() {
+        let d = cpu();
+        let alpha = vec![0.6, 0.4];
+        #[rustfmt::skip]
+        let trans = vec![0.7, 0.3, 0.4, 0.6];
+        let emit = vec![0.5, 0.5];
+        let (new_alpha, scale) = d.hmm_forward_step(&alpha, &trans, &emit, 2);
+        assert_eq!(new_alpha.len(), 2);
+        assert!(scale > 0.0, "scale must be positive");
+        let sum: f64 = new_alpha.iter().sum();
+        assert!((sum - 1.0).abs() < 1e-12, "forward step normalizes");
+    }
 }
+
+#[cfg(test)]
+#[path = "tests_gpu.rs"]
+mod tests_gpu;

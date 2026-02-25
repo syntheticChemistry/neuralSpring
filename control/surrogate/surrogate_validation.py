@@ -236,13 +236,23 @@ class NumpyMLP:
                 h = np.maximum(0, h)  # ReLU
         return h.squeeze(-1)
 
-    def train(self, X: np.ndarray, y: np.ndarray, epochs: int = 500, lr: float = 0.001):
-        """Simple gradient descent with numerical gradients."""
-        for _epoch in range(epochs):
-            pred = self.forward(X)
+    def train(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        epochs: int = 500,
+        lr: float = 0.001,
+    ) -> list[float]:
+        """Simple gradient descent with numerical gradients.
 
-            # Numerical gradient (slow but correct)
-            eps = 1e-5
+        Returns per-epoch MSE loss history for convergence monitoring.
+        """
+        loss_history: list[float] = []
+        eps = 1e-5
+        for _epoch in range(epochs):
+            loss = float(np.mean((self.forward(X) - y) ** 2))
+            loss_history.append(loss)
+
             for layer_idx in range(len(self.weights)):
                 for i in range(self.weights[layer_idx].shape[0]):
                     for j in range(self.weights[layer_idx].shape[1]):
@@ -253,6 +263,8 @@ class NumpyMLP:
                         self.weights[layer_idx][i, j] += eps
                         grad = (loss_plus - loss_minus) / (2 * eps)
                         self.weights[layer_idx][i, j] -= lr * grad
+
+        return loss_history
 
 
 # ---------------------------------------------------------------------------

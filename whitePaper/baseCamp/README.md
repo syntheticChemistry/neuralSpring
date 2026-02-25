@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 25, 2026 (Sessions 61–69)
-**Status**: 25 papers + 5 baseCamp sub-theses, 2120+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 17 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (22/22 PASS), zero debt, 90.43% coverage, 104+ named tolerances, zero ad-hoc magic numbers
+**Last Updated**: February 25, 2026 (Sessions 61–70)
+**Status**: 25 papers + 5 baseCamp sub-theses, 2120+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 17 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (22/22 PASS), zero debt, 94.53% coverage (580 tests), 105+ named tolerances, zero ad-hoc magic numbers, 100% SPDX compliance
 
 ## Purpose
 

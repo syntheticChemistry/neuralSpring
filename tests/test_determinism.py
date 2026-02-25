@@ -45,11 +45,11 @@ class TestSurrogateDeterminism:
 class TestSequenceDeterminism:
     """Synthetic weather generation must be deterministic."""
 
-    def test_michigan_weather_deterministic(self) -> None:
-        from sequence_forecasting import generate_michigan_weather
+    def test_synthetic_weather_deterministic(self) -> None:
+        from shared.open_meteo import generate_synthetic_weather
 
-        w1 = generate_michigan_weather(365, seed=42)
-        w2 = generate_michigan_weather(365, seed=42)
+        w1 = generate_synthetic_weather(365, seed=42)
+        w2 = generate_synthetic_weather(365, seed=42)
 
         np.testing.assert_array_equal(w1["tmax"], w2["tmax"])
         np.testing.assert_array_equal(w1["tmin"], w2["tmin"])

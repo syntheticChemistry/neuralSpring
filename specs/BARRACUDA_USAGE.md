@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 25, 2026 (Sessions 40–69)
+**Last Updated**: February 25, 2026 (Sessions 40–70)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 

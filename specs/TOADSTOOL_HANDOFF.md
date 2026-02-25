@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–69, Feb 25, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V32_S69_CROSS_SPRING_EVOLUTION_HANDOFF_FEB25_2026.md`
+**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–70, Feb 25, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V33_S70_DEEP_AUDIT_EVOLUTION_HANDOFF_FEB25_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
@@ -18,6 +18,8 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 **Session 68 sync:** V31 handoff. Deep debt audit — 104+ tolerances centralized, zero ad-hoc magic numbers, zero bare `unwrap()`, 90.43% coverage, all files ≤1000 lines. BarraCUDA usage audited (90+ imports, 20+ submodules, zero duplicates). GPU test serialization pattern documented. Rewired `boltzmann_sampling` → `barracuda::sample::boltzmann_sampling` (17th upstream rewire). Total: **17 functions rewired to upstream**.
 
 **Session 69 sync:** 6 validator shader sources rewired from local `include_str!` to upstream barracuda constants (RK4, RK45, batch fitness, logsumexp, swarm NN scores). Upstream-vs-local benchmark: 10/10 ≈ or ~ (zero ⚠). Cross-spring evolution benchmark refreshed. Total: **17 functions + 6 shader sources rewired to upstream**.
+
+**Session 70 sync:** Deep audit II — 94.53% coverage (580 tests, +75). tolerance_registry! macro (891→257 lines). gpu_dispatch/mod.rs split (1332→860+483). SADDLE_EIGENVALUE_THRESHOLD extracted. Streaming I/O for JSON loading. 100% SPDX compliance (211/211 files). V33 handoff crafted. All files ≤1000 lines. Zero debt. Remaining 5.5% uncovered lines are GPU error branches.
 
 ---
 

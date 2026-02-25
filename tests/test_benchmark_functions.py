@@ -194,20 +194,22 @@ class TestPersistenceForecast:
         np.testing.assert_array_equal(pred, [3, 6])
 
 
-class TestMichiganWeather:
-    def test_output_keys(self) -> None:
-        from sequence_forecasting import generate_michigan_weather
+class TestSyntheticWeather:
+    """Validate generate_synthetic_weather from shared.open_meteo module."""
 
-        w = generate_michigan_weather(100, seed=0)
+    def test_output_keys(self) -> None:
+        from shared.open_meteo import generate_synthetic_weather
+
+        w = generate_synthetic_weather(100, seed=0)
         assert "tmax" in w
         assert "tmin" in w
         assert "precip" in w
         assert len(w["tmax"]) == 100
 
     def test_physical_bounds(self) -> None:
-        from sequence_forecasting import generate_michigan_weather
+        from shared.open_meteo import generate_synthetic_weather
 
-        w = generate_michigan_weather(1000, seed=42)
+        w = generate_synthetic_weather(1000, seed=42)
         assert np.all(w["tmax"] > -50)
         assert np.all(w["tmax"] < 60)
         assert np.all(w["tmin"] <= w["tmax"])

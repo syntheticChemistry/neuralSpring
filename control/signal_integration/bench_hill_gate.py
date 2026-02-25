@@ -60,5 +60,5 @@ if __name__ == "__main__":
     print(f"HILL_GATE_50x50_US={median_us:.1f}")
     print()
     print(f"Python two-input Hill gate benchmark — NumPy {np.__version__}")
-    print(f"  Config: {nx}×{ny} grid = {nx*ny} evaluations")
+    print(f"  Config: {nx}×{ny} grid = {nx * ny} evaluations")
     print(f"  Median: {median_us:.1f} µs over {ITERATIONS} iterations (warmup={WARMUP})")

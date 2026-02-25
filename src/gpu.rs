@@ -518,4 +518,64 @@ pub(crate) mod tests {
             assert!(!gpu.adapter_name.is_empty());
         }
     }
+
+    #[test]
+    fn gpu_read_buffer_f64_roundtrip() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
+        let data: [f64; 3] = [1.0, 2.5, -3.125];
+        let buf = gpu
+            .wgpu_device()
+            .create_buffer_f64(3)
+            .expect("create_buffer_f64");
+        gpu.queue()
+            .write_buffer(&buf, 0, bytemuck::cast_slice(&data));
+        let out = gpu
+            .read_buffer_f64(&buf, 3)
+            .expect("read_buffer_f64 should succeed");
+        for (i, (&got, &want)) in out.iter().zip(data.iter()).enumerate() {
+            assert!(
+                (got - want).abs() < 1e-15,
+                "f64 roundtrip mismatch at {i}: got {got}, want {want}"
+            );
+        }
+    }
+
+    #[test]
+    fn gpu_capabilities_clone() {
+        let caps = mock_caps(256, 65535);
+        #[allow(clippy::redundant_clone)]
+        let caps2 = caps.clone();
+        assert_eq!(caps2.max_compute_workgroup_size_x, 256);
+        assert_eq!(caps2.max_compute_workgroups_per_dimension, 65535);
+        assert!(!caps2.supports_f64);
+    }
+
+    #[test]
+    fn gpu_capabilities_debug() {
+        let caps = mock_caps(128, 1024);
+        let debug = format!("{caps:?}");
+        assert!(debug.contains("128"));
+        assert!(debug.contains("1024"));
+    }
+
+    #[test]
+    fn gpu_dispatch_1d_clamped() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
+        let wg = gpu.dispatch_1d(1_000_000, 64);
+        assert!(wg <= gpu.capabilities.max_compute_workgroups_per_dimension);
+    }
+
+    #[test]
+    fn gpu_new_cpu_explicit() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("tokio rt");
+        if let Ok(gpu) = rt.block_on(Gpu::new_cpu()) {
+            assert!(!gpu.adapter_name.is_empty());
+        }
+    }
 }

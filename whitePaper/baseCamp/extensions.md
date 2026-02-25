@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 25, 2026 (Sessions 49–67)
+**Date**: February 25, 2026 (Sessions 49–70)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---

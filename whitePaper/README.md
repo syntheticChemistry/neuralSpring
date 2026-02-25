@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5g — 2120+ total checks, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39 PASS, dispatch overhead ≤1.04×, mixed-hardware dispatch, 17 functions + 6 shader sources rewired to upstream, cross-spring evolution benchmarked (22/22 PASS), zero debt, 90.43% coverage, 104+ named tolerances, zero ad-hoc magic numbers
-**Date**: February 25, 2026 (Sessions 40–69 — multi-GPU + benchmarks + pure GPU + Phase C GPU + CPU parity + dispatch tiers + baseCamp + metalForge + ToadStool sync + upstream rewiring + cross-spring benchmark validation + deep debt audit + validator shader rewiring + cross-spring benchmarks)
+**Status**: Phase 5g — 2120+ total checks, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39 PASS, dispatch overhead ≤1.04×, mixed-hardware dispatch, 17 functions + 6 shader sources rewired to upstream, cross-spring evolution benchmarked (22/22 PASS), zero debt, 94.53% coverage, 105+ named tolerances, zero ad-hoc magic numbers
+**Date**: February 25, 2026 (Sessions 40–70 — multi-GPU + benchmarks + pure GPU + Phase C GPU + CPU parity + dispatch tiers + baseCamp + metalForge + ToadStool sync + upstream rewiring + cross-spring benchmark validation + deep debt audit + validator shader rewiring + cross-spring benchmarks)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A complete, Phase B in progress |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–036, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V32 ToadStool handoff (Session 69 — cross-spring evolution benchmarks, provenance map, validator shader rewiring, absorption recommendations) |
+| `wateringHole/handoffs/` | Cross-project | V32 ToadStool handoff (Sessions 69–70 — cross-spring evolution benchmarks, provenance map, validator shader rewiring, absorption recommendations) |
 
 ---
 

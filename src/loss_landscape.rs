@@ -93,7 +93,10 @@ pub fn landscape_sharpness(eigenvalues: &[f64]) -> f64 {
 /// 0 = local minimum, 1 = first-order saddle, k = k-th order saddle.
 #[must_use]
 pub fn saddle_index(eigenvalues: &[f64]) -> usize {
-    eigenvalues.iter().filter(|&&ev| ev < -1e-10).count()
+    eigenvalues
+        .iter()
+        .filter(|&&ev| ev < crate::tolerances::SADDLE_EIGENVALUE_THRESHOLD)
+        .count()
 }
 
 /// Boltzmann weight sampling: single Metropolis step.

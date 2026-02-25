@@ -184,4 +184,69 @@ mod tests {
         let sum: f64 = next.iter().sum();
         assert!((sum - 1.0).abs() < 1e-12);
     }
+
+    #[test]
+    fn hmm_forward_step_normalizes() {
+        let alpha = vec![0.6, 0.4];
+        #[rustfmt::skip]
+        let trans = vec![0.7, 0.3, 0.4, 0.6];
+        let emit = vec![0.5, 0.5];
+        let (new_alpha, scale) = hmm_forward_step(&alpha, &trans, &emit, 2);
+        assert_eq!(new_alpha.len(), 2);
+        assert!(scale > 0.0);
+        let sum: f64 = new_alpha.iter().sum();
+        assert!((sum - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn hmm_forward_step_zero_emission() {
+        let alpha = vec![0.5, 0.5];
+        let trans = vec![1.0, 0.0, 0.0, 1.0];
+        let emit = vec![0.0, 0.0];
+        let (alpha_new, scale) = hmm_forward_step(&alpha, &trans, &emit, 2);
+        assert_eq!(alpha_new.len(), 2);
+        assert!((scale - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn hmm_viterbi_step_known() {
+        let delta_prev = vec![0.0, -1.0];
+        #[rustfmt::skip]
+        let log_trans = vec![
+            0.7_f64.ln(), 0.3_f64.ln(),
+            0.4_f64.ln(), 0.6_f64.ln(),
+        ];
+        let log_emit = vec![0.6_f64.ln(), 0.4_f64.ln()];
+        let (delta, psi) = hmm_viterbi_step(&delta_prev, &log_trans, &log_emit, 2);
+        assert_eq!(delta.len(), 2);
+        assert_eq!(psi.len(), 2);
+        assert!(delta[0].is_finite());
+        assert!(delta[1].is_finite());
+        assert!(psi[0] < 2);
+        assert!(psi[1] < 2);
+    }
+
+    #[test]
+    fn pearson_zero_variance_returns_zero() {
+        let r = pearson(&[3.0, 3.0, 3.0], &[1.0, 2.0, 3.0]);
+        assert!((r - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn chi_squared_zero_expected() {
+        let c = chi_squared(&[5.0], &[0.0]);
+        assert!(c.is_finite());
+    }
+
+    #[test]
+    fn replicator_zero_frequencies() {
+        let next = replicator_step(&[0.0, 0.0], &[[1.0, 0.0], [0.0, 1.0]], 0.01);
+        assert!(next[0].is_finite());
+        assert!(next[1].is_finite());
+    }
+
+    #[test]
+    fn variance_single_element() {
+        assert!((variance(&[5.0]) - 0.0).abs() < 1e-15);
+    }
 }

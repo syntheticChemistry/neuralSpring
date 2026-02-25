@@ -35,9 +35,10 @@ const REPLICATOR_TOL: f64 = tolerances::REPLICATOR_DYNAMICS;
 fn load_refs() -> Value {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = base.join("control/cpu_parity_references.json");
-    let text = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()));
-    serde_json::from_str(&text).expect("invalid JSON in cpu_parity_references.json")
+    let file = std::fs::File::open(&path)
+        .unwrap_or_else(|e| panic!("cannot open {}: {e}", path.display()));
+    let reader = std::io::BufReader::new(file);
+    serde_json::from_reader(reader).expect("invalid JSON in cpu_parity_references.json")
 }
 
 fn floats(v: &Value) -> Vec<f64> {

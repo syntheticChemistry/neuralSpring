@@ -393,6 +393,14 @@ pub const HESSIAN_FD_STEP: f64 = 1e-5;
 /// functions where higher-order terms contribute.
 pub const HESSIAN_FD_ABS: f64 = 1.0;
 
+/// Saddle-point classification: eigenvalue negativity threshold.
+///
+/// An eigenvalue is counted as "negative" (contributing to the saddle index)
+/// only if it falls below this threshold.  1e-10 prevents numerical noise
+/// near zero from inflating the saddle count while still detecting genuine
+/// negative curvature in the loss landscape.
+pub const SADDLE_EIGENVALUE_THRESHOLD: f64 = -1e-10;
+
 // ═══════════════════════════════════════════════════════════════════
 // Eigenvalue decomposition (barracuda Jacobi eigensolver)
 // ═══════════════════════════════════════════════════════════════════

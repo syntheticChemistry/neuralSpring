@@ -12,6 +12,13 @@ use crate::gpu::Gpu;
 use bytemuck::Pod;
 use std::time::{Duration, Instant};
 
+/// Overhead ratio below which wrapper cost is negligible ("≈" marker).
+const RATIO_NEGLIGIBLE: f64 = 1.1;
+/// Overhead ratio above which dispatch cost should be investigated ("⚠" marker).
+const RATIO_INVESTIGATE: f64 = 1.5;
+/// Nanoseconds per microsecond for timing conversion.
+const NANOS_PER_MICROSECOND: f64 = 1000.0;
+
 /// Result of a single local-vs-upstream benchmark comparison.
 pub struct BenchResult {
     pub name: String,
@@ -80,7 +87,7 @@ pub fn time_upstream(warmup: usize, iterations: usize, mut f: impl FnMut()) -> f
 fn median_us(timings: &[Duration]) -> f64 {
     let mut sorted: Vec<f64> = timings
         .iter()
-        .map(|d| d.as_nanos() as f64 / 1000.0)
+        .map(|d| d.as_nanos() as f64 / NANOS_PER_MICROSECOND)
         .collect();
     sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
     sorted[sorted.len() / 2]
@@ -102,9 +109,9 @@ pub fn print_summary(results: &[BenchResult]) {
     eprintln!("{}", "─".repeat(99));
     for r in results {
         let ratio = r.upstream_us / r.local_us;
-        let marker = if ratio < 1.1 {
+        let marker = if ratio < RATIO_NEGLIGIBLE {
             "≈"
-        } else if ratio > 1.5 {
+        } else if ratio > RATIO_INVESTIGATE {
             "⚠"
         } else {
             "~"
@@ -301,5 +308,93 @@ mod tests {
         assert!(matches!(c, BindingKind::StorageWrite));
         let d = BindingKind::Uniform;
         assert!(matches!(d, BindingKind::Uniform));
+    }
+
+    #[test]
+    fn buf_desc_creates_descriptor() {
+        let data: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+        let desc = buf_desc(
+            "test",
+            &data,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        );
+        assert_eq!(desc.label, Some("test"));
+        assert_eq!(desc.contents.len(), 16);
+    }
+
+    #[test]
+    fn alloc_f32_and_bind_entry_gpu() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = crate::gpu::tests::shared_gpu() else {
+            return;
+        };
+        let buf = alloc_f32(gpu.device(), 64);
+        let entry = bind_entry(0, &buf);
+        assert_eq!(entry.binding, 0);
+    }
+
+    #[test]
+    fn create_pipeline_gpu() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = crate::gpu::tests::shared_gpu() else {
+            return;
+        };
+        let shader = gpu.compile_shader(
+            "@group(0) @binding(0) var<storage, read> input: array<f32>;
+             @group(0) @binding(1) var<storage, read_write> output: array<f32>;
+             @compute @workgroup_size(64)
+             fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+                 output[gid.x] = input[gid.x];
+             }",
+            "test_copy",
+        );
+        let (pipeline, bgl) = create_pipeline(
+            gpu.device(),
+            &shader,
+            "main",
+            &[BindingKind::StorageRead, BindingKind::StorageWrite],
+        );
+        let in_buf = alloc_f32(gpu.device(), 64);
+        let out_buf = alloc_f32(gpu.device(), 64);
+        let _bg = gpu.device().create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &bgl,
+            entries: &[bind_entry(0, &in_buf), bind_entry(1, &out_buf)],
+        });
+        drop(pipeline);
+    }
+
+    #[test]
+    fn time_dispatch_runs_gpu() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = crate::gpu::tests::shared_gpu() else {
+            return;
+        };
+        let shader = gpu.compile_shader(
+            "@group(0) @binding(0) var<storage, read_write> data: array<f32>;
+             @compute @workgroup_size(1)
+             fn main() { data[0] = 1.0; }",
+            "bench_noop",
+        );
+        let (pipeline, bgl) =
+            create_pipeline(gpu.device(), &shader, "main", &[BindingKind::StorageWrite]);
+        let buf = alloc_f32(gpu.device(), 1);
+        let bg = gpu.device().create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &bgl,
+            entries: &[bind_entry(0, &buf)],
+        });
+        let params = DispatchParams {
+            device: gpu.device(),
+            queue: gpu.queue(),
+            gpu: &gpu,
+            pipeline: &pipeline,
+            bg: &bg,
+            workgroups: 1,
+            readback_buf: &buf,
+            readback_count: 1,
+        };
+        let us = time_dispatch(&params, 1, 3);
+        assert!(us > 0.0, "dispatch should take non-zero time");
     }
 }

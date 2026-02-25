@@ -49,5 +49,5 @@ if __name__ == "__main__":
     print(f"PAIRWISE_L2_10x8_US={median_us:.1f}")
     print()
     print(f"Python/NumPy pairwise L2 benchmark — NumPy {np.__version__}")
-    print(f"  Config: {n} vectors × {dim} dimensions ({n*(n-1)//2} pairs)")
+    print(f"  Config: {n} vectors × {dim} dimensions ({n * (n - 1) // 2} pairs)")
     print(f"  Median: {median_us:.1f} µs over {ITERATIONS} iterations (warmup={WARMUP})")

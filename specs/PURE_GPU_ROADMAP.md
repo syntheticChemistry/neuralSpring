@@ -1,6 +1,6 @@
 # neuralSpring — Pure GPU Roadmap
 
-**Date**: February 23, 2026 (Sessions 40–48)
+**Date**: February 25, 2026 (Sessions 40–70)
 **Goal**: All math runs on GPU. Even a Raspberry Pi is a science platform.
 **Philosophy**: Prove math is entirely portable on GPU first, then reverse-engineer
 for CPU efficiency and older hardware. Mixed workloads come after pure GPU validation.
