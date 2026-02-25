@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: February 25, 2026 (Sessions 44–66 — Phase C GPU promotion: HMM chains, FST, introgression, AF variance)
-**Status**: Phase 5f — 206/206 Python + 1870+ Rust+GPU = **2080+ total checks**, ~97% GPU promotion, 201.7× Python speedup
+**Last Updated**: February 25, 2026 (Sessions 44–67 — CPU math parity + Phase C GPU promotion)
+**Status**: Phase 5g — 206/206 Python + 1910+ Rust+GPU = **2120+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 201.7× speedup
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---

@@ -1,11 +1,12 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 25, 2026 (Sessions 44–66 — Phase C GPU promotion: HMM chains, FST, introgression, AF variance GPU + full pipeline validation)
+**Last updated**: February 25, 2026 (Sessions 44–67 — Phase C GPU promotion + CPU math parity validation)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 206/206 Python PASS + 1870+ Rust+GPU validation PASS = **2080+ total validation checks**
-**Library**: 505 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 157 validation/bench binaries
+**Grand Total**: 206/206 Python PASS + 1910+ Rust+GPU validation PASS = **2120+ total validation checks**
+**Library**: 505 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 158 validation/bench binaries
+**CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **baseCamp**: 5 biophysical AI modules + 7 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch PASS) — Sessions 50, 54, 56
 **Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware + 19/19 baseCamp dispatch + 17/17 parity + 23/23 PCIe
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
@@ -587,6 +588,22 @@ P2P direct always beats CPU-staged for same bandwidth tier. Chained 2-hop < 3x d
 ### Session 62 — ToadStool S62 Sync (February 25, 2026)
 
 S-03b (MHA projection hangs) **FULLY RESOLVED** upstream. ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved/mha.rs` now thin wrapper to `barracuda::ops::mha::MultiHeadAttention`. 500 lib tests, 145/146 validate_all.
+
+### Session 67 — CPU Math Parity Validation (February 25, 2026)
+
+Cross-language numeric parity: Python/NumPy reference → Rust CPU → Dispatcher::cpu_only().
+`control/generate_cpu_references.py` produces deterministic inputs+outputs (JSON).
+`validate_cpu_math_parity` loads JSON and verifies Rust produces identical values.
+
+| Layer | Checks | Tolerance | Result |
+|-------|--------|-----------|--------|
+| Primitives (variance, pearson, chi², entropy, softmax, gelu, matmul, frobenius, L2) | 15 | 1e-10 | **PASS** |
+| Paper kernels (HMM forward, replicator, commutator, Hamming, Jaccard, L2, multi-obj, Hill, swarm NN) | 18 | 1e-10 (replicator: 1e-6) | **PASS** |
+| Dispatcher::cpu_only() (variance, pearson, entropy, matmul, softmax, L2) | 6 | 1e-10 | **PASS** |
+| **Total** | **39** | — | **39/39 PASS** |
+
+Python baselines: 25/25 PASS (zero drift).
+validate_all: 147/148 PASS (1 pre-existing logsumexp driver issue).
 
 ### Session 66 — Phase C GPU Promotion (February 25, 2026)
 

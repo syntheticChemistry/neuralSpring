@@ -168,6 +168,8 @@ const BINARIES: &[&str] = &[
     "validate_gpu_phase_b",
     // Session 66: Phase C — HMM chain, FST, introgression, inter-pop AF variance GPU
     "validate_gpu_phase_c",
+    // Session 67: CPU math parity — Rust vs Python/NumPy cross-language validation
+    "validate_cpu_math_parity",
     // Session 50: baseCamp — Biophysical AI Interpretability
     "validate_weight_spectral",
     "validate_information_flow",
