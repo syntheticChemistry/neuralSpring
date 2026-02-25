@@ -183,11 +183,12 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated.**
 
-Sessions 60–61 verified: all `cargo fmt`, `clippy` (pedantic + nursery), and `doc` gates pass clean.
-`validate_all`: 145/146 PASS on RTX 4070 (1 pre-existing logsumexp driver issue).
-`validate_cross_spring_evolution`: 22/22 PASS (all 16 rewired functions validated).
-501 lib + 9 integration tests + 30 forge tests. Zero debt.
-16 functions rewired to upstream BarraCUDA (S56: 4, S58: 7, S59: 5).
+Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
+`validate_all`: 146/147 PASS on RTX 4070 (1 pre-existing logsumexp driver issue).
+`validate_gpu_phase_c`: 18/18 PASS (HMM forward/Viterbi chains, pairwise/global FST, introgression).
+Python baselines: 25/25 PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
+505 lib + 9 integration + 43 forge tests. 157 validation/bench binaries. Zero debt.
+44 CPU→GPU dispatch ops (~97% of production math).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
 | Faculty | Papers | Python Checks | Rust Checks |

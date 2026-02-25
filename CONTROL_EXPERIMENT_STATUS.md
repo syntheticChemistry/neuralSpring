@@ -1,18 +1,18 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 25, 2026 (Sessions 44–64 — multi-GPU + benchmarks + pure GPU promotion + deep debt audit + baseCamp + ToadStool sync + cross-spring benchmarking + baseCamp experiment expansion + GPU workload validation + CPU vs GPU dispatch + mixed-hardware + dispatch parity + metalForge PCIe + upstream dispatch rewiring + GpuDriverProfile + S59 library/dispatch rewire + S60 cross-spring benchmark validation + S61 code quality sweep + S62 S-03b fully resolved upstream)
+**Last updated**: February 25, 2026 (Sessions 44–66 — Phase C GPU promotion: HMM chains, FST, introgression, AF variance GPU + full pipeline validation)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 206/206 Python PASS + 1840+ Rust+GPU validation PASS = **2050+ total validation checks**
-**Library**: 500 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 156 validation/bench binaries
+**Grand Total**: 206/206 Python PASS + 1870+ Rust+GPU validation PASS = **2080+ total validation checks**
+**Library**: 505 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 157 validation/bench binaries
 **baseCamp**: 5 biophysical AI modules + 7 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch PASS) — Sessions 50, 54, 56
 **Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware + 19/19 baseCamp dispatch + 17/17 parity + 23/23 PCIe
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
-**GPU Promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math)
+**GPU Promotion**: 44 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math)
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings
-**Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels)
-**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-03b **FULLY RESOLVED** upstream | S-16 FIXED | S-14/S-15 workaround | HEAD `02207c4a` (S50–64) | 16 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58 + 2 dispatch S59 + 3 stats/linalg S59)
+**Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels)
+**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-03b **FULLY RESOLVED** upstream | S-16 FIXED | S-14/S-15 workaround | HEAD `02207c4a` (S50–66) | 16 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58 + 2 dispatch S59 + 3 stats/linalg S59)
 **Cross-Spring**: 22/22 evolution checks PASS | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint)
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -587,6 +587,30 @@ P2P direct always beats CPU-staged for same bandwidth tier. Chained 2-hop < 3x d
 ### Session 62 — ToadStool S62 Sync (February 25, 2026)
 
 S-03b (MHA projection hangs) **FULLY RESOLVED** upstream. ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved/mha.rs` now thin wrapper to `barracuda::ops::mha::MultiHeadAttention`. 500 lib tests, 145/146 validate_all.
+
+### Session 66 — Phase C GPU Promotion (February 25, 2026)
+
+Closes remaining science-domain GPU promotion gaps. 6 new `Dispatcher` methods,
+3 new `gpu_ops` functions, `validate_gpu_phase_c` (18/18 PASS on RTX 4070).
+
+| Change | Scope | Result |
+|--------|-------|--------|
+| `hmm_forward_chain_gpu` | Compose forward steps × T observations | **GPU (S66)** |
+| `hmm_viterbi_chain_gpu` | Compose Viterbi steps × T observations | **GPU (S66)** |
+| `pairwise_fst_gpu` | GPU allele_freq + Weir-Cockerham per-locus | **GPU (S66)** |
+| `global_fst_gpu` | GPU allele_freq per pop + global decomposition | **GPU (S66)** |
+| `Dispatcher::inter_population_af_variance` | Wire existing gpu_op to dispatch | **GPU (S66)** |
+| `Dispatcher::hmm_forward_chain` | Full forward chain via dispatch | **GPU (S66)** |
+| `Dispatcher::hmm_viterbi_chain` | Full Viterbi chain via dispatch | **GPU (S66)** |
+| `Dispatcher::pairwise_fst` | Pairwise FST via dispatch | **GPU (S66)** |
+| `Dispatcher::global_fst` | Global FST via dispatch | **GPU (S66)** |
+| `validate_gpu_phase_c` (NEW) | 18 checks: HMM chains, FST, introgression, AF var | **18/18 PASS** |
+| `bench_phase0pp_kernels` | Updated: 11 kernels, 201.7× speedup vs Python | **201.7× faster** |
+
+**GPU dispatch coverage**: ~90% → ~97% of production math.
+**Python baselines**: 25/25 PASS (zero drift).
+**validate_all**: 146/147 PASS (1 pre-existing logsumexp driver issue).
+**Lib tests**: 505 PASS (470 + 35 GPU ops).
 
 ### Session 61 — Deep Code Quality Sweep (February 25, 2026)
 

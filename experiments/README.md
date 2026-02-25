@@ -44,6 +44,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 030 | Session 62 — ToadStool S62 Sync: S-03b Resolved, 21/21 Shaders Absorbed | Feb 25, 2026 | S-03b MHA fixed upstream, evolved/mha.rs → thin wrapper, 21/21 shaders absorbed, 500 lib tests |
 | 031 | Session 63 — BandwidthTier Wiring + Cross-Spring Benchmark Suite | Feb 25, 2026 | BandwidthTier + NVK guard wired, Variance 3.49×, Entropy 2.56×, 22/22 cross-spring, 145/146 validate_all |
 | 032 | Session 64 — Forge Evolution: Substrate Discovery + Workload Tracking + Write-Phase Extensions | Feb 25, 2026 | forge v0.2.0: substrate/probe/inventory/workloads (hotSpring/wetSpring pattern), chi_squared_f64.wgsl + kl_divergence_f64.wgsl, 23 shaders, 43 forge tests, 20 absorbed / 6 local / 2 CPU-only |
+| 033 | Session 66 — Phase C GPU Promotion: HMM Chains, FST, Introgression | Feb 25, 2026 | 6 new Dispatcher methods, 3 new gpu_ops (pairwise_fst, global_fst, HMM chains), validate_gpu_phase_c 18/18 PASS, ~97% GPU, 201.7× Python speedup, 25/25 baselines zero drift |
 
 ---
 

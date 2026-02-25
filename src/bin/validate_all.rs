@@ -166,6 +166,8 @@ const BINARIES: &[&str] = &[
     "validate_gpu_promotion",
     // Session 46: Phase B — HMM backward/Viterbi, meta-pop, game theory, Hill GPU
     "validate_gpu_phase_b",
+    // Session 66: Phase C — HMM chain, FST, introgression, inter-pop AF variance GPU
+    "validate_gpu_phase_c",
     // Session 50: baseCamp — Biophysical AI Interpretability
     "validate_weight_spectral",
     "validate_information_flow",

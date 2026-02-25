@@ -149,6 +149,128 @@ pub fn hill_activation_batch_gpu(
     Ok(out.into_iter().map(f64::from).collect())
 }
 
+/// GPU HMM forward chain: run the full forward algorithm with GPU GEMV per step.
+///
+/// Composes `hmm_forward_step_gpu` over all observations, returning
+/// the log-likelihood. Replaces `Hmm::forward` for GPU execution.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+pub fn hmm_forward_chain_gpu(
+    initial: &[f64],
+    transition: &[f64],
+    emission: &[f64],
+    observations: &[usize],
+    n_states: usize,
+    n_obs: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<f64, String> {
+    let t_len = observations.len();
+    if t_len == 0 {
+        return Ok(0.0);
+    }
+
+    let emit_col: Vec<f64> = (0..n_states)
+        .map(|i| emission[i * n_obs + observations[0]])
+        .collect();
+    let mut alpha: Vec<f64> = initial
+        .iter()
+        .zip(emit_col.iter())
+        .map(|(&pi, &b)| pi * b)
+        .collect();
+    let sum0: f64 = alpha.iter().sum();
+    let scale0 = sum0.max(crate::primitives::LOG_GUARD);
+    for v in &mut alpha {
+        *v /= scale0;
+    }
+    let mut log_likelihood = scale0.ln();
+
+    for t in 1..t_len {
+        let e_col: Vec<f64> = (0..n_states)
+            .map(|i| emission[i * n_obs + observations[t]])
+            .collect();
+        let (new_alpha, scale) =
+            hmm_forward_step_gpu(&alpha, transition, &e_col, n_states, device)?;
+        log_likelihood += scale.max(crate::primitives::LOG_GUARD).ln();
+        alpha = new_alpha;
+    }
+
+    Ok(log_likelihood)
+}
+
+/// GPU HMM Viterbi chain: run the full Viterbi algorithm with GPU per step.
+///
+/// Composes `hmm_viterbi_step_gpu` over all observations, returning
+/// the most likely state sequence and its log-probability.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+pub fn hmm_viterbi_chain_gpu(
+    initial: &[f64],
+    transition: &[f64],
+    emission: &[f64],
+    observations: &[usize],
+    n_states: usize,
+    n_obs: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<(Vec<usize>, f64), String> {
+    let t_len = observations.len();
+    if t_len == 0 {
+        return Ok((Vec::new(), 0.0));
+    }
+
+    let log_trans: Vec<f64> = transition
+        .iter()
+        .map(|&x| x.max(crate::primitives::LOG_GUARD).ln())
+        .collect();
+
+    let mut delta: Vec<f64> = initial
+        .iter()
+        .enumerate()
+        .map(|(i, &pi)| {
+            pi.max(crate::primitives::LOG_GUARD).ln()
+                + emission[i * n_obs + observations[0]]
+                    .max(crate::primitives::LOG_GUARD)
+                    .ln()
+        })
+        .collect();
+
+    let mut psi_all = Vec::with_capacity(t_len);
+
+    for t in 1..t_len {
+        let log_emit: Vec<f64> = (0..n_states)
+            .map(|i| {
+                emission[i * n_obs + observations[t]]
+                    .max(crate::primitives::LOG_GUARD)
+                    .ln()
+            })
+            .collect();
+        let (new_delta, psi) =
+            hmm_viterbi_step_gpu(&delta, &log_trans, &log_emit, n_states, device)?;
+        psi_all.push(psi);
+        delta = new_delta;
+    }
+
+    let mut best_state = 0;
+    let mut best_val = f64::NEG_INFINITY;
+    for (j, &d) in delta.iter().enumerate() {
+        if d > best_val {
+            best_val = d;
+            best_state = j;
+        }
+    }
+
+    let mut path = vec![0usize; t_len];
+    path[t_len - 1] = best_state;
+    for t in (0..t_len - 1).rev() {
+        path[t] = psi_all[t][path[t + 1]];
+    }
+
+    Ok((path, best_val))
+}
+
 /// GPU HMM backward step: `β_t[i] = sum_j(A[i,j] * B[j,o] * β_{t+1}[j]) / scale`.
 ///
 /// Single reverse-timestep via GPU GEMV. The full backward pass calls

@@ -250,6 +250,84 @@ impl Dispatcher {
         )
     }
 
+    /// HMM forward chain: GPU full forward algorithm if available, CPU fallback.
+    ///
+    /// Composes GPU GEMV steps over all observations, returning log-likelihood.
+    #[must_use]
+    pub fn hmm_forward_chain(
+        &self,
+        initial: &[f64],
+        transition: &[f64],
+        emission: &[f64],
+        observations: &[usize],
+        n_states: usize,
+        n_obs: usize,
+    ) -> f64 {
+        self.gpu_or_cpu(
+            "hmm_forward_chain",
+            |dev| {
+                crate::gpu_ops::hmm_forward_chain_gpu(
+                    initial,
+                    transition,
+                    emission,
+                    observations,
+                    n_states,
+                    n_obs,
+                    dev,
+                )
+            },
+            || {
+                let hmm = crate::hmm::Hmm::from_flat(
+                    transition.to_vec(),
+                    emission.to_vec(),
+                    initial.to_vec(),
+                    n_states,
+                    n_obs,
+                );
+                hmm.forward(observations).1
+            },
+        )
+    }
+
+    /// HMM Viterbi chain: GPU full Viterbi if available, CPU fallback.
+    ///
+    /// Returns `(state_sequence, log_probability)`.
+    #[must_use]
+    pub fn hmm_viterbi_chain(
+        &self,
+        initial: &[f64],
+        transition: &[f64],
+        emission: &[f64],
+        observations: &[usize],
+        n_states: usize,
+        n_obs: usize,
+    ) -> (Vec<usize>, f64) {
+        self.gpu_or_cpu(
+            "hmm_viterbi_chain",
+            |dev| {
+                crate::gpu_ops::hmm_viterbi_chain_gpu(
+                    initial,
+                    transition,
+                    emission,
+                    observations,
+                    n_states,
+                    n_obs,
+                    dev,
+                )
+            },
+            || {
+                let hmm = crate::hmm::Hmm::from_flat(
+                    transition.to_vec(),
+                    emission.to_vec(),
+                    initial.to_vec(),
+                    n_states,
+                    n_obs,
+                );
+                hmm.viterbi(observations)
+            },
+        )
+    }
+
     /// HMM forward step: delegates to upstream `barracuda::dispatch::hmm_forward_dispatch`.
     ///
     /// GPU path uses fused WGSL kernel; CPU fallback uses local matrix-vector multiply.
@@ -326,6 +404,74 @@ impl Dispatcher {
             "thermal_diversity_correlation",
             |dev| crate::gpu_ops::thermal_diversity_correlation_gpu(pi_values, temperatures, dev),
             || crate::meta_population::thermal_diversity_correlation(pi_values, temperatures),
+        )
+    }
+
+    /// Inter-population allele frequency variance: GPU if available, CPU fallback.
+    #[must_use]
+    pub fn inter_population_af_variance(
+        &self,
+        populations: &[&[f64]],
+        n_individuals: &[usize],
+        n_loci: usize,
+    ) -> f64 {
+        self.gpu_or_cpu(
+            "inter_population_af_variance",
+            |dev| {
+                crate::gpu_ops::inter_population_af_variance_gpu(
+                    populations,
+                    n_individuals,
+                    n_loci,
+                    dev,
+                )
+            },
+            || {
+                let vecs: Vec<Vec<f64>> = populations.iter().map(|s| s.to_vec()).collect();
+                crate::meta_population::inter_population_af_variance(
+                    &vecs,
+                    n_individuals,
+                    n_loci,
+                )
+            },
+        )
+    }
+
+    /// Pairwise FST (Weir-Cockerham): GPU allele freqs + per-locus decomposition.
+    ///
+    /// Uses GPU for allele frequency computation, locus-level
+    /// Weir-Cockerham terms computed on CPU (reduction-heavy, low-N).
+    #[must_use]
+    pub fn pairwise_fst(
+        &self,
+        pop_a: &[f64],
+        n_a: usize,
+        pop_b: &[f64],
+        n_b: usize,
+        n_loci: usize,
+    ) -> f64 {
+        self.gpu_or_cpu(
+            "pairwise_fst",
+            |dev| {
+                crate::gpu_ops::pairwise_fst_gpu(pop_a, n_a, pop_b, n_b, n_loci, dev)
+            },
+            || crate::meta_population::pairwise_fst(pop_a, n_a, pop_b, n_b, n_loci),
+        )
+    }
+
+    /// Global FST (multi-population Weir-Cockerham): GPU allele freqs + reduction.
+    #[must_use]
+    pub fn global_fst(
+        &self,
+        populations: &[Vec<f64>],
+        n_individuals: &[usize],
+        n_loci: usize,
+    ) -> f64 {
+        self.gpu_or_cpu(
+            "global_fst",
+            |dev| {
+                crate::gpu_ops::global_fst_gpu(populations, n_individuals, n_loci, dev)
+            },
+            || crate::meta_population::global_fst(populations, n_individuals, n_loci),
         )
     }
 

@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 25, 2026 (Sessions 60–64: 16 functions rewired, S-03b resolved, 21/21 shaders absorbed, benchmark-validated)
+**Last Updated**: February 25, 2026 (Sessions 60–66: Phase C GPU promotion, HMM chains, FST, introgression, 201.7× Python speedup)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---

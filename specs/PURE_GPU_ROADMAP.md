@@ -266,23 +266,24 @@ counts to hardware limits.
 
 ---
 
-## Coverage Gap Summary (updated Session 47)
+## Coverage Gap Summary (updated Session 66)
 
 | Category | Currently GPU | Total | Gap | Priority |
 |----------|-------------|-------|-----|----------|
-| MatMul / GEMM | 17/17 modules | 17 | None (all promoted via dispatch) | **Done** |
-| Reductions (sum/mean/max) | 16/16 modules | 16 | None (all via gpu_ops) | **Done** |
-| ODE integration (RK4) | 3/5 modules (shader exists) | 5 | Full loop batching for `signal`, `regulatory` | **P1** |
-| HMM (forward/backward/Viterbi) | 3/3 ops | 3 | None (all via dispatch) | **Done** |
-| Eigensolvers | **2/2 modules** | 2 | None (eigh_gpu, disorder_sweep_gpu via BatchedEighGpu) | **Done** |
-| Statistics (variance, correlation) | 6/6 modules | 6 | None (all via dispatch) | **Done** |
-| Special functions (chi²) | 1/1 module | 1 | None (chi_squared, spectrum_chi_squared_gpu via dispatch) | **Done** |
-| Meta-population | 6/8 ops | 8 | FST variance decomposition (custom shader) | **P1** |
-| Game theory | 2/3 ops | 3 | Spatial cooperation stencil (shader exists) | **P2** |
+| MatMul / GEMM | 17/17 modules | 17 | None | **Done** |
+| Reductions (sum/mean/max) | 16/16 modules | 16 | None | **Done** |
+| ODE integration (RK4) | 3/5 modules | 5 | Full loop batching (parallel trajectories) | **P2** |
+| HMM (fwd/bwd/Viterbi + chains) | **5/5 ops** | 5 | None — chains compose step ops (S66) | **Done** |
+| Eigensolvers | **2/2 modules** | 2 | None | **Done** |
+| Statistics (variance, correlation) | 6/6 modules | 6 | None | **Done** |
+| Special functions (chi²) | 1/1 module | 1 | None | **Done** |
+| Meta-population | **8/8 ops** | 8 | None — FST + AF variance wired (S66) | **Done** |
+| Game theory | 2/3 ops | 3 | Spatial stencil (shader exists) | **P2** |
+| Introgression | **1/1 chain** | 1 | None — Viterbi chain (S66) | **Done** |
 
-**Bottom line**: ~95% of production math now has a GPU path through dispatch.
-Session 47: eigensolvers (2/2), spectrum_chi_squared_gpu, selection_coefficient_gpu.
-Remaining: ODE loop batching, FST shader.
+**Bottom line**: ~97% of production math has a GPU path through dispatch.
+Session 66: HMM chains, FST (pairwise + global), introgression, inter-pop AF variance.
+Remaining: ODE full-loop batching, spatial stencil cooperation.
 
 ### Session 48: Raw wgpu Coverage — Most Eliminated
 

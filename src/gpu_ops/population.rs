@@ -180,6 +180,143 @@ pub fn inter_population_af_variance_gpu(
     mean_gpu(&locus_variances, device)
 }
 
+/// GPU pairwise FST (Weir-Cockerham): allele freqs via GPU, locus-level terms on CPU.
+///
+/// The allele frequency computation (column-sum reduction) routes through GPU.
+/// Per-locus Weir-Cockerham a/b/c terms are scalar reductions over 2 populations,
+/// so they stay on CPU (below dispatch crossover).
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+pub fn pairwise_fst_gpu(
+    pop_a: &[f64],
+    n_a: usize,
+    pop_b: &[f64],
+    n_b: usize,
+    n_loci: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<f64, String> {
+    let freq_a = allele_frequencies_gpu(pop_a, n_a, n_loci, device)?;
+    let freq_b = allele_frequencies_gpu(pop_b, n_b, n_loci, device)?;
+
+    let n_bar = (n_a + n_b) as f64 / 2.0;
+    let r = 2.0;
+    let n_c = 2.0f64.mul_add(n_bar, -((n_b as f64).mul_add(n_b as f64, (n_a as f64).powi(2)) / (2.0 * n_bar)))
+        / (r - 1.0);
+
+    let mut numer = 0.0;
+    let mut denom = 0.0;
+
+    for j in 0..n_loci {
+        let p_i = [freq_a[j], freq_b[j]];
+        let n_i = [n_a as f64, n_b as f64];
+        let p_bar = n_i[0].mul_add(p_i[0], n_i[1] * p_i[1]) / (n_i[0] + n_i[1]);
+
+        let s2 = n_i
+            .iter()
+            .zip(p_i.iter())
+            .map(|(&ni, &pi)| ni * (pi - p_bar).powi(2))
+            .sum::<f64>()
+            / ((r - 1.0) * n_bar);
+
+        let h_bar = n_i
+            .iter()
+            .zip(p_i.iter())
+            .map(|(&ni, &pi)| ni * 2.0 * pi * (1.0 - pi) / 2.0f64.mul_add(ni, -1.0).max(1.0))
+            .sum::<f64>()
+            / (r * n_bar);
+
+        let a = n_bar / n_c * (s2 - (p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)) - h_bar / 4.0)
+            / (n_bar - 1.0));
+        let b = n_bar / (n_bar - 1.0)
+            * (2.0f64.mul_add(n_bar, -1.0) / (4.0 * n_bar)).mul_add(-h_bar, p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)));
+        let c = h_bar / 2.0;
+
+        numer += a;
+        denom += a + b + c;
+    }
+
+    if denom.abs() < 1e-30 {
+        Ok(0.0)
+    } else {
+        Ok(numer / denom)
+    }
+}
+
+/// GPU global FST (multi-population Weir-Cockerham): GPU allele freqs per pop.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+pub fn global_fst_gpu(
+    populations: &[Vec<f64>],
+    n_individuals: &[usize],
+    n_loci: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<f64, String> {
+    let r = populations.len() as f64;
+    if r < 2.0 || n_loci == 0 {
+        return Ok(0.0);
+    }
+
+    let all_freqs: Vec<Vec<f64>> = populations
+        .iter()
+        .zip(n_individuals.iter())
+        .map(|(pop, &n)| allele_frequencies_gpu(pop, n, n_loci, device))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let n_total: f64 = n_individuals.iter().map(|&n| n as f64).sum();
+    let n_bar = n_total / r;
+    let n_c = (n_total - n_individuals.iter().map(|&n| (n as f64).powi(2)).sum::<f64>() / n_total)
+        / (r - 1.0);
+
+    let mut numer = 0.0;
+    let mut denom = 0.0;
+
+    for j in 0..n_loci {
+        let p_i: Vec<f64> = all_freqs.iter().map(|f| f[j]).collect();
+        let p_bar: f64 = p_i
+            .iter()
+            .zip(n_individuals.iter())
+            .map(|(&pi, &ni)| ni as f64 * pi)
+            .sum::<f64>()
+            / n_total;
+
+        let s2: f64 = p_i
+            .iter()
+            .zip(n_individuals.iter())
+            .map(|(&pi, &ni)| ni as f64 * (pi - p_bar).powi(2))
+            .sum::<f64>()
+            / ((r - 1.0) * n_bar);
+
+        let h_bar: f64 = p_i
+            .iter()
+            .zip(n_individuals.iter())
+            .map(|(&pi, &ni)| {
+                let n = ni as f64;
+                n * 2.0 * pi * (1.0 - pi) / 2.0f64.mul_add(n, -1.0).max(1.0)
+            })
+            .sum::<f64>()
+            / (r * n_bar);
+
+        let a = n_bar / n_c * (s2 - (p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)) - h_bar / 4.0)
+            / (n_bar - 1.0));
+        let b = n_bar / (n_bar - 1.0)
+            * (2.0f64.mul_add(n_bar, -1.0) / (4.0 * n_bar)).mul_add(-h_bar, p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)));
+        let c_val = h_bar / 2.0;
+
+        numer += a;
+        denom += a + b + c_val;
+    }
+
+    if denom.abs() < 1e-30 {
+        Ok(0.0)
+    } else {
+        Ok(numer / denom)
+    }
+}
+
 /// GPU replicator dynamics step: fitness via GPU matmul, update on CPU.
 ///
 /// Demonstrates 2×2 payoff GEMV on GPU for math portability.

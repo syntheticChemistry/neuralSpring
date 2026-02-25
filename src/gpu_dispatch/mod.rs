@@ -616,6 +616,72 @@ mod tests {
         assert!(d.disorder_sweep(&[1.0, 0.0, 0.0, 1.0], 2, 1).is_none());
     }
 
+    // ── Inter-population AF variance ──────────────────────────
+
+    #[test]
+    fn cpu_inter_population_af_variance_basic() {
+        let d = cpu();
+        let pop1 = vec![2.0, 0.0, 0.0, 2.0];
+        let pop2 = vec![0.0, 2.0, 2.0, 0.0];
+        let pops: Vec<&[f64]> = vec![&pop1, &pop2];
+        let var = d.inter_population_af_variance(&pops, &[2, 2], 2);
+        assert!(var >= 0.0, "AF variance must be non-negative");
+    }
+
+    // ── FST ──────────────────────────────────────────────────────
+
+    #[test]
+    fn cpu_pairwise_fst_divergent() {
+        let d = cpu();
+        let pop_a = vec![2.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0];
+        let pop_b = vec![0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0, 0.0, 2.0];
+        let fst = d.pairwise_fst(&pop_a, 5, &pop_b, 5, 2);
+        assert!(fst.is_finite(), "FST must be finite");
+    }
+
+    #[test]
+    fn cpu_global_fst_two_pops() {
+        let d = cpu();
+        let pop1 = vec![2.0, 0.0, 2.0, 0.0];
+        let pop2 = vec![0.0, 2.0, 0.0, 2.0];
+        let fst = d.global_fst(&[pop1, pop2], &[2, 2], 2);
+        assert!(fst.is_finite(), "FST must be finite");
+    }
+
+    // ── HMM chains ──────────────────────────────────────────────
+
+    #[test]
+    fn cpu_hmm_forward_chain_basic() {
+        let d = cpu();
+        let initial = vec![0.6, 0.4];
+        #[rustfmt::skip]
+        let transition = vec![0.7, 0.3, 0.4, 0.6];
+        #[rustfmt::skip]
+        let emission = vec![0.5, 0.4, 0.1, 0.1, 0.3, 0.6];
+        let obs = vec![0, 1, 2, 0];
+        let ll = d.hmm_forward_chain(&initial, &transition, &emission, &obs, 2, 3);
+        assert!(ll.is_finite(), "log-likelihood must be finite");
+        assert!(ll < 0.0, "log-likelihood should be negative");
+    }
+
+    #[test]
+    fn cpu_hmm_viterbi_chain_basic() {
+        let d = cpu();
+        let initial = vec![0.6, 0.4];
+        #[rustfmt::skip]
+        let transition = vec![0.7, 0.3, 0.4, 0.6];
+        #[rustfmt::skip]
+        let emission = vec![0.5, 0.4, 0.1, 0.1, 0.3, 0.6];
+        let obs = vec![0, 1, 2, 0];
+        let (path, log_prob) =
+            d.hmm_viterbi_chain(&initial, &transition, &emission, &obs, 2, 3);
+        assert_eq!(path.len(), 4);
+        assert!(log_prob.is_finite());
+        for &s in &path {
+            assert!(s < 2, "state must be < n_states");
+        }
+    }
+
     // ── Pangenome selection ─────────────────────────────────────
 
     #[test]

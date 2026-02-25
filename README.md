@@ -50,8 +50,9 @@ Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-
 `GpuDriverProfile` wired in for f64 strategy detection (Hybrid on RTX 4070, Native on Titan V).
 Sessions 62–63: ToadStool sync — S-03b fully resolved upstream; evolved/mha.rs delegates to barracuda::ops::mha::MultiHeadAttention.
 500 lib tests, 93.17% coverage, 101+ named tolerances, 13 property tests, 0 clippy warnings.
-156 validation binaries, 36 modules + gpu\_ops/ + gpu\_dispatch/, 500 lib + 9 integration + 30 forge tests.
+157 validation binaries, 36 modules + gpu\_ops/ + gpu\_dispatch/, 505 lib + 9 integration + 43 forge tests.
 **Cross-spring evolution validated**: 22/22 PASS — hotSpring precision, wetSpring bio, neuralSpring ML.
+**Phase C GPU**: 18/18 PASS — HMM chains, FST, introgression, AF variance. **201.7× faster** than Python.
 **Multi-GPU**: RTX 4070 + TITAN V (NVK) — bit-identical.
 **Pure GPU promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math).
 **Mixed-hardware dispatch**: `Dispatcher::mixed_dispatch()` wired to `metalForge` cost model (GPU↔NPU↔CPU).
