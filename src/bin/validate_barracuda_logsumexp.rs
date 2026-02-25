@@ -12,6 +12,13 @@
 //! All expected values are analytical (logsumexp definition).
 //! `logsumexp(x) = log(sum(exp(x))) = max(x) + log(sum(exp(x - max(x))))`
 //!
+//! ## Known upstream issue
+//!
+//! barracuda `LogSumExp` currently binds a 4-byte output buffer where the
+//! shader expects 8 bytes.  wgpu converts this into a validation-error panic
+//! that corrupts GPU state for the process lifetime.  We probe once and skip
+//! gracefully until upstream fixes the binding layout.
+//!
 //! ## Backend selection
 //!
 //! Set `NEURALSPRING_BACKEND=cpu|gpu|auto`.
@@ -40,6 +47,51 @@ fn cpu_logsumexp(values: &[f32]) -> f32 {
             .ln()
 }
 
+/// Probe `LogSumExp` with a trivial tensor; returns `true` if the op works.
+///
+/// A wgpu validation-error panic corrupts GPU state for the rest of the
+/// process, so we probe once and skip all checks if the op is broken.
+fn logsumexp_probe(device: &Arc<WgpuDevice>) -> bool {
+    let data = vec![1.0_f32];
+    let Ok(tensor) = Tensor::from_data(&data, vec![1], device.clone()) else {
+        return false;
+    };
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        LogSumExp::new(tensor).execute()
+    }))
+    .is_ok_and(|r| r.is_ok())
+}
+
+fn validate_case(
+    h: &mut ValidationHarness,
+    device: &Arc<WgpuDevice>,
+    label: &str,
+    data: &[f32],
+    expected: f32,
+    tolerance: f64,
+) {
+    let tensor = require!(
+        h,
+        Tensor::from_data(data, vec![data.len()], device.clone()),
+        &format!("{label}: tensor creation")
+    );
+    match LogSumExp::new(tensor).execute() {
+        Ok(result) => {
+            let result_data = require!(h, result.to_vec(), &format!("{label}: readback"));
+            let gpu_val = result_data[0];
+            h.check_abs(
+                &format!("{label}: {gpu_val:.6} vs {expected:.6}"),
+                f64::from(gpu_val),
+                f64::from(expected),
+                tolerance,
+            );
+        }
+        Err(e) => {
+            h.check_bool(&format!("{label}: execute failed — {e}"), false);
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
@@ -53,149 +105,69 @@ async fn main() {
 
     let mut h = ValidationHarness::new("barracuda_logsumexp");
 
-    validate_basic(&mut h, &device);
-    validate_hmm_like(&mut h, &device);
-    validate_negative_values(&mut h, &device);
-    validate_single_element(&mut h, &device);
-    validate_equal_values(&mut h, &device);
+    if !logsumexp_probe(&device) {
+        eprintln!(
+            "  [skip] LogSumExp op panics (upstream buffer-size mismatch) — \
+             skipping all checks until barracuda fixes binding layout"
+        );
+        h.check_bool(
+            "LogSumExp probe: upstream buffer-size mismatch (barracuda issue, not neuralSpring)",
+            false,
+        );
+        h.finish();
+    }
+
+    let basic = [1.0_f32, 2.0, 3.0, 4.0];
+    validate_case(
+        &mut h,
+        &device,
+        "basic [1,2,3,4]",
+        &basic,
+        cpu_logsumexp(&basic),
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+
+    let hmm = [-5.0_f32, -3.0, -8.0, -2.5, -6.0];
+    validate_case(
+        &mut h,
+        &device,
+        "HMM-like",
+        &hmm,
+        cpu_logsumexp(&hmm),
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+
+    let neg = [-100.0_f32, -99.0, -101.0];
+    validate_case(
+        &mut h,
+        &device,
+        "large negative",
+        &neg,
+        cpu_logsumexp(&neg),
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+
+    validate_case(
+        &mut h,
+        &device,
+        "single [42]",
+        &[42.0_f32],
+        42.0,
+        tolerances::TENSOR_EXACT_F32,
+    );
+
+    let n = 8;
+    let eq_data = vec![1.0_f32; n];
+    #[allow(clippy::cast_precision_loss)]
+    let eq_expected = 1.0 + (n as f32).ln();
+    validate_case(
+        &mut h,
+        &device,
+        "equal [1.0; 8]",
+        &eq_data,
+        eq_expected,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
 
     h.finish();
-}
-
-fn validate_basic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let data = vec![1.0_f32, 2.0, 3.0, 4.0];
-    let expected = cpu_logsumexp(&data);
-
-    let tensor = require!(
-        h,
-        Tensor::from_data(&data, vec![data.len()], device.clone()),
-        "tensor creation"
-    );
-
-    match LogSumExp::new(tensor).execute() {
-        Ok(result) => {
-            let result_data = require!(h, result.to_vec(), "readback");
-            let gpu_val = result_data[0];
-            h.check_abs(
-                &format!("basic [1,2,3,4]: {gpu_val:.6} vs {expected:.6}"),
-                f64::from(gpu_val),
-                f64::from(expected),
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-        }
-        Err(e) => {
-            h.check_bool(&format!("basic: execute failed — {e}"), false);
-        }
-    }
-}
-
-fn validate_hmm_like(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let data: Vec<f32> = vec![-5.0, -3.0, -8.0, -2.5, -6.0];
-    let expected = cpu_logsumexp(&data);
-
-    let tensor = require!(
-        h,
-        Tensor::from_data(&data, vec![data.len()], device.clone()),
-        "tensor creation"
-    );
-
-    match LogSumExp::new(tensor).execute() {
-        Ok(result) => {
-            let result_data = require!(h, result.to_vec(), "readback");
-            let gpu_val = result_data[0];
-            h.check_abs(
-                &format!("HMM-like [-5,-3,-8,-2.5,-6]: {gpu_val:.6} vs {expected:.6}"),
-                f64::from(gpu_val),
-                f64::from(expected),
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-        }
-        Err(e) => {
-            h.check_bool(&format!("HMM-like: execute failed — {e}"), false);
-        }
-    }
-}
-
-fn validate_negative_values(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let data: Vec<f32> = vec![-100.0, -99.0, -101.0];
-    let expected = cpu_logsumexp(&data);
-
-    let tensor = require!(
-        h,
-        Tensor::from_data(&data, vec![data.len()], device.clone()),
-        "tensor creation"
-    );
-
-    match LogSumExp::new(tensor).execute() {
-        Ok(result) => {
-            let result_data = require!(h, result.to_vec(), "readback");
-            let gpu_val = result_data[0];
-            h.check_abs(
-                &format!("large negative: {gpu_val:.4} vs {expected:.4}"),
-                f64::from(gpu_val),
-                f64::from(expected),
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-        }
-        Err(e) => {
-            h.check_bool(&format!("large negative: failed — {e}"), false);
-        }
-    }
-}
-
-fn validate_single_element(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let data = vec![42.0_f32];
-    let expected = 42.0_f32;
-
-    let tensor = require!(
-        h,
-        Tensor::from_data(&data, vec![1], device.clone()),
-        "tensor creation"
-    );
-
-    match LogSumExp::new(tensor).execute() {
-        Ok(result) => {
-            let result_data = require!(h, result.to_vec(), "readback");
-            let gpu_val = result_data[0];
-            h.check_abs(
-                &format!("single [42]: {gpu_val:.6} vs {expected:.6}"),
-                f64::from(gpu_val),
-                f64::from(expected),
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
-        Err(e) => {
-            h.check_bool(&format!("single: failed — {e}"), false);
-        }
-    }
-}
-
-fn validate_equal_values(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let n = 8;
-    let val = 1.0_f32;
-    let data = vec![val; n];
-    #[allow(clippy::cast_precision_loss)]
-    let expected = val + (n as f32).ln();
-
-    let tensor = require!(
-        h,
-        Tensor::from_data(&data, vec![n], device.clone()),
-        "tensor creation"
-    );
-
-    match LogSumExp::new(tensor).execute() {
-        Ok(result) => {
-            let result_data = require!(h, result.to_vec(), "readback");
-            let gpu_val = result_data[0];
-            h.check_abs(
-                &format!("equal [1.0; 8]: {gpu_val:.6} vs {expected:.6} (1 + ln8)"),
-                f64::from(gpu_val),
-                f64::from(expected),
-                tolerances::TENSOR_TRANSCENDENTAL_F32,
-            );
-        }
-        Err(e) => {
-            h.check_bool(&format!("equal: failed — {e}"), false);
-        }
-    }
 }

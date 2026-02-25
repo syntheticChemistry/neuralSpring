@@ -626,6 +626,48 @@ path = "src/bin/validate_all.rs"
 name = "bench_cross_spring_evolution"
 path = "src/bin/bench_cross_spring_evolution.rs"
 
+[[bin]]
+name = "bench_rewire_evolution"
+path = "src/bin/bench_rewire_evolution.rs"
+
+[[bin]]
+name = "bench_basecamp_parity"
+path = "src/bin/bench_basecamp_parity.rs"
+
+# ── Dispatch + parity + metalForge validators ────────────────────
+
+[[bin]]
+name = "validate_compute_dispatch"
+path = "src/bin/validate_compute_dispatch.rs"
+
+[[bin]]
+name = "validate_mixed_hardware"
+path = "src/bin/validate_mixed_hardware.rs"
+
+[[bin]]
+name = "validate_basecamp_dispatch"
+path = "src/bin/validate_basecamp_dispatch.rs"
+
+[[bin]]
+name = "validate_barracuda_parity"
+path = "src/bin/validate_barracuda_parity.rs"
+
+[[bin]]
+name = "validate_metalforge_pcie"
+path = "src/bin/validate_metalforge_pcie.rs"
+
+[[bin]]
+name = "validate_basecamp_gpu"
+path = "src/bin/validate_basecamp_gpu.rs"
+
+[[bin]]
+name = "validate_hillgate_f64_fix"
+path = "src/bin/validate_hillgate_f64_fix.rs"
+
+[[bin]]
+name = "validate_cross_spring_evolution"
+path = "src/bin/validate_cross_spring_evolution.rs"
+
 # ── baseCamp Sub-thesis validators ────────────────────────────────
 [[bin]]
 name = "validate_weight_spectral"

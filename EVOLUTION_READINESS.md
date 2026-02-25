@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 24, 2026 (Sessions 40–60)
-**ToadStool HEAD**: `9404fdb4` (S58–S60: 16 functions rewired, cross-spring evolution benchmarked, GpuDriverProfile wired in)
+**Date**: February 25, 2026 (Sessions 40–64)
+**ToadStool HEAD**: `02207c4a` (S58–S64: 16 functions rewired, S-03b fully resolved upstream, 21/21 shaders absorbed)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -17,7 +17,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 482 lib + 9 integration + 30 forge tests, 36 modules, 156 binaries | **COMPLETE** |
+| Rust native validation | 500 lib + 9 integration + 43 forge tests, 36 modules, 156 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -34,7 +34,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | S-13 (PooledBuffer race) | Deferred return + device poll | **FIXED** upstream (Session 39) |
 | TS-003 (trig precision) | 7-term Taylor + Cody-Waite | **FIXED** upstream (Session 36) |
 | TS-001 (pow_f64 precision) | Extended exp/log polynomials | **FIXED** upstream (Session 36) |
-| Shader absorption | 6 new + prior → 2 local remain (head_split + head_concat) | **Only MHA shaders remain local** (Session 52) |
+| Shader absorption | 21/21 WGSL shaders absorbed upstream | **S-03b RESOLVED** — ToadStool `0c998992` (matmul + head_split/head_concat) |
 | Upstream wrapper validation | **10 bio ops** + f64 HMM + Gillespie + wetSpring trio + chi² | **74/74 PASS** |
 | Upstream parity (dual-path) | **10 GPU validators** | **10/10 PASS** (9 bit-identical, 1 Bessel diff 1.95e-3) |
 | ReduceScalarPipeline | f64 mean IPR via GPU reduce | **5.55e-17 diff** (machine ε) |
@@ -62,7 +62,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
 | Session 48: HillGateGpu f64 | Graceful skip on RTX 4070 (driver limitation) | **f32 path validated** |
-| Session 47: MHA S-03b | Z-dimension dispatch fix upstream (ToadStool S46) | **FIXED** |
+| S-03b (MHA projection hangs) | Decomposed into matmul + head_split/head_concat (ToadStool `0c998992`) | **FULLY RESOLVED** upstream |
 | Session 47: evolved/hmm_forward_gpu | Retired; HmmBatchForwardF64 (wetSpring) primary | **Fossil** `metalForge/fossils/evolved_hmm_forward_gpu/` |
 | Session 54: baseCamp experiment expansion | 5 validators expanded 82→114 checks (nS-103..106, 205, 206, 304, 305, 402, 405, 504, 505) | **114/114 PASS** |
 | Session 54: `validate_basecamp_gpu` | Pure GPU workload validation (eigensolve, variance, Pearson, entropy, matmul, chi², L2, KL) | **14/14 PASS** |
@@ -127,8 +127,6 @@ upstream variants. Local copies retained for validation compatibility.
 
 | Shader | Domain | Binary | Checks | Absorption Target |
 |--------|--------|--------|--------|-------------------|
-| `head_split.wgsl` | MHA (attention) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` (fix S-03b) |
-| `head_concat.wgsl` | MHA (attention) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` (fix S-03b) |
 | `xoshiro128ss.wgsl` | Stochastic (PRNG) | `validate_gpu_prng` | 5/5 | `barracuda::ops::prng` |
 | `swarm_nn_scores.wgsl` | Swarm (015) | `validate_gpu_pipeline_swarm` | PASS | No upstream equivalent |
 | `logsumexp_reduce.wgsl` | HMM/phylo (016–018) | `validate_gpu_logsumexp` | 5/5 | `barracuda::ops::reduce` (batched, Session 43) |
@@ -139,7 +137,7 @@ upstream variants. Local copies retained for validation compatibility.
 ### WGSL exports (forge crate — single source of truth)
 
 All 21 WGSL shaders are centralized in `metalForge/forge/src/shaders.rs`.
-13 have upstream equivalents (8 identical + 5 generalized variants); 8 are still local-only (4 legacy + 4 Session 43).
+21/21 absorbed upstream (S-03b resolved: head_split/head_concat in `barracuda::ops::mha`).
 Library modules re-export for backward compatibility:
 
 | Forge Constant | Library Re-Export |
@@ -157,8 +155,6 @@ Library modules re-export for backward compatibility:
 | `forge::shaders::MULTI_OBJ_FITNESS` | `directed_evolution::WGSL_MULTI_OBJ_FITNESS` |
 | `forge::shaders::SWARM_NN_FORWARD` | `swarm_robotics::WGSL_SWARM_NN_FORWARD` |
 | `forge::shaders::HILL_GATE` | `signal_integration::WGSL_HILL_GATE` |
-| `forge::shaders::HEAD_SPLIT` | `evolved::WGSL_HEAD_SPLIT` |
-| `forge::shaders::HEAD_CONCAT` | `evolved::WGSL_HEAD_CONCAT` |
 | `forge::shaders::XOSHIRO128SS` | `rng::WGSL_XOSHIRO128SS` |
 
 Binding layouts and dispatch geometry documented in `forge::bindings`.
@@ -307,7 +303,7 @@ cross-validation references. Both tiers matching Python proves portability.
 
 | API | Potential Use | Status |
 |-----|--------------|--------|
-| Native `Tensor::multi_head_attention` | Replace evolved MHA | **Blocked** (S-03b: projection shader hang) |
+| Native `ops::mha::MultiHeadAttention` | `evolved::mha` thin wrapper | **Wired** (S-03b resolved upstream `0c998992`) |
 | `ops::bio::{FelsensteinGpu, SmithWatermanGpu}` | Future paper extensions | Available |
 | `ops::bio::GillespieGpu` | Stochastic SSA (Papers 013, 020) | **Wired** (Session 43, 20/20 PASS) |
 | `ops::bio::{TaxonomyFcGpu, KmerHistogramGpu, UniFracPropagateGpu}` | wetSpring metagenomics | **Wired** (Session 43, 8/8 PASS) |
@@ -391,10 +387,10 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo fmt` | **Clean** — zero formatting violations |
 | `cargo clippy` pedantic + nursery | **0 warnings** — `clippy::doc_markdown` fully resolved (31 files), all remaining `#[allow]` audited and justified |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **459 tests PASS** (up from 264) |
+| `cargo test --lib` | **500 tests PASS** (up from 264) |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
-| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `registry.rs`) — 42 `NamedTolerance` entries in registry (24 `gpu_dispatch` category), zero standalone inline magic numbers |
+| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `registry.rs`) — 101+ `NamedTolerance` entries in registry (24 `gpu_dispatch` category), zero standalone inline magic numbers |
 | GPU validation helpers | Shared `gpu_readback`, `max_abs_diff_gpu_vs_cpu`, `gpu_tensor!` macro — deduplicated ~400 LOC from 24 binaries |
 | GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
 | Modular `gpu_ops/` | Refactored from monolithic 1328-line file into 6 focused submodules (`linalg`, `activation`, `reduction`, `bio`, `population`, `eigensolver`) — all under 1000 LOC |
@@ -408,7 +404,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | Provenance | All hardcoded validation targets sourced with script, commit, date, exact command |
 | Determinism tests | **16 tests** covering all stochastic modules (up from 7) |
 | SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
-| Line coverage | **92.9%** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
+| Line coverage | **93.17%** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
 | All files < 1000 LOC | Largest: `validate_barracuda_tensor.rs` at 966 lines |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 | Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |
@@ -569,7 +565,7 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **Confirmed absorptions** | `ValidationHarness`, `exit_no_gpu`, `require!` macro — all from neuralSpring, now in `barracuda::validation` |
 | **Consolidated** | 4 duplicate `patch_pow_to_polyfill` → `validation::patch_pow_to_polyfill` (shared) |
 | **New upstream available** | `barracuda::spectral::anderson` (3D correlated, sweep averaged, find_w_c), `barracuda::linalg::ridge`, `barracuda::linalg::nmf`, `barracuda::numerical::ode_bio`, `barracuda::dispatch::domain_ops`, `barracuda::device::driver_profile` |
-| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 482 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 500 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
 
 ### Session 58 — Upstream Dispatch Rewiring + GpuDriverProfile
 
@@ -580,6 +576,17 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **Driver detection confirmed** | RTX 4070: Ada arch, NvidiaPtxas compiler, Throttled FP64 → Hybrid strategy, pow workaround needed |
 | **New validator** | `validate_cross_spring_evolution` (10/10 PASS): rewired method parity + driver profile + cross-spring benchmark |
 | **Total rewired functions** | 11 (4 from S56 + 7 from S58) — all delegating to upstream BarraCUDA |
-| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 482 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 500 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
+
+### Session 61 — Deep Code Quality Sweep (February 25, 2026)
+
+| Action | Detail |
+|--------|--------|
+| **Deep code quality sweep** | Property tests, tolerance centralization, vestigial allow removal |
+| **13 property tests added** | `src/property_tests.rs` — invariants across stochastic and numerical modules |
+| **6 tolerance constants centralized** | Added to `tolerances/` registry |
+| **4 vestigial `#[allow]` attributes removed** | Underlying code fixed, redundant suppression removed |
+| **Line coverage** | **93.17%** via `cargo llvm-cov` |
+| **Lib tests** | **500 PASS** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

@@ -24,17 +24,24 @@
 //! - Frobenius norm: `barracuda::ops::NormReduceF64`
 //! - Distance to normal: composed from commutator + Frobenius (GPU pipeline)
 
-#![allow(clippy::cast_precision_loss, clippy::needless_range_loop)]
+#![allow(clippy::cast_precision_loss)]
 
 use crate::rng::Rng;
 
 /// Frobenius norm: sqrt(sum of squares of entries).
+///
+/// CPU reference for GPU validation — `barracuda::dispatch::frobenius_norm_dispatch`
+/// is the production equivalent.  Kept separate so GPU validators have an
+/// independent reference to compare against.
 #[must_use]
 pub fn frobenius_norm(a: &[f64]) -> f64 {
     a.iter().map(|&x| x * x).sum::<f64>().sqrt()
 }
 
 /// Transpose an n×n matrix (flat row-major → flat row-major).
+///
+/// CPU reference for GPU validation — `barracuda::dispatch::transpose_dispatch`
+/// is the production equivalent.
 #[must_use]
 pub fn transpose(a: &[f64], n: usize) -> Vec<f64> {
     let mut t = vec![0.0; n * n];

@@ -37,6 +37,7 @@ use std::time::Instant;
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::neural_pgm;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::weight_spectral;
 
@@ -67,13 +68,11 @@ fn validate_rewired_matmul(h: &mut ValidationHarness, dispatcher: &Dispatcher, c
     let (result, _) = bench("matmul upstream", || dispatcher.mat_mul(&a, &b, n));
     let (reference, _) = bench("matmul CPU ref", || cpu.mat_mul(&a, &b, n));
 
-    // GPU matmul uses different accumulation order (parallel reduction) vs
-    // sequential CPU; 1e-3 tolerance justified for 64-element dot products
     h.check_abs(
         "rewired matmul parity (64x64)",
         max_pairwise_diff(&result, &reference),
         0.0,
-        1e-3,
+        tolerances::DISPATCH_MATMUL_F64,
     );
 }
 
@@ -87,7 +86,12 @@ fn validate_rewired_frobenius(
     let (result, _) = bench("frobenius upstream", || dispatcher.frobenius_norm(&data));
     let (reference, _) = bench("frobenius CPU ref", || cpu.frobenius_norm(&data));
 
-    h.check_abs("rewired frobenius parity", result, reference, 1e-6);
+    h.check_abs(
+        "rewired frobenius parity",
+        result,
+        reference,
+        tolerances::DISPATCH_FROBENIUS_F64,
+    );
 }
 
 fn validate_rewired_transpose(
@@ -105,7 +109,7 @@ fn validate_rewired_transpose(
         "rewired transpose parity (32x32)",
         max_pairwise_diff(&result, &reference),
         0.0,
-        1e-12,
+        tolerances::DISPATCH_TRANSPOSE_F64,
     );
 }
 
@@ -118,12 +122,17 @@ fn validate_rewired_softmax(h: &mut ValidationHarness, dispatcher: &Dispatcher, 
     let (reference, _) = bench("softmax CPU ref", || cpu.softmax(&x));
 
     let sum: f64 = result.iter().sum();
-    h.check_abs("rewired softmax sums to 1", sum, 1.0, 1e-10);
+    h.check_abs(
+        "rewired softmax sums to 1",
+        sum,
+        1.0,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
+    );
     h.check_abs(
         "rewired softmax parity",
         max_pairwise_diff(&result, &reference),
         0.0,
-        1e-10,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
     );
 }
 
@@ -136,7 +145,12 @@ fn validate_rewired_l2(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: 
     let (result, _) = bench("l2_distance upstream", || dispatcher.l2_distance(&a, &b));
     let (reference, _) = bench("l2_distance CPU ref", || cpu.l2_distance(&a, &b));
 
-    h.check_abs("rewired l2_distance parity", result, reference, 1e-8);
+    h.check_abs(
+        "rewired l2_distance parity",
+        result,
+        reference,
+        tolerances::DISPATCH_TWOPASS_F64,
+    );
 }
 
 fn validate_rewired_mean(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: &Dispatcher) {
@@ -145,7 +159,12 @@ fn validate_rewired_mean(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu
     let (result, _) = bench("mean upstream", || dispatcher.mean(&data));
     let (reference, _) = bench("mean CPU ref", || cpu.mean(&data));
 
-    h.check_abs("rewired mean parity", result, reference, 1e-10);
+    h.check_abs(
+        "rewired mean parity",
+        result,
+        reference,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
+    );
 }
 
 fn validate_rewired_variance(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: &Dispatcher) {
@@ -154,7 +173,12 @@ fn validate_rewired_variance(h: &mut ValidationHarness, dispatcher: &Dispatcher,
     let (result, _) = bench("variance upstream", || dispatcher.variance(&data));
     let (reference, _) = bench("variance CPU ref", || cpu.variance(&data));
 
-    h.check_abs("rewired variance parity", result, reference, 1e-8);
+    h.check_abs(
+        "rewired variance parity",
+        result,
+        reference,
+        tolerances::DISPATCH_TWOPASS_F64,
+    );
 }
 
 // ═══ S59 rewires: library functions delegating to upstream stats/linalg ═══
@@ -165,13 +189,13 @@ fn validate_rewired_esd(h: &mut ValidationHarness) {
 
     h.check_bool("rewired ESD returns 20 bins", centers.len() == 20);
     let sum: f64 = counts.iter().sum();
-    h.check_abs("rewired ESD sums to 1", sum, 1.0, 1e-12);
+    h.check_abs("rewired ESD sums to 1", sum, 1.0, tolerances::EXACT_F64);
 }
 
 fn validate_rewired_mp_bounds(h: &mut ValidationHarness) {
     let (lo, hi) = weight_spectral::marchenko_pastur_bounds(1.0);
-    h.check_abs("rewired MP lower bound γ=1", lo, 0.0, 1e-12);
-    h.check_abs("rewired MP upper bound γ=1", hi, 4.0, 1e-12);
+    h.check_abs("rewired MP lower bound γ=1", lo, 0.0, tolerances::EXACT_F64);
+    h.check_abs("rewired MP upper bound γ=1", hi, 4.0, tolerances::EXACT_F64);
 
     let (lo2, hi2) = weight_spectral::marchenko_pastur_bounds(0.25);
     h.check_bool("rewired MP bounds ordered", lo2 < hi2);
@@ -180,12 +204,22 @@ fn validate_rewired_mp_bounds(h: &mut ValidationHarness) {
 fn validate_rewired_effective_rank(h: &mut ValidationHarness) {
     let full_rank = vec![1.0; 8];
     let rank = neural_pgm::effective_rank(&full_rank);
-    h.check_abs("rewired effective_rank full", rank, 8.0, 1e-10);
+    h.check_abs(
+        "rewired effective_rank full",
+        rank,
+        8.0,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
+    );
 
     let mut low_rank = vec![0.0; 8];
     low_rank[0] = 1.0;
     let rank_low = neural_pgm::effective_rank(&low_rank);
-    h.check_abs("rewired effective_rank single", rank_low, 1.0, 1e-10);
+    h.check_abs(
+        "rewired effective_rank single",
+        rank_low,
+        1.0,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
+    );
 }
 
 fn validate_rewired_gelu(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: &Dispatcher) {
@@ -198,10 +232,15 @@ fn validate_rewired_gelu(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu
         "rewired gelu parity",
         max_pairwise_diff(&result, &reference),
         0.0,
-        1e-10,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
     );
 
-    h.check_abs("gelu(0) ≈ 0", result[50], 0.0, 1e-14);
+    h.check_abs(
+        "gelu(0) ≈ 0",
+        result[50],
+        0.0,
+        tolerances::DISPATCH_NEAR_ZERO_F64,
+    );
 }
 
 fn validate_rewired_hmm_forward(
@@ -225,17 +264,22 @@ fn validate_rewired_hmm_forward(
         "rewired hmm_forward alpha parity",
         max_pairwise_diff(&result.0, &reference.0),
         0.0,
-        1e-10,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
     );
     h.check_abs(
         "rewired hmm_forward scale parity",
         result.1,
         reference.1,
-        1e-10,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
     );
 
     let alpha_sum: f64 = result.0.iter().sum();
-    h.check_abs("hmm_forward alpha normalized", alpha_sum, 1.0, 1e-10);
+    h.check_abs(
+        "hmm_forward alpha normalized",
+        alpha_sum,
+        1.0,
+        tolerances::DISPATCH_ELEMENTWISE_F64,
+    );
 }
 
 fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {

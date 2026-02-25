@@ -7,12 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V25** | `handoffs/NEURALSPRING_TOADSTOOL_V25_S60_HANDOFF_FEB24_2026.md` | Feb 24, 2026 | S60: 16 rewired, cross-spring benchmarked, absorption targets |
-| V24 | `handoffs/NEURALSPRING_TOADSTOOL_V24_FEB24_2026.md` | Feb 24, 2026 | Data provenance |
+| **V29** | `handoffs/NEURALSPRING_TOADSTOOL_V29_S64_HANDOFF_FEB25_2026.md` | Feb 25, 2026 | S64: forge v0.2.0, substrate/probe/inventory/workloads, chi²/KL WGSL extensions |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V23, 37 files).
+Superseded handoffs: `handoffs/archive/` (V1–V28, 42 files).
 
 ## Conventions
 

@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::suboptimal_flops)]
-
 //! Regulatory network and diversity capacitor (Paper 020).
 //!
 //! Port of `control/regulatory_network/regulatory_network.py`.
@@ -61,10 +59,10 @@ impl Default for GrnParams {
 #[must_use]
 pub fn grn_rhs(x: &[f64; 4], env_signal: f64, p: &GrnParams) -> [f64; 4] {
     let [sasa, bio, mot, vir] = *x;
-    let dsasa = p.a_s * env_signal / (0.5 + env_signal) - p.d_s * sasa;
-    let dbio = primitives::hill_activation(sasa, p.a_b, p.k_b, p.n) - p.d_b * bio;
-    let dmot = primitives::hill_repression(sasa, p.a_m, p.k_m, p.n) - p.d_m * mot;
-    let dvir = primitives::hill_activation(sasa, p.a_v, p.k_v, p.n) - p.d_v * vir;
+    let dsasa = (-p.d_s).mul_add(sasa, p.a_s * env_signal / (0.5 + env_signal));
+    let dbio = (-p.d_b).mul_add(bio, primitives::hill_activation(sasa, p.a_b, p.k_b, p.n));
+    let dmot = (-p.d_m).mul_add(mot, primitives::hill_repression(sasa, p.a_m, p.k_m, p.n));
+    let dvir = (-p.d_v).mul_add(vir, primitives::hill_activation(sasa, p.a_v, p.k_v, p.n));
     [dsasa, dbio, dmot, dvir]
 }
 

@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 24, 2026 (Sessions 44–60)
-**ToadStool HEAD**: `9404fdb4` (S60: 16 functions rewired to upstream, cross-spring evolution benchmarked)
-**Status**: Migration complete — deprecated modules fossilized, S-03b locally resolved, gpu_dispatch active, 16 functions lean on upstream
+**Date**: February 25, 2026 (Sessions 44–65)
+**ToadStool HEAD**: `02207c4a` (S64: forge v0.2.0, substrate discovery, workload tracking, write-phase extensions)
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active, 16 functions lean on upstream
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed
@@ -52,13 +52,14 @@ See `metalForge/fossils/FOSSIL_RECORD.md` for the full inventory.
 
 ---
 
-## Still Active in `src/evolved/` (2 modules)
+## Still Active in `src/evolved/` (1 module + re-exports)
 
 | Module | LOC | Why active | Path to absorption |
 |--------|-----|-----------|-------------------|
-| `mod.rs` | ~50 | WGSL shader exports (`batch_fitness_eval`, `rk4_parallel`, `mean_reduce`) | Absorb into `barracuda::ops` |
-| `mha.rs` | 182 | Evolved MHA with GPU head_split/head_concat shaders (S-03b locally resolved) | ToadStool native MHA when projection shaders stabilize |
+| `mod.rs` | ~87 | WGSL shader re-exports for local validation binaries | Retire when validators use upstream bindings |
+| `mha.rs` | 182 | Thin wrapper delegating to `barracuda::ops::mha::MultiHeadAttention` | Retire when callers use upstream 3D API directly |
 
+S-03b fully resolved upstream at `ToadStool` `0c998992` (S60–S61).
 `hmm_forward_gpu.rs` retired to `metalForge/fossils/evolved_hmm_forward_gpu/` — `HmmBatchForwardF64` (wetSpring) is now primary.
 
 ## Newly Fossilized (Session 40)

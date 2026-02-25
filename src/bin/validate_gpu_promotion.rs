@@ -302,19 +302,19 @@ fn validate_tensor_ops(h: &mut ValidationHarness, disp: &Dispatcher) {
         Err(e) => h.check_bool(&format!("KL: {e}"), false),
     }
 
-    match neural_spring::gpu_ops::neural_forward_gpu(
-        &[0.5, 0.3, 0.7, 0.2],
-        &[0.1, 0.2, 0.3, 0.4],
-        &[
+    let nn_params = neural_spring::gpu_ops::NeuralForwardParams {
+        weights_hidden: &[0.5, 0.3, 0.7, 0.2],
+        bias_hidden: &[0.1, 0.2, 0.3, 0.4],
+        weights_output: &[
             0.6, 0.4, 0.8, 0.1, 0.5, 0.3, 0.7, 0.2, 0.9, 0.4, 0.6, 0.5, 0.3, 0.8, 0.2, 0.7, 0.4,
             0.1, 0.9, 0.5,
         ],
-        &[0.1, 0.2, 0.3, 0.4, 0.5],
-        &[0.5],
-        4,
-        5,
-        device,
-    ) {
+        bias_output: &[0.1, 0.2, 0.3, 0.4, 0.5],
+        input: &[0.5],
+        hidden_size: 4,
+        output_size: 5,
+    };
+    match neural_spring::gpu_ops::neural_forward_gpu(&nn_params, device) {
         Ok(out) => {
             h.check_bool("neural_forward produces output", out.len() == 5);
             h.check_bool(

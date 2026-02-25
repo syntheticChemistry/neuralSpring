@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `9404fdb4` (Session 59 sync — 16 functions rewired to upstream, GpuDriverProfile wired in, Feb 24, 2026)
+**ToadStool HEAD**: `02207c4a` (Sessions 59–64 sync — 16 functions rewired to upstream, S-03b fully resolved, 21/21 shaders absorbed, Feb 25, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -117,7 +117,7 @@ ML and evolutionary computation layer.
 | `swarm_nn_forward.wgsl` | Swarm NN inference | *local* | Pending |
 | `hill_gate.wgsl` | Signal AND gate | *local* | Pending |
 | ~~`mean_reduce.wgsl`~~ | Scalar reduction | `pipeline::ReduceScalarPipeline` | **Absorbed** (S59 cleanup) |
-| `head_split.wgsl` / `head_concat.wgsl` | MHA reshape | *local* | Pending (S-03b) |
+| `head_split.wgsl` / `head_concat.wgsl` | MHA reshape | `barracuda::ops::mha` | **Absorbed** (S-03b resolved `0c998992`) |
 | ~~`xoshiro128ss.wgsl`~~ | GPU PRNG | `ops::prng_xoshiro` | **Absorbed** (S52) |
 | `empirical_spectral_density` | Eigenvalue histogram | `stats::empirical_spectral_density` | **Absorbed** (S54, rewired S59) |
 | `marchenko_pastur_bounds` | MP spectral bounds | `stats::marchenko_pastur_bounds` | **Absorbed** (S54, rewired S59) |
@@ -218,13 +218,13 @@ empirical crossover points codified in `metalForge/forge/src/dispatch.rs`.
 
 ---
 
-## Validation Summary (Post-Rewire S60, Feb 24, 2026)
+## Validation Summary (Post-Rewire S60–61, Feb 25, 2026)
 
 | Gate | Result |
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
-| `cargo test --lib` | 482 PASS |
+| `cargo test --lib` | 500 PASS |
 | `validate_all` | 145/146 PASS |
 | `validate_cross_spring_evolution` | **22/22 PASS** (was 16/22) |
 
@@ -318,7 +318,7 @@ upstream typed APIs.
 
 Total rewired functions: **16** (up from 11 in S58).
 
-### Session 60 — Benchmark Validation & Cross-Spring Narrative (Feb 24, 2026)
+### Sessions 60–61 — Benchmark Validation & Cross-Spring Narrative (Feb 25, 2026)
 
 Updated `validate_cross_spring_evolution` to cover all S59 rewires (22 checks total),
 ran full benchmark suite demonstrating cross-spring performance evolution.
@@ -382,11 +382,61 @@ neuralSpring ML ───→ eigh, batch_fitness, pairwise_l2, spectral density
                ╔═══════════════════════════╗
                ║  All Springs lean on the  ║
                ║  shared math engine:      ║
-               ║  • 599+ WGSL shaders      ║
+               ║  • 645+ WGSL shaders      ║
                ║  • 16 rewired functions    ║
                ║  • 117+ upstream APIs      ║
                ╚═══════════════════════════╝
 ```
+
+### Sessions 62–64 — S-03b Resolved + `BandwidthTier` + Full Benchmark (Feb 25, 2026)
+
+#### S-03b Resolution: Write → Absorb → Lean Complete
+
+The MHA projection hang (S-03b) was resolved upstream in `ToadStool` S60–S61
+(`0c998992`). ToadStool independently decomposed the fused projection into matmul +
+head_split + head_concat — the exact approach neuralSpring evolved locally.
+
+Result: `evolved/mha.rs` rewired from 124 LOC workaround to 18 LOC thin wrapper.
+**21/21 neuralSpring WGSL shaders now absorbed upstream.** Zero local WGSL remaining.
+
+#### `BandwidthTier` + NVK Guard Wired (S63–S64)
+
+Upstream `BandwidthTier::detect_from_adapter_name()` wired into `Dispatcher`. Logs:
+```text
+[dispatch] GPU available: NVIDIA GeForce RTX 4070 (DiscreteGpu, Vulkan, f64=Hybrid, pcie=PciE4x16)
+```
+
+`Dispatcher::check_allocation_safe()` delegates to `GpuDriverProfile` for NVK
+large-buffer protection (1.2 GB limit on TITAN V).
+
+#### S63–S64 Benchmark: Rewire Evolution (RTX 4070, 10,000 elements)
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Cross-Spring Origin |
+|----|-----------------|-------------------|---------|---------------------|
+| Variance | 9,949 | 2,847 | **3.49×** | hotSpring Welford |
+| Pearson | 4,679 | 3,508 | **1.33×** | wetSpring + hotSpring |
+| Entropy | 6,317 | 2,468 | **2.56×** | wetSpring fused map-reduce |
+
+#### S63–S64 Benchmark: Cross-Spring GPU Ops (RTX 4070, `--release`)
+
+| Op | Size | Median (µs) | Origin Spring |
+|----|------|-------------|---------------|
+| `BatchFitnessGpu` | 1024×64 | 3,033 | neuralSpring (S-25) |
+| `PairwiseL2Gpu` | 128×16 | 3,154 | neuralSpring (S-42) |
+| `BatchIprGpu` | 32×64 | 2,364 | neuralSpring (S-25) |
+| `SpatialPayoffGpu` | 32×32 | 2,901 | neuralSpring (S-25) |
+| `PairwiseHammingGpu` | 64×100 | 2,678 | neuralSpring (S-25) |
+| `HmmBatchForwardF64` | 4s×50t×32b | 3,325 | wetSpring (S-39) |
+| `BatchedEighGpu` | 12×12×40 | 7,402 | hotSpring (S-39) |
+
+#### S63–S64 Validation
+
+| Gate | Result |
+|------|--------|
+| `validate_cross_spring_evolution` | 22/22 PASS |
+| `validate_all` | 145/146 PASS |
+| `cargo test --lib` | 500 PASS |
+| `cargo clippy --all-targets` | 0 warnings |
 
 ---
 

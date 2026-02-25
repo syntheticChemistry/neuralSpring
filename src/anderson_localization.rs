@@ -39,7 +39,6 @@
     clippy::suboptimal_flops
 )]
 
-use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
 /// WGSL shader: batch IPR from eigenvector data.
@@ -117,88 +116,19 @@ pub fn mean_ipr(eigenvectors: &[f64], n: usize) -> f64 {
     sum / (n as f64)
 }
 
-/// Jacobi eigensolver for real symmetric matrix (flat row-major).
+/// Eigendecomposition for real symmetric matrix (flat row-major).
+///
+/// Delegates to `barracuda::ops::linalg::eigh_householder_qr` — the same
+/// Householder + implicit-QR algorithm used by `crate::eigh`.  The local
+/// Jacobi implementation (400-sweep, 80-line) is retired; barracuda's version
+/// is more numerically robust and maintained upstream.
 ///
 /// Returns (eigenvalues, eigenvectors as flat row-major n×n).
 /// Column k of the eigenvector matrix is the k-th eigenvector.
-/// Eigenvectors normalized to unit L2 norm.
 #[must_use]
 pub fn jacobi_eigh(matrix: &[f64], n: usize) -> (Vec<f64>, Vec<f64>) {
-    const MAX_SWEEPS: usize = 400;
-    const TOL: f64 = 1e-12;
-
-    let mut a = matrix.to_vec();
-    let mut v = vec![0.0; n * n];
-    for i in 0..n {
-        v[i * n + i] = 1.0;
-    }
-
-    for _ in 0..MAX_SWEEPS {
-        let mut max_off = 0.0f64;
-        let mut p = 0;
-        let mut q = 0;
-        for i in 0..n {
-            for j in (i + 1)..n {
-                let off = a[i * n + j].abs();
-                if off > max_off {
-                    max_off = off;
-                    p = i;
-                    q = j;
-                }
-            }
-        }
-        if max_off < TOL {
-            break;
-        }
-
-        let app = a[p * n + p];
-        let aqq = a[q * n + q];
-        let apq = a[p * n + q];
-        let tau = (aqq - app) / (2.0 * apq);
-        let t = if tau >= 0.0 {
-            -tau + (tau * tau + 1.0).sqrt()
-        } else {
-            -tau - (tau * tau + 1.0).sqrt()
-        };
-        let c = 1.0 / (1.0 + t * t).sqrt();
-        let s = t * c;
-
-        for i in 0..n {
-            let aip = a[i * n + p];
-            let aiq = a[i * n + q];
-            a[i * n + p] = c * aip - s * aiq;
-            a[i * n + q] = s * aip + c * aiq;
-        }
-        for i in 0..n {
-            let api = a[p * n + i];
-            let aqi = a[q * n + i];
-            a[p * n + i] = c * api - s * aqi;
-            a[q * n + i] = s * api + c * aqi;
-        }
-        a[p * n + q] = 0.0;
-        a[q * n + p] = 0.0;
-
-        for i in 0..n {
-            let vip = v[i * n + p];
-            let viq = v[i * n + q];
-            v[i * n + p] = c * vip - s * viq;
-            v[i * n + q] = s * vip + c * viq;
-        }
-    }
-
-    let eigvals: Vec<f64> = (0..n).map(|i| a[i * n + i]).collect();
-    for k in 0..n {
-        let norm: f64 = (0..n)
-            .map(|i| v[i * n + k] * v[i * n + k])
-            .sum::<f64>()
-            .sqrt();
-        if norm > LOG_GUARD {
-            for i in 0..n {
-                v[i * n + k] /= norm;
-            }
-        }
-    }
-    (eigvals, v)
+    let decomp = crate::eigh::eigh_householder_qr(matrix, n);
+    (decomp.eigenvalues, decomp.eigenvectors)
 }
 
 /// Two-particle Hamiltonian on tensor product space.

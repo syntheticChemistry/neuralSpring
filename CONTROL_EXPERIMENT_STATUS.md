@@ -1,18 +1,18 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 24, 2026 (Sessions 44–60 — multi-GPU + benchmarks + pure GPU promotion + deep debt audit + baseCamp + ToadStool sync + cross-spring benchmarking + baseCamp experiment expansion + GPU workload validation + CPU vs GPU dispatch + mixed-hardware + dispatch parity + metalForge PCIe + upstream dispatch rewiring + GpuDriverProfile + S59 library/dispatch rewire + S60 cross-spring benchmark validation)
+**Last updated**: February 25, 2026 (Sessions 44–64 — multi-GPU + benchmarks + pure GPU promotion + deep debt audit + baseCamp + ToadStool sync + cross-spring benchmarking + baseCamp experiment expansion + GPU workload validation + CPU vs GPU dispatch + mixed-hardware + dispatch parity + metalForge PCIe + upstream dispatch rewiring + GpuDriverProfile + S59 library/dispatch rewire + S60 cross-spring benchmark validation + S61 code quality sweep + S62 S-03b fully resolved upstream)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 206/206 Python PASS + 1840+ Rust+GPU validation PASS = **2050+ total validation checks**
-**Library**: 482 lib tests + 9 integration tests + 30 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 156 validation/bench binaries
+**Library**: 500 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 156 validation/bench binaries
 **baseCamp**: 5 biophysical AI modules + 7 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch PASS) — Sessions 50, 54, 56
 **Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware + 19/19 baseCamp dispatch + 17/17 parity + 23/23 PCIe
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 38 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~90% of production math)
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings
 **Benchmarks**: Pure Rust **178.5× faster** than Python/NumPy (11 kernels)
-**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-16 FIXED | S-14/S-15 workaround | HEAD `9404fdb4` (S50–60) | 16 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58 + 2 dispatch S59 + 3 stats/linalg S59)
+**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-03b **FULLY RESOLVED** upstream | S-16 FIXED | S-14/S-15 workaround | HEAD `02207c4a` (S50–64) | 16 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58 + 2 dispatch S59 + 3 stats/linalg S59)
 **Cross-Spring**: 22/22 evolution checks PASS | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint)
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -62,7 +62,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (482 lib tests + 9 integration + 30 forge tests, 156 validation binaries, 36 modules + gpu_ops/ + gpu_dispatch/)
+### Phase 1a: neuralSpring-Native Validation (500 lib tests + 9 integration + 43 forge tests, 156 validation binaries, 36 modules + gpu_ops/ + gpu_dispatch/)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -250,7 +250,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 46 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 482 lib tests + 9 integration tests |
+| Rust test | `cargo test` | **PASS** — 500 lib tests + 9 integration tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -271,7 +271,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (482 lib + 9 integration + 30 forge tests, 156 binaries, 36 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (500 lib + 9 integration + 43 forge tests, 156 binaries, 36 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -326,7 +326,7 @@ All tiers use exclusively open data and open systems (see `specs/DATA_PROVENANCE
 | Tier | Coverage | Checks | Status | Delta |
 |------|----------|--------|--------|-------|
 | Python control (Py) | 25/25 (100%) | 206 | **ALL PASS** | — |
-| Rust CPU (Rs) | 25/25 (100%) | 459+ lib + binaries | **ALL PASS** | — |
+| Rust CPU (Rs) | 25/25 (100%) | 500+ lib + binaries | **ALL PASS** | — |
 | BarraCUDA CPU (bC) | 24/25 (96%) | 203 | **ALL PASS** | +12pp |
 | BarraCUDA GPU Tensor (gT) | 23/25 (92%) | 98+ | **ALL PASS** | +20pp |
 | metalForge WGSL (mF) | 15/15† (100%) | 108 | **ALL PASS** | — |
@@ -376,7 +376,7 @@ Code quality hardening. No new validation checks; all existing checks confirmed 
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets -- -D warnings` | PASS (0 warnings) |
 | `cargo doc --no-deps` | PASS (0 warnings) |
-| `cargo test` | PASS (459 lib + 9 integration + 9 doc-tests) |
+| `cargo test` | PASS (500 lib + 9 integration + 9 doc-tests) |
 | Max file size | 965 lines (under 1000 wateringHole limit) |
 | `unsafe` blocks | 0 (`forbid` enforced) |
 | TODO/FIXME/MOCK/STUB | 0 in src/ |
@@ -392,7 +392,7 @@ Deep code quality evolution. No new validation checks; structural and pedantic i
 | Float comparison evolution | 5 library modules | All `assert_eq!` on f64 → epsilon-based |
 | Inline guard centralization | 5 validation binaries | 7 `1e-14` → `tolerances::ZERO_DETECTION` |
 | Clippy pedantic resolution | 7 lint categories | float_cmp, cast_lossless, identity_op, manual_midpoint, redundant_closure, doc_markdown, redundant_pub_crate |
-| Documentation refresh | 13 docs | 412→459 lib tests, 92.7%→92.9% coverage |
+| Documentation refresh | 13 docs | 412→500 lib tests, 92.7%→93.17% coverage |
 | Dependency audit | Full tree | All pure Rust confirmed |
 
 **Quality gates** (all pass):
@@ -403,7 +403,7 @@ Deep code quality evolution. No new validation checks; structural and pedantic i
 | `cargo clippy --all-targets` | PASS (0 warnings — pedantic + nursery) |
 | `cargo clippy -p neural-spring-forge` | PASS (0 warnings) |
 | `cargo doc --no-deps` | PASS (0 warnings, 146 pages) |
-| `cargo test` | PASS (459 lib + 9 integration + 9 doc-tests) |
+| `cargo test` | PASS (500 lib + 9 integration + 9 doc-tests) |
 | `cargo llvm-cov --lib` | 92.9% line coverage |
 | Max file size | 965 lines (under 1000 wateringHole limit) |
 | `unsafe` blocks | 0 (`forbid` enforced) |
@@ -443,7 +443,7 @@ cross-spring benchmarking, and documentation hardening.
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` | PASS (0 warnings — pedantic + nursery) |
 | `cargo doc --no-deps` | PASS (0 warnings, 146 pages) |
-| `cargo test --lib` | PASS (459 lib tests) |
+| `cargo test --lib` | PASS (500 lib tests) |
 | `cargo llvm-cov --lib` | 92.89% line coverage |
 | `validate_all` | 137/138 PASS (1 pre-existing logsumexp driver issue) |
 
@@ -547,7 +547,7 @@ transfer estimation and live mixed-hardware dispatch.
 | `validate_basecamp_dispatch` (NEW) | 4 Dispatcher baseCamp methods: spectral, Hessian, BP, interaction graph | **19/19 PASS** |
 | `validate_barracuda_parity` (NEW) | CPU vs GPU parity: linalg, stats, spectral, activation, reduction, distance, biology | **17/17 PASS** |
 | `validate_metalforge_pcie` (NEW) | PCIe tiers, P2P vs staged, chained transfer, substrate sweep, bridge API, live dispatch | **23/23 PASS** |
-| `metalForge/forge/src/mixed.rs` enhanced | `BandwidthTier` enum (x16/x4/PCIe5/shared), `chained_transfer_cost`, `compare_transfer_paths` | **30/30 forge tests** |
+| `metalForge/forge/src/mixed.rs` enhanced | `BandwidthTier` enum (x16/x4/PCIe5/shared), `chained_transfer_cost`, `compare_transfer_paths` | **43/43 forge tests** |
 | `Makefile` + `justfile` updated | `validate-dispatch` group (5 validators), wired into `validate-all` | **CI-integrated** |
 | `validate_all.rs` updated | Session 56 + 58 entries | **146 binaries** |
 
@@ -583,3 +583,11 @@ transfer estimation and live mixed-hardware dispatch.
 | Shared memory | 200 GB/s | 0.1 us | ~5 us |
 
 P2P direct always beats CPU-staged for same bandwidth tier. Chained 2-hop < 3x direct overhead.
+
+### Session 62 — ToadStool S62 Sync (February 25, 2026)
+
+S-03b (MHA projection hangs) **FULLY RESOLVED** upstream. ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved/mha.rs` now thin wrapper to `barracuda::ops::mha::MultiHeadAttention`. 500 lib tests, 145/146 validate_all.
+
+### Session 61 — Deep Code Quality Sweep (February 25, 2026)
+
+Deep code quality sweep: 13 property tests added (`src/property_tests.rs`), 6 tolerance constants centralized, 4 vestigial `#[allow]` attributes removed. 500 lib tests, 93.17% coverage.

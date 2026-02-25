@@ -57,6 +57,8 @@
 
 #[cfg(test)]
 mod determinism_tests;
+#[cfg(test)]
+mod property_tests;
 
 pub mod agent_coordination;
 pub mod anderson_localization;

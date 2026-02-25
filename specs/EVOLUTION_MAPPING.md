@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 24, 2026 (Session 60: 16 functions rewired, benchmark-validated, cross-spring evolution narrative documented)
+**Last Updated**: February 25, 2026 (Sessions 60–64: 16 functions rewired, S-03b resolved, 21/21 shaders absorbed, benchmark-validated)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -122,7 +122,7 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### ToadStool Infrastructure Available for GPU Promotion
 
-ToadStool (reviewed `6ee71f07`, Feb 23, 2026 — all shortcomings through S-13 fixed)
+ToadStool (reviewed `02207c4a`, Feb 25, 2026 — all shortcomings through S-13 fixed, S-03b fully resolved)
 provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |
@@ -166,23 +166,23 @@ For each Rust module → GPU promotion:
 
 ---
 
-## Current Status (February 24, 2026)
+## Current Status (February 25, 2026)
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
 | Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, drift detection via `control/check_drift.sh` |
-| Phase 1a (neuralSpring Rust) | **482 lib + 9 integration PASS** | 36 modules (+2 evolved), 482 unit tests, 9 integration tests, 156 validation binaries |
+| Phase 1a (neuralSpring Rust) | **500 lib + 9 integration PASS** | 36 modules (+2 evolved), 500 unit tests, 9 integration tests, 156 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU ports) | **203/203 PASS** | 24/25 papers validated (96% bC coverage) |
 | Phase 3a (FFT validation) | **24/24 PASS** | f32 Fft1D/Ifft1D + f64 Fft1DF64 + Rfft |
 | Phase 3b (GPU streaming) | **COMPLETE** | `StatefulPipeline` validated (10/10 PASS) |
-| Phase 3c (Shader evolution) | **COMPLETE** | 21 WGSL shaders (13 upstream + 8 local) |
+| Phase 3c (Shader evolution) | **COMPLETE** | 21 WGSL shaders (21/21 absorbed upstream) |
 | Phase 3d (Pure GPU + cross-dispatch) | **COMPLETE** | 58/58 PASS (SP 10 + chain 7 + xd 8 + xd-genomics 8 + xd-extended 12 + xd-phase4e 13) |
 | Phase 4a (Performance benchmarks) | **COMPLETE** | 7 kernels, 71.8× overall speedup vs single-thread NumPy |
 | Phase 4b (Pure GPU end-to-end pipelines) | **COMPLETE** | 7 pipelines, 32/32 PASS (+modes, directed, signal) |
 | Phase 4c (GPU kernel benchmarks + PRNG) | **COMPLETE** | Crossover mapping (GPU wins at >1.5ms CPU work) + 5/5 PRNG PASS |
-| Phase 4d (ToadStool S-12 + S-03b) | **COMPLETE** | eigh LAPACK (9/9 PASS) + head_split/head_concat (10/10 PASS) |
+| Phase 4d (ToadStool S-12 + S-03b) | **COMPLETE** | eigh LAPACK (9/9 PASS) + S-03b fully resolved upstream (matmul + head_split/head_concat) |
 | Phase 4e (PINN/DeepONet + new GPU domains) | **COMPLETE** | PINN 16+14, DeepONet 17+9, GPU modes 15, directed 6, swarm 9, signal 9 |
 | Phase 5a (BarraCUDA GPU Tensor) | **COMPLETE** | 14/14 PASS (spectral 8, eco 6) |
 | Phase 4 (Sovereign pipeline) | **Active** | Cross-spring integration |

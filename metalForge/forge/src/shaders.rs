@@ -137,6 +137,26 @@ pub const RK45_ADAPTIVE: &str = include_str!("../../shaders/rk45_adaptive.wgsl")
 /// via fitness weighting, then binomial drift using inline xoshiro128**.
 pub const WRIGHT_FISHER_STEP: &str = include_str!("../../shaders/wright_fisher_step.wgsl");
 
+// ── Write phase: new extensions for ToadStool absorption (S64) ──────
+
+/// Fused chi-squared statistic (f64): `sum((o-e)²/e)` in a single dispatch.
+///
+/// Replaces the CPU elementwise loop + GPU sum pipeline currently used in
+/// `gpu_ops::reduction::chi_squared_gpu`. Two input arrays (observed, expected),
+/// workgroup-parallel reduction.
+///
+/// ## Absorption target: `barracuda::ops::fused_chi_squared_f64`
+pub const CHI_SQUARED_F64: &str = include_str!("../../shaders/chi_squared_f64.wgsl");
+
+/// Fused KL divergence (f64): `sum(p * ln(p/q))` in a single dispatch.
+///
+/// Replaces the CPU log-ratio + GPU sum pipeline currently used in
+/// `gpu_ops::reduction::kl_divergence_gpu`. Two input arrays (p, q),
+/// workgroup-parallel reduction with guard against zero.
+///
+/// ## Absorption target: `barracuda::ops::fused_kl_divergence_f64`
+pub const KL_DIVERGENCE_F64: &str = include_str!("../../shaders/kl_divergence_f64.wgsl");
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -165,6 +185,8 @@ mod tests {
             ("STENCIL_COOPERATION", STENCIL_COOPERATION),
             ("RK45_ADAPTIVE", RK45_ADAPTIVE),
             ("WRIGHT_FISHER_STEP", WRIGHT_FISHER_STEP),
+            ("CHI_SQUARED_F64", CHI_SQUARED_F64),
+            ("KL_DIVERGENCE_F64", KL_DIVERGENCE_F64),
         ];
         for (name, src) in shaders {
             assert!(
@@ -179,9 +201,9 @@ mod tests {
     }
 
     #[test]
-    fn shader_count_is_21() {
+    fn shader_count_is_23() {
         assert_eq!(
-            21,
+            23,
             [
                 HMM_FORWARD_LOG,
                 BATCH_FITNESS_EVAL,
@@ -204,6 +226,8 @@ mod tests {
                 STENCIL_COOPERATION,
                 RK45_ADAPTIVE,
                 WRIGHT_FISHER_STEP,
+                CHI_SQUARED_F64,
+                KL_DIVERGENCE_F64,
             ]
             .len()
         );

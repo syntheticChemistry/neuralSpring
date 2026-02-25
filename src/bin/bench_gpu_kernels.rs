@@ -86,10 +86,8 @@ async fn main() {
     print_summary(&results);
 }
 
-#[allow(dead_code)]
 struct GpuBenchResult {
     name: String,
-    shader: String,
     papers: String,
     gpu_us: f64,
     rust_cpu_us: Option<f64>,
@@ -136,7 +134,7 @@ fn bench_pairwise_hamming(gpu: &Gpu, n_seqs_p: u32, seq_len_p: u32, scale: &str)
 
     GpuBenchResult {
         name: format!("Hamming {n_seqs}×{seq_len} ({scale})"),
-        shader: "pairwise_hamming.wgsl".into(),
+
         papers: "017".into(),
         gpu_us: us,
         rust_cpu_us: rust_ref,
@@ -191,7 +189,7 @@ fn bench_pairwise_jaccard(
 
     GpuBenchResult {
         name: format!("Jaccard {n_genomes}×{n_genes} ({scale})"),
-        shader: "pairwise_jaccard.wgsl".into(),
+
         papers: "024".into(),
         gpu_us: us,
         rust_cpu_us: rust_ref,
@@ -302,7 +300,7 @@ fn bench_batch_fitness(
 
     GpuBenchResult {
         name: format!("Fitness {pop_size}×{genome_len} ({scale})"),
-        shader: "batch_fitness_eval.wgsl".into(),
+
         papers: "011-015".into(),
         gpu_us: us,
         rust_cpu_us: rust_ref,
@@ -347,7 +345,7 @@ fn bench_spatial_payoff(gpu: &Gpu, grid_size_p: u32, scale: &str) -> GpuBenchRes
 
     GpuBenchResult {
         name: format!("Spatial {grid_size}×{grid_size} ({scale})"),
-        shader: "spatial_payoff.wgsl".into(),
+
         papers: "019".into(),
         gpu_us: us,
         rust_cpu_us: None,
@@ -388,7 +386,7 @@ fn bench_batch_ipr(gpu: &Gpu, dim_p: u32, n_vectors_p: u32, scale: &str) -> GpuB
 
     GpuBenchResult {
         name: format!("IPR {n_vectors}×{dim} ({scale})"),
-        shader: "batch_ipr.wgsl".into(),
+
         papers: "022-023".into(),
         gpu_us: us,
         rust_cpu_us: None,

@@ -3,7 +3,7 @@
 > **Pattern**: `hotSpring` evolve → validate → hand off → absorb → fossil  
 > **Spring**: neuralSpring (Feb 2026)  
 > **Absorbed by**: ToadStool `77f70b2e` / BarraCUDA 0.2+  
-> **ToadStool HEAD**: `9404fdb4` — absorption span `d45fdfb3`..`9404fdb4` (Sessions 42–59)
+> **ToadStool HEAD**: `02207c4a` — absorption span `d45fdfb3`..`02207c4a` (Sessions 42–64)
 
 ## Purpose
 
@@ -65,12 +65,14 @@ documented in `specs/TOADSTOOL_HANDOFF.md` (S-15 section) and the V11 handoff.
 
 ## What Remains Active
 
-Two evolved modules survive in `src/evolved/`:
+One evolved module survives in `src/evolved/`:
 
 | Module | Why active | Path to absorption |
 |--------|-----------|-------------------|
-| `mha.rs` | Native `Tensor::multi_head_attention` projection shaders hang (S-03b) | ToadStool: debug `project_with_head_split` / `concat_and_project` GPU execution flow |
-| `hmm_forward_gpu.rs` | Active metalForge evolution — no BarraCUDA equivalent | Candidate for `ops::hmm` in BarraCUDA |
+| `mha.rs` | Thin wrapper delegating to upstream `barracuda::ops::mha::MultiHeadAttention`. Retained until all callers migrate to the 3D API. | Retire when callers use upstream directly |
+
+`hmm_forward_gpu.rs` was fossilized in Session 40 — `HmmBatchForwardF64` (wetSpring origin) is primary.
+S-03b fully resolved upstream at `ToadStool` `0c998992` (S60–S61).
 
 ## Timeline
 

@@ -22,6 +22,7 @@ mod dispatch_ops;
 
 use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile};
 use barracuda::device::WgpuDevice;
+use barracuda::unified_hardware::BandwidthTier;
 use std::sync::Arc;
 
 use crate::gpu::{Gpu, GpuCapabilities};
@@ -70,8 +71,9 @@ impl Dispatcher {
         match Gpu::new().await {
             Ok(gpu) => {
                 let profile = GpuDriverProfile::from_device(gpu.wgpu_device());
+                let tier = BandwidthTier::detect_from_adapter_name(&gpu.adapter_name);
                 eprintln!(
-                    "[dispatch] GPU available: {} ({:?}, {:?}, f64={:?})",
+                    "[dispatch] GPU available: {} ({:?}, {:?}, f64={:?}, pcie={tier:?})",
                     gpu.adapter_name,
                     gpu.device_type,
                     gpu.backend,
@@ -179,6 +181,36 @@ impl Dispatcher {
         self.driver_profile
             .as_ref()
             .is_some_and(GpuDriverProfile::needs_pow_f64_workaround)
+    }
+
+    /// `PCIe` bandwidth tier detected from the GPU adapter name.
+    ///
+    /// Returns `BandwidthTier::Unknown` when no GPU is available.
+    /// Evolved from hotSpring's cross-device transfer cost modelling.
+    #[must_use]
+    pub fn bandwidth_tier(&self) -> BandwidthTier {
+        self.gpu
+            .as_ref()
+            .map_or(BandwidthTier::Unknown, |g| {
+                BandwidthTier::detect_from_adapter_name(&g.adapter_name)
+            })
+    }
+
+    /// Check whether a combined GPU allocation of `total_bytes` is safe.
+    ///
+    /// On NVK (nouveau), the kernel driver PTE-faults at ~1.4 GB combined.
+    /// Returns `Ok(())` if safe or no GPU, `Err` with a diagnostic message
+    /// if the allocation would exceed the driver's safe limit.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`barracuda::error::BarracudaError::DeviceLimitExceeded`] when
+    /// `total_bytes` exceeds the NVK safe allocation limit (~1.2 GB).
+    pub fn check_allocation_safe(&self, total_bytes: u64) -> barracuda::error::Result<()> {
+        if let Some(ref profile) = self.driver_profile {
+            profile.check_allocation_safe(total_bytes)?;
+        }
+        Ok(())
     }
 
     // ═══════════════════════════════════════════════════════════════

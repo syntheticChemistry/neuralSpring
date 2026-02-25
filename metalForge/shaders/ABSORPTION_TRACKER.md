@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `9404fdb4` (Sessions 50–59, Feb 24, 2026)
+**ToadStool HEAD**: `02207c4a` (Sessions 50–64, Feb 25, 2026)
 
 ---
 
@@ -31,12 +31,18 @@ shaders still hang on RTX 4070 — these remain the only truly local shaders.
 
 Local copies retained for raw WGSL validation binaries (our validators depend on local binding layouts).
 
+## Write-Phase Extensions (Session 64)
+
+| Shader | Domain | Status | Origin |
+|--------|--------|--------|--------|
+| `chi_squared_f64.wgsl` | ML validation | **Validated** (forge tests) | neuralSpring S-64 |
+| `kl_divergence_f64.wgsl` | ML validation | **Validated** (forge tests) | neuralSpring S-64 |
+
 ## Planned Shaders
 
 | Shader | Domain | Priority | Dependency |
 |--------|--------|----------|------------|
 | `tridiag_eigensolver.wgsl` | Spectral (022–023) | P3 | Needs Householder → bisection design |
-| `logsumexp_reduce.wgsl` | HMM/phylogenetics | P2 | Complements `hmm_forward_log.wgsl` |
 
 ## Retired (Absorbed by ToadStool `5437c170`)
 
@@ -81,11 +87,11 @@ Local copies remain for validation (our validators depend on the local binding l
 | `spatial_payoff.wgsl` | `barracuda::ops::bio::spatial_payoff::WGSL_SPATIAL_PAYOFF` |
 | `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr::WGSL_BATCH_IPR` |
 
-### Still Active (Not Yet Absorbed)
+### Still Active (Thin Wrapper)
 
 | Module | LOC | Issue | Status |
 |--------|-----|-------|--------|
-| `mha.rs` | 182 | S-03b: native projection shaders hang | Active in `src/evolved/` |
+| `mha.rs` | 182 | S-03b resolved upstream (`0c998992`) | Thin wrapper delegating to `barracuda::ops::mha` |
 
 ---
 

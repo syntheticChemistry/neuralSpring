@@ -218,7 +218,8 @@ fn validate_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         tensor(&data, vec![1, 4], device),
         "Tensor::from_data: GPU buffer alloc"
     );
-    let eps = 1e-5_f32;
+    #[allow(clippy::cast_possible_truncation)]
+    let eps = tolerances::LAYER_NORM_EPS as f32;
 
     match input.layer_norm_wgsl(eps) {
         Ok(out) => {

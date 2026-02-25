@@ -6,9 +6,11 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `9abd6857` (Sessions 50–53 sync, Feb 24, 2026) |
-| Last updated | February 24, 2026 (Sessions 40–55) |
+| ToadStool HEAD | `02207c4a` (Sessions 59–64 sync, Feb 25, 2026) |
+| Last updated | February 25, 2026 (Sessions 40–64) |
 | BarraCUDA shader count | 645+ WGSL (zero CPU-only production math, S49) |
+| Shaders absorbed | 21/21 — all neuralSpring WGSL now upstream |
+| `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
 
 ---
 
@@ -150,13 +152,15 @@
 
 ## Validation Evidence
 
-### neuralSpring upstream wrapper validation (Feb 22, 2026)
+### neuralSpring validation (Feb 25, 2026, S64)
 
-| Validator | Checks | Result | Max Diff |
-|-----------|--------|--------|----------|
-| `validate_barracuda_bio_ops` | 12 | ALL PASS | 1.91e-6 (SpatialPayoff) |
-| `validate_barracuda_hmm_f64` | 11 | ALL PASS | 2.47e-10 (100-obs LL) |
-| Library tests | 255 | ALL PASS | — |
+| Validator | Checks | Result |
+|-----------|--------|--------|
+| `validate_cross_spring_evolution` | 22 | 22/22 PASS |
+| `validate_all` | 146 | 145/146 PASS (1 pre-existing logsumexp) |
+| `cargo test --lib` | 500 | 500 PASS |
+| `cargo clippy --all-targets` (pedantic + nursery) | — | 0 warnings |
+| `BandwidthTier` detection | RTX 4070 | `PciE4x16` detected |
 
 ### Benchmark: local vs upstream dispatch (RTX 4070, release)
 
@@ -321,7 +325,7 @@ Sessions 50–53 of ToadStool absorbed 6 additional neuralSpring shaders and
 closed 2 API gaps (`argmax_dim`, `softmax_dim`). The `level_spacing_ratio`
 function was rewired from local implementation to upstream `barracuda::spectral`.
 
-### 6 New Shader Absorptions
+### 6 New Shader Absorptions (S50–S52)
 
 | Shader | Upstream API | Session |
 |--------|-------------|---------|
@@ -332,8 +336,13 @@ function was rewired from local implementation to upstream `barracuda::spectral`
 | `rk45_adaptive.wgsl` | `barracuda::ops::rk45_adaptive` | S51 |
 | `swarm_nn_scores.wgsl` | `barracuda::SwarmNnGpu` | S52 |
 
-Only `head_split.wgsl` and `head_concat.wgsl` remain truly local (MHA S-03b
-workaround — upstream projection shaders still hang on RTX 4070).
+### S-03b Resolved: head_split / head_concat Absorbed (S62)
+
+`ToadStool` S60–S61 (`0c998992`) decomposed the fused MHA projection into separate
+matmul + head_split/head_concat — precisely mirroring neuralSpring's local workaround.
+`head_split.wgsl` and `head_concat.wgsl` are now fully absorbed upstream.
+`evolved/mha.rs` rewired to a thin wrapper delegating to `barracuda::ops::mha`.
+**21/21 neuralSpring shaders absorbed upstream.**
 
 ### Code Quality Hardening
 
@@ -475,6 +484,100 @@ Only `validate_barracuda_logsumexp` fails (pre-existing driver issue, S-16).
 
 ---
 
+## Sessions 62–64 — S-03b Resolved, `BandwidthTier` Wired, Full Benchmark (Feb 25, 2026)
+
+### S-03b: The Write → Absorb → Lean Cycle Completing
+
+`ToadStool` S60–S61 (`0c998992`) independently decomposed the fused MHA projection
+into matmul + head_split + head_concat — precisely the approach neuralSpring evolved
+locally when upstream's fused dispatch hung on RTX 4070. This is the textbook
+absorption cycle:
+
+```text
+neuralSpring evolves workaround (S-03b, evolved/mha.rs, 124 LOC)
+     → validated against baselines (10/10 MHA checks PASS)
+     → ToadStool absorbs the decomposed approach (0c998992)
+     → neuralSpring rewires to upstream (evolved/mha.rs → 18 LOC thin wrapper)
+     → 21/21 shaders absorbed, 0 local WGSL remaining
+```
+
+### `BandwidthTier` + NVK Allocation Guard (S63–S64)
+
+Wired upstream `BandwidthTier::detect_from_adapter_name()` into the Dispatcher.
+On initialization, the tier is detected and logged:
+```text
+[dispatch] GPU available: NVIDIA GeForce RTX 4070 (DiscreteGpu, Vulkan, f64=Hybrid, pcie=PciE4x16)
+```
+
+Added `Dispatcher::check_allocation_safe()` which delegates to upstream
+`GpuDriverProfile::check_allocation_safe()` for NVK large-buffer protection.
+
+### S63–S64 Cross-Spring Benchmark (RTX 4070, `--release`)
+
+#### Typed GPU Ops — All Three Springs
+
+| Op | Size | Median (µs) | Origin Spring | When |
+|----|------|-------------|---------------|------|
+| `BatchFitnessGpu` | 1024×64 | 3,033 | neuralSpring (ML) | S-25 |
+| `PairwiseL2Gpu` | 128×16 | 3,154 | neuralSpring (MODES) | S-42 |
+| `BatchIprGpu` | 32×64 | 2,364 | neuralSpring (Anderson) | S-25 |
+| `SpatialPayoffGpu` | 32×32 | 2,901 | neuralSpring (game theory) | S-25 |
+| `PairwiseHammingGpu` | 64×100 | 2,678 | neuralSpring (SATé) | S-25 |
+| `HmmBatchForwardF64` | 4s×50t×32b | 3,325 | wetSpring (phylo) | S-39 |
+| `BatchedEighGpu` | 12×12×40 | 7,402 | hotSpring (nuclear) | S-39 |
+
+#### Rewire Evolution — f32 Tensor → f64 Upstream (10,000 elements)
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Cross-Spring Origin |
+|----|-----------------|-------------------|---------|---------------------|
+| Variance | 9,949 | 2,847 | **3.49×** | hotSpring Welford → `VarianceReduceF64` |
+| Pearson | 4,679 | 3,508 | **1.33×** | wetSpring + hotSpring → `CorrelationF64` |
+| Entropy | 6,317 | 2,468 | **2.56×** | wetSpring fused → `FusedMapReduceF64` |
+
+**Key insight**: Variance sees the biggest speedup because Welford's online algorithm
+(hotSpring origin) replaces 4 separate f32 dispatches with a single f64 dispatch.
+Entropy's fused map-reduce (wetSpring origin) similarly collapses 3 dispatches into 1.
+Pearson gains f64 precision with modest speedup.
+
+#### Rewired Dispatcher Throughput (upstream dispatch vs CPU ref)
+
+| Method | Origin | n=128 upstream (µs) | n=128 CPU (µs) | Notes |
+|--------|--------|---------------------|----------------|-------|
+| `matmul` | hotSpring precision | 2,714 | 325 | GPU at 128²; crossover ~256² |
+| `softmax` | hotSpring numerics | 4.7 | 4.7 | Parity — dispatch routes to CPU |
+| `gelu` | neuralSpring ML | 19.4 | 15.1 | CPU-routed; GPU wins at 4096+ |
+| `mean` | hotSpring reduce | 0.4 | 0.4 | Parity |
+| `hmm_forward` | wetSpring bio | 0.5 | 0.5 | Parity — CPU optimal at 32 states |
+
+### Validation: 145/146 + 22/22 + 500 PASS
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
+| `cargo test --lib` | 500 PASS |
+| `validate_all` | 145/146 PASS |
+| `validate_cross_spring_evolution` | **22/22 PASS** |
+
+### Evolution Timeline Update
+
+```text
+Feb 25  Session 62: ToadStool S62 sync (02207c4a)
+          - S-03b RESOLVED: MHA head_split/head_concat absorbed upstream
+          - evolved/mha.rs rewired to thin wrapper (124 LOC → 18 LOC)
+          - 21/21 neuralSpring WGSL shaders now upstream
+          - New upstream: BandwidthTier, ComputeDispatch, NvkLargeBufferLimit,
+            Conv2dGpu, SpMM f64, TransE f64, PeakDetectF64, cpu-math feature gate
+        Session 63: BandwidthTier + NVK guard wired into Dispatcher
+          - BandwidthTier::detect_from_adapter_name() → PciE4x16 (RTX 4070)
+          - check_allocation_safe() for NVK large-buffer protection
+          - Full benchmark: 3.49× variance, 2.56× entropy, 1.33× Pearson
+          - All Springs' ops benchmarked: BatchFitnessGpu, HmmBatchForwardF64,
+            BatchedEighGpu running through unified BarraCUDA dispatch
+```
+
+---
+
 ## Files
 
 | Purpose | Path |
@@ -488,5 +591,4 @@ Only `validate_barracuda_logsumexp` fails (pre-existing driver issue, S-16).
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
 | Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
-| V15 handoff document | `wateringHole/handoffs/archive/NEURALSPRING_V15_SESSION47_HANDOFF_FEB23_2026.md` |
-| V16 handoff document | `wateringHole/handoffs/NEURALSPRING_V16_SESSION48_HANDOFF_FEB23_2026.md` |
+| V29 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V29_S64_HANDOFF_FEB25_2026.md` |

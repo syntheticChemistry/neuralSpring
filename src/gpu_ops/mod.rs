@@ -402,23 +402,19 @@ mod tests {
 
     #[test]
     fn gpu_neural_forward_basic() {
+        use super::NeuralForwardParams;
+
         let Some(dev) = test_device() else { return };
-        let input = vec![1.0, 0.5];
-        let weights_hidden = vec![1.0, 0.0, 0.0, 1.0]; // 2×2 identity
-        let bias_hidden = vec![0.0, 0.0];
-        let weights_output = vec![1.0, 1.0]; // 1×2 sum
-        let bias_output = vec![0.0];
-        let result = neural_forward_gpu(
-            &weights_hidden,
-            &bias_hidden,
-            &weights_output,
-            &bias_output,
-            &input,
-            2,
-            1,
-            &dev,
-        )
-        .unwrap();
+        let params = NeuralForwardParams {
+            input: &[1.0, 0.5],
+            weights_hidden: &[1.0, 0.0, 0.0, 1.0], // 2x2 identity
+            bias_hidden: &[0.0, 0.0],
+            weights_output: &[1.0, 1.0], // 1x2 sum
+            bias_output: &[0.0],
+            hidden_size: 2,
+            output_size: 1,
+        };
+        let result = neural_forward_gpu(&params, &dev).unwrap();
         assert_eq!(result.len(), 1);
         assert!(result[0].is_finite());
     }

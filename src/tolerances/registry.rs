@@ -459,10 +459,36 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             value: EIGH_JACOBI_EIGENVALUE,
             category: "linalg",
         },
-        // ── ODE integrator agreement ───────────────────────────────────
+        // ── ODE integrator ────────────────────────────────────────────
         NamedTolerance {
             name: "ODE_INTEGRATOR_AGREEMENT",
             value: ODE_INTEGRATOR_AGREEMENT,
+            category: "numerical",
+        },
+        NamedTolerance {
+            name: "ODE_ATOL",
+            value: ODE_ATOL,
+            category: "numerical",
+        },
+        NamedTolerance {
+            name: "ODE_RTOL",
+            value: ODE_RTOL,
+            category: "numerical",
+        },
+        // ── Numerical stability guards ────────────────────────────────
+        NamedTolerance {
+            name: "LOG_ZERO_GUARD",
+            value: LOG_ZERO_GUARD,
+            category: "numerical",
+        },
+        NamedTolerance {
+            name: "LAYER_NORM_EPS",
+            value: LAYER_NORM_EPS,
+            category: "tensor",
+        },
+        NamedTolerance {
+            name: "HESSIAN_FD_STEP",
+            value: HESSIAN_FD_STEP,
             category: "numerical",
         },
         // ── Statistical critical values ────────────────────────────────
@@ -705,6 +731,37 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             value: PGM_NORMALIZATION_SUM,
             category: "gpu_dispatch",
         },
+        // ── Cross-dispatch f64 parity ──────────────────────────────────
+        NamedTolerance {
+            name: "DISPATCH_MATMUL_F64",
+            value: DISPATCH_MATMUL_F64,
+            category: "cross_dispatch",
+        },
+        NamedTolerance {
+            name: "DISPATCH_FROBENIUS_F64",
+            value: DISPATCH_FROBENIUS_F64,
+            category: "cross_dispatch",
+        },
+        NamedTolerance {
+            name: "DISPATCH_TRANSPOSE_F64",
+            value: DISPATCH_TRANSPOSE_F64,
+            category: "cross_dispatch",
+        },
+        NamedTolerance {
+            name: "DISPATCH_ELEMENTWISE_F64",
+            value: DISPATCH_ELEMENTWISE_F64,
+            category: "cross_dispatch",
+        },
+        NamedTolerance {
+            name: "DISPATCH_TWOPASS_F64",
+            value: DISPATCH_TWOPASS_F64,
+            category: "cross_dispatch",
+        },
+        NamedTolerance {
+            name: "DISPATCH_NEAR_ZERO_F64",
+            value: DISPATCH_NEAR_ZERO_F64,
+            category: "cross_dispatch",
+        },
     ]
 }
 
@@ -768,6 +825,7 @@ mod tests {
             "statistical",
             "linalg",
             "ml_pipeline",
+            "cross_dispatch",
         ] {
             assert!(cats.contains(&expected), "missing category: {expected}");
         }
@@ -777,7 +835,7 @@ mod tests {
     fn registry_complete() {
         let all = all_tolerances();
         assert!(
-            all.len() >= 95,
+            all.len() >= 101,
             "registry should contain all tolerances, got {}",
             all.len()
         );

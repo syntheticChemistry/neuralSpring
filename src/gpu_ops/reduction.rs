@@ -109,29 +109,38 @@ pub fn max_gpu(data: &[f64], device: &Arc<WgpuDevice>) -> Result<f64, String> {
     Ok(f64::from(result[0]))
 }
 
+/// Two-layer neural network parameters for GPU forward pass.
+pub struct NeuralForwardParams<'a> {
+    pub weights_hidden: &'a [f64],
+    pub bias_hidden: &'a [f64],
+    pub weights_output: &'a [f64],
+    pub bias_output: &'a [f64],
+    pub input: &'a [f64],
+    pub hidden_size: usize,
+    pub output_size: usize,
+}
+
 /// GPU neural network forward pass: input → hidden (sigmoid) → output (sigmoid).
 ///
 /// Replaces `swarm_robotics::neural_forward`.
 /// Uses Tensor matmul + sigmoid for each layer.
 ///
-/// # Layout
-///
-/// `params` is flat: `[w_hidden (h×in), b_hidden (h), w_out (out×h), b_out (out)]`
-///
 /// # Errors
 ///
 /// Returns an error if GPU operations fail.
-#[allow(clippy::too_many_arguments)]
 pub fn neural_forward_gpu(
-    weights_hidden: &[f64],
-    bias_hidden: &[f64],
-    weights_output: &[f64],
-    bias_output: &[f64],
-    input: &[f64],
-    hidden_size: usize,
-    output_size: usize,
+    params: &NeuralForwardParams<'_>,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
+    let NeuralForwardParams {
+        weights_hidden,
+        bias_hidden,
+        weights_output,
+        bias_output,
+        input,
+        hidden_size,
+        output_size,
+    } = params;
     let input_size = input.len();
 
     let w_h: Vec<f32> = weights_hidden.iter().map(|&x| x as f32).collect();
@@ -143,14 +152,14 @@ pub fn neural_forward_gpu(
     let input_t = Tensor::from_data(&inp, vec![1, input_size], device.clone())
         .map_err(|e| format!("nn_forward input: {e}"))?;
 
-    let wh_t = Tensor::from_data(&w_h, vec![hidden_size, input_size], device.clone())
+    let wh_t = Tensor::from_data(&w_h, vec![*hidden_size, input_size], device.clone())
         .map_err(|e| format!("nn_forward W_h: {e}"))?;
-    let bh_t = Tensor::from_data(&b_h, vec![1, hidden_size], device.clone())
+    let bh_t = Tensor::from_data(&b_h, vec![1, *hidden_size], device.clone())
         .map_err(|e| format!("nn_forward b_h: {e}"))?;
 
-    let wo_t = Tensor::from_data(&w_o, vec![output_size, hidden_size], device.clone())
+    let wo_t = Tensor::from_data(&w_o, vec![*output_size, *hidden_size], device.clone())
         .map_err(|e| format!("nn_forward W_o: {e}"))?;
-    let bo_t = Tensor::from_data(&b_o, vec![1, output_size], device.clone())
+    let bo_t = Tensor::from_data(&b_o, vec![1, *output_size], device.clone())
         .map_err(|e| format!("nn_forward b_o: {e}"))?;
 
     let wh_transposed = wh_t

@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 24, 2026 (Sessions 45–60)
+**Last Updated**: February 25, 2026 (Sessions 45–61)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -183,10 +183,10 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated.**
 
-Session 60 verified: all `cargo fmt`, `clippy` (pedantic + nursery), and `doc` gates pass clean.
+Sessions 60–61 verified: all `cargo fmt`, `clippy` (pedantic + nursery), and `doc` gates pass clean.
 `validate_all`: 145/146 PASS on RTX 4070 (1 pre-existing logsumexp driver issue).
 `validate_cross_spring_evolution`: 22/22 PASS (all 16 rewired functions validated).
-482 lib + 9 integration tests + 30 forge tests. Zero debt.
+501 lib + 9 integration tests + 30 forge tests. Zero debt.
 16 functions rewired to upstream BarraCUDA (S56: 4, S58: 7, S59: 5).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -221,7 +221,7 @@ Full provenance: `specs/DATA_PROVENANCE.md`.
 
 ---
 
-## Full Validation Stack Matrix (February 24, 2026 — Session 60)
+## Full Validation Stack Matrix (February 25, 2026 — Sessions 60–61)
 
 Each paper maps through 10 validation tiers. The stack proves correctness
 from Python baseline through multi-GPU portability to mixed-hardware dispatch.
@@ -298,7 +298,7 @@ routing through `validate_mixed_hardware` (14/14 PASS).
 | Tier | Papers Covered | Total | Coverage |
 |------|---------------|-------|----------|
 | Python control (Py) | 25/25 | 206 checks | **100%** |
-| Rust CPU (Rs) | 25/25 + baseCamp | 482 lib + 114 baseCamp + 9 integration | **100%** |
+| Rust CPU (Rs) | 25/25 + baseCamp | 501 lib + 114 baseCamp + 9 integration | **100%** |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** |
 | BarraCUDA GPU (baseCamp) | 5/5 sub-theses | 14 checks | **100%** |
@@ -581,12 +581,12 @@ l2_distance, hmm_forward_step, neural_forward, etc.).
 
 ---
 
-## Controls Verification: Open Data + Three Hardware Tiers (Sessions 49–60)
+## Controls Verification: Open Data + Three Hardware Tiers (Sessions 49–61)
 
 Every paper control runs on open data, uses deterministic seeds, and validates
 at three hardware tiers (BarraCUDA CPU, BarraCUDA GPU, metalForge mixed).
 
-**Session 60 confirmation**: All three tiers re-verified after 16-function rewiring.
+**Sessions 60–61 confirmation**: All three tiers re-verified after 16-function rewiring.
 Cross-spring evolution validator (22/22 PASS) proves rewired paths produce identical
 results through upstream BarraCUDA dispatch. Benchmark validation confirms
 performance benefits: Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused).

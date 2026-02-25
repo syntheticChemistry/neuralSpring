@@ -29,8 +29,6 @@
 //! per hidden state, logsumexp reduction per step. Validated in
 //! `validate_gpu_hmm_forward` (13/13 PASS).
 
-#![allow(clippy::needless_range_loop)]
-
 use crate::primitives;
 use crate::rng::Rng;
 
@@ -141,8 +139,11 @@ impl Hmm {
         let mut scales = vec![0.0; t_len];
 
         let ob0 = obs[0].min(self.m - 1);
-        for i in 0..self.n {
-            alpha[i] = self.initial[i] * self.emission[i * self.m + ob0];
+        for (a, (pi, emit_row)) in alpha[..self.n]
+            .iter_mut()
+            .zip(self.initial.iter().zip(self.emission.chunks(self.m)))
+        {
+            *a = pi * emit_row[ob0];
         }
         scales[0] = alpha[..self.n].iter().sum();
         if scales[0] > 0.0 {

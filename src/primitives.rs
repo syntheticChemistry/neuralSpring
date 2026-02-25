@@ -2,34 +2,31 @@
 
 #![allow(clippy::cast_precision_loss)]
 
-//! Shared mathematical primitives used across multiple science modules.
+//! CPU-side mathematical primitives shared across science modules.
 //!
-//! Consolidates duplicated math (Shannon entropy, Hill kinetics, sigmoid,
-//! RK4 integration) into one module instead of reimplementing per-domain.
+//! This module is the **CPU reference path**.  For GPU throughput, callers
+//! should use the barracuda equivalents listed below.  These CPU functions
+//! remain as: (a) independent validation references for GPU correctness,
+//! (b) fallback for environments without GPU, (c) small-N fast-path where
+//! GPU launch overhead dominates.
 //!
-//! ## Consolidation map
+//! ## `BarraCUDA` equivalents
 //!
-//! | Primitive | Previously in | Now |
-//! |-----------|---------------|-----|
-//! | Shannon entropy | `regulatory_network`, `eco_dynamics`, pangenome, swarm, modes | `primitives::shannon_entropy` |
-//! | Hill activation/repression | `regulatory_network`, `signal_integration` | `primitives::hill_activation` / `hill_repression` |
-//! | Sigmoid | `swarm_robotics`, sequence | `primitives::sigmoid` |
-//! | RK4 step | `regulatory_network`, `signal_integration` | `primitives::rk4_step` |
+//! | CPU primitive (this module) | GPU equivalent (`barracuda`) | Notes |
+//! |----------------------------|------------------------------|-------|
+//! | [`shannon_entropy`] | `FusedMapReduceF64::shannon_entropy` | GPU batch reduction |
+//! | [`sigmoid`] | `Tensor::sigmoid()` / `ops::sigmoid::Sigmoid` | GPU elementwise |
+//! | [`hill_activation`] | `ops::bio::HillFunctionF64` / `hill_gate.wgsl` | GPU activation only |
+//! | [`hill_repression`] | Not yet exposed upstream | Pending barracuda |
+//! | [`rk4_step`] | `ops::ode::BatchedOdeRK4F64` / `rk4_parallel.wgsl` | GPU batch ODE |
+//! | [`LOG_GUARD`], [`HILL_EPS`], [`DIVISION_GUARD`] | N/A | Numerical guards — stay here |
 //!
-//! ## `BarraCUDA` evolution path
+//! ## Ownership rule
 //!
-//! | Primitive | `BarraCUDA` equivalent | Status |
-//! |-----------|------------------------|--------|
-//! | `shannon_entropy` | `FusedMapReduceF64::shannon_entropy` | Available (GPU path) |
-//! | `sigmoid` | `Tensor::sigmoid()` / `Sigmoid` op | Available (GPU path) |
-//! | `hill_activation` | `HillFunctionF64` / `hill_gate.wgsl` | Available (GPU, activation only) |
-//! | `hill_repression` | Not yet exposed | Pending upstream |
-//! | `rk4_step` | `BatchedOdeRK4F64` / `rk4_parallel.wgsl` | Available (GPU batch) |
-//! | `LOG_GUARD`, `HILL_EPS`, `DIVISION_GUARD` | None | CPU guards, stay here |
-//!
-//! Migration: GPU callers should prefer `barracuda` equivalents for throughput.
-//! CPU callers keep using this module.  When upstream adds `hill_repression`,
-//! this module becomes a thin re-export layer.
+//! This module **does not reimplement** barracuda math.  Each function here
+//! uses a self-contained formula (no barracuda calls) so it serves as an
+//! independent reference.  When barracuda absorbs `hill_repression`, this
+//! module becomes a thin re-export layer with the guards remaining.
 
 // ═══════════════════════════════════════════════════════════════════
 // Numerical safety constants

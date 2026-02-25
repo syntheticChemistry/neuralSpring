@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 24, 2026 (Session 60)
-**Status**: 25 papers + 5 baseCamp sub-theses, 2050+ checks, ~90% GPU promotion, 16 functions rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (22/22 PASS), zero debt
+**Last Updated**: February 25, 2026 (Session 61)
+**Status**: 25 papers + 5 baseCamp sub-theses, 2070+ checks, ~90% GPU promotion, 16 functions rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (22/22 PASS), zero debt, 93.17% coverage, 101+ named tolerances, 13 property tests
 
 ## Purpose
 

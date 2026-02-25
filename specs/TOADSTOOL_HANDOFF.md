@@ -3,13 +3,16 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `9404fdb4` (Sessions 50–60, Feb 24, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V25_S60_HANDOFF_FEB24_2026.md`
+**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–64, Feb 25, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V29_S64_HANDOFF_FEB25_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
 **Session 59 sync:** 5 new rewires — `empirical_spectral_density`, `marchenko_pastur_bounds`, `effective_rank` to upstream stats/linalg; `gelu` + `hmm_forward_step` added to Dispatcher via upstream `domain_ops`; 3 dead WGSL re-exports removed from `evolved/`
-**Session 60 sync:** Benchmark validation pass — 22/22 cross-spring evolution checks, f64 typed ops benchmarked (Variance 2.46× hotSpring, Entropy 2.59× wetSpring), 482 lib tests, 145/146 validate_all
+**Session 60 sync:** Benchmark validation pass — 22/22 cross-spring evolution checks, f64 typed ops benchmarked (Variance 2.46× hotSpring, Entropy 2.59× wetSpring), 500 lib tests, 145/146 validate_all
+**Session 61 sync:** V26 handoff, code quality sweep, 101+ tolerances, property tests, comprehensive evolution handoff
+**Session 62 sync:** S-03b **FULLY RESOLVED** upstream. ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved/mha.rs` now thin wrapper to `barracuda::ops::mha::MultiHeadAttention`. 500 lib tests, 145/146 validate_all.
+**Session 64 sync:** V29 handoff. BandwidthTier + NVK guard wired into Dispatcher. Cross-spring benchmarks: Variance 3.49×, Entropy 2.56×, Pearson 1.33×.
 
 ---
 
@@ -17,7 +20,7 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 
 **All 12 neuralSpring shortcomings (S-01 through S-12) are now ABSORBED by
 ToadStool `77f70b2e`.** S-13 **FIXED** upstream in Session 42 (`5437c170`).
-S-03b has local workaround. Key absorption commits:
+S-03b **FULLY RESOLVED** upstream (ToadStool `0c998992`). Key absorption commits:
 
 | Commit | What It Did |
 |--------|-------------|
@@ -107,30 +110,24 @@ are now superseded by native BarraCUDA APIs. Documented in `evolved/mod.rs`.
 
 | Module | LOC | Issue | Binary | Checks |
 |--------|-----|-------|--------|--------|
-| `mha` | 182 | S-03b: native projection shaders hang — **GPU `head_split.wgsl`/`head_concat.wgsl` now available** | `validate_barracuda_ml_inference`, `bench_transformer_block` | 17 |
+| `mha` | ~50 | **Thin wrapper** to `barracuda::ops::mha::MultiHeadAttention` (S-03b resolved upstream) | `validate_barracuda_ml_inference`, `bench_transformer_block` | 17 |
 | `hmm_forward_gpu` | 270 | `HmmBatchForwardF64` validated (11/11 PASS) — local retained for f32 fallback | `validate_barracuda_hmm_f64` | 11/11 |
 
-### S-03b: MHA — PARTIAL FIX (GPU head split/concat shaders)
+### S-03b: MHA — FULLY RESOLVED (ToadStool `0c998992`)
 
 **Root cause**: Native MHA fuses matmul into projection shaders (heavy per-thread nested loops → GPU watchdog timeout).
 
-**Local fix**: `metalForge/shaders/head_split.wgsl` and `head_concat.wgsl` — pure data movement:
-- `head_split.wgsl`: [B,S,D] → [B,H,S,D/H]
-- `head_concat.wgsl`: [B,H,S,D/H] → [B,S,D]
+**Upstream fix**: ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders now absorbed upstream.
 
-Validated at production sizes: B=4, S=128, H=8, d_head=64 (d_model=512). Validation: `validate_mha_gpu` (10/10 PASS).
-
-**Fix**: Decompose into `matmul` (validated) + `head_split.wgsl` / `head_concat.wgsl`.  
-**Absorption**: Replace `mha_projection.wgsl` with `matmul` + `head_split.wgsl`; replace `mha_output.wgsl` with `head_concat.wgsl` + `matmul`.  
-**Status**: `evolved::mha` CPU workaround still active until ToadStool absorbs GPU shaders.
+**Status**: `evolved::mha` is now a thin wrapper delegating to `barracuda::ops::mha::MultiHeadAttention`.
 
 ### Rewired to native APIs
 
 | Binary | Previous | Now |
 |--------|----------|-----|
 | `bench_barracuda_tensor` | `evolved::layer_norm`/`log_softmax` | `Tensor::layer_norm_wgsl()`/`log_softmax_wgsl()` |
-| `validate_barracuda_ml_inference` | Uses `evolved::mha` (S-03b, cannot rewire yet) | Kept |
-| `bench_transformer_block` | Uses `evolved::mha` (S-03b, cannot rewire yet) | Kept |
+| `validate_barracuda_ml_inference` | Uses `evolved::mha` (thin wrapper to upstream) | Kept |
+| `bench_transformer_block` | Uses `evolved::mha` (thin wrapper to upstream) | Kept |
 
 ---
 
@@ -153,19 +150,18 @@ Validated at production sizes: B=4, S=128, H=8, d_head=64 (d_model=512). Validat
 | Removed `WGSL_BATCH_FITNESS_EVAL` | Dead re-export — all callers use `barracuda::ops::batch_gemm` directly |
 | Removed `WGSL_RK4_PARALLEL` | Dead re-export — all callers use `barracuda::ops::rk_stage` directly |
 | Removed `WGSL_MEAN_REDUCE` | Dead re-export — all callers use `barracuda::pipeline::ReduceScalarPipeline` directly |
-| Kept `WGSL_HEAD_SPLIT` / `WGSL_HEAD_CONCAT` | Still needed for MHA S-03b workaround |
+| Removed `WGSL_HEAD_SPLIT` / `WGSL_HEAD_CONCAT` | S-03b resolved — upstream `barracuda::ops::mha` |
 
 ### MHA Retirement Assessment
 
-`evolved/mha` NOT retired. Upstream `barracuda::ops::mha::MultiHeadAttention` exists
-(S52+) but projection shaders need validated end-to-end on RTX 4070 + Vulkan at
-production sizes (B=4, S=128, H=8, d=512). Status documented; awaiting hardware test.
+`evolved/mha` is now a **thin wrapper** delegating to `barracuda::ops::mha::MultiHeadAttention`.
+S-03b fully resolved upstream (ToadStool `0c998992`): MHA projections decomposed into matmul + head_split/head_concat. All 21/21 WGSL shaders absorbed.
 
 ### Validation
 
 | Gate | Result |
 |------|--------|
-| `cargo test --lib` | 482 PASS |
+| `cargo test --lib` | 500 PASS |
 | `validate_all` | 145/146 PASS (1 pre-existing logsumexp driver issue) |
 | `cargo clippy (pedantic+nursery)` | 0 warnings |
 
@@ -297,8 +293,6 @@ dispatch output vs upstream BarraCuda wrapper output.
 
 | Shader | Domain | Suggested upstream module |
 |--------|--------|--------------------------|
-| `head_split.wgsl` | MHA | `barracuda::ops::mha` (fix S-03b first) |
-| `head_concat.wgsl` | MHA | `barracuda::ops::mha` (fix S-03b first) |
 | `xoshiro128ss.wgsl` | GPU PRNG | `barracuda::ops::prng` |
 | `swarm_nn_scores.wgsl` | Swarm (015) | New — no upstream equivalent |
 

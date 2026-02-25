@@ -559,6 +559,44 @@ pub const ML_MLP_F32: f64 = TENSOR_MATMUL_F32;
 pub const ML_TRANSFORMER_F32: f64 = 0.05;
 
 // ═══════════════════════════════════════════════════════════════════
+// ODE integrator configuration
+// ═══════════════════════════════════════════════════════════════════
+
+/// Default RK45 absolute tolerance for adaptive ODE integration.
+///
+/// 1e-8 is standard for biological ODE systems (GRN, replicator dynamics)
+/// where state variables are O(1).  Matches `SciPy` `solve_ivp` default.
+pub const ODE_ATOL: f64 = 1e-8;
+
+/// Default RK45 relative tolerance for adaptive ODE integration.
+///
+/// 1e-6 balances accuracy against step count for smooth ODE systems.
+/// Matches `SciPy` `solve_ivp` default.
+pub const ODE_RTOL: f64 = 1e-6;
+
+// ═══════════════════════════════════════════════════════════════════
+// Numerical stability guards
+// ═══════════════════════════════════════════════════════════════════
+
+/// Guard for logarithm inputs to avoid `ln(0)`.
+///
+/// 1e-30 is small enough to not affect results but large enough to
+/// prevent `-inf` in KL divergence, cross-entropy, and similar.
+pub const LOG_ZERO_GUARD: f64 = 1e-30;
+
+/// Layer normalization epsilon (f32 numerical stability).
+///
+/// Prevents division by zero in variance normalization.  Matches
+/// `PyTorch` default `LayerNorm(eps=1e-5)`.
+pub const LAYER_NORM_EPS: f64 = 1e-5;
+
+/// Hessian finite-difference step size.
+///
+/// Central difference `h` for numerical Hessian computation.
+/// 1e-5 balances truncation error O(h²) against cancellation noise O(eps/h²).
+pub const HESSIAN_FD_STEP: f64 = 1e-5;
+
+// ═══════════════════════════════════════════════════════════════════
 // Eigenvalue decomposition (barracuda Jacobi eigensolver)
 // ═══════════════════════════════════════════════════════════════════
 
@@ -711,6 +749,44 @@ pub const GPU_LOGSUMEXP_F32: f64 = 1e-4;
 /// accumulated rounding from the Butcher tableau coefficients
 /// requires ~5e-4 tolerance vs exact CPU f64 reference.
 pub const GPU_RK45_F32: f64 = 5e-4;
+
+// ═══════════════════════════════════════════════════════════════════
+// Cross-dispatch f64 parity (upstream barracuda dispatch vs CPU ref)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Cross-dispatch matmul: upstream vs CPU reference (f64, n=64).
+///
+/// GPU parallel reduction accumulates dot products in different order than
+/// sequential CPU; for 64-element inner products the rounding difference
+/// reaches O(n * eps * ||A|| * ||B||) ≈ 1e-3 on typical inputs.
+pub const DISPATCH_MATMUL_F64: f64 = 1e-3;
+
+/// Cross-dispatch Frobenius norm: upstream vs CPU reference (f64, n=1024).
+///
+/// Single parallel reduction of 1024 squared values; accumulation order
+/// difference yields ~6 digits of agreement.
+pub const DISPATCH_FROBENIUS_F64: f64 = 1e-6;
+
+/// Cross-dispatch transpose: upstream vs CPU reference (f64, n=32).
+///
+/// Pure data movement — no arithmetic difference.  Tolerance equals
+/// machine precision for exact operations.
+pub const DISPATCH_TRANSPOSE_F64: f64 = EXACT_F64;
+
+/// Cross-dispatch element-wise ops: softmax, gelu, `hmm_forward`, mean (f64).
+///
+/// These involve exp/log/div chains where implementation ordering differs;
+/// f64 agreement at 10 digits is typical.
+pub const DISPATCH_ELEMENTWISE_F64: f64 = CROSS_LANGUAGE;
+
+/// Cross-dispatch two-pass statistics: variance, `l2_distance` (f64).
+///
+/// Two-pass algorithms (mean → residuals → mean) compound rounding from
+/// both passes; 8 digits of agreement is typical for n ≤ 4096.
+pub const DISPATCH_TWOPASS_F64: f64 = 1e-8;
+
+/// Cross-dispatch near-zero analytical value (e.g. gelu(0) ≈ 0).
+pub const DISPATCH_NEAR_ZERO_F64: f64 = ZERO_DETECTION;
 
 // ═══════════════════════════════════════════════════════════════════
 // GPU promotion dispatch parity (CPU → GPU round-trip)

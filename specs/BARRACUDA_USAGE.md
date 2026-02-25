@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 24, 2026 (Sessions 40–60)
+**Last Updated**: February 25, 2026 (Sessions 40–64)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -75,7 +75,7 @@
 | BarraCUDA Module | Replaces | Impact | Blocker |
 |-----------------|----------|--------|---------|
 | `ops::logsumexp` / `logsumexp_wgsl` | `hmm_forward_gpu` manual logsumexp | Correctness + perf | Need to verify API compatibility |
-| Native `ops::mha` | `evolved::mha` (S-03b) | Retire 182 LOC | Projection shaders hang on RTX 4070 |
+| Native `ops::mha::MultiHeadAttention` | `evolved::mha` thin wrapper | **Wired** (S-03b resolved upstream `0c998992`) |
 | `ops::pairwise_distance` | Hand-rolled distance in SATé (017) | Correctness | None — ready to integrate |
 | `linalg::batched_eigh_gpu` | `eigh_f64` — **S-12 ABSORBED** (`77f70b2e`) | Householder+QR upstream | NAK GPU eigensolve also available |
 
@@ -367,9 +367,7 @@ Migrated from raw wgpu dispatch to typed BarraCUDA ops:
 
 ### MHA S-03b Fix Status
 
-**FIXED** upstream in ToadStool S46 (`fe573095`). Z-dimension dispatch bug resolved.
-Fix flows to neuralSpring via path dependency. `evolved::mha` remains for now until
-full native MHA validation.
+**FULLY RESOLVED** upstream in ToadStool `0c998992`. MHA projections decomposed into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved::mha` is now a thin wrapper to `barracuda::ops::mha::MultiHeadAttention`.
 
 ---
 
@@ -737,14 +735,14 @@ unavoidable transitive dependencies with no C compilation.
 
 ---
 
-## Session 60 — Cross-Spring Benchmark Validation (February 24, 2026)
+## Sessions 60–61 — Cross-Spring Benchmark Validation (February 25, 2026)
 
 ### Updated Validation
 
 | Gate | Result |
 |------|--------|
 | `validate_cross_spring_evolution` | **22/22 PASS** |
-| `cargo test --lib` | **482 PASS** |
+| `cargo test --lib` | **500 PASS** |
 | `validate_all` | **145/146 PASS** |
 
 ### Paper Controls Verification: Hardware Tiers
@@ -761,4 +759,4 @@ Open data confirmed: zero proprietary, zero paywalled, zero access-restricted so
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 24, 2026. Sessions 50–60: 16 functions rewired to upstream, GpuDriverProfile wired in, 156 binaries, 482 lib + 30 forge tests. Cross-spring evolution benchmarked: 22/22 PASS.*
+*BarraCUDA usage audit — neuralSpring, February 25, 2026. Sessions 50–64: 16 functions rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 156 binaries, 500 lib + 43 forge tests. Cross-spring evolution benchmarked: 22/22 PASS.*

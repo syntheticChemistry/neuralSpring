@@ -50,13 +50,13 @@ fn main() {
     // ── nS-301: Quadratic Hessian = 2*I ──────────────────────────────
 
     let params = vec![0.0; 4];
-    let hessian = numerical_hessian(&quadratic_loss, &params, 1e-5);
+    let hessian = numerical_hessian(&quadratic_loss, &params, tolerances::HESSIAN_FD_STEP);
     let mut diag_ok = true;
     let mut off_ok = true;
     for i in 0..4 {
         for j in 0..4 {
             let expected = if i == j { 2.0 } else { 0.0 };
-            if (hessian[i * 4 + j] - expected).abs() > 1e-4 {
+            if (hessian[i * 4 + j] - expected).abs() > tolerances::OPTIMIZER_VALUE_AT_MIN {
                 if i == j {
                     diag_ok = false;
                 } else {
@@ -71,12 +71,14 @@ fn main() {
     // ── nS-301: Quadratic spectrum ───────────────────────────────────
 
     let spectrum = hessian_spectrum(&hessian, 4);
-    let all_near_two = spectrum.iter().all(|&ev| (ev - 2.0).abs() < 1e-3);
+    let all_near_two = spectrum
+        .iter()
+        .all(|&ev| (ev - 2.0).abs() < tolerances::EIGH_JACOBI_EIGENVALUE);
     h.check_bool("Quadratic spectrum: all eigenvalues ≈ 2.0", all_near_two);
 
     // ── nS-301: Landscape at quadratic minimum ───────────────────────
 
-    let result = landscape_analysis(&quadratic_loss, &params, 1e-5, 0.1);
+    let result = landscape_analysis(&quadratic_loss, &params, tolerances::HESSIAN_FD_STEP, 0.1);
     h.check_abs(
         "Loss at origin = 0",
         result.loss,
@@ -89,8 +91,11 @@ fn main() {
     // ── nS-301: Rosenbrock at minimum ────────────────────────────────
 
     let rb_min = vec![1.0, 1.0];
-    let rb_result = landscape_analysis(&rosenbrock_loss, &rb_min, 1e-5, 0.1);
-    h.check_bool("Rosenbrock loss at (1,1) < 1e-6", rb_result.loss < 1e-6);
+    let rb_result = landscape_analysis(&rosenbrock_loss, &rb_min, tolerances::HESSIAN_FD_STEP, 0.1);
+    h.check_bool(
+        "Rosenbrock loss at (1,1) < 1e-6",
+        rb_result.loss < tolerances::SPECIAL_FUNCTION_F64,
+    );
     h.check_bool(
         "Rosenbrock at minimum: saddle_index = 0",
         rb_result.saddle_index == 0,
@@ -99,7 +104,12 @@ fn main() {
     // ── nS-301: Saddle point detection ───────────────────────────────
 
     let saddle_params = vec![0.0, 0.0];
-    let saddle_result = landscape_analysis(&saddle_loss, &saddle_params, 1e-5, 0.1);
+    let saddle_result = landscape_analysis(
+        &saddle_loss,
+        &saddle_params,
+        tolerances::HESSIAN_FD_STEP,
+        0.1,
+    );
     h.check_bool(
         "Saddle function: saddle_index > 0",
         saddle_result.saddle_index > 0,
@@ -113,7 +123,7 @@ fn main() {
         "Flatness 3/4 for near-zero eigenvalues",
         flatness,
         0.75,
-        1e-12,
+        tolerances::EXACT_F64,
     );
 
     let sharpness = landscape_sharpness(&flat_eigenvalues);
@@ -194,7 +204,7 @@ fn main() {
 
     for dim in [2, 4, 8] {
         let origin = vec![0.0; dim];
-        let result = landscape_analysis(&quadratic_loss, &origin, 1e-5, 0.1);
+        let result = landscape_analysis(&quadratic_loss, &origin, tolerances::HESSIAN_FD_STEP, 0.1);
         h.check_bool(
             &format!("nS-304: quadratic dim={dim} saddle_index=0"),
             result.saddle_index == 0,
@@ -204,7 +214,8 @@ fn main() {
     // ── nS-304: Rosenbrock landscape at non-minimum ──────────────────
 
     let rb_off = vec![0.0, 0.0];
-    let rb_off_result = landscape_analysis(&rosenbrock_loss, &rb_off, 1e-5, 0.1);
+    let rb_off_result =
+        landscape_analysis(&rosenbrock_loss, &rb_off, tolerances::HESSIAN_FD_STEP, 0.1);
     h.check_bool(
         "nS-304: Rosenbrock loss at (0,0) > 0",
         rb_off_result.loss > 0.5,
@@ -233,8 +244,18 @@ fn main() {
 
     // ── nS-305: Landscape along training trajectory ──────────────────
 
-    let mid_result = landscape_analysis(&quadratic_loss, &[2.5, 1.5], 1e-5, 0.1);
-    let end_result = landscape_analysis(&quadratic_loss, &param_traj, 1e-5, 0.1);
+    let mid_result = landscape_analysis(
+        &quadratic_loss,
+        &[2.5, 1.5],
+        tolerances::HESSIAN_FD_STEP,
+        0.1,
+    );
+    let end_result = landscape_analysis(
+        &quadratic_loss,
+        &param_traj,
+        tolerances::HESSIAN_FD_STEP,
+        0.1,
+    );
     h.check_bool(
         "nS-305: loss decreases along trajectory",
         end_result.loss < mid_result.loss,
@@ -251,8 +272,8 @@ fn main() {
 
     // ── Determinism ──────────────────────────────────────────────────
 
-    let h1 = numerical_hessian(&quadratic_loss, &params, 1e-5);
-    let h2 = numerical_hessian(&quadratic_loss, &params, 1e-5);
+    let h1 = numerical_hessian(&quadratic_loss, &params, tolerances::HESSIAN_FD_STEP);
+    let h2 = numerical_hessian(&quadratic_loss, &params, tolerances::HESSIAN_FD_STEP);
     h.check_bool("Hessian computation deterministic", h1 == h2);
 
     h.finish();

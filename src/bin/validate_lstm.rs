@@ -150,7 +150,7 @@ fn validate_lstm_sequence(h: &mut ValidationHarness) {
     let h_3step = lstm_forward(&seq, &w);
     h.check_bool(
         "LSTM 3-step != 1-step (state evolves)",
-        (h_1step[0] - h_3step[0]).abs() > 1e-10,
+        (h_1step[0] - h_3step[0]).abs() > tolerances::CROSS_LANGUAGE,
     );
 }
 
@@ -212,7 +212,7 @@ fn validate_gru_sequence(h: &mut ValidationHarness) {
     let h_1step = gru_forward(&seq[..1], &w);
     h.check_bool(
         "GRU 3-step != 1-step (state evolves)",
-        (h_1step[0] - h_final[0]).abs() > 1e-10,
+        (h_1step[0] - h_final[0]).abs() > tolerances::CROSS_LANGUAGE,
     );
 }
 
@@ -241,7 +241,7 @@ fn validate_lstm_vs_gru(h: &mut ValidationHarness) {
 
     h.check_bool(
         "LSTM and GRU produce different outputs (different architectures)",
-        (lstm_h[0] - gru_h[0]).abs() > 1e-10,
+        (lstm_h[0] - gru_h[0]).abs() > tolerances::CROSS_LANGUAGE,
     );
 
     h.check_bool("LSTM output bounded", lstm_h.iter().all(|v| v.abs() < 1.0));

@@ -1,33 +1,41 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! neuralSpring forge — ML dispatch, shader catalog, and `BarraCUDA` bridge.
+//! neuralSpring forge — ML dispatch, substrate discovery, shader catalog,
+//! and `BarraCUDA` bridge.
 //!
-//! This crate packages neuralSpring's locally evolved WGSL shaders and dispatch
-//! logic in an absorption-friendly layout for `ToadStool`/`BarraCUDA`. Following
-//! the hotSpring `metalForge/forge` pattern:
+//! This crate packages neuralSpring's locally evolved implementations and
+//! dispatch logic in an absorption-friendly layout for `ToadStool`/`BarraCUDA`.
+//! Following the hotSpring/wetSpring `metalForge/forge` pattern:
 //!
-//! - **`shaders`**: All 16 WGSL shader sources as `pub const` (single source of truth)
-//! - **`bindings`**: Binding layout structs and dispatch geometry for each shader
+//! - **`substrate`**: Runtime compute device abstraction (GPU, CPU)
+//! - **`probe`**: Hardware discovery via wgpu (GPU) and procfs (CPU)
+//! - **`inventory`**: Assemble all probed substrates
+//! - **`workloads`**: ML workloads with `ShaderOrigin` tracking (Absorbed/Local/`CpuOnly`)
 //! - **`dispatch`**: ML workload routing (GPU vs CPU crossover logic)
 //! - **`bridge`**: neuralSpring `Gpu` ↔ `barracuda::device::WgpuDevice` bridge
+//! - **`shaders`**: WGSL shader sources as `pub const`
+//! - **`bindings`**: Binding layout structs for each shader
+//! - **`mixed`**: Mixed-substrate transfer cost model
+//! - **`pcie_bridge`**: `PCIe` P2P detection (design phase)
 //!
-//! ## Absorption pattern
+//! ## Write → Absorb → Lean
 //!
-//! `ToadStool` can absorb shaders by:
-//! 1. Copying the WGSL source from [`shaders`]
-//! 2. Copying the binding layout from [`bindings`]
-//! 3. Creating a `barracuda::ops::*` wrapper using the dispatch geometry
-//! 4. neuralSpring switches to upstream, removes local shader
+//! 1. **Write**: Evolve local implementations in this crate
+//! 2. **Absorb**: `ToadStool` absorbs mature, validated code
+//! 3. **Lean**: neuralSpring switches to upstream, retires local copy
 //!
-//! ## Lifecycle
+//! ## Absorption tracking
 //!
-//! ```text
-//! evolve → validate → export (this crate) → handoff → ToadStool absorbs → retire
-//! ```
+//! [`workloads::origin_summary`] counts absorbed (20), local (6), and
+//! CPU-only (2) workloads. As `ToadStool` absorbs more, local count drops.
 
 pub mod bindings;
 pub mod bridge;
 pub mod dispatch;
+pub mod inventory;
 pub mod mixed;
 pub mod pcie_bridge;
+pub mod probe;
 pub mod shaders;
+pub mod substrate;
+pub mod workloads;

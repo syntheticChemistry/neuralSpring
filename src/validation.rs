@@ -747,4 +747,51 @@ mod tests {
         h.check_abs_or_rel("rel_only", 1000.5, 1000.0, 1e-3);
         assert!(h.checks[0].passed, "0.5/1000 = 5e-4 < 1e-3 → pass via rel");
     }
+
+    // ── patch_pow_to_polyfill ─────────────────────────────────────
+
+    #[test]
+    fn patch_pow_basic_replacement() {
+        let input = "let x = pow(a, b);";
+        let out = patch_pow_to_polyfill(input);
+        assert_eq!(out, "let x = pow_f64(a, b);");
+    }
+
+    #[test]
+    fn patch_pow_preserves_comment_lines() {
+        let input = "// pow(a, b) should NOT be replaced";
+        let out = patch_pow_to_polyfill(input);
+        assert_eq!(out, input);
+    }
+
+    #[test]
+    fn patch_pow_inline_comment_preserved() {
+        let input = "let x = pow(a, 2.0); // compute a^2 with pow(x,n)";
+        let out = patch_pow_to_polyfill(input);
+        assert_eq!(out, "let x = pow_f64(a, 2.0); // compute a^2 with pow(x,n)");
+    }
+
+    #[test]
+    fn patch_pow_multiline() {
+        let input = "let a = pow(x, y);\n// comment\nlet b = pow(z, w);";
+        let out = patch_pow_to_polyfill(input);
+        assert_eq!(
+            out,
+            "let a = pow_f64(x, y);\n// comment\nlet b = pow_f64(z, w);"
+        );
+    }
+
+    #[test]
+    fn patch_pow_no_pow_unchanged() {
+        let input = "let x = sin(a) + cos(b);";
+        let out = patch_pow_to_polyfill(input);
+        assert_eq!(out, input);
+    }
+
+    #[test]
+    fn patch_pow_indented_comment() {
+        let input = "    // pow(x, y) in a comment";
+        let out = patch_pow_to_polyfill(input);
+        assert_eq!(out, input, "indented comment lines preserved");
+    }
 }

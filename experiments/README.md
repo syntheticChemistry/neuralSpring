@@ -40,6 +40,10 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 026 | Session 58 — Cross-Spring Dispatch Rewiring + GpuDriverProfile | Feb 24, 2026 | 7 Dispatcher methods rewired, GpuDriverProfile wired, 11 total rewired |
 | 027 | Session 59 — S54-S59 Absorption Cycle: Library + Dispatch Rewiring | Feb 24, 2026 | 5 more rewires (ESD, MP, rank, gelu, hmm\_forward), 16 total, 3 dead WGSL removed |
 | 028 | Session 60 — Cross-Spring Evolution Benchmark Validation | Feb 24, 2026 | 22/22 cross-spring checks, Variance 2.46×, Entropy 2.59×, 482 lib tests |
+| 029 | Session 61 — Deep Code Quality Sweep & Barracuda Evolution Handoff | Feb 25, 2026 | 501 lib tests, 93.17% coverage, 101+ tolerances, 13 property tests, 0 clippy warnings |
+| 030 | Session 62 — ToadStool S62 Sync: S-03b Resolved, 21/21 Shaders Absorbed | Feb 25, 2026 | S-03b MHA fixed upstream, evolved/mha.rs → thin wrapper, 21/21 shaders absorbed, 500 lib tests |
+| 031 | Session 63 — BandwidthTier Wiring + Cross-Spring Benchmark Suite | Feb 25, 2026 | BandwidthTier + NVK guard wired, Variance 3.49×, Entropy 2.56×, 22/22 cross-spring, 145/146 validate_all |
+| 032 | Session 64 — Forge Evolution: Substrate Discovery + Workload Tracking + Write-Phase Extensions | Feb 25, 2026 | forge v0.2.0: substrate/probe/inventory/workloads (hotSpring/wetSpring pattern), chi_squared_f64.wgsl + kl_divergence_f64.wgsl, 23 shaders, 43 forge tests, 20 absorbed / 6 local / 2 CPU-only |
 
 ---
 
@@ -1548,6 +1552,262 @@ The cross-spring architecture works exactly as designed.
 - `cargo test --lib`: **482 PASS**
 - `validate_all`: **145/146 PASS** (1 pre-existing upstream logsumexp)
 - All quality gates: PASS
+
+---
+
+## Experiment 029 — Deep Code Quality Sweep & Barracuda Evolution Handoff
+
+**Date**: February 25, 2026 (Session 61)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+
+### Motivation
+
+With cross-spring evolution validated (Session 60), harden code quality for
+handoff to the ToadStool/BarraCUDA team. Eliminate all vestigial `#[allow]`
+attributes, centralize remaining hardcoded tolerances, add property-based tests
+for mathematical invariants, and produce a comprehensive evolution handoff.
+
+### Procedure
+
+1. **Vestigial `#[allow]` audit**: Removed module-level `#[allow(clippy::too_many_arguments)]`
+   from `lenet.rs`, `#[allow(clippy::needless_range_loop)]` from `hmm.rs` and
+   `spectral_commutativity.rs`, `#[allow(clippy::suboptimal_flops)]` from
+   `regulatory_network.rs`. Refactored affected code to idiomatic Rust.
+2. **Tolerance centralization**: Added 6 new constants to `src/tolerances/mod.rs`
+   (`ODE_ATOL`, `ODE_RTOL`, `LOG_ZERO_GUARD`, `LAYER_NORM_EPS`, `HESSIAN_FD_STEP`).
+   Replaced inline literals across 8 validation binaries. Registry updated to 101+.
+3. **Property-based tests**: Created `src/property_tests.rs` with 13 deterministic
+   property tests using the project's own `Rng` module (no external deps):
+   softmax, sigmoid, commutator antisymmetry, eigensolver, HMM, RK4 energy
+   conservation, matrix multiplication associativity.
+4. **Idiomatic Rust evolution**: Converted arithmetic to `mul_add` in
+   `regulatory_network.rs`, rewrote index loops to `iter_mut().zip()` in `hmm.rs`,
+   removed dead `shader` field from `bench_gpu_kernels.rs`.
+5. **Validation sweep**: `patch_pow_to_polyfill` coverage (6 new tests in
+   `validation.rs`), `validate_all` full suite (145/146 PASS).
+6. **Documentation**: Comprehensive barracuda evolution handoff for ToadStool team.
+
+### Findings
+
+- All 4 removed `#[allow]` attributes were vestigial — code either already complied
+  or needed trivial refactoring.
+- The `mul_add` conversion in `regulatory_network.rs` uses fused multiply-add for
+  numerical stability without changing results (validated by existing tests).
+- Property tests caught no regressions; they confirm mathematical invariants hold
+  across random inputs (deterministic seeds for reproducibility).
+- The `cast_precision_loss` allows in `gpu_dispatch/` are justified: all casts are
+  small dimensions (matrix sizes, array lengths) well within f64's exact integer range.
+- `validate_barracuda_logsumexp` remains the sole failing validator (upstream
+  buffer-size mismatch, graceful skip, not a neuralSpring issue).
+
+### Results
+
+- `cargo test --lib`: **501 PASS** (up from 482: +13 property, +6 validation.rs)
+- `cargo clippy --all-targets` (pedantic + nursery): **0 warnings**
+- `cargo fmt --check`: **clean**
+- `cargo-llvm-cov`: **93.17% line coverage**
+- Named tolerances: **101+** (up from 95+)
+- `validate_all`: **145/146 PASS**
+- Tech debt markers (TODO/FIXME/HACK): **0**
+
+---
+
+## Experiment 030 — ToadStool S62 Sync: S-03b Resolved, 21/21 Shaders Absorbed
+
+**Date**: February 25, 2026 (Session 62)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+**ToadStool HEAD**: `02207c4a` (was `9404fdb4`)
+
+### Motivation
+
+ToadStool has evolved significantly since S59 (`9404fdb4`). Five commits
+(S60–S62) include MHA decomposition (S-03b fix), Conv2D GPU, NVK allocation
+guard, unified_hardware refactoring, DF64 core-streaming, and cpu-math feature
+gating. Sync neuralSpring to the current state and absorb what we can.
+
+### Procedure
+
+1. Pulled latest ToadStool (`02207c4a`). Reviewed 5 commits since S59:
+   - `0c998992`: S60–S61 — MHA decomposition, Conv2D GPU, NVK guard, SpMM, TransE
+   - `2dc76044`: S62 — BandwidthTier, PeakDetectF64, pool padding
+   - `9fb51f22`: DF64 core-streaming for HMC pipeline
+   - `06782766`: HYBRID_FP64_CORE_STREAMING implementation guide
+   - `02207c4a`: DF64 expansion + architectural evolution
+2. Compiled neuralSpring against new ToadStool — clean (0 errors).
+3. Identified S-03b resolution: upstream MHA now decomposes projections into
+   matmul + head_split/head_concat (our exact approach).
+4. Rewired `evolved/mha.rs` to delegate to `barracuda::ops::mha::MultiHeadAttention`:
+   - Removed CPU head-split/concat workaround (74 LOC → 18 LOC)
+   - Added batch dimension reshape (2D → 3D) for backward compatibility
+   - Updated `evolved/mod.rs` docs: all 21/21 shaders absorbed
+5. Validated:
+   - `validate_mha_gpu`: 10/10 PASS (including B=4, S=128, H=8, d=512)
+   - `cargo clippy --all-targets`: 0 warnings
+   - `cargo test --lib` (single-threaded): 500 PASS
+   - `validate_all`: 145/146 PASS (1 pre-existing logsumexp)
+6. Updated all root docs, specs, handoffs to reflect S62 state.
+
+### Key Findings
+
+- **S-03b is the Write → Absorb → Lean cycle completing**: neuralSpring evolved
+  the workaround (decompose MHA projections), ToadStool absorbed it, neuralSpring
+  now leans on upstream. This is exactly how the Spring ecosystem is designed.
+- **Feature gating is transparent**: The `gpu` feature (default-on) means all
+  existing neuralSpring code compiles unchanged against the new barracuda.
+- **unified_hardware refactoring preserved import paths**: metalForge forge crate
+  compiled without changes despite the 783-line flat file being decomposed.
+- **New upstream ops** (Conv2dGpu, SpMM f64, TransE f64, PeakDetectF64) are
+  available but not exercised by neuralSpring's current validation suite.
+
+### Results
+
+- `cargo test --lib`: **500 PASS** (was 501; -2 old head_split tests, +1 wrapper test)
+- `cargo clippy --all-targets`: **0 warnings**
+- `validate_mha_gpu`: **10/10 PASS** (including production sizes)
+- `validate_all`: **145/146 PASS** (1 pre-existing upstream logsumexp)
+- WGSL shaders absorbed: **21/21** (was 19/21)
+- `evolved/mha.rs`: rewired to upstream (thin wrapper)
+
+---
+
+## Experiment 031 — `BandwidthTier` Wiring + Cross-Spring Benchmark Suite
+
+**Date**: February 25, 2026 (Session 63)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+**ToadStool HEAD**: `02207c4a`
+
+### Motivation
+
+With S62 completing the S-03b resolution and 21/21 shader absorption, wire the
+remaining cross-spring infrastructure — `BandwidthTier` detection and NVK
+allocation guard — into the Dispatcher, then run the full cross-spring benchmark
+suite to capture performance data for all three Springs' contributions.
+
+### Procedure
+
+1. **`BandwidthTier` wiring**: Added `barracuda::unified_hardware::BandwidthTier`
+   import to `gpu_dispatch/mod.rs`. Dispatcher now calls
+   `BandwidthTier::detect_from_adapter_name()` at initialization and logs the tier.
+   Added `Dispatcher::bandwidth_tier()` public accessor.
+
+2. **NVK allocation guard**: Added `Dispatcher::check_allocation_safe()` delegating
+   to `GpuDriverProfile::check_allocation_safe()`. Protects against NVK (TITAN V)
+   large-buffer PTE faults at ~1.2 GB combined allocation.
+
+3. **Cross-spring benchmark** (`bench_cross_spring_evolution`): Ran with S62
+   `ToadStool`. All three Springs' typed GPU ops + rewired Dispatcher methods
+   benchmarked on RTX 4070.
+
+4. **Rewire evolution benchmark** (`bench_rewire_evolution`): f32 Tensor pipelines
+   vs f64 upstream typed ops at 10,000 elements. Measures the speedup from
+   cross-spring absorption.
+
+5. **Full validation**: `validate_cross_spring_evolution` (22/22 PASS),
+   `validate_all` (145/146 PASS), `cargo test --lib` (500 PASS).
+
+### Findings
+
+- **`BandwidthTier` detection works**: RTX 4070 correctly identified as `PciE4x16`
+  from adapter name. Logged at Dispatcher initialization.
+- **Variance speedup increased to 3.49×** (was 2.46× in S60): hotSpring Welford
+  algorithm eliminates 4 f32 dispatches with a single f64 Welford reduction.
+- **Entropy speedup 2.56×**: wetSpring fused map-reduce collapses 3 f32 dispatches
+  (log, mul, sum) into a single fused f64 shader.
+- **Pearson speedup 1.33×**: Modest improvement; the f64 precision upgrade
+  matters more than raw speed for scientific correctness.
+- **GPU dispatch correctly routes to CPU** for small workloads (n ≤ 4096):
+  matmul at 128×128 shows 2,714 µs GPU vs 325 µs CPU — dispatch routes to CPU.
+  GPU wins appear at production scales (50k+ elements).
+- **All three Springs' ops run through unified API**: A neuralSpring user calling
+  `HmmBatchForwardF64` (wetSpring) or `BatchedEighGpu` (hotSpring) sees no
+  difference from `BatchFitnessGpu` (neuralSpring). The abstraction works.
+
+### Results
+
+- `cargo test --lib`: **500 PASS** (465 non-GPU + 35 GPU)
+- `cargo clippy --all-targets` (pedantic + nursery): **0 warnings**
+- `validate_all`: **145/146 PASS** (1 pre-existing logsumexp)
+- `validate_cross_spring_evolution`: **22/22 PASS**
+- `BandwidthTier` detected: **`PciE4x16`** (RTX 4070)
+
+#### Cross-Spring GPU Op Benchmarks (RTX 4070, `--release`)
+
+| Op | Size | Median (µs) | Origin |
+|----|------|-------------|--------|
+| `BatchFitnessGpu` | 1024×64 | 3,033 | neuralSpring (S-25) |
+| `PairwiseL2Gpu` | 128×16 | 3,154 | neuralSpring (S-42) |
+| `BatchIprGpu` | 32×64 | 2,364 | neuralSpring (S-25) |
+| `SpatialPayoffGpu` | 32×32 | 2,901 | neuralSpring (S-25) |
+| `PairwiseHammingGpu` | 64×100 | 2,678 | neuralSpring (S-25) |
+| `HmmBatchForwardF64` | 4s×50t×32b | 3,325 | wetSpring (S-39) |
+| `BatchedEighGpu` | 12×12×40 | 7,402 | hotSpring (S-39) |
+
+#### Rewire Evolution Benchmarks (10,000 elements)
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Origin |
+|----|-----------------|-------------------|---------|--------|
+| Variance | 9,949 | 2,847 | **3.49×** | hotSpring Welford |
+| Pearson | 4,679 | 3,508 | **1.33×** | wetSpring + hotSpring |
+| Entropy | 6,317 | 2,468 | **2.56×** | wetSpring fused |
+
+---
+
+## Experiment 032 — Forge Evolution: Substrate Discovery + Workload Tracking + Write-Phase Extensions
+
+**Date**: February 25, 2026 (Session 64)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+**ToadStool HEAD**: `02207c4a`
+**Forge version**: `neural-spring-forge` v0.2.0 (was v0.1.0)
+
+### Motivation
+
+neuralSpring's metalForge/forge crate was behind hotSpring and wetSpring: it had
+shader catalogs and dispatch heuristics but lacked substrate discovery, workload
+tracking with `ShaderOrigin`, and proper hardware probing. To make neuralSpring's
+extensions absorbable by ToadStool, evolve the forge to match the sibling Springs.
+
+### Procedure
+
+1. **Substrate discovery** (`substrate.rs`, `probe.rs`, `inventory.rs`):
+   Following hotSpring's pattern exactly — `Substrate` struct with
+   `SubstrateKind`, `Identity`, `Properties`, `Capability`. GPU probing via
+   wgpu adapter enumeration. CPU probing via `/proc/cpuinfo` + `/proc/meminfo`.
+
+2. **Workload tracking** (`workloads.rs`):
+   Following wetSpring's `ShaderOrigin` pattern — each ML workload declares
+   its origin (Absorbed/Local/CpuOnly), cross-spring provenance, required
+   capabilities, and upstream primitive name. Catalogs 28 workloads.
+
+3. **Write-phase WGSL extensions**:
+   - `chi_squared_f64.wgsl`: Fused `(o-e)²/e + reduce` in a single dispatch
+   - `kl_divergence_f64.wgsl`: Fused `p*ln(p/q) + reduce` (already existed)
+   Both added to `shaders.rs` catalog (23 total, up from 21).
+
+4. **Lib.rs evolution**: Crate root updated to export all new modules with
+   comprehensive doc comments including absorption tracking summary.
+
+### Findings
+
+- **Forge tests jumped from 30 to 43**: 13 new tests from substrate (3),
+  probe (2), inventory (3), and workloads (5).
+- **Workload absorption tracking** reveals 20/28 absorbed (71%), 6 local
+  (21%), 2 CPU-only (7%). The 6 local extensions are candidates for
+  ToadStool absorption.
+- **Cross-spring provenance is explicit**: Each workload records which Spring
+  contributed it (e.g., "hotSpring Welford", "wetSpring fused").
+- **Substrate discovery works on RTX 4070**: CPU (i9-12900K, 24 threads,
+  AVX2) + GPU (RTX 4070, `SHADER_F64`, Vulkan) correctly detected.
+- **Parent crate unaffected**: `cargo clippy --all-targets` (0 warnings),
+  `cargo test --lib` (500 PASS) — forge evolution is purely additive.
+
+### Results
+
+- `neural-spring-forge` tests: **43 PASS** (was 30)
+- `cargo clippy --all-targets` (pedantic + nursery): **0 warnings**
+- `cargo test --lib` (neural-spring): **500 PASS**
+- WGSL shaders in forge: **23** (was 21)
+- Workloads: **20 absorbed / 6 local / 2 CPU-only**
+- Forge version: **v0.2.0**
 
 ---
 

@@ -189,7 +189,9 @@ async fn main() {
     let mut symmetric = true;
     for i in 0..n_agents {
         for j in 0..n_agents {
-            if (dispatch_adj[i * n_agents + j] - dispatch_adj[j * n_agents + i]).abs() > 1e-14 {
+            if (dispatch_adj[i * n_agents + j] - dispatch_adj[j * n_agents + i]).abs()
+                > tolerances::ZERO_DETECTION
+            {
                 symmetric = false;
             }
         }
@@ -198,7 +200,7 @@ async fn main() {
 
     let mut diagonal_zero = true;
     for i in 0..n_agents {
-        if dispatch_adj[i * n_agents + i].abs() > 1e-14 {
+        if dispatch_adj[i * n_agents + i].abs() > tolerances::ZERO_DETECTION {
             diagonal_zero = false;
         }
     }

@@ -224,19 +224,51 @@ See `shaders/ABSORPTION_TRACKER.md` for the full tracker.
 
 ---
 
-## Relationship to hotSpring metalForge
+## Forge Crate (`neural-spring-forge` v0.2.0)
 
-| hotSpring metalForge | neuralSpring metalForge |
-|---------------------|------------------------|
-| GPU f64 native throughput | ML dispatch overhead profiling |
-| NPU (Akida) characterization | Matmul cache tiling analysis |
-| Cache line behavior | Workgroup occupancy vs tensor size |
-| Register space probing | Shared memory pressure in tiled kernels |
-| MD cell-list shaders (WGSL) | HMM/ODE/fitness shaders (WGSL) |
-| Physics → ToadStool absorption | ML/bio → ToadStool absorption |
+Session 64 brought the forge crate to parity with hotSpring/wetSpring:
 
-Both feed findings and shaders to ToadStool via `wateringHole/handoffs/`.
+| Module | Purpose | Pattern From |
+|--------|---------|-------------|
+| `substrate.rs` | Runtime compute device abstraction (GPU, CPU) | hotSpring |
+| `probe.rs` | Hardware discovery via wgpu + procfs | hotSpring |
+| `inventory.rs` | Assemble all probed substrates | hotSpring |
+| `workloads.rs` | ML workloads with `ShaderOrigin` tracking | wetSpring |
+| `dispatch.rs` | GPU vs CPU crossover heuristics | neuralSpring |
+| `bridge.rs` | `WgpuDevice` bridge | neuralSpring |
+| `shaders.rs` | 23 WGSL shader sources | neuralSpring |
+| `bindings.rs` | Binding layouts per shader | neuralSpring |
+| `mixed.rs` | Mixed-substrate transfer cost model | neuralSpring |
+
+### Workload Absorption Tracking
+
+| Origin | Count | Examples |
+|--------|-------|---------|
+| **Absorbed** | 20 | matmul, softmax, gelu, variance, entropy, Pearson, MHA, eigensolve |
+| **Local** | 6 | chi_squared_gpu, kl_divergence_gpu, hmm_backward, hmm_viterbi, pairwise_l2_matrix, replicator_step |
+| **CPU-only** | 2 | pareto_front, mantel_test |
+
+### Write-Phase WGSL Extensions (S64)
+
+| Shader | Domain | Replaces |
+|--------|--------|----------|
+| `chi_squared_f64.wgsl` | Fused `(o-e)²/e + reduce` | CPU elementwise loop |
+| `kl_divergence_f64.wgsl` | Fused `p*ln(p/q) + reduce` | CPU log-ratio loop |
 
 ---
 
-*Hardware characterization + shader evolution + forge crate for ML dispatch — following the hotSpring metalForge pattern.*
+## Relationship to hotSpring/wetSpring metalForge
+
+| Aspect | hotSpring | wetSpring | neuralSpring |
+|--------|-----------|-----------|-------------|
+| **Focus** | Physics dispatch, NPU | Bio dispatch, streaming | ML dispatch, mixed-hardware |
+| **Substrate discovery** | GPU + CPU + NPU | GPU + CPU + NPU | GPU + CPU |
+| **Workloads** | Physics profiles | Bio workloads + `ShaderOrigin` | ML workloads + `ShaderOrigin` |
+| **Write-phase** | Spectral, HFB, ESN | Diversity fusion | Chi², KL div, HMM ops |
+| **Forge version** | v0.2.0 | v0.3.0 | v0.2.0 |
+
+All three feed findings and extensions to ToadStool via `wateringHole/handoffs/`.
+
+---
+
+*Hardware characterization + shader evolution + substrate discovery + workload tracking — following the hotSpring/wetSpring metalForge pattern.*

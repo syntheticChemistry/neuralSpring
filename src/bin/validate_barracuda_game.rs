@@ -38,8 +38,8 @@ fn main() {
 fn make_config() -> barracuda::numerical::Rk45Config {
     barracuda::numerical::Rk45Config {
         h_init: 0.01,
-        atol: 1e-8,
-        rtol: 1e-6,
+        atol: tolerances::ODE_ATOL,
+        rtol: tolerances::ODE_RTOL,
         ..barracuda::numerical::Rk45Config::default()
     }
 }

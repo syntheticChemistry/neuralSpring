@@ -8,8 +8,6 @@
 //!
 //! Reference: `LeCun`, Bottou, Bengio, Haffner (1998) *Proc IEEE* 86:2278-2324.
 
-#![allow(clippy::too_many_arguments)]
-
 /// Single-channel 2D convolution parameters.
 pub struct Conv2dParams<'a> {
     pub input: &'a [f64],
