@@ -714,6 +714,39 @@ Deterministic seed (42) ensures exact reproducibility.**
 
 ---
 
+## WDM Surrogate Extensions — baseCamp Sub-thesis 07
+
+**Purpose**: Extend neuralSpring's validated surrogate learning pipeline
+to warm dense matter (WDM) physics, supporting hotSpring's Tier 4 WDM
+reproduction targets and baseCamp Sub-thesis 07 (Sovereign WDM on Consumer GPU).
+
+### Surrogate Models for WDM Transport
+
+| # | Target | Method | BarraCUDA Primitive | Status |
+|---|--------|--------|-------------------|--------|
+| nW-01 | WDM transport surrogate (D*, η*, λ* vs ρ, T, Z*) | MLP/RBF — extend hotSpring Paper 3 (Diaw surrogate, 9/9) to WDM parameter range | `nuclear_eos_gpu` (GPU RBF validated) | Queued |
+| nW-02 | EOS surrogate (P, E vs ρ, T for H, He, C) | MLP trained on FPEOS tables (Militzer) — extend Exp 001 FAO-56 surrogate to physics EOS | `validate_barracuda_surrogate` (7/7) | Queued |
+| nW-03 | S(q,ω) peak predictor | LSTM on MD-generated S(q,ω) time series — predict peak position/width from (ρ, T) | `validate_barracuda_gpu_lstm` | Queued |
+
+### Transfer Learning: Classical → WDM
+
+| # | Target | Method | BarraCUDA Primitive | Status |
+|---|--------|--------|-------------------|--------|
+| nW-04 | Classical plasma → WDM transfer | Fine-tune transport surrogate from Stanton-Murillo (Γ,κ) space to WDM (ρ,T,Z*) space — same architecture as Exp 004 (MI→NM/CA transfer, 6/6) | Transfer learning pipeline (validated) | Queued |
+| nW-05 | NPU screening for WDM phase | ESN classifier: given (ρ,T), predict WDM regime (classical/WDM/degenerate) — extends metalForge lattice phase classifier to plasma phases | `validate_lattice_npu` (10/10) | Queued |
+
+**Connection to hotSpring Tier 4**: Each surrogate replaces expensive MD
+runs with inference at 9,017× less energy (NPU) or ~100× less compute
+(GPU RBF). Classical→WDM transfer learning exploits the fact that
+Stanton-Murillo transport coefficients are continuous functions of
+coupling parameters — fine-tuning bridges the regime gap.
+
+**Connection to baseCamp Sub-thesis 07 §4**: Phase 4 (distributed
+parameter sweep) generates the training data; neuralSpring surrogates
+provide instant lookup for the sweep results.
+
+---
+
 ## Sovereign Folding — Protein/RNA/DNA Structure Prediction (NEW TRACK)
 
 **Purpose**: Port OpenFold3's Evoformer + Structure Module to BarraCUDA WGSL
