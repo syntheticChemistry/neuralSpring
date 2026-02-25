@@ -1,12 +1,13 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 25, 2026 (Sessions 44–67 — Phase C GPU promotion + CPU math parity validation)
+**Last updated**: February 25, 2026 (Sessions 44–67 — Phase C GPU + CPU parity + dispatch tier benchmarks)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 206/206 Python PASS + 1910+ Rust+GPU validation PASS = **2120+ total validation checks**
-**Library**: 505 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 158 validation/bench binaries
+**Library**: 505 lib tests + 9 integration tests + 43 forge tests | 36 modules + gpu_ops/ + gpu_dispatch | 159 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
+**Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 7 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch PASS) — Sessions 50, 54, 56
 **Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware + 19/19 baseCamp dispatch + 17/17 parity + 23/23 PCIe
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
@@ -588,6 +589,29 @@ P2P direct always beats CPU-staged for same bandwidth tier. Chained 2-hop < 3x d
 ### Session 62 — ToadStool S62 Sync (February 25, 2026)
 
 S-03b (MHA projection hangs) **FULLY RESOLVED** upstream. ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved/mha.rs` now thin wrapper to `barracuda::ops::mha::MultiHeadAttention`. 500 lib tests, 145/146 validate_all.
+
+### Session 67b — Dispatch Tier Benchmarks (February 25, 2026)
+
+Three-tier benchmark: Library direct → Dispatcher::cpu_only() → Dispatcher::new() GPU.
+
+| Kernel | Size | Library µs | CPU Disp µs | Overhead |
+|--------|------|-----------|-------------|----------|
+| MatMul | 64×64 | 41.6 | 41.3 | 0.99× |
+| Variance | 4096 | 3.4 | 3.4 | 1.00× |
+| Pearson | 4096 | 6.1 | 6.1 | 1.00× |
+| Entropy | 256 | 0.7 | 0.8 | 1.03× |
+| Softmax | 256 | 1.2 | 1.2 | 1.00× |
+| L2 Distance | 256 | 0.1 | 0.1 | 1.04× |
+| Chi-squared | 100 | 0.1 | 0.1 | 1.00× |
+| Commutator | 32×32 | 12.9 | 12.8 | 1.00× |
+| HMM Forward | 3×500 | 7.5 | 7.5 | 1.01× |
+| Hill Batch | 2500 | 1.1 | 20.3 | 19.17× * |
+
+\* Hill batch overhead due to batch dispatch allocation path; 9/10 ops ≤1.04×.
+
+**Conclusion**: Dispatcher::cpu_only() adds negligible overhead (≤1.04× for 9/10 ops).
+Per-call GPU dispatch is driver-bound for small workloads — motivates StatefulPipeline
+and UnidirectionalPipeline batching for GPU-resident acceleration.
 
 ### Session 67 — CPU Math Parity Validation (February 25, 2026)
 

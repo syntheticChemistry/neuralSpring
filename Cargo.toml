@@ -627,6 +627,10 @@ name = "validate_cpu_math_parity"
 path = "src/bin/validate_cpu_math_parity.rs"
 
 [[bin]]
+name = "bench_dispatch_tiers"
+path = "src/bin/bench_dispatch_tiers.rs"
+
+[[bin]]
 name = "validate_all"
 path = "src/bin/validate_all.rs"
 
