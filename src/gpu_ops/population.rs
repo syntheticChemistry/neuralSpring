@@ -202,8 +202,10 @@ pub fn pairwise_fst_gpu(
 
     let n_bar = (n_a + n_b) as f64 / 2.0;
     let r = 2.0;
-    let n_c = 2.0f64.mul_add(n_bar, -((n_b as f64).mul_add(n_b as f64, (n_a as f64).powi(2)) / (2.0 * n_bar)))
-        / (r - 1.0);
+    let n_c = 2.0f64.mul_add(
+        n_bar,
+        -((n_b as f64).mul_add(n_b as f64, (n_a as f64).powi(2)) / (2.0 * n_bar)),
+    ) / (r - 1.0);
 
     let mut numer = 0.0;
     let mut denom = 0.0;
@@ -227,10 +229,13 @@ pub fn pairwise_fst_gpu(
             .sum::<f64>()
             / (r * n_bar);
 
-        let a = n_bar / n_c * (s2 - (p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)) - h_bar / 4.0)
-            / (n_bar - 1.0));
+        let a = n_bar / n_c
+            * (s2
+                - (p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)) - h_bar / 4.0)
+                    / (n_bar - 1.0));
         let b = n_bar / (n_bar - 1.0)
-            * (2.0f64.mul_add(n_bar, -1.0) / (4.0 * n_bar)).mul_add(-h_bar, p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)));
+            * (2.0f64.mul_add(n_bar, -1.0) / (4.0 * n_bar))
+                .mul_add(-h_bar, p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)));
         let c = h_bar / 2.0;
 
         numer += a;
@@ -268,7 +273,12 @@ pub fn global_fst_gpu(
 
     let n_total: f64 = n_individuals.iter().map(|&n| n as f64).sum();
     let n_bar = n_total / r;
-    let n_c = (n_total - n_individuals.iter().map(|&n| (n as f64).powi(2)).sum::<f64>() / n_total)
+    let n_c = (n_total
+        - n_individuals
+            .iter()
+            .map(|&n| (n as f64).powi(2))
+            .sum::<f64>()
+            / n_total)
         / (r - 1.0);
 
     let mut numer = 0.0;
@@ -300,10 +310,13 @@ pub fn global_fst_gpu(
             .sum::<f64>()
             / (r * n_bar);
 
-        let a = n_bar / n_c * (s2 - (p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)) - h_bar / 4.0)
-            / (n_bar - 1.0));
+        let a = n_bar / n_c
+            * (s2
+                - (p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)) - h_bar / 4.0)
+                    / (n_bar - 1.0));
         let b = n_bar / (n_bar - 1.0)
-            * (2.0f64.mul_add(n_bar, -1.0) / (4.0 * n_bar)).mul_add(-h_bar, p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)));
+            * (2.0f64.mul_add(n_bar, -1.0) / (4.0 * n_bar))
+                .mul_add(-h_bar, p_bar.mul_add(1.0 - p_bar, -((r - 1.0) / r * s2)));
         let c_val = h_bar / 2.0;
 
         numer += a;

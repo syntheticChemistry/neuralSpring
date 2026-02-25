@@ -60,6 +60,22 @@ mod determinism_tests;
 #[cfg(test)]
 mod property_tests;
 
+/// Crate-level GPU test serialization.
+///
+/// wgpu's Vulkan backend races when multiple tests submit to the same
+/// driver concurrently. All GPU-touching tests must hold this lock.
+/// Recovers from poisoning so one GPU test panic doesn't cascade.
+#[cfg(test)]
+pub(crate) mod test_gpu_lock {
+    use std::sync::{Mutex, MutexGuard, OnceLock};
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    pub fn acquire() -> MutexGuard<'static, ()> {
+        let mtx = LOCK.get_or_init(|| Mutex::new(()));
+        mtx.lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+}
+
 pub mod agent_coordination;
 pub mod anderson_localization;
 pub mod bench;

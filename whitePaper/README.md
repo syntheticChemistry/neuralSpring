@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5g — 2120+ total checks, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39 PASS, dispatch overhead ≤1.04×, mixed-hardware dispatch, 16 functions rewired to upstream, cross-spring evolution benchmarked (22/22 PASS), zero debt, 93.17% coverage, 101+ named tolerances
-**Date**: February 25, 2026 (Sessions 40–67 — multi-GPU + benchmarks + pure GPU + Phase C GPU + CPU parity + dispatch tiers + baseCamp + metalForge + ToadStool sync + upstream rewiring + cross-spring benchmark validation)
+**Status**: Phase 5g — 2120+ total checks, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39 PASS, dispatch overhead ≤1.04×, mixed-hardware dispatch, 17 functions + 6 shader sources rewired to upstream, cross-spring evolution benchmarked (22/22 PASS), zero debt, 90.43% coverage, 104+ named tolerances, zero ad-hoc magic numbers
+**Date**: February 25, 2026 (Sessions 40–69 — multi-GPU + benchmarks + pure GPU + Phase C GPU + CPU parity + dispatch tiers + baseCamp + metalForge + ToadStool sync + upstream rewiring + cross-spring benchmark validation + deep debt audit + validator shader rewiring + cross-spring benchmarks)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -21,8 +21,8 @@
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all through S-13 fixed |
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A complete, Phase B in progress |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
-| `experiments/README.md` | Engineering | Experiment journals (001–029, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V30 ToadStool handoff (Sessions 66–67 — Phase C GPU ~97%, CPU↔Python parity, dispatch tiers) |
+| `experiments/README.md` | Engineering | Experiment journals (001–036, hotSpring pattern) |
+| `wateringHole/handoffs/` | Cross-project | V32 ToadStool handoff (Session 69 — cross-spring evolution benchmarks, provenance map, validator shader rewiring, absorption recommendations) |
 
 ---
 
@@ -355,4 +355,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *25 papers + 5 studies + 5 baseCamp sub-theses. 5 disciplines. 4 faculty. 36 modules + 2 evolved + gpu\_ops/ + gpu\_dispatch. 505 lib + 9 integration tests. 206 Python + 1910+ Rust/GPU = 2120+ total checks.
-Phase 5g: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 147/148 (RTX 4070 + TITAN V NVK bit-identical). 44 CPU→GPU promotions via gpu\_dispatch, 16 functions rewired to upstream. Cross-spring evolution validated (22/22 PASS). ~97% production math on GPU. 159 validation binaries, 21 WGSL shaders (all absorbed upstream). Pure Rust 201.7× faster than Python. CPU↔Python parity 39/39 PASS (1e-10). Dispatch overhead ≤1.04× (9/10 ops). 93.17% coverage, 101+ named tolerances, 13 property tests. Sessions 50–67: baseCamp (128/128 PASS) + Phase C GPU + CPU parity + dispatch tiers + upstream rewiring + cross-spring benchmarks + S-03b resolved + 21/21 shaders absorbed. V30 handoff.*
+Phase 5g: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 147/148 (RTX 4070 + TITAN V NVK bit-identical). 44 CPU→GPU promotions via gpu\_dispatch, 17 functions + 6 shader sources rewired to upstream. Cross-spring evolution validated (22/22 PASS). ~97% production math on GPU. 159 validation binaries, 21 WGSL shaders (all absorbed upstream). Pure Rust 201.7× faster than Python. CPU↔Python parity 39/39 PASS (1e-10). Dispatch overhead ≤1.04× (9/10 ops). 90.43% coverage, 104+ named tolerances, zero ad-hoc magic numbers. Sessions 50–69: baseCamp (128/128 PASS) + Phase C GPU + CPU parity + dispatch tiers + upstream rewiring + cross-spring benchmarks + S-03b resolved + 21/21 shaders absorbed + deep debt audit + S69: shader rewiring + cross-spring benchmarks. V32 handoff.*

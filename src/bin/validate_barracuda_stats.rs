@@ -9,6 +9,9 @@
 //!
 //! Expected values: analytical (pure math, textbook definitions).
 //! Cross-validated against `NumPy` 2.2.6 / `SciPy` 1.15.3.
+//!
+//! See `neural_spring::provenance::BARRACUDA_ANALYTICAL_REFS` and
+//! `neural_spring::provenance::CHI_SQUARED_REFS` for full reference documentation.
 
 use barracuda::stats::correlation;
 use neural_spring::tolerances;

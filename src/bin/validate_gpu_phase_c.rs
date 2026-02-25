@@ -52,14 +52,8 @@ fn main() {
     let obs2 = [0_usize, 1, 2, 0, 1, 2, 0, 1];
     let cpu_fwd = hmm2.forward(&obs2);
 
-    let gpu_ll = dispatcher.hmm_forward_chain(
-        &hmm2.initial,
-        &hmm2.transition,
-        &hmm2.emission,
-        &obs2,
-        2,
-        3,
-    );
+    let gpu_ll =
+        dispatcher.hmm_forward_chain(&hmm2.initial, &hmm2.transition, &hmm2.emission, &obs2, 2, 3);
     h.check_abs(
         "hmm2 forward chain log-likelihood",
         gpu_ll,
@@ -70,8 +64,7 @@ fn main() {
     // 4-state HMM
     let hmm4 = Hmm::from_flat(
         vec![
-            0.6, 0.2, 0.1, 0.1, 0.15, 0.5, 0.2, 0.15, 0.1, 0.15, 0.6, 0.15, 0.2, 0.1, 0.15,
-            0.55,
+            0.6, 0.2, 0.1, 0.1, 0.15, 0.5, 0.2, 0.15, 0.1, 0.15, 0.6, 0.15, 0.2, 0.1, 0.15, 0.55,
         ],
         vec![
             0.3, 0.2, 0.2, 0.15, 0.15, 0.1, 0.3, 0.25, 0.2, 0.15, 0.15, 0.15, 0.3, 0.25, 0.15,
@@ -86,14 +79,8 @@ fn main() {
     let (_, obs4) = hmm4.generate_sequence(50, &mut rng);
     let cpu_fwd4 = hmm4.forward(&obs4);
 
-    let gpu_ll4 = dispatcher.hmm_forward_chain(
-        &hmm4.initial,
-        &hmm4.transition,
-        &hmm4.emission,
-        &obs4,
-        4,
-        5,
-    );
+    let gpu_ll4 =
+        dispatcher.hmm_forward_chain(&hmm4.initial, &hmm4.transition, &hmm4.emission, &obs4, 4, 5);
     h.check_abs(
         "hmm4 forward chain log-likelihood",
         gpu_ll4,
@@ -124,14 +111,8 @@ fn main() {
     // ═══════════════════════════════════════════════════════════════
 
     let cpu_vit2 = hmm2.viterbi(&obs2);
-    let (gpu_path2, gpu_lp2) = dispatcher.hmm_viterbi_chain(
-        &hmm2.initial,
-        &hmm2.transition,
-        &hmm2.emission,
-        &obs2,
-        2,
-        3,
-    );
+    let (gpu_path2, gpu_lp2) =
+        dispatcher.hmm_viterbi_chain(&hmm2.initial, &hmm2.transition, &hmm2.emission, &obs2, 2, 3);
     h.check_bool("hmm2 viterbi chain path matches", gpu_path2 == cpu_vit2.0);
     h.check_abs(
         "hmm2 viterbi chain log-prob",
@@ -141,14 +122,8 @@ fn main() {
     );
 
     let cpu_vit4 = hmm4.viterbi(&obs4);
-    let (gpu_path4, gpu_lp4) = dispatcher.hmm_viterbi_chain(
-        &hmm4.initial,
-        &hmm4.transition,
-        &hmm4.emission,
-        &obs4,
-        4,
-        5,
-    );
+    let (gpu_path4, gpu_lp4) =
+        dispatcher.hmm_viterbi_chain(&hmm4.initial, &hmm4.transition, &hmm4.emission, &obs4, 4, 5);
     h.check_bool("hmm4 viterbi chain path matches", gpu_path4 == cpu_vit4.0);
     h.check_abs(
         "hmm4 viterbi chain log-prob",
@@ -179,7 +154,7 @@ fn main() {
     h.check_lower(
         "hmm4 viterbi chain 200-step path agreement",
         agreement,
-        0.90,
+        tolerances::GPU_VITERBI_PATH_AGREEMENT_MIN,
     );
     h.check_abs(
         "hmm4 viterbi chain 200-step log-prob",
@@ -236,8 +211,12 @@ fn main() {
 
     let cpu_fst = meta_population::pairwise_fst(&pop_a, 10, &pop_b, 10, n_loci);
     let gpu_fst = dispatcher.pairwise_fst(&pop_a, 10, &pop_b, 10, n_loci);
-    // f32 allele frequency intermediary widens FST diff to ~0.05
-    h.check_abs("pairwise_fst", gpu_fst, cpu_fst, 0.1);
+    h.check_abs(
+        "pairwise_fst",
+        gpu_fst,
+        cpu_fst,
+        tolerances::GPU_FST_PAIRWISE_F32,
+    );
 
     // FST finite check
     h.check_bool("pairwise_fst finite", gpu_fst.is_finite());
@@ -254,7 +233,12 @@ fn main() {
     let n_indivs = vec![10_usize, 10, 10];
     let cpu_global_fst = meta_population::global_fst(&pops, &n_indivs, n_loci);
     let gpu_global_fst = dispatcher.global_fst(&pops, &n_indivs, n_loci);
-    h.check_abs("global_fst 3-pop", gpu_global_fst, cpu_global_fst, 0.1);
+    h.check_abs(
+        "global_fst 3-pop",
+        gpu_global_fst,
+        cpu_global_fst,
+        tolerances::GPU_FST_PAIRWISE_F32,
+    );
     h.check_bool("global_fst finite", gpu_global_fst.is_finite());
 
     // ═══════════════════════════════════════════════════════════════
@@ -276,16 +260,10 @@ fn main() {
     // ═══════════════════════════════════════════════════════════════
 
     let fst_ab = dispatcher.pairwise_fst(&pop_a, 10, &pop_b, 10, n_loci);
-    h.check_bool(
-        "fst consistency: pairwise finite",
-        fst_ab.is_finite(),
-    );
+    h.check_bool("fst consistency: pairwise finite", fst_ab.is_finite());
 
     let fst_global = dispatcher.global_fst(&[pop_a, pop_b], &[10, 10], n_loci);
-    h.check_bool(
-        "fst consistency: global finite",
-        fst_global.is_finite(),
-    );
+    h.check_bool("fst consistency: global finite", fst_global.is_finite());
 
     h.finish();
 }

@@ -66,14 +66,17 @@ mod tests {
 
     type Dev = Arc<WgpuDevice>;
 
-    fn test_device() -> Option<Dev> {
-        let rt = tokio::runtime::Runtime::new().ok()?;
-        rt.block_on(async { WgpuDevice::new().await.ok().map(|d| Arc::new(d) as Dev) })
+    fn test_device() -> Option<(std::sync::MutexGuard<'static, ()>, Dev)> {
+        let guard = crate::test_gpu_lock::acquire();
+        let gpu = crate::gpu::tests::shared_gpu()?;
+        Some((guard, gpu.wgpu_device().clone()))
     }
 
     #[test]
     fn mha_2d_wrapper_produces_correct_shape() {
-        let Some(device) = test_device() else { return };
+        let Some((_guard, device)) = test_device() else {
+            return;
+        };
 
         let seq = 4;
         let d_model = 8;
@@ -93,9 +96,8 @@ mod tests {
         )
         .expect("weight");
 
-        let result = multi_head_attention_2d(
-            &input, &weight, &weight, &weight, &weight, n_heads, &device,
-        );
+        let result =
+            multi_head_attention_2d(&input, &weight, &weight, &weight, &weight, n_heads, &device);
 
         match result {
             Ok(out) => assert_eq!(out.shape(), &[seq, d_model]),

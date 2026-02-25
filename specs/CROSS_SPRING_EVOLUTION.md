@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `02207c4a` (Sessions 59–64 sync — 16 functions rewired to upstream, S-03b fully resolved, 21/21 shaders absorbed, Feb 25, 2026)
+**ToadStool HEAD**: `02207c4a` (Sessions 59–69 sync — 17 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed, Feb 25, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -112,10 +112,10 @@ ML and evolutionary computation layer.
 | `batch_ipr.wgsl` | Spectral localization | `spectral::batch_ipr` / `shaders/spectral/` | **Absorbed** |
 | `TensorSession` ML ops | Session API extension | `session::{matmul, relu, gelu, softmax, layer_norm}` | **Absorbed** (S-01/S-11) |
 | 4-tier `KernelRouter` | Matmul auto-tuning | `ops::matmul` | **Absorbed** (S-02) |
-| `pairwise_l2.wgsl` | MODES novelty | *local* | Pending |
-| `multi_obj_fitness.wgsl` | Directed evolution | *local* | Pending |
-| `swarm_nn_forward.wgsl` | Swarm NN inference | *local* | Pending |
-| `hill_gate.wgsl` | Signal AND gate | *local* | Pending |
+| `pairwise_l2.wgsl` | MODES novelty | `ops::bio::pairwise_l2` / `shaders/math/` | **Absorbed** (closed-form pair decode) |
+| `multi_obj_fitness.wgsl` | Directed evolution | `ops::bio::multi_obj_fitness` / `shaders/bio/` | **Absorbed** (Bessel correction) |
+| `swarm_nn_forward.wgsl` | Swarm NN inference | `ops::bio::swarm_nn` / `shaders/bio/` | **Absorbed** (generic MLP dims) |
+| `hill_gate.wgsl` | Signal AND gate | `ops::bio::hill_gate` / `shaders/bio/` | **Absorbed** (mode 0/1 generalization) |
 | ~~`mean_reduce.wgsl`~~ | Scalar reduction | `pipeline::ReduceScalarPipeline` | **Absorbed** (S59 cleanup) |
 | `head_split.wgsl` / `head_concat.wgsl` | MHA reshape | `barracuda::ops::mha` | **Absorbed** (S-03b resolved `0c998992`) |
 | ~~`xoshiro128ss.wgsl`~~ | GPU PRNG | `ops::prng_xoshiro` | **Absorbed** (S52) |
@@ -218,21 +218,25 @@ empirical crossover points codified in `metalForge/forge/src/dispatch.rs`.
 
 ---
 
-## Validation Summary (Post-Rewire S60–61, Feb 25, 2026)
+## Validation Summary (Post-Rewire S69, Feb 25, 2026)
 
 | Gate | Result |
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
-| `cargo test --lib` | 500 PASS |
-| `validate_all` | 145/146 PASS |
-| `validate_cross_spring_evolution` | **22/22 PASS** (was 16/22) |
+| `cargo test --lib` | 505 PASS |
+| `cargo test --test integration` | 9 PASS |
+| `validate_all` | 147/148 PASS |
+| `validate_cross_spring_evolution` | **22/22 PASS** |
 
 Only `validate_barracuda_logsumexp` fails (pre-existing upstream buffer size mismatch).
 
-The cross-spring evolution validator now covers all 16 rewired functions: 9 Dispatcher
+The cross-spring evolution validator covers all 17 rewired functions: 9 Dispatcher
 methods (S58: 7 + S59: gelu, hmm_forward) plus 3 library delegates (ESD, MP bounds,
-effective rank) plus driver profile checks.
+effective rank) plus `boltzmann_sampling` (S68) plus driver profile checks.
+
+Additionally, 6 validator binaries now source WGSL from upstream barracuda constants
+instead of local `include_str!`, further eliminating local shader copies.
 
 ---
 
@@ -316,7 +320,7 @@ Additionally, 3 dead WGSL re-exports (`WGSL_BATCH_FITNESS_EVAL`, `WGSL_RK4_PARAL
 `WGSL_MEAN_REDUCE`) were removed from `evolved/mod.rs` — all callers already use
 upstream typed APIs.
 
-Total rewired functions: **16** (up from 11 in S58).
+Total rewired functions: **16** (up from 11 in S58; S68 adds boltzmann_sampling → 17).
 
 ### Sessions 60–61 — Benchmark Validation & Cross-Spring Narrative (Feb 25, 2026)
 
@@ -383,7 +387,9 @@ neuralSpring ML ───→ eigh, batch_fitness, pairwise_l2, spectral density
                ║  All Springs lean on the  ║
                ║  shared math engine:      ║
                ║  • 645+ WGSL shaders      ║
-               ║  • 16 rewired functions    ║
+               ║  • 17 rewired functions    ║
+               ║  • 6 validator shader      ║
+               ║    sources → upstream      ║
                ║  • 117+ upstream APIs      ║
                ╚═══════════════════════════╝
 ```
@@ -437,6 +443,107 @@ large-buffer protection (1.2 GB limit on TITAN V).
 | `validate_all` | 145/146 PASS |
 | `cargo test --lib` | 500 PASS |
 | `cargo clippy --all-targets` | 0 warnings |
+
+---
+
+### Session 69 — Validator Shader Rewiring + Modern Benchmarks (Feb 25, 2026)
+
+#### Validator Shader Source Rewiring
+
+Six validator binaries rewired from local `include_str!` to upstream barracuda
+shader constants. The shader content is identical (same absorbed WGSL), but the
+source-of-truth now lives in barracuda rather than the local `metalForge/shaders/`
+directory — completing the "Lean" phase for shader sources.
+
+| Validator | Shader | Old Source | New Source |
+|-----------|--------|-----------|-----------|
+| `validate_gpu_rk4` | `rk4_parallel.wgsl` | `include_str!` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` |
+| `validate_gpu_rk45` | `rk45_adaptive.wgsl` | `include_str!` | `barracuda::ops::rk45_adaptive::WGSL_RK45_ADAPTIVE` |
+| `validate_gpu_stateful_pipeline` | `rk4_parallel.wgsl` | `include_str!` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` |
+| `validate_gpu_pure_workload` | `batch_fitness_eval.wgsl` | `include_str!` | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` |
+| `validate_gpu_logsumexp` | `logsumexp_reduce.wgsl` | `include_str!` | `barracuda::ops::logsumexp::LogSumExp::WGSL_LOGSUMEXP_REDUCE` |
+| `validate_gpu_pipeline_swarm` | `swarm_nn_scores.wgsl` | `include_str!` | `barracuda::ops::bio::swarm_nn::WGSL_SWARM_NN_SCORES` |
+
+**Not rewired (blocked)**:
+- `mean_reduce.wgsl` — barracuda uses internally but no public `WGSL_MEAN_REDUCE` constant
+- `head_split.wgsl` / `head_concat.wgsl` — no upstream equivalent (still local-only)
+- `bench_upstream_vs_local.rs` — intentionally uses `include_str!` to compare local vs upstream dispatch
+
+#### Remaining `include_str!` Inventory
+
+| File | Shader | Reason |
+|------|--------|--------|
+| `validate_gpu_pure_workload.rs` | `mean_reduce.wgsl` | No public upstream constant |
+| `validate_mha_gpu.rs` | `head_split.wgsl`, `head_concat.wgsl` | No upstream equivalent |
+| `bench_upstream_vs_local.rs` | 10 shaders | Intentional: benchmarks local vs upstream dispatch |
+
+#### Upstream vs Local Shader Benchmark (RTX 4070, `--release`)
+
+All 10 neuralSpring-origin shaders benchmarked — upstream wrappers within negligible
+overhead of local manual dispatch:
+
+| Kernel | Origin Paper | Local (µs) | Upstream (µs) | Ratio |
+|--------|-------------|-----------|--------------|-------|
+| BatchFitness 10k×32 | 011-015 | 1,840 | 2,060 | 1.12× ~ |
+| Hamming 200×500 | 017 (SATé) | 1,807 | 1,947 | 1.08× ≈ |
+| Jaccard 100×500 | 024 (Pangenome) | 1,972 | 1,849 | 0.94× ≈ |
+| LocusVariance 50×500 | 025 (MetaPop) | 2,035 | 2,043 | 1.00× ≈ |
+| SpatialPayoff 256² | 019 (GameTheory) | 1,903 | 1,890 | 0.99× ≈ |
+| BatchIPR 1k×256 | 022-023 (Anderson) | 1,909 | 2,301 | 1.21× ~ |
+| HillGate 100² | 021 (Signal) | 2,101 | 2,003 | 0.95× ≈ |
+| MultiObjFitness 5k×4 | 014 (DirEvo) | 1,978 | 1,943 | 0.98× ≈ |
+| PairwiseL2 200×50 | 012 (MODES) | 2,031 | 1,940 | 0.96× ≈ |
+| SwarmNN 500×20 | 015 (Swarm) | 1,990 | 1,999 | 1.00× ≈ |
+
+≈ = negligible overhead (< 5%), ~ = minor overhead (5–25%)
+
+#### Cross-Spring Evolution Benchmark (RTX 4070, `--release`, S69)
+
+| Op | Size | Median (µs) | Origin Spring | Absorption |
+|----|------|-------------|---------------|------------|
+| `BatchFitnessGpu` | 1024×64 | 2,000 | neuralSpring (ML) | S-25 |
+| `PairwiseL2Gpu` | 128×16 | 1,994 | neuralSpring (MODES) | S-42 |
+| `BatchIprGpu` | 32×64 | 2,064 | neuralSpring (Anderson) | S-25 |
+| `SpatialPayoffGpu` | 32×32 | 2,102 | neuralSpring (game theory) | S-25 |
+| `PairwiseHammingGpu` | 64×100 | 2,027 | neuralSpring (SATé) | S-25 |
+| `HmmBatchForwardF64` | 4s×50t×32b | 2,085 | wetSpring (phylo) | S-39 |
+| `BatchedEighGpu` | 12×12×40 | 7,497 | hotSpring (nuclear) | S-39 |
+
+#### Cross-Spring Provenance Summary (S69)
+
+Three Springs feed ToadStool/BarraCUDA, each bringing domain expertise:
+
+**hotSpring** (precision physics): ~25+ shaders/modules — df64_core, SU(3) gauge,
+CG solver, Lanczos eigensolver, Hermite/Laguerre polynomials, `SHADER_F64` detection,
+`SubstrateCapability`, `GpuDriverProfile`, `VarianceReduceF64` (Welford), ESN reservoir.
+neuralSpring benefits from hotSpring's precision math in every f64 validation.
+
+**wetSpring** (bioinformatics): ~15+ shaders/modules — Smith-Waterman, Gillespie SSA,
+Felsenstein likelihood, HMM forward/backward, dN/dS, pangenome classify, DADA2,
+Bray-Curtis distance, `FusedMapReduceF64` (Shannon/Simpson), `log_f64` coefficient fix,
+Ada Lovelace NVVM workaround. neuralSpring uses wetSpring's HMM f64 and bio distance ops.
+
+**neuralSpring** (ML validation): ~15+ shaders/modules — pairwise ops (Hamming, Jaccard,
+L2), batch fitness, spatial payoff, batch IPR, hill gate, multi-obj fitness, swarm NN,
+`eigh_householder_qr` (trillion-fold accuracy vs Jacobi), `TensorSession`, 4-tier
+`KernelRouter`, `empirical_spectral_density`, `marchenko_pastur_bounds`, `effective_rank`.
+hotSpring and wetSpring benefit from neuralSpring's eigensolve and spectral analysis.
+
+**Collaborative**: `pow_f64` polyfill (hotSpring + wetSpring), `CrankNicolson`
+(airSpring + wetSpring + hotSpring), `FusedMapReduceF64` (wetSpring entropy + hotSpring
+convergence norms), `GemmF64` cached extension (wetSpring 60× taxonomy speedup).
+
+#### S69 Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` | 0 warnings |
+| `cargo test --lib` | 505 PASS |
+| `cargo test --test integration` | 9 PASS |
+| `validate_all` | 147/148 PASS |
+| `validate_cross_spring_evolution` | 22/22 PASS |
+| `bench_upstream_vs_local` | 10/10 ≈ or ~ (zero ⚠) |
 
 ---
 

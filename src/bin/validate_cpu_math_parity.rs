@@ -18,19 +18,19 @@
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::needless_range_loop,
-    clippy::unwrap_used,
     clippy::expect_used,
     clippy::many_single_char_names,
     clippy::doc_markdown
 )]
 
 use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use serde_json::Value;
 use std::path::Path;
 
-const CROSS_LANG: f64 = 1e-10;
-const REPLICATOR_TOL: f64 = 1e-6;
+const CROSS_LANG: f64 = tolerances::CROSS_LANGUAGE;
+const REPLICATOR_TOL: f64 = tolerances::REPLICATOR_DYNAMICS;
 
 fn load_refs() -> Value {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
@@ -68,7 +68,12 @@ fn validate_variance(h: &mut ValidationHarness, refs: &Value) {
     let n = data.len() as f64;
     let mean = data.iter().sum::<f64>() / n;
     let observed = data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n;
-    h.check_abs("variance (population, ddof=0)", observed, expected, CROSS_LANG);
+    h.check_abs(
+        "variance (population, ddof=0)",
+        observed,
+        expected,
+        CROSS_LANG,
+    );
 }
 
 fn validate_pearson(h: &mut ValidationHarness, refs: &Value) {
@@ -83,15 +88,26 @@ fn validate_chi_squared(h: &mut ValidationHarness, refs: &Value) {
     let observed_arr = floats(&refs["observed"]);
     let expected_arr = floats(&refs["expected_vals"]);
     let expected = f(&refs["expected"]);
-    let result = barracuda::special::chi_squared_statistic(&observed_arr, &expected_arr).unwrap_or(0.0);
-    h.check_abs("chi_squared (barracuda::special)", result, expected, CROSS_LANG);
+    let result =
+        barracuda::special::chi_squared_statistic(&observed_arr, &expected_arr).unwrap_or(0.0);
+    h.check_abs(
+        "chi_squared (barracuda::special)",
+        result,
+        expected,
+        CROSS_LANG,
+    );
 }
 
 fn validate_shannon_entropy(h: &mut ValidationHarness, refs: &Value) {
     let probs = floats(&refs["probs"]);
     let expected = f(&refs["expected"]);
     let observed = neural_spring::primitives::shannon_entropy(&probs);
-    h.check_abs("shannon_entropy (primitives)", observed, expected, CROSS_LANG);
+    h.check_abs(
+        "shannon_entropy (primitives)",
+        observed,
+        expected,
+        CROSS_LANG,
+    );
 }
 
 fn validate_softmax(h: &mut ValidationHarness, refs: &Value) {
@@ -121,7 +137,7 @@ fn validate_gelu(h: &mut ValidationHarness, refs: &Value) {
 fn validate_matmul(h: &mut ValidationHarness, refs: &Value) {
     let a = floats(&refs["a"]);
     let b = floats(&refs["b"]);
-    let n = refs["n"].as_u64().unwrap() as usize;
+    let n = refs["n"].as_u64().expect("matmul ref 'n'") as usize;
     let expected = floats(&refs["expected"]);
     let observed = neural_spring::spectral_commutativity::mat_mul(&a, &b, n);
     let max_diff = observed
@@ -153,8 +169,10 @@ fn validate_l2_dist(h: &mut ValidationHarness, refs: &Value) {
 // ── Paper kernels ────────────────────────────────────────────────────
 
 fn validate_hmm_forward(h: &mut ValidationHarness, refs: &Value) {
-    let n_states = refs["n_states"].as_u64().unwrap() as usize;
-    let n_obs = refs["n_obs_symbols"].as_u64().unwrap() as usize;
+    let n_states = refs["n_states"].as_u64().expect("hmm ref 'n_states'") as usize;
+    let n_obs = refs["n_obs_symbols"]
+        .as_u64()
+        .expect("hmm ref 'n_obs_symbols'") as usize;
     let trans = floats(&refs["transition_flat"]);
     let emit = floats(&refs["emission_flat"]);
     let init = floats(&refs["initial"]);
@@ -163,28 +181,46 @@ fn validate_hmm_forward(h: &mut ValidationHarness, refs: &Value) {
 
     let hmm = neural_spring::hmm::Hmm::from_flat(trans, emit, init, n_states, n_obs);
     let (_, log_lik) = hmm.forward(&obs);
-    h.check_abs("hmm forward log-lik (20 obs)", log_lik, expected_ll, CROSS_LANG);
+    h.check_abs(
+        "hmm forward log-lik (20 obs)",
+        log_lik,
+        expected_ll,
+        CROSS_LANG,
+    );
 }
 
 fn validate_replicator(h: &mut ValidationHarness, refs: &Value) {
     let payoff_flat = floats(&refs["payoff_flat"]);
     let initial = floats(&refs["initial"]);
-    let n_steps = refs["n_steps"].as_u64().unwrap() as usize;
+    let n_steps = refs["n_steps"].as_u64().expect("replicator ref 'n_steps'") as usize;
     let dt = f(&refs["dt"]);
     let expected = floats(&refs["expected_final"]);
 
-    let payoff = [[payoff_flat[0], payoff_flat[1]], [payoff_flat[2], payoff_flat[3]]];
+    let payoff = [
+        [payoff_flat[0], payoff_flat[1]],
+        [payoff_flat[2], payoff_flat[3]],
+    ];
     let trace = neural_spring::game_theory::replicator_dynamics(&initial, &payoff, n_steps, dt);
-    let final_state = trace.last().unwrap();
+    let final_state = trace.last().expect("replicator trace non-empty");
 
-    h.check_abs("replicator x[0] (1000 steps)", final_state[0], expected[0], REPLICATOR_TOL);
-    h.check_abs("replicator x[1] (1000 steps)", final_state[1], expected[1], REPLICATOR_TOL);
+    h.check_abs(
+        "replicator x[0] (1000 steps)",
+        final_state[0],
+        expected[0],
+        REPLICATOR_TOL,
+    );
+    h.check_abs(
+        "replicator x[1] (1000 steps)",
+        final_state[1],
+        expected[1],
+        REPLICATOR_TOL,
+    );
 }
 
 fn validate_commutator(h: &mut ValidationHarness, refs: &Value) {
     let a = floats(&refs["a"]);
     let b = floats(&refs["b"]);
-    let dim = refs["dim"].as_u64().unwrap() as usize;
+    let dim = refs["dim"].as_u64().expect("commutator ref 'dim'") as usize;
     let expected = f(&refs["expected_frobenius"]);
 
     let comm = neural_spring::spectral_commutativity::commutator(&a, &b, dim);
@@ -195,15 +231,16 @@ fn validate_commutator(h: &mut ValidationHarness, refs: &Value) {
 fn validate_hamming(h: &mut ValidationHarness, refs: &Value) {
     let seqs_flat: Vec<u8> = refs["seqs_flat"]
         .as_array()
-        .unwrap()
+        .expect("hamming ref 'seqs_flat' array")
         .iter()
-        .map(|x| x.as_u64().unwrap() as u8)
+        .map(|x| x.as_u64().expect("hamming seq byte") as u8)
         .collect();
-    let n_seqs = refs["n_seqs"].as_u64().unwrap() as usize;
-    let seq_len = refs["seq_len"].as_u64().unwrap() as usize;
+    let n_seqs = refs["n_seqs"].as_u64().expect("hamming ref 'n_seqs'") as usize;
+    let seq_len = refs["seq_len"].as_u64().expect("hamming ref 'seq_len'") as usize;
     let expected = floats(&refs["expected_distances"]);
 
-    let d = neural_spring::sate_alignment::pairwise_distance_matrix(&seqs_flat, n_seqs, seq_len, false);
+    let d =
+        neural_spring::sate_alignment::pairwise_distance_matrix(&seqs_flat, n_seqs, seq_len, false);
     let mut upper = Vec::new();
     for i in 0..n_seqs {
         for j in (i + 1)..n_seqs {
@@ -223,11 +260,12 @@ fn validate_hamming(h: &mut ValidationHarness, refs: &Value) {
 
 fn validate_jaccard(h: &mut ValidationHarness, refs: &Value) {
     let pa_flat = floats(&refs["pa_flat"]);
-    let n_genes = refs["n_genes"].as_u64().unwrap() as usize;
-    let n_genomes = refs["n_genomes"].as_u64().unwrap() as usize;
+    let n_genes = refs["n_genes"].as_u64().expect("jaccard ref 'n_genes'") as usize;
+    let n_genomes = refs["n_genomes"].as_u64().expect("jaccard ref 'n_genomes'") as usize;
     let expected = floats(&refs["expected_distances"]);
 
-    let d = neural_spring::pangenome_selection::jaccard_distance_matrix(&pa_flat, n_genes, n_genomes);
+    let d =
+        neural_spring::pangenome_selection::jaccard_distance_matrix(&pa_flat, n_genes, n_genomes);
     let mut upper = Vec::new();
     for i in 0..n_genomes {
         for j in (i + 1)..n_genomes {
@@ -247,8 +285,8 @@ fn validate_jaccard(h: &mut ValidationHarness, refs: &Value) {
 
 fn validate_pairwise_l2(h: &mut ValidationHarness, refs: &Value) {
     let features = floats(&refs["features"]);
-    let n = refs["n"].as_u64().unwrap() as usize;
-    let dim = refs["dim"].as_u64().unwrap() as usize;
+    let n = refs["n"].as_u64().expect("pairwise_l2 ref 'n'") as usize;
+    let dim = refs["dim"].as_u64().expect("pairwise_l2 ref 'dim'") as usize;
     let expected = floats(&refs["expected_distances"]);
 
     let mut observed = Vec::new();
@@ -274,14 +312,16 @@ fn validate_pairwise_l2(h: &mut ValidationHarness, refs: &Value) {
 fn validate_multi_obj(h: &mut ValidationHarness, refs: &Value) {
     let genotypes: Vec<Vec<f64>> = refs["genotypes"]
         .as_array()
-        .unwrap()
+        .expect("multi_obj ref 'genotypes' array")
         .iter()
         .map(floats)
         .collect();
-    let n_obj = refs["n_objectives"].as_u64().unwrap() as usize;
+    let n_obj = refs["n_objectives"]
+        .as_u64()
+        .expect("multi_obj ref 'n_objectives'") as usize;
     let expected: Vec<Vec<f64>> = refs["expected"]
         .as_array()
-        .unwrap()
+        .expect("multi_obj ref 'expected' array")
         .iter()
         .map(floats)
         .collect();
@@ -308,11 +348,14 @@ fn validate_multi_obj(h: &mut ValidationHarness, refs: &Value) {
 fn validate_hill_gate(h: &mut ValidationHarness, refs: &Value) {
     let points: Vec<(f64, f64)> = refs["test_points"]
         .as_array()
-        .unwrap()
+        .expect("hill ref 'test_points' array")
         .iter()
         .map(|p| {
-            let arr = p.as_array().unwrap();
-            (arr[0].as_f64().unwrap(), arr[1].as_f64().unwrap())
+            let arr = p.as_array().expect("hill point tuple");
+            (
+                arr[0].as_f64().expect("hill point x"),
+                arr[1].as_f64().expect("hill point y"),
+            )
         })
         .collect();
     let expected = floats(&refs["expected"]);
@@ -362,7 +405,12 @@ fn validate_dispatcher_cpu(h: &mut ValidationHarness, refs: &Value) {
     let y = floats(&prim["pearson"]["y"]);
     let pearson_obs = cpu.pearson_correlation(&x, &y);
     let pearson_exp = f(&prim["pearson"]["expected"]);
-    h.check_abs("dispatch::cpu_only pearson", pearson_obs, pearson_exp, CROSS_LANG);
+    h.check_abs(
+        "dispatch::cpu_only pearson",
+        pearson_obs,
+        pearson_exp,
+        CROSS_LANG,
+    );
 
     let probs = floats(&prim["shannon_entropy"]["probs"]);
     let ent_obs = cpu.shannon_entropy(&probs);
@@ -371,7 +419,9 @@ fn validate_dispatcher_cpu(h: &mut ValidationHarness, refs: &Value) {
 
     let a = floats(&prim["matmul"]["a"]);
     let b = floats(&prim["matmul"]["b"]);
-    let n = prim["matmul"]["n"].as_u64().unwrap() as usize;
+    let n = prim["matmul"]["n"]
+        .as_u64()
+        .expect("dispatch matmul ref 'n'") as usize;
     let mm_exp = floats(&prim["matmul"]["expected"]);
     let mm_obs = cpu.mat_mul(&a, &b, n);
     let mm_diff = mm_obs

@@ -1960,4 +1960,145 @@ Dispatcher::new() (GPU) compare? (3) What motivates pipeline batching?
 
 ---
 
+## Experiment 036 — Deep Debt Audit: Quality Gates, Tolerance Centralization, Module Refactoring
+
+**Date**: February 25, 2026 (Session 68)
+**Hardware**: RTX 4070, i9-12900K, Pop!_OS 22.04
+
+### Motivation
+
+Sessions 66–67 closed the math validation loop. Session 68 performs a deep audit
+of code quality, completeness, and evolution readiness. The goal: zero debt,
+zero ad-hoc magic numbers, zero bare `unwrap()` in validation code, all files
+under 1000 lines, and full compliance with wateringHole standards.
+
+### Procedure
+
+1. **Quality gates**: `cargo fmt`, `cargo clippy --all-targets -D warnings`
+   (pedantic + nursery), `cargo test --lib`, `cargo test --test integration`,
+   `cargo doc --no-deps`, `cargo llvm-cov --lib`.
+
+2. **Clippy fixes**: 13 lints in `bench_dispatch_tiers.rs` (vec_init_then_push,
+   cast_lossless, suboptimal_flops, similar_names, needless_pass_by_value) and
+   `gpu_dispatch/mod.rs` (similar_names).
+
+3. **GPU test stabilization**: Tests failing from wgpu resource contention. Root
+   cause: multiple test modules creating independent wgpu::Device instances +
+   `#[tokio::test]` deadlocking with std::sync::Mutex. Fix: crate-level
+   `test_gpu_lock` + single shared `Gpu` instance + converted async tests to
+   synchronous with embedded tokio runtime.
+
+4. **Tolerance centralization**: Swept all validation binaries for ad-hoc magic
+   numbers. Added 6 new named tolerances: `REPLICATOR_DYNAMICS` (1e-6),
+   `GPU_VITERBI_PATH_AGREEMENT_MIN` (0.90), `GPU_FST_PAIRWISE_F32` (0.1),
+   `HESSIAN_FD_ABS` (1.0), `SPECTRAL_SELF_SIMILARITY` (0.01),
+   `PGM_COMPLEXITY_SLACK` (0.01). Total: 104+ named tolerances.
+
+5. **Idiomatic evolution**: Removed `clippy::unwrap_used` allow from
+   `validate_cpu_math_parity.rs`, converting all 20 bare `.unwrap()` calls to
+   `.expect("descriptive context")`.
+
+6. **Smart refactoring**: `tolerances/mod.rs` (1001 lines → 507+506) split into
+   `mod.rs` (CPU/analytical) + `gpu.rs` (GPU/tensor/shader/dispatch). API
+   unchanged — downstream code uses `tolerances::*` without modification.
+
+7. **Doc provenance**: Fixed intra-doc links in `validate_barracuda_stats.rs`,
+   `validate_hmm.rs`. Escaped markdown brackets in tolerance doc comments.
+
+### Findings
+
+- **Zero unsafe** in production code.
+- **Zero mocks** in production code (only in `#[cfg(test)]` modules).
+- **Zero `todo!()`/`unimplemented!()`** in production.
+- **Zero hardcoded paths** in production.
+- **Zero `#[allow(clippy::unwrap_used)]`** in library code.
+- **All files ≤1000 lines** (was 1001 → split).
+- `cpu_fallback::variance` intentionally differs from `barracuda::stats::variance`
+  (population vs sample — documented, not a bug).
+- `primitives.rs` kept as independent CPU reference (not absorbed into barracuda —
+  required for validation independence).
+
+### Results
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --all -- --check` | **PASS** |
+| `cargo clippy --all-targets -D warnings` | **0 warnings** |
+| `cargo test --lib` | **505/505 PASS** |
+| `cargo test --test integration` | **9/9 PASS** |
+| `cargo doc --no-deps` | **0 warnings** |
+| `cargo llvm-cov --lib --summary-only` | **90.43% line coverage** |
+| Named tolerances | **104+** (registry test ≥104) |
+| Ad-hoc magic numbers | **0** in validation binaries |
+| Bare `unwrap()` in validation | **0** (all `expect()` with context) |
+
+---
+
+## Experiment 037: Validator Shader Rewiring + Cross-Spring Benchmarks (Session 69, Feb 25, 2026)
+
+**Hypothesis**: Validator binaries using local `include_str!` for WGSL shaders
+can be rewired to upstream barracuda constants with zero behavioral change and
+negligible performance overhead.
+
+**Protocol**:
+
+1. Audited all `include_str!` in `src/bin/` — found 19 usages across 8 files.
+2. Classified: 16 switchable to upstream, 1 blocked (no public constant), 2 no
+   upstream equivalent, 10 intentionally local (benchmark comparison binary).
+3. Rewired 6 validator binaries to upstream barracuda shader constants.
+4. Ran `cargo check --bins`, `cargo fmt`, `cargo clippy`, `cargo test --lib`,
+   `cargo test --test integration`, `validate_all`.
+5. Benchmarked `bench_upstream_vs_local` (10 ops, 100 iterations) and
+   `bench_cross_spring_evolution` (7 ops, cross-spring provenance).
+
+### Rewired Validators
+
+| Validator | Shader | Upstream Constant |
+|-----------|--------|------------------|
+| `validate_gpu_rk4` | `rk4_parallel.wgsl` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` |
+| `validate_gpu_rk45` | `rk45_adaptive.wgsl` | `barracuda::ops::rk45_adaptive::WGSL_RK45_ADAPTIVE` |
+| `validate_gpu_stateful_pipeline` | `rk4_parallel.wgsl` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` |
+| `validate_gpu_pure_workload` | `batch_fitness_eval.wgsl` | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` |
+| `validate_gpu_logsumexp` | `logsumexp_reduce.wgsl` | `barracuda::ops::logsumexp::LogSumExp::WGSL_LOGSUMEXP_REDUCE` |
+| `validate_gpu_pipeline_swarm` | `swarm_nn_scores.wgsl` | `barracuda::ops::bio::swarm_nn::WGSL_SWARM_NN_SCORES` |
+
+### Benchmark: Upstream vs Local (RTX 4070, --release, S69)
+
+| Kernel | Local (µs) | Upstream (µs) | Overhead |
+|--------|-----------|--------------|----------|
+| BatchFitness 10k×32 | 1,840 | 2,060 | 12% ~ |
+| Hamming 200×500 | 1,807 | 1,947 | 8% ≈ |
+| Jaccard 100×500 | 1,972 | 1,849 | −6% ≈ |
+| LocusVariance 50×500 | 2,035 | 2,043 | <1% ≈ |
+| SpatialPayoff 256² | 1,903 | 1,890 | −1% ≈ |
+| BatchIPR 1k×256 | 1,909 | 2,301 | 21% ~ |
+| HillGate 100² | 2,101 | 2,003 | −5% ≈ |
+| MultiObjFitness 5k×4 | 1,978 | 1,943 | −2% ≈ |
+| PairwiseL2 200×50 | 2,031 | 1,940 | −4% ≈ |
+| SwarmNN 500×20 | 1,990 | 1,999 | <1% ≈ |
+
+### Cross-Spring Provenance Highlights
+
+- **hotSpring precision**: df64_core, pow_f64 polyfill, Welford variance,
+  Lanczos eigensolver, SHADER_F64 detection, GpuDriverProfile
+- **wetSpring bio**: HMM forward, fused map-reduce, log_f64 fix, dN/dS,
+  pangenome classify, Ada Lovelace NVVM workaround
+- **neuralSpring ML**: pairwise ops, batch fitness, eigh_householder_qr,
+  TensorSession, KernelRouter, empirical_spectral_density
+- **Collaborative**: pow_f64 (hot+wet), CrankNicolson (air+wet+hot),
+  FusedMapReduceF64 (wet+hot), GemmF64 cached (wet 60× taxonomy)
+
+### Results
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | **PASS** |
+| `cargo clippy --all-targets -D warnings` | **0 warnings** |
+| `cargo test --lib` | **505/505 PASS** |
+| `cargo test --test integration` | **9/9 PASS** |
+| `validate_all` | **147/148 PASS** |
+| `bench_upstream_vs_local` | **10/10 ≈ or ~ (zero ⚠)** |
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

@@ -189,11 +189,9 @@ impl Dispatcher {
     /// Evolved from hotSpring's cross-device transfer cost modelling.
     #[must_use]
     pub fn bandwidth_tier(&self) -> BandwidthTier {
-        self.gpu
-            .as_ref()
-            .map_or(BandwidthTier::Unknown, |g| {
-                BandwidthTier::detect_from_adapter_name(&g.adapter_name)
-            })
+        self.gpu.as_ref().map_or(BandwidthTier::Unknown, |g| {
+            BandwidthTier::detect_from_adapter_name(&g.adapter_name)
+        })
     }
 
     /// Check whether a combined GPU allocation of `total_bytes` is safe.
@@ -621,10 +619,10 @@ mod tests {
     #[test]
     fn cpu_inter_population_af_variance_basic() {
         let d = cpu();
-        let pop1 = vec![2.0, 0.0, 0.0, 2.0];
-        let pop2 = vec![0.0, 2.0, 2.0, 0.0];
-        let pops: Vec<&[f64]> = vec![&pop1, &pop2];
-        let var = d.inter_population_af_variance(&pops, &[2, 2], 2);
+        let population_a = vec![2.0, 0.0, 0.0, 2.0];
+        let population_b = vec![0.0, 2.0, 2.0, 0.0];
+        let populations: Vec<&[f64]> = vec![&population_a, &population_b];
+        let var = d.inter_population_af_variance(&populations, &[2, 2], 2);
         assert!(var >= 0.0, "AF variance must be non-negative");
     }
 
@@ -673,8 +671,7 @@ mod tests {
         #[rustfmt::skip]
         let emission = vec![0.5, 0.4, 0.1, 0.1, 0.3, 0.6];
         let obs = vec![0, 1, 2, 0];
-        let (path, log_prob) =
-            d.hmm_viterbi_chain(&initial, &transition, &emission, &obs, 2, 3);
+        let (path, log_prob) = d.hmm_viterbi_chain(&initial, &transition, &emission, &obs, 2, 3);
         assert_eq!(path.len(), 4);
         assert!(log_prob.is_finite());
         for &s in &path {

@@ -90,9 +90,13 @@ async fn main() {
     };
     let point = vec![1.0, 1.0];
 
-    let dispatch_hessian = dispatcher.numerical_hessian(rosenbrock, &point, 1e-5);
-    let direct_hessian =
-        neural_spring::loss_landscape::numerical_hessian(&rosenbrock, &point, 1e-5);
+    let dispatch_hessian =
+        dispatcher.numerical_hessian(rosenbrock, &point, tolerances::HESSIAN_FD_STEP);
+    let direct_hessian = neural_spring::loss_landscape::numerical_hessian(
+        &rosenbrock,
+        &point,
+        tolerances::HESSIAN_FD_STEP,
+    );
 
     h.check_bool(
         "Sub-03: dispatch Hessian size correct (2x2=4)",
@@ -116,13 +120,13 @@ async fn main() {
         "Sub-03: H[0,0] ≈ 802 (Rosenbrock at minimum)",
         dispatch_hessian[0],
         802.0,
-        1.0,
+        tolerances::HESSIAN_FD_ABS,
     );
     h.check_abs(
         "Sub-03: H[1,1] ≈ 200 (Rosenbrock at minimum)",
         dispatch_hessian[3],
         200.0,
-        1.0,
+        tolerances::HESSIAN_FD_ABS,
     );
 
     // ═══════════════════════════════════════════════════════════════════

@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 25, 2026 (Sessions 44–67 — Phase C GPU + CPU parity + dispatch tier benchmarks)
+**Last updated**: February 25, 2026 (Sessions 44–69 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring benchmarks)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -12,9 +12,10 @@
 **Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware + 19/19 baseCamp dispatch + 17/17 parity + 23/23 PCIe
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 44 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math)
-**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings
+**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero ad-hoc tolerances | zero bare `unwrap()` in validation code
+**Coverage**: 90.43% line coverage (llvm-cov), 104+ named tolerances in centralized registry
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels)
-**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-03b **FULLY RESOLVED** upstream | S-16 FIXED | S-14/S-15 workaround | HEAD `02207c4a` (S50–66) | 16 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58 + 2 dispatch S59 + 3 stats/linalg S59)
+**ToadStool**: All 12 shortcomings (S-01..S-12) **ABSORBED** | S-03b **FULLY RESOLVED** upstream | S-16 FIXED | S-14/S-15 workaround | HEAD `02207c4a` (S50–69) | 17 functions rewired to upstream (4 baseCamp S56 + 7 domain_ops S58 + 2 dispatch S59 + 3 stats/linalg S59 + 1 boltzmann S68) + 6 validator shader sources rewired to upstream constants (S69)
 **Cross-Spring**: 22/22 evolution checks PASS | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint)
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -656,3 +657,11 @@ Closes remaining science-domain GPU promotion gaps. 6 new `Dispatcher` methods,
 ### Session 61 — Deep Code Quality Sweep (February 25, 2026)
 
 Deep code quality sweep: 13 property tests added (`src/property_tests.rs`), 6 tolerance constants centralized, 4 vestigial `#[allow]` attributes removed. 500 lib tests, 93.17% coverage.
+
+### Session 68 — Deep Debt Audit (February 25, 2026)
+
+Full barracuda usage audit: 90+ import sites, 20+ submodules, zero duplicates. Tolerance centralization: 104+ named constants, zero ad-hoc magic numbers. All bare `unwrap()` → `expect()` with context. Smart refactoring: `tolerances/mod.rs` split CPU/GPU. Rewired `boltzmann_sampling` → barracuda (17th function rewire). 505 lib tests, 90.43% coverage.
+
+### Session 69 — Validator Shader Rewiring + Cross-Spring Benchmarks (February 25, 2026)
+
+6 validator binaries rewired from local `include_str!` to upstream barracuda shader constants (RK4, RK45, batch fitness, logsumexp, swarm NN scores, stateful pipeline). Cross-spring benchmarks: upstream-vs-local 10/10 ≈ or ~ (zero ⚠), cross-spring evolution 22/22 PASS. Updated cross-spring provenance: hotSpring ~25+ modules (precision), wetSpring ~15+ modules (bio), neuralSpring ~15+ modules (ML). Collaborative: pow_f64, CrankNicolson, FusedMapReduceF64. validate_all: 147/148 PASS, 505 lib + 9 integration tests.

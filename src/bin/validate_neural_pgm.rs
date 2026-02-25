@@ -103,7 +103,10 @@ fn main() {
 
     let w_square: Vec<f64> = (0..16).map(|_| rng.normal()).collect();
     let self_sim = layer_spectral_similarity(&w_square, 4, &w_square, 4);
-    h.check_bool("Self-similarity near 1.0", (self_sim - 1.0).abs() < 0.01);
+    h.check_bool(
+        "Self-similarity near 1.0",
+        (self_sim - 1.0).abs() < tolerances::SPECTRAL_SELF_SIMILARITY,
+    );
 
     let w_other: Vec<f64> = (0..16).map(|_| rng.normal()).collect();
     let cross_sim = layer_spectral_similarity(&w_square, 4, &w_other, 4);
@@ -123,8 +126,16 @@ fn main() {
         t
     };
 
-    let complexity_dense = pgm_complexity(&[t_dense.as_slice()], &[4, 4], 0.01);
-    let complexity_sparse = pgm_complexity(&[t_sparse.as_slice()], &[4, 4], 0.01);
+    let complexity_dense = pgm_complexity(
+        &[t_dense.as_slice()],
+        &[4, 4],
+        tolerances::SPECTRAL_SELF_SIMILARITY,
+    );
+    let complexity_sparse = pgm_complexity(
+        &[t_sparse.as_slice()],
+        &[4, 4],
+        tolerances::SPECTRAL_SELF_SIMILARITY,
+    );
 
     h.check_bool(
         "Dense PGM more complex than sparse",
@@ -229,11 +240,19 @@ fn main() {
 
     // ── nS-406: Complexity scales with depth ─────────────────────────
 
-    let one_layer = pgm_complexity(&[t_dense.as_slice()], &[4, 4], 0.01);
-    let two_layers = pgm_complexity(&[t_dense.as_slice(), t_dense.as_slice()], &[4, 4, 4], 0.01);
+    let one_layer = pgm_complexity(
+        &[t_dense.as_slice()],
+        &[4, 4],
+        tolerances::SPECTRAL_SELF_SIMILARITY,
+    );
+    let two_layers = pgm_complexity(
+        &[t_dense.as_slice(), t_dense.as_slice()],
+        &[4, 4, 4],
+        tolerances::SPECTRAL_SELF_SIMILARITY,
+    );
     h.check_bool(
         "nS-406: two-layer PGM at least as complex as one-layer",
-        two_layers >= one_layer - 0.01,
+        two_layers >= one_layer - tolerances::PGM_COMPLEXITY_SLACK,
     );
 
     // ── Determinism ──────────────────────────────────────────────────

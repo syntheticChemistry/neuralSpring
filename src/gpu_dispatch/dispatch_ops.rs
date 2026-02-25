@@ -427,11 +427,7 @@ impl Dispatcher {
             },
             || {
                 let vecs: Vec<Vec<f64>> = populations.iter().map(|s| s.to_vec()).collect();
-                crate::meta_population::inter_population_af_variance(
-                    &vecs,
-                    n_individuals,
-                    n_loci,
-                )
+                crate::meta_population::inter_population_af_variance(&vecs, n_individuals, n_loci)
             },
         )
     }
@@ -451,9 +447,7 @@ impl Dispatcher {
     ) -> f64 {
         self.gpu_or_cpu(
             "pairwise_fst",
-            |dev| {
-                crate::gpu_ops::pairwise_fst_gpu(pop_a, n_a, pop_b, n_b, n_loci, dev)
-            },
+            |dev| crate::gpu_ops::pairwise_fst_gpu(pop_a, n_a, pop_b, n_b, n_loci, dev),
             || crate::meta_population::pairwise_fst(pop_a, n_a, pop_b, n_b, n_loci),
         )
     }
@@ -468,9 +462,7 @@ impl Dispatcher {
     ) -> f64 {
         self.gpu_or_cpu(
             "global_fst",
-            |dev| {
-                crate::gpu_ops::global_fst_gpu(populations, n_individuals, n_loci, dev)
-            },
+            |dev| crate::gpu_ops::global_fst_gpu(populations, n_individuals, n_loci, dev),
             || crate::meta_population::global_fst(populations, n_individuals, n_loci),
         )
     }

@@ -48,7 +48,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/rk4_parallel.wgsl");
+const WGSL_SOURCE: &str = barracuda::ops::rk_stage::WGSL_RK4_PARALLEL;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]

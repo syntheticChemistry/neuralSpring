@@ -366,9 +366,18 @@ pub fn all_workloads() -> Vec<&'static MlWorkload> {
 #[must_use]
 pub fn origin_summary() -> (usize, usize, usize) {
     let all = all_workloads();
-    let absorbed = all.iter().filter(|w| w.origin == ShaderOrigin::Absorbed).count();
-    let local = all.iter().filter(|w| w.origin == ShaderOrigin::Local).count();
-    let cpu_only = all.iter().filter(|w| w.origin == ShaderOrigin::CpuOnly).count();
+    let absorbed = all
+        .iter()
+        .filter(|w| w.origin == ShaderOrigin::Absorbed)
+        .count();
+    let local = all
+        .iter()
+        .filter(|w| w.origin == ShaderOrigin::Local)
+        .count();
+    let cpu_only = all
+        .iter()
+        .filter(|w| w.origin == ShaderOrigin::CpuOnly)
+        .count();
     (absorbed, local, cpu_only)
 }
 

@@ -23,6 +23,9 @@ use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
+// boltzmann_sampling now delegates to barracuda::sample::boltzmann_sampling (S56 absorption).
+// metropolis_step remains local (barracuda does not expose it separately).
+
 fn quadratic_loss(x: &[f64]) -> f64 {
     x.iter().map(|&xi| xi * xi).sum()
 }
@@ -173,27 +176,26 @@ fn main() {
 
     // ── nS-303: Boltzmann sampling at high temperature ───────────────
 
-    let mut rng2 = Rng::new(42);
     let init2 = vec![1.0, 1.0];
-    let result = boltzmann_sampling(&quadratic_loss, &init2, 100.0, 0.1, 500, &mut rng2);
+    let result = boltzmann_sampling(&quadratic_loss, &init2, 100.0, 0.1, 500, 42);
     h.check_bool(
         "High-temp acceptance rate > 30%",
         result.acceptance_rate > 0.3,
     );
     h.check_bool(
         "Boltzmann produces expected number of samples",
-        result.losses.len() == 500,
+        result.losses.len() == 501,
     );
 
     // ── nS-303: Low temperature favors lower loss ────────────────────
 
-    let mut rng_lo = Rng::new(42);
-    let result_lo = boltzmann_sampling(&quadratic_loss, &init2, 0.01, 0.01, 500, &mut rng_lo);
-    let mean_loss_lo: f64 = result_lo.losses.iter().sum::<f64>() / 500.0;
+    let result_lo = boltzmann_sampling(&quadratic_loss, &init2, 0.01, 0.01, 500, 42);
+    let mean_loss_lo: f64 = result_lo.losses.iter().sum::<f64>()
+        / f64::from(u32::try_from(result_lo.losses.len()).unwrap_or(1));
 
-    let mut rng_hi = Rng::new(42);
-    let result_hi = boltzmann_sampling(&quadratic_loss, &init2, 100.0, 0.1, 500, &mut rng_hi);
-    let mean_loss_hi: f64 = result_hi.losses.iter().sum::<f64>() / 500.0;
+    let result_hi = boltzmann_sampling(&quadratic_loss, &init2, 100.0, 0.1, 500, 42);
+    let mean_loss_hi: f64 = result_hi.losses.iter().sum::<f64>()
+        / f64::from(u32::try_from(result_hi.losses.len()).unwrap_or(1));
 
     h.check_bool(
         "Low temperature produces lower mean loss than high",
@@ -240,7 +242,10 @@ fn main() {
     );
 
     let final_loss = quadratic_loss(&param_traj);
-    h.check_bool("nS-305: converged near minimum", final_loss < 0.01);
+    h.check_bool(
+        "nS-305: converged near minimum",
+        final_loss < tolerances::OPTIMIZER_VALUE_AT_MIN * 100.0,
+    );
 
     // ── nS-305: Landscape along training trajectory ──────────────────
 

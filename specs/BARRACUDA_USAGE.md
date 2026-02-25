@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 25, 2026 (Sessions 40–67)
+**Last Updated**: February 25, 2026 (Sessions 40–69)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -795,4 +795,89 @@ Motivates StatefulPipeline/UnidirectionalPipeline batching.
 | `validate_gpu_phase_c` | **18/18 PASS** |
 | `validate_cpu_math_parity` | **39/39 PASS** |
 
-*BarraCUDA usage audit — neuralSpring, February 25, 2026. Sessions 50–67: 16 functions rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 159 binaries, 505 lib + 43 forge tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops).*
+---
+
+## Session 68 — Deep Debt Audit: BarraCUDA Integration Health
+
+### Audit Findings
+
+Full barracuda usage sweep across 60+ files, 90+ import sites:
+
+- **20+ barracuda submodules** actively consumed (device, tensor, ops::bio, ops::mha,
+  ops::linalg, ops::fft, ops::fused_map_reduce_f64, ops::variance_reduce_f64,
+  ops::correlation_f64_wgsl, ops::logsumexp, ops::rk_stage, stats, special,
+  spectral, dispatch, pipeline, staging, numerical, linalg::graph, unified_hardware)
+- **Zero barracuda-related TODO/FIXME** in src/
+- **Zero duplicate math** — all identified overlaps are intentional:
+  - `cpu_fallback::variance` uses population (÷N) vs barracuda sample (÷(N-1))
+  - `primitives.rs` kept as independent CPU reference for validation independence
+  - `spectrum_chi_squared` derives expected from fractions (variant API, not duplicate)
+- **GPU test serialization**: Added crate-level `test_gpu_lock` and shared `Gpu`
+  instance to prevent wgpu device contention — pattern recommended for upstream
+
+### Quality Gates (Session 68)
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --all -- --check` | **PASS** |
+| `cargo clippy --all-targets -D warnings` | **0 warnings** |
+| `cargo test --lib` | **505/505 PASS** |
+| `cargo test --test integration` | **9/9 PASS** |
+| `cargo doc --no-deps` | **0 warnings** |
+| `cargo llvm-cov --lib` | **90.43% line coverage** |
+| Named tolerances | **104+** |
+| Ad-hoc magic numbers | **0** |
+
+---
+
+## Session 69 — Validator Shader Rewiring + Cross-Spring Benchmarks
+
+### Shader Source Rewiring
+
+6 validator binaries rewired from local `include_str!` to upstream barracuda shader
+constants. Same shader content, but source-of-truth now lives in barracuda:
+
+| Validator | Old | New |
+|-----------|-----|-----|
+| `validate_gpu_rk4` | `include_str!("metalForge/shaders/rk4_parallel.wgsl")` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` |
+| `validate_gpu_rk45` | `include_str!(rk45_adaptive.wgsl)` | `barracuda::ops::rk45_adaptive::WGSL_RK45_ADAPTIVE` |
+| `validate_gpu_stateful_pipeline` | `include_str!(rk4_parallel.wgsl)` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` |
+| `validate_gpu_pure_workload` | `include_str!(batch_fitness_eval.wgsl)` | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` |
+| `validate_gpu_logsumexp` | `include_str!(logsumexp_reduce.wgsl)` | `barracuda::ops::logsumexp::LogSumExp::WGSL_LOGSUMEXP_REDUCE` |
+| `validate_gpu_pipeline_swarm` | `include_str!(swarm_nn_scores.wgsl)` | `barracuda::ops::bio::swarm_nn::WGSL_SWARM_NN_SCORES` |
+
+### Remaining Local Shaders
+
+| File | Shader | Reason |
+|------|--------|--------|
+| `validate_gpu_pure_workload.rs` | `mean_reduce.wgsl` | No public upstream `WGSL_MEAN_REDUCE` constant |
+| `validate_mha_gpu.rs` | `head_split.wgsl`, `head_concat.wgsl` | No upstream equivalent |
+| `bench_upstream_vs_local.rs` | 10 shaders | Intentional: benchmarks local vs upstream dispatch |
+
+### Upstream vs Local Benchmark (RTX 4070, --release)
+
+| Kernel | Origin | Local (µs) | Upstream (µs) | Overhead |
+|--------|--------|-----------|--------------|----------|
+| BatchFitness 10k×32 | nS 011-015 | 1,840 | 2,060 | 12% ~ |
+| Hamming 200×500 | nS 017 | 1,807 | 1,947 | 8% ≈ |
+| Jaccard 100×500 | nS 024 | 1,972 | 1,849 | −6% ≈ |
+| LocusVariance 50×500 | nS 025 | 2,035 | 2,043 | <1% ≈ |
+| SpatialPayoff 256² | nS 019 | 1,903 | 1,890 | −1% ≈ |
+| BatchIPR 1k×256 | nS 022-023 | 1,909 | 2,301 | 21% ~ |
+| HillGate 100² | nS 021 | 2,101 | 2,003 | −5% ≈ |
+| MultiObjFitness 5k×4 | nS 014 | 1,978 | 1,943 | −2% ≈ |
+| PairwiseL2 200×50 | nS 012 | 2,031 | 1,940 | −4% ≈ |
+| SwarmNN 500×20 | nS 015 | 1,990 | 1,999 | <1% ≈ |
+
+### BarraCUDA Consumption Summary (S69 complete)
+
+| Category | Count |
+|----------|-------|
+| Barracuda submodules consumed | 20+ |
+| Functions rewired to upstream | 17 |
+| Validator shader sources rewired | 6 |
+| Upstream GPU typed ops validated | 10 bio + f64 HMM + Gillespie + wetSpring trio + chi² |
+| Total barracuda import sites | 90+ |
+| Upstream API coverage | 117+ APIs exercised |
+
+*BarraCUDA usage audit — neuralSpring, February 25, 2026. Sessions 50–69: 17 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 159 binaries, 505 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 104+ tolerances, 90.43% coverage. Session 69: shader rewiring complete, upstream benchmarks nominal (10/10 ≈ or ~).*

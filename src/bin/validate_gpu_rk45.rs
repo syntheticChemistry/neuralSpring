@@ -28,7 +28,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/rk45_adaptive.wgsl");
+const WGSL_SOURCE: &str = barracuda::ops::rk45_adaptive::WGSL_RK45_ADAPTIVE;
 
 #[tokio::main]
 async fn main() {

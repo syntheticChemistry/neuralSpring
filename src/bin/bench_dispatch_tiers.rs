@@ -55,18 +55,18 @@ fn main() {
     eprintln!("╚══════════════════════════════════════════════════════════════╝");
     eprintln!();
 
-    let mut results = Vec::new();
-
-    results.push(bench_matmul(&cpu, &gpu));
-    results.push(bench_variance(&cpu, &gpu));
-    results.push(bench_pearson(&cpu, &gpu));
-    results.push(bench_entropy(&cpu, &gpu));
-    results.push(bench_softmax(&cpu, &gpu));
-    results.push(bench_l2(&cpu, &gpu));
-    results.push(bench_chi_squared(&cpu, &gpu));
-    results.push(bench_commutator(&cpu, &gpu));
-    results.push(bench_hmm_forward(&cpu, &gpu));
-    results.push(bench_hill(&cpu, &gpu));
+    let results = vec![
+        bench_matmul(&cpu, &gpu),
+        bench_variance(&cpu, &gpu),
+        bench_pearson(&cpu, &gpu),
+        bench_entropy(&cpu, &gpu),
+        bench_softmax(&cpu, &gpu),
+        bench_l2(&cpu, &gpu),
+        bench_chi_squared(&cpu, &gpu),
+        bench_commutator(&cpu, &gpu),
+        bench_hmm_forward(&cpu, &gpu),
+        bench_hill(&cpu, &gpu),
+    ];
 
     print_summary(&results, has_gpu);
 }
@@ -87,14 +87,14 @@ fn bench_matmul(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let a: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
     let b: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(neural_spring::spectral_commutativity::mat_mul(&a, &b, n));
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.mat_mul(&a, &b, n));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.mat_mul(&a, &b, n));
         })))
     } else {
@@ -114,18 +114,18 @@ fn bench_matmul(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 }
 
 fn bench_variance(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
-    let data: Vec<f64> = (0..4096).map(|i| (i as f64) * 0.001).collect();
+    let data: Vec<f64> = (0..4096).map(|i| f64::from(i) * 0.001).collect();
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         let n = data.len() as f64;
         let mean = data.iter().sum::<f64>() / n;
         std::hint::black_box(data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n);
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.variance(&data));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.variance(&data));
         })))
     } else {
@@ -142,19 +142,19 @@ fn bench_variance(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 }
 
 fn bench_pearson(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
-    let x: Vec<f64> = (0..4096).map(|i| (i as f64).sin()).collect();
-    let y: Vec<f64> = (0..4096).map(|i| (i as f64).cos()).collect();
+    let x: Vec<f64> = (0..4096).map(|i| f64::from(i).sin()).collect();
+    let y: Vec<f64> = (0..4096).map(|i| f64::from(i).cos()).collect();
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(
             barracuda::stats::correlation::pearson_correlation(&x, &y).unwrap_or(0.0),
         );
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.pearson_correlation(&x, &y));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.pearson_correlation(&x, &y));
         })))
     } else {
@@ -178,14 +178,14 @@ fn bench_entropy(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
         raw.iter().map(|&v| v / sum).collect()
     };
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(neural_spring::primitives::shannon_entropy(&probs));
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.shannon_entropy(&probs));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.shannon_entropy(&probs));
         })))
     } else {
@@ -202,16 +202,16 @@ fn bench_entropy(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 }
 
 fn bench_softmax(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
-    let logits: Vec<f64> = (0..256).map(|i| (i as f64) * 0.1 - 12.8).collect();
+    let logits: Vec<f64> = (0..256).map(|i| f64::from(i).mul_add(0.1, -12.8)).collect();
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(neural_spring::transformer::softmax(&logits));
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.softmax(&logits));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.softmax(&logits));
         })))
     } else {
@@ -228,17 +228,17 @@ fn bench_softmax(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 }
 
 fn bench_l2(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
-    let a: Vec<f64> = (0..256).map(|i| (i as f64) * 0.01).collect();
-    let b: Vec<f64> = (0..256).map(|i| (i as f64) * 0.01 + 0.5).collect();
+    let a: Vec<f64> = (0..256).map(|i| f64::from(i) * 0.01).collect();
+    let b: Vec<f64> = (0..256).map(|i| f64::from(i).mul_add(0.01, 0.5)).collect();
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(neural_spring::modes::l2_distance(&a, &b));
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.l2_distance(&a, &b));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.l2_distance(&a, &b));
         })))
     } else {
@@ -256,19 +256,19 @@ fn bench_l2(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 
 fn bench_chi_squared(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let n = 100_usize;
-    let observed: Vec<f64> = (0..n).map(|i| 10.0 + (i as f64) * 0.1).collect();
+    let observed: Vec<f64> = (0..n).map(|i| (i as f64).mul_add(0.1, 10.0)).collect();
     let expected: Vec<f64> = vec![10.5; n];
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(
             barracuda::special::chi_squared_statistic(&observed, &expected).unwrap_or(0.0),
         );
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.chi_squared(&observed, &expected));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.chi_squared(&observed, &expected));
         })))
     } else {
@@ -290,14 +290,14 @@ fn bench_commutator(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let a: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
     let b: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(neural_spring::spectral_commutativity::commutator(&a, &b, n));
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.commutator(&a, &b, n));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.commutator(&a, &b, n));
         })))
     } else {
@@ -332,10 +332,10 @@ fn bench_hmm_forward(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
         n_obs_sym,
     );
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(hmm.forward(&obs).1);
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.hmm_forward_chain(
             &initial,
             &transition,
@@ -346,7 +346,7 @@ fn bench_hmm_forward(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
         ));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.hmm_forward_chain(
                 &initial,
                 &transition,
@@ -373,18 +373,18 @@ fn bench_hill(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let n = 2500_usize;
     let x: Vec<f64> = (0..n).map(|i| (i as f64) * 0.002).collect();
 
-    let lib_us = median_us(bench(|| {
+    let lib_us = median_us(&bench(|| {
         std::hint::black_box(
             x.iter()
                 .map(|&xi| neural_spring::primitives::hill_activation(xi, 1.0, 0.5, 2.0))
                 .collect::<Vec<_>>(),
         );
     }));
-    let cpu_us = median_us(bench(|| {
+    let cpu_us = median_us(&bench(|| {
         std::hint::black_box(cpu.hill_activation_batch(&x, 1.0, 0.5, 2.0));
     }));
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(bench_gpu(|| {
+        Some(median_us(&bench_gpu(|| {
             std::hint::black_box(gpu.hill_activation_batch(&x, 1.0, 0.5, 2.0));
         })))
     } else {
@@ -417,7 +417,9 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
         eprintln!("{}", "─".repeat(90));
         for r in results {
             let overhead = format!("{:.2}×", r.cpu_dispatch_us / r.lib_us);
-            let gpu_str = r.gpu_dispatch_us.map_or_else(|| "—".to_string(), |v| format!("{v:.1}"));
+            let gpu_str = r
+                .gpu_dispatch_us
+                .map_or_else(|| "—".to_string(), |v| format!("{v:.1}"));
             let accel = r.gpu_dispatch_us.map_or_else(
                 || "—".to_string(),
                 |g| format!("{:.1}×", r.cpu_dispatch_us / g),
@@ -442,9 +444,9 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
         }
     }
 
-    let total_lib: f64 = results.iter().map(|r| r.lib_us).sum();
-    let total_cpu: f64 = results.iter().map(|r| r.cpu_dispatch_us).sum();
-    let total_gpu: Option<f64> = {
+    let agg_library: f64 = results.iter().map(|r| r.lib_us).sum();
+    let agg_dispatch: f64 = results.iter().map(|r| r.cpu_dispatch_us).sum();
+    let agg_accelerated: Option<f64> = {
         let vals: Vec<f64> = results.iter().filter_map(|r| r.gpu_dispatch_us).collect();
         if vals.len() == results.len() {
             Some(vals.iter().sum())
@@ -454,13 +456,15 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
     };
 
     eprintln!("{}", "─".repeat(if has_gpu { 90 } else { 64 }));
-    let overhead_avg = total_cpu / total_lib;
+    let overhead_avg = agg_dispatch / agg_library;
     eprintln!();
-    eprintln!("Dispatch overhead (CPU): {overhead_avg:.2}× (aggregate library → Dispatcher::cpu_only())");
+    eprintln!(
+        "Dispatch overhead (CPU): {overhead_avg:.2}× (aggregate library → Dispatcher::cpu_only())"
+    );
 
-    if let Some(gpu_total) = total_gpu {
-        let gpu_accel = total_cpu / gpu_total;
-        let total_accel = total_lib / gpu_total;
+    if let Some(gpu_total) = agg_accelerated {
+        let gpu_accel = agg_dispatch / gpu_total;
+        let total_accel = agg_library / gpu_total;
         eprintln!("GPU acceleration:       {gpu_accel:.1}× (Dispatcher CPU → Dispatcher GPU)");
         eprintln!("Total GPU vs library:   {total_accel:.1}× (library direct → Dispatcher GPU)");
     }
@@ -469,7 +473,9 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
     eprintln!("Key findings:");
     eprintln!("  1. Dispatcher::cpu_only() overhead: {overhead_avg:.2}× (negligible — dispatch layer is transparent)");
     eprintln!("  2. Per-call GPU dispatch dominated by driver overhead for small workloads");
-    eprintln!("     → This is expected and motivates StatefulPipeline / UnidirectionalPipeline batching");
+    eprintln!(
+        "     → This is expected and motivates StatefulPipeline / UnidirectionalPipeline batching"
+    );
     eprintln!("     → GPU wins at scale via batched kernels (see validate_gpu_* binaries)");
     eprintln!();
     eprintln!("Pipeline status:");
@@ -507,7 +513,7 @@ fn bench_gpu<F: FnMut()>(mut f: F) -> Vec<Duration> {
     timings
 }
 
-fn median_us(timings: Vec<Duration>) -> f64 {
+fn median_us(timings: &[Duration]) -> f64 {
     let mut sorted: Vec<f64> = timings
         .iter()
         .map(|d| d.as_nanos() as f64 / 1000.0)

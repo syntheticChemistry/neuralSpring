@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 25, 2026 (Sessions 45–61)
+**Last Updated**: February 25, 2026 (Sessions 45–68)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -183,12 +183,13 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated.**
 
+Session 68: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 104+ named tolerances, 90.43% coverage, all files ≤1000 lines.
 Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10 cross-language).
 Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
 `validate_all`: 147/148 PASS on RTX 4070 (1 pre-existing logsumexp driver issue).
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
 Python baselines: 25/25 PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
-505 lib + 9 integration + 43 forge tests. 158 validation/bench binaries. Zero debt.
+505 lib + 9 integration + 43 forge tests. 159 validation/bench binaries. Zero debt.
 44 CPU→GPU dispatch ops (~97% of production math).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -223,7 +224,7 @@ Full provenance: `specs/DATA_PROVENANCE.md`.
 
 ---
 
-## Full Validation Stack Matrix (February 25, 2026 — Sessions 60–67)
+## Full Validation Stack Matrix (February 25, 2026 — Sessions 60–68)
 
 Each paper maps through 10 validation tiers. The stack proves correctness
 from Python baseline through multi-GPU portability to mixed-hardware dispatch.
@@ -453,7 +454,7 @@ validates correctness at every hardware tier:
 
 ---
 
-## Controls Audit: BarraCUDA CPU → GPU → metalForge (Session 67)
+## Controls Audit: BarraCUDA CPU → GPU → metalForge (Sessions 67–68)
 
 Confirming all papers have controls across the three hardware tiers:
 
@@ -489,6 +490,13 @@ Confirming all papers have controls across the three hardware tiers:
 **Audit result**: All 25 papers + 5 baseCamp sub-theses have controls at every
 applicable tier. Two known gaps (Exp 005 analytical, tridiag eigensolver pending NAK).
 All controls use open data and open systems exclusively.
+
+**Session 68 addendum**: Deep audit confirmed all validation binaries reference
+centralized `tolerances::*` constants (104+ named, zero ad-hoc magic numbers).
+All tolerances have mathematical justification in doc comments. Tolerance registry
+is runtime-queryable and machine-verifiable (count test). BarraCUDA usage inventory
+confirms 90+ import sites across 60+ files spanning 20+ barracuda submodules with
+zero duplicate math.
 
 ---
 

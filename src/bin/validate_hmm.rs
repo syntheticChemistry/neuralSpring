@@ -10,6 +10,8 @@
 //! Paper: Liu et al. (2014) `PLoS` Comp Bio 10:e1003649.
 //! Command: `python3 control/hmm_phylo/hmm_phylo.py`
 //! Result: 10/10 PASS (weather HMM + phylo HMM, seed=42)
+//!
+//! See `neural_spring::provenance::HMM_PROVENANCE` for commit, date, and environment.
 
 #![allow(clippy::cast_precision_loss)]
 

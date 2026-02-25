@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–67, Feb 25, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V30_S67_HANDOFF_FEB25_2026.md`
+**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–69, Feb 25, 2026)
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V32_S69_CROSS_SPRING_EVOLUTION_HANDOFF_FEB25_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
@@ -15,6 +15,9 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 **Session 64 sync:** V29 handoff. BandwidthTier + NVK guard wired into Dispatcher. Cross-spring benchmarks: Variance 3.49×, Entropy 2.56×, Pearson 1.33×.
 **Session 66 sync:** Phase C GPU promotion — HMM chains, FST, introgression, AF variance. 44 CPU→GPU ops (~97%). validate_gpu_phase_c 18/18 PASS.
 **Session 67 sync:** V30 handoff. CPU↔Python parity 39/39 PASS (1e-10). Dispatch tier benchmarks: ≤1.04× CPU overhead (9/10 ops). Per-call GPU driver-bound → motivates pipeline batching.
+**Session 68 sync:** V31 handoff. Deep debt audit — 104+ tolerances centralized, zero ad-hoc magic numbers, zero bare `unwrap()`, 90.43% coverage, all files ≤1000 lines. BarraCUDA usage audited (90+ imports, 20+ submodules, zero duplicates). GPU test serialization pattern documented. Rewired `boltzmann_sampling` → `barracuda::sample::boltzmann_sampling` (17th upstream rewire). Total: **17 functions rewired to upstream**.
+
+**Session 69 sync:** 6 validator shader sources rewired from local `include_str!` to upstream barracuda constants (RK4, RK45, batch fitness, logsumexp, swarm NN scores). Upstream-vs-local benchmark: 10/10 ≈ or ~ (zero ⚠). Cross-spring evolution benchmark refreshed. Total: **17 functions + 6 shader sources rewired to upstream**.
 
 ---
 

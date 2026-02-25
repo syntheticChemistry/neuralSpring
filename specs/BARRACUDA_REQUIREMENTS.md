@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: February 23, 2026 (Session 44 — multi-GPU + benchmarks)
+**Last Updated**: February 25, 2026 (Sessions 44–68 — multi-GPU + benchmarks + deep audit)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---
@@ -163,7 +163,30 @@ CPU f64 reference with calibrated tolerances.
 | S-16 | 2D transpose dispatches wrong workgroup count (256 vs 16) | High | Blocks Gram matrix; fix identified |
 
 Full diagnosis and reproduction steps: `wateringHole/handoffs/archive/NEURALSPRING_V6_BARRACUDA_GPU_HANDOFF_FEB22_2026.md`
-Current handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V30_S67_HANDOFF_FEB25_2026.md`
+Current handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V32_S69_CROSS_SPRING_EVOLUTION_HANDOFF_FEB25_2026.md`
+
+### Session 68 — BarraCUDA Usage Audit
+
+Full inventory of barracuda consumption: 90+ import sites across 60+ files.
+
+| Module | Items | Scope |
+|--------|-------|-------|
+| `device` | `WgpuDevice`, `GpuDriverProfile`, `Fp64Strategy` | 31+ files |
+| `tensor` | `Tensor`, `Tensor::from_data` | 28+ files |
+| `ops::bio` | 17 GPU ops | 40+ files |
+| `ops::mha` | `MultiHeadAttention` | 1 file |
+| `ops::linalg` | `BatchedEighGpu`, `eigh_householder_qr` | 3 files |
+| `ops::fft` | `Fft1D`, `Fft1DF64`, `Ifft1D`, `Rfft` | 1 file |
+| `ops::fused_map_reduce_f64` | `FusedMapReduceF64`, `MapOp`, `ReduceOp` | 5 files |
+| `stats` | `pearson_correlation`, `variance`, `covariance` | 8+ files |
+| `special` | `chi_squared_statistic`, `gamma`, `erf`, `bessel_j0` | 6+ files |
+| `spectral` | `BatchIprGpu`, Anderson, Lanczos | 8+ files |
+| `dispatch` | 9 typed dispatch functions | 12+ files |
+| Other | `pipeline`, `staging`, `numerical`, `linalg::graph` | 15+ files |
+
+**Zero duplicate math** — two intentional divergences documented:
+- `cpu_fallback::variance` (population ÷N) vs barracuda (sample ÷(N-1))
+- `primitives.rs` (independent CPU reference for validation independence)
 
 ---
 

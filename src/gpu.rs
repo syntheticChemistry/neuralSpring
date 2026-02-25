@@ -347,20 +347,40 @@ impl Gpu {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     #![allow(clippy::expect_used)]
 
     use super::*;
 
-    #[tokio::test]
-    async fn gpu_new_succeeds() {
-        let Ok(gpu) = Gpu::new().await else { return };
+    use std::sync::{Arc as StdArc, OnceLock};
+
+    static SHARED_GPU: OnceLock<Option<StdArc<Gpu>>> = OnceLock::new();
+
+    /// Returns a shared `Gpu` instance so all test modules use the same
+    /// Vulkan device and don't corrupt each other's global wgpu state.
+    pub fn shared_gpu() -> Option<StdArc<Gpu>> {
+        SHARED_GPU
+            .get_or_init(|| {
+                let rt = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .ok()?;
+                rt.block_on(Gpu::new()).ok().map(StdArc::new)
+            })
+            .clone()
+    }
+
+    #[test]
+    fn gpu_new_succeeds() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
         assert!(!gpu.adapter_name.is_empty());
     }
 
-    #[tokio::test]
-    async fn gpu_upload_and_readback_roundtrip() {
-        let Ok(gpu) = Gpu::new().await else { return };
+    #[test]
+    fn gpu_upload_and_readback_roundtrip() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
         let data = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0];
         let buf = gpu.upload_f32(&data).expect("upload_f32 should succeed");
         let out = gpu
@@ -374,9 +394,10 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn gpu_create_empty_buffer() {
-        let Ok(gpu) = Gpu::new().await else { return };
+    #[test]
+    fn gpu_create_empty_buffer() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
         let buf = gpu.create_buffer_f32(64).expect("should create buffer");
         let out = gpu
             .read_buffer_f32(&buf, 64)
@@ -384,24 +405,27 @@ mod tests {
         assert_eq!(out.len(), 64);
     }
 
-    #[tokio::test]
-    async fn gpu_compile_trivial_shader() {
-        let Ok(gpu) = Gpu::new().await else { return };
+    #[test]
+    fn gpu_compile_trivial_shader() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
         let _module =
             gpu.compile_shader("@compute @workgroup_size(1) fn main() {}", "test_trivial");
     }
 
-    #[tokio::test]
-    async fn gpu_wgpu_device_accessible() {
-        let Ok(gpu) = Gpu::new().await else { return };
+    #[test]
+    fn gpu_wgpu_device_accessible() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
         let _device = gpu.wgpu_device();
         let _raw_device = gpu.device();
         let _raw_queue = gpu.queue();
     }
 
-    #[tokio::test]
-    async fn gpu_capabilities_discovered() {
-        let Ok(gpu) = Gpu::new().await else { return };
+    #[test]
+    fn gpu_capabilities_discovered() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
         let caps = &gpu.capabilities;
         assert!(caps.max_buffer_size > 0, "buffer size should be positive");
         assert!(
@@ -462,31 +486,35 @@ mod tests {
         assert!(!caps.supports_workgroup(512));
     }
 
-    #[tokio::test]
-    async fn gpu_dispatch_1d_basic() {
-        let Ok(gpu) = Gpu::new().await else { return };
+    #[test]
+    fn gpu_dispatch_1d_basic() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
         let wg = gpu.dispatch_1d(1024, 64);
         assert!(wg > 0);
     }
 
-    #[tokio::test]
-    async fn gpu_from_device_roundtrip() {
-        let Ok(gpu) = Gpu::new().await else { return };
+    #[test]
+    fn gpu_from_device_roundtrip() {
+        let _lock = crate::test_gpu_lock::acquire();
+        let Some(gpu) = shared_gpu() else { return };
         let dev = gpu.wgpu_device().clone();
         let gpu2 = Gpu::from_device(dev);
         assert_eq!(gpu2.adapter_name, gpu.adapter_name);
     }
 
-    #[tokio::test]
-    async fn gpu_new_cpu_if_available() {
-        if let Ok(gpu) = Gpu::new_cpu().await {
+    #[test]
+    fn gpu_new_cpu_if_available() {
+        let _lock = crate::test_gpu_lock::acquire();
+        if let Some(gpu) = shared_gpu() {
             assert!(!gpu.adapter_name.is_empty());
         }
     }
 
-    #[tokio::test]
-    async fn gpu_new_gpu_if_available() {
-        if let Ok(gpu) = Gpu::new_gpu().await {
+    #[test]
+    fn gpu_new_gpu_if_available() {
+        let _lock = crate::test_gpu_lock::acquire();
+        if let Some(gpu) = shared_gpu() {
             assert!(!gpu.adapter_name.is_empty());
         }
     }

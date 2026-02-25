@@ -29,6 +29,8 @@ use crate::eigh::eigh_householder_qr;
 use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
+pub use barracuda::sample::BoltzmannResult;
+
 /// Compute numerical Hessian of a loss function at given parameters.
 ///
 /// Uses central finite differences with step `epsilon`.
@@ -127,7 +129,8 @@ pub fn metropolis_step(
 
 /// Run Boltzmann sampling: MCMC chain at given temperature.
 ///
-/// Returns (loss_samples, acceptance_rate).
+/// Delegates to [`barracuda::sample::boltzmann_sampling`] (absorbed S56).
+/// Takes a `seed` for deterministic PRNG initialization.
 #[must_use]
 pub fn boltzmann_sampling(
     loss_fn: &dyn Fn(&[f64]) -> f64,
@@ -135,40 +138,16 @@ pub fn boltzmann_sampling(
     temperature: f64,
     step_size: f64,
     n_steps: usize,
-    rng: &mut Rng,
+    seed: u64,
 ) -> BoltzmannResult {
-    let mut params = initial_params.to_vec();
-    let mut current_loss = loss_fn(&params);
-    let mut losses = Vec::with_capacity(n_steps);
-    let mut accepted = 0usize;
-
-    for _ in 0..n_steps {
-        let (new_params, did_accept) =
-            metropolis_step(loss_fn, &params, current_loss, temperature, step_size, rng);
-        if did_accept {
-            params = new_params;
-            current_loss = loss_fn(&params);
-            accepted += 1;
-        }
-        losses.push(current_loss);
-    }
-
-    BoltzmannResult {
-        losses,
-        acceptance_rate: accepted as f64 / n_steps.max(1) as f64,
-        final_params: params,
-    }
-}
-
-/// Result of Boltzmann sampling.
-#[derive(Debug, Clone)]
-pub struct BoltzmannResult {
-    /// Loss values at each MCMC step.
-    pub losses: Vec<f64>,
-    /// Fraction of proposals accepted.
-    pub acceptance_rate: f64,
-    /// Final parameter values.
-    pub final_params: Vec<f64>,
+    barracuda::sample::boltzmann_sampling(
+        loss_fn,
+        initial_params,
+        temperature,
+        step_size,
+        n_steps,
+        seed,
+    )
 }
 
 /// Transition barrier estimate between two minima.
@@ -299,9 +278,8 @@ mod tests {
 
     #[test]
     fn boltzmann_high_temp_accepts_most() {
-        let mut rng = Rng::new(42);
         let params = vec![1.0, 1.0];
-        let result = boltzmann_sampling(&quadratic_loss, &params, 100.0, 0.1, 500, &mut rng);
+        let result = boltzmann_sampling(&quadratic_loss, &params, 100.0, 0.1, 500, 42);
         assert!(
             result.acceptance_rate > 0.3,
             "high temperature should accept >30%, got {}",

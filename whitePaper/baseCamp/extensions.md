@@ -212,8 +212,10 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 *neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
 grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
 2120+ validated checks across 25 papers and 7 scientific domains. Core
-primitives implemented in Sessions 50–55, quality-hardened Session 61: 5 Rust
-modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 501 unit
-tests, 0 clippy warnings, 93.17% coverage, 13 property tests. BarraCUDA CPU
-vs GPU parity validated. metalForge mixed-hardware dispatch wired. No new
-math — only novel composition of validated primitives.*
+primitives implemented in Sessions 50–55, quality-hardened Sessions 61–69: 5 Rust
+modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 505 unit
+tests, 0 clippy warnings, 90.43% coverage, 104+ named tolerances. 17 functions
++ 6 shader sources rewired to upstream BarraCUDA. Cross-spring evolution
+benchmarked: hotSpring precision, wetSpring bio, neuralSpring ML — all feeding
+ToadStool's shared math engine. No new math — only novel composition of
+validated primitives.*

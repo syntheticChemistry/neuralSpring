@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 25, 2026 (Sessions 40–67)
-**ToadStool HEAD**: `02207c4a` (S58–S67: 16 functions rewired, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39)
+**Date**: February 25, 2026 (Sessions 40–69)
+**ToadStool HEAD**: `02207c4a` (S58–S69: 17 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep debt audit S68: 104+ tolerances, 90.43% coverage, zero ad-hoc magic numbers)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -404,7 +404,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | Provenance | All hardcoded validation targets sourced with script, commit, date, exact command |
 | Determinism tests | **16 tests** covering all stochastic modules (up from 7) |
 | SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
-| Line coverage | **93.17%** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
+| Line coverage | **90.43%** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
 | All files < 1000 LOC | Largest: `validate_barracuda_tensor.rs` at 966 lines |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 | Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |
@@ -613,5 +613,25 @@ Three-tier benchmark: Library direct → Dispatcher::cpu_only() → Dispatcher::
 motivates StatefulPipeline/UnidirectionalPipeline batching for GPU-resident acceleration.
 
 || Session 67b: Dispatch tiers | `bench_dispatch_tiers` — 9/10 ops ≤1.04× CPU overhead | **Transparent** |
+
+### Session 68 — Deep Debt Audit (February 25, 2026)
+
+Full barracuda usage audit: 90+ import sites, 20+ submodules, zero duplicates.
+Tolerance centralization: 104+ named constants, zero ad-hoc magic numbers.
+Rewired `boltzmann_sampling` → `barracuda::sample::boltzmann_sampling` (17th function rewire).
+505 lib tests, 90.43% coverage.
+
+|| Session 68: Deep debt audit | 104+ tolerances, 90.43% coverage, 0 debt markers | **ALL GREEN** |
+|| Session 68: boltzmann rewire | 17th function rewired to upstream | **LEAN** |
+
+### Session 69 — Validator Shader Rewiring + Cross-Spring Benchmarks (February 25, 2026)
+
+6 validator binaries rewired from local `include_str!` to upstream barracuda shader
+constants. Cross-spring benchmarks refreshed. Upstream-vs-local: 10/10 ≈ or ~ (zero ⚠).
+Complete cross-spring provenance mapped: hotSpring precision, wetSpring bio, neuralSpring ML.
+
+|| Session 69: Shader source rewire | 6 validators → upstream barracuda constants | **LEAN** |
+|| Session 69: Cross-spring bench | 10/10 upstream ≈ local, 22/22 evolution PASS | **ALL GREEN** |
+|| Session 69: validate_all | 147/148 PASS (1 pre-existing logsumexp) | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

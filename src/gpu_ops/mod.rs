@@ -36,18 +36,18 @@ pub use reduction::*;
 #[allow(clippy::unwrap_used, clippy::expect_used, clippy::cast_precision_loss)]
 mod tests {
     use super::*;
-    use std::sync::{Arc, OnceLock};
+    use std::sync::Arc;
 
-    static SHARED_DEVICE: OnceLock<Option<Arc<barracuda::device::WgpuDevice>>> = OnceLock::new();
-
-    fn test_device() -> Option<Arc<barracuda::device::WgpuDevice>> {
-        SHARED_DEVICE
-            .get_or_init(|| {
-                let rt = tokio::runtime::Runtime::new().ok()?;
-                let dev = rt.block_on(async { barracuda::device::WgpuDevice::new().await.ok() })?;
-                Some(Arc::new(dev))
-            })
-            .clone()
+    /// Returns a shared GPU device plus a mutex guard that serializes access.
+    /// Reuses the crate-level shared Gpu instance so all GPU tests share
+    /// one Vulkan device (preventing driver-level resource races).
+    fn test_device() -> Option<(
+        std::sync::MutexGuard<'static, ()>,
+        Arc<barracuda::device::WgpuDevice>,
+    )> {
+        let guard = crate::test_gpu_lock::acquire();
+        let gpu = crate::gpu::tests::shared_gpu()?;
+        Some((guard, gpu.wgpu_device().clone()))
     }
 
     #[test]
@@ -62,7 +62,9 @@ mod tests {
 
     #[test]
     fn gpu_matmul_identity() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let n = 4;
         let a: Vec<f64> = (0..n * n).map(|i| (i + 1) as f64).collect();
         let mut ident = vec![0.0; n * n];
@@ -77,7 +79,9 @@ mod tests {
 
     #[test]
     fn gpu_transpose_roundtrip() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let n = 3;
         let a: Vec<f64> = (0..n * n).map(|i| i as f64).collect();
         let t = transpose_gpu(&a, n, &dev).unwrap();
@@ -89,7 +93,9 @@ mod tests {
 
     #[test]
     fn gpu_frobenius_3_4() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let norm = frobenius_norm_gpu(&[3.0, 4.0], &dev).unwrap();
         assert!(
             (norm - 5.0).abs() < 0.01,
@@ -99,7 +105,9 @@ mod tests {
 
     #[test]
     fn gpu_softmax_sums_to_one() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let sm = softmax_gpu(&[1.0, 2.0, 3.0], &dev).unwrap();
         let sum: f64 = sm.iter().sum();
         assert!((sum - 1.0).abs() < 0.01, "softmax sum = {sum}");
@@ -111,7 +119,9 @@ mod tests {
 
     #[test]
     fn gpu_boltzmann_sums_to_one() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let b = boltzmann_gpu(&[0.1, 0.5, 0.9], 2.0, &dev).unwrap();
         let sum: f64 = b.iter().sum();
         assert!((sum - 1.0).abs() < 0.01, "boltzmann sum = {sum}");
@@ -119,14 +129,18 @@ mod tests {
 
     #[test]
     fn gpu_gelu_zero() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let g = gelu_gpu(&[0.0], &dev).unwrap();
         assert!(g[0].abs() < 0.01, "GELU(0) should be ~0, got {}", g[0]);
     }
 
     #[test]
     fn gpu_l2_distance_known() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let d = l2_distance_gpu(&[0.0, 0.0], &[3.0, 4.0], &dev).unwrap();
         assert!(
             (d - 5.0).abs() < 0.01,
@@ -136,28 +150,36 @@ mod tests {
 
     #[test]
     fn gpu_mean_known() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let m = mean_gpu(&[2.0, 4.0, 6.0], &dev).unwrap();
         assert!((m - 4.0).abs() < 0.01, "mean should be 4, got {m}");
     }
 
     #[test]
     fn gpu_sum_known() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let s = sum_gpu(&[1.0, 2.0, 3.0], &dev).unwrap();
         assert!((s - 6.0).abs() < 0.1, "sum should be 6, got {s}");
     }
 
     #[test]
     fn gpu_max_known() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let m = max_gpu(&[1.0, 5.0, 3.0], &dev).unwrap();
         assert!((m - 5.0).abs() < 0.1, "max should be 5, got {m}");
     }
 
     #[test]
     fn gpu_variance_known() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let v = variance_gpu(&[2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0], &dev).unwrap();
         assert!(v > 0.0, "variance must be positive");
         assert!((v - 4.0).abs() < 0.5, "variance ≈ 4, got {v}");
@@ -165,7 +187,9 @@ mod tests {
 
     #[test]
     fn gpu_entropy_uniform() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let h = shannon_entropy_gpu(&[0.25, 0.25, 0.25, 0.25], &dev).unwrap();
         let expected = (4.0_f64).ln();
         assert!(
@@ -176,7 +200,9 @@ mod tests {
 
     #[test]
     fn gpu_chi_squared_known() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let chi2 =
             chi_squared_gpu(&[10.0, 20.0, 30.0, 40.0], &[25.0, 25.0, 25.0, 25.0], &dev).unwrap();
         let expected = 20.0; // (15² + 5² + 5² + 15²) / 25
@@ -188,7 +214,9 @@ mod tests {
 
     #[test]
     fn gpu_kl_divergence_identical() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let kl =
             kl_divergence_gpu(&[0.25, 0.25, 0.25, 0.25], &[0.25, 0.25, 0.25, 0.25], &dev).unwrap();
         assert!(kl.abs() < 0.01, "KL(p,p) should be 0, got {kl}");
@@ -196,7 +224,9 @@ mod tests {
 
     #[test]
     fn gpu_hmm_forward_step_normalized() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let alpha = vec![0.5, 0.5];
         let trans = vec![0.7, 0.3, 0.4, 0.6];
         let emit = vec![0.6, 0.4];
@@ -208,7 +238,9 @@ mod tests {
 
     #[test]
     fn gpu_replicator_step_preserves_sum() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let freq = [0.6, 0.4];
         let payoff = [[3.0, 0.0], [5.0, 1.0]];
         let new_freq = replicator_step_gpu(&freq, &payoff, 0.01, &dev).unwrap();
@@ -218,7 +250,9 @@ mod tests {
 
     #[test]
     fn gpu_hill_activation_batch_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let result = hill_activation_batch_gpu(&[0.5, 1.0, 2.0], 1.0, 0.5, 2.0, &dev).unwrap();
         assert_eq!(result.len(), 3);
         for &v in &result {
@@ -228,7 +262,9 @@ mod tests {
 
     #[test]
     fn gpu_allele_frequencies_known() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let pop = vec![2.0, 0.0, 1.0, 1.0, 0.0, 2.0];
         let freqs = allele_frequencies_gpu(&pop, 3, 2, &dev).unwrap();
         assert_eq!(freqs.len(), 2);
@@ -238,14 +274,18 @@ mod tests {
 
     #[test]
     fn gpu_pearson_perfect_correlation() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let r = pearson_correlation_gpu(&[1.0, 2.0, 3.0], &[2.0, 4.0, 6.0], &dev).unwrap();
         assert!((r - 1.0).abs() < 0.05, "Pearson r(x, 2x) ≈ 1, got {r}");
     }
 
     #[test]
     fn gpu_commutator_identity_is_zero() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let n = 3;
         let mut ident = vec![0.0; n * n];
         for i in 0..n {
@@ -259,7 +299,9 @@ mod tests {
 
     #[test]
     fn gpu_spectrum_chi_squared_uniform() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let observed = vec![25.0, 25.0, 25.0, 25.0];
         let fracs = vec![0.25, 0.25, 0.25, 0.25];
         let chi2 = spectrum_chi_squared_gpu(&observed, &fracs, &dev).unwrap();
@@ -268,7 +310,9 @@ mod tests {
 
     #[test]
     fn gpu_selection_coefficient_neutral() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let obs = vec![25.0, 25.0, 25.0, 25.0];
         let neutral = vec![0.25, 0.25, 0.25, 0.25];
         let s = selection_coefficient_gpu(&obs, &neutral, &dev).unwrap();
@@ -279,7 +323,9 @@ mod tests {
 
     #[test]
     fn gpu_hmm_backward_step_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let beta_next = vec![1.0, 1.0];
         let transition = vec![0.7, 0.3, 0.4, 0.6];
         let emission_col = vec![0.5, 0.5];
@@ -293,7 +339,9 @@ mod tests {
 
     #[test]
     fn gpu_hmm_viterbi_step_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let delta_prev = vec![0.0, -1.0];
         let log_trans = vec![0.7_f64.ln(), 0.3_f64.ln(), 0.4_f64.ln(), 0.6_f64.ln()];
         let log_emit = vec![0.6_f64.ln(), 0.4_f64.ln()];
@@ -305,7 +353,9 @@ mod tests {
 
     #[test]
     fn gpu_pairwise_l2_matrix_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let vectors = vec![0.0, 0.0, 3.0, 4.0];
         let dist = pairwise_l2_matrix_gpu(&vectors, 2, 2, &dev).unwrap();
         assert_eq!(dist.len(), 1, "upper triangle: n*(n-1)/2 = 1 pair");
@@ -316,7 +366,9 @@ mod tests {
 
     #[test]
     fn gpu_eigh_diagonal() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let a = vec![2.0, 0.0, 0.0, 3.0];
         let (vals, _vecs) = eigh_gpu(&a, 2, &dev).unwrap();
         let mut sorted = vals;
@@ -327,7 +379,9 @@ mod tests {
 
     #[test]
     fn gpu_disorder_sweep_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         #[rustfmt::skip]
         let hamiltonians = vec![
             1.0, 0.1, 0.1, 2.0,
@@ -344,7 +398,9 @@ mod tests {
 
     #[test]
     fn gpu_nucleotide_diversity_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let pop = vec![0.0, 1.0, 1.0, 0.0];
         let pi = nucleotide_diversity_gpu(&pop, 2, 2, &dev).unwrap();
         assert!(pi >= 0.0 && pi.is_finite());
@@ -352,7 +408,9 @@ mod tests {
 
     #[test]
     fn gpu_matrix_correlation_self() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let a = vec![0.0, 1.0, 2.0, 1.0, 0.0, 3.0, 2.0, 3.0, 0.0];
         let r = matrix_correlation_gpu(&a, &a, 3, &dev).unwrap();
         assert!((r - 1.0).abs() < 0.1, "self-correlation ≈ 1, got {r}");
@@ -360,7 +418,9 @@ mod tests {
 
     #[test]
     fn gpu_geographic_distances_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let coords = vec![(0.0, 0.0), (3.0, 4.0)];
         let dist = geographic_distance_matrix_gpu(&coords, &dev).unwrap();
         assert_eq!(dist.len(), 4);
@@ -370,7 +430,9 @@ mod tests {
 
     #[test]
     fn gpu_thermal_diversity_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let pi = vec![1.0, 2.0, 3.0];
         let temp = vec![10.0, 20.0, 30.0];
         let r = thermal_diversity_correlation_gpu(&pi, &temp, &dev).unwrap();
@@ -379,7 +441,9 @@ mod tests {
 
     #[test]
     fn gpu_inter_population_af_variance_basic() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let pop1 = vec![2.0, 0.0, 0.0, 2.0];
         let pop2 = vec![0.0, 2.0, 2.0, 0.0];
         let populations: Vec<&[f64]> = vec![&pop1, &pop2];
@@ -392,7 +456,9 @@ mod tests {
 
     #[test]
     fn gpu_distance_to_normal_symmetric() {
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let sym = vec![2.0, 1.0, 1.0, 2.0];
         let d = distance_to_normal_gpu(&sym, 2, &dev).unwrap();
         assert!(d < 0.1, "symmetric → normal → d ≈ 0, got {d}");
@@ -404,7 +470,9 @@ mod tests {
     fn gpu_neural_forward_basic() {
         use super::NeuralForwardParams;
 
-        let Some(dev) = test_device() else { return };
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
         let params = NeuralForwardParams {
             input: &[1.0, 0.5],
             weights_hidden: &[1.0, 0.0, 0.0, 1.0], // 2x2 identity

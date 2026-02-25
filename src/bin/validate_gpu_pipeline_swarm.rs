@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! GPU pipeline validation: `swarm_nn_scores` (local shader) + CPU mean (Paper 015).
+//! GPU pipeline validation: `swarm_nn_scores` (upstream shader) + CPU mean (Paper 015).
 //!
 //! `swarm_nn_scores.wgsl` outputs f32 scores (max activation per controller/eval);
-//! `BarraCUDA` `SwarmNnGpu` maps to `swarm_nn_forward` (u32 actions), not scores.
-//! Keeps local shader via `include_str!` for the scores variant.
+//! `BarraCUDA` `SwarmNnGpu` wrapper maps to `swarm_nn_forward` (u32 actions),
+//! but the scores WGSL constant is publicly exposed as `WGSL_SWARM_NN_SCORES`.
 //!
 //! Stage 1: `swarm_nn_forward_scores` → scores[`n_controllers` × `n_evals`].
 //! Stage 2: CPU mean over scores (no `mean_reduce` shader).
@@ -21,7 +21,7 @@
 //!
 //! ## Provenance
 //!
-//! Shader: local `metalForge/shaders/swarm_nn_scores.wgsl`.
+//! Shader: upstream `barracuda::ops::bio::swarm_nn::WGSL_SWARM_NN_SCORES`.
 //! Validates: mean of tanh-like output activations across swarm controllers.
 
 #![allow(
@@ -42,7 +42,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
-const SWARM_WGSL: &str = include_str!("../../metalForge/shaders/swarm_nn_scores.wgsl");
+const SWARM_WGSL: &str = barracuda::ops::bio::swarm_nn::WGSL_SWARM_NN_SCORES;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]

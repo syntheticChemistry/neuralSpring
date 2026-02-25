@@ -22,7 +22,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
-const WGSL_SOURCE: &str = include_str!("../../metalForge/shaders/logsumexp_reduce.wgsl");
+const WGSL_SOURCE: &str = barracuda::ops::logsumexp::LogSumExp::WGSL_LOGSUMEXP_REDUCE;
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]

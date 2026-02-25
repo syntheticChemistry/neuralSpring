@@ -238,6 +238,11 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             category: "evolutionary",
         },
         NamedTolerance {
+            name: "REPLICATOR_DYNAMICS",
+            value: REPLICATOR_DYNAMICS,
+            category: "evolutionary",
+        },
+        NamedTolerance {
             name: "REGULATORY_RESPONSE_MIN",
             value: REGULATORY_RESPONSE_MIN,
             category: "evolutionary",
@@ -270,6 +275,16 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
         NamedTolerance {
             name: "SIGNAL_DYNAMIC_RANGE_MIN",
             value: SIGNAL_DYNAMIC_RANGE_MIN,
+            category: "evolutionary",
+        },
+        NamedTolerance {
+            name: "SPECTRAL_SELF_SIMILARITY",
+            value: SPECTRAL_SELF_SIMILARITY,
+            category: "evolutionary",
+        },
+        NamedTolerance {
+            name: "PGM_COMPLEXITY_SLACK",
+            value: PGM_COMPLEXITY_SLACK,
             category: "evolutionary",
         },
         NamedTolerance {
@@ -491,6 +506,11 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             value: HESSIAN_FD_STEP,
             category: "numerical",
         },
+        NamedTolerance {
+            name: "HESSIAN_FD_ABS",
+            value: HESSIAN_FD_ABS,
+            category: "numerical",
+        },
         // ── Statistical critical values ────────────────────────────────
         NamedTolerance {
             name: "CHI2_CRITICAL_DF9_P05",
@@ -707,6 +727,16 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             category: "gpu_dispatch",
         },
         NamedTolerance {
+            name: "GPU_VITERBI_PATH_AGREEMENT_MIN",
+            value: GPU_VITERBI_PATH_AGREEMENT_MIN,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
+            name: "GPU_FST_PAIRWISE_F32",
+            value: GPU_FST_PAIRWISE_F32,
+            category: "gpu_dispatch",
+        },
+        NamedTolerance {
             name: "GPU_VARIANCE_F64",
             value: GPU_VARIANCE_F64,
             category: "gpu_dispatch",
@@ -835,7 +865,7 @@ mod tests {
     fn registry_complete() {
         let all = all_tolerances();
         assert!(
-            all.len() >= 101,
+            all.len() >= 104,
             "registry should contain all tolerances, got {}",
             all.len()
         );
