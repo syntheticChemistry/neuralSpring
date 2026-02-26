@@ -187,6 +187,7 @@ const fn splitmix64(state: &mut u64) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn deterministic_across_runs() {
@@ -237,7 +238,7 @@ mod tests {
         let mut rng = Rng::new(42);
         let counts = rng.multinomial(1000, &[0.3, 0.3, 0.4]);
         let total: f64 = counts.iter().sum();
-        assert!((total - 1000.0).abs() < f64::EPSILON);
+        assert!((total - 1000.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]

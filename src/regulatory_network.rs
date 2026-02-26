@@ -138,6 +138,7 @@ pub fn env_params(k_b: f64, k_m: f64, k_v: f64) -> GrnParams {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn hill_activation_monotonic() {
@@ -159,7 +160,9 @@ mod tests {
         let p = GrnParams::default();
         let x0 = [0.5, 0.1, 0.5, 0.1];
         let x = integrate_grn(&x0, 0.5, &p, 2000, 0.02);
-        assert!(x.iter().all(|&v| v.is_finite() && v >= -1e-10));
+        assert!(x
+            .iter()
+            .all(|&v| v.is_finite() && v >= -tolerances::CROSS_LANGUAGE));
     }
 
     #[test]
@@ -177,6 +180,6 @@ mod tests {
         let c = [1.0, 1.0, 1.0];
         assert!(shannon_diversity(&c) > 0.0);
         let c = [3.0, 0.0, 0.0];
-        assert!(shannon_diversity(&c).abs() < 1e-10);
+        assert!(shannon_diversity(&c).abs() < tolerances::CROSS_LANGUAGE);
     }
 }

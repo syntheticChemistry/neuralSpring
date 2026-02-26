@@ -1,6 +1,6 @@
 # ML Inference Benchmark: Python vs BarraCUDA CPU vs GPU
 
-**Date**: 2026-02-25 (updated Sessions 44–67b)
+**Date**: 2026-02-26 (updated Sessions 44–74)
 **Hardware**: i9-12900K, 32 GB DDR5, NVIDIA RTX 4070 12 GB (Vulkan), NVIDIA TITAN V 12 GB (NVK GV100)
 **Python**: NumPy 2.1.3 (OpenBLAS, single-thread)
 **BarraCUDA CPU**: llvmpipe (LLVM 15.0.7, 256-bit)
@@ -237,4 +237,63 @@ Session 44:   Rust CPU 178.5× faster than Python/NumPy (7 kernels)
 Session 66:   Rust CPU 201.7× faster (11 kernels) + ~97% GPU coverage
 Session 67:   CPU = Python mathematically (39/39 PASS, 1e-10)
 Session 67b:  Dispatch layer is transparent (≤1.04× overhead 9/10 ops)
+Session 74:   Pure GPU all-domains 10/10 PASS + evolution tier benchmark
+```
+
+---
+
+## Session 74: Evolution Tier Benchmarks — CPU → GPU Portability (February 26, 2026)
+
+Measures the Rust CPU → BarraCUDA GPU portability for 8 representative kernels at
+validation scale. Complements Session 44 (pure math) and Session 67b (dispatch overhead)
+by proving the evolution path is real: the same math runs on both substrates.
+
+### Rust CPU vs BarraCUDA GPU (validation scale, RTX 4070)
+
+| Kernel | Scale | CPU µs | GPU µs | Winner | Crossover Notes |
+|--------|-------|--------|--------|--------|-----------------|
+| HMM forward | 3×5000 | 149 | 188 | CPU | GPU wins at 64+ states, T>100 |
+| NK fitness | 1000×10 | 0.3 | 183 | CPU | GPU wins at 50000×64+ |
+| Pairwise Hamming | 20×500 | 49 | 186 | CPU | GPU wins at 200×1000+ |
+| Pairwise L2 | 10×8 | 0.3 | 185 | CPU | GPU wins at 100×64+ |
+| Pairwise Jaccard | 30×500 | 316 | 186 | **GPU** | GPU already competitive |
+| Spatial payoff | 6×6 | 0.5 | 184 | CPU | GPU wins at 128×128+ |
+| Hill gate | 50×50 | 3.1 | 184 | CPU | GPU wins at 200×200+ |
+| Commutator | 64×64 | 183 | — | — | CPU-only (matmul via bC) |
+
+### Pure GPU All-Domains Validation (9 ops, 10/10 PASS)
+
+| Domain | GPU Op | Precision | Papers |
+|--------|--------|-----------|--------|
+| NK Fitness | `BatchFitnessGpu` | f64 | 011–013 |
+| Multi-obj Fitness | `MultiObjFitnessGpu` | f64 | 014 |
+| HMM Forward | `HmmBatchForwardF64` | f64 | 016–018 |
+| Spatial Payoff | `SpatialPayoffGpu` | f32 | 019 |
+| Batch IPR | `BatchIprGpu` | f32 | 022–023 |
+| Pairwise Hamming | `PairwiseHammingGpu` | f32 | 017 |
+| Pairwise L2 | `PairwiseL2Gpu` | f32 | 012 |
+| Pairwise Jaccard | `PairwiseJaccardGpu` | f32 | 024 |
+| Locus Variance | `LocusVarianceGpu` | f64 | 025 |
+
+### Key Findings
+
+1. **GPU dispatch overhead is ~186µs** per `queue.submit()` — structural floor.
+2. **Jaccard is GPU-competitive even at validation scale** (316µs CPU vs 186µs GPU).
+3. **f32 vs f64 precision is systematic**: domain-specific ops (fitness, spatial,
+   distance) use f32 WGSL shaders; HMM and population genetics use f64 paths.
+4. **IPR requires pre-normalized eigenvectors** — GPU shader expects unit-norm inputs.
+5. **Evolution path is proven**: Python → Rust CPU (201.7× faster) → BarraCUDA GPU
+   (same math, portable). At production scale, GPU provides additional 4–84× over CPU.
+
+### Evolution Path Summary
+
+```
+Python/NumPy (baseline)
+  ↓ 201.7× faster (Session 66)
+Rust CPU (pure math, BarraCUDA CPU)
+  ↓ transparent dispatch (≤1.04× overhead, Session 67b)
+BarraCUDA GPU (same WGSL math, production scale)
+  ↓ 4–84× faster than CPU at scale (Sessions 44, 66)
+Pure GPU pipeline (scalar-only readback, Session 74: 10/10 PASS)
+  ↓ next: metalForge cross-system (GPU→NPU→CPU)
 ```

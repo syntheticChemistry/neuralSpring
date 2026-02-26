@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `02207c4a` (Sessions 59–70 sync — 17 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed, 94.53% coverage, 580 tests, Feb 25, 2026)
+**ToadStool HEAD**: `02207c4a` (Sessions 59–74 sync — 21 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed, 94.53% coverage, 580 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, Feb 26, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -166,7 +166,7 @@ now available to wetSpring for its genomics pipelines and to hotSpring for spect
 | `CorrelationF64` | wetSpring + hotSpring | **Production Pearson** (f64 precision, S-53 rewire) |
 | `chi_squared_statistic` | wetSpring | **CPU fallback chi²** (S-53 rewire) |
 | `pearson_correlation` | wetSpring | **CPU fallback Pearson** (S-53 rewire) |
-| `pow_f64` polyfill (S-17) | hotSpring + wetSpring | `HillGate` f64 works on all drivers |
+| `pow_f64` polyfill (S-17) | hotSpring + wetSpring | `HillGate` f64 works on all drivers. **RESOLVED** upstream (`c82c23d1` S58: `patch_transcendentals_in_code` covers `pow`) |
 
 ---
 
@@ -224,16 +224,17 @@ empirical crossover points codified in `metalForge/forge/src/dispatch.rs`.
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
-| `cargo test --lib` | 505 PASS |
+| `cargo test --lib` | 580 PASS |
 | `cargo test --test integration` | 9 PASS |
 | `validate_all` | 147/148 PASS |
-| `validate_cross_spring_evolution` | **22/22 PASS** |
+| `validate_cross_spring_evolution` | **39/39 PASS** |
 
 Only `validate_barracuda_logsumexp` fails (pre-existing upstream buffer size mismatch).
 
-The cross-spring evolution validator covers all 17 rewired functions: 9 Dispatcher
+The cross-spring evolution validator covers all 21 rewired functions: 9 Dispatcher
 methods (S58: 7 + S59: gelu, hmm_forward) plus 3 library delegates (ESD, MP bounds,
-effective rank) plus `boltzmann_sampling` (S68) plus driver profile checks.
+effective rank) plus `boltzmann_sampling` (S68) plus 4 S73 Tensor API rewires
+(Viterbi argmax_dim, softmax_row_wise, fst_single_locus, pairwise_fst_full) plus driver profile checks.
 
 Additionally, 6 validator binaries now source WGSL from upstream barracuda constants
 instead of local `include_str!`, further eliminating local shader copies.
@@ -320,7 +321,7 @@ Additionally, 3 dead WGSL re-exports (`WGSL_BATCH_FITNESS_EVAL`, `WGSL_RK4_PARAL
 `WGSL_MEAN_REDUCE`) were removed from `evolved/mod.rs` — all callers already use
 upstream typed APIs.
 
-Total rewired functions: **16** (up from 11 in S58; S68 adds boltzmann_sampling → 17).
+Total rewired functions: **25** (S68: 17; S59: 21; S73: +4 Tensor API rewires).
 
 ### Sessions 60–61 — Benchmark Validation & Cross-Spring Narrative (Feb 25, 2026)
 
@@ -387,7 +388,7 @@ neuralSpring ML ───→ eigh, batch_fitness, pairwise_l2, spectral density
                ║  All Springs lean on the  ║
                ║  shared math engine:      ║
                ║  • 645+ WGSL shaders      ║
-               ║  • 17 rewired functions    ║
+               ║  • 21 rewired functions    ║
                ║  • 6 validator shader      ║
                ║    sources → upstream      ║
                ║  • 117+ upstream APIs      ║
@@ -439,7 +440,7 @@ large-buffer protection (1.2 GB limit on TITAN V).
 
 | Gate | Result |
 |------|--------|
-| `validate_cross_spring_evolution` | 22/22 PASS |
+| `validate_cross_spring_evolution` | 39/39 PASS |
 | `validate_all` | 145/146 PASS |
 | `cargo test --lib` | 500 PASS |
 | `cargo clippy --all-targets` | 0 warnings |
@@ -539,11 +540,65 @@ convergence norms), `GemmF64` cached extension (wetSpring 60× taxonomy speedup)
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` | 0 warnings |
-| `cargo test --lib` | 505 PASS |
+| `cargo test --lib` | 580 PASS |
 | `cargo test --test integration` | 9 PASS |
 | `validate_all` | 147/148 PASS |
-| `validate_cross_spring_evolution` | 22/22 PASS |
+| `validate_cross_spring_evolution` | 39/39 PASS |
 | `bench_upstream_vs_local` | 10/10 ≈ or ~ (zero ⚠) |
+
+---
+
+### Session 73 — Cross-Spring Rewiring: Upstream Tensor APIs + FST (Feb 26, 2026)
+
+Four operations rewired to upstream Tensor APIs and BarraCUDA bio FST decomposition,
+completing the absorption cycle for Viterbi, softmax, and F-statistics.
+
+| Rewire | Source File | Before | After | Origin Spring |
+|--------|------------|--------|-------|---------------|
+| Viterbi argmax_dim | `gpu_ops/bio.rs` | CPU loop over scores_flat | `Tensor::argmax_dim(0)` + `to_vec_u32()` | neuralSpring request → ToadStool S60 |
+| softmax_row_wise | `gpu_dispatch/dispatch_ops.rs` | Manual per-row loop | `Tensor::softmax_dim(1)` | neuralSpring V20 → ToadStool S60 |
+| fst_single_locus | `meta_population.rs` | θ-only `pairwise_fst` | `fst_variance_decomposition` → (θ, f_is, f_it) | wetSpring S53 → BarraCUDA bio |
+| pairwise_fst_full | `meta_population.rs` | θ-only multi-locus | Per-locus upstream → averaged F-statistics | wetSpring S53 → BarraCUDA bio |
+
+**New tolerances**: `DISPATCH_F32_ROUNDTRIP` (1e-6), `DISPATCH_VITERBI_F32` (1e-5)
+
+**Cross-spring evolution validator**: 39/39 PASS
+
+---
+
+### Session 74 — Pure GPU All-Domains + Cross-System Dispatch (Feb 26, 2026)
+
+Three new binaries close the pure GPU and cross-system milestones:
+
+| Binary | Checks | What It Proves |
+|--------|--------|----------------|
+| `validate_gpu_pure_workload_all` | 10/10 PASS | All 15 Phase 0++ domains via typed BarraCUDA GPU ops (scalar-only readback) |
+| `validate_cross_system_dispatch` | 46/46 PASS | Full metalForge stack: hardware discovery → domain heuristics → CPU↔GPU parity → transfer cost → NPU routing → crossover sweep |
+| `bench_evolution_tiers` | 8 domains | CPU→GPU portability characterization |
+
+**Cross-spring provenance in pure GPU ops:**
+- `BatchIprGpu` from hotSpring spectral primitives
+- `SpatialPayoffGpu` from wetSpring game theory stencil
+- `HmmBatchForwardF64` from wetSpring phylogenetics
+- `PairwiseJaccardGpu` from wetSpring/neuralSpring pangenomics
+- All feeding ToadStool's unified GPU sovereign pipeline
+
+**f32/f64 precision boundary:** f64 for log-space accumulation (HMM, fitness, locus variance); f32 for domain ops (IPR, L2, Hamming, Jaccard, spatial payoff).
+
+**GPU dispatch overhead:** ~186µs per `queue.submit()` (structural floor). CPU→GPU crossover at ~1946µs compute.
+
+#### S74 Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` | 0 warnings |
+| `cargo test --lib` | 580 PASS |
+| `cargo test --test integration` | 9 PASS |
+| `validate_all` | 149/150 PASS |
+| `validate_gpu_pure_workload_all` | 10/10 PASS |
+| `validate_cross_system_dispatch` | 46/46 PASS |
+| `validate_cross_spring_evolution` | 39/39 PASS |
 
 ---
 

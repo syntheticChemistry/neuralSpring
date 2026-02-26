@@ -242,6 +242,7 @@ pub fn activation_ipr(activations: &[f64]) -> f64 {
 mod tests {
     use super::*;
     use crate::rng::Rng;
+    use crate::tolerances;
 
     fn random_weight_matrix(m: usize, n: usize, rng: &mut Rng) -> Vec<f64> {
         (0..m * n).map(|_| rng.normal()).collect()
@@ -256,7 +257,7 @@ mod tests {
         for i in 0..dim {
             for j in 0..dim {
                 assert!(
-                    (h[i * dim + j] - h[j * dim + i]).abs() < 1e-14,
+                    (h[i * dim + j] - h[j * dim + i]).abs() < tolerances::ZERO_DETECTION,
                     "H not symmetric at ({i},{j})"
                 );
             }
@@ -268,7 +269,10 @@ mod tests {
         let eigenvalues: Vec<f64> = (0..20).map(|i| f64::from(i) * 0.5).collect();
         let (_, counts) = empirical_spectral_density(&eigenvalues, 10);
         let sum: f64 = counts.iter().sum();
-        assert!((sum - 1.0).abs() < 1e-12, "ESD should sum to 1, got {sum}");
+        assert!(
+            (sum - 1.0).abs() < tolerances::EXACT_F64,
+            "ESD should sum to 1, got {sum}"
+        );
     }
 
     #[test]
@@ -281,8 +285,8 @@ mod tests {
     #[test]
     fn mp_bounds_unit_aspect() {
         let (lo, hi) = marchenko_pastur_bounds(1.0);
-        assert!((lo - 0.0).abs() < 1e-12);
-        assert!((hi - 4.0).abs() < 1e-12);
+        assert!((lo - 0.0).abs() < tolerances::EXACT_F64);
+        assert!((hi - 4.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -353,16 +357,16 @@ mod tests {
         let (_, counts) = empirical_spectral_density(&eigenvalues, 4);
         let sum: f64 = counts.iter().sum();
         assert!(
-            (sum - 1.0).abs() < 1e-12,
+            (sum - 1.0).abs() < tolerances::EXACT_F64,
             "ESD should sum to 1 even for identical values"
         );
     }
 
     #[test]
     fn level_spacing_too_few() {
-        assert!((level_spacing_ratio(&[]) - 0.0).abs() < 1e-15);
-        assert!((level_spacing_ratio(&[1.0]) - 0.0).abs() < 1e-15);
-        assert!((level_spacing_ratio(&[1.0, 2.0]) - 0.0).abs() < 1e-15);
+        assert!((level_spacing_ratio(&[]) - 0.0).abs() < tolerances::ZERO_DETECTION);
+        assert!((level_spacing_ratio(&[1.0]) - 0.0).abs() < tolerances::ZERO_DETECTION);
+        assert!((level_spacing_ratio(&[1.0, 2.0]) - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
@@ -374,7 +378,7 @@ mod tests {
 
     #[test]
     fn mp_departure_empty() {
-        assert!((marchenko_pastur_departure(&[], 1.0) - 0.0).abs() < 1e-15);
+        assert!((marchenko_pastur_departure(&[], 1.0) - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
@@ -383,7 +387,7 @@ mod tests {
         let eigenvalues = vec![f64::midpoint(lo, hi); 10];
         let dep = marchenko_pastur_departure(&eigenvalues, 1.0);
         assert!(
-            dep.abs() < 1e-14,
+            dep.abs() < tolerances::ZERO_DETECTION,
             "all inside MP bounds → 0 departure, got {dep}"
         );
     }
@@ -393,25 +397,28 @@ mod tests {
         let eigenvalues = vec![100.0; 10];
         let dep = marchenko_pastur_departure(&eigenvalues, 1.0);
         assert!(
-            (dep - 1.0).abs() < 1e-14,
+            (dep - 1.0).abs() < tolerances::ZERO_DETECTION,
             "all outside MP bounds → 1.0 departure, got {dep}"
         );
     }
 
     #[test]
     fn spectral_entropy_empty() {
-        assert!((spectral_entropy(&[]) - 0.0).abs() < 1e-15);
+        assert!((spectral_entropy(&[]) - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn spectral_entropy_all_zero() {
-        assert!((spectral_entropy(&[0.0; 5]) - 0.0).abs() < 1e-15);
+        assert!((spectral_entropy(&[0.0; 5]) - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn spectral_entropy_single_nonzero() {
         let s = spectral_entropy(&[0.0, 0.0, 5.0, 0.0]);
-        assert!(s.abs() < 1e-14, "single nonzero → 0 entropy, got {s}");
+        assert!(
+            s.abs() < tolerances::ZERO_DETECTION,
+            "single nonzero → 0 entropy, got {s}"
+        );
     }
 
     #[test]
@@ -423,15 +430,17 @@ mod tests {
         let r2 = weight_spectral_analysis(&w2, 4, 4);
         let (d_ipr, d_lsr, d_ent) = spectral_comparison(&r1, &r2);
         assert!(
-            (d_ipr - (r2.mean_ipr - r1.mean_ipr)).abs() < 1e-14,
+            (d_ipr - (r2.mean_ipr - r1.mean_ipr)).abs() < tolerances::ZERO_DETECTION,
             "delta_ipr should be r2 - r1"
         );
         assert!(
-            (d_lsr - (r2.level_spacing_ratio - r1.level_spacing_ratio)).abs() < 1e-14,
+            (d_lsr - (r2.level_spacing_ratio - r1.level_spacing_ratio)).abs()
+                < tolerances::ZERO_DETECTION,
             "delta_lsr should be r2 - r1"
         );
         assert!(
-            (d_ent - (r2.spectral_entropy - r1.spectral_entropy)).abs() < 1e-14,
+            (d_ent - (r2.spectral_entropy - r1.spectral_entropy)).abs()
+                < tolerances::ZERO_DETECTION,
             "delta_entropy should be r2 - r1"
         );
     }
@@ -440,7 +449,10 @@ mod tests {
     fn activation_ipr_zero_vector() {
         let zeros = vec![0.0; 8];
         let ipr_val = activation_ipr(&zeros);
-        assert!(ipr_val.abs() < 1e-14, "zero vector → 0 IPR, got {ipr_val}");
+        assert!(
+            ipr_val.abs() < tolerances::ZERO_DETECTION,
+            "zero vector → 0 IPR, got {ipr_val}"
+        );
     }
 
     #[test]
@@ -449,7 +461,7 @@ mod tests {
         v[3] = 5.0;
         let ipr_val = activation_ipr(&v);
         assert!(
-            (ipr_val - 1.0).abs() < 1e-12,
+            (ipr_val - 1.0).abs() < tolerances::EXACT_F64,
             "single-neuron activation → IPR=1, got {ipr_val}"
         );
     }
@@ -459,7 +471,7 @@ mod tests {
         let v = vec![1.0; 8];
         let ipr_val = activation_ipr(&v);
         assert!(
-            (ipr_val - 1.0 / 8.0).abs() < 1e-12,
+            (ipr_val - 1.0 / 8.0).abs() < tolerances::EXACT_F64,
             "uniform activation → IPR=1/n, got {ipr_val}"
         );
     }

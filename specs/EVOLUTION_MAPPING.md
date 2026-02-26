@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 25, 2026 (Sessions 60–70: Phase C GPU + CPU↔Python parity 39/39, 201.7× speedup)
+**Last Updated**: February 26, 2026 (Sessions 60–74: Phase C GPU + CPU↔Python parity 39/39, 201.7× speedup + pure GPU all-domains + cross-system dispatch)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -157,21 +157,21 @@ Based on cross-paper primitive usage and BarraCUDA impact:
 
 For each Rust module → GPU promotion:
 
-- [ ] Python baseline passes with documented provenance
-- [ ] Rust implementation matches Python to documented tolerance
-- [ ] WGSL shader exists in BarraCUDA or is planned
-- [ ] Validation binary follows hotSpring pattern (exit 0/1)
-- [ ] Performance meets or exceeds Python baseline
-- [x] Test coverage ≥ 90% (92.7% line via `cargo llvm-cov`)
+- [x] Python baseline passes with documented provenance
+- [x] Rust implementation matches Python to documented tolerance
+- [x] WGSL shader exists in BarraCUDA or is planned
+- [x] Validation binary follows hotSpring pattern (exit 0/1)
+- [x] Performance meets or exceeds Python baseline
+- [x] Test coverage ≥ 90% (94.53% line via `cargo llvm-cov`)
 
 ---
 
-## Current Status (February 25, 2026)
+## Current Status (February 26, 2026)
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
 | Phase 0 (Python baselines) | **206/206 PASS** | 25 experiments, drift detection via `control/check_drift.sh` |
-| Phase 1a (neuralSpring Rust) | **505 lib + 9 integration PASS** | 36 modules (+2 evolved), 505 unit tests, 9 integration tests, 159 validation binaries |
+| Phase 1a (neuralSpring Rust) | **580 lib + 9 integration PASS** | 36 modules (+2 evolved), 580 unit tests, 9 integration tests, 163 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU ports) | **203/203 PASS** | 24/25 papers validated (96% bC coverage) |

@@ -163,6 +163,7 @@ pub fn spectral_gap_approx(a: &[f64], n: usize) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn commutator_antisymmetric() {
@@ -172,7 +173,10 @@ mod tests {
         let ab = commutator(&a, &b, 8);
         let ba = commutator(&b, &a, 8);
         let sum: Vec<f64> = ab.iter().zip(ba.iter()).map(|(x, y)| x + y).collect();
-        assert!(frobenius_norm(&sum) < 1e-10, " [A,B] = -[B,A]");
+        assert!(
+            frobenius_norm(&sum) < tolerances::CROSS_LANGUAGE,
+            " [A,B] = -[B,A]"
+        );
     }
 
     #[test]
@@ -180,7 +184,10 @@ mod tests {
         let mut rng = Rng::new(42);
         let sym = random_symmetric(16, &mut rng);
         let d = distance_to_normal(&sym, 16);
-        assert!(d < 1e-10, "symmetric (normal) should have d≈0, got {d}");
+        assert!(
+            d < tolerances::CROSS_LANGUAGE,
+            "symmetric (normal) should have d≈0, got {d}"
+        );
     }
 
     #[test]
@@ -205,7 +212,10 @@ mod tests {
                 .map(|(x, y)| x - y)
                 .collect::<Vec<_>>(),
         );
-        assert!(diff < 1e-14, "A*I should equal A, diff={diff}");
+        assert!(
+            diff < tolerances::ZERO_DETECTION,
+            "A*I should equal A, diff={diff}"
+        );
     }
 
     #[test]
@@ -220,7 +230,10 @@ mod tests {
                 .map(|(x, y)| x - y)
                 .collect::<Vec<_>>(),
         );
-        assert!(diff < 1e-14, "transpose(transpose(A)) should equal A");
+        assert!(
+            diff < tolerances::ZERO_DETECTION,
+            "transpose(transpose(A)) should equal A"
+        );
     }
 
     #[test]
@@ -229,7 +242,7 @@ mod tests {
         let sym = random_symmetric(8, &mut rng);
         let gap = spectral_gap_approx(&sym, 8);
         assert!(
-            gap < 1e-10,
+            gap < tolerances::CROSS_LANGUAGE,
             "symmetric matrix: AᵀA = AAᵀ, gap ≈ 0, got {gap}"
         );
     }
@@ -239,7 +252,7 @@ mod tests {
         let n = 4;
         let eye = identity_matrix(n);
         let gap = spectral_gap_approx(&eye, n);
-        assert!(gap < 1e-15, "identity gap = 0");
+        assert!(gap < tolerances::ZERO_DETECTION, "identity gap = 0");
     }
 
     #[test]
@@ -249,6 +262,9 @@ mod tests {
         let mut rng = Rng::new(42);
         let a = random_matrix(n, &mut rng);
         let ratio = commutativity_ratio(&eye, &a, n);
-        assert!(ratio < 1e-10, "I commutes with everything, ratio ≈ 0");
+        assert!(
+            ratio < tolerances::CROSS_LANGUAGE,
+            "I commutes with everything, ratio ≈ 0"
+        );
     }
 }

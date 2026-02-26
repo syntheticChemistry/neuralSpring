@@ -150,6 +150,7 @@ pub fn cosine_signal_f64(n: usize, freq: usize) -> Vec<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn delta_signal_structure() {
@@ -173,20 +174,23 @@ mod tests {
     fn cosine_signal_energy() {
         let c = cosine_signal(8, 1);
         let e = complex_energy(&c);
-        assert!((e - 4.0).abs() < 1e-6, "cosine energy should be N/2 = 4.0");
+        assert!(
+            (e - 4.0).abs() < tolerances::SPECIAL_FUNCTION_F64,
+            "cosine energy should be N/2 = 4.0"
+        );
     }
 
     #[test]
     fn delta_energy_is_one() {
         let d = delta_signal(16);
         let e = complex_energy(&d);
-        assert!((e - 1.0).abs() < 1e-12);
+        assert!((e - 1.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
     fn max_abs_diff_identical() {
         let a = vec![1.0f32, 2.0, 3.0];
-        assert!(max_abs_diff(&a, &a) < 1e-12);
+        assert!(max_abs_diff(&a, &a) < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -213,20 +217,23 @@ mod tests {
     fn cosine_signal_f64_energy() {
         let c = cosine_signal_f64(8, 1);
         let e = complex_energy_f64(&c);
-        assert!((e - 4.0).abs() < 1e-10, "f64 cosine energy should be N/2");
+        assert!(
+            (e - 4.0).abs() < tolerances::CROSS_LANGUAGE,
+            "f64 cosine energy should be N/2"
+        );
     }
 
     #[test]
     fn complex_energy_f64_delta() {
         let d = delta_signal_f64(16);
         let e = complex_energy_f64(&d);
-        assert!((e - 1.0).abs() < 1e-14);
+        assert!((e - 1.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn max_abs_diff_f64_identical() {
         let a = vec![1.0_f64, 2.0, 3.0];
-        assert!(max_abs_diff_f64(&a, &a) < 1e-14);
+        assert!(max_abs_diff_f64(&a, &a) < tolerances::ZERO_DETECTION);
     }
 
     #[test]
@@ -234,6 +241,6 @@ mod tests {
         let a = vec![1.0, 2.0, 3.0];
         let b = vec![1.1, 2.0, 2.7];
         let d = max_abs_diff_f64(&a, &b);
-        assert!((d - 0.3).abs() < 1e-10);
+        assert!((d - 0.3).abs() < tolerances::CROSS_LANGUAGE);
     }
 }

@@ -236,6 +236,7 @@ pub struct PgmAnalysisResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn transition_rows_sum_to_one() {
@@ -243,7 +244,10 @@ mod tests {
         let trans = weight_to_transition(&weights, 2, 3);
         for i in 0..2 {
             let sum: f64 = (0..3).map(|j| trans[i * 3 + j]).sum();
-            assert!((sum - 1.0).abs() < 1e-12, "row {i} sums to {sum}, not 1.0");
+            assert!(
+                (sum - 1.0).abs() < tolerances::EXACT_F64,
+                "row {i} sums to {sum}, not 1.0"
+            );
         }
     }
 
@@ -268,7 +272,7 @@ mod tests {
         for dist in &dists {
             let sum: f64 = dist.iter().sum();
             assert!(
-                (sum - 1.0).abs() < 1e-10,
+                (sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
                 "distribution should sum to 1, got {sum}"
             );
         }
@@ -278,7 +282,10 @@ mod tests {
     fn kl_divergence_zero_for_identical() {
         let p = vec![0.25, 0.25, 0.25, 0.25];
         let kl = pgm_nn_divergence(&p, &p);
-        assert!(kl.abs() < 1e-12, "KL(p||p) should be 0, got {kl}");
+        assert!(
+            kl.abs() < tolerances::EXACT_F64,
+            "KL(p||p) should be 0, got {kl}"
+        );
     }
 
     #[test]
@@ -297,7 +304,7 @@ mod tests {
         let eigenvalues = vec![1.0; 8];
         let rank = effective_rank(&eigenvalues);
         assert!(
-            (rank - 8.0).abs() < 1e-10,
+            (rank - 8.0).abs() < tolerances::CROSS_LANGUAGE,
             "identity-like spectrum should have full rank, got {rank}"
         );
     }
@@ -308,7 +315,7 @@ mod tests {
         eigenvalues[0] = 1.0;
         let rank = effective_rank(&eigenvalues);
         assert!(
-            (rank - 1.0).abs() < 1e-10,
+            (rank - 1.0).abs() < tolerances::CROSS_LANGUAGE,
             "single nonzero eigenvalue should give rank 1, got {rank}"
         );
     }
@@ -318,7 +325,7 @@ mod tests {
         let w = vec![1.0, 0.5, 0.5, 1.0, 0.3, 0.7, 0.7, 0.3, 1.0];
         let sim = layer_spectral_similarity(&w, 3, &w, 3);
         assert!(
-            (sim - 1.0).abs() < 1e-6,
+            (sim - 1.0).abs() < tolerances::SPECIAL_FUNCTION_F64,
             "self-similarity should be 1.0, got {sim}"
         );
     }
@@ -369,7 +376,10 @@ mod tests {
         assert_eq!(dists.len(), 3, "input + 2 layers = 3 distributions");
         for dist in &dists {
             let sum: f64 = dist.iter().sum();
-            assert!((sum - 1.0).abs() < 1e-10, "normalization at {sum}");
+            assert!(
+                (sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
+                "normalization at {sum}"
+            );
         }
     }
 
@@ -378,7 +388,7 @@ mod tests {
         let eigenvalues = vec![0.0; 8];
         let rank = effective_rank(&eigenvalues);
         assert!(
-            rank.abs() < 1e-14,
+            rank.abs() < tolerances::ZERO_DETECTION,
             "all-zero eigenvalues → rank 0, got {rank}"
         );
     }
@@ -388,7 +398,7 @@ mod tests {
         let eigenvalues = vec![1.0, 1.0, 0.0, 0.0];
         let rank = effective_rank(&eigenvalues);
         assert!(
-            (rank - 2.0).abs() < 1e-10,
+            (rank - 2.0).abs() < tolerances::CROSS_LANGUAGE,
             "two equal nonzero eigenvalues → rank 2, got {rank}"
         );
     }
@@ -412,7 +422,10 @@ mod tests {
     fn layer_spectral_similarity_zero_matrix() {
         let zeros = vec![0.0; 4];
         let sim = layer_spectral_similarity(&zeros, 2, &zeros, 2);
-        assert!(sim.abs() < 1e-14, "zero matrices → 0 similarity, got {sim}");
+        assert!(
+            sim.abs() < tolerances::ZERO_DETECTION,
+            "zero matrices → 0 similarity, got {sim}"
+        );
     }
 
     #[test]
@@ -433,7 +446,10 @@ mod tests {
     #[test]
     fn pgm_complexity_empty() {
         let c = pgm_complexity(&[], &[], 0.1);
-        assert!(c.abs() < 1e-14, "no layers → 0 complexity, got {c}");
+        assert!(
+            c.abs() < tolerances::ZERO_DETECTION,
+            "no layers → 0 complexity, got {c}"
+        );
     }
 
     #[test]
@@ -462,7 +478,7 @@ mod tests {
         ];
         let result = pgm_analysis(&[identity_like.as_slice()], &[4], &input, &input);
         assert!(
-            result.kl_divergence < 0.01,
+            result.kl_divergence < tolerances::NORM_PPF_TAIL,
             "identity-like transition should give near-zero KL, got {}",
             result.kl_divergence
         );

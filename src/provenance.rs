@@ -427,6 +427,7 @@ pub const FFT_ANALYTICAL_REFS: &str =
 ///
 /// Provenance: `python3 -c "import numpy as np; x=np.array([1.,2.,3.,4.,5.]); e=np.exp(x-x.max()); print(e/e.sum())"`
 /// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
+/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
 pub const SOFTMAX_1_TO_5: [f64; 5] = [
     1.165_623_095_603_961e-2,
     3.168_492_079_612_427e-2,
@@ -440,6 +441,7 @@ pub const SOFTMAX_1_TO_5: [f64; 5] = [
 /// Format: (input, `expected_output`)
 /// Provenance: `python3 -c "import numpy as np; gelu=lambda x: 0.5*x*(1+np.tanh(np.sqrt(2/np.pi)*(x+0.044715*x**3))); [print(x,gelu(x)) for x in [-2,-1,0,0.5,1,3]]"`
 /// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
+/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
 pub const GELU_REFERENCE: [(f64, f64); 6] = [
     (-2.0, -4.540_230_591_222_494e-2),
     (-1.0, -1.588_080_093_917_233e-1),
@@ -453,6 +455,7 @@ pub const GELU_REFERENCE: [(f64, f64); 6] = [
 ///
 /// Provenance: `python3 control/surrogate/surrogate_validation.py` (`rastrigin_2d`).
 /// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
+/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
 pub const RASTRIGIN_REFERENCE: [(f64, f64, f64); 4] = [
     (1.0, 1.0, 2.0),
     (2.5, -1.3, 4.103_016_994_374_947e1),
@@ -464,6 +467,7 @@ pub const RASTRIGIN_REFERENCE: [(f64, f64, f64); 4] = [
 ///
 /// Provenance: `python3 -c "f=lambda x,y: (1-x)**2 + 100*(y-x**2)**2; [print(x,y,f(x,y)) for x,y in [(1,1),(2.5,-1.3),(0.5,0.5),(-3,2)]]"`
 /// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
+/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
 pub const ROSENBROCK_REFERENCE: [(f64, f64, f64); 4] = [
     (1.0, 1.0, 0.0),
     (2.5, -1.3, 5702.5),
@@ -475,6 +479,7 @@ pub const ROSENBROCK_REFERENCE: [(f64, f64, f64); 4] = [
 ///
 /// Provenance: `python3 -c "import numpy as np; a=lambda x,y: -20*np.exp(-0.2*np.sqrt(0.5*(x**2+y**2))) - np.exp(0.5*(np.cos(2*np.pi*x)+np.cos(2*np.pi*y))) + np.e + 20; [print(x,y,a(x,y)) for x,y in [(1,1),(2.5,-1.3),(0.5,0.5),(-3,2)]]"`
 /// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
+/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
 pub const ACKLEY_REFERENCE: [(f64, f64, f64); 4] = [
     (1.0, 1.0, 3.625_384_938_440_363),
     (2.5, -1.3, 8.772_020_879_614_113),

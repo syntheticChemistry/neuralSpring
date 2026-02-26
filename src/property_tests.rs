@@ -11,6 +11,7 @@ use crate::hmm::Hmm;
 use crate::primitives;
 use crate::rng::Rng;
 use crate::spectral_commutativity;
+use crate::tolerances;
 use crate::transformer;
 
 const N_TRIALS: usize = 50;
@@ -26,7 +27,7 @@ fn softmax_always_sums_to_one() {
         let sm = transformer::softmax(&input);
         let sum: f64 = sm.iter().sum();
         assert!(
-            (sum - 1.0).abs() < 1e-10,
+            (sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
             "softmax sum = {sum}, input len = {len}"
         );
     }
@@ -65,7 +66,7 @@ fn sigmoid_symmetry_property() {
         let s_pos = primitives::sigmoid(x);
         let s_neg = primitives::sigmoid(-x);
         assert!(
-            (s_pos + s_neg - 1.0).abs() < 1e-12,
+            (s_pos + s_neg - 1.0).abs() < tolerances::EXACT_F64,
             "σ({x}) + σ(-{x}) = {} ≠ 1",
             s_pos + s_neg
         );
@@ -90,7 +91,7 @@ fn commutator_antisymmetric_sweep() {
                 .collect::<Vec<_>>(),
         );
         assert!(
-            sum_norm < 1e-8,
+            sum_norm < tolerances::HMM_POSTERIOR_SUM,
             "[A,B] + [B,A] norm = {sum_norm} (should be ~0), n={n}"
         );
     }
@@ -106,7 +107,7 @@ fn symmetric_matrices_have_zero_distance_to_normal() {
         let sym = spectral_commutativity::random_symmetric(n, &mut rng);
         let d = spectral_commutativity::distance_to_normal(&sym, n);
         assert!(
-            d < 1e-8,
+            d < tolerances::HMM_POSTERIOR_SUM,
             "symmetric matrix d(normal) = {d} (should be ~0), n={n}"
         );
     }
@@ -127,7 +128,7 @@ fn eigh_eigenvalues_real_and_sorted() {
         }
         for w in result.eigenvalues.windows(2) {
             assert!(
-                w[0] <= w[1] + 1e-10,
+                w[0] <= w[1] + tolerances::CROSS_LANGUAGE,
                 "eigenvalues not sorted: {} > {}, n={n}",
                 w[0],
                 w[1]
@@ -169,7 +170,7 @@ fn hmm_forward_alpha_always_sums_to_one() {
         for t in 0..obs.len() {
             let sum: f64 = fwd.alpha_at(t).iter().sum();
             assert!(
-                (sum - 1.0).abs() < 1e-8,
+                (sum - 1.0).abs() < tolerances::HMM_POSTERIOR_SUM,
                 "alpha sum = {sum} at t={t}, n={n}, m={m}"
             );
         }
@@ -190,7 +191,7 @@ fn hmm_posterior_always_sums_to_one() {
         for t in 0..obs.len() {
             let sum: f64 = gamma[t * n..(t + 1) * n].iter().sum();
             assert!(
-                (sum - 1.0).abs() < 1e-6,
+                (sum - 1.0).abs() < tolerances::SPECIAL_FUNCTION_F64,
                 "posterior sum = {sum} at t={t}, n={n}, m={m}"
             );
         }
@@ -235,7 +236,7 @@ fn rk4_harmonic_oscillator_energy_bounded() {
         let final_energy = 0.5 * state[0].mul_add(state[0], state[1] * state[1]);
         let drift = ((final_energy - initial_energy) / initial_energy).abs();
         assert!(
-            drift < 1e-6,
+            drift < tolerances::SPECIAL_FUNCTION_F64,
             "RK4 energy drift = {drift} (x0={x0}, v0={v0})"
         );
     }
@@ -266,7 +267,7 @@ fn mat_mul_associative() {
         );
         let scale = spectral_commutativity::frobenius_norm(&ab_c).max(1e-15);
         assert!(
-            diff / scale < 1e-8,
+            diff / scale < tolerances::HMM_POSTERIOR_SUM,
             "(AB)C vs A(BC) relative diff = {}, n={n}",
             diff / scale
         );

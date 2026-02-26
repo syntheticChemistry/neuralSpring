@@ -234,6 +234,7 @@ pub fn gru_forward(sequence: &[Vec<f64>], w: &GruWeights<'_>) -> Vec<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use approx::assert_relative_eq;
 
     #[test]
@@ -283,7 +284,11 @@ mod tests {
     #[test]
     fn sigmoid_symmetry() {
         let x = 2.5;
-        assert_relative_eq!(sigmoid(x) + sigmoid(-x), 1.0, epsilon = 1e-15);
+        assert_relative_eq!(
+            sigmoid(x) + sigmoid(-x),
+            1.0,
+            epsilon = tolerances::ZERO_DETECTION
+        );
     }
 
     #[test]
@@ -356,10 +361,10 @@ mod tests {
         assert_eq!(h_new.len(), hs);
         assert_eq!(c_new.len(), hs);
         for &v in &c_new {
-            assert_relative_eq!(v, 0.0, epsilon = 1e-15);
+            assert_relative_eq!(v, 0.0, epsilon = tolerances::ZERO_DETECTION);
         }
         for &v in &h_new {
-            assert_relative_eq!(v, 0.0, epsilon = 1e-15);
+            assert_relative_eq!(v, 0.0, epsilon = tolerances::ZERO_DETECTION);
         }
     }
 
@@ -379,8 +384,8 @@ mod tests {
 
         let (h_new, c_new) = lstm_cell(&[1.0], &[0.0], &[0.0], &w);
 
-        assert_relative_eq!(c_new[0], 0.0, epsilon = 1e-12);
-        assert_relative_eq!(h_new[0], 0.0, epsilon = 1e-12);
+        assert_relative_eq!(c_new[0], 0.0, epsilon = tolerances::EXACT_F64);
+        assert_relative_eq!(h_new[0], 0.0, epsilon = tolerances::EXACT_F64);
     }
 
     #[test]
@@ -398,7 +403,7 @@ mod tests {
         let h_new = gru_cell(&[0.0; 3], &[0.0; 2], &w);
         assert_eq!(h_new.len(), hs);
         for &v in &h_new {
-            assert_relative_eq!(v, 0.0, epsilon = 1e-15);
+            assert_relative_eq!(v, 0.0, epsilon = tolerances::ZERO_DETECTION);
         }
     }
 

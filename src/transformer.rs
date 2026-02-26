@@ -57,6 +57,7 @@ pub fn gelu(x: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use approx::assert_relative_eq;
 
     #[test]
@@ -64,7 +65,7 @@ mod tests {
         let x = vec![1.0, 2.0, 3.0, 4.0];
         let s = softmax(&x);
         let sum: f64 = s.iter().sum();
-        assert_relative_eq!(sum, 1.0, epsilon = 1e-12);
+        assert_relative_eq!(sum, 1.0, epsilon = tolerances::EXACT_F64);
     }
 
     #[test]
@@ -87,7 +88,7 @@ mod tests {
             6.364_086_465_588_308e-1,
         ];
         for (got, want) in s.iter().zip(&expected) {
-            assert_relative_eq!(got, want, epsilon = 1e-14);
+            assert_relative_eq!(got, want, epsilon = tolerances::ZERO_DETECTION);
         }
     }
 
@@ -97,12 +98,12 @@ mod tests {
         let s = softmax(&x);
         assert!(s.iter().all(|v| v.is_finite()));
         let sum: f64 = s.iter().sum();
-        assert_relative_eq!(sum, 1.0, epsilon = 1e-14);
+        assert_relative_eq!(sum, 1.0, epsilon = tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn gelu_at_zero() {
-        assert_relative_eq!(gelu(0.0), 0.0, epsilon = 1e-12);
+        assert_relative_eq!(gelu(0.0), 0.0, epsilon = tolerances::EXACT_F64);
     }
 
     #[test]
@@ -122,7 +123,7 @@ mod tests {
             (3.0, 2.996_362_607_918_227),
         ];
         for (x, expected) in &cases {
-            assert_relative_eq!(gelu(*x), *expected, epsilon = 1e-12);
+            assert_relative_eq!(gelu(*x), *expected, epsilon = tolerances::EXACT_F64);
         }
     }
 

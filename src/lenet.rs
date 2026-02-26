@@ -150,6 +150,7 @@ pub fn fc_forward(input: &[f64], weights: &[f64], bias: &[f64], out_dim: usize) 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn conv2d_identity_kernel() {
@@ -181,7 +182,7 @@ mod tests {
             pad: 0,
         });
         assert_eq!(out.len(), 1);
-        assert!((out[0] - 9.0).abs() < 1e-12);
+        assert!((out[0] - 9.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -201,7 +202,7 @@ mod tests {
             pad: 1,
         });
         assert_eq!(out.len(), 4);
-        assert!((out[0] - 10.0).abs() < 1e-12);
+        assert!((out[0] - 10.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -209,7 +210,7 @@ mod tests {
         let input = vec![1.0, 3.0, 2.0, 4.0];
         let out = max_pool2d(&input, 2, 2);
         assert_eq!(out.len(), 1);
-        assert!((out[0] - 4.0).abs() < 1e-12);
+        assert!((out[0] - 4.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -223,8 +224,8 @@ mod tests {
         let w = vec![1.0, 0.0, 0.0, 1.0];
         let b = vec![0.0, 0.0];
         let out = fc_forward(&[3.0, 7.0], &w, &b, 2);
-        assert!((out[0] - 3.0).abs() < 1e-12);
-        assert!((out[1] - 7.0).abs() < 1e-12);
+        assert!((out[0] - 3.0).abs() < tolerances::EXACT_F64);
+        assert!((out[1] - 7.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -232,7 +233,7 @@ mod tests {
         let w = vec![2.0];
         let b = vec![1.0];
         let out = fc_forward(&[3.0], &w, &b, 1);
-        assert!((out[0] - 7.0).abs() < 1e-12);
+        assert!((out[0] - 7.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -253,8 +254,8 @@ mod tests {
             pad: 0,
         });
         assert_eq!(out.len(), 4);
-        assert!((out[0] - 1.5).abs() < 1e-12);
-        assert!((out[3] - 4.5).abs() < 1e-12);
+        assert!((out[0] - 1.5).abs() < tolerances::EXACT_F64);
+        assert!((out[3] - 4.5).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -276,8 +277,8 @@ mod tests {
             pad: 0,
         });
         assert_eq!(out.len(), 8);
-        assert!((out[0] - 1.0).abs() < 1e-12, "ch0: 1*1+0");
-        assert!((out[4] - 12.0).abs() < 1e-12, "ch1: 2*1+10");
+        assert!((out[0] - 1.0).abs() < tolerances::EXACT_F64, "ch0: 1*1+0");
+        assert!((out[4] - 12.0).abs() < tolerances::EXACT_F64, "ch1: 2*1+10");
     }
 
     #[test]
@@ -298,7 +299,10 @@ mod tests {
             pad: 1,
         });
         assert_eq!(out.len(), 1);
-        assert!((out[0] - 5.0).abs() < 1e-12, "only center touches input");
+        assert!(
+            (out[0] - 5.0).abs() < tolerances::EXACT_F64,
+            "only center touches input"
+        );
     }
 
     #[test]
@@ -312,9 +316,9 @@ mod tests {
         ];
         let out = max_pool2d(&input, 4, 4);
         assert_eq!(out.len(), 4);
-        assert!((out[0] - 4.0).abs() < 1e-12);
-        assert!((out[1] - 8.0).abs() < 1e-12);
-        assert!((out[2] - 9.0).abs() < 1e-12);
-        assert!((out[3] - 6.0).abs() < 1e-12);
+        assert!((out[0] - 4.0).abs() < tolerances::EXACT_F64);
+        assert!((out[1] - 8.0).abs() < tolerances::EXACT_F64);
+        assert!((out[2] - 9.0).abs() < tolerances::EXACT_F64);
+        assert!((out[3] - 6.0).abs() < tolerances::EXACT_F64);
     }
 }

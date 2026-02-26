@@ -68,21 +68,26 @@ pub fn ackley_2d(x: f64, y: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use approx::assert_relative_eq;
 
     #[test]
     fn rastrigin_global_min() {
-        assert_relative_eq!(rastrigin_2d(0.0, 0.0), 0.0, epsilon = 1e-12);
+        assert_relative_eq!(rastrigin_2d(0.0, 0.0), 0.0, epsilon = tolerances::EXACT_F64);
     }
 
     #[test]
     fn rosenbrock_global_min() {
-        assert_relative_eq!(rosenbrock_2d(1.0, 1.0), 0.0, epsilon = 1e-12);
+        assert_relative_eq!(
+            rosenbrock_2d(1.0, 1.0),
+            0.0,
+            epsilon = tolerances::EXACT_F64
+        );
     }
 
     #[test]
     fn ackley_global_min() {
-        assert_relative_eq!(ackley_2d(0.0, 0.0), 0.0, epsilon = 1e-12);
+        assert_relative_eq!(ackley_2d(0.0, 0.0), 0.0, epsilon = tolerances::EXACT_F64);
     }
 
     // Cross-validation against Python: control/surrogate/surrogate_validation.py
@@ -90,30 +95,74 @@ mod tests {
 
     #[test]
     fn rastrigin_cross_python() {
-        assert_relative_eq!(rastrigin_2d(1.0, 1.0), 2.0, epsilon = 1e-14);
+        assert_relative_eq!(
+            rastrigin_2d(1.0, 1.0),
+            2.0,
+            epsilon = tolerances::ZERO_DETECTION
+        );
         assert_relative_eq!(
             rastrigin_2d(2.5, -1.3),
             4.103_016_994_374_947e1,
-            epsilon = 1e-10
+            epsilon = tolerances::CROSS_LANGUAGE
         );
-        assert_relative_eq!(rastrigin_2d(0.5, 0.5), 4.05e1, epsilon = 1e-14);
-        assert_relative_eq!(rastrigin_2d(-3.0, 2.0), 13.0, epsilon = 1e-14);
+        assert_relative_eq!(
+            rastrigin_2d(0.5, 0.5),
+            4.05e1,
+            epsilon = tolerances::ZERO_DETECTION
+        );
+        assert_relative_eq!(
+            rastrigin_2d(-3.0, 2.0),
+            13.0,
+            epsilon = tolerances::ZERO_DETECTION
+        );
     }
 
     #[test]
     fn rosenbrock_cross_python() {
-        assert_relative_eq!(rosenbrock_2d(1.0, 1.0), 0.0, epsilon = 1e-14);
-        assert_relative_eq!(rosenbrock_2d(2.5, -1.3), 5702.5, epsilon = 1e-10);
-        assert_relative_eq!(rosenbrock_2d(0.5, 0.5), 6.5, epsilon = 1e-14);
-        assert_relative_eq!(rosenbrock_2d(-3.0, 2.0), 4916.0, epsilon = 1e-10);
+        assert_relative_eq!(
+            rosenbrock_2d(1.0, 1.0),
+            0.0,
+            epsilon = tolerances::ZERO_DETECTION
+        );
+        assert_relative_eq!(
+            rosenbrock_2d(2.5, -1.3),
+            5702.5,
+            epsilon = tolerances::CROSS_LANGUAGE
+        );
+        assert_relative_eq!(
+            rosenbrock_2d(0.5, 0.5),
+            6.5,
+            epsilon = tolerances::ZERO_DETECTION
+        );
+        assert_relative_eq!(
+            rosenbrock_2d(-3.0, 2.0),
+            4916.0,
+            epsilon = tolerances::CROSS_LANGUAGE
+        );
     }
 
     #[test]
     fn ackley_cross_python() {
-        assert_relative_eq!(ackley_2d(1.0, 1.0), 3.625_384_938_440_363, epsilon = 1e-12);
-        assert_relative_eq!(ackley_2d(2.5, -1.3), 8.772_020_879_614_113, epsilon = 1e-12);
-        assert_relative_eq!(ackley_2d(0.5, 0.5), 4.253_654_026_568_412, epsilon = 1e-12);
-        assert_relative_eq!(ackley_2d(-3.0, 2.0), 7.988_910_810_518_7, epsilon = 1e-12);
+        assert_relative_eq!(
+            ackley_2d(1.0, 1.0),
+            3.625_384_938_440_363,
+            epsilon = tolerances::EXACT_F64
+        );
+        assert_relative_eq!(
+            ackley_2d(2.5, -1.3),
+            8.772_020_879_614_113,
+            epsilon = tolerances::EXACT_F64
+        );
+        assert_relative_eq!(
+            ackley_2d(0.5, 0.5),
+            4.253_654_026_568_412,
+            epsilon = tolerances::EXACT_F64
+        );
+        assert_relative_eq!(
+            ackley_2d(-3.0, 2.0),
+            7.988_910_810_518_7,
+            epsilon = tolerances::EXACT_F64
+        );
     }
 
     #[test]

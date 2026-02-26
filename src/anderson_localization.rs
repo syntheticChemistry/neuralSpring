@@ -175,6 +175,7 @@ pub fn disorder_sweep(n: usize, t: f64, w_vals: &[f64], rng: &mut Rng) -> Vec<f6
 mod tests {
     use super::*;
     use crate::rng::Rng;
+    use crate::tolerances;
 
     #[test]
     fn anderson_hermitian() {
@@ -184,7 +185,7 @@ mod tests {
         for i in 0..n {
             for j in 0..n {
                 assert!(
-                    (h[i * n + j] - h[j * n + i]).abs() < 1e-14,
+                    (h[i * n + j] - h[j * n + i]).abs() < tolerances::ZERO_DETECTION,
                     "H not symmetric"
                 );
             }
@@ -196,7 +197,7 @@ mod tests {
         let psi: Vec<f64> = vec![0.5; 4];
         let p = ipr(&psi);
         assert!(
-            (p - 0.25).abs() < 1e-10,
+            (p - 0.25).abs() < tolerances::CROSS_LANGUAGE,
             "IPR of uniform 4-vec = 1/N = 0.25, got {p}"
         );
     }

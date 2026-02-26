@@ -158,6 +158,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             DISPATCH_MATMUL_F64, DISPATCH_FROBENIUS_F64,
             DISPATCH_TRANSPOSE_F64, DISPATCH_ELEMENTWISE_F64,
             DISPATCH_TWOPASS_F64, DISPATCH_NEAR_ZERO_F64,
+            DISPATCH_F32_ROUNDTRIP, DISPATCH_VITERBI_F32,
         ],
     ]
 }

@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: February 25, 2026 (Sessions 44–68 — multi-GPU + benchmarks + deep audit)
+**Last Updated**: February 26, 2026 (Sessions 44–74 — multi-GPU + benchmarks + deep audit + pure GPU all-domains + cross-system dispatch)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---
@@ -145,25 +145,25 @@ CPU f64 reference with calibrated tolerances.
 
 | Binary | Domain | Checks | Status | Notes |
 |--------|--------|--------|--------|-------|
-| `validate_barracuda_gpu_spectral` | Kachkovskiy spectral | 10/10 | **PASS** | `A x B^T` workaround for S-14 |
+| `validate_barracuda_gpu_spectral` | Kachkovskiy spectral | 10/10 | **PASS** | S-14 **RESOLVED** upstream (`a4996b34` S39) |
 | `validate_barracuda_gpu_eco` | Dolson eco dynamics | 6/6 | **PASS** | Fitness matrices, carrying capacity |
 | `validate_barracuda_gpu_hmm` | Liu HMM | 5/5 | **PASS** | Transition, emission, Viterbi score |
 | `validate_barracuda_gpu_fitness` | Dolson fitness landscapes | 7/7 | **PASS** | NK landscape, epistasis, ruggedness |
-| `validate_barracuda_gpu_nn` | PINN / DeepONet | 5/5 | **PASS** | MLP forward, tanh activations. S-15 workaround |
-| `validate_barracuda_gpu_pairwise` | SATé / Pangenome | 5/5 | **PASS** | S-16 fixed (transpose dispatch) |
-| `validate_barracuda_gpu_anderson` | Anderson localization | 7/7 | **PASS** | S-15 workaround (data ≥ 0.5) |
-| **Total** | | **98+** | **ALL GREEN** | S-16 fixed, S-15 root-caused, 23/25 gT coverage |
+| `validate_barracuda_gpu_nn` | PINN / DeepONet | 5/5 | **PASS** | MLP forward, tanh activations. S-15 **RESOLVED** upstream (`a4996b34` S39) |
+| `validate_barracuda_gpu_pairwise` | SATé / Pangenome | 5/5 | **PASS** | S-16 **RESOLVED** upstream (`a4996b34` S39: transpose dispatch) |
+| `validate_barracuda_gpu_anderson` | Anderson localization | 7/7 | **PASS** | S-15 **RESOLVED** upstream (`a4996b34` S39) |
+| **Total** | | **98+** | **ALL GREEN** | S-14/S-15/S-16/S-17 **RESOLVED** upstream, 23/25 gT coverage |
 
-**Shortcomings discovered in Phase 5a:**
+**Shortcomings discovered in Phase 5a (all now RESOLVED upstream):**
 
 | ID | Summary | Severity | Status |
 |----|---------|----------|--------|
-| S-14 | Naive matmul hang — small square inputs (N < 32) in complex binaries | Medium | Workaround applied (`A x B^T`) |
-| S-15 | Matmul hang — negative or sparse f32 input data | Critical | Blocks anderson validator |
-| S-16 | 2D transpose dispatches wrong workgroup count (256 vs 16) | High | Blocks Gram matrix; fix identified |
+| S-14 | Naive matmul hang — small square inputs (N < 32) in complex binaries | Medium | **RESOLVED** upstream (`a4996b34` S39: Naive tier removed) |
+| S-15 | Matmul hang — negative or sparse f32 input data | Critical | **RESOLVED** upstream (`a4996b34` S39: Matmul hang fixed) |
+| S-16 | 2D transpose dispatches wrong workgroup count (256 vs 16) | High | **RESOLVED** upstream (`a4996b34` S39: Transpose dispatch fixed) |
 
 Full diagnosis and reproduction steps: `wateringHole/handoffs/archive/NEURALSPRING_V6_BARRACUDA_GPU_HANDOFF_FEB22_2026.md`
-Current handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V32_S69_CROSS_SPRING_EVOLUTION_HANDOFF_FEB25_2026.md`
+Current handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V38_S74_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md`
 
 ### Session 68 — BarraCUDA Usage Audit
 

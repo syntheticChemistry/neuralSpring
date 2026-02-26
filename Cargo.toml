@@ -701,6 +701,18 @@ path = "src/bin/validate_neural_pgm.rs"
 name = "validate_agent_coordination"
 path = "src/bin/validate_agent_coordination.rs"
 
+[[bin]]
+name = "validate_gpu_pure_workload_all"
+path = "src/bin/validate_gpu_pure_workload_all.rs"
+
+[[bin]]
+name = "validate_cross_system_dispatch"
+path = "src/bin/validate_cross_system_dispatch.rs"
+
+[[bin]]
+name = "bench_evolution_tiers"
+path = "src/bin/bench_evolution_tiers.rs"
+
 [lints.rust]
 unsafe_code = "forbid"
 

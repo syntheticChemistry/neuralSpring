@@ -6,8 +6,8 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `02207c4a` (Sessions 59–70 sync, Feb 25, 2026) |
-| Last updated | February 25, 2026 (Sessions 40–70) |
+| ToadStool HEAD | `02207c4a` (Sessions 59–74 sync, Feb 26, 2026) |
+| Last updated | February 26, 2026 (Sessions 40–74) |
 | BarraCUDA shader count | 645+ WGSL (zero CPU-only production math, S49) |
 | Shaders absorbed | 21/21 — all neuralSpring WGSL now upstream |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
@@ -126,7 +126,7 @@
 |-------------------|------------------------|
 | `CorrelationF64` | Single-dispatch f64 Pearson correlation (wetSpring stats + hotSpring precision) |
 | `chi_squared_statistic` | CPU fallback chi-squared via barracuda::special (S-53 rewire) |
-| `pow_f64` polyfill (S-17) | hotSpring `math_f64.wgsl` + wetSpring constant fix → `HillGate` f64 works |
+| `pow_f64` polyfill (S-17) **RESOLVED** upstream (`c82c23d1` S58) | hotSpring `math_f64.wgsl` + wetSpring constant fix → `HillGate` f64 works |
 
 ### wetSpring benefits from neuralSpring
 
@@ -156,7 +156,7 @@
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_cross_spring_evolution` | 22 | 22/22 PASS |
+| `validate_cross_spring_evolution` | 39 | 39/39 PASS |
 | `validate_all` | 146 | 145/146 PASS (1 pre-existing logsumexp) |
 | `cargo test --lib` | 500 | 500 PASS |
 | `cargo clippy --all-targets` (pedantic + nursery) | — | 0 warnings |
@@ -398,7 +398,7 @@ Feb 24  Session 50: baseCamp biophysical AI interpretability (5 modules, 82/82 P
           - argmax_dim() and softmax_dim(axis) API gaps CLOSED
           - level_spacing_ratio rewired to barracuda::spectral
           - barracuda::tolerances created (shared ZERO_DETECTION)
-        Session 52: S-17 HillGate f64 pow polyfill fix — 3 validators upgraded (0 SKIP)
+        Session 52: S-17 **RESOLVED** upstream (`c82c23d1` S58): HillGate f64 pow polyfill — patch_transcendentals_in_code covers pow
         Session 53: Final rewiring — 5 ops delegated to upstream f64 typed ops
           - variance_gpu → VarianceReduceF64 (hotSpring Welford)
           - pearson_correlation_gpu → CorrelationF64 (wetSpring + hotSpring)
@@ -549,7 +549,7 @@ Pearson gains f64 precision with modest speedup.
 | `mean` | hotSpring reduce | 0.4 | 0.4 | Parity |
 | `hmm_forward` | wetSpring bio | 0.5 | 0.5 | Parity — CPU optimal at 32 states |
 
-### Validation: 145/146 + 22/22 + 500 PASS
+### Validation: 145/146 + 39/39 + 500 PASS
 
 | Gate | Result |
 |------|--------|
@@ -557,7 +557,7 @@ Pearson gains f64 precision with modest speedup.
 | `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
 | `cargo test --lib` | 500 PASS |
 | `validate_all` | 145/146 PASS |
-| `validate_cross_spring_evolution` | **22/22 PASS** |
+| `validate_cross_spring_evolution` | **39/39 PASS** |
 
 ### Evolution Timeline Update
 
@@ -591,4 +591,4 @@ Feb 25  Session 62: ToadStool S62 sync (02207c4a)
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
 | Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
-| V32 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V32_S69_CROSS_SPRING_EVOLUTION_HANDOFF_FEB25_2026.md` |
+| V38 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V38_S74_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md` |

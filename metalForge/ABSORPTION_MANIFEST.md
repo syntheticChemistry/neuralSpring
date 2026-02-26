@@ -3,8 +3,8 @@
 **Parent**: ecoPrimals/neuralSpring
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `02207c4a` (Sessions 50–70, Feb 25, 2026)
-**Last Updated**: February 25, 2026 (Sessions 60–70 — forge v0.2.0 with substrate/probe/inventory/workloads, 2 write-phase WGSL extensions, 23 shaders, 43 forge tests)
+**ToadStool HEAD**: `02207c4a` (Sessions 50–74, Feb 26, 2026)
+**Last Updated**: February 26, 2026 (Sessions 60–74 — forge v0.2.0 with substrate/probe/inventory/workloads, 2 write-phase WGSL extensions, 23 shaders, 43 forge tests, S74: cross-system dispatch 46/46 PASS)
 
 ---
 
@@ -216,9 +216,9 @@ that match GPU buffer bindings directly:
 **Total GPU pipeline checks**: 32 (7 pipelines)
 **Total cross-dispatch checks**: 41 (8+8+12+13)
 **Total dispatch + parity checks**: 89 (16+14+19+17+23, Session 55–56)
-**Total lib tests**: 505 lib + 9 integration + 43 forge tests
-**Upstream rewired**: 4 functions delegating to `barracuda::linalg::graph` + `barracuda::numerical`
-**Grand total validation**: 2010+ (206 Python + 1810+ Rust+GPU)
+**Total lib tests**: 580 lib + 9 integration + 43 forge tests
+**Upstream rewired**: 21 functions + 6 shader sources delegating to upstream BarraCUDA
+**Grand total validation**: 2180+ (206 Python + 1970+ Rust+GPU)
 
 ---
 

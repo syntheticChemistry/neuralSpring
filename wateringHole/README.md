@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V33** | `handoffs/NEURALSPRING_TOADSTOOL_V33_S70_DEEP_AUDIT_EVOLUTION_HANDOFF_FEB25_2026.md` | Feb 25, 2026 | S70: Deep audit II — 94.53% coverage (580 tests), tolerance macro refactor, complete BarraCUDA usage inventory (90+ sites, 20+ submodules), paper control matrix (CPU→GPU→metalForge), streaming I/O, 100% SPDX, evolution recommendations |
+| **V38** | `handoffs/NEURALSPRING_TOADSTOOL_V38_S74_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S74: Pure GPU all-domains (10/10 PASS, 9 typed ops) + cross-system dispatch (46/46 PASS) + evolution tier benchmarks + 21 upstream rewires, all 17 shortcomings resolved, 2180+ checks, 163 binaries |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V32, 46 files).
+Superseded handoffs: `handoffs/archive/` (V1–V37, 51 files).
 
 ## Conventions
 

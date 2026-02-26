@@ -319,6 +319,20 @@ pub const DISPATCH_TWOPASS_F64: f64 = 1e-8;
 /// Cross-dispatch near-zero analytical value (e.g. gelu(0) ≈ 0).
 pub const DISPATCH_NEAR_ZERO_F64: f64 = ZERO_DETECTION;
 
+/// Cross-dispatch f32 Tensor API round-trip: `softmax_dim`, `argmax_dim`.
+///
+/// f64 → f32 upload → Tensor op → f32 readback → f64 conversion.
+/// f32 mantissa gives ~7 decimal digits; for softmax with 8–256 elements
+/// the row-sum deviates by ~5e-8 from unity. 1e-6 is conservative.
+pub const DISPATCH_F32_ROUNDTRIP: f64 = 1e-6;
+
+/// Cross-dispatch Viterbi f32 accumulated: GPU scores in f32 + argmax.
+///
+/// The Viterbi log-probability accumulates over T timesteps; each
+/// f32 max-reduction introduces ~`eps_f32` per step. For T=10, observed
+/// deviation from exact f64 reference is ~1e-7. 1e-5 is conservative.
+pub const DISPATCH_VITERBI_F32: f64 = 1e-5;
+
 // ═══════════════════════════════════════════════════════════════════
 // GPU promotion dispatch parity (CPU → GPU round-trip)
 // ═══════════════════════════════════════════════════════════════════

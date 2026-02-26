@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: February 25, 2026 (Sessions 40–67)
+**Date**: February 26, 2026 (Sessions 40–74 — pure GPU all-domains + cross-system dispatch + evolution tier benchmarks)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK)
 **Methodology**: Python control → Rust validation → WGSL shader evolution → multi-GPU portability
 
@@ -620,6 +620,8 @@ driver-level hang during `create_compute_pipeline` or `dispatch_workgroups`.
 
 **Recommendation**: Remove the Naive tier; use Tiled16 for all sizes.
 
+**Status**: **RESOLVED** upstream (`a4996b34` S39: Naive matmul tier removed).
+
 ### GELU Test Fix
 
 The `gelu(3) ≈ 3.0` test used the wrong expected value. True GELU(3) =
@@ -650,6 +652,8 @@ subsequent matmul dispatch.
 (neural network weights, centered features, physics quantities). All Phase 5a
 validators work around this by restricting to `[0, 1)` range data.
 
+**Status**: **RESOLVED** upstream (`a4996b34` S39: Matmul hang fixed).
+
 ### S-16: 2D Transpose Dispatch Uses Wrong Workgroup Divisor (High)
 
 The 2D transpose shader uses `@workgroup_size(16, 16)` with tiled
@@ -672,18 +676,18 @@ instead of the hardcoded tile constant 16.
 
 **Fix**: Replace `optimal_wg_size` with `16` (one line).
 
+**Status**: **RESOLVED** upstream (`a4996b34` S39: Transpose dispatch fixed, `const TILE: u32 = 16`).
+
 ### Phase 5b: Full-Stack Resolution (ALL GREEN)
 
 Phase 5b resolves the Phase 5a blockers and expands coverage to all papers:
 
-**S-16 FIXED**: The transpose dispatch bug was a one-line fix: replace
+**S-16 RESOLVED** upstream (`a4996b34` S39): The transpose dispatch bug was a one-line fix: replace
 `optimal_workgroup_size(ElementWise)` with the shader's hardcoded tile
 constant (`const TILE: u32 = 16`). All pairwise validators now PASS.
 
-**S-15 ROOT-CAUSED**: The matmul hang occurs when input data elements have
-magnitude ≤ 0.1. This is a WGPU/Vulkan driver bug on RTX 4070, not a shader
-bug. The workaround generates all test data with `rng.uniform() * 0.5 + 0.5`,
-ensuring all elements ≥ 0.5. Anderson localization and all other domains now PASS.
+**S-15 RESOLVED** upstream (`a4996b34` S39): The matmul hang occurred when input data elements had
+magnitude ≤ 0.1 (WGPU/Vulkan driver bug on RTX 4070, not a shader bug). Fixed upstream.
 
 **New validators added** (Phase 5b buildout):
 - `validate_barracuda_surrogate` (Exp 001) — 7 checks, S-15 safe

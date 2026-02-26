@@ -248,6 +248,7 @@ pub fn max_gradient(row: &[f64]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn exact_ic_is_negative_sin() {
@@ -255,7 +256,7 @@ mod tests {
             let u = burgers_exact_point(0.0, x, BURGERS_NU);
             let expected = -(PI * x).sin();
             assert!(
-                (u - expected).abs() < 1e-12,
+                (u - expected).abs() < tolerances::EXACT_F64,
                 "IC at x={x}: got {u}, expected {expected}"
             );
         }
@@ -266,8 +267,14 @@ mod tests {
         for &t in &[0.25, 0.5, 0.75] {
             let u_left = burgers_exact_point(t, -1.0, BURGERS_NU);
             let u_right = burgers_exact_point(t, 1.0, BURGERS_NU);
-            assert!(u_left.abs() < 0.01, "BC at t={t}, x=-1: {u_left}");
-            assert!(u_right.abs() < 0.01, "BC at t={t}, x=1: {u_right}");
+            assert!(
+                u_left.abs() < tolerances::PINN_BC_TOLERANCE,
+                "BC at t={t}, x=-1: {u_left}"
+            );
+            assert!(
+                u_right.abs() < tolerances::PINN_BC_TOLERANCE,
+                "BC at t={t}, x=1: {u_right}"
+            );
         }
     }
 
@@ -314,8 +321,8 @@ mod tests {
         let b = [0.5, -0.5];
         let input = [1.0, 2.0];
         let result = mlp_forward(&input, &[(&w, &b, 2)]);
-        assert!((result[0] - 1.5).abs() < 1e-12);
-        assert!((result[1] - 1.5).abs() < 1e-12);
+        assert!((result[0] - 1.5).abs() < tolerances::EXACT_F64);
+        assert!((result[1] - 1.5).abs() < tolerances::EXACT_F64);
     }
 
     #[test]

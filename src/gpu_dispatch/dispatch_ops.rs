@@ -71,13 +71,35 @@ impl Dispatcher {
     // Activations / distributions
     // ═══════════════════════════════════════════════════════════════
 
-    /// Softmax: delegates to upstream `barracuda::dispatch::softmax_dispatch`.
+    /// Softmax (global): delegates to upstream `barracuda::dispatch::softmax_dispatch`.
     #[must_use]
     pub fn softmax(&self, x: &[f64]) -> Vec<f64> {
         barracuda::dispatch::softmax_dispatch(x, self.wgpu_device()).unwrap_or_else(|e| {
             eprintln!("[dispatch] softmax upstream failed: {e}");
             crate::transformer::softmax(x)
         })
+    }
+
+    /// Row-wise softmax: uses upstream `Tensor::softmax_dim(1)` (rewired S72).
+    ///
+    /// Cross-spring evolution: neuralSpring requested `softmax_dim(axis)` in V20;
+    /// `ToadStool` implemented in `tensor_axis_ops.rs` (S60). Previously, row-wise
+    /// softmax required manual per-row dispatch or `ScaledDotProductAttention`.
+    #[must_use]
+    pub fn softmax_row_wise(&self, matrix: &[f64], n_rows: usize, n_cols: usize) -> Vec<f64> {
+        if let Some(dev) = self.wgpu_device() {
+            let m_f32: Vec<f32> = matrix.iter().map(|&v| v as f32).collect();
+            if let Ok(t) =
+                barracuda::tensor::Tensor::from_data(&m_f32, vec![n_rows, n_cols], dev.clone())
+            {
+                if let Ok(sm) = t.softmax_dim(1) {
+                    if let Ok(out) = sm.to_vec() {
+                        return out.into_iter().map(f64::from).collect();
+                    }
+                }
+            }
+        }
+        crate::neural_pgm::weight_to_transition(matrix, n_rows, n_cols)
     }
 
     /// Boltzmann distribution: GPU if available, CPU fallback.
@@ -450,6 +472,38 @@ impl Dispatcher {
             |dev| crate::gpu_ops::pairwise_fst_gpu(pop_a, n_a, pop_b, n_b, n_loci, dev),
             || crate::meta_population::pairwise_fst(pop_a, n_a, pop_b, n_b, n_loci),
         )
+    }
+
+    /// Single-locus FST with full F-statistics via upstream `BarraCUDA`.
+    ///
+    /// Delegates to `barracuda::ops::bio::fst_variance_decomposition` (CPU,
+    /// cross-spring evolved from wetSpring S53 population genetics work).
+    /// Returns `(fst, f_is, f_it)` — richer than the θ-only `pairwise_fst`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err` if fewer than 2 populations or invalid allele frequencies.
+    pub fn fst_single_locus(
+        &self,
+        allele_freqs: &[f64],
+        population_sizes: &[usize],
+    ) -> Result<(f64, f64, f64), String> {
+        crate::meta_population::fst_single_locus(allele_freqs, population_sizes)
+    }
+
+    /// Multi-locus FST with full F-statistics (θ, f, F).
+    ///
+    /// Uses upstream `fst_variance_decomposition` per-locus, then averages.
+    #[must_use]
+    pub fn pairwise_fst_full(
+        &self,
+        pop_a: &[f64],
+        n_a: usize,
+        pop_b: &[f64],
+        n_b: usize,
+        n_loci: usize,
+    ) -> (f64, f64, f64) {
+        crate::meta_population::pairwise_fst_full(pop_a, n_a, pop_b, n_b, n_loci)
     }
 
     /// Global FST (multi-population Weir-Cockerham): GPU allele freqs + reduction.

@@ -1,16 +1,16 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 25, 2026 (Sessions 44–70)
-**ToadStool HEAD**: `02207c4a` (S70: deep audit II — 94.53% coverage, 580 tests, 105+ tolerances)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 17 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39
+**Date**: February 26, 2026 (Sessions 44–74)
+**ToadStool HEAD**: `02207c4a` (S74: 94.53% coverage, 580 tests, 107+ tolerances, pure GPU all-domains 10/10, cross-system dispatch 46/46)
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 21 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed
 from the active codebase and fossilized in `metalForge/fossils/evolved_s01_s11/`.
 S-12 (eigensolver) resolved via Householder+QR — `src/eigh.rs` delegates
-to upstream. Three new shortcomings (S-14, S-15, S-16) discovered during
-Phase 5b+ full-stack validation. Two upstream bugs fixed in Session 44
-(`Tensor::mean()` entry point, chi-squared expected values).
+to upstream. Three shortcomings (S-14, S-15, S-16) discovered during
+Phase 5b+ full-stack validation — **all resolved upstream** at ToadStool `a4996b34` (S39).
+S-17 (pow f64 crash) also **resolved upstream** at `c82c23d1` (S58).
 See `wateringHole/handoffs/archive/NEURALSPRING_V19_SESSION51_HANDOFF_FEB24_2026.md`.
 
 ---
@@ -117,9 +117,10 @@ GPU `Tensor` validation across 7 domains uncovered 3 new bugs:
 
 | # | Shortcoming | Severity | Status |
 |---|-------------|----------|--------|
-| S-14 | Naive matmul hang (small square matrices, complex binaries) | Medium | Characterized, workaround (non-square shapes) |
-| S-15 | Matmul hang when elements ≤ 0.1 magnitude (WGPU/Vulkan driver bug) | Critical | **Root-caused**: data ≥ 0.5 avoids hang |
-| S-16 | 2D transpose dispatch uses `optimal_workgroup_size` (256) instead of tile size (16) | High | **FIXED**: `const TILE: u32 = 16` |
+| S-14 | Naive matmul hang (small square matrices, complex binaries) | Medium | **RESOLVED** upstream (`a4996b34` S39: Naive tier removed) |
+| S-15 | Matmul hang when elements ≤ 0.1 magnitude (WGPU/Vulkan driver bug) | Critical | **RESOLVED** upstream (`a4996b34` S39) |
+| S-16 | 2D transpose dispatch uses `optimal_workgroup_size` (256) instead of tile size (16) | High | **RESOLVED** upstream (`a4996b34` S39) |
+| S-17 | `pow(f64,f64)` crashes NVVM/NAK on Ada Lovelace + Volta | High | **RESOLVED** upstream (`c82c23d1` S58) |
 
 See `wateringHole/handoffs/archive/NEURALSPRING_V12_SESSION43_HANDOFF_FEB22_2026.md`
 for full diagnosis, reproduction steps, and recommended fixes.

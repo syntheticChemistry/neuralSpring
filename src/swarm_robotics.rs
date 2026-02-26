@@ -366,6 +366,7 @@ fn run_evolution_inner(seed: u64, homogeneous: bool) -> EvolutionResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn neural_forward_valid_action() {
@@ -376,7 +377,7 @@ mod tests {
     #[test]
     fn shannon_homogeneous_zero() {
         let types = vec![ControllerType::NeuralNet; 10];
-        assert!((shannon_diversity(&types) - 0.0).abs() < 1e-10);
+        assert!((shannon_diversity(&types) - 0.0).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]

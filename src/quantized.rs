@@ -177,6 +177,7 @@ pub fn relative_l2_error(approx: &[f64], reference: &[f64]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn q8_round_trip_identity() {
@@ -205,8 +206,8 @@ mod tests {
         let matrix = vec![1.0, 2.0, 3.0, 4.0];
         let vector = vec![1.0, 1.0];
         let fp_result = gemv_f64(&matrix, &vector, 2, 2);
-        assert!((fp_result[0] - 3.0).abs() < 1e-12);
-        assert!((fp_result[1] - 7.0).abs() < 1e-12);
+        assert!((fp_result[0] - 3.0).abs() < tolerances::EXACT_F64);
+        assert!((fp_result[1] - 7.0).abs() < tolerances::EXACT_F64);
 
         let mp = q8_params(&matrix);
         let vp = q8_params(&vector);
@@ -262,7 +263,10 @@ mod tests {
     fn relative_l2_exact_match() {
         let a = vec![1.0, 2.0, 3.0];
         let err = relative_l2_error(&a, &a);
-        assert!(err < 1e-15, "identical vectors → 0 error");
+        assert!(
+            err < tolerances::ZERO_DETECTION,
+            "identical vectors → 0 error"
+        );
     }
 
     #[test]
@@ -270,8 +274,8 @@ mod tests {
         let m = vec![1.0, 0.0, 0.0, 1.0, 1.0, 1.0];
         let v = vec![3.0, 5.0];
         let r = gemv_f64(&m, &v, 3, 2);
-        assert!((r[0] - 3.0).abs() < 1e-12);
-        assert!((r[1] - 5.0).abs() < 1e-12);
-        assert!((r[2] - 8.0).abs() < 1e-12);
+        assert!((r[0] - 3.0).abs() < tolerances::EXACT_F64);
+        assert!((r[1] - 5.0).abs() < tolerances::EXACT_F64);
+        assert!((r[2] - 8.0).abs() < tolerances::EXACT_F64);
     }
 }

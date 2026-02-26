@@ -44,8 +44,13 @@ pub use barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32 as HMM_FORWARD_LOG;
 /// Batch linear fitness evaluation (Papers 011–015). Absorbed by `ToadStool`.
 pub use barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL as BATCH_FITNESS_EVAL;
 
-/// Parallel RK4 ODE integration (Papers 020–021). Absorbed by `ToadStool`.
-pub use barracuda::ops::rk_stage::WGSL_RK4_PARALLEL as RK4_PARALLEL;
+/// Parallel RK4 ODE integration (Papers 020–021).
+///
+/// Absorbed by `ToadStool`. The upstream `rk_stage` module no longer
+/// re-exports the WGSL constant (refactored to CPU-orchestrated only).
+pub const RK4_PARALLEL: &str = include_str!(
+    "../../../../phase1/toadstool/crates/barracuda/src/shaders/numerical/rk4_parallel.wgsl"
+);
 
 /// Pairwise Jaccard distance (Paper 024). Absorbed by `ToadStool`.
 pub use barracuda::ops::bio::pairwise_jaccard::WGSL_PAIRWISE_JACCARD as PAIRWISE_JACCARD;

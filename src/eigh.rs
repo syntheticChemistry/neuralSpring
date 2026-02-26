@@ -38,6 +38,7 @@ pub fn eigh_householder_qr(a: &[f64], n: usize) -> EighResult {
 #[allow(clippy::suboptimal_flops)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     fn max_off_diag(m: &[f64], n: usize) -> f64 {
         let mut mx = 0.0_f64;
@@ -55,9 +56,9 @@ mod tests {
     fn test_2x2_simple() {
         let a = [3.0, 1.0, 1.0, 3.0];
         let r = eigh_householder_qr(&a, 2);
-        assert!((r.eigenvalues[0] - 2.0).abs() < 1e-12);
-        assert!((r.eigenvalues[1] - 4.0).abs() < 1e-12);
-        assert!(r.reconstruction_error(&a) < 1e-12);
+        assert!((r.eigenvalues[0] - 2.0).abs() < tolerances::EXACT_F64);
+        assert!((r.eigenvalues[1] - 4.0).abs() < tolerances::EXACT_F64);
+        assert!(r.reconstruction_error(&a) < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -71,12 +72,12 @@ mod tests {
         ];
         for (i, &exp) in expected.iter().enumerate() {
             assert!(
-                (r.eigenvalues[i] - exp).abs() < 1e-12,
+                (r.eigenvalues[i] - exp).abs() < tolerances::EXACT_F64,
                 "eigenvalue[{i}]: got {}, expected {exp}",
                 r.eigenvalues[i]
             );
         }
-        assert!(r.reconstruction_error(&a) < 1e-12);
+        assert!(r.reconstruction_error(&a) < tolerances::EXACT_F64);
     }
 
     fn random_symmetric(n: usize, seed: u64) -> Vec<f64> {
@@ -97,7 +98,7 @@ mod tests {
         let a = random_symmetric(5, 77);
         let r = eigh_householder_qr(&a, 5);
         assert!(
-            r.reconstruction_error(&a) < 1e-12,
+            r.reconstruction_error(&a) < tolerances::EXACT_F64,
             "n=5 reconstruction error: {}",
             r.reconstruction_error(&a)
         );
@@ -108,7 +109,7 @@ mod tests {
         let a = random_symmetric(8, 42);
         let r = eigh_householder_qr(&a, 8);
         assert!(
-            r.reconstruction_error(&a) < 1e-10,
+            r.reconstruction_error(&a) < tolerances::CROSS_LANGUAGE,
             "n=8 reconstruction error: {}",
             r.reconstruction_error(&a)
         );
@@ -119,7 +120,7 @@ mod tests {
         let a = random_symmetric(16, 123);
         let r = eigh_householder_qr(&a, 16);
         assert!(
-            r.reconstruction_error(&a) < 1e-8,
+            r.reconstruction_error(&a) < tolerances::HMM_POSTERIOR_SUM,
             "n=16 reconstruction error: {}",
             r.reconstruction_error(&a)
         );
@@ -130,7 +131,7 @@ mod tests {
         let a = random_symmetric(32, 999);
         let r = eigh_householder_qr(&a, 32);
         assert!(
-            r.reconstruction_error(&a) < 1e-6,
+            r.reconstruction_error(&a) < tolerances::SPECIAL_FUNCTION_F64,
             "n=32 reconstruction error: {}",
             r.reconstruction_error(&a)
         );
@@ -152,11 +153,14 @@ mod tests {
         }
 
         let off_err = max_off_diag(&vtv, n);
-        assert!(off_err < 1e-10, "VᵀV off-diagonal max: {off_err}");
+        assert!(
+            off_err < tolerances::CROSS_LANGUAGE,
+            "VᵀV off-diagonal max: {off_err}"
+        );
 
         for i in 0..n {
             assert!(
-                (vtv[i * n + i] - 1.0).abs() < 1e-10,
+                (vtv[i * n + i] - 1.0).abs() < tolerances::CROSS_LANGUAGE,
                 "VᵀV diagonal[{i}]: {}",
                 vtv[i * n + i]
             );

@@ -244,4 +244,4 @@ GPU error handling.
 | 3 | GPU shader evolution (17 WGSL + pipelines) | GPU-CPU parity | **COMPLETE** |
 | 4 | Performance + domain expansion | PINN, DeepONet, MHA, eigh | **COMPLETE** |
 | 5a | BarraCUDA GPU Tensor | Spectral + eco GPU validation | **COMPLETE** |
-| 5b | Upstream fixes (S-13, S-14) | Pool sync, driver hang | **Active** |
+| 5b | Upstream fixes (S-13, S-14/S-15/S-16/S-17) | Pool sync; S-14–S-17 **RESOLVED** upstream | **COMPLETE** |

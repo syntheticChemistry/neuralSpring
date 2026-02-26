@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 25, 2026 (Sessions 61–70)
-**Status**: 25 papers + 5 baseCamp sub-theses, 2120+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 17 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (22/22 PASS), zero debt, 94.53% coverage (580 tests), 105+ named tolerances, zero ad-hoc magic numbers, 100% SPDX compliance
+**Last Updated**: February 26, 2026 (Sessions 61–74)
+**Status**: 25 papers + 5 baseCamp sub-theses, 2130+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 21 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (39/39 PASS), zero debt, 94.53% coverage (580 tests), 107+ named tolerances, zero ad-hoc magic numbers in ALL test assertions (150+ replacements across 21 library test files — S71), all deps Pure Rust (ecoBin compliant), 100% SPDX compliance, S73: 4 new Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition), S74: pure GPU all-domains 10/10 PASS (9 typed BarraCUDA GPU ops + determinism), evolution tier benchmark (8 domains CPU→GPU)
 
 ## Purpose
 
@@ -84,6 +84,10 @@ baseCamp functions delegate to upstream BarraCUDA. Session 58 additionally rewir
 | `l2_distance` | `barracuda::dispatch::l2_distance_dispatch` | Sub-02 | S58 |
 | `mean` | `barracuda::dispatch::mean_dispatch` | All | S58 |
 | `variance` | `barracuda::dispatch::variance_dispatch` | All | S58 |
+| `softmax_row_wise` | `Tensor::softmax_dim(1)` | Sub-04 (PGM) | S73 |
+| `fst_single_locus` | `barracuda::ops::bio::fst_variance_decomposition` | Pop genetics | S73 |
+| `pairwise_fst_full` | upstream per-locus decomposition | Pop genetics | S73 |
+| Viterbi argmax | `Tensor::argmax_dim(0)` | Sub-04 (HMM) | S73 |
 
 ### Three-Tier Hardware Validation
 

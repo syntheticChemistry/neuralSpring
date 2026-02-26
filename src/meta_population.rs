@@ -251,6 +251,68 @@ pub fn fst_matrix(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usi
     mat
 }
 
+/// Single-locus FST with F-statistics (θ, f, F) via upstream `BarraCUDA`.
+///
+/// Delegates to `barracuda::ops::bio::fst_variance_decomposition` which
+/// implements Weir & Cockerham (1984) variance decomposition for one locus.
+/// Returns `(fst, f_is, f_it)` — enriched over our multi-locus `pairwise_fst`
+/// which only computes θ.
+///
+/// Cross-spring evolution: wetSpring's population genetics work drove the
+/// upstream `fst_variance` module in `BarraCUDA` (S53). neuralSpring benefits
+/// by gaining per-locus F-statistics without reimplementation.
+///
+/// # Errors
+///
+/// Returns `Err` if fewer than 2 populations or invalid allele frequencies.
+pub fn fst_single_locus(
+    allele_freqs: &[f64],
+    population_sizes: &[usize],
+) -> Result<(f64, f64, f64), String> {
+    barracuda::ops::bio::fst_variance_decomposition(allele_freqs, population_sizes)
+        .map(|r| (r.fst, r.f_is, r.f_it))
+        .map_err(|e| format!("fst_single_locus: {e}"))
+}
+
+/// Multi-locus FST with full F-statistics (θ, f, F) via upstream per-locus decomposition.
+///
+/// Computes per-locus F-statistics using upstream `fst_variance_decomposition`,
+/// then averages across loci (ratio-of-averages estimator, same as
+/// `pairwise_fst` but enriched with `f_is` and `f_it`).
+#[must_use]
+pub fn pairwise_fst_full(
+    pop_a: &[f64],
+    n_a: usize,
+    pop_b: &[f64],
+    n_b: usize,
+    n_loci: usize,
+) -> (f64, f64, f64) {
+    let freq_a = allele_frequencies(pop_a, n_a, n_loci);
+    let freq_b = allele_frequencies(pop_b, n_b, n_loci);
+    let sizes = [n_a, n_b];
+
+    let mut sum_a = 0.0;
+    let mut sum_b = 0.0;
+    let mut sum_c = 0.0;
+    let mut n_valid = 0;
+
+    for j in 0..n_loci {
+        let freqs = [freq_a[j], freq_b[j]];
+        if let Ok(r) = barracuda::ops::bio::fst_variance_decomposition(&freqs, &sizes) {
+            sum_a += r.fst;
+            sum_b += r.f_is;
+            sum_c += r.f_it;
+            n_valid += 1;
+        }
+    }
+
+    if n_valid == 0 {
+        return (0.0, 0.0, 0.0);
+    }
+    let n = f64::from(n_valid);
+    (sum_a / n, sum_b / n, sum_c / n)
+}
+
 /// Euclidean distance matrix from 2D coordinates.
 #[must_use]
 pub fn geographic_distance_matrix(coords: &[(f64, f64)]) -> Vec<f64> {
@@ -382,6 +444,7 @@ pub fn inter_population_af_variance(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn allele_frequencies_bounded() {
@@ -406,7 +469,10 @@ mod tests {
         let pop_b = generate_population(5, 10, &anc, 0.15, temps[1], 70.0, 80.0, 2, &mut rng);
         let fst_ab = pairwise_fst(&pop_a, 5, &pop_b, 5, 10);
         let fst_ba = pairwise_fst(&pop_b, 5, &pop_a, 5, 10);
-        assert!((fst_ab - fst_ba).abs() < 1e-10, "FST should be symmetric");
+        assert!(
+            (fst_ab - fst_ba).abs() < tolerances::CROSS_LANGUAGE,
+            "FST should be symmetric"
+        );
     }
 
     #[test]
@@ -414,12 +480,12 @@ mod tests {
         let coords = vec![(0.0, 0.0), (3.0, 4.0), (1.0, 1.0)];
         let dist = geographic_distance_matrix(&coords);
         for i in 0..3 {
-            assert!(dist[i * 3 + i].abs() < 1e-10);
+            assert!(dist[i * 3 + i].abs() < tolerances::CROSS_LANGUAGE);
             for j in 0..3 {
-                assert!((dist[i * 3 + j] - dist[j * 3 + i]).abs() < 1e-10);
+                assert!((dist[i * 3 + j] - dist[j * 3 + i]).abs() < tolerances::CROSS_LANGUAGE);
             }
         }
-        assert!((dist[1] - 5.0).abs() < 1e-10);
+        assert!((dist[1] - 5.0).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -464,9 +530,12 @@ mod tests {
         let n_indivs = vec![8; n_pops];
         let fst_mat = fst_matrix(&pops, &n_indivs, n_loci);
         for i in 0..n_pops {
-            assert!(fst_mat[i * n_pops + i].abs() < 1e-10);
+            assert!(fst_mat[i * n_pops + i].abs() < tolerances::CROSS_LANGUAGE);
             for j in 0..n_pops {
-                assert!((fst_mat[i * n_pops + j] - fst_mat[j * n_pops + i]).abs() < 1e-10);
+                assert!(
+                    (fst_mat[i * n_pops + j] - fst_mat[j * n_pops + i]).abs()
+                        < tolerances::CROSS_LANGUAGE
+                );
             }
         }
     }
@@ -475,7 +544,10 @@ mod tests {
     fn matrix_correlation_perfect() {
         let a = vec![0.0, 1.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0];
         let r = matrix_correlation(&a, &a, 3);
-        assert!((r - 1.0).abs() < 1e-10, "self-correlation should be 1.0");
+        assert!(
+            (r - 1.0).abs() < tolerances::CROSS_LANGUAGE,
+            "self-correlation should be 1.0"
+        );
     }
 
     #[test]
@@ -494,7 +566,7 @@ mod tests {
         let pi = vec![0.1, 0.2, 0.3, 0.4];
         let temps = vec![65.0, 72.0, 80.0, 90.0];
         let r = thermal_diversity_correlation(&pi, &temps);
-        assert!(r.abs() <= 1.0 + 1e-10);
+        assert!(r.abs() <= 1.0 + tolerances::CROSS_LANGUAGE);
     }
 
     #[test]

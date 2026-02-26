@@ -120,6 +120,7 @@ pub fn introgression_fraction(path: &[usize]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn topology_to_obs() {
@@ -167,7 +168,7 @@ mod tests {
     #[test]
     fn log_likelihood_ratio_sign() {
         assert!(log_likelihood_ratio(-100.0, -150.0) > 0.0);
-        assert!((log_likelihood_ratio(-100.0, -100.0)).abs() < 1e-10);
+        assert!((log_likelihood_ratio(-100.0, -100.0)).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -185,6 +186,6 @@ mod tests {
         let path = vec![0, 0, 1, 1, 0, 1, 0, 0, 1, 1];
         let frac = introgression_fraction(&path);
         assert!((0.0..=1.0).contains(&frac));
-        assert!((frac - 0.5).abs() < 1e-10);
+        assert!((frac - 0.5).abs() < tolerances::CROSS_LANGUAGE);
     }
 }

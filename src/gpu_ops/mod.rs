@@ -36,6 +36,7 @@ pub use reduction::*;
 #[allow(clippy::unwrap_used, clippy::expect_used, clippy::cast_precision_loss)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use std::sync::Arc;
 
     /// Returns a shared GPU device plus a mutex guard that serializes access.
@@ -56,7 +57,10 @@ mod tests {
         let x = [1.0_f64, 2.0, 3.0, 0.5, -1.0];
         for &orig in &x {
             let rt = f64::from(orig as f32);
-            assert!((orig - rt).abs() < 1e-6, "roundtrip: {orig} -> {rt}");
+            assert!(
+                (orig - rt).abs() < tolerances::TENSOR_EXACT_F32,
+                "roundtrip: {orig} -> {rt}"
+            );
         }
     }
 
@@ -73,7 +77,10 @@ mod tests {
         }
         let result = mat_mul_gpu(&a, &ident, n, &dev).unwrap();
         for (i, (&got, &want)) in result.iter().zip(a.iter()).enumerate() {
-            assert!((got - want).abs() < 0.01, "matmul identity mismatch at {i}");
+            assert!(
+                (got - want).abs() < tolerances::GPU_MATMUL_IDENTITY_F32,
+                "matmul identity mismatch at {i}"
+            );
         }
     }
 
@@ -87,7 +94,10 @@ mod tests {
         let t = transpose_gpu(&a, n, &dev).unwrap();
         let tt = transpose_gpu(&t, n, &dev).unwrap();
         for (i, (&got, &want)) in tt.iter().zip(a.iter()).enumerate() {
-            assert!((got - want).abs() < 0.01, "transpose roundtrip at {i}");
+            assert!(
+                (got - want).abs() < tolerances::GPU_TRANSPOSE_F32,
+                "transpose roundtrip at {i}"
+            );
         }
     }
 
@@ -98,7 +108,7 @@ mod tests {
         };
         let norm = frobenius_norm_gpu(&[3.0, 4.0], &dev).unwrap();
         assert!(
-            (norm - 5.0).abs() < 0.01,
+            (norm - 5.0).abs() < tolerances::GPU_FROBENIUS_F32,
             "||[3,4]|| should be 5, got {norm}"
         );
     }
@@ -110,7 +120,10 @@ mod tests {
         };
         let sm = softmax_gpu(&[1.0, 2.0, 3.0], &dev).unwrap();
         let sum: f64 = sm.iter().sum();
-        assert!((sum - 1.0).abs() < 0.01, "softmax sum = {sum}");
+        assert!(
+            (sum - 1.0).abs() < tolerances::GPU_SOFTMAX_SUM_F32,
+            "softmax sum = {sum}"
+        );
         assert!(
             sm.iter().all(|&v| v > 0.0),
             "softmax values must be positive"
@@ -124,7 +137,10 @@ mod tests {
         };
         let b = boltzmann_gpu(&[0.1, 0.5, 0.9], 2.0, &dev).unwrap();
         let sum: f64 = b.iter().sum();
-        assert!((sum - 1.0).abs() < 0.01, "boltzmann sum = {sum}");
+        assert!(
+            (sum - 1.0).abs() < tolerances::GPU_SOFTMAX_SUM_F32,
+            "boltzmann sum = {sum}"
+        );
     }
 
     #[test]
@@ -133,7 +149,11 @@ mod tests {
             return;
         };
         let g = gelu_gpu(&[0.0], &dev).unwrap();
-        assert!(g[0].abs() < 0.01, "GELU(0) should be ~0, got {}", g[0]);
+        assert!(
+            g[0].abs() < tolerances::GPU_GELU_F32,
+            "GELU(0) should be ~0, got {}",
+            g[0]
+        );
     }
 
     #[test]
@@ -143,7 +163,7 @@ mod tests {
         };
         let d = l2_distance_gpu(&[0.0, 0.0], &[3.0, 4.0], &dev).unwrap();
         assert!(
-            (d - 5.0).abs() < 0.01,
+            (d - 5.0).abs() < tolerances::GPU_L2_DISPATCH_F32,
             "L2([0,0],[3,4]) should be 5, got {d}"
         );
     }
@@ -154,7 +174,10 @@ mod tests {
             return;
         };
         let m = mean_gpu(&[2.0, 4.0, 6.0], &dev).unwrap();
-        assert!((m - 4.0).abs() < 0.01, "mean should be 4, got {m}");
+        assert!(
+            (m - 4.0).abs() < tolerances::GPU_MEAN_DISPATCH_F32,
+            "mean should be 4, got {m}"
+        );
     }
 
     #[test]
@@ -163,7 +186,10 @@ mod tests {
             return;
         };
         let s = sum_gpu(&[1.0, 2.0, 3.0], &dev).unwrap();
-        assert!((s - 6.0).abs() < 0.1, "sum should be 6, got {s}");
+        assert!(
+            (s - 6.0).abs() < tolerances::GPU_SUM_DISPATCH_F32,
+            "sum should be 6, got {s}"
+        );
     }
 
     #[test]
@@ -172,7 +198,10 @@ mod tests {
             return;
         };
         let m = max_gpu(&[1.0, 5.0, 3.0], &dev).unwrap();
-        assert!((m - 5.0).abs() < 0.1, "max should be 5, got {m}");
+        assert!(
+            (m - 5.0).abs() < tolerances::GPU_MAX_DISPATCH_F32,
+            "max should be 5, got {m}"
+        );
     }
 
     #[test]
@@ -182,7 +211,10 @@ mod tests {
         };
         let v = variance_gpu(&[2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0], &dev).unwrap();
         assert!(v > 0.0, "variance must be positive");
-        assert!((v - 4.0).abs() < 0.5, "variance ≈ 4, got {v}");
+        assert!(
+            (v - 4.0).abs() < tolerances::GPU_CHI_SQUARED_F32,
+            "variance ≈ 4, got {v}"
+        );
     }
 
     #[test]
@@ -193,7 +225,7 @@ mod tests {
         let h = shannon_entropy_gpu(&[0.25, 0.25, 0.25, 0.25], &dev).unwrap();
         let expected = (4.0_f64).ln();
         assert!(
-            (h - expected).abs() < 0.05,
+            (h - expected).abs() < tolerances::GPU_ENTROPY_F32,
             "entropy(uniform4) ≈ {expected}, got {h}"
         );
     }
@@ -207,7 +239,7 @@ mod tests {
             chi_squared_gpu(&[10.0, 20.0, 30.0, 40.0], &[25.0, 25.0, 25.0, 25.0], &dev).unwrap();
         let expected = 20.0; // (15² + 5² + 5² + 15²) / 25
         assert!(
-            (chi2 - expected).abs() < 0.5,
+            (chi2 - expected).abs() < tolerances::GPU_CHI_SQUARED_F32,
             "chi2 ≈ {expected}, got {chi2}"
         );
     }
@@ -219,7 +251,10 @@ mod tests {
         };
         let kl =
             kl_divergence_gpu(&[0.25, 0.25, 0.25, 0.25], &[0.25, 0.25, 0.25, 0.25], &dev).unwrap();
-        assert!(kl.abs() < 0.01, "KL(p,p) should be 0, got {kl}");
+        assert!(
+            kl.abs() < tolerances::GPU_KL_DISPATCH_F32,
+            "KL(p,p) should be 0, got {kl}"
+        );
     }
 
     #[test]
@@ -232,7 +267,10 @@ mod tests {
         let emit = vec![0.6, 0.4];
         let (new_alpha, scale) = hmm_forward_step_gpu(&alpha, &trans, &emit, 2, &dev).unwrap();
         let sum: f64 = new_alpha.iter().sum();
-        assert!((sum - 1.0).abs() < 0.01, "HMM fwd step normalized: {sum}");
+        assert!(
+            (sum - 1.0).abs() < tolerances::GPU_HMM_STEP_F32,
+            "HMM fwd step normalized: {sum}"
+        );
         assert!(scale > 0.0, "scale must be positive");
     }
 
@@ -245,7 +283,10 @@ mod tests {
         let payoff = [[3.0, 0.0], [5.0, 1.0]];
         let new_freq = replicator_step_gpu(&freq, &payoff, 0.01, &dev).unwrap();
         let sum = new_freq[0] + new_freq[1];
-        assert!((sum - 1.0).abs() < 0.01, "replicator sum = {sum}");
+        assert!(
+            (sum - 1.0).abs() < tolerances::GPU_HMM_STEP_F32,
+            "replicator sum = {sum}"
+        );
     }
 
     #[test]
@@ -268,8 +309,8 @@ mod tests {
         let pop = vec![2.0, 0.0, 1.0, 1.0, 0.0, 2.0];
         let freqs = allele_frequencies_gpu(&pop, 3, 2, &dev).unwrap();
         assert_eq!(freqs.len(), 2);
-        assert!((freqs[0] - 0.5).abs() < 0.1);
-        assert!((freqs[1] - 0.5).abs() < 0.1);
+        assert!((freqs[0] - 0.5).abs() < tolerances::GPU_VARIANCE_DISPATCH_F32);
+        assert!((freqs[1] - 0.5).abs() < tolerances::GPU_VARIANCE_DISPATCH_F32);
     }
 
     #[test]
@@ -278,7 +319,10 @@ mod tests {
             return;
         };
         let r = pearson_correlation_gpu(&[1.0, 2.0, 3.0], &[2.0, 4.0, 6.0], &dev).unwrap();
-        assert!((r - 1.0).abs() < 0.05, "Pearson r(x, 2x) ≈ 1, got {r}");
+        assert!(
+            (r - 1.0).abs() < tolerances::GPU_PEARSON_F32,
+            "Pearson r(x, 2x) ≈ 1, got {r}"
+        );
     }
 
     #[test]
@@ -293,7 +337,10 @@ mod tests {
         }
         let comm = commutator_gpu(&ident, &ident, n, &dev).unwrap();
         for &v in &comm {
-            assert!(v.abs() < 0.01, "[I,I] should be zero, got {v}");
+            assert!(
+                v.abs() < tolerances::GPU_GELU_F32,
+                "[I,I] should be zero, got {v}"
+            );
         }
     }
 
@@ -305,7 +352,10 @@ mod tests {
         let observed = vec![25.0, 25.0, 25.0, 25.0];
         let fracs = vec![0.25, 0.25, 0.25, 0.25];
         let chi2 = spectrum_chi_squared_gpu(&observed, &fracs, &dev).unwrap();
-        assert!(chi2.abs() < 0.5, "uniform should give chi2 ≈ 0, got {chi2}");
+        assert!(
+            chi2.abs() < tolerances::GPU_CHI_SQUARED_F32,
+            "uniform should give chi2 ≈ 0, got {chi2}"
+        );
     }
 
     #[test]
@@ -316,7 +366,10 @@ mod tests {
         let obs = vec![25.0, 25.0, 25.0, 25.0];
         let neutral = vec![0.25, 0.25, 0.25, 0.25];
         let s = selection_coefficient_gpu(&obs, &neutral, &dev).unwrap();
-        assert!(s.abs() < 0.01, "neutral should give s ≈ 0, got {s}");
+        assert!(
+            s.abs() < tolerances::GPU_SOFTMAX_DISPATCH_F32,
+            "neutral should give s ≈ 0, got {s}"
+        );
     }
 
     // ── Bio (HMM, pairwise L2) ─────────────────────────────────
@@ -359,7 +412,10 @@ mod tests {
         let vectors = vec![0.0, 0.0, 3.0, 4.0];
         let dist = pairwise_l2_matrix_gpu(&vectors, 2, 2, &dev).unwrap();
         assert_eq!(dist.len(), 1, "upper triangle: n*(n-1)/2 = 1 pair");
-        assert!((dist[0] - 5.0).abs() < 0.5, "dist([0,0],[3,4]) ≈ 5");
+        assert!(
+            (dist[0] - 5.0).abs() < tolerances::GPU_CHI_SQUARED_F32,
+            "dist([0,0],[3,4]) ≈ 5"
+        );
     }
 
     // ── Eigensolver ─────────────────────────────────────────────
@@ -373,8 +429,8 @@ mod tests {
         let (vals, _vecs) = eigh_gpu(&a, 2, &dev).unwrap();
         let mut sorted = vals;
         sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        assert!((sorted[0] - 2.0).abs() < 0.5);
-        assert!((sorted[1] - 3.0).abs() < 0.5);
+        assert!((sorted[0] - 2.0).abs() < tolerances::GPU_CHI_SQUARED_F32);
+        assert!((sorted[1] - 3.0).abs() < tolerances::GPU_CHI_SQUARED_F32);
     }
 
     #[test]
@@ -413,7 +469,10 @@ mod tests {
         };
         let a = vec![0.0, 1.0, 2.0, 1.0, 0.0, 3.0, 2.0, 3.0, 0.0];
         let r = matrix_correlation_gpu(&a, &a, 3, &dev).unwrap();
-        assert!((r - 1.0).abs() < 0.1, "self-correlation ≈ 1, got {r}");
+        assert!(
+            (r - 1.0).abs() < tolerances::GPU_PEARSON_F32,
+            "self-correlation ≈ 1, got {r}"
+        );
     }
 
     #[test]
@@ -424,8 +483,14 @@ mod tests {
         let coords = vec![(0.0, 0.0), (3.0, 4.0)];
         let dist = geographic_distance_matrix_gpu(&coords, &dev).unwrap();
         assert_eq!(dist.len(), 4);
-        assert!(dist[0].abs() < 0.1, "self-distance ≈ 0");
-        assert!((dist[1] - 5.0).abs() < 0.5, "dist ≈ 5");
+        assert!(
+            dist[0].abs() < tolerances::GPU_VARIANCE_DISPATCH_F32,
+            "self-distance ≈ 0"
+        );
+        assert!(
+            (dist[1] - 5.0).abs() < tolerances::GPU_CHI_SQUARED_F32,
+            "dist ≈ 5"
+        );
     }
 
     #[test]
@@ -436,7 +501,10 @@ mod tests {
         let pi = vec![1.0, 2.0, 3.0];
         let temp = vec![10.0, 20.0, 30.0];
         let r = thermal_diversity_correlation_gpu(&pi, &temp, &dev).unwrap();
-        assert!((r - 1.0).abs() < 0.2, "perfect linear → r ≈ 1, got {r}");
+        assert!(
+            (r - 1.0).abs() < tolerances::GPU_PEARSON_F32,
+            "perfect linear → r ≈ 1, got {r}"
+        );
     }
 
     #[test]
@@ -461,7 +529,10 @@ mod tests {
         };
         let sym = vec![2.0, 1.0, 1.0, 2.0];
         let d = distance_to_normal_gpu(&sym, 2, &dev).unwrap();
-        assert!(d < 0.1, "symmetric → normal → d ≈ 0, got {d}");
+        assert!(
+            d < tolerances::GPU_COMMUTATOR_F32,
+            "symmetric → normal → d ≈ 0, got {d}"
+        );
     }
 
     // ── Reduction (neural forward) ──────────────────────────────
@@ -502,7 +573,7 @@ mod tests {
             .collect();
         let fst = pairwise_fst_gpu(&pop, n, &pop, n, 4, &dev).unwrap();
         assert!(
-            fst.abs() < 0.5,
+            fst.abs() < tolerances::GPU_CHI_SQUARED_F32,
             "FST of identical populations should be near 0, got {fst}"
         );
         assert!(fst.is_finite());
@@ -527,7 +598,10 @@ mod tests {
         };
         let pops = vec![vec![1.0, 0.0, 0.0, 1.0]];
         let fst = global_fst_gpu(&pops, &[2], 2, &dev).unwrap();
-        assert!(fst.abs() < 1e-10, "single population → FST = 0, got {fst}");
+        assert!(
+            fst.abs() < tolerances::CROSS_LANGUAGE,
+            "single population → FST = 0, got {fst}"
+        );
     }
 
     #[test]
@@ -585,7 +659,7 @@ mod tests {
         let pop = vec![1.0, 0.0];
         let pi = nucleotide_diversity_gpu(&pop, 1, 2, &dev).unwrap();
         assert!(
-            pi.abs() < 1e-10,
+            pi.abs() < tolerances::CROSS_LANGUAGE,
             "single individual → zero diversity, got {pi}"
         );
     }

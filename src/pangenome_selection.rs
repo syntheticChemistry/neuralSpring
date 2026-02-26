@@ -291,6 +291,7 @@ pub fn jaccard_distance_matrix(pa: &[f64], n_genes: usize, n_genomes: usize) -> 
 #[allow(clippy::float_cmp)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     fn test_rng() -> Rng {
         Rng::new(42)
@@ -316,7 +317,7 @@ mod tests {
         let spec = neutral_spectrum(10);
         let sum: f64 = spec.iter().sum();
         assert!(
-            (sum - 1.0).abs() < 1e-10,
+            (sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
             "neutral spectrum should sum to 1"
         );
     }
@@ -326,7 +327,7 @@ mod tests {
         let obs = vec![10.0, 10.0, 10.0, 10.0];
         let exp = vec![0.25, 0.25, 0.25, 0.25];
         let chi2 = spectrum_chi_squared(&obs, &exp);
-        assert!(chi2 < 1e-10);
+        assert!(chi2 < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -334,9 +335,9 @@ mod tests {
         let pa = vec![1.0, 0.0, 1.0, 1.0, 0.0, 1.0];
         let dist = jaccard_distance_matrix(&pa, 2, 3);
         for i in 0..3 {
-            assert!((dist[i * 3 + i]).abs() < 1e-10);
+            assert!((dist[i * 3 + i]).abs() < tolerances::CROSS_LANGUAGE);
             for j in 0..3 {
-                assert!((dist[i * 3 + j] - dist[j * 3 + i]).abs() < 1e-10);
+                assert!((dist[i * 3 + j] - dist[j * 3 + i]).abs() < tolerances::CROSS_LANGUAGE);
                 assert!(dist[i * 3 + j] >= 0.0 && dist[i * 3 + j] <= 1.0);
             }
         }
@@ -370,7 +371,7 @@ mod tests {
         let total: f64 = spec.iter().sum();
         let expected = freqs.len() as f64;
         assert!(
-            (total - expected).abs() < f64::EPSILON,
+            (total - expected).abs() < tolerances::ZERO_DETECTION,
             "frequency spectrum total {total} != expected {expected}"
         );
     }

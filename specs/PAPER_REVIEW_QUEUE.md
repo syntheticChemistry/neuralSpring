@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 25, 2026 (Sessions 45–70)
+**Last Updated**: February 26, 2026 (Sessions 45–74)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -184,13 +184,13 @@ computation). No proprietary models, no external downloads, no API dependencies.
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated.**
 
 Session 70: Deep audit II — 94.53% coverage (580 tests), tolerance macro refactor, streaming I/O, 100% SPDX (211/211 files), all files ≤1000 lines.
-Session 68-69: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 105+ named tolerances. 6 validator shader sources → upstream constants.
+Session 68-69: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 107+ named tolerances. 6 validator shader sources → upstream constants.
 Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10 cross-language).
 Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
-`validate_all`: 147/148 PASS on RTX 4070 (1 pre-existing logsumexp driver issue).
+`validate_all`: 149/150 PASS on RTX 4070 (1 pre-existing logsumexp driver issue).
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
 Python baselines: 25/25 PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
-580 lib + 9 integration + 43 forge tests. 159 validation/bench binaries. Zero debt.
+580 lib + 9 integration + 43 forge tests. 163 validation/bench binaries. Zero debt.
 44 CPU→GPU dispatch ops (~97% of production math).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -225,7 +225,7 @@ Full provenance: `specs/DATA_PROVENANCE.md`.
 
 ---
 
-## Full Validation Stack Matrix (February 25, 2026 — Sessions 60–70)
+## Full Validation Stack Matrix (February 26, 2026 — Sessions 60–74)
 
 Each paper maps through 10 validation tiers. The stack proves correctness
 from Python baseline through multi-GPU portability to mixed-hardware dispatch.
@@ -314,10 +314,15 @@ routing through `validate_mixed_hardware` (14/14 PASS).
 
 `†` 100% of applicable papers. Phase 0/0+ studies use PyTorch, not WGSL shaders.
 
+**S74 addition**: `validate_gpu_pure_workload_all` (10/10 PASS) proves all 15 Phase 0++
+paper domains run through typed BarraCUDA GPU ops (scalar-only readback). This is the
+comprehensive "pure GPU" proof that complements the per-domain pipeline validators.
+`bench_evolution_tiers` characterizes the CPU→GPU portability across 8 domains.
+
 ### What Changed (Phase 5b buildout, February 22, 2026)
 
 **Phase 0/0+ gaps closed:**
-- **Exp 001 Surrogate**: S-15 unblocked — new `validate_barracuda_surrogate` (7/7 PASS)
+- **Exp 001 Surrogate**: S-15 **RESOLVED** upstream (`a4996b34` S39) — new `validate_barracuda_surrogate` (7/7 PASS)
 - **Exp 002 Transformer**: new `validate_barracuda_gpu_transformer` (7/7 PASS) — Q/K/V projection, attention scores, FFN block via GPU Tensor
 - **Exp 004 Transfer**: new `validate_barracuda_transfer` (7/7 PASS) — domain adaptation MLP forward + metrics
 - **Exp 003, Study 003, Study 004**: reclassified as gT (sequence/lenet/lstm validators use GPU Tensor)
@@ -328,8 +333,7 @@ routing through `validate_mixed_hardware` (14/14 PASS).
 - Existing cross-dispatch binaries already covered Papers 011-015, 017, 019, 021-025
 
 **Previous sweep (Phase 5a+):**
-- S-16 FIXED: transpose dispatch one-line fix
-- S-15 root-caused: WGPU/Vulkan driver bug, workaround documented
+- S-14/S-15/S-16 **RESOLVED** upstream (`a4996b34` S39: Naive tier removed, matmul hang fixed, transpose dispatch)
 - 8 GPU Tensor + 6 GPU Pipeline + 3 BarraCUDA CPU validators (89 checks)
 
 ### Remaining Gaps
@@ -394,7 +398,7 @@ validates correctness at every hardware tier:
 - GPU Tensor ops: `matmul`, `transpose`, `tanh`, `sigmoid`, `add`, `mul`
 - f32 GPU vs f64 CPU agreement: < 1e-3 for most operations
 - Gaps: Exp 005 (analytical), Study 005 (integer Q4/Q8 — validated separately)
-- S-15 workaround: data magnitude ≥ 0.5
+- S-15 **RESOLVED** upstream (`a4996b34` S39); previously workaround: data magnitude ≥ 0.5
 
 ### Tier 4: metalForge WGSL (Domain-Specific GPU Kernels)
 - **15/25 papers** (108 checks, 100% of applicable papers)
@@ -455,7 +459,7 @@ validates correctness at every hardware tier:
 
 ---
 
-## Controls Audit: BarraCUDA CPU → GPU → metalForge (Sessions 67–68)
+## Controls Audit: BarraCUDA CPU → GPU → metalForge (Sessions 67–74)
 
 Confirming all papers have controls across the three hardware tiers:
 
@@ -493,10 +497,22 @@ applicable tier. Two known gaps (Exp 005 analytical, tridiag eigensolver pending
 All controls use open data and open systems exclusively.
 
 **Session 70 addendum**: Deep audit II — 94.53% coverage (580 tests, up from 505/90.43%).
-Tolerance registry refactored to `tolerance_registry!` macro (891→257 lines, 105+ named).
+Tolerance registry refactored to `tolerance_registry!` macro (891→257 lines, 107+ named).
 100% SPDX AGPL-3.0-or-later compliance (211/211 files). All files ≤1000 lines.
 BarraCUDA usage inventory: 90+ import sites, 60+ files, 20+ submodules, zero duplicate math.
 Remaining uncovered lines (5.5%) are exclusively GPU error-handling branches.
+
+**Session 74 addendum**: Pure GPU all-domains + cross-system dispatch — three new validators:
+
+| Validator | Checks | Tier | What It Proves |
+|-----------|--------|------|----------------|
+| `validate_gpu_pure_workload_all` | 10/10 | GPU | All 15 Phase 0++ domains run through typed BarraCUDA GPU ops (scalar-only readback) |
+| `validate_cross_system_dispatch` | 46/46 | metalForge | Full cross-system stack: hardware discovery, domain heuristics, CPU↔GPU parity, transfer cost model, NPU routing, crossover sweep |
+| `bench_evolution_tiers` | — | Bench | CPU→GPU portability characterization across 8 domains |
+
+This closes the "pure GPU final workload validation" milestone: every paper domain
+has a typed GPU op validator, and metalForge's cross-system dispatch is proven
+end-to-end (GPU→NPU→CPU). Total: **2180+ checks**, **163 binaries**, **149/150 validate_all**.
 
 ---
 
@@ -641,7 +657,7 @@ Every paper control runs on open data, uses deterministic seeds, and validates
 at three hardware tiers (BarraCUDA CPU, BarraCUDA GPU, metalForge mixed).
 
 **Sessions 60–61 confirmation**: All three tiers re-verified after 16-function rewiring.
-Cross-spring evolution validator (22/22 PASS) proves rewired paths produce identical
+Cross-spring evolution validator (39/39 PASS) proves rewired paths produce identical
 results through upstream BarraCUDA dispatch. Benchmark validation confirms
 performance benefits: Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused).
 

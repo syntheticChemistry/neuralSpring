@@ -287,6 +287,7 @@ pub struct DimensionalResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     fn test_agents(n: usize) -> Vec<Agent> {
         let mut rng = Rng::new(42);
@@ -301,7 +302,7 @@ mod tests {
         for i in 0..n {
             for j in 0..n {
                 assert!(
-                    (adj[i * n + j] - adj[j * n + i]).abs() < 1e-14,
+                    (adj[i * n + j] - adj[j * n + i]).abs() < tolerances::ZERO_DETECTION,
                     "adjacency not symmetric"
                 );
             }
@@ -317,7 +318,7 @@ mod tests {
         for i in 0..n {
             let row_sum: f64 = (0..n).map(|j| lap[i * n + j]).sum();
             assert!(
-                row_sum.abs() < 1e-10,
+                row_sum.abs() < tolerances::CROSS_LANGUAGE,
                 "Laplacian row {i} sums to {row_sum}, not 0"
             );
         }
@@ -395,13 +396,13 @@ mod tests {
         let h = disordered_laplacian(&lap, n, &agents, 1.0);
         let mut has_change = false;
         for i in 0..n {
-            if (h[i * n + i] - lap[i * n + i]).abs() > 1e-15 {
+            if (h[i * n + i] - lap[i * n + i]).abs() > tolerances::ZERO_DETECTION {
                 has_change = true;
             }
             for j in 0..n {
                 if i != j {
                     assert!(
-                        (h[i * n + j] - lap[i * n + j]).abs() < 1e-14,
+                        (h[i * n + j] - lap[i * n + j]).abs() < tolerances::ZERO_DETECTION,
                         "off-diagonal should be unchanged"
                     );
                 }
@@ -421,7 +422,7 @@ mod tests {
         for a in &mut agents {
             a.cooperating = true;
         }
-        assert!((coordination_fraction(&agents) - 1.0).abs() < 1e-12);
+        assert!((coordination_fraction(&agents) - 1.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -472,7 +473,10 @@ mod tests {
             .collect();
         let adj = interaction_graph(&agents, 1.0);
         let total_weight: f64 = adj.iter().sum();
-        assert!(total_weight.abs() < 1e-14, "no edges expected");
+        assert!(
+            total_weight.abs() < tolerances::ZERO_DETECTION,
+            "no edges expected"
+        );
     }
 
     #[test]
@@ -486,7 +490,7 @@ mod tests {
         let result = coordination_spectral_analysis(&agents, 2.0, 0.1);
         assert!(result.eigenvalues.len() == 1);
         assert!(
-            result.algebraic_connectivity.abs() < 1e-10,
+            result.algebraic_connectivity.abs() < tolerances::CROSS_LANGUAGE,
             "single agent → zero algebraic connectivity"
         );
     }

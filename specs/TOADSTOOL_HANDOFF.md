@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–70, Feb 25, 2026)
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V33_S70_DEEP_AUDIT_EVOLUTION_HANDOFF_FEB25_2026.md`
+**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–74, Feb 26, 2026) — **47 commits audited, ALL 17 shortcomings RESOLVED, 21 upstream rewires**
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V38_S74_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
@@ -20,6 +20,14 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 **Session 69 sync:** 6 validator shader sources rewired from local `include_str!` to upstream barracuda constants (RK4, RK45, batch fitness, logsumexp, swarm NN scores). Upstream-vs-local benchmark: 10/10 ≈ or ~ (zero ⚠). Cross-spring evolution benchmark refreshed. Total: **17 functions + 6 shader sources rewired to upstream**.
 
 **Session 70 sync:** Deep audit II — 94.53% coverage (580 tests, +75). tolerance_registry! macro (891→257 lines). gpu_dispatch/mod.rs split (1332→860+483). SADDLE_EIGENVALUE_THRESHOLD extracted. Streaming I/O for JSON loading. 100% SPDX compliance (211/211 files). V33 handoff crafted. All files ≤1000 lines. Zero debt. Remaining 5.5% uncovered lines are GPU error branches.
+
+**Session 71 sync:** Deep audit execution — 150+ ad-hoc tolerances → named constants across 21 library test files. Smart refactored `gpu_dispatch/mod.rs` 862→304 lines. Dependency audit: all crates Pure Rust (ecoBin compliant). V34 handoff crafted.
+
+**Session 72 sync:** Full ToadStool commit review — 47 commits (`77f70b2e`..`02207c4a`, ToadStool sessions S39–S62) audited. **ALL 17 shortcomings now RESOLVED upstream**: S-14/S-15/S-16 fixed at `a4996b34` (S39: Naive tier removed, matmul hang fixed, transpose dispatch fixed). S-17 fixed at `c82c23d1` (S58: `patch_transcendentals_in_code` covers `pow`). Previously blocked Tensor APIs now available upstream: `argmax_dim(axis)`, `softmax_dim(axis)`. New upstream APIs: `fst_variance_decomposition`, `Conv2dGpu`, `PeakDetectF64`, `MovingWindowStats`, `SparseGemmF64`, `TranseScoreF64`, `ridge_regression`, `NMF`. ToadStool caught up to neuralSpring handoff V16/V18; V33/V34 not yet consumed. `barracuda::validation::ValidationHarness` absorbed (subset of neuralSpring's — missing GPU helpers). Validator workarounds (positive-only data, A×B^T) retained as defense-in-depth. V35 handoff crafted.
+
+**Session 73 sync:** Cross-spring rewiring — 4 new upstream rewires using newly available Tensor APIs. (1) Viterbi `argmax_dim(0)` replaces CPU argmax loop in `hmm_viterbi_step_gpu`. (2) `Dispatcher::softmax_row_wise` via `Tensor::softmax_dim(1)`. (3) `fst_single_locus` wraps `barracuda::ops::bio::fst_variance_decomposition` for F-statistics (θ, f_is, f_it). (4) `pairwise_fst_full` uses upstream per-locus decomposition for multi-locus F-statistics. New tolerances: `DISPATCH_F32_ROUNDTRIP` (1e-6), `DISPATCH_VITERBI_F32` (1e-5). Cross-spring evolution validator: 39/39 PASS. Total: **21 functions + 6 shader sources rewired to upstream**. V36 handoff crafted.
+
+**Session 74 sync:** Pure GPU all-domains — `validate_gpu_pure_workload_all` 10/10 PASS (9 typed BarraCUDA GPU ops: BatchFitnessGpu, MultiObjFitnessGpu, HmmBatchForwardF64, SpatialPayoffGpu, BatchIprGpu, PairwiseHammingGpu, PairwiseL2Gpu, PairwiseJaccardGpu, LocusVarianceGpu + determinism check). `bench_evolution_tiers` measures CPU→GPU portability for 8 domains. f32/f64 precision boundary documented: domain ops f32, HMM/baseCamp f64. IPR requires pre-normalized eigenvectors, Jaccard outputs upper-triangle. GPU dispatch overhead ~186µs per submit (structural floor). Also `validate_cross_system_dispatch` 46/46 PASS (full metalForge stack: hardware discovery → domain heuristics → multi-substrate parity → transfer cost hierarchy → NPU routing → crossover sweep). Discovered 3 GPUs (RTX 4070 Vulkan, TITAN V NVK, RTX 4070 OpenGL) + i9-12900K CPU. CPU→GPU crossover at ~1946µs. validate_all: 149/150 PASS. 163 binaries. V38 handoff updated.
 
 ---
 
@@ -305,21 +313,18 @@ dispatch output vs upstream BarraCuda wrapper output.
 
 ---
 
-## Phase 5a/5b Shortcomings
+## Phase 5a/5b Shortcomings — ALL RESOLVED UPSTREAM
 
 Discovered during GPU `Tensor` validation across 23 scientific domains.
+**All resolved** at ToadStool `a4996b34` (S39) and `c82c23d1` (S58).
 
 | # | Shortcoming | Severity | Root Cause | Status |
 |---|-------------|----------|------------|--------|
-| S-14 | Naive matmul hang (small square matrices) | Medium | Driver/binary complexity interaction (RTX 4070 Vulkan) | **Workaround**: A×B^T pattern |
-| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | Critical | WGPU/Vulkan driver bug (RTX 4070) — not sign or sparsity | **Root-caused**: data ≥ 0.5 avoids hang |
-| S-16 | 2D transpose dispatch uses wrong divisor | High | `execute_2d()` uses 256 instead of tile size 16 | **FIXED**: `const TILE: u32 = 16` |
+| S-14 | Naive matmul hang (small square matrices) | Medium | Driver/binary complexity interaction (RTX 4070 Vulkan) | **RESOLVED** upstream (`a4996b34` S39: Naive tier removed) |
+| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | Critical | WGPU/Vulkan driver bug (RTX 4070) — not sign or sparsity | **RESOLVED** upstream (`a4996b34` S39) |
+| S-16 | 2D transpose dispatch uses wrong divisor | High | `execute_2d()` uses 256 instead of tile size 16 | **RESOLVED** upstream (`a4996b34` S39: `const TILE: u32 = 16`) |
 
-**S-15 clarification**: Phase 5a initially attributed the hang to negative values
-or sparsity. Phase 5b root-caused it to element *magnitude*: any matrix where many
-elements have `|x| ≤ 0.1` triggers the hang. The workaround (`rng.uniform() * 0.5 + 0.5`)
-ensures all elements ≥ 0.5. This affects all matmul tiers, not just Naive.
-
+Validators retain conservative data patterns (positive-only, A×B^T) as defense-in-depth.
 Full diagnosis: `wateringHole/handoffs/`
 
 ---
@@ -640,7 +645,7 @@ execution. This is ready for `ToadStool` to absorb into `barracuda::unified_hard
 
 ---
 
-## S-17: HillGate f64 `pow()` Fix (Session 52, February 24, 2026)
+## S-17: HillGate f64 `pow()` Fix — RESOLVED UPSTREAM (`c82c23d1` S58)
 
 ### Root Cause
 
@@ -648,15 +653,15 @@ execution. This is ready for `ToadStool` to absorb into `barracuda::unified_hard
 - **RTX 4070 (Ada Lovelace, proprietary)**: NVVM compilation failure → device lost
 - **TITAN V (NVK, open-source)**: NAK assertion `alu.def.bit_size() == 32` → device lost
 
-`compile_shader_f64` → `for_driver_auto` → `apply_transcendental_workaround`
-patches `exp(` → `exp_f64(` and `log(` → `log_f64(`, but **does not patch `pow(`**.
+### Resolution
 
-### Fix (Proven by neuralSpring)
+**RESOLVED upstream** at ToadStool `c82c23d1` (S58: cross-spring absorption).
+`patch_transcendentals_in_code` now covers `pow(` → `pow_f64(` in addition to
+`exp(` and `log(`. The fix was proven by neuralSpring (18/18 PASS on both RTX 4070
+and TITAN V NVK) and absorbed verbatim.
 
-Replace `pow(` with `pow_f64(` in `hill_gate_f64.wgsl`. The existing
-`inject_missing_math_f64` auto-injects the `pow_f64` polyfill from `math_f64.wgsl`
-(uses `exp_f64(exponent * log_f64(base))` — identical to the approach in
-`gpu_ops::bio::hill_activation_batch_gpu`'s Tensor pipeline).
+neuralSpring retains `validation::patch_pow_to_polyfill()` as defense-in-depth
+for any WGSL loaded outside the barracuda shader compilation pipeline.
 
 ### Validation
 
@@ -664,35 +669,3 @@ Replace `pow(` with `pow_f64(` in `hill_gate_f64.wgsl`. The existing
 |---------|-----------------|--------|
 | RTX 4070 (Vulkan, proprietary) | 1.11e-16 | 18/18 PASS |
 | TITAN V (NVK, open-source) | 2.22e-16 | 18/18 PASS |
-
-Tests cover: 10×10, 32×32, 100×100 grids, AND gate corners, determinism,
-high exponents (n=8), and paired mode.
-
-### ToadStool Action (One-Line Fix)
-
-In `barracuda/src/shaders/precision/mod.rs`, extend `patch_exp_log_in_code`:
-
-```rust
-fn patch_exp_log_in_code(code: &str) -> String {
-    code.replace("exp(", "exp_f64(")
-        .replace("log(", "log_f64(")
-        .replace("pow(", "pow_f64(")  // S-17: native pow(f64) crashes NVVM/NAK
-}
-```
-
-The `needs_pow_f64_workaround()` detection already exists in `driver_profile.rs`.
-
-### Also Affected
-
-`hill_f64.wgsl` (element-wise Hill) uses the same native `pow(f64, f64)` pattern
-and likely has the same issue. Apply the same fix.
-
-### Files
-
-| File | Purpose |
-|------|---------|
-| `src/bin/validate_hillgate_f64_fix.rs` | Full proof-of-concept (18/18 PASS) |
-| `src/bin/validate_gpu_signal.rs` | Updated: uses polyfill path + f64 buffers (9/9 PASS) |
-| `barracuda/src/shaders/bio/hill_gate_f64.wgsl` | Needs `pow(` → `pow_f64(` |
-| `barracuda/src/shaders/math/hill_f64.wgsl` | Needs same fix |
-| `barracuda/src/shaders/precision/mod.rs` | `patch_exp_log_in_code` — add `pow` |

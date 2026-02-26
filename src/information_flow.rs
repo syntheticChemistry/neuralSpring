@@ -250,6 +250,7 @@ fn mat_mul_transpose(a: &[f64], n: usize) -> Vec<f64> {
 mod tests {
     use super::*;
     use crate::rng::Rng;
+    use crate::tolerances;
 
     #[test]
     fn depth_scale_infinite_for_constant() {
@@ -276,7 +277,7 @@ mod tests {
         let gates = vec![0.5; 100];
         let w = gate_disorder_parameter(&gates);
         assert!(
-            w.abs() < 1e-12,
+            w.abs() < tolerances::EXACT_F64,
             "constant gates should give zero disorder, got {w}"
         );
     }
@@ -297,7 +298,7 @@ mod tests {
         let gates = vec![0.01, 0.99, 0.5, 0.02, 0.98, 0.5];
         let sat = gate_saturation(&gates, 0.05);
         assert!(
-            (sat - 4.0 / 6.0).abs() < 1e-12,
+            (sat - 4.0 / 6.0).abs() < tolerances::EXACT_F64,
             "expected 4/6 saturation, got {sat}"
         );
     }
@@ -327,7 +328,7 @@ mod tests {
         for i in 0..n {
             for j in 0..n {
                 assert!(
-                    (h[i * n + j] - h[j * n + i]).abs() < 1e-14,
+                    (h[i * n + j] - h[j * n + i]).abs() < tolerances::ZERO_DETECTION,
                     "H not symmetric"
                 );
             }
@@ -408,7 +409,10 @@ mod tests {
         let w: Vec<f64> = vec![1.0, 0.0, 0.0, 1.0];
         let vars = mlp_signal_propagation(&input, &[w.as_slice()], &[2]);
         assert_eq!(vars.len(), 2);
-        assert!((vars[0] - 1.0).abs() < 1e-12, "identity preserves variance");
+        assert!(
+            (vars[0] - 1.0).abs() < tolerances::EXACT_F64,
+            "identity preserves variance"
+        );
     }
 
     #[test]
@@ -452,7 +456,7 @@ mod tests {
         let pre_act = vec![-1.0; n]; // all negative → ReLU mask all 0
         let rho = jacobian_spectral_radius(&weights, &pre_act, n);
         assert!(
-            rho < 1e-10,
+            rho < tolerances::CROSS_LANGUAGE,
             "all-negative pre-act → ρ ≈ 0 (dead ReLU), got {rho}"
         );
     }
@@ -479,7 +483,7 @@ mod tests {
         for i in 0..n {
             for j in 0..n {
                 assert!(
-                    (ata[i * n + j] - ata[j * n + i]).abs() < 1e-12,
+                    (ata[i * n + j] - ata[j * n + i]).abs() < tolerances::EXACT_F64,
                     "A^T A must be symmetric"
                 );
             }

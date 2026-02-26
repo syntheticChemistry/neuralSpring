@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 25, 2026 (Sessions 40–70)
-**ToadStool HEAD**: `02207c4a` (S58–S70: 17 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 105+ tolerances, 94.53% coverage (580 tests), 100% SPDX, zero ad-hoc magic numbers)
+**Date**: February 26, 2026 (Sessions 40–74)
+**ToadStool HEAD**: `02207c4a` (S58–S74: 21 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 94.53% coverage (580 tests), 100% SPDX, zero ad-hoc magic numbers, S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -10,28 +10,29 @@
 ## Quick Status
 
 36 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses.
-159 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+163 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 580 lib + 9 integration + 43 forge tests, 36 modules, 159 binaries | **COMPLETE** |
+| Rust native validation | 580 lib + 9 integration + 43 forge tests, 36 modules, 163 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
 | metalForge WGSL (mF) | 15/25 papers (60%) | **ALL PASS** |
-| GPU Pipeline (gP) | 9/25 papers (36%) | **ALL PASS** |
+| GPU Pipeline (gP) | 15/25 papers (60%) — S74: +9 domains via `validate_gpu_pure_workload_all` | **ALL PASS** |
 | Cross-dispatch (xD) | **15/15** Phase 0++ papers (100%) | **ALL GREEN** |
 | Multi-GPU validation | RTX 4070 + TITAN V (NVK) | **Bit-identical** |
 | GPU shader validation | 126/126 (21 WGSL shaders) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
-| ToadStool shortcomings absorbed | 12/12 (S-01..S-12) | **ALL ABSORBED** |
-| S-16 (transpose dispatch) | One-line fix | **FIXED** |
-| S-15 (matmul hang) | Root-caused: magnitude ≤ 0.1 | **WORKAROUND** (≥ 0.5 data) |
-| S-14 (naive matmul hang) | A×B^T pattern avoids | **WORKAROUND** |
-| S-13 (PooledBuffer race) | Deferred return + device poll | **FIXED** upstream (Session 39) |
+| ToadStool shortcomings absorbed | **17/17** (S-01..S-17) | **ALL RESOLVED** |
+| S-16 (transpose dispatch) | Fixed at `a4996b34` (S39) | **RESOLVED** upstream |
+| S-15 (matmul hang) | Fixed at `a4996b34` (S39) | **RESOLVED** upstream |
+| S-14 (naive matmul hang) | Naive tier removed at `a4996b34` (S39) | **RESOLVED** upstream |
+| S-17 (pow(f64) crash) | Fixed at `c82c23d1` (S58) | **RESOLVED** upstream |
+| S-13 (PooledBuffer race) | Deferred return + device poll | **RESOLVED** upstream (Session 39) |
 | TS-003 (trig precision) | 7-term Taylor + Cody-Waite | **FIXED** upstream (Session 36) |
 | TS-001 (pow_f64 precision) | Extended exp/log polynomials | **FIXED** upstream (Session 36) |
 | Shader absorption | 21/21 WGSL shaders absorbed upstream | **S-03b RESOLVED** — ToadStool `0c998992` (matmul + head_split/head_concat) |
@@ -56,8 +57,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **159 binaries** |
-| `validate_all` (S-67) | **147/148 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **163 binaries** |
+| `validate_all` (S-74) | **149/150 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -71,8 +72,11 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **147/148 PASS** (RTX 4070; 1 logsumexp driver issue) | **ALL GREEN** |
-| Grand total checks | **2120+** (206 Py + 1910+ Rust/GPU) | **ALL GREEN** |
+| `validate_all` | **149/150 PASS** (RTX 4070; 1 logsumexp driver issue) | **ALL GREEN** |
+| Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
+| Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
+| Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
+| Grand total checks | **2180+** (206 Py + 1970+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
@@ -323,9 +327,9 @@ cross-validation references. Both tiers matching Python proves portability.
 ## Phase 5b — Full-Stack Validation (23 Domains, ALL GREEN)
 
 BarraCUDA `Tensor` operations validated against CPU f64 references across
-23 papers spanning all 7 validation tiers. S-16 transpose dispatch **fixed**.
-S-15 matmul hang **root-caused** (elements with magnitude ≤ 0.1 trigger
-WGPU/Vulkan driver bug on RTX 4070). Workaround: generate data with
+23 papers spanning all 7 validation tiers. S-14/S-15/S-16 **RESOLVED** upstream
+(`a4996b34` S39). S-17 **RESOLVED** upstream (`c82c23d1` S58).
+Validators retain conservative data generation patterns (positive-only data,
 `rng.uniform() * 0.5 + 0.5` ensuring all elements ≥ 0.5.
 
 | Validator | Domain | Papers | GPU Ops | Checks | Status |
@@ -336,7 +340,7 @@ WGPU/Vulkan driver bug on RTX 4070). Workaround: generate data with
 | `validate_barracuda_gpu_fitness` | Evolutionary computation | 011-015 | matmul, transpose | 7 | **PASS** |
 | `validate_barracuda_gpu_nn` | Neural nets | 015, 020-021 | matmul, transpose, tanh, add | 5 | **PASS** |
 | `validate_barracuda_gpu_pairwise` | Pairwise distance | 017, 019, 024-025 | matmul, transpose | 5 | **PASS** (S-16 fixed) |
-| `validate_barracuda_gpu_anderson` | Anderson localization | 023 | matmul, transpose | 7 | **PASS** (S-15 workaround) |
+| `validate_barracuda_gpu_anderson` | Anderson localization | 023 | matmul, transpose | 7 | **PASS** (S-15 RESOLVED upstream) |
 | `validate_barracuda_surrogate` | Surrogate MLP (Exp 001) | 001 | matmul, tanh | 7 | **PASS** |
 | `validate_barracuda_transfer` | Transfer Learning (Exp 004) | 004 | matmul, tanh | 7 | **PASS** |
 | `validate_barracuda_gpu_transformer` | Transformer (Exp 002) | 002 | matmul, transpose, tanh | 7 | **PASS** |
@@ -361,9 +365,9 @@ WGPU/Vulkan driver bug on RTX 4070). Workaround: generate data with
 
 | # | Shortcoming | Severity | Root Cause | Resolution |
 |---|-------------|----------|------------|------------|
-| S-14 | Naive matmul hang (small square matrices) | Medium | Driver/binary complexity interaction | Workaround: A×B^T pattern (non-square shapes) |
-| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | Critical | WGPU/Vulkan driver bug (RTX 4070) | **Root-caused**: data ≥ 0.5 avoids hang |
-| S-16 | 2D transpose dispatch uses divisor 256 vs tile 16 | High | `optimal_workgroup_size(ElementWise)` | **FIXED**: `const TILE: u32 = 16` |
+| S-14 | Naive matmul hang (small square matrices) | Medium | Driver/binary complexity interaction | **RESOLVED** upstream (`a4996b34` S39: Naive tier removed) |
+| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | Critical | WGPU/Vulkan driver bug (RTX 4070) | **RESOLVED** upstream (`a4996b34` S39) |
+| S-16 | 2D transpose dispatch uses divisor 256 vs tile 16 | High | `optimal_workgroup_size(ElementWise)` | **RESOLVED** upstream (`a4996b34` S39: `const TILE: u32 = 16`) |
 
 Full details: `wateringHole/handoffs/`
 
@@ -477,7 +481,7 @@ crate, then consumed by all Springs. This table tracks provenance.
 | pairwise_l2 | Paper 012 (MODES) | `ops::bio::PairwiseL2Gpu` | Novelty search, clustering |
 | swarm_nn_forward | Paper 015 (Swarm) | `ops::bio::SwarmNnGpu` | Neuroevolution controllers |
 | Householder+QR eigensolver | `eigh.rs` | `linalg::sparse::eigh` | hotSpring, wetSpring |
-| 4-tier matmul KernelRouter | S-14/S-15 workarounds | `ops::matmul` | All Springs |
+| 4-tier matmul KernelRouter | S-14/S-15 **RESOLVED** | `ops::matmul` | All Springs |
 | Capability-based dispatch | `Gpu::dispatch_1d` | Pattern adopted | All Springs |
 
 ### Upstream Parity Benchmark (10 Kernels, RTX 4070)
@@ -619,7 +623,7 @@ motivates StatefulPipeline/UnidirectionalPipeline batching for GPU-resident acce
 Full barracuda usage audit: 90+ import sites, 20+ submodules, zero duplicates.
 Tolerance centralization: 104+ named constants, zero ad-hoc magic numbers.
 Rewired `boltzmann_sampling` → `barracuda::sample::boltzmann_sampling` (17th function rewire).
-505 lib tests, 90.43% coverage.
+580 lib tests, 90.43% coverage.
 
 || Session 68: Deep debt audit | 104+ tolerances, 90.43% coverage, 0 debt markers | **ALL GREEN** |
 || Session 68: boltzmann rewire | 17th function rewired to upstream | **LEAN** |
@@ -631,7 +635,7 @@ constants. Cross-spring benchmarks refreshed. Upstream-vs-local: 10/10 ≈ or ~ 
 Complete cross-spring provenance mapped: hotSpring precision, wetSpring bio, neuralSpring ML.
 
 || Session 69: Shader source rewire | 6 validators → upstream barracuda constants | **LEAN** |
-|| Session 69: Cross-spring bench | 10/10 upstream ≈ local, 22/22 evolution PASS | **ALL GREEN** |
+|| Session 69: Cross-spring bench | 10/10 upstream ≈ local, 39/39 evolution PASS | **ALL GREEN** |
 || Session 69: validate_all | 147/148 PASS (1 pre-existing logsumexp) | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

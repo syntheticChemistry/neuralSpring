@@ -34,7 +34,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
-const WGSL_SOURCE: &str = barracuda::ops::rk_stage::WGSL_RK4_PARALLEL;
+const WGSL_SOURCE: &str = neural_spring_forge::shaders::RK4_PARALLEL;
 
 #[tokio::main]
 async fn main() {

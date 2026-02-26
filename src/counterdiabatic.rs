@@ -257,6 +257,7 @@ pub fn run_protocol_deterministic(f0: &[f64], f1: &[f64], schedule: &[f64]) -> P
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use approx::assert_relative_eq;
 
     #[test]
@@ -274,7 +275,7 @@ mod tests {
         let f = [1.0, 2.0, 0.5, 1.5];
         let p = boltzmann_distribution(&f, 1.0);
         let sum: f64 = p.iter().sum();
-        assert_relative_eq!(sum, 1.0, epsilon = 1e-12);
+        assert_relative_eq!(sum, 1.0, epsilon = tolerances::EXACT_F64);
     }
 
     #[test]
@@ -283,7 +284,7 @@ mod tests {
         let f1 = [0.5, 0.6, 0.7];
         let interp = interpolated_fitness(&f0, &f1, 0.0);
         for (a, b) in interp.iter().zip(f0.iter()) {
-            assert_relative_eq!(a, b, epsilon = 1e-12);
+            assert_relative_eq!(a, b, epsilon = tolerances::EXACT_F64);
         }
     }
 
@@ -291,7 +292,7 @@ mod tests {
     fn kl_self_zero() {
         let p = [0.25, 0.25, 0.5];
         let kl = kl_divergence(&p, &p);
-        assert_relative_eq!(kl, 0.0, epsilon = 1e-10);
+        assert_relative_eq!(kl, 0.0, epsilon = tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -310,6 +311,10 @@ mod tests {
         let sched = compute_cd_schedule(&f0, &f1, 50, 1.0);
         let r1 = run_protocol_deterministic(&f0, &f1, &sched);
         let r2 = run_protocol_deterministic(&f0, &f1, &sched);
-        assert_relative_eq!(r1.final_dist, r2.final_dist, epsilon = 1e-12);
+        assert_relative_eq!(
+            r1.final_dist,
+            r2.final_dist,
+            epsilon = tolerances::EXACT_F64
+        );
     }
 }

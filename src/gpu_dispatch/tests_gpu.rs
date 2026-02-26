@@ -8,6 +8,7 @@
 #![allow(clippy::expect_used)]
 
 use super::*;
+use crate::tolerances;
 
 fn try_gpu_dispatcher() -> Option<Dispatcher> {
     let gpu_arc = crate::gpu::tests::shared_gpu()?;
@@ -47,7 +48,7 @@ fn gpu_mat_mul_identity() {
     for (i, &v) in result.iter().enumerate() {
         let expected = if i / 3 == i % 3 { 1.0 } else { 0.0 };
         assert!(
-            (v - expected).abs() < 1e-10,
+            (v - expected).abs() < tolerances::CROSS_LANGUAGE,
             "gpu mat_mul identity [{i}]: {v} vs {expected}"
         );
     }
@@ -60,7 +61,7 @@ fn gpu_frobenius_norm() {
         return;
     };
     let a = vec![3.0, 4.0];
-    assert!((d.frobenius_norm(&a) - 5.0).abs() < 1e-6);
+    assert!((d.frobenius_norm(&a) - 5.0).abs() < tolerances::DISPATCH_FROBENIUS_F64);
 }
 
 #[test]
@@ -71,10 +72,10 @@ fn gpu_transpose() {
     };
     let a = vec![1.0, 2.0, 3.0, 4.0];
     let t = d.transpose(&a, 2);
-    assert!((t[0] - 1.0).abs() < 1e-10);
-    assert!((t[1] - 3.0).abs() < 1e-10);
-    assert!((t[2] - 2.0).abs() < 1e-10);
-    assert!((t[3] - 4.0).abs() < 1e-10);
+    assert!((t[0] - 1.0).abs() < tolerances::DISPATCH_TRANSPOSE_F64);
+    assert!((t[1] - 3.0).abs() < tolerances::DISPATCH_TRANSPOSE_F64);
+    assert!((t[2] - 2.0).abs() < tolerances::DISPATCH_TRANSPOSE_F64);
+    assert!((t[3] - 4.0).abs() < tolerances::DISPATCH_TRANSPOSE_F64);
 }
 
 #[test]
@@ -85,7 +86,7 @@ fn gpu_softmax() {
     };
     let result = d.softmax(&[1.0, 2.0, 3.0]);
     let total: f64 = result.iter().sum();
-    assert!((total - 1.0).abs() < 1e-6);
+    assert!((total - 1.0).abs() < tolerances::GPU_SOFTMAX_SUM_F32);
 }
 
 #[test]
@@ -96,7 +97,7 @@ fn gpu_gelu() {
     };
     let result = d.gelu(&[0.0, 1.0, -1.0]);
     assert_eq!(result.len(), 3);
-    assert!((result[0]).abs() < 1e-4);
+    assert!((result[0]).abs() < tolerances::GPU_GELU_F32);
 }
 
 #[test]
@@ -106,7 +107,7 @@ fn gpu_l2_distance() {
         return;
     };
     let dist = d.l2_distance(&[0.0, 0.0], &[3.0, 4.0]);
-    assert!((dist - 5.0).abs() < 1e-4);
+    assert!((dist - 5.0).abs() < tolerances::GPU_L2_DISPATCH_F32);
 }
 
 #[test]
@@ -115,7 +116,7 @@ fn gpu_mean() {
     let Some(d) = try_gpu_dispatcher() else {
         return;
     };
-    assert!((d.mean(&[1.0, 2.0, 3.0, 4.0]) - 2.5).abs() < 1e-6);
+    assert!((d.mean(&[1.0, 2.0, 3.0, 4.0]) - 2.5).abs() < tolerances::GPU_MEAN_DISPATCH_F32);
 }
 
 #[test]
@@ -125,7 +126,7 @@ fn gpu_variance() {
         return;
     };
     let v = d.variance(&[2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]);
-    assert!((v - 4.0).abs() < 0.5);
+    assert!((v - 4.0).abs() < tolerances::GPU_VARIANCE_DISPATCH_F32);
 }
 
 #[test]
@@ -152,7 +153,10 @@ fn gpu_commutator() {
     let a = vec![1.0, 0.0, 0.0, 1.0];
     let comm = d.commutator(&a, &a, 2);
     for &v in &comm {
-        assert!(v.abs() < 1e-6, "identity commutes with itself");
+        assert!(
+            v.abs() < tolerances::CPU_NORMAL_DISTANCE_SYMMETRIC_F64,
+            "identity commutes with itself"
+        );
     }
 }
 
@@ -165,7 +169,10 @@ fn gpu_distance_to_normal() {
     #[rustfmt::skip]
     let sym = vec![2.0, 1.0, 1.0, 2.0];
     let dist = d.distance_to_normal(&sym, 2);
-    assert!(dist < 1e-6, "symmetric matrix is normal");
+    assert!(
+        dist < tolerances::CPU_NORMAL_DISTANCE_SYMMETRIC_F64,
+        "symmetric matrix is normal"
+    );
 }
 
 #[test]
@@ -176,7 +183,7 @@ fn gpu_boltzmann() {
     };
     let result = d.boltzmann(&[1.0, 2.0, 3.0], 1.0);
     let total: f64 = result.iter().sum();
-    assert!((total - 1.0).abs() < 1e-6);
+    assert!((total - 1.0).abs() < tolerances::GPU_BOLTZMANN_F32);
 }
 
 #[test]
@@ -188,7 +195,7 @@ fn gpu_shannon_entropy() {
     let p = vec![0.25, 0.25, 0.25, 0.25];
     let h = d.shannon_entropy(&p);
     let expected = 4.0_f64.ln();
-    assert!((h - expected).abs() < 1e-4);
+    assert!((h - expected).abs() < tolerances::GPU_ENTROPY_F32);
 }
 
 #[test]
@@ -200,7 +207,7 @@ fn gpu_pearson_correlation() {
     let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
     let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
     let r = d.pearson_correlation(&x, &y);
-    assert!((r - 1.0).abs() < 0.01);
+    assert!((r - 1.0).abs() < tolerances::GPU_PEARSON_F32);
 }
 
 #[test]
@@ -210,7 +217,7 @@ fn gpu_chi_squared() {
         return;
     };
     let chi2 = d.chi_squared(&[10.0, 20.0, 30.0], &[20.0, 20.0, 20.0]);
-    assert!((chi2 - 10.0).abs() < 0.5);
+    assert!((chi2 - 10.0).abs() < tolerances::GPU_CHI_SQUARED_F32);
 }
 
 #[test]
@@ -221,7 +228,7 @@ fn gpu_hill_activation_batch() {
     };
     let result = d.hill_activation_batch(&[0.0, 1.0, 10.0], 1.0, 1.0, 2.0);
     assert_eq!(result.len(), 3);
-    assert!((result[0]).abs() < 1e-4);
+    assert!((result[0]).abs() < tolerances::GPU_GELU_F32);
 }
 
 #[test]
@@ -233,8 +240,8 @@ fn gpu_eigh_diagonal() {
     let (vals, _) = d.eigh(&[2.0, 0.0, 0.0, 3.0], 2);
     let mut sorted = vals;
     sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    assert!((sorted[0] - 2.0).abs() < 0.1);
-    assert!((sorted[1] - 3.0).abs() < 0.1);
+    assert!((sorted[0] - 2.0).abs() < tolerances::GPU_EIGH_DISPATCH_F64);
+    assert!((sorted[1] - 3.0).abs() < tolerances::GPU_EIGH_DISPATCH_F64);
 }
 
 #[test]
@@ -338,7 +345,7 @@ fn gpu_replicator_step() {
     };
     let next = d.replicator_step(&[0.6, 0.4], &[[3.0, 0.0], [5.0, 1.0]], 0.01);
     let sum: f64 = next.iter().sum();
-    assert!((sum - 1.0).abs() < 1e-6);
+    assert!((sum - 1.0).abs() < tolerances::REPLICATOR_DYNAMICS);
 }
 
 #[test]
@@ -452,7 +459,7 @@ fn gpu_matrix_correlation() {
         2.0, 3.0, 0.0,
     ];
     let r = d.matrix_correlation(&a, &a, 3);
-    assert!((r - 1.0).abs() < 0.1);
+    assert!((r - 1.0).abs() < tolerances::GPU_PEARSON_F32);
 }
 
 #[test]
@@ -473,7 +480,7 @@ fn gpu_thermal_diversity_correlation() {
         return;
     };
     let r = d.thermal_diversity_correlation(&[1.0, 2.0, 3.0], &[10.0, 20.0, 30.0]);
-    assert!((r - 1.0).abs() < 0.1);
+    assert!((r - 1.0).abs() < tolerances::GPU_PEARSON_F32);
 }
 
 #[test]

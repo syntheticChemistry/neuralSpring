@@ -412,17 +412,18 @@ pub fn generate_tree_guided_sequences(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn hamming_symmetric() {
         let a = vec![0u8, 1, 2, 3];
         let b = vec![0u8, 2, 2, 1];
-        assert!((hamming_distance(&a, &b) - 0.5).abs() < 1e-10);
+        assert!((hamming_distance(&a, &b) - 0.5).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
     fn jc_zero_for_identical() {
-        assert!(jukes_cantor(0.0).abs() < 1e-10);
+        assert!(jukes_cantor(0.0).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -432,7 +433,7 @@ mod tests {
         let d = pairwise_distance_matrix(&seqs, n, len, true);
         for i in 0..5 {
             for j in 0..5 {
-                assert!((d[i * 5 + j] - d[j * 5 + i]).abs() < 1e-12);
+                assert!((d[i * 5 + j] - d[j * 5 + i]).abs() < tolerances::EXACT_F64);
             }
         }
     }
@@ -480,7 +481,7 @@ mod tests {
 
     #[test]
     fn jc_saturated_returns_ceiling() {
-        assert!((jukes_cantor(0.76) - JC_SATURATION).abs() < 1e-10);
+        assert!((jukes_cantor(0.76) - JC_SATURATION).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]

@@ -89,6 +89,7 @@ pub fn nse(y_true: &[f64], y_pred: &[f64]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use approx::assert_relative_eq;
 
     #[test]
@@ -104,14 +105,22 @@ mod tests {
         let y_true = [1.0, 2.0, 3.0, 4.0, 5.0];
         let mean = 3.0;
         let y_pred = [mean; 5];
-        assert_relative_eq!(r_squared(&y_true, &y_pred), 0.0, epsilon = 1e-10);
+        assert_relative_eq!(
+            r_squared(&y_true, &y_pred),
+            0.0,
+            epsilon = tolerances::CROSS_LANGUAGE
+        );
     }
 
     #[test]
     fn known_rmse() {
         let y_true = [1.0, 2.0, 3.0];
         let y_pred = [1.1, 2.1, 3.1];
-        assert_relative_eq!(rmse(&y_true, &y_pred), 0.1, epsilon = 1e-10);
+        assert_relative_eq!(
+            rmse(&y_true, &y_pred),
+            0.1,
+            epsilon = tolerances::CROSS_LANGUAGE
+        );
     }
 
     #[test]

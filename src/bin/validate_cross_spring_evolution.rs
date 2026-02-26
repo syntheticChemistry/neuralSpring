@@ -1,24 +1,26 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Cross-spring evolution benchmark: validates and benchmarks the 16 functions
+//! Cross-spring evolution benchmark: validates and benchmarks functions
 //! rewired to upstream `barracuda` APIs, and reports driver profile information
 //! from `GpuDriverProfile` (hotSpring-evolved).
 //!
 //! ## What this proves
 //!
-//! - **Upstream rewiring**: 9 Dispatcher methods + 3 library functions delegate
+//! - **Upstream rewiring**: Dispatcher methods + library functions delegate
 //!   to upstream `BarraCUDA` and produce correct results
 //! - **Cross-spring evolution**: shaders and dispatch logic evolved from
 //!   hotSpring (precision), wetSpring (bio), and neuralSpring (validation)
 //! - **Driver awareness**: `GpuDriverProfile` correctly detects hardware
 //!   and selects appropriate f64 strategy
 //! - **Performance**: benchmarks upstream dispatch vs local CPU reference
+//! - **S72 rewires**: `softmax_dim(axis)`, `argmax_dim(axis)`,
+//!   `fst_variance_decomposition` — APIs previously blocked, now absorbed
 //!
 //! ## Cross-spring shader lineage
 //!
 //! ```text
 //! hotSpring → df64_core, pow_f64, Taylor trig, Lanczos → BarraCUDA precision
-//! wetSpring → HMM forward, ODE bio, NMF, Anderson     → BarraCUDA bio+spectral
+//! wetSpring → HMM forward, ODE bio, NMF, Anderson, FST → BarraCUDA bio+spectral
 //! neuralSpring → batch_fitness, pairwise_l2, eigh, ValidationHarness → BarraCUDA ops
 //! All three → ToadStool (GPU sovereign pipeline)
 //! ```
@@ -282,6 +284,139 @@ fn validate_rewired_hmm_forward(
     );
 }
 
+// ═══ S72 rewires: upstream Tensor APIs (argmax_dim, softmax_dim, FST) ═══
+
+fn validate_rewired_softmax_row_wise(
+    h: &mut ValidationHarness,
+    dispatcher: &Dispatcher,
+    cpu: &Dispatcher,
+) {
+    let n_rows = 4;
+    let n_cols = 8;
+    let matrix: Vec<f64> = (0..n_rows * n_cols)
+        .map(|i| (i as f64 - 16.0) * 0.1)
+        .collect();
+
+    let (result, _) = bench("softmax_row_wise upstream", || {
+        dispatcher.softmax_row_wise(&matrix, n_rows, n_cols)
+    });
+    let (reference, _) = bench("softmax_row_wise CPU ref", || {
+        cpu.softmax_row_wise(&matrix, n_rows, n_cols)
+    });
+
+    for row in 0..n_rows {
+        let row_sum: f64 = result[row * n_cols..(row + 1) * n_cols].iter().sum();
+        h.check_abs(
+            &format!("softmax_row_wise row {row} sums to 1"),
+            row_sum,
+            1.0,
+            tolerances::DISPATCH_F32_ROUNDTRIP,
+        );
+    }
+
+    h.check_abs(
+        "softmax_row_wise parity (f32 path)",
+        max_pairwise_diff(&result, &reference),
+        0.0,
+        tolerances::DISPATCH_F32_ROUNDTRIP,
+    );
+}
+
+fn validate_rewired_fst_single_locus(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
+    let freqs_diverged = [0.1, 0.9];
+    let sizes = [50, 50];
+
+    let result = dispatcher.fst_single_locus(&freqs_diverged, &sizes);
+    h.check_bool("fst_single_locus returns Ok", result.is_ok());
+
+    if let Ok((fst, f_is, f_it)) = result {
+        h.check_bool("fst_single_locus θ > 0.5 (diverged pops)", fst > 0.5);
+        h.check_bool("fst_single_locus f_it defined", f_it.is_finite());
+        h.check_bool("fst_single_locus f_is defined", f_is.is_finite());
+
+        let identity_check = (1.0 - f_is).mul_add(-(1.0 - fst), 1.0 - f_it);
+        h.check_abs(
+            "fst_single_locus Wright identity (1-F_IT)=(1-F_IS)(1-F_ST)",
+            identity_check,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
+    }
+
+    let freqs_identical = [0.5, 0.5];
+    if let Ok((fst, _, _)) = dispatcher.fst_single_locus(&freqs_identical, &sizes) {
+        h.check_abs(
+            "fst_single_locus θ near 0 (identical pops, W-C sample correction)",
+            fst,
+            0.0,
+            0.05,
+        );
+    }
+}
+
+fn validate_rewired_pairwise_fst_full(
+    h: &mut ValidationHarness,
+    dispatcher: &Dispatcher,
+    cpu: &Dispatcher,
+) {
+    let n_a = 20;
+    let n_b = 20;
+    let n_loci = 10;
+    let pop_a: Vec<f64> = (0..n_a * n_loci).map(|i| (i % 2) as f64).collect();
+    let pop_b: Vec<f64> = (0..n_b * n_loci).map(|i| ((i + 1) % 2) as f64).collect();
+
+    let (fst, f_is, f_it) = dispatcher.pairwise_fst_full(&pop_a, n_a, &pop_b, n_b, n_loci);
+    let fst_theta_only = cpu.pairwise_fst(&pop_a, n_a, &pop_b, n_b, n_loci);
+
+    h.check_abs(
+        "pairwise_fst_full θ ≈ pairwise_fst (mean-of-ratios vs ratio-of-sums)",
+        fst,
+        fst_theta_only,
+        0.05,
+    );
+    h.check_bool("pairwise_fst_full f_is defined", f_is.is_finite());
+    h.check_bool("pairwise_fst_full f_it defined", f_it.is_finite());
+    h.check_bool("pairwise_fst_full θ > 0 (diverged pops)", fst > 0.0);
+}
+
+fn validate_rewired_viterbi_argmax(
+    h: &mut ValidationHarness,
+    dispatcher: &Dispatcher,
+    cpu: &Dispatcher,
+) {
+    let n_states = 3;
+    let n_obs = 2;
+    let initial = vec![0.6, 0.3, 0.1];
+    let transition = vec![0.7, 0.2, 0.1, 0.1, 0.8, 0.1, 0.2, 0.2, 0.6];
+    let emission = vec![0.5, 0.5, 0.4, 0.6, 0.7, 0.3];
+    let observations = vec![0, 1, 0, 1, 0];
+
+    let (path_gpu, logp_gpu) = dispatcher.hmm_viterbi_chain(
+        &initial,
+        &transition,
+        &emission,
+        &observations,
+        n_states,
+        n_obs,
+    );
+    let (path_cpu, logp_cpu) = cpu.hmm_viterbi_chain(
+        &initial,
+        &transition,
+        &emission,
+        &observations,
+        n_states,
+        n_obs,
+    );
+
+    h.check_bool("viterbi argmax_dim path matches CPU", path_gpu == path_cpu);
+    h.check_abs(
+        "viterbi argmax_dim log-prob (f32 GPU path)",
+        logp_gpu,
+        logp_cpu,
+        tolerances::DISPATCH_VITERBI_F32,
+    );
+}
+
 fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     if let Some(profile) = dispatcher.driver_profile() {
         eprintln!("[profile] Driver: {:?}", profile.driver);
@@ -313,6 +448,9 @@ fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     }
 }
 
+const fn benchmark_s72_throughput(_dispatcher: &Dispatcher, _cpu: &Dispatcher) {}
+
+#[allow(clippy::too_many_lines)]
 fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
     eprintln!("\n=== Cross-Spring Throughput Benchmark ===");
     eprintln!("(upstream dispatch includes GPU routing + size-based thresholds)\n");
@@ -417,13 +555,86 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
             "  hmm_fwd(s={n_states:>3}): upstream {upstream_us:>8.1}µs  cpu {cpu_us:>8.1}µs  ratio {ratio:.2}x"
         );
     }
+
+    eprintln!();
+    eprintln!("--- S72 Rewired Ops Throughput ---\n");
+
+    for &(rows, cols) in &[(4, 64), (16, 128), (64, 256)] {
+        let matrix: Vec<f64> = (0..rows * cols)
+            .map(|i| (i as f64 - 128.0) * 0.01)
+            .collect();
+
+        let start = Instant::now();
+        for _ in 0..100 {
+            std::hint::black_box(dispatcher.softmax_row_wise(&matrix, rows, cols));
+        }
+        let upstream_us = start.elapsed().as_secs_f64() * 1e4;
+
+        let start = Instant::now();
+        for _ in 0..100 {
+            std::hint::black_box(cpu.softmax_row_wise(&matrix, rows, cols));
+        }
+        let cpu_us = start.elapsed().as_secs_f64() * 1e4;
+
+        let ratio = cpu_us / upstream_us;
+        eprintln!(
+            "  softmax_row({rows:>3}x{cols:>3}): upstream {upstream_us:>8.1}\u{00b5}s  cpu {cpu_us:>8.1}\u{00b5}s  ratio {ratio:.2}x"
+        );
+    }
+
+    for n_states in [3, 8, 16, 32_usize] {
+        let n_obs = 2;
+        let initial: Vec<f64> = {
+            let raw: Vec<f64> = (0..n_states).map(|i| (i + 1) as f64).collect();
+            let s: f64 = raw.iter().sum();
+            raw.iter().map(|x| x / s).collect()
+        };
+        let transition: Vec<f64> = (0..n_states * n_states)
+            .map(|i| ((i % n_states) + 1) as f64 / (n_states * (n_states + 1) / 2) as f64)
+            .collect();
+        let emission: Vec<f64> = (0..n_states * n_obs)
+            .map(|i| ((i % n_obs) + 1) as f64 / (n_obs * (n_obs + 1) / 2) as f64)
+            .collect();
+        let obs: Vec<usize> = (0..10).map(|i| i % n_obs).collect();
+
+        let start = Instant::now();
+        for _ in 0..20 {
+            std::hint::black_box(dispatcher.hmm_viterbi_chain(
+                &initial,
+                &transition,
+                &emission,
+                &obs,
+                n_states,
+                n_obs,
+            ));
+        }
+        let upstream_us = start.elapsed().as_secs_f64() * 5e4;
+
+        let start = Instant::now();
+        for _ in 0..20 {
+            std::hint::black_box(cpu.hmm_viterbi_chain(
+                &initial,
+                &transition,
+                &emission,
+                &obs,
+                n_states,
+                n_obs,
+            ));
+        }
+        let cpu_us = start.elapsed().as_secs_f64() * 5e4;
+
+        let ratio = cpu_us / upstream_us;
+        eprintln!(
+            "  viterbi(s={n_states:>3}): upstream {upstream_us:>8.1}\u{00b5}s  cpu {cpu_us:>8.1}\u{00b5}s  ratio {ratio:.2}x"
+        );
+    }
 }
 
 fn report_cross_spring_lineage() {
     eprintln!("\n=== Cross-Spring Evolution Lineage ===\n");
     eprintln!("hotSpring \u{2192} BarraCUDA precision layer:");
     eprintln!("  \u{2022} df64_core.wgsl (double-float f32-pair emulation)");
-    eprintln!("  \u{2022} pow_f64 polyfill (transcendental workaround)");
+    eprintln!("  \u{2022} pow_f64 polyfill (transcendental workaround \u{2192} S-17 RESOLVED)");
     eprintln!("  \u{2022} Fp64Strategy (Native/Hybrid detection)");
     eprintln!("  \u{2022} GpuDriverProfile (hardware-adaptive dispatch)");
     eprintln!("  \u{2022} Taylor-series sin/cos (7-term + Cody-Waite)");
@@ -435,6 +646,9 @@ fn report_cross_spring_lineage() {
     eprintln!("  \u{2022} NMF (non-negative matrix factorization)");
     eprintln!("  \u{2022} Anderson localization (3d_correlated, sweep_averaged, find_w_c)");
     eprintln!("  \u{2022} Ridge regression (ESN readout)");
+    eprintln!(
+        "  \u{2022} fst_variance_decomposition (population genetics F-statistics)  [S72 rewire]"
+    );
     eprintln!();
     eprintln!("neuralSpring \u{2192} BarraCUDA validation+ops layer:");
     eprintln!("  \u{2022} ValidationHarness + exit_no_gpu + require! macro");
@@ -445,10 +659,23 @@ fn report_cross_spring_lineage() {
     eprintln!("  \u{2022} empirical_spectral_density, marchenko_pastur_bounds (S54)");
     eprintln!("  \u{2022} effective_rank (S54), gelu_dispatch + hmm_forward_dispatch (S52)");
     eprintln!();
+    eprintln!("S72 cross-spring rewiring:");
+    eprintln!(
+        "  \u{2022} argmax_dim(axis) \u{2192} Viterbi psi extraction (was CPU loop, now upstream)"
+    );
+    eprintln!(
+        "  \u{2022} softmax_dim(axis) \u{2192} Dispatcher::softmax_row_wise (was manual per-row)"
+    );
+    eprintln!(
+        "  \u{2022} fst_variance_decomposition \u{2192} fst_single_locus + pairwise_fst_full"
+    );
+    eprintln!("  \u{2022} All 17 shortcomings RESOLVED upstream (S-14/15/16 at a4996b34, S-17 at c82c23d1)");
+    eprintln!();
     eprintln!("All three \u{2192} ToadStool (GPU sovereign pipeline):");
     eprintln!("  \u{2022} 599+ WGSL shaders (cross-spring evolved)");
-    eprintln!("  \u{2022} domain_ops dispatch — 9 methods rewired (S58: 7, S59: +2)");
-    eprintln!("  \u{2022} stats/linalg — 3 library functions rewired (S59)");
+    eprintln!("  \u{2022} domain_ops dispatch \u{2014} 9 methods rewired (S58: 7, S59: +2)");
+    eprintln!("  \u{2022} stats/linalg \u{2014} 3 library functions rewired (S59)");
+    eprintln!("  \u{2022} S72 \u{2014} 4 new rewires (softmax_row_wise, fst_single_locus, fst_full, argmax_dim)");
     eprintln!("  \u{2022} GpuDriverProfile (this benchmark validates detection)");
 }
 
@@ -483,10 +710,17 @@ async fn main() {
     validate_rewired_mp_bounds(&mut h);
     validate_rewired_effective_rank(&mut h);
 
+    eprintln!("\n--- S72 Rewires: Upstream Tensor APIs + FST ---\n");
+    validate_rewired_softmax_row_wise(&mut h, &dispatcher, &cpu);
+    validate_rewired_fst_single_locus(&mut h, &dispatcher);
+    validate_rewired_pairwise_fst_full(&mut h, &dispatcher, &cpu);
+    validate_rewired_viterbi_argmax(&mut h, &dispatcher, &cpu);
+
     eprintln!("\n--- Driver Profile Validation ---\n");
     validate_driver_profile(&mut h, &dispatcher);
 
     benchmark_throughput(&dispatcher, &cpu);
+    benchmark_s72_throughput(&dispatcher, &cpu);
     report_cross_spring_lineage();
 
     h.finish();

@@ -212,6 +212,7 @@ pub fn linspace(start: f64, end: f64, n: usize) -> Vec<f64> {
 mod tests {
     use super::*;
     use crate::rng::Rng;
+    use crate::tolerances;
 
     #[test]
     fn polynomial_constant() {
@@ -219,7 +220,7 @@ mod tests {
         let x = linspace(0.0, 1.0, 10);
         let vals = eval_polynomial(&coeffs, &x);
         for &v in &vals {
-            assert!((v - 3.0).abs() < 1e-12);
+            assert!((v - 3.0).abs() < tolerances::EXACT_F64);
         }
     }
 
@@ -227,9 +228,9 @@ mod tests {
     fn polynomial_linear() {
         let coeffs = [1.0, 2.0]; // 1 + 2x
         let vals = eval_polynomial(&coeffs, &[0.0, 0.5, 1.0]);
-        assert!((vals[0] - 1.0).abs() < 1e-12);
-        assert!((vals[1] - 2.0).abs() < 1e-12);
-        assert!((vals[2] - 3.0).abs() < 1e-12);
+        assert!((vals[0] - 1.0).abs() < tolerances::EXACT_F64);
+        assert!((vals[1] - 2.0).abs() < tolerances::EXACT_F64);
+        assert!((vals[2] - 3.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -240,7 +241,7 @@ mod tests {
         let g = exact_antiderivative(&coeffs, &y);
         for (i, &v) in g.iter().enumerate() {
             assert!(
-                (v - y[i]).abs() < 1e-12,
+                (v - y[i]).abs() < tolerances::EXACT_F64,
                 "G(1)(y={}) = {v}, expected {}",
                 y[i],
                 y[i]
@@ -256,7 +257,7 @@ mod tests {
         let g = exact_antiderivative(&coeffs, &y);
         for (i, &v) in g.iter().enumerate() {
             let expected = y[i].powi(2) / 2.0;
-            assert!((v - expected).abs() < 1e-12);
+            assert!((v - expected).abs() < tolerances::EXACT_F64);
         }
     }
 
@@ -268,7 +269,7 @@ mod tests {
         let g = exact_antiderivative(&coeffs, &y);
         for (i, &v) in g.iter().enumerate() {
             let expected = y[i].powi(3) / 3.0;
-            assert!((v - expected).abs() < 1e-12);
+            assert!((v - expected).abs() < tolerances::EXACT_F64);
         }
     }
 
@@ -285,8 +286,8 @@ mod tests {
         let u_check = eval_polynomial(&coeffs, &x);
         let g_check = exact_antiderivative(&coeffs, &y);
         for i in 0..50 {
-            assert!((u_vals[i] - u_check[i]).abs() < 1e-12);
-            assert!((g_vals[i] - g_check[i]).abs() < 1e-12);
+            assert!((u_vals[i] - u_check[i]).abs() < tolerances::EXACT_F64);
+            assert!((g_vals[i] - g_check[i]).abs() < tolerances::EXACT_F64);
         }
     }
 
@@ -304,27 +305,27 @@ mod tests {
         let a = [1.0, 2.0, 3.0];
         let b = [1.0, 1.0, 1.0];
         let result = branch_trunk_dot(&a, &b, 0.0);
-        assert!((result - 6.0).abs() < 1e-12);
+        assert!((result - 6.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
     fn l2_relative_exact_match() {
         let a = [1.0, 2.0, 3.0];
-        assert!(l2_relative_error(&a, &a) < 1e-15);
+        assert!(l2_relative_error(&a, &a) < tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn rmse_exact_match() {
         let a = [1.0, 2.0, 3.0];
-        assert!(rmse(&a, &a) < 1e-15);
+        assert!(rmse(&a, &a) < tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn linspace_endpoints() {
         let v = linspace(0.0, 10.0, 11);
         assert_eq!(v.len(), 11);
-        assert!((v[0]).abs() < 1e-15);
-        assert!((v[10] - 10.0).abs() < 1e-12);
+        assert!((v[0]).abs() < tolerances::ZERO_DETECTION);
+        assert!((v[10] - 10.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -332,7 +333,7 @@ mod tests {
         let w = [1.0, 0.0, 0.0, 1.0];
         let b = [0.0, 0.0];
         let result = mlp_forward(&[0.5, -0.3], &[(&w, &b, 2)]);
-        assert!((result[0] - 0.5).abs() < 1e-12);
-        assert!((result[1] - (-0.3)).abs() < 1e-12);
+        assert!((result[0] - 0.5).abs() < tolerances::EXACT_F64);
+        assert!((result[1] - (-0.3)).abs() < tolerances::EXACT_F64);
     }
 }

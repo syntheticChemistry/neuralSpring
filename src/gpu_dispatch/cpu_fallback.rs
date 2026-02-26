@@ -136,40 +136,41 @@ pub fn replicator_step(freq: &[f64; 2], payoff: &[[f64; 2]; 2], dt: f64) -> [f64
 #[allow(clippy::cast_precision_loss)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn variance_basic() {
         let v = variance(&[2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]);
-        assert!((v - 4.0).abs() < 1e-12);
+        assert!((v - 4.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
     fn variance_empty() {
-        assert!((variance(&[]) - 0.0).abs() < 1e-15);
+        assert!((variance(&[]) - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn pearson_perfect() {
         let r = pearson(&[1.0, 2.0, 3.0], &[2.0, 4.0, 6.0]);
-        assert!((r - 1.0).abs() < 1e-12);
+        assert!((r - 1.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
     fn pearson_short() {
-        assert!((pearson(&[1.0], &[2.0]) - 0.0).abs() < 1e-15);
+        assert!((pearson(&[1.0], &[2.0]) - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn chi_squared_known() {
         let chi2 = chi_squared(&[10.0, 20.0, 30.0], &[20.0, 20.0, 20.0]);
-        assert!((chi2 - 10.0).abs() < 1e-10);
+        assert!((chi2 - 10.0).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
     fn hmm_backward_basic() {
         let beta = hmm_backward_step(&[1.0, 1.0], &[0.7, 0.3, 0.4, 0.6], &[0.5, 0.5], 1.0, 2);
-        assert!((beta[0] - 0.5).abs() < 1e-12);
-        assert!((beta[1] - 0.5).abs() < 1e-12);
+        assert!((beta[0] - 0.5).abs() < tolerances::EXACT_F64);
+        assert!((beta[1] - 0.5).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -182,7 +183,7 @@ mod tests {
     fn replicator_simplex() {
         let next = replicator_step(&[0.6, 0.4], &[[3.0, 0.0], [5.0, 1.0]], 0.01);
         let sum: f64 = next.iter().sum();
-        assert!((sum - 1.0).abs() < 1e-12);
+        assert!((sum - 1.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -195,7 +196,7 @@ mod tests {
         assert_eq!(new_alpha.len(), 2);
         assert!(scale > 0.0);
         let sum: f64 = new_alpha.iter().sum();
-        assert!((sum - 1.0).abs() < 1e-12);
+        assert!((sum - 1.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -205,7 +206,7 @@ mod tests {
         let emit = vec![0.0, 0.0];
         let (alpha_new, scale) = hmm_forward_step(&alpha, &trans, &emit, 2);
         assert_eq!(alpha_new.len(), 2);
-        assert!((scale - 0.0).abs() < 1e-15);
+        assert!((scale - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
@@ -229,7 +230,7 @@ mod tests {
     #[test]
     fn pearson_zero_variance_returns_zero() {
         let r = pearson(&[3.0, 3.0, 3.0], &[1.0, 2.0, 3.0]);
-        assert!((r - 0.0).abs() < 1e-15);
+        assert!((r - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
@@ -247,6 +248,6 @@ mod tests {
 
     #[test]
     fn variance_single_element() {
-        assert!((variance(&[5.0]) - 0.0).abs() < 1e-15);
+        assert!((variance(&[5.0]) - 0.0).abs() < tolerances::ZERO_DETECTION);
     }
 }

@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 25, 2026 (Sessions 49–70)
+**Date**: February 26, 2026 (Sessions 49–74 — pure GPU all-domains + cross-system dispatch + evolution tier benchmarks)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -211,10 +211,10 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 
 *neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
 grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
-2120+ validated checks across 25 papers and 7 scientific domains. Core
-primitives implemented in Sessions 50–55, quality-hardened Sessions 61–69: 5 Rust
-modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 505 unit
-tests, 0 clippy warnings, 90.43% coverage, 104+ named tolerances. 17 functions
+2180+ validated checks across 25 papers and 7 scientific domains. Core
+primitives implemented in Sessions 50–55, quality-hardened Sessions 61–74: 5 Rust
+modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 580 unit
+tests, 0 clippy warnings, 94.53% coverage, 107+ named tolerances. 21 functions
 + 6 shader sources rewired to upstream BarraCUDA. Cross-spring evolution
 benchmarked: hotSpring precision, wetSpring bio, neuralSpring ML — all feeding
 ToadStool's shared math engine. No new math — only novel composition of

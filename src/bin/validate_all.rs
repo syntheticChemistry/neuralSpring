@@ -187,6 +187,10 @@ const BINARIES: &[&str] = &[
     "validate_metalforge_pcie",
     // Session 58: cross-spring evolution benchmark + GpuDriverProfile
     "validate_cross_spring_evolution",
+    // Session 74: pure GPU all-domains workload validation
+    "validate_gpu_pure_workload_all",
+    // Session 74: metalForge cross-system dispatch (GPU→NPU→CPU)
+    "validate_cross_system_dispatch",
 ];
 
 fn main() {

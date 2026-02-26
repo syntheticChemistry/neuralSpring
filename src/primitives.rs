@@ -216,31 +216,32 @@ pub fn rk4_step<const N: usize>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn entropy_uniform_distribution() {
         let p = [0.25, 0.25, 0.25, 0.25];
         let h = shannon_entropy(&p);
         let expected = (4.0_f64).ln();
-        assert!((h - expected).abs() < 1e-12);
+        assert!((h - expected).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
     fn entropy_singleton() {
         let p = [1.0, 0.0, 0.0];
-        assert!(shannon_entropy(&p).abs() < 1e-12);
+        assert!(shannon_entropy(&p).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
     fn equitability_uniform_is_one() {
         let p = [0.25, 0.25, 0.25, 0.25];
-        assert!((shannon_equitability(&p) - 1.0).abs() < 1e-10);
+        assert!((shannon_equitability(&p) - 1.0).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
     fn equitability_singleton_is_zero() {
         let p = [1.0, 0.0, 0.0];
-        assert!(shannon_equitability(&p).abs() < 1e-10);
+        assert!(shannon_equitability(&p).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -250,7 +251,7 @@ mod tests {
         let freqs: Vec<f64> = counts.iter().map(|&c| c / total).collect();
         let h1 = shannon_entropy_from_counts(&counts);
         let h2 = shannon_entropy(&freqs);
-        assert!((h1 - h2).abs() < 1e-12);
+        assert!((h1 - h2).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
@@ -271,18 +272,18 @@ mod tests {
     #[test]
     fn hill_activation_at_k_is_half() {
         let v = hill_activation(0.5, 1.0, 0.5, 2.0);
-        assert!((v - 0.5).abs() < 1e-10);
+        assert!((v - 0.5).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
     fn sigmoid_at_zero() {
-        assert!((sigmoid(0.0) - 0.5).abs() < 1e-15);
+        assert!((sigmoid(0.0) - 0.5).abs() < tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn sigmoid_symmetry() {
         for &x in &[0.5, 1.0, 2.5, 10.0, 50.0] {
-            assert!((sigmoid(x) + sigmoid(-x) - 1.0).abs() < 1e-14);
+            assert!((sigmoid(x) + sigmoid(-x) - 1.0).abs() < tolerances::ZERO_DETECTION);
         }
     }
 
@@ -302,7 +303,10 @@ mod tests {
             state = rk4_step(&state, dt, |y| [-y[1], y[0]]);
         }
         let energy = state[0].mul_add(state[0], state[1] * state[1]);
-        assert!((energy - 1.0).abs() < 1e-6, "energy conservation: {energy}");
+        assert!(
+            (energy - 1.0).abs() < tolerances::SPECIAL_FUNCTION_F64,
+            "energy conservation: {energy}"
+        );
     }
 
     #[test]
@@ -313,7 +317,7 @@ mod tests {
             state = rk4_step(&state, dt, |y| [-y[0]]);
         }
         let expected = (-1.0_f64).exp();
-        assert!((state[0] - expected).abs() < 1e-8);
+        assert!((state[0] - expected).abs() < tolerances::HMM_POSTERIOR_SUM);
     }
 
     #[test]

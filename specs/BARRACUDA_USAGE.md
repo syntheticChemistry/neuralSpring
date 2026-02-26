@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 25, 2026 (Sessions 40–70)
+**Last Updated**: February 26, 2026 (Sessions 40–74 — pure GPU all-domains + cross-system dispatch)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -156,13 +156,13 @@ S-01, S-02, S-08, S-09 absorbed and fossilized. **Session 47**:
 Phase 5b exercises the unified `Tensor` API (matmul, transpose, tanh, sigmoid, add)
 on a live GPU (RTX 4070, Vulkan backend) across **23 papers**. ALL GREEN.
 
-**S-16 FIXED.** S-15 root-caused. 98+ GPU Tensor checks PASS.
+**S-14/S-15/S-16 RESOLVED** upstream (`a4996b34` S39). 98+ GPU Tensor checks PASS.
 
 | ID | Issue | Resolution |
 |----|-------|------------|
-| S-14 | Naive matmul hang (small square, N < 32) | **Workaround**: A×B^T pattern |
-| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | **Root-caused**: WGPU/Vulkan driver bug. Data ≥ 0.5 avoids hang |
-| S-16 | Transpose dispatches 256 instead of 16 | **FIXED**: `const TILE: u32 = 16` |
+| S-14 | Naive matmul hang (small square, N < 32) | **RESOLVED** upstream (`a4996b34` S39: Naive tier removed) |
+| S-15 | Matmul hang when f32 elements ≤ 0.1 magnitude | **RESOLVED** upstream (`a4996b34` S39) |
+| S-16 | Transpose dispatches 256 instead of 16 | **RESOLVED** upstream (`a4996b34` S39: `const TILE: u32 = 16`) |
 
 **What we learned for usage:**
 
@@ -171,7 +171,7 @@ on a live GPU (RTX 4070, Vulkan backend) across **23 papers**. ALL GREEN.
 2. `Tensor::transpose` works correctly after S-16 fix. All pairwise validators PASS.
 3. `Tensor::tanh`, `Tensor::sigmoid`, and `Tensor::add` work correctly across all domains.
 4. f32 GPU vs f64 CPU agreement is excellent (< 1e-3 for most operations).
-5. The A×B^T pattern (non-square intermediates) reliably avoids S-14 Naive tier hang.
+5. The A×B^T pattern (non-square intermediates) reliably avoided S-14 Naive tier hang; S-14 now **RESOLVED** upstream.
 
 ---
 
@@ -401,7 +401,7 @@ BarraCUDA APIs directly.
 f32→f64 alignment with upstream (ToadStool S49): BatchFitnessGpu, LocusVarianceGpu,
 MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu.
 
-### HillGateGpu f64 — S-17 Root Cause and Fix
+### HillGateGpu f64 — S-17 Root Cause and Fix (**RESOLVED** upstream `c82c23d1` S58)
 
 **Root cause**: `hill_gate_f64.wgsl` uses native WGSL `pow(f64, f64)` which
 triggers NVVM compilation failure on RTX 4070 (Ada Lovelace, proprietary) and
@@ -663,9 +663,9 @@ unavoidable transitive dependencies with no C compilation.
 
 | Gate | Result |
 |------|--------|
-| `validate_all` | 159 binaries (147/148 PASS, 1 pre-existing logsumexp) |
-| `cargo test --lib` | 478 PASS |
-| `cargo test -p neural-spring-forge --lib` | 30 PASS |
+| `validate_all` | 150 binaries (149/150 PASS, 1 pre-existing logsumexp) |
+| `cargo test --lib` | 580 PASS |
+| `cargo test -p neural-spring-forge --lib` | 43 PASS |
 | `cargo clippy (pedantic+nursery)` | 0 warnings |
 
 ## Session 58 — Upstream Dispatch Rewiring + GpuDriverProfile (February 24, 2026)
@@ -741,7 +741,7 @@ unavoidable transitive dependencies with no C compilation.
 
 | Gate | Result |
 |------|--------|
-| `validate_cross_spring_evolution` | **22/22 PASS** |
+| `validate_cross_spring_evolution` | **39/39 PASS** |
 | `cargo test --lib` | **500 PASS** |
 | `validate_all` | **145/146 PASS** |
 
@@ -790,7 +790,7 @@ Motivates StatefulPipeline/UnidirectionalPipeline batching.
 
 | Gate | Result |
 |------|--------|
-| `cargo test --lib` | **505 PASS** |
+| `cargo test --lib` | **580 PASS** |
 | `validate_all` | **147/148 PASS** |
 | `validate_gpu_phase_c` | **18/18 PASS** |
 | `validate_cpu_math_parity` | **39/39 PASS** |
@@ -821,7 +821,7 @@ Full barracuda usage sweep across 60+ files, 90+ import sites:
 |------|--------|
 | `cargo fmt --all -- --check` | **PASS** |
 | `cargo clippy --all-targets -D warnings` | **0 warnings** |
-| `cargo test --lib` | **505/505 PASS** |
+| `cargo test --lib` | **580/580 PASS** |
 | `cargo test --test integration` | **9/9 PASS** |
 | `cargo doc --no-deps` | **0 warnings** |
 | `cargo llvm-cov --lib` | **90.43% line coverage** |
@@ -874,10 +874,58 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 | Category | Count |
 |----------|-------|
 | Barracuda submodules consumed | 20+ |
-| Functions rewired to upstream | 17 |
+| Functions rewired to upstream | 21 |
 | Validator shader sources rewired | 6 |
 | Upstream GPU typed ops validated | 10 bio + f64 HMM + Gillespie + wetSpring trio + chi² |
 | Total barracuda import sites | 90+ |
 | Upstream API coverage | 117+ APIs exercised |
 
-*BarraCUDA usage audit — neuralSpring, February 25, 2026. Sessions 50–69: 17 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 159 binaries, 505 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 104+ tolerances, 90.43% coverage. Session 69: shader rewiring complete, upstream benchmarks nominal (10/10 ≈ or ~).*
+---
+
+## Session 73 — Cross-Spring Rewiring (February 26, 2026)
+
+### 4 New Upstream Tensor API + Bio Rewires
+
+| API | Where Used | Purpose |
+|-----|------------|---------|
+| `Tensor::argmax_dim(0)` | `gpu_ops/bio.rs::hmm_viterbi_step_gpu` | Viterbi psi extraction — replaces CPU argmax loop over readback scores. Available since ToadStool S60 (commit `0c998992`). |
+| `Tensor::softmax_dim(1)` | `gpu_dispatch/dispatch_ops.rs::Dispatcher::softmax_row_wise` | Row-wise softmax for attention/PGM transition matrices. Available since ToadStool S60. |
+| `barracuda::ops::bio::fst_variance_decomposition` | `meta_population::fst_single_locus`, `pairwise_fst_full` | Weir-Cockerham single-locus decomposition for full F-statistics (θ, f_is, f_it). From wetSpring S53 population genetics. |
+
+### Cross-Spring Evolution Validator
+
+| Gate | Before S73 | After S73 |
+|------|------------|-----------|
+| `validate_cross_spring_evolution` | 22/22 PASS | **39/39 PASS** |
+
+## Session 74 — Pure GPU All-Domains + Cross-System Dispatch (February 26, 2026)
+
+### New Binaries
+
+| Binary | Type | Result | BarraCUDA Usage |
+|--------|------|--------|-----------------|
+| `validate_gpu_pure_workload_all` | Validation | 10/10 PASS | 9 typed GPU ops: `BatchFitnessGpu`, `MultiObjFitnessGpu`, `HmmBatchForwardF64`, `SpatialPayoffGpu`, `BatchIprGpu`, `PairwiseHammingGpu`, `PairwiseL2Gpu`, `PairwiseJaccardGpu`, `LocusVarianceGpu` |
+| `validate_cross_system_dispatch` | Validation | 46/46 PASS | `VarianceReduceF64`, `CorrelationF64`, `shannon_entropy_gpu` via mixed dispatch; `Dispatcher::mixed_dispatch()` with metalForge cost model |
+| `bench_evolution_tiers` | Benchmark | 8 domains | CPU vs GPU portability: HMM, fitness, Hamming, L2, Jaccard, spatial, Hill, commutator |
+
+### Key Findings
+
+- **f32/f64 type boundary**: f64 for HMM/fitness/locus variance (log-space accumulation); f32 for IPR/L2/Hamming/Jaccard/spatial (GPU shader precision sufficient)
+- **Pre-normalization**: `BatchIprGpu` requires unit-norm eigenvectors
+- **Upper-triangle output**: `PairwiseJaccardGpu` returns flat upper triangle
+- **GPU dispatch overhead**: ~186µs per `queue.submit()` (structural floor)
+- **CPU→GPU crossover**: ~1946µs compute (below this, CPU is faster)
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `validate_all` | **149/150 PASS** |
+| `validate_gpu_pure_workload_all` | **10/10 PASS** |
+| `validate_cross_system_dispatch` | **46/46 PASS** |
+| `cargo test --lib` | 580 PASS |
+| `cargo test -p neural-spring-forge --lib` | 43 PASS |
+
+---
+
+*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–74: 21 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 163 binaries, 580 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 107+ tolerances, 94.53% coverage. Session 69: shader rewiring complete, upstream benchmarks nominal (10/10 ≈ or ~). Session 73: 4 Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition), cross-spring validator 39/39 PASS. Session 74: pure GPU all-domains 10/10 PASS (9 typed GPU ops + determinism), cross-system dispatch 46/46 PASS, evolution tier benchmarks (8 domains CPU→GPU portability), 149/150 validate_all.*

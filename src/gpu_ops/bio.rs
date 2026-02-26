@@ -323,8 +323,10 @@ pub fn hmm_backward_step_gpu(
 /// GPU HMM Viterbi step: `δ_t[j] = max_i(δ_{t-1}[i] + logA[i,j]) + logB[j,o_t]`.
 ///
 /// Returns `(delta_t, psi_t)` where `psi_t[j] = argmax_i(...)`.
-/// Score matrix construction and max-reduction run on GPU; argmax
-/// (N comparisons per state) runs on CPU since `Tensor` lacks argmax.
+/// Score matrix and max-reduction run on GPU. Argmax uses upstream
+/// `Tensor::argmax_dim(0)` (rewired S72 — previously CPU loop; upstream
+/// `argmax_dim` absorbed from cross-spring evolution: neuralSpring request
+/// → `ToadStool` S60 implementation → available since `0c998992`).
 ///
 /// # Errors
 ///
@@ -354,29 +356,22 @@ pub fn hmm_viterbi_step_gpu(
     let max_vals = scores
         .max_dim(0, false)
         .map_err(|e| format!("viterbi max: {e}"))?;
-
-    let scores_flat = scores
-        .to_vec()
-        .map_err(|e| format!("viterbi scores: {e}"))?;
     let max_f32 = max_vals
         .to_vec()
         .map_err(|e| format!("viterbi max_read: {e}"))?;
+
+    let argmax_t = scores
+        .argmax_dim(0)
+        .map_err(|e| format!("viterbi argmax: {e}"))?;
+    let argmax_u32 = argmax_t
+        .to_vec_u32()
+        .map_err(|e| format!("viterbi argmax_read: {e}"))?;
 
     let mut delta_new = Vec::with_capacity(n);
     let mut psi = Vec::with_capacity(n);
     for j in 0..n {
         delta_new.push(f64::from(max_f32[j]) + log_emission_col[j]);
-
-        let mut best_i = 0;
-        let mut best_val = f32::NEG_INFINITY;
-        for i in 0..n {
-            let val = scores_flat[i * n + j];
-            if val > best_val {
-                best_val = val;
-                best_i = i;
-            }
-        }
-        psi.push(best_i);
+        psi.push(argmax_u32[j] as usize);
     }
 
     Ok((delta_new, psi))

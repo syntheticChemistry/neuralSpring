@@ -220,6 +220,7 @@ pub struct LandscapeResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     fn quadratic_loss(x: &[f64]) -> f64 {
         x.iter().map(|&xi| xi * xi).sum()
@@ -237,12 +238,12 @@ mod tests {
     #[test]
     fn quadratic_hessian_is_identity() {
         let params = vec![0.0; 4];
-        let hessian = numerical_hessian(&quadratic_loss, &params, 1e-5);
+        let hessian = numerical_hessian(&quadratic_loss, &params, tolerances::HESSIAN_FD_STEP);
         for i in 0..4 {
             for j in 0..4 {
                 let expected = if i == j { 2.0 } else { 0.0 };
                 assert!(
-                    (hessian[i * 4 + j] - expected).abs() < 1e-4,
+                    (hessian[i * 4 + j] - expected).abs() < tolerances::OPTIMIZER_VALUE_AT_MIN,
                     "H[{i},{j}] = {}, expected {expected}",
                     hessian[i * 4 + j]
                 );
@@ -253,8 +254,11 @@ mod tests {
     #[test]
     fn quadratic_at_minimum() {
         let params = vec![0.0; 4];
-        let result = landscape_analysis(&quadratic_loss, &params, 1e-5, 0.1);
-        assert!(result.loss.abs() < 1e-12, "loss at origin should be 0");
+        let result = landscape_analysis(&quadratic_loss, &params, tolerances::HESSIAN_FD_STEP, 0.1);
+        assert!(
+            result.loss.abs() < tolerances::EXACT_F64,
+            "loss at origin should be 0"
+        );
         assert_eq!(result.saddle_index, 0, "origin is a minimum, not a saddle");
         assert!(
             result.sharpness > 1.0,
@@ -265,8 +269,12 @@ mod tests {
     #[test]
     fn rosenbrock_at_minimum() {
         let params = vec![1.0, 1.0];
-        let result = landscape_analysis(&rosenbrock_loss, &params, 1e-5, 0.1);
-        assert!(result.loss < 1e-6, "loss at (1,1) should be ~0");
+        let result =
+            landscape_analysis(&rosenbrock_loss, &params, tolerances::HESSIAN_FD_STEP, 0.1);
+        assert!(
+            result.loss < tolerances::SPECIAL_FUNCTION_F64,
+            "loss at (1,1) should be ~0"
+        );
         assert_eq!(result.saddle_index, 0, "(1,1) is a minimum");
     }
 
@@ -293,14 +301,14 @@ mod tests {
     #[test]
     fn transition_barrier_symmetric() {
         let barrier = transition_barrier(0.0, 0.0, 1.0);
-        assert!((barrier - 1.0).abs() < 1e-12);
+        assert!((barrier - 1.0).abs() < tolerances::EXACT_F64);
     }
 
     #[test]
     fn determinism() {
         let params = vec![1.0, 2.0];
-        let h1 = numerical_hessian(&quadratic_loss, &params, 1e-5);
-        let h2 = numerical_hessian(&quadratic_loss, &params, 1e-5);
+        let h1 = numerical_hessian(&quadratic_loss, &params, tolerances::HESSIAN_FD_STEP);
+        let h2 = numerical_hessian(&quadratic_loss, &params, tolerances::HESSIAN_FD_STEP);
         assert_eq!(h1, h2);
     }
 }
