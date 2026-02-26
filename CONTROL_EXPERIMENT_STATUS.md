@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–75 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains)
+**Last updated**: February 26, 2026 (Sessions 44–76 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains + modern BarraCUDA rewiring)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -16,7 +16,7 @@
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero ad-hoc tolerances | zero bare `unwrap()` in validation code
 **Coverage**: 94.53% line coverage (llvm-cov), 107+ named tolerances in centralized registry
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `17932267` (47 commits reviewed S72) | **30 functions rewired to upstream** + 6 validator shader sources rewired | S73: +4 Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition)
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `17932267` (47 commits reviewed S72) | **32 functions rewired to upstream** + 6 validator shader sources rewired | S73: +4 Tensor API rewires, S76: +2 pearson_correlation rewires
 **Cross-Spring**: 39/39 evolution checks PASS (S73) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | softmax_row_wise, fst_single_locus, pairwise_fst_full, Viterbi argmax_dim rewired
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
 

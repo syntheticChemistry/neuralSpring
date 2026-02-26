@@ -3,7 +3,7 @@
 //! Pure GPU workload validation: all Phase 0++ paper domains (011–025).
 //!
 //! Extends `validate_gpu_pure_workload` (fitness-only) to cover every
-//! computational domain. Each domain dispatches its typed BarraCUDA GPU
+//! computational domain. Each domain dispatches its typed `BarraCUDA` GPU
 //! op, reads back a scalar summary, and compares against the CPU reference.
 //!
 //! ## Evolution proof
@@ -37,7 +37,7 @@
 //! ## Provenance
 //!
 //! Session 74. Cross-spring: hotSpring validation patterns, wetSpring
-//! bio-domain ops, all dispatched through typed BarraCUDA GPU wrappers.
+//! bio-domain ops, all dispatched through typed `BarraCUDA` GPU wrappers.
 
 #![allow(
     clippy::cast_precision_loss,
@@ -52,8 +52,8 @@
 )]
 
 use barracuda::ops::bio::{
-    BatchFitnessGpu, HmmBatchForwardF64, LocusVarianceGpu, MultiObjFitnessGpu,
-    PairwiseHammingGpu, PairwiseJaccardGpu, PairwiseL2Gpu, SpatialPayoffGpu,
+    BatchFitnessGpu, HmmBatchForwardF64, LocusVarianceGpu, MultiObjFitnessGpu, PairwiseHammingGpu,
+    PairwiseJaccardGpu, PairwiseL2Gpu, SpatialPayoffGpu,
 };
 use barracuda::spectral::BatchIprGpu;
 use neural_spring::gpu::Gpu;
@@ -144,7 +144,13 @@ fn validate_fitness(h: &mut ValidationHarness, gpu: &Gpu) {
         mapped_at_creation: false,
     });
 
-    op.dispatch(&geno_buf, &weight_buf, &out_buf, pop_size as u32, genome_len as u32);
+    op.dispatch(
+        &geno_buf,
+        &weight_buf,
+        &out_buf,
+        pop_size as u32,
+        genome_len as u32,
+    );
 
     match gpu.read_buffer_f64(&out_buf, pop_size) {
         Ok(fitness) => {
@@ -308,8 +314,16 @@ fn validate_hmm(h: &mut ValidationHarness, gpu: &Gpu) {
     });
 
     if let Err(e) = op.dispatch(
-        n_states, n_symbols, seq_len as u32, n_seqs as u32,
-        &lt_buf, &le_buf, &lp_buf, &obs_buf, &alpha_buf, &ll_buf,
+        n_states,
+        n_symbols,
+        seq_len as u32,
+        n_seqs as u32,
+        &lt_buf,
+        &le_buf,
+        &lp_buf,
+        &obs_buf,
+        &alpha_buf,
+        &ll_buf,
     ) {
         h.check_bool(&format!("HMM dispatch: {e}"), false);
         return;
@@ -340,11 +354,18 @@ fn validate_spatial_payoff(h: &mut ValidationHarness, gpu: &Gpu) {
     let b = 1.5_f32;
     let c = 1.0_f32;
     let mut rng = Rng::new(99);
-    let grid: Vec<u32> = (0..n).map(|_| if rng.uniform() > 0.5 { 1 } else { 0 }).collect();
+    let grid: Vec<u32> = (0..n).map(|_| u32::from(rng.uniform() > 0.5)).collect();
 
     let cpu_mean = {
         let neighbors: [(i32, i32); 8] = [
-            (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1),
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
         ];
         let gn = gs as i32;
         let mut total = 0.0_f32;
@@ -453,8 +474,8 @@ fn validate_batch_ipr(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match gpu.read_buffer_f32(&out_buf, n_vectors) {
         Ok(gpu_ipr) => {
-            let gpu_mean: f64 = gpu_ipr.iter().map(|&v| f64::from(v)).sum::<f64>()
-                / gpu_ipr.len() as f64;
+            let gpu_mean: f64 =
+                gpu_ipr.iter().map(|&v| f64::from(v)).sum::<f64>() / gpu_ipr.len() as f64;
             h.check_abs(
                 &format!("IPR 8×16: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
                 gpu_mean,
@@ -474,9 +495,7 @@ fn validate_hamming(h: &mut ValidationHarness, gpu: &Gpu) {
     let n_seqs = 6_usize;
     let seq_len = 20_usize;
     let mut rng = Rng::new(44);
-    let seqs: Vec<u32> = (0..n_seqs * seq_len)
-        .map(|_| rng.usize(4) as u32)
-        .collect();
+    let seqs: Vec<u32> = (0..n_seqs * seq_len).map(|_| rng.usize(4) as u32).collect();
 
     let n_pairs = n_seqs * (n_seqs - 1) / 2;
     let cpu_mean = {
@@ -574,8 +593,8 @@ fn validate_l2(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match gpu.read_buffer_f32(&out_buf, n_pairs) {
         Ok(gpu_d) => {
-            let gpu_mean: f64 = gpu_d.iter().map(|&v| f64::from(v)).sum::<f64>()
-                / gpu_d.len() as f64;
+            let gpu_mean: f64 =
+                gpu_d.iter().map(|&v| f64::from(v)).sum::<f64>() / gpu_d.len() as f64;
             h.check_abs(
                 &format!("L2 8×6: GPU={gpu_mean:.4} vs CPU={cpu_mean:.4}"),
                 gpu_mean,
@@ -599,9 +618,8 @@ fn validate_jaccard(h: &mut ValidationHarness, gpu: &Gpu) {
         .map(|_| if rng.uniform() > 0.3 { 1.0 } else { 0.0 })
         .collect();
 
-    let cpu_jd = neural_spring::pangenome_selection::jaccard_distance_matrix(
-        &pa_f64, n_genes, n_genomes,
-    );
+    let cpu_jd =
+        neural_spring::pangenome_selection::jaccard_distance_matrix(&pa_f64, n_genes, n_genomes);
     let mut cpu_upper = Vec::new();
     for i in 0..n_genomes {
         for j in (i + 1)..n_genomes {
@@ -632,8 +650,8 @@ fn validate_jaccard(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match gpu.read_buffer_f32(&out_buf, n_pairs) {
         Ok(gpu_d) => {
-            let gpu_mean: f64 = gpu_d.iter().map(|&v| f64::from(v)).sum::<f64>()
-                / gpu_d.len() as f64;
+            let gpu_mean: f64 =
+                gpu_d.iter().map(|&v| f64::from(v)).sum::<f64>() / gpu_d.len() as f64;
             h.check_abs(
                 &format!("Jaccard 8×32: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
                 gpu_mean,

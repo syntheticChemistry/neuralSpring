@@ -29,8 +29,8 @@ use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::dispatch::{self, Substrate};
 use neural_spring_forge::inventory;
 use neural_spring_forge::mixed::{
-    self, compare_transfer_paths, chained_transfer_cost, transfer_cost_for_tier,
-    BandwidthTier, MixedSubstrate,
+    self, chained_transfer_cost, compare_transfer_paths, transfer_cost_for_tier, BandwidthTier,
+    MixedSubstrate,
 };
 use neural_spring_forge::pcie_bridge::PcieBridge;
 use neural_spring_forge::substrate::{Capability, SubstrateKind};
@@ -44,10 +44,7 @@ fn validate_hardware_discovery(h: &mut ValidationHarness) {
         .count();
     h.check_bool("discovery: exactly 1 CPU", cpu_count == 1);
 
-    let Some(cpu) = substrates
-        .iter()
-        .find(|s| s.kind == SubstrateKind::Cpu)
-    else {
+    let Some(cpu) = substrates.iter().find(|s| s.kind == SubstrateKind::Cpu) else {
         h.check_bool("CPU: must exist in inventory", false);
         return;
     };
@@ -62,10 +59,7 @@ fn validate_hardware_discovery(h: &mut ValidationHarness) {
         .count();
     h.check_bool("discovery: found GPU(s)", gpu_count > 0);
 
-    for gpu in substrates
-        .iter()
-        .filter(|s| s.kind == SubstrateKind::Gpu)
-    {
+    for gpu in substrates.iter().filter(|s| s.kind == SubstrateKind::Gpu) {
         h.check_bool(
             &format!("GPU '{}': has shader dispatch", gpu.identity.name),
             gpu.has(&Capability::ShaderDispatch),
@@ -195,8 +189,7 @@ fn validate_multi_substrate_parity(
 
     let x: Vec<f64> = (0..512).map(|_| rng.normal()).collect();
     let y: Vec<f64> = (0..512).map(|_| rng.normal()).collect();
-    let cpu_pearson =
-        barracuda::stats::correlation::pearson_correlation(&x, &y).unwrap_or(0.0);
+    let cpu_pearson = barracuda::stats::correlation::pearson_correlation(&x, &y).unwrap_or(0.0);
 
     let (mixed_pearson, pear_sub) = dispatcher.mixed_dispatch(
         "cross_system_pearson",
@@ -235,9 +228,7 @@ fn validate_multi_substrate_parity(
         (e_data.len() * 8) as u64,
         false,
         false,
-        |dev| {
-            neural_spring::gpu_ops::shannon_entropy_gpu(&e_data, dev)
-        },
+        |dev| neural_spring::gpu_ops::shannon_entropy_gpu(&e_data, dev),
         || cpu_entropy,
     );
 
@@ -269,11 +260,8 @@ fn validate_transfer_cost_hierarchy(h: &mut ValidationHarness) {
             && cost_pcie4x16.estimated_us() < cost_pcie4x4.estimated_us(),
     );
 
-    let chained_gpu_cpu_npu = chained_transfer_cost(
-        bytes,
-        BandwidthTier::Pcie4X16,
-        BandwidthTier::Pcie4X4,
-    );
+    let chained_gpu_cpu_npu =
+        chained_transfer_cost(bytes, BandwidthTier::Pcie4X16, BandwidthTier::Pcie4X4);
     let direct_gpu_npu = transfer_cost_for_tier(bytes, BandwidthTier::Pcie4X4);
     h.check_bool(
         "multi-hop: GPU→CPU→NPU slower than GPU→NPU direct",
@@ -361,7 +349,9 @@ fn validate_crossover_sweep(h: &mut ValidationHarness) {
             crossover_found = true;
             let ratio = compute_us / threshold;
             h.check_bool(
-                &format!("crossover at {compute_us:.0}µs (threshold {threshold:.0}µs, ratio {ratio:.2})"),
+                &format!(
+                    "crossover at {compute_us:.0}µs (threshold {threshold:.0}µs, ratio {ratio:.2})"
+                ),
                 ratio > 0.8 && ratio < 1.3,
             );
             break;

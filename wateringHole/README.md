@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V39** | `handoffs/NEURALSPRING_TOADSTOOL_V39_S75_UPSTREAM_SYNC_S60_S65_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S75: ToadStool S60–S65 sync (694 shaders, 2490 tests), 9 stats rewires, 4 validators fixed, 150/150 validate_all, 30 upstream rewires + 6 shader sources |
+| **V40** | `handoffs/NEURALSPRING_TOADSTOOL_V40_S76_MODERN_REWIRING_BENCHMARK_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S76: +2 pearson_correlation rewires, full benchmark validation (10/10 GPU ≈ parity, cross-spring f64 1.4–3.2×), 32 upstream rewires + 6 shader sources, documentation sweep |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V38, 52 files).
+Superseded handoffs: `handoffs/archive/` (V1–V39, 53 files).
 
 ## Conventions
 

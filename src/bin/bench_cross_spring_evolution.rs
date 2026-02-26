@@ -2,7 +2,7 @@
 
 //! Cross-spring evolution benchmark: traces shader provenance across springs.
 //!
-//! Demonstrates how `ToadStool`/BarraCUDA benefits from cross-spring evolution:
+//! Demonstrates how `ToadStool`/`BarraCUDA` benefits from cross-spring evolution:
 //!
 //! | Spring | Domain | Key Contributions |
 //! |--------|--------|-------------------|
@@ -18,8 +18,13 @@
 //! ## Session 75
 //!
 //! Covers rewired functions: `r_squared`, `rmse`, `nse`, `dot`, `l2_norm`,
-//! `shannon`, `nash_sutcliffe` — all absorbed into BarraCUDA `stats` from
+//! `shannon`, `nash_sutcliffe` — all absorbed into `BarraCUDA` `stats` from
 //! airSpring/groundSpring/wetSpring in `ToadStool` S64.
+//!
+//! # Panics
+//!
+//! Panics if the tokio runtime cannot be created or if GPU diversity fusion
+//! operations fail — this is a benchmark binary, not a library.
 
 #![allow(
     clippy::cast_precision_loss,
@@ -30,7 +35,10 @@
     clippy::cast_lossless,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
-    clippy::similar_names
+    clippy::similar_names,
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::suboptimal_flops
 )]
 
 use barracuda::ops::bio::DiversityFusionGpu;
@@ -243,7 +251,7 @@ fn main() {
     eprintln!("    airSpring:    ~10  (ET₀, kriging, Richards, moving window)");
     eprintln!("    groundSpring: ~5   (multinomial, MC propagation)");
     eprintln!("    ToadStool:    ~474 (core math, linalg, nn, activations)");
-    eprintln!("  neuralSpring rewired: 30 functions + 6 shader sources to upstream");
+    eprintln!("  neuralSpring rewired: 32 functions + 6 shader sources to upstream");
     eprintln!("  Cross-spring flow: each spring contributes domain expertise;");
     eprintln!("  ToadStool absorbs and GPU-accelerates → all springs benefit");
     eprintln!();
@@ -266,7 +274,8 @@ fn bench_gpu_diversity_fusion(
 
     let cpu_us = bench("diversity_fusion_cpu (wetSpring→ToadStool)", || {
         std::hint::black_box(barracuda::ops::bio::diversity_fusion_cpu(
-            &abundances, n_species,
+            &abundances,
+            n_species,
         ));
     });
     h.check_bool(

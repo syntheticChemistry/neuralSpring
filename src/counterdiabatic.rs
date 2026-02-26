@@ -22,17 +22,20 @@
 use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
-/// Numerical floor for probability normalization to prevent log(0).
+/// Probability floor for Boltzmann weights to prevent `log(0)` in KL divergence.
 ///
-/// Well above subnormal territory (`f64::MIN_POSITIVE` ≈ 2.2e-308)
-/// while being negligible for any Boltzmann weight in the NK model.
+/// Domain-specific: 1e-30 is larger than [`crate::primitives::LOG_GUARD`] (1e-300)
+/// because NK model Boltzmann weights at β=1 can legitimately be O(1e-20)
+/// and we need this floor to be well below the smallest real probability
+/// while staying above the threshold where f64 arithmetic degrades.
 const SAFETY_EPS: f64 = 1e-30;
 
-/// Floor for Fisher information metric to prevent division by zero.
+/// Floor for Fisher information metric to prevent `ds/dt → ∞`.
 ///
-/// The Fisher metric g(s) = `β²·Var_s[F]` can vanish at landscape saddle
-/// points. This floor prevents infinite speed ds/dt ∝ 1/√g(s) while
-/// being negligible compared to typical g(s) ∈ \[1e-4, 1\] for β=1.
+/// Domain-specific: the Fisher metric `g(s) = β²·Var_s[F]` vanishes at
+/// landscape saddle points. This floor caps the geodesic speed while
+/// being negligible compared to typical `g(s) ∈ [1e-4, 1]` for β=1.
+/// See also: [`crate::primitives::DIVISION_GUARD`] for the generic guard.
 const FISHER_EPS: f64 = 1e-10;
 
 /// NK fitness landscape: N binary loci, K epistatic interactions.

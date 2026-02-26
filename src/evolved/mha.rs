@@ -23,9 +23,19 @@ use barracuda::tensor::Tensor;
 /// Thin wrapper over upstream `MultiHeadAttention` that adds a batch dimension.
 /// Callers that already have 3D tensors should use the upstream API directly.
 ///
+/// # Migration
+///
+/// Use [`barracuda::ops::mha::MultiHeadAttention`] directly with 3D tensors
+/// `[batch, seq, d_model]`. This wrapper only reshapes 2D→3D→2D and will be
+/// removed once all callers migrate.
+///
 /// # Errors
 ///
 /// Returns [`BarracudaError`] on shape mismatch or GPU failure.
+#[deprecated(
+    since = "0.2.0",
+    note = "Use barracuda::ops::mha::MultiHeadAttention directly with 3D tensors"
+)]
 #[allow(clippy::too_many_arguments)]
 pub fn multi_head_attention_2d(
     input: &Tensor,
@@ -58,7 +68,7 @@ pub fn multi_head_attention_2d(
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used)]
+    #![allow(clippy::expect_used, deprecated)]
 
     use super::*;
     use barracuda::device::WgpuDevice;

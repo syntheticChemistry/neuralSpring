@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 26, 2026 (Sessions 61–74)
-**Status**: 25 papers + 5 baseCamp sub-theses, 2130+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 30 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (39/39 PASS), zero debt, 94.53% coverage (580 tests), 107+ named tolerances, zero ad-hoc magic numbers in ALL test assertions (150+ replacements across 21 library test files — S71), all deps Pure Rust (ecoBin compliant), 100% SPDX compliance, S73: 4 new Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition), S74: pure GPU all-domains 10/10 PASS (9 typed BarraCUDA GPU ops + determinism), evolution tier benchmark (8 domains CPU→GPU)
+**Last Updated**: February 26, 2026 (Sessions 61–76)
+**Status**: 25 papers + 5 baseCamp sub-theses, 2180+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 32 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (39/39 PASS), zero debt, 94.53% coverage (580 tests), 107+ named tolerances, zero ad-hoc magic numbers in ALL test assertions (150+ replacements across 21 library test files — S71), all deps Pure Rust (ecoBin compliant), 100% SPDX compliance, S73: 4 new Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition), S74: pure GPU all-domains 10/10 PASS (9 typed BarraCUDA GPU ops + determinism), evolution tier benchmark (8 domains CPU→GPU), S76: modern BarraCUDA rewiring + benchmark validation (Variance 3.20×, Pearson 1.36×, Shannon 2.24× cross-spring f64)
 
 ## Purpose
 

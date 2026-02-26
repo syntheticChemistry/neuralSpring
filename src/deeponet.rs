@@ -38,6 +38,7 @@
 //! DeepONet IS attention between functions and locations
 //! ```
 
+use crate::primitives::DIVISION_GUARD;
 use crate::rng::Rng;
 
 /// Evaluate a polynomial u(x) = Σ aₖ xᵏ at a set of points.
@@ -183,7 +184,7 @@ pub fn l2_relative_error(predicted: &[f64], exact: &[f64]) -> f64 {
         .collect();
     let num = barracuda::stats::l2_norm(&diff);
     let den = barracuda::stats::l2_norm(exact);
-    num / (den + 1e-30)
+    num / (den + DIVISION_GUARD)
 }
 
 /// RMSE between predicted and exact values (delegates to `barracuda::stats::rmse`).

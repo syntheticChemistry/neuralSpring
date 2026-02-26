@@ -55,6 +55,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 041 | Session 73 — Cross-Spring Rewiring: Upstream Tensor APIs + Benchmarks | Feb 26, 2026 | 4 upstream rewires (softmax_dim, argmax_dim, fst_variance_decomposition), 39/39 validator PASS, cross-spring lineage benchmarks, V36 handoff |
 | 042 | Session 74 — Pure GPU All-Domains + Cross-System Dispatch + Evolution Tier Benchmarks | Feb 26, 2026 | 9-domain GPU validator 10/10 PASS, cross-system dispatch 46/46 PASS, evolution-tier benchmark, 149/150 validate_all |
 | 043 | Session 75 — ToadStool S60–S65 Upstream Sync: Stats Rewiring + Cross-Spring Benchmarks | Feb 26, 2026 | 4 commits reviewed (234 files), 9 functions rewired to barracuda::stats (r², rmse, nse, dot, l2\_norm, shannon), 4 validators fixed, cross-spring evolution benchmark (15/15 PASS), **150/150 validate_all**, 30 total rewires |
+| 044 | Session 76 — Modern BarraCUDA Rewiring + Benchmark Validation | Feb 26, 2026 | +2 pearson\_correlation rewires (meta\_population), full benchmark sweep (10/10 upstream parity, 3.20× variance, 2.24× Shannon, 1.36× Pearson cross-spring f64), **150/150 validate_all**, 32 total rewires |
 
 ---
 
@@ -2313,7 +2314,7 @@ benchmark cross-spring shader lineage.
 - **hotSpring → BarraCUDA precision**: df64_core, pow_f64 polyfill, Fp64Strategy, GpuDriverProfile, Taylor trig, Lanczos eigensolver
 - **wetSpring → BarraCUDA bio+spectral**: HMM forward/backward, 5 ODE bio systems, NMF, Anderson, ridge regression, `fst_variance_decomposition` [S73 rewire]
 - **neuralSpring → BarraCUDA ops**: ValidationHarness, batch_fitness, pairwise_l2, eigh, KernelRouter, ESD/MP/rank, gelu/hmm_forward dispatch
-- **All three → ToadStool**: 599+ WGSL shaders (cross-spring evolved), 30 functions rewired total
+- **All three → ToadStool**: 694+ WGSL shaders (cross-spring evolved), 32 functions rewired total
 
 ### Tolerances Added
 
@@ -2461,7 +2462,7 @@ were broken by API changes (logsumexp f32→f64, RK4 constant removed).
   computes Shannon+Simpson+Pielou in a single GPU pass.
 - **logsumexp precision boundary**: upstream evolved to f64-only, which is correct
   for neuralSpring's log-space ML accumulation.
-- **Total upstream rewires**: 30 functions + 6 shader sources.
+- **Total upstream rewires**: 32 functions + 6 shader sources.
 
 ### Surprises
 
@@ -2481,7 +2482,66 @@ were broken by API changes (logsumexp f32→f64, RK4 constant removed).
 | `validate_all` | **150/150 PASS** |
 | `bench_cross_spring_evolution` | **15/15 PASS** |
 | `validate_cross_spring_evolution` | **39/39 PASS** |
-| Total upstream rewires | **30 functions + 6 shader sources** |
+| Total upstream rewires | **32 functions + 6 shader sources** |
+
+---
+
+## Experiment 044 — Modern BarraCUDA Rewiring + Benchmark Validation (Session 76)
+
+**Date**: February 26, 2026
+**Scope**: Complete rewiring to modern ToadStool/BarraCUDA, benchmark validation, cross-spring evolution documentation
+
+### Motivation
+
+Session 75 rewired 9 stats functions to upstream BarraCUDA S64. A deep scan of the
+full library revealed two more high-value rewiring opportunities where neuralSpring
+was computing Pearson correlations locally instead of delegating to upstream
+`barracuda::stats::pearson_correlation` (absorbed from airSpring/groundSpring
+hydrology metrics in ToadStool S64).
+
+### New Rewires
+
+| Function | Module | Upstream | Cross-Spring Origin |
+|----------|--------|----------|---------------------|
+| `matrix_correlation` | `meta_population.rs` | `barracuda::stats::pearson_correlation` | airSpring/groundSpring S64 |
+| `thermal_diversity_correlation` | `meta_population.rs` | `barracuda::stats::pearson_correlation` | airSpring/groundSpring S64 |
+
+### Benchmark Results (RTX 4070, Release)
+
+**Upstream wrappers vs local metalForge dispatch** — 10/10 kernels show negligible
+overhead (0.85–1.14×). BarraCUDA wrappers add zero meaningful cost vs raw dispatch.
+
+**Cross-spring evolved f64 shaders vs naïve f32 Tensor**:
+- Variance: **3.20×** (hotSpring Welford online algorithm)
+- Shannon entropy: **2.24×** (wetSpring fused map-reduce)
+- Pearson: **1.36×** (wetSpring + hotSpring combined precision)
+
+**CPU stats throughput** (barracuda::stats, 10K elements):
+- airSpring: RMSE 4.1µs, R² 12.4µs, NSE 12.5µs, IA 14.0µs
+- wetSpring: Shannon 1.8µs, Simpson 0.7µs, Chao1 0.2µs, Bray-Curtis 0.1µs
+- hotSpring: Pearson 26.1µs
+
+### Remaining Local Implementations (Architectural Decisions)
+
+Functions intentionally kept local rather than delegating to upstream:
+
+- **`primitives.rs` CPU references** — `sigmoid`, `rk4_step`, `shannon_entropy`, `hill_activation`, etc. serve as independent validation references for GPU correctness
+- **`spectral_commutativity.rs` CPU references** — `frobenius_norm`, `mat_mul`, `commutator` kept for GPU validation independence (documented in doc comments)
+- **`pangenome_selection.rs` chi-squared** — domain-specific expected-value computation differs from upstream `chi_squared_statistic` interface
+- **Inline mean/variance** — many call sites are in hot loops or algorithmic contexts where function call overhead is unnecessary for 3-5 element arrays
+
+### Quality Gates
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | **PASS** |
+| `cargo clippy --workspace -- -D warnings` | **0 warnings** |
+| `cargo test --workspace` | **580 lib + 43 forge + 9 integration PASS** |
+| `validate_all` | **150/150 PASS** |
+| `validate_cross_spring_evolution` | **39/39 PASS** |
+| `bench_cross_spring_evolution` | **15/15 PASS** |
+| `bench_upstream_vs_local` | **10/10 kernels ≈ parity** |
+| Total upstream rewires | **32 functions + 6 shader sources** |
 
 ---
 

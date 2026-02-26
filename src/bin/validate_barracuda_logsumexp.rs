@@ -12,7 +12,7 @@
 //! All expected values are analytical (logsumexp definition).
 //! `logsumexp(x) = log(sum(exp(x))) = max(x) + log(sum(exp(x - max(x))))`
 //!
-//! ## Upstream evolution (ToadStool S60–S65)
+//! ## Upstream evolution (`ToadStool` S60–S65)
 //!
 //! `LogSumExp::execute()` evolved to f64-only (uses `compile_shader_f64`,
 //! `create_buffer_f64`).  This validator feeds f64 tensors and reads back
@@ -101,9 +101,7 @@ async fn main() {
     let mut h = ValidationHarness::new("barracuda_logsumexp");
 
     if !logsumexp_probe(&device) {
-        eprintln!(
-            "  [skip] LogSumExp op not functional — skipping all checks"
-        );
+        eprintln!("  [skip] LogSumExp op not functional — skipping all checks");
         h.check_bool("LogSumExp probe: op not functional", false);
         h.finish();
     }

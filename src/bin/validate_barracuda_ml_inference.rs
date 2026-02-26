@@ -21,7 +21,7 @@
 //! NEURALSPRING_BACKEND=cpu  cargo run --bin validate_barracuda_ml_inference
 //! ```
 
-#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_precision_loss, deprecated)]
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;

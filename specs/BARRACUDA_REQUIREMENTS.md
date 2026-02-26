@@ -34,32 +34,34 @@
 
 ## Gaps for Faculty Extension Papers
 
-### Critical (P0) — Required for top-priority papers
+*Updated Feb 26, 2026 (Session 75): All P0 and P1 gaps RESOLVED. 4 of 6 P2 gaps RESOLVED.*
 
-| Need | Paper | Why | Effort |
-|------|-------|-----|--------|
-| **Evolutionary optimization (GA/ES)** | Dolson: Iram et al. 2020 (counterdiabatic), MODES 2019 | Population-level optimization with selection, mutation, crossover. Need parallel fitness evaluation + selection on GPU | Medium — population GEMM + tournament selection |
-| **Fitness landscape evaluation** | Dolson: all papers | Parallel evaluation of fitness across large populations. Already have GEMM; need population management | Low — orchestration around existing GEMM |
+### Critical (P0) — RESOLVED
 
-### Important (P1) — Required for tier 1-2 papers
+| Need | Paper | Resolution | Status |
+|------|-------|-----------|--------|
+| **Evolutionary optimization (GA/ES)** | Dolson: Iram et al. 2020, MODES 2019 | `BatchFitnessGpu`, `MultiObjFitnessGpu`, `WrightFisherGpu` (S39+) | **RESOLVED** |
+| **Fitness landscape evaluation** | Dolson: all papers | `BatchFitnessGpu` + `barracuda::stats::variance` (S39+) | **RESOLVED** |
 
-| Need | Paper | Why | Effort |
-|------|-------|-----|--------|
-| **HMM Viterbi decoding** | Liu: PhyloNet-HMM 2014 | Forward/backward/Viterbi on state-space models. Matrix chain in log-space — need log-sum-exp shader | Medium |
-| **Log-sum-exp** | Liu: HMM, phylogenetics | Numerically stable summation in log-probability space. Fundamental for any probabilistic model on GPU | Low |
-| **Gillespie stochastic simulation** | Waters: cooperation dynamics 2018 | Parallel stochastic trajectories. Need GPU PRNG + exponential sampling + event selection | Medium |
-| **Game-theoretic payoff matrix** | Waters: Bruger 2018, Mhatre 2020 | Parallel evaluation of strategy payoffs across population. GEMM-based | Low |
+### Important (P1) — RESOLVED
 
-### Stretch (P2) — Longer horizon
+| Need | Paper | Resolution | Status |
+|------|-------|-----------|--------|
+| **HMM Viterbi decoding** | Liu: PhyloNet-HMM 2014 | `HmmBatchForwardF64` + `Tensor::argmax_dim(0)` (S39+, rewired S73) | **RESOLVED** |
+| **Log-sum-exp** | Liu: HMM, phylogenetics | `LogSumExp` op + `logsumexp_reduce.wgsl` (S42+) | **RESOLVED** |
+| **Gillespie stochastic simulation** | Waters: cooperation dynamics 2018 | `GillespieGpu` + `xoshiro128ss.wgsl` GPU PRNG (S39+) | **RESOLVED** |
+| **Game-theoretic payoff matrix** | Waters: Bruger 2018, Mhatre 2020 | `SpatialPayoffGpu` (S39+) | **RESOLVED** |
 
-| Need | Paper | Why | Effort |
-|------|-------|-----|--------|
-| **MODES metric computation** | Dolson 2019 | Phylogenetic analysis on agent histories — Shannon diversity + lineage metrics over evolutionary time | Medium |
-| **Phylogenetic likelihood** | Liu: SATé 2009, cophylogenetics 2023 | Felsenstein pruning on trees. GEMM at each internal node, parallel across trees | High |
-| **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | Study 001 used Adam-only (5.1% L2 error). Paper achieves 0.06% with Adam + L-BFGS. Adding L-BFGS closes the gap | Medium |
-| **Directed evolution framework** | Dolson 2022 (eLife) | Artificial selection methods for microbial optimization. Connects neuralSpring to wetSpring wet lab | Medium |
-| **Lanczos eigensolve** | Kachkovskiy: JAMS 2016, GAFA 2018 | Hessian eigenvalue analysis for understanding loss landscape curvature. Large sparse matrix diagonalization — shared with hotSpring/groundSpring | Medium |
-| **Sparse matrix-vector product** | Kachkovskiy (all) | Inner-loop of Lanczos. Required for sparse attention, Hessian-vector products, and spectral analysis of weight matrices | Medium |
+### Stretch (P2) — Mostly resolved
+
+| Need | Paper | Resolution | Status |
+|------|-------|-----------|--------|
+| **MODES metric computation** | Dolson 2019 | `PairwiseL2Gpu` + `barracuda::stats::shannon` (S39+, S64) | **RESOLVED** |
+| **Phylogenetic likelihood** | Liu: SATé 2009, cophylogenetics 2023 | `FelsensteinGpu`, `FlatTree` (S39+) | **RESOLVED** |
+| **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | No upstream L-BFGS yet; Adam-only validated | **OPEN** |
+| **Directed evolution framework** | Dolson 2022 (eLife) | `MultiObjFitnessGpu`, `WrightFisherGpu`, `BatchedMultinomialGpu` (S39+, S61) | **RESOLVED** |
+| **Lanczos eigensolve** | Kachkovskiy: JAMS 2016, GAFA 2018 | `BatchedEighGpu`, `eigh_f64`, `sparse_eigh` (S39+) | **RESOLVED** |
+| **Sparse matrix-vector product** | Kachkovskiy (all) | `SparseGemmF64`, `cg_solve`, `bicgstab_solve` (S39+, S52) | **RESOLVED** |
 
 ---
 
@@ -80,16 +82,16 @@
 ## BarraCUDA Evolution Path for neuralSpring
 
 ```
-Phase 0/0+ (DONE — Python/PyTorch)     Phase 1 (GPU — NEXT)
+Phase 0/0+ (DONE)                       Phase 1 (GPU — DONE)
 ────────────────────────────            ────────────────────
-PyTorch MLP training        ────────→   BarraCUDA MLP (GEMM + ReLU + Adam)
-PyTorch LSTM                ────────→   BarraCUDA LSTM (lstm_cell.wgsl)
-PyTorch Conv2d              ────────→   BarraCUDA Conv2d (conv2d.wgsl)
-PyTorch quantized           ────────→   BarraCUDA Q4/Q8 (gemv_q4/q8.wgsl)
-N/A                         ────────→   Evolutionary optimization (NEW)
-N/A                         ────────→   HMM Viterbi (NEW)
-N/A                         ────────→   Gillespie simulation (NEW)
-N/A                         ────────→   L-BFGS optimizer (NEW)
+PyTorch MLP training        ────────→   BarraCUDA MLP (GEMM + ReLU + Adam)          ✓
+PyTorch LSTM                ────────→   BarraCUDA LSTM (lstm_cell.wgsl)              ✓
+PyTorch Conv2d              ────────→   BarraCUDA Conv2d (conv2d.wgsl)               ✓
+PyTorch quantized           ────────→   BarraCUDA Q4/Q8 (gemv_q4/q8.wgsl)           ✓
+N/A                         ────────→   Evolutionary optimization (BatchFitnessGpu)  ✓
+N/A                         ────────→   HMM Viterbi (HmmBatchForwardF64+argmax)      ✓
+N/A                         ────────→   Gillespie simulation (GillespieGpu)          ✓
+N/A                         ────────→   L-BFGS optimizer                             OPEN
 
 Phase 1 (GPU)                           Phase 2 (Applications)
 ─────────────                           ──────────────────────
@@ -128,14 +130,14 @@ The `tensor` binary exercises the **unified Tensor/WGSL path** — same shaders 
 | `validate_barracuda_special` | `special::{gamma, erf, bessel_*, legendre, hermite, laguerre}` | 26 | **PASS** |
 | `validate_barracuda_optimize` | `optimize::{nelder_mead, bisect, brent}` | 10 | **PASS** |
 | `validate_barracuda_precision` | `shaders::precision::cpu` (add, mul, fma, dot, sum) | 12 | **PASS** |
-| `validate_barracuda_tensor` | Tensor API: relu, gelu, sigmoid, softmax, layer\_norm, matmul, mse\_loss + tanh, exp, log, sqrt, div, scalar ops, reductions, swish, mish, losses, transpose, evolved ops | 90 | **PASS** |
+| `validate_barracuda_tensor` | Tensor API: relu, gelu, sigmoid, softmax, layer\_norm, matmul, mse\_loss + tanh, exp, log, sqrt, div, scalar ops, reductions, swish, mish, losses, transpose, evolved ops | 86 | **PASS** |
 | `validate_barracuda_tensor_f64` | f64 GPU ops: roundtrip, SumReduce, FusedMapReduce, NormReduce, VarianceReduce, WeightedDot, MaxAbsDiff, CosineSimilarity | 35 | **PASS** |
 | `validate_barracuda_quantized` | `shaders::quantized` (dequant Q4/Q8, GEMV) | 15 | **PASS** |
 | `validate_barracuda_linalg_ext` | `linalg::{svd_*, lu_inverse, gen_eigh}` | 17 | **PASS** |
 | `validate_barracuda_ml_inference` | ML inference: MLP + Transformer end-to-end vs Python/NumPy baselines | 13 | **PASS** |
 | `validate_barracuda_fft` | FFT: Cooley-Tukey 1D f32/f64, inverse round-trip, Parseval, known DFT pairs, Rfft | 24 | **PASS** |
 | `validate_barracuda_logsumexp` | LogSumExp: numerically stable summation in log-probability space (HMM, softmax) | 5 | **PASS** |
-| **Total** | | **272** | **ALL PASS** |
+| **Total** | | **268** | **ALL PASS** |
 
 ### BarraCUDA GPU Tensor — CPU vs GPU Validation (Phase 5a — February 22, 2026)
 
@@ -163,7 +165,7 @@ CPU f64 reference with calibrated tolerances.
 | S-16 | 2D transpose dispatches wrong workgroup count (256 vs 16) | High | **RESOLVED** upstream (`a4996b34` S39: Transpose dispatch fixed) |
 
 Full diagnosis and reproduction steps: `wateringHole/handoffs/archive/NEURALSPRING_V6_BARRACUDA_GPU_HANDOFF_FEB22_2026.md`
-Current handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V39_S75_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md`
+Current handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V40_S76_MODERN_REWIRING_BENCHMARK_HANDOFF_FEB26_2026.md`
 
 ### Session 68 — BarraCUDA Usage Audit
 

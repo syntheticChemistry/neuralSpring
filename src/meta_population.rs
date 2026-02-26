@@ -39,6 +39,7 @@
 //! populations. One thread per locus. Validated in `validate_gpu_meta_pop`
 //! (7/7 PASS, max error ~1e-8).
 
+use crate::primitives::DIVISION_GUARD;
 use crate::rng::Rng;
 
 /// WGSL shader: per-locus allele frequency variance across populations.
@@ -63,8 +64,8 @@ pub fn generate_population(
     n_thermal: usize,
     rng: &mut Rng,
 ) -> Vec<f64> {
-    let drift = fst_target / (1.0 - fst_target + 1e-10);
-    let temp_norm = (temperature - temp_min) / (temp_max - temp_min + 1e-10);
+    let drift = fst_target / (1.0 - fst_target + DIVISION_GUARD);
+    let temp_norm = (temperature - temp_min) / (temp_max - temp_min + DIVISION_GUARD);
 
     let mut pop_freq = vec![0.0_f64; n_loci];
     for j in 0..n_loci {
@@ -331,10 +332,15 @@ pub fn geographic_distance_matrix(coords: &[(f64, f64)]) -> Vec<f64> {
 }
 
 /// Pearson correlation between upper-triangle elements of two square matrices.
+///
+/// Extracts the upper triangle, then delegates to
+/// `barracuda::stats::pearson_correlation` (absorbed from airSpring/groundSpring
+/// hydrology metrics in `ToadStool` S64).
 #[must_use]
 pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
-    let mut xs = Vec::new();
-    let mut ys = Vec::new();
+    let cap = n * (n - 1) / 2;
+    let mut xs = Vec::with_capacity(cap);
+    let mut ys = Vec::with_capacity(cap);
     for i in 0..n {
         for j in (i + 1)..n {
             xs.push(a[i * n + j]);
@@ -344,21 +350,7 @@ pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
     if xs.len() < 2 {
         return 0.0;
     }
-    let mx: f64 = xs.iter().sum::<f64>() / xs.len() as f64;
-    let my: f64 = ys.iter().sum::<f64>() / ys.len() as f64;
-    let mut sx = 0.0;
-    let mut sy = 0.0;
-    let mut cov = 0.0;
-    for (&x, &y) in xs.iter().zip(ys.iter()) {
-        cov += (x - mx) * (y - my);
-        sx += (x - mx).powi(2);
-        sy += (y - my).powi(2);
-    }
-    let denom = (sx * sy).sqrt();
-    if denom < crate::primitives::DIVISION_GUARD {
-        return 0.0;
-    }
-    cov / denom
+    barracuda::stats::pearson_correlation(&xs, &ys).unwrap_or(0.0)
 }
 
 /// Mantel test: correlation between distance matrices with permutation p-value.
@@ -395,27 +387,15 @@ pub fn mantel_test(
 }
 
 /// Pearson correlation between temperature and nucleotide diversity.
+///
+/// Delegates to `barracuda::stats::pearson_correlation` (absorbed from
+/// airSpring/groundSpring hydrology metrics in `ToadStool` S64).
 #[must_use]
 pub fn thermal_diversity_correlation(pi_values: &[f64], temperatures: &[f64]) -> f64 {
-    let n = pi_values.len();
-    if n < 2 {
+    if pi_values.len() < 2 {
         return 0.0;
     }
-    let mx: f64 = pi_values.iter().sum::<f64>() / n as f64;
-    let my: f64 = temperatures.iter().sum::<f64>() / n as f64;
-    let mut cov = 0.0;
-    let mut sx = 0.0;
-    let mut sy = 0.0;
-    for i in 0..n {
-        cov += (pi_values[i] - mx) * (temperatures[i] - my);
-        sx += (pi_values[i] - mx).powi(2);
-        sy += (temperatures[i] - my).powi(2);
-    }
-    let denom = (sx * sy).sqrt();
-    if denom < crate::primitives::DIVISION_GUARD {
-        return 0.0;
-    }
-    cov / denom
+    barracuda::stats::pearson_correlation(pi_values, temperatures).unwrap_or(0.0)
 }
 
 /// Mean allele frequency variance across populations (inter-population).

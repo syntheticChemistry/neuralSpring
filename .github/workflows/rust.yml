@@ -268,7 +268,7 @@ jobs:
       - name: Validate barracuda precision (12 checks)
         run: cargo run --bin validate_barracuda_precision
 
-      - name: Validate barracuda tensor (unified WGSL + evolved ops, 84 checks)
+      - name: Validate barracuda tensor (unified WGSL + evolved ops, 86 checks)
         run: cargo run --bin validate_barracuda_tensor
 
       - name: Validate barracuda tensor f64 (SHADER_F64 GPU ops, 35 checks)

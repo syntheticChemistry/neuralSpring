@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Evolution-tier benchmark: CPU → BarraCUDA CPU → BarraCUDA GPU.
+//! Evolution-tier benchmark: CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 //!
 //! Demonstrates the portable math evolution path for all Phase 0++
 //! paper domains. Each domain is benchmarked at three tiers:
 //!
-//! 1. **Rust CPU** (neuralSpring lib) — pure math, single-thread
-//! 2. **BarraCUDA CPU** (barracuda crate) — pure Rust, single-thread
-//! 3. **BarraCUDA GPU** (typed GPU ops) — WGSL shader dispatch
+//! 1. **Rust CPU** (`neuralSpring` lib) — pure math, single-thread
+//! 2. **`BarraCUDA` CPU** (barracuda crate) — pure Rust, single-thread
+//! 3. **`BarraCUDA` GPU** (typed GPU ops) — WGSL shader dispatch
 //!
 //! The benchmark shows that the same math is portable across tiers.
 //! Run with `--with-python` to include Python/NumPy baselines.
@@ -20,7 +20,11 @@
 //! ## Provenance
 //!
 //! Session 74. Demonstrates evolution path:
-//! Python → Rust CPU → BarraCUDA CPU → GPU dispatch → Pure GPU pipeline.
+//! Python → Rust CPU → `BarraCUDA` CPU → GPU dispatch → Pure GPU pipeline.
+//!
+//! # Panics
+//!
+//! Panics if the tokio runtime cannot be created — this is a benchmark binary.
 
 #![allow(
     clippy::cast_precision_loss,
@@ -31,7 +35,10 @@
     clippy::cast_lossless,
     clippy::cast_possible_wrap,
     clippy::cast_sign_loss,
-    clippy::similar_names
+    clippy::similar_names,
+    clippy::expect_used,
+    clippy::manual_midpoint,
+    clippy::manual_is_multiple_of
 )]
 
 use barracuda::ops::bio::{
@@ -101,7 +108,7 @@ struct TierResult {
     barracuda_gpu_us: Option<f64>,
 }
 
-fn median(samples: &mut Vec<Duration>) -> f64 {
+fn median(samples: &mut [Duration]) -> f64 {
     samples.sort();
     let mid = samples.len() / 2;
     if samples.len() % 2 == 0 {
@@ -162,28 +169,51 @@ fn bench_hmm_forward(gpu: Option<&Gpu>) -> TierResult {
 
         let device = g.device();
         let lt = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&log_trans), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&log_trans),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let le = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&log_emit), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&log_emit),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let lp = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&log_pi), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&log_pi),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let ob = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&obs_u32), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&obs_u32),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let alpha_buf = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None, size: (seq_len * n_states as usize * 8) as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC, mapped_at_creation: false,
+            label: None,
+            size: (seq_len * n_states as usize * 8) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
         });
         let ll_buf = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None, size: 8,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC, mapped_at_creation: false,
+            label: None,
+            size: 8,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
         });
 
         let us = bench_rust(|| {
-            let _ = op.dispatch(n_states, n_symbols, seq_len as u32, 1, &lt, &le, &lp, &ob, &alpha_buf, &ll_buf);
+            let _ = op.dispatch(
+                n_states,
+                n_symbols,
+                seq_len as u32,
+                1,
+                &lt,
+                &le,
+                &lp,
+                &ob,
+                &alpha_buf,
+                &ll_buf,
+            );
         });
         Some(us)
     });
@@ -221,24 +251,35 @@ fn bench_nk_fitness(gpu: Option<&Gpu>) -> TierResult {
         }
     });
 
-    let gpu_us = gpu.and_then(|g| {
+    let gpu_us = gpu.map(|g| {
         let op = BatchFitnessGpu::new(Arc::clone(g.wgpu_device()));
         let device = g.device();
         let geno_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&genotypes), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&genotypes),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let w_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&weights), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&weights),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None, size: (pop_size * 8) as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC, mapped_at_creation: false,
+            label: None,
+            size: (pop_size * 8) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
         });
 
-        let us = bench_rust(|| {
-            op.dispatch(&geno_buf, &w_buf, &out_buf, pop_size as u32, genome_len as u32);
-        });
-        Some(us)
+        bench_rust(|| {
+            op.dispatch(
+                &geno_buf,
+                &w_buf,
+                &out_buf,
+                pop_size as u32,
+                genome_len as u32,
+            );
+        })
     });
 
     let name = format!("BENCH_NK_FITNESS_1000x10_RUST_US={rust_us:.1}");
@@ -270,22 +311,25 @@ fn bench_pairwise_hamming(gpu: Option<&Gpu>) -> TierResult {
         );
     });
 
-    let gpu_us = gpu.and_then(|g| {
+    let gpu_us = gpu.map(|g| {
         let op = PairwiseHammingGpu::new(Arc::clone(g.wgpu_device()));
         let device = g.device();
         let n_pairs = n_seqs * (n_seqs - 1) / 2;
         let seqs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&seqs_u32), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&seqs_u32),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None, size: (n_pairs * 4) as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC, mapped_at_creation: false,
+            label: None,
+            size: (n_pairs * 4) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
         });
 
-        let us = bench_rust(|| {
+        bench_rust(|| {
             op.dispatch(&seqs_buf, &out_buf, n_seqs as u32, seq_len as u32);
-        });
-        Some(us)
+        })
     });
 
     let name = format!("BENCH_HAMMING_20x500_RUST_US={rust_us:.1}");
@@ -314,27 +358,33 @@ fn bench_pairwise_l2(gpu: Option<&Gpu>) -> TierResult {
     let rust_us = bench_rust(|| {
         for i in 0..n {
             for j in (i + 1)..n {
-                let _ = l2_distance(&points[i * dim..(i + 1) * dim], &points[j * dim..(j + 1) * dim]);
+                let _ = l2_distance(
+                    &points[i * dim..(i + 1) * dim],
+                    &points[j * dim..(j + 1) * dim],
+                );
             }
         }
     });
 
-    let gpu_us = gpu.and_then(|g| {
+    let gpu_us = gpu.map(|g| {
         let op = PairwiseL2Gpu::new(Arc::clone(g.wgpu_device()));
         let device = g.device();
         let n_pairs = n * (n - 1) / 2;
         let pts_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&points_f32), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&points_f32),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None, size: (n_pairs * 4) as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC, mapped_at_creation: false,
+            label: None,
+            size: (n_pairs * 4) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
         });
 
-        let us = bench_rust(|| {
+        bench_rust(|| {
             op.dispatch(&pts_buf, &out_buf, n as u32, dim as u32);
-        });
-        Some(us)
+        })
     });
 
     let name = format!("BENCH_L2_10x8_RUST_US={rust_us:.1}");
@@ -363,25 +413,29 @@ fn bench_pairwise_jaccard(gpu: Option<&Gpu>) -> TierResult {
     let pa_f32: Vec<f32> = pa.iter().map(|&v| v as f32).collect();
 
     let rust_us = bench_rust(|| {
-        let _ = neural_spring::pangenome_selection::jaccard_distance_matrix(&pa, n_genes, n_genomes);
+        let _ =
+            neural_spring::pangenome_selection::jaccard_distance_matrix(&pa, n_genes, n_genomes);
     });
 
-    let gpu_us = gpu.and_then(|g| {
+    let gpu_us = gpu.map(|g| {
         let op = PairwiseJaccardGpu::new(Arc::clone(g.wgpu_device()));
         let device = g.device();
         let n_pairs = n_genomes * (n_genomes - 1) / 2;
         let pa_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&pa_f32), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&pa_f32),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None, size: (n_pairs * 4) as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC, mapped_at_creation: false,
+            label: None,
+            size: (n_pairs * 4) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
         });
 
-        let us = bench_rust(|| {
+        bench_rust(|| {
             op.dispatch(&pa_buf, &out_buf, n_genomes as u32, n_genes as u32);
-        });
-        Some(us)
+        })
     });
 
     let name = format!("BENCH_JACCARD_30x500_RUST_US={rust_us:.1}");
@@ -411,7 +465,14 @@ fn bench_spatial_payoff(gpu: Option<&Gpu>) -> TierResult {
     let rust_us = bench_rust(|| {
         let gn = grid_size as i32;
         let neighbors: [(i32, i32); 8] = [
-            (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1),
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
         ];
         let mut _total = 0.0_f32;
         for i in 0..grid_size {
@@ -434,21 +495,24 @@ fn bench_spatial_payoff(gpu: Option<&Gpu>) -> TierResult {
         }
     });
 
-    let gpu_us = gpu.and_then(|g| {
+    let gpu_us = gpu.map(|g| {
         let op = SpatialPayoffGpu::new(Arc::clone(g.wgpu_device()));
         let device = g.device();
         let grid_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: None, contents: bytemuck::cast_slice(&grid), usage: wgpu::BufferUsages::STORAGE,
+            label: None,
+            contents: bytemuck::cast_slice(&grid),
+            usage: wgpu::BufferUsages::STORAGE,
         });
         let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None, size: (n * 4) as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC, mapped_at_creation: false,
+            label: None,
+            size: (n * 4) as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
         });
 
-        let us = bench_rust(|| {
+        bench_rust(|| {
             op.dispatch(&grid_buf, &out_buf, grid_size as u32, b, c);
-        });
-        Some(us)
+        })
     });
 
     let name = format!("BENCH_SPATIAL_32x32_RUST_US={rust_us:.1}");
@@ -526,9 +590,15 @@ fn bench_commutator() -> TierResult {
 
 fn print_table(results: &[TierResult]) {
     println!();
-    println!("╔══════════════════════════════════════════════════════════════════════════════════════╗");
-    println!("║  EVOLUTION TIER BENCHMARK — Python → Rust CPU → BarraCUDA GPU                       ║");
-    println!("╚══════════════════════════════════════════════════════════════════════════════════════╝");
+    println!(
+        "╔══════════════════════════════════════════════════════════════════════════════════════╗"
+    );
+    println!(
+        "║  EVOLUTION TIER BENCHMARK — Python → Rust CPU → BarraCUDA GPU                       ║"
+    );
+    println!(
+        "╚══════════════════════════════════════════════════════════════════════════════════════╝"
+    );
     println!();
     println!(
         "{:<36}  {:<8}  {:>10}  {:>10}  {:>10}  {:>8}",
@@ -543,16 +613,17 @@ fn print_table(results: &[TierResult]) {
     for r in results {
         let bc_cpu = r
             .barracuda_cpu_us
-            .map_or("—".to_string(), |v| format!("{v:.1}"));
+            .map_or_else(|| "—".to_string(), |v| format!("{v:.1}"));
         let bc_gpu = r
             .barracuda_gpu_us
-            .map_or("—".to_string(), |v| format!("{v:.1}"));
-        let speedup = r
-            .barracuda_gpu_us
-            .map_or("—".to_string(), |gpu| {
+            .map_or_else(|| "—".to_string(), |v| format!("{v:.1}"));
+        let speedup = r.barracuda_gpu_us.map_or_else(
+            || "—".to_string(),
+            |gpu| {
                 let s = r.rust_cpu_us / gpu;
                 format!("{s:.1}×")
-            });
+            },
+        );
 
         println!(
             "{:<36}  {:<8}  {:>10.1}  {:>10}  {:>10}  {:>8}",

@@ -530,9 +530,9 @@ Added `Dispatcher::check_allocation_safe()` which delegates to upstream
 
 | Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Cross-Spring Origin |
 |----|-----------------|-------------------|---------|---------------------|
-| Variance | 9,949 | 2,847 | **3.49×** | hotSpring Welford → `VarianceReduceF64` |
-| Pearson | 4,679 | 3,508 | **1.33×** | wetSpring + hotSpring → `CorrelationF64` |
-| Entropy | 6,317 | 2,468 | **2.56×** | wetSpring fused → `FusedMapReduceF64` |
+| Variance | 8,221 | 2,570 | **3.20×** | hotSpring Welford → `VarianceReduceF64` |
+| Pearson | 4,361 | 3,214 | **1.36×** | wetSpring + hotSpring → `CorrelationF64` |
+| Entropy | 4,216 | 1,886 | **2.24×** | wetSpring fused → `FusedMapReduceF64` |
 
 **Key insight**: Variance sees the biggest speedup because Welford's online algorithm
 (hotSpring origin) replaces 4 separate f32 dispatches with a single f64 dispatch.
@@ -549,16 +549,17 @@ Pearson gains f64 precision with modest speedup.
 | `mean` | hotSpring reduce | 0.4 | 0.4 | Parity |
 | `hmm_forward` | wetSpring bio | 0.5 | 0.5 | Parity — CPU optimal at 32 states |
 
-### Validation: 150/150 + 15/15 + 580 PASS (S75)
+### Validation: 150/150 + 15/15 + 39/39 + 580 PASS (S76)
 
 | Gate | Result |
 |------|--------|
 | `cargo fmt --check` | PASS |
-| `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
-| `cargo test --lib` | 580 PASS |
-| `cargo test -p neural-spring-forge --lib` | 43 PASS |
-| `validate_all` | 150/150 PASS |
+| `cargo clippy --workspace -- -D warnings` (pedantic + nursery) | 0 warnings |
+| `cargo test --workspace` | 580 lib + 43 forge + 9 integration PASS |
+| `validate_all` | **150/150 PASS** |
+| `validate_cross_spring_evolution` | **39/39 PASS** |
 | `bench_cross_spring_evolution` | **15/15 PASS** |
+| `bench_upstream_vs_local` | **10/10 kernels ≈ parity** |
 
 ### Evolution Timeline Update
 
@@ -583,6 +584,11 @@ Feb 26  Session 75: ToadStool S60–S65 sync (17932267)
             across hotSpring precision, wetSpring bio, airSpring/groundSpring stats
           - 30 total upstream rewires, 694 shaders, 2490 barracuda tests
           - 150/150 validate_all, 580 lib tests, 43 forge tests, 0 clippy warnings
+        Session 76: Modern BarraCUDA rewiring + benchmark validation
+          - matrix_correlation, thermal_diversity_correlation → barracuda::stats::pearson_correlation
+          - Full benchmark sweep: upstream wrappers add 0 meaningful overhead (0.85–1.14×)
+          - Rewire evolution: Variance 3.20×, Pearson 1.36×, Shannon 2.24× (cross-spring f64)
+          - 32 total upstream rewires, 150/150 validate_all, 39/39 cross-spring, 15/15 bench
 ```
 
 ---
@@ -600,4 +606,4 @@ Feb 26  Session 75: ToadStool S60–S65 sync (17932267)
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
 | Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
-| V39 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V39_S75_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md` |
+| V40 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V40_S76_MODERN_REWIRING_BENCHMARK_HANDOFF_FEB26_2026.md` |

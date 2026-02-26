@@ -27,7 +27,7 @@
 //! NEURALSPRING_BACKEND=cpu  cargo run --release --bin bench_transformer_block
 //! ```
 
-#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_precision_loss, deprecated)]
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;

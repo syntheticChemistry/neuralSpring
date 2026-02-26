@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `17932267` (Sessions 59–75 sync — 30 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed, 94.53% coverage, 580 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, Feb 26, 2026)
+**ToadStool HEAD**: `17932267` (Sessions 59–76 sync — 32 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed, 94.53% coverage, 580 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, Feb 26, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -637,6 +637,83 @@ across airSpring stats, wetSpring bio/GPU diversity, hotSpring precision.
 | `validate_all` | **150/150 PASS** |
 | `bench_cross_spring_evolution` | 15/15 PASS |
 | Total upstream rewires | **30 functions + 6 shader sources** |
+
+---
+
+### Session 76 — Modern BarraCUDA Rewiring + Benchmark Validation (Feb 26, 2026)
+
+Deep rewiring pass to delegate more local implementations to upstream `BarraCUDA`
+primitives, followed by full benchmark sweep on RTX 4070.
+
+#### New Rewires
+
+| Rewire | Module | Upstream | Cross-Spring Origin |
+|--------|--------|----------|---------------------|
+| `matrix_correlation` | `meta_population.rs` | `barracuda::stats::pearson_correlation` | airSpring/groundSpring S64 |
+| `thermal_diversity_correlation` | `meta_population.rs` | `barracuda::stats::pearson_correlation` | airSpring/groundSpring S64 |
+
+#### Benchmark Results (RTX 4070, Release)
+
+**Cross-Spring Evolution Benchmark** (`bench_cross_spring_evolution`):
+
+| Metric | Source | Time (µs/iter) |
+|--------|--------|-----------------|
+| RMSE | airSpring → `barracuda::stats` | 4.1 |
+| R² | airSpring → `barracuda::stats` | 12.4 |
+| NSE | airSpring → `barracuda::stats` | 12.5 |
+| Index of Agreement | airSpring → `barracuda::stats` | 14.0 |
+| dot | shared → `barracuda::stats` | 4.2 |
+| l2_norm | shared → `barracuda::stats` | 4.1 |
+| Shannon | wetSpring → `barracuda::stats` | 1.8 |
+| Simpson | wetSpring → `barracuda::stats` | 0.7 |
+| Chao1 | wetSpring → `barracuda::stats` | 0.2 |
+| alpha_diversity | wetSpring → `barracuda::stats` | 4.8 |
+| Bray-Curtis | wetSpring → `barracuda::stats` | 0.1 |
+| DiversityFusion CPU | wetSpring → ToadStool | 61.1 |
+| DiversityFusion GPU | wetSpring → ToadStool → GPU | 3569.1 |
+| Pearson r | hotSpring + wetSpring → `barracuda::stats` | 26.1 |
+
+**Upstream vs Local GPU Dispatch** (`bench_upstream_vs_local`):
+
+| Kernel | Origin | Local µs | Upstream µs | Ratio |
+|--------|--------|----------|-------------|-------|
+| BatchFitness 10000×32 | neuralSpring 011-015 | 1624.1 | 1617.5 | 1.00× |
+| Hamming 200×500 | neuralSpring SATé | 1780.5 | 2032.0 | 1.14× |
+| Jaccard 100×500 | neuralSpring Pangenome | 2266.4 | 1918.0 | 0.85× |
+| LocusVariance 50×500 | neuralSpring MetaPop | 1816.5 | 1914.1 | 1.05× |
+| SpatialPayoff 256×256 | neuralSpring GameTheory | 1885.9 | 1933.0 | 1.02× |
+| BatchIPR 1000×256 | neuralSpring Anderson | 1891.1 | 1723.6 | 0.91× |
+| HillGate 100×100 | neuralSpring Signal | 1862.6 | 1646.5 | 0.88× |
+| MultiObjFitness 5000×4 | neuralSpring DirEvo | 1597.4 | 1777.6 | 1.11× |
+| PairwiseL2 200×50 | neuralSpring MODES | 1768.3 | 1719.6 | 0.97× |
+| SwarmNN 500×20 | neuralSpring Swarm | 1626.8 | 1681.1 | 1.03× |
+
+All 10 kernels show negligible overhead (0.85–1.14×), confirming `BarraCUDA`
+wrappers add no meaningful cost vs raw `metalForge` dispatch.
+
+**Rewire Evolution GPU** (`bench_rewire_evolution`):
+
+| Kernel | f32 Tensor µs | f64 Evolved µs | Speedup | Origin |
+|--------|---------------|-----------------|---------|--------|
+| Variance (10000) | 8220.6 | 2569.7 | 3.20× | hotSpring Welford |
+| Pearson (10000) | 4361.3 | 3213.6 | 1.36× | wetSpring + hotSpring |
+| Shannon (10000) | 4216.2 | 1886.2 | 2.24× | wetSpring fused |
+
+Cross-spring evolved shaders outperform naïve f32 Tensor paths by 1.4–3.2×
+through domain-specific algorithmic optimizations (Welford online variance,
+fused map-reduce, combined correlation).
+
+#### S76 Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --workspace -- -D warnings` | 0 warnings |
+| `cargo test --workspace` | 580 lib + 43 forge + 9 integration PASS |
+| `validate_all` | **150/150 PASS** |
+| `validate_cross_spring_evolution` | 39/39 PASS |
+| `bench_cross_spring_evolution` | 15/15 PASS |
+| Total upstream rewires | **32 functions + 6 shader sources** |
 
 ---
 

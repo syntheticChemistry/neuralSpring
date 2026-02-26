@@ -34,11 +34,11 @@
     clippy::cast_lossless
 )]
 
-use neural_spring_forge::shaders::RK4_PARALLEL as WGSL_RK4_PARALLEL;
 use bytemuck::{Pod, Zeroable};
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use neural_spring_forge::shaders::RK4_PARALLEL as WGSL_RK4_PARALLEL;
 use wgpu::util::DeviceExt;
 
 #[repr(C)]
