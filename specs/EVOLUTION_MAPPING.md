@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 26, 2026 (Sessions 60–74: Phase C GPU + CPU↔Python parity 39/39, 201.7× speedup + pure GPU all-domains + cross-system dispatch)
+**Last Updated**: February 26, 2026 (Sessions 60–75: Phase C GPU + CPU↔Python parity 39/39, 201.7× speedup + pure GPU all-domains + cross-system dispatch)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -122,7 +122,7 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### ToadStool Infrastructure Available for GPU Promotion
 
-ToadStool (reviewed `02207c4a`, Feb 25, 2026 — all shortcomings through S-13 fixed, S-03b fully resolved)
+ToadStool (reviewed `17932267`, Feb 25, 2026 — all shortcomings through S-13 fixed, S-03b fully resolved)
 provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |

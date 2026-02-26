@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `02207c4a` (Sessions 50–74, Feb 26, 2026) — **47 commits audited, ALL 17 shortcomings RESOLVED, 21 upstream rewires**
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V38_S74_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md`
+**Last reviewed:** ToadStool commit `17932267` (Sessions 50–75, Feb 26, 2026) — **47 commits audited, ALL 17 shortcomings RESOLVED, 26 upstream rewires**
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V39_S75_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
@@ -27,7 +27,7 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 
 **Session 73 sync:** Cross-spring rewiring — 4 new upstream rewires using newly available Tensor APIs. (1) Viterbi `argmax_dim(0)` replaces CPU argmax loop in `hmm_viterbi_step_gpu`. (2) `Dispatcher::softmax_row_wise` via `Tensor::softmax_dim(1)`. (3) `fst_single_locus` wraps `barracuda::ops::bio::fst_variance_decomposition` for F-statistics (θ, f_is, f_it). (4) `pairwise_fst_full` uses upstream per-locus decomposition for multi-locus F-statistics. New tolerances: `DISPATCH_F32_ROUNDTRIP` (1e-6), `DISPATCH_VITERBI_F32` (1e-5). Cross-spring evolution validator: 39/39 PASS. Total: **21 functions + 6 shader sources rewired to upstream**. V36 handoff crafted.
 
-**Session 74 sync:** Pure GPU all-domains — `validate_gpu_pure_workload_all` 10/10 PASS (9 typed BarraCUDA GPU ops: BatchFitnessGpu, MultiObjFitnessGpu, HmmBatchForwardF64, SpatialPayoffGpu, BatchIprGpu, PairwiseHammingGpu, PairwiseL2Gpu, PairwiseJaccardGpu, LocusVarianceGpu + determinism check). `bench_evolution_tiers` measures CPU→GPU portability for 8 domains. f32/f64 precision boundary documented: domain ops f32, HMM/baseCamp f64. IPR requires pre-normalized eigenvectors, Jaccard outputs upper-triangle. GPU dispatch overhead ~186µs per submit (structural floor). Also `validate_cross_system_dispatch` 46/46 PASS (full metalForge stack: hardware discovery → domain heuristics → multi-substrate parity → transfer cost hierarchy → NPU routing → crossover sweep). Discovered 3 GPUs (RTX 4070 Vulkan, TITAN V NVK, RTX 4070 OpenGL) + i9-12900K CPU. CPU→GPU crossover at ~1946µs. validate_all: 149/150 PASS. 163 binaries. V38 handoff updated.
+**Session 74 sync:** Pure GPU all-domains — `validate_gpu_pure_workload_all` 10/10 PASS (9 typed BarraCUDA GPU ops: BatchFitnessGpu, MultiObjFitnessGpu, HmmBatchForwardF64, SpatialPayoffGpu, BatchIprGpu, PairwiseHammingGpu, PairwiseL2Gpu, PairwiseJaccardGpu, LocusVarianceGpu + determinism check). `bench_evolution_tiers` measures CPU→GPU portability for 8 domains. f32/f64 precision boundary documented: domain ops f32, HMM/baseCamp f64. IPR requires pre-normalized eigenvectors, Jaccard outputs upper-triangle. GPU dispatch overhead ~186µs per submit (structural floor). Also `validate_cross_system_dispatch` 46/46 PASS (full metalForge stack: hardware discovery → domain heuristics → multi-substrate parity → transfer cost hierarchy → NPU routing → crossover sweep). Discovered 3 GPUs (RTX 4070 Vulkan, TITAN V NVK, RTX 4070 OpenGL) + i9-12900K CPU. CPU→GPU crossover at ~1946µs. validate_all: 150/150 PASS. 163 binaries. V39 handoff updated.
 
 ---
 

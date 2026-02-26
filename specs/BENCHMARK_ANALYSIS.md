@@ -1,6 +1,6 @@
 # ML Inference Benchmark: Python vs BarraCUDA CPU vs GPU
 
-**Date**: 2026-02-26 (updated Sessions 44–74)
+**Date**: 2026-02-26 (updated Sessions 44–75)
 **Hardware**: i9-12900K, 32 GB DDR5, NVIDIA RTX 4070 12 GB (Vulkan), NVIDIA TITAN V 12 GB (NVK GV100)
 **Python**: NumPy 2.1.3 (OpenBLAS, single-thread)
 **BarraCUDA CPU**: llvmpipe (LLVM 15.0.7, 256-bit)

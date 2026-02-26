@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: February 26, 2026 (Sessions 44–74 — CPU math parity + Phase C GPU promotion + pure GPU all-domains + cross-system dispatch)
+**Last Updated**: February 26, 2026 (Sessions 44–75 — CPU math parity + Phase C GPU promotion + pure GPU all-domains + cross-system dispatch)
 **Status**: Phase 5g — 206/206 Python + 1970+ Rust+GPU = **2180+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 201.7× speedup, pure GPU 10/10 PASS, cross-system 46/46 PASS
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
@@ -46,7 +46,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 21 functions rewired to upstream (S74) |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 26 functions rewired to upstream (S75) |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 
@@ -61,7 +61,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V38 ToadStool handoff (current, Session 74) |
+| wateringHole/handoffs/ | `../wateringHole/` | V39 ToadStool handoff (current, Session 75) |
 
 ---
 

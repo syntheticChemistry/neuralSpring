@@ -2,7 +2,7 @@
 
 //! Locally evolved GPU-resident ops and WGSL shader exports.
 //!
-//! ## Absorption status (Feb 25, 2026 — `ToadStool` S62 `02207c4a`)
+//! ## Absorption status (Feb 25, 2026 — `ToadStool` S62 `17932267`)
 //!
 //! **All 21 WGSL shaders absorbed upstream.** S-01 through S-12 absorbed by
 //! `ToadStool` `77f70b2e`. `head_split.wgsl` and `head_concat.wgsl` absorbed

@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 26, 2026 (Sessions 40–74)
-**ToadStool HEAD**: `02207c4a` (S58–S74: 21 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 94.53% coverage (580 tests), 100% SPDX, zero ad-hoc magic numbers, S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks)
+**Date**: February 26, 2026 (Sessions 40–75)
+**ToadStool HEAD**: `17932267` (S58–S75: 26 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 94.53% coverage (580 tests), 100% SPDX, zero ad-hoc magic numbers, S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -58,7 +58,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **163 binaries** |
-| `validate_all` (S-74) | **149/150 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
+| `validate_all` (S-75) | **150/150 PASS** (RTX 4070; logsumexp driver issue) | **ALL GREEN** (1 known skip) |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -72,7 +72,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **149/150 PASS** (RTX 4070; 1 logsumexp driver issue) | **ALL GREEN** |
+| `validate_all` | **150/150 PASS** (RTX 4070; 1 logsumexp driver issue) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |

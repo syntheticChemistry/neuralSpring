@@ -6,9 +6,9 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `02207c4a` (Sessions 59–74 sync, Feb 26, 2026) |
-| Last updated | February 26, 2026 (Sessions 40–74) |
-| BarraCUDA shader count | 645+ WGSL (zero CPU-only production math, S49) |
+| ToadStool HEAD | `17932267` (Sessions 60–75 sync, Feb 26, 2026) |
+| Last updated | February 26, 2026 (Sessions 40–75) |
+| BarraCUDA shader count | 694 WGSL (zero CPU-only production math, S49) |
 | Shaders absorbed | 21/21 — all neuralSpring WGSL now upstream |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
 
@@ -591,4 +591,4 @@ Feb 25  Session 62: ToadStool S62 sync (02207c4a)
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
 | Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
-| V38 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V38_S74_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md` |
+| V39 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V39_S75_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md` |

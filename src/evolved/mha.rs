@@ -2,7 +2,7 @@
 
 //! Multi-Head Attention — now delegates to upstream `BarraCUDA`.
 //!
-//! ## Status (`ToadStool` S60–S62, `02207c4a`)
+//! ## Status (`ToadStool` S60–S62, `17932267`)
 //!
 //! S-03b is **RESOLVED upstream**. `ToadStool` `0c998992` (S60–S61) decomposed the
 //! fused MHA projection into `Tensor::matmul` + `head_split.wgsl` /

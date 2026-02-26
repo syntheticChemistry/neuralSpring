@@ -4,17 +4,16 @@
 //!
 //! ## `BarraCUDA` Integration
 //!
-//! `barracuda::stats` provides building blocks (`variance`, `pearson_correlation`,
-//! `covariance`) validated in `validate_barracuda_stats`. These metrics compose
-//! those primitives into domain-specific measures. When barracuda adds GPU-resident
-//! `mse_loss` / `mae_loss` Tensor ops, we can delegate the hot path there.
+//! `r_squared`, `rmse`, and `nse` delegate to `barracuda::stats` (absorbed
+//! from airSpring/groundSpring in `ToadStool` S64). `mae` remains local
+//! (no upstream CPU equivalent; GPU path uses `Tensor::mae_loss`).
 //!
 //! Re-exports from barracuda for convenience:
 //!
 //! - [`barracuda::stats::correlation::variance`]
 //! - [`barracuda::stats::pearson_correlation`]
 
-/// Coefficient of determination.
+/// Coefficient of determination (delegates to `barracuda::stats::r_squared`).
 ///
 /// ```
 /// # use neural_spring::metrics::r_squared;
@@ -26,40 +25,18 @@
 ///
 /// Panics if `y_true` and `y_pred` have different lengths.
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
 pub fn r_squared(y_true: &[f64], y_pred: &[f64]) -> f64 {
-    assert_eq!(y_true.len(), y_pred.len(), "length mismatch");
-    let n = y_true.len() as f64;
-    let mean = y_true.iter().sum::<f64>() / n;
-    let ss_res: f64 = y_true
-        .iter()
-        .zip(y_pred)
-        .map(|(t, p)| (t - p).powi(2))
-        .sum();
-    let ss_tot: f64 = y_true.iter().map(|t| (t - mean).powi(2)).sum();
-    if ss_tot == 0.0 {
-        return 0.0;
-    }
-    1.0 - ss_res / ss_tot
+    barracuda::stats::r_squared(y_true, y_pred)
 }
 
-/// Root mean squared error.
+/// Root mean squared error (delegates to `barracuda::stats::rmse`).
 ///
 /// # Panics
 ///
 /// Panics if `y_true` and `y_pred` have different lengths.
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
 pub fn rmse(y_true: &[f64], y_pred: &[f64]) -> f64 {
-    assert_eq!(y_true.len(), y_pred.len(), "length mismatch");
-    let n = y_true.len() as f64;
-    let mse: f64 = y_true
-        .iter()
-        .zip(y_pred)
-        .map(|(t, p)| (t - p).powi(2))
-        .sum::<f64>()
-        / n;
-    mse.sqrt()
+    barracuda::stats::rmse(y_true, y_pred)
 }
 
 /// Mean absolute error.
@@ -80,10 +57,10 @@ pub fn mae(y_true: &[f64], y_pred: &[f64]) -> f64 {
         / n
 }
 
-/// Nash-Sutcliffe Efficiency (standard hydrology metric, equivalent to R²).
+/// Nash-Sutcliffe Efficiency (delegates to `barracuda::stats::nash_sutcliffe`).
 #[must_use]
 pub fn nse(y_true: &[f64], y_pred: &[f64]) -> f64 {
-    r_squared(y_true, y_pred)
+    barracuda::stats::nash_sutcliffe(y_true, y_pred)
 }
 
 #[cfg(test)]

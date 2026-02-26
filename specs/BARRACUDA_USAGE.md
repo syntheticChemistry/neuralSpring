@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 26, 2026 (Sessions 40–74 — pure GPU all-domains + cross-system dispatch)
+**Last Updated**: February 26, 2026 (Sessions 40–75 — pure GPU all-domains + cross-system dispatch)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -663,7 +663,7 @@ unavoidable transitive dependencies with no C compilation.
 
 | Gate | Result |
 |------|--------|
-| `validate_all` | 150 binaries (149/150 PASS, 1 pre-existing logsumexp) |
+| `validate_all` | 150 binaries (150/150 PASS) |
 | `cargo test --lib` | 580 PASS |
 | `cargo test -p neural-spring-forge --lib` | 43 PASS |
 | `cargo clippy (pedantic+nursery)` | 0 warnings |
@@ -920,7 +920,7 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 
 | Gate | Result |
 |------|--------|
-| `validate_all` | **149/150 PASS** |
+| `validate_all` | **150/150 PASS** |
 | `validate_gpu_pure_workload_all` | **10/10 PASS** |
 | `validate_cross_system_dispatch` | **46/46 PASS** |
 | `cargo test --lib` | 580 PASS |
@@ -928,4 +928,4 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–74: 21 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 163 binaries, 580 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 107+ tolerances, 94.53% coverage. Session 69: shader rewiring complete, upstream benchmarks nominal (10/10 ≈ or ~). Session 73: 4 Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition), cross-spring validator 39/39 PASS. Session 74: pure GPU all-domains 10/10 PASS (9 typed GPU ops + determinism), cross-system dispatch 46/46 PASS, evolution tier benchmarks (8 domains CPU→GPU portability), 149/150 validate_all.*
+*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–75: 26 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 163 binaries, 580 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 107+ tolerances, 94.53% coverage. Session 69: shader rewiring complete, upstream benchmarks nominal (10/10 ≈ or ~). Session 73: 4 Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition), cross-spring validator 39/39 PASS. Session 74: pure GPU all-domains 10/10 PASS (9 typed GPU ops + determinism), cross-system dispatch 46/46 PASS, evolution tier benchmarks (8 domains CPU→GPU portability). Session 75: ToadStool S60–S65 sync (694 shaders, 2490 tests), 5 stats rewires (r\_squared, rmse, nse, branch\_trunk\_dot, shannon\_entropy\_from\_counts), logsumexp f32→f64 fix, 3 RK4 WGSL rewires, 150/150 validate\_all.*

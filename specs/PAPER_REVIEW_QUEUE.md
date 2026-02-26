@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 26, 2026 (Sessions 45–74)
+**Last Updated**: February 26, 2026 (Sessions 45–75)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -187,7 +187,7 @@ Session 70: Deep audit II — 94.53% coverage (580 tests), tolerance macro refac
 Session 68-69: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 107+ named tolerances. 6 validator shader sources → upstream constants.
 Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10 cross-language).
 Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
-`validate_all`: 149/150 PASS on RTX 4070 (1 pre-existing logsumexp driver issue).
+`validate_all`: 150/150 PASS on RTX 4070.
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
 Python baselines: 25/25 PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
 580 lib + 9 integration + 43 forge tests. 163 validation/bench binaries. Zero debt.
@@ -225,7 +225,7 @@ Full provenance: `specs/DATA_PROVENANCE.md`.
 
 ---
 
-## Full Validation Stack Matrix (February 26, 2026 — Sessions 60–74)
+## Full Validation Stack Matrix (February 26, 2026 — Sessions 60–75)
 
 Each paper maps through 10 validation tiers. The stack proves correctness
 from Python baseline through multi-GPU portability to mixed-hardware dispatch.
@@ -512,7 +512,7 @@ Remaining uncovered lines (5.5%) are exclusively GPU error-handling branches.
 
 This closes the "pure GPU final workload validation" milestone: every paper domain
 has a typed GPU op validator, and metalForge's cross-system dispatch is proven
-end-to-end (GPU→NPU→CPU). Total: **2180+ checks**, **163 binaries**, **149/150 validate_all**.
+end-to-end (GPU→NPU→CPU). Total: **2180+ checks**, **163 binaries**, **150/150 validate_all**.
 
 ---
 

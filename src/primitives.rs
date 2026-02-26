@@ -108,21 +108,10 @@ pub fn shannon_equitability(frequencies: &[f64]) -> f64 {
 
 /// Convert raw counts to frequencies, then compute Shannon entropy.
 ///
-/// Convenience wrapper for the common case where input is count data.
+/// Delegates to `barracuda::stats::shannon` (absorbed from wetSpring in S64).
 #[must_use]
 pub fn shannon_entropy_from_counts(counts: &[f64]) -> f64 {
-    let total: f64 = counts.iter().sum();
-    if total <= 0.0 {
-        return 0.0;
-    }
-    let mut h = 0.0;
-    for &c in counts {
-        if c > DIVISION_GUARD {
-            let p = c / total;
-            h -= p * p.ln();
-        }
-    }
-    h
+    barracuda::stats::shannon(counts)
 }
 
 // ═══════════════════════════════════════════════════════════════════

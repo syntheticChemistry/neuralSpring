@@ -164,14 +164,11 @@ pub fn mlp_forward(input: &[f64], layers: &[(&[f64], &[f64], usize)]) -> Vec<f64
 }
 
 /// Branch-trunk dot product: <`branch_out`, `trunk_out`> + bias.
+///
+/// Delegates to `barracuda::stats::dot` (absorbed S64).
 #[must_use]
 pub fn branch_trunk_dot(branch_out: &[f64], trunk_out: &[f64], bias: f64) -> f64 {
-    branch_out
-        .iter()
-        .zip(trunk_out.iter())
-        .map(|(&b, &t)| b * t)
-        .sum::<f64>()
-        + bias
+    barracuda::stats::dot(branch_out, trunk_out) + bias
 }
 
 /// L2 relative error between predicted and exact operator outputs.
@@ -186,16 +183,10 @@ pub fn l2_relative_error(predicted: &[f64], exact: &[f64]) -> f64 {
     (num / (den + 1e-30)).sqrt()
 }
 
-/// RMSE between predicted and exact values.
+/// RMSE between predicted and exact values (delegates to `barracuda::stats::rmse`).
 #[must_use]
 pub fn rmse(predicted: &[f64], exact: &[f64]) -> f64 {
-    let mse: f64 = predicted
-        .iter()
-        .zip(exact.iter())
-        .map(|(&p, &e)| (p - e).powi(2))
-        .sum::<f64>()
-        / predicted.len() as f64;
-    mse.sqrt()
+    barracuda::stats::rmse(predicted, exact)
 }
 
 /// Linspace: evenly spaced values in [start, end].

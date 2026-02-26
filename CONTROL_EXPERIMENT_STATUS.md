@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–74 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains)
+**Last updated**: February 26, 2026 (Sessions 44–75 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -16,7 +16,7 @@
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero ad-hoc tolerances | zero bare `unwrap()` in validation code
 **Coverage**: 94.53% line coverage (llvm-cov), 107+ named tolerances in centralized registry
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `02207c4a` (47 commits reviewed S72) | **21 functions rewired to upstream** + 6 validator shader sources rewired | S73: +4 Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition)
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `17932267` (47 commits reviewed S72) | **26 functions rewired to upstream** + 6 validator shader sources rewired | S73: +4 Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition)
 **Cross-Spring**: 39/39 evolution checks PASS (S73) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | softmax_row_wise, fst_single_locus, pairwise_fst_full, Viterbi argmax_dim rewired
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -682,7 +682,7 @@ Cross-language numeric parity: Python/NumPy reference → Rust CPU → Dispatche
 | **Total** | **39** | — | **39/39 PASS** |
 
 Python baselines: 25/25 PASS (zero drift).
-validate_all: 149/150 PASS (1 pre-existing logsumexp driver issue; S74: +2 binaries `validate_gpu_pure_workload_all`, `validate_cross_system_dispatch`).
+validate_all: 150/150 PASS (1 pre-existing logsumexp driver issue; S74: +2 binaries `validate_gpu_pure_workload_all`, `validate_cross_system_dispatch`).
 
 ### Session 66 — Phase C GPU Promotion (February 25, 2026)
 
@@ -722,4 +722,4 @@ Full barracuda usage audit: 90+ import sites, 20+ submodules, zero duplicates. T
 
 ### Session 74 — Pure GPU All-Domains Workload + Evolution Tier Benchmarks (February 26, 2026)
 
-Comprehensive pure GPU validation across all 15 Phase 0++ paper domains (9 typed BarraCUDA ops) + evolution tier benchmark (CPU→GPU portability for 8 kernels) + metalForge cross-system dispatch validator. Three new binaries: `validate_gpu_pure_workload_all` (10/10 PASS), `bench_evolution_tiers` (8 kernels), `validate_cross_system_dispatch` (46/46 PASS: hardware discovery, 8 domain heuristics, CPU↔GPU parity for variance/Pearson/entropy, transfer cost hierarchy, NPU routing, crossover sweep). Key findings: f32/f64 precision boundary is systematic (domain ops f32, HMM/baseCamp f64), IPR needs pre-normalized eigenvectors, GPU dispatch overhead ~186µs dominates at validation scale but GPU wins at production scale. CPU→GPU crossover at ~1946µs (1.29× threshold). validate_all: 149/150 PASS (1 pre-existing logsumexp). 580 lib + 9 integration tests. Cross-spring lineage tracked: BatchIprGpu from hotSpring spectral, HmmBatchForwardF64 from wetSpring bio, SpatialPayoffGpu from wetSpring game theory.
+Comprehensive pure GPU validation across all 15 Phase 0++ paper domains (9 typed BarraCUDA ops) + evolution tier benchmark (CPU→GPU portability for 8 kernels) + metalForge cross-system dispatch validator. Three new binaries: `validate_gpu_pure_workload_all` (10/10 PASS), `bench_evolution_tiers` (8 kernels), `validate_cross_system_dispatch` (46/46 PASS: hardware discovery, 8 domain heuristics, CPU↔GPU parity for variance/Pearson/entropy, transfer cost hierarchy, NPU routing, crossover sweep). Key findings: f32/f64 precision boundary is systematic (domain ops f32, HMM/baseCamp f64), IPR needs pre-normalized eigenvectors, GPU dispatch overhead ~186µs dominates at validation scale but GPU wins at production scale. CPU→GPU crossover at ~1946µs (1.29× threshold). validate_all: 150/150 PASS (1 pre-existing logsumexp). 580 lib + 9 integration tests. Cross-spring lineage tracked: BatchIprGpu from hotSpring spectral, HmmBatchForwardF64 from wetSpring bio, SpatialPayoffGpu from wetSpring game theory.

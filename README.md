@@ -42,11 +42,11 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 206/206 Python PASS + 1970+ Rust+GPU PASS = 2180+ total validation checks
 
-**ToadStool `02207c4a`** (Sessions 39–62, 47 commits reviewed S72): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
+**ToadStool `17932267`** (Sessions 39–62, 47 commits reviewed S72): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 S-14/S-15/S-16 fixed at `a4996b34` (S39). S-17 pow polyfill at `c82c23d1` (S58). S-03b MHA at `0c998992` (S60).
 21/21 WGSL shaders **absorbed upstream**. New upstream: `argmax_dim`, `softmax_dim`, `fst_variance_decomposition`, `Conv2dGpu`, `PeakDetectF64`, `MovingWindowStats`, `SparseGemmF64`, `ridge_regression`, `NMF`.
 Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**. S74: **10/10 pure GPU all-domains** (9 typed BarraCUDA ops + determinism).
-**21 functions rewired to upstream** (S58: 7 domain\_ops, S59: +2 dispatch + 3 stats/linalg, S56: 4 baseCamp, S68: +1 boltzmann, S73: +4 Tensor APIs). **6 validator shader sources rewired** to upstream barracuda constants (S69).
+**26 functions rewired to upstream** (S58: 7 domain\_ops, S59: +2 dispatch + 3 stats/linalg, S56: 4 baseCamp, S68: +1 boltzmann, S73: +4 Tensor APIs, S75: +5 stats). **6 validator shader sources rewired** to upstream barracuda constants (S69).
 `GpuDriverProfile` wired in for f64 strategy detection (Hybrid on RTX 4070, Native on Titan V).
 580 lib tests, **94.53% coverage**, 107+ named tolerances, 13 property tests, 0 clippy warnings, 0 doc warnings.
 163 validation/bench binaries, 36 modules + gpu\_ops/ + gpu\_dispatch/, 580 lib + 9 integration + 43 forge tests.
@@ -237,7 +237,7 @@ python3 -m pytest tests/ -v
 
 # Rust validation (580 unit + 9 integration)
 cargo test --lib --test integration
-cargo run --release --bin validate_all   # all 149/150 validation binaries
+cargo run --release --bin validate_all   # all 150/150 validation binaries
 
 # All quality gates at once
 make check    # or: just check
@@ -418,7 +418,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Rust coverage | `cargo llvm-cov --lib` | target ≥90% |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
-| neuralSpring validate | `cargo run --release --bin validate_all` | 149/150 binaries PASS |
+| neuralSpring validate | `cargo run --release --bin validate_all` | 150/150 binaries PASS |
 | BarraCUDA CPU validate | `make validate-barracuda` | 272/272 PASS |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | 203/203 PASS (24/25 papers) |
 | GPU Tensor validate | Phase 5b validators | 98+ checks (23/25 gT, S-15/S-16 resolved) |
@@ -549,7 +549,7 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_TOADSTOOL_V38_S74_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md  # Current
+│   │   ├── NEURALSPRING_TOADSTOOL_V39_S75_PURE_GPU_ALL_DOMAINS_HANDOFF_FEB26_2026.md  # Current
 │   │   └── archive/           #   Superseded handoffs (V1–V37)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-042)
@@ -584,7 +584,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal ToadStool handoffs (V38 current: Session 74) |
+| `wateringHole/handoffs/` | Formal ToadStool handoffs (V39 current: Session 75) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 
 ## License
@@ -593,4 +593,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–74: February 26, 2026 | 25 papers + 5 baseCamp sub-theses, 206 Python + 1970+ Rust+GPU = 2180+ validation checks | 580 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 36 modules, 163 validation/bench binaries, 21 WGSL shaders (all absorbed upstream) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system | 107+ named tolerances, 0 clippy warnings, 94.53% coverage, 13 property tests, zero ad-hoc magic numbers in test assertions, 100% SPDX headers | S74: Pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks (8 domains CPU→GPU portability)*
+*Initialized: February 16, 2026 | Sessions 40–75: February 26, 2026 | 25 papers + 5 baseCamp sub-theses, 206 Python + 1970+ Rust+GPU = 2180+ validation checks | 580 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 36 modules, 163 validation/bench binaries, 21 WGSL shaders (all absorbed upstream) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system | 107+ named tolerances, 0 clippy warnings, 94.53% coverage, 13 property tests, zero ad-hoc magic numbers in test assertions, 100% SPDX headers | S74: Pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks (8 domains CPU→GPU portability)*
