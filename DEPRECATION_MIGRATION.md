@@ -2,7 +2,7 @@
 
 **Date**: February 26, 2026 (Sessions 44–75)
 **ToadStool HEAD**: `17932267` (S75: 94.53% coverage, 580 tests, 107+ tolerances, pure GPU all-domains 10/10, cross-system dispatch 46/46)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 26 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 30 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed

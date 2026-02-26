@@ -192,7 +192,7 @@ pub fn global_fst(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usi
 
     for j in 0..n_loci {
         let p_i: Vec<f64> = all_freqs.iter().map(|f| f[j]).collect();
-        let p_bar: f64 = ns.iter().zip(p_i.iter()).map(|(n, p)| n * p).sum::<f64>() / n_total;
+        let p_bar: f64 = barracuda::stats::dot(&ns, &p_i) / n_total;
 
         let s2: f64 = ns
             .iter()

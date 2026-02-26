@@ -54,7 +54,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 040 | Session 72 — ToadStool Full Sync: 47 Commits Reviewed, All Shortcomings Resolved | Feb 25, 2026 | 47-commit review (S39–S62), ALL 17 shortcomings RESOLVED upstream, 9 new APIs, V35 handoff |
 | 041 | Session 73 — Cross-Spring Rewiring: Upstream Tensor APIs + Benchmarks | Feb 26, 2026 | 4 upstream rewires (softmax_dim, argmax_dim, fst_variance_decomposition), 39/39 validator PASS, cross-spring lineage benchmarks, V36 handoff |
 | 042 | Session 74 — Pure GPU All-Domains + Cross-System Dispatch + Evolution Tier Benchmarks | Feb 26, 2026 | 9-domain GPU validator 10/10 PASS, cross-system dispatch 46/46 PASS, evolution-tier benchmark, 149/150 validate_all |
-| 043 | Session 75 — ToadStool S60–S65 Upstream Sync: Stats Rewiring + Validator Fixes | Feb 26, 2026 | 4 commits reviewed (234 files), 5 functions rewired to barracuda::stats, logsumexp f32→f64 fix, 3 RK4 WGSL rewires, **150/150 validate_all** |
+| 043 | Session 75 — ToadStool S60–S65 Upstream Sync: Stats Rewiring + Cross-Spring Benchmarks | Feb 26, 2026 | 4 commits reviewed (234 files), 9 functions rewired to barracuda::stats (r², rmse, nse, dot, l2\_norm, shannon), 4 validators fixed, cross-spring evolution benchmark (15/15 PASS), **150/150 validate_all**, 30 total rewires |
 
 ---
 
@@ -2313,7 +2313,7 @@ benchmark cross-spring shader lineage.
 - **hotSpring → BarraCUDA precision**: df64_core, pow_f64 polyfill, Fp64Strategy, GpuDriverProfile, Taylor trig, Lanczos eigensolver
 - **wetSpring → BarraCUDA bio+spectral**: HMM forward/backward, 5 ODE bio systems, NMF, Anderson, ridge regression, `fst_variance_decomposition` [S73 rewire]
 - **neuralSpring → BarraCUDA ops**: ValidationHarness, batch_fitness, pairwise_l2, eigh, KernelRouter, ESD/MP/rank, gelu/hmm_forward dispatch
-- **All three → ToadStool**: 599+ WGSL shaders (cross-spring evolved), 26 functions rewired total
+- **All three → ToadStool**: 599+ WGSL shaders (cross-spring evolved), 30 functions rewired total
 
 ### Tolerances Added
 

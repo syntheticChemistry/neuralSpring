@@ -27,7 +27,7 @@ achieves **150/150 validate_all** (up from 149/150).
 
 | Action | Details |
 |--------|---------|
-| **5 functions rewired** to `barracuda::stats` | `r_squared`, `rmse`, `nse` → upstream; `branch_trunk_dot` → `barracuda::stats::dot`; `shannon_entropy_from_counts` → `barracuda::stats::shannon` |
+| **9 functions rewired** to `barracuda::stats` | `r_squared`, `rmse`, `nse`, `branch_trunk_dot`, `rmse` (deeponet) → upstream delegates; `shannon_entropy_from_counts` → `barracuda::stats::shannon`; `l2_relative_error` → `barracuda::stats::l2_norm`; `dot` in counterdiabatic, meta\_population, neural\_pgm |
 | **logsumexp validator** fixed | Upstream evolved to f64-only; validator updated from f32 to f64 tensors |
 | **3 RK4 validators** fixed | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` removed upstream; rewired to `neural_spring_forge::shaders::RK4_PARALLEL` |
 | **validate_all** | **150/150 PASS** (was 149/150 — logsumexp was the 1 pre-existing failure) |
@@ -106,7 +106,26 @@ New `df64_transcendentals.wgsl`: `sqrt_df64`, `exp_df64`, `log_df64`,
 | `shannon_entropy(frequencies)` | No equivalent (takes frequencies, not counts) | **Kept local** |
 | `shannon_equitability(frequencies)` | No equivalent | **Kept local** |
 
-### 3.4 Not Rewired (Upstream Gaps)
+### 3.4 `neural_pgm.rs` → `barracuda::stats`
+
+| Local Code | Upstream Equivalent | Status |
+|------------|---------------------|--------|
+| `ev1.iter().zip(ev2).map(\|(&a,&b)\| a*b).sum()` | `barracuda::stats::dot(ev1, ev2)` | **Rewired** |
+| `ev.iter().map(\|&x\| x*x).sum().sqrt()` | `barracuda::stats::l2_norm(ev)` | **Rewired** |
+
+### 3.5 `counterdiabatic.rs` → `barracuda::stats`
+
+| Local Code | Upstream Equivalent | Status |
+|------------|---------------------|--------|
+| `p_s.iter().zip(f_s).map(\|(p,f)\| p*f).sum()` | `barracuda::stats::dot(&p_s, &f_s)` | **Rewired** |
+
+### 3.6 `meta_population.rs` → `barracuda::stats`
+
+| Local Code | Upstream Equivalent | Status |
+|------------|---------------------|--------|
+| `ns.iter().zip(p_i).map(\|(n,p)\| n*p).sum()` | `barracuda::stats::dot(&ns, &p_i)` | **Rewired** |
+
+### 3.7 Not Rewired (Upstream Gaps)
 
 | neuralSpring | Reason |
 |-------------|--------|
@@ -157,7 +176,7 @@ still exists but is no longer re-exported as a constant.
 |---------|---------|---------------|
 | S50–S59 | 16 functions | 16 |
 | S60–S69 | 5 functions + 6 shader sources | 21 + 6 shaders |
-| **S75** | **5 functions** (stats) | **26 + 6 shaders** |
+| **S75** | **9 functions** (stats + dot + l2\_norm) | **30 + 6 shaders** |
 
 ---
 
@@ -174,7 +193,7 @@ still exists but is no longer re-exported as a constant.
 | Integration tests | 9/9 PASS |
 | Validation binaries | **163** |
 | Named tolerances | **107+** |
-| Upstream rewires | **26 functions + 6 shader sources** |
+| Upstream rewires | **30 functions + 6 shader sources** |
 | ToadStool HEAD | `17932267` (S65) |
 
 ### Quality Gates (all green)
@@ -222,6 +241,7 @@ still exists but is no longer re-exported as a constant.
 | TOADSTOOL_HANDOFF | `specs/TOADSTOOL_HANDOFF.md` | Shortcoming tracking (all resolved) |
 | EVOLUTION_READINESS | `EVOLUTION_READINESS.md` | Module → WGSL → pipeline mapping |
 | Experiment 043 | `experiments/README.md` | S75 upstream sync journal |
+| Cross-spring bench | `bench_cross_spring_evolution` | Provenance-traced benchmark (15/15 PASS) |
 | V38 (archived) | `wateringHole/handoffs/archive/` | S74 pure GPU all-domains handoff |
 
 ---

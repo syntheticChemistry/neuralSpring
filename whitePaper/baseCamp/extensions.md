@@ -214,7 +214,7 @@ grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
 2180+ validated checks across 25 papers and 7 scientific domains. Core
 primitives implemented in Sessions 50–55, quality-hardened Sessions 61–74: 5 Rust
 modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 580 unit
-tests, 0 clippy warnings, 94.53% coverage, 107+ named tolerances. 26 functions
+tests, 0 clippy warnings, 94.53% coverage, 107+ named tolerances. 30 functions
 + 6 shader sources rewired to upstream BarraCUDA. Cross-spring evolution
 benchmarked: hotSpring precision, wetSpring bio, neuralSpring ML — all feeding
 ToadStool's shared math engine. No new math — only novel composition of

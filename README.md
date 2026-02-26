@@ -46,7 +46,7 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 S-14/S-15/S-16 fixed at `a4996b34` (S39). S-17 pow polyfill at `c82c23d1` (S58). S-03b MHA at `0c998992` (S60).
 21/21 WGSL shaders **absorbed upstream**. New upstream: `argmax_dim`, `softmax_dim`, `fst_variance_decomposition`, `Conv2dGpu`, `PeakDetectF64`, `MovingWindowStats`, `SparseGemmF64`, `ridge_regression`, `NMF`.
 Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**. S74: **10/10 pure GPU all-domains** (9 typed BarraCUDA ops + determinism).
-**26 functions rewired to upstream** (S58: 7 domain\_ops, S59: +2 dispatch + 3 stats/linalg, S56: 4 baseCamp, S68: +1 boltzmann, S73: +4 Tensor APIs, S75: +5 stats). **6 validator shader sources rewired** to upstream barracuda constants (S69).
+**30 functions rewired to upstream** (S58: 7 domain\_ops, S59: +2 dispatch + 3 stats/linalg, S56: 4 baseCamp, S68: +1 boltzmann, S73: +4 Tensor APIs, S75: +9 stats/dot/l2\_norm). **6 validator shader sources rewired** to upstream barracuda constants (S69).
 `GpuDriverProfile` wired in for f64 strategy detection (Hybrid on RTX 4070, Native on Titan V).
 580 lib tests, **94.53% coverage**, 107+ named tolerances, 13 property tests, 0 clippy warnings, 0 doc warnings.
 163 validation/bench binaries, 36 modules + gpu\_ops/ + gpu\_dispatch/, 580 lib + 9 integration + 43 forge tests.

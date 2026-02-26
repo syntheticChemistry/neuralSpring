@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `17932267` (Sessions 59–75 sync — 26 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed, 94.53% coverage, 580 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, Feb 26, 2026)
+**ToadStool HEAD**: `17932267` (Sessions 59–75 sync — 30 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed, 94.53% coverage, 580 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, Feb 26, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -231,7 +231,7 @@ empirical crossover points codified in `metalForge/forge/src/dispatch.rs`.
 
 Only `validate_barracuda_logsumexp` fails (pre-existing upstream buffer size mismatch).
 
-The cross-spring evolution validator covers all 26 rewired functions: 9 Dispatcher
+The cross-spring evolution validator covers all 30 rewired functions: 9 Dispatcher
 methods (S58: 7 + S59: gelu, hmm_forward) plus 3 library delegates (ESD, MP bounds,
 effective rank) plus `boltzmann_sampling` (S68) plus 4 S73 Tensor API rewires
 (Viterbi argmax_dim, softmax_row_wise, fst_single_locus, pairwise_fst_full) plus driver profile checks.
@@ -388,7 +388,7 @@ neuralSpring ML ───→ eigh, batch_fitness, pairwise_l2, spectral density
                ║  All Springs lean on the  ║
                ║  shared math engine:      ║
                ║  • 694 WGSL shaders       ║
-               ║  • 26 rewired functions    ║
+               ║  • 30 rewired functions    ║
                ║  • 6 validator shader      ║
                ║    sources → upstream      ║
                ║  • 117+ upstream APIs      ║

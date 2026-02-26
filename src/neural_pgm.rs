@@ -121,9 +121,9 @@ pub fn layer_spectral_similarity(w1: &[f64], n1: usize, w2: &[f64], n2: usize) -
     let ev1 = &ev1[..min_len];
     let ev2 = &ev2[..min_len];
 
-    let dot: f64 = ev1.iter().zip(ev2.iter()).map(|(&a, &b)| a * b).sum();
-    let norm1: f64 = ev1.iter().map(|&x| x * x).sum::<f64>().sqrt();
-    let norm2: f64 = ev2.iter().map(|&x| x * x).sum::<f64>().sqrt();
+    let dot = barracuda::stats::dot(ev1, ev2);
+    let norm1 = barracuda::stats::l2_norm(ev1);
+    let norm2 = barracuda::stats::l2_norm(ev2);
 
     if norm1 < LOG_GUARD || norm2 < LOG_GUARD {
         return 0.0;

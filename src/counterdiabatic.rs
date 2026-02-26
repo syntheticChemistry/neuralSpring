@@ -161,7 +161,7 @@ pub fn compute_cd_schedule(f0: &[f64], f1: &[f64], t: usize, beta: f64) -> Vec<f
     for &s in &s_grid {
         let f_s = interpolated_fitness(f0, f1, s);
         let p_s = boltzmann_distribution(&f_s, beta);
-        let mean_f: f64 = p_s.iter().zip(f_s.iter()).map(|(p, f)| p * f).sum();
+        let mean_f: f64 = barracuda::stats::dot(&p_s, &f_s);
         let var_f: f64 = p_s
             .iter()
             .zip(f_s.iter())

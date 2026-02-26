@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: February 26, 2026 (Sessions 40–75)
-**ToadStool HEAD**: `17932267` (S58–S75: 26 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 94.53% coverage (580 tests), 100% SPDX, zero ad-hoc magic numbers, S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks)
+**ToadStool HEAD**: `17932267` (S58–S75: 30 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 94.53% coverage (580 tests), 100% SPDX, zero ad-hoc magic numbers, S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 

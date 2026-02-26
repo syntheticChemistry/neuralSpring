@@ -217,7 +217,7 @@ that match GPU buffer bindings directly:
 **Total cross-dispatch checks**: 41 (8+8+12+13)
 **Total dispatch + parity checks**: 89 (16+14+19+17+23, Session 55–56)
 **Total lib tests**: 580 lib + 9 integration + 43 forge tests
-**Upstream rewired**: 26 functions + 6 shader sources delegating to upstream BarraCUDA
+**Upstream rewired**: 30 functions + 6 shader sources delegating to upstream BarraCUDA
 **Grand total validation**: 2180+ (206 Python + 1970+ Rust+GPU)
 
 ---
