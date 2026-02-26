@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 26, 2026 (Sessions 49–81 — pure GPU all-domains + cross-system dispatch + upstream S60–S65 sync + S81 deep debt evolution)
+**Date**: February 26, 2026 (Sessions 49–85 — pure GPU all-domains + cross-system dispatch + upstream S60–S65 sync + S81 deep debt evolution)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -116,7 +116,7 @@ Each neuralSpring sub-thesis connects directly to gen3 baseCamp sub-theses:
 | 04 (Neural PGM) | gen3 02 (LTEE), gen3 05 (Cross-species) | HMM, introgression, PhyloNet-HMM |
 | 05 (Multi-Agent QS) | gen3 01 (Anderson QS), gen3 03 (Bioag) | Anderson, game theory, Wright-Fisher |
 
-### Implementation Status (Sessions 50–55, hardened 61–81)
+### Implementation Status (Sessions 50–55, hardened 61–85)
 
 All 5 sub-theses have core Rust modules implemented and validated at CPU,
 GPU, and mixed-hardware tiers:
@@ -224,7 +224,7 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 *neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
 grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
 2250+ validated checks across 25 papers and 7 scientific domains. Core
-primitives implemented in Sessions 50–55, quality-hardened Sessions 61–82: 5 Rust
+primitives implemented in Sessions 50–55, quality-hardened Sessions 61–85: 5 Rust
 modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 604 unit
 tests, 0 clippy warnings, 93.5% coverage, 129+ named tolerances. 39 functions +
 6 shader sources rewired to upstream BarraCUDA. Session 82: Titan V pure Rust

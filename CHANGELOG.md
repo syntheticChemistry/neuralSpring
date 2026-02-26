@@ -5,9 +5,30 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 84 (February 26, 2026)
+## [Unreleased] — Session 85 (February 26, 2026)
 
-V49 handoff pending.
+Next session.
+
+## [0.4.2] — 2026-02-26 (Session 85: Doc Sweep + V49 Handoff)
+
+### Changed
+
+- All stale test counts fixed across 20+ documents: 580→604 lib, 163→166
+  binaries, 107→129+ tolerances, V43→V48 handoff refs.
+- baseCamp sub-theses (sub01–sub05) extended through S85.
+- `waters.md`: Fixed `quorum_sensing.rs` → `signal_integration.rs`.
+- `BARRACUDA_EVOLUTION.md`: PcieBridge placeholder replaced with real content.
+- Five-spring provenance documented in `CROSS_SPRING_SHADER_LINEAGE.md`.
+- Hamming 20.85× regression flagged in BARRACUDA_USAGE + V49 handoff.
+
+### Added
+
+- V49 handoff: cross-spring evolution learnings, recommendations for ToadStool.
+- Experiment 053: Session 85 doc sweep + handoff.
+
+### Validated
+
+- 604/604 lib, 0 clippy warnings, 150/150 GPU validators PASS.
 
 ## [0.4.1] — 2026-02-26 (Session 84: Cross-Spring Benchmark + Lineage)
 

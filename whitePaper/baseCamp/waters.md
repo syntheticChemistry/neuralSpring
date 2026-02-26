@@ -28,7 +28,7 @@ community coordination under tillage-driven constraint changes.
 |---|----------|-------------|--------|--------|
 | 019 | Schuster et al. (2017) *Acyl-homoserine lactone quorum sensing*. mBio. | `game_theory.rs` | 8 | **ALL TIERS PASS** |
 | 020 | Tsai & Waters (2020) *LuxR-type protein signal integration*. Mol Micro. | `regulatory_network.rs` | 6 | **ALL TIERS PASS** |
-| 021 | Ball & Waters (2021) *Quorum sensing integration via promoters*. J Bact. | `quorum_sensing.rs` | 7 | **ALL TIERS PASS** |
+| 021 | Ball & Waters (2021) *Quorum sensing integration via promoters*. J Bact. | `signal_integration.rs` | 7 | **ALL TIERS PASS** |
 
 ## Evolution Path
 

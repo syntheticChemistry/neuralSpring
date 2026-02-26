@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 26, 2026 (Sessions 40–84)
-**ToadStool HEAD**: `f0feb226` (S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S84: Five-spring benchmark + lineage — 28/28 bench PASS, ~700 WGSL provenance mapped across hotSpring/wetSpring/neuralSpring/airSpring/groundSpring. S83: shader import fixes for S68 `LazyLock` privatization, variance_ddof gap closed, 150/150 validators PASS. Prior: 39 functions rewired, S-03b resolved, 21/21 shaders absorbed, Titan V 384/384, `fma(f64)` shader fix)
+**Date**: February 26, 2026 (Sessions 40–85)
+**ToadStool HEAD**: `f0feb226` (S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S85: Doc sweep + V49 handoff — 20+ docs updated, Hamming regression flagged. S84: Five-spring benchmark + lineage — 28/28 bench PASS, ~700 WGSL provenance mapped. S83: shader import fixes for S68 `LazyLock` privatization, variance_ddof gap closed, 150/150 validators PASS. Prior: 39 functions rewired, S-03b resolved, 21/21 shaders absorbed, Titan V 384/384, `fma(f64)` shader fix)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -78,7 +78,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
 | Session 77: WDM surrogates | 3 Python baselines + 2 Rust validators (CPU + GPU) | **ALL GREEN** |
 | Session 77: baseCamp GPU pure | `validate_basecamp_gpu_pure` 5/5 sub-theses on GPU | **ALL GREEN** |
-| Session 78–79: cross-spring | `validate_cross_spring_evolution` 52/52 PASS, `bench_cross_spring_evolution` 19/19 PASS | **ALL GREEN** |
+| Session 78–79: cross-spring | `validate_cross_spring_evolution` 52/52 PASS, `bench_cross_spring_evolution` 28/28 PASS | **ALL GREEN** |
 | Grand total checks | **2250+** (206 Py + 2040+ Rust/GPU) | **ALL GREEN** |
 
 ---
@@ -626,7 +626,7 @@ motivates StatefulPipeline/UnidirectionalPipeline batching for GPU-resident acce
 Full barracuda usage audit: 90+ import sites, 20+ submodules, zero duplicates.
 Tolerance centralization: 104+ named constants, zero ad-hoc magic numbers.
 Rewired `boltzmann_sampling` → `barracuda::sample::boltzmann_sampling` (17th function rewire).
-580 lib tests, 90.43% coverage.
+604 lib tests, 90.43% coverage.
 
 || Session 68: Deep debt audit | 104+ tolerances, 90.43% coverage, 0 debt markers | **ALL GREEN** |
 || Session 68: boltzmann rewire | 17th function rewired to upstream | **LEAN** |

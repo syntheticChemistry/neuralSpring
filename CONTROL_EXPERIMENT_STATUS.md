@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–84 — S84: Five-spring benchmark + lineage — 28/28 bench PASS, 5 S68 APIs benchmarked, provenance documented)
+**Last updated**: February 26, 2026 (Sessions 44–85 — S85: Doc sweep + V49 handoff — all stale counts fixed, baseCamp updated through S85, Hamming regression flagged)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -755,6 +755,21 @@ Full pure Rust GPU pipeline validation on NVIDIA TITAN V (NVK GV100, Volta SM70,
 - Bare float literals (`1.0`) default to `f32` in `select()` context, causing type mismatches with `f64` division
 - NVK pipeline cache compilation takes ~145s on first run; instant via `wgpu::PipelineCache` thereafter
 - Titan V full-rate FP64 (1:2 ratio) confirmed working for all scientific compute shaders
+
+### Session 85 — Doc Sweep + V49 Handoff (February 26, 2026)
+
+Comprehensive documentation sweep: all stale validation counts fixed across 20+
+documents (580→604 lib, 163→166 binaries, 107→129+ tolerances). baseCamp
+sub-theses (sub01–sub05) extended through S85. Fixed `waters.md` reference
+(`quorum_sensing.rs` → `signal_integration.rs`). PcieBridge placeholder replaced
+in BARRACUDA_EVOLUTION. V49 handoff crafted with cross-spring learnings and
+Hamming 20.85× regression flagged for ToadStool investigation.
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **604/604 PASS** |
+| `cargo clippy --all-targets -- -D warnings` | **0 warnings** |
+| `validate_all` | **150/150 PASS** |
 
 ### Session 84 — Cross-Spring Benchmark + Lineage Documentation (February 26, 2026)
 

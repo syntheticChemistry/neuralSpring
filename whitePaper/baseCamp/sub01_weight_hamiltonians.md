@@ -1,7 +1,7 @@
 # Sub-Thesis 01: Weight Matrices as Disordered Hamiltonians
 
 **Date:** February 24, 2026 (Session 58 — Dispatcher `mat_mul`/`frobenius_norm`/`transpose` rewired to upstream `domain_ops`)
-**Status:** Core primitives implemented and validated (21/21 PASS)
+**Status:** Core primitives implemented and validated (21/21 PASS). Validation remains passing through S85.
 **Module:** `src/weight_spectral.rs` | **Validator:** `src/bin/validate_weight_spectral.rs`
 **Domain:** Random matrix theory applied to deep learning interpretability
 **Novelty:** No prior work applies Anderson localization IPR to neural network

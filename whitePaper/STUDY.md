@@ -168,7 +168,7 @@ BarraCUDA integration extended it to 1750+ GPU/CPU validation checks across 142 
 
 - **36 modules + 2 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances/` (20+ named constants + runtime registry), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
 - **150 validation binaries + 12 bench + validate_all**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch + mixed-hardware + multi-GPU + pure GPU all-domains + cross-system dispatch
-- **580 lib tests + 9 integration tests + 43 forge tests**
+- **604 lib tests + 9 integration tests + 43 forge tests**
 - **Quality gates**: `clippy` (pedantic+nursery), `fmt`, `doc`, `unsafe_code = "forbid"`
 - **17 WGSL shaders** in `metalForge/shaders/` with validation binaries and absorption targets (13 upstream, 4 local)
 
@@ -217,7 +217,7 @@ See `whitePaper/BARRACUDA_EVOLUTION.md` for the full technical narrative.
 | 0 | Python baselines (48 checks) | Validate the science | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Reproduce published results | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty, 5 disciplines | **COMPLETE** |
-| 1a | neuralSpring Rust validation | 36 modules, 580 lib + 9 integration tests, 163 binaries | **COMPLETE** |
+| 1a | neuralSpring Rust validation | 36 modules, 604 lib + 9 integration tests, 166 binaries | **COMPLETE** |
 | 1b | BarraCUDA validation | 12 domains, 275 checks (CPU + GPU + FFT) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | 46–78× speedup via single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |

@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 26, 2026 (Sessions 40–83 — ToadStool S68 sync + universal precision alignment)
+**Last Updated**: February 26, 2026 (Sessions 40–85 — S84: five-spring benchmark + lineage, S85: doc sweep + V49 handoff)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -670,7 +670,7 @@ unavoidable transitive dependencies with no C compilation.
 | Gate | Result |
 |------|--------|
 | `validate_all` | 150 binaries (150/150 PASS) |
-| `cargo test --lib` | 580 PASS |
+| `cargo test --lib` | 604 PASS |
 | `cargo test -p neural-spring-forge --lib` | 43 PASS |
 | `cargo clippy (pedantic+nursery)` | 0 warnings |
 
@@ -796,7 +796,7 @@ Motivates StatefulPipeline/UnidirectionalPipeline batching.
 
 | Gate | Result |
 |------|--------|
-| `cargo test --lib` | **580 PASS** |
+| `cargo test --lib` | **604 PASS** |
 | `validate_all` | **147/148 PASS** |
 | `validate_gpu_phase_c` | **18/18 PASS** |
 | `validate_cpu_math_parity` | **39/39 PASS** |
@@ -827,7 +827,7 @@ Full barracuda usage sweep across 60+ files, 90+ import sites:
 |------|--------|
 | `cargo fmt --all -- --check` | **PASS** |
 | `cargo clippy --all-targets -D warnings` | **0 warnings** |
-| `cargo test --lib` | **580/580 PASS** |
+| `cargo test --lib` | **604/604 PASS** |
 | `cargo test --test integration` | **9/9 PASS** |
 | `cargo doc --no-deps` | **0 warnings** |
 | `cargo llvm-cov --lib` | **90.43% line coverage** |
@@ -930,8 +930,8 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 | `validate_gpu_pure_workload_all` | **10/10 PASS** |
 | `validate_cross_system_dispatch` | **46/46 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
-| `bench_cross_spring_evolution` | **19/19 PASS** |
-| `cargo test --lib` | 581 PASS |
+| `bench_cross_spring_evolution` | **28/28 PASS** |
+| `cargo test --lib` | 604 PASS |
 | `cargo test -p neural-spring-forge --lib` | 43 PASS |
 
 ---
@@ -1068,4 +1068,23 @@ shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–83: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 604 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 83: ToadStool S68 sync — universal precision alignment, 5 shader imports fixed, API gap #3 (variance_ddof) closed. V48 handoff.*
+### Session 84–85: Cross-Spring Benchmark + Doc Sweep
+
+**bench_cross_spring_evolution** extended with 5 modern S68 APIs: `fit_quadratic`,
+`fit_exponential`, `fit_all`, `spearman_correlation`, `rawr_mean` — all benchmarked
+with five-spring provenance (hotSpring/wetSpring/neuralSpring/airSpring/groundSpring).
+GPU Dispatcher provenance benchmarks added: variance 10.4ms, pearson 9.2ms, shannon
+4.5ms, matmul 200×200 2.5ms (all N=50,000).
+
+**Known anomaly — Hamming 20.85× regression**: `bench_upstream_vs_local` shows
+`PairwiseHammingGpu` 200×500 at 50,060µs upstream vs 2,401µs local (20.85× slower).
+Cause: upstream f64 path on small sizes vs local f32. Investigation target for
+ToadStool — consider size-based f32/f64 routing or public f32 constant.
+
+**Session 85 doc sweep**: All stale validation counts updated (580→604, 163→166,
+107→129+ tolerances, V43→V48 refs). baseCamp sub-theses updated through S85.
+CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
+
+---
+
+*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–85: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 604 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 83: ToadStool S68 sync — universal precision, 5 shader imports fixed, variance_ddof gap closed. Session 84: five-spring benchmark (28/28 PASS). Session 85: doc sweep + V49 handoff.*

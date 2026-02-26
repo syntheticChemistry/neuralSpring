@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V48** | `handoffs/NEURALSPRING_TOADSTOOL_V48_S68_UNIVERSAL_PRECISION_SYNC_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S83: ToadStool S68 sync — 5 shader imports fixed (universal precision `LazyLock` privatization), variance_ddof gap closed, 150/150 validators PASS |
+| **V49** | `handoffs/NEURALSPRING_TOADSTOOL_V49_CROSS_SPRING_EVOLUTION_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S85: Five-spring provenance map, 28/28 bench PASS, Hamming regression flagged, V49 recommendations for ToadStool evolution |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V47, 62 files).
+Superseded handoffs: `handoffs/archive/` (V1–V48, 63 files).
 
 ## Conventions
 

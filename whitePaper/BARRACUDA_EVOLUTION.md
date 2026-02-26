@@ -791,7 +791,7 @@ Built `metalForge/forge/src/mixed.rs` and `metalForge/forge/src/pcie_bridge.rs`:
 
 - `MixedSubstrate` enum: GpuOnly, CpuOnly, NpuOnly, GpuToNpu, NpuToGpu, GpuToCpu
 - `TransferCost` model: PCIe 4.0 x16 (31.5 GB/s) and x4 (7.9 GB/s) cost estimation
-- `PcieBridge`: device-pair abstraction with P2P capability detection (placeholder)
+- `PcieBridge`: device-pair abstraction with P2P capability detection. Wired into Dispatcher S63. Detects BandwidthTier (PciE4x16 on RTX 4070).
 - Validated: `validate_toadstool_dispatch` 16/16, `validate_mixed_dispatch` 16/16
 
 ---

@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `f0feb226` (Sessions 59–68 sync — 38 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed + 9 sovereign folding f64 pending, 93.5% coverage, 604 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, cross-spring evolution 52/52 PASS, WDM surrogates validated, Feb 26, 2026)
+**ToadStool HEAD**: `f0feb226` (Sessions 59–68 sync — 39 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed + 9 sovereign folding f64 pending, 93.5% coverage, 604 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, cross-spring evolution 52/52 PASS, WDM surrogates validated, Feb 26, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -224,7 +224,7 @@ empirical crossover points codified in `metalForge/forge/src/dispatch.rs`.
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
-| `cargo test --lib` | 580 PASS |
+| `cargo test --lib` | 604 PASS |
 | `cargo test --test integration` | 9 PASS |
 | `validate_all` | 147/148 PASS |
 | `validate_cross_spring_evolution` | **39/39 PASS** |
@@ -540,7 +540,7 @@ convergence norms), `GemmF64` cached extension (wetSpring 60× taxonomy speedup)
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` | 0 warnings |
-| `cargo test --lib` | 580 PASS |
+| `cargo test --lib` | 604 PASS |
 | `cargo test --test integration` | 9 PASS |
 | `validate_all` | 147/148 PASS |
 | `validate_cross_spring_evolution` | 39/39 PASS |
@@ -593,7 +593,7 @@ Three new binaries close the pure GPU and cross-system milestones:
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` | 0 warnings |
-| `cargo test --lib` | 580 PASS |
+| `cargo test --lib` | 604 PASS |
 | `cargo test --test integration` | 9 PASS |
 | `validate_all` | 150/150 PASS |
 | `validate_gpu_pure_workload_all` | 10/10 PASS |
@@ -632,7 +632,7 @@ across airSpring stats, wetSpring bio/GPU diversity, hotSpring precision.
 | Gate | Result |
 |------|--------|
 | `cargo clippy --lib` | 0 warnings |
-| `cargo test --lib` | 580 PASS |
+| `cargo test --lib` | 604 PASS |
 | `cargo test -p neural-spring-forge --lib` | 43 PASS |
 | `validate_all` | **150/150 PASS** |
 | `bench_cross_spring_evolution` | 15/15 PASS |
@@ -712,8 +712,8 @@ fused map-reduce, combined correlation).
 | `cargo test --workspace` | 604 lib + 43 forge + 9 integration PASS |
 | `validate_all` | **150/150 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
-| `bench_cross_spring_evolution` | **19/19 PASS** |
-| Total upstream rewires | **38 functions + 6 shader sources** |
+| `bench_cross_spring_evolution` | **28/28 PASS** |
+| Total upstream rewires | **39 functions + 6 shader sources** |
 
 ---
 

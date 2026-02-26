@@ -1,7 +1,7 @@
 # Sub-Thesis 04: Neural Networks as Probabilistic Graphical Models
 
 **Date:** February 24, 2026 (Session 58 — `belief_propagation_chain` + 7 Dispatcher methods rewired to upstream)
-**Status:** Core primitives implemented and validated (21/21 PASS)
+**Status:** Core primitives implemented and validated (21/21 PASS). Validation remains passing through S85.
 **Module:** `src/neural_pgm.rs` | **Validator:** `src/bin/validate_neural_pgm.rs`
 **Domain:** Probabilistic inference applied to neural network interpretability
 **Novelty:** No prior work combines HMM introgression detection with PGM

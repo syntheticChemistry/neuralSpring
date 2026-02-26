@@ -598,7 +598,7 @@ Pearson gains f64 precision with modest speedup.
 | `mean` | hotSpring reduce | 0.4 | 0.4 | Parity |
 | `hmm_forward` | wetSpring bio | 0.5 | 0.5 | Parity — CPU optimal at 32 states |
 
-### Validation: 150/150 + 15/15 + 39/39 + 580 PASS (S76)
+### Validation: 150/150 + 15/15 + 39/39 + 604 PASS (S76)
 
 | Gate | Result |
 |------|--------|
@@ -607,7 +607,7 @@ Pearson gains f64 precision with modest speedup.
 | `cargo test --workspace` | 604 lib + 43 forge + 9 integration PASS |
 | `validate_all` | **150/150 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
-| `bench_cross_spring_evolution` | **19/19 PASS** |
+| `bench_cross_spring_evolution` | **28/28 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels ≈ parity** |
 
 ### Evolution Timeline Update
@@ -646,8 +646,8 @@ Feb 26  Session 68: ToadStool S60–S68 sync (f0feb226)
         Sessions 78–79: ToadStool S66 absorption + complete cross-spring rewiring
           - +6 rewires: mae, shannon, hill×2, l2_distance, fit_linear
           - All 9 metalForge f64 shaders aligned to compile_shader_df64 convention
-          - Cross-spring validator: 52/52 PASS, benchmark: 19/19 PASS
-          - 38 total upstream rewires, V44 handoff
+          - Cross-spring validator: 52/52 PASS, benchmark: 28/28 PASS
+          - 39 total upstream rewires, V44 handoff
 ```
 
 ---
@@ -771,4 +771,4 @@ Feb 26  Session 83: ToadStool S68 Universal Precision Sync
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
 | Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
-| V48 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V48_S68_UNIVERSAL_PRECISION_SYNC_HANDOFF_FEB26_2026.md` |
+| V49 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V49_CROSS_SPRING_EVOLUTION_HANDOFF_FEB26_2026.md` |

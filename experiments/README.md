@@ -64,6 +64,50 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 050 | Session 82 — Titan V Pure Rust Pipeline Validation | Feb 26, 2026 | 384/384 GPU checks on NVK GV100, `fma(f64)` shader fix, zero RTX 4070 regressions |
 | 051 | Session 83 — ToadStool S68 Universal Precision Sync | Feb 26, 2026 | 22 commits synced, 5 shader imports fixed, variance_ddof gap closed, 150/150 validators PASS |
 | 052 | Session 84 — Cross-Spring Benchmark + Lineage Documentation | Feb 26, 2026 | Five-spring provenance map, 28/28 bench PASS, 5 new S68 APIs benchmarked, GPU dispatch provenance validated |
+| 053 | Session 85 — Doc Sweep + V49 Handoff | Feb 26, 2026 | All stale counts fixed (580→604, 163→166, 107→129+), baseCamp sub-theses updated through S85, V49 handoff with cross-spring learnings, Hamming regression flagged |
+
+---
+
+## Experiment 053: Doc Sweep + V49 Handoff
+
+**Date**: February 26, 2026 (Session 85)
+**Hardware**: NVIDIA RTX 4070, Vulkan, Ada Lovelace
+**ToadStool HEAD**: `f0feb226` (S68)
+
+### Motivation
+
+Comprehensive documentation sweep and handoff crafting. Align all stale validation
+counts, update baseCamp sub-theses, fix dead references, and craft V49 handoff
+with cross-spring evolution learnings and recommendations for ToadStool.
+
+### Procedure
+
+1. **Sibling spring review**: Examined wetSpring and hotSpring handoff/doc
+   conventions to align neuralSpring formatting.
+
+2. **Stale count audit**: Found 580→604 lib, 163→166 binaries, 107→129+
+   tolerances, V43→V48 handoff refs across ~20 documents. Fixed all.
+
+3. **baseCamp update**: Extended sub01–sub05 session ranges to S85. Fixed
+   `waters.md` reference (`quorum_sensing.rs` → `signal_integration.rs`).
+   Replaced BARRACUDA_EVOLUTION PcieBridge placeholder.
+
+4. **V49 handoff crafted**: Comprehensive handoff for ToadStool with:
+   - Five-spring provenance map
+   - Hamming 20.85× regression flagged as investigation target
+   - API friction points (LazyLock privatization, variance convention)
+   - Recommendations (SimpleMLP, GpuTestHarness, public f32 constants)
+   - Six action items for ToadStool team
+
+5. **Debris audit**: No code debris found. Zero TODO/FIXME/MOCK/STUB.
+   Fossils properly archived. No hardcoded paths. No dead code outside fossils.
+
+### Findings
+
+- **No code changes needed** — codebase is clean. All work was documentation.
+- **20+ documents updated** with correct validation counts.
+- **Hamming regression** is the only significant anomaly for ToadStool attention.
+- **All validation unchanged**: 604/604 lib, 150/150 GPU, 28/28 bench PASS.
 
 ---
 

@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Publication Candidate Outlines
 
-**Date**: February 26, 2026 (Session 81)
+**Date**: February 26, 2026 (Session 85)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 **Status**: DRAFT — outlines for the 4 strongest publication candidates
 

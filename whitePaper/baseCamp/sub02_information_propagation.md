@@ -1,7 +1,7 @@
 # Sub-Thesis 02: Information Flow as Wave Propagation in Neural Lattices
 
 **Date:** February 24, 2026 (Session 58 — Dispatcher `l2_distance`/`mean`/`variance` rewired to upstream `domain_ops`)
-**Status:** Core primitives implemented and validated (22/22 PASS)
+**Status:** Core primitives implemented and validated (22/22 PASS). Validation remains passing through S85.
 **Module:** `src/information_flow.rs` | **Validator:** `src/bin/validate_information_flow.rs`
 **Domain:** Statistical physics applied to recurrent and attention-based AI
 **Novelty:** No prior work models LSTM gating as stencil propagation on a

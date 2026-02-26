@@ -584,7 +584,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal ToadStool handoffs (V48 current: Session 83) |
+| `wateringHole/handoffs/` | Formal ToadStool handoffs (V49 current: Session 85) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -594,4 +594,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–84 (S84: Five-spring benchmark + lineage — 28/28 bench PASS, ~700 WGSL provenance mapped): February 26, 2026 | 25 papers + 5 baseCamp sub-theses + WDM surrogates, 206 Python + 2040+ Rust+GPU = 2250+ validation checks | 604 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 37 modules, 166 validation/bench binaries, 30 WGSL shaders (21 absorbed + 9 sovereign folding f64) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring | 39 functions + 6 shader sources rewired to upstream (S81: spectral\_entropy → barracuda) | 129+ named tolerances, 0 clippy warnings, 93.5% coverage, 100% SPDX | V48 handoff*
+*Initialized: February 16, 2026 | Sessions 40–85 (S85: Doc sweep + V49 handoff — 20+ docs updated, Hamming regression flagged): February 26, 2026 | 25 papers + 5 baseCamp sub-theses + WDM surrogates, 206 Python + 2040+ Rust+GPU = 2250+ validation checks | 604 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 37 modules, 166 validation/bench binaries, 30 WGSL shaders (21 absorbed + 9 sovereign folding f64) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring | 39 functions + 6 shader sources rewired to upstream (S81: spectral\_entropy → barracuda) | 129+ named tolerances, 0 clippy warnings, 93.5% coverage, 100% SPDX | V49 handoff*
