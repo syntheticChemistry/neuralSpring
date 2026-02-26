@@ -10,7 +10,7 @@
 Session 75 syncs neuralSpring to ToadStool commits S60–S65 (4 commits,
 234 files changed, ~23K lines). The upstream crate evolved significantly:
 DF64 transcendentals, SovereignCompiler, stats absorption, smart refactoring,
-and 8 new lattice shaders. This session rewires 5 neuralSpring functions to
+and 8 new lattice shaders. This session rewires 9 neuralSpring functions to
 upstream `barracuda::stats`, fixes 4 validators broken by API changes, and
 achieves **150/150 validate_all** (up from 149/150).
 

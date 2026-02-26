@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 26, 2026 (Sessions 49–74 — pure GPU all-domains + cross-system dispatch + evolution tier benchmarks)
+**Date**: February 26, 2026 (Sessions 49–75 — pure GPU all-domains + cross-system dispatch + upstream S60–S65 sync)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---

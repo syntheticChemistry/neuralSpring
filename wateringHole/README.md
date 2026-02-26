@@ -7,7 +7,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V39** | `handoffs/NEURALSPRING_TOADSTOOL_V39_S75_UPSTREAM_SYNC_S60_S65_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S75: ToadStool S60–S65 sync (694 shaders, 2490 tests), 5 stats rewires, 4 validators fixed, 150/150 validate_all, 26 upstream rewires + 6 shader sources |
+| **V39** | `handoffs/NEURALSPRING_TOADSTOOL_V39_S75_UPSTREAM_SYNC_S60_S65_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S75: ToadStool S60–S65 sync (694 shaders, 2490 tests), 9 stats rewires, 4 validators fixed, 150/150 validate_all, 30 upstream rewires + 6 shader sources |
 
 ## Archive
 

@@ -24,6 +24,12 @@
 | `stats::pearson_correlation` | modes, `cpu_fallback` | Correlation between diversity metrics |
 | `stats::empirical_spectral_density` | `weight_spectral` | Eigenvalue histogram (rewired S59, M-011) |
 | `stats::marchenko_pastur_bounds` | `weight_spectral` | Random matrix spectral bounds (rewired S59, M-012) |
+| `stats::r_squared` | `metrics.rs` | R² goodness-of-fit (rewired S75) |
+| `stats::rmse` | `metrics.rs`, `deeponet.rs` | Root mean squared error (rewired S75) |
+| `stats::nash_sutcliffe` | `metrics.rs` | Nash-Sutcliffe efficiency (rewired S75) |
+| `stats::dot` | `deeponet.rs`, `counterdiabatic.rs`, `meta_population.rs`, `neural_pgm.rs` | Dot product (rewired S75) |
+| `stats::l2_norm` | `deeponet.rs`, `neural_pgm.rs` | L2 norm (rewired S75) |
+| `stats::shannon` | `primitives.rs` | Shannon entropy from counts (rewired S75) |
 
 ### Linear Algebra
 

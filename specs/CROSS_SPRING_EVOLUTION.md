@@ -602,4 +602,42 @@ Three new binaries close the pure GPU and cross-system milestones:
 
 ---
 
+### Session 75 — ToadStool S60–S65 Upstream Sync (Feb 26, 2026)
+
+Full sync to ToadStool commits S60–S65 (4 commits, 234 files, ~23K lines).
+
+| Rewire | Module | Upstream |
+|--------|--------|----------|
+| `r_squared` | `metrics.rs` | `barracuda::stats::r_squared` |
+| `rmse` | `metrics.rs`, `deeponet.rs` | `barracuda::stats::rmse` |
+| `nse` | `metrics.rs` | `barracuda::stats::nash_sutcliffe` |
+| `branch_trunk_dot` | `deeponet.rs` | `barracuda::stats::dot` |
+| `l2_relative_error` | `deeponet.rs` | `barracuda::stats::l2_norm` |
+| `shannon_entropy_from_counts` | `primitives.rs` | `barracuda::stats::shannon` |
+| dot product | `neural_pgm.rs`, `counterdiabatic.rs`, `meta_population.rs` | `barracuda::stats::dot` |
+
+**Cross-spring provenance of new stats module:**
+- `rmse`, `mbe`, `nash_sutcliffe`, `r_squared`, `index_of_agreement`, `hit_rate` — airSpring/groundSpring hydrology
+- `shannon`, `simpson`, `chao1`, `pielou_evenness`, `bray_curtis`, `rarefaction_curve` — wetSpring biodiversity
+- `DiversityFusionGpu` — wetSpring → GPU fused Shannon+Simpson+Pielou
+- 8 lattice shaders (SU(3), PRNG PCG) — hotSpring precision physics
+
+**Validators fixed:** logsumexp f32→f64, 3× RK4 shader re-import.
+
+**New benchmark:** `bench_cross_spring_evolution` (15/15 PASS) traces provenance
+across airSpring stats, wetSpring bio/GPU diversity, hotSpring precision.
+
+#### S75 Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo clippy --lib` | 0 warnings |
+| `cargo test --lib` | 580 PASS |
+| `cargo test -p neural-spring-forge --lib` | 43 PASS |
+| `validate_all` | **150/150 PASS** |
+| `bench_cross_spring_evolution` | 15/15 PASS |
+| Total upstream rewires | **30 functions + 6 shader sources** |
+
+---
+
 *Cross-spring evolution tracker — every absorption makes all Springs stronger.*

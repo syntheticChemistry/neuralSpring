@@ -2419,4 +2419,70 @@ metalForge cross-system stack proving workloads route correctly across substrate
 
 ---
 
+## Experiment 043: ToadStool S60–S65 Upstream Sync — Stats Rewiring + Cross-Spring Benchmarks
+
+**Date**: February 26, 2026 (Session 75)
+**Hardware**: i9-12900K, RTX 4070 12GB, Pop!_OS 22.04
+**Researcher**: Eastgate
+**ToadStool HEAD**: `17932267` (S65)
+
+### Why
+
+ToadStool absorbed four major commits (S60–S65) adding DF64 transcendentals,
+SovereignCompiler, a full `barracuda::stats` module from airSpring/groundSpring/wetSpring,
+8 hotSpring lattice shaders, and smart refactoring of large files. neuralSpring had
+manual implementations of functions now available upstream. Additionally, 4 validators
+were broken by API changes (logsumexp f32→f64, RK4 constant removed).
+
+### What
+
+1. **Reviewed 4 commits** (234 files, ~23K lines) for neuralSpring impact.
+
+2. **Rewired 9 functions** to `barracuda::stats`:
+   - `r_squared`, `rmse`, `nse` in `metrics.rs`
+   - `branch_trunk_dot`, `rmse`, `l2_relative_error` in `deeponet.rs`
+   - `shannon_entropy_from_counts` in `primitives.rs`
+   - `dot` in `neural_pgm.rs`, `counterdiabatic.rs`, `meta_population.rs`
+
+3. **Fixed 4 validators**:
+   - `validate_barracuda_logsumexp`: f32→f64 tensors + tolerances
+   - `validate_gpu_stateful_pipeline`, `validate_gpu_pipeline_regulatory`,
+     `validate_cross_dispatch_ode`: RK4 shader re-import via forge
+
+4. **Created `bench_cross_spring_evolution`** (15/15 PASS):
+   airSpring stats provenance, wetSpring bio/GPU diversity, hotSpring precision.
+
+### Findings
+
+- **Cross-spring stats provenance confirmed**: RMSE, NSE, R², hit_rate
+  originated in airSpring/groundSpring hydrology → absorbed into `barracuda::stats`
+  → now consumed by neuralSpring ML validation.
+- **Diversity GPU fusion works**: `DiversityFusionGpu` (wetSpring→ToadStool)
+  computes Shannon+Simpson+Pielou in a single GPU pass.
+- **logsumexp precision boundary**: upstream evolved to f64-only, which is correct
+  for neuralSpring's log-space ML accumulation.
+- **Total upstream rewires**: 30 functions + 6 shader sources.
+
+### Surprises
+
+- `barracuda::stats::shannon(counts)` uses count→frequency conversion internally,
+  so it takes `&[f64]` counts, not frequencies. `primitives::shannon_entropy(frequencies)`
+  remains local because upstream has no frequency-based variant.
+- `BatchedOdeRK4F64::new()` returns `Self` directly (not `Result`), which differs
+  from the `DiversityFusionGpu::new()` pattern that returns `Result`.
+
+### Quality Gates
+
+| Gate | Result |
+|------|--------|
+| `cargo clippy --lib` | **0 warnings** |
+| `cargo test --lib` | **580/580 PASS** |
+| `cargo test -p neural-spring-forge --lib` | **43/43 PASS** |
+| `validate_all` | **150/150 PASS** |
+| `bench_cross_spring_evolution` | **15/15 PASS** |
+| `validate_cross_spring_evolution` | **39/39 PASS** |
+| Total upstream rewires | **30 functions + 6 shader sources** |
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

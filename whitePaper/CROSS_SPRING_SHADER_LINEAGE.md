@@ -549,15 +549,16 @@ Pearson gains f64 precision with modest speedup.
 | `mean` | hotSpring reduce | 0.4 | 0.4 | Parity |
 | `hmm_forward` | wetSpring bio | 0.5 | 0.5 | Parity — CPU optimal at 32 states |
 
-### Validation: 145/146 + 39/39 + 500 PASS
+### Validation: 150/150 + 15/15 + 580 PASS (S75)
 
 | Gate | Result |
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` (pedantic + nursery) | 0 warnings |
-| `cargo test --lib` | 500 PASS |
-| `validate_all` | 145/146 PASS |
-| `validate_cross_spring_evolution` | **39/39 PASS** |
+| `cargo test --lib` | 580 PASS |
+| `cargo test -p neural-spring-forge --lib` | 43 PASS |
+| `validate_all` | 150/150 PASS |
+| `bench_cross_spring_evolution` | **15/15 PASS** |
 
 ### Evolution Timeline Update
 
@@ -574,6 +575,14 @@ Feb 25  Session 62: ToadStool S62 sync (02207c4a)
           - Full benchmark: 3.49× variance, 2.56× entropy, 1.33× Pearson
           - All Springs' ops benchmarked: BatchFitnessGpu, HmmBatchForwardF64,
             BatchedEighGpu running through unified BarraCUDA dispatch
+Feb 26  Session 75: ToadStool S60–S65 sync (17932267)
+          - 9 functions rewired → barracuda::stats (r², RMSE, NSE, dot, l2_norm,
+            shannon, branch_trunk_dot, counterdiabatic weighted mean, meta_population Fst)
+          - 4 validators fixed: logsumexp f32→f64, RK4 shader re-import ×3
+          - New: bench_cross_spring_evolution (15/15 PASS) — traces shader provenance
+            across hotSpring precision, wetSpring bio, airSpring/groundSpring stats
+          - 30 total upstream rewires, 694 shaders, 2490 barracuda tests
+          - 150/150 validate_all, 580 lib tests, 43 forge tests, 0 clippy warnings
 ```
 
 ---
