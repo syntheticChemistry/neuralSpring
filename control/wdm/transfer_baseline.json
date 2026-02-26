@@ -1,0 +1,18 @@
+{
+  "_source": "neuralSpring nW-04 \u2014 Classical-to-WDM Transfer Learning",
+  "_citation": "Stanton-Murillo (2016) + Diaw et al. (2024)",
+  "seed": 42,
+  "r2_classical": 0.9987994571694582,
+  "r2_transfer": 0.9359016531499004,
+  "r2_scratch": 0.6690936541702729,
+  "improvement": 0.2668079989796275,
+  "n_classical": 500,
+  "n_wdm_finetune": 30,
+  "n_wdm_test": 200,
+  "result": "4/4 PASS",
+  "_provenance": {
+    "date": "2026-02-26",
+    "python": "3.10.12",
+    "numpy": "2.1.3"
+  }
+}

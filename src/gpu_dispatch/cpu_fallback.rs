@@ -9,12 +9,13 @@
 //!
 //! ## Variance convention
 //!
-//! `variance()` uses **population variance** (divides by N), matching
-//! the GPU kernel convention. This differs from `barracuda::stats::variance`
-//! which uses **sample variance** (divides by N-1). Do NOT rewire to
-//! barracuda's variance — the conventions are intentionally different.
+//! `variance()` uses **population variance** (divides by N). As of `ToadStool`
+//! S66, `barracuda::dispatch::variance_dispatch` also uses population variance
+//! (ddof=0), so the dispatcher and this fallback now agree. Note that
+//! `barracuda::stats::correlation::variance` still uses sample variance (N-1)
+//! — do NOT confuse the two.
 
-/// Population variance (biased, matching GPU kernel convention).
+/// Population variance (biased, matching GPU kernel and `variance_dispatch` convention).
 pub fn variance(data: &[f64]) -> f64 {
     let n = data.len() as f64;
     if n < 1.0 {

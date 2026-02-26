@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V40** | `handoffs/NEURALSPRING_TOADSTOOL_V40_S76_MODERN_REWIRING_BENCHMARK_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S76: +2 pearson_correlation rewires, full benchmark validation (10/10 GPU ≈ parity, cross-spring f64 1.4–3.2×), 32 upstream rewires + 6 shader sources, documentation sweep |
+| **V44** | `handoffs/NEURALSPRING_TOADSTOOL_V44_ABSORPTION_REQUEST_FEB26_2026.md` | Feb 26, 2026 | S79: Absorption request — 9 sovereign folding shaders, WDM surrogate pattern, API gaps, cross-spring evolution lessons, complete inventory (38 functions + 6 shader sources) |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V39, 53 files).
+Superseded handoffs: `handoffs/archive/` (V1–V43, 57 files).
 
 ## Conventions
 

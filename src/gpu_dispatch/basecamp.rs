@@ -5,10 +5,11 @@
 //! Extends the `Dispatcher` with GPU-accelerated paths for all 5
 //! baseCamp sub-theses (biophysical AI interpretability):
 //!
-//! - Sub-01: Weight spectral analysis (eigensolve)
-//! - Sub-03: Numerical Hessian (batch function evaluation)
-//! - Sub-04: Belief propagation (GEMV chain)
-//! - Sub-05: Agent interaction graph (pairwise L2)
+//! - Sub-01: Weight spectral analysis (eigensolve on GPU)
+//! - Sub-02: Information flow (attention eigensolve + signal matmul on GPU)
+//! - Sub-03: Loss landscape (Hessian eigensolve on GPU)
+//! - Sub-04: Belief propagation (f64 GEMV chain via `matmul_dispatch`)
+//! - Sub-05: Agent interaction graph (pairwise L2 on GPU)
 
 use super::Dispatcher;
 use crate::primitives::LOG_GUARD;
@@ -17,8 +18,9 @@ impl Dispatcher {
     /// Weight-to-Hamiltonian construction + spectral analysis (Sub-01).
     ///
     /// Constructs the Anderson Hamiltonian from a weight matrix, then
-    /// computes eigenvalues and eigenvectors. GPU-accelerated via
-    /// `eigh_gpu` (Jacobi eigensolver on GPU).
+    /// computes eigenvalues and eigenvectors via GPU-accelerated
+    /// `eigh_gpu` (Jacobi eigensolver). Hamiltonian construction is
+    /// O(mn) — negligible vs the O(n^3) eigensolve that runs on GPU.
     #[must_use]
     pub fn weight_spectral_analysis(
         &self,
@@ -29,13 +31,20 @@ impl Dispatcher {
         let ham = crate::weight_spectral::weight_to_hamiltonian(weights, rows, cols);
         let dim = rows + cols;
         let (eigenvalues, eigenvectors) = self.eigh(&ham, dim);
-        crate::weight_spectral::spectral_result_from_decomposition(eigenvalues, &eigenvectors, dim)
+        let gamma = rows as f64 / cols.max(1) as f64;
+        crate::weight_spectral::spectral_result_from_decomposition(
+            eigenvalues,
+            &eigenvectors,
+            dim,
+            gamma,
+        )
     }
 
-    /// Numerical Hessian via GPU batch function evaluation (Sub-03).
+    /// Numerical Hessian + GPU eigensolve for landscape analysis (Sub-03).
     ///
-    /// Computes the Hessian of a scalar function at a point by evaluating
-    /// the function at 2n perturbed points via GPU batch dispatch.
+    /// The Hessian is computed via central finite differences (CPU —
+    /// requires arbitrary function evaluation). The expensive eigensolve
+    /// routes through GPU via `eigh_gpu`.
     #[must_use]
     pub fn numerical_hessian(
         &self,
@@ -46,14 +55,42 @@ impl Dispatcher {
         crate::loss_landscape::numerical_hessian(&f, point, h_step)
     }
 
-    /// Belief propagation chain via GPU GEMV dispatch (Sub-04).
+    /// Full loss landscape analysis with GPU-accelerated eigensolve (Sub-03).
+    ///
+    /// Computes the Hessian via CPU finite differences, then routes the
+    /// O(n^3) eigensolve through GPU. Scalar metrics (flatness, sharpness,
+    /// saddle index, spectral gap) are computed from the GPU eigenvalues.
+    #[must_use]
+    pub fn landscape_analysis(
+        &self,
+        loss_fn: &dyn Fn(&[f64]) -> f64,
+        params: &[f64],
+        epsilon: f64,
+        flatness_threshold: f64,
+    ) -> crate::loss_landscape::LandscapeResult {
+        let hessian = crate::loss_landscape::numerical_hessian(loss_fn, params, epsilon);
+        let n = params.len();
+        let (mut eigenvalues, _eigenvectors) = self.eigh(&hessian, n);
+        eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        let loss = loss_fn(params);
+
+        crate::loss_landscape::LandscapeResult {
+            loss,
+            flatness: crate::loss_landscape::landscape_flatness(&eigenvalues, flatness_threshold),
+            sharpness: crate::loss_landscape::landscape_sharpness(&eigenvalues),
+            saddle_index: crate::loss_landscape::saddle_index(&eigenvalues),
+            spectral_gap: crate::loss_landscape::spectral_gap(&eigenvalues),
+            hessian_eigenvalues: eigenvalues,
+        }
+    }
+
+    /// Belief propagation chain via GPU f64 GEMV dispatch (Sub-04).
     ///
     /// Propagates a probability distribution through a chain of
     /// transition matrices (row-stochastic). Each step is a
-    /// matrix-vector multiply — GPU-accelerated when matrix size
-    /// warrants dispatch.
+    /// matrix-vector multiply dispatched through `matmul_dispatch`
+    /// for full f64 fidelity (no f32 truncation).
     #[must_use]
-    #[allow(clippy::cast_possible_truncation)]
     pub fn belief_propagation(
         &self,
         input: &[f64],
@@ -66,41 +103,27 @@ impl Dispatcher {
         for (idx, &trans) in transitions.iter().enumerate() {
             let out_dim = dims[idx];
             let in_dim = current.len();
-            let next = self.gpu_or_cpu(
-                "bp_gemv",
-                |dev| {
-                    let trans_f32: Vec<f32> = trans.iter().map(|&v| v as f32).collect();
-                    let cur_f32: Vec<f32> = current.iter().map(|&v| v as f32).collect();
-                    let t = barracuda::tensor::Tensor::from_data(
-                        &trans_f32,
-                        vec![in_dim, out_dim],
-                        dev.clone(),
-                    )
-                    .map_err(|e| format!("{e}"))?;
-                    let v = barracuda::tensor::Tensor::from_data(
-                        &cur_f32,
-                        vec![in_dim, 1],
-                        dev.clone(),
-                    )
-                    .map_err(|e| format!("{e}"))?;
-                    let result = t
-                        .transpose()
-                        .map_err(|e| format!("{e}"))?
-                        .matmul(&v)
-                        .map_err(|e| format!("{e}"))?;
-                    let data = result.to_vec().map_err(|e| format!("{e}"))?;
-                    Ok(data.iter().map(|&v| f64::from(v)).collect::<Vec<f64>>())
-                },
-                || {
-                    let mut out = vec![0.0; out_dim];
-                    for j in 0..out_dim {
-                        for i in 0..in_dim {
-                            out[j] += trans[i * out_dim + j] * current[i];
+            let next =
+                barracuda::dispatch::transpose_dispatch(trans, in_dim, out_dim, self.wgpu_device())
+                    .and_then(|trans_t| {
+                        barracuda::dispatch::matmul_dispatch(
+                            &trans_t,
+                            &current,
+                            out_dim,
+                            in_dim,
+                            1,
+                            self.wgpu_device(),
+                        )
+                    })
+                    .unwrap_or_else(|_| {
+                        let mut out = vec![0.0; out_dim];
+                        for j in 0..out_dim {
+                            for i in 0..in_dim {
+                                out[j] += trans[i * out_dim + j] * current[i];
+                            }
                         }
-                    }
-                    out
-                },
-            );
+                        out
+                    });
             let sum: f64 = next.iter().sum();
             let normalized: Vec<f64> = if sum > LOG_GUARD {
                 next.iter().map(|&v| v / sum).collect()
@@ -111,6 +134,79 @@ impl Dispatcher {
             current = normalized;
         }
         distributions
+    }
+
+    /// Attention spectral analysis with GPU eigensolve (Sub-02).
+    ///
+    /// Routes the O(n^3) eigendecomposition of the symmetrized attention
+    /// Hamiltonian through GPU, returning eigenvalues, mean IPR, and
+    /// level spacing ratio.
+    #[must_use]
+    pub fn attention_spectral_analysis(
+        &self,
+        attention: &[f64],
+        n: usize,
+    ) -> crate::information_flow::AttentionSpectralResult {
+        let h = crate::information_flow::attention_to_hamiltonian(attention, n);
+        let (mut eigenvalues, eigenvectors) = self.eigh(&h, n);
+        eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        let mean_ipr_val = crate::anderson_localization::mean_ipr(&eigenvectors, n);
+        let lsr = crate::weight_spectral::level_spacing_ratio(&eigenvalues);
+        crate::information_flow::AttentionSpectralResult {
+            eigenvalues,
+            mean_ipr: mean_ipr_val,
+            level_spacing_ratio: lsr,
+        }
+    }
+
+    /// Signal propagation with GPU matmul (Sub-02).
+    ///
+    /// Propagates input through weight matrices using `matmul_dispatch`
+    /// for the matrix-vector products, with `ReLU` activation.
+    #[must_use]
+    pub fn mlp_signal_propagation(
+        &self,
+        input: &[f64],
+        weight_matrices: &[&[f64]],
+        layer_dims: &[usize],
+    ) -> Vec<f64> {
+        let mut variances = Vec::with_capacity(weight_matrices.len() + 1);
+        let input_var = input.iter().map(|&x| x * x).sum::<f64>() / input.len().max(1) as f64;
+        variances.push(input_var);
+
+        let mut signal = input.to_vec();
+        for (layer_idx, &weights) in weight_matrices.iter().enumerate() {
+            let n_in = if layer_idx == 0 {
+                input.len()
+            } else {
+                layer_dims[layer_idx - 1]
+            };
+            let n_out = layer_dims[layer_idx];
+
+            let raw_output = barracuda::dispatch::matmul_dispatch(
+                weights,
+                &signal,
+                n_out,
+                n_in,
+                1,
+                self.wgpu_device(),
+            )
+            .unwrap_or_else(|_| {
+                let mut out = vec![0.0; n_out];
+                for i in 0..n_out {
+                    for j in 0..n_in.min(signal.len()) {
+                        out[i] = weights[i * n_in + j].mul_add(signal[j], out[i]);
+                    }
+                }
+                out
+            });
+
+            let output: Vec<f64> = raw_output.iter().map(|&v| v.max(0.0)).collect();
+            let var = output.iter().map(|&x| x * x).sum::<f64>() / n_out.max(1) as f64;
+            variances.push(var);
+            signal = output;
+        }
+        variances
     }
 
     /// Interaction graph as pairwise distance matrix (Sub-05).

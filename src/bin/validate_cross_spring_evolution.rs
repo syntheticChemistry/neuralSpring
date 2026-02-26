@@ -631,6 +631,154 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
     }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// S78 rewires: stats absorption from ToadStool S66
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_rewired_mae_s78(h: &mut ValidationHarness) {
+    let y_true = [1.0, 2.0, 3.0, 4.0, 5.0];
+    let y_pred = [1.1, 2.2, 2.9, 4.1, 4.8];
+
+    let result = neural_spring::metrics::mae(&y_true, &y_pred);
+    let reference = y_true
+        .iter()
+        .zip(y_pred.iter())
+        .map(|(t, p)| (t - p).abs())
+        .sum::<f64>()
+        / y_true.len() as f64;
+
+    h.check_abs(
+        "S78: mae delegates to barracuda::stats::mae",
+        result,
+        reference,
+        tolerances::EXACT_F64,
+    );
+
+    let perfect = neural_spring::metrics::mae(&y_true, &y_true);
+    h.check_abs(
+        "S78: mae(identical) = 0",
+        perfect,
+        0.0,
+        tolerances::EXACT_F64,
+    );
+}
+
+fn validate_rewired_shannon_from_frequencies_s78(h: &mut ValidationHarness) {
+    let uniform4 = [0.25, 0.25, 0.25, 0.25];
+    let expected = -(4.0 * 0.25 * 0.25_f64.ln());
+
+    let result = neural_spring::primitives::shannon_entropy(&uniform4);
+    h.check_abs(
+        "S78: shannon_entropy delegates to barracuda::stats::shannon_from_frequencies",
+        result,
+        expected,
+        tolerances::EXACT_F64,
+    );
+
+    let degenerate = [1.0, 0.0, 0.0];
+    let result_d = neural_spring::primitives::shannon_entropy(&degenerate);
+    h.check_abs(
+        "S78: shannon_entropy degenerate = 0",
+        result_d,
+        0.0,
+        tolerances::EXACT_F64,
+    );
+}
+
+fn validate_rewired_hill_s78(h: &mut ValidationHarness) {
+    let x = 5.0;
+    let k = 3.0;
+    let n = 2.0;
+    let amp = 10.0;
+
+    let act = neural_spring::primitives::hill_activation(x, amp, k, n);
+    let xn = x.powf(n);
+    let kn = k.powf(n);
+    let expected_act = amp * xn / (kn + xn);
+    h.check_abs(
+        "S78: hill_activation delegates to barracuda::stats::hill",
+        act,
+        expected_act,
+        tolerances::EXACT_F64,
+    );
+
+    let rep = neural_spring::primitives::hill_repression(x, amp, k, n);
+    let expected_rep = amp * kn / (kn + xn);
+    h.check_abs(
+        "S78: hill_repression = amp * (1 - hill)",
+        rep,
+        expected_rep,
+        tolerances::EXACT_F64,
+    );
+
+    h.check_abs(
+        "S78: hill_activation(x<=0) = 0",
+        neural_spring::primitives::hill_activation(0.0, amp, k, n),
+        0.0,
+        tolerances::EXACT_F64,
+    );
+
+    h.check_abs(
+        "S78: hill_repression(x<=0) = amplitude",
+        neural_spring::primitives::hill_repression(0.0, amp, k, n),
+        amp,
+        tolerances::EXACT_F64,
+    );
+}
+
+fn validate_rewired_l2_distance_s78(h: &mut ValidationHarness) {
+    let a = [1.0, 2.0, 3.0, 4.0, 5.0];
+    let b = [1.1, 2.2, 2.8, 4.1, 5.3];
+
+    let result = neural_spring::modes::l2_distance(&a, &b);
+    let expected: f64 = a
+        .iter()
+        .zip(b.iter())
+        .map(|(x, y)| (x - y).powi(2))
+        .sum::<f64>()
+        .sqrt();
+
+    h.check_abs(
+        "S78: l2_distance delegates to barracuda::dispatch::l2_distance_dispatch",
+        result,
+        expected,
+        tolerances::EXACT_F64,
+    );
+
+    let zero = neural_spring::modes::l2_distance(&a, &a);
+    h.check_abs(
+        "S78: l2_distance(identical) = 0",
+        zero,
+        0.0,
+        tolerances::EXACT_F64,
+    );
+}
+
+fn validate_rewired_complexity_metric_s78(h: &mut ValidationHarness) {
+    let increasing = [1.0, 2.0, 3.0, 4.0, 5.0];
+    let (slope, is_increasing) = neural_spring::modes::complexity_metric(&increasing);
+
+    h.check_bool(
+        "S78: complexity_metric(increasing) is_increasing=true",
+        is_increasing,
+    );
+    h.check_abs(
+        "S78: complexity_metric slope ≈ 1.0 for [1,2,3,4,5]",
+        slope,
+        1.0,
+        tolerances::CROSS_LANGUAGE,
+    );
+
+    let constant = [3.0, 3.0, 3.0, 3.0];
+    let (slope_c, _) = neural_spring::modes::complexity_metric(&constant);
+    h.check_abs(
+        "S78: complexity_metric(constant) slope = 0",
+        slope_c,
+        0.0,
+        tolerances::EXACT_F64,
+    );
+}
+
 fn report_cross_spring_lineage() {
     eprintln!("\n=== Cross-Spring Evolution Lineage ===\n");
     eprintln!("hotSpring \u{2192} BarraCUDA precision layer:");
@@ -672,11 +820,37 @@ fn report_cross_spring_lineage() {
     );
     eprintln!("  \u{2022} All 17 shortcomings RESOLVED upstream (S-14/15/16 at a4996b34, S-17 at c82c23d1)");
     eprintln!();
-    eprintln!("All three \u{2192} ToadStool (GPU sovereign pipeline):");
-    eprintln!("  \u{2022} 599+ WGSL shaders (cross-spring evolved)");
+    eprintln!("airSpring \u{2192} BarraCUDA stats+regression layer:");
+    eprintln!(
+        "  \u{2022} mae, rmse, r_squared, nash_sutcliffe, index_of_agreement [S64\u{2013}S66]"
+    );
+    eprintln!("  \u{2022} fit_linear, fit_quadratic, fit_exponential, fit_logarithmic [S66]");
+    eprintln!("  \u{2022} hydrology (hargreaves, soil_water_balance) [S66]");
+    eprintln!();
+    eprintln!("S78 cross-spring rewiring (neuralSpring \u{2192} ToadStool S66 absorption):");
+    eprintln!("  \u{2022} metrics::mae \u{2192} barracuda::stats::mae (airSpring origin)");
+    eprintln!(
+        "  \u{2022} primitives::shannon_entropy \u{2192} barracuda::stats::shannon_from_frequencies (wetSpring origin)"
+    );
+    eprintln!(
+        "  \u{2022} primitives::hill_activation/repression \u{2192} barracuda::stats::hill (wetSpring+hotSpring origin)"
+    );
+    eprintln!(
+        "  \u{2022} modes::l2_distance \u{2192} barracuda::dispatch::l2_distance_dispatch (neuralSpring origin)"
+    );
+    eprintln!(
+        "  \u{2022} modes::complexity_metric \u{2192} barracuda::stats::fit_linear (airSpring origin)"
+    );
+    eprintln!("  \u{2022} 9 metalForge shaders aligned to compile_shader_df64 convention (hotSpring origin)");
+    eprintln!();
+    eprintln!("All springs \u{2192} ToadStool (GPU sovereign pipeline):");
+    eprintln!("  \u{2022} 633+ WGSL shaders (cross-spring evolved, S66 Wave 5)");
     eprintln!("  \u{2022} domain_ops dispatch \u{2014} 9 methods rewired (S58: 7, S59: +2)");
     eprintln!("  \u{2022} stats/linalg \u{2014} 3 library functions rewired (S59)");
     eprintln!("  \u{2022} S72 \u{2014} 4 new rewires (softmax_row_wise, fst_single_locus, fst_full, argmax_dim)");
+    eprintln!("  \u{2022} S76 \u{2014} 2 rewires (pearson_correlation)");
+    eprintln!("  \u{2022} S78 \u{2014} 6 rewires (mae, shannon, hill x2, l2_distance, fit_linear)");
+    eprintln!("  \u{2022} Total: 38 functions + 6 shader sources rewired");
     eprintln!("  \u{2022} GpuDriverProfile (this benchmark validates detection)");
 }
 
@@ -716,6 +890,13 @@ async fn main() {
     validate_rewired_fst_single_locus(&mut h, &dispatcher);
     validate_rewired_pairwise_fst_full(&mut h, &dispatcher, &cpu);
     validate_rewired_viterbi_argmax(&mut h, &dispatcher, &cpu);
+
+    eprintln!("\n--- S78 Rewires: Stats Absorption + Cross-Spring Primitives ---\n");
+    validate_rewired_mae_s78(&mut h);
+    validate_rewired_shannon_from_frequencies_s78(&mut h);
+    validate_rewired_hill_s78(&mut h);
+    validate_rewired_l2_distance_s78(&mut h);
+    validate_rewired_complexity_metric_s78(&mut h);
 
     eprintln!("\n--- Driver Profile Validation ---\n");
     validate_driver_profile(&mut h, &dispatcher);

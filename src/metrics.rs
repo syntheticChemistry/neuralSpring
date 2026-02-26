@@ -4,14 +4,9 @@
 //!
 //! ## `BarraCUDA` Integration
 //!
-//! `r_squared`, `rmse`, and `nse` delegate to `barracuda::stats` (absorbed
-//! from airSpring/groundSpring in `ToadStool` S64). `mae` remains local
-//! (no upstream CPU equivalent; GPU path uses `Tensor::mae_loss`).
-//!
-//! Re-exports from barracuda for convenience:
-//!
-//! - [`barracuda::stats::correlation::variance`]
-//! - [`barracuda::stats::pearson_correlation`]
+//! All four metrics delegate to `barracuda::stats` (absorbed from
+//! airSpring/groundSpring in `ToadStool` S64–S66). `mae` was rewired in
+//! S66 when `barracuda::stats::mae` became available.
 
 /// Coefficient of determination (delegates to `barracuda::stats::r_squared`).
 ///
@@ -39,22 +34,14 @@ pub fn rmse(y_true: &[f64], y_pred: &[f64]) -> f64 {
     barracuda::stats::rmse(y_true, y_pred)
 }
 
-/// Mean absolute error.
+/// Mean absolute error (delegates to `barracuda::stats::mae`).
 ///
 /// # Panics
 ///
 /// Panics if `y_true` and `y_pred` have different lengths.
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
 pub fn mae(y_true: &[f64], y_pred: &[f64]) -> f64 {
-    assert_eq!(y_true.len(), y_pred.len(), "length mismatch");
-    let n = y_true.len() as f64;
-    y_true
-        .iter()
-        .zip(y_pred)
-        .map(|(t, p)| (t - p).abs())
-        .sum::<f64>()
-        / n
+    barracuda::stats::mae(y_true, y_pred)
 }
 
 /// Nash-Sutcliffe Efficiency (delegates to `barracuda::stats::nash_sutcliffe`).

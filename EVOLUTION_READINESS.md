@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 26, 2026 (Sessions 40–76)
-**ToadStool HEAD**: `17932267` (S58–S76: 32 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 94.53% coverage (580 tests), 100% SPDX, zero ad-hoc magic numbers, S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks, S76: modern BarraCUDA rewiring + benchmark validation)
+**Date**: February 26, 2026 (Sessions 40–79)
+**ToadStool HEAD**: `17932267` (S58–S79: 38 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 94.53% coverage (581 tests), 100% SPDX, zero ad-hoc magic numbers, S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks, S76: modern BarraCUDA rewiring, S77: WDM surrogates + baseCamp GPU pure + 9 sovereign folding shaders, S78–S79: ToadStool S66 absorption + complete cross-spring rewiring (52/52 validator, 19/19 benchmark))
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -9,15 +9,15 @@
 
 ## Quick Status
 
-36 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses.
-163 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+37 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses + WDM surrogates.
+166 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 580 lib + 9 integration + 43 forge tests, 36 modules, 163 binaries | **COMPLETE** |
+| Rust native validation | 581 lib + 9 integration + 43 forge tests, 37 modules, 166 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -57,7 +57,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **163 binaries** |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **166 binaries** |
 | `validate_all` (S-75) | **150/150 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
@@ -76,7 +76,10 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
-| Grand total checks | **2180+** (206 Py + 1970+ Rust/GPU) | **ALL GREEN** |
+| Session 77: WDM surrogates | 3 Python baselines + 2 Rust validators (CPU + GPU) | **ALL GREEN** |
+| Session 77: baseCamp GPU pure | `validate_basecamp_gpu_pure` 5/5 sub-theses on GPU | **ALL GREEN** |
+| Session 78–79: cross-spring | `validate_cross_spring_evolution` 52/52 PASS, `bench_cross_spring_evolution` 19/19 PASS | **ALL GREEN** |
+| Grand total checks | **2250+** (206 Py + 2040+ Rust/GPU) | **ALL GREEN** |
 
 ---
 

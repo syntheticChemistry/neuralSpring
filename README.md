@@ -40,20 +40,17 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 206/206 Python PASS + 1970+ Rust+GPU PASS = 2180+ total validation checks
+## Current Status: 206/206 Python PASS + 2040+ Rust+GPU PASS = 2250+ total validation checks
 
-**ToadStool `17932267`** (Sessions 39–62, 47 commits reviewed S72): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
+**ToadStool `17932267`** (Sessions 39–79, S66 reviewed): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 S-14/S-15/S-16 fixed at `a4996b34` (S39). S-17 pow polyfill at `c82c23d1` (S58). S-03b MHA at `0c998992` (S60).
-21/21 WGSL shaders **absorbed upstream**. New upstream: `argmax_dim`, `softmax_dim`, `fst_variance_decomposition`, `Conv2dGpu`, `PeakDetectF64`, `MovingWindowStats`, `SparseGemmF64`, `ridge_regression`, `NMF`.
-Phase 5e: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**. S74: **10/10 pure GPU all-domains** (9 typed BarraCUDA ops + determinism).
-**32 functions rewired to upstream** (S58: 7 domain\_ops, S59: +2 dispatch + 3 stats/linalg, S56: 4 baseCamp, S68: +1 boltzmann, S73: +4 Tensor APIs, S75: +9 stats/dot/l2\_norm, S76: +2 pearson\_correlation). **6 validator shader sources rewired** to upstream barracuda constants (S69).
+21/21 WGSL shaders **absorbed upstream** + 9 sovereign folding f64 shaders pending absorption.
+Phase 5h: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**. S74: **10/10 pure GPU all-domains**. S77: **baseCamp GPU pure 5/5 sub-theses**. **WDM surrogates**: 3 Python baselines + 2 Rust validators.
+**38 functions rewired to upstream** (S58: 7, S59: +5, S56: 4, S68: +1, S73: +4, S75: +9, S76: +2, S78: +6 mae/shannon/hill×2/l2\_distance/fit\_linear). **6 validator shader sources rewired** to upstream barracuda constants (S69). **9 metalForge shaders aligned** to `compile_shader_df64` convention (S78).
 `GpuDriverProfile` wired in for f64 strategy detection (Hybrid on RTX 4070, Native on Titan V).
-580 lib tests, **94.53% coverage**, 107+ named tolerances, 13 property tests, 0 clippy warnings, 0 doc warnings.
-163 validation/bench binaries, 36 modules + gpu\_ops/ + gpu\_dispatch/, 580 lib + 9 integration + 43 forge tests.
-**Session 73 (cross-spring rewiring)**: 4 new upstream rewires: `Dispatcher::softmax_row_wise` via `Tensor::softmax_dim(1)`, `fst_single_locus` + `pairwise_fst_full` via `fst_variance_decomposition`, Viterbi `argmax_dim(0)` replaces CPU loop. Cross-spring evolution validator: 39/39 PASS. New tolerances: `DISPATCH_F32_ROUNDTRIP`, `DISPATCH_VITERBI_F32`. Benchmarks document cross-spring shader lineage (hotSpring precision → wetSpring bio → neuralSpring ML → ToadStool GPU).
-**Session 71 (deep audit execution)**: Eliminated ALL ad-hoc numeric tolerances from test assertions — 21 library module test files now use `tolerances::*` named constants (150+ replacements across loss\_landscape, weight\_spectral, lenet, neural\_pgm, spectral\_commutativity, property\_tests, sequence, agent\_coordination, information\_flow, deeponet, pinn, meta\_population, primitives, sate\_alignment, fft, eigh, quantized, pangenome\_selection, surrogate, transformer, introgression, anderson\_localization, counterdiabatic, regulatory\_network, metrics, rng, swarm\_robotics, gpu\_dispatch/tests\_cpu). Smart refactored `gpu_dispatch/mod.rs` 862→304 lines by extracting CPU tests to `tests_cpu.rs` (follows existing `tests_gpu.rs` pattern). Dependency audit: all crates Pure Rust (ecoBin compliant, zero C deps). Coverage analysis: 94.53% is architectural ceiling (below-90% files are GPU-only paths and `process::exit()`).
-**Session 70 (deep audit II)**: Coverage 90.43%→94.53% (+68 tests). GPU-path tests for all 44 `Dispatcher` operations. `gpu_dispatch/mod.rs` split (1332→860+483 lines). Tolerance registry: `SADDLE_EIGENVALUE_THRESHOLD` extracted. `bench.rs` magic numbers→named constants. `validate_cpu_math_parity.rs` evolved to streaming I/O. 100% SPDX AGPL-3.0-or-later compliance (211/211 files). Zero TODOs, zero mocks in production, zero hardcoded paths, all files ≤1000 lines. Remaining uncovered lines (5.5%) are exclusively GPU error-handling branches.
-**Session 68–69**: Zero ad-hoc tolerances — all use `tolerances::*`. Zero `unwrap()` in validation code. Cross-spring evolution validated: 39/39 PASS. 6 validator shader sources → upstream constants.
+581 lib tests, **94.53% coverage**, 107+ named tolerances, 13 property tests, 0 clippy warnings, 0 doc warnings.
+166 validation/bench binaries, 37 modules + gpu\_ops/ + gpu\_dispatch/, 581 lib + 9 integration + 43 forge tests.
+**Cross-spring evolution**: 52/52 PASS (S79), 19/19 benchmark PASS. Full provenance: airSpring stats, wetSpring bio, hotSpring precision, neuralSpring ML — all flowing through ToadStool S66.
 **Phase C GPU**: 18/18 PASS — HMM chains, FST, introgression, AF variance. **201.7× faster** than Python.
 **CPU↔Python parity**: 39/39 PASS — every Rust CPU operation matches Python/NumPy within 1e-10.
 **Dispatch overhead**: ≤1.04× for 9/10 ops — Dispatcher::cpu\_only() is transparent.
@@ -164,12 +161,13 @@ S-14/S-15/S-16 **RESOLVED** upstream (`a4996b34` S39).
 **Capability-based dispatch**: 12 validators + evolved HMM use `Gpu::dispatch_1d()` with runtime hardware validation.
 Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at machine epsilon (2.89e-15 at n=64).
 
-#### Rust Validation (1970+ PASS across 163 validation binaries)
+#### Rust Validation (2040+ PASS across 166 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module (107+ named
-constants), explicit pass/fail exit codes. Library code: 580 unit tests + 9
-integration tests. baseCamp modules add 82 analytical checks across 5 validators.
+constants), explicit pass/fail exit codes. Library code: 581 unit tests + 9
+integration tests. baseCamp modules add 82 analytical checks + GPU pure 5/5 sub-theses.
+WDM surrogates add 2 Rust validators (CPU + BarraCUDA GPU).
 
 ### Phase 2 — BarraCUDA CPU Ports (203/203)
 
@@ -349,7 +347,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (206/206 — 25 experiments)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (580 lib + 9 integration + 43 forge tests, 163 validation binaries, 36 modules + gpu_ops/ + gpu_dispatch/)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (581 lib + 9 integration + 43 forge tests, 166 validation binaries, 37 modules + gpu_ops/ + gpu_dispatch/)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -462,7 +460,7 @@ neuralSpring/
 │   ├── meta_population/       #   Paper 025: Meta-population differentiation
 │   ├── shared/                 #   Shared utilities (Open-Meteo, etc.)
 │   └── requirements.txt        #   Pinned dependencies
-├── src/                        # Rust library (36 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
+├── src/                        # Rust library (37 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
 │   ├── lib.rs                  #   Crate root
 │   ├── validation.rs           #   ValidationHarness (hotSpring pattern)
 │   ├── tolerances/             #   Centralized tolerance constants + runtime introspection
@@ -500,7 +498,7 @@ neuralSpring/
 │   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
 │   ├── gpu_ops/                 #   38 GPU-accelerated ops (6 submodules: linalg, activation, reduction, bio, population, eigensolver)
 │   ├── gpu_dispatch/            #   Capability-based GPU/CPU dispatch (Dispatcher)
-│   └── bin/                    #   163 binaries (150 validation + validate_all + 12 bench)
+│   └── bin/                    #   166 binaries (validate + bench)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
 │       ├── validate_metrics.rs             # 10 checks
@@ -559,7 +557,7 @@ neuralSpring/
 │   └── run_all_baselines.sh    #   Orchestrates all 25 Python runs
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
-│   └── rust.yml                #   Rust test + clippy + validate (163 binaries)
+│   └── rust.yml                #   Rust test + clippy + validate (166 binaries)
 ├── Cargo.toml                  # Rust manifest
 ├── Makefile                    # Task runner
 ├── justfile                    # Task runner alt (just)
@@ -593,4 +591,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–75: February 26, 2026 | 25 papers + 5 baseCamp sub-theses, 206 Python + 1970+ Rust+GPU = 2180+ validation checks | 580 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 36 modules, 163 validation/bench binaries, 21 WGSL shaders (all absorbed upstream) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system | 107+ named tolerances, 0 clippy warnings, 94.53% coverage, 13 property tests, zero ad-hoc magic numbers in test assertions, 100% SPDX headers | S74: Pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks (8 domains CPU→GPU portability)*
+*Initialized: February 16, 2026 | Sessions 40–79: February 26, 2026 | 25 papers + 5 baseCamp sub-theses + WDM surrogates, 206 Python + 2040+ Rust+GPU = 2250+ validation checks | 581 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 37 modules, 166 validation/bench binaries, 30 WGSL shaders (21 absorbed + 9 sovereign folding f64) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring | 38 functions + 6 shader sources rewired to upstream | 107+ named tolerances, 0 clippy warnings, 94.53% coverage, 100% SPDX | S77: WDM surrogates + baseCamp GPU pure + 9 sovereign folding shaders | S78–S79: ToadStool S66 absorption + complete cross-spring rewiring | V44 handoff*

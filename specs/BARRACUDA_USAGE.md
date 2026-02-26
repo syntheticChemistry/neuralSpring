@@ -929,9 +929,11 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 | `validate_all` | **150/150 PASS** |
 | `validate_gpu_pure_workload_all` | **10/10 PASS** |
 | `validate_cross_system_dispatch` | **46/46 PASS** |
-| `cargo test --lib` | 580 PASS |
+| `validate_cross_spring_evolution` | **52/52 PASS** |
+| `bench_cross_spring_evolution` | **19/19 PASS** |
+| `cargo test --lib` | 581 PASS |
 | `cargo test -p neural-spring-forge --lib` | 43 PASS |
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–76: 32 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 163 binaries, 580 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 107+ tolerances, 94.53% coverage. Session 69: shader rewiring complete, upstream benchmarks nominal (10/10 ≈ or ~). Session 73: 4 Tensor API rewires (argmax_dim, softmax_dim, fst_variance_decomposition), cross-spring validator 39/39 PASS. Session 74: pure GPU all-domains 10/10 PASS (9 typed GPU ops + determinism), cross-system dispatch 46/46 PASS, evolution tier benchmarks (8 domains CPU→GPU portability). Session 75: ToadStool S60–S65 sync (694 shaders, 2490 tests), 9 stats/dot/l2\_norm rewires, logsumexp f32→f64 fix, 3 RK4 WGSL rewires, cross-spring evolution benchmark (15/15), 150/150 validate\_all. Session 76: +2 pearson\_correlation rewires (meta\_population), full benchmark validation (upstream wrappers 0.85–1.14× parity, cross-spring f64 shaders 1.36–3.20× speedup).*
+*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–79: 38 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 581 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 107+ tolerances, 94.53% coverage. Session 69: shader rewiring complete. Session 73: 4 Tensor API rewires, cross-spring validator 39/39 PASS. Session 74: pure GPU all-domains 10/10, cross-system dispatch 46/46. Session 75: ToadStool S60–S65 sync, 9 stats rewires. Session 76: +2 pearson\_correlation rewires. Session 77: WDM surrogates (3 Python baselines + 2 Rust validators), baseCamp GPU pure (5/5 sub-theses), 9 sovereign folding f64 shaders. Sessions 78–79: ToadStool S66 absorption, +6 rewires (mae, shannon, hill×2, l2\_distance, fit\_linear), 9 metalForge shaders aligned to `compile_shader_df64`, cross-spring evolution 52/52 PASS, 19/19 benchmark PASS.*

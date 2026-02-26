@@ -72,50 +72,43 @@ pub fn novelty_metric(type_features: &[Vec<f64>]) -> Vec<f64> {
 
 /// L2 (Euclidean) distance between two feature vectors.
 ///
+/// Delegates to `barracuda::dispatch::l2_distance_dispatch` (CPU path).
 /// Used by `novelty_metric`. Exposed for GPU validation.
 #[must_use]
 pub fn l2_distance(a: &[f64], b: &[f64]) -> f64 {
-    let n = a.len().min(b.len());
-    let sum_sq: f64 = a
-        .iter()
-        .take(n)
-        .zip(b.iter().take(n))
-        .map(|(x, y)| {
-            let d = x - y;
-            d * d
-        })
-        .sum();
-    sum_sq.sqrt()
+    barracuda::dispatch::l2_distance_dispatch(a, b, None).unwrap_or_else(|_| {
+        let n = a.len().min(b.len());
+        a.iter()
+            .take(n)
+            .zip(b.iter().take(n))
+            .map(|(x, y)| {
+                let d = x - y;
+                d * d
+            })
+            .sum::<f64>()
+            .sqrt()
+    })
 }
 
 /// Linear regression slope of complexity over time.
 ///
-/// slope = (n*sum(t*c) - sum(t)*sum(c)) / (n*sum(t²) - sum(t)²).
-/// Returns (slope, increasing).
+/// Delegates to `barracuda::stats::fit_linear` (absorbed from airSpring V009
+/// in `ToadStool` S66). Returns (slope, increasing).
 #[must_use]
+#[allow(clippy::cast_precision_loss)]
 pub fn complexity_metric(complexities: &[f64]) -> (f64, bool) {
     let n = complexities.len();
     if n < 2 {
         return (0.0, false);
     }
-    let mut sum_t = 0.0;
-    let mut sum_c = 0.0;
-    let mut sum_times_c = 0.0;
-    let mut sum_t2 = 0.0;
-    for (t, &c) in complexities.iter().enumerate() {
-        let t_f = t as f64;
-        sum_t += t_f;
-        sum_c += c;
-        sum_times_c += t_f * c;
-        sum_t2 += t_f * t_f;
+    let t: Vec<f64> = (0..n).map(|i| i as f64).collect();
+    match barracuda::stats::fit_linear(&t, complexities) {
+        Some(result) => {
+            let slope = result.params[0];
+            (slope, slope > 0.0)
+        }
+        None => (0.0, false),
     }
-    let denom = (n as f64).mul_add(sum_t2, -(sum_t * sum_t));
-    let slope = if denom.abs() < crate::primitives::DIVISION_GUARD {
-        0.0
-    } else {
-        (n as f64).mul_add(sum_times_c, -(sum_t * sum_c)) / denom
-    };
-    (slope, slope > 0.0)
 }
 
 /// Shannon equitability at each timestep: `H/H_max`.

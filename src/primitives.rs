@@ -77,15 +77,12 @@ pub const DIVISION_GUARD: f64 = 1e-15;
 ///
 /// This is the core computation; callers are responsible for computing
 /// the frequency distribution from their domain-specific data.
+///
+/// Delegates to `barracuda::stats::shannon_from_frequencies` (absorbed
+/// from wetSpring in `ToadStool` S64).
 #[must_use]
 pub fn shannon_entropy(frequencies: &[f64]) -> f64 {
-    let mut h = 0.0;
-    for &p in frequencies {
-        if p > DIVISION_GUARD {
-            h -= p * p.ln();
-        }
-    }
-    h
+    barracuda::stats::shannon_from_frequencies(frequencies)
 }
 
 /// Shannon equitability `H`/`H_max` where `H_max` = ln(S).
@@ -122,22 +119,27 @@ pub fn shannon_entropy_from_counts(counts: &[f64]) -> f64 {
 ///
 /// Standard activating Hill function from enzyme kinetics.
 /// Returns 0 when x <= 0, approaches `a` as x → ∞.
+/// Core computation delegates to `barracuda::stats::hill` (absorbed from
+/// wetSpring/hotSpring gene regulatory networks in `ToadStool` S64).
 #[must_use]
 pub fn hill_activation(x: f64, amplitude: f64, k: f64, n: f64) -> f64 {
-    let kn = k.powf(n);
-    let xn = if x > 0.0 { x.powf(n) } else { 0.0 };
-    amplitude * xn / (kn + xn + HILL_EPS)
+    if x <= 0.0 {
+        return 0.0;
+    }
+    amplitude * barracuda::stats::hill(x, k, n)
 }
 
 /// Hill repression: `a * K^n / (K^n + x^n)`.
 ///
 /// Standard repressing Hill function. Returns `a` when x = 0,
-/// approaches 0 as x → ∞.
+/// approaches 0 as x → ∞. Uses `barracuda::stats::hill` for the
+/// core computation (repression = 1 - activation).
 #[must_use]
 pub fn hill_repression(x: f64, amplitude: f64, k: f64, n: f64) -> f64 {
-    let kn = k.powf(n);
-    let xn = if x > 0.0 { x.powf(n) } else { 0.0 };
-    amplitude * kn / (kn + xn + HILL_EPS)
+    if x <= 0.0 {
+        return amplitude;
+    }
+    amplitude * (1.0 - barracuda::stats::hill(x, k, n))
 }
 
 // ═══════════════════════════════════════════════════════════════════

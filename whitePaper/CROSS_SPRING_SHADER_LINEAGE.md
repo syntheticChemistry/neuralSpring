@@ -6,10 +6,12 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `17932267` (Sessions 60–75 sync, Feb 26, 2026) |
-| Last updated | February 26, 2026 (Sessions 40–75) |
-| BarraCUDA shader count | 694 WGSL (zero CPU-only production math, S49) |
-| Shaders absorbed | 21/21 — all neuralSpring WGSL now upstream |
+| ToadStool HEAD | `17932267` (Sessions 60–79 sync, Feb 26, 2026) |
+| Last updated | February 26, 2026 (Sessions 40–79) |
+| BarraCUDA shader count | 694+ WGSL (zero CPU-only production math, S49) |
+| Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
+| Sovereign folding f64 | 9 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3) — `compile_shader_df64` convention |
+| Local metalForge total | 30 WGSL shaders (21 absorbed + 9 f64 sovereign folding) |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
 
 ---
@@ -555,10 +557,10 @@ Pearson gains f64 precision with modest speedup.
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --workspace -- -D warnings` (pedantic + nursery) | 0 warnings |
-| `cargo test --workspace` | 580 lib + 43 forge + 9 integration PASS |
+| `cargo test --workspace` | 581 lib + 43 forge + 9 integration PASS |
 | `validate_all` | **150/150 PASS** |
-| `validate_cross_spring_evolution` | **39/39 PASS** |
-| `bench_cross_spring_evolution` | **15/15 PASS** |
+| `validate_cross_spring_evolution` | **52/52 PASS** |
+| `bench_cross_spring_evolution` | **19/19 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels ≈ parity** |
 
 ### Evolution Timeline Update
@@ -589,6 +591,16 @@ Feb 26  Session 75: ToadStool S60–S65 sync (17932267)
           - Full benchmark sweep: upstream wrappers add 0 meaningful overhead (0.85–1.14×)
           - Rewire evolution: Variance 3.20×, Pearson 1.36×, Shannon 2.24× (cross-spring f64)
           - 32 total upstream rewires, 150/150 validate_all, 39/39 cross-spring, 15/15 bench
+        Session 77: WDM surrogates + baseCamp GPU pure + sovereign folding shaders
+          - 3 WDM Python baselines (nW-01 transport, nW-02 EOS, nW-04 transfer learning)
+          - wdm_surrogate.rs module + 2 Rust validators (CPU + BarraCUDA GPU)
+          - validate_basecamp_gpu_pure: 5/5 sub-theses on GPU with scalar readback
+          - 9 new f64 WGSL shaders for sovereign folding, compile_shader_df64 convention
+        Sessions 78–79: ToadStool S66 absorption + complete cross-spring rewiring
+          - +6 rewires: mae, shannon, hill×2, l2_distance, fit_linear
+          - All 9 metalForge f64 shaders aligned to compile_shader_df64 convention
+          - Cross-spring validator: 52/52 PASS, benchmark: 19/19 PASS
+          - 38 total upstream rewires, V44 handoff
 ```
 
 ---
@@ -606,4 +618,4 @@ Feb 26  Session 75: ToadStool S60–S65 sync (17932267)
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
 | Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
-| V40 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V40_S76_MODERN_REWIRING_BENCHMARK_HANDOFF_FEB26_2026.md` |
+| V44 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V44_ABSORPTION_REQUEST_FEB26_2026.md` |

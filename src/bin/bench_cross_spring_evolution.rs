@@ -242,16 +242,65 @@ fn main() {
 
     eprintln!();
 
+    // ─── S78 absorptions: MAE, Shannon, Hill, fit_linear ──────────────
+    eprintln!("═══ S78 Absorptions (ToadStool S66) ═══");
+    eprintln!("  Provenance: airSpring → barracuda::stats::mae [S64→S66]");
+    let cpu_mae = bench("mae (barracuda::stats, CPU)", || {
+        let _ = std::hint::black_box(stats::mae(&observed, &simulated));
+    });
+    h.check_bool(
+        &format!("airSpring→stats: mae {cpu_mae:.1}µs"),
+        cpu_mae.is_finite(),
+    );
+
+    eprintln!("  Provenance: wetSpring → barracuda::stats::shannon_from_frequencies [S64]");
+    let probs: Vec<f64> = observed
+        .iter()
+        .map(|&x| x / observed.iter().sum::<f64>())
+        .collect();
+    let cpu_shannon = bench("shannon_from_frequencies (barracuda, CPU)", || {
+        let _ = std::hint::black_box(stats::shannon_from_frequencies(&probs));
+    });
+    h.check_bool(
+        &format!("wetSpring→stats: shannon_freq {cpu_shannon:.1}µs"),
+        cpu_shannon.is_finite(),
+    );
+
+    eprintln!("  Provenance: wetSpring+hotSpring → barracuda::stats::hill [S64]");
+    let cpu_hill = bench("hill (barracuda::stats, CPU)", || {
+        for i in 0..N {
+            let _ = std::hint::black_box(stats::hill(observed[i], 5.0, 2.0));
+        }
+    });
+    h.check_bool(
+        &format!("wS+hS→stats: hill(N={N}) {cpu_hill:.1}µs"),
+        cpu_hill.is_finite(),
+    );
+
+    eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_linear [S66]");
+    let x_reg: Vec<f64> = (0..N).map(|i| i as f64).collect();
+    let cpu_fit = bench("fit_linear (barracuda::stats, CPU)", || {
+        let _ = std::hint::black_box(stats::fit_linear(&x_reg, &observed));
+    });
+    h.check_bool(
+        &format!("airSpring→stats: fit_linear(N={N}) {cpu_fit:.1}µs"),
+        cpu_fit.is_finite(),
+    );
+
+    eprintln!();
+
     // ─── Summary ────────────────────────────────────────────────────────
     eprintln!("═══ Cross-Spring Evolution Summary ═══");
-    eprintln!("  694 WGSL shaders in ToadStool, sourced from:");
-    eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral)");
-    eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM)");
-    eprintln!("    neuralSpring: ~25  (ML, neuroevolution, batch fitness)");
-    eprintln!("    airSpring:    ~10  (ET₀, kriging, Richards, moving window)");
+    eprintln!("  633+ WGSL shaders in ToadStool S66, sourced from:");
+    eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral, precision)");
+    eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM, ODE)");
+    eprintln!("    neuralSpring: ~34  (ML, neuroevolution, batch fitness, 9 f64 shaders)");
+    eprintln!("    airSpring:    ~15  (ET₀, kriging, Richards, stats, regression)");
     eprintln!("    groundSpring: ~5   (multinomial, MC propagation)");
-    eprintln!("    ToadStool:    ~474 (core math, linalg, nn, activations)");
-    eprintln!("  neuralSpring rewired: 32 functions + 6 shader sources to upstream");
+    eprintln!("    ToadStool:    ~399 (core math, linalg, nn, activations)");
+    eprintln!("  neuralSpring rewired: 38 functions + 6 shader sources to upstream");
+    eprintln!("  S78: +6 rewires (mae, shannon_freq, hill×2, l2_distance, fit_linear)");
+    eprintln!("  S78: 9 metalForge shaders aligned to compile_shader_df64 convention");
     eprintln!("  Cross-spring flow: each spring contributes domain expertise;");
     eprintln!("  ToadStool absorbs and GPU-accelerates → all springs benefit");
     eprintln!();

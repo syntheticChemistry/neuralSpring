@@ -115,4 +115,5 @@ pub mod swarm_robotics;
 pub mod tolerances;
 pub mod transformer;
 pub mod validation;
+pub mod wdm_surrogate;
 pub mod weight_spectral;
