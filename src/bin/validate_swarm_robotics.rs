@@ -14,13 +14,7 @@
 
 use neural_spring::swarm_robotics::{run_evolution_heterogeneous, run_evolution_homogeneous};
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
-
-fn mean_last_n(v: &[f64], n: usize) -> f64 {
-    let start = v.len().saturating_sub(n);
-    let slice = &v[start..];
-    slice.iter().sum::<f64>() / slice.len() as f64
-}
+use neural_spring::validation::{mean_last_n, ValidationHarness};
 
 fn main() {
     let mut h = ValidationHarness::new("swarm_robotics");

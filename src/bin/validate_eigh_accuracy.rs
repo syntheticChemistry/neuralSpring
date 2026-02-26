@@ -22,6 +22,7 @@
 )]
 
 use neural_spring::eigh;
+use neural_spring::primitives::RATIO_GUARD;
 use neural_spring::require;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
@@ -72,7 +73,7 @@ fn validate_accuracy(h: &mut ValidationHarness, n: usize) {
 
     eprintln!(
         "  n={n:>3}: HQR err={hqr_err:.2e}, Jacobi err={jacobi_err:.2e}, improvement={:.0}×",
-        jacobi_err / hqr_err.max(1e-300)
+        jacobi_err / hqr_err.max(RATIO_GUARD)
     );
 
     // HQR reconstruction error scales as O(n² ε_mach) where ε_mach ≈ 1e-16.

@@ -6,8 +6,8 @@ neuralSpring validates the computational foundations of machine learning across
 ten experiments spanning function approximation, transformer attention, sequence
 forecasting, transfer learning, cross-domain architecture analysis, physics-informed
 neural networks, operator learning, convolutional networks, real-data LSTM, and
-quantized inference. All **206 quantitative checks pass** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++).
-Phase 1–5h Rust validation adds **2040+ Rust+GPU checks** (604 lib + 9 integration tests + 166 validation binaries across 37 modules + 2 evolved + gpu_ops/ + gpu_dispatch). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
+quantized inference. All **223 quantitative checks pass** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++).
+Phase 1–5h Rust validation adds **2127+ Rust+GPU checks** (623 lib + 9 integration tests + 172 validation binaries across 38 modules + 2 evolved + gpu_ops/ + gpu_dispatch). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
 The 3-way benchmark (Python vs CPU vs GPU) with double-buffered evolved shaders
 achieves **GPU 104× faster** than Python at 103M FLOPs and **CPU 3.9× faster**
 at the same scale.
@@ -166,9 +166,9 @@ and time series simultaneously.
 The audit (February 2026) produced a Rust crate that cross-validates Python baselines.
 BarraCUDA integration extended it to 1750+ GPU/CPU validation checks across 142 binaries.
 
-- **36 modules + 2 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances/` (20+ named constants + runtime registry), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
-- **150 validation binaries + 12 bench + validate_all**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch + mixed-hardware + multi-GPU + pure GPU all-domains + cross-system dispatch
-- **604 lib tests + 9 integration tests + 43 forge tests**
+- **38 modules + 2 evolved**: `metrics.rs`, `surrogate.rs`, `transformer.rs`, `sequence.rs`, `validation.rs`, `tolerances/` (20+ named constants + runtime registry), `provenance.rs`, `gpu.rs`, `eigh.rs`, `primitives.rs`, `pinn.rs`, `deeponet.rs`, `fft.rs`, `evolved/`, plus 15 paper modules
+- **172 validation binaries + 12 bench + validate_all**: native + BarraCUDA + GPU shader + GPU pipeline + cross-dispatch + mixed-hardware + multi-GPU + pure GPU all-domains + cross-system dispatch
+- **623 lib tests + 9 integration tests + 43 forge tests**
 - **Quality gates**: `clippy` (pedantic+nursery), `fmt`, `doc`, `unsafe_code = "forbid"`
 - **17 WGSL shaders** in `metalForge/shaders/` with validation binaries and absorption targets (13 upstream, 4 local)
 
@@ -217,7 +217,7 @@ See `whitePaper/BARRACUDA_EVOLUTION.md` for the full technical narrative.
 | 0 | Python baselines (48 checks) | Validate the science | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Reproduce published results | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty, 5 disciplines | **COMPLETE** |
-| 1a | neuralSpring Rust validation | 36 modules, 604 lib + 9 integration tests, 166 binaries | **COMPLETE** |
+| 1a | neuralSpring Rust validation | 38 modules, 623 lib + 9 integration tests, 172 binaries | **COMPLETE** |
 | 1b | BarraCUDA validation | 12 domains, 275 checks (CPU + GPU + FFT) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | 46–78× speedup via single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |
@@ -245,7 +245,7 @@ All four faculty research groups have been reproduced in Phase 0++:
 | **Waters** (MSU Micro) | 019–021 | Game theory, regulatory networks, signal integration |
 | **Kachkovskiy** (MSU Math) | 022–023 | Spectral commutativity, Anderson localization |
 
-All 25 papers validated in Python (206/206) and BarraCUDA CPU (203/203, 24/25 papers),
+All 25 papers validated in Python (223/223) and BarraCUDA CPU (203/203, 24/25 papers),
 with 17 WGSL shaders evolved for GPU acceleration via metalForge (13 absorbed upstream, 4 local).
 
 ### BarraCUDA Primitives Validated

@@ -39,7 +39,7 @@ pub fn q8_params(data: &[f64]) -> Q8Params {
         .iter()
         .map(|x| x.abs())
         .fold(0.0_f64, f64::max)
-        .max(1e-30);
+        .max(crate::primitives::QUANTIZATION_FLOOR);
     Q8Params {
         scale: abs_max / 127.0,
     }
@@ -52,7 +52,7 @@ pub fn q4_params(data: &[f64]) -> Q4Params {
         .iter()
         .map(|x| x.abs())
         .fold(0.0_f64, f64::max)
-        .max(1e-30);
+        .max(crate::primitives::QUANTIZATION_FLOOR);
     Q4Params {
         scale: abs_max / 7.0,
     }

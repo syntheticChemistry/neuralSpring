@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V49** | `handoffs/NEURALSPRING_TOADSTOOL_V49_CROSS_SPRING_EVOLUTION_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S85: Five-spring provenance map, 28/28 bench PASS, Hamming regression flagged, V49 recommendations for ToadStool evolution |
+| **V51** | `handoffs/NEURALSPRING_TOADSTOOL_V51_S87_WDM_QUEUE_CLOSED_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S87: WDM queue closed (nW-01..nW-05), 6 validators (186 WDM checks), SimpleMLP + LstmReservoir + EsnClassifier absorption targets, 156/156 PASS |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V48, 63 files).
+Superseded handoffs: `handoffs/archive/` (V1–V50, 65 files).
 
 ## Conventions
 

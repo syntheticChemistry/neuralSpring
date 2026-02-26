@@ -13,6 +13,7 @@
 
 #![allow(clippy::cast_precision_loss, clippy::too_many_lines)]
 
+use neural_spring::primitives::QUANTIZATION_FLOOR;
 use neural_spring::signal_integration::{
     dose_response_cdg, integrate_ode, logic_gate_sweep, two_input_hill, LogicGate, OdeParams,
     OdeState,
@@ -133,8 +134,8 @@ fn main() {
         bio_high > bio_low,
     );
 
-    let att_cdg = 4.0_f64 / (5.0 + 1e-30);
-    let att_ai = 4.0_f64 / (5.0 + 1e-30);
+    let att_cdg = 4.0_f64 / (5.0 + QUANTIZATION_FLOOR);
+    let att_ai = 4.0_f64 / (5.0 + QUANTIZATION_FLOOR);
     let hill_val = two_input_hill(2.0, 2.0, 1.0, k1, k2, n1, n2);
     h.check_abs(
         "integration = multiplicative attention",

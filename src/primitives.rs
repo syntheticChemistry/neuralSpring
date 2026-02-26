@@ -66,6 +66,31 @@ pub const HILL_EPS: f64 = 1e-20;
 /// (constant) population where the ratio is undefined.
 pub const DIVISION_GUARD: f64 = 1e-15;
 
+/// Floor for quantization scale factors to prevent division by zero.
+///
+/// Used in INT8/INT4 symmetric quantization when `max(|tensor|)` is
+/// zero or near-zero. Must be above subnormal territory (5e-324) but
+/// small enough to never affect real tensor magnitudes (> 1e-10 in
+/// practice). 1e-30 satisfies both constraints: `1e-30 / 127 ≈ 8e-33`
+/// is a valid scale, and `tensor / 8e-33` for any real tensor clamps
+/// safely to the quantization range.
+pub const QUANTIZATION_FLOOR: f64 = 1e-30;
+
+/// Floor for generated probability values to ensure non-zero.
+///
+/// Applied to `rng.uniform().max(PROBABILITY_FLOOR)` when generating
+/// probability distributions for validation and benchmarking. Must be
+/// positive to avoid log(0) but small enough to not bias the distribution.
+/// 1e-8 keeps values well above zero without distorting the range
+/// (uniform draws are in \[0,1) — 1e-8 trims only the bottom 10ppb).
+pub const PROBABILITY_FLOOR: f64 = 1e-8;
+
+/// Floor for ratio denominators to prevent inf in diagnostic prints.
+///
+/// Used when computing improvement ratios like `error_a / error_b.max(RATIO_GUARD)`.
+/// Prevents division by zero when the denominator is effectively machine zero.
+pub const RATIO_GUARD: f64 = 1e-300;
+
 // ═══════════════════════════════════════════════════════════════════
 // Shannon entropy
 // ═══════════════════════════════════════════════════════════════════

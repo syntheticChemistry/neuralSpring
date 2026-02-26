@@ -12,7 +12,7 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 [dependencies]
 # BarraCUDA shared crate — use primitives instead of reinventing math.
 # Path dep matches hotSpring pattern: each Spring evolves independently.
-barracuda = { path = "../phase1/toadstool/crates/barracuda" }
+barracuda = { path = "../phase1/toadstool/crates/barracuda", features = ["unidirectional"] }
 
 # Local forge crate — shader catalog, binding layouts, dispatch routing.
 # Single source of truth for WGSL shaders; ToadStool absorbs from here.
@@ -679,6 +679,32 @@ path = "src/bin/validate_hillgate_f64_fix.rs"
 [[bin]]
 name = "validate_cross_spring_evolution"
 path = "src/bin/validate_cross_spring_evolution.rs"
+
+# ── WDM Surrogate validators (nW-01, nW-02, nW-04) ───────────────
+
+[[bin]]
+name = "validate_wdm_eos"
+path = "src/bin/validate_wdm_eos.rs"
+
+[[bin]]
+name = "validate_barracuda_wdm_eos"
+path = "src/bin/validate_barracuda_wdm_eos.rs"
+
+[[bin]]
+name = "validate_wdm_transport"
+path = "src/bin/validate_wdm_transport.rs"
+
+[[bin]]
+name = "validate_wdm_transfer"
+path = "src/bin/validate_wdm_transfer.rs"
+
+[[bin]]
+name = "validate_wdm_sqw"
+path = "src/bin/validate_wdm_sqw.rs"
+
+[[bin]]
+name = "validate_wdm_esn"
+path = "src/bin/validate_wdm_esn.rs"
 
 # ── baseCamp Sub-thesis validators ────────────────────────────────
 [[bin]]

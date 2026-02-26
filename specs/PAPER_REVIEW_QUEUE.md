@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 26, 2026 (Sessions 45–82)
+**Last Updated**: February 26, 2026 (Sessions 45–83)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -181,18 +181,21 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 ## Completion Summary
 
-**All 25 papers complete. baseCamp (B-01..B-15) primitives validated.**
+**All 25 papers complete. baseCamp (B-01..B-15) primitives validated. All 5 WDM surrogates (nW-01..nW-05) complete.**
 
+Session 87: WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor, Py 5/5, Rs 27/27) and nW-05 (ESN regime classifier, Py 5/5, Rs 39/39). 172 binaries, 623 lib tests, 156/156 validators.
+Session 86: V50 handoff — WDM buildout complete, 170 binaries, 611 lib tests, 154/154 validators.
+Session 83: WDM surrogate buildout — nW-01 transport (Py 4/4, Rs 30/30), nW-02 EOS wired (Py 9/9, Rs 36/36, GPU 15/15), nW-04 transfer (Py 4/4, Rs 6/6). `wdm_transport.rs` new module. 4 new validators in `validate_all` (154 total). 611 lib + 43 forge tests. `check_drift.sh` expanded to 29 baselines.
 Session 81: Deep debt evolution — 129+ named tolerances (25 new), spectral_entropy→barracuda (39th rewire), cross-platform probe, PyTorch seeding. Zero inline magic numbers.
 Session 80: Comprehensive debt audit — 604 lib tests, 93.5% coverage, wdm_surrogate 97.6%, basecamp 90.6%.
 Session 70: Deep audit II — 93.5% coverage (580 tests), tolerance macro refactor, streaming I/O, 100% SPDX (211/211 files), all files ≤1000 lines.
 Session 68-69: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 107+ named tolerances. 6 validator shader sources → upstream constants.
 Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10 cross-language).
 Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
-`validate_all`: 150/150 PASS on RTX 4070.
+`validate_all`: 156/156 PASS on RTX 4070.
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
-Python baselines: 25/25 PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
-604 lib + 9 integration + 43 forge tests. 166 validation/bench binaries. Zero debt.
+Python baselines: 25/25+5 WDM PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
+623 lib + 9 integration + 43 forge tests. 172 validation/bench binaries. Zero debt.
 44 CPU→GPU dispatch ops (~97% of production math).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -303,8 +306,8 @@ routing through `validate_mixed_hardware` (14/14 PASS).
 
 | Tier | Papers Covered | Total | Coverage |
 |------|---------------|-------|----------|
-| Python control (Py) | 25/25 | 206 checks | **100%** |
-| Rust CPU (Rs) | 25/25 + baseCamp | 580 lib + 114 baseCamp + 9 integration | **100%** |
+| Python control (Py) | 25/25 + 5 WDM | 233 checks | **100%** |
+| Rust CPU (Rs) | 25/25 + baseCamp + WDM | 623 lib + 114 baseCamp + 9 integration | **100%** |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** |
 | BarraCUDA GPU (baseCamp) | 5/5 sub-theses | 14 checks | **100%** |
@@ -384,9 +387,10 @@ validates correctness at every hardware tier:
 ### Tier 1: Open Data Controls (Python)
 - **25/25 papers** (206 checks) use open data exclusively
 - Sources: in-code synthetic (deterministic seed 42), Open-Meteo ERA5 (CC BY 4.0),
-  MNIST (CC BY-SA 3.0), published reference data (MIT/Apache-2.0)
+  MNIST (CC BY-SA 3.0), published reference data (MIT/Apache-2.0), FPEOS tables
+  (Militzer), Stanton-Murillo transport model
 - No proprietary, paywalled, or access-restricted data
-- Python baseline drift detection: `control/check_drift.sh` (all 27 baselines — 25 papers + WDM EOS + ML inference)
+- Python baseline drift detection: `control/check_drift.sh` (all 31 baselines — 25 papers + 5 WDM + ML inference)
 
 ### Tier 2: BarraCUDA CPU (Rust native)
 - **24/25 papers** (203 checks, 96% coverage)
@@ -520,7 +524,22 @@ All controls verified passing across BarraCUDA CPU, GPU, and metalForge mixed ha
 
 This closes the "pure GPU final workload validation" milestone: every paper domain
 has a typed GPU op validator, and metalForge's cross-system dispatch is proven
-end-to-end (GPU→NPU→CPU). Total: **2180+ checks**, **163 binaries**, **150/150 validate_all**.
+end-to-end (GPU→NPU→CPU). Total: **2450+ checks**, **172 binaries**, **156/156 validate_all**.
+
+**Session 86 addendum**: WDM surrogate buildout — 4 new validators added:
+- `validate_wdm_transport` (30/30): nW-01 Stanton-Murillo transport MLP
+- `validate_wdm_eos` (36/36): nW-02 EOS surrogate P(ρ,T), E(ρ,T)
+- `validate_barracuda_wdm_eos` (15/15): nW-02 GPU tier via `Tensor::matmul`
+- `validate_wdm_transfer` (6/6): nW-04 classical→WDM transfer learning
+
+**Session 87 addendum**: WDM surrogate queue closed — 2 new validators:
+- `validate_wdm_sqw` (27/27): nW-03 LSTM reservoir on MD density fluctuation time series, predicts plasmon frequency (R²=0.98) and Landau damping (R²=0.98)
+- `validate_wdm_esn` (39/39): nW-05 ESN regime classifier (Classical/WDM/Degenerate), 96.5% accuracy, bit-exact Rust↔Python score parity
+
+New modules: `wdm_sqw.rs` (LSTM reservoir + pooled readout), `wdm_esn.rs` (ESN 2-step recurrence + ridge readout). Both use open data (synthetic from physics equations, seed=42). 31 baselines in `check_drift.sh`.
+
+All WDM surrogates use open data (FPEOS tables from Militzer, Stanton-Murillo
+transport model, synthetic plasma spectra). All controls deterministic with documented seeds.
 
 ---
 
@@ -802,16 +821,16 @@ reproduction targets and baseCamp Sub-thesis 07 (Sovereign WDM on Consumer GPU).
 
 | # | Target | Method | BarraCUDA Primitive | Status |
 |---|--------|--------|-------------------|--------|
-| nW-01 | WDM transport surrogate (D*, η*, λ* vs ρ, T, Z*) | MLP/RBF — extend hotSpring Paper 3 (Diaw surrogate, 9/9) to WDM parameter range | `nuclear_eos_gpu` (GPU RBF validated) | Queued |
-| nW-02 | EOS surrogate (P, E vs ρ, T for H, He, C) | MLP trained on FPEOS tables (Militzer) — extend Exp 001 FAO-56 surrogate to physics EOS | `validate_barracuda_surrogate` (7/7) | Queued |
-| nW-03 | S(q,ω) peak predictor | LSTM on MD-generated S(q,ω) time series — predict peak position/width from (ρ, T) | `validate_barracuda_gpu_lstm` | Queued |
+| nW-01 | WDM transport surrogate (D*, η*, λ* vs ρ, T, Z*) | MLP/RBF — extend hotSpring Paper 3 (Diaw surrogate, 9/9) to WDM parameter range | `nuclear_eos_gpu` (GPU RBF validated) | **Complete** — Py 4/4, Rs 30/30 |
+| nW-02 | EOS surrogate (P, E vs ρ, T for H, He, C) | MLP trained on FPEOS tables (Militzer) — extend Exp 001 FAO-56 surrogate to physics EOS | `validate_barracuda_surrogate` (7/7) | **Complete** — Py 9/9, Rs 36/36, GPU 15/15 |
+| nW-03 | S(q,ω) peak predictor | LSTM reservoir on MD density fluctuation time series — predict plasmon ω and damping γ from (ρ, T) | `validate_wdm_sqw` (27/27) | **Complete** — Py 5/5, Rs 27/27 |
 
 ### Transfer Learning: Classical → WDM
 
 | # | Target | Method | BarraCUDA Primitive | Status |
 |---|--------|--------|-------------------|--------|
-| nW-04 | Classical plasma → WDM transfer | Fine-tune transport surrogate from Stanton-Murillo (Γ,κ) space to WDM (ρ,T,Z*) space — same architecture as Exp 004 (MI→NM/CA transfer, 6/6) | Transfer learning pipeline (validated) | Queued |
-| nW-05 | NPU screening for WDM phase | ESN classifier: given (ρ,T), predict WDM regime (classical/WDM/degenerate) — extends metalForge lattice phase classifier to plasma phases | `validate_lattice_npu` (10/10) | Queued |
+| nW-04 | Classical plasma → WDM transfer | Fine-tune transport surrogate from Stanton-Murillo (Γ,κ) space to WDM (ρ,T,Z*) space — same architecture as Exp 004 (MI→NM/CA transfer, 6/6) | Transfer learning pipeline (validated) | **Complete** — Py 4/4, Rs 6/6 |
+| nW-05 | WDM regime classifier | ESN classifier: given (ρ,T), predict WDM regime (classical/WDM/degenerate) — reservoir computing with ridge regression readout | `validate_wdm_esn` (39/39) | **Complete** — Py 5/5, Rs 39/39 |
 
 **Connection to hotSpring Tier 4**: Each surrogate replaces expensive MD
 runs with inference at 9,017× less energy (NPU) or ~100× less compute

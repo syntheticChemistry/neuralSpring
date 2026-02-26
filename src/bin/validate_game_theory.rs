@@ -18,7 +18,7 @@ use neural_spring::game_theory::{
     spatial_cooperation, QsConfig,
 };
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{mean_last_n, variance_last_n, ValidationHarness};
 
 fn main() {
     let mut h = ValidationHarness::new("game_theory");
@@ -104,17 +104,4 @@ fn main() {
     h.check_bool("game_theory algorithm validated", true);
 
     h.finish();
-}
-
-fn mean_last_n(v: &[f64], n: usize) -> f64 {
-    let start = v.len().saturating_sub(n);
-    let slice = &v[start..];
-    slice.iter().sum::<f64>() / slice.len() as f64
-}
-
-fn variance_last_n(v: &[f64], n: usize) -> f64 {
-    let mean = mean_last_n(v, n);
-    let start = v.len().saturating_sub(n);
-    let slice = &v[start..];
-    slice.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / slice.len() as f64
 }

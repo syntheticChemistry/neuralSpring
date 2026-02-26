@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–85 — S85: Doc sweep + V49 handoff — all stale counts fixed, baseCamp updated through S85, Hamming regression flagged)
+**Last updated**: February 26, 2026 (Sessions 44–87 — S87: WDM queue closed — nW-03, nW-05)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 206/206 Python PASS + 2040+ Rust+GPU validation PASS = **2250+ total validation checks**
-**Library**: 604 lib tests + 9 integration tests + 43 forge tests | 37 modules + gpu_ops/ + gpu_dispatch | 166 validation/bench binaries
+**Grand Total**: 233/233 Python PASS + 2217+ Rust+GPU validation PASS = **2450+ total validation checks**
+**Library**: 623 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 172 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 9 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 5/5 sub-theses PASS) — Sessions 50, 54, 56, 77
@@ -13,14 +13,14 @@
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + **384/384 PASS on TITAN V (NVK GV100)** — bit-identical
 **GPU Promotion**: 44 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math)
 **Pure GPU All-Domains**: 10/10 PASS — `validate_gpu_pure_workload_all` (9 typed BarraCUDA GPU ops across all 15 Phase 0++ papers + determinism check, scalar-only readback)
-**WDM Surrogates**: 3 Python baselines (nW-01 transport, nW-02 EOS, nW-04 transfer learning) + 2 Rust validators (CPU + GPU) — `wdm_surrogate.rs` module
-**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (129+ named tolerances, S81: +25) | zero bare `unwrap()` in validation code | WDM EOS provenance complete | all PyTorch baselines fully seeded
-**Coverage**: 93.5% line coverage (llvm-cov, 604 lib tests), 129+ named tolerances in centralized registry | wdm_surrogate 97.6% | basecamp 90.6%
+**WDM Surrogates**: 5 Python baselines (33/33 PASS) + 6 Rust validators (153/153 PASS incl. GPU) — nW-01 transport, nW-02 EOS, nW-03 S(q,ω), nW-04 transfer, nW-05 ESN regime — `wdm_surrogate.rs`, `wdm_transport.rs`, `wdm_sqw.rs`, `wdm_esn.rs` modules
+**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (129+ named tolerances, S81: +25) | zero bare `unwrap()` in validation code | WDM provenance complete | all PyTorch baselines fully seeded
+**Coverage**: 93.5%+ line coverage (llvm-cov, 623 lib tests), 129+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6%
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `f0feb226` (S68 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired | S81: +1 spectral\_entropy→barracuda::stats::shannon\_from\_frequencies
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `f0feb226` (S68 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired
 **Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 9 metalForge shaders aligned to `compile_shader_df64` convention
 **Sovereign Folding**: 9 new f64 WGSL shaders in metalForge (layer\_norm, GELU, sigmoid, SDPA scores/softmax/apply, triangle mul outgoing/incoming, triangle attention)
-**Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
+**Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
 
 ---
 
@@ -68,7 +68,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (604 lib tests + 9 integration + 43 forge tests, 166 validation binaries, 37 modules + gpu_ops/ + gpu_dispatch/)
+### Phase 1a: neuralSpring-Native Validation (623 lib tests + 9 integration + 43 forge tests, 172 validation binaries, 40 modules + gpu_ops/ + gpu_dispatch/)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -311,8 +311,8 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python lint | `ruff check` (E/F/W/I/N/UP/B/A/SIM) | **PASS** — 0 errors |
 | Python format | `ruff format` | **PASS** — 46 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
-| Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 604 lib tests + 9 integration tests |
+| Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 233/233 |
+| Rust test | `cargo test` | **PASS** — 623 lib tests + 9 integration tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -333,7 +333,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (604 lib + 9 integration + 43 forge tests, 166 binaries, 37 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (623 lib + 9 integration + 43 forge tests, 172 binaries, 40 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |

@@ -31,6 +31,7 @@
 
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::primitives::PROBABILITY_FLOOR;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -264,7 +265,9 @@ fn validate_sub04_neural_pgm(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &
     let t2 = make_stochastic(n2, n3, &mut rng);
 
     let input: Vec<f64> = {
-        let raw: Vec<f64> = (0..n1).map(|_| rng.uniform().max(1e-8)).collect();
+        let raw: Vec<f64> = (0..n1)
+            .map(|_| rng.uniform().max(PROBABILITY_FLOOR))
+            .collect();
         let s: f64 = raw.iter().sum();
         raw.iter().map(|&v| v / s).collect()
     };
@@ -306,7 +309,7 @@ fn make_stochastic(rows: usize, cols: usize, rng: &mut Rng) -> Vec<f64> {
     for i in 0..rows {
         let mut row_sum = 0.0;
         for j in 0..cols {
-            let v = rng.uniform().max(1e-8);
+            let v = rng.uniform().max(PROBABILITY_FLOOR);
             mat[i * cols + j] = v;
             row_sum += v;
         }

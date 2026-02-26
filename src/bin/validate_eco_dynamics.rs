@@ -13,7 +13,7 @@
 
 use neural_spring::eco_dynamics::{run_ea, MultiNicheLandscape};
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{mean_first_n, mean_last_n, ValidationHarness};
 
 fn main() {
     let mut h = ValidationHarness::new("eco_dynamics");
@@ -98,18 +98,4 @@ fn main() {
     h.check_bool("eco_dynamics algorithm validated", true);
 
     h.finish();
-}
-
-#[allow(clippy::cast_precision_loss)]
-fn mean_last_n(v: &[f64], n: usize) -> f64 {
-    let start = v.len().saturating_sub(n);
-    let slice = &v[start..];
-    slice.iter().sum::<f64>() / slice.len() as f64
-}
-
-#[allow(clippy::cast_precision_loss)]
-fn mean_first_n(v: &[f64], n: usize) -> f64 {
-    let end = n.min(v.len());
-    let slice = &v[..end];
-    slice.iter().sum::<f64>() / slice.len() as f64
 }

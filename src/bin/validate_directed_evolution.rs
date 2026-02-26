@@ -17,7 +17,7 @@ use neural_spring::directed_evolution::{
     lexicase_selection, random_selection, run_selection_experiment, tournament_selection,
     truncation_selection,
 };
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{mean_last_n, mean_last_n_usize, ValidationHarness};
 
 fn main() {
     let mut h = ValidationHarness::new("directed_evolution");
@@ -102,16 +102,4 @@ fn main() {
     h.check_bool("directed_evolution algorithm validated", true);
 
     h.finish();
-}
-
-fn mean_last_n(v: &[f64], n: usize) -> f64 {
-    let start = v.len().saturating_sub(n);
-    let slice = &v[start..];
-    slice.iter().sum::<f64>() / slice.len() as f64
-}
-
-fn mean_last_n_usize(v: &[usize], n: usize) -> f64 {
-    let start = v.len().saturating_sub(n);
-    let slice = &v[start..];
-    slice.iter().sum::<usize>() as f64 / slice.len() as f64
 }

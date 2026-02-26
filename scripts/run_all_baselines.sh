@@ -151,6 +151,18 @@ echo "================================================================"
 run_experiment "WDM EOS Surrogate Baselines (nW-02)" \
     control/wdm/eos_surrogate.py
 
+run_experiment "WDM Transport Surrogate (nW-01)" \
+    control/wdm/transport_surrogate.py
+
+run_experiment "WDM Transfer Classical→WDM (nW-04)" \
+    control/wdm/transfer_classical_to_wdm.py
+
+run_experiment "WDM S(q,ω) Peak Predictor (nW-03)" \
+    control/wdm/sqw_peak_predictor.py
+
+run_experiment "WDM ESN Regime Classifier (nW-05)" \
+    control/wdm/esn_regime_classifier.py
+
 run_experiment "ML Inference Baselines (MLP + Transformer JSON)" \
     control/ml_inference/generate_baselines.py
 

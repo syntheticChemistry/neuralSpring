@@ -16,6 +16,7 @@
 #![allow(clippy::cast_precision_loss)]
 
 use neural_spring::hmm::Hmm;
+use neural_spring::primitives::LOG_GUARD;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -196,7 +197,7 @@ fn gamma_sample(rng: &mut Rng, alpha: f64) -> f64 {
         let x = rng.normal();
         let v = (1.0 + c * x).powi(3);
         if v > 0.0 {
-            let u = rng.uniform().max(1e-300);
+            let u = rng.uniform().max(LOG_GUARD);
             if u.ln() < 0.5f64.mul_add(x * x, d - d * v + d * v.ln()) {
                 return d * v;
             }

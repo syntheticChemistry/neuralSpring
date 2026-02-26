@@ -5,9 +5,67 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 85 (February 26, 2026)
+## [Unreleased] — Session 87 (February 26, 2026)
 
 Next session.
+
+## [0.5.1] — 2026-02-26 (Session 87: WDM Queue Closed — nW-03, nW-05)
+
+### Added
+
+- `src/wdm_sqw.rs`: LSTM reservoir S(q,ω) peak predictor module
+- `src/wdm_esn.rs`: ESN WDM regime classifier module
+- `control/wdm/sqw_peak_predictor.py`: nW-03 Python baseline (LSTM on MD time series, R²=0.98)
+- `control/wdm/esn_regime_classifier.py`: nW-05 Python baseline (ESN classifier, 96.5% accuracy)
+- `src/bin/validate_wdm_sqw.rs`: 27/27 PASS — loaded, finite, positive, deterministic, monotonic
+- `src/bin/validate_wdm_esn.rs`: 39/39 PASS — label parity, score parity, physics constraints
+- 2 new baselines in `check_drift.sh` (31 total)
+
+### Changed
+
+- `validate_all.rs`: 156 binaries (was 154)
+- WDM surrogate queue fully closed: nW-01 through nW-05 all complete
+- 623 lib tests (was 611), 40 modules (was 38), 172 binaries (was 170)
+
+### Validation
+
+- `cargo fmt --check`: PASS
+- `cargo clippy --workspace -- -D warnings`: 0 warnings
+- `cargo doc --workspace --no-deps`: 0 warnings
+- `cargo test --workspace`: 623/623 + 43 + 9 = 675 PASS
+- `validate_wdm_sqw`: 27/27 PASS
+- `validate_wdm_esn`: 39/39 PASS
+
+## [0.5.0] — 2026-02-26 (Session 86: WDM Buildout + V50 Handoff)
+
+### Added
+
+- `src/wdm_transport.rs`: New module for nW-01 Stanton-Murillo transport
+  surrogate (MLP 3→H→3, log-space normalization, diffusivity/viscosity/thermal
+  conductivity prediction).
+- `src/bin/validate_wdm_transport.rs`: 30 checks (loaded, finite, positive,
+  deterministic, monotonic per coefficient).
+- `src/bin/validate_wdm_transfer.rs`: 6 checks (classical R² > 0.85, transfer
+  R² > 0.40, determinism, Python baseline transfer advantage).
+- `validate_wdm_eos` and `validate_barracuda_wdm_eos` wired into `Cargo.toml`
+  and `validate_all.rs` (154 total binaries).
+- `wdm/transport_surrogate.py` and `wdm/transfer_classical_to_wdm.py` added to
+  `check_drift.sh` (29 baselines total).
+- V50 handoff: WDM buildout learnings, SimpleMLP absorption target, cross-language
+  RNG divergence documented.
+- Experiment 054: Session 86 WDM surrogate buildout.
+
+### Changed
+
+- README.md: Updated all counts (611 lib, 170 binaries, 223 Py, 2350+ total),
+  added WDM surrogates section, updated directory structure.
+- All root docs (CONTROL_EXPERIMENT_STATUS, EVOLUTION_READINESS, baseCamp
+  extensions, PAPER_REVIEW_QUEUE) updated to Session 86 numbers.
+- V49 handoff archived.
+
+### Validated
+
+- 611/611 lib, 663/663 total tests, 0 clippy warnings, 154/154 validators PASS.
 
 ## [0.4.2] — 2026-02-26 (Session 85: Doc Sweep + V49 Handoff)
 

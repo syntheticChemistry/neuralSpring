@@ -360,12 +360,19 @@ fn main() {
 
         let n_big = 50_000_usize;
         let mut big_rng = Rng::new(700);
-        let big_a: Vec<f64> = (0..n_big).map(|_| big_rng.next_f64() * 10.0 - 5.0).collect();
-        let big_b: Vec<f64> = (0..n_big).map(|_| big_rng.next_f64() * 10.0 - 5.0).collect();
+        let big_a: Vec<f64> = (0..n_big)
+            .map(|_| big_rng.next_f64() * 10.0 - 5.0)
+            .collect();
+        let big_b: Vec<f64> = (0..n_big)
+            .map(|_| big_rng.next_f64() * 10.0 - 5.0)
+            .collect();
 
-        let gpu_var = bench("Dispatcher::variance 50k (hS Welford→ToadStool→GPU)", || {
-            let _ = std::hint::black_box(dispatcher.variance(&big_a));
-        });
+        let gpu_var = bench(
+            "Dispatcher::variance 50k (hS Welford→ToadStool→GPU)",
+            || {
+                let _ = std::hint::black_box(dispatcher.variance(&big_a));
+            },
+        );
         h.check_bool(
             &format!("hS→dispatch: variance 50k {gpu_var:.1}µs"),
             gpu_var.is_finite(),
@@ -380,9 +387,12 @@ fn main() {
         );
 
         let big_probs: Vec<f64> = big_a.iter().map(|x| x.abs() / 1000.0 + 1e-10).collect();
-        let gpu_shannon = bench("Dispatcher::shannon 50k (wS fused→ToadStool→GPU)", || {
-            let _ = std::hint::black_box(dispatcher.shannon_entropy(&big_probs));
-        });
+        let gpu_shannon = bench(
+            "Dispatcher::shannon 50k (wS fused→ToadStool→GPU)",
+            || {
+                let _ = std::hint::black_box(dispatcher.shannon_entropy(&big_probs));
+            },
+        );
         h.check_bool(
             &format!("wS→dispatch: shannon 50k {gpu_shannon:.1}µs"),
             gpu_shannon.is_finite(),
@@ -390,9 +400,12 @@ fn main() {
 
         let side = 200_usize;
         let mat: Vec<f64> = (0..side * side).map(|_| big_rng.next_f64()).collect();
-        let gpu_matmul = bench("Dispatcher::mat_mul 200×200 (nS→ToadStool→GPU)", || {
-            let _ = std::hint::black_box(dispatcher.mat_mul(&mat, &mat, side));
-        });
+        let gpu_matmul = bench(
+            "Dispatcher::mat_mul 200×200 (nS→ToadStool→GPU)",
+            || {
+                let _ = std::hint::black_box(dispatcher.mat_mul(&mat, &mat, side));
+            },
+        );
         h.check_bool(
             &format!("nS→dispatch: matmul 200×200 {gpu_matmul:.1}µs"),
             gpu_matmul.is_finite(),

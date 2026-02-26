@@ -191,6 +191,13 @@ const BINARIES: &[&str] = &[
     "validate_gpu_pure_workload_all",
     // Session 74: metalForge cross-system dispatch (GPU→NPU→CPU)
     "validate_cross_system_dispatch",
+    // WDM Surrogate Extensions (nW-01..nW-05)
+    "validate_wdm_eos",
+    "validate_barracuda_wdm_eos",
+    "validate_wdm_transport",
+    "validate_wdm_transfer",
+    "validate_wdm_sqw",
+    "validate_wdm_esn",
 ];
 
 fn main() {

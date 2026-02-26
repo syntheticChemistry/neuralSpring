@@ -202,10 +202,10 @@
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_all` | 150 | **150/150 PASS** |
+| `validate_all` | 156 | **156/156 PASS** |
 | `validate_cross_spring_evolution` | 52 | **52/52 PASS** |
 | `bench_cross_spring_evolution` | 28 | **28/28 PASS** |
-| `cargo test --lib` | 604 | **604/604 PASS** |
+| `cargo test --lib` | 623 | **623/623 PASS** |
 | `cargo clippy --all-targets -- -D warnings` | — | 0 warnings |
 | `BandwidthTier` detection | RTX 4070 | `PciE4x16` detected |
 
@@ -732,8 +732,8 @@ Hamming 20.85× regression: upstream f64 path on small sizes (investigation targ
 | Gate | Result |
 |------|--------|
 | `cargo clippy --all-targets -- -D warnings` | 0 warnings |
-| `cargo test --lib` | **604/604 PASS** |
-| `validate_all` | **150/150 PASS** |
+| `cargo test --lib` | **623/623 PASS** |
+| `validate_all` | **156/156 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
 | `bench_cross_spring_evolution` | **28/28 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels** |
@@ -752,7 +752,7 @@ Feb 26  Session 83: ToadStool S68 Universal Precision Sync
             fit_exponential, fit_all, spearman, rawr_mean) + GPU dispatch provenance
           - Five-spring provenance map: hotSpring ~100, wetSpring ~80,
             neuralSpring ~34, airSpring ~15, groundSpring ~5 shaders
-          - Full validation sweep: 604 lib + 150 GPU + 28 bench PASS
+          - Full validation sweep: 623 lib + 156 GPU + 28 bench PASS
           - CROSS_SPRING_SHADER_LINEAGE updated with full five-spring map
 ```
 

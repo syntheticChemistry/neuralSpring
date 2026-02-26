@@ -1087,4 +1087,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–85: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 604 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 83: ToadStool S68 sync — universal precision, 5 shader imports fixed, variance_ddof gap closed. Session 84: five-spring benchmark (28/28 PASS). Session 85: doc sweep + V49 handoff.*
+*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–85: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 172 binaries, 623 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 83: ToadStool S68 sync — universal precision, 5 shader imports fixed, variance_ddof gap closed. Session 84: five-spring benchmark (28/28 PASS). Session 85: doc sweep + V49 handoff.*
