@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V47** | `handoffs/NEURALSPRING_TOADSTOOL_V47_TITAN_V_PIPELINE_VALIDATION_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S82: Titan V pure Rust pipeline validation — 384/384 GPU checks PASS on NVK GV100, `fma(f64)` shader fix, zero RTX 4070 regressions, multi-GPU verification, WGSL abstract-float lessons |
+| **V48** | `handoffs/NEURALSPRING_TOADSTOOL_V48_S68_UNIVERSAL_PRECISION_SYNC_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S83: ToadStool S68 sync — 5 shader imports fixed (universal precision `LazyLock` privatization), variance_ddof gap closed, 150/150 validators PASS |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V46, 61 files).
+Superseded handoffs: `handoffs/archive/` (V1–V47, 62 files).
 
 ## Conventions
 

@@ -42,7 +42,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
-const SWARM_WGSL: &str = barracuda::ops::bio::swarm_nn::WGSL_SWARM_NN_SCORES;
+const SWARM_WGSL: &str = neural_spring_forge::shaders::SWARM_NN_SCORES;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]

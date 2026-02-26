@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–82 — S82: Titan V pure Rust pipeline validation — 384/384 GPU checks PASS on NVK GV100, `fma(f64)` shader fix in `batched_eigh_nak_optimized_f64.wgsl`, zero RTX 4070 regressions)
+**Last updated**: February 26, 2026 (Sessions 44–83 — S83: ToadStool S68 universal precision sync — 5 shader imports fixed, variance_ddof gap closed, 150/150 validators PASS)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -17,7 +17,7 @@
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (129+ named tolerances, S81: +25) | zero bare `unwrap()` in validation code | WDM EOS provenance complete | all PyTorch baselines fully seeded
 **Coverage**: 93.5% line coverage (llvm-cov, 604 lib tests), 129+ named tolerances in centralized registry | wdm_surrogate 97.6% | basecamp 90.6%
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `17932267` (S66 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired | S81: +1 spectral\_entropy→barracuda::stats::shannon\_from\_frequencies
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `f0feb226` (S68 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired | S81: +1 spectral\_entropy→barracuda::stats::shannon\_from\_frequencies
 **Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 9 metalForge shaders aligned to `compile_shader_df64` convention
 **Sovereign Folding**: 9 new f64 WGSL shaders in metalForge (layer\_norm, GELU, sigmoid, SDPA scores/softmax/apply, triangle mul outgoing/incoming, triangle attention)
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
@@ -755,3 +755,19 @@ Full pure Rust GPU pipeline validation on NVIDIA TITAN V (NVK GV100, Volta SM70,
 - Bare float literals (`1.0`) default to `f32` in `select()` context, causing type mismatches with `f64` division
 - NVK pipeline cache compilation takes ~145s on first run; instant via `wgpu::PipelineCache` thereafter
 - Titan V full-rate FP64 (1:2 ratio) confirmed working for all scientific compute shaders
+
+### Session 83 — ToadStool S68 Universal Precision Sync (February 26, 2026)
+
+ToadStool S66–S68 (22 commits) evolved all 700 WGSL shaders to f64 canonical
+with runtime downcast via `LazyLock<String>`. This broke 5 shader imports in
+neuralSpring (3 constants privatized, 1 renamed, 1 type change). Fixed by
+switching to local copies or new f64 pub constants. 2 validator binaries rewired.
+API gap #3 (variance_ddof) closed upstream. 14 ToadStool HEAD references updated
+from `17932267` (S65) to `f0feb226` (S68).
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **604/604 PASS** |
+| `cargo test -p neural-spring-forge --lib` | **43/43 PASS** |
+| `cargo clippy --all-targets -D warnings` | **0 warnings** |
+| `validate_all` | **150/150 PASS** |

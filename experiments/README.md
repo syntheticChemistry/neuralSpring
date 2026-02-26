@@ -62,6 +62,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 048 | Session 80 — Comprehensive Debt Audit and Coverage Expansion | Feb 26, 2026 | 604 lib tests, 93.5% coverage, wdm_surrogate 97.6%, basecamp 90.6%, 4 magic numbers→tolerances, 16 unwrap eliminated |
 | 049 | Session 81 — Deep Debt Evolution | Feb 26, 2026 | 25 new tolerances (129+), spectral_entropy→barracuda (39th rewire), cross-platform probe, PyTorch seeding |
 | 050 | Session 82 — Titan V Pure Rust Pipeline Validation | Feb 26, 2026 | 384/384 GPU checks on NVK GV100, `fma(f64)` shader fix, zero RTX 4070 regressions |
+| 051 | Session 83 — ToadStool S68 Universal Precision Sync | Feb 26, 2026 | 22 commits synced, 5 shader imports fixed, variance_ddof gap closed, 150/150 validators PASS |
 
 ---
 
@@ -2431,7 +2432,7 @@ metalForge cross-system stack proving workloads route correctly across substrate
 **Date**: February 26, 2026 (Session 75)
 **Hardware**: i9-12900K, RTX 4070 12GB, Pop!_OS 22.04
 **Researcher**: Eastgate
-**ToadStool HEAD**: `17932267` (S65)
+**ToadStool HEAD**: `f0feb226` (S68)
 
 ### Why
 
@@ -2922,6 +2923,80 @@ topology, not population size.
 - Wright-Fisher selects for higher-connectivity interaction graphs
 
 **Status**: QUEUED
+
+---
+
+## Experiment 051 — ToadStool S68 Universal Precision Sync (Session 83)
+
+**Date**: February 26, 2026
+**Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
+**ToadStool HEAD**: `f0feb226` (S68, 22 commits since `17932267`)
+
+### Motivation
+
+ToadStool S66–S68 completed the universal precision evolution, converting all 700
+WGSL shaders to f64 canonical with runtime downcast via `LazyLock<String>`. This
+privatized several shader constants that neuralSpring re-exported, breaking
+compilation. Need to sync, fix, revalidate, and update documentation.
+
+### Procedure
+
+1. Reviewed 22 ToadStool commits (S66–S68): universal precision architecture,
+   11 waves of f32→f64 shader evolution, dual-layer precision (op_preamble + naga
+   df64_rewrite), new stats/regression/hydrology APIs.
+
+2. Identified 5 broken shader imports in `metalForge/forge/src/shaders.rs`:
+   - 3 privatized constants (pairwise_jaccard, spatial_payoff, pairwise_hamming)
+   - 1 removed constant (locus_variance)
+   - 1 renamed file (rk4_parallel.wgsl → rk4_parallel_f64.wgsl)
+
+3. Also found 2 broken validator binaries:
+   - `validate_gpu_pipeline_swarm` (WGSL_SWARM_NN_SCORES privatized)
+   - `validate_gpu_logsumexp` (WGSL_LOGSUMEXP_REDUCE renamed)
+
+4. Fixed by switching to local shader copies or new f64 pub constants.
+   Created local `rk4_parallel.wgsl` (f32) since f64 requires Sovereign
+   Compiler polyfill injection that raw wgpu validators don't have.
+
+5. Revalidated: 604/604 lib, 43/43 forge, 0 clippy, 150/150 GPU validators.
+
+6. Updated 14 ToadStool HEAD references, 7 root/spec docs with S83 sections,
+   ABSORPTION_TRACKER, CHANGELOG 0.4.0 release.
+
+7. Created V48 handoff, archived V47.
+
+### Findings
+
+1. **Universal precision is transparent for barracuda API consumers**. The
+   `LazyLock<String>` downcast happens inside barracuda — our path dep gets the
+   new precision behavior automatically.
+
+2. **Raw WGSL consumers break**. Anyone who `pub use`'d shader constants now
+   has private or type-changed references. This is a breaking API change from
+   ToadStool's perspective.
+
+3. **f64 shaders need polyfill injection**. The f64 canonical shaders use
+   functions like `pow_f64` that are injected by the Sovereign Compiler. Raw
+   wgpu compilation fails without this injection.
+
+4. **API gap #3 closed**: `variance_ddof(data, ddof)` available at ToadStool
+   S66. neuralSpring's population variance (ddof=0) convention remains
+   intentionally different — documented, not rewired.
+
+5. **Most neuralSpring→barracuda rewires were already done**. S58–S81 had
+   already rewired 39 functions + 6 shader sources. This sync was primarily
+   about fixing breakage, not new rewires.
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **604/604 PASS** |
+| `cargo test -p neural-spring-forge --lib` | **43/43 PASS** |
+| `cargo clippy --all-targets -D warnings` | **0 warnings** |
+| `validate_all` | **150/150 PASS** |
+
+**Status**: COMPLETE
 
 ---
 

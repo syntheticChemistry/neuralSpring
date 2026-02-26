@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 26, 2026 (Sessions 40–75 — pure GPU all-domains + cross-system dispatch)
+**Last Updated**: February 26, 2026 (Sessions 40–83 — ToadStool S68 sync + universal precision alignment)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -959,7 +959,7 @@ zero duplicate math. Every barracuda primitive that exists is used where applica
 |---|-----|----------|
 | 1 | `barracuda::nn::SimpleMLP` (JSON weight loading + forward pass) | High |
 | 2 | `validate_tensor_unary` / `validate_tensor_reduction` in `barracuda::validation` | Medium |
-| 3 | `variance(data, ddof)` — population vs sample in one API | Medium |
+| 3 | ~~`variance(data, ddof)`~~ — population vs sample in one API | **CLOSED** (ToadStool S66: `variance_ddof(data, ddof)`) |
 | 4 | `harness.check_abs_result()` — Result-aware validation check | Low |
 
 ### Validation
@@ -1023,4 +1023,49 @@ zero duplicate math. Every barracuda primitive that exists is used where applica
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–82: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 604 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 82: Titan V 384/384 GPU checks, `fma(f64)` shader fix, zero regressions. V47 handoff.*
+### Session 83: ToadStool S68 Universal Precision Sync
+
+ToadStool evolved from `17932267` (S65) to `f0feb226` (S68) — 22 commits. The
+S68 precision evolution eliminated all f32-only shaders, converting 700 WGSL
+shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
+
+| Change | BarraCUDA Impact |
+|--------|-----------------|
+| 3 shader constants privatized | `WGSL_PAIRWISE_JACCARD`, `WGSL_SPATIAL_PAYOFF`, `WGSL_PAIRWISE_HAMMING` → local copies |
+| `WGSL_LOCUS_VARIANCE` removed | Switched to `WGSL_LOCUS_VARIANCE_F64` (new f64 pub const) |
+| `rk4_parallel.wgsl` → `rk4_parallel_f64.wgsl` | f64 requires polyfill injection; local f32 copy retained |
+| `WGSL_BATCH_IPR` type change | `pub const &str` → `pub static LazyLock<String>`; local copy |
+| `WGSL_SWARM_NN_SCORES` privatized | Rewired to `forge::shaders::SWARM_NN_SCORES` (local copy) |
+| `LogSumExp::WGSL_LOGSUMEXP_REDUCE` renamed | Rewired to `forge::shaders::LOGSUMEXP_REDUCE` (local copy) |
+| `variance_ddof(data, ddof)` upstream | Gap #3 closed — population vs sample in single API |
+
+### New ToadStool S66–S68 APIs Available
+
+| API | Status |
+|-----|--------|
+| `stats::mae` | Already rewired (S75) |
+| `stats::hill`, `stats::monod` | Already rewired (S75) |
+| `stats::spearman_correlation` | Already used (S79) |
+| `stats::regression::fit_linear` | Already used (S79) |
+| `stats::regression::{fit_quadratic, fit_exponential, fit_logarithmic}` | Available, not needed |
+| `stats::hydrology::*` | Available, not needed |
+| `stats::moving_window_f64::*` | Available, not needed |
+| `stats::bootstrap::rawr_mean` | Available, not needed |
+| `barracuda::validation::ValidationHarness` | Upstream absorbed from neuralSpring; keeping local for resilience |
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **604 PASS** |
+| `cargo test -p neural-spring-forge --lib` | **43 PASS** |
+| `cargo clippy --all-targets -D warnings` | **0 warnings** |
+| `validate_all` | **150/150 PASS** |
+| `validate_basecamp_gpu` | **14/14 PASS** |
+| `validate_gpu_rk4` | **8/8 PASS** |
+| `validate_gpu_logsumexp` | **5/5 PASS** |
+| `validate_gpu_pipeline_swarm` | **5/5 PASS** |
+
+---
+
+*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–83: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 604 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 83: ToadStool S68 sync — universal precision alignment, 5 shader imports fixed, API gap #3 (variance_ddof) closed. V48 handoff.*

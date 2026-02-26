@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 26, 2026 (Sessions 40–82)
-**ToadStool HEAD**: `17932267` (S58–S82: 39 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, S81: 129+ named tolerances (25 new), spectral\_entropy→barracuda, S82: Titan V 384/384 GPU checks, `fma(f64)` shader fix, zero RTX 4070 regressions)
+**Date**: February 26, 2026 (Sessions 40–83)
+**ToadStool HEAD**: `f0feb226` (S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S83: shader import fixes for S68 `LazyLock` privatization, variance_ddof gap closed, 150/150 validators PASS. Prior: 39 functions rewired, S-03b resolved, 21/21 shaders absorbed, Titan V 384/384, `fma(f64)` shader fix)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -686,5 +686,17 @@ f64 typing for bare float literals in `select()` and division contexts. 33 valid
 binaries, 384/384 GPU checks PASS. Zero RTX 4070 regressions. 604/604 lib tests.
 
 || Session 82: Titan V validation | 384/384 GPU checks, fma(f64) shader fix, zero regressions | **ALL GREEN** |
+
+### Session 83 — ToadStool S68 Universal Precision Sync (February 26, 2026)
+
+ToadStool S68 evolved all 700 shaders to f64 canonical with runtime downcast via
+`LazyLock<String>`. This privatized 3 shader constants neuralSpring re-exported,
+renamed 1 (`rk4_parallel.wgsl` → `rk4_parallel_f64.wgsl`), and changed 2 types
+(`pub const &str` → `LazyLock<String>`). Fixed all imports: 3 switched to local
+copies, 1 to new f64 pub const, 1 local f32 copy retained (f64 requires polyfill
+injection), 2 validator binaries rewired to forge constants. API gap #3
+(`variance_ddof`) closed upstream. All 14 ToadStool HEAD references updated.
+
+|| Session 83: ToadStool S68 sync | 604/604 lib, 43/43 forge, 150/150 validators, 0 clippy | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

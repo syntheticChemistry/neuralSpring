@@ -5,9 +5,30 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 82 (February 26, 2026)
+## [Unreleased] — Session 83 (February 26, 2026)
 
-V47 handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V47_TITAN_V_PIPELINE_VALIDATION_HANDOFF_FEB26_2026.md`
+V48 handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V48_S68_UNIVERSAL_PRECISION_SYNC_HANDOFF_FEB26_2026.md`
+
+## [0.4.0] — 2026-02-26 (Session 83: ToadStool S68 Universal Precision Sync)
+
+### Fixed
+
+- 5 shader imports broken by ToadStool S68 universal precision evolution:
+  `WGSL_PAIRWISE_JACCARD`, `WGSL_SPATIAL_PAYOFF`, `WGSL_PAIRWISE_HAMMING`
+  (privatized → local copies), `WGSL_LOCUS_VARIANCE` (renamed → f64 const),
+  `rk4_parallel.wgsl` (renamed → local f32 copy).
+- 2 validator binaries rewired: `validate_gpu_pipeline_swarm` and
+  `validate_gpu_logsumexp` now use forge shader constants.
+
+### Changed
+
+- ToadStool HEAD updated from `17932267` (S65) to `f0feb226` (S68) across
+  14 active files.
+- API gap #3 (variance_ddof) closed upstream — documented in BARRACUDA_USAGE.
+
+### Validated
+
+- 604/604 lib, 43/43 forge, 0 clippy warnings, 150/150 GPU validators PASS.
 
 ## [0.3.0] — 2026-02-26 (Session 82: Titan V Pure Rust Pipeline Validation)
 

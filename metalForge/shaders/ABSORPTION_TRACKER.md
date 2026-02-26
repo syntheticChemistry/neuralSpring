@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `17932267` (Sessions 50–75, Feb 26, 2026)
+**ToadStool HEAD**: `f0feb226` (Sessions 50–68, Feb 26, 2026)
 
 ---
 
@@ -76,16 +76,20 @@ Local copies remain for validation (our validators depend on the local binding l
 
 ### Shaders Absorbed (Pre–Session 39, `77f70b2e` — identical copies)
 
-| Shader | Upstream API |
-|--------|-------------|
-| `hmm_forward_log.wgsl` | `barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32` |
-| `batch_fitness_eval.wgsl` | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` |
-| `rk4_parallel.wgsl` | `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL` |
-| `pairwise_jaccard.wgsl` | `barracuda::ops::bio::pairwise_jaccard::WGSL_PAIRWISE_JACCARD` |
-| `pairwise_hamming.wgsl` | `barracuda::ops::bio::pairwise_hamming::WGSL_PAIRWISE_HAMMING` |
-| `locus_variance.wgsl` | `barracuda::ops::bio::locus_variance::WGSL_LOCUS_VARIANCE` |
-| `spatial_payoff.wgsl` | `barracuda::ops::bio::spatial_payoff::WGSL_SPATIAL_PAYOFF` |
-| `batch_ipr.wgsl` | `barracuda::spectral::batch_ipr::WGSL_BATCH_IPR` |
+ToadStool S68 evolved all shaders to f64 canonical with runtime downcast
+via `LazyLock<String>`. Several public `const &str` constants became private.
+Local copies now used for validation where upstream constants are inaccessible.
+
+| Shader | Upstream API | S68 Status |
+|--------|-------------|------------|
+| `hmm_forward_log.wgsl` | `barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32` | Still `pub const` |
+| `batch_fitness_eval.wgsl` | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` | Still `pub const` |
+| `rk4_parallel.wgsl` | Upstream f64: `rk4_parallel_f64.wgsl` (requires polyfill) | Local f32 copy |
+| `pairwise_jaccard.wgsl` | `WGSL_PAIRWISE_JACCARD` now private `LazyLock` | Local copy |
+| `pairwise_hamming.wgsl` | `WGSL_PAIRWISE_HAMMING` now private `LazyLock` | Local copy |
+| `locus_variance.wgsl` | `WGSL_LOCUS_VARIANCE_F64` (new f64 pub const) | Re-export f64 |
+| `spatial_payoff.wgsl` | `WGSL_SPATIAL_PAYOFF` now private `LazyLock` | Local copy |
+| `batch_ipr.wgsl` | `WGSL_BATCH_IPR` now `pub static LazyLock<String>` | Local copy |
 
 ### Still Active (Thin Wrapper)
 

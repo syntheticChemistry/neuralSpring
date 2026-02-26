@@ -6,7 +6,7 @@ This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring
 and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `17932267` (Sessions 59–79 sync — 38 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed + 9 sovereign folding f64 pending, 93.5% coverage, 604 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, cross-spring evolution 52/52 PASS, WDM surrogates validated, Feb 26, 2026)
+**ToadStool HEAD**: `f0feb226` (Sessions 59–68 sync — 38 functions rewired + 6 validator shader sources rewired to upstream constants, S-03b fully resolved, 21/21 shaders absorbed + 9 sovereign folding f64 pending, 93.5% coverage, 604 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, cross-spring evolution 52/52 PASS, WDM surrogates validated, Feb 26, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---

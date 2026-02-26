@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `17932267` (Sessions 50–75, Feb 26, 2026)
+**ToadStool HEAD**: `f0feb226` (Sessions 50–68, Feb 26, 2026)
 **Last Updated**: February 26, 2026 (Sessions 60–75 — forge v0.2.0 with substrate/probe/inventory/workloads, 2 write-phase WGSL extensions, 23 shaders, 43 forge tests, S75: cross-system dispatch 46/46 PASS)
 
 ---

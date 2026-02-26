@@ -1,7 +1,7 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 26, 2026 (Sessions 44–82)
-**ToadStool HEAD**: `17932267` (S82: Titan V 384/384 GPU checks, `fma(f64)` shader fix, 604 tests, 129+ named tolerances, 39 functions rewired to upstream)
+**Date**: February 26, 2026 (Sessions 44–83)
+**ToadStool HEAD**: `f0feb226` (S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S83: 5 shader imports fixed, variance_ddof gap closed)
 **Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 39 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39, WDM surrogates validated (CPU + GPU), S82: Titan V pure Rust pipeline validated (384/384 PASS), `batched_eigh_nak_optimized_f64.wgsl` fixed for WGSL spec compliance
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
@@ -170,5 +170,17 @@ for full diagnosis, reproduction steps, and recommended fixes.
 | Explicit f64 float literals | `select()` + division contexts | Prevents abstract-float-to-f32 coercion |
 | Full Titan V sweep | 33 binaries, 384/384 checks | All domains validated on NVK GV100 |
 | RTX 4070 regression test | All validators | Zero regressions |
+
+## Session 83 — ToadStool S68 Universal Precision Sync (February 26, 2026)
+
+| Change | Scope | Impact |
+|--------|-------|--------|
+| 3 shader constants privatized | `WGSL_PAIRWISE_{JACCARD,HAMMING}`, `WGSL_SPATIAL_PAYOFF` | Switched to local shader copies |
+| `WGSL_LOCUS_VARIANCE` removed | `forge::shaders` import | Switched to `WGSL_LOCUS_VARIANCE_F64` |
+| `rk4_parallel.wgsl` → `rk4_parallel_f64.wgsl` | RK4 validator + forge | Local f32 copy (f64 requires Sovereign polyfill) |
+| `WGSL_SWARM_NN_SCORES` privatized | `validate_gpu_pipeline_swarm` | Rewired to forge constant |
+| `WGSL_LOGSUMEXP_REDUCE` renamed | `validate_gpu_logsumexp` | Rewired to forge constant |
+| 14 ToadStool HEAD refs updated | All active docs | `17932267` → `f0feb226` |
+| variance_ddof gap closed | BARRACUDA_USAGE gap #3 | `variance_ddof(data, ddof)` at ToadStool S66 |
 
 *Migration guide — neuralSpring rewired to modern ToadStool/BarraCUDA.*

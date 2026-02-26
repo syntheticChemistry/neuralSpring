@@ -22,7 +22,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
-const WGSL_SOURCE: &str = barracuda::ops::logsumexp::LogSumExp::WGSL_LOGSUMEXP_REDUCE;
+const WGSL_SOURCE: &str = neural_spring_forge::shaders::LOGSUMEXP_REDUCE;
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
