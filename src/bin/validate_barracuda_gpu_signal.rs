@@ -314,9 +314,11 @@ fn validate_and_gate_output_structure(
         correct_shape,
     );
 
-    let in_range = out
-        .iter()
-        .all(|&x| (-1.0_f32 - 1e-5_f32..=1.0_f32 + 1e-5_f32).contains(&x));
+    let in_range = out.iter().all(|&x| {
+        (-1.0_f32 - tolerances::GPU_BOUNDS_SLACK_F32 as f32
+            ..=1.0_f32 + tolerances::GPU_BOUNDS_SLACK_F32 as f32)
+            .contains(&x)
+    });
     h.check_bool("AND gate output in [-1, 1]", in_range);
 }
 

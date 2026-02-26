@@ -522,6 +522,133 @@ pub const KAPPUS_WEGNER_REL: f64 = 0.5;
 /// be within 0.05 of the Poisson value 2ln(2)-1 ≈ 0.386.
 pub const LEVEL_SPACING_POISSON_TOL: f64 = 0.05;
 
+// ═══════════════════════════════════════════════════════════════════
+// baseCamp spectral analysis tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// Level spacing ratio: GOE vs Poisson comparison slack.
+///
+/// Random matrices have level spacing between GOE (≈0.5307) and Poisson (≈0.386).
+/// The comparison `d(GOE) < d(Poisson) + slack` allows for finite-size fluctuations
+/// at n=16.  0.2 is conservative for the small Hamiltonian dimensions used in
+/// baseCamp spectral analysis.
+pub const LEVEL_SPACING_GOE_SLACK: f64 = 0.2;
+
+/// Spectral IPR comparison: low-rank vs random perturbation slack.
+///
+/// When comparing IPR between random and low-rank weight matrices, the
+/// low-rank matrix should have higher IPR (more localized eigenstates).
+/// -0.5 allows for stochastic variation in small (8x8) matrices.
+pub const SPECTRAL_IPR_COMPARISON_SLACK: f64 = -0.5;
+
+/// Numerical distinctness: minimum difference to confirm two computed
+/// values are not identical.
+///
+/// Used in spectral analysis to verify that different architectures
+/// or perturbation depths produce measurably different results.
+/// 1e-15 is just above f64 rounding noise for O(1) values.
+pub const NUMERICAL_DISTINCTNESS: f64 = 1e-15;
+
+/// Gate disorder comparison slack.
+///
+/// When asserting that steeper sigmoid gates produce higher disorder
+/// parameter, allow small negative margin for numerical noise in the
+/// variance-based disorder calculation over 50 gate values.
+pub const GATE_DISORDER_COMPARISON: f64 = 0.01;
+
+/// Spectral radius sweep monotonicity slack.
+///
+/// When asserting that Jacobian spectral radius increases with weight
+/// scale sigma\_w, allow 0.1 negative margin for stochastic variation
+/// across 5 sweep points with 4x4 random matrices.
+pub const SPECTRAL_RADIUS_SWEEP_SLACK: f64 = 0.1;
+
+// ═══════════════════════════════════════════════════════════════════
+// Population genetics tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// `F_ST` for identical populations: Weir-Cockerham sample correction.
+///
+/// `F_ST` for identical allele frequencies should be ~0 by definition.
+/// The Weir-Cockerham estimator introduces a small sample-size bias
+/// (denominator correction), so the tolerance is 0.05 rather than
+/// machine precision.
+pub const FST_IDENTICAL_POP_TOL: f64 = 0.05;
+
+/// `F_ST` estimator agreement: mean-of-ratios vs ratio-of-sums.
+///
+/// Two `F_ST` estimators (W-C individual-locus vs multi-locus average)
+/// can differ by up to 0.05 for 10 loci with 20 individuals per pop.
+pub const FST_ESTIMATOR_AGREEMENT: f64 = 0.05;
+
+// ═══════════════════════════════════════════════════════════════════
+// Game theory equilibrium tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// PD defection dominance upper bound on cooperation.
+///
+/// In the prisoner's dilemma with b=3, c=1, defection should dominate
+/// after 2000 Euler steps.  Cooperation frequency should drop below 0.1.
+pub const GAME_DEFECTION_UPPER: f64 = 0.1;
+
+/// QS cooperation late-phase minimum.
+///
+/// After 80+ generations with quorum sensing (threshold 0.3, benefit 0.3),
+/// cooperation should stabilize above 0.1 (detectable cooperation).
+/// Stricter than `GAME_COOPERATION_MIN` (0.05) because this tests the
+/// barracuda RK45 implementation specifically.
+pub const GAME_QS_COOPERATION_MIN: f64 = 0.1;
+
+/// QS cooperation variance upper bound.
+///
+/// After stabilization (gen 50+), the cooperation frequency variance
+/// should remain below 0.1, indicating equilibrium rather than cycling.
+pub const GAME_QS_VARIANCE_MAX: f64 = 0.1;
+
+// ═══════════════════════════════════════════════════════════════════
+// Relative-error and near-zero guard tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// Relative error floor: minimum denominator for relative error.
+///
+/// When computing relative error |observed - expected| / |expected|,
+/// the expected value must exceed this floor to avoid division
+/// amplification of noise.  10x wider than `ZERO_DETECTION` because
+/// relative-error denominators are more sensitive to small values.
+pub const RELATIVE_ERROR_FLOOR: f64 = 1e-10;
+
+/// ODE steady-state approach: convergence to equilibrium.
+///
+/// When verifying that an ODE trajectory approaches its steady state
+/// (e.g., carrying capacity K), the final value should be within 0.5
+/// of the target.  Generous because f32 GPU RK4 accumulates error
+/// over 1000+ steps.
+pub const ODE_STEADY_STATE_SLACK: f64 = 0.5;
+
+// ═══════════════════════════════════════════════════════════════════
+// Quantization error tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// INT8 random GEMV L2 error: 256 quantization levels on random matrices.
+///
+/// INT8 quantization of a random weight matrix produces L2 relative
+/// error < 5% vs FP32 reference for 64x64 matrices.
+pub const QUANT_Q8_GEMV_ERROR: f64 = 0.05;
+
+/// INT4 random GEMV L2 error: 16 quantization levels on random matrices.
+///
+/// INT4's 16 quantization levels produce up to 25% L2 error on
+/// random 64x64 matrices.  This is a generous bound for the
+/// coarse quantization; production INT4 uses grouped quantization.
+pub const QUANT_Q4_GEMV_ERROR: f64 = 0.25;
+
+/// Quantized sign agreement slack.
+///
+/// When verifying sign agreement between quantized and full-precision
+/// outputs, allow the full-precision value to be within this threshold
+/// of zero before checking sign.  Values near zero have ambiguous sign.
+pub const QUANT_SIGN_AGREEMENT: f64 = 0.1;
+
 mod gpu;
 mod registry;
 

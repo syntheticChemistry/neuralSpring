@@ -135,7 +135,7 @@ fn validate_q8_gemv(h: &mut ValidationHarness) {
     for (idx, (fp, q)) in fp_result.iter().zip(q_result.iter()).enumerate() {
         h.check_bool(
             &format!("Q8 GEMV[{idx}]: fp={fp:.4}, q8={q:.4} (same sign)"),
-            fp.signum() == q.signum() || fp.abs() < 0.1,
+            fp.signum() == q.signum() || fp.abs() < tolerances::QUANT_SIGN_AGREEMENT,
         );
     }
 }
@@ -215,12 +215,12 @@ fn validate_accuracy_degradation(h: &mut ValidationHarness) {
     h.check_upper(
         &format!("Q8 random GEMV L2 error {err_q8:.4} < 5%"),
         err_q8,
-        0.05,
+        tolerances::QUANT_Q8_GEMV_ERROR,
     );
     h.check_upper(
         &format!("Q4 random GEMV L2 error {err_q4:.4} < 25%"),
         err_q4,
-        0.25,
+        tolerances::QUANT_Q4_GEMV_ERROR,
     );
 }
 

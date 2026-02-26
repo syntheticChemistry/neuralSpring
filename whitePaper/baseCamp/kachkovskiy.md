@@ -14,6 +14,15 @@ clustering, and dimensionality reduction in ML. neuralSpring's `eigh_f64`
 (Householder tridiagonalisation → implicit QR) is the exact algorithm needed
 for both Anderson localization and spectral feature extraction.
 
+### gen3 baseCamp Cross-References
+
+Kachkovskiy Papers 022-023 are shared anchors between neuralSpring Sub-01
+(weight matrices as Hamiltonians) and gen3 Sub-01 (Anderson QS). The same
+`eigh_f64`, `BatchIprGpu`, and level spacing ratio primitives validated here
+serve both the microbial QS framework (gen3) and the weight matrix spectral
+framework (neuralSpring). gen3 Sub-06 (No-till) also uses these primitives
+for soil community eigenvalue analysis.
+
 ## Papers
 
 | # | Citation | Rust Module | Checks | Status |

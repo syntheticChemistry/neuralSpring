@@ -289,7 +289,7 @@ fn validate_conv_pool_chain(h: &mut ValidationHarness) {
     h.check_bool("full pipeline: logits have variance (not degenerate)", {
         let mean = logits.iter().sum::<f64>() / logits.len() as f64;
         let var = logits.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / logits.len() as f64;
-        var > 1e-10
+        var > tolerances::RELATIVE_ERROR_FLOOR
     });
 
     // Verify `barracuda::cpu_conv_pool` produces identical results on rerun (determinism)

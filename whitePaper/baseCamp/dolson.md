@@ -14,6 +14,15 @@ evolutionary hyperparameter search, neural architecture search, and evolutionary
 strategies in ML. neuralSpring validates that BarraCUDA's batch GEMM and
 reduction ops reproduce these algorithms exactly.
 
+### gen3 baseCamp Cross-References
+
+Dolson Papers 011-015 connect to gen3 Sub-05 (Multi-Agent QS): the same
+swarm robotics model (Paper 015) and MODES diversity metrics (Paper 012) used
+in neuralSpring Sub-05 provide the agent coordination substrate for testing
+Anderson QS predictions on AI multi-agent systems. Also connect to gen3 Sub-02
+(LTEE Extensions): counterdiabatic driving (Paper 011) provides the
+evolutionary control framework for predicting LTEE mutation trajectories.
+
 ## Papers
 
 | # | Citation | Rust Module | Checks | Status |

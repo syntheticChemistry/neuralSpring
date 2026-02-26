@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 26, 2026 (Sessions 44–80)
-**ToadStool HEAD**: `17932267` (S80: 93.5% coverage, 604 tests, 107+ named tolerances, zero inline magic numbers, all unwrap() eliminated in validation binaries)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 38 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39, WDM surrogates validated (CPU + GPU), S80: debt audit resolved all remaining quality items
+**Date**: February 26, 2026 (Sessions 44–82)
+**ToadStool HEAD**: `17932267` (S82: Titan V 384/384 GPU checks, `fma(f64)` shader fix, 604 tests, 129+ named tolerances, 39 functions rewired to upstream)
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 39 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39, WDM surrogates validated (CPU + GPU), S82: Titan V pure Rust pipeline validated (384/384 PASS), `batched_eigh_nak_optimized_f64.wgsl` fixed for WGSL spec compliance
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed
@@ -150,5 +150,25 @@ for full diagnosis, reproduction steps, and recommended fixes.
 | Coverage expansion | `wdm_surrogate.rs`, `basecamp.rs` (tests_cpu.rs) | 14 + 12 new tests; 604 total lib tests, 93.5% coverage |
 | WDM EOS provenance | `provenance.rs` | Added `WDM_EOS_PROVENANCE` record |
 | CI evolution | `baselines.yml`, `rust.yml` | Artifact upload + cross-validation job |
+
+## Session 81 — Deep Debt Evolution (February 26, 2026)
+
+| Change | Scope | Impact |
+|--------|-------|--------|
+| 25 new named tolerances | `tolerances/{mod,gpu,registry}.rs` | 107+ → **129+ named constants** |
+| Magic number sweep | 21 validation binaries | ~50 inline literals replaced |
+| `spectral_entropy` rewire | `weight_spectral.rs` | → `barracuda::stats::shannon_from_frequencies` (39th function rewire) |
+| Cross-platform probe | `metalForge/forge/src/probe.rs` | `#[cfg(target_os = "linux")]` gating |
+| PyTorch seeding | 7 Python training scripts | Full deterministic seeding |
+| Clippy fixes | `validation.rs`, `wdm_surrogate.rs`, `tolerances/gpu.rs` | All resolved |
+
+## Session 82 — Titan V Pure Rust Pipeline Validation (February 26, 2026)
+
+| Change | Scope | Impact |
+|--------|-------|--------|
+| `batched_eigh_nak_optimized_f64.wgsl` fix | `fma(f64)` → `a * b + c` | WGSL spec compliance; Sovereign Compiler re-fuses at IR |
+| Explicit f64 float literals | `select()` + division contexts | Prevents abstract-float-to-f32 coercion |
+| Full Titan V sweep | 33 binaries, 384/384 checks | All domains validated on NVK GV100 |
+| RTX 4070 regression test | All validators | Zero regressions |
 
 *Migration guide — neuralSpring rewired to modern ToadStool/BarraCUDA.*

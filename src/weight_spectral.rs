@@ -116,6 +116,9 @@ pub fn marchenko_pastur_departure(eigenvalues: &[f64], gamma: f64) -> f64 {
 ///
 /// High entropy = uniform spectrum (random matrix).
 /// Low entropy = concentrated spectrum (structured/learned matrix).
+///
+/// Delegates to `barracuda::stats::shannon_from_frequencies` after normalizing
+/// absolute eigenvalues to a probability distribution (sum = 1).
 #[must_use]
 pub fn spectral_entropy(eigenvalues: &[f64]) -> f64 {
     if eigenvalues.is_empty() {
@@ -126,14 +129,8 @@ pub fn spectral_entropy(eigenvalues: &[f64]) -> f64 {
     if total < LOG_GUARD {
         return 0.0;
     }
-    let mut entropy = 0.0;
-    for &v in &abs_vals {
-        let p = v / total;
-        if p > LOG_GUARD {
-            entropy -= p * p.ln();
-        }
-    }
-    entropy
+    let frequencies: Vec<f64> = abs_vals.iter().map(|&v| v / total).collect();
+    barracuda::stats::shannon_from_frequencies(&frequencies)
 }
 
 /// Compute full weight matrix spectral analysis.

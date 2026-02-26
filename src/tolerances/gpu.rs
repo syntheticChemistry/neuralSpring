@@ -518,3 +518,65 @@ pub const PGM_NORMALIZATION_SUM: f64 = 1e-8;
 /// rounding across matmul + activation + normalization.  Output
 /// vector norm should agree within 10% of the Python baseline norm.
 pub const ML_PIPELINE_NORM_REL: f64 = 0.1;
+
+// ═══════════════════════════════════════════════════════════════════
+// GPU commutator tolerances (f64 spectral dispatch)
+// ═══════════════════════════════════════════════════════════════════
+
+/// GPU commutator near-zero (f64): norm for near-commuting matrices.
+///
+/// For diagonal or nearly-diagonal matrices, the commutator norm
+/// should be effectively zero.  f64 GPU parallel reduction accumulates
+/// rounding from two matmuls; 1e-12 is tight for small (8x8) matrices.
+pub const GPU_COMMUTATOR_NEAR_ZERO_F64: f64 = 1e-12;
+
+/// GPU commutator residual (f64): upper bound for random matrices.
+///
+/// Random matrices are generically non-commuting.  The normalized
+/// commutator for random nxn matrices has mean that grows with n.
+/// 0.5 bounds small (8x8) random matrix commutators.
+pub const GPU_COMMUTATOR_RESIDUAL_F64: f64 = 0.5;
+
+// ═══════════════════════════════════════════════════════════════════
+// Hardware dispatch cost bounds (metalForge probes)
+// ═══════════════════════════════════════════════════════════════════
+
+/// `PCIe` bridge latency floor (microseconds).
+///
+/// Even fast `PCIe` 4.0 bridges have measurable latency.  Below this
+/// indicates measurement error or driver shortcutting.
+pub const BRIDGE_COST_MIN_US: f64 = 100.0;
+
+/// `PCIe` bridge latency ceiling (microseconds).
+///
+/// Bridge latency above this for lightweight probes indicates
+/// driver or device issues.
+pub const BRIDGE_COST_MAX_US: f64 = 5000.0;
+
+/// Chained bridge overhead ratio: chained-cost / single-cost.
+///
+/// Chaining two bridge operations should cost less than 3x a single
+/// operation due to driver batching and connection reuse.
+pub const BRIDGE_CHAIN_OVERHEAD_MAX: f64 = 3.0;
+
+/// Minimum bridge probe latency (microseconds).
+///
+/// `PCIe` bridge probes measure at least 5 us of round-trip latency.
+pub const BRIDGE_PROBE_MIN_US: f64 = 5.0;
+
+/// 1 MB transfer latency floor (microseconds).
+///
+/// Transferring 1 MB over `PCIe` 4.0 x16 (~25 GB/s theoretical)
+/// takes at least ~40 us including overhead.  30 us provides margin.
+pub const TRANSFER_1MB_MIN_US: f64 = 30.0;
+
+/// 1 MB transfer latency ceiling (microseconds).
+pub const TRANSFER_1MB_MAX_US: f64 = 50.0;
+
+/// CPU/GPU dispatch cost ratio lower bound.
+///
+/// For small workloads, CPU cost should be at least 80% of GPU cost.
+pub const DISPATCH_COST_RATIO_MIN: f64 = 0.8;
+
+/// CPU/GPU dispatch cost ratio upper bound.
+pub const DISPATCH_COST_RATIO_MAX: f64 = 1.3;

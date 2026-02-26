@@ -207,7 +207,7 @@ fn validate_cpu_commutator(h: &mut ValidationHarness) {
     h.check_upper(
         &format!("CPU [A,B]+[B,A] ≈ 0 ({sum_norm:.2e})"),
         sum_norm,
-        1e-12,
+        tolerances::GPU_COMMUTATOR_NEAR_ZERO_F64,
     );
 }
 

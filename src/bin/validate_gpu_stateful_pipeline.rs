@@ -447,7 +447,7 @@ fn validate_batched_convergence(h: &mut ValidationHarness, gpu: &Gpu) {
                 for (d, &g) in gpu_state.iter().enumerate() {
                     h.check_bool(
                         &format!("SP convergence y[{d}]={g:.4} (near steady state)"),
-                        (g - 1.0).abs() < 0.5,
+                        (g - 1.0).abs() < tolerances::ODE_STEADY_STATE_SLACK as f32,
                     );
                 }
             }

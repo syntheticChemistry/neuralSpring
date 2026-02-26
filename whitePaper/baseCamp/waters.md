@@ -14,6 +14,14 @@ reinforcement learning and multi-objective optimisation. neuralSpring validates
 that BarraCUDA's stencil operations and batch fitness evaluations reproduce
 cooperation dynamics faithfully.
 
+### gen3 baseCamp Cross-References
+
+Waters Papers 019-021 connect to gen3 Sub-04 (Microbial Sentinels): the same
+Hill function gating and regulatory network dynamics used for QS signal
+integration apply to sentinel biosensor threshold detection. Also connect to
+gen3 Sub-06 (No-till Anderson): game-theoretic cooperation dynamics model soil
+community coordination under tillage-driven constraint changes.
+
 ## Papers
 
 | # | Citation | Rust Module | Checks | Status |

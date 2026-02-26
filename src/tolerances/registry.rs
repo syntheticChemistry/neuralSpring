@@ -83,6 +83,9 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             HMM_PHYLO_DECODE_MARGIN, SIGNAL_DYNAMIC_RANGE_MIN,
             SPECTRAL_SELF_SIMILARITY, PGM_COMPLEXITY_SLACK,
             SWARM_FITNESS_COMPARISON, ECO_DOMINANCE_COMPARISON,
+            GAME_DEFECTION_UPPER, GAME_QS_COOPERATION_MIN,
+            GAME_QS_VARIANCE_MAX,
+            FST_IDENTICAL_POP_TOL, FST_ESTIMATOR_AGREEMENT,
         ],
         "physics": [
             SPECTRAL_COMMUTATIVITY_EPS, IPR_LOCALIZATION_MIN,
@@ -125,6 +128,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             PINN_FD_RESIDUAL_MAX,
             SEASONAL_ANNUAL_MEAN, SEASONAL_ANNUAL_MEAN_TOL,
             DIVERSITY_EPSILON, VARIANCE_FLOOR,
+            RELATIVE_ERROR_FLOOR, ODE_STEADY_STATE_SLACK,
         ],
         "statistical": [
             CHI2_CRITICAL_DF9_P05, CHI2_CRITICAL_DF1_P05,
@@ -133,6 +137,9 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
         "spectral": [
             SPECTRAL_EIGENSOLVER_CROSS, KAPPUS_WEGNER_REL,
             LEVEL_SPACING_POISSON_TOL,
+            LEVEL_SPACING_GOE_SLACK, SPECTRAL_IPR_COMPARISON_SLACK,
+            NUMERICAL_DISTINCTNESS,
+            GATE_DISORDER_COMPARISON, SPECTRAL_RADIUS_SWEEP_SLACK,
         ],
         "gpu_pipeline": [GPU_REDUCE_F64],
         "gpu_dispatch": [
@@ -153,6 +160,16 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             GPU_FST_PAIRWISE_F32,
             GPU_VARIANCE_F64, GPU_PEARSON_F64, GPU_ENTROPY_F64,
             GPU_EIGH_DISPATCH_F64, PGM_NORMALIZATION_SUM,
+            GPU_COMMUTATOR_NEAR_ZERO_F64, GPU_COMMUTATOR_RESIDUAL_F64,
+        ],
+        "training_quantized": [
+            QUANT_Q8_GEMV_ERROR, QUANT_Q4_GEMV_ERROR, QUANT_SIGN_AGREEMENT,
+        ],
+        "hardware": [
+            BRIDGE_COST_MIN_US, BRIDGE_COST_MAX_US,
+            BRIDGE_CHAIN_OVERHEAD_MAX, BRIDGE_PROBE_MIN_US,
+            TRANSFER_1MB_MIN_US, TRANSFER_1MB_MAX_US,
+            DISPATCH_COST_RATIO_MIN, DISPATCH_COST_RATIO_MAX,
         ],
         "cross_dispatch": [
             DISPATCH_MATMUL_F64, DISPATCH_FROBENIUS_F64,
@@ -211,6 +228,7 @@ mod tests {
             "transformer",
             "metric",
             "training",
+            "training_quantized",
             "evolutionary",
             "gpu_shader",
             "gpu_f64",
@@ -224,6 +242,8 @@ mod tests {
             "linalg",
             "ml_pipeline",
             "cross_dispatch",
+            "gpu_dispatch",
+            "hardware",
         ] {
             assert!(cats.contains(&expected), "missing category: {expected}");
         }
@@ -233,7 +253,7 @@ mod tests {
     fn registry_complete() {
         let all = all_tolerances();
         assert!(
-            all.len() >= 104,
+            all.len() >= 129,
             "registry should contain all tolerances, got {}",
             all.len()
         );
@@ -241,7 +261,11 @@ mod tests {
 
     #[test]
     fn all_finite_and_documented() {
-        let known_negative = ["VARIANCE_FLOOR", "SADDLE_EIGENVALUE_THRESHOLD"];
+        let known_negative = [
+            "VARIANCE_FLOOR",
+            "SADDLE_EIGENVALUE_THRESHOLD",
+            "SPECTRAL_IPR_COMPARISON_SLACK",
+        ];
         for t in all_tolerances() {
             assert!(t.value.is_finite(), "{} must be finite", t.name);
             assert!(!t.name.is_empty(), "tolerance name must not be empty");

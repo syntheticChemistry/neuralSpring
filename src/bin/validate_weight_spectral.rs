@@ -87,7 +87,7 @@ fn main() {
     let poisson_distance = (result.level_spacing_ratio - POISSON_LEVEL_SPACING).abs();
     h.check_bool(
         "Random weight matrix closer to GOE than Poisson",
-        goe_distance < poisson_distance + 0.2,
+        goe_distance < poisson_distance + tolerances::LEVEL_SPACING_GOE_SLACK,
     );
 
     // ── nS-101: Marchenko-Pastur bounds correct ──────────────────────
@@ -129,7 +129,7 @@ fn main() {
     let (delta_ipr, _, _) = spectral_comparison(&random_result, &low_rank_result);
     h.check_bool(
         "Low-rank has higher IPR than random (more localized)",
-        delta_ipr > -0.5,
+        delta_ipr > tolerances::SPECTRAL_IPR_COMPARISON_SLACK,
     );
 
     // ── nS-102: Activation IPR ───────────────────────────────────────
@@ -197,7 +197,8 @@ fn main() {
     let sq_result = weight_spectral_analysis(&w, m, n);
     h.check_bool(
         "nS-105: rectangular MP departure differs from square",
-        (wide_result.mp_departure - sq_result.mp_departure).abs() > 1e-15
+        (wide_result.mp_departure - sq_result.mp_departure).abs()
+            > tolerances::NUMERICAL_DISTINCTNESS
             || wide_result.mp_departure.is_finite(),
     );
 
@@ -236,7 +237,7 @@ fn main() {
     let ipr_last = iprs[iprs.len() - 1];
     h.check_bool(
         "nS-106: deep message passing changes IPR (over-smoothing effect)",
-        (ipr_first - ipr_last).abs() > 1e-15 || ipr_last.is_finite(),
+        (ipr_first - ipr_last).abs() > tolerances::NUMERICAL_DISTINCTNESS || ipr_last.is_finite(),
     );
 
     // ── nS-103: Training trajectory simulation ──

@@ -277,7 +277,7 @@ fn validate_non_negative_norms(
     h.check_lower(
         &format!("pop × pop^T diagonal (squared norm) non-negative ({min_diag:.2e})"),
         min_diag,
-        -1e-6,
+        tolerances::VARIANCE_FLOOR,
     );
 }
 

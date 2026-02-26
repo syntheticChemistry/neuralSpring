@@ -114,7 +114,11 @@ fn validate_selection_spectrum(h: &mut ValidationHarness) {
     // Validate chi-squared via barracuda variance of observed spectrum
     let spec_var = barracuda::stats::correlation::variance(&obs_spec).unwrap_or(f64::NAN);
 
-    h.check_lower(&format!("chi2={chi2:.2} > 16.92 (selection)"), chi2, 16.92);
+    h.check_lower(
+        &format!("chi2={chi2:.2} > 16.92 (selection)"),
+        chi2,
+        tolerances::CHI2_CRITICAL_DF9_P05,
+    );
     h.check_lower(
         &format!(
             "selection coeff={s:.4} > {}",

@@ -974,4 +974,53 @@ zero duplicate math. Every barracuda primitive that exists is used where applica
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–80: 38 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 604 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 107+ tolerances. Session 69: shader rewiring complete. Session 73: 4 Tensor API rewires, cross-spring validator 39/39 PASS. Session 74: pure GPU all-domains 10/10, cross-system dispatch 46/46. Sessions 75–79: ToadStool S66 absorption, complete cross-spring rewiring, 52/52 PASS, 19/19 benchmark. Session 80: comprehensive debt audit — 604 tests, 93.5% coverage, zero inline magic, tolerance evolution, binary modernization, shared validation helpers, CI cross-validation.*
+### Session 81: Deep Debt Evolution
+
+| Change | Detail |
+|--------|--------|
+| `spectral_entropy` → `barracuda::stats::shannon_from_frequencies` | 39th function rewire. Last duplicate math eliminated |
+| 25 new named tolerances | `tolerances/{mod,gpu}.rs` — spectral, population genetics, game theory, quantization, hardware |
+| 21 validation binaries updated | ~50 inline magic numbers → named constants |
+| Cross-platform probe | `metalForge/forge/src/probe.rs` Linux-gated |
+| PyTorch seeding | 7 scripts fully deterministic |
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **604 PASS** |
+| `cargo test -p neural-spring-forge --lib` | **43 PASS** |
+| Coverage | **93.5%** (target 90%) |
+| Named tolerances | **129+** (was 107+) |
+| Inline magic numbers | **0** |
+| `unwrap()` in non-test | **0** |
+| Duplicate math | **0** |
+
+---
+
+### Session 82: Titan V Pure Rust Pipeline Validation
+
+| Change | BarraCUDA Impact |
+|--------|-----------------|
+| `batched_eigh_nak_optimized_f64.wgsl` fix | `fma(f64)` → `a * b + c`; Sovereign Compiler re-fuses at IR level |
+| Explicit f64 float literals | `select()` + division contexts typed for f64 compatibility |
+| Full Titan V sweep | 33 binaries, **384/384 GPU checks PASS** on NVK GV100 (Volta SM70) |
+| RTX 4070 regression | Zero regressions after shader fix |
+
+### Findings
+
+- naga rejects `fma()` for f64 operands (WGSL spec: f32/f16 only). Sovereign Compiler bridges gap via IR-level FMA fusion
+- Titan V full-rate FP64 (1:2 ratio) confirmed working for all scientific compute shaders
+- NVK pipeline cache compilation ~145s on first run; instant via `wgpu::PipelineCache` thereafter
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **604 PASS** |
+| Titan V GPU checks | **384/384 PASS** |
+| RTX 4070 regression | **0 regressions** |
+
+---
+
+*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–82: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 604 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 82: Titan V 384/384 GPU checks, `fma(f64)` shader fix, zero regressions. V47 handoff.*

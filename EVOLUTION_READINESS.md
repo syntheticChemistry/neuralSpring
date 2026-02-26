@@ -1,9 +1,9 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 26, 2026 (Sessions 40–80)
-**ToadStool HEAD**: `17932267` (S58–S80: 38 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 93.5% coverage (604 tests), 100% SPDX, zero inline magic numbers (all named tolerances), S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks, S76: modern BarraCUDA rewiring, S77: WDM surrogates + baseCamp GPU pure + 9 sovereign folding shaders, S78–S79: ToadStool S66 absorption + complete cross-spring rewiring (52/52 validator, 19/19 benchmark), S80: comprehensive debt audit — 604 lib tests, wdm\_surrogate 97.6%, basecamp 90.6%, 16 unwrap eliminated, LOG\_ZERO\_GUARD centralized, WDM EOS provenance, CI cross-validation)
+**Date**: February 26, 2026 (Sessions 40–82)
+**ToadStool HEAD**: `17932267` (S58–S82: 39 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, S81: 129+ named tolerances (25 new), spectral\_entropy→barracuda, S82: Titan V 384/384 GPU checks, `fma(f64)` shader fix, zero RTX 4070 regressions)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
-**Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
+**Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
 ---
 
@@ -24,7 +24,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | metalForge WGSL (mF) | 15/25 papers (60%) | **ALL PASS** |
 | GPU Pipeline (gP) | 15/25 papers (60%) — S74: +9 domains via `validate_gpu_pure_workload_all` | **ALL PASS** |
 | Cross-dispatch (xD) | **15/15** Phase 0++ papers (100%) | **ALL GREEN** |
-| Multi-GPU validation | RTX 4070 + TITAN V (NVK) | **Bit-identical** |
+| Multi-GPU validation | RTX 4070 + TITAN V (NVK) — **384/384 Titan V (S82)** | **Bit-identical** |
 | GPU shader validation | 126/126 (21 WGSL shaders) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
 | ToadStool shortcomings absorbed | **17/17** (S-01..S-17) | **ALL RESOLVED** |
@@ -397,7 +397,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo test --lib` | **500 tests PASS** (up from 264) |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
-| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `registry.rs`) — 101+ `NamedTolerance` entries in registry (24 `gpu_dispatch` category), zero standalone inline magic numbers |
+| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `gpu.rs` + `registry.rs`) — 129+ `NamedTolerance` entries in registry (including `training_quantized`, `hardware` categories), zero standalone inline magic numbers |
 | GPU validation helpers | Shared `gpu_readback`, `max_abs_diff_gpu_vs_cpu`, `gpu_tensor!` macro — deduplicated ~400 LOC from 24 binaries |
 | GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
 | Modular `gpu_ops/` | Refactored from monolithic 1328-line file into 6 focused submodules (`linalg`, `activation`, `reduction`, `bio`, `population`, `eigensolver`) — all under 1000 LOC |
@@ -665,5 +665,26 @@ Shared validation helpers extracted for reuse across binaries.
 || Session 80: Debt audit | 604 lib tests, 93.5% coverage, zero inline magic numbers | **ALL GREEN** |
 || Session 80: Coverage | wdm_surrogate 97.6%, basecamp 90.6% (both >90% target) | **COMPLETE** |
 || Session 80: Binary evolution | 16 unwrap → Result, 2 shared validation helpers | **EVOLVED** |
+
+### Session 81 — Deep Debt Evolution (February 26, 2026)
+
+25 new named tolerance constants added (spectral, population genetics, game theory,
+quantization, GPU commutator, hardware dispatch). 21 validation binaries swept to
+replace ~50 inline magic numbers. `spectral_entropy` rewired to
+`barracuda::stats::shannon_from_frequencies` (39th function rewire). metalForge
+`probe.rs` gated behind `#[cfg(target_os = "linux")]` for cross-platform.
+7 PyTorch scripts gained full deterministic seeding.
+
+|| Session 81: Deep debt evolution | 129+ tolerances, 39th barracuda rewire, cross-platform | **ALL GREEN** |
+
+### Session 82 — Titan V Pure Rust Pipeline Validation (February 26, 2026)
+
+Full pure Rust GPU pipeline validated on NVIDIA TITAN V (NVK GV100, Volta SM70).
+Fixed `fma(f64)` WGSL spec violation in `batched_eigh_nak_optimized_f64.wgsl` —
+Sovereign Compiler re-fuses `a * b + c` into `OpFMulAdd` at IR level. Explicit
+f64 typing for bare float literals in `select()` and division contexts. 33 validation
+binaries, 384/384 GPU checks PASS. Zero RTX 4070 regressions. 604/604 lib tests.
+
+|| Session 82: Titan V validation | 384/384 GPU checks, fma(f64) shader fix, zero regressions | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

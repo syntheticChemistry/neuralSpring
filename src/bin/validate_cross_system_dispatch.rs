@@ -285,7 +285,8 @@ fn validate_transfer_cost_hierarchy(h: &mut ValidationHarness) {
     let bridge_cost = bridge.transfer_cost(bytes);
     h.check_bool(
         "bridge: 16MB cost realistic (100–5000µs)",
-        bridge_cost.estimated_us() > 100.0 && bridge_cost.estimated_us() < 5000.0,
+        bridge_cost.estimated_us() > tolerances::BRIDGE_COST_MIN_US
+            && bridge_cost.estimated_us() < tolerances::BRIDGE_COST_MAX_US,
     );
 }
 
@@ -352,7 +353,8 @@ fn validate_crossover_sweep(h: &mut ValidationHarness) {
                 &format!(
                     "crossover at {compute_us:.0}µs (threshold {threshold:.0}µs, ratio {ratio:.2})"
                 ),
-                ratio > 0.8 && ratio < 1.3,
+                ratio > tolerances::DISPATCH_COST_RATIO_MIN
+                    && ratio < tolerances::DISPATCH_COST_RATIO_MAX,
             );
             break;
         }

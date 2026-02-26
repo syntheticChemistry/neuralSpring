@@ -275,7 +275,8 @@ async fn main() {
     let cost_1mb = neural_spring_forge::mixed::gpu_cpu_cost(1_048_576);
     h.check_bool(
         "transfer cost: 1MB GPU→CPU in 30-50 µs",
-        cost_1mb.estimated_us() > 30.0 && cost_1mb.estimated_us() < 50.0,
+        cost_1mb.estimated_us() > tolerances::TRANSFER_1MB_MIN_US
+            && cost_1mb.estimated_us() < tolerances::TRANSFER_1MB_MAX_US,
     );
 
     let bridge = neural_spring_forge::pcie_bridge::PcieBridge::new("RTX 4070", "AKD1000");

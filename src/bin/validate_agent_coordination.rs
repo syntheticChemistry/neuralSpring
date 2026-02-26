@@ -49,7 +49,7 @@ fn main() {
     let mut rows_zero = true;
     for i in 0..n {
         let row_sum: f64 = (0..n).map(|j| lap[i * n + j]).sum();
-        if row_sum.abs() > 1e-10 {
+        if row_sum.abs() > tolerances::RELATIVE_ERROR_FLOOR {
             rows_zero = false;
         }
     }

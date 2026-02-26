@@ -38,7 +38,7 @@ fn main() {
         .collect();
     let last = trace.last().copied().unwrap_or(x0);
     let finite = last.iter().all(|&v| v.is_finite());
-    let non_neg = last.iter().all(|&v| v >= -1e-10);
+    let non_neg = last.iter().all(|&v| v >= -tolerances::RELATIVE_ERROR_FLOOR);
 
     h.check_bool("ODE integration finite and non-negative", finite && non_neg);
 

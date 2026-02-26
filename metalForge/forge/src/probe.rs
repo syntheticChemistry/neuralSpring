@@ -110,6 +110,7 @@ pub fn probe_cpu() -> Substrate {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn parse_cpuinfo() -> (Option<String>, Option<u32>, Option<u32>, Option<u32>, bool) {
     let Ok(content) = fs::read_to_string("/proc/cpuinfo") else {
         return (None, None, None, None, false);
@@ -143,6 +144,12 @@ fn parse_cpuinfo() -> (Option<String>, Option<u32>, Option<u32>, Option<u32>, bo
     (model, cores, siblings, cache_kb, has_avx2)
 }
 
+#[cfg(not(target_os = "linux"))]
+fn parse_cpuinfo() -> (Option<String>, Option<u32>, Option<u32>, Option<u32>, bool) {
+    (None, None, None, None, false)
+}
+
+#[cfg(target_os = "linux")]
 fn parse_meminfo() -> Option<u64> {
     let content = fs::read_to_string("/proc/meminfo").ok()?;
     for line in content.lines() {
@@ -152,6 +159,11 @@ fn parse_meminfo() -> Option<u64> {
             return Some(kb * 1024);
         }
     }
+    None
+}
+
+#[cfg(not(target_os = "linux"))]
+fn parse_meminfo() -> Option<u64> {
     None
 }
 

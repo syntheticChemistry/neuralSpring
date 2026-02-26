@@ -223,6 +223,6 @@ fn validate_skip_analysis(h: &mut ValidationHarness, rng: &mut Rng, n: usize) {
     h.check_upper(
         &format!("residual near-commute ({comm_res:.6}) < 0.5"),
         comm_res,
-        0.5,
+        tolerances::GPU_COMMUTATOR_RESIDUAL_F64,
     );
 }

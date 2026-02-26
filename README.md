@@ -42,24 +42,25 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 206/206 Python PASS + 2040+ Rust+GPU PASS = 2250+ total validation checks
 
-**ToadStool `17932267`** (Sessions 39–79, S66 reviewed): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
+**ToadStool `17932267`** (Sessions 39–82, S66 reviewed): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 S-14/S-15/S-16 fixed at `a4996b34` (S39). S-17 pow polyfill at `c82c23d1` (S58). S-03b MHA at `0c998992` (S60).
 21/21 WGSL shaders **absorbed upstream** + 9 sovereign folding f64 shaders pending absorption.
 Phase 5h: **24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 uP (9 bit-identical)**. S74: **10/10 pure GPU all-domains**. S77: **baseCamp GPU pure 5/5 sub-theses**. **WDM surrogates**: 3 Python baselines + 2 Rust validators.
-**38 functions rewired to upstream** (S58: 7, S59: +5, S56: 4, S68: +1, S73: +4, S75: +9, S76: +2, S78: +6 mae/shannon/hill×2/l2\_distance/fit\_linear). **6 validator shader sources rewired** to upstream barracuda constants (S69). **9 metalForge shaders aligned** to `compile_shader_df64` convention (S78).
+**39 functions rewired to upstream** (S58: 7, S59: +5, S56: 4, S68: +1, S73: +4, S75: +9, S76: +2, S78: +6 mae/shannon/hill×2/l2\_distance/fit\_linear, S81: +1 spectral\_entropy). **6 validator shader sources rewired** to upstream barracuda constants (S69). **9 metalForge shaders aligned** to `compile_shader_df64` convention (S78).
 `GpuDriverProfile` wired in for f64 strategy detection (Hybrid on RTX 4070, Native on Titan V).
-604 lib tests, **93.5% coverage**, 107+ named tolerances, 13 property tests, 0 clippy warnings, 0 doc warnings.
+604 lib tests, **93.5% coverage**, 129+ named tolerances, 13 property tests, 0 clippy warnings, 0 doc warnings.
 166 validation/bench binaries, 37 modules + gpu\_ops/ + gpu\_dispatch/, 604 lib + 9 integration + 43 forge tests.
+**Titan V validation (S82)**: 384/384 GPU checks PASS on TITAN V (NVK GV100, Volta SM70). Fixed `fma(f64)` WGSL spec violation in `batched_eigh_nak_optimized_f64.wgsl` — Sovereign Compiler re-fuses `a*b+c` into `OpFMulAdd`. Zero regressions on RTX 4070.
 **Cross-spring evolution**: 52/52 PASS (S79), 19/19 benchmark PASS. Full provenance: airSpring stats, wetSpring bio, hotSpring precision, neuralSpring ML — all flowing through ToadStool S66.
 **Phase C GPU**: 18/18 PASS — HMM chains, FST, introgression, AF variance. **201.7× faster** than Python.
 **CPU↔Python parity**: 39/39 PASS — every Rust CPU operation matches Python/NumPy within 1e-10.
 **Dispatch overhead**: ≤1.04× for 9/10 ops — Dispatcher::cpu\_only() is transparent.
-**Multi-GPU**: RTX 4070 + TITAN V (NVK) — bit-identical.
+**Multi-GPU**: RTX 4070 + TITAN V (NVK) — **384/384 Titan V + 128+ RTX 4070** — bit-identical.
 **Pure GPU promotion**: 44 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math).
 **Mixed-hardware dispatch**: `Dispatcher::mixed_dispatch()` wired to `metalForge` cost model (GPU↔NPU↔CPU).
 **Benchmarks**: Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Rust 201.7× faster than Python/NumPy (11 kernels).
 **baseCamp**: 5 modules + 8 validators (128/128 PASS: 114 CPU + 14 GPU) — Sessions 50–63.
-**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | zero inline magic numbers (all promoted to named tolerances) | 0 clippy warnings | 0 doc warnings | 100% SPDX headers | WDM EOS provenance complete.
+**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | zero inline magic numbers (129+ named tolerances, 25 new in S81) | 0 clippy warnings | 0 doc warnings | 100% SPDX headers | WDM EOS provenance complete | all PyTorch baselines fully seeded for determinism.
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 
 ### Phase 0 — Synthetic Baselines (48/48)
@@ -411,7 +412,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 206/206 PASS |
-| Rust tests | `cargo test` | 580 unit + 9 integration PASS |
+| Rust tests | `cargo test` | 604 unit + 9 integration PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery) |
 | Rust coverage | `cargo llvm-cov --lib` | target ≥90% |
 | Rust format | `cargo fmt --check` | clean |
@@ -547,10 +548,10 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_TOADSTOOL_V45_DEBT_AUDIT_HANDOFF_FEB26_2026.md  # Current
-│   │   └── archive/           #   Superseded handoffs (V1–V44)
+│   │   ├── NEURALSPRING_TOADSTOOL_V47_TITAN_V_PIPELINE_VALIDATION_HANDOFF_FEB26_2026.md  # Current
+│   │   └── archive/           #   Superseded handoffs (V1–V46)
 ├── experiments/                # Experiment journals (hotSpring pattern)
-│   └── README.md              #   Journal index (001-042)
+│   └── README.md              #   Journal index (001-050)
 ├── whitePaper/                 # Study documentation
 │   ├── baseCamp/              #   Per-faculty research briefings
 ├── scripts/
@@ -558,6 +559,7 @@ neuralSpring/
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
 │   └── rust.yml                #   Rust test + clippy + validate (166 binaries)
+├── CHANGELOG.md                # Release history
 ├── Cargo.toml                  # Rust manifest
 ├── Makefile                    # Task runner
 ├── justfile                    # Task runner alt (just)
@@ -582,8 +584,9 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal ToadStool handoffs (V45 current: Session 80) |
+| `wateringHole/handoffs/` | Formal ToadStool handoffs (V47 current: Session 82) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
+| `CHANGELOG.md` | Release history and session-level changes |
 
 ## License
 
@@ -591,4 +594,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–80 (S80: debt audit, coverage expansion, tolerance evolution): February 26, 2026 | 25 papers + 5 baseCamp sub-theses + WDM surrogates, 206 Python + 2040+ Rust+GPU = 2250+ validation checks | 604 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 37 modules, 166 validation/bench binaries, 30 WGSL shaders (21 absorbed + 9 sovereign folding f64) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring | 38 functions + 6 shader sources rewired to upstream | 107+ named tolerances, 0 clippy warnings, 93.5% coverage, 100% SPDX | S77: WDM surrogates + baseCamp GPU pure + 9 sovereign folding shaders | S78–S79: ToadStool S66 absorption + complete cross-spring rewiring | V45 handoff*
+*Initialized: February 16, 2026 | Sessions 40–82 (S82: Titan V pure Rust pipeline validation, 384/384 GPU checks, `fma(f64)` shader fix, zero RTX 4070 regressions): February 26, 2026 | 25 papers + 5 baseCamp sub-theses + WDM surrogates, 206 Python + 2040+ Rust+GPU = 2250+ validation checks | 604 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 37 modules, 166 validation/bench binaries, 30 WGSL shaders (21 absorbed + 9 sovereign folding f64) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring | 39 functions + 6 shader sources rewired to upstream (S81: spectral\_entropy → barracuda) | 129+ named tolerances, 0 clippy warnings, 93.5% coverage, 100% SPDX | V47 handoff*

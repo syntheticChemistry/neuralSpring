@@ -273,7 +273,7 @@ fn validate_fst_structure(h: &mut ValidationHarness, device: &Arc<barracuda::dev
     h.check_lower(
         &format!("FST structure: covariance diagonal non-negative ({min_diag:.2e})"),
         min_diag,
-        -1e-6,
+        tolerances::VARIANCE_FLOOR,
     );
 }
 

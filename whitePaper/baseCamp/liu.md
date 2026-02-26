@@ -14,6 +14,14 @@ multiplication in log-space — identical to the matmul primitive that drives
 transformer inference. neuralSpring validates that BarraCUDA's GEMM chain
 reproduces these algorithms in both CPU and GPU paths.
 
+### gen3 baseCamp Cross-References
+
+Liu Papers 016-018 connect to gen3 Sub-02 (LTEE Extensions): HMM/PhyloNet-HMM
+for introgression detection in LTEE genomes, and transfer learning for
+cross-environment adaptation. Also connect to gen3 Sub-05 (Cross-species
+Signaling): HMM and introgression models for comparative genomics signal
+detection across symbiotic species.
+
 ## Papers
 
 | # | Citation | Rust Module | Checks | Status |

@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 26, 2026 (Sessions 45–75)
+**Last Updated**: February 26, 2026 (Sessions 45–82)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -183,6 +183,8 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated.**
 
+Session 81: Deep debt evolution — 129+ named tolerances (25 new), spectral_entropy→barracuda (39th rewire), cross-platform probe, PyTorch seeding. Zero inline magic numbers.
+Session 80: Comprehensive debt audit — 604 lib tests, 93.5% coverage, wdm_surrogate 97.6%, basecamp 90.6%.
 Session 70: Deep audit II — 93.5% coverage (580 tests), tolerance macro refactor, streaming I/O, 100% SPDX (211/211 files), all files ≤1000 lines.
 Session 68-69: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 107+ named tolerances. 6 validator shader sources → upstream constants.
 Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10 cross-language).
@@ -190,7 +192,7 @@ Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF varianc
 `validate_all`: 150/150 PASS on RTX 4070.
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
 Python baselines: 25/25 PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
-580 lib + 9 integration + 43 forge tests. 163 validation/bench binaries. Zero debt.
+604 lib + 9 integration + 43 forge tests. 166 validation/bench binaries. Zero debt.
 44 CPU→GPU dispatch ops (~97% of production math).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -501,6 +503,12 @@ Tolerance registry refactored to `tolerance_registry!` macro (891→257 lines, 1
 100% SPDX AGPL-3.0-or-later compliance (211/211 files). All files ≤1000 lines.
 BarraCUDA usage inventory: 90+ import sites, 60+ files, 20+ submodules, zero duplicate math.
 Remaining uncovered lines (5.5%) are exclusively GPU error-handling branches.
+
+**Session 81 addendum**: 25 new named tolerances (spectral, population genetics, game theory,
+quantization, GPU, hardware). 21 validation binaries swept for inline magic numbers.
+`spectral_entropy` rewired to `barracuda::stats::shannon_from_frequencies` (39th function).
+Cross-platform probe gating. 7 PyTorch scripts fully seeded. 129+ total named tolerances.
+All controls verified passing across BarraCUDA CPU, GPU, and metalForge mixed hardware.
 
 **Session 74 addendum**: Pure GPU all-domains + cross-system dispatch — three new validators:
 

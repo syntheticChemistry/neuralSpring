@@ -474,7 +474,7 @@ pub fn validate_tensor_unary(
 
 /// Validate a scalar reduction (sum, mean, max, etc.) against an expected value.
 ///
-/// Handles: create tensor → apply reduction op → readback scalar → check_abs.
+/// Handles: create tensor → apply reduction op → readback scalar → `check_abs`.
 #[allow(clippy::too_many_arguments)]
 pub fn validate_tensor_reduction(
     h: &mut ValidationHarness,

@@ -306,7 +306,7 @@ fn validate_probabilities_in_unit_interval(
 
     let in_range = out
         .iter()
-        .all(|&x| (0.0_f32..=1.0_f32 + 1e-5_f32).contains(&x));
+        .all(|&x| (0.0_f32..=1.0_f32 + tolerances::GPU_BOUNDS_SLACK_F32 as f32).contains(&x));
     h.check_bool(
         "all transition output values in [0, 1] (or small numerical overflow)",
         in_range,

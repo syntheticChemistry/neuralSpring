@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 26, 2026 (Sessions 49–75 — pure GPU all-domains + cross-system dispatch + upstream S60–S65 sync)
+**Date**: February 26, 2026 (Sessions 49–81 — pure GPU all-domains + cross-system dispatch + upstream S60–S65 sync + S81 deep debt evolution)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -101,10 +101,22 @@ baseCamp papers use that validated infrastructure to explore new science.
 - **Nobody has applied the Anderson QS framework to multi-agent AI
   coordination** (Sub-thesis 05)
 
-All five use primitives neuralSpring has already validated at 1950+ checks
+All five use primitives neuralSpring has already validated at 2250+ checks
 across 25 papers. The extensions require composition, not new math.
 
-### Implementation Status (Sessions 50–55)
+### gen3 baseCamp Cross-References
+
+Each neuralSpring sub-thesis connects directly to gen3 baseCamp sub-theses:
+
+| nS Sub-thesis | gen3 Connection | Shared Primitives |
+|:-------------:|:---------------:|:-----------------:|
+| 01 (Weight Hamiltonians) | gen3 01 (Anderson QS) | `eigh_f64`, `BatchIprGpu`, level spacing ratio |
+| 02 (Information Flow) | gen3 04 (Sentinels), gen3 06 (No-till) | LSTM, HMM, stencil |
+| 03 (Loss Landscapes) | gen3 07 (Sovereign WDM) | RK45, Hessian, Boltzmann |
+| 04 (Neural PGM) | gen3 02 (LTEE), gen3 05 (Cross-species) | HMM, introgression, PhyloNet-HMM |
+| 05 (Multi-Agent QS) | gen3 01 (Anderson QS), gen3 03 (Bioag) | Anderson, game theory, Wright-Fisher |
+
+### Implementation Status (Sessions 50–55, hardened 61–81)
 
 All 5 sub-theses have core Rust modules implemented and validated at CPU,
 GPU, and mixed-hardware tiers:
@@ -211,11 +223,13 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 
 *neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
 grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
-2180+ validated checks across 25 papers and 7 scientific domains. Core
-primitives implemented in Sessions 50–55, quality-hardened Sessions 61–74: 5 Rust
-modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 580 unit
-tests, 0 clippy warnings, 93.5% coverage, 107+ named tolerances. 32 functions
-+ 6 shader sources rewired to upstream BarraCUDA. Cross-spring evolution
-benchmarked: hotSpring precision, wetSpring bio, neuralSpring ML — all feeding
-ToadStool's shared math engine. No new math — only novel composition of
-validated primitives.*
+2250+ validated checks across 25 papers and 7 scientific domains. Core
+primitives implemented in Sessions 50–55, quality-hardened Sessions 61–82: 5 Rust
+modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU), 604 unit
+tests, 0 clippy warnings, 93.5% coverage, 129+ named tolerances. 39 functions +
+6 shader sources rewired to upstream BarraCUDA. Session 82: Titan V pure Rust
+pipeline validated (384/384 GPU checks, `fma(f64)` shader fix, zero RTX 4070
+regressions). Cross-spring evolution benchmarked: hotSpring precision, wetSpring
+bio, neuralSpring ML — all feeding ToadStool's shared math engine. gen3 baseCamp
+sub-theses 01–07 now cross-referenced with neuralSpring connections.
+No new math — only novel composition of validated primitives.*

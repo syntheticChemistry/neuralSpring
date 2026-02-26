@@ -137,12 +137,12 @@ fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &EosSurrogate, device: &Dev
     h.check_bool(&format!("{elem}: GPU P is finite"), gpu_p.is_finite());
     h.check_bool(&format!("{elem}: GPU E is finite"), gpu_e.is_finite());
 
-    let p_rel = if cpu_p.abs() > 1e-10 {
+    let p_rel = if cpu_p.abs() > tolerances::RELATIVE_ERROR_FLOOR {
         ((gpu_p - cpu_p) / cpu_p).abs()
     } else {
         (gpu_p - cpu_p).abs()
     };
-    let e_rel = if cpu_e.abs() > 1e-10 {
+    let e_rel = if cpu_e.abs() > tolerances::RELATIVE_ERROR_FLOOR {
         ((gpu_e - cpu_e) / cpu_e).abs()
     } else {
         (gpu_e - cpu_e).abs()

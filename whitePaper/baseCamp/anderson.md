@@ -15,6 +15,14 @@ Wright-Fisher GPU kernel and batch fitness evaluation reproduce these population
 dynamics faithfully, providing the stochastic substrate for evolutionary NAS
 and hyperparameter tuning.
 
+### gen3 baseCamp Cross-References
+
+Anderson/Campbell Papers 024-025 connect to gen3 Sub-02 (LTEE Extensions):
+pangenome selection and meta-population dynamics model the convergent pathway
+evolution predicted across LTEE replicates. Wright-Fisher GPU kernels validated
+here serve both neuralSpring Sub-05 (agent populations) and gen3 Sub-02
+(evolutionary dynamics).
+
 ## Papers
 
 | # | Citation | Rust Module | Checks | Status |

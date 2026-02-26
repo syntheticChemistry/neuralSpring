@@ -368,10 +368,11 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::expect_used)]
     fn load_surrogate_missing_element() {
         let result = load_surrogate_from_json(valid_json(), "Xe");
         assert!(result.is_err());
-        let err = result.err().expect("already asserted is_err");
+        let err = result.expect_err("already asserted is_err");
         assert!(
             err.contains("not found"),
             "error should mention missing element, got: {err}"

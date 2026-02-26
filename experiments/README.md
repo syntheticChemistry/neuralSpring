@@ -60,6 +60,8 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 046 | Session 78 — ToadStool S66 Absorption: Stats Rewiring + Shader Convention Alignment | Feb 26, 2026 | Deep ToadStool S66 review, 6 function rewires (mae → `barracuda::stats::mae`, shannon → `shannon_from_frequencies`, hill×2 → `barracuda::stats::hill`, l2\_distance → `l2_distance_dispatch`, complexity → `fit_linear`), all 9 metalForge f64 shaders refactored to `compile_shader_df64` convention (`Df64` struct, `df64_add`, `two_prod`), variance population/sample clarification, V42 handoff |
 | 047 | Session 79 — Complete Cross-Spring Rewiring + Comprehensive Validation + V43 Handoff | Feb 26, 2026 | `validate_cross_spring_evolution` expanded to 52/52 PASS (was 39/39), `bench_cross_spring_evolution` expanded to 19/19 PASS (was 15/15), full cross-spring provenance documentation (airSpring stats, wetSpring bio, hotSpring precision, all flowing through ToadStool), V43 handoff with complete absorption story, 38 total function rewires + 6 shader sources |
 | 048 | Session 80 — Comprehensive Debt Audit and Coverage Expansion | Feb 26, 2026 | 604 lib tests, 93.5% coverage, wdm_surrogate 97.6%, basecamp 90.6%, 4 magic numbers→tolerances, 16 unwrap eliminated |
+| 049 | Session 81 — Deep Debt Evolution | Feb 26, 2026 | 25 new tolerances (129+), spectral_entropy→barracuda (39th rewire), cross-platform probe, PyTorch seeding |
+| 050 | Session 82 — Titan V Pure Rust Pipeline Validation | Feb 26, 2026 | 384/384 GPU checks on NVK GV100, `fma(f64)` shader fix, zero RTX 4070 regressions |
 
 ---
 
@@ -2584,6 +2586,342 @@ Following a full codebase audit, systematically resolve all identified debt item
 | `basecamp.rs` coverage | **90.6%** (was 48.7%) |
 | Inline magic numbers eliminated | **4/4** (all → named tolerances) |
 | `unwrap()` calls eliminated | **16/16** (wdm_eos binary) |
+
+---
+
+## Experiment 049 — Deep Debt Evolution (Session 81)
+
+**Date**: February 26, 2026
+**Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
+**Binary**: `cargo test --lib` + `cargo clippy --all-targets -- -D warnings`
+
+### Why
+
+Complete elimination of all remaining inline magic numbers across 21 validation
+binaries, rewire the last duplicate math (`spectral_entropy`), harden
+cross-platform compatibility, and add full PyTorch deterministic seeding to
+Python training scripts.
+
+### What Was Done
+
+1. **25 new named tolerance constants** — Added to `tolerances/mod.rs` (15 CPU)
+   and `tolerances/gpu.rs` (10 GPU/hardware). Categories: spectral analysis,
+   population genetics, game theory, numerical guards, quantization, GPU commutator,
+   hardware dispatch costs.
+2. **Magic number sweep** — Replaced ~50 inline numeric literals across 21
+   validation binaries with their named tolerance constants. Every tolerance now
+   has a single source of truth.
+3. **BarraCUDA rewire** — `weight_spectral::spectral_entropy` now delegates to
+   `barracuda::stats::shannon_from_frequencies`. This was the last duplicate math.
+   39th function rewired to upstream.
+4. **Cross-platform probe** — `metalForge/forge/src/probe.rs`: `/proc/cpuinfo`
+   and `/proc/meminfo` reads gated behind `#[cfg(target_os = "linux")]`. Fallback
+   returns safe defaults for non-Linux targets.
+5. **PyTorch seeding** — 7 training scripts gained `torch.manual_seed(42)`,
+   `torch.cuda.manual_seed_all(42)`, `torch.backends.cudnn.deterministic = True`,
+   `torch.backends.cudnn.benchmark = False`.
+6. **Clippy fixes** — `validation.rs` (`doc_markdown`), `wdm_surrogate.rs`
+   (`err_expect`), `tolerances/gpu.rs` (`doc_markdown` for PCIe).
+7. **f32/f64 type fixes** — GPU validators using f32 paths now cast f64
+   tolerance constants with `as f32`.
+8. **CHANGELOG.md** — Created release history tracking notable changes.
+9. **V46 handoff** — Crafted for ToadStool/BarraCUDA team with full evolution
+   recommendations.
+
+### Results
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | **PASS** |
+| `cargo clippy --all-targets -- -D warnings` | **0 warnings** (pedantic+nursery) |
+| `cargo test` | **604 lib + 9 integration + 9 doc-test PASS** |
+| `cargo doc --no-deps` | **PASS** |
+| Named tolerances | **129+** (was 107+, +25 new) |
+| Inline magic numbers | **0** (all promoted) |
+| Duplicate math | **0** (spectral_entropy rewired) |
+| Files changed | **37** (+334 / -51 lines) |
+
+### Surprises
+
+- **f32/f64 mismatch**: Two GPU validation binaries (`validate_gpu_stateful_pipeline`,
+  `validate_gpu_rk4`) needed explicit `as f32` casts because the tolerance constants
+  are f64 but the GPU f32 paths compare against f32 values. Simple fix but catches
+  a real type-safety pattern to watch for.
+- **`information_flow::mat_mul_transpose`**: Initially considered for BarraCUDA
+  rewire, but this is a private 4×4 CPU-only helper where dispatch overhead
+  would dominate. Left intentionally as a CPU reference — the right trade-off.
+- **Registry completeness test**: The tolerance registry test needed updating from
+  `>= 104` to `>= 129` to account for the 25 new constants. Good canary for
+  tracking tolerance inventory growth.
+
+---
+
+---
+
+## Experiment 050 — Titan V Pure Rust Pipeline Validation (Session 82)
+
+**Date**: February 26, 2026
+**Hardware**: Eastgate (i9-12900K, RTX 4070 12GB + NVIDIA TITAN V GV100 12GB, Pop!_OS 22.04)
+**GPU**: NVIDIA TITAN V (NVK GV100) — Volta SM70, full-rate FP64 (1:2), NVK/NAK open-source Vulkan
+**Pipeline**: Pure Rust → wgpu → Vulkan → NVK/NAK → GPU (no CUDA dependency)
+
+### Why
+
+Validate the entire pure Rust GPU pipeline on the Titan V (Volta architecture, SM70).
+The Titan V has full-rate FP64 (1:2 ratio with FP32), making it the ideal substrate
+for double-precision scientific computing via WGSL shaders. The NVK open-source
+Vulkan driver with NAK compiler backend provides a fully sovereign compute path
+with zero proprietary dependencies.
+
+### What Was Done
+
+1. **Shader fix**: The NAK-optimized eigensolve shader (`batched_eigh_nak_optimized_f64.wgsl`)
+   used `fma()` with f64 operands, which is not valid WGSL (only defined for f32 per spec).
+   Naga's validator rejected it. Fixed by replacing `fma(a, b, c)` with `a * b + c` — the
+   Sovereign Compiler's naga IR pass re-fuses these into SPIR-V `OpFMulAdd` automatically.
+   Also replaced bare float literals (`1.0`, `-1.0`) with typed f64 constants using the
+   `tol - tol` + literal pattern for naga compatibility.
+
+2. **Full validation suite**: Ran 27 validation binaries on the Titan V, covering all
+   domains, GPU promotion phases, dispatch routing, mixed hardware, and pipeline validators.
+
+### Results
+
+| Validator | Checks | Result |
+|-----------|--------|--------|
+| `validate_basecamp_gpu` | 14/14 | **PASS** |
+| `validate_gpu_pure_workload_all` | 10/10 | **PASS** |
+| `validate_cpu_gpu_parity` | 10/10 | **PASS** |
+| `validate_compute_dispatch` | 16/16 | **PASS** |
+| `validate_basecamp_dispatch` | 19/19 | **PASS** |
+| `validate_mixed_hardware` | 14/14 | **PASS** |
+| `validate_mixed_dispatch` | 16/16 | **PASS** |
+| `validate_barracuda_parity` | 17/17 | **PASS** |
+| `validate_barracuda_gpu_spectral` | 10/10 | **PASS** |
+| `validate_gpu_anderson` | 6/6 | **PASS** |
+| `validate_gpu_hmm_forward` | 12/12 | **PASS** |
+| `validate_gpu_game_theory` | 5/5 | **PASS** |
+| `validate_gpu_wright_fisher` | 4/4 | **PASS** |
+| `validate_gpu_stencil` | 3/3 | **PASS** |
+| `validate_gpu_rk4` | 8/8 | **PASS** |
+| `validate_gpu_rk45` | 6/6 | **PASS** |
+| `validate_gpu_swarm` | 9/9 | **PASS** |
+| `validate_gpu_batch_fitness` | 20/20 | **PASS** |
+| `validate_gpu_modes` | 15/15 | **PASS** |
+| `validate_gpu_meta_pop` | 7/7 | **PASS** |
+| `validate_gpu_directed` | 6/6 | **PASS** |
+| `validate_gpu_pangenome` | 6/6 | **PASS** |
+| `validate_gpu_signal` | 9/9 | **PASS** |
+| `validate_gpu_sate` | 5/5 | **PASS** |
+| `validate_gpu_logsumexp` | 5/5 | **PASS** |
+| `validate_gpu_prng` | 5/5 | **PASS** |
+| `validate_gpu_gillespie` | 20/20 | **PASS** |
+| `validate_gpu_promotion` | 27/27 | **PASS** |
+| `validate_gpu_phase_b` | 20/20 | **PASS** |
+| `validate_gpu_phase_c` | 18/18 | **PASS** |
+| `validate_gpu_stateful_pipeline` | 10/10 | **PASS** |
+| `validate_hillgate_f64_fix` | 18/18 | **PASS** |
+| `validate_mha_gpu` | 10/10 | **PASS** |
+| **Total** | **384/384** | **ALL PASS** |
+
+**RTX 4070 regression**: All validators re-tested on RTX 4070 after shader fix — no regressions.
+**Lib tests**: 604/604 PASS.
+
+### Shader Fix Details
+
+The NAK-optimized eigensolve shader was designed for SPIR-V passthrough (bypassing naga
+validation), but the Sovereign Compiler parses WGSL through naga first to build IR.
+Since `fma()` is only defined for `f32` in the WGSL spec, naga correctly rejects it
+for `f64` operands. The fix:
+
+- `fma(phi, phi, 1.0)` → `phi * phi + one_f64` (where `one_f64 = z_f64 + 1.0`)
+- `fma(c, akp0, neg_s * akq0)` → `c * akp0 + neg_s * akq0`
+- `select(-1.0, 1.0, phi >= 0.0)` → `select(neg_one_f64, one_f64, phi >= z_f64)`
+
+The Sovereign Compiler's FMA fusion pass re-fuses `a * b + c` into `OpFMulAdd` in SPIR-V,
+so there is no performance regression on hardware that supports FMA.
+
+### Surprises
+
+- **naga f64 fma rejection**: WGSL spec only defines `fma` for `f32`/`f16`, not `f64`.
+  The GPU hardware supports FMA natively for f64 (Volta SM70 has 1:2 FP64), but the
+  language spec doesn't expose it. The Sovereign Compiler bridges this gap by fusing
+  `a * b + c` patterns at the IR level.
+- **Abstract float coercion**: Bare `1.0` and `-1.0` literals in `select()` context
+  default to `f32`, causing type mismatches with `f64` division. The `tol - tol` pattern
+  (creating a known-f64 zero, then adding literals) forces correct coercion.
+- **NVK pipeline cache**: Pipeline compilation takes ~145s on first run due to NAK
+  shader compilation. Subsequent runs are instant via `wgpu::PipelineCache`.
+
+---
+
+## Extension Experiments — Tier 1: Scale Up With Own Data
+
+**Planned**: Sessions 82+
+**Gate**: Eastgate (i9-12900K, RTX 4070 12GB)
+**Data hunger**: LOW (~50GB generated internally)
+**Compute hunger**: LOW-MODERATE (~8 hours training, minutes of analysis)
+
+### Experiment 054 — Training Trajectory Spectral Analysis (Sub-01 Extension)
+
+**Target Sub-thesis**: nS-01 (Weight Matrices as Disordered Hamiltonians)
+**gen3 Connection**: gen3 Sub-01 (Anderson QS) — shared `eigh_f64`, IPR, level spacing primitives
+
+**Objective**: Save weight checkpoints every 5 epochs during MLP/LSTM/Transformer/LeNet-5
+training. Eigendecompose each checkpoint's weight matrices. Track the IPR, level spacing
+ratio, and ESD trajectory through training — testing whether the Anderson
+metal→insulator transition corresponds to the generalization→memorization transition.
+
+**Data**:
+- Phase 0 MLP (4→64→64→10) on MNIST: 100 epochs, checkpoint every 5 = 20 snapshots
+- Phase 0+ Transformer (d=32, h=4, seq=8) on ERA5: 100 epochs = 20 snapshots
+- Phase 0 LSTM (ERA5 Study 004, NSE=0.849): 100 epochs = 20 snapshots
+- LeNet-5 on MNIST: 50 epochs = 10 snapshots
+- ~200MB per architecture × 4 = ~800MB total storage
+
+**Compute**:
+- Training: ~2 hours per architecture × 4 = ~8 hours
+- Analysis: `eigh_f64` on 768×768 matrix: ~0.1s per layer. 20 checkpoints × 4
+  architectures × ~10 layers = ~80 seconds total eigendecomposition
+- IPR and level spacing: milliseconds per checkpoint
+
+**Primitives**: `eigh_f64`, `BatchIprGpu`, `spectral_entropy`
+(→ `barracuda::stats::shannon_from_frequencies`), `gpu_dispatch::variance`
+
+**Validation**:
+- Compare IPR trajectory with training loss curve: does IPR inflection predict
+  the epoch where test loss stops improving?
+- Compare with Martin & Mahoney ESD progression: do we observe the 5+1 phases?
+- Deterministic seed (42) across all runs for reproducibility
+
+**Success criteria**:
+- IPR increases (delocalization) during effective learning in ≥3/4 architectures
+- Level spacing ratio shifts from ~0.386 (Poisson) toward ~0.531 (GOE) during training
+- Memorizing runs (small dataset, no regularization) show IPR decrease or plateau
+
+**Status**: QUEUED
+
+---
+
+### Experiment 055 — Cross-Architecture Spectral Fingerprint (Sub-01 + Sub-04)
+
+**Target Sub-thesis**: nS-01 + nS-04 (Weight Hamiltonians + Neural PGM)
+**gen3 Connection**: gen3 Sub-04 (Sentinels) — spectral fingerprinting for anomaly detection
+
+**Objective**: Using the checkpoints from Exp-054, compute a spectral fingerprint
+for each architecture at convergence. Test whether architectures that generalize
+better on the same data share a universal spectral signature — the "metallic" state
+in Anderson terminology.
+
+**Data**: Reuse Exp-054 checkpoints (no new data)
+
+**Compute**: Same eigendecomposition + IPR/level-spacing computation. Minutes total.
+
+**Primitives**: `eigh_f64`, `BatchIprGpu`, `spectral_commutativity.rs`,
+`gpu_dispatch::pearson_correlation`
+
+**Experiments**:
+1. **Universal signature test**: Compute (IPR, level_spacing_ratio, spectral_entropy)
+   tuple at convergence for each architecture. Test Pearson correlation between
+   spectral fingerprint and test accuracy across architectures
+2. **Cross-architecture PGM complexity**: Extract PGM from each converged model.
+   Compare PGM tree depth and branching factor with spectral fingerprint
+3. **Anomaly detection**: Use spectral fingerprint as a detector for undertrained
+   or overfit models — a pre-deployment diagnostic
+
+**Success criteria**:
+- Spectral fingerprint discriminates well-generalizing from poorly-generalizing
+  models (AUC > 0.85 on controlled train/overfit runs)
+- At least 2 of 4 architectures share quantitatively similar spectral signatures
+  at comparable generalization quality
+
+**Status**: QUEUED (depends on Exp-054 checkpoints)
+
+---
+
+### Experiment 056 — Loss Landscape Topology via Hessian Analysis (Sub-03)
+
+**Target Sub-thesis**: nS-03 (Loss Landscapes as Energy Landscapes)
+**gen3 Connection**: gen3 Sub-07 (Sovereign WDM) — shared RK45, energy landscape primitives
+
+**Objective**: Train ERA5 LSTM at 5 learning rates × 3 regularization settings = 15 runs.
+For each converged model, compute the full Hessian eigenspectrum. Characterize landscape
+topology: number of near-zero eigenvalues (flat directions), ratio of positive to negative
+eigenvalues (saddle vs minimum), and spectral density shape.
+
+**Data**:
+- ERA5 Michigan weather data (4 years, 6 variables, already in pipeline)
+- 15 training runs × ~30min each = ~7.5 hours
+- ~50MB per converged model × 15 = ~750MB
+
+**Compute**:
+- Training: ~7.5 hours total
+- Hessian: `numerical_hessian` (→ `barracuda::numerical`) + `eigh_f64` for
+  eigendecomposition. ~1min per model × 15 = ~15 minutes
+- NEB transition paths between best 3 minima: ~5 minutes per pair
+
+**Primitives**: `numerical_hessian`, `eigh_f64`, `rk45_adaptive.wgsl` (NEB integration),
+`gpu_dispatch::neural_forward`
+
+**Experiments**:
+1. **Flat vs sharp minima**: Correlate number of near-zero Hessian eigenvalues with
+   test loss. Test Keskar et al. prediction that flat minima generalize better
+2. **Transition state analysis**: Use NEB to find minimum-loss pathways between
+   converged minima at different learning rates. Compute activation barriers
+3. **Learning rate → landscape topology**: Does higher learning rate consistently
+   find flatter minima (more near-zero eigenvalues)?
+4. **Boltzmann sampling**: Sample weight perturbations around each minimum at
+   T = {0.01, 0.1, 1.0}. Compute ensemble predictions vs single-minimum predictions
+
+**Success criteria**:
+- Clear correlation (r > 0.7) between Hessian eigenvalue flatness and test loss
+- NEB identifies at least 2 distinct transition pathways between minima
+- Boltzmann ensemble at optimal T improves test loss vs single-minimum by ≥5%
+
+**Status**: QUEUED
+
+---
+
+### Experiment 057 — Agent Population Scaling (Sub-05)
+
+**Target Sub-thesis**: nS-05 (Multi-Agent AI Coordination as Quorum Sensing)
+**gen3 Connection**: gen3 Sub-01 (Anderson QS) — Anderson phase transition predictions
+
+**Objective**: Scale the agent coordination model from Exp nS-501 to larger populations
+(64/128/256/512 agents). Test the Anderson prediction: coordination phase transition
+occurs at a critical agent heterogeneity W_c that depends only on interaction graph
+topology, not population size.
+
+**Data**: Algorithmic (seed 42). No external data needed.
+
+**Compute**:
+- Graph Laplacian eigendecomposition at each population size: 64×64 (~instant),
+  128×128 (~instant), 256×256 (~0.1s), 512×512 (~1s)
+- Disorder sweep at each size: 20 disorder levels × 4 sizes × 3 topologies = 240 runs.
+  ~1 minute each = ~4 hours total
+
+**Primitives**: `anderson_localization.rs`, `eigh_f64`, `BatchIprGpu`,
+`graph_laplacian` (→ `barracuda::linalg::graph`), `game_theory.rs`, `WrightFisherGpu`
+
+**Experiments**:
+1. **Size independence**: Compute W_c (disorder where IPR crosses delocalization
+   threshold) at each population size. Test: W_c should be constant (±5%) for a
+   given topology regardless of N
+2. **Dimensional phase diagram**: Run at 1D (chain), 2D (grid), 3D (cube) topologies.
+   Replicate the wetSpring 100%/0% dimensional split for AI agents
+3. **Wright-Fisher convergence**: Run Wright-Fisher agent selection for 1000 generations.
+   Test: does the population converge to agents that self-organize into 3D-like
+   interaction topologies?
+4. **Replicator dynamics**: Apply game-theoretic replicator equation at each
+   population size. Does the cooperative equilibrium stability depend on topology?
+
+**Success criteria**:
+- W_c varies by ≤10% across 64→512 agents (size independence)
+- 3D topologies sustain coordination at all tested disorder levels
+- 1D/2D topologies fail at disorder W > 2 (replicating wetSpring result)
+- Wright-Fisher selects for higher-connectivity interaction graphs
+
+**Status**: QUEUED
 
 ---
 

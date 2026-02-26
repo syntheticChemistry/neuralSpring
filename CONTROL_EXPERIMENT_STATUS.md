@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–80 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains + modern BarraCUDA rewiring + WDM surrogates + baseCamp GPU pure + sovereign folding shaders + ToadStool S66 absorption + complete cross-spring rewiring + S80 comprehensive debt audit: coverage expansion, tolerance evolution, binary modernization)
+**Last updated**: February 26, 2026 (Sessions 44–82 — S82: Titan V pure Rust pipeline validation — 384/384 GPU checks PASS on NVK GV100, `fma(f64)` shader fix in `batched_eigh_nak_optimized_f64.wgsl`, zero RTX 4070 regressions)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -10,14 +10,14 @@
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 9 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 5/5 sub-theses PASS) — Sessions 50, 54, 56, 77
 **Dispatch**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model — 16/16 CPU↔GPU + 14/14 mixed-hardware + 19/19 baseCamp dispatch + 17/17 parity + 23/23 PCIe
-**Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + 143+ on TITAN V (NVK) — **bit-identical**
+**Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + **384/384 PASS on TITAN V (NVK GV100)** — bit-identical
 **GPU Promotion**: 44 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math)
 **Pure GPU All-Domains**: 10/10 PASS — `validate_gpu_pure_workload_all` (9 typed BarraCUDA GPU ops across all 15 Phase 0++ papers + determinism check, scalar-only readback)
 **WDM Surrogates**: 3 Python baselines (nW-01 transport, nW-02 EOS, nW-04 transfer learning) + 2 Rust validators (CPU + GPU) — `wdm_surrogate.rs` module
-**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (all promoted to named tolerances) | zero bare `unwrap()` in validation code | WDM EOS provenance complete
-**Coverage**: 93.5% line coverage (llvm-cov, 604 lib tests), 107+ named tolerances in centralized registry | wdm_surrogate 97.6% | basecamp 90.6%
+**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (129+ named tolerances, S81: +25) | zero bare `unwrap()` in validation code | WDM EOS provenance complete | all PyTorch baselines fully seeded
+**Coverage**: 93.5% line coverage (llvm-cov, 604 lib tests), 129+ named tolerances in centralized registry | wdm_surrogate 97.6% | basecamp 90.6%
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `17932267` (S66 reviewed) | **38 functions rewired to upstream** + 6 validator shader sources rewired | S73: +4 Tensor API rewires, S76: +2 pearson\_correlation, S78: +6 stats/dispatch rewires (mae, shannon, hill×2, l2\_distance, fit\_linear)
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `17932267` (S66 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired | S81: +1 spectral\_entropy→barracuda::stats::shannon\_from\_frequencies
 **Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 9 metalForge shaders aligned to `compile_shader_df64` convention
 **Sovereign Folding**: 9 new f64 WGSL shaders in metalForge (layer\_norm, GELU, sigmoid, SDPA scores/softmax/apply, triangle mul outgoing/incoming, triangle attention)
 **Open Data**: All 25+5 papers use open data and open systems — zero proprietary or paywalled sources
@@ -737,3 +737,21 @@ Full codebase audit with systematic debt resolution. Key deliverables:
 5. **Shared helpers**: `validate_tensor_unary` + `validate_tensor_reduction` extracted to `validation.rs`. `validate_barracuda_tensor.rs` 966 → 911 lines.
 6. **CI evolution**: Baseline artifact upload for longitudinal tracking. Cross-validation job (Python + Rust parity in CI).
 7. **Baselines**: WDM EOS + ML inference added to `run_all_baselines.sh`. Enhanced JSON output with git commit, tree state, numpy/scipy/torch versions.
+
+### Session 82 — Titan V Pure Rust Pipeline Validation (February 26, 2026)
+
+Full pure Rust GPU pipeline validation on NVIDIA TITAN V (NVK GV100, Volta SM70, full-rate FP64).
+
+| Change | Scope | Impact |
+|--------|-------|--------|
+| `batched_eigh_nak_optimized_f64.wgsl` fix | `fma(f64)` → `a * b + c` | WGSL spec compliance; Sovereign Compiler re-fuses at IR level |
+| Explicit f64 float literals | `select()` and division contexts | Prevents abstract-float-to-f32 coercion |
+| Full Titan V sweep | 33 validation binaries | **384/384 PASS** — all domains, all GPU tiers |
+| RTX 4070 regression | All validators re-tested | **Zero regressions** |
+| Lib tests | `cargo test --lib` | **604/604 PASS** |
+
+**Findings**:
+- naga rejects `fma()` for `f64` operands (WGSL spec only defines it for `f32`/`f16`)
+- Bare float literals (`1.0`) default to `f32` in `select()` context, causing type mismatches with `f64` division
+- NVK pipeline cache compilation takes ~145s on first run; instant via `wgpu::PipelineCache` thereafter
+- Titan V full-rate FP64 (1:2 ratio) confirmed working for all scientific compute shaders

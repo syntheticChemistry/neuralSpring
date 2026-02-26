@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 26, 2026 (Sessions 61–80)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates, 2250+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 38 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (52/52 PASS, 19/19 bench), zero debt, 93.5% coverage (604 tests), 107+ named tolerances, zero inline magic numbers (all promoted to named tolerances), all deps Pure Rust (ecoBin compliant), 100% SPDX compliance, S80: comprehensive debt audit — wdm\_surrogate coverage 43→98%, basecamp coverage 49→91%, 16 unwrap() eliminated, all inline guards promoted to tolerances::LOG\_ZERO\_GUARD, WDM EOS provenance complete, CI cross-validation job added
+**Last Updated**: February 26, 2026 (Sessions 61–82)
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates, 2250+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 39 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (52/52 PASS, 19/19 bench), zero debt, 93.5% coverage (604 tests), 129+ named tolerances (25 added S81), zero inline magic numbers (all promoted to named tolerances), all deps Pure Rust (ecoBin compliant), 100% SPDX compliance, S80: comprehensive debt audit — wdm\_surrogate coverage 43→98%, basecamp coverage 49→91%, 16 unwrap() eliminated, all inline guards promoted to tolerances::LOG\_ZERO\_GUARD, WDM EOS provenance complete, CI cross-validation job added. S81: deep debt evolution — 25 new tolerances (spectral, pop-gen, game theory, quantization, ODE, hardware), spectral\_entropy rewired to barracuda::stats::shannon\_from\_frequencies, PyTorch deterministic seeding (7 scripts), probe.rs cross-platform gating, gen3 baseCamp cross-references added to sub-theses 01–07
 
 ## Purpose
 
@@ -113,7 +113,7 @@ All baseCamp experiments inherit neuralSpring's validated three-tier pipeline:
 | Dispatch overhead | ≤1.04× for 9/10 ops (transparent) |
 | GPU vs Python | Up to 104x (transformer medium) |
 | GPU crossover | ~1.5 ms dispatch overhead |
-| Multi-GPU | Bit-identical (RTX 4070 + TITAN V NVK) |
+| Multi-GPU | Bit-identical (RTX 4070 + TITAN V NVK) — **384/384 Titan V (S82)** |
 | Fused pipeline | 46-78x over per-op dispatch |
 | GPU math coverage | ~97% of production operations (Phase C complete) |
 

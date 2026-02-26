@@ -235,7 +235,7 @@ fn validate_triangle_inequality(
                 let d_ik = d_ik_sq.max(0.0).sqrt();
                 let d_jk = d_jk_sq.max(0.0).sqrt();
                 if d_ik
-                    .partial_cmp(&(d_ij + d_jk + 1e-5))
+                    .partial_cmp(&(d_ij + d_jk + tolerances::GPU_BOUNDS_SLACK_F32))
                     .is_some_and(std::cmp::Ordering::is_gt)
                 {
                     tri_ok = false;

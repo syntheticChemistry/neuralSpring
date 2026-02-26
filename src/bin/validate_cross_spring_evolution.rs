@@ -350,7 +350,7 @@ fn validate_rewired_fst_single_locus(h: &mut ValidationHarness, dispatcher: &Dis
             "fst_single_locus θ near 0 (identical pops, W-C sample correction)",
             fst,
             0.0,
-            0.05,
+            tolerances::FST_IDENTICAL_POP_TOL,
         );
     }
 }
@@ -373,7 +373,7 @@ fn validate_rewired_pairwise_fst_full(
         "pairwise_fst_full θ ≈ pairwise_fst (mean-of-ratios vs ratio-of-sums)",
         fst,
         fst_theta_only,
-        0.05,
+        tolerances::FST_ESTIMATOR_AGREEMENT,
     );
     h.check_bool("pairwise_fst_full f_is defined", f_is.is_finite());
     h.check_bool("pairwise_fst_full f_it defined", f_it.is_finite());

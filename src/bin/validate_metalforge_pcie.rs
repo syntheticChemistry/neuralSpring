@@ -85,7 +85,10 @@ fn validate_p2p_and_chaining(harness: &mut ValidationHarness) {
         chained.estimated_us() > direct.estimated_us(),
     );
     let ratio = chained.estimated_us() / direct.estimated_us();
-    harness.check_bool("chained: overhead reasonable (< 3x direct)", ratio < 3.0);
+    harness.check_bool(
+        "chained: overhead reasonable (< 3x direct)",
+        ratio < tolerances::BRIDGE_CHAIN_OVERHEAD_MAX,
+    );
 }
 
 fn validate_substrate_selection(harness: &mut ValidationHarness) {
@@ -144,7 +147,7 @@ fn validate_bridge_api(harness: &mut ValidationHarness) {
     );
     harness.check_bool(
         "bridge: uses CPU-staged latency (no P2P)",
-        bridge_cost.latency_us > 5.0,
+        bridge_cost.latency_us > tolerances::BRIDGE_PROBE_MIN_US,
     );
 }
 

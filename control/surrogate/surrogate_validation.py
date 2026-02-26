@@ -345,6 +345,11 @@ def main() -> int:
     # Seed 42: arbitrary but fixed for deterministic sampling across runs.
     # All results in CONTROL_EXPERIMENT_STATUS.md were produced with this seed.
     rng = np.random.default_rng(42)
+    if HAS_TORCH:
+        torch.manual_seed(42)
+        torch.cuda.manual_seed_all(42)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
     # ------------------------------------------------------------------
     # Part 1: Benchmark function surrogates

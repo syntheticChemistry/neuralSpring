@@ -102,7 +102,11 @@ fn validate_pd_equilibrium(h: &mut ValidationHarness) {
     let trace = replicator_dynamics(&[0.5, 0.5], &pd, 2000, 0.01);
     let final_coop = trace.last().map_or(0.5, |f| f[0]);
 
-    h.check_upper("PD: defection dominates (coop < 0.1)", final_coop, 0.1);
+    h.check_upper(
+        "PD: defection dominates",
+        final_coop,
+        tolerances::GAME_DEFECTION_UPPER,
+    );
 }
 
 fn validate_qs_cooperation(h: &mut ValidationHarness) {
@@ -122,6 +126,10 @@ fn validate_qs_cooperation(h: &mut ValidationHarness) {
     let coop_var =
         barracuda::stats::correlation::variance(&result.coop_freq[50..]).unwrap_or(f64::NAN);
 
-    h.check_lower("QS cooperation late > 0.1", late_coop, 0.1);
-    h.check_upper("QS variance < 0.1", coop_var, 0.1);
+    h.check_lower(
+        "QS cooperation late",
+        late_coop,
+        tolerances::GAME_QS_COOPERATION_MIN,
+    );
+    h.check_upper("QS variance", coop_var, tolerances::GAME_QS_VARIANCE_MAX);
 }

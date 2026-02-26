@@ -396,7 +396,7 @@ fn validate_steady_state(h: &mut ValidationHarness, gpu: &Gpu) {
                 // Should stay near 1.0 (steady state)
                 h.check_bool(
                     &format!("steady state y[{d}]={g:.4} (near initial)"),
-                    (g - 1.0).abs() < 0.5,
+                    (g - 1.0).abs() < tolerances::ODE_STEADY_STATE_SLACK as f32,
                 );
             }
         }

@@ -158,7 +158,7 @@ fn main() {
     let disorder_gentle = gate_disorder_parameter(&gentle_gates);
     h.check_bool(
         "nS-205: steeper gates produce higher disorder",
-        disorder_steep >= disorder_gentle - 0.01,
+        disorder_steep >= disorder_gentle - tolerances::GATE_DISORDER_COMPARISON,
     );
 
     // ── nS-206: Edge-of-chaos systematic sigma_w sweep ───────────────
@@ -187,7 +187,9 @@ fn main() {
     );
     h.check_bool(
         "nS-206: spectral radius increases with sigma_w",
-        *rho_values.last().unwrap_or(&0.0) >= rho_values.first().unwrap_or(&f64::INFINITY) - 0.1,
+        *rho_values.last().unwrap_or(&0.0)
+            >= rho_values.first().unwrap_or(&f64::INFINITY)
+                - tolerances::SPECTRAL_RADIUS_SWEEP_SLACK,
     );
 
     // ── nS-203: Layer-by-layer IPR trajectory ────────────────────────
