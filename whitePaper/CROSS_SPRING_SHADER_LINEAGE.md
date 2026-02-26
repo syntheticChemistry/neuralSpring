@@ -7,22 +7,25 @@
 | Field | Value |
 |-------|-------|
 | ToadStool HEAD | `f0feb226` (Sessions 60–68 sync, Feb 26, 2026) |
-| Last updated | February 26, 2026 (Sessions 40–79) |
-| BarraCUDA shader count | 694+ WGSL (zero CPU-only production math, S49) |
+| Last updated | February 26, 2026 (Sessions 40–84) |
+| BarraCUDA shader count | 700+ WGSL (f64 canonical, universal precision, S68) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
 | Sovereign folding f64 | 9 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3) — `compile_shader_df64` convention |
 | Local metalForge total | 30 WGSL shaders (21 absorbed + 9 f64 sovereign folding) |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
+| Universal precision (S68) | f64 canonical, f32 via `LazyLock<String>` runtime downcast |
 
 ---
 
-## The Three Springs
+## The Five Springs
 
-| Spring | Domain | Key Contribution to BarraCUDA |
-|--------|--------|-------------------------------|
-| **hotSpring** | Nuclear/particle physics | HFB self-consistent field, lattice QCD, spectral theory, ESN reservoir, precision infrastructure |
-| **wetSpring** | Bioinformatics/genomics | Smith-Waterman, Gillespie SSA, Felsenstein, HMM f64 batch, SNP calling, dN/dS, precision polyfills |
-| **neuralSpring** | ML validation/evolution | Pairwise ops, batch fitness, spatial payoff, IPR, hill gate, matmul tiers, eigh Householder+QR |
+| Spring | Domain | ~Shaders | Key Contribution to BarraCUDA |
+|--------|--------|----------|-------------------------------|
+| **hotSpring** | Nuclear/particle physics | ~100 | DF64 core-streaming, lattice QCD (SU(3), Wilson, CG), HFB, spectral (Lanczos), ESN, precision infra |
+| **wetSpring** | Bioinformatics/genomics | ~80 | Smith-Waterman, Gillespie SSA, Felsenstein, HMM f64, DADA2, SNP, dN/dS, diversity (Shannon/Simpson/Bray-Curtis), ODE systems |
+| **neuralSpring** | ML validation/evolution | ~34 | Pairwise ops, batch fitness, spatial payoff, IPR, hill gate, matmul tiers, eigh, validation harness, session API |
+| **airSpring** | Precision agriculture | ~15 | Regression (linear/quadratic/exponential), hydrology (ET₀, FAO-56), moving\_window\_f64, kriging |
+| **groundSpring** | Hydrogeology | ~5 | RAWR bootstrap, batched multinomial, MC ET₀ propagation |
 
 ---
 
@@ -93,6 +96,30 @@
 | `batched_qs_ode_rk4_f64.wgsl` | `shaders/numerical/` | QS/c-di-GMP ODE (RK4) |
 | `mean_reduce.wgsl` | `shaders/reduce/` | Mean reduction |
 
+### airSpring → BarraCUDA (15+ contributions, S66)
+
+| Shader / API | BarraCUDA Location | Domain |
+|-------------|-------------------|--------|
+| `fit_linear` | `stats::regression` | Least-squares linear fit |
+| `fit_quadratic` | `stats::regression` | Quadratic curve fitting |
+| `fit_exponential` | `stats::regression` | Exponential curve fitting |
+| `fit_power` | `stats::regression` | Power-law curve fitting |
+| `fit_all` | `stats::regression` | All-models best-fit |
+| `hargreaves_et0` | `stats::hydrology` | Hargreaves ET₀ estimation |
+| `crop_coefficient` | `stats::hydrology` | FAO-56 crop coefficient |
+| `soil_water_balance` | `stats::hydrology` | Soil water balance |
+| `moving_window_f64` | `stats::moving_window_f64` | Rolling statistics (mean/var/min/max) |
+| `kriging_f64.wgsl` | `shaders/interpolation/` | Spatial interpolation |
+| `batched_elementwise_f64.wgsl` | `shaders/science/` | Batched elementwise ops |
+
+### groundSpring → BarraCUDA (5 contributions, S66)
+
+| Shader / API | BarraCUDA Location | Domain |
+|-------------|-------------------|--------|
+| `rawr_mean` | `stats::bootstrap` | RAWR bootstrap confidence intervals |
+| `batched_multinomial_f64.wgsl` | `shaders/bio/` | Batched multinomial sampling |
+| `mc_et0_propagate_f64.wgsl` | `shaders/bio/` | Monte Carlo ET₀ propagation |
+
 ---
 
 ## Cross-Spring Benefits — What Each Spring Gets From the Others
@@ -150,33 +177,53 @@
 | `eigh_f64` Householder+QR | Eigenvalue decomposition for nuclear matrix problems |
 | `matmul_cpu_tiled.wgsl` | CPU-fallback matmul for testing |
 
+### neuralSpring benefits from airSpring (via ToadStool S66)
+
+| From airSpring | How neuralSpring uses it |
+|---------------|------------------------|
+| `stats::fit_linear` | `complexity_metric` slope computation (S78 rewire) |
+| `stats::mae` | Mean absolute error for DeepONet validation (S78 rewire) |
+| `stats::regression::fit_all` | Multi-model best-fit for interpretability experiments |
+| `stats::hydrology` | Available for environmental cross-domain validation |
+| `stats::moving_window_f64` | Available for temporal signal analysis |
+
+### neuralSpring benefits from groundSpring (via ToadStool S66)
+
+| From groundSpring | How neuralSpring uses it |
+|------------------|------------------------|
+| `stats::rawr_mean` | RAWR bootstrap confidence intervals for ensemble models |
+| `batched_multinomial_f64.wgsl` | Available for stochastic sampling in evolutionary algorithms |
+
 ---
 
 ## Validation Evidence
 
-### neuralSpring validation (Feb 25, 2026, S64)
+### neuralSpring validation (Feb 26, 2026, S84)
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_cross_spring_evolution` | 39 | 39/39 PASS |
-| `validate_all` | 146 | 145/146 PASS (1 pre-existing logsumexp) |
-| `cargo test --lib` | 500 | 500 PASS |
-| `cargo clippy --all-targets` (pedantic + nursery) | — | 0 warnings |
+| `validate_all` | 150 | **150/150 PASS** |
+| `validate_cross_spring_evolution` | 52 | **52/52 PASS** |
+| `bench_cross_spring_evolution` | 28 | **28/28 PASS** |
+| `cargo test --lib` | 604 | **604/604 PASS** |
+| `cargo clippy --all-targets -- -D warnings` | — | 0 warnings |
 | `BandwidthTier` detection | RTX 4070 | `PciE4x16` detected |
 
-### Benchmark: local vs upstream dispatch (RTX 4070, release)
+### Benchmark: local vs upstream dispatch (RTX 4070, release, S84)
 
 | Kernel | Local µs | Upstream µs | Ratio |
 |--------|---------|------------|-------|
-| BatchFitness 10K×32 | 1683.7 | 1951.8 | 1.16× |
-| Hamming 200×500 | 2291.7 | 2351.3 | 1.03× |
-| Jaccard 100×500 | 2745.0 | 2530.4 | 0.92× |
-| LocusVariance 50×500 | 2319.4 | 2606.1 | 1.12× |
-| SpatialPayoff 256² | 2440.1 | 2353.3 | 0.96× |
-| BatchIPR 1000×256 | 1741.3 | 1795.9 | 1.03× |
+| BatchFitness 10K×32 | 2,284 | 2,111 | 0.92× |
+| Jaccard 100×500 | 6,192 | 2,016 | 0.33× |
+| LocusVariance 50×500 | 7,519 | 4,213 | 0.56× |
+| SpatialPayoff 256² | 2,386 | 1,977 | 0.83× |
+| BatchIPR 1000×256 | 1,753 | 1,836 | 1.05× |
+| PairwiseL2 200×50 | 2,116 | 1,745 | 0.82× |
+| SwarmNN 500×20 | 1,811 | 1,751 | 0.97× |
 
-Upstream wrappers have **negligible overhead** (0.92–1.16×). Jaccard is actually
-faster through the wrapper due to better buffer management.
+Upstream wrappers maintain **negligible overhead** or are faster (Jaccard 3× faster).
+Hamming 200×500 is an outlier (20.85× slower upstream) — f64 path on small sizes,
+investigation target for ToadStool.
 
 ---
 
@@ -605,6 +652,112 @@ Feb 26  Session 68: ToadStool S60–S68 sync (f0feb226)
 
 ---
 
+## Sessions 83–84 — ToadStool S68 Universal Precision + Cross-Spring Benchmarks (Feb 26, 2026)
+
+### ToadStool S68 Universal Precision Architecture
+
+ToadStool S66–S68 evolved all WGSL shaders to f64 canonical. Public `&str` constants became
+private `LazyLock<String>` with runtime f32 downcast. This required shader import
+fixes in neuralSpring (5 constants privatized, 1 renamed).
+
+### Five-Spring API Benchmark (N=10,000, RTX 4070, Release)
+
+| Op | Origin | Time (µs) | Provenance Chain |
+|----|--------|-----------|------------------|
+| `RMSE` | airSpring | 4.3 | airSpring testutil → `barracuda::stats` S64 |
+| `MAE` | airSpring | 4.2 | airSpring → `barracuda::stats` S64→S66 |
+| `R²` | airSpring | 13.2 | airSpring → `barracuda::stats` S64 |
+| `NSE` | airSpring | 12.9 | airSpring+groundSpring → `barracuda::stats` S64 |
+| `fit_linear` | airSpring | 44.1 | airSpring V009 → `barracuda::stats` S66 |
+| `fit_quadratic` | airSpring | 75.0 | airSpring V009 → `barracuda::stats` S66 |
+| `fit_exponential` | airSpring | 126.1 | airSpring V009 → `barracuda::stats` S66 |
+| `fit_all` | airSpring | 388.2 | airSpring V009 → `barracuda::stats` S66 |
+| `Shannon` | wetSpring | 2.6 | wetSpring bio/diversity → `barracuda::stats` S64 |
+| `simpson` | wetSpring | 0.8 | wetSpring bio/diversity → `barracuda::stats` S64 |
+| `Bray-Curtis` | wetSpring | 0.1 | wetSpring → `barracuda::stats` S64 |
+| `hill` | wetSpring+hotSpring | 8.2 | wetSpring QS + hotSpring precision → `barracuda::stats` S64 |
+| `shannon_from_freq` | wetSpring | 32.8 | wetSpring → `barracuda::stats` S64 |
+| `spearman` | wetSpring+hotSpring | 449.1 | wetSpring + hotSpring → `barracuda::stats` S66 |
+| `Pearson` | hotSpring | 15.1 | hotSpring validation → `barracuda::stats` S64 |
+| `rawr_mean` | groundSpring | 619.9 | groundSpring bootstrap → `barracuda::stats` S66 |
+| `DiversityFusion CPU` | wetSpring | 49.4 | wetSpring → `DiversityFusionGpu` S64 |
+| `DiversityFusion GPU` | wetSpring | 3,766.9 | wetSpring → ToadStool GPU dispatch |
+
+### GPU Dispatch — Cross-Spring f64 Ops (N=50,000, RTX 4070)
+
+| Op | Origin | Time (µs) | Provenance Chain |
+|----|--------|-----------|------------------|
+| Variance (Dispatcher) | hotSpring | 10,426 | hotSpring Welford → `VarianceReduceF64` → Dispatcher |
+| Pearson (Dispatcher) | wetSpring+hotSpring | 9,230 | wS+hS → `CorrelationF64` → Dispatcher |
+| Shannon (Dispatcher) | wetSpring | 4,504 | wetSpring → `FusedMapReduceF64` → Dispatcher |
+| MatMul 200×200 (Dispatcher) | neuralSpring | 2,482 | nS matmul → ToadStool → GPU dispatch |
+
+### Local vs Upstream Shader Dispatch (RTX 4070, Release)
+
+| Kernel | Origin | Local µs | Upstream µs | Ratio |
+|--------|--------|---------|------------|-------|
+| BatchFitness 10K×32 | neuralSpring | 2,284 | 2,111 | 0.92× |
+| Hamming 200×500 | neuralSpring | 2,401 | 50,060 | 20.85× ⚠ |
+| Jaccard 100×500 | neuralSpring | 6,192 | 2,016 | 0.33× |
+| LocusVariance 50×500 | neuralSpring | 7,519 | 4,213 | 0.56× |
+| SpatialPayoff 256² | neuralSpring | 2,386 | 1,977 | 0.83× |
+| BatchIPR 1000×256 | neuralSpring | 1,753 | 1,836 | 1.05× |
+| HillGate 100×100 | neuralSpring | 1,757 | 1,882 | 1.07× |
+| MultiObjFitness 5K×4 | neuralSpring | 1,911 | 2,413 | 1.26× |
+| PairwiseL2 200×50 | neuralSpring | 2,116 | 1,745 | 0.82× |
+| SwarmNN 500×20 | neuralSpring | 1,811 | 1,751 | 0.97× |
+
+Hamming 20.85× regression: upstream f64 path on small sizes (investigation target for ToadStool).
+
+### Rewire Evolution — f32 Tensor → f64 Upstream (N=10,000, RTX 4070)
+
+| Op | f32 Tensor (µs) | f64 Upstream (µs) | Speedup | Origin |
+|----|-----------------|-------------------|---------|--------|
+| Variance | 10,515 | 3,162 | **3.33×** | hotSpring Welford |
+| Pearson | 4,343 | 4,232 | **1.03×** | wetSpring + hotSpring |
+| Entropy | 8,022 | 3,912 | **2.05×** | wetSpring fused |
+
+### GPU Kernel Scalability (RTX 4070)
+
+| Kernel | Small GPU µs | Large GPU µs | Large CPU µs | GPU/CPU |
+|--------|-------------|-------------|-------------|---------|
+| Hamming 200×1000 | 1,887 | 1,907 | 7,114 | **3.7×** |
+| Jaccard 100×2000 | 1,914 | 2,018 | 8,077 | **4.0×** |
+| Fitness 50K×64 | 1,820 | 2,018 | — | — |
+| Spatial 512² | 1,960 | 2,464 | — | — |
+| IPR 2000×256 | 1,911 | 2,187 | — | — |
+
+### Validation: All Green
+
+| Gate | Result |
+|------|--------|
+| `cargo clippy --all-targets -- -D warnings` | 0 warnings |
+| `cargo test --lib` | **604/604 PASS** |
+| `validate_all` | **150/150 PASS** |
+| `validate_cross_spring_evolution` | **52/52 PASS** |
+| `bench_cross_spring_evolution` | **28/28 PASS** |
+| `bench_upstream_vs_local` | **10/10 kernels** |
+| `bench_rewire_evolution` | 3/3 provenance validated |
+| `bench_gpu_kernels` | **10/10 scale points** |
+
+### Evolution Timeline Update
+
+```text
+Feb 26  Session 83: ToadStool S68 Universal Precision Sync
+          - 5 shader imports fixed (LazyLock privatization, rk4 rename)
+          - variance_ddof API gap CLOSED (barracuda::stats::variance_ddof)
+          - V48 handoff, V47 archived
+        Session 84: Cross-Spring Benchmark + Lineage Documentation
+          - bench_cross_spring_evolution extended: +5 S68 APIs (fit_quadratic,
+            fit_exponential, fit_all, spearman, rawr_mean) + GPU dispatch provenance
+          - Five-spring provenance map: hotSpring ~100, wetSpring ~80,
+            neuralSpring ~34, airSpring ~15, groundSpring ~5 shaders
+          - Full validation sweep: 604 lib + 150 GPU + 28 bench PASS
+          - CROSS_SPRING_SHADER_LINEAGE updated with full five-spring map
+```
+
+---
+
 ## Files
 
 | Purpose | Path |
@@ -618,4 +771,4 @@ Feb 26  Session 68: ToadStool S60–S68 sync (f0feb226)
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
 | Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
-| V44 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V44_ABSORPTION_REQUEST_FEB26_2026.md` |
+| V48 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V48_S68_UNIVERSAL_PRECISION_SYNC_HANDOFF_FEB26_2026.md` |

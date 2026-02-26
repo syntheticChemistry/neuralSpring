@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–83 — S83: ToadStool S68 universal precision sync — 5 shader imports fixed, variance_ddof gap closed, 150/150 validators PASS)
+**Last updated**: February 26, 2026 (Sessions 44–84 — S84: Five-spring benchmark + lineage — 28/28 bench PASS, 5 S68 APIs benchmarked, provenance documented)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -755,6 +755,24 @@ Full pure Rust GPU pipeline validation on NVIDIA TITAN V (NVK GV100, Volta SM70,
 - Bare float literals (`1.0`) default to `f32` in `select()` context, causing type mismatches with `f64` division
 - NVK pipeline cache compilation takes ~145s on first run; instant via `wgpu::PipelineCache` thereafter
 - Titan V full-rate FP64 (1:2 ratio) confirmed working for all scientific compute shaders
+
+### Session 84 — Cross-Spring Benchmark + Lineage Documentation (February 26, 2026)
+
+Extended `bench_cross_spring_evolution` with 5 modern ToadStool S68 APIs
+(`fit_quadratic`, `fit_exponential`, `fit_all`, `spearman_correlation`,
+`rawr_mean`) + GPU Dispatcher provenance benchmarks. Expanded cross-spring
+lineage from 3 Springs to 5 Springs (added airSpring, groundSpring) with
+comprehensive provenance map across ~700 WGSL shaders.
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **604/604 PASS** |
+| `cargo clippy --all-targets -- -D warnings` | **0 warnings** |
+| `validate_all` | **150/150 PASS** |
+| `bench_cross_spring_evolution` | **28/28 PASS** |
+| `bench_upstream_vs_local` | **10/10 kernels** |
+| `bench_rewire_evolution` | **3/3 provenance validated** |
+| `bench_gpu_kernels` | **10/10 scale points** |
 
 ### Session 83 — ToadStool S68 Universal Precision Sync (February 26, 2026)
 

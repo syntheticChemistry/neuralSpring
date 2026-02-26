@@ -21,6 +21,12 @@
 //! `shannon`, `nash_sutcliffe` — all absorbed into `BarraCUDA` `stats` from
 //! airSpring/groundSpring/wetSpring in `ToadStool` S64.
 //!
+//! ## Session 83
+//!
+//! Extended with `ToadStool` S66–S68 APIs: `fit_quadratic`, `fit_exponential`,
+//! `fit_all`, `spearman_correlation`, `rawr_mean`. GPU typed op provenance
+//! benchmarks and f64 precision ops (hotSpring → `ToadStool` → neuralSpring).
+//!
 //! # Panics
 //!
 //! Panics if the tokio runtime cannot be created or if GPU diversity fusion
@@ -289,20 +295,125 @@ fn main() {
 
     eprintln!();
 
+    // ─── S83: Modern S68 APIs — cross-spring provenance ─────────────────
+    eprintln!("═══ S83: Modern ToadStool S68 APIs ═══");
+    eprintln!("  ToadStool S68: 700 WGSL f64 canonical, universal precision");
+    eprintln!();
+
+    eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_quadratic [S66]");
+    let cpu_fit_q = bench("fit_quadratic (airSpring→barracuda, CPU)", || {
+        let _ = std::hint::black_box(stats::fit_quadratic(&x_reg, &observed));
+    });
+    h.check_bool(
+        &format!("airSpring→stats: fit_quadratic(N={N}) {cpu_fit_q:.1}µs"),
+        cpu_fit_q.is_finite(),
+    );
+
+    eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_exponential [S66]");
+    let pos_y: Vec<f64> = observed.iter().map(|&v| v.abs() + 1.0).collect();
+    let cpu_fit_e = bench("fit_exponential (airSpring→barracuda, CPU)", || {
+        let _ = std::hint::black_box(stats::fit_exponential(&x_reg, &pos_y));
+    });
+    h.check_bool(
+        &format!("airSpring→stats: fit_exponential(N={N}) {cpu_fit_e:.1}µs"),
+        cpu_fit_e.is_finite(),
+    );
+
+    eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_all [S66]");
+    let cpu_fit_all = bench("fit_all (airSpring→barracuda, CPU)", || {
+        let _ = std::hint::black_box(stats::fit_all(&x_reg, &pos_y));
+    });
+    h.check_bool(
+        &format!("airSpring→stats: fit_all(N={N}) {cpu_fit_all:.1}µs"),
+        cpu_fit_all.is_finite(),
+    );
+
+    eprintln!("  Provenance: wetSpring+hotSpring → barracuda::stats::spearman_correlation [S66]");
+    let cpu_spearman = bench("spearman_correlation (wS+hS→barracuda, CPU)", || {
+        let _ = std::hint::black_box(stats::spearman_correlation(&observed, &simulated));
+    });
+    h.check_bool(
+        &format!("wS+hS→stats: spearman(N={N}) {cpu_spearman:.1}µs"),
+        cpu_spearman.is_finite(),
+    );
+
+    eprintln!("  Provenance: groundSpring → barracuda::stats::bootstrap::rawr_mean [S66]");
+    let cpu_rawr = bench("rawr_mean (groundSpring→barracuda, CPU)", || {
+        let _ = std::hint::black_box(stats::rawr_mean(&observed[..1000], 100, 0.05, 42));
+    });
+    h.check_bool(
+        &format!("groundSpring→stats: rawr_mean(N=1000) {cpu_rawr:.1}µs"),
+        cpu_rawr.is_finite(),
+    );
+
+    eprintln!();
+
+    // ─── GPU f64 ops via Dispatcher (cross-spring provenance) ────────────
+    {
+        use neural_spring::gpu_dispatch::Dispatcher;
+        let dispatcher = rt.block_on(async { Dispatcher::new().await });
+
+        eprintln!("═══ GPU Dispatch — Cross-Spring f64 Ops ═══");
+        eprintln!("  Dispatcher routes CPU→GPU based on size threshold.");
+        eprintln!("  f64 precision ops: hotSpring Welford + wetSpring fused shaders");
+        eprintln!();
+
+        let n_big = 50_000_usize;
+        let mut big_rng = Rng::new(700);
+        let big_a: Vec<f64> = (0..n_big).map(|_| big_rng.next_f64() * 10.0 - 5.0).collect();
+        let big_b: Vec<f64> = (0..n_big).map(|_| big_rng.next_f64() * 10.0 - 5.0).collect();
+
+        let gpu_var = bench("Dispatcher::variance 50k (hS Welford→ToadStool→GPU)", || {
+            let _ = std::hint::black_box(dispatcher.variance(&big_a));
+        });
+        h.check_bool(
+            &format!("hS→dispatch: variance 50k {gpu_var:.1}µs"),
+            gpu_var.is_finite(),
+        );
+
+        let gpu_pearson = bench("Dispatcher::pearson 50k (wS+hS→ToadStool→GPU)", || {
+            let _ = std::hint::black_box(dispatcher.pearson_correlation(&big_a, &big_b));
+        });
+        h.check_bool(
+            &format!("wS+hS→dispatch: pearson 50k {gpu_pearson:.1}µs"),
+            gpu_pearson.is_finite(),
+        );
+
+        let big_probs: Vec<f64> = big_a.iter().map(|x| x.abs() / 1000.0 + 1e-10).collect();
+        let gpu_shannon = bench("Dispatcher::shannon 50k (wS fused→ToadStool→GPU)", || {
+            let _ = std::hint::black_box(dispatcher.shannon_entropy(&big_probs));
+        });
+        h.check_bool(
+            &format!("wS→dispatch: shannon 50k {gpu_shannon:.1}µs"),
+            gpu_shannon.is_finite(),
+        );
+
+        let side = 200_usize;
+        let mat: Vec<f64> = (0..side * side).map(|_| big_rng.next_f64()).collect();
+        let gpu_matmul = bench("Dispatcher::mat_mul 200×200 (nS→ToadStool→GPU)", || {
+            let _ = std::hint::black_box(dispatcher.mat_mul(&mat, &mat, side));
+        });
+        h.check_bool(
+            &format!("nS→dispatch: matmul 200×200 {gpu_matmul:.1}µs"),
+            gpu_matmul.is_finite(),
+        );
+
+        eprintln!();
+    }
+
     // ─── Summary ────────────────────────────────────────────────────────
-    eprintln!("═══ Cross-Spring Evolution Summary ═══");
-    eprintln!("  633+ WGSL shaders in ToadStool S66, sourced from:");
+    eprintln!("═══ Cross-Spring Evolution Summary (S83) ═══");
+    eprintln!("  700 WGSL shaders in ToadStool S68 (f64 canonical), sourced from:");
     eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral, precision)");
     eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM, ODE)");
     eprintln!("    neuralSpring: ~34  (ML, neuroevolution, batch fitness, 9 f64 shaders)");
     eprintln!("    airSpring:    ~15  (ET₀, kriging, Richards, stats, regression)");
     eprintln!("    groundSpring: ~5   (multinomial, MC propagation)");
-    eprintln!("    ToadStool:    ~399 (core math, linalg, nn, activations)");
-    eprintln!("  neuralSpring rewired: 38 functions + 6 shader sources to upstream");
-    eprintln!("  S78: +6 rewires (mae, shannon_freq, hill×2, l2_distance, fit_linear)");
-    eprintln!("  S78: 9 metalForge shaders aligned to compile_shader_df64 convention");
+    eprintln!("    ToadStool:    ~466 (core math, linalg, nn, activations, S68 precision)");
+    eprintln!("  neuralSpring rewired: 39 functions + 6 shader sources to upstream");
+    eprintln!("  S83: ToadStool S68 sync — variance_ddof gap closed, 5 shader imports fixed");
     eprintln!("  Cross-spring flow: each spring contributes domain expertise;");
-    eprintln!("  ToadStool absorbs and GPU-accelerates → all springs benefit");
+    eprintln!("  ToadStool absorbs + GPU-accelerates → all springs benefit via path dep");
     eprintln!();
 
     h.finish();

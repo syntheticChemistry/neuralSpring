@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 26, 2026 (Sessions 40–83)
-**ToadStool HEAD**: `f0feb226` (S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S83: shader import fixes for S68 `LazyLock` privatization, variance_ddof gap closed, 150/150 validators PASS. Prior: 39 functions rewired, S-03b resolved, 21/21 shaders absorbed, Titan V 384/384, `fma(f64)` shader fix)
+**Date**: February 26, 2026 (Sessions 40–84)
+**ToadStool HEAD**: `f0feb226` (S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S84: Five-spring benchmark + lineage — 28/28 bench PASS, ~700 WGSL provenance mapped across hotSpring/wetSpring/neuralSpring/airSpring/groundSpring. S83: shader import fixes for S68 `LazyLock` privatization, variance_ddof gap closed, 150/150 validators PASS. Prior: 39 functions rewired, S-03b resolved, 21/21 shaders absorbed, Titan V 384/384, `fma(f64)` shader fix)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 

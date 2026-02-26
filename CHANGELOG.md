@@ -5,9 +5,27 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 83 (February 26, 2026)
+## [Unreleased] — Session 84 (February 26, 2026)
 
-V48 handoff: `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V48_S68_UNIVERSAL_PRECISION_SYNC_HANDOFF_FEB26_2026.md`
+V49 handoff pending.
+
+## [0.4.1] — 2026-02-26 (Session 84: Cross-Spring Benchmark + Lineage)
+
+### Added
+
+- `bench_cross_spring_evolution`: 5 new S68 API benchmarks (fit_quadratic,
+  fit_exponential, fit_all, spearman_correlation, rawr_mean) + GPU dispatch
+  provenance benchmarks (variance, pearson, shannon, matmul via Dispatcher).
+  28/28 PASS with full five-spring provenance annotations.
+- `CROSS_SPRING_SHADER_LINEAGE.md`: Expanded from 3 Springs to 5 Springs
+  (added airSpring, groundSpring). Full provenance map with ~700 WGSL shaders
+  across all Springs.
+
+### Validated
+
+- 604/604 lib, 0 clippy warnings, 150/150 GPU validators, 28/28 bench PASS.
+- Full benchmark suite: dispatch tiers, evolution tiers, upstream vs local,
+  GPU kernels, barracuda tensor, basecamp parity, rewire evolution.
 
 ## [0.4.0] — 2026-02-26 (Session 83: ToadStool S68 Universal Precision Sync)
 

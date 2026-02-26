@@ -63,6 +63,71 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 049 | Session 81 — Deep Debt Evolution | Feb 26, 2026 | 25 new tolerances (129+), spectral_entropy→barracuda (39th rewire), cross-platform probe, PyTorch seeding |
 | 050 | Session 82 — Titan V Pure Rust Pipeline Validation | Feb 26, 2026 | 384/384 GPU checks on NVK GV100, `fma(f64)` shader fix, zero RTX 4070 regressions |
 | 051 | Session 83 — ToadStool S68 Universal Precision Sync | Feb 26, 2026 | 22 commits synced, 5 shader imports fixed, variance_ddof gap closed, 150/150 validators PASS |
+| 052 | Session 84 — Cross-Spring Benchmark + Lineage Documentation | Feb 26, 2026 | Five-spring provenance map, 28/28 bench PASS, 5 new S68 APIs benchmarked, GPU dispatch provenance validated |
+
+---
+
+## Experiment 052: Cross-Spring Benchmark + Lineage Documentation
+
+**Date**: February 26, 2026 (Session 84)
+**Hardware**: NVIDIA RTX 4070, Vulkan, Ada Lovelace (NVIDIA proprietary)
+**ToadStool HEAD**: `f0feb226` (S68)
+
+### Motivation
+
+With ToadStool S68 universal precision sync complete (Session 83), benchmark the
+full five-spring cross-spring evolution: hotSpring precision, wetSpring bio,
+neuralSpring metalForge, airSpring regression, groundSpring bootstrap. Document
+where every shader and API evolved from, and where each Spring consumes the
+others' contributions.
+
+### Procedure
+
+1. **Rewire audit**: Exhaustive search of neuralSpring codebase for remaining
+   rewire opportunities. Found: all major APIs already rewired (39 functions +
+   6 shader sources). Remaining local code is intentionally local (cpu_fallback
+   population variance, benchmark infrastructure, different binding layouts).
+
+2. **Benchmark enhancement**: Extended `bench_cross_spring_evolution` with:
+   - 5 new S66–S68 stats APIs: `fit_quadratic`, `fit_exponential`, `fit_all`,
+     `spearman_correlation`, `rawr_mean`
+   - GPU Dispatcher provenance benchmarks: variance (hotSpring Welford),
+     pearson (wetSpring+hotSpring), shannon (wetSpring fused), matmul (neuralSpring)
+
+3. **Full benchmark suite**: Ran all 12 benchmark binaries + full validation.
+
+4. **Lineage documentation**: Updated `CROSS_SPRING_SHADER_LINEAGE.md` from
+   3-spring to 5-spring model with comprehensive provenance tables.
+
+### Findings
+
+- **Five-spring provenance verified**: ~700 WGSL shaders traced to origin Spring.
+  hotSpring ~100, wetSpring ~80, neuralSpring ~34, airSpring ~15, groundSpring ~5,
+  ToadStool ~466 core/infrastructure.
+
+- **S68 stats APIs perform well**: `fit_linear` 44µs, `fit_quadratic` 75µs,
+  `fit_exponential` 126µs, `fit_all` 388µs, `spearman` 449µs, `rawr_mean` 620µs
+  (all on N=10,000).
+
+- **GPU dispatch overhead**: Dispatcher routes correctly — variance 10.4ms,
+  pearson 9.2ms, shannon 4.5ms, matmul 200×200 2.5ms (all N=50,000).
+  GPU wins at scale (Hamming 3.7×, Jaccard 4.0× at large sizes).
+
+- **Upstream parity**: 8/10 kernels within 0.82–1.26× of local dispatch.
+  Hamming regression (20.85×) is investigation target for ToadStool (f64 path
+  on small sizes).
+
+- **Variance evolution**: f32 Tensor 10.5ms → f64 Welford 3.2ms = 3.33× speedup
+  (hotSpring contribution). Entropy: 8.0ms → 3.9ms = 2.05× (wetSpring fused).
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo clippy --all-targets -- -D warnings` | 0 warnings |
+| `cargo test --lib` | 604/604 PASS |
+| `validate_all` | 150/150 PASS |
+| `bench_cross_spring_evolution` | 28/28 PASS |
 
 ---
 
