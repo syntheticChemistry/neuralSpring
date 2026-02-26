@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V44** | `handoffs/NEURALSPRING_TOADSTOOL_V44_ABSORPTION_REQUEST_FEB26_2026.md` | Feb 26, 2026 | S79: Absorption request — 9 sovereign folding shaders, WDM surrogate pattern, API gaps, cross-spring evolution lessons, complete inventory (38 functions + 6 shader sources) |
+| **V45** | `handoffs/NEURALSPRING_TOADSTOOL_V45_DEBT_AUDIT_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S80: Debt audit results, barracuda primitive usage report (16 submodules, 90+ import sites), WDM surrogate pattern, validation helper extraction, tolerance provenance, API gaps, evolution recommendations for ToadStool core and future springs |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V43, 57 files).
+Superseded handoffs: `handoffs/archive/` (V1–V44, 58 files).
 
 ## Conventions
 

@@ -90,30 +90,24 @@ fn readback(t: &Tensor) -> Result<Vec<f32>, barracuda::error::BarracudaError> {
 // ── Activations ─────────────────────────────────────────────────────────
 
 fn validate_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = require!(
+    use neural_spring::validation::validate_tensor_unary;
+    let tol = tolerances::TENSOR_EXACT_F32;
+    validate_tensor_unary(
         h,
-        tensor(&[-2.0, -1.0, 0.0, 0.5, 1.0, 3.0], vec![6], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[-2.0, -1.0, 0.0, 0.5, 1.0, 3.0],
+        &[6],
+        |t| t.clone().relu(),
+        "relu",
+        &[
+            ("relu(-2) == 0", 0, 0.0, tol),
+            ("relu(-1) == 0", 1, 0.0, tol),
+            ("relu(0) == 0", 2, 0.0, tol),
+            ("relu(0.5) == 0.5", 3, 0.5, tol),
+            ("relu(1) == 1", 4, 1.0, tol),
+            ("relu(3) == 3", 5, 3.0, tol),
+        ],
     );
-    match input.relu() {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[
-                    ("relu(-2) == 0", 0, 0.0, tol),
-                    ("relu(-1) == 0", 1, 0.0, tol),
-                    ("relu(0) == 0", 2, 0.0, tol),
-                    ("relu(0.5) == 0.5", 3, 0.5, tol),
-                    ("relu(1) == 1", 4, 1.0, tol),
-                    ("relu(3) == 3", 5, 3.0, tol),
-                ],
-            );
-        }
-        Err(e) => h.check_bool(&format!("relu [ERROR: {e}]"), false),
-    }
 }
 
 fn validate_gelu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
@@ -647,96 +641,59 @@ fn validate_div(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Reductions ──────────────────────────────────────────────────────────
 
 fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = require!(
-        h,
-        tensor(&[1.0, 2.0, 3.0, 4.0, 5.0], vec![5], device),
-        "Tensor::from_data: GPU buffer alloc"
-    );
+    use neural_spring::validation::validate_tensor_reduction;
+    let tex = tolerances::TENSOR_EXACT_F32;
 
-    match input.sum() {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "sum([1..5]) == 15",
-                f64::from(v[0]),
-                15.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
-        Err(e) => h.check_bool(&format!("sum [ERROR: {e}]"), false),
-    }
-
-    let input2 = require!(
+    validate_tensor_reduction(
         h,
-        tensor(&[2.0, 4.0, 6.0, 8.0, 10.0], vec![5], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[1.0, 2.0, 3.0, 4.0, 5.0],
+        &[5],
+        Tensor::sum,
+        "sum([1..5]) == 15",
+        15.0,
+        tex,
     );
-    match input2.mean() {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "mean([2,4,6,8,10]) == 6",
-                f64::from(v[0]),
-                6.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
-        Err(e) => h.check_bool(&format!("mean [ERROR: {e}]"), false),
-    }
-
-    let input3 = require!(
+    validate_tensor_reduction(
         h,
-        tensor(&[3.0, 1.0, 7.0, 2.0, 5.0], vec![5], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[2.0, 4.0, 6.0, 8.0, 10.0],
+        &[5],
+        Tensor::mean,
+        "mean([2,4,6,8,10]) == 6",
+        6.0,
+        tex,
     );
-    match input3.max() {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "max([3,1,7,2,5]) == 7",
-                f64::from(v[0]),
-                7.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
-        Err(e) => h.check_bool(&format!("max [ERROR: {e}]"), false),
-    }
-
-    let input4 = require!(
+    validate_tensor_reduction(
         h,
-        tensor(&[3.0, 1.0, 7.0, 2.0, 5.0], vec![5], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[3.0, 1.0, 7.0, 2.0, 5.0],
+        &[5],
+        Tensor::max,
+        "max([3,1,7,2,5]) == 7",
+        7.0,
+        tex,
     );
-    match input4.min() {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "min([3,1,7,2,5]) == 1",
-                f64::from(v[0]),
-                1.0,
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
-        Err(e) => h.check_bool(&format!("min [ERROR: {e}]"), false),
-    }
-
-    let input5 = require!(
+    validate_tensor_reduction(
         h,
-        tensor(&[3.0, 4.0], vec![2], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[3.0, 1.0, 7.0, 2.0, 5.0],
+        &[5],
+        Tensor::min,
+        "min([3,1,7,2,5]) == 1",
+        1.0,
+        tex,
     );
-    match input5.norm() {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            h.check_abs(
-                "norm([3,4]) == 5",
-                f64::from(v[0]),
-                5.0,
-                tolerances::TENSOR_NORM_F32,
-            );
-        }
-        Err(e) => h.check_bool(&format!("norm [ERROR: {e}]"), false),
-    }
+    validate_tensor_reduction(
+        h,
+        device,
+        &[3.0, 4.0],
+        &[2],
+        Tensor::norm,
+        "norm([3,4]) == 5",
+        5.0,
+        tolerances::TENSOR_NORM_F32,
+    );
 }
 
 // ── Extended activations ────────────────────────────────────────────────
@@ -913,54 +870,42 @@ fn validate_log_softmax(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Activations now fixed upstream (S-05, S-06) ────────────────────────
 
 fn validate_leaky_relu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = require!(
+    use neural_spring::validation::validate_tensor_unary;
+    let tol = tolerances::TENSOR_EXACT_F32;
+    validate_tensor_unary(
         h,
-        tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[-2.0, -1.0, 0.0, 1.0, 2.0],
+        &[5],
+        |t| t.clone().leaky_relu_wgsl_with_slope(0.01),
+        "leaky_relu",
+        &[
+            ("leaky_relu(-2, 0.01) ≈ -0.02", 0, -0.02, tol),
+            ("leaky_relu(0) == 0", 2, 0.0, tol),
+            ("leaky_relu(2) == 2", 4, 2.0, tol),
+        ],
     );
-    match input.leaky_relu_wgsl_with_slope(0.01) {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[
-                    ("leaky_relu(-2, 0.01) ≈ -0.02", 0, -0.02, tol),
-                    ("leaky_relu(0) == 0", 2, 0.0, tol),
-                    ("leaky_relu(2) == 2", 4, 2.0, tol),
-                ],
-            );
-        }
-        Err(e) => h.check_bool(&format!("leaky_relu [ERROR: {e}]"), false),
-    }
 }
 
 fn validate_elu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = require!(
+    use neural_spring::validation::validate_tensor_unary;
+    let tex = tolerances::TENSOR_EXACT_F32;
+    validate_tensor_unary(
         h,
-        tensor(&[-2.0, -1.0, 0.0, 1.0, 2.0], vec![5], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[-2.0, -1.0, 0.0, 1.0, 2.0],
+        &[5],
+        |t| t.clone().elu_wgsl(),
+        "elu",
+        &[
+            (
+                "elu(-2, 1.0)",
+                0,
+                (-2.0_f64).exp_m1(),
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            ),
+            ("elu(0) == 0", 2, 0.0, tex),
+            ("elu(2) == 2", 4, 2.0, tex),
+        ],
     );
-    match input.elu_wgsl() {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tex = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[
-                    (
-                        "elu(-2, 1.0)",
-                        0,
-                        (-2.0_f64).exp_m1(),
-                        tolerances::TENSOR_TRANSCENDENTAL_F32,
-                    ),
-                    ("elu(0) == 0", 2, 0.0, tex),
-                    ("elu(2) == 2", 4, 2.0, tex),
-                ],
-            );
-        }
-        Err(e) => h.check_bool(&format!("elu [ERROR: {e}]"), false),
-    }
 }

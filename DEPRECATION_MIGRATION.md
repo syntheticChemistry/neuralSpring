@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 26, 2026 (Sessions 44–79)
-**ToadStool HEAD**: `17932267` (S79: 94.53% coverage, 581 tests, 107+ tolerances, pure GPU all-domains 10/10, cross-system dispatch 46/46, cross-spring evolution 52/52)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 38 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39, WDM surrogates validated (CPU + GPU)
+**Date**: February 26, 2026 (Sessions 44–80)
+**ToadStool HEAD**: `17932267` (S80: 93.5% coverage, 604 tests, 107+ named tolerances, zero inline magic numbers, all unwrap() eliminated in validation binaries)
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 38 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39, WDM surrogates validated (CPU + GPU), S80: debt audit resolved all remaining quality items
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed
@@ -137,5 +137,18 @@ for full diagnosis, reproduction steps, and recommended fixes.
 | `#![allow]` tightened | `validate_gpu_phase_b.rs` (9→4), `anderson_localization.rs`, `swarm_robotics.rs`, 4 binaries | Underlying code fixed, redundant suppression removed |
 | Test coverage push | 264→459 lib tests, 83%→92.9% line coverage | 110 new tests across 12 modules |
 | `.expect()` → graceful exits | All non-test production code | Zero `.expect()` / `.unwrap()` / `todo!()` in production |
+
+## Session 80 — Comprehensive Debt Audit (February 26, 2026)
+
+| Change | Scope | Impact |
+|--------|-------|--------|
+| Inline `1e-30` guards promoted | `gpu_ops/reduction.rs`, `gpu_ops/population.rs`, `wdm_surrogate.rs` | All 4 sites → `tolerances::LOG_ZERO_GUARD` |
+| Tolerance derivation annotations | `tolerances/mod.rs` | `LOG_ZERO_GUARD`, `SWARM_FITNESS_COMPARISON`, `KAPPUS_WEGNER_REL` documented |
+| Validation binary modernization | `validate_barracuda_wdm_eos.rs` | 16 `unwrap()` → `Result<Vec<f32>, String>` via `gpu_mlp_forward` |
+| Shared validation helpers | `validation.rs` | `validate_tensor_unary` + `validate_tensor_reduction` extracted |
+| Large binary refactoring | `validate_barracuda_tensor.rs` | 966 → 911 lines via shared helpers |
+| Coverage expansion | `wdm_surrogate.rs`, `basecamp.rs` (tests_cpu.rs) | 14 + 12 new tests; 604 total lib tests, 93.5% coverage |
+| WDM EOS provenance | `provenance.rs` | Added `WDM_EOS_PROVENANCE` record |
+| CI evolution | `baselines.yml`, `rust.yml` | Artifact upload + cross-validation job |
 
 *Migration guide — neuralSpring rewired to modern ToadStool/BarraCUDA.*

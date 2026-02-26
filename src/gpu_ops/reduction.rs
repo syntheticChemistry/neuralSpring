@@ -264,7 +264,8 @@ pub fn chi_squared_gpu(
 ) -> Result<f64, String> {
     let n = observed.len();
     let obs_f32: Vec<f32> = observed.iter().map(|&x| x as f32).collect();
-    let exp_f32: Vec<f32> = expected.iter().map(|&x| (x as f32).max(1e-30)).collect();
+    let guard = crate::tolerances::LOG_ZERO_GUARD as f32;
+    let exp_f32: Vec<f32> = expected.iter().map(|&x| (x as f32).max(guard)).collect();
 
     let obs_t = Tensor::from_data(&obs_f32, vec![n], device.clone())
         .map_err(|e| format!("chi2 obs: {e}"))?;

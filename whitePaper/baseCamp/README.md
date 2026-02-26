@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 26, 2026 (Sessions 61–79)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates, 2250+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 38 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (52/52 PASS, 19/19 bench), zero debt, 94.53% coverage (581 tests), 107+ named tolerances, zero ad-hoc magic numbers, all deps Pure Rust (ecoBin compliant), 100% SPDX compliance, S77: WDM surrogates (nW-01/nW-02/nW-04) + baseCamp GPU pure (5/5 sub-theses) + 9 sovereign folding shaders, S78–S79: ToadStool S66 absorption + complete cross-spring rewiring (mae, shannon, hill×2, l2\_distance, fit\_linear)
+**Last Updated**: February 26, 2026 (Sessions 61–80)
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates, 2250+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 38 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (52/52 PASS, 19/19 bench), zero debt, 93.5% coverage (604 tests), 107+ named tolerances, zero inline magic numbers (all promoted to named tolerances), all deps Pure Rust (ecoBin compliant), 100% SPDX compliance, S80: comprehensive debt audit — wdm\_surrogate coverage 43→98%, basecamp coverage 49→91%, 16 unwrap() eliminated, all inline guards promoted to tolerances::LOG\_ZERO\_GUARD, WDM EOS provenance complete, CI cross-validation job added
 
 ## Purpose
 

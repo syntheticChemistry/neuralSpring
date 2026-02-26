@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 26, 2026 (Sessions 40–79)
-**ToadStool HEAD**: `17932267` (S58–S79: 38 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 94.53% coverage (581 tests), 100% SPDX, zero ad-hoc magic numbers, S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks, S76: modern BarraCUDA rewiring, S77: WDM surrogates + baseCamp GPU pure + 9 sovereign folding shaders, S78–S79: ToadStool S66 absorption + complete cross-spring rewiring (52/52 validator, 19/19 benchmark))
+**Date**: February 26, 2026 (Sessions 40–80)
+**ToadStool HEAD**: `17932267` (S58–S80: 38 functions rewired + 6 validator shader sources → upstream constants, S-03b fully resolved upstream, 21/21 shaders absorbed, Phase C GPU 44 ops ~97%, CPU↔Python parity 39/39, deep audit II S70: 107+ tolerances, 93.5% coverage (604 tests), 100% SPDX, zero inline magic numbers (all named tolerances), S74: 9-domain pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, evolution tier benchmarks, S76: modern BarraCUDA rewiring, S77: WDM surrogates + baseCamp GPU pure + 9 sovereign folding shaders, S78–S79: ToadStool S66 absorption + complete cross-spring rewiring (52/52 validator, 19/19 benchmark), S80: comprehensive debt audit — 604 lib tests, wdm\_surrogate 97.6%, basecamp 90.6%, 16 unwrap eliminated, LOG\_ZERO\_GUARD centralized, WDM EOS provenance, CI cross-validation)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source)
 
@@ -17,7 +17,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 206/206 | **COMPLETE** |
-| Rust native validation | 581 lib + 9 integration + 43 forge tests, 37 modules, 166 binaries | **COMPLETE** |
+| Rust native validation | 604 lib + 9 integration + 43 forge tests, 37 modules, 166 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -640,5 +640,30 @@ Complete cross-spring provenance mapped: hotSpring precision, wetSpring bio, neu
 || Session 69: Shader source rewire | 6 validators → upstream barracuda constants | **LEAN** |
 || Session 69: Cross-spring bench | 10/10 upstream ≈ local, 39/39 evolution PASS | **ALL GREEN** |
 || Session 69: validate_all | 147/148 PASS (1 pre-existing logsumexp) | **ALL GREEN** |
+
+### Session 80 — Comprehensive Debt Audit and Coverage Expansion (February 26, 2026)
+
+Full codebase audit followed by systematic debt resolution. All inline magic numbers
+promoted to named tolerances. Validation binary error handling evolved from `unwrap()`
+to graceful Result-based flow. Low-coverage modules brought above 90% target.
+Shared validation helpers extracted for reuse across binaries.
+
+| Action | Detail |
+|--------|--------|
+| **WDM EOS provenance** | Added `WDM_EOS_PROVENANCE` record with script, commit, date, command, environment |
+| **Tolerance evolution** | 4 inline `1e-30` guards → `tolerances::LOG_ZERO_GUARD` (reduction, population, wdm_surrogate) |
+| **Tolerance documentation** | Derivation annotations for `LOG_ZERO_GUARD`, `SWARM_FITNESS_COMPARISON`, `KAPPUS_WEGNER_REL` |
+| **Coverage: wdm_surrogate** | 43.3% → 97.6% — 14 new tests (JSON parsing, edge cases, error paths) |
+| **Coverage: basecamp** | 48.7% → 90.6% — 12 new tests (landscape, spectral, propagation, belief, interaction) |
+| **Binary evolution** | `validate_barracuda_wdm_eos`: 16 `unwrap()` → `Result<Vec<f32>, String>` via `gpu_mlp_forward` |
+| **Shared helpers** | `validate_tensor_unary` + `validate_tensor_reduction` extracted to `validation.rs` |
+| **Binary refactoring** | `validate_barracuda_tensor.rs`: 966 → 911 lines via shared helpers |
+| **Baselines script** | Added WDM EOS + ML inference; enhanced with git commit, tree state, dep versions |
+| **CI evolution** | `baselines.yml`: artifact upload. `rust.yml`: cross-validation job (Python + Rust parity) |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 604 lib ✓ · doc ✓ · 93.5% coverage |
+
+|| Session 80: Debt audit | 604 lib tests, 93.5% coverage, zero inline magic numbers | **ALL GREEN** |
+|| Session 80: Coverage | wdm_surrogate 97.6%, basecamp 90.6% (both >90% target) | **COMPLETE** |
+|| Session 80: Binary evolution | 16 unwrap → Result, 2 shared validation helpers | **EVOLVED** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

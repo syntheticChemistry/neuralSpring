@@ -7,7 +7,7 @@ ten experiments spanning function approximation, transformer attention, sequence
 forecasting, transfer learning, cross-domain architecture analysis, physics-informed
 neural networks, operator learning, convolutional networks, real-data LSTM, and
 quantized inference. All **206 quantitative checks pass** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++).
-Phase 1–5h Rust validation adds **2040+ Rust+GPU checks** (581 lib + 9 integration tests + 166 validation binaries across 37 modules + 2 evolved + gpu_ops/ + gpu_dispatch). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
+Phase 1–5h Rust validation adds **2040+ Rust+GPU checks** (604 lib + 9 integration tests + 166 validation binaries across 37 modules + 2 evolved + gpu_ops/ + gpu_dispatch). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
 The 3-way benchmark (Python vs CPU vs GPU) with double-buffered evolved shaders
 achieves **GPU 104× faster** than Python at 103M FLOPs and **CPU 3.9× faster**
 at the same scale.

@@ -3,7 +3,7 @@
 #
 # Python baseline drift detector for neuralSpring CI.
 #
-# Re-runs all 25 Python control experiments and verifies they still produce
+# Re-runs all 27 Python control experiments and verifies they still produce
 # the same pass/fail results. Any failure indicates baseline drift — either
 # a dependency update changed numeric behavior, or a script was modified
 # without updating the Rust validation targets.
@@ -56,6 +56,8 @@ MODULES=(
     "meta_population/meta_population.py"
     "pinn/pinn_burgers.py"
     "deeponet/deeponet_antideriv.py"
+    "wdm/eos_surrogate.py"
+    "ml_inference/generate_baselines.py"
 )
 
 run_module() {

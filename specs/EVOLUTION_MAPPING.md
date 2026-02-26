@@ -162,7 +162,7 @@ For each Rust module → GPU promotion:
 - [x] WGSL shader exists in BarraCUDA or is planned
 - [x] Validation binary follows hotSpring pattern (exit 0/1)
 - [x] Performance meets or exceeds Python baseline
-- [x] Test coverage ≥ 90% (94.53% line via `cargo llvm-cov`)
+- [x] Test coverage ≥ 90% (93.5% line via `cargo llvm-cov`)
 
 ---
 

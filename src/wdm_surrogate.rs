@@ -55,8 +55,9 @@ impl EosSurrogate {
     /// Returns `(P_predicted, E_predicted)` in original units.
     #[must_use]
     pub fn predict(&self, rho: f64, temperature: f64) -> (f64, f64) {
-        let log_rho = (rho + 1e-30).log10();
-        let log_t = (temperature + 1e-30).log10();
+        let guard = crate::tolerances::LOG_ZERO_GUARD;
+        let log_rho = (rho + guard).log10();
+        let log_t = (temperature + guard).log10();
 
         let x0 = (log_rho - self.norm.x_mean[0]) / self.norm.x_std[0];
         let x1 = (log_t - self.norm.x_mean[1]) / self.norm.x_std[1];
@@ -189,30 +190,35 @@ fn parse_f64_array(obj: &serde_json::Value, key: &str) -> Result<[f64; 2], Strin
 mod tests {
     use super::*;
 
-    #[test]
-    fn surrogate_predict_deterministic() {
-        let layer0 = MlpLayer {
-            weights: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-            bias: vec![0.0, 0.0, 0.0, 0.0],
-            in_features: 2,
-            out_features: 4,
-        };
-        let layer1 = MlpLayer {
-            weights: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-            bias: vec![0.0, 0.0],
-            in_features: 4,
-            out_features: 2,
-        };
-        let surr = EosSurrogate {
+    fn test_surrogate() -> EosSurrogate {
+        EosSurrogate {
             element: "test".to_string(),
-            layers: vec![layer0, layer1],
+            layers: vec![
+                MlpLayer {
+                    weights: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                    bias: vec![0.0, 0.0, 0.0, 0.0],
+                    in_features: 2,
+                    out_features: 4,
+                },
+                MlpLayer {
+                    weights: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                    bias: vec![0.0, 0.0],
+                    in_features: 4,
+                    out_features: 2,
+                },
+            ],
             norm: Normalization {
                 x_mean: [0.0, 4.0],
                 x_std: [1.0, 1.0],
                 y_mean: [0.0, 0.0],
                 y_std: [1.0, 1.0],
             },
-        };
+        }
+    }
+
+    #[test]
+    fn surrogate_predict_deterministic() {
+        let surr = test_surrogate();
         let (p1, e1) = surr.predict(1.0, 10000.0);
         let (p2, e2) = surr.predict(1.0, 10000.0);
         assert!(
@@ -223,5 +229,183 @@ mod tests {
             (e1 - e2).abs() < f64::EPSILON,
             "predict must be deterministic"
         );
+    }
+
+    #[test]
+    fn surrogate_predict_finite_output() {
+        let surr = test_surrogate();
+        for &(rho, t) in &[(1.0, 1e5), (0.01, 1e3), (100.0, 1e7), (1e-10, 1.0)] {
+            let (p, e) = surr.predict(rho, t);
+            assert!(p.is_finite(), "P not finite for rho={rho}, T={t}");
+            assert!(e.is_finite(), "E not finite for rho={rho}, T={t}");
+        }
+    }
+
+    #[test]
+    fn surrogate_predict_zero_inputs_safe() {
+        let surr = test_surrogate();
+        let (p, e) = surr.predict(0.0, 0.0);
+        assert!(p.is_finite(), "P must be finite for zero inputs");
+        assert!(e.is_finite(), "E must be finite for zero inputs");
+    }
+
+    #[test]
+    fn surrogate_predict_very_small_inputs() {
+        let surr = test_surrogate();
+        let (p, e) = surr.predict(1e-300, 1e-300);
+        assert!(p.is_finite(), "P must be finite for tiny inputs");
+        assert!(e.is_finite(), "E must be finite for tiny inputs");
+    }
+
+    #[test]
+    fn surrogate_predict_large_inputs() {
+        let surr = test_surrogate();
+        let (p, e) = surr.predict(1e10, 1e10);
+        assert!(p.is_finite(), "P must be finite for large inputs");
+        assert!(e.is_finite(), "E must be finite for large inputs");
+    }
+
+    #[test]
+    fn surrogate_normalization_identity() {
+        let surr = EosSurrogate {
+            element: "id".to_string(),
+            layers: vec![MlpLayer {
+                weights: vec![1.0, 0.0, 0.0, 1.0],
+                bias: vec![0.0, 0.0],
+                in_features: 2,
+                out_features: 2,
+            }],
+            norm: Normalization {
+                x_mean: [0.0, 0.0],
+                x_std: [1.0, 1.0],
+                y_mean: [0.0, 0.0],
+                y_std: [1.0, 1.0],
+            },
+        };
+        let (p, e) = surr.predict(10.0, 10.0);
+        assert!(p.is_finite());
+        assert!(e.is_finite());
+    }
+
+    #[test]
+    fn surrogate_relu_clips_negative() {
+        let surr = EosSurrogate {
+            element: "relu".to_string(),
+            layers: vec![
+                MlpLayer {
+                    weights: vec![-1.0, 0.0, 0.0, -1.0],
+                    bias: vec![0.0, 0.0],
+                    in_features: 2,
+                    out_features: 2,
+                },
+                MlpLayer {
+                    weights: vec![1.0, 0.0, 0.0, 1.0],
+                    bias: vec![0.0, 0.0],
+                    in_features: 2,
+                    out_features: 2,
+                },
+            ],
+            norm: Normalization {
+                x_mean: [0.0, 0.0],
+                x_std: [1.0, 1.0],
+                y_mean: [0.0, 0.0],
+                y_std: [1.0, 1.0],
+            },
+        };
+        let (p, e) = surr.predict(10.0, 10.0);
+        assert!(
+            p.abs() <= 1.0 + f64::EPSILON,
+            "ReLU should clip negative hidden activations, got P={p}"
+        );
+        assert!(
+            e.abs() <= 1.0 + f64::EPSILON,
+            "ReLU should clip negative hidden activations, got E={e}"
+        );
+    }
+
+    fn valid_json() -> &'static str {
+        r#"{
+            "elements": {
+                "H": {
+                    "normalization": {
+                        "x_mean": [0.0, 4.0],
+                        "x_std": [1.0, 1.0],
+                        "y_mean": [0.0, 0.0],
+                        "y_std": [1.0, 1.0]
+                    },
+                    "weights": [
+                        {"weights": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                         "bias": [0.0, 0.0, 0.0, 0.0],
+                         "in_features": 2, "out_features": 4},
+                        {"weights": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                         "bias": [0.0, 0.0],
+                         "in_features": 4, "out_features": 2}
+                    ]
+                }
+            }
+        }"#
+    }
+
+    #[test]
+    fn load_surrogate_valid_json() {
+        let surr = load_surrogate_from_json(valid_json(), "H");
+        assert!(surr.is_ok(), "valid JSON should parse: {surr:?}");
+        let surr = surr.unwrap_or_else(|e| panic!("{e}"));
+        assert_eq!(surr.element, "H");
+        assert_eq!(surr.layers.len(), 2);
+        assert_eq!(surr.layers[0].in_features, 2);
+        assert_eq!(surr.layers[0].out_features, 4);
+        assert_eq!(surr.layers[1].in_features, 4);
+        assert_eq!(surr.layers[1].out_features, 2);
+    }
+
+    #[test]
+    fn load_surrogate_roundtrip() {
+        let surr = load_surrogate_from_json(valid_json(), "H").unwrap_or_else(|e| panic!("{e}"));
+        let (p, e) = surr.predict(1.0, 10000.0);
+        assert!(p.is_finite());
+        assert!(e.is_finite());
+    }
+
+    #[test]
+    fn load_surrogate_missing_element() {
+        let result = load_surrogate_from_json(valid_json(), "Xe");
+        assert!(result.is_err());
+        let err = result.err().expect("already asserted is_err");
+        assert!(
+            err.contains("not found"),
+            "error should mention missing element, got: {err}"
+        );
+    }
+
+    #[test]
+    fn load_surrogate_invalid_json() {
+        let result = load_surrogate_from_json("not json", "H");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn load_surrogate_missing_normalization() {
+        let json = r#"{"elements": {"H": {"weights": []}}}"#;
+        let result = load_surrogate_from_json(json, "H");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn load_surrogate_short_normalization_array() {
+        let json = r#"{"elements": {"H": {
+            "normalization": {"x_mean": [0.0], "x_std": [1.0], "y_mean": [0.0], "y_std": [1.0]},
+            "weights": []
+        }}}"#;
+        let result = load_surrogate_from_json(json, "H");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_f64_array_rejects_non_float() {
+        let val: serde_json::Value =
+            serde_json::from_str(r#"{"arr": ["a", "b"]}"#).unwrap_or_else(|e| panic!("{e}"));
+        let result = parse_f64_array(&val, "arr");
+        assert!(result.is_err());
     }
 }

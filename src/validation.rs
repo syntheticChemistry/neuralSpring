@@ -442,6 +442,66 @@ macro_rules! gpu_tensor {
     };
 }
 
+/// Validate a unary tensor operation against expected point checks.
+///
+/// Handles the common pattern:
+///   create tensor → apply op → readback → `check_gpu_points`
+/// with graceful error recording on failure at any step.
+pub fn validate_tensor_unary(
+    h: &mut ValidationHarness,
+    device: &std::sync::Arc<barracuda::device::WgpuDevice>,
+    data: &[f32],
+    shape: &[usize],
+    op: impl FnOnce(
+        &barracuda::tensor::Tensor,
+    ) -> Result<barracuda::tensor::Tensor, barracuda::error::BarracudaError>,
+    op_name: &str,
+    checks: &[(&str, usize, f64, f64)],
+) {
+    let Some(input) = gpu_tensor(h, data, shape, device) else {
+        return;
+    };
+    match op(&input) {
+        Ok(out) => {
+            let Some(v) = gpu_readback(h, &out) else {
+                return;
+            };
+            check_gpu_points(h, &v, checks);
+        }
+        Err(e) => h.check_bool(&format!("{op_name} [ERROR: {e}]"), false),
+    }
+}
+
+/// Validate a scalar reduction (sum, mean, max, etc.) against an expected value.
+///
+/// Handles: create tensor → apply reduction op → readback scalar → check_abs.
+#[allow(clippy::too_many_arguments)]
+pub fn validate_tensor_reduction(
+    h: &mut ValidationHarness,
+    device: &std::sync::Arc<barracuda::device::WgpuDevice>,
+    data: &[f32],
+    shape: &[usize],
+    op: impl FnOnce(
+        &barracuda::tensor::Tensor,
+    ) -> Result<barracuda::tensor::Tensor, barracuda::error::BarracudaError>,
+    label: &str,
+    expected: f64,
+    tolerance: f64,
+) {
+    let Some(input) = gpu_tensor(h, data, shape, device) else {
+        return;
+    };
+    match op(&input) {
+        Ok(out) => {
+            let Some(v) = gpu_readback(h, &out) else {
+                return;
+            };
+            h.check_abs(label, f64::from(v[0]), expected, tolerance);
+        }
+        Err(e) => h.check_bool(&format!("{label} [ERROR: {e}]"), false),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

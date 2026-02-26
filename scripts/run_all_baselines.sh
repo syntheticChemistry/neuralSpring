@@ -145,18 +145,40 @@ run_experiment "Paper 025: Meta-Population Dynamics (Liu population genetics)" \
 
 echo ""
 echo "================================================================"
+echo "  Supplementary: Data Generation"
+echo "================================================================"
+
+run_experiment "WDM EOS Surrogate Baselines (nW-02)" \
+    control/wdm/eos_surrogate.py
+
+run_experiment "ML Inference Baselines (MLP + Transformer JSON)" \
+    control/ml_inference/generate_baselines.py
+
+echo ""
+echo "================================================================"
 echo "  GRAND SUMMARY"
 echo "  Passed: $PASS, Failed: $FAIL, Skipped: $SKIP"
 echo "  Total: $((PASS + FAIL + SKIP)) experiments"
 echo "================================================================"
 
 # Write JSON results for longitudinal tracking
+GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+GIT_DIRTY=$(git diff --quiet 2>/dev/null && echo "clean" || echo "dirty")
+NUMPY_VER=$(python3 -c "import numpy; print(numpy.__version__)" 2>/dev/null || echo "unknown")
+SCIPY_VER=$(python3 -c "import scipy; print(scipy.__version__)" 2>/dev/null || echo "unknown")
+TORCH_VER=$(python3 -c "import torch; print(torch.__version__)" 2>/dev/null || echo "unknown")
+
 sep=""
 {
     echo "{"
     echo "  \"timestamp\": \"$TIMESTAMP\","
     echo "  \"hostname\": \"$(hostname)\","
     echo "  \"python\": \"$(python3 --version 2>&1)\","
+    echo "  \"numpy\": \"$NUMPY_VER\","
+    echo "  \"scipy\": \"$SCIPY_VER\","
+    echo "  \"torch\": \"$TORCH_VER\","
+    echo "  \"commit\": \"$GIT_COMMIT\","
+    echo "  \"tree_state\": \"$GIT_DIRTY\","
     echo "  \"pass\": $PASS, \"fail\": $FAIL, \"skip\": $SKIP,"
     echo "  \"experiments\": ["
     for entry in "${RESULT_ENTRIES[@]}"; do

@@ -183,7 +183,7 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated.**
 
-Session 70: Deep audit II — 94.53% coverage (580 tests), tolerance macro refactor, streaming I/O, 100% SPDX (211/211 files), all files ≤1000 lines.
+Session 70: Deep audit II — 93.5% coverage (580 tests), tolerance macro refactor, streaming I/O, 100% SPDX (211/211 files), all files ≤1000 lines.
 Session 68-69: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 107+ named tolerances. 6 validator shader sources → upstream constants.
 Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10 cross-language).
 Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
@@ -384,7 +384,7 @@ validates correctness at every hardware tier:
 - Sources: in-code synthetic (deterministic seed 42), Open-Meteo ERA5 (CC BY 4.0),
   MNIST (CC BY-SA 3.0), published reference data (MIT/Apache-2.0)
 - No proprietary, paywalled, or access-restricted data
-- Python baseline drift detection: `control/check_drift.sh` (all 25 baselines)
+- Python baseline drift detection: `control/check_drift.sh` (all 27 baselines — 25 papers + WDM EOS + ML inference)
 
 ### Tier 2: BarraCUDA CPU (Rust native)
 - **24/25 papers** (203 checks, 96% coverage)
@@ -496,7 +496,7 @@ Confirming all papers have controls across the three hardware tiers:
 applicable tier. Two known gaps (Exp 005 analytical, tridiag eigensolver pending NAK).
 All controls use open data and open systems exclusively.
 
-**Session 70 addendum**: Deep audit II — 94.53% coverage (580 tests, up from 505/90.43%).
+**Session 70 addendum**: Deep audit II — 93.5% coverage (580 tests, up from 505/90.43%).
 Tolerance registry refactored to `tolerance_registry!` macro (891→257 lines, 107+ named).
 100% SPDX AGPL-3.0-or-later compliance (211/211 files). All files ≤1000 lines.
 BarraCUDA usage inventory: 90+ import sites, 60+ files, 20+ submodules, zero duplicate math.

@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–79 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains + modern BarraCUDA rewiring + WDM surrogates + baseCamp GPU pure + sovereign folding shaders + ToadStool S66 absorption + complete cross-spring rewiring)
+**Last updated**: February 26, 2026 (Sessions 44–80 — Phase C GPU + CPU parity + dispatch tier benchmarks + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains + modern BarraCUDA rewiring + WDM surrogates + baseCamp GPU pure + sovereign folding shaders + ToadStool S66 absorption + complete cross-spring rewiring + S80 comprehensive debt audit: coverage expansion, tolerance evolution, binary modernization)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 206/206 Python PASS + 2040+ Rust+GPU validation PASS = **2250+ total validation checks**
-**Library**: 581 lib tests + 9 integration tests + 43 forge tests | 37 modules + gpu_ops/ + gpu_dispatch | 166 validation/bench binaries
+**Library**: 604 lib tests + 9 integration tests + 43 forge tests | 37 modules + gpu_ops/ + gpu_dispatch | 166 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 9 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 5/5 sub-theses PASS) — Sessions 50, 54, 56, 77
@@ -14,8 +14,8 @@
 **GPU Promotion**: 44 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math)
 **Pure GPU All-Domains**: 10/10 PASS — `validate_gpu_pure_workload_all` (9 typed BarraCUDA GPU ops across all 15 Phase 0++ papers + determinism check, scalar-only readback)
 **WDM Surrogates**: 3 Python baselines (nW-01 transport, nW-02 EOS, nW-04 transfer learning) + 2 Rust validators (CPU + GPU) — `wdm_surrogate.rs` module
-**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero ad-hoc tolerances | zero bare `unwrap()` in validation code
-**Coverage**: 94.53% line coverage (llvm-cov), 107+ named tolerances in centralized registry
+**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (all promoted to named tolerances) | zero bare `unwrap()` in validation code | WDM EOS provenance complete
+**Coverage**: 93.5% line coverage (llvm-cov, 604 lib tests), 107+ named tolerances in centralized registry | wdm_surrogate 97.6% | basecamp 90.6%
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
 **ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `17932267` (S66 reviewed) | **38 functions rewired to upstream** + 6 validator shader sources rewired | S73: +4 Tensor API rewires, S76: +2 pearson\_correlation, S78: +6 stats/dispatch rewires (mae, shannon, hill×2, l2\_distance, fit\_linear)
 **Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 9 metalForge shaders aligned to `compile_shader_df64` convention
@@ -68,7 +68,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (581 lib tests + 9 integration + 43 forge tests, 166 validation binaries, 37 modules + gpu_ops/ + gpu_dispatch/)
+### Phase 1a: neuralSpring-Native Validation (604 lib tests + 9 integration + 43 forge tests, 166 validation binaries, 37 modules + gpu_ops/ + gpu_dispatch/)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
@@ -312,7 +312,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 46 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 206/206 |
-| Rust test | `cargo test` | **PASS** — 581 lib tests + 9 integration tests |
+| Rust test | `cargo test` | **PASS** — 604 lib tests + 9 integration tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -333,7 +333,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (581 lib + 9 integration + 43 forge tests, 166 binaries, 37 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (604 lib + 9 integration + 43 forge tests, 166 binaries, 37 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -725,3 +725,15 @@ Full barracuda usage audit: 90+ import sites, 20+ submodules, zero duplicates. T
 ### Session 74 — Pure GPU All-Domains Workload + Evolution Tier Benchmarks (February 26, 2026)
 
 Comprehensive pure GPU validation across all 15 Phase 0++ paper domains (9 typed BarraCUDA ops) + evolution tier benchmark (CPU→GPU portability for 8 kernels) + metalForge cross-system dispatch validator. Three new binaries: `validate_gpu_pure_workload_all` (10/10 PASS), `bench_evolution_tiers` (8 kernels), `validate_cross_system_dispatch` (46/46 PASS: hardware discovery, 8 domain heuristics, CPU↔GPU parity for variance/Pearson/entropy, transfer cost hierarchy, NPU routing, crossover sweep). Key findings: f32/f64 precision boundary is systematic (domain ops f32, HMM/baseCamp f64), IPR needs pre-normalized eigenvectors, GPU dispatch overhead ~186µs dominates at validation scale but GPU wins at production scale. CPU→GPU crossover at ~1946µs (1.29× threshold). validate_all: 150/150 PASS (1 pre-existing logsumexp). 580 lib + 9 integration tests. Cross-spring lineage tracked: BatchIprGpu from hotSpring spectral, HmmBatchForwardF64 from wetSpring bio, SpatialPayoffGpu from wetSpring game theory.
+
+### Session 80 — Comprehensive Debt Audit and Coverage Expansion (February 26, 2026)
+
+Full codebase audit with systematic debt resolution. Key deliverables:
+
+1. **Provenance**: Added `WDM_EOS_PROVENANCE` record with script, commit, date, command, environment.
+2. **Tolerance evolution**: 4 inline `1e-30` guards → `tolerances::LOG_ZERO_GUARD` (reduction, population, wdm_surrogate). Derivation annotations added for `LOG_ZERO_GUARD`, `SWARM_FITNESS_COMPARISON`, `KAPPUS_WEGNER_REL`.
+3. **Coverage expansion**: `wdm_surrogate.rs` 43.3% → 97.6% (14 tests), `basecamp.rs` 48.7% → 90.6% (12 tests). Library total: 604 tests, 93.5%.
+4. **Binary evolution**: `validate_barracuda_wdm_eos.rs` — 16 `unwrap()` → `Result<Vec<f32>, String>` via `gpu_mlp_forward` helper.
+5. **Shared helpers**: `validate_tensor_unary` + `validate_tensor_reduction` extracted to `validation.rs`. `validate_barracuda_tensor.rs` 966 → 911 lines.
+6. **CI evolution**: Baseline artifact upload for longitudinal tracking. Cross-validation job (Python + Rust parity in CI).
+7. **Baselines**: WDM EOS + ML inference added to `run_all_baselines.sh`. Enhanced JSON output with git commit, tree state, numpy/scipy/torch versions.

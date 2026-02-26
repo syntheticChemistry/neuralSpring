@@ -557,7 +557,7 @@ Pearson gains f64 precision with modest speedup.
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --workspace -- -D warnings` (pedantic + nursery) | 0 warnings |
-| `cargo test --workspace` | 581 lib + 43 forge + 9 integration PASS |
+| `cargo test --workspace` | 604 lib + 43 forge + 9 integration PASS |
 | `validate_all` | **150/150 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
 | `bench_cross_spring_evolution` | **19/19 PASS** |

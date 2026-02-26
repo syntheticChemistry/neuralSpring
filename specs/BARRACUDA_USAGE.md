@@ -936,4 +936,42 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–79: 38 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 581 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 107+ tolerances, 94.53% coverage. Session 69: shader rewiring complete. Session 73: 4 Tensor API rewires, cross-spring validator 39/39 PASS. Session 74: pure GPU all-domains 10/10, cross-system dispatch 46/46. Session 75: ToadStool S60–S65 sync, 9 stats rewires. Session 76: +2 pearson\_correlation rewires. Session 77: WDM surrogates (3 Python baselines + 2 Rust validators), baseCamp GPU pure (5/5 sub-theses), 9 sovereign folding f64 shaders. Sessions 78–79: ToadStool S66 absorption, +6 rewires (mae, shannon, hill×2, l2\_distance, fit\_linear), 9 metalForge shaders aligned to `compile_shader_df64`, cross-spring evolution 52/52 PASS, 19/19 benchmark PASS.*
+## Session 80 — Comprehensive Debt Audit (February 26, 2026)
+
+### Audit Results
+
+Full barracuda usage audit confirmed: 16 submodules consumed, 90+ import sites,
+zero duplicate math. Every barracuda primitive that exists is used where applicable.
+
+### Changes
+
+| Change | BarraCUDA Impact |
+|--------|-----------------|
+| 4 inline `1e-30` → `tolerances::LOG_ZERO_GUARD` | Guards in `gpu_ops/reduction.rs`, `gpu_ops/population.rs`, `wdm_surrogate.rs` now use centralized constant |
+| `validate_tensor_unary` + `validate_tensor_reduction` | Shared helpers extracted to `validation.rs` — generalizes tensor validation pattern |
+| `validate_barracuda_wdm_eos.rs` evolution | 16 `unwrap()` → `Result<Vec<f32>, String>` via `gpu_mlp_forward` helper |
+| `validate_barracuda_tensor.rs` refactoring | 966 → 911 lines via shared validation helpers |
+| Coverage expansion | `wdm_surrogate.rs` 43→98%, `basecamp.rs` 49→91% (604 lib tests total) |
+
+### Identified Gaps for ToadStool
+
+| # | Gap | Priority |
+|---|-----|----------|
+| 1 | `barracuda::nn::SimpleMLP` (JSON weight loading + forward pass) | High |
+| 2 | `validate_tensor_unary` / `validate_tensor_reduction` in `barracuda::validation` | Medium |
+| 3 | `variance(data, ddof)` — population vs sample in one API | Medium |
+| 4 | `harness.check_abs_result()` — Result-aware validation check | Low |
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo test --lib` | **604 PASS** |
+| `cargo test -p neural-spring-forge --lib` | **43 PASS** |
+| Coverage | **93.5%** (target 90%) |
+| Inline magic numbers | **0** |
+| `unwrap()` in non-test | **0** |
+
+---
+
+*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–80: 38 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 166 binaries, 604 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 68: zero duplicate math, zero debt, 107+ tolerances. Session 69: shader rewiring complete. Session 73: 4 Tensor API rewires, cross-spring validator 39/39 PASS. Session 74: pure GPU all-domains 10/10, cross-system dispatch 46/46. Sessions 75–79: ToadStool S66 absorption, complete cross-spring rewiring, 52/52 PASS, 19/19 benchmark. Session 80: comprehensive debt audit — 604 tests, 93.5% coverage, zero inline magic, tolerance evolution, binary modernization, shared validation helpers, CI cross-validation.*

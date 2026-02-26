@@ -14,7 +14,6 @@
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::unwrap_used,
     clippy::many_single_char_names
 )]
 
@@ -43,28 +42,28 @@ async fn main() {
     let mut h = ValidationHarness::new("barracuda_wdm_eos");
 
     for element in ["H", "He", "C"] {
-        let surrogate = wdm_surrogate::load_surrogate_from_json(BASELINE_JSON, element)
-            .unwrap_or_else(|e| panic!("Failed to load {element}: {e}"));
+        let surrogate = match wdm_surrogate::load_surrogate_from_json(BASELINE_JSON, element) {
+            Ok(s) => s,
+            Err(e) => {
+                h.check_bool(&format!("{element}: JSON load"), false);
+                eprintln!("FATAL: failed to load {element}: {e}");
+                h.finish();
+            }
+        };
         validate_gpu_mlp(&mut h, &surrogate, &device);
     }
 
     h.finish();
 }
 
-fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &EosSurrogate, device: &Dev) {
-    let elem = &surr.element;
-
-    let test_rho = 1.0_f64;
-    let test_t = 100_000.0_f64;
-    let (cpu_p, cpu_e) = surr.predict(test_rho, test_t);
-
-    let log_rho = (test_rho + 1e-30).log10();
-    let log_t = (test_t + 1e-30).log10();
-    let x0 = ((log_rho - surr.norm.x_mean[0]) / surr.norm.x_std[0]) as f32;
-    let x1 = ((log_t - surr.norm.x_mean[1]) / surr.norm.x_std[1]) as f32;
-
+fn gpu_mlp_forward(
+    surr: &EosSurrogate,
+    x0: f32,
+    x1: f32,
+    device: &Dev,
+) -> Result<Vec<f32>, String> {
     let mut current = Tensor::from_data(&[x0, x1], vec![1, 2], device.clone())
-        .unwrap_or_else(|e| panic!("Tensor creation failed: {e}"));
+        .map_err(|e| format!("input tensor: {e}"))?;
 
     for (i, layer) in surr.layers.iter().enumerate() {
         let w_f32: Vec<f32> = layer.weights.iter().map(|&v| v as f32).collect();
@@ -75,22 +74,56 @@ fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &EosSurrogate, device: &Dev
             vec![layer.out_features, layer.in_features],
             device.clone(),
         )
-        .unwrap();
+        .map_err(|e| format!("layer {i} W: {e}"))?;
 
-        let z = current.matmul(&w_tensor.transpose().unwrap()).unwrap();
+        let w_t = w_tensor
+            .transpose()
+            .map_err(|e| format!("layer {i} W^T: {e}"))?;
 
-        let b_tensor =
-            Tensor::from_data(&b_f32, vec![1, layer.out_features], device.clone()).unwrap();
-        let z_biased = z.add(&b_tensor).unwrap();
+        let z = current
+            .matmul(&w_t)
+            .map_err(|e| format!("layer {i} matmul: {e}"))?;
+
+        let b_tensor = Tensor::from_data(&b_f32, vec![1, layer.out_features], device.clone())
+            .map_err(|e| format!("layer {i} b: {e}"))?;
+
+        let z_biased = z
+            .add(&b_tensor)
+            .map_err(|e| format!("layer {i} add: {e}"))?;
 
         current = if i < surr.layers.len() - 1 {
-            z_biased.relu().unwrap()
+            z_biased
+                .relu()
+                .map_err(|e| format!("layer {i} relu: {e}"))?
         } else {
             z_biased
         };
     }
 
-    let gpu_output = current.to_vec().unwrap();
+    current.to_vec().map_err(|e| format!("readback: {e}"))
+}
+
+fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &EosSurrogate, device: &Dev) {
+    let elem = &surr.element;
+    let guard = neural_spring::tolerances::LOG_ZERO_GUARD;
+
+    let test_rho = 1.0_f64;
+    let test_t = 100_000.0_f64;
+    let (cpu_p, cpu_e) = surr.predict(test_rho, test_t);
+
+    let log_rho = (test_rho + guard).log10();
+    let log_t = (test_t + guard).log10();
+    let x0 = ((log_rho - surr.norm.x_mean[0]) / surr.norm.x_std[0]) as f32;
+    let x1 = ((log_t - surr.norm.x_mean[1]) / surr.norm.x_std[1]) as f32;
+
+    let gpu_output = match gpu_mlp_forward(surr, x0, x1, device) {
+        Ok(out) => out,
+        Err(e) => {
+            h.check_bool(&format!("{elem}: GPU forward pass"), false);
+            eprintln!("  GPU forward failed for {elem}: {e}");
+            return;
+        }
+    };
 
     let gpu_log_p_norm = f64::from(gpu_output[0]);
     let gpu_log_e_norm = f64::from(gpu_output[1]);
@@ -104,7 +137,6 @@ fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &EosSurrogate, device: &Dev
     h.check_bool(&format!("{elem}: GPU P is finite"), gpu_p.is_finite());
     h.check_bool(&format!("{elem}: GPU E is finite"), gpu_e.is_finite());
 
-    // f32 GPU vs f64 CPU: expect f32 level parity
     let p_rel = if cpu_p.abs() > 1e-10 {
         ((gpu_p - cpu_p) / cpu_p).abs()
     } else {
@@ -125,31 +157,14 @@ fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &EosSurrogate, device: &Dev
         e_rel < tolerances::ML_MLP_F32,
     );
 
-    // Determinism
-    let current2 = {
-        let input2 = Tensor::from_data(&[x0, x1], vec![1, 2], device.clone()).unwrap();
-        let mut c = input2;
-        for (i, layer) in surr.layers.iter().enumerate() {
-            let w_f32: Vec<f32> = layer.weights.iter().map(|&v| v as f32).collect();
-            let b_f32: Vec<f32> = layer.bias.iter().map(|&v| v as f32).collect();
-            let w = Tensor::from_data(
-                &w_f32,
-                vec![layer.out_features, layer.in_features],
-                device.clone(),
-            )
-            .unwrap();
-            let z = c.matmul(&w.transpose().unwrap()).unwrap();
-            let b = Tensor::from_data(&b_f32, vec![1, layer.out_features], device.clone()).unwrap();
-            let zb = z.add(&b).unwrap();
-            c = if i < surr.layers.len() - 1 {
-                zb.relu().unwrap()
-            } else {
-                zb
-            };
+    let out2 = match gpu_mlp_forward(surr, x0, x1, device) {
+        Ok(out) => out,
+        Err(e) => {
+            h.check_bool(&format!("{elem}: GPU determinism (re-run)"), false);
+            eprintln!("  GPU determinism re-run failed for {elem}: {e}");
+            return;
         }
-        c
     };
-    let out2 = current2.to_vec().unwrap();
     h.check_bool(
         &format!("{elem}: GPU determinism"),
         (f64::from(gpu_output[0]) - f64::from(out2[0])).abs() < f64::EPSILON

@@ -242,7 +242,7 @@ pub fn pairwise_fst_gpu(
         denom += a + b + c;
     }
 
-    if denom.abs() < 1e-30 {
+    if denom.abs() < crate::tolerances::LOG_ZERO_GUARD {
         Ok(0.0)
     } else {
         Ok(numer / denom)
@@ -323,7 +323,7 @@ pub fn global_fst_gpu(
         denom += a + b + c_val;
     }
 
-    if denom.abs() < 1e-30 {
+    if denom.abs() < crate::tolerances::LOG_ZERO_GUARD {
         Ok(0.0)
     } else {
         Ok(numer / denom)

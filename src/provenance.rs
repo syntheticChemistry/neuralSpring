@@ -394,6 +394,17 @@ pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "baseline files generated (mlp_baseline.json, transformer_baseline.json)",
 };
 
+pub const WDM_EOS_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nW-02: WDM EOS Surrogate (H, He, C pressure/energy baselines)",
+    script: "control/wdm/eos_surrogate.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/wdm/eos_surrogate.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 3.0,
+    unit: "elements trained (H, He, C) → eos_surrogate_baseline.json",
+};
+
 /// `BarraCUDA` validation expected values are analytically derived — no Python
 /// dependency.  Provenance is mathematical: NIST DLMF, IEEE 754, and textbook
 /// formulas.
@@ -543,6 +554,7 @@ mod tests {
             &SPECTRAL_COMMUTATIVITY_PROVENANCE,
             &ANDERSON_LOCALIZATION_PROVENANCE,
             &ML_INFERENCE_PROVENANCE,
+            &WDM_EOS_PROVENANCE,
             &PANGENOME_SELECTION_PROVENANCE,
             &META_POPULATION_PROVENANCE,
         ];
