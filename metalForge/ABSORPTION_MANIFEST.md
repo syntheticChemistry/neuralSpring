@@ -93,8 +93,23 @@ New upstream capabilities available (not yet wired):
 
 | WGSL Shader | Library Export | Domain | Validation | Checks | Absorption Target |
 |-------------|--------------|--------|------------|--------|-------------------|
-| `head_split.wgsl` | `evolved::WGSL_HEAD_SPLIT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` |
-| `head_concat.wgsl` | `evolved::WGSL_HEAD_CONCAT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` |
+| `head_split.wgsl` | `evolved::WGSL_HEAD_SPLIT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` — absorbed upstream per TOADSTOOL_HANDOFF S-03b |
+| `head_concat.wgsl` | `evolved::WGSL_HEAD_CONCAT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` — absorbed upstream per TOADSTOOL_HANDOFF S-03b |
+
+### Newly wired upstream APIs (Session 89)
+
+| `BarraCUDA` API | `gpu_ops` wrapper | `Dispatcher` method | CPU fallback |
+|-----------------|-------------------|---------------------|-------------|
+| `HillGateGpu` | `hill_gate_gpu` | `Dispatcher::hill_gate()` | `signal_integration::two_input_hill` |
+| `MultiObjFitnessGpu` | `multi_obj_fitness_gpu` | `Dispatcher::multi_obj_fitness()` | `directed_evolution::multi_objective_fitness` |
+| `SwarmNnGpu` | `swarm_nn_forward_gpu` | `Dispatcher::swarm_nn_forward()` | `swarm_robotics::neural_forward` |
+
+### New validators (Session 89)
+
+| Binary | Domain | Checks | Status |
+|--------|--------|--------|--------|
+| `validate_barracuda_dispatch_parity` | CPU↔GPU math parity for 26 operations | 30 | 30/30 PASS |
+| `validate_mixed_hardware_dispatch` | Substrate routing, PCIe bridge, NUCLEUS atomics | 47 | 47/47 PASS |
 
 ### Cross-Dispatch Validators
 

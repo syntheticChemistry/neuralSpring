@@ -230,6 +230,10 @@ const BINARIES: &[&str] = &[
     "bench_modern_rewire",
     // BarraCUDA CPU parity + performance (Python/NumPy vs pure Rust)
     "validate_barracuda_cpu_bench",
+    // BarraCUDA dispatch parity (CPU ↔ GPU same math)
+    "validate_barracuda_dispatch_parity",
+    // Mixed-hardware dispatch (NPU/GPU/CPU substrate routing + PCIe bridge)
+    "validate_mixed_hardware_dispatch",
     // Portability tier benchmark (CPU → GPU parity + ToadStool streaming proof)
     "bench_portability_tiers",
 ];

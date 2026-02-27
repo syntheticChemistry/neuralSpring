@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Portability tier benchmark: Python → BarraCUDA CPU → BarraCUDA GPU.
+//! Portability tier benchmark: Python → `BarraCUDA` CPU → `BarraCUDA` GPU.
 //!
 //! Proves the same math is portable across all three execution tiers:
 //!
@@ -10,13 +10,13 @@
 //! Tier 3: BarraCUDA GPU (WGSL dispatch)  — same math, massively parallel
 //! ```
 //!
-//! For each domain, runs the BarraCUDA CPU computation and the BarraCUDA GPU
+//! For each domain, runs the `BarraCUDA` CPU computation and the `BarraCUDA` GPU
 //! Tensor/dispatch computation with identical inputs, verifies parity, and
 //! reports timing at each tier.
 //!
-//! ## ToadStool Streaming
+//! ## `ToadStool` Streaming
 //!
-//! ToadStool's unidirectional streaming pattern means:
+//! `ToadStool`'s unidirectional streaming pattern means:
 //! - Data flows HOST → GPU once (upload)
 //! - All computation stays GPU-resident
 //! - Only scalar summaries come back (readback)
@@ -27,7 +27,7 @@
 //!
 //! ## Cross-Spring Provenance
 //!
-//! | Domain | Papers | Spring Origin | ToadStool Shader |
+//! | Domain | Papers | Spring Origin | `ToadStool` Shader |
 //! |--------|--------|---------------|-----------------|
 //! | HMM forward | 016-018 | wetSpring metagenomics | `hmm_forward_log.wgsl` |
 //! | Batch fitness | 011-013 | neuralSpring neuroevolution | `batch_fitness_eval.wgsl` |
@@ -62,6 +62,7 @@ use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::hmm::Hmm;
 use neural_spring::modes;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::time::{Duration, Instant};
 use wgpu::util::DeviceExt;
@@ -72,8 +73,8 @@ const ITERS: usize = 50;
 fn median_us(samples: &mut [Duration]) -> f64 {
     samples.sort();
     let mid = samples.len() / 2;
-    if samples.len() % 2 == 0 {
-        (samples[mid - 1].as_secs_f64() + samples[mid].as_secs_f64()) / 2.0 * 1e6
+    if samples.len().is_multiple_of(2) {
+        f64::midpoint(samples[mid - 1].as_secs_f64(), samples[mid].as_secs_f64()) * 1e6
     } else {
         samples[mid].as_secs_f64() * 1e6
     }
@@ -110,7 +111,9 @@ fn main() {
     eprintln!();
 
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
-    let gpu = rt.block_on(async { Gpu::new().await }).expect("GPU required");
+    let gpu = rt
+        .block_on(async { Gpu::new().await })
+        .expect("GPU required");
 
     eprintln!(
         "  GPU: {} ({:?}, {:?})",
@@ -152,7 +155,9 @@ fn main() {
             let s: f64 = raw.iter().sum();
             raw.iter().map(|v| v / s).collect()
         };
-        let obs: Vec<usize> = (0..t_len).map(|_| rng.next_u64() as usize % n_sym).collect();
+        let obs: Vec<usize> = (0..t_len)
+            .map(|_| rng.next_u64() as usize % n_sym)
+            .collect();
 
         let hmm = Hmm::new(transition.clone(), emission.clone(), initial.clone());
         let (_, cpu_ll) = hmm.forward(&obs);
@@ -238,22 +243,33 @@ fn main() {
                 mapped_at_creation: false,
             });
             let _ = op.dispatch(
-                n_states as u32, n_sym as u32, t_len as u32, 1,
-                &log_a_buf, &log_b_buf, &log_pi_buf, &obs_buf, &alpha, &out,
+                n_states as u32,
+                n_sym as u32,
+                t_len as u32,
+                1,
+                &log_a_buf,
+                &log_b_buf,
+                &log_pi_buf,
+                &obs_buf,
+                &alpha,
+                &out,
             );
             let _ = std::hint::black_box(gpu.read_buffer_f64(&out, 1));
         });
 
         let diff = (gpu_ll - cpu_ll).abs();
-        let parity = diff < 1e-3;
+        let parity = diff < tolerances::TENSOR_TRANSCENDENTAL_F32;
         h.check_abs(
             &format!("HMM fwd GPU-CPU parity (diff={diff:.2e})"),
             gpu_ll,
             cpu_ll,
-            1e-3,
+            tolerances::TENSOR_TRANSCENDENTAL_F32,
         );
 
-        eprintln!("    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×", cpu_us / gpu_us);
+        eprintln!(
+            "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
+            cpu_us / gpu_us
+        );
         results.push(TierResult {
             domain: "HMM Forward",
             papers: "016-018",
@@ -281,7 +297,9 @@ fn main() {
             let total: f64 = (0..pop)
                 .map(|i| {
                     let base = i * glen;
-                    (0..glen).map(|g| genotypes[base + g] * weights[g]).sum::<f64>()
+                    (0..glen)
+                        .map(|g| genotypes[base + g] * weights[g])
+                        .sum::<f64>()
                 })
                 .sum();
             total / pop as f64
@@ -291,7 +309,9 @@ fn main() {
             let mut total = 0.0_f64;
             for i in 0..pop {
                 let base = i * glen;
-                total += (0..glen).map(|g| genotypes[base + g] * weights[g]).sum::<f64>();
+                total += (0..glen)
+                    .map(|g| genotypes[base + g] * weights[g])
+                    .sum::<f64>();
             }
             let _ = std::hint::black_box(total / pop as f64);
         });
@@ -334,15 +354,18 @@ fn main() {
         });
 
         let diff = (gpu_mean - cpu_mean).abs();
-        let parity = diff < 1e-3;
+        let parity = diff < tolerances::TENSOR_TRANSCENDENTAL_F32;
         h.check_abs(
             &format!("Batch fitness GPU-CPU parity (diff={diff:.2e})"),
             gpu_mean,
             cpu_mean,
-            1e-3,
+            tolerances::TENSOR_TRANSCENDENTAL_F32,
         );
 
-        eprintln!("    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×", cpu_us / gpu_us);
+        eprintln!(
+            "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
+            cpu_us / gpu_us
+        );
         results.push(TierResult {
             domain: "Batch Fitness",
             papers: "011-013",
@@ -433,7 +456,10 @@ fn main() {
             parity,
         );
 
-        eprintln!("    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×", cpu_us / gpu_us);
+        eprintln!(
+            "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
+            cpu_us / gpu_us
+        );
         results.push(TierResult {
             domain: "Pairwise L2",
             papers: "012",
@@ -465,15 +491,16 @@ fn main() {
             }
         }
 
-        let cpu_iprs = neural_spring::gpu_ops::disorder_sweep_gpu(
-            &hamiltonians, n, batch, &device,
-        )
-        .unwrap_or_default();
+        let cpu_iprs = neural_spring::gpu_ops::disorder_sweep_gpu(&hamiltonians, n, batch, &device)
+            .unwrap_or_default();
 
         let cpu_us = bench_fn(|| {
-            let _ = std::hint::black_box(
-                neural_spring::gpu_ops::disorder_sweep_gpu(&hamiltonians, n, batch, &device),
-            );
+            let _ = std::hint::black_box(neural_spring::gpu_ops::disorder_sweep_gpu(
+                &hamiltonians,
+                n,
+                batch,
+                &device,
+            ));
         });
 
         let gpu_us = cpu_us;
@@ -481,7 +508,9 @@ fn main() {
         let all_finite = cpu_iprs.iter().all(|v| v.is_finite());
         h.check_bool("Eigensolve+IPR GPU results finite", all_finite);
 
-        eprintln!("    GPU dispatch: {cpu_us:.1}µs (already GPU-resident via BatchedEighGpu+BatchIprGpu)");
+        eprintln!(
+            "    GPU dispatch: {cpu_us:.1}µs (already GPU-resident via BatchedEighGpu+BatchIprGpu)"
+        );
         results.push(TierResult {
             domain: "Eigensolve+IPR",
             papers: "022-023",
@@ -500,8 +529,12 @@ fn main() {
     eprintln!("  Provenance: neuralSpring game theory → spatial_payoff.wgsl");
     {
         let n = 32_usize;
+        #[allow(clippy::cast_possible_wrap)]
+        let n_i32 = n as i32;
         let mut rng = Rng::new(42);
-        let strategies: Vec<f32> = (0..n * n).map(|_| if rng.uniform() < 0.5 { 0.0 } else { 1.0 }).collect();
+        let strategies: Vec<f32> = (0..n * n)
+            .map(|_| if rng.uniform() < 0.5 { 0.0 } else { 1.0 })
+            .collect();
         let b = 3.0_f32;
         let c = 1.0_f32;
         let payoff = [[b - c, -c], [b, 0.0_f32]];
@@ -512,9 +545,10 @@ fn main() {
                 for j in 0..n {
                     let s_me = strategies[i * n + j] as usize;
                     let mut local = 0.0_f64;
+                    #[allow(clippy::cast_possible_wrap)]
                     for (di, dj) in &[(-1i32, 0), (1, 0), (0, -1), (0, 1)] {
-                        let ni = (i as i32 + di).rem_euclid(n as i32) as usize;
-                        let nj = (j as i32 + dj).rem_euclid(n as i32) as usize;
+                        let ni = (i as i32 + di).rem_euclid(n_i32) as usize;
+                        let nj = (j as i32 + dj).rem_euclid(n_i32) as usize;
                         let s_nb = strategies[ni * n + nj] as usize;
                         local += payoff[s_me][s_nb] as f64;
                     }
@@ -530,9 +564,10 @@ fn main() {
                 for j in 0..n {
                     let s_me = strategies[i * n + j] as usize;
                     let mut local = 0.0_f64;
+                    #[allow(clippy::cast_possible_wrap)]
                     for (di, dj) in &[(-1i32, 0), (1, 0), (0, -1), (0, 1)] {
-                        let ni = (i as i32 + di).rem_euclid(n as i32) as usize;
-                        let nj = (j as i32 + dj).rem_euclid(n as i32) as usize;
+                        let ni = (i as i32 + di).rem_euclid(n_i32) as usize;
+                        let nj = (j as i32 + dj).rem_euclid(n_i32) as usize;
                         let s_nb = strategies[ni * n + nj] as usize;
                         local += payoff[s_me][s_nb] as f64;
                     }
@@ -582,11 +617,16 @@ fn main() {
         };
         let parity = diff < 1.0;
         h.check_bool(
-            &format!("Spatial payoff GPU finite (gpu={gpu_mean:.4}, cpu={cpu_mean:.4}, rel={diff:.2e})"),
+            &format!(
+                "Spatial payoff GPU finite (gpu={gpu_mean:.4}, cpu={cpu_mean:.4}, rel={diff:.2e})"
+            ),
             gpu_mean.is_finite(),
         );
 
-        eprintln!("    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×", cpu_us / gpu_us);
+        eprintln!(
+            "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
+            cpu_us / gpu_us
+        );
         results.push(TierResult {
             domain: "Spatial Payoff",
             papers: "019",
@@ -614,7 +654,7 @@ fn main() {
         let var_diff = (cpu_var - disp_var).abs();
         h.check_bool(
             &format!("Dispatcher variance CPU≈GPU (diff={var_diff:.2e})"),
-            var_diff < 1e-2,
+            var_diff < tolerances::TENSOR_MATMUL_F32,
         );
 
         let cpu_us = bench_fn(|| {
@@ -626,16 +666,14 @@ fn main() {
 
         eprintln!("    Variance: CPU {cpu_us:.1}µs, Dispatcher {gpu_us:.1}µs");
 
-        let cpu_pearson = barracuda::stats::correlation::pearson_correlation(
-            &data[..5000],
-            &data[5000..],
-        )
-        .unwrap_or(f64::NAN);
+        let cpu_pearson =
+            barracuda::stats::correlation::pearson_correlation(&data[..5000], &data[5000..])
+                .unwrap_or(f64::NAN);
         let disp_pearson = dispatcher.pearson_correlation(&data[..5000], &data[5000..]);
         let pearson_diff = (cpu_pearson - disp_pearson).abs();
         h.check_bool(
             &format!("Dispatcher pearson CPU=GPU (diff={pearson_diff:.2e})"),
-            pearson_diff < 1e-10,
+            pearson_diff < tolerances::CROSS_LANGUAGE,
         );
 
         eprintln!("    Dispatcher proves: same math routes to optimal substrate transparently");
@@ -645,7 +683,8 @@ fn main() {
             cpu_us,
             gpu_us,
             gpu_cpu_speedup: cpu_us / gpu_us,
-            parity: var_diff < 1e-2 && pearson_diff < 1e-10,
+            parity: var_diff < tolerances::TENSOR_MATMUL_F32
+                && pearson_diff < tolerances::CROSS_LANGUAGE,
         });
     }
     eprintln!();
@@ -681,9 +720,9 @@ fn main() {
         };
 
         let cpu_us = bench_fn(|| {
-            let _ = std::hint::black_box(
-                neural_spring::sate_alignment::pairwise_distance_matrix(&seqs_u8, n_seqs, seq_len, false),
-            );
+            let _ = std::hint::black_box(neural_spring::sate_alignment::pairwise_distance_matrix(
+                &seqs_u8, n_seqs, seq_len, false,
+            ));
         });
 
         let d = gpu.device();
@@ -699,7 +738,7 @@ fn main() {
             mapped_at_creation: false,
         });
 
-        let op = PairwiseHammingGpu::new(device.clone());
+        let op = PairwiseHammingGpu::new(device);
         op.dispatch(&seq_buf, &out_buf, n_seqs as u32, seq_len as u32);
 
         let gpu_mean = gpu
@@ -725,7 +764,10 @@ fn main() {
             parity,
         );
 
-        eprintln!("    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×", cpu_us / gpu_us);
+        eprintln!(
+            "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
+            cpu_us / gpu_us
+        );
         results.push(TierResult {
             domain: "Pairwise Hamming",
             papers: "017",

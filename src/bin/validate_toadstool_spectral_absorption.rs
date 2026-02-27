@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Validation: ToadStool spectral absorption readiness.
+//! Validation: `ToadStool` spectral absorption readiness.
 //!
 //! Proves that neuralSpring's spectral analysis pipeline is ready for
-//! ToadStool to absorb into `barracuda`:
+//! `ToadStool` to absorb into `barracuda`:
 //!
-//! 1. **BarraCUDA CPU parity**: pure Rust math matches Python reference
-//! 2. **BarraCUDA GPU parity**: GPU eigensolve/IPR/variance match CPU
+//! 1. **`BarraCUDA` CPU parity**: pure Rust math matches Python reference
+//! 2. **`BarraCUDA` GPU parity**: GPU eigensolve/IPR/variance match CPU
 //! 3. **Dispatch portability**: same code path on CPU and GPU via `Dispatcher`
 //! 4. **Batch scaling**: GPU dispatch scales with problem size
 //! 5. **Mixed substrate**: metalForge routing selects optimal substrate
 //!
-//! ToadStool absorption targets:
+//! `ToadStool` absorption targets:
 //! - `eigh_householder_qr` → `barracuda::linalg::eigh_f64`
 //! - `mean_ipr` → `barracuda::spectral::BatchIprGpu`
 //! - `disorder_sweep` → `barracuda::spectral::disorder_sweep_gpu`
@@ -101,7 +101,10 @@ fn validate_cpu_eigensolve(h: &mut ValidationHarness, rng: &mut Rng) {
     );
     h.check_bool(
         "CPU eigh: eigenvalues sorted ascending",
-        decomp.eigenvalues.windows(2).all(|w| w[0] <= w[1] + 1e-12),
+        decomp
+            .eigenvalues
+            .windows(2)
+            .all(|w| w[0] <= w[1] + tolerances::EXACT_F64),
     );
 
     let trace: f64 = (0..n).map(|i| a[i * n + i]).sum();
@@ -110,7 +113,7 @@ fn validate_cpu_eigensolve(h: &mut ValidationHarness, rng: &mut Rng) {
         "CPU eigh: trace == sum(eigenvalues)",
         eval_sum,
         trace,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     let det_from_evals: f64 = decomp.eigenvalues.iter().product();
@@ -122,7 +125,12 @@ fn validate_cpu_eigensolve(h: &mut ValidationHarness, rng: &mut Rng) {
     for k in 0..n {
         let evec: Vec<f64> = (0..n).map(|i| decomp.eigenvectors[k * n + i]).collect();
         let norm: f64 = evec.iter().map(|&v| v * v).sum::<f64>().sqrt();
-        h.check_abs(&format!("CPU eigh: ||evec[{k}]|| ≈ 1"), norm, 1.0, 1e-10);
+        h.check_abs(
+            &format!("CPU eigh: ||evec[{k}]|| ≈ 1"),
+            norm,
+            1.0,
+            tolerances::CROSS_LANGUAGE,
+        );
     }
 
     let m = 16;
@@ -141,7 +149,12 @@ fn validate_cpu_eigensolve(h: &mut ValidationHarness, rng: &mut Rng) {
     let decomp2 = eigh_householder_qr(&sym, m);
     let trace2: f64 = (0..m).map(|i| sym[i * m + i]).sum();
     let eval_sum2: f64 = decomp2.eigenvalues.iter().sum();
-    h.check_abs("CPU eigh: trace invariant (16×16)", eval_sum2, trace2, 1e-8);
+    h.check_abs(
+        "CPU eigh: trace invariant (16×16)",
+        eval_sum2,
+        trace2,
+        tolerances::GPU_F64_TRANSCENDENTAL,
+    );
 }
 
 fn validate_cpu_anderson(h: &mut ValidationHarness) {
@@ -191,7 +204,7 @@ fn validate_cpu_weight_hamiltonian(h: &mut ValidationHarness, rng: &mut Rng) {
             let diff = (ham[i * dim + j] - ham[j * dim + i]).abs();
             h.check_bool(
                 &format!("CPU Hamiltonian: symmetric [{i},{j}]"),
-                diff < 1e-14,
+                diff < tolerances::ZERO_DETECTION,
             );
         }
     }
@@ -265,10 +278,10 @@ fn validate_gpu_anderson_parity(
     let mut r = Rng::new(77);
     let ham = anderson_hamiltonian_random(n, 1.0, w, &mut r);
 
-    let cpu_decomp = eigh_householder_qr(&ham, n);
+    let mut cpu_decomp = eigh_householder_qr(&ham, n);
     let (dispatch_evals, _) = dispatcher.eigh(&ham, n);
 
-    let mut cpu_sorted = cpu_decomp.eigenvalues.clone();
+    let mut cpu_sorted = std::mem::take(&mut cpu_decomp.eigenvalues);
     cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
     let mut dispatch_sorted = dispatch_evals;
     dispatch_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));

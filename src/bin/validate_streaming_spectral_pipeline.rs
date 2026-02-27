@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! ToadStool unidirectional streaming proof: spectral analysis pipeline.
+//! `ToadStool` unidirectional streaming proof: spectral analysis pipeline.
 //!
-//! Demonstrates the streaming dispatch pattern ToadStool will absorb:
+//! Demonstrates the streaming dispatch pattern `ToadStool` will absorb:
 //! data flows GPU-ward through chained operations with minimal CPU
 //! round-trips. Each stage's output feeds the next stage's input.
 //!
@@ -22,11 +22,11 @@
 //!
 //! ## What this proves
 //!
-//! 1. **BarraCUDA CPU**: pure Rust math matches Python at machine ε
-//! 2. **BarraCUDA GPU**: typed ops produce identical scientific conclusions
+//! 1. **`BarraCUDA` CPU**: pure Rust math matches Python at machine ε
+//! 2. **`BarraCUDA` GPU**: typed ops produce identical scientific conclusions
 //! 3. **Streaming**: no per-sample CPU↔GPU round-trips — batch dispatch
 //! 4. **Portability**: same code path runs on any wgpu-compatible hardware
-//! 5. **ToadStool readiness**: pipeline structure matches absorption target
+//! 5. **`ToadStool` readiness**: pipeline structure matches absorption target
 //!
 //! ## Papers
 //!
@@ -195,7 +195,6 @@ fn validate_streaming_disorder_sweep(
     let disorder_strengths = [0.5, 1.0, 2.0, 4.0, 8.0, 16.0];
     let device = gpu.device();
 
-    let mut cpu_iprs_by_w = Vec::new();
     let mut gpu_iprs_by_w = Vec::new();
 
     for &w in &disorder_strengths {
@@ -203,7 +202,6 @@ fn validate_streaming_disorder_sweep(
 
         let cpu_decomp = eigh_householder_qr(&ham, n);
         let cpu_ipr = mean_ipr(&cpu_decomp.eigenvectors, n);
-        cpu_iprs_by_w.push(cpu_ipr);
 
         let (_, gpu_evecs) = gpu_ops::eigh_gpu(&ham, n, dev).expect("eigh_gpu disorder");
         let evecs_f32: Vec<f32> = gpu_evecs.iter().map(|&v| v as f32).collect();
@@ -268,11 +266,11 @@ fn validate_dispatcher_pipeline_parity(
     let ham = weight_spectral::weight_to_hamiltonian(&weights, wr, wc);
 
     let (mut dispatch_evals, _dispatch_evecs) = dispatcher.eigh(&ham, n);
-    let cpu_decomp = eigh_householder_qr(&ham, n);
+    let mut cpu_decomp = eigh_householder_qr(&ham, n);
 
-    dispatch_evals.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    let mut cpu_evals_sorted = cpu_decomp.eigenvalues.clone();
-    cpu_evals_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    dispatch_evals.sort_by(f64::total_cmp);
+    let mut cpu_evals_sorted = std::mem::take(&mut cpu_decomp.eigenvalues);
+    cpu_evals_sorted.sort_by(f64::total_cmp);
 
     let eval_diff = dispatch_evals
         .iter()
@@ -289,9 +287,8 @@ fn validate_dispatcher_pipeline_parity(
 
     let dispatch_var = dispatcher.variance(&dispatch_evals);
     let cpu_var = {
-        let m = cpu_decomp.eigenvalues.iter().sum::<f64>() / n as f64;
-        cpu_decomp
-            .eigenvalues
+        let m = cpu_evals_sorted.iter().sum::<f64>() / n as f64;
+        cpu_evals_sorted
             .iter()
             .map(|&v| (v - m).powi(2))
             .sum::<f64>()
@@ -306,8 +303,13 @@ fn validate_dispatcher_pipeline_parity(
     );
 
     let dispatch_mean = dispatcher.mean(&dispatch_evals);
-    let cpu_mean = cpu_decomp.eigenvalues.iter().sum::<f64>() / n as f64;
-    h.check_abs("Dispatcher mean ↔ CPU", dispatch_mean, cpu_mean, 1e-10);
+    let cpu_mean = cpu_evals_sorted.iter().sum::<f64>() / n as f64;
+    h.check_abs(
+        "Dispatcher mean ↔ CPU",
+        dispatch_mean,
+        cpu_mean,
+        tolerances::GPU_F64_EXACT,
+    );
 
     let l2_sorted = dispatch_evals
         .iter()
@@ -328,10 +330,10 @@ fn validate_dispatcher_pipeline_parity(
         "Dispatcher Frobenius norm ↔ CPU",
         dispatch_frob,
         cpu_frob,
-        1e-6,
+        tolerances::DISPATCH_FROBENIUS_F64,
     );
 
-    let cpu_lsr = level_spacing_ratio(&cpu_decomp.eigenvalues);
+    let cpu_lsr = level_spacing_ratio(&cpu_evals_sorted);
     h.check_bool("CPU LSR finite", cpu_lsr.is_finite());
     h.check_bool("CPU LSR > 0", cpu_lsr > 0.0);
 }

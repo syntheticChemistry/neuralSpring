@@ -302,6 +302,249 @@ pub fn hmm_viterbi_chain_gpu(
     Ok((path, best_val))
 }
 
+/// GPU two-input Hill gate: `f(a,b) = V_max × H(a,K_a,n_a) × H(b,K_b,n_b)`.
+///
+/// Delegates to upstream `HillGateGpu` — single dispatch replaces the
+/// CPU scalar `signal_integration::two_input_hill` loop.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+#[allow(clippy::too_many_arguments)]
+pub fn hill_gate_gpu(
+    input_a: &[f64],
+    input_b: &[f64],
+    vmax: f64,
+    k_a: f64,
+    k_b: f64,
+    n_a: f64,
+    n_b: f64,
+    device: &Arc<WgpuDevice>,
+) -> Result<Vec<f64>, String> {
+    use barracuda::ops::bio::hill_gate::{HillGateGpu, HillGateParams};
+    use wgpu::util::DeviceExt;
+
+    let len_a = input_a.len();
+    let len_b = input_b.len();
+    let out_len = len_a * len_b;
+    if len_a == 0 || len_b == 0 {
+        return Ok(Vec::new());
+    }
+
+    let d = device.device();
+    let elem_size = std::mem::size_of::<f64>();
+
+    let a_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hill_gate_a"),
+        contents: bytemuck::cast_slice(input_a),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let b_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hill_gate_b"),
+        contents: bytemuck::cast_slice(input_b),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let out_buf = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("hill_gate_out"),
+        size: (out_len * elem_size) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    let params = HillGateParams {
+        n_a: len_a as u32,
+        n_b: len_b as u32,
+        mode: 1,
+        _pad: 0,
+        k_a,
+        k_b,
+        n_a_exp: n_a,
+        n_b_exp: n_b,
+        vmax,
+        _pad2: 0.0,
+    };
+
+    let op = HillGateGpu::new(device.clone());
+    op.dispatch(&a_buf, &b_buf, &out_buf, &params);
+
+    let out_bytes = (out_len * elem_size) as u64;
+    let staging = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("hill_gate_staging"),
+        size: out_bytes,
+        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    let mut encoder = d.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    encoder.copy_buffer_to_buffer(&out_buf, 0, &staging, 0, out_bytes);
+    device.queue().submit(Some(encoder.finish()));
+
+    let slice = staging.slice(..);
+    slice.map_async(wgpu::MapMode::Read, |_| {});
+    device.device().poll(wgpu::Maintain::Wait);
+    let view = slice.get_mapped_range();
+    let result: Vec<f64> = bytemuck::cast_slice(&view).to_vec();
+    drop(view);
+    staging.unmap();
+
+    Ok(result)
+}
+
+/// GPU multi-objective fitness evaluation.
+///
+/// Delegates to upstream `MultiObjFitnessGpu` — single dispatch replaces
+/// the CPU `directed_evolution::multi_objective_fitness` loop.
+///
+/// Returns `[pop × n_objectives]` fitness values.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+pub fn multi_obj_fitness_gpu(
+    genotypes: &[f64],
+    pop_size: usize,
+    genome_len: usize,
+    n_objectives: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<Vec<f64>, String> {
+    use barracuda::ops::bio::MultiObjFitnessGpu;
+    use wgpu::util::DeviceExt;
+
+    let total_in = pop_size * genome_len;
+    let total_out = pop_size * n_objectives;
+    if total_in == 0 {
+        return Ok(vec![0.0; total_out]);
+    }
+
+    let d = device.device();
+    let elem_size = std::mem::size_of::<f64>();
+
+    let geno_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("multi_obj_genotypes"),
+        contents: bytemuck::cast_slice(genotypes),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let out_bytes = (total_out * elem_size) as u64;
+    let fit_buf = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("multi_obj_fitness"),
+        size: out_bytes,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    let op = MultiObjFitnessGpu::new(device.clone());
+    op.dispatch(
+        &geno_buf,
+        &fit_buf,
+        pop_size as u32,
+        genome_len as u32,
+        n_objectives as u32,
+    );
+
+    let staging = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("multi_obj_staging"),
+        size: out_bytes,
+        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    let mut encoder = d.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    encoder.copy_buffer_to_buffer(&fit_buf, 0, &staging, 0, out_bytes);
+    device.queue().submit(Some(encoder.finish()));
+
+    let slice = staging.slice(..);
+    slice.map_async(wgpu::MapMode::Read, |_| {});
+    device.device().poll(wgpu::Maintain::Wait);
+    let view = slice.get_mapped_range();
+    let result: Vec<f64> = bytemuck::cast_slice(&view).to_vec();
+    drop(view);
+    staging.unmap();
+
+    Ok(result)
+}
+
+/// GPU swarm neural-network forward pass.
+///
+/// Delegates to upstream `SwarmNnGpu` — single dispatch evaluates all
+/// controllers × evaluations in parallel on GPU.
+///
+/// Returns per-controller per-evaluation action indices.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+#[allow(clippy::too_many_arguments)]
+pub fn swarm_nn_forward_gpu(
+    weights: &[f64],
+    inputs: &[f64],
+    n_controllers: usize,
+    n_evals: usize,
+    input_dim: usize,
+    hidden_dim: usize,
+    output_dim: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<Vec<u32>, String> {
+    use barracuda::ops::bio::swarm_nn::{SwarmNnGpu, SwarmNnParams};
+    use wgpu::util::DeviceExt;
+
+    let total_actions = n_controllers * n_evals;
+    if total_actions == 0 {
+        return Ok(Vec::new());
+    }
+
+    let d = device.device();
+
+    let w_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("swarm_nn_weights"),
+        contents: bytemuck::cast_slice(weights),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let i_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("swarm_nn_inputs"),
+        contents: bytemuck::cast_slice(inputs),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let action_bytes = (total_actions * std::mem::size_of::<u32>()) as u64;
+    let a_buf = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("swarm_nn_actions"),
+        size: action_bytes,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    let params = SwarmNnParams {
+        n_controllers: n_controllers as u32,
+        n_evals: n_evals as u32,
+        input_dim: input_dim as u32,
+        hidden_dim: hidden_dim as u32,
+        output_dim: output_dim as u32,
+        _pad0: 0,
+        _pad1: 0,
+        _pad2: 0,
+    };
+
+    let op = SwarmNnGpu::new(device.clone());
+    op.dispatch(&w_buf, &i_buf, &a_buf, &params);
+
+    let staging = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("swarm_nn_staging"),
+        size: action_bytes,
+        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    let mut encoder = d.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    encoder.copy_buffer_to_buffer(&a_buf, 0, &staging, 0, action_bytes);
+    device.queue().submit(Some(encoder.finish()));
+
+    let slice = staging.slice(..);
+    slice.map_async(wgpu::MapMode::Read, |_| {});
+    device.device().poll(wgpu::Maintain::Wait);
+    let view = slice.get_mapped_range();
+    let u32_data: Vec<u32> = bytemuck::cast_slice(&view).to_vec();
+    drop(view);
+    staging.unmap();
+
+    Ok(u32_data)
+}
+
 /// GPU HMM backward step: `β_t[i] = sum_j(A[i,j] * B[j,o] * β_{t+1}[j]) / scale`.
 ///
 /// Single reverse-timestep via GPU GEMV. The full backward pass calls

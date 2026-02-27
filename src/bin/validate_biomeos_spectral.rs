@@ -24,6 +24,7 @@ use tokio::time::sleep;
 
 use neural_spring::anderson_localization::disorder_sweep;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -191,7 +192,12 @@ async fn main() {
     match rpc_result {
         Ok(val) => {
             let rpc_ipr = val.get("ipr").and_then(|v| v.as_f64()).unwrap_or(f64::NAN);
-            h.check_abs("science.ipr parity", rpc_ipr, cpu_ipr, 1e-12);
+            h.check_abs(
+                "science.ipr parity",
+                rpc_ipr,
+                cpu_ipr,
+                tolerances::EXACT_F64,
+            );
         }
         Err(e) => {
             eprintln!("  science.ipr failed: {e}");
@@ -234,7 +240,7 @@ async fn main() {
                     &format!("disorder_sweep[W={}] parity", w_vals[i]),
                     rpc,
                     cpu,
-                    1e-12,
+                    tolerances::EXACT_F64,
                 );
             }
         }
@@ -349,12 +355,17 @@ async fn main() {
             // For quadratic surface with diagonal [1..10], eigenvalues should be 1..10
             if evals.len() == 10 {
                 for (i, &eval) in evals.iter().enumerate() {
-                    h.check_abs(&format!("hessian.eval[{i}]"), eval, (i + 1) as f64, 1e-10);
+                    h.check_abs(
+                        &format!("hessian.eval[{i}]"),
+                        eval,
+                        (i + 1) as f64,
+                        tolerances::CROSS_LANGUAGE,
+                    );
                 }
             }
 
             let trace = val.get("trace").and_then(|v| v.as_f64()).unwrap_or(0.0);
-            h.check_abs("hessian.trace", trace, 55.0, 1e-10);
+            h.check_abs("hessian.trace", trace, 55.0, tolerances::CROSS_LANGUAGE);
         }
         Err(e) => {
             eprintln!("  science.hessian_eigen failed: {e}");

@@ -1,27 +1,27 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Modern rewire benchmark: validates and benchmarks the S88+ rewiring of
-//! neuralSpring local implementations to upstream ToadStool/BarraCUDA APIs.
+//! neuralSpring local implementations to upstream `ToadStool`/`BarraCUDA` APIs.
 //!
 //! ## Rewires Benchmarked
 //!
 //! | Local (pre-S88) | Upstream (post-S88) | Provenance |
 //! |-----------------|---------------------|------------|
-//! | `pairwise_l2_matrix_gpu` O(n²) loop | `PairwiseL2Gpu` single dispatch | nS metalForge → ToadStool S52 |
-//! | `geographic_distance_matrix_gpu` O(n²) loop | `PairwiseL2Gpu` via above | nS 025 MetaPop → ToadStool S52 |
-//! | `disorder_sweep_gpu` CPU IPR loop | `BatchIprGpu` GPU dispatch | nS 022-023 → ToadStool S52 |
+//! | `pairwise_l2_matrix_gpu` O(n²) loop | `PairwiseL2Gpu` single dispatch | nS metalForge → `ToadStool` S52 |
+//! | `geographic_distance_matrix_gpu` O(n²) loop | `PairwiseL2Gpu` via above | nS 025 `MetaPop` → `ToadStool` S52 |
+//! | `disorder_sweep_gpu` CPU IPR loop | `BatchIprGpu` GPU dispatch | nS 022-023 → `ToadStool` S52 |
 //!
 //! ## Modern APIs Benchmarked
 //!
 //! | API | Provenance | Spring Origins |
 //! |-----|-----------|----------------|
-//! | `LogSumExp` | hotSpring precision → ToadStool S64 | hotSpring f64 log-domain HMM |
-//! | `PairwiseDistance` | neuralSpring MODES → ToadStool S52 | nS novelty search |
-//! | `BatchedEighGpu` | hotSpring HFB → ToadStool S56 | hotSpring Jacobi sweeps |
-//! | `BatchIprGpu` | neuralSpring Anderson → ToadStool S52 | nS IPR localization |
-//! | `DiversityFusionGpu` | wetSpring diversity → ToadStool S64 | wS Shannon+Simpson fused |
-//! | Dispatcher variance | hotSpring Welford → ToadStool S62 | hS precision accumulation |
-//! | Dispatcher pearson | wetSpring+hotSpring → ToadStool S64 | cross-spring correlation |
+//! | `LogSumExp` | hotSpring precision → `ToadStool` S64 | hotSpring f64 log-domain HMM |
+//! | `PairwiseDistance` | neuralSpring MODES → `ToadStool` S52 | nS novelty search |
+//! | `BatchedEighGpu` | hotSpring HFB → `ToadStool` S56 | hotSpring Jacobi sweeps |
+//! | `BatchIprGpu` | neuralSpring Anderson → `ToadStool` S52 | nS IPR localization |
+//! | `DiversityFusionGpu` | wetSpring diversity → `ToadStool` S64 | wS Shannon+Simpson fused |
+//! | Dispatcher variance | hotSpring Welford → `ToadStool` S62 | hS precision accumulation |
+//! | Dispatcher pearson | wetSpring+hotSpring → `ToadStool` S64 | cross-spring correlation |
 //!
 //! ## Cross-Spring Shader Evolution
 //!
@@ -33,7 +33,7 @@
 //! groundSpring (hydrology)         → multinomial sampling, MC propagation, ET₀
 //! ```
 //!
-//! All absorbed into ToadStool's 703 f64-canonical WGSL shaders (e96576ee).
+//! All absorbed into `ToadStool`'s 703 f64-canonical WGSL shaders (e96576ee).
 //!
 //! # Panics
 //!
@@ -65,6 +65,7 @@ use neural_spring::gpu_ops::{
     disorder_sweep_gpu, eigh_gpu, geographic_distance_matrix_gpu, pairwise_l2_matrix_gpu,
 };
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use std::time::Instant;
@@ -128,7 +129,8 @@ fn main() {
             let _ = std::hint::black_box(pairwise_l2_matrix_gpu(&data, n_vecs, dim, &device));
         },
     );
-    let result = pairwise_l2_matrix_gpu(&data, n_vecs, dim, &device).unwrap();
+    let result =
+        pairwise_l2_matrix_gpu(&data, n_vecs, dim, &device).expect("pairwise_l2_matrix_gpu");
     let n_pairs = n_vecs * (n_vecs - 1) / 2;
     h.check_bool(
         &format!("pairwise_l2_matrix output length = {n_pairs}"),
@@ -164,14 +166,17 @@ fn main() {
             let _ = std::hint::black_box(geographic_distance_matrix_gpu(&coords, &device));
         },
     );
-    let geo_result = geographic_distance_matrix_gpu(&coords, &device).unwrap();
+    let geo_result =
+        geographic_distance_matrix_gpu(&coords, &device).expect("geographic_distance_matrix_gpu");
     h.check_bool(
         &format!("geo_distance output = {n_coords}×{n_coords}"),
         geo_result.len() == n_coords * n_coords,
     );
     let symmetric = (0..n_coords).all(|i| {
-        (0..n_coords)
-            .all(|j| (geo_result[i * n_coords + j] - geo_result[j * n_coords + i]).abs() < 1e-6)
+        (0..n_coords).all(|j| {
+            (geo_result[i * n_coords + j] - geo_result[j * n_coords + i]).abs()
+                < tolerances::TENSOR_EXACT_F32
+        })
     });
     h.check_bool("geo_distance symmetric", symmetric);
     h.check_bool(
@@ -220,14 +225,17 @@ fn main() {
             ));
         },
     );
-    let ipr_result = disorder_sweep_gpu(&hamiltonians, n_dim, batch_size, &device).unwrap();
+    let ipr_result =
+        disorder_sweep_gpu(&hamiltonians, n_dim, batch_size, &device).expect("disorder_sweep_gpu");
     h.check_bool(
         &format!("disorder_sweep output length = {batch_size}"),
         ipr_result.len() == batch_size,
     );
     h.check_bool(
         "disorder_sweep IPR values in (0, 1]",
-        ipr_result.iter().all(|&v| v > 0.0 && v <= 1.0 + 1e-3),
+        ipr_result
+            .iter()
+            .all(|&v| v > 0.0 && v <= 1.0 + tolerances::GPU_BATCH_IPR_F32),
     );
     h.check_bool(
         &format!("disorder_sweep {rewire3_us:.0}µs (BatchIprGpu)"),
@@ -253,12 +261,14 @@ fn main() {
     let lse_data_f64: Vec<f64> = (0..lse_n).map(|_| rng.next_f64() * 20.0 - 10.0).collect();
 
     let lse_us = bench(&format!("LogSumExp GPU (f64) {lse_n}"), || {
-        let t = Tensor::from_data_pod(&lse_data_f64, vec![lse_n], device.clone()).unwrap();
-        let _ = std::hint::black_box(LogSumExp::new(t).execute().unwrap());
+        let t = Tensor::from_data_pod(&lse_data_f64, vec![lse_n], device.clone())
+            .expect("LogSumExp tensor");
+        let _ = std::hint::black_box(LogSumExp::new(t).execute().expect("LogSumExp execute"));
     });
 
-    let t = Tensor::from_data_pod(&lse_data_f64, vec![lse_n], device.clone()).unwrap();
-    let lse_result = LogSumExp::new(t).execute().unwrap();
+    let t = Tensor::from_data_pod(&lse_data_f64, vec![lse_n], device.clone())
+        .expect("LogSumExp tensor");
+    let lse_result = LogSumExp::new(t).execute().expect("LogSumExp execute");
     h.check_bool(
         "LogSumExp f64 executes (correctness validated in validate_gpu_logsumexp)",
         true,
@@ -284,10 +294,12 @@ fn main() {
     let pd_b: Vec<f32> = (0..pd_n * pd_dim).map(|_| rng.next_f64() as f32).collect();
 
     let pd_us = bench(&format!("PairwiseDistance L2 {pd_n}×{pd_dim}"), || {
-        let t_a = Tensor::from_data(&pd_a, vec![pd_n, pd_dim], device.clone()).unwrap();
-        let t_b = Tensor::from_data(&pd_b, vec![pd_n, pd_dim], device.clone()).unwrap();
-        let op = PairwiseDistance::new(t_a, t_b, Some(2.0), None).unwrap();
-        let _ = std::hint::black_box(op.execute().unwrap());
+        let t_a = Tensor::from_data(&pd_a, vec![pd_n, pd_dim], device.clone())
+            .expect("PairwiseDistance tensor A");
+        let t_b = Tensor::from_data(&pd_b, vec![pd_n, pd_dim], device.clone())
+            .expect("PairwiseDistance tensor B");
+        let op = PairwiseDistance::new(t_a, t_b, Some(2.0), None).expect("PairwiseDistance::new");
+        let _ = std::hint::black_box(op.execute().expect("PairwiseDistance execute"));
     });
     h.check_bool(&format!("PairwiseDistance {pd_us:.0}µs"), pd_us.is_finite());
     eprintln!();
@@ -327,7 +339,7 @@ fn main() {
                 30,
                 1e-12,
             )
-            .unwrap(),
+            .expect("BatchedEighGpu execute"),
         );
     });
 
@@ -339,17 +351,18 @@ fn main() {
         30,
         1e-12,
     )
-    .unwrap();
+    .expect("BatchedEighGpu execute");
     h.check_bool(
         &format!("BatchedEighGpu output: {} eigenvalues", evals.len()),
         evals.len() == eigh_n * eigh_batch,
     );
 
-    let (cpu_evals, _) = eigh_gpu(&eigh_data[..eigh_n * eigh_n], eigh_n, &device).unwrap();
+    let (cpu_evals, _) = eigh_gpu(&eigh_data[..eigh_n * eigh_n], eigh_n, &device)
+        .expect("eigh_gpu single-batch reference");
     let mut batch0_evals: Vec<f64> = evals[..eigh_n].to_vec();
-    let mut cpu_sorted = cpu_evals.clone();
-    batch0_evals.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let mut cpu_sorted = cpu_evals;
+    batch0_evals.sort_by(f64::total_cmp);
+    cpu_sorted.sort_by(f64::total_cmp);
     let eigh_ok = batch0_evals
         .iter()
         .zip(cpu_sorted.iter())

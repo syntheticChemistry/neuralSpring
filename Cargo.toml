@@ -848,6 +848,18 @@ path = "src/bin/validate_nucleus_compute_dispatch.rs"
 name = "validate_toadstool_spectral_absorption"
 path = "src/bin/validate_toadstool_spectral_absorption.rs"
 
+# ── BarraCUDA dispatch parity ───────────────────────────────────────
+
+[[bin]]
+name = "validate_barracuda_dispatch_parity"
+path = "src/bin/validate_barracuda_dispatch_parity.rs"
+
+# ── Mixed-hardware dispatch ────────────────────────────────────────
+
+[[bin]]
+name = "validate_mixed_hardware_dispatch"
+path = "src/bin/validate_mixed_hardware_dispatch.rs"
+
 # ── biomeOS primal adapter ──────────────────────────────────────────
 
 [[bin]]

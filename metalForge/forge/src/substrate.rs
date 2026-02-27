@@ -51,6 +51,9 @@ pub struct Properties {
 pub enum SubstrateKind {
     Gpu,
     Cpu,
+    /// Neural processing unit (e.g., Intel AKD1000, Apple ANE).
+    /// Discovered at runtime; routed via `mixed::MixedSubstrate`.
+    Npu,
 }
 
 /// A capability discovered at runtime on a substrate.
@@ -77,6 +80,10 @@ pub enum Capability {
     TimestampQuery,
     /// CPU compute (always available).
     CpuCompute,
+    /// NPU low-latency inference (INT8/INT4 quantized).
+    NpuInference,
+    /// NPU batch processing (throughput-optimized).
+    NpuBatch,
 }
 
 impl fmt::Display for SubstrateKind {
@@ -84,6 +91,7 @@ impl fmt::Display for SubstrateKind {
         match self {
             Self::Gpu => write!(f, "GPU"),
             Self::Cpu => write!(f, "CPU"),
+            Self::Npu => write!(f, "NPU"),
         }
     }
 }
@@ -131,6 +139,8 @@ impl Capability {
             Self::SimdVector => "simd",
             Self::TimestampQuery => "timestamps",
             Self::CpuCompute => "cpu",
+            Self::NpuInference => "npu-infer",
+            Self::NpuBatch => "npu-batch",
         }
     }
 }
@@ -189,5 +199,21 @@ mod tests {
         assert_eq!(Capability::F64Compute.label(), "f64");
         assert_eq!(Capability::ShaderDispatch.label(), "shader");
         assert_eq!(Capability::FusedMapReduce.label(), "fmr");
+        assert_eq!(Capability::NpuInference.label(), "npu-infer");
+        assert_eq!(Capability::NpuBatch.label(), "npu-batch");
+    }
+
+    #[test]
+    fn npu_substrate_display() {
+        let npu = Substrate {
+            kind: SubstrateKind::Npu,
+            identity: Identity::named("AKD1000"),
+            properties: Properties::default(),
+            capabilities: vec![Capability::NpuInference, Capability::NpuBatch],
+        };
+        let s = format!("{npu}");
+        assert!(s.contains("NPU"));
+        assert!(npu.has(&Capability::NpuInference));
+        assert!(!npu.has(&Capability::F64Compute));
     }
 }

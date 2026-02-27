@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! BarraCUDA CPU parity + performance benchmark.
+//! `BarraCUDA` CPU parity + performance benchmark.
 //!
 //! For each of the 11 paper-domain Python benchmarks, this binary:
 //! 1. Runs the Python benchmark subprocess, capturing its median µs timing
-//! 2. Runs the identical computation in pure Rust via BarraCUDA CPU primitives
-//! 3. Verifies numeric parity (spot-check against Python/NumPy)
+//! 2. Runs the identical computation in pure Rust via `BarraCUDA` CPU primitives
+//! 3. Verifies numeric parity (spot-check against `Python`/`NumPy`)
 //! 4. Reports the speedup factor (Python µs / Rust µs)
 //!
-//! This is the authoritative proof that BarraCUDA CPU is pure math and
-//! faster than interpreted language (Python/NumPy) for all 15 paper domains.
+//! This is the authoritative proof that `BarraCUDA` CPU is pure math and
+//! faster than interpreted language (`Python`/`NumPy`) for all 15 paper domains.
 //!
 //! ## Benchmark Domains
 //!
@@ -29,7 +29,7 @@
 //!
 //! The portability story:
 //! ```text
-//! Python/NumPy (interpreted) → BarraCUDA CPU (pure Rust) → BarraCUDA GPU (WGSL)
+//! `Python`/`NumPy` (interpreted) → `BarraCUDA` CPU (pure Rust) → `BarraCUDA` GPU (`WGSL`)
 //!                    ↑ parity proven here        ↑ parity proven in GPU validators
 //! ```
 //!
@@ -61,6 +61,7 @@ use neural_spring::sate_alignment;
 use neural_spring::signal_integration;
 use neural_spring::spectral_commutativity;
 use neural_spring::swarm_robotics;
+use neural_spring::tolerances;
 use neural_spring::validation::{baseline_path, ValidationHarness};
 use std::process::Command;
 use std::time::{Duration, Instant};
@@ -71,8 +72,8 @@ const ITERS: usize = 200;
 fn median(samples: &mut [Duration]) -> f64 {
     samples.sort();
     let mid = samples.len() / 2;
-    if samples.len() % 2 == 0 {
-        (samples[mid - 1].as_secs_f64() + samples[mid].as_secs_f64()) / 2.0 * 1e6
+    if samples.len().is_multiple_of(2) {
+        f64::midpoint(samples[mid - 1].as_secs_f64(), samples[mid].as_secs_f64()) * 1e6
     } else {
         samples[mid].as_secs_f64() * 1e6
     }
@@ -106,7 +107,10 @@ fn run_python_bench(script_rel: &str) -> Option<f64> {
         .ok()?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        eprintln!("    [skip] Python script failed: {}", stderr.lines().next().unwrap_or(""));
+        eprintln!(
+            "    [skip] Python script failed: {}",
+            stderr.lines().next().unwrap_or("")
+        );
         return None;
     }
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -173,7 +177,9 @@ fn main() {
             let s: f64 = raw.iter().sum();
             raw.iter().map(|v| v / s).collect()
         };
-        let obs: Vec<usize> = (0..t_len).map(|_| rng.next_u64() as usize % n_sym).collect();
+        let obs: Vec<usize> = (0..t_len)
+            .map(|_| rng.next_u64() as usize % n_sym)
+            .collect();
 
         let hmm = Hmm::new(transition, emission, initial);
         let (_, ll) = hmm.forward(&obs);
@@ -186,8 +192,8 @@ fn main() {
         h.check_bool("HMM forward log-likelihood finite and negative", ll_finite);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -227,12 +233,12 @@ fn main() {
             }
         });
 
-        let f_valid = f0.is_finite() && f0 >= 0.0 && f0 <= 1.0;
+        let f_valid = f0.is_finite() && (0.0..=1.0).contains(&f0);
         h.check_bool("NK fitness in [0,1] range", f_valid);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -263,20 +269,17 @@ fn main() {
             .map(|i| (0..dim).map(|j| (i * dim + j) as f64 * 0.1).collect())
             .collect();
 
-        let mut dists = Vec::new();
-        for i in 0..n {
-            for j in (i + 1)..n {
-                dists.push(modes::l2_distance(&features[i], &features[j]));
-            }
-        }
-
         let rust_us = bench_rust(|| {
             let mut d = Vec::new();
             for i in 0..n {
                 for j in (i + 1)..n {
-                    d.push(std::hint::black_box(modes::l2_distance(&features[i], &features[j])));
+                    d.push(std::hint::black_box(modes::l2_distance(
+                        &features[i],
+                        &features[j],
+                    )));
                 }
             }
+            std::hint::black_box(d);
         });
 
         let d01 = modes::l2_distance(&features[0], &features[1]);
@@ -284,8 +287,8 @@ fn main() {
         h.check_bool("Pairwise L2 distances positive and finite", valid);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -320,18 +323,18 @@ fn main() {
         let dist = sate_alignment::pairwise_distance_matrix(&seqs_flat, n_seqs, seq_len, false);
 
         let rust_us = bench_rust(|| {
-            let _ = std::hint::black_box(
-                sate_alignment::pairwise_distance_matrix(&seqs_flat, n_seqs, seq_len, false),
-            );
+            let _ = std::hint::black_box(sate_alignment::pairwise_distance_matrix(
+                &seqs_flat, n_seqs, seq_len, false,
+            ));
         });
 
-        let d01 = dist[0 * n_seqs + 1];
-        let valid = d01 >= 0.0 && d01 <= 1.0 && d01.is_finite();
+        let d01 = dist[1];
+        let valid = (0.0..=1.0).contains(&d01) && d01.is_finite();
         h.check_bool("Hamming distances in [0,1] range", valid);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -366,18 +369,18 @@ fn main() {
         let dist = pangenome_selection::jaccard_distance_matrix(&pa, n_genes, n_genomes);
 
         let rust_us = bench_rust(|| {
-            let _ = std::hint::black_box(
-                pangenome_selection::jaccard_distance_matrix(&pa, n_genes, n_genomes),
-            );
+            let _ = std::hint::black_box(pangenome_selection::jaccard_distance_matrix(
+                &pa, n_genes, n_genomes,
+            ));
         });
 
-        let d01 = dist[0 * n_genomes + 1];
-        let valid = d01 >= 0.0 && d01 <= 1.0 && d01.is_finite();
+        let d01 = dist[1];
+        let valid = (0.0..=1.0).contains(&d01) && d01.is_finite();
         h.check_bool("Jaccard distances in [0,1] range", valid);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -412,18 +415,22 @@ fn main() {
         let trace = game_theory::replicator_dynamics(&freq, &payoff, n_steps, dt);
 
         let rust_us = bench_rust(|| {
-            let _ = std::hint::black_box(game_theory::replicator_dynamics(&freq, &payoff, n_steps, dt));
+            let _ = std::hint::black_box(game_theory::replicator_dynamics(
+                &freq, &payoff, n_steps, dt,
+            ));
         });
 
-        let final_state = trace.last().unwrap();
-        let sum_ok = (final_state[0] + final_state[1] - 1.0).abs() < 1e-10;
+        let final_state = trace
+            .last()
+            .expect("RK4 trace must have at least one state");
+        let sum_ok = (final_state[0] + final_state[1] - 1.0).abs() < tolerances::CROSS_LANGUAGE;
         let converged = final_state[0].abs() < 1.0 && final_state[1].abs() < 1.0;
         h.check_bool("Replicator final frequencies sum to 1", sum_ok);
         h.check_bool("Replicator converged to stable equilibrium", converged);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -476,8 +483,8 @@ fn main() {
         h.check_bool("RK4 GRN state positive and finite", all_finite);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -519,8 +526,8 @@ fn main() {
         h.check_bool("Commutator Frobenius norm positive and finite", valid);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -553,7 +560,9 @@ fn main() {
         let mut out = Vec::with_capacity(nx * ny);
         for &cdg in &cdg_vals {
             for &ai in &ai_vals {
-                out.push(signal_integration::two_input_hill(cdg, ai, 1.0, 0.5, 0.3, 2.0, 2.0));
+                out.push(signal_integration::two_input_hill(
+                    cdg, ai, 1.0, 0.5, 0.3, 2.0, 2.0,
+                ));
             }
         }
 
@@ -566,14 +575,15 @@ fn main() {
                     )));
                 }
             }
+            std::hint::black_box(o);
         });
 
         let all_valid = out.iter().all(|v| v.is_finite() && *v >= 0.0 && *v <= 1.0);
         h.check_bool("Hill gate output in [0,1] and finite", all_valid);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -618,8 +628,8 @@ fn main() {
         h.check_bool("Multi-obj fitness dimension and finiteness", valid);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -666,8 +676,8 @@ fn main() {
         h.check_bool("Swarm NN action index in valid range", valid);
 
         let speedup = py_us.map(|p| p / rust_us);
-        if let Some(s) = speedup {
-            eprintln!("    Python: {:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×", py_us.unwrap());
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
         } else {
             eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
         }
@@ -701,8 +711,12 @@ fn main() {
     let mut all_parity = true;
 
     for r in &results {
-        let py_str = r.python_us.map_or("—".to_string(), |p| format!("{p:.1}"));
-        let sp_str = r.speedup.map_or("—".to_string(), |s| format!("{s:.1}×"));
+        let py_str = r
+            .python_us
+            .map_or_else(|| "—".to_string(), |p| format!("{p:.1}"));
+        let sp_str = r
+            .speedup
+            .map_or_else(|| "—".to_string(), |s| format!("{s:.1}×"));
         let par_str = if r.parity_ok { "✓" } else { "✗" };
         eprintln!(
             "  {:<25} {:>6} {:>10} {:>10.1} {:>8} {:>7}",
@@ -721,7 +735,7 @@ fn main() {
         let geomean = (results
             .iter()
             .filter_map(|r| r.speedup)
-            .map(|s| s.ln())
+            .map(f64::ln)
             .sum::<f64>()
             / speedup_count as f64)
             .exp();

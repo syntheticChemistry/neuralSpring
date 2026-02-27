@@ -138,6 +138,130 @@ impl Dispatcher {
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // Gate / fitness / swarm (upstream BarraCUDA GPU wrappers)
+    // ═══════════════════════════════════════════════════════════════
+
+    /// Two-input Hill gate: `f(a,b) = V_max × H(a) × H(b)` on GPU grid.
+    ///
+    /// Delegates to upstream `HillGateGpu` (mode=grid, `len_a × len_b` outputs).
+    /// CPU fallback uses `signal_integration::two_input_hill` in a nested loop.
+    #[must_use]
+    #[allow(clippy::too_many_arguments)]
+    pub fn hill_gate(
+        &self,
+        input_a: &[f64],
+        input_b: &[f64],
+        vmax: f64,
+        k_a: f64,
+        k_b: f64,
+        n_a: f64,
+        n_b: f64,
+    ) -> Vec<f64> {
+        self.gpu_or_cpu(
+            "hill_gate",
+            |dev| crate::gpu_ops::hill_gate_gpu(input_a, input_b, vmax, k_a, k_b, n_a, n_b, dev),
+            || {
+                let mut out = Vec::with_capacity(input_a.len() * input_b.len());
+                for &a in input_a {
+                    for &b in input_b {
+                        out.push(crate::signal_integration::two_input_hill(
+                            a, b, vmax, k_a, k_b, n_a, n_b,
+                        ));
+                    }
+                }
+                out
+            },
+        )
+    }
+
+    /// Multi-objective fitness evaluation on GPU.
+    ///
+    /// Delegates to upstream `MultiObjFitnessGpu` — evaluates all individuals
+    /// across all objectives in a single GPU dispatch.
+    #[must_use]
+    pub fn multi_obj_fitness(
+        &self,
+        genotypes: &[f64],
+        pop_size: usize,
+        genome_len: usize,
+        n_objectives: usize,
+    ) -> Vec<f64> {
+        self.gpu_or_cpu(
+            "multi_obj_fitness",
+            |dev| {
+                crate::gpu_ops::multi_obj_fitness_gpu(
+                    genotypes,
+                    pop_size,
+                    genome_len,
+                    n_objectives,
+                    dev,
+                )
+            },
+            || {
+                let mut out = Vec::with_capacity(pop_size * n_objectives);
+                for i in 0..pop_size {
+                    let start = i * genome_len;
+                    let end = start + genome_len;
+                    let geno = &genotypes[start..end];
+                    let fit =
+                        crate::directed_evolution::multi_objective_fitness(geno, n_objectives);
+                    out.extend_from_slice(&fit);
+                }
+                out
+            },
+        )
+    }
+
+    /// Swarm neural-network forward pass on GPU.
+    ///
+    /// Delegates to upstream `SwarmNnGpu` — evaluates all controllers ×
+    /// evaluations in parallel, returning per-evaluation action indices.
+    #[must_use]
+    #[allow(clippy::too_many_arguments)]
+    pub fn swarm_nn_forward(
+        &self,
+        weights: &[f64],
+        inputs: &[f64],
+        n_controllers: usize,
+        n_evals: usize,
+        input_dim: usize,
+        hidden_dim: usize,
+        output_dim: usize,
+    ) -> Vec<u32> {
+        self.gpu_or_cpu(
+            "swarm_nn_forward",
+            |dev| {
+                crate::gpu_ops::swarm_nn_forward_gpu(
+                    weights,
+                    inputs,
+                    n_controllers,
+                    n_evals,
+                    input_dim,
+                    hidden_dim,
+                    output_dim,
+                    dev,
+                )
+            },
+            || {
+                let mut out = Vec::with_capacity(n_controllers * n_evals);
+                let weights_per =
+                    input_dim * hidden_dim + hidden_dim + hidden_dim * output_dim + output_dim;
+                for c in 0..n_controllers {
+                    let w_start = c * weights_per;
+                    let params = &weights[w_start..w_start + weights_per];
+                    for e in 0..n_evals {
+                        let i_start = (c * n_evals + e) * input_dim;
+                        let sense = inputs[i_start];
+                        let action = crate::swarm_robotics::neural_forward(params, sense);
+                        out.push(action as u32);
+                    }
+                }
+                out
+            },
+        )
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // Reductions / statistics
     // ═══════════════════════════════════════════════════════════════
 

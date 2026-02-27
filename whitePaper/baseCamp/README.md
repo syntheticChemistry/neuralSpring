@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
 **Last Updated**: February 27, 2026 (Sessions 61–88+)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + sovereign folding (AlphaFold2) + 3 publication experiments, **3034+ checks**, ~97% GPU promotion, **174/175 validate\_all** (175 binaries), CPU↔Python parity 39/39, **83.6× faster** than Python (geomean across 11 domains; fastest: multi-obj 1104×). CPU→GPU portability proven (9/9, 7 domains). Phase 4 WGSL shader validation 22/22. ToadStool streaming spectral pipeline 28/28. NUCLEUS compute dispatch 39/39. ToadStool absorption readiness 294/294. Mixed-hardware 43/43. 42 upstream rewires + 124 barracuda import sites across 177 files, 16 submodules. Zero debt, 129+ named tolerances
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + sovereign folding (AlphaFold2) + 3 publication experiments, **3111+ checks**, ~97% GPU promotion, **177/177 validate\_all** (177 binaries, all green), CPU↔Python parity 39/39, **83.6× faster** than Python (geomean across 11 domains; fastest: multi-obj 1104×). CPU→GPU portability proven (9/9, 7 domains). Phase 4 WGSL shader validation 22/22. ToadStool streaming spectral pipeline 28/28. NUCLEUS compute dispatch 39/39. ToadStool absorption readiness 294/294. Mixed-hardware 43/43. **Dispatch parity 30/30** (CPU↔GPU identical for 26 ops). **Mixed-hardware dispatch 47/47** (NPU substrate + PCIe bridge + NUCLEUS atomics). 47 GPU-promoted Dispatcher ops. 42 upstream rewires + 124 barracuda import sites across 177 files, 16 submodules. Zero debt, 131+ named tolerances
 
 ## Purpose
 

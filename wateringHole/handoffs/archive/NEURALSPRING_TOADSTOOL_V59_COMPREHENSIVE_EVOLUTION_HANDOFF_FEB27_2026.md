@@ -11,7 +11,7 @@
 ## Executive Summary
 
 - neuralSpring exercises **16 barracuda submodules** across **177 files** with **124 import sites**
-- **175 binaries**, **174/175 validate_all**, **668 lib tests**, **3034+ checks**
+- **177 binaries**, **177/177 validate_all**, **668 lib tests**, **3111+ checks**
 - BarraCUDA CPU is **83.6× faster** than Python/NumPy (geomean, 11 domains)
 - CPU→GPU portability **proven** (9/9 parity checks, 7 domains)
 - **42 upstream rewires** — neuralSpring local code replaced by barracuda APIs

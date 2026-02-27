@@ -119,7 +119,10 @@ pub fn geographic_distance_matrix_gpu(
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
     let n = coords.len();
-    let flat: Vec<f64> = coords.iter().flat_map(|&(x, y)| [x, y]).collect();
+    let flat: Vec<f64> = coords
+        .iter()
+        .flat_map(|&(x, y)| <[f64; 2]>::from((x, y)))
+        .collect();
     let upper = super::bio::pairwise_l2_matrix_gpu(&flat, n, 2, device)?;
 
     let mut dist = vec![0.0_f64; n * n];

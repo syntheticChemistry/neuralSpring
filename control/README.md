@@ -62,7 +62,7 @@ python3 control/surrogate/surrogate_validation.py
 | `shared/` | Open-Meteo ERA5 fetch/cache | CC BY 4.0 | — |
 | `ml_inference/` | Benchmark + baseline generation | Scaling analysis | — |
 
-**Total: 253/253 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 17 WDM)
+**Total: 263/263 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 27 WDM)
 
 ## Data Sources
 

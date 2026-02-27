@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 27, 2026 (Sessions 40–88+)
-**ToadStool HEAD**: `e96576ee` (S68+: `compile_shader_df64` rewired to upstream, pin updated across 17 files. ToadStool: 703 WGSL all f64 canonical, universal precision F16/F32/F64/DF64, 4176+ tests, zero f32-only shaders. V56 handoff: LogSumExp/PairwiseDistance/BatchedEighGpu confirmed upstream. 175 binaries, 174/175 validate\_all, 3034+ checks)
+**Date**: February 27, 2026 (Sessions 40–89)
+**ToadStool HEAD**: `e96576ee` (S68+: `compile_shader_df64` rewired to upstream, pin updated across 17 files. ToadStool: 703 WGSL all f64 canonical, universal precision F16/F32/F64/DF64, 4176+ tests, zero f32-only shaders. S89: +3 upstream BarraCUDA ops wired (HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu), dispatch parity 30/30, mixed-hardware dispatch 47/47. 177 binaries, **177/177 validate\_all**, 3111+ checks)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -10,14 +10,14 @@
 ## Quick Status
 
 40 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments.
-175 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+177 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 233/233 | **COMPLETE** |
-| Rust native validation | 668 lib + 9 integration + 43 forge tests, 40 modules, 175 binaries | **COMPLETE** |
+| Rust native validation | 668 lib + 9 integration + 43 forge tests, 40 modules, 177 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -57,8 +57,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels, geomean) | **83.6× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **175 binaries** |
-| `validate_all` (S-75+) | **174/175 PASS** (RTX 4070, 1 pre-existing WDM) | **ALL GREEN** |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (Phase A+B+C + S89), 7 rewired to upstream domain_ops | **177 binaries** |
+| `validate_all` (S-89) | **177/177 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -80,7 +80,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 77: baseCamp GPU pure | `validate_basecamp_gpu_pure` 5/5 sub-theses on GPU | **ALL GREEN** |
 | Session 78–79: cross-spring | `validate_cross_spring_evolution` 52/52 PASS, `bench_cross_spring_evolution` 28/28 PASS | **ALL GREEN** |
 | Session 87: WDM queue closed | nW-03 S(q,ω) (27/27 Rs), nW-05 ESN regime (39/39 Rs), 5 Py baselines (33/33), 6 Rust validators (153/153) | **ALL GREEN** |
-| Grand total checks | **3034+** (263 Py + 2710+ Rust/GPU) | **ALL GREEN** |
+| Grand total checks | **3111+** (263 Py + 2787+ Rust/GPU) | **ALL GREEN** |
 
 ---
 

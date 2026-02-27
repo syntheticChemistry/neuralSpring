@@ -15,7 +15,7 @@
 //! These shaders use f32 buffers. CPU references use f64 — tolerance allows
 //! for f32 precision loss (~1e-3 to 1e-5 depending on accumulation depth).
 //!
-//! ToadStool absorption targets:
+//! `ToadStool` absorption targets:
 //! - `hmm_backward_log` → `barracuda::ops::bio::hmm_backward`
 //! - `hmm_viterbi` → `barracuda::ops::bio::hmm_viterbi`
 //! - `matrix_correlation` → `barracuda::stats::matrix_correlation_gpu`
@@ -24,15 +24,46 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
     clippy::expect_used,
     clippy::many_single_char_names,
     clippy::similar_names,
     clippy::too_many_lines
 )]
 
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct HmmParams {
+    n_states: u32,
+    _pad: [u32; 3],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct ViterbiParams {
+    n_states: u32,
+    _pad: [u32; 3],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct CorrParams {
+    n: u32,
+    total_pairs: u32,
+    _pad: [u32; 2],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct RegParams {
+    n: u32,
+    _pad: [u32; 3],
+}
+
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_shader_validation::{dispatch_shader, wg1d, ShaderBinding};
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
@@ -135,12 +166,6 @@ fn validate_hmm_backward_log(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rng
         mapped_at_creation: false,
     });
 
-    #[repr(C)]
-    #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-    struct HmmParams {
-        n_states: u32,
-        _pad: [u32; 3],
-    }
     let params = HmmParams {
         n_states: n,
         _pad: [0; 3],
@@ -177,7 +202,7 @@ fn validate_hmm_backward_log(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rng
                 "HMM backward: GPU ↔ CPU max diff",
                 f64::from(max_diff),
                 0.0,
-                1e-4,
+                tolerances::GPU_FITNESS_F32,
             );
 
             for (i, (&c, &g)) in cpu_result.iter().zip(gpu_result.iter()).enumerate() {
@@ -271,12 +296,6 @@ fn validate_hmm_viterbi(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rng) {
         mapped_at_creation: false,
     });
 
-    #[repr(C)]
-    #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-    struct ViterbiParams {
-        n_states: u32,
-        _pad: [u32; 3],
-    }
     let params = ViterbiParams {
         n_states: n,
         _pad: [0; 3],
@@ -314,7 +333,7 @@ fn validate_hmm_viterbi(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rng) {
                 "Viterbi: delta GPU ↔ CPU max diff",
                 f64::from(max_diff),
                 0.0,
-                1e-5,
+                tolerances::DISPATCH_VITERBI_F32,
             );
 
             for (j, (&c, &g)) in cpu_delta.iter().zip(gpu_delta.iter()).enumerate() {
@@ -410,13 +429,6 @@ fn validate_matrix_correlation(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut R
         mapped_at_creation: false,
     });
 
-    #[repr(C)]
-    #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-    struct CorrParams {
-        n: u32,
-        total_pairs: u32,
-        _pad: [u32; 2],
-    }
     let params = CorrParams {
         n,
         total_pairs: total_pairs as u32,
@@ -475,7 +487,12 @@ fn validate_matrix_correlation(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut R
                 0.0
             };
 
-            h.check_abs("Matrix corr: GPU ↔ CPU Pearson", gpu_corr, cpu_corr, 1e-3);
+            h.check_abs(
+                "Matrix corr: GPU ↔ CPU Pearson",
+                gpu_corr,
+                cpu_corr,
+                tolerances::TENSOR_TRANSCENDENTAL_F32,
+            );
 
             h.check_abs(
                 "Matrix corr: count matches total_pairs",
@@ -506,7 +523,10 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
     let x: Vec<f32> = (0..nn).map(|i| (i as f32) / (nn as f32)).collect();
     let y: Vec<f32> = x
         .iter()
-        .map(|&xi| (true_a * f64::from(xi) + true_b + rng.normal() * 0.01) as f32)
+        .map(|&xi| {
+            rng.normal()
+                .mul_add(0.01, true_a.mul_add(f64::from(xi), true_b)) as f32
+        })
         .collect();
 
     let cpu_ab = {
@@ -519,12 +539,13 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
             .zip(y.iter())
             .map(|(&xi, &yi)| f64::from(xi) * f64::from(yi))
             .sum();
-        let denom = n_f * sxx - sx * sx;
+        #[allow(clippy::suspicious_operation_groupings)]
+        let denom = n_f.mul_add(sxx, -(sx * sx));
         if denom.abs() < 1e-15 {
             (0.0, 0.0)
         } else {
-            let a = (n_f * sxy - sx * sy) / denom;
-            let b = (sxx * sy - sx * sxy) / denom;
+            let a = n_f.mul_add(sxy, -(sx * sy)) / denom;
+            let b = sxx.mul_add(sy, -(sx * sxy)) / denom;
             (a, b)
         }
     };
@@ -555,12 +576,6 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
         mapped_at_creation: false,
     });
 
-    #[repr(C)]
-    #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-    struct RegParams {
-        n: u32,
-        _pad: [u32; 3],
-    }
     let params = RegParams { n, _pad: [0; 3] };
     let params_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("params"),
@@ -598,13 +613,14 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
                 count += f64::from(partials[base + 4]);
             }
 
-            let denom = count * sxx - sx * sx;
+            #[allow(clippy::suspicious_operation_groupings)]
+            let denom = count.mul_add(sxx, -(sx * sx));
             let (gpu_a, gpu_b) = if denom.abs() < 1e-15 {
                 (0.0, 0.0)
             } else {
                 (
-                    (count * sxy - sx * sy) / denom,
-                    (sxx * sy - sx * sxy) / denom,
+                    count.mul_add(sxy, -(sx * sy)) / denom,
+                    sxx.mul_add(sy, -(sx * sxy)) / denom,
                 )
             };
 

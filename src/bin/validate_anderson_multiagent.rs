@@ -18,7 +18,7 @@
 //! - **Command**: `python3 control/anderson_multiagent/anderson_multiagent.py`
 //! - **Environment**: Python 3.12, `NumPy`, seed=42
 //! - **Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
-//! - **Provenance record**: [`provenance::ANDERSON_MULTIAGENT_PROVENANCE`]
+//! - **Provenance record**: `provenance::ANDERSON_MULTIAGENT_PROVENANCE`
 
 #![allow(
     clippy::cast_precision_loss,

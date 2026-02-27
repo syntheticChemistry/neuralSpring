@@ -4,10 +4,10 @@
 //! via metalForge NUCLEUS atomic patterns.
 //!
 //! Extends the publication experiment validation to the mixed-hardware tier:
-//! 1. NPU→GPU via PCIe bridge (simulated, bypassing CPU round-trip)
+//! 1. NPU→GPU via `PCIe` bridge (simulated, bypassing CPU round-trip)
 //! 2. GPU→CPU fallback with parity proof
 //! 3. Substrate routing respects compute/data cost model
-//! 4. NUCLEUS Node atomic pattern: compute dispatch through ToadStool
+//! 4. NUCLEUS Node atomic pattern: compute dispatch through `ToadStool`
 //! 5. NUCLEUS Nest atomic pattern: storage dispatch (result provenance)
 //!
 //! This is the "mixed NUCLEUS atomics" proof — coordinated via biomeOS graphs.
@@ -152,8 +152,8 @@ async fn main() {
             hessian[i * n + i] = (i + 1) as f64;
         }
 
-        let cpu_decomp = eigh_householder_qr(&hessian, n);
-        let mut cpu_evals = cpu_decomp.eigenvalues.clone();
+        let mut cpu_decomp = eigh_householder_qr(&hessian, n);
+        let mut cpu_evals = std::mem::take(&mut cpu_decomp.eigenvalues);
         cpu_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
         for (i, &eval) in cpu_evals.iter().enumerate() {
@@ -161,7 +161,7 @@ async fn main() {
                 &format!("Exp-052: diag Hessian eval[{i}]"),
                 eval,
                 (i + 1) as f64,
-                1e-10,
+                tolerances::CROSS_LANGUAGE,
             );
         }
 
@@ -197,7 +197,7 @@ async fn main() {
         );
         h.check_bool("Exp-052: NPU bridge variance finite", npu_var.is_finite());
 
-        let bridge = PcieBridge::new(&dispatcher.adapter_name(), "simulated_NPU_AKD1000");
+        let bridge = PcieBridge::new(dispatcher.adapter_name(), "simulated_NPU_AKD1000");
         let transfer_cost = bridge.transfer_cost((n * n * 8) as u64);
         h.check_bool(
             "Exp-052: PCIe bridge cost > 0",

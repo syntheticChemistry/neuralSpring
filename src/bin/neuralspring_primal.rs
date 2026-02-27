@@ -419,6 +419,11 @@ fn dispatch(request: JsonRpcRequest) -> JsonRpcResponse {
 // Socket resolution (follows biomeOS 5-tier standard)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/// 4-tier socket resolution (biomeOS standard):
+///   1. `BIOMEOS_SOCKET_DIR` env var (explicit override)
+///   2. `XDG_RUNTIME_DIR`/biomeos (freedesktop)
+///   3. /run/user/{uid}/biomeos (systemd)
+///   4. `TMPDIR` or /tmp fallback
 fn resolve_socket_path(family_id: &str) -> PathBuf {
     if let Ok(dir) = std::env::var("BIOMEOS_SOCKET_DIR") {
         return PathBuf::from(dir).join(format!("neuralspring-{family_id}.sock"));
@@ -434,12 +439,16 @@ fn resolve_socket_path(family_id: &str) -> PathBuf {
         if let Ok(meta) = std::fs::metadata("/proc/self") {
             let uid = meta.uid();
             let dir = PathBuf::from(format!("/run/user/{uid}/biomeos"));
-            if dir.parent().map(|p| p.exists()).unwrap_or(false) {
+            if dir.parent().is_some_and(std::path::Path::exists) {
                 return dir.join(format!("neuralspring-{family_id}.sock"));
             }
         }
     }
-    PathBuf::from("/tmp/biomeos").join(format!("neuralspring-{family_id}.sock"))
+    let tmp = std::env::var("TMPDIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("/tmp"));
+    tmp.join("biomeos")
+        .join(format!("neuralspring-{family_id}.sock"))
 }
 
 fn get_family_id() -> String {

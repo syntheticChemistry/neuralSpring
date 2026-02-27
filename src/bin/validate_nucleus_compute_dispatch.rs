@@ -13,7 +13,7 @@
 //! exercises the `Dispatcher` API the same way biomeOS graphs orchestrate
 //! across atomics — capability-based routing, not hardcoded paths.
 //!
-//! Targets for ToadStool absorption:
+//! Targets for `ToadStool` absorption:
 //! - `dispatcher.eigh` → `barracuda::linalg::batched_eigh_gpu`
 //! - `dispatcher.disorder_sweep` → `barracuda::spectral::disorder_sweep_gpu`
 //! - `dispatcher.mixed_dispatch` → `barracuda::unified_hardware::route`
@@ -262,9 +262,9 @@ fn validate_node_hessian(
     let (cpu_evals, _) = Dispatcher::cpu_only().eigh(&hessian, n);
     let (dispatch_evals, _) = dispatcher.eigh(&hessian, n);
 
-    let mut cpu_sorted = cpu_evals.clone();
+    let mut cpu_sorted = cpu_evals;
     cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    let mut dispatch_sorted = dispatch_evals.clone();
+    let mut dispatch_sorted = dispatch_evals;
     dispatch_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
     let eval_diff = cpu_sorted
@@ -278,8 +278,14 @@ fn validate_node_hessian(
         eval_diff < tolerances::GPU_EIGH_DISPATCH_F64,
     );
 
-    let negative_count = cpu_sorted.iter().filter(|&&v| v < -1e-10).count();
-    let positive_count = cpu_sorted.iter().filter(|&&v| v > 1e-10).count();
+    let negative_count = cpu_sorted
+        .iter()
+        .filter(|&&v| v < -tolerances::CROSS_LANGUAGE)
+        .count();
+    let positive_count = cpu_sorted
+        .iter()
+        .filter(|&&v| v > tolerances::CROSS_LANGUAGE)
+        .count();
     h.check_bool(
         "Node Hessian: has both positive and negative eigenvalues",
         negative_count > 0 && positive_count > 0,
