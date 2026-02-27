@@ -7,12 +7,12 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V57** | `handoffs/NEURALSPRING_TOADSTOOL_V57_MODERN_REWIRE_CROSS_SPRING_HANDOFF_FEB27_2026.md` | Feb 27, 2026 | Modern rewire: 3 high-impact GPU rewires (PairwiseL2Gpu, BatchIprGpu), cross-spring provenance benchmark (23/23), 173 binaries, 172/173 validate\_all, 3000+ checks |
+| **V58** | `handoffs/NEURALSPRING_TOADSTOOL_V58_CPU_PARITY_GPU_PORTABILITY_HANDOFF_FEB27_2026.md` | Feb 27, 2026 | CPU parity (83.6× vs Python, 11 domains) + GPU portability (9/9, 7 domains), 175 binaries, 174/175 validate\_all, 3034+ checks |
 | biomeOS | `handoffs/NEURALSPRING_BIOMEOS_V1_NUCLEUS_INTEGRATION_HANDOFF_FEB27_2026.md` | Feb 27, 2026 | biomeOS NUCLEUS integration — science primal, 7 capabilities, JSON-RPC server, 29/29 PASS |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V56, 71 files).
+Superseded handoffs: `handoffs/archive/` (V1–V57, 72 files).
 
 ## Conventions
 

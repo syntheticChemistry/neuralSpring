@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
 **Last Updated**: February 27, 2026 (Sessions 44–88+ — Phase 4 WGSL shader validation, ToadStool streaming pipeline, NUCLEUS atomics, publication experiments, barracuda evolution audit)
-**Status**: Phase 5h+ — 263/263 Python + 2710+ Rust+GPU = **3000+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 201.7× speedup, pure GPU 10/10 PASS, cross-system 46/46 PASS, cross-spring 52/52 PASS, Phase 4 shaders 22/22, streaming pipeline 28/28, 173 binaries, 172/173 validate\_all
+**Status**: Phase 5h+ — 263/263 Python + 2710+ Rust+GPU = **3034+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 201.7× speedup, pure GPU 10/10 PASS, cross-system 46/46 PASS, cross-spring 52/52 PASS, Phase 4 shaders 22/22, streaming pipeline 28/28, 175 binaries, 174/175 validate\_all
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 668 lib + 43 forge + 9 integration PASS — 173 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
+| Rust native validation | 668 lib + 43 forge + 9 integration PASS — 175 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
 | BarraCUDA CPU (bC) | 24/25 papers (96%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/25 papers (92%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/25 papers, 17 shaders, 108 checks | ALL PASS |

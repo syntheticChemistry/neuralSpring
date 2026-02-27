@@ -533,7 +533,11 @@ through the full GPU validation progression:
 | `validate_barracuda_anderson_multiagent` | 11/11 | GPU | Laplacian → disordered eigensolve → IPR + L2 on GPU (Exp-053 Paper C) |
 | `validate_publication_gpu_pipeline` | 13/13 | Pipeline + metalForge | BatchIprGpu pure pipeline, Dispatcher CPU↔GPU parity, mixed-hardware routing |
 
-Total: **173 binaries**, **172/173 validate_all** (1 pre-existing WDM damping assertion).
+**Session 88+ CPU parity and portability benchmarks**: 2 new validators:
+- `validate_barracuda_cpu_bench` (25/25): Python/NumPy vs pure Rust across 11 paper domains, 83.6× geometric mean speedup
+- `bench_portability_tiers` (9/9): CPU→GPU portability proof, 7 domains, ToadStool streaming
+
+Total: **175 binaries**, **174/175 validate_all** (1 pre-existing WDM damping assertion).
 Also fixed `validate_wdm_sqw` JSON schema mismatch (`spec_mean` → `series_mean` compat): 0/1 → 26/27.
 
 **Session 88+ Phase 4 shader + streaming pipeline**: 2 new validators close direct
@@ -544,7 +548,7 @@ WGSL shader validation and ToadStool streaming proof gaps:
 | `validate_gpu_shader_phase4` | 22/22 | WGSL direct | HMM backward (1.19e-7), Viterbi (exact), matrix correlation (<1e-6), linear regression (slope 2.503 vs true 2.5) |
 | `validate_streaming_spectral_pipeline` | 28/28 | Streaming | Batch eigensolve→IPR→stats (8 Hamiltonians), Anderson disorder sweep (6 W values, IPR 0.09→0.79), Dispatcher parity (1.6e-14) |
 
-Total: **173 binaries**, **172/173 validate_all** (1 pre-existing WDM damping assertion).
+Total: **175 binaries**, **174/175 validate_all** (1 pre-existing WDM damping assertion).
 ToadStool streaming pattern validated: unidirectional dispatch preserves scientific conclusions.
 
 **Session 88+ debt reduction addendum**: Barracuda usage audit complete — 90+ import sites,

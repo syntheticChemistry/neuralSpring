@@ -76,6 +76,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 062 | Session 88+ — Phase 4 WGSL Shader Validation & ToadStool Streaming Pipeline | Feb 27, 2026 | Phase 4 WGSL shaders 22/22 (HMM backward/Viterbi, matrix correlation, linear regression — direct dispatch). ToadStool streaming spectral pipeline 28/28 (batch eigensolve→IPR, Anderson disorder sweep, Dispatcher parity). 172 binaries, 171/172 validate\_all |
 | 063 | Session 88+ — ToadStool `e96576ee` Sync: Universal Precision + Upstream Rewire | Feb 27, 2026 | `compile_shader_f64_hybrid` rewired to upstream `compile_shader_df64`. ToadStool: 703 WGSL all f64 canonical, universal precision (F16/F32/F64/DF64), 4176+ tests. LogSumExp/PairwiseDistance/BatchedEighGpu confirmed upstream. Pin updated across 17 docs. 171/172 validate\_all. V56 handoff |
 | 064 | Session 88+ — Modern Rewire: Cross-Spring GPU Evolution Benchmarking | Feb 27, 2026 | 3 high-impact rewires: `pairwise_l2_matrix_gpu`→`PairwiseL2Gpu` (1 dispatch vs O(n²)), `geographic_distance_matrix_gpu`→`PairwiseL2Gpu`, `disorder_sweep_gpu` IPR→`BatchIprGpu`. `bench_modern_rewire` 23/23 PASS. Cross-spring provenance tracked: hotSpring precision→eigensolve, wetSpring bio→diversity, neuralSpring ML→pairwise. 173 binaries, 172/173 validate\_all |
+| 065 | BarraCUDA CPU Parity & GPU Portability | Feb 27, 2026 | Cross-language benchmark: Python/NumPy vs pure Rust (83.6× geomean), CPU→GPU portability (7 domains), ToadStool streaming (25+9=34 checks) |
 
 ---
 

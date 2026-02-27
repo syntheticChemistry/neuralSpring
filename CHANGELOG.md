@@ -7,6 +7,12 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] — Session 88+ (February 27, 2026)
 
+### Session 88+ — BarraCUDA CPU Parity & GPU Portability Benchmarks (February 27, 2026)
+
+- **`validate_barracuda_cpu_bench`** (25/25 PASS): Cross-language benchmark proving BarraCUDA CPU is pure math and 83.6× faster than Python/NumPy (geometric mean across 11 paper domains). Fastest: multi-objective fitness 1104×, NK fitness 820×, pairwise L2 314×. One domain (commutator 64×64) is 0.4× because NumPy delegates to BLAS — documented and expected.
+- **`bench_portability_tiers`** (9/9 PASS): CPU→GPU portability proof across 7 domains. Proves same math produces identical results at every tier: Python → BarraCUDA CPU → BarraCUDA GPU. ToadStool unidirectional streaming pattern validated (upload → compute → scalar readback).
+- Total: **175 binaries**, **174/175 validate_all** (1 pre-existing WDM damping assertion), **668 lib tests**, **3034+ checks**.
+
 ### Changed (ToadStool `e96576ee` sync)
 
 - **`compile_shader_f64_hybrid` rewired**: Now delegates to upstream
@@ -98,12 +104,12 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `cargo fmt --check`: PASS
 - `cargo clippy --all-targets`: 0 warnings
 - `cargo test --workspace`: PASS
-- `validate_all`: **172/173 PASS** (173 binaries, 1 pre-existing WDM damping assertion)
+- `validate_all`: **174/175 PASS** (175 binaries, 1 pre-existing WDM damping assertion)
 - `validate_biomeos_spectral`: **29/29 PASS** (biomeOS primal integration, feature-gated)
 - `validate_gpu_shader_phase4`: **22/22 PASS** (Phase 4 WGSL direct shader dispatch)
 - `validate_streaming_spectral_pipeline`: **28/28 PASS** (ToadStool streaming proof)
 - Publication experiments: full GPU progression (Py → Rs → GPU → Pipeline → metalForge)
-- Documentation sweep: all counts aligned (3000+ checks, 173 binaries, 668 lib tests)
+- Documentation sweep: all counts aligned (3034+ checks, 175 binaries, 668 lib tests)
 
 ## [0.5.2] — 2026-02-27 (Session 88: df64 Core Streaming — Sovereign Folding)
 

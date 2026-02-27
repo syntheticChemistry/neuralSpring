@@ -228,6 +228,10 @@ const BINARIES: &[&str] = &[
     "validate_sovereign_folding_gpu_pipeline",
     // Modern rewire + cross-spring provenance benchmark
     "bench_modern_rewire",
+    // BarraCUDA CPU parity + performance (Python/NumPy vs pure Rust)
+    "validate_barracuda_cpu_bench",
+    // Portability tier benchmark (CPU → GPU parity + ToadStool streaming proof)
+    "bench_portability_tiers",
 ];
 
 fn main() {
