@@ -15,14 +15,10 @@
 //     z[i,j] += sum_k w[j,k] * V[k,h]
 //
 // This shader computes the biased attention scores (pass 1).
-// Softmax (pass 2) uses softmax_f64.wgsl.
-// Value application (pass 3) uses attention_apply_f64.wgsl.
-//
-// For column-wise attention (Algorithm 14), transpose the pair
-// representation before dispatch: z[j,i,c] instead of z[i,j,c].
+// Three-zone core streaming: f64 buffer I/O, df64 compute, f64 output.
 //
 // Absorption target: barracuda::ops::triangle_attention_f64
-// Requires: df64_core.wgsl (auto-injected by compile_shader_df64)
+// Requires: df64_core.wgsl + df64_transcendentals.wgsl (prepended via compile_shader_f64)
 
 struct Params {
     n_rows:   u32,
@@ -31,10 +27,10 @@ struct Params {
     head_dim: u32,
 }
 
-@group(0) @binding(0) var<storage, read>       query: array<f32>;
-@group(0) @binding(1) var<storage, read>       key:   array<f32>;
-@group(0) @binding(2) var<storage, read>       bias:  array<f32>;
-@group(0) @binding(3) var<storage, read_write> scores: array<f32>;
+@group(0) @binding(0) var<storage, read>       query: array<f64>;
+@group(0) @binding(1) var<storage, read>       key:   array<f64>;
+@group(0) @binding(2) var<storage, read>       bias:  array<f64>;
+@group(0) @binding(3) var<storage, read_write> scores: array<f64>;
 @group(0) @binding(4) var<uniform>             params: Params;
 
 @compute @workgroup_size(256)
@@ -60,18 +56,20 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let q_base = (row * N * H + j * H + h) * D;
     let k_base = (row * N * H + k * H + h) * D;
 
+    // Zone 1+2: f64 → df64 dot product
     var acc = df64_zero();
     for (var d = 0u; d < D; d++) {
-        let prod = two_prod(query[q_base + d], key[k_base + d]);
-        acc = df64_add(acc, prod);
+        let q = df64_from_f64(query[q_base + d]);
+        let kv = df64_from_f64(key[k_base + d]);
+        acc = df64_add(acc, df64_mul(q, kv));
     }
 
-    let scale = sqrt(f32(D));
-    let score = acc.hi / scale;
+    let scale = sqrt_df64(df64_from_f32(f32(D)));
+    let score = df64_div(acc, scale);
+    let bias_val = df64_from_f64(bias[h * N * N + j * N + k]);
+    let biased = df64_add(score, bias_val);
 
-    let bias_idx = h * N * N + j * N + k;
-    let biased_score = score + bias[bias_idx];
-
+    // Zone 3: df64 → f64
     let out_idx = row * H * N * N + h * N * N + j * N + k;
-    scores[out_idx] = biased_score;
+    scores[out_idx] = df64_to_f64(biased);
 }

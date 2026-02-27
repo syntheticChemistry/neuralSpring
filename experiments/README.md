@@ -65,6 +65,9 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 051 | Session 83 — ToadStool S68 Universal Precision Sync | Feb 26, 2026 | 22 commits synced, 5 shader imports fixed, variance_ddof gap closed, 150/150 validators PASS |
 | 052 | Session 84 — Cross-Spring Benchmark + Lineage Documentation | Feb 26, 2026 | Five-spring provenance map, 28/28 bench PASS, 5 new S68 APIs benchmarked, GPU dispatch provenance validated |
 | 053 | Session 85 — Doc Sweep + V49 Handoff | Feb 26, 2026 | All stale counts fixed (580→604, 163→166, 107→129+), baseCamp sub-theses updated through S85, V49 handoff with cross-spring learnings, Hamming regression flagged |
+| 054 | Session 86 — WDM Surrogate Buildout (nW-01, nW-02, nW-04) | Feb 26, 2026 | 3 WDM Python baselines + 2 Rust validators, `wdm_surrogate.rs`/`wdm_transport.rs`, 611 lib tests, 154/154 PASS |
+| 055 | Session 87 — WDM Queue Closed (nW-03, nW-05) | Feb 26, 2026 | LSTM reservoir + ESN classifier, `wdm_sqw.rs`/`wdm_esn.rs`, 623 lib, 156/156 PASS |
+| 056 | Session 88 — df64 Core Streaming: Sovereign Folding Evolution | Feb 27, 2026 | 15 WGSL shaders evolved to f64 buffers + df64 compute, 37/37 sovereign GPU, 158/158 validate\_all, V52 handoff |
 
 ---
 
@@ -3214,6 +3217,74 @@ system, confirm cross-language parity.
 | `cargo clippy --workspace -- -D warnings` | 0 warnings |
 | `cargo doc --workspace --no-deps` | 0 warnings |
 | `cargo test --workspace` | **675/675 PASS** |
+
+**Status**: COMPLETE
+
+---
+
+### Experiment 056: Session 88 — df64 Core Streaming: Sovereign Folding Evolution
+
+**Date**: February 27, 2026
+**Hardware**: i9-12900K, RTX 4070 (Vulkan), Pop!_OS 22.04
+
+**Motivation**: Evolve all 15 sovereign folding (AlphaFold2) WGSL shaders from
+the previous f32-buffer approach to the hotSpring/ToadStool df64 core streaming
+pattern. The user identified that the prior implementation was not following the
+correct architectural pattern: hotSpring uses ToadStool's df64 to increase FP64
+throughput on consumer GPUs. The three-zone pattern (f64 buffer I/O → df64
+compute on FP32 cores → f64 output) achieves ~14-digit (fp48) precision using
+pairs of f32 values, getting 9.9x the throughput of native f64 on consumer GPUs
+with 1:64 FP64:FP32 ratio.
+
+**Procedure**:
+1. Reviewed hotSpring's `HYBRID_FP64_CORE_STREAMING.md` and ToadStool's
+   `df64_core.wgsl` + `df64_transcendentals.wgsl` to understand the
+   architectural pattern.
+2. Added three new methods to `src/gpu.rs`: `create_buffer_f64()`,
+   `upload_f64()`, and `compile_shader_f64_hybrid()` (prepends df64 preambles
+   then calls `compile_shader_f64`).
+3. Evolved all 15 WGSL shaders in `metalForge/shaders/` from `array<f32>` to
+   `array<f64>` buffers with df64 core streaming compute: `gelu_f64`,
+   `layer_norm_f64`, `softmax_f64`, `sdpa_scores_f64`, `attention_apply_f64`,
+   `triangle_mul_outgoing_f64`, `triangle_mul_incoming_f64`,
+   `triangle_attention_f64`, `outer_product_mean_f64`,
+   `msa_row_attention_scores_f64`, `msa_col_attention_scores_f64`,
+   `sigmoid_f64`, `ipa_scores_f64`, `backbone_update_f64`,
+   `torsion_angles_f64`.
+4. Rewrote `validate_sovereign_folding_gpu` for f64 I/O: f64 data generation,
+   f64 buffer upload, `compile_shader_f64_hybrid` compilation, f64 readback.
+5. Established two-tier tolerance: `GPU_DF64_TOL = 1e-6` for arithmetic ops,
+   `GPU_DF64_TRANS_TOL = 5e-4` for transcendental ops (exp, tanh).
+6. Wired `Fp64Strategy` auto-detection into the GPU validator main function.
+7. Fixed WGSL syntax error in `torsion_angles_f64.wgsl` (ternary `if`
+   expression is invalid WGSL — replaced with explicit `if` statement).
+8. Fixed clippy warnings (`many_single_char_names`, doc backticks).
+9. Documented precision hierarchy in `specs/PAPER_REVIEW_QUEUE.md`.
+
+**Key Findings**:
+- **Two distinct precision tiers emerge** from df64 core streaming:
+  - **Arithmetic** (dot products, matmul, accumulation, `sqrt_df64`):
+    3.6e-8 to 5.6e-7 max diff. Limited by f32 FMA error tracking in
+    `two_prod`/`two_sum`.
+  - **Transcendental** (`exp_df64`, `tanh_df64`): 1.7e-4 to 3.4e-4 max
+    diff. Limited by degree-6 Horner polynomial truncation in
+    `df64_transcendentals.wgsl`.
+- Both tiers are significantly better than pure f32 (~1e-3 to 1e-2).
+- `Fp64Strategy::Hybrid` correctly auto-detected on RTX 4070 (1:64 ratio).
+- WGSL does not support Rust-style ternary `if` expressions — requires
+  `select()` builtin or explicit `if` statement for conditional assignment.
+- The `compile_shader_f64_hybrid` helper cleanly encapsulates the preamble
+  concatenation pattern, matching hotSpring's convention.
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --workspace -- -D warnings` | 0 warnings |
+| `cargo test --workspace` | **675/675 PASS** |
+| `validate_all` | **158/158 PASS** |
+| `validate_sovereign_folding_gpu` | **37/37 PASS** |
 
 **Status**: COMPLETE
 

@@ -5,9 +5,42 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 87 (February 26, 2026)
+## [Unreleased] — Session 88 (February 27, 2026)
 
 Next session.
+
+## [0.5.2] — 2026-02-27 (Session 88: df64 Core Streaming — Sovereign Folding)
+
+### Changed
+
+- All 15 sovereign folding WGSL shaders evolved to hotSpring/ToadStool df64 core
+  streaming pattern: f64 buffer I/O → df64 compute on FP32 cores → f64 output.
+  Three-zone architecture: `df64_from_f64` at load, `df64_*` arithmetic and
+  transcendentals for compute, `df64_to_f64` at store.
+- `src/gpu.rs`: Added `create_buffer_f64()`, `upload_f64()`, and
+  `compile_shader_f64_hybrid()` (prepends `df64_core.wgsl` +
+  `df64_transcendentals.wgsl` then calls `compile_shader_f64`).
+- `validate_sovereign_folding_gpu`: Rewritten for f64 I/O with two-tier
+  tolerance: `GPU_DF64_TOL = 1e-6` (arithmetic), `GPU_DF64_TRANS_TOL = 5e-4`
+  (transcendental). `Fp64Strategy::Hybrid` auto-detected on RTX 4070.
+- `specs/PAPER_REVIEW_QUEUE.md`: Updated shader table with new precision
+  tiers and observed max-diff values. Added precision hierarchy documentation
+  (fp16 → bf16 → f32 → df64/fp48 → f64).
+
+### Validation
+
+- `cargo fmt --check`: PASS
+- `cargo clippy --workspace -- -D warnings`: 0 warnings
+- `cargo test --workspace`: 675/675 PASS
+- `validate_all`: **158/158 PASS** (was 156)
+- `validate_sovereign_folding_gpu`: **37/37 PASS** (df64 core streaming)
+
+### Precision Results (RTX 4070, Fp64Strategy::Hybrid)
+
+| Tier | Operations | Tolerance | Observed |
+|------|-----------|-----------|----------|
+| Arithmetic | dot products, matmul, accumulate, `sqrt_df64` | 1e-6 | 3.6e-8 to 5.6e-7 |
+| Transcendental | `exp_df64`, `tanh_df64` (Horner degree-6) | 5e-4 | 1.7e-4 to 3.4e-4 |
 
 ## [0.5.1] — 2026-02-26 (Session 87: WDM Queue Closed — nW-03, nW-05)
 

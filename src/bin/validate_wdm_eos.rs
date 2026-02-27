@@ -30,8 +30,13 @@ fn main() {
 }
 
 fn validate_element(h: &mut ValidationHarness, element: &str) {
-    let surrogate = wdm_surrogate::load_surrogate_from_json(BASELINE_JSON, element)
-        .unwrap_or_else(|e| panic!("Failed to load {element} surrogate: {e}"));
+    let surrogate = match wdm_surrogate::load_surrogate_from_json(BASELINE_JSON, element) {
+        Ok(s) => s,
+        Err(e) => {
+            h.check_bool(&format!("{element}: load surrogate: {e}"), false);
+            return;
+        }
+    };
 
     h.check_bool(
         &format!("{element}: surrogate loaded"),

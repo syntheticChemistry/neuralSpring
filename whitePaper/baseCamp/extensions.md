@@ -101,7 +101,7 @@ baseCamp papers use that validated infrastructure to explore new science.
 - **Nobody has applied the Anderson QS framework to multi-agent AI
   coordination** (Sub-thesis 05)
 
-All five use primitives neuralSpring has already validated at 2450+ checks
+All five use primitives neuralSpring has already validated at 2480+ checks
 across 25 papers + 5 WDM surrogates. The extensions require composition, not new math.
 
 ### gen3 baseCamp Cross-References
@@ -159,7 +159,7 @@ Session 55 added CPU↔GPU dispatch parity and metalForge mixed-hardware routing
 
 ## Validated Primitive Inventory
 
-All baseCamp experiments build on primitives validated at 2450+ checks:
+All baseCamp experiments build on primitives validated at 2480+ checks:
 
 | Primitive | Papers Using It | GPU Status | baseCamp Use |
 |-----------|:---------------:|:----------:|:------------:|
@@ -223,7 +223,7 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 
 *neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
 grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
-2450+ validated checks across 25 papers + 5 WDM surrogates and 7+ scientific
+2480+ validated checks across 25 papers + 5 WDM surrogates and 7+ scientific
 domains. Core primitives implemented in Sessions 50–55, quality-hardened
 Sessions 61–87: 5 Rust modules, 8 validation binaries, 128/128 PASS (114
 CPU + 14 GPU), 623 unit tests, 0 clippy warnings, 93.5%+ coverage, 129+

@@ -174,6 +174,100 @@ pub const CHI_SQUARED_F64: &str = include_str!("../../shaders/chi_squared_f64.wg
 /// ## Absorption target: `barracuda::ops::fused_kl_divergence_f64`
 pub const KL_DIVERGENCE_F64: &str = include_str!("../../shaders/kl_divergence_f64.wgsl");
 
+// ── Sovereign Folding: Evoformer primitives (Phase B) ────────────────
+//
+// AlphaFold2 Evoformer operations with df64 emulation for f64-class
+// precision on consumer GPUs. All require df64_core.wgsl injection
+// via `compile_shader_df64`.
+
+/// GELU activation (Evoformer FFN, baseCamp Sub-02).
+///
+/// Pointwise `GELU(x) = 0.5 * x * (1 + tanh(√(2/π) * (x + 0.044715x³)))`.
+/// No df64 needed (pointwise op).
+pub const GELU_F64: &str = include_str!("../../shaders/gelu_f64.wgsl");
+
+/// Sigmoid activation (Evoformer gating).
+pub const SIGMOID_F64: &str = include_str!("../../shaders/sigmoid_f64.wgsl");
+
+/// Layer normalization with df64 reduction (Evoformer, transformers).
+///
+/// Workgroup-parallel mean/variance via df64 accumulation.
+pub const LAYER_NORM_F64: &str = include_str!("../../shaders/layer_norm_f64.wgsl");
+
+/// Row-wise softmax with df64 accumulation (SDPA pass 2).
+///
+/// Numerically stable: max-subtract + df64 sum of exponentials.
+pub const SOFTMAX_F64: &str = include_str!("../../shaders/softmax_f64.wgsl");
+
+/// Scaled dot-product attention scores with df64 (SDPA pass 1).
+///
+/// `scores[b,h,q,k] = Σ_d Q[b,h,q,d]*K[b,h,k,d] / √d_k`
+pub const SDPA_SCORES_F64: &str = include_str!("../../shaders/sdpa_scores_f64.wgsl");
+
+/// Weighted value summation with df64 (SDPA pass 3).
+///
+/// `output[b,h,q,d] = Σ_k weights[b,h,q,k] * V[b,h,k,d]`
+pub const ATTENTION_APPLY_F64: &str = include_str!("../../shaders/attention_apply_f64.wgsl");
+
+/// Triangle multiplicative update — outgoing edges (Algorithm 11).
+///
+/// `output[i,j,c] = Σ_k proj_a[i,k,c] * proj_b[j,k,c]` with df64.
+pub const TRIANGLE_MUL_OUTGOING_F64: &str =
+    include_str!("../../shaders/triangle_mul_outgoing_f64.wgsl");
+
+/// Triangle multiplicative update — incoming edges (Algorithm 12).
+///
+/// `output[i,j,c] = Σ_k proj_a[k,i,c] * proj_b[k,j,c]` with df64.
+pub const TRIANGLE_MUL_INCOMING_F64: &str =
+    include_str!("../../shaders/triangle_mul_incoming_f64.wgsl");
+
+/// Triangle self-attention scores with pair bias (Algorithms 13-14).
+///
+/// `logit[r,h,j,k] = Σ_d Q[r,j,h,d]*K[r,k,h,d]/√D + bias[h,j,k]` with df64.
+pub const TRIANGLE_ATTENTION_F64: &str = include_str!("../../shaders/triangle_attention_f64.wgsl");
+
+/// Outer product mean: MSA → pair representation (Evoformer).
+///
+/// `output[i,j,ca*cb] = mean_s(a[s,i,ca] * b[s,j,cb])` with df64 accumulation.
+/// Converts evolutionary covariance (MSA) to structural contacts (pair).
+pub const OUTER_PRODUCT_MEAN_F64: &str = include_str!("../../shaders/outer_product_mean_f64.wgsl");
+
+/// MSA row attention scores with pair bias (Evoformer).
+///
+/// `scores[s,h,i,j] = Σ_d Q[s,i,h,d]*K[s,j,h,d]/√d + bias[h,i,j]` with df64.
+/// Per-sequence attention over residue positions. Pair bias injects structure.
+pub const MSA_ROW_ATTENTION_SCORES_F64: &str =
+    include_str!("../../shaders/msa_row_attention_scores_f64.wgsl");
+
+/// MSA column attention scores (Evoformer).
+///
+/// `scores[r,h,si,sj] = Σ_d Q[si,r,h,d]*K[sj,r,h,d]/√d` with df64.
+/// Per-position attention across MSA sequences (no pair bias).
+pub const MSA_COL_ATTENTION_SCORES_F64: &str =
+    include_str!("../../shaders/msa_col_attention_scores_f64.wgsl");
+
+// ── Structure Module: IPA + backbone (Phase B.3) ─────────────────────
+
+/// Invariant Point Attention scores (Algorithm 22).
+///
+/// Three-term IPA logit: scalar QK, pair bias, and SE(3)-equivariant
+/// point distance through backbone frames. df64 for both dot products
+/// and distance accumulation.
+pub const IPA_SCORES_F64: &str = include_str!("../../shaders/ipa_scores_f64.wgsl");
+
+/// Backbone frame composition (Structure Module iteration).
+///
+/// Composes current frames with predicted delta transforms (quaternion
+/// + translation). df64 for rotation matrix multiplication.
+pub const BACKBONE_UPDATE_F64: &str = include_str!("../../shaders/backbone_update_f64.wgsl");
+
+/// Torsion angle prediction (Structure Module).
+///
+/// Fused `ResNet` + unit circle normalization kernel. Predicts 7
+/// torsion angles (sin, cos) per residue from the single representation.
+/// df64 for all matrix multiplications.
+pub const TORSION_ANGLES_F64: &str = include_str!("../../shaders/torsion_angles_f64.wgsl");
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -204,6 +298,21 @@ mod tests {
             ("WRIGHT_FISHER_STEP", WRIGHT_FISHER_STEP),
             ("CHI_SQUARED_F64", CHI_SQUARED_F64),
             ("KL_DIVERGENCE_F64", KL_DIVERGENCE_F64),
+            ("GELU_F64", GELU_F64),
+            ("SIGMOID_F64", SIGMOID_F64),
+            ("LAYER_NORM_F64", LAYER_NORM_F64),
+            ("SOFTMAX_F64", SOFTMAX_F64),
+            ("SDPA_SCORES_F64", SDPA_SCORES_F64),
+            ("ATTENTION_APPLY_F64", ATTENTION_APPLY_F64),
+            ("TRIANGLE_MUL_OUTGOING_F64", TRIANGLE_MUL_OUTGOING_F64),
+            ("TRIANGLE_MUL_INCOMING_F64", TRIANGLE_MUL_INCOMING_F64),
+            ("TRIANGLE_ATTENTION_F64", TRIANGLE_ATTENTION_F64),
+            ("OUTER_PRODUCT_MEAN_F64", OUTER_PRODUCT_MEAN_F64),
+            ("MSA_ROW_ATTENTION_SCORES_F64", MSA_ROW_ATTENTION_SCORES_F64),
+            ("MSA_COL_ATTENTION_SCORES_F64", MSA_COL_ATTENTION_SCORES_F64),
+            ("IPA_SCORES_F64", IPA_SCORES_F64),
+            ("BACKBONE_UPDATE_F64", BACKBONE_UPDATE_F64),
+            ("TORSION_ANGLES_F64", TORSION_ANGLES_F64),
         ];
         for (name, src) in shaders {
             assert!(
@@ -218,9 +327,9 @@ mod tests {
     }
 
     #[test]
-    fn shader_count_is_23() {
+    fn shader_count_is_38() {
         assert_eq!(
-            23,
+            38,
             [
                 HMM_FORWARD_LOG,
                 BATCH_FITNESS_EVAL,
@@ -245,6 +354,21 @@ mod tests {
                 WRIGHT_FISHER_STEP,
                 CHI_SQUARED_F64,
                 KL_DIVERGENCE_F64,
+                GELU_F64,
+                SIGMOID_F64,
+                LAYER_NORM_F64,
+                SOFTMAX_F64,
+                SDPA_SCORES_F64,
+                ATTENTION_APPLY_F64,
+                TRIANGLE_MUL_OUTGOING_F64,
+                TRIANGLE_MUL_INCOMING_F64,
+                TRIANGLE_ATTENTION_F64,
+                OUTER_PRODUCT_MEAN_F64,
+                MSA_ROW_ATTENTION_SCORES_F64,
+                MSA_COL_ATTENTION_SCORES_F64,
+                IPA_SCORES_F64,
+                BACKBONE_UPDATE_F64,
+                TORSION_ANGLES_F64,
             ]
             .len()
         );

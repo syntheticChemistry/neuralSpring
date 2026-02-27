@@ -10,8 +10,8 @@
 | Last updated | February 26, 2026 (Sessions 40–84) |
 | BarraCUDA shader count | 700+ WGSL (f64 canonical, universal precision, S68) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
-| Sovereign folding f64 | 9 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3) — `compile_shader_df64` convention |
-| Local metalForge total | 30 WGSL shaders (21 absorbed + 9 f64 sovereign folding) |
+| Sovereign folding df64 | 15 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3, backbone, IPA, MSA row/col, OPM, torsion) — `compile_shader_df64` convention |
+| Local metalForge total | 36 WGSL shaders (21 absorbed + 15 df64 sovereign folding) |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
 | Universal precision (S68) | f64 canonical, f32 via `LazyLock<String>` runtime downcast |
 
@@ -202,7 +202,7 @@
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_all` | 156 | **156/156 PASS** |
+| `validate_all` | 158 | **158/158 PASS** |
 | `validate_cross_spring_evolution` | 52 | **52/52 PASS** |
 | `bench_cross_spring_evolution` | 28 | **28/28 PASS** |
 | `cargo test --lib` | 623 | **623/623 PASS** |
@@ -733,7 +733,7 @@ Hamming 20.85× regression: upstream f64 path on small sizes (investigation targ
 |------|--------|
 | `cargo clippy --all-targets -- -D warnings` | 0 warnings |
 | `cargo test --lib` | **623/623 PASS** |
-| `validate_all` | **156/156 PASS** |
+| `validate_all` | **158/158 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
 | `bench_cross_spring_evolution` | **28/28 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels** |
@@ -771,4 +771,4 @@ Feb 26  Session 83: ToadStool S68 Universal Precision Sync
 | Spectral theory validator | `src/bin/validate_barracuda_spectral_theory.rs` |
 | Cross-spring benchmark | `src/bin/bench_cross_spring_evolution.rs` |
 | Rewire evolution benchmark | `src/bin/bench_rewire_evolution.rs` |
-| V49 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V49_CROSS_SPRING_EVOLUTION_HANDOFF_FEB26_2026.md` |
+| V52 handoff document | `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V52_S88_DF64_CORE_STREAMING_HANDOFF_FEB27_2026.md` |

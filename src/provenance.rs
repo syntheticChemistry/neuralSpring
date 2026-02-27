@@ -394,6 +394,17 @@ pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "baseline files generated (mlp_baseline.json, transformer_baseline.json)",
 };
 
+pub const WDM_TRANSPORT_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nW-01: WDM Transport Surrogate (D*, η*, λ* baselines)",
+    script: "control/wdm/transport_surrogate.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/wdm/transport_surrogate.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "surrogate trained → transport_surrogate_baseline.json",
+};
+
 pub const WDM_EOS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "nW-02: WDM EOS Surrogate (H, He, C pressure/energy baselines)",
     script: "control/wdm/eos_surrogate.py",
@@ -403,6 +414,50 @@ pub const WDM_EOS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
     value: 3.0,
     unit: "elements trained (H, He, C) → eos_surrogate_baseline.json",
+};
+
+pub const WDM_SQW_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nW-03: WDM S(q,ω) Peak Predictor (LSTM reservoir baselines)",
+    script: "control/wdm/sqw_peak_predictor.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/wdm/sqw_peak_predictor.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "predictor trained → sqw_peak_baseline.json",
+};
+
+pub const WDM_TRANSFER_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nW-04: WDM Classical→WDM Transfer Learning (R² baselines)",
+    script: "control/wdm/transfer_classical_to_wdm.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/wdm/transfer_classical_to_wdm.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "transfer experiment → transfer_baseline.json",
+};
+
+pub const WDM_ESN_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nW-05: WDM ESN Regime Classifier (reservoir baselines)",
+    script: "control/wdm/esn_regime_classifier.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/wdm/esn_regime_classifier.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "classifier trained → esn_regime_baseline.json",
+};
+
+pub const SOVEREIGN_FOLDING_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nF-01 Phase B: Evoformer primitive baselines (GELU, LayerNorm, SDPA, TriMul, TriAttn)",
+    script: "control/sovereign_folding/evoformer_primitives.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/sovereign_folding/evoformer_primitives.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated → evoformer_baselines.json",
 };
 
 /// `BarraCUDA` validation expected values are analytically derived — no Python
@@ -554,9 +609,14 @@ mod tests {
             &SPECTRAL_COMMUTATIVITY_PROVENANCE,
             &ANDERSON_LOCALIZATION_PROVENANCE,
             &ML_INFERENCE_PROVENANCE,
+            &WDM_TRANSPORT_PROVENANCE,
             &WDM_EOS_PROVENANCE,
+            &WDM_SQW_PROVENANCE,
+            &WDM_TRANSFER_PROVENANCE,
+            &WDM_ESN_PROVENANCE,
             &PANGENOME_SELECTION_PROVENANCE,
             &META_POPULATION_PROVENANCE,
+            &SOVEREIGN_FOLDING_PROVENANCE,
         ];
         for p in records {
             assert!(!p.label.is_empty(), "empty label: {}", p.script);

@@ -198,6 +198,9 @@ const BINARIES: &[&str] = &[
     "validate_wdm_transfer",
     "validate_wdm_sqw",
     "validate_wdm_esn",
+    // Sovereign Folding — Evoformer primitives (nF-01 Phase B)
+    "validate_sovereign_folding",
+    "validate_sovereign_folding_gpu",
 ];
 
 fn main() {

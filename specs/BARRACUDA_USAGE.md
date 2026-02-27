@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 26, 2026 (Sessions 40–85 — S84: five-spring benchmark + lineage, S85: doc sweep + V49 handoff)
+**Last Updated**: February 27, 2026 (Sessions 40–88 — S88: V52 handoff, 158/158 validate_all)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1087,4 +1087,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 26, 2026. Sessions 50–85: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 172 binaries, 623 lib + 43 forge + 9 integration tests. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 83: ToadStool S68 sync — universal precision, 5 shader imports fixed, variance_ddof gap closed. Session 84: five-spring benchmark (28/28 PASS). Session 85: doc sweep + V49 handoff.*
+*BarraCUDA usage audit — neuralSpring, February 27, 2026. Sessions 50–88: 39 functions + 6 shader sources rewired to upstream, GpuDriverProfile wired in, S-03b fully resolved, 172 binaries, 623 lib + 43 forge + 9 integration tests, 158/158 validate_all. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). Session 83: ToadStool S68 sync — universal precision, 5 shader imports fixed, variance_ddof gap closed. Session 84: five-spring benchmark (28/28 PASS). Session 85: doc sweep + V49 handoff. Session 88: V52 handoff.*

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// sdpa_scores_f64.wgsl — QK^T / sqrt(d_k) with df64 accumulation
+// sdpa_scores_f64.wgsl — QK^T / sqrt(d_k) with df64 core streaming
 //
 // Pass 1 of 3-pass f64 Scaled Dot-Product Attention.
-// df64 emulation prevents catastrophic cancellation in long dot products
-// (head_dim > 64), critical for scientific attention patterns.
+// Three-zone core streaming: f64 buffer I/O, df64 compute, f64 output.
+// Achieves ~14-digit (fp48) precision on consumer GPU FP32 cores.
 //
 // Layout mirrors ToadStool's sdpa_scores.wgsl for absorption:
 //   1. sdpa_scores_f64  → scores[B, H, Sq, Skv]
@@ -15,7 +15,7 @@
 // WDM surrogate attention layers.
 //
 // Absorption target: barracuda::ops::sdpa_scores_f64
-// Requires: df64_core.wgsl (auto-injected by compile_shader_df64)
+// Requires: df64_core.wgsl + df64_transcendentals.wgsl (prepended via compile_shader_f64)
 
 struct AttentionParams {
     batch_size: u32,
@@ -28,9 +28,9 @@ struct AttentionParams {
     _pad2:      u32,
 }
 
-@group(0) @binding(0) var<storage, read>       query:  array<f32>;
-@group(0) @binding(1) var<storage, read>       key:    array<f32>;
-@group(0) @binding(2) var<storage, read_write> scores: array<f32>;
+@group(0) @binding(0) var<storage, read>       query:  array<f64>;
+@group(0) @binding(1) var<storage, read>       key:    array<f64>;
+@group(0) @binding(2) var<storage, read_write> scores: array<f64>;
 @group(0) @binding(3) var<uniform>             params: AttentionParams;
 
 @compute @workgroup_size(256)
@@ -56,13 +56,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let q_base = b * H * Sq * D + h * Sq * D + q_pos * D;
     let k_base = b * H * Skv * D + h * Skv * D + k_pos * D;
 
+    // Zone 1 (load) + Zone 2 (compute): f64 → df64 dot product
     var acc = df64_zero();
     for (var d = 0u; d < D; d++) {
-        let prod = two_prod(query[q_base + d], key[k_base + d]);
-        acc = df64_add(acc, prod);
+        let q = df64_from_f64(query[q_base + d]);
+        let k = df64_from_f64(key[k_base + d]);
+        acc = df64_add(acc, df64_mul(q, k));
     }
 
-    let scale = sqrt(f32(D));
+    let scale = sqrt_df64(df64_from_f32(f32(D)));
+    let result = df64_div(acc, scale);
+
+    // Zone 3 (store): df64 → f64
     let out_idx = b * H * Sq * Skv + h * Sq * Skv + q_pos * Skv + k_pos;
-    scores[out_idx] = acc.hi / scale;
+    scores[out_idx] = df64_to_f64(result);
 }

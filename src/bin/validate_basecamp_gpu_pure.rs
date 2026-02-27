@@ -25,8 +25,7 @@
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::too_many_lines,
-    clippy::needless_range_loop,
-    clippy::unwrap_used
+    clippy::needless_range_loop
 )]
 
 use neural_spring::gpu::Gpu;
@@ -293,8 +292,10 @@ fn validate_sub04_neural_pgm(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &
         );
     }
 
-    // Verify output is a valid distribution
-    let gpu_final = gpu_dists.last().unwrap();
+    let Some(gpu_final) = gpu_dists.last() else {
+        h.check_bool("Sub-04: GPU BP produced at least one layer", false);
+        return;
+    };
     let sum: f64 = gpu_final.iter().sum();
     h.check_abs(
         "Sub-04: GPU BP final distribution sums to 1",

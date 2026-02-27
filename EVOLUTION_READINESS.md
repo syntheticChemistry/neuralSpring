@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 26, 2026 (Sessions 40–87)
-**ToadStool HEAD**: `f0feb226` (S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S85: Doc sweep + V49 handoff — 20+ docs updated, Hamming regression flagged. S84: Five-spring benchmark + lineage — 28/28 bench PASS, ~700 WGSL provenance mapped. S83: shader import fixes for S68 `LazyLock` privatization, variance_ddof gap closed, 150/150 validators PASS. Prior: 39 functions rewired, S-03b resolved, 21/21 shaders absorbed, Titan V 384/384, `fma(f64)` shader fix)
+**Date**: February 27, 2026 (Sessions 40–88)
+**ToadStool HEAD**: `f0feb226` (S88: df64 core streaming — all 15 sovereign folding WGSL shaders evolved to f64 buffers + df64 compute, 37/37 GPU PASS, 158/158 validate\_all. S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S85: Doc sweep + V49 handoff. S84: Five-spring benchmark + lineage — 28/28 bench PASS. Prior: 39 functions rewired, S-03b resolved, 21/21 shaders absorbed, Titan V 384/384, `fma(f64)` shader fix)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → ToadStool absorption → lean on upstream
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -25,7 +25,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | GPU Pipeline (gP) | 15/25 papers (60%) — S74: +9 domains via `validate_gpu_pure_workload_all` | **ALL PASS** |
 | Cross-dispatch (xD) | **15/15** Phase 0++ papers (100%) | **ALL GREEN** |
 | Multi-GPU validation | RTX 4070 + TITAN V (NVK) — **384/384 Titan V (S82)** | **Bit-identical** |
-| GPU shader validation | 126/126 (21 WGSL shaders) | **COMPLETE** |
+| GPU shader validation | 126/126 (21 absorbed WGSL) + 37/37 (15 sovereign folding df64) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
 | ToadStool shortcomings absorbed | **17/17** (S-01..S-17) | **ALL RESOLVED** |
 | S-16 (transpose dispatch) | Fixed at `a4996b34` (S39) | **RESOLVED** upstream |
@@ -58,7 +58,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **172 binaries** |
-| `validate_all` (S-75) | **156/156 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` (S-75) | **158/158 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -72,7 +72,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **156/156 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` | **158/158 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
@@ -80,7 +80,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 77: baseCamp GPU pure | `validate_basecamp_gpu_pure` 5/5 sub-theses on GPU | **ALL GREEN** |
 | Session 78–79: cross-spring | `validate_cross_spring_evolution` 52/52 PASS, `bench_cross_spring_evolution` 28/28 PASS | **ALL GREEN** |
 | Session 87: WDM queue closed | nW-03 S(q,ω) (27/27 Rs), nW-05 ESN regime (39/39 Rs), 5 Py baselines (33/33), 6 Rust validators (153/153) | **ALL GREEN** |
-| Grand total checks | **2450+** (233 Py + 2217+ Rust/GPU) | **ALL GREEN** |
+| Grand total checks | **2480+** (233 Py + 2250+ Rust/GPU) | **ALL GREEN** |
 
 ---
 

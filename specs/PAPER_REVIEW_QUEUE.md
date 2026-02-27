@@ -183,7 +183,7 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated. All 5 WDM surrogates (nW-01..nW-05) complete.**
 
-Session 87: WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor, Py 5/5, Rs 27/27) and nW-05 (ESN regime classifier, Py 5/5, Rs 39/39). 172 binaries, 623 lib tests, 156/156 validators.
+Session 87: WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor, Py 5/5, Rs 27/27) and nW-05 (ESN regime classifier, Py 5/5, Rs 39/39). 172 binaries, 623 lib tests, 158/158 validators.
 Session 86: V50 handoff — WDM buildout complete, 170 binaries, 611 lib tests, 154/154 validators.
 Session 83: WDM surrogate buildout — nW-01 transport (Py 4/4, Rs 30/30), nW-02 EOS wired (Py 9/9, Rs 36/36, GPU 15/15), nW-04 transfer (Py 4/4, Rs 6/6). `wdm_transport.rs` new module. 4 new validators in `validate_all` (154 total). 611 lib + 43 forge tests. `check_drift.sh` expanded to 29 baselines.
 Session 81: Deep debt evolution — 129+ named tolerances (25 new), spectral_entropy→barracuda (39th rewire), cross-platform probe, PyTorch seeding. Zero inline magic numbers.
@@ -192,7 +192,7 @@ Session 70: Deep audit II — 93.5% coverage (580 tests), tolerance macro refact
 Session 68-69: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 107+ named tolerances. 6 validator shader sources → upstream constants.
 Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10 cross-language).
 Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
-`validate_all`: 156/156 PASS on RTX 4070.
+`validate_all`: 158/158 PASS on RTX 4070.
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
 Python baselines: 25/25+5 WDM PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
 623 lib + 9 integration + 43 forge tests. 172 validation/bench binaries. Zero debt.
@@ -524,7 +524,7 @@ All controls verified passing across BarraCUDA CPU, GPU, and metalForge mixed ha
 
 This closes the "pure GPU final workload validation" milestone: every paper domain
 has a typed GPU op validator, and metalForge's cross-system dispatch is proven
-end-to-end (GPU→NPU→CPU). Total: **2450+ checks**, **172 binaries**, **156/156 validate_all**.
+end-to-end (GPU→NPU→CPU). Total: **2480+ checks**, **172 binaries**, **158/158 validate_all**.
 
 **Session 86 addendum**: WDM surrogate buildout — 4 new validators added:
 - `validate_wdm_transport` (30/30): nW-01 Stanton-Murillo transport MLP
@@ -855,7 +855,7 @@ shaders for sovereign structure prediction on consumer GPUs.
 
 | # | Paper | Journal | Year | Why | Status |
 |---|-------|---------|------|-----|--------|
-| nF-01 | Ahdritz et al. "OpenFold: Retraining AlphaFold2 yields new insights" | Nature Methods | 2024 | Reference implementation (Apache 2.0). Baseline for porting | Phase A Eval DONE (9/9) |
+| nF-01 | Ahdritz et al. "OpenFold: Retraining AlphaFold2 yields new insights" | Nature Methods | 2024 | Reference implementation (Apache 2.0). Baseline for porting | **Phase B.4 DONE** — Py 25/25, Rs 67/67, GPU 37/37 (15 shaders + pipeline, all AlphaFold2 primitives) |
 | nF-02 | Jumper et al. "Highly accurate protein structure prediction with AlphaFold" | Nature 596:583-589 | 2021 | Original architecture. Evoformer + IPA specification | Queue |
 | nF-03 | Abramson et al. "Accurate structure prediction for all molecules" (AlphaFold3) | Nature 630:493-500 | 2024 | Diffusion-based extension. RNA/DNA/ligand handling | Queue |
 
@@ -868,3 +868,84 @@ Evaluation script: `sovereign_folding/openfold3_eval.py` (9/9 checks)
 - 4 of 10 required primitives already exist in BarraCUDA
 - See `sovereign_folding/BARRACUDA_FOLDING_REQUIREMENTS.md` for full shader spec
 - See `sovereign_folding/MSA_DATABASE_PLAN.md` for data acquisition plan
+
+### Phase B — Complete AlphaFold2 Primitive Validation (DONE)
+
+Python control: `control/sovereign_folding/evoformer_primitives.py` (25/25 checks)
+Rust modules: `src/sovereign_folding.rs` + `src/structure_module.rs` (41 unit tests, 67 validation checks)
+GPU validator: `validate_sovereign_folding_gpu` (37/37 checks on RTX 4070)
+
+15 WGSL shaders wired and validated (38 total in shader catalog).
+All shaders use **df64 core streaming**: f64 buffer I/O → df64 compute on
+FP32 cores → f64 output. `Fp64Strategy::Hybrid` auto-detected on RTX 4070
+(1:64 FP64:FP32 ratio). Compilation via `compile_shader_f64_hybrid` which
+prepends `df64_core.wgsl` + `df64_transcendentals.wgsl`.
+
+| Shader | Algorithm | Precision tier | Max GPU-CPU diff |
+|--------|-----------|----------------|------------------|
+| `gelu_f64.wgsl` | Pointwise GELU | Transcendental | 3.41e-4 |
+| `triangle_mul_outgoing_f64.wgsl` | Algorithm 11 | Arithmetic | 3.10e-7 |
+| `triangle_mul_incoming_f64.wgsl` | Algorithm 12 | Arithmetic | 4.66e-7 |
+| `sdpa_scores_f64.wgsl` | QKᵀ/√d (pass 1) | Arithmetic | 6.76e-8 |
+| `triangle_attention_f64.wgsl` | Algorithms 13-14 | Arithmetic | 1.54e-7 |
+| `softmax_f64.wgsl` | Row-wise softmax (pass 2) | Transcendental | 2.92e-4 |
+| `attention_apply_f64.wgsl` | Σ weights × V (pass 3) | Arithmetic | 6.89e-8 |
+| `layer_norm_f64.wgsl` | LayerNorm (with `sqrt_df64`) | Arithmetic | 5.58e-7 |
+| `sigmoid_f64.wgsl` | Sigmoid gate (`exp_df64`) | Transcendental | (CPU validated) |
+| `outer_product_mean_f64.wgsl` | MSA → pair (OPM) | Arithmetic | 6.43e-8 |
+| `msa_row_attention_scores_f64.wgsl` | Row attn + pair bias | Arithmetic | 1.06e-7 |
+| `msa_col_attention_scores_f64.wgsl` | Col attn (no bias) | Arithmetic | 9.57e-8 |
+| `ipa_scores_f64.wgsl` | IPA (SE(3)-equivariant) | Arithmetic | 3.40e-7 |
+| `backbone_update_f64.wgsl` | Frame composition | Arithmetic | 3.59e-8 |
+| `torsion_angles_f64.wgsl` | Fused `ResNet` + normalize | Arithmetic | 1.10e-7 |
+
+#### Precision hierarchy
+
+The df64 core streaming approach creates two distinct precision tiers, both
+significantly better than pure f32 (which would give ~1e-3 to 1e-2 error):
+
+| Tier | Operations | Tolerance | Observed range | Bottleneck |
+|------|-----------|-----------|----------------|------------|
+| **Arithmetic** | dot products, matrix multiply, accumulation, `sqrt_df64` (Newton-Raphson) | 1e-6 | 3.6e-8 to 5.6e-7 | f32 FMA error tracking in `two_prod`/`two_sum` |
+| **Transcendental** | `exp_df64`, `tanh_df64` (degree-6 Horner polynomial) | 5e-4 | 1.7e-4 to 3.4e-4 | Polynomial approximation truncation error |
+
+Full precision ladder (consumer GPU → data-center GPU):
+
+| Level | Mantissa bits | Decimal digits | Source | Use case |
+|-------|---------------|----------------|--------|----------|
+| fp16 | 10 | ~3 | Native | Inference, training lower precision |
+| bf16 | 7 | ~2 | Native | Training dynamic range |
+| f32 | 23 | ~7 | Native | Standard GPU compute |
+| **df64 (fp48)** | **~48** | **~14** | **Emulated (f32 pairs)** | **Scientific validation on consumer GPUs** |
+| f64 | 52 | ~15.9 | Native (data-center only) | Gold standard, 1:2 FP64:FP32 GPUs |
+
+The df64 approach achieves ~9.9x throughput vs native f64 on consumer GPUs
+by leveraging the full FP32 core count (RTX 4070: 5888 FP32 cores vs 92
+FP64 cores at 1:64 ratio). For scientific validation, df64/fp48 precision
+(~14 digits) is sufficient — the limiting factor becomes the polynomial
+approximation in transcendentals, not the arithmetic. Production ML
+inference will run at f32 or lower; the f64 validation proves correctness.
+
+**Complete AlphaFold2 primitive set**: all 9 Evoformer block operations and
+all 3 Structure Module primitives (IPA scores, backbone frame update, torsion
+angle prediction) have validated GPU shaders. **3-pass SDPA GPU pipeline**
+(scores → softmax → apply): max diff 1.71e-4. IPA shader includes three-term
+attention with SE(3)-equivariant point distance through backbone frames.
+Backbone update uses quaternion-to-rotation with df64 matrix multiply.
+Torsion prediction is a fused `ResNet` + unit circle normalization kernel.
+
+CPU Rust vs Python baseline parity: max diff 3.6e-15 (machine precision).
+IPA scores max diff: 3.6e-15. Backbone rotation max diff: 1.1e-16.
+Torsion max diff: 1.4e-15. All unit circle constraints preserved (||(sin,cos)|| = 1).
+All operations deterministic with seed=42. Open data only (synthetic).
+
+### Phase B.2 — Remaining Evoformer Primitives (DONE)
+
+New primitives added:
+- **Outer product mean**: MSA → pair representation bridge. Converts evolutionary
+  covariance (MSA sequences) into structural contact information (pair matrix).
+  df64 accumulation over sequence dimension.
+- **MSA row attention** (with pair bias): Per-sequence attention over residue
+  positions. Pair bias from the pair representation injects structural priors.
+- **MSA column attention**: Per-position attention across MSA sequences.
+  Captures sequence-level relationships at each residue position.

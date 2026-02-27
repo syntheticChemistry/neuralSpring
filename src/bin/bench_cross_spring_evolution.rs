@@ -419,7 +419,7 @@ fn main() {
     eprintln!("  700 WGSL shaders in ToadStool S68 (f64 canonical), sourced from:");
     eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral, precision)");
     eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM, ODE)");
-    eprintln!("    neuralSpring: ~34  (ML, neuroevolution, batch fitness, 9 f64 shaders)");
+    eprintln!("    neuralSpring: ~40  (ML, neuroevolution, batch fitness, 15 df64 shaders)");
     eprintln!("    airSpring:    ~15  (ET₀, kriging, Richards, stats, regression)");
     eprintln!("    groundSpring: ~5   (multinomial, MC propagation)");
     eprintln!("    ToadStool:    ~466 (core math, linalg, nn, activations, S68 precision)");

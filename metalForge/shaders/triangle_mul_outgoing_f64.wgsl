@@ -7,18 +7,11 @@
 //   z[i,j] += sum_k (a[i,k] * b[j,k])
 // where a = sigmoid(gate_a) * linear_a(z), b = sigmoid(gate_b) * linear_b(z).
 //
-// This shader handles the core contraction: for each (i,j), accumulate
-// the product of gated projections over the shared index k.
-//
-// Data format:
-//   proj_a[i,k,c], proj_b[j,k,c] — pre-computed gated projections, [N, N, C]
-//   output[i,j,c] — pair update, [N, N, C]
-//
-// C is the channel dimension (typically 128 in AF2).
+// Three-zone core streaming: f64 buffer I/O, df64 compute, f64 output.
 // df64 accumulation over k prevents drift at large N (>256 residues).
 //
 // Absorption target: barracuda::ops::triangle_mul_outgoing_f64
-// Requires: df64_core.wgsl (auto-injected by compile_shader_df64)
+// Requires: df64_core.wgsl + df64_transcendentals.wgsl (prepended via compile_shader_f64)
 
 struct Params {
     n_res:    u32,
@@ -27,9 +20,9 @@ struct Params {
     _pad1:    u32,
 }
 
-@group(0) @binding(0) var<storage, read>       proj_a: array<f32>;
-@group(0) @binding(1) var<storage, read>       proj_b: array<f32>;
-@group(0) @binding(2) var<storage, read_write> output: array<f32>;
+@group(0) @binding(0) var<storage, read>       proj_a: array<f64>;
+@group(0) @binding(1) var<storage, read>       proj_b: array<f64>;
+@group(0) @binding(2) var<storage, read_write> output: array<f64>;
 @group(0) @binding(3) var<uniform>             params: Params;
 
 @compute @workgroup_size(256)
@@ -45,13 +38,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let i  = ij / N;
     let j  = ij % N;
 
+    // Zone 1+2: f64 → df64 contraction
     var acc = df64_zero();
     for (var k = 0u; k < N; k++) {
-        let a_val = proj_a[(i * N + k) * C + c];
-        let b_val = proj_b[(j * N + k) * C + c];
-        let prod = two_prod(a_val, b_val);
-        acc = df64_add(acc, prod);
+        let a_val = df64_from_f64(proj_a[(i * N + k) * C + c]);
+        let b_val = df64_from_f64(proj_b[(j * N + k) * C + c]);
+        acc = df64_add(acc, df64_mul(a_val, b_val));
     }
 
-    output[(i * N + j) * C + c] = acc.hi;
+    // Zone 3: df64 → f64
+    output[(i * N + j) * C + c] = df64_to_f64(acc);
 }

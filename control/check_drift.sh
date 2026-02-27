@@ -3,7 +3,7 @@
 #
 # Python baseline drift detector for neuralSpring CI.
 #
-# Re-runs all 31 Python control experiments and verifies they still produce
+# Re-runs all 32 Python control experiments and verifies they still produce
 # the same pass/fail results. Any failure indicates baseline drift — either
 # a dependency update changed numeric behavior, or a script was modified
 # without updating the Rust validation targets.
@@ -62,6 +62,7 @@ MODULES=(
     "wdm/sqw_peak_predictor.py"
     "wdm/esn_regime_classifier.py"
     "ml_inference/generate_baselines.py"
+    "sovereign_folding/evoformer_primitives.py"
 )
 
 run_module() {

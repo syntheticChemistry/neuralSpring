@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `f0feb226` (Sessions 50–86, Feb 26, 2026) — **47 commits audited, ALL 17 shortcomings RESOLVED, 39 upstream rewires**
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V50_S83_WDM_BUILDOUT_HANDOFF_FEB26_2026.md`
+**Last reviewed:** ToadStool commit `f0feb226` (Sessions 50–88, Feb 27, 2026) — **47 commits audited, ALL 17 shortcomings RESOLVED, 39 upstream rewires**
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V52_S88_DF64_CORE_STREAMING_HANDOFF_FEB27_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy

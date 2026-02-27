@@ -1,10 +1,10 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 26, 2026 (Sessions 44–87 — S87: WDM queue closed — nW-03, nW-05)
+**Last updated**: February 27, 2026 (Sessions 44–88 — S88: df64 core streaming — 15 sovereign folding shaders evolved)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 233/233 Python PASS + 2217+ Rust+GPU validation PASS = **2450+ total validation checks**
+**Grand Total**: 233/233 Python PASS + 2250+ Rust+GPU validation PASS = **2480+ total validation checks**
 **Library**: 623 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 172 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
@@ -14,12 +14,12 @@
 **GPU Promotion**: 44 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math)
 **Pure GPU All-Domains**: 10/10 PASS — `validate_gpu_pure_workload_all` (9 typed BarraCUDA GPU ops across all 15 Phase 0++ papers + determinism check, scalar-only readback)
 **WDM Surrogates**: 5 Python baselines (33/33 PASS) + 6 Rust validators (153/153 PASS incl. GPU) — nW-01 transport, nW-02 EOS, nW-03 S(q,ω), nW-04 transfer, nW-05 ESN regime — `wdm_surrogate.rs`, `wdm_transport.rs`, `wdm_sqw.rs`, `wdm_esn.rs` modules
+**Sovereign Folding (df64 core streaming)**: 15 WGSL shaders — f64 buffer I/O → df64 compute on FP32 cores → f64 output. `Fp64Strategy::Hybrid` on RTX 4070. Arithmetic: 3.6e-8 to 5.6e-7 (tol 1e-6). Transcendental: 1.7e-4 to 3.4e-4 (tol 5e-4). **37/37 GPU checks**, 67/67 CPU checks, 25/25 Python checks. **158/158 validate\_all PASS**
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (129+ named tolerances, S81: +25) | zero bare `unwrap()` in validation code | WDM provenance complete | all PyTorch baselines fully seeded
 **Coverage**: 93.5%+ line coverage (llvm-cov, 623 lib tests), 129+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6%
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
 **ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `f0feb226` (S68 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired
-**Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 9 metalForge shaders aligned to `compile_shader_df64` convention
-**Sovereign Folding**: 9 new f64 WGSL shaders in metalForge (layer\_norm, GELU, sigmoid, SDPA scores/softmax/apply, triangle mul outgoing/incoming, triangle attention)
+**Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
 
 ---

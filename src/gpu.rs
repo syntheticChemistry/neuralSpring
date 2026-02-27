@@ -214,6 +214,19 @@ impl Gpu {
         self.wgpu_device.compile_shader(source, Some(label))
     }
 
+    /// Compile a hybrid f64/df64 shader via the core streaming path.
+    ///
+    /// Prepends `df64_core.wgsl` + `df64_transcendentals.wgsl` then compiles
+    /// via `compile_shader_f64` which enables f64 types and driver patching.
+    /// This is the hotSpring/toadStool three-zone pattern: f64 buffer I/O
+    /// with df64 compute on FP32 cores.
+    #[must_use]
+    pub fn compile_shader_f64_hybrid(&self, source: &str, label: &str) -> wgpu::ShaderModule {
+        use barracuda::ops::lattice::su3::{WGSL_DF64_CORE, WGSL_DF64_TRANSCENDENTALS};
+        let combined = format!("{WGSL_DF64_CORE}\n{WGSL_DF64_TRANSCENDENTALS}\n{source}");
+        self.wgpu_device.compile_shader_f64(&combined, Some(label))
+    }
+
     /// Compute the number of workgroups for a 1D dispatch, validated
     /// against runtime-discovered hardware limits.
     ///
@@ -255,6 +268,30 @@ impl Gpu {
             .queue()
             .write_buffer(&buf, 0, bytemuck::cast_slice(data));
         Ok(buf)
+    }
+
+    /// Upload f64 data to a new GPU storage buffer.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the buffer allocation fails.
+    pub fn upload_f64(&self, data: &[f64]) -> Result<wgpu::Buffer, String> {
+        let buf = self.create_buffer_f64(data.len())?;
+        self.wgpu_device
+            .queue()
+            .write_buffer(&buf, 0, bytemuck::cast_slice(data));
+        Ok(buf)
+    }
+
+    /// Allocate a GPU storage buffer for `count` f64 values.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the GPU allocation fails.
+    pub fn create_buffer_f64(&self, count: usize) -> Result<wgpu::Buffer, String> {
+        self.wgpu_device
+            .create_buffer_f64(count)
+            .map_err(|e| format!("create_buffer_f64: {e}"))
     }
 
     /// Read f32 data back from a GPU buffer (blocking).

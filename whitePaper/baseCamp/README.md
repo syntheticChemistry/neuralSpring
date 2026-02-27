@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 26, 2026 (Sessions 61–85)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates, 2250+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 39 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (52/52 PASS, 28/28 bench), zero debt, 93.5% coverage (604 tests), 129+ named tolerances (25 added S81), zero inline magic numbers (all promoted to named tolerances), all deps Pure Rust (ecoBin compliant), 100% SPDX compliance, S80: comprehensive debt audit — wdm\_surrogate coverage 43→98%, basecamp coverage 49→91%, 16 unwrap() eliminated, all inline guards promoted to tolerances::LOG\_ZERO\_GUARD, WDM EOS provenance complete, CI cross-validation job added. S81: deep debt evolution — 25 new tolerances (spectral, pop-gen, game theory, quantization, ODE, hardware), spectral\_entropy rewired to barracuda::stats::shannon\_from\_frequencies, PyTorch deterministic seeding (7 scripts), probe.rs cross-platform gating, gen3 baseCamp cross-references added to sub-theses 01–07
+**Last Updated**: February 27, 2026 (Sessions 61–88)
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + sovereign folding (AlphaFold2), 2480+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), **158/158 validate\_all PASS**, CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 39 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (52/52 PASS, 28/28 bench), zero debt, 93.5% coverage (623 tests), 129+ named tolerances, all deps Pure Rust (ecoBin compliant), 100% SPDX compliance. S88: df64 core streaming — all 15 sovereign folding WGSL shaders evolved to f64 buffers + df64 compute (hotSpring/ToadStool three-zone pattern), `Fp64Strategy::Hybrid` auto-detected, 37/37 sovereign folding GPU. S87: WDM queue closed (nW-01..nW-05). S81: deep debt evolution — 25 new tolerances, spectral\_entropy rewired, PyTorch deterministic seeding, gen3 baseCamp cross-references
 
 ## Purpose
 
@@ -96,13 +96,17 @@ cross-spring rewiring to ToadStool S66 APIs.
 | `modes::l2_distance` | `barracuda::dispatch::l2_distance_dispatch` | Sub-05 | S78 |
 | `complexity_metric` | `barracuda::stats::fit_linear` | MODES | S78 |
 
-### Three-Tier Hardware Validation
+### Hardware Validation
 
-All baseCamp experiments inherit neuralSpring's validated three-tier pipeline:
+All baseCamp experiments inherit neuralSpring's validated multi-tier pipeline:
 
 1. **BarraCUDA CPU**: Pure Rust, machine-precision agreement with Python
 2. **BarraCUDA GPU**: Tensor API, f32-f64 agreement < 1e-3 across all domains
 3. **metalForge mixed**: Same answer on CPU, GPU, NPU — multi-substrate dispatch
+4. **df64 core streaming** (S88): f64 buffer I/O → df64 compute on FP32 cores → f64
+   output. Achieves ~14-digit (fp48) precision on consumer GPUs. Arithmetic ops:
+   3.6e-8 to 5.6e-7 max diff. Transcendental ops: 1.7e-4 to 3.4e-4 max diff.
+   `Fp64Strategy::Hybrid` auto-detected on RTX 4070 (1:64 FP64:FP32 ratio).
 
 ### Performance Summary
 

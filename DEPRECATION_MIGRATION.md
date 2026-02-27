@@ -1,6 +1,6 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 26, 2026 (Sessions 44–85)
+**Date**: February 27, 2026 (Sessions 44–88)
 **ToadStool HEAD**: `f0feb226` (S68: universal precision — zero f32-only shaders, 700 WGSL f64 canonical. S85: Doc sweep + V49 handoff, all stale counts fixed. S83: 5 shader imports fixed, variance_ddof gap closed)
 **Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (44 ops, ~97% GPU), 39 functions + 6 shader sources lean on upstream, CPU↔Python parity 39/39, WDM surrogates validated (CPU + GPU), S82: Titan V pure Rust pipeline validated (384/384 PASS), `batched_eigh_nak_optimized_f64.wgsl` fixed for WGSL spec compliance
 

@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V51** | `handoffs/NEURALSPRING_TOADSTOOL_V51_S87_WDM_QUEUE_CLOSED_HANDOFF_FEB26_2026.md` | Feb 26, 2026 | S87: WDM queue closed (nW-01..nW-05), 6 validators (186 WDM checks), SimpleMLP + LstmReservoir + EsnClassifier absorption targets, 156/156 PASS |
+| **V52** | `handoffs/NEURALSPRING_TOADSTOOL_V52_S88_DF64_CORE_STREAMING_HANDOFF_FEB27_2026.md` | Feb 27, 2026 | S88: df64 core streaming — 15 sovereign folding shaders evolved to f64 buffers + df64 compute, 37/37 GPU PASS, 158/158 validate\_all, precision hierarchy documented, absorption roadmap |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V50, 65 files).
+Superseded handoffs: `handoffs/archive/` (V1–V51, 66 files).
 
 ## Conventions
 

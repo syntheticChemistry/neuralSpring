@@ -299,8 +299,10 @@ fn apply_norm(data: &[f64], cols: usize, mean: &[f64], std: &[f64]) -> Vec<f64> 
 fn main() {
     let mut h = ValidationHarness::new("wdm_transfer");
 
-    let baseline: serde_json::Value =
-        serde_json::from_str(BASELINE_JSON).unwrap_or_else(|e| panic!("baseline JSON parse: {e}"));
+    let Ok(baseline) = serde_json::from_str::<serde_json::Value>(BASELINE_JSON) else {
+        h.check_bool("baseline JSON parse", false);
+        h.finish();
+    };
 
     let py_r2_classical = baseline["r2_classical"].as_f64().unwrap_or(0.0);
     let py_r2_transfer = baseline["r2_transfer"].as_f64().unwrap_or(0.0);

@@ -11,11 +11,7 @@
 //! Python baseline: `control/wdm/esn_regime_classifier.py`
 //! Reference: Jaeger (2001), Ichimaru (1994)
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::expect_used
-)]
+#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -39,12 +35,14 @@ fn main() {
     h.check_bool("3 classes", classifier.n_classes == 3);
     h.check_bool("W_in non-empty", !classifier.w_in.is_empty());
 
-    // Validate against Python reference predictions
-    let parsed: serde_json::Value =
-        serde_json::from_str(BASELINE_JSON).unwrap_or_else(|e| panic!("JSON: {e}"));
-    let refs = parsed["reference_predictions"]
-        .as_array()
-        .expect("reference_predictions array");
+    let Ok(parsed) = serde_json::from_str::<serde_json::Value>(BASELINE_JSON) else {
+        h.check_bool("baseline JSON parse", false);
+        h.finish();
+    };
+    let Some(refs) = parsed["reference_predictions"].as_array() else {
+        h.check_bool("reference_predictions must be array", false);
+        h.finish();
+    };
 
     for (idx, ref_pred) in refs.iter().enumerate() {
         let log_rho = ref_pred["log_rho"].as_f64().unwrap_or(0.0);

@@ -44,6 +44,7 @@
 //! | `anderson_localization` | `control/anderson_localization/` | tridiag solve + eigendecomp |
 //! | `pangenome_selection` | `control/pangenome_selection/` | sparse GEMM + chi-squared reduce |
 //! | `meta_population` | `control/meta_population/` | variance decomp + `pearson` |
+//! | `sovereign_folding` | `control/sovereign_folding/` | triangle ops + SDPA + layernorm |
 //!
 //! ## baseCamp Modules (Biophysical AI Interpretability)
 //!
@@ -109,7 +110,9 @@ pub mod rng;
 pub mod sate_alignment;
 pub mod sequence;
 pub mod signal_integration;
+pub mod sovereign_folding;
 pub mod spectral_commutativity;
+pub mod structure_module;
 pub mod surrogate;
 pub mod swarm_robotics;
 pub mod tolerances;

@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// layer_norm_f64.wgsl — f64-emulated Layer Normalization
+// layer_norm_f64.wgsl — Layer Normalization with df64 core streaming
 //
 // LayerNorm(x) = gamma * (x - mean) / sqrt(var + eps) + beta
 //
-// Uses ToadStool df64 (double-float) emulation for f64 precision on consumer GPUs.
-// Each workgroup processes one row (sequence position) of the input.
+// Three-zone core streaming: f64 buffer I/O, df64 compute, f64 output.
+// df64 accumulation for mean/variance prevents catastrophic cancellation
+// at large hidden dimensions.
 //
 // Cross-spring: benefits baseCamp (Sub-02 attention), WDM surrogates,
 // sovereign folding (Evoformer), all transformer architectures.
 //
 // Absorption target: barracuda::ops::layer_norm_f64
-// Requires: df64_core.wgsl (auto-injected by compile_shader_df64)
+// Requires: df64_core.wgsl + df64_transcendentals.wgsl (prepended via compile_shader_f64)
 
 struct Params {
     seq_len: u32,
@@ -20,10 +21,10 @@ struct Params {
     eps_lo: f32,
 }
 
-@group(0) @binding(0) var<storage, read> input: array<f32>;
-@group(0) @binding(1) var<storage, read> gamma: array<f32>;
-@group(0) @binding(2) var<storage, read> beta: array<f32>;
-@group(0) @binding(3) var<storage, read_write> output: array<f32>;
+@group(0) @binding(0) var<storage, read> input: array<f64>;
+@group(0) @binding(1) var<storage, read> gamma: array<f64>;
+@group(0) @binding(2) var<storage, read> beta: array<f64>;
+@group(0) @binding(3) var<storage, read_write> output: array<f64>;
 @group(0) @binding(4) var<uniform> params: Params;
 
 var<workgroup> shared_sum_hi: array<f32, 256>;
@@ -41,11 +42,11 @@ fn layer_norm(@builtin(global_invocation_id) gid: vec3<u32>,
 
     let base = row * dim;
 
-    // Phase 1: Compute mean via df64 reduction
+    // Phase 1: Compute mean via df64 reduction (Zone 1+2: f64 → df64)
     var acc = df64_zero();
     var i = tid;
     while i < dim {
-        acc = df64_add(acc, df64_from_f32(input[base + i]));
+        acc = df64_add(acc, df64_from_f64(input[base + i]));
         i += 256u;
     }
     shared_sum_hi[tid] = acc.hi;
@@ -66,15 +67,18 @@ fn layer_norm(@builtin(global_invocation_id) gid: vec3<u32>,
         stride >>= 1u;
     }
 
-    let mean = shared_sum_hi[0] / f32(dim);
+    let sum_df = Df64(shared_sum_hi[0], shared_sum_lo[0]);
+    let dim_df = df64_from_f32(f32(dim));
+    let mean_df = df64_div(sum_df, dim_df);
     workgroupBarrier();
 
-    // Phase 2: Compute variance via df64
+    // Phase 2: Compute variance via df64 (Zone 1+2: f64 → df64)
     acc = df64_zero();
     i = tid;
     while i < dim {
-        let diff = input[base + i] - mean;
-        let sq = two_prod(diff, diff);
+        let val = df64_from_f64(input[base + i]);
+        let diff = df64_sub(val, mean_df);
+        let sq = df64_mul(diff, diff);
         acc = df64_add(acc, sq);
         i += 256u;
     }
@@ -96,15 +100,21 @@ fn layer_norm(@builtin(global_invocation_id) gid: vec3<u32>,
         stride >>= 1u;
     }
 
-    let variance = shared_sum_hi[0] / f32(dim);
-    let inv_std = 1.0 / sqrt(variance + params.eps_hi);
+    let var_sum = Df64(shared_sum_hi[0], shared_sum_lo[0]);
+    let variance = df64_div(var_sum, dim_df);
+    let eps = Df64(params.eps_hi, params.eps_lo);
+    let inv_std = df64_div(df64_from_f32(1.0), sqrt_df64(df64_add(variance, eps)));
     workgroupBarrier();
 
-    // Phase 3: Normalize + scale + shift
+    // Phase 3: Normalize + scale + shift (Zone 2+3: df64 → f64)
     i = tid;
     while i < dim {
-        let normalized = (input[base + i] - mean) * inv_std;
-        output[base + i] = gamma[i] * normalized + beta[i];
+        let val = df64_from_f64(input[base + i]);
+        let normalized = df64_mul(df64_sub(val, mean_df), inv_std);
+        let g = df64_from_f64(gamma[i]);
+        let b = df64_from_f64(beta[i]);
+        let result = df64_add(df64_mul(g, normalized), b);
+        output[base + i] = df64_to_f64(result);
         i += 256u;
     }
 }
