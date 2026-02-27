@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: February 26, 2026 (Sessions 44–80 — CPU math parity + Phase C GPU promotion + pure GPU all-domains + cross-system dispatch + modern BarraCUDA rewiring + WDM surrogates + baseCamp GPU pure + sovereign folding shaders + ToadStool S66 absorption + complete cross-spring rewiring + S80: comprehensive debt audit, coverage expansion, tolerance evolution)
-**Status**: Phase 5h — 223/223 Python + 2127+ Rust+GPU = **2350+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 201.7× speedup, pure GPU 10/10 PASS, cross-system 46/46 PASS, cross-spring 52/52 PASS
+**Last Updated**: February 27, 2026 (Sessions 44–88+ — Phase 4 WGSL shader validation, ToadStool streaming pipeline, NUCLEUS atomics, publication experiments, barracuda evolution audit)
+**Status**: Phase 5h+ — 263/263 Python + 2710+ Rust+GPU = **2970+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 201.7× speedup, pure GPU 10/10 PASS, cross-system 46/46 PASS, cross-spring 52/52 PASS, Phase 4 shaders 22/22, streaming pipeline 28/28, 172 binaries, 171/172 validate\_all
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 623 lib + 43 forge + 9 integration PASS — 172 binaries, 38 modules + gpu_ops/ + gpu_dispatch |
+| Rust native validation | 668 lib + 43 forge + 9 integration PASS — 172 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
 | BarraCUDA CPU (bC) | 24/25 papers (96%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/25 papers (92%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/25 papers, 17 shaders, 108 checks | ALL PASS |
@@ -46,7 +46,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 38 functions rewired to upstream (S79) |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 39 functions rewired to upstream (S81); V53 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 
@@ -61,7 +61,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V39 ToadStool handoff (current, Session 76) |
+| wateringHole/handoffs/ | `../wateringHole/` | V55 ToadStool handoff (current, Session 88+) |
 
 ---
 

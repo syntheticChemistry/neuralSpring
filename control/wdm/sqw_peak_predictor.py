@@ -27,6 +27,13 @@ Reference: Hansen & McDonald, "Theory of Simple Liquids" (2013)
            Gregori et al., PRE 67, 026412 (2003)
            Jaeger, "The echo state approach" (2001)
 License: AGPL-3.0-or-later
+
+Provenance:
+  Baseline commit: f9ad0268917a335dce2b1175ea0d77add271b25b
+  Baseline date:   2026-02-16
+  Command:         python3 control/wdm/sqw_peak_predictor.py
+  Hardware:        Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
+  Environment:     Python 3.10.12, NumPy 2.2.6, seed=42
 """
 
 import json

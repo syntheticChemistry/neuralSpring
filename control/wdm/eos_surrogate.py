@@ -11,6 +11,13 @@ Source:   https://militzer.berkeley.edu/FPEOS/
 
 Author: ecoPrimals
 License: AGPL-3.0-or-later
+
+Provenance:
+  Baseline commit: f9ad0268917a335dce2b1175ea0d77add271b25b
+  Baseline date:   2026-02-16
+  Command:         python3 control/wdm/eos_surrogate.py
+  Hardware:        Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
+  Environment:     Python 3.10.12, NumPy 2.2.6, seed=42
 """
 
 import json

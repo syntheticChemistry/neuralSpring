@@ -19,6 +19,7 @@
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
+    clippy::expect_used,
     clippy::similar_names,
     clippy::too_many_lines
 )]
@@ -63,8 +64,7 @@ async fn main() {
 
     let cpu_result = weight_spectral::weight_spectral_analysis(&ws_w, ws_n, ws_n);
 
-    let (gpu_evals, _gpu_evecs) =
-        gpu_ops::eigh_gpu(&ham, dim, &dev).unwrap_or_else(|e| panic!("eigh_gpu failed: {e}"));
+    let (gpu_evals, _gpu_evecs) = gpu_ops::eigh_gpu(&ham, dim, &dev).expect("eigh_gpu dispatch");
 
     let mut sorted_gpu_evals = gpu_evals;
     sorted_gpu_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
@@ -100,7 +100,7 @@ async fn main() {
         batch_hams.extend_from_slice(&disorder_ham);
     }
     let gpu_iprs = gpu_ops::disorder_sweep_gpu(&batch_hams, dim, n_disorders, &dev)
-        .unwrap_or_else(|e| panic!("disorder_sweep_gpu failed: {e}"));
+        .expect("disorder_sweep_gpu dispatch");
     h.check_bool(
         "Sub-01: batch disorder sweep returns correct count",
         gpu_iprs.len() == n_disorders,
@@ -120,8 +120,7 @@ async fn main() {
         let mean = signal.iter().sum::<f64>() / signal.len() as f64;
         signal.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / signal.len() as f64
     };
-    let gpu_var =
-        gpu_ops::variance_gpu(&signal, &dev).unwrap_or_else(|e| panic!("variance_gpu: {e}"));
+    let gpu_var = gpu_ops::variance_gpu(&signal, &dev).expect("variance_gpu dispatch");
     h.check_abs(
         "Sub-02: GPU variance matches CPU (signal propagation)",
         gpu_var,
@@ -135,7 +134,7 @@ async fn main() {
     let cpu_pearson =
         barracuda::stats::correlation::pearson_correlation(&attn_row1, &attn_row2).unwrap_or(0.0);
     let gpu_pearson = gpu_ops::pearson_correlation_gpu(&attn_row1, &attn_row2, &dev)
-        .unwrap_or_else(|e| panic!("pearson_gpu: {e}"));
+        .expect("pearson_gpu dispatch");
     h.check_abs(
         "Sub-02: GPU Pearson matches CPU (attention analysis)",
         gpu_pearson,
@@ -153,8 +152,7 @@ async fn main() {
         raw.iter().map(|&r| r / sum).collect()
     };
     let cpu_entropy = neural_spring::primitives::shannon_entropy(&probs);
-    let gpu_entropy =
-        gpu_ops::shannon_entropy_gpu(&probs, &dev).unwrap_or_else(|e| panic!("entropy_gpu: {e}"));
+    let gpu_entropy = gpu_ops::shannon_entropy_gpu(&probs, &dev).expect("entropy_gpu dispatch");
     h.check_abs(
         "Sub-03: GPU entropy matches CPU (landscape spectral entropy)",
         gpu_entropy,
@@ -181,8 +179,7 @@ async fn main() {
         }
         c
     };
-    let gpu_c = gpu_ops::mat_mul_gpu(&mat_a, &mat_b, 8, &dev)
-        .unwrap_or_else(|e| panic!("mat_mul_gpu: {e}"));
+    let gpu_c = gpu_ops::mat_mul_gpu(&mat_a, &mat_b, 8, &dev).expect("mat_mul_gpu dispatch");
 
     let matmul_max_diff = cpu_c
         .iter()
@@ -201,8 +198,7 @@ async fn main() {
     let obs = vec![10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0];
     let exp_v = vec![37.5, 37.5, 37.5, 37.5, 37.5, 37.5, 37.5, 37.5];
     let cpu_chi2 = barracuda::special::chi_squared_statistic(&obs, &exp_v).unwrap_or(0.0);
-    let gpu_chi2 = gpu_ops::chi_squared_gpu(&obs, &exp_v, &dev)
-        .unwrap_or_else(|e| panic!("chi_squared_gpu: {e}"));
+    let gpu_chi2 = gpu_ops::chi_squared_gpu(&obs, &exp_v, &dev).expect("chi_squared_gpu dispatch");
     h.check_abs(
         "Sub-05: GPU chi² matches CPU (agent distribution)",
         gpu_chi2,
@@ -221,8 +217,7 @@ async fn main() {
             .sum();
         s.sqrt()
     };
-    let gpu_l2 = gpu_ops::l2_distance_gpu(&pos_a, &pos_b, &dev)
-        .unwrap_or_else(|e| panic!("l2_distance_gpu: {e}"));
+    let gpu_l2 = gpu_ops::l2_distance_gpu(&pos_a, &pos_b, &dev).expect("l2_distance_gpu dispatch");
     h.check_abs(
         "Sub-05: GPU L2 distance matches CPU (agent positions)",
         gpu_l2,
@@ -236,7 +231,7 @@ async fn main() {
 
     let data: Vec<f64> = (0..256).map(|_| rng.normal()).collect();
     let cpu_mean = data.iter().sum::<f64>() / data.len() as f64;
-    let gpu_mean = gpu_ops::mean_gpu(&data, &dev).unwrap_or_else(|e| panic!("mean_gpu: {e}"));
+    let gpu_mean = gpu_ops::mean_gpu(&data, &dev).expect("mean_gpu dispatch");
     h.check_abs(
         "Cross: GPU mean matches CPU",
         gpu_mean,
@@ -245,7 +240,7 @@ async fn main() {
     );
 
     let cpu_sum: f64 = data.iter().sum();
-    let gpu_sum = gpu_ops::sum_gpu(&data, &dev).unwrap_or_else(|e| panic!("sum_gpu: {e}"));
+    let gpu_sum = gpu_ops::sum_gpu(&data, &dev).expect("sum_gpu dispatch");
     h.check_abs(
         "Cross: GPU sum matches CPU",
         gpu_sum,
@@ -254,7 +249,7 @@ async fn main() {
     );
 
     let cpu_max = data.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    let gpu_max = gpu_ops::max_gpu(&data, &dev).unwrap_or_else(|e| panic!("max_gpu: {e}"));
+    let gpu_max = gpu_ops::max_gpu(&data, &dev).expect("max_gpu dispatch");
     h.check_abs(
         "Cross: GPU max matches CPU",
         gpu_max,
@@ -286,8 +281,7 @@ async fn main() {
         .zip(q.iter())
         .map(|(&pi, &qi)| if pi > 1e-30 { pi * (pi / qi).ln() } else { 0.0 })
         .sum();
-    let gpu_kl = gpu_ops::kl_divergence_gpu(&p, &q, &dev)
-        .unwrap_or_else(|e| panic!("kl_divergence_gpu: {e}"));
+    let gpu_kl = gpu_ops::kl_divergence_gpu(&p, &q, &dev).expect("kl_divergence_gpu dispatch");
     h.check_abs(
         "Cross: GPU KL divergence matches CPU",
         gpu_kl,

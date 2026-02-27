@@ -251,11 +251,13 @@ fn gpu_mixed_dispatch_routes_gpu_path() {
         return;
     };
     let (result, substrate) = d.mixed_dispatch(
-        "test_gpu_heavy",
-        100_000.0,
-        256_000_000,
-        false,
-        false,
+        &MixedWorkload {
+            op: "test_gpu_heavy",
+            compute_us: 100_000.0,
+            data_bytes: 256_000_000,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |_dev| Ok(42.0_f64),
         || 99.0_f64,
     );
@@ -270,11 +272,13 @@ fn gpu_mixed_dispatch_cpu_path() {
         return;
     };
     let (result, _substrate) = d.mixed_dispatch(
-        "test_gpu_tiny",
-        0.1,
-        16,
-        false,
-        false,
+        &MixedWorkload {
+            op: "test_gpu_tiny",
+            compute_us: 0.1,
+            data_bytes: 16,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |_dev| Ok(42.0_f64),
         || 99.0_f64,
     );
@@ -288,11 +292,13 @@ fn gpu_mixed_dispatch_npu_fallback() {
         return;
     };
     let (result, _substrate) = d.mixed_dispatch(
-        "test_npu",
-        1000.0,
-        8_000_000,
-        true,
-        true,
+        &MixedWorkload {
+            op: "test_npu",
+            compute_us: 1000.0,
+            data_bytes: 8_000_000,
+            npu_available: true,
+            needs_realtime: true,
+        },
         |_dev| Ok(42.0_f64),
         || 99.0_f64,
     );

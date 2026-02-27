@@ -45,6 +45,20 @@ impl std::fmt::Display for Backend {
     }
 }
 
+/// Workload description for mixed-hardware dispatch routing.
+pub struct MixedWorkload<'a> {
+    /// Human-readable operation name (for logging).
+    pub op: &'a str,
+    /// Estimated compute time in microseconds.
+    pub compute_us: f64,
+    /// Total data size in bytes.
+    pub data_bytes: u64,
+    /// Whether an NPU is available on this system.
+    pub npu_available: bool,
+    /// Whether the workload requires real-time latency.
+    pub needs_realtime: bool,
+}
+
 /// Capability-based dispatcher for GPU/CPU execution.
 ///
 /// Created once at startup, shared across all science modules.
@@ -243,25 +257,20 @@ impl Dispatcher {
     /// Combines `dispatch.rs` substrate heuristics with `mixed.rs` transfer
     /// cost estimation to select the optimal execution path. This is the
     /// wiring point for `ToadStool` to absorb into `barracuda::unified_hardware`.
-    #[allow(clippy::too_many_arguments)]
     pub fn mixed_dispatch<T>(
         &self,
-        op: &str,
-        compute_us: f64,
-        data_bytes: u64,
-        npu_available: bool,
-        needs_realtime: bool,
+        workload: &MixedWorkload<'_>,
         gpu_fn: impl FnOnce(&Arc<WgpuDevice>) -> Result<T, String>,
         cpu_fn: impl FnOnce() -> T,
     ) -> (T, neural_spring_forge::mixed::MixedSubstrate) {
         use neural_spring_forge::mixed::{mixed_substrate, MixedSubstrate};
 
         let substrate = mixed_substrate(
-            compute_us,
-            data_bytes,
+            workload.compute_us,
+            workload.data_bytes,
             self.has_gpu(),
-            npu_available,
-            needs_realtime,
+            workload.npu_available,
+            workload.needs_realtime,
         );
 
         match substrate {
@@ -270,7 +279,10 @@ impl Dispatcher {
                     match gpu_fn(dev) {
                         Ok(result) => return (result, substrate),
                         Err(e) => {
-                            eprintln!("[mixed-dispatch] {op} GPU failed, falling back: {e}");
+                            eprintln!(
+                                "[mixed-dispatch] {} GPU failed, falling back: {e}",
+                                workload.op
+                            );
                         }
                     }
                 }
@@ -278,13 +290,14 @@ impl Dispatcher {
             }
             MixedSubstrate::GpuToNpu | MixedSubstrate::NpuToGpu | MixedSubstrate::NpuOnly => {
                 eprintln!(
-                    "[mixed-dispatch] {op} NPU substrate selected but not available, using GPU"
+                    "[mixed-dispatch] {} NPU substrate selected but not available, using GPU",
+                    workload.op
                 );
                 if let Some(dev) = self.wgpu_device() {
                     match gpu_fn(dev) {
                         Ok(result) => return (result, substrate),
                         Err(e) => {
-                            eprintln!("[mixed-dispatch] {op} GPU fallback failed: {e}");
+                            eprintln!("[mixed-dispatch] {} GPU fallback failed: {e}", workload.op);
                         }
                     }
                 }

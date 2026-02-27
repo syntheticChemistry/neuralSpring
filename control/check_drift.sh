@@ -63,6 +63,9 @@ MODULES=(
     "wdm/esn_regime_classifier.py"
     "ml_inference/generate_baselines.py"
     "sovereign_folding/evoformer_primitives.py"
+    "training_trajectory/training_trajectory.py"
+    "hessian_eigenanalysis/hessian_eigenanalysis.py"
+    "anderson_multiagent/anderson_multiagent.py"
 )
 
 run_module() {

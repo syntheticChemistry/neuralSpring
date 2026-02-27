@@ -168,6 +168,20 @@ run_experiment "ML Inference Baselines (MLP + Transformer JSON)" \
 
 echo ""
 echo "================================================================"
+echo "  Publication Experiments (Exp-050, Exp-052, Exp-053)"
+echo "================================================================"
+
+run_experiment "Exp-050: Training Trajectory Spectral Analysis (Paper A)" \
+    control/training_trajectory/training_trajectory.py
+
+run_experiment "Exp-052: Hessian Eigenanalysis at Trained Minima (Paper D)" \
+    control/hessian_eigenanalysis/hessian_eigenanalysis.py
+
+run_experiment "Exp-053: Anderson Multi-Agent Coordination (Paper C)" \
+    control/anderson_multiagent/anderson_multiagent.py
+
+echo ""
+echo "================================================================"
 echo "  GRAND SUMMARY"
 echo "  Passed: $PASS, Failed: $FAIL, Skipped: $SKIP"
 echo "  Total: $((PASS + FAIL + SKIP)) experiments"

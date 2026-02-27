@@ -649,6 +649,25 @@ pub const QUANT_Q4_GEMV_ERROR: f64 = 0.25;
 /// of zero before checking sign.  Values near zero have ambiguous sign.
 pub const QUANT_SIGN_AGREEMENT: f64 = 0.1;
 
+// ═══════════════════════════════════════════════════════════════════
+// Publication experiment tolerances (Exp-050, Exp-052, Exp-053)
+// ═══════════════════════════════════════════════════════════════════
+
+/// GOE random-matrix level spacing ratio target.
+///
+/// Wigner surmise for GOE: LSR ≈ 0.5307. For finite n=64 matrices the
+/// value fluctuates; 0.10 covers the typical spread observed in Python
+/// baselines (MLP final LSR ≈ 0.56, CNN ≈ 0.52).
+pub const GOE_LSR_TOLERANCE: f64 = 0.10;
+
+/// IPR ratio spread threshold for size-independence test.
+///
+/// Anderson localization theory predicts the normalized IPR ratio
+/// (high-disorder / low-disorder) is size-independent. 40% spread
+/// across system sizes (N=64..512) accounts for finite-size effects
+/// and boundary conditions in lattice coordination models.
+pub const IPR_RATIO_SPREAD_MAX: f64 = 0.40;
+
 mod gpu;
 mod registry;
 

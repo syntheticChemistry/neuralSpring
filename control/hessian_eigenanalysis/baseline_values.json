@@ -1,0 +1,77 @@
+{
+  "configs": [
+    {
+      "lr": 0.0001,
+      "wd": 0.0,
+      "test_loss": 0.6815496534109116,
+      "test_acc": 0.8483,
+      "max_eigenvalue": 43.21336746215819,
+      "near_zero_fraction": 0.0,
+      "trace": 0.0
+    },
+    {
+      "lr": 0.0001,
+      "wd": 0.001,
+      "test_loss": 0.6814927339553833,
+      "test_acc": 0.8477,
+      "max_eigenvalue": 129.64010238647455,
+      "near_zero_fraction": 0.0,
+      "trace": 6.394884621840902e-14
+    },
+    {
+      "lr": 0.0005,
+      "wd": 0.0,
+      "test_loss": 0.3321875125169754,
+      "test_acc": 0.9029,
+      "max_eigenvalue": 86.42673492431638,
+      "near_zero_fraction": 0.0,
+      "trace": -2.220446049250313e-15
+    },
+    {
+      "lr": 0.0005,
+      "wd": 0.001,
+      "test_loss": 0.33213076889514925,
+      "test_acc": 0.9027,
+      "max_eigenvalue": 43.21336746215819,
+      "near_zero_fraction": 0.0,
+      "trace": 0.0
+    },
+    {
+      "lr": 0.001,
+      "wd": 0.0,
+      "test_loss": 0.2912982292473316,
+      "test_acc": 0.912,
+      "max_eigenvalue": 10.803341865539547,
+      "near_zero_fraction": 0.0,
+      "trace": 0.0
+    },
+    {
+      "lr": 0.001,
+      "wd": 0.001,
+      "test_loss": 0.2944774620234966,
+      "test_acc": 0.9111,
+      "max_eigenvalue": 10.803341865539547,
+      "near_zero_fraction": 0.0,
+      "trace": 0.0
+    },
+    {
+      "lr": 0.005,
+      "wd": 0.0,
+      "test_loss": 0.2880018949508667,
+      "test_acc": 0.925,
+      "max_eigenvalue": 5.401670932769774,
+      "near_zero_fraction": 0.0,
+      "trace": -1.3877787807814457e-16
+    },
+    {
+      "lr": 0.005,
+      "wd": 0.001,
+      "test_loss": 0.26639716029167176,
+      "test_acc": 0.9212,
+      "max_eigenvalue": 2.700835466384887,
+      "near_zero_fraction": 0.9666666666666667,
+      "trace": 0.0
+    }
+  ],
+  "correlation_maxeval_testloss": 0.6705456192909645
+}

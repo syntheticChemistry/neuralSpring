@@ -5,9 +5,86 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 88 (February 27, 2026)
+## [Unreleased] — Session 88+ (February 27, 2026)
 
-Next session.
+### Added
+
+- **GPU tier: Exp-050** (`validate_barracuda_training_trajectory`): 9/9 — eigensolve → IPR
+  → variance on GPU for training trajectory spectral analysis.
+- **GPU tier: Exp-052** (`validate_barracuda_hessian_eigen`): 10/10 — Hessian eigensolve
+  → spectral diagnostics on GPU for loss landscape analysis.
+- **GPU tier: Exp-053** (`validate_barracuda_anderson_multiagent`): 11/11 — Laplacian →
+  disordered eigensolve → IPR + pairwise L2 on GPU for multi-agent coordination.
+- **Pipeline + metalForge** (`validate_publication_gpu_pipeline`): 13/13 — BatchIprGpu
+  pure GPU pipeline, Dispatcher CPU↔GPU parity, metalForge mixed-hardware routing.
+- **Exp-050** (training trajectory spectral analysis): Py 11/11 + Rs 12/12 PASS.
+- **Exp-052** (Hessian eigenanalysis): Py 8/8 + Rs 14/14 PASS.
+- **Exp-053** (Anderson multi-agent QS): Py 11/11 + Rs 18/18 PASS.
+- ToadStool/BarraCUDA absorption handoff V54: barracuda evolution audit, debt
+  reduction, control matrix verification, absorption targets refreshed.
+- Root docs audit: README, CHANGELOG, CONTROL_EXPERIMENT_STATUS, baseCamp,
+  experiments/ journal, wateringHole handoffs, specs/ all updated.
+- **biomeOS integration**: `neuralspring_primal` JSON-RPC server binary
+  (feature-gated `--features primal`). 7 science capabilities registered in
+  biomeOS capability registry. `neuralspring_spectral_pipeline.toml` graph for
+  biomeOS orchestration. `validate_biomeos_spectral`: 29/29 PASS.
+- **biomeOS SDK**: `PrimalCapability::science()` added to `biomeos-types`.
+  `providers_for_capability()` updated to include `neuralspring` for science.
+- **Publication mixed-hardware** (`validate_publication_mixed_hardware`): 43/43 — 
+  Exp-050/052/053 extended to metalForge mixed-hardware tier. NPU→GPU PCIe bridge,
+  GPU→CPU fallback, substrate cost model routing, NUCLEUS atomic transfer hierarchy.
+- **NUCLEUS compute dispatch** (`validate_nucleus_compute_dispatch`): 39/39 —
+  Tower discovery (CPU+GPU substrate inventory), Node eigensolve/Anderson/Hessian
+  compute dispatch, Nest provenance (mean/variance/Frobenius parity), mixed atomic
+  coordination, PCIe bypass validation.
+- **ToadStool spectral absorption** (`validate_toadstool_spectral_absorption`): 294/294 —
+  CPU correctness (eigh trace/eigenvector norms, Anderson localization ratio, Hamiltonian
+  symmetry), GPU dispatch parity (8×8/16×16/24×24 + stats), batch scaling, mixed substrate
+  routing (large→GPU, small→CPU, realtime→NPU).
+- **Phase 4 WGSL shader validation** (`validate_gpu_shader_phase4`): 22/22 — Direct
+  metalForge shader dispatch for HMM backward (log-domain), HMM Viterbi decoding,
+  matrix correlation (Pearson of N×N upper triangle), linear regression (OLS normal
+  equations). All shaders validated against CPU references via `gpu_shader_validation`
+  infrastructure. ToadStool absorption targets for `barracuda::ops::bio::hmm_*` and
+  `barracuda::stats::*_gpu`.
+- **ToadStool streaming spectral pipeline** (`validate_streaming_spectral_pipeline`):
+  28/28 — Demonstrates unidirectional streaming pattern: batch eigensolve → BatchIprGpu
+  → variance/mean aggregation with minimal CPU round-trips. Anderson disorder sweep
+  across 6 W values (0.5→16) shows localization transition on GPU (IPR 0.09→0.79).
+  Dispatcher pipeline parity at 1.6e-14 (machine ε). This is the structural proof
+  that ToadStool's unidirectional streaming will preserve scientific conclusions.
+
+### Changed
+
+- **WDM SQW JSON fix**: `wdm_sqw.rs` loader now accepts both `spec_mean`/`spec_std`
+  and `series_mean`/`series_std` field names. Feature strategy auto-detected from
+  `w_out` dimensions (32-dim h_last vs 96-dim pooled). 0/1 → 26/27 PASS.
+- **Debt reduction**: 18 `unwrap_or_else(|e| panic!(...))` sites evolved to
+  idiomatic `.expect()` across WDM tests (`wdm_sqw`, `wdm_esn`, `wdm_transport`,
+  `wdm_surrogate`) and `validate_basecamp_gpu.rs`. 3 bare `.unwrap()` in
+  `bench_cross_spring_evolution.rs` replaced with descriptive `.expect()`.
+- **Iterator idioms**: 11 manual loop sites evolved to `chunks_exact`, `flat_map`,
+  `zip`, `recip` patterns in `basecamp.rs` (4 sites: belief propagation, MLP
+  signal, pairwise L2, adjacency) and `sovereign_folding.rs` (7 sites: layer_norm,
+  softmax, SDPA scores, attention apply, triangle mul ×2, outer product mean).
+- **Module-level `#[allow(clippy::expect_used)]`**: Added to WDM test modules and
+  basecamp GPU validation binary; redundant per-test allows removed.
+- `whitePaper/baseCamp/extensions.md`: Session range extended through S88+.
+- `specs/PAPER_REVIEW_QUEUE.md`: Control matrix verified for open data ×
+  BarraCUDA CPU × BarraCUDA GPU × metalForge hardware tiers.
+- `specs/BARRACUDA_USAGE.md`: Absorption inventory refreshed.
+
+### Validation
+
+- `cargo fmt --check`: PASS
+- `cargo clippy --all-targets`: 0 warnings
+- `cargo test --workspace`: PASS
+- `validate_all`: **171/172 PASS** (172 binaries, 1 pre-existing WDM damping assertion)
+- `validate_biomeos_spectral`: **29/29 PASS** (biomeOS primal integration, feature-gated)
+- `validate_gpu_shader_phase4`: **22/22 PASS** (Phase 4 WGSL direct shader dispatch)
+- `validate_streaming_spectral_pipeline`: **28/28 PASS** (ToadStool streaming proof)
+- Publication experiments: full GPU progression (Py → Rs → GPU → Pipeline → metalForge)
+- Documentation sweep: all counts aligned (2970+ checks, 172 binaries, 668 lib tests)
 
 ## [0.5.2] — 2026-02-27 (Session 88: df64 Core Streaming — Sovereign Folding)
 

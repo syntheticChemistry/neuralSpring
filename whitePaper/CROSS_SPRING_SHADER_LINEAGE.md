@@ -202,7 +202,7 @@
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_all` | 158 | **158/158 PASS** |
+| `validate_all` | 172 | **171/172 PASS** |
 | `validate_cross_spring_evolution` | 52 | **52/52 PASS** |
 | `bench_cross_spring_evolution` | 28 | **28/28 PASS** |
 | `cargo test --lib` | 623 | **623/623 PASS** |
@@ -732,8 +732,8 @@ Hamming 20.85× regression: upstream f64 path on small sizes (investigation targ
 | Gate | Result |
 |------|--------|
 | `cargo clippy --all-targets -- -D warnings` | 0 warnings |
-| `cargo test --lib` | **623/623 PASS** |
-| `validate_all` | **158/158 PASS** |
+| `cargo test --lib` | **668/668 PASS** |
+| `validate_all` | **171/172 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
 | `bench_cross_spring_evolution` | **28/28 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels** |

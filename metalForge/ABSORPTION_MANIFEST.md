@@ -216,7 +216,7 @@ that match GPU buffer bindings directly:
 **Total GPU pipeline checks**: 32 (7 pipelines)
 **Total cross-dispatch checks**: 41 (8+8+12+13)
 **Total dispatch + parity checks**: 89 (16+14+19+17+23, Session 55–56)
-**Total lib tests**: 623 lib + 9 integration + 43 forge tests
+**Total lib tests**: 668 lib + 9 integration + 43 forge tests
 **Upstream rewired**: 38 functions + 6 shader sources delegating to upstream BarraCUDA
 **Grand total validation**: 2350+ (223 Python + 2127+ Rust+GPU)
 **Sovereign folding shaders**: 15 df64 WGSL (all using `compile_shader_df64` convention, pending absorption)

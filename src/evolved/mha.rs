@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Multi-Head Attention — now delegates to upstream `BarraCUDA`.
+//! Multi-Head Attention — 2D adapter over upstream `BarraCUDA` 3D API.
 //!
 //! ## Status (`ToadStool` S60–S68, `f0feb226`)
 //!
 //! S-03b is **RESOLVED upstream**. `ToadStool` `0c998992` (S60–S61) decomposed the
 //! fused MHA projection into `Tensor::matmul` + `head_split.wgsl` /
 //! `head_concat.wgsl` — exactly the approach neuralSpring evolved locally.
-//! neuralSpring's `head_split.wgsl` and `head_concat.wgsl` shaders were
-//! absorbed into upstream `barracuda::ops::mha::projections`.
 //!
-//! This module is now a thin wrapper that reshapes 2D inputs to 3D and
-//! delegates to `barracuda::ops::mha::MultiHeadAttention`. It can be fully
-//! retired once callers are updated to use the upstream 3D API directly.
+//! This module provides the 2D→3D→2D reshape adapter that many science
+//! callers need (matrices arrive as `[seq, d_model]` rather than
+//! `[batch, seq, d_model]`). This adapter is a complete implementation,
+//! not a mock — it delegates fully to upstream `MultiHeadAttention`.
 
 use barracuda::error::BarracudaError;
 use barracuda::ops::mha::MultiHeadAttention;
@@ -32,10 +31,6 @@ use barracuda::tensor::Tensor;
 /// # Errors
 ///
 /// Returns [`BarracudaError`] on shape mismatch or GPU failure.
-#[deprecated(
-    since = "0.2.0",
-    note = "Use barracuda::ops::mha::MultiHeadAttention directly with 3D tensors"
-)]
 #[allow(clippy::too_many_arguments)]
 pub fn multi_head_attention_2d(
     input: &Tensor,

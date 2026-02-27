@@ -1,6 +1,6 @@
 # neuralSpring — Data Provenance
 
-**Last Updated**: February 23, 2026
+**Last Updated**: February 27, 2026 (Sessions 83–88+)
 **Purpose**: Document all external datasets, APIs, and pre-trained assets used in validation experiments. Every data source must be public, reproducible, and free of access restrictions.
 
 ---
@@ -57,6 +57,24 @@
 | Paper 24 (Pangenome) | Simulated gene content | Generated in-code | N/A — computational model | N/A | Moulana/Anderson (2020) mSystems. Pairwise Jaccard on simulated pangenome content. |
 | Paper 25 (Meta-pop) | Simulated populations | Generated in-code | N/A — computational model | N/A | Campbell/Anderson (2017) Env Microbiol. Locus variance, migration, isolation. |
 
+### WDM Surrogate Data (Sessions 83–87)
+
+| Surrogate | Dataset | Source | Access | License | Notes |
+|-----------|---------|--------|--------|---------|-------|
+| nW-01 (Transport) | Stanton-Murillo transport | Generated from published equations | N/A — analytical model | N/A | D*, η*, λ* vs ρ, T, Z*. Seed=42. |
+| nW-02 (EOS) | FPEOS equation of state | Militzer (2021) tables | Published data | Open | P(ρ,T), E(ρ,T) for H, He, C. |
+| nW-03 (S(q,ω)) | MD density fluctuations | Generated in-code | N/A — synthetic spectra | N/A | Plasmon ω and damping γ from (ρ,T). Seed=42. |
+| nW-04 (Transfer) | Classical→WDM transfer | Stanton-Murillo + WDM extension | N/A — analytical model | N/A | Fine-tune from (Γ,κ) to (ρ,T,Z*). Seed=42. |
+| nW-05 (ESN) | WDM regime classifier | Generated in-code | N/A — synthetic physics | N/A | Classical/WDM/degenerate regimes. Seed=42. |
+
+### Publication Experiment Data (Session 88+)
+
+| Experiment | Dataset | Source | Access | License | Notes |
+|-----------|---------|--------|--------|---------|-------|
+| Exp-050 (Training Trajectory) | MNIST subset | torchvision | yann.lecun.com | CC BY-SA 3.0 | 4 architectures, spectral diagnostics per epoch. Seed=42. |
+| Exp-052 (Hessian Eigen) | MNIST 5K subset | torchvision | yann.lecun.com | CC BY-SA 3.0 | 15 configs (5 LR × 3 WD), Hessian at convergence. Seed=42. |
+| Exp-053 (Anderson Multi-Agent) | Synthetic agent networks | Generated in-code | N/A — pure math | N/A | 64/125/216/512 agents, disorder sweep. Seed=42. |
+
 ---
 
 ## External APIs
@@ -86,7 +104,7 @@ None. All models are trained from scratch during validation. This is by design �
 
 ## References
 
-1. Allen, R.G., Pereira, L.S., Raes, D., Smith, M. (1998). *Crop evapotranspiration — Guidelines for computing crop water requirements*. FAO Irrigation and Drainage Paper 56.
+1. Allen, R.G., Pereira, L.S., Raes, D., Smith, M. (1998). *Crop evapotranspiration — Guidelines for computing crop water requirements*. FAO Irrigation and Drainage Paper 56. ISBN: 92-5-104219-5. URL: [www.fao.org/3/x0490e/x0490e00.htm](https://www.fao.org/3/x0490e/x0490e00.htm)
 2. Raissi, M., Perdikaris, P., Karniadakis, G.E. (2019). *Physics-informed neural networks*. Journal of Computational Physics, 378, 686-707. DOI: [10.1016/j.jcp.2018.10.045](https://doi.org/10.1016/j.jcp.2018.10.045)
 3. Lu, L., Jin, P., Pang, G., Zhang, Z., Karniadakis, G.E. (2021). *Learning nonlinear operators via DeepONet*. Nature Machine Intelligence, 3, 218-229. DOI: [10.1038/s42256-021-00302-5](https://doi.org/10.1038/s42256-021-00302-5)
 4. LeCun, Y., Bottou, L., Bengio, Y., Haffner, P. (1998). *Gradient-based learning applied to document recognition*. Proceedings of the IEEE, 86(11), 2278-2324. DOI: [10.1109/5.726791](https://doi.org/10.1109/5.726791)

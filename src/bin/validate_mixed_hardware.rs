@@ -20,7 +20,7 @@
     clippy::option_if_let_else
 )]
 
-use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -39,11 +39,13 @@ async fn main() {
 
     let small: Vec<f64> = (0..32).map(|_| rng.normal()).collect();
     let (small_var, small_sub) = dispatcher.mixed_dispatch(
-        "small_variance",
-        10.0, // 10 µs compute — well below GPU overhead
-        256,  // 256 bytes
-        false,
-        false, // no NPU, not realtime
+        &MixedWorkload {
+            op: "small_variance",
+            compute_us: 10.0, // 10 µs compute — well below GPU overhead
+            data_bytes: 256,  // 256 bytes
+            npu_available: false,
+            needs_realtime: false, // no NPU, not realtime
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),
@@ -78,11 +80,13 @@ async fn main() {
     };
 
     let (gpu_var, large_sub) = dispatcher.mixed_dispatch(
-        "large_variance",
-        50_000.0, // 50 ms compute — exceeds GPU overhead + transfer
-        large_bytes,
-        false,
-        false,
+        &MixedWorkload {
+            op: "large_variance",
+            compute_us: 50_000.0, // 50 ms compute — exceeds GPU overhead + transfer
+            data_bytes: large_bytes,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),
@@ -118,11 +122,13 @@ async fn main() {
 
     let rt_data: Vec<f64> = (0..64).map(|_| rng.normal()).collect();
     let (_, npu_sub) = dispatcher.mixed_dispatch(
-        "realtime_inference",
-        5_000.0,
-        512,
-        true,
-        true, // NPU available + realtime required
+        &MixedWorkload {
+            op: "realtime_inference",
+            compute_us: 5_000.0,
+            data_bytes: 512,
+            npu_available: true,
+            needs_realtime: true, // NPU available + realtime required
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),
@@ -175,11 +181,13 @@ async fn main() {
         barracuda::stats::correlation::pearson_correlation(&corr_x, &corr_y).unwrap_or(0.0);
 
     let (mixed_pearson, corr_sub) = dispatcher.mixed_dispatch(
-        "correlation",
-        100_000.0,
-        (corr_x.len() * 16) as u64,
-        false,
-        false,
+        &MixedWorkload {
+            op: "correlation",
+            compute_us: 100_000.0,
+            data_bytes: (corr_x.len() * 16) as u64,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| {
             let op = barracuda::ops::correlation_f64_wgsl::CorrelationF64::new(dev.clone())
                 .map_err(|e| format!("{e}"))?;
@@ -234,11 +242,13 @@ async fn main() {
     let large_compute = overhead * 10.0;
 
     let (_, sub_below) = dispatcher.mixed_dispatch(
-        "boundary_below",
-        small_compute,
-        1024,
-        false,
-        false,
+        &MixedWorkload {
+            op: "boundary_below",
+            compute_us: small_compute,
+            data_bytes: 1024,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),
@@ -254,11 +264,13 @@ async fn main() {
     );
 
     let (_, sub_above) = dispatcher.mixed_dispatch(
-        "boundary_above",
-        large_compute,
-        1024,
-        false,
-        false,
+        &MixedWorkload {
+            op: "boundary_above",
+            compute_us: large_compute,
+            data_bytes: 1024,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),

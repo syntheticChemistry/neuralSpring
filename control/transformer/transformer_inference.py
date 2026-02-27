@@ -22,6 +22,13 @@ The isomorphic insight: self-attention is the SAME operation in:
 
 BarraCUDA has: attention, mha, causal_attn, cross_attn, flash_attention,
 rope, alibi, sparse_attn — this experiment validates the math.
+
+Provenance:
+  Baseline commit: f9ad0268917a335dce2b1175ea0d77add271b25b
+  Baseline date:   2026-02-16
+  Command:         python3 control/transformer/transformer_inference.py
+  Hardware:        Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
+  Environment:     Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6
 """
 
 import math

@@ -15,7 +15,7 @@
 
 #![allow(clippy::cast_precision_loss, clippy::similar_names)]
 
-use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -154,11 +154,13 @@ fn validate_bridge_api(harness: &mut ValidationHarness) {
 fn validate_live_dispatch(harness: &mut ValidationHarness, rng: &mut Rng, dispatcher: &Dispatcher) {
     let small: Vec<f64> = (0..32).map(|_| rng.normal()).collect();
     let (small_var, small_sub) = dispatcher.mixed_dispatch(
-        "small_variance",
-        10.0,
-        256,
-        false,
-        false,
+        &MixedWorkload {
+            op: "small_variance",
+            compute_us: 10.0,
+            data_bytes: 256,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),
@@ -185,11 +187,13 @@ fn validate_live_dispatch(harness: &mut ValidationHarness, rng: &mut Rng, dispat
         large.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / count
     };
     let (large_var, large_sub) = dispatcher.mixed_dispatch(
-        "large_variance",
-        50_000.0,
-        (large.len() * 8) as u64,
-        false,
-        false,
+        &MixedWorkload {
+            op: "large_variance",
+            compute_us: 50_000.0,
+            data_bytes: (large.len() * 8) as u64,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),

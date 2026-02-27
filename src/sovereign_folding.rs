@@ -73,17 +73,16 @@ pub fn layer_norm(
     assert_eq!(gamma.len(), dim);
     assert_eq!(beta.len(), dim);
 
-    let mut out = vec![0.0; rows * dim];
-    for r in 0..rows {
-        let row = &x[r * dim..(r + 1) * dim];
-        let mean = row.iter().sum::<f64>() / dim as f64;
-        let var = row.iter().map(|v| (v - mean) * (v - mean)).sum::<f64>() / dim as f64;
-        let inv_std = 1.0 / (var + eps).sqrt();
-        for d in 0..dim {
-            out[r * dim + d] = gamma[d].mul_add((row[d] - mean) * inv_std, beta[d]);
-        }
-    }
-    out
+    x.chunks_exact(dim)
+        .flat_map(|row| {
+            let mean = row.iter().sum::<f64>() / dim as f64;
+            let var = row.iter().map(|v| (v - mean) * (v - mean)).sum::<f64>() / dim as f64;
+            let inv_std = 1.0 / (var + eps).sqrt();
+            row.iter()
+                .zip(gamma.iter().zip(beta.iter()))
+                .map(move |(&xd, (&g, &b))| g.mul_add((xd - mean) * inv_std, b))
+        })
+        .collect()
 }
 
 /// Row-wise numerically stable softmax.
@@ -96,16 +95,13 @@ pub fn layer_norm(
 #[must_use]
 pub fn softmax_rows(x: &[f64], rows: usize, cols: usize) -> Vec<f64> {
     assert_eq!(x.len(), rows * cols);
-    let mut out = vec![0.0; rows * cols];
-    for r in 0..rows {
-        let row = &x[r * cols..(r + 1) * cols];
-        let max_val = row.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-        let sum_exp: f64 = row.iter().map(|v| (v - max_val).exp()).sum();
-        for c in 0..cols {
-            out[r * cols + c] = (row[c] - max_val).exp() / sum_exp;
-        }
-    }
-    out
+    x.chunks_exact(cols)
+        .flat_map(|row| {
+            let max_val = row.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+            let sum_exp: f64 = row.iter().map(|v| (v - max_val).exp()).sum();
+            row.iter().map(move |&v| (v - max_val).exp() / sum_exp)
+        })
+        .collect()
 }
 
 /// Scaled dot-product attention scores: `Q @ K^T / sqrt(d_k)`.
@@ -128,13 +124,15 @@ pub fn sdpa_scores(
     for b in 0..batch {
         for h in 0..heads {
             for q in 0..q_len {
+                let q_base = ((b * heads + h) * q_len + q) * head_dim;
+                let q_row = &query[q_base..q_base + head_dim];
                 for k in 0..kv_len {
-                    let mut dot = 0.0_f64;
-                    for d in 0..head_dim {
-                        let qi = query[((b * heads + h) * q_len + q) * head_dim + d];
-                        let ki = key[((b * heads + h) * kv_len + k) * head_dim + d];
-                        dot = qi.mul_add(ki, dot);
-                    }
+                    let k_base = ((b * heads + h) * kv_len + k) * head_dim;
+                    let dot: f64 = q_row
+                        .iter()
+                        .zip(&key[k_base..k_base + head_dim])
+                        .map(|(&qi, &ki)| qi * ki)
+                        .sum();
                     scores[((b * heads + h) * q_len + q) * kv_len + k] = dot / scale;
                 }
             }
@@ -159,13 +157,15 @@ pub fn attention_apply(
     for b in 0..batch {
         for h in 0..heads {
             for q in 0..q_len {
+                let w_base = ((b * heads + h) * q_len + q) * kv_len;
+                let w_row = &weights[w_base..w_base + kv_len];
+                let v_head_base = (b * heads + h) * kv_len * head_dim;
                 for d in 0..head_dim {
-                    let mut acc = 0.0_f64;
-                    for k in 0..kv_len {
-                        let w = weights[((b * heads + h) * q_len + q) * kv_len + k];
-                        let v = value[((b * heads + h) * kv_len + k) * head_dim + d];
-                        acc = w.mul_add(v, acc);
-                    }
+                    let acc: f64 = w_row
+                        .iter()
+                        .enumerate()
+                        .map(|(k, &w)| w * value[v_head_base + k * head_dim + d])
+                        .sum();
                     out[((b * heads + h) * q_len + q) * head_dim + d] = acc;
                 }
             }
@@ -215,11 +215,11 @@ pub fn triangle_mul_outgoing(
     for i in 0..n {
         for j in 0..n {
             for c in 0..channels {
-                let mut acc = 0.0_f64;
-                for k in 0..n {
-                    acc = proj_a[(i * n + k) * channels + c]
-                        .mul_add(proj_b[(j * n + k) * channels + c], acc);
-                }
+                let acc: f64 = (0..n)
+                    .map(|k| {
+                        proj_a[(i * n + k) * channels + c] * proj_b[(j * n + k) * channels + c]
+                    })
+                    .sum();
                 out[(i * n + j) * channels + c] = acc;
             }
         }
@@ -248,11 +248,11 @@ pub fn triangle_mul_incoming(
     for i in 0..n {
         for j in 0..n {
             for c in 0..channels {
-                let mut acc = 0.0_f64;
-                for k in 0..n {
-                    acc = proj_a[(k * n + i) * channels + c]
-                        .mul_add(proj_b[(k * n + j) * channels + c], acc);
-                }
+                let acc: f64 = (0..n)
+                    .map(|k| {
+                        proj_a[(k * n + i) * channels + c] * proj_b[(k * n + j) * channels + c]
+                    })
+                    .sum();
                 out[(i * n + j) * channels + c] = acc;
             }
         }
@@ -631,9 +631,9 @@ mod tests {
     #[test]
     fn sdpa_full_preserves_magnitude() {
         let d = 4;
-        let q = vec![0.5; 1 * 1 * 2 * d];
-        let k = vec![0.5; 1 * 1 * 2 * d];
-        let v = vec![1.0; 1 * 1 * 2 * d];
+        let q = vec![0.5; 2 * d];
+        let k = vec![0.5; 2 * d];
+        let v = vec![1.0; 2 * d];
         let out = sdpa_full(&q, &k, &v, 1, 1, 2, 2, d);
         for val in &out {
             assert!(
@@ -735,11 +735,8 @@ mod tests {
         let b = vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
         let out = outer_product_mean(&a, &b, n_seq, n_res, c_a, c_b);
         assert_eq!(out.len(), n_res * n_res * c_a * c_b);
-        let val = out[0 * n_res * (c_a * c_b) + 0 * (c_a * c_b) + 0];
-        assert!(
-            (val - 1.0 * 0.1).abs() < EPS,
-            "a[0,0]*b[0,0] = 0.1, got {val}"
-        );
+        let val = out[0];
+        assert!((val - 0.1).abs() < EPS, "a[0,0]*b[0,0] = 0.1, got {val}");
     }
 
     #[test]
@@ -794,13 +791,13 @@ mod tests {
     fn msa_row_attention_output_finite() {
         let (s, n, h, d) = (2, 4, 2, 4);
         let q: Vec<f64> = (0..s * n * h * d)
-            .map(|i| (i as f64 * 0.01) - 0.5)
+            .map(|i| (i as f64).mul_add(0.01, -0.5))
             .collect();
         let k: Vec<f64> = (0..s * n * h * d)
-            .map(|i| (i as f64 * 0.02) - 0.3)
+            .map(|i| (i as f64).mul_add(0.02, -0.3))
             .collect();
         let v: Vec<f64> = (0..s * n * h * d)
-            .map(|i| (i as f64 * 0.03) - 0.1)
+            .map(|i| (i as f64).mul_add(0.03, -0.1))
             .collect();
         let bias = vec![0.0; h * n * n];
         let out = msa_row_attention(&q, &k, &v, &bias, s, n, h, d);
@@ -838,13 +835,13 @@ mod tests {
     fn msa_col_attention_output_finite() {
         let (s, n, h, d) = (3, 4, 2, 4);
         let q: Vec<f64> = (0..s * n * h * d)
-            .map(|i| (i as f64 * 0.01) - 0.5)
+            .map(|i| (i as f64).mul_add(0.01, -0.5))
             .collect();
         let k: Vec<f64> = (0..s * n * h * d)
-            .map(|i| (i as f64 * 0.02) - 0.3)
+            .map(|i| (i as f64).mul_add(0.02, -0.3))
             .collect();
         let v: Vec<f64> = (0..s * n * h * d)
-            .map(|i| (i as f64 * 0.03) - 0.1)
+            .map(|i| (i as f64).mul_add(0.03, -0.1))
             .collect();
         let out = msa_col_attention(&q, &k, &v, s, n, h, d);
         assert_eq!(out.len(), s * n * h * d);

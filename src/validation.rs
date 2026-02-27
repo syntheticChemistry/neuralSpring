@@ -517,10 +517,16 @@ pub fn validate_tensor_unary(
     }
 }
 
+/// Expected value and tolerance for a scalar reduction check.
+pub struct ReductionExpected<'a> {
+    pub label: &'a str,
+    pub value: f64,
+    pub tolerance: f64,
+}
+
 /// Validate a scalar reduction (sum, mean, max, etc.) against an expected value.
 ///
 /// Handles: create tensor → apply reduction op → readback scalar → `check_abs`.
-#[allow(clippy::too_many_arguments)]
 pub fn validate_tensor_reduction(
     h: &mut ValidationHarness,
     device: &std::sync::Arc<barracuda::device::WgpuDevice>,
@@ -529,9 +535,7 @@ pub fn validate_tensor_reduction(
     op: impl FnOnce(
         &barracuda::tensor::Tensor,
     ) -> Result<barracuda::tensor::Tensor, barracuda::error::BarracudaError>,
-    label: &str,
-    expected: f64,
-    tolerance: f64,
+    expected: &ReductionExpected<'_>,
 ) {
     let Some(input) = gpu_tensor(h, data, shape, device) else {
         return;
@@ -541,9 +545,14 @@ pub fn validate_tensor_reduction(
             let Some(v) = gpu_readback(h, &out) else {
                 return;
             };
-            h.check_abs(label, f64::from(v[0]), expected, tolerance);
+            h.check_abs(
+                expected.label,
+                f64::from(v[0]),
+                expected.value,
+                expected.tolerance,
+            );
         }
-        Err(e) => h.check_bool(&format!("{label} [ERROR: {e}]"), false),
+        Err(e) => h.check_bool(&format!("{} [ERROR: {e}]", expected.label), false),
     }
 }
 

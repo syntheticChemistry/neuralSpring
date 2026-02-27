@@ -443,7 +443,7 @@ fn bench_gpu_diversity_fusion(
         .map(|_| (rng.next_f64() * 50.0).max(0.0))
         .collect();
 
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
 
     let cpu_us = bench("diversity_fusion_cpu (wetSpring→ToadStool)", || {
         std::hint::black_box(barracuda::ops::bio::diversity_fusion_cpu(
@@ -458,8 +458,10 @@ fn bench_gpu_diversity_fusion(
 
     let gpu_us = bench("DiversityFusionGpu (wetSpring→ToadStool→GPU)", || {
         rt.block_on(async {
-            let op = DiversityFusionGpu::new(device.clone()).unwrap();
-            let _result = op.compute(&abundances, n_samples, n_species).unwrap();
+            let op = DiversityFusionGpu::new(device.clone()).expect("DiversityFusionGpu::new");
+            let _result = op
+                .compute(&abundances, n_samples, n_species)
+                .expect("DiversityFusionGpu::compute");
         });
     });
     h.check_bool(

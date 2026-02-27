@@ -641,7 +641,7 @@ fn validate_div(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Reductions ──────────────────────────────────────────────────────────
 
 fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    use neural_spring::validation::validate_tensor_reduction;
+    use neural_spring::validation::{validate_tensor_reduction, ReductionExpected};
     let tex = tolerances::TENSOR_EXACT_F32;
 
     validate_tensor_reduction(
@@ -650,9 +650,11 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         &[1.0, 2.0, 3.0, 4.0, 5.0],
         &[5],
         Tensor::sum,
-        "sum([1..5]) == 15",
-        15.0,
-        tex,
+        &ReductionExpected {
+            label: "sum([1..5]) == 15",
+            value: 15.0,
+            tolerance: tex,
+        },
     );
     validate_tensor_reduction(
         h,
@@ -660,9 +662,11 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         &[2.0, 4.0, 6.0, 8.0, 10.0],
         &[5],
         Tensor::mean,
-        "mean([2,4,6,8,10]) == 6",
-        6.0,
-        tex,
+        &ReductionExpected {
+            label: "mean([2,4,6,8,10]) == 6",
+            value: 6.0,
+            tolerance: tex,
+        },
     );
     validate_tensor_reduction(
         h,
@@ -670,9 +674,11 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         &[3.0, 1.0, 7.0, 2.0, 5.0],
         &[5],
         Tensor::max,
-        "max([3,1,7,2,5]) == 7",
-        7.0,
-        tex,
+        &ReductionExpected {
+            label: "max([3,1,7,2,5]) == 7",
+            value: 7.0,
+            tolerance: tex,
+        },
     );
     validate_tensor_reduction(
         h,
@@ -680,9 +686,11 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         &[3.0, 1.0, 7.0, 2.0, 5.0],
         &[5],
         Tensor::min,
-        "min([3,1,7,2,5]) == 1",
-        1.0,
-        tex,
+        &ReductionExpected {
+            label: "min([3,1,7,2,5]) == 1",
+            value: 1.0,
+            tolerance: tex,
+        },
     );
     validate_tensor_reduction(
         h,
@@ -690,9 +698,11 @@ fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         &[3.0, 4.0],
         &[2],
         Tensor::norm,
-        "norm([3,4]) == 5",
-        5.0,
-        tolerances::TENSOR_NORM_F32,
+        &ReductionExpected {
+            label: "norm([3,4]) == 5",
+            value: 5.0,
+            tolerance: tolerances::TENSOR_NORM_F32,
+        },
     );
 }
 

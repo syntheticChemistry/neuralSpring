@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 26, 2026 (Sessions 45–83)
+**Last Updated**: February 27, 2026 (Sessions 45–88+)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -183,6 +183,7 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated. All 5 WDM surrogates (nW-01..nW-05) complete.**
 
+Session 88: Publication experiment buildout — Exp-050 (training trajectory spectral analysis, Py 11/11, Rs 12/12), Exp-052 (Hessian eigenanalysis at trained minima, Py 8/8, Rs 14/14), Exp-053 (Anderson multi-agent coordination, Py 11/11, Rs 18/18). 3 new Python controls, 3 new Rust validators, 176 binaries, 668 lib tests, 163 validators in validate_all.
 Session 87: WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor, Py 5/5, Rs 27/27) and nW-05 (ESN regime classifier, Py 5/5, Rs 39/39). 172 binaries, 623 lib tests, 158/158 validators.
 Session 86: V50 handoff — WDM buildout complete, 170 binaries, 611 lib tests, 154/154 validators.
 Session 83: WDM surrogate buildout — nW-01 transport (Py 4/4, Rs 30/30), nW-02 EOS wired (Py 9/9, Rs 36/36, GPU 15/15), nW-04 transfer (Py 4/4, Rs 6/6). `wdm_transport.rs` new module. 4 new validators in `validate_all` (154 total). 611 lib + 43 forge tests. `check_drift.sh` expanded to 29 baselines.
@@ -195,7 +196,7 @@ Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF varianc
 `validate_all`: 158/158 PASS on RTX 4070.
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
 Python baselines: 25/25+5 WDM PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
-623 lib + 9 integration + 43 forge tests. 172 validation/bench binaries. Zero debt.
+668 lib + 9 integration + 43 forge tests. 172 validation/bench binaries. Zero debt.
 44 CPU→GPU dispatch ops (~97% of production math).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -306,8 +307,8 @@ routing through `validate_mixed_hardware` (14/14 PASS).
 
 | Tier | Papers Covered | Total | Coverage |
 |------|---------------|-------|----------|
-| Python control (Py) | 25/25 + 5 WDM | 233 checks | **100%** |
-| Rust CPU (Rs) | 25/25 + baseCamp + WDM | 623 lib + 114 baseCamp + 9 integration | **100%** |
+| Python control (Py) | 25/25 + 5 WDM + 3 pub exp | 263 checks | **100%** |
+| Rust CPU (Rs) | 25/25 + baseCamp + WDM + pub exp | 668 lib + 114 baseCamp + 9 integration | **100%** |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** |
 | BarraCUDA GPU (baseCamp) | 5/5 sub-theses | 14 checks | **100%** |
@@ -385,12 +386,13 @@ Each paper's controls run on open data and open systems. The progression
 validates correctness at every hardware tier:
 
 ### Tier 1: Open Data Controls (Python)
-- **25/25 papers** (206 checks) use open data exclusively
+- **25/25 papers + 5 WDM + 3 publication experiments** (263 checks) use open data exclusively
 - Sources: in-code synthetic (deterministic seed 42), Open-Meteo ERA5 (CC BY 4.0),
   MNIST (CC BY-SA 3.0), published reference data (MIT/Apache-2.0), FPEOS tables
   (Militzer), Stanton-Murillo transport model
 - No proprietary, paywalled, or access-restricted data
-- Python baseline drift detection: `control/check_drift.sh` (all 31 baselines — 25 papers + 5 WDM + ML inference)
+- Python baseline drift detection: `control/check_drift.sh` (all 34 baselines — 25 papers + 5 WDM + 3 pub exp + ML inference)
+- **S88+ publication experiments**: Exp-050 (Py 11/11), Exp-052 (Py 8/8), Exp-053 (Py 11/11) — all synthetic/algorithmic data
 
 ### Tier 2: BarraCUDA CPU (Rust native)
 - **24/25 papers** (203 checks, 96% coverage)
@@ -513,6 +515,45 @@ quantization, GPU, hardware). 21 validation binaries swept for inline magic numb
 `spectral_entropy` rewired to `barracuda::stats::shannon_from_frequencies` (39th function).
 Cross-platform probe gating. 7 PyTorch scripts fully seeded. 129+ total named tolerances.
 All controls verified passing across BarraCUDA CPU, GPU, and metalForge mixed hardware.
+
+**Session 88+ addendum**: 3 publication experiments (Exp-050/052/053) each have open-data
+Python controls + Rust CPU validators using BarraCUDA primitives (eigh_f64, BatchIprGpu,
+numerical_hessian, graph_laplacian, stencil_cooperation). Papers A/C/D data-ready.
+Total: 263 Python checks, 668 lib tests, 163/163 validate_all. V54 ToadStool handoff
+documents barracuda evolution surface, absorption targets, and cross-spring alignment.
+All controls use open data and open systems exclusively.
+
+**Session 88+ publication experiment GPU buildout**: 4 new validators push Exp-050/052/053
+through the full GPU validation progression:
+
+| Validator | Checks | Tier | What It Proves |
+|-----------|--------|------|----------------|
+| `validate_barracuda_training_trajectory` | 9/9 | GPU | Eigensolve → IPR → variance on GPU (Exp-050 Paper A) |
+| `validate_barracuda_hessian_eigen` | 10/10 | GPU | Hessian eigensolve → spectral diagnostics on GPU (Exp-052 Paper D) |
+| `validate_barracuda_anderson_multiagent` | 11/11 | GPU | Laplacian → disordered eigensolve → IPR + L2 on GPU (Exp-053 Paper C) |
+| `validate_publication_gpu_pipeline` | 13/13 | Pipeline + metalForge | BatchIprGpu pure pipeline, Dispatcher CPU↔GPU parity, mixed-hardware routing |
+
+Total: **172 binaries**, **171/172 validate_all** (1 pre-existing WDM damping assertion).
+Also fixed `validate_wdm_sqw` JSON schema mismatch (`spec_mean` → `series_mean` compat): 0/1 → 26/27.
+
+**Session 88+ Phase 4 shader + streaming pipeline**: 2 new validators close direct
+WGSL shader validation and ToadStool streaming proof gaps:
+
+| Validator | Checks | Tier | What It Proves |
+|-----------|--------|------|----------------|
+| `validate_gpu_shader_phase4` | 22/22 | WGSL direct | HMM backward (1.19e-7), Viterbi (exact), matrix correlation (<1e-6), linear regression (slope 2.503 vs true 2.5) |
+| `validate_streaming_spectral_pipeline` | 28/28 | Streaming | Batch eigensolve→IPR→stats (8 Hamiltonians), Anderson disorder sweep (6 W values, IPR 0.09→0.79), Dispatcher parity (1.6e-14) |
+
+Total: **172 binaries**, **171/172 validate_all** (1 pre-existing WDM damping assertion).
+ToadStool streaming pattern validated: unidirectional dispatch preserves scientific conclusions.
+
+**Session 88+ debt reduction addendum**: Barracuda usage audit complete — 90+ import sites,
+60+ files, 20+ submodules, 39 functions + 6 shader sources rewired, zero duplicate math.
+18 `unwrap_or_else(|e| panic!(...))` sites evolved to `.expect()` across WDM tests and
+validation binaries. 11 manual loop sites evolved to idiomatic iterators (`chunks_exact`,
+`flat_map`, `zip`) in `basecamp.rs` and `sovereign_folding.rs`. Control matrix confirmed:
+all papers have controls at open data (Py), BarraCUDA CPU (Rs), BarraCUDA GPU (Tensor),
+and metalForge mixed hardware tiers. Zero clippy warnings, zero fmt diffs.
 
 **Session 74 addendum**: Pure GPU all-domains + cross-system dispatch — three new validators:
 

@@ -718,11 +718,13 @@ fn cpu_driver_profile_none() {
 fn mixed_dispatch_cpu_only_small() {
     let d = cpu();
     let (result, substrate) = d.mixed_dispatch(
-        "test_add",
-        1.0,
-        32,
-        false,
-        false,
+        &MixedWorkload {
+            op: "test_add",
+            compute_us: 1.0,
+            data_bytes: 32,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |_dev| Ok(42.0_f64),
         || 42.0_f64,
     );
@@ -737,11 +739,13 @@ fn mixed_dispatch_cpu_only_small() {
 fn mixed_dispatch_cpu_only_large() {
     let d = cpu();
     let (result, _substrate) = d.mixed_dispatch(
-        "test_matmul",
-        1000.0,
-        8_000_000,
-        false,
-        false,
+        &MixedWorkload {
+            op: "test_matmul",
+            compute_us: 1000.0,
+            data_bytes: 8_000_000,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |_dev| Ok(99.0_f64),
         || 99.0_f64,
     );

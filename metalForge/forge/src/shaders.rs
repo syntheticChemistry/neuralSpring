@@ -174,6 +174,40 @@ pub const CHI_SQUARED_F64: &str = include_str!("../../shaders/chi_squared_f64.wg
 /// ## Absorption target: `barracuda::ops::fused_kl_divergence_f64`
 pub const KL_DIVERGENCE_F64: &str = include_str!("../../shaders/kl_divergence_f64.wgsl");
 
+// ── Phase 4: New shaders for GPU-resident pipelines ─────────────────
+
+/// HMM backward pass in log-domain (Papers 016–018).
+///
+/// Per-timestep dispatch. Each thread computes `log_beta[i]` for one state
+/// via logsumexp over predecessors. Host iterates t = T-2..0.
+///
+/// ## Absorption target: `barracuda::ops::bio::hmm`
+pub const HMM_BACKWARD_LOG: &str = include_str!("../../shaders/hmm_backward_log.wgsl");
+
+/// HMM Viterbi decoding in log-domain (Papers 016–018).
+///
+/// Per-timestep dispatch. Each thread computes the best predecessor
+/// (argmax) and score for one state. Host handles backtracing.
+///
+/// ## Absorption target: `barracuda::ops::bio::hmm`
+pub const HMM_VITERBI: &str = include_str!("../../shaders/hmm_viterbi.wgsl");
+
+/// Pearson correlation between upper triangles of two N×N matrices (Paper 025).
+///
+/// Workgroup-parallel reduction of the 5 sufficient statistics
+/// (Σa, Σb, Σab, Σa², Σb²). Host finalizes r from partials.
+///
+/// ## Absorption target: `barracuda::stats::matrix_correlation`
+pub const MATRIX_CORRELATION: &str = include_str!("../../shaders/matrix_correlation.wgsl");
+
+/// Simple linear regression via normal equations (Paper 012 — MODES).
+///
+/// Workgroup-parallel reduction for (Sx, Sy, Sxx, Sxy, N).
+/// Host computes `a = (N·Sxy - Sx·Sy) / (N·Sxx - Sx²)`.
+///
+/// ## Absorption target: `barracuda::stats::linear_regression_gpu`
+pub const LINEAR_REGRESSION: &str = include_str!("../../shaders/linear_regression.wgsl");
+
 // ── Sovereign Folding: Evoformer primitives (Phase B) ────────────────
 //
 // AlphaFold2 Evoformer operations with df64 emulation for f64-class
@@ -313,6 +347,10 @@ mod tests {
             ("IPA_SCORES_F64", IPA_SCORES_F64),
             ("BACKBONE_UPDATE_F64", BACKBONE_UPDATE_F64),
             ("TORSION_ANGLES_F64", TORSION_ANGLES_F64),
+            ("HMM_BACKWARD_LOG", HMM_BACKWARD_LOG),
+            ("HMM_VITERBI", HMM_VITERBI),
+            ("MATRIX_CORRELATION", MATRIX_CORRELATION),
+            ("LINEAR_REGRESSION", LINEAR_REGRESSION),
         ];
         for (name, src) in shaders {
             assert!(
@@ -327,9 +365,9 @@ mod tests {
     }
 
     #[test]
-    fn shader_count_is_38() {
+    fn shader_count_is_42() {
         assert_eq!(
-            38,
+            42,
             [
                 HMM_FORWARD_LOG,
                 BATCH_FITNESS_EVAL,
@@ -369,6 +407,10 @@ mod tests {
                 IPA_SCORES_F64,
                 BACKBONE_UPDATE_F64,
                 TORSION_ANGLES_F64,
+                HMM_BACKWARD_LOG,
+                HMM_VITERBI,
+                MATRIX_CORRELATION,
+                LINEAR_REGRESSION,
             ]
             .len()
         );

@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `f0feb226` (Sessions 50–88, Feb 27, 2026) — **47 commits audited, ALL 17 shortcomings RESOLVED, 39 upstream rewires**
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V52_S88_DF64_CORE_STREAMING_HANDOFF_FEB27_2026.md`
+**Last reviewed:** ToadStool commit `f0feb226` (Sessions 50–88+, Feb 27, 2026) — **47 commits audited, ALL 17 shortcomings RESOLVED, 39 upstream rewires, 3 pub experiments, Phase 4 WGSL validation (22/22), streaming pipeline (28/28), NUCLEUS atomics (39/39), absorption readiness (294/294)**
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V55_S88PLUS_PHASE4_STREAMING_NUCLEUS_HANDOFF_FEB27_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
@@ -37,7 +37,7 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 
 **Session 86 sync:** WDM surrogate buildout complete. `wdm_transport.rs` new module (MLP 3→H→3 transport surrogate). 4 new validators (nW-01 transport 30/30, nW-02 EOS wired 36/36+GPU 15/15, nW-04 transfer 6/6) added to `validate_all` (154 total). `check_drift.sh` expanded to 29 baselines. 611 lib + 43 forge + 9 integration tests. Key learning: `barracuda::nn::SimpleMLP` with JSON weight loading would replace ~400 LOC across 3 WDM surrogates — highest-priority absorption target. V50 handoff crafted.
 
-**Session 87 sync:** WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor) and nW-05 (ESN regime classifier) complete. 156 total validators, 31 baselines, 623 lib + 43 forge + 9 integration tests.
+**Session 87 sync:** WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor) and nW-05 (ESN regime classifier) complete. 156 total validators, 31 baselines, 668 lib + 43 forge + 9 integration tests.
 
 ---
 

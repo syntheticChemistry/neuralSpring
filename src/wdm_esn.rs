@@ -174,6 +174,7 @@ fn parse_f64_vec(obj: &serde_json::Value, key: &str) -> Result<Vec<f64>, String>
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -235,9 +236,7 @@ mod tests {
                 "b_out": [0.0, 0.0, 0.0]
             }
         }"#;
-        let esn = load_esn_from_json(json);
-        assert!(esn.is_ok(), "{esn:?}");
-        let esn = esn.unwrap_or_else(|e| panic!("{e}"));
+        let esn = load_esn_from_json(json).expect("valid JSON should parse");
         let (label, scores) = esn.classify(0.5, 5.5);
         assert!(label < 3);
         assert!(scores.iter().all(|s| s.is_finite()));

@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 27, 2026 (Sessions 61–88)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + sovereign folding (AlphaFold2), 2480+ checks, ~97% GPU promotion (Phase C: HMM chains, FST, introgression), **158/158 validate\_all PASS**, CPU↔Python parity 39/39 PASS (1e-10), Dispatcher overhead ≤1.04× (9/10 ops), 39 functions + 6 shader sources rewired to upstream BarraCUDA + GpuDriverProfile, cross-spring evolution benchmarked (52/52 PASS, 28/28 bench), zero debt, 93.5% coverage (623 tests), 129+ named tolerances, all deps Pure Rust (ecoBin compliant), 100% SPDX compliance. S88: df64 core streaming — all 15 sovereign folding WGSL shaders evolved to f64 buffers + df64 compute (hotSpring/ToadStool three-zone pattern), `Fp64Strategy::Hybrid` auto-detected, 37/37 sovereign folding GPU. S87: WDM queue closed (nW-01..nW-05). S81: deep debt evolution — 25 new tolerances, spectral\_entropy rewired, PyTorch deterministic seeding, gen3 baseCamp cross-references
+**Last Updated**: February 27, 2026 (Sessions 61–88+)
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + sovereign folding (AlphaFold2) + 3 publication experiments, **2970+ checks**, ~97% GPU promotion, **171/172 validate\_all** (172 binaries), CPU↔Python parity 39/39, 201.7× faster than Python. Phase 4 WGSL shader validation 22/22 (HMM backward/Viterbi, matrix correlation, linear regression — direct dispatch). ToadStool streaming spectral pipeline 28/28 (batch eigensolve→IPR→stats, Anderson disorder sweep). NUCLEUS compute dispatch 39/39. ToadStool absorption readiness 294/294. Mixed-hardware 43/43. 39 functions + 6 shader sources rewired to upstream. Zero debt, 129+ toleranceserences
 
 ## Purpose
 

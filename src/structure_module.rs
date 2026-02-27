@@ -526,7 +526,12 @@ mod tests {
 
     #[test]
     fn apply_then_invert_is_identity() {
-        let q = [0.7071, 0.7071, 0.0, 0.0]; // ~90° about x
+        let q = [
+            std::f64::consts::FRAC_1_SQRT_2,
+            std::f64::consts::FRAC_1_SQRT_2,
+            0.0,
+            0.0,
+        ];
         let r = quat_to_rotation(&q);
         let t = [1.0, 2.0, 3.0];
         let p = [4.0, 5.0, 6.0];
@@ -645,7 +650,7 @@ mod tests {
     fn backbone_identity_update_preserves_frame() {
         let n = 3;
         let frames = identity_frames(n);
-        let quats = vec![1.0, 0.0, 0.0, 0.0].repeat(n); // identity quaternion
+        let quats = [1.0, 0.0, 0.0, 0.0].repeat(n);
         let trans = vec![0.0; n * 3];
 
         let updated = backbone_update(&quats, &trans, &frames, n);
@@ -658,7 +663,7 @@ mod tests {
     fn backbone_translation_update() {
         let n = 2;
         let frames = identity_frames(n);
-        let quats = vec![1.0, 0.0, 0.0, 0.0].repeat(n);
+        let quats = [1.0, 0.0, 0.0, 0.0].repeat(n);
         let trans = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
 
         let updated = backbone_update(&quats, &trans, &frames, n);
@@ -683,7 +688,7 @@ mod tests {
             for a in 0..7 {
                 let s = out[i * 14 + a * 2];
                 let c = out[i * 14 + a * 2 + 1];
-                let r = (s * s + c * c).sqrt();
+                let r = s.hypot(c);
                 assert!(
                     (r - 1.0).abs() < 1e-10,
                     "angle {a} at residue {i}: ||(sin,cos)|| = {r}, want 1.0"

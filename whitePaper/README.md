@@ -2,7 +2,7 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h — 2480+ total checks, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39 PASS, dispatch overhead ≤1.04×, mixed-hardware dispatch, 39 functions + 6 shader sources rewired to upstream, cross-spring evolution benchmarked (52/52 PASS, 28/28 bench), pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, WDM surrogates (5 Python baselines + 6 Rust validators), 15 sovereign folding shaders (df64), zero debt, 93.5% coverage, 129+ named tolerances, zero ad-hoc magic numbers
+**Status**: Phase 5h+ — **2970+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 201.7× faster than Python, 172 binaries, 171/172 validate\_all. Phase 4 WGSL shaders 22/22, ToadStool streaming 28/28, NUCLEUS atomics 39/39, absorption readiness 294/294, mixed-hardware 43/43, cross-system 46/46, cross-spring 52/52, pure GPU 10/10. 42 metalForge WGSL shaders, 39 upstream rewires, 129+ named tolerances, zero debt
 **Date**: February 26, 2026 (Sessions 40–79 — multi-GPU + benchmarks + pure GPU + Phase C GPU + CPU parity + dispatch tiers + baseCamp + metalForge + ToadStool sync + upstream rewiring + cross-spring benchmark validation + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains + cross-system dispatch + modern BarraCUDA rewiring + WDM surrogates + baseCamp GPU pure + sovereign folding shaders + ToadStool S66 absorption + complete cross-spring rewiring)
 **License**: AGPL-3.0-or-later
 
@@ -76,8 +76,8 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 223/223 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions)
-**Phase 1–5h**: 2127+ Rust+GPU validation PASS (623 lib + 9 integration + 43 forge tests + 172 binaries across 38 modules + gpu\_ops/ + gpu\_dispatch/)
-**Grand Total**: 2480+ PASS — **ALL GREEN** across all applicable tiers
+**Phase 1–5h+**: 2710+ Rust+GPU validation PASS (668 lib + 9 integration + 43 forge tests + 172 binaries across 40 modules + gpu\_ops/ + gpu\_dispatch/)
+**Grand Total**: 2970+ PASS — **ALL GREEN** across all applicable tiers
 **Multi-GPU**: 172 validators on RTX 4070, 143+ additional on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 44 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11, Phase C: 6). ~97% of production math on GPU.
 **Mixed-Hardware**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model (GPU↔NPU↔CPU routing).
@@ -95,7 +95,7 @@ cross-device cost model for GPU↔NPU↔CPU substrate selection.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 623 lib + 9 integration + 43 forge tests, 172 binaries, 38 modules | **Complete** |
+| 1a | Rust validation layer — 668 lib + 9 integration + 43 forge tests, 172 binaries, 40 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -313,7 +313,7 @@ Full handoff: `wateringHole/handoffs/`
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (623 lib + 9 integration + 43 forge tests + 172 binaries)
+# Rust validation (668 lib + 9 integration + 43 forge tests + 172 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -357,5 +357,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates. 5 disciplines. 4 faculty. 38 modules + 2 evolved + gpu\_ops/ + gpu\_dispatch. 623 lib + 9 integration tests. 223 Python + 2127+ Rust/GPU = 2480+ total checks.
+*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates. 5 disciplines. 4 faculty. 40 modules + 2 evolved + gpu\_ops/ + gpu\_dispatch. 668 lib + 9 integration tests. 223 Python + 2710+ Rust/GPU = 2970+ total checks.
 Phase 5h: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 158/158 (RTX 4070 + TITAN V NVK bit-identical) · pG 10/10 pure GPU all-domains · cS 46/46 cross-system dispatch · xSE 52/52 cross-spring evolution · WDM 5 Python baselines + 6 Rust validators. 44 CPU→GPU promotions via gpu\_dispatch, 39 functions + 6 shader sources rewired to upstream. Cross-spring evolution validated (52/52 PASS, 28/28 bench). ~97% production math on GPU. 172 validation binaries, 36 WGSL shaders (21 absorbed upstream + 15 df64 sovereign folding). Pure Rust 201.7× faster than Python. CPU↔Python parity 39/39 PASS (1e-10). Dispatch overhead ≤1.04× (9/10 ops). 93.5% coverage, 129+ named tolerances, zero ad-hoc magic numbers. Sessions 50–79: baseCamp (128/128 PASS + GPU pure 5/5) + Phase C GPU + CPU parity + dispatch tiers + upstream rewiring + cross-spring benchmarks + S-03b resolved + 21/21 shaders absorbed + deep debt audit + S69: shader rewiring + cross-spring benchmarks + S75: pure GPU all-domains + cross-system dispatch + S76: modern BarraCUDA rewiring + S77: WDM surrogates + baseCamp GPU pure + 9 sovereign folding shaders + S78–S79: ToadStool S66 absorption + complete cross-spring rewiring. V52 handoff.*

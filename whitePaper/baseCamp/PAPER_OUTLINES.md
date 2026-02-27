@@ -366,6 +366,6 @@ All four papers share:
 - 39 functions rewired to upstream BarraCUDA
 - Deterministic seed (42) with PyTorch and Rust RNG alignment
 - AGPL-3.0 open-source code
-- 604 unit tests + 9 integration tests at 93.5% coverage
+- 668 unit tests + 9 integration tests at 93.5% coverage
 - Three-tier hardware validation (CPU, GPU, metalForge)
 - No proprietary models, no restricted datasets, no institutional dependencies

@@ -178,6 +178,7 @@ const BINARIES: &[&str] = &[
     "validate_agent_coordination",
     // Session 54: baseCamp pure GPU workload validation
     "validate_basecamp_gpu",
+    "validate_basecamp_gpu_pure",
     // Session 55: BarraCUDA CPU vs GPU dispatch + metalForge mixed hardware
     "validate_compute_dispatch",
     "validate_mixed_hardware",
@@ -199,8 +200,32 @@ const BINARIES: &[&str] = &[
     "validate_wdm_sqw",
     "validate_wdm_esn",
     // Sovereign Folding — Evoformer primitives (nF-01 Phase B)
+    // Exp-050: Training trajectory spectral analysis (Paper A)
+    "validate_training_trajectory",
+    // Exp-052: Hessian eigenanalysis at trained minima (Paper D)
+    "validate_hessian_eigenanalysis",
+    // Exp-053: Anderson multi-agent coordination (Paper C)
+    "validate_anderson_multiagent",
+    // GPU tier: Exp-050/052/053 publication experiments
+    "validate_barracuda_training_trajectory",
+    "validate_barracuda_hessian_eigen",
+    "validate_barracuda_anderson_multiagent",
+    // Pure GPU pipeline + metalForge: publication experiments
+    "validate_publication_gpu_pipeline",
+    // Publication mixed-hardware (NUCLEUS atomics)
+    "validate_publication_mixed_hardware",
+    // NUCLEUS compute dispatch (Tower → Node → Nest)
+    "validate_nucleus_compute_dispatch",
+    // ToadStool spectral absorption readiness
+    "validate_toadstool_spectral_absorption",
+    // Phase 4 WGSL shader validation (direct dispatch)
+    "validate_gpu_shader_phase4",
+    // ToadStool streaming spectral pipeline
+    "validate_streaming_spectral_pipeline",
+    // Sovereign Folding — Evoformer primitives (nF-01 Phase B)
     "validate_sovereign_folding",
     "validate_sovereign_folding_gpu",
+    "validate_sovereign_folding_gpu_pipeline",
 ];
 
 fn main() {

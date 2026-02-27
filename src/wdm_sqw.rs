@@ -122,11 +122,18 @@ impl SqwPredictor {
 
         let h_last = &all_h[all_h.len() - 1];
 
-        let feat_dim = 3 * hs;
-        let mut features = Vec::with_capacity(feat_dim);
-        features.extend_from_slice(&h_mean);
-        features.extend_from_slice(&h_std);
-        features.extend_from_slice(h_last);
+        let out_dim = 2;
+        let weight_feat_dim = self.w_out.len() / out_dim;
+
+        let features: Vec<f64> = if weight_feat_dim >= 3 * hs {
+            let mut f = Vec::with_capacity(3 * hs);
+            f.extend_from_slice(&h_mean);
+            f.extend_from_slice(&h_std);
+            f.extend_from_slice(h_last);
+            f
+        } else {
+            h_last.clone()
+        };
 
         let mut output = [self.b_out[0], self.b_out[1]];
         for (j, feat_val) in features.iter().enumerate() {
@@ -157,12 +164,14 @@ pub fn load_sqw_from_json(json_str: &str) -> Result<SqwPredictor, String> {
     let norm = SqwNormalization {
         series_mean: norm_data
             .get("series_mean")
+            .or_else(|| norm_data.get("spec_mean"))
             .and_then(serde_json::Value::as_f64)
-            .ok_or("Missing series_mean")?,
+            .ok_or("Missing series_mean / spec_mean")?,
         series_std: norm_data
             .get("series_std")
+            .or_else(|| norm_data.get("spec_std"))
             .and_then(serde_json::Value::as_f64)
-            .ok_or("Missing series_std")?,
+            .ok_or("Missing series_std / spec_std")?,
         y_mean: parse_f64_array2(norm_data, "y_mean")?,
         y_std: parse_f64_array2(norm_data, "y_std")?,
     };
@@ -234,6 +243,7 @@ fn parse_f64_vec(obj: &serde_json::Value, key: &str) -> Result<Vec<f64>, String>
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -259,7 +269,7 @@ mod tests {
     #[test]
     fn predict_deterministic() {
         let p = tiny_predictor();
-        let ts: Vec<f64> = (0..16).map(|i| (i as f64 * 0.3).cos()).collect();
+        let ts: Vec<f64> = (0..16).map(|i| (f64::from(i) * 0.3).cos()).collect();
         let (o1, g1) = p.predict(&ts);
         let (o2, g2) = p.predict(&ts);
         assert!((o1 - o2).abs() < f64::EPSILON);
@@ -269,7 +279,7 @@ mod tests {
     #[test]
     fn predict_finite() {
         let p = tiny_predictor();
-        let ts: Vec<f64> = (0..16).map(|i| (i as f64 * 0.5).sin()).collect();
+        let ts: Vec<f64> = (0..16).map(|i| (f64::from(i) * 0.5).sin()).collect();
         let (o, g) = p.predict(&ts);
         assert!(o.is_finite(), "omega must be finite");
         assert!(g.is_finite(), "gamma must be finite");
@@ -278,8 +288,8 @@ mod tests {
     #[test]
     fn predict_different_signals_differ() {
         let p = tiny_predictor();
-        let ts1: Vec<f64> = (0..16).map(|i| (i as f64 * 0.3).cos()).collect();
-        let ts2: Vec<f64> = (0..16).map(|i| (i as f64 * 2.0).cos()).collect();
+        let ts1: Vec<f64> = (0..16).map(|i| (f64::from(i) * 0.3).cos()).collect();
+        let ts2: Vec<f64> = (0..16).map(|i| (f64::from(i) * 2.0).cos()).collect();
         let (o1, _) = p.predict(&ts1);
         let (o2, _) = p.predict(&ts2);
         assert!(
@@ -306,10 +316,8 @@ mod tests {
                 "b_out": [0.0, 0.0]
             }
         }"#;
-        let p = load_sqw_from_json(json);
-        assert!(p.is_ok(), "valid JSON should parse: {p:?}");
-        let p = p.unwrap_or_else(|e| panic!("{e}"));
-        let ts: Vec<f64> = (0..16).map(|i| (i as f64 * 0.3).cos()).collect();
+        let p = load_sqw_from_json(json).expect("valid JSON should parse");
+        let ts: Vec<f64> = (0..16).map(|i| (f64::from(i) * 0.3).cos()).collect();
         let (o, g) = p.predict(&ts);
         assert!(o.is_finite());
         assert!(g.is_finite());

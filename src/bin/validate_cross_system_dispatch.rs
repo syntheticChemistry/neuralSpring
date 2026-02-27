@@ -22,7 +22,7 @@
     clippy::many_single_char_names
 )]
 
-use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -160,11 +160,13 @@ fn validate_multi_substrate_parity(
     };
 
     let (mixed_var, var_sub) = dispatcher.mixed_dispatch(
-        "cross_system_variance",
-        50_000.0,
-        data_bytes,
-        false,
-        false,
+        &MixedWorkload {
+            op: "cross_system_variance",
+            compute_us: 50_000.0,
+            data_bytes,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),
@@ -192,11 +194,13 @@ fn validate_multi_substrate_parity(
     let cpu_pearson = barracuda::stats::correlation::pearson_correlation(&x, &y).unwrap_or(0.0);
 
     let (mixed_pearson, pear_sub) = dispatcher.mixed_dispatch(
-        "cross_system_pearson",
-        80_000.0,
-        (x.len() * 16) as u64,
-        false,
-        false,
+        &MixedWorkload {
+            op: "cross_system_pearson",
+            compute_us: 80_000.0,
+            data_bytes: (x.len() * 16) as u64,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| {
             let op = barracuda::ops::correlation_f64_wgsl::CorrelationF64::new(dev.clone())
                 .map_err(|e| format!("{e}"))?;
@@ -223,11 +227,13 @@ fn validate_multi_substrate_parity(
     let cpu_entropy = neural_spring::primitives::shannon_entropy(&e_data);
 
     let (mixed_entropy, ent_sub) = dispatcher.mixed_dispatch(
-        "cross_system_entropy",
-        60_000.0,
-        (e_data.len() * 8) as u64,
-        false,
-        false,
+        &MixedWorkload {
+            op: "cross_system_entropy",
+            compute_us: 60_000.0,
+            data_bytes: (e_data.len() * 8) as u64,
+            npu_available: false,
+            needs_realtime: false,
+        },
         |dev| neural_spring::gpu_ops::shannon_entropy_gpu(&e_data, dev),
         || cpu_entropy,
     );
@@ -311,11 +317,13 @@ fn validate_npu_routing(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
 
     let small_data: Vec<f64> = vec![1.0, 2.0, 3.0, 4.0];
     let (_, npu_sub) = dispatcher.mixed_dispatch(
-        "npu_probe",
-        5_000.0,
-        512,
-        true,
-        true,
+        &MixedWorkload {
+            op: "npu_probe",
+            compute_us: 5_000.0,
+            data_bytes: 512,
+            npu_available: true,
+            needs_realtime: true,
+        },
         |dev| {
             barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
                 dev.clone(),

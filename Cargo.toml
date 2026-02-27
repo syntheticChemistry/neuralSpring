@@ -31,6 +31,19 @@ wgpu = { version = "22", default-features = false, features = [
     "vulkan-portability",
 ] }
 
+# biomeOS primal SDK — capability-based discovery, JSON-RPC communication.
+# Optional: only needed for the neuralspring_primal binary.
+biomeos-primal-sdk = { path = "../phase2/biomeOS/crates/biomeos-primal-sdk", optional = true }
+anyhow = { version = "1", optional = true }
+uuid = { version = "1", features = ["v4"], optional = true }
+chrono = { version = "0.4", optional = true }
+log = { version = "0.4", optional = true }
+env_logger = { version = "0.11", optional = true }
+
+[features]
+default = []
+primal = ["biomeos-primal-sdk", "anyhow", "uuid", "chrono", "log", "env_logger"]
+
 [dev-dependencies]
 approx = "0.5"
 
@@ -738,6 +751,116 @@ path = "src/bin/validate_cross_system_dispatch.rs"
 [[bin]]
 name = "bench_evolution_tiers"
 path = "src/bin/bench_evolution_tiers.rs"
+
+# ── Sovereign folding (Phase B) ────────────────────────────────────
+
+[[bin]]
+name = "validate_sovereign_folding"
+path = "src/bin/validate_sovereign_folding.rs"
+
+[[bin]]
+name = "validate_sovereign_folding_gpu"
+path = "src/bin/validate_sovereign_folding_gpu.rs"
+
+[[bin]]
+name = "validate_sovereign_folding_gpu_pipeline"
+path = "src/bin/validate_sovereign_folding_gpu_pipeline.rs"
+
+# ── baseCamp GPU benchmarks ────────────────────────────────────────
+
+[[bin]]
+name = "validate_basecamp_gpu_pure"
+path = "src/bin/validate_basecamp_gpu_pure.rs"
+
+[[bin]]
+name = "bench_basecamp_gpu_pure"
+path = "src/bin/bench_basecamp_gpu_pure.rs"
+
+# ── Exp-053: Anderson multi-agent coordination ─────────────────────
+
+[[bin]]
+name = "validate_anderson_multiagent"
+path = "src/bin/validate_anderson_multiagent.rs"
+
+# ── Exp-050: Training trajectory spectral analysis ─────────────────
+
+[[bin]]
+name = "validate_training_trajectory"
+path = "src/bin/validate_training_trajectory.rs"
+
+# ── Exp-052: Hessian eigenanalysis at trained minima ───────────────
+
+[[bin]]
+name = "validate_hessian_eigenanalysis"
+path = "src/bin/validate_hessian_eigenanalysis.rs"
+
+# ── GPU tier: Exp-050 training trajectory ───────────────────────────
+
+[[bin]]
+name = "validate_barracuda_training_trajectory"
+path = "src/bin/validate_barracuda_training_trajectory.rs"
+
+# ── GPU tier: Exp-052 Hessian eigenanalysis ─────────────────────────
+
+[[bin]]
+name = "validate_barracuda_hessian_eigen"
+path = "src/bin/validate_barracuda_hessian_eigen.rs"
+
+# ── GPU tier: Exp-053 Anderson multi-agent ──────────────────────────
+
+[[bin]]
+name = "validate_barracuda_anderson_multiagent"
+path = "src/bin/validate_barracuda_anderson_multiagent.rs"
+
+# ── Pure GPU pipeline + metalForge: publication experiments ─────────
+
+[[bin]]
+name = "validate_publication_gpu_pipeline"
+path = "src/bin/validate_publication_gpu_pipeline.rs"
+
+# ── Streaming spectral pipeline (ToadStool absorption proof) ─────
+
+[[bin]]
+name = "validate_streaming_spectral_pipeline"
+path = "src/bin/validate_streaming_spectral_pipeline.rs"
+
+# ── Phase 4 metalForge WGSL shader validation ────────────────────
+
+[[bin]]
+name = "validate_gpu_shader_phase4"
+path = "src/bin/validate_gpu_shader_phase4.rs"
+
+# ── Publication mixed-hardware validation ─────────────────────────
+
+[[bin]]
+name = "validate_publication_mixed_hardware"
+path = "src/bin/validate_publication_mixed_hardware.rs"
+
+# ── NUCLEUS compute dispatch validation ──────────────────────────
+
+[[bin]]
+name = "validate_nucleus_compute_dispatch"
+path = "src/bin/validate_nucleus_compute_dispatch.rs"
+
+# ── ToadStool spectral absorption readiness ──────────────────────
+
+[[bin]]
+name = "validate_toadstool_spectral_absorption"
+path = "src/bin/validate_toadstool_spectral_absorption.rs"
+
+# ── biomeOS primal adapter ──────────────────────────────────────────
+
+[[bin]]
+name = "neuralspring_primal"
+path = "src/bin/neuralspring_primal.rs"
+required-features = ["primal"]
+
+# ── biomeOS integration validator ───────────────────────────────────
+
+[[bin]]
+name = "validate_biomeos_spectral"
+path = "src/bin/validate_biomeos_spectral.rs"
+required-features = ["primal"]
 
 [lints.rust]
 unsafe_code = "forbid"

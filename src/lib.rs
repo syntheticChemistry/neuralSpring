@@ -91,6 +91,7 @@ pub mod game_theory;
 pub mod gpu;
 pub mod gpu_dispatch;
 pub mod gpu_ops;
+pub mod gpu_shader_validation;
 pub mod hmm;
 pub mod information_flow;
 pub mod introgression;

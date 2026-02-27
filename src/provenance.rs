@@ -460,6 +460,49 @@ pub const SOVEREIGN_FOLDING_PROVENANCE: BaselineProvenance = BaselineProvenance 
     unit: "baselines generated → evoformer_baselines.json",
 };
 
+// ═══════════════════════════════════════════════════════════════════
+// Publication Experiments (Exp-050, Exp-052, Exp-053)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Pinned date for publication experiment baselines (Exp-050/052/053).
+pub const PUBLICATION_BASELINE_DATE: &str = "2026-02-26";
+
+/// Pinned environment for publication experiment baselines.
+pub const PUBLICATION_ENVIRONMENT: &str = "Python 3.12, PyTorch 2.9.0+cu128, NumPy, seed=42";
+
+pub const TRAINING_TRAJECTORY_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp-050: Training Trajectory Spectral Analysis (Paper A — ICML/NeurIPS)",
+    script: "control/training_trajectory/training_trajectory.py",
+    commit: BASELINE_COMMIT,
+    date: PUBLICATION_BASELINE_DATE,
+    command: "python3 control/training_trajectory/training_trajectory.py",
+    environment: PUBLICATION_ENVIRONMENT,
+    value: 1.0,
+    unit: "baselines generated → baseline_values.json",
+};
+
+pub const HESSIAN_EIGENANALYSIS_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp-052: Hessian Eigenanalysis at Trained Minima (Paper D — Digital Discovery, RSC)",
+    script: "control/hessian_eigenanalysis/hessian_eigenanalysis.py",
+    commit: BASELINE_COMMIT,
+    date: PUBLICATION_BASELINE_DATE,
+    command: "python3 control/hessian_eigenanalysis/hessian_eigenanalysis.py",
+    environment: PUBLICATION_ENVIRONMENT,
+    value: 1.0,
+    unit: "baselines generated → baseline_values.json",
+};
+
+pub const ANDERSON_MULTIAGENT_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp-053: Anderson Multi-Agent Coordination (Paper C — AAMAS/ICML)",
+    script: "control/anderson_multiagent/anderson_multiagent.py",
+    commit: BASELINE_COMMIT,
+    date: PUBLICATION_BASELINE_DATE,
+    command: "python3 control/anderson_multiagent/anderson_multiagent.py",
+    environment: "Python 3.12, NumPy, seed=42",
+    value: 1.0,
+    unit: "baselines generated → baseline_values.json",
+};
+
 /// `BarraCUDA` validation expected values are analytically derived — no Python
 /// dependency.  Provenance is mathematical: NIST DLMF, IEEE 754, and textbook
 /// formulas.
@@ -617,6 +660,9 @@ mod tests {
             &PANGENOME_SELECTION_PROVENANCE,
             &META_POPULATION_PROVENANCE,
             &SOVEREIGN_FOLDING_PROVENANCE,
+            &TRAINING_TRAJECTORY_PROVENANCE,
+            &HESSIAN_EIGENANALYSIS_PROVENANCE,
+            &ANDERSON_MULTIAGENT_PROVENANCE,
         ];
         for p in records {
             assert!(!p.label.is_empty(), "empty label: {}", p.script);

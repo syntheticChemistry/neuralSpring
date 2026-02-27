@@ -187,6 +187,7 @@ fn parse_f64_array(obj: &serde_json::Value, key: &str) -> Result<[f64; 2], Strin
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -348,9 +349,7 @@ mod tests {
 
     #[test]
     fn load_surrogate_valid_json() {
-        let surr = load_surrogate_from_json(valid_json(), "H");
-        assert!(surr.is_ok(), "valid JSON should parse: {surr:?}");
-        let surr = surr.unwrap_or_else(|e| panic!("{e}"));
+        let surr = load_surrogate_from_json(valid_json(), "H").expect("valid JSON should parse");
         assert_eq!(surr.element, "H");
         assert_eq!(surr.layers.len(), 2);
         assert_eq!(surr.layers[0].in_features, 2);
@@ -361,14 +360,13 @@ mod tests {
 
     #[test]
     fn load_surrogate_roundtrip() {
-        let surr = load_surrogate_from_json(valid_json(), "H").unwrap_or_else(|e| panic!("{e}"));
+        let surr = load_surrogate_from_json(valid_json(), "H").expect("roundtrip parse");
         let (p, e) = surr.predict(1.0, 10000.0);
         assert!(p.is_finite());
         assert!(e.is_finite());
     }
 
     #[test]
-    #[allow(clippy::expect_used)]
     fn load_surrogate_missing_element() {
         let result = load_surrogate_from_json(valid_json(), "Xe");
         assert!(result.is_err());
@@ -405,7 +403,7 @@ mod tests {
     #[test]
     fn parse_f64_array_rejects_non_float() {
         let val: serde_json::Value =
-            serde_json::from_str(r#"{"arr": ["a", "b"]}"#).unwrap_or_else(|e| panic!("{e}"));
+            serde_json::from_str(r#"{"arr": ["a", "b"]}"#).expect("test JSON parses");
         let result = parse_f64_array(&val, "arr");
         assert!(result.is_err());
     }

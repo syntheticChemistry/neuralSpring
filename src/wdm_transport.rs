@@ -178,6 +178,7 @@ fn parse_f64_array3(obj: &serde_json::Value, key: &str) -> Result<[f64; 3], Stri
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -254,9 +255,7 @@ mod tests {
                  "in_features": 4, "out_features": 3}
             ]
         }"#;
-        let surr = load_transport_from_json(json);
-        assert!(surr.is_ok(), "valid JSON should parse: {surr:?}");
-        let surr = surr.unwrap_or_else(|e| panic!("{e}"));
+        let surr = load_transport_from_json(json).expect("valid JSON should parse");
         assert_eq!(surr.layers.len(), 2);
         let (d, e, l) = surr.predict(0.5, 6.0, 5.0);
         assert!(d.is_finite());

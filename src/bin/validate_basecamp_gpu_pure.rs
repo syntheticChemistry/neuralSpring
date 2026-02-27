@@ -233,7 +233,7 @@ fn validate_sub03_loss_landscape(h: &mut ValidationHarness, gpu: &Dispatcher, cp
         tolerances::GPU_EIGH_DISPATCH_F64,
     );
 
-    // Quadratic Hessian is diagonal with eigenvalues = 2.0
+    // Analytical: f(x) = x₁² + x₂² → H = diag(2,2), eigenvalues = 2.0 exactly.
     let expected_sharpness = 2.0;
     h.check_abs(
         "Sub-03: quadratic Hessian eigenvalue ≈ 2",

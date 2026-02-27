@@ -15,6 +15,7 @@ Usage:
 import json
 import math
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 
@@ -444,13 +445,42 @@ def gen_swarm_nn():
 # ── Main ──────────────────────────────────────────────────────────────
 
 
+def _git_info() -> dict:
+    """Capture git provenance at generation time."""
+    info: dict[str, str] = {}
+    try:
+        info["git_commit"] = (
+            subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
+            )
+            .decode()
+            .strip()
+        )
+        status = (
+            subprocess.check_output(
+                ["git", "status", "--porcelain"], stderr=subprocess.DEVNULL
+            )
+            .decode()
+            .strip()
+        )
+        info["tree_state"] = "clean" if not status else "dirty"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        info["git_commit"] = "unknown"
+        info["tree_state"] = "unknown"
+    return info
+
+
 def main():
+    git = _git_info()
     refs = {
         "meta": {
             "generated_by": "control/generate_cpu_references.py",
             "generated_at": datetime.now(timezone.utc).isoformat(),
+            "command": "python3 control/generate_cpu_references.py",
             "python_version": sys.version.split()[0],
             "numpy_version": np.__version__,
+            "git_commit": git["git_commit"],
+            "tree_state": git["tree_state"],
         },
         "primitives": {
             "variance": gen_variance(),

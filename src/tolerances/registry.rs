@@ -140,6 +140,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             LEVEL_SPACING_GOE_SLACK, SPECTRAL_IPR_COMPARISON_SLACK,
             NUMERICAL_DISTINCTNESS,
             GATE_DISORDER_COMPARISON, SPECTRAL_RADIUS_SWEEP_SLACK,
+            GOE_LSR_TOLERANCE, IPR_RATIO_SPREAD_MAX,
         ],
         "gpu_pipeline": [GPU_REDUCE_F64],
         "gpu_dispatch": [
@@ -253,7 +254,7 @@ mod tests {
     fn registry_complete() {
         let all = all_tolerances();
         assert!(
-            all.len() >= 129,
+            all.len() >= 131,
             "registry should contain all tolerances, got {}",
             all.len()
         );

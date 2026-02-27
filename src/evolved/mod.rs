@@ -9,9 +9,9 @@
 //! by `ToadStool` `0c998992` (S60–S61) as part of the MHA decomposition that
 //! resolved S-03b.
 //!
-//! The `mha` module is now a thin wrapper that delegates to upstream
-//! `barracuda::ops::mha::MultiHeadAttention`. It can be fully retired
-//! once callers migrate to the upstream 3D API.
+//! The `mha` module provides a 2D→3D→2D adapter over upstream
+//! `barracuda::ops::mha::MultiHeadAttention` for science callers that
+//! work with `[seq, d_model]` matrices rather than `[batch, seq, d_model]`.
 //!
 //! WGSL constants below are **absorbed upstream but retained** for raw shader
 //! validation — our GPU pipeline validators depend on local binding layouts.

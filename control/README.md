@@ -56,10 +56,13 @@ python3 control/surrogate/surrogate_validation.py
 | `anderson_localization/` | Paper 023: Anderson localization | Bourgain & Kachkovskiy 2018 | 8 |
 | `pangenome_selection/` | Paper 024: Pangenome selection | Liu et al. (genomics) | 8 |
 | `meta_population/` | Paper 025: Meta-population dynamics | Liu et al. (population genetics) | 8 |
+| `training_trajectory/` | Exp-050: Training trajectory spectral analysis | baseCamp Paper A | 11 |
+| `hessian_eigenanalysis/` | Exp-052: Hessian eigenanalysis at minima | baseCamp Paper D | 8 |
+| `anderson_multiagent/` | Exp-053: Anderson multi-agent coordination | baseCamp Paper C | 11 |
 | `shared/` | Open-Meteo ERA5 fetch/cache | CC BY 4.0 | — |
 | `ml_inference/` | Benchmark + baseline generation | Scaling analysis | — |
 
-**Total: 223/223 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++)
+**Total: 253/253 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 17 WDM)
 
 ## Data Sources
 
@@ -69,6 +72,22 @@ python3 control/surrogate/surrogate_validation.py
 | MNIST via torchvision | CC BY-SA 3.0 | lenet |
 | Synthetic (seed=42) | N/A | All Phase 0++ papers |
 | FAO-56 ET₀ (Allen 1998) | Public | surrogate |
+
+## Provenance Protocol
+
+Every baseline must be reproducible. The canonical provenance record
+includes five fields, all captured in `src/provenance.rs`:
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `f9ad0268917a335dce2b1175ea0d77add271b25b` |
+| **Date** | 2026-02-16 |
+| **Hardware** | Eastgate (i9-12900K, RTX 4070 12 GB, Pop!_OS 22.04) |
+| **Environment** | Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3 |
+| **Command** | `python3 control/<subdir>/<script>.py` |
+
+When regenerating baselines, update `src/provenance.rs` with the new
+commit hash, date, and verify the Rust validators still pass.
 
 ## Determinism
 

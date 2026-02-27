@@ -116,13 +116,15 @@ impl Dispatcher {
                         )
                     })
                     .unwrap_or_else(|_| {
-                        let mut out = vec![0.0; out_dim];
-                        for j in 0..out_dim {
-                            for i in 0..in_dim {
-                                out[j] += trans[i * out_dim + j] * current[i];
-                            }
-                        }
-                        out
+                        (0..out_dim)
+                            .map(|j| {
+                                trans
+                                    .chunks_exact(out_dim)
+                                    .zip(current.iter())
+                                    .map(|(row, &cur)| row[j] * cur)
+                                    .sum()
+                            })
+                            .collect()
                     });
             let sum: f64 = next.iter().sum();
             let normalized: Vec<f64> = if sum > LOG_GUARD {
@@ -192,13 +194,11 @@ impl Dispatcher {
                 self.wgpu_device(),
             )
             .unwrap_or_else(|_| {
-                let mut out = vec![0.0; n_out];
-                for i in 0..n_out {
-                    for j in 0..n_in.min(signal.len()) {
-                        out[i] = weights[i * n_in + j].mul_add(signal[j], out[i]);
-                    }
-                }
-                out
+                weights
+                    .chunks_exact(n_in)
+                    .take(n_out)
+                    .map(|row| row.iter().zip(signal.iter()).map(|(&w, &s)| w * s).sum())
+                    .collect()
             });
 
             let output: Vec<f64> = raw_output.iter().map(|&v| v.max(0.0)).collect();
@@ -226,33 +226,31 @@ impl Dispatcher {
             "pairwise_l2",
             |dev| crate::gpu_ops::pairwise_l2_matrix_gpu(positions, n_agents, dim, dev),
             || {
-                let mut dists = Vec::with_capacity(n_agents * (n_agents - 1) / 2);
-                for i in 0..n_agents {
-                    for j in (i + 1)..n_agents {
-                        let d: f64 = (0..dim)
-                            .map(|k| {
-                                let diff = positions[i * dim + k] - positions[j * dim + k];
-                                diff * diff
-                            })
-                            .sum::<f64>()
-                            .sqrt();
-                        dists.push(d);
-                    }
-                }
-                dists
+                (0..n_agents)
+                    .flat_map(|i| {
+                        let pos_i = &positions[i * dim..(i + 1) * dim];
+                        (i + 1..n_agents).map(move |j| {
+                            let pos_j = &positions[j * dim..(j + 1) * dim];
+                            pos_i
+                                .iter()
+                                .zip(pos_j)
+                                .map(|(&a, &b)| (a - b) * (a - b))
+                                .sum::<f64>()
+                                .sqrt()
+                        })
+                    })
+                    .collect()
             },
         );
         let mut adj = vec![0.0; n_agents * n_agents];
-        let mut idx = 0;
-        for i in 0..n_agents {
-            for j in (i + 1)..n_agents {
-                let dist = upper_tri[idx];
-                idx += 1;
-                if dist < comm_range && dist > LOG_GUARD {
-                    let weight = 1.0 / dist;
-                    adj[i * n_agents + j] = weight;
-                    adj[j * n_agents + i] = weight;
-                }
+        for ((i, j), &dist) in (0..n_agents)
+            .flat_map(|i| (i + 1..n_agents).map(move |j| (i, j)))
+            .zip(upper_tri.iter())
+        {
+            if dist < comm_range && dist > LOG_GUARD {
+                let weight = dist.recip();
+                adj[i * n_agents + j] = weight;
+                adj[j * n_agents + i] = weight;
             }
         }
         adj
