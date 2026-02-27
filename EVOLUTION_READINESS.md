@@ -1,8 +1,8 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: February 27, 2026 (Sessions 40–88+)
-**ToadStool HEAD**: `f0feb226` (S88+: Phase 4 WGSL shader validation + ToadStool streaming pipeline + NUCLEUS atomics. `validate_gpu_shader_phase4` 22/22 (HMM backward/Viterbi, matrix correlation, linear regression — direct dispatch), `validate_streaming_spectral_pipeline` 28/28 (batch eigensolve→IPR→variance, Anderson disorder sweep, Dispatcher parity). Prior: NUCLEUS 39/39, ToadStool absorption 294/294, mixed-hardware 43/43. 172 binaries, 171/172 validate\_all)
-**Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream
+**ToadStool HEAD**: `e96576ee` (S68+: `compile_shader_df64` rewired to upstream, pin updated across 17 files. ToadStool: 703 WGSL all f64 canonical, universal precision F16/F32/F64/DF64, 4176+ tests, zero f32-only shaders. V56 handoff: LogSumExp/PairwiseDistance/BatchedEighGpu confirmed upstream. 172 binaries, 171/172 validate\_all, 2970+ checks)
+**Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
 ---

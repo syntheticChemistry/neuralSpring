@@ -42,7 +42,7 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 263/263 Python PASS + 2710+ Rust+GPU PASS = **2970+ total validation checks**
 
-**ToadStool `f0feb226`** (Sessions 39–88+): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
+**ToadStool `e96576ee`** (Sessions 39–88+): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 39 functions rewired to upstream. 21/21 WGSL shaders absorbed + 15 sovereign folding df64 shaders.
 42 metalForge WGSL shaders (41 local + 3 barracuda re-exports). 44 CPU→GPU dispatch ops (~97%).
 668 lib tests, **93.5%+ coverage**, 129+ named tolerances, 0 clippy warnings, 0 doc warnings.

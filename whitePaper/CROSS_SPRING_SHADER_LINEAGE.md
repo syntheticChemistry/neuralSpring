@@ -6,7 +6,7 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `f0feb226` (Sessions 60–68 sync, Feb 26, 2026) |
+| ToadStool HEAD | `e96576ee` (Sessions 60–68 sync, Feb 26, 2026) |
 | Last updated | February 26, 2026 (Sessions 40–84) |
 | BarraCUDA shader count | 700+ WGSL (f64 canonical, universal precision, S68) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
@@ -625,7 +625,7 @@ Feb 25  Session 62: ToadStool S62 sync (02207c4a)
           - Full benchmark: 3.49× variance, 2.56× entropy, 1.33× Pearson
           - All Springs' ops benchmarked: BatchFitnessGpu, HmmBatchForwardF64,
             BatchedEighGpu running through unified BarraCUDA dispatch
-Feb 26  Session 68: ToadStool S60–S68 sync (f0feb226)
+Feb 26  Session 68: ToadStool S60–S68 sync (e96576ee)
           - 9 functions rewired → barracuda::stats (r², RMSE, NSE, dot, l2_norm,
             shannon, branch_trunk_dot, counterdiabatic weighted mean, meta_population Fst)
           - 4 validators fixed: logsumexp f32→f64, RK4 shader re-import ×3

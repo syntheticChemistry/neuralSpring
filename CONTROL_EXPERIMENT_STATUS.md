@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 27, 2026 (Sessions 44–88+ — S88+: Phase 4 WGSL shaders + ToadStool streaming pipeline + NUCLEUS atomics)
+**Last updated**: February 27, 2026 (Sessions 44–88+ — ToadStool `e96576ee` sync: `compile_shader_df64` rewired, 703 WGSL all f64 canonical, universal precision. Phase 4 shaders + streaming pipeline + NUCLEUS atomics)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -22,7 +22,7 @@
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (129+ named tolerances, S81: +25) | zero bare `unwrap()` in validation code | zero `unwrap_or_else(\|e\| panic!(...))` (18 sites → `.expect()`) | 11 manual loops → idiomatic iterators | WDM provenance complete | all PyTorch baselines fully seeded | barracuda usage audit complete (90+ imports, 39 rewires, zero duplicate math)
 **Coverage**: 93.5%+ line coverage (llvm-cov, 668 lib tests), 129+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6%
 **Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `f0feb226` (S68 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `e96576ee` (S68 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired
 **Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -800,7 +800,7 @@ with runtime downcast via `LazyLock<String>`. This broke 5 shader imports in
 neuralSpring (3 constants privatized, 1 renamed, 1 type change). Fixed by
 switching to local copies or new f64 pub constants. 2 validator binaries rewired.
 API gap #3 (variance_ddof) closed upstream. 14 ToadStool HEAD references updated
-from `17932267` (S65) to `f0feb226` (S68).
+from `17932267` (S65) to `e96576ee` (S68).
 
 | Gate | Result |
 |------|--------|

@@ -7,6 +7,22 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] — Session 88+ (February 27, 2026)
 
+### Changed (ToadStool `e96576ee` sync)
+
+- **`compile_shader_f64_hybrid` rewired**: Now delegates to upstream
+  `WgpuDevice::compile_shader_df64()` instead of manually prepending DF64
+  core/transcendentals from `barracuda::ops::lattice::su3` constants.
+  Upstream method provides ILP optimizer + Sovereign compiler pipeline.
+- **ToadStool pin updated**: `f0feb226` → `e96576ee` (3 new commits:
+  CPU feature-gate fix, root docs cleanup, GPU device-lost resilience).
+  Pin updated across 17 documentation files.
+- **Previously-missing APIs confirmed upstream**: `LogSumExp` (wired S51),
+  `PairwiseDistance` (wired via PairwiseL2Gpu), `BatchedEighGpu` (wired
+  for eigensolver). All 3 items from V55 "Not Yet Used" list now resolved.
+- ToadStool universal precision pipeline: `compile_shader_universal(source,
+  precision)` with F16/F32/F64/DF64 variants. 703 WGSL shaders, all f64
+  canonical. Zero f32-only shaders remain upstream.
+
 ### Added
 
 - **GPU tier: Exp-050** (`validate_barracuda_training_trajectory`): 9/9 — eigensolve → IPR
@@ -229,7 +245,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- ToadStool HEAD updated from `17932267` (S65) to `f0feb226` (S68) across
+- ToadStool HEAD updated from `17932267` (S65) to `e96576ee` (S68) across
   14 active files.
 - API gap #3 (variance_ddof) closed upstream — documented in BARRACUDA_USAGE.
 

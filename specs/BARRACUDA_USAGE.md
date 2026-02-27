@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 27, 2026 (Sessions 40–88+ — S88+: V54 handoff, barracuda usage audit complete (90+ import sites, 60+ files, 20+ submodules, 39 functions rewired, zero duplicate math), debt reduction (18 unwrap\_or\_else → expect, 11 manual loops → iterators), 163/163 validate_all)
+**Last Updated**: February 27, 2026 (Sessions 40–88+ — ToadStool `e96576ee` sync: `compile_shader_df64` rewired to upstream, 703 WGSL all f64 canonical, universal precision F16/F32/F64/DF64. 90+ import sites, 60+ files, 39 functions rewired, zero duplicate math. LogSumExp/PairwiseDistance/BatchedEighGpu confirmed upstream. 171/172 validate\_all)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1025,7 +1025,7 @@ zero duplicate math. Every barracuda primitive that exists is used where applica
 
 ### Session 83: ToadStool S68 Universal Precision Sync
 
-ToadStool evolved from `17932267` (S65) to `f0feb226` (S68) — 22 commits. The
+ToadStool evolved from `17932267` (S65) to `e96576ee` (S68) — 22 commits. The
 S68 precision evolution eliminated all f32-only shaders, converting 700 WGSL
 shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
 

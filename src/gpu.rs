@@ -216,15 +216,15 @@ impl Gpu {
 
     /// Compile a hybrid f64/df64 shader via the core streaming path.
     ///
-    /// Prepends `df64_core.wgsl` + `df64_transcendentals.wgsl` then compiles
-    /// via `compile_shader_f64` which enables f64 types and driver patching.
-    /// This is the hotSpring/toadStool three-zone pattern: f64 buffer I/O
-    /// with df64 compute on FP32 cores.
+    /// Compiles a DF64 (double-float) shader via upstream `compile_shader_df64`.
+    ///
+    /// Delegates to `WgpuDevice::compile_shader_df64` which prepends
+    /// `df64_core.wgsl` + `df64_transcendentals.wgsl`, runs ILP optimizer
+    /// and Sovereign compiler when available. This is the hotSpring/toadStool
+    /// three-zone pattern: f64 buffer I/O with df64 compute on FP32 cores.
     #[must_use]
     pub fn compile_shader_f64_hybrid(&self, source: &str, label: &str) -> wgpu::ShaderModule {
-        use barracuda::ops::lattice::su3::{WGSL_DF64_CORE, WGSL_DF64_TRANSCENDENTALS};
-        let combined = format!("{WGSL_DF64_CORE}\n{WGSL_DF64_TRANSCENDENTALS}\n{source}");
-        self.wgpu_device.compile_shader_f64(&combined, Some(label))
+        self.wgpu_device.compile_shader_df64(source, Some(label))
     }
 
     /// Compute the number of workgroups for a 1D dispatch, validated

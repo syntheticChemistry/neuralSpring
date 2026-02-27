@@ -3,7 +3,7 @@
 **Date**: February 27, 2026
 **From**: neuralSpring (Session 88+)
 **To**: ToadStool/BarraCUDA team
-**ToadStool pin**: `f0feb226` (S68 reviewed)
+**ToadStool pin**: `e96576ee` (S68 reviewed)
 **neuralSpring**: 172 binaries, 668 lib + 43 forge tests, 171/172 validate\_all
 **Supersedes**: V54 (barracuda evolution audit, now in archive/)
 **License**: AGPL-3.0-or-later
@@ -148,7 +148,7 @@ Still pending absorption from V52. All 15 WGSL shaders use df64 core streaming:
 | hotSpring | V0614 | df64 strategy, NVK patterns, 22 papers |
 | neuralSpring | V55 | 42 WGSL shaders, spectral science, streaming proof |
 
-All three Springs on ToadStool `f0feb226`. Unified patterns:
+All three Springs on ToadStool `e96576ee`. Unified patterns:
 - df64 core streaming (hotSpring origin, neuralSpring adopted)
 - Capability-based dispatch (neuralSpring `Dispatcher` pattern)
 - Named tolerance registry (neuralSpring origin, cross-spring adopted)

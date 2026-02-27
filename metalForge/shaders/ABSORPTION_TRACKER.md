@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `f0feb226` (Sessions 50–68, Feb 26, 2026)
+**ToadStool HEAD**: `e96576ee` (Sessions 50–68, Feb 26, 2026)
 
 ---
 

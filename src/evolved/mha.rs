@@ -2,7 +2,7 @@
 
 //! Multi-Head Attention — 2D adapter over upstream `BarraCUDA` 3D API.
 //!
-//! ## Status (`ToadStool` S60–S68, `f0feb226`)
+//! ## Status (`ToadStool` S60–S68, `e96576ee`)
 //!
 //! S-03b is **RESOLVED upstream**. `ToadStool` `0c998992` (S60–S61) decomposed the
 //! fused MHA projection into `Tensor::matmul` + `head_split.wgsl` /

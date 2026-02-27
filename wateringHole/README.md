@@ -7,12 +7,12 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V55** | `handoffs/NEURALSPRING_TOADSTOOL_V55_S88PLUS_PHASE4_STREAMING_NUCLEUS_HANDOFF_FEB27_2026.md` | Feb 27, 2026 | Phase 4 WGSL shader validation (22/22), ToadStool streaming spectral pipeline (28/28), NUCLEUS compute dispatch (39/39), absorption readiness (294/294), comprehensive barracuda audit. 172 binaries, 171/172 validate\_all, 2970+ checks |
+| **V56** | `handoffs/NEURALSPRING_TOADSTOOL_V56_E96576EE_UPSTREAM_SYNC_HANDOFF_FEB27_2026.md` | Feb 27, 2026 | ToadStool `e96576ee` sync: `compile_shader_df64` rewired, pin updated across 17 files, universal precision review (703 WGSL all f64 canonical), LogSumExp/PairwiseDistance/BatchedEighGpu confirmed upstream. 171/172 validate\_all, 2970+ checks |
 | biomeOS | `handoffs/NEURALSPRING_BIOMEOS_V1_NUCLEUS_INTEGRATION_HANDOFF_FEB27_2026.md` | Feb 27, 2026 | biomeOS NUCLEUS integration — science primal, 7 capabilities, JSON-RPC server, 29/29 PASS |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V54, 69 files).
+Superseded handoffs: `handoffs/archive/` (V1–V55, 70 files).
 
 ## Conventions
 

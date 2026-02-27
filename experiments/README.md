@@ -74,6 +74,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 060 | Session 88+ — biomeOS NUCLEUS Integration: neuralSpring as Science Primal | Feb 27, 2026 | biomeOS capability registry: 7 neuralSpring science capabilities registered. neuralspring\_primal JSON-RPC server binary (primal feature gate). Spectral pipeline graph for biomeOS orchestration. validate\_biomeos\_spectral: 29/29 PASS (IPR parity 1e-12, Hessian eigenvalues exact, full round-trip). PrimalCapability::science() added to biomeos-types |
 | 061 | Session 88+ — NUCLEUS Compute Dispatch & ToadStool Absorption Readiness | Feb 27, 2026 | NUCLEUS atomics 39/39 PASS (Tower/Node/Nest), ToadStool absorption readiness 294/294 PASS (CPU+GPU+batch+mixed), publication mixed-hardware 43/43 PASS (PCIe bridge, substrate routing). 169/170 validate\_all |
 | 062 | Session 88+ — Phase 4 WGSL Shader Validation & ToadStool Streaming Pipeline | Feb 27, 2026 | Phase 4 WGSL shaders 22/22 (HMM backward/Viterbi, matrix correlation, linear regression — direct dispatch). ToadStool streaming spectral pipeline 28/28 (batch eigensolve→IPR, Anderson disorder sweep, Dispatcher parity). 172 binaries, 171/172 validate\_all |
+| 063 | Session 88+ — ToadStool `e96576ee` Sync: Universal Precision + Upstream Rewire | Feb 27, 2026 | `compile_shader_f64_hybrid` rewired to upstream `compile_shader_df64`. ToadStool: 703 WGSL all f64 canonical, universal precision (F16/F32/F64/DF64), 4176+ tests. LogSumExp/PairwiseDistance/BatchedEighGpu confirmed upstream. Pin updated across 17 docs. 171/172 validate\_all. V56 handoff |
 
 ---
 
@@ -276,7 +277,7 @@ neuralSpring capability accessible via `capability.call`.
 
 **Date**: February 27, 2026 (Session 88+)
 **Hardware**: NVIDIA RTX 4070, Vulkan, Ada Lovelace
-**ToadStool HEAD**: `f0feb226` (S68)
+**ToadStool HEAD**: `e96576ee` (S68)
 
 ### Motivation
 
@@ -337,7 +338,7 @@ each experiment needed GPU-tier validators proving CPU↔GPU parity.
 
 **Date**: February 26, 2026 (Session 85)
 **Hardware**: NVIDIA RTX 4070, Vulkan, Ada Lovelace
-**ToadStool HEAD**: `f0feb226` (S68)
+**ToadStool HEAD**: `e96576ee` (S68)
 
 ### Motivation
 
@@ -380,7 +381,7 @@ with cross-spring evolution learnings and recommendations for ToadStool.
 
 **Date**: February 26, 2026 (Session 84)
 **Hardware**: NVIDIA RTX 4070, Vulkan, Ada Lovelace (NVIDIA proprietary)
-**ToadStool HEAD**: `f0feb226` (S68)
+**ToadStool HEAD**: `e96576ee` (S68)
 
 ### Motivation
 
@@ -2806,7 +2807,7 @@ metalForge cross-system stack proving workloads route correctly across substrate
 **Date**: February 26, 2026 (Session 75)
 **Hardware**: i9-12900K, RTX 4070 12GB, Pop!_OS 22.04
 **Researcher**: Eastgate
-**ToadStool HEAD**: `f0feb226` (S68)
+**ToadStool HEAD**: `e96576ee` (S68)
 
 ### Why
 
@@ -3304,7 +3305,7 @@ topology, not population size.
 
 **Date**: February 26, 2026
 **Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
-**ToadStool HEAD**: `f0feb226` (S68, 22 commits since `17932267`)
+**ToadStool HEAD**: `e96576ee` (S68, 22 commits since `17932267`)
 
 ### Motivation
 
@@ -3654,7 +3655,7 @@ error handling debt, (3) evolve manual loop patterns to idiomatic Rust iterators
 5. Added module-level `#[allow(clippy::expect_used)]` to WDM test modules;
    removed redundant per-test allows.
 6. Reviewed sibling springs (wetSpring V61, hotSpring V0614) for handoff patterns
-   and cross-spring alignment. All three Springs on ToadStool `f0feb226`.
+   and cross-spring alignment. All three Springs on ToadStool `e96576ee`.
 7. Crafted V54 ToadStool handoff documenting barracuda evolution surface,
    absorption targets, cross-spring learnings, and full control matrix.
 8. Updated root docs (README, CHANGELOG, CONTROL_EXPERIMENT_STATUS,
