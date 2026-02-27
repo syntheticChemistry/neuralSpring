@@ -226,6 +226,8 @@ const BINARIES: &[&str] = &[
     "validate_sovereign_folding",
     "validate_sovereign_folding_gpu",
     "validate_sovereign_folding_gpu_pipeline",
+    // Modern rewire + cross-spring provenance benchmark
+    "bench_modern_rewire",
 ];
 
 fn main() {

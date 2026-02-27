@@ -40,14 +40,14 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 263/263 Python PASS + 2710+ Rust+GPU PASS = **2970+ total validation checks**
+## Current Status: 263/263 Python PASS + 2710+ Rust+GPU PASS = **3000+ total validation checks**
 
 **ToadStool `e96576ee`** (Sessions 39–88+): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 39 functions rewired to upstream. 21/21 WGSL shaders absorbed + 15 sovereign folding df64 shaders.
 42 metalForge WGSL shaders (41 local + 3 barracuda re-exports). 44 CPU→GPU dispatch ops (~97%).
 668 lib tests, **93.5%+ coverage**, 129+ named tolerances, 0 clippy warnings, 0 doc warnings.
-172 validation/bench binaries, 40 modules + gpu\_ops/ + gpu\_dispatch/, 668 lib + 9 integration + 43 forge tests.
-**171/172 validate\_all** (1 pre-existing WDM damping assertion). Pure Rust **201.7× faster** than Python/NumPy.
+173 validation/bench binaries, 40 modules + gpu\_ops/ + gpu\_dispatch/, 668 lib + 9 integration + 43 forge tests.
+**172/173 validate\_all** (1 pre-existing WDM damping assertion). Pure Rust **201.7× faster** than Python/NumPy.
 
 **Validation tiers**: 24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 pure GPU all-domains |
 5/5 baseCamp sub-theses GPU | 5 WDM surrogates (33/33 Py + 153/153 Rs+GPU) |
@@ -174,7 +174,7 @@ S-14/S-15/S-16 **RESOLVED** upstream (`a4996b34` S39).
 **Capability-based dispatch**: 12 validators + evolved HMM use `Gpu::dispatch_1d()` with runtime hardware validation.
 Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at machine epsilon (2.89e-15 at n=64).
 
-#### Rust Validation (2250+ PASS across 172 validation binaries)
+#### Rust Validation (2250+ PASS across 173 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module (129+ named
@@ -361,7 +361,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (233/233 — 25 experiments + 5 WDM surrogates)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (668 lib + 9 integration + 43 forge tests, 172 validation binaries, 40 modules + gpu_ops/ + gpu_dispatch/)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (668 lib + 9 integration + 43 forge tests, 173 validation binaries, 40 modules + gpu_ops/ + gpu_dispatch/)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused ToadStool pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -430,7 +430,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Rust coverage | `cargo llvm-cov --lib` | target ≥90% |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
-| neuralSpring validate | `cargo run --release --bin validate_all` | 171/172 binaries PASS |
+| neuralSpring validate | `cargo run --release --bin validate_all` | 172/173 binaries PASS |
 | BarraCUDA CPU validate | `make validate-barracuda` | 272/272 PASS |
 | BarraCUDA CPU ports | `make validate-barracuda-cpu` | 203/203 PASS (24/25 papers) |
 | GPU Tensor validate | Phase 5b validators | 98+ checks (23/25 gT, S-15/S-16 resolved) |
@@ -515,7 +515,7 @@ neuralSpring/
 │   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
 │   ├── gpu_ops/                 #   38 GPU-accelerated ops (6 submodules: linalg, activation, reduction, bio, population, eigensolver)
 │   ├── gpu_dispatch/            #   Capability-based GPU/CPU dispatch (Dispatcher)
-│   └── bin/                    #   172 binaries (validate + bench)
+│   └── bin/                    #   173 binaries (validate + bench)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
 │       ├── validate_metrics.rs             # 10 checks
@@ -539,7 +539,7 @@ neuralSpring/
 │       ├── validate_eigh_accuracy.rs      # Householder+QR eigensolver (9 checks)
 │       ├── validate_mha_gpu.rs            # GPU head_split/head_concat (10 checks)
 │       ├── bench_*.rs                     # 6 benchmark binaries
-│       └── validate_all.rs                 # Meta-binary: runs all 156 validators
+│       └── validate_all.rs                 # Meta-binary: runs all validators
 │   ├── evolved/                #   Active evolutions (2 modules)
 │       ├── mod.rs                   # WGSL shader exports (batch_fitness, rk4, mean_reduce)
 │       ├── mha.rs                   # MHA — thin wrapper to barracuda::ops::mha::MultiHeadAttention (S-03b resolved)
@@ -575,7 +575,7 @@ neuralSpring/
 │   └── run_all_baselines.sh    #   Orchestrates all 31 Python runs (25 papers + 5 WDM + ML inference)
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
-│   └── rust.yml                #   Rust test + clippy + validate (172 binaries)
+│   └── rust.yml                #   Rust test + clippy + validate (173 binaries)
 ├── CHANGELOG.md                # Release history
 ├── Cargo.toml                  # Rust manifest
 ├── Makefile                    # Task runner
@@ -611,4 +611,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–88 (S88: df64 core streaming — 15 sovereign folding shaders evolved to f64 buffers + df64 compute, 158/158 validate\_all, 37/37 sovereign folding GPU; S87: WDM queue closed — nW-03 S(q,ω), nW-05 ESN regime): February 27, 2026 | 25 papers + 5 baseCamp sub-theses + 5 WDM surrogates + sovereign folding, 233 Python + 2710+ Rust+GPU = 2970+ validation checks | 668 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 40 modules, 172 validation/bench binaries, 42 WGSL shaders (21 absorbed + 15 sovereign folding df64 + 4 Phase 4 + 2 bonus) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring · sfGPU 37/37 sovereign folding | 39 functions + 6 shader sources rewired to upstream | 129+ named tolerances, 0 clippy warnings, 93.5% coverage, 100% SPDX | V55 handoff*
+*Initialized: February 16, 2026 | Sessions 40–88 (S88: df64 core streaming — 15 sovereign folding shaders evolved to f64 buffers + df64 compute, 158/158 validate\_all, 37/37 sovereign folding GPU; S87: WDM queue closed — nW-03 S(q,ω), nW-05 ESN regime): February 27, 2026 | 25 papers + 5 baseCamp sub-theses + 5 WDM surrogates + sovereign folding, 233 Python + 2710+ Rust+GPU = 3000+ validation checks | 668 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 40 modules, 173 validation/bench binaries, 42 WGSL shaders (21 absorbed + 15 sovereign folding df64 + 4 Phase 4 + 2 bonus) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring · sfGPU 37/37 sovereign folding | 39 functions + 6 shader sources rewired to upstream | 129+ named tolerances, 0 clippy warnings, 93.5% coverage, 100% SPDX | V55 handoff*

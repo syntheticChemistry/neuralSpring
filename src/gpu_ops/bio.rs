@@ -13,8 +13,6 @@ use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use std::sync::Arc;
 
-use super::reduction::l2_distance_gpu;
-
 /// GPU HMM forward step: `alpha[t] = normalize(B[:,o_t] * (A^T @ alpha[t-1]))`.
 ///
 /// Single timestep of the forward algorithm via GPU GEMV + elementwise.
@@ -67,8 +65,8 @@ pub fn hmm_forward_step_gpu(
 /// GPU pairwise distance matrix for n vectors of dimension d.
 ///
 /// Returns flat upper-triangle distances (n*(n-1)/2 elements).
-/// Replaces `meta_population::geographic_distance_matrix` and
-/// `pangenome_selection::jaccard_distance_matrix` distance loops.
+/// Rewired to upstream `PairwiseL2Gpu` — single GPU dispatch replaces O(n²) loop.
+/// Provenance: neuralSpring local → barracuda absorption (S52).
 ///
 /// # Errors
 ///
@@ -79,18 +77,51 @@ pub fn pairwise_l2_matrix_gpu(
     dim: usize,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
-    let n_pairs = n * (n - 1) / 2;
-    let mut distances = Vec::with_capacity(n_pairs);
+    use barracuda::ops::bio::PairwiseL2Gpu;
+    use wgpu::util::DeviceExt;
 
-    for i in 0..n {
-        for j in (i + 1)..n {
-            let a = &data[i * dim..(i + 1) * dim];
-            let b = &data[j * dim..(j + 1) * dim];
-            distances.push(l2_distance_gpu(a, b, device)?);
-        }
+    let n_pairs = n * (n - 1) / 2;
+    if n < 2 {
+        return Ok(Vec::new());
     }
 
-    Ok(distances)
+    let input_f32: Vec<f32> = data.iter().map(|&v| v as f32).collect();
+    let d = device.device();
+
+    let input_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("pairwise_l2_input"),
+        contents: bytemuck::cast_slice(&input_f32),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let output_buf = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("pairwise_l2_output"),
+        size: (n_pairs * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    let op = PairwiseL2Gpu::new(device.clone());
+    op.dispatch(&input_buf, &output_buf, n as u32, dim as u32);
+
+    let staging = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("pairwise_l2_staging"),
+        size: (n_pairs * 4) as u64,
+        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    let mut encoder = d.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    encoder.copy_buffer_to_buffer(&output_buf, 0, &staging, 0, (n_pairs * 4) as u64);
+    device.queue().submit(Some(encoder.finish()));
+
+    let slice = staging.slice(..);
+    slice.map_async(wgpu::MapMode::Read, |_| {});
+    device.device().poll(wgpu::Maintain::Wait);
+    let view = slice.get_mapped_range();
+    let f32_data: Vec<f32> = bytemuck::cast_slice(&view).to_vec();
+    drop(view);
+    staging.unmap();
+
+    Ok(f32_data.into_iter().map(f64::from).collect())
 }
 
 /// GPU batch Hill activation: `V_max * x^n / (K^n + x^n)`.

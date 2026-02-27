@@ -6,10 +6,11 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `e96576ee` (Sessions 60–68 sync, Feb 26, 2026) |
-| Last updated | February 26, 2026 (Sessions 40–84) |
-| BarraCUDA shader count | 700+ WGSL (f64 canonical, universal precision, S68) |
+| ToadStool HEAD | `e96576ee` (Sessions 60–68 sync, Feb 27, 2026) |
+| Last updated | February 27, 2026 (Sessions 40–88+) |
+| BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S68) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
+| Modern rewires (S88+) | `pairwise_l2_matrix_gpu` → `PairwiseL2Gpu`, `geographic_distance_matrix_gpu` → `PairwiseL2Gpu`, `disorder_sweep_gpu` IPR → `BatchIprGpu`, `compile_shader_f64_hybrid` → `compile_shader_df64` |
 | Sovereign folding df64 | 15 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3, backbone, IPA, MSA row/col, OPM, torsion) — `compile_shader_df64` convention |
 | Local metalForge total | 36 WGSL shaders (21 absorbed + 15 df64 sovereign folding) |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
@@ -119,6 +120,15 @@
 | `rawr_mean` | `stats::bootstrap` | RAWR bootstrap confidence intervals |
 | `batched_multinomial_f64.wgsl` | `shaders/bio/` | Batched multinomial sampling |
 | `mc_et0_propagate_f64.wgsl` | `shaders/bio/` | Monte Carlo ET₀ propagation |
+
+### S88+ Modern Rewires (neuralSpring → upstream APIs)
+
+| Local Implementation | Upstream API | Rewire Type | Provenance |
+|---------------------|-------------|-------------|------------|
+| `pairwise_l2_matrix_gpu` O(n²) loop | `PairwiseL2Gpu::dispatch` (1 dispatch) | **High-impact** | nS MODES Exp-012 → ToadStool S52 absorption |
+| `geographic_distance_matrix_gpu` O(n²) loop | `PairwiseL2Gpu` via above | **High-impact** | nS MetaPop 025 → ToadStool S52 |
+| `disorder_sweep_gpu` CPU IPR loop | `BatchIprGpu::dispatch` on GPU | **High-impact** | nS Anderson 022-023 → ToadStool S52 |
+| `compile_shader_f64_hybrid` manual DF64 prepend | `WgpuDevice::compile_shader_df64` | **Critical** | hS DF64 core → ToadStool universal precision |
 
 ---
 

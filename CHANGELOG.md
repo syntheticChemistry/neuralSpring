@@ -31,6 +31,9 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   → spectral diagnostics on GPU for loss landscape analysis.
 - **GPU tier: Exp-053** (`validate_barracuda_anderson_multiagent`): 11/11 — Laplacian →
   disordered eigensolve → IPR + pairwise L2 on GPU for multi-agent coordination.
+- **bench_modern_rewire**: New binary (23/23 PASS) validating modern typed-op rewires.
+- **Modern rewires** (S88+): pairwise_l2_matrix_gpu→PairwiseL2Gpu,
+  geographic_distance_matrix_gpu→PairwiseL2Gpu, disorder_sweep_gpu IPR→BatchIprGpu.
 - **Pipeline + metalForge** (`validate_publication_gpu_pipeline`): 13/13 — BatchIprGpu
   pure GPU pipeline, Dispatcher CPU↔GPU parity, metalForge mixed-hardware routing.
 - **Exp-050** (training trajectory spectral analysis): Py 11/11 + Rs 12/12 PASS.
@@ -95,12 +98,12 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `cargo fmt --check`: PASS
 - `cargo clippy --all-targets`: 0 warnings
 - `cargo test --workspace`: PASS
-- `validate_all`: **171/172 PASS** (172 binaries, 1 pre-existing WDM damping assertion)
+- `validate_all`: **172/173 PASS** (173 binaries, 1 pre-existing WDM damping assertion)
 - `validate_biomeos_spectral`: **29/29 PASS** (biomeOS primal integration, feature-gated)
 - `validate_gpu_shader_phase4`: **22/22 PASS** (Phase 4 WGSL direct shader dispatch)
 - `validate_streaming_spectral_pipeline`: **28/28 PASS** (ToadStool streaming proof)
 - Publication experiments: full GPU progression (Py → Rs → GPU → Pipeline → metalForge)
-- Documentation sweep: all counts aligned (2970+ checks, 172 binaries, 668 lib tests)
+- Documentation sweep: all counts aligned (3000+ checks, 173 binaries, 668 lib tests)
 
 ## [0.5.2] — 2026-02-27 (Session 88: df64 Core Streaming — Sovereign Folding)
 

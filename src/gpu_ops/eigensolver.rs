@@ -38,7 +38,9 @@ pub fn eigh_gpu(
 ///
 /// Replaces `anderson_localization::disorder_sweep`. Batches all W values
 /// into a single `BatchedEighGpu::execute_single_dispatch` call (n <= 32)
-/// and computes mean IPR from eigenvectors on GPU.
+/// and computes mean IPR from eigenvectors via `BatchIprGpu` on GPU.
+/// Provenance: eigensolve from hotSpring precision → barracuda absorption,
+/// IPR from neuralSpring spectral → barracuda absorption (S52).
 ///
 /// # Errors
 ///
@@ -50,6 +52,8 @@ pub fn disorder_sweep_gpu(
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
     use barracuda::ops::linalg::BatchedEighGpu;
+    use barracuda::spectral::BatchIprGpu;
+    use wgpu::util::DeviceExt;
 
     let (eigenvalues, eigenvectors) = if n <= 32 {
         BatchedEighGpu::execute_single_dispatch(
@@ -67,19 +71,49 @@ pub fn disorder_sweep_gpu(
     };
 
     let _ = eigenvalues;
+
+    let total_vectors = batch_size * n;
+    let ev_f32: Vec<f32> = eigenvectors.iter().map(|&v| v as f32).collect();
+    let d = device.device();
+
+    let ev_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("disorder_sweep_ev"),
+        contents: bytemuck::cast_slice(&ev_f32),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let ipr_buf = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("disorder_sweep_ipr"),
+        size: (total_vectors * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    let ipr_op = BatchIprGpu::new(device.clone());
+    ipr_op.dispatch(&ev_buf, &ipr_buf, n as u32, total_vectors as u32);
+
+    let staging = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("disorder_sweep_staging"),
+        size: (total_vectors * 4) as u64,
+        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    let mut encoder = d.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    encoder.copy_buffer_to_buffer(&ipr_buf, 0, &staging, 0, (total_vectors * 4) as u64);
+    device.queue().submit(Some(encoder.finish()));
+
+    let slice = staging.slice(..);
+    slice.map_async(wgpu::MapMode::Read, |_| {});
+    device.device().poll(wgpu::Maintain::Wait);
+    let view = slice.get_mapped_range();
+    let ipr_f32: Vec<f32> = bytemuck::cast_slice(&view).to_vec();
+    drop(view);
+    staging.unmap();
+
     let mut mean_iprs = Vec::with_capacity(batch_size);
     for b in 0..batch_size {
-        let ev_start = b * n * n;
-        let mut total_ipr = 0.0;
-        for col in 0..n {
-            let mut ipr = 0.0;
-            for row in 0..n {
-                let v = eigenvectors[ev_start + row * n + col];
-                ipr += v * v * v * v;
-            }
-            total_ipr += ipr;
-        }
-        mean_iprs.push(total_ipr / n as f64);
+        let batch_start = b * n;
+        let sum: f32 = ipr_f32[batch_start..batch_start + n].iter().sum();
+        mean_iprs.push(f64::from(sum / n as f32));
     }
     Ok(mean_iprs)
 }

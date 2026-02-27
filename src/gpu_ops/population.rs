@@ -8,7 +8,7 @@ use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use std::sync::Arc;
 
-use super::reduction::{l2_distance_gpu, mean_gpu, pearson_correlation_gpu, variance_gpu};
+use super::reduction::{mean_gpu, pearson_correlation_gpu, variance_gpu};
 
 /// GPU allele frequencies: column-sum of genotype matrix / (2 × n\_individuals).
 ///
@@ -107,8 +107,9 @@ pub fn matrix_correlation_gpu(
 
 /// GPU geographic distance matrix: pairwise Euclidean from 2D coordinates.
 ///
-/// Replaces `meta_population::geographic_distance_matrix`.
-/// Each pairwise L2 distance computed via GPU subtraction + norm.
+/// Rewired to upstream `PairwiseL2Gpu` via `pairwise_l2_matrix_gpu`.
+/// Single GPU dispatch replaces O(n²) loop.
+/// Provenance: neuralSpring local → barracuda absorption (S52).
 ///
 /// # Errors
 ///
@@ -118,14 +119,16 @@ pub fn geographic_distance_matrix_gpu(
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
     let n = coords.len();
+    let flat: Vec<f64> = coords.iter().flat_map(|&(x, y)| [x, y]).collect();
+    let upper = super::bio::pairwise_l2_matrix_gpu(&flat, n, 2, device)?;
+
     let mut dist = vec![0.0_f64; n * n];
+    let mut idx = 0;
     for i in 0..n {
         for j in (i + 1)..n {
-            let a = [coords[i].0, coords[i].1];
-            let b = [coords[j].0, coords[j].1];
-            let d = l2_distance_gpu(&a, &b, device)?;
-            dist[i * n + j] = d;
-            dist[j * n + i] = d;
+            dist[i * n + j] = upper[idx];
+            dist[j * n + i] = upper[idx];
+            idx += 1;
         }
     }
     Ok(dist)
