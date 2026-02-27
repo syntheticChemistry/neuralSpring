@@ -234,7 +234,7 @@ Three-tier architecture measures dispatch overhead:
 
 ```
 Session 44:   Rust CPU 178.5× faster than Python/NumPy (7 kernels)
-Session 66:   Rust CPU 201.7× faster (11 kernels) + ~97% GPU coverage
+Session 66:   Rust CPU 83.6× faster (11 kernels) + ~97% GPU coverage
 Session 67:   CPU = Python mathematically (39/39 PASS, 1e-10)
 Session 67b:  Dispatch layer is transparent (≤1.04× overhead 9/10 ops)
 Session 74:   Pure GPU all-domains 10/10 PASS + evolution tier benchmark
@@ -282,14 +282,14 @@ by proving the evolution path is real: the same math runs on both substrates.
 3. **f32 vs f64 precision is systematic**: domain-specific ops (fitness, spatial,
    distance) use f32 WGSL shaders; HMM and population genetics use f64 paths.
 4. **IPR requires pre-normalized eigenvectors** — GPU shader expects unit-norm inputs.
-5. **Evolution path is proven**: Python → Rust CPU (201.7× faster) → BarraCUDA GPU
+5. **Evolution path is proven**: Python → Rust CPU (83.6× faster) → BarraCUDA GPU
    (same math, portable). At production scale, GPU provides additional 4–84× over CPU.
 
 ### Evolution Path Summary
 
 ```
 Python/NumPy (baseline)
-  ↓ 201.7× faster (Session 66)
+  ↓ 83.6× faster (Session 66)
 Rust CPU (pure math, BarraCUDA CPU)
   ↓ transparent dispatch (≤1.04× overhead, Session 67b)
 BarraCUDA GPU (same WGSL math, production scale)

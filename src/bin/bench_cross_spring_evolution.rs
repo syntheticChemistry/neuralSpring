@@ -423,7 +423,7 @@ fn main() {
     eprintln!("    airSpring:    ~15  (ET₀, kriging, Richards, stats, regression)");
     eprintln!("    groundSpring: ~5   (multinomial, MC propagation)");
     eprintln!("    ToadStool:    ~466 (core math, linalg, nn, activations, S68 precision)");
-    eprintln!("  neuralSpring rewired: 39 functions + 6 shader sources to upstream");
+    eprintln!("  neuralSpring rewired: 42 upstream rewires");
     eprintln!("  S83: ToadStool S68 sync — variance_ddof gap closed, 5 shader imports fixed");
     eprintln!("  Cross-spring flow: each spring contributes domain expertise;");
     eprintln!("  ToadStool absorbs + GPU-accelerates → all springs benefit via path dep");

@@ -212,7 +212,7 @@
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_all` | 172 | **171/172 PASS** |
+| `validate_all` | 175 | **174/175 PASS** |
 | `validate_cross_spring_evolution` | 52 | **52/52 PASS** |
 | `bench_cross_spring_evolution` | 28 | **28/28 PASS** |
 | `cargo test --lib` | 623 | **623/623 PASS** |
@@ -657,7 +657,7 @@ Feb 26  Session 68: ToadStool S60–S68 sync (e96576ee)
           - +6 rewires: mae, shannon, hill×2, l2_distance, fit_linear
           - All 9 metalForge f64 shaders aligned to compile_shader_df64 convention
           - Cross-spring validator: 52/52 PASS, benchmark: 28/28 PASS
-          - 39 total upstream rewires, V44 handoff
+          - 42 total upstream rewires, V44 handoff
 ```
 
 ---
@@ -743,7 +743,7 @@ Hamming 20.85× regression: upstream f64 path on small sizes (investigation targ
 |------|--------|
 | `cargo clippy --all-targets -- -D warnings` | 0 warnings |
 | `cargo test --lib` | **668/668 PASS** |
-| `validate_all` | **171/172 PASS** |
+| `validate_all` | **174/175 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
 | `bench_cross_spring_evolution` | **28/28 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels** |

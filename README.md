@@ -43,11 +43,13 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 ## Current Status: 263/263 Python PASS + 2710+ Rust+GPU PASS = **3034+ total validation checks**
 
 **ToadStool `e96576ee`** (Sessions 39–88+): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
-39 functions rewired to upstream. 21/21 WGSL shaders absorbed + 15 sovereign folding df64 shaders.
+42 upstream rewires + 124 barracuda import sites across 177 files, 16 submodules exercised.
+21/21 WGSL shaders absorbed + 15 sovereign folding df64 shaders.
 42 metalForge WGSL shaders (41 local + 3 barracuda re-exports). 44 CPU→GPU dispatch ops (~97%).
 668 lib tests, **93.5%+ coverage**, 129+ named tolerances, 0 clippy warnings, 0 doc warnings.
 175 validation/bench binaries, 40 modules + gpu\_ops/ + gpu\_dispatch/, 668 lib + 9 integration + 43 forge tests.
-**174/175 validate\_all** (1 pre-existing WDM damping assertion). Pure Rust **201.7× faster** than Python/NumPy.
+**174/175 validate\_all** (1 pre-existing WDM damping assertion). Pure Rust **83.6× faster** than Python/NumPy
+(geomean, 11 domains; fastest: multi-obj fitness 1104×). CPU→GPU portability proven (9/9, 7 domains).
 
 **Validation tiers**: 24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 pure GPU all-domains |
 5/5 baseCamp sub-theses GPU | 5 WDM surrogates (33/33 Py + 153/153 Rs+GPU) |
@@ -611,4 +613,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–88 (S88: df64 core streaming — 15 sovereign folding shaders evolved to f64 buffers + df64 compute, 158/158 validate\_all, 37/37 sovereign folding GPU; S87: WDM queue closed — nW-03 S(q,ω), nW-05 ESN regime): February 27, 2026 | 25 papers + 5 baseCamp sub-theses + 5 WDM surrogates + sovereign folding, 233 Python + 2710+ Rust+GPU = 3034+ validation checks | 668 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 40 modules, 175 validation/bench binaries, 42 WGSL shaders (21 absorbed + 15 sovereign folding df64 + 4 Phase 4 + 2 bonus) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring · sfGPU 37/37 sovereign folding | 39 functions + 6 shader sources rewired to upstream | 129+ named tolerances, 0 clippy warnings, 93.5% coverage, 100% SPDX | V55 handoff*
+*Initialized: February 16, 2026 | Sessions 40–88 (S88: df64 core streaming — 15 sovereign folding shaders evolved to f64 buffers + df64 compute, 158/158 validate\_all, 37/37 sovereign folding GPU; S87: WDM queue closed — nW-03 S(q,ω), nW-05 ESN regime): February 27, 2026 | 25 papers + 5 baseCamp sub-theses + 5 WDM surrogates + sovereign folding, 233 Python + 2710+ Rust+GPU = 3034+ validation checks | 668 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 40 modules, 175 validation/bench binaries, 42 WGSL shaders (21 absorbed + 15 sovereign folding df64 + 4 Phase 4 + 2 bonus) | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 (mixed-hardware) · dispatch 89/89 · pG 10/10 pure GPU · cS 46/46 cross-system · xSE 52/52 cross-spring · sfGPU 37/37 sovereign folding | 42 upstream rewires, 124 barracuda import sites, 16 submodules | 129+ named tolerances, 0 clippy warnings, 93.5% coverage, 100% SPDX | V59 handoff*

@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
 **Last Updated**: February 27, 2026 (Sessions 44–88+ — Phase 4 WGSL shader validation, ToadStool streaming pipeline, NUCLEUS atomics, publication experiments, barracuda evolution audit)
-**Status**: Phase 5h+ — 263/263 Python + 2710+ Rust+GPU = **3034+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 201.7× speedup, pure GPU 10/10 PASS, cross-system 46/46 PASS, cross-spring 52/52 PASS, Phase 4 shaders 22/22, streaming pipeline 28/28, 175 binaries, 174/175 validate\_all
+**Status**: Phase 5h+ — 263/263 Python + 2710+ Rust+GPU = **3034+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, pure GPU 10/10 PASS, cross-system 46/46 PASS, cross-spring 52/52 PASS, Phase 4 shaders 22/22, streaming pipeline 28/28, 175 binaries, 174/175 validate\_all
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -46,7 +46,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 39 functions rewired to upstream (S81); V53 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 42 upstream rewires (S81); V53 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 

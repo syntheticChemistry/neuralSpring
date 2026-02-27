@@ -363,7 +363,7 @@ Paper B requires Tier 2 (ACDC code download, HuggingFace model weights via NestG
 All four papers share:
 
 - neuralSpring's 129+ named tolerance constants
-- 39 functions rewired to upstream BarraCUDA
+- 42 upstream rewires
 - Deterministic seed (42) with PyTorch and Rust RNG alignment
 - AGPL-3.0 open-source code
 - 668 unit tests + 9 integration tests at 93.5% coverage

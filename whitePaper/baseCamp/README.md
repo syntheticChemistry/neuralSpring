@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
 **Last Updated**: February 27, 2026 (Sessions 61–88+)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + sovereign folding (AlphaFold2) + 3 publication experiments, **2970+ checks**, ~97% GPU promotion, **171/172 validate\_all** (172 binaries), CPU↔Python parity 39/39, 201.7× faster than Python. Phase 4 WGSL shader validation 22/22 (HMM backward/Viterbi, matrix correlation, linear regression — direct dispatch). ToadStool streaming spectral pipeline 28/28 (batch eigensolve→IPR→stats, Anderson disorder sweep). NUCLEUS compute dispatch 39/39. ToadStool absorption readiness 294/294. Mixed-hardware 43/43. 39 functions + 6 shader sources rewired to upstream. Zero debt, 129+ toleranceserences
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + sovereign folding (AlphaFold2) + 3 publication experiments, **3034+ checks**, ~97% GPU promotion, **174/175 validate\_all** (175 binaries), CPU↔Python parity 39/39, **83.6× faster** than Python (geomean across 11 domains; fastest: multi-obj 1104×). CPU→GPU portability proven (9/9, 7 domains). Phase 4 WGSL shader validation 22/22. ToadStool streaming spectral pipeline 28/28. NUCLEUS compute dispatch 39/39. ToadStool absorption readiness 294/294. Mixed-hardware 43/43. 42 upstream rewires + 124 barracuda import sites across 177 files, 16 submodules. Zero debt, 129+ named tolerances
 
 ## Purpose
 
@@ -112,7 +112,7 @@ All baseCamp experiments inherit neuralSpring's validated multi-tier pipeline:
 
 | Metric | Value |
 |--------|-------|
-| Pure Rust vs Python | 201.7x faster (11 kernels) |
+| Pure Rust vs Python | 83.6× geomean (11 domains); fastest 1104× (multi-obj) |
 | CPU↔Python parity | 39/39 PASS (1e-10 cross-language) |
 | Dispatch overhead | ≤1.04× for 9/10 ops (transparent) |
 | GPU vs Python | Up to 104x (transformer medium) |

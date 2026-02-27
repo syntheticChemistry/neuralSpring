@@ -183,8 +183,8 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated. All 5 WDM surrogates (nW-01..nW-05) complete.**
 
-Session 88: Publication experiment buildout — Exp-050 (training trajectory spectral analysis, Py 11/11, Rs 12/12), Exp-052 (Hessian eigenanalysis at trained minima, Py 8/8, Rs 14/14), Exp-053 (Anderson multi-agent coordination, Py 11/11, Rs 18/18). 3 new Python controls, 3 new Rust validators, 176 binaries, 668 lib tests, 163 validators in validate_all.
-Session 87: WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor, Py 5/5, Rs 27/27) and nW-05 (ESN regime classifier, Py 5/5, Rs 39/39). 172 binaries, 623 lib tests, 158/158 validators.
+Session 88: Publication experiment buildout — Exp-050 (training trajectory spectral analysis, Py 11/11, Rs 12/12), Exp-052 (Hessian eigenanalysis at trained minima, Py 8/8, Rs 14/14), Exp-053 (Anderson multi-agent coordination, Py 11/11, Rs 18/18). 3 new Python controls, 3 new Rust validators, 175 binaries, 668 lib tests, 163 validators in validate_all.
+Session 87: WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor, Py 5/5, Rs 27/27) and nW-05 (ESN regime classifier, Py 5/5, Rs 39/39). 175 binaries, 623 lib tests, 158/158 validators.
 Session 86: V50 handoff — WDM buildout complete, 170 binaries, 611 lib tests, 154/154 validators.
 Session 83: WDM surrogate buildout — nW-01 transport (Py 4/4, Rs 30/30), nW-02 EOS wired (Py 9/9, Rs 36/36, GPU 15/15), nW-04 transfer (Py 4/4, Rs 6/6). `wdm_transport.rs` new module. 4 new validators in `validate_all` (154 total). 611 lib + 43 forge tests. `check_drift.sh` expanded to 29 baselines.
 Session 81: Deep debt evolution — 129+ named tolerances (25 new), spectral_entropy→barracuda (39th rewire), cross-platform probe, PyTorch seeding. Zero inline magic numbers.
@@ -195,8 +195,8 @@ Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10
 Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
 `validate_all`: 158/158 PASS on RTX 4070.
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
-Python baselines: 25/25+5 WDM PASS (zero drift). Rust **201.7× faster** than Python/NumPy (11 kernels).
-668 lib + 9 integration + 43 forge tests. 172 validation/bench binaries. Zero debt.
+Python baselines: 25/25+5 WDM PASS (zero drift). Rust **83.6× faster** than Python/NumPy (11 kernels).
+668 lib + 9 integration + 43 forge tests. 175 validation/bench binaries. Zero debt.
 44 CPU→GPU dispatch ops (~97% of production math).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -552,7 +552,7 @@ Total: **175 binaries**, **174/175 validate_all** (1 pre-existing WDM damping as
 ToadStool streaming pattern validated: unidirectional dispatch preserves scientific conclusions.
 
 **Session 88+ debt reduction addendum**: Barracuda usage audit complete — 90+ import sites,
-60+ files, 20+ submodules, 39 functions + 6 shader sources rewired, zero duplicate math.
+60+ files, 20+ submodules, 42 upstream rewires, zero duplicate math.
 18 `unwrap_or_else(|e| panic!(...))` sites evolved to `.expect()` across WDM tests and
 validation binaries. 11 manual loop sites evolved to idiomatic iterators (`chunks_exact`,
 `flat_map`, `zip`) in `basecamp.rs` and `sovereign_folding.rs`. Control matrix confirmed:
@@ -569,7 +569,7 @@ and metalForge mixed hardware tiers. Zero clippy warnings, zero fmt diffs.
 
 This closes the "pure GPU final workload validation" milestone: every paper domain
 has a typed GPU op validator, and metalForge's cross-system dispatch is proven
-end-to-end (GPU→NPU→CPU). Total: **2480+ checks**, **172 binaries**, **158/158 validate_all**.
+end-to-end (GPU→NPU→CPU). Total: **2480+ checks**, **175 binaries**, **158/158 validate_all**.
 
 **Session 86 addendum**: WDM surrogate buildout — 4 new validators added:
 - `validate_wdm_transport` (30/30): nW-01 Stanton-Murillo transport MLP

@@ -480,7 +480,7 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
     eprintln!();
     eprintln!("Pipeline status:");
     eprintln!("  Session 67: Rust CPU = Python/NumPy (39/39 PASS, 1e-10 cross-language)");
-    eprintln!("  Session 66: Rust CPU is 201.7× faster than Python/NumPy (11 kernels)");
+    eprintln!("  Session 65: Rust CPU is 83.6× faster than Python/NumPy (11 kernels)");
     eprintln!("  This run:   Dispatcher overhead {overhead_avg:.2}× — pure math preserved through dispatch");
     eprintln!("  Next:       ToadStool pipeline batching for GPU-resident acceleration");
 }

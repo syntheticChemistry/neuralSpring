@@ -21,8 +21,8 @@
 **Sovereign Folding (df64 core streaming)**: 15 WGSL shaders — f64 buffer I/O → df64 compute on FP32 cores → f64 output. `Fp64Strategy::Hybrid` on RTX 4070. Arithmetic: 3.6e-8 to 5.6e-7 (tol 1e-6). Transcendental: 1.7e-4 to 3.4e-4 (tol 5e-4). **37/37 GPU checks**, 67/67 CPU checks, 25/25 Python checks
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (129+ named tolerances, S81: +25) | zero bare `unwrap()` in validation code | zero `unwrap_or_else(\|e\| panic!(...))` (18 sites → `.expect()`) | 11 manual loops → idiomatic iterators | WDM provenance complete | all PyTorch baselines fully seeded | barracuda usage audit complete (90+ imports, 39 rewires, zero duplicate math)
 **Coverage**: 93.5%+ line coverage (llvm-cov, 668 lib tests), 129+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6%
-**Benchmarks**: Pure Rust **201.7× faster** than Python/NumPy (11 kernels) | Evolution tier: CPU→GPU portability proven (8 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S-14/S-15/S-16 fixed at `a4996b34` (S39), S-17 fixed at `c82c23d1` (S58) | HEAD `e96576ee` (S68 reviewed) | **39 functions rewired to upstream** + 6 validator shader sources rewired
+**Benchmarks**: Pure Rust **83.6× faster** than Python/NumPy (geomean, 11 domains; fastest 1104× multi-obj) | CPU→GPU portability proven (9/9, 7 domains)
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | HEAD `e96576ee` (S68 reviewed) | **42 upstream rewires** + 124 barracuda import sites, 177 files, 16 submodules | V59 comprehensive handoff
 **Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -707,7 +707,7 @@ Closes remaining science-domain GPU promotion gaps. 6 new `Dispatcher` methods,
 | `Dispatcher::pairwise_fst` | Pairwise FST via dispatch | **GPU (S66)** |
 | `Dispatcher::global_fst` | Global FST via dispatch | **GPU (S66)** |
 | `validate_gpu_phase_c` (NEW) | 18 checks: HMM chains, FST, introgression, AF var | **18/18 PASS** |
-| `bench_phase0pp_kernels` | Updated: 11 kernels, 201.7× speedup vs Python | **201.7× faster** |
+| `bench_phase0pp_kernels` | Updated: 11 kernels, 83.6× geomean speedup vs Python | **83.6× faster** |
 
 **GPU dispatch coverage**: ~90% → ~97% of production math.
 **Python baselines**: 25/25 PASS (zero drift).

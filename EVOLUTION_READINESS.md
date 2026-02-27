@@ -55,7 +55,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: Conv2d/MaxPool GPU | `Tensor::conv2d` + `Tensor::maxpool2d` WGSL shaders | **8/8 PASS** |
 | Session 44: transformer bC | Full layer: Q/K/V, attention, FFN, residual, softmax | **12/12 PASS** |
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
-| Session 44: benchmarks | Pure Rust vs Python (11 kernels) | **178.5× faster** |
+| Session 44: benchmarks | Pure Rust vs Python (11 kernels, geomean) | **83.6× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 44 promoted ops (Phase A+B+C), 7 rewired to upstream domain_ops | **175 binaries** |
 | `validate_all` (S-75+) | **174/175 PASS** (RTX 4070, 1 pre-existing WDM) | **ALL GREEN** |
@@ -604,7 +604,7 @@ pairwise/global FST, inter-population AF variance — all now GPU-dispatchable.
 `validate_gpu_phase_c` 18/18 PASS. GPU coverage: ~90% → ~97% of production math.
 
 || Session 66: Phase C GPU promotion | 6 Dispatcher methods, 3 gpu_ops, validate_gpu_phase_c 18/18 | **~97% GPU** |
-|| Session 66: Python baselines | 25/25 PASS — zero drift, 201.7× Rust faster | **ALL GREEN** |
+|| Session 66: Python baselines | 25/25 PASS — zero drift, 83.6× Rust faster (geomean) | **ALL GREEN** |
 
 ### Session 67 — CPU Math Parity Validation (February 25, 2026)
 
