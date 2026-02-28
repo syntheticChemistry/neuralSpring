@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #![allow(
-    clippy::pedantic,
-    clippy::nursery,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::similar_names,
+    clippy::too_many_lines,
+    clippy::suboptimal_flops,
     clippy::expect_used,
     clippy::unwrap_used
 )]
 
-//! BarraCUDA CPU validation: nF-02 AlphaFold2 operations.
+//! `BarraCUDA` CPU validation: nF-02 `AlphaFold2` operations.
 //!
-//! Proves barracuda's pure Rust CPU math (eigh_f64, matmul via dispatch,
-//! stats primitives) produces identical results to neuralSpring's hand-rolled
+//! Proves `barracuda`'s pure Rust CPU math (`eigh_f64`, matmul via dispatch,
+//! stats primitives) produces identical results to `neuralSpring`'s hand-rolled
 //! implementations for Evoformer/Structure Module operations.
 //!
 //! ## Primitives validated
@@ -25,14 +28,8 @@
 //!
 //! ## Reference
 //!
-//! Jumper et al. "Highly accurate protein structure prediction with AlphaFold"
+//! Jumper et al. "Highly accurate protein structure prediction with `AlphaFold`"
 //! Nature 596:583-589 (2021)
-
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::similar_names,
-    clippy::too_many_lines
-)]
 
 use neural_spring::coral_forge;
 use neural_spring::require;
@@ -62,7 +59,7 @@ fn main() {
     h.finish();
 }
 
-/// 1. Square matmul: neuralSpring spectral_commutativity vs barracuda CPU dispatch.
+/// 1. Square matmul: `neuralSpring` `spectral_commutativity` vs `barracuda` CPU dispatch.
 fn validate_matmul_square(h: &mut ValidationHarness, rng: &mut Rng) {
     let n = 8_usize;
     let a = random_matrix(n, rng);
@@ -88,7 +85,7 @@ fn validate_matmul_square(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 2. Non-square matmul (SDPA shape): Q[q_len, head_dim] @ K^T[head_dim, kv_len].
+/// 2. Non-square matmul (SDPA shape): `Q[q_len, head_dim]` @ `K^T[head_dim, kv_len]`.
 fn validate_matmul_sdpa_shape(h: &mut ValidationHarness, rng: &mut Rng) {
     let q_len = 4_usize;
     let kv_len = 6_usize;
@@ -130,7 +127,7 @@ fn validate_matmul_sdpa_shape(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 3. Transpose: neuralSpring vs barracuda CPU dispatch.
+/// 3. Transpose: `neuralSpring` vs `barracuda` CPU dispatch.
 fn validate_transpose(h: &mut ValidationHarness, rng: &mut Rng) {
     let n = 8_usize;
     let a = random_matrix(n, rng);
@@ -155,10 +152,10 @@ fn validate_transpose(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 4. Mean: barracuda::stats::mean vs manual.
+/// 4. Mean: `barracuda::stats::mean` vs manual.
 fn validate_mean(h: &mut ValidationHarness, rng: &mut Rng) {
     let data: Vec<f64> = (0..64)
-        .map(|i| (i as f64) * 0.1 + rng.uniform() * 0.01)
+        .map(|i| f64::from(i) * 0.1 + rng.uniform() * 0.01)
         .collect();
 
     let bc_mean = barracuda::stats::mean(&data);
@@ -172,10 +169,10 @@ fn validate_mean(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 5. Population variance: barracuda variance_dispatch (CPU) vs layer_norm convention.
+/// 5. Population variance: `barracuda` `variance_dispatch` (CPU) vs `layer_norm` convention.
 fn validate_variance_population(h: &mut ValidationHarness, rng: &mut Rng) {
     let row: Vec<f64> = (0..16)
-        .map(|i| (i as f64) * 0.2 + rng.uniform() * 0.05)
+        .map(|i| f64::from(i) * 0.2 + rng.uniform() * 0.05)
         .collect();
 
     let bc_var = require!(
@@ -194,7 +191,7 @@ fn validate_variance_population(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 6. Dot product: barracuda::stats::dot vs manual.
+/// 6. Dot product: `barracuda::stats::dot` vs manual.
 fn validate_dot(h: &mut ValidationHarness, rng: &mut Rng) {
     let a: Vec<f64> = (0..32).map(|_| rng.uniform() * 0.5 + 0.5).collect();
     let b: Vec<f64> = (0..32).map(|_| rng.uniform() * 0.5 + 0.5).collect();
@@ -210,7 +207,7 @@ fn validate_dot(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 7. L2 norm: barracuda::stats::l2_norm vs manual.
+/// 7. L2 norm: `barracuda::stats::l2_norm` vs manual.
 fn validate_l2_norm(h: &mut ValidationHarness, rng: &mut Rng) {
     let x: Vec<f64> = (0..32).map(|_| rng.uniform() * 0.5 + 0.5).collect();
 
@@ -225,7 +222,7 @@ fn validate_l2_norm(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 8. SDPA scores: coral_forge::sdpa_scores vs barracuda matmul + scale.
+/// 8. SDPA scores: `coral_forge::sdpa_scores` vs `barracuda` matmul + scale.
 fn validate_sdpa_scores(h: &mut ValidationHarness, rng: &mut Rng) {
     let batch = 1_usize;
     let heads = 2_usize;
@@ -289,19 +286,21 @@ fn validate_sdpa_scores(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 9. Layer norm: coral_forge::layer_norm vs barracuda mean + variance + normalize.
+/// 9. Layer norm: `coral_forge::layer_norm` vs `barracuda` mean + variance + normalize.
 fn validate_layer_norm(h: &mut ValidationHarness, rng: &mut Rng) {
     let rows = 2_usize;
     let dim = 8_usize;
-    let eps = 1e-5_f64;
-
-    let x: Vec<f64> = (0..rows * dim)
-        .map(|i| (i as f64) * 0.3 + rng.uniform() * 0.1)
+    let x: Vec<f64> = (0_i32..i32::try_from(rows * dim).expect("test size"))
+        .map(|i| f64::from(i) * 0.3 + rng.uniform() * 0.1)
         .collect();
-    let gamma: Vec<f64> = (0..dim).map(|i| 1.0 + (i as f64) * 0.05).collect();
-    let beta: Vec<f64> = (0..dim).map(|i| (i as f64) * 0.02).collect();
+    let gamma: Vec<f64> = (0_i32..i32::try_from(dim).expect("test size"))
+        .map(|i| 1.0 + f64::from(i) * 0.05)
+        .collect();
+    let beta: Vec<f64> = (0_i32..i32::try_from(dim).expect("test size"))
+        .map(|i| f64::from(i) * 0.02)
+        .collect();
 
-    let ns_out = coral_forge::layer_norm(&x, rows, dim, &gamma, &beta, eps);
+    let ns_out = coral_forge::layer_norm(&x, rows, dim, &gamma, &beta, tolerances::LAYER_NORM_EPS);
 
     let mut bc_out = Vec::with_capacity(rows * dim);
     for row in x.chunks_exact(dim) {
@@ -311,7 +310,7 @@ fn validate_layer_norm(h: &mut ValidationHarness, rng: &mut Rng) {
             barracuda::dispatch::variance_dispatch(row, None),
             "variance CPU"
         );
-        let inv_std = 1.0 / (var + eps).sqrt();
+        let inv_std = 1.0 / (var + tolerances::LAYER_NORM_EPS).sqrt();
         for (&xd, (&g, &b)) in row.iter().zip(gamma.iter().zip(beta.iter())) {
             bc_out.push(g.mul_add((xd - mean) * inv_std, b));
         }
@@ -330,7 +329,7 @@ fn validate_layer_norm(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 10. Eigh symmetric: barracuda::linalg::eigh_f64 produces real sorted eigenvalues.
+/// 10. Eigh symmetric: `barracuda::linalg::eigh_f64` produces real sorted eigenvalues.
 fn validate_eigh_symmetric(h: &mut ValidationHarness, rng: &mut Rng) {
     let n = 8_usize;
     let sym = random_symmetric(n, rng);
@@ -384,7 +383,7 @@ fn validate_eigh_reconstruct(h: &mut ValidationHarness, rng: &mut Rng) {
     }
 }
 
-/// 12. Eigh Jacobi vs Householder: eigenvalues agree within algorithm tolerance.
+/// 12. Eigh Jacobi vs `Householder`: eigenvalues agree within algorithm tolerance.
 fn validate_eigh_vs_householder(h: &mut ValidationHarness, rng: &mut Rng) {
     let n = 6_usize;
     let sym = random_symmetric(n, rng);
@@ -413,7 +412,7 @@ fn validate_eigh_vs_householder(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 13. IPA-style: eigh on attention weight matrix (symmetric) for spectral analysis.
+/// 13. IPA-style: `eigh` on attention weight matrix (symmetric) for spectral analysis.
 fn validate_attention_weight_eigh(h: &mut ValidationHarness, rng: &mut Rng) {
     let n = 6_usize;
     let scale = 0.5 / (n as f64).sqrt();

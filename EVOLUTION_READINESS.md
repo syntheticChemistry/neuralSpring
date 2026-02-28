@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 28, 2026 (Sessions 40–94)
-**ToadStool HEAD**: `e96576ee` (S68+: universal precision. S94: coralForge rename, deep debt resolution, tolerance domain guards, provenance docs. 197 binaries, **185/185 validate\_all**, 685 lib tests, 39 Python drift baselines, 3200+ checks, 139+ named tolerances, 0 clippy, 0 doc warnings)
+**Date**: February 28, 2026 (Sessions 40–95)
+**ToadStool HEAD**: `e96576ee` (S68+: universal precision. S95: WDM+AlphaFold3 GPU Tensor validators, drift fixes. 201 binaries, **189/189 validate\_all**, 685 lib tests, 39 Python drift baselines, 3200+ checks, 139+ named tolerances, 0 clippy, 0 doc warnings)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -10,7 +10,7 @@
 ## Quick Status
 
 40 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments + nF-03 AlphaFold3 Phase C.
-197 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+201 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
@@ -57,8 +57,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44: benchmarks | Pure Rust vs Python (11 kernels, geomean) | **83.6× faster** |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **197 binaries** |
-| `validate_all` (S-93) | **185/185 PASS** (RTX 4070, all green) | **ALL GREEN** |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **201 binaries** |
+| `validate_all` (S-95) | **189/189 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -727,5 +727,22 @@ injection), 2 validator binaries rewired to forge constants. API gap #3
 (`variance_ddof`) closed upstream. All 14 ToadStool HEAD references updated.
 
 || Session 83: ToadStool S68 sync | 604/604 lib, 43/43 forge, 150/150 validators, 0 clippy | **ALL GREEN** |
+
+### Session 95 — WDM + AlphaFold3 GPU Tensor Validators + Drift Fix (February 28, 2026)
+
+4 new BarraCUDA GPU Tensor validators proving GPU math portability for WDM
+surrogates (nW-01 transport, nW-03 S(q,ω), nW-05 ESN) and AlphaFold3 confidence
+heads (nF-03 Phase C pLDDT/PAE/pDE). Python baseline drift fully resolved:
+isomorphic catalog shader name mappings (20% → 100% BarraCUDA coverage) and
+4 control scripts fixed for path resolution via `Path(__file__).parent`.
+
+| Action | Detail |
+|--------|--------|
+| **3 WDM GPU validators** | Transport MLP (matmul/add/relu), ESN recurrence (matmul/add/tanh/argmax), SQW LSTM (LstmGpuWeights struct) |
+| **AlphaFold3 confidence GPU** | pLDDT (sigmoid), PAE/pDE (matmul + CPU-side softmax/expected distance) |
+| **Python drift fix** | Isomorphic catalog: full BarraCUDA shader name resolution. 4 path fixes. |
+| **validate_all** | 189 binaries (was 185, +4 GPU validators) |
+
+|| Session 95: WDM+AF3 GPU validators | 4 new GPU Tensor validators, 39/39 Python drift PASS, 685 lib, 0 clippy | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

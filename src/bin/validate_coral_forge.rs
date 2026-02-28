@@ -84,7 +84,14 @@ fn main() {
     let gamma = flat_f64(&baselines["layer_norm_gamma"]);
     let beta = flat_f64(&baselines["layer_norm_beta"]);
     let ln_expected = flat_f64(&baselines["layer_norm_output"]);
-    let ln_rust = coral_forge::layer_norm(&ln_in, n_res, hidden_dim, &gamma, &beta, 1e-5);
+    let ln_rust = coral_forge::layer_norm(
+        &ln_in,
+        n_res,
+        hidden_dim,
+        &gamma,
+        &beta,
+        tolerances::LAYER_NORM_EPS,
+    );
 
     h.check_bool("LayerNorm length match", ln_rust.len() == ln_expected.len());
     let mut ln_max_diff = 0.0_f64;

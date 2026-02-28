@@ -182,6 +182,26 @@ run_experiment "Exp-053: Anderson Multi-Agent Coordination (Paper C)" \
 
 echo ""
 echo "================================================================"
+echo "  coralForge: Sovereign Structure Prediction (nF-01/02/03)"
+echo "================================================================"
+
+run_experiment "nF-01: Evoformer Primitives (AlphaFold2)" \
+    control/coral_forge/evoformer_primitives.py
+
+run_experiment "nF-02: AlphaFold2 Full Evoformer Block" \
+    control/coral_forge/alphafold2_evoformer_block.py
+
+run_experiment "nF-03a: AlphaFold3 Diffusion" \
+    control/coral_forge/alphafold3_diffusion.py
+
+run_experiment "nF-03b: AlphaFold3 Pairformer" \
+    control/coral_forge/alphafold3_pairformer.py
+
+run_experiment "nF-03c: AlphaFold3 Confidence Heads" \
+    control/coral_forge/alphafold3_confidence.py
+
+echo ""
+echo "================================================================"
 echo "  GRAND SUMMARY"
 echo "  Passed: $PASS, Failed: $FAIL, Skipped: $SKIP"
 echo "  Total: $((PASS + FAIL + SKIP)) experiments"

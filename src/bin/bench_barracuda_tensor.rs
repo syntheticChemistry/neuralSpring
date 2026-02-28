@@ -64,8 +64,10 @@ async fn main() {
         }),
         bench_op("layer_norm_wgsl (stock)", &device, |dev| {
             let t = mk_tensor(&[64, 256], dev);
+            #[allow(clippy::cast_possible_truncation)]
+            let eps = neural_spring::tolerances::LAYER_NORM_EPS as f32;
             move || {
-                let _ = t.clone().layer_norm_wgsl(1e-5);
+                let _ = t.clone().layer_norm_wgsl(eps);
             }
         }),
         bench_op("matmul", &device, |dev| {
@@ -91,8 +93,10 @@ async fn main() {
         }),
         bench_op("layer_norm_wgsl (native)", &device, |dev| {
             let t = mk_tensor(&[64, 256], dev);
+            #[allow(clippy::cast_possible_truncation)]
+            let eps = neural_spring::tolerances::LAYER_NORM_EPS as f32;
             move || {
-                let _ = t.clone().layer_norm_wgsl(1e-5);
+                let _ = t.clone().layer_norm_wgsl(eps);
             }
         }),
         bench_op("log_softmax_wgsl (native)", &device, |dev| {

@@ -42,13 +42,8 @@ use neural_spring::gpu_shader_validation::{
 };
 use neural_spring::require;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
-
-/// df64 arithmetic tolerance.
-const GPU_DF64_TOL: f64 = 1e-6;
-
-/// df64 transcendental tolerance.
-const GPU_DF64_TRANS_TOL: f64 = 5e-4;
 
 // ─── Attention params (shared by SDPA scores, apply, and pipeline) ───
 
@@ -127,7 +122,12 @@ fn validate_sdpa_scores(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  SDPA scores GPU max diff: {md:.2e}");
-    h.check_abs("SDPA scores GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "SDPA scores GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool(
         "SDPA scores GPU finite",
         result.iter().all(|v| v.is_finite()),
@@ -194,7 +194,12 @@ fn validate_attention_apply(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  AttnApply GPU max diff: {md:.2e}");
-    h.check_abs("AttnApply GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "AttnApply GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool("AttnApply GPU finite", result.iter().all(|v| v.is_finite()));
 }
 
@@ -308,7 +313,12 @@ fn validate_sdpa_pipeline(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  SDPA pipeline GPU max diff: {md:.2e}");
-    h.check_abs("SDPA pipeline GPU max diff", md, 0.0, GPU_DF64_TRANS_TOL);
+    h.check_abs(
+        "SDPA pipeline GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_TRANSCENDENTAL,
+    );
     h.check_bool(
         "SDPA pipeline GPU finite",
         result.iter().all(|v| v.is_finite()),
@@ -416,7 +426,12 @@ fn validate_ipa_scores(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  IPA scores GPU max diff: {md:.2e}");
-    h.check_abs("IPA scores GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "IPA scores GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool(
         "IPA scores GPU finite",
         result.iter().all(|v| v.is_finite()),
@@ -493,7 +508,12 @@ fn validate_backbone_update(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  Backbone GPU max diff: {md:.2e}");
-    h.check_abs("Backbone GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "Backbone GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool("Backbone GPU finite", result.iter().all(|v| v.is_finite()));
     h.check_bool("Backbone GPU nonzero", result.iter().any(|v| *v != 0.0));
 }
@@ -563,7 +583,12 @@ fn validate_torsion_angles(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  Torsion GPU max diff: {md:.2e}");
-    h.check_abs("Torsion GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "Torsion GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool("Torsion GPU finite", result.iter().all(|v| v.is_finite()));
 
     let mut unit_ok = true;

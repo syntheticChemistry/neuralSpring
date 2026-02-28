@@ -59,10 +59,11 @@ python3 control/surrogate/surrogate_validation.py
 | `training_trajectory/` | Exp-050: Training trajectory spectral analysis | baseCamp Paper A | 11 |
 | `hessian_eigenanalysis/` | Exp-052: Hessian eigenanalysis at minima | baseCamp Paper D | 8 |
 | `anderson_multiagent/` | Exp-053: Anderson multi-agent coordination | baseCamp Paper C | 11 |
+| `coral_forge/` | nF-01/02/03: coralForge structure prediction | AlphaFold2/3 | 106 |
 | `shared/` | Open-Meteo ERA5 fetch/cache | CC BY 4.0 | — |
 | `ml_inference/` | Benchmark + baseline generation | Scaling analysis | — |
 
-**Total: 263/263 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 27 WDM)
+**Total: 369/369 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 27 WDM + 106 coralForge)
 
 ## Data Sources
 

@@ -94,6 +94,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             TENSOR_EXACT_F32, TENSOR_TRANSCENDENTAL_F32,
             TENSOR_MATMUL_F32, TENSOR_NORM_F32,
             LAYER_NORM_EPS,
+            GPU_DF64_ARITHMETIC, GPU_DF64_TRANSCENDENTAL,
         ],
         "gpu_f64": [
             GPU_F64_EXACT, GPU_F64_TRANSCENDENTAL, GPU_F64_STATS,

@@ -15,13 +15,13 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Cast safety**: `cpu_fallback.rs` activator indices now bounds-checked via `safe_idx()`.
 - **Provenance docs**: All 34 `BaselineProvenance` constants documented with `///` comments.
 - **Dependency analysis**: All 12 external deps are pure Rust, zero C/C++ wrappers, documented in EVOLUTION_READINESS.md.
-- **Metrics**: 197 binaries, 685 lib tests, 9 integration, 139+ named tolerances, 0 clippy pedantic warnings, 0 doc warnings. All quality gates green.
+- **Metrics**: 201 binaries, 685 lib tests, 9 integration, 139+ named tolerances, 0 clippy pedantic warnings, 0 doc warnings. All quality gates green.
 
 ### Session 93 — Deep Debt Evolution + nF-03 Phase C Confidence Heads (February 28, 2026)
 
 - **Deep debt evolution**: `dispatch_ops.rs` (842→7 domain files), `gpu_ops/mod.rs` (668→38+tests_ops). Iterator evolution across 6 core modules. Self-identification→`env!("CARGO_PKG_NAME")`. `.unwrap()`→`.expect()`.
 - **nF-03 Phase C: Confidence Heads**: pLDDT, PAE, pDE, ranking score — Py 19/19, Rs 16/16, 7 new unit tests. New `coral_forge/confidence.rs` module.
-- **Metrics**: 197 binaries, 685 lib tests, **185/185 validate_all**, 39 Python drift baselines. 5 clippy warnings (all pre-existing pedantic).
+- **Metrics**: 201 binaries, 685 lib tests, **189/189 validate_all**, 39 Python drift baselines. 5 clippy warnings (all pre-existing pedantic).
 
 ### Session 92 — nF-03 AlphaFold3 Phase A+B (February 27, 2026)
 

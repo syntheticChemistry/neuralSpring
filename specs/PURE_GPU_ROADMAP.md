@@ -116,10 +116,10 @@ genuine GPU computation via log→scale→exp→div pipeline.
 | `meta_population.rs` | `thermal_diversity_correlation()` | `thermal_diversity_correlation_gpu` | **Low** | **GPU (S46)** |
 | `meta_population.rs` | `inter_population_af_variance()` | `inter_population_af_variance_gpu` | **Medium** | **GPU (S46)** |
 | `game_theory.rs` | `replicator_dynamics()` step | `replicator_step_gpu` (matmul) | **Low** | **GPU (S46)** |
-| `signal_integration.rs` | `integrate_ode()` (full RK4 loop) | Batch ODE on GPU (needs PRNG) | **Medium** | Pending |
-| `regulatory_network.rs` | `integrate_grn()` (full RK4 loop) | Batch ODE on GPU | **Medium** | Pending |
-| `meta_population.rs` | `global_fst()` / `pairwise_fst()` | Variance decomposition shader | **Medium** | Pending |
-| `introgression.rs` | `detect_introgression()` → HMM chain | `HmmBatchForwardF64` + Viterbi | **Medium** | Pending |
+| `signal_integration.rs` | `integrate_ode()` (full RK4 loop) | Batch ODE on GPU | **Medium** | **GPU (S66)** — `validate_gpu_ode_batch` |
+| `regulatory_network.rs` | `integrate_grn()` (full RK4 loop) | Batch ODE on GPU | **Medium** | **GPU (S66)** — `validate_gpu_ode_batch` |
+| `meta_population.rs` | `global_fst()` / `pairwise_fst()` | Variance decomposition shader | **Medium** | **GPU (S66)** — `pairwise_fst_gpu` / `global_fst_gpu` |
+| `introgression.rs` | `detect_introgression()` → HMM chain | `HmmBatchForwardF64` + Viterbi | **Medium** | **GPU (S66)** — `hmm_forward_chain_gpu` / `hmm_viterbi_chain_gpu` |
 | `pangenome_selection.rs` | `spectrum_chi_squared()` | `spectrum_chi_squared_gpu` | **Medium** | **GPU (S47)** |
 | `pangenome_selection.rs` | `selection_coefficient()` | `selection_coefficient_gpu` | **Low** | **GPU (S47)** |
 

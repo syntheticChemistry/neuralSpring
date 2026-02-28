@@ -33,6 +33,7 @@ use neural_spring::coral_forge::confidence;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use serde_json::Value;
+use std::io::BufReader;
 
 fn flat_f64(v: &Value) -> Vec<f64> {
     match v {
@@ -51,14 +52,14 @@ fn main() {
 
     let json_path =
         neural_spring::validation::baseline_path("control/coral_forge/confidence_baselines.json");
-    let data = match std::fs::read_to_string(&json_path) {
-        Ok(d) => d,
+    let file = match std::fs::File::open(&json_path) {
+        Ok(f) => f,
         Err(e) => {
             eprintln!("Run alphafold3_confidence.py first: {e}");
             std::process::exit(1);
         }
     };
-    let baselines: Value = match serde_json::from_str(&data) {
+    let baselines: Value = match serde_json::from_reader(BufReader::new(file)) {
         Ok(v) => v,
         Err(e) => {
             h.check_bool(&format!("parse confidence_baselines.json: {e}"), false);
@@ -153,7 +154,7 @@ fn main() {
 
         let probs_sum_ok = rs_probs.chunks_exact(n_bins_pae).all(|row| {
             let s: f64 = row.iter().sum();
-            (s - 1.0).abs() < 1e-10
+            (s - 1.0).abs() < tolerances::CROSS_LANGUAGE
         });
         h.check_bool("nF-C02c PAE probs sum to 1", probs_sum_ok);
     }
@@ -195,7 +196,7 @@ fn main() {
 
         let probs_sum_ok = rs_probs.chunks_exact(n_bins_pde).all(|row| {
             let s: f64 = row.iter().sum();
-            (s - 1.0).abs() < 1e-10
+            (s - 1.0).abs() < tolerances::CROSS_LANGUAGE
         });
         h.check_bool("nF-C03c pDE probs sum to 1", probs_sum_ok);
 

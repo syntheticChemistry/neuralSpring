@@ -78,7 +78,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 064 | Session 88+ — Modern Rewire: Cross-Spring GPU Evolution Benchmarking | Feb 27, 2026 | 3 high-impact rewires: `pairwise_l2_matrix_gpu`→`PairwiseL2Gpu` (1 dispatch vs O(n²)), `geographic_distance_matrix_gpu`→`PairwiseL2Gpu`, `disorder_sweep_gpu` IPR→`BatchIprGpu`. `bench_modern_rewire` 23/23 PASS. Cross-spring provenance tracked: hotSpring precision→eigensolve, wetSpring bio→diversity, neuralSpring ML→pairwise. 173 binaries, 172/173 validate\_all |
 | 065 | BarraCUDA CPU Parity & GPU Portability | Feb 27, 2026 | Cross-language benchmark: Python/NumPy vs pure Rust (83.6× geomean), CPU→GPU portability (7 domains), ToadStool streaming (25+9=34 checks) |
 | 066 | Session 89 — Dispatch Parity, Mixed-Hardware Dispatch, Upstream BarraCUDA Wiring | Feb 27, 2026 | +3 upstream BarraCUDA ops (HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu), NPU substrate type, dispatch parity 30/30, mixed-hardware dispatch 47/47, 177/177 validate\_all, V60 handoff |
-| 067 | Sessions 92–93 — nF-03 AlphaFold3 Phases A+B+C + Deep Debt Evolution | Feb 28, 2026 | Diffusion (Py 29/29, Rs 26/26), Pairformer (Py 14/14, Rs 13/13), Confidence heads (Py 19/19, Rs 16/16). dispatch\_ops.rs split 7 domain files. 197 binaries, 185/185 validate\_all, 685 lib tests |
+| 067 | Sessions 92–93 — nF-03 AlphaFold3 Phases A+B+C + Deep Debt Evolution | Feb 28, 2026 | Diffusion (Py 29/29, Rs 26/26), Pairformer (Py 14/14, Rs 13/13), Confidence heads (Py 19/19, Rs 16/16). dispatch\_ops.rs split 7 domain files. 201 binaries, 189/189 validate\_all, 685 lib tests |
 | 068 | Session 94 — coralForge Rename + Deep Debt Resolution | Feb 28, 2026 | sovereign\_folding+structure\_module→coral\_forge, 5 domain tolerance guards, 24 expect→require!, cast safety, 34 provenance docs, dependency analysis. 139+ tolerances, 0 clippy, 0 doc warnings |
 
 ---
@@ -3750,6 +3750,62 @@ exercise NUCLEUS atomic patterns end-to-end.
 | `cargo doc --no-deps` | 0 warnings |
 | `cargo test --workspace` | PASS |
 | `validate_all` | **177/177 PASS** |
+
+**Status**: COMPLETE
+
+---
+
+## Exp 067: WDM + AlphaFold3 GPU Tensor Validators + Drift Fix (Session 95)
+
+**Date**: February 28, 2026
+**Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!\_OS 22.04)
+**Motivation**: Close GPU Tensor (gT) coverage gaps for WDM surrogates and
+AlphaFold3 confidence heads. Resolve Python baseline drift in `check_drift.sh`.
+Prove BarraCUDA Tensor API is sufficient for MLP, ESN, LSTM, and confidence
+head architectures.
+
+### What We Did
+
+1. Built `validate_barracuda_wdm_transport` — GPU MLP forward (matmul/add/relu)
+   for nW-01 transport surrogate. Compares f32 GPU output against f64 CPU reference.
+2. Built `validate_barracuda_wdm_esn` — GPU ESN recurrence (matmul/add/tanh/argmax)
+   for nW-05 regime classifier. Required `.clone()` for tensor reuse in recurrence.
+3. Built `validate_barracuda_wdm_sqw` — GPU LSTM unroll for nW-03 S(q,ω) predictor.
+   Introduced `LstmGpuWeights` struct. Sigmoid/tanh activations computed CPU-side
+   due to Tensor API operating on full tensors vs per-gate splits.
+4. Built `validate_barracuda_alphafold3_confidence_gpu` — GPU pLDDT (sigmoid),
+   PAE/pDE (matmul + CPU-side softmax). Identified `softmax_dim` gap.
+5. Fixed `control/isomorphic/isomorphic_catalog.py` — BarraCUDA shader name
+   resolution from 20% to 100% coverage.
+6. Fixed 4 control scripts (`alphafold3_confidence`, `training_trajectory`,
+   `hessian_eigenanalysis`, `anderson_multiagent`) — `Path(__file__).parent` for
+   path-independent baseline output.
+7. Registered all 4 new validators in `Cargo.toml` and `validate_all.rs`.
+8. Resolved all clippy pedantic + nursery warnings (let-else, mul_add, etc.).
+
+### Findings
+
+- **MLP GPU promotion is trivial**: matmul→add→relu maps 1:1 to Tensor API.
+- **ESN/LSTM hit move semantics**: `Tensor::matmul` consumes self, requiring
+  `.clone()` for recurrent reuse. Suggests `matmul_ref` or LSTM-specific API.
+- **LSTM gate splitting forces CPU round-trip**: Without `Tensor::split`, each
+  timestep requires GPU→CPU readback for sigmoid/tanh on individual gates.
+- **Confidence heads expose softmax dimensionality gap**: `Tensor::softmax()` is
+  global; PAE/pDE need row-wise softmax. `softmax_dim(axis)` would close this.
+- **Python drift was a naming/path issue, not a math issue**: All baselines were
+  always mathematically correct; failures were due to outdated shader names in
+  the isomorphic catalog and hardcoded output paths in control scripts.
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy -- -W clippy::pedantic -W clippy::nursery` | 0 warnings |
+| `cargo doc --no-deps` | 0 warnings (202 pages) |
+| `cargo test` | 685 lib + 9 doc-tests PASS |
+| `check_drift.sh` | **39/39 PASS** |
+| `validate_all` entries | **189 binaries** |
 
 **Status**: COMPLETE
 

@@ -59,16 +59,55 @@ impl PcieBridge {
 /// Returns `false` on non-Linux platforms or when sysfs is inaccessible
 /// (conservative fallback — never claims P2P when it cannot verify).
 #[must_use]
-pub const fn detect_p2p(_adapter_a: &str, _adapter_b: &str) -> bool {
-    // P2P requires identifying the PCI BDF (Bus:Device.Function) for each
-    // adapter, then comparing IOMMU groups.  wgpu doesn't expose BDF, so
-    // we cannot resolve adapter names to PCI topology yet.
-    //
-    // When wgpu exposes `VK_EXT_external_memory_host` or PCI bus info,
-    // this will perform real IOMMU group comparison via:
-    //   /sys/bus/pci/devices/{BDF}/iommu_group → same group = P2P likely
-    //
-    // Until then: conservative false.  No P2P claim without proof.
+pub fn detect_p2p(adapter_a: &str, adapter_b: &str) -> bool {
+    detect_p2p_impl(adapter_a, adapter_b)
+}
+
+#[cfg(target_os = "linux")]
+fn detect_p2p_impl(adapter_a: &str, adapter_b: &str) -> bool {
+    // Attempt to match adapter names to PCI devices via sysfs.
+    // Each PCI device at /sys/bus/pci/devices/{BDF}/ contains a symlink
+    // `iommu_group` → ../../../kernel/iommu_groups/{N}.
+    // If two GPU devices share the same IOMMU group, P2P DMA is likely.
+    let Ok(entries) = std::fs::read_dir("/sys/bus/pci/devices") else {
+        return false;
+    };
+
+    let mut group_a = None;
+    let mut group_b = None;
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let Ok(vendor) = std::fs::read_to_string(path.join("vendor")) else {
+            continue;
+        };
+        let Ok(device_id) = std::fs::read_to_string(path.join("device")) else {
+            continue;
+        };
+        let label_hint = format!("{}:{}", vendor.trim(), device_id.trim());
+
+        let Ok(iommu_link) = std::fs::read_link(path.join("iommu_group")) else {
+            continue;
+        };
+        let group_id = iommu_link
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("");
+
+        if adapter_a.contains(&label_hint) || label_hint.contains(adapter_a) {
+            group_a = Some(group_id.to_string());
+        }
+        if adapter_b.contains(&label_hint) || label_hint.contains(adapter_b) {
+            group_b = Some(group_id.to_string());
+        }
+    }
+
+    // Only claim P2P when both devices are found AND share an IOMMU group.
+    matches!((group_a, group_b), (Some(a), Some(b)) if !a.is_empty() && a == b)
+}
+
+#[cfg(not(target_os = "linux"))]
+fn detect_p2p_impl(_adapter_a: &str, _adapter_b: &str) -> bool {
     false
 }
 

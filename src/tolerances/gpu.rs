@@ -580,3 +580,23 @@ pub const DISPATCH_COST_RATIO_MIN: f64 = 0.8;
 
 /// CPU/GPU dispatch cost ratio upper bound.
 pub const DISPATCH_COST_RATIO_MAX: f64 = 1.3;
+
+// ═══════════════════════════════════════════════════════════════════
+// coralForge df64 core streaming (f64 buffer I/O → df64 compute → f64 output)
+// ═══════════════════════════════════════════════════════════════════
+
+/// df64 arithmetic tolerance — dot products, matrix ops, accumulations.
+///
+/// df64 (double-float emulated on FP32 cores) provides ~15 digits of
+/// precision for basic arithmetic.  Dot products and matrix multiplications
+/// accumulate rounding proportional to problem size; for Evoformer-scale
+/// tensors (N ≤ 256, C ≤ 64), 1e-6 accommodates the df64 accumulation error.
+pub const GPU_DF64_ARITHMETIC: f64 = 1e-6;
+
+/// df64 transcendental tolerance — `exp_df64`, `tanh_df64`, softmax, GELU.
+///
+/// df64 transcendentals use polynomial approximations that lose ~3 digits
+/// vs native f64 libm.  For Evoformer operations involving exp/tanh chains
+/// (softmax rows, GELU activation, SDPA pipeline), 5e-4 covers the
+/// observed max diff on RTX 4070 Hybrid FP64 strategy.
+pub const GPU_DF64_TRANSCENDENTAL: f64 = 5e-4;

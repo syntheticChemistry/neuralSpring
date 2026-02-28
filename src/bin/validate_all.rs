@@ -195,6 +195,9 @@ const BINARIES: &[&str] = &[
     // WDM Surrogate Extensions (nW-01..nW-05)
     "validate_wdm_eos",
     "validate_barracuda_wdm_eos",
+    "validate_barracuda_wdm_transport",
+    "validate_barracuda_wdm_esn",
+    "validate_barracuda_wdm_sqw",
     "validate_wdm_transport",
     "validate_wdm_transfer",
     "validate_wdm_sqw",
@@ -232,6 +235,7 @@ const BINARIES: &[&str] = &[
     "validate_alphafold3_diffusion",
     "validate_alphafold3_pairformer",
     "validate_alphafold3_confidence",
+    "validate_barracuda_alphafold3_confidence_gpu",
     "validate_barracuda_alphafold2",
     // Phase B gap closure: ODE batch GPU + FST + introgression HMM chain
     "validate_gpu_ode_batch",

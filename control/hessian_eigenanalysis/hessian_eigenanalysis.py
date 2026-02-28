@@ -27,6 +27,7 @@ Environment: Python 3.12, PyTorch 2.9.0+cu128, NumPy
 
 import json
 import sys
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -322,9 +323,9 @@ def run_checks():
         ],
         "correlation_maxeval_testloss": corr_eval_loss,
     }
-    with open("control/hessian_eigenanalysis/baseline_values.json", "w") as f:
+    with open(Path(__file__).parent / "baseline_values.json", "w") as f:
         json.dump(baseline, f, indent=2)
-    print(f"\nBaseline values → control/hessian_eigenanalysis/baseline_values.json")
+    print(f"\nBaseline values → {Path(__file__).parent / 'baseline_values.json'}")
 
     print(f"\n{'=' * 70}")
     print(f"Exp-052: {passed}/{total} PASS")

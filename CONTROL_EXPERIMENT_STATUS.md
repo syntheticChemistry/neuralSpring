@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 28, 2026 (Sessions 44–94 — coralForge rename, deep debt resolution, nF-03 Phase C confidence heads, dispatch domain split, iterator evolution)
+**Last updated**: February 28, 2026 (Sessions 44–95 — coralForge rename, deep debt resolution, nF-03 Phase C confidence heads, dispatch domain split, iterator evolution, WDM+AlphaFold3 GPU Tensor validators)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 282/282 Python PASS + 2858+ Rust+GPU validation PASS = **3200+ total validation checks**
-**Library**: 685 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 197 validation/bench binaries
+**Library**: 685 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 201 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 9 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 5/5 sub-theses PASS) — Sessions 50, 54, 56, 77
@@ -13,8 +13,8 @@
 **Multi-GPU**: 133/133 PASS on RTX 4070 (Vulkan) + **384/384 PASS on TITAN V (NVK GV100)** — bit-identical
 **GPU Promotion**: 47 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math, +3: hill_gate, multi_obj_fitness, swarm_nn_forward)
 **Pure GPU All-Domains**: 10/10 PASS — `validate_gpu_pure_workload_all` (9 typed BarraCUDA GPU ops across all 15 Phase 0++ papers + determinism check, scalar-only readback)
-**WDM Surrogates**: 5 Python baselines (33/33 PASS) + 6 Rust validators (153/153 PASS incl. GPU) — nW-01 transport, nW-02 EOS, nW-03 S(q,ω), nW-04 transfer, nW-05 ESN regime — `wdm_surrogate.rs`, `wdm_transport.rs`, `wdm_sqw.rs`, `wdm_esn.rs` modules
-**Publication Experiments (S88+)**: Exp-050 (Py 11/11, Rs 12/12, GPU 9/9), Exp-052 (Py 8/8, Rs 14/14, GPU 10/10), Exp-053 (Py 11/11, Rs 18/18, GPU 11/11). Pure GPU pipeline + metalForge cross-system: 13/13. Mixed-hardware NUCLEUS: 43/43. Phase 4 shader validation: 22/22. Streaming spectral pipeline: 28/28. **Dispatch parity: 30/30. Mixed-hardware dispatch: 47/47.** **197 binaries, 185/185 validate\_all**
+**WDM Surrogates**: 5 Python baselines (33/33 PASS) + 6 Rust validators (153/153 PASS incl. GPU) + 3 GPU Tensor validators (nW-01 transport, nW-03 S(q,ω), nW-05 ESN) — `wdm_surrogate.rs`, `wdm_transport.rs`, `wdm_sqw.rs`, `wdm_esn.rs` modules
+**Publication Experiments (S88+)**: Exp-050 (Py 11/11, Rs 12/12, GPU 9/9), Exp-052 (Py 8/8, Rs 14/14, GPU 10/10), Exp-053 (Py 11/11, Rs 18/18, GPU 11/11). Pure GPU pipeline + metalForge cross-system: 13/13. Mixed-hardware NUCLEUS: 43/43. Phase 4 shader validation: 22/22. Streaming spectral pipeline: 28/28. **Dispatch parity: 30/30. Mixed-hardware dispatch: 47/47.** **201 binaries, 189/189 validate\_all**
 **NUCLEUS Compute Dispatch**: Tower discovery + Node eigensolve/Anderson/Hessian + Nest provenance + mixed atomic coordination + PCIe bypass: **39/39 PASS**. `validate_nucleus_compute_dispatch`
 **ToadStool Absorption Readiness**: CPU correctness (eigh/Anderson/Hamiltonian) + GPU parity (3 matrix sizes) + batch scaling + mixed substrate: **294/294 PASS**. `validate_toadstool_spectral_absorption`
 **biomeOS Integration**: neuralSpring registered as science primal. 7 capabilities (spectral\_analysis, anderson\_localization, hessian\_eigen, agent\_coordination, ipr, disorder\_sweep, training\_trajectory). `neuralspring_primal` JSON-RPC server. `validate_biomeos_spectral`: **29/29 PASS**. NUCLEUS ready (all plasmidBin primals built)
@@ -808,3 +808,29 @@ from `17932267` (S65) to `e96576ee` (S68).
 | `cargo test -p neural-spring-forge --lib` | **43/43 PASS** |
 | `cargo clippy --all-targets -D warnings` | **0 warnings** |
 | `validate_all` | **150/150 PASS** |
+
+### Session 95 — WDM + AlphaFold3 GPU Tensor Validators + Drift Fix (February 28, 2026)
+
+4 new BarraCUDA GPU Tensor validators for WDM surrogates and AlphaFold3 confidence
+heads. Python baseline drift fixes (path resolution + isomorphic catalog shader names).
+All quality gates green.
+
+| Change | Scope | Result |
+|--------|-------|--------|
+| `validate_barracuda_wdm_transport` (NEW) | nW-01: GPU MLP forward (matmul, add, relu) vs CPU f64 | **BUILT** (ML_MLP_F32 tol) |
+| `validate_barracuda_wdm_esn` (NEW) | nW-05: GPU ESN recurrence + readout (matmul, add, tanh, argmax_dim) | **BUILT** (TENSOR_TRANSCENDENTAL_F32 tol) |
+| `validate_barracuda_wdm_sqw` (NEW) | nW-03: GPU LSTM unroll + pooling + readout via LstmGpuWeights struct | **BUILT** (ML_MLP_F32 tol) |
+| `validate_barracuda_alphafold3_confidence_gpu` (NEW) | nF-03 Phase C: GPU pLDDT (sigmoid), PAE/pDE (matmul + CPU softmax) | **BUILT** (TENSOR_TRANSCENDENTAL_F32 / ML_MLP_F32×2 tol) |
+| Python drift fix: isomorphic catalog | BarraCUDA shader name resolution (20% → 100% coverage) | **39/39 PASS** |
+| Python drift fix: path resolution | 4 scripts (alphafold3, trajectory, hessian, anderson) → `Path(__file__).parent` | **39/39 PASS** |
+| `validate_all.rs` updated | 4 new GPU validator entries | **189 binaries** |
+
+**Quality gates** (all pass):
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy -- -W clippy::pedantic -W clippy::nursery` | PASS (0 warnings) |
+| `cargo doc --no-deps` | PASS (202 pages) |
+| `cargo test` | PASS (685 lib + 9 doc-tests) |
+| `check_drift.sh` | PASS (39/39 baselines, 0 drift) |

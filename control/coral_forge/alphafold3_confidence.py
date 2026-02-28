@@ -11,6 +11,8 @@ Seed: 42 (deterministic across all platforms).
 """
 import json
 import math
+from pathlib import Path
+
 import numpy as np
 
 SEED = 42
@@ -195,7 +197,7 @@ baselines["n_bins_pae"] = N_BINS_PAE
 baselines["n_bins_pde"] = N_BINS_PDE
 baselines["max_pde"] = MAX_PDE
 
-out = "control/coral_forge/confidence_baselines.json"
+out = Path(__file__).parent / "confidence_baselines.json"
 with open(out, "w") as f:
     json.dump(baselines, f)
 

@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 28, 2026 (Sessions 40–94 — S94: coralForge rename, deep debt resolution, 5 domain tolerance guards, 24 expect→require!, dependency analysis. 197 binaries, **185/185 validate\_all**, 685 lib tests, 3200+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules)
+**Last Updated**: February 28, 2026 (Sessions 40–94 — S94: coralForge rename, deep debt resolution, 5 domain tolerance guards, 24 expect→require!, dependency analysis. 201 binaries, **189/189 validate\_all**, 685 lib tests, 3200+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1089,4 +1089,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 28, 2026. Sessions 50–93: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 197 binaries, 685 lib + 43 forge + 9 integration tests, 185/185 validate\_all (3200+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S93: deep debt evolution — dispatch\_ops.rs split into 7 domain files, iterator modernization across 6 modules, self-id via env!. nF-03 Phase C confidence heads (Py 62/62, Rs 55/55, 18 unit tests). ToadStool S68: ZERO f32-only shaders, 700 WGSL f64-canonical, 2608 barracuda tests. V61 handoff.*
+*BarraCUDA usage audit — neuralSpring, February 28, 2026. Sessions 50–93: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 201 binaries, 685 lib + 43 forge + 9 integration tests, 189/189 validate\_all (3200+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S93: deep debt evolution — dispatch\_ops.rs split into 7 domain files, iterator modernization across 6 modules, self-id via env!. nF-03 Phase C confidence heads (Py 62/62, Rs 55/55, 18 unit tests). ToadStool S68: ZERO f32-only shaders, 700 WGSL f64-canonical, 2608 barracuda tests. V61 handoff.*

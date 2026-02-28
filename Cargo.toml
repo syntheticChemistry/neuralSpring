@@ -712,6 +712,18 @@ name = "validate_barracuda_wdm_eos"
 path = "src/bin/validate_barracuda_wdm_eos.rs"
 
 [[bin]]
+name = "validate_barracuda_wdm_transport"
+path = "src/bin/validate_barracuda_wdm_transport.rs"
+
+[[bin]]
+name = "validate_barracuda_wdm_esn"
+path = "src/bin/validate_barracuda_wdm_esn.rs"
+
+[[bin]]
+name = "validate_barracuda_wdm_sqw"
+path = "src/bin/validate_barracuda_wdm_sqw.rs"
+
+[[bin]]
 name = "validate_wdm_transport"
 path = "src/bin/validate_wdm_transport.rs"
 
@@ -781,6 +793,10 @@ path = "src/bin/validate_alphafold3_pairformer.rs"
 [[bin]]
 name = "validate_alphafold3_confidence"
 path = "src/bin/validate_alphafold3_confidence.rs"
+
+[[bin]]
+name = "validate_barracuda_alphafold3_confidence_gpu"
+path = "src/bin/validate_barracuda_alphafold3_confidence_gpu.rs"
 
 [[bin]]
 name = "validate_coral_forge_gpu"

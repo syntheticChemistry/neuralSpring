@@ -33,7 +33,7 @@ pub fn handle_health(id: serde_json::Value, state: &PrimalState) -> JsonRpcRespo
         id,
         serde_json::json!({
             "status": "healthy",
-            "primal": "neuralspring",
+            "primal": env!("CARGO_PKG_NAME"),
             "version": env!("CARGO_PKG_VERSION"),
             "capabilities": super::ALL_CAPABILITIES,
             "hardware": hardware,

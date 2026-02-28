@@ -44,13 +44,8 @@ use neural_spring::gpu_shader_validation::{
 };
 use neural_spring::require;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
-
-/// df64 arithmetic tolerance — dot products, matrix ops, accumulations.
-const GPU_DF64_TOL: f64 = 1e-6;
-
-/// df64 transcendental tolerance — `exp_df64`, `tanh_df64`, etc.
-const GPU_DF64_TRANS_TOL: f64 = 5e-4;
 
 // ─── GELU ────────────────────────────────────────────────────────────
 
@@ -88,7 +83,12 @@ fn validate_gelu(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  GELU GPU max diff: {md:.2e}");
-    h.check_abs("GELU GPU max diff", md, 0.0, GPU_DF64_TRANS_TOL);
+    h.check_abs(
+        "GELU GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_TRANSCENDENTAL,
+    );
     h.check_bool("GELU GPU finite", result.iter().all(|v| v.is_finite()));
 }
 
@@ -144,7 +144,12 @@ fn validate_triangle_outgoing(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  TriMul outgoing GPU max diff: {md:.2e}");
-    h.check_abs("TriMul outgoing GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "TriMul outgoing GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool(
         "TriMul outgoing GPU finite",
         result.iter().all(|v| v.is_finite()),
@@ -203,7 +208,12 @@ fn validate_triangle_incoming(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  TriMul incoming GPU max diff: {md:.2e}");
-    h.check_abs("TriMul incoming GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "TriMul incoming GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool(
         "TriMul incoming GPU finite",
         result.iter().all(|v| v.is_finite()),
@@ -278,7 +288,12 @@ fn validate_triangle_attention(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  TriAttn scores GPU max diff: {md:.2e}");
-    h.check_abs("TriAttn scores GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "TriAttn scores GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool(
         "TriAttn scores GPU finite",
         result.iter().all(|v| v.is_finite()),
@@ -333,7 +348,12 @@ fn validate_softmax(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  Softmax GPU max diff: {md:.2e}");
-    h.check_abs("Softmax GPU max diff", md, 0.0, GPU_DF64_TRANS_TOL);
+    h.check_abs(
+        "Softmax GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_TRANSCENDENTAL,
+    );
 
     for row in 0..rows as usize {
         let sum: f64 = result[row * cols as usize..(row + 1) * cols as usize]
@@ -343,7 +363,7 @@ fn validate_softmax(h: &mut ValidationHarness, gpu: &Gpu) {
             &format!("Softmax GPU row {row} sum"),
             sum,
             1.0,
-            GPU_DF64_TRANS_TOL,
+            tolerances::GPU_DF64_TRANSCENDENTAL,
         );
     }
 }
@@ -366,7 +386,7 @@ fn validate_layer_norm(h: &mut ValidationHarness, gpu: &Gpu) {
         hidden_dim as usize,
         &gamma,
         &beta,
-        1e-5,
+        tolerances::LAYER_NORM_EPS,
     );
 
     let shader =
@@ -381,6 +401,8 @@ fn validate_layer_norm(h: &mut ValidationHarness, gpu: &Gpu) {
         eps_lo: f32,
     }
 
+    #[allow(clippy::cast_possible_truncation)]
+    let eps_hi = tolerances::LAYER_NORM_EPS as f32;
     let in_buf = upload_f64(gpu, &input, "ln_in");
     let gamma_buf = upload_f64(gpu, &gamma, "gamma");
     let beta_buf = upload_f64(gpu, &beta, "beta");
@@ -390,7 +412,7 @@ fn validate_layer_norm(h: &mut ValidationHarness, gpu: &Gpu) {
         &P {
             seq_len,
             hidden_dim,
-            eps_hi: 1e-5,
+            eps_hi,
             eps_lo: 0.0,
         },
         "ln_params",
@@ -413,7 +435,12 @@ fn validate_layer_norm(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  LayerNorm GPU max diff: {md:.2e}");
-    h.check_abs("LayerNorm GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "LayerNorm GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool("LayerNorm GPU finite", result.iter().all(|v| v.is_finite()));
 }
 
@@ -479,7 +506,7 @@ fn validate_outer_product_mean(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  OPM GPU max diff: {md:.2e}");
-    h.check_abs("OPM GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs("OPM GPU max diff", md, 0.0, tolerances::GPU_DF64_ARITHMETIC);
     h.check_bool("OPM GPU finite", result.iter().all(|v| v.is_finite()));
 }
 
@@ -551,7 +578,12 @@ fn validate_msa_row_attention(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  MSA row scores GPU max diff: {md:.2e}");
-    h.check_abs("MSA row scores GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "MSA row scores GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool(
         "MSA row scores GPU finite",
         result.iter().all(|v| v.is_finite()),
@@ -621,7 +653,12 @@ fn validate_msa_col_attention(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  MSA col scores GPU max diff: {md:.2e}");
-    h.check_abs("MSA col scores GPU max diff", md, 0.0, GPU_DF64_TOL);
+    h.check_abs(
+        "MSA col scores GPU max diff",
+        md,
+        0.0,
+        tolerances::GPU_DF64_ARITHMETIC,
+    );
     h.check_bool(
         "MSA col scores GPU finite",
         result.iter().all(|v| v.is_finite()),

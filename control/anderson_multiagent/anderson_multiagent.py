@@ -27,6 +27,7 @@ Environment: Python 3.12, NumPy
 
 import json
 import sys
+from pathlib import Path
 
 import numpy as np
 
@@ -311,9 +312,9 @@ def run_checks() -> tuple:
         "deterministic_ipr": r1["mean_ipr"],
         "deterministic_lsr": r1["interior_lsr"],
     }
-    with open("control/anderson_multiagent/baseline_values.json", "w") as f:
+    with open(Path(__file__).parent / "baseline_values.json", "w") as f:
         json.dump(baseline, f, indent=2)
-    print(f"\nBaseline values → control/anderson_multiagent/baseline_values.json")
+    print(f"\nBaseline values → {Path(__file__).parent / 'baseline_values.json'}")
 
     print(f"\n{'=' * 70}")
     print(f"Exp-053: {passed}/{total} PASS")

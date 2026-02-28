@@ -114,6 +114,9 @@ pub struct PrimalState {
     pub requests_served: AtomicU64,
 }
 
+const PRIMAL_NAME: &str = env!("CARGO_PKG_NAME");
+const ORCHESTRATOR_SOCKET: &str = "biomeOS.sock";
+
 pub const ALL_CAPABILITIES: &[&str] = &[
     "science.spectral_analysis",
     "science.anderson_localization",
@@ -268,7 +271,7 @@ async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -> Js
 // ═══════════════════════════════════════════════════════════════════
 
 async fn register_with_biomeos(our_socket: &std::path::Path) {
-    let biomeos_socket = resolve_socket_dir().join("biomeOS.sock");
+    let biomeos_socket = resolve_socket_dir().join(ORCHESTRATOR_SOCKET);
     if !biomeos_socket.exists() {
         eprintln!(
             "[biomeos] No orchestrator found at {}, running standalone",
@@ -281,7 +284,7 @@ async fn register_with_biomeos(our_socket: &std::path::Path) {
         &biomeos_socket,
         "lifecycle.register",
         &serde_json::json!({
-            "name": "neuralspring",
+            "name": PRIMAL_NAME,
             "socket_path": our_socket.to_string_lossy(),
             "pid": std::process::id(),
         }),
@@ -298,7 +301,7 @@ async fn register_with_biomeos(our_socket: &std::path::Path) {
             &biomeos_socket,
             "capability.register",
             &serde_json::json!({
-                "primal": "neuralspring",
+                "primal": PRIMAL_NAME,
                 "capability": cap,
                 "socket_path": our_socket.to_string_lossy(),
             }),
@@ -350,7 +353,7 @@ async fn forward_to_primal_raw(
 }
 
 async fn heartbeat_loop(our_socket: PathBuf) {
-    let biomeos_socket = resolve_socket_dir().join("biomeOS.sock");
+    let biomeos_socket = resolve_socket_dir().join(ORCHESTRATOR_SOCKET);
     let mut interval = tokio::time::interval(std::time::Duration::from_secs(30));
 
     loop {
@@ -364,7 +367,7 @@ async fn heartbeat_loop(our_socket: PathBuf) {
             &biomeos_socket,
             "lifecycle.status",
             &serde_json::json!({
-                "name": "neuralspring",
+                "name": PRIMAL_NAME,
                 "socket_path": our_socket.to_string_lossy(),
                 "status": "healthy",
             }),
@@ -399,7 +402,7 @@ fn resolve_socket_dir() -> PathBuf {
 }
 
 fn resolve_socket_path(family_id: &str) -> PathBuf {
-    resolve_socket_dir().join(format!("neuralspring-{family_id}.sock"))
+    resolve_socket_dir().join(format!("{PRIMAL_NAME}-{family_id}.sock"))
 }
 
 fn get_family_id() -> String {

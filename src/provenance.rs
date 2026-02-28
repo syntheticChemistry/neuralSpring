@@ -542,6 +542,72 @@ pub const ANDERSON_MULTIAGENT_PROVENANCE: BaselineProvenance = BaselineProvenanc
     unit: "baselines generated → baseline_values.json",
 };
 
+// ═══════════════════════════════════════════════════════════════════
+// nF-02: AlphaFold2 Evoformer Block
+// ═══════════════════════════════════════════════════════════════════
+
+/// Provenance for nF-02: `AlphaFold2` Evoformer block (full Evoformer validation).
+///
+/// Jumper et al. "Highly accurate protein structure prediction with `AlphaFold`"
+/// Nature 596:583-589 (2021)
+pub const ALPHAFOLD2_EVOFORMER_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nF-02: AlphaFold2 Evoformer block (SDPA, LayerNorm, matmul, eigh)",
+    script: "control/coral_forge/alphafold2_evoformer_block.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/coral_forge/alphafold2_evoformer_block.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated → evoformer_block_baselines.json",
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// nF-03: AlphaFold3 Phase C — Diffusion, Pairformer, Confidence
+// ═══════════════════════════════════════════════════════════════════
+
+/// Provenance for nF-03a: `AlphaFold3` diffusion module.
+///
+/// Abramson et al. "Accurate structure prediction of biomolecular interactions
+/// with `AlphaFold` 3" Nature 630:493-500 (2024), §5.4
+pub const ALPHAFOLD3_DIFFUSION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nF-03a: AlphaFold3 diffusion module (noise schedule, denoising, loss)",
+    script: "control/coral_forge/alphafold3_diffusion.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/coral_forge/alphafold3_diffusion.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated → diffusion_baselines.json",
+};
+
+/// Provenance for nF-03b: `AlphaFold3` Pairformer stack.
+///
+/// Abramson et al. Nature 630:493-500 (2024), §5.3
+pub const ALPHAFOLD3_PAIRFORMER_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nF-03b: AlphaFold3 Pairformer stack (TriMul, TriAttn, pair transition)",
+    script: "control/coral_forge/alphafold3_pairformer.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/coral_forge/alphafold3_pairformer.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated → pairformer_baselines.json",
+};
+
+/// Provenance for nF-03c: `AlphaFold3` confidence heads.
+///
+/// Abramson et al. Nature 630:493-500 (2024), §5.9
+pub const ALPHAFOLD3_CONFIDENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nF-03c: AlphaFold3 confidence heads (pLDDT, PAE, pDE, ranking)",
+    script: "control/coral_forge/alphafold3_confidence.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/coral_forge/alphafold3_confidence.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated → confidence_baselines.json",
+};
+
 /// `BarraCUDA` validation expected values are analytically derived — no Python
 /// dependency.  Provenance is mathematical: NIST DLMF, IEEE 754, and textbook
 /// formulas.
@@ -699,6 +765,10 @@ mod tests {
             &PANGENOME_SELECTION_PROVENANCE,
             &META_POPULATION_PROVENANCE,
             &CORAL_FORGE_PROVENANCE,
+            &ALPHAFOLD2_EVOFORMER_PROVENANCE,
+            &ALPHAFOLD3_DIFFUSION_PROVENANCE,
+            &ALPHAFOLD3_PAIRFORMER_PROVENANCE,
+            &ALPHAFOLD3_CONFIDENCE_PROVENANCE,
             &TRAINING_TRAJECTORY_PROVENANCE,
             &HESSIAN_EIGENANALYSIS_PROVENANCE,
             &ANDERSON_MULTIAGENT_PROVENANCE,
