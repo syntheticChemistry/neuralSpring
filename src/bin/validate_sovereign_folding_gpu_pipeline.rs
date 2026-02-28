@@ -40,6 +40,7 @@ use neural_spring::gpu_shader_validation::{
 use neural_spring::rng::Rng;
 use neural_spring::sovereign_folding;
 use neural_spring::structure_module;
+use neural_spring::structure_module::IpaConfig;
 use neural_spring::validation::ValidationHarness;
 
 /// df64 arithmetic tolerance.
@@ -345,22 +346,17 @@ fn validate_ipa_scores(h: &mut ValidationHarness, gpu: &Gpu) {
         }
     }
 
-    let cpu_ref = structure_module::ipa_scores(
-        &q,
-        &k,
-        &bias,
-        &qp,
-        &kp,
-        &frames,
-        n_res as usize,
-        n_heads as usize,
-        head_dim as usize,
-        n_points as usize,
-        f64::from(w_l),
-        f64::from(w_c),
-        f64::from(w_p),
-        f64::from(gamma),
-    );
+    let cfg = IpaConfig {
+        n_res: n_res as usize,
+        n_heads: n_heads as usize,
+        head_dim: head_dim as usize,
+        n_points: n_points as usize,
+        w_l: f64::from(w_l),
+        w_c: f64::from(w_c),
+        w_p: f64::from(w_p),
+        gamma: f64::from(gamma),
+    };
+    let cpu_ref = structure_module::ipa_scores(&q, &k, &bias, &qp, &kp, &frames, &cfg);
 
     let shader = gpu.compile_shader_f64_hybrid(neural_spring_forge::shaders::IPA_SCORES_F64, "ipa");
 

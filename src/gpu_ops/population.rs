@@ -231,9 +231,9 @@ pub fn pairwise_fst_gpu(
         let h_bar = n_i
             .iter()
             .zip(p_i.iter())
-            .map(|(&ni, &pi)| ni * 2.0 * pi * (1.0 - pi) / 2.0f64.mul_add(ni, -1.0).max(1.0))
+            .map(|(&ni, &pi)| ni * 2.0 * pi * (1.0 - pi))
             .sum::<f64>()
-            / (r * n_bar);
+            / (n_i[0] + n_i[1]);
 
         let a = n_bar / n_c
             * (s2
@@ -309,12 +309,9 @@ pub fn global_fst_gpu(
         let h_bar: f64 = p_i
             .iter()
             .zip(n_individuals.iter())
-            .map(|(&pi, &ni)| {
-                let n = ni as f64;
-                n * 2.0 * pi * (1.0 - pi) / 2.0f64.mul_add(n, -1.0).max(1.0)
-            })
+            .map(|(&pi, &ni)| ni as f64 * 2.0 * pi * (1.0 - pi))
             .sum::<f64>()
-            / (r * n_bar);
+            / n_total;
 
         let a = n_bar / n_c
             * (s2
@@ -334,6 +331,50 @@ pub fn global_fst_gpu(
     } else {
         Ok(numer / denom)
     }
+}
+
+/// GPU FST via variance decomposition: `FST = between_var / (between_var + within_var)`.
+///
+/// Composes existing GPU primitives without a custom shader:
+/// - `allele_frequencies_gpu` per population
+/// - `inter_population_af_variance_gpu` for between-population variance
+/// - `variance_gpu` for within-population variance (mean of per-pop allele-freq variance)
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+#[must_use = "caller must handle GPU result"]
+pub fn fst_variance_decomposition_gpu(
+    populations: &[&[f64]],
+    n_individuals: &[usize],
+    n_loci: usize,
+    device: &Arc<barracuda::device::WgpuDevice>,
+) -> Result<f64, String> {
+    let n_pops = populations.len();
+    if n_pops < 2 || n_loci == 0 {
+        return Ok(0.0);
+    }
+
+    let between_var = inter_population_af_variance_gpu(populations, n_individuals, n_loci, device)?;
+
+    let all_freqs: Vec<Vec<f64>> = populations
+        .iter()
+        .zip(n_individuals.iter())
+        .map(|(pop, &n)| allele_frequencies_gpu(pop, n, n_loci, device))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let mut within_vars = Vec::with_capacity(n_pops);
+    for freqs in &all_freqs {
+        within_vars.push(variance_gpu(freqs, device)?);
+    }
+
+    let within_var = mean_gpu(&within_vars, device)?;
+
+    let denom = between_var + within_var;
+    if denom.abs() < crate::tolerances::LOG_ZERO_GUARD {
+        return Ok(0.0);
+    }
+    Ok(between_var / denom)
 }
 
 /// GPU replicator dynamics step: fitness via GPU matmul, update on CPU.

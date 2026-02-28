@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 27, 2026 (Sessions 49–89 — pure GPU all-domains + cross-system dispatch + upstream sync + publication experiments + CPU parity 83.6× + GPU portability 9/9 + **177/177 binaries all green** + dispatch parity 30/30 + mixed-hardware dispatch 47/47 + 47 GPU-promoted Dispatcher ops)
+**Date**: February 28, 2026 (Sessions 49–90 — pure GPU all-domains + cross-system dispatch + upstream sync + publication experiments + CPU parity 83.6× + GPU portability 9/9 + **179/179 binaries all green** + dispatch parity 30/30 + mixed-hardware dispatch 47/47 + 47 GPU-promoted Dispatcher ops + nF-02 AlphaFold2 full Evoformer block + Phase B GPU gaps closed)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -101,8 +101,9 @@ baseCamp papers use that validated infrastructure to explore new science.
 - **Nobody has applied the Anderson QS framework to multi-agent AI
   coordination** (Sub-thesis 05)
 
-All five use primitives neuralSpring has already validated at 3111+ checks
-across 25 papers + 5 WDM surrogates + 3 publication experiments. The extensions require composition, not new math.
+All five use primitives neuralSpring has already validated at 3162+ checks
+across 25 papers + 5 WDM surrogates + 3 publication experiments + sovereign
+folding (nF-01, nF-02). The extensions require composition, not new math.
 
 ### gen3 baseCamp Cross-References
 
@@ -159,7 +160,7 @@ Session 55 added CPU↔GPU dispatch parity and metalForge mixed-hardware routing
 
 ## Validated Primitive Inventory
 
-All baseCamp experiments build on primitives validated at 3111+ checks:
+All baseCamp experiments build on primitives validated at 3162+ checks:
 
 | Primitive | Papers Using It | GPU Status | baseCamp Use |
 |-----------|:---------------:|:----------:|:------------:|
@@ -223,15 +224,19 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 
 *neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
 grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
-3111+ validated checks across 25 papers + 5 WDM surrogates + 3 publication
+3162+ validated checks across 25 papers + 5 WDM surrogates + 3 publication
 experiments and 7+ scientific domains. Core primitives implemented in Sessions
-50–55, quality-hardened Sessions 61–89: 5 Rust modules, 8 validation
-binaries, 128/128 PASS (114 CPU + 14 GPU), 668 unit tests, 0 clippy
+50–55, quality-hardened Sessions 61–90: 5 Rust modules, 8 validation
+binaries, 128/128 PASS (114 CPU + 14 GPU), 669 unit tests, 0 clippy
 warnings, 93.5%+ coverage, 131+ named tolerances. 42 upstream rewires to
-upstream BarraCUDA. Session 89: dispatch parity 30/30 (CPU↔GPU math
-identical for 26 ops), mixed-hardware dispatch 47/47 (NPU substrate +
-PCIe bridge + NUCLEUS atomics), 47 GPU-promoted Dispatcher ops
-(+3: HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu), 177/177 validate\_all.
+upstream BarraCUDA. Session 90: nF-02 AlphaFold2 full Evoformer block
+validated (Py 19/19, Rs 18/18, bC 17/17). Phase B GPU gaps closed: ODE
+batch integration 7/7, FST variance decomposition 9/9, introgression HMM
+chain 9/9. GPU coverage ~99% of production math. 179/179 validate\_all
+(4 new binaries). 36 Python baselines. Session 89: dispatch parity 30/30
+(CPU↔GPU math identical for 26 ops), mixed-hardware dispatch 47/47 (NPU
+substrate + PCIe bridge + NUCLEUS atomics), 47 GPU-promoted Dispatcher ops
+(+3: HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu).
 Session 87: WDM surrogates complete (nW-01..nW-05) — MLP inference proven
 in Rust + GPU. Session 82: Titan V pure Rust pipeline validated (384/384
 GPU checks). Cross-spring evolution benchmarked: hotSpring precision,

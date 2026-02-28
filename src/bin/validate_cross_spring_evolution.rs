@@ -850,7 +850,8 @@ fn report_cross_spring_lineage() {
     eprintln!("  \u{2022} S72 \u{2014} 4 new rewires (softmax_row_wise, fst_single_locus, fst_full, argmax_dim)");
     eprintln!("  \u{2022} S76 \u{2014} 2 rewires (pearson_correlation)");
     eprintln!("  \u{2022} S78 \u{2014} 6 rewires (mae, shannon, hill x2, l2_distance, fit_linear)");
-    eprintln!("  \u{2022} Total: 38 functions + 6 shader sources rewired");
+    eprintln!("  \u{2022} S91 \u{2014} 2 rewires (primal matmul_2d/3d \u{2192} matmul_dispatch, compile_shader_universal)");
+    eprintln!("  \u{2022} Total: 44 functions + 6 shader sources rewired");
     eprintln!("  \u{2022} GpuDriverProfile (this benchmark validates detection)");
 }
 

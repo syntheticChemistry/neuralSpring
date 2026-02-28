@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `e96576ee` (Sessions 50–89, Feb 27, 2026) — **47 commits audited, ALL 17 shortcomings RESOLVED, 42 upstream rewires, 124 barracuda import sites across 177 files, 16 submodules exercised, 177 binaries, 177/177 validate\_all, 3111+ checks, CPU parity 83.6× (25/25), GPU portability (9/9), dispatch parity 30/30, mixed-hardware dispatch 47/47**
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V60_S89_DISPATCH_PARITY_HANDOFF_FEB27_2026.md`
+**Last reviewed:** ToadStool commit `e96576ee` (Sessions 50–93, Feb 28, 2026) — **ALL 17 shortcomings RESOLVED, 44 upstream rewires, 130+ barracuda import sites, 20+ submodules exercised, 197 binaries, 185/185 validate\_all, 3200+ checks, CPU parity 83.6× (25/25), GPU portability (9/9), dispatch parity 30/30, mixed-hardware dispatch 47/47. S93: deep debt evolution + nF-03 Phase C confidence heads.**
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V61_S93_DEEP_DEBT_CONFIDENCE_HANDOFF_FEB28_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
@@ -38,6 +38,8 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 **Session 86 sync:** WDM surrogate buildout complete. `wdm_transport.rs` new module (MLP 3→H→3 transport surrogate). 4 new validators (nW-01 transport 30/30, nW-02 EOS wired 36/36+GPU 15/15, nW-04 transfer 6/6) added to `validate_all` (154 total). `check_drift.sh` expanded to 29 baselines. 611 lib + 43 forge + 9 integration tests. Key learning: `barracuda::nn::SimpleMLP` with JSON weight loading would replace ~400 LOC across 3 WDM surrogates — highest-priority absorption target. V50 handoff crafted.
 
 **Session 87 sync:** WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor) and nW-05 (ESN regime classifier) complete. 156 total validators, 31 baselines, 668 lib + 43 forge + 9 integration tests.
+
+**Session 91 sync:** Full ToadStool S66–S68 evolution review. ToadStool achieved **ZERO f32-only shaders** (296 deleted, 291 converted to f64 canonical). Dual-layer universal precision architecture: `Precision::op_preamble()` (Layer 1: abstract ops) + `sovereign/df64_rewrite.rs` (Layer 2: naga-guided f64→df64 infix rewrite). `compile_shader_universal(source, precision)` now exposed in `gpu.rs` for callers to compile at F16/F32/F64/Df64 per-use/hardware. `Precision` enum re-exported from `gpu.rs`. Primal Evoformer matmul helpers (`matmul_2d`, `matmul_3d`) rewired to upstream `barracuda::dispatch::matmul_dispatch` (m, k, n non-square support). NUCLEUS Tower validator: 22/22 PASS. All quality gates green: 669 lib tests, 0 clippy warnings, 181/181 validate\_all. ToadStool metrics: 700 WGSL shaders (497 f32 via LazyLock downcast, 182 f64, 19 Df64), 2608 barracuda tests, 122 shader tests (unit + e2e + chaos + fault). Total: **44 functions + 6 shader sources rewired to upstream**. V61 handoff crafted.
 
 ---
 

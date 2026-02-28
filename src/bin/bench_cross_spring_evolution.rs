@@ -415,7 +415,7 @@ fn main() {
     }
 
     // ─── Summary ────────────────────────────────────────────────────────
-    eprintln!("═══ Cross-Spring Evolution Summary (S83) ═══");
+    eprintln!("═══ Cross-Spring Evolution Summary (S91) ═══");
     eprintln!("  700 WGSL shaders in ToadStool S68 (f64 canonical), sourced from:");
     eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral, precision)");
     eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM, ODE)");
@@ -423,8 +423,8 @@ fn main() {
     eprintln!("    airSpring:    ~15  (ET₀, kriging, Richards, stats, regression)");
     eprintln!("    groundSpring: ~5   (multinomial, MC propagation)");
     eprintln!("    ToadStool:    ~466 (core math, linalg, nn, activations, S68 precision)");
-    eprintln!("  neuralSpring rewired: 42 upstream rewires");
-    eprintln!("  S83: ToadStool S68 sync — variance_ddof gap closed, 5 shader imports fixed");
+    eprintln!("  neuralSpring rewired: 44 upstream rewires + 6 shader sources");
+    eprintln!("  S91: ToadStool S68 universal precision sync, compile_shader_universal exposed");
     eprintln!("  Cross-spring flow: each spring contributes domain expertise;");
     eprintln!("  ToadStool absorbs + GPU-accelerates → all springs benefit via path dep");
     eprintln!();

@@ -44,9 +44,7 @@ const BATCH: usize = 4;
 const INPUT_DIM: usize = 5;
 const HIDDEN_DIM: usize = 8;
 
-fn sigmoid_f64(x: f64) -> f64 {
-    neural_spring::primitives::sigmoid(x)
-}
+use neural_spring::primitives::sigmoid as sigmoid_f64;
 
 fn tensor(
     data: &[f32],

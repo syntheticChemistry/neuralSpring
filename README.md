@@ -40,16 +40,17 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 263/263 Python PASS + 2787+ Rust+GPU PASS = **3111+ total validation checks**
+## Current Status: 282/282 Python PASS + 2858+ Rust+GPU PASS = **3200+ total validation checks**
 
-**ToadStool `e96576ee`** (Sessions 39–89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
-42 upstream rewires + 124 barracuda import sites across 177 files, 16 submodules exercised.
+**ToadStool `e96576ee`** (Sessions 39–93): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
+44 upstream rewires + 130+ barracuda import sites across 197 files, 20+ submodules exercised.
 21/21 WGSL shaders absorbed + 15 sovereign folding df64 shaders.
-42 metalForge WGSL shaders (41 local + 3 barracuda re-exports). 47 CPU→GPU dispatch ops (~97%).
-668 lib tests, **93.5%+ coverage**, 131+ named tolerances, 0 clippy warnings, 0 doc warnings.
-177 validation/bench binaries, 40 modules + gpu\_ops/ + gpu\_dispatch/, 668 lib + 9 integration + 43 forge tests.
-**177/177 validate\_all** (all green). Pure Rust **83.6× faster** than Python/NumPy
+42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, now split into 7 domain files).
+685 lib tests, 131+ named tolerances, 5 clippy warnings (pre-existing pedantic).
+197 validation/bench binaries, 40 modules + gpu\_ops/ + gpu\_dispatch/, 685 lib + 9 integration + 43 forge tests.
+**185/185 validate\_all** (all green). Pure Rust **83.6× faster** than Python/NumPy
 (geomean, 11 domains; fastest: multi-obj fitness 1104×). CPU→GPU portability proven (9/9, 7 domains).
+nF-03 AlphaFold3 Phase C complete (Py 62/62, Rs 55/55, 18 unit tests). 39 Python drift baselines.
 
 **Validation tiers**: 24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 pure GPU all-domains |
 5/5 baseCamp sub-theses GPU | 5 WDM surrogates (33/33 Py + 153/153 Rs+GPU) |

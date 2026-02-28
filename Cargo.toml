@@ -444,6 +444,10 @@ name = "validate_gpu_rk4"
 path = "src/bin/validate_gpu_rk4.rs"
 
 [[bin]]
+name = "validate_gpu_ode_batch"
+path = "src/bin/validate_gpu_ode_batch.rs"
+
+[[bin]]
 name = "validate_gpu_rk45"
 path = "src/bin/validate_gpu_rk45.rs"
 
@@ -632,6 +636,10 @@ name = "validate_gpu_phase_b"
 path = "src/bin/validate_gpu_phase_b.rs"
 
 [[bin]]
+name = "validate_gpu_phase_b_extended"
+path = "src/bin/validate_gpu_phase_b_extended.rs"
+
+[[bin]]
 name = "validate_gpu_phase_c"
 path = "src/bin/validate_gpu_phase_c.rs"
 
@@ -759,6 +767,22 @@ name = "validate_sovereign_folding"
 path = "src/bin/validate_sovereign_folding.rs"
 
 [[bin]]
+name = "validate_alphafold2_evoformer"
+path = "src/bin/validate_alphafold2_evoformer.rs"
+
+[[bin]]
+name = "validate_alphafold3_diffusion"
+path = "src/bin/validate_alphafold3_diffusion.rs"
+
+[[bin]]
+name = "validate_alphafold3_pairformer"
+path = "src/bin/validate_alphafold3_pairformer.rs"
+
+[[bin]]
+name = "validate_alphafold3_confidence"
+path = "src/bin/validate_alphafold3_confidence.rs"
+
+[[bin]]
 name = "validate_sovereign_folding_gpu"
 path = "src/bin/validate_sovereign_folding_gpu.rs"
 
@@ -867,12 +891,37 @@ name = "neuralspring_primal"
 path = "src/bin/neuralspring_primal.rs"
 required-features = ["primal"]
 
-# ── biomeOS integration validator ───────────────────────────────────
+# ── biomeOS integration validators ──────────────────────────────────
 
 [[bin]]
 name = "validate_biomeos_spectral"
 path = "src/bin/validate_biomeos_spectral.rs"
 required-features = ["primal"]
+
+[[bin]]
+name = "validate_nucleus_tower"
+path = "src/bin/validate_nucleus_tower.rs"
+required-features = ["primal"]
+
+[[bin]]
+name = "validate_modern_cross_spring"
+path = "src/bin/validate_modern_cross_spring.rs"
+
+[[bin]]
+name = "validate_barracuda_alphafold2"
+path = "src/bin/validate_barracuda_alphafold2.rs"
+
+[[bin]]
+name = "bench_modern_rewire"
+path = "src/bin/bench_modern_rewire.rs"
+
+[[bin]]
+name = "validate_barracuda_cpu_bench"
+path = "src/bin/validate_barracuda_cpu_bench.rs"
+
+[[bin]]
+name = "bench_portability_tiers"
+path = "src/bin/bench_portability_tiers.rs"
 
 [lints.rust]
 unsafe_code = "forbid"

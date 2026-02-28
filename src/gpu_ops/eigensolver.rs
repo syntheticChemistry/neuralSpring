@@ -9,6 +9,7 @@ use barracuda::tensor::Tensor;
 use std::sync::Arc;
 
 use super::reduction::chi_squared_gpu;
+use crate::tolerances;
 
 /// GPU batched eigenvalue decomposition via `BatchedEighGpu`.
 ///
@@ -26,8 +27,15 @@ pub fn eigh_gpu(
 ) -> Result<(Vec<f64>, Vec<f64>), String> {
     use barracuda::ops::linalg::BatchedEighGpu;
     if n <= 32 {
-        BatchedEighGpu::execute_single_dispatch(device.clone(), a, n, 1, 30, 1e-12)
-            .map_err(|e| format!("eigh_gpu single_dispatch: {e}"))
+        BatchedEighGpu::execute_single_dispatch(
+            device.clone(),
+            a,
+            n,
+            1,
+            30,
+            tolerances::JACOBI_GPU_CONVERGENCE,
+        )
+        .map_err(|e| format!("eigh_gpu single_dispatch: {e}"))
     } else {
         BatchedEighGpu::execute_f64(device.clone(), a, n, 1, 30)
             .map_err(|e| format!("eigh_gpu: {e}"))
@@ -62,7 +70,7 @@ pub fn disorder_sweep_gpu(
             n,
             batch_size,
             30,
-            1e-12,
+            tolerances::JACOBI_GPU_CONVERGENCE,
         )
         .map_err(|e| format!("disorder_sweep_gpu: {e}"))?
     } else {

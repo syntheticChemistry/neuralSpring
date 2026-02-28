@@ -226,6 +226,16 @@ const BINARIES: &[&str] = &[
     "validate_sovereign_folding",
     "validate_sovereign_folding_gpu",
     "validate_sovereign_folding_gpu_pipeline",
+    // nF-02 AlphaFold2 full Evoformer block + BarraCUDA CPU
+    "validate_alphafold2_evoformer",
+    // nF-03 AlphaFold3 diffusion + Pairformer + confidence heads
+    "validate_alphafold3_diffusion",
+    "validate_alphafold3_pairformer",
+    "validate_alphafold3_confidence",
+    "validate_barracuda_alphafold2",
+    // Phase B gap closure: ODE batch GPU + FST + introgression HMM chain
+    "validate_gpu_ode_batch",
+    "validate_gpu_phase_b_extended",
     // Modern rewire + cross-spring provenance benchmark
     "bench_modern_rewire",
     // BarraCUDA CPU parity + performance (Python/NumPy vs pure Rust)
@@ -236,6 +246,9 @@ const BINARIES: &[&str] = &[
     "validate_mixed_hardware_dispatch",
     // Portability tier benchmark (CPU → GPU parity + ToadStool streaming proof)
     "bench_portability_tiers",
+    // S91: Modern cross-spring evolution — ToadStool S68 universal precision,
+    // provenance tracking across all 5 springs, bio+stats+precision validation
+    "validate_modern_cross_spring",
 ];
 
 fn main() {

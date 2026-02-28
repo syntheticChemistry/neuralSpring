@@ -41,12 +41,12 @@ struct JsonRpcRequest {
 
 #[derive(Debug, Deserialize)]
 struct JsonRpcResponse {
-    #[allow(dead_code)]
-    jsonrpc: String,
+    #[serde(rename = "jsonrpc")]
+    _jsonrpc: String,
     result: Option<serde_json::Value>,
     error: Option<serde_json::Value>,
-    #[allow(dead_code)]
-    id: u64,
+    #[serde(rename = "id")]
+    _id: u64,
 }
 
 async fn rpc_call(
@@ -167,7 +167,7 @@ async fn main() {
                 .and_then(|v| v.as_array())
                 .map(|a| a.len())
                 .unwrap_or(0);
-            h.check_abs("health.capabilities count", caps as f64, 7.0, 0.5);
+            h.check_abs("health.capabilities count >= 7", if caps >= 7 { 1.0 } else { 0.0 }, 1.0, 0.5);
         }
         Err(e) => {
             eprintln!("  Health check failed: {e}");

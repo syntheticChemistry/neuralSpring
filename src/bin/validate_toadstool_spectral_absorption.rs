@@ -230,17 +230,18 @@ fn validate_gpu_eigensolve_parity(
             }
         }
 
-        let cpu_decomp = eigh_householder_qr(&mat, dim);
-        let (dispatch_evals, dispatch_evecs) = dispatcher.eigh(&mat, dim);
+        let mut cpu_decomp = eigh_householder_qr(&mat, dim);
+        let (mut dispatch_evals, dispatch_evecs) = dispatcher.eigh(&mat, dim);
 
-        let mut cpu_sorted = cpu_decomp.eigenvalues.clone();
-        cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        let mut dispatch_sorted = dispatch_evals.clone();
-        dispatch_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        cpu_decomp
+            .eigenvalues
+            .sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        dispatch_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
-        let max_diff = cpu_sorted
+        let max_diff = cpu_decomp
+            .eigenvalues
             .iter()
-            .zip(dispatch_sorted.iter())
+            .zip(dispatch_evals.iter())
             .map(|(c, d)| (c - d).abs())
             .fold(0.0_f64, f64::max);
 

@@ -426,6 +426,14 @@ pub const EIGH_JACOBI_RECONSTRUCT: f64 = 1e-2;
 /// are only approximate.
 pub const EIGH_JACOBI_EIGENVALUE: f64 = 1e-3;
 
+/// GPU Jacobi eigensolver: convergence threshold per sweep.
+///
+/// `BatchedEighGpu::execute_single_dispatch` iterates Jacobi rotations until
+/// off-diagonal elements fall below this threshold.  1e-12 matches the
+/// CPU Householder+QR standard (`EXACT_F64`) and ensures GPU eigenvalues
+/// agree with CPU to machine precision for small matrices (n ≤ 32).
+pub const JACOBI_GPU_CONVERGENCE: f64 = 1e-12;
+
 // ═══════════════════════════════════════════════════════════════════
 // ODE integrator agreement
 // ═══════════════════════════════════════════════════════════════════

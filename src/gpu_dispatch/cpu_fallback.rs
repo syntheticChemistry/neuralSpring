@@ -16,6 +16,7 @@
 //! — do NOT confuse the two.
 
 /// Population variance (biased, matching GPU kernel and `variance_dispatch` convention).
+#[must_use]
 pub fn variance(data: &[f64]) -> f64 {
     let n = data.len() as f64;
     if n < 1.0 {
@@ -30,6 +31,7 @@ pub fn variance(data: &[f64]) -> f64 {
 /// Delegates to `barracuda::stats::correlation::pearson_correlation`
 /// (identical formula). Returns 0.0 for degenerate inputs (too short,
 /// zero variance, NaN).
+#[must_use]
 pub fn pearson(x: &[f64], y: &[f64]) -> f64 {
     match barracuda::stats::correlation::pearson_correlation(x, y) {
         Ok(r) if r.is_finite() => r,
@@ -41,6 +43,7 @@ pub fn pearson(x: &[f64], y: &[f64]) -> f64 {
 ///
 /// Delegates to `barracuda::special::chi_squared_statistic`
 /// (identical formula). Falls back to 0.0 on error.
+#[must_use]
 pub fn chi_squared(observed: &[f64], expected: &[f64]) -> f64 {
     barracuda::special::chi_squared_statistic(observed, expected).unwrap_or(0.0)
 }
@@ -48,20 +51,23 @@ pub fn chi_squared(observed: &[f64], expected: &[f64]) -> f64 {
 /// HMM forward step: `alpha[j] = B[j] * sum_i(alpha_prev[i] * T[i,j])`, then normalize.
 ///
 /// Returns `(alpha_new, scale)` where `scale = sum(alpha_new)` before normalization.
+#[must_use]
 pub fn hmm_forward_step(
     alpha_prev: &[f64],
     transition: &[f64],
     emission_col: &[f64],
     n_states: usize,
 ) -> (Vec<f64>, f64) {
-    let mut alpha = vec![0.0; n_states];
-    for j in 0..n_states {
-        let mut sum = 0.0;
-        for i in 0..n_states {
-            sum += alpha_prev[i] * transition[i * n_states + j];
-        }
-        alpha[j] = sum * emission_col[j];
-    }
+    let mut alpha: Vec<f64> = (0..n_states)
+        .map(|j| {
+            let sum: f64 = alpha_prev
+                .iter()
+                .enumerate()
+                .map(|(i, &a)| a * transition[i * n_states + j])
+                .sum();
+            sum * emission_col[j]
+        })
+        .collect();
     let scale: f64 = alpha.iter().sum();
     if scale > 0.0 {
         for a in &mut alpha {
@@ -72,6 +78,7 @@ pub fn hmm_forward_step(
 }
 
 /// HMM backward step: `beta[i] = (1/scale) * sum_j(T[i,j] * B[j] * beta_next[j])`.
+#[must_use]
 pub fn hmm_backward_step(
     beta_next: &[f64],
     transition: &[f64],
@@ -81,43 +88,199 @@ pub fn hmm_backward_step(
 ) -> Vec<f64> {
     let guard = crate::primitives::LOG_GUARD;
     let safe_scale = if scale.abs() < guard { guard } else { scale };
-    let mut beta = vec![0.0; n_states];
-    for i in 0..n_states {
-        let mut sum = 0.0;
-        for j in 0..n_states {
-            sum += transition[i * n_states + j] * emission_col[j] * beta_next[j];
-        }
-        beta[i] = sum / safe_scale;
+    (0..n_states)
+        .map(|i| {
+            let sum: f64 = (0..n_states)
+                .map(|j| transition[i * n_states + j] * emission_col[j] * beta_next[j])
+                .sum();
+            sum / safe_scale
+        })
+        .collect()
+}
+
+/// HMM chain: T forward steps + T Viterbi steps (step-level composition).
+///
+/// Returns `(path, log_prob, log_likelihood)`. Used as CPU fallback when
+/// `Dispatcher::hmm_chain` has no GPU.
+#[must_use]
+pub fn hmm_chain(
+    initial: &[f64],
+    transition: &[f64],
+    emission: &[f64],
+    observations: &[usize],
+    n_states: usize,
+    n_obs: usize,
+) -> (Vec<usize>, f64, f64) {
+    let t_len = observations.len();
+    if t_len == 0 {
+        return (Vec::new(), 0.0, 0.0);
     }
-    beta
+
+    let ob0 = observations[0].min(n_obs.saturating_sub(1));
+    let mut alpha: Vec<f64> = (0..n_states)
+        .map(|i| initial[i] * emission[i * n_obs + ob0])
+        .collect();
+    let scale0 = alpha.iter().sum::<f64>().max(crate::primitives::LOG_GUARD);
+    for v in &mut alpha {
+        *v /= scale0;
+    }
+    let mut log_lik = scale0.ln();
+
+    for &ob_raw in observations.iter().skip(1).take(t_len.saturating_sub(1)) {
+        let ob = ob_raw.min(n_obs.saturating_sub(1));
+        let emission_col: Vec<f64> = (0..n_states).map(|j| emission[j * n_obs + ob]).collect();
+        let (new_alpha, scale) = hmm_forward_step(&alpha, transition, &emission_col, n_states);
+        log_lik += scale.max(crate::primitives::LOG_GUARD).ln();
+        alpha = new_alpha;
+    }
+
+    let log_trans: Vec<f64> = transition
+        .iter()
+        .map(|&x| x.max(crate::primitives::LOG_GUARD).ln())
+        .collect();
+
+    let mut delta: Vec<f64> = (0..n_states)
+        .map(|i| {
+            initial[i].max(crate::primitives::LOG_GUARD).ln()
+                + emission[i * n_obs + observations[0].min(n_obs.saturating_sub(1))]
+                    .max(crate::primitives::LOG_GUARD)
+                    .ln()
+        })
+        .collect();
+
+    let mut psi_all = Vec::with_capacity(t_len);
+
+    for &ob_raw in observations.iter().skip(1).take(t_len.saturating_sub(1)) {
+        let ob = ob_raw.min(n_obs.saturating_sub(1));
+        let log_emit: Vec<f64> = (0..n_states)
+            .map(|j| {
+                emission[j * n_obs + ob]
+                    .max(crate::primitives::LOG_GUARD)
+                    .ln()
+            })
+            .collect();
+        let (new_delta, psi) = hmm_viterbi_step(&delta, &log_trans, &log_emit, n_states);
+        psi_all.push(psi);
+        delta = new_delta;
+    }
+
+    let (best_state, log_prob) = delta
+        .iter()
+        .enumerate()
+        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+        .map_or((0, f64::NEG_INFINITY), |(i, &v)| (i, v));
+
+    let mut path = vec![0_usize; t_len];
+    path[t_len - 1] = best_state;
+    for t in (0..t_len.saturating_sub(1)).rev() {
+        path[t] = psi_all[t][path[t + 1]];
+    }
+
+    (path, log_prob, log_lik)
 }
 
 /// HMM Viterbi step: `delta[j] = max_i(delta_prev[i] + log_T[i,j]) + log_B[j]`.
+#[must_use]
 pub fn hmm_viterbi_step(
     delta_prev: &[f64],
     log_transition: &[f64],
     log_emission_col: &[f64],
     n_states: usize,
 ) -> (Vec<f64>, Vec<usize>) {
-    let mut delta_new = Vec::with_capacity(n_states);
-    let mut psi = Vec::with_capacity(n_states);
-    for j in 0..n_states {
-        let mut best_i = 0;
-        let mut best_val = f64::NEG_INFINITY;
-        for i in 0..n_states {
-            let val = delta_prev[i] + log_transition[i * n_states + j];
-            if val > best_val {
-                best_val = val;
-                best_i = i;
-            }
-        }
-        delta_new.push(best_val + log_emission_col[j]);
-        psi.push(best_i);
-    }
+    let (delta_new, psi): (Vec<f64>, Vec<usize>) = (0..n_states)
+        .map(|j| {
+            let (best_i, best_val) = (0..n_states)
+                .map(|i| (i, delta_prev[i] + log_transition[i * n_states + j]))
+                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+                .unwrap_or((0, f64::NEG_INFINITY));
+            (best_val + log_emission_col[j], best_i)
+        })
+        .unzip();
     (delta_new, psi)
 }
 
+/// CPU batch ODE integration: Hill-function RHS, matches `rk4_parallel.wgsl`.
+///
+/// Coeffs per dimension: `[prod, deg, activator_idx]`. Hill uses k=0.5, n=2.
+#[allow(clippy::cast_sign_loss)]
+#[must_use]
+pub fn cpu_ode_batch_hill(
+    states: &[f64],
+    coeffs: &[f64],
+    n_systems: usize,
+    dim: usize,
+    n_steps: usize,
+    dt: f64,
+) -> Vec<f64> {
+    fn hill(x: f64, k: f64, n: f64) -> f64 {
+        let xn = x.powf(n);
+        xn / (k.powf(n) + xn)
+    }
+
+    let n_coeffs = dim * 3;
+    let half_dt = 0.5 * dt;
+    let sixth_dt = dt / 6.0;
+
+    let mut out = Vec::with_capacity(n_systems * dim);
+    for sys in 0..n_systems {
+        let mut y: Vec<f64> = (0..dim).map(|d| states[sys * dim + d]).collect();
+        let coeff_base = sys * n_coeffs;
+
+        for _ in 0..n_steps {
+            let mut k1 = vec![0.0; dim];
+            for d in 0..dim {
+                let c = coeff_base + d * 3;
+                let prod = coeffs[c];
+                let deg = coeffs[c + 1];
+                let act_idx = coeffs[c + 2] as usize;
+                k1[d] = prod.mul_add(hill(y[act_idx], 0.5, 2.0), -(deg * y[d]));
+            }
+
+            let mut k2 = vec![0.0; dim];
+            for d in 0..dim {
+                let y2_d = half_dt.mul_add(k1[d], y[d]);
+                let c = coeff_base + d * 3;
+                let prod = coeffs[c];
+                let deg = coeffs[c + 1];
+                let act_idx = coeffs[c + 2] as usize;
+                let act_val = half_dt.mul_add(k1[act_idx], y[act_idx]);
+                k2[d] = prod.mul_add(hill(act_val, 0.5, 2.0), -(deg * y2_d));
+            }
+
+            let mut k3 = vec![0.0; dim];
+            for d in 0..dim {
+                let y3_d = half_dt.mul_add(k2[d], y[d]);
+                let c = coeff_base + d * 3;
+                let prod = coeffs[c];
+                let deg = coeffs[c + 1];
+                let act_idx = coeffs[c + 2] as usize;
+                let act_val = half_dt.mul_add(k2[act_idx], y[act_idx]);
+                k3[d] = prod.mul_add(hill(act_val, 0.5, 2.0), -(deg * y3_d));
+            }
+
+            let mut k4 = vec![0.0; dim];
+            for d in 0..dim {
+                let y4_d = dt.mul_add(k3[d], y[d]);
+                let c = coeff_base + d * 3;
+                let prod = coeffs[c];
+                let deg = coeffs[c + 1];
+                let act_idx = coeffs[c + 2] as usize;
+                let act_val = dt.mul_add(k3[act_idx], y[act_idx]);
+                k4[d] = prod.mul_add(hill(act_val, 0.5, 2.0), -(deg * y4_d));
+            }
+
+            for d in 0..dim {
+                let w = 2.0f64.mul_add(k2[d], k1[d]) + 2.0f64.mul_add(k3[d], k4[d]);
+                y[d] = sixth_dt.mul_add(w, y[d]);
+            }
+        }
+        out.extend_from_slice(&y);
+    }
+    out
+}
+
 /// Single replicator dynamics step with simplex projection.
+#[must_use]
 pub fn replicator_step(freq: &[f64; 2], payoff: &[[f64; 2]; 2], dt: f64) -> [f64; 2] {
     let f0 = payoff[0][0].mul_add(freq[0], payoff[0][1] * freq[1]);
     let f1 = payoff[1][0].mul_add(freq[0], payoff[1][1] * freq[1]);
@@ -250,5 +413,15 @@ mod tests {
     #[test]
     fn variance_single_element() {
         assert!((variance(&[5.0]) - 0.0).abs() < tolerances::ZERO_DETECTION);
+    }
+
+    #[test]
+    fn cpu_ode_batch_hill_single_system() {
+        let dim = 2;
+        let coeffs = vec![0.5, 0.1, 1.0, 0.3, 0.2, 0.0];
+        let states = vec![1.0, 0.5];
+        let result = cpu_ode_batch_hill(&states, &coeffs, 1, dim, 10, 0.01);
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_finite() && result[1].is_finite());
     }
 }

@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V60** | `handoffs/NEURALSPRING_TOADSTOOL_V60_S89_DISPATCH_PARITY_HANDOFF_FEB27_2026.md` | Feb 27, 2026 | S89 dispatch parity 30/30, mixed-hardware 47/47, +3 upstream ops, NPU substrate, 177/177 validate\_all, 3111+ checks |
+| **V61** | `handoffs/NEURALSPRING_TOADSTOOL_V61_S93_DEEP_DEBT_CONFIDENCE_HANDOFF_FEB28_2026.md` | Feb 28, 2026 | S93 deep debt evolution, nF-03 Phase C confidence heads, dispatcher domain split, 185/185 validate\_all, 3200+ checks |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V59 + biomeOS V1, 75 files).
+Superseded handoffs: `handoffs/archive/` (V1–V60 + biomeOS V1, 76 files).
 
 ## Conventions
 

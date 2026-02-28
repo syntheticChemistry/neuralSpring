@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 27, 2026 (Sessions 45–89)
+**Last Updated**: February 28, 2026 (Sessions 45–92)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -181,8 +181,10 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 ## Completion Summary
 
-**All 25 papers complete. baseCamp (B-01..B-15) primitives validated. All 5 WDM surrogates (nW-01..nW-05) complete.**
+**All 25 papers complete. baseCamp (B-01..B-15) primitives validated. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete.**
 
+Session 93: Deep debt evolution + nF-03 Phase C. dispatch_ops.rs (842→7 domain files), gpu_ops/mod.rs (668→38+tests_ops). Iterator evolution (diffusion.rs, pairformer.rs, counterdiabatic.rs, cpu_fallback.rs, meta_population.rs). Self-identification→env!("CARGO_PKG_NAME"). .unwrap()→.expect(). nF-03 Phase C confidence heads (pLDDT, PAE, pDE, ranking: Py 19/19, Rs 16/16, 7 unit tests). 197 binaries, 685 lib tests, 185/185 validators. 39 Python drift baselines.
+Session 92: nF-03 AlphaFold3 Phase A+B buildout — diffusion primitives (Py 29/29, Rs 26/26), Pairformer block (Py 14/14, Rs 13/13). 2 new Python controls, 2 new Rust validators, 11 new unit tests. 196 binaries, 680 lib tests, 184/184 validators in validate_all. 38 Python drift baselines.
 Session 88: Publication experiment buildout — Exp-050 (training trajectory spectral analysis, Py 11/11, Rs 12/12), Exp-052 (Hessian eigenanalysis at trained minima, Py 8/8, Rs 14/14), Exp-053 (Anderson multi-agent coordination, Py 11/11, Rs 18/18). 3 new Python controls, 3 new Rust validators, 175 binaries, 668 lib tests, 163 validators in validate_all.
 Session 87: WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor, Py 5/5, Rs 27/27) and nW-05 (ESN regime classifier, Py 5/5, Rs 39/39). 175 binaries, 623 lib tests, 158/158 validators.
 Session 86: V50 handoff — WDM buildout complete, 170 binaries, 611 lib tests, 154/154 validators.
@@ -901,8 +903,30 @@ shaders for sovereign structure prediction on consumer GPUs.
 | # | Paper | Journal | Year | Why | Status |
 |---|-------|---------|------|-----|--------|
 | nF-01 | Ahdritz et al. "OpenFold: Retraining AlphaFold2 yields new insights" | Nature Methods | 2024 | Reference implementation (Apache 2.0). Baseline for porting | **Phase B.4 DONE** — Py 25/25, Rs 67/67, GPU 37/37 (15 shaders + pipeline, all AlphaFold2 primitives) |
-| nF-02 | Jumper et al. "Highly accurate protein structure prediction with AlphaFold" | Nature 596:583-589 | 2021 | Original architecture. Evoformer + IPA specification | Queue |
-| nF-03 | Abramson et al. "Accurate structure prediction for all molecules" (AlphaFold3) | Nature 630:493-500 | 2024 | Diffusion-based extension. RNA/DNA/ligand handling | Queue |
+| nF-02 | Jumper et al. "Highly accurate protein structure prediction with AlphaFold" | Nature 596:583-589 | 2021 | Original architecture. Evoformer + IPA specification | **Phase B DONE** — Py 19/19, Rs 18/18, bC 17/17 (full Evoformer block + IPA + backbone + torsion) |
+| nF-03 | Abramson et al. "Accurate structure prediction for all molecules" (AlphaFold3) | Nature 630:493-500 | 2024 | Diffusion-based extension. RNA/DNA/ligand handling | **Phase C DONE** — Py 62/62 (diffusion 29 + pairformer 14 + confidence 19), Rs 55/55 (diffusion 26 + pairformer 13 + confidence 16), 18 unit tests |
+
+### nF-03 Phase A+B — Diffusion + Pairformer (DONE)
+
+Python controls:
+- `control/sovereign_folding/alphafold3_diffusion.py` (29/29 PASS)
+- `control/sovereign_folding/alphafold3_pairformer.py` (14/14 PASS)
+
+Rust modules: `src/sovereign_folding/diffusion.rs`, `src/sovereign_folding/pairformer.rs`
+Validators:
+- `validate_alphafold3_diffusion` (26/26 PASS, max diff 1.24e-14)
+- `validate_alphafold3_pairformer` (13/13 PASS, max diff 6.66e-16)
+
+Primitives implemented:
+- Cosine/linear noise schedules, forward diffusion, DDPM/DDIM reverse steps
+- SE(3)-equivariant noise (COM removal, translation invariance)
+- Sinusoidal timestep embedding, pair conditioning
+- Pairformer block: TriMul outgoing/incoming + TriAttn + FFN + timestep conditioning
+- pLDDT confidence head (Linear → sigmoid)
+- PAE confidence head (pair → softmax → expected distance)
+
+Remaining: Phase C (confidence heads integration), Phase D (multi-molecule tokenization),
+Phase E (full pipeline + MSA databases via NestGate).
 
 ### Phase A — Baseline Assessment (DONE)
 

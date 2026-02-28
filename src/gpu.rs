@@ -19,6 +19,7 @@
 //! | name/index | Adapter name substring or enumeration index |
 
 use barracuda::device::WgpuDevice;
+pub use barracuda::shaders::precision::Precision;
 use bytemuck;
 use std::sync::Arc;
 
@@ -216,8 +217,6 @@ impl Gpu {
 
     /// Compile a hybrid f64/df64 shader via the core streaming path.
     ///
-    /// Compiles a DF64 (double-float) shader via upstream `compile_shader_df64`.
-    ///
     /// Delegates to `WgpuDevice::compile_shader_df64` which prepends
     /// `df64_core.wgsl` + `df64_transcendentals.wgsl`, runs ILP optimizer
     /// and Sovereign compiler when available. This is the hotSpring/toadStool
@@ -225,6 +224,22 @@ impl Gpu {
     #[must_use]
     pub fn compile_shader_f64_hybrid(&self, source: &str, label: &str) -> wgpu::ShaderModule {
         self.wgpu_device.compile_shader_df64(source, Some(label))
+    }
+
+    /// Compile a shader at any precision via `ToadStool` S68 universal pipeline.
+    ///
+    /// Routes one f64-canonical shader source through the appropriate
+    /// compilation pipeline (F16/F32/F64/Df64) based on the precision arg.
+    /// F32 via `LazyLock` downcast, F64 native with polyfills, Df64 via
+    /// `df64_core` injection, F16 via downcast with sentinel clamping.
+    #[must_use]
+    pub fn compile_shader_universal(
+        &self,
+        source: &str,
+        precision: barracuda::shaders::precision::Precision,
+    ) -> wgpu::ShaderModule {
+        self.wgpu_device
+            .compile_shader_universal(source, precision, None)
     }
 
     /// Compute the number of workgroups for a 1D dispatch, validated

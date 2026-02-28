@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 27, 2026 (Sessions 40–89 — ToadStool `e96576ee` sync: `compile_shader_df64` rewired to upstream, 703 WGSL all f64 canonical, universal precision F16/F32/F64/DF64. 90+ import sites, 60+ files, 42 upstream rewires, zero duplicate math. S89: +3 upstream ops (HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu), dispatch parity 30/30, mixed-hardware dispatch 47/47. **177/177 validate\_all**)
+**Last Updated**: February 28, 2026 (Sessions 40–93 — S93: deep debt evolution + nF-03 Phase C. dispatch\_ops.rs split into 7 domain files, iterator modernization, self-id via env!. 197 binaries, **185/185 validate\_all**, 685 lib tests, 3200+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -13,6 +13,8 @@
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
 | `device::WgpuDevice` | `gpu.rs`, all FFT/tensor/ML binaries | GPU device creation and management |
+| `device::WgpuDevice::compile_shader_universal` | `gpu.rs` (`compile_shader_universal`) | Universal precision compilation: one f64-canonical source → F16/F32/F64/Df64 (ToadStool S68) |
+| `shaders::precision::Precision` | `gpu.rs` (re-exported) | Precision enum: F16, F32, F64, Df64 for per-use/hardware shader compilation |
 | `device::capabilities::WORKGROUP_SIZE_*` | `evolved/mha.rs` | Shader workgroup sizing (legacy) |
 | `device.limits()` / `device.features()` | `gpu.rs` (`GpuCapabilities`) | Runtime hardware discovery — workgroup limits, f64/f16 support, buffer sizes |
 
@@ -125,12 +127,12 @@
 | Feature | Status | Why |
 |---------|--------|-----|
 | `default` | Enabled | Basic tensor/device |
-| `unidirectional` | **Not enabled** | Needed for `UnidirectionalPipeline` |
+| `unidirectional` | **Enabled** | `UnidirectionalPipeline` for streaming |
 | `parallel` | Not enabled | Not needed yet (rayon-based cascade) |
 | `benchmarks` | Not enabled | Use our own bench binaries |
 | `serde` | Not enabled | Could enable for calibration caching |
 
-**Recommendation**: Enable `unidirectional` when integrating Phase 3b streaming.
+**Status**: `unidirectional` feature enabled since S88.
 
 ---
 
@@ -1087,4 +1089,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 27, 2026. Sessions 50–89: 42 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 177 binaries, 668 lib + 43 forge + 9 integration tests, 177/177 validate\_all. Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S89: +3 upstream ops wired (HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu), dispatch parity 30/30, mixed-hardware dispatch 47/47, 47 GPU-promoted Dispatcher ops. V60 handoff.*
+*BarraCUDA usage audit — neuralSpring, February 28, 2026. Sessions 50–93: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 197 binaries, 685 lib + 43 forge + 9 integration tests, 185/185 validate\_all (3200+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S93: deep debt evolution — dispatch\_ops.rs split into 7 domain files, iterator modernization across 6 modules, self-id via env!. nF-03 Phase C confidence heads (Py 62/62, Rs 55/55, 18 unit tests). ToadStool S68: ZERO f32-only shaders, 700 WGSL f64-canonical, 2608 barracuda tests. V61 handoff.*

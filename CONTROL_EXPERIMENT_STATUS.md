@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 27, 2026 (Sessions 44–88+ — ToadStool `e96576ee` sync: `compile_shader_df64` rewired, 703 WGSL all f64 canonical, universal precision. Phase 4 shaders + streaming pipeline + NUCLEUS atomics)
+**Last updated**: February 28, 2026 (Sessions 44–93 — Deep debt evolution, nF-03 Phase C confidence heads, dispatch domain split, iterator evolution)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 263/263 Python PASS + 2787+ Rust+GPU validation PASS = **3111+ total validation checks**
-**Library**: 668 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 177 validation/bench binaries
+**Grand Total**: 282/282 Python PASS + 2858+ Rust+GPU validation PASS = **3200+ total validation checks**
+**Library**: 685 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 197 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 9 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 5/5 sub-theses PASS) — Sessions 50, 54, 56, 77

@@ -42,9 +42,7 @@ const BATCH: usize = 8;
 const INPUT_DIM: usize = 6;
 const HIDDEN_DIM: usize = 4;
 
-fn sigmoid_f64(x: f64) -> f64 {
-    neural_spring::primitives::sigmoid(x)
-}
+use neural_spring::primitives::sigmoid as sigmoid_f64;
 
 #[tokio::main]
 async fn main() {

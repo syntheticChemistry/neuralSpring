@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 88+ (February 27, 2026)
+## [Unreleased] — Session 93 (February 28, 2026)
+
+### Session 93 — Deep Debt Evolution + nF-03 Phase C Confidence Heads (February 28, 2026)
+
+- **Deep debt evolution**: `dispatch_ops.rs` (842→7 domain files), `gpu_ops/mod.rs` (668→38+tests_ops). Iterator evolution across 6 core modules. Self-identification→`env!("CARGO_PKG_NAME")`. `.unwrap()`→`.expect()`.
+- **nF-03 Phase C: Confidence Heads**: pLDDT, PAE, pDE, ranking score — Py 19/19, Rs 16/16, 7 new unit tests. New `sovereign_folding/confidence.rs` module.
+- **Metrics**: 197 binaries, 685 lib tests, **185/185 validate_all**, 39 Python drift baselines. 5 clippy warnings (all pre-existing pedantic).
+
+### Session 92 — nF-03 AlphaFold3 Phase A+B (February 27, 2026)
+
+- **Diffusion primitives**: cosine/linear schedules, forward diffusion, DDPM/DDIM reverse, SE(3)-equivariant noise — Py 29/29, Rs 26/26.
+- **Pairformer block**: sinusoidal embedding, conditioning, triangle ops + FFN — Py 14/14, Rs 13/13.
+- **Metrics**: 196 binaries, 680 lib tests, 184/184 validate_all. 38 Python drift baselines.
 
 ### Session 88+ — BarraCUDA CPU Parity & GPU Portability Benchmarks (February 27, 2026)
 

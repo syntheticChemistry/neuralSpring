@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: February 27, 2026 (Sessions 44–88+ — Phase 4 WGSL shader validation, ToadStool streaming pipeline, NUCLEUS atomics, publication experiments, barracuda evolution audit)
-**Status**: Phase 5h+ — 263/263 Python + 2787+ Rust+GPU = **3111+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, pure GPU 10/10 PASS, cross-system 46/46 PASS, cross-spring 52/52 PASS, Phase 4 shaders 22/22, streaming pipeline 28/28, dispatch parity 30/30, mixed-hardware dispatch 47/47, 177 binaries, **177/177 validate\_all**
+**Last Updated**: February 28, 2026 (Sessions 44–93 — Deep debt evolution, nF-03 Phase C, dispatcher domain split, iterator modernization)
+**Status**: Phase 5h+ — 282/282 Python + 2858+ Rust+GPU = **3200+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, dispatch parity 30/30, mixed-hardware dispatch 47/47, 197 binaries, **185/185 validate\_all**, 685 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 668 lib + 43 forge + 9 integration PASS — 177 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
+| Rust native validation | 685 lib + 43 forge + 9 integration PASS — 197 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
 | BarraCUDA CPU (bC) | 24/25 papers (96%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/25 papers (92%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/25 papers, 17 shaders, 108 checks | ALL PASS |
@@ -46,7 +46,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 42 upstream rewires (S81); V53 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 44 upstream rewires; V61 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 
@@ -61,7 +61,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V55 ToadStool handoff (current, Session 88+) |
+| wateringHole/handoffs/ | `../wateringHole/` | V61 ToadStool handoff (current, Session 93) |
 
 ---
 

@@ -104,12 +104,13 @@ pub fn generate_population(
 /// Genotypes are 0/1/2; frequency = column mean / 2.
 #[must_use]
 pub fn allele_frequencies(pop: &[f64], n_individuals: usize, n_loci: usize) -> Vec<f64> {
-    let mut freqs = vec![0.0; n_loci];
-    for j in 0..n_loci {
-        let sum: f64 = (0..n_individuals).map(|i| pop[i * n_loci + j]).sum();
-        freqs[j] = sum / (2.0 * n_individuals as f64);
-    }
-    freqs
+    let denom = 2.0 * n_individuals as f64;
+    (0..n_loci)
+        .map(|j| {
+            let sum: f64 = (0..n_individuals).map(|i| pop[i * n_loci + j]).sum();
+            sum / denom
+        })
+        .collect()
 }
 
 /// Nucleotide diversity (pi) within a population.
@@ -338,15 +339,9 @@ pub fn geographic_distance_matrix(coords: &[(f64, f64)]) -> Vec<f64> {
 /// hydrology metrics in `ToadStool` S64).
 #[must_use]
 pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
-    let cap = n * (n - 1) / 2;
-    let mut xs = Vec::with_capacity(cap);
-    let mut ys = Vec::with_capacity(cap);
-    for i in 0..n {
-        for j in (i + 1)..n {
-            xs.push(a[i * n + j]);
-            ys.push(b[i * n + j]);
-        }
-    }
+    let (xs, ys): (Vec<f64>, Vec<f64>) = (0..n)
+        .flat_map(|i| ((i + 1)..n).map(move |j| (a[i * n + j], b[i * n + j])))
+        .unzip();
     if xs.len() < 2 {
         return 0.0;
     }
@@ -396,6 +391,45 @@ pub fn thermal_diversity_correlation(pi_values: &[f64], temperatures: &[f64]) ->
         return 0.0;
     }
     barracuda::stats::pearson_correlation(pi_values, temperatures).unwrap_or(0.0)
+}
+
+/// Global FST via variance decomposition: `FST = between_var / (between_var + within_var)`.
+///
+/// Uses `inter_population_af_variance` for between-population variance and
+/// mean of per-population allele-frequency variance for within-population.
+/// Matches `fst_variance_decomposition_gpu` for CPU/GPU parity validation.
+#[must_use]
+pub fn global_fst_variance_decomposition(
+    populations: &[Vec<f64>],
+    n_individuals: &[usize],
+    n_loci: usize,
+) -> f64 {
+    let n_pops = populations.len();
+    if n_pops < 2 || n_loci == 0 {
+        return 0.0;
+    }
+
+    let between_var = inter_population_af_variance(populations, n_individuals, n_loci);
+
+    let all_freqs: Vec<Vec<f64>> = populations
+        .iter()
+        .zip(n_individuals.iter())
+        .map(|(pop, &n)| allele_frequencies(pop, n, n_loci))
+        .collect();
+
+    let mut within_vars = Vec::with_capacity(n_pops);
+    for freqs in &all_freqs {
+        let mean: f64 = freqs.iter().sum::<f64>() / n_loci as f64;
+        let var: f64 = freqs.iter().map(|&p| (p - mean).powi(2)).sum::<f64>() / n_loci as f64;
+        within_vars.push(var);
+    }
+    let within_var: f64 = within_vars.iter().sum::<f64>() / n_pops as f64;
+
+    let denom = between_var + within_var;
+    if denom.abs() < crate::primitives::DIVISION_GUARD {
+        return 0.0;
+    }
+    between_var / denom
 }
 
 /// Mean allele frequency variance across populations (inter-population).

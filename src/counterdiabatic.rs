@@ -57,17 +57,17 @@ impl NkLandscape {
     #[must_use]
     pub fn new(n: usize, k: usize, seed: u64) -> Self {
         let mut rng = Rng::new(seed);
-        let mut neighbors = Vec::with_capacity(n);
-        for i in 0..n {
-            let candidates: Vec<usize> = (0..n).filter(|&j| j != i).collect();
-            let chosen = rng.choose_distinct(candidates.len(), k.min(candidates.len()));
-            neighbors.push(chosen.iter().map(|&idx| candidates[idx]).collect());
-        }
-        let mut tables = Vec::with_capacity(n);
-        for _ in 0..n {
-            let n_entries = 1 << (k + 1);
-            tables.push((0..n_entries).map(|_| rng.uniform()).collect());
-        }
+        let neighbors: Vec<Vec<usize>> = (0..n)
+            .map(|i| {
+                let candidates: Vec<usize> = (0..n).filter(|&j| j != i).collect();
+                let chosen = rng.choose_distinct(candidates.len(), k.min(candidates.len()));
+                chosen.iter().map(|&idx| candidates[idx]).collect()
+            })
+            .collect();
+        let n_entries = 1 << (k + 1);
+        let tables: Vec<Vec<f64>> = (0..n)
+            .map(|_| (0..n_entries).map(|_| rng.uniform()).collect())
+            .collect();
         Self {
             n,
             k,

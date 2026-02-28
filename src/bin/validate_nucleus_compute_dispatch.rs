@@ -132,10 +132,23 @@ fn validate_node_eigensolve(
     let cpu_decomp = eigh_householder_qr(&ham, dim);
     let (gpu_evals, gpu_evecs) = dispatcher.eigh(&ham, dim);
 
-    let mut cpu_sorted = cpu_decomp.eigenvalues.clone();
-    cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    let mut gpu_sorted = gpu_evals.clone();
-    gpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let mut cpu_indices: Vec<usize> = (0..cpu_decomp.eigenvalues.len()).collect();
+    cpu_indices.sort_by(|&a, &b| {
+        cpu_decomp.eigenvalues[a]
+            .partial_cmp(&cpu_decomp.eigenvalues[b])
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    let cpu_sorted: Vec<f64> = cpu_indices
+        .iter()
+        .map(|&i| cpu_decomp.eigenvalues[i])
+        .collect();
+    let mut gpu_indices: Vec<usize> = (0..gpu_evals.len()).collect();
+    gpu_indices.sort_by(|&a, &b| {
+        gpu_evals[a]
+            .partial_cmp(&gpu_evals[b])
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    let gpu_sorted: Vec<f64> = gpu_indices.iter().map(|&i| gpu_evals[i]).collect();
 
     let eval_diff = cpu_sorted
         .iter()

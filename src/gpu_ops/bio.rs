@@ -302,6 +302,16 @@ pub fn hmm_viterbi_chain_gpu(
     Ok((path, best_val))
 }
 
+/// Hill gate kinetic parameters for the two-input AND gate model.
+#[derive(Debug, Clone, Copy)]
+pub struct HillGateConfig {
+    pub vmax: f64,
+    pub k_a: f64,
+    pub k_b: f64,
+    pub n_a: f64,
+    pub n_b: f64,
+}
+
 /// GPU two-input Hill gate: `f(a,b) = V_max × H(a,K_a,n_a) × H(b,K_b,n_b)`.
 ///
 /// Delegates to upstream `HillGateGpu` — single dispatch replaces the
@@ -310,15 +320,10 @@ pub fn hmm_viterbi_chain_gpu(
 /// # Errors
 ///
 /// Returns an error if GPU operations fail.
-#[allow(clippy::too_many_arguments)]
 pub fn hill_gate_gpu(
     input_a: &[f64],
     input_b: &[f64],
-    vmax: f64,
-    k_a: f64,
-    k_b: f64,
-    n_a: f64,
-    n_b: f64,
+    cfg: &HillGateConfig,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
     use barracuda::ops::bio::hill_gate::{HillGateGpu, HillGateParams};
@@ -356,11 +361,11 @@ pub fn hill_gate_gpu(
         n_b: len_b as u32,
         mode: 1,
         _pad: 0,
-        k_a,
-        k_b,
-        n_a_exp: n_a,
-        n_b_exp: n_b,
-        vmax,
+        k_a: cfg.k_a,
+        k_b: cfg.k_b,
+        n_a_exp: cfg.n_a,
+        n_b_exp: cfg.n_b,
+        vmax: cfg.vmax,
         _pad2: 0.0,
     };
 
@@ -461,6 +466,16 @@ pub fn multi_obj_fitness_gpu(
     Ok(result)
 }
 
+/// Dimension parameters for swarm neural-network forward pass.
+#[derive(Debug, Clone, Copy)]
+pub struct SwarmNnDims {
+    pub n_controllers: usize,
+    pub n_evals: usize,
+    pub input_dim: usize,
+    pub hidden_dim: usize,
+    pub output_dim: usize,
+}
+
 /// GPU swarm neural-network forward pass.
 ///
 /// Delegates to upstream `SwarmNnGpu` — single dispatch evaluates all
@@ -471,21 +486,16 @@ pub fn multi_obj_fitness_gpu(
 /// # Errors
 ///
 /// Returns an error if GPU operations fail.
-#[allow(clippy::too_many_arguments)]
 pub fn swarm_nn_forward_gpu(
     weights: &[f64],
     inputs: &[f64],
-    n_controllers: usize,
-    n_evals: usize,
-    input_dim: usize,
-    hidden_dim: usize,
-    output_dim: usize,
+    dims: &SwarmNnDims,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<u32>, String> {
     use barracuda::ops::bio::swarm_nn::{SwarmNnGpu, SwarmNnParams};
     use wgpu::util::DeviceExt;
 
-    let total_actions = n_controllers * n_evals;
+    let total_actions = dims.n_controllers * dims.n_evals;
     if total_actions == 0 {
         return Ok(Vec::new());
     }
@@ -511,11 +521,11 @@ pub fn swarm_nn_forward_gpu(
     });
 
     let params = SwarmNnParams {
-        n_controllers: n_controllers as u32,
-        n_evals: n_evals as u32,
-        input_dim: input_dim as u32,
-        hidden_dim: hidden_dim as u32,
-        output_dim: output_dim as u32,
+        n_controllers: dims.n_controllers as u32,
+        n_evals: dims.n_evals as u32,
+        input_dim: dims.input_dim as u32,
+        hidden_dim: dims.hidden_dim as u32,
+        output_dim: dims.output_dim as u32,
         _pad0: 0,
         _pad1: 0,
         _pad2: 0,

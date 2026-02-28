@@ -17,8 +17,14 @@
 #![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 
 mod basecamp;
-mod cpu_fallback;
-mod dispatch_ops;
+pub mod cpu_fallback;
+mod dispatch_activations;
+mod dispatch_bio;
+mod dispatch_dynamics;
+mod dispatch_hmm;
+mod dispatch_linalg;
+mod dispatch_popgen;
+mod dispatch_stats;
 
 use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile};
 use barracuda::device::WgpuDevice;

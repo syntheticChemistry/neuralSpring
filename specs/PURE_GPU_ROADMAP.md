@@ -1,6 +1,6 @@
 # neuralSpring — Pure GPU Roadmap
 
-**Date**: February 26, 2026 (Sessions 40–75 — Phase A+B+C complete, pure GPU all-domains 10/10 PASS)
+**Date**: February 28, 2026 (Sessions 40–92 — Phase A+B+C complete, Phase B gaps closed, pure GPU all-domains 10/10 PASS, nF-03 diffusion+pairformer validated)
 **Goal**: All math runs on GPU. Even a Raspberry Pi is a science platform.
 **Philosophy**: Prove math is entirely portable on GPU first, then reverse-engineer
 for CPU efficiency and older hardware. Mixed workloads come after pure GPU validation.
@@ -214,10 +214,10 @@ Session 46 completed the first wave of Phase B:
   (log→scale→exp→div pipeline, not pseudo-GPU)
 - **Validator**: `validate_gpu_phase_b` — 20/20 PASS on RTX 4070 + TITAN V NVK
 
-**Remaining Phase B work** (future sessions):
-- Full ODE loops (integrate_ode, integrate_grn) → encoder batching with GPU PRNG
-- FST variance decomposition → custom shader
-- Introgression HMM chain → compose forward + Viterbi steps
+**Remaining Phase B work** — COMPLETE (Session 90):
+- Full ODE loops → `integrate_ode_batch` via encoder batching (7/7 PASS)
+- FST variance decomposition → `fst_variance_decomposition_gpu` via existing primitives (9/9 PASS)
+- Introgression HMM chain → `detect_introgression` composing forward + Viterbi (9/9 PASS)
 
 ### Phase C — New shaders for remaining gaps (Tier 4)
 
@@ -272,13 +272,13 @@ counts to hardware limits.
 |----------|-------------|-------|-----|----------|
 | MatMul / GEMM | 17/17 modules | 17 | None | **Done** |
 | Reductions (sum/mean/max) | 16/16 modules | 16 | None | **Done** |
-| ODE integration (RK4) | 3/5 modules | 5 | Full loop batching (parallel trajectories) | **P2** |
+| ODE integration (RK4) | **5/5 modules** | 5 | None — batch ODE via encoder batching (S90) | **Done** |
 | HMM (fwd/bwd/Viterbi + chains) | **5/5 ops** | 5 | None — chains compose step ops (S66) | **Done** |
 | Eigensolvers | **2/2 modules** | 2 | None | **Done** |
 | Statistics (variance, correlation) | 6/6 modules | 6 | None | **Done** |
 | Special functions (chi²) | 1/1 module | 1 | None | **Done** |
 | Meta-population | **8/8 ops** | 8 | None — FST + AF variance wired (S66) | **Done** |
-| Game theory | 2/3 ops | 3 | Spatial stencil (shader exists) | **P2** |
+| Game theory | **3/3 ops** | 3 | None — stencil already has shader | **Done** |
 | Introgression | **1/1 chain** | 1 | None — Viterbi chain (S66) | **Done** |
 
 **Bottom line**: ~97% of production math has a GPU path through dispatch.

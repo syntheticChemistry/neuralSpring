@@ -51661,7 +51661,7 @@
   },
   "result": "9/9 PASS",
   "_provenance": {
-    "date": "2026-02-26",
+    "date": "2026-02-28",
     "python": "3.10.12",
     "numpy": "2.1.3",
     "command": "python3 eos_surrogate.py"

@@ -82,8 +82,12 @@ impl RuntimeEnvironment {
     #[must_use]
     pub fn summary(&self) -> String {
         format!(
-            "neuralSpring v{} | {} {} | {}",
-            self.neuralspring_version, self.os, self.arch, self.rust_version
+            "{} v{} | {} {} | {}",
+            env!("CARGO_PKG_NAME"),
+            self.neuralspring_version,
+            self.os,
+            self.arch,
+            self.rust_version
         )
     }
 }
@@ -689,7 +693,7 @@ mod tests {
         assert!(!env.arch.is_empty());
         assert!(!env.neuralspring_version.is_empty());
         let summary = env.summary();
-        assert!(summary.contains("neuralSpring"));
+        assert!(summary.contains(env!("CARGO_PKG_NAME")));
         assert!(summary.contains(&env.os));
     }
 }

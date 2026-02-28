@@ -39,6 +39,7 @@
 
 use neural_spring::sovereign_folding;
 use neural_spring::structure_module;
+use neural_spring::structure_module::IpaConfig;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
@@ -416,6 +417,16 @@ fn main() {
     }
 
     let ipa_scores_expected = flat_f64(&baselines["ipa_scores"]);
+    let ipa_cfg = IpaConfig {
+        n_res: ipa_n,
+        n_heads: ipa_h,
+        head_dim: ipa_d,
+        n_points: ipa_p,
+        w_l: ipa_w_l,
+        w_c: ipa_w_c,
+        w_p: ipa_w_p,
+        gamma: ipa_gamma,
+    };
     let ipa_scores_rust = structure_module::ipa_scores(
         &ipa_q,
         &ipa_k,
@@ -423,14 +434,7 @@ fn main() {
         &ipa_qp,
         &ipa_kp,
         &ipa_frames,
-        ipa_n,
-        ipa_h,
-        ipa_d,
-        ipa_p,
-        ipa_w_l,
-        ipa_w_c,
-        ipa_w_p,
-        ipa_gamma,
+        &ipa_cfg,
     );
     h.check_bool(
         "IPA scores length",
