@@ -9,7 +9,7 @@
 // at large hidden dimensions.
 //
 // Cross-spring: benefits baseCamp (Sub-02 attention), WDM surrogates,
-// sovereign folding (Evoformer), all transformer architectures.
+// coralForge (Evoformer), all transformer architectures.
 //
 // Absorption target: barracuda::ops::layer_norm_f64
 // Requires: df64_core.wgsl + df64_transcendentals.wgsl (prepended via compile_shader_f64)

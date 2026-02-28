@@ -44,7 +44,7 @@
 //! | `anderson_localization` | `control/anderson_localization/` | tridiag solve + eigendecomp |
 //! | `pangenome_selection` | `control/pangenome_selection/` | sparse GEMM + chi-squared reduce |
 //! | `meta_population` | `control/meta_population/` | variance decomp + `pearson` |
-//! | `sovereign_folding` | `control/sovereign_folding/` | triangle ops + SDPA + layernorm |
+//! | `coral_forge` | `control/coral_forge/` | triangle ops + SDPA + layernorm + IPA + diffusion |
 //!
 //! ## baseCamp Modules (Biophysical AI Interpretability)
 //!
@@ -80,6 +80,7 @@ pub(crate) mod test_gpu_lock {
 pub mod agent_coordination;
 pub mod anderson_localization;
 pub mod bench;
+pub mod coral_forge;
 pub mod counterdiabatic;
 pub mod deeponet;
 pub mod directed_evolution;
@@ -111,9 +112,7 @@ pub mod rng;
 pub mod sate_alignment;
 pub mod sequence;
 pub mod signal_integration;
-pub mod sovereign_folding;
 pub mod spectral_commutativity;
-pub mod structure_module;
 pub mod surrogate;
 pub mod swarm_robotics;
 pub mod tolerances;

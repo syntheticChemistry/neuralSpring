@@ -99,7 +99,7 @@ AlphaFold3's diffusion operates on atom coordinates in a SE(3)-equivariant
 manner. The model must be invariant to global rotations and translations.
 
 **Reuse**: `quat_to_rotation`, `apply_frame`, `compose_frames` from
-`structure_module/frame.rs` — all validated in nF-01/nF-02
+`coral_forge/structure/frame.rs` — all validated in nF-01/nF-02
 **New ops**: Frame-aligned point cloud diffusion, center-of-mass subtraction
 **Effort**: Low — composition of existing frame ops
 
@@ -109,12 +109,12 @@ The Pairformer reuses almost all Evoformer primitives but drops the MSA track.
 
 | Primitive | AlphaFold2 Module | Reuse? | Notes |
 |-----------|------------------|--------|-------|
-| Triangle mul outgoing | `sovereign_folding/triangle.rs` | 100% | Same algorithm |
-| Triangle mul incoming | `sovereign_folding/triangle.rs` | 100% | Same algorithm |
-| Triangle attention | `sovereign_folding/triangle.rs` | 100% | Same algorithm |
-| Row-wise softmax | `sovereign_folding/attention.rs` | 100% | Same algorithm |
-| Layer normalization | `sovereign_folding/activation.rs` | 100% | Same algorithm |
-| GELU activation | `sovereign_folding/activation.rs` | 100% | Same algorithm |
+| Triangle mul outgoing | `coral_forge/triangle.rs` | 100% | Same algorithm |
+| Triangle mul incoming | `coral_forge/triangle.rs` | 100% | Same algorithm |
+| Triangle attention | `coral_forge/triangle.rs` | 100% | Same algorithm |
+| Row-wise softmax | `coral_forge/attention.rs` | 100% | Same algorithm |
+| Layer normalization | `coral_forge/activation.rs` | 100% | Same algorithm |
+| GELU activation | `coral_forge/activation.rs` | 100% | Same algorithm |
 | Pair transition (FFN) | NEW | ~80% | Linear → GELU → Linear (existing ops) |
 
 **Effort**: Low — Pairformer is a subset of the Evoformer we already have.
@@ -155,19 +155,19 @@ residue/nucleotide/atom coordinate mapping
 
 | Validated Primitive | nF-01/02 Module | AF3 Use | Reuse % |
 |--------------------|----------------|---------|---------|
-| `gelu` / `gelu_vec` | `sovereign_folding/activation.rs` | Pairformer, denoising | 100% |
-| `layer_norm` | `sovereign_folding/activation.rs` | Pairformer, denoising | 100% |
-| `softmax_rows` | `sovereign_folding/activation.rs` | Attention, confidence | 100% |
-| `sdpa_scores` / `sdpa_full` | `sovereign_folding/attention.rs` | Pairformer attention | 100% |
-| `triangle_mul_outgoing` | `sovereign_folding/triangle.rs` | Pairformer | 100% |
-| `triangle_mul_incoming` | `sovereign_folding/triangle.rs` | Pairformer | 100% |
-| `triangle_attention_scores` | `sovereign_folding/triangle.rs` | Pairformer | 100% |
-| `outer_product_mean` | `sovereign_folding/msa.rs` | MSA module (pre-Pairformer) | 100% |
-| `ipa_scores` | `structure_module/ipa.rs` | Denoising network (~70%) | 70% |
-| `backbone_update` | `structure_module/backbone.rs` | Frame updates in diffusion | 100% |
-| `torsion_angles` | `structure_module/backbone.rs` | Side-chain prediction | 100% |
-| `quat_to_rotation` | `structure_module/frame.rs` | SE(3) operations | 100% |
-| `apply_frame` / `compose_frames` | `structure_module/frame.rs` | Equivariant diffusion | 100% |
+| `gelu` / `gelu_vec` | `coral_forge/activation.rs` | Pairformer, denoising | 100% |
+| `layer_norm` | `coral_forge/activation.rs` | Pairformer, denoising | 100% |
+| `softmax_rows` | `coral_forge/activation.rs` | Attention, confidence | 100% |
+| `sdpa_scores` / `sdpa_full` | `coral_forge/attention.rs` | Pairformer attention | 100% |
+| `triangle_mul_outgoing` | `coral_forge/triangle.rs` | Pairformer | 100% |
+| `triangle_mul_incoming` | `coral_forge/triangle.rs` | Pairformer | 100% |
+| `triangle_attention_scores` | `coral_forge/triangle.rs` | Pairformer | 100% |
+| `outer_product_mean` | `coral_forge/msa.rs` | MSA module (pre-Pairformer) | 100% |
+| `ipa_scores` | `coral_forge/structure/ipa.rs` | Denoising network (~70%) | 70% |
+| `backbone_update` | `coral_forge/structure/backbone.rs` | Frame updates in diffusion | 100% |
+| `torsion_angles` | `coral_forge/structure/backbone.rs` | Side-chain prediction | 100% |
+| `quat_to_rotation` | `coral_forge/structure/frame.rs` | SE(3) operations | 100% |
+| `apply_frame` / `compose_frames` | `coral_forge/structure/frame.rs` | Equivariant diffusion | 100% |
 | 15 WGSL shaders (df64) | `metalForge/shaders/` | GPU acceleration | 100% |
 
 **Reuse estimate**: ~75% of AF3 compute uses primitives we already have.
@@ -218,7 +218,7 @@ denoising steps, sampling) and multi-molecule tokenization.
 4. ✅ SE(3)-equivariant noise (center-of-mass removal, translation invariance)
 5. ✅ pLDDT confidence head (Linear → sigmoid → [0,1])
 6. ✅ PAE confidence head (pair → softmax → expected distance)
-7. ✅ Python control: `control/sovereign_folding/alphafold3_diffusion.py` (29/29)
+7. ✅ Python control: `control/coral_forge/alphafold3_diffusion.py` (29/29)
 8. ✅ Rust validation: `validate_alphafold3_diffusion.rs` (26/26)
 
 ### Phase B: Pairformer — DONE (Session 92)
@@ -227,7 +227,7 @@ denoising steps, sampling) and multi-molecule tokenization.
 2. ✅ Pair transition FFN (Linear → GELU → Linear)
 3. ✅ Sinusoidal timestep embedding + pair conditioning
 4. ✅ Multi-block iteration (3 blocks with decreasing timestep)
-5. ✅ Python control: `control/sovereign_folding/alphafold3_pairformer.py` (14/14)
+5. ✅ Python control: `control/coral_forge/alphafold3_pairformer.py` (14/14)
 6. ✅ Rust validation: `validate_alphafold3_pairformer.rs` (13/13)
 
 ### Phase C: Confidence Heads — DONE (Session 93)
@@ -236,7 +236,7 @@ denoising steps, sampling) and multi-molecule tokenization.
 2. ✅ PAE head (pair → bin softmax)
 3. ✅ pDE head (pair → distance error bins)
 4. ✅ Ranking score (weighted combination)
-5. ✅ Python control: `control/sovereign_folding/alphafold3_confidence.py` (19/19)
+5. ✅ Python control: `control/coral_forge/alphafold3_confidence.py` (19/19)
 6. ✅ Rust validation: `validate_alphafold3_confidence.rs` (16/16)
 
 ### Phase D: Multi-Molecule Tokenization (needs CCD only — 50 MB)

@@ -102,10 +102,10 @@ pub fn phenotype_classifier(x: &[f64; 4]) -> usize {
     if m <= 0.0 {
         return 0;
     }
-    if bio >= m - 1e-10 {
+    if bio >= m - crate::tolerances::PHENOTYPE_TIE_EPS {
         return 0;
     }
-    if mot >= m - 1e-10 {
+    if mot >= m - crate::tolerances::PHENOTYPE_TIE_EPS {
         return 1;
     }
     2

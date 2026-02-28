@@ -85,6 +85,8 @@ fn tolerance_registry_covers_all_categories() {
         "linalg",
         "ml_pipeline",
         "gpu_dispatch",
+        "folding",
+        "domain_guards",
     ] {
         assert!(cats.contains(&expected), "missing category: {expected}");
     }
@@ -137,7 +139,10 @@ fn runtime_environment_self_knowledge() {
     );
 
     let summary = env.summary();
-    assert!(summary.contains("neuralSpring"));
+    assert!(
+        summary.contains(env!("CARGO_PKG_NAME")),
+        "summary should contain crate name from Cargo.toml, got: {summary}"
+    );
 }
 
 #[test]

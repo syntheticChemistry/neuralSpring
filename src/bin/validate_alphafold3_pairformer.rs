@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! nF-03 Phase B: AlphaFold3 Pairformer block validation.
+//! nF-03 Phase B: `AlphaFold3` Pairformer block validation.
 //!
 //! Loads Python-generated baselines from `pairformer_baselines.json` and
 //! validates that the Rust Pairformer block reproduces them.
 //!
 //! ## Provenance
 //!
-//! Python baseline: `control/sovereign_folding/alphafold3_pairformer.py`
+//! Python baseline: `control/coral_forge/alphafold3_pairformer.py`
 //! Reuses: ~90% of Evoformer primitives from nF-02
 //! Reference: Abramson et al. Nature 630:493-500 (2024)
 //!
@@ -29,12 +29,11 @@
     clippy::too_many_lines
 )]
 
-use neural_spring::sovereign_folding::pairformer;
+use neural_spring::coral_forge::pairformer;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
-const BASELINE_JSON: &str =
-    include_str!("../../control/sovereign_folding/pairformer_baselines.json");
+const BASELINE_JSON: &str = include_str!("../../control/coral_forge/pairformer_baselines.json");
 
 fn flat_f64(val: &serde_json::Value) -> Vec<f64> {
     match val {
@@ -68,17 +67,41 @@ fn main() {
         let rs_emb_25 = pairformer::sinusoidal_embedding(25.0, D_PAIR);
         let rs_emb_49 = pairformer::sinusoidal_embedding(49.0, D_PAIR);
 
-        let max_diff_0 = rs_emb_0.iter().zip(py_emb_0.iter())
-            .map(|(r, p)| (r - p).abs()).fold(0.0_f64, f64::max);
-        h.check_abs("nF-PF01a t_emb(0) vs Python", max_diff_0, 0.0, tolerances::CROSS_LANGUAGE);
+        let max_diff_0 = rs_emb_0
+            .iter()
+            .zip(py_emb_0.iter())
+            .map(|(r, p)| (r - p).abs())
+            .fold(0.0_f64, f64::max);
+        h.check_abs(
+            "nF-PF01a t_emb(0) vs Python",
+            max_diff_0,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
 
-        let max_diff_25 = rs_emb_25.iter().zip(py_emb_25.iter())
-            .map(|(r, p)| (r - p).abs()).fold(0.0_f64, f64::max);
-        h.check_abs("nF-PF01b t_emb(25) vs Python", max_diff_25, 0.0, tolerances::CROSS_LANGUAGE);
+        let max_diff_25 = rs_emb_25
+            .iter()
+            .zip(py_emb_25.iter())
+            .map(|(r, p)| (r - p).abs())
+            .fold(0.0_f64, f64::max);
+        h.check_abs(
+            "nF-PF01b t_emb(25) vs Python",
+            max_diff_25,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
 
-        let max_diff_49 = rs_emb_49.iter().zip(py_emb_49.iter())
-            .map(|(r, p)| (r - p).abs()).fold(0.0_f64, f64::max);
-        h.check_abs("nF-PF01c t_emb(49) vs Python", max_diff_49, 0.0, tolerances::CROSS_LANGUAGE);
+        let max_diff_49 = rs_emb_49
+            .iter()
+            .zip(py_emb_49.iter())
+            .map(|(r, p)| (r - p).abs())
+            .fold(0.0_f64, f64::max);
+        h.check_abs(
+            "nF-PF01c t_emb(49) vs Python",
+            max_diff_49,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
     }
 
     // ─── nF-PF02: Timestep conditioning ───────────────────────────
@@ -93,9 +116,17 @@ fn main() {
             &pair_repr, N_RES, D_PAIR, &t_emb_25, &w_cond, &b_cond,
         );
 
-        let max_diff = rs_conditioned.iter().zip(py_conditioned.iter())
-            .map(|(r, p)| (r - p).abs()).fold(0.0_f64, f64::max);
-        h.check_abs("nF-PF02a conditioning vs Python", max_diff, 0.0, tolerances::CROSS_LANGUAGE);
+        let max_diff = rs_conditioned
+            .iter()
+            .zip(py_conditioned.iter())
+            .map(|(r, p)| (r - p).abs())
+            .fold(0.0_f64, f64::max);
+        h.check_abs(
+            "nF-PF02a conditioning vs Python",
+            max_diff,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
 
         // All pairs get same shift (broadcast invariant)
         let shift_00: Vec<f64> = (0..D_PAIR)
@@ -105,9 +136,17 @@ fn main() {
         let shift_35: Vec<f64> = (0..D_PAIR)
             .map(|d| rs_conditioned[ij * D_PAIR + d] - pair_repr[ij * D_PAIR + d])
             .collect();
-        let shift_diff = shift_00.iter().zip(shift_35.iter())
-            .map(|(a, b)| (a - b).abs()).fold(0.0_f64, f64::max);
-        h.check_abs("nF-PF02b broadcast invariance", shift_diff, 0.0, tolerances::CROSS_LANGUAGE);
+        let shift_diff = shift_00
+            .iter()
+            .zip(shift_35.iter())
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0_f64, f64::max);
+        h.check_abs(
+            "nF-PF02b broadcast invariance",
+            shift_diff,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
     }
 
     // ─── nF-PF03: Pairformer block (no conditioning) ──────────────
@@ -118,14 +157,28 @@ fn main() {
         let weights = build_weights(&baselines);
         let rs_out = pairformer::pairformer_block(&pair_input, N_RES, D_PAIR, &weights, None);
 
-        let max_diff = rs_out.iter().zip(py_out.iter())
-            .map(|(r, p)| (r - p).abs()).fold(0.0_f64, f64::max);
-        h.check_abs("nF-PF03a block (no cond) vs Python", max_diff, 0.0, tolerances::CROSS_LANGUAGE);
+        let max_diff = rs_out
+            .iter()
+            .zip(py_out.iter())
+            .map(|(r, p)| (r - p).abs())
+            .fold(0.0_f64, f64::max);
+        h.check_abs(
+            "nF-PF03a block (no cond) vs Python",
+            max_diff,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
 
-        h.check_bool("nF-PF03b output finite", rs_out.iter().all(|v| v.is_finite()));
+        h.check_bool(
+            "nF-PF03b output finite",
+            rs_out.iter().all(|v| v.is_finite()),
+        );
         h.check_bool(
             "nF-PF03c output differs from input",
-            rs_out.iter().zip(pair_input.iter()).any(|(r, p)| (r - p).abs() > 1e-6),
+            rs_out
+                .iter()
+                .zip(pair_input.iter())
+                .any(|(r, p)| (r - p).abs() > 1e-6),
         );
     }
 
@@ -137,40 +190,56 @@ fn main() {
 
         let weights = build_weights(&baselines);
         let t_emb_25 = pairformer::sinusoidal_embedding(25.0, D_PAIR);
-        let rs_out = pairformer::pairformer_block(
-            &pair_input, N_RES, D_PAIR, &weights, Some(&t_emb_25),
-        );
+        let rs_out =
+            pairformer::pairformer_block(&pair_input, N_RES, D_PAIR, &weights, Some(&t_emb_25));
 
-        let max_diff = rs_out.iter().zip(py_out.iter())
-            .map(|(r, p)| (r - p).abs()).fold(0.0_f64, f64::max);
-        h.check_abs("nF-PF04a block (with cond) vs Python", max_diff, 0.0, tolerances::CROSS_LANGUAGE);
+        let max_diff = rs_out
+            .iter()
+            .zip(py_out.iter())
+            .map(|(r, p)| (r - p).abs())
+            .fold(0.0_f64, f64::max);
+        h.check_abs(
+            "nF-PF04a block (with cond) vs Python",
+            max_diff,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
 
         // Conditioning should change the output
         h.check_bool(
             "nF-PF04b conditioning changes output",
-            rs_out.iter().zip(py_out_no_cond.iter()).any(|(r, p)| (r - p).abs() > 1e-6),
+            rs_out
+                .iter()
+                .zip(py_out_no_cond.iter())
+                .any(|(r, p)| (r - p).abs() > 1e-6),
         );
     }
 
     // ─── nF-PF05: Multi-block iteration ───────────────────────────
     {
-        let pair_input = flat_f64(&baselines["pair_input"]);
         let py_multi = flat_f64(&baselines["multi_block_out"]);
 
         let weights = build_weights(&baselines);
-        let mut pair_evolving = pair_input.clone();
+        let mut pair_evolving = flat_f64(&baselines["pair_input"]);
 
         for block_idx in 0..3_usize {
             let t = 49.0 - (block_idx as f64) * 20.0;
             let t_emb = pairformer::sinusoidal_embedding(t, D_PAIR);
-            pair_evolving = pairformer::pairformer_block(
-                &pair_evolving, N_RES, D_PAIR, &weights, Some(&t_emb),
-            );
+            pair_evolving =
+                pairformer::pairformer_block(&pair_evolving, N_RES, D_PAIR, &weights, Some(&t_emb));
         }
 
-        let max_diff = pair_evolving.iter().zip(py_multi.iter())
-            .map(|(r, p)| (r - p).abs()).fold(0.0_f64, f64::max);
-        h.check_abs("nF-PF05a multi-block vs Python", max_diff, 0.0, tolerances::CROSS_LANGUAGE);
+        let max_diff = pair_evolving
+            .iter()
+            .zip(py_multi.iter())
+            .map(|(r, p)| (r - p).abs())
+            .fold(0.0_f64, f64::max);
+        h.check_abs(
+            "nF-PF05a multi-block vs Python",
+            max_diff,
+            0.0,
+            tolerances::CROSS_LANGUAGE,
+        );
 
         h.check_bool(
             "nF-PF05b multi-block finite",

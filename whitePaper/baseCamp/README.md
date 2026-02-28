@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: February 28, 2026 (Sessions 61–93)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + sovereign folding (nF-01/02/03 Phase C) + 3 publication experiments, **3200+ checks**, ~97% GPU promotion, **185/185 validate\_all** (197 binaries), CPU↔Python parity 39/39, **83.6× faster** than Python (geomean across 11 domains). **Dispatch parity 30/30**. **Mixed-hardware dispatch 47/47**. 47 GPU-promoted Dispatcher ops (now split into 7 domain files). 44 upstream rewires + 130+ barracuda import sites across 197 files, 20+ submodules. Zero debt, 131+ named tolerances. Session 93: deep debt evolution (dispatch domain split, iterator modernization), nF-03 Phase C confidence heads (Py 62/62, Rs 55/55, 18 unit tests), 685 lib tests, 39 Python baselines
+**Last Updated**: February 28, 2026 (Sessions 61–94)
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3200+ checks**, ~97% GPU promotion, **185/185 validate\_all** (197 binaries), CPU↔Python parity 39/39, **83.6× faster** than Python (geomean across 11 domains). **Dispatch parity 30/30**. **Mixed-hardware dispatch 47/47**. 47 GPU-promoted Dispatcher ops (7 domain files). 44 upstream rewires + 130+ barracuda import sites. Zero debt, 139+ named tolerances. Session 94: coralForge rename (sovereign\_folding+structure\_module unified), 5 domain tolerance guards, 24 expect→require!, 34 provenance docs, dependency analysis. 0 clippy, 0 doc warnings
 
 ## Purpose
 

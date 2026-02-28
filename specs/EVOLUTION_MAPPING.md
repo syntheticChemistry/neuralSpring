@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 26, 2026 (Sessions 60–75: Phase C GPU + CPU↔Python parity 39/39, 83.6× speedup + pure GPU all-domains + cross-system dispatch)
+**Last Updated**: February 28, 2026 (Sessions 60–94: Phase C GPU + CPU↔Python parity 39/39, 83.6× speedup + pure GPU all-domains + cross-system dispatch + coralForge rename + deep debt resolution)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---

@@ -121,7 +121,7 @@ pub fn partition_pangenome(
     let n_core = freqs.iter().filter(|&&f| f >= core_threshold).count();
     let n_singleton = freqs
         .iter()
-        .filter(|&&f| (f - singleton_freq).abs() < 1e-10)
+        .filter(|&&f| (f - singleton_freq).abs() < crate::tolerances::SINGLETON_FREQ_EPS)
         .count();
     let n_accessory = freqs.len() - n_core - n_singleton;
     (n_core, n_accessory, n_singleton)

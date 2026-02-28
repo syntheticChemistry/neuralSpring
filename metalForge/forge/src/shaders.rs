@@ -208,7 +208,7 @@ pub const MATRIX_CORRELATION: &str = include_str!("../../shaders/matrix_correlat
 /// ## Absorption target: `barracuda::stats::linear_regression_gpu`
 pub const LINEAR_REGRESSION: &str = include_str!("../../shaders/linear_regression.wgsl");
 
-// ── Sovereign Folding: Evoformer primitives (Phase B) ────────────────
+// ── coralForge: Evoformer primitives (Phase B) ────────────────
 //
 // AlphaFold2 Evoformer operations with df64 emulation for f64-class
 // precision on consumer GPUs. All require df64_core.wgsl injection

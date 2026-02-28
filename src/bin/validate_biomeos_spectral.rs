@@ -167,7 +167,12 @@ async fn main() {
                 .and_then(|v| v.as_array())
                 .map(|a| a.len())
                 .unwrap_or(0);
-            h.check_abs("health.capabilities count >= 7", if caps >= 7 { 1.0 } else { 0.0 }, 1.0, 0.5);
+            h.check_abs(
+                "health.capabilities count >= 7",
+                if caps >= 7 { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
         }
         Err(e) => {
             eprintln!("  Health check failed: {e}");

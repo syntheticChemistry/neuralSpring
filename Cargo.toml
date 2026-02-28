@@ -760,11 +760,11 @@ path = "src/bin/validate_cross_system_dispatch.rs"
 name = "bench_evolution_tiers"
 path = "src/bin/bench_evolution_tiers.rs"
 
-# ── Sovereign folding (Phase B) ────────────────────────────────────
+# ── coralForge (Phase B) ──────────────────────────────────────────
 
 [[bin]]
-name = "validate_sovereign_folding"
-path = "src/bin/validate_sovereign_folding.rs"
+name = "validate_coral_forge"
+path = "src/bin/validate_coral_forge.rs"
 
 [[bin]]
 name = "validate_alphafold2_evoformer"
@@ -783,12 +783,12 @@ name = "validate_alphafold3_confidence"
 path = "src/bin/validate_alphafold3_confidence.rs"
 
 [[bin]]
-name = "validate_sovereign_folding_gpu"
-path = "src/bin/validate_sovereign_folding_gpu.rs"
+name = "validate_coral_forge_gpu"
+path = "src/bin/validate_coral_forge_gpu.rs"
 
 [[bin]]
-name = "validate_sovereign_folding_gpu_pipeline"
-path = "src/bin/validate_sovereign_folding_gpu_pipeline.rs"
+name = "validate_coral_forge_gpu_pipeline"
+path = "src/bin/validate_coral_forge_gpu_pipeline.rs"
 
 # ── baseCamp GPU benchmarks ────────────────────────────────────────
 
@@ -888,7 +888,7 @@ path = "src/bin/validate_mixed_hardware_dispatch.rs"
 
 [[bin]]
 name = "neuralspring_primal"
-path = "src/bin/neuralspring_primal.rs"
+path = "src/bin/neuralspring_primal/main.rs"
 required-features = ["primal"]
 
 # ── biomeOS integration validators ──────────────────────────────────

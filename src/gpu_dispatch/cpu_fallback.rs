@@ -202,6 +202,10 @@ pub fn hmm_viterbi_step(
 /// CPU batch ODE integration: Hill-function RHS, matches `rk4_parallel.wgsl`.
 ///
 /// Coeffs per dimension: `[prod, deg, activator_idx]`. Hill uses k=0.5, n=2.
+///
+/// # Panics
+///
+/// Panics if any `activator_idx` in `coeffs` is negative or >= `dim`.
 #[allow(clippy::cast_sign_loss)]
 #[must_use]
 pub fn cpu_ode_batch_hill(
@@ -215,6 +219,14 @@ pub fn cpu_ode_batch_hill(
     fn hill(x: f64, k: f64, n: f64) -> f64 {
         let xn = x.powf(n);
         xn / (k.powf(n) + xn)
+    }
+
+    fn safe_idx(raw: f64, dim: usize) -> usize {
+        assert!(
+            raw >= 0.0 && (raw as usize) < dim,
+            "activator_idx {raw} out of range [0, {dim})"
+        );
+        raw as usize
     }
 
     let n_coeffs = dim * 3;
@@ -232,7 +244,7 @@ pub fn cpu_ode_batch_hill(
                 let c = coeff_base + d * 3;
                 let prod = coeffs[c];
                 let deg = coeffs[c + 1];
-                let act_idx = coeffs[c + 2] as usize;
+                let act_idx = safe_idx(coeffs[c + 2], dim);
                 k1[d] = prod.mul_add(hill(y[act_idx], 0.5, 2.0), -(deg * y[d]));
             }
 
@@ -242,7 +254,7 @@ pub fn cpu_ode_batch_hill(
                 let c = coeff_base + d * 3;
                 let prod = coeffs[c];
                 let deg = coeffs[c + 1];
-                let act_idx = coeffs[c + 2] as usize;
+                let act_idx = safe_idx(coeffs[c + 2], dim);
                 let act_val = half_dt.mul_add(k1[act_idx], y[act_idx]);
                 k2[d] = prod.mul_add(hill(act_val, 0.5, 2.0), -(deg * y2_d));
             }
@@ -253,7 +265,7 @@ pub fn cpu_ode_batch_hill(
                 let c = coeff_base + d * 3;
                 let prod = coeffs[c];
                 let deg = coeffs[c + 1];
-                let act_idx = coeffs[c + 2] as usize;
+                let act_idx = safe_idx(coeffs[c + 2], dim);
                 let act_val = half_dt.mul_add(k2[act_idx], y[act_idx]);
                 k3[d] = prod.mul_add(hill(act_val, 0.5, 2.0), -(deg * y3_d));
             }
@@ -264,7 +276,7 @@ pub fn cpu_ode_batch_hill(
                 let c = coeff_base + d * 3;
                 let prod = coeffs[c];
                 let deg = coeffs[c + 1];
-                let act_idx = coeffs[c + 2] as usize;
+                let act_idx = safe_idx(coeffs[c + 2], dim);
                 let act_val = dt.mul_add(k3[act_idx], y[act_idx]);
                 k4[d] = prod.mul_add(hill(act_val, 0.5, 2.0), -(deg * y4_d));
             }

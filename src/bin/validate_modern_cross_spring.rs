@@ -129,11 +129,16 @@ fn validate_hotspring_precision(h: &mut ValidationHarness, dispatcher: &Dispatch
     let k = 12;
     let n_col = 6;
     let a_rect: Vec<f64> = (0..m * k).map(|i| (i as f64) * 0.01).collect();
-    let b_rect: Vec<f64> = (0..k * n_col).map(|i| ((k * n_col - i) as f64) * 0.01).collect();
+    let b_rect: Vec<f64> = (0..k * n_col)
+        .map(|i| ((k * n_col - i) as f64) * 0.01)
+        .collect();
     let result = barracuda::dispatch::matmul_dispatch(&a_rect, &b_rect, m, k, n_col, None)
         .expect("matmul_dispatch non-square");
     assert_eq!(result.len(), m * n_col);
-    h.check_bool("hS→dispatch: matmul non-square (8×12 × 12×6)", result.iter().all(|v| v.is_finite()));
+    h.check_bool(
+        "hS→dispatch: matmul non-square (8×12 × 12×6)",
+        result.iter().all(|v| v.is_finite()),
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -178,7 +183,10 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
     // Alpha diversity (wetSpring → ToadStool S64)
     let abundances = [5.0, 10.0, 15.0, 20.0, 25.0, 25.0];
     let alpha = barracuda::stats::alpha_diversity(&abundances);
-    h.check_bool("wS→diversity: alpha_diversity computed", alpha.shannon > 0.0);
+    h.check_bool(
+        "wS→diversity: alpha_diversity computed",
+        alpha.shannon > 0.0,
+    );
     h.check_bool(
         "wS→diversity: chao1 ≥ observed",
         alpha.chao1 >= alpha.observed,
@@ -248,13 +256,23 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
         barracuda::stats::fit_quadratic(&xq, &yq)
     });
     let fit_q = fit_q.expect("fit_quadratic should converge");
-    h.check_abs("aS→regression: quadratic R² ≈ 1.0", fit_q.r_squared, 1.0, 0.01);
+    h.check_abs(
+        "aS→regression: quadratic R² ≈ 1.0",
+        fit_q.r_squared,
+        1.0,
+        0.01,
+    );
 
     // Exponential fit (airSpring → ToadStool S66)
     let xe: Vec<f64> = (0..10).map(|i| i as f64 * 0.5).collect();
     let ye: Vec<f64> = xe.iter().map(|&x| 2.0 * (0.5_f64 * x).exp()).collect();
     let fit_e = barracuda::stats::fit_exponential(&xe, &ye).expect("fit_exponential");
-    h.check_abs("aS→regression: exponential R² ≈ 1.0", fit_e.r_squared, 1.0, 0.01);
+    h.check_abs(
+        "aS→regression: exponential R² ≈ 1.0",
+        fit_e.r_squared,
+        1.0,
+        0.01,
+    );
 
     // Metrics: RMSE, R², NSE, MAE (airSpring → ToadStool S64)
     let predicted = [1.0, 2.0, 3.0, 4.0, 5.0];
@@ -363,7 +381,9 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
 
     // Dispatcher: softmax (nS S58 → ToadStool domain_ops)
     let logits = [1.0, 2.0, 3.0, 4.0];
-    let (sm, _) = bench("softmax (nS→ToadStool S58)", || dispatcher.softmax(&logits));
+    let (sm, _) = bench("softmax (nS→ToadStool S58)", || {
+        dispatcher.softmax(&logits)
+    });
     let sm_sum: f64 = sm.iter().sum();
     h.check_abs("nS→dispatch: softmax sums to 1", sm_sum, 1.0, 1e-10);
 
@@ -387,7 +407,10 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
     let (hmm, _) = bench("hmm_forward (nS+wS→ToadStool S59)", || {
         dispatcher.hmm_forward_step(&alpha, &trans, &emis, 2)
     });
-    h.check_bool("nS+wS→dispatch: HMM alpha finite", hmm.0.iter().all(|v| v.is_finite()));
+    h.check_bool(
+        "nS+wS→dispatch: HMM alpha finite",
+        hmm.0.iter().all(|v| v.is_finite()),
+    );
     h.check_bool("nS+wS→dispatch: HMM scale > 0", hmm.1 > 0.0);
 
     // Graph operations (nS baseCamp → ToadStool S54)
@@ -396,7 +419,12 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
         barracuda::linalg::graph_laplacian(&adjacency, 3)
     });
     h.check_abs("nS→graph: L[0,0] = degree(0) = 2", laplacian[0], 2.0, 1e-10);
-    h.check_abs("nS→graph: L[0,1] = -adj[0,1] = -1", laplacian[1], -1.0, 1e-10);
+    h.check_abs(
+        "nS→graph: L[0,1] = -adj[0,1] = -1",
+        laplacian[1],
+        -1.0,
+        1e-10,
+    );
 
     // Effective rank (nS baseCamp → ToadStool S54)
     let eigs = [10.0, 5.0, 1.0, 0.1, 0.01];
@@ -450,8 +478,16 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     let (grad, _) = bench("gradient_1d (TS numerical)", || {
         barracuda::numerical::gradient_1d(&[1.0, 4.0, 9.0, 16.0], 1.0)
     });
-    h.check_abs("TS→numerical: gradient [1,4,9,16] center", grad[1], 4.0, 1e-10);
-    h.check_bool("TS→numerical: gradient endpoint finite", grad[0].is_finite());
+    h.check_abs(
+        "TS→numerical: gradient [1,4,9,16] center",
+        grad[1],
+        4.0,
+        1e-10,
+    );
+    h.check_bool(
+        "TS→numerical: gradient endpoint finite",
+        grad[0].is_finite(),
+    );
 
     // Numerical: trapz (cross-spring)
     // trapz([0,1,4,9], [0,1,2,3]) = 0.5*(0+1) + 0.5*(1+4) + 0.5*(4+9) = 9.5
@@ -468,7 +504,8 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     );
 
     // Numerical: Hessian (nS baseCamp → ToadStool S54)
-    let quadratic: &dyn Fn(&[f64]) -> f64 = &|params: &[f64]| params[0] * params[0] + params[1] * params[1];
+    let quadratic: &dyn Fn(&[f64]) -> f64 =
+        &|params: &[f64]| params[0] * params[0] + params[1] * params[1];
     let (hess, _) = bench("numerical_hessian (nS→TS S54)", || {
         barracuda::numerical::numerical_hessian(quadratic, &[1.0, 2.0], 1e-5)
     });
@@ -484,7 +521,10 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     });
     let chi2 = chi2_result.expect("chi2_decomposed");
     h.check_bool("TS→stats: chi2 statistic > 0", chi2.chi2_total > 0.0);
-    h.check_bool("TS→stats: chi2 has 4 contributions", chi2.contributions.len() == 4);
+    h.check_bool(
+        "TS→stats: chi2 has 4 contributions",
+        chi2.contributions.len() == 4,
+    );
 
     // Ridge regression (wetSpring ESN → ToadStool S56)
     // features: [5, 2] (x and bias column), targets: [5, 1]
@@ -535,9 +575,7 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
     let (_, gpu_t) = bench("matmul 256×256 GPU", || {
         dispatcher.mat_mul(&data, &data, n)
     });
-    let (_, cpu_t) = bench("matmul 256×256 CPU", || {
-        cpu.mat_mul(&data, &data, n)
-    });
+    let (_, cpu_t) = bench("matmul 256×256 CPU", || cpu.mat_mul(&data, &data, n));
     results.push(BenchResult {
         label: "matmul 256²",
         provenance: "nS→TS",

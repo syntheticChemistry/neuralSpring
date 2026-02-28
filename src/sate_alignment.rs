@@ -238,14 +238,16 @@ fn align_pair(seq_a: &[u8], seq_b: &[u8]) -> (Vec<u8>, Vec<u8>) {
         };
         if idx_i > 0
             && idx_j > 0
-            && (f[idx_i * cols + idx_j] - (f[(idx_i - 1) * cols + idx_j - 1] + cost)).abs() < 1e-10
+            && (f[idx_i * cols + idx_j] - (f[(idx_i - 1) * cols + idx_j - 1] + cost)).abs()
+                < crate::tolerances::DP_EQUALITY_EPS
         {
             aln_a.push(seq_a[idx_i - 1]);
             aln_b.push(seq_b[idx_j - 1]);
             idx_i -= 1;
             idx_j -= 1;
         } else if idx_i > 0
-            && (f[idx_i * cols + idx_j] - (f[(idx_i - 1) * cols + idx_j] + 1.0)).abs() < 1e-10
+            && (f[idx_i * cols + idx_j] - (f[(idx_i - 1) * cols + idx_j] + 1.0)).abs()
+                < crate::tolerances::DP_EQUALITY_EPS
         {
             aln_a.push(seq_a[idx_i - 1]);
             aln_b.push(GAP);

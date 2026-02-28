@@ -676,6 +676,72 @@ pub const GOE_LSR_TOLERANCE: f64 = 0.10;
 /// and boundary conditions in lattice coordination models.
 pub const IPR_RATIO_SPREAD_MAX: f64 = 0.40;
 
+// ═══════════════════════════════════════════════════════════════════
+// coralForge numerical stability
+// ═══════════════════════════════════════════════════════════════════
+
+/// Division guard for coralForge primitives (softmax, norms).
+///
+/// Prevents division by zero in attention score normalization,
+/// triangle update norms, and MSA column aggregation.  Matches
+/// `EXACT_F64` (1e-12) — the same guard used across all crate modules.
+pub const FOLDING_EPS: f64 = EXACT_F64;
+
+/// Cosine beta schedule alpha-bar floor for diffusion models.
+///
+/// Clamps `alpha_bar` from below to prevent `sqrt(alpha_bar)` or
+/// `1 - alpha_bar` from hitting zero during forward diffusion.
+/// `1e-10` is 2 orders above the smallest `alpha_bar` in a 1000-step
+/// cosine schedule (Ho et al. "DDPM" `NeurIPS` 2020).
+pub const DIFFUSION_ALPHA_BAR_FLOOR: f64 = 1e-10;
+
+/// Cosine beta schedule per-step beta floor.
+///
+/// Prevents degenerate zero-noise steps at the start of the schedule.
+/// 1e-6 ensures every step adds measurable noise while staying well
+/// below typical beta values (~0.001–0.02).
+pub const DIFFUSION_BETA_FLOOR: f64 = 1e-6;
+
+// ═══════════════════════════════════════════════════════════════════
+// Domain-specific numerical guards
+// ═══════════════════════════════════════════════════════════════════
+
+/// Fisher information metric floor for counterdiabatic driving.
+///
+/// The Fisher metric `g(s) = β²·Var_s[F]` vanishes at landscape saddle
+/// points, causing geodesic speed `ds/dt → ∞`. This floor caps the speed
+/// while remaining negligible compared to typical `g(s) ∈ [1e-4, 1]` at β=1.
+pub const FISHER_EPS: f64 = CROSS_LANGUAGE;
+
+/// Cole-Hopf initial-condition guard for Burgers' equation.
+///
+/// At `t = 0` the exact solution is `u(0,x) = -sin(πx)`, which avoids
+/// the expensive quadrature. This threshold detects the IC case; `1e-12`
+/// provides clean separation from any `t > 0`.
+pub const BURGERS_IC_GUARD: f64 = EXACT_F64;
+
+/// DP traceback equality guard for sequence alignment.
+///
+/// In Needleman-Wunsch / Gotoh traceback, floating-point scores are
+/// compared to determine which predecessor cell was optimal. `1e-10`
+/// accounts for accumulated rounding in the forward pass while being
+/// well above machine epsilon.
+pub const DP_EQUALITY_EPS: f64 = CROSS_LANGUAGE;
+
+/// Singleton frequency detection guard for pangenome analysis.
+///
+/// Identifies genes present in exactly one genome by comparing against
+/// the theoretical singleton frequency `1/N`. `1e-10` handles f64
+/// rounding without false matches to non-singleton frequencies.
+pub const SINGLETON_FREQ_EPS: f64 = CROSS_LANGUAGE;
+
+/// Tie-breaking guard for regulatory network fate decisions.
+///
+/// When multiple phenotype signals are within this margin of the
+/// maximum, the first (bioremediation) wins. `1e-10` prevents spurious
+/// tie-breaks from floating-point noise in ODE integration.
+pub const PHENOTYPE_TIE_EPS: f64 = CROSS_LANGUAGE;
+
 mod gpu;
 mod registry;
 

@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: February 28, 2026 (Sessions 40–93)
-**ToadStool HEAD**: `e96576ee` (S68+: universal precision. S93: deep debt evolution + nF-03 Phase C confidence heads. 197 binaries, **185/185 validate\_all**, 685 lib tests, 39 Python drift baselines, 3200+ checks)
+**Date**: February 28, 2026 (Sessions 40–94)
+**ToadStool HEAD**: `e96576ee` (S68+: universal precision. S94: coralForge rename, deep debt resolution, tolerance domain guards, provenance docs. 197 binaries, **185/185 validate\_all**, 685 lib tests, 39 Python drift baselines, 3200+ checks, 139+ named tolerances, 0 clippy, 0 doc warnings)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -25,7 +25,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | GPU Pipeline (gP) | 15/25 papers (60%) — S74: +9 domains via `validate_gpu_pure_workload_all` | **ALL PASS** |
 | Cross-dispatch (xD) | **15/15** Phase 0++ papers (100%) | **ALL GREEN** |
 | Multi-GPU validation | RTX 4070 + TITAN V (NVK) — **384/384 Titan V (S82)** | **Bit-identical** |
-| GPU shader validation | 126/126 (21 absorbed WGSL) + 37/37 (15 sovereign folding df64) | **COMPLETE** |
+| GPU shader validation | 126/126 (21 absorbed WGSL) + 37/37 (15 coralForge df64) | **COMPLETE** |
 | GPU pipeline validation | 77/77 | **COMPLETE** |
 | ToadStool shortcomings absorbed | **17/17** (S-01..S-17) | **ALL RESOLVED** |
 | S-16 (transpose dispatch) | Fixed at `a4996b34` (S39) | **RESOLVED** upstream |
@@ -395,10 +395,10 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo fmt` | **Clean** — zero formatting violations |
 | `cargo clippy` pedantic + nursery | **0 warnings** — `clippy::doc_markdown` fully resolved (31 files), all remaining `#[allow]` audited and justified |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **500 tests PASS** (up from 264) |
+| `cargo test --lib` | **685 tests PASS** |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
-| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `gpu.rs` + `registry.rs`) — 129+ `NamedTolerance` entries in registry (including `training_quantized`, `hardware` categories), zero standalone inline magic numbers |
+| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `gpu.rs` + `registry.rs`) — 139+ `NamedTolerance` entries across 10 categories, zero inline magic numbers in production code |
 | GPU validation helpers | Shared `gpu_readback`, `max_abs_diff_gpu_vs_cpu`, `gpu_tensor!` macro — deduplicated ~400 LOC from 24 binaries |
 | GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
 | Modular `gpu_ops/` | Refactored from monolithic 1328-line file into 6 focused submodules (`linalg`, `activation`, `reduction`, `bio`, `population`, `eigensolver`) — all under 1000 LOC |
@@ -417,6 +417,34 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 | Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |
 | External dependencies | All pure Rust — zero C/C++ wrapper crates |
+| Centralized tolerances | `tolerances/` module — **139+ `NamedTolerance`** entries across 10 categories including `domain_guards` |
+| Magic numbers eliminated | All production `1e-10`/`1e-12` constants centralized via `tolerances::` |
+| Cast safety | `cpu_fallback.rs` activator indices bounds-checked via `safe_idx()` |
+| coralForge rename | `sovereign_folding` + `structure_module` → unified `coral_forge/` with `structure/` submodule |
+
+---
+
+## Dependency Analysis
+
+All external dependencies are pure Rust with no C/C++ bindings:
+
+| Crate | Version | Role | Evolution Path |
+|-------|---------|------|----------------|
+| `barracuda` | path | GPU compute abstraction (in-house) | Evolves with ToadStool |
+| `neural-spring-forge` | path | Shader catalog (in-house) | Evolves with metalForge |
+| `biomeos-primal-sdk` | path (opt) | Primal IPC framework (in-house) | Evolves with biomeOS |
+| `bytemuck` | 1.14 | Zero-copy GPU buffer casting | Stable, pure Rust, no alternative needed |
+| `serde` + `serde_json` | 1 | JSON baseline I/O | Stable ecosystem standard |
+| `tokio` | 1.35 | Async runtime for wgpu | Required by wgpu device creation |
+| `wgpu` | 22 | WebGPU abstraction | Must match barracuda's version |
+| `anyhow` | 1 (opt) | Error handling in primal | Primal-only, lightweight |
+| `uuid` | 1 (opt) | Request IDs in primal | Primal-only |
+| `chrono` | 0.4 (opt) | Timestamps in primal | Primal-only |
+| `log` + `env_logger` | 0.4/0.11 (opt) | Primal logging | Primal-only |
+| `approx` | 0.5 (dev) | Float comparison in tests | Test-only |
+
+**No dependencies require evolution to Rust** — all are already pure Rust crates.
+The optional primal deps (`anyhow`, `uuid`, `chrono`, `log`, `env_logger`) are gated behind the `primal` feature and only affect the `neuralspring_primal` binary.
 
 ---
 

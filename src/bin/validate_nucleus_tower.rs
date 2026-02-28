@@ -157,7 +157,10 @@ async fn main() {
     let health = rpc_call(&socket_path, "health", serde_json::json!({}), 1).await;
     match &health {
         Ok(val) => {
-            let status = val.get("status").and_then(|v| v.as_str()).unwrap_or("unknown");
+            let status = val
+                .get("status")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown");
             h.check_abs(
                 "health.status == healthy",
                 if status == "healthy" { 1.0 } else { 0.0 },
@@ -170,13 +173,28 @@ async fn main() {
                 .and_then(|v| v.as_array())
                 .map(|a| a.len())
                 .unwrap_or(0);
-            h.check_abs("health.capabilities >= 11", if caps >= 11 { 1.0 } else { 0.0 }, 1.0, 0.5);
+            h.check_abs(
+                "health.capabilities >= 11",
+                if caps >= 11 { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
             let has_hardware = val.get("hardware").is_some();
-            h.check_abs("health.hardware present", if has_hardware { 1.0 } else { 0.0 }, 1.0, 0.5);
+            h.check_abs(
+                "health.hardware present",
+                if has_hardware { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
             let has_stats = val.get("stats").is_some();
-            h.check_abs("health.stats present", if has_stats { 1.0 } else { 0.0 }, 1.0, 0.5);
+            h.check_abs(
+                "health.stats present",
+                if has_stats { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
         }
         Err(e) => {
             eprintln!("  Health check failed: {e}");
@@ -198,24 +216,65 @@ async fn main() {
             "c_pair": 4, "seed": 42,
         }),
         10,
-    ).await;
+    )
+    .await;
 
     match &evo {
         Ok(val) => {
-            let msa_finite = val.get("msa_finite").and_then(|v| v.as_bool()).unwrap_or(false);
-            h.check_abs("evoformer.msa_finite", if msa_finite { 1.0 } else { 0.0 }, 1.0, 0.5);
+            let msa_finite = val
+                .get("msa_finite")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            h.check_abs(
+                "evoformer.msa_finite",
+                if msa_finite { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
-            let pair_finite = val.get("pair_finite").and_then(|v| v.as_bool()).unwrap_or(false);
-            h.check_abs("evoformer.pair_finite", if pair_finite { 1.0 } else { 0.0 }, 1.0, 0.5);
+            let pair_finite = val
+                .get("pair_finite")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            h.check_abs(
+                "evoformer.pair_finite",
+                if pair_finite { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
-            let tri_finite = val.get("tri_attn_finite").and_then(|v| v.as_bool()).unwrap_or(false);
-            h.check_abs("evoformer.tri_attn_finite", if tri_finite { 1.0 } else { 0.0 }, 1.0, 0.5);
+            let tri_finite = val
+                .get("tri_attn_finite")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            h.check_abs(
+                "evoformer.tri_attn_finite",
+                if tri_finite { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
-            let msa_changed = val.get("msa_changed").and_then(|v| v.as_bool()).unwrap_or(false);
-            h.check_abs("evoformer.msa_changed", if msa_changed { 1.0 } else { 0.0 }, 1.0, 0.5);
+            let msa_changed = val
+                .get("msa_changed")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            h.check_abs(
+                "evoformer.msa_changed",
+                if msa_changed { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
-            let pair_changed = val.get("pair_changed").and_then(|v| v.as_bool()).unwrap_or(false);
-            h.check_abs("evoformer.pair_changed", if pair_changed { 1.0 } else { 0.0 }, 1.0, 0.5);
+            let pair_changed = val
+                .get("pair_changed")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            h.check_abs(
+                "evoformer.pair_changed",
+                if pair_changed { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
         }
         Err(e) => {
             eprintln!("  science.evoformer_block failed: {e}");
@@ -238,21 +297,54 @@ async fn main() {
             "n_heads": 2, "head_dim": 4, "n_points": 2, "seed": 42,
         }),
         20,
-    ).await;
+    )
+    .await;
 
     match &sm {
         Ok(val) => {
-            let ipa_finite = val.get("ipa_scores_finite").and_then(|v| v.as_bool()).unwrap_or(false);
-            h.check_abs("structure.ipa_finite", if ipa_finite { 1.0 } else { 0.0 }, 1.0, 0.5);
+            let ipa_finite = val
+                .get("ipa_scores_finite")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            h.check_abs(
+                "structure.ipa_finite",
+                if ipa_finite { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
-            let frames_finite = val.get("frames_finite").and_then(|v| v.as_bool()).unwrap_or(false);
-            h.check_abs("structure.frames_finite", if frames_finite { 1.0 } else { 0.0 }, 1.0, 0.5);
+            let frames_finite = val
+                .get("frames_finite")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            h.check_abs(
+                "structure.frames_finite",
+                if frames_finite { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
-            let torsion_finite = val.get("torsion_finite").and_then(|v| v.as_bool()).unwrap_or(false);
-            h.check_abs("structure.torsion_finite", if torsion_finite { 1.0 } else { 0.0 }, 1.0, 0.5);
+            let torsion_finite = val
+                .get("torsion_finite")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            h.check_abs(
+                "structure.torsion_finite",
+                if torsion_finite { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
 
-            let torsion_count = val.get("torsion_count").and_then(|v| v.as_u64()).unwrap_or(0);
-            h.check_abs("structure.torsion_count", torsion_count as f64, (6 * 7 * 2) as f64, 0.5);
+            let torsion_count = val
+                .get("torsion_count")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
+            h.check_abs(
+                "structure.torsion_count",
+                torsion_count as f64,
+                (6 * 7 * 2) as f64,
+                0.5,
+            );
         }
         Err(e) => {
             eprintln!("  science.structure_module failed: {e}");
@@ -266,13 +358,24 @@ async fn main() {
     // ═══════════════════════════════════════════════════════════════════
     // Test 9: Folding health report
     // ═══════════════════════════════════════════════════════════════════
-    let fh = rpc_call(&socket_path, "science.folding_health", serde_json::json!({}), 30).await;
+    let fh = rpc_call(
+        &socket_path,
+        "science.folding_health",
+        serde_json::json!({}),
+        30,
+    )
+    .await;
     match &fh {
         Ok(val) => {
             let primitives = val.get("folding_primitives").and_then(|v| v.as_object());
             if let Some(p) = primitives {
                 let all_true = p.values().all(|v| v.as_bool().unwrap_or(false));
-                h.check_abs("folding_health.all_primitives", if all_true { 1.0 } else { 0.0 }, 1.0, 0.5);
+                h.check_abs(
+                    "folding_health.all_primitives",
+                    if all_true { 1.0 } else { 0.0 },
+                    1.0,
+                    0.5,
+                );
                 h.check_abs("folding_health.primitive_count", p.len() as f64, 14.0, 0.5);
             } else {
                 h.check_abs("folding_health.primitives_present", 0.0, 1.0, 0.5);
@@ -297,11 +400,13 @@ async fn main() {
             "x": [1.0, 2.0, 3.0, 4.0],
         }),
         40,
-    ).await;
+    )
+    .await;
 
     match &mm {
         Ok(val) => {
-            let result: Vec<f64> = val.get("result")
+            let result: Vec<f64> = val
+                .get("result")
                 .and_then(|v| serde_json::from_value(v.clone()).ok())
                 .unwrap_or_default();
             let sum: f64 = result.iter().sum();
@@ -309,7 +414,12 @@ async fn main() {
 
             let backend = val.get("backend").and_then(|v| v.as_str()).unwrap_or("");
             let has_backend = !backend.is_empty();
-            h.check_abs("gpu_dispatch.backend_reported", if has_backend { 1.0 } else { 0.0 }, 1.0, 0.5);
+            h.check_abs(
+                "gpu_dispatch.backend_reported",
+                if has_backend { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
         }
         Err(e) => {
             eprintln!("  science.gpu_dispatch softmax failed: {e}");
@@ -326,11 +436,15 @@ async fn main() {
             "data": [2.0, 4.0, 6.0, 8.0],
         }),
         41,
-    ).await;
+    )
+    .await;
 
     match &mean_result {
         Ok(val) => {
-            let result = val.get("result").and_then(|v| v.as_f64()).unwrap_or(f64::NAN);
+            let result = val
+                .get("result")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(f64::NAN);
             h.check_abs("gpu_dispatch.mean", result, 5.0, 1e-10);
         }
         Err(e) => {
@@ -347,7 +461,8 @@ async fn main() {
         "data.pdb_fetch",
         serde_json::json!({ "pdb_id": "1CRN" }),
         50,
-    ).await;
+    )
+    .await;
 
     let forward_failed_gracefully = forward.is_err();
     h.check_abs(
@@ -361,26 +476,36 @@ async fn main() {
     // Test 13-14: Concurrent requests
     // ═══════════════════════════════════════════════════════════════════
     let sp = socket_path.clone();
-    let handles: Vec<_> = (0..4).map(|i| {
-        let sp = sp.clone();
-        tokio::spawn(async move {
-            rpc_call(
-                &sp,
-                "science.ipr",
-                serde_json::json!({ "wavefunction": [0.5, 0.5, 0.5, 0.5] }),
-                100 + i,
-            ).await
+    let handles: Vec<_> = (0..4)
+        .map(|i| {
+            let sp = sp.clone();
+            tokio::spawn(async move {
+                rpc_call(
+                    &sp,
+                    "science.ipr",
+                    serde_json::json!({ "wavefunction": [0.5, 0.5, 0.5, 0.5] }),
+                    100 + i,
+                )
+                .await
+            })
         })
-    }).collect();
+        .collect();
 
     let mut all_ok = true;
     for handle in handles {
         match handle.await {
             Ok(Ok(_)) => {}
-            _ => { all_ok = false; }
+            _ => {
+                all_ok = false;
+            }
         }
     }
-    h.check_abs("concurrent.4_requests", if all_ok { 1.0 } else { 0.0 }, 1.0, 0.5);
+    h.check_abs(
+        "concurrent.4_requests",
+        if all_ok { 1.0 } else { 0.0 },
+        1.0,
+        0.5,
+    );
 
     // ═══════════════════════════════════════════════════════════════════
     // Test 15: Request counter incremented
@@ -388,11 +513,17 @@ async fn main() {
     let health2 = rpc_call(&socket_path, "health", serde_json::json!({}), 200).await;
     match &health2 {
         Ok(val) => {
-            let served = val.get("stats")
+            let served = val
+                .get("stats")
                 .and_then(|s| s.get("requests_served"))
                 .and_then(|v| v.as_u64())
                 .unwrap_or(0);
-            h.check_abs("stats.requests_served > 0", if served > 0 { 1.0 } else { 0.0 }, 1.0, 0.5);
+            h.check_abs(
+                "stats.requests_served > 0",
+                if served > 0 { 1.0 } else { 0.0 },
+                1.0,
+                0.5,
+            );
         }
         Err(e) => {
             eprintln!("  Health check 2 failed: {e}");
@@ -408,7 +539,8 @@ async fn main() {
         "science.nonexistent_method",
         serde_json::json!({}),
         300,
-    ).await;
+    )
+    .await;
     h.check_abs(
         "rpc.unknown_method_error",
         if unknown.is_err() { 1.0 } else { 0.0 },

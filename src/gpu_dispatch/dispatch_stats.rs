@@ -68,5 +68,4 @@ impl Dispatcher {
             || cpu_fallback::chi_squared(observed, expected),
         )
     }
-
 }

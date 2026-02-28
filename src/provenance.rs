@@ -96,6 +96,7 @@ impl RuntimeEnvironment {
 // Phase 0: Experiments (48/48 PASS)
 // ═══════════════════════════════════════════════════════════════════
 
+/// Provenance for Exp 001: Neural Surrogate Validation.
 pub const SURROGATE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp 001: Neural Surrogate Validation (11/11 PASS)",
     script: "control/surrogate/surrogate_validation.py",
@@ -107,6 +108,7 @@ pub const SURROGATE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Exp 002: Transformer Inference Baseline.
 pub const TRANSFORMER_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp 002: Transformer Inference Baseline (18/18 PASS)",
     script: "control/transformer/transformer_inference.py",
@@ -118,6 +120,7 @@ pub const TRANSFORMER_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Exp 003: Sequence Forecasting.
 pub const SEQUENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp 003: Sequence Forecasting (5/5 PASS)",
     script: "control/sequence/sequence_forecasting.py",
@@ -129,6 +132,7 @@ pub const SEQUENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Exp 004: Transfer Learning.
 pub const TRANSFER_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp 004: Transfer Learning (6/6 PASS)",
     script: "control/transfer/transfer_learning.py",
@@ -140,6 +144,7 @@ pub const TRANSFER_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Exp 005: Isomorphic Learning Catalog.
 pub const ISOMORPHIC_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp 005: Isomorphic Learning Catalog (8/8 PASS)",
     script: "control/isomorphic/isomorphic_catalog.py",
@@ -155,6 +160,7 @@ pub const ISOMORPHIC_PROVENANCE: BaselineProvenance = BaselineProvenance {
 // Phase 0+: Scholarly Reproductions (27/27 PASS)
 // ═══════════════════════════════════════════════════════════════════
 
+/// Provenance for Study 001: PINN Burgers Equation.
 pub const PINN_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Study 001: PINN Burgers Equation (6/6 PASS)",
     script: "control/pinn/pinn_burgers.py",
@@ -166,6 +172,7 @@ pub const PINN_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Study 002: `DeepONet` Antiderivative.
 pub const DEEPONET_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Study 002: DeepONet Antiderivative (5/5 PASS)",
     script: "control/deeponet/deeponet_antideriv.py",
@@ -177,6 +184,7 @@ pub const DEEPONET_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Study 003: LeNet-5 MNIST.
 pub const LENET_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Study 003: LeNet-5 MNIST (4/4 PASS)",
     script: "control/lenet/lenet_mnist.py",
@@ -188,6 +196,7 @@ pub const LENET_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Study 004: LSTM ERA5 Weather.
 pub const LSTM_ERA5_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Study 004: LSTM ERA5 Weather (5/5 PASS)",
     script: "control/lstm_weather/lstm_era5.py",
@@ -199,6 +208,7 @@ pub const LSTM_ERA5_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Study 005: Quantized Inference.
 pub const QUANTIZED_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Study 005: Quantized Inference (6/6 PASS)",
     script: "control/quantized/quantized_inference.py",
@@ -214,6 +224,7 @@ pub const QUANTIZED_PROVENANCE: BaselineProvenance = BaselineProvenance {
 // Phase 0++: Paper Reproductions (53/53 PASS)
 // ═══════════════════════════════════════════════════════════════════
 
+/// Provenance for Paper 011: Counterdiabatic Evolution.
 pub const COUNTERDIABATIC_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 011: Counterdiabatic Evolution (11/11 PASS)",
     script: "control/counterdiabatic/counterdiabatic_evolution.py",
@@ -225,6 +236,7 @@ pub const COUNTERDIABATIC_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Paper 012: MODES Toolbox.
 pub const MODES_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 012: MODES Toolbox (9/9 PASS)",
     script: "control/modes/modes_toolbox.py",
@@ -236,6 +248,7 @@ pub const MODES_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Paper 013: Ecological Dynamics.
 pub const ECO_DYNAMICS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 013: Ecological Dynamics (7/7 PASS)",
     script: "control/eco_dynamics/eco_dynamics.py",
@@ -247,6 +260,7 @@ pub const ECO_DYNAMICS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Paper 014: Directed Evolution.
 pub const DIRECTED_EVOLUTION_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 014: Directed Evolution (8/8 PASS)",
     script: "control/directed_evolution/directed_evolution.py",
@@ -258,6 +272,7 @@ pub const DIRECTED_EVOLUTION_PROVENANCE: BaselineProvenance = BaselineProvenance
     unit: "checks passed",
 };
 
+/// Provenance for Paper 016: HMM Phylogenetic Inference.
 pub const HMM_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 016: HMM Phylogenetic Inference (10/10 PASS)",
     script: "control/hmm_phylo/hmm_phylo.py",
@@ -269,6 +284,7 @@ pub const HMM_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Paper 019: Game Theory & QS Cooperation.
 pub const GAME_THEORY_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 019: Game Theory & QS Cooperation (8/8 PASS)",
     script: "control/game_theory/game_theory.py",
@@ -280,6 +296,7 @@ pub const GAME_THEORY_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Paper 015: Heterogeneous Swarm Robotics.
 pub const SWARM_ROBOTICS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 015: Heterogeneous Swarm Robotics (11/11 PASS)",
     script: "control/swarm_robotics/swarm_robotics.py",
@@ -291,6 +308,7 @@ pub const SWARM_ROBOTICS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Paper 017: `SATé` Alignment.
 pub const SATE_ALIGNMENT_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 017: SATé Alignment (8/8 PASS)",
     script: "control/sate_alignment/sate_alignment.py",
@@ -302,6 +320,7 @@ pub const SATE_ALIGNMENT_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Paper 018: Introgression Detection.
 pub const INTROGRESSION_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 018: Introgression Detection (8/8 PASS)",
     script: "control/introgression/introgression.py",
@@ -313,6 +332,7 @@ pub const INTROGRESSION_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "checks passed",
 };
 
+/// Provenance for Paper 020: Regulatory Network.
 pub const REGULATORY_NETWORK_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 020: Regulatory Network (7/7 PASS)",
     script: "control/regulatory_network/regulatory_network.py",
@@ -324,6 +344,7 @@ pub const REGULATORY_NETWORK_PROVENANCE: BaselineProvenance = BaselineProvenance
     unit: "checks passed",
 };
 
+/// Provenance for Paper 021: Signal Integration.
 pub const SIGNAL_INTEGRATION_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 021: Signal Integration (8/8 PASS)",
     script: "control/signal_integration/signal_integration.py",
@@ -335,6 +356,7 @@ pub const SIGNAL_INTEGRATION_PROVENANCE: BaselineProvenance = BaselineProvenance
     unit: "checks passed",
 };
 
+/// Provenance for Paper 022: Spectral Commutativity.
 pub const SPECTRAL_COMMUTATIVITY_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 022: Spectral Commutativity (8/8 PASS)",
     script: "control/spectral_commutativity/spectral_commutativity.py",
@@ -346,6 +368,7 @@ pub const SPECTRAL_COMMUTATIVITY_PROVENANCE: BaselineProvenance = BaselineProven
     unit: "checks passed",
 };
 
+/// Provenance for Paper 023: Anderson Localization.
 pub const ANDERSON_LOCALIZATION_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 023: Anderson Localization (8/8 PASS)",
     script: "control/anderson_localization/anderson_localization.py",
@@ -361,6 +384,7 @@ pub const ANDERSON_LOCALIZATION_PROVENANCE: BaselineProvenance = BaselineProvena
 // Phase 0++: Empirical Corollary — R. Anderson (16/16 PASS)
 // ═══════════════════════════════════════════════════════════════════
 
+/// Provenance for Paper 024: Pangenome Selection.
 pub const PANGENOME_SELECTION_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 024: Pangenome Selection (8/8 PASS)",
     script: "control/pangenome_selection/pangenome_selection.py",
@@ -372,6 +396,7 @@ pub const PANGENOME_SELECTION_PROVENANCE: BaselineProvenance = BaselineProvenanc
     unit: "checks passed",
 };
 
+/// Provenance for Paper 025: Meta-Population Differentiation.
 pub const META_POPULATION_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Paper 025: Meta-Population Differentiation (8/8 PASS)",
     script: "control/meta_population/meta_population.py",
@@ -387,6 +412,7 @@ pub const META_POPULATION_PROVENANCE: BaselineProvenance = BaselineProvenance {
 // ML inference baselines (JSON weights + expected outputs)
 // ═══════════════════════════════════════════════════════════════════
 
+/// Provenance for ML Inference Baselines (MLP + Transformer).
 pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "ML Inference Baselines (MLP + Transformer JSON weights)",
     script: "control/ml_inference/generate_baselines.py",
@@ -398,6 +424,7 @@ pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "baseline files generated (mlp_baseline.json, transformer_baseline.json)",
 };
 
+/// Provenance for nW-01: WDM Transport Surrogate.
 pub const WDM_TRANSPORT_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "nW-01: WDM Transport Surrogate (D*, η*, λ* baselines)",
     script: "control/wdm/transport_surrogate.py",
@@ -409,6 +436,7 @@ pub const WDM_TRANSPORT_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "surrogate trained → transport_surrogate_baseline.json",
 };
 
+/// Provenance for nW-02: WDM EOS Surrogate.
 pub const WDM_EOS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "nW-02: WDM EOS Surrogate (H, He, C pressure/energy baselines)",
     script: "control/wdm/eos_surrogate.py",
@@ -420,6 +448,7 @@ pub const WDM_EOS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "elements trained (H, He, C) → eos_surrogate_baseline.json",
 };
 
+/// Provenance for nW-03: WDM S(q,ω) Peak Predictor.
 pub const WDM_SQW_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "nW-03: WDM S(q,ω) Peak Predictor (LSTM reservoir baselines)",
     script: "control/wdm/sqw_peak_predictor.py",
@@ -431,6 +460,7 @@ pub const WDM_SQW_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "predictor trained → sqw_peak_baseline.json",
 };
 
+/// Provenance for nW-04: WDM Classical→WDM Transfer Learning.
 pub const WDM_TRANSFER_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "nW-04: WDM Classical→WDM Transfer Learning (R² baselines)",
     script: "control/wdm/transfer_classical_to_wdm.py",
@@ -442,6 +472,7 @@ pub const WDM_TRANSFER_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "transfer experiment → transfer_baseline.json",
 };
 
+/// Provenance for nW-05: WDM ESN Regime Classifier.
 pub const WDM_ESN_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "nW-05: WDM ESN Regime Classifier (reservoir baselines)",
     script: "control/wdm/esn_regime_classifier.py",
@@ -453,12 +484,13 @@ pub const WDM_ESN_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "classifier trained → esn_regime_baseline.json",
 };
 
-pub const SOVEREIGN_FOLDING_PROVENANCE: BaselineProvenance = BaselineProvenance {
+/// Provenance for nF-01 Phase B: coralForge Evoformer primitives.
+pub const CORAL_FORGE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "nF-01 Phase B: Evoformer primitive baselines (GELU, LayerNorm, SDPA, TriMul, TriAttn)",
-    script: "control/sovereign_folding/evoformer_primitives.py",
+    script: "control/coral_forge/evoformer_primitives.py",
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
-    command: "python3 control/sovereign_folding/evoformer_primitives.py",
+    command: "python3 control/coral_forge/evoformer_primitives.py",
     environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
     value: 1.0,
     unit: "baselines generated → evoformer_baselines.json",
@@ -474,6 +506,7 @@ pub const PUBLICATION_BASELINE_DATE: &str = "2026-02-26";
 /// Pinned environment for publication experiment baselines.
 pub const PUBLICATION_ENVIRONMENT: &str = "Python 3.12, PyTorch 2.9.0+cu128, NumPy, seed=42";
 
+/// Provenance for Exp-050: Training Trajectory Spectral Analysis.
 pub const TRAINING_TRAJECTORY_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp-050: Training Trajectory Spectral Analysis (Paper A — ICML/NeurIPS)",
     script: "control/training_trajectory/training_trajectory.py",
@@ -485,6 +518,7 @@ pub const TRAINING_TRAJECTORY_PROVENANCE: BaselineProvenance = BaselineProvenanc
     unit: "baselines generated → baseline_values.json",
 };
 
+/// Provenance for Exp-052: Hessian Eigenanalysis at Trained Minima.
 pub const HESSIAN_EIGENANALYSIS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp-052: Hessian Eigenanalysis at Trained Minima (Paper D — Digital Discovery, RSC)",
     script: "control/hessian_eigenanalysis/hessian_eigenanalysis.py",
@@ -496,6 +530,7 @@ pub const HESSIAN_EIGENANALYSIS_PROVENANCE: BaselineProvenance = BaselineProvena
     unit: "baselines generated → baseline_values.json",
 };
 
+/// Provenance for Exp-053: Anderson Multi-Agent Coordination.
 pub const ANDERSON_MULTIAGENT_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp-053: Anderson Multi-Agent Coordination (Paper C — AAMAS/ICML)",
     script: "control/anderson_multiagent/anderson_multiagent.py",
@@ -663,7 +698,7 @@ mod tests {
             &WDM_ESN_PROVENANCE,
             &PANGENOME_SELECTION_PROVENANCE,
             &META_POPULATION_PROVENANCE,
-            &SOVEREIGN_FOLDING_PROVENANCE,
+            &CORAL_FORGE_PROVENANCE,
             &TRAINING_TRAJECTORY_PROVENANCE,
             &HESSIAN_EIGENANALYSIS_PROVENANCE,
             &ANDERSON_MULTIAGENT_PROVENANCE,

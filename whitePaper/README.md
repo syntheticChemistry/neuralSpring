@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **3111+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 83.6× faster than Python, 177 binaries, **177/177 validate\_all**. Phase 4 WGSL shaders 22/22, ToadStool streaming 28/28, NUCLEUS atomics 39/39, absorption readiness 294/294, dispatch parity 30/30, mixed-hardware dispatch 47/47, cross-system 46/46, cross-spring 52/52, pure GPU 10/10. 42 metalForge WGSL shaders, 42 upstream rewires, 131+ named tolerances, zero debt
-**Date**: February 26, 2026 (Sessions 40–79 — multi-GPU + benchmarks + pure GPU + Phase C GPU + CPU parity + dispatch tiers + baseCamp + metalForge + ToadStool sync + upstream rewiring + cross-spring benchmark validation + deep debt audit + validator shader rewiring + cross-spring rewiring + pure GPU all-domains + cross-system dispatch + modern BarraCUDA rewiring + WDM surrogates + baseCamp GPU pure + sovereign folding shaders + ToadStool S66 absorption + complete cross-spring rewiring)
+**Status**: Phase 5h+ — **3200+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 83.6× faster than Python, 197 binaries, **185/185 validate\_all**. coralForge unified (sovereign_folding + structure_module). 139+ named tolerances, zero debt, 0 clippy warnings, 0 doc warnings. 685 lib + 9 integration + 43 forge tests. 44 upstream rewires, 130+ barracuda import sites
+**Date**: February 28, 2026 (Sessions 40–94 — coralForge rename, deep debt resolution, nF-03 AlphaFold3 Phase C, dispatch domain split, iterator evolution, tolerance domain guards, provenance docs)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -21,8 +21,8 @@
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all 17 resolved (S-01 through S-17) |
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
-| `experiments/README.md` | Engineering | Experiment journals (001–047, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V52 handoff (Session 85 — five-spring provenance, Hamming regression, ToadStool evolution recommendations) |
+| `experiments/README.md` | Engineering | Experiment journals (001–068, hotSpring pattern) |
+| `wateringHole/handoffs/` | Cross-project | V62 handoff (Session 94 — coralForge rename, deep debt resolution, BarraCUDA absorption handoff) |
 
 ---
 
@@ -75,11 +75,11 @@ WGSL serves every domain.
 
 ### Key Results Summary
 
-**Phase 0/0+/0++**: 263/263 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM)
-**Phase 1–5h+**: 2787+ Rust+GPU validation PASS (668 lib + 9 integration + 43 forge tests + 177 binaries across 40 modules + gpu\_ops/ + gpu\_dispatch/)
-**Grand Total**: 3111+ PASS — **ALL GREEN** across all applicable tiers
-**Multi-GPU**: 177 validators on RTX 4070, 143+ additional on TITAN V (NVK) — **bit-identical**
-**GPU Promotion**: 44 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11, Phase C: 6). ~97% of production math on GPU.
+**Phase 0/0+/0++**: 282/282 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge)
+**Phase 1–5h+**: 2918+ Rust+GPU validation PASS (685 lib + 9 integration + 43 forge tests + 197 binaries across 40 modules + gpu\_ops/ + gpu\_dispatch/)
+**Grand Total**: 3200+ PASS — **ALL GREEN** across all applicable tiers
+**Multi-GPU**: 197 validators on RTX 4070, 384+ additional on TITAN V (NVK) — **bit-identical**
+**GPU Promotion**: 47 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11, Phase C: 6, +3 upstream). ~97% of production math on GPU.
 **Mixed-Hardware**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model (GPU↔NPU↔CPU routing).
 **Benchmarks**: Pure Rust **83.6× faster** than Python/NumPy (11 kernels); GPU **104× faster** at 103M FLOPs
 
@@ -95,7 +95,7 @@ cross-device cost model for GPU↔NPU↔CPU substrate selection.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 668 lib + 9 integration + 43 forge tests, 177 binaries, 40 modules | **Complete** |
+| 1a | Rust validation layer — 685 lib + 9 integration + 43 forge tests, 197 binaries, 40 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -313,7 +313,7 @@ Full handoff: `wateringHole/handoffs/`
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (668 lib + 9 integration + 43 forge tests + 177 binaries)
+# Rust validation (685 lib + 9 integration + 43 forge tests + 197 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -357,5 +357,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 668 lib + 9 integration tests. 263 Python + 2787+ Rust/GPU = 3111+ total checks.
-Phase 5h: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 158/158 (RTX 4070 + TITAN V NVK bit-identical) · pG 10/10 pure GPU all-domains · cS 46/46 cross-system dispatch · xSE 52/52 cross-spring evolution · WDM 5 Python baselines + 6 Rust validators. 47 CPU→GPU promotions via gpu\_dispatch, 42 upstream rewires + 124 barracuda import sites across 177 files. Cross-spring evolution validated (52/52 PASS, 28/28 bench). ~97% production math on GPU. 177 validation binaries, 36 WGSL shaders (21 absorbed upstream + 15 df64 sovereign folding). Pure Rust 83.6× faster than Python. CPU↔Python parity 39/39 PASS (1e-10). Dispatch overhead ≤1.04× (9/10 ops). 93.5% coverage, 129+ named tolerances, zero ad-hoc magic numbers. Sessions 50–79: baseCamp (128/128 PASS + GPU pure 5/5) + Phase C GPU + CPU parity + dispatch tiers + upstream rewiring + cross-spring benchmarks + S-03b resolved + 21/21 shaders absorbed + deep debt audit + S69: shader rewiring + cross-spring benchmarks + S75: pure GPU all-domains + cross-system dispatch + S76: modern BarraCUDA rewiring + S77: WDM surrogates + baseCamp GPU pure + 9 sovereign folding shaders + S78–S79: ToadStool S66 absorption + complete cross-spring rewiring. V52 handoff.*
+*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 685 lib + 9 integration + 43 forge tests. 282 Python + 2918+ Rust/GPU = 3200+ total checks.
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 384/384 (RTX 4070 + TITAN V NVK bit-identical) · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 197 binaries, 185/185 validate\_all, 42 WGSL shaders (21 absorbed + 15 df64 coralForge). Pure Rust 83.6× faster. CPU↔Python parity 39/39 (1e-10). 139+ named tolerances, 0 clippy, 0 doc warnings. coralForge rename complete, deep debt resolved, V62 handoff.*

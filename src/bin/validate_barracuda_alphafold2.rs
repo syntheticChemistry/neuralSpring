@@ -34,8 +34,9 @@
     clippy::too_many_lines
 )]
 
+use neural_spring::coral_forge;
+use neural_spring::require;
 use neural_spring::rng::Rng;
-use neural_spring::sovereign_folding;
 use neural_spring::spectral_commutativity::{mat_mul, random_matrix, random_symmetric, transpose};
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -68,8 +69,11 @@ fn validate_matmul_square(h: &mut ValidationHarness, rng: &mut Rng) {
     let b = random_matrix(n, rng);
 
     let ns_result = mat_mul(&a, &b, n);
-    let bc_result =
-        barracuda::dispatch::matmul_dispatch(&a, &b, n, n, n, None).expect("matmul_dispatch CPU");
+    let bc_result = require!(
+        h,
+        barracuda::dispatch::matmul_dispatch(&a, &b, n, n, n, None),
+        "matmul_dispatch CPU"
+    );
 
     let max_diff = ns_result
         .iter()
@@ -98,13 +102,18 @@ fn validate_matmul_sdpa_shape(h: &mut ValidationHarness, rng: &mut Rng) {
         .map(|_| rng.uniform() * scale + 0.5)
         .collect();
 
-    let ns_scores = sovereign_folding::sdpa_scores(&q, &k, 1, 1, q_len, kv_len, head_dim);
+    let ns_scores = coral_forge::sdpa_scores(&q, &k, 1, 1, q_len, kv_len, head_dim);
 
-    let k_t =
-        barracuda::dispatch::transpose_dispatch(&k, kv_len, head_dim, None).expect("transpose CPU");
-    let bc_scores_raw =
-        barracuda::dispatch::matmul_dispatch(&q, &k_t, q_len, head_dim, kv_len, None)
-            .expect("matmul CPU");
+    let k_t = require!(
+        h,
+        barracuda::dispatch::transpose_dispatch(&k, kv_len, head_dim, None),
+        "transpose CPU"
+    );
+    let bc_scores_raw = require!(
+        h,
+        barracuda::dispatch::matmul_dispatch(&q, &k_t, q_len, head_dim, kv_len, None),
+        "matmul CPU"
+    );
     let scale_factor = 1.0 / (head_dim as f64).sqrt();
     let bc_scores: Vec<f64> = bc_scores_raw.iter().map(|x| x * scale_factor).collect();
 
@@ -127,7 +136,11 @@ fn validate_transpose(h: &mut ValidationHarness, rng: &mut Rng) {
     let a = random_matrix(n, rng);
 
     let ns_t = transpose(&a, n);
-    let bc_t = barracuda::dispatch::transpose_dispatch(&a, n, n, None).expect("transpose CPU");
+    let bc_t = require!(
+        h,
+        barracuda::dispatch::transpose_dispatch(&a, n, n, None),
+        "transpose CPU"
+    );
 
     let max_diff = ns_t
         .iter()
@@ -165,7 +178,11 @@ fn validate_variance_population(h: &mut ValidationHarness, rng: &mut Rng) {
         .map(|i| (i as f64) * 0.2 + rng.uniform() * 0.05)
         .collect();
 
-    let bc_var = barracuda::dispatch::variance_dispatch(&row, None).expect("variance CPU");
+    let bc_var = require!(
+        h,
+        barracuda::dispatch::variance_dispatch(&row, None),
+        "variance CPU"
+    );
     let mean = row.iter().sum::<f64>() / row.len() as f64;
     let ns_var = row.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / row.len() as f64;
 
@@ -208,7 +225,7 @@ fn validate_l2_norm(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 8. SDPA scores: sovereign_folding::sdpa_scores vs barracuda matmul + scale.
+/// 8. SDPA scores: coral_forge::sdpa_scores vs barracuda matmul + scale.
 fn validate_sdpa_scores(h: &mut ValidationHarness, rng: &mut Rng) {
     let batch = 1_usize;
     let heads = 2_usize;
@@ -224,7 +241,7 @@ fn validate_sdpa_scores(h: &mut ValidationHarness, rng: &mut Rng) {
         .map(|_| rng.uniform() * scale + 0.5)
         .collect();
 
-    let ns_scores = sovereign_folding::sdpa_scores(&q, &k, batch, heads, q_len, kv_len, head_dim);
+    let ns_scores = coral_forge::sdpa_scores(&q, &k, batch, heads, q_len, kv_len, head_dim);
 
     let mut bc_scores = vec![0.0; batch * heads * q_len * kv_len];
     let scale_factor = 1.0 / (head_dim as f64).sqrt();
@@ -272,7 +289,7 @@ fn validate_sdpa_scores(h: &mut ValidationHarness, rng: &mut Rng) {
     );
 }
 
-/// 9. Layer norm: sovereign_folding::layer_norm vs barracuda mean + variance + normalize.
+/// 9. Layer norm: coral_forge::layer_norm vs barracuda mean + variance + normalize.
 fn validate_layer_norm(h: &mut ValidationHarness, rng: &mut Rng) {
     let rows = 2_usize;
     let dim = 8_usize;
@@ -284,12 +301,16 @@ fn validate_layer_norm(h: &mut ValidationHarness, rng: &mut Rng) {
     let gamma: Vec<f64> = (0..dim).map(|i| 1.0 + (i as f64) * 0.05).collect();
     let beta: Vec<f64> = (0..dim).map(|i| (i as f64) * 0.02).collect();
 
-    let ns_out = sovereign_folding::layer_norm(&x, rows, dim, &gamma, &beta, eps);
+    let ns_out = coral_forge::layer_norm(&x, rows, dim, &gamma, &beta, eps);
 
     let mut bc_out = Vec::with_capacity(rows * dim);
     for row in x.chunks_exact(dim) {
-        let mean = barracuda::dispatch::mean_dispatch(row, None).expect("mean CPU");
-        let var = barracuda::dispatch::variance_dispatch(row, None).expect("variance CPU");
+        let mean = require!(h, barracuda::dispatch::mean_dispatch(row, None), "mean CPU");
+        let var = require!(
+            h,
+            barracuda::dispatch::variance_dispatch(row, None),
+            "variance CPU"
+        );
         let inv_std = 1.0 / (var + eps).sqrt();
         for (&xd, (&g, &b)) in row.iter().zip(gamma.iter().zip(beta.iter())) {
             bc_out.push(g.mul_add((xd - mean) * inv_std, b));

@@ -234,7 +234,7 @@ that match GPU buffer bindings directly:
 **Total lib tests**: 668 lib + 9 integration + 43 forge tests
 **Upstream rewired**: 38 functions + 6 shader sources delegating to upstream BarraCUDA
 **Grand total validation**: 2350+ (223 Python + 2127+ Rust+GPU)
-**Sovereign folding shaders**: 15 df64 WGSL (all using `compile_shader_df64` convention, pending absorption)
+**coralForge shaders**: 15 df64 WGSL (all using `compile_shader_df64` convention, pending absorption)
 
 ---
 

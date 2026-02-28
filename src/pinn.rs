@@ -75,7 +75,7 @@ pub const QUAD_DOMAIN_HALF: f64 = 3.0;
 /// ```
 #[must_use]
 pub fn burgers_exact_point(t: f64, x: f64, nu: f64) -> f64 {
-    if t < 1e-12 {
+    if t < crate::tolerances::BURGERS_IC_GUARD {
         return -(PI * x).sin();
     }
     cole_hopf_quadrature(t, x, nu, DEFAULT_N_QUAD)

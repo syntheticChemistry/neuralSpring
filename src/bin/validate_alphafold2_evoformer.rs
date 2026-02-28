@@ -19,13 +19,13 @@
 //! Reference: Jumper et al. "Highly accurate protein structure prediction
 //! with AlphaFold" Nature 596:583-589 (2021)
 
-use neural_spring::structure_module;
-use neural_spring::structure_module::IpaConfig;
+use neural_spring::coral_forge::structure;
+use neural_spring::coral_forge::structure::IpaConfig;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 const BASELINE_JSON: &str =
-    include_str!("../../control/sovereign_folding/evoformer_block_baselines.json");
+    include_str!("../../control/coral_forge/evoformer_block_baselines.json");
 
 fn flat_f64(val: &serde_json::Value) -> Vec<f64> {
     match val {
@@ -113,7 +113,7 @@ fn main() {
         w_p: 1.0,
         gamma: 0.5,
     };
-    let sm_ipa_scores_rust = structure_module::ipa_scores(
+    let sm_ipa_scores_rust = structure::ipa_scores(
         &sm_q_scalar,
         &sm_k_scalar,
         &sm_pair_bias,
@@ -149,7 +149,7 @@ fn main() {
     let sm_new_trans_expected = flat_f64(&baselines["sm_new_trans"]);
 
     let bb_updated =
-        structure_module::backbone_update(&sm_delta_quats, &sm_delta_trans, &sm_frames, n_res);
+        structure::backbone_update(&sm_delta_quats, &sm_delta_trans, &sm_frames, n_res);
     h.check_bool("Backbone output length", bb_updated.len() == n_res * 12);
 
     let mut bb_rot_max = 0.0_f64;
@@ -188,13 +188,8 @@ fn main() {
 
     let c_single = 8;
     let c_hidden = 6;
-    let torsion_rust = structure_module::torsion_angles(
-        &single_repr,
-        &sm_torsion_weights,
-        n_res,
-        c_single,
-        c_hidden,
-    );
+    let torsion_rust =
+        structure::torsion_angles(&single_repr, &sm_torsion_weights, n_res, c_single, c_hidden);
 
     h.check_bool(
         "Torsion output length",

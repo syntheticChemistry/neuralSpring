@@ -199,7 +199,7 @@ const BINARIES: &[&str] = &[
     "validate_wdm_transfer",
     "validate_wdm_sqw",
     "validate_wdm_esn",
-    // Sovereign Folding — Evoformer primitives (nF-01 Phase B)
+    // coralForge — Evoformer primitives (nF-01 Phase B)
     // Exp-050: Training trajectory spectral analysis (Paper A)
     "validate_training_trajectory",
     // Exp-052: Hessian eigenanalysis at trained minima (Paper D)
@@ -222,10 +222,10 @@ const BINARIES: &[&str] = &[
     "validate_gpu_shader_phase4",
     // ToadStool streaming spectral pipeline
     "validate_streaming_spectral_pipeline",
-    // Sovereign Folding — Evoformer primitives (nF-01 Phase B)
-    "validate_sovereign_folding",
-    "validate_sovereign_folding_gpu",
-    "validate_sovereign_folding_gpu_pipeline",
+    // coralForge — Evoformer primitives (nF-01 Phase B)
+    "validate_coral_forge",
+    "validate_coral_forge_gpu",
+    "validate_coral_forge_gpu_pipeline",
     // nF-02 AlphaFold2 full Evoformer block + BarraCUDA CPU
     "validate_alphafold2_evoformer",
     // nF-03 AlphaFold3 diffusion + Pairformer + confidence heads

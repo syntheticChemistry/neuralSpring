@@ -7,12 +7,12 @@
 | Field | Value |
 |-------|-------|
 | ToadStool HEAD | `e96576ee` (Sessions 60–68 sync, Feb 27, 2026) |
-| Last updated | February 27, 2026 (Sessions 40–88+) |
+| Last updated | February 28, 2026 (Sessions 40–94) |
 | BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S68) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
 | Modern rewires (S88+) | `pairwise_l2_matrix_gpu` → `PairwiseL2Gpu`, `geographic_distance_matrix_gpu` → `PairwiseL2Gpu`, `disorder_sweep_gpu` IPR → `BatchIprGpu`, `compile_shader_f64_hybrid` → `compile_shader_df64` |
-| Sovereign folding df64 | 15 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3, backbone, IPA, MSA row/col, OPM, torsion) — `compile_shader_df64` convention |
-| Local metalForge total | 36 WGSL shaders (21 absorbed + 15 df64 sovereign folding) |
+| coralForge df64 | 15 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3, backbone, IPA, MSA row/col, OPM, torsion) — `compile_shader_df64` convention |
+| Local metalForge total | 36 WGSL shaders (21 absorbed + 15 df64 coralForge) |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
 | Universal precision (S68) | f64 canonical, f32 via `LazyLock<String>` runtime downcast |
 
@@ -648,11 +648,11 @@ Feb 26  Session 68: ToadStool S60–S68 sync (e96576ee)
           - Full benchmark sweep: upstream wrappers add 0 meaningful overhead (0.85–1.14×)
           - Rewire evolution: Variance 3.20×, Pearson 1.36×, Shannon 2.24× (cross-spring f64)
           - 32 total upstream rewires, 150/150 validate_all, 39/39 cross-spring, 15/15 bench
-        Session 77: WDM surrogates + baseCamp GPU pure + sovereign folding shaders
+        Session 77: WDM surrogates + baseCamp GPU pure + coralForge shaders
           - 3 WDM Python baselines (nW-01 transport, nW-02 EOS, nW-04 transfer learning)
           - wdm_surrogate.rs module + 2 Rust validators (CPU + BarraCUDA GPU)
           - validate_basecamp_gpu_pure: 5/5 sub-theses on GPU with scalar readback
-          - 9 new f64 WGSL shaders for sovereign folding, compile_shader_df64 convention
+          - 9 new f64 WGSL shaders for coralForge, compile_shader_df64 convention
         Sessions 78–79: ToadStool S66 absorption + complete cross-spring rewiring
           - +6 rewires: mae, shannon, hill×2, l2_distance, fit_linear
           - All 9 metalForge f64 shaders aligned to compile_shader_df64 convention

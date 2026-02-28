@@ -557,7 +557,7 @@ ToadStool streaming pattern validated: unidirectional dispatch preserves scienti
 60+ files, 20+ submodules, 42 upstream rewires, zero duplicate math.
 18 `unwrap_or_else(|e| panic!(...))` sites evolved to `.expect()` across WDM tests and
 validation binaries. 11 manual loop sites evolved to idiomatic iterators (`chunks_exact`,
-`flat_map`, `zip`) in `basecamp.rs` and `sovereign_folding.rs`. Control matrix confirmed:
+`flat_map`, `zip`) in `basecamp.rs` and `coral_forge.rs`. Control matrix confirmed:
 all papers have controls at open data (Py), BarraCUDA CPU (Rs), BarraCUDA GPU (Tensor),
 and metalForge mixed hardware tiers. Zero clippy warnings, zero fmt diffs.
 
@@ -891,12 +891,12 @@ provide instant lookup for the sweep results.
 
 ---
 
-## Sovereign Folding — Protein/RNA/DNA Structure Prediction (NEW TRACK)
+## coralForge — Protein/RNA/DNA Structure Prediction (NEW TRACK)
 
 **Purpose**: Port OpenFold3's Evoformer + Structure Module to BarraCUDA WGSL
 shaders for sovereign structure prediction on consumer GPUs.
 
-**Where it lives**: `neuralSpring/sovereign_folding/`
+**Where it lives**: `neuralSpring/coral_forge/`
 
 ### Papers
 
@@ -909,10 +909,10 @@ shaders for sovereign structure prediction on consumer GPUs.
 ### nF-03 Phase A+B — Diffusion + Pairformer (DONE)
 
 Python controls:
-- `control/sovereign_folding/alphafold3_diffusion.py` (29/29 PASS)
-- `control/sovereign_folding/alphafold3_pairformer.py` (14/14 PASS)
+- `control/coral_forge/alphafold3_diffusion.py` (29/29 PASS)
+- `control/coral_forge/alphafold3_pairformer.py` (14/14 PASS)
 
-Rust modules: `src/sovereign_folding/diffusion.rs`, `src/sovereign_folding/pairformer.rs`
+Rust modules: `src/coral_forge/diffusion.rs`, `src/coral_forge/pairformer.rs`
 Validators:
 - `validate_alphafold3_diffusion` (26/26 PASS, max diff 1.24e-14)
 - `validate_alphafold3_pairformer` (13/13 PASS, max diff 6.66e-16)
@@ -930,19 +930,19 @@ Phase E (full pipeline + MSA databases via NestGate).
 
 ### Phase A — Baseline Assessment (DONE)
 
-Evaluation script: `sovereign_folding/openfold3_eval.py` (9/9 checks)
+Evaluation script: `coral_forge/openfold3_eval.py` (9/9 checks)
 
 - RTX 4070: 12 GB VRAM, Compute 8.9, Vulkan + SHADER_F64 confirmed
 - PyTorch 2.9.0+cu128 available, 316x GPU speedup on attention
 - 4 of 10 required primitives already exist in BarraCUDA
-- See `sovereign_folding/BARRACUDA_FOLDING_REQUIREMENTS.md` for full shader spec
-- See `sovereign_folding/MSA_DATABASE_PLAN.md` for data acquisition plan
+- See `coral_forge/BARRACUDA_FOLDING_REQUIREMENTS.md` for full shader spec
+- See `coral_forge/MSA_DATABASE_PLAN.md` for data acquisition plan
 
 ### Phase B — Complete AlphaFold2 Primitive Validation (DONE)
 
-Python control: `control/sovereign_folding/evoformer_primitives.py` (25/25 checks)
-Rust modules: `src/sovereign_folding.rs` + `src/structure_module.rs` (41 unit tests, 67 validation checks)
-GPU validator: `validate_sovereign_folding_gpu` (37/37 checks on RTX 4070)
+Python control: `control/coral_forge/evoformer_primitives.py` (25/25 checks)
+Rust modules: `src/coral_forge/` (41 unit tests, 67 validation checks)
+GPU validator: `validate_coral_forge_gpu` (37/37 checks on RTX 4070)
 
 15 WGSL shaders wired and validated (38 total in shader catalog).
 All shaders use **df64 core streaming**: f64 buffer I/O → df64 compute on

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! nF-03 Phase C: AlphaFold3 confidence head validation.
+//! nF-03 Phase C: `AlphaFold3` confidence head validation.
 //!
 //! Loads Python-generated baselines from `confidence_baselines.json` and
 //! validates that Rust CPU implementations of pLDDT, PAE, pDE, and ranking
@@ -8,7 +8,7 @@
 //!
 //! ## Provenance
 //!
-//! Python baseline: `control/sovereign_folding/alphafold3_confidence.py`
+//! Python baseline: `control/coral_forge/alphafold3_confidence.py`
 //! Reference: Abramson et al. Nature 630:493-500 (2024), §5.9
 //!
 //! ## Experiments
@@ -21,43 +21,77 @@
 //! | nF-C04 | Ranking score | Weighted combination of metrics |
 //! | nF-C05 | Cross-head | Consistency checks across all heads |
 
-#![allow(clippy::cast_precision_loss, clippy::suboptimal_flops)]
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::suboptimal_flops,
+    clippy::similar_names,
+    clippy::too_many_lines
+)]
 
-use neural_spring::sovereign_folding::confidence;
+use neural_spring::coral_forge::confidence;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use serde_json::Value;
 
 fn flat_f64(v: &Value) -> Vec<f64> {
     match v {
-        Value::Array(arr) => arr.iter().map(|x| x.as_f64().expect("f64")).collect(),
-        Value::Number(n) => vec![n.as_f64().expect("f64")],
-        _ => panic!("expected array or number"),
+        Value::Array(arr) => arr.iter().flat_map(flat_f64).collect(),
+        Value::Number(n) => vec![n.as_f64().unwrap_or(0.0)],
+        _ => vec![],
     }
+}
+
+fn json_usize(v: &Value, key: &str) -> Option<usize> {
+    v.get(key).and_then(Value::as_u64).map(|x| x as usize)
 }
 
 fn main() {
     let mut h = ValidationHarness::new("validate_alphafold3_confidence");
 
     let json_path =
-        neural_spring::validation::baseline_path("control/sovereign_folding/confidence_baselines.json");
-    let data = std::fs::read_to_string(&json_path).unwrap_or_else(|e| {
-        eprintln!("Run alphafold3_confidence.py first: {e}");
-        std::process::exit(1);
-    });
-    let baselines: Value = serde_json::from_str(&data).expect("valid JSON");
+        neural_spring::validation::baseline_path("control/coral_forge/confidence_baselines.json");
+    let data = match std::fs::read_to_string(&json_path) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("Run alphafold3_confidence.py first: {e}");
+            std::process::exit(1);
+        }
+    };
+    let baselines: Value = match serde_json::from_str(&data) {
+        Ok(v) => v,
+        Err(e) => {
+            h.check_bool(&format!("parse confidence_baselines.json: {e}"), false);
+            h.finish();
+        }
+    };
 
-    let n_res = baselines["n_res"].as_u64().expect("n_res") as usize;
-    let d_pair = baselines["d_pair"].as_u64().expect("d_pair") as usize;
-    let n_bins_pae = baselines["n_bins_pae"].as_u64().expect("n_bins_pae") as usize;
-    let n_bins_pde = baselines["n_bins_pde"].as_u64().expect("n_bins_pde") as usize;
-    let max_pde = baselines["max_pde"].as_f64().expect("max_pde");
+    let Some(n_res) = json_usize(&baselines, "n_res") else {
+        h.check_bool("baseline missing n_res", false);
+        h.finish();
+    };
+    let Some(d_pair) = json_usize(&baselines, "d_pair") else {
+        h.check_bool("baseline missing d_pair", false);
+        h.finish();
+    };
+    let Some(n_bins_pae) = json_usize(&baselines, "n_bins_pae") else {
+        h.check_bool("baseline missing n_bins_pae", false);
+        h.finish();
+    };
+    let Some(n_bins_pde) = json_usize(&baselines, "n_bins_pde") else {
+        h.check_bool("baseline missing n_bins_pde", false);
+        h.finish();
+    };
+    let Some(max_pde) = baselines["max_pde"].as_f64() else {
+        h.check_bool("baseline missing max_pde", false);
+        h.finish();
+    };
 
     // ─── nF-C01: pLDDT head ────────────────────────────────────
     {
         let single_repr = flat_f64(&baselines["plddt_single_repr"]);
         let w = flat_f64(&baselines["plddt_w"]);
-        let b = baselines["plddt_b"].as_f64().expect("plddt_b");
+        let b = baselines["plddt_b"].as_f64().unwrap_or(0.0);
         let py_plddt = flat_f64(&baselines["plddt_values"]);
 
         let rs_plddt = confidence::plddt_head(&single_repr, n_res, d_pair, &w, b);
@@ -171,9 +205,9 @@ fn main() {
 
     // ─── nF-C04: Ranking score ─────────────────────────────────
     {
-        let py_score = baselines["ranking_score"].as_f64().expect("ranking_score");
-        let py_perfect = baselines["ranking_perfect"].as_f64().expect("ranking_perfect");
-        let py_worst = baselines["ranking_worst"].as_f64().expect("ranking_worst");
+        let py_score = baselines["ranking_score"].as_f64().unwrap_or(0.0);
+        let py_perfect = baselines["ranking_perfect"].as_f64().unwrap_or(0.0);
+        let py_worst = baselines["ranking_worst"].as_f64().unwrap_or(0.0);
 
         let plddt = flat_f64(&baselines["plddt_values"]);
         let pae_expected = flat_f64(&baselines["pae_expected"]);
@@ -226,13 +260,22 @@ fn main() {
         let pde_expected = flat_f64(&baselines["pde_expected"]);
 
         let mean_plddt: f64 = plddt.iter().sum::<f64>() / plddt.len() as f64;
-        h.check_bool("nF-C05a pLDDT mean in (0,1)", mean_plddt > 0.0 && mean_plddt < 1.0);
+        h.check_bool(
+            "nF-C05a pLDDT mean in (0,1)",
+            mean_plddt > 0.0 && mean_plddt < 1.0,
+        );
 
         let mean_pae: f64 = pae_expected.iter().sum::<f64>() / pae_expected.len() as f64;
-        h.check_bool("nF-C05b PAE mean in (0, max)", mean_pae > 0.0 && mean_pae < 31.75);
+        h.check_bool(
+            "nF-C05b PAE mean in (0, max)",
+            mean_pae > 0.0 && mean_pae < 31.75,
+        );
 
         let mean_pde: f64 = pde_expected.iter().sum::<f64>() / pde_expected.len() as f64;
-        h.check_bool("nF-C05c pDE mean in (0, max)", mean_pde > 0.0 && mean_pde < 30.0);
+        h.check_bool(
+            "nF-C05c pDE mean in (0, max)",
+            mean_pde > 0.0 && mean_pde < 30.0,
+        );
     }
 
     h.finish();

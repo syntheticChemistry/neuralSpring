@@ -32,11 +32,8 @@ const SAFETY_EPS: f64 = 1e-30;
 
 /// Floor for Fisher information metric to prevent `ds/dt → ∞`.
 ///
-/// Domain-specific: the Fisher metric `g(s) = β²·Var_s[F]` vanishes at
-/// landscape saddle points. This floor caps the geodesic speed while
-/// being negligible compared to typical `g(s) ∈ [1e-4, 1]` for β=1.
-/// See also: [`crate::primitives::DIVISION_GUARD`] for the generic guard.
-const FISHER_EPS: f64 = 1e-10;
+/// See [`crate::tolerances::FISHER_EPS`] for justification.
+const FISHER_EPS: f64 = crate::tolerances::FISHER_EPS;
 
 /// NK fitness landscape: N binary loci, K epistatic interactions.
 ///

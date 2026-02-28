@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 28, 2026 (Sessions 40–93 — S93: deep debt evolution + nF-03 Phase C. dispatch\_ops.rs split into 7 domain files, iterator modernization, self-id via env!. 197 binaries, **185/185 validate\_all**, 685 lib tests, 3200+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules)
+**Last Updated**: February 28, 2026 (Sessions 40–94 — S94: coralForge rename, deep debt resolution, 5 domain tolerance guards, 24 expect→require!, dependency analysis. 197 binaries, **185/185 validate\_all**, 685 lib tests, 3200+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 

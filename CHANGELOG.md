@@ -5,12 +5,22 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 93 (February 28, 2026)
+## [Unreleased] — Session 94 (February 28, 2026)
+
+### Session 94 — coralForge Rename + Deep Debt Resolution (February 28, 2026)
+
+- **coralForge**: Renamed `sovereign_folding/` + `structure_module/` → unified `coral_forge/` with `structure/` submodule. Updated 25+ source files, 3 validation binaries, Cargo.toml, control scripts, specs, docs. RPC capability names (`science.structure_module`) stable for protocol compatibility.
+- **Magic number elimination**: 5 new domain-specific tolerance constants (`FISHER_EPS`, `BURGERS_IC_GUARD`, `DP_EQUALITY_EPS`, `SINGLETON_FREQ_EPS`, `PHENOTYPE_TIE_EPS`) in `tolerances/mod.rs`. Zero inline magic numbers remain in production code.
+- **expect() → require!**: Evolved 24 `expect()` calls in `validate_coral_forge_gpu`, `validate_coral_forge_gpu_pipeline`, and `validate_barracuda_alphafold2` to graceful `require!(h, ...)` error recording.
+- **Cast safety**: `cpu_fallback.rs` activator indices now bounds-checked via `safe_idx()`.
+- **Provenance docs**: All 34 `BaselineProvenance` constants documented with `///` comments.
+- **Dependency analysis**: All 12 external deps are pure Rust, zero C/C++ wrappers, documented in EVOLUTION_READINESS.md.
+- **Metrics**: 197 binaries, 685 lib tests, 9 integration, 139+ named tolerances, 0 clippy pedantic warnings, 0 doc warnings. All quality gates green.
 
 ### Session 93 — Deep Debt Evolution + nF-03 Phase C Confidence Heads (February 28, 2026)
 
 - **Deep debt evolution**: `dispatch_ops.rs` (842→7 domain files), `gpu_ops/mod.rs` (668→38+tests_ops). Iterator evolution across 6 core modules. Self-identification→`env!("CARGO_PKG_NAME")`. `.unwrap()`→`.expect()`.
-- **nF-03 Phase C: Confidence Heads**: pLDDT, PAE, pDE, ranking score — Py 19/19, Rs 16/16, 7 new unit tests. New `sovereign_folding/confidence.rs` module.
+- **nF-03 Phase C: Confidence Heads**: pLDDT, PAE, pDE, ranking score — Py 19/19, Rs 16/16, 7 new unit tests. New `coral_forge/confidence.rs` module.
 - **Metrics**: 197 binaries, 685 lib tests, **185/185 validate_all**, 39 Python drift baselines. 5 clippy warnings (all pre-existing pedantic).
 
 ### Session 92 — nF-03 AlphaFold3 Phase A+B (February 27, 2026)
@@ -102,7 +112,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `bench_cross_spring_evolution.rs` replaced with descriptive `.expect()`.
 - **Iterator idioms**: 11 manual loop sites evolved to `chunks_exact`, `flat_map`,
   `zip`, `recip` patterns in `basecamp.rs` (4 sites: belief propagation, MLP
-  signal, pairwise L2, adjacency) and `sovereign_folding.rs` (7 sites: layer_norm,
+  signal, pairwise L2, adjacency) and `coral_forge.rs` (7 sites: layer_norm,
   softmax, SDPA scores, attention apply, triangle mul ×2, outer product mean).
 - **Module-level `#[allow(clippy::expect_used)]`**: Added to WDM test modules and
   basecamp GPU validation binary; redundant per-test allows removed.
@@ -123,18 +133,18 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Publication experiments: full GPU progression (Py → Rs → GPU → Pipeline → metalForge)
 - Documentation sweep: all counts aligned (3034+ checks, 175 binaries, 668 lib tests)
 
-## [0.5.2] — 2026-02-27 (Session 88: df64 Core Streaming — Sovereign Folding)
+## [0.5.2] — 2026-02-27 (Session 88: df64 Core Streaming — coralForge)
 
 ### Changed
 
-- All 15 sovereign folding WGSL shaders evolved to hotSpring/ToadStool df64 core
+- All 15 coralForge WGSL shaders evolved to hotSpring/ToadStool df64 core
   streaming pattern: f64 buffer I/O → df64 compute on FP32 cores → f64 output.
   Three-zone architecture: `df64_from_f64` at load, `df64_*` arithmetic and
   transcendentals for compute, `df64_to_f64` at store.
 - `src/gpu.rs`: Added `create_buffer_f64()`, `upload_f64()`, and
   `compile_shader_f64_hybrid()` (prepends `df64_core.wgsl` +
   `df64_transcendentals.wgsl` then calls `compile_shader_f64`).
-- `validate_sovereign_folding_gpu`: Rewritten for f64 I/O with two-tier
+- `validate_coral_forge_gpu`: Rewritten for f64 I/O with two-tier
   tolerance: `GPU_DF64_TOL = 1e-6` (arithmetic), `GPU_DF64_TRANS_TOL = 5e-4`
   (transcendental). `Fp64Strategy::Hybrid` auto-detected on RTX 4070.
 - `specs/PAPER_REVIEW_QUEUE.md`: Updated shader table with new precision
@@ -147,7 +157,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `cargo clippy --workspace -- -D warnings`: 0 warnings
 - `cargo test --workspace`: 675/675 PASS
 - `validate_all`: **158/158 PASS** (was 156)
-- `validate_sovereign_folding_gpu`: **37/37 PASS** (df64 core streaming)
+- `validate_coral_forge_gpu`: **37/37 PASS** (df64 core streaming)
 
 ### Precision Results (RTX 4070, Fp64Strategy::Hybrid)
 
@@ -345,4 +355,4 @@ resolved.  AGPL-3.0-or-later.
 - baseCamp: 5 biophysical AI interpretability modules (weight spectral,
   information flow, loss landscape, neural PGM, agent coordination).
 - metalForge: GPU dispatch, substrate discovery, workload tracking, BarraCUDA
-  bridge, sovereign folding shaders.
+  bridge, coralForge shaders.

@@ -56,7 +56,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 042 | Session 74 — Pure GPU All-Domains + Cross-System Dispatch + Evolution Tier Benchmarks | Feb 26, 2026 | 9-domain GPU validator 10/10 PASS, cross-system dispatch 46/46 PASS, evolution-tier benchmark, 149/150 validate_all |
 | 043 | Session 75 — ToadStool S60–S65 Upstream Sync: Stats Rewiring + Cross-Spring Benchmarks | Feb 26, 2026 | 4 commits reviewed (234 files), 9 functions rewired to barracuda::stats (r², rmse, nse, dot, l2\_norm, shannon), 4 validators fixed, cross-spring evolution benchmark (15/15 PASS), **150/150 validate_all**, 30 total rewires |
 | 044 | Session 76 — Modern BarraCUDA Rewiring + Benchmark Validation | Feb 26, 2026 | +2 pearson\_correlation rewires (meta\_population), full benchmark sweep (10/10 upstream parity, 3.20× variance, 2.24× Shannon, 1.36× Pearson cross-spring f64), **150/150 validate_all**, 32 total rewires |
-| 045 | Session 77 — WDM Surrogates + baseCamp GPU Pure + Sovereign Folding Shaders | Feb 26, 2026 | 3 WDM Python baselines (nW-01 transport, nW-02 EOS via Militzer FPEOS, nW-04 transfer learning), `wdm_surrogate.rs` module + 2 Rust validators (CPU + BarraCUDA GPU), `validate_basecamp_gpu_pure` (5/5 sub-theses on GPU with scalar readback), `bench_basecamp_gpu_pure`, 9 new f64 WGSL shaders for sovereign folding (layer\_norm, GELU, sigmoid, SDPA scores/softmax/apply, triangle mul outgoing/incoming, triangle attention), 604 lib tests |
+| 045 | Session 77 — WDM Surrogates + baseCamp GPU Pure + coralForge Shaders | Feb 26, 2026 | 3 WDM Python baselines (nW-01 transport, nW-02 EOS via Militzer FPEOS, nW-04 transfer learning), `wdm_surrogate.rs` module + 2 Rust validators (CPU + BarraCUDA GPU), `validate_basecamp_gpu_pure` (5/5 sub-theses on GPU with scalar readback), `bench_basecamp_gpu_pure`, 9 new f64 WGSL shaders for coralForge (layer\_norm, GELU, sigmoid, SDPA scores/softmax/apply, triangle mul outgoing/incoming, triangle attention), 604 lib tests |
 | 046 | Session 78 — ToadStool S66 Absorption: Stats Rewiring + Shader Convention Alignment | Feb 26, 2026 | Deep ToadStool S66 review, 6 function rewires (mae → `barracuda::stats::mae`, shannon → `shannon_from_frequencies`, hill×2 → `barracuda::stats::hill`, l2\_distance → `l2_distance_dispatch`, complexity → `fit_linear`), all 9 metalForge f64 shaders refactored to `compile_shader_df64` convention (`Df64` struct, `df64_add`, `two_prod`), variance population/sample clarification, V42 handoff |
 | 047 | Session 79 — Complete Cross-Spring Rewiring + Comprehensive Validation + V43 Handoff | Feb 26, 2026 | `validate_cross_spring_evolution` expanded to 52/52 PASS (was 39/39), `bench_cross_spring_evolution` expanded to 19/19 PASS (was 15/15), full cross-spring provenance documentation (airSpring stats, wetSpring bio, hotSpring precision, all flowing through ToadStool), V43 handoff with complete absorption story, 38 total function rewires + 6 shader sources |
 | 048 | Session 80 — Comprehensive Debt Audit and Coverage Expansion | Feb 26, 2026 | 604 lib tests, 93.5% coverage, wdm_surrogate 97.6%, basecamp 90.6%, 4 magic numbers→tolerances, 16 unwrap eliminated |
@@ -67,7 +67,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 053 | Session 85 — Doc Sweep + V49 Handoff | Feb 26, 2026 | All stale counts fixed (580→604, 163→166, 107→129+), baseCamp sub-theses updated through S85, V49 handoff with cross-spring learnings, Hamming regression flagged |
 | 054 | Session 86 — WDM Surrogate Buildout (nW-01, nW-02, nW-04) | Feb 26, 2026 | 3 WDM Python baselines + 2 Rust validators, `wdm_surrogate.rs`/`wdm_transport.rs`, 611 lib tests, 154/154 PASS |
 | 055 | Session 87 — WDM Queue Closed (nW-03, nW-05) | Feb 26, 2026 | LSTM reservoir + ESN classifier, `wdm_sqw.rs`/`wdm_esn.rs`, 623 lib, 156/156 PASS |
-| 056 | Session 88 — df64 Core Streaming: Sovereign Folding Evolution | Feb 27, 2026 | 15 WGSL shaders evolved to f64 buffers + df64 compute, 37/37 sovereign GPU, 158/158 validate\_all, V52 handoff |
+| 056 | Session 88 — df64 Core Streaming: coralForge Evolution | Feb 27, 2026 | 15 WGSL shaders evolved to f64 buffers + df64 compute, 37/37 sovereign GPU, 158/158 validate\_all, V52 handoff |
 | 057 | Session 88+ — Publication Experiments: Exp-050/052/053 | Feb 27, 2026 | Training trajectory spectral (Py 11/11, Rs 12/12), Hessian eigenanalysis (Py 8/8, Rs 14/14), Anderson multi-agent (Py 11/11, Rs 18/18). Papers A/C/D data ready. 163/163 validate\_all. V53 ToadStool absorption handoff |
 | 058 | Session 88+ — Barracuda Evolution Audit & Deep Debt Reduction | Feb 27, 2026 | Barracuda usage audit (90+ imports, 39 rewires, zero duplicate math). 18 unwrap\_or\_else → expect, 11 manual loops → idiomatic iterators. Control matrix verified. V54 ToadStool handoff |
 | 059 | Session 88+ — Publication Experiment GPU Buildout & Control Validation | Feb 27, 2026 | 4 new GPU validators: Exp-050 (9/9), Exp-052 (10/10), Exp-053 (11/11), Pipeline+metalForge (13/13). BatchIprGpu pure pipeline, Dispatcher CPU↔GPU parity, mixed-hardware routing. WDM SQW JSON fix (0/1→26/27). 167 binaries, 166/167 validate\_all |
@@ -78,6 +78,8 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 064 | Session 88+ — Modern Rewire: Cross-Spring GPU Evolution Benchmarking | Feb 27, 2026 | 3 high-impact rewires: `pairwise_l2_matrix_gpu`→`PairwiseL2Gpu` (1 dispatch vs O(n²)), `geographic_distance_matrix_gpu`→`PairwiseL2Gpu`, `disorder_sweep_gpu` IPR→`BatchIprGpu`. `bench_modern_rewire` 23/23 PASS. Cross-spring provenance tracked: hotSpring precision→eigensolve, wetSpring bio→diversity, neuralSpring ML→pairwise. 173 binaries, 172/173 validate\_all |
 | 065 | BarraCUDA CPU Parity & GPU Portability | Feb 27, 2026 | Cross-language benchmark: Python/NumPy vs pure Rust (83.6× geomean), CPU→GPU portability (7 domains), ToadStool streaming (25+9=34 checks) |
 | 066 | Session 89 — Dispatch Parity, Mixed-Hardware Dispatch, Upstream BarraCUDA Wiring | Feb 27, 2026 | +3 upstream BarraCUDA ops (HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu), NPU substrate type, dispatch parity 30/30, mixed-hardware dispatch 47/47, 177/177 validate\_all, V60 handoff |
+| 067 | Sessions 92–93 — nF-03 AlphaFold3 Phases A+B+C + Deep Debt Evolution | Feb 28, 2026 | Diffusion (Py 29/29, Rs 26/26), Pairformer (Py 14/14, Rs 13/13), Confidence heads (Py 19/19, Rs 16/16). dispatch\_ops.rs split 7 domain files. 197 binaries, 185/185 validate\_all, 685 lib tests |
+| 068 | Session 94 — coralForge Rename + Deep Debt Resolution | Feb 28, 2026 | sovereign\_folding+structure\_module→coral\_forge, 5 domain tolerance guards, 24 expect→require!, cast safety, 34 provenance docs, dependency analysis. 139+ tolerances, 0 clippy, 0 doc warnings |
 
 ---
 
@@ -3488,12 +3490,12 @@ system, confirm cross-language parity.
 
 ---
 
-### Experiment 056: Session 88 — df64 Core Streaming: Sovereign Folding Evolution
+### Experiment 056: Session 88 — df64 Core Streaming: coralForge Evolution
 
 **Date**: February 27, 2026
 **Hardware**: i9-12900K, RTX 4070 (Vulkan), Pop!_OS 22.04
 
-**Motivation**: Evolve all 15 sovereign folding (AlphaFold2) WGSL shaders from
+**Motivation**: Evolve all 15 coralForge (AlphaFold2) WGSL shaders from
 the previous f32-buffer approach to the hotSpring/ToadStool df64 core streaming
 pattern. The user identified that the prior implementation was not following the
 correct architectural pattern: hotSpring uses ToadStool's df64 to increase FP64
@@ -3517,7 +3519,7 @@ with 1:64 FP64:FP32 ratio.
    `msa_row_attention_scores_f64`, `msa_col_attention_scores_f64`,
    `sigmoid_f64`, `ipa_scores_f64`, `backbone_update_f64`,
    `torsion_angles_f64`.
-4. Rewrote `validate_sovereign_folding_gpu` for f64 I/O: f64 data generation,
+4. Rewrote `validate_coral_forge_gpu` for f64 I/O: f64 data generation,
    f64 buffer upload, `compile_shader_f64_hybrid` compilation, f64 readback.
 5. Established two-tier tolerance: `GPU_DF64_TOL = 1e-6` for arithmetic ops,
    `GPU_DF64_TRANS_TOL = 5e-4` for transcendental ops (exp, tanh).
@@ -3550,7 +3552,7 @@ with 1:64 FP64:FP32 ratio.
 | `cargo clippy --workspace -- -D warnings` | 0 warnings |
 | `cargo test --workspace` | **675/675 PASS** |
 | `validate_all` | **158/158 PASS** |
-| `validate_sovereign_folding_gpu` | **37/37 PASS** |
+| `validate_coral_forge_gpu` | **37/37 PASS** |
 
 **Status**: COMPLETE
 
@@ -3589,7 +3591,7 @@ session-end snapshot.
 5. Updated `whitePaper/baseCamp/extensions.md` and `baseCamp/README.md` through
    S88+. Updated all sub-thesis documents with experiment status.
 6. Crafted V53 wateringHole handoff: ToadStool/BarraCUDA absorption targets
-   documenting df64 patterns, sovereign folding shaders, publication experiment
+   documenting df64 patterns, coralForge shaders, publication experiment
    primitives, and cross-spring evolution learnings.
 7. Updated `specs/BARRACUDA_USAGE.md` with new experiment primitives.
 8. Reviewed `specs/PAPER_REVIEW_QUEUE.md` control matrix: confirmed all papers
@@ -3612,7 +3614,7 @@ session-end snapshot.
 - **Paper queue controls verified**: Every paper in the queue (25 reproductions
   + 5 WDM + 15 baseCamp) has validated controls at open data (Py), BarraCUDA
   CPU (Rs), BarraCUDA GPU (Tensor), and metalForge mixed hardware tiers.
-- **ToadStool absorption targets identified**: 15 sovereign folding df64
+- **ToadStool absorption targets identified**: 15 coralForge df64
   shaders, `compile_shader_df64_streaming` API, 5 typed df64 ops (GELU,
   LayerNorm, softmax, SDPA, matmul), transcendental precision improvement
   (degree-6 → degree-10+ Horner), `nn::SimpleMLP` for WDM surrogates.
@@ -3652,7 +3654,7 @@ error handling debt, (3) evolve manual loop patterns to idiomatic Rust iterators
 3. Evolved 4 manual loop sites in `basecamp.rs` to `chunks_exact`, `flat_map`,
    `zip`, `recip` patterns (belief propagation, MLP signal, pairwise L2,
    adjacency construction).
-4. Evolved 7 manual loop sites in `sovereign_folding.rs` to idiomatic iterators
+4. Evolved 7 manual loop sites in `coral_forge.rs` to idiomatic iterators
    (layer_norm, softmax_rows, sdpa_scores, attention_apply, triangle_mul×2,
    outer_product_mean).
 5. Added module-level `#[allow(clippy::expect_used)]` to WDM test modules;
@@ -3676,12 +3678,12 @@ error handling debt, (3) evolve manual loop patterns to idiomatic Rust iterators
 - **`unwrap_or_else` bypasses clippy**: The pattern produces identical behavior
   to `.expect()` but avoids the `clippy::expect_used` lint. Standardizing on
   `.expect()` with module-level allows improves lint coverage and diagnostics.
-- **Iterator idioms in CPU references reduce risk**: The `sovereign_folding.rs`
+- **Iterator idioms in CPU references reduce risk**: The `coral_forge.rs`
   functions are ground truth for GPU shader validation. `chunks_exact` + `zip`
   patterns eliminate manual index arithmetic where off-by-one errors can hide.
 - **Cross-spring alignment strong**: wetSpring (V61), hotSpring (V0614), and
   neuralSpring (V54) all on the same ToadStool pin with synchronized debt passes.
-- **Absorption targets unchanged**: 15 sovereign folding df64 shaders,
+- **Absorption targets unchanged**: 15 coralForge df64 shaders,
   `compile_shader_df64_streaming`, `nn::SimpleMLP`, transcendental precision.
 
 ### Validation

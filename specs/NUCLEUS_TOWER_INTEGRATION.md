@@ -2,7 +2,7 @@
 
 **Date**: February 28, 2026
 **Purpose**: Wire neuralSpring into biomeOS NUCLEUS local Tower mode
-**Current State**: `neuralspring_primal.rs` exists with 7 science capabilities,
+**Current State**: `neuralspring_primal/` (multi-file binary) exists with 7 science capabilities,
 JSON-RPC 2.0 over Unix sockets, biomeOS 5-tier socket resolution
 **Target**: Full Tower mode on Eastgate — automated startup, health monitoring,
 capability registration with biomeOS discovery, cross-primal communication
@@ -48,7 +48,7 @@ capability registration with biomeOS discovery, cross-primal communication
 
 ## What Needs Building
 
-### Step 1: Sovereign Folding Capabilities (expose nF-01/02 pipeline)
+### Step 1: coralForge Capabilities (expose nF-01/02 pipeline)
 
 The primal currently only exposes baseCamp spectral analysis. Session 90
 validated a full AlphaFold2 Evoformer + Structure Module pipeline — these
@@ -64,7 +64,7 @@ should be available over JSON-RPC for cross-primal use.
 | `science.gpu_dispatch` | Run a Dispatcher operation on GPU | `{op, params}` | Result tensor |
 
 **Implementation approach**: Thin wrappers around existing functions in
-`src/sovereign_folding/` and `src/gpu_dispatch/`. The handlers serialize
+`src/coral_forge/` and `src/gpu_dispatch/`. The handlers serialize
 inputs/outputs as JSON arrays (same pattern as the existing handlers).
 
 ### Step 2: GPU-Aware Health Check
@@ -207,7 +207,7 @@ neuralSpring ──"data.pdb_fetch"──→ NestGate (PDB provider)
 neuralSpring ──"data.msa_build"──→ NestGate (UniRef90 + MMseqs2)
 ```
 
-This enables the full sovereign folding pipeline:
+This enables the full coralForge pipeline:
 1. Query sequence → NestGate (MSA search) → MSA
 2. MSA → neuralSpring (Evoformer) → pair representation
 3. Pair → neuralSpring (Structure Module / Diffusion) → 3D coordinates
