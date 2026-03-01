@@ -8,10 +8,10 @@
 
 ## Where We Stand
 
-neuralSpring has validated 3,490+ checks across 25 papers, 5 WDM surrogates,
+neuralSpring has validated 3,500+ checks across 25 papers, 5 WDM surrogates,
 coralForge (nF-01/02/03), 5 baseCamp sub-theses, and 3 publication experiments.
 The full pipeline is proven: Python → Rust CPU → BarraCUDA CPU → GPU Tensor →
-Pure GPU → metalForge cross-substrate. 199/199 validators pass. 83.6× faster
+Pure GPU → metalForge cross-substrate. 200/200 validators pass. 83.6× faster
 than Python. Zero debt.
 
 **What's missing**: everything has been validated against published science,

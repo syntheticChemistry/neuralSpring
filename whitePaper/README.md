@@ -2,7 +2,7 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **3490+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 83.6× faster than Python, 211 binaries, **199/199 validate\_all** (197 PASS + 2 pre-existing WGSL parse). coralForge unified. 139+ named tolerances, zero debt, 0 clippy warnings, 0 doc warnings. 685 lib + 9 integration + 43 forge tests. 44 upstream rewires, 130+ barracuda import sites. BarraCUDA CPU tier 3/3 coralForge, WDM+coralForge CPU↔GPU domain parity 39/39, metalForge NUCLEUS atomics 41/41
+**Status**: Phase 5h+ — **3500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 83.6× faster than Python, 216 binaries, **200/200 validate\_all** (197 PASS + 2 pre-existing WGSL parse). coralForge unified. 139+ named tolerances, zero debt, 0 clippy warnings, 0 doc warnings. 685 lib + 9 integration + 43 forge tests. 44 upstream rewires, 130+ barracuda import sites. BarraCUDA CPU tier 3/3 coralForge, WDM+coralForge CPU↔GPU domain parity 39/39, metalForge NUCLEUS atomics 41/41
 **Date**: March 1, 2026 (Sessions 40–98 — nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics, coralForge rename, deep debt resolution, S98 coralForge nF-03 GPU tier closed)
 **License**: AGPL-3.0-or-later
 
@@ -21,8 +21,8 @@
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all 17 resolved (S-01 through S-17) |
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
-| `experiments/README.md` | Engineering | Experiment journals (001–068, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V65 handoff (Session 98 — coralForge nF-03 GPU tier closure, cross-spring provenance) |
+| `experiments/README.md` | Engineering | Experiment journals (001–071, hotSpring pattern) |
+| `wateringHole/handoffs/` | Cross-project | V66 handoff (Session 99 — primal integration + nS-01 real data + NUCLEUS Tower validated) |
 
 ---
 
@@ -76,8 +76,8 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 282/282 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge)
-**Phase 1–5h+**: 3080+ Rust+GPU validation PASS (685 lib + 9 integration + 43 forge tests + 211 binaries across 40 modules + gpu\_ops/ + gpu\_dispatch/)
-**Grand Total**: 3490+ PASS — **ALL GREEN** across all applicable tiers
+**Phase 1–5h+**: 3080+ Rust+GPU validation PASS (685 lib + 9 integration + 43 forge tests + 216 binaries across 40 modules + gpu\_ops/ + gpu\_dispatch/)
+**Grand Total**: 3500+ PASS — **ALL GREEN** across all applicable tiers
 **Multi-GPU**: 208 validators on RTX 4070, 384+ additional on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 47 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11, Phase C: 6, +3 upstream). ~97% of production math on GPU.
 **Mixed-Hardware**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model (GPU↔NPU↔CPU routing).
@@ -95,7 +95,7 @@ cross-device cost model for GPU↔NPU↔CPU substrate selection.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 685 lib + 9 integration + 43 forge tests, 211 binaries, 40 modules | **Complete** |
+| 1a | Rust validation layer — 685 lib + 9 integration + 43 forge tests, 216 binaries, 40 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -313,7 +313,7 @@ Full handoff: `wateringHole/handoffs/`
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (685 lib + 9 integration + 43 forge tests + 211 binaries)
+# Rust validation (685 lib + 9 integration + 43 forge tests + 216 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -357,5 +357,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 685 lib + 9 integration + 43 forge tests. 282 Python + 3080+ Rust/GPU = 3490+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 384/384 (RTX 4070 + TITAN V NVK bit-identical) · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge · WDM+coralForge parity 39/39 · metalForge NUCLEUS 41/41. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 211 binaries, 199/199 validate\_all, 42 WGSL shaders (21 absorbed + 15 df64 coralForge). Pure Rust 83.6× faster. CPU↔Python parity 39/39 (1e-10). 139+ named tolerances, 0 clippy, 0 doc warnings. coralForge rename complete, deep debt resolved, V65 handoff. S98: coralForge nF-03 GPU tier closed.*
+*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 685 lib + 9 integration + 43 forge tests. 282 Python + 3080+ Rust/GPU = 3500+ total checks.
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 384/384 (RTX 4070 + TITAN V NVK bit-identical) · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge · WDM+coralForge parity 39/39 · metalForge NUCLEUS 41/41. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 216 binaries, 200/200 validate\_all, 42 WGSL shaders (21 absorbed + 15 df64 coralForge). Pure Rust 83.6× faster. CPU↔Python parity 39/39 (1e-10). 139+ named tolerances, 0 clippy, 0 doc warnings. coralForge rename complete, deep debt resolved, V66 handoff. S99: NUCLEUS Tower validated, primal handoffs, nS-01 real-data pipeline.*

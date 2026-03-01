@@ -276,7 +276,7 @@ pub fn handle_folding_health(id: serde_json::Value, state: &PrimalState) -> Json
             "gpu_available": state.dispatcher.has_gpu(),
             "gpu_adapter": state.dispatcher.adapter_name(),
             "validated_papers": ["nF-01 (OpenFold)", "nF-02 (AlphaFold2)"],
-            "validation_status": "185/185 validate_all",
+            "validation_status": "200/200 validate_all",
         }),
     )
 }

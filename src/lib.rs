@@ -122,4 +122,5 @@ pub mod wdm_esn;
 pub mod wdm_sqw;
 pub mod wdm_surrogate;
 pub mod wdm_transport;
+pub mod weight_loader;
 pub mod weight_spectral;

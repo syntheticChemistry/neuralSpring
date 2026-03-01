@@ -82,6 +82,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 068 | Session 94 — coralForge Rename + Deep Debt Resolution | Feb 28, 2026 | sovereign\_folding+structure\_module→coral\_forge, 5 domain tolerance guards, 24 expect→require!, cast safety, 34 provenance docs, dependency analysis. 139+ tolerances, 0 clippy, 0 doc warnings |
 | 069 | Session 97c — nF-03 bC Tier Closure + CPU↔GPU Domain Parity + metalForge NUCLEUS | Feb 28, 2026 | BarraCUDA CPU 3/3 coralForge (AF3 primitives), WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, V64 handoff. 209 binaries, 197/197 validate\_all, 3450+ checks |
 | 070 | Session 98 — coralForge nF-03 AlphaFold3 GPU Tier Closure | Mar 1, 2026 | AF3 diffusion GPU 14/14, Pairformer GPU 12/12, pure GPU 24/24, cross-spring bench 40/40, V65 handoff. 211 binaries, 199/199 validate\_all, 3490+ checks |
+| 071 | Session 99 — NUCLEUS Local Integration + nS-01 Real Data Extension | Mar 1, 2026 | Primal handoffs (NestGate V1, biomeOS V1, Songbird V1). weight\_loader.rs (safetensors). validate\_weight\_spectral\_real 12/12 PASS. NUCLEUS Tower on Eastgate: BearDog healthy, neuralSpring primal 11 capabilities registered, NestGate forward fails gracefully. 216 binaries, 200/200 validate\_all, 3500+ checks |
 
 ---
 
@@ -3899,6 +3900,49 @@ benchmarks to cross-spring evolution benchmark.
 | `validate_all` | **199/199** (197 PASS + 2 pre-existing WGSL) |
 | Total checks | **3490+** |
 | Total binaries | **211** |
+
+**Status**: COMPLETE
+
+---
+
+### Experiment 071 — NUCLEUS Local Integration + nS-01 Real Data Extension
+**Date**: March 1, 2026
+**Session**: 99
+**Hardware**: RTX 4070 (Vulkan), 685 lib tests, 216 binaries
+
+**Objective**: Establish handoff-driven primal integration (NestGate, biomeOS, Songbird),
+build the first real-data nS-01 Paper A experiment (weight spectral analysis on pretrained
+models), and validate NUCLEUS local deployment on Eastgate.
+
+**Approach**:
+1. Write three primal handoff documents (NestGate V1 data acquisition, biomeOS V1 NUCLEUS
+   integration, Songbird V1 network discovery) documenting API gaps, needs, and lessons
+2. Build `weight_loader.rs` module (safetensors crate for HuggingFace model loading, f16/bf16/f32→f64 upcast)
+3. Create `scripts/download_pretrained.py` for 5 models (ResNet-18/50, ViT-B/16, GPT-2, LeNet-5)
+4. Build `validate_weight_spectral_real.rs` with synthetic fallback when pretrained data unavailable
+5. Build BearDog, Songbird, ToadStool, biomeOS from source; start NUCLEUS Tower on Eastgate
+6. Start neuralSpring primal, verify registration and NestGate forward graceful failure
+
+**Results**:
+- **Primal handoffs**: NestGate V1 (data.* JSON-RPC gap, NCBI/PDB needs, data tiers 1GB–1TB),
+  biomeOS V1 (11 capabilities, metalForge↔NUCLEUS, LAN roadmap), Songbird V1 (socket discovery, 10GbE LAN)
+- `weight_loader.rs`: 3/3 unit tests PASS (bf16 roundtrip, f16 specials, JSON baseline)
+- `validate_weight_spectral_real`: **12/12 PASS** (synthetic fallback: 3 matrix shapes × 4 checks)
+- NUCLEUS Tower: BearDog healthy (PID operational, JSON-RPC responsive)
+- neuralSpring primal: 11 science capabilities registered, GPU dispatcher active (RTX 4070, Vulkan)
+- NestGate forward: fails gracefully ("No socket found for primal 'nestgate'") — gap confirmed
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo build --release` (all new binaries) | PASS |
+| `cargo test --lib weight_loader` | 3 PASS |
+| `validate_weight_spectral_real` | **12/12 PASS** |
+| NUCLEUS Tower BearDog health | **healthy** |
+| neuralSpring primal health | **healthy** (11 capabilities) |
+| NestGate forward graceful fail | **confirmed** |
+| Total binaries | **216** |
 
 **Status**: COMPLETE
 

@@ -1149,3 +1149,40 @@ Closed the GPU Tensor validation tier for AlphaFold3 diffusion and Pairformer pr
 - **neuralSpring**: Diffusion primitives, Pairformer block, confidence heads — all validated CPU→GPU portable
 
 **Re-validated**: `cargo fmt` PASS, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` **199/199** (197 PASS + 2 pre-existing wright\_fisher WGSL parse). 211 binaries, 3490+ total checks.
+
+---
+
+## Session 99 — NUCLEUS Local Integration + nS-01 Real Data Extension (Experiment 071)
+
+**Scope**: Primal handoffs (NestGate V1, biomeOS V1, Songbird V1), `weight_loader.rs` (safetensors), `validate_weight_spectral_real`, NUCLEUS Tower on Eastgate, neuralSpring primal registration.
+
+**New code**:
+- `src/weight_loader.rs`: safetensors loading with f16/bf16/f32→f64 upcast (3 unit tests)
+- `src/bin/validate_weight_spectral_real.rs`: nS-01 Paper A real-data validator (12/12 synthetic fallback)
+- `scripts/download_pretrained.py`: 5-model download script (ResNet-18/50, ViT-B/16, GPT-2, LeNet-5)
+- 3 primal handoff documents in `wateringHole/handoffs/`
+
+**Primal handoffs written**:
+
+| Handoff | Primal | Key Content |
+|---------|--------|-------------|
+| NestGate V1 | NestGate | `data.*` JSON-RPC gap (NCBILiveProvider exists but not wired to RPC), NCBI/PDB/HF needs, Tier 1–3 data volumes (1GB–1TB), content-addressed storage, cross-spring data sharing |
+| biomeOS V1 | biomeOS/NUCLEUS | 11 science capabilities registered, metalForge↔NUCLEUS alignment (88/88 checks), LAN multi-gate roadmap (Eastgate/Strandgate/Northgate/Westgate), science primal discovery |
+| Songbird V1 | Songbird | Socket discovery patterns, mDNS gate discovery, TLS tunnels, bandwidth-aware routing, 10GbE LAN topology |
+
+**NUCLEUS local validation** (Tower mode on Eastgate):
+- BearDog: started, healthy, JSON-RPC responsive (v0.9.0)
+- Songbird: detected active (pre-existing)
+- ToadStool: detected active (pre-existing)
+- neuralSpring primal: 11 science capabilities, GPU dispatcher active (RTX 4070 Vulkan, Hybrid f64)
+- NestGate forward: graceful failure ("No socket found for primal 'nestgate'") — gap confirmed
+
+**nS-01 Paper A pipeline**:
+- `weight_loader.rs` loads safetensors with dtype upcast (f16, bf16, f32 → f64)
+- `validate_weight_spectral_real`: 12/12 PASS on synthetic fallback (3 shapes × 4 spectral checks)
+- Ready for real pretrained model weights via `scripts/download_pretrained.py`
+
+**Cross-spring evolution additions** (bench\_cross\_spring\_evolution.rs):
+- nS-01 weight spectral CPU benchmarks: eigh\_f64 on 64×64, 128×128, 256×256 Hamiltonians
+
+**Re-validated**: `validate_weight_spectral_real` **12/12 PASS**. `validate_all` **200/200** (198 PASS + 2 pre-existing wright\_fisher WGSL parse). 216 binaries, 3500+ total checks.

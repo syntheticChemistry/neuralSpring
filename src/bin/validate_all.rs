@@ -172,6 +172,8 @@ const BINARIES: &[&str] = &[
     "validate_cpu_math_parity",
     // Session 50: baseCamp — Biophysical AI Interpretability
     "validate_weight_spectral",
+    // S99: nS-01 Paper A real pretrained weight spectral analysis (safetensors)
+    "validate_weight_spectral_real",
     "validate_information_flow",
     "validate_loss_landscape",
     "validate_neural_pgm",

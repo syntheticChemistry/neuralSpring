@@ -5,7 +5,35 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 98 (March 1, 2026)
+## [Unreleased] — Session 99 (March 1, 2026)
+
+### Session 99 — NUCLEUS Local Integration + nS-01 Real Data Extension (March 1, 2026)
+
+**Primal handoffs:**
+- NestGate V1: `data.*` JSON-RPC gap documented, NCBI/PDB/HuggingFace needs, data volume tiers (1GB–1TB), content-addressed storage
+- biomeOS V1: 11 science capabilities, metalForge↔NUCLEUS alignment, LAN multi-gate roadmap
+- Songbird V1: socket discovery patterns, 10GbE LAN topology, bandwidth-aware routing
+
+**New modules:**
+- `weight_loader.rs`: safetensors loading with f16/bf16/f32→f64 upcast, JSON baseline fallback (3 unit tests)
+
+**New binaries:**
+- `validate_weight_spectral_real` (12/12 PASS): nS-01 Paper A real-data pipeline with synthetic fallback
+
+**New scripts:**
+- `scripts/download_pretrained.py`: 5-model download (ResNet-18/50, ViT-B/16, GPT-2, LeNet-5) → safetensors
+
+**Expanded:**
+- `bench_cross_spring_evolution`: +3 nS-01 weight spectral CPU benchmarks (eigh_f64 on 64/128/256 Hamiltonians)
+- `validate_all`: 200 binaries (199→200)
+
+**NUCLEUS local validation:**
+- BearDog: built, started, healthy (v0.9.0, JSON-RPC)
+- Songbird/ToadStool: detected active (pre-existing)
+- neuralSpring primal: 11 capabilities registered, GPU dispatcher (RTX 4070 Vulkan)
+- NestGate forward: graceful failure confirmed (socket gap as documented in V1 handoff)
+
+**Quality metrics:** 216 binaries, 200/200 validate_all (198 PASS + 2 pre-existing), 685 lib tests, 3500+ checks, 0 clippy warnings.
 
 ### Session 98 — coralForge nF-03 AlphaFold3 GPU Tier Closure (March 1, 2026)
 

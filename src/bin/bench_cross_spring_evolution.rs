@@ -653,7 +653,50 @@ fn main() {
     eprintln!("  S70+++: SimpleMlp, matmul_ref, stats::evolution, jackknife, hydrology");
     eprintln!("  S98: coralForge nF-03 GPU tier closed (diffusion + Pairformer)");
     eprintln!("  S98: All five springs contribute → ToadStool absorbs → all springs benefit");
+    eprintln!("  S99: nS-01 Paper A real-data weight spectral (safetensors + eigh_f64)");
+    eprintln!("  S99: Primal handoffs: NestGate V1, biomeOS V1, Songbird V1");
+    eprintln!("  S99: NUCLEUS Tower validated on Eastgate (BearDog + Songbird operational)");
     eprintln!();
+
+    // ── S99: nS-01 real-data weight spectral CPU benchmarks ─────────
+
+    eprintln!("  --- S99: nS-01 Paper A weight spectral CPU benchmarks (eigh_f64 on real weight shapes) ---");
+
+    {
+        let mut rng = Rng::new(9901);
+        let weights_64x64: Vec<f64> = (0..64 * 64).map(|_| rng.normal()).collect();
+        let us_64 = bench("eigh_f64 on 64×64 weight Hamiltonian (nS-01)", || {
+            std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
+                &weights_64x64, 64, 64,
+            ));
+        });
+        h.check_bool(
+            &format!("nS-01→CPU: eigh_f64 64×64 {us_64:.1}µs [neuralSpring + BarraCUDA linalg]"),
+            us_64.is_finite(),
+        );
+
+        let weights_128x128: Vec<f64> = (0..128 * 128).map(|_| rng.normal()).collect();
+        let us_128 = bench("eigh_f64 on 128×128 weight Hamiltonian (nS-01)", || {
+            std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
+                &weights_128x128, 128, 128,
+            ));
+        });
+        h.check_bool(
+            &format!("nS-01→CPU: eigh_f64 128×128 {us_128:.1}µs [neuralSpring + BarraCUDA linalg]"),
+            us_128.is_finite(),
+        );
+
+        let weights_256x256: Vec<f64> = (0..256 * 256).map(|_| rng.normal()).collect();
+        let us_256 = bench("eigh_f64 on 256×256 weight Hamiltonian (nS-01)", || {
+            std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
+                &weights_256x256, 256, 256,
+            ));
+        });
+        h.check_bool(
+            &format!("nS-01→CPU: eigh_f64 256×256 {us_256:.1}µs [neuralSpring + BarraCUDA linalg]"),
+            us_256.is_finite(),
+        );
+    }
 
     h.finish();
 }
