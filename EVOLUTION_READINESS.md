@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: March 1, 2026 (Sessions 40–101)
-**ToadStool HEAD**: `8dc01a37` (S71+++: ComputeDispatch migration, DF64 transcendentals, pure math shaders. S101: ToadStool S71 pin bump, GPU stats parity validated (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 219 binaries, **200/200 validate\_all**, 746 lib tests, 3560+ checks, 0 clippy pedantic+nursery. V68 handoff)
+**ToadStool HEAD**: `8dc01a37` (S71+++: ComputeDispatch migration, DF64 transcendentals, pure math shaders. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump, GPU stats parity validated (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 220 binaries, **200/200 validate\_all**, 753 lib tests, 3590+ checks, 0 clippy pedantic+nursery. V68 handoff)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -17,7 +17,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 282/282 | **COMPLETE** |
-| Rust native validation | 746 lib + 9 integration + 43 forge tests, 40 modules, 219 binaries | **COMPLETE** |
+| Rust native validation | 753 lib + 9 integration + 43 forge tests, 40 modules, 220 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |

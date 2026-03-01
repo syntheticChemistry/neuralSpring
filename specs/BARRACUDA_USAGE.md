@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 1, 2026 (Sessions 40–101 — S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37`, GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 219 binaries, **200/200 validate\_all**, 746 lib tests, 3560+ checks. V68 ToadStool handoff)
+**Last Updated**: March 1, 2026 (Sessions 40–102 — S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37`, GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 220 binaries, **200/200 validate\_all**, 753 lib tests, 3590+ checks. V68 ToadStool handoff)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1089,4 +1089,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 1, 2026. Sessions 50–100: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 218 binaries, 746 lib + 43 forge + 9 integration tests, 200/200 validate\_all (3550+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S100: Deep debt execution — 4 unused deps removed, zero clippy pedantic+nursery, capability-based primal discovery, cross-spring rewire (hotSpring proxy.rs→bandwidth/condition/phase, GPU ESN via Tensor ops). V67 handoff.*
+*BarraCUDA usage audit — neuralSpring, March 1, 2026. Sessions 50–102: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 220 binaries, 753 lib + 43 forge + 9 integration tests, 200/200 validate\_all (3590+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S100: Deep debt execution — 4 unused deps removed, zero clippy pedantic+nursery, capability-based primal discovery, cross-spring rewire (hotSpring proxy.rs→bandwidth/condition/phase, GPU ESN via Tensor ops). V67 handoff.*

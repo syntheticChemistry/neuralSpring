@@ -118,6 +118,7 @@ pub mod swarm_robotics;
 pub mod tolerances;
 pub mod transformer;
 pub mod validation;
+pub mod nautilus_bridge;
 pub mod wdm_esn;
 pub mod wdm_sqw;
 pub mod wdm_surrogate;

@@ -6,7 +6,7 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `8dc01a37` (Sessions 60–101, S101: ToadStool S71 pin bump + GPU stats parity + shader bug reports, Mar 1, 2026) |
+| ToadStool HEAD | `8dc01a37` (Sessions 60–102, S102: Nautilus Shell cross-spring bridge. S101: ToadStool S71 pin bump + GPU stats parity + shader bug reports, Mar 1, 2026) |
 | Last updated | March 1, 2026 (Sessions 40–101) |
 | BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S70+++) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |

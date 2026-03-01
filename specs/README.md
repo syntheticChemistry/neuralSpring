@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 1, 2026 (Sessions 44–101 — S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37`, GPU stats parity, 2 upstream shader bugs reported)
-**Status**: Phase 5h+ — 282/282 Python + 3280+ Rust+GPU = **3560+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, dispatch parity 30/30, mixed-hardware dispatch 47/47, WDM+coralForge parity 39/39, metalForge NUCLEUS 41/41, 219 binaries, **200/200 validate\_all**, 746 lib tests
+**Last Updated**: March 1, 2026 (Sessions 44–102 — S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37`, GPU stats parity, 2 upstream shader bugs reported)
+**Status**: Phase 5h+ — 282/282 Python + 3280+ Rust+GPU = **3590+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, dispatch parity 30/30, mixed-hardware dispatch 47/47, WDM+coralForge parity 39/39, metalForge NUCLEUS 41/41, 220 binaries, **200/200 validate\_all**, 753 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 746 lib + 43 forge + 9 integration PASS — 218 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
+| Rust native validation | 753 lib + 43 forge + 9 integration PASS — 220 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
 | BarraCUDA CPU (bC) | 24/25 papers (96%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/25 papers (92%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/25 papers, 17 shaders, 108 checks | ALL PASS |

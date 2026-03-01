@@ -274,6 +274,8 @@ const BINARIES: &[&str] = &[
     "validate_toadstool_s70_evolution",
     // S101: ToadStool S71 GPU stats parity (KimuraGpu, HistogramGpu, upstream shader bugs)
     "validate_toadstool_s71_gpu_stats",
+    // S102: Nautilus Shell cross-spring bridge (hotSpring brain arch → neuralSpring spectral)
+    "validate_nautilus_bridge",
     // S98: nF-03 AlphaFold3 diffusion GPU Tensor tier (forward/DDPM/DDIM/SE(3)/FFN)
     "validate_alphafold3_diffusion_gpu",
     // S98: nF-03 AlphaFold3 Pairformer GPU Tensor tier (conditioning/TriMul/TriAttn/FFN/block)

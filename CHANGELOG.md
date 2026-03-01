@@ -5,7 +5,24 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 101 (March 1, 2026)
+## [Unreleased] — Session 102 (March 1, 2026)
+
+### Session 102 — Nautilus Shell Cross-Spring Bridge + hotSpring Brain Architecture (March 1, 2026)
+
+**Nautilus Shell integration** (hotSpring → bingoCube → neuralSpring):
+- New `nautilus_bridge` module: `SpectralNautilusBridge` maps weight spectral features to Nautilus evolutionary reservoir
+- Feed-forward alternative to recurrent ESN: board populations replace temporal feedback loops
+- `DriftMonitor` integration for training stability detection (N_e*s boundary)
+- Concept edge detection via leave-one-out error analysis (phase transition finder)
+- JSON serialization for cross-run shell transfer (bit-exact roundtrip)
+
+**New dependency**: `bingocube-nautilus` (path dep from `primalTools/bingoCube/nautilus/`)
+
+**New binary**: `validate_nautilus_bridge` (27/27 PASS):
+- Bridge lifecycle, spectral regime detection, ESN vs Nautilus comparison
+- Serialization roundtrip (1e-10 parity), drift monitoring, concept edge detection
+
+**Metrics**: 220 binaries (+1), 753 lib tests (+7), 0 clippy warnings, 0 unsafe.
 
 ### Session 101 — ToadStool S71 Pin Bump + GPU Stats Parity + Shader Bug Reports (March 1, 2026)
 
