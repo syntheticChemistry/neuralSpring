@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V68** | `handoffs/NEURALSPRING_TOADSTOOL_V68_S101_GPU_STATS_PARITY_SHADER_BUGS_MAR01_2026.md` | Mar 1, 2026 | S101 ToadStool S71 pin bump (`1dd7e338`→`8dc01a37`), GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs (bitcast+enable f64), V68 handoff |
+| **V69** | `handoffs/NEURALSPRING_TOADSTOOL_V69_S102_NAUTILUS_BRIDGE_BARRACUDA_REVIEW_MAR01_2026.md` | Mar 1, 2026 | S101–102 Nautilus Shell cross-spring bridge, comprehensive BarraCUDA usage review (198 import sites, 58+ stats functions), GPU stats parity, 2 upstream shader bugs, cross-spring evolution map |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V67 + biomeOS V1, 82 files).
+Superseded handoffs: `handoffs/archive/` (V1–V68 + biomeOS V1, 83 files).
 
 ## Conventions
 

@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: March 1, 2026 (Sessions 40–101)
-**ToadStool HEAD**: `8dc01a37` (S71+++: ComputeDispatch migration, DF64 transcendentals, pure math shaders. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump, GPU stats parity validated (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 220 binaries, **200/200 validate\_all**, 753 lib tests, 3590+ checks, 0 clippy pedantic+nursery. V68 handoff)
+**ToadStool HEAD**: `8dc01a37` (S71+++: ComputeDispatch migration, DF64 transcendentals, pure math shaders. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump, GPU stats parity validated (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 220 binaries, **200/200 validate\_all**, 753 lib tests, 3590+ checks, 0 clippy pedantic+nursery. V69 handoff)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
