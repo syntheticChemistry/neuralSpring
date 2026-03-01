@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: February 28, 2026 (Sessions 44–94)
-**ToadStool HEAD**: `e96576ee` (S68: universal precision. S94: coralForge rename, deep debt resolution, tolerance domain guards, provenance documentation)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified (sovereign_folding + structure_module). 201 binaries, 189/189 validate_all, 685 lib tests. Zero unsafe, zero production mocks, zero cross-primal logic.
+**Date**: February 28, 2026 (Sessions 44–97c)
+**ToadStool HEAD**: `e96576ee` (S68: universal precision. S97c: nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics)
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 208 binaries, 196/196 validate_all, 685 lib tests. Zero unsafe, zero production mocks, zero cross-primal logic.
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed

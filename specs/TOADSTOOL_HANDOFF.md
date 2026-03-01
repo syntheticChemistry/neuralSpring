@@ -3,8 +3,8 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `e96576ee` (Sessions 50–93, Feb 28, 2026) — **ALL 17 shortcomings RESOLVED, 44 upstream rewires, 130+ barracuda import sites, 20+ submodules exercised, 201 binaries, 189/189 validate\_all, 3200+ checks, CPU parity 83.6× (25/25), GPU portability (9/9), dispatch parity 30/30, mixed-hardware dispatch 47/47. S93: deep debt evolution + nF-03 Phase C confidence heads.**
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V61_S93_DEEP_DEBT_CONFIDENCE_HANDOFF_FEB28_2026.md`
+**Last reviewed:** ToadStool commit `e96576ee` (Sessions 50–97c, Feb 28, 2026) — **ALL 17 shortcomings RESOLVED, 44 upstream rewires, 130+ barracuda import sites, 20+ submodules exercised, 208 binaries, 196/196 validate\_all, 3420+ checks, CPU parity 83.6× (25/25), GPU portability (9/9), dispatch parity 30/30, mixed-hardware dispatch 47/47, WDM+coralForge parity 39/39, metalForge NUCLEUS 41/41. S97c: nF-03 bC tier closure + CPU↔GPU domain parity + metalForge NUCLEUS atomics.**
+**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V64_S97C_BARRACUDA_EVOLUTION_HANDOFF_FEB28_2026.md`
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy

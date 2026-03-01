@@ -253,6 +253,20 @@ const BINARIES: &[&str] = &[
     // S91: Modern cross-spring evolution — ToadStool S68 universal precision,
     // provenance tracking across all 5 springs, bio+stats+precision validation
     "validate_modern_cross_spring",
+    // S96: WDM + AlphaFold3 dispatch parity (CPU ↔ GPU) + metalForge routing + NUCLEUS
+    "validate_wdm_alphafold_dispatch",
+    // S97: Pure GPU pipeline for WDM + coralForge (Tensor API, scalar-only readback)
+    "validate_gpu_pure_wdm_coral",
+    // S97: WDM nW-04 transfer learning GPU Tensor parity
+    "validate_barracuda_wdm_transfer_gpu",
+    // S97b: coralForge Evoformer dispatch + metalForge mixed (nF-01/nF-02)
+    "validate_coral_forge_dispatch",
+    // S97c: nF-03 AlphaFold3 BarraCUDA CPU tier (closes bC 2/3 → 3/3)
+    "validate_barracuda_alphafold3",
+    // S97c: WDM+coralForge CPU↔GPU domain parity (BarraCUDA portability proof)
+    "validate_wdm_coral_parity",
+    // S97c: metalForge mixed-hardware WDM+coralForge (NUCLEUS atomics + PCIe bypass)
+    "validate_metalforge_wdm_coral",
 ];
 
 fn main() {

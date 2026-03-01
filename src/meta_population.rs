@@ -6,7 +6,6 @@
     clippy::cast_sign_loss,
     clippy::many_single_char_names,
     clippy::suboptimal_flops,
-    clippy::needless_range_loop,
     clippy::too_many_arguments,
     clippy::imprecise_flops
 )]
@@ -67,32 +66,33 @@ pub fn generate_population(
     let drift = fst_target / (1.0 - fst_target + DIVISION_GUARD);
     let temp_norm = (temperature - temp_min) / (temp_max - temp_min + DIVISION_GUARD);
 
-    let mut pop_freq = vec![0.0_f64; n_loci];
-    for j in 0..n_loci {
-        let p = ancestral_freq[j];
-        let alpha = if drift > 0.0 {
-            (p / drift).max(0.01)
-        } else {
-            p * 100.0
-        };
-        let beta_param = if drift > 0.0 {
-            ((1.0 - p) / drift).max(0.01)
-        } else {
-            (1.0 - p) * 100.0
-        };
-        pop_freq[j] = rng.beta(alpha, beta_param);
-    }
+    let mut pop_freq: Vec<f64> = ancestral_freq
+        .iter()
+        .map(|&p| {
+            let alpha = if drift > 0.0 {
+                (p / drift).max(0.01)
+            } else {
+                p * 100.0
+            };
+            let beta_param = if drift > 0.0 {
+                ((1.0 - p) / drift).max(0.01)
+            } else {
+                (1.0 - p) * 100.0
+            };
+            rng.beta(alpha, beta_param)
+        })
+        .collect();
 
-    for j in 0..n_thermal.min(n_loci) {
-        pop_freq[j] = (pop_freq[j] + 0.3 * (temp_norm - 0.5)).clamp(0.01, 0.99);
-    }
+    pop_freq
+        .iter_mut()
+        .take(n_thermal.min(n_loci))
+        .for_each(|p| *p = (*p + 0.3 * (temp_norm - 0.5)).clamp(0.01, 0.99));
 
     let mut genotypes = vec![0.0_f64; n_individuals * n_loci];
-    for j in 0..n_loci {
-        let p = pop_freq[j];
+    for (j, &p) in pop_freq.iter().enumerate() {
         for i in 0..n_individuals {
-            let a1 = if rng.next_f64() < p { 1.0 } else { 0.0 };
-            let a2 = if rng.next_f64() < p { 1.0 } else { 0.0 };
+            let a1 = f64::from(u8::from(rng.next_f64() < p));
+            let a2 = f64::from(u8::from(rng.next_f64() < p));
             genotypes[i * n_loci + j] = a1 + a2;
         }
     }
@@ -293,20 +293,15 @@ pub fn pairwise_fst_full(
     let freq_b = allele_frequencies(pop_b, n_b, n_loci);
     let sizes = [n_a, n_b];
 
-    let mut sum_a = 0.0;
-    let mut sum_b = 0.0;
-    let mut sum_c = 0.0;
-    let mut n_valid = 0;
-
-    for j in 0..n_loci {
-        let freqs = [freq_a[j], freq_b[j]];
-        if let Ok(r) = barracuda::ops::bio::fst_variance_decomposition(&freqs, &sizes) {
-            sum_a += r.fst;
-            sum_b += r.f_is;
-            sum_c += r.f_it;
-            n_valid += 1;
-        }
-    }
+    let (sum_a, sum_b, sum_c, n_valid) = freq_a
+        .iter()
+        .zip(freq_b.iter())
+        .filter_map(|(&fa, &fb)| {
+            barracuda::ops::bio::fst_variance_decomposition(&[fa, fb], &sizes).ok()
+        })
+        .fold((0.0, 0.0, 0.0, 0_i32), |(sa, sb, sc, nv), r| {
+            (sa + r.fst, sb + r.f_is, sc + r.f_it, nv + 1)
+        });
 
     if n_valid == 0 {
         return (0.0, 0.0, 0.0);
@@ -417,13 +412,14 @@ pub fn global_fst_variance_decomposition(
         .map(|(pop, &n)| allele_frequencies(pop, n, n_loci))
         .collect();
 
-    let mut within_vars = Vec::with_capacity(n_pops);
-    for freqs in &all_freqs {
-        let mean: f64 = freqs.iter().sum::<f64>() / n_loci as f64;
-        let var: f64 = freqs.iter().map(|&p| (p - mean).powi(2)).sum::<f64>() / n_loci as f64;
-        within_vars.push(var);
-    }
-    let within_var: f64 = within_vars.iter().sum::<f64>() / n_pops as f64;
+    let within_var: f64 = all_freqs
+        .iter()
+        .map(|freqs| {
+            let mean: f64 = freqs.iter().sum::<f64>() / n_loci as f64;
+            freqs.iter().map(|&p| (p - mean).powi(2)).sum::<f64>() / n_loci as f64
+        })
+        .sum::<f64>()
+        / n_pops as f64;
 
     let denom = between_var + within_var;
     if denom.abs() < crate::primitives::DIVISION_GUARD {
@@ -446,12 +442,12 @@ pub fn inter_population_af_variance(
         .collect();
 
     let n_pops = all_freqs.len() as f64;
-    let mut total_var = 0.0;
-    for j in 0..n_loci {
-        let mean: f64 = all_freqs.iter().map(|f| f[j]).sum::<f64>() / n_pops;
-        let var: f64 = all_freqs.iter().map(|f| (f[j] - mean).powi(2)).sum::<f64>() / n_pops;
-        total_var += var;
-    }
+    let total_var: f64 = (0..n_loci)
+        .map(|j| {
+            let mean: f64 = all_freqs.iter().map(|f| f[j]).sum::<f64>() / n_pops;
+            all_freqs.iter().map(|f| (f[j] - mean).powi(2)).sum::<f64>() / n_pops
+        })
+        .sum();
     total_var / n_loci as f64
 }
 

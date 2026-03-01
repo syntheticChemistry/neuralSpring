@@ -62,14 +62,13 @@ pub fn condition_pair_with_timestep(
     assert_eq!(pair_repr.len(), n * n * d);
 
     // cond = t_emb @ w_cond + b_cond → [d]
-    let mut cond = vec![0.0_f64; d];
-    for j in 0..d {
-        let mut acc = b_cond[j];
-        for k in 0..d_model {
-            acc = t_emb[k].mul_add(w_cond[k * d + j], acc);
-        }
-        cond[j] = acc;
-    }
+    let cond: Vec<f64> = (0..d)
+        .map(|j| {
+            t_emb.iter().enumerate().fold(b_cond[j], |acc, (k, &te)| {
+                te.mul_add(w_cond[k * d + j], acc)
+            })
+        })
+        .collect();
 
     // Broadcast-add to every pair
     let mut out = pair_repr.to_vec();
@@ -128,18 +127,16 @@ pub fn pairformer_block(
 
     // Helper: linear projection [nn*d] @ [d, out_d] → [nn*out_d]
     let project = |input: &[f64], weight: &[f64], out_d: usize| -> Vec<f64> {
-        let mut out = vec![0.0_f64; nn * out_d];
-        for row in 0..nn {
-            let x = &input[row * d..(row + 1) * d];
-            for j in 0..out_d {
-                let mut acc = 0.0_f64;
-                for k in 0..d {
-                    acc = x[k].mul_add(weight[k * out_d + j], acc);
-                }
-                out[row * out_d + j] = acc;
-            }
-        }
-        out
+        input
+            .chunks_exact(d)
+            .flat_map(|x| {
+                (0..out_d).map(move |j| {
+                    x.iter().enumerate().fold(0.0_f64, |acc, (k, &xk)| {
+                        xk.mul_add(weight[k * out_d + j], acc)
+                    })
+                })
+            })
+            .collect()
     };
 
     // Helper: sigmoid
@@ -153,9 +150,10 @@ pub fn pairformer_block(
         let proj_b = project(&normed, w.tri_out_wb, d);
         let gate = sigmoid_vec(&project(&normed, w.tri_out_wg, d));
         let tri_out = super::triangle_mul_outgoing(&proj_a, &proj_b, n, d);
-        for i in 0..pair_out.len() {
-            pair_out[i] += gate[i] * tri_out[i];
-        }
+        pair_out
+            .iter_mut()
+            .zip(gate.iter().zip(tri_out.iter()))
+            .for_each(|(p, (&g, &t))| *p += g * t);
     }
 
     // 2. Triangle multiplicative incoming
@@ -165,9 +163,10 @@ pub fn pairformer_block(
         let proj_b = project(&normed, w.tri_in_wb, d);
         let gate = sigmoid_vec(&project(&normed, w.tri_in_wg, d));
         let tri_in = super::triangle_mul_incoming(&proj_a, &proj_b, n, d);
-        for i in 0..pair_out.len() {
-            pair_out[i] += gate[i] * tri_in[i];
-        }
+        pair_out
+            .iter_mut()
+            .zip(gate.iter().zip(tri_in.iter()))
+            .for_each(|(p, (&g, &t))| *p += g * t);
     }
 
     // 3. Triangle attention (Algorithms 13-14)
@@ -250,11 +249,16 @@ pub fn pairformer_block(
         }
 
         // Merge heads, truncate to d
-        for ij in 0..nn {
-            for dd in 0..d.min(h * hd) {
-                pair_out[ij * d + dd] += attended[ij * (h * hd) + dd];
-            }
-        }
+        let trunc = d.min(h * hd);
+        pair_out
+            .chunks_exact_mut(d)
+            .zip(attended.chunks_exact(h * hd))
+            .for_each(|(po, att)| {
+                po[..trunc]
+                    .iter_mut()
+                    .zip(att[..trunc].iter())
+                    .for_each(|(p, &a)| *p += a);
+            });
     }
 
     // 4. Pair transition FFN
@@ -263,9 +267,10 @@ pub fn pairformer_block(
         let ffn_out = super::diffusion::pair_transition_ffn(
             &normed, n, d, w.ffn_w1, w.ffn_b1, w.d_hidden, w.ffn_w2, w.ffn_b2,
         );
-        for i in 0..pair_out.len() {
-            pair_out[i] += ffn_out[i];
-        }
+        pair_out
+            .iter_mut()
+            .zip(ffn_out.iter())
+            .for_each(|(p, &f)| *p += f);
     }
 
     // 5. Timestep conditioning

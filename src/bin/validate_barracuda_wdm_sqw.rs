@@ -106,9 +106,10 @@ fn gpu_lstm_step(
 
     let gates_vec = gates.to_vec().map_err(|e| format!("readback: {e}"))?;
 
-    // Split gates and apply activations (CPU-side for precision)
-    let i_gate: Vec<f32> = gates_vec[..hs].iter().map(|v| sigmoid_f32(*v)).collect();
-    let f_gate: Vec<f32> = gates_vec[hs..2 * hs]
+    // Split gates and apply activations (CPU-side for precision).
+    // Gate order matches sequence::lstm_cell: forget, input, candidate, output.
+    let f_gate: Vec<f32> = gates_vec[..hs].iter().map(|v| sigmoid_f32(*v)).collect();
+    let i_gate: Vec<f32> = gates_vec[hs..2 * hs]
         .iter()
         .map(|v| sigmoid_f32(*v))
         .collect();
@@ -281,6 +282,7 @@ fn validate_gpu_sqw(h: &mut ValidationHarness, pred: &SqwPredictor, device: &Dev
     };
     h.check_bool(
         "GPU determinism",
-        (o1 - gpu_omega).abs() < 1e-6 && (g1 - gpu_gamma).abs() < 1e-6,
+        (o1 - gpu_omega).abs() < tolerances::EXACT_F64
+            && (g1 - gpu_gamma).abs() < tolerances::EXACT_F64,
     );
 }

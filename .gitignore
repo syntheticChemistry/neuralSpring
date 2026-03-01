@@ -18,8 +18,9 @@ __pycache__/
 target/
 coverage.json
 
-# pytest
+# pytest / ruff
 .pytest_cache/
+.ruff_cache/
 
 # Editor / IDE
 *.swp

@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 28, 2026 (Sessions 45–92)
+**Last Updated**: February 28, 2026 (Sessions 45–97c)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -876,7 +876,7 @@ reproduction targets and baseCamp Sub-thesis 07 (Sovereign WDM on Consumer GPU).
 
 | # | Target | Method | BarraCUDA Primitive | Status |
 |---|--------|--------|-------------------|--------|
-| nW-04 | Classical plasma → WDM transfer | Fine-tune transport surrogate from Stanton-Murillo (Γ,κ) space to WDM (ρ,T,Z*) space — same architecture as Exp 004 (MI→NM/CA transfer, 6/6) | Transfer learning pipeline (validated) | **Complete** — Py 4/4, Rs 6/6 |
+| nW-04 | Classical plasma → WDM transfer | Fine-tune transport surrogate from Stanton-Murillo (Γ,κ) space to WDM (ρ,T,Z*) space — same architecture as Exp 004 (MI→NM/CA transfer, 6/6) | Transfer learning pipeline (validated) | **Complete** — Py 4/4, Rs 6/6, GPU 7/7 |
 | nW-05 | WDM regime classifier | ESN classifier: given (ρ,T), predict WDM regime (classical/WDM/degenerate) — reservoir computing with ridge regression readout | `validate_wdm_esn` (39/39) | **Complete** — Py 5/5, Rs 39/39 |
 
 **Connection to hotSpring Tier 4**: Each surrogate replaces expensive MD
@@ -904,7 +904,7 @@ shaders for sovereign structure prediction on consumer GPUs.
 |---|-------|---------|------|-----|--------|
 | nF-01 | Ahdritz et al. "OpenFold: Retraining AlphaFold2 yields new insights" | Nature Methods | 2024 | Reference implementation (Apache 2.0). Baseline for porting | **Phase B.4 DONE** — Py 25/25, Rs 67/67, GPU 37/37 (15 shaders + pipeline, all AlphaFold2 primitives) |
 | nF-02 | Jumper et al. "Highly accurate protein structure prediction with AlphaFold" | Nature 596:583-589 | 2021 | Original architecture. Evoformer + IPA specification | **Phase B DONE** — Py 19/19, Rs 18/18, bC 17/17 (full Evoformer block + IPA + backbone + torsion) |
-| nF-03 | Abramson et al. "Accurate structure prediction for all molecules" (AlphaFold3) | Nature 630:493-500 | 2024 | Diffusion-based extension. RNA/DNA/ligand handling | **Phase C DONE** — Py 62/62 (diffusion 29 + pairformer 14 + confidence 19), Rs 55/55 (diffusion 26 + pairformer 13 + confidence 16), 18 unit tests |
+| nF-03 | Abramson et al. "Accurate structure prediction for all molecules" (AlphaFold3) | Nature 630:493-500 | 2024 | Diffusion-based extension. RNA/DNA/ligand handling | **Phase C DONE** — Py 62/62 (diffusion 29 + pairformer 14 + confidence 19), Rs 55/55 (diffusion 26 + pairformer 13 + confidence 16), bC 13/13 (matmul, dot, mean, var, l2_norm for AF3 ops), 18 unit tests |
 
 ### nF-03 Phase A+B — Diffusion + Pairformer (DONE)
 

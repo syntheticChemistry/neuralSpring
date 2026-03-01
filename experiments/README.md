@@ -80,6 +80,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 066 | Session 89 — Dispatch Parity, Mixed-Hardware Dispatch, Upstream BarraCUDA Wiring | Feb 27, 2026 | +3 upstream BarraCUDA ops (HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu), NPU substrate type, dispatch parity 30/30, mixed-hardware dispatch 47/47, 177/177 validate\_all, V60 handoff |
 | 067 | Sessions 92–93 — nF-03 AlphaFold3 Phases A+B+C + Deep Debt Evolution | Feb 28, 2026 | Diffusion (Py 29/29, Rs 26/26), Pairformer (Py 14/14, Rs 13/13), Confidence heads (Py 19/19, Rs 16/16). dispatch\_ops.rs split 7 domain files. 201 binaries, 189/189 validate\_all, 685 lib tests |
 | 068 | Session 94 — coralForge Rename + Deep Debt Resolution | Feb 28, 2026 | sovereign\_folding+structure\_module→coral\_forge, 5 domain tolerance guards, 24 expect→require!, cast safety, 34 provenance docs, dependency analysis. 139+ tolerances, 0 clippy, 0 doc warnings |
+| 069 | Session 97c — nF-03 bC Tier Closure + CPU↔GPU Domain Parity + metalForge NUCLEUS | Feb 28, 2026 | BarraCUDA CPU 3/3 coralForge (AF3 primitives), WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, V64 handoff. 208 binaries, 196/196 validate\_all, 3420+ checks |
 
 ---
 
@@ -3806,6 +3807,61 @@ head architectures.
 | `cargo test` | 685 lib + 9 doc-tests PASS |
 | `check_drift.sh` | **39/39 PASS** |
 | `validate_all` entries | **189 binaries** |
+
+**Status**: COMPLETE
+
+---
+
+## Exp 069: nF-03 bC Tier Closure + CPU↔GPU Domain Parity + metalForge NUCLEUS (Session 97c)
+
+**Date**: February 28, 2026
+**Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!\_OS 22.04)
+**Motivation**: Close the last BarraCUDA CPU tier gap for coralForge (nF-03 AF3),
+prove CPU↔GPU domain parity for WDM surrogates and coralForge compositions,
+and validate metalForge NUCLEUS atomics for mixed-hardware routing of these domains.
+
+### What We Did
+
+1. Built `validate_barracuda_alphafold3` (13/13) — proves `barracuda::dispatch::*`
+   primitives (matmul\_dispatch, mean\_dispatch, variance\_dispatch, softmax\_dispatch)
+   match neuralSpring hand-rolled AF3 math for cosine noise schedule, forward
+   diffusion, Pairformer projection, triangle multiply, attention scores, pair
+   transition FFN, pLDDT, PAE, layer norm, and SE(3) COM removal.
+2. Built `validate_wdm_coral_parity` (39/39) — proves BarraCUDA CPU and GPU paths
+   produce identical results for domain-level compositions: WDM MLP/EOS/LSTM/ESN
+   surrogates + coralForge Evoformer attention, triangle multiply, pLDDT, layer
+   norm, SE(3) equivariance. Fixed ESN spectral radius by symmetrizing reservoir
+   matrix before `eigh`.
+3. Built `validate_metalforge_wdm_coral` (41/41) — validates Tower discovery, Node
+   compute dispatch, Nest provenance, mixed routing scenarios (small/large WDM,
+   realtime folding, heterogeneous pipeline), and PCIe bypass costs for
+   WDM+coralForge workloads.
+4. Updated all root docs, CHANGELOG, CONTROL\_EXPERIMENT\_STATUS, PAPER\_REVIEW\_QUEUE.
+5. Crafted V64 handoff with BarraCUDA evolution review and ToadStool absorption guide.
+
+### Key Findings
+
+- **`eigh` requires symmetric matrices**: ESN spectral radius failed until we
+  symmetrized `W_res` via `0.5 * (W + W^T)`. This is an important BarraCUDA
+  documentation gap.
+- **`Dispatcher::mat_mul` is square-only**: We wrote `rect_matmul` calling
+  `barracuda::dispatch::matmul_dispatch` directly. ToadStool should add
+  `mat_mul_rect(m, k, n)`.
+- **Domain compositions achieve full parity**: All 39 WDM+coralForge checks pass
+  at documented tolerances. The math is truly portable across CPU/GPU.
+- **NUCLEUS atomics compose for new domains**: Tower/Node/Nest pattern required
+  zero modification to work for WDM and coralForge workloads.
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` | 0 warnings |
+| `cargo test --lib` | 685 PASS |
+| `validate_all` | **196/196** (194 PASS + 2 pre-existing WGSL) |
+| Total checks | **3420+** |
+| Total binaries | **208** |
 
 **Status**: COMPLETE
 
