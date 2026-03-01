@@ -92,8 +92,7 @@ fn gpu_esn_classify(
 
     // Step 1: h = tanh(x @ W_in^T + b)
     let z1 = x_tensor
-        .clone()
-        .matmul(&w_in_t)
+        .matmul_ref(&w_in_t)
         .map_err(|e| format!("step1 matmul: {e}"))?;
     let z1b = z1.add(&b_tensor).map_err(|e| format!("step1 add: {e}"))?;
     let h1 = z1b.tanh().map_err(|e| format!("step1 tanh: {e}"))?;

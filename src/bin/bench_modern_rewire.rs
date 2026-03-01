@@ -33,7 +33,7 @@
 //! groundSpring (hydrology)         → multinomial sampling, MC propagation, ET₀
 //! ```
 //!
-//! All absorbed into `ToadStool`'s 703 f64-canonical WGSL shaders (e96576ee).
+//! All absorbed into `ToadStool`'s 703 f64-canonical WGSL shaders (1dd7e338).
 //!
 //! # Panics
 //!
@@ -90,7 +90,7 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
 fn main() {
     eprintln!("╔══════════════════════════════════════════════════════════════════╗");
     eprintln!("║  neuralSpring — Modern Rewire & Cross-Spring Provenance Bench   ║");
-    eprintln!("║  ToadStool e96576ee · 703 f64-canonical WGSL shaders            ║");
+    eprintln!("║  ToadStool 1dd7e338 · 703 f64-canonical WGSL shaders            ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════╝");
     eprintln!();
 
@@ -437,7 +437,7 @@ fn main() {
     eprintln!("  │             │ → stochastic shaders, bootstrap                 │");
     eprintln!("  └─────────────┴──────────────────────────────────────────────────┘");
     eprintln!();
-    eprintln!("  703 f64-canonical WGSL shaders in ToadStool e96576ee");
+    eprintln!("  703 f64-canonical WGSL shaders in ToadStool 1dd7e338");
     eprintln!("  All springs benefit via path-dependent evolution:");
     eprintln!("    hotSpring precision → neuralSpring eigensolve");
     eprintln!("    wetSpring bio → neuralSpring eco_dynamics");

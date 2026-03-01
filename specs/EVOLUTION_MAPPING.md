@@ -122,7 +122,7 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### ToadStool Infrastructure Available for GPU Promotion
 
-ToadStool (reviewed `e96576ee`, Feb 25, 2026 — all shortcomings through S-13 fixed, S-03b fully resolved)
+ToadStool (reviewed `1dd7e338`, Feb 25, 2026 — all shortcomings through S-13 fixed, S-03b fully resolved, S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety)
 provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |

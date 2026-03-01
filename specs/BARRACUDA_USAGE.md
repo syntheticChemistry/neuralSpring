@@ -13,7 +13,7 @@
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
 | `device::WgpuDevice` | `gpu.rs`, all FFT/tensor/ML binaries | GPU device creation and management |
-| `device::WgpuDevice::compile_shader_universal` | `gpu.rs` (`compile_shader_universal`) | Universal precision compilation: one f64-canonical source → F16/F32/F64/Df64 (ToadStool S68) |
+| `device::WgpuDevice::compile_shader_universal` | `gpu.rs` (`compile_shader_universal`) | Universal precision compilation: one f64-canonical source → F16/F32/F64/Df64 (ToadStool S70+++) |
 | `shaders::precision::Precision` | `gpu.rs` (re-exported) | Precision enum: F16, F32, F64, Df64 for per-use/hardware shader compilation |
 | `device::capabilities::WORKGROUP_SIZE_*` | `evolved/mha.rs` | Shader workgroup sizing (legacy) |
 | `device.limits()` / `device.features()` | `gpu.rs` (`GpuCapabilities`) | Runtime hardware discovery — workgroup limits, f64/f16 support, buffer sizes |
@@ -1027,8 +1027,8 @@ zero duplicate math. Every barracuda primitive that exists is used where applica
 
 ### Session 83: ToadStool S68 Universal Precision Sync
 
-ToadStool evolved from `17932267` (S65) to `e96576ee` (S68) — 22 commits. The
-S68 precision evolution eliminated all f32-only shaders, converting 700 WGSL
+ToadStool evolved from `17932267` (S65) to `1dd7e338` (S70+++) — 22 commits. The
+S70+++ precision evolution eliminated all f32-only shaders, converting 700 WGSL
 shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
 
 | Change | BarraCUDA Impact |
@@ -1041,7 +1041,7 @@ shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
 | `LogSumExp::WGSL_LOGSUMEXP_REDUCE` renamed | Rewired to `forge::shaders::LOGSUMEXP_REDUCE` (local copy) |
 | `variance_ddof(data, ddof)` upstream | Gap #3 closed — population vs sample in single API |
 
-### New ToadStool S66–S68 APIs Available
+### New ToadStool S66–S70+++ APIs Available
 
 | API | Status |
 |-----|--------|
@@ -1072,7 +1072,7 @@ shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
 
 ### Session 84–85: Cross-Spring Benchmark + Doc Sweep
 
-**bench_cross_spring_evolution** extended with 5 modern S68 APIs: `fit_quadratic`,
+**bench_cross_spring_evolution** extended with 5 modern S70+++ APIs: `fit_quadratic`,
 `fit_exponential`, `fit_all`, `spearman_correlation`, `rawr_mean` — all benchmarked
 with five-spring provenance (hotSpring/wetSpring/neuralSpring/airSpring/groundSpring).
 GPU Dispatcher provenance benchmarks added: variance 10.4ms, pearson 9.2ms, shannon
@@ -1089,4 +1089,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 28, 2026. Sessions 50–97c: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 208 binaries, 685 lib + 43 forge + 9 integration tests, 196/196 validate\_all (3420+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S97c: nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity 39/39, metalForge NUCLEUS atomics 41/41. ToadStool S68: ZERO f32-only shaders, 700 WGSL f64-canonical, 2608 barracuda tests. V64 handoff.*
+*BarraCUDA usage audit — neuralSpring, February 28, 2026. Sessions 50–97c: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 208 binaries, 685 lib + 43 forge + 9 integration tests, 196/196 validate\_all (3420+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S97c: nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity 39/39, metalForge NUCLEUS atomics 41/41. ToadStool S70+++: ZERO f32-only shaders, 700 WGSL f64-canonical, 2608 barracuda tests. V64 handoff.*

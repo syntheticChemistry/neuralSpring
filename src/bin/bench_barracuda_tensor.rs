@@ -74,7 +74,7 @@ async fn main() {
             let lhs = mk_tensor(&[64, 128], dev);
             let rhs = mk_tensor(&[128, 64], dev);
             move || {
-                let _ = lhs.clone().matmul(&rhs);
+                let _ = lhs.matmul_ref(&rhs);
             }
         }),
         bench_op("add", &device, |dev| {

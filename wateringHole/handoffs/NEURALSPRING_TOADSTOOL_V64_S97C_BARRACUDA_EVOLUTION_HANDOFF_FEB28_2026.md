@@ -4,19 +4,21 @@
 **From**: neuralSpring (ML/neuroevolution validation + coralForge sovereign structure prediction)
 **To**: ToadStool/BarraCUDA team
 **License**: AGPL-3.0-or-later
-**Covers**: Sessions 95–97c — nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics, BarraCUDA evolution review
+**Covers**: Sessions 95–97c — nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics, BarraCUDA evolution review, ToadStool pin bump `e96576ee`→`1dd7e338` (S70+++)
 **Supersedes**: V63 (WDM + AlphaFold3 GPU Tensor Validators + Drift Resolution)
 
 ---
 
 ## Executive Summary
 
+- **ToadStool pin bumped** from `e96576ee` (S68+) to `1dd7e338` (S70+++) — 13 commits absorbed including cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, ComputeDispatch migration, dead code cleanup, chrono elimination, unsafe evolution
+- **`matmul_ref` rewired** in 2 sites — eliminates unnecessary `.clone()` before matmul in ESN validator and tensor benchmark
 - **3 new validators** closing the BarraCUDA CPU tier for coralForge and proving CPU↔GPU domain parity
 - **208 binaries**, **196/196 validate_all** (194 PASS + 2 pre-existing wright_fisher WGSL parse), **685 lib tests**, **3420+ checks**
 - **BarraCUDA CPU tier 3/3** for coralForge — AF3 diffusion, Pairformer, confidence heads all proven via `barracuda::dispatch::*`
 - **WDM+coralForge CPU↔GPU domain parity**: 39/39 PASS — compositions through Dispatcher produce identical results on CPU and GPU paths
 - **metalForge NUCLEUS atomics**: 41/41 PASS — Tower/Node/Nest coordination + PCIe bypass for WDM+coralForge workloads
-- All quality gates green: `cargo fmt`, clippy 0 warnings, `cargo test --lib` 685 PASS
+- All quality gates green: `cargo fmt`, clippy 0 warnings, `cargo test --lib` 685 PASS, validate_all 196/196 re-validated against new pin
 
 ---
 
@@ -203,8 +205,39 @@ The dispatch overhead (~186µs per submit) motivates batching everything into si
 | Unsafe code | 0 |
 | TODO/FIXME/MOCK | 0 |
 | BarraCUDA import sites | 130+ |
-| Upstream rewires | 44 |
+| Upstream rewires | 44 + 2 matmul_ref |
 | WGSL shaders | 42 (21 absorbed + 15 df64 coralForge + 6 domain) |
+| ToadStool pin | `1dd7e338` (S70+++) |
+
+### ToadStool S70+++ Absorption Review (13 commits since previous pin)
+
+| Commit | What Was Absorbed | neuralSpring Impact |
+|--------|-------------------|---------------------|
+| S68++ | AGPL-3 license, chrono eliminated, WebSocket removed, 0 clippy | License alignment confirmed |
+| S68+++ | Dead code cleanup (~400 lines), unsafe evolution (47→45), hardcoding → constants | Architecture quality parity |
+| S69++ | ComputeDispatch migration (34/250 ops), architecture evolution | Future dispatch API may change |
+| S70 | 15 production stubs evolved, test concurrency, real mDNS parser | Standalone resilience — affects NestGate integration |
+| **S70+** | **7 new WGSL (gelu/sigmoid/softmax/layer_norm/sdpa DF64, brent_f64, seasonal_pipeline), SimpleMlp, matmul_ref, SymmetrizeGpu, LaplacianGpu, stats::evolution/jackknife/hydrology** | **Key absorption — matmul_ref rewired, SimpleMlp available for WDM surrogates, DF64 ML shaders ready** |
+| S70++ | Sovereignty, monitoring split, architecture safety | No direct impact |
+| S70+++ | Builder refactor, docs cleanup | No direct impact |
+
+### Rewires Applied in This Handoff
+
+| Site | Old Code | New Code | Benefit |
+|------|----------|----------|---------|
+| `validate_barracuda_wdm_esn.rs:94` | `x_tensor.clone().matmul(&w_in_t)` | `x_tensor.matmul_ref(&w_in_t)` | Eliminates GPU buffer clone for ESN recurrence |
+| `bench_barracuda_tensor.rs:77` | `lhs.clone().matmul(&rhs)` | `lhs.matmul_ref(&rhs)` | Eliminates clone in benchmark hot loop |
+
+### New Upstream APIs Available (Not Yet Rewired)
+
+| API | Location | Potential Use | Priority |
+|-----|----------|---------------|----------|
+| `barracuda::nn::SimpleMlp` | `nn/simple_mlp.rs` | Replace hand-rolled MLP forward in WDM validators | P2 (validators deliberately test Tensor ops) |
+| `SymmetrizeGpu` | `ops/linalg/mod.rs` | Replace CPU symmetrize in ESN validators | P3 (matrices too small for GPU benefit) |
+| `LaplacianGpu` | `ops/linalg/mod.rs` | GPU graph Laplacian for baseCamp agent coordination | P3 (keep CPU path for now) |
+| `stats::jackknife` | `stats/jackknife.rs` | Not currently used | P4 |
+| `stats::evolution` | `stats/evolution.rs` | Not currently used | P4 |
+| DF64 ML shaders | `shaders/activation/*.wgsl` | Future DF64 precision ML inference | P2 (architecture ready) |
 
 ### Handoff Lineage
 

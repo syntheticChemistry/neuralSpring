@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: February 28, 2026 (Sessions 40–97c)
-**ToadStool HEAD**: `e96576ee` (S68+: universal precision. S97c: nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics. 208 binaries, **196/196 validate\_all**, 685 lib tests, 39 Python drift baselines, 3420+ checks, 139+ named tolerances, 0 clippy, 0 doc warnings)
+**ToadStool HEAD**: `1dd7e338` (S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety. S97c: nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics. 208 binaries, **196/196 validate\_all**, 685 lib tests, 39 Python drift baselines, 3420+ checks, 139+ named tolerances, 0 clippy, 0 doc warnings)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 

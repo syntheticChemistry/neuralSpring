@@ -1,7 +1,7 @@
 # neuralSpring — Deprecation & Migration Guide
 
 **Date**: February 28, 2026 (Sessions 44–97c)
-**ToadStool HEAD**: `e96576ee` (S68: universal precision. S97c: nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics)
+**ToadStool HEAD**: `1dd7e338` (S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety. S97c: nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics)
 **Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 208 binaries, 196/196 validate_all, 685 lib tests. Zero unsafe, zero production mocks, zero cross-primal logic.
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
@@ -180,7 +180,7 @@ for full diagnosis, reproduction steps, and recommended fixes.
 | `rk4_parallel.wgsl` → `rk4_parallel_f64.wgsl` | RK4 validator + forge | Local f32 copy (f64 requires Sovereign polyfill) |
 | `WGSL_SWARM_NN_SCORES` privatized | `validate_gpu_pipeline_swarm` | Rewired to forge constant |
 | `WGSL_LOGSUMEXP_REDUCE` renamed | `validate_gpu_logsumexp` | Rewired to forge constant |
-| 14 ToadStool HEAD refs updated | All active docs | `17932267` → `e96576ee` |
+| 14 ToadStool HEAD refs updated | All active docs | `17932267` → `1dd7e338` |
 | variance_ddof gap closed | BARRACUDA_USAGE gap #3 | `variance_ddof(data, ddof)` at ToadStool S66 |
 
 *Migration guide — neuralSpring rewired to modern ToadStool/BarraCUDA.*

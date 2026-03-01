@@ -22,7 +22,7 @@
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero unsafe | 0 clippy warnings | 0 doc warnings | zero inline magic numbers (139+ named tolerances, S94: +5 domain guards) | zero bare `unwrap()` in validation code | 24 `expect()` → `require!()` in GPU validators | 11 manual loops → idiomatic iterators | WDM provenance complete | all PyTorch baselines fully seeded | barracuda usage audit complete (130+ imports, 44 rewires, zero duplicate math) | all 34 provenance constants documented | coralForge rename complete
 **Coverage**: 93.5%+ line coverage (llvm-cov, 685 lib tests), 139+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6%
 **Benchmarks**: Pure Rust **83.6× faster** than Python/NumPy (geomean, 11 domains; fastest 1104× multi-obj) | CPU→GPU portability proven (9/9, 7 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | HEAD `e96576ee` (S68 reviewed) | **42 upstream rewires** + 124 barracuda import sites, 177 files, 16 submodules | V59 comprehensive handoff
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | HEAD `1dd7e338` (S70+++ reviewed, cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety) | **42 upstream rewires** + 124 barracuda import sites, 177 files, 16 submodules | V59 comprehensive handoff
 **Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -800,7 +800,7 @@ with runtime downcast via `LazyLock<String>`. This broke 5 shader imports in
 neuralSpring (3 constants privatized, 1 renamed, 1 type change). Fixed by
 switching to local copies or new f64 pub constants. 2 validator binaries rewired.
 API gap #3 (variance_ddof) closed upstream. 14 ToadStool HEAD references updated
-from `17932267` (S65) to `e96576ee` (S68).
+from `17932267` (S65) to `1dd7e338` (S70+++).
 
 | Gate | Result |
 |------|--------|
@@ -1066,3 +1066,15 @@ plus metalForge mixed-hardware NUCLEUS atomic coordination with PCIe bypass.
 | Mixed | Realtime folding | GpuToNpu |
 | Mixed | Heterogeneous: GPU compute + CPU postprocess | GPU then CPU |
 | PCIe | GPU→NPU direct vs GPU→CPU→NPU staged | Direct cheaper |
+
+### Session 97c (cont.) — ToadStool Pin Bump `e96576ee`→`1dd7e338` (February 28, 2026)
+
+Bumped ToadStool pin from `e96576ee` (S68+) to `1dd7e338` (S70+++) — absorbing 13 commits:
+- **S70+ cross-spring absorption**: 7 new DF64 WGSL shaders (gelu, sigmoid, softmax, layer\_norm, sdpa, brent, seasonal\_pipeline), SimpleMlp, matmul\_ref, SymmetrizeGpu, LaplacianGpu, stats::evolution/jackknife/hydrology
+- **S70 deep debt**: 15 production stubs evolved, test concurrency, real mDNS parser
+- **S69++ ComputeDispatch migration**: 34/250 ops migrated to fluent builder
+- **S68+++ deep debt**: chrono eliminated (28 crates→std::time), unsafe 47→45, ~400 lines dead code removed, hardcoding→constants
+
+**Rewires applied**: `matmul_ref` in `validate_barracuda_wdm_esn.rs` and `bench_barracuda_tensor.rs` (eliminates `.clone()` before matmul for recurrent/benchmark reuse).
+
+**Re-validated**: `cargo fmt` PASS, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` **196/196** (194 PASS + 2 pre-existing wright\_fisher WGSL parse). Pin updated in 20+ doc/source files. V64 handoff updated with absorption review.

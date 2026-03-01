@@ -6,15 +6,15 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `e96576ee` (Sessions 60–68 sync, Feb 27, 2026) |
+| ToadStool HEAD | `1dd7e338` (Sessions 60–70+++ sync, S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety, Feb 27, 2026) |
 | Last updated | February 28, 2026 (Sessions 40–94) |
-| BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S68) |
+| BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S70+++) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
 | Modern rewires (S88+) | `pairwise_l2_matrix_gpu` → `PairwiseL2Gpu`, `geographic_distance_matrix_gpu` → `PairwiseL2Gpu`, `disorder_sweep_gpu` IPR → `BatchIprGpu`, `compile_shader_f64_hybrid` → `compile_shader_df64` |
 | coralForge df64 | 15 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3, backbone, IPA, MSA row/col, OPM, torsion) — `compile_shader_df64` convention |
 | Local metalForge total | 36 WGSL shaders (21 absorbed + 15 df64 coralForge) |
 | `BandwidthTier` detection | Wired into Dispatcher (S64) — `PciE4x16` on RTX 4070 |
-| Universal precision (S68) | f64 canonical, f32 via `LazyLock<String>` runtime downcast |
+| Universal precision (S70+++) | f64 canonical, f32 via `LazyLock<String>` runtime downcast |
 
 ---
 
@@ -635,7 +635,7 @@ Feb 25  Session 62: ToadStool S62 sync (02207c4a)
           - Full benchmark: 3.49× variance, 2.56× entropy, 1.33× Pearson
           - All Springs' ops benchmarked: BatchFitnessGpu, HmmBatchForwardF64,
             BatchedEighGpu running through unified BarraCUDA dispatch
-Feb 26  Session 68: ToadStool S60–S68 sync (e96576ee)
+Feb 26  Session 68: ToadStool S60–S70+++ sync (1dd7e338)
           - 9 functions rewired → barracuda::stats (r², RMSE, NSE, dot, l2_norm,
             shannon, branch_trunk_dot, counterdiabatic weighted mean, meta_population Fst)
           - 4 validators fixed: logsumexp f32→f64, RK4 shader re-import ×3

@@ -12,8 +12,10 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **nF-03 BarraCUDA CPU tier closure**: `validate_barracuda_alphafold3` (13/13 PASS) — proves BarraCUDA CPU math matches neuralSpring for AF3 diffusion, Pairformer, and confidence head primitives. Closes BarraCUDA CPU 2/3 → 3/3 for coralForge.
 - **WDM+coralForge CPU↔GPU domain parity**: `validate_wdm_coral_parity` (39/39 PASS) — proves BarraCUDA CPU and GPU produce bit-identical results for domain-level WDM surrogate and coralForge compositions through the Dispatcher. Covers MLP, EOS, LSTM, ESN spectral radius, Evoformer attention, triangle multiply, pLDDT, layer norm, SE(3).
 - **metalForge NUCLEUS atomics**: `validate_metalforge_wdm_coral` (41/41 PASS) — validates mixed-hardware routing (Tower discovery, Node compute dispatch, Nest provenance) and PCIe bypass cost modeling for WDM and coralForge workloads.
-- **Quality**: `cargo fmt` clean, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` 196/196 (194 PASS + 2 pre-existing wright_fisher WGSL parse).
-- **Metrics**: 208 binaries, 3420+ checks. V64 handoff crafted. All root docs updated.
+- **ToadStool pin bump**: `e96576ee` (S68+) → `1dd7e338` (S70+++) — absorbs 13 commits including cross-spring absorption (7 DF64 ML shaders, SimpleMlp, matmul_ref, SymmetrizeGpu, LaplacianGpu, stats::evolution/jackknife/hydrology), ComputeDispatch migration, chrono elimination, unsafe reduction 47→45, dead code cleanup. Pin updated in 20+ doc/source files.
+- **matmul_ref rewire**: 2 sites (validate_barracuda_wdm_esn.rs, bench_barracuda_tensor.rs) now use non-consuming `matmul_ref` instead of `clone().matmul`, eliminating unnecessary GPU buffer copies.
+- **Quality**: `cargo fmt` clean, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` 196/196 (194 PASS + 2 pre-existing wright_fisher WGSL parse). Fully re-validated against new ToadStool pin.
+- **Metrics**: 208 binaries, 3420+ checks. V64 handoff crafted with ToadStool absorption review. All root docs updated.
 
 ### Session 94 — coralForge Rename + Deep Debt Resolution (February 28, 2026)
 
@@ -43,13 +45,13 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **`bench_portability_tiers`** (9/9 PASS): CPU→GPU portability proof across 7 domains. Proves same math produces identical results at every tier: Python → BarraCUDA CPU → BarraCUDA GPU. ToadStool unidirectional streaming pattern validated (upload → compute → scalar readback).
 - Total: **175 binaries**, **174/175 validate_all** (1 pre-existing WDM damping assertion), **668 lib tests**, **3034+ checks**.
 
-### Changed (ToadStool `e96576ee` sync)
+### Changed (ToadStool `1dd7e338` sync)
 
 - **`compile_shader_f64_hybrid` rewired**: Now delegates to upstream
   `WgpuDevice::compile_shader_df64()` instead of manually prepending DF64
   core/transcendentals from `barracuda::ops::lattice::su3` constants.
   Upstream method provides ILP optimizer + Sovereign compiler pipeline.
-- **ToadStool pin updated**: `f0feb226` → `e96576ee` (3 new commits:
+- **ToadStool pin updated**: `f0feb226` → `1dd7e338` (3 new commits:
   CPU feature-gate fix, root docs cleanup, GPU device-lost resilience).
   Pin updated across 17 documentation files.
 - **Previously-missing APIs confirmed upstream**: `LogSumExp` (wired S51),
@@ -284,7 +286,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- ToadStool HEAD updated from `17932267` (S65) to `e96576ee` (S68) across
+- ToadStool HEAD updated from `17932267` (S65) to `1dd7e338` (S70+++) across
   14 active files.
 - API gap #3 (variance_ddof) closed upstream — documented in BARRACUDA_USAGE.
 
