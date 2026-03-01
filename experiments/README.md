@@ -81,6 +81,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 067 | Sessions 92–93 — nF-03 AlphaFold3 Phases A+B+C + Deep Debt Evolution | Feb 28, 2026 | Diffusion (Py 29/29, Rs 26/26), Pairformer (Py 14/14, Rs 13/13), Confidence heads (Py 19/19, Rs 16/16). dispatch\_ops.rs split 7 domain files. 201 binaries, 189/189 validate\_all, 685 lib tests |
 | 068 | Session 94 — coralForge Rename + Deep Debt Resolution | Feb 28, 2026 | sovereign\_folding+structure\_module→coral\_forge, 5 domain tolerance guards, 24 expect→require!, cast safety, 34 provenance docs, dependency analysis. 139+ tolerances, 0 clippy, 0 doc warnings |
 | 069 | Session 97c — nF-03 bC Tier Closure + CPU↔GPU Domain Parity + metalForge NUCLEUS | Feb 28, 2026 | BarraCUDA CPU 3/3 coralForge (AF3 primitives), WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, V64 handoff. 209 binaries, 197/197 validate\_all, 3450+ checks |
+| 070 | Session 98 — coralForge nF-03 AlphaFold3 GPU Tier Closure | Mar 1, 2026 | AF3 diffusion GPU 14/14, Pairformer GPU 12/12, pure GPU 24/24, cross-spring bench 40/40, V65 handoff. 211 binaries, 199/199 validate\_all, 3490+ checks |
 
 ---
 
@@ -3862,6 +3863,42 @@ and validate metalForge NUCLEUS atomics for mixed-hardware routing of these doma
 | `validate_all` | **197/197** (195 PASS + 2 pre-existing WGSL) |
 | Total checks | **3450+** |
 | Total binaries | **208** |
+
+**Status**: COMPLETE
+
+---
+
+### Experiment 070 — coralForge nF-03 AlphaFold3 GPU Tier Closure
+**Date**: March 1, 2026
+**Session**: 98
+**Hardware**: RTX 4070 (Vulkan), 685 lib tests, 211 binaries
+
+**Objective**: Close the GPU Tensor tier gap for AlphaFold3 diffusion and Pairformer
+primitives — completing the Python → Rust CPU → BarraCUDA CPU → GPU Tensor → Pure GPU
+pipeline for all nF-03 operations.
+
+**Approach**: Build dedicated GPU Tensor validators for AF3 diffusion (forward, DDPM,
+DDIM, SE(3), FFN) and Pairformer (conditioning, TriMul, TriAttn, FFN, block). Extend
+pure GPU pipeline validator with scalar-only readback domains. Add AF3 CPU throughput
+benchmarks to cross-spring evolution benchmark.
+
+**Results**:
+- `validate_alphafold3_diffusion_gpu`: **14/14 PASS** (precision 3.22e-7 to 2.02e-8)
+- `validate_alphafold3_pairformer_gpu`: **12/12 PASS** (precision 3.76e-8 to 5.04e-9)
+- `validate_gpu_pure_wdm_coral`: **24/24 PASS** (22→24, +3 AF3 domains)
+- `bench_cross_spring_evolution`: **40/40 PASS** (33→40, +7 AF3 benchmarks)
+- AF3 CPU throughput: cosine 1.5µs, forward 0.7µs, DDPM 0.1µs, FFN 138µs
+
+### Validation
+
+| Gate | Result |
+|------|--------|
+| `cargo fmt --check` | PASS |
+| `cargo clippy --all-targets` | 0 warnings |
+| `cargo test --lib` | 685 PASS |
+| `validate_all` | **199/199** (197 PASS + 2 pre-existing WGSL) |
+| Total checks | **3490+** |
+| Total binaries | **211** |
 
 **Status**: COMPLETE
 

@@ -7,11 +7,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V64** | `handoffs/NEURALSPRING_TOADSTOOL_V64_S97C_BARRACUDA_EVOLUTION_HANDOFF_FEB28_2026.md` | Feb 28, 2026 | S97c BarraCUDA evolution review, CPU tier 3/3 coralForge, WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, 199/199 validate\_all, 211 binaries, 3490+ checks (S98) |
+| **V65** | `handoffs/NEURALSPRING_TOADSTOOL_V65_S98_ALPHAFOLD3_GPU_TIER_CLOSURE_MAR01_2026.md` | Mar 1, 2026 | S98 coralForge nF-03 GPU tier closed (diffusion + Pairformer), 199/199 validate\_all, 211 binaries, 3490+ checks, cross-spring provenance (hotSpring precision, wetSpring bio shaders) |
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V63 + biomeOS V1, 79 files).
+Superseded handoffs: `handoffs/archive/` (V1–V64 + biomeOS V1, 79 files).
 
 ## Conventions
 

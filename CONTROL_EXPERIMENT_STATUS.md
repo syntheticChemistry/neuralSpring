@@ -1098,3 +1098,54 @@ Complete rewiring to modern ToadStool S70+++ APIs with cross-spring provenance t
 - `SimpleMlp` forward: **0.6µs** (matches hand computation to 1e-10)
 
 **Re-validated**: `cargo fmt` PASS, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` **197/197** (195 PASS + 2 pre-existing wright\_fisher WGSL parse). 209 binaries, 3450+ total checks.
+
+### Session 98 — coralForge nF-03 AlphaFold3 GPU Tier Closure (March 1, 2026)
+
+Closed the GPU Tensor validation tier for AlphaFold3 diffusion and Pairformer primitives — completing the Python → Rust CPU → BarraCUDA CPU → GPU Tensor → Pure GPU pipeline for all nF-03 operations. Added CPU throughput benchmarks to the cross-spring evolution benchmark.
+
+| Change | Scope | Result |
+|--------|-------|--------|
+| `validate_alphafold3_diffusion_gpu` (NEW) | Forward diffusion, DDPM/DDIM reverse steps, SE(3) COM removal, pair FFN — GPU Tensor vs f64 CPU | **14/14 PASS** |
+| `validate_alphafold3_pairformer_gpu` (NEW) | Timestep conditioning, TriMul outgoing/incoming, triangle attention, pair FFN, full block FFN — GPU Tensor vs f64 CPU | **12/12 PASS** |
+| `validate_gpu_pure_wdm_coral` (EXPANDED) | +3 AF3 domains (diffusion forward, Pairformer FFN, Pairformer TriMul) — scalar-only readback | **24/24 PASS** (was 22) |
+| `bench_cross_spring_evolution` (EXPANDED) | +7 AF3 CPU throughput benchmarks with provenance | **40/40 PASS** (was 33) |
+| `validate_all` updated | +2 binaries (211 total) | **199/199 PASS** (197 PASS + 2 pre-existing WGSL) |
+
+**GPU Tensor precision** (AF3 diffusion, f32 vs f64 CPU reference):
+
+| Check | Max Error | Tolerance |
+|-------|-----------|-----------|
+| Forward diffusion (128 atoms) | 3.22e-7 | TENSOR\_MATMUL\_F32 (1e-2) |
+| DDPM reverse step | 5.14e-7 | TENSOR\_MATMUL\_F32 |
+| DDIM reverse step | 1.88e-7 | TENSOR\_MATMUL\_F32 |
+| SE(3) COM removal | 2.02e-8 | TENSOR\_MATMUL\_F32 |
+| Pair transition FFN | 4.11e-7 | TENSOR\_MATMUL\_F32 |
+
+**GPU Tensor precision** (AF3 Pairformer, f32 vs f64 CPU reference):
+
+| Check | Max Error | Tolerance |
+|-------|-----------|-----------|
+| Timestep conditioning | 3.76e-8 | TENSOR\_MATMUL\_F32 |
+| TriMul outgoing | 1.42e-7 | TENSOR\_MATMUL\_F32 |
+| TriMul incoming | 1.35e-7 | TENSOR\_MATMUL\_F32 |
+| Triangle attention QK^T/√d | 2.41e-7 | TENSOR\_MATMUL\_F32 |
+| Pair transition FFN | 3.89e-7 | TENSOR\_MATMUL\_F32 |
+
+**AF3 CPU throughput** (cross-spring evolution benchmarks):
+
+| Operation | Time | Provenance |
+|-----------|------|------------|
+| cosine\_beta\_schedule T=200 | 1.5µs | neuralSpring coral\_forge::diffusion |
+| forward\_diffusion 128 atoms | 0.7µs | neuralSpring coral\_forge::diffusion |
+| ddpm\_reverse\_step 128 atoms | 0.1µs | neuralSpring coral\_forge::diffusion |
+| ddim\_reverse\_step 128 atoms | 1.0µs | neuralSpring coral\_forge::diffusion |
+| se3\_equivariant\_noise 128 atoms | 1.1µs | neuralSpring coral\_forge::diffusion |
+| pair\_transition\_ffn 8×8 d=16 | 138µs | neuralSpring coral\_forge::diffusion |
+| sinusoidal\_embedding d=64 | 0.9µs | neuralSpring coral\_forge::pairformer |
+
+**Cross-spring evolution provenance** (GPU shaders used in AF3 validation):
+- **hotSpring DF64 precision**: `compile_shader_df64` convention, `Precision::Df64` enum — influences all f64 canonical GPU shaders
+- **wetSpring bio shaders**: Triangle multiply, attention, GELU, layer\_norm patterns evolved from coralForge bio-structure domain
+- **neuralSpring**: Diffusion primitives, Pairformer block, confidence heads — all validated CPU→GPU portable
+
+**Re-validated**: `cargo fmt` PASS, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` **199/199** (197 PASS + 2 pre-existing wright\_fisher WGSL parse). 211 binaries, 3490+ total checks.

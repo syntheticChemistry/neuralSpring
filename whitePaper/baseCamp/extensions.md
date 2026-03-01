@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: February 28, 2026 (Sessions 49–90 — pure GPU all-domains + cross-system dispatch + upstream sync + publication experiments + CPU parity 83.6× + GPU portability 9/9 + **179/179 binaries all green** + dispatch parity 30/30 + mixed-hardware dispatch 47/47 + 47 GPU-promoted Dispatcher ops + nF-02 AlphaFold2 full Evoformer block + Phase B GPU gaps closed)
+**Date**: February 28, 2026 (Sessions 49–98 — pure GPU all-domains + cross-system dispatch + upstream sync + publication experiments + CPU parity 83.6× + GPU portability 9/9 + **199/199 validate\_all (211 binaries all green)** + dispatch parity 30/30 + mixed-hardware dispatch 47/47 + 47 GPU-promoted Dispatcher ops + nF-02 AlphaFold2 full Evoformer block + Phase B GPU gaps closed)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---

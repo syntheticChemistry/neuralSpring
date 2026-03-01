@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–068, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V64 handoff (Session 97c — BarraCUDA evolution review, CPU↔GPU domain parity, metalForge NUCLEUS atomics) |
+| `wateringHole/handoffs/` | Cross-project | V65 handoff (Session 98 — coralForge nF-03 GPU tier closure, cross-spring provenance) |
 
 ---
 
@@ -358,4 +358,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 685 lib + 9 integration + 43 forge tests. 282 Python + 3080+ Rust/GPU = 3490+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 384/384 (RTX 4070 + TITAN V NVK bit-identical) · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge · WDM+coralForge parity 39/39 · metalForge NUCLEUS 41/41. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 211 binaries, 199/199 validate\_all, 42 WGSL shaders (21 absorbed + 15 df64 coralForge). Pure Rust 83.6× faster. CPU↔Python parity 39/39 (1e-10). 139+ named tolerances, 0 clippy, 0 doc warnings. coralForge rename complete, deep debt resolved, V64 handoff. S98: coralForge nF-03 GPU tier closed.*
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 384/384 (RTX 4070 + TITAN V NVK bit-identical) · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge · WDM+coralForge parity 39/39 · metalForge NUCLEUS 41/41. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 211 binaries, 199/199 validate\_all, 42 WGSL shaders (21 absorbed + 15 df64 coralForge). Pure Rust 83.6× faster. CPU↔Python parity 39/39 (1e-10). 139+ named tolerances, 0 clippy, 0 doc warnings. coralForge rename complete, deep debt resolved, V65 handoff. S98: coralForge nF-03 GPU tier closed.*
