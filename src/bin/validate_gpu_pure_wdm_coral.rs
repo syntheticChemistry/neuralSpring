@@ -25,6 +25,9 @@
 //! | `coralForge` `TriMul` (nF-01) | `coral_forge/` | matmul (outgoing) | frobenius |
 //! | `AlphaFold3` pLDDT (nF-03) | `coral_forge/` | sigmoid | mean(conf) |
 //! | `AlphaFold3` PAE (nF-03) | `coral_forge/` | softmax | sum(probs) |
+//! | `AlphaFold3` diffusion (nF-03) | `diffusion.rs` | mul, add | mean(x_t) |
+//! | `AlphaFold3` PF FFN (nF-03) | `pairformer.rs` | matmul, add, GELU | frobenius |
+//! | `AlphaFold3` PF `TriMul` (nF-03) | `pairformer.rs` | matmul, transpose | frobenius |
 
 #![allow(
     clippy::cast_precision_loss,
@@ -71,11 +74,14 @@ async fn main() {
     validate_coral_trimul(&mut h, &device);
     validate_af3_pldt(&mut h, &device);
     validate_af3_pae(&mut h, &device);
+    validate_af3_diffusion_forward(&mut h, &device);
+    validate_af3_pairformer_ffn(&mut h, &device);
+    validate_af3_pairformer_trimul(&mut h, &device);
     validate_determinism(&mut h, &device);
 
     let elapsed = t0.elapsed();
     eprintln!(
-        "\n  total pure-GPU WDM+coralForge time: {:.1}ms (8 domains + determinism)",
+        "\n  total pure-GPU WDM+coralForge time: {:.1}ms (11 domains + determinism)",
         elapsed.as_secs_f64() * 1000.0,
     );
 
@@ -570,7 +576,220 @@ fn validate_af3_pae(h: &mut ValidationHarness, device: &Dev) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// 9. Determinism: re-run WDM transport and verify bit-identical
+// 9. AlphaFold3 diffusion forward (nF-03): pure GPU, scalar readback
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_af3_diffusion_forward(h: &mut ValidationHarness, device: &Dev) {
+    let mut rng = Rng::new(950);
+    let n = 64_usize;
+    let alpha_bar: f32 = 0.85;
+    let sqrt_ab = alpha_bar.sqrt();
+    let sqrt_1mab = (1.0 - alpha_bar).sqrt();
+
+    let coords: Vec<f32> = (0..n).map(|_| rng.normal() as f32 * 5.0).collect();
+    let noise: Vec<f32> = (0..n).map(|_| rng.normal() as f32).collect();
+
+    let cpu_noised: Vec<f32> = coords
+        .iter()
+        .zip(noise.iter())
+        .map(|(&x, &e)| sqrt_ab.mul_add(x, sqrt_1mab * e))
+        .collect();
+    let cpu_mean: f64 = cpu_noised.iter().map(|v| f64::from(*v)).sum::<f64>() / n as f64;
+
+    let gpu_result = (|| -> Result<f64, String> {
+        let ct = Tensor::from_data(&coords, vec![1, n], device.clone())
+            .map_err(|e| format!("coords: {e}"))?;
+        let nt = Tensor::from_data(&noise, vec![1, n], device.clone())
+            .map_err(|e| format!("noise: {e}"))?;
+        let sab = Tensor::from_data(&vec![sqrt_ab; n], vec![1, n], device.clone())
+            .map_err(|e| format!("sab: {e}"))?;
+        let s1m = Tensor::from_data(&vec![sqrt_1mab; n], vec![1, n], device.clone())
+            .map_err(|e| format!("s1m: {e}"))?;
+
+        let t1 = ct.mul(&sab).map_err(|e| format!("mul: {e}"))?;
+        let t2 = nt.mul(&s1m).map_err(|e| format!("mul: {e}"))?;
+        let noised = t1.add(&t2).map_err(|e| format!("add: {e}"))?;
+        let nv = noised.to_vec().map_err(|e| format!("read: {e}"))?;
+        Ok(nv.iter().map(|v| f64::from(*v)).sum::<f64>() / n as f64)
+    })();
+
+    match gpu_result {
+        Ok(gpu_mean) => {
+            h.check_abs(
+                "af3_diffusion_forward mean",
+                gpu_mean,
+                cpu_mean,
+                tolerances::TENSOR_MATMUL_F32,
+            );
+        }
+        Err(e) => h.check_bool(&format!("af3_diffusion: {e}"), false),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 10. AlphaFold3 Pairformer FFN (nF-03): matmul chain, scalar readback
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_af3_pairformer_ffn(h: &mut ValidationHarness, device: &Dev) {
+    let mut rng = Rng::new(951);
+    let nn = 9_usize;
+    let d = 4_usize;
+    let d_h = 8_usize;
+
+    let input: Vec<f32> = (0..nn * d).map(|_| rng.normal() as f32 * 0.3).collect();
+    let w1: Vec<f32> = (0..d * d_h).map(|_| rng.normal() as f32 * 0.2).collect();
+    let b1: Vec<f32> = (0..nn * d_h).map(|_| rng.normal() as f32 * 0.1).collect();
+    let w2: Vec<f32> = (0..d_h * d).map(|_| rng.normal() as f32 * 0.2).collect();
+    let b2: Vec<f32> = (0..nn * d).map(|_| rng.normal() as f32 * 0.1).collect();
+
+    // CPU reference: matmul → GELU → matmul → bias → frobenius norm
+    let cpu_hidden: Vec<f32> = {
+        let mut h_vec = vec![0.0_f32; nn * d_h];
+        for r in 0..nn {
+            for j in 0..d_h {
+                let mut acc = b1[r * d_h + j];
+                for k in 0..d {
+                    acc = input[r * d + k].mul_add(w1[k * d_h + j], acc);
+                }
+                let x = acc;
+                let inner =
+                    (2.0_f32 / std::f32::consts::PI).sqrt() * 0.044_715_f32.mul_add(x * x * x, x);
+                h_vec[r * d_h + j] = 0.5 * x * (1.0 + inner.tanh());
+            }
+        }
+        h_vec
+    };
+    let cpu_out: Vec<f32> = {
+        let mut out = vec![0.0_f32; nn * d];
+        for r in 0..nn {
+            for j in 0..d {
+                let mut acc = b2[r * d + j];
+                for k in 0..d_h {
+                    acc = cpu_hidden[r * d_h + k].mul_add(w2[k * d + j], acc);
+                }
+                out[r * d + j] = acc;
+            }
+        }
+        out
+    };
+    let cpu_frob: f64 = cpu_out
+        .iter()
+        .map(|v| f64::from(*v) * f64::from(*v))
+        .sum::<f64>()
+        .sqrt();
+
+    let gpu_result = (|| -> Result<f64, String> {
+        let inp_t = Tensor::from_data(&input, vec![nn, d], device.clone())
+            .map_err(|e| format!("inp: {e}"))?;
+        let w1_t =
+            Tensor::from_data(&w1, vec![d, d_h], device.clone()).map_err(|e| format!("W1: {e}"))?;
+        let b1_t = Tensor::from_data(&b1, vec![nn, d_h], device.clone())
+            .map_err(|e| format!("b1: {e}"))?;
+        let w2_t =
+            Tensor::from_data(&w2, vec![d_h, d], device.clone()).map_err(|e| format!("W2: {e}"))?;
+        let b2_t =
+            Tensor::from_data(&b2, vec![nn, d], device.clone()).map_err(|e| format!("b2: {e}"))?;
+
+        let h1 = inp_t.matmul(&w1_t).map_err(|e| format!("mm1: {e}"))?;
+        let h1b = h1.add(&b1_t).map_err(|e| format!("b1: {e}"))?;
+
+        // GELU on CPU (f32) then re-upload
+        let hv = h1b.to_vec().map_err(|e| format!("h read: {e}"))?;
+        let gv: Vec<f32> = hv
+            .iter()
+            .map(|&x| {
+                let inner =
+                    (2.0_f32 / std::f32::consts::PI).sqrt() * 0.044_715_f32.mul_add(x * x * x, x);
+                0.5 * x * (1.0 + inner.tanh())
+            })
+            .collect();
+
+        let gt = Tensor::from_data(&gv, vec![nn, d_h], device.clone())
+            .map_err(|e| format!("gelu: {e}"))?;
+        let h2 = gt.matmul(&w2_t).map_err(|e| format!("mm2: {e}"))?;
+        let out = h2.add(&b2_t).map_err(|e| format!("b2: {e}"))?;
+        let ov = out.to_vec().map_err(|e| format!("read: {e}"))?;
+        Ok(ov
+            .iter()
+            .map(|v| f64::from(*v) * f64::from(*v))
+            .sum::<f64>()
+            .sqrt())
+    })();
+
+    match gpu_result {
+        Ok(gpu_frob) => {
+            h.check_abs(
+                "af3_pairformer_ffn frobenius",
+                gpu_frob,
+                cpu_frob,
+                tolerances::ML_MLP_F32,
+            );
+        }
+        Err(e) => h.check_bool(&format!("af3_pairformer_ffn: {e}"), false),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 11. AlphaFold3 Pairformer TriMul contraction (nF-03): GPU matmul, scalar readback
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_af3_pairformer_trimul(h: &mut ValidationHarness, device: &Dev) {
+    let mut rng = Rng::new(952);
+    let n = 4_usize;
+
+    let a: Vec<f32> = (0..n * n).map(|_| rng.normal() as f32 * 0.3).collect();
+    let b: Vec<f32> = (0..n * n).map(|_| rng.normal() as f32 * 0.3).collect();
+
+    // TriMul outgoing: out = A @ B^T
+    let cpu_out: Vec<f32> = {
+        let mut out = vec![0.0_f32; n * n];
+        for i in 0..n {
+            for j in 0..n {
+                let mut acc = 0.0_f32;
+                for k in 0..n {
+                    acc = a[i * n + k].mul_add(b[j * n + k], acc);
+                }
+                out[i * n + j] = acc;
+            }
+        }
+        out
+    };
+    let cpu_frob: f64 = cpu_out
+        .iter()
+        .map(|v| f64::from(*v) * f64::from(*v))
+        .sum::<f64>()
+        .sqrt();
+
+    let gpu_result = (|| -> Result<f64, String> {
+        let a_t =
+            Tensor::from_data(&a, vec![n, n], device.clone()).map_err(|e| format!("A: {e}"))?;
+        let b_t =
+            Tensor::from_data(&b, vec![n, n], device.clone()).map_err(|e| format!("B: {e}"))?;
+        let b_tr = b_t.transpose().map_err(|e| format!("B^T: {e}"))?;
+        let out = a_t.matmul(&b_tr).map_err(|e| format!("A@B^T: {e}"))?;
+        let ov = out.to_vec().map_err(|e| format!("read: {e}"))?;
+        Ok(ov
+            .iter()
+            .map(|v| f64::from(*v) * f64::from(*v))
+            .sum::<f64>()
+            .sqrt())
+    })();
+
+    match gpu_result {
+        Ok(gpu_frob) => {
+            h.check_abs(
+                "af3_pairformer_trimul frobenius",
+                gpu_frob,
+                cpu_frob,
+                tolerances::TENSOR_MATMUL_F32,
+            );
+        }
+        Err(e) => h.check_bool(&format!("af3_pairformer_trimul: {e}"), false),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 12. Determinism: re-run WDM transport and verify bit-identical
 // ═══════════════════════════════════════════════════════════════════
 
 fn validate_determinism(h: &mut ValidationHarness, device: &Dev) {

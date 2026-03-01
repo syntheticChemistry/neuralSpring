@@ -971,6 +971,14 @@ path = "src/bin/validate_metalforge_wdm_coral.rs"
 name = "validate_toadstool_s70_evolution"
 path = "src/bin/validate_toadstool_s70_evolution.rs"
 
+[[bin]]
+name = "validate_alphafold3_diffusion_gpu"
+path = "src/bin/validate_alphafold3_diffusion_gpu.rs"
+
+[[bin]]
+name = "validate_alphafold3_pairformer_gpu"
+path = "src/bin/validate_alphafold3_pairformer_gpu.rs"
+
 [lints.rust]
 unsafe_code = "forbid"
 

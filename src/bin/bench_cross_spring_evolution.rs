@@ -520,8 +520,127 @@ fn main() {
         eprintln!();
     }
 
+    // ─── S98: coralForge nF-03 AlphaFold3 CPU throughput ─────────────
+    {
+        use neural_spring::coral_forge;
+
+        eprintln!("═══ S98: coralForge nF-03 AlphaFold3 CPU Throughput ═══");
+        eprintln!("  Provenance: Abramson et al. 2024 → Python → Rust CPU → BarraCUDA CPU → GPU");
+        eprintln!("  Cross-spring: hotSpring (df64 precision), wetSpring (bio-domain scheduling)");
+        eprintln!();
+
+        let mut af3_rng = Rng::new(800);
+
+        let cpu_cosine = bench("cosine_beta_schedule T=200 (nF-03 diffusion)", || {
+            let _ = std::hint::black_box(coral_forge::diffusion::cosine_beta_schedule(200, 0.008));
+        });
+        h.check_bool(
+            &format!("nF-03→cosine: T=200 {cpu_cosine:.1}µs"),
+            cpu_cosine.is_finite(),
+        );
+
+        let sched = coral_forge::diffusion::cosine_beta_schedule(200, 0.008);
+        let coords_128: Vec<f64> = (0..128 * 3).map(|_| af3_rng.normal() * 5.0).collect();
+        let noise_128: Vec<f64> = (0..128 * 3).map(|_| af3_rng.normal()).collect();
+        let cpu_fwd = bench("forward_diffusion 128 atoms (nF-03 diffusion)", || {
+            let _ = std::hint::black_box(coral_forge::diffusion::forward_diffusion(
+                &coords_128,
+                &noise_128,
+                100,
+                &sched,
+            ));
+        });
+        h.check_bool(
+            &format!("nF-03→forward: 128 atoms {cpu_fwd:.1}µs"),
+            cpu_fwd.is_finite(),
+        );
+
+        let z_128: Vec<f64> = (0..128 * 3).map(|_| af3_rng.normal()).collect();
+        let cpu_ddpm = bench("ddpm_reverse_step 128 atoms (nF-03 diffusion)", || {
+            let _ = std::hint::black_box(coral_forge::diffusion::ddpm_reverse_step(
+                &coords_128,
+                &noise_128,
+                &z_128,
+                100,
+                &sched,
+            ));
+        });
+        h.check_bool(
+            &format!("nF-03→DDPM: 128 atoms {cpu_ddpm:.1}µs"),
+            cpu_ddpm.is_finite(),
+        );
+
+        let cpu_ddim = bench("ddim_reverse_step 128 atoms (nF-03 diffusion)", || {
+            let _ = std::hint::black_box(coral_forge::diffusion::ddim_reverse_step(
+                &coords_128,
+                &noise_128,
+                100,
+                &sched,
+            ));
+        });
+        h.check_bool(
+            &format!("nF-03→DDIM: 128 atoms {cpu_ddim:.1}µs"),
+            cpu_ddim.is_finite(),
+        );
+
+        let cpu_se3 = bench("se3_equivariant_noise 128 atoms (nF-03 diffusion)", || {
+            let _ = std::hint::black_box(coral_forge::diffusion::se3_equivariant_noise(
+                &coords_128,
+                &noise_128,
+                100,
+                &sched,
+            ));
+        });
+        h.check_bool(
+            &format!("nF-03→SE(3): 128 atoms {cpu_se3:.1}µs"),
+            cpu_se3.is_finite(),
+        );
+
+        let n_pf = 8_usize;
+        let d_pf = 16_usize;
+        let d_hidden_pf = 32_usize;
+        let pair_pf: Vec<f64> = (0..n_pf * n_pf * d_pf)
+            .map(|_| af3_rng.normal() * 0.3)
+            .collect();
+        let w1_pf: Vec<f64> = (0..d_pf * d_hidden_pf)
+            .map(|_| af3_rng.normal() * 0.2)
+            .collect();
+        let b1_pf: Vec<f64> = (0..d_hidden_pf).map(|_| af3_rng.normal() * 0.1).collect();
+        let w2_pf: Vec<f64> = (0..d_hidden_pf * d_pf)
+            .map(|_| af3_rng.normal() * 0.2)
+            .collect();
+        let b2_pf: Vec<f64> = (0..d_pf).map(|_| af3_rng.normal() * 0.1).collect();
+
+        let cpu_ffn = bench("pair_transition_ffn 8×8 d=16 (nF-03 Pairformer)", || {
+            let _ = std::hint::black_box(coral_forge::diffusion::pair_transition_ffn(
+                &pair_pf,
+                n_pf,
+                d_pf,
+                &w1_pf,
+                &b1_pf,
+                d_hidden_pf,
+                &w2_pf,
+                &b2_pf,
+            ));
+        });
+        h.check_bool(
+            &format!("nF-03→FFN: 8×8 d=16 {cpu_ffn:.1}µs"),
+            cpu_ffn.is_finite(),
+        );
+
+        let cpu_emb = bench("sinusoidal_embedding d=64 (nF-03 Pairformer)", || {
+            let _ = std::hint::black_box(coral_forge::pairformer::sinusoidal_embedding(25.0, 64));
+        });
+        h.check_bool(
+            &format!("nF-03→embed: d=64 {cpu_emb:.1}µs"),
+            cpu_emb.is_finite(),
+        );
+
+        eprintln!();
+    }
+
     // ─── Summary ────────────────────────────────────────────────────────
-    eprintln!("═══ Cross-Spring Evolution Summary (S97d) ═══");
+    eprintln!("═══ Cross-Spring Evolution Summary (S98) ═══");
     eprintln!("  668 WGSL shaders in ToadStool S70+++ (f64 canonical), sourced from:");
     eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral, precision)");
     eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM, ODE)");
@@ -532,7 +651,8 @@ fn main() {
     eprintln!("  neuralSpring rewired: 46 upstream rewires + 6 shader sources");
     eprintln!("  S70+++: DF64 ML shaders (gelu, sigmoid, softmax, layer_norm, sdpa)");
     eprintln!("  S70+++: SimpleMlp, matmul_ref, stats::evolution, jackknife, hydrology");
-    eprintln!("  S97d: All five springs contribute → ToadStool absorbs → all springs benefit");
+    eprintln!("  S98: coralForge nF-03 GPU tier closed (diffusion + Pairformer)");
+    eprintln!("  S98: All five springs contribute → ToadStool absorbs → all springs benefit");
     eprintln!();
 
     h.finish();

@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: February 28, 2026 (Sessions 45–97c)
+**Last Updated**: March 1, 2026 (Sessions 45–98)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---

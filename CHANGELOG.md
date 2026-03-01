@@ -5,7 +5,23 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 97d (February 28, 2026)
+## [Unreleased] — Session 98 (March 1, 2026)
+
+### Session 98 — coralForge nF-03 AlphaFold3 GPU Tier Closure (March 1, 2026)
+
+**New validators:**
+- `validate_alphafold3_diffusion_gpu` (14/14): Forward diffusion, DDPM/DDIM reverse, SE(3) equivariance, pair FFN — all via BarraCUDA Tensor on RTX 4070
+- `validate_alphafold3_pairformer_gpu` (12/12): Timestep conditioning, TriMul outgoing/incoming, triangle attention QKV, FFN, full block via matmul_ref
+
+**Expanded validators:**
+- `validate_gpu_pure_wdm_coral` (22→24): +AF3 diffusion forward (mean readback), PF FFN (Frobenius), PF TriMul (Frobenius)
+- `bench_cross_spring_evolution` (33→40): +7 AF3 CPU throughput benchmarks (cosine schedule, forward diffusion, DDPM, DDIM, SE(3), FFN, sinusoidal embedding)
+
+**Cross-spring provenance:**
+- hotSpring: df64 precision shaders enable fp48 accuracy on consumer FP32 cores
+- wetSpring: bio-domain scheduling patterns inform diffusion noise schedules
+
+**Quality metrics:** 211 binaries, 199/199 validate_all (197 PASS + 2 pre-existing), 685 lib tests, 3490+ checks, 0 clippy warnings.
 
 ### Session 97d — ToadStool S70+++ Cross-Spring Evolution Validation (February 28, 2026)
 

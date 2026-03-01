@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: February 28, 2026 (Sessions 40–97c — S97d: ToadStool S70+++ cross-spring evolution, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics. 209 binaries, **197/197 validate\_all**, 685 lib tests, 3450+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules)
+**Last Updated**: March 1, 2026 (Sessions 40–98 — S97d: ToadStool S70+++ cross-spring evolution, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics. S98: coralForge nF-03 GPU tier closed. 211 binaries, **199/199 validate\_all**, 685 lib tests, 3490+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1089,4 +1089,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, February 28, 2026. Sessions 50–97c: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 209 binaries, 685 lib + 43 forge + 9 integration tests, 197/197 validate\_all (3450+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S97d: ToadStool S70+++ cross-spring evolution, WDM+coralForge CPU↔GPU domain parity 39/39, metalForge NUCLEUS atomics 41/41. ToadStool S70+++: ZERO f32-only shaders, 700 WGSL f64-canonical, 2608 barracuda tests. V64 handoff.*
+*BarraCUDA usage audit — neuralSpring, March 1, 2026. Sessions 50–98: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 211 binaries, 685 lib + 43 forge + 9 integration tests, 199/199 validate\_all (3490+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S97d: ToadStool S70+++ cross-spring evolution, WDM+coralForge CPU↔GPU domain parity 39/39, metalForge NUCLEUS atomics 41/41. S98: coralForge nF-03 GPU tier closed. ToadStool S70+++: ZERO f32-only shaders, 700 WGSL f64-canonical, 2608 barracuda tests. V64 handoff.*
