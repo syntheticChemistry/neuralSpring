@@ -6,8 +6,8 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `1dd7e338` (Sessions 60–100, S100: deep debt + cross-spring rewiring, Mar 1, 2026) |
-| Last updated | March 1, 2026 (Sessions 40–100) |
+| ToadStool HEAD | `8dc01a37` (Sessions 60–101, S101: ToadStool S71 pin bump + GPU stats parity + shader bug reports, Mar 1, 2026) |
+| Last updated | March 1, 2026 (Sessions 40–101) |
 | BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S70+++) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
 | Modern rewires (S88+) | `pairwise_l2_matrix_gpu` → `PairwiseL2Gpu`, `geographic_distance_matrix_gpu` → `PairwiseL2Gpu`, `disorder_sweep_gpu` IPR → `BatchIprGpu`, `compile_shader_f64_hybrid` → `compile_shader_df64` |

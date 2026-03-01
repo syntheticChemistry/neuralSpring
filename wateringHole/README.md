@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V67** | `handoffs/NEURALSPRING_TOADSTOOL_V67_S100_DEEP_DEBT_CROSS_SPRING_HANDOFF_MAR01_2026.md` | Mar 1, 2026 | S100 deep debt execution, cross-spring rewire (hotSpring proxy.rs → bandwidth/condition/phase, GPU ESN via barracuda Tensors), 4 unused deps removed, +19 tests, zero clippy pedantic+nursery, capability-based primal discovery. V67 handoff for ToadStool absorption |
+| **V68** | `handoffs/NEURALSPRING_TOADSTOOL_V68_S101_GPU_STATS_PARITY_SHADER_BUGS_MAR01_2026.md` | Mar 1, 2026 | S101 ToadStool S71 pin bump (`1dd7e338`→`8dc01a37`), GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs (bitcast+enable f64), V68 handoff |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V66 + biomeOS V1, 81 files).
+Superseded handoffs: `handoffs/archive/` (V1–V67 + biomeOS V1, 82 files).
 
 ## Conventions
 

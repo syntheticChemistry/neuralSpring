@@ -5,7 +5,24 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 100 (March 1, 2026)
+## [Unreleased] — Session 101 (March 1, 2026)
+
+### Session 101 — ToadStool S71 Pin Bump + GPU Stats Parity + Shader Bug Reports (March 1, 2026)
+
+**ToadStool pin advanced** `1dd7e338`→`8dc01a37` (6 commits: S71 ComputeDispatch migration, DF64 transcendentals, pure math shaders, ~9000 lines boilerplate removed):
+- Full re-validation: 746 lib tests PASS, 0 clippy warnings, 0 regressions
+
+**GPU stats parity validated** (`validate_toadstool_s71_gpu_stats` 11/11 PASS):
+- `KimuraGpu`: CPU↔GPU max diff = 1.11e-16 (batch 1000 elements)
+- `HistogramGpu`: correct bins, counts, distribution for uniform data
+- `JackknifeMeanGpu`: BLOCKED — upstream `bitcast<f64>` breaks naga DF64 emulation
+- `HargreavesBatchGpu`: BLOCKED — upstream `enable f64;` not supported by naga parser
+
+**Upstream shader bugs reported** (V68 handoff):
+- `jackknife_mean_f64.wgsl`: `bitcast<f64>(vec2<u32>())` incompatible with DF64 transform
+- `hargreaves_batch_f64.wgsl`: `enable f64;` directive rejected by naga
+
+**Metrics**: 219 binaries (+1), 746 lib tests, 0 clippy warnings, 0 unsafe, 0 bare unwrap. V68 ToadStool handoff.
 
 ### Session 100 — Deep Debt Execution + Cross-Spring Rewiring + Doc Sweep (March 1, 2026)
 

@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: March 1, 2026 (Sessions 40–100 — S100: deep debt + cross-spring rewiring. 218 binaries, 200/200 validate\_all, 3550+ checks, 746 lib tests)
+**Date**: March 1, 2026 (Sessions 40–101 — S101: ToadStool S71 pin bump, GPU stats parity, 2 upstream shader bugs. 219 binaries, 200/200 validate\_all, 3560+ checks, 746 lib tests)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK)
 **Methodology**: Python control → Rust validation → WGSL shader evolution → multi-GPU portability
 

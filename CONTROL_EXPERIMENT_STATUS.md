@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 1, 2026 (Sessions 44–100 — S100: Deep debt execution (hardcoding→capability-based, 4 unused deps removed, +19 tests, zero clippy pedantic+nursery), cross-spring rewire (hotSpring proxy.rs→bandwidth/condition/phase, GPU ESN via barracuda Tensors). S98-99: coralForge nF-03 GPU tier closed, NUCLEUS Tower validated, nS-01 real-data pipeline)
+**Last updated**: March 1, 2026 (Sessions 44–101 — S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37` (ComputeDispatch, DF64 transcendentals), GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported, +1 binary (219). S100: deep debt, cross-spring rewire)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 282/282 Python PASS + 3280+ Rust+GPU validation PASS = **3550+ total validation checks**
-**Library**: 746 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 218 validation/bench binaries
+**Grand Total**: 282/282 Python PASS + 3280+ Rust+GPU validation PASS = **3560+ total validation checks**
+**Library**: 746 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 219 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 9 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 5/5 sub-theses PASS) — Sessions 50, 54, 56, 77
@@ -22,7 +22,7 @@
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero hardcoded primal names | zero unsafe | 0 clippy warnings (pedantic+nursery) | 0 doc warnings | zero inline magic numbers (139+ named tolerances) | zero bare `unwrap()` in validation code | 0 unused deps (4 removed S100) | zero mocks in production | all files < 1000 LOC | all PyTorch baselines fully seeded | barracuda usage audit complete (130+ imports, 44 rewires, zero duplicate math) | coralForge rename complete | capability-based primal discovery (S100)
 **Coverage**: 93.5%+ line coverage (llvm-cov, 746 lib tests), 139+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6% | anderson_localization expanded (+10 tests S100) | gpu_dispatch/basecamp expanded (+8 tests S100)
 **Benchmarks**: Pure Rust **83.6× faster** than Python/NumPy (geomean, 11 domains; fastest 1104× multi-obj) | CPU→GPU portability proven (9/9, 7 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | HEAD `1dd7e338` (S70+++ reviewed, cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety) | **42 upstream rewires** + 124 barracuda import sites, 177 files, 16 submodules | V59 comprehensive handoff
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | HEAD `8dc01a37` (S71+++ reviewed, ComputeDispatch migration, DF64 transcendentals, pure math shaders) | **44 upstream rewires** + 130+ barracuda import sites, 208 files, 20+ submodules | V68 comprehensive handoff
 **Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
 

@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 1, 2026 (Sessions 40–100 — S100: Deep debt execution + cross-spring rewiring. 218 binaries, **200/200 validate\_all**, 746 lib tests, 3550+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules. V67 ToadStool handoff)
+**Last Updated**: March 1, 2026 (Sessions 40–101 — S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37`, GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 219 binaries, **200/200 validate\_all**, 746 lib tests, 3560+ checks. V68 ToadStool handoff)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 

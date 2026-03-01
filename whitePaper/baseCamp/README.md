@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 1, 2026 (Sessions 61–100)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3550+ checks**, ~97% GPU promotion, **200/200 validate\_all** (218 binaries), 746 lib tests. S100: deep debt execution (hardcoding→capability-based, 4 unused deps removed, +19 tests, zero clippy pedantic+nursery), cross-spring rewire (hotSpring `proxy.rs` diagnostics absorbed into `WeightSpectralResult`, GPU ESN via `barracuda::tensor::Tensor` ops). V67 ToadStool handoff
+**Last Updated**: March 1, 2026 (Sessions 61–101)
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3560+ checks**, ~97% GPU promotion, **200/200 validate\_all** (219 binaries), 746 lib tests. S101: ToadStool S71 pin bump (`1dd7e338`→`8dc01a37`), GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. V68 ToadStool handoff
 
 ## Purpose
 

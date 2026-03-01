@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 1, 2026 (Sessions 44–100 — S100: deep debt execution, cross-spring rewiring, capability-based primal discovery)
-**Status**: Phase 5h+ — 282/282 Python + 3280+ Rust+GPU = **3550+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, dispatch parity 30/30, mixed-hardware dispatch 47/47, WDM+coralForge parity 39/39, metalForge NUCLEUS 41/41, 218 binaries, **200/200 validate\_all**, 746 lib tests
+**Last Updated**: March 1, 2026 (Sessions 44–101 — S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37`, GPU stats parity, 2 upstream shader bugs reported)
+**Status**: Phase 5h+ — 282/282 Python + 3280+ Rust+GPU = **3560+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, dispatch parity 30/30, mixed-hardware dispatch 47/47, WDM+coralForge parity 39/39, metalForge NUCLEUS 41/41, 219 binaries, **200/200 validate\_all**, 746 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -46,7 +46,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 44 upstream rewires; V67 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 44 upstream rewires; V68 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 

@@ -973,6 +973,10 @@ name = "validate_toadstool_s70_evolution"
 path = "src/bin/validate_toadstool_s70_evolution.rs"
 
 [[bin]]
+name = "validate_toadstool_s71_gpu_stats"
+path = "src/bin/validate_toadstool_s71_gpu_stats.rs"
+
+[[bin]]
 name = "validate_alphafold3_diffusion_gpu"
 path = "src/bin/validate_alphafold3_diffusion_gpu.rs"
 

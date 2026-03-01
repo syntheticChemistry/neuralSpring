@@ -272,6 +272,8 @@ const BINARIES: &[&str] = &[
     // S97d: ToadStool S70+++ cross-spring evolution (matmul_ref, SimpleMlp, stats::evolution,
     // stats::jackknife, stats::hydrology, diversity::chao1_classic — provenance tracking)
     "validate_toadstool_s70_evolution",
+    // S101: ToadStool S71 GPU stats parity (KimuraGpu, HistogramGpu, upstream shader bugs)
+    "validate_toadstool_s71_gpu_stats",
     // S98: nF-03 AlphaFold3 diffusion GPU Tensor tier (forward/DDPM/DDIM/SE(3)/FFN)
     "validate_alphafold3_diffusion_gpu",
     // S98: nF-03 AlphaFold3 Pairformer GPU Tensor tier (conditioning/TriMul/TriAttn/FFN/block)
