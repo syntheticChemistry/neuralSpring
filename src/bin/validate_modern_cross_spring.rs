@@ -671,32 +671,35 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
 }
 
 fn report_provenance_summary() {
-    eprintln!("\n═══ Cross-Spring Evolution Provenance Summary (S91) ═══");
+    eprintln!("\n═══ Cross-Spring Evolution Provenance Summary (S97d) ═══");
     eprintln!();
     eprintln!("  Source Spring    → ToadStool/BarraCUDA Layer    → neuralSpring Usage");
     eprintln!("  ─────────────────────────────────────────────────────────────────────");
     eprintln!("  hotSpring        → DF64 core, Fp64Strategy,     → Dispatcher GPU path,");
     eprintln!("                     split_workgroups, lattice       eigh/eigensolve,");
-    eprintln!("                     QCD, universal precision        compile_shader_universal");
+    eprintln!("                     QCD, universal precision,       compile_shader_universal,");
+    eprintln!("                     DF64 ML shaders (S70+)         gelu/sigmoid/softmax_df64");
     eprintln!("  wetSpring        → diversity (Shannon, Bray-    → alpha_diversity,");
-    eprintln!("                     Curtis, Simpson), NMF,         HMM chains, FST,");
-    eprintln!("                     HMM, ODE bio, ridge            ridge regression");
+    eprintln!("                     Curtis, Simpson, chao1),       HMM chains, FST,");
+    eprintln!("                     NMF, HMM, ODE bio, ridge       chao1_classic (S70+)");
     eprintln!("  airSpring        → regression, hydrology,       → fit_linear/quad/exp,");
-    eprintln!("                     metrics (RMSE,R²,NSE,MAE),     Hargreaves ET₀,");
-    eprintln!("                     moving_window, spearman        Nash-Sutcliffe");
+    eprintln!("                     metrics (RMSE,R²,NSE,MAE),     fao56_et0, crop_kc,");
+    eprintln!("                     moving_window, spearman,       soil_water_balance");
+    eprintln!("                     fao56_et0, crop_kc (S70+)");
     eprintln!("  groundSpring     → bootstrap (rawr_mean),       → bootstrap_ci,");
-    eprintln!("                     multinomial, MC propagation     norm_cdf/pdf/ppf");
+    eprintln!("                     multinomial, MC propagation,    norm_cdf/pdf/ppf,");
+    eprintln!("                     evolution, jackknife (S70+)    kimura, jackknife");
     eprintln!("  neuralSpring     → batch_fitness, pairwise,     → Dispatcher (47 ops),");
-    eprintln!("                     eigh, swarm_nn, matmul,        graph_laplacian,");
-    eprintln!("                     ValidationHarness              effective_rank");
+    eprintln!("                     eigh, swarm_nn, matmul_ref,    graph_laplacian,");
+    eprintln!("                     SimpleMlp, ValHarness (S70+)   effective_rank, WDM MLP");
     eprintln!();
-    eprintln!("  ToadStool S68 universal precision:");
-    eprintln!("    700 WGSL shaders (f64 canonical), ZERO f32-only");
+    eprintln!("  ToadStool S70+++ (1dd7e338):");
+    eprintln!("    668 WGSL shaders (f64 canonical), 26 DF64, ZERO f32-only");
     eprintln!("    Precision enum: F16 / F32 / F64 / Df64");
     eprintln!("    compile_shader_universal(source, precision) — one source, any hardware");
-    eprintln!("    2,608 barracuda tests, 122 shader tests (chaos + fault injection)");
+    eprintln!("    4,700+ workspace tests, 0 clippy warnings");
     eprintln!();
-    eprintln!("  neuralSpring S91: 44 upstream rewires + 6 shader sources");
+    eprintln!("  neuralSpring S97d: 46 upstream rewires + 6 shader sources");
     eprintln!("  All springs → ToadStool → GPU sovereign pipeline → all springs benefit");
     eprintln!();
 }

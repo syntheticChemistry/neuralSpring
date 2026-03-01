@@ -267,6 +267,9 @@ const BINARIES: &[&str] = &[
     "validate_wdm_coral_parity",
     // S97c: metalForge mixed-hardware WDM+coralForge (NUCLEUS atomics + PCIe bypass)
     "validate_metalforge_wdm_coral",
+    // S97d: ToadStool S70+++ cross-spring evolution (matmul_ref, SimpleMlp, stats::evolution,
+    // stats::jackknife, stats::hydrology, diversity::chao1_classic — provenance tracking)
+    "validate_toadstool_s70_evolution",
 ];
 
 fn main() {

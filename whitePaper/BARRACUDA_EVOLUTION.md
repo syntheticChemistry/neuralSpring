@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: February 28, 2026 (Sessions 40–97c — pure GPU all-domains + cross-system dispatch + WDM surrogates + coralForge + nF-03 bC tier closure + CPU↔GPU domain parity + metalForge NUCLEUS atomics. 208 binaries, 196/196 validate\_all, 3420+ checks)
+**Date**: February 28, 2026 (Sessions 40–97c — pure GPU all-domains + cross-system dispatch + WDM surrogates + coralForge + nF-03 bC tier closure + CPU↔GPU domain parity + metalForge NUCLEUS atomics. 209 binaries, 197/197 validate\_all, 3450+ checks)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK)
 **Methodology**: Python control → Rust validation → WGSL shader evolution → multi-GPU portability
 

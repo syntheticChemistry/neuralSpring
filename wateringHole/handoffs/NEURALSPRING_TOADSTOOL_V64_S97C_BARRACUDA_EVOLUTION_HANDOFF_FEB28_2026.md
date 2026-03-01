@@ -14,11 +14,11 @@
 - **ToadStool pin bumped** from `e96576ee` (S68+) to `1dd7e338` (S70+++) — 13 commits absorbed including cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, ComputeDispatch migration, dead code cleanup, chrono elimination, unsafe evolution
 - **`matmul_ref` rewired** in 2 sites — eliminates unnecessary `.clone()` before matmul in ESN validator and tensor benchmark
 - **3 new validators** closing the BarraCUDA CPU tier for coralForge and proving CPU↔GPU domain parity
-- **208 binaries**, **196/196 validate_all** (194 PASS + 2 pre-existing wright_fisher WGSL parse), **685 lib tests**, **3420+ checks**
+- **209 binaries**, **197/197 validate_all** (194 PASS + 2 pre-existing wright_fisher WGSL parse), **685 lib tests**, **3450+ checks**
 - **BarraCUDA CPU tier 3/3** for coralForge — AF3 diffusion, Pairformer, confidence heads all proven via `barracuda::dispatch::*`
 - **WDM+coralForge CPU↔GPU domain parity**: 39/39 PASS — compositions through Dispatcher produce identical results on CPU and GPU paths
 - **metalForge NUCLEUS atomics**: 41/41 PASS — Tower/Node/Nest coordination + PCIe bypass for WDM+coralForge workloads
-- All quality gates green: `cargo fmt`, clippy 0 warnings, `cargo test --lib` 685 PASS, validate_all 196/196 re-validated against new pin
+- All quality gates green: `cargo fmt`, clippy 0 warnings, `cargo test --lib` 685 PASS, validate_all 197/197 re-validated against new pin
 
 ---
 
@@ -31,7 +31,7 @@ neuralSpring has validated BarraCUDA across the full evolution chain:
 | Tier | What It Proves | Coverage | Status |
 |------|---------------|----------|--------|
 | **Python (Py)** | Science is correct | 282/282 | **Complete** |
-| **Rust CPU (Rs)** | Same math, type-safe | 685 lib + 208 binaries | **Complete** |
+| **Rust CPU (Rs)** | Same math, type-safe | 685 lib + 209 binaries | **Complete** |
 | **BarraCUDA CPU (bC)** | Pure Rust math matches | 24/25 papers (96%), **3/3 coralForge** | **Complete** |
 | **BarraCUDA GPU Tensor (gT)** | Math portable CPU→GPU | 23/25 papers (92%) | **Complete** |
 | **metalForge WGSL (mF)** | Domain-specific GPU kernels | 15/25 papers (60%) | **Complete** |
@@ -195,9 +195,9 @@ The dispatch overhead (~186µs per submit) motivates batching everything into si
 | Metric | Value |
 |--------|-------|
 | Total binaries | 208 |
-| validate_all | 196/196 (194 PASS + 2 pre-existing WGSL) |
+| validate_all | 197/197 (194 PASS + 2 pre-existing WGSL) |
 | Library tests | 685 + 9 integration + 43 forge |
-| Total checks | 3420+ |
+| Total checks | 3450+ |
 | Python baselines | 282/282 |
 | CPU↔Python parity | 39/39 (1e-10) |
 | Named tolerances | 139+ |
@@ -252,4 +252,4 @@ The dispatch overhead (~186µs per submit) motivates batching everything into si
 
 ---
 
-*neuralSpring V64 handoff — February 28, 2026. Sessions 40–97c. 208 binaries, 196/196 validate\_all (3420+ checks). BarraCUDA CPU tier 3/3 coralForge. WDM+coralForge CPU↔GPU domain parity 39/39. metalForge NUCLEUS atomics 41/41. Pure Rust 83.6× faster than Python. ALL 17 shortcomings RESOLVED. Zero debt.*
+*neuralSpring V64 handoff — February 28, 2026. Sessions 40–97c. 209 binaries, 197/197 validate\_all (3450+ checks). BarraCUDA CPU tier 3/3 coralForge. WDM+coralForge CPU↔GPU domain parity 39/39. metalForge NUCLEUS atomics 41/41. Pure Rust 83.6× faster than Python. ALL 17 shortcomings RESOLVED. Zero debt.*

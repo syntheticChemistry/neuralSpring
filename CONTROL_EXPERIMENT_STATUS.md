@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: February 28, 2026 (Sessions 44–97c — coralForge rename, deep debt resolution, nF-03 Phase C confidence heads, dispatch domain split, iterator evolution, WDM+AlphaFold3 GPU Tensor validators, WDM+AlphaFold3 dispatch parity + metalForge routing + NUCLEUS coordination, Pure GPU WDM+coralForge pipeline + nW-04 transfer GPU, Deep Debt Evolution: iterator idioms + 8-dimension codebase audit, nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity + metalForge NUCLEUS atomics)
+**Last updated**: February 28, 2026 (Sessions 44–97d — coralForge rename, deep debt resolution, nF-03 Phase C confidence heads, dispatch domain split, iterator evolution, WDM+AlphaFold3 GPU Tensor validators, WDM+AlphaFold3 dispatch parity + metalForge routing + NUCLEUS coordination, Pure GPU WDM+coralForge pipeline + nW-04 transfer GPU, Deep Debt Evolution: iterator idioms + 8-dimension codebase audit, nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity + metalForge NUCLEUS atomics)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 282/282 Python PASS + 3080+ Rust+GPU validation PASS = **3420+ total validation checks**
-**Library**: 685 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 208 validation/bench binaries
+**Grand Total**: 282/282 Python PASS + 3080+ Rust+GPU validation PASS = **3450+ total validation checks**
+**Library**: 685 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 209 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 5 biophysical AI modules + 9 validators (114/114 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 5/5 sub-theses PASS) — Sessions 50, 54, 56, 77
@@ -14,7 +14,7 @@
 **GPU Promotion**: 47 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math, +3: hill_gate, multi_obj_fitness, swarm_nn_forward)
 **Pure GPU All-Domains**: 10/10 PASS — `validate_gpu_pure_workload_all` (9 typed BarraCUDA GPU ops across all 15 Phase 0++ papers + determinism check, scalar-only readback). **WDM+coralForge Pure GPU**: 21/21 PASS — `validate_gpu_pure_wdm_coral` (nW-01 MLP, nW-02 EOS, nW-03 LSTM, nW-05 ESN, coralForge attention, TriMul, AF3 pLDDT, AF3 PAE + determinism)
 **WDM Surrogates**: 5 Python baselines (33/33 PASS) + 7 Rust validators (160/160 PASS incl. GPU) + 4 GPU Tensor validators (nW-01 transport, nW-02 EOS, nW-03 S(q,ω), nW-04 transfer, nW-05 ESN) — `wdm_surrogate.rs`, `wdm_transport.rs`, `wdm_sqw.rs`, `wdm_esn.rs` modules
-**Publication Experiments (S88+)**: Exp-050 (Py 11/11, Rs 12/12, GPU 9/9), Exp-052 (Py 8/8, Rs 14/14, GPU 10/10), Exp-053 (Py 11/11, Rs 18/18, GPU 11/11). Pure GPU pipeline + metalForge cross-system: 13/13. Mixed-hardware NUCLEUS: 43/43. Phase 4 shader validation: 22/22. Streaming spectral pipeline: 28/28. **Dispatch parity: 30/30. Mixed-hardware dispatch: 47/47. WDM+AlphaFold3 dispatch: 57/57. coralForge Evoformer dispatch: 47/47.** **208 binaries, 196/196 validate\_all** (194 PASS + 2 pre-existing wright\_fisher WGSL parse)
+**Publication Experiments (S88+)**: Exp-050 (Py 11/11, Rs 12/12, GPU 9/9), Exp-052 (Py 8/8, Rs 14/14, GPU 10/10), Exp-053 (Py 11/11, Rs 18/18, GPU 11/11). Pure GPU pipeline + metalForge cross-system: 13/13. Mixed-hardware NUCLEUS: 43/43. Phase 4 shader validation: 22/22. Streaming spectral pipeline: 28/28. **Dispatch parity: 30/30. Mixed-hardware dispatch: 47/47. WDM+AlphaFold3 dispatch: 57/57. coralForge Evoformer dispatch: 47/47.** **209 binaries, 197/197 validate\_all** (195 PASS + 2 pre-existing wright\_fisher WGSL parse)
 **NUCLEUS Compute Dispatch**: Tower discovery + Node eigensolve/Anderson/Hessian + Nest provenance + mixed atomic coordination + PCIe bypass: **39/39 PASS**. `validate_nucleus_compute_dispatch`
 **ToadStool Absorption Readiness**: CPU correctness (eigh/Anderson/Hamiltonian) + GPU parity (3 matrix sizes) + batch scaling + mixed substrate: **294/294 PASS**. `validate_toadstool_spectral_absorption`
 **biomeOS Integration**: neuralSpring registered as science primal. 7 capabilities (spectral\_analysis, anderson\_localization, hessian\_eigen, agent\_coordination, ipr, disorder\_sweep, training\_trajectory). `neuralspring_primal` JSON-RPC server. `validate_biomeos_spectral`: **29/29 PASS**. NUCLEUS ready (all plasmidBin primals built)
@@ -1077,4 +1077,24 @@ Bumped ToadStool pin from `e96576ee` (S68+) to `1dd7e338` (S70+++) — absorbing
 
 **Rewires applied**: `matmul_ref` in `validate_barracuda_wdm_esn.rs` and `bench_barracuda_tensor.rs` (eliminates `.clone()` before matmul for recurrent/benchmark reuse).
 
-**Re-validated**: `cargo fmt` PASS, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` **196/196** (194 PASS + 2 pre-existing wright\_fisher WGSL parse). Pin updated in 20+ doc/source files. V64 handoff updated with absorption review.
+**Re-validated**: `cargo fmt` PASS, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` **197/197** (195 PASS + 2 pre-existing wright\_fisher WGSL parse). Pin updated in 20+ doc/source files. V64 handoff updated with absorption review.
+
+### Session 97d — ToadStool S70+++ Cross-Spring Evolution Validation (February 28, 2026)
+
+Complete rewiring to modern ToadStool S70+++ APIs with cross-spring provenance tracking. Exercises all five springs' contributions absorbed into BarraCUDA:
+
+- **New validator**: `validate_toadstool_s70_evolution` — 27 checks across 5 provenance domains:
+  - **groundSpring → evolution**: Kimura fixation probability, Eigen error threshold, detection power/threshold, jackknife resampling (mean/variance + custom statistic)
+  - **airSpring → hydrology**: FAO-56 Penman-Monteith ET₀, Hargreaves ET₀, crop coefficient interpolation, soil water balance
+  - **wetSpring → diversity**: `chao1_classic` (u64 counts) vs `chao1` (f64) parity
+  - **neuralSpring → Tensor**: `matmul_ref` non-consuming (proves tensor reuse, ref vs consuming bit-identical), `SimpleMlp` forward (hand-verified), JSON round-trip
+  - **S70+++ throughput benchmark**: 6 cross-spring ops timed with provenance table
+- **Expanded `bench_cross_spring_evolution`**: Added S70+++ section — Kimura, jackknife, fao56\_et0, chao1\_classic, SimpleMlp (32→64→3), provenance annotations. Updated summary to S97d.
+- **Updated `validate_modern_cross_spring`**: Provenance summary refreshed with S70+++ absorptions, S97d session tag
+
+**Key benchmark results** (matmul\_ref from `validate_toadstool_s70_evolution`):
+- `matmul_ref` warmup: 858µs (first call), steady-state: 158µs (reuse), consuming: 103µs
+- ref vs consuming: **bit-identical** (0.0 max diff)
+- `SimpleMlp` forward: **0.6µs** (matches hand computation to 1e-10)
+
+**Re-validated**: `cargo fmt` PASS, `cargo clippy --all-targets` 0 warnings, `cargo test --lib` 685 PASS, `validate_all` **197/197** (195 PASS + 2 pre-existing wright\_fisher WGSL parse). 209 binaries, 3450+ total checks.

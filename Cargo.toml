@@ -967,6 +967,10 @@ path = "src/bin/validate_wdm_coral_parity.rs"
 name = "validate_metalforge_wdm_coral"
 path = "src/bin/validate_metalforge_wdm_coral.rs"
 
+[[bin]]
+name = "validate_toadstool_s70_evolution"
+path = "src/bin/validate_toadstool_s70_evolution.rs"
+
 [lints.rust]
 unsafe_code = "forbid"
 

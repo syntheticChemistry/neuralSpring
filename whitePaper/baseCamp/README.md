@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
 **Last Updated**: February 28, 2026 (Sessions 61–97c)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3420+ checks**, ~97% GPU promotion, **196/196 validate\_all** (208 binaries), CPU↔Python parity 39/39, **83.6× faster** than Python (geomean across 11 domains). **Dispatch parity 30/30**. **Mixed-hardware dispatch 47/47**. WDM+coralForge CPU↔GPU parity 39/39. metalForge NUCLEUS 41/41. 47 GPU-promoted Dispatcher ops (7 domain files). 44 upstream rewires + 130+ barracuda import sites. Zero debt, 139+ named tolerances. S97c: nF-03 bC tier closure, CPU↔GPU domain parity, metalForge NUCLEUS atomics. 0 clippy, 0 doc warnings
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3450+ checks**, ~97% GPU promotion, **196/196 validate\_all** (208 binaries), CPU↔Python parity 39/39, **83.6× faster** than Python (geomean across 11 domains). **Dispatch parity 30/30**. **Mixed-hardware dispatch 47/47**. WDM+coralForge CPU↔GPU parity 39/39. metalForge NUCLEUS 41/41. 47 GPU-promoted Dispatcher ops (7 domain files). 44 upstream rewires + 130+ barracuda import sites. Zero debt, 139+ named tolerances. S97d: ToadStool S70+++ cross-spring evolution, CPU↔GPU domain parity, metalForge NUCLEUS atomics. 0 clippy, 0 doc warnings
 
 ## Purpose
 

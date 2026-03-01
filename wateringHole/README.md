@@ -7,7 +7,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → ToadStool f
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V64** | `handoffs/NEURALSPRING_TOADSTOOL_V64_S97C_BARRACUDA_EVOLUTION_HANDOFF_FEB28_2026.md` | Feb 28, 2026 | S97c BarraCUDA evolution review, CPU tier 3/3 coralForge, WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, 196/196 validate\_all, 208 binaries, 3420+ checks |
+| **V64** | `handoffs/NEURALSPRING_TOADSTOOL_V64_S97C_BARRACUDA_EVOLUTION_HANDOFF_FEB28_2026.md` | Feb 28, 2026 | S97c BarraCUDA evolution review, CPU tier 3/3 coralForge, WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, 197/197 validate\_all, 209 binaries, 3450+ checks |
 
 ## Archive
 

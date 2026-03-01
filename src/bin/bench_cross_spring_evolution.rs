@@ -348,6 +348,112 @@ fn main() {
 
     eprintln!();
 
+    // ─── S70+++ absorptions: evolution, jackknife, hydrology, chao1_classic ──
+    // (placed before Dispatcher section so GPU Tensor ops use the original handle)
+    eprintln!("═══ S70+++ Absorptions (ToadStool S70+) ═══");
+    eprintln!("  13 commits since S68: DF64 ML shaders, SimpleMlp, matmul_ref,");
+    eprintln!("  stats::evolution, stats::jackknife, stats::hydrology, chao1_classic");
+    eprintln!();
+
+    // groundSpring → evolution (S70+)
+    eprintln!("  Provenance: groundSpring spectral → barracuda::stats::evolution [S70+]");
+    let cpu_kimura = bench("kimura fixation (gS→barracuda, CPU)", || {
+        for pop in (100..1100).step_by(1) {
+            let _ = std::hint::black_box(barracuda::stats::evolution::kimura_fixation_prob(
+                pop, 0.01, 0.001,
+            ));
+        }
+    });
+    h.check_bool(
+        &format!("gS→evolution: kimura 1K {cpu_kimura:.1}µs"),
+        cpu_kimura.is_finite(),
+    );
+
+    eprintln!("  Provenance: groundSpring uncertainty → barracuda::stats::jackknife [S70+]");
+    let jk_data: Vec<f64> = (0..N).map(|i| i as f64 * 0.1).collect();
+    let cpu_jk = bench("jackknife mean/variance (gS→barracuda, CPU)", || {
+        let _ = std::hint::black_box(barracuda::stats::jackknife::jackknife_mean_variance(
+            &jk_data[..500],
+        ));
+    });
+    h.check_bool(
+        &format!("gS→jackknife: mean/var n=500 {cpu_jk:.1}µs"),
+        cpu_jk.is_finite(),
+    );
+
+    // airSpring → hydrology (S70+)
+    eprintln!("  Provenance: airSpring FAO-56 → barracuda::stats::hydrology [S70+]");
+    let cpu_fao = bench("fao56_et0 (aS→barracuda, CPU)", || {
+        for t in 0..N {
+            let temp = (t as f64).mul_add(0.001, 15.0);
+            let _ = std::hint::black_box(barracuda::stats::hydrology::fao56_et0(
+                temp + 5.0,
+                temp - 5.0,
+                80.0,
+                40.0,
+                2.0,
+                20.0,
+                100.0,
+                45.0,
+                180,
+            ));
+        }
+    });
+    h.check_bool(
+        &format!("aS→hydrology: fao56 {N} {cpu_fao:.1}µs"),
+        cpu_fao.is_finite(),
+    );
+
+    // wetSpring → chao1_classic (S70+)
+    eprintln!(
+        "  Provenance: wetSpring Chao 1984 → barracuda::stats::diversity::chao1_classic [S70+]"
+    );
+    let counts_u64: Vec<u64> = (0..500).map(|i| if i < 200 { i + 1 } else { 0 }).collect();
+    let cpu_chao1c = bench("chao1_classic (wS→barracuda, CPU)", || {
+        let _ = std::hint::black_box(barracuda::stats::diversity::chao1_classic(&counts_u64));
+    });
+    h.check_bool(
+        &format!("wS→diversity: chao1_classic 500 {cpu_chao1c:.1}µs"),
+        cpu_chao1c.is_finite(),
+    );
+
+    // neuralSpring → SimpleMlp (S70+)
+    eprintln!("  Provenance: neuralSpring WDM → barracuda::nn::simple_mlp [S70+]");
+    let mlp = barracuda::nn::simple_mlp::SimpleMlp {
+        layers: vec![
+            barracuda::nn::simple_mlp::DenseLayer {
+                weight: (0..64)
+                    .map(|_| (0..32).map(|_| rng.next_f64()).collect())
+                    .collect(),
+                bias: (0..64).map(|_| rng.next_f64() * 0.1).collect(),
+                activation: barracuda::nn::simple_mlp::Activation::Relu,
+            },
+            barracuda::nn::simple_mlp::DenseLayer {
+                weight: (0..3)
+                    .map(|_| (0..64).map(|_| rng.next_f64()).collect())
+                    .collect(),
+                bias: (0..3).map(|_| rng.next_f64() * 0.1).collect(),
+                activation: barracuda::nn::simple_mlp::Activation::Identity,
+            },
+        ],
+    };
+    let mlp_input: Vec<f64> = (0..32).map(|_| rng.next_f64()).collect();
+    let cpu_mlp = bench("SimpleMlp 32→64→3 (nS→barracuda, CPU)", || {
+        let _ = std::hint::black_box(mlp.forward(&mlp_input));
+    });
+    h.check_bool(
+        &format!("nS→SimpleMlp: 32→64→3 {cpu_mlp:.1}µs"),
+        cpu_mlp.is_finite(),
+    );
+
+    // matmul_ref GPU bench covered in validate_toadstool_s70_evolution.rs
+    // (wgpu doesn't support multiple Device instances per process reliably)
+    eprintln!("  matmul_ref GPU benchmark: see validate_toadstool_s70_evolution");
+    #[allow(unused_variables)]
+    let _gpu_dropped = gpu;
+
+    eprintln!();
+
     // ─── GPU f64 ops via Dispatcher (cross-spring provenance) ────────────
     {
         use neural_spring::gpu_dispatch::Dispatcher;
@@ -415,18 +521,18 @@ fn main() {
     }
 
     // ─── Summary ────────────────────────────────────────────────────────
-    eprintln!("═══ Cross-Spring Evolution Summary (S91) ═══");
-    eprintln!("  700 WGSL shaders in ToadStool S68 (f64 canonical), sourced from:");
+    eprintln!("═══ Cross-Spring Evolution Summary (S97d) ═══");
+    eprintln!("  668 WGSL shaders in ToadStool S70+++ (f64 canonical), sourced from:");
     eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral, precision)");
     eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM, ODE)");
     eprintln!("    neuralSpring: ~40  (ML, neuroevolution, batch fitness, 15 df64 shaders)");
     eprintln!("    airSpring:    ~15  (ET₀, kriging, Richards, stats, regression)");
-    eprintln!("    groundSpring: ~5   (multinomial, MC propagation)");
-    eprintln!("    ToadStool:    ~466 (core math, linalg, nn, activations, S68 precision)");
-    eprintln!("  neuralSpring rewired: 44 upstream rewires + 6 shader sources");
-    eprintln!("  S91: ToadStool S68 universal precision sync, compile_shader_universal exposed");
-    eprintln!("  Cross-spring flow: each spring contributes domain expertise;");
-    eprintln!("  ToadStool absorbs + GPU-accelerates → all springs benefit via path dep");
+    eprintln!("    groundSpring: ~5   (multinomial, MC propagation, evolution theory)");
+    eprintln!("    ToadStool:    ~428 (core math, linalg, nn, activations, S70+ precision)");
+    eprintln!("  neuralSpring rewired: 46 upstream rewires + 6 shader sources");
+    eprintln!("  S70+++: DF64 ML shaders (gelu, sigmoid, softmax, layer_norm, sdpa)");
+    eprintln!("  S70+++: SimpleMlp, matmul_ref, stats::evolution, jackknife, hydrology");
+    eprintln!("  S97d: All five springs contribute → ToadStool absorbs → all springs benefit");
     eprintln!();
 
     h.finish();

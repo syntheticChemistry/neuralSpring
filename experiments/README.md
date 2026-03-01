@@ -80,7 +80,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 066 | Session 89 — Dispatch Parity, Mixed-Hardware Dispatch, Upstream BarraCUDA Wiring | Feb 27, 2026 | +3 upstream BarraCUDA ops (HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu), NPU substrate type, dispatch parity 30/30, mixed-hardware dispatch 47/47, 177/177 validate\_all, V60 handoff |
 | 067 | Sessions 92–93 — nF-03 AlphaFold3 Phases A+B+C + Deep Debt Evolution | Feb 28, 2026 | Diffusion (Py 29/29, Rs 26/26), Pairformer (Py 14/14, Rs 13/13), Confidence heads (Py 19/19, Rs 16/16). dispatch\_ops.rs split 7 domain files. 201 binaries, 189/189 validate\_all, 685 lib tests |
 | 068 | Session 94 — coralForge Rename + Deep Debt Resolution | Feb 28, 2026 | sovereign\_folding+structure\_module→coral\_forge, 5 domain tolerance guards, 24 expect→require!, cast safety, 34 provenance docs, dependency analysis. 139+ tolerances, 0 clippy, 0 doc warnings |
-| 069 | Session 97c — nF-03 bC Tier Closure + CPU↔GPU Domain Parity + metalForge NUCLEUS | Feb 28, 2026 | BarraCUDA CPU 3/3 coralForge (AF3 primitives), WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, V64 handoff. 208 binaries, 196/196 validate\_all, 3420+ checks |
+| 069 | Session 97c — nF-03 bC Tier Closure + CPU↔GPU Domain Parity + metalForge NUCLEUS | Feb 28, 2026 | BarraCUDA CPU 3/3 coralForge (AF3 primitives), WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, V64 handoff. 209 binaries, 197/197 validate\_all, 3450+ checks |
 
 ---
 
@@ -3859,8 +3859,8 @@ and validate metalForge NUCLEUS atomics for mixed-hardware routing of these doma
 | `cargo fmt --check` | PASS |
 | `cargo clippy --all-targets` | 0 warnings |
 | `cargo test --lib` | 685 PASS |
-| `validate_all` | **196/196** (194 PASS + 2 pre-existing WGSL) |
-| Total checks | **3420+** |
+| `validate_all` | **197/197** (195 PASS + 2 pre-existing WGSL) |
+| Total checks | **3450+** |
 | Total binaries | **208** |
 
 **Status**: COMPLETE

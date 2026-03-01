@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
 **Last Updated**: February 28, 2026 (Sessions 44–97c — nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics, deep debt evolution)
-**Status**: Phase 5h+ — 282/282 Python + 3080+ Rust+GPU = **3420+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, dispatch parity 30/30, mixed-hardware dispatch 47/47, WDM+coralForge parity 39/39, metalForge NUCLEUS 41/41, 208 binaries, **196/196 validate\_all**, 685 lib tests
+**Status**: Phase 5h+ — 282/282 Python + 3080+ Rust+GPU = **3450+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, dispatch parity 30/30, mixed-hardware dispatch 47/47, WDM+coralForge parity 39/39, metalForge NUCLEUS 41/41, 209 binaries, **197/197 validate\_all**, 685 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 685 lib + 43 forge + 9 integration PASS — 208 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
+| Rust native validation | 685 lib + 43 forge + 9 integration PASS — 209 binaries, 40 modules + gpu_ops/ + gpu_dispatch |
 | BarraCUDA CPU (bC) | 24/25 papers (96%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/25 papers (92%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/25 papers, 17 shaders, 108 checks | ALL PASS |
