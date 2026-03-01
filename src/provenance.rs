@@ -424,6 +424,18 @@ pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     unit: "baseline files generated (mlp_baseline.json, transformer_baseline.json)",
 };
 
+/// Provenance for CPU math parity baselines (`validate_cpu_math_parity`).
+pub const CPU_PARITY_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "CPU Math Parity References (9 primitives + 9 paper kernels)",
+    script: "control/generate_cpu_references.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/generate_cpu_references.py > control/cpu_parity_references.json",
+    environment: ENVIRONMENT,
+    value: 1.0,
+    unit: "reference file generated (cpu_parity_references.json)",
+};
+
 /// Provenance for nW-01: WDM Transport Surrogate.
 pub const WDM_TRANSPORT_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "nW-01: WDM Transport Surrogate (D*, η*, λ* baselines)",
@@ -772,6 +784,7 @@ mod tests {
             &TRAINING_TRAJECTORY_PROVENANCE,
             &HESSIAN_EIGENANALYSIS_PROVENANCE,
             &ANDERSON_MULTIAGENT_PROVENANCE,
+            &CPU_PARITY_PROVENANCE,
         ];
         for p in records {
             assert!(!p.label.is_empty(), "empty label: {}", p.script);

@@ -667,7 +667,9 @@ fn main() {
         let weights_64x64: Vec<f64> = (0..64 * 64).map(|_| rng.normal()).collect();
         let us_64 = bench("eigh_f64 on 64×64 weight Hamiltonian (nS-01)", || {
             std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
-                &weights_64x64, 64, 64,
+                &weights_64x64,
+                64,
+                64,
             ));
         });
         h.check_bool(
@@ -678,7 +680,9 @@ fn main() {
         let weights_128x128: Vec<f64> = (0..128 * 128).map(|_| rng.normal()).collect();
         let us_128 = bench("eigh_f64 on 128×128 weight Hamiltonian (nS-01)", || {
             std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
-                &weights_128x128, 128, 128,
+                &weights_128x128,
+                128,
+                128,
             ));
         });
         h.check_bool(
@@ -689,7 +693,9 @@ fn main() {
         let weights_256x256: Vec<f64> = (0..256 * 256).map(|_| rng.normal()).collect();
         let us_256 = bench("eigh_f64 on 256×256 weight Hamiltonian (nS-01)", || {
             std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
-                &weights_256x256, 256, 256,
+                &weights_256x256,
+                256,
+                256,
             ));
         });
         h.check_bool(

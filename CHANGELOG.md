@@ -5,7 +5,31 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 99 (March 1, 2026)
+## [Unreleased] — Session 100 (March 1, 2026)
+
+### Session 100 — Deep Debt Execution + Cross-Spring Rewiring + Doc Sweep (March 1, 2026)
+
+**Hardcoding → capability-based:**
+- Primal binary: hardcoded `"nestgate"` → runtime `discover_data_primal_and_forward()` (capability.resolve via biomeOS, then socket probe)
+- Magic timeout constants extracted: `IPC_RESPONSE_TIMEOUT_SECS`, `HEARTBEAT_INTERVAL_SECS`
+
+**Unused dependencies removed:**
+- Removed `biomeos-primal-sdk`, `uuid`, `chrono`, `log` from `primal` feature (never imported)
+- Added required tokio features (`io-util`, `net`, `signal`, `fs`, `time`) previously transitive via biomeos-primal-sdk
+
+**Clippy pedantic/nursery: zero warnings across all targets:**
+- `pairformer.rs`: `powf(0.0/4.0)` → `powi(0)`
+- `weight_loader.rs`: float comparison + `expect` in tests → module-level allow
+- `bench_cross_spring_modern.rs`: extracted 5 functions (too_many_lines), `cast_lossless`, `suboptimal_flops`, doc backticks
+- `validate_cross_spring_rewire.rs`: doc backticks for `condition_number`
+
+**Test coverage expanded: 727 → 746 lib tests (+19):**
+- `anderson_localization.rs`: +10 tests (ipr edge cases, aubry_andre_potential, mean_ipr, disorder_sweep, two_particle symmetry, eigenvalue finiteness)
+- `gpu_dispatch/basecamp.rs`: +8 tests (all 7 pub fns: weight_spectral, hessian, landscape, belief_propagation, attention_spectral, mlp_signal, agent_interaction_graph)
+
+**Quality**: `cargo fmt` clean, `cargo clippy --all-targets -- -W clippy::pedantic -W clippy::nursery` 0 warnings, `cargo test --lib` 746 PASS, `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps` clean. `validate_cross_spring_rewire` 41/41, `validate_weight_spectral` 28/28, `bench_cross_spring_modern` 12/12.
+
+**Metrics**: 218 binaries, 746 lib tests, 0 clippy warnings, 0 unsafe, 0 bare unwrap, 0 mocks in production, all files < 1000 LOC. 4 unused deps removed. All 9 external deps pure Rust.
 
 ### Session 99 — NUCLEUS Local Integration + nS-01 Real Data Extension (March 1, 2026)
 

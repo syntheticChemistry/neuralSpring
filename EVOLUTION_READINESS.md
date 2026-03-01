@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 1, 2026 (Sessions 40–98)
-**ToadStool HEAD**: `1dd7e338` (S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety. S97d: ToadStool S70+++ cross-spring evolution, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics. S98: coralForge nF-03 GPU tier closed. 216 binaries, **200/200 validate\_all**, 685 lib tests, 39 Python drift baselines, 3500+ checks, 139+ named tolerances, 0 clippy, 0 doc warnings)
+**Date**: March 1, 2026 (Sessions 40–100)
+**ToadStool HEAD**: `1dd7e338` (S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety. S100: Deep debt execution + cross-spring rewiring. 218 binaries, **200/200 validate\_all**, 746 lib tests, 39 Python drift baselines, 3550+ checks, 139+ named tolerances, 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 4 unused deps removed)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -17,7 +17,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 282/282 | **COMPLETE** |
-| Rust native validation | 685 lib + 9 integration + 43 forge tests, 40 modules, 199 binaries | **COMPLETE** |
+| Rust native validation | 746 lib + 9 integration + 43 forge tests, 40 modules, 218 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |

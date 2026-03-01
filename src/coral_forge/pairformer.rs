@@ -293,6 +293,32 @@ mod tests {
     }
 
     #[test]
+    fn sinusoidal_bounded() {
+        for &t in &[0.0, 1.0, 50.0, 1000.0] {
+            let emb = sinusoidal_embedding(t, 16);
+            assert!(
+                emb.iter().all(|v| (-1.0..=1.0).contains(v)),
+                "sinusoidal values must be in [-1, 1] for t={t}"
+            );
+        }
+    }
+
+    #[test]
+    fn sinusoidal_even_odd_pattern() {
+        let emb = sinusoidal_embedding(10.0, 4);
+        let freq0 = 10.0 / 10000.0_f64.powi(0);
+        assert!((emb[0] - freq0.sin()).abs() < 1e-12, "even index = sin");
+        assert!((emb[1] - freq0.cos()).abs() < 1e-12, "odd index = cos");
+    }
+
+    #[test]
+    fn sinusoidal_dimension_one() {
+        let emb = sinusoidal_embedding(5.0, 1);
+        assert_eq!(emb.len(), 1);
+        assert!(emb[0].is_finite());
+    }
+
+    #[test]
     fn different_timesteps_different_embeddings() {
         let e0 = sinusoidal_embedding(0.0, 8);
         let e25 = sinusoidal_embedding(25.0, 8);
@@ -301,13 +327,196 @@ mod tests {
 
     #[test]
     fn conditioning_broadcast() {
-        let pair = vec![1.0; 4 * 4 * 2]; // 4x4, d=2
+        let pair = vec![1.0; 4 * 4 * 2];
         let t_emb = vec![0.5, 0.5];
-        let w_cond = vec![1.0, 0.0, 0.0, 1.0]; // identity
+        let w_cond = vec![1.0, 0.0, 0.0, 1.0];
         let b_cond = vec![0.0, 0.0];
         let out = condition_pair_with_timestep(&pair, 4, 2, &t_emb, &w_cond, &b_cond);
-        // Each element should be 1.0 + 0.5 = 1.5
         assert!((out[0] - 1.5).abs() < 1e-14);
         assert!((out[1] - 1.5).abs() < 1e-14);
+    }
+
+    #[test]
+    fn conditioning_bias_only() {
+        let n = 2;
+        let d = 2;
+        let pair = vec![0.0; n * n * d];
+        let t_emb = vec![0.0, 0.0];
+        let w_cond = vec![0.0; 4];
+        let b_cond = vec![3.0, 7.0];
+        let out = condition_pair_with_timestep(&pair, n, d, &t_emb, &w_cond, &b_cond);
+        for chunk in out.chunks_exact(d) {
+            assert!((chunk[0] - 3.0).abs() < 1e-14, "bias[0] = 3.0");
+            assert!((chunk[1] - 7.0).abs() < 1e-14, "bias[1] = 7.0");
+        }
+    }
+
+    #[test]
+    fn conditioning_preserves_length() {
+        let n = 3;
+        let d = 4;
+        let pair = vec![1.0; n * n * d];
+        let t_emb = vec![1.0; d];
+        let w_cond = vec![0.1; d * d];
+        let b_cond = vec![0.0; d];
+        let out = condition_pair_with_timestep(&pair, n, d, &t_emb, &w_cond, &b_cond);
+        assert_eq!(out.len(), pair.len());
+    }
+
+    #[test]
+    fn pairformer_block_output_shape() {
+        let n = 2;
+        let d = 4;
+        let h = 1;
+        let hd = 4;
+        let d_hidden = 8;
+
+        let pair = vec![0.01; n * n * d];
+        let ln_g = vec![1.0; d];
+        let ln_b = vec![0.0; d];
+        let tri_w = vec![0.01; d * d];
+        let attn_w = vec![0.01; d * (h * hd)];
+        let ffn_w1 = vec![0.01; d * d_hidden];
+        let ffn_b1 = vec![0.0; d_hidden];
+        let ffn_w2 = vec![0.01; d_hidden * d];
+        let ffn_b2 = vec![0.0; d];
+        let cond_w = vec![0.01; d * d];
+        let cond_b = vec![0.0; d];
+
+        let weights = PairformerWeights {
+            ln_gamma: &ln_g,
+            ln_beta: &ln_b,
+            tri_out_wa: &tri_w,
+            tri_out_wb: &tri_w,
+            tri_out_wg: &tri_w,
+            tri_in_wa: &tri_w,
+            tri_in_wb: &tri_w,
+            tri_in_wg: &tri_w,
+            n_heads: h,
+            head_dim: hd,
+            tri_attn_wq: &attn_w,
+            tri_attn_wk: &attn_w,
+            tri_attn_wv: &attn_w,
+            ffn_w1: &ffn_w1,
+            ffn_b1: &ffn_b1,
+            d_hidden,
+            ffn_w2: &ffn_w2,
+            ffn_b2: &ffn_b2,
+            cond_w: &cond_w,
+            cond_b: &cond_b,
+        };
+
+        let out = pairformer_block(&pair, n, d, &weights, None);
+        assert_eq!(out.len(), n * n * d, "output shape must match input");
+        assert!(
+            out.iter().all(|v| v.is_finite()),
+            "all outputs must be finite"
+        );
+    }
+
+    #[test]
+    fn pairformer_block_with_conditioning() {
+        let n = 2;
+        let d = 4;
+        let h = 1;
+        let hd = 4;
+        let d_hidden = 8;
+
+        let pair = vec![0.01; n * n * d];
+        let ln_g = vec![1.0; d];
+        let ln_b = vec![0.0; d];
+        let tri_w = vec![0.01; d * d];
+        let attn_w = vec![0.01; d * (h * hd)];
+        let ffn_w1 = vec![0.01; d * d_hidden];
+        let ffn_b1 = vec![0.0; d_hidden];
+        let ffn_w2 = vec![0.01; d_hidden * d];
+        let ffn_b2 = vec![0.0; d];
+        let cond_w = vec![0.01; d * d];
+        let cond_b = vec![0.0; d];
+
+        let weights = PairformerWeights {
+            ln_gamma: &ln_g,
+            ln_beta: &ln_b,
+            tri_out_wa: &tri_w,
+            tri_out_wb: &tri_w,
+            tri_out_wg: &tri_w,
+            tri_in_wa: &tri_w,
+            tri_in_wb: &tri_w,
+            tri_in_wg: &tri_w,
+            n_heads: h,
+            head_dim: hd,
+            tri_attn_wq: &attn_w,
+            tri_attn_wk: &attn_w,
+            tri_attn_wv: &attn_w,
+            ffn_w1: &ffn_w1,
+            ffn_b1: &ffn_b1,
+            d_hidden,
+            ffn_w2: &ffn_w2,
+            ffn_b2: &ffn_b2,
+            cond_w: &cond_w,
+            cond_b: &cond_b,
+        };
+
+        let t_emb = sinusoidal_embedding(10.0, d);
+        let out_no_t = pairformer_block(&pair, n, d, &weights, None);
+        let out_t = pairformer_block(&pair, n, d, &weights, Some(&t_emb));
+        assert_eq!(out_t.len(), out_no_t.len());
+        let max_diff = out_no_t
+            .iter()
+            .zip(out_t.iter())
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0_f64, f64::max);
+        assert!(
+            max_diff > 1e-15,
+            "timestep conditioning should change output"
+        );
+    }
+
+    #[test]
+    fn pairformer_deterministic() {
+        let n = 2;
+        let d = 4;
+        let h = 1;
+        let hd = 4;
+        let d_hidden = 8;
+
+        let pair = vec![0.05; n * n * d];
+        let ln_g = vec![1.0; d];
+        let ln_b = vec![0.0; d];
+        let tri_w = vec![0.02; d * d];
+        let attn_w = vec![0.02; d * (h * hd)];
+        let ffn_w1 = vec![0.02; d * d_hidden];
+        let ffn_b1 = vec![0.0; d_hidden];
+        let ffn_w2 = vec![0.02; d_hidden * d];
+        let ffn_b2 = vec![0.0; d];
+        let cond_w = vec![0.01; d * d];
+        let cond_b = vec![0.0; d];
+
+        let weights = PairformerWeights {
+            ln_gamma: &ln_g,
+            ln_beta: &ln_b,
+            tri_out_wa: &tri_w,
+            tri_out_wb: &tri_w,
+            tri_out_wg: &tri_w,
+            tri_in_wa: &tri_w,
+            tri_in_wb: &tri_w,
+            tri_in_wg: &tri_w,
+            n_heads: h,
+            head_dim: hd,
+            tri_attn_wq: &attn_w,
+            tri_attn_wk: &attn_w,
+            tri_attn_wv: &attn_w,
+            ffn_w1: &ffn_w1,
+            ffn_b1: &ffn_b1,
+            d_hidden,
+            ffn_w2: &ffn_w2,
+            ffn_b2: &ffn_b2,
+            cond_w: &cond_w,
+            cond_b: &cond_b,
+        };
+
+        let out1 = pairformer_block(&pair, n, d, &weights, None);
+        let out2 = pairformer_block(&pair, n, d, &weights, None);
+        assert_eq!(out1, out2, "pairformer must be deterministic");
     }
 }

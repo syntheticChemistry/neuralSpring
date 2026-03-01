@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 1, 2026 (Sessions 61–99)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3500+ checks**, ~97% GPU promotion, **200/200 validate\_all** (216 binaries), CPU↔Python parity 39/39, **83.6× faster** than Python (geomean across 11 domains). **Dispatch parity 30/30**. **Mixed-hardware dispatch 47/47**. WDM+coralForge CPU↔GPU parity 39/39. metalForge NUCLEUS 41/41. 47 GPU-promoted Dispatcher ops (7 domain files). 44 upstream rewires + 130+ barracuda import sites. Zero debt, 139+ named tolerances. S98: coralForge nF-03 GPU tier closed (diffusion + Pairformer). S99: NUCLEUS Tower validated, primal handoffs (NestGate V1, biomeOS V1, Songbird V1), nS-01 real-data pipeline (weight\_loader + safetensors). 0 clippy, 0 doc warnings
+**Last Updated**: March 1, 2026 (Sessions 61–100)
+**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3550+ checks**, ~97% GPU promotion, **200/200 validate\_all** (218 binaries), 746 lib tests. S100: deep debt execution (hardcoding→capability-based, 4 unused deps removed, +19 tests, zero clippy pedantic+nursery), cross-spring rewire (hotSpring `proxy.rs` diagnostics absorbed into `WeightSpectralResult`, GPU ESN via `barracuda::tensor::Tensor` ops). V67 ToadStool handoff
 
 ## Purpose
 

@@ -32,8 +32,7 @@
     clippy::too_many_lines,
     clippy::many_single_char_names,
     clippy::items_after_statements,
-    clippy::expect_used,
-    clippy::unwrap_used
+    clippy::expect_used
 )]
 
 use std::time::Instant;
@@ -258,16 +257,16 @@ fn validate_neuralspring_s70(
     let a_data: Vec<f32> = (0..m * k).map(|i| (i as f32) * 0.01).collect();
     let b_data: Vec<f32> = (0..k * n).map(|i| ((k * n - i) as f32) * 0.01).collect();
 
-    let a_tensor =
-        barracuda::tensor::Tensor::from_data(&a_data, vec![m, k], device.clone()).unwrap();
-    let b_tensor =
-        barracuda::tensor::Tensor::from_data(&b_data, vec![k, n], device.clone()).unwrap();
+    let a_tensor = barracuda::tensor::Tensor::from_data(&a_data, vec![m, k], device.clone())
+        .expect("create A tensor");
+    let b_tensor = barracuda::tensor::Tensor::from_data(&b_data, vec![k, n], device.clone())
+        .expect("create B tensor");
 
     // First matmul_ref — non-consuming, a_tensor survives
     let (c1, t1) = bench("matmul_ref (8×16 × 16×4)", || {
-        a_tensor.matmul_ref(&b_tensor).unwrap()
+        a_tensor.matmul_ref(&b_tensor).expect("matmul_ref call 1")
     });
-    let c1_vec = c1.to_vec().unwrap();
+    let c1_vec = c1.to_vec().expect("readback c1");
     h.check_bool(
         "nS→matmul_ref: output shape correct (m*n elements)",
         c1_vec.len() == m * n,
@@ -275,9 +274,9 @@ fn validate_neuralspring_s70(
 
     // Second matmul_ref on same tensor — proves non-consuming
     let (c2, t2) = bench("matmul_ref (reuse same tensor)", || {
-        a_tensor.matmul_ref(&b_tensor).unwrap()
+        a_tensor.matmul_ref(&b_tensor).expect("matmul_ref call 2")
     });
-    let c2_vec = c2.to_vec().unwrap();
+    let c2_vec = c2.to_vec().expect("readback c2");
     h.check_abs(
         "nS→matmul_ref: repeated call bit-identical",
         c1_vec
@@ -291,9 +290,9 @@ fn validate_neuralspring_s70(
 
     // Consuming matmul on same tensor (last use)
     let (c3, _) = bench("matmul (consuming, last use)", || {
-        a_tensor.matmul(&b_tensor).unwrap()
+        a_tensor.matmul(&b_tensor).expect("consuming matmul")
     });
-    let c3_vec = c3.to_vec().unwrap();
+    let c3_vec = c3.to_vec().expect("readback c3");
     h.check_abs(
         "nS→matmul_ref: ref vs consuming identical",
         c1_vec
@@ -341,9 +340,10 @@ fn validate_neuralspring_s70(
     );
 
     // JSON round-trip
-    let json = serde_json::to_string(&mlp).unwrap();
+    let json = serde_json::to_string(&mlp).expect("serialize SimpleMlp");
     let (mlp2, _) = bench("SimpleMlp JSON round-trip", || {
-        serde_json::from_str::<barracuda::nn::simple_mlp::SimpleMlp>(&json).unwrap()
+        serde_json::from_str::<barracuda::nn::simple_mlp::SimpleMlp>(&json)
+            .expect("deserialize SimpleMlp")
     });
     let output2 = mlp2.forward(&input);
     h.check_abs(
@@ -430,12 +430,12 @@ fn benchmark_s70_throughput(
     let n = 64;
     let a_data: Vec<f32> = (0..n * n).map(|_| rng.uniform() as f32).collect();
     let b_data: Vec<f32> = (0..n * n).map(|_| rng.uniform() as f32).collect();
-    let a_tensor =
-        barracuda::tensor::Tensor::from_data(&a_data, vec![n, n], device.clone()).unwrap();
-    let b_tensor =
-        barracuda::tensor::Tensor::from_data(&b_data, vec![n, n], device.clone()).unwrap();
+    let a_tensor = barracuda::tensor::Tensor::from_data(&a_data, vec![n, n], device.clone())
+        .expect("create bench A tensor");
+    let b_tensor = barracuda::tensor::Tensor::from_data(&b_data, vec![n, n], device.clone())
+        .expect("create bench B tensor");
     let ((), us) = bench("matmul_ref 64×64", || {
-        let _ = a_tensor.matmul_ref(&b_tensor).unwrap();
+        let _ = a_tensor.matmul_ref(&b_tensor).expect("bench matmul_ref");
     });
     results.push(BenchResult {
         label: "matmul_ref 64²",

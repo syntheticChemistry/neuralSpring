@@ -24,7 +24,8 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 # Async runtime for Tensor-based validation (WgpuDevice::new() is async).
-tokio = { version = "1.35", features = ["rt-multi-thread", "macros"] }
+# The primal binary additionally requires io-util, net, signal, fs, time.
+tokio = { version = "1.35", features = ["rt-multi-thread", "macros", "io-util", "net", "signal", "fs", "time"] }
 
 # Must match barracuda's wgpu version (22) to avoid type conflicts.
 wgpu = { version = "22", default-features = false, features = [
@@ -32,18 +33,13 @@ wgpu = { version = "22", default-features = false, features = [
     "vulkan-portability",
 ] }
 
-# biomeOS primal SDK — capability-based discovery, JSON-RPC communication.
-# Optional: only needed for the neuralspring_primal binary.
-biomeos-primal-sdk = { path = "../phase2/biomeOS/crates/biomeos-primal-sdk", optional = true }
+# Optional deps for the neuralspring_primal binary.
 anyhow = { version = "1", optional = true }
-uuid = { version = "1", features = ["v4"], optional = true }
-chrono = { version = "0.4", optional = true }
-log = { version = "0.4", optional = true }
 env_logger = { version = "0.11", optional = true }
 
 [features]
 default = []
-primal = ["biomeos-primal-sdk", "anyhow", "uuid", "chrono", "log", "env_logger"]
+primal = ["anyhow", "env_logger"]
 
 [dev-dependencies]
 approx = "0.5"
@@ -983,6 +979,14 @@ path = "src/bin/validate_alphafold3_diffusion_gpu.rs"
 [[bin]]
 name = "validate_alphafold3_pairformer_gpu"
 path = "src/bin/validate_alphafold3_pairformer_gpu.rs"
+
+[[bin]]
+name = "validate_cross_spring_rewire"
+path = "src/bin/validate_cross_spring_rewire.rs"
+
+[[bin]]
+name = "bench_cross_spring_modern"
+path = "src/bin/bench_cross_spring_modern.rs"
 
 [lints.rust]
 unsafe_code = "forbid"

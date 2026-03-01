@@ -226,3 +226,83 @@ const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
         count: None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ode_params_pod_layout() {
+        assert_eq!(
+            std::mem::size_of::<OdeParams>(),
+            5 * 4,
+            "OdeParams must be 20 bytes (5 × u32/f32)"
+        );
+    }
+
+    #[test]
+    fn ode_params_roundtrip() {
+        let p = OdeParams {
+            n_systems: 10,
+            dim: 4,
+            n_steps: 100,
+            dt: 0.01,
+            n_coeffs: 12,
+        };
+        let bytes = bytemuck::bytes_of(&p);
+        let recovered: &OdeParams = bytemuck::from_bytes(bytes);
+        assert_eq!(recovered.n_systems, 10);
+        assert_eq!(recovered.dim, 4);
+        assert_eq!(recovered.n_steps, 100);
+        assert!((recovered.dt - 0.01).abs() < 1e-6);
+        assert_eq!(recovered.n_coeffs, 12);
+    }
+
+    #[test]
+    fn storage_ro_entry_is_readonly() {
+        let entry = storage_ro_entry(0);
+        assert_eq!(entry.binding, 0);
+        assert!(
+            matches!(
+                entry.ty,
+                wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                    ..
+                }
+            ),
+            "storage_ro_entry must be read-only storage"
+        );
+    }
+
+    #[test]
+    fn storage_rw_entry_is_readwrite() {
+        let entry = storage_rw_entry(1);
+        assert_eq!(entry.binding, 1);
+        assert!(
+            matches!(
+                entry.ty,
+                wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: false },
+                    ..
+                }
+            ),
+            "storage_rw_entry must be read-write storage"
+        );
+    }
+
+    #[test]
+    fn uniform_entry_is_uniform() {
+        let entry = uniform_entry(3);
+        assert_eq!(entry.binding, 3);
+        assert!(
+            matches!(
+                entry.ty,
+                wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    ..
+                }
+            ),
+            "uniform_entry must be Uniform"
+        );
+    }
+}

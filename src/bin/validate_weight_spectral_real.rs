@@ -22,6 +22,8 @@
 
 #![allow(
     clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
     clippy::too_many_lines,
     clippy::similar_names
 )]
@@ -30,8 +32,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::weight_loader;
 use neural_spring::weight_spectral::{
-    empirical_spectral_density, weight_spectral_analysis, GOE_LEVEL_SPACING,
-    POISSON_LEVEL_SPACING,
+    empirical_spectral_density, weight_spectral_analysis, GOE_LEVEL_SPACING, POISSON_LEVEL_SPACING,
 };
 use std::path::PathBuf;
 use std::time::Instant;
@@ -59,8 +60,15 @@ fn main() {
         h.finish();
     }
 
-    let mut models: Vec<PathBuf> = std::fs::read_dir(&dir)
-        .expect("read pretrained dir")
+    let read_dir = match std::fs::read_dir(&dir) {
+        Ok(rd) => rd,
+        Err(e) => {
+            eprintln!("[ERROR] Cannot read pretrained dir {}: {e}", dir.display());
+            h.check_bool("pretrained dir readable", false);
+            h.finish();
+        }
+    };
+    let mut models: Vec<PathBuf> = read_dir
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| p.extension().is_some_and(|e| e == "safetensors"))
         .collect();
@@ -88,7 +96,7 @@ fn main() {
     for model_path in &models {
         let model_name = model_path
             .file_stem()
-            .unwrap()
+            .unwrap_or_default()
             .to_string_lossy()
             .to_string();
         eprintln!("═══ {model_name} ═══");
@@ -133,10 +141,7 @@ fn main() {
                 tolerances::EXACT_F64,
             );
 
-            h.check_bool(
-                &format!("{tag}: IPR positive"),
-                result.mean_ipr > 0.0,
-            );
+            h.check_bool(&format!("{tag}: IPR positive"), result.mean_ipr > 0.0);
             h.check_bool(
                 &format!("{tag}: IPR bounded"),
                 result.mean_ipr <= 1.0 + tolerances::EXACT_F64,
@@ -154,8 +159,7 @@ fn main() {
 
             h.check_bool(
                 &format!("{tag}: MP departure in [0, 1]"),
-                result.mp_departure >= 0.0
-                    && result.mp_departure <= 1.0,
+                result.mp_departure >= 0.0 && result.mp_departure <= 1.0,
             );
 
             all_lsr.push(result.level_spacing_ratio);
@@ -199,18 +203,19 @@ fn main() {
         eprintln!("  Mean LSR:          {mean_lsr:.4} (GOE={GOE_LEVEL_SPACING:.3}, Poisson={POISSON_LEVEL_SPACING:.3})");
         eprintln!("  Mean IPR:          {mean_ipr:.6}");
         eprintln!("  Mean MP departure: {mean_mp:.4}");
-        eprintln!("  GOE-like fraction: {goe_fraction:.2} ({}/{total_layers})",
-            (goe_fraction * total_layers as f64).round() as usize);
-        eprintln!("  Total time:        {total_time_ms:.1}ms ({:.1}ms/layer)",
-            total_time_ms / total_layers as f64);
+        eprintln!(
+            "  GOE-like fraction: {goe_fraction:.2} ({}/{total_layers})",
+            (goe_fraction * total_layers as f64).round() as usize
+        );
+        eprintln!(
+            "  Total time:        {total_time_ms:.1}ms ({:.1}ms/layer)",
+            total_time_ms / total_layers as f64
+        );
         eprintln!();
 
         h.check_bool("Aggregate: mean LSR finite", mean_lsr.is_finite());
         h.check_bool("Aggregate: mean IPR finite", mean_ipr.is_finite());
-        h.check_bool(
-            "Aggregate: GOE fraction > 0",
-            goe_fraction > 0.0,
-        );
+        h.check_bool("Aggregate: GOE fraction > 0", goe_fraction > 0.0);
     }
 
     h.finish();

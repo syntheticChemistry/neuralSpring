@@ -259,6 +259,38 @@ fn main() {
         training_lsr.iter().all(|r| r.is_finite()),
     );
 
+    // ── Cross-spring evolution: hotSpring proxy.rs diagnostics ──────
+
+    let r = weight_spectral_analysis(&w, m, n);
+
+    h.check_bool(
+        "hotSpring→bandwidth: positive for random matrix",
+        r.bandwidth > 0.0,
+    );
+
+    h.check_bool(
+        "hotSpring→condition_number: > 1 for random matrix",
+        r.condition_number > 1.0,
+    );
+
+    h.check_bool(
+        "hotSpring→phase: valid classification",
+        matches!(
+            r.phase,
+            neural_spring::weight_spectral::SpectralPhase::Extended
+                | neural_spring::weight_spectral::SpectralPhase::Critical
+                | neural_spring::weight_spectral::SpectralPhase::Localized
+        ),
+    );
+
+    h.check_abs(
+        "hotSpring→bandwidth: consistent with eigenvalue range",
+        r.bandwidth,
+        r.eigenvalues.last().copied().unwrap_or(0.0)
+            - r.eigenvalues.first().copied().unwrap_or(0.0),
+        tolerances::EXACT_F64,
+    );
+
     // ── Determinism ──────────────────────────────────────────────────
 
     let r1 = weight_spectral_analysis(&w, m, n);
@@ -268,6 +300,15 @@ fn main() {
         r1.eigenvalues == r2.eigenvalues
             && (r1.mean_ipr - r2.mean_ipr).abs() < tolerances::EXACT_F64,
     );
+    h.check_bool(
+        "Determinism: bandwidth",
+        (r1.bandwidth - r2.bandwidth).abs() < f64::EPSILON,
+    );
+    h.check_bool(
+        "Determinism: condition_number",
+        (r1.condition_number - r2.condition_number).abs() < f64::EPSILON,
+    );
+    h.check_bool("Determinism: phase", r1.phase == r2.phase);
 
     h.finish();
 }

@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 1, 2026 (Sessions 40–98 — S97d: ToadStool S70+++ cross-spring evolution, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics. S98: coralForge nF-03 GPU tier closed. 216 binaries, **200/200 validate\_all**, 685 lib tests, 3500+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules)
+**Last Updated**: March 1, 2026 (Sessions 40–100 — S100: Deep debt execution + cross-spring rewiring. 218 binaries, **200/200 validate\_all**, 746 lib tests, 3550+ checks. 44 upstream rewires, 130+ barracuda import sites, 20+ submodules. V67 ToadStool handoff)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1089,4 +1089,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 1, 2026. Sessions 50–98: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 216 binaries, 685 lib + 43 forge + 9 integration tests, 200/200 validate\_all (3500+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S97d: ToadStool S70+++ cross-spring evolution, WDM+coralForge CPU↔GPU domain parity 39/39, metalForge NUCLEUS atomics 41/41. S98: coralForge nF-03 GPU tier closed. S99: NUCLEUS Tower validated, primal handoffs, nS-01 real-data pipeline. ToadStool S70+++: ZERO f32-only shaders, 700 WGSL f64-canonical, 2608 barracuda tests. V66 handoff.*
+*BarraCUDA usage audit — neuralSpring, March 1, 2026. Sessions 50–100: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 218 binaries, 746 lib + 43 forge + 9 integration tests, 200/200 validate\_all (3550+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S100: Deep debt execution — 4 unused deps removed, zero clippy pedantic+nursery, capability-based primal discovery, cross-spring rewire (hotSpring proxy.rs→bandwidth/condition/phase, GPU ESN via Tensor ops). V67 handoff.*

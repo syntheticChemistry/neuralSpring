@@ -83,6 +83,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 069 | Session 97c — nF-03 bC Tier Closure + CPU↔GPU Domain Parity + metalForge NUCLEUS | Feb 28, 2026 | BarraCUDA CPU 3/3 coralForge (AF3 primitives), WDM+coralForge CPU↔GPU parity 39/39, metalForge NUCLEUS 41/41, V64 handoff. 209 binaries, 197/197 validate\_all, 3450+ checks |
 | 070 | Session 98 — coralForge nF-03 AlphaFold3 GPU Tier Closure | Mar 1, 2026 | AF3 diffusion GPU 14/14, Pairformer GPU 12/12, pure GPU 24/24, cross-spring bench 40/40, V65 handoff. 211 binaries, 199/199 validate\_all, 3490+ checks |
 | 071 | Session 99 — NUCLEUS Local Integration + nS-01 Real Data Extension | Mar 1, 2026 | Primal handoffs (NestGate V1, biomeOS V1, Songbird V1). weight\_loader.rs (safetensors). validate\_weight\_spectral\_real 12/12 PASS. NUCLEUS Tower on Eastgate: BearDog healthy, neuralSpring primal 11 capabilities registered, NestGate forward fails gracefully. 216 binaries, 200/200 validate\_all, 3500+ checks |
+| 072 | Session 100 — Deep Debt Execution + Cross-Spring Rewiring | Mar 1, 2026 | Hardcoded `"nestgate"`→capability-based discovery. 4 unused deps removed (biomeos-primal-sdk, uuid, chrono, log). Clippy pedantic+nursery zero warnings across all targets. +19 tests (anderson\_localization +10, basecamp +8, bench refactored). hotSpring proxy.rs→bandwidth/condition/phase in WeightSpectralResult. GPU ESN via barracuda Tensors. V67 ToadStool handoff. 218 binaries, 746 lib tests, 3550+ checks |
 
 ---
 

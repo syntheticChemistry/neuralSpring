@@ -256,3 +256,126 @@ impl Dispatcher {
         adj
     }
 }
+
+#[cfg(test)]
+#[allow(clippy::float_cmp, clippy::expect_used, clippy::suboptimal_flops)]
+mod tests {
+    use crate::gpu_dispatch::Dispatcher;
+    use crate::rng::Rng;
+    use crate::tolerances;
+
+    fn make_dispatcher() -> Dispatcher {
+        tokio::runtime::Runtime::new()
+            .expect("tokio runtime")
+            .block_on(async { Dispatcher::new().await })
+    }
+
+    #[test]
+    fn weight_spectral_analysis_finite() {
+        let d = make_dispatcher();
+        let mut rng = Rng::new(42);
+        let n = 8;
+        let w: Vec<f64> = (0..n * n).map(|_| rng.normal()).collect();
+        let result = d.weight_spectral_analysis(&w, n, n);
+        assert!(result.eigenvalues.iter().all(|e| e.is_finite()));
+        assert!(result.mean_ipr > 0.0);
+        assert!(result.bandwidth > 0.0);
+        assert!(result.condition_number >= 1.0);
+    }
+
+    #[test]
+    fn numerical_hessian_quadratic() {
+        let d = make_dispatcher();
+        let f = |x: &[f64]| x[0] * x[0] + 2.0 * x[1] * x[1];
+        let hess = d.numerical_hessian(f, &[1.0, 1.0], 1e-4);
+        assert_eq!(hess.len(), 4);
+        assert!((hess[0] - 2.0).abs() < 0.01, "d²f/dx² ≈ 2");
+        assert!((hess[3] - 4.0).abs() < 0.01, "d²f/dy² ≈ 4");
+        assert!(hess[1].abs() < 0.01, "cross term ≈ 0");
+    }
+
+    #[test]
+    fn landscape_analysis_convex() {
+        let d = make_dispatcher();
+        let f = |x: &[f64]| -> f64 { x.iter().map(|&v| v * v).sum() };
+        let result = d.landscape_analysis(&f, &[0.5, -0.3], 1e-4, 1.0);
+        assert!(result.loss > 0.0);
+        assert!(
+            result.hessian_eigenvalues.iter().all(|&e| e > 0.0),
+            "convex quadratic should have all positive eigenvalues"
+        );
+        assert_eq!(result.saddle_index, 0);
+    }
+
+    #[test]
+    fn belief_propagation_preserves_normalization() {
+        let d = make_dispatcher();
+        let input = vec![0.5, 0.3, 0.2];
+        let trans = vec![0.7, 0.2, 0.1, 0.1, 0.8, 0.1, 0.2, 0.2, 0.6];
+        let distributions = d.belief_propagation(&input, &[&trans], &[3]);
+        assert_eq!(distributions.len(), 2);
+        let sum: f64 = distributions[1].iter().sum();
+        assert!(
+            (sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
+            "output distribution should sum to 1.0, got {sum}"
+        );
+    }
+
+    #[test]
+    fn attention_spectral_result_finite() {
+        let d = make_dispatcher();
+        let n = 4;
+        let mut rng = Rng::new(42);
+        let attn: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
+        let result = d.attention_spectral_analysis(&attn, n);
+        assert_eq!(result.eigenvalues.len(), n);
+        assert!(result.eigenvalues.iter().all(|e| e.is_finite()));
+        assert!(result.mean_ipr > 0.0);
+        assert!(result.level_spacing_ratio.is_finite());
+    }
+
+    #[test]
+    fn mlp_signal_propagation_correct_length() {
+        let d = make_dispatcher();
+        let input = vec![1.0, 2.0, 3.0];
+        let mut rng = Rng::new(42);
+        let w1: Vec<f64> = (0..4 * 3).map(|_| rng.normal() * 0.1).collect();
+        let w2: Vec<f64> = (0..2 * 4).map(|_| rng.normal() * 0.1).collect();
+        let variances = d.mlp_signal_propagation(&input, &[&w1, &w2], &[4, 2]);
+        assert_eq!(variances.len(), 3, "input + 2 layers = 3 variance values");
+        assert!(variances.iter().all(|v| v.is_finite()));
+    }
+
+    #[test]
+    fn agent_interaction_graph_symmetric() {
+        let d = make_dispatcher();
+        let positions = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 2.0, 2.0];
+        let n = 4;
+        let adj = d.agent_interaction_graph(&positions, n, 2, 2.0);
+        assert_eq!(adj.len(), n * n);
+        for i in 0..n {
+            for j in 0..n {
+                assert!(
+                    (adj[i * n + j] - adj[j * n + i]).abs() < tolerances::ZERO_DETECTION,
+                    "adjacency not symmetric at ({i},{j})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn agent_interaction_graph_zero_diagonal() {
+        let d = make_dispatcher();
+        let positions = vec![0.0, 0.0, 1.0, 1.0];
+        let n = 2;
+        let adj = d.agent_interaction_graph(&positions, n, 2, 10.0);
+        assert!(
+            (adj[0]).abs() < tolerances::ZERO_DETECTION,
+            "diagonal should be 0"
+        );
+        assert!(
+            (adj[3]).abs() < tolerances::ZERO_DETECTION,
+            "diagonal should be 0"
+        );
+    }
+}

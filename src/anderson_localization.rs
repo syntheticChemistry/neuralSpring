@@ -172,6 +172,7 @@ pub fn disorder_sweep(n: usize, t: f64, w_vals: &[f64], rng: &mut Rng) -> Vec<f6
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)]
 mod tests {
     use super::*;
     use crate::rng::Rng;
@@ -203,6 +204,45 @@ mod tests {
     }
 
     #[test]
+    fn ipr_localized_state() {
+        let mut psi = vec![0.0; 10];
+        psi[3] = 1.0;
+        assert!((ipr(&psi) - 1.0).abs() < tolerances::ZERO_DETECTION);
+    }
+
+    #[test]
+    fn ipr_empty() {
+        assert!((ipr(&[]) - 0.0).abs() < tolerances::ZERO_DETECTION);
+    }
+
+    #[test]
+    fn aubry_andre_potential_correct_length() {
+        let v = aubry_andre_potential(8, 2.0, 1.0 / GOLDEN_RATIO, 0.0);
+        assert_eq!(v.len(), 8);
+    }
+
+    #[test]
+    fn aubry_andre_potential_bounded_by_w() {
+        let w = 3.5;
+        let v = aubry_andre_potential(100, w, 1.0 / GOLDEN_RATIO, 0.0);
+        for &vi in &v {
+            assert!(
+                vi.abs() <= w + tolerances::ZERO_DETECTION,
+                "|V_n| = {} > W = {}",
+                vi.abs(),
+                w
+            );
+        }
+    }
+
+    #[test]
+    fn aubry_andre_potential_quasiperiodic() {
+        let v = aubry_andre_potential(50, 1.0, 1.0 / GOLDEN_RATIO, 0.0);
+        let all_same = v.windows(2).all(|w| (w[0] - w[1]).abs() < 1e-14);
+        assert!(!all_same, "quasiperiodic potential should not be constant");
+    }
+
+    #[test]
     fn aubry_andre_transition() {
         let n = 16;
         let alpha = 1.0 / GOLDEN_RATIO;
@@ -216,6 +256,51 @@ mod tests {
     }
 
     #[test]
+    fn mean_ipr_empty() {
+        assert!((mean_ipr(&[], 0) - 0.0).abs() < tolerances::ZERO_DETECTION);
+    }
+
+    #[test]
+    fn mean_ipr_identity_matrix() {
+        let n = 4;
+        let mut eye = vec![0.0; n * n];
+        for i in 0..n {
+            eye[i * n + i] = 1.0;
+        }
+        let m = mean_ipr(&eye, n);
+        assert!(
+            (m - 1.0).abs() < tolerances::CROSS_LANGUAGE,
+            "identity eigenvectors → IPR=1 each, mean should be 1.0, got {m}"
+        );
+    }
+
+    #[test]
+    fn disorder_sweep_monotonic_trend() {
+        let mut rng = Rng::new(42);
+        let n = 8;
+        let w_vals: Vec<f64> = (0..5).map(|i| 0.5 + f64::from(i) * 1.5).collect();
+        let iprs = disorder_sweep(n, 1.0, &w_vals, &mut rng);
+        assert_eq!(iprs.len(), w_vals.len());
+        assert!(iprs.iter().all(|&v| v.is_finite() && v > 0.0));
+        let first = iprs[0];
+        let last = iprs[iprs.len() - 1];
+        assert!(
+            last > first,
+            "stronger disorder should increase IPR: first={first}, last={last}"
+        );
+    }
+
+    #[test]
+    fn disorder_sweep_deterministic() {
+        let mut rng1 = Rng::new(99);
+        let mut rng2 = Rng::new(99);
+        let w_vals = [1.0, 2.0, 3.0];
+        let a = disorder_sweep(8, 1.0, &w_vals, &mut rng1);
+        let b = disorder_sweep(8, 1.0, &w_vals, &mut rng2);
+        assert_eq!(a, b, "same seed should produce identical sweeps");
+    }
+
+    #[test]
     fn two_particle_finite() {
         let n = 4;
         let h2 = two_particle_hamiltonian(n, 1.0, 2.0, 0.5, 1.0 / GOLDEN_RATIO);
@@ -226,6 +311,21 @@ mod tests {
     }
 
     #[test]
+    fn two_particle_symmetric() {
+        let n = 4;
+        let h2 = two_particle_hamiltonian(n, 1.0, 2.0, 0.5, 1.0 / GOLDEN_RATIO);
+        let dim = n * n;
+        for i in 0..dim {
+            for j in 0..dim {
+                assert!(
+                    (h2[i * dim + j] - h2[j * dim + i]).abs() < tolerances::ZERO_DETECTION,
+                    "two-particle H not symmetric at ({i},{j})"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn flat_layout_correct_size() {
         let n = 8;
         let mut rng = Rng::new(42);
@@ -233,5 +333,15 @@ mod tests {
         assert_eq!(h.len(), n * n);
         let aa = aubry_andre_hamiltonian(n, 1.0, 2.0, 1.0 / GOLDEN_RATIO, 0.0);
         assert_eq!(aa.len(), n * n);
+    }
+
+    #[test]
+    fn jacobi_eigh_eigenvalues_sorted_and_finite() {
+        let mut rng = Rng::new(7);
+        let n = 10;
+        let h = anderson_hamiltonian_random(n, 1.0, 2.0, &mut rng);
+        let (evals, _) = jacobi_eigh(&h, n);
+        assert_eq!(evals.len(), n);
+        assert!(evals.iter().all(|&e| e.is_finite()));
     }
 }

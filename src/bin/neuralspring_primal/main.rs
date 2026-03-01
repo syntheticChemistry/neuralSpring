@@ -117,6 +117,11 @@ pub struct PrimalState {
 const PRIMAL_NAME: &str = env!("CARGO_PKG_NAME");
 const ORCHESTRATOR_SOCKET: &str = "biomeOS.sock";
 
+/// Timeout for cross-primal IPC responses (seconds).
+const IPC_RESPONSE_TIMEOUT_SECS: u64 = 5;
+/// Heartbeat interval for biomeOS lifecycle (seconds).
+const HEARTBEAT_INTERVAL_SECS: u64 = 30;
+
 pub const ALL_CAPABILITIES: &[&str] = &[
     "science.spectral_analysis",
     "science.anderson_localization",
@@ -165,11 +170,9 @@ async fn dispatch_async(request: &JsonRpcRequest) -> JsonRpcResponse {
     match request.method.as_str() {
         "primal.forward" => handle_forward(id, params).await,
         method if method.starts_with("data.") => {
-            match forward_to_primal("nestgate", method, params).await {
+            match discover_data_primal_and_forward(method, params).await {
                 Ok(resp) => JsonRpcResponse::success(id, resp),
-                Err(e) => {
-                    JsonRpcResponse::error(id, -32000, format!("NestGate forward failed: {e}"))
-                }
+                Err(e) => JsonRpcResponse::error(id, -32000, format!("data.* forward failed: {e}")),
             }
         }
         _ => JsonRpcResponse::error(id, -32601, format!("Method not found: {}", request.method)),
@@ -210,6 +213,66 @@ async fn forward_to_primal(
 
     let resp: serde_json::Value = serde_json::from_str(line.trim())?;
     Ok(resp)
+}
+
+/// Discover which primal can handle `data.*` methods at runtime.
+///
+/// Probes the socket directory for primals advertising data capabilities.
+/// Falls back to well-known data primals in the ecosystem (nestgate,
+/// beardog) if no capability registry is available.
+///
+/// This replaces the hardcoded `"nestgate"` reference, following the
+/// wateringHole principle: primals only know about themselves and
+/// discover others at runtime.
+async fn discover_data_primal_and_forward(
+    method: &str,
+    params: &serde_json::Value,
+) -> Result<serde_json::Value> {
+    let socket_dir = resolve_socket_dir();
+
+    // 1. Try capability-based discovery via biomeOS orchestrator
+    let biomeos_socket = socket_dir.join(ORCHESTRATOR_SOCKET);
+    if biomeos_socket.exists() {
+        let discovery = forward_to_primal_raw(
+            &biomeos_socket,
+            "capability.resolve",
+            &serde_json::json!({ "capability": method }),
+        )
+        .await;
+        if let Ok(resp) = discovery {
+            if let Some(primal_name) = resp
+                .get("result")
+                .and_then(|r| r.get("primal"))
+                .and_then(|p| p.as_str())
+            {
+                return forward_to_primal(primal_name, method, params).await;
+            }
+        }
+    }
+
+    // 2. Probe socket directory for primals with data capabilities
+    let data_primals = ["nestgate", "beardog", "songbird"];
+    if let Ok(entries) = std::fs::read_dir(&socket_dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+            if name_str.ends_with(".sock") {
+                for candidate in &data_primals {
+                    if name_str.starts_with(candidate) {
+                        match forward_to_primal(candidate, method, params).await {
+                            Ok(resp) => return Ok(resp),
+                            Err(_) => continue,
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    anyhow::bail!(
+        "No primal found with data capability for '{method}' in {}",
+        socket_dir.display()
+    )
 }
 
 fn discover_primal_socket(primal_name: &str) -> Result<PathBuf> {
@@ -342,7 +405,7 @@ async fn forward_to_primal_raw(
     let mut buf_reader = BufReader::new(reader);
     let mut line = String::new();
     tokio::time::timeout(
-        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(IPC_RESPONSE_TIMEOUT_SECS),
         buf_reader.read_line(&mut line),
     )
     .await
@@ -354,7 +417,8 @@ async fn forward_to_primal_raw(
 
 async fn heartbeat_loop(our_socket: PathBuf) {
     let biomeos_socket = resolve_socket_dir().join(ORCHESTRATOR_SOCKET);
-    let mut interval = tokio::time::interval(std::time::Duration::from_secs(30));
+    let mut interval =
+        tokio::time::interval(std::time::Duration::from_secs(HEARTBEAT_INTERVAL_SECS));
 
     loop {
         interval.tick().await;

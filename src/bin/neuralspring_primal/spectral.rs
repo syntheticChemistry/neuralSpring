@@ -98,6 +98,9 @@ pub fn handle_spectral_analysis(
     let mut evals = decomp.eigenvalues.clone();
     evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
     let lsr = neural_spring::weight_spectral::level_spacing_ratio(&evals);
+    let bw = neural_spring::weight_spectral::spectral_bandwidth(&evals);
+    let cond = neural_spring::weight_spectral::spectral_condition_number(&evals);
+    let phase = neural_spring::weight_spectral::classify_phase(lsr);
 
     JsonRpcResponse::success(
         id,
@@ -105,6 +108,9 @@ pub fn handle_spectral_analysis(
             "eigenvalues": evals,
             "mean_ipr": ipr_val,
             "level_spacing_ratio": lsr,
+            "bandwidth": bw,
+            "condition_number": cond,
+            "phase": format!("{phase}"),
             "dim": n,
             "disorder": w,
         }),
@@ -132,10 +138,17 @@ pub fn handle_anderson_localization(
         sorted_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         let lsr = neural_spring::weight_spectral::level_spacing_ratio(&sorted_evals);
 
+        let bw = neural_spring::weight_spectral::spectral_bandwidth(&sorted_evals);
+        let cond = neural_spring::weight_spectral::spectral_condition_number(&sorted_evals);
+        let phase = neural_spring::weight_spectral::classify_phase(lsr);
+
         results.push(serde_json::json!({
             "disorder": w,
             "mean_ipr": ipr_val,
             "level_spacing_ratio": lsr,
+            "bandwidth": bw,
+            "condition_number": cond,
+            "phase": format!("{phase}"),
             "eigenvalue_range": [sorted_evals.first(), sorted_evals.last()],
         }));
     }
@@ -184,6 +197,10 @@ pub fn handle_hessian_eigen(id: serde_json::Value, params: &serde_json::Value) -
     evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
     let entropy = neural_spring::primitives::shannon_entropy(&evals);
     let trace: f64 = evals.iter().sum();
+    let cond = neural_spring::weight_spectral::spectral_condition_number(&evals);
+    let phase = neural_spring::weight_spectral::classify_phase(
+        neural_spring::weight_spectral::level_spacing_ratio(&evals),
+    );
 
     JsonRpcResponse::success(
         id,
@@ -191,7 +208,9 @@ pub fn handle_hessian_eigen(id: serde_json::Value, params: &serde_json::Value) -
             "eigenvalues": evals,
             "spectral_entropy": entropy,
             "trace": trace,
-            "condition_number": evals.last().unwrap_or(&1.0) / evals.first().unwrap_or(&1.0).max(1e-15),
+            "condition_number": cond,
+            "bandwidth": neural_spring::weight_spectral::spectral_bandwidth(&evals),
+            "phase": format!("{phase}"),
             "dim": n,
             "surface_type": surface,
         }),
@@ -275,12 +294,18 @@ pub fn handle_training_trajectory(
         let mut evals = decomp.eigenvalues.clone();
         evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
         let entropy = neural_spring::primitives::shannon_entropy(&evals);
+        let lsr = neural_spring::weight_spectral::level_spacing_ratio(&evals);
+        let phase = neural_spring::weight_spectral::classify_phase(lsr);
 
         trajectory.push(serde_json::json!({
             "epoch": epoch,
             "alpha": alpha,
             "mean_ipr": ipr_val,
             "spectral_entropy": entropy,
+            "level_spacing_ratio": lsr,
+            "bandwidth": neural_spring::weight_spectral::spectral_bandwidth(&evals),
+            "condition_number": neural_spring::weight_spectral::spectral_condition_number(&evals),
+            "phase": format!("{phase}"),
         }));
     }
 

@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V66** | `handoffs/NEURALSPRING_TOADSTOOL_V66_S99_PRIMAL_INTEGRATION_MAR01_2026.md` | Mar 1, 2026 | S99 NUCLEUS Tower validated, nS-01 real-data pipeline (safetensors weight\_loader), 200/200 validate\_all, 216 binaries, 3500+ checks, primal integration |
+| **V67** | `handoffs/NEURALSPRING_TOADSTOOL_V67_S100_DEEP_DEBT_CROSS_SPRING_HANDOFF_MAR01_2026.md` | Mar 1, 2026 | S100 deep debt execution, cross-spring rewire (hotSpring proxy.rs → bandwidth/condition/phase, GPU ESN via barracuda Tensors), 4 unused deps removed, +19 tests, zero clippy pedantic+nursery, capability-based primal discovery. V67 handoff for ToadStool absorption |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V65 + biomeOS V1, 80 files).
+Superseded handoffs: `handoffs/archive/` (V1–V66 + biomeOS V1, 81 files).
 
 ## Conventions
 

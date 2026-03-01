@@ -154,6 +154,9 @@ pub fn weight_spectral_analysis(weights: &[f64], m: usize, n: usize) -> WeightSp
     let entropy = spectral_entropy(&eigenvalues);
     let gamma = m as f64 / n.max(1) as f64;
     let mp_departure = marchenko_pastur_departure(&eigenvalues, gamma);
+    let bw = spectral_bandwidth(&eigenvalues);
+    let cond = spectral_condition_number(&eigenvalues);
+    let phase = classify_phase(lsr);
 
     WeightSpectralResult {
         eigenvalues,
@@ -161,10 +164,18 @@ pub fn weight_spectral_analysis(weights: &[f64], m: usize, n: usize) -> WeightSp
         level_spacing_ratio: lsr,
         spectral_entropy: entropy,
         mp_departure,
+        bandwidth: bw,
+        condition_number: cond,
+        phase,
     }
 }
 
 /// Result of weight matrix spectral analysis.
+///
+/// Core fields (IPR, level spacing, entropy, MP departure) are original to
+/// neuralSpring baseCamp nS-01. Extended fields (bandwidth, condition number,
+/// phase label) evolved from hotSpring's `proxy.rs` Anderson 3D diagnostics
+/// via cross-spring evolution through ToadStool.
 #[derive(Debug, Clone)]
 pub struct WeightSpectralResult {
     /// Sorted eigenvalues of the symmetrized Hamiltonian.
@@ -177,6 +188,100 @@ pub struct WeightSpectralResult {
     pub spectral_entropy: f64,
     /// Fraction of eigenvalues outside Marchenko-Pastur bulk.
     pub mp_departure: f64,
+
+    // ── Cross-spring evolution: hotSpring proxy.rs diagnostics ───────
+    /// Spectral bandwidth: λ_max − λ_min. Larger bandwidth indicates
+    /// wider energy spread (more complex learned representation).
+    ///
+    /// Evolved from hotSpring `ProxyFeatures::bandwidth` (Anderson 3D).
+    pub bandwidth: f64,
+    /// Spectral condition number: |λ_max| / |λ_min| (non-zero eigenvalues).
+    /// High condition number signals ill-conditioning; predicts training
+    /// difficulty and CG solver convergence rate.
+    ///
+    /// Evolved from hotSpring `ProxyFeatures::lambda_min` and
+    /// barracuda `SvdDecomposition::condition_number()`.
+    pub condition_number: f64,
+    /// Discrete spectral phase label derived from level spacing ratio.
+    /// - `Extended`: ⟨r⟩ ≥ 0.48 (GOE-like, delocalized, good generalization)
+    /// - `Critical`: 0.42 ≤ ⟨r⟩ < 0.48 (Anderson transition)
+    /// - `Localized`: ⟨r⟩ < 0.42 (Poisson-like, memorization risk)
+    ///
+    /// Evolved from hotSpring `ProxyFeatures::phase` (Anderson 3D).
+    pub phase: SpectralPhase,
+}
+
+/// Discrete spectral phase classification.
+///
+/// Maps the continuous level spacing ratio to a qualitative label using
+/// Anderson localization theory. Thresholds derived from GOE (0.531) and
+/// Poisson (0.386) ensembles with a critical window around the Anderson
+/// transition point.
+///
+/// Cross-spring evolution: hotSpring `proxy.rs` → ToadStool → neuralSpring.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SpectralPhase {
+    /// GOE-like: delocalized eigenstates, good generalization.
+    Extended,
+    /// Near Anderson transition: mixed localization character.
+    Critical,
+    /// Poisson-like: localized eigenstates, memorization risk.
+    Localized,
+}
+
+impl std::fmt::Display for SpectralPhase {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Extended => write!(f, "extended"),
+            Self::Critical => write!(f, "critical"),
+            Self::Localized => write!(f, "localized"),
+        }
+    }
+}
+
+/// Classify level spacing ratio into a spectral phase.
+///
+/// Thresholds: Extended ≥ 0.48, Critical ∈ [0.42, 0.48), Localized < 0.42.
+/// These bracket the GOE–Poisson crossover with a narrow critical window.
+#[must_use]
+pub fn classify_phase(lsr: f64) -> SpectralPhase {
+    if lsr >= 0.48 {
+        SpectralPhase::Extended
+    } else if lsr >= 0.42 {
+        SpectralPhase::Critical
+    } else {
+        SpectralPhase::Localized
+    }
+}
+
+/// Compute spectral bandwidth (λ_max − λ_min) from sorted eigenvalues.
+#[must_use]
+pub fn spectral_bandwidth(eigenvalues: &[f64]) -> f64 {
+    if eigenvalues.len() < 2 {
+        return 0.0;
+    }
+    eigenvalues[eigenvalues.len() - 1] - eigenvalues[0]
+}
+
+/// Compute spectral condition number from sorted eigenvalues.
+///
+/// Uses the ratio |λ_max| / |λ_min| over ALL eigenvalues.
+/// Returns `f64::INFINITY` if any eigenvalue is effectively zero
+/// (|λ| ≤ `LOG_GUARD`), indicating a singular or near-singular matrix.
+#[must_use]
+pub fn spectral_condition_number(eigenvalues: &[f64]) -> f64 {
+    if eigenvalues.is_empty() {
+        return f64::INFINITY;
+    }
+    let abs_min = eigenvalues
+        .iter()
+        .map(|v| v.abs())
+        .fold(f64::INFINITY, f64::min);
+    if abs_min <= LOG_GUARD {
+        return f64::INFINITY;
+    }
+    let abs_max = eigenvalues.iter().map(|v| v.abs()).fold(0.0_f64, f64::max);
+    abs_max / abs_min
 }
 
 /// Construct a `WeightSpectralResult` from pre-computed eigen-decomposition.
@@ -196,12 +301,18 @@ pub fn spectral_result_from_decomposition(
     let lsr = level_spacing_ratio(&eigenvalues);
     let entropy = spectral_entropy(&eigenvalues);
     let mp_departure = marchenko_pastur_departure(&eigenvalues, gamma);
+    let bw = spectral_bandwidth(&eigenvalues);
+    let cond = spectral_condition_number(&eigenvalues);
+    let phase = classify_phase(lsr);
     WeightSpectralResult {
         eigenvalues,
         mean_ipr: ipr_val,
         level_spacing_ratio: lsr,
         spectral_entropy: entropy,
         mp_departure,
+        bandwidth: bw,
+        condition_number: cond,
+        phase,
     }
 }
 
@@ -490,5 +601,123 @@ mod tests {
         let (lo, hi) = marchenko_pastur_bounds(0.25);
         assert!(lo >= 0.0, "lower bound must be non-negative");
         assert!(hi > lo, "upper bound must exceed lower bound");
+    }
+
+    // ── Cross-spring evolution: hotSpring proxy.rs diagnostics ────────
+
+    #[test]
+    fn bandwidth_positive_for_distinct_eigenvalues() {
+        let evals = vec![-2.0, -1.0, 0.0, 1.0, 3.0];
+        let bw = spectral_bandwidth(&evals);
+        assert!(
+            (bw - 5.0).abs() < tolerances::EXACT_F64,
+            "bandwidth should be 3-(-2)=5, got {bw}"
+        );
+    }
+
+    #[test]
+    fn bandwidth_zero_for_single_eigenvalue() {
+        assert!(spectral_bandwidth(&[]).abs() < tolerances::ZERO_DETECTION);
+        assert!(spectral_bandwidth(&[7.0]).abs() < tolerances::ZERO_DETECTION);
+    }
+
+    #[test]
+    fn condition_number_identity_spectrum() {
+        let evals = vec![-1.0, 1.0];
+        let cond = spectral_condition_number(&evals);
+        assert!(
+            (cond - 1.0).abs() < tolerances::EXACT_F64,
+            "condition number of ±1 spectrum should be 1, got {cond}"
+        );
+    }
+
+    #[test]
+    fn condition_number_singular_spectrum() {
+        let evals = vec![0.0, 0.0, 1.0];
+        let cond = spectral_condition_number(&evals);
+        assert!(
+            cond.is_infinite(),
+            "condition number with zero eigenvalues should be inf"
+        );
+    }
+
+    #[test]
+    fn condition_number_well_conditioned() {
+        let evals = vec![1.0, 2.0, 3.0, 4.0];
+        let cond = spectral_condition_number(&evals);
+        assert!(
+            (cond - 4.0).abs() < tolerances::EXACT_F64,
+            "cond = max/min = 4/1 = 4, got {cond}"
+        );
+    }
+
+    #[test]
+    fn phase_classification_extended() {
+        assert_eq!(classify_phase(0.53), SpectralPhase::Extended);
+        assert_eq!(classify_phase(0.48), SpectralPhase::Extended);
+    }
+
+    #[test]
+    fn phase_classification_critical() {
+        assert_eq!(classify_phase(0.45), SpectralPhase::Critical);
+        assert_eq!(classify_phase(0.42), SpectralPhase::Critical);
+    }
+
+    #[test]
+    fn phase_classification_localized() {
+        assert_eq!(classify_phase(0.38), SpectralPhase::Localized);
+        assert_eq!(classify_phase(0.0), SpectralPhase::Localized);
+    }
+
+    #[test]
+    fn phase_display() {
+        assert_eq!(format!("{}", SpectralPhase::Extended), "extended");
+        assert_eq!(format!("{}", SpectralPhase::Critical), "critical");
+        assert_eq!(format!("{}", SpectralPhase::Localized), "localized");
+    }
+
+    #[test]
+    fn full_analysis_populates_cross_spring_fields() {
+        let mut rng = Rng::new(42);
+        let w = random_weight_matrix(8, 8, &mut rng);
+        let r = weight_spectral_analysis(&w, 8, 8);
+
+        assert!(
+            r.bandwidth > 0.0,
+            "bandwidth should be positive for random matrix"
+        );
+        assert!(
+            r.condition_number > 1.0,
+            "condition number should exceed 1 for random matrix"
+        );
+        assert!(
+            r.phase == SpectralPhase::Extended || r.phase == SpectralPhase::Critical,
+            "random matrix should be extended or critical, got {}",
+            r.phase
+        );
+    }
+
+    #[test]
+    fn decomposition_path_matches_direct() {
+        let mut rng = Rng::new(42);
+        let w = random_weight_matrix(6, 6, &mut rng);
+        let direct = weight_spectral_analysis(&w, 6, 6);
+
+        let h = weight_to_hamiltonian(&w, 6, 6);
+        let decomp = crate::eigh::eigh_householder_qr(&h, 12);
+        let via_decomp =
+            spectral_result_from_decomposition(decomp.eigenvalues, &decomp.eigenvectors, 12, 1.0);
+
+        assert!(
+            (direct.bandwidth - via_decomp.bandwidth).abs() < tolerances::EXACT_F64,
+            "bandwidth mismatch: direct={} decomp={}",
+            direct.bandwidth,
+            via_decomp.bandwidth
+        );
+        assert_eq!(
+            direct.phase, via_decomp.phase,
+            "phase mismatch: direct={} decomp={}",
+            direct.phase, via_decomp.phase
+        );
     }
 }

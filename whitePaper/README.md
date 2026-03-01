@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **3500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 83.6× faster than Python, 216 binaries, **200/200 validate\_all** (197 PASS + 2 pre-existing WGSL parse). coralForge unified. 139+ named tolerances, zero debt, 0 clippy warnings, 0 doc warnings. 685 lib + 9 integration + 43 forge tests. 44 upstream rewires, 130+ barracuda import sites. BarraCUDA CPU tier 3/3 coralForge, WDM+coralForge CPU↔GPU domain parity 39/39, metalForge NUCLEUS atomics 41/41
-**Date**: March 1, 2026 (Sessions 40–98 — nF-03 bC tier closure, WDM+coralForge CPU↔GPU domain parity, metalForge NUCLEUS atomics, coralForge rename, deep debt resolution, S98 coralForge nF-03 GPU tier closed)
+**Status**: Phase 5h+ — **3550+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 83.6× faster than Python, 218 binaries, **200/200 validate\_all** (198 PASS + 2 pre-existing WGSL parse). coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 746 lib + 9 integration + 43 forge tests. 44 upstream rewires, 130+ barracuda import sites. S100: deep debt execution, cross-spring rewire, 4 unused deps removed, +19 tests
+**Date**: March 1, 2026 (Sessions 40–100 — S100: deep debt execution + cross-spring rewiring)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–071, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V66 handoff (Session 99 — primal integration + nS-01 real data + NUCLEUS Tower validated) |
+| `wateringHole/handoffs/` | Cross-project | V67 handoff (Session 100 — deep debt + cross-spring rewire + barracuda evolution) |
 
 ---
 
@@ -357,5 +357,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 685 lib + 9 integration + 43 forge tests. 282 Python + 3080+ Rust/GPU = 3500+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 (9 bit-identical) · mG 384/384 (RTX 4070 + TITAN V NVK bit-identical) · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge · WDM+coralForge parity 39/39 · metalForge NUCLEUS 41/41. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 216 binaries, 200/200 validate\_all, 42 WGSL shaders (21 absorbed + 15 df64 coralForge). Pure Rust 83.6× faster. CPU↔Python parity 39/39 (1e-10). 139+ named tolerances, 0 clippy, 0 doc warnings. coralForge rename complete, deep debt resolved, V66 handoff. S99: NUCLEUS Tower validated, primal handoffs, nS-01 real-data pipeline.*
+*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 746 lib + 9 integration + 43 forge tests. 282 Python + 3280+ Rust/GPU = 3550+ total checks.
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 218 binaries, 200/200 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V67 handoff. S100: deep debt execution + cross-spring rewire.*
