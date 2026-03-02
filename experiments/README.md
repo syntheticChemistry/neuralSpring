@@ -93,6 +93,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 079 | Session 111 — Paper Queue CPU Benchmark Buildout & Full Pyramid Validation | Mar 2, 2026 | CPU bench expanded 11→14 domains (Papers 013, 023, 025). 3 new Python bench scripts. 31/31 PASS, 38.6× geomean. Full 10-tier pyramid validated. V73 handoff |
 | 080 | Session 112 — ToadStool S86 Rewire + Nautilus Absorption | Mar 2, 2026 | Pin f97fc2ae→2fee1969 (7 commits). `bingocube-nautilus` dep removed → `barracuda::nautilus`. DriftMonitor API migrated. validate\_toadstool\_s86\_rewire 27/27 PASS. 208/208 validate\_all. V74 handoff |
 | 081 | Session 113 — Cross-Spring S86 Evolution Benchmark + Modern Validation | Mar 2, 2026 | validate\_modern\_cross\_spring 57→68/68 PASS. bench\_cross\_spring\_modern 10→14/14 PASS. 6 cross-spring provenance chains. 5 ET₀ methods benchmarked. Nautilus brain/drift/bridge benchmarked |
+| 082 | Session 114 — Pure GPU Pyramid Complete (15/15 Phase 0++) | Mar 2, 2026 | validate\_gpu\_pure\_workload\_all 10→13/13 PASS (+SwarmNnGpu, Rk45AdaptiveGpu, HillGateGpu). Full validation pyramid green: Py 15/15, bC CPU 31/31 (39×), bC GPU 15/15, Pure GPU 13/13, metalForge 46+47/93. 208/208 validate\_all |
 
 ---
 
@@ -4246,6 +4247,49 @@ With ToadStool S86 absorbed and nautilus rewired, we need comprehensive validati
 - Cross-spring shader provenance is well-tracked: 15+ neuralSpring shaders absorbed into ToadStool, 3 explicitly credited in barracuda source comments.
 - Hydrology functions are pure math — sub-microsecond execution. Perfect for CPU-side pre-processing before GPU pipelines.
 - The nautilus evolutionary reservoir is fast (brain+observe in ~16µs total) but the SpectralNautilusBridge full roundtrip is ~950ms due to internal ESN training — a good candidate for GPU acceleration via BatchedEncoder in future.
+
+**Status**: COMPLETE
+
+---
+
+## Experiment 082: Pure GPU Pyramid Complete — 15/15 Phase 0++ (S114)
+
+**Date**: March 2, 2026
+**Session**: S114
+**ToadStool**: `2fee1969` (S86)
+
+### Motivation
+
+The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 (Regulatory), and 021 (Signal) were not included in `validate_gpu_pure_workload_all`. All GPU shaders existed upstream (`SwarmNnGpu`, `Rk45AdaptiveGpu`, `HillGateGpu`), they just needed wiring into the comprehensive pure GPU validator.
+
+### Procedure
+
+1. Surveyed full validation pyramid per paper — identified 3 gaps in Pure GPU tier
+2. Added `SwarmNnGpu` domain (Paper 015): NeuralNet controllers dispatched to GPU, action distribution validated
+3. Added `Rk45AdaptiveGpu` domain (Paper 020): Dormand-Prince f64 ODE step via typed GPU op, endpoint state validated
+4. Added `HillGateGpu` domain (Paper 021): two-input Hill function f64 grid, GPU mean vs CPU reference with 1e-6 tolerance
+5. Added `GPU_HILL_GATE_F64` tolerance constant (1e-6)
+6. Full quality gate: fmt ✓, clippy ✓ (0 warnings), 861 lib tests ✓, 208/208 validate_all ✓
+7. Confirmed all pyramid tiers independently: CPU bench 31/31 (39.0×), cross-system 46/46, mixed hardware 47/47
+
+### Results
+
+| Tier | Before | After |
+|------|--------|-------|
+| Python controls | 15/15 | 15/15 |
+| Pure Rust (Rs) | 15/15 | 15/15 |
+| BarraCUDA CPU bench | 31/31 (39.0× geomean) | 31/31 (39.0× geomean) |
+| BarraCUDA GPU dispatch | 15/15 | 15/15 |
+| **Pure GPU workload** | **10/10 (9 domains)** | **13/13 (12 domains)** |
+| metalForge mixed hardware | 46+47/93 | 46+47/93 |
+| validate_all | 208/208 | **208/208** |
+
+### Findings
+
+- `SwarmNnGpu` dispatch produces identical action distributions to CPU for NeuralNet controllers
+- `Rk45AdaptiveGpu` f64 pipeline produces finite, positive ODE solutions matching the adaptive Dormand-Prince integration
+- `HillGateGpu` f64 grid matches CPU `two_input_hill` to 1e-6 precision — transcendental `pow` in WGSL f64 is well-behaved
+- The full validation pyramid is now complete: every Phase 0++ paper (011-025) is validated at all 6 tiers
 
 **Status**: COMPLETE
 

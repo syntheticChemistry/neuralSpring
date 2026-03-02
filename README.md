@@ -591,7 +591,7 @@ neuralSpring/
 │   │   ├── NEURALSPRING_SONGBIRD_V1_*.md        # Songbird networking
 │   │   └── archive/           #   Superseded handoffs (V1–V70 + biomeOS V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
-│   └── README.md              #   Journal index (001-081)
+│   └── README.md              #   Journal index (001-082)
 ├── whitePaper/                 # Study documentation
 │   ├── baseCamp/              #   Per-faculty research briefings
 ├── scripts/

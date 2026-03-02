@@ -226,6 +226,10 @@ pub const GPU_MODES_L2_F32: f64 = 1e-3;
 /// agreement.  1e-3 accommodates GPU Hill vs CPU reference.
 pub const GPU_HILL_F32: f64 = 1e-3;
 
+/// `HillGateGpu` f64 grid: two-input Hill function computed in f64 on GPU.
+/// Tighter than f32 path but still needs transcendental tolerance for `pow`.
+pub const GPU_HILL_GATE_F64: f64 = 1e-6;
+
 // ═══════════════════════════════════════════════════════════════════
 // ML inference pipeline tolerances (f32 multi-op chains)
 // ═══════════════════════════════════════════════════════════════════

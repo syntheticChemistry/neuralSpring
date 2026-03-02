@@ -26,8 +26,11 @@
 //! |--------|--------|--------|----------|
 //! | Fitness | 011-013 | `BatchFitnessGpu` | mean(fitness) |
 //! | Multi-obj | 014 | `MultiObjFitnessGpu` | mean(ranks) |
+//! | Swarm NN | 015 | `SwarmNnGpu` | action distribution |
 //! | HMM | 016-018 | `HmmBatchForwardF64` | mean(log-lik) |
 //! | Spatial | 019 | `SpatialPayoffGpu` | mean(payoff) |
+//! | RK4/RK45 | 020 | `Rk45AdaptiveGpu` | endpoint state |
+//! | Hill gate | 021 | `HillGateGpu` | mean(response) |
 //! | Spectral | 022-023 | `BatchIprGpu` | mean(IPR) |
 //! | Hamming | 017 | `PairwiseHammingGpu` | mean(dist) |
 //! | L2 | 012 | `PairwiseL2Gpu` | mean(dist) |
@@ -48,17 +51,24 @@
     clippy::cast_sign_loss,
     clippy::cast_lossless,
     clippy::needless_range_loop,
-    clippy::similar_names
+    clippy::similar_names,
+    clippy::suboptimal_flops,
+    clippy::items_after_statements,
+    clippy::doc_markdown
 )]
 
+use barracuda::ops::bio::hill_gate::{HillGateGpu, HillGateParams};
+use barracuda::ops::bio::swarm_nn::SwarmNnParams;
 use barracuda::ops::bio::{
     BatchFitnessGpu, HmmBatchForwardF64, LocusVarianceGpu, MultiObjFitnessGpu, PairwiseHammingGpu,
-    PairwiseJaccardGpu, PairwiseL2Gpu, SpatialPayoffGpu,
+    PairwiseJaccardGpu, PairwiseL2Gpu, SpatialPayoffGpu, SwarmNnGpu,
 };
 use barracuda::spectral::BatchIprGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::hmm::Hmm;
 use neural_spring::rng::Rng;
+use neural_spring::signal_integration::two_input_hill;
+use neural_spring::swarm_robotics::{create_controller, neural_forward, ControllerType};
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
@@ -83,8 +93,11 @@ async fn main() {
 
     validate_fitness(&mut h, &gpu);
     validate_multi_obj(&mut h, &gpu);
+    validate_swarm_nn(&mut h, &gpu);
     validate_hmm(&mut h, &gpu);
     validate_spatial_payoff(&mut h, &gpu);
+    validate_rk45_regulatory(&mut h, &gpu);
+    validate_hill_gate_signal(&mut h, &gpu);
     validate_batch_ipr(&mut h, &gpu);
     validate_hamming(&mut h, &gpu);
     validate_l2(&mut h, &gpu);
@@ -94,7 +107,7 @@ async fn main() {
 
     let elapsed = t0.elapsed();
     eprintln!(
-        "\n  total GPU pure-workload time: {:.1}ms (9 domains + determinism)",
+        "\n  total GPU pure-workload time: {:.1}ms (12 domains + determinism)",
         elapsed.as_secs_f64() * 1000.0,
     );
 
@@ -219,7 +232,254 @@ fn validate_multi_obj(h: &mut ValidationHarness, gpu: &Gpu) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// 3. HMM Forward (Papers 016–018)
+// 3. Swarm NN Forward (Paper 015)
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_swarm_nn(h: &mut ValidationHarness, gpu: &Gpu) {
+    let n_ctrl = 4_u32;
+    let n_eval = 8_u32;
+    let input_dim = 1_u32;
+    let hidden_dim = 4_u32;
+    let output_dim = 5_u32;
+
+    let mut rng = Rng::new(55);
+    let controllers: Vec<_> = (0..n_ctrl)
+        .map(|_| create_controller(ControllerType::NeuralNet, &mut rng))
+        .collect();
+
+    let all_weights: Vec<f64> = controllers
+        .iter()
+        .flat_map(|c| c.params.iter().copied())
+        .collect();
+    let sense: Vec<f64> = (0..n_eval).map(|i| (i as f64) * 0.1).collect();
+
+    let cpu_actions: Vec<u32> = controllers
+        .iter()
+        .flat_map(|c| (0..n_eval).map(|i| neural_forward(&c.params, (i as f64) * 0.1) as u32))
+        .collect();
+    let cpu_mean = cpu_actions.iter().sum::<u32>() as f64 / cpu_actions.len() as f64;
+
+    let op = SwarmNnGpu::new(Arc::clone(gpu.wgpu_device()));
+    let device = gpu.device();
+
+    let inputs_f64: Vec<f64> = (0..n_ctrl).flat_map(|_| sense.iter().copied()).collect();
+
+    let w_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("swarm_w"),
+        contents: bytemuck::cast_slice(&all_weights),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let in_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("swarm_in"),
+        contents: bytemuck::cast_slice(&inputs_f64),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let n_actions = (n_ctrl * n_eval) as usize;
+    let act_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("swarm_act"),
+        size: (n_actions * 4) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    op.dispatch(
+        &w_buf,
+        &in_buf,
+        &act_buf,
+        &SwarmNnParams {
+            n_controllers: n_ctrl,
+            n_evals: n_eval,
+            input_dim,
+            hidden_dim,
+            output_dim,
+            _pad0: 0,
+            _pad1: 0,
+            _pad2: 0,
+        },
+    );
+
+    let staging = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("swarm_staging"),
+        size: (n_actions * 4) as u64,
+        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    let mut encoder =
+        device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    encoder.copy_buffer_to_buffer(&act_buf, 0, &staging, 0, (n_actions * 4) as u64);
+    gpu.queue().submit(std::iter::once(encoder.finish()));
+    let slice = staging.slice(..);
+    let (tx, rx) = std::sync::mpsc::channel();
+    slice.map_async(wgpu::MapMode::Read, move |result| {
+        tx.send(result).ok();
+    });
+    device.poll(wgpu::Maintain::Wait);
+    match rx.recv() {
+        Ok(Ok(())) => {
+            let data = slice.get_mapped_range();
+            let gpu_actions: Vec<u32> = bytemuck::cast_slice(&data).to_vec();
+            let gpu_mean = gpu_actions.iter().sum::<u32>() as f64 / gpu_actions.len() as f64;
+            h.check_bool(
+                &format!(
+                    "swarm_nn {n_ctrl}×{n_eval}: GPU mean action={gpu_mean:.2} (CPU={cpu_mean:.2}), all in [0,{output_dim})"
+                ),
+                gpu_actions.iter().all(|&a| a < output_dim),
+            );
+        }
+        _ => h.check_bool("swarm_nn: GPU readback failed", false),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 3b. RK45 Adaptive ODE (Paper 020 — Regulatory Network)
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_rk45_regulatory(h: &mut ValidationHarness, gpu: &Gpu) {
+    use barracuda::ops::rk45_adaptive::Rk45AdaptiveGpu;
+
+    let dim = 4_u32;
+    let n_systems = 4_u32;
+    let n_coeffs = dim * 3;
+    let dt = 0.01_f64;
+
+    let state: Vec<f64> = vec![0.1, 0.2, 0.3, 0.4]
+        .into_iter()
+        .cycle()
+        .take((dim * n_systems) as usize)
+        .collect();
+    let coeffs: Vec<f64> = (0..n_systems)
+        .flat_map(|_| (0..dim).flat_map(|d| vec![1.0, 0.5, ((d + 1) % dim) as f64]))
+        .collect();
+
+    let total = (dim * n_systems) as usize;
+    let device = gpu.device();
+
+    let op = Rk45AdaptiveGpu::new(Arc::clone(gpu.wgpu_device()));
+    let state_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("rk_state"),
+        contents: bytemuck::cast_slice(&state),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let coeff_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("rk_coeff"),
+        contents: bytemuck::cast_slice(&coeffs),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("rk_out"),
+        size: (total * 8) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    let err_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("rk_err"),
+        size: (total * 8) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    let scratch_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("rk_scratch"),
+        size: (total * 8 * 8) as u64,
+        usage: wgpu::BufferUsages::STORAGE,
+        mapped_at_creation: false,
+    });
+
+    op.dispatch(
+        &state_buf,
+        &coeff_buf,
+        &out_buf,
+        &err_buf,
+        &scratch_buf,
+        n_systems,
+        dim,
+        n_coeffs,
+        dt,
+    );
+
+    match gpu.read_buffer_f64(&out_buf, total) {
+        Ok(gpu_v) => {
+            let gpu_mean = gpu_v.iter().sum::<f64>() / gpu_v.len() as f64;
+            h.check_bool(
+                &format!("rk45 {n_systems}×{dim}: GPU mean={gpu_mean:.6}, all finite"),
+                gpu_v.iter().all(|v| v.is_finite()) && gpu_mean > 0.0,
+            );
+        }
+        Err(e) => h.check_bool(&format!("rk45: {e}"), false),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 3c. Hill Gate (Paper 021 — Signal Integration)
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_hill_gate_signal(h: &mut ValidationHarness, gpu: &Gpu) {
+    let n_a = 8_u32;
+    let n_b = 8_u32;
+    let n_out = (n_a * n_b) as usize;
+
+    let a_vals: Vec<f64> = (0..n_a).map(|i| (i as f64) * 0.15).collect();
+    let b_vals: Vec<f64> = (0..n_b).map(|i| (i as f64) * 0.12 + 0.05).collect();
+
+    let cpu_mean = {
+        let mut sum = 0.0_f64;
+        for &a in &a_vals {
+            for &b in &b_vals {
+                sum += two_input_hill(a, b, 1.0, 0.5, 0.5, 2.0, 2.0);
+            }
+        }
+        sum / n_out as f64
+    };
+
+    let op = HillGateGpu::new(Arc::clone(gpu.wgpu_device()));
+    let device = gpu.device();
+
+    let a_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hill_a"),
+        contents: bytemuck::cast_slice(&a_vals),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let b_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hill_b"),
+        contents: bytemuck::cast_slice(&b_vals),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("hill_out"),
+        size: (n_out * 8) as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    let params = HillGateParams {
+        n_a,
+        n_b,
+        mode: 1,
+        _pad: 0,
+        k_a: 0.5,
+        k_b: 0.5,
+        n_a_exp: 2.0,
+        n_b_exp: 2.0,
+        vmax: 1.0,
+        _pad2: 0.0,
+    };
+    op.dispatch(&a_buf, &b_buf, &out_buf, &params);
+
+    match gpu.read_buffer_f64(&out_buf, n_out) {
+        Ok(gpu_v) => {
+            let gpu_mean = gpu_v.iter().sum::<f64>() / gpu_v.len() as f64;
+            h.check_abs(
+                &format!("hill_gate 8×8 grid: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
+                gpu_mean,
+                cpu_mean,
+                tolerances::GPU_HILL_GATE_F64,
+            );
+        }
+        Err(e) => h.check_bool(&format!("hill_gate: {e}"), false),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 4. HMM Forward (Papers 016–018)
 // ═══════════════════════════════════════════════════════════════════
 
 fn validate_hmm(h: &mut ValidationHarness, gpu: &Gpu) {
