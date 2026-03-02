@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 2, 2026 (Sessions 61–111)
-**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **207/207 validate\_all** (226 binaries), 861 lib tests. S111: 14-domain CPU benchmark (38.6× vs Python/NumPy), full 10-tier GPU pyramid validated, V73 handoff. S109: Deep debt resolution. S105: Deep Evolution + baseCamp Paper 12 (Anderson immunological signaling). MultiHeadWdmClassifier, TrainingMonitor, Dispatcher::kl_divergence. Sub-thesis 06 (B-16..B-21): Gonzales catalog + Fajgenbaum bridge + dimensional promotion-collapse duality
+**Last Updated**: March 2, 2026 (Sessions 61–113)
+**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **208/208 validate\_all** (226 binaries), 861 lib tests. S111: 14-domain CPU benchmark (38.6× vs Python/NumPy), full 10-tier GPU pyramid validated, V74 handoff. S109: Deep debt resolution. S105: Deep Evolution + baseCamp Paper 12 (Anderson immunological signaling). MultiHeadWdmClassifier, TrainingMonitor, Dispatcher::kl_divergence. Sub-thesis 06 (B-16..B-21): Gonzales catalog + Fajgenbaum bridge + dimensional promotion-collapse duality
 
 ## Purpose
 

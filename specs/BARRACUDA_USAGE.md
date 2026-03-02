@@ -1002,7 +1002,7 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 
 ### Audit Results
 
-Full barracuda usage audit confirmed: 25+ submodules consumed, ~90 import sites across 60+ files,
+Full barracuda usage audit confirmed: 25+ submodules consumed, 205 files with barracuda imports,
 zero duplicate math. Every barracuda primitive that exists is used where applicable.
 
 ### Changes
@@ -1174,4 +1174,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 2, 2026. Session 109: 25+ submodules, 60+ functions, ~90 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via bingocube-nautilus. V72 handoff.
+*BarraCUDA usage audit — neuralSpring, March 2, 2026. Session 109: 25+ submodules, 60+ functions, ~90 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via bingocube-nautilus. V74 handoff.

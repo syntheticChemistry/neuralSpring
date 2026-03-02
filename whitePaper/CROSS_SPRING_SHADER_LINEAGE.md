@@ -6,7 +6,7 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `f97fc2ae` (Sessions 60–111, S111: full 10-tier GPU pyramid, 14-domain CPU bench, V73 handoff. Mar 2, 2026) |
+| ToadStool HEAD | `2fee1969` (Sessions 60–113, S111: full 10-tier GPU pyramid, 14-domain CPU bench, V74 handoff. Mar 2, 2026) |
 | Last updated | March 2, 2026 (Sessions 40–111) |
 | BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S70+++) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
@@ -213,8 +213,8 @@
 | Validator | Checks | Result |
 |-----------|--------|--------|
 | `validate_all` | 202 | **202/202 PASS** |
-| `validate_cross_spring_evolution` | 52 | **52/52 PASS** |
-| `bench_cross_spring_evolution` | 28 | **28/28 PASS** |
+| `validate_cross_spring_evolution` | 68 | **68/68 PASS** |
+| `bench_cross_spring_evolution` | 14 | **14/14 PASS** |
 | `cargo test --lib` | 861 | **861/861 PASS** |
 | `cargo clippy --all-targets -- -D warnings` | — | 0 warnings |
 | `BandwidthTier` detection | RTX 4070 | `PciE4x16` detected |
@@ -616,8 +616,8 @@ Pearson gains f64 precision with modest speedup.
 | `cargo clippy --workspace -- -D warnings` (pedantic + nursery) | 0 warnings |
 | `cargo test --workspace` | 604 lib + 43 forge + 9 integration PASS |
 | `validate_all` | **150/150 PASS** |
-| `validate_cross_spring_evolution` | **52/52 PASS** |
-| `bench_cross_spring_evolution` | **28/28 PASS** |
+| `validate_cross_spring_evolution` | **68/68 PASS** |
+| `bench_cross_spring_evolution` | **14/14 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels ≈ parity** |
 
 ### Evolution Timeline Update
@@ -656,7 +656,7 @@ Feb 26  Session 68: ToadStool S60–S70+++ sync (1dd7e338)
         Sessions 78–79: ToadStool S66 absorption + complete cross-spring rewiring
           - +6 rewires: mae, shannon, hill×2, l2_distance, fit_linear
           - All 9 metalForge f64 shaders aligned to compile_shader_df64 convention
-          - Cross-spring validator: 52/52 PASS, benchmark: 28/28 PASS
+          - Cross-spring validator: 68/68 PASS, benchmark: 14/14 PASS
           - 42 total upstream rewires, V44 handoff
 ```
 
@@ -744,8 +744,8 @@ Hamming 20.85× regression: upstream f64 path on small sizes (investigation targ
 | `cargo clippy --all-targets -- -D warnings` | 0 warnings |
 | `cargo test --lib` | **668/668 PASS** |
 | `validate_all` | **202/202 PASS** |
-| `validate_cross_spring_evolution` | **52/52 PASS** |
-| `bench_cross_spring_evolution` | **28/28 PASS** |
+| `validate_cross_spring_evolution` | **68/68 PASS** |
+| `bench_cross_spring_evolution` | **14/14 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels** |
 | `bench_rewire_evolution` | 3/3 provenance validated |
 | `bench_gpu_kernels` | **10/10 scale points** |

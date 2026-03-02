@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: March 2, 2026 (Sessions 44–111 — 207/207 validate_all, 14-domain CPU bench 38.6×, full 10-tier GPU pyramid, V73 handoff)
+**Last Updated**: March 2, 2026 (Sessions 44–113 — 208/208 validate_all, 14-domain CPU bench 38.6×, full 10-tier GPU pyramid, V74 handoff)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---

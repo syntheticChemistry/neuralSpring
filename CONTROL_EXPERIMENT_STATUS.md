@@ -23,7 +23,7 @@
 **Coverage**: 93.5%+ line coverage (llvm-cov, 861 lib tests), 139+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6% | anderson_localization expanded (+10 tests S100) | gpu_dispatch/basecamp expanded (+8 tests S100)
 **Benchmarks**: Pure Rust **38.6× faster** than Python/NumPy (geomean, **14 domains** — all 15 Phase 0++ papers; fastest 1028× multi-obj; 2 BLAS-bound domains where LAPACK beats pure Rust at 64×64 eigensolve) | CPU→GPU portability proven (9/9, 7 domains)
 **ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | HEAD `2fee1969` (S86: +68 ComputeDispatch ops, nautilus absorbed, BatchedEncoder, hydrology module, multi-GPU interconnect) | **44 upstream rewires** + 205 barracuda import files, 25+ submodules | V74 handoff (S86 rewire + nautilus absorption)
-**Cross-Spring**: 52/52 evolution checks PASS (S79) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
+**Cross-Spring**: 68/68 evolution checks PASS (S113) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
 
 ---

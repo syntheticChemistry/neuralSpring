@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V74** | `handoffs/NEURALSPRING_TOADSTOOL_V74_S112_S86_REWIRE_NAUTILUS_ABSORPTION_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S112 ToadStool S86 rewire. Pin f97fc2ae→2fee1969 (7 commits). Nautilus absorbed into barracuda::nautilus (bingocube dep removed). DriftMonitor API migrated. 208/208 validate_all, 27/27 S86 rewire validator |
+| **V75** | `handoffs/NEURALSPRING_TOADSTOOL_V75_S113_CROSS_SPRING_EVOLUTION_BENCHMARK_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S113 cross-spring S86 evolution benchmark. validate_modern_cross_spring 68/68, bench_cross_spring_modern 14/14. 6-spring provenance (hS/wS/aS/gS/bC/nS). 5 hydrology ET₀. Paper queue coverage: 25 papers full-stack. 208/208 validate_all |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V73 + biomeOS V1). V72 (deep debt resolution), V73 (paper queue + GPU pyramid).
+Superseded handoffs: `handoffs/archive/` (V1–V74 + biomeOS V1). V73 (paper queue + GPU pyramid), V74 (S86 rewire + nautilus absorption).
 
 ## Conventions
 
