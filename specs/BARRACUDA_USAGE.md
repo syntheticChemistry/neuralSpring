@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 2, 2026 (Sessions 109–112 — 208/208 validate_all, ToadStool S86 rewire (2fee1969), nautilus absorbed into barracuda::nautilus, bingocube dep removed. 205 files with barracuda imports, 25+ submodules, 44 upstream rewires. V74 ToadStool handoff)
+**Last Updated**: March 2, 2026 (Sessions 109–115 — 210/210 validate_all, ToadStool S86 rewire (2fee1969), nautilus absorbed into barracuda::nautilus, bingocube dep removed. 205 files with barracuda imports, 25+ submodules, 44 upstream rewires. V76 ToadStool handoff)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`), ~700 WGSL shaders
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1170,8 +1170,8 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 | Barracuda crate | 0.2.0, ~700 WGSL shaders |
 | Feature | `unidirectional` |
 | Lib tests | 861 |
-| Binaries | 226 |
+| Binaries | 229 |
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 2, 2026. Session 109: 25+ submodules, 60+ functions, ~90 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via bingocube-nautilus. V74 handoff.
+*BarraCUDA usage audit — neuralSpring, March 2, 2026. Session 109: 25+ submodules, 60+ functions, ~90 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via bingocube-nautilus. V76 handoff.
