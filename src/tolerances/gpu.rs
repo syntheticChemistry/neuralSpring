@@ -13,6 +13,11 @@ use super::{CROSS_LANGUAGE, EXACT_F64, ZERO_DETECTION};
 // ═══════════════════════════════════════════════════════════════════
 
 /// `BarraCUDA` Tensor matmul chain for eco dynamics (f32 accumulation).
+///
+/// Eco-dynamics fitness evaluation chains `matmul` → `ReLU` → `matmul` on f32
+/// GPU tensors.  Each matmul (inner dim ≤ 32) accumulates `~√32·eps_f32 ≈ 7e-7`
+/// per element, and chaining two layers doubles the error budget.
+/// 1e-3 provides margin for future larger inner dimensions.
 pub const BARRACUDA_GPU_ECO_F32: f64 = 1e-3;
 
 /// ‖\[A,B\]‖_F / ‖A‖‖B‖ threshold for approximate commutativity.
@@ -383,6 +388,11 @@ pub const CPU_NORMAL_DISTANCE_SYMMETRIC_F64: f64 = 1e-6;
 pub const GPU_SOFTMAX_DISPATCH_F32: f64 = 0.01;
 
 /// GPU softmax sum-to-one tolerance.
+///
+/// After exp/sum/div on f32 GPU, the row sum deviates from 1.0 by
+/// `O(n·eps_f32)` where n is the vector length.  For n ≤ 256 this is ~3e-5,
+/// but the f64→f32→f64 round-trip widens the gap.  0.01 is conservative;
+/// observed max deviation ~1e-3 on llvmpipe/NVK backends.
 pub const GPU_SOFTMAX_SUM_F32: f64 = 0.01;
 
 /// GPU Boltzmann distribution vs CPU max element-wise difference.
@@ -391,9 +401,17 @@ pub const GPU_SOFTMAX_SUM_F32: f64 = 0.01;
 pub const GPU_BOLTZMANN_F32: f64 = 0.05;
 
 /// GPU L2 distance vs CPU absolute tolerance.
+///
+/// L2 = sqrt(sum((a-b)²)).  The squared-difference accumulation on f32
+/// loses ~2 digits vs f64 for dim ≤ 64, and the final sqrt introduces
+/// one additional rounding step.  0.01 covers observed max diff ~5e-3.
 pub const GPU_L2_DISPATCH_F32: f64 = 0.01;
 
 /// GPU mean reduction vs CPU absolute tolerance.
+///
+/// Single-pass sum/N on f32 GPU.  For n ≤ 256 elements of O(1) magnitude,
+/// the f32 summation error is `~n·eps_f32·max(|x|) ≈ 3e-5`, well within
+/// 0.01.  The wider tolerance accommodates driver-dependent reduction order.
 pub const GPU_MEAN_DISPATCH_F32: f64 = 0.01;
 
 /// GPU variance vs CPU absolute tolerance.
@@ -419,18 +437,43 @@ pub const GPU_PEARSON_F32: f64 = 0.05;
 pub const GPU_CHI_SQUARED_F32: f64 = 0.5;
 
 /// GPU GELU activation absolute tolerance.
+///
+/// GELU(x) = x·Φ(x) uses tanh approximation on f32 GPU.  WGSL `tanh`
+/// polynomial coefficients differ from CPU libm, yielding ~3 digits of
+/// agreement.  0.01 covers the observed max element-wise diff ~5e-3
+/// across the input range [-3, 3] on validated hardware.
 pub const GPU_GELU_F32: f64 = 0.01;
 
 /// GPU HMM forward step normalization tolerance.
+///
+/// Each HMM forward step multiplies the alpha vector by a transition matrix
+/// and normalizes.  On f32 GPU, the matrix-vector product plus normalization
+/// loses ~2 digits vs f64 CPU per step.  For single-step validation (T=1),
+/// 0.01 matches the matmul tolerance.
 pub const GPU_HMM_STEP_F32: f64 = 0.01;
 
 /// GPU sum reduction absolute tolerance.
+///
+/// Parallel f32 sum reduction has non-deterministic addition order.  For
+/// n ≤ 256 elements of magnitude O(1..10), the worst-case absolute
+/// deviation from sequential f64 sum reaches ~0.05.  0.1 provides margin
+/// for larger arrays and mixed-sign cancellation.
 pub const GPU_SUM_DISPATCH_F32: f64 = 0.1;
 
 /// GPU max reduction absolute tolerance.
+///
+/// Max reduction on f32 should be exact (no accumulation), but the
+/// f64→f32→f64 round-trip truncates mantissa bits.  For values of
+/// magnitude O(1..10), the round-trip error is `~eps_f32·|x| ≈ 1e-6`.
+/// 0.1 is generous to accommodate edge cases with large magnitudes.
 pub const GPU_MAX_DISPATCH_F32: f64 = 0.1;
 
 /// GPU KL divergence absolute tolerance.
+///
+/// KL(P||Q) = Σ p·ln(p/q) involves log and multiply-accumulate on f32.
+/// The log introduces ~1 ULP error per element, and the sum accumulates
+/// `O(n·eps_f32)` additional rounding.  For n ≤ 64 with distributions
+/// bounded away from zero, the observed diff is ~1e-3.
 pub const GPU_KL_DISPATCH_F32: f64 = 0.01;
 
 /// Multi-objective fitness GPU vs CPU max element-wise difference.

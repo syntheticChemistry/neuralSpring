@@ -49,7 +49,10 @@ fn validate_bridge_lifecycle(h: &mut ValidationHarness) {
     let bridge = SpectralNautilusBridge::new("lifecycle-test");
     h.check_bool("bridge: creation succeeds", true);
     h.check_bool("bridge: starts untrained", !bridge.is_trained());
-    h.check_bool("bridge: starts with 0 observations", bridge.observation_count() == 0);
+    h.check_bool(
+        "bridge: starts with 0 observations",
+        bridge.observation_count() == 0,
+    );
     h.check_bool("bridge: not drifting initially", !bridge.is_drifting());
 }
 
@@ -92,10 +95,16 @@ fn validate_spectral_regime_detection(h: &mut ValidationHarness) {
 
     // Predict in each regime
     let pred_ext = bridge.predict(2.0);
-    h.check_bool("spectral: extended regime prediction exists", pred_ext.is_some());
+    h.check_bool(
+        "spectral: extended regime prediction exists",
+        pred_ext.is_some(),
+    );
 
     let pred_loc = bridge.predict(6.0);
-    h.check_bool("spectral: localized regime prediction exists", pred_loc.is_some());
+    h.check_bool(
+        "spectral: localized regime prediction exists",
+        pred_loc.is_some(),
+    );
 
     if let (Some((ipr_ext, _, _)), Some((ipr_loc, _, _))) = (pred_ext, pred_loc) {
         h.check_bool(
@@ -117,10 +126,18 @@ fn validate_esn_vs_nautilus_comparison(h: &mut ValidationHarness) {
     // Identical training data
     for i in 0..12 {
         let w = (i as f64).mul_add(0.6, 1.0);
-        let lsr = if w < 3.5 { (w - 1.0).mul_add(-0.02, 0.53) } else { (7.0 - w).max(0.0).mul_add(0.01, 0.39) };
+        let lsr = if w < 3.5 {
+            (w - 1.0).mul_add(-0.02, 0.53)
+        } else {
+            (7.0 - w).max(0.0).mul_add(0.01, 0.39)
+        };
         let lam = (0.2 / w).max(0.001);
         let bw = w * 0.28;
-        let ipr = if w < 3.5 { 0.01 + w * 0.005 } else { (w - 3.5).mul_add(0.15, 0.2) };
+        let ipr = if w < 3.5 {
+            0.01 + w * 0.005
+        } else {
+            (w - 3.5).mul_add(0.15, 0.2)
+        };
         bridge_a.observe_spectral(w, lsr, lam, bw, ipr);
         bridge_b.observe_spectral(w, lsr, lam, bw, ipr);
     }
@@ -128,7 +145,10 @@ fn validate_esn_vs_nautilus_comparison(h: &mut ValidationHarness) {
     let mse_a = bridge_a.train();
     let mse_b = bridge_b.train();
 
-    h.check_bool("comparison: both bridges train successfully", mse_a.is_some() && mse_b.is_some());
+    h.check_bool(
+        "comparison: both bridges train successfully",
+        mse_a.is_some() && mse_b.is_some(),
+    );
 
     // Both should produce reasonable predictions
     let pred_a = bridge_a.predict(4.0);
@@ -140,7 +160,10 @@ fn validate_esn_vs_nautilus_comparison(h: &mut ValidationHarness) {
 
     // Screen candidates — the transition region should rank highly
     let scored = bridge_a.screen_candidates(&[1.0, 2.0, 3.5, 5.0, 7.0]);
-    h.check_bool("comparison: candidate screening produces ranked list", scored.len() == 5);
+    h.check_bool(
+        "comparison: candidate screening produces ranked list",
+        scored.len() == 5,
+    );
 
     let top_beta = scored[0].0;
     eprintln!("  highest-information disorder: W={top_beta:.1}");
@@ -197,10 +220,7 @@ fn validate_drift_monitoring(h: &mut ValidationHarness) {
     h.check_bool("drift: monitor accessible", !bridge.is_drifting());
 
     let monitor = bridge.drift_monitor();
-    h.check_bool(
-        "drift: history starts empty",
-        monitor.history.is_empty(),
-    );
+    h.check_bool("drift: history starts empty", monitor.history.is_empty());
     h.check_bool(
         "drift: consecutive_drift starts at 0",
         monitor.consecutive_drift == 0,
@@ -227,10 +247,7 @@ fn validate_concept_edge_detection(h: &mut ValidationHarness) {
     bridge.train();
     let edges = bridge.detect_concept_edges();
 
-    h.check_bool(
-        "edges: detection completes without panic",
-        true,
-    );
+    h.check_bool("edges: detection completes without panic", true);
     eprintln!("  detected edges: {}", edges.len());
     for (beta, err) in &edges {
         eprintln!("    W={beta:.2}, LOO error={err:.4}");

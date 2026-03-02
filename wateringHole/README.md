@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V69** | `handoffs/NEURALSPRING_TOADSTOOL_V69_S102_NAUTILUS_BRIDGE_BARRACUDA_REVIEW_MAR01_2026.md` | Mar 1, 2026 | S101–102 Nautilus Shell cross-spring bridge, comprehensive BarraCUDA usage review (198 import sites, 58+ stats functions), GPU stats parity, 2 upstream shader bugs, cross-spring evolution map |
+| **V70** | `handoffs/NEURALSPRING_TOADSTOOL_V70_S104_FFT_FIX_FULL_GREEN_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S104 full validation chain 202/202 PASS. 3 barracuda fixes: FFT buffer selection, `enable f64;` naga strip, `asin_df64` iterative. NUCLEUS Tower socket fix. Wright-Fisher + coral forge GPU pipelines unblocked. 90.49% coverage |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V68 + biomeOS V1, 83 files).
+Superseded handoffs: `handoffs/archive/` (V1–V69 + biomeOS V1, 84 files).
 
 ## Conventions
 

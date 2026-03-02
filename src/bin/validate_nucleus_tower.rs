@@ -15,7 +15,6 @@
 #![allow(
     clippy::pedantic,
     clippy::nursery,
-    clippy::expect_used,
     clippy::unwrap_used,
     clippy::too_many_lines,
     clippy::cast_precision_loss,
@@ -103,18 +102,32 @@ async fn main() {
     let mut h = ValidationHarness::new("NUCLEUS Tower Mode Integration");
 
     let socket_dir = std::env::temp_dir().join("biomeos-tower-test");
-    std::fs::create_dir_all(&socket_dir).expect("create socket dir");
-    let socket_path = socket_dir.join("neuralspring-test.sock");
+    if let Err(e) = std::fs::create_dir_all(&socket_dir) {
+        eprintln!("  Failed to create socket directory: {e}");
+        h.check_abs("setup.socket_dir", 0.0, 1.0, 0.5);
+        h.finish();
+    }
+    let socket_path = socket_dir.join("neural-spring-test.sock");
 
     if socket_path.exists() {
-        std::fs::remove_file(&socket_path).expect("remove stale socket");
+        let _ = std::fs::remove_file(&socket_path);
     }
 
-    let primal_bin = std::env::current_exe()
-        .expect("current_exe")
-        .parent()
-        .expect("exe parent")
-        .join("neuralspring_primal");
+    let primal_bin = match std::env::current_exe() {
+        Ok(exe) => match exe.parent() {
+            Some(dir) => dir.join("neuralspring_primal"),
+            None => {
+                eprintln!("  current_exe has no parent directory");
+                h.check_abs("setup.primal_bin", 0.0, 1.0, 0.5);
+                h.finish();
+            }
+        },
+        Err(e) => {
+            eprintln!("  Failed to resolve current_exe: {e}");
+            h.check_abs("setup.primal_bin", 0.0, 1.0, 0.5);
+            h.finish();
+        }
+    };
 
     if !primal_bin.exists() {
         eprintln!(
@@ -126,7 +139,7 @@ async fn main() {
         h.finish();
     }
 
-    let mut child = tokio::process::Command::new(&primal_bin)
+    let mut child = match tokio::process::Command::new(&primal_bin)
         .env("BIOMEOS_SOCKET_DIR", &socket_dir)
         .env("FAMILY_ID", "test")
         .env("NEURALSPRING_BACKEND", "cpu")
@@ -134,7 +147,14 @@ async fn main() {
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .expect("spawning neuralspring_primal");
+    {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("  Failed to spawn neuralspring_primal: {e}");
+            h.check_abs("setup.spawn_primal", 0.0, 1.0, 0.5);
+            h.finish();
+        }
+    };
 
     // Wait for socket with Dispatcher init time
     let mut retries = 0;

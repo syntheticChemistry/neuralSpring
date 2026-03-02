@@ -40,8 +40,8 @@ pub fn handle_evoformer_block(
     let mut msa: Vec<f64> = (0..msa_len).map(|_| rng.normal()).collect();
     let mut pair: Vec<f64> = (0..pair_len).map(|_| rng.normal()).collect();
 
-    let msa_input: Vec<f64> = msa.clone();
-    let pair_input: Vec<f64> = pair.clone();
+    let msa_fingerprint: f64 = msa.iter().map(|x| x * x).sum();
+    let pair_fingerprint: f64 = pair.iter().map(|x| x * x).sum();
 
     // Step 1: MSA row attention with pair bias
     let w_q = rand_vec(&mut rng, c_msa * n_heads * head_dim);
@@ -132,14 +132,14 @@ pub fn handle_evoformer_block(
     let tri_attn =
         triangle_attention_scores(&tri_q, &tri_k, &tri_bias, n_res, n_res, n_heads, head_dim);
 
-    let msa_changed = msa
-        .iter()
-        .zip(&msa_input)
-        .any(|(a, b)| (a - b).abs() > 1e-15);
-    let pair_changed = pair
-        .iter()
-        .zip(&pair_input)
-        .any(|(a, b)| (a - b).abs() > 1e-15);
+    let msa_changed = {
+        let after: f64 = msa.iter().map(|x| x * x).sum();
+        (after - msa_fingerprint).abs() > 1e-15
+    };
+    let pair_changed = {
+        let after: f64 = pair.iter().map(|x| x * x).sum();
+        (after - pair_fingerprint).abs() > 1e-15
+    };
 
     JsonRpcResponse::success(
         id,

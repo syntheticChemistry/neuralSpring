@@ -144,22 +144,23 @@ pub fn spectral_entropy(eigenvalues: &[f64]) -> f64 {
 pub fn weight_spectral_analysis(weights: &[f64], m: usize, n: usize) -> WeightSpectralResult {
     let h = weight_to_hamiltonian(weights, m, n);
     let dim = m + n;
-    let decomp = eigh_householder_qr(&h, dim);
+    let mut decomp = eigh_householder_qr(&h, dim);
 
-    let mut eigenvalues = decomp.eigenvalues.clone();
-    eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    decomp
+        .eigenvalues
+        .sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
     let ipr_val = mean_ipr(&decomp.eigenvectors, dim);
-    let lsr = level_spacing_ratio(&eigenvalues);
-    let entropy = spectral_entropy(&eigenvalues);
+    let lsr = level_spacing_ratio(&decomp.eigenvalues);
+    let entropy = spectral_entropy(&decomp.eigenvalues);
     let gamma = m as f64 / n.max(1) as f64;
-    let mp_departure = marchenko_pastur_departure(&eigenvalues, gamma);
-    let bw = spectral_bandwidth(&eigenvalues);
-    let cond = spectral_condition_number(&eigenvalues);
+    let mp_departure = marchenko_pastur_departure(&decomp.eigenvalues, gamma);
+    let bw = spectral_bandwidth(&decomp.eigenvalues);
+    let cond = spectral_condition_number(&decomp.eigenvalues);
     let phase = classify_phase(lsr);
 
     WeightSpectralResult {
-        eigenvalues,
+        eigenvalues: decomp.eigenvalues,
         mean_ipr: ipr_val,
         level_spacing_ratio: lsr,
         spectral_entropy: entropy,

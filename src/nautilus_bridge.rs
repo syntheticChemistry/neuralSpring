@@ -94,13 +94,13 @@ impl SpectralNautilusBridge {
 
     /// Predict spectral properties for a given disorder strength.
     /// Returns `(predicted_ipr_scaled, predicted_bandwidth, predicted_lsr)`.
-    #[must_use] 
+    #[must_use]
     pub fn predict(&self, disorder: f64) -> Option<(f64, f64, f64)> {
         self.brain.predict_dynamical(disorder, None)
     }
 
     /// Screen candidate disorder values by information content.
-    #[must_use] 
+    #[must_use]
     pub fn screen_candidates(&self, disorders: &[f64]) -> Vec<(f64, f64)> {
         self.brain.screen_candidates(disorders)
     }

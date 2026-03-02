@@ -10,6 +10,14 @@
 //!
 //! All loaders upcast to `f64` for `eigh_f64` precision, regardless of
 //! the stored dtype (f16, bf16, f32).
+//!
+//! # I/O strategy
+//!
+//! Safetensors files are loaded via `std::fs::read` (full buffer).
+//! Memory-mapped I/O (`mmap`) would be zero-copy but requires `unsafe`
+//! at the call site, which conflicts with the crate's `forbid(unsafe_code)`
+//! policy.  When barracuda or `ToadStool` provides a safe mmap abstraction
+//! (behind a capability trait), the loader should evolve to use it.
 
 use serde::Deserialize;
 use std::collections::HashMap;

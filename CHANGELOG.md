@@ -5,7 +5,22 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 103 (March 1, 2026)
+## [Unreleased] — Session 104 (March 2, 2026)
+
+### Session 104 — Full Validation Chain + 3 BarraCUDA Fixes + V70 Handoff (March 2, 2026)
+
+**Full validation chain**: 202/202 validate_all PASS (0 FAIL), up from 197/202. 39/39 Python drift check (zero baseline drift). 90.49% llvm-cov line coverage (target: 90%). 753 lib tests PASS, 0 clippy warnings.
+
+**3 barracuda fixes evolved locally for ToadStool absorption**:
+- `fft_1d.rs`: FFT ping-pong buffer selection — `is_multiple_of(2)` branch was reading stale buffer for odd-stage FFTs. Now always reads `current_input` after swap. 24/24 PASS (was 19/24)
+- `ShaderTemplate::for_driver_auto`: Strip `enable f64;` directive before naga compilation — naga handles f64 via capability flags, not WGSL directives. Unblocks Wright-Fisher GPU pipeline (4/4 PASS, was panic)
+- `asin_df64` iterative form already in tree — confirmed coral forge GPU pipeline 16/16 PASS (SDPA, IPA, backbone, torsion)
+
+**NUCLEUS Tower socket path fix**: `validate_nucleus_tower.rs` and `validate_biomeos_spectral.rs` expected `neuralspring-test.sock` but primal creates `neural-spring-test.sock` (matching `CARGO_PKG_NAME`). 22/22 + 29/29 PASS (was 0/0 skip)
+
+**GPU pipeline validation**: All 14 GPU pipeline validators green including wright_fisher (4/4) and coral_forge (16/16). Mixed hardware 47/47 + 43/43 PASS. metalForge PCIe bridge 23/23 PASS.
+
+**V70 ToadStool handoff**: FFT fix, enable f64 strip, Wright-Fisher/coral forge unblocked, 202/202 full green. V69 archived.
 
 ### Session 103 — Doc Sweep + V69 Handoff + BarraCUDA Usage Review (March 1, 2026)
 

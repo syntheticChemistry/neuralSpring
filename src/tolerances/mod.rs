@@ -59,6 +59,8 @@ pub const BENCHMARK_GLOBAL_MIN: f64 = EXACT_F64;
 ///
 /// Cross-validated against `NumPy` 2.2.6 at 4 reference points per function.
 /// Differences arise from transcendental evaluation (cos, exp, sqrt).
+///
+/// Provenance: `control/isomorphic/isomorphic_catalog.py` (seed=42, commit `BASELINE_COMMIT`)
 pub const BENCHMARK_CROSS_PYTHON: f64 = CROSS_LANGUAGE;
 
 /// Nelder-Mead convergence to known minimum position.
@@ -67,12 +69,26 @@ pub const BENCHMARK_CROSS_PYTHON: f64 = CROSS_LANGUAGE;
 pub const OPTIMIZER_POSITION: f64 = 1e-3;
 
 /// Nelder-Mead on multimodal (Rastrigin) — may find local basin.
+///
+/// Rastrigin has local minima spaced ~1.0 apart; Nelder-Mead can converge
+/// to any basin.  0.1 verifies the simplex reached the interior of a basin
+/// (within 10% of the spacing).  Tighter values would require global
+/// optimization, which Nelder-Mead does not guarantee.
 pub const OPTIMIZER_POSITION_MULTIMODAL: f64 = 0.1;
 
 /// Function value at converged minimum.
+///
+/// For Rosenbrock at (1,1) = 0.0, 1e-4 verifies convergence to 4 significant
+/// digits.  Nelder-Mead typically achieves ~6 digits on smooth unimodal
+/// functions; 1e-4 is the tightest threshold robust to 500-iteration budgets.
 pub const OPTIMIZER_VALUE_AT_MIN: f64 = 1e-4;
 
 /// Function value bound for multimodal convergence.
+///
+/// Rastrigin's local minima have values A·k (k = number of off-center dims,
+/// A ≈ 10).  Nelder-Mead from random start may land in a basin with value
+/// up to ~10.  1.0 constrains the optimizer to the global basin or an
+/// immediate neighbor — the tightest bound achievable without restarts.
 pub const OPTIMIZER_VALUE_MULTIMODAL: f64 = 1.0;
 
 // ═══════════════════════════════════════════════════════════════════
@@ -90,12 +106,18 @@ pub const SOFTMAX_SUM: f64 = EXACT_F64;
 ///
 /// Numerically stable softmax (subtract max) may differ by operation
 /// ordering between Rust iterators and `NumPy` vectorized ops.
+///
+/// Provenance: `python3 -c "import numpy as np; x=np.arange(1,6,dtype=np.float64); ..."`;
+/// see `provenance::SOFTMAX_1_TO_5` for exact command.
 pub const SOFTMAX_CROSS_PYTHON: f64 = 1e-14;
 
 /// GELU: Rust vs Python at reference points.
 ///
 /// The tanh approximation involves sqrt(2/pi) and x^3 terms.
 /// `NumPy`'s tanh may use different polynomial coefficients than Rust's libm.
+///
+/// Provenance: `python3 -c "import numpy as np; ..."`;
+/// see `provenance::GELU_REFERENCE` for exact command and reference values.
 pub const GELU_CROSS_PYTHON: f64 = EXACT_F64;
 
 /// GELU: large input approximation (GELU(x) ≈ x for x >> 0).
@@ -128,6 +150,8 @@ pub const METRIC_EXACT: f64 = 1e-14;
 ///
 /// FAO-56 ET₀ MLP achieves R² > 0.95 consistently with seed=42.
 /// Benchmark functions (Rastrigin) may be lower due to multimodality.
+///
+/// Provenance: `control/surrogate/surrogate_validation.py` (seed=42, commit `BASELINE_COMMIT`)
 pub const SURROGATE_R2_MIN: f64 = 0.40;
 
 /// Transformer `NumPy` vs `PyTorch`: max absolute difference.
@@ -147,6 +171,8 @@ pub const CAUSAL_MASK_LEAK: f64 = 1e-6;
 /// LSTM/GRU R² threshold for 1-day weather forecast.
 ///
 /// Persistence baseline is ~0.94; neural models should be competitive.
+///
+/// Provenance: `control/sequence/sequence_forecasting.py` (seed=42, commit `BASELINE_COMMIT`)
 pub const SEQUENCE_R2_MIN: f64 = 0.80;
 
 /// PINN L2 relative error threshold (Adam-only, no L-BFGS).
@@ -289,6 +315,8 @@ pub const GAME_COOPERATION_MIN: f64 = 0.05;
 /// 1000 Euler steps at dt=0.01 accumulate O(dt²·n) truncation error.
 /// Cross-language validation shows Rust and Python agree to ~1e-7;
 /// 1e-6 provides margin for different FP summation order.
+///
+/// Provenance: `control/game_theory/game_theory.py` (seed=42, commit `BASELINE_COMMIT`)
 pub const REPLICATOR_DYNAMICS: f64 = 1e-6;
 
 /// Regulatory network: minimum Hill function response.

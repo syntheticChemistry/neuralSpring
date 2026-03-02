@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: February 26, 2026 (Sessions 44–75 — multi-GPU + benchmarks + deep audit + pure GPU all-domains + cross-system dispatch)
+**Last Updated**: March 2, 2026 (Sessions 44–104 — multi-GPU + benchmarks + deep audit + pure GPU all-domains + cross-system dispatch + FFT fix + enable f64 strip + 202/202 full green)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---

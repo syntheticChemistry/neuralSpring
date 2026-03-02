@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 1, 2026 (Sessions 40–101)
-**ToadStool HEAD**: `8dc01a37` (S71+++: ComputeDispatch migration, DF64 transcendentals, pure math shaders. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump, GPU stats parity validated (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 220 binaries, **200/200 validate\_all**, 753 lib tests, 3590+ checks, 0 clippy pedantic+nursery. V69 handoff)
+**Date**: March 2, 2026 (Sessions 40–103)
+**ToadStool HEAD**: `8dc01a37` (S103: Full validation chain **202/202 PASS** (0 FAIL). 3 barracuda fixes: FFT `fft_1d.rs` buffer selection, `enable f64;` naga strip in `ShaderTemplate::for_driver_auto`, `asin_df64` iterative (already in tree). NUCLEUS Tower socket path fix. 39/39 Python drift check. 90.49% llvm-cov. Wright-Fisher GPU pipeline + coral forge GPU pipeline unblocked. V70 handoff. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. 220 binaries, 753 lib tests, 3900+ checks, 0 clippy pedantic+nursery)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -10,7 +10,7 @@
 ## Quick Status
 
 40 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments + nF-03 AlphaFold3 Phase C.
-201 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+220 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 

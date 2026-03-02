@@ -69,8 +69,8 @@ async fn main() {
 fn validate_kimura_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     eprintln!("\n─── KimuraGpu CPU↔GPU parity ───\n");
 
-    let kimura = barracuda::stats::evolution::KimuraGpu::new(Arc::clone(device))
-        .expect("KimuraGpu::new");
+    let kimura =
+        barracuda::stats::evolution::KimuraGpu::new(Arc::clone(device)).expect("KimuraGpu::new");
 
     let pop_sizes: Vec<f64> = vec![1000.0, 1000.0, 1000.0, 500.0, 10000.0];
     let selections: Vec<f64> = vec![0.0, 0.01, -0.01, 0.001, 0.0001];
@@ -100,7 +100,9 @@ fn validate_kimura_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device
 
     let n: usize = 1000;
     let big_pops: Vec<f64> = (0..n).map(|i| 100.0 + i as f64).collect();
-    let big_sels: Vec<f64> = (0..n).map(|i| (i as f64 - 500.0).mul_add(0.001, 0.0)).collect();
+    let big_sels: Vec<f64> = (0..n)
+        .map(|i| (i as f64 - 500.0).mul_add(0.001, 0.0))
+        .collect();
     let big_freqs: Vec<f64> = vec![0.01; n];
 
     let gpu_batch = kimura
@@ -123,16 +125,15 @@ fn validate_kimura_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device
 }
 
 fn try_gpu_op<T, F: FnOnce() -> T>(f: F) -> Result<T, String> {
-    std::panic::catch_unwind(std::panic::AssertUnwindSafe(f))
-        .map_err(|e| {
-            e.downcast_ref::<String>().map_or_else(
-                || {
-                    e.downcast_ref::<&str>()
-                        .map_or_else(|| "unknown panic".to_string(), |s| (*s).to_string())
-                },
-                Clone::clone,
-            )
-        })
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)).map_err(|e| {
+        e.downcast_ref::<String>().map_or_else(
+            || {
+                e.downcast_ref::<&str>()
+                    .map_or_else(|| "unknown panic".to_string(), |s| (*s).to_string())
+            },
+            Clone::clone,
+        )
+    })
 }
 
 fn validate_jackknife_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
@@ -140,8 +141,8 @@ fn validate_jackknife_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::dev
 
     let dev = Arc::clone(device);
     let result = try_gpu_op(|| {
-        let jk = barracuda::stats::jackknife::JackknifeMeanGpu::new(dev)
-            .map_err(|e| e.to_string())?;
+        let jk =
+            barracuda::stats::jackknife::JackknifeMeanGpu::new(dev).map_err(|e| e.to_string())?;
         let data: Vec<f64> = (1..=20).map(|i| i as f64).collect();
         let gpu_result = jk.dispatch(&data).map_err(|e| e.to_string())?;
         let cpu_result = barracuda::stats::jackknife::jackknife_mean_variance(&data)
@@ -166,33 +167,35 @@ fn validate_jackknife_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::dev
         }
         Ok(Err(e)) => {
             eprintln!("  JackknifeMeanGpu error: {e}");
-            h.check_bool("JackknifeMeanGpu: skipped (upstream bitcast<f64> shader bug)", true);
+            h.check_bool(
+                "JackknifeMeanGpu: skipped (upstream bitcast<f64> shader bug)",
+                true,
+            );
         }
         Err(panic_msg) => {
             eprintln!("  JackknifeMeanGpu panicked: {panic_msg}");
-            h.check_bool("JackknifeMeanGpu: skipped (upstream bitcast<f64> naga panic)", true);
+            h.check_bool(
+                "JackknifeMeanGpu: skipped (upstream bitcast<f64> naga panic)",
+                true,
+            );
         }
     }
 }
 
-fn validate_hargreaves_gpu(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_hargreaves_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     eprintln!("\n─── HargreavesBatchGpu CPU↔GPU parity ───\n");
 
     let dev = Arc::clone(device);
     let result = try_gpu_op(|| {
-        let hg = barracuda::stats::hydrology::HargreavesBatchGpu::new(dev)
-            .map_err(|e| e.to_string())?;
+        let hg =
+            barracuda::stats::hydrology::HargreavesBatchGpu::new(dev).map_err(|e| e.to_string())?;
         let ra: Vec<f64> = vec![15.0, 20.0, 25.0, 30.0, 10.0];
         let tmax: Vec<f64> = vec![30.0, 35.0, 28.0, 40.0, 22.0];
         let tmin: Vec<f64> = vec![15.0, 20.0, 12.0, 25.0, 8.0];
         let gpu = hg.dispatch(&ra, &tmax, &tmin).map_err(|e| e.to_string())?;
         let cpu: Vec<f64> = (0..5)
             .map(|i| {
-                barracuda::stats::hydrology::hargreaves_et0(ra[i], tmax[i], tmin[i])
-                    .unwrap_or(0.0)
+                barracuda::stats::hydrology::hargreaves_et0(ra[i], tmax[i], tmin[i]).unwrap_or(0.0)
             })
             .collect();
         Ok::<_, String>((gpu, cpu))
@@ -200,9 +203,7 @@ fn validate_hargreaves_gpu(
 
     match result {
         Ok(Ok((gpu_results, cpu_results))) => {
-            for (i, (gpu_val, cpu_val)) in
-                gpu_results.iter().zip(cpu_results.iter()).enumerate()
-            {
+            for (i, (gpu_val, cpu_val)) in gpu_results.iter().zip(cpu_results.iter()).enumerate() {
                 h.check_abs(
                     &format!("HargreavesBatchGpu parity [{i}]"),
                     *gpu_val,
@@ -228,16 +229,13 @@ fn validate_hargreaves_gpu(
     }
 }
 
-fn validate_histogram_gpu(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
+fn validate_histogram_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
     eprintln!("\n─── HistogramGpu CPU↔GPU parity ───\n");
 
     let dev = Arc::clone(device);
     let result = try_gpu_op(|| {
-        let hist = barracuda::stats::histogram::HistogramGpu::new(dev)
-            .map_err(|e| e.to_string())?;
+        let hist =
+            barracuda::stats::histogram::HistogramGpu::new(dev).map_err(|e| e.to_string())?;
         let values: Vec<f64> = (0..100).map(|i| i as f64 * 0.01).collect();
         let gpu_result = hist.dispatch(&values, 10).map_err(|e| e.to_string())?;
         Ok::<_, String>((gpu_result, values.len()))
@@ -245,10 +243,7 @@ fn validate_histogram_gpu(
 
     match result {
         Ok(Ok((gpu_result, input_len))) => {
-            h.check_bool(
-                "HistogramGpu: correct bin count",
-                gpu_result.len() == 10,
-            );
+            h.check_bool("HistogramGpu: correct bin count", gpu_result.len() == 10);
             let total: u32 = gpu_result.iter().sum();
             h.check_bool(
                 "HistogramGpu: total count = input length",

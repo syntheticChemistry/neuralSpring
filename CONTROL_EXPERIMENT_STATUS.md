@@ -1,10 +1,10 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 1, 2026 (Sessions 44–102 — S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS, +7 lib tests (753), +1 binary (220). S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37` (ComputeDispatch, DF64 transcendentals), GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. S100: deep debt, cross-spring rewire)
+**Last updated**: March 2, 2026 (Sessions 44–103 — S103: Full validation chain 202/202 PASS (0 FAIL), 3 barracuda fixes (FFT buffer selection, `enable f64;` naga strip, `asin_df64` iterative), NUCLEUS Tower socket path fix, 39/39 Python drift check, 90.49% llvm-cov, V70 ToadStool handoff. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS, +7 lib tests (753), +1 binary (220). S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37` (ComputeDispatch, DF64 transcendentals), GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. S100: deep debt, cross-spring rewire)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 282/282 Python PASS + 3280+ Rust+GPU validation PASS = **3590+ total validation checks**
+**Grand Total**: 282/282 Python PASS + 3590+ Rust+GPU validation PASS = **3900+ total validation checks**
 **Library**: 753 lib tests + 9 integration tests + 43 forge tests | 40 modules + gpu_ops/ + gpu_dispatch | 220 validation/bench binaries
 **CPU↔Python Parity**: 39/39 PASS — `validate_cpu_math_parity` (9 primitives + 9 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
