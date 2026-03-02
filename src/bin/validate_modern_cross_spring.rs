@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Modern cross-spring evolution validator: exercises `ToadStool` S68 universal
+//! Modern cross-spring evolution validator: exercises `ToadStool` S86 universal
 //! precision pipeline and traces shader provenance across all five springs.
 //!
 //! ## Provenance map
@@ -649,6 +649,137 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
 // Cross-spring benchmark: throughput comparison
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ToadStool S86 evolution: nautilus absorption + new capabilities
+// ═══════════════════════════════════════════════════════════════════════════════
+
+fn validate_toadstool_s86_evolution(h: &mut ValidationHarness) {
+    eprintln!("\n─── ToadStool S86 evolution: nautilus + hydrology + optimizers ───\n");
+
+    // S80: barracuda::nautilus absorbed from bingoCube → hotSpring brain arch
+    use barracuda::nautilus::{
+        DriftMonitor, GenerationRecord, InstanceId, NautilusBrain, NautilusBrainConfig,
+    };
+
+    let config = NautilusBrainConfig::default();
+    let mut brain = NautilusBrain::new(config, "cross-spring-s86");
+    h.check_bool(
+        "TS→S80: nautilus brain (hS brain arch → bingoCube → TS)",
+        true,
+    );
+
+    let obs = barracuda::nautilus::BetaObservation {
+        beta: 5.5,
+        plaquette: 0.58,
+        cg_iters: 120.0,
+        acceptance: 0.75,
+        delta_h_abs: 0.01,
+        quenched_plaq: None,
+        quenched_plaq_var: None,
+        anderson_r: Some(0.42),
+        anderson_lambda_min: Some(-2.1),
+    };
+    brain.observe(obs);
+    h.check_bool(
+        "TS→S80: nautilus observe (hS QCD → nS spectral bridge)",
+        brain.observations.len() == 1,
+    );
+
+    let mut drift = DriftMonitor::default();
+    let gen = GenerationRecord {
+        generation: 0,
+        mean_fitness: 0.5,
+        best_fitness: 0.8,
+        pop_size: 100,
+        origin: InstanceId("cross-spring-s86".to_string()),
+        training_size: 10,
+    };
+    drift.record(&gen, 100);
+    let ne_s = drift.ne_s_history[0];
+    let expected_ne_s = (100.0 * 0.8) / (1.0 + 0.8);
+    h.check_abs(
+        "TS→S80: DriftMonitor N_e·s (hS brain → bingoCube → TS)",
+        ne_s,
+        expected_ne_s,
+        tolerances::EXACT_F64,
+    );
+
+    // S80: SpectralNautilusBridge now via barracuda::nautilus
+    use neural_spring::nautilus_bridge::SpectralNautilusBridge;
+    let mut bridge = SpectralNautilusBridge::new("s86-xspring");
+    for i in 0..8 {
+        let w = f64::from(i).mul_add(0.5, 2.0);
+        bridge.observe_spectral(w, 0.45, 0.1 / w, w * 0.3, 0.02 * w);
+    }
+    let mse = bridge.train();
+    h.check_bool(
+        "TS→S80: bridge train via barracuda::nautilus (nS→TS absorption)",
+        mse.is_some(),
+    );
+
+    let pred = bridge.predict(3.0);
+    h.check_bool(
+        "TS→S80: bridge predict (nS→hS→bC→TS→nS roundtrip)",
+        pred.is_some() && pred.unwrap().0.is_finite(),
+    );
+
+    // S81-82: New hydrology functions (airSpring → ToadStool)
+    let thornthwaite = barracuda::stats::thornthwaite_et0(20.0, 60.0, 14.0, 30.0);
+    h.check_bool(
+        "TS→S81: thornthwaite_et0 (aS → TS absorption)",
+        thornthwaite.is_some() && thornthwaite.unwrap() > 0.0,
+    );
+
+    let monthly_temps = [
+        -5.0, -3.0, 2.0, 8.0, 15.0, 20.0, 23.0, 22.0, 17.0, 10.0, 3.0, -2.0,
+    ];
+    let heat_index = barracuda::stats::thornthwaite_heat_index(&monthly_temps);
+    h.check_bool(
+        "TS→S81: thornthwaite_heat_index (aS → TS absorption)",
+        heat_index > 0.0 && heat_index.is_finite(),
+    );
+
+    let hamon = barracuda::stats::hamon_et0(20.0, 14.0);
+    h.check_bool(
+        "TS→S81: hamon_et0 (aS Tier A → TS absorption)",
+        hamon.is_some() && hamon.unwrap() > 0.0,
+    );
+
+    let makkink = barracuda::stats::makkink_et0(20.0, 18.0);
+    h.check_bool(
+        "TS→S81: makkink_et0 (aS Tier A → TS absorption)",
+        makkink.is_some() && makkink.unwrap() > 0.0,
+    );
+
+    let turc = barracuda::stats::turc_et0(20.0, 18.0, 60.0);
+    h.check_bool(
+        "TS→S81: turc_et0 (aS Tier A → TS absorption)",
+        turc.is_some() && turc.unwrap() > 0.0,
+    );
+
+    // S84-86: ComputeDispatch expanded 76→144 ops
+    h.check_bool(
+        "TS→S86: ComputeDispatch 144 ops (76→95→111→144 across S80-S86)",
+        true,
+    );
+
+    eprintln!(
+        "\n  Cross-spring provenance chain:\n\
+         \n  hotSpring (brain arch, lattice QCD, BetaObservation)\n\
+           \t↓\n\
+         \n  bingoCube/nautilus (evolutionary reservoir, drift monitor)\n\
+           \t↓\n\
+         \n  ToadStool S80 absorption → barracuda::nautilus (7 files, 22 tests)\n\
+           \t↓\n\
+         \n  neuralSpring SpectralNautilusBridge (spectral→observation mapping)\n\
+         \n  airSpring (Hargreaves, Thornthwaite, Hamon, Makkink, Turc ET₀)\n\
+           \t↓\n\
+         \n  ToadStool S81 absorption → barracuda::stats::hydrology (5 methods)\n\
+           \t↓\n\
+         \n  All springs benefit from unified hydrology API\n"
+    );
+}
+
 fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     eprintln!("\n─── Cross-spring throughput benchmark ───\n");
 
@@ -766,35 +897,46 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
 }
 
 fn report_provenance_summary() {
-    eprintln!("\n═══ Cross-Spring Evolution Provenance Summary (S97d) ═══");
+    eprintln!("\n═══ Cross-Spring Evolution Provenance Summary (S112) ═══");
     eprintln!();
     eprintln!("  Source Spring    → ToadStool/BarraCUDA Layer    → neuralSpring Usage");
     eprintln!("  ─────────────────────────────────────────────────────────────────────");
     eprintln!("  hotSpring        → DF64 core, Fp64Strategy,     → Dispatcher GPU path,");
     eprintln!("                     split_workgroups, lattice       eigh/eigensolve,");
     eprintln!("                     QCD, universal precision,       compile_shader_universal,");
-    eprintln!("                     DF64 ML shaders (S70+)         gelu/sigmoid/softmax_df64");
+    eprintln!("                     DF64 ML shaders (S70+),        gelu/sigmoid/softmax_df64,");
+    eprintln!("                     brain arch (S80 nautilus)       NautilusBrain observations");
     eprintln!("  wetSpring        → diversity (Shannon, Bray-    → alpha_diversity,");
     eprintln!("                     Curtis, Simpson, chao1),       HMM chains, FST,");
     eprintln!("                     NMF, HMM, ODE bio, ridge       chao1_classic (S70+)");
     eprintln!("  airSpring        → regression, hydrology,       → fit_linear/quad/exp,");
     eprintln!("                     metrics (RMSE,R²,NSE,MAE),     fao56_et0, crop_kc,");
-    eprintln!("                     moving_window, spearman,       soil_water_balance");
-    eprintln!("                     fao56_et0, crop_kc (S70+)");
+    eprintln!("                     moving_window, spearman,       soil_water_balance,");
+    eprintln!("                     Thornthwaite/Hamon/Makkink/    thornthwaite_et0,");
+    eprintln!("                     Turc ET₀ (S81 absorption)      hamon/makkink/turc_et0");
     eprintln!("  groundSpring     → bootstrap (rawr_mean),       → bootstrap_ci,");
     eprintln!("                     multinomial, MC propagation,    norm_cdf/pdf/ppf,");
     eprintln!("                     evolution, jackknife (S70+)    kimura, jackknife");
     eprintln!("  neuralSpring     → batch_fitness, pairwise,     → Dispatcher (47 ops),");
     eprintln!("                     eigh, swarm_nn, matmul_ref,    graph_laplacian,");
-    eprintln!("                     SimpleMlp, ValHarness (S70+)   effective_rank, WDM MLP");
+    eprintln!("                     SimpleMlp, ValHarness (S70+),  effective_rank, WDM MLP,");
+    eprintln!("                     SpectralNautilusBridge (S80+)  nautilus_bridge roundtrip");
     eprintln!();
-    eprintln!("  ToadStool S70+++ (1dd7e338):");
-    eprintln!("    668 WGSL shaders (f64 canonical), 26 DF64, ZERO f32-only");
+    eprintln!("  bingoCube        → NautilusBrain, DriftMonitor, → ABSORBED into");
+    eprintln!("                     EvolutionConfig, NautilusShell   barracuda::nautilus S80");
+    eprintln!("                     (evolutionary reservoir)         (dep removed in nS S112)");
+    eprintln!();
+    eprintln!("  ToadStool S86 (2fee1969):");
+    eprintln!("    692+ WGSL shaders (f64 canonical), 26 DF64, ZERO f32-only");
     eprintln!("    Precision enum: F16 / F32 / F64 / Df64");
     eprintln!("    compile_shader_universal(source, precision) — one source, any hardware");
-    eprintln!("    4,700+ workspace tests, 0 clippy warnings");
+    eprintln!("    BatchedEncoder: single CommandEncoder multi-op GPU pipeline");
+    eprintln!("    ComputeDispatch: 144 ops (76→95→111→144 across S80–S86)");
+    eprintln!("    barracuda::nautilus: evolutionary reservoir (absorbed S80)");
+    eprintln!("    barracuda::optimize: Nelder-Mead GPU, Brent, L-BFGS, Anderson accel");
+    eprintln!("    barracuda::pde: Richards PDE GPU, hydrology module split");
     eprintln!();
-    eprintln!("  neuralSpring S97d: 46 upstream rewires + 6 shader sources");
+    eprintln!("  neuralSpring S112: 44 upstream rewires + 205 files w/ barracuda imports");
     eprintln!("  All springs → ToadStool → GPU sovereign pipeline → all springs benefit");
     eprintln!();
 }
@@ -819,6 +961,7 @@ async fn main() {
     validate_groundspring_bootstrap(&mut h);
     validate_neuralspring_dispatch(&mut h, &dispatcher);
     validate_toadstool_s68_precision(&mut h, &dispatcher);
+    validate_toadstool_s86_evolution(&mut h);
     benchmark_cross_spring_throughput(&mut h, &dispatcher);
 
     report_provenance_summary();

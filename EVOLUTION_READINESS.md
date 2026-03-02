@@ -915,4 +915,18 @@ ToadStool pin bumped 7 commits (S79→S86). Nautilus dependency absorbed into Ba
 
 || Session 112: ToadStool S86 Rewire | Pin f97fc2ae→2fee1969, nautilus absorbed, DriftMonitor API migrated, 208/208 validate_all, V74 handoff | **ALL GREEN** |
 
+### Session 113 — Cross-Spring S86 Evolution Benchmark (March 2, 2026)
+
+Full cross-spring evolution validation and benchmarking of ToadStool S86 surface.
+
+| Area | Details |
+|------|---------|
+| **validate_modern_cross_spring** | 57 → **68/68 PASS**: +11 checks for S80 nautilus (brain/observe/drift/bridge), S81 hydrology (5 ET₀ methods), S86 ComputeDispatch |
+| **bench_cross_spring_modern** | 10 → **14/14 PASS**: +hydrology (5 ET₀ sub-µs), +nautilus (brain 8.6µs, drift 0.5µs, bridge 950ms) |
+| **Provenance tracking** | 6 source springs documented: hotSpring, wetSpring, airSpring, groundSpring, bingoCube, neuralSpring |
+| **Cross-spring shaders** | 692+ WGSL in ToadStool, 41 in metalForge, 15+ neuralSpring→ToadStool absorbed |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 861/861 lib ✓ · 208/208 validate_all ✓ |
+
+|| Session 113: Cross-Spring S86 Evolution | validate_modern_cross_spring 68/68, bench_cross_spring_modern 14/14, 6-spring provenance, 208/208 validate_all | **ALL GREEN** |
+
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

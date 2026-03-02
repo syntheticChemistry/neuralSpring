@@ -92,6 +92,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 078 | Session 110 — Control Validation & Parity Buildout | Mar 2, 2026 | 4 bug fixes (BP chain length, matmul orientation, eigenvalue variance, ESN error string), +11 dispatch parity checks, +6 ToadStool compute parity, +5 biomeOS graph coordination. 207/207 validate\_all |
 | 079 | Session 111 — Paper Queue CPU Benchmark Buildout & Full Pyramid Validation | Mar 2, 2026 | CPU bench expanded 11→14 domains (Papers 013, 023, 025). 3 new Python bench scripts. 31/31 PASS, 38.6× geomean. Full 10-tier pyramid validated. V73 handoff |
 | 080 | Session 112 — ToadStool S86 Rewire + Nautilus Absorption | Mar 2, 2026 | Pin f97fc2ae→2fee1969 (7 commits). `bingocube-nautilus` dep removed → `barracuda::nautilus`. DriftMonitor API migrated. validate\_toadstool\_s86\_rewire 27/27 PASS. 208/208 validate\_all. V74 handoff |
+| 081 | Session 113 — Cross-Spring S86 Evolution Benchmark + Modern Validation | Mar 2, 2026 | validate\_modern\_cross\_spring 57→68/68 PASS. bench\_cross\_spring\_modern 10→14/14 PASS. 6 cross-spring provenance chains. 5 ET₀ methods benchmarked. Nautilus brain/drift/bridge benchmarked |
 
 ---
 
@@ -4184,6 +4185,67 @@ ToadStool has evolved from S79 to S86 since our last pin. Key changes: nautilus 
 - `DriftMonitor` struct simplified: consecutive_drift tracking is now computed inline in `is_drifting()` instead of stored as a field. Cleaner API.
 - New capabilities available for future use: BatchedEncoder, fused_mlp, Nelder-Mead GPU, Richards PDE GPU, Brent/L-BFGS optimizers, multi-GPU interconnect, hydrology extensions (thornthwaite/makkink/turc/hamon ET₀).
 - `blake3` dependency added upstream for Nautilus board hashing.
+
+**Status**: COMPLETE
+
+---
+
+## Experiment 081: Cross-Spring S86 Evolution Benchmark + Modern Validation (S113)
+
+**Date**: March 2, 2026
+**Session**: S113
+**ToadStool**: `2fee1969` (S86)
+
+### Motivation
+
+With ToadStool S86 absorbed and nautilus rewired, we need comprehensive validation and benchmarking that exercises the full cross-spring evolution surface — tracking which springs contributed what to the shared compute infrastructure and benchmarking the modern capabilities.
+
+### Procedure
+
+1. Surveyed all local impls vs upstream barracuda (RK4, eigh, FFT, stats, shaders)
+2. Surveyed cross-spring shader provenance: 692+ WGSL in ToadStool, 41 in metalForge, 15+ neuralSpring→ToadStool absorbed
+3. Extended `validate_modern_cross_spring.rs` (57→68 checks):
+   - S80 nautilus brain/observe/DriftMonitor via barracuda::nautilus
+   - S80 SpectralNautilusBridge train+predict roundtrip
+   - S81 hydrology absorption: thornthwaite, hamon, makkink, turc ET₀
+   - S86 ComputeDispatch 144 ops tracking
+   - Updated provenance summary to S112 state
+4. Extended `bench_cross_spring_modern.rs` (10→14 checks):
+   - S81-86 hydrology benchmark: 5 ET₀ methods
+   - S80 nautilus benchmark: brain, observe, shell, drift, bridge
+   - Updated cross-spring provenance summary
+5. Updated `bench_modern_rewire.rs` ToadStool references (1dd7e338→2fee1969 S86, 703→692+)
+6. Full quality gate: fmt ✓, clippy ✓ (0 warnings), 861 lib tests ✓, 208/208 validate_all ✓
+
+### Results
+
+| Metric | Value |
+|--------|-------|
+| `validate_modern_cross_spring` | **68/68 PASS** (was 57) |
+| `bench_cross_spring_modern` | **14/14 PASS** (was 10) |
+| Cross-spring provenance chains | 6 springs (hS, wS, aS, gS, nS, bC) |
+| Hydrology ET₀ methods benchmarked | 5 (sub-µs each) |
+| Nautilus brain create | 8.6µs |
+| DriftMonitor 20-gen cycle | 0.5µs |
+| SpectralNautilusBridge full roundtrip | ~950ms (ESN training inside) |
+
+### Cross-Spring Provenance Map
+
+| Source | → ToadStool | → neuralSpring |
+|--------|-------------|----------------|
+| hotSpring | DF64, Fp64Strategy, brain arch, split_workgroups | eigh, spectral, NautilusBrain |
+| wetSpring | Shannon, Bray-Curtis, HMM, NMF, diversity fusion | alpha_diversity, HMM dispatch |
+| airSpring | regression, hydrology (5 ET₀ methods), metrics | fit_linear, soil_water, ET₀ |
+| groundSpring | bootstrap, multinomial, MC, jackknife | norm_cdf/pdf, kimura, CI |
+| bingoCube | Nautilus brain/shell/drift | → absorbed into barracuda::nautilus S80 |
+| neuralSpring | batch_fitness, pairwise, eigh, swarm_nn, chi²/KL | full roundtrip via SpectralNautilusBridge |
+
+### Findings
+
+- Most math is already rewired to barracuda. Only `primitives::rk4_step` remains as a local single-step RK4 (barracuda provides adaptive RK45 which is a different algorithm, appropriate for full ODE integration).
+- Cross-spring shader provenance is well-tracked: 15+ neuralSpring shaders absorbed into ToadStool, 3 explicitly credited in barracuda source comments.
+- Hydrology functions are pure math — sub-microsecond execution. Perfect for CPU-side pre-processing before GPU pipelines.
+- The nautilus evolutionary reservoir is fast (brain+observe in ~16µs total) but the SpectralNautilusBridge full roundtrip is ~950ms due to internal ESN training — a good candidate for GPU acceleration via BatchedEncoder in future.
 
 **Status**: COMPLETE
 

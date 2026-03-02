@@ -591,7 +591,7 @@ neuralSpring/
 │   │   ├── NEURALSPRING_SONGBIRD_V1_*.md        # Songbird networking
 │   │   └── archive/           #   Superseded handoffs (V1–V70 + biomeOS V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
-│   └── README.md              #   Journal index (001-080)
+│   └── README.md              #   Journal index (001-081)
 ├── whitePaper/                 # Study documentation
 │   ├── baseCamp/              #   Per-faculty research briefings
 ├── scripts/
@@ -635,4 +635,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–112: March 2, 2026 | 25 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 861 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 227 validation/bench binaries, 42 WGSL shaders | 139+ named tolerances, 0 clippy warnings (pedantic+nursery), 0 doc warnings, 100% SPDX | ToadStool `2fee1969` (S86), nautilus absorbed, 208/208 validate\_all | V74 handoff*
+*Initialized: February 16, 2026 | Sessions 40–113: March 2, 2026 | 25 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 861 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 227 validation/bench binaries, 42 WGSL shaders | 139+ named tolerances, 0 clippy warnings (pedantic+nursery), 0 doc warnings, 100% SPDX | ToadStool `2fee1969` (S86), nautilus absorbed, 208/208 validate\_all, cross-spring 68/68 | V74 handoff*

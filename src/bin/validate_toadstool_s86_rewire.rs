@@ -36,10 +36,7 @@ fn validate_nautilus_types(h: &mut ValidationHarness) {
     let config = NautilusBrainConfig::default();
     let brain = NautilusBrain::new(config, "s86-test");
     h.check_bool("NautilusBrain creates from default config", true);
-    h.check_bool(
-        "NautilusBrain starts untrained",
-        !brain.trained,
-    );
+    h.check_bool("NautilusBrain starts untrained", !brain.trained);
     h.check_bool(
         "NautilusBrain starts with 0 observations",
         brain.observations.is_empty(),
@@ -71,10 +68,7 @@ fn validate_drift_monitor(h: &mut ValidationHarness) {
     eprintln!("\n── DriftMonitor S86 API (GenerationRecord) ──");
 
     let mut drift = DriftMonitor::default();
-    h.check_bool(
-        "DriftMonitor starts empty",
-        drift.ne_s_history.is_empty(),
-    );
+    h.check_bool("DriftMonitor starts empty", drift.ne_s_history.is_empty());
     h.check_bool("DriftMonitor not drifting when empty", !drift.is_drifting());
 
     let gen = GenerationRecord {
@@ -149,8 +143,8 @@ fn validate_bridge_absorption(h: &mut ValidationHarness) {
     h.check_bool("Bridge screens 4 candidates", scored.len() == 4);
 
     let json = bridge.to_json().expect("serialization should not fail");
-    let restored = SpectralNautilusBridge::from_json(&json)
-        .expect("deserialization should not fail");
+    let restored =
+        SpectralNautilusBridge::from_json(&json).expect("deserialization should not fail");
     h.check_bool(
         "JSON roundtrip preserves observation count",
         restored.observation_count() == bridge.observation_count(),
@@ -177,7 +171,12 @@ fn validate_beta_observation(h: &mut ValidationHarness) {
     };
 
     h.check_abs("BetaObservation.beta", obs.beta, 5.5, tolerances::EXACT_F64);
-    h.check_abs("BetaObservation.plaquette", obs.plaquette, 0.58, tolerances::EXACT_F64);
+    h.check_abs(
+        "BetaObservation.plaquette",
+        obs.plaquette,
+        0.58,
+        tolerances::EXACT_F64,
+    );
     h.check_abs(
         "BetaObservation.anderson_r",
         obs.anderson_r.unwrap(),

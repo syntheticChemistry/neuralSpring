@@ -22,7 +22,10 @@
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::unwrap_used,
-    clippy::expect_used
+    clippy::expect_used,
+    clippy::items_after_statements,
+    clippy::suboptimal_flops,
+    clippy::doc_markdown
 )]
 
 use neural_spring::gpu_dispatch::Dispatcher;
@@ -51,7 +54,7 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
 fn main() {
     eprintln!("╔══════════════════════════════════════════════════════════════════╗");
     eprintln!("║  neuralSpring — Cross-Spring Modern Benchmark                   ║");
-    eprintln!("║  hotSpring proxy.rs + esn_v2 + wetSpring bio + df64 precision   ║");
+    eprintln!("║  hotSpring + wetSpring + airSpring + bingoCube → TS S86 bench   ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════╝");
     eprintln!();
 
@@ -61,6 +64,8 @@ fn main() {
     bench_spectral_diagnostics(&mut h);
     bench_full_analysis(&mut h, &mut rng);
     bench_gpu_dispatch_and_esn(&mut h, &mut rng);
+    bench_s86_hydrology(&mut h);
+    bench_s86_nautilus(&mut h);
     print_summary();
 
     h.finish();
@@ -242,20 +247,151 @@ fn bench_esn_gpu(h: &mut ValidationHarness, dispatcher: &neural_spring::gpu_disp
     eprintln!();
 }
 
+fn bench_s86_hydrology(h: &mut ValidationHarness) {
+    eprintln!("═══ ToadStool S81-86 → hydrology evolution benchmark ═══");
+    eprintln!("  Provenance: airSpring → Hargreaves/Thornthwaite/Hamon/Makkink/Turc");
+    eprintln!("  → ToadStool S81 absorption → barracuda::stats::hydrology");
+    eprintln!();
+
+    let monthly_temps = [
+        -5.0, -3.0, 2.0, 8.0, 15.0, 20.0, 23.0, 22.0, 17.0, 10.0, 3.0, -2.0,
+    ];
+    let heat_index = barracuda::stats::thornthwaite_heat_index(&monthly_temps);
+    let t_mean = 20.0;
+    let rs = 18.0;
+    let rh = 60.0;
+    let daylight = 14.0;
+
+    let us_hargreaves = bench("hargreaves_et0 (aS→TS original)", || {
+        std::hint::black_box(barracuda::stats::hargreaves_et0(t_mean, 12.0, 28.0));
+    });
+    let us_thornthwaite = bench("thornthwaite_et0 (aS→TS S81)", || {
+        std::hint::black_box(barracuda::stats::thornthwaite_et0(
+            t_mean, heat_index, daylight, 30.0,
+        ));
+    });
+    let us_hamon = bench("hamon_et0 (aS→TS S81)", || {
+        std::hint::black_box(barracuda::stats::hamon_et0(t_mean, daylight));
+    });
+    let us_makkink = bench("makkink_et0 (aS→TS S81)", || {
+        std::hint::black_box(barracuda::stats::makkink_et0(t_mean, rs));
+    });
+    let us_turc = bench("turc_et0 (aS→TS S81)", || {
+        std::hint::black_box(barracuda::stats::turc_et0(t_mean, rs, rh));
+    });
+
+    h.check_bool(
+        &format!("hydrology: 5 ET₀ methods benchmarked (hargreaves {us_hargreaves:.1}µs, thornth {us_thornthwaite:.1}µs, hamon {us_hamon:.1}µs, makkink {us_makkink:.1}µs, turc {us_turc:.1}µs)"),
+        us_hargreaves.is_finite() && us_thornthwaite.is_finite(),
+    );
+
+    eprintln!();
+}
+
+fn bench_s86_nautilus(h: &mut ValidationHarness) {
+    eprintln!("═══ ToadStool S80 → nautilus evolution benchmark ═══");
+    eprintln!("  Provenance: hotSpring brain → bingoCube nautilus → ToadStool S80 absorption");
+    eprintln!("  → barracuda::nautilus → neuralSpring SpectralNautilusBridge");
+    eprintln!();
+
+    use barracuda::nautilus::{
+        DriftMonitor, GenerationRecord, InstanceId, NautilusBrain, NautilusBrainConfig,
+        NautilusShell, ShellConfig,
+    };
+
+    let us_brain_create = bench("NautilusBrain::new (hS→bC→TS)", || {
+        std::hint::black_box(NautilusBrain::new(NautilusBrainConfig::default(), "bench"));
+    });
+
+    let us_observe = bench("NautilusBrain::observe (hS QCD provenance)", || {
+        let mut brain = NautilusBrain::new(NautilusBrainConfig::default(), "bench");
+        brain.observe(barracuda::nautilus::BetaObservation {
+            beta: 5.5,
+            plaquette: 0.58,
+            cg_iters: 120.0,
+            acceptance: 0.75,
+            delta_h_abs: 0.01,
+            quenched_plaq: None,
+            quenched_plaq_var: None,
+            anderson_r: Some(0.42),
+            anderson_lambda_min: Some(-2.1),
+        });
+    });
+
+    let origin = InstanceId("bench-shell".to_string());
+    let shell_config = ShellConfig::default();
+    let us_shell = bench("NautilusShell::from_seed (TS evolutionary)", || {
+        std::hint::black_box(NautilusShell::from_seed(
+            shell_config.clone(),
+            origin.clone(),
+            42,
+        ));
+    });
+
+    let us_drift = bench("DriftMonitor::record + is_drifting (TS)", || {
+        let mut dm = DriftMonitor::default();
+        for g in 0..20 {
+            let gen = GenerationRecord {
+                generation: g,
+                mean_fitness: 0.5 + 0.01 * g as f64,
+                best_fitness: 0.8 + 0.005 * g as f64,
+                pop_size: 100,
+                origin: InstanceId("bench-drift".to_string()),
+                training_size: 10,
+            };
+            dm.record(&gen, 100);
+        }
+        std::hint::black_box(dm.is_drifting());
+    });
+
+    let us_bridge = bench(
+        "SpectralNautilusBridge train+predict (nS→TS roundtrip)",
+        || {
+            let mut bridge = neural_spring::nautilus_bridge::SpectralNautilusBridge::new("bench");
+            for i in 0..8 {
+                let w = f64::from(i).mul_add(0.5, 2.0);
+                bridge.observe_spectral(w, 0.45, 0.1 / w, w * 0.3, 0.02 * w);
+            }
+            bridge.train();
+            std::hint::black_box(bridge.predict(3.0));
+        },
+    );
+
+    h.check_bool(
+        &format!("nautilus: brain {us_brain_create:.1}µs, observe {us_observe:.1}µs, shell {us_shell:.1}µs, drift {us_drift:.1}µs, bridge {us_bridge:.1}µs"),
+        us_brain_create.is_finite() && us_drift.is_finite(),
+    );
+
+    let _ = shell_config;
+
+    eprintln!();
+}
+
 fn print_summary() {
-    eprintln!("═══ Cross-Spring Modern Summary ═══");
+    eprintln!("═══ Cross-Spring Modern Summary (S112) ═══");
     eprintln!("  hotSpring contributions to neuralSpring:");
     eprintln!("    ✓ proxy.rs diagnostics: bandwidth, condition_number, phase");
     eprintln!("    ✓ esn_v2: GPU ESN via Tensor ops (reservoir update + readout shaders)");
     eprintln!("    ✓ df64 precision: f64 shaders through naga downcast pipeline");
     eprintln!("    ✓ validation pattern: ValidationHarness absorbed to barracuda");
+    eprintln!("    ✓ brain arch → NautilusBrain QCD observation pipeline");
     eprintln!("  wetSpring contributions to neuralSpring:");
     eprintln!("    ✓ DiversityFusionGpu: fused Shannon+Simpson+Pielou GPU shader");
     eprintln!("    ✓ Bio diversity stats: shannon, simpson, chao1, bray_curtis");
     eprintln!("    ✓ HMM f64 dispatch: forward algorithm on GPU");
+    eprintln!("  airSpring contributions to neuralSpring:");
+    eprintln!("    ✓ Hydrology: Hargreaves, Thornthwaite, Hamon, Makkink, Turc ET₀");
+    eprintln!("    ✓ regression, metrics (RMSE, R², NSE, MAE), moving_window");
     eprintln!("  neuralSpring contributions to ecosystem:");
     eprintln!("    ✓ Batch fitness, pairwise ops, swarm NN → barracuda GPU shaders");
     eprintln!("    ✓ weight_spectral: ESD, level_spacing, MP bounds → barracuda::stats");
+    eprintln!("    ✓ SpectralNautilusBridge → barracuda::nautilus::spectral_bridge");
     eprintln!("    ✓ SimpleMlp: CPU inference → barracuda::nn");
+    eprintln!("    ✓ fused_chi_squared_f64, fused_kl_divergence_f64 → barracuda::ops");
+    eprintln!();
+    eprintln!("  ToadStool S80 absorption: bingoCube nautilus → barracuda::nautilus");
+    eprintln!("  ToadStool S81: airSpring hydrology → barracuda::stats::hydrology");
+    eprintln!("  ToadStool S84-86: ComputeDispatch 76→144 ops, hydrology module split");
+    eprintln!("  692+ WGSL f64 shaders, 144 ComputeDispatch ops, nautilus evolutionary reservoir");
     eprintln!();
 }
