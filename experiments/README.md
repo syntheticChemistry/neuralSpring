@@ -95,6 +95,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 081 | Session 113 — Cross-Spring S86 Evolution Benchmark + Modern Validation | Mar 2, 2026 | validate\_modern\_cross\_spring 57→68/68 PASS. bench\_cross\_spring\_modern 10→14/14 PASS. 6 cross-spring provenance chains. 5 ET₀ methods benchmarked. Nautilus brain/drift/bridge benchmarked |
 | 082 | Session 114 — Pure GPU Pyramid Complete (15/15 Phase 0++) | Mar 2, 2026 | validate\_gpu\_pure\_workload\_all 10→13/13 PASS (+SwarmNnGpu, Rk45AdaptiveGpu, HillGateGpu). Full validation pyramid green: Py 15/15, bC CPU 31/31 (39×), bC GPU 15/15, Pure GPU 13/13, metalForge 46+47/93. 208/208 validate\_all |
 | 083 | Session 115 — CPU↔GPU Dispatch Parity + ComputeDispatch + NUCLEUS PCIe | Mar 2, 2026 | dispatch parity 30→53/53 (+8 bio/ODE/HMM ops), ComputeDispatch bridge 14/14 (Dispatcher↔barracuda::dispatch), NUCLEUS PCIe bypass 38/38 (Tower→Node→Nest + biomeOS graph). 210/210 validate\_all |
+| 084 | Session 116 — ToadStool S87 Sync (Deep Debt Evolution) | Mar 2, 2026 | S87 (`2dc26792`): deep debt, FHE shader fixes, CPU ungating, unsafe audit, gpu\_helpers refactor. 18/18 S87 sync, 844+ WGSL shaders. 211/211 validate\_all |
 
 ---
 
@@ -4317,6 +4318,35 @@ The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 
 - All HMM ops (backward, Viterbi step, chain, introgression) GPU↔CPU parity proven
 - biomeOS graph: spectral → population → information pipeline preserves IPR and entropy parity across substrates
 - **210/210 validate_all PASS**, 861 lib tests, 0 clippy, 0 fmt
+
+**Status**: COMPLETE
+
+---
+
+## Experiment 084: ToadStool S87 Sync — Deep Debt Evolution (S116)
+
+**Date**: March 2, 2026
+**Session**: S116
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Sync neuralSpring to ToadStool S87 (`2dc26792`), which includes deep debt evolution (FHE shader fixes, async-trait reclassification, unsafe audit, gpu_helpers refactor, CPU module ungating). Validate seamless upgrade and create S87-specific sync validator.
+
+**Procedure**:
+1. Pulled ToadStool HEAD: 2 commits since S86 (S87 deep debt + CPU ungating fix)
+2. Reviewed all barracuda API changes: no breaking changes found
+3. Built neuralSpring against S87 — clean build, 0 clippy, 861/861 lib tests
+4. Ran full validate_all against S87 — 210/210 PASS (all existing validators)
+5. Created `validate_toadstool_s87_sync` testing: CPU module accessibility (stats, diversity), BarracudaError evolution (is_device_lost, io variant), nautilus S87 compat, Dispatcher core ops, barracuda::dispatch bridge
+6. Updated all pin references from S86 (2fee1969) to S87 (2dc26792)
+
+**Key Findings**:
+- `validate_toadstool_s87_sync`: **18/18 PASS** — all S87 APIs work correctly
+- barracuda::stats::correlation::variance uses sample variance (ddof=1), not population
+- CPU modules (stats, diversity, correlation) properly accessible without GPU feature gate
+- BarracudaError::is_device_lost() and BarracudaError::io() work as expected
+- Nautilus brain/drift/shell APIs unchanged from S86
+- Dispatcher and barracuda::dispatch bridge produce identical results on S87
+- ToadStool S87: 844+ WGSL shaders (up from 692+), 37 DF64 (up from 26)
+- **211/211 validate_all PASS**, 861 lib tests, 0 clippy, 0 fmt
 
 **Status**: COMPLETE
 

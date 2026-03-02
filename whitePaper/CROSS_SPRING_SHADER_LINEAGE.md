@@ -6,9 +6,9 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `2fee1969` (Sessions 60–115, S115: dispatch parity 53/53, V76 handoff. Mar 2, 2026) |
-| Last updated | March 2, 2026 (Sessions 40–115) |
-| BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S70+++) |
+| ToadStool HEAD | `2dc26792` (Sessions 60–116, S115: dispatch parity 53/53, V76 handoff. Mar 2, 2026) |
+| Last updated | March 2, 2026 (Sessions 40–116) |
+| BarraCUDA shader count | 844+ WGSL (f64 canonical, universal precision, S70+++) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
 | Modern rewires (S88+) | `pairwise_l2_matrix_gpu` → `PairwiseL2Gpu`, `geographic_distance_matrix_gpu` → `PairwiseL2Gpu`, `disorder_sweep_gpu` IPR → `BatchIprGpu`, `compile_shader_f64_hybrid` → `compile_shader_df64` |
 | coralForge df64 | 15 new shaders (layer\_norm, GELU, sigmoid, SDPA×3, triangle×3, backbone, IPA, MSA row/col, OPM, torsion) — `compile_shader_df64` convention |
@@ -212,7 +212,7 @@
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_all` | 210 | **210/210 PASS** |
+| `validate_all` | 211 | **211/211 PASS** |
 | `validate_cross_spring_evolution` | 68 | **68/68 PASS** |
 | `bench_cross_spring_evolution` | 14 | **14/14 PASS** |
 | `cargo test --lib` | 861 | **861/861 PASS** |

@@ -926,8 +926,8 @@ fn report_provenance_summary() {
     eprintln!("                     EvolutionConfig, NautilusShell   barracuda::nautilus S80");
     eprintln!("                     (evolutionary reservoir)         (dep removed in nS S112)");
     eprintln!();
-    eprintln!("  ToadStool S86 (2fee1969):");
-    eprintln!("    692+ WGSL shaders (f64 canonical), 26 DF64, ZERO f32-only");
+    eprintln!("  ToadStool S87 (2dc26792):");
+    eprintln!("    844+ WGSL shaders (f64 canonical), 37 DF64, ZERO f32-only");
     eprintln!("    Precision enum: F16 / F32 / F64 / Df64");
     eprintln!("    compile_shader_universal(source, precision) — one source, any hardware");
     eprintln!("    BatchedEncoder: single CommandEncoder multi-op GPU pipeline");
@@ -935,6 +935,7 @@ fn report_provenance_summary() {
     eprintln!("    barracuda::nautilus: evolutionary reservoir (absorbed S80)");
     eprintln!("    barracuda::optimize: Nelder-Mead GPU, Brent, L-BFGS, Anderson accel");
     eprintln!("    barracuda::pde: Richards PDE GPU, hydrology module split");
+    eprintln!("    S87: deep debt — FHE fixes, unsafe audit, gpu_helpers refactor");
     eprintln!();
     eprintln!("  neuralSpring S112: 44 upstream rewires + 205 files w/ barracuda imports");
     eprintln!("  All springs → ToadStool → GPU sovereign pipeline → all springs benefit");

@@ -294,6 +294,8 @@ const BINARIES: &[&str] = &[
     "validate_toadstool_s86_rewire",
     // S115: ToadStool ComputeDispatch evolution (Dispatcher↔barracuda::dispatch bridge)
     "validate_compute_dispatch_evolution",
+    // S116: ToadStool S87 sync — deep debt, CPU ungating, error evolution, gpu_helpers refactor
+    "validate_toadstool_s87_sync",
     // S115: NUCLEUS PCIe bypass + mixed-pipeline (Tower→Node→Nest + GPU↔NPU↔CPU)
     "validate_nucleus_pcie_mixed_pipeline",
 ];

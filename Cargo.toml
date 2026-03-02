@@ -993,6 +993,10 @@ name = "validate_toadstool_s86_rewire"
 path = "src/bin/validate_toadstool_s86_rewire.rs"
 
 [[bin]]
+name = "validate_toadstool_s87_sync"
+path = "src/bin/validate_toadstool_s87_sync.rs"
+
+[[bin]]
 name = "validate_nautilus_bridge"
 path = "src/bin/validate_nautilus_bridge.rs"
 

@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: March 2, 2026 (Sessions 109–115)
-**ToadStool HEAD**: `2fee1969` (S86: ComputeDispatch 144 ops, nautilus absorbed, BatchedEncoder, fused_mlp, Nelder-Mead GPU, hydrology module split, Anderson acceleration, multi-GPU interconnect. Previous: `f97fc2ae` S79.)
+**ToadStool HEAD**: `2dc26792` (S87: ComputeDispatch 144 ops, nautilus absorbed, BatchedEncoder, fused_mlp, Nelder-Mead GPU, hydrology module split, Anderson acceleration, multi-GPU interconnect. Previous: `2fee1969` S86.)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -10,14 +10,14 @@
 ## Quick Status
 
 41 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 6 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments + nF-03 AlphaFold3 Phase C.
-229 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+230 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 330/330 | **COMPLETE** |
-| Rust native validation | 861 lib + 9 integration + 43 forge tests, 41 modules, 229 binaries | **COMPLETE** |
+| Rust native validation | 861 lib + 9 integration + 43 forge tests, 41 modules, 230 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -57,8 +57,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44→111: benchmarks | Pure Rust vs Python (14 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **229 binaries** |
-| `validate_all` (S115) | **210/210 PASS** (RTX 4070, all green) | **ALL GREEN** |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **230 binaries** |
+| `validate_all` (S115) | **211/211 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -72,7 +72,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **210/210 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` | **211/211 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
@@ -751,7 +751,7 @@ isomorphic catalog shader name mappings (20% → 100% BarraCUDA coverage) and
 | **3 WDM GPU validators** | Transport MLP (matmul/add/relu), ESN recurrence (matmul/add/tanh/argmax), SQW LSTM (LstmGpuWeights struct) |
 | **AlphaFold3 confidence GPU** | pLDDT (sigmoid), PAE/pDE (matmul + CPU-side softmax/expected distance) |
 | **Python drift fix** | Isomorphic catalog: full BarraCUDA shader name resolution. 4 path fixes. |
-| **validate_all** | 229 binaries |
+| **validate_all** | 230 binaries |
 
 || Session 95: WDM+AF3 GPU validators | 4 new GPU Tensor validators, 39/39 Python drift PASS, 861 lib, 0 clippy | **ALL GREEN** |
 
@@ -924,7 +924,7 @@ Full cross-spring evolution validation and benchmarking of ToadStool S86 surface
 | **validate_modern_cross_spring** | 57 → **68/68 PASS**: +11 checks for S80 nautilus (brain/observe/drift/bridge), S81 hydrology (5 ET₀ methods), S86 ComputeDispatch |
 | **bench_cross_spring_modern** | 10 → **14/14 PASS**: +hydrology (5 ET₀ sub-µs), +nautilus (brain 8.6µs, drift 0.5µs, bridge 950ms) |
 | **Provenance tracking** | 6 source springs documented: hotSpring, wetSpring, airSpring, groundSpring, bingoCube, neuralSpring |
-| **Cross-spring shaders** | 692+ WGSL in ToadStool, 41 in metalForge, 15+ neuralSpring→ToadStool absorbed |
+| **Cross-spring shaders** | 844+ WGSL in ToadStool, 41 in metalForge, 15+ neuralSpring→ToadStool absorbed |
 | **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 861/861 lib ✓ · 208/208 validate_all ✓ |
 
 || Session 113: Cross-Spring S86 Evolution | validate_modern_cross_spring 68/68, bench_cross_spring_modern 14/14, 6-spring provenance, 208/208 validate_all | **ALL GREEN** |
@@ -933,8 +933,8 @@ Full cross-spring evolution validation and benchmarking of ToadStool S86 surface
 
 | Metric | Value |
 |--------|-------|
-| validate_all | **210/210 PASS** |
-| Binaries | 229 |
+| validate_all | **211/211 PASS** |
+| Binaries | 230 |
 | Library tests | 861 |
 | Latest handoff | **V76** (S115) |
 | Sessions covered | 44–115 |
