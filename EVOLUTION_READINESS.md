@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 2, 2026 (Sessions 109–111)
-**ToadStool HEAD**: `f97fc2ae` (barracuda: FFT buffer fix + `enable f64` naga strip + `asin_df64` iterative. S79: Spring absorption — esn_v2 shape fix, MultiHeadEsn, spectral extensions (bandwidth, condition_number, classify_spectral_phase), 5 ComputeDispatch migrations (71→76), jackknife/boltzmann bitcast fixes. S78: libc→rustix, AFIT migration, wildcard narrowing, archive cleanup. Previous: `8dc01a37` S103.)
+**Date**: March 2, 2026 (Sessions 109–112)
+**ToadStool HEAD**: `2fee1969` (S86: ComputeDispatch 144 ops, nautilus absorbed, BatchedEncoder, fused_mlp, Nelder-Mead GPU, hydrology module split, Anderson acceleration, multi-GPU interconnect. Previous: `f97fc2ae` S79.)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -58,7 +58,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44→111: benchmarks | Pure Rust vs Python (14 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **226 binaries** |
-| `validate_all` (S111) | **207/207 PASS** (RTX 4070, all green) | **ALL GREEN** |
+| `validate_all` (S112) | **208/208 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -72,7 +72,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **207/207 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` | **208/208 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
@@ -899,5 +899,20 @@ Full 10-tier validation pyramid confirmed green. CPU benchmark expanded from 11 
 | **V73 handoff** | ToadStool absorption handoff: BarraCUDA usage audit (205 files, 25+ submodules), 4 absorption targets |
 
 || Sessions 110–111: Paper Queue + CPU Bench | 207/207 validate_all, 14-domain bench (38.6×), 3 bench scripts, 22 new parity checks, 4 bug fixes, V73 handoff | **ALL GREEN** |
+
+### Session 112 — ToadStool S86 Rewire + Nautilus Absorption (March 2, 2026)
+
+ToadStool pin bumped 7 commits (S79→S86). Nautilus dependency absorbed into BarraCUDA upstream.
+
+| Area | Details |
+|------|---------|
+| **ToadStool pin bump** | `f97fc2ae` → `2fee1969` (7 commits: S80 nautilus/BatchedEncoder/Nelder-Mead, S81-82 deep debt +16 ComputeDispatch, S84-86 +33 ComputeDispatch, hydrology module split) |
+| **Nautilus absorption** | `bingocube-nautilus` path dep removed. All imports migrated to `barracuda::nautilus`. 3 files changed (Cargo.toml, nautilus_bridge.rs, training_monitor.rs) |
+| **DriftMonitor API** | `record(epoch, pop_size, mean, best)` → `record(&GenerationRecord, pop_size)`. `history` → `ne_s_history`. `consecutive_drift` → `is_drifting()` |
+| **New validator** | `validate_toadstool_s86_rewire` (27/27 PASS): nautilus types, DriftMonitor lifecycle, bridge absorption, BetaObservation |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 861/861 lib ✓ · 208/208 validate_all ✓ |
+| **V74 handoff** | S86 rewire + nautilus absorption + new capabilities catalog |
+
+|| Session 112: ToadStool S86 Rewire | Pin f97fc2ae→2fee1969, nautilus absorbed, DriftMonitor API migrated, 208/208 validate_all, V74 handoff | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

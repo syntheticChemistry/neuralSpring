@@ -2,14 +2,14 @@
 
 //! Nautilus Shell bridge — evolutionary reservoir computing from hotSpring.
 //!
-//! Bridges `bingocube_nautilus::NautilusBrain` with neuralSpring's spectral
+//! Bridges `barracuda::nautilus::NautilusBrain` with neuralSpring's spectral
 //! analysis and ESN infrastructure. The Nautilus Shell is a feed-forward
 //! alternative to recurrent ESN: board populations replace temporal feedback.
 //!
 //! ## Cross-Spring Provenance
 //!
 //! ```text
-//! hotSpring (brain arch + proxy.rs) → BingoCube Nautilus Shell → neuralSpring
+//! hotSpring (brain arch) → BingoCube → ToadStool/BarraCUDA absorption → neuralSpring
 //! ```
 //!
 //! ## Architecture Comparison
@@ -31,7 +31,7 @@
 //!   When `N_e * s < 1` for 3+ generations, selection is losing to drift.
 
 use crate::weight_spectral::WeightSpectralResult;
-use bingocube_nautilus::{BetaObservation, DriftMonitor, NautilusBrain, NautilusBrainConfig};
+use barracuda::nautilus::{BetaObservation, DriftMonitor, NautilusBrain, NautilusBrainConfig};
 
 /// Bridge between neuralSpring spectral analysis and Nautilus evolutionary reservoir.
 ///
@@ -185,7 +185,7 @@ impl SpectralNautilusBridge {
 }
 
 /// Re-export key Nautilus types for downstream use.
-pub use bingocube_nautilus::{
+pub use barracuda::nautilus::{
     EvolutionConfig, NautilusShell, SelectionMethod, ShellConfig as NautilusShellConfig,
 };
 

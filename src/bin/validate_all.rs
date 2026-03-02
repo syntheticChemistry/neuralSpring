@@ -290,6 +290,8 @@ const BINARIES: &[&str] = &[
     "validate_barracuda_basecamp",
     // S107: baseCamp Paper 12 extended — Gonzales deep modeling, 3D lattice, Fajgenbaum MATRIX
     "validate_immunological_anderson_extended",
+    // S112: ToadStool S86 rewire — nautilus absorbed into barracuda::nautilus, DriftMonitor API
+    "validate_toadstool_s86_rewire",
 ];
 
 fn main() {

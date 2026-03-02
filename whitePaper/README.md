@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 38.6× faster than Python (14 domains, honest geomean), 226 binaries, **207/207 validate\_all**. coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 861 lib + 9 integration + 43 forge tests. 44 upstream rewires, 205 barracuda import files, 25+ submodules. Full 10-tier GPU pyramid validated
-**Date**: March 2, 2026 (Sessions 40–111 — S111: 14-domain CPU benchmark, V73 handoff)
+**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 38.6× faster than Python (14 domains, honest geomean), 227 binaries, **208/208 validate\_all**. coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 861 lib + 9 integration + 43 forge tests. 44 upstream rewires, 205 barracuda import files, 25+ submodules. ToadStool `2fee1969` (S86), nautilus absorbed
+**Date**: March 2, 2026 (Sessions 40–112 — S112: ToadStool S86 rewire, nautilus absorption, V74 handoff)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–079, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V73 handoff (Sessions 110–111 — paper queue validation, GPU pyramid, BarraCUDA audit) |
+| `wateringHole/handoffs/` | Cross-project | V74 handoff (Session 112 — ToadStool S86 rewire, nautilus absorption) |
 
 ---
 

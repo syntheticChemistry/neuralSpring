@@ -223,11 +223,11 @@ fn validate_drift_monitoring(h: &mut ValidationHarness) {
     h.check_bool("drift: monitor accessible", !bridge.is_drifting());
 
     let monitor = bridge.drift_monitor();
-    h.check_bool("drift: history starts empty", monitor.history.is_empty());
     h.check_bool(
-        "drift: consecutive_drift starts at 0",
-        monitor.consecutive_drift == 0,
+        "drift: ne_s_history starts empty",
+        monitor.ne_s_history.is_empty(),
     );
+    h.check_bool("drift: not drifting initially", !monitor.is_drifting());
 }
 
 fn validate_concept_edge_detection(h: &mut ValidationHarness) {

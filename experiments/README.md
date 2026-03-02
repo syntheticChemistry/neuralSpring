@@ -88,6 +88,10 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 074 | Session 102 — Nautilus Shell Cross-Spring Bridge | Mar 1, 2026 | hotSpring brain arch → bingoCube Nautilus Shell → neuralSpring `SpectralNautilusBridge`. Feed-forward evolutionary reservoir as ESN alternative. DriftMonitor integration, concept edge detection, JSON serialization roundtrip. 27/27 PASS. 220 binaries, 753 lib tests, 3590+ checks |
 | 075 | Session 103 — Doc Sweep + V69 Handoff + BarraCUDA Usage Review | Mar 1, 2026 | Comprehensive stale-count audit (25 findings, all fixed). V69 ToadStool handoff: Nautilus bridge + BarraCUDA usage inventory (198 import sites, 58+ stats functions, 20+ submodules). V68 archived. ecoPrimals/whitePaper/gen3/baseCamp/ updated. Debris sweep: 0 orphan modules, 0 TODO/FIXME, 0 empty dirs, 0 unused deps. Cross-spring evolution map documented |
 | 076 | Session 104 — Full Validation Chain + 3 BarraCUDA Fixes + NUCLEUS Tower | Mar 2, 2026 | **202/202 validate\_all PASS** (0 FAIL, was 197/202). 3 barracuda fixes: FFT buffer selection (24/24, was 19/24), `enable f64;` naga strip (Wright-Fisher 4/4, was panic), `asin_df64` iterative confirmed (coral forge 16/16, was panic). NUCLEUS Tower socket path fix (22/22+29/29). 39/39 Python drift check (zero baseline drift). 90.49% llvm-cov. All GPU pipelines green. Mixed hardware 47/47+43/43. V70 handoff |
+| 077 | Session 109 — Deep Debt Resolution & Coverage Push | Mar 2, 2026 | 861 lib tests (was 826), 90%+ coverage, 50+ inline tolerances→named constants, production unwrap/unreachable eliminated, tests\_cpu refactored (950→713+253), V72 handoff. 226 binaries, 202/202 validate\_all |
+| 078 | Session 110 — Control Validation & Parity Buildout | Mar 2, 2026 | 4 bug fixes (BP chain length, matmul orientation, eigenvalue variance, ESN error string), +11 dispatch parity checks, +6 ToadStool compute parity, +5 biomeOS graph coordination. 207/207 validate\_all |
+| 079 | Session 111 — Paper Queue CPU Benchmark Buildout & Full Pyramid Validation | Mar 2, 2026 | CPU bench expanded 11→14 domains (Papers 013, 023, 025). 3 new Python bench scripts. 31/31 PASS, 38.6× geomean. Full 10-tier pyramid validated. V73 handoff |
+| 080 | Session 112 — ToadStool S86 Rewire + Nautilus Absorption | Mar 2, 2026 | Pin f97fc2ae→2fee1969 (7 commits). `bingocube-nautilus` dep removed → `barracuda::nautilus`. DriftMonitor API migrated. validate\_toadstool\_s86\_rewire 27/27 PASS. 208/208 validate\_all. V74 handoff |
 
 ---
 
@@ -4126,6 +4130,60 @@ from Python baselines through pure GPU workloads to metalForge cross-system disp
 - Geometric mean dropped from 77.3× (11 domains) to 38.6× (14 domains) because
   the 3 new domains include 2 BLAS-bound workloads. This is honest reporting —
   the headline number now includes the hardest cases.
+
+**Status**: COMPLETE
+
+---
+
+---
+
+## Experiment 080: ToadStool S86 Rewire + Nautilus Absorption (S112)
+
+**Date**: March 2, 2026
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK)
+**ToadStool**: `f97fc2ae` → `2fee1969` (S79 → S86, 7 commits)
+
+### Motivation
+
+ToadStool has evolved from S79 to S86 since our last pin. Key changes: nautilus absorbed from bingoCube (7 files, 22 tests), ComputeDispatch expanded from 76 to 144 ops, BatchedEncoder for multi-op GPU, fused_mlp, batch Nelder-Mead GPU, hydrology module refactored, multi-GPU interconnect added.
+
+### Procedure
+
+1. Surveyed ToadStool S79→S86 git evolution (7 commits, 131 files, +8199/-8774 lines)
+2. Verified path dep already tracks HEAD — no Cargo.toml pin to bump
+3. Built clean: `cargo check` (0 errors)
+4. Identified nautilus absorption opportunity: `bingocube-nautilus` → `barracuda::nautilus`
+5. Rewired 3 files: `Cargo.toml` (dep removed), `nautilus_bridge.rs` (3 imports), `training_monitor.rs` (1 import + record call)
+6. Adapted `DriftMonitor::record()` to new `GenerationRecord` API
+7. Fixed `validate_nautilus_bridge.rs` field access (`history` → `ne_s_history`, `consecutive_drift` → `is_drifting()`)
+8. Created `validate_toadstool_s86_rewire.rs` (27 checks)
+9. Full quality gate: fmt ✓, clippy ✓ (0 warnings), 861 lib tests ✓, 208/208 validate_all ✓
+
+### Results
+
+| Metric | Before | After |
+|--------|--------|-------|
+| ToadStool HEAD | `f97fc2ae` (S79) | `2fee1969` (S86) |
+| External deps | bingocube-nautilus | Removed |
+| validate_all | 207/207 | **208/208** |
+| ComputeDispatch ops (upstream) | 76 | 144 |
+| New validators | — | validate_toadstool_s86_rewire (27/27) |
+
+### Key API Changes Absorbed
+
+| Before (bingoCube) | After (barracuda) |
+|---------------------|-------------------|
+| `bingocube_nautilus::*` | `barracuda::nautilus::*` |
+| `DriftMonitor.history` | `DriftMonitor.ne_s_history` |
+| `DriftMonitor.consecutive_drift` | Removed (use `is_drifting()`) |
+| `drift.record(epoch, pop_size, mean, best)` | `drift.record(&GenerationRecord{..}, pop_size)` |
+
+### Findings
+
+- No breaking changes in the core barracuda APIs we use (stats, ops::bio, tensor, device, special, linalg, numerical). ToadStool team maintained backward compatibility.
+- `DriftMonitor` struct simplified: consecutive_drift tracking is now computed inline in `is_drifting()` instead of stored as a field. Cleaner API.
+- New capabilities available for future use: BatchedEncoder, fused_mlp, Nelder-Mead GPU, Richards PDE GPU, Brent/L-BFGS optimizers, multi-GPU interconnect, hydrology extensions (thornthwaite/makkink/turc/hamon ET₀).
+- `blake3` dependency added upstream for Nautilus board hashing.
 
 **Status**: COMPLETE
 

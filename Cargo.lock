@@ -146,6 +146,7 @@ version = "0.2.0"
 dependencies = [
  "akida-driver",
  "async-trait",
+ "blake3",
  "bytemuck",
  "etcetera",
  "half",
@@ -160,30 +161,6 @@ dependencies = [
  "tokio",
  "tracing",
  "wgpu",
-]
-
-[[package]]
-name = "bingocube-core"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
- "serde",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "bingocube-nautilus"
-version = "0.1.0"
-dependencies = [
- "bingocube-core",
- "blake3",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -1053,7 +1030,6 @@ dependencies = [
  "anyhow",
  "approx",
  "barracuda",
- "bingocube-nautilus",
  "bytemuck",
  "clap",
  "env_logger",

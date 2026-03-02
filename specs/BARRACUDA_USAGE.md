@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 2, 2026 (Sessions 109–111 — 207/207 validate_all, 14-domain CPU bench (38.6× vs Python), 205 files with barracuda imports, 25+ submodules, 44 upstream rewires. Full 10-tier GPU pyramid validated. V73 ToadStool handoff)
+**Last Updated**: March 2, 2026 (Sessions 109–112 — 208/208 validate_all, ToadStool S86 rewire (2fee1969), nautilus absorbed into barracuda::nautilus, bingocube dep removed. 205 files with barracuda imports, 25+ submodules, 44 upstream rewires. V74 ToadStool handoff)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`), ~700 WGSL shaders
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 

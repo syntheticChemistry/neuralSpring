@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V73** | `handoffs/NEURALSPRING_TOADSTOOL_V73_S111_PAPER_QUEUE_GPU_PYRAMID_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S110-111 paper queue validation complete. 207/207 validate_all, 14-domain CPU bench (38.6×), full 10-tier GPU pyramid, 3 new Python benchmarks, BarraCUDA usage audit (205 files, 25+ submodules) |
+| **V74** | `handoffs/NEURALSPRING_TOADSTOOL_V74_S112_S86_REWIRE_NAUTILUS_ABSORPTION_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S112 ToadStool S86 rewire. Pin f97fc2ae→2fee1969 (7 commits). Nautilus absorbed into barracuda::nautilus (bingocube dep removed). DriftMonitor API migrated. 208/208 validate_all, 27/27 S86 rewire validator |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V72 + biomeOS V1). V71 (deep debt + doc sweep + nS-06), V72 (deep debt resolution).
+Superseded handoffs: `handoffs/archive/` (V1–V73 + biomeOS V1). V72 (deep debt resolution), V73 (paper queue + GPU pyramid).
 
 ## Conventions
 

@@ -27,7 +27,7 @@
 #![allow(clippy::doc_markdown)]
 
 use crate::weight_spectral::WeightSpectralResult;
-use bingocube_nautilus::DriftMonitor;
+use barracuda::nautilus::{DriftMonitor, GenerationRecord, InstanceId};
 
 /// Training interrupt signal (adapted from hotSpring `BrainInterrupt`).
 #[derive(Debug, Clone, PartialEq)]
@@ -114,8 +114,15 @@ impl TrainingMonitor {
             .iter()
             .map(|s| -s.loss)
             .fold(f64::NEG_INFINITY, f64::max);
-        self.drift
-            .record(epoch, pop_size, mean_fitness, best_fitness);
+        let gen_record = GenerationRecord {
+            generation: epoch,
+            mean_fitness,
+            best_fitness,
+            pop_size,
+            origin: InstanceId("neuralSpring-training-monitor".to_string()),
+            training_size: self.history.len(),
+        };
+        self.drift.record(&gen_record, pop_size);
 
         self.transition_attention();
     }
