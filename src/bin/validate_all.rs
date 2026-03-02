@@ -292,6 +292,10 @@ const BINARIES: &[&str] = &[
     "validate_immunological_anderson_extended",
     // S112: ToadStool S86 rewire — nautilus absorbed into barracuda::nautilus, DriftMonitor API
     "validate_toadstool_s86_rewire",
+    // S115: ToadStool ComputeDispatch evolution (Dispatcher↔barracuda::dispatch bridge)
+    "validate_compute_dispatch_evolution",
+    // S115: NUCLEUS PCIe bypass + mixed-pipeline (Tower→Node→Nest + GPU↔NPU↔CPU)
+    "validate_nucleus_pcie_mixed_pipeline",
 ];
 
 fn main() {

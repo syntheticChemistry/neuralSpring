@@ -94,6 +94,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 080 | Session 112 — ToadStool S86 Rewire + Nautilus Absorption | Mar 2, 2026 | Pin f97fc2ae→2fee1969 (7 commits). `bingocube-nautilus` dep removed → `barracuda::nautilus`. DriftMonitor API migrated. validate\_toadstool\_s86\_rewire 27/27 PASS. 208/208 validate\_all. V74 handoff |
 | 081 | Session 113 — Cross-Spring S86 Evolution Benchmark + Modern Validation | Mar 2, 2026 | validate\_modern\_cross\_spring 57→68/68 PASS. bench\_cross\_spring\_modern 10→14/14 PASS. 6 cross-spring provenance chains. 5 ET₀ methods benchmarked. Nautilus brain/drift/bridge benchmarked |
 | 082 | Session 114 — Pure GPU Pyramid Complete (15/15 Phase 0++) | Mar 2, 2026 | validate\_gpu\_pure\_workload\_all 10→13/13 PASS (+SwarmNnGpu, Rk45AdaptiveGpu, HillGateGpu). Full validation pyramid green: Py 15/15, bC CPU 31/31 (39×), bC GPU 15/15, Pure GPU 13/13, metalForge 46+47/93. 208/208 validate\_all |
+| 083 | Session 115 — CPU↔GPU Dispatch Parity + ComputeDispatch + NUCLEUS PCIe | Mar 2, 2026 | dispatch parity 30→53/53 (+8 bio/ODE/HMM ops), ComputeDispatch bridge 14/14 (Dispatcher↔barracuda::dispatch), NUCLEUS PCIe bypass 38/38 (Tower→Node→Nest + biomeOS graph). 210/210 validate\_all |
 
 ---
 
@@ -4290,6 +4291,32 @@ The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 
 - `Rk45AdaptiveGpu` f64 pipeline produces finite, positive ODE solutions matching the adaptive Dormand-Prince integration
 - `HillGateGpu` f64 grid matches CPU `two_input_hill` to 1e-6 precision — transcendental `pow` in WGSL f64 is well-behaved
 - The full validation pyramid is now complete: every Phase 0++ paper (011-025) is validated at all 6 tiers
+
+**Status**: COMPLETE
+
+---
+
+## Experiment 083: CPU↔GPU Dispatch Parity + ComputeDispatch + NUCLEUS PCIe Bypass (S115)
+
+**Date**: March 2, 2026
+**Session**: S115
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Extend CPU↔GPU dispatch parity to full Dispatcher API coverage, prove Dispatcher↔barracuda::dispatch bridge for ToadStool ComputeDispatch absorption, and validate NUCLEUS atomics with PCIe bypass + biomeOS graph coordination.
+
+**Procedure**:
+1. Extended `validate_barracuda_dispatch_parity` with 8 uncovered ops: multi_obj_fitness, swarm_nn_forward, integrate_ode_batch, inter_population_af_variance, hmm_backward_step, hmm_viterbi_step, hmm_chain, detect_introgression
+2. Created `validate_compute_dispatch_evolution` proving Dispatcher → barracuda::dispatch bridge (9 ops + threshold routing + determinism)
+3. Created `validate_nucleus_pcie_mixed_pipeline` validating NUCLEUS Tower→Node→Nest chain, PCIe bypass cost model, NPU routing decisions, GPU→NPU science pipeline, and biomeOS multi-stage graph coordination
+
+**Key Findings**:
+- `validate_barracuda_dispatch_parity`: 30 → **53/53 PASS** — all Dispatcher GPU ops have proven CPU↔GPU parity
+- `validate_compute_dispatch_evolution`: **14/14 PASS** — Dispatcher math is bit-identical to barracuda::dispatch (ready for ToadStool ComputeDispatch absorption)
+- `validate_nucleus_pcie_mixed_pipeline`: **38/38 PASS** — PCIe bypass cost model, multi-hop chaining, NPU routing (5 substrate decisions), GPU↔NPU science pipeline, NUCLEUS Tower→Node→Nest provenance, biomeOS graph pipeline with dispatch↔CPU parity
+- multi_obj_fitness uses f32 GPU path → 2e-3 max diff (within TENSOR_MATMUL_F32 tolerance)
+- ODE batch integration: GPU↔CPU parity at 1.5e-7 (within GPU_RK4_F32 tolerance)
+- All HMM ops (backward, Viterbi step, chain, introgression) GPU↔CPU parity proven
+- biomeOS graph: spectral → population → information pipeline preserves IPR and entropy parity across substrates
+- **210/210 validate_all PASS**, 861 lib tests, 0 clippy, 0 fmt
 
 **Status**: COMPLETE
 
