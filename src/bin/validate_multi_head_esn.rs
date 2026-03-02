@@ -117,7 +117,7 @@ async fn validate_npu_export(h: &mut ValidationHarness) {
             h.check_bool("npu: scale finite", npu.scale.is_finite());
         }
         Err(e) => {
-            if e.contains("not been trained") {
+            if e.contains("no trained heads") {
                 h.check_bool("npu: untrained correctly rejected", true);
             } else {
                 h.check_bool(&format!("npu: unexpected error: {e}"), false);

@@ -133,7 +133,7 @@ async fn main() {
         cpu_evals.iter().map(|&v| (v - mean).powi(2)).sum::<f64>() / cpu_evals.len() as f64
     };
     let gpu_var_evals = gpu_ops::variance_gpu(&gpu_evals, &dev).expect("variance H² evals GPU");
-    h.check_abs(
+    h.check_rel(
         "WS-GPU: H² eigenvalue variance CPU vs GPU",
         gpu_var_evals,
         cpu_var_evals,
@@ -316,21 +316,17 @@ async fn main() {
         &[pgm_states, pgm_states, pgm_states, pgm_states],
     );
     h.check_bool(
-        "PGM-GPU: BP chain produces 3 output layers",
-        cpu_bp.len() == 3,
+        "PGM-GPU: BP chain produces 4 distributions (input + 3 layers)",
+        cpu_bp.len() == 4,
     );
 
-    // GPU mat-vec for a single BP step: out = T × input
-    let bp_out_cpu = &cpu_bp[0];
+    // GPU mat-vec for a single BP step: out = v^T × T (left multiplication, same as CPU BP)
+    let bp_out_cpu = &cpu_bp[1];
     let mut padded_input = vec![0.0; pgm_states * pgm_states];
-    for i in 0..pgm_states {
-        padded_input[i * pgm_states] = pgm_initial[i];
-    }
-    let gpu_bp_full = gpu_ops::mat_mul_gpu(&pgm_transition, &padded_input, pgm_states, &dev)
+    padded_input[..pgm_states].copy_from_slice(&pgm_initial[..pgm_states]);
+    let gpu_bp_full = gpu_ops::mat_mul_gpu(&padded_input, &pgm_transition, pgm_states, &dev)
         .expect("matmul BP step GPU");
-    let gpu_bp_out: Vec<f64> = (0..pgm_states)
-        .map(|i| gpu_bp_full[i * pgm_states])
-        .collect();
+    let gpu_bp_out: Vec<f64> = (0..pgm_states).map(|j| gpu_bp_full[j]).collect();
     let bp_out_sum: f64 = gpu_bp_out.iter().sum();
     let gpu_bp_normed: Vec<f64> = gpu_bp_out.iter().map(|&v| v / bp_out_sum).collect();
 

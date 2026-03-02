@@ -248,8 +248,11 @@ mod tests {
         }
         bridge.train();
 
-        let json = bridge.to_json().expect("serialize");
-        let restored = SpectralNautilusBridge::from_json(&json).expect("deserialize");
+        let json = bridge
+            .to_json()
+            .expect("JSON serialization of bridge should not fail for valid struct");
+        let restored = SpectralNautilusBridge::from_json(&json)
+            .expect("JSON deserialization failed — baseline format may have changed");
 
         assert_eq!(restored.observation_count(), bridge.observation_count());
         assert_eq!(restored.is_trained(), bridge.is_trained());

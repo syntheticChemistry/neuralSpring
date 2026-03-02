@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **3590+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 83.6× faster than Python, 220 binaries, **200/200 validate\_all** (198 PASS + 2 pre-existing WGSL parse). coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 753 lib + 9 integration + 43 forge tests. 44 upstream rewires, 130+ barracuda import sites. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump, GPU stats parity, 2 upstream shader bugs
-**Date**: March 1, 2026 (Sessions 40–101 — S101: ToadStool S71 pin bump + GPU stats parity)
+**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 38.6× faster than Python (14 domains, honest geomean), 226 binaries, **207/207 validate\_all**. coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 861 lib + 9 integration + 43 forge tests. 44 upstream rewires, 205 barracuda import files, 25+ submodules. Full 10-tier GPU pyramid validated
+**Date**: March 2, 2026 (Sessions 40–111 — S111: 14-domain CPU benchmark, V73 handoff)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -21,8 +21,8 @@
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all 17 resolved (S-01 through S-17) |
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
-| `experiments/README.md` | Engineering | Experiment journals (001–074, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V69 handoff (Session 102 — Nautilus Shell cross-spring bridge, BarraCUDA review) |
+| `experiments/README.md` | Engineering | Experiment journals (001–079, hotSpring pattern) |
+| `wateringHole/handoffs/` | Cross-project | V73 handoff (Sessions 110–111 — paper queue validation, GPU pyramid, BarraCUDA audit) |
 
 ---
 
@@ -75,8 +75,8 @@ WGSL serves every domain.
 
 ### Key Results Summary
 
-**Phase 0/0+/0++**: 282/282 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge)
-**Phase 1–5h+**: 3080+ Rust+GPU validation PASS (753 lib + 9 integration + 43 forge tests + 220 binaries across 40 modules + gpu\_ops/ + gpu\_dispatch/)
+**Phase 0/0+/0++**: 330/330 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge)
+**Phase 1–5h+**: 3080+ Rust+GPU validation PASS (861 lib + 9 integration + 43 forge tests + 226 binaries across 40 modules + gpu\_ops/ + gpu\_dispatch/)
 **Grand Total**: 3500+ PASS — **ALL GREEN** across all applicable tiers
 **Multi-GPU**: 208 validators on RTX 4070, 384+ additional on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 47 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11, Phase C: 6, +3 upstream). ~97% of production math on GPU.
@@ -95,7 +95,7 @@ cross-device cost model for GPU↔NPU↔CPU substrate selection.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 753 lib + 9 integration + 43 forge tests, 220 binaries, 40 modules | **Complete** |
+| 1a | Rust validation layer — 861 lib + 9 integration + 43 forge tests, 226 binaries, 40 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -180,7 +180,7 @@ then Rust/WGSL evolution — applies to ML inference:
 
 | Stage | What Happened | Result |
 |-------|---------------|--------|
-| Python control | NumPy/PyTorch baselines for all 25 papers + WDM + pub exp | 263/263 PASS |
+| Python control | NumPy/PyTorch baselines for all 25 papers + WDM + pub exp | 330/330 PASS |
 | BarraCUDA validation | 272 checks across 12 modules (CPU + GPU + FFT) | 272/272 PASS |
 | Fused pipeline | Single-encoder dispatch, eliminate per-op overhead | **46–78× over per-op** |
 | BLAS-evolved CPU shader | 32×32 tiles, vec4, 8×4 micro-kernel, k-unroll | CPU beats Py at 3M+ FLOPs |
@@ -309,11 +309,11 @@ Full handoff: `wateringHole/handoffs/`
 ### Reproduction
 
 ```bash
-# Phase 0/0+/0++ Python baselines (263/263)
+# Phase 0/0+/0++ Python baselines (330/330)
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (753 lib + 9 integration + 43 forge tests + 220 binaries)
+# Rust validation (861 lib + 9 integration + 43 forge tests + 226 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -357,5 +357,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 753 lib + 9 integration + 43 forge tests. 282 Python + 3280+ Rust/GPU = 3590+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 220 binaries, 200/200 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V69 handoff. S102: Nautilus Shell cross-spring bridge. S101: ToadStool S71 pin bump + GPU stats parity.*
+*25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 861 lib + 9 integration + 43 forge tests. 330 Python + 3280+ Rust/GPU = 3590+ total checks.
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 226 binaries, 202/202 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V69 handoff. S102: Nautilus Shell cross-spring bridge. S101: ToadStool S71 pin bump + GPU stats parity.*

@@ -152,16 +152,11 @@ fn validate_plddt_gpu(h: &mut ValidationHarness, device: &Dev) {
         return;
     };
     if let Ok(l2) = repr2.matmul(&w2) {
-        let b2 = Tensor::from_data(&b_f32, vec![n_res, 1], device.clone());
-        if let (Ok(bt), Ok(lb)) = (
-            b2,
-            l2.add(
-                &Tensor::from_data(&b_f32, vec![n_res, 1], device.clone())
-                    .unwrap_or_else(|_| unreachable!()),
-            ),
-        ) {
-            // skip complex chain, just check matmul determinism
-            let _ = bt;
+        let Ok(bias_t) = Tensor::from_data(&b_f32, vec![n_res, 1], device.clone()) else {
+            h.check_bool("pLDDT determinism (bias alloc)", false);
+            return;
+        };
+        if let Ok(lb) = l2.add(&bias_t) {
             let _ = lb;
         }
     }

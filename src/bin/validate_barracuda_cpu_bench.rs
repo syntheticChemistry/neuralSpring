@@ -2,7 +2,7 @@
 
 //! `BarraCUDA` CPU parity + performance benchmark.
 //!
-//! For each of the 11 paper-domain Python benchmarks, this binary:
+//! For each of the 14 paper-domain Python benchmarks, this binary:
 //! 1. Runs the Python benchmark subprocess, capturing its median µs timing
 //! 2. Runs the identical computation in pure Rust via `BarraCUDA` CPU primitives
 //! 3. Verifies numeric parity (spot-check against `Python`/`NumPy`)
@@ -18,14 +18,17 @@
 //! | HMM forward | 016-018 | `bench_hmm_forward.py` | `hmm.rs` |
 //! | NK fitness | 011 | `bench_nk_fitness.py` | `counterdiabatic.rs` |
 //! | Pairwise L2 | 012 | `bench_pairwise_l2.py` | `modes.rs` |
+//! | Eco batch fitness | 013 | `bench_eco.py` | `eco_dynamics.rs` |
 //! | Hamming dist | 017 | `bench_hamming.py` | `sate_alignment.rs` |
 //! | Jaccard dist | 024 | `bench_jaccard.py` | `pangenome_selection.rs` |
 //! | Replicator | 019 | `bench_replicator.py` | `game_theory.rs` |
 //! | RK4 GRN | 020 | `bench_rk4.py` | `regulatory_network.rs` |
 //! | Commutator | 022 | `bench_commutator.py` | `spectral_commutativity.rs` |
+//! | Anderson IPR | 023 | `bench_anderson.py` | `anderson_localization.rs` |
 //! | Hill gate | 021 | `bench_hill_gate.py` | `signal_integration.rs` |
 //! | Multi-obj | 014 | `bench_multi_obj.py` | `directed_evolution.rs` |
 //! | Swarm NN | 015 | `bench_swarm_nn.py` | `swarm_robotics.rs` |
+//! | Global FST | 025 | `bench_meta_pop.py` | `meta_population/fst.rs` |
 //!
 //! The portability story:
 //! ```text
@@ -49,10 +52,13 @@
     clippy::suboptimal_flops
 )]
 
+use neural_spring::anderson_localization;
 use neural_spring::counterdiabatic::NkLandscape;
 use neural_spring::directed_evolution;
+use neural_spring::eco_dynamics::MultiNicheLandscape;
 use neural_spring::game_theory;
 use neural_spring::hmm::Hmm;
+use neural_spring::meta_population;
 use neural_spring::modes;
 use neural_spring::pangenome_selection;
 use neural_spring::regulatory_network::{self, GrnParams};
@@ -137,7 +143,7 @@ struct BenchResult {
 fn main() {
     eprintln!("╔══════════════════════════════════════════════════════════════════════════════╗");
     eprintln!("║  neuralSpring — BarraCUDA CPU Parity & Performance Benchmark               ║");
-    eprintln!("║  Python/NumPy (interpreted) vs Pure Rust (BarraCUDA CPU)                   ║");
+    eprintln!("║  Python/NumPy (interpreted) vs Pure Rust (BarraCUDA CPU) — 14 domains      ║");
     eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
     eprintln!();
@@ -148,7 +154,7 @@ fn main() {
     // ═══════════════════════════════════════════════════════════════════
     // 1. HMM Forward (Papers 016-018, Liu)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [1/11] HMM Forward — Papers 016-018 (Liu) ═══");
+    eprintln!("═══ [1/14] HMM Forward — Papers 016-018 (Liu) ═══");
     eprintln!("  Python: bench_hmm_forward.py — N=3, M=4, T=5000");
     {
         let py_us = run_python_bench("control/hmm_phylo/bench_hmm_forward.py");
@@ -213,7 +219,7 @@ fn main() {
     // ═══════════════════════════════════════════════════════════════════
     // 2. NK Fitness (Paper 011, Dolson)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [2/11] NK Fitness — Paper 011 (Dolson) ═══");
+    eprintln!("═══ [2/14] NK Fitness — Paper 011 (Dolson) ═══");
     eprintln!("  Python: bench_nk_fitness.py — N=10, K=2, 1000 genotypes");
     {
         let py_us = run_python_bench("control/counterdiabatic/bench_nk_fitness.py");
@@ -258,7 +264,7 @@ fn main() {
     // ═══════════════════════════════════════════════════════════════════
     // 3. Pairwise L2 (Paper 012, MODES/Dolson)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [3/11] Pairwise L2 — Paper 012 (Dolson) ═══");
+    eprintln!("═══ [3/14] Pairwise L2 — Paper 012 (Dolson) ═══");
     eprintln!("  Python: bench_pairwise_l2.py — 10 vectors × 8 dims");
     {
         let py_us = run_python_bench("control/modes/bench_pairwise_l2.py");
@@ -306,9 +312,55 @@ fn main() {
     eprintln!();
 
     // ═══════════════════════════════════════════════════════════════════
-    // 4. Pairwise Hamming (Paper 017, Liu/SATé)
+    // 4. Eco Batch Fitness (Paper 013, Dolson)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [4/11] Pairwise Hamming — Paper 017 (Liu) ═══");
+    eprintln!("═══ [4/14] Eco Batch Fitness — Paper 013 (Dolson) ═══");
+    eprintln!("  Python: bench_eco.py — N=20, 4 niches, 200 genotypes");
+    {
+        let py_us = run_python_bench("control/eco_dynamics/bench_eco.py");
+
+        let mut rng = Rng::new(42);
+        let n_loci = 20_usize;
+        let n_niches = 4_usize;
+        let pop_size = 200_usize;
+
+        let landscape = MultiNicheLandscape::new(n_loci, n_niches, 0.15, 42);
+        let population: Vec<Vec<u8>> = (0..pop_size)
+            .map(|_| (0..n_loci).map(|_| (rng.next_u64() % 2) as u8).collect())
+            .collect();
+
+        let fit = landscape.batch_fitness(&population, true);
+
+        let rust_us = bench_rust(|| {
+            let _ = std::hint::black_box(landscape.batch_fitness(&population, true));
+        });
+
+        let valid = fit.len() == pop_size && fit.iter().all(|v| v.is_finite() && *v >= 0.0);
+        h.check_bool("Eco batch fitness valid and finite", valid);
+
+        let speedup = py_us.map(|p| p / rust_us);
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
+        } else {
+            eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
+        }
+        h.check_bool("Eco batch fitness Rust completes", true);
+
+        results.push(BenchResult {
+            domain: "Eco Batch Fitness",
+            papers: "013",
+            python_us: py_us,
+            rust_us,
+            speedup,
+            parity_ok: valid,
+        });
+    }
+    eprintln!();
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 5. Pairwise Hamming (Paper 017, Liu/SATé)
+    // ═══════════════════════════════════════════════════════════════════
+    eprintln!("═══ [5/14] Pairwise Hamming — Paper 017 (Liu) ═══");
     eprintln!("  Python: bench_hamming.py — 20 seqs × 500 sites");
     {
         let py_us = run_python_bench("control/sate_alignment/bench_hamming.py");
@@ -352,9 +404,9 @@ fn main() {
     eprintln!();
 
     // ═══════════════════════════════════════════════════════════════════
-    // 5. Pairwise Jaccard (Paper 024, R. Anderson)
+    // 6. Pairwise Jaccard (Paper 024, R. Anderson)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [5/11] Pairwise Jaccard — Paper 024 (Anderson) ═══");
+    eprintln!("═══ [6/14] Pairwise Jaccard — Paper 024 (Anderson) ═══");
     eprintln!("  Python: bench_jaccard.py — 30 genomes × 500 genes");
     {
         let py_us = run_python_bench("control/pangenome_selection/bench_jaccard.py");
@@ -398,9 +450,9 @@ fn main() {
     eprintln!();
 
     // ═══════════════════════════════════════════════════════════════════
-    // 6. Replicator Dynamics (Paper 019, Waters)
+    // 7. Replicator Dynamics (Paper 019, Waters)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [6/11] Replicator Dynamics — Paper 019 (Waters) ═══");
+    eprintln!("═══ [7/14] Replicator Dynamics — Paper 019 (Waters) ═══");
     eprintln!("  Python: bench_replicator.py — 2-strategy PD, 10000 steps");
     {
         let py_us = run_python_bench("control/game_theory/bench_replicator.py");
@@ -448,9 +500,9 @@ fn main() {
     eprintln!();
 
     // ═══════════════════════════════════════════════════════════════════
-    // 7. RK4 GRN (Paper 020, Waters)
+    // 8. RK4 GRN (Paper 020, Waters)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [7/11] RK4 GRN Integration — Paper 020 (Waters) ═══");
+    eprintln!("═══ [8/14] RK4 GRN Integration — Paper 020 (Waters) ═══");
     eprintln!("  Python: bench_rk4.py — 3-variable GRN, 2000 steps");
     {
         let py_us = run_python_bench("control/regulatory_network/bench_rk4.py");
@@ -502,9 +554,9 @@ fn main() {
     eprintln!();
 
     // ═══════════════════════════════════════════════════════════════════
-    // 8. Commutator Norm (Paper 022, Kachkovskiy)
+    // 9. Commutator Norm (Paper 022, Kachkovskiy)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [8/11] Commutator Frobenius Norm — Paper 022 (Kachkovskiy) ═══");
+    eprintln!("═══ [9/14] Commutator Frobenius Norm — Paper 022 (Kachkovskiy) ═══");
     eprintln!("  Python: bench_commutator.py — 64×64 matrices");
     {
         let py_us = run_python_bench("control/spectral_commutativity/bench_commutator.py");
@@ -545,9 +597,55 @@ fn main() {
     eprintln!();
 
     // ═══════════════════════════════════════════════════════════════════
-    // 9. Hill Gate (Paper 021, Waters)
+    // 10. Anderson Localization IPR (Paper 023, Kachkovskiy)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [9/11] Two-Input Hill Gate — Paper 021 (Waters) ═══");
+    eprintln!("═══ [10/14] Anderson Localization IPR — Paper 023 (Kachkovskiy) ═══");
+    eprintln!("  Python: bench_anderson.py — N=64, W=4.0");
+    {
+        let py_us = run_python_bench("control/anderson_localization/bench_anderson.py");
+
+        let n = 64_usize;
+        let t = 1.0_f64;
+        let w = 4.0_f64;
+
+        let mut rng = Rng::new(42);
+        let hamiltonian = anderson_localization::anderson_hamiltonian_random(n, t, w, &mut rng);
+        let (_, eigenvectors) = anderson_localization::jacobi_eigh(&hamiltonian, n);
+        let mipr = anderson_localization::mean_ipr(&eigenvectors, n);
+
+        let rust_us = bench_rust(|| {
+            let mut rng2 = Rng::new(42);
+            let h = anderson_localization::anderson_hamiltonian_random(n, t, w, &mut rng2);
+            let (_, evecs) = anderson_localization::jacobi_eigh(&h, n);
+            let _ = std::hint::black_box(anderson_localization::mean_ipr(&evecs, n));
+        });
+
+        let valid = mipr.is_finite() && mipr > 0.0 && mipr <= 1.0;
+        h.check_bool("Anderson IPR in (0,1] and finite", valid);
+
+        let speedup = py_us.map(|p| p / rust_us);
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
+        } else {
+            eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
+        }
+        h.check_bool("Anderson IPR Rust completes", true);
+
+        results.push(BenchResult {
+            domain: "Anderson IPR 64",
+            papers: "023",
+            python_us: py_us,
+            rust_us,
+            speedup,
+            parity_ok: valid,
+        });
+    }
+    eprintln!();
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 11. Hill Gate (Paper 021, Waters)
+    // ═══════════════════════════════════════════════════════════════════
+    eprintln!("═══ [11/14] Two-Input Hill Gate — Paper 021 (Waters) ═══");
     eprintln!("  Python: bench_hill_gate.py — 50×50 grid");
     {
         let py_us = run_python_bench("control/signal_integration/bench_hill_gate.py");
@@ -601,9 +699,9 @@ fn main() {
     eprintln!();
 
     // ═══════════════════════════════════════════════════════════════════
-    // 10. Multi-Objective Fitness (Paper 014, Dolson)
+    // 12. Multi-Objective Fitness (Paper 014, Dolson)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [10/11] Multi-Objective Fitness — Paper 014 (Dolson) ═══");
+    eprintln!("═══ [12/14] Multi-Objective Fitness — Paper 014 (Dolson) ═══");
     eprintln!("  Python: bench_multi_obj.py — 100 genomes × 30 loci × 3 obj");
     {
         let py_us = run_python_bench("control/directed_evolution/bench_multi_obj.py");
@@ -647,9 +745,9 @@ fn main() {
     eprintln!();
 
     // ═══════════════════════════════════════════════════════════════════
-    // 11. Swarm NN Forward (Paper 015, Dolson)
+    // 13. Swarm NN Forward (Paper 015, Dolson)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [11/11] Swarm NN Forward — Paper 015 (Dolson) ═══");
+    eprintln!("═══ [13/14] Swarm NN Forward — Paper 015 (Dolson) ═══");
     eprintln!("  Python: bench_swarm_nn.py — 20 controllers × 50 evaluations");
     {
         let py_us = run_python_bench("control/swarm_robotics/bench_swarm_nn.py");
@@ -686,6 +784,75 @@ fn main() {
         results.push(BenchResult {
             domain: "Swarm NN Forward",
             papers: "015",
+            python_us: py_us,
+            rust_us,
+            speedup,
+            parity_ok: valid,
+        });
+    }
+    eprintln!();
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 14. Global FST (Paper 025, R. Anderson)
+    // ═══════════════════════════════════════════════════════════════════
+    eprintln!("═══ [14/14] Global FST — Paper 025 (R. Anderson) ═══");
+    eprintln!("  Python: bench_meta_pop.py — 6 pops × 20 individuals × 100 loci");
+    {
+        let py_us = run_python_bench("control/meta_population/bench_meta_pop.py");
+
+        let mut rng = Rng::new(42);
+        let n_pops = 6_usize;
+        let n_loci = 100_usize;
+        let n_individuals = 20_usize;
+        let temperatures = [65.0, 70.0, 75.0, 80.0, 85.0, 90.0];
+        let temp_min = 65.0_f64;
+        let temp_max = 90.0_f64;
+        let fst_target = 0.15_f64;
+        let n_thermal = n_loci / 5;
+
+        let ancestral_freq: Vec<f64> = (0..n_loci).map(|_| rng.beta(2.0, 2.0)).collect();
+        let populations: Vec<Vec<f64>> = temperatures
+            .iter()
+            .map(|&temp| {
+                meta_population::generate_population(
+                    n_individuals,
+                    n_loci,
+                    &ancestral_freq,
+                    fst_target,
+                    temp,
+                    temp_min,
+                    temp_max,
+                    n_thermal,
+                    &mut rng,
+                )
+            })
+            .collect();
+        let n_ind_list = vec![n_individuals; n_pops];
+
+        let fst = meta_population::global_fst(&populations, &n_ind_list, n_loci);
+
+        let rust_us = bench_rust(|| {
+            let _ = std::hint::black_box(meta_population::global_fst(
+                &populations,
+                &n_ind_list,
+                n_loci,
+            ));
+        });
+
+        let valid = fst.is_finite() && (0.0..=1.0).contains(&fst);
+        h.check_bool("Global FST in [0,1] and finite", valid);
+
+        let speedup = py_us.map(|p| p / rust_us);
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
+        } else {
+            eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
+        }
+        h.check_bool("Global FST Rust completes", true);
+
+        results.push(BenchResult {
+            domain: "Global FST",
+            papers: "025",
             python_us: py_us,
             rust_us,
             speedup,

@@ -1,6 +1,6 @@
 # neuralSpring — Data Provenance
 
-**Last Updated**: February 27, 2026 (Sessions 83–88+)
+**Last Updated**: March 2, 2026 (Sessions 83–109)
 **Purpose**: Document all external datasets, APIs, and pre-trained assets used in validation experiments. Every data source must be public, reproducible, and free of access restrictions.
 
 ---
@@ -57,22 +57,22 @@
 | Paper 24 (Pangenome) | Simulated gene content | Generated in-code | N/A — computational model | N/A | Moulana/Anderson (2020) mSystems. Pairwise Jaccard on simulated pangenome content. |
 | Paper 25 (Meta-pop) | Simulated populations | Generated in-code | N/A — computational model | N/A | Campbell/Anderson (2017) Env Microbiol. Locus variance, migration, isolation. |
 
-### WDM Surrogate Data (Sessions 83–87)
+### WDM Surrogate Data (Sessions 83–87, 109)
 
 | Surrogate | Dataset | Source | Access | License | Notes |
 |-----------|---------|--------|--------|---------|-------|
 | nW-01 (Transport) | Stanton-Murillo transport | Generated from published equations | N/A — analytical model | N/A | D*, η*, λ* vs ρ, T, Z*. Seed=42. |
-| nW-02 (EOS) | FPEOS equation of state | Militzer (2021) tables | Published data | Open | P(ρ,T), E(ρ,T) for H, He, C. |
+| nW-02 (EOS) | FPEOS equation of state | Militzer et al. (2021) Phys. Rev. E | [doi.org/10.1103/PhysRevE.103.013203](https://doi.org/10.1103/PhysRevE.103.013203) | Open | P(ρ,T), E(ρ,T) for H, He, C. arXiv:2012.07093. |
 | nW-03 (S(q,ω)) | MD density fluctuations | Generated in-code | N/A — synthetic spectra | N/A | Plasmon ω and damping γ from (ρ,T). Seed=42. |
 | nW-04 (Transfer) | Classical→WDM transfer | Stanton-Murillo + WDM extension | N/A — analytical model | N/A | Fine-tune from (Γ,κ) to (ρ,T,Z*). Seed=42. |
 | nW-05 (ESN) | WDM regime classifier | Generated in-code | N/A — synthetic physics | N/A | Classical/WDM/degenerate regimes. Seed=42. |
 
-### Publication Experiment Data (Session 88+)
+### Publication Experiment Data (Sessions 88–109)
 
 | Experiment | Dataset | Source | Access | License | Notes |
 |-----------|---------|--------|--------|---------|-------|
-| Exp-050 (Training Trajectory) | MNIST subset | torchvision | yann.lecun.com | CC BY-SA 3.0 | 4 architectures, spectral diagnostics per epoch. Seed=42. |
-| Exp-052 (Hessian Eigen) | MNIST 5K subset | torchvision | yann.lecun.com | CC BY-SA 3.0 | 15 configs (5 LR × 3 WD), Hessian at convergence. Seed=42. |
+| Exp-050 (Training Trajectory) | MNIST subset | torchvision | [yann.lecun.com/exdb/mnist](http://yann.lecun.com/exdb/mnist/) | CC BY-SA 3.0 | 4 architectures, spectral diagnostics per epoch. Seed=42. |
+| Exp-052 (Hessian Eigen) | MNIST 5K subset | torchvision | [yann.lecun.com/exdb/mnist](http://yann.lecun.com/exdb/mnist/) | CC BY-SA 3.0 | 15 configs (5 LR × 3 WD), Hessian at convergence. Seed=42. |
 | Exp-053 (Anderson Multi-Agent) | Synthetic agent networks | Generated in-code | N/A — pure math | N/A | 64/125/216/512 agents, disorder sweep. Seed=42. |
 
 ---
@@ -117,6 +117,7 @@ None. All models are trained from scratch during validation. This is by design �
 11. Dolson, E.L., Banzhaf, W., Ofria, C. (2022). *Artificial selection methods from evolutionary computing show promise for directed evolution of microbes*. eLife, 11, e79665. DOI: [10.7554/eLife.79665](https://doi.org/10.7554/eLife.79665)
 12. Liu, L., Yu, L., Kubatko, L., Pearl, D.K., Edwards, S.V. (2014). *Coalescent methods for estimating phylogenetic trees*. PLoS Computational Biology, 10(4), e1003649. DOI: [10.1371/journal.pcbi.1003649](https://doi.org/10.1371/journal.pcbi.1003649)
 13. Bruger, E. & Waters, C.M. (2018). *Maximizing Growth Yield and Dispersal via Quorum Sensing Promotes Cooperation in Vibrio Bacteria*. Applied and Environmental Microbiology, 84(6), e00402-18. DOI: [10.1128/AEM.00402-18](https://doi.org/10.1128/AEM.00402-18)
+14. Militzer, B., González-Cataldo, F., Zhang, S., Driver, K.P., Soubiran, F. (2021). *First-principles equation of state database for warm dense matter computation*. Physical Review E, 103, 013203. DOI: [10.1103/PhysRevE.103.013203](https://doi.org/10.1103/PhysRevE.103.013203). arXiv: [2012.07093](https://arxiv.org/abs/2012.07093).
 
 ---
 

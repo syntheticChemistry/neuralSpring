@@ -336,8 +336,11 @@ mod tests {
         let json =
             r#"{"model_name":"test","layer_name":"fc1","weights":[1.0,2.0,3.0,4.0],"m":2,"n":2}"#;
         let tmp = std::env::temp_dir().join("test_weight_baseline.json");
-        std::fs::write(&tmp, json).expect("write test json");
-        let baseline = load_json_weights(&tmp).expect("parse test json");
+        std::fs::write(&tmp, json)
+            .expect("failed to write temporary test JSON — check disk space and permissions");
+        let baseline = load_json_weights(&tmp).expect(
+            "failed to parse test JSON that was just written — indicates serialization bug",
+        );
         assert_eq!(baseline.model_name, "test");
         assert_eq!(baseline.m, 2);
         assert_eq!(baseline.n, 2);
@@ -349,7 +352,8 @@ mod tests {
     fn json_missing_field_returns_err() {
         let json = r#"{"model_name":"test","weights":[1.0],"m":1,"n":1}"#;
         let tmp = std::env::temp_dir().join("test_weight_missing_field.json");
-        std::fs::write(&tmp, json).expect("write test json");
+        std::fs::write(&tmp, json)
+            .expect("failed to write temporary test JSON — check disk space and permissions");
         let result = load_json_weights(&tmp);
         assert!(result.is_err(), "missing layer_name should fail");
         let _ = std::fs::remove_file(&tmp);
@@ -492,7 +496,8 @@ mod tests {
     #[test]
     fn json_malformed_returns_err() {
         let tmp = std::env::temp_dir().join("test_weight_malformed.json");
-        std::fs::write(&tmp, "not json").expect("write");
+        std::fs::write(&tmp, "not json")
+            .expect("failed to write temporary test file — check disk space and permissions");
         let result = load_json_weights(&tmp);
         assert!(result.is_err(), "malformed JSON should fail");
         let _ = std::fs::remove_file(&tmp);

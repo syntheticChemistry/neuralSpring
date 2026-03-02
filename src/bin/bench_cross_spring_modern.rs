@@ -134,7 +134,8 @@ fn bench_gpu_dispatch_and_esn(h: &mut ValidationHarness, rng: &mut Rng) {
     eprintln!("  Dispatcher auto-routes to best device.");
     eprintln!();
 
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let rt = tokio::runtime::Runtime::new()
+        .expect("tokio runtime creation failed — required for async benchmark");
     let dispatcher = rt.block_on(async { Dispatcher::new().await });
     let has_gpu = dispatcher.has_gpu();
     eprintln!(
@@ -207,8 +208,10 @@ fn bench_esn_gpu(h: &mut ValidationHarness, dispatcher: &neural_spring::gpu_disp
         return;
     }
 
-    let json_str = std::fs::read_to_string(json_path).expect("read baseline");
-    let classifier = neural_spring::wdm_esn::load_esn_from_json(&json_str).expect("parse ESN");
+    let json_str = std::fs::read_to_string(json_path)
+        .expect("failed to read baseline JSON — ensure control/wdm/ exists and file is present");
+    let classifier = neural_spring::wdm_esn::load_esn_from_json(&json_str)
+        .expect("failed to parse ESN JSON — baseline format may have changed");
 
     let us_cpu = bench("ESN classify CPU (wdm_esn local)", || {
         std::hint::black_box(classifier.classify(0.5, 5.5));

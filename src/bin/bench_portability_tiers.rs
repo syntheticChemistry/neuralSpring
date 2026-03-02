@@ -110,10 +110,11 @@ fn main() {
     eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
     eprintln!();
 
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let rt = tokio::runtime::Runtime::new()
+        .expect("tokio runtime creation failed — required for async benchmark");
     let gpu = rt
         .block_on(async { Gpu::new().await })
-        .expect("GPU required");
+        .expect("GPU required for benchmark — no adapter available");
 
     eprintln!(
         "  GPU: {} ({:?}, {:?})",

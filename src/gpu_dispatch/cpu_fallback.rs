@@ -445,4 +445,73 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert!(result[0].is_finite() && result[1].is_finite());
     }
+
+    #[test]
+    fn cpu_ode_batch_hill_multi_system() {
+        let dim = 2;
+        let n_systems = 3;
+        let coeffs: Vec<f64> = (0..n_systems)
+            .flat_map(|_| vec![0.5, 0.1, 1.0, 0.3, 0.2, 0.0])
+            .collect();
+        let states: Vec<f64> = (0..n_systems)
+            .flat_map(|i| vec![1.0 + i as f64, 0.5])
+            .collect();
+        let result = cpu_ode_batch_hill(&states, &coeffs, n_systems, dim, 50, 0.01);
+        assert_eq!(result.len(), n_systems * dim);
+        for v in &result {
+            assert!(v.is_finite());
+        }
+    }
+
+    #[test]
+    fn hmm_chain_produces_valid_path() {
+        let trans = vec![0.7, 0.3, 0.4, 0.6];
+        let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
+        let initial = vec![0.6, 0.4];
+        let obs = vec![0, 1, 2, 0, 1];
+        let (path, log_prob, log_lik) = hmm_chain(&initial, &trans, &emission, &obs, 2, 3);
+        assert_eq!(path.len(), obs.len());
+        assert!(log_prob.is_finite());
+        assert!(log_lik.is_finite());
+        assert!(log_lik < 0.0, "log-likelihood should be negative");
+        for &s in &path {
+            assert!(s < 2, "state out of range");
+        }
+    }
+
+    #[test]
+    fn hmm_chain_empty_obs() {
+        let (path, log_prob, log_lik) =
+            hmm_chain(&[0.5, 0.5], &[1.0, 0.0, 0.0, 1.0], &[0.5, 0.5], &[], 2, 1);
+        assert!(path.is_empty());
+        assert!((log_prob - 0.0).abs() < tolerances::ZERO_DETECTION);
+        assert!((log_lik - 0.0).abs() < tolerances::ZERO_DETECTION);
+    }
+
+    #[test]
+    fn hmm_chain_single_obs() {
+        let trans = vec![0.7, 0.3, 0.4, 0.6];
+        let emission = vec![0.9, 0.1, 0.2, 0.8];
+        let initial = vec![0.6, 0.4];
+        let (path, log_prob, log_lik) = hmm_chain(&initial, &trans, &emission, &[0], 2, 2);
+        assert_eq!(path.len(), 1);
+        assert!(log_prob.is_finite());
+        assert!(log_lik.is_finite());
+    }
+
+    #[test]
+    fn kl_divergence_identical() {
+        let p = vec![0.25, 0.25, 0.25, 0.25];
+        let d = kl_divergence(&p, &p);
+        assert!((d - 0.0).abs() < tolerances::EXACT_F64);
+    }
+
+    #[test]
+    fn kl_divergence_different() {
+        let p = vec![0.9, 0.1];
+        let q = vec![0.5, 0.5];
+        let d = kl_divergence(&p, &q);
+        assert!(d > 0.0, "KL(P||Q) > 0 for P != Q");
+        assert!(d.is_finite());
+    }
 }

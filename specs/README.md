@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 1, 2026 (Sessions 44–102 — S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37`, GPU stats parity, 2 upstream shader bugs reported)
-**Status**: Phase 5h+ — 282/282 Python + 3280+ Rust+GPU = **3900+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 83.6× speedup, dispatch parity 30/30, mixed-hardware dispatch 47/47, WDM+coralForge parity 39/39, metalForge NUCLEUS 41/41, 220 binaries, **202/202 validate\_all**, 753 lib tests
+**Last Updated**: March 2, 2026 (Sessions 44–111 — S111: 14-domain CPU bench (38.6×), 207/207 validate_all, V73 handoff)
+**Status**: Phase 5h+ — 330/330 Python + 3400+ Rust+GPU = **4100+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 38.6× speedup (14 domains), dispatch parity 41/41, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 226 binaries, **207/207 validate\_all**, 861 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---

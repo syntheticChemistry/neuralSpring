@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;

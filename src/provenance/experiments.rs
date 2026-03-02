@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 //! Provenance records for Phase 0, 0+, 0++ experiments and related baselines.
 
 use super::{

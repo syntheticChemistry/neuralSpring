@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 //! Cross-language reference arrays and analytical reference sources.
 
 // ═══════════════════════════════════════════════════════════════════

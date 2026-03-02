@@ -92,14 +92,14 @@ mod tests {
             vec![seq, d_model],
             device.clone(),
         )
-        .expect("input");
+        .expect("failed to create input tensor — check GPU memory and shape");
 
         let weight = Tensor::from_data(
             &vec![0.01_f32; d_model * d_model],
             vec![d_model, d_model],
             device.clone(),
         )
-        .expect("weight");
+        .expect("failed to create weight tensor — check GPU memory and shape");
 
         let result =
             multi_head_attention_2d(&input, &weight, &weight, &weight, &weight, n_heads, &device);

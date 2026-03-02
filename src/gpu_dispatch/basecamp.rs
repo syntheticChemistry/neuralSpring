@@ -268,7 +268,7 @@ mod tests {
         // Tokio runtime creation is genuinely fatal for GPU device init: without it we cannot
         // run async Dispatcher::new(). .expect() is intentional — test harness cannot recover.
         tokio::runtime::Runtime::new()
-            .expect("tokio runtime")
+            .expect("tokio runtime creation failed — required for async test harness")
             .block_on(async { Dispatcher::new().await })
     }
 

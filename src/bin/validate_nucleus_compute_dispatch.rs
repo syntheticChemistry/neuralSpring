@@ -88,7 +88,17 @@ async fn main() {
     validate_mixed_atomic_coordination(&mut h, &dispatcher, &mut rng, has_gpu);
 
     // ═══════════════════════════════════════════════════════════════════
-    // PHASE 5: PCIe bridge — NPU↔GPU bypass validation
+    // PHASE 5: biomeOS graph — spectral→popgen→entropy pipeline
+    // ═══════════════════════════════════════════════════════════════════
+    //
+    // biomeOS orchestrates multi-stage pipelines via capability graphs.
+    // Validates that chained atomics produce consistent results regardless
+    // of per-stage substrate routing decisions.
+
+    validate_biome_graph_coordination(&mut h, &dispatcher, &mut rng);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PHASE 6: PCIe bridge — NPU↔GPU bypass validation
     // ═══════════════════════════════════════════════════════════════════
 
     validate_pcie_bypass(&mut h);
@@ -461,6 +471,65 @@ fn validate_mixed_atomic_coordination(
         dispatch_l2,
         cpu_l2,
         tolerances::GPU_L2_DISPATCH_F32,
+    );
+}
+
+fn validate_biome_graph_coordination(
+    h: &mut ValidationHarness,
+    dispatcher: &Dispatcher,
+    rng: &mut Rng,
+) {
+    // biomeOS graph pattern: spectral → popgen → entropy pipeline
+    // Tower discovers substrates, Node runs each stage, Nest collects provenance.
+    // This validates the full pipeline produces consistent results regardless
+    // of which substrate each stage routes to.
+
+    let n_loci = 4;
+    let n_ind_a = 10;
+    let n_ind_b = 10;
+    let pop_a: Vec<f64> = (0..n_ind_a * n_loci).map(|_| rng.uniform()).collect();
+    let pop_b: Vec<f64> = (0..n_ind_b * n_loci).map(|_| rng.uniform()).collect();
+
+    // Stage 1 (Node): allele frequencies via dispatcher
+    let af_a = dispatcher.allele_frequencies(&pop_a, n_ind_a, n_loci);
+    let af_b = dispatcher.allele_frequencies(&pop_b, n_ind_b, n_loci);
+    h.check_bool(
+        "biomeOS pipeline: AF dim matches n_loci",
+        af_a.len() == n_loci && af_b.len() == n_loci,
+    );
+
+    // Stage 2 (Node): nucleotide diversity
+    let pi_a = dispatcher.nucleotide_diversity(&pop_a, n_ind_a, n_loci);
+    let pi_b = dispatcher.nucleotide_diversity(&pop_b, n_ind_b, n_loci);
+    h.check_bool(
+        "biomeOS pipeline: π finite and non-negative",
+        pi_a.is_finite() && pi_a >= 0.0 && pi_b.is_finite() && pi_b >= 0.0,
+    );
+
+    // Stage 3 (Node): FST between populations
+    let fst = dispatcher.pairwise_fst(&pop_a, n_ind_a, &pop_b, n_ind_b, n_loci);
+    h.check_bool("biomeOS pipeline: FST finite", fst.is_finite());
+
+    // Stage 4 (Nest): entropy of allele frequency distribution
+    let af_normed: Vec<f64> = {
+        let sum: f64 = af_a.iter().map(|v| v.abs()).sum::<f64>() + 1e-15;
+        af_a.iter().map(|v| v.abs() / sum).collect()
+    };
+    let ent = dispatcher.shannon_entropy(&af_normed);
+    h.check_bool("biomeOS pipeline: AF entropy finite", ent.is_finite());
+
+    // Cross-check: CPU-only pipeline gives same result
+    let cpu_disp = Dispatcher::cpu_only();
+    let cpu_af_a = cpu_disp.allele_frequencies(&pop_a, n_ind_a, n_loci);
+    let af_diff = af_a
+        .iter()
+        .zip(cpu_af_a.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0_f64, f64::max);
+    h.check_upper(
+        "biomeOS pipeline: AF dispatch↔CPU parity",
+        af_diff,
+        tolerances::TENSOR_EXACT_F32,
     );
 }
 

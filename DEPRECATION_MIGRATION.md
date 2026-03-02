@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: March 1, 2026 (Sessions 44–101)
-**ToadStool HEAD**: `8dc01a37` (S71+++: ComputeDispatch migration, DF64 transcendentals, pure math shaders, ~9000 lines boilerplate removed)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 220 binaries, 202/202 validate_all, 753 lib tests. Zero unsafe, zero production mocks, zero cross-primal logic. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump, GPU stats parity validated, 2 upstream shader bugs reported. V70 handoff.
+**Date**: March 2, 2026 (Sessions 44–111)
+**ToadStool HEAD**: `f97fc2ae` (S71+++: ComputeDispatch migration, DF64 transcendentals, pure math shaders, ~9000 lines boilerplate removed)
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 226 binaries, 207/207 validate_all, 861 lib tests. Zero unsafe, zero production mocks, zero cross-primal logic. S111: 14-domain CPU benchmark (38.6× vs Python), full 10-tier GPU pyramid, V73 handoff.
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed

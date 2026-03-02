@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: March 2, 2026 (Sessions 45–105)
+**Last Updated**: March 2, 2026 (Sessions 45–109)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -217,7 +217,9 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 25 papers complete. baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete.**
 
-Session 105: Deep Evolution + baseCamp Paper 12. MultiHeadWdmClassifier (barracuda MultiHeadEsn), TrainingMonitor (brain-inspired FSM), Dispatcher::kl_divergence, dispatch_and_read→Result. NUCLEUS protocol alignment. 5 large-file refactors (validation, provenance, weight_spectral, meta_population, gpu_ops/bio). baseCamp Sub-thesis 06 (B-16..B-21) added: Anderson localization in immunological signaling — Gonzales catalog, Fajgenbaum bridge, dimensional promotion–collapse duality. 223 binaries, 799 lib tests. Zero debt.
+Session 111: CPU benchmark expanded 11→14 domains (Papers 013, 023, 025). 3 new Python bench scripts. 31/31 PASS, 38.6× geomean. Full 10-tier pyramid validated. 207/207 validate_all.
+Session 109: Paper queue spec update. 861 lib tests, 226 binaries, 202/202 validate_all.
+Session 105: Deep Evolution + baseCamp Paper 12. MultiHeadWdmClassifier (barracuda MultiHeadEsn), TrainingMonitor (brain-inspired FSM), Dispatcher::kl_divergence, dispatch_and_read→Result. NUCLEUS protocol alignment. 5 large-file refactors (validation, provenance, weight_spectral, meta_population, gpu_ops/bio). baseCamp Sub-thesis 06 (B-16..B-21) added: Anderson localization in immunological signaling — Gonzales catalog, Fajgenbaum bridge, dimensional promotion–collapse duality.
 Session 93: Deep debt evolution + nF-03 Phase C. dispatch_ops.rs (842→7 domain files), gpu_ops/mod.rs (668→38+tests_ops). Iterator evolution (diffusion.rs, pairformer.rs, counterdiabatic.rs, cpu_fallback.rs, meta_population.rs). Self-identification→env!("CARGO_PKG_NAME"). .unwrap()→.expect(). nF-03 Phase C confidence heads (pLDDT, PAE, pDE, ranking: Py 19/19, Rs 16/16, 7 unit tests). 201 binaries, 685 lib tests, 189/189 validators. 39 Python drift baselines.
 Session 92: nF-03 AlphaFold3 Phase A+B buildout — diffusion primitives (Py 29/29, Rs 26/26), Pairformer block (Py 14/14, Rs 13/13). 2 new Python controls, 2 new Rust validators, 11 new unit tests. 196 binaries, 680 lib tests, 184/184 validators in validate_all. 38 Python drift baselines.
 Session 88: Publication experiment buildout — Exp-050 (training trajectory spectral analysis, Py 11/11, Rs 12/12), Exp-052 (Hessian eigenanalysis at trained minima, Py 8/8, Rs 14/14), Exp-053 (Anderson multi-agent coordination, Py 11/11, Rs 18/18). 3 new Python controls, 3 new Rust validators, 175 binaries, 668 lib tests, 163 validators in validate_all.
@@ -230,10 +232,10 @@ Session 70: Deep audit II — 93.5% coverage (580 tests), tolerance macro refact
 Session 68-69: Deep debt audit — zero ad-hoc tolerances, zero bare `unwrap()`, 107+ named tolerances. 6 validator shader sources → upstream constants.
 Session 67: CPU↔Python parity — `validate_cpu_math_parity` 39/39 PASS (1e-10 cross-language).
 Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF variance.
-`validate_all`: 158/158 PASS on RTX 4070.
+`validate_all`: 207/207 PASS on RTX 4070.
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
-Python baselines: 25/25+5 WDM PASS (zero drift). Rust **83.6× faster** than Python/NumPy (11 kernels).
-668 lib + 9 integration + 43 forge tests. 175 validation/bench binaries. Zero debt.
+Python baselines: 25/25+5 WDM PASS (zero drift). Rust **38.6× faster** than Python/NumPy (14 domains, all Phase 0++ papers).
+861 lib + 9 integration + 43 forge tests. 226 validation/bench binaries. Zero debt.
 44 CPU→GPU dispatch ops (~97% of production math).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -268,7 +270,7 @@ Full provenance: `specs/DATA_PROVENANCE.md`.
 
 ---
 
-## Full Validation Stack Matrix (February 26, 2026 — Sessions 60–75)
+## Full Validation Stack Matrix (March 2, 2026 — Sessions 60–109)
 
 Each paper maps through 10 validation tiers. The stack proves correctness
 from Python baseline through multi-GPU portability to mixed-hardware dispatch.
@@ -346,7 +348,7 @@ routing through `validate_mixed_hardware` (21/21 PASS).
 | Tier | Papers Covered | Total | Coverage |
 |------|---------------|-------|----------|
 | Python control (Py) | 25/25 + 5 WDM + 3 pub exp | 263 checks | **100%** |
-| Rust CPU (Rs) | 25/25 + baseCamp + WDM + pub exp | 668 lib + 114 baseCamp + 9 integration | **100%** |
+| Rust CPU (Rs) | 25/25 + baseCamp + WDM + pub exp | 861 lib + 9 integration | **100%** |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** |
 | BarraCUDA GPU (baseCamp) | 6/6 sub-theses | 18 checks | **100%** |
@@ -557,7 +559,7 @@ All controls verified passing across BarraCUDA CPU, GPU, and metalForge mixed ha
 **Session 88+ addendum**: 3 publication experiments (Exp-050/052/053) each have open-data
 Python controls + Rust CPU validators using BarraCUDA primitives (eigh_f64, BatchIprGpu,
 numerical_hessian, graph_laplacian, stencil_cooperation). Papers A/C/D data-ready.
-Total: 263 Python checks, 668 lib tests, 163/163 validate_all. V54 ToadStool handoff
+Total: 263 Python checks, 861 lib tests, 202/202 validate_all. V54 ToadStool handoff
 documents barracuda evolution surface, absorption targets, and cross-spring alignment.
 All controls use open data and open systems exclusively.
 
@@ -572,10 +574,10 @@ through the full GPU validation progression:
 | `validate_publication_gpu_pipeline` | 13/13 | Pipeline + metalForge | BatchIprGpu pure pipeline, Dispatcher CPU↔GPU parity, mixed-hardware routing |
 
 **Session 88+ CPU parity and portability benchmarks**: 2 new validators:
-- `validate_barracuda_cpu_bench` (25/25): Python/NumPy vs pure Rust across 11 paper domains, 83.6× geometric mean speedup
+- `validate_barracuda_cpu_bench` (31/31): Python/NumPy vs pure Rust across 14 paper domains (all Phase 0++), 38.6× geometric mean speedup
 - `bench_portability_tiers` (9/9): CPU→GPU portability proof, 7 domains, ToadStool streaming
 
-Total: **175 binaries**, **174/175 validate_all** (1 pre-existing WDM damping assertion).
+Total: **226 binaries**, **207/207 validate_all**.
 Also fixed `validate_wdm_sqw` JSON schema mismatch (`spec_mean` → `series_mean` compat): 0/1 → 26/27.
 
 **Session 88+ Phase 4 shader + streaming pipeline**: 2 new validators close direct
@@ -586,7 +588,7 @@ WGSL shader validation and ToadStool streaming proof gaps:
 | `validate_gpu_shader_phase4` | 22/22 | WGSL direct | HMM backward (1.19e-7), Viterbi (exact), matrix correlation (<1e-6), linear regression (slope 2.503 vs true 2.5) |
 | `validate_streaming_spectral_pipeline` | 28/28 | Streaming | Batch eigensolve→IPR→stats (8 Hamiltonians), Anderson disorder sweep (6 W values, IPR 0.09→0.79), Dispatcher parity (1.6e-14) |
 
-Total: **175 binaries**, **174/175 validate_all** (1 pre-existing WDM damping assertion).
+Total: **226 binaries**, **207/207 validate_all**.
 ToadStool streaming pattern validated: unidirectional dispatch preserves scientific conclusions.
 
 **Session 88+ debt reduction addendum**: Barracuda usage audit complete — 90+ import sites,
@@ -607,7 +609,7 @@ and metalForge mixed hardware tiers. Zero clippy warnings, zero fmt diffs.
 
 This closes the "pure GPU final workload validation" milestone: every paper domain
 has a typed GPU op validator, and metalForge's cross-system dispatch is proven
-end-to-end (GPU→NPU→CPU). Total: **2480+ checks**, **175 binaries**, **158/158 validate_all**.
+end-to-end (GPU→NPU→CPU). Total: **2480+ checks**, **226 binaries**, **202/202 validate_all**.
 
 **Session 86 addendum**: WDM surrogate buildout — 4 new validators added:
 - `validate_wdm_transport` (30/30): nW-01 Stanton-Murillo transport MLP

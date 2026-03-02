@@ -157,6 +157,7 @@ pub fn hill_gate_gpu(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
     use crate::gpu_ops::tests_ops::test_device;
@@ -166,7 +167,8 @@ mod tests {
         let Some((_guard, dev)) = test_device() else {
             return;
         };
-        let result = hill_activation_batch_gpu(&[0.5, 1.0, 2.0], 1.0, 0.5, 2.0, &dev).unwrap();
+        let result = hill_activation_batch_gpu(&[0.5, 1.0, 2.0], 1.0, 0.5, 2.0, &dev)
+            .expect("Hill activation GPU dispatch should succeed on test device");
         assert_eq!(result.len(), 3);
         for &v in &result {
             assert!((0.0..=1.0).contains(&v), "Hill output out of [0,1]: {v}");

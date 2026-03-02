@@ -6,8 +6,8 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `8dc01a37` (Sessions 60–102, S102: Nautilus Shell cross-spring bridge. S101: ToadStool S71 pin bump + GPU stats parity + shader bug reports, Mar 1, 2026) |
-| Last updated | March 1, 2026 (Sessions 40–101) |
+| ToadStool HEAD | `f97fc2ae` (Sessions 60–111, S111: full 10-tier GPU pyramid, 14-domain CPU bench, V73 handoff. Mar 2, 2026) |
+| Last updated | March 2, 2026 (Sessions 40–111) |
 | BarraCUDA shader count | 703+ WGSL (f64 canonical, universal precision, S70+++) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
 | Modern rewires (S88+) | `pairwise_l2_matrix_gpu` → `PairwiseL2Gpu`, `geographic_distance_matrix_gpu` → `PairwiseL2Gpu`, `disorder_sweep_gpu` IPR → `BatchIprGpu`, `compile_shader_f64_hybrid` → `compile_shader_df64` |
@@ -208,14 +208,14 @@
 
 ## Validation Evidence
 
-### neuralSpring validation (Feb 26, 2026, S84)
+### neuralSpring validation (Mar 2, 2026, S109)
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_all` | 177 | **177/177 PASS** |
+| `validate_all` | 202 | **202/202 PASS** |
 | `validate_cross_spring_evolution` | 52 | **52/52 PASS** |
 | `bench_cross_spring_evolution` | 28 | **28/28 PASS** |
-| `cargo test --lib` | 623 | **623/623 PASS** |
+| `cargo test --lib` | 861 | **861/861 PASS** |
 | `cargo clippy --all-targets -- -D warnings` | — | 0 warnings |
 | `BandwidthTier` detection | RTX 4070 | `PciE4x16` detected |
 
@@ -743,7 +743,7 @@ Hamming 20.85× regression: upstream f64 path on small sizes (investigation targ
 |------|--------|
 | `cargo clippy --all-targets -- -D warnings` | 0 warnings |
 | `cargo test --lib` | **668/668 PASS** |
-| `validate_all` | **177/177 PASS** |
+| `validate_all` | **202/202 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
 | `bench_cross_spring_evolution` | **28/28 PASS** |
 | `bench_upstream_vs_local` | **10/10 kernels** |
@@ -762,7 +762,7 @@ Feb 26  Session 83: ToadStool S68 Universal Precision Sync
             fit_exponential, fit_all, spearman, rawr_mean) + GPU dispatch provenance
           - Five-spring provenance map: hotSpring ~100, wetSpring ~80,
             neuralSpring ~34, airSpring ~15, groundSpring ~5 shaders
-          - Full validation sweep: 623 lib + 156 GPU + 28 bench PASS
+          - Full validation sweep: 861 lib + 156 GPU + 28 bench PASS
           - CROSS_SPRING_SHADER_LINEAGE updated with full five-spring map
 ```
 

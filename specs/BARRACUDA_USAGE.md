@@ -1,8 +1,21 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 1, 2026 (Sessions 40–102 — S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump `1dd7e338`→`8dc01a37`, GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. 220 binaries, **202/202 validate\_all**, 753 lib tests, 3900+ checks. V70 ToadStool handoff)
-**BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`)
+**Last Updated**: March 2, 2026 (Sessions 109–111 — 207/207 validate_all, 14-domain CPU bench (38.6× vs Python), 205 files with barracuda imports, 25+ submodules, 44 upstream rewires. Full 10-tier GPU pyramid validated. V73 ToadStool handoff)
+**BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`), ~700 WGSL shaders
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
+
+### At a Glance (Session 111)
+
+| Metric | Count |
+|--------|-------|
+| Barracuda submodules used | 25+ |
+| Barracuda functions imported | 60+ |
+| Files with barracuda imports | 205 |
+| Upstream rewires (local → barracuda) | 44 |
+| Feature flags | `unidirectional` |
+| CPU bench domains | 14 (38.6× geomean vs Python) |
+
+**Key modules**: `device`, `tensor`, `ops::bio` (18+ GPU kernels), `ops::linalg`, `ops::fft`, `ops::variance_reduce_f64`, `ops::correlation_f64_wgsl`, `ops::fused_map_reduce_f64`, `dispatch`, `stats`, `special`, `linalg`, `numerical`, `nn::simple_mlp`, `esn_v2`, `unified_hardware` (BandwidthTier)
 
 ---
 
@@ -13,6 +26,7 @@
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
 | `device::WgpuDevice` | `gpu.rs`, all FFT/tensor/ML binaries | GPU device creation and management |
+| `device::GpuDriverProfile`, `Fp64Strategy` | `gpu_dispatch/mod.rs` | Hardware-adaptive f64 strategy, pow workaround detection |
 | `device::WgpuDevice::compile_shader_universal` | `gpu.rs` (`compile_shader_universal`) | Universal precision compilation: one f64-canonical source → F16/F32/F64/Df64 (ToadStool S70+++) |
 | `shaders::precision::Precision` | `gpu.rs` (re-exported) | Precision enum: F16, F32, F64, Df64 for per-use/hardware shader compilation |
 | `device::capabilities::WORKGROUP_SIZE_*` | `evolved/mha.rs` | Shader workgroup sizing (legacy) |
@@ -32,6 +46,7 @@
 | `stats::dot` | `deeponet.rs`, `counterdiabatic.rs`, `meta_population.rs`, `neural_pgm.rs` | Dot product (rewired S75) |
 | `stats::l2_norm` | `deeponet.rs`, `neural_pgm.rs` | L2 norm (rewired S75) |
 | `stats::shannon` | `primitives.rs` | Shannon entropy from counts (rewired S75) |
+| `stats::diversity`, `stats::hydrology`, `stats::evolution`, `stats::jackknife` | Various validators | Domain-specific statistical primitives |
 
 ### Linear Algebra
 
@@ -43,6 +58,8 @@
 | `linalg::lu_det`, `lu_solve` | linalg validation | LU decomposition |
 | `linalg::tridiagonal_solve` | linalg validation | Tridiagonal solver |
 | `linalg::effective_rank` | `neural_pgm` | Eigenvalue entropy rank (rewired S59, H-009) |
+| `linalg::graph_laplacian` | `agent_coordination` | Graph Laplacian D − A (rewired S56) |
+| `ops::linalg::BatchedEighGpu`, `eigh_householder_qr` | eigensolver, spectral | Batched eigendecomposition |
 | `ops::linalg::svd::*` | linalg_ext validation | SVD |
 | `linalg::gen_eigh::*` | linalg_ext validation | Generalized eigendecomposition (takes `Arc<WgpuDevice>`) |
 
@@ -51,21 +68,44 @@
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
 | `numerical::rk45_solve` | regulatory, signal, game | Adaptive ODE integration |
+| `numerical::numerical_hessian` | `loss_landscape` | Central finite-difference Hessian (rewired S56) |
 
 ### Special Functions
 
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
-| `special::chi_squared_sf/cdf` | introgression | Chi-squared hypothesis testing |
-| `special::gamma, erf, erfc, bessel_*, legendre, hermite, laguerre, factorial` | special validation | Mathematical special functions |
+| `special::chi_squared_sf`, `chi_squared_cdf` | introgression | Chi-squared hypothesis testing |
+| `special::gamma`, `erf`, `erfc`, `bessel_j0`, `bessel_j1`, `legendre`, `hermite`, `laguerre`, `factorial` | special validation | Mathematical special functions |
 
 ### Tensor API
 
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
 | `tensor::Tensor` | 84+ op validation, FFT, ML inference, benchmarks | Core GPU tensor type |
-| `ops::fft::{Fft1D, Ifft1D}` | FFT validation | Cooley-Tukey radix-2 FFT |
+| `tensor::{matmul, transpose, sigmoid, tanh, softmax_dim, argmax_dim}` | gpu_ops, dispatch, validators | Core tensor ops |
+| `ops::fft::{Fft1D, Fft1DF64, Ifft1D, Rfft}` | FFT validation | Cooley-Tukey radix-2 FFT |
+| `ops::variance_reduce_f64`, `ops::correlation_f64_wgsl`, `ops::fused_map_reduce_f64` | dispatch_stats, reduction | f64 GPU reductions |
 | `ops::*_f64` (7 ops) | tensor_f64 validation | Double-precision GPU reductions |
+
+### ops::bio (18+ GPU Kernels)
+
+| Op | Where Used | Purpose |
+|----|------------|---------|
+| `BatchFitnessGpu` | batch fitness, pipeline_fitness | Benchmark function batch eval |
+| `HmmBatchForwardF64` | HMM validation, dispatch_hmm | HMM forward pass (wetSpring) |
+| `PairwiseHammingGpu` | SATé alignment (017) | Pairwise Hamming distance |
+| `PairwiseJaccardGpu` | pangenome (024) | Pairwise Jaccard |
+| `PairwiseL2Gpu` | MODES novelty (012) | Pairwise L2 distance |
+| `LocusVarianceGpu` | meta-population (025) | Per-locus variance |
+| `SpatialPayoffGpu` | game theory (019) | Spatial payoff |
+| `MultiObjFitnessGpu` | directed evolution (014) | Multi-objective fitness |
+| `BatchIprGpu` | Anderson (022–023) | Inverse participation ratio |
+| `SwarmNnGpu` | swarm robotics (015) | Swarm neural network |
+| `WrightFisherGpu` | population genetics | Wright-Fisher step |
+| `StencilCooperationGpu` | game theory Fermi | Stencil cooperation |
+| `HillGateGpu` | signal (021) | Hill gate |
+| `fst_variance_decomposition` | `meta_population::fst_single_locus`, `pairwise_fst_full` | Weir-Cockerham F-statistics (θ, f_is, f_it) |
+| `GillespieGpu`, `TaxonomyFcGpu`, `KmerHistogramGpu`, `UniFracPropagateGpu` | upstream validators | Additional bio ops |
 
 ### Shaders
 
@@ -109,6 +149,23 @@
 | TS-001 pow_f64 precision | Extended exp/log polynomials | **Flows automatically** via path dep |
 | TS-004 FusedMapReduceF64 fix | Single command encoder | **Flows automatically** via path dep |
 
+### dispatch (Domain Ops)
+
+| Module | Where Used | Purpose |
+|--------|-----------|---------|
+| `dispatch::matmul_dispatch` | gpu_dispatch | Matmul routing |
+| `dispatch::frobenius_norm_dispatch` | gpu_dispatch | Frobenius norm |
+| `dispatch::variance_dispatch` | gpu_dispatch | Variance |
+| `dispatch::transpose_dispatch`, `softmax_dispatch`, `l2_distance_dispatch`, `mean_dispatch`, `gelu_dispatch`, `hmm_forward_dispatch` | gpu_dispatch | Domain-specific dispatch |
+
+### nn::simple_mlp, esn_v2, unified_hardware
+
+| Module | Where Used | Purpose |
+|--------|-----------|---------|
+| `nn::simple_mlp::SimpleMlp` | WDM surrogate, ML inference | JSON weight loading + forward pass |
+| `esn_v2::{MultiHeadEsn, quantize_affine_i8_f64}` | wdm_esn, WDM validators | ESN surrogate, quantization |
+| `unified_hardware::BandwidthTier` | gpu_dispatch, metalForge | PCIe bandwidth tier detection |
+
 ### Low Priority — Future Features
 
 | BarraCUDA Module | Potential Use | When |
@@ -118,7 +175,6 @@
 | `nn::Layer` / `nn::Optimizer` | GPU training | Phase 5 |
 | `compute_graph` | Lazy execution | Phase 5 |
 | `session::TensorSession` | Session management | Phase 5 |
-| `esn_v2` | ESN surrogate | Phase 4 (NPU path) |
 
 ---
 
@@ -699,6 +755,8 @@ unavoidable transitive dependencies with no C compilation.
 | `driver_profile()` | `barracuda::device::driver_profile::GpuDriverProfile` | Full hardware detection |
 | `fp64_strategy()` | `GpuDriverProfile::fp64_strategy()` | Native vs Hybrid f64 routing |
 | `needs_pow_workaround()` | `GpuDriverProfile::needs_pow_f64_workaround()` | pow(f64) polyfill decision |
+| `bandwidth_tier()` | `barracuda::unified_hardware::BandwidthTier::detect_from_adapter_name` | PCIe bandwidth tier for transfer cost model |
+| `check_allocation_safe(total_bytes)` | `GpuDriverProfile::check_allocation_safe()` | NVK large-buffer protection (~1.4 GB limit) |
 
 ### RTX 4070 Detected Profile
 
@@ -809,12 +867,13 @@ Motivates StatefulPipeline/UnidirectionalPipeline batching.
 
 ### Audit Findings
 
-Full barracuda usage sweep across 60+ files, 90+ import sites:
+Full barracuda usage sweep across 60+ files, ~90 import sites:
 
-- **20+ barracuda submodules** actively consumed (device, tensor, ops::bio, ops::mha,
+- **~25+ barracuda submodules** actively consumed (device, tensor, ops::bio, ops::mha,
   ops::linalg, ops::fft, ops::fused_map_reduce_f64, ops::variance_reduce_f64,
   ops::correlation_f64_wgsl, ops::logsumexp, ops::rk_stage, stats, special,
-  spectral, dispatch, pipeline, staging, numerical, linalg::graph, unified_hardware)
+  spectral, dispatch, pipeline, staging, numerical, linalg::graph, unified_hardware,
+  nn::simple_mlp, esn_v2)
 - **Zero barracuda-related TODO/FIXME** in src/
 - **Zero duplicate math** — all identified overlaps are intentional:
   - `cpu_fallback::variance` uses population (÷N) vs barracuda sample (÷(N-1))
@@ -877,15 +936,16 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 | PairwiseL2 200×50 | nS 012 | 2,031 | 1,940 | −4% ≈ |
 | SwarmNN 500×20 | nS 015 | 1,990 | 1,999 | <1% ≈ |
 
-### BarraCUDA Consumption Summary (S69 complete)
+### BarraCUDA Consumption Summary (S109)
 
 | Category | Count |
 |----------|-------|
-| Barracuda submodules consumed | 20+ |
-| Functions rewired to upstream | 21 |
+| Barracuda submodules consumed | ~25+ |
+| Barracuda functions imported | ~60+ |
+| Functions rewired to upstream | 44 |
 | Validator shader sources rewired | 6 |
-| Upstream GPU typed ops validated | 10 bio + f64 HMM + Gillespie + wetSpring trio + chi² |
-| Total barracuda import sites | 90+ |
+| Upstream GPU typed ops validated | 18+ bio + f64 HMM + Gillespie + wetSpring trio + chi² |
+| Total barracuda import sites | ~90 across 60+ files |
 | Upstream API coverage | 117+ APIs exercised |
 
 ---
@@ -942,7 +1002,7 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 
 ### Audit Results
 
-Full barracuda usage audit confirmed: 16 submodules consumed, 90+ import sites,
+Full barracuda usage audit confirmed: 25+ submodules consumed, ~90 import sites across 60+ files,
 zero duplicate math. Every barracuda primitive that exists is used where applicable.
 
 ### Changes
@@ -1089,4 +1149,29 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 1, 2026. Sessions 50–102: 44 upstream rewires, GpuDriverProfile wired in, S-03b fully resolved, 220 binaries, 753 lib + 43 forge + 9 integration tests, 202/202 validate\_all (3900+ checks). Phase C GPU ~97%, CPU↔Python parity 39/39, dispatch overhead ≤1.04× (9/10 ops). S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S100: Deep debt execution — 4 unused deps removed, zero clippy pedantic+nursery, capability-based primal discovery, cross-spring rewire (hotSpring proxy.rs→bandwidth/condition/phase, GPU ESN via Tensor ops). V70 handoff.
+## Session 109 — Deep Debt Resolution (March 2, 2026)
+
+### New Since Previous Update
+
+| Change | Detail |
+|--------|--------|
+| **Tolerances** | `tolerances` module documents precision expectations for `barracuda::ops::bio::fst_variance_decomposition` (FST_IDENTICAL_POP_TOL, FST_ESTIMATOR_AGREEMENT, GPU_FST_PAIRWISE_F32) |
+| **Dispatcher** | Exposes `fp64_strategy()`, `needs_pow_workaround()`, `bandwidth_tier()`, `check_allocation_safe()` — all delegate to `GpuDriverProfile` / `BandwidthTier` |
+| **Nautilus bridge** | Integration via `bingocube-nautilus` crate: `SpectralNautilusBridge` maps weight spectral features to Nautilus evolutionary reservoir; `DriftMonitor` for training observation |
+
+### Current Usage Summary (S109)
+
+| Metric | Value |
+|--------|-------|
+| Barracuda submodules | ~25+ |
+| Barracuda functions imported | ~60+ |
+| Import sites | ~90 across 60+ files |
+| Upstream rewires | 44 |
+| Barracuda crate | 0.2.0, ~700 WGSL shaders |
+| Feature | `unidirectional` |
+| Lib tests | 861 |
+| Binaries | 226 |
+
+---
+
+*BarraCUDA usage audit — neuralSpring, March 2, 2026. Session 109: 25+ submodules, 60+ functions, ~90 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via bingocube-nautilus. V72 handoff.

@@ -770,6 +770,20 @@ pub const SINGLETON_FREQ_EPS: f64 = CROSS_LANGUAGE;
 /// tie-breaks from floating-point noise in ODE integration.
 pub const PHENOTYPE_TIE_EPS: f64 = CROSS_LANGUAGE;
 
+/// Boolean-range validation slack: expected ∈ {0.0, 1.0}, tolerance ±0.5.
+///
+/// Used in integration-test binaries that verify boolean capabilities
+/// (RPC method exists / returns valid result) via `check_abs(label, observed, expected, tol)`.
+/// A result within 0.5 of the target indicates the capability is functional.
+pub const BOOLEAN_VALIDATION_SLACK: f64 = 0.5;
+
+/// Eigenvalue comparison for small analytical matrices (2×2, 3×3).
+///
+/// Exact eigenvalues of small integer matrices are known analytically.
+/// GPU f64 dispatch computes eigenvalues via iterative methods; 0.01
+/// covers the combined f64→f32→f64 roundtrip and solver convergence.
+pub const EIGENSOLVER_SMALL_MATRIX: f64 = 0.01;
+
 mod gpu;
 mod registry;
 

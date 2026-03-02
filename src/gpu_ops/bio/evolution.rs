@@ -231,6 +231,7 @@ pub fn swarm_nn_forward_gpu(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
     use crate::gpu_ops::tests_ops::test_device;
@@ -242,7 +243,8 @@ mod tests {
             return;
         };
         let vectors = vec![0.0, 0.0, 3.0, 4.0];
-        let dist = pairwise_l2_matrix_gpu(&vectors, 2, 2, &dev).unwrap();
+        let dist = pairwise_l2_matrix_gpu(&vectors, 2, 2, &dev)
+            .expect("pairwise L2 GPU dispatch should succeed on test device");
         assert_eq!(dist.len(), 1, "upper triangle: n*(n-1)/2 = 1 pair");
         assert!(
             (dist[0] - 5.0).abs() < tolerances::GPU_CHI_SQUARED_F32,

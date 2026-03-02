@@ -35,6 +35,7 @@ fn main() {
 }
 
 fn validate_create_sequences(h: &mut ValidationHarness) {
+    // Analytical: data=[0..19], len=5, h=1 ⇒ seq[0][0]=0, target[0]=data[5]=5
     let data: Vec<f64> = (0..20).map(f64::from).collect();
 
     let (inputs, targets) = create_sequences(&data, 5, 1);
@@ -50,6 +51,7 @@ fn validate_create_sequences(h: &mut ValidationHarness) {
     );
     h.check_abs("seq[0] target == 5", targets[0], 5.0, tolerances::EXACT_F64);
 
+    // Analytical: horizon=3 ⇒ target[0]=data[5+2]=7
     let (inputs_h3, targets_h3) = create_sequences(&data, 5, 3);
     h.check_abs(
         "horizon=3: target[0] == 7",
@@ -64,6 +66,7 @@ fn validate_create_sequences(h: &mut ValidationHarness) {
 }
 
 fn validate_persistence(h: &mut ValidationHarness) {
+    // Analytical: persistence = last value of each window → 3, 30, 5
     let windows = vec![
         vec![1.0, 2.0, 3.0],
         vec![10.0, 20.0, 30.0],
@@ -76,6 +79,7 @@ fn validate_persistence(h: &mut ValidationHarness) {
 }
 
 fn validate_seasonal_model(h: &mut ValidationHarness) {
+    // Analytical: seasonal_tmax(doy) sinusoid; doy 190≈summer, 10≈winter; annual mean≈8.5°C
     let summer = seasonal_tmax(190);
     let winter = seasonal_tmax(10);
     let annual_mean: f64 = (0..365).map(seasonal_tmax).sum::<f64>() / 365.0;
@@ -92,7 +96,9 @@ fn validate_seasonal_model(h: &mut ValidationHarness) {
 }
 
 fn validate_sigmoid(h: &mut ValidationHarness) {
+    // Analytical: σ(0)=1/(1+e⁰)=0.5
     h.check_abs("σ(0) == 0.5", sigmoid(0.0), 0.5, tolerances::EXACT_F64);
+    // Analytical: σ(-x)+σ(x)=1 (sigmoid symmetry)
     h.check_abs(
         "σ(-x) + σ(x) == 1",
         sigmoid(2.5) + sigmoid(-2.5),
@@ -108,12 +114,14 @@ fn validate_sigmoid(h: &mut ValidationHarness) {
 }
 
 fn validate_tanh(h: &mut ValidationHarness) {
+    // Analytical: tanh(0)=0
     h.check_abs(
         "tanh(0) == 0",
         tanh_activation(0.0),
         0.0,
         tolerances::EXACT_F64,
     );
+    // Analytical: tanh(x)+tanh(-x)=0 (antisymmetry)
     h.check_abs(
         "tanh antisymmetry",
         tanh_activation(2.0) + tanh_activation(-2.0),

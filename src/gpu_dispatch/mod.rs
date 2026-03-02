@@ -318,5 +318,8 @@ impl Dispatcher {
 mod tests;
 
 #[cfg(test)]
+mod tests_cpu_basecamp;
+
+#[cfg(test)]
 #[path = "tests_gpu.rs"]
 mod tests_gpu;

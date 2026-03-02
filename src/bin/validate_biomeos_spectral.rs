@@ -111,7 +111,12 @@ async fn main() {
     let socket_dir = std::env::temp_dir().join("biomeos-test");
     if let Err(e) = std::fs::create_dir_all(&socket_dir) {
         eprintln!("  Failed to create socket directory: {e}");
-        h.check_abs("setup.socket_dir", 0.0, 1.0, 0.5);
+        h.check_abs(
+            "setup.socket_dir",
+            0.0,
+            1.0,
+            tolerances::BOOLEAN_VALIDATION_SLACK,
+        );
         h.finish();
     }
     let socket_path = socket_dir.join("neural-spring-test.sock");
@@ -126,13 +131,23 @@ async fn main() {
                 dir.join("neuralspring_primal")
             } else {
                 eprintln!("  current_exe has no parent directory");
-                h.check_abs("setup.primal_bin", 0.0, 1.0, 0.5);
+                h.check_abs(
+                    "setup.primal_bin",
+                    0.0,
+                    1.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
                 h.finish();
             }
         }
         Err(e) => {
             eprintln!("  Failed to resolve current_exe: {e}");
-            h.check_abs("setup.primal_bin", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "setup.primal_bin",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
             h.finish();
         }
     };
@@ -158,7 +173,12 @@ async fn main() {
         Ok(c) => c,
         Err(e) => {
             eprintln!("  Failed to spawn neuralspring_primal: {e}");
-            h.check_abs("setup.spawn_primal", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "setup.spawn_primal",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
             h.finish();
         }
     };
@@ -193,7 +213,7 @@ async fn main() {
                 "health.status == healthy",
                 if status == "healthy" { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
             let caps = val
                 .get("capabilities")
@@ -203,12 +223,17 @@ async fn main() {
                 "health.capabilities count >= 7",
                 if caps >= 7 { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
         }
         Err(e) => {
             eprintln!("  Health check failed: {e}");
-            h.check_abs("health.reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "health.reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -241,7 +266,12 @@ async fn main() {
         }
         Err(e) => {
             eprintln!("  science.ipr failed: {e}");
-            h.check_abs("science.ipr reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "science.ipr reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -286,7 +316,12 @@ async fn main() {
         }
         Err(e) => {
             eprintln!("  science.disorder_sweep failed: {e}");
-            h.check_abs("science.disorder_sweep reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "science.disorder_sweep reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -307,25 +342,45 @@ async fn main() {
                 .get("eigenvalues")
                 .and_then(|v| serde_json::from_value(v.clone()).ok())
                 .unwrap_or_default();
-            h.check_abs("spectral.eigenvalue_count", evals.len() as f64, 16.0, 0.5);
+            h.check_abs(
+                "spectral.eigenvalue_count",
+                evals.len() as f64,
+                16.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
 
             let ipr_val = val
                 .get("mean_ipr")
                 .and_then(serde_json::Value::as_f64)
                 .unwrap_or(0.0);
             let ipr_above_zero = if ipr_val > 0.0 { 1.0 } else { 0.0 };
-            h.check_abs("spectral.ipr > 0", ipr_above_zero, 1.0, 0.5);
+            h.check_abs(
+                "spectral.ipr > 0",
+                ipr_above_zero,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
 
             let lsr = val
                 .get("level_spacing_ratio")
                 .and_then(serde_json::Value::as_f64)
                 .unwrap_or(0.0);
             let lsr_valid = if (0.0..=1.0).contains(&lsr) { 1.0 } else { 0.0 };
-            h.check_abs("spectral.lsr in [0,1]", lsr_valid, 1.0, 0.5);
+            h.check_abs(
+                "spectral.lsr in [0,1]",
+                lsr_valid,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
         Err(e) => {
             eprintln!("  science.spectral_analysis failed: {e}");
-            h.check_abs("spectral reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "spectral reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -349,7 +404,12 @@ async fn main() {
         Ok(val) => {
             let results = val.get("results").and_then(|v| v.as_array());
             if let Some(r) = results {
-                h.check_abs("anderson.result_count", r.len() as f64, 3.0, 0.5);
+                h.check_abs(
+                    "anderson.result_count",
+                    r.len() as f64,
+                    3.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
 
                 let iprs: Vec<f64> = r
                     .iter()
@@ -362,16 +422,26 @@ async fn main() {
                         "anderson.ipr increases with disorder",
                         ipr_increases,
                         1.0,
-                        0.5,
+                        tolerances::BOOLEAN_VALIDATION_SLACK,
                     );
                 }
             } else {
-                h.check_abs("anderson.results array", 0.0, 1.0, 0.5);
+                h.check_abs(
+                    "anderson.results array",
+                    0.0,
+                    1.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
             }
         }
         Err(e) => {
             eprintln!("  science.anderson_localization failed: {e}");
-            h.check_abs("anderson reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "anderson reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -393,7 +463,12 @@ async fn main() {
                 .and_then(|v| serde_json::from_value(v.clone()).ok())
                 .unwrap_or_default();
 
-            h.check_abs("hessian.eigenvalue_count", evals.len() as f64, 10.0, 0.5);
+            h.check_abs(
+                "hessian.eigenvalue_count",
+                evals.len() as f64,
+                10.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
 
             // For quadratic surface with diagonal [1..10], eigenvalues should be 1..10
             if evals.len() == 10 {
@@ -415,7 +490,12 @@ async fn main() {
         }
         Err(e) => {
             eprintln!("  science.hessian_eigen failed: {e}");
-            h.check_abs("hessian reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "hessian reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -440,7 +520,12 @@ async fn main() {
         Ok(val) => {
             let results = val.get("results").and_then(|v| v.as_array());
             if let Some(r) = results {
-                h.check_abs("coordination.result_count", r.len() as f64, 2.0, 0.5);
+                h.check_abs(
+                    "coordination.result_count",
+                    r.len() as f64,
+                    2.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
 
                 for entry in r {
                     let ipr = entry
@@ -452,15 +537,30 @@ async fn main() {
                         .get("disorder")
                         .and_then(serde_json::Value::as_f64)
                         .unwrap_or(-1.0);
-                    h.check_abs(&format!("coordination.ipr[W={w}] > 0"), ipr_valid, 1.0, 0.5);
+                    h.check_abs(
+                        &format!("coordination.ipr[W={w}] > 0"),
+                        ipr_valid,
+                        1.0,
+                        tolerances::BOOLEAN_VALIDATION_SLACK,
+                    );
                 }
             } else {
-                h.check_abs("coordination.results array", 0.0, 1.0, 0.5);
+                h.check_abs(
+                    "coordination.results array",
+                    0.0,
+                    1.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
             }
         }
         Err(e) => {
             eprintln!("  science.agent_coordination failed: {e}");
-            h.check_abs("coordination reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "coordination reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -479,7 +579,12 @@ async fn main() {
         Ok(val) => {
             let trajectory = val.get("trajectory").and_then(|v| v.as_array());
             if let Some(t) = trajectory {
-                h.check_abs("trajectory.epoch_count", t.len() as f64, 11.0, 0.5);
+                h.check_abs(
+                    "trajectory.epoch_count",
+                    t.len() as f64,
+                    11.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
 
                 let first_ipr = t
                     .first()
@@ -487,14 +592,29 @@ async fn main() {
                     .and_then(serde_json::Value::as_f64)
                     .unwrap_or(0.0);
                 let first_valid = if first_ipr > 0.0 { 1.0 } else { 0.0 };
-                h.check_abs("trajectory.first_ipr > 0", first_valid, 1.0, 0.5);
+                h.check_abs(
+                    "trajectory.first_ipr > 0",
+                    first_valid,
+                    1.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
             } else {
-                h.check_abs("trajectory.array present", 0.0, 1.0, 0.5);
+                h.check_abs(
+                    "trajectory.array present",
+                    0.0,
+                    1.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
             }
         }
         Err(e) => {
             eprintln!("  science.training_trajectory failed: {e}");
-            h.check_abs("trajectory reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "trajectory reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -514,7 +634,7 @@ async fn main() {
         "rpc.method_not_found returns error",
         if got_error { 1.0 } else { 0.0 },
         1.0,
-        0.5,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
     );
 
     // Clean up

@@ -184,10 +184,13 @@ fn validate_serialization_roundtrip(h: &mut ValidationHarness) {
     }
     bridge.train();
 
-    let json = bridge.to_json().expect("serialize");
+    let json = bridge
+        .to_json()
+        .expect("JSON serialization of bridge should not fail for valid struct");
     h.check_bool("serialize: JSON produced", !json.is_empty());
 
-    let restored = SpectralNautilusBridge::from_json(&json).expect("deserialize");
+    let restored = SpectralNautilusBridge::from_json(&json)
+        .expect("JSON deserialization failed — baseline format may have changed");
     h.check_bool(
         "roundtrip: observation count preserved",
         restored.observation_count() == bridge.observation_count(),

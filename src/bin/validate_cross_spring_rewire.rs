@@ -257,7 +257,7 @@ fn validate_esn_barracuda_bridge(h: &mut ValidationHarness) {
     }
 
     let Ok(gpu) = tokio::runtime::Runtime::new()
-        .expect("tokio runtime")
+        .expect("tokio runtime creation failed — required for async validation")
         .block_on(async { neural_spring::gpu::Gpu::new().await })
     else {
         eprintln!("  GPU not available — skipping barracuda Tensor ESN bridge");

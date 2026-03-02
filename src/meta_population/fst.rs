@@ -247,6 +247,7 @@ pub fn inter_population_af_variance(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::super::generate_population;
     use super::*;
@@ -318,5 +319,74 @@ mod tests {
         let n_indivs = vec![8; 2];
         let v = inter_population_af_variance(&pops, &n_indivs, n_loci);
         assert!(v >= 0.0 && v.is_finite());
+    }
+
+    #[test]
+    fn global_fst_variance_decomposition_bounded() {
+        let mut rng = Rng::new(42);
+        let n_loci = 20;
+        let anc: Vec<f64> = (0..n_loci).map(|_| rng.beta(2.0, 2.0)).collect();
+        let pops: Vec<Vec<f64>> = [70.0, 85.0]
+            .iter()
+            .map(|&t| generate_population(10, n_loci, &anc, 0.15, t, 65.0, 90.0, 4, &mut rng))
+            .collect();
+        let n_indivs = vec![10; 2];
+        let fst = global_fst_variance_decomposition(&pops, &n_indivs, n_loci);
+        assert!(fst.is_finite(), "global FST variance decomp must be finite");
+        assert!(fst >= 0.0, "FST must be non-negative");
+    }
+
+    #[test]
+    fn global_fst_variance_decomposition_degenerate() {
+        assert!((global_fst_variance_decomposition(&[], &[], 0) - 0.0).abs() < 1e-14);
+        let pops = vec![vec![0.5; 10]];
+        assert!((global_fst_variance_decomposition(&pops, &[5], 2) - 0.0).abs() < 1e-14);
+    }
+
+    #[test]
+    #[allow(clippy::similar_names)]
+    fn pairwise_fst_full_returns_three_stats() {
+        let mut rng = Rng::new(42);
+        let n_loci = 10;
+        let anc: Vec<f64> = (0..n_loci).map(|_| rng.beta(2.0, 2.0)).collect();
+        let pop_a = generate_population(8, n_loci, &anc, 0.15, 70.0, 65.0, 90.0, 3, &mut rng);
+        let pop_b = generate_population(8, n_loci, &anc, 0.15, 85.0, 65.0, 90.0, 3, &mut rng);
+        let (fst, f_is, f_it) = pairwise_fst_full(&pop_a, 8, &pop_b, 8, n_loci);
+        assert!(fst.is_finite(), "θ must be finite");
+        assert!(f_is.is_finite(), "f must be finite");
+        assert!(f_it.is_finite(), "F must be finite");
+    }
+
+    #[test]
+    #[allow(clippy::similar_names)]
+    fn fst_single_locus_two_pops() {
+        let freqs = [0.3, 0.7];
+        let sizes = [20, 20];
+        let result = fst_single_locus(&freqs, &sizes);
+        assert!(result.is_ok());
+        let (fst, f_is, f_it) = result.expect("fst_single_locus should succeed for 2 populations");
+        assert!(fst.is_finite());
+        assert!(f_is.is_finite());
+        assert!(f_it.is_finite());
+    }
+
+    #[test]
+    fn fst_single_locus_one_pop_errors() {
+        let result = fst_single_locus(&[0.5], &[10]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn global_fst_three_populations() {
+        let mut rng = Rng::new(99);
+        let n_loci = 15;
+        let anc: Vec<f64> = (0..n_loci).map(|_| rng.beta(2.0, 2.0)).collect();
+        let pops: Vec<Vec<f64>> = [70.0, 78.0, 85.0]
+            .iter()
+            .map(|&t| generate_population(6, n_loci, &anc, 0.15, t, 65.0, 90.0, 3, &mut rng))
+            .collect();
+        let n_indivs = vec![6; 3];
+        let gfst = global_fst(&pops, &n_indivs, n_loci);
+        assert!(gfst.is_finite());
     }
 }

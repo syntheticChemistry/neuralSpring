@@ -164,7 +164,12 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
             })
             .sum::<f64>()
     };
-    h.check_abs("wS→diversity: shannon", shannon, expected_shannon, 1e-10);
+    h.check_abs(
+        "wS→diversity: shannon",
+        shannon,
+        expected_shannon,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     // Bray-Curtis distance (wetSpring → ToadStool S64)
     let a = [10.0, 20.0, 30.0];
@@ -178,7 +183,12 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
         let sum_b: f64 = b.iter().sum();
         1.0 - 2.0 * sum_min / (sum_a + sum_b)
     };
-    h.check_abs("wS→diversity: bray_curtis", bc, expected_bc, 1e-10);
+    h.check_abs(
+        "wS→diversity: bray_curtis",
+        bc,
+        expected_bc,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     // Alpha diversity (wetSpring → ToadStool S64)
     let abundances = [5.0, 10.0, 15.0, 20.0, 25.0, 25.0];
@@ -207,7 +217,12 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
     let (r, _) = bench("pearson (wS/aS→ToadStool S64)", || {
         barracuda::stats::pearson_correlation(&x, &y)
     });
-    h.check_abs("wS→stats: pearson(linear)", r.unwrap_or(0.0), 1.0, 1e-10);
+    h.check_abs(
+        "wS→stats: pearson(linear)",
+        r.unwrap_or(0.0),
+        1.0,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     // NMF (wetSpring ESN → ToadStool S58)
     let data = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]; // 2×3
@@ -246,8 +261,18 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
         barracuda::stats::fit_linear(&x, &y)
     });
     let fit = fit.expect("fit_linear should converge");
-    h.check_abs("aS→regression: linear slope ≈ 2.0", fit.params[0], 2.0, 0.1);
-    h.check_abs("aS→regression: linear R² ≈ 1.0", fit.r_squared, 1.0, 0.02);
+    h.check_abs(
+        "aS→regression: linear slope ≈ 2.0",
+        fit.params[0],
+        2.0,
+        tolerances::GPU_VARIANCE_DISPATCH_F32,
+    );
+    h.check_abs(
+        "aS→regression: linear R² ≈ 1.0",
+        fit.r_squared,
+        1.0,
+        tolerances::GPU_AF_VARIANCE_F32,
+    );
 
     // Quadratic fit (airSpring → ToadStool S66)
     let xq: Vec<f64> = (0..20).map(|i| i as f64 * 0.5).collect();
@@ -260,7 +285,7 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
         "aS→regression: quadratic R² ≈ 1.0",
         fit_q.r_squared,
         1.0,
-        0.01,
+        tolerances::PGM_COMPLEXITY_SLACK,
     );
 
     // Exponential fit (airSpring → ToadStool S66)
@@ -271,7 +296,7 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
         "aS→regression: exponential R² ≈ 1.0",
         fit_e.r_squared,
         1.0,
-        0.01,
+        tolerances::PGM_COMPLEXITY_SLACK,
     );
 
     // Metrics: RMSE, R², NSE, MAE (airSpring → ToadStool S64)
@@ -296,7 +321,12 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
     let (mae, _) = bench("mae (aS→ToadStool S64)", || {
         barracuda::stats::mae(&predicted, &observed)
     });
-    h.check_abs("aS→metrics: MAE = 0.1", mae, 0.1, 1e-10);
+    h.check_abs(
+        "aS→metrics: MAE = 0.1",
+        mae,
+        0.1,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     // Hydrology: Hargreaves ET₀ (airSpring → ToadStool S66)
     // ra=15 MJ/m²/day, t_max=35°C, t_min=15°C
@@ -345,31 +375,56 @@ fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
         barracuda::stats::bootstrap_mean(&data, 500, 0.95, 42)
     });
     let bm = bm_result.expect("bootstrap_mean").estimate;
-    h.check_abs("gS→bootstrap: mean ≈ true mean", bm, true_mean, 0.5);
+    h.check_abs(
+        "gS→bootstrap: mean ≈ true mean",
+        bm,
+        true_mean,
+        tolerances::ODE_STEADY_STATE_SLACK,
+    );
 
     // rawr_mean (groundSpring → ToadStool S56)
     let (rm_result, _) = bench("rawr_mean (gS→ToadStool S56)", || {
         barracuda::stats::rawr_mean(&data, 200, 0.95, 42)
     });
     let rm = rm_result.expect("rawr_mean").estimate;
-    h.check_abs("gS→bootstrap: rawr_mean ≈ true mean", rm, true_mean, 0.5);
+    h.check_abs(
+        "gS→bootstrap: rawr_mean ≈ true mean",
+        rm,
+        true_mean,
+        tolerances::ODE_STEADY_STATE_SLACK,
+    );
 
     // Normal distribution (groundSpring/airSpring → ToadStool)
     let (cdf, _) = bench("norm_cdf (gS→ToadStool)", || {
         barracuda::stats::norm_cdf(0.0)
     });
-    h.check_abs("gS→normal: Φ(0) = 0.5", cdf, 0.5, 1e-10);
+    h.check_abs(
+        "gS→normal: Φ(0) = 0.5",
+        cdf,
+        0.5,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     let (pdf, _) = bench("norm_pdf (gS→ToadStool)", || {
         barracuda::stats::norm_pdf(0.0)
     });
     let expected_pdf = 1.0 / (2.0 * std::f64::consts::PI).sqrt();
-    h.check_abs("gS→normal: φ(0)", pdf, expected_pdf, 1e-10);
+    h.check_abs(
+        "gS→normal: φ(0)",
+        pdf,
+        expected_pdf,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     let (ppf, _) = bench("norm_ppf (gS→ToadStool)", || {
         barracuda::stats::norm_ppf(0.975)
     });
-    h.check_abs("gS→normal: Φ⁻¹(0.975) ≈ 1.96", ppf, 1.96, 0.01);
+    h.check_abs(
+        "gS→normal: Φ⁻¹(0.975) ≈ 1.96",
+        ppf,
+        1.96,
+        tolerances::NORM_PPF_TAIL,
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -385,12 +440,22 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
         dispatcher.softmax(&logits)
     });
     let sm_sum: f64 = sm.iter().sum();
-    h.check_abs("nS→dispatch: softmax sums to 1", sm_sum, 1.0, 1e-10);
+    h.check_abs(
+        "nS→dispatch: softmax sums to 1",
+        sm_sum,
+        1.0,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     // Dispatcher: GELU (nS S59 → ToadStool domain_ops)
     let vals = [-2.0, -1.0, 0.0, 1.0, 2.0];
     let (gelu_out, _) = bench("gelu (nS→ToadStool S59)", || dispatcher.gelu(&vals));
-    h.check_abs("nS→dispatch: GELU(0) = 0", gelu_out[2], 0.0, 1e-10);
+    h.check_abs(
+        "nS→dispatch: GELU(0) = 0",
+        gelu_out[2],
+        0.0,
+        tolerances::CROSS_LANGUAGE,
+    );
     h.check_bool("nS→dispatch: GELU monotonic", gelu_out[3] < gelu_out[4]);
 
     // Dispatcher: variance (nS → ToadStool domain_ops)
@@ -398,7 +463,12 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
     let (var, _) = bench("variance (nS→ToadStool)", || dispatcher.variance(&data));
     let cpu = Dispatcher::cpu_only();
     let var_cpu = cpu.variance(&data);
-    h.check_abs("nS→dispatch: variance GPU≈CPU", var, var_cpu, 1e-10);
+    h.check_abs(
+        "nS→dispatch: variance GPU≈CPU",
+        var,
+        var_cpu,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     // Dispatcher: HMM forward (nS+wS → ToadStool S59)
     let alpha = [0.5, 0.5];
@@ -418,12 +488,17 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
     let (laplacian, _) = bench("graph_laplacian (nS→ToadStool S54)", || {
         barracuda::linalg::graph_laplacian(&adjacency, 3)
     });
-    h.check_abs("nS→graph: L[0,0] = degree(0) = 2", laplacian[0], 2.0, 1e-10);
+    h.check_abs(
+        "nS→graph: L[0,0] = degree(0) = 2",
+        laplacian[0],
+        2.0,
+        tolerances::CROSS_LANGUAGE,
+    );
     h.check_abs(
         "nS→graph: L[0,1] = -adj[0,1] = -1",
         laplacian[1],
         -1.0,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     // Effective rank (nS baseCamp → ToadStool S54)
@@ -482,7 +557,7 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
         "TS→numerical: gradient [1,4,9,16] center",
         grad[1],
         4.0,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
     h.check_bool(
         "TS→numerical: gradient endpoint finite",
@@ -500,7 +575,7 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
         "TS→numerical: trapz ∫[0,3] x²",
         integral.unwrap_or(0.0),
         9.5,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     // Numerical: Hessian (nS baseCamp → ToadStool S54)
@@ -509,9 +584,24 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     let (hess, _) = bench("numerical_hessian (nS→TS S54)", || {
         barracuda::numerical::numerical_hessian(quadratic, &[1.0, 2.0], 1e-5)
     });
-    h.check_abs("TS→numerical: hessian[0,0] ≈ 2", hess[0], 2.0, 1e-4);
-    h.check_abs("TS→numerical: hessian[1,1] ≈ 2", hess[3], 2.0, 1e-4);
-    h.check_abs("TS→numerical: hessian off-diag ≈ 0", hess[1], 0.0, 1e-4);
+    h.check_abs(
+        "TS→numerical: hessian[0,0] ≈ 2",
+        hess[0],
+        2.0,
+        tolerances::GPU_LOGSUMEXP_F32,
+    );
+    h.check_abs(
+        "TS→numerical: hessian[1,1] ≈ 2",
+        hess[3],
+        2.0,
+        tolerances::GPU_LOGSUMEXP_F32,
+    );
+    h.check_abs(
+        "TS→numerical: hessian off-diag ≈ 0",
+        hess[1],
+        0.0,
+        tolerances::GPU_LOGSUMEXP_F32,
+    );
 
     // Modern stats: chi2 decomposition
     let observed_counts = [10.0, 20.0, 30.0, 40.0];
@@ -535,7 +625,12 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     });
     h.check_bool("wS→linalg: ridge converges", ridge.is_ok());
     if let Ok(ref r) = ridge {
-        h.check_abs("wS→linalg: ridge slope ≈ 2", r.weights[0], 2.0, 0.2);
+        h.check_abs(
+            "wS→linalg: ridge slope ≈ 2",
+            r.weights[0],
+            2.0,
+            tolerances::LEVEL_SPACING_GOE_SLACK,
+        );
     }
 
     // Backend reporting

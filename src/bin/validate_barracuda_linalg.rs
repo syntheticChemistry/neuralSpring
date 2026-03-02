@@ -43,7 +43,7 @@ fn validate_solve(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let a = vec![2.0, 1.0, 1.0, 3.0];
     let b = vec![5.0, 8.0];
 
-    // A = [[2, 1], [1, 3]], b = [5, 8] => x = [7/5, 11/5] = [1.4, 2.2]
+    // Analytical: Ax=b for A=[[2,1],[1,3]], b=[5,8] → x=[7/5,11/5]=[1.4,2.2]; det(A)=5
     match barracuda::linalg::solve_f64(device.clone(), &a, &b, 2) {
         Ok(x) => {
             h.check_abs("solve x[0] == 1.4", x[0], 1.4, tolerances::CROSS_LANGUAGE);
@@ -52,7 +52,7 @@ fn validate_solve(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("solve_f64 [ERROR: {e}]"), false),
     }
 
-    // 3x3 identity => x = b
+    // Analytical: Ix=b ⇒ x=b (3×3 identity)
     let eye3 = vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
     let b3 = vec![3.0, 7.0, 11.0];
     match barracuda::linalg::solve_f64(device.clone(), &eye3, &b3, 3) {
@@ -69,12 +69,13 @@ fn validate_lu(h: &mut ValidationHarness) {
     let a = vec![2.0, 1.0, 1.0, 3.0];
     let b = vec![5.0, 8.0];
 
-    // det([[2, 1], [1, 3]]) = 5
+    // Analytical: det([[2,1],[1,3]]) = 2*3−1*1 = 5
     match barracuda::linalg::lu_det(&a, 2) {
         Ok(det) => h.check_abs("lu_det == 5", det, 5.0, tolerances::CROSS_LANGUAGE),
         Err(e) => h.check_bool(&format!("lu_det [ERROR: {e}]"), false),
     }
 
+    // Analytical: same Ax=b as solve_f64 → x=[1.4,2.2]
     match barracuda::linalg::lu_solve(&a, 2, &b) {
         Ok(x) => {
             h.check_abs("lu_solve[0] == 1.4", x[0], 1.4, tolerances::CROSS_LANGUAGE);
@@ -85,7 +86,7 @@ fn validate_lu(h: &mut ValidationHarness) {
 }
 
 fn validate_eigh(h: &mut ValidationHarness) {
-    // A = [[4, 1], [1, 3]] => eigenvalues: (7±√5)/2
+    // Analytical: A=[[4,1],[1,3]] ⇒ eigenvalues λ=(7±√5)/2
     let sym = vec![4.0, 1.0, 1.0, 3.0];
     match barracuda::linalg::eigh_f64(&sym, 2) {
         Ok(eigh) => {
@@ -114,7 +115,7 @@ fn validate_eigh(h: &mut ValidationHarness) {
 }
 
 fn validate_cholesky(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    // A = [[4, 2], [2, 5]] => L = [[2, 0], [1, 2]]
+    // Analytical: A=[[4,2],[2,5]] SPD ⇒ Cholesky L=[[2,0],[1,2]]
     let spd = vec![4.0, 2.0, 2.0, 5.0];
     match barracuda::linalg::cholesky_f64(device.clone(), &spd, 2) {
         Ok(chol) => {
@@ -127,7 +128,7 @@ fn validate_cholesky(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 }
 
 fn validate_tridiagonal(h: &mut ValidationHarness) {
-    // [2,-1,0; -1,2,-1; 0,-1,2] x = [1, 0, 1] => x = [1, 1, 1]
+    // Analytical: tridiag [2,-1,0;-1,2,-1;0,-1,2] x=[1,0,1] ⇒ x=[1,1,1]
     let lower = vec![-1.0, -1.0];
     let main_diag = vec![2.0, 2.0, 2.0];
     let upper = vec![-1.0, -1.0];

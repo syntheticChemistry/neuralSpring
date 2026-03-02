@@ -139,19 +139,19 @@ fn validate_bandwidth_tiers(h: &mut ValidationHarness) {
         "PCIe 4.0 x16 bandwidth",
         BandwidthTier::Pcie4X16.bandwidth_gbps(),
         31.5,
-        0.1,
+        tolerances::GPU_VARIANCE_DISPATCH_F32,
     );
     h.check_abs(
         "PCIe 4.0 x4 bandwidth",
         BandwidthTier::Pcie4X4.bandwidth_gbps(),
         7.9,
-        0.1,
+        tolerances::GPU_VARIANCE_DISPATCH_F32,
     );
     h.check_abs(
         "PCIe 5.0 x16 bandwidth",
         BandwidthTier::Pcie5X16.bandwidth_gbps(),
         63.0,
-        0.1,
+        tolerances::GPU_VARIANCE_DISPATCH_F32,
     );
     h.check_bool(
         "shared memory bandwidth > 100 GB/s",
@@ -161,7 +161,7 @@ fn validate_bandwidth_tiers(h: &mut ValidationHarness) {
         "shared memory latency ~0.1µs",
         BandwidthTier::SharedMemory.latency_us(),
         0.1,
-        0.05,
+        tolerances::GPU_NORMAL_DISTANCE_SYMMETRIC_F32,
     );
 }
 
@@ -179,7 +179,7 @@ fn validate_chained_transfer(h: &mut ValidationHarness) {
         "chained bandwidth bottleneck is x4",
         chained.bandwidth_gbps,
         PCIE4_X4_BANDWIDTH_GBPS,
-        0.1,
+        tolerances::GPU_VARIANCE_DISPATCH_F32,
     );
 }
 
@@ -210,7 +210,7 @@ fn validate_pcie_bridge(h: &mut ValidationHarness) {
         "bridge uses x4 bandwidth (NPU link)",
         cost.bandwidth_gbps,
         PCIE4_X4_BANDWIDTH_GBPS,
-        0.1,
+        tolerances::GPU_VARIANCE_DISPATCH_F32,
     );
 }
 
@@ -297,8 +297,18 @@ async fn validate_nucleus_tower_pattern(h: &mut ValidationHarness) {
     let mut sorted = eigenvalues;
     sorted.sort_by(f64::total_cmp);
 
-    h.check_abs("tower: eigensolve λ_min", sorted[0], 2.381_966, 0.01);
-    h.check_abs("tower: eigensolve λ_max", sorted[1], 4.618_034, 0.01);
+    h.check_abs(
+        "tower: eigensolve λ_min",
+        sorted[0],
+        2.381_966,
+        tolerances::EIGENSOLVER_SMALL_MATRIX,
+    );
+    h.check_abs(
+        "tower: eigensolve λ_max",
+        sorted[1],
+        4.618_034,
+        tolerances::EIGENSOLVER_SMALL_MATRIX,
+    );
 
     let entropy = disp.shannon_entropy(&[0.3, 0.7]);
     h.check_bool("tower: entropy positive", entropy > 0.0);

@@ -30,6 +30,7 @@ fn main() {
 
     // ── Part 1: Conv2d with known values ──
 
+    // Analytical: 1×1 kernel [1], bias 0 ⇒ conv = identity
     let input_2x2 = [1.0, 2.0, 3.0, 4.0];
     let out = conv2d(&Conv2dParams {
         input: &input_2x2,
@@ -54,7 +55,7 @@ fn main() {
         tolerances::EXACT_F64,
     );
 
-    // 3×3 sum kernel on 3×3 all-ones = 9.0
+    // Analytical: 3×3 sum kernel on 3×3 ones ⇒ Σ=9
     let input_3x3 = [1.0; 9];
     let kernel_3x3 = [1.0; 9];
     let out = conv2d(&Conv2dParams {
@@ -70,7 +71,7 @@ fn main() {
     h.check_bool("conv2d 3×3 sum output shape", out.len() == 1);
     h.check_abs("conv2d 3×3 sum = 9", out[0], 9.0, tolerances::EXACT_F64);
 
-    // Conv2d with bias
+    // Analytical: 9 + bias 1.5 = 10.5
     let out = conv2d(&Conv2dParams {
         input: &input_3x3,
         h: 3,
@@ -103,6 +104,7 @@ fn main() {
 
     // ── Part 2: Multi-channel Conv2d ──
 
+    // Analytical: ch0+ch1 at each pixel → [0]=1+10=11, [3]=4+40=44
     let input_mc = [1.0, 2.0, 3.0, 4.0, 10.0, 20.0, 30.0, 40.0];
     let kernel_mc = [1.0, 1.0];
     let bias_mc = [0.0];
@@ -133,6 +135,7 @@ fn main() {
 
     // ── Part 3: MaxPool2d ──
 
+    // Analytical: 2×2 maxpool ⇒ [0,0]=max(1,3,5,7)=7, [1,1]=max(10..16)=16
     #[rustfmt::skip]
     let pool_input = [
         1.0,  3.0,  2.0,  4.0,
@@ -156,6 +159,7 @@ fn main() {
     );
 
     // ── Part 4: ReLU ──
+    // Analytical: ReLU(x)=max(0,x) ⇒ -2→0, 0→0, 3.7→3.7
 
     let out = relu(&[-2.0, -0.5, 0.0, 1.0, 3.7]);
     h.check_abs("ReLU(-2) = 0", out[0], 0.0, tolerances::EXACT_F64);
@@ -164,6 +168,7 @@ fn main() {
 
     // ── Part 5: FC chain (LeNet classifier: 400→120→84→10) ──
 
+    // Analytical: FC1 weights [1,1,0,0;0,0,1,1], input [1..4] ⇒ [0]=1+2=3, [1]=3+4=7
     let w1 = [1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0];
     let b1 = [0.0, 0.0];
     let input = [1.0, 2.0, 3.0, 4.0];
@@ -171,6 +176,7 @@ fn main() {
     h.check_abs("FC1 [0] = 1+2", fc1_out[0], 3.0, tolerances::EXACT_F64);
     h.check_abs("FC1 [1] = 3+4", fc1_out[1], 7.0, tolerances::EXACT_F64);
 
+    // Analytical: FC2 = 3+7+0.5 = 10.5 (ReLU(3),ReLU(7) passthrough)
     let fc1_relu = relu(&fc1_out);
     let w2 = [1.0, 1.0];
     let b2 = [0.5];

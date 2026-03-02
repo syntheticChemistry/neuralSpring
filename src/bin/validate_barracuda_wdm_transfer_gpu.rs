@@ -48,7 +48,8 @@ use std::sync::Arc;
 type Dev = Arc<WgpuDevice>;
 
 fn main() {
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let rt = tokio::runtime::Runtime::new()
+        .expect("tokio runtime creation failed — required for async validation");
     let gpu = rt.block_on(async {
         match Gpu::new().await {
             Ok(g) => {

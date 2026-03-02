@@ -84,7 +84,7 @@ fn main() {
 
     let x_pts = linspace(0.0, 1.0, 5);
     let poly_vals = eval_polynomial(&[1.0, 2.0, 3.0], &x_pts);
-    // p(x) = 1 + 2x + 3x² at x=1 → 6
+    // Analytical: p(x)=1+2x+3x² at x=1 ⇒ 1+2+3=6
     let last = poly_vals[x_pts.len() - 1];
     h.check_abs(
         "eval_polynomial(1+2x+3x², x=1) = 6",
@@ -92,7 +92,7 @@ fn main() {
         6.0,
         tolerances::DEEPONET_POLYNOMIAL_EXACT,
     );
-    // p(0) = 1
+    // Analytical: p(0)=1 (constant term)
     h.check_abs(
         "eval_polynomial(1+2x+3x², x=0) = 1",
         poly_vals[0],
@@ -105,7 +105,7 @@ fn main() {
     let branch = [1.0, 2.0, 3.0, 4.0];
     let trunk = [4.0, 3.0, 2.0, 1.0];
     let dot = branch_trunk_dot(&branch, &trunk, 0.5);
-    // 1*4 + 2*3 + 3*2 + 4*1 + 0.5 = 20.5
+    // Analytical: branch·trunk + bias = 1*4+2*3+3*2+4*1+0.5 = 20.5
     h.check_abs("branch-trunk dot", dot, 20.5, tolerances::EXACT_F64);
 
     // ── Part 4: Dataset generation ──
@@ -150,6 +150,7 @@ fn main() {
 
     // ── Part 6: MLP forward pass ──
 
+    // Analytical: 2×2 identity W, zero bias ⇒ out = input
     let w = [1.0, 0.0, 0.0, 1.0]; // 2×2 identity
     let b = [0.0, 0.0];
     let input = [0.7, -0.4];

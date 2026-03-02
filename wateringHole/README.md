@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V70** | `handoffs/NEURALSPRING_TOADSTOOL_V70_S104_FFT_FIX_FULL_GREEN_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S104 full validation chain 202/202 PASS. 3 barracuda fixes: FFT buffer selection, `enable f64;` naga strip, `asin_df64` iterative. NUCLEUS Tower socket fix. Wright-Fisher + coral forge GPU pipelines unblocked. 90.49% coverage |
+| **V73** | `handoffs/NEURALSPRING_TOADSTOOL_V73_S111_PAPER_QUEUE_GPU_PYRAMID_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S110-111 paper queue validation complete. 207/207 validate_all, 14-domain CPU bench (38.6×), full 10-tier GPU pyramid, 3 new Python benchmarks, BarraCUDA usage audit (205 files, 25+ submodules) |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V69 + biomeOS V1, 84 files).
+Superseded handoffs: `handoffs/archive/` (V1–V72 + biomeOS V1). V71 (deep debt + doc sweep + nS-06), V72 (deep debt resolution).
 
 ## Conventions
 

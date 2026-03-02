@@ -39,8 +39,7 @@ fn main() {
 }
 
 fn validate_svd(h: &mut ValidationHarness) {
-    // 2×2 diagonal matrix: [[3,0],[0,2]]
-    // Singular values: [3, 2]
+    // Analytical: diagonal A=[[3,0],[0,2]] ⇒ singular values σ=[3,2]
     let a = vec![3.0, 0.0, 0.0, 2.0];
 
     match barracuda::ops::linalg::svd::svd_values(&a, 2, 2) {
@@ -53,7 +52,7 @@ fn validate_svd(h: &mut ValidationHarness) {
         Err(e) => h.check_bool(&format!("svd_values diagonal [ERROR: {e}]"), false),
     }
 
-    // SVD of identity: all singular values = 1
+    // Analytical: SVD(I) ⇒ σ=[1,1] (identity singular values)
     let eye = vec![1.0, 0.0, 0.0, 1.0];
     match barracuda::ops::linalg::svd::svd_values(&eye, 2, 2) {
         Ok(s) => {
@@ -63,7 +62,7 @@ fn validate_svd(h: &mut ValidationHarness) {
         Err(e) => h.check_bool(&format!("svd_values identity [ERROR: {e}]"), false),
     }
 
-    // Pseudoinverse of diagonal: [[1/3,0],[0,1/2]]
+    // Analytical: pinv(diag(3,2)) = diag(1/3, 1/2)
     match barracuda::ops::linalg::svd::svd_pinv(&a, 2, 2, 1e-10) {
         Ok(pinv) => {
             h.check_abs(
@@ -103,7 +102,7 @@ fn validate_svd(h: &mut ValidationHarness) {
 }
 
 fn validate_lu_inverse(h: &mut ValidationHarness) {
-    // Inverse of [[2,1],[1,3]]: det=5, inv = [[3/5, -1/5],[-1/5, 2/5]]
+    // Analytical: inv([[2,1],[1,3]]) = [[3/5,-1/5],[-1/5,2/5]] (det=5)
     let a = vec![2.0, 1.0, 1.0, 3.0];
     match barracuda::ops::linalg::lu::lu_inverse(&a, 2) {
         Ok(inv) => {
@@ -115,7 +114,7 @@ fn validate_lu_inverse(h: &mut ValidationHarness) {
         Err(e) => h.check_bool(&format!("lu_inverse [ERROR: {e}]"), false),
     }
 
-    // Inverse of identity = identity
+    // Analytical: inv(I) = I
     let eye = vec![1.0, 0.0, 0.0, 1.0];
     match barracuda::ops::linalg::lu::lu_inverse(&eye, 2) {
         Ok(inv) => {
@@ -127,9 +126,7 @@ fn validate_lu_inverse(h: &mut ValidationHarness) {
 }
 
 fn validate_gen_eigh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    // Generalized eigenvalue problem: A x = λ B x
-    // When B = I, this reduces to standard eigenvalue problem A x = λ x
-    // A = [[3,1],[1,3]], eigenvalues = 2 and 4
+    // Analytical: A=[[3,1],[1,3]], B=I ⇒ gen_eigh eigenvalues λ=2,4
     let a = vec![3.0, 1.0, 1.0, 3.0];
 
     match barracuda::linalg::gen_eigh::gen_eigh_identity_b(&a, 2) {
@@ -142,9 +139,7 @@ fn validate_gen_eigh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         Err(e) => h.check_bool(&format!("gen_eigh_identity_b [ERROR: {e}]"), false),
     }
 
-    // Full generalized problem with non-trivial B
-    // A = [[4,2],[2,4]], B = [[2,0],[0,2]] (scaled identity)
-    // A x = λ B x  ⟹  (A/2) x = λ x  ⟹  eigenvalues of A/2 = {1, 3}
+    // Analytical: A=[[4,2],[2,4]], B=2I ⇒ (A/2)x=λx ⇒ eigenvalues λ=1,3
     let a2 = vec![4.0, 2.0, 2.0, 4.0];
     let b2 = vec![2.0, 0.0, 0.0, 2.0];
 

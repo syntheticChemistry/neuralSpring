@@ -355,7 +355,7 @@ fn validate_hmm_viterbi(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rng) {
                     &format!("Viterbi: psi[{j}] match"),
                     f64::from(g),
                     f64::from(c),
-                    0.5,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
                 );
             }
         }
@@ -498,7 +498,7 @@ fn validate_matrix_correlation(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut R
                 "Matrix corr: count matches total_pairs",
                 count,
                 total_pairs as f64,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             h.check_bool(
@@ -624,11 +624,36 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
                 )
             };
 
-            h.check_abs("Linear reg: slope GPU ↔ CPU", gpu_a, cpu_ab.0, 0.01);
-            h.check_abs("Linear reg: intercept GPU ↔ CPU", gpu_b, cpu_ab.1, 0.01);
-            h.check_abs("Linear reg: slope near true", gpu_a, true_a, 0.1);
-            h.check_abs("Linear reg: intercept near true", gpu_b, true_b, 0.1);
-            h.check_abs("Linear reg: count matches n", count, nn as f64, 0.5);
+            h.check_abs(
+                "Linear reg: slope GPU ↔ CPU",
+                gpu_a,
+                cpu_ab.0,
+                tolerances::GPU_MEAN_DISPATCH_F32,
+            );
+            h.check_abs(
+                "Linear reg: intercept GPU ↔ CPU",
+                gpu_b,
+                cpu_ab.1,
+                tolerances::GPU_MEAN_DISPATCH_F32,
+            );
+            h.check_abs(
+                "Linear reg: slope near true",
+                gpu_a,
+                true_a,
+                tolerances::GPU_VARIANCE_DISPATCH_F32,
+            );
+            h.check_abs(
+                "Linear reg: intercept near true",
+                gpu_b,
+                true_b,
+                tolerances::GPU_VARIANCE_DISPATCH_F32,
+            );
+            h.check_abs(
+                "Linear reg: count matches n",
+                count,
+                nn as f64,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
         Err(e) => h.check_bool(&format!("Linear reg readback: {e}"), false),
     }

@@ -69,7 +69,8 @@ fn main() {
     eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
     eprintln!();
 
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let rt = tokio::runtime::Runtime::new()
+        .expect("tokio runtime creation failed — required for async benchmark");
     let gpu = rt.block_on(async { Gpu::new().await.ok() });
 
     if let Some(ref g) = gpu {

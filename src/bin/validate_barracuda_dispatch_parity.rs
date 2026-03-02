@@ -26,6 +26,7 @@
 
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::gpu_ops::HillGateConfig;
 use neural_spring::tolerances;
 use neural_spring::validation::{exit_no_gpu, ValidationHarness};
 
@@ -66,6 +67,13 @@ async fn main() {
     validate_global_fst(&mut h, &gpu_disp, &cpu_disp);
     validate_spectrum_chi_squared(&mut h, &gpu_disp, &cpu_disp);
     validate_selection_coefficient(&mut h, &gpu_disp, &cpu_disp);
+    validate_kl_divergence(&mut h, &gpu_disp, &cpu_disp);
+    validate_softmax_row_wise(&mut h, &gpu_disp, &cpu_disp);
+    validate_hmm_forward_step(&mut h, &gpu_disp, &cpu_disp);
+    validate_hill_gate(&mut h, &gpu_disp, &cpu_disp);
+    validate_thermal_diversity(&mut h, &gpu_disp, &cpu_disp);
+    validate_global_fst_variance_decomposition(&mut h, &gpu_disp, &cpu_disp);
+    validate_pairwise_fst_full(&mut h, &gpu_disp, &cpu_disp);
 
     h.finish();
 }
@@ -430,5 +438,151 @@ fn validate_selection_coefficient(h: &mut ValidationHarness, gpu: &Dispatcher, c
         g,
         c,
         tolerances::TENSOR_EXACT_F32,
+    );
+}
+
+fn validate_kl_divergence(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Dispatcher) {
+    let p = vec![0.4, 0.3, 0.2, 0.1];
+    let q = vec![0.25, 0.25, 0.25, 0.25];
+    let g = gpu.kl_divergence(&p, &q);
+    let c = cpu.kl_divergence(&p, &q);
+    h.check_abs(
+        "kl_divergence CPU↔GPU",
+        g,
+        c,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+}
+
+fn validate_softmax_row_wise(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Dispatcher) {
+    let matrix = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+    let g = gpu.softmax_row_wise(&matrix, 3, 3);
+    let c = cpu.softmax_row_wise(&matrix, 3, 3);
+    let max_diff = g
+        .iter()
+        .zip(c.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0_f64, f64::max);
+    h.check_upper(
+        "softmax_row_wise CPU↔GPU max diff",
+        max_diff,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+    let row_sum: f64 = g[0..3].iter().sum();
+    h.check_abs(
+        "softmax_row_wise row[0] sums to 1",
+        row_sum,
+        1.0,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+}
+
+fn validate_hmm_forward_step(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Dispatcher) {
+    let alpha_prev = vec![0.6, 0.4];
+    let trans = vec![0.7, 0.3, 0.4, 0.6];
+    let emit_col = vec![0.1, 0.6];
+    let (g_alpha, g_scale) = gpu.hmm_forward_step(&alpha_prev, &trans, &emit_col, 2);
+    let (c_alpha, c_scale) = cpu.hmm_forward_step(&alpha_prev, &trans, &emit_col, 2);
+    let max_diff = g_alpha
+        .iter()
+        .zip(c_alpha.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0_f64, f64::max);
+    h.check_upper(
+        "hmm_forward_step alpha CPU↔GPU max diff",
+        max_diff,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+    h.check_abs(
+        "hmm_forward_step scale CPU↔GPU",
+        g_scale,
+        c_scale,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+}
+
+fn validate_hill_gate(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Dispatcher) {
+    let a = vec![0.1, 0.5, 1.0, 2.0];
+    let b = vec![0.2, 0.4, 0.8, 1.6];
+    let cfg = HillGateConfig {
+        vmax: 1.0,
+        k_a: 0.5,
+        k_b: 0.5,
+        n_a: 2.0,
+        n_b: 2.0,
+    };
+    let g = gpu.hill_gate(&a, &b, &cfg);
+    let c = cpu.hill_gate(&a, &b, &cfg);
+    let max_diff = g
+        .iter()
+        .zip(c.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0_f64, f64::max);
+    h.check_upper(
+        "hill_gate CPU↔GPU max diff",
+        max_diff,
+        tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+}
+
+fn validate_thermal_diversity(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Dispatcher) {
+    let pi = vec![0.3, 0.5, 0.7, 0.9];
+    let temps = vec![1000.0, 5000.0, 10000.0, 50000.0];
+    let g = gpu.thermal_diversity_correlation(&pi, &temps);
+    let c = cpu.thermal_diversity_correlation(&pi, &temps);
+    h.check_abs(
+        "thermal_diversity_corr CPU↔GPU",
+        g,
+        c,
+        tolerances::TENSOR_EXACT_F32,
+    );
+}
+
+fn validate_global_fst_variance_decomposition(
+    h: &mut ValidationHarness,
+    gpu: &Dispatcher,
+    cpu: &Dispatcher,
+) {
+    let pop1 = vec![2.0, 0.0, 2.0, 0.0, 2.0, 0.0];
+    let pop2 = vec![0.0, 2.0, 0.0, 2.0, 0.0, 2.0];
+    let pops = vec![pop1, pop2];
+    let g = gpu.global_fst_variance_decomposition(&pops, &[3, 3], 2);
+    let c = cpu.global_fst_variance_decomposition(&pops, &[3, 3], 2);
+    h.check_abs(
+        "global_fst_var_decomp CPU↔GPU",
+        g,
+        c,
+        tolerances::TENSOR_EXACT_F32,
+    );
+}
+
+fn validate_pairwise_fst_full(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Dispatcher) {
+    let n = 20;
+    let n_loci = 4;
+    let pop_a: Vec<f64> = (0..n * n_loci)
+        .map(|i| if i % 2 == 0 { 1.0 } else { 0.0 })
+        .collect();
+    let pop_b: Vec<f64> = (0..n * n_loci)
+        .map(|i| if i % 2 == 0 { 0.0 } else { 1.0 })
+        .collect();
+    let (g_fst, g_fis, g_fit) = gpu.pairwise_fst_full(&pop_a, n, &pop_b, n, n_loci);
+    let (c_fst, c_fis, c_fit) = cpu.pairwise_fst_full(&pop_a, n, &pop_b, n, n_loci);
+    h.check_abs(
+        "pairwise_fst_full FST CPU↔GPU",
+        g_fst,
+        c_fst,
+        tolerances::GPU_FST_PAIRWISE_F32,
+    );
+    h.check_abs(
+        "pairwise_fst_full FIS CPU↔GPU",
+        g_fis,
+        c_fis,
+        tolerances::GPU_FST_PAIRWISE_F32,
+    );
+    h.check_abs(
+        "pairwise_fst_full FIT CPU↔GPU",
+        g_fit,
+        c_fit,
+        tolerances::GPU_FST_PAIRWISE_F32,
     );
 }

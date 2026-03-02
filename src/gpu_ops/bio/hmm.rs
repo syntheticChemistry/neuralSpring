@@ -290,6 +290,7 @@ pub fn hmm_viterbi_step_gpu(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
     use crate::gpu_ops::tests_ops::test_device;
@@ -303,7 +304,8 @@ mod tests {
         let alpha = vec![0.5, 0.5];
         let trans = vec![0.7, 0.3, 0.4, 0.6];
         let emit = vec![0.6, 0.4];
-        let (new_alpha, scale) = hmm_forward_step_gpu(&alpha, &trans, &emit, 2, &dev).unwrap();
+        let (new_alpha, scale) = hmm_forward_step_gpu(&alpha, &trans, &emit, 2, &dev)
+            .expect("HMM forward step GPU dispatch should succeed on test device");
         let sum: f64 = new_alpha.iter().sum();
         assert!(
             (sum - 1.0).abs() < tolerances::GPU_HMM_STEP_F32,
@@ -320,8 +322,8 @@ mod tests {
         let beta_next = vec![1.0, 1.0];
         let transition = vec![0.7, 0.3, 0.4, 0.6];
         let emission_col = vec![0.5, 0.5];
-        let result =
-            hmm_backward_step_gpu(&beta_next, &transition, &emission_col, 1.0, 2, &dev).unwrap();
+        let result = hmm_backward_step_gpu(&beta_next, &transition, &emission_col, 1.0, 2, &dev)
+            .expect("HMM backward step GPU dispatch should succeed on test device");
         assert_eq!(result.len(), 2);
         for &v in &result {
             assert!(v.is_finite(), "backward step should produce finite values");
@@ -336,8 +338,8 @@ mod tests {
         let delta_prev = vec![0.0, -1.0];
         let log_trans = vec![0.7_f64.ln(), 0.3_f64.ln(), 0.4_f64.ln(), 0.6_f64.ln()];
         let log_emit = vec![0.6_f64.ln(), 0.4_f64.ln()];
-        let (delta, psi) =
-            hmm_viterbi_step_gpu(&delta_prev, &log_trans, &log_emit, 2, &dev).unwrap();
+        let (delta, psi) = hmm_viterbi_step_gpu(&delta_prev, &log_trans, &log_emit, 2, &dev)
+            .expect("HMM Viterbi step GPU dispatch should succeed on test device");
         assert_eq!(delta.len(), 2);
         assert_eq!(psi.len(), 2);
     }
@@ -351,7 +353,8 @@ mod tests {
         let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
         let initial = vec![0.6, 0.4];
         let obs = vec![0, 1, 2, 0];
-        let log_lik = hmm_forward_chain_gpu(&initial, &trans, &emission, &obs, 2, 3, &dev).unwrap();
+        let log_lik = hmm_forward_chain_gpu(&initial, &trans, &emission, &obs, 2, 3, &dev)
+            .expect("HMM forward chain GPU dispatch should succeed on test device");
         assert!(log_lik.is_finite(), "log-likelihood must be finite");
         assert!(log_lik < 0.0, "log-likelihood should be negative");
     }
@@ -365,8 +368,8 @@ mod tests {
         let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
         let initial = vec![0.6, 0.4];
         let obs = vec![0, 1, 2, 0];
-        let (path, log_prob) =
-            hmm_viterbi_chain_gpu(&initial, &trans, &emission, &obs, 2, 3, &dev).unwrap();
+        let (path, log_prob) = hmm_viterbi_chain_gpu(&initial, &trans, &emission, &obs, 2, 3, &dev)
+            .expect("HMM Viterbi chain GPU dispatch should succeed on test device");
         assert_eq!(path.len(), obs.len());
         assert!(log_prob.is_finite());
         for &s in &path {

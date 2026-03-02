@@ -30,6 +30,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 use tokio::time::sleep;
 
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -104,7 +105,12 @@ async fn main() {
     let socket_dir = std::env::temp_dir().join("biomeos-tower-test");
     if let Err(e) = std::fs::create_dir_all(&socket_dir) {
         eprintln!("  Failed to create socket directory: {e}");
-        h.check_abs("setup.socket_dir", 0.0, 1.0, 0.5);
+        h.check_abs(
+            "setup.socket_dir",
+            0.0,
+            1.0,
+            tolerances::BOOLEAN_VALIDATION_SLACK,
+        );
         h.finish();
     }
     let socket_path = socket_dir.join("neural-spring-test.sock");
@@ -118,13 +124,23 @@ async fn main() {
             Some(dir) => dir.join("neuralspring_primal"),
             None => {
                 eprintln!("  current_exe has no parent directory");
-                h.check_abs("setup.primal_bin", 0.0, 1.0, 0.5);
+                h.check_abs(
+                    "setup.primal_bin",
+                    0.0,
+                    1.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
                 h.finish();
             }
         },
         Err(e) => {
             eprintln!("  Failed to resolve current_exe: {e}");
-            h.check_abs("setup.primal_bin", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "setup.primal_bin",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
             h.finish();
         }
     };
@@ -151,7 +167,12 @@ async fn main() {
         Ok(c) => c,
         Err(e) => {
             eprintln!("  Failed to spawn neuralspring_primal: {e}");
-            h.check_abs("setup.spawn_primal", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "setup.spawn_primal",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
             h.finish();
         }
     };
@@ -185,7 +206,7 @@ async fn main() {
                 "health.status == healthy",
                 if status == "healthy" { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let caps = val
@@ -197,7 +218,7 @@ async fn main() {
                 "health.capabilities >= 11",
                 if caps >= 11 { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let has_hardware = val.get("hardware").is_some();
@@ -205,7 +226,7 @@ async fn main() {
                 "health.hardware present",
                 if has_hardware { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let has_stats = val.get("stats").is_some();
@@ -213,15 +234,35 @@ async fn main() {
                 "health.stats present",
                 if has_stats { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
         }
         Err(e) => {
             eprintln!("  Health check failed: {e}");
-            h.check_abs("health.reachable", 0.0, 1.0, 0.5);
-            h.check_abs("health.capabilities", 0.0, 1.0, 0.5);
-            h.check_abs("health.hardware", 0.0, 1.0, 0.5);
-            h.check_abs("health.stats", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "health.reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "health.capabilities",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "health.hardware",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "health.stats",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -249,7 +290,7 @@ async fn main() {
                 "evoformer.msa_finite",
                 if msa_finite { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let pair_finite = val
@@ -260,7 +301,7 @@ async fn main() {
                 "evoformer.pair_finite",
                 if pair_finite { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let tri_finite = val
@@ -271,7 +312,7 @@ async fn main() {
                 "evoformer.tri_attn_finite",
                 if tri_finite { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let msa_changed = val
@@ -282,7 +323,7 @@ async fn main() {
                 "evoformer.msa_changed",
                 if msa_changed { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let pair_changed = val
@@ -293,16 +334,41 @@ async fn main() {
                 "evoformer.pair_changed",
                 if pair_changed { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
         }
         Err(e) => {
             eprintln!("  science.evoformer_block failed: {e}");
-            h.check_abs("evoformer.reachable", 0.0, 1.0, 0.5);
-            h.check_abs("evoformer.pair", 0.0, 1.0, 0.5);
-            h.check_abs("evoformer.tri", 0.0, 1.0, 0.5);
-            h.check_abs("evoformer.msa_changed", 0.0, 1.0, 0.5);
-            h.check_abs("evoformer.pair_changed", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "evoformer.reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "evoformer.pair",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "evoformer.tri",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "evoformer.msa_changed",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "evoformer.pair_changed",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -330,7 +396,7 @@ async fn main() {
                 "structure.ipa_finite",
                 if ipa_finite { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let frames_finite = val
@@ -341,7 +407,7 @@ async fn main() {
                 "structure.frames_finite",
                 if frames_finite { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let torsion_finite = val
@@ -352,7 +418,7 @@ async fn main() {
                 "structure.torsion_finite",
                 if torsion_finite { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
 
             let torsion_count = val
@@ -368,10 +434,30 @@ async fn main() {
         }
         Err(e) => {
             eprintln!("  science.structure_module failed: {e}");
-            h.check_abs("structure.ipa", 0.0, 1.0, 0.5);
-            h.check_abs("structure.frames", 0.0, 1.0, 0.5);
-            h.check_abs("structure.torsion", 0.0, 1.0, 0.5);
-            h.check_abs("structure.torsion_count", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "structure.ipa",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "structure.frames",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "structure.torsion",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "structure.torsion_count",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -394,17 +480,27 @@ async fn main() {
                     "folding_health.all_primitives",
                     if all_true { 1.0 } else { 0.0 },
                     1.0,
-                    0.5,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
                 );
                 h.check_abs("folding_health.primitive_count", p.len() as f64, 14.0, 0.5);
             } else {
-                h.check_abs("folding_health.primitives_present", 0.0, 1.0, 0.5);
+                h.check_abs(
+                    "folding_health.primitives_present",
+                    0.0,
+                    1.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
                 h.check_abs("folding_health.count", 0.0, 14.0, 0.5);
             }
         }
         Err(e) => {
             eprintln!("  science.folding_health failed: {e}");
-            h.check_abs("folding_health.reachable", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "folding_health.reachable",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
             h.check_abs("folding_health.count", 0.0, 14.0, 0.5);
         }
     }
@@ -438,13 +534,23 @@ async fn main() {
                 "gpu_dispatch.backend_reported",
                 if has_backend { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
         }
         Err(e) => {
             eprintln!("  science.gpu_dispatch softmax failed: {e}");
-            h.check_abs("gpu_dispatch.softmax", 0.0, 1.0, 0.5);
-            h.check_abs("gpu_dispatch.backend", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "gpu_dispatch.softmax",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
+            h.check_abs(
+                "gpu_dispatch.backend",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -489,7 +595,7 @@ async fn main() {
         "cross_primal.nestgate_unavailable_graceful",
         if forward_failed_gracefully { 1.0 } else { 0.0 },
         1.0,
-        0.5,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
     );
 
     // ═══════════════════════════════════════════════════════════════════
@@ -524,7 +630,7 @@ async fn main() {
         "concurrent.4_requests",
         if all_ok { 1.0 } else { 0.0 },
         1.0,
-        0.5,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
     );
 
     // ═══════════════════════════════════════════════════════════════════
@@ -542,12 +648,17 @@ async fn main() {
                 "stats.requests_served > 0",
                 if served > 0 { 1.0 } else { 0.0 },
                 1.0,
-                0.5,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
         }
         Err(e) => {
             eprintln!("  Health check 2 failed: {e}");
-            h.check_abs("stats.requests_served", 0.0, 1.0, 0.5);
+            h.check_abs(
+                "stats.requests_served",
+                0.0,
+                1.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -565,7 +676,7 @@ async fn main() {
         "rpc.unknown_method_error",
         if unknown.is_err() { 1.0 } else { 0.0 },
         1.0,
-        0.5,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
     );
 
     // Clean up

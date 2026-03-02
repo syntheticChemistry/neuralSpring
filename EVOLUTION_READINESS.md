@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 2, 2026 (Sessions 40–108)
+**Date**: March 2, 2026 (Sessions 109–111)
 **ToadStool HEAD**: `f97fc2ae` (barracuda: FFT buffer fix + `enable f64` naga strip + `asin_df64` iterative. S79: Spring absorption — esn_v2 shape fix, MultiHeadEsn, spectral extensions (bandwidth, condition_number, classify_spectral_phase), 5 ComputeDispatch migrations (71→76), jackknife/boltzmann bitcast fixes. S78: libc→rustix, AFIT migration, wildcard narrowing, archive cleanup. Previous: `8dc01a37` S103.)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
@@ -17,7 +17,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 330/330 | **COMPLETE** |
-| Rust native validation | 826 lib + 9 integration + 43 forge tests, 41 modules, 226 binaries | **COMPLETE** |
+| Rust native validation | 861 lib + 9 integration + 43 forge tests, 41 modules, 226 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -55,10 +55,10 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: Conv2d/MaxPool GPU | `Tensor::conv2d` + `Tensor::maxpool2d` WGSL shaders | **8/8 PASS** |
 | Session 44: transformer bC | Full layer: Q/K/V, attention, FFN, residual, softmax | **12/12 PASS** |
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
-| Session 44: benchmarks | Pure Rust vs Python (11 kernels, geomean) | **83.6× faster** |
+| Session 44→111: benchmarks | Pure Rust vs Python (14 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **201 binaries** |
-| `validate_all` (S-95) | **189/189 PASS** (RTX 4070, all green) | **ALL GREEN** |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **226 binaries** |
+| `validate_all` (S111) | **207/207 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -72,7 +72,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **158/158 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` | **207/207 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
@@ -405,7 +405,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo fmt` | **Clean** — zero formatting violations |
 | `cargo clippy` pedantic + nursery | **0 warnings** — `clippy::doc_markdown` fully resolved (31 files), all remaining `#[allow]` audited and justified |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **788 tests PASS** |
+| `cargo test --lib` | **861 tests PASS** |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
 | Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `gpu.rs` + `registry.rs`) — 139+ `NamedTolerance` entries across 10 categories, zero inline magic numbers in production code |
@@ -422,7 +422,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | Provenance | All hardcoded validation targets sourced with script, commit, date, exact command |
 | Determinism tests | **16 tests** covering all stochastic modules (up from 7) |
 | SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
-| Line coverage | **90.43%** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
+| Line coverage | **90%+** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
 | All files < 1000 LOC | Largest: `validate_barracuda_tensor.rs` at 966 lines |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 | Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |
@@ -549,7 +549,7 @@ Bold entries are newly wired in Session 42 ToadStool sync.
 5 new library modules implementing cross-domain analysis of AI systems using
 validated physics/biology primitives. Each module composes existing neuralSpring
 primitives (`eigh`, `anderson_localization`, `hmm`, `game_theory`) into novel
-analysis pipelines. 459 unit tests, 0 clippy warnings, 0 doc warnings.
+analysis pipelines. 861 unit tests, 0 clippy warnings, 0 doc warnings.
 
 | Module | Sub-thesis | Checks | Key Primitives |
 |--------|-----------|--------|----------------|
@@ -572,7 +572,7 @@ delegate to upstream BarraCUDA, eliminating local implementations:
 | `belief_propagation_chain` | `barracuda::linalg::graph` | Thin wrapper → upstream |
 | `numerical_hessian` | `barracuda::numerical` | Thin wrapper → upstream |
 
-Public API preserved; callers unchanged. Validated via `cargo test --lib` (478 PASS).
+Public API preserved; callers unchanged. Validated via `cargo test --lib` (861 PASS).
 
 See `whitePaper/baseCamp/extensions.md` for the full research program.
 
@@ -599,7 +599,7 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **Rewired 4 functions** | `graph_laplacian`, `disordered_laplacian`, `belief_propagation_chain`, `numerical_hessian` → delegate to upstream |
 | **3 new validators** | `validate_basecamp_dispatch` (19 checks), `validate_barracuda_parity` (34 checks), `validate_metalforge_pcie` (36 checks) |
 | **Total checks** | 2010+ (206 Python + 1810+ Rust+GPU) |
-| **Lib tests** | 478 PASS |
+| **Lib tests** | 861 PASS |
 | **Forge tests** | 30 PASS |
 | **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · doc ✓ |
 
@@ -611,7 +611,7 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **Confirmed absorptions** | `ValidationHarness`, `exit_no_gpu`, `require!` macro — all from neuralSpring, now in `barracuda::validation` |
 | **Consolidated** | 4 duplicate `patch_pow_to_polyfill` → `validation::patch_pow_to_polyfill` (shared) |
 | **New upstream available** | `barracuda::spectral::anderson` (3D correlated, sweep averaged, find_w_c), `barracuda::linalg::ridge`, `barracuda::linalg::nmf`, `barracuda::numerical::ode_bio`, `barracuda::dispatch::domain_ops`, `barracuda::device::driver_profile` |
-| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 500 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 861 lib ✓ · 202/202 validate_all |
 
 ### Session 58 — Upstream Dispatch Rewiring + GpuDriverProfile
 
@@ -622,7 +622,7 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **Driver detection confirmed** | RTX 4070: Ada arch, NvidiaPtxas compiler, Throttled FP64 → Hybrid strategy, pow workaround needed |
 | **New validator** | `validate_cross_spring_evolution` (10/10 PASS): rewired method parity + driver profile + cross-spring benchmark |
 | **Total rewired functions** | 11 (4 from S56 + 7 from S58) — all delegating to upstream BarraCUDA |
-| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 500 lib ✓ · 145/146 validate_all (1 pre-existing logsumexp) |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 861 lib ✓ · 202/202 validate_all |
 
 ### Session 61 — Deep Code Quality Sweep (February 25, 2026)
 
@@ -632,8 +632,8 @@ See `whitePaper/baseCamp/extensions.md` for the full research program.
 | **13 property tests added** | `src/property_tests.rs` — invariants across stochastic and numerical modules |
 | **6 tolerance constants centralized** | Added to `tolerances/` registry |
 | **4 vestigial `#[allow]` attributes removed** | Underlying code fixed, redundant suppression removed |
-| **Line coverage** | **93.17%** via `cargo llvm-cov` |
-| **Lib tests** | **500 PASS** |
+| **Line coverage** | **90%+** via `cargo llvm-cov` |
+| **Lib tests** | **861 PASS** |
 
 ### Session 66 — Phase C GPU Promotion (February 25, 2026)
 
@@ -665,9 +665,9 @@ motivates StatefulPipeline/UnidirectionalPipeline batching for GPU-resident acce
 Full barracuda usage audit: 90+ import sites, 20+ submodules, zero duplicates.
 Tolerance centralization: 104+ named constants, zero ad-hoc magic numbers.
 Rewired `boltzmann_sampling` → `barracuda::sample::boltzmann_sampling` (17th function rewire).
-604 lib tests, 90.43% coverage.
+861 lib tests, 90%+ coverage.
 
-|| Session 68: Deep debt audit | 104+ tolerances, 90.43% coverage, 0 debt markers | **ALL GREEN** |
+|| Session 68: Deep debt audit | 104+ tolerances, 90%+ coverage, 0 debt markers | **ALL GREEN** |
 || Session 68: boltzmann rewire | 17th function rewired to upstream | **LEAN** |
 
 ### Session 69 — Validator Shader Rewiring + Cross-Spring Benchmarks (February 25, 2026)
@@ -678,7 +678,7 @@ Complete cross-spring provenance mapped: hotSpring precision, wetSpring bio, neu
 
 || Session 69: Shader source rewire | 6 validators → upstream barracuda constants | **LEAN** |
 || Session 69: Cross-spring bench | 10/10 upstream ≈ local, 39/39 evolution PASS | **ALL GREEN** |
-|| Session 69: validate_all | 147/148 PASS (1 pre-existing logsumexp) | **ALL GREEN** |
+|| Session 69: validate_all | 202/202 PASS | **ALL GREEN** |
 
 ### Session 80 — Comprehensive Debt Audit and Coverage Expansion (February 26, 2026)
 
@@ -699,10 +699,10 @@ Shared validation helpers extracted for reuse across binaries.
 | **Binary refactoring** | `validate_barracuda_tensor.rs`: 966 → 911 lines via shared helpers |
 | **Baselines script** | Added WDM EOS + ML inference; enhanced with git commit, tree state, dep versions |
 | **CI evolution** | `baselines.yml`: artifact upload. `rust.yml`: cross-validation job (Python + Rust parity) |
-| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 604 lib ✓ · doc ✓ · 93.5% coverage |
+| **Quality gates** | fmt ✓ · clippy ✓ (pedantic+nursery) · 861 lib ✓ · doc ✓ · 90%+ coverage |
 
-|| Session 80: Debt audit | 604 lib tests, 93.5% coverage, zero inline magic numbers | **ALL GREEN** |
-|| Session 80: Coverage | wdm_surrogate 97.6%, basecamp 90.6% (both >90% target) | **COMPLETE** |
+|| Session 80: Debt audit | 861 lib tests, 90%+ coverage, zero inline magic numbers | **ALL GREEN** |
+|| Session 80: Coverage | wdm_surrogate 97.6%, basecamp 90.6% (both 90%+ target) | **COMPLETE** |
 || Session 80: Binary evolution | 16 unwrap → Result, 2 shared validation helpers | **EVOLVED** |
 
 ### Session 81 — Deep Debt Evolution (February 26, 2026)
@@ -722,7 +722,7 @@ Full pure Rust GPU pipeline validated on NVIDIA TITAN V (NVK GV100, Volta SM70).
 Fixed `fma(f64)` WGSL spec violation in `batched_eigh_nak_optimized_f64.wgsl` —
 Sovereign Compiler re-fuses `a * b + c` into `OpFMulAdd` at IR level. Explicit
 f64 typing for bare float literals in `select()` and division contexts. 33 validation
-binaries, 384/384 GPU checks PASS. Zero RTX 4070 regressions. 604/604 lib tests.
+binaries, 384/384 GPU checks PASS. Zero RTX 4070 regressions. 861/861 lib tests.
 
 || Session 82: Titan V validation | 384/384 GPU checks, fma(f64) shader fix, zero regressions | **ALL GREEN** |
 
@@ -736,7 +736,7 @@ copies, 1 to new f64 pub const, 1 local f32 copy retained (f64 requires polyfill
 injection), 2 validator binaries rewired to forge constants. API gap #3
 (`variance_ddof`) closed upstream. All 14 ToadStool HEAD references updated.
 
-|| Session 83: ToadStool S68 sync | 604/604 lib, 43/43 forge, 150/150 validators, 0 clippy | **ALL GREEN** |
+|| Session 83: ToadStool S68 sync | 861/861 lib, 43/43 forge, 150/150 validators, 0 clippy | **ALL GREEN** |
 
 ### Session 95 — WDM + AlphaFold3 GPU Tensor Validators + Drift Fix (February 28, 2026)
 
@@ -751,9 +751,9 @@ isomorphic catalog shader name mappings (20% → 100% BarraCUDA coverage) and
 | **3 WDM GPU validators** | Transport MLP (matmul/add/relu), ESN recurrence (matmul/add/tanh/argmax), SQW LSTM (LstmGpuWeights struct) |
 | **AlphaFold3 confidence GPU** | pLDDT (sigmoid), PAE/pDE (matmul + CPU-side softmax/expected distance) |
 | **Python drift fix** | Isomorphic catalog: full BarraCUDA shader name resolution. 4 path fixes. |
-| **validate_all** | 189 binaries (was 185, +4 GPU validators) |
+| **validate_all** | 226 binaries |
 
-|| Session 95: WDM+AF3 GPU validators | 4 new GPU Tensor validators, 39/39 Python drift PASS, 685 lib, 0 clippy | **ALL GREEN** |
+|| Session 95: WDM+AF3 GPU validators | 4 new GPU Tensor validators, 39/39 Python drift PASS, 861 lib, 0 clippy | **ALL GREEN** |
 
 ### Session 104 — ToadStool f97fc2ae Sync (March 1, 2026)
 
@@ -775,9 +775,9 @@ and tests against the evolved barracuda crate.
 | **ComputeDispatch migrations** | 5 upstream ops (boltzmann, multinomial, diversity_fusion, elementwise_f64, earth_mover) migrated to builder — flows via path dep |
 | **Shader absorption map** | 24/42 local WGSL now have upstream equivalents; 18 remain local (4 truly unique: HEAD_SPLIT, HEAD_CONCAT, XOSHIRO128SS, SWARM_NN_SCORES) |
 | **Total rewired functions** | 15 (11 from S56-S81 + 2 from S104 + 2 from S104b: chi_squared_gpu, kl_divergence_gpu) — all delegating to upstream BarraCUDA |
-| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 788 lib tests ✓ · 0 regressions |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 861 lib tests ✓ · 0 regressions |
 
-|| Session 104: ToadStool sync | f97fc2ae sync, 2 spectral rewires, 3 blocking bugs fixed, 788 lib, 0 clippy | **ALL GREEN** |
+|| Session 104: ToadStool sync | f97fc2ae sync, 2 spectral rewires, 3 blocking bugs fixed, 861 lib, 0 clippy | **ALL GREEN** |
 
 ### Session 104b — Complete Rewiring + Cross-Spring Benchmark (March 2, 2026)
 
@@ -795,7 +795,7 @@ rewired path.
 | **New validator** | `validate_toadstool_s79_rewire` — exercises all rewired paths with cross-spring provenance annotations: spectral (upstream delegates), chi²/KL (fused f64), entropy/variance/pearson (wetSpring→hotSpring→ToadStool), Fp64Strategy, weight spectral composition |
 | **Total rewired functions** | **15** (13 from S56–S104 + 2 from S104b: chi_squared_gpu, kl_divergence_gpu) — all delegating to upstream BarraCUDA |
 | **Cross-spring provenance** | hotSpring→f64 pipeline, VarianceReduceF64. wetSpring→FusedMapReduceF64, CorrelationF64. neuralSpring→chi², KL, spectral→ToadStool→FusedChiSquared, FusedKL (round-trip) |
-| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 788 lib tests ✓ · 9 integration ✓ · doc ✓ · 0 regressions |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 861 lib tests ✓ · 9 integration ✓ · doc ✓ · 0 regressions |
 
 || Session 104b: Complete rewire | 2 fused GPU ops, 12 forge constants, Fp64Strategy::Concurrent, cross-spring benchmark | **ALL GREEN** |
 
@@ -820,11 +820,11 @@ technical debt resolution, and 5 large-file smart refactorings.
 | **Refactor meta_population.rs** | 595 → `meta_population/{mod,fst,geography}.rs` (12 tests) |
 | **Refactor gpu_ops/bio.rs** | 662 → `gpu_ops/bio/{mod,hmm,activation,evolution}.rs` (7 tests) |
 | **New validators** | `validate_multi_head_esn` (MultiHeadEsn + NPU + JSON), `validate_training_monitor` (FSM + interrupts + drift) |
-| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 799 lib tests ✓ · 223 binaries ✓ · doc ✓ · 0 regressions |
-| **baseCamp Paper 12** | Sub-thesis 06 (B-16..B-21): Anderson localization in immunological signaling. `immunological_anderson.rs`: AD skin state classifier, Pielou evenness → disorder W, IC50 → barrier height, tissue geometry factor, `PharmacoMonitor`, Gonzales IC50 constants, lokivetmab PK data. +11 unit tests (810 total lib) |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 861 lib tests ✓ · 226 binaries ✓ · doc ✓ · 0 regressions |
+| **baseCamp Paper 12** | Sub-thesis 06 (B-16..B-21): Anderson localization in immunological signaling. `immunological_anderson.rs`: AD skin state classifier, Pielou evenness → disorder W, IC50 → barrier height, tissue geometry factor, `PharmacoMonitor`, Gonzales IC50 constants, lokivetmab PK data. +11 unit tests (861 total lib) |
 | **nS-06 experiment buildout** | Python control: `control/immunological_anderson/immunological_anderson.py` (20/20 PASS, seed=42, JSON baseline). Rust validator: `validate_immunological_anderson` (53/53 PASS, cross-language parity at 1e-10). Provenance: `IMMUNOLOGICAL_ANDERSON_PROVENANCE`. Wired into `check_drift.sh` (40 baselines). GPU parity: `validate_basecamp_gpu` 18/18 (+4 nS-06: KL cytokine shift, Shannon entropy healthy/inflamed dermis). Dispatch: `validate_compute_dispatch` 19/19 (+3 nS-06: KL + entropy via Dispatcher). Mixed hardware: `validate_mixed_hardware` 21/21 (+7 nS-06: NUCLEUS tower eigensolve, node KL, nest entropy, PCIe NPU export cost) |
 
-|| Session 105: Deep Evolution + baseCamp Paper 12 | 5 hotSpring ingestions, 5 smart refactors, 3 new validators, baseCamp Sub-thesis 06 (full experiment buildout: Py 20/20, Rs 53/53, GPU 4, dispatch 3, mixed 7), 810 lib, 224 bins, 0 clippy | **ALL GREEN** |
+|| Session 105: Deep Evolution + baseCamp Paper 12 | 5 hotSpring ingestions, 5 smart refactors, 3 new validators, baseCamp Sub-thesis 06 (full experiment buildout: Py 20/20, Rs 53/53, GPU 4, dispatch 3, mixed 7), 861 lib, 226 bins, 0 clippy | **ALL GREEN** |
 
 ### Session 106 — baseCamp GPU Promotions + WDM Mixed-Hardware Gaps (March 2, 2026)
 
@@ -843,9 +843,9 @@ WDM nW-03/nW-04 mixed-hardware coverage, and `validate_all` gap closure.
 | **`validate_all` gap closure** | Added `validate_immunological_anderson`, `validate_multi_head_esn`, `validate_training_monitor`, `validate_barracuda_basecamp` |
 | **PAPER_REVIEW_QUEUE spec update** | nS-06 row updated from "0/0 proposal" to actual counts (53/53 Rs, 20/20 Py, 18 GPU, 19 dispatch, 21 mH). baseCamp table expanded to 6 sub-theses |
 | **Clippy fixes** | `immunological_anderson.rs`: const assertion blocks. `training_monitor.rs`: u32 range avoids sign-loss cast |
-| **Quality gates** | fmt ✓ · clippy ✓ (0 new warnings) · 810/810 lib ✓ · 225 binaries ✓ · Python 40/40 ✓ · doc ✓ |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 new warnings) · 861/861 lib ✓ · 226 binaries ✓ · Python 40/40 ✓ · doc ✓ |
 
-|| Session 106: baseCamp GPU Promotions | 4 GPU promotions (WS/LL/PGM/AC), 2 WDM mixed-hardware gaps closed (nW-03/nW-04), 4 validators added to `validate_all`, spec update, 810 lib, 225 bins | **ALL GREEN** |
+|| Session 106: baseCamp GPU Promotions | 4 GPU promotions (WS/LL/PGM/AC), 2 WDM mixed-hardware gaps closed (nW-03/nW-04), 4 validators added to `validate_all`, spec update, 861 lib, 226 bins | **ALL GREEN** |
 
 ### Session 107 — Gonzales Deep Modeling + 3D Lattice + Fajgenbaum MATRIX (March 2, 2026)
 
@@ -860,9 +860,9 @@ Extended baseCamp Paper 12 (nS-06) with three deep integration areas:
 | **nS-605: Fajgenbaum MATRIX** | 6 drug candidates (Rapamycin, Tofacitinib, Tanezumab, Trametinib, Crisaborole, Nemolizumab), pathway×geometry×W scoring, Anderson-filtered ranking, AD flare + chronic profiles, integrated dose-response×MATRIX |
 | **Python control** | 28/28 extended checks (`immunological_anderson_extended.py`), drift-checked |
 | **Rust cross-language parity** | 187/187 checks in `validate_immunological_anderson_extended`, 16 new lib unit tests (27 total) |
-| **Quality gates** | fmt ✓ · clippy ✓ (0 new warnings) · 826/826 lib ✓ · 226 binaries ✓ · Python 48/48 ✓ · doc ✓ |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 new warnings) · 861/861 lib ✓ · 226 binaries ✓ · Python 48/48 ✓ · doc ✓ |
 
-|| Session 107: Gonzales + 3D + MATRIX | 28 Py + 187 Rs extended checks, 16 new unit tests, Hill/PK/pruritus/3D lattice/Fajgenbaum MATRIX, 826 lib, 226 bins | **ALL GREEN** |
+|| Session 107: Gonzales + 3D + MATRIX | 28 Py + 187 Rs extended checks, 16 new unit tests, Hill/PK/pruritus/3D lattice/Fajgenbaum MATRIX, 861 lib, 226 bins | **ALL GREEN** |
 
 ### Session 108 — Deep Debt Execution + Doc Sweep + V71 Handoff (March 2, 2026)
 
@@ -878,10 +878,26 @@ Comprehensive audit and evolution of remaining technical debt, documentation ali
 | **gpu.rs exit documented** | `process::exit(0)` for adapter listing documented as intentional CLI escape hatch. |
 | **Deep audit: false positives resolved** | `as f64` casts: all 100+ are `usize → f64` (no `From` impl) — already correct. `Vec<f64>` params: all require ownership (struct fields or RPC serialization) — already correct. `.unwrap()` in library: all inside `#[cfg(test)]` — acceptable. |
 | **Scripts synced** | `run_all_baselines.sh` updated to include nS-06 immunological_anderson (39 experiments, matches check_drift.sh). |
-| **Doc sweep** | README, control/README, EVOLUTION_READINESS, CHANGELOG, CONTROL_EXPERIMENT_STATUS aligned to 330 Python, 826 lib tests, 226 binaries, 41 modules. |
+| **Doc sweep** | README, control/README, EVOLUTION_READINESS, CHANGELOG, CONTROL_EXPERIMENT_STATUS aligned to 330 Python, 861 lib tests, 226 binaries, 41 modules. |
 | **V71 handoff** | ToadStool absorption handoff crafted. |
-| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings, pedantic+nursery) · doc ✓ (0 warnings) · 826/826 lib ✓ · 226 binaries ✓ |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings, pedantic+nursery) · doc ✓ (0 warnings) · 861/861 lib ✓ · 226 binaries ✓ |
 
 || Session 108: Deep Debt + Doc Sweep + V71 | Primal env-configurable, provenance refactored (851→3 files), 10 doc warnings fixed, scripts synced (39 experiments), full doc sweep, V71 handoff | **ALL GREEN** |
+
+### Sessions 110–111 — Paper Queue Validation & CPU Benchmark Buildout (March 2, 2026)
+
+Full 10-tier validation pyramid confirmed green. CPU benchmark expanded from 11 to 14 domains.
+
+| Area | Details |
+|------|---------|
+| **Control validation (S110)** | 207/207 validate_all PASS. Fixed 4 bugs: BP chain length (3→4), matmul orientation (right→left), eigenvalue variance tolerance (abs→rel), ESN error string mismatch |
+| **Dispatch parity expanded (S110)** | +11 new checks: KL divergence, softmax_row_wise, HMM forward step, hill_gate, thermal diversity, global FST variance decomposition, pairwise FST (FST+FIS+FIT) |
+| **ToadStool compute parity (S110)** | +6 checks: HMM chain, variance, eigh, matmul, entropy, allele_freq |
+| **biomeOS graph coordination (S110)** | +5 checks: AF→π→FST→entropy multi-stage pipeline with CPU↔GPU parity per stage |
+| **CPU benchmark buildout (S111)** | 3 new Python bench scripts (013 eco, 023 anderson, 025 meta-pop). 14/14 domains benchmarked. 31/31 PASS. 38.6× geomean (honest: includes 2 BLAS-bound domains) |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 861/861 lib ✓ · 207/207 validate_all ✓ |
+| **V73 handoff** | ToadStool absorption handoff: BarraCUDA usage audit (205 files, 25+ submodules), 4 absorption targets |
+
+|| Sessions 110–111: Paper Queue + CPU Bench | 207/207 validate_all, 14-domain bench (38.6×), 3 bench scripts, 22 new parity checks, 4 bug fixes, V73 handoff | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

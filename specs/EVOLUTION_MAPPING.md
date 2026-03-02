@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: February 28, 2026 (Sessions 60–94: Phase C GPU + CPU↔Python parity 39/39, 83.6× speedup + pure GPU all-domains + cross-system dispatch + coralForge rename + deep debt resolution)
+**Last Updated**: March 2, 2026 (Sessions 60–111: 861 lib tests, 226 binaries, 207/207 validate_all, 14-domain CPU bench 38.6× vs Python)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -166,12 +166,12 @@ For each Rust module → GPU promotion:
 
 ---
 
-## Current Status (February 26, 2026)
+## Current Status (March 2, 2026)
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
 | Phase 0 (Python baselines) | **330/330 PASS** | 25 experiments + 5 WDM + 3 pub exp + 5 coralForge + 2 nS-06, drift detection via `control/check_drift.sh` |
-| Phase 1a (neuralSpring Rust) | **826 lib + 9 integration PASS** | 41 modules, 826 unit tests, 9 integration tests, 226 validation binaries |
+| Phase 1a (neuralSpring Rust) | **861 lib + 9 integration PASS** | 41 modules, 861 unit tests, 9 integration tests, 226 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU ports) | **203/203 PASS** | 24/25 papers validated (96% bC coverage) |

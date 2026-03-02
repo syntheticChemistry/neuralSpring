@@ -645,4 +645,71 @@ mod tests {
         assert_eq!(heads[wdm_heads::SPECTRAL_BANDWIDTH].output_size, 1);
         assert_eq!(heads[wdm_heads::CONFIDENCE].output_size, 1);
     }
+
+    #[test]
+    fn classify_extreme_inputs() {
+        let esn = tiny_esn();
+        let (label_cold, _) = esn.classify(-3.0, 3.0);
+        let (label_hot, _) = esn.classify(3.0, 9.0);
+        assert!(label_cold < 3);
+        assert!(label_hot < 3);
+    }
+
+    #[test]
+    fn classify_reservoir_nonlinearity() {
+        let esn = tiny_esn();
+        let (_, scores_a) = esn.classify(0.0, 5.0);
+        let (_, scores_b) = esn.classify(1.0, 7.0);
+        let different = scores_a
+            .iter()
+            .zip(scores_b.iter())
+            .any(|(a, b)| (a - b).abs() > 1e-10);
+        assert!(
+            different,
+            "different inputs should produce different scores"
+        );
+    }
+
+    #[test]
+    fn load_esn_full_roundtrip_classify() {
+        let json = r#"{
+            "normalization": {"x_mean": [0.5, 6.0], "x_std": [1.0, 1.5]},
+            "weights": {
+                "reservoir_size": 4, "input_dim": 2, "n_classes": 3,
+                "W_in": [0.1, 0.2, 0.3, 0.4, 0.1, 0.2, 0.3, 0.4],
+                "W_res": [0.01, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                           0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.0, 0.01],
+                "b_res": [0.0, 0.0, 0.0, 0.0],
+                "W_out": [0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],
+                "b_out": [0.0, 0.0, 0.0]
+            }
+        }"#;
+        let esn = load_esn_from_json(json).expect("valid JSON");
+        assert_eq!(esn.reservoir_size, 4);
+        assert_eq!(esn.n_classes, 3);
+        for &(lr, lt) in &[(-2.0, 4.0), (0.5, 6.0), (3.0, 8.0)] {
+            let (label, scores) = esn.classify(lr, lt);
+            assert!(label < 3);
+            assert_eq!(scores.len(), 3);
+            assert!(scores.iter().all(|s| s.is_finite()));
+        }
+    }
+
+    #[test]
+    fn wdm_head_configs_two_classes() {
+        let heads = wdm_head_configs(2);
+        assert_eq!(heads[wdm_heads::REGIME_LABEL].output_size, 2);
+    }
+
+    #[test]
+    fn argmax_single_element() {
+        assert_eq!(argmax_f64(&[42.0]), 0);
+        assert_eq!(argmax_f32(&[42.0]), 0);
+    }
+
+    #[test]
+    fn argmax_negative_values() {
+        assert_eq!(argmax_f64(&[-3.0, -1.0, -2.0]), 1);
+        assert_eq!(argmax_f32(&[-3.0, -1.0, -2.0]), 1);
+    }
 }

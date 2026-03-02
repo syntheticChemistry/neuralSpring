@@ -709,8 +709,10 @@ async fn main() -> Result<()> {
     {
         let sigterm_socket = socket_path.clone();
         tokio::spawn(async move {
-            let mut sig =
-                tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
+            let mut sig = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+                .expect(
+                    "SIGTERM handler registration requires a tokio runtime with signal support",
+                );
             sig.recv().await;
             eprintln!("\n[shutdown] SIGTERM received, deregistering...");
             deregister_from_nucleus(&sigterm_socket).await;

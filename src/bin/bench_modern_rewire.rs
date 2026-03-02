@@ -94,10 +94,11 @@ fn main() {
     eprintln!("╚══════════════════════════════════════════════════════════════════╝");
     eprintln!();
 
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let rt = tokio::runtime::Runtime::new()
+        .expect("tokio runtime creation failed — required for async benchmark");
     let gpu = rt
         .block_on(async { Gpu::new().await })
-        .expect("GPU required");
+        .expect("GPU required for benchmark — no adapter available");
 
     eprintln!(
         "  GPU: {} ({:?}, {:?})",
@@ -503,7 +504,8 @@ fn bench_diversity_fusion(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         .map(|_| (rng.next_f64() * 50.0).max(0.0))
         .collect();
 
-    let rt = tokio::runtime::Runtime::new().expect("tokio");
+    let rt = tokio::runtime::Runtime::new()
+        .expect("tokio runtime creation failed — required for async benchmark");
 
     let cpu_us = bench("diversity_fusion_cpu (wetSpring→ToadStool)", || {
         std::hint::black_box(barracuda::ops::bio::diversity_fusion_cpu(
@@ -517,7 +519,7 @@ fn bench_diversity_fusion(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
             let op = DiversityFusionGpu::new(device.clone()).expect("DiversityFusionGpu");
             let _ = op
                 .compute(&abundances, n_samples, n_species)
-                .expect("compute");
+                .expect("DiversityFusionGpu compute failed — check GPU memory and input shape");
         });
     });
 
@@ -539,7 +541,8 @@ fn bench_diversity_fusion(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 fn bench_dispatcher_f64(h: &mut ValidationHarness) {
     use neural_spring::gpu_dispatch::Dispatcher;
 
-    let rt = tokio::runtime::Runtime::new().expect("tokio");
+    let rt = tokio::runtime::Runtime::new()
+        .expect("tokio runtime creation failed — required for async benchmark");
     let dispatcher = rt.block_on(async { Dispatcher::new().await });
 
     let n = 50_000_usize;
