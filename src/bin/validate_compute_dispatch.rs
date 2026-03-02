@@ -292,5 +292,25 @@ async fn main() {
         npu_cost_p2p.estimated_us() < npu_cost_staged.estimated_us(),
     );
 
+    // ═══════════════════════════════════════════════════════════════════
+    // 9. nS-06: Immunological Anderson dispatch routing
+    // ═══════════════════════════════════════════════════════════════════
+
+    // Cytokine KL divergence via Dispatcher (GPU+CPU fallback)
+    let disp = neural_spring::gpu_dispatch::Dispatcher::cpu_only();
+    let healthy_dist = [0.60, 0.15, 0.10, 0.08, 0.05, 0.02];
+    let inflamed_dist = [0.25, 0.20, 0.18, 0.15, 0.12, 0.10];
+    let kl_cpu = disp.kl_divergence(&healthy_dist, &inflamed_dist);
+    h.check_bool("nS06 dispatch: KL divergence finite", kl_cpu.is_finite());
+    h.check_bool("nS06 dispatch: KL divergence positive", kl_cpu > 0.0);
+
+    // Pielou evenness via CPU dispatcher (entropy + normalization)
+    let cpu_entropy_h = disp.shannon_entropy(&healthy_dist);
+    let cpu_entropy_i = disp.shannon_entropy(&inflamed_dist);
+    h.check_bool(
+        "nS06 dispatch: inflamed entropy > healthy entropy",
+        cpu_entropy_i > cpu_entropy_h,
+    );
+
     h.finish();
 }

@@ -12,7 +12,7 @@ impl Dispatcher {
     #[must_use]
     pub fn l2_distance(&self, a: &[f64], b: &[f64]) -> f64 {
         barracuda::dispatch::l2_distance_dispatch(a, b, self.wgpu_device()).unwrap_or_else(|e| {
-            eprintln!("[dispatch] l2_distance upstream failed: {e}");
+            log::warn!("l2_distance upstream failed: {e}");
             crate::modes::l2_distance(a, b)
         })
     }
@@ -31,7 +31,7 @@ impl Dispatcher {
     #[must_use]
     pub fn mean(&self, data: &[f64]) -> f64 {
         barracuda::dispatch::mean_dispatch(data, self.wgpu_device()).unwrap_or_else(|e| {
-            eprintln!("[dispatch] mean upstream failed: {e}");
+            log::warn!("mean upstream failed: {e}");
             if data.is_empty() {
                 0.0
             } else {
@@ -44,7 +44,7 @@ impl Dispatcher {
     #[must_use]
     pub fn variance(&self, data: &[f64]) -> f64 {
         barracuda::dispatch::variance_dispatch(data, self.wgpu_device()).unwrap_or_else(|e| {
-            eprintln!("[dispatch] variance upstream failed: {e}");
+            log::warn!("variance upstream failed: {e}");
             cpu_fallback::variance(data)
         })
     }
@@ -66,6 +66,19 @@ impl Dispatcher {
             "chi_squared",
             |dev| crate::gpu_ops::chi_squared_gpu(observed, expected, dev),
             || cpu_fallback::chi_squared(observed, expected),
+        )
+    }
+
+    /// KL divergence: GPU fused f64 if available, CPU fallback.
+    ///
+    /// Cross-spring evolution: neuralSpring `kl_divergence_f64.wgsl`
+    /// → `ToadStool` S76 absorption → `FusedKlDivergenceGpu`.
+    #[must_use]
+    pub fn kl_divergence(&self, p: &[f64], q: &[f64]) -> f64 {
+        self.gpu_or_cpu(
+            "kl_divergence",
+            |dev| crate::gpu_ops::kl_divergence_gpu(p, q, dev),
+            || cpu_fallback::kl_divergence(p, q),
         )
     }
 }

@@ -886,3 +886,65 @@ fn cpu_swarm_nn_forward_basic() {
         "one action per controller per eval"
     );
 }
+
+// ── Activation dispatch (cpu fallback paths) ────────────────
+
+#[test]
+fn cpu_softmax_row_wise_basic() {
+    let d = cpu();
+    #[rustfmt::skip]
+    let matrix = vec![
+        1.0, 2.0, 3.0,
+        3.0, 2.0, 1.0,
+    ];
+    let result = d.softmax_row_wise(&matrix, 2, 3);
+    assert_eq!(result.len(), 6);
+    let row0_sum: f64 = result[0..3].iter().sum();
+    let row1_sum: f64 = result[3..6].iter().sum();
+    assert!(
+        (row0_sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
+        "row 0 sum = {row0_sum}"
+    );
+    assert!(
+        (row1_sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
+        "row 1 sum = {row1_sum}"
+    );
+}
+
+#[test]
+fn cpu_softmax_row_wise_single_row() {
+    let d = cpu();
+    let row = vec![0.0, 0.0, 0.0];
+    let result = d.softmax_row_wise(&row, 1, 3);
+    assert_eq!(result.len(), 3);
+    for &v in &result {
+        assert!(
+            (v - 1.0 / 3.0).abs() < tolerances::CROSS_LANGUAGE,
+            "uniform softmax expected 1/3, got {v}"
+        );
+    }
+}
+
+#[test]
+fn cpu_hill_activation_batch_single() {
+    let d = cpu();
+    let x = vec![1.0];
+    let result = d.hill_activation_batch(&x, 1.0, 0.5, 2.0);
+    assert_eq!(result.len(), 1);
+    assert!(result[0] > 0.0 && result[0] <= 1.0);
+}
+
+#[test]
+fn cpu_gelu_matches_transformer_gelu() {
+    let d = cpu();
+    let xs = vec![-2.0, -1.0, 0.0, 1.0, 2.0];
+    let dispatched = d.gelu(&xs);
+    for (i, &x) in xs.iter().enumerate() {
+        let expected = crate::transformer::gelu(x);
+        assert!(
+            (dispatched[i] - expected).abs() < tolerances::EXACT_F64,
+            "gelu({x}): dispatch={}, direct={expected}",
+            dispatched[i]
+        );
+    }
+}

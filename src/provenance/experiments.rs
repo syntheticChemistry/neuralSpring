@@ -1,96 +1,9 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+//! Provenance records for Phase 0, 0+, 0++ experiments and related baselines.
 
-//! Provenance metadata for all Python baseline values.
-//!
-//! Every hardcoded expected value in validation binaries traces back to a
-//! specific Python control run. This module centralizes that metadata so
-//! validation binaries carry machine-readable provenance.
-//!
-//! Imitates the hotSpring pattern:
-//! ```text
-//! Python script → commit → environment → command → output → Rust constant
-//! ```
-//!
-//! ## Data Sources
-//!
-//! | Dataset | Source | License |
-//! |---------|--------|---------|
-//! | Benchmark functions | Analytical (Rastrigin, Rosenbrock, Ackley) | N/A |
-//! | FAO-56 ET₀ | Allen et al. (1998) FAO Paper 56 | Public |
-//! | MNIST | LeCun et al. (1998) via `torchvision` | CC BY-SA 3.0 |
-//! | ERA5 weather | Open-Meteo Archive API (ECMWF Copernicus) | CC BY 4.0 |
-//! | Burgers PDE | Raissi et al. (2019) JCP, DOI: [10.1016/j.jcp.2018.10.045](https://doi.org/10.1016/j.jcp.2018.10.045) | N/A |
-//! | Antiderivative | Lu et al. (2021) NMI, DOI: [10.1038/s42256-021-00302-5](https://doi.org/10.1038/s42256-021-00302-5) | N/A |
-
-/// A single provenance record tying a Rust reference value to its Python origin.
-#[derive(Debug, Clone)]
-pub struct BaselineProvenance {
-    pub label: &'static str,
-    pub script: &'static str,
-    pub commit: &'static str,
-    pub date: &'static str,
-    pub command: &'static str,
-    pub environment: &'static str,
-    pub value: f64,
-    pub unit: &'static str,
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// Environment
-// ═══════════════════════════════════════════════════════════════════
-
-/// Python environment for all control runs (frozen at baseline time).
-pub const ENVIRONMENT: &str = "Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3";
-
-/// Hardware for all control runs (frozen at baseline time).
-pub const HARDWARE: &str = "Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)";
-
-/// Pinned commit for baseline results (Phase 0+: 75/75 PASS).
-pub const BASELINE_COMMIT: &str = "f9ad0268917a335dce2b1175ea0d77add271b25b";
-
-/// Pinned date for baseline results.
-pub const BASELINE_DATE: &str = "2026-02-16";
-
-/// Runtime-detected execution environment.
-///
-/// Discovers Rust version, OS, and architecture at runtime rather than
-/// relying on hardcoded strings. Each primal carries self-knowledge.
-#[derive(Debug, Clone)]
-pub struct RuntimeEnvironment {
-    pub rust_version: String,
-    pub os: String,
-    pub arch: String,
-    pub neuralspring_version: String,
-}
-
-impl RuntimeEnvironment {
-    /// Discover the current execution environment.
-    ///
-    /// All fields are derived from compile-time or runtime introspection —
-    /// no hardcoded strings.  Primal self-knowledge only.
-    #[must_use]
-    pub fn discover() -> Self {
-        Self {
-            rust_version: format!("rustc {}", env!("CARGO_PKG_RUST_VERSION", "unknown"),),
-            os: std::env::consts::OS.to_owned(),
-            arch: std::env::consts::ARCH.to_owned(),
-            neuralspring_version: env!("CARGO_PKG_VERSION").to_owned(),
-        }
-    }
-
-    /// Summary string for logging and provenance records.
-    #[must_use]
-    pub fn summary(&self) -> String {
-        format!(
-            "{} v{} | {} {} | {}",
-            env!("CARGO_PKG_NAME"),
-            self.neuralspring_version,
-            self.os,
-            self.arch,
-            self.rust_version
-        )
-    }
-}
+use super::{
+    BaselineProvenance, BASELINE_COMMIT, BASELINE_DATE, ENVIRONMENT, PUBLICATION_BASELINE_DATE,
+    PUBLICATION_ENVIRONMENT,
+};
 
 // ═══════════════════════════════════════════════════════════════════
 // Phase 0: Experiments (48/48 PASS)
@@ -512,12 +425,6 @@ pub const CORAL_FORGE_PROVENANCE: BaselineProvenance = BaselineProvenance {
 // Publication Experiments (Exp-050, Exp-052, Exp-053)
 // ═══════════════════════════════════════════════════════════════════
 
-/// Pinned date for publication experiment baselines (Exp-050/052/053).
-pub const PUBLICATION_BASELINE_DATE: &str = "2026-02-26";
-
-/// Pinned environment for publication experiment baselines.
-pub const PUBLICATION_ENVIRONMENT: &str = "Python 3.12, PyTorch 2.9.0+cu128, NumPy, seed=42";
-
 /// Provenance for Exp-050: Training Trajectory Spectral Analysis.
 pub const TRAINING_TRAJECTORY_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "Exp-050: Training Trajectory Spectral Analysis (Paper A — ICML/NeurIPS)",
@@ -620,198 +527,34 @@ pub const ALPHAFOLD3_CONFIDENCE_PROVENANCE: BaselineProvenance = BaselineProvena
     unit: "baselines generated → confidence_baselines.json",
 };
 
-/// `BarraCUDA` validation expected values are analytically derived — no Python
-/// dependency.  Provenance is mathematical: NIST DLMF, IEEE 754, and textbook
-/// formulas.
-pub const BARRACUDA_ANALYTICAL_REFS: &str = "Analytical (IEEE 754, NIST DLMF, textbook formulas)";
-
-/// Chi-squared distribution reference values.
-///
-/// PDF/CDF validated against `SciPy` 1.15.3 `scipy.stats.chi2`.
-/// Moments and test statistic are analytically derived.
-///
-/// Provenance:
-/// ```text
-/// python3 -c "from scipy.stats import chi2; print(chi2.pdf(2,3), chi2.pdf(0,3), chi2.pdf(5,1))"
-/// python3 -c "from scipy.stats import chi2; print(chi2.cdf(3.84,1), chi2.cdf(5.99,2), chi2.cdf(0,5))"
-/// ```
-/// Environment: `SciPy` 1.15.3, Python 3.10.12, 2026-02-16
-pub const CHI_SQUARED_REFS: &str = "SciPy 1.15.3 chi2 + analytical moments (Pearson 1900)";
-
-/// FFT validation: analytical DFT pairs + Parseval's theorem.
-///
-/// No Python dependency — all expected values derive from the definition of
-/// the Discrete Fourier Transform (Cooley & Tukey, 1965; FFTW docs).
-pub const FFT_ANALYTICAL_REFS: &str =
-    "Analytical (DFT definition, Parseval's theorem, Cooley-Tukey 1965)";
-
 // ═══════════════════════════════════════════════════════════════════
-// Cross-language reference values (Python-computed, hardcoded in Rust)
+// baseCamp Sub-thesis 06: Immunological Anderson (Paper 12)
 // ═══════════════════════════════════════════════════════════════════
 
-/// Softmax of `[1,2,3,4,5]` computed by `NumPy` 2.2.6.
+/// Provenance for nS-06: Anderson Localization in Immunological Signaling.
 ///
-/// Provenance: `python3 -c "import numpy as np; x=np.array([1.,2.,3.,4.,5.]); e=np.exp(x-x.max()); print(e/e.sum())"`
-/// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
-/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
-pub const SOFTMAX_1_TO_5: [f64; 5] = [
-    1.165_623_095_603_961e-2,
-    3.168_492_079_612_427e-2,
-    8.612_854_443_626_87e-2,
-    2.341_216_572_527_366e-1,
-    6.364_086_465_588_308e-1,
-];
+/// Gonzales AJ et al. (2013-2024), Fajgenbaum DC et al. (2019),
+/// `McCandless` EE et al. (2014).
+pub const IMMUNOLOGICAL_ANDERSON_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nS-06: Immunological Anderson (baseCamp Paper 12, 20/20 PASS)",
+    script: "control/immunological_anderson/immunological_anderson.py",
+    commit: BASELINE_COMMIT,
+    date: "2026-03-02",
+    command: "python3 control/immunological_anderson/immunological_anderson.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 20.0,
+    unit: "checks passed",
+};
 
-/// GELU reference values at selected points, computed by `NumPy` 2.2.6.
-///
-/// Format: (input, `expected_output`)
-/// Provenance: `python3 -c "import numpy as np; gelu=lambda x: 0.5*x*(1+np.tanh(np.sqrt(2/np.pi)*(x+0.044715*x**3))); [print(x,gelu(x)) for x in [-2,-1,0,0.5,1,3]]"`
-/// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
-/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
-pub const GELU_REFERENCE: [(f64, f64); 6] = [
-    (-2.0, -4.540_230_591_222_494e-2),
-    (-1.0, -1.588_080_093_917_233e-1),
-    (0.0, 0.0),
-    (0.5, 3.457_140_098_251_439e-1),
-    (1.0, 8.411_919_906_082_768e-1),
-    (3.0, 2.996_362_607_918_227),
-];
-
-/// Rastrigin 2D reference values at non-trivial points, computed by `NumPy` 2.2.6.
-///
-/// Provenance: `python3 control/surrogate/surrogate_validation.py` (`rastrigin_2d`).
-/// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
-/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
-pub const RASTRIGIN_REFERENCE: [(f64, f64, f64); 4] = [
-    (1.0, 1.0, 2.0),
-    (2.5, -1.3, 4.103_016_994_374_947e1),
-    (0.5, 0.5, 4.05e1),
-    (-3.0, 2.0, 13.0),
-];
-
-/// Rosenbrock 2D reference values, computed by `NumPy` 2.2.6.
-///
-/// Provenance: `python3 -c "f=lambda x,y: (1-x)**2 + 100*(y-x**2)**2; [print(x,y,f(x,y)) for x,y in [(1,1),(2.5,-1.3),(0.5,0.5),(-3,2)]]"`
-/// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
-/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
-pub const ROSENBROCK_REFERENCE: [(f64, f64, f64); 4] = [
-    (1.0, 1.0, 0.0),
-    (2.5, -1.3, 5702.5),
-    (0.5, 0.5, 6.5),
-    (-3.0, 2.0, 4916.0),
-];
-
-/// Ackley 2D reference values, computed by `NumPy` 2.2.6.
-///
-/// Provenance: `python3 -c "import numpy as np; a=lambda x,y: -20*np.exp(-0.2*np.sqrt(0.5*(x**2+y**2))) - np.exp(0.5*(np.cos(2*np.pi*x)+np.cos(2*np.pi*y))) + np.e + 20; [print(x,y,a(x,y)) for x,y in [(1,1),(2.5,-1.3),(0.5,0.5),(-3,2)]]"`
-/// Environment: `NumPy` 2.2.6, Python 3.10.12, IEEE 754 f64.
-/// Commit: [`BASELINE_COMMIT`] (`f9ad0268`), Date: [`BASELINE_DATE`] (2026-02-16).
-pub const ACKLEY_REFERENCE: [(f64, f64, f64); 4] = [
-    (1.0, 1.0, 3.625_384_938_440_363),
-    (2.5, -1.3, 8.772_020_879_614_113),
-    (0.5, 0.5, 4.253_654_026_568_412),
-    (-3.0, 2.0, 7.988_910_810_518_7),
-];
-
-/// Analytical reference source for benchmark functions.
-pub const BENCHMARK_REFS: &str = "Analytical global minima + NumPy 2.2.6 cross-validation";
-
-/// Analytical reference source for transformer primitives.
-pub const TRANSFORMER_REFS: &str = "NumPy 2.2.6 transformer_inference.py (softmax, gelu_numpy)";
-
-/// Analytical reference source for statistical metrics.
-pub const METRICS_REFS: &str = "Analytical (pure arithmetic on known arrays)";
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn softmax_reference_sums_near_one() {
-        let sum: f64 = SOFTMAX_1_TO_5.iter().sum();
-        assert!((sum - 1.0).abs() < 1e-14);
-    }
-
-    #[test]
-    #[allow(clippy::expect_used)]
-    fn gelu_zero_is_zero() {
-        let (_, y) = GELU_REFERENCE
-            .iter()
-            .find(|(x, _)| *x == 0.0)
-            .expect("GELU_REFERENCE must contain x=0.0");
-        assert!(y.abs() < 1e-15);
-    }
-
-    #[test]
-    fn provenance_records_non_empty() {
-        let records = [
-            &SURROGATE_PROVENANCE,
-            &TRANSFORMER_PROVENANCE,
-            &SEQUENCE_PROVENANCE,
-            &TRANSFER_PROVENANCE,
-            &ISOMORPHIC_PROVENANCE,
-            &PINN_PROVENANCE,
-            &DEEPONET_PROVENANCE,
-            &LENET_PROVENANCE,
-            &LSTM_ERA5_PROVENANCE,
-            &QUANTIZED_PROVENANCE,
-            &COUNTERDIABATIC_PROVENANCE,
-            &MODES_PROVENANCE,
-            &ECO_DYNAMICS_PROVENANCE,
-            &DIRECTED_EVOLUTION_PROVENANCE,
-            &HMM_PROVENANCE,
-            &GAME_THEORY_PROVENANCE,
-            &SWARM_ROBOTICS_PROVENANCE,
-            &SATE_ALIGNMENT_PROVENANCE,
-            &INTROGRESSION_PROVENANCE,
-            &REGULATORY_NETWORK_PROVENANCE,
-            &SIGNAL_INTEGRATION_PROVENANCE,
-            &SPECTRAL_COMMUTATIVITY_PROVENANCE,
-            &ANDERSON_LOCALIZATION_PROVENANCE,
-            &ML_INFERENCE_PROVENANCE,
-            &WDM_TRANSPORT_PROVENANCE,
-            &WDM_EOS_PROVENANCE,
-            &WDM_SQW_PROVENANCE,
-            &WDM_TRANSFER_PROVENANCE,
-            &WDM_ESN_PROVENANCE,
-            &PANGENOME_SELECTION_PROVENANCE,
-            &META_POPULATION_PROVENANCE,
-            &CORAL_FORGE_PROVENANCE,
-            &ALPHAFOLD2_EVOFORMER_PROVENANCE,
-            &ALPHAFOLD3_DIFFUSION_PROVENANCE,
-            &ALPHAFOLD3_PAIRFORMER_PROVENANCE,
-            &ALPHAFOLD3_CONFIDENCE_PROVENANCE,
-            &TRAINING_TRAJECTORY_PROVENANCE,
-            &HESSIAN_EIGENANALYSIS_PROVENANCE,
-            &ANDERSON_MULTIAGENT_PROVENANCE,
-            &CPU_PARITY_PROVENANCE,
-        ];
-        for p in records {
-            assert!(!p.label.is_empty(), "empty label: {}", p.script);
-            assert!(!p.script.is_empty());
-            assert!(!p.date.is_empty());
-            assert!(!p.command.is_empty());
-            assert_eq!(p.commit, BASELINE_COMMIT);
-        }
-    }
-
-    #[test]
-    #[allow(clippy::float_cmp)]
-    fn benchmark_references_have_global_minima() {
-        assert!(RASTRIGIN_REFERENCE
-            .iter()
-            .any(|(x, y, _)| *x == 1.0 && *y == 1.0));
-        assert!(ROSENBROCK_REFERENCE.iter().any(|(_, _, f)| *f == 0.0));
-    }
-
-    #[test]
-    fn runtime_environment_discovery() {
-        let env = RuntimeEnvironment::discover();
-        assert!(!env.os.is_empty());
-        assert!(!env.arch.is_empty());
-        assert!(!env.neuralspring_version.is_empty());
-        let summary = env.summary();
-        assert!(summary.contains(env!("CARGO_PKG_NAME")));
-        assert!(summary.contains(&env.os));
-    }
-}
+/// Provenance for nS-06 extended: Gonzales dose-response, pruritus time-series,
+/// lokivetmab PK, 3D tissue lattice, Fajgenbaum MATRIX scoring.
+pub const IMMUNOLOGICAL_ANDERSON_EXTENDED_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "nS-06 extended: Gonzales/PK/Lattice/MATRIX (28/28 PASS)",
+    script: "control/immunological_anderson/immunological_anderson_extended.py",
+    commit: BASELINE_COMMIT,
+    date: "2026-03-02",
+    command: "python3 control/immunological_anderson/immunological_anderson_extended.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 28.0,
+    unit: "checks passed",
+};

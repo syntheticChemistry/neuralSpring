@@ -22,8 +22,9 @@
 //! ## biomeOS integration
 //!
 //! On startup, probes for a biomeOS orchestrator socket and registers
-//! capabilities via `lifecycle.register` + `capability.register`.
-//! Sends heartbeats every 30s. Deregisters on SIGTERM.
+//! capabilities via `nucleus.register` + `capability.register`.
+//! Sends heartbeats every 30s via `nucleus.heartbeat`.
+//! Deregisters on SIGINT/SIGTERM via `nucleus.deregister`.
 //!
 //! Socket: `$XDG_RUNTIME_DIR/biomeos/neuralspring-{family_id}.sock`
 
@@ -47,12 +48,43 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::{Context, Result};
+use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::Semaphore;
 
 use neural_spring::gpu_dispatch::Dispatcher;
+
+// ═══════════════════════════════════════════════════════════════════
+// UniBin CLI (wateringHole UNIBIN_ARCHITECTURE_STANDARD)
+// ═══════════════════════════════════════════════════════════════════
+
+#[derive(Parser)]
+#[command(
+    name = "neuralspring",
+    version,
+    about = "neuralSpring — spectral analysis & structure prediction primal for biomeOS",
+    long_about = None,
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Start the JSON-RPC server (Tower mode, default)
+    Serve {
+        /// Override family ID (default: $FAMILY_ID or "default")
+        #[arg(long)]
+        family_id: Option<String>,
+    },
+    /// Print health / version info and exit
+    Health,
+    /// List all advertised capabilities
+    Capabilities,
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // JSON-RPC 2.0 types
@@ -115,12 +147,43 @@ pub struct PrimalState {
 }
 
 const PRIMAL_NAME: &str = env!("CARGO_PKG_NAME");
-const ORCHESTRATOR_SOCKET: &str = "biomeOS.sock";
+fn orchestrator_socket() -> String {
+    std::env::var("BIOMEOS_ORCHESTRATOR_SOCKET").unwrap_or_else(|_| "biomeOS.sock".to_owned())
+}
+
+/// JSON-RPC 2.0 standard error codes (§5.1).
+///
+/// Complete set per spec; not all codes are used yet but kept for
+/// protocol completeness as capabilities expand.
+mod rpc_error {
+    pub const PARSE_ERROR: i32 = -32_700;
+    #[allow(dead_code)]
+    pub const INVALID_REQUEST: i32 = -32_600;
+    pub const METHOD_NOT_FOUND: i32 = -32_601;
+    pub const INVALID_PARAMS: i32 = -32_602;
+    #[allow(dead_code)]
+    pub const INTERNAL_ERROR: i32 = -32_603;
+    /// Implementation-defined server error.
+    pub const SERVER_ERROR: i32 = -32_000;
+}
 
 /// Timeout for cross-primal IPC responses (seconds).
-const IPC_RESPONSE_TIMEOUT_SECS: u64 = 5;
+/// Override via `NEURALSPRING_IPC_TIMEOUT_SECS`.
+fn ipc_response_timeout_secs() -> u64 {
+    std::env::var("NEURALSPRING_IPC_TIMEOUT_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(5)
+}
+
 /// Heartbeat interval for biomeOS lifecycle (seconds).
-const HEARTBEAT_INTERVAL_SECS: u64 = 30;
+/// Override via `NEURALSPRING_HEARTBEAT_SECS`.
+fn heartbeat_interval_secs() -> u64 {
+    std::env::var("NEURALSPRING_HEARTBEAT_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(30)
+}
 
 pub const ALL_CAPABILITIES: &[&str] = &[
     "science.spectral_analysis",
@@ -146,6 +209,7 @@ fn dispatch_sync(request: &JsonRpcRequest, state: &PrimalState) -> Option<JsonRp
 
     Some(match request.method.as_str() {
         "health" => spectral::handle_health(id, state),
+        "capability.list" => handle_capability_list(id),
         "science.ipr" => spectral::handle_ipr(id, params),
         "science.disorder_sweep" => spectral::handle_disorder_sweep(id, params),
         "science.spectral_analysis" => spectral::handle_spectral_analysis(id, params),
@@ -159,7 +223,11 @@ fn dispatch_sync(request: &JsonRpcRequest, state: &PrimalState) -> Option<JsonRp
         "science.gpu_dispatch" => folding::handle_gpu_dispatch(id, params, state),
         "primal.forward" | "data.ncbi_search" | "data.ncbi_fetch" | "data.pdb_search"
         | "data.pdb_fetch" => return None,
-        _ => JsonRpcResponse::error(id, -32601, format!("Method not found: {}", request.method)),
+        _ => JsonRpcResponse::error(
+            id,
+            rpc_error::METHOD_NOT_FOUND,
+            format!("Method not found: {}", request.method),
+        ),
     })
 }
 
@@ -172,10 +240,18 @@ async fn dispatch_async(request: &JsonRpcRequest) -> JsonRpcResponse {
         method if method.starts_with("data.") => {
             match discover_data_primal_and_forward(method, params).await {
                 Ok(resp) => JsonRpcResponse::success(id, resp),
-                Err(e) => JsonRpcResponse::error(id, -32000, format!("data.* forward failed: {e}")),
+                Err(e) => JsonRpcResponse::error(
+                    id,
+                    rpc_error::SERVER_ERROR,
+                    format!("data.* forward failed: {e}"),
+                ),
             }
         }
-        _ => JsonRpcResponse::error(id, -32601, format!("Method not found: {}", request.method)),
+        _ => JsonRpcResponse::error(
+            id,
+            rpc_error::METHOD_NOT_FOUND,
+            format!("Method not found: {}", request.method),
+        ),
     }
 }
 
@@ -217,13 +293,9 @@ async fn forward_to_primal(
 
 /// Discover which primal can handle `data.*` methods at runtime.
 ///
-/// Probes the socket directory for primals advertising data capabilities.
-/// Falls back to well-known data primals in the ecosystem (nestgate,
-/// beardog) if no capability registry is available.
-///
-/// This replaces the hardcoded `"nestgate"` reference, following the
-/// wateringHole principle: primals only know about themselves and
-/// discover others at runtime.
+/// Uses capability-based discovery exclusively — no hardcoded primal names.
+/// Primals only know about themselves; others are discovered at runtime via
+/// the biomeOS orchestrator or by probing live sockets with `capability.list`.
 async fn discover_data_primal_and_forward(
     method: &str,
     params: &serde_json::Value,
@@ -231,7 +303,7 @@ async fn discover_data_primal_and_forward(
     let socket_dir = resolve_socket_dir();
 
     // 1. Try capability-based discovery via biomeOS orchestrator
-    let biomeos_socket = socket_dir.join(ORCHESTRATOR_SOCKET);
+    let biomeos_socket = socket_dir.join(orchestrator_socket());
     if biomeos_socket.exists() {
         let discovery = forward_to_primal_raw(
             &biomeos_socket,
@@ -250,20 +322,27 @@ async fn discover_data_primal_and_forward(
         }
     }
 
-    // 2. Probe socket directory for primals with data capabilities
-    let data_primals = ["nestgate", "beardog", "songbird"];
+    // 2. Probe all live sockets for data capabilities (sovereign discovery)
     if let Ok(entries) = std::fs::read_dir(&socket_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name();
             let name_str = name.to_string_lossy();
-            if name_str.ends_with(".sock") {
-                for candidate in &data_primals {
-                    if name_str.starts_with(candidate) {
-                        match forward_to_primal(candidate, method, params).await {
-                            Ok(resp) => return Ok(resp),
-                            Err(_) => continue,
-                        }
-                    }
+            if !name_str.ends_with(".sock") || name_str.starts_with(PRIMAL_NAME) {
+                continue;
+            }
+            let socket_path = entry.path();
+            let caps = probe_capabilities(&socket_path).await;
+            if caps
+                .iter()
+                .any(|c| c == method || method.starts_with(c.as_str()))
+            {
+                let primal = name_str
+                    .trim_end_matches(".sock")
+                    .rsplit_once('-')
+                    .map_or_else(|| name_str.trim_end_matches(".sock"), |(base, _)| base);
+                match forward_to_primal(primal, method, params).await {
+                    Ok(resp) => return Ok(resp),
+                    Err(_) => continue,
                 }
             }
         }
@@ -273,6 +352,28 @@ async fn discover_data_primal_and_forward(
         "No primal found with data capability for '{method}' in {}",
         socket_dir.display()
     )
+}
+
+/// Probe a primal socket for its advertised capabilities.
+///
+/// Sends a `capability.list` request and parses the response.
+/// Returns an empty vec on any failure (timeout, parse error, etc.).
+async fn probe_capabilities(socket_path: &std::path::Path) -> Vec<String> {
+    let resp = forward_to_primal_raw(socket_path, "capability.list", &serde_json::json!({})).await;
+
+    match resp {
+        Ok(v) => v
+            .get("result")
+            .and_then(|r| r.get("capabilities"))
+            .and_then(|c| c.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        Err(_) => Vec::new(),
+    }
 }
 
 fn discover_primal_socket(primal_name: &str) -> Result<PathBuf> {
@@ -305,17 +406,35 @@ fn discover_primal_socket(primal_name: &str) -> Result<PathBuf> {
     )
 }
 
+fn handle_capability_list(id: serde_json::Value) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "capabilities": ALL_CAPABILITIES,
+        }),
+    )
+}
+
 async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -> JsonRpcResponse {
     let primal = match params.get("primal").and_then(|v| v.as_str()) {
         Some(p) => p.to_string(),
         None => {
-            return JsonRpcResponse::error(id, -32602, "Missing 'primal' parameter".to_string())
+            return JsonRpcResponse::error(
+                id,
+                rpc_error::INVALID_PARAMS,
+                "Missing 'primal' parameter".to_string(),
+            )
         }
     };
     let method = match params.get("method").and_then(|v| v.as_str()) {
         Some(m) => m.to_string(),
         None => {
-            return JsonRpcResponse::error(id, -32602, "Missing 'method' parameter".to_string())
+            return JsonRpcResponse::error(
+                id,
+                rpc_error::INVALID_PARAMS,
+                "Missing 'method' parameter".to_string(),
+            )
         }
     };
     let inner_params = params
@@ -325,7 +444,9 @@ async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -> Js
 
     match forward_to_primal(&primal, &method, &inner_params).await {
         Ok(resp) => JsonRpcResponse::success(id, resp),
-        Err(e) => JsonRpcResponse::error(id, -32000, format!("Forward failed: {e}")),
+        Err(e) => {
+            JsonRpcResponse::error(id, rpc_error::SERVER_ERROR, format!("Forward failed: {e}"))
+        }
     }
 }
 
@@ -334,7 +455,7 @@ async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -> Js
 // ═══════════════════════════════════════════════════════════════════
 
 async fn register_with_biomeos(our_socket: &std::path::Path) {
-    let biomeos_socket = resolve_socket_dir().join(ORCHESTRATOR_SOCKET);
+    let biomeos_socket = resolve_socket_dir().join(orchestrator_socket());
     if !biomeos_socket.exists() {
         eprintln!(
             "[biomeos] No orchestrator found at {}, running standalone",
@@ -345,7 +466,7 @@ async fn register_with_biomeos(our_socket: &std::path::Path) {
 
     let reg_result = forward_to_primal_raw(
         &biomeos_socket,
-        "lifecycle.register",
+        "nucleus.register",
         &serde_json::json!({
             "name": PRIMAL_NAME,
             "socket_path": our_socket.to_string_lossy(),
@@ -355,8 +476,8 @@ async fn register_with_biomeos(our_socket: &std::path::Path) {
     .await;
 
     match reg_result {
-        Ok(_) => eprintln!("[biomeos] Registered with lifecycle manager"),
-        Err(e) => eprintln!("[biomeos] lifecycle.register failed (non-fatal): {e}"),
+        Ok(_) => eprintln!("[biomeos] Registered with NUCLEUS"),
+        Err(e) => eprintln!("[biomeos] nucleus.register failed (non-fatal): {e}"),
     }
 
     for cap in ALL_CAPABILITIES {
@@ -405,7 +526,7 @@ async fn forward_to_primal_raw(
     let mut buf_reader = BufReader::new(reader);
     let mut line = String::new();
     tokio::time::timeout(
-        std::time::Duration::from_secs(IPC_RESPONSE_TIMEOUT_SECS),
+        std::time::Duration::from_secs(ipc_response_timeout_secs()),
         buf_reader.read_line(&mut line),
     )
     .await
@@ -415,10 +536,27 @@ async fn forward_to_primal_raw(
     Ok(resp)
 }
 
+async fn deregister_from_nucleus(our_socket: &std::path::Path) {
+    let biomeos_socket = resolve_socket_dir().join(orchestrator_socket());
+    if !biomeos_socket.exists() {
+        return;
+    }
+    let _ = forward_to_primal_raw(
+        &biomeos_socket,
+        "nucleus.deregister",
+        &serde_json::json!({
+            "name": PRIMAL_NAME,
+            "socket_path": our_socket.to_string_lossy(),
+        }),
+    )
+    .await;
+    eprintln!("[biomeos] Deregistered from NUCLEUS");
+}
+
 async fn heartbeat_loop(our_socket: PathBuf) {
-    let biomeos_socket = resolve_socket_dir().join(ORCHESTRATOR_SOCKET);
+    let biomeos_socket = resolve_socket_dir().join(orchestrator_socket());
     let mut interval =
-        tokio::time::interval(std::time::Duration::from_secs(HEARTBEAT_INTERVAL_SECS));
+        tokio::time::interval(std::time::Duration::from_secs(heartbeat_interval_secs()));
 
     loop {
         interval.tick().await;
@@ -429,7 +567,7 @@ async fn heartbeat_loop(our_socket: PathBuf) {
 
         let _ = forward_to_primal_raw(
             &biomeos_socket,
-            "lifecycle.status",
+            "nucleus.heartbeat",
             &serde_json::json!({
                 "name": PRIMAL_NAME,
                 "socket_path": our_socket.to_string_lossy(),
@@ -487,6 +625,32 @@ fn get_family_id() -> String {
 async fn main() -> Result<()> {
     env_logger::init();
 
+    let cli = Cli::parse();
+
+    match &cli.command {
+        Some(Commands::Health) => {
+            println!(
+                "{} {} (AGPL-3.0-or-later)",
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION"),
+            );
+            println!("status: ready");
+            return Ok(());
+        }
+        Some(Commands::Capabilities) => {
+            for cap in ALL_CAPABILITIES {
+                println!("{cap}");
+            }
+            return Ok(());
+        }
+        Some(Commands::Serve {
+            family_id: Some(id),
+        }) => {
+            std::env::set_var("FAMILY_ID", id);
+        }
+        Some(Commands::Serve { family_id: None }) | None => {}
+    }
+
     let family_id = get_family_id();
     let socket_path = resolve_socket_path(&family_id);
 
@@ -534,14 +698,32 @@ async fn main() -> Result<()> {
 
     let shutdown_socket = socket_path.clone();
     tokio::spawn(async move {
-        if let Ok(()) = tokio::signal::ctrl_c().await {
-            eprintln!("\n[shutdown] SIGINT received, cleaning up...");
-            let _ = tokio::fs::remove_file(&shutdown_socket).await;
-            std::process::exit(0);
-        }
+        tokio::signal::ctrl_c().await.ok();
+        eprintln!("\n[shutdown] SIGINT received, deregistering...");
+        deregister_from_nucleus(&shutdown_socket).await;
+        let _ = tokio::fs::remove_file(&shutdown_socket).await;
+        std::process::exit(0);
     });
 
-    let concurrency = Arc::new(Semaphore::new(4));
+    #[cfg(unix)]
+    {
+        let sigterm_socket = socket_path.clone();
+        tokio::spawn(async move {
+            let mut sig =
+                tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
+            sig.recv().await;
+            eprintln!("\n[shutdown] SIGTERM received, deregistering...");
+            deregister_from_nucleus(&sigterm_socket).await;
+            let _ = tokio::fs::remove_file(&sigterm_socket).await;
+            std::process::exit(0);
+        });
+    }
+
+    let max_concurrent: usize = std::env::var("NEURALSPRING_MAX_CONCURRENT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(4);
+    let concurrency = Arc::new(Semaphore::new(max_concurrent));
 
     loop {
         let (stream, _addr) = listener.accept().await?;
@@ -570,7 +752,7 @@ async fn main() -> Result<()> {
                     }
                     Err(e) => JsonRpcResponse::error(
                         serde_json::Value::Null,
-                        -32700,
+                        rpc_error::PARSE_ERROR,
                         format!("Parse error: {e}"),
                     ),
                 };

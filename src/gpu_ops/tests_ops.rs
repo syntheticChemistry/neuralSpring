@@ -9,7 +9,7 @@ use std::sync::Arc;
 /// Returns a shared GPU device plus a mutex guard that serializes access.
 /// Reuses the crate-level shared Gpu instance so all GPU tests share
 /// one Vulkan device (preventing driver-level resource races).
-fn test_device() -> Option<(
+pub fn test_device() -> Option<(
     std::sync::MutexGuard<'static, ()>,
     Arc<barracuda::device::WgpuDevice>,
 )> {
@@ -223,23 +223,6 @@ fn gpu_kl_divergence_identical() {
 }
 
 #[test]
-fn gpu_hmm_forward_step_normalized() {
-    let Some((_guard, dev)) = test_device() else {
-        return;
-    };
-    let alpha = vec![0.5, 0.5];
-    let trans = vec![0.7, 0.3, 0.4, 0.6];
-    let emit = vec![0.6, 0.4];
-    let (new_alpha, scale) = hmm_forward_step_gpu(&alpha, &trans, &emit, 2, &dev).unwrap();
-    let sum: f64 = new_alpha.iter().sum();
-    assert!(
-        (sum - 1.0).abs() < tolerances::GPU_HMM_STEP_F32,
-        "HMM fwd step normalized: {sum}"
-    );
-    assert!(scale > 0.0, "scale must be positive");
-}
-
-#[test]
 fn gpu_replicator_step_preserves_sum() {
     let Some((_guard, dev)) = test_device() else {
         return;
@@ -252,18 +235,6 @@ fn gpu_replicator_step_preserves_sum() {
         (sum - 1.0).abs() < tolerances::GPU_HMM_STEP_F32,
         "replicator sum = {sum}"
     );
-}
-
-#[test]
-fn gpu_hill_activation_batch_basic() {
-    let Some((_guard, dev)) = test_device() else {
-        return;
-    };
-    let result = hill_activation_batch_gpu(&[0.5, 1.0, 2.0], 1.0, 0.5, 2.0, &dev).unwrap();
-    assert_eq!(result.len(), 3);
-    for &v in &result {
-        assert!((0.0..=1.0).contains(&v), "Hill output out of [0,1]: {v}");
-    }
 }
 
 #[test]
@@ -334,51 +305,6 @@ fn gpu_selection_coefficient_neutral() {
     assert!(
         s.abs() < tolerances::GPU_SOFTMAX_DISPATCH_F32,
         "neutral should give s ≈ 0, got {s}"
-    );
-}
-
-// ── Bio (HMM, pairwise L2) ─────────────────────────────────
-
-#[test]
-fn gpu_hmm_backward_step_basic() {
-    let Some((_guard, dev)) = test_device() else {
-        return;
-    };
-    let beta_next = vec![1.0, 1.0];
-    let transition = vec![0.7, 0.3, 0.4, 0.6];
-    let emission_col = vec![0.5, 0.5];
-    let result =
-        hmm_backward_step_gpu(&beta_next, &transition, &emission_col, 1.0, 2, &dev).unwrap();
-    assert_eq!(result.len(), 2);
-    for &v in &result {
-        assert!(v.is_finite(), "backward step should produce finite values");
-    }
-}
-
-#[test]
-fn gpu_hmm_viterbi_step_basic() {
-    let Some((_guard, dev)) = test_device() else {
-        return;
-    };
-    let delta_prev = vec![0.0, -1.0];
-    let log_trans = vec![0.7_f64.ln(), 0.3_f64.ln(), 0.4_f64.ln(), 0.6_f64.ln()];
-    let log_emit = vec![0.6_f64.ln(), 0.4_f64.ln()];
-    let (delta, psi) = hmm_viterbi_step_gpu(&delta_prev, &log_trans, &log_emit, 2, &dev).unwrap();
-    assert_eq!(delta.len(), 2);
-    assert_eq!(psi.len(), 2);
-}
-
-#[test]
-fn gpu_pairwise_l2_matrix_basic() {
-    let Some((_guard, dev)) = test_device() else {
-        return;
-    };
-    let vectors = vec![0.0, 0.0, 3.0, 4.0];
-    let dist = pairwise_l2_matrix_gpu(&vectors, 2, 2, &dev).unwrap();
-    assert_eq!(dist.len(), 1, "upper triangle: n*(n-1)/2 = 1 pair");
-    assert!(
-        (dist[0] - 5.0).abs() < tolerances::GPU_CHI_SQUARED_F32,
-        "dist([0,0],[3,4]) ≈ 5"
     );
 }
 
@@ -579,40 +505,6 @@ fn gpu_global_fst_divergent() {
     let fst = global_fst_gpu(&pops, &[2, 2], 2, &dev).unwrap();
     assert!(fst.is_finite());
     assert!(fst > 0.0, "divergent → FST > 0, got {fst}");
-}
-
-// ── Bio: chain functions ────────────────────────────────────
-
-#[test]
-fn gpu_hmm_forward_chain_basic() {
-    let Some((_guard, dev)) = test_device() else {
-        return;
-    };
-    let trans = vec![0.7, 0.3, 0.4, 0.6];
-    let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
-    let initial = vec![0.6, 0.4];
-    let obs = vec![0, 1, 2, 0];
-    let log_lik = hmm_forward_chain_gpu(&initial, &trans, &emission, &obs, 2, 3, &dev).unwrap();
-    assert!(log_lik.is_finite(), "log-likelihood must be finite");
-    assert!(log_lik < 0.0, "log-likelihood should be negative");
-}
-
-#[test]
-fn gpu_hmm_viterbi_chain_basic() {
-    let Some((_guard, dev)) = test_device() else {
-        return;
-    };
-    let trans = vec![0.7, 0.3, 0.4, 0.6];
-    let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
-    let initial = vec![0.6, 0.4];
-    let obs = vec![0, 1, 2, 0];
-    let (path, log_prob) =
-        hmm_viterbi_chain_gpu(&initial, &trans, &emission, &obs, 2, 3, &dev).unwrap();
-    assert_eq!(path.len(), obs.len());
-    assert!(log_prob.is_finite());
-    for &s in &path {
-        assert!(s < 2, "state {s} out of range");
-    }
 }
 
 #[test]

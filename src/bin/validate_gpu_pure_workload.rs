@@ -58,7 +58,7 @@ use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
 const FITNESS_WGSL: &str = barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL;
-const REDUCE_WGSL: &str = include_str!("../../metalForge/shaders/mean_reduce.wgsl");
+const REDUCE_WGSL: &str = neural_spring_forge::shaders::MEAN_REDUCE;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]

@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: March 1, 2026 (Session 98+)
+**Date**: March 2, 2026 (Session 98–104b)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 **Status**: PLAN — data/compute assessment, primal integration roadmap, extension priorities
 
@@ -8,15 +8,31 @@
 
 ## Where We Stand
 
-neuralSpring has validated 3,500+ checks across 25 papers, 5 WDM surrogates,
+neuralSpring has validated 3,600+ checks across 25 papers, 5 WDM surrogates,
 coralForge (nF-01/02/03), 5 baseCamp sub-theses, and 3 publication experiments.
 The full pipeline is proven: Python → Rust CPU → BarraCUDA CPU → GPU Tensor →
-Pure GPU → metalForge cross-substrate. 200/200 validators pass. 83.6× faster
-than Python. Zero debt.
+Pure GPU → metalForge cross-substrate. 788 lib tests, 221 binaries, zero clippy,
+zero debt. 83.6× faster than Python.
+
+**Session 104b state**: Complete cross-spring rewire to modern ToadStool f97fc2ae.
+15 core functions delegate to upstream BarraCUDA (chi², KL divergence, spectral
+bandwidth/condition, 7 Dispatcher domain ops, graph/belief/hessian/boltzmann).
+Cross-spring provenance fully mapped: hotSpring precision → wetSpring bio →
+neuralSpring domain → ToadStool fused ops → consumed by all Springs. All
+validation binaries source shaders from single-source-of-truth forge crate.
+`FusedChiSquaredGpu` and `FusedKlDivergenceGpu` are round-trip examples:
+neuralSpring domain shaders absorbed by ToadStool, evolved to f64 fused ops,
+now consumed back by neuralSpring at higher precision than the originals.
 
 **What's missing**: everything has been validated against published science,
 but almost none of it has been applied to new data or new systems. The
 pipeline is proven portable. The extension phase applies it to discovery.
+
+**What's ready for primal integration**: NestGate has `NCBILiveProvider` wired
+(`data.ncbi_search`, `data.ncbi_fetch`). biomeOS NUCLEUS has Tower/Node/Nest
+atomics. neuralSpring's metalForge substrate model aligns with NUCLEUS patterns
+(47/47 mixed-hardware, 41/41 NUCLEUS validators). The infrastructure primals
+are mature enough to start incorporating into the science pipeline.
 
 ---
 
@@ -80,22 +96,19 @@ These extensions use only synthetic data or data we generate ourselves:
 - **EMP pilot**: 50–100 soil 16S samples from Earth Microbiome Project.
   ~10GB. **Public FTP.**
 
-### Tier 2: Medium External Data (~10–100 GB)
+### Tier 2: Medium External Data (~10–100 GB) — PINNED until NUCLEUS
 
 - **UniRef90 for MSA**: Required for real coralForge structure prediction.
-  ~100GB compressed. **Bulk FTP download to Westgate (76TB cold storage).**
-  NestGate content-addressed storage ideal.
+  ~100GB compressed. **PINNED** — bulk FTP download to Westgate (76TB ZFS).
+  Unpin: NUCLEUS Nest online + Westgate storage.
 - **LTEE raw reads**: SRA BioProject PRJNA294072. ~100GB.
-  **NestGate SRA fetch or direct aspera download.**
+  **PINNED** — NestGate SRA pipeline needed. Unpin: NestGate SRA Toolkit.
 
-### Tier 3: Large External Data (~100 GB–1 TB+)
+### Tier 3: Large External Data (~100 GB–1 TB+) — PINNED until NUCLEUS + LAN
 
-- **Full EMP dataset**: ~2TB 16S amplicon data across thousands of samples.
-  **Westgate cold storage or Strandgate (20TB+).**
-- **SRA metagenomes for QS gene scan**: 170 communities × 5–10GB each.
-  **Strandgate storage. NestGate bulk SRA pipeline.**
-- **Full PDB mirror**: ~100GB (all 220K structures). Useful for comprehensive
-  coralForge validation. **Westgate cold storage.**
+- **Full EMP dataset**: ~2TB. **PINNED** — Westgate cold storage.
+- **SRA metagenomes for QS gene scan**: ~500GB–1TB. **PINNED** — Strandgate.
+- **Full PDB mirror**: ~100GB. **PINNED** — Westgate cold storage.
 
 ---
 
@@ -114,28 +127,30 @@ These extensions use only synthetic data or data we generate ourselves:
 | WDM surrogate ensemble | Light | Light | <1GB | Eastgate |
 | Metagenome assembly (per sample) | **Heavy** (~1 hour on 16 cores) | — | ~32GB RAM | **Strandgate** (256GB ECC) |
 
-### Effective Compute Budget (single Eastgate)
+### Effective Compute Budget (single Eastgate — ACTIVE extensions only)
 
 On Eastgate alone (i9-12900, RTX 4070, 32GB):
 
-| What You Can Do | Time | Feasibility |
-|-----------------|------|-------------|
-| nS-01 Paper A: 10 pretrained models × 50 layers × eigendecomp | ~1 hour total | **Immediate** |
-| coralForge: 20 small proteins, forward pass only | ~30 min total | **Immediate** (needs pipeline assembly) |
-| No-till Anderson on 50 EMP samples | ~5 min total | **Immediate** (needs wetSpring 16S) |
-| LTEE genome variant calling (10 genomes) | ~2 hours | **Immediate** |
-| DF64 Anderson L=14 | ~20 min | **Immediate** |
-| DF64 Anderson L=20 | ~hours, may exceed 12GB VRAM | **Northgate needed** |
-| MSA for 100 proteins | ~16 hours (sequential) | **Strandgate much better** |
+| Active Extension | Time | Data | Feasibility |
+|------------------|------|------|-------------|
+| P1: 10 pretrained models × 50 layers × eigendecomp | ~1 hour | ~5GB | **GO** |
+| P2: coralForge 20 small proteins, forward pass only | ~30 min | ~10MB | **GO** (pipeline assembly needed) |
+| P3: Attention weight spectral on coralForge output | ~10 min | 0 | **GO** |
+| P4: LTEE genome variant calling (10 genomes) | ~2 hours | ~500MB | **GO** |
+| P5: No-till Anderson on 50 EMP samples | ~5 min | ~10GB | **GO** (needs wetSpring 16S) |
+| P7: DF64 Anderson L=14 | ~20 min | 0 | **GO** |
+| Axis 2 compositions (4 novel combinations) | ~30 min total | 0 | **GO** |
+| **Total active compute** | **~4.5 hours** | **~16GB** | **All on Eastgate** |
 
-### With LAN Towers (10GbE)
+### With LAN Towers (unpins P6–P12)
 
-| Pipeline | Gate Roles | Speedup |
-|----------|-----------|---------|
-| coralForge multi-protein | Strandgate: MSA (64 EPYC cores) → Northgate: GPU inference (5090) → Westgate: result storage (76TB) | ~10× vs Eastgate serial |
-| Metagenome QS scan | Strandgate: assembly → Eastgate: Anderson analysis → Westgate: archive | ~8× for CPU-heavy phases |
-| DF64 large lattice | Northgate: 5090 (32GB VRAM) → biomeGate: Titan V (12GB, alternative precision) | Unlocks L=20+ |
-| Batch weight spectral | Northgate: large model weights → multiple GPUs | ~4× for large models |
+| Pinned Extension | Gate Roles | Speedup vs Eastgate |
+|------------------|-----------|---------------------|
+| P6: coralForge multi-protein | Strandgate: MSA (64 EPYC) → Northgate: GPU (5090) → Westgate: ZFS | ~10× |
+| P7b: DF64 Anderson L=20+ | Northgate: 5090 (32GB VRAM) | Unlocks (impossible on Eastgate) |
+| P8: Metagenome QS scan | Strandgate: assembly → Eastgate: Anderson → Westgate: archive | ~8× |
+| P9: Multi-gate streaming | All gates via Plasmodium | Distributed |
+| P10: LTEE structural evo | Strandgate MSA + Northgate GPU + Westgate archive | ~10× |
 
 ---
 
@@ -191,18 +206,28 @@ biomeGate (Node)          — Titan V (alternative GPU), 3090, NPU
 
 ### Phase 2: Science Extensions (after Phase 0/1 infrastructure)
 
-| Priority | Extension | Phase Needed | First Data | Primal Dependencies |
-|----------|-----------|-------------|------------|---------------------|
-| **P1** | nS-01 Paper A (weight spectral on real models) | Phase 0 | torchvision .pth files | None (HTTP download) |
-| **P2** | coralForge real PDB validation (10 proteins) | Phase 0 | PDB REST API / NestGate | NestGate (EFetch) |
-| **P3** | Attention weight spectral analysis | Phase 0 | Synthetic (coralForge output) | None |
-| **P4** | LTEE genome sequences | Phase 0 | NestGate NCBI SRA | NestGate (ESearch/EFetch) |
-| **P5** | No-till EMP pilot (50 samples) | Phase 0 | EMP FTP download | wetSpring 16S pipeline |
-| **P6** | coralForge at scale (100 proteins + MSA) | Phase 1 | UniRef90 (100GB) | NestGate (bulk FTP), Strandgate |
-| **P7** | DF64 Anderson L=16–20 | Phase 1 | Synthetic (large lattices) | Northgate 5090 |
-| **P8** | Metagenome QS scan (170 samples) | Phase 1 | SRA metagenomes (500GB+) | NestGate (SRA bulk), Strandgate |
-| **P9** | Multi-gate streaming pipeline | Phase 1 | Any workload | biomeOS Plasmodium |
-| **P10** | LTEE structural evolution (coralForge + LTEE) | Phase 1 | LTEE sequences + UniRef90 | NestGate + Strandgate + Northgate |
+**ACTIVE — data < 100GB, manageable on Eastgate local until NUCLEUS online:**
+
+| Priority | Extension | Data | Compute | Status |
+|----------|-----------|------|---------|--------|
+| **P1** | nS-01 Paper A (weight spectral on real models) | ~5GB (.pth) | Light (~1hr Eastgate) | **ACTIVE** — local |
+| **P2** | coralForge real PDB validation (10 proteins) | ~10MB (PDB REST) | Medium (~30min) | **ACTIVE** — local |
+| **P3** | Attention weight spectral analysis | 0 (synthetic) | Light | **ACTIVE** — local |
+| **P4** | LTEE genome sequences (10 assembled genomes) | ~500MB (NCBI) | Medium (~2hr) | **ACTIVE** — local |
+| **P5** | No-till EMP pilot (50 samples) | ~10GB (EMP FTP) | Light (~5min) | **ACTIVE** — local |
+| **P7** | DF64 Anderson L=14 (fits 12GB VRAM) | 0 (synthetic) | Medium (~20min) | **ACTIVE** — local |
+
+**PINNED — data ≥ 100GB or requires LAN hardware, deferred until NUCLEUS/LAN:**
+
+| Priority | Extension | Data | Pin Reason | Unpin When |
+|----------|-----------|------|------------|------------|
+| **P6** | coralForge at scale (100+ proteins + MSA) | ~100GB (UniRef90) | UniRef90 bulk download + Strandgate EPYC for MSA | NUCLEUS Nest online + Westgate ZFS |
+| **P7b** | DF64 Anderson L=20+ (exceeds 12GB VRAM) | 0 | Northgate 5090 32GB VRAM needed | LAN + Northgate online |
+| **P8** | Metagenome QS scan (170 samples) | ~500GB–1TB (SRA) | Bulk SRA download + Strandgate assembly | NUCLEUS + NestGate SRA pipeline |
+| **P9** | Multi-gate streaming pipeline | varies | Requires biomeOS Plasmodium | LAN + Plasmodium deployed |
+| **P10** | LTEE structural evolution (coralForge + LTEE) | UniRef90 + LTEE reads (~200GB) | UniRef90 dependency (P6) | P6 unpin + Strandgate |
+| **P11** | Full EMP metagenome reanalysis | ~2TB (EMP 16S) | Bulk download + Strandgate | NUCLEUS + Westgate ZFS |
+| **P12** | Full PDB mirror for coralForge benchmark | ~100GB (220K structures) | Bulk download | NUCLEUS Nest + Westgate ZFS |
 
 ---
 
@@ -258,28 +283,156 @@ NUCLEUS atomics. The bridge is:
 
 ---
 
-## Summary: Resource Requirements
+## Summary: Resource Requirements (100GB pin boundary)
 
-| Extension Category | Data | Compute | Timeline | Phase |
-|-------------------|------|---------|----------|-------|
-| Weight spectral on real models | ~5GB (model weights) | **Light** (hours on Eastgate) | **Now** | 0 |
-| coralForge 10 small proteins | ~10MB (PDB) | **Light-Medium** (30 min Eastgate) | **Now** (pipeline assembly needed) | 0 |
-| Synthetic compositions (Axis 2) | 0 | **Light** | **Now** | 0 |
-| LTEE genomes (10 strains) | ~500MB (NCBI) | **Medium** (2 hours Eastgate) | **Now** (NestGate fetch) | 0 |
-| coralForge at scale (100 proteins) | ~100GB (UniRef90) | **Heavy** (days on Eastgate, hours on LAN) | After LAN | 1 |
-| DF64 Anderson L=20 | 0 | **Heavy** (Northgate 5090 needed) | After LAN | 1 |
-| Metagenome QS scan | ~500GB–1TB (SRA) | **Heavy** (Strandgate EPYC) | After LAN | 1 |
-| Multi-gate streaming | varies | Distributed | After biomeOS Plasmodium | 1 |
+### ACTIVE — proceed on Eastgate local
 
-**Bottom line**: P1–P5 are doable on Eastgate alone with <10GB of external
-data. P6–P10 benefit enormously from LAN towers. Nothing here requires
-cloud — the aggregate 176GB GPU VRAM + 1.2TB RAM + 105TB storage is more
-than sufficient for every planned extension.
+| Extension | Data | Compute | Status |
+|-----------|------|---------|--------|
+| P1: Weight spectral on real models | ~5GB | Light (~1hr) | **GO** |
+| P2: coralForge 10 small proteins | ~10MB | Medium (~30min) | **GO** |
+| P3: Attention weight spectral | 0 | Light | **GO** |
+| P4: LTEE genomes (10 strains) | ~500MB | Medium (~2hr) | **GO** |
+| P5: No-till EMP pilot (50 samples) | ~10GB | Light (~5min) | **GO** |
+| P7: DF64 Anderson L=14 | 0 | Medium (~20min) | **GO** |
+| Axis 2 compositions (all 4) | 0 | Light | **GO** |
+
+**Total active data: ~16GB.** Fits on Eastgate local with room to spare.
+
+### PINNED — data ≥ 100GB or LAN hardware required
+
+| Extension | Data | Pin Reason | Unpin Trigger |
+|-----------|------|------------|---------------|
+| P6: coralForge at scale + MSA | ~100GB | UniRef90 bulk | NUCLEUS Nest + Westgate |
+| P7b: DF64 Anderson L=20+ | 0 (compute) | 32GB VRAM needed | Northgate 5090 on LAN |
+| P8: Metagenome QS scan | ~500GB–1TB | SRA bulk download | NUCLEUS + Strandgate |
+| P9: Multi-gate streaming | varies | Plasmodium needed | LAN + biomeOS |
+| P10: LTEE structural evo | ~200GB | UniRef90 dep (P6) | P6 unpin |
+| P11: Full EMP reanalysis | ~2TB | Bulk download | NUCLEUS + Westgate |
+| P12: Full PDB mirror | ~100GB | Bulk download | NUCLEUS Nest + Westgate |
+
+**Total pinned data: ~3TB.** Lives on Westgate ZFS (76TB) once LAN online.
+
+**Bottom line**: 7 active extensions on <16GB local data. 7 pinned extensions
+on ~3TB deferred until NUCLEUS online + 10GbE cabled. Nothing requires cloud.
+The 100GB boundary cleanly separates what Eastgate handles solo from what
+needs the LAN aggregate (176GB GPU VRAM, 1.2TB RAM, 105TB storage).
 
 ---
 
-*neuralSpring baseCamp extension plan — March 1, 2026. S98+ planning.
+---
+
+## Primal Incorporation Strategy (Session 104b+)
+
+Before building extensions, incorporate infrastructure primals into the
+science pipeline. This is the integration layer between validated math
+and real discovery.
+
+### Step 0: Wire NestGate data acquisition locally (Eastgate, no LAN)
+
+NestGate `NCBILiveProvider` is already wired. Wire it into neuralSpring's
+experiment pipeline:
+
+```
+neuralSpring experiment binary
+    → JSON-RPC: data.ncbi_search("nucleotide", "E. coli K-12", 10)
+    → NestGate NCBILiveProvider
+    → NCBI E-utilities (https://eutils.ncbi.nlm.nih.gov)
+    → sequences → eigh_f64 / coralForge / HMM
+```
+
+**Concrete wiring**: neuralSpring experiment binary opens NestGate Unix
+socket (`$XDG_RUNTIME_DIR/biomeos/nestgate-{family}.sock`), sends
+JSON-RPC 2.0, receives FASTA/GenBank. No HTTP in neuralSpring — data
+acquisition is NestGate's responsibility (capability separation).
+
+### Step 1: Start biomeOS NUCLEUS locally (Eastgate, Tower mode)
+
+```bash
+biomeos nucleus start --mode full --node-id eastgate
+```
+
+This starts:
+- BearDog: crypto (key management, primal identity)
+- Songbird: discovery (primal registry, capability advertisement)
+- ToadStool: compute dispatch (GPU streaming)
+- NestGate: storage + data acquisition (NCBI, PDB)
+- Squirrel: AI routing (experiment orchestration)
+
+neuralSpring registers as a primal via `neuralspring_primal`:
+```bash
+neuralspring_primal --family-id eastgate
+```
+
+11 science capabilities become available to the NUCLEUS:
+`science.ipr`, `science.spectral_analysis`, `science.anderson_localization`,
+`science.hessian_eigen`, `science.agent_coordination`, etc.
+
+### Step 2: First real-data experiment via NUCLEUS
+
+**Target**: nS-01 Paper A (Weight Spectral Analysis on Pretrained Models)
+
+Pipeline:
+1. neuralSpring experiment binary requests model weights
+2. → biomeOS routes to Squirrel → NestGate → HuggingFace `data.hf_fetch`
+3. Weights downloaded → content-addressed storage (BLAKE3)
+4. neuralSpring `eigh_f64` → eigendecomposition per layer
+5. Results → NestGate Nest storage → Westgate ZFS archive (when LAN ready)
+
+**Data**: ~5GB (10 model checkpoints). **Compute**: ~1 hour on Eastgate. **Phase 0.**
+
+### Step 3: Wire PDB data for coralForge (Phase 0)
+
+NestGate NESTGATE_PROVIDER_PLAN.md defines the PDB provider:
+- `data.pdb_search(query)` → RCSB PDB
+- `data.pdb_fetch(pdb_id)` → mmCIF/PDB coordinate files
+- Storage: Westgate ZFS `/data/nestgate/pdb/`
+
+coralForge pipeline: PDB sequence → MSA (via UniRef90) → structure prediction.
+Phase 0 can do forward-pass-only (no MSA) on small proteins.
+
+### Step 4: LAN deployment (after 10GbE cabling)
+
+The gen3/about/HARDWARE.md shows 10G backbone: switch acquired, NICs
+installed, cables pending. Once cabled:
+
+```
+biomeos plasmodium start
+
+# Gates join automatically via Songbird mDNS discovery
+Eastgate:   Tower+Node (dev + NPU + RTX 4070)
+Strandgate: Node+Nest  (64 EPYC cores + 256GB ECC + 2 NPU)
+Northgate:  Node       (RTX 5090 32GB VRAM — flagship GPU)
+Westgate:   Nest       (76TB ZFS cold storage)
+biomeGate:  Node       (Titan V + 3090 + NPU)
+```
+
+Workload auto-routing via biomeOS capability system:
+- `compute.msa` → Strandgate (CPU-heavy, 64 EPYC cores)
+- `compute.gpu.eigendecomp` → Northgate (32GB VRAM)
+- `storage.archive` → Westgate (76TB ZFS)
+- `data.ncbi_fetch` → any Nest with NestGate
+- `compute.gpu.df64` → biomeGate (Titan V native f64)
+
+### Hardware Budget (from gen3/about/HARDWARE.md)
+
+| Resource | Aggregate | Best Gate |
+|----------|-----------|-----------|
+| CPU cores | ~130+ | Strandgate (64 EPYC) |
+| GPU VRAM | ~176GB | Northgate (32GB 5090) |
+| System RAM | ~1.2TB | Strandgate (256GB ECC) |
+| Storage | ~105TB | Westgate (76TB ZFS) |
+| NPU | 4× AKD1000 | Eastgate, Strandgate, biomeGate |
+
+**Bottom line**: The LAN aggregate exceeds many institutional HPC clusters
+for our workload profile. The constraint is not hardware — it's cabling
+and biomeOS Plasmodium deployment.
+
+---
+
+*neuralSpring baseCamp extension plan — March 2, 2026. S104b planning.
 Data: 0–1TB depending on scope. Compute: Eastgate sufficient for P1–P5,
 LAN towers for P6–P10. Primal integration: NestGate for data, biomeOS
 NUCLEUS for orchestration, ToadStool for GPU compute. Zero cloud
-dependency. All infrastructure sovereign.*
+dependency. All infrastructure sovereign. Next step: wire NestGate
+data acquisition into first real-data experiment (nS-01 Paper A).*

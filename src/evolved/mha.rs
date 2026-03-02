@@ -108,7 +108,7 @@ mod tests {
             Ok(out) => assert_eq!(out.shape(), &[seq, d_model]),
             Err(e) => {
                 // GPU may not support f32 attention at this size; shape check is the key test
-                eprintln!("MHA failed (expected on some hardware): {e}");
+                log::warn!("MHA failed (expected on some hardware): {e}");
             }
         }
     }

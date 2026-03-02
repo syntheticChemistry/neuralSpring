@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 1, 2026 (Sessions 61–102)
-**Status**: 25 papers + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3590+ checks**, ~97% GPU promotion, **200/200 validate\_all** (220 binaries), 753 lib tests. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump (`1dd7e338`→`8dc01a37`), GPU stats parity (KimuraGpu+HistogramGpu PASS), 2 upstream shader bugs reported. V69 ToadStool handoff
+**Last Updated**: March 2, 2026 (Sessions 61–105)
+**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **3590+ checks**, ~97% GPU promotion, **200/200 validate\_all** (223 binaries), 799 lib tests. S105: Deep Evolution + baseCamp Paper 12 (Anderson immunological signaling). MultiHeadWdmClassifier, TrainingMonitor, Dispatcher::kl_divergence. Sub-thesis 06 (B-16..B-21): Gonzales catalog + Fajgenbaum bridge + dimensional promotion-collapse duality. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS
 
 ## Purpose
 
@@ -48,18 +48,19 @@ Python baseline (seed=42) → Rust CPU (provenance) → BarraCUDA CPU
 ## baseCamp Research Program: Biophysical AI Interpretability
 
 neuralSpring's novel research program applies validated physics and biology
-primitives to understanding AI systems as physical systems. Five sub-thesis
-proposals, each grounded in 3 published papers and using existing validated
+primitives to understanding AI systems as physical systems. Six sub-thesis
+proposals, each grounded in 3-6 published papers and using existing validated
 primitives.
 
 | File | Sub-Thesis | Domain Cross |
 |------|-----------|--------------|
-| [extensions.md](extensions.md) | **Program overview** — all 5 sub-theses, priority, reading order | All |
+| [extensions.md](extensions.md) | **Program overview** — sub-theses 01-05, priority, reading order | All |
 | [sub01_weight_hamiltonians.md](sub01_weight_hamiltonians.md) | Weight matrices as Anderson Hamiltonians | Random matrix theory x DL |
 | [sub02_information_propagation.md](sub02_information_propagation.md) | Information flow as wave propagation | Statistical physics x RNNs |
 | [sub03_loss_landscapes.md](sub03_loss_landscapes.md) | Loss landscapes as energy landscapes | Chemical physics x Optimization |
 | [sub04_neural_pgm.md](sub04_neural_pgm.md) | Neural networks as probabilistic graphical models | Bayesian inference x Interpretability |
 | [sub05_multiagent_qs.md](sub05_multiagent_qs.md) | Multi-agent AI coordination as quorum sensing | Microbial ecology x Multi-agent AI |
+| [sub06_immunological_anderson.md](sub06_immunological_anderson.md) | Anderson localization in immunological signaling | Immunology x condensed matter x drug repurposing |
 
 ---
 

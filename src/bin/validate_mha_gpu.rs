@@ -36,8 +36,8 @@ use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
-const WGSL_HEAD_SPLIT: &str = include_str!("../../metalForge/shaders/head_split.wgsl");
-const WGSL_HEAD_CONCAT: &str = include_str!("../../metalForge/shaders/head_concat.wgsl");
+const WGSL_HEAD_SPLIT: &str = neural_spring_forge::shaders::HEAD_SPLIT;
+const WGSL_HEAD_CONCAT: &str = neural_spring_forge::shaders::HEAD_CONCAT;
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]

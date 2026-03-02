@@ -280,6 +280,16 @@ const BINARIES: &[&str] = &[
     "validate_alphafold3_diffusion_gpu",
     // S98: nF-03 AlphaFold3 Pairformer GPU Tensor tier (conditioning/TriMul/TriAttn/FFN/block)
     "validate_alphafold3_pairformer_gpu",
+    // S105: MultiHeadEsn + NPU export + typed JSON deserialization
+    "validate_multi_head_esn",
+    // S105: TrainingMonitor brain-inspired FSM + DriftMonitor
+    "validate_training_monitor",
+    // S105: baseCamp Paper 12 — immunological Anderson (Py 20/20, Rs 53/53)
+    "validate_immunological_anderson",
+    // S105: baseCamp GPU promotions (weight_spectral matmul, loss Hessian, PGM HMM, agent L2)
+    "validate_barracuda_basecamp",
+    // S107: baseCamp Paper 12 extended — Gonzales deep modeling, 3D lattice, Fajgenbaum MATRIX
+    "validate_immunological_anderson_extended",
 ];
 
 fn main() {

@@ -55,6 +55,7 @@
 //! | `loss_landscape` | nS-03: Loss Landscapes as Energy Landscapes | nS-301..305 |
 //! | `neural_pgm` | nS-04: Neural Networks as PGMs | nS-401..406 |
 //! | `agent_coordination` | nS-05: Multi-Agent AI as Quorum Sensing | nS-501..505 |
+//! | `immunological_anderson` | nS-06: Anderson Localization in Immunological Signaling | nS-601..605 |
 
 #[cfg(test)]
 mod determinism_tests;
@@ -94,6 +95,7 @@ pub mod gpu_dispatch;
 pub mod gpu_ops;
 pub mod gpu_shader_validation;
 pub mod hmm;
+pub mod immunological_anderson;
 pub mod information_flow;
 pub mod introgression;
 pub mod lenet;
@@ -117,6 +119,7 @@ pub mod spectral_commutativity;
 pub mod surrogate;
 pub mod swarm_robotics;
 pub mod tolerances;
+pub mod training_monitor;
 pub mod transformer;
 pub mod validation;
 pub mod wdm_esn;
@@ -125,3 +128,6 @@ pub mod wdm_surrogate;
 pub mod wdm_transport;
 pub mod weight_loader;
 pub mod weight_spectral;
+
+#[cfg(feature = "primal")]
+pub mod rpc_service;

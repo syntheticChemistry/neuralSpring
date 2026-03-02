@@ -202,6 +202,17 @@ run_experiment "nF-03c: AlphaFold3 Confidence Heads" \
 
 echo ""
 echo "================================================================"
+echo "  baseCamp Paper 12: Immunological Anderson (nS-06)"
+echo "================================================================"
+
+run_experiment "nS-06: Immunological Anderson Localization" \
+    control/immunological_anderson/immunological_anderson.py
+
+run_experiment "nS-06 extended: Gonzales/PK/Lattice/MATRIX" \
+    control/immunological_anderson/immunological_anderson_extended.py
+
+echo ""
+echo "================================================================"
 echo "  GRAND SUMMARY"
 echo "  Passed: $PASS, Failed: $FAIL, Skipped: $SKIP"
 echo "  Total: $((PASS + FAIL + SKIP)) experiments"

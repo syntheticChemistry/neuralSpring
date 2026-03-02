@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 2, 2026 (Sessions 40–103)
-**ToadStool HEAD**: `8dc01a37` (S103: Full validation chain **202/202 PASS** (0 FAIL). 3 barracuda fixes: FFT `fft_1d.rs` buffer selection, `enable f64;` naga strip in `ShaderTemplate::for_driver_auto`, `asin_df64` iterative (already in tree). NUCLEUS Tower socket path fix. 39/39 Python drift check. 90.49% llvm-cov. Wright-Fisher GPU pipeline + coral forge GPU pipeline unblocked. V70 handoff. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. 220 binaries, 753 lib tests, 3900+ checks, 0 clippy pedantic+nursery)
+**Date**: March 2, 2026 (Sessions 40–108)
+**ToadStool HEAD**: `f97fc2ae` (barracuda: FFT buffer fix + `enable f64` naga strip + `asin_df64` iterative. S79: Spring absorption — esn_v2 shape fix, MultiHeadEsn, spectral extensions (bandwidth, condition_number, classify_spectral_phase), 5 ComputeDispatch migrations (71→76), jackknife/boltzmann bitcast fixes. S78: libc→rustix, AFIT migration, wildcard narrowing, archive cleanup. Previous: `8dc01a37` S103.)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -9,15 +9,15 @@
 
 ## Quick Status
 
-40 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 5 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments + nF-03 AlphaFold3 Phase C.
-220 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+41 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 6 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments + nF-03 AlphaFold3 Phase C.
+226 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Python baselines | 282/282 | **COMPLETE** |
-| Rust native validation | 753 lib + 9 integration + 43 forge tests, 40 modules, 220 binaries | **COMPLETE** |
+| Python baselines | 330/330 | **COMPLETE** |
+| Rust native validation | 826 lib + 9 integration + 43 forge tests, 41 modules, 226 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -86,7 +86,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 
 ## Tier A — Shader Absorption Status
 
-### ToadStool Evolution Since Last Sync (Session 47: 9abd6857)
+### ToadStool Evolution Since Last Sync (Session 104: f97fc2ae)
 
 | Session | Key Changes for neuralSpring |
 |---------|----------------------------|
@@ -94,6 +94,12 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | S40 | Richards PDE solver, moving window GPU stats |
 | S41 | `cpu_conv_pool` made `pub` (conv2d, max_pool2d, avg_pool2d); 6 f64 shader compile bugs fixed; APIs exposed for Springs |
 | S42 | 19 new WGSL shaders (chi_squared_f64, rk45_f64, factorial_f64, cubic_spline_f64, etc.); BarraCUDA → BarraCuda doc rename |
+| S68 | Universal precision: ALL 700+ shaders evolved to f64 canonical with LazyLock downcast. Zero f32-only shaders remain. Dual-layer precision (op_preamble + naga IR). `downcast_f64_to_df64()` pipeline |
+| S70+ | `Fp64Strategy::Concurrent`, 7 WGSL shaders (gelu/sigmoid/softmax/layernorm DF64, sdpa_df64, brent_f64, seasonal_pipeline), `SymmetrizeGpu`, `LaplacianGpu` |
+| S71 | ComputeDispatch batches 2–6: 34+ ops migrated to fluent builder. DF64 gamma/erf transcendentals |
+| S78 | libc→rustix, AFIT migration, wildcard narrowing. Pure Rust ecosystem (zero C deps) |
+| S79 | **Spring absorption** (neuralSpring V69): MultiHeadEsn, `SpectralAnalysis::from_eigenvalues(gamma)`, spectral_bandwidth/condition_number/classify_spectral_phase. esn_v2 readout shape fix. jackknife/boltzmann bitcast fixes. 5 ComputeDispatch migrations (71→76) |
+| f97fc2ae | FFT `fft_1d.rs` ping-pong buffer fix. `ShaderTemplate::for_driver_auto` strips `enable f64;` (unblocks ~30 f64 shaders on naga path). `asin_df64` iterative confirmed |
 
 **New wrapper APIs available** (not yet used by neuralSpring):
 
@@ -325,6 +331,10 @@ cross-validation references. Both tiers matching Python proves portability.
 | `ops::maxpool2d::MaxPool2D` | MaxPool2D — LeNet-5 pooling | **New** (Session 39) — not yet wired to executor |
 | `ops::avgpool2d::AvgPool2D` | AvgPool2D — alternative pooling | **New** (Session 39) — not yet wired to executor |
 | `esn_v2::export_weights/import_weights` | GPU-train → NPU-deploy pipeline | **New** (Session 39) |
+| `esn_v2::multi_head::MultiHeadEsn` | Multi-head ESN with per-head readout, uncertainty via head disagreement | **New** (S79) — available for multi-regime WDM evolution |
+| `spectral::SpectralAnalysis::from_eigenvalues(gamma)` | One-call spectral analysis (bandwidth + cond + phase from eigenvalues + aspect ratio) | **New** (S79) — consumed via `spectral_bandwidth`/`spectral_condition_number` delegates |
+| `spectral::classify_spectral_phase` | Spectral phase via MP outlier fraction (Bulk/EdgeOfChaos/Chaotic) | **New** (S79) — different scheme from local `classify_phase` (level spacing ratio) |
+| `device::ComputeDispatch` builder | Fluent builder for GPU compute: `.shader()`, `.f64()`, `.storage_read()`, `.dispatch_1d()`, `.submit()` | **New** (S71+) — 76+ upstream ops migrated |
 
 ---
 
@@ -395,7 +405,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo fmt` | **Clean** — zero formatting violations |
 | `cargo clippy` pedantic + nursery | **0 warnings** — `clippy::doc_markdown` fully resolved (31 files), all remaining `#[allow]` audited and justified |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **685 tests PASS** |
+| `cargo test --lib` | **788 tests PASS** |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
 | Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `gpu.rs` + `registry.rs`) — 139+ `NamedTolerance` entries across 10 categories, zero inline magic numbers in production code |
@@ -744,5 +754,134 @@ isomorphic catalog shader name mappings (20% → 100% BarraCUDA coverage) and
 | **validate_all** | 189 binaries (was 185, +4 GPU validators) |
 
 || Session 95: WDM+AF3 GPU validators | 4 new GPU Tensor validators, 39/39 Python drift PASS, 685 lib, 0 clippy | **ALL GREEN** |
+
+### Session 104 — ToadStool f97fc2ae Sync (March 1, 2026)
+
+Synced with ToadStool HEAD `f97fc2ae` (3 commits since `8dc01a37`). Rewired spectral
+analysis functions to upstream delegates. Verified all local shaders, API surfaces,
+and tests against the evolved barracuda crate.
+
+| Action | Detail |
+|--------|--------|
+| **Pulled ToadStool HEAD** | `f97fc2ae` — S78 (libc→rustix, AFIT migration), S79 (Spring absorption, MultiHeadEsn, spectral extensions), FFT buffer fix + `enable f64` naga strip |
+| **Blocking bug: jackknife bitcast** | **FIXED** upstream (S79) — `jackknife_mean_f64.wgsl` f64 params moved to storage buffers for DF64 safety |
+| **Blocking bug: `enable f64` naga** | **FIXED** upstream (f97fc2ae) — `ShaderTemplate::for_driver_auto` strips `enable f64;` lines, unblocking ~30 f64 shaders on naga fallback path |
+| **Blocking bug: FFT buffer** | **FIXED** upstream (f97fc2ae) — `fft_1d.rs` ping-pong buffer selection corrected for odd-stage FFTs |
+| **`asin_df64` iterative** | **CONFIRMED** upstream — coral forge GPU pipeline SDPA/IPA/backbone/torsion 16/16 PASS |
+| **Rewired `spectral_bandwidth`** | `weight_spectral.rs` → delegates to `barracuda::spectral::spectral_bandwidth` (absorbed from neuralSpring V69 handoff) |
+| **Rewired `spectral_condition_number`** | `weight_spectral.rs` → delegates to `barracuda::spectral::spectral_condition_number` (absorbed from neuralSpring V69 handoff) |
+| **Retained `classify_phase`** | Local `SpectralPhase` (Extended/Critical/Localized) retained — upstream `classify_spectral_phase` uses different scheme (MP outlier fraction → Bulk/EdgeOfChaos/Chaotic) |
+| **New upstream available** | `barracuda::spectral::SpectralAnalysis::from_eigenvalues(gamma)`, `barracuda::spectral::SpectralPhase`, `barracuda::esn_v2::multi_head::MultiHeadEsn` |
+| **ComputeDispatch migrations** | 5 upstream ops (boltzmann, multinomial, diversity_fusion, elementwise_f64, earth_mover) migrated to builder — flows via path dep |
+| **Shader absorption map** | 24/42 local WGSL now have upstream equivalents; 18 remain local (4 truly unique: HEAD_SPLIT, HEAD_CONCAT, XOSHIRO128SS, SWARM_NN_SCORES) |
+| **Total rewired functions** | 15 (11 from S56-S81 + 2 from S104 + 2 from S104b: chi_squared_gpu, kl_divergence_gpu) — all delegating to upstream BarraCUDA |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 788 lib tests ✓ · 0 regressions |
+
+|| Session 104: ToadStool sync | f97fc2ae sync, 2 spectral rewires, 3 blocking bugs fixed, 788 lib, 0 clippy | **ALL GREEN** |
+
+### Session 104b — Complete Rewiring + Cross-Spring Benchmark (March 2, 2026)
+
+Deep rewiring pass: two fused GPU ops, all validation binaries migrated from
+`include_str!` to forge constants, `Fp64Strategy::Concurrent` handling, and a
+new cross-spring validation+benchmark binary documenting provenance of every
+rewired path.
+
+| Action | Detail |
+|--------|--------|
+| **Rewired `chi_squared_gpu`** | `gpu_ops/reduction.rs` → delegates to `barracuda::ops::fused_chi_squared_f64::FusedChiSquaredGpu::execute` (f64 fused single-dispatch shader). Was f32 multi-pass Tensor ops with CPU readback for division. Origin: neuralSpring `chi_squared_f64.wgsl` → ToadStool S76 absorption → fused upstream op |
+| **Rewired `kl_divergence_gpu`** | `gpu_ops/reduction.rs` → delegates to `barracuda::ops::fused_kl_divergence_f64::FusedKlDivergenceGpu::execute` (f64 fused single-dispatch shader). Was CPU-computed with GPU sum only. Normalizes inputs to maintain backward compat |
+| **Forge constant migration** | 12 `include_str!` → forge constants: `validate_mha_gpu.rs` (HEAD_SPLIT, HEAD_CONCAT), `validate_gpu_pure_workload.rs` (MEAN_REDUCE), `bench_upstream_vs_local.rs` (10 shader constants). Single source of truth for all shader references |
+| **`Fp64Strategy::Concurrent`** | Added handling in `validate_cross_spring_evolution.rs` strategy match. Documented in `gpu_dispatch/mod.rs` — ToadStool S70++ enables DF64+native f64 side-by-side for precision cross-checking |
+| **New validator** | `validate_toadstool_s79_rewire` — exercises all rewired paths with cross-spring provenance annotations: spectral (upstream delegates), chi²/KL (fused f64), entropy/variance/pearson (wetSpring→hotSpring→ToadStool), Fp64Strategy, weight spectral composition |
+| **Total rewired functions** | **15** (13 from S56–S104 + 2 from S104b: chi_squared_gpu, kl_divergence_gpu) — all delegating to upstream BarraCUDA |
+| **Cross-spring provenance** | hotSpring→f64 pipeline, VarianceReduceF64. wetSpring→FusedMapReduceF64, CorrelationF64. neuralSpring→chi², KL, spectral→ToadStool→FusedChiSquared, FusedKL (round-trip) |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 788 lib tests ✓ · 9 integration ✓ · doc ✓ · 0 regressions |
+
+|| Session 104b: Complete rewire | 2 fused GPU ops, 12 forge constants, Fp64Strategy::Concurrent, cross-spring benchmark | **ALL GREEN** |
+
+### Session 105 — Deep Evolution: hotSpring Ingestion + Technical Debt (March 2, 2026)
+
+Full-spectrum evolution pass: 5 hotSpring cross-spring ingestion items, systematic
+technical debt resolution, and 5 large-file smart refactorings.
+
+| Action | Detail |
+|--------|--------|
+| **MultiHeadWdmClassifier** | New `wdm_esn.rs` struct wrapping `barracuda::esn_v2::MultiHeadEsn` with 3 WDM-specific heads (Anderson regime label, Steering spectral bandwidth, Meta confidence). Typed JSON deserialization replaces manual `serde_json::Value` parsing. `head_disagreement()` for phase boundary uncertainty |
+| **TrainingMonitor** | New `training_monitor.rs` — hotSpring `BrainInterrupt` pattern adapted for training: GREEN/YELLOW/RED attention FSM with spectral bandwidth, IPR collapse, and loss divergence triggers. `DriftMonitor` integration |
+| **NPU export pipeline** | `MultiHeadWdmClassifier::export_npu_weights()` — int8 quantized via `barracuda::esn_v2::quantize_affine_i8_f64` for AKD1000 deployment |
+| **Nautilus training bridge** | `SpectralNautilusBridge::observe_training_epoch()` — maps training loss + spectral metrics to `BetaObservation` for drift detection |
+| **Dispatcher::kl_divergence** | Missing GPU+CPU fallback path added to `dispatch_stats.rs` via fused f64 WGSL + `counterdiabatic::kl_divergence` CPU fallback |
+| **expect() → Result** | `gpu_shader_validation::dispatch_and_read` evolved to `Result<Vec<f64>, String>`, 15 callers updated |
+| **Cast audit** | All `as f64` casts audited across 9 files — all from `usize` (no `From` impl), codebase already clean |
+| **Primal protocol** | `lifecycle.*` → `nucleus.*` (register/heartbeat/deregister), SIGTERM handler, env-configurable `NEURALSPRING_IPC_TIMEOUT_SECS` and `NEURALSPRING_MAX_CONCURRENT` |
+| **Refactor validation.rs** | 916 → `validation/{mod,stats,gpu,env}.rs` (4 focused submodules, 48 tests) |
+| **Refactor provenance.rs** | 817 → `provenance/{mod,experiments,references}.rs` with `provenance!` macro (5 tests) |
+| **Refactor weight_spectral.rs** | 715 → `weight_spectral/{mod,metrics,phase}.rs` (38 tests) |
+| **Refactor meta_population.rs** | 595 → `meta_population/{mod,fst,geography}.rs` (12 tests) |
+| **Refactor gpu_ops/bio.rs** | 662 → `gpu_ops/bio/{mod,hmm,activation,evolution}.rs` (7 tests) |
+| **New validators** | `validate_multi_head_esn` (MultiHeadEsn + NPU + JSON), `validate_training_monitor` (FSM + interrupts + drift) |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · 799 lib tests ✓ · 223 binaries ✓ · doc ✓ · 0 regressions |
+| **baseCamp Paper 12** | Sub-thesis 06 (B-16..B-21): Anderson localization in immunological signaling. `immunological_anderson.rs`: AD skin state classifier, Pielou evenness → disorder W, IC50 → barrier height, tissue geometry factor, `PharmacoMonitor`, Gonzales IC50 constants, lokivetmab PK data. +11 unit tests (810 total lib) |
+| **nS-06 experiment buildout** | Python control: `control/immunological_anderson/immunological_anderson.py` (20/20 PASS, seed=42, JSON baseline). Rust validator: `validate_immunological_anderson` (53/53 PASS, cross-language parity at 1e-10). Provenance: `IMMUNOLOGICAL_ANDERSON_PROVENANCE`. Wired into `check_drift.sh` (40 baselines). GPU parity: `validate_basecamp_gpu` 18/18 (+4 nS-06: KL cytokine shift, Shannon entropy healthy/inflamed dermis). Dispatch: `validate_compute_dispatch` 19/19 (+3 nS-06: KL + entropy via Dispatcher). Mixed hardware: `validate_mixed_hardware` 21/21 (+7 nS-06: NUCLEUS tower eigensolve, node KL, nest entropy, PCIe NPU export cost) |
+
+|| Session 105: Deep Evolution + baseCamp Paper 12 | 5 hotSpring ingestions, 5 smart refactors, 3 new validators, baseCamp Sub-thesis 06 (full experiment buildout: Py 20/20, Rs 53/53, GPU 4, dispatch 3, mixed 7), 810 lib, 224 bins, 0 clippy | **ALL GREEN** |
+
+### Session 106 — baseCamp GPU Promotions + WDM Mixed-Hardware Gaps (March 2, 2026)
+
+Systematic validation tier closure: baseCamp domain-specific GPU promotions,
+WDM nW-03/nW-04 mixed-hardware coverage, and `validate_all` gap closure.
+
+| Action | Detail |
+|--------|--------|
+| **`validate_barracuda_basecamp`** | New validator (26 checks): weight_spectral H² matmul parity, loss_landscape Hessian GPU eigensolve + spectral entropy + H×x product, neural_pgm HMM forward chain + single BP step matmul, agent_coordination pairwise L2 matrix + Laplacian eigensolve + chi², cross-module GPU determinism |
+| **WS-GPU: weight_spectral promotion** | GPU matmul for Hamiltonian squared (H²), GPU eigensolve of H², non-negativity proof (σ²≥0), IPR parity, spectral variance parity — proves `weight_to_hamiltonian` math is GPU-portable |
+| **LL-GPU: loss_landscape promotion** | Hessian eigensolve GPU parity, analytical eigenvalue verification (diagonal quadratic), spectral entropy, Hessian-vector product via GPU matmul — proves `numerical_hessian` spectral analysis is GPU-portable |
+| **PGM-GPU: neural_pgm promotion** | HMM forward chain log-likelihood GPU parity, single belief propagation step via GPU matmul, KL(CPU_BP ∥ GPU_BP) near-zero — proves `belief_propagation_chain` is GPU-portable |
+| **AC-GPU: agent_coordination promotion** | Pairwise L2 matrix GPU parity (16 agents × 3D), Laplacian eigensolve, smallest eigenvalue ≈ 0, chi² agent distribution — proves `interaction_graph` is GPU-portable |
+| **nW-03 metalForge gap closure** | `validate_metalforge_wdm_coral` now includes SQW LSTM gate computation via `mixed_dispatch` (MixedSubstrate::GpuOnly routing) |
+| **nW-04 metalForge gap closure** | `validate_metalforge_wdm_coral` now includes transfer classical→WDM MLP via `mixed_dispatch` + `validate_wdm_alphafold_dispatch` nW-04 dispatch parity |
+| **`validate_all` gap closure** | Added `validate_immunological_anderson`, `validate_multi_head_esn`, `validate_training_monitor`, `validate_barracuda_basecamp` |
+| **PAPER_REVIEW_QUEUE spec update** | nS-06 row updated from "0/0 proposal" to actual counts (53/53 Rs, 20/20 Py, 18 GPU, 19 dispatch, 21 mH). baseCamp table expanded to 6 sub-theses |
+| **Clippy fixes** | `immunological_anderson.rs`: const assertion blocks. `training_monitor.rs`: u32 range avoids sign-loss cast |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 new warnings) · 810/810 lib ✓ · 225 binaries ✓ · Python 40/40 ✓ · doc ✓ |
+
+|| Session 106: baseCamp GPU Promotions | 4 GPU promotions (WS/LL/PGM/AC), 2 WDM mixed-hardware gaps closed (nW-03/nW-04), 4 validators added to `validate_all`, spec update, 810 lib, 225 bins | **ALL GREEN** |
+
+### Session 107 — Gonzales Deep Modeling + 3D Lattice + Fajgenbaum MATRIX (March 2, 2026)
+
+Extended baseCamp Paper 12 (nS-06) with three deep integration areas:
+
+| Area | Details |
+|------|---------|
+| **nS-601: Gonzales dose-response** | Generalized Hill equation (n-cooperative), IC50 sweep for all 6 cytokines, cytokine barrier heights (W = ln(IC50) × scale), dose-response saturation validation |
+| **nS-602: Pruritus time-series** | Treatment decay model (baseline → nadir → recovery), Gonzales (2016) G3 time-series validation, asymptotic baseline approach proof |
+| **nS-603: Lokivetmab PK** | Exponential PK decay (`C(t) = C_0 × exp(-kt)`), log-linear duration regression (A=10.09, B=33.28), regression fit < 5 day error on G4 data |
+| **nS-604: 3D tissue lattice** | Three-compartment disorder (immune/skin/neural Pielou → W), multi-layer Hamiltonian construction, level spacing ratio, barrier promotion spectral sweep (2D→3D), cross-compartment variance |
+| **nS-605: Fajgenbaum MATRIX** | 6 drug candidates (Rapamycin, Tofacitinib, Tanezumab, Trametinib, Crisaborole, Nemolizumab), pathway×geometry×W scoring, Anderson-filtered ranking, AD flare + chronic profiles, integrated dose-response×MATRIX |
+| **Python control** | 28/28 extended checks (`immunological_anderson_extended.py`), drift-checked |
+| **Rust cross-language parity** | 187/187 checks in `validate_immunological_anderson_extended`, 16 new lib unit tests (27 total) |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 new warnings) · 826/826 lib ✓ · 226 binaries ✓ · Python 48/48 ✓ · doc ✓ |
+
+|| Session 107: Gonzales + 3D + MATRIX | 28 Py + 187 Rs extended checks, 16 new unit tests, Hill/PK/pruritus/3D lattice/Fajgenbaum MATRIX, 826 lib, 226 bins | **ALL GREEN** |
+
+### Session 108 — Deep Debt Execution + Doc Sweep + V71 Handoff (March 2, 2026)
+
+Comprehensive audit and evolution of remaining technical debt, documentation alignment, and ToadStool handoff.
+
+| Area | Details |
+|------|---------|
+| **Primal hardcoding → env-configurable** | `ORCHESTRATOR_SOCKET` → `orchestrator_socket()` (reads `BIOMEOS_ORCHESTRATOR_SOCKET`), `HEARTBEAT_INTERVAL_SECS` → `heartbeat_interval_secs()` (reads `NEURALSPRING_HEARTBEAT_SECS`). Runtime-configurable with sensible defaults. |
+| **rpc_error dead_code** | Narrowed blanket `#[allow(dead_code)]` to only truly unused constants (`INVALID_REQUEST`, `INTERNAL_ERROR`); 5 used constants no longer suppressed. |
+| **Provenance module refactored** | 851-line flat `provenance.rs` → 3-file module: `mod.rs` (201 lines: struct, env, `RuntimeEnvironment`, tests), `experiments.rs` (557 lines: 42 provenance records), `references.rs` (107 lines: analytical + cross-language refs). All under 1000 LOC. |
+| **Doc link fixes** | Fixed 10 `cargo doc` warnings (unresolved `[BASELINE_COMMIT]`/`[BASELINE_DATE]` links in `references.rs`). Fixed `McCandless` clippy doc_markdown in `experiments.rs`. |
+| **Wildcard import fix** | `experiments.rs`: `use super::*` → explicit imports per clippy::wildcard_imports. |
+| **gpu.rs exit documented** | `process::exit(0)` for adapter listing documented as intentional CLI escape hatch. |
+| **Deep audit: false positives resolved** | `as f64` casts: all 100+ are `usize → f64` (no `From` impl) — already correct. `Vec<f64>` params: all require ownership (struct fields or RPC serialization) — already correct. `.unwrap()` in library: all inside `#[cfg(test)]` — acceptable. |
+| **Scripts synced** | `run_all_baselines.sh` updated to include nS-06 immunological_anderson (39 experiments, matches check_drift.sh). |
+| **Doc sweep** | README, control/README, EVOLUTION_READINESS, CHANGELOG, CONTROL_EXPERIMENT_STATUS aligned to 330 Python, 826 lib tests, 226 binaries, 41 modules. |
+| **V71 handoff** | ToadStool absorption handoff crafted. |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings, pedantic+nursery) · doc ✓ (0 warnings) · 826/826 lib ✓ · 226 binaries ✓ |
+
+|| Session 108: Deep Debt + Doc Sweep + V71 | Primal env-configurable, provenance refactored (851→3 files), 10 doc warnings fixed, scripts synced (39 experiments), full doc sweep, V71 handoff | **ALL GREEN** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

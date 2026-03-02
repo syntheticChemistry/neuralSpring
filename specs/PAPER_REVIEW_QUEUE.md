@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: March 1, 2026 (Sessions 45–98)
+**Last Updated**: March 2, 2026 (Sessions 45–105)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -157,6 +157,37 @@ run, or interact with Claude, GPT, or any proprietary model.
 **Primitives**: `swarm_robotics.rs`, `game_theory.rs`, `stencil_cooperation.wgsl`, `WrightFisherGpu`, `anderson_localization.rs`
 **Experiments**: nS-501 through nS-505 (5 experiments) — **23/23 PASS** (Session 54)
 
+### Sub-Thesis 06: Anderson Localization in Immunological Signaling (NEW — Session 105)
+
+Extension of Anderson localization from microbial QS (Papers 01, 05, 06) to
+immunological cytokine signaling. Cytokines (IL-4, IL-13, IL-31) as diffusible
+signals propagating through disordered tissue. Connects to Fajgenbaum drug
+repurposing paradigm (MATRIX, ARPA-H $48.3M) via geometry-aware scoring.
+
+| # | Citation | Year | Key Data | neuralSpring Target |
+|---|----------|------|----------|---------------------|
+| B-16 | Gonzales AJ et al. "IL-31: its role in canine pruritus and naturally occurring canine AD" *Vet Dermatol* 24:48-53 | 2013 | IL-31 elevated in AD dog serum; induces pruritus | Anderson lattice: IL-31 as diffusible signal, W from tissue heterogeneity |
+| B-17 | Gonzales AJ et al. "Oclacitinib (APOQUEL) is a novel JAK inhibitor" *J Vet Pharmacol Ther* 37:317-324 | 2014 | JAK1 IC50 = 10 nM; blocks IL-2/4/6/13/31 | Dose-response modeling: IC50 as Anderson barrier height |
+| B-18 | Gonzales AJ et al. "IL-31-induced pruritus in dogs: a novel experimental model" *Vet Dermatol* 27:34-e10 | 2016 | Standardized pruritus model; oclacitinib vs steroids at 1/6/11/16 hr | LSTM time series: pruritus prediction, controlled Anderson perturbation |
+| B-19 | Fleck TJ,...,Gonzales AJ "Onset and duration of lokivetmab in IL-31 pruritus" *Vet Dermatol* 32:681-e182 | 2021 | Cytopoint: 3 hr onset, dose-dependent duration (14/28/42 days) | ESN classifier: pharmacokinetic decay as signal extinction |
+| B-20 | McCandless EE,...,Fici GJ "Allergen-induced IL-31 by canine Th2 cells" *Vet Immunol Immunopathol* 157:42-48 | 2014 | IL-31 targets: immune + skin + neural cells | Three-compartment Anderson lattice: multi-cell-type disorder |
+| B-21 | Fajgenbaum DC et al. "Pathogenic PI3K/AKT/mTOR in iMCD" *J Clin Invest* | 2019 | Pathway-based drug repurposing; mTOR cross-talks JAK/STAT | Anderson-augmented MATRIX score: pathway × tissue geometry |
+
+**Novel contribution**: No prior work applies Anderson localization to cytokine
+propagation in tissue. No prior work adds spatial geometry to drug repurposing scoring.
+**Dimensional promotion–collapse duality**: AD scratching (2D→3D) is the inverse of
+Paper 06 tillage collapse (3D→2D) — same physics, opposite biological outcome.
+
+**neuralSpring connections**:
+- ESN regime classifier (nW-05, 96.5%): classify AD skin state from cytokine profile
+- LSTM time series (nW-03, R²=0.98): predict pruritus r(t) from treatment + time
+- `MultiHeadWdmClassifier` (Session 105): multi-head ESN for regime + uncertainty
+- `TrainingMonitor` (Session 105): DriftMonitor for pharmacokinetic trajectory tracking
+- `Dispatcher::kl_divergence` (Session 105): distribution shift in cytokine profiles
+
+**Status**: Proposal — literature grounded, Gonzales catalog complete, Anderson mapping
+drafted. Awaiting wetSpring Exp 270-274 for computational validation.
+
 ### baseCamp Summary
 
 | Sub-Thesis | Grounding Papers | Experiments | Key Primitive | Rust Module | Checks | Priority |
@@ -166,13 +197,16 @@ run, or interact with Claude, GPT, or any proprietary model.
 | 03 Loss Landscapes | 3 (B-07 to B-09) | 5 | `rk45_adaptive.wgsl`, `eigh_f64` | `loss_landscape.rs` | **27/27** | 5 |
 | 04 Neural PGM | 3 (B-10 to B-12) | 6 | `hmm.rs`, `introgression.rs` | `neural_pgm.rs` | **21/21** | 2 |
 | 05 Multi-Agent QS | 3 (B-13 to B-15) | 5 | `anderson_localization.rs`, `game_theory.rs` | `agent_coordination.rs` | **23/23** | 4 |
+| 06 Immunological Anderson | 6 (B-16 to B-21) | 0 (proposed) | `wdm_esn.rs`, `anderson_localization.rs` | `wdm_esn.rs`, `training_monitor.rs` | **0/0** | 6 |
 | GPU Parity | — | — | `BarraCUDA` f64 typed ops | `validate_basecamp_gpu` | **14/14** | — |
-| **Total** | **15** | **28** | | **6 validators** | **128/128** | |
+| **Total** | **21** | **28** | | **6 validators** | **128/128** | |
 
-Core Rust primitives: **ALL IMPLEMENTED AND EXPANDED** (Sessions 50, 54).
+Core Rust primitives: **ALL IMPLEMENTED AND EXPANDED** (Sessions 50, 54, 105).
 Experiment coverage expanded from 82→128 checks including pure GPU parity.
 Grounding paper reproductions: **Primitives and experiments validated** — full
 paper reproductions with publication-ready analysis remain for Phase 2.
+Sub-thesis 06 (immunological Anderson) adds 6 new grounding papers (B-16..B-21)
+pending wetSpring computational validation.
 
 All baseCamp papers use open data only (our own trained models + algorithmic
 computation). No proprietary models, no external downloads, no API dependencies.
@@ -181,8 +215,9 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 ## Completion Summary
 
-**All 25 papers complete. baseCamp (B-01..B-15) primitives validated. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete.**
+**All 25 papers complete. baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete.**
 
+Session 105: Deep Evolution + baseCamp Paper 12. MultiHeadWdmClassifier (barracuda MultiHeadEsn), TrainingMonitor (brain-inspired FSM), Dispatcher::kl_divergence, dispatch_and_read→Result. NUCLEUS protocol alignment. 5 large-file refactors (validation, provenance, weight_spectral, meta_population, gpu_ops/bio). baseCamp Sub-thesis 06 (B-16..B-21) added: Anderson localization in immunological signaling — Gonzales catalog, Fajgenbaum bridge, dimensional promotion–collapse duality. 223 binaries, 799 lib tests. Zero debt.
 Session 93: Deep debt evolution + nF-03 Phase C. dispatch_ops.rs (842→7 domain files), gpu_ops/mod.rs (668→38+tests_ops). Iterator evolution (diffusion.rs, pairformer.rs, counterdiabatic.rs, cpu_fallback.rs, meta_population.rs). Self-identification→env!("CARGO_PKG_NAME"). .unwrap()→.expect(). nF-03 Phase C confidence heads (pLDDT, PAE, pDE, ranking: Py 19/19, Rs 16/16, 7 unit tests). 201 binaries, 685 lib tests, 189/189 validators. 39 Python drift baselines.
 Session 92: nF-03 AlphaFold3 Phase A+B buildout — diffusion primitives (Py 29/29, Rs 26/26), Pairformer block (Py 14/14, Rs 13/13). 2 new Python controls, 2 new Rust validators, 11 new unit tests. 196 binaries, 680 lib tests, 184/184 validators in validate_all. 38 Python drift baselines.
 Session 88: Publication experiment buildout — Exp-050 (training trajectory spectral analysis, Py 11/11, Rs 12/12), Exp-052 (Hessian eigenanalysis at trained minima, Py 8/8, Rs 14/14), Exp-053 (Anderson multi-agent coordination, Py 11/11, Rs 18/18). 3 new Python controls, 3 new Rust validators, 175 binaries, 668 lib tests, 163 validators in validate_all.
@@ -289,7 +324,7 @@ from Python baseline through multi-GPU portability to mixed-hardware dispatch.
 Phase 0/0+ studies use PyTorch training workflows. mF/gP columns are N/A.
 Study 005 uses integer arithmetic (Q8/Q4), not Tensor ops — gT is N/A.
 
-### baseCamp (B-01..B-15) — Primitives Validated
+### baseCamp (B-01..B-21) — Primitives Validated
 
 | Sub-Thesis | Papers | Rs | bC GPU | Dispatch | mH | Status |
 |:----------:|--------|:--:|:------:|:--------:|:--:|:------:|
@@ -298,12 +333,13 @@ Study 005 uses integer arithmetic (Q8/Q4), not Tensor ops — gT is N/A.
 | 03 Loss Landscapes | B-07..B-09 | 27/27 ✓ | matmul, entropy ✓ | ✓ | ✓ | **4/4** |
 | 04 Neural PGM | B-10..B-12 | 21/21 ✓ | correlation, KL ✓ | ✓ | ✓ | **4/4** |
 | 05 Multi-Agent QS | B-13..B-15 | 23/23 ✓ | chi², L2 ✓ | ✓ | ✓ | **4/4** |
+| 06 Immunological Anderson | B-16..B-21 | 53/53 ✓ | KL, Shannon ✓ | 3/3 ✓ | 7/7 ✓ | **4/4** |
 
 baseCamp papers use in-code synthetic data (deterministic seed 42). No mF/gP
 columns — baseCamp math uses `BarraCUDA` typed f64 ops, not domain-specific WGSL
-shaders. GPU validation through `validate_basecamp_gpu` (14/14 PASS). CPU↔GPU
-dispatch parity through `validate_compute_dispatch` (16/16 PASS). Mixed-hardware
-routing through `validate_mixed_hardware` (14/14 PASS).
+shaders. GPU validation through `validate_basecamp_gpu` (18/18 PASS). CPU↔GPU
+dispatch parity through `validate_compute_dispatch` (19/19 PASS). Mixed-hardware
+routing through `validate_mixed_hardware` (21/21 PASS).
 
 ### Stack Coverage Summary
 
@@ -313,12 +349,12 @@ routing through `validate_mixed_hardware` (14/14 PASS).
 | Rust CPU (Rs) | 25/25 + baseCamp + WDM + pub exp | 668 lib + 114 baseCamp + 9 integration | **100%** |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** |
-| BarraCUDA GPU (baseCamp) | 5/5 sub-theses | 14 checks | **100%** |
+| BarraCUDA GPU (baseCamp) | 6/6 sub-theses | 18 checks | **100%** |
 | metalForge WGSL (mF) | 15/25 | 108 checks | **100%**† |
 | GPU Pipeline (gP) | 15/25 | 94 checks | **100%**† |
 | Cross-dispatch (xD) | 15/15 | 49 checks | **100%**† |
-| CPU↔GPU dispatch | 25 + baseCamp | 16 checks | **100%** |
-| Mixed hardware (mH) | baseCamp | 14 checks | **100%** |
+| CPU↔GPU dispatch | 25 + baseCamp | 19 checks | **100%** |
+| Mixed hardware (mH) | baseCamp | 21 checks | **100%** |
 
 `†` 100% of applicable papers. Phase 0/0+ studies use PyTorch, not WGSL shaders.
 
@@ -393,7 +429,7 @@ validates correctness at every hardware tier:
   MNIST (CC BY-SA 3.0), published reference data (MIT/Apache-2.0), FPEOS tables
   (Militzer), Stanton-Murillo transport model
 - No proprietary, paywalled, or access-restricted data
-- Python baseline drift detection: `control/check_drift.sh` (all 34 baselines — 25 papers + 5 WDM + 3 pub exp + ML inference)
+- Python baseline drift detection: `control/check_drift.sh` (all 39 baselines — 25 papers + 5 WDM + 3 pub exp + 5 coralForge + 2 nS-06, ML inference doesn't produce baselines)
 - **S88+ publication experiments**: Exp-050 (Py 11/11), Exp-052 (Py 8/8), Exp-053 (Py 11/11) — all synthetic/algorithmic data
 
 ### Tier 2: BarraCUDA CPU (Rust native)
@@ -790,14 +826,14 @@ All experiments reproducible from scratch with deterministic seeds.**
 
 ---
 
-## baseCamp Controls Verification (Session 50)
+## baseCamp Controls Verification (Sessions 50–105)
 
-baseCamp modules (5 sub-theses, 82 checks) follow the same controls
+baseCamp modules (6 sub-theses, 167 checks) follow the same controls
 framework. All data is in-code synthetic with deterministic seeds.
 
 ### baseCamp — BarraCUDA CPU Controls
 
-All 5 baseCamp modules use `eigh_f64` (via `eigh.rs` → `barracuda::ops::linalg`)
+All 6 baseCamp modules use `eigh_f64` (via `eigh.rs` → `barracuda::ops::linalg`)
 for eigendecomposition. This is the same `eigh_f64` validated at 1.75e-14
 accuracy (Householder+QR) in Phase 0++ papers 022–023.
 
@@ -808,39 +844,40 @@ accuracy (Householder+QR) in Phase 0++ papers 022–023.
 | `loss_landscape` | `eigh_f64` | Hessian spectrum matches analytical quadratic |
 | `neural_pgm` | `eigh_f64` | Transition matrix spectral properties |
 | `agent_coordination` | `eigh_f64` | Laplacian smallest eigenvalue ≈ 0 |
+| `immunological_anderson` | `eigh_f64`, KL, Shannon | Pielou evenness, IC50, dimensional promotion |
 
-### baseCamp — BarraCUDA GPU Controls (Planned)
+### baseCamp — BarraCUDA GPU Promotions (Session 106 — COMPLETE)
 
-baseCamp modules are CPU-only in Session 50. GPU promotion targets:
+All 4 high/medium priority GPU promotions validated via `validate_barracuda_basecamp`:
 
-| Module | GPU Candidate | BarraCUDA Pattern | Priority |
-|--------|-------------|------------------|----------|
-| `weight_spectral` | `weight_to_hamiltonian` | `Tensor::matmul` | High (bottleneck for large matrices) |
-| `loss_landscape` | `numerical_hessian` | `BatchFitnessGpu` (parallel eval) | High (O(n²) evaluations) |
-| `neural_pgm` | `belief_propagation_chain` | `HmmBatchForwardF64` (GEMV chain) | Medium |
-| `agent_coordination` | `interaction_graph` | `PairwiseL2Gpu` | Medium |
-| `loss_landscape` | `boltzmann_sampling` | `WrightFisherGpu` (parallel MCMC) | Low |
+| Module | GPU Candidate | BarraCUDA Pattern | Status |
+|--------|-------------|------------------|--------|
+| `weight_spectral` | `weight_to_hamiltonian` | `mat_mul_gpu` (H² + eigensolve) | **DONE** — 6 checks |
+| `loss_landscape` | `numerical_hessian` | `eigh_gpu` + `entropy_gpu` + `mat_mul_gpu` | **DONE** — 6 checks |
+| `neural_pgm` | `belief_propagation_chain` | `hmm_forward_chain_gpu` + `mat_mul_gpu` | **DONE** — 5 checks |
+| `agent_coordination` | `interaction_graph` | `pairwise_l2_matrix_gpu` + `eigh_gpu` | **DONE** — 7 checks |
+| `loss_landscape` | `boltzmann_sampling` | `WrightFisherGpu` (parallel MCMC) | Low (future) |
 
-When GPU promotion is implemented, controls will follow the same pattern
-as Phase 0++ papers: CPU reference → GPU result → diff within tolerance.
+CPU reference → GPU result → diff within tolerance. 26 total checks PASS.
 
 ### baseCamp — Full Three-Tier Hardware Validation (COMPLETE)
 
 All baseCamp experiments validated across three hardware tiers:
 
-1. **BarraCUDA CPU**: Pure Rust — 114/114 PASS (Sessions 50, 54)
-2. **BarraCUDA GPU**: Tensor API on RTX 4070 — 14/14 PASS (`validate_basecamp_gpu`)
-3. **Dispatcher routing**: GPU/CPU parity — 19/19 PASS (`validate_basecamp_dispatch`)
+1. **BarraCUDA CPU**: Pure Rust — 167/167 PASS (Sessions 50, 54, 105)
+2. **BarraCUDA GPU**: Tensor API on RTX 4070 — 18/18 PASS (`validate_basecamp_gpu`)
+3. **Dispatcher routing**: GPU/CPU parity — 19/19 PASS (`validate_compute_dispatch`)
 4. **CPU↔GPU parity**: Cross-domain — 34/34 PASS (`validate_barracuda_parity`)
 5. **metalForge mixed**: PCIe tiers + substrate selection — 36/36 PASS (`validate_metalforge_pcie`)
+6. **nS-06 mixed hardware**: NUCLEUS tower/node/nest + PCIe — 7/7 PASS (`validate_mixed_hardware`)
 
-**Total baseCamp checks**: 147 (114 CPU + 14 GPU + 19 dispatch) — all PASS.
+**Total baseCamp checks**: 200+ (167 CPU + 18 GPU + 19 dispatch + 7 mH) — all PASS.
 
 ### baseCamp — Open Data Confirmation
 
 | Source Type | Modules | License |
 |-------------|---------|---------|
-| In-code synthetic (seed=42) | All 5 baseCamp modules | N/A (pure math) |
+| In-code synthetic (seed=42) | All 6 baseCamp modules | N/A (pure math) |
 
 **All baseCamp experiments generate synthetic data programmatically.
 No model downloads. No external weights. No proprietary systems.
@@ -855,6 +892,7 @@ Deterministic seed (42) ensures exact reproducibility.**
 | nS-03 | Wales (2003), Li et al. (2018), Ghorbani et al. (2019) | All open | 27/27 checks (`numerical_hessian` → upstream) |
 | nS-04 | Koller & Friedman (2009), Hinton (2012), Murphy (2012) | All open | 21/21 checks (`belief_propagation_chain` → upstream) |
 | nS-05 | Waters & Bassler (2005), Dolson et al. (2019), Anderson QS | All open | 23/23 checks (`graph_laplacian` → upstream) |
+| nS-06 | Gonzales (2013-2024), Fajgenbaum (2019), MATRIX/ARPA-H | All open | 53/53 Rust + 187/187 Rust ext + 20/20 Py + 28/28 Py ext + 4 GPU + 3 dispatch + 7 mH |
 
 ---
 

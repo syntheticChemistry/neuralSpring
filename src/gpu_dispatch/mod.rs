@@ -92,8 +92,8 @@ impl Dispatcher {
             Ok(gpu) => {
                 let profile = GpuDriverProfile::from_device(gpu.wgpu_device());
                 let tier = BandwidthTier::detect_from_adapter_name(&gpu.adapter_name);
-                eprintln!(
-                    "[dispatch] GPU available: {} ({:?}, {:?}, f64={:?}, pcie={tier:?})",
+                log::info!(
+                    "GPU available: {} ({:?}, {:?}, f64={:?}, pcie={tier:?})",
                     gpu.adapter_name,
                     gpu.device_type,
                     gpu.backend,
@@ -106,7 +106,7 @@ impl Dispatcher {
                 }
             }
             Err(e) => {
-                eprintln!("[dispatch] No GPU, CPU-only mode: {e}");
+                log::info!("CPU-only mode: {e}");
                 Self {
                     gpu: None,
                     prefer_gpu: false,
@@ -185,9 +185,11 @@ impl Dispatcher {
         self.driver_profile.as_ref()
     }
 
-    /// Hardware-adaptive f64 strategy: `Native` on compute-class GPUs
-    /// (Titan V, V100, A100 — 1:2 FP64:FP32), `Hybrid` on consumer
-    /// GPUs (RTX 4070 — 1:64 ratio, routes bulk math through df64 f32-pairs).
+    /// Hardware-adaptive f64 strategy:
+    /// - `Native`: compute-class GPUs (Titan V, V100, A100 — 1:2 FP64:FP32)
+    /// - `Hybrid`: consumer GPUs (RTX 4070 — 1:64, bulk math via df64 pairs)
+    /// - `Concurrent`: DF64 and native f64 side-by-side for validation
+    ///   (`ToadStool` S70++, enables cross-checking precision on mixed hardware)
     #[must_use]
     pub fn fp64_strategy(&self) -> Fp64Strategy {
         self.driver_profile
@@ -248,7 +250,7 @@ impl Dispatcher {
         if let Some(dev) = self.wgpu_device() {
             match gpu_fn(dev) {
                 Ok(result) => return result,
-                Err(e) => eprintln!("[dispatch] {op} GPU failed, falling back: {e}"),
+                Err(e) => log::warn!("{op} GPU failed, falling back: {e}"),
             }
         }
         cpu_fn()
@@ -285,25 +287,22 @@ impl Dispatcher {
                     match gpu_fn(dev) {
                         Ok(result) => return (result, substrate),
                         Err(e) => {
-                            eprintln!(
-                                "[mixed-dispatch] {} GPU failed, falling back: {e}",
-                                workload.op
-                            );
+                            log::warn!("{} GPU failed, falling back: {e}", workload.op);
                         }
                     }
                 }
                 (cpu_fn(), MixedSubstrate::CpuOnly)
             }
             MixedSubstrate::GpuToNpu | MixedSubstrate::NpuToGpu | MixedSubstrate::NpuOnly => {
-                eprintln!(
-                    "[mixed-dispatch] {} NPU substrate selected but not available, using GPU",
+                log::warn!(
+                    "{} NPU substrate selected but not available, using GPU",
                     workload.op
                 );
                 if let Some(dev) = self.wgpu_device() {
                     match gpu_fn(dev) {
                         Ok(result) => return (result, substrate),
                         Err(e) => {
-                            eprintln!("[mixed-dispatch] {} GPU fallback failed: {e}", workload.op);
+                            log::warn!("{} GPU fallback failed: {e}", workload.op);
                         }
                     }
                 }

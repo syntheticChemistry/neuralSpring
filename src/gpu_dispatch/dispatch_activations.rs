@@ -11,7 +11,7 @@ impl Dispatcher {
     #[must_use]
     pub fn softmax(&self, x: &[f64]) -> Vec<f64> {
         barracuda::dispatch::softmax_dispatch(x, self.wgpu_device()).unwrap_or_else(|e| {
-            eprintln!("[dispatch] softmax upstream failed: {e}");
+            log::warn!("softmax upstream failed: {e}");
             crate::transformer::softmax(x)
         })
     }
@@ -48,7 +48,7 @@ impl Dispatcher {
     #[must_use]
     pub fn gelu(&self, x: &[f64]) -> Vec<f64> {
         barracuda::dispatch::gelu_dispatch(x, self.wgpu_device()).unwrap_or_else(|e| {
-            eprintln!("[dispatch] gelu upstream failed: {e}");
+            log::warn!("gelu upstream failed: {e}");
             x.iter().map(|&v| crate::transformer::gelu(v)).collect()
         })
     }

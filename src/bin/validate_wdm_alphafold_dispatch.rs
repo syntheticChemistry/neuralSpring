@@ -16,6 +16,7 @@
 //! - **WDM Transport MLP**: matmul chain → `ReLU` → readout (nW-01)
 //! - **WDM EOS MLP**: matmul chain → `ReLU` → readout (nW-02)
 //! - **WDM S(q,ω) LSTM**: gate matmul → sigmoid/tanh → cell update (nW-03)
+//! - **WDM Transfer**: classical→WDM domain MLP via `matmul` dispatch (nW-04)
 //! - **WDM ESN**: recurrence matmul → tanh → readout (nW-05)
 //! - **`AlphaFold3` pLDDT**: per-residue sigmoid confidence (nF-03)
 //! - **`AlphaFold3` PAE**: distance matmul + row-softmax (nF-03)
@@ -52,6 +53,7 @@ async fn main() {
     validate_wdm_transport_mlp(&mut h, &gpu_disp, &cpu_disp);
     validate_wdm_eos_mlp(&mut h, &gpu_disp, &cpu_disp);
     validate_wdm_sqw_lstm(&mut h, &gpu_disp, &cpu_disp);
+    validate_wdm_transfer_mlp(&mut h, &gpu_disp, &cpu_disp);
     validate_wdm_esn_recurrence(&mut h, &gpu_disp, &cpu_disp);
     validate_alphafold3_pldt(&mut h, &gpu_disp, &cpu_disp);
     validate_alphafold3_pae(&mut h, &gpu_disp, &cpu_disp);
@@ -164,6 +166,41 @@ fn validate_wdm_sqw_lstm(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Disp
     h.check_bool(
         &format!("wdm_sqw LSTM h_new parity (max_diff={max_h_diff:.2e})"),
         max_h_diff < tolerances::GPU_MATMUL_RANDOM_F32,
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// WDM Transfer (nW-04): classical→WDM domain MLP through dispatch
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_wdm_transfer_mlp(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Dispatcher) {
+    let mut rng = Rng::new(404);
+    let classical_dim = 3;
+    let hid_dim = 6;
+    let wdm_dim = 2;
+
+    let w1: Vec<f64> = (0..hid_dim * classical_dim)
+        .map(|_| rng.normal() * 0.3)
+        .collect();
+    let b1: Vec<f64> = (0..hid_dim).map(|_| rng.normal() * 0.1).collect();
+    let w2: Vec<f64> = (0..wdm_dim * hid_dim).map(|_| rng.normal() * 0.3).collect();
+    let b2: Vec<f64> = (0..wdm_dim).map(|_| rng.normal() * 0.1).collect();
+    let x: Vec<f64> = (0..classical_dim).map(|_| rng.normal()).collect();
+
+    let g_out = mlp_forward_dispatch(gpu, &x, &w1, &b1, &w2, &b2, classical_dim, hid_dim, wdm_dim);
+    let c_out = mlp_forward_dispatch(cpu, &x, &w1, &b1, &w2, &b2, classical_dim, hid_dim, wdm_dim);
+
+    for i in 0..wdm_dim {
+        h.check_abs(
+            &format!("wdm_transfer MLP out[{i}]"),
+            g_out[i],
+            c_out[i],
+            tolerances::GPU_MATMUL_RANDOM_F32,
+        );
+    }
+    h.check_bool(
+        "wdm_transfer MLP: all outputs finite",
+        g_out.iter().all(|v| v.is_finite()),
     );
 }
 

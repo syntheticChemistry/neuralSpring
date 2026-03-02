@@ -382,4 +382,119 @@ mod tests {
             assert!(result.is_err(), "misaligned F64 should fail");
         }
     }
+
+    #[test]
+    fn upcast_f32_valid_roundtrip() {
+        use safetensors::tensor::TensorView;
+        let val: f32 = std::f32::consts::PI;
+        let bytes = val.to_le_bytes();
+        let view = TensorView::new(safetensors::Dtype::F32, vec![1], &bytes).expect("valid f32");
+        let result = upcast_to_f64(&view).expect("upcast f32");
+        assert!((result[0] - f64::from(val)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn upcast_f64_valid_roundtrip() {
+        use safetensors::tensor::TensorView;
+        let val: f64 = std::f64::consts::E;
+        let bytes = val.to_le_bytes();
+        let view = TensorView::new(safetensors::Dtype::F64, vec![1], &bytes).expect("valid f64");
+        let result = upcast_to_f64(&view).expect("upcast f64");
+        assert!((result[0] - val).abs() < 1e-15);
+    }
+
+    #[test]
+    fn upcast_f16_valid_roundtrip() {
+        use safetensors::tensor::TensorView;
+        let bits: u16 = 0x3C00; // 1.0 in f16
+        let bytes = bits.to_le_bytes();
+        let view = TensorView::new(safetensors::Dtype::F16, vec![1], &bytes).expect("valid f16");
+        let result = upcast_to_f64(&view).expect("upcast f16");
+        assert!((result[0] - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn upcast_bf16_valid_roundtrip() {
+        use safetensors::tensor::TensorView;
+        let bits: u16 = 0x3F80; // 1.0 in bf16
+        let bytes = bits.to_le_bytes();
+        let view = TensorView::new(safetensors::Dtype::BF16, vec![1], &bytes).expect("valid bf16");
+        let result = upcast_to_f64(&view).expect("upcast bf16");
+        assert!((result[0] - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn upcast_f16_alignment_check() {
+        use safetensors::tensor::TensorView;
+        let bad_bytes: &[u8] = &[0, 0, 0];
+        let view = TensorView::new(safetensors::Dtype::F16, vec![1], bad_bytes);
+        if let Ok(v) = view {
+            let result = upcast_to_f64(&v);
+            assert!(result.is_err(), "misaligned F16 should fail");
+        }
+    }
+
+    #[test]
+    fn upcast_bf16_alignment_check() {
+        use safetensors::tensor::TensorView;
+        let bad_bytes: &[u8] = &[0, 0, 0];
+        let view = TensorView::new(safetensors::Dtype::BF16, vec![1], bad_bytes);
+        if let Ok(v) = view {
+            let result = upcast_to_f64(&v);
+            assert!(result.is_err(), "misaligned BF16 should fail");
+        }
+    }
+
+    #[test]
+    fn list_safetensors_nonexistent_returns_err() {
+        let result = list_safetensors(Path::new("/nonexistent/model.safetensors"));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn load_safetensors_layer_nonexistent_returns_err() {
+        let result = load_safetensors_layer(Path::new("/nonexistent/model.safetensors"), "layer0");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn load_all_weight_matrices_nonexistent_returns_err() {
+        let result = load_all_weight_matrices(Path::new("/nonexistent/model.safetensors"));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn weight_tensor_debug_and_clone() {
+        let wt = WeightTensor {
+            name: "test.weight".into(),
+            data: vec![1.0, 2.0, 3.0, 4.0],
+            shape: vec![2, 2],
+            rows: 2,
+            cols: 2,
+            dtype: "F32".into(),
+        };
+        let cloned = wt.clone();
+        assert_eq!(format!("{wt:?}"), format!("{cloned:?}"));
+    }
+
+    #[test]
+    fn model_weights_debug_and_clone() {
+        let mw = ModelWeights {
+            source: "test".into(),
+            tensors: vec![],
+            metadata: HashMap::new(),
+        };
+        let cloned = mw.clone();
+        assert_eq!(cloned.source, mw.source);
+        assert!(cloned.tensors.is_empty());
+    }
+
+    #[test]
+    fn json_malformed_returns_err() {
+        let tmp = std::env::temp_dir().join("test_weight_malformed.json");
+        std::fs::write(&tmp, "not json").expect("write");
+        let result = load_json_weights(&tmp);
+        assert!(result.is_err(), "malformed JSON should fail");
+        let _ = std::fs::remove_file(&tmp);
+    }
 }

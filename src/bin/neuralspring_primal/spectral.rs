@@ -54,7 +54,13 @@ pub fn handle_ipr(id: serde_json::Value, params: &serde_json::Value) -> JsonRpcR
             .unwrap_or(serde_json::Value::Null),
     ) {
         Ok(v) => v,
-        Err(e) => return JsonRpcResponse::error(id, -32602, format!("Invalid params: {e}")),
+        Err(e) => {
+            return JsonRpcResponse::error(
+                id,
+                super::rpc_error::INVALID_PARAMS,
+                format!("Invalid params: {e}"),
+            )
+        }
     };
     let result = ipr(&wavefunction);
     JsonRpcResponse::success(id, serde_json::json!({ "ipr": result }))

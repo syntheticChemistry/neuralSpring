@@ -79,7 +79,8 @@ fn validate_gelu(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(n),
         n as usize,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  GELU GPU max diff: {md:.2e}");
@@ -140,7 +141,8 @@ fn validate_triangle_outgoing(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(total as u32),
         total,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  TriMul outgoing GPU max diff: {md:.2e}");
@@ -204,7 +206,8 @@ fn validate_triangle_incoming(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(total as u32),
         total,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  TriMul incoming GPU max diff: {md:.2e}");
@@ -284,7 +287,8 @@ fn validate_triangle_attention(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(out_len as u32),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  TriAttn scores GPU max diff: {md:.2e}");
@@ -344,7 +348,8 @@ fn validate_softmax(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         (rows, 1, 1),
         total,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  Softmax GPU max diff: {md:.2e}");
@@ -431,7 +436,8 @@ fn validate_layer_norm(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         (seq_len, 1, 1),
         total,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  LayerNorm GPU max diff: {md:.2e}");
@@ -502,7 +508,8 @@ fn validate_outer_product_mean(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(out_len as u32),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  OPM GPU max diff: {md:.2e}");
@@ -574,7 +581,8 @@ fn validate_msa_row_attention(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(out_len as u32),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  MSA row scores GPU max diff: {md:.2e}");
@@ -649,7 +657,8 @@ fn validate_msa_col_attention(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(out_len as u32),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  MSA col scores GPU max diff: {md:.2e}");

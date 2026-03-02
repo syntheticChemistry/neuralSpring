@@ -5,7 +5,23 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 104 (March 2, 2026)
+## [Unreleased] — Session 108 (March 2, 2026)
+
+### Session 108 — Deep Debt Execution + Doc Sweep + V71 Handoff (March 2, 2026)
+
+**Primal hardcoding → env-configurable**: `ORCHESTRATOR_SOCKET` → `orchestrator_socket()` (reads `BIOMEOS_ORCHESTRATOR_SOCKET`). `HEARTBEAT_INTERVAL_SECS` → `heartbeat_interval_secs()` (reads `NEURALSPRING_HEARTBEAT_SECS`). `rpc_error` dead_code narrowed to only unused constants.
+
+**Provenance module refactored**: 851-line flat `provenance.rs` migrated to 3-file module: `mod.rs` (201 lines), `experiments.rs` (557 lines, 42 provenance records), `references.rs` (107 lines). All under 1000 LOC limit.
+
+**Doc quality**: Fixed 10 `cargo doc` warnings (unresolved links), clippy doc_markdown fix, wildcard import fix. 0 doc warnings, 0 clippy warnings (pedantic+nursery), 0 fmt issues.
+
+**Scripts synced**: `run_all_baselines.sh` updated to include nS-06 immunological_anderson (39 experiments, matches `check_drift.sh`).
+
+**Doc sweep**: README, control/README, EVOLUTION_READINESS, CHANGELOG, CONTROL_EXPERIMENT_STATUS aligned to 330 Python, 826 lib tests, 226 binaries, 41 modules.
+
+**Deep audit completed**: `as f64` casts (all `usize`, correct), `Vec<f64>` params (all need ownership), `.unwrap()` in library (all `#[cfg(test)]`), no TODOs/FIXMEs/stubs, no unsafe, no production mocks.
+
+**V71 ToadStool handoff**: Full evolution status, barracuda integration inventory, absorption recommendations.
 
 ### Session 104 — Full Validation Chain + 3 BarraCUDA Fixes + V70 Handoff (March 2, 2026)
 

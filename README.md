@@ -40,20 +40,22 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 282/282 Python PASS + 3280+ Rust+GPU PASS = **3900+ total validation checks**
+## Current Status: 330/330 Python PASS + 3400+ Rust+GPU PASS = **4100+ total validation checks**
 
-**ToadStool `8dc01a37`** (Sessions 70+++–101): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
+**ToadStool `f97fc2ae`** (Sessions 70+++–108): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 44 upstream rewires + 130+ barracuda import sites across 208 files, 30+ submodules exercised.
 21/21 WGSL shaders absorbed + 15 coralForge df64 shaders.
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
-753 lib tests, 139+ named tolerances, 0 clippy warnings (pedantic+nursery clean).
-220 validation/bench binaries, 40 modules + gpu\_ops/ + gpu\_dispatch/, 753 lib + 9 integration + 43 forge tests.
+826 lib tests, 139+ named tolerances, 0 clippy warnings (pedantic+nursery clean), 0 doc warnings.
+226 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/, 826 lib + 9 integration + 43 forge tests.
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 **202/202 validate\_all** (200 PASS + 2 pre-existing wright\_fisher WGSL parse). Pure Rust **83.6× faster** than Python/NumPy
 (geomean, 11 domains; fastest: multi-obj fitness 1104×). CPU→GPU portability proven (9/9, 7 domains).
-S102: Nautilus Shell cross-spring bridge (hotSpring brain arch), `SpectralNautilusBridge` + `DriftMonitor`, 27/27 PASS. +7 lib tests (753).
-S101: ToadStool S71 pin bump (`1dd7e338`→`8dc01a37`), GPU stats parity (`KimuraGpu`, `HistogramGpu` PASS), 2 upstream shader bugs reported (bitcast+enable f64). V68 handoff.
-S100: Deep debt execution (hardcoding→capability-based, 4 unused deps removed, +19 tests, zero clippy warnings). Cross-spring rewire: hotSpring proxy.rs diagnostics (bandwidth, condition\_number, phase) + GPU ESN via barracuda Tensors.
+S108: Deep debt execution — provenance module refactored (851→3 files), primal hardcoding→env-configurable (ORCHESTRATOR\_SOCKET, HEARTBEAT), rpc\_error dead\_code narrowed, doc link fixes. 0 clippy, 0 doc warnings, 826/826 tests.
+S107: baseCamp Paper 12 nS-06 extended — Gonzales dose-response, lokivetmab PK, 3D tissue lattice, Fajgenbaum MATRIX scoring. immunological\_anderson module refactored (1023→3 files). 48/48 Python PASS, Rust parity validated.
+S104–106: Full validation chain 202/202 PASS, 3 BarraCUDA fixes (FFT buffer, `enable f64` naga strip, `asin_df64` iterative), NUCLEUS Tower socket path fix, V70 handoff, spectral rewiring.
+S102: Nautilus Shell cross-spring bridge (hotSpring brain arch), `SpectralNautilusBridge` + `DriftMonitor`, 27/27 PASS.
+S101: ToadStool S71 pin bump, GPU stats parity, 2 upstream shader bugs reported. S100: Deep debt (4 unused deps removed, +19 tests).
 
 **Validation tiers**: 24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 pure GPU all-domains |
 5/5 baseCamp sub-theses GPU | 5 WDM surrogates (33/33 Py + 160/160 Rs+GPU) |
@@ -107,12 +109,12 @@ See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 | 024: Pangenome Selection | Anderson (2024) | 8/8 | Gene gain/loss dynamics, selection signatures |
 | 025: Meta-Population | Anderson (2024) | 8/8 | FST, isolation-by-distance, thermal adaptation |
 
-### baseCamp — Biophysical AI Interpretability (128/128)
+### baseCamp — Biophysical AI Interpretability (176/176)
 
 Novel cross-domain research applying validated physics/biology primitives
-to understanding AI systems as physical systems. 5 library modules,
-8 validation binaries composing existing primitives (`eigh`, `anderson_localization`,
-`hmm`, `game_theory`, `swarm_robotics`) with novel analysis pipelines.
+to understanding AI systems as physical systems. 6 library modules,
+10 validation binaries composing existing primitives (`eigh`, `anderson_localization`,
+`hmm`, `game_theory`, `swarm_robotics`, `immunological_anderson`) with novel analysis pipelines.
 
 | Module | Sub-thesis | Validation | Checks | Key Primitive |
 |--------|-----------|-----------|--------|---------------|
@@ -121,6 +123,8 @@ to understanding AI systems as physical systems. 5 library modules,
 | `loss_landscape` | nS-03: Loss Landscapes as Energy Landscapes | `validate_loss_landscape` | 27/27 | Numerical Hessian, Boltzmann, gradient descent, barriers |
 | `neural_pgm` | nS-04: Neural Networks as PGMs | `validate_neural_pgm` | 21/21 | Belief propagation, effective rank, OOD detection |
 | `agent_coordination` | nS-05: Multi-Agent AI as Quorum Sensing | `validate_agent_coordination` | 23/23 | Graph Laplacian, QS signaling, Anderson transition |
+| `immunological_anderson` | nS-06: Immunological Anderson Localization | `validate_immunological_anderson` | 20/20 | AD classification, Pielou evenness, Hill dose-response |
+| `immunological_anderson` | nS-06 extended: Gonzales/PK/Lattice/MATRIX | `validate_immunological_anderson_extended` | 28/28 | Dose-response, PK decay, tissue lattice, MATRIX scoring |
 | — | GPU parity | `validate_basecamp_gpu` | 14/14 | Pure GPU workload validation |
 | — | CPU↔GPU dispatch | `validate_compute_dispatch` | 16/16 | BarraCUDA CPU vs GPU parity |
 | — | Mixed hardware | `validate_mixed_hardware` | 14/14 | GPU↔NPU↔CPU dispatch routing |
@@ -577,17 +581,17 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_TOADSTOOL_V70_S104_*.md # Current ToadStool handoff
+│   │   ├── NEURALSPRING_TOADSTOOL_V71_S108_*.md # Current ToadStool handoff
 │   │   ├── NEURALSPRING_NESTGATE_V1_*.md        # NestGate data acquisition
 │   │   ├── NEURALSPRING_BIOMEOS_V1_*.md         # biomeOS/NUCLEUS integration
 │   │   ├── NEURALSPRING_SONGBIRD_V1_*.md        # Songbird networking
-│   │   └── archive/           #   Superseded handoffs (V1–V66 + biomeOS V1)
+│   │   └── archive/           #   Superseded handoffs (V1–V70 + biomeOS V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
-│   └── README.md              #   Journal index (001-074)
+│   └── README.md              #   Journal index (001-076)
 ├── whitePaper/                 # Study documentation
 │   ├── baseCamp/              #   Per-faculty research briefings
 ├── scripts/
-│   ├── run_all_baselines.sh    #   Orchestrates all 31 Python runs (25 papers + 5 WDM + ML inference)
+│   ├── run_all_baselines.sh    #   Orchestrates all 39 Python runs (25 papers + 5 WDM + ML inference + 5 coralForge + 3 pub + 2 nS-06)
 │   └── download_pretrained.py  #   Download pretrained models for nS-01 Paper A (safetensors)
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
@@ -617,7 +621,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal ToadStool handoffs (V70 current: Session 104) |
+| `wateringHole/handoffs/` | Formal ToadStool handoffs (V71 current: Session 108) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -627,4 +631,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–102: March 1, 2026 | 25 papers + 5 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 282 Python + 3280+ Rust+GPU = 3900+ validation checks | 753 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 220 validation/bench binaries, 42 WGSL shaders | Full stack: bC 24/25 (96%) · gT 23/25 (92%) · mF 15/25 (60%) · gP 15/25 (60%) · xD 15/15 (100%) · mH 14/14 · dispatch parity 30/30 · mixed-hardware dispatch 47/47 · WDM+coralForge parity 39/39 · metalForge NUCLEUS 41/41 · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge | 44 upstream rewires, 130+ barracuda import sites, 20+ submodules | 139+ named tolerances, 0 clippy warnings (pedantic+nursery), 100% SPDX | S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS | S101: ToadStool S71 pin bump, GPU stats parity, 2 upstream shader bugs reported | V70 handoff*
+*Initialized: February 16, 2026 | Sessions 40–108: March 2, 2026 | 25 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 826 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 226 validation/bench binaries, 42 WGSL shaders | 139+ named tolerances, 0 clippy warnings (pedantic+nursery), 0 doc warnings, 100% SPDX | V71 handoff*

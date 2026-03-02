@@ -70,6 +70,8 @@ MODULES=(
     "training_trajectory/training_trajectory.py"
     "hessian_eigenanalysis/hessian_eigenanalysis.py"
     "anderson_multiagent/anderson_multiagent.py"
+    "immunological_anderson/immunological_anderson.py"
+    "immunological_anderson/immunological_anderson_extended.py"
 )
 
 run_module() {

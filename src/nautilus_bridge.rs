@@ -30,6 +30,7 @@
 //! - **`DriftMonitor`**: Training stability detection for evolutionary populations.
 //!   When `N_e * s < 1` for 3+ generations, selection is losing to drift.
 
+use crate::weight_spectral::WeightSpectralResult;
 use bingocube_nautilus::{BetaObservation, DriftMonitor, NautilusBrain, NautilusBrainConfig};
 
 /// Bridge between neuralSpring spectral analysis and Nautilus evolutionary reservoir.
@@ -56,6 +57,12 @@ impl SpectralNautilusBridge {
         Self { brain }
     }
 
+    /// Scaling factor converting IPR (0–1 range) to CG iteration counts.
+    ///
+    /// Nautilus brain expects `cg_iters` in iteration-like magnitude; IPR
+    /// is a participation ratio ∈ [0,1].  Factor bridges the domains.
+    const IPR_TO_CG_SCALE: f64 = 1000.0;
+
     /// Feed a spectral observation into the Nautilus brain.
     ///
     /// Maps neuralSpring spectral features to hotSpring's `BetaObservation`:
@@ -77,7 +84,7 @@ impl SpectralNautilusBridge {
             quenched_plaq: None,
             quenched_plaq_var: None,
             plaquette: bandwidth,
-            cg_iters: ipr * 1000.0,
+            cg_iters: ipr * Self::IPR_TO_CG_SCALE,
             acceptance: level_spacing_ratio,
             delta_h_abs: 0.0,
             anderson_r: Some(level_spacing_ratio),
@@ -108,6 +115,31 @@ impl SpectralNautilusBridge {
     /// Detect concept edges (phase transitions) via LOO analysis.
     pub fn detect_concept_edges(&mut self) -> Vec<(f64, f64)> {
         self.brain.detect_concept_edges()
+    }
+
+    /// Feed a training epoch into the Nautilus brain as a spectral observation.
+    ///
+    /// Maps training metrics to `BetaObservation` for drift detection:
+    /// - `loss` → `cg_iters` (cost analog: higher loss = more compute)
+    /// - `spectral.level_spacing_ratio` → `acceptance` + `anderson_r`
+    /// - `spectral.bandwidth` → `plaquette` (spread analog)
+    /// - `spectral.mean_ipr` → `anderson_lambda_min` (localization signal)
+    ///
+    /// This enables `is_drifting()` to detect training drift via the
+    /// existing `DriftMonitor` (hotSpring cross-spring evolution).
+    pub fn observe_training_epoch(&mut self, loss: f64, spectral: &WeightSpectralResult) {
+        let obs = BetaObservation {
+            beta: spectral.bandwidth,
+            quenched_plaq: None,
+            quenched_plaq_var: None,
+            plaquette: spectral.bandwidth,
+            cg_iters: loss * Self::IPR_TO_CG_SCALE,
+            acceptance: spectral.level_spacing_ratio,
+            delta_h_abs: 0.0,
+            anderson_r: Some(spectral.level_spacing_ratio),
+            anderson_lambda_min: Some(spectral.mean_ipr),
+        };
+        self.brain.observe(obs);
     }
 
     /// Whether the evolutionary population is drifting (`N_e`*s too low).

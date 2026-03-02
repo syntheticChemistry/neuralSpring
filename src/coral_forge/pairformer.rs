@@ -22,6 +22,9 @@
     clippy::similar_names
 )]
 
+/// Base frequency for sinusoidal positional encoding (Vaswani et al. 2017, §3.5).
+const SINUSOIDAL_BASE: f64 = 10_000.0;
+
 /// Sinusoidal timestep embedding (Vaswani et al. 2017).
 #[must_use]
 pub fn sinusoidal_embedding(t: f64, d_model: usize) -> Vec<f64> {
@@ -29,7 +32,7 @@ pub fn sinusoidal_embedding(t: f64, d_model: usize) -> Vec<f64> {
     (0..d_model)
         .map(|i| {
             let base_idx = if i % 2 == 0 { i } else { i - 1 };
-            let freq = 10000.0_f64.powf(base_idx as f64 / d);
+            let freq = SINUSOIDAL_BASE.powf(base_idx as f64 / d);
             if i % 2 == 0 {
                 (t / freq).sin()
             } else {

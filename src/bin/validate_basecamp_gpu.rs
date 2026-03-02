@@ -2,7 +2,7 @@
 
 //! Pure GPU workload validation for baseCamp modules.
 //!
-//! Validates that baseCamp science (all 5 sub-theses) produces correct
+//! Validates that baseCamp science (all 6 sub-theses) produces correct
 //! results when dispatched entirely through `BarraCUDA` GPU typed ops.
 //! This is the "final mile" — proving the math is hardware-portable.
 //!
@@ -29,7 +29,7 @@ use neural_spring::gpu_ops;
 use neural_spring::primitives::PROBABILITY_FLOOR;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{exit_no_gpu, ValidationHarness};
 use neural_spring::weight_spectral;
 use std::sync::Arc;
 
@@ -45,10 +45,7 @@ async fn main() {
             );
             g
         }
-        Err(e) => {
-            eprintln!("No GPU available ({e}), skipping GPU workload validation");
-            h.finish();
-        }
+        Err(_) => exit_no_gpu(),
     };
     let dev = Arc::clone(gpu.wgpu_device());
     let mut rng = Rng::new(42);
@@ -287,6 +284,75 @@ async fn main() {
         gpu_kl,
         cpu_kl,
         tolerances::GPU_KL_DISPATCH_F32,
+    );
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Sub-thesis 06: Immunological Anderson — GPU-accelerated primitives
+    // ═══════════════════════════════════════════════════════════════════
+
+    // Cytokine distribution KL divergence: healthy vs inflamed dermal
+    // cell populations. GPU dispatches the same KL used in Dispatcher.
+    let healthy_dermal: Vec<f64> = {
+        let raw = [0.60, 0.15, 0.10, 0.08, 0.05, 0.02];
+        let s: f64 = raw.iter().sum();
+        raw.iter()
+            .map(|&v| (v / s).max(PROBABILITY_FLOOR))
+            .collect()
+    };
+    let inflamed_dermal: Vec<f64> = {
+        let raw = [0.25, 0.20, 0.18, 0.15, 0.12, 0.10];
+        let s: f64 = raw.iter().sum();
+        raw.iter()
+            .map(|&v| (v / s).max(PROBABILITY_FLOOR))
+            .collect()
+    };
+
+    let cpu_kl_immuno: f64 = healthy_dermal
+        .iter()
+        .zip(inflamed_dermal.iter())
+        .map(|(&pi, &qi)| if pi > 1e-30 { pi * (pi / qi).ln() } else { 0.0 })
+        .sum();
+    let gpu_kl_immuno = gpu_ops::kl_divergence_gpu(&healthy_dermal, &inflamed_dermal, &dev)
+        .expect("kl_divergence_gpu immuno");
+    h.check_abs(
+        "nS06: GPU KL cytokine distribution shift",
+        gpu_kl_immuno,
+        cpu_kl_immuno,
+        tolerances::GPU_KL_DISPATCH_F32,
+    );
+
+    // Shannon entropy of cell populations for Pielou evenness numerator
+    let cpu_h_healthy: f64 = healthy_dermal
+        .iter()
+        .filter(|&&v| v > 0.0)
+        .map(|&v| -v * v.ln())
+        .sum();
+    let gpu_h_healthy =
+        gpu_ops::shannon_entropy_gpu(&healthy_dermal, &dev).expect("shannon_entropy_gpu healthy");
+    h.check_abs(
+        "nS06: GPU Shannon entropy healthy dermis",
+        gpu_h_healthy,
+        cpu_h_healthy,
+        tolerances::GPU_ENTROPY_F64,
+    );
+
+    let cpu_h_inflamed: f64 = inflamed_dermal
+        .iter()
+        .filter(|&&v| v > 0.0)
+        .map(|&v| -v * v.ln())
+        .sum();
+    let gpu_h_inflamed =
+        gpu_ops::shannon_entropy_gpu(&inflamed_dermal, &dev).expect("shannon_entropy_gpu inflamed");
+    h.check_abs(
+        "nS06: GPU Shannon entropy inflamed dermis",
+        gpu_h_inflamed,
+        cpu_h_inflamed,
+        tolerances::GPU_ENTROPY_F64,
+    );
+
+    h.check_bool(
+        "nS06: Inflamed H' > healthy H' (more disorder)",
+        gpu_h_inflamed > gpu_h_healthy,
     );
 
     h.finish();

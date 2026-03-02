@@ -441,6 +441,7 @@ fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
             strategy,
             barracuda::device::driver_profile::Fp64Strategy::Native
                 | barracuda::device::driver_profile::Fp64Strategy::Hybrid
+                | barracuda::device::driver_profile::Fp64Strategy::Concurrent
         );
         h.check_bool("fp64 strategy valid", strategy_valid);
     } else {

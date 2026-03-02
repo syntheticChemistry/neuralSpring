@@ -31,6 +31,9 @@ bingocube-nautilus = { path = "../primalTools/bingoCube/nautilus" }
 # The primal binary additionally requires io-util, net, signal, fs, time.
 tokio = { version = "1.35", features = ["rt-multi-thread", "macros", "io-util", "net", "signal", "fs", "time", "process"] }
 
+# Structured logging facade — replaces eprintln! in library code.
+log = "0.4"
+
 # Must match barracuda's wgpu version (22) to avoid type conflicts.
 wgpu = { version = "22", default-features = false, features = [
     "wgsl",
@@ -39,11 +42,13 @@ wgpu = { version = "22", default-features = false, features = [
 
 # Optional deps for the neuralspring_primal binary.
 anyhow = { version = "1", optional = true }
+clap = { version = "4.5", features = ["derive"], optional = true }
 env_logger = { version = "0.11", optional = true }
+tarpc = { version = "0.37", features = ["tokio1", "serde-transport"], optional = true }
 
 [features]
 default = []
-primal = ["anyhow", "env_logger"]
+primal = ["anyhow", "clap", "env_logger", "tarpc"]
 
 [dev-dependencies]
 approx = "0.5"
@@ -981,6 +986,10 @@ name = "validate_toadstool_s71_gpu_stats"
 path = "src/bin/validate_toadstool_s71_gpu_stats.rs"
 
 [[bin]]
+name = "validate_toadstool_s79_rewire"
+path = "src/bin/validate_toadstool_s79_rewire.rs"
+
+[[bin]]
 name = "validate_nautilus_bridge"
 path = "src/bin/validate_nautilus_bridge.rs"
 
@@ -999,6 +1008,12 @@ path = "src/bin/validate_cross_spring_rewire.rs"
 [[bin]]
 name = "bench_cross_spring_modern"
 path = "src/bin/bench_cross_spring_modern.rs"
+
+# ── S105: baseCamp GPU promotions (weight_spectral, loss_landscape, neural_pgm, agent_coordination)
+
+[[bin]]
+name = "validate_barracuda_basecamp"
+path = "src/bin/validate_barracuda_basecamp.rs"
 
 [lints.rust]
 unsafe_code = "forbid"

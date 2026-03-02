@@ -148,10 +148,9 @@ pub fn dispatch_shader(
 ///
 /// # Panics
 ///
-/// Panics if no `StorageRw` binding is present or GPU readback fails.
-/// Acceptable in validation binaries (which report pass/fail via exit code).
-#[must_use]
-#[allow(clippy::expect_used)]
+/// # Errors
+///
+/// Returns `Err` if no `StorageRw` binding is present or GPU readback fails.
 pub fn dispatch_and_read(
     gpu: &Gpu,
     shader: &wgpu::ShaderModule,
@@ -159,18 +158,18 @@ pub fn dispatch_and_read(
     bindings: &[ShaderBinding<'_>],
     workgroups: (u32, u32, u32),
     output_count: usize,
-) -> Vec<f64> {
+) -> Result<Vec<f64>, String> {
     let out_buf = bindings
         .iter()
         .find_map(|b| match b {
             ShaderBinding::StorageRw(buf) => Some(*buf),
             _ => None,
         })
-        .expect("dispatch_and_read requires a StorageRw binding");
+        .ok_or_else(|| "dispatch_and_read requires a StorageRw binding".to_string())?;
 
     dispatch_shader(gpu, shader, entry, bindings, workgroups);
     gpu.read_buffer_f64(out_buf, output_count)
-        .expect("GPU f64 readback")
+        .map_err(|e| format!("GPU f64 readback: {e}"))
 }
 
 /// Upload f64 data to a read-only storage buffer.
@@ -233,10 +232,58 @@ mod tests {
     }
 
     #[test]
+    fn max_diff_negative_values() {
+        let d = max_diff(&[-1.0, -5.0], &[-1.0, -2.0]);
+        assert!((d - 3.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn max_diff_single_element() {
+        let d = max_diff(&[1.0], &[4.0]);
+        assert!((d - 3.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn max_diff_symmetric() {
+        let a = [1.0, 2.0, 10.0];
+        let b = [3.0, 2.0, 5.0];
+        assert!((max_diff(&a, &b) - max_diff(&b, &a)).abs() < 1e-15);
+    }
+
+    #[test]
     fn wg1d_exact() {
         assert_eq!(wg1d(256), (1, 1, 1));
         assert_eq!(wg1d(257), (2, 1, 1));
         assert_eq!(wg1d(512), (2, 1, 1));
         assert_eq!(wg1d(1), (1, 1, 1));
+    }
+
+    #[test]
+    fn wg1d_large() {
+        assert_eq!(wg1d(1024), (4, 1, 1));
+        assert_eq!(wg1d(65536), (256, 1, 1));
+    }
+
+    #[test]
+    fn wg1d_boundaries() {
+        assert_eq!(wg1d(255), (1, 1, 1));
+        assert_eq!(wg1d(256), (1, 1, 1));
+        assert_eq!(wg1d(257), (2, 1, 1));
+        assert_eq!(wg1d(511), (2, 1, 1));
+        assert_eq!(wg1d(513), (3, 1, 1));
+    }
+
+    #[test]
+    fn max_diff_large_values() {
+        let a: Vec<f64> = (0..100).map(|i| f64::from(i) * 1.5).collect();
+        let b: Vec<f64> = (0..100).map(|i| f64::from(i).mul_add(1.5, 0.001)).collect();
+        let d = max_diff(&a, &b);
+        assert!((d - 0.001).abs() < 1e-10);
+    }
+
+    #[test]
+    fn max_diff_inf_and_nan() {
+        let d = max_diff(&[f64::INFINITY], &[0.0]);
+        assert!(d.is_infinite());
     }
 }

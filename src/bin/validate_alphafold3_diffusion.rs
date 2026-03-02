@@ -57,6 +57,10 @@ const D_PAIR: usize = 8;
 const D_HIDDEN: usize = 16;
 const SEED: u64 = 42;
 
+/// GPU-style float hash constant (Blum, Blum & Shub family).
+/// Widely used in shader PRNG: `fract(sin(x) * 43758.5453)`.
+const HASH_SCALE: f64 = 43_758.545_3;
+
 fn main() {
     let mut h = ValidationHarness::new("alphafold3_diffusion");
 
@@ -423,7 +427,7 @@ fn main() {
         let noise: Vec<f64> = (0..clean.len())
             .map(|i| {
                 let x = (SEED as f64 + 10.0) * (i as f64 + 1.0);
-                (x.sin() * 43758.5453).fract()
+                (x.sin() * HASH_SCALE).fract()
             })
             .collect();
         let x_t = diffusion::forward_diffusion(&clean, &noise, T_STEPS - 1, &sched);

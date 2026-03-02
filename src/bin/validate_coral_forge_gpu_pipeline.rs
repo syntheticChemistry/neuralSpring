@@ -118,7 +118,8 @@ fn validate_sdpa_scores(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(out_len as u32),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  SDPA scores GPU max diff: {md:.2e}");
@@ -190,7 +191,8 @@ fn validate_attention_apply(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         (d.div_ceil(16), sq.div_ceil(16), b * he),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  AttnApply GPU max diff: {md:.2e}");
@@ -309,7 +311,8 @@ fn validate_sdpa_pipeline(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         (d.div_ceil(16), sq.div_ceil(16), b * he),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  SDPA pipeline GPU max diff: {md:.2e}");
@@ -422,7 +425,8 @@ fn validate_ipa_scores(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(out_len as u32),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  IPA scores GPU max diff: {md:.2e}");
@@ -504,7 +508,8 @@ fn validate_backbone_update(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(n_res),
         frames_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  Backbone GPU max diff: {md:.2e}");
@@ -579,7 +584,8 @@ fn validate_torsion_angles(h: &mut ValidationHarness, gpu: &Gpu) {
         ],
         wg1d(n_res),
         out_len,
-    );
+    )
+    .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
     eprintln!("  Torsion GPU max diff: {md:.2e}");

@@ -292,5 +292,54 @@ async fn main() {
         );
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // nS-06: Immunological Anderson — mixed-hardware dispatch
+    // ═══════════════════════════════════════════════════════════════════
+    // NUCLEUS atomic pattern for AD classification pipeline:
+    //   Tower: spectral eigensolve (disorder analysis)
+    //   Node:  AD classification (regime detection)
+    //   Nest:  provenance (result storage + audit trail)
+
+    // Tower atomic: eigensolve for tissue lattice spectral analysis
+    let tower_eig_result = dispatcher.eigh(
+        &[
+            2.0, -1.0, 0.0, -1.0, //
+            -1.0, 2.0, -1.0, 0.0, //
+            0.0, -1.0, 2.0, -1.0, //
+            -1.0, 0.0, -1.0, 2.0, //
+        ],
+        4,
+    );
+    h.check_bool(
+        "nS06 tower: eigensolve produces 4 eigenvalues",
+        tower_eig_result.0.len() == 4,
+    );
+    h.check_bool(
+        "nS06 tower: smallest eigenvalue ≈ 0 (connected lattice)",
+        tower_eig_result.0[0].abs() < 0.5,
+    );
+
+    // Node atomic: KL divergence for cytokine distribution shift
+    let node_kl = dispatcher.kl_divergence(
+        &[0.60, 0.15, 0.10, 0.08, 0.05, 0.02],
+        &[0.25, 0.20, 0.18, 0.15, 0.12, 0.10],
+    );
+    h.check_bool("nS06 node: KL divergence finite", node_kl.is_finite());
+    h.check_bool("nS06 node: KL divergence positive", node_kl > 0.0);
+
+    // Nest atomic: Shannon entropy for cell population disorder
+    let nest_entropy = dispatcher.shannon_entropy(&[0.25, 0.20, 0.18, 0.15, 0.12, 0.10]);
+    h.check_bool("nS06 nest: entropy finite", nest_entropy.is_finite());
+    h.check_bool("nS06 nest: entropy positive", nest_entropy > 0.0);
+
+    // PCIe bridge cost for NPU export of AD classifier weights
+    let ad_weights_bytes = 64 * 3 * 8; // 64 reservoir × 3 heads × 8 bytes
+    let npu_bridge = PcieBridge::new("RTX 4070", "AKD1000");
+    let export_cost = npu_bridge.transfer_cost(ad_weights_bytes);
+    h.check_bool(
+        "nS06 PCIe: AD classifier NPU export cost finite",
+        export_cost.estimated_us() > 0.0,
+    );
+
     h.finish();
 }

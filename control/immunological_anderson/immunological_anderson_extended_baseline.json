@@ -1,0 +1,366 @@
+{
+  "_source": "baseCamp Paper 12: Anderson Immunological Signaling \u2014 Extended",
+  "_citation": "Gonzales et al. (2013-2024), Fajgenbaum et al. (2019)",
+  "_experiments": "nS-601..605",
+  "seed": 42,
+  "hill_n1_at_ic50": 0.5,
+  "hill_cooperativity": {
+    "n1": 0.3333333333333333,
+    "n2": 0.2
+  },
+  "cytokine_sweeps": {
+    "JAK1": [
+      0.009900990099009901,
+      0.047619047619047616,
+      0.09090909090909091,
+      0.3333333333333333,
+      0.5,
+      0.8333333333333334,
+      0.9090909090909091,
+      0.9803921568627451,
+      0.9900990099009901
+    ],
+    "IL2": [
+      0.002770083102493075,
+      0.0136986301369863,
+      0.02702702702702703,
+      0.12195121951219512,
+      0.21739130434782608,
+      0.5813953488372093,
+      0.7352941176470589,
+      0.9328358208955224,
+      0.9652509652509652
+    ],
+    "IL4": [
+      0.0006285355122564425,
+      0.003134796238244514,
+      0.00625,
+      0.03048780487804878,
+      0.05917159763313609,
+      0.23923444976076555,
+      0.3861003861003861,
+      0.7587253414264037,
+      0.8628127696289906
+    ],
+    "IL6": [
+      0.002770083102493075,
+      0.0136986301369863,
+      0.02702702702702703,
+      0.12195121951219512,
+      0.21739130434782608,
+      0.5813953488372093,
+      0.7352941176470589,
+      0.9328358208955224,
+      0.9652509652509652
+    ],
+    "IL13": [
+      0.0004014452027298274,
+      0.002004008016032064,
+      0.004,
+      0.01968503937007874,
+      0.03861003861003861,
+      0.16722408026755853,
+      0.28653295128939826,
+      0.6675567423230975,
+      0.800640512409928
+    ],
+    "IL31": [
+      0.001584786053882726,
+      0.007874015748031496,
+      0.015625,
+      0.07352941176470588,
+      0.136986301369863,
+      0.4424778761061947,
+      0.6134969325153374,
+      0.8880994671403197,
+      0.940733772342427
+    ]
+  },
+  "barrier_heights": {
+    "JAK1": {
+      "ic50": 10.0,
+      "W": 2.302585092994046
+    },
+    "IL2": {
+      "ic50": 36.0,
+      "W": 3.58351893845611
+    },
+    "IL4": {
+      "ic50": 159.0,
+      "W": 5.0689042022202315
+    },
+    "IL6": {
+      "ic50": 36.0,
+      "W": 3.58351893845611
+    },
+    "IL13": {
+      "ic50": 249.0,
+      "W": 5.517452896464707
+    },
+    "IL31": {
+      "ic50": 63.0,
+      "W": 4.143134726391533
+    }
+  },
+  "hill_saturation": 0.999000999000999,
+  "pruritus_nadir": 2.4000000000000004,
+  "pruritus_timeseries": {
+    "hours": [
+      0,
+      24,
+      72,
+      168,
+      336,
+      672
+    ],
+    "scores": [
+      2.4000000000000004,
+      3.5948839780273008,
+      5.274187366624158,
+      6.956305734179304,
+      7.805482549909464,
+      7.9932433860018355
+    ]
+  },
+  "pruritus_asymptote": 8.0,
+  "pk_half_life": 50.0,
+  "pk_t0": 100.0,
+  "pk_decay_curve": {
+    "hours": [
+      0,
+      6,
+      12,
+      24,
+      48,
+      96,
+      168
+    ],
+    "concentrations": [
+      100.0,
+      84.08964152537145,
+      70.71067811865476,
+      50.0,
+      25.0,
+      6.25,
+      0.7812500000000002
+    ]
+  },
+  "lokivetmab_regression": [
+    {
+      "dose": 0.125,
+      "actual": 14.0,
+      "predicted": 12.298434844450458,
+      "error": 1.7015651555495417
+    },
+    {
+      "dose": 0.5,
+      "actual": 28.0,
+      "predicted": 26.286144948150152,
+      "error": 1.7138550518498477
+    },
+    {
+      "dose": 2.0,
+      "actual": 42.0,
+      "predicted": 40.27385505184985,
+      "error": 1.72614494815015
+    }
+  ],
+  "duration_monotonicity": {
+    "doses": [
+      0.05,
+      0.125,
+      0.25,
+      0.5,
+      1.0,
+      2.0,
+      4.0
+    ],
+    "durations": [
+      3.0530613598402354,
+      12.298434844450458,
+      19.292289896300304,
+      26.286144948150152,
+      33.28,
+      40.27385505184985,
+      47.2677101036997
+    ]
+  },
+  "three_comp_healthy": {
+    "immune_w": 10.0,
+    "skin_w": 5.1096404744368105,
+    "neural_w": 10.0,
+    "variance": 5.3145813976148055
+  },
+  "three_comp_inflamed": {
+    "immune_w": 9.763620978123273,
+    "skin_w": 9.51850848028674,
+    "neural_w": 9.340680553754911,
+    "variance": 0.030064612290573695
+  },
+  "lattice_dim": 8,
+  "level_spacing_ratio_test": 0.4787603916999341,
+  "barrier_spectrum": [
+    {
+      "intact": 1.0,
+      "d_eff": 2.0,
+      "r": 0.3188652843113641
+    },
+    {
+      "intact": 0.75,
+      "d_eff": 2.25,
+      "r": 0.3621401366486618
+    },
+    {
+      "intact": 0.5,
+      "d_eff": 2.5,
+      "r": 0.4840731449534235
+    },
+    {
+      "intact": 0.25,
+      "d_eff": 2.75,
+      "r": 0.48535721764204365
+    },
+    {
+      "intact": 0.0,
+      "d_eff": 3.0,
+      "r": 0.535956538511135
+    }
+  ],
+  "multilayer_evals": [
+    -2.601076202650572,
+    -2.346617982859628,
+    -2.1813466300275617,
+    -1.9060032594092664,
+    -1.6825029313460864,
+    -1.3020521747082243,
+    -0.9154830527583345,
+    -0.5612025798282755,
+    -0.4674233145270126,
+    0.005873537375586215,
+    0.34162250078953194,
+    0.6220854070263635,
+    0.9235536560247034,
+    1.0449457025038127,
+    1.4378935120860608,
+    1.60122874482137,
+    1.9092660375539965,
+    2.40791487702254,
+    2.4406424260862063,
+    2.84578328815135
+  ],
+  "matrix_flare_scores": [
+    {
+      "name": "Rapamycin",
+      "pathway_score": 0.85,
+      "geometry_score": 0.77429165,
+      "combined_score": 0.6581479025,
+      "mechanism": "transduction_block"
+    },
+    {
+      "name": "Tofacitinib",
+      "pathway_score": 0.92,
+      "geometry_score": 0.7747582000000001,
+      "combined_score": 0.712777544,
+      "mechanism": "transduction_block"
+    },
+    {
+      "name": "Tanezumab",
+      "pathway_score": 0.78,
+      "geometry_score": 0.6603,
+      "combined_score": 0.515034,
+      "mechanism": "signal_elimination"
+    },
+    {
+      "name": "Trametinib",
+      "pathway_score": 0.65,
+      "geometry_score": 0.774523375,
+      "combined_score": 0.50344019375,
+      "mechanism": "transduction_block"
+    },
+    {
+      "name": "Crisaborole",
+      "pathway_score": 0.7,
+      "geometry_score": 0.7130000000000001,
+      "combined_score": 0.49910000000000004,
+      "mechanism": "transduction_block"
+    },
+    {
+      "name": "Nemolizumab",
+      "pathway_score": 0.9,
+      "geometry_score": 0.662625,
+      "combined_score": 0.5963625,
+      "mechanism": "receptor_block"
+    }
+  ],
+  "matrix_chronic_scores": [
+    {
+      "name": "Rapamycin",
+      "pathway_score": 0.85,
+      "geometry_score": 0.74431907,
+      "combined_score": 0.6326712095,
+      "mechanism": "transduction_block"
+    },
+    {
+      "name": "Tofacitinib",
+      "pathway_score": 0.92,
+      "geometry_score": 0.74476756,
+      "combined_score": 0.6851861552,
+      "mechanism": "transduction_block"
+    },
+    {
+      "name": "Tanezumab",
+      "pathway_score": 0.78,
+      "geometry_score": 0.63474,
+      "combined_score": 0.4950972,
+      "mechanism": "signal_elimination"
+    },
+    {
+      "name": "Trametinib",
+      "pathway_score": 0.65,
+      "geometry_score": 0.744541825,
+      "combined_score": 0.48395218624999997,
+      "mechanism": "transduction_block"
+    },
+    {
+      "name": "Crisaborole",
+      "pathway_score": 0.7,
+      "geometry_score": 0.7301,
+      "combined_score": 0.5110699999999999,
+      "mechanism": "transduction_block"
+    },
+    {
+      "name": "Nemolizumab",
+      "pathway_score": 0.9,
+      "geometry_score": 0.636975,
+      "combined_score": 0.5732775,
+      "mechanism": "receptor_block"
+    }
+  ],
+  "geom_tofa_vs_nemo": {
+    "tofa": 0.7747582000000001,
+    "nemo": 0.662625
+  },
+  "matrix_flare_ranking": [
+    "Tofacitinib",
+    "Rapamycin",
+    "Nemolizumab",
+    "Tanezumab",
+    "Trametinib",
+    "Crisaborole"
+  ],
+  "crisaborole_breach_effect": {
+    "flare": 0.7130000000000001,
+    "chronic": 0.7301
+  },
+  "trametinib_rank": 5,
+  "integrated_tofa": {
+    "dose_response_100nm": 0.9090909090909091,
+    "matrix_score": 0.712777544,
+    "integrated": 0.6479795854545455
+  },
+  "_provenance": {
+    "date": "2026-03-02",
+    "python": "3.10.12 (main, Jan 26 2026, 14:55:28) [GCC 11.4.0]",
+    "numpy": "2.1.3"
+  }
+}

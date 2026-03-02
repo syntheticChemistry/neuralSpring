@@ -252,7 +252,12 @@ pub fn pearson_correlation_gpu(
 
 /// GPU chi-squared statistic: sum((observed - expected)^2 / expected).
 ///
-/// Replaces `pangenome_selection::spectrum_chi_squared`.
+/// Delegates to `barracuda::ops::fused_chi_squared_f64::FusedChiSquaredGpu`
+/// (f64 precision, single-dispatch WGSL shader). Origin: neuralSpring
+/// `chi_squared_f64.wgsl` → `ToadStool` S76 absorption → `FusedChiSquaredGpu`.
+///
+/// Cross-spring: hotSpring precision infrastructure (f64 shader compilation
+/// pipeline) + neuralSpring domain shader → fused upstream op.
 ///
 /// # Errors
 ///
@@ -262,69 +267,36 @@ pub fn chi_squared_gpu(
     expected: &[f64],
     device: &Arc<WgpuDevice>,
 ) -> Result<f64, String> {
-    let n = observed.len();
-    let obs_f32: Vec<f32> = observed.iter().map(|&x| x as f32).collect();
-    let guard = crate::tolerances::LOG_ZERO_GUARD as f32;
-    let exp_f32: Vec<f32> = expected.iter().map(|&x| (x as f32).max(guard)).collect();
+    use barracuda::ops::fused_chi_squared_f64::FusedChiSquaredGpu;
 
-    let obs_t = Tensor::from_data(&obs_f32, vec![n], device.clone())
-        .map_err(|e| format!("chi2 obs: {e}"))?;
-    let exp_t = Tensor::from_data(&exp_f32, vec![n], device.clone())
-        .map_err(|e| format!("chi2 exp: {e}"))?;
-
-    let diff = obs_t.sub(&exp_t).map_err(|e| format!("chi2 sub: {e}"))?;
-    let sq = diff.mul(&diff).map_err(|e| format!("chi2 sq: {e}"))?;
-
-    let sq_vals = sq.to_vec().map_err(|e| format!("chi2 sq_read: {e}"))?;
-    let ratio_vals: Vec<f32> = sq_vals
-        .iter()
-        .zip(exp_f32.iter())
-        .map(|(&s, &e)| s / e)
-        .collect();
-
-    let ratio_t = Tensor::from_data(&ratio_vals, vec![n], device.clone())
-        .map_err(|e| format!("chi2 ratio: {e}"))?;
-
-    let result = ratio_t
-        .sum()
-        .map_err(|e| format!("chi2 sum: {e}"))?
-        .to_vec()
-        .map_err(|e| format!("chi2 read: {e}"))?;
-
-    Ok(f64::from(result[0]))
+    FusedChiSquaredGpu::execute(device.clone(), observed, expected)
+        .map(|r| r.statistic)
+        .map_err(|e| format!("chi_squared_gpu: {e}"))
 }
 
 /// GPU KL divergence: sum(p * ln(p/q)).
 ///
-/// Replaces `counterdiabatic::kl_divergence`.
+/// Delegates to `barracuda::ops::fused_kl_divergence_f64::FusedKlDivergenceGpu`
+/// (f64 precision, single-dispatch WGSL shader). Origin: neuralSpring
+/// `kl_divergence_f64.wgsl` → `ToadStool` S76 absorption → `FusedKlDivergenceGpu`.
+///
+/// Cross-spring: neuralSpring domain shader → hotSpring f64 compilation
+/// infrastructure → fused upstream op consumed by all Springs.
+///
+/// Normalizes inputs to probability distributions before dispatch to
+/// maintain backward compatibility with the original CPU path.
 ///
 /// # Errors
 ///
 /// Returns an error if GPU operations fail.
 pub fn kl_divergence_gpu(p: &[f64], q: &[f64], device: &Arc<WgpuDevice>) -> Result<f64, String> {
-    let n = p.len();
-    let guard = crate::primitives::LOG_GUARD;
+    use barracuda::ops::fused_kl_divergence_f64::FusedKlDivergenceGpu;
+
     let p_sum: f64 = p.iter().sum();
     let q_sum: f64 = q.iter().sum();
+    let p_norm: Vec<f64> = p.iter().map(|&x| x / p_sum).collect();
+    let q_norm: Vec<f64> = q.iter().map(|&x| x / q_sum).collect();
 
-    let log_ratios: Vec<f32> = p
-        .iter()
-        .zip(q.iter())
-        .map(|(&pi, &qi)| {
-            let pi_n = (pi / p_sum).max(guard);
-            let qi_n = (qi / q_sum).max(guard);
-            (pi_n * (pi_n / qi_n).ln()) as f32
-        })
-        .collect();
-
-    let t = Tensor::from_data(&log_ratios, vec![n], device.clone())
-        .map_err(|e| format!("kl upload: {e}"))?;
-
-    let result = t
-        .sum()
-        .map_err(|e| format!("kl sum: {e}"))?
-        .to_vec()
-        .map_err(|e| format!("kl read: {e}"))?;
-
-    Ok(f64::from(result[0]))
+    FusedKlDivergenceGpu::execute(device.clone(), &p_norm, &q_norm)
+        .map_err(|e| format!("kl_divergence_gpu: {e}"))
 }

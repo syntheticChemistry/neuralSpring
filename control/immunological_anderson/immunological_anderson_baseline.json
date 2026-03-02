@@ -1,0 +1,132 @@
+{
+  "_source": "baseCamp Paper 12: Anderson Immunological Signaling",
+  "_citation": "Gonzales et al. (2013-2024), Fajgenbaum et al. (2019)",
+  "_method": "Anderson localization framework for cytokine signaling",
+  "seed": 42,
+  "gonzales_ic50": {
+    "JAK1": 10.0,
+    "IL2": 36.0,
+    "IL4": 159.0,
+    "IL6": 36.0,
+    "IL13": 249.0,
+    "IL31": 63.0
+  },
+  "lokivetmab_pk": [
+    {
+      "dose_mg_kg": 0.125,
+      "onset_hr": 3.0,
+      "duration_days": 14.0
+    },
+    {
+      "dose_mg_kg": 0.5,
+      "onset_hr": 3.0,
+      "duration_days": 28.0
+    },
+    {
+      "dose_mg_kg": 2.0,
+      "onset_hr": 3.0,
+      "duration_days": 42.0
+    }
+  ],
+  "skin_layers": [
+    {
+      "name": "stratum_corneum",
+      "d_eff": 0.0,
+      "acellular": true
+    },
+    {
+      "name": "viable_epidermis",
+      "d_eff": 2.25,
+      "acellular": false
+    },
+    {
+      "name": "basement_membrane",
+      "d_eff": 2.0,
+      "acellular": true
+    },
+    {
+      "name": "papillary_dermis",
+      "d_eff": 3.0,
+      "acellular": false
+    },
+    {
+      "name": "reticular_dermis",
+      "d_eff": 3.0,
+      "acellular": false
+    }
+  ],
+  "r_goe": 0.5307,
+  "pielou_even": 1.0,
+  "pielou_dominated": 0.12097036642660546,
+  "ic50_half": 0.5,
+  "ic50_10x": 0.9090909090909091,
+  "dim_intact": 2.0,
+  "dim_breached": 3.0,
+  "classify_healthy": "healthy",
+  "classify_chronic": "chronic",
+  "classify_flare": "flare",
+  "classify_treated": "treated",
+  "geom_systemic_small": 0.9997,
+  "geom_topical_large": 0.1,
+  "lokivetmab_durations": [
+    14.0,
+    28.0,
+    42.0
+  ],
+  "drug_score": {
+    "pathway": 0.95,
+    "geometry": 0.9,
+    "combined": 0.855
+  },
+  "ic50_sweep": {
+    "concentrations_nm": [
+      1.0,
+      5.0,
+      10.0,
+      50.0,
+      100.0,
+      500.0
+    ],
+    "w_reductions": [
+      0.09090909090909091,
+      0.3333333333333333,
+      0.5,
+      0.8333333333333334,
+      0.9090909090909091,
+      0.9803921568627451
+    ]
+  },
+  "breach_sweep": {
+    "intact_fractions": [
+      1.0,
+      0.8,
+      0.6,
+      0.4,
+      0.2,
+      0.0
+    ],
+    "d_effs": [
+      2.0,
+      2.2,
+      2.4,
+      2.6,
+      2.8,
+      3.0
+    ]
+  },
+  "pielou_healthy_dermis": 0.6984236824834245,
+  "pielou_inflamed_dermis": 0.9746749221601895,
+  "cross_species": {
+    "canine_d_eff": 2.3,
+    "human_d_eff": 2.1
+  },
+  "topical_breach_effect": {
+    "intact": 0.8,
+    "breached": 0.9500000000000001
+  },
+  "_provenance": {
+    "date": "2026-03-02",
+    "python": "3.10.12 (main, Jan 26 2026, 14:55:28) [GCC 11.4.0]",
+    "numpy": "2.1.3"
+  }
+}

@@ -30,7 +30,7 @@ use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::gpu_ops;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{exit_no_gpu, ValidationHarness};
 use neural_spring::weight_spectral;
 use neural_spring_forge::mixed::MixedSubstrate;
 use std::sync::Arc;
@@ -48,10 +48,7 @@ async fn main() {
             );
             g
         }
-        Err(e) => {
-            eprintln!("No GPU available ({e}), skipping");
-            h.finish();
-        }
+        Err(_) => exit_no_gpu(),
     };
 
     let dev = Arc::clone(gpu.wgpu_device());

@@ -3,7 +3,7 @@
 //! biomeOS Integration Validator: neuralSpring Spectral Capabilities
 //!
 //! Validates end-to-end biomeOS capability routing by:
-//!   1. Starting the neuralspring_primal JSON-RPC server
+//!   1. Starting the `neuralspring_primal` JSON-RPC server
 //!   2. Calling each capability via the Unix socket
 //!   3. Comparing results to direct Rust function calls (CPU reference)
 //!   4. Verifying JSON-RPC protocol compliance
@@ -11,7 +11,19 @@
 //! This proves neuralSpring's spectral analysis is accessible through
 //! the biomeOS capability routing infrastructure.
 
-#![allow(clippy::pedantic, clippy::nursery, clippy::unwrap_used)]
+#![allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_lossless,
+    clippy::too_many_lines,
+    clippy::similar_names,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::suboptimal_flops,
+    clippy::option_if_let_else
+)]
 
 use std::path::PathBuf;
 use std::time::Duration;
@@ -109,14 +121,15 @@ async fn main() {
     }
 
     let primal_bin = match std::env::current_exe() {
-        Ok(exe) => match exe.parent() {
-            Some(dir) => dir.join("neuralspring_primal"),
-            None => {
+        Ok(exe) => {
+            if let Some(dir) = exe.parent() {
+                dir.join("neuralspring_primal")
+            } else {
                 eprintln!("  current_exe has no parent directory");
                 h.check_abs("setup.primal_bin", 0.0, 1.0, 0.5);
                 h.finish();
             }
-        },
+        }
         Err(e) => {
             eprintln!("  Failed to resolve current_exe: {e}");
             h.check_abs("setup.primal_bin", 0.0, 1.0, 0.5);
@@ -185,8 +198,7 @@ async fn main() {
             let caps = val
                 .get("capabilities")
                 .and_then(|v| v.as_array())
-                .map(|a| a.len())
-                .unwrap_or(0);
+                .map_or(0, std::vec::Vec::len);
             h.check_abs(
                 "health.capabilities count >= 7",
                 if caps >= 7 { 1.0 } else { 0.0 },
@@ -216,7 +228,10 @@ async fn main() {
 
     match rpc_result {
         Ok(val) => {
-            let rpc_ipr = val.get("ipr").and_then(|v| v.as_f64()).unwrap_or(f64::NAN);
+            let rpc_ipr = val
+                .get("ipr")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(f64::NAN);
             h.check_abs(
                 "science.ipr parity",
                 rpc_ipr,
@@ -294,13 +309,16 @@ async fn main() {
                 .unwrap_or_default();
             h.check_abs("spectral.eigenvalue_count", evals.len() as f64, 16.0, 0.5);
 
-            let ipr_val = val.get("mean_ipr").and_then(|v| v.as_f64()).unwrap_or(0.0);
+            let ipr_val = val
+                .get("mean_ipr")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(0.0);
             let ipr_above_zero = if ipr_val > 0.0 { 1.0 } else { 0.0 };
             h.check_abs("spectral.ipr > 0", ipr_above_zero, 1.0, 0.5);
 
             let lsr = val
                 .get("level_spacing_ratio")
-                .and_then(|v| v.as_f64())
+                .and_then(serde_json::Value::as_f64)
                 .unwrap_or(0.0);
             let lsr_valid = if (0.0..=1.0).contains(&lsr) { 1.0 } else { 0.0 };
             h.check_abs("spectral.lsr in [0,1]", lsr_valid, 1.0, 0.5);
@@ -335,7 +353,7 @@ async fn main() {
 
                 let iprs: Vec<f64> = r
                     .iter()
-                    .filter_map(|v| v.get("mean_ipr").and_then(|x| x.as_f64()))
+                    .filter_map(|v| v.get("mean_ipr").and_then(serde_json::Value::as_f64))
                     .collect();
 
                 if iprs.len() == 3 {
@@ -389,7 +407,10 @@ async fn main() {
                 }
             }
 
-            let trace = val.get("trace").and_then(|v| v.as_f64()).unwrap_or(0.0);
+            let trace = val
+                .get("trace")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(0.0);
             h.check_abs("hessian.trace", trace, 55.0, tolerances::CROSS_LANGUAGE);
         }
         Err(e) => {
@@ -424,12 +445,12 @@ async fn main() {
                 for entry in r {
                     let ipr = entry
                         .get("mean_ipr")
-                        .and_then(|v| v.as_f64())
+                        .and_then(serde_json::Value::as_f64)
                         .unwrap_or(-1.0);
                     let ipr_valid = if ipr > 0.0 { 1.0 } else { 0.0 };
                     let w = entry
                         .get("disorder")
-                        .and_then(|v| v.as_f64())
+                        .and_then(serde_json::Value::as_f64)
                         .unwrap_or(-1.0);
                     h.check_abs(&format!("coordination.ipr[W={w}] > 0"), ipr_valid, 1.0, 0.5);
                 }
@@ -463,7 +484,7 @@ async fn main() {
                 let first_ipr = t
                     .first()
                     .and_then(|v| v.get("mean_ipr"))
-                    .and_then(|v| v.as_f64())
+                    .and_then(serde_json::Value::as_f64)
                     .unwrap_or(0.0);
                 let first_valid = if first_ipr > 0.0 { 1.0 } else { 0.0 };
                 h.check_abs("trajectory.first_ipr > 0", first_valid, 1.0, 0.5);

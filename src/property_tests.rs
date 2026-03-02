@@ -304,3 +304,182 @@ fn random_distribution(n: usize, rng: &mut Rng) -> Vec<f64> {
     let sum: f64 = raw.iter().sum();
     raw.iter().map(|x| x / sum).collect()
 }
+
+// ── GELU monotonicity (for x > 0) ──────────────────────────────────
+
+#[test]
+fn gelu_monotone_for_positive_inputs() {
+    let mut rng = Rng::new(1015);
+    for _ in 0..N_TRIALS {
+        let x1 = rng.uniform() * 10.0;
+        let x2 = rng.uniform().mul_add(5.0, x1);
+        let g1 = transformer::gelu(x1);
+        let g2 = transformer::gelu(x2);
+        assert!(
+            g2 >= g1 - tolerances::EXACT_F64,
+            "GELU not monotone: gelu({x1})={g1} > gelu({x2})={g2}"
+        );
+    }
+}
+
+// ── Layer norm invariant: zero mean, unit variance ──────────────────
+
+#[test]
+fn layer_norm_zero_mean_unit_var() {
+    use crate::coral_forge::layer_norm;
+    let mut rng = Rng::new(1016);
+    for _ in 0..N_TRIALS {
+        let dim = 4 + rng.usize(50);
+        let rows = 1;
+        let input: Vec<f64> = (0..dim).map(|_| rng.normal_params(5.0, 3.0)).collect();
+        let gamma = vec![1.0; dim];
+        let beta = vec![0.0; dim];
+        let normed = layer_norm(&input, rows, dim, &gamma, &beta, 1e-5);
+        #[allow(clippy::cast_precision_loss)]
+        let d = dim as f64;
+        let mean: f64 = normed.iter().sum::<f64>() / d;
+        let var: f64 = normed.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / d;
+        assert!(mean.abs() < 0.01, "layer_norm mean = {mean} (should be ~0)");
+        assert!(
+            (var - 1.0).abs() < 0.05,
+            "layer_norm var = {var} (should be ~1)"
+        );
+    }
+}
+
+// ── Shannon entropy non-negativity ──────────────────────────────────
+
+#[test]
+fn shannon_entropy_always_nonnegative() {
+    let mut rng = Rng::new(1017);
+    for _ in 0..N_TRIALS {
+        let len = 2 + rng.usize(10);
+        let data: Vec<f64> = (0..len).map(|_| rng.uniform().max(1e-12)).collect();
+        let h = primitives::shannon_entropy(&data);
+        assert!(h >= -tolerances::EXACT_F64, "entropy = {h} < 0");
+    }
+}
+
+// ── Hill activation bounded in [0, vmax] ────────────────────────────
+
+#[test]
+fn hill_activation_bounded() {
+    let mut rng = Rng::new(1018);
+    for _ in 0..N_TRIALS {
+        let x = rng.uniform() * 10.0;
+        let vmax = rng.uniform().mul_add(5.0, 1.0);
+        let k = rng.uniform().mul_add(2.0, 0.1);
+        let n = rng.uniform().mul_add(4.0, 1.0);
+        let h = primitives::hill_activation(x, vmax, k, n);
+        assert!(
+            h >= -tolerances::EXACT_F64 && h <= vmax + tolerances::EXACT_F64,
+            "hill({x}, vmax={vmax}, k={k}, n={n}) = {h} outside [0, {vmax}]"
+        );
+    }
+}
+
+// ── FFT energy invariants ────────────────────────────────────────────
+
+#[test]
+fn fft_energy_nonnegative_sweep() {
+    use crate::fft;
+    let mut rng = Rng::new(1019);
+    for _ in 0..N_TRIALS {
+        let n = 4 + rng.usize(60);
+        let signal: Vec<f64> = (0..n * 2).map(|_| rng.normal()).collect();
+        let energy = fft::complex_energy_f64(&signal);
+        assert!(energy >= 0.0, "complex energy must be nonneg, got {energy}");
+    }
+}
+
+#[test]
+fn fft_cosine_signal_has_bounded_energy() {
+    use crate::fft;
+    for n in [8, 16, 32, 64] {
+        for freq in 1..n / 2 {
+            let signal = fft::cosine_signal_f64(n, freq);
+            let energy = fft::complex_energy_f64(&signal);
+            assert!(
+                energy.is_finite(),
+                "cosine(n={n}, freq={freq}) energy not finite"
+            );
+        }
+    }
+}
+
+// ── Chaos / fault injection: numerical stability under extreme inputs ─
+
+#[test]
+fn softmax_stable_with_large_inputs() {
+    let large: Vec<f64> = vec![1e10, 1e10 + 1.0, 1e10 - 1.0];
+    let sm = transformer::softmax(&large);
+    let sum: f64 = sm.iter().sum();
+    assert!(
+        (sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
+        "softmax unstable with large inputs: sum = {sum}"
+    );
+    assert!(
+        sm.iter().all(|v| v.is_finite()),
+        "softmax produced non-finite values"
+    );
+}
+
+#[test]
+fn softmax_stable_with_extreme_negative() {
+    let extreme: Vec<f64> = vec![-1e15, -1e15, -1e15];
+    let sm = transformer::softmax(&extreme);
+    let sum: f64 = sm.iter().sum();
+    assert!(
+        (sum - 1.0).abs() < tolerances::CROSS_LANGUAGE,
+        "softmax unstable with extreme negatives: sum = {sum}"
+    );
+}
+
+#[test]
+fn sigmoid_stable_at_extremes() {
+    assert!((primitives::sigmoid(1e10) - 1.0).abs() < tolerances::EXACT_F64);
+    assert!(primitives::sigmoid(-1e10).abs() < tolerances::EXACT_F64);
+    assert!((primitives::sigmoid(0.0) - 0.5).abs() < tolerances::EXACT_F64);
+}
+
+#[test]
+fn gelu_finite_for_extreme_inputs() {
+    for &x in &[-1e10, -1e5, 0.0, 1e5, 1e10] {
+        let g = transformer::gelu(x);
+        assert!(g.is_finite(), "gelu({x}) = {g} is not finite");
+    }
+}
+
+#[test]
+fn eigh_stable_with_near_singular_matrix() {
+    let n = 5;
+    let mut mat = vec![0.0; n * n];
+    for i in 0..n {
+        #[allow(clippy::cast_precision_loss)]
+        let scale = (i + 1) as f64;
+        mat[i * n + i] = 1e-15 * scale;
+    }
+    let result = eigh::eigh_householder_qr(&mat, n);
+    assert_eq!(result.eigenvalues.len(), n);
+    for ev in &result.eigenvalues {
+        assert!(
+            ev.is_finite(),
+            "eigenvalue not finite for near-singular matrix"
+        );
+    }
+}
+
+#[test]
+fn hmm_forward_stable_with_near_zero_emissions() {
+    let hmm = Hmm::new(
+        vec![vec![0.5, 0.5], vec![0.5, 0.5]],
+        vec![vec![1e-300, 1.0 - 1e-300], vec![1.0 - 1e-300, 1e-300]],
+        vec![0.5, 0.5],
+    );
+    let obs = &[0, 1, 0, 1];
+    let (_, log_lik) = hmm.forward(obs);
+    assert!(
+        log_lik.is_finite(),
+        "HMM forward unstable: log_lik = {log_lik}"
+    );
+}

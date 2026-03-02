@@ -22,7 +22,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::gpu_ops;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{exit_no_gpu, ValidationHarness};
 use std::sync::Arc;
 
 #[tokio::main]
@@ -37,10 +37,7 @@ async fn main() {
             );
             g
         }
-        Err(e) => {
-            eprintln!("No GPU available ({e}), skipping GPU validation");
-            h.finish();
-        }
+        Err(_) => exit_no_gpu(),
     };
     let dev = Arc::clone(gpu.wgpu_device());
 

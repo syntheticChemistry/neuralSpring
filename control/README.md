@@ -62,8 +62,9 @@ python3 control/surrogate/surrogate_validation.py
 | `coral_forge/` | nF-01/02/03: coralForge structure prediction | AlphaFold2/3 | 106 |
 | `shared/` | Open-Meteo ERA5 fetch/cache | CC BY 4.0 | — |
 | `ml_inference/` | Benchmark + baseline generation | Scaling analysis | — |
+| `immunological_anderson/` | nS-06: Immunological Anderson | Gonzales, Fajgenbaum, McCandless | 48 |
 
-**Total: 369/369 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 27 WDM + 106 coralForge)
+**Total: 417/417 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 27 WDM + 106 coralForge + 48 nS-06)
 
 ## Data Sources
 

@@ -289,7 +289,13 @@ pub fn handle_gpu_dispatch(
 ) -> JsonRpcResponse {
     let op = match params.get("op").and_then(|v| v.as_str()) {
         Some(o) => o,
-        None => return JsonRpcResponse::error(id, -32602, "Missing 'op' parameter".into()),
+        None => {
+            return JsonRpcResponse::error(
+                id,
+                super::rpc_error::INVALID_PARAMS,
+                "Missing 'op' parameter".into(),
+            )
+        }
     };
 
     match op {
@@ -298,7 +304,11 @@ pub fn handle_gpu_dispatch(
         "mean" => dispatch_mean(id, params, state),
         "variance" => dispatch_variance(id, params, state),
         "eigh" => dispatch_eigh(id, params, state),
-        _ => JsonRpcResponse::error(id, -32602, format!("Unknown dispatch op: {op}")),
+        _ => JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            format!("Unknown dispatch op: {op}"),
+        ),
     }
 }
 
@@ -310,14 +320,26 @@ fn dispatch_mat_mul(
     state: &PrimalState,
 ) -> JsonRpcResponse {
     let Some(a) = extract_f64_vec(params, "a") else {
-        return JsonRpcResponse::error(id, -32602, "Missing 'a' parameter".into());
+        return JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            "Missing 'a' parameter".into(),
+        );
     };
     let Some(b) = extract_f64_vec(params, "b") else {
-        return JsonRpcResponse::error(id, -32602, "Missing 'b' parameter".into());
+        return JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            "Missing 'b' parameter".into(),
+        );
     };
     let n = p_usize(params, "n", 0);
     if n == 0 || a.len() != n * n || b.len() != n * n {
-        return JsonRpcResponse::error(id, -32602, "Invalid matrix dimensions".into());
+        return JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            "Invalid matrix dimensions".into(),
+        );
     }
     let result = state.dispatcher.mat_mul(&a, &b, n);
     JsonRpcResponse::success(
@@ -332,7 +354,11 @@ fn dispatch_softmax(
     state: &PrimalState,
 ) -> JsonRpcResponse {
     let Some(x) = extract_f64_vec(params, "x") else {
-        return JsonRpcResponse::error(id, -32602, "Missing 'x' parameter".into());
+        return JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            "Missing 'x' parameter".into(),
+        );
     };
     let result = state.dispatcher.softmax(&x);
     JsonRpcResponse::success(
@@ -347,7 +373,11 @@ fn dispatch_mean(
     state: &PrimalState,
 ) -> JsonRpcResponse {
     let Some(data) = extract_f64_vec(params, "data") else {
-        return JsonRpcResponse::error(id, -32602, "Missing 'data' parameter".into());
+        return JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            "Missing 'data' parameter".into(),
+        );
     };
     let result = state.dispatcher.mean(&data);
     JsonRpcResponse::success(
@@ -362,7 +392,11 @@ fn dispatch_variance(
     state: &PrimalState,
 ) -> JsonRpcResponse {
     let Some(data) = extract_f64_vec(params, "data") else {
-        return JsonRpcResponse::error(id, -32602, "Missing 'data' parameter".into());
+        return JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            "Missing 'data' parameter".into(),
+        );
     };
     let result = state.dispatcher.variance(&data);
     JsonRpcResponse::success(
@@ -377,11 +411,19 @@ fn dispatch_eigh(
     state: &PrimalState,
 ) -> JsonRpcResponse {
     let Some(a) = extract_f64_vec(params, "a") else {
-        return JsonRpcResponse::error(id, -32602, "Missing 'a' parameter".into());
+        return JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            "Missing 'a' parameter".into(),
+        );
     };
     let n = p_usize(params, "n", 0);
     if n == 0 || a.len() != n * n {
-        return JsonRpcResponse::error(id, -32602, "Invalid matrix dimensions".into());
+        return JsonRpcResponse::error(
+            id,
+            super::rpc_error::INVALID_PARAMS,
+            "Invalid matrix dimensions".into(),
+        );
     }
     let (eigenvalues, _eigenvectors) = state.dispatcher.eigh(&a, n);
     JsonRpcResponse::success(

@@ -10,7 +10,7 @@ impl Dispatcher {
     pub fn mat_mul(&self, a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
         barracuda::dispatch::matmul_dispatch(a, b, n, n, n, self.wgpu_device()).unwrap_or_else(
             |e| {
-                eprintln!("[dispatch] mat_mul upstream failed: {e}");
+                log::warn!("mat_mul upstream failed: {e}");
                 crate::spectral_commutativity::mat_mul(a, b, n)
             },
         )
@@ -20,7 +20,7 @@ impl Dispatcher {
     #[must_use]
     pub fn frobenius_norm(&self, a: &[f64]) -> f64 {
         barracuda::dispatch::frobenius_norm_dispatch(a, self.wgpu_device()).unwrap_or_else(|e| {
-            eprintln!("[dispatch] frobenius_norm upstream failed: {e}");
+            log::warn!("frobenius_norm upstream failed: {e}");
             crate::spectral_commutativity::frobenius_norm(a)
         })
     }
@@ -29,7 +29,7 @@ impl Dispatcher {
     #[must_use]
     pub fn transpose(&self, a: &[f64], n: usize) -> Vec<f64> {
         barracuda::dispatch::transpose_dispatch(a, n, n, self.wgpu_device()).unwrap_or_else(|e| {
-            eprintln!("[dispatch] transpose upstream failed: {e}");
+            log::warn!("transpose upstream failed: {e}");
             crate::spectral_commutativity::transpose(a, n)
         })
     }

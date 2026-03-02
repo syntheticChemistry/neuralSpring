@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: March 1, 2026 (Sessions 49–102 — S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS. S101: ToadStool S71 pin bump, GPU stats parity, 2 upstream shader bugs; 220 binaries, 753 lib tests, **200/200 validate\_all**, zero clippy, 3590+ checks)
+**Date**: March 2, 2026 (Sessions 49–104b — S104b: Complete ToadStool f97fc2ae rewire. `FusedChiSquaredGpu` + `FusedKlDivergenceGpu` (neuralSpring→ToadStool→back), `spectral_bandwidth`/`spectral_condition_number` upstream delegates, 12 `include_str!`→forge constants, `Fp64Strategy::Concurrent` handling. Cross-spring provenance mapped; **221 binaries, 788 lib tests, 19/19 S79 validator**, zero clippy, 3,600+ checks, 15 core rewired functions)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -55,6 +55,9 @@ explorations test that argument in the AI domain:
   models — convergent inference algorithms.
 - **Sub-thesis 05**: Multi-agent AI coordination exhibits QS phase
   transitions — convergent coordination strategies across biology and AI.
+- **Sub-thesis 06**: Immunological cytokine signaling follows Anderson
+  physics — cytokine propagation in tissue obeys the same dimensional
+  rules as microbial QS, enabling geometry-aware drug repurposing.
 
 ```
                     Main Thesis
@@ -70,9 +73,9 @@ explorations test that argument in the AI domain:
       Spring Papers    baseCamp Papers
       (reproduce)      (explore)
                             |
-               +----+----+----+----+
-               |    |    |    |    |
-             nS01 nS02 nS03 nS04 nS05
+               +----+----+----+----+----+
+               |    |    |    |    |    |
+             nS01 nS02 nS03 nS04 nS05 nS06
 ```
 
 Spring papers reproduce published work to validate the infrastructure.
@@ -87,6 +90,7 @@ baseCamp papers use that validated infrastructure to explore new science.
 | 03 | [Loss Landscapes as Energy Landscapes](sub03_loss_landscapes.md) | Chemical physics x Optimization | 3 | 5 | `rk45_adaptive.wgsl`, `eigh_f64` |
 | 04 | [Neural Networks as Probabilistic Graphical Models](sub04_neural_pgm.md) | Bayesian inference x Interpretability | 3 | 6 | `hmm.rs`, `introgression.rs` |
 | 05 | [Multi-Agent AI Coordination as Quorum Sensing](sub05_multiagent_qs.md) | Microbial ecology x Multi-agent AI | 3 | 5 | `anderson_localization.rs`, `game_theory.rs` |
+| 06 | [Anderson Localization in Immunological Signaling](sub06_immunological_anderson.md) | Immunology x condensed matter x drug repurposing | 6 | 0 (proposed) | `wdm_esn.rs`, `training_monitor.rs` |
 
 ## What Makes This Novel
 
@@ -100,8 +104,11 @@ baseCamp papers use that validated infrastructure to explore new science.
   to detect "knowledge transfer" between neural network layers (Sub-thesis 04)
 - **Nobody has applied the Anderson QS framework to multi-agent AI
   coordination** (Sub-thesis 05)
+- **Nobody has applied Anderson localization to cytokine signal
+  propagation in tissue** or added spatial geometry to drug repurposing
+  scoring (Sub-thesis 06)
 
-All five use primitives neuralSpring has already validated at 3162+ checks
+All six use primitives neuralSpring has already validated at 3590+ checks
 across 25 papers + 5 WDM surrogates + 3 publication experiments + sovereign
 folding (nF-01, nF-02). The extensions require composition, not new math.
 
@@ -116,8 +123,9 @@ Each neuralSpring sub-thesis connects directly to gen3 baseCamp sub-theses:
 | 03 (Loss Landscapes) | gen3 07 (Sovereign WDM) | RK45, Hessian, Boltzmann |
 | 04 (Neural PGM) | gen3 02 (LTEE), gen3 05 (Cross-species) | HMM, introgression, PhyloNet-HMM |
 | 05 (Multi-Agent QS) | gen3 01 (Anderson QS), gen3 03 (Bioag) | Anderson, game theory, Wright-Fisher |
+| 06 (Immunological Anderson) | gen3 01 (Anderson QS), gen3 05 (Cross-species), gen3 06 (No-till) | Anderson, ESN, LSTM, KL divergence |
 
-### Implementation Status (Sessions 50–55, hardened 61–85)
+### Implementation Status (Sessions 50–55, hardened 61–85, expanded S105)
 
 All 5 sub-theses have core Rust modules implemented and validated at CPU,
 GPU, and mixed-hardware tiers:
@@ -129,10 +137,11 @@ GPU, and mixed-hardware tiers:
 | 03 | `src/loss_landscape.rs` | 27/27 | — | **PASS** |
 | 04 | `src/neural_pgm.rs` | 21/21 | — | **PASS** |
 | 05 | `src/agent_coordination.rs` | 23/23 | — | **PASS** |
+| 06 | `src/wdm_esn.rs`, `src/training_monitor.rs` | 0/0 | — | **Proposal** (primitives ready) |
 | — | `validate_basecamp_gpu` | — | 14/14 | **PASS** |
 | — | `validate_compute_dispatch` | 16/16 | — | **PASS** |
 | — | `validate_mixed_hardware` | 14/14 | — | **PASS** |
-| **Total** | **5 modules + 3 validators** | **114+30** | **14** | **128/128 PASS** |
+| **Total** | **7 modules + 3 validators** | **114+30** | **14** | **128/128 PASS** + nS06 proposed |
 
 Session 54 expanded experiments (82→114 CPU checks, nS-103..505).
 Session 55 added CPU↔GPU dispatch parity and metalForge mixed-hardware routing.
@@ -147,6 +156,8 @@ Session 55 added CPU↔GPU dispatch parity and metalForge mixed-hardware routing
 | 03 | David Wales | Cambridge (Chemistry) | Energy Landscapes for ML program |
 | 04 | Yee Whye Teh | Oxford/DeepMind | Probabilistic ML, Bayesian deep learning |
 | 05 | Emily Dolson | MSU (Computer Science) | Already validated (Papers 011-015) |
+| 06 | Andrea J. Gonzales | MSU (Pharmacology & Toxicology) | IL-31/JAK1 immunological signaling, drug repurposing |
+| 06 | David Fajgenbaum | UPenn (Medicine) / Every Cure | MATRIX drug repurposing platform, mTOR/JAK cross-talk |
 
 ## Cross-Spring Connections
 
@@ -157,6 +168,7 @@ Session 55 added CPU↔GPU dispatch parity and metalForge mixed-hardware routing
 | 03 | MD energy minimization (RK4/RK45), Boltzmann sampling | — |
 | 04 | — | HMM phylogenetics (belief propagation) |
 | 05 | — | Anderson QS dimensional analysis, Waters game theory |
+| 06 | — | Anderson QS (IPR, level spacing, 2D/3D), cytokine diffusion |
 
 ## Validated Primitive Inventory
 
@@ -176,6 +188,9 @@ All baseCamp experiments build on primitives validated at 3162+ checks:
 | `anderson_localization.rs` | 022-023 | GPU | nS01, nS05 |
 | `spectral_commutativity.rs` | 022 | GPU | nS01, nS04 |
 | `signal_integration.rs` / `HillGateGpu` | 021 | GPU | nS02 |
+| `wdm_esn.rs` / `MultiHeadWdmClassifier` | nW-05 | CPU | nS06 |
+| `training_monitor.rs` / `TrainingMonitor` | — | CPU | nS06 |
+| `gpu_dispatch::Dispatcher::kl_divergence` | all | GPU | nS06 |
 | `gpu_dispatch::Dispatcher` | all | GPU | all |
 
 ## Reading Order
@@ -187,11 +202,14 @@ All baseCamp experiments build on primitives validated at 3162+ checks:
 -> 02 (information flow)
 
 **For a biologist**: 05 (multi-agent QS) -> 02 (biological gating
-analogy) -> 04 (knowledge transfer as introgression)
+analogy) -> 06 (immunological Anderson)
+
+**For an immunologist / pharmacologist**: 06 (immunological Anderson) ->
+05 (multi-agent QS) -> 01 (spectral foundations)
 
 **For a PhD committee**: 01 (novel contribution, strongest theoretical
 grounding) -> 04 (practical interpretability value) -> 05 (cross-domain
-bridge to wetSpring)
+bridge to wetSpring) -> 06 (translational bridge to drug repurposing)
 
 ## Data and Reproducibility
 
@@ -219,28 +237,21 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 | 3 | **02: Information Flow** | Medium | High | Deepest cross-domain connection |
 | 4 | **05: Multi-Agent QS** | Low | High | Direct wetSpring bridge |
 | 5 | **03: Loss Landscapes** | High | High | Strongest hotSpring bridge |
+| 6 | **06: Immunological Anderson** | Medium | Very High | Translational: drug repurposing + Gonzales collaboration |
 
 ---
 
-*neuralSpring baseCamp: Biophysical AI Interpretability. 5 sub-theses, 15
-grounding papers, 29 experiments (28 complete + 1 Session 61), all built on
-3162+ validated checks across 25 papers + 5 WDM surrogates + 3 publication
-experiments and 7+ scientific domains. Core primitives implemented in Sessions
-50–55, quality-hardened Sessions 61–90: 5 Rust modules, 8 validation
-binaries, 128/128 PASS (114 CPU + 14 GPU), 669 unit tests, 0 clippy
-warnings, 93.5%+ coverage, 131+ named tolerances. 42 upstream rewires to
-upstream BarraCUDA. Session 90: nF-02 AlphaFold2 full Evoformer block
-validated (Py 19/19, Rs 18/18, bC 17/17). Phase B GPU gaps closed: ODE
-batch integration 7/7, FST variance decomposition 9/9, introgression HMM
-chain 9/9. GPU coverage ~99% of production math. 179/179 validate\_all
-(4 new binaries). 36 Python baselines. Session 89: dispatch parity 30/30
-(CPU↔GPU math identical for 26 ops), mixed-hardware dispatch 47/47 (NPU
-substrate + PCIe bridge + NUCLEUS atomics), 47 GPU-promoted Dispatcher ops
-(+3: HillGateGpu, MultiObjFitnessGpu, SwarmNnGpu).
-Session 87: WDM surrogates complete (nW-01..nW-05) — MLP inference proven
-in Rust + GPU. Session 82: Titan V pure Rust pipeline validated (384/384
-GPU checks). Cross-spring evolution benchmarked: hotSpring precision,
-wetSpring bio, neuralSpring ML — all feeding ToadStool's shared math
-engine. gen3 baseCamp sub-theses 01–07 now cross-referenced with
-neuralSpring connections. No new math — only novel composition of
-validated primitives.*
+*neuralSpring baseCamp: Biophysical AI Interpretability + Translational
+Immunology. 6 sub-theses, 21 grounding papers, 29 experiments (28 complete
++ 1 Session 61) + 5 proposed (nS-601..605), all built on 3590+ validated
+checks across 25 papers + 5 WDM surrogates + 3 publication experiments
+and 7+ scientific domains. Core primitives implemented in Sessions 50–55,
+quality-hardened Sessions 61–90, extended Session 105: 7 Rust modules, 8
+validation binaries, 128/128 PASS (114 CPU + 14 GPU), 799 unit tests, 0
+clippy warnings. 42 upstream rewires to upstream BarraCUDA. Sub-thesis 06
+(Session 105): Anderson localization in immunological signaling — Gonzales
+catalog (6 papers), Fajgenbaum drug repurposing bridge, dimensional
+promotion-collapse duality with Paper 06. neuralSpring primitives ready:
+MultiHeadWdmClassifier, TrainingMonitor, Dispatcher::kl_divergence. gen3
+baseCamp sub-theses 01–07 now cross-referenced with neuralSpring
+connections. No new math — only novel composition of validated primitives.*

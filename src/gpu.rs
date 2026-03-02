@@ -138,10 +138,13 @@ impl Gpu {
             .to_ascii_lowercase();
 
         if selector == "list" {
+            // CLI escape hatch: list available GPU adapters and exit.
+            // Intentional process::exit — this is a diagnostic mode, not a
+            // library function. Callers opt in via NEURALSPRING_BACKEND=list.
             let adapters = WgpuDevice::enumerate_adapters();
             for (i, info) in adapters.iter().enumerate() {
-                eprintln!(
-                    "  [{i}] {name} ({ty:?}, {backend:?})",
+                log::info!(
+                    "[{i}] {name} ({ty:?}, {backend:?})",
                     name = info.name,
                     ty = info.device_type,
                     backend = info.backend,
@@ -622,6 +625,8 @@ pub(crate) mod tests {
     #[test]
     fn gpu_new_cpu_explicit() {
         let _lock = crate::test_gpu_lock::acquire();
+        // Tokio runtime creation is genuinely fatal: without it we cannot run async GPU init.
+        // .expect() is intentional — test harness cannot meaningfully recover from runtime failure.
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()

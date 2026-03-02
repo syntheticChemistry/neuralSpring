@@ -48,6 +48,15 @@ pub fn chi_squared(observed: &[f64], expected: &[f64]) -> f64 {
     barracuda::special::chi_squared_statistic(observed, expected).unwrap_or(0.0)
 }
 
+/// KL divergence: `sum(p * ln(p/q))`.
+///
+/// Delegates to `counterdiabatic::kl_divergence` (normalizes inputs,
+/// guards against zero). Falls back to 0.0 on empty input.
+#[must_use]
+pub fn kl_divergence(p: &[f64], q: &[f64]) -> f64 {
+    crate::counterdiabatic::kl_divergence(p, q)
+}
+
 /// HMM forward step: `alpha[j] = B[j] * sum_i(alpha_prev[i] * T[i,j])`, then normalize.
 ///
 /// Returns `(alpha_new, scale)` where `scale = sum(alpha_new)` before normalization.

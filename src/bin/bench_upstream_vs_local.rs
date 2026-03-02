@@ -88,7 +88,7 @@ async fn main() {
 
 // ─── Batch Fitness ───────────────────────────────────────────────────
 
-const FITNESS_WGSL: &str = include_str!("../../metalForge/shaders/batch_fitness_eval.wgsl");
+const FITNESS_WGSL: &str = neural_spring_forge::shaders::BATCH_FITNESS_EVAL;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -171,7 +171,7 @@ fn bench_fitness(gpu: &Gpu) -> BenchResult {
 
 // ─── Pairwise Hamming ────────────────────────────────────────────────
 
-const HAMMING_WGSL: &str = include_str!("../../metalForge/shaders/pairwise_hamming.wgsl");
+const HAMMING_WGSL: &str = neural_spring_forge::shaders::PAIRWISE_HAMMING;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -240,7 +240,7 @@ fn bench_hamming(gpu: &Gpu) -> BenchResult {
 
 // ─── Pairwise Jaccard ────────────────────────────────────────────────
 
-const JACCARD_WGSL: &str = include_str!("../../metalForge/shaders/pairwise_jaccard.wgsl");
+const JACCARD_WGSL: &str = neural_spring_forge::shaders::PAIRWISE_JACCARD;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -311,7 +311,7 @@ fn bench_jaccard(gpu: &Gpu) -> BenchResult {
 
 // ─── Locus Variance ──────────────────────────────────────────────────
 
-const LOCUS_VAR_WGSL: &str = include_str!("../../metalForge/shaders/locus_variance.wgsl");
+const LOCUS_VAR_WGSL: &str = neural_spring_forge::shaders::LOCUS_VARIANCE;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -380,7 +380,7 @@ fn bench_locus_var(gpu: &Gpu) -> BenchResult {
 
 // ─── Spatial Payoff ──────────────────────────────────────────────────
 
-const SPATIAL_WGSL: &str = include_str!("../../metalForge/shaders/spatial_payoff.wgsl");
+const SPATIAL_WGSL: &str = neural_spring_forge::shaders::SPATIAL_PAYOFF;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -457,7 +457,7 @@ fn bench_spatial(gpu: &Gpu) -> BenchResult {
 
 // ─── Batch IPR ───────────────────────────────────────────────────────
 
-const IPR_WGSL: &str = include_str!("../../metalForge/shaders/batch_ipr.wgsl");
+const IPR_WGSL: &str = neural_spring_forge::shaders::BATCH_IPR;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -525,7 +525,7 @@ fn bench_ipr(gpu: &Gpu) -> BenchResult {
 
 // ─── Hill Gate (Signal Integration 021 — wetSpring→BarraCuda lineage) ─
 
-const HILL_GATE_WGSL: &str = include_str!("../../metalForge/shaders/hill_gate.wgsl");
+const HILL_GATE_WGSL: &str = neural_spring_forge::shaders::HILL_GATE;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -636,7 +636,7 @@ fn bench_hill_gate(gpu: &Gpu) -> BenchResult {
 
 // ─── Multi-Objective Fitness (Directed Evolution 014) ────────────────
 
-const MULTI_OBJ_WGSL: &str = include_str!("../../metalForge/shaders/multi_obj_fitness.wgsl");
+const MULTI_OBJ_WGSL: &str = neural_spring_forge::shaders::MULTI_OBJ_FITNESS;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -716,7 +716,7 @@ fn bench_multi_obj(gpu: &Gpu) -> BenchResult {
 
 // ─── Pairwise L2 (MODES 012 — novelty metric) ──────────────────────
 
-const L2_WGSL: &str = include_str!("../../metalForge/shaders/pairwise_l2.wgsl");
+const L2_WGSL: &str = neural_spring_forge::shaders::PAIRWISE_L2;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -786,7 +786,7 @@ fn bench_pairwise_l2(gpu: &Gpu) -> BenchResult {
 
 // ─── Swarm NN Forward (Swarm Robotics 015) ──────────────────────────
 
-const SWARM_NN_WGSL: &str = include_str!("../../metalForge/shaders/swarm_nn_forward.wgsl");
+const SWARM_NN_WGSL: &str = neural_spring_forge::shaders::SWARM_NN_FORWARD;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]

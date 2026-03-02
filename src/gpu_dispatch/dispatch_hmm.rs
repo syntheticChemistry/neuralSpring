@@ -237,7 +237,7 @@ impl Dispatcher {
             self.wgpu_device(),
         )
         .unwrap_or_else(|e| {
-            eprintln!("[dispatch] hmm_forward_step upstream failed: {e}");
+            log::warn!("hmm_forward_step upstream failed: {e}");
             cpu_fallback::hmm_forward_step(alpha_prev, transition, emission_col, n_states)
         })
     }
