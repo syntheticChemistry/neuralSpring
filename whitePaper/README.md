@@ -3,7 +3,7 @@
 ## The Isomorphic Learning Engine
 
 **Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 38.6× faster than Python (14 domains, honest geomean), 232 binaries, **212/212 validate\_all**. coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 861 lib + 9 integration + 43 forge tests. 44 upstream rewires, 205 barracuda import files, 25+ submodules. ToadStool `2dc26792` (S87), nautilus absorbed
-**Date**: March 2, 2026 (Sessions 40–116 — S115: dispatch parity 53/53, V76 handoff)
+**Date**: March 2, 2026 (Sessions 40–117 — S117: cross-spring shader evolution 42/42 + 15/15 bench, ToadStool S87 (2dc26792), 212/212 validate_all)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–079, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V76 handoff (Session 115 — dispatch parity 53/53) |
+| `wateringHole/handoffs/` | Cross-project | V77 handoff (Session 115 — dispatch parity 53/53) |
 
 ---
 
@@ -358,4 +358,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 861 lib + 9 integration + 43 forge tests. 330 Python + 3280+ Rust/GPU = 3590+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 232 binaries, 212/212 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V76 handoff. S115: dispatch parity 53/53. S112: ToadStool S86 rewire, nautilus absorbed.*
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 44 upstream rewires, 130+ barracuda import sites. 232 binaries, 212/212 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V77 handoff. S115: dispatch parity 53/53. S112: ToadStool S86 rewire, nautilus absorbed.*

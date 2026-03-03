@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 2, 2026 (Sessions 109–115)
+**Date**: March 2, 2026 (Sessions 109–117)
 **ToadStool HEAD**: `2dc26792` (S87: ComputeDispatch 144 ops, nautilus absorbed, BatchedEncoder, fused_mlp, Nelder-Mead GPU, hydrology module split, Anderson acceleration, multi-GPU interconnect. Previous: `2fee1969` S86.)
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
@@ -936,8 +936,8 @@ Full cross-spring evolution validation and benchmarking of ToadStool S86 surface
 | validate_all | **212/212 PASS** |
 | Binaries | 232 |
 | Library tests | 861 |
-| Latest handoff | **V76** (S115) |
-| Sessions covered | 44–115 |
+| Latest handoff | **V77** (S117) |
+| Sessions covered | 44–117 |
 | Dispatch parity | 53/53 |
 | ComputeDispatch bridge | 14/14 |
 | NUCLEUS PCIe | 38/38 |

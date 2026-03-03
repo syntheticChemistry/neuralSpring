@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V76** | `handoffs/NEURALSPRING_TOADSTOOL_V76_S115_DISPATCH_PARITY_PCIE_BYPASS_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S115 full dispatch parity (53/53), ComputeDispatch bridge (14/14), NUCLEUS PCIe bypass (38/38). 210/210 validate_all, 229 binaries. Supersedes V75 |
+| **V77** | `handoffs/NEURALSPRING_TOADSTOOL_V77_S117_CROSS_SPRING_SHADER_EVOLUTION_HANDOFF_MAR02_2026.md` | Mar 2, 2026 | S116–117: cross-spring shader evolution (42/42 provenance, 15/15 bench, 5 springs → ToadStool S87), ToadStool S87 sync (18/18), absorption targets. 212/212 validate_all, 232 binaries. Supersedes V76 |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V75 + biomeOS V1). V73 (paper queue + GPU pyramid), V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark).
+Superseded handoffs: `handoffs/archive/` (V1–V76 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass).
 
 ## Conventions
 

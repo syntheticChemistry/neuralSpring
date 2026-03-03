@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 2, 2026 (Sessions 61–115)
-**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **210/210 validate\_all** (229 binaries), 861 lib tests. S115: dispatch parity 53/53. S111: 14-domain CPU benchmark (38.6× vs Python/NumPy), full 10-tier GPU pyramid validated, V76 handoff. S109: Deep debt resolution. S105: Deep Evolution + baseCamp Paper 12 (Anderson immunological signaling). MultiHeadWdmClassifier, TrainingMonitor, Dispatcher::kl_divergence. Sub-thesis 06 (B-16..B-21): Gonzales catalog + Fajgenbaum bridge + dimensional promotion-collapse duality
+**Last Updated**: March 2, 2026 (Sessions 61–117)
+**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **212/212 validate\_all** (232 binaries), 861 lib tests. S117: cross-spring shader evolution — 42/42 provenance validator (5 springs → ToadStool S87), 15/15 benchmark. S116: ToadStool S87 sync (deep debt, CPU ungating). S115: dispatch parity 53/53, ComputeDispatch bridge 14/14, NUCLEUS PCIe bypass 38/38. ToadStool HEAD: `2dc26792` (S87, 844+ WGSL shaders, 37 DF64)
 
 ## Purpose
 

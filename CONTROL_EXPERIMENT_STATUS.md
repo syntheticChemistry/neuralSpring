@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 2, 2026 (Sessions 44–116 — S116: ToadStool S87 sync (2dc26792), 212/212 validate_all, 232 binaries. S115: dispatch parity 30→53/53 (+8 bio/ODE/HMM), ComputeDispatch bridge 14/14, NUCLEUS PCIe bypass 38/38 (Tower→Node→Nest + biomeOS graph), 210/210 validate_all. S114: Pure GPU pyramid complete 13/13. S112: ToadStool S86 rewire, nautilus absorbed, 208/208 validate_all. S111: 14-domain CPU bench (38.6× vs Python), 31/31 bench PASS. S109: 861 lib tests, 90%+ coverage. S108: Deep debt execution, provenance refactored. S107: nS-06 extended. S104: 202/202 validate_all, V70 handoff)
+**Last updated**: March 2, 2026 (Sessions 44–117 — S117: cross-spring shader evolution (42/42 provenance, 15/15 bench, 5 springs → ToadStool S87). S116: ToadStool S87 sync (2dc26792), 18/18 S87-specific. S115: dispatch parity 53/53, ComputeDispatch bridge 14/14, NUCLEUS PCIe bypass 38/38 (Tower→Node→Nest + biomeOS graph). 212/212 validate_all, 232 binaries, 861 lib tests, 0 clippy)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
@@ -22,7 +22,7 @@
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero hardcoded primal names | zero unsafe | 0 clippy warnings (pedantic+nursery) | 0 doc warnings | zero inline magic numbers (139+ named tolerances) | zero bare `unwrap()` in validation code | 0 unused deps (4 removed S100) | zero mocks in production | all files < 1000 LOC | all PyTorch baselines fully seeded | barracuda usage audit complete (130+ imports, 44 rewires, zero duplicate math) | coralForge rename complete | capability-based primal discovery (S100)
 **Coverage**: 93.5%+ line coverage (llvm-cov, 861 lib tests), 139+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6% | anderson_localization expanded (+10 tests S100) | gpu_dispatch/basecamp expanded (+8 tests S100)
 **Benchmarks**: Pure Rust **38.6× faster** than Python/NumPy (geomean, **14 domains** — all 15 Phase 0++ papers; fastest 1028× multi-obj; 2 BLAS-bound domains where LAPACK beats pure Rust at 64×64 eigensolve) | CPU→GPU portability proven (9/9, 7 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | HEAD `2dc26792` (S87: +68 ComputeDispatch ops, nautilus absorbed, BatchedEncoder, hydrology module, multi-GPU interconnect) | **44 upstream rewires** + 205 barracuda import files, 25+ submodules | V76 handoff
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | HEAD `2dc26792` (S87: +68 ComputeDispatch ops, nautilus absorbed, BatchedEncoder, hydrology module, multi-GPU interconnect) | **44 upstream rewires** + 205 barracuda import files, 25+ submodules | V77 handoff
 **Cross-Spring**: 68/68 evolution checks PASS (S113) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
 
@@ -72,7 +72,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (861 lib tests + 9 integration + 43 forge tests, 229 validation binaries, 41 modules + gpu_ops/ + gpu_dispatch/)
+### Phase 1a: neuralSpring-Native Validation (861 lib tests + 9 integration + 43 forge tests, 232 validation binaries, 41 modules + gpu_ops/ + gpu_dispatch/)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|
