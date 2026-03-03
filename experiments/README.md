@@ -96,6 +96,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 082 | Session 114 — Pure GPU Pyramid Complete (15/15 Phase 0++) | Mar 2, 2026 | validate\_gpu\_pure\_workload\_all 10→13/13 PASS (+SwarmNnGpu, Rk45AdaptiveGpu, HillGateGpu). Full validation pyramid green: Py 15/15, bC CPU 31/31 (39×), bC GPU 15/15, Pure GPU 13/13, metalForge 46+47/93. 208/208 validate\_all |
 | 083 | Session 115 — CPU↔GPU Dispatch Parity + ComputeDispatch + NUCLEUS PCIe | Mar 2, 2026 | dispatch parity 30→53/53 (+8 bio/ODE/HMM ops), ComputeDispatch bridge 14/14 (Dispatcher↔barracuda::dispatch), NUCLEUS PCIe bypass 38/38 (Tower→Node→Nest + biomeOS graph). 210/210 validate\_all |
 | 084 | Session 116 — ToadStool S87 Sync (Deep Debt Evolution) | Mar 2, 2026 | S87 (`2dc26792`): deep debt, FHE shader fixes, CPU ungating, unsafe audit, gpu\_helpers refactor. 18/18 S87 sync, 844+ WGSL shaders. 211/211 validate\_all |
+| 085 | Session 117 — Cross-Spring Shader Evolution & Provenance Benchmark | Mar 2, 2026 | 42/42 cross-spring evolution validator (5 springs → ToadStool S87), 15/15 provenance bench. softmax/gelu/matmul: local CPU == barracuda::dispatch == Dispatcher GPU. 212/212 validate\_all, 232 binaries |
 
 ---
 
@@ -4347,6 +4348,61 @@ The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 
 - Dispatcher and barracuda::dispatch bridge produce identical results on S87
 - ToadStool S87: 844+ WGSL shaders (up from 692+), 37 DF64 (up from 26)
 - **211/211 validate_all PASS**, 861 lib tests, 0 clippy, 0 fmt
+
+**Status**: COMPLETE
+
+---
+
+## Experiment 085: Cross-Spring Shader Evolution & Provenance Benchmark (S117)
+
+**Date**: March 2, 2026
+**Session**: S117
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Validate and benchmark the full cross-spring evolution chain, proving that operations contributed by each spring (hotSpring precision, wetSpring bio, neuralSpring ML, groundSpring uncertainty, airSpring hydrology) converge correctly through ToadStool S87's 844+ WGSL shaders. Track provenance — when and where each operation was absorbed.
+
+**Procedure**:
+1. Surveyed rewire opportunities: local CPU refs (softmax, gelu, sigmoid, rk4_step) vs barracuda equivalents
+2. Created `validate_cross_spring_shader_evolution` — 42 checks across 5 spring origins
+3. Created `bench_cross_spring_shader_evolution` — 15 harness checks + timing for all springs
+4. Proved 3-tier parity: local CPU ref == barracuda::dispatch == Dispatcher GPU
+5. Benchmarked per-operation with provenance tracking (T0 local → T1 bc::dispatch → T2 GPU)
+6. Full quality gate: cargo fmt, clippy, 861/861 lib tests, 212/212 validate_all
+
+**Key Findings**:
+
+*neuralSpring origins*:
+- softmax: local CPU == Dispatcher == barracuda::dispatch (exact f64 parity)
+- gelu: local CPU == Dispatcher == barracuda::dispatch (exact f64 parity)
+- matmul: Dispatcher == barracuda::dispatch (64x64, 1614µs GPU vs 1903µs dispatch overhead)
+- softmax GPU speedup: 2.08x vs local CPU (256 elements)
+- sigmoid: local CPU reference validated; GPU path via sigmoid_f64.wgsl
+- RK4: 1000-step energy conservation < 1e-6; GPU batch via rk4_parallel.wgsl
+
+*wetSpring origins*:
+- Shannon/Simpson/chao1/pielou/Bray-Curtis: all functional via barracuda::stats
+- HMM forward: Dispatcher == barracuda::dispatch (exact parity)
+- shannon_from_frequencies: uniform = ln(4) exact
+
+*hotSpring origins*:
+- eigensolve: 32x32 symmetric via Dispatcher eigh (11.2ms)
+- spectral: level_spacing_ratio, bandwidth, condition_number, classify_phase — all functional
+- pearson: 512 pairs in 0.7µs
+- variance: Dispatcher == barracuda::dispatch (exact parity)
+
+*groundSpring origins*:
+- bootstrap CI: 200 pts × 500 reps in 235µs
+- jackknife: 200 pts in 14.6µs
+- kimura fixation: N=1000, prob in (0,1)
+- norm_cdf: Φ(0) = 0.5 exact
+
+*airSpring origins*:
+- All 6 ET₀ methods functional (Hargreaves, Thornthwaite, Hamon, Makkink, Turc, FAO-56 batch)
+- Hargreaves batch: 365 days in 0.7µs
+
+*Convergence*:
+- Full pipeline (variance+mean+frobenius): 3.4µs for 2048 elements
+- All Dispatcher paths produce identical results to barracuda::dispatch
+- **212/212 validate_all PASS**, 861 lib tests, 0 clippy, 0 fmt, 232 binaries
 
 **Status**: COMPLETE
 

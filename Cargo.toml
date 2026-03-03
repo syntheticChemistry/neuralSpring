@@ -997,6 +997,10 @@ name = "validate_toadstool_s87_sync"
 path = "src/bin/validate_toadstool_s87_sync.rs"
 
 [[bin]]
+name = "validate_cross_spring_shader_evolution"
+path = "src/bin/validate_cross_spring_shader_evolution.rs"
+
+[[bin]]
 name = "validate_nautilus_bridge"
 path = "src/bin/validate_nautilus_bridge.rs"
 
@@ -1015,6 +1019,10 @@ path = "src/bin/validate_cross_spring_rewire.rs"
 [[bin]]
 name = "bench_cross_spring_modern"
 path = "src/bin/bench_cross_spring_modern.rs"
+
+[[bin]]
+name = "bench_cross_spring_shader_evolution"
+path = "src/bin/bench_cross_spring_shader_evolution.rs"
 
 # ── S105: baseCamp GPU promotions (weight_spectral, loss_landscape, neural_pgm, agent_coordination)
 

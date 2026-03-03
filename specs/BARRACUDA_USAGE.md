@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 2, 2026 (Sessions 109–116 — 211/211 validate_all, ToadStool S87 rewire (2dc26792), nautilus absorbed into barracuda::nautilus, bingocube dep removed. 205 files with barracuda imports, 25+ submodules, 44 upstream rewires. V76 ToadStool handoff)
+**Last Updated**: March 2, 2026 (Sessions 109–116 — 212/212 validate_all, ToadStool S87 rewire (2dc26792), nautilus absorbed into barracuda::nautilus, bingocube dep removed. 205 files with barracuda imports, 25+ submodules, 44 upstream rewires. V76 ToadStool handoff)
 **BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`), ~700 WGSL shaders
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1170,7 +1170,7 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 | Barracuda crate | 0.2.0, ~700 WGSL shaders |
 | Feature | `unidirectional` |
 | Lib tests | 861 |
-| Binaries | 230 |
+| Binaries | 232 |
 
 ---
 

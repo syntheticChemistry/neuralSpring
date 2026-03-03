@@ -296,6 +296,8 @@ const BINARIES: &[&str] = &[
     "validate_compute_dispatch_evolution",
     // S116: ToadStool S87 sync — deep debt, CPU ungating, error evolution, gpu_helpers refactor
     "validate_toadstool_s87_sync",
+    // S117: Cross-spring shader evolution — provenance tracking, all springs → ToadStool convergence
+    "validate_cross_spring_shader_evolution",
     // S115: NUCLEUS PCIe bypass + mixed-pipeline (Tower→Node→Nest + GPU↔NPU↔CPU)
     "validate_nucleus_pcie_mixed_pipeline",
 ];

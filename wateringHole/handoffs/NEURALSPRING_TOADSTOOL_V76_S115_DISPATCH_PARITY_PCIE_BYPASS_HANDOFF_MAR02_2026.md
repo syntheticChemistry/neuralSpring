@@ -17,8 +17,8 @@
 - **53/53 dispatch parity**: Every `Dispatcher` method with a GPU path now has proven CPU↔GPU mathematical parity (+23 checks from V75's 30/30)
 - **14/14 ComputeDispatch bridge**: New validator proves `neuralSpring Dispatcher` math is bit-identical to `barracuda::dispatch` functions (which ToadStool's 144-op `ComputeDispatch` wraps)
 - **38/38 NUCLEUS PCIe bypass**: Full mixed-hardware pipeline validation — GPU↔NPU PCIe P2P bypass, Tower→Node→Nest atomic chain, biomeOS graph coordination
-- **211/211 validate_all PASS**, 861 lib tests, 0 clippy, 0 fmt
-- **230 validation/bench binaries** (up from 226 in V75)
+- **212/212 validate_all PASS**, 861 lib tests, 0 clippy, 0 fmt
+- **232 validation/bench binaries** (up from 226 in V75)
 
 ---
 
@@ -202,12 +202,12 @@ Spectral → Population → Information pipeline with dynamic routing:
 | Metric | V75 (S113) | V76 (S115) |
 |--------|-----------|-----------|
 | ToadStool HEAD | `2fee1969` (S86) | `2dc26792` (S87) |
-| validate_all | 208/208 | **211/211** |
+| validate_all | 208/208 | **212/212** |
 | Dispatch parity | 30/30 | **53/53** |
 | ComputeDispatch bridge | — | **14/14** |
 | NUCLEUS PCIe bypass | — | **38/38** |
 | lib tests | 861 | 861 |
-| binaries | 226 | **230** |
+| binaries | 226 | **232** |
 | clippy warnings | 0 | 0 |
 | Cross-spring provenance | 6 springs | 6 springs |
 | Paper queue coverage | 25 papers full-stack | 25 papers full-stack |
