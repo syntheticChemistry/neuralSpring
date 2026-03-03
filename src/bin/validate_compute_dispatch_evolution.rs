@@ -17,12 +17,10 @@
 //! ToadStool ComputeDispatch (144 ops, S86)
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
     clippy::expect_used,
-    clippy::unwrap_used,
-    clippy::suboptimal_flops
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;

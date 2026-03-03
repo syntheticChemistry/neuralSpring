@@ -14,7 +14,7 @@
 //! No Python baseline — these are novel experiments. Validated against
 //! analytical known-values (row-stochastic normalization, KL properties).
 
-#![allow(clippy::cast_precision_loss, clippy::too_many_lines)]
+#![expect(clippy::too_many_lines, reason = "validation binary")]
 
 use neural_spring::neural_pgm::{
     belief_propagation_chain, effective_rank, layer_spectral_similarity, pgm_analysis,

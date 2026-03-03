@@ -14,12 +14,7 @@
 //! - `log_alpha_out`: \[`n_seqs` × `n_steps` × `n_states`\] f64
 //! - `log_lik_out`: \[`n_seqs`\] f64
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::too_many_lines
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use std::sync::Arc;
 

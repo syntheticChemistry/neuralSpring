@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::expect_used,
-    clippy::unwrap_used
-)]
+#![expect(clippy::pedantic, clippy::expect_used, reason = "validation binary")]
 
 //! GPU-batched ODE integration validator (Phase B gap closure).
 //!
@@ -21,11 +16,7 @@
 //! - Paper 020: Regulatory Network (Mhatre et al., 2020)
 //! - Paper 021: Signal Integration (Srivastava et al., 2011)
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::too_many_lines
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::cpu_fallback;

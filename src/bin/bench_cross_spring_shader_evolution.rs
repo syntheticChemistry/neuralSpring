@@ -29,17 +29,14 @@
 //! cargo run --release --bin bench_cross_spring_shader_evolution
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
     clippy::cast_lossless,
     clippy::expect_used,
     clippy::unwrap_used,
     clippy::suboptimal_flops,
-    clippy::items_after_statements,
-    clippy::manual_range_contains,
     clippy::similar_names,
-    clippy::doc_markdown
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;

@@ -23,10 +23,11 @@
 //! WGSL shader: `metalForge/shaders/rk4_parallel.wgsl`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;
@@ -60,7 +61,6 @@ async fn main() {
 }
 
 /// CPU RK4 for a single system: `dy/dt = prod * hill(y_act, 0.5, 2) - deg * y`.
-#[allow(clippy::cast_sign_loss)]
 /// where hill(x, k, n) = x^n / (k^n + x^n)
 fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt: f32) -> Vec<f32> {
     fn hill(x: f32, k: f32, n: f32) -> f32 {
@@ -74,7 +74,7 @@ fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt:
                 let c_base = d * 3;
                 let prod = coeffs[c_base];
                 let deg = coeffs[c_base + 1];
-                #[allow(clippy::cast_sign_loss)]
+                #[expect(clippy::cast_sign_loss, reason = "validation binary")]
                 let act_idx = coeffs[c_base + 2] as usize;
                 prod.mul_add(hill(y[act_idx], 0.5, 2.0), -(deg * y[d]))
             })
@@ -127,7 +127,7 @@ struct OdeParams {
 }
 
 /// Run GPU RK4 for multiple systems.
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, reason = "validation binary")]
 fn gpu_rk4(
     gpu: &Gpu,
     states: &[f32],

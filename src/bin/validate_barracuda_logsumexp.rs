@@ -22,7 +22,7 @@
 //!
 //! Set `NEURALSPRING_BACKEND=cpu|gpu|auto`.
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::device::WgpuDevice;
 use barracuda::ops::logsumexp::LogSumExp;

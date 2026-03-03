@@ -17,12 +17,6 @@
 //! Python baseline: `control/sate_alignment/sate_alignment.py`
 //! Rust baseline: `validate_sate_alignment`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::needless_range_loop,
-    clippy::similar_names
-)]
-
 use neural_spring::rng::Rng;
 use neural_spring::sate_alignment::{
     generate_tree_guided_sequences, neighbor_joining, pairwise_distance_matrix, progressive_align,

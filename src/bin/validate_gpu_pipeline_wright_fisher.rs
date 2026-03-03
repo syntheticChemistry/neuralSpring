@@ -26,13 +26,10 @@
 //! Typed op: `barracuda::ops::bio::WrightFisherGpu` (f64).
 //! Validates: end-to-end GPU-resident stochastic population genetics.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
-    clippy::cast_lossless
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::WrightFisherGpu;

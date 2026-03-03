@@ -335,7 +335,7 @@ fn layer_norm_zero_mean_unit_var() {
         let gamma = vec![1.0; dim];
         let beta = vec![0.0; dim];
         let normed = layer_norm(&input, rows, dim, &gamma, &beta, 1e-5);
-        #[allow(clippy::cast_precision_loss)]
+        #[expect(clippy::cast_precision_loss, reason = "intentional suppression")]
         let d = dim as f64;
         let mean: f64 = normed.iter().sum::<f64>() / d;
         let var: f64 = normed.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / d;
@@ -455,7 +455,7 @@ fn eigh_stable_with_near_singular_matrix() {
     let n = 5;
     let mut mat = vec![0.0; n * n];
     for i in 0..n {
-        #[allow(clippy::cast_precision_loss)]
+        #[expect(clippy::cast_precision_loss, reason = "intentional suppression")]
         let scale = (i + 1) as f64;
         mat[i * n + i] = 1e-15 * scale;
     }

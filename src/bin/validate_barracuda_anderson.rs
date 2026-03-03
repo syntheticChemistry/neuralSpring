@@ -17,7 +17,7 @@
 //! Python baseline: `control/anderson_localization/anderson_localization.py`
 //! Rust baseline: `validate_anderson_localization` (8/8 PASS)
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::anderson_localization::{
     anderson_hamiltonian_random, aubry_andre_hamiltonian, ipr, jacobi_eigh, GOLDEN_RATIO,

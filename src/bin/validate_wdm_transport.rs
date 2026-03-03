@@ -11,8 +11,6 @@
 //! Python baseline: `control/wdm/transport_surrogate.py`
 //! Reference: Stanton & Murillo, PRE 93, 043203 (2016)
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
-
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::wdm_transport;

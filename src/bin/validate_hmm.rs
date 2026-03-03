@@ -13,7 +13,7 @@
 //!
 //! See `neural_spring::provenance::HMM_PROVENANCE` for commit, date, and environment.
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::hmm::Hmm;
 use neural_spring::primitives::LOG_GUARD;
@@ -21,7 +21,7 @@ use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 fn main() {
     let mut h = ValidationHarness::new("hmm");
 
@@ -186,7 +186,7 @@ fn dirichlet_vec(rng: &mut Rng, n: usize, alpha: f64) -> Vec<f64> {
     raw.iter().map(|x| x / sum).collect()
 }
 
-#[allow(clippy::many_single_char_names)]
+#[expect(clippy::many_single_char_names, reason = "validation binary")]
 fn gamma_sample(rng: &mut Rng, alpha: f64) -> f64 {
     if alpha < 1.0 {
         return gamma_sample(rng, alpha + 1.0) * rng.uniform().powf(1.0 / alpha);
@@ -205,7 +205,7 @@ fn gamma_sample(rng: &mut Rng, alpha: f64) -> f64 {
     }
 }
 
-#[allow(clippy::needless_range_loop)]
+#[expect(clippy::needless_range_loop, reason = "validation binary")]
 fn manual_forward(hmm: &Hmm, obs: &[usize]) -> Vec<f64> {
     let n = hmm.num_states();
     let m = hmm.num_symbols();

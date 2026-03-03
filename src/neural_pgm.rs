@@ -20,10 +20,11 @@
 //! - [`crate::eigh::eigh_householder_qr`] — spectral decomposition
 //! - [`crate::anderson_localization::ipr`] — participation ratio
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::doc_markdown,
-    clippy::needless_range_loop
+    clippy::needless_range_loop,
+    reason = "domain-specific numeric patterns"
 )]
 
 use crate::eigh::eigh_householder_qr;

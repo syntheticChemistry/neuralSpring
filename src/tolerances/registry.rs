@@ -6,7 +6,7 @@
 //! and their values at runtime — no hardcoded knowledge of the
 //! tolerance namespace required.
 
-#[allow(clippy::wildcard_imports)]
+#[allow(clippy::wildcard_imports)] // registry must access every tolerance constant from parent
 use super::*;
 
 /// Named tolerance for runtime introspection.
@@ -45,7 +45,10 @@ macro_rules! tolerance_registry {
 ///
 /// Complete: every public constant in `tolerances::` is registered.
 #[must_use]
-#[allow(clippy::too_many_lines)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "exhaustive registry of all tolerance constants — splitting would fragment the single source of truth"
+)]
 pub const fn all_tolerances() -> &'static [NamedTolerance] {
     tolerance_registry![
         "machine": [

@@ -2,12 +2,7 @@
 
 //! Backbone update and torsion angle prediction.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::many_single_char_names,
-    clippy::similar_names,
-    clippy::suboptimal_flops
-)]
+#![expect(clippy::similar_names, reason = "domain-specific numeric patterns")]
 
 use super::frame::{compose_frames, get_frame, quat_to_rotation};
 

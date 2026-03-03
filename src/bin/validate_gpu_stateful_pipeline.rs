@@ -33,10 +33,11 @@
 //! Validates: end-to-end GPU-resident computation with scalar-only readback.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use std::sync::Arc;
@@ -85,7 +86,6 @@ async fn main() {
 
 // ── CPU reference ──────────────────────────────────────────────────
 
-#[allow(clippy::cast_sign_loss)]
 fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt: f32) -> Vec<f32> {
     fn hill(x: f32, k: f32, n: f32) -> f32 {
         let xn = x.powf(n);
@@ -98,7 +98,7 @@ fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt:
                 let c_base = d * 3;
                 let prod = coeffs[c_base];
                 let deg = coeffs[c_base + 1];
-                #[allow(clippy::cast_sign_loss)]
+                #[expect(clippy::cast_sign_loss, reason = "validation binary")]
                 let act_idx = coeffs[c_base + 2] as usize;
                 prod.mul_add(hill(y[act_idx], 0.5, 2.0), -(deg * y[d]))
             })

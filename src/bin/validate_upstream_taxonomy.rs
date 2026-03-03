@@ -9,10 +9,11 @@
 //!
 //! Upstream: `barracuda::ops::bio::taxonomy_fc::TaxonomyFcGpu`
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::taxonomy_fc::TaxonomyFcGpu;

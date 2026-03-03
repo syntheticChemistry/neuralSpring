@@ -97,6 +97,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 083 | Session 115 — CPU↔GPU Dispatch Parity + ComputeDispatch + NUCLEUS PCIe | Mar 2, 2026 | dispatch parity 30→53/53 (+8 bio/ODE/HMM ops), ComputeDispatch bridge 14/14 (Dispatcher↔barracuda::dispatch), NUCLEUS PCIe bypass 38/38 (Tower→Node→Nest + biomeOS graph). 210/210 validate\_all |
 | 084 | Session 116 — ToadStool S87 Sync (Deep Debt Evolution) | Mar 2, 2026 | S87 (`2dc26792`): deep debt, FHE shader fixes, CPU ungating, unsafe audit, gpu\_helpers refactor. 18/18 S87 sync, 844+ WGSL shaders. 211/211 validate\_all |
 | 085 | Session 117 — Cross-Spring Shader Evolution & Provenance Benchmark | Mar 2, 2026 | 42/42 cross-spring evolution validator (5 springs → ToadStool S87), 15/15 provenance bench. softmax/gelu/matmul: local CPU == barracuda::dispatch == Dispatcher GPU. 212/212 validate\_all, 232 binaries |
+| 086 | Session 119 — Deep Lint Evolution & Shared Validation Helpers | Mar 3, 2026 | 271 `#[allow(` → `#[expect(` conversions, 477+ unfulfilled lints removed, 4 shared helpers extracted, 13 bins migrated, 869 lib tests, 0 production `#[allow(` |
 
 ---
 
@@ -4403,6 +4404,48 @@ The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 
 - Full pipeline (variance+mean+frobenius): 3.4µs for 2048 elements
 - All Dispatcher paths produce identical results to barracuda::dispatch
 - **212/212 validate_all PASS**, 861 lib tests, 0 clippy, 0 fmt, 232 binaries
+
+**Status**: COMPLETE
+
+---
+
+## Experiment 086: Deep Lint Evolution & Shared Validation Helpers (S119)
+
+**Date**: March 3, 2026
+**Session**: S119
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Evolve codebase to modern idiomatic Rust by migrating all `#[allow(` suppressions to precise `#[expect(` with reasons, extract shared validation helpers to reduce duplication across 232 binaries, and achieve zero production lint suppressions.
+
+**Procedure**:
+1. Converted 208 module-level `#![allow(` in `src/bin/` to `#![expect(` with reasons
+2. Converted 31 inline `#[allow(` in `src/bin/` to `#[expect(` with reasons
+3. Ran `cargo clippy` to identify 477+ unfulfilled expectations — removed over-suppressed lints
+4. Converted 28 remaining lib `#![allow(` to `#![expect(`, resolved 29 unfulfilled
+5. Identified 6 `#[allow(` in `#[cfg(test)]` that must remain (expect_used/unwrap_used don't fire in test context)
+6. Extracted 4 shared helpers: `max_abs_diff_f64`, `bench_once`, `bench_median`, `median_duration_us`
+7. Migrated 13 bin files to use shared helpers
+8. Added 8 tests for shared helpers (861→869 lib tests)
+9. Full validation: fmt, check, clippy (0/0/0), doc, 869 lib tests
+
+**Findings**:
+- Over-suppression is rampant: of 271 `#[allow(` conversions, 477+ individual lint entries were unfulfilled — the original `#[allow(` blocks suppressed lints that never fired. `#[expect(` catches this immediately.
+- `clippy::expect_used` and `clippy::unwrap_used` do not fire in `#[cfg(test)]` modules. This is a known clippy behavior — test code is exempt from these lints. Must use `#[allow(` in test contexts.
+- `clippy::wildcard_imports` fires inconsistently across lib/test compilation contexts for `use super::*` in test modules. Pragmatic: use `#[allow(` for these.
+- `max_abs_diff_f64` was duplicated in 3 different forms plus ~25 inline usages.
+- `median_duration_us` was independently implemented 6 times with subtle differences (midpoint rounding, integer vs float division).
+
+**Key Results**:
+- **0** `#[allow(` in production lib code (was 28 module-level + 4 inline)
+- **0** `#[allow(` in bin code (was 208 module-level + 31 inline)
+- **0** clippy warnings (pedantic + nursery) for lib and bin
+- **0** unfulfilled lint expectations
+- **869/869** lib tests PASS
+- **212/212** validate_all PASS
+- **4** shared helpers extracted, **13** bin files migrated
+
+**Surprises**:
+- The iterative nature of `#[expect(` migration: converting `#[allow(` to `#[expect(` is not a simple find-replace — each conversion requires a clippy run to identify which specific lints actually fire for that code. Automated Python scripts were essential for the 208-file bin pass.
+- Some `#[allow(` blocks contained 4-5 lints, of which only 1-2 were actually firing. The `#[expect(` migration effectively performed a precise lint audit of the entire codebase.
 
 **Status**: COMPLETE
 

@@ -17,8 +17,6 @@
 //! Python baseline: `control/pinn/pinn_burgers.py`
 //! Rust baseline: `validate_pinn` (16/16 PASS)
 
-#![allow(clippy::cast_precision_loss)]
-
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
@@ -87,7 +85,7 @@ fn validate_cole_hopf_cross(h: &mut ValidationHarness) {
 
 /// Validate MLP forward pass (matmul + tanh) through `BarraCUDA` tensors.
 fn validate_mlp_forward_barracuda(h: &mut ValidationHarness, device: &Dev) {
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
     let w1: Vec<f32> = [1.0_f64, 0.0, 0.0, 1.0].iter().map(|&v| v as f32).collect();
     let b1: Vec<f32> = vec![0.0, 0.0];
     let input: Vec<f32> = vec![0.5, -0.3];

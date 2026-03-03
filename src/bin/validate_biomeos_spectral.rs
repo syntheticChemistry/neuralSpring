@@ -11,18 +11,11 @@
 //! This proves neuralSpring's spectral analysis is accessible through
 //! the biomeOS capability routing infrastructure.
 
-#![allow(
-    clippy::unwrap_used,
-    clippy::expect_used,
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_lossless,
     clippy::too_many_lines,
-    clippy::similar_names,
-    clippy::missing_errors_doc,
-    clippy::missing_panics_doc,
-    clippy::suboptimal_flops,
-    clippy::option_if_let_else
+    clippy::option_if_let_else,
+    reason = "validation binary"
 )]
 
 use std::path::PathBuf;

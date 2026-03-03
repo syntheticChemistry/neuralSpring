@@ -19,11 +19,10 @@
 //! - **Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
 //! - **Provenance record**: `provenance::TRAINING_TRAJECTORY_PROVENANCE`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::similar_names,
+#![expect(
     clippy::suboptimal_flops,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::anderson_localization::mean_ipr;

@@ -2,7 +2,11 @@
 
 //! GPU-accelerated population genetics and game theory operations.
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "domain-specific numeric patterns"
+)]
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;

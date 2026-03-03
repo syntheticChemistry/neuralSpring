@@ -24,7 +24,10 @@
 //! Stanton-Murillo model → Python MLP → Rust MLP → BarraCUDA GPU → Pure GPU
 //! ```
 
-#![allow(clippy::cast_possible_truncation, clippy::doc_markdown)]
+#![expect(
+    clippy::doc_markdown,
+    reason = "domain terms (Stanton-Murillo, MLP) are not crate links"
+)]
 
 /// Normalization parameters for 3-input/3-output MLP.
 #[derive(Debug, Clone)]

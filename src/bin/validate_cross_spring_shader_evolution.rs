@@ -33,14 +33,13 @@
 //! cargo run --release --bin validate_cross_spring_shader_evolution
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
     clippy::cast_lossless,
     clippy::expect_used,
-    clippy::unwrap_used,
     clippy::suboptimal_flops,
-    clippy::manual_range_contains
+    clippy::manual_range_contains,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;

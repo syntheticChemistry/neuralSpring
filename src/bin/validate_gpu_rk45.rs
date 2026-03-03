@@ -16,11 +16,12 @@
 //! WGSL shader: `metalForge/shaders/rk45_adaptive.wgsl`
 //! Reference: Dormand & Prince (1980)
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::suboptimal_flops,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;
@@ -73,7 +74,7 @@ fn cpu_rk45_step(
             .map(|d| {
                 let prod = coeffs[d * 3];
                 let deg = coeffs[d * 3 + 1];
-                #[allow(clippy::cast_sign_loss)]
+                #[expect(clippy::cast_sign_loss, reason = "validation binary")]
                 let act_idx = coeffs[d * 3 + 2] as usize;
                 prod * hill(y[act_idx], 0.5, 2.0) - deg * y[d]
             })
@@ -151,7 +152,6 @@ struct Rk45Params {
     _pad4: f32,
 }
 
-#[allow(clippy::too_many_arguments)]
 fn gpu_rk45(
     gpu: &Gpu,
     states: &[f32],

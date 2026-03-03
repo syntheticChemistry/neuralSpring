@@ -92,7 +92,10 @@ pub fn barrier_promotion_spectrum(
 ) -> Vec<(f64, f64, f64)> {
     let mut results = Vec::with_capacity(n_steps);
     for step in 0..n_steps {
-        #[allow(clippy::cast_precision_loss)]
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "simulation step index → f64 for barrier breach fraction"
+        )]
         let intact = 1.0 - step as f64 / (n_steps - 1).max(1) as f64;
         let d_eff = dimensional_promotion(intact, 2.0, 3.0);
         let w_eff = base_disorder * (3.0 - d_eff + 1.0);
@@ -135,7 +138,7 @@ pub fn level_spacing_ratio(sorted_eigenvalues: &[f64]) -> f64 {
     if ratios.is_empty() {
         return 0.0;
     }
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss, reason = "ratio count → f64 for mean")]
     let n = ratios.len() as f64;
     ratios.iter().sum::<f64>() / n
 }

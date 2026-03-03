@@ -215,7 +215,10 @@ pub fn hmm_viterbi_step(
 /// # Panics
 ///
 /// Panics if any `activator_idx` in `coeffs` is negative or >= `dim`.
-#[allow(clippy::cast_sign_loss)]
+#[expect(
+    clippy::cast_sign_loss,
+    reason = "activator_idx from coeffs is asserted non-negative"
+)]
 #[must_use]
 pub fn cpu_ode_batch_hill(
     states: &[f64],

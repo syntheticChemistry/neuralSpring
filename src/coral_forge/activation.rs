@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::cast_precision_loss, clippy::too_many_arguments)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "activation index→f64 casts for normalization"
+)]
 
 use std::f64::consts::PI;
 

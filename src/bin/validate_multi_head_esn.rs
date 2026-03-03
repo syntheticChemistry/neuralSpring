@@ -8,12 +8,7 @@
 //! - NPU weight export via barracuda int8 quantization
 //! - Typed JSON deserialization
 
-#![allow(
-    clippy::expect_used,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::too_many_lines
-)]
+#![expect(clippy::pedantic, reason = "validation binary")]
 
 use neural_spring::validation::ValidationHarness;
 use neural_spring::wdm_esn::{

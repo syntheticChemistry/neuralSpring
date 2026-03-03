@@ -20,14 +20,10 @@
 //! GPU op: `barracuda::ops::bio::BatchFitnessGpu` (f64 pipeline)
 //! Validates: end-to-end GPU-resident computation for Paper 011 (Counterdiabatic).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
-    clippy::many_single_char_names,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
-    clippy::cast_lossless
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::BatchFitnessGpu;

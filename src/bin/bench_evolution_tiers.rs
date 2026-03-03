@@ -26,19 +26,12 @@
 //!
 //! Panics if the tokio runtime cannot be created — this is a benchmark binary.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
-    clippy::many_single_char_names,
-    clippy::needless_range_loop,
-    clippy::too_many_lines,
-    clippy::cast_lossless,
     clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
     clippy::similar_names,
     clippy::expect_used,
-    clippy::manual_midpoint,
-    clippy::manual_is_multiple_of
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::{
@@ -52,8 +45,9 @@ use neural_spring::modes::l2_distance;
 use neural_spring::rng::Rng;
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::spectral_commutativity;
+use neural_spring::validation::median_duration_us;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use wgpu::util::DeviceExt;
 
 const WARMUP: usize = 5;
@@ -109,16 +103,6 @@ struct TierResult {
     barracuda_gpu_us: Option<f64>,
 }
 
-fn median(samples: &mut [Duration]) -> f64 {
-    samples.sort();
-    let mid = samples.len() / 2;
-    if samples.len() % 2 == 0 {
-        (samples[mid - 1].as_secs_f64() + samples[mid].as_secs_f64()) / 2.0 * 1e6
-    } else {
-        samples[mid].as_secs_f64() * 1e6
-    }
-}
-
 fn bench_rust<F: Fn()>(f: F) -> f64 {
     for _ in 0..WARMUP {
         f();
@@ -129,7 +113,7 @@ fn bench_rust<F: Fn()>(f: F) -> f64 {
         f();
         times.push(t.elapsed());
     }
-    median(&mut times)
+    median_duration_us(&mut times)
 }
 
 // ═══════════════════════════════════════════════════════════════════

@@ -20,12 +20,10 @@
 //! - [`crate::anderson_localization::ipr`] — inverse participation ratio
 //! - [`crate::anderson_localization::mean_ipr`] — mean IPR over eigenvectors
 
-#![allow(
-    clippy::cast_possible_truncation,
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_sign_loss,
     clippy::doc_markdown,
-    clippy::needless_range_loop
+    reason = "domain-specific numeric patterns"
 )]
 
 pub mod metrics;

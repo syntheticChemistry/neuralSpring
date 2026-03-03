@@ -10,12 +10,12 @@
 //! Python baseline: `control/transfer/transfer_learning.py`
 //! Rust baseline: `validate_transfer`
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::many_single_char_names,
     clippy::similar_names,
-    clippy::suboptimal_flops
+    clippy::suboptimal_flops,
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

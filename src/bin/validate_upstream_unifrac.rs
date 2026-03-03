@@ -9,8 +9,6 @@
 //!
 //! Upstream: [`barracuda::ops::bio::unifrac_propagate::UniFracPropagateGpu`]
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
-
 use barracuda::ops::bio::unifrac_propagate::{UniFracConfig, UniFracPropagateGpu};
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
@@ -193,7 +191,7 @@ fn validate_larger_tree(h: &mut ValidationHarness, gpu: &Gpu, op: &UniFracPropag
         _pad: 0,
     };
 
-    #[allow(clippy::cast_possible_wrap)]
+    #[expect(clippy::cast_possible_wrap, reason = "validation binary")]
     let n_leaves_i32 = n_leaves as i32;
     let mut parent: Vec<i32> = vec![n_leaves_i32; n_leaves as usize];
     parent.push(-1); // root

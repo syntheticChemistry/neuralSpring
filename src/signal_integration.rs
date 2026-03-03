@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "domain-specific numeric patterns"
+)]
 
 //! Signal integration: cyclic di-GMP + quorum sensing in Vibrio cholerae.
 //!
@@ -174,7 +177,11 @@ fn rk4_step(y: &[f64; 4], _t: f64, dt: f64, params: &OdeParams, rng: &mut Rng) -
 }
 
 /// Integrate vpsT regulatory ODE with RK4.
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "step count from f64→usize is bounded by caller-supplied t_end/dt"
+)]
 #[must_use]
 pub fn integrate_ode(t_end: f64, dt: f64, y0: &OdeState, params: &OdeParams) -> Vec<OdeState> {
     let n_steps = (t_end / dt).ceil() as usize + 1;

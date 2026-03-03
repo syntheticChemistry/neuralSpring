@@ -20,11 +20,10 @@
 //! cargo run --release --bin bench_phase0pp_kernels -- --with-python
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::many_single_char_names,
-    clippy::needless_range_loop
+    reason = "validation binary"
 )]
 
 use std::io::{BufRead, BufReader};
@@ -43,6 +42,7 @@ use neural_spring::sate_alignment;
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::spectral_commutativity;
 use neural_spring::swarm_robotics::neural_forward;
+use neural_spring::validation::median_duration_us;
 
 const WARMUP: usize = 10;
 const ITERATIONS: usize = 200;
@@ -104,10 +104,10 @@ fn bench_hmm_forward() -> BenchResult {
     let hmm = Hmm::new(transition, emission, initial);
     let obs: Vec<usize> = (0..seq_len).map(|_| rng.usize(n_obs_sym)).collect();
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let _ = hmm.forward(&obs);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_HMM_FORWARD_3x5000_RUST_US={us:.1}");
 
@@ -126,10 +126,10 @@ fn bench_hmm_forward() -> BenchResult {
 fn bench_replicator() -> BenchResult {
     let pd = game_theory::prisoners_dilemma_payoff(3.0, 1.0);
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let _ = game_theory::replicator_dynamics(&[0.5, 0.5], &pd, 10_000, 0.001);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_REPLICATOR_10000_RUST_US={us:.1}");
 
@@ -151,10 +151,10 @@ fn bench_commutator() -> BenchResult {
     let a = spectral_commutativity::random_matrix(dim, &mut rng);
     let b = spectral_commutativity::random_matrix(dim, &mut rng);
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let _ = spectral_commutativity::commutativity_ratio(&a, &b, dim);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_COMMUTATOR_64x64_RUST_US={us:.1}");
 
@@ -178,14 +178,14 @@ fn bench_nk_fitness() -> BenchResult {
         .map(|_| (0..10).map(|_| u8::from(rng.uniform() < 0.5)).collect())
         .collect();
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let mut total = 0.0_f64;
         for g in &genotypes {
             total += landscape.fitness(g);
         }
         std::hint::black_box(total);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_NK_FITNESS_10x2_1000_RUST_US={us:.1}");
 
@@ -207,10 +207,10 @@ fn bench_hamming() -> BenchResult {
     let seq_len = 500;
     let seqs: Vec<u8> = (0..n_seqs * seq_len).map(|_| rng.usize(4) as u8).collect();
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let _ = sate_alignment::pairwise_distance_matrix(&seqs, n_seqs, seq_len, false);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_HAMMING_20x500_RUST_US={us:.1}");
 
@@ -234,10 +234,10 @@ fn bench_jaccard() -> BenchResult {
         .map(|_| if rng.uniform() < 0.5 { 1.0 } else { 0.0 })
         .collect();
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let _ = pangenome_selection::jaccard_distance_matrix(&pa, n_genes, n_genomes);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_JACCARD_30x500_RUST_US={us:.1}");
 
@@ -257,10 +257,10 @@ fn bench_rk4_grn() -> BenchResult {
     let p = GrnParams::default();
     let x0 = [0.5_f64, 0.1, 0.5, 0.1];
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let _ = regulatory_network::integrate_grn(&x0, 0.5, &p, 2000, 0.01);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_RK4_GRN_2000_RUST_US={us:.1}");
 
@@ -281,7 +281,7 @@ fn bench_pairwise_l2() -> BenchResult {
     let dim = 8_usize;
     let features: Vec<f64> = (0..n * dim).map(|i| (i as f64) * 0.1).collect();
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let mut dists = Vec::with_capacity(n * (n - 1) / 2);
         for i in 0..n {
             for j in (i + 1)..n {
@@ -293,7 +293,7 @@ fn bench_pairwise_l2() -> BenchResult {
         }
         std::hint::black_box(dists);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_PAIRWISE_L2_10x8_RUST_US={us:.1}");
 
@@ -316,7 +316,7 @@ fn bench_multi_obj_fitness() -> BenchResult {
     let mut rng = Rng::new(42);
     let population: Vec<f64> = (0..pop_size * genome_len).map(|_| rng.uniform()).collect();
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let mut all = Vec::with_capacity(pop_size * n_objectives);
         for i in 0..pop_size {
             all.extend(multi_objective_fitness(
@@ -326,7 +326,7 @@ fn bench_multi_obj_fitness() -> BenchResult {
         }
         std::hint::black_box(all);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_MULTI_OBJ_FITNESS_100x30x3_RUST_US={us:.1}");
 
@@ -348,7 +348,7 @@ fn bench_hill_gate() -> BenchResult {
     let cdg_vals: Vec<f64> = (0..nx).map(|i| i as f64 * 0.1).collect();
     let ai_vals: Vec<f64> = (0..ny).map(|i| i as f64 * 0.1).collect();
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let mut out = Vec::with_capacity(nx * ny);
         for &cdg in &cdg_vals {
             for &ai in &ai_vals {
@@ -357,7 +357,7 @@ fn bench_hill_gate() -> BenchResult {
         }
         std::hint::black_box(out);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_HILL_GATE_50x50_RUST_US={us:.1}");
 
@@ -382,7 +382,7 @@ fn bench_swarm_nn_forward() -> BenchResult {
         .collect();
     let inputs: Vec<f64> = (0..n_eval).map(|i| (i as f64) / n_eval as f64).collect();
 
-    let timings = bench_kernel(|| {
+    let mut timings = bench_kernel(|| {
         let mut actions = Vec::with_capacity(n_ctrl * n_eval);
         for ctrl_params in &all_params {
             for &sense in &inputs {
@@ -391,7 +391,7 @@ fn bench_swarm_nn_forward() -> BenchResult {
         }
         std::hint::black_box(actions);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_SWARM_NN_20x50_RUST_US={us:.1}");
 
@@ -522,15 +522,6 @@ fn bench_kernel<F: FnMut()>(mut f: F) -> Vec<Duration> {
         timings.push(start.elapsed());
     }
     timings
-}
-
-fn median_us(timings: &[Duration]) -> f64 {
-    let mut sorted: Vec<f64> = timings
-        .iter()
-        .map(|d| d.as_nanos() as f64 / 1000.0)
-        .collect();
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    sorted[sorted.len() / 2]
 }
 
 // ── Matrix builders ───────────────────────────────────────────────────

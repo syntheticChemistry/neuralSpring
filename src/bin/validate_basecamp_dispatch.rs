@@ -14,11 +14,7 @@
 //! This is the "dispatch portability proof" for baseCamp — same science,
 //! routed through the `Dispatcher` abstraction.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::too_many_lines,
-    clippy::similar_names
-)]
+#![expect(clippy::too_many_lines, reason = "validation binary")]
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::neural_pgm::weight_to_transition;

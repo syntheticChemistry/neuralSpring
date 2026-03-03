@@ -21,12 +21,12 @@
 //! cargo run --release --bin validate_barracuda_parity
 //! ```
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::too_many_lines,
     clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::min_ident_chars
+    clippy::min_ident_chars,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu_dispatch::Dispatcher;

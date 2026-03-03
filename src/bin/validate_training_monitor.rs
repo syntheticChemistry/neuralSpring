@@ -8,12 +8,7 @@
 //! - DriftMonitor integration for training populations
 //! - SpectralNautilusBridge training epoch observation
 
-#![allow(
-    clippy::expect_used,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::too_many_lines
-)]
+#![expect(clippy::pedantic, clippy::nursery, reason = "validation binary")]
 
 use neural_spring::nautilus_bridge::SpectralNautilusBridge;
 use neural_spring::training_monitor::{AttentionState, TrainingInterrupt, TrainingMonitor};

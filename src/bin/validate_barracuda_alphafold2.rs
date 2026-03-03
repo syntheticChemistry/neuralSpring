@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::too_many_lines,
     clippy::suboptimal_flops,
     clippy::expect_used,
-    clippy::unwrap_used
+    reason = "validation binary"
 )]
 
 //! `BarraCUDA` CPU validation: nF-02 `AlphaFold2` operations.

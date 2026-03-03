@@ -29,13 +29,13 @@
 //! | `AlphaFold3` PF FFN (nF-03) | `pairformer.rs` | matmul, add, GELU | frobenius |
 //! | `AlphaFold3` PF `TriMul` (nF-03) | `pairformer.rs` | matmul, transpose | frobenius |
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::too_many_lines,
     clippy::too_many_arguments,
-    clippy::many_single_char_names
+    clippy::many_single_char_names,
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

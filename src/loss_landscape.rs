@@ -19,10 +19,10 @@
 //! - [`crate::eigh::eigh_householder_qr`] — Hessian eigendecomposition
 //! - [`crate::rng::Rng`] — deterministic PRNG for Boltzmann sampling
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::doc_markdown,
-    clippy::needless_range_loop
+    reason = "domain-specific numeric patterns"
 )]
 
 use crate::eigh::eigh_householder_qr;

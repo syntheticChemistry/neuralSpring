@@ -20,11 +20,7 @@
 //! - **Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
 //! - **Provenance record**: `provenance::ANDERSON_MULTIAGENT_PROVENANCE`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::agent_coordination::{coordination_spectral_analysis, generate_lattice_agents};
 use neural_spring::rng::Rng;

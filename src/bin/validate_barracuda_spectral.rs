@@ -17,8 +17,6 @@
 //! Python baseline: `control/spectral_commutativity/spectral_commutativity.py`
 //! Rust baseline: `validate_spectral_commutativity` (8/8 PASS)
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
-
 use neural_spring::rng::Rng;
 use neural_spring::spectral_commutativity::{
     commutativity_ratio, distance_to_normal, identity_matrix, mat_mul, random_matrix,

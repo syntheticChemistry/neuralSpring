@@ -403,7 +403,7 @@ impl Gpu {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    #![allow(clippy::expect_used)]
+    #![allow(clippy::expect_used)] // test infrastructure
 
     use super::*;
 

@@ -6,7 +6,7 @@
 //! They validate correctness of the local CPU reference implementations
 //! and metadata queries when running in CPU-only mode.
 
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used)] // test infrastructure
 
 use super::*;
 use crate::tolerances;

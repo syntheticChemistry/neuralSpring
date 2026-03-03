@@ -9,11 +9,10 @@
 //! Shows `BarraCUDA` CPU is pure math (no interpreter), and GPU provides
 //! hardware-portable execution with streaming dispatch.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::too_many_lines
+    reason = "validation binary"
 )]
 
 use neural_spring::eigh::eigh_householder_qr;

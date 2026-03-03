@@ -6,11 +6,11 @@
 //! Proves all Phase B operations route through GPU and match CPU references
 //! within documented tolerance.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::game_theory;

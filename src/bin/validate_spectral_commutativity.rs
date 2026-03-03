@@ -11,10 +11,10 @@
 //! Command: `python3 control/spectral_commutativity/spectral_commutativity.py`
 //! Result: 8/8 PASS (seed=42)
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::many_single_char_names,
-    clippy::suboptimal_flops
+    clippy::suboptimal_flops,
+    reason = "validation binary"
 )]
 
 use neural_spring::rng::Rng;

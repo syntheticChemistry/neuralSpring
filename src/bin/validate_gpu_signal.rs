@@ -24,10 +24,10 @@
 //! GPU shader: `barracuda::ops::bio::hill_gate::WGSL_HILL_GATE_F64` (patched)
 //! Validated on: RTX 4070 (Vulkan), TITAN V (NVK).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::hill_gate::{HillGateParams, WGSL_HILL_GATE_F64};

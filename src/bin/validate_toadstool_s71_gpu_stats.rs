@@ -29,16 +29,13 @@
 //! cargo run --release --bin validate_toadstool_s71_gpu_stats
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
     clippy::cast_lossless,
-    clippy::similar_names,
-    clippy::too_many_lines,
-    clippy::items_after_statements,
     clippy::expect_used,
-    clippy::unwrap_used
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;

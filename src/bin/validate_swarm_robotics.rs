@@ -10,8 +10,6 @@
 //! Paper: Foreback, Bohm, Dolson (2025) IEEE Swarm Robotics.
 //! Command: `python3 control/swarm_robotics/swarm_robotics.py`
 
-#![allow(clippy::cast_precision_loss)]
-
 use neural_spring::swarm_robotics::{run_evolution_heterogeneous, run_evolution_homogeneous};
 use neural_spring::tolerances;
 use neural_spring::validation::{mean_last_n, ValidationHarness};

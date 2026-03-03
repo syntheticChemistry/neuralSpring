@@ -11,8 +11,6 @@
 //! Command: `python3 control/game_theory/game_theory.py`
 //! Result: 8/8 PASS (seed=42, PD/snowdrift/QS/spatial)
 
-#![allow(clippy::cast_precision_loss)]
-
 use neural_spring::game_theory::{
     prisoners_dilemma_payoff, qs_cooperation_model, replicator_dynamics, snowdrift_payoff,
     spatial_cooperation, QsConfig,

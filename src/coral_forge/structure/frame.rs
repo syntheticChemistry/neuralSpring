@@ -2,7 +2,11 @@
 
 //! Frame operations: quaternion→rotation, frame application/inversion.
 
-#![allow(clippy::suboptimal_flops, clippy::many_single_char_names)]
+#![expect(
+    clippy::suboptimal_flops,
+    clippy::many_single_char_names,
+    reason = "quaternion math uses standard (w,x,y,z) variables; explicit mul+add for readability of rotation formula"
+)]
 
 /// Convert unit quaternion `[w, x, y, z]` to 3×3 rotation matrix (row-major).
 ///

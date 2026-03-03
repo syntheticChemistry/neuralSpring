@@ -15,13 +15,11 @@
 //!                   ↑ parity proven here ↑
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::expect_used,
-    clippy::unwrap_used,
     clippy::similar_names,
-    clippy::many_single_char_names
+    clippy::many_single_char_names,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;

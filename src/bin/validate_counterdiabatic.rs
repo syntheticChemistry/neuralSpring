@@ -11,7 +11,7 @@
 //! Command: `python3 control/counterdiabatic/counterdiabatic_evolution.py`
 //! Result: 11/11 PASS (seed=42/99, N=5, K=2,3,4)
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::counterdiabatic::{
     boltzmann_distribution, compute_cd_schedule, interpolated_fitness, kl_divergence,

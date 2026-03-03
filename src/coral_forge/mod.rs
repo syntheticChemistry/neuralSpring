@@ -26,7 +26,11 @@
 
 mod activation;
 mod attention;
-#[allow(clippy::similar_names, clippy::cast_precision_loss)]
+#[expect(
+    clippy::similar_names,
+    clippy::cast_precision_loss,
+    reason = "confidence metrics use short variable names and count→f64 casts"
+)]
 pub mod confidence;
 pub mod diffusion;
 mod msa;

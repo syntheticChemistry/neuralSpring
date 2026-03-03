@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::many_single_char_names,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    reason = "attention mechanism requires Q/K/V weight parameters and index→f64 casts for softmax"
 )]
 
 use super::activation::softmax_rows;

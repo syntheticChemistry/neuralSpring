@@ -18,12 +18,11 @@
 //!
 //! CPU baseline: `validate_barracuda_swarm`, `validate_swarm_robotics`
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::needless_range_loop,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use barracuda::tensor::Tensor;

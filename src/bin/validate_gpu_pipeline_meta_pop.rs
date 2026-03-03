@@ -20,15 +20,10 @@
 //! GPU op: `barracuda::ops::bio::LocusVarianceGpu` (f64 pipeline)
 //! Validates: meta-population mean per-locus variance (Campbell, Anderson et al., 2017).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
-    clippy::many_single_char_names,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
-    clippy::cast_lossless,
-    clippy::needless_range_loop
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::LocusVarianceGpu;

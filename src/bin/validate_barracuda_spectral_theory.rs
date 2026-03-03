@@ -7,13 +7,7 @@
 //! correct by comparing tridiag eigensolvers, Aubry-André spectra, Lyapunov
 //! exponents, and level-spacing statistics against known analytic results.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::many_single_char_names,
-    clippy::needless_range_loop
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::spectral::{
     almost_mathieu_hamiltonian, anderson_hamiltonian, anderson_potential, detect_bands,

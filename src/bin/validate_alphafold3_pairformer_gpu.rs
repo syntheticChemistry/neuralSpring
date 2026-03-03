@@ -17,13 +17,13 @@
 //! - `wetSpring`: evolutionary covariance → pair representations
 //! - `neuralSpring`: Pairformer block composition + timestep conditioning
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::many_single_char_names,
     clippy::too_many_lines,
-    clippy::expect_used
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;
@@ -312,7 +312,7 @@ fn validate_triangle_attention_gpu(h: &mut ValidationHarness, device: &Dev) {
             .collect()
     };
 
-    #[allow(clippy::type_complexity)]
+    #[expect(clippy::type_complexity, reason = "validation binary")]
     let gpu_result = (|| -> Result<(Vec<f32>, Vec<f32>, Vec<f32>), String> {
         let normed_t = Tensor::from_data(&normed_f32, vec![nn, d], device.clone())
             .map_err(|e| format!("normed: {e}"))?;

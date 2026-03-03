@@ -22,14 +22,10 @@
 //! Validates: `BarraCUDA` HMM forward API with mean log-likelihood summary.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
-    clippy::similar_names,
-    clippy::needless_range_loop,
-    clippy::manual_is_multiple_of,
-    clippy::explicit_iter_loop
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::HmmBatchForwardF64;

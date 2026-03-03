@@ -9,10 +9,10 @@
 //! - nS-604: Three-compartment disorder, tissue lattice, barrier spectrum
 //! - nS-605: Fajgenbaum MATRIX drug repurposing scoring
 
-#![allow(
+#![expect(
     clippy::too_many_lines,
     clippy::expect_used,
-    clippy::cast_precision_loss
+    reason = "validation binary"
 )]
 
 use neural_spring::immunological_anderson::{

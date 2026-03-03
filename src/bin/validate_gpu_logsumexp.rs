@@ -14,7 +14,7 @@
 //!
 //! CPU reference: inline `cpu_logsumexp`. WGSL: `metalForge/shaders/logsumexp_reduce.wgsl`.
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;

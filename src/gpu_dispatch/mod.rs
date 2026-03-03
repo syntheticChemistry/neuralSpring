@@ -14,7 +14,11 @@
 //! - **Agnostic**: works on RTX 4070, TITAN V (NVK), Raspberry Pi, llvmpipe
 //! - **Observable**: every dispatch decision is logged to `execution_log`
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "dispatch layer bridges usize dimensions to GPU u32 and f64 normalization"
+)]
 
 mod basecamp;
 pub mod cpu_fallback;

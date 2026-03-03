@@ -17,7 +17,7 @@
 //! Python baseline: `control/modes/modes_toolbox.py`
 //! Rust baseline: `validate_modes`
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::modes::{complexity_metric, score_system};
 use neural_spring::tolerances;

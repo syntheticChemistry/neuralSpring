@@ -20,11 +20,7 @@
 //! (dN/dS workloads needed f64 precision). `ToadStool` absorbed both —
 //! now neuralSpring benefits from wetSpring's f64 precision upgrade.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::ops::bio::HmmBatchForwardF64;
 use neural_spring::gpu::Gpu;

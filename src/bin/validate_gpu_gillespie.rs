@@ -15,7 +15,7 @@
 //! Upstream: `barracuda::ops::bio::gillespie::GillespieGpu`
 //! Algorithm: Gillespie (1977) direct method with mass-action propensities.
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::ops::bio::gillespie::{GillespieConfig, GillespieGpu};
 use neural_spring::gpu::Gpu;

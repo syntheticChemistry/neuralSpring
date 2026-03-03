@@ -32,8 +32,6 @@
 //! Validates: GPU↔CPU parity via `barracuda::ops::bio::BatchFitnessGpu`.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
-
 use std::sync::Arc;
 use std::time::Instant;
 

@@ -154,7 +154,6 @@ fn validate_gen_eigh(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     }
 }
 
-#[allow(clippy::cast_precision_loss)]
 fn reconstruct_2x2(u: &[f64], s: &[f64], vt: &[f64]) -> Vec<f64> {
     let n = 2;
     let mut result = vec![0.0; n * n];

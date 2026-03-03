@@ -12,8 +12,6 @@
 //! Reference: `SciPy` 1.15.3 `scipy.stats.chi2` (Python 3.10.12, 2026-02-16)
 //! Analytical: moments and statistic derived from textbook definitions.
 
-#![allow(clippy::cast_precision_loss)]
-
 use barracuda::special::{
     chi_squared_cdf, chi_squared_mean, chi_squared_mode, chi_squared_pdf, chi_squared_statistic,
     chi_squared_test, chi_squared_variance,

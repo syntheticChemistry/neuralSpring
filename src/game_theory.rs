@@ -109,7 +109,11 @@ pub struct QsResult {
 ///
 /// When signal density > threshold, cooperators get dispersal bonus.
 #[must_use]
-#[allow(clippy::cast_precision_loss, clippy::naive_bytecount)]
+#[expect(
+    clippy::cast_precision_loss,
+    clippy::naive_bytecount,
+    reason = "small population counts → f64 for frequencies; bytecount crate overkill for pop_size"
+)]
 pub fn qs_cooperation_model(config: &QsConfig) -> QsResult {
     let mut rng = Rng::new(config.seed);
     let mut strategies: Vec<u8> = (0..config.pop_size)
@@ -167,10 +171,11 @@ pub fn qs_cooperation_model(config: &QsConfig) -> QsResult {
 ///
 /// Moore neighborhood (8 neighbors, periodic). Each cell copies strategy
 /// of fittest neighbor. Rare mutation (2% chance of one random flip).
-#[allow(
+#[expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap
+    clippy::cast_possible_wrap,
+    reason = "grid indices use isize for periodic boundary wrap; grid_size² → f64 for cooperation fraction"
 )]
 #[must_use]
 pub fn spatial_cooperation(grid_size: usize, n_gen: usize, b: f64, c: f64, seed: u64) -> Vec<f64> {

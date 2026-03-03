@@ -16,13 +16,6 @@
 //! GPU op: `barracuda::ops::bio::MultiObjFitnessGpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::similar_names
-)]
-
 use barracuda::ops::bio::MultiObjFitnessGpu;
 use neural_spring::directed_evolution::multi_objective_fitness;
 use neural_spring::gpu::Gpu;

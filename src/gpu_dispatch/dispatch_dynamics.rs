@@ -2,7 +2,10 @@
 
 //! Game theory, eigensolvers, ODE batch, and pangenome selection dispatch.
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "domain-specific numeric patterns"
+)]
 
 use super::cpu_fallback;
 use super::Dispatcher;

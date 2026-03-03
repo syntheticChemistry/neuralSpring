@@ -28,12 +28,13 @@
 //! | nF-D09 | PAE head | Pair → softmax → expected distance |
 //! | nF-D10 | DDIM full loop | Oracle denoising T→0 convergence |
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::suboptimal_flops,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::coral_forge::diffusion;

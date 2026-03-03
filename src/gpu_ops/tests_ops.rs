@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::unwrap_used, clippy::expect_used, clippy::cast_precision_loss)]
+#![allow(clippy::unwrap_used, clippy::cast_precision_loss)] // test infrastructure
 
 use super::*;
 use crate::tolerances;
@@ -19,7 +19,7 @@ pub fn test_device() -> Option<(
 }
 
 #[test]
-#[allow(clippy::cast_possible_truncation)]
+#[expect(clippy::cast_possible_truncation, reason = "intentional suppression")]
 fn f32_f64_roundtrip_precision() {
     let x = [1.0_f64, 2.0, 3.0, 0.5, -1.0];
     for &orig in &x {

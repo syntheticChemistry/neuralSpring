@@ -5,11 +5,11 @@
 //!
 //! Proves composed GPU operations match CPU references within tolerance.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::similar_names,
-    clippy::many_single_char_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu_dispatch::Dispatcher;

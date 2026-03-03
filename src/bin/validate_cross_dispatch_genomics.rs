@@ -33,10 +33,10 @@
 //! `LocusVarianceGpu`. Validates: `pairwise_jaccard`, `locus_variance` GPU↔CPU parity.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    reason = "validation binary"
 )]
 
 use std::sync::Arc;

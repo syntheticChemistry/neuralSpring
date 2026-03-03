@@ -9,12 +9,11 @@
 //!
 //! Papers: Sub-thesis 05 (Multi-Agent QS), Paper C (AAMAS 2027).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
     clippy::expect_used,
-    clippy::similar_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::agent_coordination::{

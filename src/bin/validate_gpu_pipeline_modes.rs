@@ -21,14 +21,10 @@
 //! Validates: end-to-end GPU-resident computation with scalar-only readback.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
-    clippy::many_single_char_names,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
-    clippy::cast_lossless
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::PairwiseL2Gpu;

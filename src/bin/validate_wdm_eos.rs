@@ -11,8 +11,6 @@
 //! Python baseline: `control/wdm/eos_surrogate.py`
 //! FPEOS data: Militzer et al., PRE 103, 013203 (2021)
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
-
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::wdm_surrogate;

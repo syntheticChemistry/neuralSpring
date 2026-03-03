@@ -15,11 +15,11 @@
 //! Upstream: `barracuda::ops::bio::StencilCooperationGpu` (f64 pipeline)
 //! CPU reference: inline `cpu_stencil_update`, `cpu_pd_fitness`
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
-    clippy::cast_sign_loss
+    clippy::cast_sign_loss,
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::StencilCooperationGpu;

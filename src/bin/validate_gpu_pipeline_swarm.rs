@@ -24,14 +24,10 @@
 //! Shader: upstream `barracuda::ops::bio::swarm_nn::WGSL_SWARM_NN_SCORES`.
 //! Validates: mean of tanh-like output activations across swarm controllers.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
-    clippy::many_single_char_names,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
-    clippy::cast_lossless
+    reason = "validation binary"
 )]
 
 use bytemuck::{Pod, Zeroable};

@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "population and generation counts → f64 for MODES metrics"
+)]
 
 //! MODES Toolbox: Metrics of Open-Ended Evolution.
 //!
@@ -95,7 +98,10 @@ pub fn l2_distance(a: &[f64], b: &[f64]) -> f64 {
 /// Delegates to `barracuda::stats::fit_linear` (absorbed from airSpring V009
 /// in `ToadStool` S66). Returns (slope, increasing).
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "time step indices → f64 for linear regression"
+)]
 pub fn complexity_metric(complexities: &[f64]) -> (f64, bool) {
     let n = complexities.len();
     if n < 2 {

@@ -50,6 +50,10 @@ pub fn mantel_test(
 
     for _ in 0..n_permutations {
         for i in (1..n).rev() {
+            #[expect(
+                clippy::cast_possible_truncation,
+                reason = "permutation index modulo i+1 always fits in usize"
+            )]
             let j = (rng.next_u64() as usize) % (i + 1);
             perm.swap(i, j);
         }

@@ -23,12 +23,7 @@
 //! CPU reference: `hmm::Hmm::forward` (seed=42, 2-state 20-obs).
 //! GPU shader: `barracuda::ops::bio::hmm::HmmBatchForwardF64` (wetSpring origin)
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::too_many_lines
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::ops::bio::HmmBatchForwardF64;
 use neural_spring::gpu::Gpu;

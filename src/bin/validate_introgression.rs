@@ -11,7 +11,7 @@
 //! Command: `python3 control/introgression/introgression.py`
 //! Result: 8/8 PASS (seed=42, 500 loci)
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::introgression::{
     detect_introgression, generate_ils_only_loci, generate_synthetic_loci, ils_only_hmm,

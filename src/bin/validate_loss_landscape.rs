@@ -46,7 +46,7 @@ fn saddle_loss(x: &[f64]) -> f64 {
     x[0].mul_add(x[0], -(x[1] * x[1]))
 }
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 fn main() {
     let mut h = ValidationHarness::new("loss_landscape");
 

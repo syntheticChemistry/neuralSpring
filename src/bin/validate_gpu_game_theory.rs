@@ -17,11 +17,10 @@
 //! GPU op: `barracuda::ops::bio::SpatialPayoffGpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
-    clippy::cast_sign_loss
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::SpatialPayoffGpu;

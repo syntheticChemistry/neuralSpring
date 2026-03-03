@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: March 2, 2026 (Sessions 44–117 — 212/212 validate_all, 232 binaries, ToadStool S87 (2dc26792), V77 handoff)
+**Last Updated**: March 3, 2026 (Sessions 44–119 — 212/212 validate_all, 232 binaries, barraCuda v0.3.1 standalone primal (extracted from ToadStool S89), V79 handoff)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---
@@ -58,7 +58,7 @@
 |------|-------|-----------|--------|
 | **MODES metric computation** | Dolson 2019 | `PairwiseL2Gpu` + `barracuda::stats::shannon` (S39+, S64) | **RESOLVED** |
 | **Phylogenetic likelihood** | Liu: SATé 2009, cophylogenetics 2023 | `FelsensteinGpu`, `FlatTree` (S39+) | **RESOLVED** |
-| **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | No upstream L-BFGS yet; Adam-only validated | **OPEN** |
+| **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | `barracuda::optimize::LbfgsGpu` available in barraCuda v0.3.1 (requires `gpu` feature) | **AVAILABLE** |
 | **Directed evolution framework** | Dolson 2022 (eLife) | `MultiObjFitnessGpu`, `WrightFisherGpu`, `BatchedMultinomialGpu` (S39+, S61) | **RESOLVED** |
 | **Lanczos eigensolve** | Kachkovskiy: JAMS 2016, GAFA 2018 | `BatchedEighGpu`, `eigh_f64`, `sparse_eigh` (S39+) | **RESOLVED** |
 | **Sparse matrix-vector product** | Kachkovskiy (all) | `SparseGemmF64`, `cg_solve`, `bicgstab_solve` (S39+, S52) | **RESOLVED** |
@@ -91,7 +91,7 @@ PyTorch quantized           ────────→   BarraCUDA Q4/Q8 (gemv_
 N/A                         ────────→   Evolutionary optimization (BatchFitnessGpu)  ✓
 N/A                         ────────→   HMM Viterbi (HmmBatchForwardF64+argmax)      ✓
 N/A                         ────────→   Gillespie simulation (GillespieGpu)          ✓
-N/A                         ────────→   L-BFGS optimizer                             OPEN
+N/A                         ────────→   L-BFGS optimizer (LbfgsGpu v0.3.1)           AVAILABLE
 
 Phase 1 (GPU)                           Phase 2 (Applications)
 ─────────────                           ──────────────────────

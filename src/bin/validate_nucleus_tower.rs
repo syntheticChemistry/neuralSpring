@@ -2,23 +2,28 @@
 
 //! NUCLEUS Tower Mode Validator
 //!
-//! Validates the expanded neuralspring_primal with:
+//! Validates the expanded `neuralspring_primal` with:
 //!   1. GPU-aware health check (hardware info, uptime, counters)
 //!   2. Evoformer block RPC (folding pipeline via JSON-RPC)
 //!   3. Structure Module RPC (IPA + backbone + torsion)
 //!   4. Folding health report
-//!   5. GPU dispatch operations (mat_mul, softmax, eigh)
-//!   6. Cross-primal discovery (graceful failure without NestGate)
+//!   5. GPU dispatch operations (`mat_mul`, softmax, eigh)
+//!   6. Cross-primal discovery (graceful failure without `NestGate`)
 //!   7. Concurrent request handling
 //!   8. Error handling for unknown methods
+//!
+//! ## Provenance
+//!
+//! Validation class: Pipeline (integration test via JSON-RPC)
+//! Provenance: No Python baseline — validates RPC service contract and
+//! capability-based discovery. Expected values are analytical (softmax sum=1,
+//! eigenvalues of known matrices) or structural (response field presence).
 
-#![allow(
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::unwrap_used,
+#![expect(
     clippy::too_many_lines,
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation
+    clippy::option_if_let_else,
+    reason = "validation binary — RPC integration test with JSON deserialization and async orchestration"
 )]
 
 use std::path::PathBuf;
@@ -120,9 +125,10 @@ async fn main() {
     }
 
     let primal_bin = match std::env::current_exe() {
-        Ok(exe) => match exe.parent() {
-            Some(dir) => dir.join("neuralspring_primal"),
-            None => {
+        Ok(exe) => {
+            if let Some(dir) = exe.parent() {
+                dir.join("neuralspring_primal")
+            } else {
                 eprintln!("  current_exe has no parent directory");
                 h.check_abs(
                     "setup.primal_bin",
@@ -132,7 +138,7 @@ async fn main() {
                 );
                 h.finish();
             }
-        },
+        }
         Err(e) => {
             eprintln!("  Failed to resolve current_exe: {e}");
             h.check_abs(
@@ -212,8 +218,7 @@ async fn main() {
             let caps = val
                 .get("capabilities")
                 .and_then(|v| v.as_array())
-                .map(|a| a.len())
-                .unwrap_or(0);
+                .map_or(0, std::vec::Vec::len);
             h.check_abs(
                 "health.capabilities >= 11",
                 if caps >= 11 { 1.0 } else { 0.0 },
@@ -284,7 +289,7 @@ async fn main() {
         Ok(val) => {
             let msa_finite = val
                 .get("msa_finite")
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false);
             h.check_abs(
                 "evoformer.msa_finite",
@@ -295,7 +300,7 @@ async fn main() {
 
             let pair_finite = val
                 .get("pair_finite")
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false);
             h.check_abs(
                 "evoformer.pair_finite",
@@ -306,7 +311,7 @@ async fn main() {
 
             let tri_finite = val
                 .get("tri_attn_finite")
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false);
             h.check_abs(
                 "evoformer.tri_attn_finite",
@@ -317,7 +322,7 @@ async fn main() {
 
             let msa_changed = val
                 .get("msa_changed")
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false);
             h.check_abs(
                 "evoformer.msa_changed",
@@ -328,7 +333,7 @@ async fn main() {
 
             let pair_changed = val
                 .get("pair_changed")
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false);
             h.check_abs(
                 "evoformer.pair_changed",
@@ -390,7 +395,7 @@ async fn main() {
         Ok(val) => {
             let ipa_finite = val
                 .get("ipa_scores_finite")
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false);
             h.check_abs(
                 "structure.ipa_finite",
@@ -401,7 +406,7 @@ async fn main() {
 
             let frames_finite = val
                 .get("frames_finite")
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false);
             h.check_abs(
                 "structure.frames_finite",
@@ -412,7 +417,7 @@ async fn main() {
 
             let torsion_finite = val
                 .get("torsion_finite")
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false);
             h.check_abs(
                 "structure.torsion_finite",
@@ -423,13 +428,13 @@ async fn main() {
 
             let torsion_count = val
                 .get("torsion_count")
-                .and_then(|v| v.as_u64())
+                .and_then(serde_json::Value::as_u64)
                 .unwrap_or(0);
             h.check_abs(
                 "structure.torsion_count",
                 torsion_count as f64,
-                (6 * 7 * 2) as f64,
-                0.5,
+                f64::from(6 * 7 * 2),
+                tolerances::BOOLEAN_VALIDATION_SLACK,
             );
         }
         Err(e) => {
@@ -482,7 +487,12 @@ async fn main() {
                     1.0,
                     tolerances::BOOLEAN_VALIDATION_SLACK,
                 );
-                h.check_abs("folding_health.primitive_count", p.len() as f64, 14.0, 0.5);
+                h.check_abs(
+                    "folding_health.primitive_count",
+                    p.len() as f64,
+                    14.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
             } else {
                 h.check_abs(
                     "folding_health.primitives_present",
@@ -490,7 +500,12 @@ async fn main() {
                     1.0,
                     tolerances::BOOLEAN_VALIDATION_SLACK,
                 );
-                h.check_abs("folding_health.count", 0.0, 14.0, 0.5);
+                h.check_abs(
+                    "folding_health.count",
+                    0.0,
+                    14.0,
+                    tolerances::BOOLEAN_VALIDATION_SLACK,
+                );
             }
         }
         Err(e) => {
@@ -526,7 +541,12 @@ async fn main() {
                 .and_then(|v| serde_json::from_value(v.clone()).ok())
                 .unwrap_or_default();
             let sum: f64 = result.iter().sum();
-            h.check_abs("gpu_dispatch.softmax_sum", sum, 1.0, 1e-10);
+            h.check_abs(
+                "gpu_dispatch.softmax_sum",
+                sum,
+                1.0,
+                tolerances::CROSS_LANGUAGE,
+            );
 
             let backend = val.get("backend").and_then(|v| v.as_str()).unwrap_or("");
             let has_backend = !backend.is_empty();
@@ -569,13 +589,18 @@ async fn main() {
         Ok(val) => {
             let result = val
                 .get("result")
-                .and_then(|v| v.as_f64())
+                .and_then(serde_json::Value::as_f64)
                 .unwrap_or(f64::NAN);
-            h.check_abs("gpu_dispatch.mean", result, 5.0, 1e-10);
+            h.check_abs("gpu_dispatch.mean", result, 5.0, tolerances::CROSS_LANGUAGE);
         }
         Err(e) => {
             eprintln!("  science.gpu_dispatch mean failed: {e}");
-            h.check_abs("gpu_dispatch.mean", 0.0, 5.0, 0.5);
+            h.check_abs(
+                "gpu_dispatch.mean",
+                0.0,
+                5.0,
+                tolerances::BOOLEAN_VALIDATION_SLACK,
+            );
         }
     }
 
@@ -642,7 +667,7 @@ async fn main() {
             let served = val
                 .get("stats")
                 .and_then(|s| s.get("requests_served"))
-                .and_then(|v| v.as_u64())
+                .and_then(serde_json::Value::as_u64)
                 .unwrap_or(0);
             h.check_abs(
                 "stats.requests_served > 0",

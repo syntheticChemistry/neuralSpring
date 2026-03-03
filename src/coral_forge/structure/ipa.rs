@@ -2,10 +2,9 @@
 
 //! Invariant Point Attention (Algorithm 22).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::many_single_char_names,
-    clippy::similar_names
+    reason = "domain-specific numeric patterns"
 )]
 
 use super::frame::{apply_frame, get_frame};
@@ -145,7 +144,10 @@ pub fn ipa_scores(
 ///
 /// Panics if slice lengths don't match declared dimensions.
 #[must_use]
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "IPA requires Q/K/V scalar, Q/K point, pair bias, and dimension parameters"
+)]
 pub fn ipa_apply(
     q_scalar: &[f64],
     k_scalar: &[f64],

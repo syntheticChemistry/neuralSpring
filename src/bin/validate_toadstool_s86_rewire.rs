@@ -20,7 +20,11 @@
 //! cargo run --release --bin validate_toadstool_s86_rewire
 //! ```
 
-#![allow(clippy::unwrap_used, clippy::expect_used)]
+#![expect(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    reason = "validation binary — direct field access on known-good test data"
+)]
 
 use barracuda::nautilus::{
     BetaObservation, DriftMonitor, EvolutionConfig, GenerationRecord, InstanceId, NautilusBrain,
@@ -87,7 +91,12 @@ fn validate_drift_monitor(h: &mut ValidationHarness) {
 
     let ne_s = drift.ne_s_history[0];
     let expected = (100.0 * 0.8) / (1.0 + 0.8);
-    h.check_abs("DriftMonitor ne_s calculation", ne_s, expected, 1e-10);
+    h.check_abs(
+        "DriftMonitor ne_s calculation",
+        ne_s,
+        expected,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     for i in 1..10 {
         let gen_low = GenerationRecord {

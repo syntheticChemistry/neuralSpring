@@ -17,16 +17,21 @@
 //! - **IPA distance scores**: multi-term attention (SE(3)-equivariant) (nF-02)
 //! - **Mixed-hardware routing**: metalForge substrate selection for folding
 //! - **NUCLEUS coordination**: tower (eigensolve) + node (folding state)
+//!
+//! ## Provenance
+//!
+//! Validation class: Cross-spring (GPU↔CPU dispatch parity)
+//! Provenance: Evoformer baselines from `control/coral_forge/evoformer_baselines.json`
+//! (commit `f9ad0268`, 2026-02-16). CPU reference values computed inline;
+//! GPU parity via `barracuda::dispatch::matmul_dispatch`.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::doc_markdown,
-    clippy::expect_used,
     clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::too_many_lines,
-    clippy::too_many_arguments
+    reason = "validation binary — numeric casts and folding dispatch compositions"
 )]
 
 use neural_spring::gpu::Gpu;
@@ -244,7 +249,7 @@ fn validate_ipa_distance(h: &mut ValidationHarness, gpu: &Dispatcher, cpu: &Disp
 
     let self_dist = ipa_distance_dispatch(gpu, &points_q, &points_q, n_res, n_qp);
     h.check_bool("IPA self-distance diagonal zero", {
-        (0..n_res).all(|i| self_dist[i * n_res + i] < 1e-10)
+        (0..n_res).all(|i| self_dist[i * n_res + i] < tolerances::CROSS_LANGUAGE)
     });
 }
 
@@ -274,7 +279,12 @@ fn validate_mixed_routing_folding(h: &mut ValidationHarness, disp: &Dispatcher) 
         },
         || data.iter().sum::<f64>() / data.len() as f64,
     );
-    h.check_abs("mixed small evoformer → correct result", result, 1.25, 0.01);
+    h.check_abs(
+        "mixed small evoformer → correct result",
+        result,
+        1.25,
+        tolerances::GPU_MEAN_DISPATCH_F32,
+    );
     h.check_bool(
         "mixed small evoformer → CPU (dispatch overhead dominates)",
         substrate == MixedSubstrate::CpuOnly,
@@ -299,7 +309,12 @@ fn validate_mixed_routing_folding(h: &mut ValidationHarness, disp: &Dispatcher) 
         },
         || data.iter().sum::<f64>() / data.len() as f64,
     );
-    h.check_abs("mixed large trimul → correct result", result_lg, 1.25, 0.01);
+    h.check_abs(
+        "mixed large trimul → correct result",
+        result_lg,
+        1.25,
+        tolerances::GPU_MEAN_DISPATCH_F32,
+    );
     h.check_bool(
         "mixed large trimul → GPU (compute dominates)",
         substrate_lg == MixedSubstrate::GpuOnly,
@@ -355,7 +370,7 @@ fn validate_nucleus_folding(h: &mut ValidationHarness, disp: &Dispatcher) {
         "nucleus node: folding confidence softmax sums to 1",
         sum,
         1.0,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
     h.check_bool(
         "nucleus node: all confidences positive",

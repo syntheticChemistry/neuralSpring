@@ -20,14 +20,12 @@
 //! `barracuda::spectral`. Validates: stencil, `batch_reduce`, hamming GPU↔CPU parity.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
-    clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::needless_range_loop
+    reason = "validation binary"
 )]
 
 use std::sync::Arc;

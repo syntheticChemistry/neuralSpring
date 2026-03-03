@@ -15,7 +15,6 @@ use neural_spring::rng::Rng;
 
 use super::{JsonRpcResponse, PrimalState};
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 pub fn handle_health(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
     use std::sync::atomic::Ordering;
 
@@ -45,7 +44,6 @@ pub fn handle_health(id: serde_json::Value, state: &PrimalState) -> JsonRpcRespo
     )
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 pub fn handle_ipr(id: serde_json::Value, params: &serde_json::Value) -> JsonRpcResponse {
     let wavefunction: Vec<f64> = match serde_json::from_value(
         params
@@ -66,7 +64,6 @@ pub fn handle_ipr(id: serde_json::Value, params: &serde_json::Value) -> JsonRpcR
     JsonRpcResponse::success(id, serde_json::json!({ "ipr": result }))
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 pub fn handle_disorder_sweep(id: serde_json::Value, params: &serde_json::Value) -> JsonRpcResponse {
     let n = params_usize(params, "lattice_size", 20);
     let t = params_f64(params, "hopping", 1.0);
@@ -87,7 +84,6 @@ pub fn handle_disorder_sweep(id: serde_json::Value, params: &serde_json::Value) 
     )
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 pub fn handle_spectral_analysis(
     id: serde_json::Value,
     params: &serde_json::Value,
@@ -123,7 +119,6 @@ pub fn handle_spectral_analysis(
     )
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 pub fn handle_anderson_localization(
     id: serde_json::Value,
     params: &serde_json::Value,
@@ -169,7 +164,7 @@ pub fn handle_anderson_localization(
     )
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#[expect(clippy::cast_precision_loss, reason = "validation binary")]
 pub fn handle_hessian_eigen(id: serde_json::Value, params: &serde_json::Value) -> JsonRpcResponse {
     let n = params_usize(params, "dim", 20);
     let surface = params
@@ -223,7 +218,6 @@ pub fn handle_hessian_eigen(id: serde_json::Value, params: &serde_json::Value) -
     )
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 pub fn handle_agent_coordination(
     id: serde_json::Value,
     params: &serde_json::Value,
@@ -260,7 +254,7 @@ pub fn handle_agent_coordination(
     )
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#[expect(clippy::cast_precision_loss, reason = "validation binary")]
 pub fn handle_training_trajectory(
     id: serde_json::Value,
     params: &serde_json::Value,

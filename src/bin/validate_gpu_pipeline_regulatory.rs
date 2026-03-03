@@ -24,14 +24,11 @@
 //! Shader: `barracuda::ops::rk_stage::WGSL_RK4_PARALLEL`.
 //! Validates: regulatory network mean final state (Mhatre et al., 2020).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::too_many_lines,
-    clippy::many_single_char_names,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
-    clippy::cast_lossless
+    reason = "validation binary"
 )]
 
 use bytemuck::{Pod, Zeroable};
@@ -82,7 +79,7 @@ fn hill(x: f32, k: f32, n: f32) -> f32 {
     xn / (k.powf(n) + xn)
 }
 
-#[allow(clippy::cast_sign_loss)]
+#[expect(clippy::cast_sign_loss, reason = "validation binary")]
 fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt: f32) -> Vec<f32> {
     fn deriv(y: &[f32], coeffs: &[f32], dim: usize) -> Vec<f32> {
         (0..dim)
@@ -151,7 +148,7 @@ fn cpu_mean_final_state(
 
 // ── GPU RK4 dispatch + CPU mean ────────────────────────────────────
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, reason = "validation binary")]
 fn gpu_mean_rk4(
     gpu: &Gpu,
     states: &[f32],

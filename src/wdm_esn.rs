@@ -42,7 +42,11 @@
 //! Jaeger, "The echo state approach" (2001)
 //! Ichimaru, "Statistical Plasma Physics" (1994)
 
-#![allow(clippy::cast_possible_truncation, clippy::doc_markdown)]
+#![expect(
+    clippy::cast_possible_truncation,
+    clippy::doc_markdown,
+    reason = "domain-specific numeric patterns"
+)]
 
 use serde::Deserialize;
 
@@ -186,7 +190,6 @@ pub fn load_esn_from_json(json_str: &str) -> Result<EsnClassifier, String> {
 /// # Errors
 ///
 /// Returns `Err` on GPU/Tensor operation failure.
-#[allow(clippy::cast_precision_loss)]
 pub fn classify_via_barracuda(
     classifier: &EsnClassifier,
     log_rho: f64,
@@ -379,7 +382,6 @@ impl MultiHeadWdmClassifier {
     /// # Errors
     ///
     /// Returns `Err` on GPU/Tensor failure.
-    #[allow(clippy::cast_precision_loss)]
     pub async fn update(
         &mut self,
         log_rho: f64,

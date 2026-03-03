@@ -14,7 +14,7 @@
 //! No Python baseline — these are novel experiments. Validated against
 //! analytical known-values (graph Laplacian properties, Anderson diagnostics).
 
-#![allow(clippy::cast_precision_loss, clippy::too_many_lines)]
+#![expect(clippy::too_many_lines, reason = "validation binary")]
 
 use neural_spring::agent_coordination::{
     coordination_fraction, coordination_spectral_analysis, dimensional_coordination_sweep,

@@ -17,11 +17,10 @@
 //! CPU baseline: `validate_barracuda_hmm` (14 checks, hmm.rs forward/backward)
 //! GPU: `Tensor::matmul` for transition chain.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::needless_range_loop
+    reason = "validation binary"
 )]
 
 use barracuda::tensor::Tensor;

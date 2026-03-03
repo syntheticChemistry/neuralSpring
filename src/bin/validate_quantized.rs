@@ -14,7 +14,7 @@
 //! and accuracy degradation bounds. These are the deployment-path primitives
 //! that `BarraCUDA`'s `gemv_q8.wgsl` and `gemv_q4.wgsl` will implement.
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::quantized::{
     dequantize_q4, dequantize_q8, gemv_f64, gemv_q4, gemv_q8, q4_params, q8_params, quantize_q4,

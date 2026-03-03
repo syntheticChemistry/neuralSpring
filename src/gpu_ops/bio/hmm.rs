@@ -2,12 +2,6 @@
 
 //! GPU HMM operations: forward, backward, Viterbi.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names
-)]
-
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use std::sync::Arc;

@@ -50,7 +50,7 @@ fn main() {
     }
 
     // --- Nelder-Mead on Rastrigin (multimodal) ---
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss, reason = "validation binary")]
     let rastrigin = |x: &[f64]| {
         let n = x.len() as f64;
         let sum: f64 = x

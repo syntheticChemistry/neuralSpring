@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 2, 2026 (Sessions 61–117)
-**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **212/212 validate\_all** (232 binaries), 861 lib tests. S117: cross-spring shader evolution — 42/42 provenance validator (5 springs → ToadStool S87), 15/15 benchmark. S116: ToadStool S87 sync (deep debt, CPU ungating). S115: dispatch parity 53/53, ComputeDispatch bridge 14/14, NUCLEUS PCIe bypass 38/38. ToadStool HEAD: `2dc26792` (S87, 844+ WGSL shaders, 37 DF64)
+**Last Updated**: March 3, 2026 (Sessions 61–119)
+**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **212/212 validate\_all** (232 binaries), 869 lib tests. S119: deep lint evolution — all `#[allow(` migrated to `#[expect(` with reasons (0 production `#[allow(`), 4 shared validation helpers extracted. S118: barraCuda standalone rewire (v0.3.1). barraCuda: v0.3.1 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders)
 
 ## Purpose
 

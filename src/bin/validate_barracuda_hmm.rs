@@ -18,8 +18,6 @@
 //! Python baseline: `control/hmm_phylo/hmm_phylo.py`
 //! Rust baseline: `validate_hmm`
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
-
 use barracuda::device::WgpuDevice;
 use neural_spring::hmm::Hmm;
 use neural_spring::rng::Rng;

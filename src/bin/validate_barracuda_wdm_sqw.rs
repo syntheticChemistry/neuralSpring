@@ -14,12 +14,11 @@
 //! Hansen MD S(q,ω) → Python LSTM → Rust LSTM (CPU) → BarraCUDA (GPU)
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::many_single_char_names,
-    clippy::too_many_lines
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

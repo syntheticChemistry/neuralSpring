@@ -22,6 +22,18 @@ pub fn gpu_readback(h: &mut ValidationHarness, tensor: &Tensor) -> Option<Vec<f3
     }
 }
 
+/// Compute the maximum absolute difference between two f64 slices.
+///
+/// Used by cross-spring and evolution validators to compare CPU results
+/// at full precision.
+#[must_use]
+pub fn max_abs_diff_f64(a: &[f64], b: &[f64]) -> f64 {
+    a.iter()
+        .zip(b.iter())
+        .map(|(x, y)| (x - y).abs())
+        .fold(0.0_f64, f64::max)
+}
+
 /// Compute the maximum absolute difference between two f32 slices.
 ///
 /// Used by GPU validation binaries to compare GPU output against
@@ -140,6 +152,22 @@ pub fn validate_tensor_reduction(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn max_abs_diff_f64_exact() {
+        assert!((max_abs_diff_f64(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0]) - 0.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn max_abs_diff_f64_nonzero() {
+        let diff = max_abs_diff_f64(&[1.0, 5.0, 3.0], &[1.0, 2.0, 3.0]);
+        assert!((diff - 3.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn max_abs_diff_f64_empty() {
+        assert!((max_abs_diff_f64(&[], &[]) - 0.0).abs() < 1e-15);
+    }
 
     #[test]
     fn max_abs_diff_f32_exact() {

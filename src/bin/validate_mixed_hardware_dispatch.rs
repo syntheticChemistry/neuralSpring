@@ -14,12 +14,10 @@
 //! This proves the `metalForge` infrastructure is ready for `ToadStool`
 //! absorption and multi-device workloads.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
-    clippy::unwrap_used,
-    clippy::similar_names
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;

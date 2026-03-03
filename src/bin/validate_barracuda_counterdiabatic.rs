@@ -17,7 +17,7 @@
 //! Python baseline: `control/counterdiabatic/counterdiabatic_evolution.py`
 //! Rust baseline: `validate_counterdiabatic`
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::counterdiabatic::{
     boltzmann_distribution, kl_divergence, run_protocol_deterministic, NkLandscape,

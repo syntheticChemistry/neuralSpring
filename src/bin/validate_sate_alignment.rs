@@ -11,7 +11,7 @@
 //! Command: `python3 control/sate_alignment/sate_alignment.py`
 //! Result: 8/8 PASS (seed=42, 25 seqs, len 120)
 
-#![allow(clippy::cast_precision_loss, clippy::needless_range_loop)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::rng::Rng;
 use neural_spring::sate_alignment::{

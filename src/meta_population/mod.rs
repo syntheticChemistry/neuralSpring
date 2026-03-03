@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::many_single_char_names,
     clippy::suboptimal_flops,
     clippy::too_many_arguments,
-    clippy::imprecise_flops
+    clippy::imprecise_flops,
+    reason = "population genetics uses multi-parameter models with inherent numeric casts"
 )]
 
 //! Meta-population differentiation under thermal constraint (Paper 025).

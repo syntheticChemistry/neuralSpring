@@ -17,15 +17,13 @@
 //!
 //! Panics if the tokio runtime cannot be created — this is a benchmark binary.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::unwrap_used,
     clippy::expect_used,
     clippy::items_after_statements,
     clippy::suboptimal_flops,
-    clippy::doc_markdown
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu_dispatch::Dispatcher;

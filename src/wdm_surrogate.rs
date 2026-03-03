@@ -21,8 +21,6 @@
 //! FPEOS tables (Militzer) → Python MLP → Rust MLP → BarraCUDA GPU → Pure GPU
 //! ```
 
-#![allow(clippy::cast_possible_truncation, clippy::doc_markdown)]
-
 /// Normalization parameters for MLP input/output.
 #[derive(Debug, Clone)]
 pub struct Normalization {

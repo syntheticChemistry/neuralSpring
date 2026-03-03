@@ -22,10 +22,8 @@
 //! cargo run --bin validate_modern_cross_spring
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
     clippy::cast_lossless,
     clippy::similar_names,
     clippy::suboptimal_flops,
@@ -33,30 +31,14 @@
     clippy::many_single_char_names,
     clippy::items_after_statements,
     clippy::expect_used,
-    clippy::unwrap_used
+    clippy::unwrap_used,
+    reason = "validation binary"
 )]
-
-use std::time::Instant;
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
-
-fn bench<F: FnOnce() -> T, T>(label: &str, f: F) -> (T, f64) {
-    let start = Instant::now();
-    let result = f();
-    let elapsed_us = start.elapsed().as_secs_f64() * 1e6;
-    eprintln!("  [{label}] {elapsed_us:.1} µs");
-    (result, elapsed_us)
-}
-
-fn max_diff(a: &[f64], b: &[f64]) -> f64 {
-    a.iter()
-        .zip(b.iter())
-        .map(|(x, y)| (x - y).abs())
-        .fold(0.0_f64, f64::max)
-}
+use neural_spring::validation::{bench_once, max_abs_diff_f64, ValidationHarness};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // hotSpring provenance: precision infrastructure
@@ -83,17 +65,17 @@ fn validate_hotspring_precision(h: &mut ValidationHarness, dispatcher: &Dispatch
             mat[j * n + i] = v;
         }
     }
-    let (eigs_gpu, gpu_us) = bench("eigh 16×16 (hS→DF64→GPU)", || {
+    let (eigs_gpu, gpu_us) = bench_once("eigh 16×16 (hS→DF64→GPU)", || {
         dispatcher.eigh(&mat, n).0
     });
     let cpu = Dispatcher::cpu_only();
-    let (eigs_cpu, cpu_us) = bench("eigh 16×16 (CPU ref)", || cpu.eigh(&mat, n).0);
+    let (eigs_cpu, cpu_us) = bench_once("eigh 16×16 (CPU ref)", || cpu.eigh(&mat, n).0);
     // GPU Jacobi converges differently for random matrices — compare sorted order
     let mut sorted_gpu = eigs_gpu;
     let mut sorted_cpu = eigs_cpu;
     sorted_gpu.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
     sorted_cpu.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    let eigh_diff = max_diff(&sorted_gpu, &sorted_cpu);
+    let eigh_diff = max_abs_diff_f64(&sorted_gpu, &sorted_cpu);
     h.check_abs(
         "hS→DF64: eigh GPU≈CPU (sorted)",
         eigh_diff,
@@ -111,15 +93,15 @@ fn validate_hotspring_precision(h: &mut ValidationHarness, dispatcher: &Dispatch
     let big_b: Vec<f64> = (0..big_n * big_n)
         .map(|i| ((big_n * big_n - i) as f64) * 0.001)
         .collect();
-    let (gpu_res, _) = bench("matmul 100×100 (hS→split_workgroups)", || {
+    let (gpu_res, _) = bench_once("matmul 100×100 (hS→split_workgroups)", || {
         dispatcher.mat_mul(&big_a, &big_b, big_n)
     });
-    let (cpu_res, _) = bench("matmul 100×100 (CPU ref)", || {
+    let (cpu_res, _) = bench_once("matmul 100×100 (CPU ref)", || {
         cpu.mat_mul(&big_a, &big_b, big_n)
     });
     h.check_abs(
         "hS→split_wg: matmul GPU≈CPU (100×100)",
-        max_diff(&gpu_res, &cpu_res),
+        max_abs_diff_f64(&gpu_res, &cpu_res),
         0.0,
         tolerances::DISPATCH_MATMUL_F64 * 10.0,
     );
@@ -150,7 +132,7 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
 
     // Shannon diversity (wetSpring → ToadStool S64)
     let counts = [10.0, 20.0, 30.0, 40.0];
-    let (shannon, _) = bench("shannon (wS→ToadStool S64)", || {
+    let (shannon, _) = bench_once("shannon (wS→ToadStool S64)", || {
         barracuda::stats::shannon(&counts)
     });
     let expected_shannon = {
@@ -174,7 +156,7 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
     // Bray-Curtis distance (wetSpring → ToadStool S64)
     let a = [10.0, 20.0, 30.0];
     let b = [15.0, 25.0, 35.0];
-    let (bc, _) = bench("bray_curtis (wS→ToadStool S64)", || {
+    let (bc, _) = bench_once("bray_curtis (wS→ToadStool S64)", || {
         barracuda::stats::bray_curtis(&a, &b)
     });
     let expected_bc = {
@@ -203,7 +185,7 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
     );
 
     // Simpson diversity (wetSpring → ToadStool S64)
-    let (simpson, _) = bench("simpson (wS→ToadStool S64)", || {
+    let (simpson, _) = bench_once("simpson (wS→ToadStool S64)", || {
         barracuda::stats::simpson(&abundances)
     });
     h.check_bool(
@@ -214,7 +196,7 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
     // Pearson correlation (wetSpring hydrology → ToadStool S64)
     let x = [1.0, 2.0, 3.0, 4.0, 5.0];
     let y = [2.0, 4.0, 6.0, 8.0, 10.0];
-    let (r, _) = bench("pearson (wS/aS→ToadStool S64)", || {
+    let (r, _) = bench_once("pearson (wS/aS→ToadStool S64)", || {
         barracuda::stats::pearson_correlation(&x, &y)
     });
     h.check_abs(
@@ -257,7 +239,7 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
     // Regression fitting (airSpring → ToadStool S66)
     let x = [1.0, 2.0, 3.0, 4.0, 5.0];
     let y = [2.1, 3.9, 6.1, 7.9, 10.1];
-    let (fit, _) = bench("fit_linear (aS→ToadStool S66)", || {
+    let (fit, _) = bench_once("fit_linear (aS→ToadStool S66)", || {
         barracuda::stats::fit_linear(&x, &y)
     });
     let fit = fit.expect("fit_linear should converge");
@@ -277,7 +259,7 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
     // Quadratic fit (airSpring → ToadStool S66)
     let xq: Vec<f64> = (0..20).map(|i| i as f64 * 0.5).collect();
     let yq: Vec<f64> = xq.iter().map(|&x| 3.0f64.mul_add(x, x * x) + 1.0).collect();
-    let (fit_q, _) = bench("fit_quadratic (aS→ToadStool S66)", || {
+    let (fit_q, _) = bench_once("fit_quadratic (aS→ToadStool S66)", || {
         barracuda::stats::fit_quadratic(&xq, &yq)
     });
     let fit_q = fit_q.expect("fit_quadratic should converge");
@@ -302,23 +284,23 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
     // Metrics: RMSE, R², NSE, MAE (airSpring → ToadStool S64)
     let predicted = [1.0, 2.0, 3.0, 4.0, 5.0];
     let observed = [1.1, 1.9, 3.1, 3.9, 5.1];
-    let (rmse, _) = bench("rmse (aS→ToadStool S64)", || {
+    let (rmse, _) = bench_once("rmse (aS→ToadStool S64)", || {
         barracuda::stats::rmse(&predicted, &observed)
     });
     h.check_bool("aS→metrics: RMSE > 0", rmse > 0.0);
     h.check_bool("aS→metrics: RMSE < 0.2 (close predictions)", rmse < 0.2);
 
-    let (r2, _) = bench("r_squared (aS→ToadStool S64)", || {
+    let (r2, _) = bench_once("r_squared (aS→ToadStool S64)", || {
         barracuda::stats::r_squared(&predicted, &observed)
     });
     h.check_bool("aS→metrics: R² > 0.99", r2 > 0.99);
 
-    let (nse, _) = bench("nash_sutcliffe (aS→ToadStool S64)", || {
+    let (nse, _) = bench_once("nash_sutcliffe (aS→ToadStool S64)", || {
         barracuda::stats::nash_sutcliffe(&predicted, &observed)
     });
     h.check_bool("aS→metrics: NSE > 0.99", nse > 0.99);
 
-    let (mae, _) = bench("mae (aS→ToadStool S64)", || {
+    let (mae, _) = bench_once("mae (aS→ToadStool S64)", || {
         barracuda::stats::mae(&predicted, &observed)
     });
     h.check_abs(
@@ -330,7 +312,7 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
 
     // Hydrology: Hargreaves ET₀ (airSpring → ToadStool S66)
     // ra=15 MJ/m²/day, t_max=35°C, t_min=15°C
-    let (et0_opt, _) = bench("hargreaves_et0 (aS→ToadStool S66)", || {
+    let (et0_opt, _) = bench_once("hargreaves_et0 (aS→ToadStool S66)", || {
         barracuda::stats::hargreaves_et0(15.0, 35.0, 15.0)
     });
     let et0 = et0_opt.unwrap_or(0.0);
@@ -342,7 +324,7 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
     // Spearman rank correlation (airSpring → ToadStool S66)
     let xs = [1.0, 2.0, 3.0, 4.0, 5.0];
     let ys = [5.0, 6.0, 7.0, 8.0, 7.0];
-    let (rho_result, _) = bench("spearman (aS→ToadStool S66)", || {
+    let (rho_result, _) = bench_once("spearman (aS→ToadStool S66)", || {
         barracuda::stats::spearman_correlation(&xs, &ys)
     });
     let rho = rho_result.unwrap_or(0.0);
@@ -360,7 +342,7 @@ fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
     let data: Vec<f64> = (0..100).map(|i| (i as f64) * 0.1).collect();
     let true_mean = data.iter().sum::<f64>() / data.len() as f64;
     let mean_fn = |s: &[f64]| s.iter().sum::<f64>() / s.len() as f64;
-    let (ci_result, _) = bench("bootstrap_ci (gS→ToadStool S56)", || {
+    let (ci_result, _) = bench_once("bootstrap_ci (gS→ToadStool S56)", || {
         barracuda::stats::bootstrap_ci(&data, mean_fn, 500, 0.95, 42)
     });
     let ci = ci_result.expect("bootstrap_ci");
@@ -371,7 +353,7 @@ fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
     );
 
     // Bootstrap mean (groundSpring → ToadStool S56)
-    let (bm_result, _) = bench("bootstrap_mean (gS→ToadStool S56)", || {
+    let (bm_result, _) = bench_once("bootstrap_mean (gS→ToadStool S56)", || {
         barracuda::stats::bootstrap_mean(&data, 500, 0.95, 42)
     });
     let bm = bm_result.expect("bootstrap_mean").estimate;
@@ -383,7 +365,7 @@ fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
     );
 
     // rawr_mean (groundSpring → ToadStool S56)
-    let (rm_result, _) = bench("rawr_mean (gS→ToadStool S56)", || {
+    let (rm_result, _) = bench_once("rawr_mean (gS→ToadStool S56)", || {
         barracuda::stats::rawr_mean(&data, 200, 0.95, 42)
     });
     let rm = rm_result.expect("rawr_mean").estimate;
@@ -395,7 +377,7 @@ fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
     );
 
     // Normal distribution (groundSpring/airSpring → ToadStool)
-    let (cdf, _) = bench("norm_cdf (gS→ToadStool)", || {
+    let (cdf, _) = bench_once("norm_cdf (gS→ToadStool)", || {
         barracuda::stats::norm_cdf(0.0)
     });
     h.check_abs(
@@ -405,7 +387,7 @@ fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
         tolerances::CROSS_LANGUAGE,
     );
 
-    let (pdf, _) = bench("norm_pdf (gS→ToadStool)", || {
+    let (pdf, _) = bench_once("norm_pdf (gS→ToadStool)", || {
         barracuda::stats::norm_pdf(0.0)
     });
     let expected_pdf = 1.0 / (2.0 * std::f64::consts::PI).sqrt();
@@ -416,7 +398,7 @@ fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
         tolerances::CROSS_LANGUAGE,
     );
 
-    let (ppf, _) = bench("norm_ppf (gS→ToadStool)", || {
+    let (ppf, _) = bench_once("norm_ppf (gS→ToadStool)", || {
         barracuda::stats::norm_ppf(0.975)
     });
     h.check_abs(
@@ -436,7 +418,7 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
 
     // Dispatcher: softmax (nS S58 → ToadStool domain_ops)
     let logits = [1.0, 2.0, 3.0, 4.0];
-    let (sm, _) = bench("softmax (nS→ToadStool S58)", || {
+    let (sm, _) = bench_once("softmax (nS→ToadStool S58)", || {
         dispatcher.softmax(&logits)
     });
     let sm_sum: f64 = sm.iter().sum();
@@ -449,7 +431,7 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
 
     // Dispatcher: GELU (nS S59 → ToadStool domain_ops)
     let vals = [-2.0, -1.0, 0.0, 1.0, 2.0];
-    let (gelu_out, _) = bench("gelu (nS→ToadStool S59)", || dispatcher.gelu(&vals));
+    let (gelu_out, _) = bench_once("gelu (nS→ToadStool S59)", || dispatcher.gelu(&vals));
     h.check_abs(
         "nS→dispatch: GELU(0) = 0",
         gelu_out[2],
@@ -460,7 +442,7 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
 
     // Dispatcher: variance (nS → ToadStool domain_ops)
     let data = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
-    let (var, _) = bench("variance (nS→ToadStool)", || dispatcher.variance(&data));
+    let (var, _) = bench_once("variance (nS→ToadStool)", || dispatcher.variance(&data));
     let cpu = Dispatcher::cpu_only();
     let var_cpu = cpu.variance(&data);
     h.check_abs(
@@ -474,7 +456,7 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
     let alpha = [0.5, 0.5];
     let trans = [0.7, 0.3, 0.4, 0.6];
     let emis = [0.9, 0.2];
-    let (hmm, _) = bench("hmm_forward (nS+wS→ToadStool S59)", || {
+    let (hmm, _) = bench_once("hmm_forward (nS+wS→ToadStool S59)", || {
         dispatcher.hmm_forward_step(&alpha, &trans, &emis, 2)
     });
     h.check_bool(
@@ -485,7 +467,7 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
 
     // Graph operations (nS baseCamp → ToadStool S54)
     let adjacency = [0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0];
-    let (laplacian, _) = bench("graph_laplacian (nS→ToadStool S54)", || {
+    let (laplacian, _) = bench_once("graph_laplacian (nS→ToadStool S54)", || {
         barracuda::linalg::graph_laplacian(&adjacency, 3)
     });
     h.check_abs(
@@ -503,7 +485,7 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
 
     // Effective rank (nS baseCamp → ToadStool S54)
     let eigs = [10.0, 5.0, 1.0, 0.1, 0.01];
-    let (eff_rank, _) = bench("effective_rank (nS→ToadStool S54)", || {
+    let (eff_rank, _) = bench_once("effective_rank (nS→ToadStool S54)", || {
         barracuda::linalg::effective_rank(&eigs)
     });
     h.check_bool("nS→graph: effective_rank > 1", eff_rank > 1.0);
@@ -539,18 +521,18 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
 
     // Verify modern linalg decompositions available
     let mat_3x3 = [4.0, 12.0, -16.0, 12.0, 37.0, -43.0, -16.0, -43.0, 98.0];
-    let (lu, _) = bench("lu_decompose (TS linalg)", || {
+    let (lu, _) = bench_once("lu_decompose (TS linalg)", || {
         barracuda::linalg::lu_decompose(&mat_3x3, 3)
     });
     h.check_bool("TS→linalg: LU decomposes", lu.is_ok());
 
-    let (qr, _) = bench("qr_decompose (TS linalg)", || {
+    let (qr, _) = bench_once("qr_decompose (TS linalg)", || {
         barracuda::linalg::qr_decompose(&mat_3x3, 3, 3)
     });
     h.check_bool("TS→linalg: QR decomposes", qr.is_ok());
 
     // Numerical: gradient_1d (cross-spring)
-    let (grad, _) = bench("gradient_1d (TS numerical)", || {
+    let (grad, _) = bench_once("gradient_1d (TS numerical)", || {
         barracuda::numerical::gradient_1d(&[1.0, 4.0, 9.0, 16.0], 1.0)
     });
     h.check_abs(
@@ -568,7 +550,7 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     // trapz([0,1,4,9], [0,1,2,3]) = 0.5*(0+1) + 0.5*(1+4) + 0.5*(4+9) = 9.5
     let y = [0.0, 1.0, 4.0, 9.0];
     let x = [0.0, 1.0, 2.0, 3.0];
-    let (integral, _) = bench("trapz (TS numerical)", || {
+    let (integral, _) = bench_once("trapz (TS numerical)", || {
         barracuda::numerical::trapz(&y, &x)
     });
     h.check_abs(
@@ -581,7 +563,7 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     // Numerical: Hessian (nS baseCamp → ToadStool S54)
     let quadratic: &dyn Fn(&[f64]) -> f64 =
         &|params: &[f64]| params[0] * params[0] + params[1] * params[1];
-    let (hess, _) = bench("numerical_hessian (nS→TS S54)", || {
+    let (hess, _) = bench_once("numerical_hessian (nS→TS S54)", || {
         barracuda::numerical::numerical_hessian(quadratic, &[1.0, 2.0], 1e-5)
     });
     h.check_abs(
@@ -606,7 +588,7 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     // Modern stats: chi2 decomposition
     let observed_counts = [10.0, 20.0, 30.0, 40.0];
     let expected_counts = [25.0, 25.0, 25.0, 25.0];
-    let (chi2_result, _) = bench("chi2_decomposed (TS stats)", || {
+    let (chi2_result, _) = bench_once("chi2_decomposed (TS stats)", || {
         barracuda::stats::chi2_decomposed(&observed_counts, &expected_counts, 0)
     });
     let chi2 = chi2_result.expect("chi2_decomposed");
@@ -620,7 +602,7 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     // features: [5, 2] (x and bias column), targets: [5, 1]
     let features = [1.0, 1.0, 2.0, 1.0, 3.0, 1.0, 4.0, 1.0, 5.0, 1.0];
     let targets = [2.1, 3.9, 6.1, 7.9, 10.1]; // y ≈ 2x + 0.1
-    let (ridge, _) = bench("ridge_regression (wS→TS S56)", || {
+    let (ridge, _) = bench_once("ridge_regression (wS→TS S56)", || {
         barracuda::linalg::ridge_regression(&features, &targets, 5, 2, 1, 0.01)
     });
     h.check_bool("wS→linalg: ridge converges", ridge.is_ok());
@@ -798,10 +780,10 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
     let mut results = Vec::new();
 
     // Matmul (neuralSpring → ToadStool → GPU)
-    let (_, gpu_t) = bench("matmul 256×256 GPU", || {
+    let (_, gpu_t) = bench_once("matmul 256×256 GPU", || {
         dispatcher.mat_mul(&data, &data, n)
     });
-    let (_, cpu_t) = bench("matmul 256×256 CPU", || cpu.mat_mul(&data, &data, n));
+    let (_, cpu_t) = bench_once("matmul 256×256 CPU", || cpu.mat_mul(&data, &data, n));
     results.push(BenchResult {
         label: "matmul 256²",
         provenance: "nS→TS",
@@ -811,8 +793,8 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
 
     // Softmax (neuralSpring → ToadStool → GPU)
     let flat: Vec<f64> = data[..1024].to_vec();
-    let (_, gpu_t) = bench("softmax 1024 GPU", || dispatcher.softmax(&flat));
-    let (_, cpu_t) = bench("softmax 1024 CPU", || cpu.softmax(&flat));
+    let (_, gpu_t) = bench_once("softmax 1024 GPU", || dispatcher.softmax(&flat));
+    let (_, cpu_t) = bench_once("softmax 1024 CPU", || cpu.softmax(&flat));
     results.push(BenchResult {
         label: "softmax 1K",
         provenance: "nS→TS",
@@ -821,8 +803,8 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
     });
 
     // Variance (cross-spring)
-    let (_, gpu_t) = bench("variance 65K GPU", || dispatcher.variance(&data));
-    let (_, cpu_t) = bench("variance 65K CPU", || cpu.variance(&data));
+    let (_, gpu_t) = bench_once("variance 65K GPU", || dispatcher.variance(&data));
+    let (_, cpu_t) = bench_once("variance 65K CPU", || cpu.variance(&data));
     results.push(BenchResult {
         label: "variance 65K",
         provenance: "hS+nS→TS",
@@ -831,8 +813,8 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
     });
 
     // GELU (neuralSpring → ToadStool → GPU)
-    let (_, gpu_t) = bench("GELU 1024 GPU", || dispatcher.gelu(&flat));
-    let (_, cpu_t) = bench("GELU 1024 CPU", || cpu.gelu(&flat));
+    let (_, gpu_t) = bench_once("GELU 1024 GPU", || dispatcher.gelu(&flat));
+    let (_, cpu_t) = bench_once("GELU 1024 CPU", || cpu.gelu(&flat));
     results.push(BenchResult {
         label: "GELU 1K",
         provenance: "nS→TS",
@@ -848,8 +830,8 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
             sym[j * n_eig + i] = sym[i * n_eig + j];
         }
     }
-    let (_, gpu_t) = bench("eigh 32×32 GPU", || dispatcher.eigh(&sym, n_eig));
-    let (_, cpu_t) = bench("eigh 32×32 CPU", || cpu.eigh(&sym, n_eig));
+    let (_, gpu_t) = bench_once("eigh 32×32 GPU", || dispatcher.eigh(&sym, n_eig));
+    let (_, cpu_t) = bench_once("eigh 32×32 CPU", || cpu.eigh(&sym, n_eig));
     results.push(BenchResult {
         label: "eigh 32²",
         provenance: "hS→TS",
@@ -858,8 +840,8 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
     });
 
     // Frobenius norm (neuralSpring → ToadStool → GPU)
-    let (_, gpu_t) = bench("frobenius 65K GPU", || dispatcher.frobenius_norm(&data));
-    let (_, cpu_t) = bench("frobenius 65K CPU", || cpu.frobenius_norm(&data));
+    let (_, gpu_t) = bench_once("frobenius 65K GPU", || dispatcher.frobenius_norm(&data));
+    let (_, cpu_t) = bench_once("frobenius 65K CPU", || cpu.frobenius_norm(&data));
     results.push(BenchResult {
         label: "frobenius 65K",
         provenance: "nS→TS",

@@ -24,10 +24,10 @@
 //! Hansen & McDonald, "Theory of Simple Liquids" (2013)
 //! Gregori et al., PRE 67, 026412 (2003)
 
-#![allow(
-    clippy::cast_possible_truncation,
+#![expect(
     clippy::cast_precision_loss,
-    clippy::doc_markdown
+    clippy::doc_markdown,
+    reason = "domain-specific numeric patterns"
 )]
 
 use crate::sequence::{lstm_cell, LstmWeights};

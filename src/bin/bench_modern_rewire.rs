@@ -39,18 +39,13 @@
 //!
 //! Panics if the tokio runtime cannot be created — this is a benchmark binary.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::many_single_char_names,
-    clippy::needless_range_loop,
     clippy::too_many_lines,
-    clippy::cast_lossless,
-    clippy::cast_sign_loss,
-    clippy::similar_names,
     clippy::expect_used,
-    clippy::unwrap_used,
-    clippy::suboptimal_flops
+    clippy::suboptimal_flops,
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

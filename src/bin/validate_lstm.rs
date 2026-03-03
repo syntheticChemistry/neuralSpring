@@ -15,8 +15,6 @@
 //! Training remains Python-only (Phase 0); this validates the inference
 //! math that `BarraCUDA`'s `lstm_cell.wgsl` and `gru_cell.wgsl` will implement.
 
-#![allow(clippy::too_many_lines)]
-
 use neural_spring::sequence::{
     gru_cell, gru_forward, lstm_cell, lstm_forward, sigmoid, tanh_activation, GruWeights,
     LstmWeights,

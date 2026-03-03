@@ -42,19 +42,15 @@
 //! Session 74. Cross-spring: hotSpring validation patterns, wetSpring
 //! bio-domain ops, all dispatched through typed `BarraCUDA` GPU wrappers.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
     clippy::many_single_char_names,
     clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
     clippy::cast_lossless,
-    clippy::needless_range_loop,
     clippy::similar_names,
     clippy::suboptimal_flops,
-    clippy::items_after_statements,
-    clippy::doc_markdown
+    reason = "validation binary — GPU buffer plumbing with numeric casts across 12 bio-compute domains"
 )]
 
 use barracuda::ops::bio::hill_gate::{HillGateGpu, HillGateParams};
@@ -74,6 +70,23 @@ use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use std::time::Instant;
 use wgpu::util::DeviceExt;
+
+fn storage_buf(device: &wgpu::Device, label: &str, data: &[u8]) -> wgpu::Buffer {
+    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some(label),
+        contents: data,
+        usage: wgpu::BufferUsages::STORAGE,
+    })
+}
+
+fn output_buf(device: &wgpu::Device, label: &str, bytes: u64) -> wgpu::Buffer {
+    device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some(label),
+        size: bytes,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    })
+}
 
 #[tokio::main]
 async fn main() {
@@ -139,23 +152,9 @@ fn validate_fitness(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = BatchFitnessGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
-    let geno_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("fit_geno"),
-        contents: bytemuck::cast_slice(&genotypes),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let weight_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("fit_w"),
-        contents: bytemuck::cast_slice(&weights),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("fit_out"),
-        size: (pop_size * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let geno_buf = storage_buf(device, "fit_geno", bytemuck::cast_slice(&genotypes));
+    let weight_buf = storage_buf(device, "fit_w", bytemuck::cast_slice(&weights));
+    let out_buf = output_buf(device, "fit_out", (pop_size * 8) as u64);
 
     op.dispatch(
         &geno_buf,
@@ -202,18 +201,8 @@ fn validate_multi_obj(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = MultiObjFitnessGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
-    let geno_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("mof_g"),
-        contents: bytemuck::cast_slice(&genotypes),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("mof_out"),
-        size: (pop * n_obj * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let geno_buf = storage_buf(device, "mof_g", bytemuck::cast_slice(&genotypes));
+    let out_buf = output_buf(device, "mof_out", (pop * n_obj * 8) as u64);
 
     op.dispatch(&geno_buf, &out_buf, pop as u32, glen as u32, n_obj as u32);
 
@@ -261,26 +250,11 @@ fn validate_swarm_nn(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = SwarmNnGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
     let inputs_f64: Vec<f64> = (0..n_ctrl).flat_map(|_| sense.iter().copied()).collect();
-
-    let w_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("swarm_w"),
-        contents: bytemuck::cast_slice(&all_weights),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let in_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("swarm_in"),
-        contents: bytemuck::cast_slice(&inputs_f64),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
+    let w_buf = storage_buf(device, "swarm_w", bytemuck::cast_slice(&all_weights));
+    let in_buf = storage_buf(device, "swarm_in", bytemuck::cast_slice(&inputs_f64));
     let n_actions = (n_ctrl * n_eval) as usize;
-    let act_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("swarm_act"),
-        size: (n_actions * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let act_buf = output_buf(device, "swarm_act", (n_actions * 4) as u64);
 
     op.dispatch(
         &w_buf,
@@ -355,34 +329,11 @@ fn validate_rk45_regulatory(h: &mut ValidationHarness, gpu: &Gpu) {
     let device = gpu.device();
 
     let op = Rk45AdaptiveGpu::new(Arc::clone(gpu.wgpu_device()));
-    let state_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("rk_state"),
-        contents: bytemuck::cast_slice(&state),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let coeff_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("rk_coeff"),
-        contents: bytemuck::cast_slice(&coeffs),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("rk_out"),
-        size: (total * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    let err_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("rk_err"),
-        size: (total * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    let scratch_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("rk_scratch"),
-        size: (total * 8 * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE,
-        mapped_at_creation: false,
-    });
+    let state_buf = storage_buf(device, "rk_state", bytemuck::cast_slice(&state));
+    let coeff_buf = storage_buf(device, "rk_coeff", bytemuck::cast_slice(&coeffs));
+    let out_buf = output_buf(device, "rk_out", (total * 8) as u64);
+    let err_buf = output_buf(device, "rk_err", (total * 8) as u64);
+    let scratch_buf = output_buf(device, "rk_scratch", (total * 8 * 8) as u64);
 
     op.dispatch(
         &state_buf,
@@ -432,23 +383,9 @@ fn validate_hill_gate_signal(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = HillGateGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
-    let a_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("hill_a"),
-        contents: bytemuck::cast_slice(&a_vals),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let b_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("hill_b"),
-        contents: bytemuck::cast_slice(&b_vals),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("hill_out"),
-        size: (n_out * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let a_buf = storage_buf(device, "hill_a", bytemuck::cast_slice(&a_vals));
+    let b_buf = storage_buf(device, "hill_b", bytemuck::cast_slice(&b_vals));
+    let out_buf = output_buf(device, "hill_out", (n_out * 8) as u64);
 
     let params = HillGateParams {
         n_a,
@@ -539,39 +476,13 @@ fn validate_hmm(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 
     let device = gpu.device();
-    let lt_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("hmm_lt"),
-        contents: bytemuck::cast_slice(&log_trans),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let le_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("hmm_le"),
-        contents: bytemuck::cast_slice(&log_emit),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let lp_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("hmm_lp"),
-        contents: bytemuck::cast_slice(&log_pi),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let obs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("hmm_obs"),
-        contents: bytemuck::cast_slice(&obs_flat),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
+    let lt_buf = storage_buf(device, "hmm_lt", bytemuck::cast_slice(&log_trans));
+    let le_buf = storage_buf(device, "hmm_le", bytemuck::cast_slice(&log_emit));
+    let lp_buf = storage_buf(device, "hmm_lp", bytemuck::cast_slice(&log_pi));
+    let obs_buf = storage_buf(device, "hmm_obs", bytemuck::cast_slice(&obs_flat));
     let alpha_size = (n_seqs * seq_len * n_states as usize * 8) as u64;
-    let alpha_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("hmm_a"),
-        size: alpha_size,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    let ll_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("hmm_ll"),
-        size: (n_seqs * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let alpha_buf = output_buf(device, "hmm_a", alpha_size);
+    let ll_buf = output_buf(device, "hmm_ll", (n_seqs * 8) as u64);
 
     if let Err(e) = op.dispatch(
         n_states,
@@ -650,18 +561,8 @@ fn validate_spatial_payoff(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = SpatialPayoffGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
-    let grid_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("sp_grid"),
-        contents: bytemuck::cast_slice(&grid),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("sp_out"),
-        size: (n * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let grid_buf = storage_buf(device, "sp_grid", bytemuck::cast_slice(&grid));
+    let out_buf = output_buf(device, "sp_out", (n * 4) as u64);
 
     op.dispatch(&grid_buf, &out_buf, grid_size, b, c);
 
@@ -717,18 +618,8 @@ fn validate_batch_ipr(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = BatchIprGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
-    let vecs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("ipr_v"),
-        contents: bytemuck::cast_slice(&vecs_f32),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("ipr_out"),
-        size: (n_vectors * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let vecs_buf = storage_buf(device, "ipr_v", bytemuck::cast_slice(&vecs_f32));
+    let out_buf = output_buf(device, "ipr_out", (n_vectors * 4) as u64);
 
     op.dispatch(&vecs_buf, &out_buf, dim as u32, n_vectors as u32);
 
@@ -778,18 +669,8 @@ fn validate_hamming(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = PairwiseHammingGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
-    let seqs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("ham_s"),
-        contents: bytemuck::cast_slice(&seqs),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("ham_out"),
-        size: (n_pairs * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let seqs_buf = storage_buf(device, "ham_s", bytemuck::cast_slice(&seqs));
+    let out_buf = output_buf(device, "ham_out", (n_pairs * 4) as u64);
 
     op.dispatch(&seqs_buf, &out_buf, n_seqs as u32, seq_len as u32);
 
@@ -836,18 +717,8 @@ fn validate_l2(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = PairwiseL2Gpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
-    let pts_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("l2_pts"),
-        contents: bytemuck::cast_slice(&points_f32),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("l2_out"),
-        size: (n_pairs * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let pts_buf = storage_buf(device, "l2_pts", bytemuck::cast_slice(&points_f32));
+    let out_buf = output_buf(device, "l2_out", (n_pairs * 4) as u64);
 
     op.dispatch(&pts_buf, &out_buf, n as u32, dim as u32);
 
@@ -892,19 +763,9 @@ fn validate_jaccard(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = PairwiseJaccardGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
     let n_pairs = n_genomes * (n_genomes - 1) / 2;
-    let pa_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("jac_pa"),
-        contents: bytemuck::cast_slice(&pa_f32),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("jac_out"),
-        size: (n_pairs * 4) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let pa_buf = storage_buf(device, "jac_pa", bytemuck::cast_slice(&pa_f32));
+    let out_buf = output_buf(device, "jac_out", (n_pairs * 4) as u64);
 
     op.dispatch(&pa_buf, &out_buf, n_genomes as u32, n_genes as u32);
 
@@ -944,18 +805,8 @@ fn validate_locus_variance(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let op = LocusVarianceGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
-
-    let freqs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("lv_f"),
-        contents: bytemuck::cast_slice(&freqs),
-        usage: wgpu::BufferUsages::STORAGE,
-    });
-    let out_buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("lv_out"),
-        size: (n_loci * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
+    let freqs_buf = storage_buf(device, "lv_f", bytemuck::cast_slice(&freqs));
+    let out_buf = output_buf(device, "lv_out", (n_loci * 8) as u64);
 
     op.dispatch(&freqs_buf, &out_buf, n_pops as u32, n_loci as u32);
 

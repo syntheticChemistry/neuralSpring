@@ -23,14 +23,13 @@
 //! CPU reference: `neural_spring::coral_forge` + `neural_spring::coral_forge::structure`.
 //! GPU: `metalForge/shaders/` WGSL → `compile_shader_f64_hybrid`.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::expect_used,
     clippy::items_after_statements,
-    clippy::suboptimal_flops,
-    clippy::many_single_char_names
+    clippy::many_single_char_names,
+    reason = "validation binary"
 )]
 
 use neural_spring::coral_forge;
@@ -207,7 +206,7 @@ fn validate_attention_apply(h: &mut ValidationHarness, gpu: &Gpu) {
 
 // ─── Full 3-pass SDPA Pipeline ───────────────────────────────────────
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 fn validate_sdpa_pipeline(h: &mut ValidationHarness, gpu: &Gpu) {
     let (b, he, sq, skv, d) = (1_u32, 2_u32, 8_u32, 8_u32, 4_u32);
     let qk_len = (b * he * sq * d) as usize;

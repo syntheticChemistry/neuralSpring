@@ -6,8 +6,8 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `2dc26792` (Sessions 60–117, S117: cross-spring shader evolution 42/42 + 15/15 bench. Mar 2, 2026) |
-| Last updated | March 2, 2026 (Sessions 40–117) |
+| ToadStool HEAD | `2dc26792` (Sessions 60–119, S117: cross-spring shader evolution 42/42 + 15/15 bench. Mar 2, 2026) |
+| Last updated | March 2, 2026 (Sessions 40–119) |
 | BarraCUDA shader count | 844+ WGSL (f64 canonical, universal precision, S70+++) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
 | Modern rewires (S88+) | `pairwise_l2_matrix_gpu` → `PairwiseL2Gpu`, `geographic_distance_matrix_gpu` → `PairwiseL2Gpu`, `disorder_sweep_gpu` IPR → `BatchIprGpu`, `compile_shader_f64_hybrid` → `compile_shader_df64` |
@@ -215,7 +215,7 @@
 | `validate_all` | 212 | **212/212 PASS** |
 | `validate_cross_spring_evolution` | 68 | **68/68 PASS** |
 | `bench_cross_spring_evolution` | 14 | **14/14 PASS** |
-| `cargo test --lib` | 861 | **861/861 PASS** |
+| `cargo test --lib` | 869 | **869/869 PASS** |
 | `cargo clippy --all-targets -- -D warnings` | — | 0 warnings |
 | `BandwidthTier` detection | RTX 4070 | `PciE4x16` detected |
 
@@ -762,7 +762,7 @@ Feb 26  Session 83: ToadStool S68 Universal Precision Sync
             fit_exponential, fit_all, spearman, rawr_mean) + GPU dispatch provenance
           - Five-spring provenance map: hotSpring ~100, wetSpring ~80,
             neuralSpring ~34, airSpring ~15, groundSpring ~5 shaders
-          - Full validation sweep: 861 lib + 156 GPU + 28 bench PASS
+          - Full validation sweep: 869 lib + 156 GPU + 28 bench PASS
           - CROSS_SPRING_SHADER_LINEAGE updated with full five-spring map
 ```
 

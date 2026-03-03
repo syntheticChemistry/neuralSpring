@@ -15,10 +15,10 @@
 //! Upstream: `barracuda::ops::bio::WrightFisherGpu` (f64 pipeline)
 //! PRNG: xoshiro128** seeded via `SplitMix32`
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::WrightFisherGpu;

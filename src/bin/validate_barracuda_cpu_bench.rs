@@ -40,16 +40,14 @@
 //!
 //! Panics if Python is unavailable — this benchmark requires both runtimes.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::needless_range_loop,
     clippy::many_single_char_names,
     clippy::too_many_lines,
     clippy::cast_lossless,
     clippy::expect_used,
-    clippy::unwrap_used,
-    clippy::suboptimal_flops
+    reason = "validation binary"
 )]
 
 use neural_spring::anderson_localization;
@@ -68,22 +66,12 @@ use neural_spring::signal_integration;
 use neural_spring::spectral_commutativity;
 use neural_spring::swarm_robotics;
 use neural_spring::tolerances;
-use neural_spring::validation::{baseline_path, ValidationHarness};
+use neural_spring::validation::{baseline_path, median_duration_us, ValidationHarness};
 use std::process::Command;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 const WARMUP: usize = 10;
 const ITERS: usize = 200;
-
-fn median(samples: &mut [Duration]) -> f64 {
-    samples.sort();
-    let mid = samples.len() / 2;
-    if samples.len().is_multiple_of(2) {
-        f64::midpoint(samples[mid - 1].as_secs_f64(), samples[mid].as_secs_f64()) * 1e6
-    } else {
-        samples[mid].as_secs_f64() * 1e6
-    }
-}
 
 fn bench_rust<F: FnMut()>(mut f: F) -> f64 {
     for _ in 0..WARMUP {
@@ -95,7 +83,7 @@ fn bench_rust<F: FnMut()>(mut f: F) -> f64 {
         f();
         times.push(t.elapsed());
     }
-    median(&mut times)
+    median_duration_us(&mut times)
 }
 
 fn run_python_bench(script_rel: &str) -> Option<f64> {

@@ -13,7 +13,7 @@
 //! This is the "cross-systems portability proof" — validates that
 //! the cost model correctly routes workloads to the optimal substrate.
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::rng::Rng;

@@ -13,13 +13,12 @@
 //!
 //! Papers: A (Training Trajectory), C (Anderson Multi-Agent), D (Hessian).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::expect_used,
-    clippy::many_single_char_names,
-    clippy::similar_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use barracuda::spectral::BatchIprGpu;

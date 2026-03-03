@@ -24,8 +24,6 @@
 //! | Yellow | Every 3 epochs  | Bandwidth increasing or loss stalling |
 //! | Red    | Every epoch     | Bandwidth exploding, loss diverging, IPR collapsing |
 
-#![allow(clippy::doc_markdown)]
-
 use crate::weight_spectral::WeightSpectralResult;
 use barracuda::nautilus::{DriftMonitor, GenerationRecord, InstanceId};
 

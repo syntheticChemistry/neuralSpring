@@ -6,7 +6,7 @@
 //! Hessian, belief propagation, agent interaction graph, landscape analysis,
 //! attention spectral analysis, and MLP signal propagation.
 
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used)] // test infrastructure
 
 use super::*;
 use crate::tolerances;

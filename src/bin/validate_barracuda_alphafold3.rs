@@ -21,17 +21,11 @@
 //! Abramson et al. "Accurate structure prediction for all molecules"
 //! Nature 630:493-500 (2024)
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::doc_markdown,
-    clippy::expect_used,
-    clippy::similar_names,
-    clippy::too_many_lines,
-    clippy::too_many_arguments,
     clippy::many_single_char_names,
     clippy::suboptimal_flops,
-    clippy::redundant_closure_for_method_calls
+    reason = "validation binary"
 )]
 
 use neural_spring::coral_forge;

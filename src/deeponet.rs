@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::similar_names,
-    clippy::suboptimal_flops
+    clippy::suboptimal_flops,
+    reason = "domain-specific numeric patterns"
 )]
 
 //! `DeepONet` operator learning primitives for antiderivative computation.

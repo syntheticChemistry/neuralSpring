@@ -15,7 +15,10 @@
 //! - Likelihood ratio test: scalar reduction (chi-squared from `barracuda::stats`)
 //! - Gene tree topology switching: discrete HMM state space (GPU via `hmm_forward_log.wgsl`)
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "domain-specific numeric patterns"
+)]
 
 use crate::hmm::Hmm;
 use crate::rng::Rng;

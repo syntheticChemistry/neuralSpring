@@ -74,16 +74,17 @@ pub fn constant_signal(n: usize) -> Vec<f32> {
 ///
 /// FFT should have energy concentrated at bins `freq` and `N - freq`.
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "FFT indices → f64 for trig, then f64 → f32 (intentional precision for GPU parity)"
+)]
 pub fn cosine_signal(n: usize, freq: usize) -> Vec<f32> {
     let mut data = vec![0.0f32; n * 2];
     let two_pi = 2.0 * std::f64::consts::PI;
     for k in 0..n {
         let angle = two_pi * (freq as f64) * (k as f64) / (n as f64);
-        #[allow(clippy::cast_possible_truncation)]
-        {
-            data[k * 2] = angle.cos() as f32;
-        }
+        data[k * 2] = angle.cos() as f32;
     }
     data
 }
@@ -136,7 +137,10 @@ pub fn constant_signal_f64(n: usize) -> Vec<f64> {
 
 /// Build a pure cosine signal (f64): `x[k] = cos(2π·freq·k/N)` (real part only).
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "FFT index → f64 for trigonometric computation"
+)]
 pub fn cosine_signal_f64(n: usize, freq: usize) -> Vec<f64> {
     let mut data = vec![0.0f64; n * 2];
     let two_pi = 2.0 * std::f64::consts::PI;

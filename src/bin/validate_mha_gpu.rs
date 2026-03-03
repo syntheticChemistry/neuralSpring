@@ -19,12 +19,10 @@
 //! WGSL shaders: `metalForge/shaders/head_split.wgsl`, `metalForge/shaders/head_concat.wgsl`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::many_single_char_names,
-    clippy::similar_names,
-    clippy::suboptimal_flops
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

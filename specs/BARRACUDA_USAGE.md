@@ -1,7 +1,7 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 2, 2026 (Sessions 109–117 — 212/212 validate_all, 232 binaries, ToadStool S87 (2dc26792). S117: cross-spring shader evolution — 42/42 provenance validator, 15/15 bench (5 springs → ToadStool). 117 files with barracuda imports, 16 modules, 44+ upstream rewires. V77 handoff)
-**BarraCUDA version**: `0.2.0` (path dep: `../phase1/toadstool/crates/barracuda`), ~700 WGSL shaders
+**Last Updated**: March 2, 2026 (Sessions 109–119 — 212/212 validate_all, 232 binaries, ToadStool S87 (2dc26792). S117: cross-spring shader evolution — 42/42 provenance validator, 15/15 bench (5 springs → ToadStool). 117 files with barracuda imports, 16 modules, 44+ upstream rewires. V79 handoff)
+**BarraCUDA version**: `0.3.1` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from ToadStool at S89), 767 WGSL shaders
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
 ### At a Glance (Session 111)
@@ -1167,11 +1167,11 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 | Barracuda functions imported | ~60+ |
 | Import sites | ~90 across 60+ files |
 | Upstream rewires | 44 |
-| Barracuda crate | 0.2.0, ~700 WGSL shaders |
+| Barracuda crate | 0.3.1, 767 WGSL shaders (standalone primal) |
 | Feature | `unidirectional` |
-| Lib tests | 861 |
+| Lib tests | 869 |
 | Binaries | 232 |
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 2, 2026. Session 109: 25+ submodules, 60+ functions, ~90 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via bingocube-nautilus. V77 handoff.
+*BarraCUDA usage audit — neuralSpring, March 2, 2026. Session 109: 25+ submodules, 60+ functions, ~90 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via bingocube-nautilus. V79 handoff.

@@ -10,7 +10,7 @@
 //! Paper: Mhatre et al. (2020) PNAS 117:21647-21657.
 //! Command: `python3 control/regulatory_network/regulatory_network.py`
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::regulatory_network::{
     env_params, integrate_grn, phenotype_classifier, shannon_diversity, GrnParams,

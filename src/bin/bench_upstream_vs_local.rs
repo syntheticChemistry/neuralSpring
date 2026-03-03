@@ -20,13 +20,7 @@
 //! cargo run --release --bin bench_upstream_vs_local
 //! ```
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::too_many_lines,
-    clippy::needless_range_loop
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::ops::bio::swarm_nn::SwarmNnParams;
 use barracuda::ops::bio::{

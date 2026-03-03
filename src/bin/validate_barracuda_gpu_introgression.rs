@@ -18,13 +18,7 @@
 //!
 //! Python baseline: `control/introgression/introgression.py`
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::needless_range_loop,
-    clippy::too_many_lines
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;

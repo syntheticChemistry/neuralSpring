@@ -17,7 +17,7 @@
 //! Python baseline: `control/eco_dynamics/eco_dynamics.py`
 //! Rust baseline: `validate_eco_dynamics`
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::eco_dynamics::{run_ea, MultiNicheLandscape};
 use neural_spring::validation::ValidationHarness;

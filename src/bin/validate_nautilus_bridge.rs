@@ -17,17 +17,14 @@
 //! cargo run --release --bin validate_nautilus_bridge
 //! ```
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
+#![expect(
     clippy::cast_lossless,
-    clippy::similar_names,
-    clippy::items_after_statements,
-    clippy::expect_used
+    clippy::expect_used,
+    reason = "validation binary — numeric casts and assertions on known-good test data"
 )]
 
 use neural_spring::nautilus_bridge::SpectralNautilusBridge;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn main() {
@@ -209,9 +206,9 @@ fn validate_serialization_roundtrip(h: &mut ValidationHarness) {
     );
 
     if let (Some((a, b, c)), Some((x, y, z))) = (pred_orig, pred_rest) {
-        h.check_abs("roundtrip: CG parity", x, a, 1e-10);
-        h.check_abs("roundtrip: plaq parity", y, b, 1e-10);
-        h.check_abs("roundtrip: acc parity", z, c, 1e-10);
+        h.check_abs("roundtrip: CG parity", x, a, tolerances::CROSS_LANGUAGE);
+        h.check_abs("roundtrip: plaq parity", y, b, tolerances::CROSS_LANGUAGE);
+        h.check_abs("roundtrip: acc parity", z, c, tolerances::CROSS_LANGUAGE);
     }
 }
 

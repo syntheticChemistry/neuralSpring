@@ -20,12 +20,7 @@
 //!
 //! GPU ESN parity validated against CPU ESN with Python baseline weights.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::expect_used
-)]
+#![expect(clippy::expect_used, reason = "validation binary")]
 
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;

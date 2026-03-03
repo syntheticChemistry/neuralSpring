@@ -18,13 +18,10 @@
 //! - `weight_to_hamiltonian` → `barracuda::spectral::hamiltonian_from_weights`
 //! - `mixed_dispatch` → `barracuda::unified_hardware::route`
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::expect_used,
     clippy::many_single_char_names,
-    clippy::similar_names,
-    clippy::too_many_lines
+    reason = "validation binary"
 )]
 
 use neural_spring::anderson_localization::{anderson_hamiltonian_random, disorder_sweep, mean_ipr};

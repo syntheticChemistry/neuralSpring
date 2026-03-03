@@ -14,12 +14,12 @@
 //! cargo run --release --bin validate_cpu_math_parity
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::needless_range_loop,
     clippy::many_single_char_names,
-    clippy::doc_markdown
+    clippy::doc_markdown,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu_dispatch::Dispatcher;

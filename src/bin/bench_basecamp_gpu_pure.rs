@@ -6,14 +6,7 @@
 //! both GPU (via `Dispatcher::from_gpu`) and CPU (via `Dispatcher::cpu_only`),
 //! reporting the speedup factor.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::unwrap_used,
-    clippy::expect_used,
-    clippy::suboptimal_flops
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;

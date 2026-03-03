@@ -19,16 +19,12 @@
 //!
 //! Python baseline: `control/lstm_weather/lstm_era5.py`.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::many_single_char_names,
-    clippy::manual_let_else,
     clippy::similar_names,
-    clippy::single_match_else,
-    clippy::needless_range_loop,
-    clippy::suboptimal_flops,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

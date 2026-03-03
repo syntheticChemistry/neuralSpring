@@ -23,10 +23,10 @@
 //! when `needs_pow_f64_workaround()` is true (the detection already exists in
 //! `driver_profile.rs`). This is a one-line addition to `patch_exp_log_in_code`.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::hill_gate::{HillGateParams, WGSL_HILL_GATE_F64};

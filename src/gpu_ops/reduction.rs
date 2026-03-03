@@ -3,10 +3,10 @@
 //! GPU-accelerated reductions and statistics: L2, mean, sum, max, variance,
 //! entropy, Pearson correlation, chi-squared, KL divergence, neural forward.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    clippy::similar_names,
+    reason = "GPU reductions convert f64→f32 for hardware; weight/bias tensor pairs share name prefixes"
 )]
 
 use barracuda::device::WgpuDevice;

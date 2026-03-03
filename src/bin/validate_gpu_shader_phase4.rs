@@ -21,14 +21,13 @@
 //! - `matrix_correlation` → `barracuda::stats::matrix_correlation_gpu`
 //! - `linear_regression` → `barracuda::stats::linear_regression_gpu`
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap,
-    clippy::expect_used,
     clippy::many_single_char_names,
     clippy::similar_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 #[repr(C)]
@@ -539,7 +538,6 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
             .zip(y.iter())
             .map(|(&xi, &yi)| f64::from(xi) * f64::from(yi))
             .sum();
-        #[allow(clippy::suspicious_operation_groupings)]
         let denom = n_f.mul_add(sxx, -(sx * sx));
         if denom.abs() < 1e-15 {
             (0.0, 0.0)
@@ -613,7 +611,6 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
                 count += f64::from(partials[base + 4]);
             }
 
-            #[allow(clippy::suspicious_operation_groupings)]
             let denom = count.mul_add(sxx, -(sx * sx));
             let (gpu_a, gpu_b) = if denom.abs() < 1e-15 {
                 (0.0, 0.0)

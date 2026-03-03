@@ -2,8 +2,6 @@
 
 //! Activation / distribution dispatch operations.
 
-#![allow(clippy::cast_precision_loss)]
-
 use super::Dispatcher;
 
 impl Dispatcher {

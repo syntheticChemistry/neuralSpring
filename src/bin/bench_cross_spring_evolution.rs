@@ -32,19 +32,14 @@
 //! Panics if the tokio runtime cannot be created or if GPU diversity fusion
 //! operations fail — this is a benchmark binary, not a library.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::many_single_char_names,
     clippy::needless_range_loop,
     clippy::too_many_lines,
-    clippy::cast_lossless,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
     clippy::similar_names,
-    clippy::unwrap_used,
     clippy::expect_used,
-    clippy::suboptimal_flops
+    clippy::suboptimal_flops,
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::DiversityFusionGpu;
@@ -449,7 +444,6 @@ fn main() {
     // matmul_ref GPU bench covered in validate_toadstool_s70_evolution.rs
     // (wgpu doesn't support multiple Device instances per process reliably)
     eprintln!("  matmul_ref GPU benchmark: see validate_toadstool_s70_evolution");
-    #[allow(unused_variables)]
     let _gpu_dropped = gpu;
 
     eprintln!();

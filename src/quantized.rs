@@ -60,7 +60,10 @@ pub fn q4_params(data: &[f64]) -> Q4Params {
 
 /// Quantize FP64 values to INT8 (symmetric, clamp to `[-128, 127]`).
 #[must_use]
-#[allow(clippy::cast_possible_truncation)]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "f64 → i8 after clamp to [-128, 127]"
+)]
 pub fn quantize_q8(data: &[f64], params: &Q8Params) -> Vec<i8> {
     data.iter()
         .map(|&x| (x / params.scale).round().clamp(-128.0, 127.0) as i8)
@@ -77,7 +80,10 @@ pub fn dequantize_q8(data: &[i8], params: &Q8Params) -> Vec<f64> {
 ///
 /// Stored as `i8` since Rust has no native 4-bit type.
 #[must_use]
-#[allow(clippy::cast_possible_truncation)]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "f64 → i8 after clamp to [-8, 7]"
+)]
 pub fn quantize_q4(data: &[f64], params: &Q4Params) -> Vec<i8> {
     data.iter()
         .map(|&x| (x / params.scale).round().clamp(-8.0, 7.0) as i8)

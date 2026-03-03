@@ -3,10 +3,9 @@
 //! GPU-accelerated bio operations: HMM forward/backward/Viterbi,
 //! pairwise distance, Hill activation.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    reason = "domain-specific numeric patterns"
 )]
 
 mod activation;

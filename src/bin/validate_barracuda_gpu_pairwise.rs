@@ -24,11 +24,10 @@
 //! CPU baselines: `validate_barracuda_sate` (6), `validate_barracuda_game` (5),
 //! `validate_barracuda_pangenome` (8), `validate_barracuda_meta_pop` (8).
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::needless_range_loop
+    clippy::needless_range_loop,
+    reason = "validation binary"
 )]
 
 use barracuda::tensor::Tensor;

@@ -16,11 +16,7 @@
 //! GPU op: `barracuda::ops::bio::PairwiseL2Gpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::ops::bio::PairwiseL2Gpu;
 use neural_spring::gpu::Gpu;

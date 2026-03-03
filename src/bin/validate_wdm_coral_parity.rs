@@ -23,22 +23,20 @@
 //! - Layer norm: mean + variance composition
 //! - SE(3) equivariance: COM mean + L2 residual
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
     clippy::doc_markdown,
-    clippy::expect_used,
     clippy::similar_names,
-    clippy::too_many_lines,
     clippy::many_single_char_names,
     clippy::suboptimal_flops,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{max_abs_diff_f64, ValidationHarness};
 
 fn rect_matmul(disp: &Dispatcher, a: &[f64], b: &[f64], m: usize, k: usize, n: usize) -> Vec<f64> {
     barracuda::dispatch::matmul_dispatch(a, b, m, k, n, disp.wgpu_device()).unwrap_or_else(|_| {
@@ -101,7 +99,7 @@ fn validate_wdm_transport_mlp(
     let gpu_out = mlp_forward_3layer(gpu, &input, &w1, &w2, &w3, batch, d_in, d_h, d_out);
     let cpu_out = mlp_forward_3layer(cpu, &input, &w1, &w2, &w3, batch, d_in, d_h, d_out);
 
-    let diff = max_diff(&gpu_out, &cpu_out);
+    let diff = max_abs_diff_f64(&gpu_out, &cpu_out);
     h.check_bool(
         &format!("nW-01 transport MLP 3-layer GPU↔CPU (diff={diff:.2e})"),
         diff < tolerances::GPU_MATMUL_RANDOM_F32,
@@ -140,7 +138,7 @@ fn validate_wdm_eos_mlp(
     let gpu_out = rect_matmul(gpu, &gpu_act, &w2, batch, d_h, d_out);
     let cpu_out = rect_matmul(cpu, &cpu_act, &w2, batch, d_h, d_out);
 
-    let diff = max_diff(&gpu_out, &cpu_out);
+    let diff = max_abs_diff_f64(&gpu_out, &cpu_out);
     h.check_bool(
         &format!("nW-02 EOS MLP softplus GPU↔CPU (diff={diff:.2e})"),
         diff < tolerances::GPU_MATMUL_RANDOM_F32,
@@ -177,7 +175,7 @@ fn validate_wdm_sqw_lstm_gate(
     let gpu_gates = lstm_gate_step(gpu, &x_t, &h_prev, &w_xh, &w_hh, d_in, hidden);
     let cpu_gates = lstm_gate_step(cpu, &x_t, &h_prev, &w_xh, &w_hh, d_in, hidden);
 
-    let diff = max_diff(&gpu_gates, &cpu_gates);
+    let diff = max_abs_diff_f64(&gpu_gates, &cpu_gates);
     h.check_bool(
         &format!("nW-03 LSTM gate GPU↔CPU (diff={diff:.2e})"),
         diff < tolerances::GPU_MATMUL_RANDOM_F32,
@@ -236,7 +234,7 @@ fn validate_wdm_esn_reservoir(
     let gpu_next = esn_step(gpu, &state, &input, &w_res, &w_in, n_res, d_in);
     let cpu_next = esn_step(cpu, &state, &input, &w_res, &w_in, n_res, d_in);
 
-    let diff = max_diff(&gpu_next, &cpu_next);
+    let diff = max_abs_diff_f64(&gpu_next, &cpu_next);
     h.check_bool(
         &format!("nW-05 ESN state update GPU↔CPU (diff={diff:.2e})"),
         diff < tolerances::GPU_MATMUL_RANDOM_F32,
@@ -292,7 +290,7 @@ fn validate_evoformer_attention(
         let gpu_scaled: Vec<f64> = gpu_qk.iter().map(|&v| v / scale).collect();
         let cpu_scaled: Vec<f64> = cpu_qk.iter().map(|&v| v / scale).collect();
 
-        let diff = max_diff(&gpu_scaled, &cpu_scaled);
+        let diff = max_abs_diff_f64(&gpu_scaled, &cpu_scaled);
         h.check_bool(
             &format!("coralForge attn head[{head}] QK^T GPU↔CPU (diff={diff:.2e})"),
             diff < tolerances::GPU_MATMUL_RANDOM_F32,
@@ -305,7 +303,7 @@ fn validate_evoformer_attention(
             let gpu_sm = gpu.softmax(gpu_row);
             let cpu_sm = cpu.softmax(cpu_row);
 
-            let sm_diff = max_diff(&gpu_sm, &cpu_sm);
+            let sm_diff = max_abs_diff_f64(&gpu_sm, &cpu_sm);
             h.check_bool(
                 &format!(
                     "coralForge attn h[{head}]r[{row_idx}] softmax GPU↔CPU (diff={sm_diff:.2e})"
@@ -335,7 +333,7 @@ fn validate_triangle_contraction(
     let gpu_out = trimul_via_dispatcher(gpu, &proj_a, &proj_b, n, c);
     let cpu_out = trimul_via_dispatcher(cpu, &proj_a, &proj_b, n, c);
 
-    let diff = max_diff(&gpu_out, &cpu_out);
+    let diff = max_abs_diff_f64(&gpu_out, &cpu_out);
     h.check_bool(
         &format!("coralForge trimul outgoing GPU↔CPU (diff={diff:.2e})"),
         diff < tolerances::GPU_MATMUL_RANDOM_F32,
@@ -369,7 +367,7 @@ fn validate_pldt_composition(
     let gpu_pldt: Vec<f64> = gpu_logits.iter().map(|&l| sigmoid(l + bias)).collect();
     let cpu_pldt: Vec<f64> = cpu_logits.iter().map(|&l| sigmoid(l + bias)).collect();
 
-    let diff = max_diff(&gpu_pldt, &cpu_pldt);
+    let diff = max_abs_diff_f64(&gpu_pldt, &cpu_pldt);
     h.check_bool(
         &format!("coralForge pLDDT GPU↔CPU (diff={diff:.2e})"),
         diff < tolerances::GPU_MATMUL_RANDOM_F32,
@@ -411,7 +409,7 @@ fn validate_layer_norm_composition(
     let gpu_out = layer_norm_via_dispatcher(gpu, &input, n, d, &gamma, &beta, eps);
     let cpu_out = layer_norm_via_dispatcher(cpu, &input, n, d, &gamma, &beta, eps);
 
-    let diff = max_diff(&gpu_out, &cpu_out);
+    let diff = max_abs_diff_f64(&gpu_out, &cpu_out);
     h.check_bool(
         &format!("coralForge layer norm GPU↔CPU (diff={diff:.2e})"),
         diff < tolerances::GPU_MATMUL_RANDOM_F32,
@@ -477,7 +475,7 @@ fn validate_se3_equivariance(
         .flat_map(|a| vec![a[0] - cpu_com[0], a[1] - cpu_com[1], a[2] - cpu_com[2]])
         .collect();
 
-    let diff = max_diff(&gpu_centered, &cpu_centered);
+    let diff = max_abs_diff_f64(&gpu_centered, &cpu_centered);
     h.check_bool(
         &format!("SE(3) centered coords GPU↔CPU (diff={diff:.2e})"),
         diff < tolerances::GPU_MEAN_DISPATCH_F32,
@@ -512,7 +510,7 @@ fn validate_se3_equivariance(
         .flat_map(|a| vec![a[0] - t_com[0], a[1] - t_com[1], a[2] - t_com[2]])
         .collect();
 
-    let inv_diff = max_diff(&gpu_centered, &t_centered);
+    let inv_diff = max_abs_diff_f64(&gpu_centered, &t_centered);
     h.check_bool(
         &format!("SE(3) translation invariance (diff={inv_diff:.2e})"),
         inv_diff < tolerances::GPU_MEAN_DISPATCH_F32,
@@ -638,11 +636,4 @@ fn softplus(x: f64) -> f64 {
     } else {
         x.exp().ln_1p()
     }
-}
-
-fn max_diff(a: &[f64], b: &[f64]) -> f64 {
-    a.iter()
-        .zip(b.iter())
-        .map(|(x, y)| (x - y).abs())
-        .fold(0.0_f64, f64::max)
 }

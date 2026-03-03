@@ -15,11 +15,7 @@
 //! Validates: uniformity, determinism, independence (analytical).
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::too_many_lines
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use bytemuck::{Pod, Zeroable};
 use neural_spring::gpu::Gpu;
@@ -52,7 +48,7 @@ struct Params {
     n_samples: u32,
 }
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 fn gpu_generate(
     gpu: &Gpu,
     state: &[u32],
@@ -274,7 +270,7 @@ async fn main() {
 
 /// Run the PRNG shader twice in sequence. State is updated in-place between
 /// runs. Returns (output of run 1, output of run 2).
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 fn gpu_generate_multi_call(
     gpu: &Gpu,
     initial_state: &[u32],

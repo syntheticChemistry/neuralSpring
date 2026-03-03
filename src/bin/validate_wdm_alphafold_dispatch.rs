@@ -22,15 +22,20 @@
 //! - **`AlphaFold3` PAE**: distance matmul + row-softmax (nF-03)
 //! - **Mixed-hardware routing**: metalForge substrate selection
 //! - **NUCLEUS coordination**: tower (eigensolve) + node (WDM state) + nest (provenance)
+//!
+//! ## Provenance
+//!
+//! Validation class: Cross-spring (GPU↔CPU dispatch parity)
+//! Provenance: WDM baselines from `control/wdm/` (commit `f9ad0268`, 2026-02-16),
+//! `AlphaFold3` baselines from `control/coral_forge/` (commit `f9ad0268`, 2026-02-16).
+//! CPU reference values computed inline; GPU parity via `barracuda::dispatch`.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::expect_used,
-    clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::too_many_lines,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    reason = "validation binary — numeric casts and multi-domain dispatch compositions"
 )]
 
 use neural_spring::gpu::Gpu;
@@ -330,7 +335,12 @@ fn validate_mixed_routing_wdm(h: &mut ValidationHarness, disp: &Dispatcher) {
         },
         || data.iter().sum::<f64>() / data.len() as f64,
     );
-    h.check_abs("mixed small WDM → correct result", result, 2.5, 0.01);
+    h.check_abs(
+        "mixed small WDM → correct result",
+        result,
+        2.5,
+        tolerances::GPU_MEAN_DISPATCH_F32,
+    );
     h.check_bool(
         "mixed small WDM → CPU (dispatch overhead dominates)",
         substrate == MixedSubstrate::CpuOnly,
@@ -355,7 +365,12 @@ fn validate_mixed_routing_wdm(h: &mut ValidationHarness, disp: &Dispatcher) {
         },
         || data.iter().sum::<f64>() / data.len() as f64,
     );
-    h.check_abs("mixed large WDM → correct result", result_lg, 2.5, 0.01);
+    h.check_abs(
+        "mixed large WDM → correct result",
+        result_lg,
+        2.5,
+        tolerances::GPU_MEAN_DISPATCH_F32,
+    );
     h.check_bool(
         "mixed large WDM → GPU (compute dominates)",
         substrate_lg == MixedSubstrate::GpuOnly,
@@ -424,7 +439,7 @@ fn validate_nucleus_wdm_coordination(h: &mut ValidationHarness, disp: &Dispatche
         "nucleus node: WDM state transitions sum to 1",
         sum,
         1.0,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
     h.check_bool(
         "nucleus node: all transitions positive",

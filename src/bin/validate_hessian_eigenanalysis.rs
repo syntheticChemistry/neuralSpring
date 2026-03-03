@@ -21,11 +21,11 @@
 //! - **Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
 //! - **Provenance record**: `provenance::HESSIAN_EIGENANALYSIS_PROVENANCE`
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::similar_names,
     clippy::suboptimal_flops,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::eigh::eigh_householder_qr;

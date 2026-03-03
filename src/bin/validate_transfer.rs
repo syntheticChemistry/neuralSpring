@@ -15,7 +15,7 @@
 //! Result: 6/6 PASS
 //! Reference: [`TRANSFER_PROVENANCE`](neural_spring::provenance::TRANSFER_PROVENANCE)
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::metrics::{mae, r_squared, rmse};
 use neural_spring::surrogate::{ackley_2d, rastrigin_2d, rosenbrock_2d};

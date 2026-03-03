@@ -27,14 +27,13 @@
 //! CPU reference: `neural_spring::coral_forge`.
 //! GPU: `metalForge/shaders/` WGSL → `compile_shader_f64_hybrid`.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
-    clippy::similar_names,
     clippy::expect_used,
     clippy::items_after_statements,
     clippy::suboptimal_flops,
-    clippy::many_single_char_names
+    clippy::many_single_char_names,
+    reason = "validation binary"
 )]
 
 use neural_spring::coral_forge;
@@ -406,7 +405,7 @@ fn validate_layer_norm(h: &mut ValidationHarness, gpu: &Gpu) {
         eps_lo: f32,
     }
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
     let eps_hi = tolerances::LAYER_NORM_EPS as f32;
     let in_buf = upload_f64(gpu, &input, "ln_in");
     let gamma_buf = upload_f64(gpu, &gamma, "gamma");

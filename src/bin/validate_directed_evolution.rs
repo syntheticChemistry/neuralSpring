@@ -11,8 +11,6 @@
 //! Command: `python3 control/directed_evolution/directed_evolution.py`
 //! Result: 8/8 PASS (seed=42, 5 selection algorithms)
 
-#![allow(clippy::cast_precision_loss)]
-
 use neural_spring::directed_evolution::{
     lexicase_selection, random_selection, run_selection_experiment, tournament_selection,
     truncation_selection,

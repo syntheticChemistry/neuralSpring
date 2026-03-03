@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: March 2, 2026 (Sessions 45–113)
+**Last Updated**: March 2, 2026 (Sessions 45–119)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -235,7 +235,7 @@ Session 66: Phase C GPU promotion — HMM chains, FST, introgression, AF varianc
 `validate_all`: 207/207 PASS on RTX 4070.
 `validate_gpu_phase_c`: 18/18 PASS. `validate_cpu_math_parity`: 39/39 PASS.
 Python baselines: 25/25+5 WDM PASS (zero drift). Rust **38.6× faster** than Python/NumPy (14 domains, all Phase 0++ papers).
-861 lib + 9 integration + 43 forge tests. 229 validation/bench binaries. Zero debt.
+869 lib + 9 integration + 43 forge tests. 229 validation/bench binaries. Zero debt.
 53 CPU→GPU dispatch ops (100% of Dispatcher GPU paths covered).
 Per-faculty briefings: `whitePaper/baseCamp/`.
 
@@ -348,7 +348,7 @@ routing through `validate_mixed_hardware` (21/21 PASS).
 | Tier | Papers Covered | Total | Coverage |
 |------|---------------|-------|----------|
 | Python control (Py) | 25/25 + 5 WDM + 3 pub exp | 263 checks | **100%** |
-| Rust CPU (Rs) | 25/25 + baseCamp + WDM + pub exp | 861 lib + 9 integration | **100%** |
+| Rust CPU (Rs) | 25/25 + baseCamp + WDM + pub exp | 869 lib + 9 integration | **100%** |
 | BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** |
 | BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** |
 | BarraCUDA GPU (baseCamp) | 6/6 sub-theses | 18 checks | **100%** |

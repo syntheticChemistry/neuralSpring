@@ -11,21 +11,14 @@
 //! cargo run --release --bin bench_dispatch_tiers
 //! ```
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::many_single_char_names,
-    clippy::needless_range_loop,
-    clippy::unwrap_used,
-    clippy::expect_used,
-    clippy::doc_markdown
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use std::time::{Duration, Instant};
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::hmm::Hmm;
 use neural_spring::rng::Rng;
+use neural_spring::validation::median_duration_us;
 
 const WARMUP: usize = 10;
 const ITERATIONS: usize = 200;
@@ -87,16 +80,19 @@ fn bench_matmul(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let a: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
     let b: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(neural_spring::spectral_commutativity::mat_mul(&a, &b, n));
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.mat_mul(&a, &b, n));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.mat_mul(&a, &b, n));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -116,18 +112,21 @@ fn bench_matmul(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 fn bench_variance(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let data: Vec<f64> = (0..4096).map(|i| f64::from(i) * 0.001).collect();
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         let n = data.len() as f64;
         let mean = data.iter().sum::<f64>() / n;
         std::hint::black_box(data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n);
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.variance(&data));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.variance(&data));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -145,18 +144,21 @@ fn bench_pearson(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let x: Vec<f64> = (0..4096).map(|i| f64::from(i).sin()).collect();
     let y: Vec<f64> = (0..4096).map(|i| f64::from(i).cos()).collect();
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(
             barracuda::stats::correlation::pearson_correlation(&x, &y).unwrap_or(0.0),
         );
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.pearson_correlation(&x, &y));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.pearson_correlation(&x, &y));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -178,16 +180,19 @@ fn bench_entropy(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
         raw.iter().map(|&v| v / sum).collect()
     };
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(neural_spring::primitives::shannon_entropy(&probs));
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.shannon_entropy(&probs));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.shannon_entropy(&probs));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -204,16 +209,19 @@ fn bench_entropy(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 fn bench_softmax(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let logits: Vec<f64> = (0..256).map(|i| f64::from(i).mul_add(0.1, -12.8)).collect();
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(neural_spring::transformer::softmax(&logits));
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.softmax(&logits));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.softmax(&logits));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -231,16 +239,19 @@ fn bench_l2(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let a: Vec<f64> = (0..256).map(|i| f64::from(i) * 0.01).collect();
     let b: Vec<f64> = (0..256).map(|i| f64::from(i).mul_add(0.01, 0.5)).collect();
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(neural_spring::modes::l2_distance(&a, &b));
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.l2_distance(&a, &b));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.l2_distance(&a, &b));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -259,18 +270,21 @@ fn bench_chi_squared(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let observed: Vec<f64> = (0..n).map(|i| (i as f64).mul_add(0.1, 10.0)).collect();
     let expected: Vec<f64> = vec![10.5; n];
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(
             barracuda::special::chi_squared_statistic(&observed, &expected).unwrap_or(0.0),
         );
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.chi_squared(&observed, &expected));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.chi_squared(&observed, &expected));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -290,16 +304,19 @@ fn bench_commutator(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let a: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
     let b: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(neural_spring::spectral_commutativity::commutator(&a, &b, n));
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.commutator(&a, &b, n));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.commutator(&a, &b, n));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -332,10 +349,11 @@ fn bench_hmm_forward(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
         n_obs_sym,
     );
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(hmm.forward(&obs).1);
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.hmm_forward_chain(
             &initial,
             &transition,
@@ -344,9 +362,10 @@ fn bench_hmm_forward(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
             n_states,
             n_obs_sym,
         ));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.hmm_forward_chain(
                 &initial,
                 &transition,
@@ -355,7 +374,8 @@ fn bench_hmm_forward(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
                 n_states,
                 n_obs_sym,
             ));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -373,20 +393,23 @@ fn bench_hill(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
     let n = 2500_usize;
     let x: Vec<f64> = (0..n).map(|i| (i as f64) * 0.002).collect();
 
-    let lib_us = median_us(&bench(|| {
+    let mut lib_timings = bench(|| {
         std::hint::black_box(
             x.iter()
                 .map(|&xi| neural_spring::primitives::hill_activation(xi, 1.0, 0.5, 2.0))
                 .collect::<Vec<_>>(),
         );
-    }));
-    let cpu_us = median_us(&bench(|| {
+    });
+    let lib_us = median_duration_us(&mut lib_timings);
+    let mut cpu_timings = bench(|| {
         std::hint::black_box(cpu.hill_activation_batch(&x, 1.0, 0.5, 2.0));
-    }));
+    });
+    let cpu_us = median_duration_us(&mut cpu_timings);
     let gpu_us = if gpu.has_gpu() {
-        Some(median_us(&bench_gpu(|| {
+        let mut gpu_timings = bench_gpu(|| {
             std::hint::black_box(gpu.hill_activation_batch(&x, 1.0, 0.5, 2.0));
-        })))
+        });
+        Some(median_duration_us(&mut gpu_timings))
     } else {
         None
     };
@@ -511,15 +534,6 @@ fn bench_gpu<F: FnMut()>(mut f: F) -> Vec<Duration> {
         timings.push(start.elapsed());
     }
     timings
-}
-
-fn median_us(timings: &[Duration]) -> f64 {
-    let mut sorted: Vec<f64> = timings
-        .iter()
-        .map(|d| d.as_nanos() as f64 / 1000.0)
-        .collect();
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    sorted[sorted.len() / 2]
 }
 
 fn make_stochastic_flat(rows: usize, cols: usize, rng: &mut Rng) -> Vec<f64> {

@@ -16,11 +16,7 @@ use neural_spring::rng::Rng;
 
 use super::{JsonRpcResponse, PrimalState};
 
-#[allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::too_many_lines
-)]
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 pub fn handle_evoformer_block(
     id: serde_json::Value,
     params: &serde_json::Value,
@@ -162,7 +158,6 @@ pub fn handle_evoformer_block(
     )
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 pub fn handle_structure_module(
     id: serde_json::Value,
     params: &serde_json::Value,
@@ -281,7 +276,6 @@ pub fn handle_folding_health(id: serde_json::Value, state: &PrimalState) -> Json
     )
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 pub fn handle_gpu_dispatch(
     id: serde_json::Value,
     params: &serde_json::Value,

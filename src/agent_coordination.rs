@@ -22,17 +22,19 @@
 //! - [`crate::swarm_robotics`] — swarm fitness evaluation
 //! - [`crate::eigh::eigh_householder_qr`] — eigendecomposition
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::needless_range_loop,
-    clippy::similar_names,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    reason = "lattice coordination model uses usize→f64 casts for metrics and multi-parameter experiment configs"
 )]
 
 use crate::anderson_localization::mean_ipr;
 use crate::eigh::eigh_householder_qr;
 use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
+
+/// Minimum agent capability/signal level to prevent degenerate zero-signal agents.
+const MIN_CAPABILITY: f64 = 0.01;
 
 /// Agent in the coordination model.
 #[derive(Debug, Clone)]
@@ -218,10 +220,11 @@ pub fn generate_lattice_agents(
             remainder /= side;
         }
         let capability = capability_variance.mul_add(rng.normal(), 1.0);
+        let clamped = capability.max(MIN_CAPABILITY);
         agents.push(Agent {
             position,
-            capability: capability.max(0.01),
-            signal_level: capability.max(0.01),
+            capability: clamped,
+            signal_level: clamped,
             cooperating: false,
         });
     }

@@ -3,11 +3,12 @@
 // PRNG internals: u64→f64 casts lose precision by design; single-char state
 // variables (`s`, `x`, `u`, `v`) match Blackman & Vigna's reference; and
 // mul_add / complex float expressions are intentional for the algorithm.
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::many_single_char_names,
-    clippy::suboptimal_flops
+    clippy::suboptimal_flops,
+    reason = "domain-specific numeric patterns"
 )]
 
 //! Deterministic pseudo-random number generator for reproducible experiments.

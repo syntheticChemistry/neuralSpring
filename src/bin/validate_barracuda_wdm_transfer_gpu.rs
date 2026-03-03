@@ -24,17 +24,15 @@
 //! 5. Full pipeline: predict + R² on GPU matches CPU R²
 //! 6. Determinism: two GPU runs produce identical results
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::similar_names,
     clippy::many_single_char_names,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines,
-    clippy::needless_range_loop,
     clippy::too_many_arguments,
     clippy::doc_markdown,
     clippy::expect_used,
-    clippy::redundant_closure_for_method_calls
+    clippy::redundant_closure_for_method_calls,
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;
@@ -186,7 +184,7 @@ fn gpu_mlp_3layer(
 // 1. Single-sample forward: classical regime input
 // ═══════════════════════════════════════════════════════════════════
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, reason = "validation binary")]
 fn validate_single_forward(
     h: &mut ValidationHarness,
     device: &Dev,
@@ -218,7 +216,7 @@ fn validate_single_forward(
 // 2. Batch forward: multiple WDM samples
 // ═══════════════════════════════════════════════════════════════════
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, reason = "validation binary")]
 fn validate_batch_forward(
     h: &mut ValidationHarness,
     device: &Dev,
@@ -279,7 +277,7 @@ fn validate_relu(h: &mut ValidationHarness, device: &Dev) {
 // 4. Full pipeline: GPU predict → R² parity
 // ═══════════════════════════════════════════════════════════════════
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, reason = "validation binary")]
 fn validate_r2_pipeline(
     h: &mut ValidationHarness,
     device: &Dev,
@@ -327,7 +325,7 @@ fn r2_f32(y_true: &[f32], y_pred: &[f32]) -> f32 {
 // 5. Determinism
 // ═══════════════════════════════════════════════════════════════════
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, reason = "validation binary")]
 fn validate_determinism(
     h: &mut ValidationHarness,
     device: &Dev,

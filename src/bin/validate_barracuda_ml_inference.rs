@@ -21,7 +21,7 @@
 //! NEURALSPRING_BACKEND=cpu  cargo run --bin validate_barracuda_ml_inference
 //! ```
 
-#![allow(clippy::cast_precision_loss, deprecated)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
@@ -239,7 +239,7 @@ fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
 // Transformer validation
 // ═════════════════════════════════════════════════════════════════════════
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
     let path = validation::baseline_path("control/ml_inference/transformer_baseline.json");
     let file = match std::fs::File::open(&path) {

@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "array/slice lengths → f64 for statistical computations"
+)]
 
 //! CPU-side mathematical primitives shared across science modules.
 //!

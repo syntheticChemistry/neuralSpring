@@ -38,7 +38,7 @@
 //! - Fajgenbaum DC et al. (2019)
 //! - McCandless EE et al. (2014)
 
-#![allow(clippy::doc_markdown)]
+#![expect(clippy::doc_markdown, reason = "domain-specific numeric patterns")]
 
 pub mod lattice;
 pub mod matrix;
@@ -189,6 +189,23 @@ pub fn dimensional_promotion(intact_fraction: f64, baseline_d: f64, target_d: f6
     breach_fraction.mul_add(target_d - baseline_d, baseline_d)
 }
 
+/// Systemic delivery: molecular-weight attenuation rate (per kDa).
+const SYSTEMIC_MW_ATTENUATION: f64 = 0.001;
+/// Systemic delivery: minimum geometry factor floor.
+const SYSTEMIC_FLOOR: f64 = 0.5;
+/// Small-molecule threshold for topical penetration (kDa).
+const SMALL_MOLECULE_KDA: f64 = 0.5;
+/// Large-molecule threshold for topical penetration (kDa).
+const LARGE_MOLECULE_KDA: f64 = 5.0;
+/// Topical penetration factor for small molecules (<0.5 kDa).
+const TOPICAL_SMALL: f64 = 0.8;
+/// Topical penetration factor for medium molecules (0.5–5 kDa).
+const TOPICAL_MEDIUM: f64 = 0.5;
+/// Topical penetration factor for large molecules (>5 kDa).
+const TOPICAL_LARGE: f64 = 0.1;
+/// Barrier breach bonus scaling factor for topical delivery.
+const BREACH_BONUS_SCALE: f64 = 0.3;
+
 /// Geometry factor for drug tissue accessibility.
 ///
 /// Large molecules (mAbs) require systemic delivery to reach 3D dermis.
@@ -201,16 +218,18 @@ pub fn tissue_geometry_factor(
     barrier_breach_fraction: f64,
 ) -> f64 {
     if delivery_systemic {
-        0.001f64.mul_add(-molecular_weight_kda, 1.0).clamp(0.5, 1.0)
+        SYSTEMIC_MW_ATTENUATION
+            .mul_add(-molecular_weight_kda, 1.0)
+            .clamp(SYSTEMIC_FLOOR, 1.0)
     } else {
-        let size_factor = if molecular_weight_kda < 0.5 {
-            0.8
-        } else if molecular_weight_kda < 5.0 {
-            0.5
+        let size_factor = if molecular_weight_kda < SMALL_MOLECULE_KDA {
+            TOPICAL_SMALL
+        } else if molecular_weight_kda < LARGE_MOLECULE_KDA {
+            TOPICAL_MEDIUM
         } else {
-            0.1
+            TOPICAL_LARGE
         };
-        let breach_bonus = barrier_breach_fraction * 0.3;
+        let breach_bonus = barrier_breach_fraction * BREACH_BONUS_SCALE;
         (size_factor + breach_bonus).clamp(0.0, 1.0)
     }
 }
@@ -320,7 +339,10 @@ pub fn classify_ad_state(
 /// cell types. `J = 1.0` means perfectly even (maximum disorder), `J -> 0`
 /// means dominated by one type (minimum disorder).
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "cell type count (small usize) → f64 for log normalization"
+)]
 pub fn pielou_evenness(cell_fractions: &[f64]) -> f64 {
     let s = cell_fractions.len();
     if s <= 1 {

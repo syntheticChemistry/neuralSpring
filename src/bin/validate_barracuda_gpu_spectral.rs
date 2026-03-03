@@ -33,12 +33,7 @@
 //! CPU: spectral commutator, identity, Frobenius norm validation.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::needless_range_loop
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::needless_range_loop
+    clippy::needless_range_loop,
+    reason = "ecological EA uses index-based population loops and usize→f64 casts for metrics"
 )]
 
 //! Ecological dynamics in evolutionary computation.
@@ -27,6 +28,15 @@
 use crate::primitives;
 use crate::rng::Rng;
 use std::collections::{HashMap, HashSet};
+
+/// Hamming distance threshold for niche proximity in frequency-dependent selection.
+const NICHE_PROXIMITY_THRESHOLD: f64 = 0.25;
+
+/// Crowding sensitivity: controls how strongly occupancy reduces niche fitness.
+const CROWDING_SENSITIVITY: f64 = 0.05;
+
+/// Minimum fitness floor to prevent zero-fitness individuals from stalling selection.
+const FITNESS_FLOOR: f64 = 1e-10;
 
 /// Multi-niche fitness landscape with Gaussian kernel niches.
 ///
@@ -90,14 +100,14 @@ impl MultiNicheLandscape {
             let mut occupancy = vec![0.0; n_niches];
             for i in 0..n_pop {
                 for j in 0..n_niches {
-                    if dists[i][j] < 0.25 {
+                    if dists[i][j] < NICHE_PROXIMITY_THRESHOLD {
                         occupancy[j] += 1.0;
                     }
                 }
             }
             let crowding: Vec<f64> = occupancy
                 .iter()
-                .map(|&o| 1.0 / 0.05f64.mul_add(o, 1.0))
+                .map(|&o| 1.0 / CROWDING_SENSITIVITY.mul_add(o, 1.0))
                 .collect();
             for i in 0..n_pop {
                 for j in 0..n_niches {
@@ -148,7 +158,7 @@ pub fn run_ea(
     for _ in 0..n_generations {
         let mut fitnesses = landscape.batch_fitness(&population, frequency_dependent);
         for f in &mut fitnesses {
-            *f = (*f).max(1e-10);
+            *f = (*f).max(FITNESS_FLOOR);
         }
 
         diversity_trace.push(shannon_diversity(&population));

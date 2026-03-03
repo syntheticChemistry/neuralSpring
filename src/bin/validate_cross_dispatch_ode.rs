@@ -10,12 +10,10 @@
 //! cannot map to this generic Hill-ODE. We use the upstream WGSL constant
 //! instead of the local metalForge `include_str`.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::similar_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use barracuda::dispatch::{dispatch_for, DispatchTarget};
@@ -63,7 +61,6 @@ fn validate_dispatch_routing(h: &mut ValidationHarness) {
 
 // ── CPU RK4 reference (Hill ODE, matches rk4_parallel.wgsl) ───────
 
-#[allow(clippy::cast_sign_loss)]
 fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt: f32) -> Vec<f32> {
     fn hill(x: f32, k: f32, n: f32) -> f32 {
         let xn = x.powf(n);
@@ -76,7 +73,7 @@ fn cpu_rk4_hill(initial: &[f32], coeffs: &[f32], dim: usize, n_steps: usize, dt:
                 let c_base = d * 3;
                 let prod = coeffs[c_base];
                 let deg = coeffs[c_base + 1];
-                #[allow(clippy::cast_sign_loss)]
+                #[expect(clippy::cast_sign_loss, reason = "validation binary")]
                 let act_idx = coeffs[c_base + 2] as usize;
                 prod.mul_add(hill(y[act_idx], 0.5, 2.0), -(deg * y[d]))
             })
@@ -130,7 +127,7 @@ struct OdeParams {
     n_coeffs: u32,
 }
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, reason = "validation binary")]
 fn gpu_rk4(
     gpu: &Gpu,
     states: &[f32],

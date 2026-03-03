@@ -8,13 +8,6 @@
 //!
 //! Validates GPU paths match CPU references within documented tolerance.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::similar_names,
-    clippy::many_single_char_names,
-    clippy::too_many_lines
-)]
-
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::introgression::{self, phylonet_hmm};
 use neural_spring::meta_population;

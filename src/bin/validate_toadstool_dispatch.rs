@@ -6,10 +6,10 @@
 //! correctly recommend GPU vs CPU for various workload sizes, and that
 //! both paths produce identical results when exercised.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::expect_used,
-    clippy::many_single_char_names
+    clippy::many_single_char_names,
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;

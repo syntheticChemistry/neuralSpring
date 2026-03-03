@@ -16,11 +16,7 @@
 //! Upstream API: `barracuda::ops::bio::PairwiseHammingGpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::needless_range_loop
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::ops::bio::PairwiseHammingGpu;
 use neural_spring::gpu::Gpu;

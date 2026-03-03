@@ -15,12 +15,7 @@
 //! that the cost model correctly routes workloads across GPU, NPU, and
 //! CPU substrates with numerical parity.
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::too_many_lines,
-    clippy::similar_names,
-    clippy::many_single_char_names
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::rng::Rng;

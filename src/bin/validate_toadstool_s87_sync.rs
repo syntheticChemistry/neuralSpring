@@ -17,12 +17,11 @@
 //! cargo run --release --bin validate_toadstool_s87_sync
 //! ```
 
-#![allow(
-    clippy::unwrap_used,
+#![expect(
     clippy::expect_used,
     clippy::cast_precision_loss,
     clippy::many_single_char_names,
-    clippy::suboptimal_flops
+    reason = "validation binary"
 )]
 
 use barracuda::error::BarracudaError;

@@ -17,12 +17,11 @@
 //! Python baseline: `control/eco_dynamics/eco_dynamics.py`
 //! Rust baseline: `validate_eco_dynamics`, `validate_barracuda_eco`
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names,
     clippy::needless_range_loop,
-    clippy::too_many_lines
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu::Gpu;

@@ -2,7 +2,10 @@
 
 //! Reductions / statistics dispatch operations.
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "slice lengths → f64 for mean/variance in reduction dispatch"
+)]
 
 use super::cpu_fallback;
 use super::Dispatcher;

@@ -5,7 +5,34 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 108 (March 2, 2026)
+## [Unreleased] — Session 119 (March 3, 2026)
+
+### Session 119 — Deep Lint Evolution + Shared Helpers + Debris Sweep (March 3, 2026)
+
+**Full `#[allow(` → `#[expect(` migration**: Every `#![allow(` (208 module-level) and `#[allow(` (31 inline) in `src/bin/` converted to `#![expect(` with reasons. Remaining library `#![allow(` (28 modules) also converted. Iterative clippy fix: 477+ unfulfilled expectations resolved by removing over-suppressed lints. Net effect: lint suppression is now **precise** — every `#[expect(` catches a real lint, and any drift in lint behavior will be caught as compilation warnings.
+
+**Zero lib clippy warnings**: Fixed 28 remaining lib warnings by restoring `cast_possible_truncation` to GPU ops modules, `many_single_char_names` to Anderson localization, and handling cross-compilation-context wildcard imports. Only 6 `#[allow(` remain in library — all in `#[cfg(test)]` modules where `expect_used`/`unwrap_used` don't fire.
+
+**Shared validation helpers extracted**: 4 new helpers in `src/validation/`:
+- `max_abs_diff_f64` — replaces 3 local `max_diff` definitions + ~25 inline implementations
+- `bench_once` — replaces 4 identical single-run `bench` helpers (returns result + µs)
+- `bench_median` — standardized warmup+iteration benchmarking
+- `median_duration_us` — replaces 6 local `median`/`median_us` implementations
+Migrated 13 bin files to use shared helpers. 8 new tests (869 total lib tests).
+
+**V79 handoff**: `NEURALSPRING_TOADSTOOL_V79_S119_DEEP_LINT_EVOLUTION_HANDOFF_MAR03_2026.md`
+
+### Session 118 — barraCuda Standalone Extraction Rewire (March 3, 2026)
+
+**barraCuda rewire**: Dependency path swapped from embedded `../phase1/toadstool/crates/barracuda` (S87) to standalone `../barraCuda/crates/barracuda` (v0.3.1). Zero breaking API changes. CI workflow updated (7 checkout blocks). Full revalidation: 861/861 lib, 9/9 integration, all key validators green.
+
+**New validator**: `validate_toadstool_s93_barracuda_extraction` (29/29 PASS) — validates S88+ APIs (`tridiag_eigenvectors`, domain tolerance constants, `MathOp`, `Fp64Strategy`, `ComputeExecutor`), nautilus continuity, and dispatcher continuity on standalone path.
+
+**L-BFGS gap closed**: `barracuda::optimize::LbfgsGpu` now available in v0.3.1 (was P2 OPEN).
+
+**Docs updated**: EVOLUTION_READINESS.md, specs/BARRACUDA_USAGE.md, specs/BARRACUDA_REQUIREMENTS.md, README.md — all reference barraCuda as standalone primal.
+
+**V78 handoff**: `NEURALSPRING_TOADSTOOL_V78_S93_BARRACUDA_REWIRE_HANDOFF_MAR03_2026.md`
 
 ### Session 108 — Deep Debt Execution + Doc Sweep + V71 Handoff (March 2, 2026)
 

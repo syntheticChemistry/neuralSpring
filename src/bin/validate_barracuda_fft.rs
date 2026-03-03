@@ -19,7 +19,7 @@
 //!
 //! Same as `validate_barracuda_tensor`: set `NEURALSPRING_BACKEND=cpu|gpu|auto`.
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::device::WgpuDevice;
 use barracuda::ops::fft::{Fft1D, Fft1DF64, Ifft1D, Rfft};
@@ -233,9 +233,9 @@ fn validate_multi_frequency(h: &mut ValidationHarness, device: &Arc<WgpuDevice>)
     let mut input_data = vec![0.0f32; n as usize * 2];
     let two_pi = 2.0 * std::f64::consts::PI;
     for k in 0..n as usize {
-        #[allow(clippy::cast_possible_truncation)]
+        #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
         let t = f64::from(k as u32) / f64::from(n);
-        #[allow(clippy::cast_possible_truncation)]
+        #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
         {
             input_data[k * 2] = (two_pi * 4.0 * t)
                 .cos()
@@ -455,7 +455,7 @@ fn validate_rfft_shape(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let data: Vec<f32> = (0..n)
         .map(|k| {
             let angle = 2.0 * std::f64::consts::PI * f64::from(k) / f64::from(n);
-            #[allow(clippy::cast_possible_truncation)]
+            #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
             {
                 angle.sin() as f32
             }
@@ -510,14 +510,14 @@ fn validate_rfft_dc_component(h: &mut ValidationHarness, device: &Arc<WgpuDevice
     );
 }
 
-#[allow(clippy::cast_precision_loss)]
+#[expect(clippy::cast_precision_loss, reason = "validation binary")]
 fn validate_rfft_cosine_energy(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     let n = 32_u32;
     let freq = 5_usize;
     let data: Vec<f32> = (0..n)
         .map(|k| {
             let angle = 2.0 * std::f64::consts::PI * (freq as f64) * f64::from(k) / f64::from(n);
-            #[allow(clippy::cast_possible_truncation)]
+            #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
             {
                 angle.cos() as f32
             }

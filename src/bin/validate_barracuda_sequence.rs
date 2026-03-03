@@ -18,15 +18,12 @@
 //!
 //! CPU baseline: `neural_spring::sequence::lstm_cell`.
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::many_single_char_names,
-    clippy::manual_let_else,
     clippy::similar_names,
-    clippy::single_match_else,
-    clippy::needless_range_loop,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

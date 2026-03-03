@@ -30,13 +30,12 @@
 //! [`WGSL_PAIRWISE_HAMMING`] — pairwise Hamming distance matrix. One
 //! thread per sequence pair. Validated in `validate_gpu_sate`.
 
-// Domain-inherent: bioinformatics matrix algorithms require casts and
-// index-based loops that clippy flags but cannot be meaningfully refactored.
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
-    clippy::needless_range_loop
+    clippy::needless_range_loop,
+    reason = "bioinformatics alignment algorithms use index-based DP matrices and inherent numeric casts"
 )]
 
 use crate::rng::Rng;

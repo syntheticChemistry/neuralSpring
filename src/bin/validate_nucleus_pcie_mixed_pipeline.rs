@@ -21,15 +21,12 @@
 //! GPU → NPU → CPU      (multi-hop: chained transfers)
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
-    clippy::expect_used,
-    clippy::unwrap_used,
     clippy::similar_names,
     clippy::doc_markdown,
-    clippy::suboptimal_flops
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};

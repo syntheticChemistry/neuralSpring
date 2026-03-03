@@ -2,7 +2,11 @@
 
 //! GPU-accelerated eigensolvers and pangenome statistics.
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "eigensolver GPU ops cast matrix dimensions for tensor construction"
+)]
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;

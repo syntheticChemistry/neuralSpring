@@ -40,18 +40,16 @@
 //!
 //! Panics if GPU or tokio runtime is unavailable.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::needless_range_loop,
     clippy::many_single_char_names,
     clippy::too_many_lines,
     clippy::cast_lossless,
     clippy::cast_sign_loss,
     clippy::similar_names,
     clippy::expect_used,
-    clippy::unwrap_used,
-    clippy::suboptimal_flops
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::{
@@ -63,22 +61,12 @@ use neural_spring::hmm::Hmm;
 use neural_spring::modes;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
-use std::time::{Duration, Instant};
+use neural_spring::validation::{median_duration_us, ValidationHarness};
+use std::time::Instant;
 use wgpu::util::DeviceExt;
 
 const WARMUP: usize = 5;
 const ITERS: usize = 50;
-
-fn median_us(samples: &mut [Duration]) -> f64 {
-    samples.sort();
-    let mid = samples.len() / 2;
-    if samples.len().is_multiple_of(2) {
-        f64::midpoint(samples[mid - 1].as_secs_f64(), samples[mid].as_secs_f64()) * 1e6
-    } else {
-        samples[mid].as_secs_f64() * 1e6
-    }
-}
 
 fn bench_fn<F: FnMut()>(mut f: F) -> f64 {
     for _ in 0..WARMUP {
@@ -90,7 +78,7 @@ fn bench_fn<F: FnMut()>(mut f: F) -> f64 {
         f();
         times.push(t.elapsed());
     }
-    median_us(&mut times)
+    median_duration_us(&mut times)
 }
 
 struct TierResult {
@@ -530,7 +518,7 @@ fn main() {
     eprintln!("  Provenance: neuralSpring game theory → spatial_payoff.wgsl");
     {
         let n = 32_usize;
-        #[allow(clippy::cast_possible_wrap)]
+        #[expect(clippy::cast_possible_wrap, reason = "validation binary")]
         let n_i32 = n as i32;
         let mut rng = Rng::new(42);
         let strategies: Vec<f32> = (0..n * n)
@@ -546,7 +534,7 @@ fn main() {
                 for j in 0..n {
                     let s_me = strategies[i * n + j] as usize;
                     let mut local = 0.0_f64;
-                    #[allow(clippy::cast_possible_wrap)]
+                    #[expect(clippy::cast_possible_wrap, reason = "validation binary")]
                     for (di, dj) in &[(-1i32, 0), (1, 0), (0, -1), (0, 1)] {
                         let ni = (i as i32 + di).rem_euclid(n_i32) as usize;
                         let nj = (j as i32 + dj).rem_euclid(n_i32) as usize;
@@ -565,7 +553,7 @@ fn main() {
                 for j in 0..n {
                     let s_me = strategies[i * n + j] as usize;
                     let mut local = 0.0_f64;
-                    #[allow(clippy::cast_possible_wrap)]
+                    #[expect(clippy::cast_possible_wrap, reason = "validation binary")]
                     for (di, dj) in &[(-1i32, 0), (1, 0), (0, -1), (0, 1)] {
                         let ni = (i as i32 + di).rem_euclid(n_i32) as usize;
                         let nj = (j as i32 + dj).rem_euclid(n_i32) as usize;

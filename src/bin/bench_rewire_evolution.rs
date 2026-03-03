@@ -11,10 +11,10 @@
 //! | Entropy | f32 Tensor (log→mul→sum) | `FusedMapReduceF64` (fused f64 map-reduce) | wetSpring |
 //! | `HillGate` f64 | SKIP (NVVM crash) | `pow_f64` polyfill (S-17) | neuralSpring fix |
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

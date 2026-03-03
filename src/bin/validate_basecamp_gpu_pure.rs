@@ -20,14 +20,6 @@
 //! | 04 | `neural_pgm` | `matmul_dispatch` f64 (belief propagation GEMV) |
 //! | 05 | `agent_coordination` | `pairwise_l2_matrix_gpu` (interaction graph) |
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::too_many_lines,
-    clippy::needless_range_loop
-)]
-
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::primitives::PROBABILITY_FLOOR;

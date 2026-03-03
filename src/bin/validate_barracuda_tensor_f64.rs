@@ -19,7 +19,7 @@
 //!
 //! Expected values: analytical formulas computed in f64 Rust.
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::device::WgpuDevice;
 use barracuda::ops::cosine_similarity_f64::CosineSimilarityF64;

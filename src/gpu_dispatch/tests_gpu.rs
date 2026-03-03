@@ -5,7 +5,7 @@
 //! These tests exercise the GPU code paths through `barracuda::dispatch`
 //! and `crate::gpu_ops`. They are skipped when no GPU adapter is available.
 
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used)] // test infrastructure
 
 use super::*;
 use crate::tolerances;

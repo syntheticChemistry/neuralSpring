@@ -6,7 +6,10 @@
 //! `BarraCUDA` wrapper dispatch.  Each benchmark binary uses these
 //! primitives instead of reimplementing timing/pipeline/buffer helpers.
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "iteration counts and buffer sizes → f64 for throughput metrics"
+)]
 
 use crate::gpu::Gpu;
 use bytemuck::Pod;
@@ -185,7 +188,7 @@ pub fn create_pipeline(
                 BindingKind::StorageWrite => wgpu::BufferBindingType::Storage { read_only: false },
                 BindingKind::Uniform => wgpu::BufferBindingType::Uniform,
             };
-            #[allow(clippy::cast_possible_truncation)]
+            #[expect(clippy::cast_possible_truncation, reason = "binding index fits in u32")]
             wgpu::BindGroupLayoutEntry {
                 binding: i as u32,
                 visibility: wgpu::ShaderStages::COMPUTE,

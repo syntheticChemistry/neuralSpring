@@ -10,7 +10,11 @@
 //! Paper: Campbell, Anderson et al. (2017) Env Microbiol 19:2392-2405.
 //! Command: `python3 control/meta_population/meta_population.py`
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::similar_names,
+    reason = "validation binary"
+)]
 
 use neural_spring::meta_population::{
     allele_frequencies, fst_matrix, generate_population, geographic_distance_matrix, global_fst,

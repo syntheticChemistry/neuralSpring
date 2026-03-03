@@ -25,11 +25,10 @@
 //!
 //! CPU baseline: `validate_barracuda_anderson` (7 checks, jacobi vs `eigh_f64`).
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::needless_range_loop
+    clippy::needless_range_loop,
+    reason = "validation binary"
 )]
 
 use barracuda::tensor::Tensor;

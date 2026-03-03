@@ -10,9 +10,9 @@ description = "Validation harness proving BarraCUDA Rust/WGSL primitives reprodu
 repository = "https://github.com/ecoPrimals/neuralSpring"
 
 [dependencies]
-# BarraCUDA shared crate — use primitives instead of reinventing math.
-# Path dep matches hotSpring pattern: each Spring evolves independently.
-barracuda = { path = "../phase1/toadstool/crates/barracuda", features = ["unidirectional"] }
+# barraCuda standalone primal — sovereign math engine for ecoPrimals.
+# Extracted from toadStool (S89); Springs depend on barraCuda directly.
+barracuda = { path = "../barraCuda/crates/barracuda", features = ["unidirectional"] }
 
 # Local forge crate — shader catalog, binding layouts, dispatch routing.
 # Single source of truth for WGSL shaders; ToadStool absorbs from here.

@@ -23,10 +23,10 @@
 //! Upstream API: `barracuda::ops::bio::LocusVarianceGpu`
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::LocusVarianceGpu;

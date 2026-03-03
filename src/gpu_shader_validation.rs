@@ -83,7 +83,7 @@ pub fn dispatch_shader(
     let device = gpu.device();
     let queue = gpu.queue();
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "binding index fits in u32")]
     let layout_entries: Vec<wgpu::BindGroupLayoutEntry> = bindings
         .iter()
         .enumerate()
@@ -95,7 +95,7 @@ pub fn dispatch_shader(
         entries: &layout_entries,
     });
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "binding index fits in u32")]
     let bg_entries: Vec<wgpu::BindGroupEntry<'_>> = bindings
         .iter()
         .enumerate()

@@ -21,12 +21,11 @@
 //! | nF-PF04 | Pairformer block (with cond) | Block + timestep conditioning |
 //! | nF-PF05 | Multi-block iteration | 3 blocks with decreasing timestep |
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
     clippy::suboptimal_flops,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::coral_forge::pairformer;

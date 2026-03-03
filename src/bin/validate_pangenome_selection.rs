@@ -10,7 +10,11 @@
 //! Paper: Moulana, Anderson et al. (2020) mSystems 5:e00673-19.
 //! Command: `python3 control/pangenome_selection/pangenome_selection.py`
 
-#![allow(clippy::cast_precision_loss, clippy::float_cmp)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::float_cmp,
+    reason = "validation binary"
+)]
 
 use neural_spring::pangenome_selection::{
     env_association_chi2, frequency_spectrum, gene_frequencies, gene_repertoire_diversity,

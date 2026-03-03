@@ -11,7 +11,11 @@
 //! Command: `python3 control/signal_integration/signal_integration.py`
 //! Result: 8/8 PASS (seed=42)
 
-#![allow(clippy::cast_precision_loss, clippy::too_many_lines)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::too_many_lines,
+    reason = "validation binary"
+)]
 
 use neural_spring::primitives::QUANTIZATION_FLOOR;
 use neural_spring::signal_integration::{

@@ -17,7 +17,6 @@ use neural_spring::modes::{
 use neural_spring::rng::Rng;
 use neural_spring::validation::ValidationHarness;
 
-#[allow(clippy::cast_precision_loss)]
 fn generate_open_system(n_steps: usize, n_features: usize, seed: u64) -> SystemData {
     let mut rng = Rng::new(seed);
     let mut lineage_counts = Vec::new();

@@ -23,11 +23,12 @@
 //! | Spatial Payoff | neuralSpring Paper 019 | `SpatialPayoffGpu` | `77f70b2e` |
 //! | Batch IPR | neuralSpring Paper 022–023 | `BatchIprGpu` | `77f70b2e` |
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
-    clippy::cast_sign_loss
+    clippy::cast_sign_loss,
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::{

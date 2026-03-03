@@ -11,11 +11,7 @@
 //! Python baseline: `control/wdm/sqw_peak_predictor.py`
 //! Reference: Hansen & `McDonald` (2013), Gregori et al. PRE 67 (2003)
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names
-)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

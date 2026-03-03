@@ -15,7 +15,11 @@
 //! baseline (`control/immunological_anderson/immunological_anderson.py`).
 //! 20 Python checks → 20+ Rust checks with cross-language parity.
 
-#![allow(clippy::too_many_lines, clippy::expect_used)]
+#![expect(
+    clippy::too_many_lines,
+    clippy::expect_used,
+    reason = "validation binary"
+)]
 
 use neural_spring::immunological_anderson::{
     classify_ad_state, dimensional_promotion, evenness_to_disorder, gonzales_ic50,

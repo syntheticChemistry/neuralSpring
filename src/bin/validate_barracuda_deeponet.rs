@@ -17,8 +17,6 @@
 //! Python baseline: `control/deeponet/deeponet_antideriv.py`
 //! Rust baseline: `validate_deeponet` (17/17 PASS)
 
-#![allow(clippy::cast_precision_loss)]
-
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::deeponet::{
@@ -104,9 +102,9 @@ fn validate_antiderivative_cross(h: &mut ValidationHarness) {
 
 /// Validate branch-trunk dot product through `BarraCUDA` tensors.
 fn validate_dot_product_barracuda(h: &mut ValidationHarness, device: &Dev) {
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
     let branch: Vec<f32> = [1.0_f64, 2.0, 3.0, 4.0].iter().map(|&v| v as f32).collect();
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
     let trunk: Vec<f32> = [4.0_f64, 3.0, 2.0, 1.0].iter().map(|&v| v as f32).collect();
 
     let b = require!(h, t(&branch, vec![1, 4], device), "create branch tensor");

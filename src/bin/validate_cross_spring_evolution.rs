@@ -29,11 +29,10 @@
 //! cargo run --release --bin validate_cross_spring_evolution
 //! ```
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::similar_names
+    clippy::similar_names,
+    reason = "validation binary"
 )]
 
 use std::time::Instant;
@@ -41,26 +40,11 @@ use std::time::Instant;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::neural_pgm;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{bench_once, max_abs_diff_f64, ValidationHarness};
 use neural_spring::weight_spectral;
-
-fn bench<F: FnOnce() -> T, T>(label: &str, f: F) -> (T, f64) {
-    let start = Instant::now();
-    let result = f();
-    let elapsed_us = start.elapsed().as_secs_f64() * 1e6;
-    eprintln!("  [{label}] {elapsed_us:.1} µs");
-    (result, elapsed_us)
-}
 
 fn gen_f64_vec(n: usize, scale: f64) -> Vec<f64> {
     (0..n).map(|i| i as f64 * scale).collect()
-}
-
-fn max_pairwise_diff(a: &[f64], b: &[f64]) -> f64 {
-    a.iter()
-        .zip(b.iter())
-        .map(|(x, y)| (x - y).abs())
-        .fold(0.0_f64, f64::max)
 }
 
 fn validate_rewired_matmul(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: &Dispatcher) {
@@ -68,12 +52,12 @@ fn validate_rewired_matmul(h: &mut ValidationHarness, dispatcher: &Dispatcher, c
     let a = gen_f64_vec(n * n, 0.001);
     let b: Vec<f64> = (0..n * n).map(|i| (n * n - i) as f64 * 0.001).collect();
 
-    let (result, _) = bench("matmul upstream", || dispatcher.mat_mul(&a, &b, n));
-    let (reference, _) = bench("matmul CPU ref", || cpu.mat_mul(&a, &b, n));
+    let (result, _) = bench_once("matmul upstream", || dispatcher.mat_mul(&a, &b, n));
+    let (reference, _) = bench_once("matmul CPU ref", || cpu.mat_mul(&a, &b, n));
 
     h.check_abs(
         "rewired matmul parity (64x64)",
-        max_pairwise_diff(&result, &reference),
+        max_abs_diff_f64(&result, &reference),
         0.0,
         tolerances::DISPATCH_MATMUL_F64,
     );
@@ -86,8 +70,8 @@ fn validate_rewired_frobenius(
 ) {
     let data = gen_f64_vec(1024, 0.01);
 
-    let (result, _) = bench("frobenius upstream", || dispatcher.frobenius_norm(&data));
-    let (reference, _) = bench("frobenius CPU ref", || cpu.frobenius_norm(&data));
+    let (result, _) = bench_once("frobenius upstream", || dispatcher.frobenius_norm(&data));
+    let (reference, _) = bench_once("frobenius CPU ref", || cpu.frobenius_norm(&data));
 
     h.check_abs(
         "rewired frobenius parity",
@@ -105,12 +89,12 @@ fn validate_rewired_transpose(
     let n = 32;
     let a = gen_f64_vec(n * n, 0.1);
 
-    let (result, _) = bench("transpose upstream", || dispatcher.transpose(&a, n));
-    let (reference, _) = bench("transpose CPU ref", || cpu.transpose(&a, n));
+    let (result, _) = bench_once("transpose upstream", || dispatcher.transpose(&a, n));
+    let (reference, _) = bench_once("transpose CPU ref", || cpu.transpose(&a, n));
 
     h.check_abs(
         "rewired transpose parity (32x32)",
-        max_pairwise_diff(&result, &reference),
+        max_abs_diff_f64(&result, &reference),
         0.0,
         tolerances::DISPATCH_TRANSPOSE_F64,
     );
@@ -121,8 +105,8 @@ fn validate_rewired_softmax(h: &mut ValidationHarness, dispatcher: &Dispatcher, 
         .map(|i| f64::from(i).mul_add(0.02, -2.56))
         .collect();
 
-    let (result, _) = bench("softmax upstream", || dispatcher.softmax(&x));
-    let (reference, _) = bench("softmax CPU ref", || cpu.softmax(&x));
+    let (result, _) = bench_once("softmax upstream", || dispatcher.softmax(&x));
+    let (reference, _) = bench_once("softmax CPU ref", || cpu.softmax(&x));
 
     let sum: f64 = result.iter().sum();
     h.check_abs(
@@ -133,7 +117,7 @@ fn validate_rewired_softmax(h: &mut ValidationHarness, dispatcher: &Dispatcher, 
     );
     h.check_abs(
         "rewired softmax parity",
-        max_pairwise_diff(&result, &reference),
+        max_abs_diff_f64(&result, &reference),
         0.0,
         tolerances::DISPATCH_ELEMENTWISE_F64,
     );
@@ -145,8 +129,8 @@ fn validate_rewired_l2(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: 
         .map(|i| f64::from(i).mul_add(0.01, 1.0))
         .collect();
 
-    let (result, _) = bench("l2_distance upstream", || dispatcher.l2_distance(&a, &b));
-    let (reference, _) = bench("l2_distance CPU ref", || cpu.l2_distance(&a, &b));
+    let (result, _) = bench_once("l2_distance upstream", || dispatcher.l2_distance(&a, &b));
+    let (reference, _) = bench_once("l2_distance CPU ref", || cpu.l2_distance(&a, &b));
 
     h.check_abs(
         "rewired l2_distance parity",
@@ -159,8 +143,8 @@ fn validate_rewired_l2(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: 
 fn validate_rewired_mean(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: &Dispatcher) {
     let data = gen_f64_vec(2048, 0.001);
 
-    let (result, _) = bench("mean upstream", || dispatcher.mean(&data));
-    let (reference, _) = bench("mean CPU ref", || cpu.mean(&data));
+    let (result, _) = bench_once("mean upstream", || dispatcher.mean(&data));
+    let (reference, _) = bench_once("mean CPU ref", || cpu.mean(&data));
 
     h.check_abs(
         "rewired mean parity",
@@ -173,8 +157,8 @@ fn validate_rewired_mean(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu
 fn validate_rewired_variance(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: &Dispatcher) {
     let data = gen_f64_vec(2048, 0.001);
 
-    let (result, _) = bench("variance upstream", || dispatcher.variance(&data));
-    let (reference, _) = bench("variance CPU ref", || cpu.variance(&data));
+    let (result, _) = bench_once("variance upstream", || dispatcher.variance(&data));
+    let (reference, _) = bench_once("variance CPU ref", || cpu.variance(&data));
 
     h.check_abs(
         "rewired variance parity",
@@ -228,12 +212,12 @@ fn validate_rewired_effective_rank(h: &mut ValidationHarness) {
 fn validate_rewired_gelu(h: &mut ValidationHarness, dispatcher: &Dispatcher, cpu: &Dispatcher) {
     let x: Vec<f64> = (-50..50).map(|i| f64::from(i) * 0.1).collect();
 
-    let (result, _) = bench("gelu upstream", || dispatcher.gelu(&x));
-    let (reference, _) = bench("gelu CPU ref", || cpu.gelu(&x));
+    let (result, _) = bench_once("gelu upstream", || dispatcher.gelu(&x));
+    let (reference, _) = bench_once("gelu CPU ref", || cpu.gelu(&x));
 
     h.check_abs(
         "rewired gelu parity",
-        max_pairwise_diff(&result, &reference),
+        max_abs_diff_f64(&result, &reference),
         0.0,
         tolerances::DISPATCH_ELEMENTWISE_F64,
     );
@@ -256,16 +240,16 @@ fn validate_rewired_hmm_forward(
     let transition = vec![0.7, 0.2, 0.1, 0.1, 0.8, 0.1, 0.2, 0.2, 0.6];
     let emission = vec![0.4, 0.3, 0.3];
 
-    let (result, _) = bench("hmm_forward upstream", || {
+    let (result, _) = bench_once("hmm_forward upstream", || {
         dispatcher.hmm_forward_step(&alpha, &transition, &emission, n)
     });
-    let (reference, _) = bench("hmm_forward CPU ref", || {
+    let (reference, _) = bench_once("hmm_forward CPU ref", || {
         cpu.hmm_forward_step(&alpha, &transition, &emission, n)
     });
 
     h.check_abs(
         "rewired hmm_forward alpha parity",
-        max_pairwise_diff(&result.0, &reference.0),
+        max_abs_diff_f64(&result.0, &reference.0),
         0.0,
         tolerances::DISPATCH_ELEMENTWISE_F64,
     );
@@ -298,10 +282,10 @@ fn validate_rewired_softmax_row_wise(
         .map(|i| (i as f64 - 16.0) * 0.1)
         .collect();
 
-    let (result, _) = bench("softmax_row_wise upstream", || {
+    let (result, _) = bench_once("softmax_row_wise upstream", || {
         dispatcher.softmax_row_wise(&matrix, n_rows, n_cols)
     });
-    let (reference, _) = bench("softmax_row_wise CPU ref", || {
+    let (reference, _) = bench_once("softmax_row_wise CPU ref", || {
         cpu.softmax_row_wise(&matrix, n_rows, n_cols)
     });
 
@@ -317,7 +301,7 @@ fn validate_rewired_softmax_row_wise(
 
     h.check_abs(
         "softmax_row_wise parity (f32 path)",
-        max_pairwise_diff(&result, &reference),
+        max_abs_diff_f64(&result, &reference),
         0.0,
         tolerances::DISPATCH_F32_ROUNDTRIP,
     );
@@ -452,7 +436,7 @@ fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
 
 const fn benchmark_s72_throughput(_dispatcher: &Dispatcher, _cpu: &Dispatcher) {}
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
     eprintln!("\n=== Cross-Spring Throughput Benchmark ===");
     eprintln!("(upstream dispatch includes GPU routing + size-based thresholds)\n");

@@ -2,10 +2,10 @@
 
 //! GPU-accelerated linear algebra: matmul, transpose, norms, commutator.
 
-#![allow(
+#![expect(
+    clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation
+    reason = "GPU linalg converts f64→f32 for hardware; tensor variables differ by operation suffix"
 )]
 
 use barracuda::device::WgpuDevice;

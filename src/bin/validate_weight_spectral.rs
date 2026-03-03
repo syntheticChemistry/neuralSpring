@@ -14,10 +14,11 @@
 //! No Python baseline — these are novel experiments. Validated against
 //! analytical known-values (random matrix theory, Marchenko-Pastur law).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::too_many_lines,
-    clippy::many_single_char_names
+    clippy::many_single_char_names,
+    reason = "validation binary"
 )]
 
 use neural_spring::rng::Rng;

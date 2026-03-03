@@ -24,13 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # BarraCUDA is a path dependency at ../phase1/toadstool/crates/barracuda.
-      # In CI we need the sibling repo checked out at the expected relative path.
-      - name: Checkout ecoPrimals (barracuda dependency)
+      # barraCuda is a standalone primal (path dep at ../barraCuda/crates/barracuda).
+      - name: Checkout barraCuda (standalone math primal)
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/ecoPrimals
-          path: ../phase1/toadstool
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -74,11 +73,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout ecoPrimals (barracuda dependency)
+      - name: Checkout barraCuda (standalone math primal)
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/ecoPrimals
-          path: ../phase1/toadstool
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -125,11 +124,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout ecoPrimals (barracuda dependency)
+      - name: Checkout barraCuda (standalone math primal)
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/ecoPrimals
-          path: ../phase1/toadstool
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -232,11 +231,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout ecoPrimals (barracuda dependency)
+      - name: Checkout barraCuda (standalone math primal)
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/ecoPrimals
-          path: ../phase1/toadstool
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -294,11 +293,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout ecoPrimals (barracuda dependency)
+      - name: Checkout barraCuda (standalone math primal)
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/ecoPrimals
-          path: ../phase1/toadstool
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -489,11 +488,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout ecoPrimals (barracuda dependency)
+      - name: Checkout barraCuda (standalone math primal)
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/ecoPrimals
-          path: ../phase1/toadstool
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Set up Python 3.10
@@ -538,11 +537,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout ecoPrimals (barracuda dependency)
+      - name: Checkout barraCuda (standalone math primal)
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/ecoPrimals
-          path: ../phase1/toadstool
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain

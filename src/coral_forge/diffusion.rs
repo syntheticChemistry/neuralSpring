@@ -19,11 +19,11 @@
 //! - Song et al. "Denoising Diffusion Implicit Models" ICLR (2021)
 //! - Nichol & Dhariwal "Improved Denoising Diffusion" ICML (2021)
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::too_many_arguments,
-    clippy::many_single_char_names,
-    clippy::similar_names
+    clippy::similar_names,
+    reason = "domain-specific numeric patterns"
 )]
 
 use std::f64::consts::PI;

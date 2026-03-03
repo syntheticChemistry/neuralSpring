@@ -52,7 +52,10 @@ const EPSILON: f64 = 1e-8;
 /// Each objective rewards a different portion of the genome.
 /// `fitness[i] = mean(chunk_i) + 0.1 * std(chunk_i)`.
 /// Last chunk gets remainder of loci.
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "genome chunk sizes → f64 for mean/std computation"
+)]
 #[must_use]
 pub fn multi_objective_fitness(genotype: &[f64], n_objectives: usize) -> Vec<f64> {
     let n = genotype.len();
@@ -197,10 +200,11 @@ pub fn lexicase_selection(
 
 /// Down-sampled lexicase: use random subset (50%) of objectives.
 #[must_use]
-#[allow(
+#[expect(
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
-    clippy::cast_precision_loss
+    clippy::cast_precision_loss,
+    reason = "population indices and objective subset sizing via f64 → usize"
 )]
 pub fn downsampled_lexicase_selection(
     population: &[f64],
@@ -270,7 +274,10 @@ pub struct ExperimentResult {
     pub mean_fitness: Vec<f64>,
 }
 
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "pairwise distance count → f64 for mean"
+)]
 fn phenotype_diversity(fitnesses: &[f64], n: usize, n_objectives: usize, rng: &mut Rng) -> f64 {
     let sample_size = 50.min(n);
     if sample_size < 2 {
@@ -294,7 +301,10 @@ fn phenotype_diversity(fitnesses: &[f64], n: usize, n_objectives: usize, rng: &m
 
 /// Run EA with a given selection algorithm, track multi-objective metrics.
 #[must_use]
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "population metrics use usize→f64 for averaging"
+)]
 pub fn run_selection_experiment<F>(
     selection_fn: F,
     n_loci: usize,

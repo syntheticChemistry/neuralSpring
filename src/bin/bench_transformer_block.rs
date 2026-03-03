@@ -27,7 +27,7 @@
 //! NEURALSPRING_BACKEND=cpu  cargo run --release --bin bench_transformer_block
 //! ```
 
-#![allow(clippy::cast_precision_loss, deprecated)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
@@ -276,7 +276,7 @@ async fn main() {
     let median = timings[timings.len() / 2];
     let min_t = timings[0];
     let max_t = timings[timings.len() - 1];
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
     let mean_t: Duration = timings.iter().sum::<Duration>() / timings.len() as u32;
 
     eprintln!();

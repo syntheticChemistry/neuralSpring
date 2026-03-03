@@ -22,10 +22,10 @@
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 //! Note: PA is column-major: pa[gene * `n_genomes` + genome]
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines
+    reason = "validation binary"
 )]
 
 use barracuda::ops::bio::PairwiseJaccardGpu;

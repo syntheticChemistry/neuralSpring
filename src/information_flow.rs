@@ -21,7 +21,10 @@
 //! - [`crate::eigh::eigh_householder_qr`] — eigendecomposition
 //! - [`crate::hmm`] — forward algorithm as GEMM chain
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "matrix dimension and bin counts → f64 for information-theoretic metrics"
+)]
 
 use crate::anderson_localization::ipr;
 use crate::eigh::eigh_householder_qr;

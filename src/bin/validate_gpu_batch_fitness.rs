@@ -25,8 +25,6 @@
 //! GPU: `barracuda::ops::bio::BatchFitnessGpu` (f64 pipeline)
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
-
 use barracuda::ops::bio::BatchFitnessGpu;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;

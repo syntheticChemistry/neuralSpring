@@ -18,12 +18,7 @@
 //! Jaeger ESN → Python (scikit-learn ridge) → Rust (CPU) → BarraCUDA (GPU)
 //! ```
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::many_single_char_names
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;

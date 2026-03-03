@@ -13,11 +13,10 @@
 //!
 //! This validator is the "mixed-hardware portability proof" for `ToadStool`.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::too_many_lines,
-    clippy::many_single_char_names,
-    clippy::option_if_let_else
+    reason = "validation binary"
 )]
 
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};

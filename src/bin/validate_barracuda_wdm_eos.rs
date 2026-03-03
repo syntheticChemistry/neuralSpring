@@ -10,11 +10,10 @@
 //! FPEOS tables → Python MLP → Rust MLP (CPU) → BarraCUDA (GPU) → Pure GPU
 //! ```
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::many_single_char_names
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

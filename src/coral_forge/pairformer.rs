@@ -15,11 +15,9 @@
 //!
 //! Reference: Abramson et al. Nature 630:493-500 (2024)
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::too_many_arguments,
-    clippy::many_single_char_names,
-    clippy::similar_names
+    reason = "domain-specific numeric patterns"
 )]
 
 /// Base frequency for sinusoidal positional encoding (Vaswani et al. 2017, §3.5).
@@ -111,7 +109,10 @@ pub struct PairformerWeights<'a> {
 ///
 /// `pair`: `[n*n*d]`, `t_emb`: optional timestep embedding `[d]`.
 #[must_use]
-#[allow(clippy::too_many_lines)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "Pairformer block is a single fused attention+MLP pass; splitting would fragment the algorithm"
+)]
 pub fn pairformer_block(
     pair: &[f64],
     n: usize,

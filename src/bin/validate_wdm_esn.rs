@@ -11,7 +11,7 @@
 //! Python baseline: `control/wdm/esn_regime_classifier.py`
 //! Reference: Jaeger (2001), Ichimaru (1994)
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

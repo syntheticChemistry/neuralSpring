@@ -16,7 +16,7 @@ nursery = { level = "warn", priority = -1 }
 uninlined_format_args = "allow"
 
 [dependencies]
-barracuda = { path = "../../../phase1/toadstool/crates/barracuda" }
+barracuda = { path = "../../../barraCuda/crates/barracuda" }
 bytemuck = { version = "1.14", features = ["derive"] }
 wgpu = { version = "22", default-features = false, features = [
     "wgsl",

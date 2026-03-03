@@ -28,28 +28,14 @@
 //! cargo run --release --bin validate_toadstool_s79_rewire
 //! ```
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::similar_names
-)]
-
-use std::time::Instant;
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::device::WgpuDevice;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{bench_once, ValidationHarness};
 use neural_spring::weight_spectral;
 use std::sync::Arc;
-
-fn bench<F: FnOnce() -> T, T>(label: &str, f: F) -> (T, f64) {
-    let start = Instant::now();
-    let result = f();
-    let elapsed_us = start.elapsed().as_secs_f64() * 1e6;
-    eprintln!("  [{label}] {elapsed_us:.1} µs");
-    (result, elapsed_us)
-}
 
 fn validate_spectral(h: &mut ValidationHarness) {
     eprintln!("── spectral_bandwidth (upstream delegate) ──");
@@ -111,7 +97,7 @@ fn validate_gpu_chi_squared(
         .map(|(&o, &e)| (o - e).powi(2) / e)
         .sum();
 
-    let (gpu_chi2, chi2_us) = bench("chi2_gpu", || {
+    let (gpu_chi2, chi2_us) = bench_once("chi2_gpu", || {
         neural_spring::gpu_ops::chi_squared_gpu(&observed, &expected, dev)
     });
     if let Some(v) = h.require("chi_squared_gpu", gpu_chi2) {
@@ -128,7 +114,7 @@ fn validate_gpu_chi_squared(
         .map(|i| (f64::from(i) + 1.0).mul_add(1.9, 0.5))
         .collect();
 
-    let (_, chi2_large_us) = bench("chi2_gpu 1K", || {
+    let (_, chi2_large_us) = bench_once("chi2_gpu 1K", || {
         neural_spring::gpu_ops::chi_squared_gpu(&large_obs, &large_exp, dev)
     });
     eprintln!("  chi2 benchmark: small={chi2_us:.0}µs, large={chi2_large_us:.0}µs");
@@ -160,7 +146,7 @@ fn validate_gpu_kl_divergence(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) 
         })
         .sum();
 
-    let (gpu_kl, kl_us) = bench("kl_gpu", || {
+    let (gpu_kl, kl_us) = bench_once("kl_gpu", || {
         neural_spring::gpu_ops::kl_divergence_gpu(&p, &q, dev)
     });
     if let Some(v) = h.require("kl_divergence_gpu", gpu_kl) {
@@ -175,7 +161,7 @@ fn validate_gpu_kl_divergence(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) 
     let large_p: Vec<f64> = (1..=1000).map(f64::from).collect();
     let large_q: Vec<f64> = (1..=1000).map(|i| f64::from(i) + 0.5).collect();
 
-    let (_, kl_large_us) = bench("kl_gpu 1K", || {
+    let (_, kl_large_us) = bench_once("kl_gpu 1K", || {
         neural_spring::gpu_ops::kl_divergence_gpu(&large_p, &large_q, dev)
     });
     eprintln!("  kl benchmark: small={kl_us:.0}µs, large={kl_large_us:.0}µs");
@@ -187,7 +173,7 @@ fn validate_gpu_entropy_variance_pearson(h: &mut ValidationHarness, dev: &Arc<Wg
     let probs: Vec<f64> = vec![0.25, 0.25, 0.25, 0.25];
     let expected_entropy = 4.0_f64.ln();
 
-    let (gpu_ent, ent_us) = bench("entropy_gpu", || {
+    let (gpu_ent, ent_us) = bench_once("entropy_gpu", || {
         neural_spring::gpu_ops::shannon_entropy_gpu(&probs, dev)
     });
     if let Some(v) = h.require("shannon_entropy_gpu", gpu_ent) {
@@ -210,7 +196,7 @@ fn validate_gpu_entropy_variance_pearson(h: &mut ValidationHarness, dev: &Arc<Wg
         .sum::<f64>()
         / var_data.len() as f64;
 
-    let (gpu_var, var_us) = bench("variance_gpu", || {
+    let (gpu_var, var_us) = bench_once("variance_gpu", || {
         neural_spring::gpu_ops::variance_gpu(&var_data, dev)
     });
     if let Some(v) = h.require("variance_gpu", gpu_var) {
@@ -228,7 +214,7 @@ fn validate_gpu_entropy_variance_pearson(h: &mut ValidationHarness, dev: &Arc<Wg
     let x_corr: Vec<f64> = (0..100).map(f64::from).collect();
     let y_corr: Vec<f64> = (0..100).map(|i| f64::from(i).mul_add(2.0, 1.0)).collect();
 
-    let (gpu_r, pearson_us) = bench("pearson_gpu", || {
+    let (gpu_r, pearson_us) = bench_once("pearson_gpu", || {
         neural_spring::gpu_ops::pearson_correlation_gpu(&x_corr, &y_corr, dev)
     });
     if let Some(v) = h.require("pearson_correlation_gpu", gpu_r) {
@@ -264,7 +250,7 @@ fn validate_weight_spectral(h: &mut ValidationHarness) {
     let mut rng = neural_spring::rng::Rng::new(42);
     let weights: Vec<f64> = (0..64).map(|_| rng.normal()).collect();
 
-    let (result, spectral_us) = bench("weight_spectral 8×8", || {
+    let (result, spectral_us) = bench_once("weight_spectral 8×8", || {
         weight_spectral::weight_spectral_analysis(&weights, 8, 8)
     });
 

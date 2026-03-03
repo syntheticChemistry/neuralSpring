@@ -13,7 +13,7 @@
 //! Reports per-op warm latency (median of N iterations).
 //! All ops now use native `BarraCUDA` Tensor APIs (no evolved workarounds).
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
@@ -64,7 +64,7 @@ async fn main() {
         }),
         bench_op("layer_norm_wgsl (stock)", &device, |dev| {
             let t = mk_tensor(&[64, 256], dev);
-            #[allow(clippy::cast_possible_truncation)]
+            #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
             let eps = neural_spring::tolerances::LAYER_NORM_EPS as f32;
             move || {
                 let _ = t.clone().layer_norm_wgsl(eps);
@@ -93,7 +93,7 @@ async fn main() {
         }),
         bench_op("layer_norm_wgsl (native)", &device, |dev| {
             let t = mk_tensor(&[64, 256], dev);
-            #[allow(clippy::cast_possible_truncation)]
+            #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
             let eps = neural_spring::tolerances::LAYER_NORM_EPS as f32;
             move || {
                 let _ = t.clone().layer_norm_wgsl(eps);

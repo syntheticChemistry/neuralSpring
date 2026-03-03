@@ -14,7 +14,11 @@
 //! No Python baseline — these are novel experiments. Validated against
 //! analytical known-values (information theory, Anderson diagnostics).
 
-#![allow(clippy::cast_precision_loss, clippy::too_many_lines)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::too_many_lines,
+    reason = "validation binary"
+)]
 
 use neural_spring::information_flow::{
     attention_spectral_analysis, attention_to_hamiltonian, depth_scale, gate_disorder_parameter,

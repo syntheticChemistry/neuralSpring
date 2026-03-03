@@ -118,7 +118,7 @@ fn introgression_deterministic() {
 }
 
 #[test]
-#[allow(clippy::float_cmp)]
+#[expect(clippy::float_cmp, reason = "intentional suppression")]
 fn regulatory_network_deterministic() {
     let p = GrnParams::default();
     let x0 = [0.5, 0.1, 0.5, 0.1];

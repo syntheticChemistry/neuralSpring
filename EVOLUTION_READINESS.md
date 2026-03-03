@@ -1,7 +1,7 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 2, 2026 (Sessions 109–117)
-**ToadStool HEAD**: `2dc26792` (S87: ComputeDispatch 144 ops, nautilus absorbed, BatchedEncoder, fused_mlp, Nelder-Mead GPU, hydrology module split, Anderson acceleration, multi-GPU interconnect. Previous: `2fee1969` S86.)
+**Date**: March 3, 2026 (Sessions 109–119)
+**barraCuda**: v0.3.1 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool at S89; previously embedded at `../phase1/toadstool/crates/barracuda` pinned to S87 (`2dc26792`). 767 WGSL shaders, dual-protocol IPC, domain feature-gates. ToadStool dispatches across hardware; barraCuda is universal math.
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -17,7 +17,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 330/330 | **COMPLETE** |
-| Rust native validation | 861 lib + 9 integration + 43 forge tests, 41 modules, 232 binaries | **COMPLETE** |
+| Rust native validation | 869 lib + 9 integration + 43 forge tests, 41 modules, 232 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -403,9 +403,9 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | Aspect | Status |
 |--------|--------|
 | `cargo fmt` | **Clean** — zero formatting violations |
-| `cargo clippy` pedantic + nursery | **0 warnings** — `clippy::doc_markdown` fully resolved (31 files), all remaining `#[allow]` audited and justified |
+| `cargo clippy` pedantic + nursery | **0 warnings** — all `#[allow]` migrated to `#[expect(, reason)]` (0 in production code; 6 in `#[cfg(test)]` where `expect_used`/`unwrap_used` don't fire) |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **861 tests PASS** |
+| `cargo test --lib` | **869 tests PASS** |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
 | Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `gpu.rs` + `registry.rs`) — 139+ `NamedTolerance` entries across 10 categories, zero inline magic numbers in production code |
@@ -440,7 +440,7 @@ All external dependencies are pure Rust with no C/C++ bindings:
 
 | Crate | Version | Role | Evolution Path |
 |-------|---------|------|----------------|
-| `barracuda` | path | GPU compute abstraction (in-house) | Evolves with ToadStool |
+| `barracuda` | path (v0.3.1) | GPU compute abstraction (in-house) | Standalone barraCuda primal (extracted from ToadStool S89) |
 | `neural-spring-forge` | path | Shader catalog (in-house) | Evolves with metalForge |
 | `biomeos-primal-sdk` | path (opt) | Primal IPC framework (in-house) | Evolves with biomeOS |
 | `bytemuck` | 1.14 | Zero-copy GPU buffer casting | Stable, pure Rust, no alternative needed |
@@ -929,17 +929,37 @@ Full cross-spring evolution validation and benchmarking of ToadStool S86 surface
 
 || Session 113: Cross-Spring S86 Evolution | validate_modern_cross_spring 68/68, bench_cross_spring_modern 14/14, 6-spring provenance, 208/208 validate_all | **ALL GREEN** |
 
-### S115 Current State (March 2, 2026)
+### Session 119 — Deep Lint Evolution + Shared Helpers (March 3, 2026)
+
+Full `#[allow(` → `#[expect(` migration across entire codebase. 4 shared validation
+helpers extracted (max_abs_diff_f64, bench_once, bench_median, median_duration_us).
+13 bin files migrated to shared helpers. 8 new tests.
+
+| Action | Detail |
+|--------|--------|
+| **Bin #![allow( → #![expect(** | 208 module-level + 31 inline → `#![expect(` with reasons. 477+ unfulfilled expectations resolved |
+| **Lib #![allow( → #![expect(** | 28 remaining module-level converted. Only 6 `#[allow(` remain (all `#[cfg(test)]`) |
+| **Zero lib warnings** | 28 warnings fixed (GPU ops, Anderson, triangle, geography, registry) |
+| **Shared helpers** | `max_abs_diff_f64`, `bench_once`, `bench_median`, `median_duration_us` extracted to validation module |
+| **13 bin migrations** | 3 max_diff + 4 bench_once + 6 median → shared helpers |
+| **Tests** | 869 lib tests (up from 861 — 8 new for shared helpers) |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 lib/0 bin/0 unfulfilled) · doc ✓ · 869/869 lib ✓ |
+
+||| Session 119: Deep Lint Evolution | 239 allow→expect, 477+ unfulfilled resolved, 4 shared helpers, 13 migrations, 869 lib tests | **ALL GREEN** |
+
+### S119 Current State (March 3, 2026)
 
 | Metric | Value |
 |--------|-------|
 | validate_all | **212/212 PASS** |
 | Binaries | 232 |
-| Library tests | 861 |
-| Latest handoff | **V77** (S117) |
-| Sessions covered | 44–117 |
+| Library tests | 869 |
+| Latest handoff | **V79** (S119) |
+| Sessions covered | 44–119 |
 | Dispatch parity | 53/53 |
 | ComputeDispatch bridge | 14/14 |
 | NUCLEUS PCIe | 38/38 |
+| `#[allow(` in lib (non-test) | **0** |
+| `#[allow(` in bins | **0** |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

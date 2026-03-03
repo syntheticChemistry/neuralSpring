@@ -24,7 +24,10 @@
 //! - Frobenius norm: `barracuda::ops::NormReduceF64`
 //! - Distance to normal: composed from commutator + Frobenius (GPU pipeline)
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "matrix dimension → f64 for norm computation"
+)]
 
 use crate::rng::Rng;
 

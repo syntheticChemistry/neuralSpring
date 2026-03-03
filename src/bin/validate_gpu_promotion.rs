@@ -14,7 +14,7 @@
 //! - HMM: forward step
 //! - KL divergence
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;

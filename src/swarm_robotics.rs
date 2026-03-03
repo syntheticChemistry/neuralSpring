@@ -12,13 +12,12 @@
 //! - Swarm fitness aggregation: `barracuda::ops::SumReduceF64` (team score)
 //! - Heterogeneous population eval: `barracuda::ops::batch_gemm` (per-controller type)
 
-#![allow(
-    clippy::cast_lossless,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap,
     clippy::cast_precision_loss,
     clippy::cast_sign_loss,
-    clippy::imprecise_flops
+    reason = "domain-specific numeric patterns"
 )]
 
 /// WGSL shader: batch neural network forward pass for swarm controllers.
@@ -131,7 +130,10 @@ pub fn neural_forward_max_score(params: &[f64], sense: f64) -> f64 {
     best
 }
 
-#[allow(clippy::cast_possible_truncation)]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "clamped f64 → usize for discrete action index"
+)]
 #[must_use]
 pub fn behavior_forward(params: &[f64], sense: f64) -> usize {
     for i in (0..10).step_by(2) {
@@ -284,13 +286,11 @@ pub struct EvolutionResult {
     pub diversity: Vec<f64>,
 }
 
-#[allow(clippy::cast_precision_loss)]
 #[must_use]
 pub fn run_evolution_homogeneous(seed: u64) -> EvolutionResult {
     run_evolution_inner(seed, true)
 }
 
-#[allow(clippy::cast_precision_loss)]
 #[must_use]
 pub fn run_evolution_heterogeneous(seed: u64) -> EvolutionResult {
     run_evolution_inner(seed, false)

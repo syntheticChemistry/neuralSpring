@@ -17,13 +17,14 @@
 //! - `wetSpring`: bio-domain diffusion scheduling (molecular dynamics connection)
 //! - `neuralSpring`: diffusion model implementation + Pairformer FFN
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::similar_names,
     clippy::many_single_char_names,
     clippy::too_many_lines,
-    clippy::expect_used
+    clippy::expect_used,
+    reason = "validation binary"
 )]
 
 use barracuda::device::WgpuDevice;

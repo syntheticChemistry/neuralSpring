@@ -14,11 +14,10 @@
 //! Validates: analytical reconstruction error, orthogonality, Gershgorin bounds.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::needless_range_loop,
+#![expect(
     clippy::many_single_char_names,
-    clippy::suboptimal_flops
+    clippy::suboptimal_flops,
+    reason = "validation binary"
 )]
 
 use neural_spring::eigh;

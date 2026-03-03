@@ -17,12 +17,10 @@
 //! R² (transfer): 0.9359, R² (scratch): 0.6691, Δ: +0.2668
 //! Reference: Stanton-Murillo (2016) + Diaw et al. (2024)
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::similar_names,
-    clippy::many_single_char_names,
-    clippy::cast_possible_truncation,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    reason = "validation binary"
 )]
 
 use neural_spring::rng::Rng;

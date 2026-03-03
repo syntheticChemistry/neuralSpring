@@ -15,7 +15,7 @@
 //! Command: `python3 control/pinn/pinn_burgers.py`
 //! Result: 6/6 PASS (L2 ~5.1%)
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::pinn::{
     burgers_exact_grid, burgers_exact_point, max_gradient, mlp_forward, pde_residual_fd, BURGERS_NU,

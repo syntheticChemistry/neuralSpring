@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::many_single_char_names,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    reason = "MSA column attention requires multi-parameter head configs and index→f64 casts"
 )]
 
 use super::activation::softmax_rows;

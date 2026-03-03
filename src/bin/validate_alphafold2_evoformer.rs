@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
+#![expect(
     clippy::pedantic,
-    clippy::nursery,
-    clippy::expect_used,
-    clippy::unwrap_used,
-    clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 //! nF-02: AlphaFold2 Evoformer Block Validation (Jumper et al. 2021)

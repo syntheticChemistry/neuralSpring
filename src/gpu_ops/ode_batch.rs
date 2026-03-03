@@ -17,7 +17,7 @@
 //! For deterministic validation, use zero noise. The `signal_integration` vpsT ODE
 //! uses a different RHS; full vpsT GPU support would require a dedicated shader.
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+// ODE batch GPU integration — casts handled inline where needed.
 
 use barracuda::device::WgpuDevice;
 use bytemuck::{Pod, Zeroable};
@@ -56,7 +56,11 @@ struct OdeParams {
 /// # Errors
 ///
 /// Returns an error if GPU allocation or dispatch fails.
-#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+#[expect(
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    reason = "GPU ODE batch requires all physics parameters; single dispatch pass is more efficient than splitting"
+)]
 pub fn integrate_ode_batch_gpu(
     states: &[f32],
     coeffs: &[f32],

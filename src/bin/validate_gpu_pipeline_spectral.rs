@@ -22,10 +22,10 @@
 //! Validates: `BarraCUDA` spectral API with scalar-only readback.
 //! Validated on: RTX 4070 (Vulkan), llvmpipe (CPU fallback).
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::too_many_lines
+    reason = "validation binary"
 )]
 
 use barracuda::spectral::BatchIprGpu;

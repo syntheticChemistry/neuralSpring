@@ -17,7 +17,7 @@
 //! Python baseline: `control/pangenome_selection/pangenome_selection.py`
 //! Rust baseline: `validate_pangenome_selection` (8/8 PASS)
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
+#![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::pangenome_selection::{
     env_association_chi2, frequency_spectrum, gene_frequencies, gene_repertoire_diversity,

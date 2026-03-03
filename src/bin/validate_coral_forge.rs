@@ -30,11 +30,11 @@
 //! | nF-B13 | Backbone update | Frame composition (quat → rotation) |
 //! | nF-B14 | Torsion angles | ResNet → unit circle (sin, cos) |
 
-#![allow(
-    clippy::cast_precision_loss,
+#![expect(
     clippy::cast_possible_truncation,
     clippy::similar_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    reason = "validation binary"
 )]
 
 use neural_spring::coral_forge;

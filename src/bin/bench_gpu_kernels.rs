@@ -12,15 +12,7 @@
 //! cargo run --release --bin bench_gpu_kernels
 //! ```
 
-#![allow(
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::many_single_char_names,
-    clippy::needless_range_loop,
-    clippy::too_many_lines,
-    clippy::too_many_arguments
-)]
+#![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
 use barracuda::ops::bio::{
     BatchFitnessGpu, PairwiseHammingGpu, PairwiseJaccardGpu, SpatialPayoffGpu,
@@ -30,6 +22,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::pangenome_selection;
 use neural_spring::rng::Rng;
 use neural_spring::sate_alignment;
+use neural_spring::validation::median_duration_us;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use wgpu::util::DeviceExt;
@@ -118,11 +111,11 @@ fn bench_pairwise_hamming(gpu: &Gpu, n_seqs_p: u32, seq_len_p: u32, scale: &str)
         mapped_at_creation: false,
     });
 
-    let timings = bench_typed_op(|| {
+    let mut timings = bench_typed_op(|| {
         op.dispatch(&seq_buf, &dist_buf, n_seqs, seq_len);
         let _ = gpu.read_buffer_f32(&dist_buf, n_pairs as usize);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_HAMMING_{n_seqs}x{seq_len}_{scale}_GPU_US={us:.1}");
 
@@ -173,11 +166,11 @@ fn bench_pairwise_jaccard(
         mapped_at_creation: false,
     });
 
-    let timings = bench_typed_op(|| {
+    let mut timings = bench_typed_op(|| {
         op.dispatch(&pa_buf, &dist_buf, n_genomes, n_genes);
         let _ = gpu.read_buffer_f32(&dist_buf, n_pairs as usize);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_JACCARD_{n_genomes}x{n_genes}_{scale}_GPU_US={us:.1}");
 
@@ -207,7 +200,7 @@ fn bench_pairwise_hamming_with_cpu(gpu: &Gpu, n_seqs: u32, seq_len: u32) -> GpuB
         .map(|_| rng.usize(4) as u8)
         .collect();
 
-    let cpu_timings: Vec<Duration> = (0..50)
+    let mut cpu_timings: Vec<Duration> = (0..50)
         .map(|_| {
             let start = Instant::now();
             let _ = sate_alignment::pairwise_distance_matrix(
@@ -219,7 +212,7 @@ fn bench_pairwise_hamming_with_cpu(gpu: &Gpu, n_seqs: u32, seq_len: u32) -> GpuB
             start.elapsed()
         })
         .collect();
-    let cpu_us = median_us(&cpu_timings);
+    let cpu_us = median_duration_us(&mut cpu_timings);
     println!("BENCH_HAMMING_{n_seqs}x{seq_len}_large_CPU_US={cpu_us:.1}");
     gpu_result.rust_cpu_us = Some(cpu_us);
     gpu_result
@@ -233,7 +226,7 @@ fn bench_pairwise_jaccard_with_cpu(gpu: &Gpu, n_genomes: u32, n_genes: u32) -> G
         .map(|_| if rng.uniform() < 0.5 { 1.0 } else { 0.0 })
         .collect();
 
-    let cpu_timings: Vec<Duration> = (0..50)
+    let mut cpu_timings: Vec<Duration> = (0..50)
         .map(|_| {
             let start = Instant::now();
             let _ = pangenome_selection::jaccard_distance_matrix(
@@ -244,7 +237,7 @@ fn bench_pairwise_jaccard_with_cpu(gpu: &Gpu, n_genomes: u32, n_genes: u32) -> G
             start.elapsed()
         })
         .collect();
-    let cpu_us = median_us(&cpu_timings);
+    let cpu_us = median_duration_us(&mut cpu_timings);
     println!("BENCH_JACCARD_{n_genomes}x{n_genes}_large_CPU_US={cpu_us:.1}");
     gpu_result.rust_cpu_us = Some(cpu_us);
     gpu_result
@@ -284,11 +277,11 @@ fn bench_batch_fitness(
         mapped_at_creation: false,
     });
 
-    let timings = bench_typed_op(|| {
+    let mut timings = bench_typed_op(|| {
         op.dispatch(&pop_buf, &wt_buf, &fit_buf, pop_size, genome_len);
         let _ = gpu.read_buffer_f64(&fit_buf, pop_size as usize);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_FITNESS_{pop_size}x{genome_len}_{scale}_GPU_US={us:.1}");
 
@@ -335,11 +328,11 @@ fn bench_spatial_payoff(gpu: &Gpu, grid_size_p: u32, scale: &str) -> GpuBenchRes
         mapped_at_creation: false,
     });
 
-    let timings = bench_typed_op(|| {
+    let mut timings = bench_typed_op(|| {
         op.dispatch(&grid_buf, &fit_buf, grid_size, b, c);
         let _ = gpu.read_buffer_f32(&fit_buf, n_cells);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_SPATIAL_{grid_size}x{grid_size}_{scale}_GPU_US={us:.1}");
 
@@ -376,11 +369,11 @@ fn bench_batch_ipr(gpu: &Gpu, dim_p: u32, n_vectors_p: u32, scale: &str) -> GpuB
         mapped_at_creation: false,
     });
 
-    let timings = bench_typed_op(|| {
+    let mut timings = bench_typed_op(|| {
         op.dispatch(&ev_buf, &ipr_buf, dim, n_vectors);
         let _ = gpu.read_buffer_f32(&ipr_buf, n_vectors as usize);
     });
-    let us = median_us(&timings);
+    let us = median_duration_us(&mut timings);
 
     println!("BENCH_IPR_{n_vectors}x{dim}_{scale}_GPU_US={us:.1}");
 
@@ -456,12 +449,3 @@ fn print_summary(results: &[GpuBenchResult]) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
-
-fn median_us(timings: &[Duration]) -> f64 {
-    let mut sorted: Vec<f64> = timings
-        .iter()
-        .map(|d| d.as_nanos() as f64 / 1000.0)
-        .collect();
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    sorted[sorted.len() / 2]
-}

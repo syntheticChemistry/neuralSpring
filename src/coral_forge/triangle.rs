@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
-    clippy::many_single_char_names,
-    clippy::too_many_arguments
+    reason = "head_dim usize→f64 for attention scale sqrt"
 )]
 
 /// Triangle multiplicative update — outgoing edges (Algorithm 11).

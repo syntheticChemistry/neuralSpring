@@ -34,13 +34,11 @@
 //! - Paper C: Anderson multi-agent (baseCamp Sub-05, B-13..B-15)
 //! - Papers 022-023: Spectral theory (Kachkovskiy)
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::expect_used,
-    clippy::many_single_char_names,
-    clippy::similar_names,
-    clippy::too_many_lines
+    reason = "validation binary"
 )]
 
 use barracuda::spectral::BatchIprGpu;

@@ -74,7 +74,10 @@ impl NkLandscape {
     }
 
     /// Fitness of a binary genotype (slice of 0/1).
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "locus count → f64 for fitness normalization"
+    )]
     #[must_use]
     pub fn fitness(&self, genotype: &[u8]) -> f64 {
         let mut total = 0.0;
@@ -95,7 +98,10 @@ impl NkLandscape {
         self.k
     }
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "genotype bit extraction uses known-small shift amounts"
+    )]
     #[must_use]
     pub fn all_fitnesses(&self) -> Vec<f64> {
         let n_geno = 1 << self.n;
@@ -147,7 +153,10 @@ pub fn kl_divergence(p: &[f64], q: &[f64]) -> f64 {
 }
 
 /// Counterdiabatic schedule: ds/dt ∝ 1/√g(s), g(s) = β² `Var_s[F]`.
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "schedule grid steps → f64 for numerical integration"
+)]
 #[must_use]
 pub fn compute_cd_schedule(f0: &[f64], f1: &[f64], t: usize, beta: f64) -> Vec<f64> {
     // Grid resolution for Fisher information integration.

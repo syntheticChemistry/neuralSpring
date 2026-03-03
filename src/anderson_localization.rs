@@ -31,12 +31,10 @@
 //! per eigenvector, computes `sum(|ψ_i|^4)`. Validated in
 //! `validate_gpu_anderson`.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::many_single_char_names,
-    clippy::needless_range_loop,
-    clippy::similar_names,
-    clippy::suboptimal_flops
+    reason = "Anderson model uses standard physics notation (n, t, w, h, i, v) and usize→f64 casts"
 )]
 
 use crate::rng::Rng;

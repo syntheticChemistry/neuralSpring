@@ -28,15 +28,14 @@
 //!
 //! Socket: `$XDG_RUNTIME_DIR/biomeos/neuralspring-{family_id}.sock`
 
-#![allow(
+#![expect(
     clippy::pedantic,
     clippy::nursery,
     clippy::expect_used,
-    clippy::unwrap_used,
     clippy::too_many_lines,
-    clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    clippy::similar_names,
+    reason = "validation binary"
 )]
 
 mod folding;
@@ -157,11 +156,11 @@ fn orchestrator_socket() -> String {
 /// protocol completeness as capabilities expand.
 mod rpc_error {
     pub const PARSE_ERROR: i32 = -32_700;
-    #[allow(dead_code)]
+    #[expect(dead_code, reason = "validation binary")]
     pub const INVALID_REQUEST: i32 = -32_600;
     pub const METHOD_NOT_FOUND: i32 = -32_601;
     pub const INVALID_PARAMS: i32 = -32_602;
-    #[allow(dead_code)]
+    #[expect(dead_code, reason = "validation binary")]
     pub const INTERNAL_ERROR: i32 = -32_603;
     /// Implementation-defined server error.
     pub const SERVER_ERROR: i32 = -32_000;

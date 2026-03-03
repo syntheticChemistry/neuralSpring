@@ -17,8 +17,6 @@
 //! Python baseline: `control/signal_integration/signal_integration.py`
 //! Rust baseline: `validate_signal_integration`
 
-#![allow(clippy::cast_precision_loss, clippy::similar_names)]
-
 use neural_spring::signal_integration::{
     classify_logic_gate, integrate_ode, logic_gate_sweep, two_input_hill, LogicGate, OdeParams,
     OdeState,

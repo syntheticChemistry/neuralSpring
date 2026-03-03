@@ -17,7 +17,7 @@
 //! Result: 5/5 PASS (test accuracy 98.89%)
 //! Reference: [`LENET_PROVENANCE`](neural_spring::provenance::LENET_PROVENANCE)
 
-#![allow(clippy::too_many_lines)]
+#![expect(clippy::too_many_lines, reason = "validation binary")]
 
 use neural_spring::lenet::{
     conv2d, conv2d_multi, fc_forward, max_pool2d, relu, Conv2dMultiParams, Conv2dParams,

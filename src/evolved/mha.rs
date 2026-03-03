@@ -31,7 +31,6 @@ use barracuda::tensor::Tensor;
 /// # Errors
 ///
 /// Returns [`BarracudaError`] on shape mismatch or GPU failure.
-#[allow(clippy::too_many_arguments)]
 pub fn multi_head_attention_2d(
     input: &Tensor,
     w_q: &Tensor,
@@ -63,7 +62,7 @@ pub fn multi_head_attention_2d(
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used, deprecated)]
+    #![allow(clippy::expect_used)] // test infrastructure
 
     use super::*;
     use barracuda::device::WgpuDevice;

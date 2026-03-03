@@ -2,7 +2,10 @@
 
 //! GPU-accelerated activations: softmax, Boltzmann, GELU.
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "GPU activations convert f64→f32 for hardware tensor API"
+)]
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
