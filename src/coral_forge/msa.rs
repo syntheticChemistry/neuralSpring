@@ -231,6 +231,10 @@ pub fn msa_col_attention(
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::many_single_char_names,
+    reason = "s,n,h,d are standard tensor dimension names"
+)]
 mod tests {
     use super::*;
     use crate::tolerances;

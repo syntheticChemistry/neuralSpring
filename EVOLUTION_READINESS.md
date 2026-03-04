@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 3, 2026 (Sessions 109–119)
+**Date**: March 3, 2026 (Sessions 109–120)
 **barraCuda**: v0.3.1 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool at S89; previously embedded at `../phase1/toadstool/crates/barracuda` pinned to S87 (`2dc26792`). 767 WGSL shaders, dual-protocol IPC, domain feature-gates. ToadStool dispatches across hardware; barraCuda is universal math.
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**

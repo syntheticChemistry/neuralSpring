@@ -112,6 +112,10 @@ pub fn triangle_attention_scores(
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::many_single_char_names,
+    reason = "r,n,h,d are standard attention dimension names"
+)]
 mod tests {
     use super::*;
     use crate::tolerances;

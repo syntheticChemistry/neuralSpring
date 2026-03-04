@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 2, 2026 (Sessions 44–119 — S117: cross-spring shader evolution 42/42 + 15/15 bench. 212/212 validate_all, 232 binaries, V79 handoff)
+**Last Updated**: March 3, 2026 (Sessions 44–120 — S120: deep debt audit + CI hardening. 212/212 validate_all, 232 binaries, V80 handoff)
 **Status**: Phase 5h+ — 330/330 Python + 3400+ Rust+GPU = **4100+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 38.6× speedup (14 domains), dispatch parity 53/53, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 232 binaries, **212/212 validate\_all**, 869 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
@@ -46,7 +46,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 44 upstream rewires; V79 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 44 upstream rewires; V80 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 

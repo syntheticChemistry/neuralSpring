@@ -20,9 +20,9 @@ lint-python:
 	ruff format --check control/ tests/
 
 lint-rust:
-	cargo clippy --all-targets -- -D warnings -W clippy::pedantic -W clippy::nursery
+	cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic -W clippy::nursery
 	cargo fmt --check
-	cargo doc --no-deps
+	RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
 
 test-python:
 	python3 -m pytest tests/ -v --tb=short

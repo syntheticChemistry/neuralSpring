@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::unwrap_used, clippy::cast_precision_loss)] // test infrastructure
+#![expect(
+    clippy::unwrap_used,
+    clippy::cast_precision_loss,
+    reason = "test infrastructure — GPU op validation"
+)]
 
 use super::*;
 use crate::tolerances;

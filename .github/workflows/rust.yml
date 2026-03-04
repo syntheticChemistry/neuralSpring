@@ -54,8 +54,8 @@ jobs:
       - name: Test
         run: cargo test
 
-      - name: Clippy (pedantic)
-        run: cargo clippy -- -D warnings
+      - name: Clippy (pedantic + nursery, all features)
+        run: cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic -W clippy::nursery
 
       - name: Format check
         run: cargo fmt --check

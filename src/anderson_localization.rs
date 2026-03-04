@@ -276,7 +276,7 @@ mod tests {
     fn disorder_sweep_monotonic_trend() {
         let mut rng = Rng::new(42);
         let n = 8;
-        let w_vals: Vec<f64> = (0..5).map(|i| 0.5 + f64::from(i) * 1.5).collect();
+        let w_vals: Vec<f64> = (0..5).map(|i| f64::from(i).mul_add(1.5, 0.5)).collect();
         let iprs = disorder_sweep(n, 1.0, &w_vals, &mut rng);
         assert_eq!(iprs.len(), w_vals.len());
         assert!(iprs.iter().all(|&v| v.is_finite() && v > 0.0));

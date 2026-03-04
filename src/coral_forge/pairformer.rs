@@ -286,6 +286,10 @@ pub fn pairformer_block(
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::similar_names,
+    reason = "ffn_w1/ffn_b1/ffn_w2/ffn_b2 are standard NN weight/bias names"
+)]
 mod tests {
     use super::*;
 

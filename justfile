@@ -21,11 +21,11 @@ lint-python:
     ruff check control/ scripts/ tests/
     ruff format --check control/ tests/
 
-# Rust lint + format + doc (pedantic + nursery enforced)
+# Rust lint + format + doc (pedantic + nursery enforced, all features)
 lint-rust:
-    cargo clippy --all-targets -- -D warnings -W clippy::pedantic -W clippy::nursery
+    cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic -W clippy::nursery
     cargo fmt --check
-    cargo doc --no-deps
+    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
 
 # Python unit tests (48 tests)
 test-python:

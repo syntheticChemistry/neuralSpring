@@ -403,7 +403,10 @@ impl Gpu {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    #![allow(clippy::expect_used)] // test infrastructure
+    #![expect(
+        clippy::expect_used,
+        reason = "test infrastructure — GPU init is fatal"
+    )]
 
     use super::*;
 

@@ -195,6 +195,10 @@ pub fn torsion_angles(
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "test indices cast to f64 — safe for small N"
+)]
 mod tests {
     use super::*;
     use crate::tolerances;

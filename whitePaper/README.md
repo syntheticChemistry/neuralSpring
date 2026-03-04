@@ -3,7 +3,7 @@
 ## The Isomorphic Learning Engine
 
 **Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 38.6× faster than Python (14 domains, honest geomean), 232 binaries, **212/212 validate\_all**. coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 869 lib + 9 integration + 43 forge tests. 44 upstream rewires, 205 barracuda import files, 25+ submodules. ToadStool `2dc26792` (S87), nautilus absorbed
-**Date**: March 2, 2026 (Sessions 40–119 — S117: cross-spring shader evolution 42/42 + 15/15 bench, ToadStool S87 (2dc26792), 212/212 validate_all)
+**Date**: March 3, 2026 (Sessions 40–120 — S120: deep debt audit + CI hardening. S117: cross-spring shader evolution 42/42 + 15/15 bench, ToadStool S87 (2dc26792), 212/212 validate_all)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–079, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V79 handoff (Session 115 — dispatch parity 53/53) |
+| `wateringHole/handoffs/` | Cross-project | V80 handoff (Session 120 — deep debt audit + CI hardening) |
 
 ---
 

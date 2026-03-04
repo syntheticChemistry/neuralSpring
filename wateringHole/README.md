@@ -9,8 +9,8 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V79** | `handoffs/NEURALSPRING_TOADSTOOL_V79_S119_DEEP_LINT_EVOLUTION_HANDOFF_MAR03_2026.md` | Mar 3, 2026 | S119: deep lint evolution (#[allow(→#[expect(]), 4 shared validation helpers, 869 lib tests, 0 production #[allow(]. Supersedes V78 |
-| V78 | `handoffs/NEURALSPRING_TOADSTOOL_V78_S93_BARRACUDA_REWIRE_HANDOFF_MAR03_2026.md` | Mar 3, 2026 | S118: barraCuda standalone extraction rewire (v0.3.1) |
+| **V80** | `handoffs/NEURALSPRING_TOADSTOOL_V80_S120_DEEP_DEBT_AUDIT_HANDOFF_MAR03_2026.md` | Mar 3, 2026 | S120: deep debt audit + CI hardening, zero `#[allow(`, `--all-features` CI, barraCuda evolution review. Supersedes V79 |
+| V79 | `handoffs/NEURALSPRING_TOADSTOOL_V79_S119_DEEP_LINT_EVOLUTION_HANDOFF_MAR03_2026.md` | Mar 3, 2026 | S119: deep lint evolution, 4 shared validation helpers, 869 lib tests |
 
 ### NestGate (Data Acquisition)
 
@@ -32,7 +32,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V77 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass), V77 (S117 cross-spring shader evolution).
+Superseded handoffs: `handoffs/archive/` (V1–V78 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass), V77 (S117 cross-spring shader evolution), V78 (S118 barraCuda standalone rewire).
 
 ## Conventions
 

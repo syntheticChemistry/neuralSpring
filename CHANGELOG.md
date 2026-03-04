@@ -5,7 +5,21 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 119 (March 3, 2026)
+## [Unreleased] — Session 120 (March 3, 2026)
+
+### Session 120 — Deep Debt Audit + CI Hardening + Idiomatic Evolution (March 3, 2026)
+
+**Comprehensive audit**: Full codebase review against wateringHole standards — all gates pass.
+
+**Zero clippy warnings (all-features)**: Fixed production `suboptimal_flops` in `anderson_localization.rs` (→ `mul_add`). Resolved 18 pedantic/nursery warnings across 6 test modules with targeted `#[expect(` + reason strings. Removed 2 unnecessary `#![allow(` in `tests_cpu.rs`/`tests_gpu.rs` (lints never triggered).
+
+**`#[allow(` → `#[expect(` completion**: Converted remaining 6 `#![allow(` in test files to `#![expect(` with reason strings. Two removed entirely (unfulfilled). Zero `#[allow(` remains in the entire codebase — all suppressions now use `#[expect(` with documented reasons.
+
+**CI hardened to match local gates**: `.github/workflows/rust.yml` clippy step now runs `--all-targets --all-features -- -D warnings -W clippy::pedantic -W clippy::nursery` (was missing pedantic/nursery/all-features). Makefile and justfile `lint-rust` targets updated with `--all-features` and `RUSTDOCFLAGS="-D warnings"`. Feature-gated code (`rpc_service` under `primal`) is now linted in all three environments.
+
+**Audit confirms**: 337/337 SPDX headers, zero unsafe, zero files >1000 lines (max 953), zero TODO/FIXME markers, zero production mocks, zero `unwrap()`/`expect()` in library code, zero hardcoded paths, 41 provenance records with full Python trace, all tolerances documented with mathematical derivations.
+
+**V80 handoff**: `NEURALSPRING_TOADSTOOL_V80_S120_DEEP_DEBT_AUDIT_HANDOFF_MAR03_2026.md`
 
 ### Session 119 — Deep Lint Evolution + Shared Helpers + Debris Sweep (March 3, 2026)
 

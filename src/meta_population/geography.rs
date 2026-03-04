@@ -73,6 +73,10 @@ pub fn mantel_test(
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::many_single_char_names,
+    reason = "n,a,b,r,p are standard statistics variable names"
+)]
 mod tests {
     use super::*;
     use crate::rng::Rng;

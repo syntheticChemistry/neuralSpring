@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 3, 2026 (Sessions 61–119)
-**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **212/212 validate\_all** (232 binaries), 869 lib tests. S119: deep lint evolution — all `#[allow(` migrated to `#[expect(` with reasons (0 production `#[allow(`), 4 shared validation helpers extracted. S118: barraCuda standalone rewire (v0.3.1). barraCuda: v0.3.1 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders)
+**Last Updated**: March 3, 2026 (Sessions 61–120)
+**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **212/212 validate\_all** (232 binaries), 869 lib tests. S120: deep debt audit + CI hardening — zero `#[allow(` remaining, `--all-features` CI, quality gates aligned. S119: deep lint evolution — all `#[allow(` migrated to `#[expect(` with reasons, 4 shared validation helpers extracted. S118: barraCuda standalone rewire (v0.3.1). barraCuda: v0.3.1 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders)
 
 ## Purpose
 

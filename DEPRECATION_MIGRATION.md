@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: March 2, 2026 (Sessions 44–119)
+**Date**: March 3, 2026 (Sessions 44–120)
 **ToadStool HEAD**: `2dc26792` (S87: +68 ComputeDispatch ops (144 total), nautilus absorbed, BatchedEncoder, hydrology module split, multi-GPU interconnect)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 232 binaries, 212/212 validate_all, 869 lib tests. Zero unsafe, zero production mocks, zero cross-primal logic. S115: ToadStool S86 rewire, nautilus absorbed (bingocube dep removed), V79 handoff.
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 232 binaries, 212/212 validate_all, 869 lib tests. Zero unsafe, zero production mocks, zero cross-primal logic. Zero `#[allow(` in codebase (all `#[expect(`). V80 handoff.
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed

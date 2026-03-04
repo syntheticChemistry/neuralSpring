@@ -4451,4 +4451,47 @@ The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 
 
 ---
 
+### Experiment 087: Session 120 — Deep Debt Audit + CI Hardening + Idiomatic Evolution
+
+**Date**: March 3, 2026
+**Session**: 120
+**Type**: Audit + Infrastructure
+
+**Objective**: Comprehensive codebase audit against wateringHole standards, CI hardening, and final idiomatic evolution pass.
+
+**Method**:
+1. Full audit of all quality gates: lint, fmt, clippy (pedantic+nursery), doc, test coverage, file size, license, provenance, safety, data sources
+2. Fixed production `clippy::suboptimal_flops` warning in `anderson_localization.rs` — `f64::from(i).mul_add(1.5, 0.5)` replaces `0.5 + f64::from(i) * 1.5`
+3. Resolved 18 test warnings across 6 modules with targeted `#[expect(` + reason strings
+4. Converted last 6 test-module `#[allow(` to `#[expect(` or removed (2 unfulfilled in `tests_cpu.rs`/`tests_gpu.rs`)
+5. Hardened CI: `.github/workflows/rust.yml` clippy step → `--all-targets --all-features -- -D warnings -W clippy::pedantic -W clippy::nursery`
+6. Aligned Makefile and justfile `lint-rust` targets with `--all-features` and `RUSTDOCFLAGS="-D warnings"`
+7. BarraCUDA evolution review: documented 4 local shaders, absorption candidates, evolution blockers, Tier A/B/C readiness
+8. V80 handoff crafted with full barraCuda usage inventory and CI hardening recommendations
+9. Root docs updated: CHANGELOG, README, CONTROL_EXPERIMENT_STATUS, EVOLUTION_READINESS
+10. V78 archived (superseded by V79 → V80)
+
+**Findings**:
+- Zero `#[allow(` remaining in entire codebase — first Spring to achieve this
+- CI was missing `--all-features` flag — `primal` feature-gated `rpc_service` was never linted in CI
+- `mul_add` FMA fusion opportunity was the only production clippy finding (single line, `anderson_localization.rs`)
+- All 337 files have SPDX-License-Identifier headers
+- All files under 1000 lines (max 953 in `tolerances/mod.rs`)
+- 41 provenance records with full Python trace (script, commit, date, command)
+- 139+ named tolerances with mathematical derivations
+- Zero TODO/FIXME, zero unsafe, zero production mocks, zero hardcoded paths
+
+**Key Results**:
+- **0** `#[allow(` in entire codebase
+- **0** clippy warnings (pedantic + nursery, all-features)
+- **0** doc warnings
+- **869/869** lib tests PASS
+- **212/212** validate_all PASS
+- **337/337** SPDX headers verified
+- CI, Makefile, justfile now identical quality gates
+
+**Status**: COMPLETE
+
+---
+
 *Experiment journals — following the hotSpring pattern.*
