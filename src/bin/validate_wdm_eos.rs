@@ -38,7 +38,7 @@ fn validate_element(h: &mut ValidationHarness, element: &str) {
 
     h.check_bool(
         &format!("{element}: surrogate loaded"),
-        !surrogate.layers.is_empty(),
+        !surrogate.mlp.layers.is_empty(),
     );
 
     // Validate at known test points — the surrogate should produce

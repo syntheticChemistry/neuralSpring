@@ -39,13 +39,9 @@
 pub use neural_spring_forge::shaders::MULTI_OBJ_FITNESS as WGSL_MULTI_OBJ_FITNESS;
 
 use crate::rng::Rng;
+use crate::tolerances;
 
-/// Tolerance for lexicase selection: candidates within EPSILON of the
-/// best fitness on a given objective are retained. Set to 1e-8 to
-/// match Dolson et al. 2022 (eLife 11:e79665) — tight enough to
-/// discriminate meaningfully different fitnesses, loose enough to
-/// account for floating-point rounding in multi-objective sums.
-const EPSILON: f64 = 1e-8;
+const EPSILON: f64 = tolerances::LEXICASE_EPSILON;
 
 /// Compute fitness on multiple objectives.
 ///

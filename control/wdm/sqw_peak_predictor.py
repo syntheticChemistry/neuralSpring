@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 nW-03: S(q,ω) Peak Predictor — LSTM on MD density fluctuation time series.
 

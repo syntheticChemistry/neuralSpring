@@ -20,7 +20,7 @@
 //!
 //! ## Backend selection
 //!
-//! Set `NEURALSPRING_BACKEND=cpu|gpu|auto`.
+//! Set `GPU_BACKEND=cpu|gpu|auto`.
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 

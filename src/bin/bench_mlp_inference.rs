@@ -13,8 +13,8 @@
 //! ## Usage
 //!
 //! ```text
-//! NEURALSPRING_BACKEND=gpu  cargo run --release --bin bench_mlp_inference
-//! NEURALSPRING_BACKEND=cpu  cargo run --release --bin bench_mlp_inference
+//! GPU_BACKEND=gpu  cargo run --release --bin bench_mlp_inference
+//! GPU_BACKEND=cpu  cargo run --release --bin bench_mlp_inference
 //! ```
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]

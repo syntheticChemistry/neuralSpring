@@ -29,6 +29,9 @@
     reason = "domain terms (Stanton-Murillo, MLP) are not crate links"
 )]
 
+use barracuda::nn::simple_mlp::{Activation, DenseLayer};
+use barracuda::nn::SimpleMlp;
+
 /// Normalization parameters for 3-input/3-output MLP.
 #[derive(Debug, Clone)]
 pub struct Normalization3 {
@@ -38,19 +41,14 @@ pub struct Normalization3 {
     pub y_std: [f64; 3],
 }
 
-/// MLP layer weights (row-major) and biases.
-#[derive(Debug, Clone)]
-pub struct MlpLayer {
-    pub weights: Vec<f64>,
-    pub bias: Vec<f64>,
-    pub in_features: usize,
-    pub out_features: usize,
-}
-
 /// Trained transport surrogate predicting (D*, η*, λ*).
+///
+/// Wraps [`barracuda::nn::SimpleMlp`] with domain-specific normalization
+/// and log-space output transform. Rewired from local MLP forward pass
+/// to upstream `SimpleMlp::forward` (Session 121, barraCuda v0.3.1).
 #[derive(Debug, Clone)]
 pub struct TransportSurrogate {
-    pub layers: Vec<MlpLayer>,
+    pub mlp: SimpleMlp,
     pub norm: Normalization3,
 }
 
@@ -65,27 +63,11 @@ impl TransportSurrogate {
         let x1 = (log_t - self.norm.x_mean[1]) / self.norm.x_std[1];
         let x2 = (z_star - self.norm.x_mean[2]) / self.norm.x_std[2];
 
-        let mut activations = vec![x0, x1, x2];
+        let raw = self.mlp.forward(&[x0, x1, x2]);
 
-        for (i, layer) in self.layers.iter().enumerate() {
-            let mut output = layer.bias.clone();
-            for (row, out_val) in output.iter_mut().enumerate() {
-                for (col, act_val) in activations.iter().enumerate() {
-                    *out_val =
-                        layer.weights[row * layer.in_features + col].mul_add(*act_val, *out_val);
-                }
-            }
-            if i < self.layers.len() - 1 {
-                for v in &mut output {
-                    *v = v.max(0.0);
-                }
-            }
-            activations = output;
-        }
-
-        let d_log = activations[0].mul_add(self.norm.y_std[0], self.norm.y_mean[0]);
-        let eta_log = activations[1].mul_add(self.norm.y_std[1], self.norm.y_mean[1]);
-        let lam_log = activations[2].mul_add(self.norm.y_std[2], self.norm.y_mean[2]);
+        let d_log = raw[0].mul_add(self.norm.y_std[0], self.norm.y_mean[0]);
+        let eta_log = raw[1].mul_add(self.norm.y_std[1], self.norm.y_mean[1]);
+        let lam_log = raw[2].mul_add(self.norm.y_std[2], self.norm.y_mean[2]);
 
         (
             10.0_f64.powf(d_log),
@@ -123,16 +105,18 @@ pub fn load_transport_from_json(json_str: &str) -> Result<TransportSurrogate, St
         .and_then(serde_json::Value::as_array)
         .ok_or("Missing 'weights'")?;
 
-    let mut layers = Vec::new();
-    for layer_data in weights_data {
-        let w: Vec<f64> = layer_data
+    let n_layers = weights_data.len();
+    let mut dense_layers = Vec::with_capacity(n_layers);
+
+    for (i, layer_data) in weights_data.iter().enumerate() {
+        let w_flat: Vec<f64> = layer_data
             .get("weights")
             .and_then(serde_json::Value::as_array)
             .ok_or("Missing layer weights")?
             .iter()
             .filter_map(serde_json::Value::as_f64)
             .collect();
-        let b: Vec<f64> = layer_data
+        let bias: Vec<f64> = layer_data
             .get("bias")
             .and_then(serde_json::Value::as_array)
             .ok_or("Missing layer bias")?
@@ -154,15 +138,26 @@ pub fn load_transport_from_json(json_str: &str) -> Result<TransportSurrogate, St
         )
         .map_err(|e| format!("out_features: {e}"))?;
 
-        layers.push(MlpLayer {
-            weights: w,
-            bias: b,
-            in_features: in_f,
-            out_features: out_f,
+        let weight = (0..out_f)
+            .map(|row| w_flat[row * in_f..(row + 1) * in_f].to_vec())
+            .collect();
+
+        let is_last = i == n_layers - 1;
+        dense_layers.push(DenseLayer {
+            weight,
+            bias,
+            activation: if is_last {
+                Activation::Identity
+            } else {
+                Activation::Relu
+            },
         });
     }
 
-    Ok(TransportSurrogate { layers, norm })
+    Ok(TransportSurrogate {
+        mlp: SimpleMlp::new(dense_layers),
+        norm,
+    })
 }
 
 fn parse_f64_array3(obj: &serde_json::Value, key: &str) -> Result<[f64; 3], String> {
@@ -187,20 +182,27 @@ mod tests {
 
     fn test_surrogate() -> TransportSurrogate {
         TransportSurrogate {
-            layers: vec![
-                MlpLayer {
-                    weights: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2],
+            mlp: SimpleMlp::new(vec![
+                DenseLayer {
+                    weight: vec![
+                        vec![0.1, 0.2, 0.3],
+                        vec![0.4, 0.5, 0.6],
+                        vec![0.7, 0.8, 0.9],
+                        vec![1.0, 1.1, 1.2],
+                    ],
                     bias: vec![0.0, 0.0, 0.0, 0.0],
-                    in_features: 3,
-                    out_features: 4,
+                    activation: Activation::Relu,
                 },
-                MlpLayer {
-                    weights: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2],
+                DenseLayer {
+                    weight: vec![
+                        vec![0.1, 0.2, 0.3, 0.4],
+                        vec![0.5, 0.6, 0.7, 0.8],
+                        vec![0.9, 1.0, 1.1, 1.2],
+                    ],
                     bias: vec![0.0, 0.0, 0.0],
-                    in_features: 4,
-                    out_features: 3,
+                    activation: Activation::Identity,
                 },
-            ],
+            ]),
             norm: Normalization3 {
                 x_mean: [0.0, 6.0, 7.0],
                 x_std: [1.0, 1.0, 3.5],
@@ -259,7 +261,7 @@ mod tests {
             ]
         }"#;
         let surr = load_transport_from_json(json).expect("valid JSON should parse");
-        assert_eq!(surr.layers.len(), 2);
+        assert_eq!(surr.mlp.layers.len(), 2);
         let (d, e, l) = surr.predict(0.5, 6.0, 5.0);
         assert!(d.is_finite());
         assert!(e.is_finite());

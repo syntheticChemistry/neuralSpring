@@ -3,8 +3,8 @@
 //! Provenance records for Phase 0, 0+, 0++ experiments and related baselines.
 
 use super::{
-    BaselineProvenance, BASELINE_COMMIT, BASELINE_DATE, ENVIRONMENT, PUBLICATION_BASELINE_DATE,
-    PUBLICATION_ENVIRONMENT,
+    BaselineProvenance, BASELINE_COMMIT, BASELINE_DATE, ENVIRONMENT, NS06_BASELINE_DATE,
+    PUBLICATION_BASELINE_DATE, PUBLICATION_ENVIRONMENT,
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -541,7 +541,7 @@ pub const IMMUNOLOGICAL_ANDERSON_PROVENANCE: BaselineProvenance = BaselineProven
     label: "nS-06: Immunological Anderson (baseCamp Paper 12, 20/20 PASS)",
     script: "control/immunological_anderson/immunological_anderson.py",
     commit: BASELINE_COMMIT,
-    date: "2026-03-02",
+    date: NS06_BASELINE_DATE,
     command: "python3 control/immunological_anderson/immunological_anderson.py",
     environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
     value: 20.0,
@@ -554,7 +554,7 @@ pub const IMMUNOLOGICAL_ANDERSON_EXTENDED_PROVENANCE: BaselineProvenance = Basel
     label: "nS-06 extended: Gonzales/PK/Lattice/MATRIX (28/28 PASS)",
     script: "control/immunological_anderson/immunological_anderson_extended.py",
     commit: BASELINE_COMMIT,
-    date: "2026-03-02",
+    date: NS06_BASELINE_DATE,
     command: "python3 control/immunological_anderson/immunological_anderson_extended.py",
     environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
     value: 28.0,

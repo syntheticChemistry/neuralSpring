@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """nF-03 Phase C: AlphaFold3 confidence head validation baselines.
 
 Generates deterministic baselines for pLDDT, PAE, pDE, and ranking score

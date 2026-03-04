@@ -2,33 +2,35 @@
 
 //! WGSL shader source catalog — single source of truth for validation.
 //!
-//! ## Upstream-sourced (absorbed by `ToadStool`)
+//! ## Upstream-sourced (absorbed by `barraCuda`, originally via `ToadStool`)
 //!
-//! `ToadStool` S68 evolved all shaders to f64 canonical with runtime
-//! downcast via `LazyLock<String>`. Some constants became private;
-//! those use local shader copies instead of re-exports.
+//! `barraCuda` v0.3.1 (standalone, extracted from `ToadStool` S89) evolved all
+//! shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
+//! Some constants became private `static` (not `pub const &str`); those
+//! use local shader copies instead of re-exports.
 //!
 //! | Constant | Source |
 //! |----------|--------|
-//! | [`HMM_FORWARD_LOG`] | `barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32` (still pub) |
-//! | [`BATCH_FITNESS_EVAL`] | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` (still pub) |
+//! | [`HMM_FORWARD_LOG`] | `barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32` (pub const) |
+//! | [`BATCH_FITNESS_EVAL`] | `barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL` (pub const) |
 //! | [`RK4_PARALLEL`] | `include_str!(rk4_parallel_f64.wgsl)` (upstream f64 canonical) |
-//! | [`PAIRWISE_JACCARD`] | Local copy (upstream now private `LazyLock`) |
-//! | [`LOCUS_VARIANCE`] | `barracuda::ops::bio::locus_variance::WGSL_LOCUS_VARIANCE_F64` |
-//! | [`SPATIAL_PAYOFF`] | Local copy (upstream now private `LazyLock`) |
-//! | [`BATCH_IPR`] | Local copy (upstream now `LazyLock<String>`) |
-//! | [`PAIRWISE_HAMMING`] | Local copy (upstream now private `LazyLock`) |
+//! | [`PAIRWISE_JACCARD`] | Local copy (upstream `static LazyLock<String>`, not pub const) |
+//! | [`LOCUS_VARIANCE`] | `barracuda::ops::bio::locus_variance::WGSL_LOCUS_VARIANCE_F64` (pub const) |
+//! | [`SPATIAL_PAYOFF`] | Local copy (upstream `static LazyLock<String>`, not pub const) |
+//! | [`BATCH_IPR`] | Local copy (upstream `pub static LazyLock<String>` — runtime downcast) |
+//! | [`PAIRWISE_HAMMING`] | Local copy (upstream `static LazyLock<String>`, not pub const) |
 //!
-//! ## Upstream-sourced (generalized variants — absorbed by `ToadStool` `d45fdfb3`)
+//! ## Upstream-sourced (generalized variants)
 //!
 //! Local copies retained for validation compatibility (different binding layouts).
+//! Upstream has both `pub const` f64 and `LazyLock` f32 versions for many of these.
 //!
 //! | Constant | Upstream | Difference |
 //! |----------|----------|------------|
 //! | [`PAIRWISE_L2`] | `barracuda::shaders::math::pairwise_l2` | Closed-form pair decode |
-//! | [`MULTI_OBJ_FITNESS`] | `barracuda::shaders::bio::multi_obj_fitness` | Bessel correction |
-//! | [`SWARM_NN_FORWARD`] | `barracuda::shaders::bio::swarm_nn_forward` | Generic MLP dims |
-//! | [`HILL_GATE`] | `barracuda::shaders::bio::hill_gate` | Mode 0/1 generalization |
+//! | [`MULTI_OBJ_FITNESS`] | `barracuda::ops::bio::multi_obj_fitness::WGSL_MULTI_OBJ_FITNESS` | Bessel correction (n-1 vs n) |
+//! | [`SWARM_NN_FORWARD`] | `barracuda::ops::bio::swarm_nn::WGSL_SWARM_NN_FORWARD` | Generic MLP dims |
+//! | [`HILL_GATE`] | `barracuda::ops::bio::hill_gate::WGSL_HILL_GATE` | Mode 0/1 generalization |
 //! | [`MEAN_REDUCE`] | `barracuda::shaders::reduce::mean_reduce` | Effectively identical |
 //!
 //! ## Still local (4 shaders — no upstream equivalent)
@@ -42,41 +44,41 @@
 
 // ── Upstream-sourced (re-exported from barracuda) ───────────────────
 
-/// HMM forward pass in log-domain (Papers 016–018). Absorbed by `ToadStool`.
+/// HMM forward pass in log-domain (Papers 016–018). Re-exported from barraCuda.
 pub use barracuda::ops::bio::hmm::WGSL_HMM_FORWARD_LOG_F32 as HMM_FORWARD_LOG;
 
-/// Batch linear fitness evaluation (Papers 011–015). Absorbed by `ToadStool`.
+/// Batch linear fitness evaluation (Papers 011–015). Re-exported from barraCuda.
 pub use barracuda::ops::bio::batch_fitness::WGSL_BATCH_FITNESS_EVAL as BATCH_FITNESS_EVAL;
 
 /// Parallel RK4 ODE integration (Papers 020–021).
 ///
-/// Absorbed by `ToadStool` S68. Upstream evolved to f64 canonical
-/// (`rk4_parallel_f64.wgsl`); f64 version requires Sovereign Compiler
-/// polyfill injection. Local f32 copy retained for direct wgpu validation.
+/// Upstream (barraCuda) evolved to f64 canonical (`rk4_parallel_f64.wgsl`);
+/// f64 version requires Sovereign Compiler polyfill injection. Local f32
+/// copy retained for direct wgpu validation.
 pub const RK4_PARALLEL: &str = include_str!("../../shaders/rk4_parallel.wgsl");
 
-/// Pairwise Jaccard distance (Paper 024). Absorbed by `ToadStool`.
+/// Pairwise Jaccard distance (Paper 024). Absorbed upstream.
 ///
-/// `ToadStool` S68 evolved the f32 const to private `LazyLock<String>`
+/// Upstream evolved the f32 const to private `LazyLock<String>`
 /// (f64 canonical + runtime downcast). Local copy used for validation.
 pub const PAIRWISE_JACCARD: &str = include_str!("../../shaders/pairwise_jaccard.wgsl");
 
-/// Per-locus allele frequency variance (Paper 025). Absorbed by `ToadStool`.
+/// Per-locus allele frequency variance (Paper 025). Re-exported from barraCuda.
 ///
-/// Upstream provides `WGSL_LOCUS_VARIANCE_F64` (S68 f64 canonical).
+/// Upstream provides `WGSL_LOCUS_VARIANCE_F64` (f64 canonical `pub const`).
 pub use barracuda::ops::bio::locus_variance::WGSL_LOCUS_VARIANCE_F64 as LOCUS_VARIANCE;
 
-/// Spatial payoff on grid (Paper 019). Absorbed by `ToadStool`.
+/// Spatial payoff on grid (Paper 019). Absorbed upstream.
 ///
-/// `ToadStool` S68 evolved to private `LazyLock<String>`. Local copy.
+/// Upstream evolved to private `LazyLock<String>`. Local copy.
 pub const SPATIAL_PAYOFF: &str = include_str!("../../shaders/spatial_payoff.wgsl");
 
-/// Batch IPR (Papers 022–023). Absorbed by `ToadStool`.
+/// Batch IPR (Papers 022–023). Absorbed upstream (pub static `LazyLock`).
 pub const BATCH_IPR: &str = include_str!("../../shaders/batch_ipr.wgsl");
 
-/// Pairwise Hamming distance (Paper 017). Absorbed by `ToadStool`.
+/// Pairwise Hamming distance (Paper 017). Absorbed upstream.
 ///
-/// `ToadStool` S68 evolved to private `LazyLock<String>`. Local copy.
+/// Upstream evolved to private `LazyLock<String>`. Local copy.
 pub const PAIRWISE_HAMMING: &str = include_str!("../../shaders/pairwise_hamming.wgsl");
 
 // ── Still local (pending absorption) ────────────────────────────────

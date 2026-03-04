@@ -212,7 +212,7 @@
 
 | Validator | Checks | Result |
 |-----------|--------|--------|
-| `validate_all` | 212 | **212/212 PASS** |
+| `validate_all` | 213 | **213/213 PASS** |
 | `validate_cross_spring_evolution` | 68 | **68/68 PASS** |
 | `bench_cross_spring_evolution` | 14 | **14/14 PASS** |
 | `cargo test --lib` | 869 | **869/869 PASS** |

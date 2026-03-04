@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 3, 2026 (Sessions 61–120)
-**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **212/212 validate\_all** (232 binaries), 869 lib tests. S120: deep debt audit + CI hardening — zero `#[allow(` remaining, `--all-features` CI, quality gates aligned. S119: deep lint evolution — all `#[allow(` migrated to `#[expect(` with reasons, 4 shared validation helpers extracted. S118: barraCuda standalone rewire (v0.3.1). barraCuda: v0.3.1 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders)
+**Last Updated**: March 4, 2026 (Sessions 61–121)
+**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **213/213 validate\_all** (234 binaries), 869 lib tests. S121: WDM surrogates rewired to `barracuda::nn::SimpleMlp`, HMM Viterbi chain rewired to f64 `ComputeDispatch`, cross-spring modern bench 28/28 PASS (5-spring provenance). S120: deep debt audit + CI hardening — zero `#[allow(` remaining, `--all-features` CI. S118: barraCuda standalone rewire (v0.3.1). barraCuda: v0.3.1 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders)
 
 ## Purpose
 
@@ -96,6 +96,9 @@ cross-spring rewiring to ToadStool S66 APIs.
 | `hill_repression` | `barracuda::stats::hill` (inverted) | Sub-02, Waters | S78 |
 | `modes::l2_distance` | `barracuda::dispatch::l2_distance_dispatch` | Sub-05 | S78 |
 | `complexity_metric` | `barracuda::stats::fit_linear` | MODES | S78 |
+| `MlpLayer` (EOS surrogate) | `barracuda::nn::SimpleMlp` | WDM surrogates | S121 |
+| `MlpLayer` (Transport surrogate) | `barracuda::nn::SimpleMlp` | WDM surrogates | S121 |
+| `hmm_viterbi_chain_gpu` (per-step f32) | `barracuda::ops::bio::hmm_viterbi` (f64 ComputeDispatch) | HMM/Phylo | S121 |
 
 ### Hardware Validation
 

@@ -17,8 +17,8 @@
 //! ## Usage
 //!
 //! ```text
-//! NEURALSPRING_BACKEND=gpu  cargo run --bin validate_barracuda_ml_inference
-//! NEURALSPRING_BACKEND=cpu  cargo run --bin validate_barracuda_ml_inference
+//! GPU_BACKEND=gpu  cargo run --bin validate_barracuda_ml_inference
+//! GPU_BACKEND=cpu  cargo run --bin validate_barracuda_ml_inference
 //! ```
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]

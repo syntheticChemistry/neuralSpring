@@ -1,8 +1,9 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: March 3, 2026 (Sessions 44–120)
-**ToadStool HEAD**: `2dc26792` (S87: +68 ComputeDispatch ops (144 total), nautilus absorbed, BatchedEncoder, hydrology module split, multi-GPU interconnect)
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 232 binaries, 212/212 validate_all, 869 lib tests. Zero unsafe, zero production mocks, zero cross-primal logic. Zero `#[allow(` in codebase (all `#[expect(`). V80 handoff.
+**Date**: March 4, 2026 (Sessions 44–121)
+**barraCuda**: v0.3.1 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool S89 → standalone v0.2.0 → v0.3.1 (tarpc parity, DeviceLost, DEVICE_CREATION_LOCK, blake3 pure, 2965 tests). ToadStool sessions S89–S93: D-DF64 transfer, sovereignty deprecations, REST→JSON-RPC, barraCuda budding complete.
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 234 binaries, 869 lib tests, 0 clippy (pedantic+nursery), 0 doc warnings. Zero unsafe, zero production mocks, zero cross-primal logic. Zero `#[allow(` in codebase (all `#[expect(`). Standalone barraCuda confirmed.
+**S121**: `MlpLayer` struct removed from `wdm_surrogate.rs` and `wdm_transport.rs` — replaced by `barracuda::nn::SimpleMlp` with `DenseLayer` format. `hmm_viterbi_chain_gpu` per-step f32 Tensor loop replaced by single f64 `barracuda::ops::bio::hmm_viterbi` dispatch.
 
 All 12 neuralSpring shortcomings (S-01 through S-12) are absorbed by
 ToadStool at `77f70b2e`. Deprecated workaround modules have been removed

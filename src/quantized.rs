@@ -174,7 +174,7 @@ pub fn relative_l2_error(approx: &[f64], reference: &[f64]) -> f64 {
         .map(|(a, r)| (a - r).powi(2))
         .sum();
     let den: f64 = reference.iter().map(|r| r.powi(2)).sum();
-    if den < 1e-30 {
+    if den < crate::tolerances::LOG_ZERO_GUARD {
         return num.sqrt();
     }
     (num / den).sqrt()

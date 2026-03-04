@@ -37,6 +37,7 @@
 //! inference primitives — not the training loop.  `BarraCUDA` training
 //! will use `fd_gradient_f64.wgsl` or a future AD pipeline.
 
+use crate::tolerances;
 use std::f64::consts::PI;
 
 /// Viscosity parameter ν = 0.01/π.
@@ -114,7 +115,7 @@ pub fn cole_hopf_quadrature(t: f64, x: f64, nu: f64, n_quad: usize) -> f64 {
         dphi_dx_sum += integrand * (xi - x) * inv_2nu_t;
     }
 
-    if phi_sum.abs() < 1e-30 {
+    if phi_sum.abs() < tolerances::LOG_ZERO_GUARD {
         return 0.0;
     }
 
@@ -213,7 +214,7 @@ pub fn pde_residual_fd(u_grid: &[f64], t_vals: &[f64], x_vals: &[f64], nu: f64) 
 
     for i in 0..(nt - 1) {
         let dt = t_vals[i + 1] - t_vals[i];
-        if dt.abs() < 1e-30 {
+        if dt.abs() < tolerances::LOG_ZERO_GUARD {
             continue;
         }
         for j in 1..(nx - 1) {

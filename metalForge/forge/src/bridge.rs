@@ -24,7 +24,8 @@ use std::sync::Arc;
 
 /// Backend selection for the neuralSpring GPU context.
 ///
-/// Maps to the `NEURALSPRING_BACKEND` environment variable.
+/// Maps to the `GPU_BACKEND` environment variable (legacy:
+/// `NEURALSPRING_BACKEND`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Backend {
     /// Best available adapter (`HighPerformance`).

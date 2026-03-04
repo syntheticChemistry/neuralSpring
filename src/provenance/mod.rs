@@ -60,6 +60,11 @@ pub const BASELINE_DATE: &str = "2026-02-16";
 /// Pinned date for publication experiment baselines (Exp-050/052/053).
 pub const PUBLICATION_BASELINE_DATE: &str = "2026-02-26";
 
+/// Pinned date for baseCamp nS-06 (immunological Anderson) baselines.
+///
+/// Extended experiments ran after the Phase 0 baseline freeze.
+pub const NS06_BASELINE_DATE: &str = "2026-03-02";
+
 /// Pinned environment for publication experiment baselines.
 pub const PUBLICATION_ENVIRONMENT: &str = "Python 3.12, PyTorch 2.9.0+cu128, NumPy, seed=42";
 

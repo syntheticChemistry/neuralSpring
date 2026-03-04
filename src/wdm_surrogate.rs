@@ -21,6 +21,9 @@
 //! FPEOS tables (Militzer) → Python MLP → Rust MLP → BarraCUDA GPU → Pure GPU
 //! ```
 
+use barracuda::nn::simple_mlp::{Activation, DenseLayer};
+use barracuda::nn::SimpleMlp;
+
 /// Normalization parameters for MLP input/output.
 #[derive(Debug, Clone)]
 pub struct Normalization {
@@ -30,20 +33,15 @@ pub struct Normalization {
     pub y_std: [f64; 2],
 }
 
-/// MLP layer weights (row-major) and biases.
-#[derive(Debug, Clone)]
-pub struct MlpLayer {
-    pub weights: Vec<f64>,
-    pub bias: Vec<f64>,
-    pub in_features: usize,
-    pub out_features: usize,
-}
-
 /// Trained EOS surrogate for one element.
+///
+/// Wraps [`barracuda::nn::SimpleMlp`] with domain-specific normalization
+/// and signed-log output transform. Rewired from local MLP forward pass
+/// to upstream `SimpleMlp::forward` (Session 121, barraCuda v0.3.1).
 #[derive(Debug, Clone)]
 pub struct EosSurrogate {
     pub element: String,
-    pub layers: Vec<MlpLayer>,
+    pub mlp: SimpleMlp,
     pub norm: Normalization,
 }
 
@@ -60,29 +58,10 @@ impl EosSurrogate {
         let x0 = (log_rho - self.norm.x_mean[0]) / self.norm.x_std[0];
         let x1 = (log_t - self.norm.x_mean[1]) / self.norm.x_std[1];
 
-        let mut activations = vec![x0, x1];
+        let raw = self.mlp.forward(&[x0, x1]);
 
-        for (i, layer) in self.layers.iter().enumerate() {
-            let mut output = layer.bias.clone();
-            for (row, out_val) in output.iter_mut().enumerate() {
-                for (col, act_val) in activations.iter().enumerate() {
-                    *out_val =
-                        layer.weights[row * layer.in_features + col].mul_add(*act_val, *out_val);
-                }
-            }
-            if i < self.layers.len() - 1 {
-                for v in &mut output {
-                    *v = v.max(0.0);
-                }
-            }
-            activations = output;
-        }
-
-        let log_pres_norm = activations[0];
-        let log_eng_norm = activations[1];
-
-        let log_pres = log_pres_norm.mul_add(self.norm.y_std[0], self.norm.y_mean[0]);
-        let log_eng = log_eng_norm.mul_add(self.norm.y_std[1], self.norm.y_mean[1]);
+        let log_pres = raw[0].mul_add(self.norm.y_std[0], self.norm.y_mean[0]);
+        let log_eng = raw[1].mul_add(self.norm.y_std[1], self.norm.y_mean[1]);
 
         let pres = log_pres.signum() * 10.0_f64.powf(log_pres.abs());
         let eng = log_eng.signum() * 10.0_f64.powf(log_eng.abs());
@@ -91,10 +70,11 @@ impl EosSurrogate {
     }
 }
 
-/// Load an `EosSurrogate` from the Python baseline JSON.
+/// Load an [`EosSurrogate`] from the Python baseline JSON.
 ///
 /// Parses the `eos_surrogate_baseline.json` produced by
-/// `control/wdm/eos_surrogate.py`.
+/// `control/wdm/eos_surrogate.py`. Converts flat row-major weights to
+/// [`barracuda::nn::SimpleMlp`] `DenseLayer` format (2D `Vec<Vec<f64>>`).
 ///
 /// # Errors
 ///
@@ -124,16 +104,18 @@ pub fn load_surrogate_from_json(json_str: &str, element: &str) -> Result<EosSurr
         .and_then(serde_json::Value::as_array)
         .ok_or("Missing 'weights'")?;
 
-    let mut layers = Vec::new();
-    for layer_data in weights_data {
-        let w: Vec<f64> = layer_data
+    let n_layers = weights_data.len();
+    let mut dense_layers = Vec::with_capacity(n_layers);
+
+    for (i, layer_data) in weights_data.iter().enumerate() {
+        let w_flat: Vec<f64> = layer_data
             .get("weights")
             .and_then(serde_json::Value::as_array)
             .ok_or("Missing layer weights")?
             .iter()
             .filter_map(serde_json::Value::as_f64)
             .collect();
-        let b: Vec<f64> = layer_data
+        let bias: Vec<f64> = layer_data
             .get("bias")
             .and_then(serde_json::Value::as_array)
             .ok_or("Missing layer bias")?
@@ -155,17 +137,25 @@ pub fn load_surrogate_from_json(json_str: &str, element: &str) -> Result<EosSurr
         )
         .map_err(|e| format!("out_features: {e}"))?;
 
-        layers.push(MlpLayer {
-            weights: w,
-            bias: b,
-            in_features: in_f,
-            out_features: out_f,
+        let weight = (0..out_f)
+            .map(|row| w_flat[row * in_f..(row + 1) * in_f].to_vec())
+            .collect();
+
+        let is_last = i == n_layers - 1;
+        dense_layers.push(DenseLayer {
+            weight,
+            bias,
+            activation: if is_last {
+                Activation::Identity
+            } else {
+                Activation::Relu
+            },
         });
     }
 
     Ok(EosSurrogate {
         element: element.to_string(),
-        layers,
+        mlp: SimpleMlp::new(dense_layers),
         norm,
     })
 }
@@ -192,20 +182,23 @@ mod tests {
     fn test_surrogate() -> EosSurrogate {
         EosSurrogate {
             element: "test".to_string(),
-            layers: vec![
-                MlpLayer {
-                    weights: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+            mlp: SimpleMlp::new(vec![
+                DenseLayer {
+                    weight: vec![
+                        vec![0.1, 0.2],
+                        vec![0.3, 0.4],
+                        vec![0.5, 0.6],
+                        vec![0.7, 0.8],
+                    ],
                     bias: vec![0.0, 0.0, 0.0, 0.0],
-                    in_features: 2,
-                    out_features: 4,
+                    activation: Activation::Relu,
                 },
-                MlpLayer {
-                    weights: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                DenseLayer {
+                    weight: vec![vec![0.1, 0.2, 0.3, 0.4], vec![0.5, 0.6, 0.7, 0.8]],
                     bias: vec![0.0, 0.0],
-                    in_features: 4,
-                    out_features: 2,
+                    activation: Activation::Identity,
                 },
-            ],
+            ]),
             norm: Normalization {
                 x_mean: [0.0, 4.0],
                 x_std: [1.0, 1.0],
@@ -268,12 +261,11 @@ mod tests {
     fn surrogate_normalization_identity() {
         let surr = EosSurrogate {
             element: "id".to_string(),
-            layers: vec![MlpLayer {
-                weights: vec![1.0, 0.0, 0.0, 1.0],
+            mlp: SimpleMlp::new(vec![DenseLayer {
+                weight: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
                 bias: vec![0.0, 0.0],
-                in_features: 2,
-                out_features: 2,
-            }],
+                activation: Activation::Identity,
+            }]),
             norm: Normalization {
                 x_mean: [0.0, 0.0],
                 x_std: [1.0, 1.0],
@@ -290,20 +282,18 @@ mod tests {
     fn surrogate_relu_clips_negative() {
         let surr = EosSurrogate {
             element: "relu".to_string(),
-            layers: vec![
-                MlpLayer {
-                    weights: vec![-1.0, 0.0, 0.0, -1.0],
+            mlp: SimpleMlp::new(vec![
+                DenseLayer {
+                    weight: vec![vec![-1.0, 0.0], vec![0.0, -1.0]],
                     bias: vec![0.0, 0.0],
-                    in_features: 2,
-                    out_features: 2,
+                    activation: Activation::Relu,
                 },
-                MlpLayer {
-                    weights: vec![1.0, 0.0, 0.0, 1.0],
+                DenseLayer {
+                    weight: vec![vec![1.0, 0.0], vec![0.0, 1.0]],
                     bias: vec![0.0, 0.0],
-                    in_features: 2,
-                    out_features: 2,
+                    activation: Activation::Identity,
                 },
-            ],
+            ]),
             norm: Normalization {
                 x_mean: [0.0, 0.0],
                 x_std: [1.0, 1.0],
@@ -349,11 +339,8 @@ mod tests {
     fn load_surrogate_valid_json() {
         let surr = load_surrogate_from_json(valid_json(), "H").expect("valid JSON should parse");
         assert_eq!(surr.element, "H");
-        assert_eq!(surr.layers.len(), 2);
-        assert_eq!(surr.layers[0].in_features, 2);
-        assert_eq!(surr.layers[0].out_features, 4);
-        assert_eq!(surr.layers[1].in_features, 4);
-        assert_eq!(surr.layers[1].out_features, 2);
+        assert_eq!(surr.mlp.input_size(), Some(2));
+        assert_eq!(surr.mlp.output_size(), Some(2));
     }
 
     #[test]

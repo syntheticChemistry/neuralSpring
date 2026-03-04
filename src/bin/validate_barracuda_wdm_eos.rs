@@ -61,19 +61,19 @@ fn gpu_mlp_forward(
     x1: f32,
     device: &Dev,
 ) -> Result<Vec<f32>, String> {
+    use barracuda::nn::simple_mlp::Activation;
+
     let mut current = Tensor::from_data(&[x0, x1], vec![1, 2], device.clone())
         .map_err(|e| format!("input tensor: {e}"))?;
 
-    for (i, layer) in surr.layers.iter().enumerate() {
-        let w_f32: Vec<f32> = layer.weights.iter().map(|&v| v as f32).collect();
+    for (i, layer) in surr.mlp.layers.iter().enumerate() {
+        let out_f = layer.weight.len();
+        let in_f = layer.weight.first().map_or(0, Vec::len);
+        let w_f32: Vec<f32> = layer.weight.iter().flatten().map(|&v| v as f32).collect();
         let b_f32: Vec<f32> = layer.bias.iter().map(|&v| v as f32).collect();
 
-        let w_tensor = Tensor::from_data(
-            &w_f32,
-            vec![layer.out_features, layer.in_features],
-            device.clone(),
-        )
-        .map_err(|e| format!("layer {i} W: {e}"))?;
+        let w_tensor = Tensor::from_data(&w_f32, vec![out_f, in_f], device.clone())
+            .map_err(|e| format!("layer {i} W: {e}"))?;
 
         let w_t = w_tensor
             .transpose()
@@ -83,14 +83,14 @@ fn gpu_mlp_forward(
             .matmul(&w_t)
             .map_err(|e| format!("layer {i} matmul: {e}"))?;
 
-        let b_tensor = Tensor::from_data(&b_f32, vec![1, layer.out_features], device.clone())
+        let b_tensor = Tensor::from_data(&b_f32, vec![1, out_f], device.clone())
             .map_err(|e| format!("layer {i} b: {e}"))?;
 
         let z_biased = z
             .add(&b_tensor)
             .map_err(|e| format!("layer {i} add: {e}"))?;
 
-        current = if i < surr.layers.len() - 1 {
+        current = if matches!(layer.activation, Activation::Relu) {
             z_biased
                 .relu()
                 .map_err(|e| format!("layer {i} relu: {e}"))?

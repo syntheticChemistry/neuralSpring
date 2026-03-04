@@ -3,8 +3,9 @@
 This document catalogues BarraCUDA / ToadStool shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** ToadStool commit `2dc26792` (Sessions 50–119, Mar 2, 2026) — **ALL 17 shortcomings RESOLVED, 44 upstream rewires, 130+ barracuda import sites, 20+ submodules exercised, 232 binaries, 212/212 validate\_all, 3900+ checks. S102: Nautilus Shell cross-spring bridge, SpectralNautilusBridge + DriftMonitor, 27/27 PASS, +7 lib tests (753), +1 binary (220 total). S101: ToadStool S71 pin bump (6 commits, ComputeDispatch migration, DF64 transcendentals), GPU stats parity (KimuraGpu+HistogramGpu PASS, JackknifeMeanGpu+HargreavesBatchGpu blocked by upstream shader bugs). 753 lib tests, 0 clippy.**
+**Last reviewed:** barraCuda v0.3.1 standalone (`../barraCuda/crates/barracuda`), Mar 4, 2026. Extracted from ToadStool at S89; standalone primal since v0.2.0. **ALL 17 shortcomings RESOLVED, 44 upstream rewires, 130+ barracuda import sites, 25+ submodules exercised, 232 binaries, 869 lib tests, 0 clippy, 0 doc warnings.** ToadStool sessions S89–S93: D-DF64 transfer, sovereignty deprecations, REST→JSON-RPC, barraCuda budding. barraCuda v0.3.0–v0.3.1: toadStool untangle, tarpc service, UniBin CLI, DeviceLost resilience, global DEVICE_CREATION_LOCK, blake3 pure, println→tracing, 2965 upstream tests. neuralSpring confirmed clean build + full test pass against standalone barraCuda.
 **Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V80_S120_DEEP_DEBT_AUDIT_HANDOFF_MAR03_2026.md`
+**barraCuda standalone:** `../barraCuda/crates/barracuda` v0.3.1 — 767 WGSL shaders, dual-protocol IPC, domain feature-gates. Extracted from ToadStool S89. No cross-dependencies on any primal.
 **Session 97c sync (S70+++ pin bump):** ToadStool pin bumped `e96576ee`→`1dd7e338` (13 commits, S68++→S70+++). **Key absorptions**: 7 new DF64 WGSL shaders (gelu, sigmoid, softmax, layer_norm, sdpa, brent, seasonal_pipeline), `SimpleMlp` (JSON-serde MLP), `matmul_ref` (non-consuming matmul for recurrent architectures), `SymmetrizeGpu`, `LaplacianGpu`, `stats::evolution/jackknife/hydrology`, `chao1_classic`, preferred_workgroup_size. **Rewired**: 2 `matmul_ref` sites (ESN validator + tensor benchmark). **Not rewired** (by design): SimpleMlp in validators (test specific Tensor ops), SymmetrizeGpu (small matrices), LaplacianGpu (keep CPU path). ToadStool now at 668 WGSL shaders, 4700+ workspace tests, 0 clippy warnings, 45 documented unsafe. Full re-validation: 200/200 validate_all, 685 lib tests, 0 clippy. V64 handoff updated.
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
@@ -41,6 +42,16 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 **Session 87 sync:** WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor) and nW-05 (ESN regime classifier) complete. 156 total validators, 31 baselines, 668 lib + 43 forge + 9 integration tests.
 
 **Session 91 sync:** Full ToadStool S66–S68 evolution review. ToadStool achieved **ZERO f32-only shaders** (296 deleted, 291 converted to f64 canonical). Dual-layer universal precision architecture: `Precision::op_preamble()` (Layer 1: abstract ops) + `sovereign/df64_rewrite.rs` (Layer 2: naga-guided f64→df64 infix rewrite). `compile_shader_universal(source, precision)` now exposed in `gpu.rs` for callers to compile at F16/F32/F64/Df64 per-use/hardware. `Precision` enum re-exported from `gpu.rs`. Primal Evoformer matmul helpers (`matmul_2d`, `matmul_3d`) rewired to upstream `barracuda::dispatch::matmul_dispatch` (m, k, n non-square support). NUCLEUS Tower validator: 22/22 PASS. All quality gates green: 669 lib tests, 0 clippy warnings, 181/181 validate\_all. ToadStool metrics: 700 WGSL shaders (497 f32 via LazyLock downcast, 182 f64, 19 Df64), 2608 barracuda tests, 122 shader tests (unit + e2e + chaos + fault). Total: **44 functions + 6 shader sources rewired to upstream**. V61 handoff crafted.
+
+**Session 121 sync (Mar 4, 2026):** Full barraCuda v0.3.1 standalone validation + **2 major rewires**. Reviewed ToadStool S89–S93 commit evolution (barraCuda extraction, D-DF64 transfer, sovereignty deprecations, REST→JSON-RPC). Reviewed barraCuda v0.2.0→v0.3.0→v0.3.1 CHANGELOG (toadStool untangle, tarpc service, UniBin CLI, `DeviceLost` resilience, global `DEVICE_CREATION_LOCK`, blake3 pure, println→tracing, 2965 upstream tests). Reviewed wateringHole groundSpring rewire guidance (capability-based discovery, `ComputeDispatch` adoption, error-handling with `if let Ok` + CPU fallback, sovereignty naming).
+
+**Rewire 1 — WDM surrogates → `barracuda::nn::SimpleMlp`**: `EosSurrogate` and `TransportSurrogate` now delegate MLP inference to `barracuda::nn::SimpleMlp::forward()` instead of hand-rolled matmul loops. JSON weight loading converts flat row-major Python baseline weights to `DenseLayer` 2D format with `Activation::Relu`/`Activation::Identity`. `MlpLayer` struct eliminated from both modules. ~300 LOC of manual forward-pass code removed. `SimpleMlp::to_json()`/`from_json()` roundtrip verified exact (0 ULP diff). GPU validation binaries updated to iterate `surr.mlp.layers` with `DenseLayer.weight`/`DenseLayer.activation`. Cross-spring provenance: neuralSpring nW-01/02 concept → `ToadStool` S83 absorption → `barracuda::nn::SimpleMlp` → all springs benefit.
+
+**Rewire 2 — HMM Viterbi chain → f64 `ComputeDispatch`**: `hmm_viterbi_chain_gpu` replaced per-step f32 `Tensor` matmul loop with single-dispatch f64 `barracuda::ops::bio::hmm_viterbi` (`hmm_viterbi_f64.wgsl`). Input conversion: linear-domain → log-domain. Output conversion: `ViterbiResult { path: Vec<u32>, delta, psi }` → `(Vec<usize>, f64)`. Exact path agreement verified against CPU Viterbi. Cross-spring provenance: wetSpring bio HMM → neuralSpring per-step Tensor → `ToadStool` S69 absorption → barraCuda f64 shader → all springs benefit.
+
+**New validation**: `validate_barracuda_s121_rewire` (80/80 PASS) — SimpleMlp EOS/Transport/JSON-roundtrip + HMM Viterbi/forward dispatcher parity. `bench_cross_spring_modern` (28/28 PASS) — 5-spring provenance benchmark: SimpleMlp (0.0–1.4µs), HMM dispatcher, barraCuda::stats, eigh_f64, evolved dispatchers (softmax/gelu/matmul).
+
+**Quality gates**: 869 lib + 43 forge + 9 integration tests, 0 clippy (pedantic+nursery), 0 doc warnings, all files ≤1000 LOC. Total: **46 functions + 6 shader sources rewired to upstream**.
 
 ---
 
@@ -99,18 +110,25 @@ S-03b **FULLY RESOLVED** upstream (ToadStool `0c998992`). Key absorption commits
 | `leaky_relu_wgsl` / `elu_wgsl` Params fix (S-05/S-06) | Now validated in `validate_barracuda_tensor` |
 | `TensorSession` ML ops (S-01/S-11) | Available for fused pipeline migration |
 
-### New ToadStool capabilities available for leverage
+### New barraCuda capabilities available for leverage
 
-| Capability | API | neuralSpring Use Case |
-|------------|-----|----------------------|
-| `TensorSession` ML ops | `session::{matmul, relu, gelu, softmax, layer_norm, run}` | Replace `evolved::fused_mlp` / `fused_transformer` |
-| `StatefulPipeline` | `staging::StatefulPipeline::run_iterations()` | EA loops, ODE integration, HMM chains |
-| `ReduceScalarPipeline` | `pipeline::ReduceScalarPipeline::sum_f64()` | **Wired** — Anderson mean IPR (5.55e-17 diff) |
-| `KernelRouter` 4-tier matmul | `ops::matmul` with `MatMulTier` | Replace `evolved::matmul_*.wgsl` |
-| NAK eigensolve | `batched_eigh_nak_optimized_f64.wgsl` | Anderson localization eigensolver |
-| `Fft1DF64` | `ops::fft::Fft1DF64` | f64 FFT — **now validated** (8/8, SHADER_F64) |
-| `GemmF64::WGSL` | `ops::linalg::gemm_f64` | f64 GEMM shader source |
-| `Tensor::from_arc_buffer` / `try_arc_buffer` | `tensor::Tensor` | Zero-copy buffer sharing |
+| Capability | API | neuralSpring Use Case | Status |
+|------------|-----|-----------------------|--------|
+| `TensorSession` ML ops | `session::{matmul, relu, gelu, softmax, layer_norm, run}` | Replace `evolved::fused_mlp` / `fused_transformer` | Fossilized |
+| `StatefulPipeline` | `staging::StatefulPipeline::run_iterations()` | EA loops, ODE integration, HMM chains | Available |
+| `ReduceScalarPipeline` | `pipeline::ReduceScalarPipeline::sum_f64()` | Anderson mean IPR (5.55e-17 diff) | **Wired** |
+| `KernelRouter` 4-tier matmul | `ops::matmul` with `MatMulTier` | Replace `evolved::matmul_*.wgsl` | Fossilized |
+| NAK eigensolve | `batched_eigh_nak_optimized_f64.wgsl` | Anderson localization eigensolver | Available |
+| `Fft1DF64` | `ops::fft::Fft1DF64` | f64 FFT | **Wired** (8/8) |
+| `GemmF64::WGSL` | `ops::linalg::gemm_f64` | f64 GEMM shader source | Available |
+| `Tensor::from_arc_buffer` | `tensor::Tensor` | Zero-copy buffer sharing | Available |
+| HMM backward (f64) | `ops::bio::hmm::hmm_backward()` | GPU ComputeDispatch f64 backward pass | Available (v0.3.1) |
+| HMM Viterbi (f64) | `ops::bio::hmm::hmm_viterbi()` | GPU ComputeDispatch f64 Viterbi decoding | Available (v0.3.1) |
+| HMM forward log (f32/f64) | `ops::bio::hmm::{HmmForwardLogF32, HmmForwardLogF64}` | Step-wise log-domain HMM forward | Available (v0.3.1) |
+| `SimpleMLP` | `nn::SimpleMLP` | JSON weight MLP — replaces ~400 LOC in 3 WDM surrogates | Highest-priority absorption target |
+| `DeviceLost` resilience | `error::BarracudaError::DeviceLost` | GPU device-lost recovery with `is_retriable()` | Transparent |
+| `DEVICE_CREATION_LOCK` | Global mutex in `WgpuDevice` | Serializes device creation (prevents SIGSEGV races) | Transparent |
+| `ComputeDispatch` | `device::compute_pipeline::ComputeDispatch` | Builder pattern for GPU dispatches (144 ops upstream) | Available |
 
 ---
 

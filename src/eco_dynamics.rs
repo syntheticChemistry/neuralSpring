@@ -27,6 +27,7 @@
 
 use crate::primitives;
 use crate::rng::Rng;
+use crate::tolerances;
 use std::collections::{HashMap, HashSet};
 
 /// Hamming distance threshold for niche proximity in frequency-dependent selection.
@@ -35,8 +36,7 @@ const NICHE_PROXIMITY_THRESHOLD: f64 = 0.25;
 /// Crowding sensitivity: controls how strongly occupancy reduces niche fitness.
 const CROWDING_SENSITIVITY: f64 = 0.05;
 
-/// Minimum fitness floor to prevent zero-fitness individuals from stalling selection.
-const FITNESS_FLOOR: f64 = 1e-10;
+const FITNESS_FLOOR: f64 = tolerances::FITNESS_FLOOR;
 
 /// Multi-niche fitness landscape with Gaussian kernel niches.
 ///

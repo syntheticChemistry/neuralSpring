@@ -1,17 +1,17 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 3, 2026 (Sessions 109–120 — 212/212 validate_all, 232 binaries, ToadStool S87 (2dc26792). S120: deep debt audit + CI hardening, barraCuda evolution review. 117 files with barracuda imports, 16 modules, 44+ upstream rewires. V80 handoff)
+**Last Updated**: March 4, 2026 (Sessions 109–121 — 213/213 validate_all, 234 binaries, barraCuda v0.3.1. S121: `SimpleMlp` rewire + HMM f64 `ComputeDispatch`. 117+ files with barracuda imports, 25+ submodules, 46 upstream rewires. V81 handoff)
 **BarraCUDA version**: `0.3.1` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from ToadStool at S89), 767 WGSL shaders
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
-### At a Glance (Session 111)
+### At a Glance (Session 121)
 
 | Metric | Count |
 |--------|-------|
 | Barracuda submodules used | 25+ |
 | Barracuda functions imported | 60+ |
-| Files with barracuda imports | 205 |
-| Upstream rewires (local → barracuda) | 44 |
+| Files with barracuda imports | 205+ |
+| Upstream rewires (local → barracuda) | 46 |
 | Feature flags | `unidirectional` |
 | CPU bench domains | 14 (38.6× geomean vs Python) |
 

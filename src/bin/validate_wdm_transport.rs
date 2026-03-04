@@ -29,7 +29,7 @@ fn main() {
         }
     };
 
-    h.check_bool("surrogate loaded", !surrogate.layers.is_empty());
+    h.check_bool("surrogate loaded", !surrogate.mlp.layers.is_empty());
 
     let test_points: &[(f64, f64, f64)] = &[
         (-1.0, 4.0, 1.0),

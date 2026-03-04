@@ -92,8 +92,8 @@ validate-barracuda:
     cargo run --bin validate_barracuda_special
     cargo run --bin validate_barracuda_optimize
     cargo run --bin validate_barracuda_precision
-    NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
-    NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+    GPU_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+    GPU_BACKEND=gpu cargo run --bin validate_barracuda_tensor
     cargo run --bin validate_barracuda_tensor_f64
     cargo run --bin validate_barracuda_quantized
     cargo run --bin validate_barracuda_linalg_ext
@@ -160,19 +160,19 @@ validate-ml:
 
 # Tensor on explicit CPU software backend
 validate-tensor-cpu:
-    NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+    GPU_BACKEND=cpu cargo run --bin validate_barracuda_tensor
 
 # Tensor on explicit GPU backend
 validate-tensor-gpu:
-    NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+    GPU_BACKEND=gpu cargo run --bin validate_barracuda_tensor
 
 # Tensor on BOTH — proves WGSL math is universal across hardware
 validate-tensor-all:
     @echo "── Tensor validation: CPU software backend ──"
-    NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+    GPU_BACKEND=cpu cargo run --bin validate_barracuda_tensor
     @echo ""
     @echo "── Tensor validation: GPU backend ──"
-    NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+    GPU_BACKEND=gpu cargo run --bin validate_barracuda_tensor
     @echo ""
     @echo "── Tensor WGSL math is universal across hardware ──"
 
@@ -183,10 +183,10 @@ bench-tensor:
 # Benchmark CPU vs GPU side by side
 bench-tensor-compare:
     @echo "── Benchmark: CPU software backend ──"
-    NEURALSPRING_BACKEND=cpu cargo run --release --bin bench_barracuda_tensor
+    GPU_BACKEND=cpu cargo run --release --bin bench_barracuda_tensor
     @echo ""
     @echo "── Benchmark: GPU backend ──"
-    NEURALSPRING_BACKEND=gpu cargo run --release --bin bench_barracuda_tensor
+    GPU_BACKEND=gpu cargo run --release --bin bench_barracuda_tensor
 
 # Benchmark ML inference (MLP + Transformer)
 bench-ml:

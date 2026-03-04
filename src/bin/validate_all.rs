@@ -300,6 +300,8 @@ const BINARIES: &[&str] = &[
     "validate_cross_spring_shader_evolution",
     // S115: NUCLEUS PCIe bypass + mixed-pipeline (Tower→Node→Nest + GPU↔NPU↔CPU)
     "validate_nucleus_pcie_mixed_pipeline",
+    // S121: SimpleMlp rewire (WDM surrogates) + HMM Viterbi f64 ComputeDispatch
+    "validate_barracuda_s121_rewire",
 ];
 
 fn main() {

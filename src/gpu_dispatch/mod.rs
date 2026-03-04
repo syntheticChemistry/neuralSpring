@@ -5,7 +5,7 @@
 //! Provides a unified execution context that routes operations to GPU
 //! when available, falling back to CPU reference implementations.
 //! No hardcoded backend: the adapter is discovered at runtime via
-//! `NEURALSPRING_BACKEND` (see [`crate::gpu::Gpu`]).
+//! `GPU_BACKEND` (see [`crate::gpu::Gpu`]).
 //!
 //! ## Design principles
 //!

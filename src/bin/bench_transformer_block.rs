@@ -23,8 +23,8 @@
 //! ## Usage
 //!
 //! ```text
-//! NEURALSPRING_BACKEND=gpu  cargo run --release --bin bench_transformer_block
-//! NEURALSPRING_BACKEND=cpu  cargo run --release --bin bench_transformer_block
+//! GPU_BACKEND=gpu  cargo run --release --bin bench_transformer_block
+//! GPU_BACKEND=cpu  cargo run --release --bin bench_transformer_block
 //! ```
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]

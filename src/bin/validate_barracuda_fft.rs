@@ -17,7 +17,7 @@
 //!
 //! ## Backend selection
 //!
-//! Same as `validate_barracuda_tensor`: set `NEURALSPRING_BACKEND=cpu|gpu|auto`.
+//! Same as `validate_barracuda_tensor`: set `GPU_BACKEND=cpu|gpu|auto`.
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 

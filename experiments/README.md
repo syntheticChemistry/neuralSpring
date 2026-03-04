@@ -98,6 +98,8 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 084 | Session 116 — ToadStool S87 Sync (Deep Debt Evolution) | Mar 2, 2026 | S87 (`2dc26792`): deep debt, FHE shader fixes, CPU ungating, unsafe audit, gpu\_helpers refactor. 18/18 S87 sync, 844+ WGSL shaders. 211/211 validate\_all |
 | 085 | Session 117 — Cross-Spring Shader Evolution & Provenance Benchmark | Mar 2, 2026 | 42/42 cross-spring evolution validator (5 springs → ToadStool S87), 15/15 provenance bench. softmax/gelu/matmul: local CPU == barracuda::dispatch == Dispatcher GPU. 212/212 validate\_all, 232 binaries |
 | 086 | Session 119 — Deep Lint Evolution & Shared Validation Helpers | Mar 3, 2026 | 271 `#[allow(` → `#[expect(` conversions, 477+ unfulfilled lints removed, 4 shared helpers extracted, 13 bins migrated, 869 lib tests, 0 production `#[allow(` |
+| 087 | Session 120 — Deep Debt Audit + CI Hardening + Idiomatic Evolution | Mar 3, 2026 | Zero `#[allow(` remaining, `--all-features` CI, production `mul_add`, 18 test warnings resolved, quality gates aligned. V80 handoff |
+| 088 | Session 121 — SimpleMlp Rewire + HMM f64 ComputeDispatch | Mar 4, 2026 | WDM surrogates → `SimpleMlp` (~300 LOC eliminated), HMM Viterbi → f64 ComputeDispatch. 80/80 S121 rewire + 28/28 cross-spring modern. 46 upstream rewires. V81 handoff |
 
 ---
 
@@ -4489,6 +4491,37 @@ The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 
 - **212/212** validate_all PASS
 - **337/337** SPDX headers verified
 - CI, Makefile, justfile now identical quality gates
+
+**Status**: COMPLETE
+
+---
+
+### Exp 082: Session 121 — SimpleMlp Rewire + HMM f64 ComputeDispatch (March 4, 2026)
+
+**Objective**: Rewire WDM surrogates to upstream `barracuda::nn::SimpleMlp` and HMM Viterbi chain to f64 `barracuda::ops::bio::hmm_viterbi` ComputeDispatch. Benchmark cross-spring evolution with 5-spring provenance.
+
+**Method**:
+1. Replaced local `MlpLayer` in `wdm_surrogate.rs` and `wdm_transport.rs` with `barracuda::nn::SimpleMlp` (~300 LOC eliminated)
+2. Adapted JSON weight loading to bridge Python flat row-major → `DenseLayer` `Vec<Vec<f64>>` format
+3. Rewired `hmm_viterbi_chain_gpu` from per-step f32 `Tensor` loop to single f64 `barracuda::ops::bio::hmm_viterbi` ComputeDispatch
+4. Handled linear→log domain conversion at call site (`log_trans`, `log_init`, `log_emit` pre-extraction)
+5. Updated 4 GPU/CPU validation binaries for `SimpleMlp` structure changes
+6. Created `validate_barracuda_s121_rewire` (80 checks) and `bench_cross_spring_modern` (28 checks)
+7. Documented cross-spring provenance: hotSpring (precision), wetSpring (bio), neuralSpring (domain), groundSpring (spectral), airSpring (hydrology)
+
+**Findings**:
+- `SimpleMlp::forward()` produces identical results to hand-rolled matmul loops (determinism confirmed)
+- f64 Viterbi ComputeDispatch strictly better precision than f32 per-step Tensor approach
+- `log_emit` layout `[T*S]` (pre-extracted per timestep) was non-obvious — required reading `hmm_viterbi_f64.wgsl` shader source
+- Cross-spring provenance tracking reveals rich bidirectional flow: innovations from any spring benefit all through barraCuda absorption
+
+**Key Results**:
+- **80/80** `validate_barracuda_s121_rewire` PASS (SimpleMlp + HMM)
+- **28/28** `bench_cross_spring_modern` PASS (5-spring provenance)
+- **46** total upstream rewires (up from 44)
+- **~300 LOC** local MLP code eliminated
+- **0** clippy warnings, **869/869** lib tests, **212/212** validate\_all
+- V81 handoff crafted
 
 **Status**: COMPLETE
 

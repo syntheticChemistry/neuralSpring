@@ -2,12 +2,12 @@
 
 //! Cross-hardware benchmark for `BarraCUDA` Tensor / WGSL ops.
 //!
-//! Times each op on whichever backend `NEURALSPRING_BACKEND` selects.
+//! Times each op on whichever backend `GPU_BACKEND` selects.
 //! Run once per backend to compare:
 //!
 //! ```text
-//! NEURALSPRING_BACKEND=gpu  cargo run --release --bin bench_barracuda_tensor
-//! NEURALSPRING_BACKEND=cpu  cargo run --release --bin bench_barracuda_tensor
+//! GPU_BACKEND=gpu  cargo run --release --bin bench_barracuda_tensor
+//! GPU_BACKEND=cpu  cargo run --release --bin bench_barracuda_tensor
 //! ```
 //!
 //! Reports per-op warm latency (median of N iterations).

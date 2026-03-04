@@ -167,18 +167,20 @@ mod rpc_error {
 }
 
 /// Timeout for cross-primal IPC responses (seconds).
-/// Override via `NEURALSPRING_IPC_TIMEOUT_SECS`.
+/// Override via `PRIMAL_IPC_TIMEOUT_SECS` (legacy: `NEURALSPRING_IPC_TIMEOUT_SECS`).
 fn ipc_response_timeout_secs() -> u64 {
-    std::env::var("NEURALSPRING_IPC_TIMEOUT_SECS")
+    std::env::var("PRIMAL_IPC_TIMEOUT_SECS")
+        .or_else(|_| std::env::var("NEURALSPRING_IPC_TIMEOUT_SECS"))
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(5)
 }
 
 /// Heartbeat interval for biomeOS lifecycle (seconds).
-/// Override via `NEURALSPRING_HEARTBEAT_SECS`.
+/// Override via `PRIMAL_HEARTBEAT_SECS` (legacy: `NEURALSPRING_HEARTBEAT_SECS`).
 fn heartbeat_interval_secs() -> u64 {
-    std::env::var("NEURALSPRING_HEARTBEAT_SECS")
+    std::env::var("PRIMAL_HEARTBEAT_SECS")
+        .or_else(|_| std::env::var("NEURALSPRING_HEARTBEAT_SECS"))
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(30)
@@ -720,7 +722,8 @@ async fn main() -> Result<()> {
         });
     }
 
-    let max_concurrent: usize = std::env::var("NEURALSPRING_MAX_CONCURRENT")
+    let max_concurrent: usize = std::env::var("PRIMAL_MAX_CONCURRENT")
+        .or_else(|_| std::env::var("NEURALSPRING_MAX_CONCURRENT"))
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(4);

@@ -125,6 +125,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
         ],
         "linalg": [
             EIGH_JACOBI_RECONSTRUCT, EIGH_JACOBI_EIGENVALUE,
+            JACOBI_GPU_CONVERGENCE,
         ],
         "numerical": [
             ODE_INTEGRATOR_AGREEMENT, ODE_ATOL, ODE_RTOL,
@@ -152,6 +153,8 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
         "domain_guards": [
             FISHER_EPS, BURGERS_IC_GUARD, DP_EQUALITY_EPS,
             SINGLETON_FREQ_EPS, PHENOTYPE_TIE_EPS,
+            FITNESS_FLOOR, LEXICASE_EPSILON,
+            BOOLEAN_VALIDATION_SLACK, EIGENSOLVER_SMALL_MATRIX,
         ],
         "gpu_pipeline": [GPU_REDUCE_F64],
         "gpu_dispatch": [

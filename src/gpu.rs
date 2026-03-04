@@ -8,7 +8,8 @@
 //!
 //! ## Backend selection
 //!
-//! Set `NEURALSPRING_BACKEND` to control the adapter:
+//! Set `GPU_BACKEND` to control the adapter (legacy `NEURALSPRING_BACKEND`
+//! is accepted as fallback):
 //!
 //! | Value | Behaviour |
 //! |-------|-----------|
@@ -124,15 +125,17 @@ impl Gpu {
         }
     }
 
-    /// Create with the default backend (`NEURALSPRING_BACKEND` env var).
+    /// Create with the default backend (`GPU_BACKEND` env var).
     ///
+    /// Falls back to `NEURALSPRING_BACKEND` for backward compatibility.
     /// Uses relaxed limits so CPU software adapters (llvmpipe) work.
     ///
     /// # Errors
     ///
     /// Returns an error if the requested backend is unavailable.
     pub async fn new() -> Result<Self, String> {
-        let selector = std::env::var("NEURALSPRING_BACKEND")
+        let selector = std::env::var("GPU_BACKEND")
+            .or_else(|_| std::env::var("NEURALSPRING_BACKEND"))
             .unwrap_or_default()
             .trim()
             .to_ascii_lowercase();
@@ -140,7 +143,7 @@ impl Gpu {
         if selector == "list" {
             // CLI escape hatch: list available GPU adapters and exit.
             // Intentional process::exit — this is a diagnostic mode, not a
-            // library function. Callers opt in via NEURALSPRING_BACKEND=list.
+            // library function.  Callers opt in via GPU_BACKEND=list.
             let adapters = WgpuDevice::enumerate_adapters();
             for (i, info) in adapters.iter().enumerate() {
                 log::info!(
@@ -229,7 +232,7 @@ impl Gpu {
         self.wgpu_device.compile_shader_df64(source, Some(label))
     }
 
-    /// Compile a shader at any precision via `ToadStool` S68 universal pipeline.
+    /// Compile a shader at any precision via barraCuda's universal pipeline.
     ///
     /// Routes one f64-canonical shader source through the appropriate
     /// compilation pipeline (F16/F32/F64/Df64) based on the precision arg.

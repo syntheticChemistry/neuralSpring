@@ -18,6 +18,15 @@
 //! - MSRV bumped 1.80 → 1.87
 //! - 767 WGSL shaders, dual-protocol IPC
 //!
+//! ## v0.3.0 → v0.3.1 (confirmed Mar 4, 2026)
+//!
+//! - tarpc/JSON-RPC parity (signature changes: `MatmulResult`, `DispatchResult`, FHE types)
+//! - blake3 `pure` feature (no C SIMD compilation)
+//! - `println` → tracing migration
+//! - `DeviceLost` error variant with `is_retriable()` check
+//! - Global `DEVICE_CREATION_LOCK` for serialized device creation
+//! - 2,965 upstream tests, 0 clippy warnings
+//!
 //! ## Provenance
 //!
 //! Validation class: Cross-spring (dependency migration)

@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 120 (March 3, 2026)
+## [Unreleased] — Session 121 (March 4, 2026)
+
+### Session 121 — SimpleMlp Rewire + HMM f64 ComputeDispatch (March 4, 2026)
+
+**WDM surrogates rewired to `barracuda::nn::SimpleMlp`**: `wdm_surrogate.rs` (EOS 2→128→128→2) and `wdm_transport.rs` (Transport 3→64→64→3) replaced local `MlpLayer` with upstream `SimpleMlp` + `DenseLayer`. ~300 LOC eliminated. Domain normalization and output transforms preserved in wrapper logic. JSON weight loading adapted for `DenseLayer` `Vec<Vec<f64>>` format.
+
+**HMM Viterbi chain rewired to f64 ComputeDispatch**: `hmm_viterbi_chain_gpu` replaced per-step f32 `Tensor` loop with single `barracuda::ops::bio::hmm_viterbi` dispatch. Linear→log domain conversion at call site. f64 precision via `hmm_viterbi_f64.wgsl`. Zero CPU round-trips.
+
+**New validation binary**: `validate_barracuda_s121_rewire` — **80/80 PASS** (SimpleMlp layer counts, I/O sizes, prediction finiteness, determinism, JSON roundtrip, HMM Viterbi/forward CPU parity).
+
+**New benchmark binary**: `bench_cross_spring_modern` — **28/28 PASS** (SimpleMlp, HMM, stats, linalg, Dispatcher evolved ops; 5-spring provenance documented per section).
+
+**Upstream rewires**: 44 → **46** (SimpleMlp + hmm\_viterbi). **V81 handoff**.
 
 ### Session 120 — Deep Debt Audit + CI Hardening + Idiomatic Evolution (March 3, 2026)
 

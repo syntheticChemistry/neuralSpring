@@ -12,7 +12,7 @@
 //!
 //! ## Backend selection
 //!
-//! Uses `NEURALSPRING_BACKEND` (same as tensor validator).  The f64 path
+//! Uses `GPU_BACKEND` (same as tensor validator).  The f64 path
 //! requires a GPU with `SHADER_F64`; on llvmpipe this will gracefully skip.
 //!
 //! ## Provenance

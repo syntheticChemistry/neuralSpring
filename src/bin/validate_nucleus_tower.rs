@@ -164,7 +164,7 @@ async fn main() {
     let mut child = match tokio::process::Command::new(&primal_bin)
         .env("BIOMEOS_SOCKET_DIR", &socket_dir)
         .env("FAMILY_ID", "test")
-        .env("NEURALSPRING_BACKEND", "cpu")
+        .env("GPU_BACKEND", "cpu")
         .kill_on_drop(true)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())

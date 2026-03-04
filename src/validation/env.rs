@@ -5,7 +5,10 @@
 use std::path::PathBuf;
 use std::process;
 
-/// Whether `NEURALSPRING_REQUIRE_GPU=1` is set.
+/// Whether `REQUIRE_GPU=1` is set.
+///
+/// Capability-based: reads `REQUIRE_GPU` first, falls back to
+/// `NEURALSPRING_REQUIRE_GPU` for backward compatibility.
 ///
 /// When `true`, validation binaries that cannot obtain a GPU adapter
 /// **must** exit 1 instead of silently skipping.  This is intended for
@@ -17,20 +20,21 @@ use std::process;
 /// headless / CPU-only build environments.
 #[must_use]
 pub fn gpu_required() -> bool {
-    std::env::var("NEURALSPRING_REQUIRE_GPU")
+    std::env::var("REQUIRE_GPU")
+        .or_else(|_| std::env::var("NEURALSPRING_REQUIRE_GPU"))
         .is_ok_and(|v| v == "1" || v.eq_ignore_ascii_case("true"))
 }
 
 /// Handle the absence of a GPU adapter in a validation binary.
 ///
-/// If `NEURALSPRING_REQUIRE_GPU=1`, prints an error and exits 1.
+/// If `REQUIRE_GPU=1`, prints an error and exits 1.
 /// Otherwise, prints a skip message and exits 0.
 ///
 /// Replaces the duplicated `let Ok(gpu) = Gpu::new().await else { … }`
 /// pattern across all GPU validation binaries.
 pub fn exit_no_gpu() -> ! {
     if gpu_required() {
-        log::info!("FAIL: no GPU adapter (NEURALSPRING_REQUIRE_GPU=1)");
+        log::info!("FAIL: no GPU adapter (REQUIRE_GPU=1)");
         process::exit(1);
     }
     log::info!("0/0 checks — skipping gracefully (no GPU adapter)");
@@ -109,23 +113,37 @@ mod tests {
 
     #[test]
     fn gpu_required_respects_env() {
-        let original = std::env::var("NEURALSPRING_REQUIRE_GPU").ok();
-        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "0");
+        std::env::remove_var("GPU_BACKEND");
+        let original = std::env::var("REQUIRE_GPU").ok();
+        let legacy = std::env::var("NEURALSPRING_REQUIRE_GPU").ok();
+
+        std::env::remove_var("NEURALSPRING_REQUIRE_GPU");
+
+        std::env::set_var("REQUIRE_GPU", "0");
         assert!(!gpu_required(), "0 → false");
 
-        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "1");
+        std::env::set_var("REQUIRE_GPU", "1");
         assert!(gpu_required(), "1 → true");
 
-        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "true");
+        std::env::set_var("REQUIRE_GPU", "true");
         assert!(gpu_required(), "true → true");
 
-        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "TRUE");
+        std::env::set_var("REQUIRE_GPU", "TRUE");
         assert!(gpu_required(), "TRUE → true");
 
+        // Fallback to legacy env var
+        std::env::remove_var("REQUIRE_GPU");
+        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "1");
+        assert!(gpu_required(), "legacy fallback → true");
+
+        std::env::remove_var("REQUIRE_GPU");
         std::env::remove_var("NEURALSPRING_REQUIRE_GPU");
         assert!(!gpu_required(), "unset → false");
 
         if let Some(v) = original {
+            std::env::set_var("REQUIRE_GPU", v);
+        }
+        if let Some(v) = legacy {
             std::env::set_var("NEURALSPRING_REQUIRE_GPU", v);
         }
     }

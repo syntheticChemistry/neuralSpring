@@ -1,7 +1,9 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 3, 2026 (Sessions 109–120)
-**barraCuda**: v0.3.1 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool at S89; previously embedded at `../phase1/toadstool/crates/barracuda` pinned to S87 (`2dc26792`). 767 WGSL shaders, dual-protocol IPC, domain feature-gates. ToadStool dispatches across hardware; barraCuda is universal math.
+**Date**: March 4, 2026 (Sessions 109–121)
+**barraCuda**: v0.3.1 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool at S89; standalone since v0.2.0 (Mar 2). 767 WGSL shaders, dual-protocol IPC (JSON-RPC 2.0 + tarpc), domain feature-gates, DeviceLost resilience, global DEVICE_CREATION_LOCK. ToadStool dispatches across hardware; barraCuda is universal math. 2,965 upstream tests, 0 clippy.
+**neuralSpring**: 869 lib + 43 forge + 9 integration tests, 234 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**S121 rewires**: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch`. 46 total upstream rewires. 80/80 S121 rewire validation + 28/28 cross-spring modern bench.
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
 
@@ -947,19 +949,39 @@ helpers extracted (max_abs_diff_f64, bench_once, bench_median, median_duration_u
 
 ||| Session 119: Deep Lint Evolution | 239 allow→expect, 477+ unfulfilled resolved, 4 shared helpers, 13 migrations, 869 lib tests | **ALL GREEN** |
 
-### S119 Current State (March 3, 2026)
+### Session 121 — SimpleMlp Rewire + HMM f64 ComputeDispatch (March 4, 2026)
+
+WDM surrogates rewired to `barracuda::nn::SimpleMlp`, eliminating local `MlpLayer`
+(~300 LOC). HMM Viterbi chain rewired from per-step f32 Tensor loop to single f64
+`barracuda::ops::bio::hmm_viterbi` ComputeDispatch. Cross-spring modern benchmark
+documents provenance across 5 springs.
+
+| Action | Detail |
+|--------|--------|
+| **WDM EOS + Transport** | `wdm_surrogate.rs` + `wdm_transport.rs` → `barracuda::nn::SimpleMlp` with `DenseLayer` format, domain normalization preserved |
+| **HMM Viterbi chain** | `gpu_ops/bio/hmm.rs` → `barracuda::ops::bio::hmm_viterbi` (f64 log-domain `ComputeDispatch`) |
+| **GPU validation binaries** | `validate_barracuda_wdm_eos.rs` + `validate_barracuda_wdm_transport.rs` updated for `SimpleMlp` layer iteration |
+| **New: S121 rewire validator** | `validate_barracuda_s121_rewire` — 80/80 PASS (SimpleMlp EOS/Transport + HMM Viterbi/forward) |
+| **New: modern bench** | `bench_cross_spring_modern` — 28/28 PASS (5-spring provenance) |
+| **Upstream rewires** | 44 → **46** (SimpleMlp + hmm_viterbi) |
+| **Quality gates** | fmt ✓ · clippy ✓ (0 warnings) · test ✓ (869/869 lib) · doc ✓ |
+
+### S121 Current State (March 4, 2026)
 
 | Metric | Value |
 |--------|-------|
-| validate_all | **212/212 PASS** |
-| Binaries | 232 |
+| validate_all | **213/213 PASS** |
+| Binaries | 234 |
 | Library tests | 869 |
-| Latest handoff | **V79** (S119) |
-| Sessions covered | 44–119 |
+| Latest handoff | **V81** (S121) |
+| Sessions covered | 44–121 |
+| Upstream rewires | 46 |
 | Dispatch parity | 53/53 |
 | ComputeDispatch bridge | 14/14 |
 | NUCLEUS PCIe | 38/38 |
 | `#[allow(` in lib (non-test) | **0** |
 | `#[allow(` in bins | **0** |
+| S121 rewire validation | 80/80 |
+| Cross-spring modern bench | 28/28 |
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

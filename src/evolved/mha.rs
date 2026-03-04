@@ -2,11 +2,12 @@
 
 //! Multi-Head Attention — 2D adapter over upstream `BarraCUDA` 3D API.
 //!
-//! ## Status (`ToadStool` S60–S70+++, `1dd7e338`)
+//! ## Status (barraCuda v0.3.1 standalone)
 //!
 //! S-03b is **RESOLVED upstream**. `ToadStool` `0c998992` (S60–S61) decomposed the
 //! fused MHA projection into `Tensor::matmul` + `head_split.wgsl` /
 //! `head_concat.wgsl` — exactly the approach neuralSpring evolved locally.
+//! `barraCuda` extracted to standalone primal at S89; API unchanged.
 //!
 //! This module provides the 2D→3D→2D reshape adapter that many science
 //! callers need (matrices arrive as `[seq, d_model]` rather than

@@ -73,8 +73,8 @@ validate-barracuda:
 	cargo run --bin validate_barracuda_special
 	cargo run --bin validate_barracuda_optimize
 	cargo run --bin validate_barracuda_precision
-	NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
-	NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+	GPU_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+	GPU_BACKEND=gpu cargo run --bin validate_barracuda_tensor
 	cargo run --bin validate_barracuda_tensor_f64
 	cargo run --bin validate_barracuda_quantized
 	cargo run --bin validate_barracuda_linalg_ext
@@ -100,16 +100,16 @@ validate-barracuda-cpu:
 	cargo run --bin validate_barracuda_deeponet
 
 validate-tensor-cpu:
-	NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+	GPU_BACKEND=cpu cargo run --bin validate_barracuda_tensor
 
 validate-tensor-gpu:
-	NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+	GPU_BACKEND=gpu cargo run --bin validate_barracuda_tensor
 
 validate-tensor-all:
 	@echo "── Tensor: CPU (llvmpipe) ──"
-	NEURALSPRING_BACKEND=cpu cargo run --bin validate_barracuda_tensor
+	GPU_BACKEND=cpu cargo run --bin validate_barracuda_tensor
 	@echo "── Tensor: GPU ──"
-	NEURALSPRING_BACKEND=gpu cargo run --bin validate_barracuda_tensor
+	GPU_BACKEND=gpu cargo run --bin validate_barracuda_tensor
 	@echo "── WGSL math universal across hardware ──"
 
 validate-ml:
@@ -120,10 +120,10 @@ bench-tensor:
 
 bench-tensor-compare:
 	@echo "── Benchmark: CPU (llvmpipe) ──"
-	NEURALSPRING_BACKEND=cpu cargo run --release --bin bench_barracuda_tensor
+	GPU_BACKEND=cpu cargo run --release --bin bench_barracuda_tensor
 	@echo ""
 	@echo "── Benchmark: GPU ──"
-	NEURALSPRING_BACKEND=gpu cargo run --release --bin bench_barracuda_tensor
+	GPU_BACKEND=gpu cargo run --release --bin bench_barracuda_tensor
 
 bench-ml:
 	cargo run --release --bin bench_mlp_inference

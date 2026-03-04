@@ -1017,6 +1017,10 @@ name = "validate_cross_spring_rewire"
 path = "src/bin/validate_cross_spring_rewire.rs"
 
 [[bin]]
+name = "validate_barracuda_s121_rewire"
+path = "src/bin/validate_barracuda_s121_rewire.rs"
+
+[[bin]]
 name = "bench_cross_spring_modern"
 path = "src/bin/bench_cross_spring_modern.rs"
 

@@ -7,7 +7,7 @@
 //!
 //! ## Backend selection
 //!
-//! Set `NEURALSPRING_BACKEND` to control the `wgpu` adapter:
+//! Set `GPU_BACKEND` to control the `wgpu` adapter:
 //!
 //! | Value | Behavior |
 //! |-------|----------|
@@ -17,9 +17,9 @@
 //!
 //! Run all three to prove the math is universal:
 //! ```text
-//! NEURALSPRING_BACKEND=cpu  cargo run --bin validate_barracuda_tensor
-//! NEURALSPRING_BACKEND=gpu  cargo run --bin validate_barracuda_tensor
-//! NEURALSPRING_BACKEND=auto cargo run --bin validate_barracuda_tensor
+//! GPU_BACKEND=cpu  cargo run --bin validate_barracuda_tensor
+//! GPU_BACKEND=gpu  cargo run --bin validate_barracuda_tensor
+//! GPU_BACKEND=auto cargo run --bin validate_barracuda_tensor
 //! ```
 //!
 //! ## Provenance

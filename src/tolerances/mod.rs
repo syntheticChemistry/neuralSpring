@@ -406,6 +406,22 @@ pub const ODE_RTOL: f64 = 1e-6;
 /// WDM EOS log-input clamping, and GPU chi-squared expected-value floors.
 pub const LOG_ZERO_GUARD: f64 = 1e-30;
 
+/// Minimum fitness value to prevent zero-fitness stalling in selection.
+///
+/// In population-based EAs (eco-dynamics, directed evolution), zero-fitness
+/// individuals would never be selected, stalling the algorithm.  1e-10 is
+/// negligible compared to typical fitnesses O(0.01–1.0) but prevents
+/// division by zero in proportional selection and log-fitness metrics.
+pub const FITNESS_FLOOR: f64 = 1e-10;
+
+/// Lexicase selection epsilon (Dolson et al. 2022, eLife 11:e79665).
+///
+/// Candidates within `LEXICASE_EPSILON` of the best fitness on a given
+/// objective are retained during case filtering.  Tight enough to
+/// discriminate meaningfully different fitnesses, loose enough for
+/// floating-point rounding in multi-objective sums.
+pub const LEXICASE_EPSILON: f64 = 1e-8;
+
 /// Layer normalization epsilon (f32 numerical stability).
 ///
 /// Prevents division by zero in variance normalization.  Matches
