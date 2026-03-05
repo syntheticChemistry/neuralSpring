@@ -442,6 +442,43 @@ def gen_swarm_nn():
     }
 
 
+def gen_glucose_lstm():
+    """LSTM autocorrelation + R² reference for Paper 026 (Chuna glucose)."""
+    rng = np.random.default_rng(42)
+    n = 500
+    # Synthetic CGM-like signal with autocorrelation
+    alpha = 0.95
+    series = np.zeros(n, dtype=np.float64)
+    series[0] = rng.normal(120, 5)
+    for t in range(1, n):
+        series[t] = alpha * series[t - 1] + (1 - alpha) * 120.0 + rng.normal(0, 3)
+
+    # Autocorrelation up to lag 50
+    max_lag = 50
+    mean = np.mean(series)
+    var = np.var(series)
+    acor = np.empty(max_lag, dtype=np.float64)
+    for lag in range(max_lag):
+        cov = np.sum((series[: n - lag] - mean) * (series[lag:] - mean)) / n
+        acor[lag] = cov / max(var, 1e-30)
+
+    # R² of trivial forecast (persistence)
+    actual = series[1:].tolist()
+    predicted = series[:-1].tolist()
+    ss_res = sum((a - p) ** 2 for a, p in zip(actual, predicted))
+    ss_tot = sum((a - np.mean(actual)) ** 2 for a in actual)
+    r2 = 1.0 - ss_res / max(ss_tot, 1e-30)
+
+    return {
+        "series": series.tolist(),
+        "max_lag": max_lag,
+        "expected_acor": acor.tolist(),
+        "actual": actual,
+        "predicted": predicted,
+        "expected_r2": r2,
+    }
+
+
 # ── Main ──────────────────────────────────────────────────────────────
 
 
@@ -503,6 +540,7 @@ def main():
             "multi_objective": gen_multi_obj(),
             "hill_gate": gen_hill_gate(),
             "swarm_nn": gen_swarm_nn(),
+            "glucose_lstm": gen_glucose_lstm(),
         },
     }
 

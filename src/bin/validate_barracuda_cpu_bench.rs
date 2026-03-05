@@ -2,14 +2,14 @@
 
 //! `BarraCUDA` CPU parity + performance benchmark.
 //!
-//! For each of the 14 paper-domain Python benchmarks, this binary:
+//! For each of the 15 paper-domain Python benchmarks, this binary:
 //! 1. Runs the Python benchmark subprocess, capturing its median µs timing
 //! 2. Runs the identical computation in pure Rust via `BarraCUDA` CPU primitives
 //! 3. Verifies numeric parity (spot-check against `Python`/`NumPy`)
 //! 4. Reports the speedup factor (Python µs / Rust µs)
 //!
 //! This is the authoritative proof that `BarraCUDA` CPU is pure math and
-//! faster than interpreted language (`Python`/`NumPy`) for all 15 paper domains.
+//! faster than interpreted language (`Python`/`NumPy`) for all paper domains.
 //!
 //! ## Benchmark Domains
 //!
@@ -29,6 +29,7 @@
 //! | Multi-obj | 014 | `bench_multi_obj.py` | `directed_evolution.rs` |
 //! | Swarm NN | 015 | `bench_swarm_nn.py` | `swarm_robotics.rs` |
 //! | Global FST | 025 | `bench_meta_pop.py` | `meta_population/fst.rs` |
+//! | LSTM Glucose | 026 | `bench_glucose_lstm.py` | `glucose_prediction.rs` |
 //!
 //! The portability story:
 //! ```text
@@ -55,6 +56,7 @@ use neural_spring::counterdiabatic::NkLandscape;
 use neural_spring::directed_evolution;
 use neural_spring::eco_dynamics::MultiNicheLandscape;
 use neural_spring::game_theory;
+use neural_spring::glucose_prediction;
 use neural_spring::hmm::Hmm;
 use neural_spring::meta_population;
 use neural_spring::modes;
@@ -62,6 +64,7 @@ use neural_spring::pangenome_selection;
 use neural_spring::regulatory_network::{self, GrnParams};
 use neural_spring::rng::Rng;
 use neural_spring::sate_alignment;
+use neural_spring::sequence::{lstm_cell, LstmWeights};
 use neural_spring::signal_integration;
 use neural_spring::spectral_commutativity;
 use neural_spring::swarm_robotics;
@@ -131,7 +134,7 @@ struct BenchResult {
 fn main() {
     eprintln!("╔══════════════════════════════════════════════════════════════════════════════╗");
     eprintln!("║  neuralSpring — BarraCUDA CPU Parity & Performance Benchmark               ║");
-    eprintln!("║  Python/NumPy (interpreted) vs Pure Rust (BarraCUDA CPU) — 14 domains      ║");
+    eprintln!("║  Python/NumPy (interpreted) vs Pure Rust (BarraCUDA CPU) — 15 domains      ║");
     eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
     eprintln!();
@@ -841,6 +844,92 @@ fn main() {
         results.push(BenchResult {
             domain: "Global FST",
             papers: "025",
+            python_us: py_us,
+            rust_us,
+            speedup,
+            parity_ok: valid,
+        });
+    }
+    eprintln!();
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 15. LSTM Glucose (Paper 026, Chuna)
+    // ═══════════════════════════════════════════════════════════════════
+    eprintln!("═══ [15/15] LSTM Glucose — Paper 026 (Chuna) ═══");
+    eprintln!("  Python: bench_glucose_lstm.py — hs=24, seq_len=24, acor max_lag=100");
+    {
+        let py_us = run_python_bench("control/glucose_prediction/bench_glucose_lstm.py");
+
+        let mut rng = Rng::new(42);
+        let hs = 24_usize;
+        let seq_len = 24_usize;
+        let max_lag = 100_usize;
+
+        let glucose = glucose_prediction::generate_synthetic_cgm(7, 42);
+
+        let w_input: Vec<f64> = (0..4 * hs).map(|_| rng.normal() * 0.5).collect();
+        let w_hidden: Vec<f64> = (0..4 * hs * hs).map(|_| rng.normal() * 0.1).collect();
+        let mut b_input = vec![0.0_f64; 4 * hs];
+        let b_hidden = vec![0.0_f64; 4 * hs];
+        for b in &mut b_input[hs..2 * hs] {
+            *b = 1.0;
+        }
+
+        let lstm_w = LstmWeights {
+            w_input: &w_input,
+            w_hidden: &w_hidden,
+            b_input: &b_input,
+            b_hidden: &b_hidden,
+            hidden_size: hs,
+        };
+
+        let g_mean = glucose.iter().sum::<f64>() / glucose.len() as f64;
+        let g_var =
+            glucose.iter().map(|&g| (g - g_mean).powi(2)).sum::<f64>() / glucose.len() as f64;
+        let g_std = g_var.sqrt().max(1e-12);
+        let glucose_norm: Vec<f64> = glucose.iter().map(|&g| (g - g_mean) / g_std).collect();
+
+        let window = &glucose_norm[..seq_len];
+
+        let rust_us = bench_rust(|| {
+            let mut h = vec![0.0_f64; hs];
+            let mut c = vec![0.0_f64; hs];
+            for val in window {
+                let (h_new, c_new) = lstm_cell(&[*val], &h, &c, &lstm_w);
+                h = h_new;
+                c = c_new;
+            }
+            let _ = std::hint::black_box(h);
+            let _ = std::hint::black_box(glucose_prediction::autocorrelation(
+                &glucose[..500],
+                max_lag,
+            ));
+        });
+
+        let mut h_state = vec![0.0_f64; hs];
+        let mut c_state = vec![0.0_f64; hs];
+        for val in window {
+            let (hn, cn) = lstm_cell(&[*val], &h_state, &c_state, &lstm_w);
+            h_state = hn;
+            c_state = cn;
+        }
+        let h_finite = h_state.iter().all(|v| v.is_finite());
+        let acor = glucose_prediction::autocorrelation(&glucose[..500], max_lag);
+        let tau = glucose_prediction::estimate_tau(&acor);
+        let valid = h_finite && acor[0] > 0.99 && tau > 0;
+        h.check_bool("LSTM glucose hidden finite + acor(0)≈1 + τ>0", valid);
+
+        let speedup = py_us.map(|p| p / rust_us);
+        if let (Some(s), Some(p)) = (speedup, py_us) {
+            eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
+        } else {
+            eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
+        }
+        h.check_bool("LSTM glucose Rust completes", true);
+
+        results.push(BenchResult {
+            domain: "LSTM Glucose",
+            papers: "026",
             python_us: py_us,
             rust_us,
             speedup,

@@ -122,6 +122,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
         ],
         "ml_pipeline": [
             ML_MLP_F32, ML_TRANSFORMER_F32, ML_PIPELINE_NORM_REL,
+            GPU_LSTM_GLUCOSE_F32,
         ],
         "linalg": [
             EIGH_JACOBI_RECONSTRUCT, EIGH_JACOBI_EIGENVALUE,

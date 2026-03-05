@@ -250,6 +250,14 @@ pub const ML_MLP_F32: f64 = TENSOR_MATMUL_F32;
 /// configs (`d_model`=32, `seq_len`=8).
 pub const ML_TRANSFORMER_F32: f64 = 0.05;
 
+/// LSTM glucose reservoir: GPU `Tensor::matmul` gate projection (Paper 026).
+///
+/// Each LSTM step chains 2× matmul + 3× add + sigmoid/tanh (CPU-side).
+/// Over 12 steps the f32 rounding compounds, especially through the
+/// sigmoid/tanh transcendentals.  0.05 accommodates the multi-step
+/// chain while still catching gross errors.
+pub const GPU_LSTM_GLUCOSE_F32: f64 = 0.05;
+
 // ═══════════════════════════════════════════════════════════════════
 // Upstream parity and reduce pipeline (Phase 5c)
 // ═══════════════════════════════════════════════════════════════════

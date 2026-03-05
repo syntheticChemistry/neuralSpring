@@ -5,7 +5,25 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 126 (March 5, 2026)
+## [Unreleased] — Session 127 (March 5, 2026)
+
+### Session 127 — Paper 026 Full-Tier Validation + Baseline Closure (March 5, 2026)
+
+**Paper 026 promoted to all 4 validation tiers**: LSTM glucose prediction (Chuna 2020) now has full coverage across the entire validation pipeline:
+- `validate_barracuda_cpu_bench`: 15th domain — LSTM reservoir forward + autocorrelation timing vs Python/NumPy
+- `validate_cpu_math_parity`: 10th kernel — autocorrelation + R² cross-language parity (Rust CPU = Python, 1e-10)
+- `validate_gpu_pure_workload_all`: 13th domain — GPU Tensor matmul LSTM gate projection vs CPU reference
+- `validate_barracuda_dispatch_parity`: 55th check — dispatched variance + pearson on CGM-scale data (CPU ↔ GPU)
+
+**Baseline suite closure**: `run_all_baselines.sh` now includes Paper 026 `glucose_prediction.py` — all 26 papers covered by the unified baseline runner.
+
+**Python reference regeneration**: `control/generate_cpu_references.py` extended with `gen_glucose_lstm()` — autocorrelation + R² reference data from Python/NumPy for cross-language parity validation.
+
+**New Python benchmark script**: `control/glucose_prediction/bench_glucose_lstm.py` — LSTM reservoir forward + autocorrelation micro-benchmark for Python vs Rust timing comparison.
+
+**New tolerance**: `GPU_LSTM_GLUCOSE_F32` (0.05) — multi-step LSTM f32 Tensor chain (12 steps × 2 matmul + sigmoid/tanh per step).
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy` (pedantic+nursery) 0 warnings, `cargo doc` 0 warnings, 883 lib tests (871/883 pass, 12 upstream GPU SIGSEGV). 218/218 `validate_all`.
 
 ### Session 126 — Cross-Spring Fused Op Absorption + Validation + Benchmark (March 5, 2026)
 

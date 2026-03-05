@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Pure GPU workload validation: all Phase 0++ paper domains (011–025).
+//! Pure GPU workload validation: all Phase 0++ paper domains (011–026).
 //!
 //! Extends `validate_gpu_pure_workload` (fitness-only) to cover every
 //! computational domain. Each domain dispatches its typed `BarraCUDA` GPU
@@ -36,6 +36,7 @@
 //! | L2 | 012 | `PairwiseL2Gpu` | mean(dist) |
 //! | Jaccard | 024 | `PairwiseJaccardGpu` | mean(dist) |
 //! | Locus var | 025 | `LocusVarianceGpu` | mean(var) |
+//! | LSTM glucose | 026 | `Tensor::matmul` | mean(hidden) |
 //!
 //! ## Provenance
 //!
@@ -53,6 +54,7 @@
     reason = "validation binary — GPU buffer plumbing with numeric casts across 12 bio-compute domains"
 )]
 
+use barracuda::device::WgpuDevice;
 use barracuda::ops::bio::hill_gate::{HillGateGpu, HillGateParams};
 use barracuda::ops::bio::swarm_nn::SwarmNnParams;
 use barracuda::ops::bio::{
@@ -60,9 +62,11 @@ use barracuda::ops::bio::{
     PairwiseJaccardGpu, PairwiseL2Gpu, SpatialPayoffGpu, SwarmNnGpu,
 };
 use barracuda::spectral::BatchIprGpu;
+use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
 use neural_spring::hmm::Hmm;
 use neural_spring::rng::Rng;
+use neural_spring::sequence::{lstm_cell, LstmWeights};
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::swarm_robotics::{create_controller, neural_forward, ControllerType};
 use neural_spring::tolerances;
@@ -116,11 +120,12 @@ async fn main() {
     validate_l2(&mut h, &gpu);
     validate_jaccard(&mut h, &gpu);
     validate_locus_variance(&mut h, &gpu);
+    validate_lstm_glucose(&mut h, &gpu);
     validate_determinism(&mut h, &gpu);
 
     let elapsed = t0.elapsed();
     eprintln!(
-        "\n  total GPU pure-workload time: {:.1}ms (12 domains + determinism)",
+        "\n  total GPU pure-workload time: {:.1}ms (13 domains + determinism)",
         elapsed.as_secs_f64() * 1000.0,
     );
 
@@ -828,7 +833,127 @@ fn validate_locus_variance(h: &mut ValidationHarness, gpu: &Gpu) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// 10. Cross-domain determinism
+// 10. LSTM Glucose — Paper 026 (Chuna)
+// ═══════════════════════════════════════════════════════════════════
+
+fn validate_lstm_glucose(h: &mut ValidationHarness, gpu: &Gpu) {
+    let hs = 8_usize;
+    let seq_len = 12_usize;
+    let mut rng = Rng::new(42);
+
+    let w_input: Vec<f64> = (0..4 * hs).map(|_| rng.normal() * 0.5).collect();
+    let w_hidden: Vec<f64> = (0..4 * hs * hs).map(|_| rng.normal() * 0.1).collect();
+    let mut b_input = vec![0.0_f64; 4 * hs];
+    let b_hidden = vec![0.0_f64; 4 * hs];
+    for b in &mut b_input[hs..2 * hs] {
+        *b = 1.0;
+    }
+
+    let window: Vec<f64> = (0..seq_len).map(|_| rng.normal() * 0.5).collect();
+
+    let lstm_w = LstmWeights {
+        w_input: &w_input,
+        w_hidden: &w_hidden,
+        b_input: &b_input,
+        b_hidden: &b_hidden,
+        hidden_size: hs,
+    };
+    let mut h_state = vec![0.0_f64; hs];
+    let mut c_state = vec![0.0_f64; hs];
+    for val in &window {
+        let (hn, cn) = lstm_cell(&[*val], &h_state, &c_state, &lstm_w);
+        h_state = hn;
+        c_state = cn;
+    }
+    let cpu_mean = h_state.iter().sum::<f64>() / h_state.len() as f64;
+
+    let device = Arc::clone(gpu.wgpu_device());
+    let gpu_result = gpu_lstm_forward(
+        &window, &w_input, &w_hidden, &b_input, &b_hidden, hs, &device,
+    );
+    match gpu_result {
+        Ok(gpu_hidden) => {
+            let gpu_mean =
+                gpu_hidden.iter().map(|&v| f64::from(v)).sum::<f64>() / gpu_hidden.len() as f64;
+            h.check_abs(
+                &format!("LSTM glucose {seq_len}×{hs}: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
+                gpu_mean,
+                cpu_mean,
+                tolerances::GPU_LSTM_GLUCOSE_F32,
+            );
+        }
+        Err(e) => h.check_bool(&format!("LSTM glucose: {e}"), false),
+    }
+}
+
+fn sigmoid_f32(x: f32) -> f32 {
+    1.0 / (1.0 + (-x).exp())
+}
+
+fn gpu_lstm_forward(
+    window: &[f64],
+    w_input: &[f64],
+    w_hidden: &[f64],
+    b_input: &[f64],
+    b_hidden: &[f64],
+    hs: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<Vec<f32>, String> {
+    let wi_f32: Vec<f32> = w_input.iter().map(|&v| v as f32).collect();
+    let wh_f32: Vec<f32> = w_hidden.iter().map(|&v| v as f32).collect();
+    let bi_f32: Vec<f32> = b_input.iter().map(|&v| v as f32).collect();
+    let bh_f32: Vec<f32> = b_hidden.iter().map(|&v| v as f32).collect();
+
+    let wi_t = Tensor::from_data(&wi_f32, vec![4 * hs, 1], device.clone())
+        .map_err(|e| format!("Wi: {e}"))?
+        .transpose()
+        .map_err(|e| format!("Wi^T: {e}"))?;
+    let wh_t = Tensor::from_data(&wh_f32, vec![4 * hs, hs], device.clone())
+        .map_err(|e| format!("Wh: {e}"))?
+        .transpose()
+        .map_err(|e| format!("Wh^T: {e}"))?;
+    let bi_t = Tensor::from_data(&bi_f32, vec![1, 4 * hs], device.clone())
+        .map_err(|e| format!("bi: {e}"))?;
+    let bh_t = Tensor::from_data(&bh_f32, vec![1, 4 * hs], device.clone())
+        .map_err(|e| format!("bh: {e}"))?;
+
+    let mut h_vec = vec![0.0_f32; hs];
+    let mut c_vec = vec![0.0_f32; hs];
+
+    for &val in window {
+        let x_t = Tensor::from_data(&[val as f32], vec![1, 1], device.clone())
+            .map_err(|e| format!("x: {e}"))?;
+        let h_t = Tensor::from_data(&h_vec, vec![1, hs], device.clone())
+            .map_err(|e| format!("h: {e}"))?;
+
+        let input_proj = x_t.matmul(&wi_t).map_err(|e| format!("x@Wi: {e}"))?;
+        let hidden_proj = h_t.matmul(&wh_t).map_err(|e| format!("h@Wh: {e}"))?;
+        let gates = input_proj
+            .add(&hidden_proj)
+            .map_err(|e| format!("add: {e}"))?
+            .add(&bi_t)
+            .map_err(|e| format!("add_bi: {e}"))?
+            .add(&bh_t)
+            .map_err(|e| format!("add_bh: {e}"))?;
+
+        let g = gates.to_vec().map_err(|e| format!("readback: {e}"))?;
+
+        let f_gate: Vec<f32> = g[..hs].iter().map(|v| sigmoid_f32(*v)).collect();
+        let i_gate: Vec<f32> = g[hs..2 * hs].iter().map(|v| sigmoid_f32(*v)).collect();
+        let g_gate: Vec<f32> = g[2 * hs..3 * hs].iter().map(|v| v.tanh()).collect();
+        let o_gate: Vec<f32> = g[3 * hs..].iter().map(|v| sigmoid_f32(*v)).collect();
+
+        c_vec = (0..hs)
+            .map(|j| f_gate[j].mul_add(c_vec[j], i_gate[j] * g_gate[j]))
+            .collect();
+        h_vec = (0..hs).map(|j| o_gate[j] * c_vec[j].tanh()).collect();
+    }
+
+    Ok(h_vec)
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 11. Cross-domain determinism
 // ═══════════════════════════════════════════════════════════════════
 
 fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {

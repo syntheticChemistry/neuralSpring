@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V84** | `handoffs/NEURALSPRING_TOADSTOOL_V84_S126_CROSS_SPRING_FUSED_OPS_HANDOFF_MAR05_2026.md` | Mar 5, 2026 | S126: fused op absorption (`VarianceF64`, `CorrelationResult`, `correlation_matrix`), cross-spring provenance bench (13 ops, 5 Springs), 883 lib tests, 240 binaries, 218/218 validate\_all. Supersedes V83 |
+| **V85** | `handoffs/NEURALSPRING_TOADSTOOL_V85_S127_PAPER026_FULL_TIER_HANDOFF_MAR05_2026.md` | Mar 5, 2026 | S127: Paper 026 full-tier validation — LSTM glucose added to CPU bench (15 domains), CPU parity (10 kernels), GPU pure workload (13 domains), dispatch parity (55 checks). `run_all_baselines.sh` closure. V85 handoff. Supersedes V84 |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V83 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass), V77 (S117 cross-spring shader evolution), V78 (S118 barraCuda standalone rewire), V79 (S119 deep lint evolution), V80 (S120 deep debt audit + CI hardening), V81 (S121 SimpleMlp rewire + HMM Viterbi f64 ComputeDispatch), V82 (S122–S124 naming rewire + HMM absorption + Paper 026), V83 (S125 wgpu 28 + BarraCUDA v0.3.3 sync).
+Superseded handoffs: `handoffs/archive/` (V1–V84 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass), V77 (S117 cross-spring shader evolution), V78 (S118 barraCuda standalone rewire), V79 (S119 deep lint evolution), V80 (S120 deep debt audit + CI hardening), V81 (S121 SimpleMlp rewire + HMM Viterbi f64 ComputeDispatch), V82 (S122–S124 naming rewire + HMM absorption + Paper 026), V83 (S125 wgpu 28 + BarraCUDA v0.3.3 sync), V84 (S126 cross-spring fused op absorption).
 
 ## Conventions
 

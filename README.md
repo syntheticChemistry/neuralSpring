@@ -49,10 +49,11 @@ S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
 883 lib tests, 139+ named tolerances, 0 clippy warnings (pedantic+nursery clean), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
 240 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/, 883 lib + 9 integration + 43 forge tests.
-**CPU benchmark**: 14 domains, 38.6× geomean Rust vs Python/NumPy. **218/218 validate\_all**.
+**CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. **218/218 validate\_all**.
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 **218/218 validate\_all**. Pure Rust **38.6× faster** than Python/NumPy
-(geomean, 14 domains; fastest: multi-obj fitness 1028×; 2 BLAS-bound domains included). CPU→GPU portability proven (9/9, 7 domains).
+(geomean, 15 domains; fastest: multi-obj fitness 1028×; 2 BLAS-bound domains included). CPU→GPU portability proven (9/9, 7 domains).
+S127: Paper 026 full-tier validation — LSTM glucose domain added to all 4 validation tiers (CPU bench, CPU math parity, GPU pure workload, dispatch parity) + `run_all_baselines.sh`. 10 CPU parity kernels, 13 GPU pure-workload domains, 55 dispatch parity checks. V85 handoff.
 S116: `ToadStool` S87 sync (`9d359814`): deep debt evolution, FHE shader fixes, CPU ungating, unsafe audit. 844+ WGSL shaders. 18/18 S87 sync, 212/212 validate_all.
 S121: SimpleMlp rewire (WDM surrogates → `barracuda::nn::SimpleMlp`, ~300 LOC eliminated) + HMM Viterbi chain → f64 `ComputeDispatch` (single-dispatch `hmm_viterbi_f64.wgsl`). Cross-spring modern benchmark (28/28 PASS, 5 springs). V82 handoff.
 S122–S124: airSpring V069 naming rewire (`ToadStool`=dispatch, `BarraCUDA`=math), HMM forward chain → `ComputeDispatch` absorption, Paper 026 Chuna LSTM glucose prediction, doc alignment. V82 handoff.

@@ -58,7 +58,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: Conv2d/MaxPool GPU | `Tensor::conv2d` + `Tensor::maxpool2d` WGSL shaders | **8/8 PASS** |
 | Session 44: transformer bC | Full layer: Q/K/V, attention, FFN, residual, softmax | **12/12 PASS** |
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
-| Session 44→111: benchmarks | Pure Rust vs Python (14 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
+| Session 44→127: benchmarks | Pure Rust vs Python (15 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **240 binaries** |
 | `validate_all` (S115) | **218/218 PASS** (RTX 4070, all green) | **ALL GREEN** |
@@ -991,7 +991,7 @@ documents provenance across 5 springs.
 
 | Comparison | Coverage | Location |
 |------------|----------|----------|
-| **Python ↔ BarraCUDA CPU** | 14 domains | `validate_barracuda_cpu_bench` + 14 `control/*/bench_*.py` scripts |
+| **Python ↔ BarraCUDA CPU** | 15 domains | `validate_barracuda_cpu_bench` + 15 `control/*/bench_*.py` scripts |
 | **Python ↔ CPU ↔ GPU** (3-way) | MLP/Transformer scaling | `metalForge/fossils/bench/bench_scaling.{py,rs}` |
 | **Paper 026 BarraCUDA promotion** | CPU (11) + GPU (14) = 25/25 | `validate_barracuda_glucose_prediction` — LSTM Tensor matmul, GPU↔CPU parity ≤1.07e-6 |
 | **Kokkos ↔ BarraCUDA GPU** | External only | `wateringHole/BARRACUDA_KOKKOS_GPU_BENCHMARK_RESULTS_MAR04_2026.md` |

@@ -213,6 +213,14 @@ run_experiment "nS-06 extended: Gonzales/PK/Lattice/MATRIX" \
 
 echo ""
 echo "================================================================"
+echo "  Paper 026: Chuna LSTM Blood Glucose Prediction"
+echo "================================================================"
+
+run_experiment "Paper 026: LSTM Glucose Prediction (Chuna)" \
+    control/glucose_prediction/glucose_prediction.py
+
+echo ""
+echo "================================================================"
 echo "  GRAND SUMMARY"
 echo "  Passed: $PASS, Failed: $FAIL, Skipped: $SKIP"
 echo "  Total: $((PASS + FAIL + SKIP)) experiments"

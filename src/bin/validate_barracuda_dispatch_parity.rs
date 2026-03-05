@@ -83,6 +83,9 @@ async fn main() {
     validate_hmm_chain(&mut h, &gpu_disp, &cpu_disp);
     validate_detect_introgression(&mut h, &gpu_disp, &cpu_disp);
 
+    // S127: Paper 026 glucose domain — dispatched stats on CGM-scale data
+    validate_glucose_variance_pearson(&mut h, &gpu_disp, &cpu_disp);
+
     h.finish();
 }
 
@@ -761,5 +764,32 @@ fn validate_detect_introgression(h: &mut ValidationHarness, gpu: &Dispatcher, cp
         g_prob,
         c_prob,
         tolerances::TENSOR_TRANSCENDENTAL_F32,
+    );
+}
+
+fn validate_glucose_variance_pearson(
+    h: &mut ValidationHarness,
+    gpu: &Dispatcher,
+    cpu: &Dispatcher,
+) {
+    let glucose = neural_spring::glucose_prediction::generate_synthetic_cgm(7, 42);
+
+    let g_var = gpu.variance(&glucose);
+    let c_var = cpu.variance(&glucose);
+    h.check_abs(
+        "glucose variance CPU↔GPU (2016 pts)",
+        g_var,
+        c_var,
+        tolerances::TENSOR_EXACT_F32,
+    );
+
+    let half = glucose.len() / 2;
+    let g_pear = gpu.pearson_correlation(&glucose[..half], &glucose[half..half * 2]);
+    let c_pear = cpu.pearson_correlation(&glucose[..half], &glucose[half..half * 2]);
+    h.check_abs(
+        "glucose pearson CPU↔GPU (1008 vs 1008 pts)",
+        g_pear,
+        c_pear,
+        tolerances::TENSOR_EXACT_F32,
     );
 }

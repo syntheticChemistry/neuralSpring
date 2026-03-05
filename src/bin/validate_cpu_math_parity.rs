@@ -428,6 +428,34 @@ fn validate_swarm_nn(h: &mut ValidationHarness, refs: &Value) {
     }
 }
 
+fn validate_glucose_lstm(h: &mut ValidationHarness, refs: &Value) {
+    let series = require!(h, floats(&refs["series"]), "glucose series");
+    let max_lag = require!(h, u64_field(refs, "max_lag"), "glucose max_lag");
+    let expected_acor = require!(h, floats(&refs["expected_acor"]), "glucose acor");
+    let actual = require!(h, floats(&refs["actual"]), "glucose actual");
+    let predicted = require!(h, floats(&refs["predicted"]), "glucose predicted");
+    let expected_r2 = require!(h, f(&refs["expected_r2"]), "glucose r2");
+
+    let observed_acor = neural_spring::glucose_prediction::autocorrelation(&series, max_lag);
+    let acor_diff = observed_acor
+        .iter()
+        .zip(expected_acor.iter())
+        .map(|(a, b)| (a - b).abs())
+        .fold(0.0_f64, f64::max);
+    h.check_bool(
+        &format!("glucose autocorrelation max_diff={acor_diff:.2e} < {CROSS_LANG:.0e}"),
+        acor_diff < CROSS_LANG,
+    );
+
+    let observed_r2 = neural_spring::glucose_prediction::r2_score(&actual, &predicted);
+    h.check_abs(
+        "glucose R² (persistence)",
+        observed_r2,
+        expected_r2,
+        CROSS_LANG,
+    );
+}
+
 // ── Dispatcher cpu_only() ────────────────────────────────────────────
 
 fn validate_dispatcher_cpu(h: &mut ValidationHarness, refs: &Value) {
@@ -555,6 +583,7 @@ fn main() {
     validate_multi_obj(&mut h, &kern["multi_objective"]);
     validate_hill_gate(&mut h, &kern["hill_gate"]);
     validate_swarm_nn(&mut h, &kern["swarm_nn"]);
+    validate_glucose_lstm(&mut h, &kern["glucose_lstm"]);
 
     validate_dispatcher_cpu(&mut h, &refs);
 
