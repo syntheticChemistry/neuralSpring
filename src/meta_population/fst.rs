@@ -247,7 +247,7 @@ pub fn inter_population_af_variance(
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+#[expect(clippy::expect_used, reason = "test assertions use expect for clarity")]
 mod tests {
     use super::super::generate_population;
     use super::*;
@@ -338,13 +338,22 @@ mod tests {
 
     #[test]
     fn global_fst_variance_decomposition_degenerate() {
-        assert!((global_fst_variance_decomposition(&[], &[], 0) - 0.0).abs() < 1e-14);
+        assert!(
+            (global_fst_variance_decomposition(&[], &[], 0) - 0.0).abs()
+                < tolerances::ZERO_DETECTION
+        );
         let pops = vec![vec![0.5; 10]];
-        assert!((global_fst_variance_decomposition(&pops, &[5], 2) - 0.0).abs() < 1e-14);
+        assert!(
+            (global_fst_variance_decomposition(&pops, &[5], 2) - 0.0).abs()
+                < tolerances::ZERO_DETECTION
+        );
     }
 
     #[test]
-    #[allow(clippy::similar_names)]
+    #[expect(
+        clippy::similar_names,
+        reason = "fst/f_is/f_it are standard F-statistics names"
+    )]
     fn pairwise_fst_full_returns_three_stats() {
         let mut rng = Rng::new(42);
         let n_loci = 10;
@@ -358,7 +367,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::similar_names)]
+    #[expect(
+        clippy::similar_names,
+        reason = "fst/f_is/f_it are standard F-statistics names"
+    )]
     fn fst_single_locus_two_pops() {
         let freqs = [0.3, 0.7];
         let sizes = [20, 20];

@@ -12,15 +12,15 @@
 //!
 //! | Operation | Origin Spring | Absorption Path |
 //! |-----------|--------------|-----------------|
-//! | softmax | neuralSpring `transformer.rs` | → `barracuda::dispatch::softmax_dispatch` → `ToadStool` `ComputeDispatch` |
-//! | gelu | neuralSpring `transformer.rs` | → `barracuda::dispatch::gelu_dispatch` → `ToadStool` `ComputeDispatch` |
+//! | softmax | neuralSpring `transformer.rs` | → `barracuda::dispatch::softmax_dispatch` → `BarraCUDA` `ComputeDispatch` |
+//! | gelu | neuralSpring `transformer.rs` | → `barracuda::dispatch::gelu_dispatch` → `BarraCUDA` `ComputeDispatch` |
 //! | sigmoid | neuralSpring `primitives.rs` | → `barracuda` (GPU via `sigmoid_f64.wgsl`) |
 //! | `layer_norm` | neuralSpring `coral_forge` | → `barracuda::TensorSession::layer_norm` |
 //! | variance | wetSpring diversity | → `barracuda::stats` → `Dispatcher` |
 //! | shannon | wetSpring diversity | → `barracuda::stats::shannon` → `Dispatcher` |
 //! | simpson | wetSpring diversity | → `barracuda::stats::simpson` |
 //! | pearson | hotSpring precision | → `barracuda::stats::pearson_correlation` → `Dispatcher` |
-//! | `mat_mul` | neuralSpring `matmul_gpu_evolved` | → `barracuda::dispatch::matmul_dispatch` → `ToadStool` |
+//! | `mat_mul` | neuralSpring `matmul_gpu_evolved` | → `barracuda::dispatch::matmul_dispatch` → `BarraCUDA` |
 //! | `rk4_step` | neuralSpring `primitives.rs` | → `rk4_parallel.wgsl` (GPU) |
 //! | eigensolve | hotSpring spectral | → `barracuda::linalg::eigh_f64` → `Dispatcher` |
 //! | HMM forward | wetSpring bio | → `barracuda::dispatch::hmm_forward_dispatch` |
@@ -215,7 +215,7 @@ fn validate_coralforge_activation_evolution(h: &mut ValidationHarness, disp: &Di
 }
 
 fn validate_matmul_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── matmul evolution: neuralSpring → barracuda → ToadStool ──");
+    eprintln!("\n── matmul evolution: neuralSpring → barracuda → BarraCUDA ──");
     eprintln!(
         "  provenance: neuralSpring matmul_gpu_evolved.wgsl → barracuda::dispatch::matmul_dispatch"
     );
@@ -444,8 +444,8 @@ fn validate_uncertainty_evolution(h: &mut ValidationHarness) {
 // ── cross-spring convergence ────────────────────────────────────────
 
 fn validate_cross_spring_convergence(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── cross-spring convergence: all springs → ToadStool S87 ──");
-    eprintln!("  provenance: multi-spring ops converge through barracuda → ToadStool 844+ shaders");
+    eprintln!("\n── cross-spring convergence: all springs → BarraCUDA ──");
+    eprintln!("  provenance: multi-spring ops converge through BarraCUDA 844+ shaders");
 
     let data: Vec<f64> = (0..64).map(|i| (i as f64) * 0.1).collect();
 
@@ -515,7 +515,7 @@ fn print_provenance_summary() {
     eprintln!("║  airSpring ──── hydrology (ET₀: FAO-56, Thornthwaite, Hamon,  ║");
     eprintln!("║                 Makkink, Turc), regression, water balance      ║");
     eprintln!("║                                                                ║");
-    eprintln!("║  All converge → ToadStool S87 (2dc26792): 844+ WGSL shaders   ║");
+    eprintln!("║  All converge → BarraCUDA (ToadStool S87, 2dc26792): 844+ WGSL shaders   ║");
     eprintln!("║  37 DF64 transcendentals, pure math (no vendor libs)           ║");
     eprintln!("║  Precision per hardware: F16 / F32 / F64 / DF64               ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════╝");
@@ -524,7 +524,7 @@ fn print_provenance_summary() {
 #[tokio::main]
 async fn main() {
     eprintln!("=== Cross-Spring Shader Evolution Validator ===");
-    eprintln!("ToadStool S87 (2dc26792) — 844+ WGSL shaders, 37 DF64\n");
+    eprintln!("BarraCUDA (ToadStool S87, 2dc26792) — 844+ WGSL shaders, 37 DF64\n");
 
     let mut h = ValidationHarness::new("cross_spring_shader_evolution");
 

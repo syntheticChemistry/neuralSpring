@@ -43,7 +43,7 @@ fn validate_barracuda_eigh_vs_jacobi(h: &mut ValidationHarness, rng: &mut Rng) {
     let ham = anderson_hamiltonian_random(n, 1.0, 2.0, rng);
 
     let (mut jacobi_vals, _) = jacobi_eigh(&ham, n);
-    jacobi_vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    jacobi_vals.sort_by(f64::total_cmp);
 
     match barracuda::linalg::eigh_f64(&ham, n) {
         Ok(eig) => {
@@ -143,7 +143,7 @@ fn validate_barracuda_disorder_trend(h: &mut ValidationHarness) {
 
     let h_test = anderson_hamiltonian_random(n, 1.0, 2.0, &mut rng);
     let (mut jacobi_vals, _) = jacobi_eigh(&h_test, n);
-    jacobi_vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    jacobi_vals.sort_by(f64::total_cmp);
 
     match barracuda::linalg::eigh_f64(&h_test, n) {
         Ok(eig) => {

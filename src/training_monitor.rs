@@ -24,6 +24,7 @@
 //! | Yellow | Every 3 epochs  | Bandwidth increasing or loss stalling |
 //! | Red    | Every epoch     | Bandwidth exploding, loss diverging, IPR collapsing |
 
+use crate::tolerances;
 use crate::weight_spectral::WeightSpectralResult;
 use barracuda::nautilus::{DriftMonitor, GenerationRecord, InstanceId};
 
@@ -70,15 +71,15 @@ pub struct TrainingMonitor {
 const GREEN_CHECK_INTERVAL: usize = 10;
 const YELLOW_CHECK_INTERVAL: usize = 3;
 
-const BANDWIDTH_GROWTH_THRESHOLD: f64 = 2.0;
-const LOSS_STALL_THRESHOLD: f64 = 1e-6;
+const BANDWIDTH_GROWTH_THRESHOLD: f64 = tolerances::TRAINING_BANDWIDTH_GROWTH;
+const LOSS_STALL_THRESHOLD: f64 = tolerances::TRAINING_LOSS_STALL;
 const LOSS_STALL_WINDOW: usize = 5;
 
-const BANDWIDTH_EXPLOSION_THRESHOLD: f64 = 5.0;
-const IPR_COLLAPSE_THRESHOLD: f64 = 0.01;
-const LOSS_DIVERGENCE_THRESHOLD: f64 = 10.0;
+const BANDWIDTH_EXPLOSION_THRESHOLD: f64 = tolerances::TRAINING_BANDWIDTH_EXPLOSION;
+const IPR_COLLAPSE_THRESHOLD: f64 = tolerances::TRAINING_IPR_COLLAPSE;
+const LOSS_DIVERGENCE_THRESHOLD: f64 = tolerances::TRAINING_LOSS_DIVERGENCE;
 
-const LR_REDUCTION_FACTOR: f64 = 0.5;
+const LR_REDUCTION_FACTOR: f64 = tolerances::TRAINING_LR_REDUCTION;
 
 impl TrainingMonitor {
     /// Create a new training monitor.
@@ -186,7 +187,7 @@ impl TrainingMonitor {
         let curr = &self.history[len - 1];
         let prev = &self.history[len - 2];
 
-        let bw_ratio = if prev.bandwidth.abs() > 1e-30 {
+        let bw_ratio = if prev.bandwidth.abs() > tolerances::LOG_ZERO_GUARD {
             curr.bandwidth / prev.bandwidth
         } else {
             1.0
@@ -194,7 +195,8 @@ impl TrainingMonitor {
 
         if bw_ratio > BANDWIDTH_EXPLOSION_THRESHOLD
             || curr.ipr < IPR_COLLAPSE_THRESHOLD
-            || (curr.loss > prev.loss * LOSS_DIVERGENCE_THRESHOLD && prev.loss > 1e-30)
+            || (curr.loss > prev.loss * LOSS_DIVERGENCE_THRESHOLD
+                && prev.loss > tolerances::LOG_ZERO_GUARD)
         {
             self.attention = AttentionState::Red;
         } else if bw_ratio > BANDWIDTH_GROWTH_THRESHOLD || self.is_loss_stalling() {
@@ -214,14 +216,13 @@ impl TrainingMonitor {
         if self.history.len() < LOSS_STALL_WINDOW {
             return false;
         }
-        let recent: Vec<f64> = self.history[self.history.len() - LOSS_STALL_WINDOW..]
+        let recent = self.history[self.history.len() - LOSS_STALL_WINDOW..]
             .iter()
-            .map(|s| s.loss)
-            .collect();
-        let min_val = recent.iter().copied().fold(f64::INFINITY, f64::min);
-        let max_val = recent.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-        let range = (max_val - min_val).abs();
-        range < LOSS_STALL_THRESHOLD
+            .map(|s| s.loss);
+        let (min_val, max_val) = recent.fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), v| {
+            (lo.min(v), hi.max(v))
+        });
+        (max_val - min_val).abs() < LOSS_STALL_THRESHOLD
     }
 
     fn check_red(&self) -> TrainingInterrupt {
@@ -229,7 +230,9 @@ impl TrainingMonitor {
         let curr = &self.history[len - 1];
         let prev = &self.history[len - 2];
 
-        if curr.loss > prev.loss * LOSS_DIVERGENCE_THRESHOLD && prev.loss > 1e-30 {
+        if curr.loss > prev.loss * LOSS_DIVERGENCE_THRESHOLD
+            && prev.loss > tolerances::LOG_ZERO_GUARD
+        {
             return TrainingInterrupt::EarlyStop {
                 reason: format!(
                     "loss diverging: {:.6} → {:.6} ({}× increase)",

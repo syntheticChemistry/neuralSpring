@@ -111,7 +111,7 @@ Evolved from BarraCUDA's `matmul_tiled.wgsl` with GPU-specific optimizations:
 
 | Bottleneck | Impact | Fix Path |
 |------------|--------|----------|
-| **CPU dispatch overhead (wgpu+llvmpipe)** | ~300 µs minimum per submit | Structural — upstream ToadStool `TensorSession` |
+| **CPU dispatch overhead (wgpu+llvmpipe)** | ~300 µs minimum per submit | Structural — upstream `ToadStool` `TensorSession` |
 | **CPU memory bandwidth (large TF)** | 1.3–6× slower than Py at 822M+ FLOPs | Panel packing, multi-workgroup parallelism |
 | **GPU dispatch overhead (tiny tensors)** | ~80 µs minimum per submit | Structural — amortized by batching |
 | **GPU occupancy (small matmuls)** | Slight regression with 32×32 tiles | Tiered routing (implemented) |
@@ -131,13 +131,13 @@ Evolved from BarraCUDA's `matmul_tiled.wgsl` with GPU-specific optimizations:
    - Fair benchmark: single-thread Python baseline
    - 3-way 5-scale benchmark (Python vs CPU vs GPU)
 
-2. **Short-term** (ToadStool absorption):
+2. **Short-term** (`BarraCUDA` absorption):
    - Upstream `matmul_cpu_tiled.wgsl` and `matmul_gpu_evolved.wgsl` into BarraCUDA
    - Extend `KernelRouter` to select matmul variants by device + dimensions
    - Fix MHA dispatch bug (#8) and softmax buffer pool (#9)
    - Make `Tensor::from_buffer` public (#3)
 
-3. **Medium-term** (ToadStool evolution):
+3. **Medium-term** (`BarraCUDA` evolution):
    - Panel packing for CPU large-scale matmul (address L3 bandwidth saturation)
    - Extend `TensorSession` to cover ML ops
    - Integrate `UnidirectionalPipeline` for streaming batch inference

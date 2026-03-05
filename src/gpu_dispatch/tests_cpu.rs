@@ -339,7 +339,7 @@ fn cpu_eigh_diagonal() {
     let a = vec![2.0, 0.0, 0.0, 3.0];
     let (vals, _vecs) = d.eigh(&a, 2);
     let mut sorted = vals;
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    sorted.sort_by(f64::total_cmp);
     assert!((sorted[0] - 2.0).abs() < tolerances::CROSS_LANGUAGE);
     assert!((sorted[1] - 3.0).abs() < tolerances::CROSS_LANGUAGE);
 }

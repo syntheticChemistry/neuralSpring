@@ -95,8 +95,8 @@ pub fn matrix_correlation_gpu(
     n: usize,
     device: &Arc<WgpuDevice>,
 ) -> Result<f64, String> {
-    let mut xs = Vec::new();
-    let mut ys = Vec::new();
+    let tri_len = n * (n - 1) / 2;
+    let (mut xs, mut ys) = (Vec::with_capacity(tri_len), Vec::with_capacity(tri_len));
     for i in 0..n {
         for j in (i + 1)..n {
             xs.push(a[i * n + j]);

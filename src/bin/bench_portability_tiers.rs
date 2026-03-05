@@ -27,7 +27,7 @@
 //!
 //! ## Cross-Spring Provenance
 //!
-//! | Domain | Papers | Spring Origin | `ToadStool` Shader |
+//! | Domain | Papers | Spring Origin | `BarraCUDA` Shader |
 //! |--------|--------|---------------|-----------------|
 //! | HMM forward | 016-018 | wetSpring metagenomics | `hmm_forward_log.wgsl` |
 //! | Batch fitness | 011-013 | neuralSpring neuroevolution | `batch_fitness_eval.wgsl` |
@@ -370,7 +370,7 @@ fn main() {
     // 3. Pairwise L2 (Paper 012) — neuralSpring MODES origin
     // ═══════════════════════════════════════════════════════════════════
     eprintln!("═══ [3/7] Pairwise L2 — Paper 012 ═══");
-    eprintln!("  Provenance: neuralSpring MODES → pairwise_l2.wgsl (ToadStool S52)");
+    eprintln!("  Provenance: neuralSpring MODES → pairwise_l2.wgsl (BarraCUDA)");
     {
         let mut rng = Rng::new(42);
         let n = 100_usize;

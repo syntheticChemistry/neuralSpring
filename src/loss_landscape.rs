@@ -54,7 +54,7 @@ pub fn numerical_hessian(
 pub fn hessian_spectrum(hessian: &[f64], n: usize) -> Vec<f64> {
     let decomp = eigh_householder_qr(hessian, n);
     let mut eigenvalues = decomp.eigenvalues;
-    eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    eigenvalues.sort_by(f64::total_cmp);
     eigenvalues
 }
 

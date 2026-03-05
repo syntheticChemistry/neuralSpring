@@ -141,9 +141,6 @@ impl Gpu {
             .to_ascii_lowercase();
 
         if selector == "list" {
-            // CLI escape hatch: list available GPU adapters and exit.
-            // Intentional process::exit — this is a diagnostic mode, not a
-            // library function.  Callers opt in via GPU_BACKEND=list.
             let adapters = WgpuDevice::enumerate_adapters();
             for (i, info) in adapters.iter().enumerate() {
                 log::info!(
@@ -153,7 +150,7 @@ impl Gpu {
                     backend = info.backend,
                 );
             }
-            std::process::exit(0);
+            return Err("GPU_BACKEND=list: adapter enumeration complete".to_string());
         }
 
         match selector.as_str() {
@@ -225,7 +222,7 @@ impl Gpu {
     ///
     /// Delegates to `WgpuDevice::compile_shader_df64` which prepends
     /// `df64_core.wgsl` + `df64_transcendentals.wgsl`, runs ILP optimizer
-    /// and Sovereign compiler when available. This is the hotSpring/toadStool
+    /// and Sovereign compiler when available. This is the hotSpring/`ToadStool`
     /// three-zone pattern: f64 buffer I/O with df64 compute on FP32 cores.
     #[must_use]
     pub fn compile_shader_f64_hybrid(&self, source: &str, label: &str) -> wgpu::ShaderModule {
@@ -605,7 +602,10 @@ pub(crate) mod tests {
     #[test]
     fn gpu_capabilities_clone() {
         let caps = mock_caps(256, 65535);
-        #[allow(clippy::redundant_clone)]
+        #[expect(
+            clippy::redundant_clone,
+            reason = "verifying Clone impl works correctly"
+        )]
         let caps2 = caps.clone();
         assert_eq!(caps2.max_compute_workgroup_size_x, 256);
         assert_eq!(caps2.max_compute_workgroups_per_dimension, 65535);

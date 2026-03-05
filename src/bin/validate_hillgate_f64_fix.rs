@@ -17,7 +17,7 @@
 //! internally — the same approach `gpu_ops::bio::hill_activation_batch_gpu`
 //! already uses via the Tensor pipeline).
 //!
-//! ## `ToadStool` Action
+//! ## `BarraCUDA` Action
 //!
 //! Extend `apply_transcendental_workaround` to also replace `pow(` → `pow_f64(`
 //! when `needs_pow_f64_workaround()` is true (the detection already exists in

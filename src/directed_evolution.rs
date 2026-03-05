@@ -116,7 +116,7 @@ pub fn truncation_selection(
             )
         })
         .collect();
-    agg.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
+    agg.sort_by(|a, b| a.1.total_cmp(&b.1));
     let top_k = (n_select / 4).max(2).min(agg.len());
     let best_idx: Vec<usize> = agg.iter().rev().take(top_k).map(|x| x.0).collect();
     let mut out = Vec::with_capacity(n_select * genome_len);
@@ -151,11 +151,7 @@ pub fn tournament_selection(
         let contestants = rng.choose_distinct(pop_size, tournament_size);
         let winner = contestants
             .iter()
-            .max_by(|a, b| {
-                agg[**a]
-                    .partial_cmp(&agg[**b])
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            })
+            .max_by(|a, b| f64::total_cmp(&agg[**a], &agg[**b]))
             .copied()
             .unwrap_or(0);
         out.extend_from_slice(&population[winner * genome_len..(winner + 1) * genome_len]);

@@ -5,7 +5,70 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 121 (March 4, 2026)
+## [Unreleased] — Session 124 (March 5, 2026)
+
+### Session 124 — airSpring V069 Naming Rewire + HMM Absorption (March 5, 2026)
+
+**airSpring V069 naming rewire**: Swept 20 library `.rs` files, 38 binary `.rs` files, 10+ specs `.md` files, and root docs to apply the canonical naming convention: `ToadStool` = hardware dispatch/streaming/orchestration, `BarraCUDA` = math engine/shaders/ops/stats/linalg. Historical absorption references preserved with `ToadStool` attribution. All primal names backticked in doc comments for `clippy::doc_markdown` compliance.
+
+**HMM forward chain absorption**: Rewired `hmm_forward_chain_gpu` from per-step Tensor GEMV loop (T round-trips) to single `HmmBatchForwardF64` `ComputeDispatch` (log-domain, zero per-step CPU↔GPU round-trips). Automatic fallback to legacy per-step path if fused dispatch fails. All 38 HMM tests pass.
+
+**validate_all gap closure**: Added `validate_toadstool_s79_rewire` and `validate_toadstool_s93_barracuda_extraction` to `validate_all` (215→217 binaries).
+
+**Handoff update**: `specs/TOADSTOOL_HANDOFF.md` updated to V82 (Session 124). Counts refreshed: 238 binaries, 880 lib tests, 217/217 validate_all.
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy --workspace -- -W clippy::pedantic -W clippy::nursery` 0 warnings, `cargo test --lib` 880/880 PASS, `cargo doc --workspace --no-deps` 0 warnings.
+
+### Session 123 — Comprehensive Modernization Wave 2 (March 5, 2026)
+
+**`partial_cmp().unwrap_or()` → `f64::total_cmp()` completion**: Evolved all 47 remaining call sites across 21 validation/bench binaries and 2 library modules (`directed_evolution.rs`, `swarm_robotics.rs`). Zero `partial_cmp` sort/max_by patterns remain in the codebase. Replaced `partial_cmp` comparison in `validate_barracuda_gpu_modes.rs` with direct `>` operator (NaN-safe in context).
+
+**Bare magic-number tolerance elimination**: Replaced numeric literals in test assertions across 5 library modules with named constants from the `tolerances` registry:
+- `eco_dynamics.rs`: `1e-10` → `tolerances::CROSS_LANGUAGE`
+- `anderson_localization.rs`: `1e-14` → `tolerances::ZERO_DETECTION`
+- `meta_population/fst.rs`: `1e-14` → `tolerances::ZERO_DETECTION`
+- `gpu_shader_validation.rs`: `1e-15` → `tolerances::NUMERICAL_DISTINCTNESS`, `1e-10` → `tolerances::CROSS_LANGUAGE`
+
+Behavioral thresholds (logic gate 0.3/0.5/0.7, spectral radius 0.05) correctly left as domain constants, not numeric precision.
+
+**Library `unwrap_or` audit**: All `unwrap_or(0.0)` / `unwrap_or(0)` patterns in library code verified as semantically correct (correlation → 0.0 for degenerate inputs, safe-indexing fallbacks, guarded by early returns). No error-hiding patterns found.
+
+**Paper 026 buildout (Chuna — LSTM blood glucose prediction)**: Complete end-to-end reproduction of Chuna (2020) "Setting Limits on Neural Network's Predictive Capacity in T1D Blood Glucose Concentration" (medRxiv 2020.08.04.20117812). New files:
+- `control/glucose_prediction/glucose_prediction.py` (9/9 PASS): Synthetic CGM generator, LSTM reservoir + ridge readout, multi-horizon (5/30/60/120/240 min) prediction analysis
+- `src/glucose_prediction.rs` (11 unit tests): Rust module with CGM generator, autocorrelation analysis, Cholesky-based ridge regression, full experiment orchestration
+- `src/bin/validate_glucose_prediction.rs` (26/26 PASS): hotSpring validation binary with horizon degradation checks, determinism proof, Python parity comparison
+
+Key findings match Chuna: R²(5min)=0.97 (trivial), R²(30min)=0.73 (sweet spot, 16% over persistence), R²(240min)=0.18 (converging to mean). Autocorrelation τ≈1.5 hrs. Validates isomorphic thesis: same LSTM primitives work across weather (Exp 3/9), plasma physics (nW-03), and biomedical (Paper 026) domains.
+
+**Paper 026 BarraCUDA promotion**: Created `validate_barracuda_glucose_prediction.rs` (25/25 PASS) validating the glucose prediction LSTM through two tiers:
+- **Tier 1 — BarraCUDA CPU** (11 checks): `barracuda::stats` primitives (variance, Pearson correlation, R², RMSE) produce identical results to local Rust implementations. Full experiment orchestration confirmed.
+- **Tier 2 — BarraCUDA GPU** (14 checks): LSTM gate projections via `Tensor::matmul` + CPU-side sigmoid/tanh, readout via `Tensor::matmul` + `Tensor::add`. GPU↔CPU parity across all 5 horizons: max relative error 1.07e-6 (well within `ML_MLP_F32` tolerance). Hidden mean parity 6.20e-8. Bit-perfect determinism confirmed on NVIDIA RTX 4070 (Vulkan).
+
+Evolution chain: Chuna CGM LSTM → Python reservoir → Rust CPU → BarraCUDA (CPU stats) → BarraCUDA (GPU Tensor).
+
+**`validate_all` integration**: Added `validate_glucose_prediction` and `validate_barracuda_glucose_prediction` to `validate_all` (213→215 binaries). Updated Full Validation Stack Matrix, README, and EVOLUTION_READINESS counts.
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy --workspace` zero warnings (pedantic+nursery), 880/880 lib tests PASS. 215/215 `validate_all`. 40 Python drift baselines.
+
+### Session 122 — Deep Debt Execution + Idiomatic Evolution (March 4, 2026)
+
+**`#[allow]` → `#[expect]` completion**: Migrated all 24 remaining `#[allow(clippy::...)]` in library source to `#[expect(clippy::..., reason = "...")]`. Zero `#[allow]` remains in `src/`. Every suppression now has a documented reason and will error if the suppressed lint no longer fires.
+
+**`partial_cmp().unwrap_or()` → `f64::total_cmp()`**: Evolved 15+ occurrences across 12 library modules, 3 test files, and the primal binary to use the modern idiomatic `f64::total_cmp` method (stable since Rust 1.62). Handles NaN deterministically without the `unwrap_or(Ordering::Equal)` workaround.
+
+**`wdm_esn.rs` refactored to module directory**: Split 717-line monolith into 4 focused submodules: `classifier.rs` (CPU ESN + JSON deser, 121 lines), `gpu_path.rs` (barracuda Tensor GPU classification, 89 lines), `multi_head.rs` (hotSpring cross-spring multi-head ESN, 263 lines), `tests.rs` (14 tests). All 14 tests pass, public API unchanged.
+
+**Tolerance centralization**: Added `SDPA_PASSTHROUGH` (1e-6) to `tolerances/mod.rs` with mathematical justification, registered in tolerance registry. Eliminated last inline tolerance literal from `coral_forge/attention.rs`.
+
+**Streaming I/O spec**: Created `specs/STREAMING_IO_REQUIREMENTS.md` with 6 requirements (R-01..R-06) for future FASTQ/mzML/MS2 parsers — mandatory streaming, safe Rust only, `BufReader` pattern, XML pull parsing, validation round-trips.
+
+**Weight loader I/O documentation**: Updated `weight_loader.rs` doc to explicitly document safetensors API constraint (`&[u8]` required, no streaming API) and evolution path.
+
+**Coverage verified**: `cargo llvm-cov --lib` = **91.76%** (above 90% threshold). Python baselines: **41/41 experiments PASS** (330+ checks, zero drift). `validate_all`: **213/213 PASS**.
+
+**Dependency audit**: All 10 direct deps are pure Rust, ecoBin compliant. 125 transitive crates (wgpu GPU stack). No C dependencies. No evolution needed.
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy --workspace -- -D warnings` zero warnings (pedantic+nursery), `cargo doc --workspace --no-deps` zero warnings, 869/869 lib tests PASS, 9/9 integration tests PASS.
 
 ### Session 121 — SimpleMlp Rewire + HMM f64 ComputeDispatch (March 4, 2026)
 
@@ -80,7 +143,7 @@ Migrated 13 bin files to use shared helpers. 8 new tests (869 total lib tests).
 
 **Full validation chain**: 202/202 validate_all PASS (0 FAIL), up from 197/202. 39/39 Python drift check (zero baseline drift). 90.49% llvm-cov line coverage (target: 90%). 753 lib tests PASS, 0 clippy warnings.
 
-**3 barracuda fixes evolved locally for ToadStool absorption**:
+**3 barracuda fixes evolved locally for `BarraCUDA` absorption**:
 - `fft_1d.rs`: FFT ping-pong buffer selection — `is_multiple_of(2)` branch was reading stale buffer for odd-stage FFTs. Now always reads `current_input` after swap. 24/24 PASS (was 19/24)
 - `ShaderTemplate::for_driver_auto`: Strip `enable f64;` directive before naga compilation — naga handles f64 via capability flags, not WGSL directives. Unblocks Wright-Fisher GPU pipeline (4/4 PASS, was panic)
 - `asin_df64` iterative form already in tree — confirmed coral forge GPU pipeline 16/16 PASS (SDPA, IPA, backbone, torsion)
@@ -122,9 +185,9 @@ All scripts purposeful. metalForge fossils correctly archived.
 
 **Metrics**: 220 binaries (+1), 753 lib tests (+7), 0 clippy warnings, 0 unsafe.
 
-### Session 101 — ToadStool S71 Pin Bump + GPU Stats Parity + Shader Bug Reports (March 1, 2026)
+### Session 101 — `ToadStool` S71 Pin Bump + GPU Stats Parity + Shader Bug Reports (March 1, 2026)
 
-**ToadStool pin advanced** `1dd7e338`→`8dc01a37` (6 commits: S71 ComputeDispatch migration, DF64 transcendentals, pure math shaders, ~9000 lines boilerplate removed):
+**`ToadStool` pin advanced** `1dd7e338`→`8dc01a37` (6 commits: S71 ComputeDispatch migration, DF64 transcendentals, pure math shaders, ~9000 lines boilerplate removed):
 - Full re-validation: 746 lib tests PASS, 0 clippy warnings, 0 regressions
 
 **GPU stats parity validated** (`validate_toadstool_s71_gpu_stats` 11/11 PASS):
@@ -207,7 +270,7 @@ All scripts purposeful. metalForge fossils correctly archived.
 
 **Quality metrics:** 211 binaries, 199/199 validate_all (197 PASS + 2 pre-existing), 685 lib tests, 3490+ checks, 0 clippy warnings.
 
-### Session 97d — ToadStool S70+++ Cross-Spring Evolution Validation (February 28, 2026)
+### Session 97d — `ToadStool` S70+++ Cross-Spring Evolution Validation (February 28, 2026)
 
 - **New validator**: `validate_toadstool_s70_evolution` (27/27 PASS) — exercises all five springs' contributions absorbed into BarraCUDA S70+++. groundSpring: Kimura fixation, error threshold, jackknife. airSpring: FAO-56 ET₀, Hargreaves, crop coefficient, soil water balance. wetSpring: `chao1_classic` (u64) vs `chao1` (f64). neuralSpring: `matmul_ref` non-consuming proof (bit-identical to consuming), `SimpleMlp` forward+JSON round-trip. S70+++ throughput benchmark with provenance table.
 - **Expanded `bench_cross_spring_evolution`**: S70+++ section — Kimura, jackknife, fao56_et0, chao1_classic, SimpleMlp benchmarks with provenance annotations. Updated summary to S97d.

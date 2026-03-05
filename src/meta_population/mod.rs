@@ -137,7 +137,7 @@ pub fn nucleotide_diversity(pop: &[f64], n_individuals: usize, n_loci: usize) ->
 /// Pearson correlation between temperature and nucleotide diversity.
 ///
 /// Delegates to `barracuda::stats::pearson_correlation` (absorbed from
-/// airSpring/groundSpring hydrology metrics in `ToadStool` S64).
+/// airSpring/groundSpring hydrology metrics via `ToadStool` S64, now in `BarraCUDA`).
 #[must_use]
 pub fn thermal_diversity_correlation(pi_values: &[f64], temperatures: &[f64]) -> f64 {
     if pi_values.len() < 2 {

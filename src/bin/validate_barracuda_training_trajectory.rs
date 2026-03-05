@@ -60,9 +60,9 @@ async fn main() {
     let (gpu_evals, gpu_evecs) = gpu_ops::eigh_gpu(&ham, dim, &dev).expect("eigh_gpu");
 
     let mut cpu_sorted = cpu_decomp.eigenvalues.clone();
-    cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_sorted.sort_by(f64::total_cmp);
     let mut gpu_sorted = gpu_evals;
-    gpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_sorted.sort_by(f64::total_cmp);
 
     let max_eval_diff = cpu_sorted
         .iter()

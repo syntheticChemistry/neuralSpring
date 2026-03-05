@@ -3,7 +3,7 @@
 > **Pattern**: `hotSpring` evolve → validate → hand off → absorb → fossil  
 > **Spring**: neuralSpring (Feb 2026)  
 > **Absorbed by**: ToadStool `77f70b2e` / BarraCUDA 0.2+  
-> **ToadStool HEAD**: `1dd7e338` — absorption span `d45fdfb3`..`1dd7e338` (Sessions 42–70+++, S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety)
+> **ToadStool HEAD**: `2dc26792` — absorption span `d45fdfb3`..`2dc26792` (Sessions 42–124, S87: deep debt evolution, FHE shader fixes, CPU ungating, unsafe audit. S89: `BarraCUDA` extraction. S93+: standalone math engine, 844+ WGSL shaders)
 
 ## Purpose
 

@@ -6,7 +6,10 @@
 //! and their values at runtime — no hardcoded knowledge of the
 //! tolerance namespace required.
 
-#[allow(clippy::wildcard_imports)] // registry must access every tolerance constant from parent
+#[expect(
+    clippy::wildcard_imports,
+    reason = "registry must access every tolerance constant from parent"
+)]
 use super::*;
 
 /// Named tolerance for runtime introspection.
@@ -148,7 +151,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             GOE_LSR_TOLERANCE, IPR_RATIO_SPREAD_MAX,
         ],
         "folding": [
-            FOLDING_EPS, DIFFUSION_ALPHA_BAR_FLOOR, DIFFUSION_BETA_FLOOR,
+            FOLDING_EPS, SDPA_PASSTHROUGH, DIFFUSION_ALPHA_BAR_FLOOR, DIFFUSION_BETA_FLOOR,
         ],
         "domain_guards": [
             FISHER_EPS, BURGERS_IC_GUARD, DP_EQUALITY_EPS,
@@ -179,6 +182,11 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
         ],
         "training_quantized": [
             QUANT_Q8_GEMV_ERROR, QUANT_Q4_GEMV_ERROR, QUANT_SIGN_AGREEMENT,
+        ],
+        "training_monitor": [
+            TRAINING_BANDWIDTH_GROWTH, TRAINING_LOSS_STALL,
+            TRAINING_BANDWIDTH_EXPLOSION, TRAINING_IPR_COLLAPSE,
+            TRAINING_LOSS_DIVERGENCE, TRAINING_LR_REDUCTION,
         ],
         "hardware": [
             BRIDGE_COST_MIN_US, BRIDGE_COST_MAX_US,
@@ -218,7 +226,10 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(clippy::assertions_on_constants)]
+    #[expect(
+        clippy::assertions_on_constants,
+        reason = "compile-time contract: tolerance hierarchy must hold"
+    )]
     fn tolerance_ordering() {
         assert!(
             EXACT_F64 < CROSS_LANGUAGE,
@@ -244,6 +255,7 @@ mod tests {
             "metric",
             "training",
             "training_quantized",
+            "training_monitor",
             "evolutionary",
             "gpu_shader",
             "gpu_f64",
@@ -268,7 +280,7 @@ mod tests {
     fn registry_complete() {
         let all = all_tolerances();
         assert!(
-            all.len() >= 139,
+            all.len() >= 145,
             "registry should contain all tolerances, got {}",
             all.len()
         );

@@ -905,7 +905,7 @@ fn main() {
     eprintln!();
     eprintln!("  Portability chain: Python/NumPy → BarraCUDA CPU (pure Rust) → BarraCUDA GPU");
     eprintln!("  BarraCUDA CPU proves: same math, native speed, no interpreter overhead.");
-    eprintln!("  ToadStool absorbs: all primitives available as upstream f64 ops.");
+    eprintln!("  BarraCUDA absorbs: all primitives available as upstream f64 ops.");
     eprintln!();
 
     h.finish();

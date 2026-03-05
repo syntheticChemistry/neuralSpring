@@ -9,8 +9,8 @@
 //!
 //! ## Variance convention
 //!
-//! `variance()` uses **population variance** (divides by N). As of `ToadStool`
-//! S66, `barracuda::dispatch::variance_dispatch` also uses population variance
+//! `variance()` uses **population variance** (divides by N). As of `BarraCUDA`
+//! (`ToadStool` S66), `barracuda::dispatch::variance_dispatch` also uses population variance
 //! (ddof=0), so the dispatcher and this fallback now agree. Note that
 //! `barracuda::stats::correlation::variance` still uses sample variance (N-1)
 //! — do NOT confuse the two.
@@ -176,7 +176,7 @@ pub fn hmm_chain(
     let (best_state, log_prob) = delta
         .iter()
         .enumerate()
-        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+        .max_by(|a, b| a.1.total_cmp(b.1))
         .map_or((0, f64::NEG_INFINITY), |(i, &v)| (i, v));
 
     let mut path = vec![0_usize; t_len];
@@ -200,7 +200,7 @@ pub fn hmm_viterbi_step(
         .map(|j| {
             let (best_i, best_val) = (0..n_states)
                 .map(|i| (i, delta_prev[i] + log_transition[i * n_states + j]))
-                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+                .max_by(|a, b| a.1.total_cmp(&b.1))
                 .unwrap_or((0, f64::NEG_INFINITY));
             (best_val + log_emission_col[j], best_i)
         })
@@ -321,7 +321,10 @@ pub fn replicator_step(freq: &[f64; 2], payoff: &[[f64; 2]; 2], dt: f64) -> [f64
 }
 
 #[cfg(test)]
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "test data uses small integers where usize→f64 is exact"
+)]
 mod tests {
     use super::*;
     use crate::tolerances;

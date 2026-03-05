@@ -194,13 +194,13 @@ async fn main() {
 
     let cpu_decomp = neural_spring::eigh::eigh_householder_qr(&ham, dim);
     let mut cpu_evals = cpu_decomp.eigenvalues;
-    cpu_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_evals.sort_by(f64::total_cmp);
 
     if let Some(ref d) = dev {
         let (gpu_evals_raw, _) =
             neural_spring::gpu_ops::eigh_gpu(&ham, dim, d).unwrap_or_else(|_| (vec![], vec![]));
         let mut gpu_evals = gpu_evals_raw;
-        gpu_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        gpu_evals.sort_by(f64::total_cmp);
 
         if gpu_evals.len() == cpu_evals.len() {
             let max_diff = cpu_evals

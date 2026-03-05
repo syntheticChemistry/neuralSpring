@@ -1,5 +1,7 @@
 # neuralSpring — Experiment Journal
 
+**Current state (Session 124)**: 880 lib tests, 238 binaries, 217/217 `validate_all`, V82 `ToadStool`/`BarraCUDA` handoff. March 5, 2026.
+
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
 Each experiment journal records: date, hardware, motivation ("why"),

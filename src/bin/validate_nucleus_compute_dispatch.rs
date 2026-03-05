@@ -5,7 +5,7 @@
 //! Validates the full NUCLEUS atomic coordination pattern:
 //!
 //! - **Tower** (BearDog+Songbird): authentication scope + capability discovery
-//! - **Node** (Tower+ToadStool): GPU compute dispatch for eigensolve/IPR/variance
+//! - **Node** (Tower+`ToadStool`): GPU compute dispatch for eigensolve/IPR/variance
 //! - **Nest** (Tower+NestGate): result provenance + storage routing
 //!
 //! Each section proves that the spectral science pipeline can run through
@@ -13,7 +13,7 @@
 //! exercises the `Dispatcher` API the same way biomeOS graphs orchestrate
 //! across atomics — capability-based routing, not hardcoded paths.
 //!
-//! Targets for `ToadStool` absorption:
+//! Targets for `BarraCUDA` absorption:
 //! - `dispatcher.eigh` → `barracuda::linalg::batched_eigh_gpu`
 //! - `dispatcher.disorder_sweep` → `barracuda::spectral::disorder_sweep_gpu`
 //! - `dispatcher.mixed_dispatch` → `barracuda::unified_hardware::route`
@@ -141,21 +141,14 @@ fn validate_node_eigensolve(
     let (gpu_evals, gpu_evecs) = dispatcher.eigh(&ham, dim);
 
     let mut cpu_indices: Vec<usize> = (0..cpu_decomp.eigenvalues.len()).collect();
-    cpu_indices.sort_by(|&a, &b| {
-        cpu_decomp.eigenvalues[a]
-            .partial_cmp(&cpu_decomp.eigenvalues[b])
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    cpu_indices
+        .sort_by(|&a, &b| f64::total_cmp(&cpu_decomp.eigenvalues[a], &cpu_decomp.eigenvalues[b]));
     let cpu_sorted: Vec<f64> = cpu_indices
         .iter()
         .map(|&i| cpu_decomp.eigenvalues[i])
         .collect();
     let mut gpu_indices: Vec<usize> = (0..gpu_evals.len()).collect();
-    gpu_indices.sort_by(|&a, &b| {
-        gpu_evals[a]
-            .partial_cmp(&gpu_evals[b])
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    gpu_indices.sort_by(|&a, &b| f64::total_cmp(&gpu_evals[a], &gpu_evals[b]));
     let gpu_sorted: Vec<f64> = gpu_indices.iter().map(|&i| gpu_evals[i]).collect();
 
     let eval_diff = cpu_sorted
@@ -284,9 +277,9 @@ fn validate_node_hessian(
     let (dispatch_evals, _) = dispatcher.eigh(&hessian, n);
 
     let mut cpu_sorted = cpu_evals;
-    cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_sorted.sort_by(f64::total_cmp);
     let mut dispatch_sorted = dispatch_evals;
-    dispatch_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    dispatch_sorted.sort_by(f64::total_cmp);
 
     let eval_diff = cpu_sorted
         .iter()

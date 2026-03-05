@@ -12,7 +12,7 @@
 //!
 //! ## Cross-Spring Evolution Context
 //!
-//! `neuralSpring` evolved these shaders → `ToadStool` absorbed them → `BarraCUDA`
+//! neuralSpring evolved these shaders → `ToadStool` absorbed them → `BarraCUDA`
 //! wrapped them in ergonomic Rust APIs. This benchmark proves the wrappers
 //! add no meaningful overhead vs raw manual dispatch.
 //!

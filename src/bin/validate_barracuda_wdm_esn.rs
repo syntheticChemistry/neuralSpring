@@ -133,7 +133,7 @@ fn gpu_esn_classify(
     let label = scores_vec
         .iter()
         .enumerate()
-        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+        .max_by(|(_, a), (_, b)| f32::total_cmp(a, b))
         .map_or(0, |(i, _)| i);
 
     Ok((label, scores_vec))

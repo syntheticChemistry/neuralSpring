@@ -64,7 +64,7 @@ async fn main() {
     let (gpu_evals, _gpu_evecs) = gpu_ops::eigh_gpu(&ham, dim, &dev).expect("eigh_gpu dispatch");
 
     let mut sorted_gpu_evals = gpu_evals;
-    sorted_gpu_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    sorted_gpu_evals.sort_by(f64::total_cmp);
 
     h.check_bool(
         "Sub-01: GPU eigenvalue count matches CPU",

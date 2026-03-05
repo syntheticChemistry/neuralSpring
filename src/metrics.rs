@@ -5,7 +5,7 @@
 //! ## `BarraCUDA` Integration
 //!
 //! All four metrics delegate to `barracuda::stats` (absorbed from
-//! airSpring/groundSpring in `ToadStool` S64–S66). `mae` was rewired in
+//! airSpring/groundSpring via `ToadStool` S64–S66, now in `BarraCUDA`). `mae` was rewired in
 //! S66 when `barracuda::stats::mae` became available.
 
 /// Coefficient of determination (delegates to `barracuda::stats::r_squared`).
@@ -88,7 +88,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp)]
+    #[expect(
+        clippy::float_cmp,
+        reason = "determinism test requires exact bit equality"
+    )]
     fn metrics_deterministic() {
         let y_true = [1.0, 2.0, 3.0, 4.0, 5.0];
         let y_pred = [1.1, 2.2, 2.9, 4.1, 4.8];

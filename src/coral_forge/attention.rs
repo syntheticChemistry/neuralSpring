@@ -126,7 +126,7 @@ mod tests {
         let out = sdpa_full(&q, &k, &v, 1, 1, 2, 2, d);
         for val in &out {
             assert!(
-                val.is_finite() && (val - 1.0).abs() < 1e-6,
+                val.is_finite() && (val - 1.0).abs() < crate::tolerances::SDPA_PASSTHROUGH,
                 "uniform query/key → uniform weights → V passthrough"
             );
         }

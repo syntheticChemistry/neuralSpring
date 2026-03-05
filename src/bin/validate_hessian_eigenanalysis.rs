@@ -51,7 +51,7 @@ fn main() {
 
     let decomp = eigh_householder_qr(&hessian_exact, n);
     let mut computed_evals = decomp.eigenvalues;
-    computed_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    computed_evals.sort_by(f64::total_cmp);
 
     let max_diff: f64 = computed_evals
         .iter()

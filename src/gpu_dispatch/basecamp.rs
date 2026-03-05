@@ -71,7 +71,7 @@ impl Dispatcher {
         let hessian = crate::loss_landscape::numerical_hessian(loss_fn, params, epsilon);
         let n = params.len();
         let (mut eigenvalues, _eigenvectors) = self.eigh(&hessian, n);
-        eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        eigenvalues.sort_by(f64::total_cmp);
         let loss = loss_fn(params);
 
         crate::loss_landscape::LandscapeResult {
@@ -151,7 +151,7 @@ impl Dispatcher {
     ) -> crate::information_flow::AttentionSpectralResult {
         let h = crate::information_flow::attention_to_hamiltonian(attention, n);
         let (mut eigenvalues, eigenvectors) = self.eigh(&h, n);
-        eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        eigenvalues.sort_by(f64::total_cmp);
         let mean_ipr_val = crate::anderson_localization::mean_ipr(&eigenvectors, n);
         let lsr = crate::weight_spectral::level_spacing_ratio(&eigenvalues);
         crate::information_flow::AttentionSpectralResult {
@@ -258,7 +258,12 @@ impl Dispatcher {
 }
 
 #[cfg(test)]
-#[allow(clippy::float_cmp, clippy::expect_used, clippy::suboptimal_flops)]
+#[expect(
+    clippy::float_cmp,
+    clippy::expect_used,
+    clippy::suboptimal_flops,
+    reason = "test arithmetic needs exact comparison and clear failure messages"
+)]
 mod tests {
     use crate::gpu_dispatch::Dispatcher;
     use crate::rng::Rng;

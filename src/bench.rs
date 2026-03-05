@@ -92,7 +92,7 @@ fn median_us(timings: &[Duration]) -> f64 {
         .iter()
         .map(|d| d.as_nanos() as f64 / NANOS_PER_MICROSECOND)
         .collect();
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    sorted.sort_by(f64::total_cmp);
     sorted[sorted.len() / 2]
 }
 

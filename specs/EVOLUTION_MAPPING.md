@@ -58,7 +58,7 @@ candidates for BarraCUDA CPU port and subsequent GPU promotion.
 
 ### Tier A+ — BarraCUDA GPU Primitives (validated 2026-02-20)
 
-FFT validation pinned to ToadStool's Cooley-Tukey radix-2 WGSL implementation.
+FFT validation pinned to `BarraCUDA`'s Cooley-Tukey radix-2 WGSL implementation.
 
 | BarraCUDA Module | Validation Binary | Checks | Status |
 |------------------|-------------------|--------|--------|
@@ -106,7 +106,7 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### Tier C — New (GPU-specific, no Python equivalent)
 
-| Capability | WGSL Shader | Pipeline Stage | Blocker | ToadStool Leverage |
+| Capability | WGSL Shader | Pipeline Stage | Blocker | `BarraCUDA` Leverage |
 |------------|-------------|----------------|---------|-------------------|
 | Flash attention | `flash_attention.wgsl` | Inference | Algorithm implementation | — |
 | Fused LayerNorm+GELU | fused kernel | Inference | Kernel fusion framework | `TensorSession` extension |
@@ -120,9 +120,9 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 | GPU PRNG (Xoshiro128**) | `xoshiro128ss.wgsl` | All stochastic algorithms | — | **BUILT** (5/5 PASS) |
 | Gillespie SSA | GPU PRNG + exp sampling | Biology (Waters) | New primitive | `StatefulPipeline` |
 
-### ToadStool Infrastructure Available for GPU Promotion
+### `BarraCUDA`/`ToadStool` Infrastructure Available for GPU Promotion
 
-ToadStool (reviewed `1dd7e338`, Feb 25, 2026 — all shortcomings through S-13 fixed, S-03b fully resolved, S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety)
+`BarraCUDA` (reviewed `2dc26792`, Mar 5, 2026 — all shortcomings through S-17 fixed, standalone v0.3.1, 844+ WGSL shaders, HmmBatchForwardF64 ComputeDispatch, SimpleMlp, precision per use/hardware)
 provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |
@@ -182,7 +182,7 @@ For each Rust module → GPU promotion:
 | Phase 4a (Performance benchmarks) | **COMPLETE** | 7 kernels, 71.8× overall speedup vs single-thread NumPy |
 | Phase 4b (Pure GPU end-to-end pipelines) | **COMPLETE** | 7 pipelines, 32/32 PASS (+modes, directed, signal) |
 | Phase 4c (GPU kernel benchmarks + PRNG) | **COMPLETE** | Crossover mapping (GPU wins at >1.5ms CPU work) + 5/5 PRNG PASS |
-| Phase 4d (ToadStool S-12 + S-03b) | **COMPLETE** | eigh LAPACK (9/9 PASS) + S-03b fully resolved upstream (matmul + head_split/head_concat) |
+| Phase 4d (`BarraCUDA` S-12 + S-03b) | **COMPLETE** | eigh LAPACK (9/9 PASS) + S-03b fully resolved upstream (matmul + head_split/head_concat) |
 | Phase 4e (PINN/DeepONet + new GPU domains) | **COMPLETE** | PINN 16+14, DeepONet 17+9, GPU modes 15, directed 6, swarm 9, signal 9 |
 | Phase 5a (BarraCUDA GPU Tensor) | **COMPLETE** | 14/14 PASS (spectral 8, eco 6) |
 | Phase 4 (Sovereign pipeline) | **Active** | Cross-spring integration |
@@ -271,13 +271,13 @@ This is exactly what `barracuda::dispatch` routes and what metalForge documents.
 
 **validate_gpu_prng** (5/5 PASS): Xoshiro128** PRNG shader (`metalForge/shaders/xoshiro128ss.wgsl`).
 Validates uniformity, range, determinism, independence, multi-call state advancement.
-Exported as `rng::WGSL_XOSHIRO128SS` for ToadStool absorption.
+Exported as `rng::WGSL_XOSHIRO128SS` for `BarraCUDA` absorption.
 
 | Validation Binary | Shader | Checks | Status |
 |-------------------|--------|--------|--------|
 | `validate_gpu_prng` | `xoshiro128ss.wgsl` | 5 | **5/5 PASS** |
 
-### Phase 4d — ToadStool Issue Resolution (S-12 + S-03b)
+### Phase 4d — `BarraCUDA` Issue Resolution (S-12 + S-03b)
 
 | Shortcoming | Description | Checks | Status |
 |-------------|-------------|--------|--------|
@@ -315,9 +315,9 @@ domain shaders expand coverage to Papers 012, 014, 015, 021.
 GPU-ready layout evolution completed for `anderson_localization.rs` (flat N×N Hamiltonians),
 `directed_evolution.rs` (flat pop×genome), and `sate_alignment.rs` (flat n×len sequences).
 
-### ToadStool Shortcoming Status
+### `BarraCUDA` Shortcoming Status
 
-**Reviewed:** ToadStool commit `6ee71f07` (Session 42 + bug fixes, Feb 23, 2026).
+**Reviewed:** `ToadStool` commit `6ee71f07` (Session 42 + bug fixes, Feb 23, 2026).
 **Result:** **All shortcomings through S-13 FIXED/ABSORBED.** Key absorption
 commit: `fbedd222` (`TensorSession` ML ops). Validation binary
 `validate_barracuda_tensor` rewired from evolved ops to native BarraCUDA

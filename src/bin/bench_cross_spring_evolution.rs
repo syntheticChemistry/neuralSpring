@@ -19,13 +19,13 @@
 //!
 //! Covers rewired functions: `r_squared`, `rmse`, `nse`, `dot`, `l2_norm`,
 //! `shannon`, `nash_sutcliffe` — all absorbed into `BarraCUDA` `stats` from
-//! airSpring/groundSpring/wetSpring in `ToadStool` S64.
+//! airSpring/groundSpring/wetSpring in `BarraCUDA` (via `ToadStool` S64).
 //!
 //! ## Session 83
 //!
-//! Extended with `ToadStool` S66–S68 APIs: `fit_quadratic`, `fit_exponential`,
+//! Extended with `BarraCUDA` S66–S68 APIs: `fit_quadratic`, `fit_exponential`,
 //! `fit_all`, `spearman_correlation`, `rawr_mean`. GPU typed op provenance
-//! benchmarks and f64 precision ops (hotSpring → `ToadStool` → neuralSpring).
+//! benchmarks and f64 precision ops (hotSpring → `BarraCUDA` → neuralSpring).
 //!
 //! # Panics
 //!
@@ -93,7 +93,7 @@ fn main() {
     // ─── airSpring + groundSpring → barracuda::stats (S64) ─────────────
     eprintln!("═══ airSpring/groundSpring → barracuda::stats ═══");
     eprintln!("  Provenance: airSpring testutil/stats.rs + groundSpring stats/metrics.rs");
-    eprintln!("  → ToadStool S64 absorption → barracuda::stats");
+    eprintln!("  → BarraCUDA (ToadStool S64) → barracuda::stats");
     eprintln!("  → neuralSpring rewired S75 (metrics.rs, deeponet.rs)");
     eprintln!();
 
@@ -157,7 +157,7 @@ fn main() {
     // ─── wetSpring → barracuda::stats::diversity (S64) ──────────────────
     eprintln!("═══ wetSpring → barracuda::stats::diversity ═══");
     eprintln!("  Provenance: wetSpring bio/diversity.rs (Feb 2026)");
-    eprintln!("  → ToadStool S64 absorption → barracuda::stats");
+    eprintln!("  → BarraCUDA (ToadStool S64) → barracuda::stats");
     eprintln!("  → neuralSpring rewired S75 (primitives.rs shannon_entropy_from_counts)");
     eprintln!();
 
@@ -208,14 +208,14 @@ fn main() {
 
     eprintln!();
 
-    // ─── neuralSpring → GPU ops (metalForge → ToadStool) ──────────────
+    // ─── neuralSpring → GPU ops (metalForge → BarraCUDA) ──────────────
     if let Some(ref g) = gpu {
         let device = g.wgpu_device().clone();
 
         // ─── wetSpring → GPU diversity fusion (S64) ─────────────────────
-        eprintln!("═══ wetSpring → ToadStool GPU DiversityFusion ═══");
+        eprintln!("═══ wetSpring → BarraCUDA GPU DiversityFusion ═══");
         eprintln!("  Provenance: wetSpring bio/diversity.rs → diversity_fusion_f64.wgsl");
-        eprintln!("  → ToadStool S64 absorption → barracuda::ops::bio::DiversityFusionGpu");
+        eprintln!("  → BarraCUDA (ToadStool S64) → barracuda::ops::bio::DiversityFusionGpu");
         eprintln!("  Fused Shannon + Simpson + Pielou in one GPU dispatch");
         eprintln!();
 
@@ -244,7 +244,7 @@ fn main() {
     eprintln!();
 
     // ─── S78 absorptions: MAE, Shannon, Hill, fit_linear ──────────────
-    eprintln!("═══ S78 Absorptions (ToadStool S66) ═══");
+    eprintln!("═══ S78 Absorptions (BarraCUDA via ToadStool S66) ═══");
     eprintln!("  Provenance: airSpring → barracuda::stats::mae [S64→S66]");
     let cpu_mae = bench("mae (barracuda::stats, CPU)", || {
         let _ = std::hint::black_box(stats::mae(&observed, &simulated));
@@ -291,8 +291,8 @@ fn main() {
     eprintln!();
 
     // ─── S83: Modern S68 APIs — cross-spring provenance ─────────────────
-    eprintln!("═══ S83: Modern ToadStool S68 APIs ═══");
-    eprintln!("  ToadStool S68: 700 WGSL f64 canonical, universal precision");
+    eprintln!("═══ S83: Modern BarraCUDA S68 APIs ═══");
+    eprintln!("  BarraCUDA S68: 700 WGSL f64 canonical, universal precision");
     eprintln!();
 
     eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_quadratic [S66]");
@@ -345,7 +345,7 @@ fn main() {
 
     // ─── S70+++ absorptions: evolution, jackknife, hydrology, chao1_classic ──
     // (placed before Dispatcher section so GPU Tensor ops use the original handle)
-    eprintln!("═══ S70+++ Absorptions (ToadStool S70+) ═══");
+    eprintln!("═══ S70+++ Absorptions (BarraCUDA via ToadStool S70+) ═══");
     eprintln!("  13 commits since S68: DF64 ML shaders, SimpleMlp, matmul_ref,");
     eprintln!("  stats::evolution, stats::jackknife, stats::hydrology, chao1_classic");
     eprintln!();
@@ -468,7 +468,7 @@ fn main() {
             .collect();
 
         let gpu_var = bench(
-            "Dispatcher::variance 50k (hS Welford→ToadStool→GPU)",
+            "Dispatcher::variance 50k (hS Welford→BarraCUDA→GPU)",
             || {
                 let _ = std::hint::black_box(dispatcher.variance(&big_a));
             },
@@ -478,7 +478,7 @@ fn main() {
             gpu_var.is_finite(),
         );
 
-        let gpu_pearson = bench("Dispatcher::pearson 50k (wS+hS→ToadStool→GPU)", || {
+        let gpu_pearson = bench("Dispatcher::pearson 50k (wS+hS→BarraCUDA→GPU)", || {
             let _ = std::hint::black_box(dispatcher.pearson_correlation(&big_a, &big_b));
         });
         h.check_bool(
@@ -488,7 +488,7 @@ fn main() {
 
         let big_probs: Vec<f64> = big_a.iter().map(|x| x.abs() / 1000.0 + 1e-10).collect();
         let gpu_shannon = bench(
-            "Dispatcher::shannon 50k (wS fused→ToadStool→GPU)",
+            "Dispatcher::shannon 50k (wS fused→BarraCUDA→GPU)",
             || {
                 let _ = std::hint::black_box(dispatcher.shannon_entropy(&big_probs));
             },
@@ -501,7 +501,7 @@ fn main() {
         let side = 200_usize;
         let mat: Vec<f64> = (0..side * side).map(|_| big_rng.next_f64()).collect();
         let gpu_matmul = bench(
-            "Dispatcher::mat_mul 200×200 (nS→ToadStool→GPU)",
+            "Dispatcher::mat_mul 200×200 (nS→BarraCUDA→GPU)",
             || {
                 let _ = std::hint::black_box(dispatcher.mat_mul(&mat, &mat, side));
             },
@@ -635,18 +635,18 @@ fn main() {
 
     // ─── Summary ────────────────────────────────────────────────────────
     eprintln!("═══ Cross-Spring Evolution Summary (S98) ═══");
-    eprintln!("  668 WGSL shaders in ToadStool S70+++ (f64 canonical), sourced from:");
+    eprintln!("  668 WGSL shaders in BarraCUDA (ToadStool S70+++), sourced from:");
     eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral, precision)");
     eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM, ODE)");
     eprintln!("    neuralSpring: ~40  (ML, neuroevolution, batch fitness, 15 df64 shaders)");
     eprintln!("    airSpring:    ~15  (ET₀, kriging, Richards, stats, regression)");
     eprintln!("    groundSpring: ~5   (multinomial, MC propagation, evolution theory)");
-    eprintln!("    ToadStool:    ~428 (core math, linalg, nn, activations, S70+ precision)");
+    eprintln!("    BarraCUDA:    ~428 (core math, linalg, nn, activations, S70+ precision)");
     eprintln!("  neuralSpring rewired: 46 upstream rewires + 6 shader sources");
     eprintln!("  S70+++: DF64 ML shaders (gelu, sigmoid, softmax, layer_norm, sdpa)");
     eprintln!("  S70+++: SimpleMlp, matmul_ref, stats::evolution, jackknife, hydrology");
     eprintln!("  S98: coralForge nF-03 GPU tier closed (diffusion + Pairformer)");
-    eprintln!("  S98: All five springs contribute → ToadStool absorbs → all springs benefit");
+    eprintln!("  S98: All five springs contribute → BarraCUDA absorbs → all springs benefit");
     eprintln!("  S99: nS-01 Paper A real-data weight spectral (safetensors + eigh_f64)");
     eprintln!("  S99: Primal handoffs: NestGate V1, biomeOS V1, Songbird V1");
     eprintln!("  S99: NUCLEUS Tower validated on Eastgate (BearDog + Songbird operational)");
@@ -714,7 +714,7 @@ fn bench_gpu_diversity_fusion(
 
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
 
-    let cpu_us = bench("diversity_fusion_cpu (wetSpring→ToadStool)", || {
+    let cpu_us = bench("diversity_fusion_cpu (wetSpring→BarraCUDA)", || {
         std::hint::black_box(barracuda::ops::bio::diversity_fusion_cpu(
             &abundances,
             n_species,
@@ -725,7 +725,7 @@ fn bench_gpu_diversity_fusion(
         cpu_us.is_finite(),
     );
 
-    let gpu_us = bench("DiversityFusionGpu (wetSpring→ToadStool→GPU)", || {
+    let gpu_us = bench("DiversityFusionGpu (wetSpring→BarraCUDA→GPU)", || {
         rt.block_on(async {
             let op = DiversityFusionGpu::new(device.clone()).expect("DiversityFusionGpu::new");
             let _result = op

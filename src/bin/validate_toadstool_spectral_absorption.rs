@@ -45,7 +45,7 @@ async fn main() {
     // ═══════════════════════════════════════════════════════════════════
     //
     // Proves the Rust implementation is correct before we send it to GPU.
-    // These are the functions ToadStool will absorb into barracuda::linalg/spectral.
+    // These are the functions BarraCUDA will absorb.
 
     validate_cpu_eigensolve(&mut h, &mut rng);
     validate_cpu_anderson(&mut h);
@@ -230,10 +230,8 @@ fn validate_gpu_eigensolve_parity(
         let mut cpu_decomp = eigh_householder_qr(&mat, dim);
         let (mut dispatch_evals, dispatch_evecs) = dispatcher.eigh(&mat, dim);
 
-        cpu_decomp
-            .eigenvalues
-            .sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        dispatch_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        cpu_decomp.eigenvalues.sort_by(f64::total_cmp);
+        dispatch_evals.sort_by(f64::total_cmp);
 
         let max_diff = cpu_decomp
             .eigenvalues
@@ -280,9 +278,9 @@ fn validate_gpu_anderson_parity(
     let (dispatch_evals, _) = dispatcher.eigh(&ham, n);
 
     let mut cpu_sorted = std::mem::take(&mut cpu_decomp.eigenvalues);
-    cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_sorted.sort_by(f64::total_cmp);
     let mut dispatch_sorted = dispatch_evals;
-    dispatch_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    dispatch_sorted.sort_by(f64::total_cmp);
 
     let max_diff = cpu_sorted
         .iter()

@@ -4,7 +4,7 @@
 //!
 //! Pure Rust f64 reference implementations of structure prediction
 //! primitives, validated against `AlphaFold2`/`AlphaFold3` baselines
-//! and accelerated via `BarraCUDA`/`ToadStool`.
+//! and accelerated via `BarraCUDA`.
 //!
 //! ## Primitives
 //!

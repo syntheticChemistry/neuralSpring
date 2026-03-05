@@ -9,7 +9,7 @@
 //! Evolution path:
 //! ```text
 //! Python (numpy binary ops) → Rust CPU (loop) → BarraCUDA CPU (stats)
-//!   → GPU WGSL shader (pairwise_jaccard.wgsl) → ToadStool absorption
+//!   → GPU WGSL shader (pairwise_jaccard.wgsl) → `BarraCUDA` absorption
 //!   → barracuda::ops::bio::PairwiseJaccardGpu
 //! ```
 //!

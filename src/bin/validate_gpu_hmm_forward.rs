@@ -9,7 +9,7 @@
 //! Evolution path:
 //! ```text
 //! Python (hmmlearn) → Rust CPU (hmm.rs) → local f32 GPU (retired)
-//!   → upstream HmmBatchForwardF64 (wetSpring f64, absorbed by ToadStool)
+//!   → upstream `HmmBatchForwardF64` (wetSpring f64, absorbed into `BarraCUDA` via `ToadStool`)
 //! ```
 //!
 //! ## Papers validated

@@ -214,40 +214,44 @@ pub const fn wg1d(n: u32) -> (u32, u32, u32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
 
     #[test]
     fn max_diff_identical() {
-        assert!((max_diff(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0])).abs() < 1e-15);
+        assert!(
+            (max_diff(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0])).abs()
+                < tolerances::NUMERICAL_DISTINCTNESS
+        );
     }
 
     #[test]
     fn max_diff_known() {
         let d = max_diff(&[1.0, 5.0], &[1.0, 2.0]);
-        assert!((d - 3.0).abs() < 1e-15);
+        assert!((d - 3.0).abs() < tolerances::NUMERICAL_DISTINCTNESS);
     }
 
     #[test]
     fn max_diff_empty() {
-        assert!((max_diff(&[], &[])).abs() < 1e-15);
+        assert!((max_diff(&[], &[])).abs() < tolerances::NUMERICAL_DISTINCTNESS);
     }
 
     #[test]
     fn max_diff_negative_values() {
         let d = max_diff(&[-1.0, -5.0], &[-1.0, -2.0]);
-        assert!((d - 3.0).abs() < 1e-15);
+        assert!((d - 3.0).abs() < tolerances::NUMERICAL_DISTINCTNESS);
     }
 
     #[test]
     fn max_diff_single_element() {
         let d = max_diff(&[1.0], &[4.0]);
-        assert!((d - 3.0).abs() < 1e-15);
+        assert!((d - 3.0).abs() < tolerances::NUMERICAL_DISTINCTNESS);
     }
 
     #[test]
     fn max_diff_symmetric() {
         let a = [1.0, 2.0, 10.0];
         let b = [3.0, 2.0, 5.0];
-        assert!((max_diff(&a, &b) - max_diff(&b, &a)).abs() < 1e-15);
+        assert!((max_diff(&a, &b) - max_diff(&b, &a)).abs() < tolerances::NUMERICAL_DISTINCTNESS);
     }
 
     #[test]
@@ -278,7 +282,7 @@ mod tests {
         let a: Vec<f64> = (0..100).map(|i| f64::from(i) * 1.5).collect();
         let b: Vec<f64> = (0..100).map(|i| f64::from(i).mul_add(1.5, 0.001)).collect();
         let d = max_diff(&a, &b);
-        assert!((d - 0.001).abs() < 1e-10);
+        assert!((d - 0.001).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]

@@ -35,7 +35,10 @@ pub fn eigh_householder_qr(a: &[f64], n: usize) -> EighResult {
 }
 
 #[cfg(test)]
-#[allow(clippy::suboptimal_flops)]
+#[expect(
+    clippy::suboptimal_flops,
+    reason = "clarity over micro-optimization in test arithmetic"
+)]
 mod tests {
     use super::*;
     use crate::tolerances;

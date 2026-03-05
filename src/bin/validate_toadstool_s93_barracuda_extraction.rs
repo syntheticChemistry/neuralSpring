@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! `ToadStool` S93 / `barraCuda` standalone extraction validation.
+//! `ToadStool` S93 / `BarraCUDA` standalone extraction validation.
 //!
 //! Validates the migration from the embedded `barracuda` crate inside
-//! `toadStool` (`../phase1/toadstool/crates/barracuda`) to the standalone
-//! `barraCuda` primal (`../barraCuda/crates/barracuda` v0.3.1).
+//! `ToadStool` (`../phase1/toadstool/crates/barracuda`) to the standalone
+//! `BarraCUDA` primal (`../barraCuda/crates/barracuda` v0.3.1).
 //!
 //! ## What changed (S87 → S93 + standalone extraction)
 //!
-//! - `barraCuda` extracted from `toadStool` into its own repo/primal (S89)
+//! - `BarraCUDA` extracted from `ToadStool` into its own repo/primal (S89)
 //! - `barracuda::spectral::tridiag_eigenvectors` added (S88)
 //! - `barracuda::tolerances` gained domain constants: `HYDRO_*`,
 //!   `PHYSICS_ANDERSON_EIGENVALUE`, `BIO_DIVERSITY_*`
@@ -30,7 +30,7 @@
 //! ## Provenance
 //!
 //! Validation class: Cross-spring (dependency migration)
-//! Source pin: `toadStool` S87 commit `2dc26792` → `barraCuda` v0.3.1 standalone
+//! Source pin: `ToadStool` S87 commit `2dc26792` → `BarraCUDA` v0.3.1 standalone
 //! hotSpring validated the same path swap (716/716 pass, single-line change)
 //!
 //! ```text
@@ -298,7 +298,7 @@ fn validate_dispatcher_continuity(h: &mut ValidationHarness, disp: &Dispatcher) 
 async fn main() {
     eprintln!("=== ToadStool S93 / barraCuda Standalone Extraction Validation ===\n");
     eprintln!("Migration: ../phase1/toadstool/crates/barracuda → ../barraCuda/crates/barracuda");
-    eprintln!("Pin: toadStool S87 (2dc26792) → barraCuda v0.3.1 standalone");
+    eprintln!("Pin: ToadStool S87 (2dc26792) → BarraCUDA v0.3.1 standalone");
     eprintln!("Key: standalone extraction, tridiag_eigenvectors, domain tolerances,");
     eprintln!("     unified_math::MathOp, Fp64Strategy, ComputeExecutor trait");
 

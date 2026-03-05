@@ -102,7 +102,7 @@ const BINARIES: &[&str] = &[
     "validate_gpu_pipeline_signal",
     // GPU PRNG (Phase 4c)
     "validate_gpu_prng",
-    // ToadStool issue resolution (Phase 4d)
+    // BarraCUDA issue resolution (Phase 4d)
     "validate_eigh_accuracy",
     "validate_mha_gpu",
     // BarraCUDA CPU: Phase 0/0+ S-15-safe validators
@@ -221,7 +221,7 @@ const BINARIES: &[&str] = &[
     "validate_publication_mixed_hardware",
     // NUCLEUS compute dispatch (Tower → Node → Nest)
     "validate_nucleus_compute_dispatch",
-    // ToadStool spectral absorption readiness
+    // BarraCUDA spectral absorption readiness
     "validate_toadstool_spectral_absorption",
     // Phase 4 WGSL shader validation (direct dispatch)
     "validate_gpu_shader_phase4",
@@ -252,7 +252,7 @@ const BINARIES: &[&str] = &[
     "validate_mixed_hardware_dispatch",
     // Portability tier benchmark (CPU → GPU parity + ToadStool streaming proof)
     "bench_portability_tiers",
-    // S91: Modern cross-spring evolution — ToadStool S68 universal precision,
+    // S91: Modern cross-spring evolution — BarraCUDA S68 universal precision,
     // provenance tracking across all 5 springs, bio+stats+precision validation
     "validate_modern_cross_spring",
     // S96: WDM + AlphaFold3 dispatch parity (CPU ↔ GPU) + metalForge routing + NUCLEUS
@@ -269,10 +269,10 @@ const BINARIES: &[&str] = &[
     "validate_wdm_coral_parity",
     // S97c: metalForge mixed-hardware WDM+coralForge (NUCLEUS atomics + PCIe bypass)
     "validate_metalforge_wdm_coral",
-    // S97d: ToadStool S70+++ cross-spring evolution (matmul_ref, SimpleMlp, stats::evolution,
+    // S97d: BarraCUDA S70+++ cross-spring evolution (matmul_ref, SimpleMlp, stats::evolution,
     // stats::jackknife, stats::hydrology, diversity::chao1_classic — provenance tracking)
     "validate_toadstool_s70_evolution",
-    // S101: ToadStool S71 GPU stats parity (KimuraGpu, HistogramGpu, upstream shader bugs)
+    // S101: BarraCUDA S71 GPU stats parity (KimuraGpu, HistogramGpu, upstream shader bugs)
     "validate_toadstool_s71_gpu_stats",
     // S102: Nautilus Shell cross-spring bridge (hotSpring brain arch → neuralSpring spectral)
     "validate_nautilus_bridge",
@@ -290,18 +290,25 @@ const BINARIES: &[&str] = &[
     "validate_barracuda_basecamp",
     // S107: baseCamp Paper 12 extended — Gonzales deep modeling, 3D lattice, Fajgenbaum MATRIX
     "validate_immunological_anderson_extended",
+    // S108: ToadStool S79 cross-spring provenance rewire
+    "validate_toadstool_s79_rewire",
     // S112: ToadStool S86 rewire — nautilus absorbed into barracuda::nautilus, DriftMonitor API
     "validate_toadstool_s86_rewire",
     // S115: ToadStool ComputeDispatch evolution (Dispatcher↔barracuda::dispatch bridge)
     "validate_compute_dispatch_evolution",
     // S116: ToadStool S87 sync — deep debt, CPU ungating, error evolution, gpu_helpers refactor
     "validate_toadstool_s87_sync",
-    // S117: Cross-spring shader evolution — provenance tracking, all springs → ToadStool convergence
+    // S116: ToadStool S93 / barraCuda standalone extraction validation
+    "validate_toadstool_s93_barracuda_extraction",
+    // S117: Cross-spring shader evolution — provenance tracking, all springs → BarraCUDA convergence
     "validate_cross_spring_shader_evolution",
     // S115: NUCLEUS PCIe bypass + mixed-pipeline (Tower→Node→Nest + GPU↔NPU↔CPU)
     "validate_nucleus_pcie_mixed_pipeline",
     // S121: SimpleMlp rewire (WDM surrogates) + HMM Viterbi f64 ComputeDispatch
     "validate_barracuda_s121_rewire",
+    // S123: Paper 026 (Chuna LSTM blood glucose prediction) — Py→Rs→bC→gT
+    "validate_glucose_prediction",
+    "validate_barracuda_glucose_prediction",
 ];
 
 fn main() {

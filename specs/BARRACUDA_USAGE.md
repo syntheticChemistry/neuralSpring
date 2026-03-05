@@ -1,7 +1,7 @@
 # BarraCUDA Usage Audit — neuralSpring
 
 **Last Updated**: March 4, 2026 (Sessions 109–121 — 213/213 validate_all, 234 binaries, barraCuda v0.3.1. S121: `SimpleMlp` rewire + HMM f64 `ComputeDispatch`. 117+ files with barracuda imports, 25+ submodules, 46 upstream rewires. V81 handoff)
-**BarraCUDA version**: `0.3.1` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from ToadStool at S89), 767 WGSL shaders
+**BarraCUDA version**: `0.3.1` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89), 767 WGSL shaders
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
 ### At a Glance (Session 121)
@@ -27,7 +27,7 @@
 |--------|-----------|---------|
 | `device::WgpuDevice` | `gpu.rs`, all FFT/tensor/ML binaries | GPU device creation and management |
 | `device::GpuDriverProfile`, `Fp64Strategy` | `gpu_dispatch/mod.rs` | Hardware-adaptive f64 strategy, pow workaround detection |
-| `device::WgpuDevice::compile_shader_universal` | `gpu.rs` (`compile_shader_universal`) | Universal precision compilation: one f64-canonical source → F16/F32/F64/Df64 (ToadStool S70+++) |
+| `device::WgpuDevice::compile_shader_universal` | `gpu.rs` (`compile_shader_universal`) | Universal precision compilation: one f64-canonical source → F16/F32/F64/Df64 (`BarraCUDA` S70+++) |
 | `shaders::precision::Precision` | `gpu.rs` (re-exported) | Precision enum: F16, F32, F64, Df64 for per-use/hardware shader compilation |
 | `device::capabilities::WORKGROUP_SIZE_*` | `evolved/mha.rs` | Shader workgroup sizing (legacy) |
 | `device.limits()` / `device.features()` | `gpu.rs` (`GpuCapabilities`) | Runtime hardware discovery — workgroup limits, f64/f16 support, buffer sizes |
@@ -369,7 +369,7 @@ Implemented via `Gpu::new()` adapter name-substring matching in `src/gpu.rs`.
 | Elementwise compose | nucleotide_diversity, pearson_correlation | `mul`, `sub`, `add`, `mean` |
 | Dimension reduction | variance, logsumexp | `mean_dim`, `sum_dim` |
 
-### API Gaps (Updated — 2 Closed by ToadStool S52)
+### API Gaps (Updated — 2 Closed by `ToadStool` S52)
 
 | Gap | Impact | Status |
 |-----|--------|--------|
@@ -431,7 +431,7 @@ Migrated from raw wgpu dispatch to typed BarraCUDA ops:
 
 ### MHA S-03b Fix Status
 
-**FULLY RESOLVED** upstream in ToadStool `0c998992`. MHA projections decomposed into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved::mha` is now a thin wrapper to `barracuda::ops::mha::MultiHeadAttention`.
+**FULLY RESOLVED** upstream in `ToadStool` `0c998992`. MHA projections decomposed into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved::mha` is now a thin wrapper to `barracuda::ops::mha::MultiHeadAttention`.
 
 ---
 
@@ -440,8 +440,7 @@ Migrated from raw wgpu dispatch to typed BarraCUDA ops:
 ### 28 Binaries Rewired to Typed BarraCUDA Ops
 
 All 28 binaries migrated from raw wgpu (include_str! local shaders + manual pipeline/
-bindgroup/encoder creation) to typed BarraCUDA op APIs. Validates upstream ToadStool/
-BarraCUDA APIs directly.
+bindgroup/encoder creation) to typed BarraCUDA op APIs. Validates upstream `BarraCUDA` APIs directly.
 
 **Key API patterns used**:
 
@@ -462,7 +461,7 @@ BarraCUDA APIs directly.
 
 ### f64 Data Type Changes
 
-f32→f64 alignment with upstream (ToadStool S49): BatchFitnessGpu, LocusVarianceGpu,
+f32→f64 alignment with upstream (`ToadStool` S49): BatchFitnessGpu, LocusVarianceGpu,
 MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu.
 
 ### HillGateGpu f64 — S-17 Root Cause and Fix (**RESOLVED** upstream `c82c23d1` S58)
@@ -479,7 +478,7 @@ NAK assertion failure on TITAN V (NVK open-source). `compile_shader_f64` patches
 **Validation**: `validate_hillgate_f64_fix` 18/18 PASS on both GPUs. Max diff
 1.11e-16 (RTX 4070) / 2.22e-16 (TITAN V) — machine epsilon.
 
-**ToadStool action**: Extend `apply_transcendental_workaround` in
+**`BarraCUDA` action**: Extend `apply_transcendental_workaround` in
 `shaders/precision/mod.rs` to also replace `pow(` → `pow_f64(` when
 `needs_pow_f64_workaround()` is true. The detection already exists in
 `driver_profile.rs`. One-line addition to `patch_exp_log_in_code`.
@@ -513,9 +512,9 @@ validators PASS.
 | Raw wgpu remaining | 4 binaries (bench_upstream_vs_local intentional, 3 ODE/pipeline not yet applicable) | Documented |
 | Feature flags needed | `unidirectional` (not yet enabled) | Medium priority |
 
-### What ToadStool Should Know
+### What `BarraCUDA` Should Know
 
-1. **Dispatching model works**: The `gpu_or_cpu` pattern proves that capability-based routing via `wgpu_device()` is the right abstraction. ToadStool should consider absorbing this as a `BarraCUDA::dispatch()` primitive.
+1. **Dispatching model works**: The `gpu_or_cpu` pattern proves that capability-based routing via `wgpu_device()` is the right abstraction. `ToadStool` should consider absorbing this as a `BarraCUDA::dispatch()` primitive.
 
 2. **`exit_no_gpu` is a CI pattern**: All three Springs need the same GPU/no-GPU policy. This could become `barracuda::testing::require_gpu()`.
 
@@ -615,9 +614,9 @@ unavoidable transitive dependencies with no C compilation.
 
 ---
 
-## Session 52 — ToadStool Sync & Cross-Spring Benchmarking (February 24, 2026)
+## Session 52 — `ToadStool` Sync & Cross-Spring Benchmarking (February 24, 2026)
 
-### ToadStool Sync (16 commits, `b41ee5f4` → `9abd6857`)
+### `ToadStool` Sync (16 commits, `b41ee5f4` → `9abd6857`)
 
 | Absorption | Upstream API | Impact |
 |-----------|-------------|--------|
@@ -695,7 +694,7 @@ unavoidable transitive dependencies with no C compilation.
 
 ---
 
-## Session 56 — ToadStool S53 Sync + Upstream Rewiring (February 24, 2026)
+## Session 56 — `ToadStool` S53 Sync + Upstream Rewiring (February 24, 2026)
 
 ### 4 Functions Rewired to Upstream BarraCUDA (`9404fdb4`)
 
@@ -956,8 +955,8 @@ constants. Same shader content, but source-of-truth now lives in barracuda:
 
 | API | Where Used | Purpose |
 |-----|------------|---------|
-| `Tensor::argmax_dim(0)` | `gpu_ops/bio.rs::hmm_viterbi_step_gpu` | Viterbi psi extraction — replaces CPU argmax loop over readback scores. Available since ToadStool S60 (commit `0c998992`). |
-| `Tensor::softmax_dim(1)` | `gpu_dispatch/dispatch_ops.rs::Dispatcher::softmax_row_wise` | Row-wise softmax for attention/PGM transition matrices. Available since ToadStool S60. |
+| `Tensor::argmax_dim(0)` | `gpu_ops/bio.rs::hmm_viterbi_step_gpu` | Viterbi psi extraction — replaces CPU argmax loop over readback scores. Available since `ToadStool` S60 (commit `0c998992`). |
+| `Tensor::softmax_dim(1)` | `gpu_dispatch/dispatch_ops.rs::Dispatcher::softmax_row_wise` | Row-wise softmax for attention/PGM transition matrices. Available since `ToadStool` S60. |
 | `barracuda::ops::bio::fst_variance_decomposition` | `meta_population::fst_single_locus`, `pairwise_fst_full` | Weir-Cockerham single-locus decomposition for full F-statistics (θ, f_is, f_it). From wetSpring S53 population genetics. |
 
 ### Cross-Spring Evolution Validator
@@ -1015,13 +1014,13 @@ zero duplicate math. Every barracuda primitive that exists is used where applica
 | `validate_barracuda_tensor.rs` refactoring | 966 → 911 lines via shared validation helpers |
 | Coverage expansion | `wdm_surrogate.rs` 43→98%, `basecamp.rs` 49→91% (604 lib tests total) |
 
-### Identified Gaps for ToadStool
+### Identified Gaps for `BarraCUDA`
 
 | # | Gap | Priority |
 |---|-----|----------|
 | 1 | `barracuda::nn::SimpleMLP` (JSON weight loading + forward pass) | High |
 | 2 | `validate_tensor_unary` / `validate_tensor_reduction` in `barracuda::validation` | Medium |
-| 3 | ~~`variance(data, ddof)`~~ — population vs sample in one API | **CLOSED** (ToadStool S66: `variance_ddof(data, ddof)`) |
+| 3 | ~~`variance(data, ddof)`~~ — population vs sample in one API | **CLOSED** (`ToadStool` S66: `variance_ddof(data, ddof)`) |
 | 4 | `harness.check_abs_result()` — Result-aware validation check | Low |
 
 ### Validation
@@ -1085,9 +1084,9 @@ zero duplicate math. Every barracuda primitive that exists is used where applica
 
 ---
 
-### Session 83: ToadStool S68 Universal Precision Sync
+### Session 83: `ToadStool` S68 Universal Precision Sync
 
-ToadStool evolved from `17932267` (S65) to `1dd7e338` (S70+++) — 22 commits. The
+`ToadStool` evolved from `17932267` (S65) to `1dd7e338` (S70+++) — 22 commits. The
 S70+++ precision evolution eliminated all f32-only shaders, converting 700 WGSL
 shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
 
@@ -1101,7 +1100,7 @@ shaders to f64 canonical with runtime downcast via `LazyLock<String>`.
 | `LogSumExp::WGSL_LOGSUMEXP_REDUCE` renamed | Rewired to `forge::shaders::LOGSUMEXP_REDUCE` (local copy) |
 | `variance_ddof(data, ddof)` upstream | Gap #3 closed — population vs sample in single API |
 
-### New ToadStool S66–S70+++ APIs Available
+### New `BarraCUDA` S66–S70+++ APIs Available
 
 | API | Status |
 |-----|--------|
@@ -1141,7 +1140,7 @@ GPU Dispatcher provenance benchmarks added: variance 10.4ms, pearson 9.2ms, shan
 **Known anomaly — Hamming 20.85× regression**: `bench_upstream_vs_local` shows
 `PairwiseHammingGpu` 200×500 at 50,060µs upstream vs 2,401µs local (20.85× slower).
 Cause: upstream f64 path on small sizes vs local f32. Investigation target for
-ToadStool — consider size-based f32/f64 routing or public f32 constant.
+`ToadStool` — consider size-based f32/f64 routing or public f32 constant.
 
 **Session 85 doc sweep**: All stale validation counts updated (580→604, 163→166,
 107→129+ tolerances, V43→V48 refs). baseCamp sub-theses updated through S85.

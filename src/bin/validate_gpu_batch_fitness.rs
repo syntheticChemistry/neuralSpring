@@ -8,7 +8,7 @@
 //! Evolution path:
 //! ```text
 //! Python (numpy.dot) → Rust CPU (loop) → BarraCUDA CPU (variance)
-//!   → GPU WGSL shader (batch_fitness_eval_f64.wgsl) → ToadStool absorption
+//!   → GPU WGSL shader (batch_fitness_eval_f64.wgsl) → `BarraCUDA` absorption
 //! ```
 //!
 //! ## Papers validated

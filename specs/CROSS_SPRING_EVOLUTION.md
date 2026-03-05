@@ -3,10 +3,10 @@
 > *"We evolve locally, validate rigorously, hand off cleanly, then lean on upstream."*
 
 This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring**,
-and **neuralSpring** — contribute shaders and primitives to `ToadStool`/`BarraCUDA`,
+and **neuralSpring** — contribute shaders and primitives to `BarraCUDA`,
 creating a shared math engine whose capabilities grow with every absorption cycle.
 
-**ToadStool HEAD**: `1dd7e338` (Sessions 59–70+++ sync — 42 upstream rewires, S-03b fully resolved, 21/21 shaders absorbed + 15 coralForge df64 shaders (df64 core streaming), 93.5% coverage, 611 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, cross-spring evolution 52/52 PASS, WDM surrogates validated, S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety, Feb 26, 2026)
+**`ToadStool` HEAD**: `1dd7e338` (Sessions 59–70+++ sync — 42 upstream rewires, S-03b fully resolved, 21/21 shaders absorbed + 15 coralForge df64 shaders (df64 core streaming), 93.5% coverage, 611 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, cross-spring evolution 52/52 PASS, WDM surrogates validated, S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety, Feb 26, 2026)
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
 ---
@@ -16,7 +16,7 @@ creating a shared math engine whose capabilities grow with every absorption cycl
 ```text
 Spring evolves locally   →  validates against baselines  →  metalForge export
        ↓                                                          ↓
-Spring leans on upstream ←  ToadStool absorbs             ←  handoff to ToadStool
+Spring leans on upstream ←  `ToadStool` absorbs             ←  handoff to ToadStool
 ```
 
 Each Spring operates independently, evolving workarounds and new capabilities in
@@ -400,7 +400,7 @@ neuralSpring ML ───→ eigh, batch_fitness, pairwise_l2, spectral density
 #### S-03b Resolution: Write → Absorb → Lean Complete
 
 The MHA projection hang (S-03b) was resolved upstream in `ToadStool` S60–S61
-(`0c998992`). ToadStool independently decomposed the fused projection into matmul +
+(`0c998992`). `ToadStool` independently decomposed the fused projection into matmul +
 head_split + head_concat — the exact approach neuralSpring evolved locally.
 
 Result: `evolved/mha.rs` rewired from 124 LOC workaround to 18 LOC thin wrapper.
@@ -512,7 +512,7 @@ overhead of local manual dispatch:
 
 #### Cross-Spring Provenance Summary (S69)
 
-Three Springs feed ToadStool/BarraCUDA, each bringing domain expertise:
+Three Springs feed `BarraCUDA`, each bringing domain expertise:
 
 **hotSpring** (precision physics): ~25+ shaders/modules — df64_core, SU(3) gauge,
 CG solver, Lanczos eigensolver, Hermite/Laguerre polynomials, `SHADER_F64` detection,
@@ -555,8 +555,8 @@ completing the absorption cycle for Viterbi, softmax, and F-statistics.
 
 | Rewire | Source File | Before | After | Origin Spring |
 |--------|------------|--------|-------|---------------|
-| Viterbi argmax_dim | `gpu_ops/bio.rs` | CPU loop over scores_flat | `Tensor::argmax_dim(0)` + `to_vec_u32()` | neuralSpring request → ToadStool S60 |
-| softmax_row_wise | `gpu_dispatch/dispatch_ops.rs` | Manual per-row loop | `Tensor::softmax_dim(1)` | neuralSpring V20 → ToadStool S60 |
+| Viterbi argmax_dim | `gpu_ops/bio.rs` | CPU loop over scores_flat | `Tensor::argmax_dim(0)` + `to_vec_u32()` | neuralSpring request → `ToadStool` S60 |
+| softmax_row_wise | `gpu_dispatch/dispatch_ops.rs` | Manual per-row loop | `Tensor::softmax_dim(1)` | neuralSpring V20 → `ToadStool` S60 |
 | fst_single_locus | `meta_population.rs` | θ-only `pairwise_fst` | `fst_variance_decomposition` → (θ, f_is, f_it) | wetSpring S53 → BarraCUDA bio |
 | pairwise_fst_full | `meta_population.rs` | θ-only multi-locus | Per-locus upstream → averaged F-statistics | wetSpring S53 → BarraCUDA bio |
 
@@ -581,7 +581,7 @@ Three new binaries close the pure GPU and cross-system milestones:
 - `SpatialPayoffGpu` from wetSpring game theory stencil
 - `HmmBatchForwardF64` from wetSpring phylogenetics
 - `PairwiseJaccardGpu` from wetSpring/neuralSpring pangenomics
-- All feeding ToadStool's unified GPU sovereign pipeline
+- All feeding `ToadStool`'s unified GPU sovereign pipeline
 
 **f32/f64 precision boundary:** f64 for log-space accumulation (HMM, fitness, locus variance); f32 for domain ops (IPR, L2, Hamming, Jaccard, spatial payoff).
 
@@ -602,9 +602,9 @@ Three new binaries close the pure GPU and cross-system milestones:
 
 ---
 
-### Session 75 — ToadStool S60–S65 Upstream Sync (Feb 26, 2026)
+### Session 75 — `ToadStool` S60–S65 Upstream Sync (Feb 26, 2026)
 
-Full sync to ToadStool commits S60–S65 (4 commits, 234 files, ~23K lines).
+Full sync to `ToadStool` commits S60–S65 (4 commits, 234 files, ~23K lines).
 
 | Rewire | Module | Upstream |
 |--------|--------|----------|
@@ -669,8 +669,8 @@ primitives, followed by full benchmark sweep on RTX 4070.
 | Chao1 | wetSpring → `barracuda::stats` | 0.2 |
 | alpha_diversity | wetSpring → `barracuda::stats` | 4.8 |
 | Bray-Curtis | wetSpring → `barracuda::stats` | 0.1 |
-| DiversityFusion CPU | wetSpring → ToadStool | 61.1 |
-| DiversityFusion GPU | wetSpring → ToadStool → GPU | 3569.1 |
+| DiversityFusion CPU | wetSpring → `BarraCUDA` | 61.1 |
+| DiversityFusion GPU | wetSpring → `BarraCUDA` → GPU | 3569.1 |
 | Pearson r | hotSpring + wetSpring → `barracuda::stats` | 26.1 |
 
 **Upstream vs Local GPU Dispatch** (`bench_upstream_vs_local`):

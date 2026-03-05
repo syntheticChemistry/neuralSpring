@@ -170,9 +170,9 @@ fn validate_cross_system_eigensolve(
     let (gpu_evals, _) = dispatcher.eigh(&hessian, m);
 
     let mut cpu_sorted = cpu_evals;
-    cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_sorted.sort_by(f64::total_cmp);
     let mut gpu_sorted = gpu_evals;
-    gpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_sorted.sort_by(f64::total_cmp);
 
     let eval_diff = cpu_sorted
         .iter()

@@ -9,7 +9,7 @@
 //! ## Architecture
 //!
 //! Imitates the hotSpring pattern so each Spring evolves independently
-//! and the ToadStool/BarraCUDA team can absorb changes asynchronously:
+//! and the `ToadStool`/`BarraCUDA` team can absorb changes asynchronously:
 //!
 //! - **`validation`** — [`ValidationHarness`](validation::ValidationHarness) with exit 0/1
 //! - **`tolerances`** — centralized constants, no ad-hoc magic numbers
@@ -90,6 +90,7 @@ pub mod eigh;
 pub mod evolved;
 pub mod fft;
 pub mod game_theory;
+pub mod glucose_prediction;
 pub mod gpu;
 pub mod gpu_dispatch;
 pub mod gpu_ops;

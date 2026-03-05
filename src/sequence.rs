@@ -22,18 +22,12 @@ use std::f64::consts::PI;
 /// Matches Python `create_sequences(data, seq_len, horizon)`.
 #[must_use]
 pub fn create_sequences(data: &[f64], seq_len: usize, horizon: usize) -> (Vec<Vec<f64>>, Vec<f64>) {
-    let mut inputs = Vec::new();
-    let mut targets = Vec::new();
     let n = data.len();
 
-    for i in seq_len..=(n.saturating_sub(horizon)) {
-        if i + horizon - 1 < n {
-            inputs.push(data[i - seq_len..i].to_vec());
-            targets.push(data[i + horizon - 1]);
-        }
-    }
-
-    (inputs, targets)
+    (seq_len..=(n.saturating_sub(horizon)))
+        .filter(|&i| i + horizon - 1 < n)
+        .map(|i| (data[i - seq_len..i].to_vec(), data[i + horizon - 1]))
+        .unzip()
 }
 
 /// Persistence forecast: predict the last observed value for each window.

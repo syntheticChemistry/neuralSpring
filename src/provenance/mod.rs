@@ -120,7 +120,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::expect_used)]
+    #[expect(
+        clippy::expect_used,
+        reason = "test verifies known reference point exists"
+    )]
     fn gelu_zero_is_zero() {
         let (_, y) = GELU_REFERENCE
             .iter()
@@ -185,7 +188,10 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp)]
+    #[expect(
+        clippy::float_cmp,
+        reason = "global minima are exactly 0.0 by mathematical definition"
+    )]
     fn benchmark_references_have_global_minima() {
         assert!(RASTRIGIN_REFERENCE
             .iter()

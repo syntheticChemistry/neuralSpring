@@ -1,19 +1,20 @@
 # ToadStool Handoff — neuralSpring Local Evolutions
 
-This document catalogues BarraCUDA / ToadStool shortcomings that
+This document catalogues `BarraCUDA` / `ToadStool` shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** barraCuda v0.3.1 standalone (`../barraCuda/crates/barracuda`), Mar 4, 2026. Extracted from ToadStool at S89; standalone primal since v0.2.0. **ALL 17 shortcomings RESOLVED, 44 upstream rewires, 130+ barracuda import sites, 25+ submodules exercised, 232 binaries, 869 lib tests, 0 clippy, 0 doc warnings.** ToadStool sessions S89–S93: D-DF64 transfer, sovereignty deprecations, REST→JSON-RPC, barraCuda budding. barraCuda v0.3.0–v0.3.1: toadStool untangle, tarpc service, UniBin CLI, DeviceLost resilience, global DEVICE_CREATION_LOCK, blake3 pure, println→tracing, 2965 upstream tests. neuralSpring confirmed clean build + full test pass against standalone barraCuda.
-**Canonical handoff:** `wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V80_S120_DEEP_DEBT_AUDIT_HANDOFF_MAR03_2026.md`
-**barraCuda standalone:** `../barraCuda/crates/barracuda` v0.3.1 — 767 WGSL shaders, dual-protocol IPC, domain feature-gates. Extracted from ToadStool S89. No cross-dependencies on any primal.
-**Session 97c sync (S70+++ pin bump):** ToadStool pin bumped `e96576ee`→`1dd7e338` (13 commits, S68++→S70+++). **Key absorptions**: 7 new DF64 WGSL shaders (gelu, sigmoid, softmax, layer_norm, sdpa, brent, seasonal_pipeline), `SimpleMlp` (JSON-serde MLP), `matmul_ref` (non-consuming matmul for recurrent architectures), `SymmetrizeGpu`, `LaplacianGpu`, `stats::evolution/jackknife/hydrology`, `chao1_classic`, preferred_workgroup_size. **Rewired**: 2 `matmul_ref` sites (ESN validator + tensor benchmark). **Not rewired** (by design): SimpleMlp in validators (test specific Tensor ops), SymmetrizeGpu (small matrices), LaplacianGpu (keep CPU path). ToadStool now at 668 WGSL shaders, 4700+ workspace tests, 0 clippy warnings, 45 documented unsafe. Full re-validation: 200/200 validate_all, 685 lib tests, 0 clippy. V64 handoff updated.
+**Last reviewed:** barraCuda v0.3.1 standalone (`../barraCuda/crates/barracuda`), Mar 5, 2026. Extracted from `ToadStool` at S89; standalone primal since v0.2.0. **ALL 17 shortcomings RESOLVED, 44 upstream rewires, 130+ barracuda import sites, 25+ submodules exercised, 238 binaries, 880 lib tests, 0 clippy, 0 doc warnings.** airSpring V069 naming rewire applied: `ToadStool` = hardware dispatch/streaming, `BarraCUDA` = math engine/shaders/ops. HMM forward chain absorbed to single `ComputeDispatch` via `HmmBatchForwardF64`. 2 missing validators added to `validate_all` (217 total). V82 handoff.
+**Canonical handoff:** V82 (Session 124, Mar 5, 2026) — airSpring V069 naming rewire + HMM absorption + validate_all gap closure
+**barraCuda standalone:** `../barraCuda/crates/barracuda` v0.3.1 — 767 WGSL shaders, dual-protocol IPC, domain feature-gates. Extracted from `ToadStool` S89. No cross-dependencies on any primal.
+**Session 124 sync (airSpring V069 naming rewire):** Applied airSpring V069 naming convention across 20 library `.rs` files, 38 binary `.rs` files, 10+ specs `.md` files, and root docs. `ToadStool` = hardware dispatch/streaming/orchestration. `BarraCUDA` = math engine/shaders/ops/stats/linalg. Historical absorption references preserved with `ToadStool` attribution. HMM forward chain rewired from per-step Tensor GEMV loop to single `HmmBatchForwardF64` `ComputeDispatch` (log-domain, zero per-step round-trips, automatic fallback to legacy path). `validate_toadstool_s79_rewire` and `validate_toadstool_s93_barracuda_extraction` added to `validate_all` (215→217). Quality gates: `cargo fmt`, `clippy` 0 warnings, `cargo test --lib` 880/880.
+**Session 97c sync (S70+++ pin bump):** `ToadStool` pin bumped `e96576ee`→`1dd7e338` (13 commits, S68++→S70+++). **Key absorptions**: 7 new DF64 WGSL shaders (gelu, sigmoid, softmax, layer_norm, sdpa, brent, seasonal_pipeline), `SimpleMlp` (JSON-serde MLP), `matmul_ref` (non-consuming matmul for recurrent architectures), `SymmetrizeGpu`, `LaplacianGpu`, `stats::evolution/jackknife/hydrology`, `chao1_classic`, preferred_workgroup_size. **Rewired**: 2 `matmul_ref` sites (ESN validator + tensor benchmark). **Not rewired** (by design): SimpleMlp in validators (test specific Tensor ops), SymmetrizeGpu (small matrices), LaplacianGpu (keep CPU path). `ToadStool` now at 668 WGSL shaders, 4700+ workspace tests, 0 clippy warnings, 45 documented unsafe. Full re-validation: 200/200 validate_all, 685 lib tests, 0 clippy. V64 handoff updated.
 **Session 56 sync:** 4 baseCamp functions rewired to upstream `barracuda::linalg::graph` + `barracuda::numerical`
 **Session 58 sync:** 7 Dispatcher methods rewired to upstream `barracuda::dispatch::domain_ops` + GpuDriverProfile wired in
 **Session 57 sync:** S58–S59 confirmed: ValidationHarness/exit_no_gpu/require! absorbed; pow polyfill consolidated; new upstream: anderson correlated, ridge, NMF, ODE bio, dispatch domain_ops, Fp64Strategy
 **Session 59 sync:** 5 new rewires — `empirical_spectral_density`, `marchenko_pastur_bounds`, `effective_rank` to upstream stats/linalg; `gelu` + `hmm_forward_step` added to Dispatcher via upstream `domain_ops`; 3 dead WGSL re-exports removed from `evolved/`
 **Session 60 sync:** Benchmark validation pass — 22/22 cross-spring evolution checks, f64 typed ops benchmarked (Variance 2.46× hotSpring, Entropy 2.59× wetSpring), 500 lib tests, 145/146 validate_all
 **Session 61 sync:** V26 handoff, code quality sweep, 101+ tolerances, property tests, comprehensive evolution handoff
-**Session 62 sync:** S-03b **FULLY RESOLVED** upstream. ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved/mha.rs` now thin wrapper to `barracuda::ops::mha::MultiHeadAttention`. 500 lib tests, 145/146 validate_all.
+**Session 62 sync:** S-03b **FULLY RESOLVED** upstream. `ToadStool` `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders absorbed. `evolved/mha.rs` now thin wrapper to `barracuda::ops::mha::MultiHeadAttention`. 500 lib tests, 145/146 validate_all.
 **Session 64 sync:** V29 handoff. BandwidthTier + NVK guard wired into Dispatcher. Cross-spring benchmarks: Variance 3.49×, Entropy 2.56×, Pearson 1.33×.
 **Session 66 sync:** Phase C GPU promotion — HMM chains, FST, introgression, AF variance. 44 CPU→GPU ops (~97%). validate_gpu_phase_c 18/18 PASS.
 **Session 67 sync:** V30 handoff. CPU↔Python parity 39/39 PASS (1e-10). Dispatch tier benchmarks: ≤1.04× CPU overhead (9/10 ops). Per-call GPU driver-bound → motivates pipeline batching.
@@ -25,7 +26,7 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 
 **Session 71 sync:** Deep audit execution — 150+ ad-hoc tolerances → named constants across 21 library test files. Smart refactored `gpu_dispatch/mod.rs` 862→304 lines. Dependency audit: all crates Pure Rust (ecoBin compliant). V34 handoff crafted.
 
-**Session 72 sync:** Full ToadStool commit review — 47 commits (`77f70b2e`..`02207c4a`, ToadStool sessions S39–S62) audited. **ALL 17 shortcomings now RESOLVED upstream**: S-14/S-15/S-16 fixed at `a4996b34` (S39: Naive tier removed, matmul hang fixed, transpose dispatch fixed). S-17 fixed at `c82c23d1` (S58: `patch_transcendentals_in_code` covers `pow`). Previously blocked Tensor APIs now available upstream: `argmax_dim(axis)`, `softmax_dim(axis)`. New upstream APIs: `fst_variance_decomposition`, `Conv2dGpu`, `PeakDetectF64`, `MovingWindowStats`, `SparseGemmF64`, `TranseScoreF64`, `ridge_regression`, `NMF`. ToadStool caught up to neuralSpring handoff V16/V18; V33/V34 not yet consumed. `barracuda::validation::ValidationHarness` absorbed (subset of neuralSpring's — missing GPU helpers). Validator workarounds (positive-only data, A×B^T) retained as defense-in-depth. V35 handoff crafted.
+**Session 72 sync:** Full `ToadStool` commit review — 47 commits (`77f70b2e`..`02207c4a`, `ToadStool` sessions S39–S62) audited. **ALL 17 shortcomings now RESOLVED upstream**: S-14/S-15/S-16 fixed at `a4996b34` (S39: Naive tier removed, matmul hang fixed, transpose dispatch fixed). S-17 fixed at `c82c23d1` (S58: `patch_transcendentals_in_code` covers `pow`). Previously blocked Tensor APIs now available upstream: `argmax_dim(axis)`, `softmax_dim(axis)`. New upstream APIs: `fst_variance_decomposition`, `Conv2dGpu`, `PeakDetectF64`, `MovingWindowStats`, `SparseGemmF64`, `TranseScoreF64`, `ridge_regression`, `NMF`. `ToadStool` caught up to neuralSpring handoff V16/V18; V33/V34 not yet consumed. `barracuda::validation::ValidationHarness` absorbed (subset of neuralSpring's — missing GPU helpers). Validator workarounds (positive-only data, A×B^T) retained as defense-in-depth. V35 handoff crafted.
 
 **Session 73 sync:** Cross-spring rewiring — 4 new upstream rewires using newly available Tensor APIs. (1) Viterbi `argmax_dim(0)` replaces CPU argmax loop in `hmm_viterbi_step_gpu`. (2) `Dispatcher::softmax_row_wise` via `Tensor::softmax_dim(1)`. (3) `fst_single_locus` wraps `barracuda::ops::bio::fst_variance_decomposition` for F-statistics (θ, f_is, f_it). (4) `pairwise_fst_full` uses upstream per-locus decomposition for multi-locus F-statistics. New tolerances: `DISPATCH_F32_ROUNDTRIP` (1e-6), `DISPATCH_VITERBI_F32` (1e-5). Cross-spring evolution validator: 39/39 PASS. Total: **21 functions + 6 shader sources rewired to upstream**. V36 handoff crafted.
 
@@ -35,15 +36,15 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 
 **Session 77 sync:** WDM surrogates + baseCamp GPU pure + coralForge shaders. 3 WDM Python baselines (nW-01 transport via Stanton-Murillo, nW-02 EOS via Militzer FPEOS, nW-04 classical-to-WDM transfer learning). `wdm_surrogate.rs` module with `EosSurrogate::predict()`. 2 Rust validators (CPU + BarraCUDA GPU). `validate_basecamp_gpu_pure` validates all 5 sub-theses on GPU with scalar readback. `bench_basecamp_gpu_pure` benchmarks GPU vs CPU for all sub-theses. 9 new f64 WGSL shaders for coralForge (layer\_norm, GELU, sigmoid, SDPA scores/softmax/apply, triangle mul outgoing/incoming, triangle attention). 604 lib tests. V41 handoff.
 
-**Session 78–79 sync:** ToadStool S66 absorption + complete cross-spring rewiring. Deep S66 review: `compile_shader_df64` convention with `Df64` struct, 6 new function rewires (mae → `barracuda::stats::mae`, shannon → `shannon_from_frequencies`, hill×2 → `barracuda::stats::hill`, l2\_distance → `l2_distance_dispatch`, complexity → `fit_linear`). All 9 metalForge f64 shaders aligned to `compile_shader_df64` convention. Population vs sample variance clarified. Cross-spring validator expanded to 52/52 PASS, benchmark to 19/19 PASS. Total: **38 functions + 6 shader sources rewired to upstream**. V42→V43→V44 handoffs.
+**Session 78–79 sync:** `ToadStool` S66 absorption + complete cross-spring rewiring. Deep S66 review: `compile_shader_df64` convention with `Df64` struct, 6 new function rewires (mae → `barracuda::stats::mae`, shannon → `shannon_from_frequencies`, hill×2 → `barracuda::stats::hill`, l2\_distance → `l2_distance_dispatch`, complexity → `fit_linear`). All 9 metalForge f64 shaders aligned to `compile_shader_df64` convention. Population vs sample variance clarified. Cross-spring validator expanded to 52/52 PASS, benchmark to 19/19 PASS. Total: **38 functions + 6 shader sources rewired to upstream**. V42→V43→V44 handoffs.
 
 **Session 86 sync:** WDM surrogate buildout complete. `wdm_transport.rs` new module (MLP 3→H→3 transport surrogate). 4 new validators (nW-01 transport 30/30, nW-02 EOS wired 36/36+GPU 15/15, nW-04 transfer 6/6) added to `validate_all` (154 total). `check_drift.sh` expanded to 29 baselines. 611 lib + 43 forge + 9 integration tests. Key learning: `barracuda::nn::SimpleMLP` with JSON weight loading would replace ~400 LOC across 3 WDM surrogates — highest-priority absorption target. V50 handoff crafted.
 
 **Session 87 sync:** WDM surrogate queue closed — nW-03 (LSTM S(q,ω) peak predictor) and nW-05 (ESN regime classifier) complete. 156 total validators, 31 baselines, 668 lib + 43 forge + 9 integration tests.
 
-**Session 91 sync:** Full ToadStool S66–S68 evolution review. ToadStool achieved **ZERO f32-only shaders** (296 deleted, 291 converted to f64 canonical). Dual-layer universal precision architecture: `Precision::op_preamble()` (Layer 1: abstract ops) + `sovereign/df64_rewrite.rs` (Layer 2: naga-guided f64→df64 infix rewrite). `compile_shader_universal(source, precision)` now exposed in `gpu.rs` for callers to compile at F16/F32/F64/Df64 per-use/hardware. `Precision` enum re-exported from `gpu.rs`. Primal Evoformer matmul helpers (`matmul_2d`, `matmul_3d`) rewired to upstream `barracuda::dispatch::matmul_dispatch` (m, k, n non-square support). NUCLEUS Tower validator: 22/22 PASS. All quality gates green: 669 lib tests, 0 clippy warnings, 181/181 validate\_all. ToadStool metrics: 700 WGSL shaders (497 f32 via LazyLock downcast, 182 f64, 19 Df64), 2608 barracuda tests, 122 shader tests (unit + e2e + chaos + fault). Total: **44 functions + 6 shader sources rewired to upstream**. V61 handoff crafted.
+**Session 91 sync:** Full `ToadStool` S66–S68 evolution review. `ToadStool` achieved **ZERO f32-only shaders** (296 deleted, 291 converted to f64 canonical). Dual-layer universal precision architecture: `Precision::op_preamble()` (Layer 1: abstract ops) + `sovereign/df64_rewrite.rs` (Layer 2: naga-guided f64→df64 infix rewrite). `compile_shader_universal(source, precision)` now exposed in `gpu.rs` for callers to compile at F16/F32/F64/Df64 per-use/hardware. `Precision` enum re-exported from `gpu.rs`. Primal Evoformer matmul helpers (`matmul_2d`, `matmul_3d`) rewired to upstream `barracuda::dispatch::matmul_dispatch` (m, k, n non-square support). NUCLEUS Tower validator: 22/22 PASS. All quality gates green: 669 lib tests, 0 clippy warnings, 181/181 validate\_all. `ToadStool` metrics: 700 WGSL shaders (497 f32 via LazyLock downcast, 182 f64, 19 Df64), 2608 barracuda tests, 122 shader tests (unit + e2e + chaos + fault). Total: **44 functions + 6 shader sources rewired to upstream**. V61 handoff crafted.
 
-**Session 121 sync (Mar 4, 2026):** Full barraCuda v0.3.1 standalone validation + **2 major rewires**. Reviewed ToadStool S89–S93 commit evolution (barraCuda extraction, D-DF64 transfer, sovereignty deprecations, REST→JSON-RPC). Reviewed barraCuda v0.2.0→v0.3.0→v0.3.1 CHANGELOG (toadStool untangle, tarpc service, UniBin CLI, `DeviceLost` resilience, global `DEVICE_CREATION_LOCK`, blake3 pure, println→tracing, 2965 upstream tests). Reviewed wateringHole groundSpring rewire guidance (capability-based discovery, `ComputeDispatch` adoption, error-handling with `if let Ok` + CPU fallback, sovereignty naming).
+**Session 121 sync (Mar 4, 2026):** Full barraCuda v0.3.1 standalone validation + **2 major rewires**. Reviewed `ToadStool` S89–S93 commit evolution (barraCuda extraction, D-DF64 transfer, sovereignty deprecations, REST→JSON-RPC). Reviewed barraCuda v0.2.0→v0.3.0→v0.3.1 CHANGELOG (`ToadStool` untangle, tarpc service, UniBin CLI, `DeviceLost` resilience, global `DEVICE_CREATION_LOCK`, blake3 pure, println→tracing, 2965 upstream tests). Reviewed wateringHole groundSpring rewire guidance (capability-based discovery, `ComputeDispatch` adoption, error-handling with `if let Ok` + CPU fallback, sovereignty naming).
 
 **Rewire 1 — WDM surrogates → `barracuda::nn::SimpleMlp`**: `EosSurrogate` and `TransportSurrogate` now delegate MLP inference to `barracuda::nn::SimpleMlp::forward()` instead of hand-rolled matmul loops. JSON weight loading converts flat row-major Python baseline weights to `DenseLayer` 2D format with `Activation::Relu`/`Activation::Identity`. `MlpLayer` struct eliminated from both modules. ~300 LOC of manual forward-pass code removed. `SimpleMlp::to_json()`/`from_json()` roundtrip verified exact (0 ULP diff). GPU validation binaries updated to iterate `surr.mlp.layers` with `DenseLayer.weight`/`DenseLayer.activation`. Cross-spring provenance: neuralSpring nW-01/02 concept → `ToadStool` S83 absorption → `barracuda::nn::SimpleMlp` → all springs benefit.
 
@@ -58,8 +59,8 @@ This document catalogues BarraCUDA / ToadStool shortcomings that
 ## Resolution Status
 
 **All 12 neuralSpring shortcomings (S-01 through S-12) are now ABSORBED by
-ToadStool `77f70b2e`.** S-13 **FIXED** upstream in Session 42 (`5437c170`).
-S-03b **FULLY RESOLVED** upstream (ToadStool `0c998992`). Key absorption commits:
+`ToadStool` `77f70b2e`.** S-13 **FIXED** upstream in Session 42 (`5437c170`).
+S-03b **FULLY RESOLVED** upstream (`ToadStool` `0c998992`). Key absorption commits:
 
 | Commit | What It Did |
 |--------|-------------|
@@ -70,7 +71,7 @@ S-03b **FULLY RESOLVED** upstream (ToadStool `0c998992`). Key absorption commits
 | `cce8fe7c` | wetSpring absorption — `GemmF64::WGSL` |
 | `1ffe8b1a` | GPU FFT f64 validation + error system debt |
 
-| # | Shortcoming | Severity | ToadStool Fix | Status |
+| # | Shortcoming | Severity | `ToadStool` Fix | Status |
 |---|-------------|----------|---------------|--------|
 | 1 | Per-op submission (S-01) | **Critical** | `TensorSession` single-encoder batch | **ABSORBED** |
 | 2 | Naive matmul (S-02) | **Critical** | 4-tier `KernelRouter` (Naive/Tiled16/CpuTiled32/GpuEvolved32) | **ABSORBED** |
@@ -135,7 +136,7 @@ S-03b **FULLY RESOLVED** upstream (ToadStool `0c998992`). Key absorption commits
 ## Evolved Module Retirement Plan
 
 `src/evolved/` contains ~3375 LOC of workarounds. All non-metalForge modules
-are now superseded by native BarraCUDA APIs. Documented in `evolved/mod.rs`.
+are now superseded by native `BarraCUDA` APIs. Documented in `evolved/mod.rs`.
 
 ### Fossilized (removed from active code — `metalForge/fossils/`)
 
@@ -159,11 +160,11 @@ are now superseded by native BarraCUDA APIs. Documented in `evolved/mod.rs`.
 | `mha` | ~50 | **Thin wrapper** to `barracuda::ops::mha::MultiHeadAttention` (S-03b resolved upstream) | `validate_barracuda_ml_inference`, `bench_transformer_block` | 17 |
 | `hmm_forward_gpu` | 270 | `HmmBatchForwardF64` validated (11/11 PASS) — local retained for f32 fallback | `validate_barracuda_hmm_f64` | 11/11 |
 
-### S-03b: MHA — FULLY RESOLVED (ToadStool `0c998992`)
+### S-03b: MHA — FULLY RESOLVED (`ToadStool` `0c998992`)
 
 **Root cause**: Native MHA fuses matmul into projection shaders (heavy per-thread nested loops → GPU watchdog timeout).
 
-**Upstream fix**: ToadStool `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders now absorbed upstream.
+**Upstream fix**: `ToadStool` `0c998992` decomposed MHA projections into matmul + head_split/head_concat shaders. All 21/21 WGSL shaders now absorbed upstream.
 
 **Status**: `evolved::mha` is now a thin wrapper delegating to `barracuda::ops::mha::MultiHeadAttention`.
 
@@ -201,7 +202,7 @@ are now superseded by native BarraCUDA APIs. Documented in `evolved/mod.rs`.
 ### MHA Retirement Assessment
 
 `evolved/mha` is now a **thin wrapper** delegating to `barracuda::ops::mha::MultiHeadAttention`.
-S-03b fully resolved upstream (ToadStool `0c998992`): MHA projections decomposed into matmul + head_split/head_concat. All 21/21 WGSL shaders absorbed.
+S-03b fully resolved upstream (`ToadStool` `0c998992`): MHA projections decomposed into matmul + head_split/head_concat. All 21/21 WGSL shaders absorbed.
 
 ### Validation
 
@@ -282,7 +283,7 @@ Householder+QR implementation verbatim. `src/eigh.rs` now delegates to upstream.
 Local fossil: `metalForge/fossils/evolved_s01_s11/eigh_local.rs`.
 
 - Validation: `validate_eigh_accuracy` (9/9 PASS, delegated)
-- ToadStool also added `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` for GPU-native eigensolve
+- `ToadStool` also added `WGSL_BATCHED_EIGH_NAK_OPTIMIZED` for GPU-native eigensolve
 
 ---
 
@@ -347,7 +348,7 @@ dispatch output vs upstream BarraCuda wrapper output.
 ## Phase 5a/5b Shortcomings — ALL RESOLVED UPSTREAM
 
 Discovered during GPU `Tensor` validation across 23 scientific domains.
-**All resolved** at ToadStool `a4996b34` (S39) and `c82c23d1` (S58).
+**All resolved** at `ToadStool` `a4996b34` (S39) and `c82c23d1` (S58).
 
 | # | Shortcoming | Severity | Root Cause | Status |
 |---|-------------|----------|------------|--------|
@@ -447,7 +448,7 @@ All external dependencies are pure Rust — zero C/C++ wrapper crates:
 
 ## Session 43 — New Absorption Targets (February 22, 2026)
 
-neuralSpring built 4 new WGSL shaders validated and ready for ToadStool absorption:
+neuralSpring built 4 new WGSL shaders validated and ready for `ToadStool` absorption:
 
 ### New Shaders (4 files, all validated)
 
@@ -468,7 +469,7 @@ neuralSpring built 4 new WGSL shaders validated and ready for ToadStool absorpti
 | `UniFracPropagateGpu` | 2/2 | f64 leaf init exact (1e-12 tolerance) |
 | `chi_squared::*` | 13/13 | PDF/CDF/moments/test all within 1e-4 of SciPy |
 
-### Mixed-Hardware Infrastructure (for future ToadStool absorption)
+### Mixed-Hardware Infrastructure (for future `ToadStool` absorption)
 
 | Component | Purpose | Absorption Target |
 |-----------|---------|-------------------|
@@ -486,7 +487,7 @@ and CPU (llvmpipe). Cross-hardware MatMul and ReLU are **bit-identical**.
 
 ## Session 44 — Multi-GPU Portability & Bug Fixes (February 23, 2026)
 
-### Upstream Bug Fixes (P0 — action required for ToadStool)
+### Upstream Bug Fixes (P0 — action required for `ToadStool`)
 
 | Bug | File | Fix | Impact |
 |-----|------|-----|--------|
@@ -511,7 +512,7 @@ All results **bit-identical** across driver stacks. WGSL shaders are fully porta
 | `validate_barracuda_gpu_lenet` | 8/8 | First exercise of `Tensor::conv2d()` + `Tensor::maxpool2d()` |
 | `validate_barracuda_transformer` | 12/12 | Full transformer layer via Tensor API; found global-only softmax behavior |
 
-### Tensor API Findings for ToadStool
+### Tensor API Findings for `ToadStool`
 
 | Finding | Recommendation |
 |---------|----------------|
@@ -519,16 +520,16 @@ All results **bit-identical** across driver stacks. WGSL shaders are fully porta
 | `Tensor::mean()` was broken (wrong entry point + double-divide) | Already fixed locally; needs upstream merge |
 | No fused `Tensor::layer_norm()` method | Shader exists but no Tensor API method |
 
-### Performance Data for ToadStool Optimization
+### Performance Data for `ToadStool` Optimization
 
 Pure Rust is 178.5× faster than single-thread Python/NumPy. Exception: dense matmul
 (commutator 64×64) where NumPy BLAS is 2.5× faster. Opportunity for BarraCUDA's CPU
 matmul to adopt tiling/SIMD techniques from `whitePaper/BARRACUDA_EVOLUTION.md`.
 
-### NVK Compatibility for ToadStool CI
+### NVK Compatibility for `ToadStool` CI
 
 NVK handles all 21 neuralSpring WGSL shaders without modification on Volta hardware.
-Consider adding NVK to ToadStool CI for open-source driver compatibility testing.
+Consider adding NVK to `ToadStool` CI for open-source driver compatibility testing.
 
 ---
 
@@ -538,10 +539,10 @@ Consider adding NVK to ToadStool CI for open-source driver compatibility testing
 
 neuralSpring created `gpu_ops/` (6 submodules) and `gpu_dispatch.rs` — a capability-based
 runtime dispatch layer that routes 38 previously CPU-bound operations to GPU
-via the BarraCUDA `Tensor` API. The `Dispatcher` detects GPU availability at
+via the `BarraCUDA` `Tensor` API. The `Dispatcher` detects GPU availability at
 construction and falls back to CPU when hardware is unavailable.
 
-### Tensor API Learnings for ToadStool
+### Tensor API Learnings for `ToadStool`
 
 | Finding | Impact | Recommendation |
 |---------|--------|----------------|
@@ -586,9 +587,9 @@ inter_population_af_variance, replicator_step, hill_activation_batch.
 
 ---
 
-## ToadStool Sync: `5437c170` → `6ee71f07` (2 commits)
+## `ToadStool` Sync: `5437c170` → `6ee71f07` (2 commits)
 
-neuralSpring synced to ToadStool HEAD `9abd6857` (Feb 23, 2026). Two bug-fix
+neuralSpring synced to `ToadStool` HEAD `9abd6857` (Feb 23, 2026). Two bug-fix
 commits since our last tracked commit:
 
 | Commit | Fix | Origin | neuralSpring Impact |
@@ -599,16 +600,16 @@ commits since our last tracked commit:
 **Build**: `cargo check` clean, zero new warnings.
 **Validation**: 459 lib + 9 integration tests PASS. `validate_all`: **133/133 PASS** (RTX 4070).
 
-### Still Pending Absorption (neuralSpring → ToadStool)
+### Still Pending Absorption (neuralSpring → `ToadStool`)
 
 | Fix | File | Applied Locally | Status |
 |-----|------|----------------|--------|
-| `Tensor::mean()` entry point + double-divide | `ops/mean.rs` | Session 44 | **Pending** — needs ToadStool commit |
+| `Tensor::mean()` entry point + double-divide | `ops/mean.rs` | Session 44 | **Pending** — needs `ToadStool` commit |
 | Chi-squared expected value precision | neuralSpring validator only | Session 44 | **N/A** — validator-side only |
 
 ---
 
-## Session 50: baseCamp Primitives for ToadStool Absorption
+## Session 50: baseCamp Primitives for `ToadStool` Absorption
 
 Session 50 added 5 baseCamp modules (82/82 PASS) implementing Biophysical
 AI Interpretability. These introduce general-purpose primitives suitable
@@ -624,7 +625,7 @@ for upstream absorption.
 | `numerical_hessian` | `loss_landscape.rs` | Central finite differences | `ops::numerical::hessian` |
 | `level_spacing_ratio` | `weight_spectral.rs` | GOE/Poisson spectral stat | `ops::stats::level_spacing_ratio` |
 
-### GPU Shader Candidates for ToadStool
+### GPU Shader Candidates for `ToadStool`
 
 | Shader | Description | Template |
 |--------|-------------|----------|
@@ -686,7 +687,7 @@ execution. This is ready for `ToadStool` to absorb into `barracuda::unified_hard
 
 ### Resolution
 
-**RESOLVED upstream** at ToadStool `c82c23d1` (S58: cross-spring absorption).
+**RESOLVED upstream** at `ToadStool` `c82c23d1` (S58: cross-spring absorption).
 `patch_transcendentals_in_code` now covers `pow(` → `pow_f64(` in addition to
 `exp(` and `log(`. The fix was proven by neuralSpring (18/18 PASS on both RTX 4070
 and TITAN V NVK) and absorbed verbatim.

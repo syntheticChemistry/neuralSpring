@@ -15,7 +15,7 @@
 //! These shaders use f32 buffers. CPU references use f64 — tolerance allows
 //! for f32 precision loss (~1e-3 to 1e-5 depending on accumulation depth).
 //!
-//! `ToadStool` absorption targets:
+//! `BarraCUDA` absorption targets:
 //! - `hmm_backward_log` → `barracuda::ops::bio::hmm_backward`
 //! - `hmm_viterbi` → `barracuda::ops::bio::hmm_viterbi`
 //! - `matrix_correlation` → `barracuda::stats::matrix_correlation_gpu`

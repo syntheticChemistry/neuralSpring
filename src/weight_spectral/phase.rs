@@ -18,7 +18,7 @@ pub const POISSON_LEVEL_SPACING: f64 = 0.386_29;
 /// Poisson (0.386) ensembles with a critical window around the Anderson
 /// transition point.
 ///
-/// Cross-spring evolution: hotSpring `proxy.rs` → ToadStool → neuralSpring.
+/// Cross-spring evolution: hotSpring `proxy.rs` → `BarraCUDA` → neuralSpring.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpectralPhase {
     /// GOE-like: delocalized eigenstates, good generalization.

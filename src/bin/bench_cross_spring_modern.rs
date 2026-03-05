@@ -33,7 +33,6 @@
     clippy::cast_sign_loss,
     clippy::suboptimal_flops,
     clippy::expect_used,
-    clippy::unwrap_used,
     clippy::redundant_clone,
     reason = "benchmark binary"
 )]
@@ -305,7 +304,7 @@ fn bench_precision_hotspring(h: &mut ValidationHarness) {
     }
 
     let mut sorted = decomp.eigenvalues.clone();
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    sorted.sort_by(f64::total_cmp);
     h.check_bool(
         "eigenvalues non-decreasing",
         sorted.windows(2).all(|w| w[0] <= w[1]),

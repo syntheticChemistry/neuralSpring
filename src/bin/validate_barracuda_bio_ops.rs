@@ -3,14 +3,14 @@
 //! Upstream `BarraCUDA` bio-op wrapper validation.
 //!
 //! Validates the **barracuda Rust wrapper APIs** (not local metalForge shaders)
-//! for 6 bio ops that `ToadStool` absorbed from `neuralSpring`. Each wrapper
+//! for 6 bio ops that `BarraCUDA` absorbed from `neuralSpring`. Each wrapper
 //! encapsulates shader dispatch — this proves the upstream API produces
 //! correct results against CPU references.
 //!
 //! ## Cross-Spring Evolution
 //!
 //! These shaders originated in neuralSpring's metalForge, were absorbed by
-//! ToadStool/BarraCUDA (Sessions 25–39), and now have first-class Rust
+//! `ToadStool`/`BarraCUDA` (Sessions 25–39), and now have first-class Rust
 //! wrapper APIs. This validator closes the loop: neuralSpring validates
 //! the upstream wrappers that grew from its own shaders.
 //!

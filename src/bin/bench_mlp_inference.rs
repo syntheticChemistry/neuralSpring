@@ -171,7 +171,7 @@ async fn main() {
             let predicted = probs
                 .iter()
                 .enumerate()
-                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                .max_by(|a, b| f32::total_cmp(a.1, b.1))
                 .map_or(0, |(i, _)| i);
 
             eprintln!(

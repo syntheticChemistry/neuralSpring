@@ -13,11 +13,18 @@
 //!
 //! # I/O strategy
 //!
-//! Safetensors files are loaded via `std::fs::read` (full buffer).
-//! Memory-mapped I/O (`mmap`) would be zero-copy but requires `unsafe`
-//! at the call site, which conflicts with the crate's `forbid(unsafe_code)`
-//! policy.  When barracuda or `ToadStool` provides a safe mmap abstraction
-//! (behind a capability trait), the loader should evolve to use it.
+//! - **JSON baselines**: Streamed via `serde_json::from_reader` with
+//!   `BufReader` — O(record) memory, compliant with streaming I/O spec.
+//! - **Safetensors**: Loaded via `std::fs::read` (full buffer). The
+//!   `safetensors::SafeTensors::deserialize` API requires `&[u8]` — there
+//!   is no streaming/incremental parse mode. The crate documents
+//!   `memmap2::MmapOptions` as the zero-copy path, but that requires
+//!   `unsafe` at the call site, which conflicts with `forbid(unsafe_code)`.
+//!
+//! Evolution path: when barracuda provides a safe mmap abstraction (behind
+//! a capability trait), or the `safetensors` crate adds a safe streaming
+//! API, the loader should evolve to use it. Current files are <100 MB so
+//! full buffering is acceptable.
 
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -62,12 +69,15 @@ pub fn list_safetensors(path: &Path) -> Result<Vec<(String, Vec<usize>, String)>
     let tensors =
         safetensors::SafeTensors::deserialize(&data).map_err(|e| format!("parse: {e}"))?;
 
-    let mut result = Vec::new();
-    for (name, view) in tensors.tensors() {
-        let shape: Vec<usize> = view.shape().to_vec();
-        let dtype = format!("{:?}", view.dtype());
-        result.push((name.clone(), shape, dtype));
-    }
+    let mut result: Vec<(String, Vec<usize>, String)> = tensors
+        .tensors()
+        .into_iter()
+        .map(|(name, view)| {
+            let shape = view.shape().to_vec();
+            let dtype = format!("{:?}", view.dtype());
+            (name, shape, dtype)
+        })
+        .collect();
     result.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(result)
 }
@@ -265,14 +275,21 @@ const fn bf16_to_f32(bits: u16) -> f32 {
 }
 
 #[cfg(test)]
-#[allow(clippy::float_cmp, clippy::expect_used)]
+#[expect(
+    clippy::float_cmp,
+    clippy::expect_used,
+    reason = "tests verify exact round-trip fidelity"
+)]
 mod tests {
     use super::*;
 
     #[test]
     fn bf16_roundtrip() {
         let val: f32 = 1.5;
-        #[allow(clippy::cast_possible_truncation)]
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "intentional f32→bf16 bit truncation"
+        )]
         let bits = (val.to_bits() >> 16) as u16;
         let recovered = bf16_to_f32(bits);
         assert!((recovered - val).abs() < 1e-6);

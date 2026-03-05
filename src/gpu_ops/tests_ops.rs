@@ -322,7 +322,7 @@ fn gpu_eigh_diagonal() {
     let a = vec![2.0, 0.0, 0.0, 3.0];
     let (vals, _vecs) = eigh_gpu(&a, 2, &dev).unwrap();
     let mut sorted = vals;
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    sorted.sort_by(f64::total_cmp);
     assert!((sorted[0] - 2.0).abs() < tolerances::GPU_CHI_SQUARED_F32);
     assert!((sorted[1] - 3.0).abs() < tolerances::GPU_CHI_SQUARED_F32);
 }

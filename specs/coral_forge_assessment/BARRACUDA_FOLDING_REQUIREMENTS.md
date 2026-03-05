@@ -53,7 +53,7 @@ The Structure Module has 8 iterations of:
 | **LU decomposition** | `lu_decomp_f64.wgsl` | f64 | ✅ Validated | Linear solves in structure module |
 | **Triangular solve** | `triangular_solve_f64.wgsl` | f64 | ✅ Validated | Backsubstitution |
 | **Scalar reduction** | `ReduceScalarPipeline` | f64 | ✅ Validated | Loss computation, norms |
-| **FusedMapReduce** | via ToadStool | f64 | ✅ Validated | Layer norm, statistics |
+| **FusedMapReduce** | via `BarraCUDA` | f64 | ✅ Validated | Layer norm, statistics |
 
 **Coverage**: 15 of ~25 required primitives already exist in BarraCUDA.
 

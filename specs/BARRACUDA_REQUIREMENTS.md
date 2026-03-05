@@ -65,9 +65,9 @@
 
 ---
 
-## Existing ToadStool Kernels That Apply
+## Existing `BarraCUDA` Kernels That Apply
 
-| ToadStool Kernel | neuralSpring Extension Use |
+| `BarraCUDA` Kernel | neuralSpring Extension Use |
 |-----------------|--------------------------|
 | `gemm_f64.wgsl` | Population fitness evaluation, HMM transitions, game payoff matrices |
 | `FusedMapReduceF64` | Population statistics, MODES metrics, trajectory averaging |

@@ -167,8 +167,8 @@ async fn main() {
     let eigh_diff = {
         let mut ge = gpu_evals;
         let mut ce = cpu_evals;
-        ge.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        ce.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        ge.sort_by(f64::total_cmp);
+        ce.sort_by(f64::total_cmp);
         element_max_diff(&ge, &ce)
     };
     h.check_bool(

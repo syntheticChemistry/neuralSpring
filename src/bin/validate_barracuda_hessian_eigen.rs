@@ -55,9 +55,9 @@ async fn main() {
     let (gpu_evals, _) = gpu_ops::eigh_gpu(&hessian, n, &dev).expect("eigh_gpu diagonal");
 
     let mut cpu_sorted = cpu_decomp.eigenvalues;
-    cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_sorted.sort_by(f64::total_cmp);
     let mut gpu_sorted = gpu_evals;
-    gpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_sorted.sort_by(f64::total_cmp);
 
     let max_diff = cpu_sorted
         .iter()
@@ -144,9 +144,9 @@ async fn main() {
     let (gpu_mixed_evals, _) = gpu_ops::eigh_gpu(&mixed, n, &dev).expect("eigh_gpu mixed");
 
     let mut cpu_mixed_sorted = cpu_mixed.eigenvalues;
-    cpu_mixed_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_mixed_sorted.sort_by(f64::total_cmp);
     let mut gpu_mixed_sorted = gpu_mixed_evals;
-    gpu_mixed_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_mixed_sorted.sort_by(f64::total_cmp);
 
     let mixed_max_diff = cpu_mixed_sorted
         .iter()

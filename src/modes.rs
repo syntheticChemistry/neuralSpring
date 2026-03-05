@@ -96,7 +96,7 @@ pub fn l2_distance(a: &[f64], b: &[f64]) -> f64 {
 /// Linear regression slope of complexity over time.
 ///
 /// Delegates to `barracuda::stats::fit_linear` (absorbed from airSpring V009
-/// in `ToadStool` S66). Returns (slope, increasing).
+/// via `ToadStool` S66, now in `BarraCUDA`). Returns (slope, increasing).
 #[must_use]
 #[expect(
     clippy::cast_precision_loss,
@@ -208,24 +208,29 @@ pub fn score_system(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use approx::assert_relative_eq;
 
     #[test]
     fn change_monotonic_positive() {
         let counts = vec![1, 2, 3, 5, 8];
         let chg = change_metric(&counts);
-        assert_relative_eq!(chg[0], 0.0, epsilon = 1e-10);
+        assert_relative_eq!(chg[0], 0.0, epsilon = tolerances::CROSS_LANGUAGE);
         assert!(chg[1..].iter().all(|&x| x >= 0.0));
-        assert_relative_eq!(chg.iter().sum::<f64>(), 7.0, epsilon = 1e-10);
+        assert_relative_eq!(
+            chg.iter().sum::<f64>(),
+            7.0,
+            epsilon = tolerances::CROSS_LANGUAGE
+        );
     }
 
     #[test]
     fn novelty_identical_zero() {
         let features = vec![vec![1.0, 2.0, 3.0]; 5];
         let nov = novelty_metric(&features);
-        assert_relative_eq!(nov[0], 0.0, epsilon = 1e-10);
+        assert_relative_eq!(nov[0], 0.0, epsilon = tolerances::CROSS_LANGUAGE);
         for nov_i in nov.iter().skip(1).take(4) {
-            assert_relative_eq!(*nov_i, 0.0, epsilon = 1e-10);
+            assert_relative_eq!(*nov_i, 0.0, epsilon = tolerances::CROSS_LANGUAGE);
         }
     }
 
@@ -241,7 +246,7 @@ mod tests {
     fn ecology_uniform_high() {
         let abd = vec![vec![0.25, 0.25, 0.25, 0.25]];
         let eco = ecology_metric(&abd);
-        assert_relative_eq!(eco[0], 1.0, epsilon = 1e-10);
+        assert_relative_eq!(eco[0], 1.0, epsilon = tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -260,44 +265,56 @@ mod tests {
 
         let s1 = score_system(&counts, &features, &cpx, &abd);
         let s2 = score_system(&counts, &features, &cpx, &abd);
-        assert_relative_eq!(s1.change_total, s2.change_total, epsilon = 1e-10);
-        assert_relative_eq!(s1.novelty_mean, s2.novelty_mean, epsilon = 1e-10);
+        assert_relative_eq!(
+            s1.change_total,
+            s2.change_total,
+            epsilon = tolerances::CROSS_LANGUAGE
+        );
+        assert_relative_eq!(
+            s1.novelty_mean,
+            s2.novelty_mean,
+            epsilon = tolerances::CROSS_LANGUAGE
+        );
     }
 
     #[test]
     fn l2_distance_known() {
         let a = vec![0.0, 0.0];
         let b = vec![3.0, 4.0];
-        assert_relative_eq!(l2_distance(&a, &b), 5.0, epsilon = 1e-12);
+        assert_relative_eq!(l2_distance(&a, &b), 5.0, epsilon = tolerances::EXACT_F64);
     }
 
     #[test]
     fn l2_distance_same() {
         let a = vec![1.0, 2.0, 3.0];
-        assert_relative_eq!(l2_distance(&a, &a), 0.0, epsilon = 1e-15);
+        assert_relative_eq!(
+            l2_distance(&a, &a),
+            0.0,
+            epsilon = tolerances::ZERO_DETECTION
+        );
     }
 
     #[test]
     fn ecology_zero_abundances() {
         let abd = vec![vec![0.0, 0.0, 0.0]];
         let eco = ecology_metric(&abd);
-        assert_relative_eq!(eco[0], 0.0, epsilon = 1e-15);
+        assert_relative_eq!(eco[0], 0.0, epsilon = tolerances::ZERO_DETECTION);
     }
 
     #[test]
     fn complexity_single_point() {
         let cpx = vec![5.0];
         let (slope, inc) = complexity_metric(&cpx);
-        assert_relative_eq!(slope, 0.0, epsilon = 1e-15);
+        assert_relative_eq!(slope, 0.0, epsilon = tolerances::ZERO_DETECTION);
         assert!(!inc);
     }
 
     #[test]
     fn score_system_empty_inputs() {
         let s = score_system(&[], &[], &[], &[]);
-        assert_relative_eq!(s.change_total, 0.0, epsilon = 1e-15);
-        assert_relative_eq!(s.novelty_mean, 0.0, epsilon = 1e-15);
-        assert_relative_eq!(s.ecology_mean, 0.0, epsilon = 1e-15);
+        assert_relative_eq!(s.change_total, 0.0, epsilon = tolerances::ZERO_DETECTION);
+        assert_relative_eq!(s.novelty_mean, 0.0, epsilon = tolerances::ZERO_DETECTION);
+        assert_relative_eq!(s.ecology_mean, 0.0, epsilon = tolerances::ZERO_DETECTION);
     }
 
     #[test]

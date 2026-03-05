@@ -14,7 +14,7 @@
 //!   ↓ delegates to
 //! barracuda::dispatch::*_dispatch (CPU/GPU routing)
 //!   ↓ same math as
-//! ToadStool ComputeDispatch (144 ops, S86)
+//! `ToadStool` `ComputeDispatch` (144 ops, S86)
 //! ```
 
 #![expect(

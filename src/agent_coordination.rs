@@ -120,7 +120,7 @@ pub fn coordination_spectral_analysis(
 
     let decomp = eigh_householder_qr(&h, n);
     let mut eigenvalues = decomp.eigenvalues.clone();
-    eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    eigenvalues.sort_by(f64::total_cmp);
 
     let mean_ipr_val = mean_ipr(&decomp.eigenvectors, n);
     let lsr = crate::weight_spectral::level_spacing_ratio(&eigenvalues);

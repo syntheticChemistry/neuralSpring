@@ -63,7 +63,7 @@ pub fn multi_head_attention_2d(
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used)] // test infrastructure
+    #![expect(clippy::expect_used, reason = "test infrastructure")]
 
     use super::*;
     use barracuda::device::WgpuDevice;

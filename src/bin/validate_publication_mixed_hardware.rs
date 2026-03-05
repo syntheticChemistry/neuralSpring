@@ -57,9 +57,9 @@ async fn main() {
         let (mixed_evals, _) = dispatcher.eigh(&ham, dim);
 
         let mut cpu_sorted = cpu_evals.clone();
-        cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        cpu_sorted.sort_by(f64::total_cmp);
         let mut mixed_sorted = mixed_evals;
-        mixed_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        mixed_sorted.sort_by(f64::total_cmp);
 
         let diff = cpu_sorted
             .iter()
@@ -153,7 +153,7 @@ async fn main() {
 
         let mut cpu_decomp = eigh_householder_qr(&hessian, n);
         let mut cpu_evals = std::mem::take(&mut cpu_decomp.eigenvalues);
-        cpu_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        cpu_evals.sort_by(f64::total_cmp);
 
         for (i, &eval) in cpu_evals.iter().enumerate() {
             h.check_abs(

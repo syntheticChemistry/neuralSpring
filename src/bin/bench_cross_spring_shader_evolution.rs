@@ -4,7 +4,7 @@
 //!
 //! Benchmarks the full evolution chain for operations contributed by
 //! each spring, showing where and when each operation was absorbed
-//! into ToadStool/BarraCUDA, and the performance benefit at each tier.
+//! into `ToadStool`/`BarraCUDA`, and the performance benefit at each tier.
 //!
 //! ## Provenance tiers benchmarked
 //!
@@ -19,7 +19,7 @@
 //!
 //! | Spring | Operations | Shader evolution |
 //! |--------|-----------|------------------|
-//! | neuralSpring | softmax, gelu, matmul, sigmoid, RK4 | → WGSL → ToadStool |
+//! | neuralSpring | softmax, gelu, matmul, sigmoid, RK4 | → WGSL → BarraCUDA |
 //! | wetSpring | Shannon, Simpson, chao1, HMM, Bray-Curtis | → bio shaders |
 //! | hotSpring | eigensolve, spectral, precision, DF64 | → math_f64.wgsl |
 //! | groundSpring | bootstrap, jackknife, kimura, norm_cdf | → uncertainty |
@@ -64,7 +64,7 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
 }
 
 fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("═══ neuralSpring origins → ToadStool absorption ═══");
+    eprintln!("═══ neuralSpring origins → BarraCUDA absorption ═══");
     eprintln!("  softmax: transformer.rs → barracuda::dispatch → softmax_f64.wgsl");
     eprintln!("  gelu: transformer.rs → barracuda::dispatch → gelu_f64.wgsl");
     eprintln!("  matmul: matmul_gpu_evolved → barracuda::dispatch → matmul.wgsl");
@@ -151,7 +151,7 @@ fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
 }
 
 fn bench_wetspring_origins(h: &mut ValidationHarness) {
-    eprintln!("═══ wetSpring origins → ToadStool absorption ═══");
+    eprintln!("═══ wetSpring origins → BarraCUDA absorption ═══");
     eprintln!("  Shannon/Simpson: wetSpring diversity → barracuda::stats");
     eprintln!("  HMM: wetSpring hmm_forward_log.wgsl → barracuda::dispatch");
     eprintln!("  Bray-Curtis: wetSpring ecological → barracuda::stats");
@@ -204,7 +204,7 @@ fn bench_wetspring_origins(h: &mut ValidationHarness) {
 }
 
 fn bench_hotspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("═══ hotSpring origins → ToadStool absorption ═══");
+    eprintln!("═══ hotSpring origins → BarraCUDA absorption ═══");
     eprintln!("  eigensolve: hotSpring Householder+QR → barracuda::linalg → Dispatcher");
     eprintln!("  spectral: hotSpring level_spacing_ratio → barracuda::spectral");
     eprintln!("  precision: hotSpring DF64 → math_f64.wgsl (28 fn) + df64_transcendentals.wgsl");
@@ -266,7 +266,7 @@ fn bench_hotspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
 }
 
 fn bench_groundspring_origins(h: &mut ValidationHarness) {
-    eprintln!("═══ groundSpring origins → ToadStool absorption ═══");
+    eprintln!("═══ groundSpring origins → BarraCUDA absorption ═══");
     eprintln!("  bootstrap: groundSpring uncertainty → barracuda::stats::bootstrap_ci");
     eprintln!("  jackknife: groundSpring leave-one-out → barracuda::stats::jackknife");
     eprintln!("  kimura: groundSpring evolution → barracuda::stats::kimura_fixation_prob");
@@ -333,7 +333,7 @@ fn bench_groundspring_origins(h: &mut ValidationHarness) {
 }
 
 fn bench_airspring_origins(h: &mut ValidationHarness) {
-    eprintln!("═══ airSpring origins → ToadStool absorption ═══");
+    eprintln!("═══ airSpring origins → BarraCUDA absorption ═══");
     eprintln!("  hydrology: airSpring ET₀ methods → barracuda::stats::hydrology");
     eprintln!("  FAO-56, Hargreaves, Thornthwaite, Hamon, Makkink, Turc");
     eprintln!();
@@ -383,9 +383,9 @@ fn bench_airspring_origins(h: &mut ValidationHarness) {
 }
 
 fn bench_convergence_pipeline(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("═══ Cross-spring convergence pipeline (all → ToadStool S87) ═══");
+    eprintln!("═══ Cross-spring convergence pipeline (all → BarraCUDA) ═══");
     eprintln!("  Full pipeline: Dispatcher wraps barracuda::dispatch wraps WGSL shaders");
-    eprintln!("  All springs converge through ToadStool's 844+ WGSL shaders");
+    eprintln!("  All springs converge through BarraCUDA's 844+ WGSL shaders");
     eprintln!();
 
     let data: Vec<f64> = (0..2048).map(|i| (i as f64) * 0.001).collect();
@@ -444,7 +444,7 @@ fn print_evolution_summary() {
     eprintln!("║    S86–S87: deep debt evolution → pure math, CPU ungating         ║");
     eprintln!("║    S87+:    DF64 transcendentals (37), precision probing           ║");
     eprintln!("║                                                                    ║");
-    eprintln!("║  Current state (ToadStool S87, 2dc26792):                         ║");
+    eprintln!("║  Current state (BarraCUDA, ToadStool S87, 2dc26792):              ║");
     eprintln!("║    844+ WGSL shaders (up from 692+ at S86)                        ║");
     eprintln!("║    37 DF64 transcendental shaders (up from 26)                    ║");
     eprintln!("║    F64 polyfills: exp, log, sin, cos → probe-injected             ║");
@@ -463,7 +463,7 @@ fn print_evolution_summary() {
 fn main() {
     eprintln!("╔══════════════════════════════════════════════════════════════════════╗");
     eprintln!("║  neuralSpring — Cross-Spring Shader Evolution Benchmark            ║");
-    eprintln!("║  All springs → ToadStool S87 (2dc26792): 844+ WGSL shaders        ║");
+    eprintln!("║  All springs → BarraCUDA (ToadStool S87, 2dc26792): 844+ shaders  ║");
     eprintln!("║  Provenance tiers: T0 local → T1 bc::dispatch → T2 Dispatcher GPU ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════════╝");
     eprintln!();

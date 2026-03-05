@@ -111,8 +111,8 @@ pub fn layer_spectral_similarity(w1: &[f64], n1: usize, w2: &[f64], n2: usize) -
 
     let mut ev1 = decomp1.eigenvalues;
     let mut ev2 = decomp2.eigenvalues;
-    ev1.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    ev2.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    ev1.sort_by(f64::total_cmp);
+    ev2.sort_by(f64::total_cmp);
 
     let min_len = ev1.len().min(ev2.len());
     if min_len == 0 {

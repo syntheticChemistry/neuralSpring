@@ -180,10 +180,10 @@ neuralSpring primal
   └── science.gpu_dispatch           (NEW — Step 1)
 ```
 
-### Node Mode (+ ToadStool — next)
+### Node Mode (+ `ToadStool` — next)
 
-When ToadStool primal is also running on Eastgate, neuralSpring can
-route heavy GPU workloads through ToadStool's streaming dispatch:
+When `ToadStool` primal is also running on Eastgate, neuralSpring can
+route heavy GPU workloads through `ToadStool`'s streaming dispatch:
 
 ```
 neuralSpring ──JSON-RPC──→ ToadStool (GPU compute)
@@ -192,10 +192,10 @@ neuralSpring ──JSON-RPC──→ ToadStool (GPU compute)
                                     (unidirectional streaming)
 ```
 
-ToadStool socket: `$XDG_RUNTIME_DIR/biomeos/toadstool-{family}.sock`
+`ToadStool` socket: `$XDG_RUNTIME_DIR/biomeos/toadstool-{family}.sock`
 
 The primal already has `Dispatcher` with GPU fallback. Node mode adds
-the option of routing through ToadStool for fused pipeline execution
+the option of routing through `ToadStool` for fused pipeline execution
 (46-78x over per-op dispatch).
 
 ### Nest Mode (+ NestGate — after providers built)

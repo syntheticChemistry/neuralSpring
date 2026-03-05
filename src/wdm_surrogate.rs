@@ -175,7 +175,7 @@ fn parse_f64_array(obj: &serde_json::Value, key: &str) -> Result<[f64; 2], Strin
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+#[expect(clippy::expect_used, reason = "test assertions use expect for clarity")]
 mod tests {
     use super::*;
 

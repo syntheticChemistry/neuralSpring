@@ -107,7 +107,7 @@ pub const RATIO_GUARD: f64 = 1e-300;
 /// the frequency distribution from their domain-specific data.
 ///
 /// Delegates to `barracuda::stats::shannon_from_frequencies` (absorbed
-/// from wetSpring in `ToadStool` S64).
+/// from wetSpring via `ToadStool` S64, now in `BarraCUDA`).
 #[must_use]
 pub fn shannon_entropy(frequencies: &[f64]) -> f64 {
     barracuda::stats::shannon_from_frequencies(frequencies)
@@ -148,7 +148,7 @@ pub fn shannon_entropy_from_counts(counts: &[f64]) -> f64 {
 /// Standard activating Hill function from enzyme kinetics.
 /// Returns 0 when x <= 0, approaches `a` as x → ∞.
 /// Core computation delegates to `barracuda::stats::hill` (absorbed from
-/// wetSpring/hotSpring gene regulatory networks in `ToadStool` S64).
+/// wetSpring/hotSpring gene regulatory networks via `ToadStool` S64, now in `BarraCUDA`).
 #[must_use]
 pub fn hill_activation(x: f64, amplitude: f64, k: f64, n: f64) -> f64 {
     if x <= 0.0 {

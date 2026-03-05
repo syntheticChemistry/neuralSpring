@@ -98,7 +98,7 @@ fn main() {
         .filter(|(row, &s)| {
             row.iter()
                 .enumerate()
-                .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+                .max_by(|(_, a), (_, b)| f64::total_cmp(a, b))
                 .map_or(0, |(i, _)| i)
                 == s
         })

@@ -40,6 +40,7 @@
 | [EVOLUTION_MAPPING.md](EVOLUTION_MAPPING.md) | Active | Python → Rust → GPU module mapping (Tier A/B/C) |
 | [DATA_PROVENANCE.md](DATA_PROVENANCE.md) | Active | All dataset sources, accession numbers, licenses |
 | [BARRACUDA_USAGE.md](BARRACUDA_USAGE.md) | Active | BarraCUDA usage audit and evolution path |
+| [STREAMING_IO_REQUIREMENTS.md](STREAMING_IO_REQUIREMENTS.md) | Spec | Streaming I/O requirements for future FASTQ/mzML/MS2 parsers |
 
 ### Shader Evolution & Hardware
 
@@ -61,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V79 ToadStool handoff (current, Sessions 116–119) |
+| wateringHole/handoffs/ | `../wateringHole/` | V79 `ToadStool` handoff (current, Sessions 116–119) |
 
 ---
 
@@ -76,7 +77,7 @@
 
 ### neuralSpring IS NOT:
 - Domain-specific science (airSpring, wetSpring, hotSpring, groundSpring)
-- GPU implementation (ToadStool/BarraCUDA — neuralSpring validates, ToadStool implements)
+- GPU implementation (`BarraCUDA`/`ToadStool` — neuralSpring validates, `BarraCUDA` provides math, `ToadStool` dispatches)
 - Production ML deployment (Squirrel primal handles inference coordination)
 
 ### Faculty Coverage:

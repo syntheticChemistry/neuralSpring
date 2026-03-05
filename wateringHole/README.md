@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V81** | `handoffs/NEURALSPRING_TOADSTOOL_V81_S121_SIMPLEMLP_HMM_F64_REWIRE_HANDOFF_MAR04_2026.md` | Mar 4, 2026 | S121: `SimpleMlp` rewire (WDM surrogates), HMM Viterbi f64 `ComputeDispatch`, cross-spring modern benchmark 28/28, 46 upstream rewires. Supersedes V80 |
+| **V82** | `handoffs/NEURALSPRING_TOADSTOOL_V82_S124_NAMING_REWIRE_HMM_ABSORPTION_HANDOFF_MAR05_2026.md` | Mar 5, 2026 | S122–S124: airSpring V069 naming rewire (`ToadStool`=dispatch, `BarraCUDA`=math), HMM forward ComputeDispatch absorption, Paper 026 glucose prediction, 217/217 validate\_all, 880 lib tests, 238 binaries. Supersedes V81 |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V80 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass), V77 (S117 cross-spring shader evolution), V78 (S118 barraCuda standalone rewire), V79 (S119 deep lint evolution), V80 (S120 deep debt audit + CI hardening).
+Superseded handoffs: `handoffs/archive/` (V1–V81 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass), V77 (S117 cross-spring shader evolution), V78 (S118 barraCuda standalone rewire), V79 (S119 deep lint evolution), V80 (S120 deep debt audit + CI hardening), V81 (S121 SimpleMlp rewire + HMM Viterbi f64 ComputeDispatch).
 
 ## Conventions
 

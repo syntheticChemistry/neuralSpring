@@ -121,7 +121,7 @@ fn upload_weights(b: &TransformerBaseline, device: &Dev) -> Result<GpuWeights, S
 ///
 /// Uses evolved MHA (matmul projections + CPU head reshape).
 /// Native `Tensor::multi_head_attention` projection shaders hang;
-/// documented for `ToadStool` as S-03b.
+/// documented for `BarraCUDA` as S-03b.
 fn transformer_forward(
     input: &Tensor,
     w: &GpuWeights,

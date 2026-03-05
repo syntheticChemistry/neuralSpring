@@ -17,7 +17,7 @@
 //!   ↓  GPU Tensor / WGSL shader dispatch
 //! BarraCUDA GPU (this validator) — scalar-only readback
 //!   ↓
-//! Pure GPU sovereign pipeline (ToadStool streaming)
+//! Pure GPU sovereign pipeline (`ToadStool` streaming)
 //! ```
 //!
 //! ## Domains validated

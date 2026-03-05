@@ -19,7 +19,7 @@
 //! ```text
 //! Manual encoder loop (validate_gpu_rk4)
 //!   → StatefulPipeline (BarraCUDA staging)
-//!   → ToadStool absorption
+//!   → `BarraCUDA` absorption
 //! ```
 //!
 //! ## Papers validated

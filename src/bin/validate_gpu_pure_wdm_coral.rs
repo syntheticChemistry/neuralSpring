@@ -5,7 +5,7 @@
 //! Proves the evolution chain for WDM + structural biology:
 //! ```text
 //! Python baseline → Rust CPU → BarraCUDA GPU Tensor → Pure GPU (scalar readback)
-//!                                                    → ToadStool streaming
+//!                                                    → `ToadStool` streaming
 //! ```
 //!
 //! Each domain dispatches its ML workload entirely through the `BarraCUDA`

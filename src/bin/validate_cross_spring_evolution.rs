@@ -22,7 +22,7 @@
 //! hotSpring → df64_core, pow_f64, Taylor trig, Lanczos → BarraCUDA precision
 //! wetSpring → HMM forward, ODE bio, NMF, Anderson, FST → BarraCUDA bio+spectral
 //! neuralSpring → batch_fitness, pairwise_l2, eigh, ValidationHarness → BarraCUDA ops
-//! All three → ToadStool (GPU sovereign pipeline)
+//! All three → `ToadStool` (GPU sovereign pipeline)
 //! ```
 //!
 //! ```text
@@ -617,7 +617,7 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// S78 rewires: stats absorption from ToadStool S66
+// S78 rewires: stats absorption from BarraCUDA (ToadStool S66)
 // ═══════════════════════════════════════════════════════════════════
 
 fn validate_rewired_mae_s78(h: &mut ValidationHarness) {
@@ -812,7 +812,7 @@ fn report_cross_spring_lineage() {
     eprintln!("  \u{2022} fit_linear, fit_quadratic, fit_exponential, fit_logarithmic [S66]");
     eprintln!("  \u{2022} hydrology (hargreaves, soil_water_balance) [S66]");
     eprintln!();
-    eprintln!("S78 cross-spring rewiring (neuralSpring \u{2192} ToadStool S66 absorption):");
+    eprintln!("S78 cross-spring rewiring (neuralSpring \u{2192} BarraCUDA via ToadStool S66):");
     eprintln!("  \u{2022} metrics::mae \u{2192} barracuda::stats::mae (airSpring origin)");
     eprintln!(
         "  \u{2022} primitives::shannon_entropy \u{2192} barracuda::stats::shannon_from_frequencies (wetSpring origin)"

@@ -6,7 +6,7 @@
 //! to demonstrate that the Householder+QR implementation achieves
 //! LAPACK-level accuracy where Jacobi degrades.
 //!
-//! This binary provides the evidence for `ToadStool` to absorb the fix.
+//! This binary provides the evidence for `BarraCUDA` to absorb the fix.
 //!
 //! ## Provenance
 //!

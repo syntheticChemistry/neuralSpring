@@ -199,7 +199,7 @@ pub fn neural_forward_gpu(
 ///
 /// Delegates to `barracuda::ops::fused_map_reduce_f64::FusedMapReduceF64`
 /// (f64 precision, fused map-reduce WGSL shader). Origin: wetSpring
-/// bio shaders → hotSpring precision infrastructure → `ToadStool`.
+/// bio shaders → hotSpring precision infrastructure → `BarraCUDA`.
 ///
 /// # Errors
 ///
@@ -217,7 +217,7 @@ pub fn shannon_entropy_gpu(probabilities: &[f64], device: &Arc<WgpuDevice>) -> R
 ///
 /// Delegates to `barracuda::ops::variance_reduce_f64::VarianceReduceF64`
 /// (f64 precision, Welford online WGSL shader). Origin: hotSpring
-/// precision infrastructure → `ToadStool`.
+/// precision infrastructure → `BarraCUDA`.
 ///
 /// # Errors
 ///
@@ -233,7 +233,7 @@ pub fn variance_gpu(data: &[f64], device: &Arc<WgpuDevice>) -> Result<f64, Strin
 ///
 /// Delegates to `barracuda::ops::correlation_f64_wgsl::CorrelationF64`
 /// (f64 precision, dedicated WGSL shader). Origin: wetSpring
-/// bio shaders → hotSpring precision infrastructure → `ToadStool`.
+/// bio shaders → hotSpring precision infrastructure → `BarraCUDA`.
 ///
 /// # Errors
 ///
@@ -254,7 +254,7 @@ pub fn pearson_correlation_gpu(
 ///
 /// Delegates to `barracuda::ops::fused_chi_squared_f64::FusedChiSquaredGpu`
 /// (f64 precision, single-dispatch WGSL shader). Origin: neuralSpring
-/// `chi_squared_f64.wgsl` → `ToadStool` S76 absorption → `FusedChiSquaredGpu`.
+/// `chi_squared_f64.wgsl` → `BarraCUDA` (via `ToadStool` S76) → `FusedChiSquaredGpu`.
 ///
 /// Cross-spring: hotSpring precision infrastructure (f64 shader compilation
 /// pipeline) + neuralSpring domain shader → fused upstream op.
@@ -278,7 +278,7 @@ pub fn chi_squared_gpu(
 ///
 /// Delegates to `barracuda::ops::fused_kl_divergence_f64::FusedKlDivergenceGpu`
 /// (f64 precision, single-dispatch WGSL shader). Origin: neuralSpring
-/// `kl_divergence_f64.wgsl` → `ToadStool` S76 absorption → `FusedKlDivergenceGpu`.
+/// `kl_divergence_f64.wgsl` → `BarraCUDA` (via `ToadStool` S76) → `FusedKlDivergenceGpu`.
 ///
 /// Cross-spring: neuralSpring domain shader → hotSpring f64 compilation
 /// infrastructure → fused upstream op consumed by all Springs.

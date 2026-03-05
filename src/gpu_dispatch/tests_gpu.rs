@@ -237,7 +237,7 @@ fn gpu_eigh_diagonal() {
     };
     let (vals, _) = d.eigh(&[2.0, 0.0, 0.0, 3.0], 2);
     let mut sorted = vals;
-    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    sorted.sort_by(f64::total_cmp);
     assert!((sorted[0] - 2.0).abs() < tolerances::GPU_EIGH_DISPATCH_F64);
     assert!((sorted[1] - 3.0).abs() < tolerances::GPU_EIGH_DISPATCH_F64);
 }

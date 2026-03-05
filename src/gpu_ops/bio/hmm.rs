@@ -55,15 +55,160 @@ pub fn hmm_forward_step_gpu(
     Ok((alpha_new, scale))
 }
 
-/// GPU HMM forward chain: run the full forward algorithm with GPU GEMV per step.
+/// GPU HMM forward chain: single-dispatch via `BarraCUDA` `HmmBatchForwardF64`.
 ///
-/// Composes `hmm_forward_step_gpu` over all observations, returning
-/// the log-likelihood. Replaces `Hmm::forward` for GPU execution.
+/// Uploads log-domain parameters once, dispatches the entire forward pass
+/// in a single GPU compute submission, and reads back the log-likelihood.
+/// Eliminates per-step CPU↔GPU round-trips of the legacy Tensor-loop path.
+///
+/// Falls back to [`hmm_forward_chain_gpu_perstep`] if the upstream dispatch
+/// fails (e.g. shader compilation issues on exotic hardware).
+///
+/// # Errors
+///
+/// Returns an error if both the fused and fallback paths fail.
+pub fn hmm_forward_chain_gpu(
+    initial: &[f64],
+    transition: &[f64],
+    emission: &[f64],
+    observations: &[usize],
+    n_states: usize,
+    n_obs: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<f64, String> {
+    hmm_forward_chain_gpu_fused(
+        initial,
+        transition,
+        emission,
+        observations,
+        n_states,
+        n_obs,
+        device,
+    )
+    .or_else(|_| {
+        hmm_forward_chain_gpu_perstep(
+            initial,
+            transition,
+            emission,
+            observations,
+            n_states,
+            n_obs,
+            device,
+        )
+    })
+}
+
+/// Single-dispatch forward chain via upstream `HmmBatchForwardF64` `ComputeDispatch`.
+fn hmm_forward_chain_gpu_fused(
+    initial: &[f64],
+    transition: &[f64],
+    emission: &[f64],
+    observations: &[usize],
+    n_states: usize,
+    n_obs: usize,
+    device: &Arc<WgpuDevice>,
+) -> Result<f64, String> {
+    use barracuda::ops::bio::HmmBatchForwardF64;
+    use wgpu::util::DeviceExt;
+
+    let t_len = observations.len();
+    if t_len == 0 {
+        return Ok(0.0);
+    }
+
+    let ns = n_states as u32;
+    let no = n_obs as u32;
+    let nt = t_len as u32;
+    let n_seqs: u32 = 1;
+
+    let guard = crate::primitives::LOG_GUARD;
+    let log_trans: Vec<f64> = transition.iter().map(|&v| v.max(guard).ln()).collect();
+    let log_emit: Vec<f64> = emission.iter().map(|&v| v.max(guard).ln()).collect();
+    let log_pi: Vec<f64> = initial.iter().map(|&v| v.max(guard).ln()).collect();
+    let obs_u32: Vec<u32> = observations.iter().map(|&o| o as u32).collect();
+
+    let d = device.device();
+
+    let log_trans_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hmm_fwd_log_trans"),
+        contents: bytemuck::cast_slice(&log_trans),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let log_emit_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hmm_fwd_log_emit"),
+        contents: bytemuck::cast_slice(&log_emit),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let log_pi_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hmm_fwd_log_pi"),
+        contents: bytemuck::cast_slice(&log_pi),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+    let obs_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("hmm_fwd_obs"),
+        contents: bytemuck::cast_slice(&obs_u32),
+        usage: wgpu::BufferUsages::STORAGE,
+    });
+
+    let alpha_size = (n_seqs as usize * t_len * n_states * std::mem::size_of::<f64>()) as u64;
+    let log_alpha_buf = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("hmm_fwd_log_alpha"),
+        size: alpha_size,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    let lik_size = (n_seqs as usize * std::mem::size_of::<f64>()) as u64;
+    let log_lik_buf = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("hmm_fwd_log_lik"),
+        size: lik_size,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+
+    let op =
+        HmmBatchForwardF64::new(device.clone()).map_err(|e| format!("HmmBatchForwardF64: {e}"))?;
+    op.dispatch(
+        ns,
+        no,
+        nt,
+        n_seqs,
+        &log_trans_buf,
+        &log_emit_buf,
+        &log_pi_buf,
+        &obs_buf,
+        &log_alpha_buf,
+        &log_lik_buf,
+    )
+    .map_err(|e| format!("hmm_forward_fused dispatch: {e}"))?;
+
+    let staging = d.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("hmm_fwd_staging"),
+        size: lik_size,
+        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    let mut encoder = d.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+    encoder.copy_buffer_to_buffer(&log_lik_buf, 0, &staging, 0, lik_size);
+    device.queue().submit(Some(encoder.finish()));
+
+    let slice = staging.slice(..);
+    slice.map_async(wgpu::MapMode::Read, |_| {});
+    d.poll(wgpu::Maintain::Wait);
+    let view = slice.get_mapped_range();
+    let log_lik: f64 = bytemuck::cast_slice::<u8, f64>(&view)[0];
+    drop(view);
+    staging.unmap();
+
+    Ok(log_lik)
+}
+
+/// Legacy per-step forward chain via Tensor GEMV loop (fallback path).
 ///
 /// # Errors
 ///
 /// Returns an error if GPU operations fail.
-pub fn hmm_forward_chain_gpu(
+pub fn hmm_forward_chain_gpu_perstep(
     initial: &[f64],
     transition: &[f64],
     emission: &[f64],
@@ -109,7 +254,7 @@ pub fn hmm_forward_chain_gpu(
 ///
 /// Single f64 `ComputeDispatch` replaces per-step f32 Tensor loop.
 /// Cross-spring evolution: neuralSpring per-step Tensor → barraCuda f64 shader
-/// (`hmm_viterbi_f64.wgsl`, provenance: neuralSpring → `ToadStool` absorption).
+/// (`hmm_viterbi_f64.wgsl`, provenance: neuralSpring → `BarraCUDA` via `ToadStool` absorption).
 ///
 /// # Errors
 ///
@@ -211,7 +356,7 @@ pub fn hmm_backward_step_gpu(
 /// Score matrix and max-reduction run on GPU. Argmax uses upstream
 /// `Tensor::argmax_dim(0)` (rewired S72 — previously CPU loop; upstream
 /// `argmax_dim` absorbed from cross-spring evolution: neuralSpring request
-/// → `ToadStool` S60 implementation → available since `0c998992`).
+/// → `BarraCUDA` (via `ToadStool` S60) → available since `0c998992`).
 ///
 /// # Errors
 ///
@@ -263,7 +408,10 @@ pub fn hmm_viterbi_step_gpu(
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+#[expect(
+    clippy::expect_used,
+    reason = "GPU test setup uses expect for device creation"
+)]
 mod tests {
     use super::*;
     use crate::gpu_ops::tests_ops::test_device;

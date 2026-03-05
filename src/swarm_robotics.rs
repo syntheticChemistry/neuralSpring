@@ -105,7 +105,7 @@ pub fn neural_forward(params: &[f64], sense: f64) -> usize {
     }
     out.iter()
         .enumerate()
-        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+        .max_by(|a, b| a.1.total_cmp(b.1))
         .map_or(0, |(i, _)| i)
 }
 
@@ -332,11 +332,7 @@ fn run_evolution_inner(seed: u64, homogeneous: bool) -> EvolutionResult {
                 let idx = rng.choose_distinct(population.len(), k);
                 let w = idx
                     .iter()
-                    .max_by(|a, b| {
-                        fitnesses[**a]
-                            .partial_cmp(&fitnesses[**b])
-                            .unwrap_or(std::cmp::Ordering::Equal)
-                    })
+                    .max_by(|a, b| f64::total_cmp(&fitnesses[**a], &fitnesses[**b]))
                     .copied()
                     .unwrap_or(0);
                 mutate(&population[w], &mut rng, MUTATION_RATE)

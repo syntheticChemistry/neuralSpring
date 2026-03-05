@@ -351,7 +351,7 @@ fn main() {
     // Level spacing ratio
     let decomp = neural_spring::eigh::eigh_householder_qr(&ham, n);
     let mut evals = decomp.eigenvalues;
-    evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    evals.sort_by(f64::total_cmp);
     let r = level_spacing_ratio(&evals);
     h.check_bool("nS-604: Level spacing r in (0, 1]", r > 0.0 && r <= 1.0);
 
@@ -493,11 +493,7 @@ fn main() {
 
     // Tofacitinib ranks #1
     let mut sorted_flare: Vec<_> = flare_scores.iter().collect();
-    sorted_flare.sort_by(|a, b| {
-        b.combined_score
-            .partial_cmp(&a.combined_score)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
+    sorted_flare.sort_by(|a, b| f64::total_cmp(&b.combined_score, &a.combined_score));
     h.check_bool(
         "nS-605: Tofacitinib top-ranked for flare",
         sorted_flare[0].drug_name == "Tofacitinib",

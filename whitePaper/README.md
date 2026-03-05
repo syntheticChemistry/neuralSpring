@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 38.6× faster than Python (14 domains, honest geomean), 234 binaries, **213/213 validate\_all**. coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 869 lib + 9 integration + 43 forge tests. 46 upstream rewires, 205+ barracuda import files, 25+ submodules. barraCuda v0.3.1 standalone
-**Date**: March 4, 2026 (Sessions 40–121 — S121: `SimpleMlp` rewire + HMM f64 `ComputeDispatch`, 46 upstream rewires, V81 handoff. 213/213 validate_all)
+**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 39/39, 38.6× faster than Python (14 domains, honest geomean), 238 binaries, **217/217 validate\_all**. coralForge unified. 139+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 880 lib + 9 integration + 43 forge tests. 46 upstream rewires, 205+ barracuda import files, 25+ submodules. barraCuda v0.3.1 standalone
+**Date**: March 5, 2026 (Sessions 40–124 — S124: airSpring V069 naming rewire, HMM forward ComputeDispatch absorption, Paper 026. V82 handoff. 217/217 validate_all)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -76,7 +76,7 @@ WGSL serves every domain.
 ### Key Results Summary
 
 **Phase 0/0+/0++**: 330/330 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge)
-**Phase 1–5h+**: 3080+ Rust+GPU validation PASS (861 lib + 9 integration + 43 forge tests + 232 binaries across 40 modules + gpu\_ops/ + gpu\_dispatch/)
+**Phase 1–5h+**: 3080+ Rust+GPU validation PASS (880 lib + 9 integration + 43 forge tests + 238 binaries across 41 modules + gpu\_ops/ + gpu\_dispatch/)
 **Grand Total**: 3500+ PASS — **ALL GREEN** across all applicable tiers
 **Multi-GPU**: 210 validators on RTX 4070, 384+ additional on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 47 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11, Phase C: 6, +3 upstream). ~97% of production math on GPU.
@@ -95,7 +95,7 @@ cross-device cost model for GPU↔NPU↔CPU substrate selection.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 861 lib + 9 integration + 43 forge tests, 232 binaries, 40 modules | **Complete** |
+| 1a | Rust validation layer — 880 lib + 9 integration + 43 forge tests, 238 binaries, 41 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -313,7 +313,7 @@ Full handoff: `wateringHole/handoffs/`
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (861 lib + 9 integration + 43 forge tests + 232 binaries)
+# Rust validation (880 lib + 9 integration + 43 forge tests + 238 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -358,4 +358,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *25 papers + 5 studies + 5 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 40 modules + gpu\_ops/ + gpu\_dispatch. 861 lib + 9 integration + 43 forge tests. 330 Python + 3280+ Rust/GPU = 3590+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 205+ barracuda import sites. 234 binaries, 213/213 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V81 handoff. S121: SimpleMlp rewire + HMM f64 ComputeDispatch.*
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 10/10 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 52/52 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 205+ barracuda import sites. 238 binaries, 217/217 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V82 handoff. S124: airSpring V069 naming rewire, HMM forward ComputeDispatch absorption, Paper 026.*

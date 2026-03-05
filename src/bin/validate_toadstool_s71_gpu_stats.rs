@@ -10,10 +10,10 @@
 //! ## S71 Absorption Provenance
 //!
 //! ```text
-//! groundSpring → kimura, jackknife     → ToadStool S71 GPU dispatch
-//! airSpring    → hargreaves_et0        → ToadStool S71 GPU batch
-//! ToadStool    → ComputeDispatch       → pure math WGSL shaders
-//! ToadStool    → DF64 transcendentals  → gamma, erf, trig on f32 GPUs
+//! groundSpring → kimura, jackknife     → `ToadStool` S71 GPU dispatch
+//! airSpring    → hargreaves_et0        → `ToadStool` S71 GPU batch
+//! `ToadStool`    → ComputeDispatch       → pure math WGSL shaders
+//! `BarraCUDA`    → DF64 transcendentals  → gamma, erf, trig on f32 GPUs
 //! ```
 //!
 //! ## Known Upstream Shader Bugs

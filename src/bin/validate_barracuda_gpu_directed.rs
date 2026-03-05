@@ -153,7 +153,7 @@ fn validate_pareto_rank_ordering(
         .map(|(i, row)| (i, row.iter().sum()))
         .collect();
     let mut cpu_sorted = cpu_combined;
-    cpu_sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_sorted.sort_by(|a, b| f64::total_cmp(&b.1, &a.1));
 
     let gen_flat: Vec<f32> = genotype
         .iter()
@@ -192,7 +192,7 @@ fn validate_pareto_rank_ordering(
         .map(|(i, chunk)| (i, chunk.iter().map(|&x| f64::from(x)).sum()))
         .collect();
     let mut gpu_sorted = gpu_combined;
-    gpu_sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_sorted.sort_by(|a, b| f64::total_cmp(&b.1, &a.1));
 
     let order_preserved = cpu_sorted
         .iter()

@@ -156,7 +156,7 @@ genuine GPU computation via log→scale→exp→div pipeline.
 
 ## hotSpring Streaming Patterns to Adopt
 
-hotSpring eliminates CPU round-trips using these ToadStool patterns:
+hotSpring eliminates CPU round-trips using these `ToadStool` patterns:
 
 ### Pattern 1: Encoder Batching
 ```rust

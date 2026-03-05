@@ -41,7 +41,7 @@ use crate::primitives::LOG_GUARD;
 /// Core fields (IPR, level spacing, entropy, MP departure) are original to
 /// neuralSpring baseCamp nS-01. Extended fields (bandwidth, condition number,
 /// phase label) evolved from hotSpring's `proxy.rs` Anderson 3D diagnostics
-/// via cross-spring evolution through ToadStool.
+/// via cross-spring evolution through `BarraCUDA` (via `ToadStool`).
 #[derive(Debug, Clone)]
 pub struct WeightSpectralResult {
     /// Sorted eigenvalues of the symmetrized Hamiltonian.
@@ -90,9 +90,7 @@ pub fn weight_spectral_analysis(weights: &[f64], m: usize, n: usize) -> WeightSp
     let dim = m + n;
     let mut decomp = eigh_householder_qr(&h, dim);
 
-    decomp
-        .eigenvalues
-        .sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    decomp.eigenvalues.sort_by(f64::total_cmp);
 
     let ipr_val = mean_ipr(&decomp.eigenvectors, dim);
     let lsr = level_spacing_ratio(&decomp.eigenvalues);
@@ -127,7 +125,7 @@ pub fn spectral_result_from_decomposition(
     dim: usize,
     gamma: f64,
 ) -> WeightSpectralResult {
-    eigenvalues.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    eigenvalues.sort_by(f64::total_cmp);
     let ipr_val = mean_ipr(eigenvectors, dim);
     let lsr = level_spacing_ratio(&eigenvalues);
     let entropy = spectral_entropy(&eigenvalues);

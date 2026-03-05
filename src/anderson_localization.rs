@@ -170,7 +170,10 @@ pub fn disorder_sweep(n: usize, t: f64, w_vals: &[f64], rng: &mut Rng) -> Vec<f6
 }
 
 #[cfg(test)]
-#[allow(clippy::float_cmp)]
+#[expect(
+    clippy::float_cmp,
+    reason = "deterministic seed=42 produces exact values"
+)]
 mod tests {
     use super::*;
     use crate::rng::Rng;
@@ -236,7 +239,9 @@ mod tests {
     #[test]
     fn aubry_andre_potential_quasiperiodic() {
         let v = aubry_andre_potential(50, 1.0, 1.0 / GOLDEN_RATIO, 0.0);
-        let all_same = v.windows(2).all(|w| (w[0] - w[1]).abs() < 1e-14);
+        let all_same = v
+            .windows(2)
+            .all(|w| (w[0] - w[1]).abs() < tolerances::ZERO_DETECTION);
         assert!(!all_same, "quasiperiodic potential should not be constant");
     }
 

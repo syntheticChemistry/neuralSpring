@@ -89,12 +89,12 @@ async fn main() {
     let (cpu_evals, _) = {
         let d = eigh_householder_qr(&cpu_h_sq, dim);
         let mut ev = d.eigenvalues;
-        ev.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        ev.sort_by(f64::total_cmp);
         (ev, d.eigenvectors)
     };
     let (gpu_evals_raw, _) = gpu_ops::eigh_gpu(&gpu_h_sq, dim, &dev).expect("eigh H² GPU");
     let mut gpu_evals = gpu_evals_raw;
-    gpu_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_evals.sort_by(f64::total_cmp);
 
     let h_sq_eval_diff = cpu_evals
         .iter()
@@ -160,7 +160,7 @@ async fn main() {
     let (gpu_hess_evals_raw, _) =
         gpu_ops::eigh_gpu(&hessian, loss_dim, &dev).expect("eigh Hessian GPU");
     let mut gpu_hess_evals = gpu_hess_evals_raw;
-    gpu_hess_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_hess_evals.sort_by(f64::total_cmp);
 
     let hess_eval_diff = cpu_hess_evals
         .iter()
@@ -410,12 +410,12 @@ async fn main() {
     let cpu_laplacian = neural_spring::agent_coordination::graph_laplacian(&cpu_adj, n_agents);
     let cpu_lap_decomp = eigh_householder_qr(&cpu_laplacian, n_agents);
     let mut cpu_lap_evals = cpu_lap_decomp.eigenvalues;
-    cpu_lap_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_lap_evals.sort_by(f64::total_cmp);
 
     let (gpu_lap_evals_raw, _) =
         gpu_ops::eigh_gpu(&cpu_laplacian, n_agents, &dev).expect("eigh Laplacian GPU");
     let mut gpu_lap_evals = gpu_lap_evals_raw;
-    gpu_lap_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_lap_evals.sort_by(f64::total_cmp);
 
     let lap_eval_diff = cpu_lap_evals
         .iter()

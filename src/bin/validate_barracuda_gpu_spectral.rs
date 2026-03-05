@@ -23,7 +23,7 @@
 //! `Tensor::matmul` correctness, then validates the full spectral
 //! commutator pipeline on CPU.
 //!
-//! **`ToadStool` absorption**: The Naive matmul tier should be removed
+//! **`BarraCUDA` absorption**: The Naive matmul tier should be removed
 //! or replaced with Tiled16 for all sizes. The `SMALL_MATRIX_THRESHOLD`
 //! cutoff at 32 exposes a driver-dependent hang.
 //!

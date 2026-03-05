@@ -1,8 +1,9 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 4, 2026 (Sessions 109–121)
+**Date**: March 5, 2026 (Sessions 109–124)
 **barraCuda**: v0.3.1 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool at S89; standalone since v0.2.0 (Mar 2). 767 WGSL shaders, dual-protocol IPC (JSON-RPC 2.0 + tarpc), domain feature-gates, DeviceLost resilience, global DEVICE_CREATION_LOCK. ToadStool dispatches across hardware; barraCuda is universal math. 2,965 upstream tests, 0 clippy.
-**neuralSpring**: 869 lib + 43 forge + 9 integration tests, 234 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**neuralSpring**: 880 lib + 43 forge + 9 integration tests, 238 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant). 91.76% llvm-cov (>90% threshold).
+**S122 debt execution**: 24 `#[allow]` → `#[expect]` (zero remain). 15+ `partial_cmp().unwrap_or()` → `f64::total_cmp()`. `wdm_esn.rs` refactored to module directory. `SDPA_PASSTHROUGH` tolerance centralized. Streaming I/O spec created. 41/41 Python baselines confirmed, 217/217 `validate_all` PASS. V82 handoff.
 **S121 rewires**: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch`. 46 total upstream rewires. 80/80 S121 rewire validation + 28/28 cross-spring modern bench.
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
@@ -12,14 +13,14 @@
 ## Quick Status
 
 41 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 6 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments + nF-03 AlphaFold3 Phase C.
-232 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+238 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 330/330 | **COMPLETE** |
-| Rust native validation | 869 lib + 9 integration + 43 forge tests, 41 modules, 232 binaries | **COMPLETE** |
+| Rust native validation | 880 lib + 9 integration + 43 forge tests, 41 modules, 238 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -59,8 +60,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44→111: benchmarks | Pure Rust vs Python (14 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **232 binaries** |
-| `validate_all` (S115) | **212/212 PASS** (RTX 4070, all green) | **ALL GREEN** |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **238 binaries** |
+| `validate_all` (S115) | **217/217 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -74,7 +75,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **212/212 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` | **217/217 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
@@ -970,7 +971,7 @@ documents provenance across 5 springs.
 
 | Metric | Value |
 |--------|-------|
-| validate_all | **213/213 PASS** |
+| validate_all | **217/217 PASS** |
 | Binaries | 234 |
 | Library tests | 869 |
 | Latest handoff | **V81** (S121) |
@@ -983,5 +984,26 @@ documents provenance across 5 springs.
 | `#[allow(` in bins | **0** |
 | S121 rewire validation | 80/80 |
 | Cross-spring modern bench | 28/28 |
+
+---
+
+### Benchmark Coverage (S123)
+
+| Comparison | Coverage | Location |
+|------------|----------|----------|
+| **Python ↔ BarraCUDA CPU** | 14 domains | `validate_barracuda_cpu_bench` + 14 `control/*/bench_*.py` scripts |
+| **Python ↔ CPU ↔ GPU** (3-way) | MLP/Transformer scaling | `metalForge/fossils/bench/bench_scaling.{py,rs}` |
+| **Paper 026 BarraCUDA promotion** | CPU (11) + GPU (14) = 25/25 | `validate_barracuda_glucose_prediction` — LSTM Tensor matmul, GPU↔CPU parity ≤1.07e-6 |
+| **Kokkos ↔ BarraCUDA GPU** | External only | `wateringHole/BARRACUDA_KOKKOS_GPU_BENCHMARK_RESULTS_MAR04_2026.md` |
+| **Kokkos scripts in neuralSpring** | None | Kokkos benchmarks live in wateringHole as handoff docs |
+
+Python ↔ BarraCUDA CPU benchmarks exist for all 14 Phase 0++ domains (pairwise L2,
+Jaccard, Hill gate, multi-objective fitness, commutator, swarm NN, Anderson IPR,
+eco batch fitness, NK fitness, RK4 GRN, HMM forward, replicator dynamics, Hamming
+distance, global FST).
+
+Kokkos comparison data (BarraCUDA WGSL vs Kokkos CUDA) is documented in wateringHole
+handoff docs. No Kokkos benchmark scripts live in neuralSpring — Kokkos serves as
+an external Tier 1 performance baseline per `BARRACUDA_KOKKOS_VALIDATION_BASELINE_NOTICE`.
 
 *Evolution readiness tracker — following the hotSpring pattern for ToadStool absorption.*

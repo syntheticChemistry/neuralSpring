@@ -98,7 +98,7 @@ pub fn handle_spectral_analysis(
 
     let ipr_val = mean_ipr(&decomp.eigenvectors, n);
     let mut evals = decomp.eigenvalues.clone();
-    evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    evals.sort_by(|a, b| a.total_cmp(b));
     let lsr = neural_spring::weight_spectral::level_spacing_ratio(&evals);
     let bw = neural_spring::weight_spectral::spectral_bandwidth(&evals);
     let cond = neural_spring::weight_spectral::spectral_condition_number(&evals);
@@ -136,7 +136,7 @@ pub fn handle_anderson_localization(
         let (eigenvalues, eigenvectors) = jacobi_eigh(&h, n);
         let ipr_val = mean_ipr(&eigenvectors, n);
         let mut sorted_evals = eigenvalues.clone();
-        sorted_evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        sorted_evals.sort_by(|a, b| a.total_cmp(b));
         let lsr = neural_spring::weight_spectral::level_spacing_ratio(&sorted_evals);
 
         let bw = neural_spring::weight_spectral::spectral_bandwidth(&sorted_evals);
@@ -195,7 +195,7 @@ pub fn handle_hessian_eigen(id: serde_json::Value, params: &serde_json::Value) -
 
     let decomp = eigh_householder_qr(&hessian, n);
     let mut evals = decomp.eigenvalues.clone();
-    evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    evals.sort_by(|a, b| a.total_cmp(b));
     let entropy = neural_spring::primitives::shannon_entropy(&evals);
     let trace: f64 = evals.iter().sum();
     let cond = neural_spring::weight_spectral::spectral_condition_number(&evals);
@@ -292,7 +292,7 @@ pub fn handle_training_trajectory(
         let decomp = eigh_householder_qr(&w, dim);
         let ipr_val = mean_ipr(&decomp.eigenvectors, dim);
         let mut evals = decomp.eigenvalues.clone();
-        evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        evals.sort_by(|a, b| a.total_cmp(b));
         let entropy = neural_spring::primitives::shannon_entropy(&evals);
         let lsr = neural_spring::weight_spectral::level_spacing_ratio(&evals);
         let phase = neural_spring::weight_spectral::classify_phase(lsr);

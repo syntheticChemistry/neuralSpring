@@ -62,9 +62,9 @@ async fn main() {
     let (gpu_evals, gpu_evecs) = gpu_ops::eigh_gpu(&lap, n, &dev).expect("eigh_gpu Laplacian");
 
     let mut cpu_sorted = cpu_decomp.eigenvalues.clone();
-    cpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_sorted.sort_by(f64::total_cmp);
     let mut gpu_sorted = gpu_evals;
-    gpu_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_sorted.sort_by(f64::total_cmp);
 
     let max_eval_diff = cpu_sorted
         .iter()
@@ -132,9 +132,9 @@ async fn main() {
         gpu_ops::eigh_gpu(&disordered_lap, n, &dev).expect("eigh_gpu disordered");
 
     let mut cpu_dis_sorted = cpu_dis_decomp.eigenvalues.clone();
-    cpu_dis_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    cpu_dis_sorted.sort_by(f64::total_cmp);
     let mut gpu_dis_sorted = gpu_dis_evals;
-    gpu_dis_sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    gpu_dis_sorted.sort_by(f64::total_cmp);
 
     let dis_max_diff = cpu_dis_sorted
         .iter()

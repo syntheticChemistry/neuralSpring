@@ -69,7 +69,7 @@ fn validate_eigh_symmetric(h: &mut ValidationHarness, rng: &mut Rng, n: usize) {
 ///
 /// **Accuracy gap**: barracuda's `eigh_f64` achieves ~1e-3 reconstruction
 /// relative error at n=8, vs LAPACK/NumPy's ~1e-14.  This is documented
-/// as a barracuda quality gap for `ToadStool` to evolve (Lanczos or
+/// as a `BarraCUDA` quality gap to evolve (Lanczos or
 /// divide-and-conquer would achieve machine precision).  The tolerance
 /// here reflects barracuda's *actual* accuracy — not the theoretical ideal.
 fn validate_eigh_reconstruct(h: &mut ValidationHarness, rng: &mut Rng, _n: usize) {

@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 4, 2026 (Sessions 61–121)
-**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **213/213 validate\_all** (234 binaries), 869 lib tests. S121: WDM surrogates rewired to `barracuda::nn::SimpleMlp`, HMM Viterbi chain rewired to f64 `ComputeDispatch`, cross-spring modern bench 28/28 PASS (5-spring provenance). S120: deep debt audit + CI hardening — zero `#[allow(` remaining, `--all-features` CI. S118: barraCuda standalone rewire (v0.3.1). barraCuda: v0.3.1 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders)
+**Last Updated**: March 5, 2026 (Sessions 61–124)
+**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **217/217 validate\_all** (238 binaries), 880 lib tests. S121: WDM surrogates rewired to `barracuda::nn::SimpleMlp`, HMM Viterbi chain rewired to f64 `ComputeDispatch`, cross-spring modern bench 28/28 PASS (5-spring provenance). S120: deep debt audit + CI hardening — zero `#[allow(` remaining, `--all-features` CI. S122–S124: airSpring V069 naming rewire, HMM forward ComputeDispatch absorption, Paper 026 glucose prediction. S118: barraCuda standalone rewire (v0.3.1). barraCuda: v0.3.1 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders)
 
 ## Purpose
 

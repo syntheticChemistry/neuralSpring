@@ -135,7 +135,7 @@ fn main() {
     gpu_path[t_len - 1] = delta
         .iter()
         .enumerate()
-        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+        .max_by(|a, b| f64::total_cmp(a.1, b.1))
         .map_or(0, |(i, _)| i);
     for t in (0..t_len.saturating_sub(1)).rev() {
         gpu_path[t] = all_psi[t + 1][gpu_path[t + 1]];
@@ -472,7 +472,7 @@ fn main() {
     gpu_path4[t4 - 1] = delta4
         .iter()
         .enumerate()
-        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+        .max_by(|a, b| f64::total_cmp(a.1, b.1))
         .map_or(0, |(i, _)| i);
     for t in (0..t4.saturating_sub(1)).rev() {
         gpu_path4[t] = all_psi4[t + 1][gpu_path4[t + 1]];

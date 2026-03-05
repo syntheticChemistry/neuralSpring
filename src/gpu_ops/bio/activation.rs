@@ -155,7 +155,10 @@ pub fn hill_gate_gpu(
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+#[expect(
+    clippy::expect_used,
+    reason = "GPU test setup uses expect for device creation"
+)]
 mod tests {
     use super::*;
     use crate::gpu_ops::tests_ops::test_device;

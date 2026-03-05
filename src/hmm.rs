@@ -245,7 +245,7 @@ impl Hmm {
             for j in 0..self.n {
                 let (best_i, best) = (0..self.n)
                     .map(|i| (i, delta[(t - 1) * self.n + i] + log_a[i * self.n + j]))
-                    .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+                    .max_by(|a, b| a.1.total_cmp(&b.1))
                     .unwrap_or((0, f64::NEG_INFINITY));
                 psi[t * self.n + j] = best_i;
                 delta[t * self.n + j] = best + log_b[j * self.m + obt];
@@ -257,7 +257,7 @@ impl Hmm {
         let (best_j, log_prob) = last_row
             .iter()
             .enumerate()
-            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+            .max_by(|a, b| a.1.total_cmp(b.1))
             .map_or((0, f64::NEG_INFINITY), |(i, &v)| (i, v));
         path[t_len - 1] = best_j;
 
@@ -314,6 +314,7 @@ impl Hmm {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use approx::assert_relative_eq;
 
     fn weather_hmm() -> Hmm {
@@ -338,7 +339,7 @@ mod tests {
         let fwd = hmm.forward_full(&obs);
         for t in 0..obs.len() {
             let sum: f64 = fwd.alpha_at(t).iter().sum();
-            assert_relative_eq!(sum, 1.0, epsilon = 1e-10);
+            assert_relative_eq!(sum, 1.0, epsilon = tolerances::CROSS_LANGUAGE);
         }
     }
 
@@ -361,7 +362,7 @@ mod tests {
         let gamma = hmm.posterior(&obs);
         for t in 0..obs.len() {
             let sum: f64 = gamma[t * hmm.n..(t + 1) * hmm.n].iter().sum();
-            assert_relative_eq!(sum, 1.0, epsilon = 1e-8);
+            assert_relative_eq!(sum, 1.0, epsilon = tolerances::HMM_POSTERIOR_SUM);
         }
     }
 

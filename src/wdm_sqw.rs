@@ -243,7 +243,7 @@ fn parse_f64_vec(obj: &serde_json::Value, key: &str) -> Result<Vec<f64>, String>
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+#[expect(clippy::expect_used, reason = "test assertions use expect for clarity")]
 mod tests {
     use super::*;
 

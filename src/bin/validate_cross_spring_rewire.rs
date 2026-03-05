@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Cross-spring rewire validation: verifies that neuralSpring primitives
-//! rewired to barracuda/ToadStool produce identical results to local
+//! rewired to `BarraCUDA`/`ToadStool` produce identical results to local
 //! implementations, and that hotSpring-evolved extensions are correct.
 //!
 //! ## Cross-spring evolution validated

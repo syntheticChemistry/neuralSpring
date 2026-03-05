@@ -240,6 +240,7 @@ pub fn dominance_index(population: &[Vec<u8>]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tolerances;
     use approx::assert_relative_eq;
 
     #[test]
@@ -291,7 +292,7 @@ mod tests {
         assert_relative_eq!(
             r1.mean_fitness[r1.mean_fitness.len() - 1],
             r2.mean_fitness[r2.mean_fitness.len() - 1],
-            epsilon = 1e-10
+            epsilon = tolerances::CROSS_LANGUAGE
         );
     }
 }

@@ -288,7 +288,10 @@ pub fn jaccard_distance_matrix(pa: &[f64], n_genes: usize, n_genomes: usize) -> 
 }
 
 #[cfg(test)]
-#[allow(clippy::float_cmp)]
+#[expect(
+    clippy::float_cmp,
+    reason = "deterministic seed=42 produces exact values"
+)]
 mod tests {
     use super::*;
     use crate::tolerances;

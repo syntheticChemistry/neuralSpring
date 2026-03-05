@@ -184,7 +184,7 @@ fn validate_mlp(h: &mut ValidationHarness, device: &Dev) {
             let predicted = probs
                 .iter()
                 .enumerate()
-                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                .max_by(|a, b| f32::total_cmp(a.1, b.1))
                 .map_or(0, |(i, _)| i);
             h.check_bool(
                 "MLP predicted class matches Python",
@@ -321,7 +321,7 @@ fn validate_transformer(h: &mut ValidationHarness, device: &Dev) {
 
         // Pre-norm attention (evolved MHA: matmul projections + CPU head
         // reshape — native Tensor::multi_head_attention projection shaders
-        // hang; documented for ToadStool absorption S-03b)
+        // hang; documented for BarraCUDA absorption S-03b)
         let normed1 = x.clone().layer_norm_wgsl(cfg.epsilon).map_err(&e)?;
 
         let attn_proj =

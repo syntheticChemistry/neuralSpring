@@ -9,7 +9,7 @@
 //! ```text
 //! Python (scipy.integrate) → Rust CPU (hand-rolled RK4)
 //!   → BarraCUDA CPU (rk45_solve) → GPU WGSL shader (rk4_parallel.wgsl)
-//!   → ToadStool absorption
+//!   → `BarraCUDA` absorption
 //! ```
 //!
 //! ## Papers validated

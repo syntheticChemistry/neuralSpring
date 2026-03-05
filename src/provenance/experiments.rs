@@ -548,6 +548,25 @@ pub const IMMUNOLOGICAL_ANDERSON_PROVENANCE: BaselineProvenance = BaselineProven
     unit: "checks passed",
 };
 
+// ═══════════════════════════════════════════════════════════════════
+// Paper 026 — Chuna: LSTM Blood Glucose Prediction
+// ═══════════════════════════════════════════════════════════════════
+
+/// Provenance for Paper 026: LSTM glucose prediction horizon analysis.
+///
+/// Chuna (2020) "Setting Limits on Neural Network's Predictive Capacity
+/// in T1D Blood Glucose Concentration" (medRxiv 2020.08.04.20117812).
+pub const GLUCOSE_PREDICTION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 026: LSTM Blood Glucose Prediction (9/9 PASS)",
+    script: "control/glucose_prediction/glucose_prediction.py",
+    commit: BASELINE_COMMIT,
+    date: "2026-03-05",
+    command: "python3 control/glucose_prediction/glucose_prediction.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 9.0,
+    unit: "checks passed",
+};
+
 /// Provenance for nS-06 extended: Gonzales dose-response, pruritus time-series,
 /// lokivetmab PK, 3D tissue lattice, Fajgenbaum MATRIX scoring.
 pub const IMMUNOLOGICAL_ANDERSON_EXTENDED_PROVENANCE: BaselineProvenance = BaselineProvenance {

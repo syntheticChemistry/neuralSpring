@@ -75,7 +75,7 @@ impl Dispatcher {
     /// KL divergence: GPU fused f64 if available, CPU fallback.
     ///
     /// Cross-spring evolution: neuralSpring `kl_divergence_f64.wgsl`
-    /// → `ToadStool` S76 absorption → `FusedKlDivergenceGpu`.
+    /// → `BarraCUDA` (via `ToadStool` S76) → `FusedKlDivergenceGpu`.
     #[must_use]
     pub fn kl_divergence(&self, p: &[f64], q: &[f64]) -> f64 {
         self.gpu_or_cpu(

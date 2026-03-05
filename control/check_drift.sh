@@ -72,6 +72,7 @@ MODULES=(
     "anderson_multiagent/anderson_multiagent.py"
     "immunological_anderson/immunological_anderson.py"
     "immunological_anderson/immunological_anderson_extended.py"
+    "glucose_prediction/glucose_prediction.py"
 )
 
 run_module() {

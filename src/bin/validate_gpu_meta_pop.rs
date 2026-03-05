@@ -9,7 +9,7 @@
 //! Evolution path:
 //! ```text
 //! Python (numpy.var) → Rust CPU (loop) → BarraCUDA CPU (stats::variance)
-//!   → GPU WGSL shader (locus_variance.wgsl) → ToadStool absorption
+//!   → GPU WGSL shader (locus_variance.wgsl) → `BarraCUDA` absorption
 //!   → barracuda::ops::bio::LocusVarianceGpu
 //! ```
 //!

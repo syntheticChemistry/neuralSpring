@@ -103,7 +103,7 @@ pub fn barrier_promotion_spectrum(
         let ham = tissue_lattice_hamiltonian(&[n_sites], &[w_eff], hopping, 42 + step as u64);
         let decomp = crate::eigh::eigh_householder_qr(&ham, n_sites);
         let mut evals = decomp.eigenvalues;
-        evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(core::cmp::Ordering::Equal));
+        evals.sort_by(f64::total_cmp);
 
         let r = level_spacing_ratio(&evals);
         results.push((intact, d_eff, r));

@@ -23,7 +23,7 @@ pub fn geographic_distance_matrix(coords: &[(f64, f64)]) -> Vec<f64> {
 ///
 /// Extracts the upper triangle, then delegates to
 /// `barracuda::stats::pearson_correlation` (absorbed from airSpring/groundSpring
-/// hydrology metrics in `ToadStool` S64).
+/// hydrology metrics via `ToadStool` S64, now in `BarraCUDA`).
 #[must_use]
 pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
     let (xs, ys): (Vec<f64>, Vec<f64>) = (0..n)

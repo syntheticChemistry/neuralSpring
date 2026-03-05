@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: March 2, 2026 (Sessions 45–119)
+**Last Updated**: March 5, 2026 (Sessions 45–123)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -95,7 +95,7 @@ blood glucose prediction. Profile: `whitePaper/attsi/non-anon/contact/murillo/ch
 
 | # | Paper | Journal | Year | Faculty | Why | Status |
 |---|-------|---------|------|---------|-----|--------|
-| 26 | Chuna "Setting Limits on Neural Network's Predictive Capacity in T1D Blood Glucose Concentration" | arXiv:2005.09051 | 2020 | Chuna | LSTM time series on CGM data — same architecture as Exp 3/9 (weather LSTM), different domain. Explores prediction horizon limits. Validates LSTM primitives on biomedical data | Queue — reproduce LSTM glucose prediction; compare horizons/R² vs weather LSTM (Exp 9) |
+| 26 | Chuna "Setting Limits on Neural Network's Predictive Capacity in T1D Blood Glucose Concentration" | arXiv:2005.09051 | 2020 | Chuna | LSTM time series on CGM data — same architecture as Exp 3/9 (weather LSTM), different domain. Explores prediction horizon limits. Validates LSTM primitives on biomedical data | **Complete + bC/gT** — `control/glucose_prediction/glucose_prediction.py` (9/9 PASS), `glucose_prediction.rs` (11 tests), `validate_glucose_prediction` (26/26 PASS), `validate_barracuda_glucose_prediction` (25/25 PASS: bC CPU 11, gT GPU 14, GPU↔CPU parity ≤1.07e-6) |
 
 **Why this matters for neuralSpring**: We already have LSTM weather validation
 (Exp 3: synthetic, 5/5; Exp 9: real ERA5, 5/5). Chuna's paper uses the same
@@ -237,7 +237,7 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 ## Completion Summary
 
-**All 25 papers complete. baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete.**
+**All 26 papers complete. baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete. Paper 026 (Chuna LSTM glucose prediction) complete — validates LSTM prediction horizon limits, isomorphic cross-domain generalization (biomedical ↔ meteorological).**
 
 Session 111: CPU benchmark expanded 11→14 domains (Papers 013, 023, 025). 3 new Python bench scripts. 31/31 PASS, 38.6× geomean. Full 10-tier pyramid validated. 210/210 validate_all.
 Session 109: Paper queue spec update. 861 lib tests, 229 binaries, 210/210 validate_all.
@@ -344,9 +344,11 @@ from Python baseline through multi-GPU portability to mixed-hardware dispatch.
 | Study 003 LeNet-5 | ✓ | ✓ | lenet ✓ | lenet+Conv2d/MaxPool GPU ✓ | — | — | **4/4** |
 | Study 004 LSTM | ✓ | ✓ | lstm ✓ | lstm ✓ | — | — | **4/4** |
 | Study 005 Quantized | ✓ | ✓ | quantized ✓ | — | — | — | **3/3** |
+| **026 Glucose (Chuna)** | ✓ | ✓ | glucose ✓ | LSTM+readout ✓ | — | — | **4/4** |
 
 Phase 0/0+ studies use PyTorch training workflows. mF/gP columns are N/A.
 Study 005 uses integer arithmetic (Q8/Q4), not Tensor ops — gT is N/A.
+Paper 026 uses LSTM reservoir (same primitives as Exp 003/004, nW-03).
 
 ### baseCamp (B-01..B-21) — Primitives Validated
 
@@ -369,15 +371,15 @@ routing through `validate_mixed_hardware` (21/21 PASS).
 
 | Tier | Papers Covered | Total | Coverage |
 |------|---------------|-------|----------|
-| Python control (Py) | 25/25 + 5 WDM + 3 pub exp | 263 checks | **100%** |
-| Rust CPU (Rs) | 25/25 + baseCamp + WDM + pub exp | 869 lib + 9 integration | **100%** |
-| BarraCUDA CPU (bC) | 24/25 | 203 checks | **96%** |
-| BarraCUDA GPU Tensor (gT) | 23/25 | 98+ checks | **92%** |
+| Python control (Py) | 26/26 + 5 WDM + 3 pub exp | 272 checks | **100%** |
+| Rust CPU (Rs) | 26/26 + baseCamp + WDM + pub exp | 880 lib + 9 integration | **100%** |
+| BarraCUDA CPU (bC) | 25/26 | 214 checks | **96%** |
+| BarraCUDA GPU Tensor (gT) | 24/26 | 112+ checks | **92%** |
 | BarraCUDA GPU (baseCamp) | 6/6 sub-theses | 18 checks | **100%** |
 | metalForge WGSL (mF) | 15/25 | 108 checks | **100%**† |
 | GPU Pipeline (gP) | 15/25 | 94 checks | **100%**† |
 | Cross-dispatch (xD) | 15/15 | 49 checks | **100%**† |
-| CPU↔GPU dispatch | 25 + baseCamp | 19 checks | **100%** |
+| CPU↔GPU dispatch | 26 + baseCamp | 19 checks | **100%** |
 | Mixed hardware (mH) | baseCamp | 21 checks | **100%** |
 
 `†` 100% of applicable papers. Phase 0/0+ studies use PyTorch, not WGSL shaders.
@@ -419,7 +421,7 @@ via `validate_barracuda_quantized` (CPU primitive path).
 
 1. ~~**Papers 016–018 (Liu)** — HMM forward/backward~~ → `hmm_forward_log.wgsl` **DONE** (13/13 + pipeline 5/5)
 2. ~~**Papers 011–015 (Dolson)** — Batch fitness evaluation~~ → `batch_fitness_eval.wgsl` **DONE** (20/20)
-3. **Papers 022–023 (Kachkovskiy)** — Tridiagonal eigensolver → specialized `tridiag_eigh.wgsl` (**Pending** — ToadStool NAK eigensolve)
+3. **Papers 022–023 (Kachkovskiy)** — Tridiagonal eigensolver → specialized `tridiag_eigh.wgsl` (**Pending** — `BarraCUDA` NAK eigensolve)
 4. ~~**Papers 020–021 (Waters)** — GPU-parallel RK4~~ → `rk4_parallel.wgsl` **DONE** (8/8 + pipeline 5/5)
 5. ~~**Paper 017 (Liu)** — Pairwise distance matrix~~ → `pairwise_hamming.wgsl` **DONE** (5/5)
 6. ~~**Paper 024 (Anderson)** — Pairwise Jaccard~~ → `pairwise_jaccard.wgsl` **DONE** (6/6 + pipeline 5/5)
@@ -541,7 +543,7 @@ Confirming all papers have controls across the three hardware tiers:
 | `validate_barracuda_{domain}` | 24/25 | 203 | stats, linalg, special, numerical |
 | `validate_barracuda_parity` | All 17 domains | 17/17 | CPU vs GPU parity per domain |
 | **Gap**: Exp 005 (analytical only) | | | No numerical ops |
-| **Gap**: Tridiagonal eigensolver | 022-023 | | Pending ToadStool NAK |
+| **Gap**: Tridiagonal eigensolver | 022-023 | | Pending `BarraCUDA` NAK |
 
 ### BarraCUDA GPU Controls
 
@@ -581,7 +583,7 @@ All controls verified passing across BarraCUDA CPU, GPU, and metalForge mixed ha
 **Session 88+ addendum**: 3 publication experiments (Exp-050/052/053) each have open-data
 Python controls + Rust CPU validators using BarraCUDA primitives (eigh_f64, BatchIprGpu,
 numerical_hessian, graph_laplacian, stencil_cooperation). Papers A/C/D data-ready.
-Total: 263 Python checks, 861 lib tests, 210/210 validate_all. V54 ToadStool handoff
+Total: 263 Python checks, 861 lib tests, 210/210 validate_all. V54 `ToadStool` handoff
 documents barracuda evolution surface, absorption targets, and cross-spring alignment.
 All controls use open data and open systems exclusively.
 
@@ -597,13 +599,13 @@ through the full GPU validation progression:
 
 **Session 88+ CPU parity and portability benchmarks**: 2 new validators:
 - `validate_barracuda_cpu_bench` (31/31): Python/NumPy vs pure Rust across 14 paper domains (all Phase 0++), 38.6× geometric mean speedup
-- `bench_portability_tiers` (9/9): CPU→GPU portability proof, 7 domains, ToadStool streaming
+- `bench_portability_tiers` (9/9): CPU→GPU portability proof, 7 domains, `ToadStool` streaming
 
 Total: **229 binaries**, **210/210 validate_all**.
 Also fixed `validate_wdm_sqw` JSON schema mismatch (`spec_mean` → `series_mean` compat): 0/1 → 26/27.
 
 **Session 88+ Phase 4 shader + streaming pipeline**: 2 new validators close direct
-WGSL shader validation and ToadStool streaming proof gaps:
+WGSL shader validation and `ToadStool` streaming proof gaps:
 
 | Validator | Checks | Tier | What It Proves |
 |-----------|--------|------|----------------|
@@ -611,7 +613,7 @@ WGSL shader validation and ToadStool streaming proof gaps:
 | `validate_streaming_spectral_pipeline` | 28/28 | Streaming | Batch eigensolve→IPR→stats (8 Hamiltonians), Anderson disorder sweep (6 W values, IPR 0.09→0.79), Dispatcher parity (1.6e-14) |
 
 Total: **229 binaries**, **210/210 validate_all**.
-ToadStool streaming pattern validated: unidirectional dispatch preserves scientific conclusions.
+`ToadStool` streaming pattern validated: unidirectional dispatch preserves scientific conclusions.
 
 **Session 88+ debt reduction addendum**: Barracuda usage audit complete — 90+ import sites,
 60+ files, 20+ submodules, 42 upstream rewires, zero duplicate math.
