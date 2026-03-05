@@ -2,8 +2,8 @@
 
 **Date**: March 5, 2026 (Sessions 109–124)
 **barraCuda**: v0.3.1 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool at S89; standalone since v0.2.0 (Mar 2). 767 WGSL shaders, dual-protocol IPC (JSON-RPC 2.0 + tarpc), domain feature-gates, DeviceLost resilience, global DEVICE_CREATION_LOCK. ToadStool dispatches across hardware; barraCuda is universal math. 2,965 upstream tests, 0 clippy.
-**neuralSpring**: 880 lib + 43 forge + 9 integration tests, 238 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant). 91.76% llvm-cov (>90% threshold).
-**S122 debt execution**: 24 `#[allow]` → `#[expect]` (zero remain). 15+ `partial_cmp().unwrap_or()` → `f64::total_cmp()`. `wdm_esn.rs` refactored to module directory. `SDPA_PASSTHROUGH` tolerance centralized. Streaming I/O spec created. 41/41 Python baselines confirmed, 217/217 `validate_all` PASS. V82 handoff.
+**neuralSpring**: 883 lib + 43 forge + 9 integration tests, 240 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant). 91.76% llvm-cov (>90% threshold).
+**S122 debt execution**: 24 `#[allow]` → `#[expect]` (zero remain). 15+ `partial_cmp().unwrap_or()` → `f64::total_cmp()`. `wdm_esn.rs` refactored to module directory. `SDPA_PASSTHROUGH` tolerance centralized. Streaming I/O spec created. 41/41 Python baselines confirmed, 218/218 `validate_all` PASS. V84 handoff.
 **S121 rewires**: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch`. 46 total upstream rewires. 80/80 S121 rewire validation + 28/28 cross-spring modern bench.
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
@@ -13,14 +13,14 @@
 ## Quick Status
 
 41 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 6 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments + nF-03 AlphaFold3 Phase C.
-238 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+240 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 330/330 | **COMPLETE** |
-| Rust native validation | 880 lib + 9 integration + 43 forge tests, 41 modules, 238 binaries | **COMPLETE** |
+| Rust native validation | 883 lib + 9 integration + 43 forge tests, 41 modules, 240 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -60,8 +60,8 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44: BarraCUDA fixes | mean_reduce entry point + chi² expected values | **2 bugs fixed upstream** |
 | Session 44→111: benchmarks | Pure Rust vs Python (14 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
-| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **238 binaries** |
-| `validate_all` (S115) | **217/217 PASS** (RTX 4070, all green) | **ALL GREEN** |
+| gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **240 binaries** |
+| `validate_all` (S115) | **218/218 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -75,7 +75,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **217/217 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` | **218/218 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
@@ -971,7 +971,7 @@ documents provenance across 5 springs.
 
 | Metric | Value |
 |--------|-------|
-| validate_all | **217/217 PASS** |
+| validate_all | **218/218 PASS** |
 | Binaries | 234 |
 | Library tests | 869 |
 | Latest handoff | **V81** (S121) |

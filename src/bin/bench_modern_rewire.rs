@@ -33,7 +33,7 @@
 //! groundSpring (hydrology)         → multinomial sampling, MC propagation, ET₀
 //! ```
 //!
-//! All absorbed into `ToadStool`'s 844+ f64-canonical WGSL shaders (2dc26792 S87).
+//! All absorbed into `BarraCUDA` v0.3.3's 845+ f64-canonical WGSL shaders (9d359814 S94b).
 //!
 //! # Panics
 //!
@@ -85,7 +85,7 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
 fn main() {
     eprintln!("╔══════════════════════════════════════════════════════════════════╗");
     eprintln!("║  neuralSpring — Modern Rewire & Cross-Spring Provenance Bench   ║");
-    eprintln!("║  BarraCUDA (ToadStool S87, 2dc26792) · 844+ f64-canonical WGSL   ║");
+    eprintln!("║  BarraCUDA v0.3.3 (ToadStool S94b, 9d359814) · 845+ WGSL          ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════╝");
     eprintln!();
 

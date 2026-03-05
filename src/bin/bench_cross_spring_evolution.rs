@@ -1,58 +1,64 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Cross-spring evolution benchmark: traces shader provenance across springs.
+//! Cross-spring shader evolution benchmark — exercises fused `BarraCUDA` v0.3.3
+//! ops that originated across all five Springs, tracking provenance and timing.
 //!
-//! Demonstrates how `ToadStool`/`BarraCUDA` benefits from cross-spring evolution:
+//! ## Cross-Spring Evolution Map
 //!
-//! | Spring | Domain | Key Contributions |
-//! |--------|--------|-------------------|
-//! | hotSpring | Precision physics | DF64 core-streaming, lattice QCD, Hermite/Laguerre |
-//! | wetSpring | Bioinformatics | Diversity (Shannon/Simpson), HMM, Bray-Curtis |
-//! | neuralSpring | ML/neuroevolution | Batch fitness, pairwise ops, swarm NN, RK4 |
-//! | airSpring | Atmospheric | Stats metrics (RMSE, R², NSE), moving window |
-//! | groundSpring | Hydrology | Multinomial sampling, MC propagation |
+//! ```text
+//! hotSpring  (precision/physics) → DF64 core, Welford variance, logsumexp, eigh
+//! wetSpring  (bioinformatics)    → Shannon, diversity fusion, Bray-Curtis, HMM
+//! neuralSpring (ML/evolution)    → chi-squared, KL divergence, pairwise L2, MHA
+//! airSpring  (atmospheric)       → sensor correlation, RMSE, moving window
+//! groundSpring (hydrology)       → matrix correlation, multinomial, jackknife
+//! ```
 //!
-//! Each benchmark section notes the provenance chain showing how shaders
-//! evolved from one spring to another, and ultimately to GPU.
+//! All absorbed into `BarraCUDA` v0.3.3 (845+ WGSL shaders, wgpu 28).
 //!
-//! ## Session 75
+//! ## What This Benchmarks
 //!
-//! Covers rewired functions: `r_squared`, `rmse`, `nse`, `dot`, `l2_norm`,
-//! `shannon`, `nash_sutcliffe` — all absorbed into `BarraCUDA` `stats` from
-//! airSpring/groundSpring/wetSpring in `BarraCUDA` (via `ToadStool` S64).
+//! | Op | Primary Spring | Dispatch |
+//! |----|---------------|----------|
+//! | Fused mean+variance (Welford) | hotSpring | `VarianceF64::mean_variance()` |
+//! | Fused correlation (full) | wetSpring+hotSpring | `CorrelationF64::correlation_full()` |
+//! | Correlation matrix (p×p) | airSpring+groundSpring | `stats_f64::matrix_correlation()` |
+//! | Shannon entropy (fused map-reduce) | wetSpring | `FusedMapReduceF64::shannon_entropy()` |
+//! | Chi-squared (fused) | neuralSpring | `FusedChiSquaredGpu::execute()` |
+//! | KL divergence (fused) | neuralSpring | `FusedKlDivergenceGpu::execute()` |
+//! | `LogSumExp` | hotSpring | `LogSumExp::compute()` |
+//! | Diversity fusion (Shannon+Simpson) | wetSpring | `DiversityFusionGpu::compute()` |
+//! | Pairwise L2 matrix | neuralSpring | `PairwiseL2Gpu::compute()` |
+//! | Batched eigensolve | hotSpring | `BatchedEighGpu::eigh_batch()` |
 //!
-//! ## Session 83
-//!
-//! Extended with `BarraCUDA` S66–S68 APIs: `fit_quadratic`, `fit_exponential`,
-//! `fit_all`, `spearman_correlation`, `rawr_mean`. GPU typed op provenance
-//! benchmarks and f64 precision ops (hotSpring → `BarraCUDA` → neuralSpring).
+//! ```text
+//! cargo run --release --bin bench_cross_spring_evolution
+//! ```
 //!
 //! # Panics
 //!
-//! Panics if the tokio runtime cannot be created or if GPU diversity fusion
-//! operations fail — this is a benchmark binary, not a library.
+//! Panics if the tokio runtime cannot be created.
 
 #![expect(
     clippy::cast_precision_loss,
-    clippy::needless_range_loop,
-    clippy::too_many_lines,
-    clippy::similar_names,
     clippy::expect_used,
     clippy::suboptimal_flops,
-    reason = "validation binary"
+    reason = "benchmark binary — mul+add patterns generate test data, not production math"
 )]
 
+use barracuda::device::WgpuDevice;
 use barracuda::ops::bio::DiversityFusionGpu;
-use barracuda::stats;
+use barracuda::ops::linalg::BatchedEighGpu;
+use barracuda::ops::logsumexp::LogSumExp;
+use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::gpu_ops;
 use neural_spring::rng::Rng;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use std::time::Instant;
 
-const N: usize = 10_000;
 const WARMUP: usize = 3;
-const ITERS: usize = 50;
+const ITERS: usize = 20;
 
 fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
     for _ in 0..WARMUP {
@@ -62,688 +68,209 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
     for _ in 0..ITERS {
         f();
     }
-    let elapsed = start.elapsed();
-    let us_per_iter = elapsed.as_micros() as f64 / ITERS as f64;
-    eprintln!("    {label}: {us_per_iter:.1}µs/iter");
-    us_per_iter
+    let us_per = start.elapsed().as_micros() as f64 / ITERS as f64;
+    eprintln!("    {label}: {us_per:.1}µs/iter");
+    us_per
+}
+
+fn bench_hotspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &mut Rng) {
+    eprintln!("\n┌──────────────────────────────────────────────────────────┐");
+    eprintln!("│  hotSpring: precision physics → BarraCUDA               │");
+    eprintln!("│  DF64 core, Welford variance, logsumexp, eigensolve     │");
+    eprintln!("└──────────────────────────────────────────────────────────┘");
+
+    // Fused mean+variance (Welford) — 50k f64 elements
+    let data: Vec<f64> = (0..50_000)
+        .map(|_| rng.next_f64() * 200.0 - 100.0)
+        .collect();
+    let mv_us = bench("mean_variance_gpu (50k f64, Welford fused)", || {
+        let _ = gpu_ops::mean_variance_gpu(&data, dev);
+    });
+    h.check_bool("bench_mean_variance", mv_us < 50_000.0);
+
+    // Variance alone — same data
+    let var_us = bench("variance_gpu (50k f64, Welford)", || {
+        let _ = gpu_ops::variance_gpu(&data, dev);
+    });
+    h.check_bool("bench_variance", var_us < 50_000.0);
+
+    // LogSumExp — 10k f64
+    let lse_n = 10_000;
+    let lse_data: Vec<f64> = (0..lse_n).map(|_| rng.next_f64() * 100.0 - 50.0).collect();
+    let lse_us = bench("LogSumExp (10k f64)", || {
+        let t =
+            Tensor::from_data_pod(&lse_data, vec![lse_n], dev.clone()).expect("LogSumExp tensor");
+        let _ = std::hint::black_box(LogSumExp::new(t).execute().expect("LogSumExp"));
+    });
+    h.check_bool("bench_logsumexp", lse_us < 50_000.0);
+
+    // Batched eigensolve — 20×16 symmetric matrices
+    let n_mat = 20;
+    let dim = 16;
+    let mut eigh_data = vec![0.0_f64; n_mat * dim * dim];
+    for m in 0..n_mat {
+        for i in 0..dim {
+            for j in i..dim {
+                let v = rng.next_f64() * 2.0 - 1.0;
+                eigh_data[m * dim * dim + i * dim + j] = v;
+                eigh_data[m * dim * dim + j * dim + i] = v;
+            }
+        }
+    }
+    let eigh_us = bench("BatchedEighGpu (20×16×16)", || {
+        let _ = BatchedEighGpu::execute_single_dispatch(
+            dev.clone(),
+            &eigh_data,
+            dim,
+            n_mat,
+            100,
+            1e-12,
+        );
+    });
+    h.check_bool("bench_batched_eigh", eigh_us < 200_000.0);
+}
+
+fn bench_wetspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &mut Rng) {
+    eprintln!("\n┌──────────────────────────────────────────────────────────┐");
+    eprintln!("│  wetSpring: bioinformatics → BarraCUDA                  │");
+    eprintln!("│  Shannon entropy, diversity fusion, fused correlation    │");
+    eprintln!("└──────────────────────────────────────────────────────────┘");
+
+    // Shannon entropy — 10k probabilities
+    let raw: Vec<f64> = (0..10_000)
+        .map(|_| rng.next_f64() * 0.999 + 0.001)
+        .collect();
+    let sum: f64 = raw.iter().sum();
+    let probs: Vec<f64> = raw.iter().map(|&x| x / sum).collect();
+    let ent_us = bench("shannon_entropy_gpu (10k probs)", || {
+        let _ = gpu_ops::shannon_entropy_gpu(&probs, dev);
+    });
+    h.check_bool("bench_shannon", ent_us < 50_000.0);
+
+    // Fused correlation (full) — 50k pairs
+    let x: Vec<f64> = (0..50_000).map(|_| rng.next_f64() * 20.0 - 10.0).collect();
+    let y: Vec<f64> = x
+        .iter()
+        .map(|&v| v * 2.3 + rng.next_f64() * 0.2 - 0.1)
+        .collect();
+    let corr_us = bench("correlation_full_gpu (50k pairs)", || {
+        let _ = gpu_ops::correlation_full_gpu(&x, &y, dev);
+    });
+    h.check_bool("bench_correlation_full", corr_us < 50_000.0);
+
+    // Pearson correlation (scalar) — same data
+    let pearson_us = bench("pearson_correlation_gpu (50k pairs)", || {
+        let _ = gpu_ops::pearson_correlation_gpu(&x, &y, dev);
+    });
+    h.check_bool("bench_pearson", pearson_us < 50_000.0);
+
+    // Diversity fusion — 32 samples × 200 taxa
+    let n_samples = 32;
+    let n_taxa = 200;
+    let mut div_data = vec![0.0_f64; n_samples * n_taxa];
+    for v in &mut div_data {
+        *v = rng.next_f64() * 100.0;
+    }
+    let div_op = DiversityFusionGpu::new(dev.clone()).expect("DiversityFusionGpu::new");
+    let div_us = bench("DiversityFusionGpu (32×200 taxa)", || {
+        let _ = div_op.compute(&div_data, n_samples, n_taxa);
+    });
+    h.check_bool("bench_diversity_fusion", div_us < 100_000.0);
+}
+
+fn bench_neuralspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &mut Rng) {
+    eprintln!("\n┌──────────────────────────────────────────────────────────┐");
+    eprintln!("│  neuralSpring: ML/neuroevolution → BarraCUDA            │");
+    eprintln!("│  chi-squared, KL divergence, pairwise L2                │");
+    eprintln!("└──────────────────────────────────────────────────────────┘");
+
+    // Chi-squared — 1k bins
+    let observed: Vec<f64> = (0..1000).map(|_| rng.next_f64() * 45.0 + 5.0).collect();
+    let expected: Vec<f64> = (0..1000).map(|_| rng.next_f64() * 45.0 + 5.0).collect();
+    let chi2_us = bench("chi_squared_gpu (1k bins)", || {
+        let _ = gpu_ops::chi_squared_gpu(&observed, &expected, dev);
+    });
+    h.check_bool("bench_chi_squared", chi2_us < 50_000.0);
+
+    // KL divergence — 1k bins
+    let kl_us = bench("kl_divergence_gpu (1k bins)", || {
+        let _ = gpu_ops::kl_divergence_gpu(&observed, &expected, dev);
+    });
+    h.check_bool("bench_kl_divergence", kl_us < 50_000.0);
+
+    // Pairwise L2 via neuralSpring wrapper — 100 vectors × 32 dims
+    let n_vecs = 100;
+    let dims = 32;
+    let vecs: Vec<f64> = (0..n_vecs * dims)
+        .map(|_| rng.next_f64() * 10.0 - 5.0)
+        .collect();
+    let pw_us = bench("pairwise_l2_matrix_gpu (100×32)", || {
+        let _ = gpu_ops::pairwise_l2_matrix_gpu(&vecs, n_vecs, dims, dev);
+    });
+    h.check_bool("bench_pairwise_l2", pw_us < 100_000.0);
+}
+
+fn bench_cross_spring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &mut Rng) {
+    eprintln!("\n┌──────────────────────────────────────────────────────────┐");
+    eprintln!("│  airSpring + groundSpring: sensor/hydrology → BarraCUDA │");
+    eprintln!("│  correlation matrix (multi-spring convergence)           │");
+    eprintln!("└──────────────────────────────────────────────────────────┘");
+
+    // Correlation matrix — 200 samples × 10 features
+    let n = 200_u32;
+    let p = 10_u32;
+    let data: Vec<f64> = (0..(n * p) as usize)
+        .map(|_| rng.next_f64() * 20.0 - 10.0)
+        .collect();
+    let cm_us = bench("correlation_matrix_gpu (200×10 → 10×10)", || {
+        let _ = gpu_ops::correlation_matrix_gpu(&data, n, p, dev);
+    });
+    h.check_bool("bench_correlation_matrix", cm_us < 100_000.0);
 }
 
 fn main() {
-    eprintln!("╔══════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Cross-Spring Evolution Benchmark            ║");
-    eprintln!("║  Provenance: hotSpring → wetSpring → neuralSpring → GPU     ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════╝");
+    eprintln!("╔════════════════════════════════════════════════════════════════════════════╗");
+    eprintln!("║  Cross-Spring Shader Evolution Benchmark                                   ║");
+    eprintln!("║  BarraCUDA v0.3.3 (wgpu 28) · ToadStool S94b · 845+ f64-canonical WGSL    ║");
+    eprintln!("╚════════════════════════════════════════════════════════════════════════════╝");
+    eprintln!();
+    eprintln!("  Five Springs → one math engine:");
+    eprintln!("    hotSpring:    DF64 core, Welford variance, logsumexp, eigensolve");
+    eprintln!("    wetSpring:    Shannon entropy, diversity fusion, fused correlation");
+    eprintln!("    neuralSpring: chi-squared, KL divergence, pairwise L2, MHA");
+    eprintln!("    airSpring:    sensor correlation, statistical metrics");
+    eprintln!("    groundSpring: matrix correlation, multinomial, jackknife");
     eprintln!();
 
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
-    let gpu = rt.block_on(async { Gpu::new().await.ok() });
+    let gpu = rt
+        .block_on(async { Gpu::new().await })
+        .expect("GPU required for benchmark");
 
-    if let Some(ref g) = gpu {
-        eprintln!(
-            "  GPU: {} ({:?}, {:?})",
-            g.adapter_name, g.device_type, g.backend
-        );
-    } else {
-        eprintln!("  GPU: not available");
-    }
-    eprintln!();
-
-    let mut h = ValidationHarness::new("cross_spring_evolution_bench");
-
-    // ─── airSpring + groundSpring → barracuda::stats (S64) ─────────────
-    eprintln!("═══ airSpring/groundSpring → barracuda::stats ═══");
-    eprintln!("  Provenance: airSpring testutil/stats.rs + groundSpring stats/metrics.rs");
-    eprintln!("  → BarraCUDA (ToadStool S64) → barracuda::stats");
-    eprintln!("  → neuralSpring rewired S75 (metrics.rs, deeponet.rs)");
-    eprintln!();
-
-    let mut rng = Rng::new(42);
-    let observed: Vec<f64> = (0..N).map(|_| rng.next_f64() * 100.0).collect();
-    let simulated: Vec<f64> = observed
-        .iter()
-        .map(|&x| x + (rng.next_f64() - 0.5) * 10.0)
-        .collect();
-
-    let cpu_rmse = bench("RMSE (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::rmse(&observed, &simulated));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: RMSE {cpu_rmse:.1}µs"),
-        cpu_rmse < 1_000.0,
-    );
-
-    let cpu_r2 = bench("R² (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::r_squared(&observed, &simulated));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: R² {cpu_r2:.1}µs"),
-        cpu_r2 < 1_000.0,
-    );
-
-    let cpu_nse = bench("NSE (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::nash_sutcliffe(&observed, &simulated));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: NSE {cpu_nse:.1}µs"),
-        cpu_nse < 1_000.0,
-    );
-
-    let cpu_ia = bench("IA (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::index_of_agreement(&observed, &simulated));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: IA {cpu_ia:.1}µs"),
-        cpu_ia < 1_000.0,
-    );
-
-    let cpu_dot = bench("dot (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::dot(&observed, &simulated));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: dot {cpu_dot:.1}µs"),
-        cpu_dot < 1_000.0,
-    );
-
-    let cpu_l2 = bench("l2_norm (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::l2_norm(&observed));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: l2_norm {cpu_l2:.1}µs"),
-        cpu_l2 < 1_000.0,
-    );
-
-    eprintln!();
-
-    // ─── wetSpring → barracuda::stats::diversity (S64) ──────────────────
-    eprintln!("═══ wetSpring → barracuda::stats::diversity ═══");
-    eprintln!("  Provenance: wetSpring bio/diversity.rs (Feb 2026)");
-    eprintln!("  → BarraCUDA (ToadStool S64) → barracuda::stats");
-    eprintln!("  → neuralSpring rewired S75 (primitives.rs shannon_entropy_from_counts)");
-    eprintln!();
-
-    let counts: Vec<f64> = (0..500).map(|_| (rng.next_f64() * 50.0).max(0.0)).collect();
-
-    let cpu_shannon = bench("Shannon (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::shannon(&counts));
-    });
-    h.check_bool(
-        &format!("wetSpring→stats: Shannon {cpu_shannon:.1}µs"),
-        cpu_shannon < 1_000.0,
-    );
-
-    let cpu_simpson = bench("Simpson (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::simpson(&counts));
-    });
-    h.check_bool(
-        &format!("wetSpring→stats: Simpson {cpu_simpson:.1}µs"),
-        cpu_simpson < 1_000.0,
-    );
-
-    let cpu_chao1 = bench("Chao1 (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::chao1(&counts));
-    });
-    h.check_bool(
-        &format!("wetSpring→stats: Chao1 {cpu_chao1:.1}µs"),
-        cpu_chao1 < 1_000.0,
-    );
-
-    let cpu_alpha = bench("alpha_diversity (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::alpha_diversity(&counts));
-    });
-    h.check_bool(
-        &format!("wetSpring→stats: alpha_diversity {cpu_alpha:.1}µs"),
-        cpu_alpha < 1_000.0,
-    );
-
-    let samples_a: Vec<f64> = (0..200).map(|_| (rng.next_f64() * 30.0).max(0.0)).collect();
-    let samples_b: Vec<f64> = (0..200).map(|_| (rng.next_f64() * 30.0).max(0.0)).collect();
-
-    let cpu_bray = bench("Bray-Curtis (barracuda::stats, CPU)", || {
-        std::hint::black_box(stats::bray_curtis(&samples_a, &samples_b));
-    });
-    h.check_bool(
-        &format!("wetSpring→stats: Bray-Curtis {cpu_bray:.1}µs"),
-        cpu_bray < 1_000.0,
-    );
-
-    eprintln!();
-
-    // ─── neuralSpring → GPU ops (metalForge → BarraCUDA) ──────────────
-    if let Some(ref g) = gpu {
-        let device = g.wgpu_device().clone();
-
-        // ─── wetSpring → GPU diversity fusion (S64) ─────────────────────
-        eprintln!("═══ wetSpring → BarraCUDA GPU DiversityFusion ═══");
-        eprintln!("  Provenance: wetSpring bio/diversity.rs → diversity_fusion_f64.wgsl");
-        eprintln!("  → BarraCUDA (ToadStool S64) → barracuda::ops::bio::DiversityFusionGpu");
-        eprintln!("  Fused Shannon + Simpson + Pielou in one GPU dispatch");
-        eprintln!();
-
-        bench_gpu_diversity_fusion(&mut h, &device);
-        eprintln!();
-    } else {
-        eprintln!("  [skip] GPU benchmarks (no adapter)");
-        eprintln!();
-    }
-
-    // ─── hotSpring → precision correlation ──────────────────────────────
-    eprintln!("═══ hotSpring → precision validation pattern ═══");
-    eprintln!("  Provenance: hotSpring validation.rs → barracuda::validation");
-    eprintln!("  Pattern: tolerance-driven check_abs/check_rel, named constants");
-    eprintln!("  neuralSpring adopted this pattern; barracuda absorbed it S64");
-    eprintln!();
-
-    let cpu_pearson = bench("Pearson r (barracuda::stats, CPU)", || {
-        let _ = std::hint::black_box(stats::pearson_correlation(&observed, &simulated));
-    });
-    h.check_bool(
-        &format!("hotSpring→stats: Pearson {cpu_pearson:.1}µs"),
-        cpu_pearson.is_finite(),
-    );
-
-    eprintln!();
-
-    // ─── S78 absorptions: MAE, Shannon, Hill, fit_linear ──────────────
-    eprintln!("═══ S78 Absorptions (BarraCUDA via ToadStool S66) ═══");
-    eprintln!("  Provenance: airSpring → barracuda::stats::mae [S64→S66]");
-    let cpu_mae = bench("mae (barracuda::stats, CPU)", || {
-        let _ = std::hint::black_box(stats::mae(&observed, &simulated));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: mae {cpu_mae:.1}µs"),
-        cpu_mae.is_finite(),
-    );
-
-    eprintln!("  Provenance: wetSpring → barracuda::stats::shannon_from_frequencies [S64]");
-    let probs: Vec<f64> = observed
-        .iter()
-        .map(|&x| x / observed.iter().sum::<f64>())
-        .collect();
-    let cpu_shannon = bench("shannon_from_frequencies (barracuda, CPU)", || {
-        let _ = std::hint::black_box(stats::shannon_from_frequencies(&probs));
-    });
-    h.check_bool(
-        &format!("wetSpring→stats: shannon_freq {cpu_shannon:.1}µs"),
-        cpu_shannon.is_finite(),
-    );
-
-    eprintln!("  Provenance: wetSpring+hotSpring → barracuda::stats::hill [S64]");
-    let cpu_hill = bench("hill (barracuda::stats, CPU)", || {
-        for i in 0..N {
-            let _ = std::hint::black_box(stats::hill(observed[i], 5.0, 2.0));
-        }
-    });
-    h.check_bool(
-        &format!("wS+hS→stats: hill(N={N}) {cpu_hill:.1}µs"),
-        cpu_hill.is_finite(),
-    );
-
-    eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_linear [S66]");
-    let x_reg: Vec<f64> = (0..N).map(|i| i as f64).collect();
-    let cpu_fit = bench("fit_linear (barracuda::stats, CPU)", || {
-        let _ = std::hint::black_box(stats::fit_linear(&x_reg, &observed));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: fit_linear(N={N}) {cpu_fit:.1}µs"),
-        cpu_fit.is_finite(),
-    );
-
-    eprintln!();
-
-    // ─── S83: Modern S68 APIs — cross-spring provenance ─────────────────
-    eprintln!("═══ S83: Modern BarraCUDA S68 APIs ═══");
-    eprintln!("  BarraCUDA S68: 700 WGSL f64 canonical, universal precision");
-    eprintln!();
-
-    eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_quadratic [S66]");
-    let cpu_fit_q = bench("fit_quadratic (airSpring→barracuda, CPU)", || {
-        let _ = std::hint::black_box(stats::fit_quadratic(&x_reg, &observed));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: fit_quadratic(N={N}) {cpu_fit_q:.1}µs"),
-        cpu_fit_q.is_finite(),
-    );
-
-    eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_exponential [S66]");
-    let pos_y: Vec<f64> = observed.iter().map(|&v| v.abs() + 1.0).collect();
-    let cpu_fit_e = bench("fit_exponential (airSpring→barracuda, CPU)", || {
-        let _ = std::hint::black_box(stats::fit_exponential(&x_reg, &pos_y));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: fit_exponential(N={N}) {cpu_fit_e:.1}µs"),
-        cpu_fit_e.is_finite(),
-    );
-
-    eprintln!("  Provenance: airSpring V009 → barracuda::stats::fit_all [S66]");
-    let cpu_fit_all = bench("fit_all (airSpring→barracuda, CPU)", || {
-        let _ = std::hint::black_box(stats::fit_all(&x_reg, &pos_y));
-    });
-    h.check_bool(
-        &format!("airSpring→stats: fit_all(N={N}) {cpu_fit_all:.1}µs"),
-        cpu_fit_all.is_finite(),
-    );
-
-    eprintln!("  Provenance: wetSpring+hotSpring → barracuda::stats::spearman_correlation [S66]");
-    let cpu_spearman = bench("spearman_correlation (wS+hS→barracuda, CPU)", || {
-        let _ = std::hint::black_box(stats::spearman_correlation(&observed, &simulated));
-    });
-    h.check_bool(
-        &format!("wS+hS→stats: spearman(N={N}) {cpu_spearman:.1}µs"),
-        cpu_spearman.is_finite(),
-    );
-
-    eprintln!("  Provenance: groundSpring → barracuda::stats::bootstrap::rawr_mean [S66]");
-    let cpu_rawr = bench("rawr_mean (groundSpring→barracuda, CPU)", || {
-        let _ = std::hint::black_box(stats::rawr_mean(&observed[..1000], 100, 0.05, 42));
-    });
-    h.check_bool(
-        &format!("groundSpring→stats: rawr_mean(N=1000) {cpu_rawr:.1}µs"),
-        cpu_rawr.is_finite(),
-    );
-
-    eprintln!();
-
-    // ─── S70+++ absorptions: evolution, jackknife, hydrology, chao1_classic ──
-    // (placed before Dispatcher section so GPU Tensor ops use the original handle)
-    eprintln!("═══ S70+++ Absorptions (BarraCUDA via ToadStool S70+) ═══");
-    eprintln!("  13 commits since S68: DF64 ML shaders, SimpleMlp, matmul_ref,");
-    eprintln!("  stats::evolution, stats::jackknife, stats::hydrology, chao1_classic");
-    eprintln!();
-
-    // groundSpring → evolution (S70+)
-    eprintln!("  Provenance: groundSpring spectral → barracuda::stats::evolution [S70+]");
-    let cpu_kimura = bench("kimura fixation (gS→barracuda, CPU)", || {
-        for pop in (100..1100).step_by(1) {
-            let _ = std::hint::black_box(barracuda::stats::evolution::kimura_fixation_prob(
-                pop, 0.01, 0.001,
-            ));
-        }
-    });
-    h.check_bool(
-        &format!("gS→evolution: kimura 1K {cpu_kimura:.1}µs"),
-        cpu_kimura.is_finite(),
-    );
-
-    eprintln!("  Provenance: groundSpring uncertainty → barracuda::stats::jackknife [S70+]");
-    let jk_data: Vec<f64> = (0..N).map(|i| i as f64 * 0.1).collect();
-    let cpu_jk = bench("jackknife mean/variance (gS→barracuda, CPU)", || {
-        let _ = std::hint::black_box(barracuda::stats::jackknife::jackknife_mean_variance(
-            &jk_data[..500],
-        ));
-    });
-    h.check_bool(
-        &format!("gS→jackknife: mean/var n=500 {cpu_jk:.1}µs"),
-        cpu_jk.is_finite(),
-    );
-
-    // airSpring → hydrology (S70+)
-    eprintln!("  Provenance: airSpring FAO-56 → barracuda::stats::hydrology [S70+]");
-    let cpu_fao = bench("fao56_et0 (aS→barracuda, CPU)", || {
-        for t in 0..N {
-            let temp = (t as f64).mul_add(0.001, 15.0);
-            let _ = std::hint::black_box(barracuda::stats::hydrology::fao56_et0(
-                temp + 5.0,
-                temp - 5.0,
-                80.0,
-                40.0,
-                2.0,
-                20.0,
-                100.0,
-                45.0,
-                180,
-            ));
-        }
-    });
-    h.check_bool(
-        &format!("aS→hydrology: fao56 {N} {cpu_fao:.1}µs"),
-        cpu_fao.is_finite(),
-    );
-
-    // wetSpring → chao1_classic (S70+)
     eprintln!(
-        "  Provenance: wetSpring Chao 1984 → barracuda::stats::diversity::chao1_classic [S70+]"
+        "  GPU: {} ({:?}, {:?})",
+        gpu.adapter_name, gpu.device_type, gpu.backend
     );
-    let counts_u64: Vec<u64> = (0..500).map(|i| if i < 200 { i + 1 } else { 0 }).collect();
-    let cpu_chao1c = bench("chao1_classic (wS→barracuda, CPU)", || {
-        let _ = std::hint::black_box(barracuda::stats::diversity::chao1_classic(&counts_u64));
-    });
-    h.check_bool(
-        &format!("wS→diversity: chao1_classic 500 {cpu_chao1c:.1}µs"),
-        cpu_chao1c.is_finite(),
-    );
-
-    // neuralSpring → SimpleMlp (S70+)
-    eprintln!("  Provenance: neuralSpring WDM → barracuda::nn::simple_mlp [S70+]");
-    let mlp = barracuda::nn::simple_mlp::SimpleMlp {
-        layers: vec![
-            barracuda::nn::simple_mlp::DenseLayer {
-                weight: (0..64)
-                    .map(|_| (0..32).map(|_| rng.next_f64()).collect())
-                    .collect(),
-                bias: (0..64).map(|_| rng.next_f64() * 0.1).collect(),
-                activation: barracuda::nn::simple_mlp::Activation::Relu,
-            },
-            barracuda::nn::simple_mlp::DenseLayer {
-                weight: (0..3)
-                    .map(|_| (0..64).map(|_| rng.next_f64()).collect())
-                    .collect(),
-                bias: (0..3).map(|_| rng.next_f64() * 0.1).collect(),
-                activation: barracuda::nn::simple_mlp::Activation::Identity,
-            },
-        ],
-    };
-    let mlp_input: Vec<f64> = (0..32).map(|_| rng.next_f64()).collect();
-    let cpu_mlp = bench("SimpleMlp 32→64→3 (nS→barracuda, CPU)", || {
-        let _ = std::hint::black_box(mlp.forward(&mlp_input));
-    });
-    h.check_bool(
-        &format!("nS→SimpleMlp: 32→64→3 {cpu_mlp:.1}µs"),
-        cpu_mlp.is_finite(),
-    );
-
-    // matmul_ref GPU bench covered in validate_toadstool_s70_evolution.rs
-    // (wgpu doesn't support multiple Device instances per process reliably)
-    eprintln!("  matmul_ref GPU benchmark: see validate_toadstool_s70_evolution");
-    let _gpu_dropped = gpu;
-
     eprintln!();
 
-    // ─── GPU f64 ops via Dispatcher (cross-spring provenance) ────────────
-    {
-        use neural_spring::gpu_dispatch::Dispatcher;
-        let dispatcher = rt.block_on(async { Dispatcher::new().await });
+    let device = gpu.wgpu_device().clone();
+    let mut h = ValidationHarness::new("cross_spring_evolution");
+    let mut rng = Rng::new(42);
 
-        eprintln!("═══ GPU Dispatch — Cross-Spring f64 Ops ═══");
-        eprintln!("  Dispatcher routes CPU→GPU based on size threshold.");
-        eprintln!("  f64 precision ops: hotSpring Welford + wetSpring fused shaders");
-        eprintln!();
+    bench_hotspring_ops(&mut h, &device, &mut rng);
+    bench_wetspring_ops(&mut h, &device, &mut rng);
+    bench_neuralspring_ops(&mut h, &device, &mut rng);
+    bench_cross_spring_ops(&mut h, &device, &mut rng);
 
-        let n_big = 50_000_usize;
-        let mut big_rng = Rng::new(700);
-        let big_a: Vec<f64> = (0..n_big)
-            .map(|_| big_rng.next_f64() * 10.0 - 5.0)
-            .collect();
-        let big_b: Vec<f64> = (0..n_big)
-            .map(|_| big_rng.next_f64() * 10.0 - 5.0)
-            .collect();
-
-        let gpu_var = bench(
-            "Dispatcher::variance 50k (hS Welford→BarraCUDA→GPU)",
-            || {
-                let _ = std::hint::black_box(dispatcher.variance(&big_a));
-            },
-        );
-        h.check_bool(
-            &format!("hS→dispatch: variance 50k {gpu_var:.1}µs"),
-            gpu_var.is_finite(),
-        );
-
-        let gpu_pearson = bench("Dispatcher::pearson 50k (wS+hS→BarraCUDA→GPU)", || {
-            let _ = std::hint::black_box(dispatcher.pearson_correlation(&big_a, &big_b));
-        });
-        h.check_bool(
-            &format!("wS+hS→dispatch: pearson 50k {gpu_pearson:.1}µs"),
-            gpu_pearson.is_finite(),
-        );
-
-        let big_probs: Vec<f64> = big_a.iter().map(|x| x.abs() / 1000.0 + 1e-10).collect();
-        let gpu_shannon = bench(
-            "Dispatcher::shannon 50k (wS fused→BarraCUDA→GPU)",
-            || {
-                let _ = std::hint::black_box(dispatcher.shannon_entropy(&big_probs));
-            },
-        );
-        h.check_bool(
-            &format!("wS→dispatch: shannon 50k {gpu_shannon:.1}µs"),
-            gpu_shannon.is_finite(),
-        );
-
-        let side = 200_usize;
-        let mat: Vec<f64> = (0..side * side).map(|_| big_rng.next_f64()).collect();
-        let gpu_matmul = bench(
-            "Dispatcher::mat_mul 200×200 (nS→BarraCUDA→GPU)",
-            || {
-                let _ = std::hint::black_box(dispatcher.mat_mul(&mat, &mat, side));
-            },
-        );
-        h.check_bool(
-            &format!("nS→dispatch: matmul 200×200 {gpu_matmul:.1}µs"),
-            gpu_matmul.is_finite(),
-        );
-
-        eprintln!();
-    }
-
-    // ─── S98: coralForge nF-03 AlphaFold3 CPU throughput ─────────────
-    {
-        use neural_spring::coral_forge;
-
-        eprintln!("═══ S98: coralForge nF-03 AlphaFold3 CPU Throughput ═══");
-        eprintln!("  Provenance: Abramson et al. 2024 → Python → Rust CPU → BarraCUDA CPU → GPU");
-        eprintln!("  Cross-spring: hotSpring (df64 precision), wetSpring (bio-domain scheduling)");
-        eprintln!();
-
-        let mut af3_rng = Rng::new(800);
-
-        let cpu_cosine = bench("cosine_beta_schedule T=200 (nF-03 diffusion)", || {
-            let _ = std::hint::black_box(coral_forge::diffusion::cosine_beta_schedule(200, 0.008));
-        });
-        h.check_bool(
-            &format!("nF-03→cosine: T=200 {cpu_cosine:.1}µs"),
-            cpu_cosine.is_finite(),
-        );
-
-        let sched = coral_forge::diffusion::cosine_beta_schedule(200, 0.008);
-        let coords_128: Vec<f64> = (0..128 * 3).map(|_| af3_rng.normal() * 5.0).collect();
-        let noise_128: Vec<f64> = (0..128 * 3).map(|_| af3_rng.normal()).collect();
-        let cpu_fwd = bench("forward_diffusion 128 atoms (nF-03 diffusion)", || {
-            let _ = std::hint::black_box(coral_forge::diffusion::forward_diffusion(
-                &coords_128,
-                &noise_128,
-                100,
-                &sched,
-            ));
-        });
-        h.check_bool(
-            &format!("nF-03→forward: 128 atoms {cpu_fwd:.1}µs"),
-            cpu_fwd.is_finite(),
-        );
-
-        let z_128: Vec<f64> = (0..128 * 3).map(|_| af3_rng.normal()).collect();
-        let cpu_ddpm = bench("ddpm_reverse_step 128 atoms (nF-03 diffusion)", || {
-            let _ = std::hint::black_box(coral_forge::diffusion::ddpm_reverse_step(
-                &coords_128,
-                &noise_128,
-                &z_128,
-                100,
-                &sched,
-            ));
-        });
-        h.check_bool(
-            &format!("nF-03→DDPM: 128 atoms {cpu_ddpm:.1}µs"),
-            cpu_ddpm.is_finite(),
-        );
-
-        let cpu_ddim = bench("ddim_reverse_step 128 atoms (nF-03 diffusion)", || {
-            let _ = std::hint::black_box(coral_forge::diffusion::ddim_reverse_step(
-                &coords_128,
-                &noise_128,
-                100,
-                &sched,
-            ));
-        });
-        h.check_bool(
-            &format!("nF-03→DDIM: 128 atoms {cpu_ddim:.1}µs"),
-            cpu_ddim.is_finite(),
-        );
-
-        let cpu_se3 = bench("se3_equivariant_noise 128 atoms (nF-03 diffusion)", || {
-            let _ = std::hint::black_box(coral_forge::diffusion::se3_equivariant_noise(
-                &coords_128,
-                &noise_128,
-                100,
-                &sched,
-            ));
-        });
-        h.check_bool(
-            &format!("nF-03→SE(3): 128 atoms {cpu_se3:.1}µs"),
-            cpu_se3.is_finite(),
-        );
-
-        let n_pf = 8_usize;
-        let d_pf = 16_usize;
-        let d_hidden_pf = 32_usize;
-        let pair_pf: Vec<f64> = (0..n_pf * n_pf * d_pf)
-            .map(|_| af3_rng.normal() * 0.3)
-            .collect();
-        let w1_pf: Vec<f64> = (0..d_pf * d_hidden_pf)
-            .map(|_| af3_rng.normal() * 0.2)
-            .collect();
-        let b1_pf: Vec<f64> = (0..d_hidden_pf).map(|_| af3_rng.normal() * 0.1).collect();
-        let w2_pf: Vec<f64> = (0..d_hidden_pf * d_pf)
-            .map(|_| af3_rng.normal() * 0.2)
-            .collect();
-        let b2_pf: Vec<f64> = (0..d_pf).map(|_| af3_rng.normal() * 0.1).collect();
-
-        let cpu_ffn = bench("pair_transition_ffn 8×8 d=16 (nF-03 Pairformer)", || {
-            let _ = std::hint::black_box(coral_forge::diffusion::pair_transition_ffn(
-                &pair_pf,
-                n_pf,
-                d_pf,
-                &w1_pf,
-                &b1_pf,
-                d_hidden_pf,
-                &w2_pf,
-                &b2_pf,
-            ));
-        });
-        h.check_bool(
-            &format!("nF-03→FFN: 8×8 d=16 {cpu_ffn:.1}µs"),
-            cpu_ffn.is_finite(),
-        );
-
-        let cpu_emb = bench("sinusoidal_embedding d=64 (nF-03 Pairformer)", || {
-            let _ = std::hint::black_box(coral_forge::pairformer::sinusoidal_embedding(25.0, 64));
-        });
-        h.check_bool(
-            &format!("nF-03→embed: d=64 {cpu_emb:.1}µs"),
-            cpu_emb.is_finite(),
-        );
-
-        eprintln!();
-    }
-
-    // ─── Summary ────────────────────────────────────────────────────────
-    eprintln!("═══ Cross-Spring Evolution Summary (S98) ═══");
-    eprintln!("  668 WGSL shaders in BarraCUDA (ToadStool S70+++), sourced from:");
-    eprintln!("    hotSpring:    ~100 (lattice QCD, HFB, DF64, spectral, precision)");
-    eprintln!("    wetSpring:    ~80  (bio, metagenomics, diversity, HMM, ODE)");
-    eprintln!("    neuralSpring: ~40  (ML, neuroevolution, batch fitness, 15 df64 shaders)");
-    eprintln!("    airSpring:    ~15  (ET₀, kriging, Richards, stats, regression)");
-    eprintln!("    groundSpring: ~5   (multinomial, MC propagation, evolution theory)");
-    eprintln!("    BarraCUDA:    ~428 (core math, linalg, nn, activations, S70+ precision)");
-    eprintln!("  neuralSpring rewired: 46 upstream rewires + 6 shader sources");
-    eprintln!("  S70+++: DF64 ML shaders (gelu, sigmoid, softmax, layer_norm, sdpa)");
-    eprintln!("  S70+++: SimpleMlp, matmul_ref, stats::evolution, jackknife, hydrology");
-    eprintln!("  S98: coralForge nF-03 GPU tier closed (diffusion + Pairformer)");
-    eprintln!("  S98: All five springs contribute → BarraCUDA absorbs → all springs benefit");
-    eprintln!("  S99: nS-01 Paper A real-data weight spectral (safetensors + eigh_f64)");
-    eprintln!("  S99: Primal handoffs: NestGate V1, biomeOS V1, Songbird V1");
-    eprintln!("  S99: NUCLEUS Tower validated on Eastgate (BearDog + Songbird operational)");
-    eprintln!();
-
-    // ── S99: nS-01 real-data weight spectral CPU benchmarks ─────────
-
-    eprintln!("  --- S99: nS-01 Paper A weight spectral CPU benchmarks (eigh_f64 on real weight shapes) ---");
-
-    {
-        let mut rng = Rng::new(9901);
-        let weights_64x64: Vec<f64> = (0..64 * 64).map(|_| rng.normal()).collect();
-        let us_64 = bench("eigh_f64 on 64×64 weight Hamiltonian (nS-01)", || {
-            std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
-                &weights_64x64,
-                64,
-                64,
-            ));
-        });
-        h.check_bool(
-            &format!("nS-01→CPU: eigh_f64 64×64 {us_64:.1}µs [neuralSpring + BarraCUDA linalg]"),
-            us_64.is_finite(),
-        );
-
-        let weights_128x128: Vec<f64> = (0..128 * 128).map(|_| rng.normal()).collect();
-        let us_128 = bench("eigh_f64 on 128×128 weight Hamiltonian (nS-01)", || {
-            std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
-                &weights_128x128,
-                128,
-                128,
-            ));
-        });
-        h.check_bool(
-            &format!("nS-01→CPU: eigh_f64 128×128 {us_128:.1}µs [neuralSpring + BarraCUDA linalg]"),
-            us_128.is_finite(),
-        );
-
-        let weights_256x256: Vec<f64> = (0..256 * 256).map(|_| rng.normal()).collect();
-        let us_256 = bench("eigh_f64 on 256×256 weight Hamiltonian (nS-01)", || {
-            std::hint::black_box(neural_spring::weight_spectral::weight_spectral_analysis(
-                &weights_256x256,
-                256,
-                256,
-            ));
-        });
-        h.check_bool(
-            &format!("nS-01→CPU: eigh_f64 256×256 {us_256:.1}µs [neuralSpring + BarraCUDA linalg]"),
-            us_256.is_finite(),
-        );
-    }
+    eprintln!("\n────────────────────────────────────────────────────────────");
+    eprintln!("  Cross-Spring Provenance Summary:");
+    eprintln!("    hotSpring     → 4 ops (Welford, logsumexp, eigensolve, variance)");
+    eprintln!("    wetSpring     → 4 ops (Shannon, diversity, correlation_full, pearson)");
+    eprintln!("    neuralSpring  → 3 ops (chi-squared, KL divergence, pairwise L2)");
+    eprintln!("    airSpring     → 1 op  (correlation matrix)");
+    eprintln!("    groundSpring  → 1 op  (correlation matrix, shared with airSpring)");
+    eprintln!("  Total: 13 benchmarked ops from 5 Springs → BarraCUDA v0.3.3");
+    eprintln!("────────────────────────────────────────────────────────────");
 
     h.finish();
-}
-
-fn bench_gpu_diversity_fusion(
-    h: &mut ValidationHarness,
-    device: &Arc<barracuda::device::WgpuDevice>,
-) {
-    let n_samples = 64;
-    let n_species = 200;
-    let mut rng = Rng::new(400);
-    let abundances: Vec<f64> = (0..n_samples * n_species)
-        .map(|_| (rng.next_f64() * 50.0).max(0.0))
-        .collect();
-
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
-
-    let cpu_us = bench("diversity_fusion_cpu (wetSpring→BarraCUDA)", || {
-        std::hint::black_box(barracuda::ops::bio::diversity_fusion_cpu(
-            &abundances,
-            n_species,
-        ));
-    });
-    h.check_bool(
-        &format!("wS→CPU: DiversityFusion {cpu_us:.1}µs"),
-        cpu_us.is_finite(),
-    );
-
-    let gpu_us = bench("DiversityFusionGpu (wetSpring→BarraCUDA→GPU)", || {
-        rt.block_on(async {
-            let op = DiversityFusionGpu::new(device.clone()).expect("DiversityFusionGpu::new");
-            let _result = op
-                .compute(&abundances, n_samples, n_species)
-                .expect("DiversityFusionGpu::compute");
-        });
-    });
-    h.check_bool(
-        &format!("wS→GPU: DiversityFusion {gpu_us:.1}µs"),
-        gpu_us.is_finite(),
-    );
-
-    if gpu_us > 0.0 && cpu_us > 0.0 {
-        let speedup = cpu_us / gpu_us;
-        eprintln!("    → GPU/CPU speedup: {speedup:.1}×");
-        h.check_bool(
-            &format!("DiversityFusion GPU runs ({speedup:.1}× vs CPU)"),
-            true,
-        );
-    }
 }

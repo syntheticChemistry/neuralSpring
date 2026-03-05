@@ -309,6 +309,8 @@ const BINARIES: &[&str] = &[
     // S123: Paper 026 (Chuna LSTM blood glucose prediction) — Py→Rs→bC→gT
     "validate_glucose_prediction",
     "validate_barracuda_glucose_prediction",
+    // S126: ToadStool S94b + wgpu 28 + BarraCUDA v0.3.3 fused op absorption
+    "validate_toadstool_s94b_wgpu28",
 ];
 
 fn main() {

@@ -266,6 +266,77 @@ fn gpu_pearson_perfect_correlation() {
 }
 
 #[test]
+fn gpu_mean_variance_fused() {
+    let Some((_guard, dev)) = test_device() else {
+        return;
+    };
+    let data = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
+    let [m, v] = mean_variance_gpu(&data, &dev).unwrap();
+    assert!(
+        (m - 5.0).abs() < tolerances::GPU_MEAN_DISPATCH_F32,
+        "fused mean ≈ 5, got {m}"
+    );
+    assert!(v > 0.0, "fused variance must be positive");
+    assert!(
+        (v - 4.0).abs() < tolerances::GPU_CHI_SQUARED_F32,
+        "fused variance ≈ 4, got {v}"
+    );
+}
+
+#[test]
+fn gpu_correlation_full_fused() {
+    let Some((_guard, dev)) = test_device() else {
+        return;
+    };
+    let x = [1.0, 2.0, 3.0, 4.0, 5.0];
+    let y = [2.0, 4.0, 6.0, 8.0, 10.0];
+    let result = correlation_full_gpu(&x, &y, &dev).unwrap();
+    assert!(
+        (result.pearson_r - 1.0).abs() < tolerances::GPU_PEARSON_F32,
+        "fused Pearson r(x, 2x) ≈ 1, got {}",
+        result.pearson_r
+    );
+    assert!(
+        (result.mean_x - 3.0).abs() < tolerances::GPU_MEAN_DISPATCH_F32,
+        "fused mean_x ≈ 3, got {}",
+        result.mean_x
+    );
+    assert!(
+        (result.mean_y - 6.0).abs() < tolerances::GPU_MEAN_DISPATCH_F32,
+        "fused mean_y ≈ 6, got {}",
+        result.mean_y
+    );
+    assert!(result.var_x > 0.0, "fused var_x must be positive");
+    assert!(result.var_y > 0.0, "fused var_y must be positive");
+}
+
+#[test]
+fn gpu_correlation_matrix_known() {
+    let Some((_guard, dev)) = test_device() else {
+        return;
+    };
+    // 4 samples, 2 features: x1=[1,2,3,4], x2=[2,4,6,8] (perfect correlation)
+    let data = [1.0, 2.0, 2.0, 4.0, 3.0, 6.0, 4.0, 8.0];
+    let corr = correlation_matrix_gpu(&data, 4, 2, &dev).unwrap();
+    assert_eq!(corr.len(), 4, "2×2 correlation matrix");
+    assert!(
+        (corr[0] - 1.0).abs() < tolerances::GPU_PEARSON_F32,
+        "diag[0,0] ≈ 1, got {}",
+        corr[0]
+    );
+    assert!(
+        (corr[3] - 1.0).abs() < tolerances::GPU_PEARSON_F32,
+        "diag[1,1] ≈ 1, got {}",
+        corr[3]
+    );
+    assert!(
+        (corr[1] - 1.0).abs() < tolerances::GPU_PEARSON_F32,
+        "off-diag[0,1] ≈ 1 (perfect correlation), got {}",
+        corr[1]
+    );
+}
+
+#[test]
 fn gpu_commutator_identity_is_zero() {
     let Some((_guard, dev)) = test_device() else {
         return;

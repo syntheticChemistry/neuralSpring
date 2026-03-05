@@ -213,26 +213,47 @@ pub fn shannon_entropy_gpu(probabilities: &[f64], device: &Arc<WgpuDevice>) -> R
         .map_err(|e| format!("entropy_gpu: {e}"))
 }
 
-/// GPU population variance (divides by N) via Welford's algorithm.
+/// GPU population variance (divides by N) via fused Welford's algorithm.
 ///
-/// Delegates to `barracuda::ops::variance_reduce_f64::VarianceReduceF64`
-/// (f64 precision, Welford online WGSL shader). Origin: hotSpring
-/// precision infrastructure → `BarraCUDA`.
+/// Delegates to `barracuda::ops::variance_f64_wgsl::VarianceF64`
+/// (f64 precision, fused mean+variance Welford WGSL shader — single
+/// GPU dispatch, no intermediate readback). Origin: hotSpring
+/// precision infrastructure → `BarraCUDA` S93 fused shader evolution.
 ///
 /// # Errors
 ///
 /// Returns an error if GPU operations fail.
 pub fn variance_gpu(data: &[f64], device: &Arc<WgpuDevice>) -> Result<f64, String> {
-    use barracuda::ops::variance_reduce_f64::VarianceReduceF64;
+    use barracuda::ops::variance_f64_wgsl::VarianceF64;
 
-    VarianceReduceF64::population_variance(device.clone(), data)
-        .map_err(|e| format!("variance_gpu: {e}"))
+    let op = VarianceF64::new(device.clone()).map_err(|e| format!("variance_gpu init: {e}"))?;
+    op.variance(data).map_err(|e| format!("variance_gpu: {e}"))
+}
+
+/// GPU fused mean+variance in a single dispatch (Welford's algorithm).
+///
+/// Returns `[mean, variance]` from one kernel launch — no intermediate
+/// readback between mean and deviation passes. Uses `ddof=0` (population).
+///
+/// Cross-spring: hotSpring Welford fused shader → `BarraCUDA` v0.3.3
+/// `VarianceF64::mean_variance()`.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+pub fn mean_variance_gpu(data: &[f64], device: &Arc<WgpuDevice>) -> Result<[f64; 2], String> {
+    use barracuda::ops::variance_f64_wgsl::VarianceF64;
+
+    let op =
+        VarianceF64::new(device.clone()).map_err(|e| format!("mean_variance_gpu init: {e}"))?;
+    op.mean_variance(data, 0)
+        .map_err(|e| format!("mean_variance_gpu: {e}"))
 }
 
 /// GPU Pearson correlation between two vectors.
 ///
 /// Delegates to `barracuda::ops::correlation_f64_wgsl::CorrelationF64`
-/// (f64 precision, dedicated WGSL shader). Origin: wetSpring
+/// (f64 precision, fused single-pass WGSL shader). Origin: wetSpring
 /// bio shaders → hotSpring precision infrastructure → `BarraCUDA`.
 ///
 /// # Errors
@@ -248,6 +269,50 @@ pub fn pearson_correlation_gpu(
     let op = CorrelationF64::new(device.clone()).map_err(|e| format!("pearson_gpu init: {e}"))?;
     op.correlation(x, y)
         .map_err(|e| format!("pearson_gpu: {e}"))
+}
+
+/// GPU full correlation statistics in a single fused dispatch.
+///
+/// Returns means, variances, and Pearson r — all from one kernel launch.
+/// Cross-spring: wetSpring bio shaders (diversity correlation) → hotSpring
+/// precision infrastructure (f64 compilation) → `BarraCUDA` v0.3.3
+/// `CorrelationResult` fused shader.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+pub fn correlation_full_gpu(
+    x: &[f64],
+    y: &[f64],
+    device: &Arc<WgpuDevice>,
+) -> Result<barracuda::ops::correlation_f64_wgsl::CorrelationResult, String> {
+    use barracuda::ops::correlation_f64_wgsl::CorrelationF64;
+
+    let op =
+        CorrelationF64::new(device.clone()).map_err(|e| format!("correlation_full init: {e}"))?;
+    op.correlation_full(x, y)
+        .map_err(|e| format!("correlation_full: {e}"))
+}
+
+/// GPU correlation matrix (n×p data → p×p Pearson correlation matrix).
+///
+/// Single-dispatch WGSL shader. Data is row-major `[n_samples, n_features]`.
+/// Cross-spring: airSpring sensor correlation + groundSpring stats →
+/// `BarraCUDA` `matrix_correlation_f64.wgsl`.
+///
+/// # Errors
+///
+/// Returns an error if GPU operations fail.
+pub fn correlation_matrix_gpu(
+    data: &[f64],
+    n_samples: u32,
+    n_features: u32,
+    device: &Arc<WgpuDevice>,
+) -> Result<Vec<f64>, String> {
+    use barracuda::ops::stats_f64::matrix_correlation;
+
+    matrix_correlation(device, data, n_samples, n_features)
+        .map_err(|e| format!("correlation_matrix_gpu: {e}"))
 }
 
 /// GPU chi-squared statistic: sum((observed - expected)^2 / expected).

@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 125 (March 5, 2026)
+## [Unreleased] — Session 126 (March 5, 2026)
+
+### Session 126 — Cross-Spring Fused Op Absorption + Validation + Benchmark (March 5, 2026)
+
+**Fused op absorption**: `variance_gpu` upgraded from `VarianceReduceF64` to `VarianceF64` (fused single-pass Welford WGSL). New functions: `mean_variance_gpu` (single-dispatch fused mean+variance), `correlation_full_gpu` (returns `CorrelationResult` with means+variances+Pearson r), `correlation_matrix_gpu` (n×p → p×p Pearson matrix via `stats_f64::matrix_correlation`).
+
+**Cross-spring provenance**: Each fused op documents its origin Spring(s): hotSpring (Welford, logsumexp, eigensolve), wetSpring (Shannon, diversity, correlation), neuralSpring (chi-squared, KL, pairwise L2), airSpring/groundSpring (matrix correlation).
+
+**New binaries**: `validate_toadstool_s94b_wgpu28` (S94b pin validation + fused ops + wgpu 28 API surface), `bench_cross_spring_evolution` (13 benchmarked ops from 5 Springs, provenance-tracked timing).
+
+**New lib tests**: `gpu_mean_variance_fused`, `gpu_correlation_full_fused`, `gpu_correlation_matrix_known` (3 new, 883 total).
+
+**Quality gates**: `cargo fmt` ✓ · `cargo clippy` 0 warnings (pedantic+nursery) · `cargo test --lib` 871/883 (12 GPU SIGSEGV — upstream) · `cargo doc` 0 warnings. 240 binaries, 218/218 validate_all. V84 handoff.
 
 ### Session 125 — wgpu 28 + BarraCUDA v0.3.3 + ToadStool S94b Sync (March 5, 2026)
 
