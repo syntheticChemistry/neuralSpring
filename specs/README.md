@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 4, 2026 (Sessions 44–121 — S121: `SimpleMlp` rewire + HMM f64 ComputeDispatch. 213/213 validate_all, 234 binaries, V81 handoff)
-**Status**: Phase 5h+ — 330/330 Python + 3400+ Rust+GPU = **4100+ total checks**, ~97% GPU, 39/39 CPU↔Python parity, 38.6× speedup (14 domains), dispatch parity 53/53, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 234 binaries, **213/213 validate\_all**, 869 lib tests
+**Last Updated**: March 5, 2026 (Sessions 44–127 — S125: wgpu 28 migration. S126: cross-spring fused ops. S127: Paper 026 full-tier validation. 218/218 validate_all, 240 binaries, V85 handoff)
+**Status**: Phase 5h+ — 330/330 Python + 3400+ Rust+GPU = **4100+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 240 binaries, **218/218 validate\_all**, 883 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---

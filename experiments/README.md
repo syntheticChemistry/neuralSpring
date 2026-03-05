@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 124)**: 880 lib tests, 238 binaries, 217/217 `validate_all`, V82 `ToadStool`/`BarraCUDA` handoff. March 5, 2026.
+**Current state (Session 127)**: 883 lib tests, 240 binaries, 218/218 `validate_all`, V85 `ToadStool`/`BarraCUDA` handoff. March 5, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -4524,6 +4524,99 @@ The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 
 - **~300 LOC** local MLP code eliminated
 - **0** clippy warnings, **869/869** lib tests, **212/212** validate\_all
 - V81 handoff crafted
+
+**Status**: COMPLETE
+
+---
+
+## 089 — wgpu 28 Migration + BarraCUDA v0.3.3 Sync (Session 125)
+
+**Date**: March 5, 2026
+**Hardware**: RTX 4070 + TITAN V
+**Session**: 125
+
+**Objective**: Synchronize with upstream BarraCUDA v0.3.3 and ToadStool S94b, absorbing the wgpu 22→28 migration.
+
+**Method**:
+1. Bumped `wgpu` from 22 to 28, `tokio` to 1.49 in both `Cargo.toml` and `metalForge/forge/Cargo.toml`
+2. Migrated 66 wgpu API call sites: `Maintain::Wait` → `PollType::Wait`, `push_constant_ranges` → `immediate_size`, `entry_point` → `Option`, `set_bind_group` → `Option`, `Instance::new(&desc)`, async `enumerate_adapters`, `DeviceDescriptor` new fields
+3. Removed `Arc` wrappers on `Device`/`Queue` (wgpu 28 internal refcount), removed `unidirectional` feature
+4. Added `pollster = "0.4"` to metalForge for sync async bridging
+5. Resolved clippy unfulfilled `#[expect]` attributes (lints changed between Rust versions)
+
+**Findings**:
+- 12 GPU Tensor-based tests SIGSEGV — upstream BarraCUDA/wgpu 28 runtime issue on llvmpipe
+- Non-GPU tests unaffected; issue confirmed by running barracuda's own tests directly
+- wgpu 28 `DeviceDescriptor` now requires `experimental_features` and `trace` fields
+
+**Key Results**:
+- **871/883** lib tests pass (12 upstream GPU SIGSEGV)
+- **218/218** validate\_all
+- **0** clippy warnings, **0** doc warnings
+- V83 handoff crafted
+
+**Status**: COMPLETE
+
+---
+
+## 090 — Cross-Spring Fused Op Absorption (Session 126)
+
+**Date**: March 5, 2026
+**Hardware**: RTX 4070 + TITAN V
+**Session**: 126
+
+**Objective**: Absorb new BarraCUDA v0.3.3 fused operations and create cross-spring provenance benchmarks.
+
+**Method**:
+1. Upgraded `variance_gpu` from `VarianceReduceF64` to `VarianceF64` (fused single-pass Welford WGSL)
+2. Added `mean_variance_gpu` (fused mean+variance), `correlation_full_gpu` (CorrelationResult), `correlation_matrix_gpu` (n×p → p×p Pearson)
+3. Created `validate_toadstool_s94b_wgpu28.rs` — validates wgpu 28 API + fused ops
+4. Created `bench_cross_spring_evolution.rs` — benchmarks 13 cross-spring evolved ops with provenance tracking
+5. Added 3 new lib tests for fused operations
+
+**Findings**:
+- CorrelationResult from single dispatch: mean_x, mean_y, var_x, var_y, pearson_r — massive host round-trip reduction
+- Cross-spring provenance: hotSpring (Welford, logsumexp, eigensolve), wetSpring (Shannon, diversity, correlation), neuralSpring (chi-squared, KL, pairwise L2), airSpring/groundSpring (matrix correlation)
+
+**Key Results**:
+- **883** lib tests (871 pass, 12 upstream GPU SIGSEGV)
+- **240** binaries, **218/218** validate\_all
+- **0** clippy, **0** doc warnings
+- V84 handoff crafted
+
+**Status**: COMPLETE
+
+---
+
+## 091 — Paper 026 Full-Tier Validation + Baseline Closure (Session 127)
+
+**Date**: March 5, 2026
+**Hardware**: RTX 4070 + TITAN V
+**Session**: 127
+
+**Objective**: Close the last validation gap — promote Paper 026 (Chuna LSTM glucose prediction) to all 4 cross-cutting validation tiers.
+
+**Method**:
+1. Created `bench_glucose_lstm.py` — Python LSTM reservoir + autocorrelation micro-benchmark
+2. Added 15th domain (LSTM glucose) to `validate_barracuda_cpu_bench` — Rust LSTM reservoir + autocorrelation vs Python timing
+3. Extended `generate_cpu_references.py` with `gen_glucose_lstm()` — autocorrelation + R² reference data
+4. Added 10th kernel (glucose_lstm) to `validate_cpu_math_parity` — cross-language parity for autocorrelation + R²
+5. Added 13th domain (LSTM glucose) to `validate_gpu_pure_workload_all` — GPU Tensor matmul gate projection
+6. Added 55th check (glucose variance + pearson) to `validate_barracuda_dispatch_parity` — CGM-scale data
+7. Added Paper 026 to `run_all_baselines.sh` — all 26 papers in unified baseline runner
+8. Added `GPU_LSTM_GLUCOSE_F32` tolerance (0.05) to centralized registry
+
+**Findings**:
+- LSTM per-step Tensor matmul gate projection accumulates f32 rounding through sigmoid/tanh transcendentals — 0.05 tolerance adequate for 12-step chain
+- Autocorrelation and R² are CPU-only; fused LSTM cell WGSL shader is a natural ToadStool streaming candidate
+
+**Key Results**:
+- **15** CPU benchmark domains (was 14)
+- **10** CPU parity kernels (was 9)
+- **13** GPU pure-workload domains (was 12)
+- **55** dispatch parity checks (was 53)
+- **218/218** validate\_all, **0** clippy, **0** doc warnings
+- V85 handoff crafted
 
 **Status**: COMPLETE
 

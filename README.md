@@ -12,8 +12,9 @@ hotSpring (physics surrogates) → neuralSpring (neural surrogates) → faster-t
 Named after neural networks — the adaptive, learning counterpart to hotSpring's
 physics-driven computational springs. Both feed BarraCUDA the same six
 primitives; neuralSpring proves those primitives produce correct learning across
-25 scholarly reproductions spanning evolutionary computation, phylogenetics,
-game theory, spectral analysis, population genetics, and regulatory biology.
+26 scholarly reproductions spanning evolutionary computation, phylogenetics,
+game theory, spectral analysis, population genetics, regulatory biology, and
+biomedical time-series prediction.
 
 ## The Core Thesis: Isomorphic Learning Patterns
 
@@ -628,14 +629,14 @@ neuralSpring/
 | `specs/TOADSTOOL_HANDOFF.md` | 12 BarraCUDA shortcomings — all absorbed + absorption handoff |
 | `specs/CROSS_SPRING_EVOLUTION.md` | Cross-spring shader/primitive provenance (hotSpring/wetSpring/neuralSpring) |
 | `specs/BENCHMARK_ANALYSIS.md` | Python vs BarraCUDA CPU vs GPU + fused pipeline results |
-| `specs/PAPER_REVIEW_QUEUE.md` | 25 papers — all complete + baseCamp + WDM controls |
+| `specs/PAPER_REVIEW_QUEUE.md` | 26 papers — all complete + baseCamp + WDM controls |
 | `whitePaper/BARRACUDA_EVOLUTION.md` | Shader evolution narrative: Python → CPU → GPU |
 | `metalForge/forge/` | Rust crate: shader catalog, binding layouts, dispatch routing, bridge |
 | `metalForge/ABSORPTION_MANIFEST.md` | Comprehensive absorption inventory (APIs, shaders, counts) |
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal `ToadStool` handoffs (V83 current: Session 125, barraCuda v0.3.3) |
+| `wateringHole/handoffs/` | Formal `ToadStool` handoffs (V85 current: Session 127, barraCuda v0.3.3) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -645,4 +646,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–126: March 5, 2026 | 25 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 883 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 240 validation/bench binaries, 42 WGSL shaders | 139+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3 standalone, nautilus absorbed, 218/218 validate\_all | 46 upstream rewires | V84 handoff*
+*Initialized: February 16, 2026 | Sessions 40–127: March 5, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 883 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 240 validation/bench binaries, 42 WGSL shaders | 140+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3 standalone, nautilus absorbed, 218/218 validate\_all | 46 upstream rewires | V85 handoff*

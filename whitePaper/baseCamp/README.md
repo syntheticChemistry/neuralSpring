@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 5, 2026 (Sessions 61–124)
-**Status**: 25 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **217/217 validate\_all** (238 binaries), 880 lib tests. S121: WDM surrogates rewired to `barracuda::nn::SimpleMlp`, HMM Viterbi chain rewired to f64 `ComputeDispatch`, cross-spring modern bench 28/28 PASS (5-spring provenance). S120: deep debt audit + CI hardening — zero `#[allow(` remaining, `--all-features` CI. S122–S124: airSpring V069 naming rewire, HMM forward ComputeDispatch absorption, Paper 026 glucose prediction. S118: barraCuda standalone rewire (v0.3.1). barraCuda: v0.3.1 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders)
+**Last Updated**: March 5, 2026 (Sessions 61–127)
+**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **218/218 validate\_all** (240 binaries), 883 lib tests. S125: wgpu 28 migration (66 call sites), BarraCUDA v0.3.3 sync, ToadStool S94b pin. S126: cross-spring fused op absorption (VarianceF64, CorrelationF64, matrix correlation, provenance bench). S127: Paper 026 full-tier validation (15 CPU bench domains, 10 parity kernels, 13 GPU pure-workload domains, 55 dispatch parity checks, baseline closure). barraCuda: v0.3.3 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders, wgpu 28)
 
 ## Purpose
 
@@ -23,7 +23,7 @@ sub-theses — now that we have pure GPU execution for ~97% of production math.
 | Ilya Kachkovskiy | Michigan State | Spectral Theory | 2 (022–023) | 16 | Spectral commutativity, Anderson localization |
 | R. Anderson / Campbell | Various | Population Genetics | 2 (024–025) | 16 | Pangenome selection, meta-population dynamics |
 
-**Total**: 15 papers, 141 Phase 0++ checks (all PASS at 7 tiers).
+**Total**: 15 Phase 0++ papers + Paper 026 (Chuna LSTM glucose), 141+ Phase 0++ checks (all PASS at 7 tiers).
 
 ## Validation Chain
 

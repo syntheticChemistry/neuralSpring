@@ -1,18 +1,18 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 4, 2026 (Sessions 109–121 — 213/213 validate_all, 234 binaries, barraCuda v0.3.1. S121: `SimpleMlp` rewire + HMM f64 `ComputeDispatch`. 117+ files with barracuda imports, 25+ submodules, 46 upstream rewires. V81 handoff)
-**BarraCUDA version**: `0.3.1` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89), 767 WGSL shaders
+**Last Updated**: March 5, 2026 (Sessions 109–127 — 218/218 validate_all, 240 binaries, barraCuda v0.3.3, wgpu 28. S125: wgpu 28 migration. S126: fused op absorption. S127: Paper 026 full-tier. 128+ files with barracuda imports, 45+ submodules, 46 upstream rewires. V85 handoff)
+**BarraCUDA version**: `0.3.3` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89), 767+ WGSL shaders, wgpu 28, GuardedDeviceHandle
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
-### At a Glance (Session 121)
+### At a Glance (Session 127)
 
 | Metric | Count |
 |--------|-------|
-| Barracuda submodules used | 25+ |
-| Barracuda functions imported | 60+ |
-| Files with barracuda imports | 205+ |
+| Barracuda submodules used | 45+ |
+| Barracuda functions imported | 80+ |
+| Files with barracuda imports | 128+ |
 | Upstream rewires (local → barracuda) | 46 |
-| Feature flags | `unidirectional` |
+| Feature flags | (none — `unidirectional` removed in v0.3.3) |
 | CPU bench domains | 14 (38.6× geomean vs Python) |
 
 **Key modules**: `device`, `tensor`, `ops::bio` (18+ GPU kernels), `ops::linalg`, `ops::fft`, `ops::variance_reduce_f64`, `ops::correlation_f64_wgsl`, `ops::fused_map_reduce_f64`, `dispatch`, `stats`, `special`, `linalg`, `numerical`, `nn::simple_mlp`, `esn_v2`, `unified_hardware` (BandwidthTier)

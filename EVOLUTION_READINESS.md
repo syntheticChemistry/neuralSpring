@@ -1,9 +1,9 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 5, 2026 (Sessions 109–124)
-**barraCuda**: v0.3.1 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool at S89; standalone since v0.2.0 (Mar 2). 767 WGSL shaders, dual-protocol IPC (JSON-RPC 2.0 + tarpc), domain feature-gates, DeviceLost resilience, global DEVICE_CREATION_LOCK. ToadStool dispatches across hardware; barraCuda is universal math. 2,965 upstream tests, 0 clippy.
+**Date**: March 5, 2026 (Sessions 109–127)
+**barraCuda**: v0.3.3 standalone primal (`../barraCuda/crates/barracuda`). Extracted from ToadStool at S89; standalone since v0.2.0 (Mar 2). 767+ WGSL shaders, wgpu 28, dual-protocol IPC (JSON-RPC 2.0 + tarpc), domain feature-gates, DeviceLost resilience, GuardedDeviceHandle (RAII). ToadStool dispatches across hardware; barraCuda is universal math. S94b pin.
 **neuralSpring**: 883 lib + 43 forge + 9 integration tests, 240 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant). 91.76% llvm-cov (>90% threshold).
-**S122 debt execution**: 24 `#[allow]` → `#[expect]` (zero remain). 15+ `partial_cmp().unwrap_or()` → `f64::total_cmp()`. `wdm_esn.rs` refactored to module directory. `SDPA_PASSTHROUGH` tolerance centralized. Streaming I/O spec created. 41/41 Python baselines confirmed, 218/218 `validate_all` PASS. V84 handoff.
+**S125–S127**: wgpu 28 migration (66 call sites), BarraCUDA v0.3.3 fused ops (VarianceF64, CorrelationF64, matrix correlation), Paper 026 full-tier validation (15 CPU bench domains, 10 CPU parity kernels, 13 GPU pure-workload domains, 55 dispatch parity checks). 218/218 `validate_all` PASS. V85 handoff.
 **S121 rewires**: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch`. 46 total upstream rewires. 80/80 S121 rewire validation + 28/28 cross-spring modern bench.
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
