@@ -87,6 +87,28 @@ the constrained evolution argument: Dolson proves the theory, Anderson provides 
 empirical biology, and neuralSpring validates the computational primitives that
 bridge them.
 
+### Biomedical Time-Series Prediction (Chuna)
+
+Thomas Chuna (Physics & CMSE, MSU) — referred by Murillo (March 4, 2026).
+Before joining the Murillo Group for plasma physics, Chuna worked on LSTM-based
+blood glucose prediction. Profile: `whitePaper/attsi/non-anon/contact/murillo/chuna_profile.md`
+
+| # | Paper | Journal | Year | Faculty | Why | Status |
+|---|-------|---------|------|---------|-----|--------|
+| 26 | Chuna "Setting Limits on Neural Network's Predictive Capacity in T1D Blood Glucose Concentration" | arXiv:2005.09051 | 2020 | Chuna | LSTM time series on CGM data — same architecture as Exp 3/9 (weather LSTM), different domain. Explores prediction horizon limits. Validates LSTM primitives on biomedical data | Queue — reproduce LSTM glucose prediction; compare horizons/R² vs weather LSTM (Exp 9) |
+
+**Why this matters for neuralSpring**: We already have LSTM weather validation
+(Exp 3: synthetic, 5/5; Exp 9: real ERA5, 5/5). Chuna's paper uses the same
+LSTM architecture on a fundamentally different domain (biomedical time series
+vs meteorological). Reproducing it validates that our LSTM primitives generalize
+across domains — the isomorphic learning thesis (Exp 5). The prediction horizon
+analysis (how far ahead can LSTM reliably predict?) maps directly to the
+forecasting limits we quantified in Exp 9 (48h optimal for ERA5). Public CGM
+datasets exist (OhioT1DM, OpenAPS). Additionally, Chuna is now in the Murillo
+Group working on plasma physics — his cross-domain trajectory (biomedical ML →
+computational physics) directly parallels the ecoPrimals argument that the same
+primitives work across fields.
+
 ---
 
 ## Phase 1 — baseCamp Papers (Biophysical AI Interpretability)
