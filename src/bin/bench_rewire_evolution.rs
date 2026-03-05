@@ -6,7 +6,7 @@
 //!
 //! | Op | Old Path | New Path | Origin |
 //! |----|----------|----------|--------|
-//! | Variance | f32 Tensor (mean→sub→sq→mean) | `VarianceReduceF64` (Welford f64) | hotSpring precision |
+//! | Variance | f32 Tensor (mean→sub→sq→mean) | `VarianceF64` (Welford f64) | hotSpring precision |
 //! | Pearson | f32 Tensor (3 dispatches) | `CorrelationF64` (single f64 shader) | wetSpring + hotSpring |
 //! | Entropy | f32 Tensor (log→mul→sum) | `FusedMapReduceF64` (fused f64 map-reduce) | wetSpring |
 //! | `HillGate` f64 | SKIP (NVVM crash) | `pow_f64` polyfill (S-17) | neuralSpring fix |
@@ -20,7 +20,7 @@
 use barracuda::device::WgpuDevice;
 use barracuda::ops::correlation_f64_wgsl::CorrelationF64;
 use barracuda::ops::fused_map_reduce_f64::FusedMapReduceF64;
-use barracuda::ops::variance_reduce_f64::VarianceReduceF64;
+use barracuda::ops::variance_f64_wgsl::VarianceF64;
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
@@ -103,7 +103,7 @@ async fn run() -> BenchResult<()> {
     );
 
     println!("\n=== Cross-Spring Provenance ===\n");
-    println!("  VarianceReduceF64   : hotSpring Welford algorithm → BarraCUDA → neuralSpring");
+    println!("  VarianceF64        : hotSpring Welford algorithm → BarraCUDA → neuralSpring");
     println!("  CorrelationF64      : wetSpring bio stats → hotSpring f64 precision → BarraCUDA → neuralSpring");
     println!("  FusedMapReduceF64   : wetSpring fused map-reduce → BarraCUDA → neuralSpring");
     println!("  pow_f64 polyfill    : hotSpring math_f64.wgsl + wetSpring (zero+literal) fix → S-17 HillGate fix");
@@ -143,12 +143,15 @@ fn bench_variance_old(data: &[f64], dev: &Arc<WgpuDevice>) -> BenchResult<f64> {
 }
 
 fn bench_variance_new(data: &[f64], dev: &Arc<WgpuDevice>) -> f64 {
+    let Ok(var_op) = VarianceF64::new(dev.clone()) else {
+        return f64::NAN;
+    };
     for _ in 0..WARMUP {
-        let _ = VarianceReduceF64::population_variance(dev.clone(), data);
+        let _ = var_op.variance(data);
     }
     let start = Instant::now();
     for _ in 0..ITERS {
-        let _ = VarianceReduceF64::population_variance(dev.clone(), data);
+        let _ = var_op.variance(data);
     }
     start.elapsed().as_micros() as f64 / f64::from(ITERS)
 }

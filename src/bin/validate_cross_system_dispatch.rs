@@ -163,11 +163,9 @@ fn validate_multi_substrate_parity(
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &data,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&data).map_err(|e| format!("{e}"))
         },
         || cpu_var,
     );
@@ -320,11 +318,9 @@ fn validate_npu_routing(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
             needs_realtime: true,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &small_data,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&small_data).map_err(|e| format!("{e}"))
         },
         || 1.25,
     );

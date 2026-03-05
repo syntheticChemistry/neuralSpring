@@ -175,11 +175,11 @@ fn bench_gpu_streaming_parity(
     data2: &[f64],
     bc_pearson: f64,
 ) -> BenchResult<()> {
-    let gpu_var = barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-        d.clone(),
-        data,
-    )
-    .map_err(|e| format!("GPU variance: {e}"))?;
+    let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(d.clone())
+        .map_err(|e| format!("VarianceF64 init: {e}"))?;
+    let gpu_var = var_op
+        .variance(data)
+        .map_err(|e| format!("GPU variance: {e}"))?;
     let local_var: f64 = {
         let n = data.len() as f64;
         let mean = data.iter().sum::<f64>() / n;

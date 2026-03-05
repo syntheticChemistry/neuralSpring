@@ -28,7 +28,7 @@
 //! - FST: variance decomposition (ANOVA-like reduction)
 //! - Mantel test: matrix correlation + permutation GEMM
 //! - Thermal correlation: `barracuda::stats::pearson_correlation`
-//! - Per-locus variance: `barracuda::ops::VarianceReduceF64` (GPU)
+//! - Per-locus variance: `barracuda::ops::VarianceF64` (GPU)
 //!
 //! ## WGSL shader (absorption-ready)
 //!
@@ -47,7 +47,7 @@ pub use geography::*;
 
 /// WGSL shader: per-locus allele frequency variance across populations.
 ///
-/// Absorption target: `barracuda::ops::VarianceReduceF64`.
+/// Absorption target: `barracuda::ops::VarianceF64`.
 /// Validated: `validate_gpu_meta_pop` (7/7 PASS).
 pub use neural_spring_forge::shaders::LOCUS_VARIANCE as WGSL_LOCUS_VARIANCE;
 

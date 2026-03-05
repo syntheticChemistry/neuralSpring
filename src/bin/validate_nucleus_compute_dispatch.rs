@@ -241,11 +241,9 @@ fn validate_node_anderson(
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &cpu_iprs,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&cpu_iprs).map_err(|e| format!("{e}"))
         },
         || {
             let len = cpu_iprs.len() as f64;
@@ -401,11 +399,9 @@ fn validate_mixed_atomic_coordination(
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &evals,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&evals).map_err(|e| format!("{e}"))
         },
         || cpu_var,
     );

@@ -531,7 +531,7 @@ pub const GPU_FST_PAIRWISE_F32: f64 = 0.1;
 // baseCamp dispatch parity (f64 GPU typed ops)
 // ═══════════════════════════════════════════════════════════════════
 
-/// GPU f64 variance dispatch parity: `VarianceReduceF64` vs CPU.
+/// GPU f64 variance dispatch parity: `VarianceF64` vs CPU.
 ///
 /// One-pass parallel variance accumulation on f64 GPU buffers introduces
 /// rounding from the per-workgroup partial-sum pattern.  Observed diff

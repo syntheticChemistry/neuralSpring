@@ -162,11 +162,9 @@ fn validate_live_dispatch(harness: &mut ValidationHarness, rng: &mut Rng, dispat
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &small,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&small).map_err(|e| format!("{e}"))
         },
         || {
             let count = small.len() as f64;
@@ -195,11 +193,9 @@ fn validate_live_dispatch(harness: &mut ValidationHarness, rng: &mut Rng, dispat
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &large,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&large).map_err(|e| format!("{e}"))
         },
         || cpu_ref,
     );

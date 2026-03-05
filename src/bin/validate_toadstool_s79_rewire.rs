@@ -186,7 +186,7 @@ fn validate_gpu_entropy_variance_pearson(h: &mut ValidationHarness, dev: &Arc<Wg
     }
     eprintln!("  entropy benchmark: {ent_us:.0}µs");
 
-    eprintln!("\n── variance_gpu (hotSpring Welford → ToadStool VarianceReduceF64) ──");
+    eprintln!("\n── variance_gpu (hotSpring Welford → ToadStool VarianceF64) ──");
 
     let var_data: Vec<f64> = vec![2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
     let cpu_mean = var_data.iter().sum::<f64>() / var_data.len() as f64;
@@ -309,7 +309,7 @@ async fn main() {
     eprintln!("\n╔══════════════════════════════════════════════════╗");
     eprintln!("║  Cross-Spring Provenance Map                     ║");
     eprintln!("╠══════════════════════════════════════════════════╣");
-    eprintln!("║  hotSpring  → f64 pipeline, VarianceReduceF64   ║");
+    eprintln!("║  hotSpring  → f64 pipeline, VarianceF64        ║");
     eprintln!("║  wetSpring  → FusedMapReduceF64, CorrelationF64 ║");
     eprintln!("║  neuralSpring → chi², KL, spectral → ToadStool  ║");
     eprintln!("║  ToadStool  → FusedChiSquared, FusedKL (back)   ║");

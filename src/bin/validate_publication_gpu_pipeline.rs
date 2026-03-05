@@ -17,7 +17,6 @@
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::expect_used,
-    clippy::too_many_lines,
     reason = "validation binary"
 )]
 
@@ -244,11 +243,9 @@ fn validate_mixed_hardware_routing(
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &data,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&data).map_err(|e| format!("{e}"))
         },
         || cpu_var,
     );

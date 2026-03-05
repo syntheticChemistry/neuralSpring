@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 127 (March 5, 2026)
+## [Unreleased] — Session 128 (March 5, 2026)
+
+### Session 128 — BarraCUDA Modern Rewire + ToadStool S94b Catchup (March 5, 2026)
+
+**Rewire**: `VarianceReduceF64` → `VarianceF64` (fused Welford, TensorContext, Fp64Strategy-aware) across 14 files (~25 call sites). Production path already used `VarianceF64` since S126; this aligns validators and benches with the modern API.
+
+**ToadStool absorption tracker updated**: neuralSpring V75/S113 → V85/S127 (14 handoff versions ahead). New P3 items registered: fused LSTM cell WGSL shader, autocorrelation GPU op, R² score GPU op. Flash attention and LayerNorm+GELU marked as available in barraCUDA.
+
+**coralNAK**: Confirmed locally at `ecoPrimals/coralNAK/`. Phase 2 complete (NAK sources wired, 183 tests). Future sovereign compiler path for f64 transcendentals.
+
+**Reviewed upstream**: BarraCUDA HEAD has 6 commits past v0.3.3 (fused reduction shaders, TensorContext migration, subgroup detection, DF64 precision tier for 15 ops, NAK compound assignment fix, chi_squared feature gating). All compatible — 0 breaking changes, 0 new regressions.
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy` 0 warnings (pedantic+nursery), `cargo test --lib` 871/883 (12 upstream GPU SIGSEGV — unchanged), `cargo doc` 0 warnings. V86 handoff.
 
 ### Session 127 — Paper 026 Full-Tier Validation + Baseline Closure (March 5, 2026)
 

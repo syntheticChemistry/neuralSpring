@@ -46,11 +46,9 @@ async fn main() {
             needs_realtime: false, // no NPU, not realtime
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &small,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&small).map_err(|e| format!("{e}"))
         },
         || {
             let n = small.len() as f64;
@@ -87,11 +85,9 @@ async fn main() {
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &large,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&large).map_err(|e| format!("{e}"))
         },
         || cpu_var,
     );
@@ -129,11 +125,9 @@ async fn main() {
             needs_realtime: true, // NPU available + realtime required
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &rt_data,
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op.variance(&rt_data).map_err(|e| format!("{e}"))
         },
         || {
             let n = rt_data.len() as f64;
@@ -249,11 +243,11 @@ async fn main() {
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &[1.0, 2.0, 3.0],
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op
+                .variance(&[1.0, 2.0, 3.0])
+                .map_err(|e| format!("{e}"))
         },
         || 0.667,
     );
@@ -271,11 +265,11 @@ async fn main() {
             needs_realtime: false,
         },
         |dev| {
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                dev.clone(),
-                &[1.0, 2.0, 3.0],
-            )
-            .map_err(|e| format!("{e}"))
+            let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                .map_err(|e| format!("{e}"))?;
+            var_op
+                .variance(&[1.0, 2.0, 3.0])
+                .map_err(|e| format!("{e}"))
         },
         || 0.667,
     );

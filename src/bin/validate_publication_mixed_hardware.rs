@@ -83,11 +83,9 @@ async fn main() {
                 needs_realtime: false,
             },
             |dev| {
-                barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                    dev.clone(),
-                    &cpu_evals,
-                )
-                .map_err(|e| format!("{e}"))
+                let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                    .map_err(|e| format!("{e}"))?;
+                var_op.variance(&cpu_evals).map_err(|e| format!("{e}"))
             },
             || cpu_var,
         );
@@ -116,11 +114,9 @@ async fn main() {
                 needs_realtime: false,
             },
             |dev| {
-                barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                    dev.clone(),
-                    &cpu_evals[..4],
-                )
-                .map_err(|e| format!("{e}"))
+                let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                    .map_err(|e| format!("{e}"))?;
+                var_op.variance(&cpu_evals[..4]).map_err(|e| format!("{e}"))
             },
             || {
                 let s = &cpu_evals[..4];
@@ -173,11 +169,9 @@ async fn main() {
                 needs_realtime: true,
             },
             |dev| {
-                barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                    dev.clone(),
-                    &cpu_evals,
-                )
-                .map_err(|e| format!("{e}"))
+                let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                    .map_err(|e| format!("{e}"))?;
+                var_op.variance(&cpu_evals).map_err(|e| format!("{e}"))
             },
             || {
                 let mean = cpu_evals.iter().sum::<f64>() / n as f64;
@@ -249,11 +243,9 @@ async fn main() {
                 needs_realtime: false,
             },
             |dev| {
-                barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                    dev.clone(),
-                    &ipr_sweep_cpu,
-                )
-                .map_err(|e| format!("{e}"))
+                let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(dev.clone())
+                    .map_err(|e| format!("{e}"))?;
+                var_op.variance(&ipr_sweep_cpu).map_err(|e| format!("{e}"))
             },
             || {
                 let n = ipr_sweep_cpu.len() as f64;

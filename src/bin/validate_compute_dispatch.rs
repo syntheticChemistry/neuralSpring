@@ -93,11 +93,11 @@ async fn main() {
     let cpu_var = data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n;
 
     if let Some(ref d) = dev {
-        let gpu_var = barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-            d.clone(),
-            &data,
-        )
-        .unwrap_or(f64::NAN);
+        let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(d.clone()).ok();
+        let gpu_var = var_op
+            .as_ref()
+            .and_then(|op| op.variance(&data).ok())
+            .unwrap_or(f64::NAN);
         h.check_abs(
             "parity: variance CPU vs GPU",
             gpu_var,
@@ -248,11 +248,10 @@ async fn main() {
         / large_data.len() as f64;
 
     if let Some(ref d) = dev {
-        let large_var_gpu =
-            barracuda::ops::variance_reduce_f64::VarianceReduceF64::population_variance(
-                d.clone(),
-                &large_data,
-            )
+        let var_op = barracuda::ops::variance_f64_wgsl::VarianceF64::new(d.clone()).ok();
+        let large_var_gpu = var_op
+            .as_ref()
+            .and_then(|op| op.variance(&large_data).ok())
             .unwrap_or(f64::NAN);
         h.check_abs(
             "dispatch-aware: large (2048) GPU parity",

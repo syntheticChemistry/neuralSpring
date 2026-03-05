@@ -27,7 +27,7 @@ use barracuda::ops::fused_map_reduce_f64::{FusedMapReduceF64, MapOp, ReduceOp};
 use barracuda::ops::max_abs_diff_f64::MaxAbsDiffF64;
 use barracuda::ops::norm_reduce_f64::NormReduceF64;
 use barracuda::ops::sum_reduce_f64::SumReduceF64;
-use barracuda::ops::variance_reduce_f64::VarianceReduceF64;
+use barracuda::ops::variance_f64_wgsl::VarianceF64;
 use barracuda::ops::weighted_dot_f64::WeightedDotF64;
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
@@ -284,9 +284,17 @@ fn validate_norm_reduce(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
     }
 }
 
-// ── VarianceReduceF64 ──────────────────────────────────────────────────
+// ── VarianceF64 ─────────────────────────────────────────────────────────
 
 fn validate_variance_reduce(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
+    let var_op = match VarianceF64::new(device.clone()) {
+        Ok(op) => op,
+        Err(e) => {
+            h.check_bool(&format!("VarianceF64::new [ERROR: {e}]"), false);
+            return;
+        }
+    };
+
     let data: Vec<f64> = vec![2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
     let n = data.len() as f64;
     let mean_val: f64 = data.iter().sum::<f64>() / n;
@@ -295,50 +303,50 @@ fn validate_variance_reduce(h: &mut ValidationHarness, device: &Arc<WgpuDevice>)
     let pop_std = pop_var.sqrt();
     let sample_std = sample_var.sqrt();
 
-    match VarianceReduceF64::mean(device.clone(), &data) {
-        Ok(v) => h.check_abs(
-            "VarianceReduceF64::mean",
-            v,
+    match var_op.mean_variance(&data, 0) {
+        Ok(mv) => h.check_abs(
+            "VarianceF64::mean (via mean_variance)",
+            mv[0],
             mean_val,
             tolerances::GPU_F64_EXACT,
         ),
-        Err(e) => h.check_bool(&format!("VarianceReduceF64::mean [ERROR: {e}]"), false),
+        Err(e) => h.check_bool(&format!("VarianceF64::mean [ERROR: {e}]"), false),
     }
-    match VarianceReduceF64::population_variance(device.clone(), &data) {
+    match var_op.variance(&data) {
         Ok(v) => h.check_abs(
-            "VarianceReduceF64::pop_variance",
+            "VarianceF64::variance (pop)",
             v,
             pop_var,
             tolerances::GPU_F64_STATS,
         ),
-        Err(e) => h.check_bool(&format!("VarianceReduceF64::pop_var [ERROR: {e}]"), false),
+        Err(e) => h.check_bool(&format!("VarianceF64::pop_var [ERROR: {e}]"), false),
     }
-    match VarianceReduceF64::variance(device.clone(), &data) {
+    match var_op.sample_variance(&data) {
         Ok(v) => h.check_abs(
-            "VarianceReduceF64::sample_variance",
+            "VarianceF64::sample_variance",
             v,
             sample_var,
             tolerances::GPU_F64_STATS,
         ),
-        Err(e) => h.check_bool(&format!("VarianceReduceF64::var [ERROR: {e}]"), false),
+        Err(e) => h.check_bool(&format!("VarianceF64::var [ERROR: {e}]"), false),
     }
-    match VarianceReduceF64::population_std(device.clone(), &data) {
+    match var_op.std_dev(&data) {
         Ok(v) => h.check_abs(
-            "VarianceReduceF64::pop_std",
+            "VarianceF64::std_dev (pop)",
             v,
             pop_std,
             tolerances::GPU_F64_TRANSCENDENTAL,
         ),
-        Err(e) => h.check_bool(&format!("VarianceReduceF64::pop_std [ERROR: {e}]"), false),
+        Err(e) => h.check_bool(&format!("VarianceF64::pop_std [ERROR: {e}]"), false),
     }
-    match VarianceReduceF64::std(device.clone(), &data) {
+    match var_op.sample_std_dev(&data) {
         Ok(v) => h.check_abs(
-            "VarianceReduceF64::sample_std",
+            "VarianceF64::sample_std_dev",
             v,
             sample_std,
             tolerances::GPU_F64_TRANSCENDENTAL,
         ),
-        Err(e) => h.check_bool(&format!("VarianceReduceF64::std [ERROR: {e}]"), false),
+        Err(e) => h.check_bool(&format!("VarianceF64::std [ERROR: {e}]"), false),
     }
 }
 
