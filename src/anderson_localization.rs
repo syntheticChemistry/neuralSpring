@@ -170,10 +170,6 @@ pub fn disorder_sweep(n: usize, t: f64, w_vals: &[f64], rng: &mut Rng) -> Vec<f6
 }
 
 #[cfg(test)]
-#[expect(
-    clippy::float_cmp,
-    reason = "deterministic seed=42 produces exact values"
-)]
 mod tests {
     use super::*;
     use crate::rng::Rng;

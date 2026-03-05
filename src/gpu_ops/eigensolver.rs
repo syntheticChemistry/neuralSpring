@@ -115,7 +115,10 @@ pub fn disorder_sweep_gpu(
 
     let slice = staging.slice(..);
     slice.map_async(wgpu::MapMode::Read, |_| {});
-    device.device().poll(wgpu::Maintain::Wait);
+    let _ = device.device().poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
     let view = slice.get_mapped_range();
     let ipr_f32: Vec<f32> = bytemuck::cast_slice(&view).to_vec();
     drop(view);

@@ -340,14 +340,14 @@ fn dispatch_head_shader(
     let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("head_pl"),
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some(entry),
         layout: Some(&pl),
         module: &shader,
-        entry_point: entry,
+        entry_point: Some(entry),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -401,11 +401,14 @@ fn dispatch_head_shader(
             timestamp_writes: None,
         });
         pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
+        pass.set_bind_group(0, Some(&bg), &[]);
         pass.dispatch_workgroups((output_count as u32).div_ceil(256), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));
-    device.poll(wgpu::Maintain::Wait);
+    let _ = device.poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
 
     dev.read_buffer_f32(&out_buf, output_count)
 }

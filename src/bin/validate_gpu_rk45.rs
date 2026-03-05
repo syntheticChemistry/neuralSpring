@@ -184,14 +184,14 @@ fn gpu_rk45(
     let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("rk45_pl"),
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("rk45_pipeline"),
         layout: Some(&pl),
         module: &shader,
-        entry_point: "rk45_step",
+        entry_point: Some("rk45_step"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -287,7 +287,7 @@ fn gpu_rk45(
             timestamp_writes: None,
         });
         pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
+        pass.set_bind_group(0, Some(&bg), &[]);
         pass.dispatch_workgroups(gpu.dispatch_1d(n_systems, 64), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));

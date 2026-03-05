@@ -259,7 +259,6 @@ impl Dispatcher {
 
 #[cfg(test)]
 #[expect(
-    clippy::float_cmp,
     clippy::expect_used,
     clippy::suboptimal_flops,
     reason = "test arithmetic needs exact comparison and clear failure messages"

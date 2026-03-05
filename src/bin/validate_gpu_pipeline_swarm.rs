@@ -122,14 +122,14 @@ fn gpu_mean_swarm_scores(
     let swarm_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("chain_swarm_pl"),
         bind_group_layouts: &[&swarm_bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let swarm_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("chain_swarm_pipeline"),
         layout: Some(&swarm_pl),
         module: &swarm_shader,
-        entry_point: "swarm_nn_forward_scores",
+        entry_point: Some("swarm_nn_forward_scores"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -196,7 +196,7 @@ fn gpu_mean_swarm_scores(
             timestamp_writes: None,
         });
         pass.set_pipeline(&swarm_pipeline);
-        pass.set_bind_group(0, &swarm_bg, &[]);
+        pass.set_bind_group(0, Some(&swarm_bg), &[]);
         pass.dispatch_workgroups(n_total.div_ceil(256) as u32, 1, 1);
     }
 

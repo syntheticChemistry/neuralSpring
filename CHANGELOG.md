@@ -5,7 +5,21 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 124 (March 5, 2026)
+## [Unreleased] — Session 125 (March 5, 2026)
+
+### Session 125 — wgpu 28 + BarraCUDA v0.3.3 + ToadStool S94b Sync (March 5, 2026)
+
+**wgpu 22 → 28 migration**: Updated ~70 wgpu API call sites across `src/` and `metalForge/forge/`: `Maintain::Wait` → `PollType::Wait` (13), `push_constant_ranges` → `immediate_size` (19), `entry_point: &str` → `Option<&str>` (19), `set_bind_group` wrapped in `Some()` (17), `Instance::new` reference parameter (1), `enumerate_adapters` async (2). `DeviceDescriptor` gains `experimental_features` + `trace` fields. `from_existing` takes owned `Device`/`Queue` (Arc removed in wgpu 28).
+
+**BarraCUDA v0.3.1 → v0.3.3**: Removed `unidirectional` feature (removed upstream in v0.3.2). Absorbs: wgpu 28 stack, `GuardedDeviceHandle`, fused mean+variance and correlation shaders (f64/DF64), subgroup capability detection, workgroup size constants, three-tier precision model (f32/DF64/f64).
+
+**ToadStool S87 → S94b pin**: 9 upstream commits reviewed. Key changes: `BarraCUDA` extracted to standalone primal (S89), D-SOV resolved (capability-based discovery), `NpuDispatch` + `NpuParameterController` added, REST removed (JSON-RPC 2.0 only), `management/resources` crate removed.
+
+**Dependency bumps**: wgpu 22→28, tokio 1.35→1.49, pollster 0.4 added to metalForge/forge.
+
+**Lint evolution**: 4 unfulfilled `#[expect]` cleaned (clippy 1.93 no longer triggers `float_cmp`/`wildcard_imports`/`cast_possible_truncation` in those contexts). `i as f64` → `f64::from` cast.
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy` 0 warnings (pedantic+nursery), `cargo test --lib` 871/880 PASS (9 GPU Tensor tests fail — upstream SIGSEGV in barracuda's own wgpu 28 GPU pipeline, confirmed by testing barracuda directly), `cargo doc` 0 warnings. V83 handoff.
 
 ### Session 124 — airSpring V069 Naming Rewire + HMM Absorption (March 5, 2026)
 

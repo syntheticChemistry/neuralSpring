@@ -70,13 +70,13 @@ async fn main() {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("HillGate Layout"),
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("HillGate Pipeline (polyfill)"),
         layout: Some(&layout),
         module: &module,
-        entry_point: "main",
+        entry_point: Some("main"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -181,7 +181,7 @@ fn dispatch_hill_f64(
             timestamp_writes: None,
         });
         pass.set_pipeline(pipeline);
-        pass.set_bind_group(0, &bg, &[]);
+        pass.set_bind_group(0, Some(&bg), &[]);
         pass.dispatch_workgroups(workgroups, 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));

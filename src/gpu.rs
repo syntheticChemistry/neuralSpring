@@ -141,7 +141,7 @@ impl Gpu {
             .to_ascii_lowercase();
 
         if selector == "list" {
-            let adapters = WgpuDevice::enumerate_adapters();
+            let adapters = WgpuDevice::enumerate_adapters().await;
             for (i, info) in adapters.iter().enumerate() {
                 log::info!(
                     "[{i}] {name} ({ty:?}, {backend:?})",
@@ -338,12 +338,12 @@ impl Gpu {
     ///
     /// Uses relaxed limits so CPU software adapters (llvmpipe) work.
     async fn select_adapter(selector: &str) -> Result<Self, String> {
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
 
-        let adapters: Vec<wgpu::Adapter> = instance.enumerate_adapters(wgpu::Backends::all());
+        let adapters: Vec<wgpu::Adapter> = instance.enumerate_adapters(wgpu::Backends::all()).await;
 
         let adapter = if let Ok(idx) = selector.parse::<usize>() {
             adapters.into_iter().nth(idx)
@@ -384,19 +384,18 @@ impl Gpu {
         };
 
         let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    label: Some("neuralSpring (capability-probed)"),
-                    required_features: features,
-                    required_limits: limits,
-                    memory_hints: wgpu::MemoryHints::default(),
-                },
-                None,
-            )
+            .request_device(&wgpu::DeviceDescriptor {
+                label: Some("neuralSpring (capability-probed)"),
+                required_features: features,
+                required_limits: limits,
+                memory_hints: wgpu::MemoryHints::default(),
+                experimental_features: wgpu::ExperimentalFeatures::default(),
+                trace: wgpu::Trace::default(),
+            })
             .await
             .map_err(|e| format!("device creation: {e}"))?;
 
-        let dev = WgpuDevice::from_existing(Arc::new(device), Arc::new(queue), info);
+        let dev = WgpuDevice::from_existing(device, queue, info);
         Ok(Self::from_device(Arc::new(dev)))
     }
 }

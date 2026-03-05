@@ -286,10 +286,6 @@ mod tests {
     #[test]
     fn bf16_roundtrip() {
         let val: f32 = 1.5;
-        #[expect(
-            clippy::cast_possible_truncation,
-            reason = "intentional f32→bf16 bit truncation"
-        )]
         let bits = (val.to_bits() >> 16) as u16;
         let recovered = bf16_to_f32(bits);
         assert!((recovered - val).abs() < 1e-6);

@@ -18,10 +18,11 @@ uninlined_format_args = "allow"
 [dependencies]
 barracuda = { path = "../../../barraCuda/crates/barracuda" }
 bytemuck = { version = "1.14", features = ["derive"] }
-wgpu = { version = "22", default-features = false, features = [
+pollster = "0.4"
+wgpu = { version = "28", default-features = false, features = [
     "wgsl",
     "vulkan-portability",
 ] }
 
 [dev-dependencies]
-tokio = { version = "1.35", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.49", features = ["rt-multi-thread", "macros"] }

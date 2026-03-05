@@ -63,14 +63,14 @@ fn gpu_logsumexp(gpu: &Gpu, input: &[f32], batch: u32, width: u32) -> Result<Vec
     let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("logsumexp_pl"),
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("logsumexp_pipeline"),
         layout: Some(&pl),
         module: &shader,
-        entry_point: "logsumexp_reduce",
+        entry_point: Some("logsumexp_reduce"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -123,7 +123,7 @@ fn gpu_logsumexp(gpu: &Gpu, input: &[f32], batch: u32, width: u32) -> Result<Vec
             timestamp_writes: None,
         });
         pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
+        pass.set_bind_group(0, Some(&bg), &[]);
         pass.dispatch_workgroups(gpu.dispatch_1d(batch, 256), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));

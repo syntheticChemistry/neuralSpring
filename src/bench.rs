@@ -64,7 +64,7 @@ fn dispatch_once(params: &DispatchParams<'_>) {
     {
         let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
         pass.set_pipeline(params.pipeline);
-        pass.set_bind_group(0, params.bg, &[]);
+        pass.set_bind_group(0, Some(params.bg), &[]);
         pass.dispatch_workgroups(params.workgroups, 1, 1);
     }
     params.queue.submit(std::iter::once(enc.finish()));
@@ -156,6 +156,7 @@ pub fn buf_desc<'a, T: Pod>(
 }
 
 /// Shorthand for a bind-group entry referencing an entire buffer.
+#[must_use]
 pub fn bind_entry(binding: u32, buf: &wgpu::Buffer) -> wgpu::BindGroupEntry<'_> {
     wgpu::BindGroupEntry {
         binding,
@@ -208,13 +209,13 @@ pub fn create_pipeline(
     let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: None,
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: None,
         layout: Some(&pl),
         module: shader,
-        entry_point: entry,
+        entry_point: Some(entry),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });

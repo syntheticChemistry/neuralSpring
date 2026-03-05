@@ -42,7 +42,7 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 330/330 Python PASS + 3400+ Rust+GPU PASS = **4100+ total validation checks**
 
-**barraCuda v0.3.1 standalone** (extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
+**barraCuda v0.3.3 standalone** (extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 46 upstream rewires + 205 files with barracuda imports, 25+ submodules exercised. Nautilus absorbed into barracuda::nautilus (bingocube dep removed).
 S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch` (`hmm_viterbi_f64.wgsl`).
 21/21 WGSL shaders absorbed + 15 coralForge df64 shaders.
@@ -53,9 +53,10 @@ S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 **217/217 validate\_all**. Pure Rust **38.6× faster** than Python/NumPy
 (geomean, 14 domains; fastest: multi-obj fitness 1028×; 2 BLAS-bound domains included). CPU→GPU portability proven (9/9, 7 domains).
-S116: `ToadStool` S87 sync (`2dc26792`): deep debt evolution, FHE shader fixes, CPU ungating, unsafe audit. 844+ WGSL shaders. 18/18 S87 sync, 212/212 validate_all.
+S116: `ToadStool` S87 sync (`9d359814`): deep debt evolution, FHE shader fixes, CPU ungating, unsafe audit. 844+ WGSL shaders. 18/18 S87 sync, 212/212 validate_all.
 S121: SimpleMlp rewire (WDM surrogates → `barracuda::nn::SimpleMlp`, ~300 LOC eliminated) + HMM Viterbi chain → f64 `ComputeDispatch` (single-dispatch `hmm_viterbi_f64.wgsl`). Cross-spring modern benchmark (28/28 PASS, 5 springs). V82 handoff.
 S122–S124: airSpring V069 naming rewire (`ToadStool`=dispatch, `BarraCUDA`=math), HMM forward chain → `ComputeDispatch` absorption, Paper 026 Chuna LSTM glucose prediction, doc alignment. V82 handoff.
+S125: wgpu 28 migration, `BarraCUDA` v0.3.3 sync, `ToadStool` S94b pin. V83 handoff.
 S120: deep debt audit + CI hardening — zero `#[allow(` remaining (all `#[expect(`), `--all-features` CI, production `suboptimal_flops` fix, 18 test warnings resolved, quality gates aligned. V80 handoff.
 S119: deep lint evolution — all `#[allow(` → `#[expect(` with reasons, 4 shared validation helpers, 880 lib tests, 0 production `#[allow(`. V79 handoff.
 S115: dispatch parity 53/53, ComputeDispatch bridge 14/14, NUCLEUS PCIe bypass 38/38.
@@ -291,7 +292,7 @@ make check    # or: just check
 ## BarraCUDA Connection
 
 BarraCUDA is the **unified math** — the same WGSL shaders run on GPU, CPU, or NPU.
-barraCuda is now a standalone primal (`../barraCuda/crates/barracuda` v0.3.1), extracted from `ToadStool` at S89.
+barraCuda is now a standalone primal (`../barraCuda/crates/barracuda` v0.3.3), extracted from `ToadStool` at S89.
 `ToadStool` dispatches across hardware; `BarraCUDA` provides the universal math engine.
 neuralSpring calls `barracuda::*` directly — no abstraction layer — matching the hotSpring pattern.
 Each Spring evolves independently; the barraCuda team absorbs changes asynchronously.
@@ -633,7 +634,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal `ToadStool` handoffs (V82 current: Session 124, barraCuda v0.3.1) |
+| `wateringHole/handoffs/` | Formal `ToadStool` handoffs (V83 current: Session 125, barraCuda v0.3.3) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -643,4 +644,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–124: March 5, 2026 | 25 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 880 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 238 validation/bench binaries, 42 WGSL shaders | 139+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.1 standalone, nautilus absorbed, 217/217 validate\_all | 46 upstream rewires | V82 handoff*
+*Initialized: February 16, 2026 | Sessions 40–125: March 5, 2026 | 25 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 880 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 238 validation/bench binaries, 42 WGSL shaders | 139+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3 standalone, nautilus absorbed, 217/217 validate\_all | 46 upstream rewires | V83 handoff*

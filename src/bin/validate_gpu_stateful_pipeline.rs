@@ -176,7 +176,7 @@ fn setup_stateful_rk4(
     let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("rk4_sp_pl"),
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let pipeline = Arc::new(
@@ -184,7 +184,7 @@ fn setup_stateful_rk4(
             label: Some("rk4_sp_pipeline"),
             layout: Some(&pl),
             module: &shader,
-            entry_point: "rk4_step",
+            entry_point: Some("rk4_step"),
             compilation_options: wgpu::PipelineCompilationOptions::default(),
             cache: None,
         }),

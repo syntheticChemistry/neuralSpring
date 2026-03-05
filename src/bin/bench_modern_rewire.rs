@@ -481,7 +481,10 @@ fn bench_ipr_gpu(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
         device.queue().submit(Some(enc.finish()));
         let slice = staging.slice(..);
         slice.map_async(wgpu::MapMode::Read, |_| {});
-        device.device().poll(wgpu::Maintain::Wait);
+        let _ = device.device().poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: None,
+        });
         let view = slice.get_mapped_range();
         let _: Vec<f32> = std::hint::black_box(bytemuck::cast_slice(&view).to_vec());
     });

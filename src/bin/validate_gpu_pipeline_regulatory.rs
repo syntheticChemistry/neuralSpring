@@ -182,14 +182,14 @@ fn gpu_mean_rk4(
     let rk4_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("chain_rk4_pl"),
         bind_group_layouts: &[&rk4_bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let rk4_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("chain_rk4_pipeline"),
         layout: Some(&rk4_pl),
         module: &rk4_shader,
-        entry_point: "rk4_step",
+        entry_point: Some("rk4_step"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -270,7 +270,7 @@ fn gpu_mean_rk4(
             timestamp_writes: None,
         });
         pass.set_pipeline(&rk4_pipeline);
-        pass.set_bind_group(0, &rk4_bg, &[]);
+        pass.set_bind_group(0, Some(&rk4_bg), &[]);
         pass.dispatch_workgroups(n_systems.div_ceil(64), 1, 1);
     }
 

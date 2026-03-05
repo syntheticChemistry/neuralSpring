@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: March 4, 2026 (Sessions 60–121: 869 lib tests, 234 binaries, 213/213 validate_all, barraCuda v0.3.1, 46 upstream rewires)
+**Last Updated**: March 5, 2026 (Sessions 60–121: 869 lib tests, 234 binaries, 213/213 validate_all, barraCuda v0.3.3, 46 upstream rewires)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -122,7 +122,7 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### `BarraCUDA`/`ToadStool` Infrastructure Available for GPU Promotion
 
-`BarraCUDA` (reviewed `2dc26792`, Mar 5, 2026 — all shortcomings through S-17 fixed, standalone v0.3.1, 844+ WGSL shaders, HmmBatchForwardF64 ComputeDispatch, SimpleMlp, precision per use/hardware)
+`BarraCUDA` (reviewed `9d359814`, Mar 5, 2026 — wgpu 28, v0.3.3, all shortcomings through S-17 fixed, standalone v0.3.3, 844+ WGSL shaders, HmmBatchForwardF64 ComputeDispatch, SimpleMlp, precision per use/hardware)
 provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |

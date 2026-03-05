@@ -194,7 +194,10 @@ fn hmm_forward_chain_gpu_fused(
 
     let slice = staging.slice(..);
     slice.map_async(wgpu::MapMode::Read, |_| {});
-    d.poll(wgpu::Maintain::Wait);
+    let _ = d.poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
     let view = slice.get_mapped_range();
     let log_lik: f64 = bytemuck::cast_slice::<u8, f64>(&view)[0];
     drop(view);

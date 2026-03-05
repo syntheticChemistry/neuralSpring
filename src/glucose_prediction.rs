@@ -642,7 +642,7 @@ mod tests {
 
     #[test]
     fn create_sequences_lengths() {
-        let data: Vec<f64> = (0..100).map(|i| i as f64).collect();
+        let data: Vec<f64> = (0..100).map(f64::from).collect();
         let (inputs, targets) = create_sequences(&data, 12, 6);
         assert_eq!(inputs.len(), targets.len());
         assert!(!inputs.is_empty());

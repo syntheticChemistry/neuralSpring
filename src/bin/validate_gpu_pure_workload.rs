@@ -148,14 +148,14 @@ fn gpu_chained_mean_fitness(
     let fitness_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("chain_fitness_pl"),
         bind_group_layouts: &[&fitness_bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let fitness_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("chain_fitness_pipeline"),
         layout: Some(&fitness_pl),
         module: &fitness_shader,
-        entry_point: "batch_fitness_linear",
+        entry_point: Some("batch_fitness_linear"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -174,14 +174,14 @@ fn gpu_chained_mean_fitness(
     let reduce_pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("chain_reduce_pl"),
         bind_group_layouts: &[&reduce_bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let reduce_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("chain_reduce_pipeline"),
         layout: Some(&reduce_pl),
         module: &reduce_shader,
-        entry_point: "mean_reduce",
+        entry_point: Some("mean_reduce"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -284,7 +284,7 @@ fn gpu_chained_mean_fitness(
             timestamp_writes: None,
         });
         pass.set_pipeline(&fitness_pipeline);
-        pass.set_bind_group(0, &fitness_bg, &[]);
+        pass.set_bind_group(0, Some(&fitness_bg), &[]);
         pass.dispatch_workgroups(pop_size.div_ceil(256), 1, 1);
     }
 
@@ -294,7 +294,7 @@ fn gpu_chained_mean_fitness(
             timestamp_writes: None,
         });
         pass.set_pipeline(&reduce_pipeline);
-        pass.set_bind_group(0, &reduce_bg, &[]);
+        pass.set_bind_group(0, Some(&reduce_bg), &[]);
         pass.dispatch_workgroups(1, 1, 1);
     }
 

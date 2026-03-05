@@ -93,14 +93,14 @@ pub fn integrate_ode_batch_gpu(
     let pl = wgpu_device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("ode_batch_pl"),
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let pipeline = wgpu_device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("ode_batch_pipeline"),
         layout: Some(&pl),
         module: &shader,
-        entry_point: "rk4_step",
+        entry_point: Some("rk4_step"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -182,7 +182,7 @@ pub fn integrate_ode_batch_gpu(
             timestamp_writes: None,
         });
         pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
+        pass.set_bind_group(0, Some(&bg), &[]);
         pass.dispatch_workgroups(n_systems.div_ceil(64), 1, 1);
     }
     queue.submit(std::iter::once(encoder.finish()));

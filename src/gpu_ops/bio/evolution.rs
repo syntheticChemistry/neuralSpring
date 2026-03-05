@@ -58,7 +58,10 @@ pub fn pairwise_l2_matrix_gpu(
 
     let slice = staging.slice(..);
     slice.map_async(wgpu::MapMode::Read, |_| {});
-    device.device().poll(wgpu::Maintain::Wait);
+    let _ = device.device().poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
     let view = slice.get_mapped_range();
     let f32_data: Vec<f32> = bytemuck::cast_slice(&view).to_vec();
     drop(view);
@@ -130,7 +133,10 @@ pub fn multi_obj_fitness_gpu(
 
     let slice = staging.slice(..);
     slice.map_async(wgpu::MapMode::Read, |_| {});
-    device.device().poll(wgpu::Maintain::Wait);
+    let _ = device.device().poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
     let view = slice.get_mapped_range();
     let result: Vec<f64> = bytemuck::cast_slice(&view).to_vec();
     drop(view);
@@ -219,7 +225,10 @@ pub fn swarm_nn_forward_gpu(
 
     let slice = staging.slice(..);
     slice.map_async(wgpu::MapMode::Read, |_| {});
-    device.device().poll(wgpu::Maintain::Wait);
+    let _ = device.device().poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
     let view = slice.get_mapped_range();
     let u32_data: Vec<u32> = bytemuck::cast_slice(&view).to_vec();
     drop(view);

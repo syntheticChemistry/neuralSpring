@@ -102,14 +102,14 @@ fn gpu_generate(
     let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("prng_pl"),
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("prng_pipeline"),
         layout: Some(&pl),
         module: &shader,
-        entry_point: "generate",
+        entry_point: Some("generate"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -167,7 +167,7 @@ fn gpu_generate(
             timestamp_writes: None,
         });
         pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bg, &[]);
+        pass.set_bind_group(0, Some(&bg), &[]);
         pass.dispatch_workgroups(n_threads.div_ceil(256), 1, 1);
     }
 
@@ -324,14 +324,14 @@ fn gpu_generate_multi_call(
     let pl = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("prng_multi_pl"),
         bind_group_layouts: &[&bgl],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("prng_multi_pipeline"),
         layout: Some(&pl),
         module: &shader,
-        entry_point: "generate",
+        entry_point: Some("generate"),
         compilation_options: wgpu::PipelineCompilationOptions::default(),
         cache: None,
     });
@@ -391,7 +391,7 @@ fn gpu_generate_multi_call(
                 timestamp_writes: None,
             });
             pass.set_pipeline(&pipeline);
-            pass.set_bind_group(0, &bg, &[]);
+            pass.set_bind_group(0, Some(&bg), &[]);
             pass.dispatch_workgroups(n_threads.div_ceil(256), 1, 1);
         }
         queue.submit(std::iter::once(enc.finish()));
@@ -410,7 +410,7 @@ fn gpu_generate_multi_call(
                 timestamp_writes: None,
             });
             pass.set_pipeline(&pipeline);
-            pass.set_bind_group(0, &bg, &[]);
+            pass.set_bind_group(0, Some(&bg), &[]);
             pass.dispatch_workgroups(n_threads.div_ceil(256), 1, 1);
         }
         queue.submit(std::iter::once(enc.finish()));

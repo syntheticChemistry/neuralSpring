@@ -52,7 +52,10 @@ fn read_buffer_u32(gpu: &Gpu, buffer: &wgpu::Buffer, count: usize) -> Result<Vec
     slice.map_async(wgpu::MapMode::Read, move |r| {
         tx.send(r).ok();
     });
-    device.poll(wgpu::Maintain::Wait);
+    let _ = device.poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
     rx.recv()
         .map_err(|e| format!("recv: {e}"))?
         .map_err(|e| format!("map: {e:?}"))?;

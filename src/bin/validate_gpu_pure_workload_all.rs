@@ -287,7 +287,10 @@ fn validate_swarm_nn(h: &mut ValidationHarness, gpu: &Gpu) {
     slice.map_async(wgpu::MapMode::Read, move |result| {
         tx.send(result).ok();
     });
-    device.poll(wgpu::Maintain::Wait);
+    let _ = device.poll(wgpu::PollType::Wait {
+        submission_index: None,
+        timeout: None,
+    });
     match rx.recv() {
         Ok(Ok(())) => {
             let data = slice.get_mapped_range();
