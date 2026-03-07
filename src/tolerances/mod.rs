@@ -639,6 +639,27 @@ pub const TRAINING_LOSS_DIVERGENCE: f64 = 10.0;
 /// gradient magnitude without requiring a full restart.
 pub const TRAINING_LR_REDUCTION: f64 = 0.5;
 
+// ═══════════════════════════════════════════════════════════════════
+// GPU PRNG statistical tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// Maximum deviation of GPU PRNG uniform mean from 0.5.
+///
+/// For N=1024 samples from U(0,1), the standard error of the mean is
+/// σ/√N ≈ 0.289/32 ≈ 0.009.  Allowing ~2σ gives 0.02.  The observed
+/// GPU mean must fall in \[0.48, 0.52\].
+pub const GPU_PRNG_UNIFORMITY_MEAN: f64 = 0.02;
+
+// ═══════════════════════════════════════════════════════════════════
+// Provenance date constants
+// ═══════════════════════════════════════════════════════════════════
+
+/// Baseline date for glucose prediction experiment (Paper 026).
+///
+/// Separate from `BASELINE_DATE` because Paper 026 baselines were
+/// generated after the initial Phase 0 batch.
+pub const GLUCOSE_BASELINE_DATE: &str = "2026-03-05";
+
 mod gpu;
 mod registry;
 

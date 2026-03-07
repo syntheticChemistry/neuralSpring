@@ -343,17 +343,21 @@ fn validate_rk45_regulatory(h: &mut ValidationHarness, gpu: &Gpu) {
     let err_buf = output_buf(device, "rk_err", (total * 8) as u64);
     let scratch_buf = output_buf(device, "rk_scratch", (total * 8 * 8) as u64);
 
-    op.dispatch(
-        &state_buf,
-        &coeff_buf,
-        &out_buf,
-        &err_buf,
-        &scratch_buf,
-        n_systems,
-        dim,
-        n_coeffs,
-        dt,
-    );
+    op.dispatch(&barracuda::ops::rk45_adaptive::Rk45DispatchArgs {
+        buffers: barracuda::ops::rk45_adaptive::Rk45Buffers {
+            state_buf: &state_buf,
+            coeffs_buf: &coeff_buf,
+            new_state_buf: &out_buf,
+            error_buf: &err_buf,
+            scratch_buf: &scratch_buf,
+        },
+        params: barracuda::ops::rk45_adaptive::Rk45DispatchParams {
+            n_systems,
+            dim,
+            n_coeffs,
+            dt,
+        },
+    });
 
     match gpu.read_buffer_f64(&out_buf, total) {
         Ok(gpu_v) => {
@@ -492,18 +496,18 @@ fn validate_hmm(h: &mut ValidationHarness, gpu: &Gpu) {
     let alpha_buf = output_buf(device, "hmm_a", alpha_size);
     let ll_buf = output_buf(device, "hmm_ll", (n_seqs * 8) as u64);
 
-    if let Err(e) = op.dispatch(
+    if let Err(e) = op.dispatch(&barracuda::ops::bio::hmm::HmmForwardArgs {
         n_states,
         n_symbols,
-        seq_len as u32,
-        n_seqs as u32,
-        &lt_buf,
-        &le_buf,
-        &lp_buf,
-        &obs_buf,
-        &alpha_buf,
-        &ll_buf,
-    ) {
+        n_steps: seq_len as u32,
+        n_seqs: n_seqs as u32,
+        log_trans: &lt_buf,
+        log_emit: &le_buf,
+        log_pi: &lp_buf,
+        observations: &obs_buf,
+        log_alpha_out: &alpha_buf,
+        log_lik_out: &ll_buf,
+    }) {
         h.check_bool(&format!("HMM dispatch: {e}"), false);
         return;
     }
@@ -728,7 +732,10 @@ fn validate_l2(h: &mut ValidationHarness, gpu: &Gpu) {
     let pts_buf = storage_buf(device, "l2_pts", bytemuck::cast_slice(&points_f32));
     let out_buf = output_buf(device, "l2_out", (n_pairs * 4) as u64);
 
-    op.dispatch(&pts_buf, &out_buf, n as u32, dim as u32);
+    if let Err(e) = op.dispatch(&pts_buf, &out_buf, n as u32, dim as u32) {
+        h.check_bool(&format!("PairwiseL2 dispatch: {e}"), false);
+        return;
+    }
 
     match gpu.read_buffer_f32(&out_buf, n_pairs) {
         Ok(gpu_d) => {

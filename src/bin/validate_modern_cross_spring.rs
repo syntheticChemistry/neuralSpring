@@ -31,7 +31,6 @@
     clippy::many_single_char_names,
     clippy::items_after_statements,
     clippy::expect_used,
-    clippy::unwrap_used,
     reason = "validation binary"
 )]
 
@@ -700,14 +699,14 @@ fn validate_toadstool_s86_evolution(h: &mut ValidationHarness) {
     let pred = bridge.predict(3.0);
     h.check_bool(
         "TS→S80: bridge predict (nS→hS→bC→TS→nS roundtrip)",
-        pred.is_some() && pred.unwrap().0.is_finite(),
+        pred.is_some_and(|(v, _, _)| v.is_finite()),
     );
 
     // S81-82: New hydrology functions (airSpring → BarraCUDA)
     let thornthwaite = barracuda::stats::thornthwaite_et0(20.0, 60.0, 14.0, 30.0);
     h.check_bool(
         "TS→S81: thornthwaite_et0 (aS → TS absorption)",
-        thornthwaite.is_some() && thornthwaite.unwrap() > 0.0,
+        thornthwaite.is_some_and(|v| v > 0.0),
     );
 
     let monthly_temps = [
@@ -722,19 +721,19 @@ fn validate_toadstool_s86_evolution(h: &mut ValidationHarness) {
     let hamon = barracuda::stats::hamon_et0(20.0, 14.0);
     h.check_bool(
         "TS→S81: hamon_et0 (aS Tier A → TS absorption)",
-        hamon.is_some() && hamon.unwrap() > 0.0,
+        hamon.is_some_and(|v| v > 0.0),
     );
 
     let makkink = barracuda::stats::makkink_et0(20.0, 18.0);
     h.check_bool(
         "TS→S81: makkink_et0 (aS Tier A → TS absorption)",
-        makkink.is_some() && makkink.unwrap() > 0.0,
+        makkink.is_some_and(|v| v > 0.0),
     );
 
     let turc = barracuda::stats::turc_et0(20.0, 18.0, 60.0);
     h.check_bool(
         "TS→S81: turc_et0 (aS Tier A → TS absorption)",
-        turc.is_some() && turc.unwrap() > 0.0,
+        turc.is_some_and(|v| v > 0.0),
     );
 
     // S84-86: ComputeDispatch expanded 76→144 ops

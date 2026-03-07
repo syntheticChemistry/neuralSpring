@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: March 2, 2026 (Sessions 49–104b — S104b: Complete ToadStool f97fc2ae rewire. `FusedChiSquaredGpu` + `FusedKlDivergenceGpu` (neuralSpring→ToadStool→back), `spectral_bandwidth`/`spectral_condition_number` upstream delegates, 12 `include_str!`→forge constants, `Fp64Strategy::Concurrent` handling. Cross-spring provenance mapped; **226 binaries, 869 lib tests, 19/19 S79 validator**, zero clippy, 3,600+ checks, 15 core rewired functions)
+**Date**: March 2, 2026 (Sessions 49–104b — S104b: Complete ToadStool f97fc2ae rewire. `FusedChiSquaredGpu` + `FusedKlDivergenceGpu` (neuralSpring→ToadStool→back), `spectral_bandwidth`/`spectral_condition_number` upstream delegates, 12 `include_str!`→forge constants, `Fp64Strategy::Concurrent` handling. Cross-spring provenance mapped; **240 binaries, 883 lib tests, 19/19 S79 validator**, zero clippy, 3,600+ checks, 46 upstream rewires)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -247,8 +247,8 @@ Immunology. 6 sub-theses, 21 grounding papers, 29 experiments (28 complete
 checks across 25 papers + 5 WDM surrogates + 3 publication experiments
 and 7+ scientific domains. Core primitives implemented in Sessions 50–55,
 quality-hardened Sessions 61–90, extended Session 105: 7 Rust modules, 8
-validation binaries, 128/128 PASS (114 CPU + 14 GPU), 869 lib tests, 0
-clippy warnings. 42 upstream rewires to upstream BarraCUDA. Sub-thesis 06
+validation binaries, 128/128 PASS (114 CPU + 14 GPU), 883 lib tests, 0
+clippy warnings. 46 upstream rewires to upstream BarraCUDA. Sub-thesis 06
 (Session 105): Anderson localization in immunological signaling — Gonzales
 catalog (6 papers), Fajgenbaum drug repurposing bridge, dimensional
 promotion-collapse duality with Paper 06. neuralSpring primitives ready:

@@ -265,7 +265,7 @@ Progression check: **✓ GPU < CPU < Py** at MLP large + TF medium.
 ## Quick Start
 
 ```bash
-# Python baselines (233/233 PASS, ~10 min)
+# Python baselines (330/330 PASS, ~10 min)
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 bash control/check_drift.sh        # drift detection (re-runs baselines)
@@ -389,7 +389,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 
 ## Evolution Roadmap
 
-- **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (233/233 — 25 experiments + 5 WDM surrogates)
+- **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (330/330 — 26 papers + 5 WDM + baseCamp + coralForge)
 - **Phase 1a**: neuralSpring Rust validation **COMPLETE** (883 lib + 9 integration + 43 forge tests, 240 validation binaries, 41 modules + gpu_ops/ + gpu_dispatch/)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused `ToadStool` pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
@@ -453,7 +453,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python lint | `ruff check control/ scripts/ tests/` | 0 errors |
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
-| Python baselines | `bash scripts/run_all_baselines.sh` | 233/233 PASS |
+| Python baselines | `bash scripts/run_all_baselines.sh` | 330/330 PASS |
 | Rust tests | `cargo test` | 883 unit + 9 integration PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery), 0 `#[allow(` in production code |
 | Rust coverage | `cargo llvm-cov --lib` | 90%+ line coverage |
@@ -596,7 +596,7 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_TOADSTOOL_V71_S108_*.md # Current `ToadStool` handoff
+│   │   ├── NEURALSPRING_TOADSTOOL_V86_S128_*.md # Current `ToadStool` handoff
 │   │   ├── NEURALSPRING_NESTGATE_V1_*.md        # NestGate data acquisition
 │   │   ├── NEURALSPRING_BIOMEOS_V1_*.md         # biomeOS/NUCLEUS integration
 │   │   ├── NEURALSPRING_SONGBIRD_V1_*.md        # Songbird networking
@@ -636,7 +636,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal `ToadStool` handoffs (V86 current: Session 128, barraCuda v0.3.3+) |
+| `wateringHole/handoffs/` | Formal `ToadStool` handoffs (V87 current: Session 129, barraCuda v0.3.3+) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -646,4 +646,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–128: March 5, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 883 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 240 validation/bench binaries, 42 WGSL shaders | 140+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3+ standalone, nautilus absorbed, 218/218 validate\_all | 46 upstream rewires | V86 handoff*
+*Initialized: February 16, 2026 | Sessions 40–128: March 5, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 883 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 240 validation/bench binaries, 42 WGSL shaders | 141+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3+ standalone, nautilus absorbed, 218/218 validate\_all | 46 upstream rewires | V87 handoff*

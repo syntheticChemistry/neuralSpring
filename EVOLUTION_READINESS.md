@@ -408,10 +408,11 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo fmt` | **Clean** — zero formatting violations |
 | `cargo clippy` pedantic + nursery | **0 warnings** — all `#[allow]` migrated to `#[expect(, reason)]` (0 in production code; 6 in `#[cfg(test)]` where `expect_used`/`unwrap_used` don't fire) |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **869 tests PASS** |
+| `cargo test --lib` | **883 tests PASS** |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
-| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `gpu.rs` + `registry.rs`) — 139+ `NamedTolerance` entries across 10 categories, zero inline magic numbers in production code |
+| `#![forbid(unsafe_code)]` | Enforced at crate root — zero `unsafe` blocks permitted |
+| Centralized tolerances | Split into `tolerances/` module (`mod.rs` + `gpu.rs` + `registry.rs`) — 141+ `NamedTolerance` entries across 10 categories, zero inline magic numbers in production code |
 | GPU validation helpers | Shared `gpu_readback`, `max_abs_diff_gpu_vs_cpu`, `gpu_tensor!` macro — deduplicated ~400 LOC from 24 binaries |
 | GPU device init | Unified via `Gpu::new()` (removed ~800 LOC duplication) |
 | Modular `gpu_ops/` | Refactored from monolithic 1328-line file into 6 focused submodules (`linalg`, `activation`, `reduction`, `bio`, `population`, `eigensolver`) — all under 1000 LOC |
@@ -430,7 +431,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 | Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |
 | External dependencies | All pure Rust — zero C/C++ wrapper crates |
-| Centralized tolerances | `tolerances/` module — **139+ `NamedTolerance`** entries across 10 categories including `domain_guards` |
+| Centralized tolerances | `tolerances/` module — **141+ `NamedTolerance`** entries across 10 categories including `domain_guards` |
 | Magic numbers eliminated | All production `1e-10`/`1e-12` constants centralized via `tolerances::` |
 | Cast safety | `cpu_fallback.rs` activator indices bounds-checked via `safe_idx()` |
 | coralForge rename | `sovereign_folding` + `structure_module` → unified `coral_forge/` with `structure/` submodule |
@@ -443,13 +444,13 @@ All external dependencies are pure Rust with no C/C++ bindings:
 
 | Crate | Version | Role | Evolution Path |
 |-------|---------|------|----------------|
-| `barracuda` | path (v0.3.1) | GPU compute abstraction (in-house) | Standalone barraCuda primal (extracted from ToadStool S89) |
+| `barracuda` | path (v0.3.3) | GPU compute abstraction (in-house) | Standalone barraCuda primal (extracted from ToadStool S89) |
 | `neural-spring-forge` | path | Shader catalog (in-house) | Evolves with metalForge |
 | `biomeos-primal-sdk` | path (opt) | Primal IPC framework (in-house) | Evolves with biomeOS |
-| `bytemuck` | 1.14 | Zero-copy GPU buffer casting | Stable, pure Rust, no alternative needed |
+| `bytemuck` | 1.21 | Zero-copy GPU buffer casting | Stable, pure Rust, no alternative needed |
 | `serde` + `serde_json` | 1 | JSON baseline I/O | Stable ecosystem standard |
-| `tokio` | 1.35 | Async runtime for wgpu | Required by wgpu device creation |
-| `wgpu` | 22 | WebGPU abstraction | Must match barracuda's version |
+| `tokio` | 1.49 | Async runtime for wgpu | Required by wgpu device creation |
+| `wgpu` | 28 | WebGPU abstraction | Must match barracuda's version |
 | `anyhow` | 1 (opt) | Error handling in primal | Primal-only, lightweight |
 | `uuid` | 1 (opt) | Request IDs in primal | Primal-only |
 | `chrono` | 0.4 (opt) | Timestamps in primal | Primal-only |

@@ -168,18 +168,18 @@ fn hmm_forward_chain_gpu_fused(
 
     let op =
         HmmBatchForwardF64::new(device.clone()).map_err(|e| format!("HmmBatchForwardF64: {e}"))?;
-    op.dispatch(
-        ns,
-        no,
-        nt,
+    op.dispatch(&barracuda::ops::bio::hmm::HmmForwardArgs {
+        n_states: ns,
+        n_symbols: no,
+        n_steps: nt,
         n_seqs,
-        &log_trans_buf,
-        &log_emit_buf,
-        &log_pi_buf,
-        &obs_buf,
-        &log_alpha_buf,
-        &log_lik_buf,
-    )
+        log_trans: &log_trans_buf,
+        log_emit: &log_emit_buf,
+        log_pi: &log_pi_buf,
+        observations: &obs_buf,
+        log_alpha_out: &log_alpha_buf,
+        log_lik_out: &log_lik_buf,
+    })
     .map_err(|e| format!("hmm_forward_fused dispatch: {e}"))?;
 
     let staging = d.create_buffer(&wgpu::BufferDescriptor {

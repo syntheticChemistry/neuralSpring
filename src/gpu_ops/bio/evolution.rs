@@ -44,7 +44,8 @@ pub fn pairwise_l2_matrix_gpu(
     });
 
     let op = PairwiseL2Gpu::new(device.clone());
-    op.dispatch(&input_buf, &output_buf, n as u32, dim as u32);
+    op.dispatch(&input_buf, &output_buf, n as u32, dim as u32)
+        .map_err(|e| format!("PairwiseL2 dispatch: {e}"))?;
 
     let staging = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("pairwise_l2_staging"),

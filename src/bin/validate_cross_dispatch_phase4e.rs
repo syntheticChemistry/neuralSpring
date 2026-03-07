@@ -150,7 +150,8 @@ fn gpu_pairwise_l2(gpu: &Gpu, features: &[f32], n: u32, dim: u32) -> Result<Vec<
         mapped_at_creation: false,
     });
 
-    op.dispatch(&features_buf, &dist_buf, n, dim);
+    op.dispatch(&features_buf, &dist_buf, n, dim)
+        .map_err(|e| format!("PairwiseL2 dispatch: {e}"))?;
 
     gpu.read_buffer_f32(&dist_buf, n_pairs)
 }

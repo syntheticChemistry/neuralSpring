@@ -20,6 +20,7 @@
 use bytemuck::{Pod, Zeroable};
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::WGSL_XOSHIRO128SS;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;
 
@@ -208,7 +209,7 @@ async fn main() {
                 &format!("uniformity: mean={mean:.6} ∈ [0.48, 0.52]"),
                 mean,
                 0.5,
-                0.02,
+                tolerances::GPU_PRNG_UNIFORMITY_MEAN,
             );
 
             // 2. Range: all ∈ [0, 1)

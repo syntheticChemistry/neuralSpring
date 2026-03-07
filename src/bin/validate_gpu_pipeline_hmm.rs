@@ -154,18 +154,18 @@ fn gpu_hmm_mean_log_lik(
         mapped_at_creation: false,
     });
 
-    op.dispatch(
-        params.n_states,
-        params.n_symbols,
+    op.dispatch(&barracuda::ops::bio::hmm::HmmForwardArgs {
+        n_states: params.n_states,
+        n_symbols: params.n_symbols,
         n_steps,
         n_seqs,
-        &log_trans_buf,
-        &log_emit_buf,
-        &log_pi_buf,
-        &obs_buf,
-        &log_alpha_buf,
-        &log_lik_buf,
-    )
+        log_trans: &log_trans_buf,
+        log_emit: &log_emit_buf,
+        log_pi: &log_pi_buf,
+        observations: &obs_buf,
+        log_alpha_out: &log_alpha_buf,
+        log_lik_out: &log_lik_buf,
+    })
     .map_err(|e| format!("HMM dispatch: {e}"))?;
 
     let log_lik = gpu.read_buffer_f64(&log_lik_buf, n_seqs as usize)?;

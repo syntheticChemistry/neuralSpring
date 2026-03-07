@@ -96,7 +96,7 @@ ls metalForge/fossils/evolved_s01_s11/
 
 # Compare evolved matmul vs native BarraCUDA KernelRouter
 diff metalForge/fossils/evolved_s01_s11/matmul_gpu_evolved.wgsl \
-     ../phase1/toadstool/crates/barracuda/src/ops/matmul/shaders/
+     ../barraCuda/crates/barracuda/src/ops/matmul/shaders/
 ```
 
 These files will never compile in isolation — they reference removed module

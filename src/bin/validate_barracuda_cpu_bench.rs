@@ -991,11 +991,9 @@ fn main() {
     }
     h.check_bool("All parity checks passed", all_parity);
 
-    eprintln!();
-    eprintln!("  Portability chain: Python/NumPy → BarraCUDA CPU (pure Rust) → BarraCUDA GPU");
-    eprintln!("  BarraCUDA CPU proves: same math, native speed, no interpreter overhead.");
-    eprintln!("  BarraCUDA absorbs: all primitives available as upstream f64 ops.");
-    eprintln!();
+    eprintln!(
+        "\n  Portability chain: Python/NumPy \u{2192} BarraCUDA CPU (pure Rust) \u{2192} BarraCUDA GPU\n"
+    );
 
     h.finish();
 }

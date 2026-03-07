@@ -199,18 +199,18 @@ fn main() {
         });
 
         let op = HmmBatchForwardF64::new(device.clone()).expect("HMM GPU op");
-        op.dispatch(
-            n_states as u32,
-            n_sym as u32,
-            t_len as u32,
-            1,
-            &log_a_buf,
-            &log_b_buf,
-            &log_pi_buf,
-            &obs_buf,
-            &log_alpha_buf,
-            &out_buf,
-        )
+        op.dispatch(&barracuda::ops::bio::hmm::HmmForwardArgs {
+            n_states: n_states as u32,
+            n_symbols: n_sym as u32,
+            n_steps: t_len as u32,
+            n_seqs: 1,
+            log_trans: &log_a_buf,
+            log_emit: &log_b_buf,
+            log_pi: &log_pi_buf,
+            observations: &obs_buf,
+            log_alpha_out: &log_alpha_buf,
+            log_lik_out: &out_buf,
+        })
         .expect("HMM dispatch");
 
         let gpu_ll = gpu
@@ -231,18 +231,18 @@ fn main() {
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             });
-            let _ = op.dispatch(
-                n_states as u32,
-                n_sym as u32,
-                t_len as u32,
-                1,
-                &log_a_buf,
-                &log_b_buf,
-                &log_pi_buf,
-                &obs_buf,
-                &alpha,
-                &out,
-            );
+            let _ = op.dispatch(&barracuda::ops::bio::hmm::HmmForwardArgs {
+                n_states: n_states as u32,
+                n_symbols: n_sym as u32,
+                n_steps: t_len as u32,
+                n_seqs: 1,
+                log_trans: &log_a_buf,
+                log_emit: &log_b_buf,
+                log_pi: &log_pi_buf,
+                observations: &obs_buf,
+                log_alpha_out: &alpha,
+                log_lik_out: &out,
+            });
             let _ = std::hint::black_box(gpu.read_buffer_f64(&out, 1));
         });
 
@@ -420,7 +420,7 @@ fn main() {
         });
 
         let op = PairwiseL2Gpu::new(device.clone());
-        op.dispatch(&in_buf, &out_buf, n as u32, dim as u32);
+        let _ = op.dispatch(&in_buf, &out_buf, n as u32, dim as u32);
 
         let gpu_mean = gpu
             .read_buffer_f32(&out_buf, n_pairs)
@@ -434,7 +434,7 @@ fn main() {
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             });
-            op.dispatch(&in_buf, &out, n as u32, dim as u32);
+            let _ = op.dispatch(&in_buf, &out, n as u32, dim as u32);
             let _ = std::hint::black_box(gpu.read_buffer_f32(&out, n_pairs));
         });
 

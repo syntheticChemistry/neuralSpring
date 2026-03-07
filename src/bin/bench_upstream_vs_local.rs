@@ -766,7 +766,7 @@ fn bench_pairwise_l2(gpu: &Gpu) -> BenchResult {
     let op = PairwiseL2Gpu::new(Arc::clone(gpu.wgpu_device()));
     let upstream_us = bench::time_upstream(WARMUP, ITERATIONS, || {
         let out = alloc_f32(device, n_pairs);
-        op.dispatch(&feat_buf, &out, n, dim);
+        let _ = op.dispatch(&feat_buf, &out, n, dim);
         gpu.read_buffer_f32(&out, n_pairs).ok();
     });
 

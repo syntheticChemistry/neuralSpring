@@ -6,7 +6,10 @@
 //! and their values at runtime — no hardcoded knowledge of the
 //! tolerance namespace required.
 
-#[allow(clippy::wildcard_imports)]
+#[expect(
+    clippy::wildcard_imports,
+    reason = "tolerance registry intentionally imports all constants for introspection"
+)]
 use super::*;
 
 /// Named tolerance for runtime introspection.

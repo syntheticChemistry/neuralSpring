@@ -72,9 +72,11 @@ fn run_gillespie(
 
     match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         ssa.simulate(
-            &rate_k,
-            &stoich_react,
-            &stoich_net,
+            &barracuda::ops::bio::gillespie::GillespieModel {
+                rate_k: &rate_k,
+                stoich_react: &stoich_react,
+                stoich_net: &stoich_net,
+            },
             &initial_states,
             &seeds,
             n_traj,

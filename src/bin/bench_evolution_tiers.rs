@@ -187,18 +187,18 @@ fn bench_hmm_forward(gpu: Option<&Gpu>) -> TierResult {
         });
 
         let us = bench_rust(|| {
-            let _ = op.dispatch(
+            let _ = op.dispatch(&barracuda::ops::bio::hmm::HmmForwardArgs {
                 n_states,
                 n_symbols,
-                seq_len as u32,
-                1,
-                &lt,
-                &le,
-                &lp,
-                &ob,
-                &alpha_buf,
-                &ll_buf,
-            );
+                n_steps: seq_len as u32,
+                n_seqs: 1,
+                log_trans: &lt,
+                log_emit: &le,
+                log_pi: &lp,
+                observations: &ob,
+                log_alpha_out: &alpha_buf,
+                log_lik_out: &ll_buf,
+            });
         });
         Some(us)
     });
@@ -368,7 +368,7 @@ fn bench_pairwise_l2(gpu: Option<&Gpu>) -> TierResult {
         });
 
         bench_rust(|| {
-            op.dispatch(&pts_buf, &out_buf, n as u32, dim as u32);
+            let _ = op.dispatch(&pts_buf, &out_buf, n as u32, dim as u32);
         })
     });
 

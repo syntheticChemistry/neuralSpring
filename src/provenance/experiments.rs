@@ -560,7 +560,7 @@ pub const GLUCOSE_PREDICTION_PROVENANCE: BaselineProvenance = BaselineProvenance
     label: "Paper 026: LSTM Blood Glucose Prediction (9/9 PASS)",
     script: "control/glucose_prediction/glucose_prediction.py",
     commit: BASELINE_COMMIT,
-    date: "2026-03-05",
+    date: crate::tolerances::GLUCOSE_BASELINE_DATE,
     command: "python3 control/glucose_prediction/glucose_prediction.py",
     environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
     value: 9.0,

@@ -5,7 +5,23 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 128 (March 5, 2026)
+## [Unreleased] — Session 129 (March 7, 2026)
+
+### Session 129 — API Sync Evolution + Quality Gate Hardening (March 7, 2026)
+
+**Struct-based API migration**: All call sites migrated from positional arguments to BarraCUDA struct-based dispatch APIs (`HmmForwardArgs`, `GillespieModel`, `TensorShape`, `Conv2dConfig`, `Pool2dConfig`, `Rk45DispatchArgs`). ~30 call sites across ~15 files. `PairwiseL2Gpu::dispatch` now returns `Result`.
+
+**`#![forbid(unsafe_code)]`**: Crate-level policy gate enforced in `src/lib.rs`. The compiler now rejects any future unsafe code.
+
+**Quality gate evolution**: `#[allow(clippy::wildcard_imports)]` → `#[expect(... reason = "...")]` in `tolerances/registry.rs`. `.unwrap()` → `is_some_and()` in `validate_modern_cross_spring.rs`. `validate_barracuda_cpu_bench.rs` reduced 1001→999 LOC.
+
+**Named tolerances**: +2 (`GPU_PRNG_UNIFORMITY_MEAN`, `GLUCOSE_BASELINE_DATE`) — 141+ total. Last inline literals replaced.
+
+**Documentation alignment**: Root docs, baseCamp, experiments/, EVOLUTION_READINESS.md updated to current counts (883 lib, 240 bins, 218/218 validate_all). Fossil record paths corrected (`../phase1/toadstool/` → `../barraCuda/crates/barracuda/`).
+
+**Upstream GPU investigation**: 12 fused GPU tests (VarianceF64, CorrelationF64, HmmBatchForwardF64) return 0.0 on llvmpipe — identified as pre-existing upstream issue, not neuralSpring regression.
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy` 0 warnings (pedantic+nursery), `cargo doc` 0 warnings. V87 handoff.
 
 ### Session 128 — BarraCUDA Modern Rewire + ToadStool S94b Catchup (March 5, 2026)
 

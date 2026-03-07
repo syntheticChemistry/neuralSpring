@@ -95,7 +95,8 @@ fn gpu_pairwise_l2_mean(gpu: &Gpu, features_flat: &[f32], n: u32, dim: u32) -> R
         mapped_at_creation: false,
     });
 
-    op.dispatch(&input_buf, &output_buf, n, dim);
+    op.dispatch(&input_buf, &output_buf, n, dim)
+        .map_err(|e| format!("PairwiseL2 dispatch: {e}"))?;
 
     let distances = gpu.read_buffer_f32(&output_buf, n_pairs)?;
     let mean = distances.iter().sum::<f32>() / distances.len() as f32;

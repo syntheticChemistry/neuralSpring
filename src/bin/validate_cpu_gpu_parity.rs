@@ -424,11 +424,22 @@ fn validate_conv_pool_parity(h: &mut ValidationHarness) {
     let input: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0]; // 1x1x2x2
     let kernel: Vec<f32> = vec![1.0]; // 1x1x1x1
     let out = cpu_conv_pool::conv2d(
-        &input, &kernel, 1, 1, 2, 2, // n, c_in, h, w
-        1, 1, 1, // c_out, k_h, k_w
-        1, 1, // stride
-        0, 0, // pad
-        1, 1, // dilation
+        &input,
+        &kernel,
+        cpu_conv_pool::TensorShape {
+            n: 1,
+            c: 1,
+            h: 2,
+            w: 2,
+        },
+        cpu_conv_pool::Conv2dConfig {
+            c_out: 1,
+            k_h: 1,
+            k_w: 1,
+            stride: [1, 1],
+            padding: [0, 0],
+            dilation: [1, 1],
+        },
     );
     match out {
         Ok(v) => {
@@ -445,7 +456,21 @@ fn validate_conv_pool_parity(h: &mut ValidationHarness) {
 
     // Max pool: 1x1x4x4, 2x2 kernel, stride 2
     let input: Vec<f32> = (0..16).map(|i| i as f32).collect();
-    let out = cpu_conv_pool::max_pool2d(&input, 1, 1, 4, 4, 2, 2, 2, 2, 0, 0);
+    let out = cpu_conv_pool::max_pool2d(
+        &input,
+        cpu_conv_pool::TensorShape {
+            n: 1,
+            c: 1,
+            h: 4,
+            w: 4,
+        },
+        cpu_conv_pool::Pool2dConfig {
+            k_h: 2,
+            k_w: 2,
+            stride: [2, 2],
+            padding: [0, 0],
+        },
+    );
     match out {
         Ok(v) => {
             // 2x2 output: max of each 2x2 block -> 5, 7, 13, 15

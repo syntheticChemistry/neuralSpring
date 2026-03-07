@@ -17,7 +17,7 @@
 
 #![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
-use barracuda::ops::bio::gillespie::{GillespieConfig, GillespieGpu};
+use barracuda::ops::bio::gillespie::{GillespieConfig, GillespieGpu, GillespieModel};
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -76,16 +76,13 @@ fn validate_simple_decay(h: &mut ValidationHarness, gpu: &Gpu) {
     let dev = gpu.wgpu_device();
     let ssa = GillespieGpu::new(dev);
 
+    let model = GillespieModel {
+        rate_k: &rate_k,
+        stoich_react: &stoich_react,
+        stoich_net: &stoich_net,
+    };
     let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        ssa.simulate(
-            &rate_k,
-            &stoich_react,
-            &stoich_net,
-            &initial_states,
-            &seeds,
-            n_traj,
-            &config,
-        )
+        ssa.simulate(&model, &initial_states, &seeds, n_traj, &config)
     })) {
         Ok(Ok(r)) => r,
         Ok(Err(e)) => {
@@ -148,17 +145,14 @@ fn validate_conservation(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let dev = gpu.wgpu_device();
     let ssa = GillespieGpu::new(dev);
+    let model = GillespieModel {
+        rate_k: &rate_k,
+        stoich_react: &stoich_react,
+        stoich_net: &stoich_net,
+    };
 
     let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        ssa.simulate(
-            &rate_k,
-            &stoich_react,
-            &stoich_net,
-            &initial_states,
-            &seeds,
-            n_traj,
-            &config,
-        )
+        ssa.simulate(&model, &initial_states, &seeds, n_traj, &config)
     })) {
         Ok(Ok(r)) => r,
         Ok(Err(e)) => {
@@ -199,17 +193,14 @@ fn validate_multiple_trajectories(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let dev = gpu.wgpu_device();
     let ssa = GillespieGpu::new(dev);
+    let model = GillespieModel {
+        rate_k: &rate_k,
+        stoich_react: &stoich_react,
+        stoich_net: &stoich_net,
+    };
 
     let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        ssa.simulate(
-            &rate_k,
-            &stoich_react,
-            &stoich_net,
-            &initial_states,
-            &seeds,
-            n_traj,
-            &config,
-        )
+        ssa.simulate(&model, &initial_states, &seeds, n_traj, &config)
     })) {
         Ok(Ok(r)) => r,
         Ok(Err(e)) => {

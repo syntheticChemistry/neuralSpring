@@ -113,18 +113,18 @@ fn gpu_hmm_forward(gpu: &Gpu, params: &HmmForwardParams<'_>) -> Result<f64, Stri
         mapped_at_creation: false,
     });
 
-    op.dispatch(
-        params.n_states,
-        params.n_symbols,
-        params.n_steps,
-        params.n_seqs,
-        &log_trans_buf,
-        &log_emit_buf,
-        &log_pi_buf,
-        &obs_buf,
-        &log_alpha_buf,
-        &log_lik_buf,
-    )
+    op.dispatch(&barracuda::ops::bio::hmm::HmmForwardArgs {
+        n_states: params.n_states,
+        n_symbols: params.n_symbols,
+        n_steps: params.n_steps,
+        n_seqs: params.n_seqs,
+        log_trans: &log_trans_buf,
+        log_emit: &log_emit_buf,
+        log_pi: &log_pi_buf,
+        observations: &obs_buf,
+        log_alpha_out: &log_alpha_buf,
+        log_lik_out: &log_lik_buf,
+    })
     .map_err(|e| e.to_string())?;
 
     let log_lik = gpu.read_buffer_f64(&log_lik_buf, params.n_seqs as usize)?;

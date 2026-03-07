@@ -84,7 +84,8 @@ fn gpu_pairwise_l2(
         mapped_at_creation: false,
     });
 
-    op.dispatch(&input_buf, &output_buf, n, dim);
+    op.dispatch(&input_buf, &output_buf, n, dim)
+        .map_err(|e| format!("PairwiseL2 dispatch: {e}"))?;
 
     gpu.read_buffer_f32(&output_buf, n_pairs)
 }

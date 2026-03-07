@@ -178,14 +178,30 @@ fn validate_conv_pool_chain(h: &mut ValidationHarness) {
         .collect();
 
     // Conv1: [batch, 1, 28, 28] → [batch, 6, 28, 28] (pad=2)
-    let conv1 =
-        match cpu_conv_pool::conv2d(&input, &k1, batch, 1, 28, 28, 6, 5, 5, 1, 1, 2, 2, 1, 1) {
-            Ok(v) => v,
-            Err(e) => {
-                h.check_bool(&format!("conv1 failed: {e}"), false);
-                return;
-            }
-        };
+    let conv1 = match cpu_conv_pool::conv2d(
+        &input,
+        &k1,
+        cpu_conv_pool::TensorShape {
+            n: batch,
+            c: 1,
+            h: 28,
+            w: 28,
+        },
+        cpu_conv_pool::Conv2dConfig {
+            c_out: 6,
+            k_h: 5,
+            k_w: 5,
+            stride: [1, 1],
+            padding: [2, 2],
+            dilation: [1, 1],
+        },
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            h.check_bool(&format!("conv1 failed: {e}"), false);
+            return;
+        }
+    };
     h.check_bool(
         &format!(
             "conv1 shape: {} elements (expect {})",
@@ -199,7 +215,21 @@ fn validate_conv_pool_chain(h: &mut ValidationHarness) {
     let relu1: Vec<f32> = conv1.iter().map(|&x| x.max(0.0)).collect();
 
     // MaxPool1: [batch, 6, 28, 28] → [batch, 6, 14, 14]
-    let pool1 = match cpu_conv_pool::max_pool2d(&relu1, batch, 6, 28, 28, 2, 2, 2, 2, 0, 0) {
+    let pool1 = match cpu_conv_pool::max_pool2d(
+        &relu1,
+        cpu_conv_pool::TensorShape {
+            n: batch,
+            c: 6,
+            h: 28,
+            w: 28,
+        },
+        cpu_conv_pool::Pool2dConfig {
+            k_h: 2,
+            k_w: 2,
+            stride: [2, 2],
+            padding: [0, 0],
+        },
+    ) {
         Ok(v) => v,
         Err(e) => {
             h.check_bool(&format!("pool1 failed: {e}"), false);
@@ -216,14 +246,30 @@ fn validate_conv_pool_chain(h: &mut ValidationHarness) {
     );
 
     // Conv2: [batch, 6, 14, 14] → [batch, 16, 10, 10] (no padding)
-    let conv2 =
-        match cpu_conv_pool::conv2d(&pool1, &k2, batch, 6, 14, 14, 16, 5, 5, 1, 1, 0, 0, 1, 1) {
-            Ok(v) => v,
-            Err(e) => {
-                h.check_bool(&format!("conv2 failed: {e}"), false);
-                return;
-            }
-        };
+    let conv2 = match cpu_conv_pool::conv2d(
+        &pool1,
+        &k2,
+        cpu_conv_pool::TensorShape {
+            n: batch,
+            c: 6,
+            h: 14,
+            w: 14,
+        },
+        cpu_conv_pool::Conv2dConfig {
+            c_out: 16,
+            k_h: 5,
+            k_w: 5,
+            stride: [1, 1],
+            padding: [0, 0],
+            dilation: [1, 1],
+        },
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            h.check_bool(&format!("conv2 failed: {e}"), false);
+            return;
+        }
+    };
     h.check_bool(
         &format!(
             "conv2 shape: {} elements (expect {})",
@@ -237,7 +283,21 @@ fn validate_conv_pool_chain(h: &mut ValidationHarness) {
     let relu2: Vec<f32> = conv2.iter().map(|&x| x.max(0.0)).collect();
 
     // MaxPool2: [batch, 16, 10, 10] → [batch, 16, 5, 5]
-    let pool2 = match cpu_conv_pool::max_pool2d(&relu2, batch, 16, 10, 10, 2, 2, 2, 2, 0, 0) {
+    let pool2 = match cpu_conv_pool::max_pool2d(
+        &relu2,
+        cpu_conv_pool::TensorShape {
+            n: batch,
+            c: 16,
+            h: 10,
+            w: 10,
+        },
+        cpu_conv_pool::Pool2dConfig {
+            k_h: 2,
+            k_w: 2,
+            stride: [2, 2],
+            padding: [0, 0],
+        },
+    ) {
         Ok(v) => v,
         Err(e) => {
             h.check_bool(&format!("pool2 failed: {e}"), false);
@@ -291,9 +351,24 @@ fn validate_conv_pool_chain(h: &mut ValidationHarness) {
     });
 
     // Verify `barracuda::cpu_conv_pool` produces identical results on rerun (determinism)
-    let Ok(conv1_again) =
-        cpu_conv_pool::conv2d(&input, &k1, batch, 1, 28, 28, 6, 5, 5, 1, 1, 2, 2, 1, 1)
-    else {
+    let Ok(conv1_again) = cpu_conv_pool::conv2d(
+        &input,
+        &k1,
+        cpu_conv_pool::TensorShape {
+            n: batch,
+            c: 1,
+            h: 28,
+            w: 28,
+        },
+        cpu_conv_pool::Conv2dConfig {
+            c_out: 6,
+            k_h: 5,
+            k_w: 5,
+            stride: [1, 1],
+            padding: [2, 2],
+            dilation: [1, 1],
+        },
+    ) else {
         h.check_bool("conv_pool determinism: rerun failed", false);
         return;
     };

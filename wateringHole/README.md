@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V86** | `handoffs/NEURALSPRING_TOADSTOOL_V86_S128_MODERN_REWIRE_HANDOFF_MAR05_2026.md` | Mar 5, 2026 | S128: `VarianceReduceF64`→`VarianceF64` rewire (14 files), ToadStool absorption tracker catchup (V75→V85), BarraCUDA HEAD verified (6 post-v0.3.3 commits), coralNAK confirmed. Supersedes V85 |
+| **V87** | `handoffs/NEURALSPRING_TOADSTOOL_V87_S129_API_SYNC_HANDOFF_MAR07_2026.md` | Mar 7, 2026 | S129: Struct-based API sync (HmmForwardArgs, GillespieModel, Conv2dConfig, Pool2dConfig, Rk45DispatchArgs), `#![forbid(unsafe_code)]` enforced, 141+ named tolerances, 12 GPU SIGSEGV root-cause identified (fused ops on llvmpipe), docs aligned. Supersedes V86 |
 
 ### NestGate (Data Acquisition)
 
@@ -31,7 +31,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V85 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass), V77 (S117 cross-spring shader evolution), V78 (S118 barraCuda standalone rewire), V79 (S119 deep lint evolution), V80 (S120 deep debt audit + CI hardening), V81 (S121 SimpleMlp rewire + HMM Viterbi f64 ComputeDispatch), V82 (S122–S124 naming rewire + HMM absorption + Paper 026), V83 (S125 wgpu 28 + BarraCUDA v0.3.3 sync), V84 (S126 cross-spring fused op absorption), V85 (S127 Paper 026 full-tier + baseline closure).
+Superseded handoffs: `handoffs/archive/` (V1–V86 + biomeOS V1). V74 (S86 rewire + nautilus absorption), V75 (S113 cross-spring evolution benchmark), V76 (S115 dispatch parity + NUCLEUS PCIe bypass), V77 (S117 cross-spring shader evolution), V78 (S118 barraCuda standalone rewire), V79 (S119 deep lint evolution), V80 (S120 deep debt audit + CI hardening), V81 (S121 SimpleMlp rewire + HMM Viterbi f64 ComputeDispatch), V82 (S122–S124 naming rewire + HMM absorption + Paper 026), V83 (S125 wgpu 28 + BarraCUDA v0.3.3 sync), V84 (S126 cross-spring fused op absorption), V85 (S127 Paper 026 full-tier + baseline closure), V86 (S128 VarianceF64 rewire + ToadStool catchup).
 
 ## Conventions
 
