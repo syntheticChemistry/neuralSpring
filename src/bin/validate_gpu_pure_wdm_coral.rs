@@ -17,17 +17,25 @@
 //!
 //! | Domain | Source | GPU Ops | Readback |
 //! |--------|--------|---------|----------|
-//! | WDM Transport MLP (nW-01) | `wdm_transport.rs` | matmul, add, `ReLU` | mean(output) |
+//! | WDM Transport MLP (nW-01) | `wdm_transport.rs` | matmul, add, `ReLU` | `mean(output)` |
 //! | WDM EOS MLP (nW-02) | `wdm_surrogate.rs` | matmul, add, `ReLU` | prediction |
 //! | WDM S(q,ω) LSTM (nW-03) | `wdm_sqw.rs` | matmul, add (gates) | omega scalar |
-//! | WDM ESN (nW-05) | `wdm_esn.rs` | matmul, add, tanh | max(logit) |
+//! | WDM ESN (nW-05) | `wdm_esn.rs` | matmul, add, tanh | `max(logit)` |
 //! | `coralForge` attention (nF-01) | `coral_forge/` | matmul (QK^T/√d) | frobenius |
 //! | `coralForge` `TriMul` (nF-01) | `coral_forge/` | matmul (outgoing) | frobenius |
-//! | `AlphaFold3` pLDDT (nF-03) | `coral_forge/` | sigmoid | mean(conf) |
-//! | `AlphaFold3` PAE (nF-03) | `coral_forge/` | softmax | sum(probs) |
-//! | `AlphaFold3` diffusion (nF-03) | `diffusion.rs` | mul, add | mean(x_t) |
+//! | `AlphaFold3` pLDDT (nF-03) | `coral_forge/` | sigmoid | `mean(conf)` |
+//! | `AlphaFold3` PAE (nF-03) | `coral_forge/` | softmax | `sum(probs)` |
+//! | `AlphaFold3` diffusion (nF-03) | `diffusion.rs` | mul, add | `mean(x_t)` |
 //! | `AlphaFold3` PF FFN (nF-03) | `pairformer.rs` | matmul, add, GELU | frobenius |
 //! | `AlphaFold3` PF `TriMul` (nF-03) | `pairformer.rs` | matmul, transpose | frobenius |
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring library modules (Rust CPU).
+//! GPU dispatch: `BarraCUDA` Tensor API via WGSL shaders.
+//! Validated on: llvmpipe (software Vulkan) and RTX 4070 (hardware Vulkan).
+//! Python baselines exist for WDM and coralForge domains; GPU parity validated
+//! against Rust CPU reference (which itself traces to Python).
 
 #![expect(
     clippy::cast_precision_loss,

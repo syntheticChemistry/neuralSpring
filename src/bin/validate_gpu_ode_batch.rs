@@ -15,6 +15,13 @@
 //!
 //! - Paper 020: Regulatory Network (Mhatre et al., 2020)
 //! - Paper 021: Signal Integration (Srivastava et al., 2011)
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring library modules (Rust CPU).
+//! GPU dispatch: `BarraCUDA` typed GPU ops via WGSL shaders (rk4_parallel.wgsl).
+//! Validated on: llvmpipe (software Vulkan) and RTX 4070 (hardware Vulkan).
+//! No Python baseline — GPU parity validated against Rust CPU reference.
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 

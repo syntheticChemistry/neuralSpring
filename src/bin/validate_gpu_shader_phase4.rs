@@ -20,6 +20,13 @@
 //! - `hmm_viterbi` → `barracuda::ops::bio::hmm_viterbi`
 //! - `matrix_correlation` → `barracuda::stats::matrix_correlation_gpu`
 //! - `linear_regression` → `barracuda::stats::linear_regression_gpu`
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring library modules (Rust CPU, f64).
+//! GPU dispatch: metalForge WGSL shaders via `gpu_shader_validation::dispatch_shader` (f32).
+//! Validated on: llvmpipe (software Vulkan) and RTX 4070 (hardware Vulkan).
+//! No Python baseline — GPU parity validated against Rust CPU reference.
 
 #![expect(
     clippy::cast_precision_loss,

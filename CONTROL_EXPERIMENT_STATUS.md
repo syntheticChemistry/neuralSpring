@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 7, 2026 (Session 130 — upstream rewire. ToadStool S130, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired. Fused GPU regression gated. 218/218 validate_all, 240 binaries, 883 lib tests, 0 clippy. V88 handoff)
+**Last updated**: March 7, 2026 (Session 131 — full green validation. Isomorphic coverage fix (WGSL discovery: BarraCUDA + metalForge + Tensor ops → 25/25 100%). 42/42 Python drift PASS. 901 lib + 9 integration + 43 forge tests. 0 clippy. 89.1% coverage. 218/218 validate_all, 240 binaries)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 330/330 Python PASS + 3400+ Rust+GPU validation PASS = **4100+ total validation checks**
-**Library**: 883 lib tests + 9 integration tests + 43 forge tests | 41 modules + gpu_ops/ + gpu_dispatch | 240 validation/bench binaries
+**Grand Total**: 331/331 Python PASS + 3400+ Rust+GPU validation PASS = **4100+ total validation checks**
+**Library**: 901 lib tests + 9 integration tests + 43 forge tests | 41 modules + gpu_ops/ + gpu_dispatch | 240 validation/bench binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 6 biophysical AI modules + 11 validators (162/162 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 6/6 sub-theses PASS) — Sessions 50, 54, 56, 77, 104b, 107

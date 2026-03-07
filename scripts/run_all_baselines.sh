@@ -219,6 +219,43 @@ echo "================================================================"
 run_experiment "Paper 026: LSTM Glucose Prediction (Chuna)" \
     control/glucose_prediction/glucose_prediction.py
 
+# ═══════════════════════════════════════════════════════════════════
+# CPU Benchmark Baselines (Python timing for BarraCUDA CPU parity)
+# ═══════════════════════════════════════════════════════════════════
+echo ""
+echo "== CPU Benchmark Baselines (15 domains) =="
+
+run_experiment "Bench: HMM Forward (Papers 016-018)" \
+    control/hmm_phylo/bench_hmm_forward.py
+run_experiment "Bench: NK Fitness (Paper 011)" \
+    control/counterdiabatic/bench_nk_fitness.py
+run_experiment "Bench: Pairwise L2 (Paper 012)" \
+    control/modes/bench_pairwise_l2.py
+run_experiment "Bench: Eco Batch Fitness (Paper 013)" \
+    control/eco_dynamics/bench_eco.py
+run_experiment "Bench: Pairwise Hamming (Paper 017)" \
+    control/sate_alignment/bench_hamming.py
+run_experiment "Bench: Pairwise Jaccard (Paper 024)" \
+    control/pangenome_selection/bench_jaccard.py
+run_experiment "Bench: Replicator Dynamics (Paper 019)" \
+    control/game_theory/bench_replicator.py
+run_experiment "Bench: RK4 GRN (Paper 020)" \
+    control/regulatory_network/bench_rk4.py
+run_experiment "Bench: Commutator (Paper 022)" \
+    control/spectral_commutativity/bench_commutator.py
+run_experiment "Bench: Anderson IPR (Paper 023)" \
+    control/anderson_localization/bench_anderson.py
+run_experiment "Bench: Hill Gate (Paper 021)" \
+    control/signal_integration/bench_hill_gate.py
+run_experiment "Bench: Multi-Obj Fitness (Paper 014)" \
+    control/directed_evolution/bench_multi_obj.py
+run_experiment "Bench: Swarm NN (Paper 015)" \
+    control/swarm_robotics/bench_swarm_nn.py
+run_experiment "Bench: Global FST (Paper 025)" \
+    control/meta_population/bench_meta_pop.py
+run_experiment "Bench: LSTM Glucose (Paper 026)" \
+    control/glucose_prediction/bench_glucose_lstm.py
+
 echo ""
 echo "================================================================"
 echo "  GRAND SUMMARY"

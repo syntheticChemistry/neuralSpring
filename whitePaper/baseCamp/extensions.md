@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: March 2, 2026 (Sessions 49–104b — S104b: Complete ToadStool f97fc2ae rewire. `FusedChiSquaredGpu` + `FusedKlDivergenceGpu` (neuralSpring→ToadStool→back), `spectral_bandwidth`/`spectral_condition_number` upstream delegates, 12 `include_str!`→forge constants, `Fp64Strategy::Concurrent` handling. Cross-spring provenance mapped; **240 binaries, 883 lib tests, 19/19 S79 validator**, zero clippy, 3,600+ checks, 46 upstream rewires)
+**Date**: March 7, 2026 (Sessions 49–131 — S131: Full green validation. 42/42 Python drift PASS, 901 lib tests, 89.1% coverage, isomorphic WGSL coverage fix. **240 binaries, 901 lib tests**, zero clippy, 4,100+ checks, 46 upstream rewires)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---

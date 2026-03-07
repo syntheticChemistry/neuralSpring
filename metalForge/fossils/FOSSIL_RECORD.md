@@ -13,6 +13,11 @@ BarraCUDA shortcomings S-01 through S-11. ToadStool has since absorbed
 all eleven shortcomings; the code here is archived for reference, not
 active compilation.
 
+**Note**: Files in `evolved_s01_s11/` reference the old path
+`../phase1/toadstool/crates/barracuda/` via `include_str!` macros.
+This path is obsolete (BarraCUDA extracted to `../barraCuda/` at S89).
+These files are fossils and are not meant to compile.
+
 To trace what each shortcoming was and how ToadStool fixed it, see
 `specs/TOADSTOOL_HANDOFF.md` and `whitePaper/BARRACUDA_EVOLUTION.md`.
 

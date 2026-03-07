@@ -59,27 +59,10 @@ use neural_spring::sequence::{lstm_cell, LstmWeights};
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::swarm_robotics::{create_controller, neural_forward, ControllerType};
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{output_buf, storage_buf, ValidationHarness};
 use std::sync::Arc;
 use std::time::Instant;
 use wgpu::util::DeviceExt;
-
-fn storage_buf(device: &wgpu::Device, label: &str, data: &[u8]) -> wgpu::Buffer {
-    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some(label),
-        contents: data,
-        usage: wgpu::BufferUsages::STORAGE,
-    })
-}
-
-fn output_buf(device: &wgpu::Device, label: &str, bytes: u64) -> wgpu::Buffer {
-    device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size: bytes,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    })
-}
 
 #[tokio::main]
 async fn main() {

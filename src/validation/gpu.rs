@@ -7,6 +7,34 @@ use barracuda::device::WgpuDevice;
 use barracuda::error::BarracudaError;
 use barracuda::tensor::Tensor;
 use std::sync::Arc;
+use wgpu::util::DeviceExt;
+
+/// Create a GPU storage buffer initialized from a byte slice.
+///
+/// Shared across GPU validation binaries to replace the duplicated
+/// `storage_buf` helper found in 14+ binaries.
+#[must_use]
+pub fn storage_buf(device: &wgpu::Device, label: &str, data: &[u8]) -> wgpu::Buffer {
+    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some(label),
+        contents: data,
+        usage: wgpu::BufferUsages::STORAGE,
+    })
+}
+
+/// Create a GPU output buffer (storage + copy-src) of the given byte size.
+///
+/// Shared across GPU validation binaries to replace the duplicated
+/// `output_buf` helper found in 14+ binaries.
+#[must_use]
+pub fn output_buf(device: &wgpu::Device, label: &str, bytes: u64) -> wgpu::Buffer {
+    device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some(label),
+        size: bytes,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    })
+}
 
 /// Attempt GPU tensor readback, recording a FAIL check on error.
 ///

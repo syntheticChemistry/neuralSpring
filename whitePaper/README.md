@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 240 binaries, **218/218 validate\_all**. coralForge unified. 140+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 883 lib + 9 integration + 43 forge tests. 46 upstream rewires, 128+ barracuda import files, 45+ submodules. barraCuda v0.3.3 standalone, wgpu 28
-**Date**: March 5, 2026 (Sessions 40–127 — S125: wgpu 28 migration. S126: cross-spring fused ops. S127: Paper 026 full-tier validation. V85 handoff. 218/218 validate_all)
+**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 240 binaries, **218/218 validate\_all**. coralForge unified. 140+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 901 lib + 9 integration + 43 forge tests. 46 upstream rewires, 128+ barracuda import files, 45+ submodules. barraCuda v0.3.3 standalone, wgpu 28
+**Date**: March 7, 2026 (Sessions 40–131 — S131: Full green validation, isomorphic coverage fix, 42/42 Python drift PASS, 901 lib tests, V89 handoff. 218/218 validate_all)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–079, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V80 handoff (Session 120 — deep debt audit + CI hardening) |
+| `wateringHole/handoffs/` | Cross-project | V89 handoff (Session 131 — full green validation + evolution handoff) |
 
 ---
 
@@ -61,7 +61,7 @@ WGSL serves every domain.
    (103M FLOPs). GPU dominates CPU by 4–80× at every scale.
 
 4. **Is the math truly portable across GPU architectures and drivers?**
-   Yes. All 175 validators produce **bit-identical** results on RTX 4070
+   Yes. All 218 validators produce **bit-identical** results on RTX 4070
    (proprietary NVIDIA Vulkan) and TITAN V (NVK open-source driver).
    Same WGSL source, different GPU generations and driver stacks.
 
@@ -75,17 +75,17 @@ WGSL serves every domain.
 
 ### Key Results Summary
 
-**Phase 0/0+/0++**: 330/330 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge)
-**Phase 1–5h+**: 3080+ Rust+GPU validation PASS (880 lib + 9 integration + 43 forge tests + 238 binaries across 41 modules + gpu\_ops/ + gpu\_dispatch/)
-**Grand Total**: 3500+ PASS — **ALL GREEN** across all applicable tiers
-**Multi-GPU**: 210 validators on RTX 4070, 384+ additional on TITAN V (NVK) — **bit-identical**
+**Phase 0/0+/0++**: 331/331 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge + 1 isomorphic fix)
+**Phase 1–5h+**: 3400+ Rust+GPU validation PASS (901 lib + 9 integration + 43 forge tests + 240 binaries across 41 modules + gpu\_ops/ + gpu\_dispatch/)
+**Grand Total**: 4100+ PASS — **ALL GREEN** across all applicable tiers
+**Multi-GPU**: 218 validators on RTX 4070, 384+ additional on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 47 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11, Phase C: 6, +3 upstream). ~97% of production math on GPU.
 **Mixed-Hardware**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model (GPU↔NPU↔CPU routing).
 **Benchmarks**: Pure Rust **83.6× faster** than Python/NumPy (11 kernels); GPU **104× faster** at 103M FLOPs
 
 Phase 5e achieved pure GPU promotion and mixed-hardware dispatch: **44 CPU-bound
 operations promoted to GPU dispatch**, validated on both RTX 4070 and TITAN V (NVK).
-All 175 validators pass on RTX 4070 with bit-identical results on TITAN V. The
+All 218 validators pass on RTX 4070 with bit-identical results on TITAN V. The
 `gpu_dispatch::Dispatcher` provides capability-based routing: GPU when available,
 CPU fallback otherwise. `mixed_dispatch()` extends this with metalForge's
 cross-device cost model for GPU↔NPU↔CPU substrate selection.
@@ -95,7 +95,7 @@ cross-device cost model for GPU↔NPU↔CPU substrate selection.
 | 0 | Synthetic baselines — 5 experiments, 48 checks | **Complete** |
 | 0+ | Scholarly reproductions — 5 studies, 31 checks | **Complete** |
 | 0++ | Paper reproductions — 15 papers, 127 checks | **Complete** |
-| 1a | Rust validation layer — 880 lib + 9 integration + 43 forge tests, 238 binaries, 41 modules | **Complete** |
+| 1a | Rust validation layer — 901 lib + 9 integration + 43 forge tests, 240 binaries, 41 modules | **Complete** |
 | 1b | BarraCUDA validation — 272 checks (12 domains incl. FFT) | **Complete** |
 | 1c | Fused pipeline — 46–78× speedup | **Complete** |
 | 1d | 3-way benchmark + double-buffered shaders | **Complete** |
@@ -180,7 +180,7 @@ then Rust/WGSL evolution — applies to ML inference:
 
 | Stage | What Happened | Result |
 |-------|---------------|--------|
-| Python control | NumPy/PyTorch baselines for all 25 papers + WDM + pub exp | 330/330 PASS |
+| Python control | NumPy/PyTorch baselines for all 26 papers + WDM + pub exp | 331/331 PASS |
 | BarraCUDA validation | 272 checks across 12 modules (CPU + GPU + FFT) | 272/272 PASS |
 | Fused pipeline | Single-encoder dispatch, eliminate per-op overhead | **46–78× over per-op** |
 | BLAS-evolved CPU shader | 32×32 tiles, vec4, 8×4 micro-kernel, k-unroll | CPU beats Py at 3M+ FLOPs |
@@ -309,11 +309,11 @@ Full handoff: `wateringHole/handoffs/`
 ### Reproduction
 
 ```bash
-# Phase 0/0+/0++ Python baselines (330/330)
+# Phase 0/0+/0++ Python baselines (331/331)
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (880 lib + 9 integration + 43 forge tests + 238 binaries)
+# Rust validation (901 lib + 9 integration + 43 forge tests + 240 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -357,5 +357,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*26 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 41 modules + gpu\_ops/ + gpu\_dispatch. 883 lib + 9 integration + 43 forge tests. 330 Python + 3400+ Rust/GPU = 4100+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 128+ barracuda import files. 240 binaries, 218/218 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V85 handoff. S127: wgpu 28 + fused ops + Paper 026 full-tier.*
+*26 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 41 modules + gpu\_ops/ + gpu\_dispatch. 901 lib + 9 integration + 43 forge tests. 331 Python + 3400+ Rust/GPU = 4100+ total checks.
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 128+ barracuda import files. 240 binaries, 218/218 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V89 handoff. S131: full green validation, isomorphic coverage fix, 42/42 drift PASS.*

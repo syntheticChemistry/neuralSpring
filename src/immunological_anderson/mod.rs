@@ -693,4 +693,65 @@ mod tests {
         let later = pruritus_score_model(500.0, baseline, 0.7, 0.01);
         assert!(later > at_zero, "score recovers toward baseline over time");
     }
+
+    #[test]
+    fn pharmaco_monitor_creation() {
+        let pm = PharmacoMonitor::new(2.0);
+        assert!((pm.dose() - 2.0).abs() < 1e-15);
+        assert!((pm.hours_elapsed() - 0.0).abs() < 1e-15);
+        assert!(!pm.is_drifting());
+    }
+
+    #[test]
+    fn pharmaco_monitor_observe_tracks_time() {
+        let mut pm = PharmacoMonitor::new(1.5);
+        let spectral = make_test_spectral();
+        pm.observe(24.0, 5.0, &spectral);
+        assert!((pm.hours_elapsed() - 24.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn pharmaco_monitor_check_treatment_initial() {
+        let pm = PharmacoMonitor::new(2.0);
+        let interrupt = pm.check_treatment();
+        assert!(
+            matches!(interrupt, TrainingInterrupt::Continue),
+            "fresh monitor should continue"
+        );
+    }
+
+    #[test]
+    fn pharmaco_monitor_not_drifting_initially() {
+        let pm = PharmacoMonitor::new(2.0);
+        assert!(!pm.is_drifting(), "fresh monitor should not drift");
+    }
+
+    #[test]
+    fn pharmaco_monitor_observe_multiple() {
+        let mut pm = PharmacoMonitor::new(2.0);
+        let spectral = make_test_spectral();
+        for hour in [0.0_f64, 24.0, 48.0, 72.0] {
+            let score = hour.mul_add(-0.05, 8.0);
+            pm.observe(hour, score, &spectral);
+        }
+        assert!((pm.hours_elapsed() - 72.0).abs() < 1e-15);
+        let interrupt = pm.check_treatment();
+        assert!(
+            matches!(interrupt, TrainingInterrupt::Continue),
+            "improving scores → continue treatment"
+        );
+    }
+
+    fn make_test_spectral() -> crate::weight_spectral::WeightSpectralResult {
+        crate::weight_spectral::WeightSpectralResult {
+            eigenvalues: vec![1.0, 2.0, 3.0],
+            mean_ipr: 0.33,
+            level_spacing_ratio: 0.53,
+            spectral_entropy: 0.95,
+            mp_departure: 0.1,
+            bandwidth: 2.0,
+            condition_number: 3.0,
+            phase: crate::weight_spectral::SpectralPhase::Extended,
+        }
+    }
 }

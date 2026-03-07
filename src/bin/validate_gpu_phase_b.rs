@@ -5,6 +5,13 @@
 //!
 //! Proves all Phase B operations route through GPU and match CPU references
 //! within documented tolerance.
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring library modules (Rust CPU).
+//! GPU dispatch: `BarraCUDA` typed GPU ops via WGSL shaders.
+//! Validated on: llvmpipe (software Vulkan) and RTX 4070 (hardware Vulkan).
+//! No Python baseline — GPU parity validated against Rust CPU reference.
 
 #![expect(
     clippy::similar_names,

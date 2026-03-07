@@ -85,3 +85,40 @@ pub use neural_spring_forge::shaders::HEAD_SPLIT as WGSL_HEAD_SPLIT;
 /// **Absorbed upstream**: `ToadStool` `0c998992` (S60–S61).
 /// Retained for local validation via `validate_mha_gpu`.
 pub use neural_spring_forge::shaders::HEAD_CONCAT as WGSL_HEAD_CONCAT;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn wgsl_head_split_non_empty() {
+        assert!(
+            !WGSL_HEAD_SPLIT.is_empty(),
+            "HEAD_SPLIT shader must be non-empty"
+        );
+        assert!(
+            WGSL_HEAD_SPLIT.contains("@compute"),
+            "HEAD_SPLIT must contain a compute entry point"
+        );
+    }
+
+    #[test]
+    fn wgsl_head_concat_non_empty() {
+        assert!(
+            !WGSL_HEAD_CONCAT.is_empty(),
+            "HEAD_CONCAT shader must be non-empty"
+        );
+        assert!(
+            WGSL_HEAD_CONCAT.contains("@compute"),
+            "HEAD_CONCAT must contain a compute entry point"
+        );
+    }
+
+    #[test]
+    fn wgsl_shaders_distinct() {
+        assert_ne!(
+            WGSL_HEAD_SPLIT, WGSL_HEAD_CONCAT,
+            "split and concat shaders must be different"
+        );
+    }
+}

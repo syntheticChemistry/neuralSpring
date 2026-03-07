@@ -12,6 +12,7 @@
 //! binary (`validate_*`) uses [`ValidationHarness`] to accumulate
 //! checks and produce a deterministic exit code.
 
+pub mod cpu_bench;
 mod env;
 mod gpu;
 mod stats;

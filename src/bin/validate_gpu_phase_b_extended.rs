@@ -7,6 +7,13 @@
 //! - Gap 2: Introgression detection via HMM chain (forward + Viterbi)
 //!
 //! Validates GPU paths match CPU references within documented tolerance.
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring library modules (Rust CPU).
+//! GPU dispatch: `BarraCUDA` typed GPU ops via WGSL shaders.
+//! Validated on: llvmpipe (software Vulkan) and RTX 4070 (hardware Vulkan).
+//! No Python baseline — GPU parity validated against Rust CPU reference.
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::introgression::{self, phylonet_hmm};

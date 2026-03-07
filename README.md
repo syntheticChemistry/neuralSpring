@@ -41,15 +41,15 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 330/330 Python PASS + 3400+ Rust+GPU PASS = **4100+ total validation checks**
+## Current Status: 331/331 Python PASS + 3400+ Rust+GPU PASS = **4100+ total validation checks**
 
 **barraCuda v0.3.3 standalone** (extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 46 upstream rewires + 205 files with barracuda imports, 25+ submodules exercised. Nautilus absorbed into barracuda::nautilus (bingocube dep removed).
 S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch` (`hmm_viterbi_f64.wgsl`).
 21/21 WGSL shaders absorbed + 15 coralForge df64 shaders.
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
-883 lib tests, 139+ named tolerances, 0 clippy warnings (pedantic+nursery clean), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
-240 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/, 883 lib + 9 integration + 43 forge tests.
+901 lib tests, 139+ named tolerances, 0 clippy warnings (pedantic+nursery clean), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
+240 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/, 901 lib + 9 integration + 43 forge tests.
 **CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. **218/218 validate\_all**.
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 **218/218 validate\_all**. Pure Rust **38.6× faster** than Python/NumPy
@@ -637,7 +637,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal `ToadStool` handoffs (V87 current: Session 129, barraCuda v0.3.3+) |
+| `wateringHole/handoffs/` | Formal `ToadStool` handoffs (V89 current: Session 131, barraCuda v0.3.3+) |
 | `experiments/README.md` | Experiment journals (following hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -647,4 +647,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–128: March 5, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 330 Python + 3400+ Rust+GPU = 4100+ validation checks | 883 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 240 validation/bench binaries, 42 WGSL shaders | 141+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3+ standalone, nautilus absorbed, 218/218 validate\_all | 46 upstream rewires | V87 handoff*
+*Initialized: February 16, 2026 | Sessions 40–131: March 7, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 331 Python + 3400+ Rust+GPU = 4100+ validation checks | 901 lib + 9 integration + 43 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 240 validation/bench binaries, 42 WGSL shaders | 141+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3+ standalone, nautilus absorbed, 218/218 validate\_all | 46 upstream rewires | V89 handoff*

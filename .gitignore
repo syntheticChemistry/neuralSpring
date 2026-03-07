@@ -6,6 +6,7 @@ results/
 *.pt
 *.pth
 *.onnx
+*.safetensors
 
 # Python
 __pycache__/
