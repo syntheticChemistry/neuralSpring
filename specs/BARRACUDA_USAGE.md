@@ -1,10 +1,10 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 5, 2026 (Sessions 109–127 — 218/218 validate_all, 240 binaries, barraCuda v0.3.3, wgpu 28. S125: wgpu 28 migration. S126: fused op absorption. S127: Paper 026 full-tier. 128+ files with barracuda imports, 45+ submodules, 46 upstream rewires. V85 handoff)
-**BarraCUDA version**: `0.3.3` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89), 767+ WGSL shaders, wgpu 28, GuardedDeviceHandle
+**Last Updated**: March 7, 2026 (Session 130 — upstream rewire. 218/218 validate_all, 240 binaries, barraCuda v0.3.3 at `2a6c072`, wgpu 28. ToadStool S130, coralReef Iteration 7. `PrecisionRoutingAdvice` wired. `shaders::provenance` available. Fused GPU regression gated. V88 handoff)
+**BarraCUDA version**: `0.3.3` at `2a6c072` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89), 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
-### At a Glance (Session 127)
+### At a Glance (Session 130)
 
 | Metric | Count |
 |--------|-------|
@@ -26,7 +26,7 @@
 | Module | Where Used | Purpose |
 |--------|-----------|---------|
 | `device::WgpuDevice` | `gpu.rs`, all FFT/tensor/ML binaries | GPU device creation and management |
-| `device::GpuDriverProfile`, `Fp64Strategy` | `gpu_dispatch/mod.rs` | Hardware-adaptive f64 strategy, pow workaround detection |
+| `device::GpuDriverProfile`, `Fp64Strategy`, `PrecisionRoutingAdvice` | `gpu_dispatch/mod.rs` | Hardware-adaptive f64 strategy, precision routing, pow workaround detection |
 | `device::WgpuDevice::compile_shader_universal` | `gpu.rs` (`compile_shader_universal`) | Universal precision compilation: one f64-canonical source → F16/F32/F64/Df64 (`BarraCUDA` S70+++) |
 | `shaders::precision::Precision` | `gpu.rs` (re-exported) | Precision enum: F16, F32, F64, Df64 for per-use/hardware shader compilation |
 | `device::capabilities::WORKGROUP_SIZE_*` | `evolved/mha.rs` | Shader workgroup sizing (legacy) |

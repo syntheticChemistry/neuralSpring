@@ -22,21 +22,10 @@
 //!
 //! ## Domains validated
 //!
-//! | Domain | Papers | GPU Op | Readback |
-//! |--------|--------|--------|----------|
-//! | Fitness | 011-013 | `BatchFitnessGpu` | mean(fitness) |
-//! | Multi-obj | 014 | `MultiObjFitnessGpu` | mean(ranks) |
-//! | Swarm NN | 015 | `SwarmNnGpu` | action distribution |
-//! | HMM | 016-018 | `HmmBatchForwardF64` | mean(log-lik) |
-//! | Spatial | 019 | `SpatialPayoffGpu` | mean(payoff) |
-//! | RK4/RK45 | 020 | `Rk45AdaptiveGpu` | endpoint state |
-//! | Hill gate | 021 | `HillGateGpu` | mean(response) |
-//! | Spectral | 022-023 | `BatchIprGpu` | mean(IPR) |
-//! | Hamming | 017 | `PairwiseHammingGpu` | mean(dist) |
-//! | L2 | 012 | `PairwiseL2Gpu` | mean(dist) |
-//! | Jaccard | 024 | `PairwiseJaccardGpu` | mean(dist) |
-//! | Locus var | 025 | `LocusVarianceGpu` | mean(var) |
-//! | LSTM glucose | 026 | `Tensor::matmul` | mean(hidden) |
+//! 13 domains (Papers 011–026): `BatchFitnessGpu`, `MultiObjFitnessGpu`,
+//! `SwarmNnGpu`, `HmmBatchForwardF64`, `SpatialPayoffGpu`, `Rk45AdaptiveGpu`,
+//! `HillGateGpu`, `BatchIprGpu`, `PairwiseHammingGpu`, `PairwiseL2Gpu`,
+//! `PairwiseJaccardGpu`, `LocusVarianceGpu`, `Tensor::matmul`.
 //!
 //! ## Provenance
 //!

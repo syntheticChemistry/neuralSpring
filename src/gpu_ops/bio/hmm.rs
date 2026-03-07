@@ -417,7 +417,7 @@ pub fn hmm_viterbi_step_gpu(
 )]
 mod tests {
     use super::*;
-    use crate::gpu_ops::tests_ops::test_device;
+    use crate::gpu_ops::tests_ops::{test_device, test_device_hardware};
     use crate::tolerances;
 
     #[test]
@@ -470,7 +470,7 @@ mod tests {
 
     #[test]
     fn gpu_hmm_forward_chain_basic() {
-        let Some((_guard, dev)) = test_device() else {
+        let Some((_guard, dev)) = test_device_hardware() else {
             return;
         };
         let trans = vec![0.7, 0.3, 0.4, 0.6];

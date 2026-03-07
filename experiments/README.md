@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 129)**: 883 lib tests, 240 binaries, 218/218 `validate_all`, V87 `ToadStool`/`BarraCUDA` handoff. March 5, 2026.
+**Current state (Session 130)**: 883 lib tests, 240 binaries, 218/218 `validate_all`, V88 `ToadStool`/`BarraCUDA` handoff. ToadStool S130, BarraCUDA `2a6c072`, coralReef Iteration 7. March 7, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 

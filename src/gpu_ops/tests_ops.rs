@@ -22,6 +22,37 @@ pub fn test_device() -> Option<(
     Some((guard, gpu.wgpu_device().clone()))
 }
 
+/// Like [`test_device`] but returns `None` when fused GPU shaders are
+/// known to produce incorrect results. Detects the upstream `BarraCUDA`
+/// `Fp64Strategy` regression (wgpu 28) that affects `VarianceF64`,
+/// `CorrelationF64`, and `HmmBatchForwardF64` on some drivers.
+///
+/// Uses a canary test: dispatches a trivial `variance_gpu` and checks
+/// whether the result is sane. If not, fused-op tests are skipped.
+pub fn test_device_hardware() -> Option<(
+    std::sync::MutexGuard<'static, ()>,
+    Arc<barracuda::device::WgpuDevice>,
+)> {
+    use std::sync::OnceLock;
+    static FUSED_OPS_HEALTHY: OnceLock<bool> = OnceLock::new();
+
+    let guard = crate::test_gpu_lock::acquire();
+    let gpu = crate::gpu::tests::shared_gpu()?;
+    let dev = gpu.wgpu_device().clone();
+
+    let healthy = *FUSED_OPS_HEALTHY.get_or_init(|| {
+        let Ok(v) = variance_gpu(&[1.0, 2.0, 3.0, 4.0, 5.0], &dev) else {
+            return false;
+        };
+        v > 0.1 && v.is_finite()
+    });
+
+    if !healthy {
+        return None;
+    }
+    Some((guard, dev))
+}
+
 #[test]
 #[expect(clippy::cast_possible_truncation, reason = "intentional suppression")]
 fn f32_f64_roundtrip_precision() {
@@ -177,7 +208,7 @@ fn gpu_max_known() {
 
 #[test]
 fn gpu_variance_known() {
-    let Some((_guard, dev)) = test_device() else {
+    let Some((_guard, dev)) = test_device_hardware() else {
         return;
     };
     let v = variance_gpu(&[2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0], &dev).unwrap();
@@ -255,7 +286,7 @@ fn gpu_allele_frequencies_known() {
 
 #[test]
 fn gpu_pearson_perfect_correlation() {
-    let Some((_guard, dev)) = test_device() else {
+    let Some((_guard, dev)) = test_device_hardware() else {
         return;
     };
     let r = pearson_correlation_gpu(&[1.0, 2.0, 3.0], &[2.0, 4.0, 6.0], &dev).unwrap();
@@ -267,7 +298,7 @@ fn gpu_pearson_perfect_correlation() {
 
 #[test]
 fn gpu_mean_variance_fused() {
-    let Some((_guard, dev)) = test_device() else {
+    let Some((_guard, dev)) = test_device_hardware() else {
         return;
     };
     let data = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
@@ -285,7 +316,7 @@ fn gpu_mean_variance_fused() {
 
 #[test]
 fn gpu_correlation_full_fused() {
-    let Some((_guard, dev)) = test_device() else {
+    let Some((_guard, dev)) = test_device_hardware() else {
         return;
     };
     let x = [1.0, 2.0, 3.0, 4.0, 5.0];
@@ -429,7 +460,7 @@ fn gpu_nucleotide_diversity_basic() {
 
 #[test]
 fn gpu_matrix_correlation_self() {
-    let Some((_guard, dev)) = test_device() else {
+    let Some((_guard, dev)) = test_device_hardware() else {
         return;
     };
     let a = vec![0.0, 1.0, 2.0, 1.0, 0.0, 3.0, 2.0, 3.0, 0.0];
@@ -460,7 +491,7 @@ fn gpu_geographic_distances_basic() {
 
 #[test]
 fn gpu_thermal_diversity_basic() {
-    let Some((_guard, dev)) = test_device() else {
+    let Some((_guard, dev)) = test_device_hardware() else {
         return;
     };
     let pi = vec![1.0, 2.0, 3.0];
@@ -474,7 +505,7 @@ fn gpu_thermal_diversity_basic() {
 
 #[test]
 fn gpu_inter_population_af_variance_basic() {
-    let Some((_guard, dev)) = test_device() else {
+    let Some((_guard, dev)) = test_device_hardware() else {
         return;
     };
     let pop1 = vec![2.0, 0.0, 0.0, 2.0];

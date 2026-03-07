@@ -20,7 +20,8 @@
 //!
 //! ## `BarraCUDA` connection
 //!
-//! - Pairwise distance matrix: `barracuda::ops::pairwise_distance` (GPU `pairwise_hamming.wgsl`)
+//! - Pairwise distance matrix: GPU via `pairwise_hamming.wgsl` (domain-specific Hamming
+//!   distance, intentionally divergent from `barracuda::ops::PairwiseDistance` which is L2-based)
 //! - Jukes-Cantor correction: elementwise log transform
 //! - Neighbor-joining: sequential algorithm (CPU-only, not GPU-portable)
 //! - Progressive alignment: sequential merging (CPU-only)

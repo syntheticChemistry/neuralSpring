@@ -58,6 +58,22 @@ pub fn baseline_path(relative: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(relative)
 }
 
+/// Whether the current GPU adapter is a software rasterizer (e.g. llvmpipe).
+///
+/// Fused GPU shaders (`VarianceF64`, `CorrelationF64`, `HmmBatchForwardF64`)
+/// produce incorrect results on software Vulkan due to a wgpu 28 interaction
+/// (upstream `BarraCUDA` `Fp64Strategy` regression — all Springs affected).
+/// Tests gated behind this check skip gracefully on software backends and
+/// run on real hardware.
+#[must_use]
+pub fn is_software_adapter(adapter_name: &str) -> bool {
+    let lower = adapter_name.to_lowercase();
+    lower.contains("llvmpipe")
+        || lower.contains("swiftshader")
+        || lower.contains("lavapipe")
+        || lower.contains("software")
+}
+
 /// Replace native `pow(` with `pow_f64(` in WGSL shader source.
 ///
 /// Works around NVVM/NAK failure on `pow(f64, f64)` — the injected

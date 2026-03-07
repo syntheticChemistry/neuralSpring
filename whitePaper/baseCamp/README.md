@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 5, 2026 (Sessions 61–127)
-**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **218/218 validate\_all** (240 binaries), 883 lib tests. S125: wgpu 28 migration (66 call sites), BarraCUDA v0.3.3 sync, ToadStool S94b pin. S126: cross-spring fused op absorption (VarianceF64, CorrelationF64, matrix correlation, provenance bench). S127: Paper 026 full-tier validation (15 CPU bench domains, 10 parity kernels, 13 GPU pure-workload domains, 55 dispatch parity checks, baseline closure). barraCuda: v0.3.3 standalone (`../barraCuda/crates/barracuda`, 767+ WGSL shaders, wgpu 28)
+**Last Updated**: March 7, 2026 (Sessions 61–130)
+**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **218/218 validate\_all** (240 binaries), 883 lib tests. S130: upstream rewire — ToadStool S130, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired, fused GPU regression gated, coralNAK→coralReef rename. V88 handoff. barraCuda: v0.3.3 at `2a6c072` (`../barraCuda/crates/barracuda`, 708 WGSL shaders, wgpu 28, cross-spring provenance)
 
 ## Purpose
 

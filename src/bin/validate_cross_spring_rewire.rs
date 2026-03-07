@@ -210,7 +210,8 @@ fn validate_full_analysis_extensions(h: &mut ValidationHarness) {
 }
 
 fn validate_esn_barracuda_bridge(h: &mut ValidationHarness) {
-    let json_path = std::path::Path::new("control/wdm/esn_regime_baseline.json");
+    let json_path =
+        neural_spring::validation::baseline_path("control/wdm/esn_regime_baseline.json");
     if !json_path.exists() {
         h.check_bool("ESN bridge: baseline JSON exists", false);
         return;

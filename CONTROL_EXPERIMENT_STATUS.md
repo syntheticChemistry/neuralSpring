@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 5, 2026 (Sessions 44–129 — S125: wgpu 28 migration, BarraCUDA v0.3.3, ToadStool S94b. S126: cross-spring fused op absorption. S127: Paper 026 full-tier validation, 15-domain CPU bench, baseline closure. S129: API sync evolution. 218/218 validate_all, 240 binaries, 883 lib tests, 0 clippy)
+**Last updated**: March 7, 2026 (Session 130 — upstream rewire. ToadStool S130, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired. Fused GPU regression gated. 218/218 validate_all, 240 binaries, 883 lib tests, 0 clippy. V88 handoff)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid

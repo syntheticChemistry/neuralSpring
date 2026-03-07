@@ -27,9 +27,12 @@ fn main() {
     let final_coop = pd_trace.last().map_or(0.5, |f| f[0]);
 
     h.check_upper(
-        &format!("PD: defection dominates (coop={final_coop:.4} < 0.1)"),
+        &format!(
+            "PD: defection dominates (coop={final_coop:.4} < {})",
+            tolerances::GAME_DEFECTION_UPPER
+        ),
         final_coop,
-        0.1,
+        tolerances::GAME_DEFECTION_UPPER,
     );
 
     // Part 2: Snowdrift — coexistence

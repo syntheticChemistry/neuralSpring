@@ -30,7 +30,7 @@ mod dispatch_linalg;
 mod dispatch_popgen;
 mod dispatch_stats;
 
-use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile};
+use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile, PrecisionRoutingAdvice};
 use barracuda::device::WgpuDevice;
 use barracuda::unified_hardware::BandwidthTier;
 use std::sync::Arc;
@@ -199,6 +199,17 @@ impl Dispatcher {
         self.driver_profile
             .as_ref()
             .map_or(Fp64Strategy::Native, GpuDriverProfile::fp64_strategy)
+    }
+
+    /// Precision routing advice integrating `ToadStool` S128 f64 shared-memory
+    /// discovery. Higher-level than [`Self::fp64_strategy`]: also captures the
+    /// shared-memory reliability axis for workgroup-based reductions.
+    #[must_use]
+    pub fn precision_routing(&self) -> PrecisionRoutingAdvice {
+        self.driver_profile.as_ref().map_or(
+            PrecisionRoutingAdvice::F64Native,
+            GpuDriverProfile::precision_routing,
+        )
     }
 
     /// Whether the GPU driver needs `pow(f64,f64)` polyfill workaround.

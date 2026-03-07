@@ -6,7 +6,7 @@
 //! and their values at runtime — no hardcoded knowledge of the
 //! tolerance namespace required.
 
-#[expect(
+#[allow(
     clippy::wildcard_imports,
     reason = "tolerance registry intentionally imports all constants for introspection"
 )]

@@ -15,6 +15,20 @@ fn try_gpu_dispatcher() -> Option<Dispatcher> {
     Some(Dispatcher::from_gpu(gpu))
 }
 
+/// Like [`try_gpu_dispatcher`] but returns `None` when fused GPU shaders
+/// produce incorrect results (upstream `BarraCUDA` `Fp64Strategy` regression).
+/// Uses the canary check from [`crate::gpu_ops::tests_ops::test_device_hardware`].
+fn try_hardware_gpu_dispatcher() -> Option<Dispatcher> {
+    let gpu_arc = crate::gpu::tests::shared_gpu()?;
+    let dev = gpu_arc.wgpu_device().clone();
+    let canary = crate::gpu_ops::variance_gpu(&[1.0, 2.0, 3.0, 4.0, 5.0], &dev).ok()?;
+    if !(canary > 0.1 && canary.is_finite()) {
+        return None;
+    }
+    let gpu = crate::gpu::Gpu::from_device(dev);
+    Some(Dispatcher::from_gpu(gpu))
+}
+
 #[test]
 fn gpu_dispatcher_metadata() {
     let _lock = crate::test_gpu_lock::acquire();
@@ -199,7 +213,7 @@ fn gpu_shannon_entropy() {
 #[test]
 fn gpu_pearson_correlation() {
     let _lock = crate::test_gpu_lock::acquire();
-    let Some(d) = try_gpu_dispatcher() else {
+    let Some(d) = try_hardware_gpu_dispatcher() else {
         return;
     };
     let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
@@ -453,7 +467,7 @@ fn gpu_nucleotide_diversity() {
 #[test]
 fn gpu_matrix_correlation() {
     let _lock = crate::test_gpu_lock::acquire();
-    let Some(d) = try_gpu_dispatcher() else {
+    let Some(d) = try_hardware_gpu_dispatcher() else {
         return;
     };
     #[rustfmt::skip]
@@ -480,7 +494,7 @@ fn gpu_geographic_distances() {
 #[test]
 fn gpu_thermal_diversity_correlation() {
     let _lock = crate::test_gpu_lock::acquire();
-    let Some(d) = try_gpu_dispatcher() else {
+    let Some(d) = try_hardware_gpu_dispatcher() else {
         return;
     };
     let r = d.thermal_diversity_correlation(&[1.0, 2.0, 3.0], &[10.0, 20.0, 30.0]);
@@ -490,7 +504,7 @@ fn gpu_thermal_diversity_correlation() {
 #[test]
 fn gpu_inter_population_af_variance() {
     let _lock = crate::test_gpu_lock::acquire();
-    let Some(d) = try_gpu_dispatcher() else {
+    let Some(d) = try_hardware_gpu_dispatcher() else {
         return;
     };
     let pop_a = vec![2.0, 0.0, 0.0, 2.0];
