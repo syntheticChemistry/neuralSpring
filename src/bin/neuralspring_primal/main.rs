@@ -198,6 +198,9 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "science.structure_module",
     "science.folding_health",
     "science.gpu_dispatch",
+    "science.cross_spring_provenance",
+    "science.cross_spring_benchmark",
+    "science.precision_routing",
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -222,6 +225,9 @@ fn dispatch_sync(request: &JsonRpcRequest, state: &PrimalState) -> Option<JsonRp
         "science.structure_module" => folding::handle_structure_module(id, params),
         "science.folding_health" => folding::handle_folding_health(id, state),
         "science.gpu_dispatch" => folding::handle_gpu_dispatch(id, params, state),
+        "science.cross_spring_provenance" => handle_cross_spring_provenance(id),
+        "science.cross_spring_benchmark" => handle_cross_spring_benchmark(id, state),
+        "science.precision_routing" => handle_precision_routing(id, state),
         "primal.forward" | "data.ncbi_search" | "data.ncbi_fetch" | "data.pdb_search"
         | "data.pdb_fetch" => return None,
         _ => JsonRpcResponse::error(
@@ -413,6 +419,125 @@ fn handle_capability_list(id: serde_json::Value) -> JsonRpcResponse {
         serde_json::json!({
             "primal": PRIMAL_NAME,
             "capabilities": ALL_CAPABILITIES,
+        }),
+    )
+}
+
+fn handle_cross_spring_provenance(id: serde_json::Value) -> JsonRpcResponse {
+    use barracuda::shaders::provenance;
+
+    let shaders = provenance::cross_spring_shaders();
+    let matrix = provenance::cross_spring_matrix();
+
+    let shader_entries: Vec<serde_json::Value> = shaders
+        .iter()
+        .map(|s| {
+            serde_json::json!({
+                "path": s.path,
+                "origin": format!("{}", s.origin),
+                "consumers": s.consumers.iter().map(|c| format!("{c}")).collect::<Vec<_>>(),
+                "category": format!("{}", s.category),
+                "evolution_note": s.evolution_note,
+                "created": s.created,
+                "absorbed": s.absorbed,
+            })
+        })
+        .collect();
+
+    let matrix_entries: Vec<serde_json::Value> = matrix
+        .iter()
+        .map(|((from, to), count)| {
+            serde_json::json!({
+                "from": format!("{from}"),
+                "to": format!("{to}"),
+                "shared_shaders": count,
+            })
+        })
+        .collect();
+
+    let report = provenance::evolution_report();
+
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "total_shaders": shaders.len(),
+            "cross_spring_edges": matrix.len(),
+            "shaders": shader_entries,
+            "dependency_matrix": matrix_entries,
+            "evolution_report": report,
+        }),
+    )
+}
+
+fn handle_cross_spring_benchmark(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
+    use std::time::Instant;
+
+    let data: Vec<f64> = (0..1024).map(|i| (i as f64) * 0.001).collect();
+    let mat: Vec<f64> = (0..16 * 16).map(|i| i as f64 * 0.01).collect();
+
+    let t0 = Instant::now();
+    let var = state.dispatcher.variance(&data);
+    let variance_us = t0.elapsed().as_micros();
+
+    let t0 = Instant::now();
+    let mean = state.dispatcher.mean(&data);
+    let mean_us = t0.elapsed().as_micros();
+
+    let t0 = Instant::now();
+    let sm = state.dispatcher.softmax(&data);
+    let softmax_us = t0.elapsed().as_micros();
+
+    let t0 = Instant::now();
+    let gelu = state.dispatcher.gelu(&data);
+    let gelu_us = t0.elapsed().as_micros();
+
+    let t0 = Instant::now();
+    let (evals, _) = state.dispatcher.eigh(&mat, 16);
+    let eigh_us = t0.elapsed().as_micros();
+
+    let t0 = Instant::now();
+    let shannon = state.dispatcher.shannon_entropy(&data[..256]);
+    let shannon_us = t0.elapsed().as_micros();
+
+    let t0 = Instant::now();
+    let pearson = state
+        .dispatcher
+        .pearson_correlation(&data[..512], &data[512..]);
+    let pearson_us = t0.elapsed().as_micros();
+
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "backend": format!("{}", state.dispatcher.backend()),
+            "shared_memory_f64_safe": state.dispatcher.shared_memory_f64_safe(),
+            "benchmarks": {
+                "variance_1024": {"result": var, "us": variance_us, "origin": "hotSpring precision → barraCuda → Dispatcher"},
+                "mean_1024": {"result": mean, "us": mean_us, "origin": "hotSpring precision → barraCuda → Dispatcher"},
+                "softmax_1024": {"len": sm.len(), "us": softmax_us, "origin": "neuralSpring transformer → barraCuda → Dispatcher"},
+                "gelu_1024": {"len": gelu.len(), "us": gelu_us, "origin": "neuralSpring transformer → barraCuda → Dispatcher"},
+                "eigh_16x16": {"n_eigenvalues": evals.len(), "us": eigh_us, "origin": "hotSpring spectral → barraCuda → Dispatcher"},
+                "shannon_256": {"result": shannon, "us": shannon_us, "origin": "wetSpring diversity → barraCuda → Dispatcher"},
+                "pearson_512": {"result": pearson, "us": pearson_us, "origin": "hotSpring precision → barraCuda → Dispatcher"},
+            },
+            "provenance": {
+                "total_tracked_shaders": barracuda::shaders::provenance::cross_spring_shaders().len(),
+                "cross_spring_edges": barracuda::shaders::provenance::cross_spring_matrix().len(),
+            }
+        }),
+    )
+}
+
+fn handle_precision_routing(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "fp64_strategy": format!("{:?}", state.dispatcher.fp64_strategy()),
+            "precision_routing": format!("{:?}", state.dispatcher.precision_routing()),
+            "shared_memory_f64_safe": state.dispatcher.shared_memory_f64_safe(),
+            "bandwidth_tier": format!("{:?}", state.dispatcher.bandwidth_tier()),
+            "needs_pow_workaround": state.dispatcher.needs_pow_workaround(),
+            "gpu_available": state.dispatcher.has_gpu(),
+            "adapter": state.dispatcher.adapter_name(),
         }),
     )
 }

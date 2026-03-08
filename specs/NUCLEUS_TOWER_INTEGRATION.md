@@ -1,9 +1,10 @@
 # NUCLEUS Tower Mode Integration Plan
 
-**Date**: February 28, 2026
+**Date**: February 28, 2026 (updated March 8, 2026 — S132)
 **Purpose**: Wire neuralSpring into biomeOS NUCLEUS local Tower mode
-**Current State**: `neuralspring_primal/` (multi-file binary) exists with 7 science capabilities,
-JSON-RPC 2.0 over Unix sockets, biomeOS 5-tier socket resolution
+**Current State**: `neuralspring_primal/` (multi-file binary) with **14 science capabilities**,
+JSON-RPC 2.0 over Unix sockets, biomeOS 5-tier socket resolution, live on Eastgate
+RTX 4070 (NVIDIA Vulkan, Hybrid f64, PCIe 4.0 x16)
 **Target**: Full Tower mode on Eastgate — automated startup, health monitoring,
 capability registration with biomeOS discovery, cross-primal communication
 
@@ -18,12 +19,12 @@ capability registration with biomeOS discovery, cross-primal communication
 | Component | Status | Notes |
 |-----------|--------|-------|
 | Unix socket listener | Implemented | 5-tier biomeOS resolution |
-| JSON-RPC dispatch | Implemented | 7 methods + health |
+| JSON-RPC dispatch | Implemented | 14 methods + health |
 | Concurrency control | Implemented | Semaphore(4) |
 | Family ID support | Implemented | `FAMILY_ID` / `BIOMEOS_FAMILY_ID` |
 | Feature gate | Implemented | `--features primal` |
 
-### Current Capabilities (7 methods)
+### Current Capabilities (14 methods — S132)
 
 | Method | Module | Compute Profile |
 |--------|--------|----------------|
@@ -34,6 +35,13 @@ capability registration with biomeOS discovery, cross-primal communication
 | `science.hessian_eigen` | `eigh` + `primitives` | CPU, O(N³) |
 | `science.agent_coordination` | `agent_coordination` | CPU, O(N² × W) |
 | `science.training_trajectory` | `eigh` + `primitives` | CPU, O(N³ × E) |
+| `science.evoformer_block` | `coral_forge` evoformer | CPU, O(N²·C) |
+| `science.structure_module` | `coral_forge` structure | CPU, O(N·C²) |
+| `science.folding_health` | `coral_forge` primitives | CPU, O(1) |
+| `science.gpu_dispatch` | `gpu_dispatch::Dispatcher` | GPU/CPU adaptive |
+| `science.cross_spring_provenance` | `barracuda::shaders::provenance` | CPU, O(1) |
+| `science.cross_spring_benchmark` | `gpu_dispatch::Dispatcher` | GPU/CPU adaptive |
+| `science.precision_routing` | `barracuda::device::driver_profile` | CPU, O(1) |
 
 ### biomeOS SDK Integration
 

@@ -17,6 +17,8 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 **Lib tests**: 902 → 911 (+9: 7 provenance, 2 precision routing).
 
+**biomeOS NUCLEUS live deployment**: neuralSpring primal rebuilt with 14 capabilities (11 → 14: +`science.cross_spring_provenance`, +`science.cross_spring_benchmark`, +`science.precision_routing`). Live on Eastgate RTX 4070 (NVIDIA Vulkan, Hybrid f64, PCIe 4.0 x16). Full NUCLEUS tower running: BearDog + Songbird + ToadStool + Squirrel + Neural API + airSpring. `validate_nucleus_tower` 22/22 PASS, `validate_biomeos_spectral` 29/29 PASS against live primal.
+
 **V90 handoff**: Formal handoff to ToadStool/BarraCUDA/coralReef team documenting the upstream rewire and cross-spring evolution.
 
 ### Session 131 — Full Green Validation (March 7, 2026)
