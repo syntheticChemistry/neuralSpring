@@ -220,6 +220,20 @@ impl Dispatcher {
             .is_some_and(GpuDriverProfile::needs_pow_f64_workaround)
     }
 
+    /// Whether the hardware reliably executes fused workgroup-based
+    /// f64 reductions (`VarianceF64`, `CorrelationF64`, `HmmBatchForwardF64`).
+    ///
+    /// Returns `false` when `PrecisionRoutingAdvice` is `F64NativeNoSharedMem`,
+    /// `Df64Only`, or `F32Only` — meaning `var<workgroup>` f64 accumulations
+    /// can return zeros or garbage (naga/SPIR-V bug on Ada Lovelace and NVK).
+    ///
+    /// Callers should fall back to non-fused or CPU paths when this returns
+    /// `false`. Evolved from groundSpring V84–V85 shared-memory discovery.
+    #[must_use]
+    pub fn shared_memory_f64_safe(&self) -> bool {
+        matches!(self.precision_routing(), PrecisionRoutingAdvice::F64Native)
+    }
+
     /// `PCIe` bandwidth tier detected from the GPU adapter name.
     ///
     /// Returns `BandwidthTier::Unknown` when no GPU is available.

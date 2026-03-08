@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
 **Last Updated**: March 8, 2026 (Sessions 44–132 — S132: Upstream rewire to barraCuda `a898dee`, ToadStool S130+ `bfe7977b`, coralReef Iteration 10 `d29a734`. Zero API breakage. 42/42 Python drift PASS. 218/218 validate_all, 240 binaries, V90 handoff)
-**Status**: Phase 5h+ — 331/331 Python + 3400+ Rust+GPU = **4100+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 240 binaries, **218/218 validate\_all**, 902 lib tests
+**Status**: Phase 5h+ — 331/331 Python + 3400+ Rust+GPU = **4100+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 240 binaries, **218/218 validate\_all**, 911 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---

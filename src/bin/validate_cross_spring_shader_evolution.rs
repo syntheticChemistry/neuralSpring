@@ -492,39 +492,37 @@ fn validate_cross_spring_convergence(h: &mut ValidationHarness, disp: &Dispatche
 }
 
 fn print_provenance_summary() {
+    use barracuda::shaders::provenance;
+    let shader_count = provenance::cross_spring_shaders().len();
+    let matrix = provenance::cross_spring_matrix();
+
     eprintln!("\n╔══════════════════════════════════════════════════════════════════╗");
     eprintln!("║  Cross-Spring Shader Evolution — Provenance Summary            ║");
     eprintln!("╠══════════════════════════════════════════════════════════════════╣");
+    eprintln!(
+        "║  {shader_count} shaders tracked · {n} cross-spring edges",
+        n = matrix.len()
+    );
     eprintln!("║                                                                ║");
-    eprintln!("║  hotSpring ─── f64 precision, DF64, spectral, eigensolve,      ║");
-    eprintln!("║                compile_shader_universal, math_f64.wgsl (28 fn) ║");
-    eprintln!("║                df64_transcendentals.wgsl (15 fn)               ║");
+    eprintln!("║  hotSpring ─── DF64 core/transcendentals, spectral, eigensolve ║");
+    eprintln!("║  wetSpring ─── diversity, HMM, bio, Gillespie, Wright-Fisher   ║");
+    eprintln!("║  neuralSpring ─ ML activations, matmul, RK4, attention, swarm  ║");
+    eprintln!("║  groundSpring ─ bootstrap, jackknife, kimura, norm_cdf/ppf     ║");
+    eprintln!("║  airSpring ──── hydrology (ET₀), regression, water balance     ║");
     eprintln!("║                                                                ║");
-    eprintln!("║  wetSpring ─── diversity (Shannon, Simpson, chao1, Bray-Curtis)║");
-    eprintln!("║                HMM (forward, backward, Viterbi), bio shaders   ║");
-    eprintln!("║                Wright-Fisher, locus_variance                   ║");
-    eprintln!("║                                                                ║");
-    eprintln!("║  neuralSpring ─ matmul, gelu, softmax, sigmoid, swarm_nn,     ║");
-    eprintln!("║                 batch_fitness, pairwise_l2, batch_ipr, MHA     ║");
-    eprintln!("║                 rk4_parallel, chi²_f64, kl_div_f64            ║");
-    eprintln!("║                 coralForge: layer_norm, SDPA, triangle, IPA    ║");
-    eprintln!("║                                                                ║");
-    eprintln!("║  groundSpring ─ bootstrap, jackknife, kimura, norm_cdf/pdf/ppf ║");
-    eprintln!("║                 uncertainty budgets, spectral validation       ║");
-    eprintln!("║                                                                ║");
-    eprintln!("║  airSpring ──── hydrology (ET₀: FAO-56, Thornthwaite, Hamon,  ║");
-    eprintln!("║                 Makkink, Turc), regression, water balance      ║");
-    eprintln!("║                                                                ║");
-    eprintln!("║  All converge → BarraCUDA (ToadStool S87, 2dc26792): 844+ WGSL shaders   ║");
-    eprintln!("║  37 DF64 transcendentals, pure math (no vendor libs)           ║");
+    eprintln!("║  barraCuda v0.3.3 at a898dee · ToadStool S130+ at bfe7977b    ║");
+    eprintln!("║  coralReef Iteration 10 at d29a734 (AMD E2E GPU dispatch)      ║");
     eprintln!("║  Precision per hardware: F16 / F32 / F64 / DF64               ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════╝");
 }
 
 #[tokio::main]
 async fn main() {
+    let shader_count = barracuda::shaders::provenance::cross_spring_shaders().len();
     eprintln!("=== Cross-Spring Shader Evolution Validator ===");
-    eprintln!("BarraCUDA (ToadStool S87, 2dc26792) — 844+ WGSL shaders, 37 DF64\n");
+    eprintln!(
+        "barraCuda v0.3.3 at a898dee — {shader_count} tracked shaders (provenance registry)\n"
+    );
 
     let mut h = ValidationHarness::new("cross_spring_shader_evolution");
 

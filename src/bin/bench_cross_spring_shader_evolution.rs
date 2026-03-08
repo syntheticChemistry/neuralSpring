@@ -432,38 +432,38 @@ fn bench_convergence_pipeline(h: &mut ValidationHarness, disp: &Dispatcher) {
 }
 
 fn print_evolution_summary() {
+    let report = barracuda::shaders::provenance::evolution_report();
+    let all_shaders = barracuda::shaders::provenance::cross_spring_shaders();
+    let shader_count = all_shaders.len();
+    let matrix = barracuda::shaders::provenance::cross_spring_matrix();
+
     eprintln!("╔══════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  Cross-Spring Shader Evolution — Performance Summary               ║");
+    eprintln!("║  Cross-Spring Shader Evolution — Provenance Registry Summary       ║");
     eprintln!("╠══════════════════════════════════════════════════════════════════════╣");
-    eprintln!("║                                                                    ║");
-    eprintln!("║  Evolution timeline:                                               ║");
-    eprintln!("║    S40–S60: hotSpring → precision shaders, DF64, eigensolve        ║");
-    eprintln!("║    S50–S70: wetSpring → bio shaders, HMM, diversity               ║");
-    eprintln!("║    S60–S80: neuralSpring → matmul, gelu, softmax, swarm           ║");
-    eprintln!("║    S70–S86: absorption → ToadStool ComputeDispatch (144 ops)      ║");
-    eprintln!("║    S86–S87: deep debt evolution → pure math, CPU ungating         ║");
-    eprintln!("║    S87+:    DF64 transcendentals (37), precision probing           ║");
-    eprintln!("║                                                                    ║");
-    eprintln!("║  Current state (BarraCUDA, ToadStool S87, 2dc26792):              ║");
-    eprintln!("║    844+ WGSL shaders (up from 692+ at S86)                        ║");
-    eprintln!("║    37 DF64 transcendental shaders (up from 26)                    ║");
-    eprintln!("║    F64 polyfills: exp, log, sin, cos → probe-injected             ║");
-    eprintln!("║    DF64 fallback: √, exp, log, sin, cos → f32-pair               ║");
-    eprintln!("║    Hardware probing: per-function f64 capability detection         ║");
+    eprintln!("║  {shader_count} shaders tracked in barraCuda provenance registry");
+    eprintln!("║  {n} cross-spring dependency edges", n = matrix.len());
     eprintln!("║                                                                    ║");
     eprintln!("║  Springs that converge here:                                       ║");
-    eprintln!("║    hotSpring  → precision, spectral, eigensolve                   ║");
+    eprintln!("║    hotSpring  → precision, DF64, spectral, eigensolve             ║");
     eprintln!("║    wetSpring  → diversity, HMM, bio, Wright-Fisher                ║");
     eprintln!("║    neuralSpring → ML activations, matmul, RK4, attention          ║");
     eprintln!("║    groundSpring → uncertainty, bootstrap, normal distribution     ║");
     eprintln!("║    airSpring  → hydrology, ET₀, water balance                    ║");
+    eprintln!("║                                                                    ║");
+    eprintln!("║  barraCuda v0.3.3 at a898dee (deep debt: typed errors, constants) ║");
+    eprintln!("║  ToadStool S130+ at bfe7977b (19,777 tests, spring sync clean)    ║");
+    eprintln!("║  coralReef Iteration 10 at d29a734 (AMD E2E GPU dispatch)         ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════════╝");
+    eprintln!();
+    eprintln!("── Programmatic provenance report (from barraCuda registry) ──");
+    eprintln!("{report}");
 }
 
 fn main() {
+    let shader_count = barracuda::shaders::provenance::cross_spring_shaders().len();
     eprintln!("╔══════════════════════════════════════════════════════════════════════╗");
     eprintln!("║  neuralSpring — Cross-Spring Shader Evolution Benchmark            ║");
-    eprintln!("║  All springs → BarraCUDA (ToadStool S87, 2dc26792): 844+ shaders  ║");
+    eprintln!("║  All springs → barraCuda v0.3.3: {shader_count} tracked shaders      ║");
     eprintln!("║  Provenance tiers: T0 local → T1 bc::dispatch → T2 Dispatcher GPU ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════════╝");
     eprintln!();

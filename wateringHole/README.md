@@ -9,7 +9,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V90** | `../../../wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V90_S132_UPSTREAM_REWIRE_HANDOFF_MAR08_2026.md` | Mar 8, 2026 | S132: Upstream rewire — barraCuda `a898dee`, ToadStool S130+ `bfe7977b`, coralReef Iteration 10 `d29a734`. Zero API breakage. 902 lib tests, 42/42 drift PASS. Supersedes V89 |
+| **V90** | `../../../wateringHole/handoffs/NEURALSPRING_TOADSTOOL_V90_S132_UPSTREAM_REWIRE_HANDOFF_MAR08_2026.md` | Mar 8, 2026 | S132: Upstream rewire — barraCuda `a898dee`, ToadStool S130+ `bfe7977b`, coralReef Iteration 10 `d29a734`. Zero API breakage. 911 lib tests, 42/42 drift PASS. Supersedes V89 |
 
 ### NestGate (Data Acquisition)
 

@@ -7,13 +7,17 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] — Session 132 (March 8, 2026)
 
-### Session 132 — Upstream Rewire (March 8, 2026)
+### Session 132 — Upstream Rewire + Cross-Spring Provenance (March 8, 2026)
 
 **Pin updates**: barraCuda `2a6c072` → `a898dee` (deep debt: typed errors, named constants, test resilience, lint compliance). ToadStool `88a545df` → `bfe7977b` (S130+: deep debt, unsafe audit, dependency audit, spring sync confirming zero API breakage for all 5 springs, 19,777 tests). coralReef `72e6d13` → `d29a734` (Iteration 10: AMD E2E GPU dispatch verified on RDNA2/GFX1030, conditional branch fix, 990 tests).
 
-**Zero code changes needed**: All 902 lib tests, 42/42 Python drift checks, clippy pedantic+nursery, doc generation pass without any source modifications. The upstream teams' deep debt work is fully backward-compatible.
+**Cross-spring provenance wired**: `barracuda::shaders::provenance` now exercised via 7 new lib tests validating the programmatic cross-spring shader registry (22 shaders tracked, 5 springs, 17 dependency edges). Provenance report wired into `bench_cross_spring_shader_evolution` and `validate_cross_spring_shader_evolution` — both now output barraCuda's evolution timeline and dependency matrix.
 
-**V90 handoff**: Formal handoff to ToadStool/BarraCUDA team documenting the upstream rewire.
+**Precision routing**: `Dispatcher::shared_memory_f64_safe()` added — hardware-adaptive safety check for fused workgroup-based f64 reductions (groundSpring V84–V85 shared-memory discovery). Returns `false` when `PrecisionRoutingAdvice` is `F64NativeNoSharedMem`, `Df64Only`, or `F32Only`. 2 new lib tests for precision routing defaults.
+
+**Lib tests**: 902 → 911 (+9: 7 provenance, 2 precision routing).
+
+**V90 handoff**: Formal handoff to ToadStool/BarraCUDA/coralReef team documenting the upstream rewire and cross-spring evolution.
 
 ### Session 131 — Full Green Validation (March 7, 2026)
 
