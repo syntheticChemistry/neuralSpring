@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
 **Last Updated**: March 7, 2026 (Sessions 61–130)
-**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **218/218 validate\_all** (240 binaries), 883 lib tests. S130: upstream rewire — ToadStool S130, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired, fused GPU regression gated, coralNAK→coralReef rename. V88 handoff. barraCuda: v0.3.3 at `2a6c072` (`../barraCuda/crates/barracuda`, 708 WGSL shaders, wgpu 28, cross-spring provenance)
+**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **218/218 validate\_all** (240 binaries), 902 lib tests. S132: upstream rewire — ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). Zero API breakage. V90 handoff. barraCuda: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`, 708 WGSL shaders, wgpu 28, cross-spring provenance, typed errors)
 
 ## Purpose
 

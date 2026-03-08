@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 130 (March 7, 2026)
+## [Unreleased] — Session 132 (March 8, 2026)
+
+### Session 132 — Upstream Rewire (March 8, 2026)
+
+**Pin updates**: barraCuda `2a6c072` → `a898dee` (deep debt: typed errors, named constants, test resilience, lint compliance). ToadStool `88a545df` → `bfe7977b` (S130+: deep debt, unsafe audit, dependency audit, spring sync confirming zero API breakage for all 5 springs, 19,777 tests). coralReef `72e6d13` → `d29a734` (Iteration 10: AMD E2E GPU dispatch verified on RDNA2/GFX1030, conditional branch fix, 990 tests).
+
+**Zero code changes needed**: All 902 lib tests, 42/42 Python drift checks, clippy pedantic+nursery, doc generation pass without any source modifications. The upstream teams' deep debt work is fully backward-compatible.
+
+**V90 handoff**: Formal handoff to ToadStool/BarraCUDA team documenting the upstream rewire.
+
+### Session 131 — Full Green Validation (March 7, 2026)
+
+Isomorphic coverage fix (WGSL discovery: BarraCUDA + metalForge + Tensor ops → 25/25 100%). 42/42 Python drift PASS. 901→902 lib tests. V89 handoff.
 
 ### Session 130 — Upstream Rewire + Revalidation (March 7, 2026)
 

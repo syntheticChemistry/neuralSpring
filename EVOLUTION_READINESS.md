@@ -1,9 +1,9 @@
 # neuralSpring — Evolution Readiness
 
 **Date**: March 7, 2026 (Session 130 — upstream rewire)
-**barraCuda**: v0.3.3 at `2a6c072` (`../barraCuda/crates/barracuda`). 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC.
-**ToadStool**: S130 at `88a545df`. Hardware discovery + orchestration, coralReef shader proxy, JSON-RPC only, `SubstrateType` 8 variants, capability-based discovery.
-**coralReef**: Iteration 7 at `72e6d13`. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+, f64 transcendentals. 8 neuralSpring shaders in corpus.
+**barraCuda**: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`). 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Deep debt: typed errors, named constants, lint compliance.
+**ToadStool**: S130+ at `bfe7977b`. Hardware discovery + orchestration, coralReef shader proxy, JSON-RPC only, `SubstrateType` 8 variants, capability-based discovery. Spring sync confirms zero API breakage for all 5 springs. 19,777 tests.
+**coralReef**: Iteration 10 at `d29a734`. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2), f64 transcendentals. 8 neuralSpring shaders in corpus. 990 tests.
 **neuralSpring**: 883 lib + 43 forge + 9 integration tests, 240 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
 **S130**: `PrecisionRoutingAdvice` wired in `Dispatcher`, fused GPU test regression gated via canary, coralNAK→coralReef rename, `baseline_path` consistency fix, inline threshold replacement. 218/218 `validate_all` PASS. V88 handoff.
 **S121 rewires**: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch`. 46 total upstream rewires. 80/80 S121 rewire validation + 28/28 cross-spring modern bench.

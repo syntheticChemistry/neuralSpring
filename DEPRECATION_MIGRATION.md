@@ -1,7 +1,7 @@
 # neuralSpring — Deprecation & Migration Guide
 
 **Date**: March 7, 2026 (Sessions 44–130)
-**barraCuda**: v0.3.3 at `2a6c072` (`../barraCuda/crates/barracuda`). 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance. ToadStool S130, coralReef Iteration 7.
+**barraCuda**: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`). 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance. ToadStool S130+ (`bfe7977b`), coralReef Iteration 10 (`d29a734`).
 **Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 240 binaries, 883 lib tests, 0 clippy (pedantic+nursery), 0 doc warnings. Zero unsafe, zero production mocks, zero cross-primal logic. Standalone barraCuda confirmed. V88 handoff.
 **S130**: `PrecisionRoutingAdvice` wired, fused GPU regression gated, coralNAK→coralReef rename.
 **S121**: `MlpLayer` struct removed from `wdm_surrogate.rs` and `wdm_transport.rs` — replaced by `barracuda::nn::SimpleMlp` with `DenseLayer` format. `hmm_viterbi_chain_gpu` per-step f32 Tensor loop replaced by single f64 `barracuda::ops::bio::hmm_viterbi` dispatch.
