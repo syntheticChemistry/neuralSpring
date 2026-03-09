@@ -8,6 +8,16 @@
 //! - nS-603: Lokivetmab PK decay + duration regression
 //! - nS-604: Three-compartment disorder, tissue lattice, barrier spectrum
 //! - nS-605: Fajgenbaum MATRIX drug repurposing scoring
+//!
+//! ## Provenance
+//!
+//! | Field | Value |
+//! |-------|-------|
+//! | Baseline | `control/immunological_anderson/immunological_anderson_extended.py` |
+//! | Commit | `f9ad0268917a335dce2b1175ea0d77add271b25b` |
+//! | Date | 2026-02-16 |
+//! | Command | `python3 control/immunological_anderson/immunological_anderson_extended.py` |
+//! | Environment | Python 3.10.12, NumPy 2.2.6, SciPy 1.15.3 |
 
 #![expect(
     clippy::too_many_lines,

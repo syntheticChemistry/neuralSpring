@@ -191,19 +191,18 @@ fn main() {
     );
 
     // ═══════════════════════════════════════════════════════════════════
-    // 6. Full study combiner
+    // 6. HMM study
     // ═══════════════════════════════════════════════════════════════════
-    let (full, full_edges) = visualization::full_study();
-    let full_channels = count_channels(&full);
+    let (hmm, hmm_edges) = visualization::hmm_study();
     h.check_abs(
-        "full.channels >= 5",
-        if full_channels >= 5 { 1.0 } else { 0.0 },
+        "hmm.channels > 0",
+        if count_channels(&hmm) > 0 { 1.0 } else { 0.0 },
         1.0,
         tolerances::BOOLEAN_VALIDATION_SLACK,
     );
     h.check_abs(
-        "full.primals > 1",
-        if full.ecosystem.primals.len() > 1 {
+        "hmm.has_heatmap",
+        if has_channel_type(&hmm, |c| matches!(c, DataChannel::Heatmap { .. })) {
             1.0
         } else {
             0.0
@@ -212,8 +211,262 @@ fn main() {
         tolerances::BOOLEAN_VALIDATION_SLACK,
     );
     h.check_abs(
-        "full.edges_combined",
-        if full_edges.len() >= spectral_edges.len() {
+        "hmm.has_edges",
+        if hmm_edges.is_empty() { 0.0 } else { 1.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 7. Game theory study
+    // ═══════════════════════════════════════════════════════════════════
+    let (gt, gt_edges) = visualization::game_theory_study();
+    h.check_abs(
+        "game_theory.channels > 0",
+        if count_channels(&gt) > 0 { 1.0 } else { 0.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "game_theory.has_heatmap",
+        if has_channel_type(&gt, |c| matches!(c, DataChannel::Heatmap { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "game_theory.has_gauge",
+        if has_channel_type(&gt, |c| matches!(c, DataChannel::Gauge { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "game_theory.has_edges",
+        if gt_edges.is_empty() { 0.0 } else { 1.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 8. WDM study
+    // ═══════════════════════════════════════════════════════════════════
+    let (wdm, wdm_edges) = visualization::wdm_study();
+    h.check_abs(
+        "wdm.channels > 0",
+        if count_channels(&wdm) > 0 { 1.0 } else { 0.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "wdm.has_scatter3d",
+        if has_channel_type(&wdm, |c| matches!(c, DataChannel::Scatter3D { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "wdm.has_edges",
+        if wdm_edges.is_empty() { 0.0 } else { 1.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 9. Glucose study
+    // ═══════════════════════════════════════════════════════════════════
+    let (glucose, _glucose_edges) = visualization::glucose_study();
+    h.check_abs(
+        "glucose.channels > 0",
+        if count_channels(&glucose) > 0 {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "glucose.has_distribution",
+        if has_channel_type(&glucose, |c| matches!(c, DataChannel::Distribution { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "glucose.has_gauge",
+        if has_channel_type(&glucose, |c| matches!(c, DataChannel::Gauge { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 10. Immunological study
+    // ═══════════════════════════════════════════════════════════════════
+    let (immuno, _immuno_edges) = visualization::immunological_study();
+    h.check_abs(
+        "immuno.channels > 0",
+        if count_channels(&immuno) > 0 {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "immuno.has_spectrum",
+        if has_channel_type(&immuno, |c| matches!(c, DataChannel::Spectrum { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "immuno.has_distribution",
+        if has_channel_type(&immuno, |c| matches!(c, DataChannel::Distribution { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 11. Population study
+    // ═══════════════════════════════════════════════════════════════════
+    let (pop, pop_edges) = visualization::population_study();
+    h.check_abs(
+        "population.channels > 0",
+        if count_channels(&pop) > 0 { 1.0 } else { 0.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "population.has_heatmap",
+        if has_channel_type(&pop, |c| matches!(c, DataChannel::Heatmap { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "population.has_scatter3d",
+        if has_channel_type(&pop, |c| matches!(c, DataChannel::Scatter3D { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "population.has_edges",
+        if pop_edges.is_empty() { 0.0 } else { 1.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 12. Loss landscape study
+    // ═══════════════════════════════════════════════════════════════════
+    let (landscape, landscape_edges) = visualization::loss_landscape_study();
+    h.check_abs(
+        "landscape.channels > 0",
+        if count_channels(&landscape) > 0 {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "landscape.has_fieldmap",
+        if has_channel_type(&landscape, |c| matches!(c, DataChannel::FieldMap { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "landscape.has_spectrum",
+        if has_channel_type(&landscape, |c| matches!(c, DataChannel::Spectrum { .. })) {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "landscape.has_edges",
+        if landscape_edges.is_empty() { 0.0 } else { 1.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+
+    // ═══════════════════════════════════════════════════════════════════
+    // 13. Full study combiner (all 12 tracks)
+    // ═══════════════════════════════════════════════════════════════════
+    let (full, full_edges) = visualization::full_study();
+    let full_channels = count_channels(&full);
+    h.check_abs(
+        "full.channels >= 20",
+        if full_channels >= 20 { 1.0 } else { 0.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "full.primals >= 12",
+        if full.ecosystem.primals.len() >= 12 {
+            1.0
+        } else {
+            0.0
+        },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "full.edges >= 10",
+        if full_edges.len() >= 10 { 1.0 } else { 0.0 },
+        1.0,
+        tolerances::BOOLEAN_VALIDATION_SLACK,
+    );
+    h.check_abs(
+        "full.all_8_channel_types",
+        if has_channel_type(&full, |c| matches!(c, DataChannel::Heatmap { .. }))
+            && has_channel_type(&full, |c| matches!(c, DataChannel::Distribution { .. }))
+            && has_channel_type(&full, |c| matches!(c, DataChannel::FieldMap { .. }))
+            && has_channel_type(&full, |c| matches!(c, DataChannel::Scatter3D { .. }))
+            && has_channel_type(&full, |c| matches!(c, DataChannel::Spectrum { .. }))
+            && has_channel_type(&full, |c| matches!(c, DataChannel::TimeSeries { .. }))
+            && has_channel_type(&full, |c| matches!(c, DataChannel::Gauge { .. }))
+            && has_channel_type(&full, |c| matches!(c, DataChannel::Bar { .. }))
+        {
             1.0
         } else {
             0.0
@@ -263,7 +516,12 @@ fn main() {
         25.0,
         tolerances::BOOLEAN_VALIDATION_SLACK,
     );
-    h.check_abs("stats.error_rate", stats.error_rate(), 5.0 / 55.0, 1e-10);
+    h.check_abs(
+        "stats.error_rate",
+        stats.error_rate(),
+        5.0 / 55.0,
+        tolerances::CROSS_LANGUAGE,
+    );
 
     let zero_stats = SessionStats {
         messages_sent: 0,
@@ -281,7 +539,8 @@ fn main() {
     // ═══════════════════════════════════════════════════════════════════
     // 9. StreamSession resume (no socket needed)
     // ═══════════════════════════════════════════════════════════════════
-    let client = PetalTonguePushClient::new(PathBuf::from("/tmp/nonexistent_ns_pt_test.sock"));
+    let client =
+        PetalTonguePushClient::new(std::env::temp_dir().join("nonexistent_ns_pt_test.sock"));
     let session = StreamSession::resume(client, "validate-pt-session");
     h.check_abs(
         "session.id",
@@ -464,7 +723,7 @@ fn main() {
     // 14. Connection failure tracking
     // ═══════════════════════════════════════════════════════════════════
     let bad_client =
-        PetalTonguePushClient::new(PathBuf::from("/tmp/nonexistent_ns_pt_validate.sock"));
+        PetalTonguePushClient::new(std::env::temp_dir().join("nonexistent_ns_pt_validate.sock"));
     let bad_session = StreamSession::resume(bad_client, "bad-session");
     let fail_result = bad_session.append("x", &[1.0], &[2.0]);
     h.check_abs(

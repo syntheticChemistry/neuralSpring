@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 133)**: 957 lib tests, 246 binaries, 220/220 `validate_all`, V91 `ToadStool`/`BarraCUDA` handoff. ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). March 9, 2026.
+**Current state (Session 135)**: 966 lib tests, 232 binaries, 220/220 `validate_all`, 56/56 petalTongue, V91 `ToadStool`/`BarraCUDA` handoff. ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). March 9, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -106,6 +106,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 090 | Session 133 — biomeOS Pipeline DAG + Graph Coordination | Mar 9, 2026 | `metalForge/forge/src/graph.rs`: `StageNode`, `PipelineGraph` (Kahn topo sort), `PipelineExecution`. 3 canonical pipelines (spectral diamond, popgen linear, folding linear). Cycle/duplicate/dangling validation. 15 graph unit tests. `validate_biomeos_graph` 32/32 PASS + `validate_biomeos_spectral` 29/29 PASS |
 | 091 | Session 133 — petalTongue StreamSession + Full IPC Integration | Mar 9, 2026 | `StreamSession` with backpressure awareness + `SessionStats`. `push_replace()` + `query_capabilities()` added. IPC buffer 4KB→64KB. `validate_petaltongue_scenarios` 31/31 PASS (scenarios + streaming + mock socket roundtrips). 5 scenario builders + `full_study()` confirmed. 46 visualization unit tests |
 | 092 | Session 134 — Deep Debt: activation consolidation, tolerance promotion, 91.66% coverage | Mar 9, 2026 | 7 activations→primitives, 16+ tolerances promoted, 0 clippy pedantic, 91.66% coverage |
+| 093 | Session 135 — petalTongue Visualization Evolution: 12 domain scenarios, live dashboard | Mar 9, 2026 | 7 new scenario builders (HMM, game theory, WDM, glucose, immunological, population, loss landscape). All 8 DataChannel types exercised. TrainingVisualizer for live spectral streaming. full_study() 12-track combiner. neuralspring_live_dashboard binary. 56/56 petalTongue PASS |
 
 ---
 

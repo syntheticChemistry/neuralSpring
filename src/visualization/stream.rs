@@ -250,13 +250,13 @@ mod tests {
             errors: 10,
             uptime_ms: 1000,
         };
-        assert!((stats.error_rate() - 0.1).abs() < 1e-10);
+        assert!((stats.error_rate() - 0.1).abs() < crate::tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
     fn resume_starts_with_zero_messages() {
         let client =
-            PetalTonguePushClient::new(std::path::PathBuf::from("/tmp/nonexistent_ns_stream.sock"));
+            PetalTonguePushClient::new(std::env::temp_dir().join("nonexistent_ns_stream.sock"));
         let session = StreamSession::resume(client, "test-session");
         let stats = session.stats();
         assert_eq!(stats.messages_sent, 0);
@@ -267,7 +267,7 @@ mod tests {
     #[test]
     fn backpressure_inactive_at_zero() {
         let client =
-            PetalTonguePushClient::new(std::path::PathBuf::from("/tmp/nonexistent_ns_stream.sock"));
+            PetalTonguePushClient::new(std::env::temp_dir().join("nonexistent_ns_stream.sock"));
         let session = StreamSession::resume(client, "test-bp");
         assert!(!session.backpressure_active());
     }

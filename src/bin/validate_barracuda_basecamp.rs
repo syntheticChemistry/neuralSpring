@@ -176,11 +176,11 @@ async fn main() {
     // Eigenvalues should be 2, 4, 6, 8, 10, 12, 14, 16
     h.check_bool(
         "LL-GPU: smallest eigenvalue ≈ 2.0 (analytical)",
-        (gpu_hess_evals[0] - 2.0).abs() < 0.1,
+        (gpu_hess_evals[0] - 2.0).abs() < tolerances::GPU_EIGH_DISPATCH_F64,
     );
     h.check_bool(
         "LL-GPU: largest eigenvalue ≈ 16.0 (analytical)",
-        (gpu_hess_evals[loss_dim - 1] - 16.0).abs() < 0.1,
+        (gpu_hess_evals[loss_dim - 1] - 16.0).abs() < tolerances::GPU_EIGH_DISPATCH_F64,
     );
 
     // Spectral entropy of Hessian eigenvalues via GPU

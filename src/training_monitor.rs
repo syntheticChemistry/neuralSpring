@@ -274,6 +274,89 @@ impl Default for TrainingMonitor {
     }
 }
 
+// ---------------------------------------------------------------------------
+// TrainingVisualizer: live petalTongue streaming wrapper
+// ---------------------------------------------------------------------------
+
+use crate::visualization::ipc_push::PushResult;
+use crate::visualization::stream::StreamSession;
+
+/// Live visualization wrapper for [`TrainingMonitor`].
+///
+/// Bridges the training FSM to a [`StreamSession`], pushing spectral
+/// diagnostics to petalTongue on each epoch. Scientists see IPR
+/// collapse, bandwidth explosion, and attention state changes in
+/// real time.
+pub struct TrainingVisualizer {
+    session: StreamSession,
+}
+
+impl TrainingVisualizer {
+    /// Wrap an existing [`StreamSession`] as the visualization sink.
+    #[must_use]
+    pub const fn new(session: StreamSession) -> Self {
+        Self { session }
+    }
+
+    /// Push epoch-level spectral metrics to petalTongue.
+    ///
+    /// Call this immediately after [`TrainingMonitor::observe_epoch`]
+    /// with the same spectral result.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`PushError`] if any stream operation fails.
+    /// The caller can check [`StreamSession::backpressure_active`]
+    /// to decide whether to skip visualization updates.
+    ///
+    /// [`PushError`]: crate::visualization::ipc_push::PushError
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "epoch count will never exceed 2^53"
+    )]
+    pub fn on_epoch(
+        &self,
+        epoch: usize,
+        spectral: &WeightSpectralResult,
+        state: AttentionState,
+    ) -> PushResult<()> {
+        let x = &[epoch as f64];
+
+        self.session
+            .append("epoch-vs-ipr", x, &[spectral.mean_ipr])?;
+        self.session
+            .append("epoch-vs-bandwidth", x, &[spectral.bandwidth])?;
+        self.session
+            .append("epoch-vs-entropy", x, &[spectral.spectral_entropy])?;
+        self.session
+            .append("epoch-vs-lsr", x, &[spectral.level_spacing_ratio])?;
+        self.session
+            .set_gauge("attention-state", state_to_f64(state))?;
+        self.session.set_gauge("current-ipr", spectral.mean_ipr)?;
+        self.session
+            .set_gauge("current-bandwidth", spectral.bandwidth)?;
+        self.session
+            .set_gauge("condition-number", spectral.condition_number)?;
+
+        Ok(())
+    }
+
+    /// Access the underlying session for stats / backpressure checks.
+    #[must_use]
+    pub const fn session(&self) -> &StreamSession {
+        &self.session
+    }
+}
+
+/// Map attention state to a numeric gauge value (0=Green, 1=Yellow, 2=Red).
+const fn state_to_f64(state: AttentionState) -> f64 {
+    match state {
+        AttentionState::Green => 0.0,
+        AttentionState::Yellow => 1.0,
+        AttentionState::Red => 2.0,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

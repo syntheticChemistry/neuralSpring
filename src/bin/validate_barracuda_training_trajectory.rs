@@ -196,7 +196,10 @@ async fn main() {
     );
 
     let probs: Vec<f64> = {
-        let evals_abs: Vec<f64> = cpu_sorted.iter().map(|v| v.abs().max(1e-30)).collect();
+        let evals_abs: Vec<f64> = cpu_sorted
+            .iter()
+            .map(|v| v.abs().max(tolerances::LOG_ZERO_GUARD))
+            .collect();
         let sum: f64 = evals_abs.iter().sum();
         evals_abs.iter().map(|v| v / sum).collect()
     };

@@ -1,8 +1,9 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 7, 2026 (Sessions 61–130)
-**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **220/220 validate\_all** (246 binaries), 966 lib tests. S133: Phase 5–7 buildout — metalForge PCIe P2P, biomeOS pipeline DAG, petalTongue StreamSession. V91 handoff. barraCuda: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`, 708 WGSL shaders, wgpu 28, cross-spring provenance, typed errors)
+**Last Updated**: March 9, 2026 (Sessions 61–135)
+**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **220/220 validate\_all** (232 binaries), 966 lib tests. S135: petalTongue visualization evolution — 12 domain scenario builders, all 8 DataChannel types, live training dashboard. V91 handoff. barraCuda: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`, 708 WGSL shaders, wgpu 28, cross-spring provenance, typed errors)
 
+- **S135**: petalTongue visualization evolution — 7 new scenario builders, `TrainingVisualizer`, live dashboard binary
 - **S134**: activation consolidation, tolerance promotion, 91.66% coverage
 
 ## Purpose

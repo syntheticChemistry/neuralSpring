@@ -5,6 +5,31 @@
 use std::path::PathBuf;
 use std::process;
 
+/// Validation execution mode.
+///
+/// Formalizes the three conceptual modes that validation binaries
+/// operate in.  Discoverable at runtime via environment or GPU
+/// adapter availability.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ValidationMode {
+    /// CPU-only with local implementations (no `BarraCUDA`).
+    Local,
+    /// `BarraCUDA` CPU dispatch path.
+    BarracudaCpu,
+    /// `BarraCUDA` GPU dispatch path (requires adapter).
+    BarracudaGpu,
+}
+
+impl std::fmt::Display for ValidationMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Local => f.write_str("local"),
+            Self::BarracudaCpu => f.write_str("barracuda-cpu"),
+            Self::BarracudaGpu => f.write_str("barracuda-gpu"),
+        }
+    }
+}
+
 /// Whether `REQUIRE_GPU=1` is set.
 ///
 /// Capability-based: reads `REQUIRE_GPU` first, falls back to

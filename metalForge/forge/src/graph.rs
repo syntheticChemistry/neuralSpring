@@ -573,8 +573,10 @@ mod tests {
 
     #[test]
     fn stage_output_variants() {
-        let scalar = StageOutput::Scalar(3.14);
-        assert!(matches!(scalar, StageOutput::Scalar(v) if (v - 3.14).abs() < 1e-10));
+        let scalar = StageOutput::Scalar(std::f64::consts::PI);
+        assert!(
+            matches!(scalar, StageOutput::Scalar(v) if (v - std::f64::consts::PI).abs() < 1e-10)
+        );
 
         let vec = StageOutput::Vector(vec![1.0, 2.0, 3.0]);
         assert!(matches!(vec, StageOutput::Vector(ref v) if v.len() == 3));

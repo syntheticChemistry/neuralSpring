@@ -5,7 +5,32 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 134 (March 9, 2026)
+## [Unreleased] — Session 135 (March 9, 2026)
+
+### Session 135 — petalTongue Visualization Evolution (2026-03-09)
+
+**7 new domain scenario builders** in `src/visualization/scenarios/`:
+
+- `hmm.rs`: HMM phylogenetics — transition matrix Heatmap, log-likelihood TimeSeries, Viterbi Bar/Gauge
+- `game_theory.rs`: evolutionary game theory — payoff Heatmap, cooperation TimeSeries, Nash Gauge
+- `wdm.rs`: Warm Dense Matter — transport TimeSeries, phase-space Scatter3D (loads real surrogate MLP)
+- `glucose.rs`: blood glucose prediction — CGM TimeSeries, error Distribution, R² Gauge, horizon Bar
+- `immunological.rs`: Anderson immunological — dose-response TimeSeries, barrier Spectrum, PK decay, disorder Gauge, response Distribution
+- `population.rs`: meta-population + pangenome — FST Heatmap, diversity Bar, geography Scatter3D, gene partition, repertoire Gauge
+- `loss_landscape.rs`: Hessian analysis — eigenvalue Spectrum, 2D loss FieldMap, condition/gap Gauges
+
+**All 8 `DataChannel` types** now exercised (added Heatmap, Distribution, FieldMap to previously used TimeSeries, Spectrum, Gauge, Bar, Scatter3D).
+
+- `TrainingVisualizer` added to `training_monitor.rs`: wraps `StreamSession`, pushes per-epoch IPR/bandwidth/entropy/LSR timeseries + attention/condition gauges to petalTongue in real time
+- `full_study()` expanded from 5 → 12 tracks with 9 cross-domain edges
+- `dump_neuralspring_scenarios` now emits 13 scenario JSONs (7 new + complete study)
+- New binary: `neuralspring_live_dashboard` — discovers petalTongue, streams simulated training loop with spectral diagnostics
+- New script: `scripts/visualize.sh` (dump/live/render modes, following healthSpring pattern)
+- `validate_petaltongue_scenarios`: 31 → 56 checks (+25 for new scenarios + all-8-types validation)
+- 3 new helper constructors: `heatmap()`, `distribution()`, `fieldmap()` in scenarios/mod.rs
+- Root docs, CHANGELOG, EVOLUTION_READINESS, experiments journal updated
+- Handoffs: V91 → wateringHole (BarraCUDA/ToadStool absorption, petalTongue evolution)
+- 0 clippy warnings, 0 fmt diff, 966 lib tests PASS
 
 ### Session 134 — Deep Debt Resolution & Doc Sweep (2026-03-09)
 

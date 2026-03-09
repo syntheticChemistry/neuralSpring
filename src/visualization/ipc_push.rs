@@ -127,7 +127,7 @@ impl PetalTonguePushClient {
     /// Resolution order:
     /// 1. `PETALTONGUE_SOCKET` env var
     /// 2. `$XDG_RUNTIME_DIR/petaltongue/*.sock`
-    /// 3. `/tmp/petaltongue-*.sock`
+    /// 3. `std::env::temp_dir()/petaltongue-*.sock`
     ///
     /// # Errors
     ///
@@ -153,7 +153,7 @@ impl PetalTonguePushClient {
                 }
             }
         }
-        if let Ok(entries) = std::fs::read_dir("/tmp") {
+        if let Ok(entries) = std::fs::read_dir(std::env::temp_dir()) {
             for entry in entries.flatten() {
                 let name = entry.file_name();
                 let name = name.to_string_lossy();
@@ -364,7 +364,7 @@ mod tests {
 
     #[test]
     fn client_new_stores_path() {
-        let path = PathBuf::from("/tmp/test-socket.sock");
+        let path = std::env::temp_dir().join("test-socket.sock");
         let client = PetalTonguePushClient::new(path.clone());
         assert_eq!(client.socket_path(), &path);
     }
@@ -502,7 +502,8 @@ mod tests {
 
     #[test]
     fn push_connection_failed_on_missing_socket() {
-        let client = PetalTonguePushClient::new(PathBuf::from("/tmp/nonexistent_ns_test.sock"));
+        let client =
+            PetalTonguePushClient::new(std::env::temp_dir().join("nonexistent_ns_test.sock"));
         let result = client.push_gauge_update("s", "b", 1.0);
         assert!(matches!(result, Err(PushError::ConnectionFailed(_))));
     }

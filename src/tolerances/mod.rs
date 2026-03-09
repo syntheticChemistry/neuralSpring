@@ -696,6 +696,28 @@ pub const GPU_KIMURA_BATCH_DIFF: f64 = 1e-4;
 /// accounts for flush-to-zero differences across GPU drivers.
 pub const TENSOR_RELU_DETERMINISM_F32: f64 = 1e-7;
 
+/// Division guard for standard deviation / variance denominators.
+///
+/// Prevents division by zero when normalizing time-series data.
+/// `1e-12` matches `EXACT_F64` — a safe floor that is negligible
+/// compared to typical CGM variance (~100–400 mg²/dL²).
+pub const VARIANCE_DIVISION_GUARD: f64 = EXACT_F64;
+
+/// Monotonicity comparison epsilon for diffusion schedules.
+///
+/// `alpha_bar` must decrease monotonically; `1e-15` is one order
+/// above f64 machine epsilon (~2.2e-16), allowing rounding from
+/// cumulative products while detecting genuine non-monotonicity.
+pub const MONOTONICITY_EPS: f64 = 1e-15;
+
+/// GPU hydrology kernel parity (Hargreaves ET₀).
+///
+/// Hargreaves equation involves sqrt and temperature arithmetic;
+/// f64 GPU dispatch may differ from CPU by a few ULPs.  `1e-6`
+/// accounts for 6 digits of agreement — sufficient for ET₀ in
+/// mm/day (values typically 1–10).
+pub const GPU_HYDROLOGY_F64: f64 = 1e-6;
+
 // ═══════════════════════════════════════════════════════════════════
 // Provenance date constants
 // ═══════════════════════════════════════════════════════════════════

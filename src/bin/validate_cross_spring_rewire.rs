@@ -234,6 +234,9 @@ fn validate_esn_barracuda_bridge(h: &mut ValidationHarness) {
     };
     h.check_bool("ESN bridge: JSON loaded", true);
 
+    // Provenance: test points from control/wdm/esn_regime_baseline.json
+    // (commit f9ad0268, 2026-02-16). Each (log_rho, log_T) maps to a
+    // known WDM phase region per Stanton-Murillo phase diagram.
     let test_cases: &[(f64, f64, &str)] = &[
         (-1.0, 8.0, "hot-sparse (Classical)"),
         (0.5, 5.5, "WDM regime"),

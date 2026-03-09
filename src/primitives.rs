@@ -426,7 +426,10 @@ mod tests {
     }
 
     #[test]
-    #[expect(clippy::cast_possible_truncation, reason = "test inputs are small known constants")]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "test inputs are small known constants"
+    )]
     fn gelu_f32_matches_f64() {
         for &x in &[-2.0, -1.0, 0.0, 0.5, 1.0, 3.0] {
             let diff = (f64::from(gelu_f32(x as f32)) - gelu(x)).abs();

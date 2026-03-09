@@ -8,9 +8,16 @@
 
 mod coordination;
 mod folding;
+mod game_theory;
+mod glucose;
+mod hmm;
+mod immunological;
+mod loss_landscape;
+mod population;
 mod provenance;
 mod spectral;
 mod training;
+mod wdm;
 
 use super::types::{
     Animations, CapReqs, DataChannel, Ecosystem, NeuralApi, NeuralScenario, Performance, Position,
@@ -19,9 +26,16 @@ use super::types::{
 
 pub use coordination::coordination_study;
 pub use folding::folding_study;
+pub use game_theory::game_theory_study;
+pub use glucose::glucose_study;
+pub use hmm::hmm_study;
+pub use immunological::immunological_study;
+pub use loss_landscape::loss_landscape_study;
+pub use population::population_study;
 pub use provenance::provenance_study;
 pub use spectral::spectral_study;
 pub use training::training_study;
+pub use wdm::wdm_study;
 
 fn scaffold(name: &str, description: &str) -> NeuralScenario {
     NeuralScenario {
@@ -162,6 +176,62 @@ pub(crate) fn scatter3d(
     }
 }
 
+pub(crate) fn heatmap(
+    id: &str,
+    label: &str,
+    x_labels: Vec<String>,
+    y_labels: Vec<String>,
+    values: Vec<f64>,
+    unit: &str,
+) -> DataChannel {
+    DataChannel::Heatmap {
+        id: id.into(),
+        label: label.into(),
+        x_labels,
+        y_labels,
+        values,
+        unit: unit.into(),
+    }
+}
+
+pub(crate) fn distribution(
+    id: &str,
+    label: &str,
+    unit: &str,
+    values: Vec<f64>,
+    mean: f64,
+    std: f64,
+    comparison_value: f64,
+) -> DataChannel {
+    DataChannel::Distribution {
+        id: id.into(),
+        label: label.into(),
+        unit: unit.into(),
+        values,
+        mean,
+        std,
+        comparison_value,
+    }
+}
+
+pub(crate) fn fieldmap(
+    id: &str,
+    label: &str,
+    grid_x: Vec<f64>,
+    grid_y: Vec<f64>,
+    values: Vec<f64>,
+    unit: &str,
+) -> DataChannel {
+    DataChannel::FieldMap {
+        id: id.into(),
+        label: label.into(),
+        grid_x,
+        grid_y,
+        values,
+        unit: unit.into(),
+    }
+}
+
 #[expect(
     clippy::too_many_arguments,
     reason = "internal helper — all args have clear roles"
@@ -210,39 +280,51 @@ pub(crate) fn edge(from: &str, to: &str, label: &str) -> ScenarioEdge {
 /// sub-studies into a single graph with cross-track edges.
 #[must_use]
 pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
-    let (spec, mut spec_edges) = spectral_study();
-    let (train, train_edges) = training_study();
-    let (coord, coord_edges) = coordination_study();
-    let (prov, mut prov_edges) = provenance_study();
-    let (fold, fold_edges) = folding_study();
+    let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
+        spectral_study(),
+        training_study(),
+        coordination_study(),
+        provenance_study(),
+        folding_study(),
+        hmm_study(),
+        game_theory_study(),
+        wdm_study(),
+        glucose_study(),
+        immunological_study(),
+        population_study(),
+        loss_landscape_study(),
+    ];
 
     let mut s = scaffold(
         "neuralSpring Complete Study",
-        "All 5 tracks: Spectral + Training + Coordination + Provenance + Folding",
+        "All 12 tracks: Spectral, Training, Coordination, Provenance, Folding, \
+         HMM, Game Theory, WDM, Glucose, Immunological, Population, Loss Landscape",
     );
 
-    let offsets: [(f64, f64); 5] = [
+    let offsets: [(f64, f64); 12] = [
         (0.0, 0.0),
         (0.0, 500.0),
         (600.0, 0.0),
         (600.0, 500.0),
         (300.0, 800.0),
+        (900.0, 0.0),
+        (900.0, 500.0),
+        (1200.0, 0.0),
+        (1200.0, 500.0),
+        (1500.0, 0.0),
+        (1500.0, 500.0),
+        (300.0, 1200.0),
     ];
 
-    for (track, offset) in [spec, train, coord, prov, fold].into_iter().zip(offsets) {
+    let mut all_edges = Vec::new();
+    for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
         for mut n in track.ecosystem.primals {
             n.position.x += offset.0;
             n.position.y += offset.1;
             s.ecosystem.primals.push(n);
         }
+        all_edges.append(&mut edges);
     }
-
-    let mut all_edges = Vec::new();
-    all_edges.append(&mut spec_edges);
-    all_edges.extend(train_edges);
-    all_edges.extend(coord_edges);
-    all_edges.append(&mut prov_edges);
-    all_edges.extend(fold_edges);
 
     all_edges.push(edge(
         "spectral_analysis",
@@ -263,6 +345,31 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         "shader_provenance",
         "spectral_analysis",
         "shaders implement spectral ops",
+    ));
+    all_edges.push(edge(
+        "hessian_analysis",
+        "spectral_analysis",
+        "loss Hessian ↔ weight spectra",
+    ));
+    all_edges.push(edge(
+        "hmm_forward",
+        "meta_pop",
+        "phylogenetics → population structure",
+    ));
+    all_edges.push(edge(
+        "replicator_dynamics",
+        "qs_cooperation",
+        "classical → spatial dynamics",
+    ));
+    all_edges.push(edge(
+        "glucose_prediction",
+        "training_trajectory",
+        "LSTM training → glucose forecast",
+    ));
+    all_edges.push(edge(
+        "immuno_anderson",
+        "wdm_transport",
+        "Anderson localization ↔ WDM transport",
     ));
 
     (s, all_edges)

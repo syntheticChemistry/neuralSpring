@@ -318,7 +318,7 @@ fn validate_barracuda_cpu(h: &mut ValidationHarness) {
 
     let cgm_norm: Vec<f64> = cgm
         .iter()
-        .map(|&g| (g - mean) / cpu_var.sqrt().max(1e-12))
+        .map(|&g| (g - mean) / cpu_var.sqrt().max(tolerances::VARIANCE_DIVISION_GUARD))
         .collect();
     let (inputs, targets) = create_sequences(&cgm_norm, 12, 6);
 
@@ -415,7 +415,7 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
     let cgm = generate_synthetic_cgm(14, 42);
     let mean = cgm.iter().sum::<f64>() / cgm.len() as f64;
     let var = cgm.iter().map(|&g| (g - mean).powi(2)).sum::<f64>() / cgm.len() as f64;
-    let std = var.sqrt().max(1e-12);
+    let std = var.sqrt().max(tolerances::VARIANCE_DIVISION_GUARD);
 
     let cgm_norm: Vec<f64> = cgm.iter().map(|&g| (g - mean) / std).collect();
 

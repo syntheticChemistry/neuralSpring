@@ -49,14 +49,18 @@ S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated
 21/21 WGSL shaders absorbed + 15 coralForge df64 shaders.
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
 966 lib tests, 150+ named tolerances, 0 clippy warnings (pedantic+nursery clean), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
-246 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/, 966 lib + 9 integration + 71 forge tests.
+232 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/, 966 lib + 9 integration + 71 forge tests.
 **CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. **220/220 validate\_all**.
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 **220/220 validate\_all**. Pure Rust **38.6× faster** than Python/NumPy
 (geomean, 15 domains; fastest: multi-obj fitness 1028×; 2 BLAS-bound domains included). CPU→GPU portability proven (9/9, 7 domains).
+
+### petalTongue Visualization (Session 135)
+
+12 domain scenario builders covering all 8 `DataChannel` types (TimeSeries, Spectrum, Gauge, Bar, Scatter3D, **Heatmap**, **Distribution**, **FieldMap**). Live training dashboard via `TrainingVisualizer` streaming spectral diagnostics to petalTongue. 56/56 petalTongue validation checks. `scripts/visualize.sh` for offline/live/render modes.
 S130: Upstream rewire — ToadStool S130 pin, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired, fused GPU regression gated via canary, coralNAK→coralReef rename, `baseline_path` consistency, inline threshold extraction. V88 handoff.
 S132: Upstream rewire — ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). Zero API breakage (spring sync confirmed). `shared_memory_f64_safe()` precision routing. `barracuda::shaders::provenance` wired (22 shaders, 17 cross-spring edges). 911 lib tests (+9 provenance/precision), 42/42 drift PASS. V90 handoff.
-S133: Phase 5–7 buildout — metalForge PCIe `transfer_buffer_strategy()`, `NpuToGpuP2P` substrate variant, biomeOS pipeline DAG (`graph.rs`: topological execution, 3 canonical pipelines), petalTongue `StreamSession` + `push_replace` + 64KB IPC buffer. `validate_nucleus_tower` + `validate_biomeos_graph` + `validate_petaltongue_scenarios` added (22+32+31 PASS). Feature-gated `validate_all` support. 966 lib + 71 forge tests, 246 binaries, 220/220 validate\_all.
+S133: Phase 5–7 buildout — metalForge PCIe `transfer_buffer_strategy()`, `NpuToGpuP2P` substrate variant, biomeOS pipeline DAG (`graph.rs`: topological execution, 3 canonical pipelines), petalTongue `StreamSession` + `push_replace` + 64KB IPC buffer. `validate_nucleus_tower` + `validate_biomeos_graph` + `validate_petaltongue_scenarios` added (22+32+31 PASS). Feature-gated `validate_all` support. 966 lib + 71 forge tests, 232 binaries, 220/220 validate\_all.
 S127: Paper 026 full-tier validation — LSTM glucose domain added to all 4 validation tiers (CPU bench, CPU math parity, GPU pure workload, dispatch parity) + `run_all_baselines.sh`. 10 CPU parity kernels, 13 GPU pure-workload domains, 55 dispatch parity checks. V85 handoff.
 S116: `ToadStool` S87 sync (`9d359814`): deep debt evolution, FHE shader fixes, CPU ungating, unsafe audit. 844+ WGSL shaders. 18/18 S87 sync, 212/212 validate_all.
 S121: SimpleMlp rewire (WDM surrogates → `barracuda::nn::SimpleMlp`, ~300 LOC eliminated) + HMM Viterbi chain → f64 `ComputeDispatch` (single-dispatch `hmm_viterbi_f64.wgsl`). Cross-spring modern benchmark (28/28 PASS, 5 springs). V82 handoff.
@@ -547,7 +551,7 @@ neuralSpring/
 │   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
 │   ├── gpu_ops/                 #   41 GPU-accelerated ops (6 submodules: linalg, activation, reduction, bio, population, eigensolver)
 │   ├── gpu_dispatch/            #   Capability-based GPU/CPU dispatch (Dispatcher)
-│   └── bin/                    #   246 binaries (validate + bench)
+│   └── bin/                    #   232 binaries (validate + bench)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
 │       ├── validate_metrics.rs             # 10 checks
@@ -610,10 +614,11 @@ neuralSpring/
 │   ├── baseCamp/              #   Per-faculty research briefings
 ├── scripts/
 │   ├── run_all_baselines.sh    #   Orchestrates all 39 Python runs (25 papers + 5 WDM + ML inference + 5 coralForge + 3 pub + 2 nS-06)
-│   └── download_pretrained.py  #   Download pretrained models for nS-01 Paper A (safetensors)
+│   ├── download_pretrained.py  #   Download pretrained models for nS-01 Paper A (safetensors)
+│   └── visualize.sh            #   petalTongue visualization: dump scenarios / live dashboard / render
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
-│   └── rust.yml                #   Rust test + clippy + validate (246 binaries)
+│   └── rust.yml                #   Rust test + clippy + validate (232 binaries)
 ├── CHANGELOG.md                # Release history
 ├── Cargo.toml                  # Rust manifest
 ├── Makefile                    # Task runner

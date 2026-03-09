@@ -11,7 +11,7 @@
 neuralSpring has validated 3,600+ checks across 25 papers, 5 WDM surrogates,
 coralForge (nF-01/02/03), 5 baseCamp sub-theses, and 3 publication experiments.
 The full pipeline is proven: Python → Rust CPU → BarraCUDA CPU → GPU Tensor →
-Pure GPU → metalForge cross-substrate. 957 lib tests, 246 binaries, zero clippy,
+Pure GPU → metalForge cross-substrate. 966 lib tests, 232 binaries, zero clippy,
 zero debt. 83.6× faster than Python.
 
 **Session 104b state**: Complete cross-spring rewire to modern ToadStool f97fc2ae.

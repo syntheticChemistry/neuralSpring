@@ -18,7 +18,7 @@
 //!
 //! | Baseline | Source |
 //! |----------|--------|
-//! | Eigenvalues 2.381966, 4.618034 | Analytical: eigenvalues of [[3,1],[1,4]] via characteristic polynomial |
+//! | Eigenvalues 2.381966, 4.618034 | Analytical: eigenvalues of \[\[3,1\],\[1,4\]\] via characteristic polynomial |
 
 #![expect(
     clippy::cast_precision_loss,

@@ -104,7 +104,10 @@ fn main() {
 
         h.check_bool(
             "nF-D01c alpha_bar monotonically decreasing",
-            sched.alpha_bar.windows(2).all(|w| w[1] <= w[0] + 1e-15),
+            sched
+                .alpha_bar
+                .windows(2)
+                .all(|w| w[1] <= w[0] + tolerances::MONOTONICITY_EPS),
         );
         h.check_bool("nF-D01d alpha_bar[0] > 0.99", sched.alpha_bar[0] > 0.99);
     }

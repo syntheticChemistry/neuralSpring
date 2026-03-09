@@ -11,8 +11,9 @@
 )]
 
 use neural_spring::visualization::{
-    coordination_study, folding_study, full_study, provenance_study, scenario_with_edges_json,
-    spectral_study, training_study,
+    coordination_study, folding_study, full_study, game_theory_study, glucose_study, hmm_study,
+    immunological_study, loss_landscape_study, population_study, provenance_study,
+    scenario_with_edges_json, spectral_study, training_study, wdm_study,
 };
 
 fn main() {
@@ -25,7 +26,14 @@ fn main() {
         ("neuralspring-coordination-study", coordination_study()),
         ("neuralspring-provenance-study", provenance_study()),
         ("neuralspring-folding-study", folding_study()),
-        ("neuralspring-full-study", full_study()),
+        ("neuralspring-hmm-study", hmm_study()),
+        ("neuralspring-game-theory-study", game_theory_study()),
+        ("neuralspring-wdm-study", wdm_study()),
+        ("neuralspring-glucose-study", glucose_study()),
+        ("neuralspring-immunological-study", immunological_study()),
+        ("neuralspring-population-study", population_study()),
+        ("neuralspring-loss-landscape-study", loss_landscape_study()),
+        ("neuralspring-complete-study", full_study()),
     ];
 
     for (name, (scenario, edges)) in &studies {
@@ -40,6 +48,9 @@ fn main() {
         );
     }
 
-    println!("\nAll scenarios written to {dir}/");
-    println!("Render with: petaltongue ui --scenario {dir}/neuralspring-full-study.json");
+    println!(
+        "\nAll {count} scenarios written to {dir}/",
+        count = studies.len()
+    );
+    println!("Render with: petaltongue ui --scenario {dir}/neuralspring-complete-study.json");
 }

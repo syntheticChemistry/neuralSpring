@@ -205,6 +205,8 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             GLUCOSE_CGM_STAT_TOL, GLUCOSE_TAU_TOL,
             PLDDT_DEGENERACY_THRESHOLD,
             GPU_KIMURA_BATCH_DIFF, TENSOR_RELU_DETERMINISM_F32,
+            VARIANCE_DIVISION_GUARD, MONOTONICITY_EPS,
+            GPU_HYDROLOGY_F64,
         ],
     ]
 }

@@ -178,11 +178,7 @@ mod tests {
     fn transfer_strategy_provides_cost() {
         let bridge = PcieBridge::new("GPU_A", "NPU_A");
         match bridge.transfer_buffer_strategy(4_194_304) {
-            TransferStrategy::CpuStaged { cost } => {
-                assert!(cost.estimated_us() > 0.0);
-                assert_eq!(cost.bytes, 4_194_304);
-            }
-            TransferStrategy::P2P { cost } => {
+            TransferStrategy::CpuStaged { cost } | TransferStrategy::P2P { cost } => {
                 assert!(cost.estimated_us() > 0.0);
                 assert_eq!(cost.bytes, 4_194_304);
             }

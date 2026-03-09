@@ -1,10 +1,11 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 9, 2026 (Session 134 — Phase 5–7 buildout)
+**Date**: March 9, 2026 (Session 135 — petalTongue Visualization Evolution)
 **barraCuda**: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`). 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Deep debt: typed errors, named constants, lint compliance.
 **ToadStool**: S130+ at `bfe7977b`. Hardware discovery + orchestration, coralReef shader proxy, JSON-RPC only, `SubstrateType` 8 variants, capability-based discovery. Spring sync confirms zero API breakage for all 5 springs. 19,777 tests.
 **coralReef**: Iteration 10 at `d29a734`. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2), f64 transcendentals. 8 neuralSpring shaders in corpus. 990 tests.
-**neuralSpring**: 966 lib + 71 forge + 9 integration tests, 246 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**neuralSpring**: 966 lib + 71 forge + 9 integration tests, 232 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**S135**: petalTongue visualization evolution — 7 new domain scenario builders (HMM, game theory, WDM, glucose, immunological, population, loss landscape), all 8 DataChannel types exercised, `TrainingVisualizer` live streaming, `full_study()` 12-track combiner, `neuralspring_live_dashboard` binary, `scripts/visualize.sh`, 56/56 petalTongue validation.
 **S133**: metalForge PCIe `transfer_buffer_strategy()`, `NpuToGpuP2P` substrate, biomeOS pipeline DAG (`graph.rs`: topological execution, 3 canonical pipelines), petalTongue `StreamSession` + `push_replace` + 64KB IPC. Feature-gated `validate_all`. 220/220 `validate_all` PASS. V91 handoff.
 **S121 rewires**: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch`. 46 total upstream rewires. 80/80 S121 rewire validation + 28/28 cross-spring modern bench.
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
@@ -22,7 +23,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 330/330 | **COMPLETE** |
-| Rust native validation | 966 lib + 9 integration + 71 forge tests, 41 modules, 246 binaries | **COMPLETE** |
+| Rust native validation | 966 lib + 9 integration + 71 forge tests, 41 modules, 232 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |

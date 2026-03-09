@@ -78,7 +78,7 @@ pub struct CompiledShader {
 /// [`CoralError::NotAvailable`].
 pub struct CoralCompiler {
     #[cfg(feature = "coralreef")]
-    _options: coral_reef::CompileOptions,
+    options: coral_reef::CompileOptions,
     /// Whether compile-time support is available.
     available: bool,
 }
@@ -92,7 +92,7 @@ impl CoralCompiler {
     #[cfg(feature = "coralreef")]
     pub fn auto() -> Self {
         Self {
-            _options: coral_reef::CompileOptions::default(),
+            options: coral_reef::CompileOptions::default(),
             available: true,
         }
     }
@@ -117,7 +117,7 @@ impl CoralCompiler {
     /// disabled, or [`CoralError::CompileFailed`] if compilation fails.
     #[cfg(feature = "coralreef")]
     pub fn compile_wgsl(&self, wgsl: &str) -> CoralResult<CompiledShader> {
-        let opts = &self._options;
+        let opts = &self.options;
         match coral_reef::compile_wgsl(wgsl, opts) {
             Ok(binary) => Ok(CompiledShader {
                 binary,

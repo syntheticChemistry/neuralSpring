@@ -21,7 +21,6 @@
 //! ```
 
 #![expect(
-    clippy::unwrap_used,
     clippy::expect_used,
     reason = "validation binary — direct field access on known-good test data"
 )]
@@ -188,13 +187,14 @@ fn validate_beta_observation(h: &mut ValidationHarness) {
     );
     h.check_abs(
         "BetaObservation.anderson_r",
-        obs.anderson_r.unwrap(),
+        obs.anderson_r.expect("anderson_r was set to Some(0.42)"),
         0.42,
         tolerances::EXACT_F64,
     );
     h.check_abs(
         "BetaObservation.anderson_lambda_min",
-        obs.anderson_lambda_min.unwrap(),
+        obs.anderson_lambda_min
+            .expect("anderson_lambda_min was set to Some(-2.1)"),
         -2.1,
         tolerances::EXACT_F64,
     );

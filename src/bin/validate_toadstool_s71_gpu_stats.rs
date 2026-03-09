@@ -210,7 +210,7 @@ fn validate_hargreaves_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::de
                     &format!("HargreavesBatchGpu parity [{i}]"),
                     *gpu_val,
                     *cpu_val,
-                    1e-6,
+                    tolerances::GPU_HYDROLOGY_F64,
                 );
             }
         }
