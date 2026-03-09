@@ -917,6 +917,12 @@ path = "src/bin/validate_barracuda_dispatch_parity.rs"
 name = "validate_mixed_hardware_dispatch"
 path = "src/bin/validate_mixed_hardware_dispatch.rs"
 
+# ── petalTongue scenario dump ───────────────────────────────────────
+
+[[bin]]
+name = "dump_neuralspring_scenarios"
+path = "src/bin/dump_neuralspring_scenarios.rs"
+
 # ── biomeOS primal adapter ──────────────────────────────────────────
 
 [[bin]]
@@ -1035,6 +1041,18 @@ path = "src/bin/bench_cross_spring_modern.rs"
 [[bin]]
 name = "bench_cross_spring_shader_evolution"
 path = "src/bin/bench_cross_spring_shader_evolution.rs"
+
+# biomeOS graph coordination (DAG pipeline execution)
+
+[[bin]]
+name = "validate_biomeos_graph"
+path = "src/bin/validate_biomeos_graph.rs"
+
+# petalTongue visualization (scenarios + streaming + IPC roundtrip)
+
+[[bin]]
+name = "validate_petaltongue_scenarios"
+path = "src/bin/validate_petaltongue_scenarios.rs"
 
 # ── S105: baseCamp GPU promotions (weight_spectral, loss_landscape, neural_pgm, agent_coordination)
 

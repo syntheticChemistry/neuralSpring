@@ -78,10 +78,10 @@ fn linear(
 }
 
 /// `ReLU` activation: `max(0, x)`.
+///
+/// Delegates to [`primitives::relu_inplace`](crate::primitives::relu_inplace).
 fn relu_inplace(x: &mut [f64]) {
-    for v in x.iter_mut() {
-        *v = v.max(0.0);
-    }
+    crate::primitives::relu_inplace(x);
 }
 
 /// One `ResNet` block: `x + Linear(ReLU(Linear(x)))`.

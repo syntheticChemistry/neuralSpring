@@ -5,7 +5,41 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 132 (March 8, 2026)
+## [Unreleased] — Session 134 (March 9, 2026)
+
+### Session 134 — Deep Debt Resolution & Doc Sweep (2026-03-09)
+
+**Code quality audit and deep debt resolution.**
+
+- Consolidated 7 duplicate activation functions (sigmoid, gelu, relu, softmax) into `primitives.rs`
+  - Added 9 new tests: `gelu`, `gelu_f32`, `softmax`, `relu`, `relu_f32`, `relu_vec`, `relu_inplace`, plus edge cases
+  - Lib tests: 957 → 966 (+9)
+- Promoted 16+ inline tolerance literals to 5 new named constants in `tolerances/`
+  - `GLUCOSE_CGM_STAT_TOL`, `GLUCOSE_TAU_TOL`, `PLDDT_DEGENERACY_THRESHOLD`, `GPU_KIMURA_BATCH_DIFF`, `TENSOR_RELU_DETERMINISM_F32`
+  - Named tolerances: 145 → 150+
+- Fixed 6 clippy pedantic/nursery errors across `visualization/stream.rs`, `validate_biomeos_graph.rs`, `validate_petaltongue_scenarios.rs`
+- Added provenance triplets (Python script, commit, date, command) to 5 validation binary docblocks
+- Replaced hardcoded primal namespaces in `coralreef_bridge.rs` with `BIOMEOS_NAMESPACES` env (capability-based discovery)
+- `validate_gpu_shader_phase4.rs`: standardized no-GPU exit via `validation::exit_no_gpu()`
+- `neural_pgm.rs`: `weight_to_transition` now delegates to `primitives::softmax` per row
+- Replaced `unwrap()` calls in tests with `expect()` (descriptive), `panic!()` with `assert!(matches!(...))`
+- Line coverage: 91.66% (above 90% target)
+- Full doc sweep: README, EVOLUTION_READINESS, CONTROL_EXPERIMENT_STATUS, experiments/README, whitePaper/baseCamp, specs/ — all aligned to 966/220/246
+- All builds green: `cargo fmt`, `cargo clippy -D warnings`, `cargo doc`, `cargo test`
+
+### Session 133 — Phase 5–7 Buildout (March 9, 2026)
+
+**metalForge PCIe**: `PcieBridge::transfer_buffer_strategy()` selects P2P vs CPU-staged transfer based on IOMMU group detection. `TransferStrategy` enum (`P2P` / `CpuStaged`). `MixedSubstrate::NpuToGpuP2P` variant for explicit PCIe P2P bypass. `mixed_substrate_p2p()` for P2P-aware routing.
+
+**biomeOS pipeline DAG**: `metalForge/forge/src/graph.rs` — `StageNode` (capability-addressed), `PipelineGraph` (Kahn's topological sort), `PipelineExecution` (per-stage tracking). 3 canonical pipelines: `spectral_pipeline()` (diamond DAG), `population_genetics_pipeline()` (linear), `folding_pipeline()` (linear). Structural validation (cycles, duplicates, dangling edges). 15 unit tests.
+
+**petalTongue StreamSession**: `src/visualization/stream.rs` — session lifecycle (start/resume), backpressure awareness (error rate monitoring), `SessionStats` (messages/sec, bytes, errors, uptime). `push_replace()` and `query_capabilities()` added to `PetalTonguePushClient`. IPC buffer: 4KB → 64KB (parity with healthSpring).
+
+**Feature-gated validate_all**: `FEATURE_BINARIES` list for `--features primal` binaries. `validate_nucleus_tower` (22/22) and `validate_biomeos_spectral` (29/29) now in suite.
+
+**New validators**: `validate_biomeos_graph` (32/32 PASS), `validate_petaltongue_scenarios` (31/31 PASS). `validate_nucleus_compute_dispatch` now 43/43 PASS (was 39).
+
+**Lib tests**: 911 → 957 (+46: 15 graph, 5 stream, 4 pcie, 4 mixed, 18 ipc). **Forge tests**: 43 → 71 (+28: 15 graph, 5 pcie, 8 mixed). **Binaries**: 240 → 246.
 
 ### Session 132 — Upstream Rewire + Cross-Spring Provenance (March 8, 2026)
 

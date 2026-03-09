@@ -49,6 +49,40 @@ impl PcieBridge {
     pub const fn transfer_cost(&self, bytes: u64) -> super::mixed::TransferCost {
         super::mixed::gpu_npu_cost(bytes, self.p2p_available)
     }
+
+    /// Determine the optimal transfer strategy for a buffer of `bytes`.
+    ///
+    /// Returns `TransferStrategy::P2P` when P2P DMA is available (same IOMMU
+    /// group), otherwise `TransferStrategy::CpuStaged`. The actual buffer
+    /// transfer is performed by `wgpu`/`barracuda` — this method only
+    /// selects the strategy.
+    #[must_use]
+    pub const fn transfer_buffer_strategy(&self, bytes: u64) -> TransferStrategy {
+        if self.p2p_available {
+            TransferStrategy::P2P {
+                cost: super::mixed::gpu_npu_cost(bytes, true),
+            }
+        } else {
+            TransferStrategy::CpuStaged {
+                cost: super::mixed::gpu_npu_cost(bytes, false),
+            }
+        }
+    }
+}
+
+/// Strategy for cross-device buffer transfer.
+#[derive(Debug)]
+pub enum TransferStrategy {
+    /// Direct peer-to-peer DMA (same IOMMU group, `PCIe` fabric).
+    P2P {
+        /// Estimated transfer cost.
+        cost: super::mixed::TransferCost,
+    },
+    /// CPU-staged copy (GPU→host→GPU, higher latency).
+    CpuStaged {
+        /// Estimated transfer cost.
+        cost: super::mixed::TransferCost,
+    },
 }
 
 /// Detect `PCIe` P2P capability between two devices.
@@ -131,5 +165,27 @@ mod tests {
     #[test]
     fn detect_p2p_conservative_default() {
         assert!(!detect_p2p("RTX 4070", "AKD1000"));
+    }
+
+    #[test]
+    fn transfer_strategy_cpu_staged_without_p2p() {
+        let bridge = PcieBridge::new("GPU_A", "GPU_B");
+        let strategy = bridge.transfer_buffer_strategy(1_048_576);
+        assert!(matches!(strategy, TransferStrategy::CpuStaged { .. }));
+    }
+
+    #[test]
+    fn transfer_strategy_provides_cost() {
+        let bridge = PcieBridge::new("GPU_A", "NPU_A");
+        match bridge.transfer_buffer_strategy(4_194_304) {
+            TransferStrategy::CpuStaged { cost } => {
+                assert!(cost.estimated_us() > 0.0);
+                assert_eq!(cost.bytes, 4_194_304);
+            }
+            TransferStrategy::P2P { cost } => {
+                assert!(cost.estimated_us() > 0.0);
+                assert_eq!(cost.bytes, 4_194_304);
+            }
+        }
     }
 }

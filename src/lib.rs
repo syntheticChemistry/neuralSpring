@@ -125,6 +125,7 @@ pub mod tolerances;
 pub mod training_monitor;
 pub mod transformer;
 pub mod validation;
+pub mod visualization;
 pub mod wdm_esn;
 pub mod wdm_sqw;
 pub mod wdm_surrogate;

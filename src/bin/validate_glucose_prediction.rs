@@ -67,8 +67,18 @@ fn main() {
     let g_mean = cgm.iter().sum::<f64>() / cgm.len() as f64;
     let g_std = (cgm.iter().map(|&g| (g - g_mean).powi(2)).sum::<f64>() / cgm.len() as f64).sqrt();
 
-    h.check_abs("CGM mean ≈ Python baseline", g_mean, baseline.cgm_mean, 1.0);
-    h.check_abs("CGM std ≈ Python baseline", g_std, baseline.cgm_std, 1.0);
+    h.check_abs(
+        "CGM mean ≈ Python baseline",
+        g_mean,
+        baseline.cgm_mean,
+        tolerances::GLUCOSE_CGM_STAT_TOL,
+    );
+    h.check_abs(
+        "CGM std ≈ Python baseline",
+        g_std,
+        baseline.cgm_std,
+        tolerances::GLUCOSE_CGM_STAT_TOL,
+    );
 
     // ── Autocorrelation validation ──
     eprintln!("\n── Autocorrelation analysis ──");
@@ -95,7 +105,12 @@ fn main() {
     let py_tau = parsed["autocorrelation"]["tau_hours"]
         .as_f64()
         .unwrap_or(0.0);
-    h.check_abs("τ matches Python", tau_hours, py_tau, 0.5);
+    h.check_abs(
+        "τ matches Python",
+        tau_hours,
+        py_tau,
+        tolerances::GLUCOSE_TAU_TOL,
+    );
 
     // ── Full Rust experiment ──
     eprintln!("\n── Full Rust glucose experiment (5 horizons) ──");

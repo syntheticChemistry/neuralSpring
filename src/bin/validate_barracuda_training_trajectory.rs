@@ -223,7 +223,10 @@ async fn main() {
         .map(|(a, b)| (a - b).abs())
         .fold(0.0_f64, f64::max);
 
-    h.check_bool("GPU eigensolve is deterministic", det_diff < 1e-15);
+    h.check_bool(
+        "GPU eigensolve is deterministic",
+        det_diff < tolerances::NUMERICAL_DISTINCTNESS,
+    );
 
     h.finish();
 }

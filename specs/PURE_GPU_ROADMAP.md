@@ -201,7 +201,7 @@ eigenvector data on GPU between pipeline stages.
 ops through GPU when capability is available. `validate_gpu_promotion` (27/27 PASS)
 confirms correctness on RTX 4070 and TITAN V NVK.
 
-### Phase B — Adapt HMM, meta-pop, game theory to GPU (Tier 2) — IN PROGRESS (Session 46)
+### Phase B — Adapt HMM, meta-pop, game theory to GPU (Tier 2) — COMPLETE (Session 90)
 
 Session 46 completed the first wave of Phase B:
 - **HMM backward**: GPU GEMV per step via `hmm_backward_step_gpu`

@@ -1,11 +1,11 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 7, 2026 (Session 130 — upstream rewire)
+**Date**: March 9, 2026 (Session 134 — Phase 5–7 buildout)
 **barraCuda**: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`). 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Deep debt: typed errors, named constants, lint compliance.
 **ToadStool**: S130+ at `bfe7977b`. Hardware discovery + orchestration, coralReef shader proxy, JSON-RPC only, `SubstrateType` 8 variants, capability-based discovery. Spring sync confirms zero API breakage for all 5 springs. 19,777 tests.
 **coralReef**: Iteration 10 at `d29a734`. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2), f64 transcendentals. 8 neuralSpring shaders in corpus. 990 tests.
-**neuralSpring**: 883 lib + 43 forge + 9 integration tests, 240 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
-**S130**: `PrecisionRoutingAdvice` wired in `Dispatcher`, fused GPU test regression gated via canary, coralNAK→coralReef rename, `baseline_path` consistency fix, inline threshold replacement. 218/218 `validate_all` PASS. V88 handoff.
+**neuralSpring**: 966 lib + 71 forge + 9 integration tests, 246 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**S133**: metalForge PCIe `transfer_buffer_strategy()`, `NpuToGpuP2P` substrate, biomeOS pipeline DAG (`graph.rs`: topological execution, 3 canonical pipelines), petalTongue `StreamSession` + `push_replace` + 64KB IPC. Feature-gated `validate_all`. 220/220 `validate_all` PASS. V91 handoff.
 **S121 rewires**: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch`. 46 total upstream rewires. 80/80 S121 rewire validation + 28/28 cross-spring modern bench.
 **Pattern**: Python baseline → Rust validation → BarraCUDA CPU → BarraCUDA GPU Tensor → metalForge WGSL → GPU Pipeline → Cross-dispatch → Mixed-hardware → Multi-GPU → Phase 4 shader validation → ToadStool streaming → NUCLEUS compute dispatch → biomeOS integration → lean on upstream `compile_shader_df64`
 **Hardware**: RTX 4070 (Vulkan, proprietary) + TITAN V (NVK GV100, open-source) — **both fully validated (S82)**
@@ -15,14 +15,14 @@
 ## Quick Status
 
 41 Rust modules cover all 25 papers + 5 Phase 0/0+ studies + 6 baseCamp sub-theses + 5 WDM surrogates + 3 publication experiments + nF-03 AlphaFold3 Phase C.
-240 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
+246 validation binaries span 9 tiers: Python (Py), Rust native (Rs), BarraCUDA CPU (bC),
 GPU Tensor (gT), metalForge WGSL (mF), GPU Pipeline (gP), Cross-dispatch (xD),
 Mixed-hardware (mH), and Multi-GPU (mG).
 
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 330/330 | **COMPLETE** |
-| Rust native validation | 883 lib + 9 integration + 43 forge tests, 41 modules, 240 binaries | **COMPLETE** |
+| Rust native validation | 966 lib + 9 integration + 71 forge tests, 41 modules, 246 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -63,7 +63,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44→127: benchmarks | Pure Rust vs Python (15 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **240 binaries** |
-| `validate_all` (S115) | **218/218 PASS** (RTX 4070, all green) | **ALL GREEN** |
+| `validate_all` (S115) | **220/220 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -77,7 +77,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **218/218 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` | **220/220 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
@@ -85,7 +85,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 77: baseCamp GPU pure | `validate_basecamp_gpu_pure` 5/5 sub-theses on GPU | **ALL GREEN** |
 | Session 78–79: cross-spring | `validate_cross_spring_evolution` 52/52 PASS, `bench_cross_spring_evolution` 28/28 PASS | **ALL GREEN** |
 | Session 87: WDM queue closed | nW-03 S(q,ω) (27/27 Rs), nW-05 ESN regime (39/39 Rs), 5 Py baselines (33/33), 6 Rust validators (153/153) | **ALL GREEN** |
-| Grand total checks | **3200+** (282 Py + 2858+ Rust/GPU) | **ALL GREEN** |
+| Grand total checks | **4100+** (331 Py + 3400+ Rust/GPU) | **ALL GREEN** |
 
 ---
 
@@ -410,7 +410,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo fmt` | **Clean** — zero formatting violations |
 | `cargo clippy` pedantic + nursery | **0 warnings** — all `#[allow]` migrated to `#[expect(, reason)]` (0 in production code; 6 in `#[cfg(test)]` where `expect_used`/`unwrap_used` don't fire) |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **883 tests PASS** |
+| `cargo test --lib` | **966 tests PASS** |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
 | `#![forbid(unsafe_code)]` | Enforced at crate root — zero `unsafe` blocks permitted |
@@ -428,7 +428,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | Provenance | All hardcoded validation targets sourced with script, commit, date, exact command |
 | Determinism tests | **16 tests** covering all stochastic modules (up from 7) |
 | SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
-| Line coverage | **90%+** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
+| Line coverage | **91.66%** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
 | All files < 1000 LOC | Largest: `validate_barracuda_tensor.rs` at 966 lines |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 | Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |
@@ -974,7 +974,7 @@ documents provenance across 5 springs.
 
 | Metric | Value |
 |--------|-------|
-| validate_all | **218/218 PASS** |
+| validate_all | **220/220 PASS** |
 | Binaries | 234 |
 | Library tests | 869 |
 | Latest handoff | **V81** (S121) |

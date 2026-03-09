@@ -188,6 +188,102 @@ pub fn sigmoid(x: f64) -> f64 {
     }
 }
 
+/// Numerically stable f32 sigmoid: σ(x) = 1 / (1 + e^{-x}).
+///
+/// Used in GPU validation binaries where tensor outputs are f32.
+#[must_use]
+pub fn sigmoid_f32(x: f32) -> f32 {
+    if x >= 0.0 {
+        1.0 / (1.0 + (-x).exp())
+    } else {
+        let ex = x.exp();
+        ex / (1.0 + ex)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// GELU
+// ═══════════════════════════════════════════════════════════════════
+
+/// GELU activation (approximate, matching `PyTorch` `gelu('tanh')`):
+/// `0.5 * x * (1 + tanh(sqrt(2/π) * (x + 0.044715 * x³)))`.
+///
+/// | GPU equivalent | Notes |
+/// |----------------|-------|
+/// | `Tensor::gelu_wgsl()` / `gelu_f64.wgsl` | GPU elementwise |
+#[must_use]
+pub fn gelu(x: f64) -> f64 {
+    use std::f64::consts::PI;
+    let inner = (2.0 / PI).sqrt() * (0.044_715_f64).mul_add(x * x * x, x);
+    0.5 * x * (1.0 + inner.tanh())
+}
+
+/// f32 GELU activation for GPU validation (tensor outputs are f32).
+#[must_use]
+pub fn gelu_f32(x: f32) -> f32 {
+    use std::f32::consts::PI;
+    let inner = (2.0_f32 / PI).sqrt() * (0.044_715_f32).mul_add(x * x * x, x);
+    0.5 * x * (1.0 + inner.tanh())
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Softmax
+// ═══════════════════════════════════════════════════════════════════
+
+/// Numerically stable softmax over a 1-D slice.
+///
+/// | GPU equivalent | Notes |
+/// |----------------|-------|
+/// | `Tensor::softmax_wgsl()` | GPU-resident f32 |
+#[must_use]
+pub fn softmax(x: &[f64]) -> Vec<f64> {
+    let max = x.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let exp: Vec<f64> = x.iter().map(|&v| (v - max).exp()).collect();
+    let sum: f64 = exp.iter().sum();
+    exp.iter().map(|&v| v / sum).collect()
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ReLU
+// ═══════════════════════════════════════════════════════════════════
+
+/// Scalar `ReLU`: `max(0, x)`.
+///
+/// | GPU equivalent | Notes |
+/// |----------------|-------|
+/// | `Tensor::relu()` | GPU elementwise |
+#[must_use]
+pub const fn relu(x: f64) -> f64 {
+    if x > 0.0 {
+        x
+    } else {
+        0.0
+    }
+}
+
+/// Scalar f32 `ReLU` for GPU validation.
+#[must_use]
+pub const fn relu_f32(x: f32) -> f32 {
+    if x > 0.0 {
+        x
+    } else {
+        0.0
+    }
+}
+
+/// Vectorized `ReLU` over a slice (allocating).
+#[must_use]
+pub fn relu_vec(x: &[f64]) -> Vec<f64> {
+    x.iter().map(|&v| v.max(0.0)).collect()
+}
+
+/// In-place `ReLU`: `max(0, x)` for each element.
+pub fn relu_inplace(x: &mut [f64]) {
+    for v in x.iter_mut() {
+        *v = v.max(0.0);
+    }
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Generic RK4 integration
 // ═══════════════════════════════════════════════════════════════════
@@ -312,6 +408,63 @@ mod tests {
         assert!(sigmoid(-1000.0) < 0.001);
         assert!(sigmoid(1000.0).is_finite());
         assert!(sigmoid(-1000.0).is_finite());
+    }
+
+    #[test]
+    fn gelu_at_zero_is_zero() {
+        assert!(gelu(0.0).abs() < tolerances::ZERO_DETECTION);
+    }
+
+    #[test]
+    fn gelu_positive_monotone() {
+        assert!(gelu(2.0) > gelu(1.0));
+    }
+
+    #[test]
+    fn gelu_large_approaches_identity() {
+        assert!((gelu(5.0) - 5.0).abs() < 0.01);
+    }
+
+    #[test]
+    #[expect(clippy::cast_possible_truncation, reason = "test inputs are small known constants")]
+    fn gelu_f32_matches_f64() {
+        for &x in &[-2.0, -1.0, 0.0, 0.5, 1.0, 3.0] {
+            let diff = (f64::from(gelu_f32(x as f32)) - gelu(x)).abs();
+            assert!(diff < 1e-6, "gelu_f32 vs gelu mismatch at {x}: {diff}");
+        }
+    }
+
+    #[test]
+    fn softmax_sums_to_one() {
+        let s = softmax(&[1.0, 2.0, 3.0, 4.0]);
+        assert!((s.iter().sum::<f64>() - 1.0).abs() < tolerances::EXACT_F64);
+    }
+
+    #[test]
+    fn softmax_preserves_order() {
+        let s = softmax(&[1.0, 2.0, 3.0]);
+        assert!(s[0] < s[1] && s[1] < s[2]);
+    }
+
+    #[test]
+    #[expect(clippy::float_cmp, reason = "relu returns exact 0.0 or identity")]
+    fn relu_nonnegative() {
+        assert_eq!(relu(-5.0), 0.0);
+        assert_eq!(relu(0.0), 0.0);
+        assert_eq!(relu(3.0), 3.0);
+    }
+
+    #[test]
+    fn relu_vec_matches_scalar() {
+        let v = relu_vec(&[-1.0, 0.0, 2.0]);
+        assert_eq!(v, vec![0.0, 0.0, 2.0]);
+    }
+
+    #[test]
+    fn relu_inplace_zeros_negatives() {
+        let mut v = vec![-1.0, 0.0, 3.0];
+        relu_inplace(&mut v);
+        assert_eq!(v, vec![0.0, 0.0, 3.0]);
     }
 
     #[test]

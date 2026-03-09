@@ -14,7 +14,8 @@ use neural_spring::coral_forge::{
 };
 use neural_spring::rng::Rng;
 
-use super::{JsonRpcResponse, PrimalState};
+use super::rpc::JsonRpcResponse;
+use super::PrimalState;
 
 #[expect(clippy::too_many_lines, reason = "validation binary")]
 pub fn handle_evoformer_block(
@@ -286,7 +287,7 @@ pub fn handle_gpu_dispatch(
         None => {
             return JsonRpcResponse::error(
                 id,
-                super::rpc_error::INVALID_PARAMS,
+                super::rpc::error_code::INVALID_PARAMS,
                 "Missing 'op' parameter".into(),
             )
         }
@@ -300,7 +301,7 @@ pub fn handle_gpu_dispatch(
         "eigh" => dispatch_eigh(id, params, state),
         _ => JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             format!("Unknown dispatch op: {op}"),
         ),
     }
@@ -316,14 +317,14 @@ fn dispatch_mat_mul(
     let Some(a) = extract_f64_vec(params, "a") else {
         return JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             "Missing 'a' parameter".into(),
         );
     };
     let Some(b) = extract_f64_vec(params, "b") else {
         return JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             "Missing 'b' parameter".into(),
         );
     };
@@ -331,7 +332,7 @@ fn dispatch_mat_mul(
     if n == 0 || a.len() != n * n || b.len() != n * n {
         return JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             "Invalid matrix dimensions".into(),
         );
     }
@@ -350,7 +351,7 @@ fn dispatch_softmax(
     let Some(x) = extract_f64_vec(params, "x") else {
         return JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             "Missing 'x' parameter".into(),
         );
     };
@@ -369,7 +370,7 @@ fn dispatch_mean(
     let Some(data) = extract_f64_vec(params, "data") else {
         return JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             "Missing 'data' parameter".into(),
         );
     };
@@ -388,7 +389,7 @@ fn dispatch_variance(
     let Some(data) = extract_f64_vec(params, "data") else {
         return JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             "Missing 'data' parameter".into(),
         );
     };
@@ -407,7 +408,7 @@ fn dispatch_eigh(
     let Some(a) = extract_f64_vec(params, "a") else {
         return JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             "Missing 'a' parameter".into(),
         );
     };
@@ -415,7 +416,7 @@ fn dispatch_eigh(
     if n == 0 || a.len() != n * n {
         return JsonRpcResponse::error(
             id,
-            super::rpc_error::INVALID_PARAMS,
+            super::rpc::error_code::INVALID_PARAMS,
             "Invalid matrix dimensions".into(),
         );
     }

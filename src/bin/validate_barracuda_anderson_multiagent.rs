@@ -247,7 +247,7 @@ async fn main() {
 
     h.check_bool(
         "GPU disordered eigensolve is deterministic",
-        det_diff < 1e-15,
+        det_diff < tolerances::NUMERICAL_DISTINCTNESS,
     );
 
     h.finish();

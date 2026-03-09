@@ -478,13 +478,11 @@ fn validate_se3_com_removal(h: &mut ValidationHarness, rng: &mut Rng) {
 // ═══════════════════════════════════════════════════════════════════
 
 fn sigmoid(x: f64) -> f64 {
-    1.0 / (1.0 + (-x).exp())
+    neural_spring::primitives::sigmoid(x)
 }
 
 fn gelu_f64(x: f64) -> f64 {
-    let sqrt_2_over_pi = (2.0 / std::f64::consts::PI).sqrt();
-    let inner = sqrt_2_over_pi * (0.044_715_f64).mul_add(x * x * x, x);
-    0.5 * x * (1.0 + inner.tanh())
+    neural_spring::primitives::gelu(x)
 }
 
 fn project_ns(input: &[f64], weight: &[f64], rows: usize, d: usize, out_d: usize) -> Vec<f64> {

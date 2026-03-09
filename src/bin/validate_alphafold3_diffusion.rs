@@ -405,7 +405,7 @@ fn main() {
         // Probs sum to 1 per pair
         let all_sum_one = rs_probs.chunks_exact(64).all(|row| {
             let sum: f64 = row.iter().sum();
-            (sum - 1.0).abs() < 1e-10
+            (sum - 1.0).abs() < tolerances::CROSS_LANGUAGE
         });
         h.check_bool("nF-D09b PAE probs sum to 1", all_sum_one);
 

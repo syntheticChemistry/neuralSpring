@@ -132,29 +132,31 @@ fn hmm_forward_chain_gpu_fused(
     let log_trans_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("hmm_fwd_log_trans"),
         contents: bytemuck::cast_slice(&log_trans),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let log_emit_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("hmm_fwd_log_emit"),
         contents: bytemuck::cast_slice(&log_emit),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let log_pi_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("hmm_fwd_log_pi"),
         contents: bytemuck::cast_slice(&log_pi),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let obs_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("hmm_fwd_obs"),
         contents: bytemuck::cast_slice(&obs_u32),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
 
     let alpha_size = (n_seqs as usize * t_len * n_states * std::mem::size_of::<f64>()) as u64;
     let log_alpha_buf = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("hmm_fwd_log_alpha"),
         size: alpha_size,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        usage: wgpu::BufferUsages::STORAGE
+            | wgpu::BufferUsages::COPY_SRC
+            | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
 
@@ -162,7 +164,9 @@ fn hmm_forward_chain_gpu_fused(
     let log_lik_buf = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("hmm_fwd_log_lik"),
         size: lik_size,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        usage: wgpu::BufferUsages::STORAGE
+            | wgpu::BufferUsages::COPY_SRC
+            | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
 

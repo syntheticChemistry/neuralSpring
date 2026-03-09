@@ -112,11 +112,11 @@ fn matmul_naive(a: &[f32], b: &[f32], m: usize, k: usize, n: usize) -> Vec<f32> 
 }
 
 const fn relu_cpu(x: f32) -> f32 {
-    x.max(0.0)
+    neural_spring::primitives::relu_f32(x)
 }
 
 fn sigmoid_cpu(x: f32) -> f32 {
-    1.0 / (1.0 + (-x).exp())
+    neural_spring::primitives::sigmoid_f32(x)
 }
 
 fn tanh_cpu(x: f32) -> f32 {

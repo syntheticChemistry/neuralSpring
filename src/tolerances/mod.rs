@@ -125,6 +125,14 @@ pub const GELU_CROSS_PYTHON: f64 = EXACT_F64;
 /// At x = 10, GELU(10) ≈ 10.0 to within 1e-6.
 pub const GELU_LARGE_INPUT: f64 = 1e-6;
 
+/// Sigmoid saturation at extreme inputs: σ(x) → 1 for x >> 0, σ(x) → 0 for x << 0.
+///
+/// At x = ±10, σ(10) ≈ 0.99995 and σ(-10) ≈ 4.5e-5.  The residual
+/// |σ(10) - 1| ≈ 4.5e-5, so 1e-4 provides ~2x margin.  Used in
+/// cross-spring evolution validators to confirm saturation behavior
+/// without requiring f64-exact agreement at the tails.
+pub const SIGMOID_SATURATION: f64 = 1e-4;
+
 /// Special function evaluations (erf, bessel, norm\_cdf, norm\_ppf).
 ///
 /// `barracuda::special` implementations use polynomial/Chebyshev approximations
@@ -649,6 +657,44 @@ pub const TRAINING_LR_REDUCTION: f64 = 0.5;
 /// σ/√N ≈ 0.289/32 ≈ 0.009.  Allowing ~2σ gives 0.02.  The observed
 /// GPU mean must fall in \[0.48, 0.52\].
 pub const GPU_PRNG_UNIFORMITY_MEAN: f64 = 0.02;
+
+// ═══════════════════════════════════════════════════════════════════
+// Domain-specific validation tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// Glucose prediction CGM statistics (mean, std) vs Python baseline.
+///
+/// LSTM predictions on blood glucose time series produce f32 outputs
+/// with training variance across random seeds. 1.0 mg/dL tolerance
+/// accounts for f32 accumulation over 288-step sequences.
+///
+/// Provenance: `control/glucose_prediction/glucose_prediction.py` (seed=42)
+pub const GLUCOSE_CGM_STAT_TOL: f64 = 1.0;
+
+/// Glucose prediction pharmacokinetic τ (hours) vs Python baseline.
+///
+/// Exponential decay fit to glucose response curve; half-life τ
+/// has ~10% relative uncertainty from finite-sample fitting.
+pub const GLUCOSE_TAU_TOL: f64 = 0.5;
+
+/// pLDDT confidence spread lower bound for non-degeneracy.
+///
+/// `AlphaFold3` `pLDDT` head should produce varying confidence scores;
+/// if the spread (max - min) is below this, the head is degenerate.
+pub const PLDDT_DEGENERACY_THRESHOLD: f64 = 1e-6;
+
+/// GPU Kimura batch max element-wise difference.
+///
+/// Kimura 2-parameter distance involves transcendental functions
+/// (log, sqrt) on f64. Batch dispatch accumulates per-element rounding.
+/// For 1000-element batches, 1e-4 allows ~4 digits of precision.
+pub const GPU_KIMURA_BATCH_DIFF: f64 = 1e-4;
+
+/// GPU `ReLU` f32 determinism: maximum diff across identical runs.
+///
+/// `ReLU` is piecewise linear, so f32 should be nearly exact. 1e-7
+/// accounts for flush-to-zero differences across GPU drivers.
+pub const TENSOR_RELU_DETERMINISM_F32: f64 = 1e-7;
 
 // ═══════════════════════════════════════════════════════════════════
 // Provenance date constants

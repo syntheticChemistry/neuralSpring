@@ -13,6 +13,13 @@
 //! - `observations`: \[`n_seqs` × `n_steps`\] u32
 //! - `log_alpha_out`: \[`n_seqs` × `n_steps` × `n_states`\] f64
 //! - `log_lik_out`: \[`n_seqs`\] f64
+//!
+//! ## Provenance
+//!
+//! | Baseline | Source |
+//! |----------|--------|
+//! | CPU reference | `neural_spring::hmm::Hmm` (Papers 016, 018) |
+//! | GPU kernel | `barracuda::ops::bio::HmmBatchForwardF64` |
 
 #![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 
@@ -82,34 +89,38 @@ fn gpu_hmm_forward(gpu: &Gpu, params: &HmmForwardParams<'_>) -> Result<f64, Stri
     let log_trans_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_log_trans"),
         contents: bytemuck::cast_slice(params.log_trans),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let log_emit_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_log_emit"),
         contents: bytemuck::cast_slice(params.log_emit),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let log_pi_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_log_pi"),
         contents: bytemuck::cast_slice(params.log_pi),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let obs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("xd_observations"),
         contents: bytemuck::cast_slice(params.observations),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let log_alpha_size = (params.n_seqs * params.n_steps * params.n_states) as usize;
     let log_alpha_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("xd_log_alpha"),
         size: (log_alpha_size * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        usage: wgpu::BufferUsages::STORAGE
+            | wgpu::BufferUsages::COPY_SRC
+            | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
     let log_lik_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("xd_log_lik"),
         size: (params.n_seqs as usize * 8) as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        usage: wgpu::BufferUsages::STORAGE
+            | wgpu::BufferUsages::COPY_SRC
+            | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
 

@@ -322,7 +322,10 @@ impl Dispatcher {
                 }
                 (cpu_fn(), MixedSubstrate::CpuOnly)
             }
-            MixedSubstrate::GpuToNpu | MixedSubstrate::NpuToGpu | MixedSubstrate::NpuOnly => {
+            MixedSubstrate::GpuToNpu
+            | MixedSubstrate::NpuToGpu
+            | MixedSubstrate::NpuToGpuP2P
+            | MixedSubstrate::NpuOnly => {
                 log::warn!(
                     "{} NPU substrate selected but not available, using GPU",
                     workload.op
@@ -343,8 +346,19 @@ impl Dispatcher {
 }
 
 #[cfg(test)]
-#[path = "tests_cpu.rs"]
-mod tests;
+mod tests_cpu_bio;
+#[cfg(test)]
+mod tests_cpu_hmm;
+#[cfg(test)]
+mod tests_cpu_linalg;
+#[cfg(test)]
+mod tests_cpu_metadata;
+#[cfg(test)]
+mod tests_cpu_popgen;
+#[cfg(test)]
+mod tests_cpu_provenance;
+#[cfg(test)]
+mod tests_cpu_stats;
 
 #[cfg(test)]
 mod tests_cpu_basecamp;

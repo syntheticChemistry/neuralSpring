@@ -13,6 +13,13 @@
 //! ```text
 //! Hansen MD S(q,ω) → Python LSTM → Rust LSTM (CPU) → BarraCUDA (GPU)
 //! ```
+//!
+//! ## Provenance
+//!
+//! | Baseline | Source |
+//! |----------|--------|
+//! | Python baseline | `control/wdm/wdm_sqw_validation.py` |
+//! | Baseline JSON | `control/wdm/sqw_peak_baseline.json` |
 
 #![expect(
     clippy::cast_precision_loss,
@@ -126,9 +133,7 @@ fn gpu_lstm_step(
     Ok((h_new, c_new))
 }
 
-fn sigmoid_f32(x: f32) -> f32 {
-    1.0 / (1.0 + (-x).exp())
-}
+use neural_spring::primitives::sigmoid_f32;
 
 fn gpu_sqw_predict(
     pred: &SqwPredictor,

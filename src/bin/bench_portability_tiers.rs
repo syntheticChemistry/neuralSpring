@@ -163,12 +163,14 @@ fn main() {
         let obs_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("hmm_obs"),
             contents: bytemuck::cast_slice(&obs_u32),
-            usage: wgpu::BufferUsages::STORAGE,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         });
         let out_buf = d.create_buffer(&wgpu::BufferDescriptor {
             label: Some("hmm_out"),
             size: 8,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            usage: wgpu::BufferUsages::STORAGE
+                | wgpu::BufferUsages::COPY_SRC
+                | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
@@ -179,22 +181,24 @@ fn main() {
         let log_a_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("hmm_log_a"),
             contents: bytemuck::cast_slice(&flat_a_log),
-            usage: wgpu::BufferUsages::STORAGE,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         });
         let log_b_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("hmm_log_b"),
             contents: bytemuck::cast_slice(&flat_b_log),
-            usage: wgpu::BufferUsages::STORAGE,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         });
         let log_pi_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("hmm_log_pi"),
             contents: bytemuck::cast_slice(&initial_log),
-            usage: wgpu::BufferUsages::STORAGE,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         });
         let log_alpha_buf = d.create_buffer(&wgpu::BufferDescriptor {
             label: Some("hmm_log_alpha"),
             size: (t_len * n_states * 8) as u64,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            usage: wgpu::BufferUsages::STORAGE
+                | wgpu::BufferUsages::COPY_SRC
+                | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
@@ -222,13 +226,17 @@ fn main() {
             let out = d.create_buffer(&wgpu::BufferDescriptor {
                 label: None,
                 size: 8,
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                usage: wgpu::BufferUsages::STORAGE
+                    | wgpu::BufferUsages::COPY_SRC
+                    | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             });
             let alpha = d.create_buffer(&wgpu::BufferDescriptor {
                 label: None,
                 size: (t_len * n_states * 8) as u64,
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                usage: wgpu::BufferUsages::STORAGE
+                    | wgpu::BufferUsages::COPY_SRC
+                    | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             });
             let _ = op.dispatch(&barracuda::ops::bio::hmm::HmmForwardArgs {

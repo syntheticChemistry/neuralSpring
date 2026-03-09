@@ -311,7 +311,39 @@ const BINARIES: &[&str] = &[
     "validate_barracuda_glucose_prediction",
     // S126: ToadStool S94b + wgpu 28 + BarraCUDA v0.3.3 fused op absorption
     "validate_toadstool_s94b_wgpu28",
+    // biomeOS graph coordination (DAG pipeline, topo sort, execution tracking)
+    "validate_biomeos_graph",
+    // petalTongue visualization (scenarios, streaming, mock IPC roundtrip)
+    "validate_petaltongue_scenarios",
 ];
+
+/// Feature-gated validation binaries: `(name, feature)`.
+///
+/// These require `cargo run --release --features <feature> --bin <name>`.
+const FEATURE_BINARIES: &[(&str, &str)] = &[
+    // NUCLEUS Tower integration (JSON-RPC + folding + discovery)
+    ("validate_nucleus_tower", "primal"),
+    // biomeOS spectral pipeline (primal RPC: health, IPR, disorder, spectral)
+    ("validate_biomeos_spectral", "primal"),
+];
+
+fn run_binary(name: &str, features: Option<&str>) -> (bool, String, String) {
+    let mut cmd = Command::new("cargo");
+    cmd.args(["run", "--release"]);
+    if let Some(feat) = features {
+        cmd.args(["--features", feat]);
+    }
+    cmd.args(["--bin", name]);
+
+    match cmd.output() {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            (output.status.success(), stdout, stderr)
+        }
+        Err(e) => (false, String::new(), format!("ERROR: {e}")),
+    }
+}
 
 fn main() {
     println!("=== neural-spring validate_all ===\n");
@@ -354,6 +386,30 @@ fn main() {
                 total_fail += 1;
             }
         }
+    }
+
+    // Feature-gated binaries
+    for &(name, feature) in FEATURE_BINARIES {
+        print!("Running {name} (--features {feature})... ");
+
+        let (success, stdout, stderr) = run_binary(name, Some(feature));
+        if success {
+            println!("PASS");
+            total_pass += 1;
+        } else {
+            println!("FAIL");
+            total_fail += 1;
+        }
+
+        for line in stdout.lines() {
+            println!("    {line}");
+        }
+        for line in stderr.lines() {
+            if !line.contains("Compiling") && !line.contains("Finished") {
+                println!("    {line}");
+            }
+        }
+        println!();
     }
 
     let total = total_pass + total_fail;

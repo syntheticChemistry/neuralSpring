@@ -26,7 +26,7 @@ pub fn plddt_head(single_repr: &[f64], n_res: usize, d: usize, w: &[f64], b: f64
         .chunks_exact(d)
         .map(|row| {
             let logit: f64 = row.iter().zip(w).map(|(x, wi)| x * wi).sum::<f64>() + b;
-            1.0 / (1.0 + (-logit).exp())
+            crate::primitives::sigmoid(logit)
         })
         .collect()
 }

@@ -35,25 +35,20 @@ use crate::primitives::LOG_GUARD;
 /// Applies softmax normalization to each row, making each row a
 /// valid conditional probability distribution. This is the PGM
 /// interpretation of a DNN layer: row i represents P(output | input=i).
+///
+/// # Panics
+///
+/// Panics if `weights.len() != n_rows * n_cols`.
 #[must_use]
 pub fn weight_to_transition(weights: &[f64], n_rows: usize, n_cols: usize) -> Vec<f64> {
+    assert_eq!(weights.len(), n_rows * n_cols);
     let mut transition = vec![0.0; n_rows * n_cols];
     for i in 0..n_rows {
-        let row_start = i * n_cols;
-        let max = weights[row_start..row_start + n_cols]
-            .iter()
-            .copied()
-            .fold(f64::NEG_INFINITY, f64::max);
-        let mut sum = 0.0;
-        for j in 0..n_cols {
-            let exp_val = (weights[row_start + j] - max).exp();
-            transition[row_start + j] = exp_val;
-            sum += exp_val;
-        }
+        let row = &weights[i * n_cols..(i + 1) * n_cols];
+        let softmax_row = crate::primitives::softmax(row);
+        let sum: f64 = softmax_row.iter().sum();
         if sum > LOG_GUARD {
-            for j in 0..n_cols {
-                transition[row_start + j] /= sum;
-            }
+            transition[i * n_cols..(i + 1) * n_cols].copy_from_slice(&softmax_row);
         }
     }
     transition

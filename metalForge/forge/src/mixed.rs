@@ -18,6 +18,12 @@ pub enum MixedSubstrate {
     CpuToGpu,
     GpuToNpu,
     NpuToGpu,
+    /// NPU→GPU via `PCIe` P2P DMA (bypasses CPU roundtrip).
+    ///
+    /// Used when IOMMU group analysis confirms P2P is available between
+    /// the NPU and GPU devices. Falls back to `NpuToGpu` (CPU-staged)
+    /// when P2P is unavailable.
+    NpuToGpuP2P,
 }
 
 /// Estimated transfer cost for a cross-device data movement.
@@ -81,6 +87,7 @@ pub const fn gpu_npu_cost(bytes: u64, p2p_available: bool) -> TransferCost {
 /// Uses a simple cost model:
 /// - If compute dominates transfer, use GPU
 /// - If real-time inference needed and NPU available, use GPU→NPU
+/// - If NPU→GPU transfer needed and P2P available, use `NpuToGpuP2P`
 /// - If transfer cost exceeds compute benefit, use CPU
 #[must_use]
 pub fn mixed_substrate(
@@ -190,6 +197,39 @@ pub fn compare_transfer_paths(
     (p2p, staged, p2p_faster)
 }
 
+/// Select mixed substrate with P2P awareness for NPU→GPU transfers.
+///
+/// When `bridge` is provided and P2P is available, uses `NpuToGpuP2P`
+/// instead of `NpuToGpu` for transfers from NPU to GPU, bypassing the
+/// CPU roundtrip.
+#[must_use]
+pub fn mixed_substrate_p2p(
+    compute_us: f64,
+    data_bytes: u64,
+    gpu_available: bool,
+    npu_available: bool,
+    needs_realtime_inference: bool,
+    bridge: Option<&super::pcie_bridge::PcieBridge>,
+) -> MixedSubstrate {
+    let base = mixed_substrate(
+        compute_us,
+        data_bytes,
+        gpu_available,
+        npu_available,
+        needs_realtime_inference,
+    );
+
+    match base {
+        MixedSubstrate::NpuToGpu if bridge.is_some_and(super::pcie_bridge::PcieBridge::can_p2p) => {
+            MixedSubstrate::NpuToGpuP2P
+        }
+        MixedSubstrate::GpuToNpu if bridge.is_some_and(super::pcie_bridge::PcieBridge::can_p2p) => {
+            MixedSubstrate::GpuToNpu
+        }
+        other => other,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -270,5 +310,16 @@ mod tests {
             "shared memory 1MB should be <10µs, got {:.1}",
             cost.estimated_us()
         );
+    }
+
+    #[test]
+    fn p2p_routing_without_bridge_uses_base() {
+        let sub = mixed_substrate_p2p(100_000.0, 1_048_576, true, false, false, None);
+        assert_eq!(sub, MixedSubstrate::GpuOnly);
+    }
+
+    #[test]
+    fn npu_to_gpu_p2p_variant_exists() {
+        assert_ne!(MixedSubstrate::NpuToGpuP2P, MixedSubstrate::NpuToGpu);
     }
 }

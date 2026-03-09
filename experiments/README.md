@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 132)**: 911 lib tests, 240 binaries, 218/218 `validate_all`, V90 `ToadStool`/`BarraCUDA` handoff. ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). March 8, 2026.
+**Current state (Session 133)**: 957 lib tests, 246 binaries, 220/220 `validate_all`, V91 `ToadStool`/`BarraCUDA` handoff. ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). March 9, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -102,6 +102,10 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 086 | Session 119 — Deep Lint Evolution & Shared Validation Helpers | Mar 3, 2026 | 271 `#[allow(` → `#[expect(` conversions, 477+ unfulfilled lints removed, 4 shared helpers extracted, 13 bins migrated, 869 lib tests, 0 production `#[allow(` |
 | 087 | Session 120 — Deep Debt Audit + CI Hardening + Idiomatic Evolution | Mar 3, 2026 | Zero `#[allow(` remaining, `--all-features` CI, production `mul_add`, 18 test warnings resolved, quality gates aligned. V80 handoff |
 | 088 | Session 121 — SimpleMlp Rewire + HMM f64 ComputeDispatch | Mar 4, 2026 | WDM surrogates → `SimpleMlp` (~300 LOC eliminated), HMM Viterbi → f64 ComputeDispatch. 80/80 S121 rewire + 28/28 cross-spring modern. 46 upstream rewires. V81 handoff |
+| 089 | Session 133 — metalForge PCIe P2P + NpuToGpuP2P Substrate | Mar 9, 2026 | `PcieBridge::transfer_buffer_strategy()` selects P2P vs CPU-staged. `TransferStrategy` enum. `NpuToGpuP2P` variant + `mixed_substrate_p2p()` for P2P-aware routing. `validate_nucleus_tower` 22/22 PASS added to feature-gated `validate_all`. 43+38+22 NUCLEUS PASS |
+| 090 | Session 133 — biomeOS Pipeline DAG + Graph Coordination | Mar 9, 2026 | `metalForge/forge/src/graph.rs`: `StageNode`, `PipelineGraph` (Kahn topo sort), `PipelineExecution`. 3 canonical pipelines (spectral diamond, popgen linear, folding linear). Cycle/duplicate/dangling validation. 15 graph unit tests. `validate_biomeos_graph` 32/32 PASS + `validate_biomeos_spectral` 29/29 PASS |
+| 091 | Session 133 — petalTongue StreamSession + Full IPC Integration | Mar 9, 2026 | `StreamSession` with backpressure awareness + `SessionStats`. `push_replace()` + `query_capabilities()` added. IPC buffer 4KB→64KB. `validate_petaltongue_scenarios` 31/31 PASS (scenarios + streaming + mock socket roundtrips). 5 scenario builders + `full_study()` confirmed. 46 visualization unit tests |
+| 092 | Session 134 — Deep Debt: activation consolidation, tolerance promotion, 91.66% coverage | Mar 9, 2026 | 7 activations→primitives, 16+ tolerances promoted, 0 clippy pedantic, 91.66% coverage |
 
 ---
 
@@ -4619,6 +4623,36 @@ The validation pyramid had 3 gaps in the Pure GPU tier: papers 015 (Swarm), 020 
 - V87 handoff crafted
 
 **Status**: COMPLETE
+
+---
+
+## Experiment 092 — Session 134: Deep Debt Resolution
+
+**Date**: 2026-03-09
+**Session**: S134
+
+### Summary
+
+Deep code quality audit and debt resolution:
+- Consolidated 7 duplicate activation functions (sigmoid, gelu, relu, softmax) 
+  into `primitives.rs` with 9 new tests (957 → 966 lib tests)
+- Promoted 16+ inline tolerance literals to 5 new named constants in `tolerances/`
+  (150+ total named tolerances in registry)
+- Fixed 6 clippy pedantic errors, achieved zero clippy with `--pedantic --nursery`
+- Added provenance triplets to 5 validation binary docblocks
+- Made coralReef namespace discovery capability-based via `BIOMEOS_NAMESPACES` env
+- Line coverage: 91.66% (above 90% target)
+- All builds green: `cargo fmt`, `cargo clippy --pedantic --nursery`, `cargo doc`, 966 tests PASS
+
+### Key Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Lib tests | 957 | 966 |
+| Clippy pedantic | 6 errors | 0 errors |
+| Named tolerances | 145 | 150+ |
+| Line coverage | ~90% | 91.66% |
+| Inline activation duplicates | 14 | 0 |
 
 ---
 

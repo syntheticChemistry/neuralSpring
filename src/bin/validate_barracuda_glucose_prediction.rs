@@ -21,8 +21,13 @@
 //!
 //! ## Provenance
 //!
-//! Python baseline: `control/glucose_prediction/glucose_prediction.py`
-//! Reference: Chuna (2020), medRxiv 2020.08.04.20117812
+//! | Baseline | Source |
+//! |----------|--------|
+//! | Python baseline | `control/glucose_prediction/glucose_prediction.py` |
+//! | Reference | Chuna (2020), medRxiv 2020.08.04.20117812 |
+//! | Baseline commit | in-tree (`control/glucose_prediction/`) |
+//! | Baseline date | 2026-03-05 |
+//! | Command | `python glucose_prediction.py --seed 42` |
 
 #![expect(
     clippy::cast_precision_loss,
@@ -119,9 +124,7 @@ fn gpu_lstm_step(
     Ok((h_new, c_new))
 }
 
-fn sigmoid_f32(x: f32) -> f32 {
-    1.0 / (1.0 + (-x).exp())
-}
+use neural_spring::primitives::sigmoid_f32;
 
 /// Run the full LSTM reservoir on GPU for a single input window.
 ///
@@ -571,7 +574,7 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
                 .fold(0.0_f32, f32::max);
             h.check_bool(
                 &format!("GPU: deterministic (diff={max_diff:.2e})"),
-                max_diff < 1e-10,
+                max_diff < tolerances::CROSS_LANGUAGE as f32,
             );
         }
         _ => {

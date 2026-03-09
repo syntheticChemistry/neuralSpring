@@ -456,7 +456,10 @@ async fn main() {
         .zip(evals_b.iter())
         .map(|(a, b)| (a - b).abs())
         .fold(0.0_f64, f64::max);
-    h.check_bool("CROSS: GPU eigensolve determinism", det_diff < 1e-15);
+    h.check_bool(
+        "CROSS: GPU eigensolve determinism",
+        det_diff < tolerances::NUMERICAL_DISTINCTNESS,
+    );
 
     let gpu_c1 = gpu_ops::mat_mul_gpu(&ham, &ham, dim, &dev).expect("determinism matmul a");
     let gpu_c2 = gpu_ops::mat_mul_gpu(&ham, &ham, dim, &dev).expect("determinism matmul b");
@@ -465,7 +468,10 @@ async fn main() {
         .zip(gpu_c2.iter())
         .map(|(a, b)| (a - b).abs())
         .fold(0.0_f64, f64::max);
-    h.check_bool("CROSS: GPU matmul determinism", matmul_det_diff < 1e-15);
+    h.check_bool(
+        "CROSS: GPU matmul determinism",
+        matmul_det_diff < tolerances::NUMERICAL_DISTINCTNESS,
+    );
 
     h.finish();
 }

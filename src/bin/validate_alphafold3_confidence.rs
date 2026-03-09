@@ -114,7 +114,10 @@ fn main() {
 
         let spread = rs_plddt.iter().copied().fold(f64::NEG_INFINITY, f64::max)
             - rs_plddt.iter().copied().fold(f64::INFINITY, f64::min);
-        h.check_bool("nF-C01c pLDDT not degenerate", spread > 1e-6);
+        h.check_bool(
+            "nF-C01c pLDDT not degenerate",
+            spread > tolerances::PLDDT_DEGENERACY_THRESHOLD,
+        );
     }
 
     // ─── nF-C02: PAE head ──────────────────────────────────────

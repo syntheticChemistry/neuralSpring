@@ -34,6 +34,7 @@
 )]
 
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::{bench_once, ValidationHarness};
 
 struct BenchResult {
@@ -273,7 +274,7 @@ fn validate_neuralspring_s70(
             .map(|(a, b)| (a - b).abs())
             .fold(0.0_f32, f32::max) as f64,
         0.0,
-        1e-12,
+        tolerances::EXACT_F64,
     );
 
     // Consuming matmul on same tensor (last use)
@@ -289,7 +290,7 @@ fn validate_neuralspring_s70(
             .map(|(a, b)| (a - b).abs())
             .fold(0.0_f32, f32::max) as f64,
         0.0,
-        1e-12,
+        tolerances::EXACT_F64,
     );
 
     // SimpleMlp: feed-forward MLP with JSON weight serde
@@ -324,7 +325,7 @@ fn validate_neuralspring_s70(
         "nS→SimpleMlp: forward matches hand computation",
         output[0],
         0.3,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     // JSON round-trip
@@ -338,7 +339,7 @@ fn validate_neuralspring_s70(
         "nS→SimpleMlp: JSON round-trip preserves output",
         (output[0] - output2[0]).abs(),
         0.0,
-        1e-15,
+        tolerances::NUMERICAL_DISTINCTNESS,
     );
 
     eprintln!("\n  matmul_ref benchmark: call1={t1:.1}µs, call2={t2:.1}µs (no clone overhead)");

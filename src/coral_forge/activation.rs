@@ -5,21 +5,18 @@
     reason = "activation index→f64 casts for normalization"
 )]
 
-use std::f64::consts::PI;
-
 /// GELU activation: `0.5 * x * (1 + tanh(sqrt(2/π) * (x + 0.044715 * x³)))`.
+///
+/// Delegates to [`primitives::gelu`](crate::primitives::gelu).
 #[must_use]
 pub fn gelu(x: f64) -> f64 {
-    let sqrt_2_over_pi = (2.0 / PI).sqrt();
-    let x3 = x * x * x;
-    let inner = sqrt_2_over_pi * (0.044_715_f64).mul_add(x3, x);
-    0.5 * x * (1.0 + inner.tanh())
+    crate::primitives::gelu(x)
 }
 
 /// Vectorized GELU over a slice.
 #[must_use]
 pub fn gelu_vec(xs: &[f64]) -> Vec<f64> {
-    xs.iter().copied().map(gelu).collect()
+    xs.iter().copied().map(crate::primitives::gelu).collect()
 }
 
 /// Layer normalization along the last axis.

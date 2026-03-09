@@ -1,6 +1,7 @@
 # Data (downloaded, computed — not tracked)
 data/
 results/
+sandbox/
 *.csv.gz
 *.nc
 *.pt

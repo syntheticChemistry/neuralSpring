@@ -65,16 +65,16 @@ fn validate_gelu(h: &mut ValidationHarness, gpu: &Gpu) {
 
     let in_buf = upload_f64(gpu, &input, "gelu_in");
     let out_buf = require!(h, gpu.create_buffer_f64(n as usize), "alloc gelu_out");
-    let params = upload_params(gpu, &P { n, _pad: [0; 3] }, "gelu_params");
+    let params_buf = upload_params(gpu, &P { n, _pad: [0; 3] }, "gelu_params");
 
     let result = dispatch_and_read(
         gpu,
         &shader,
-        "gelu_f64",
+        "main",
         &[
             ShaderBinding::StorageRo(&in_buf),
             ShaderBinding::StorageRw(&out_buf),
-            ShaderBinding::Uniform(&params),
+            ShaderBinding::Uniform(&params_buf),
         ],
         wg1d(n),
         n as usize,

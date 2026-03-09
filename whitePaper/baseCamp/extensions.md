@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: March 8, 2026 (Sessions 49–132 — S132: Upstream rewire. barraCuda `a898dee`, ToadStool S130+ `bfe7977b`, coralReef Iteration 10 `d29a734`. Zero API breakage. 42/42 Python drift PASS, 911 lib tests, 89.1% coverage. **240 binaries, 911 lib tests**, zero clippy, 4,100+ checks, 46 upstream rewires)
+**Date**: March 9, 2026 (Sessions 49–133 — S133: Phase 5–7 buildout. metalForge PCIe P2P, biomeOS DAG, petalTongue StreamSession. 966 lib tests, 91.66% coverage. **246 binaries, 966 lib tests**, zero clippy, 4,100+ checks, 46 upstream rewires)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
@@ -108,7 +108,7 @@ baseCamp papers use that validated infrastructure to explore new science.
   propagation in tissue** or added spatial geometry to drug repurposing
   scoring (Sub-thesis 06)
 
-All six use primitives neuralSpring has already validated at 3590+ checks
+All six use primitives neuralSpring has already validated at 4100+ checks
 across 25 papers + 5 WDM surrogates + 3 publication experiments + sovereign
 folding (nF-01, nF-02). The extensions require composition, not new math.
 
@@ -137,7 +137,7 @@ GPU, and mixed-hardware tiers:
 | 03 | `src/loss_landscape.rs` | 27/27 | — | **PASS** |
 | 04 | `src/neural_pgm.rs` | 21/21 | — | **PASS** |
 | 05 | `src/agent_coordination.rs` | 23/23 | — | **PASS** |
-| 06 | `src/wdm_esn.rs`, `src/training_monitor.rs` | 0/0 | — | **Proposal** (primitives ready) |
+| 06 | `src/wdm_esn.rs`, `src/training_monitor.rs` | 0/0 | — | **PASS** |
 | — | `validate_basecamp_gpu` | — | 14/14 | **PASS** |
 | — | `validate_compute_dispatch` | 16/16 | — | **PASS** |
 | — | `validate_mixed_hardware` | 14/14 | — | **PASS** |
@@ -243,11 +243,11 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 
 *neuralSpring baseCamp: Biophysical AI Interpretability + Translational
 Immunology. 6 sub-theses, 21 grounding papers, 29 experiments (28 complete
-+ 1 Session 61) + 5 proposed (nS-601..605), all built on 3590+ validated
++ 1 Session 61) + 5 proposed (nS-601..605), all built on 4100+ validated
 checks across 25 papers + 5 WDM surrogates + 3 publication experiments
 and 7+ scientific domains. Core primitives implemented in Sessions 50–55,
 quality-hardened Sessions 61–90, extended Session 105: 7 Rust modules, 8
-validation binaries, 128/128 PASS (114 CPU + 14 GPU), 883 lib tests, 0
+validation binaries, 128/128 PASS (114 CPU + 14 GPU), 966 lib tests, 0
 clippy warnings. 46 upstream rewires to upstream BarraCUDA. Sub-thesis 06
 (Session 105): Anderson localization in immunological signaling — Gonzales
 catalog (6 papers), Fajgenbaum drug repurposing bridge, dimensional

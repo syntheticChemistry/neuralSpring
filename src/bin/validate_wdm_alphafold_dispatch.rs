@@ -531,7 +531,7 @@ fn lstm_cell_from_gates(gates: &[f64], c_prev: &[f64], hs: usize) -> (Vec<f64>, 
 }
 
 fn sigmoid_f64(x: f64) -> f64 {
-    1.0 / (1.0 + (-x).exp())
+    neural_spring::primitives::sigmoid(x)
 }
 
 fn esn_step_dispatch(

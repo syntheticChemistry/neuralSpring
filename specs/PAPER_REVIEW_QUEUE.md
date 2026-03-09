@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: March 5, 2026 (Sessions 45–123)
+**Last Updated**: March 9, 2026 (Sessions 45–133)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -239,6 +239,7 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 **All 26 papers complete. baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete. Paper 026 (Chuna LSTM glucose prediction) complete — validates LSTM prediction horizon limits, isomorphic cross-domain generalization (biomedical ↔ meteorological).**
 
+Session 133: Phase 5–7 buildout. metalForge PCIe P2P, biomeOS pipeline DAG (3 canonical pipelines), petalTongue StreamSession. Feature-gated validate_all. 957 lib + 71 forge + 9 integration tests. 246 binaries. 220/220 validate_all. V91 handoff. All paper controls confirmed: open data only (SRA, Zenodo, EPA, PDB, synthetic). BarraCUDA CPU + GPU validated for all applicable papers. metalForge mixed hardware + NUCLEUS Tower/Node/Nest deployment via biomeOS atomic graphs: 43+38+22 PASS.
 Session 111: CPU benchmark expanded 11→14 domains (Papers 013, 023, 025). 3 new Python bench scripts. 31/31 PASS, 38.6× geomean. Full 10-tier pyramid validated. 210/210 validate_all.
 Session 109: Paper queue spec update. 861 lib tests, 229 binaries, 210/210 validate_all.
 Session 105: Deep Evolution + baseCamp Paper 12. MultiHeadWdmClassifier (barracuda MultiHeadEsn), TrainingMonitor (brain-inspired FSM), Dispatcher::kl_divergence, dispatch_and_read→Result. NUCLEUS protocol alignment. 5 large-file refactors (validation, provenance, weight_spectral, meta_population, gpu_ops/bio). baseCamp Sub-thesis 06 (B-16..B-21) added: Anderson localization in immunological signaling — Gonzales catalog, Fajgenbaum bridge, dimensional promotion–collapse duality.

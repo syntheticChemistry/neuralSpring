@@ -267,7 +267,10 @@ fn validate_relu(h: &mut ValidationHarness, device: &Dev) {
                 .zip(expected.iter())
                 .map(|(a, b)| (a - b).abs())
                 .fold(0.0_f32, f32::max);
-            h.check_bool(&format!("relu: max_diff={max_diff:.2e}"), max_diff < 1e-7);
+            h.check_bool(
+                &format!("relu: max_diff={max_diff:.2e}"),
+                max_diff < tolerances::TENSOR_RELU_DETERMINISM_F32 as f32,
+            );
         }
         Err(e) => h.check_bool(&format!("relu: {e}"), false),
     }

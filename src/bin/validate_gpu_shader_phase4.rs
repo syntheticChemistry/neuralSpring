@@ -87,7 +87,7 @@ async fn main() {
         }
         Err(e) => {
             eprintln!("No GPU available ({e}), skipping");
-            h.finish();
+            neural_spring::validation::exit_no_gpu();
         }
     };
 
@@ -402,7 +402,7 @@ fn validate_matrix_correlation(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut R
             var_b += (b - mean_b).powi(2);
         }
         let denom = (var_a * var_b).sqrt();
-        if denom < 1e-12 {
+        if denom < tolerances::EXACT_F64 {
             0.0
         } else {
             cov / denom
@@ -484,7 +484,7 @@ fn validate_matrix_correlation(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut R
                 let va = sum_a2 - sum_a * sum_a / n_f;
                 let vb = sum_b2 - sum_b * sum_b / n_f;
                 let denom = (va * vb).sqrt();
-                if denom < 1e-12 {
+                if denom < tolerances::EXACT_F64 {
                     0.0
                 } else {
                     cov / denom
@@ -546,7 +546,7 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
             .map(|(&xi, &yi)| f64::from(xi) * f64::from(yi))
             .sum();
         let denom = n_f.mul_add(sxx, -(sx * sx));
-        if denom.abs() < 1e-15 {
+        if denom.abs() < tolerances::NUMERICAL_DISTINCTNESS {
             (0.0, 0.0)
         } else {
             let a = n_f.mul_add(sxy, -(sx * sy)) / denom;
@@ -619,7 +619,7 @@ fn validate_linear_regression(h: &mut ValidationHarness, gpu: &Gpu, rng: &mut Rn
             }
 
             let denom = count.mul_add(sxx, -(sx * sx));
-            let (gpu_a, gpu_b) = if denom.abs() < 1e-15 {
+            let (gpu_a, gpu_b) = if denom.abs() < tolerances::NUMERICAL_DISTINCTNESS {
                 (0.0, 0.0)
             } else {
                 (

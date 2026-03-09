@@ -811,5 +811,5 @@ fn rect_matmul_cpu(a: &[f64], b: &[f64], m: usize, k: usize, n: usize) -> Vec<f6
 }
 
 fn sigmoid(x: f64) -> f64 {
-    1.0 / (1.0 + (-x).exp())
+    neural_spring::primitives::sigmoid(x)
 }

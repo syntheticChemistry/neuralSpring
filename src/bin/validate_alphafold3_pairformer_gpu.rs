@@ -626,7 +626,5 @@ fn validate_full_pairformer_block_gpu(h: &mut ValidationHarness, device: &Dev) {
 // ═══════════════════════════════════════════════════════════════════
 
 fn gelu_f32(x: f32) -> f32 {
-    let sqrt_2_over_pi = (2.0_f32 / std::f32::consts::PI).sqrt();
-    let inner = sqrt_2_over_pi * 0.044_715_f32.mul_add(x * x * x, x);
-    0.5 * x * (1.0 + inner.tanh())
+    neural_spring::primitives::gelu_f32(x)
 }

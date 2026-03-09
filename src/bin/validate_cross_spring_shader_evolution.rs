@@ -137,7 +137,10 @@ fn validate_gelu_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
         tolerances::TENSOR_EXACT_F32,
     );
 
-    h.check_bool("gelu(0) ≈ 0", dispatched[5].abs() < 1e-10);
+    h.check_bool(
+        "gelu(0) ≈ 0",
+        dispatched[5].abs() < tolerances::CROSS_LANGUAGE,
+    );
     h.check_bool(
         "gelu(large positive) > input * 0.9",
         dispatched[10] > 2.5 * 0.9,
@@ -156,11 +159,11 @@ fn validate_sigmoid_evolution(h: &mut ValidationHarness) {
     );
     h.check_bool(
         "sigmoid(10) → 1.0",
-        (primitives::sigmoid(10.0) - 1.0).abs() < 1e-4,
+        (primitives::sigmoid(10.0) - 1.0).abs() < tolerances::SIGMOID_SATURATION,
     );
     h.check_bool(
         "sigmoid(-10) → 0.0",
-        primitives::sigmoid(-10.0).abs() < 1e-4,
+        primitives::sigmoid(-10.0).abs() < tolerances::SIGMOID_SATURATION,
     );
     h.check_abs(
         "sigmoid symmetry: σ(x) + σ(-x) = 1",
@@ -206,11 +209,11 @@ fn validate_coralforge_activation_evolution(h: &mut ValidationHarness, disp: &Di
 
     h.check_bool(
         "coralForge gelu(0) ≈ 0 (GPU path)",
-        disp_gelu[3].abs() < 1e-10,
+        disp_gelu[3].abs() < tolerances::CROSS_LANGUAGE,
     );
     h.check_bool(
         "coralForge softmax sums to 1 (GPU path)",
-        (disp_sm.iter().sum::<f64>() - 1.0).abs() < 1e-6,
+        (disp_sm.iter().sum::<f64>() - 1.0).abs() < tolerances::TENSOR_EXACT_F32,
     );
 }
 
@@ -252,7 +255,7 @@ fn validate_rk4_evolution(h: &mut ValidationHarness) {
         "rk4: harmonic oscillator energy conservation",
         energy,
         1.0,
-        1e-8,
+        tolerances::ODE_ATOL,
     );
 
     let mut y = [1.0, 0.0];
@@ -264,7 +267,7 @@ fn validate_rk4_evolution(h: &mut ValidationHarness) {
         "rk4: 1000-step energy conservation",
         final_energy,
         1.0,
-        1e-6,
+        tolerances::SPECIAL_FUNCTION_F64,
     );
 }
 
@@ -370,7 +373,9 @@ fn validate_spectral_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
     );
     h.check_bool(
         "eigensolve (hotSpring): sorted ascending",
-        eigenvalues.windows(2).all(|w| w[0] <= w[1] + 1e-10),
+        eigenvalues
+            .windows(2)
+            .all(|w| w[0] <= w[1] + tolerances::CROSS_LANGUAGE),
     );
 
     let lsr = barracuda::spectral::level_spacing_ratio(&eigenvalues);

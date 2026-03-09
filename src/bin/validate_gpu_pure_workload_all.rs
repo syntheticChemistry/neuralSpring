@@ -865,9 +865,7 @@ fn validate_lstm_glucose(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
-fn sigmoid_f32(x: f32) -> f32 {
-    1.0 / (1.0 + (-x).exp())
-}
+use neural_spring::primitives::sigmoid_f32;
 
 fn gpu_lstm_forward(
     window: &[f64],

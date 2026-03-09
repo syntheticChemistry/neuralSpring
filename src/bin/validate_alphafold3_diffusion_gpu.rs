@@ -355,7 +355,7 @@ fn validate_ddim_reverse_gpu(h: &mut ValidationHarness, device: &Dev) {
             .fold(0.0_f64, f64::max);
         h.check_bool(
             &format!("nF-D→DDIM: determinism {det_diff:.2e}"),
-            det_diff < 1e-12,
+            det_diff < tolerances::EXACT_F64,
         );
     } else {
         h.check_bool("nF-D→DDIM: determinism (realloc)", true);
@@ -581,7 +581,5 @@ fn neg_f32(tensor: &Tensor, device: &Dev) -> Result<Tensor, String> {
 }
 
 fn gelu_f32(x: f32) -> f32 {
-    let sqrt_2_over_pi = (2.0_f32 / std::f32::consts::PI).sqrt();
-    let inner = sqrt_2_over_pi * 0.044_715_f32.mul_add(x * x * x, x);
-    0.5 * x * (1.0 + inner.tanh())
+    neural_spring::primitives::gelu_f32(x)
 }

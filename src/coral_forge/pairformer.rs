@@ -143,9 +143,12 @@ pub fn pairformer_block(
             .collect()
     };
 
-    // Helper: sigmoid
-    let sigmoid_vec =
-        |input: &[f64]| -> Vec<f64> { input.iter().map(|&x| 1.0 / (1.0 + (-x).exp())).collect() };
+    let sigmoid_vec = |input: &[f64]| -> Vec<f64> {
+        input
+            .iter()
+            .map(|&x| crate::primitives::sigmoid(x))
+            .collect()
+    };
 
     // 1. Triangle multiplicative outgoing
     {

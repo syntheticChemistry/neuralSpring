@@ -10,6 +10,7 @@
 
 #![expect(clippy::pedantic, reason = "validation binary")]
 
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::wdm_esn::{
     load_esn_from_json, wdm_head_configs, wdm_heads, MultiHeadWdmClassifier,
@@ -87,7 +88,7 @@ async fn validate_multi_head_creation(h: &mut ValidationHarness) {
                 "multi_head: default norm x_mean[0]",
                 mhw.norm().x_mean[0],
                 0.0,
-                1e-15,
+                tolerances::NUMERICAL_DISTINCTNESS,
             );
         }
         Err(e) => {

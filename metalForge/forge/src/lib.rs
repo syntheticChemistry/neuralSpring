@@ -16,7 +16,8 @@
 //! - **`shaders`**: WGSL shader sources as `pub const`
 //! - **`bindings`**: Binding layout structs for each shader
 //! - **`mixed`**: Mixed-substrate transfer cost model
-//! - **`pcie_bridge`**: `PCIe` P2P detection (design phase)
+//! - **`pcie_bridge`**: `PCIe` P2P detection and transfer strategy
+//! - **`graph`**: biomeOS pipeline DAG — topological execution of capability-addressed stages
 //!
 //! ## Write → Absorb → Lean
 //!
@@ -31,10 +32,13 @@
 
 pub mod bindings;
 pub mod bridge;
+pub mod coralreef_bridge;
 pub mod dispatch;
+pub mod graph;
 pub mod inventory;
 pub mod mixed;
 pub mod pcie_bridge;
+pub mod pipeline;
 pub mod probe;
 pub mod shaders;
 pub mod substrate;

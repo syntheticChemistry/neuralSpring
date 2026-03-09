@@ -13,6 +13,12 @@
 //!
 //! This proves the `metalForge` infrastructure is ready for `ToadStool`
 //! absorption and multi-device workloads.
+//!
+//! ## Provenance
+//!
+//! | Baseline | Source |
+//! |----------|--------|
+//! | Eigenvalues 2.381966, 4.618034 | Analytical: eigenvalues of [[3,1],[1,4]] via characteristic polynomial |
 
 #![expect(
     clippy::cast_precision_loss,
@@ -46,10 +52,11 @@ async fn main() {
     validate_mixed_routing_gpu_small(&mut h);
     validate_mixed_routing_gpu_large(&mut h);
     validate_mixed_routing_npu_realtime(&mut h);
-    validate_dispatcher_mixed_dispatch(&mut h).await;
-    validate_nucleus_tower_pattern(&mut h).await;
-    validate_nucleus_node_pattern(&mut h).await;
-    validate_nucleus_nest_pattern(&mut h).await;
+    let disp = auto_dispatcher().await;
+    validate_dispatcher_mixed_dispatch(&mut h, &disp);
+    validate_nucleus_tower_pattern(&mut h, &disp);
+    validate_nucleus_node_pattern(&mut h, &disp);
+    validate_nucleus_nest_pattern(&mut h, &disp);
 
     h.finish();
 }
@@ -250,9 +257,7 @@ async fn auto_dispatcher() -> Dispatcher {
         .map_or_else(|_| Dispatcher::cpu_only(), Dispatcher::from_gpu)
 }
 
-async fn validate_dispatcher_mixed_dispatch(h: &mut ValidationHarness) {
-    let disp = auto_dispatcher().await;
-
+fn validate_dispatcher_mixed_dispatch(h: &mut ValidationHarness, disp: &Dispatcher) {
     let workload = MixedWorkload {
         op: "test_mean",
         compute_us: 100_000.0,
@@ -287,9 +292,7 @@ async fn validate_dispatcher_mixed_dispatch(h: &mut ValidationHarness) {
     );
 }
 
-async fn validate_nucleus_tower_pattern(h: &mut ValidationHarness) {
-    let disp = auto_dispatcher().await;
-
+fn validate_nucleus_tower_pattern(h: &mut ValidationHarness, disp: &Dispatcher) {
     let a = vec![4.0, 1.0, 1.0, 3.0];
     let (eigenvalues, _) = disp.eigh(&a, 2);
     let mut sorted = eigenvalues;
@@ -313,9 +316,7 @@ async fn validate_nucleus_tower_pattern(h: &mut ValidationHarness) {
     h.check_bool("tower: entropy < ln(2)", entropy < 2.0_f64.ln() + 0.01);
 }
 
-async fn validate_nucleus_node_pattern(h: &mut ValidationHarness) {
-    let disp = auto_dispatcher().await;
-
+fn validate_nucleus_node_pattern(h: &mut ValidationHarness, disp: &Dispatcher) {
     let pop = vec![2.0, 0.0, 1.0, 1.0, 0.0, 2.0];
     let freqs = disp.allele_frequencies(&pop, 3, 2);
     h.check_bool("node: allele_freq len=2", freqs.len() == 2);
@@ -331,9 +332,7 @@ async fn validate_nucleus_node_pattern(h: &mut ValidationHarness) {
     h.check_bool("node: diversity ≥ 0", pi >= 0.0);
 }
 
-async fn validate_nucleus_nest_pattern(h: &mut ValidationHarness) {
-    let disp = auto_dispatcher().await;
-
+fn validate_nucleus_nest_pattern(h: &mut ValidationHarness, disp: &Dispatcher) {
     let coords = vec![(0.0, 0.0), (3.0, 4.0), (6.0, 8.0)];
     let geo = disp.geographic_distances(&coords);
     h.check_bool("nest: geo distance matrix 3×3", geo.len() == 9);

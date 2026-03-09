@@ -125,9 +125,11 @@ pub fn max_pool2d(input: &[f64], h: usize, w: usize) -> Vec<f64> {
 }
 
 /// `ReLU` activation (element-wise).
+///
+/// Delegates to [`primitives::relu_vec`](crate::primitives::relu_vec).
 #[must_use]
 pub fn relu(x: &[f64]) -> Vec<f64> {
-    x.iter().map(|&v| v.max(0.0)).collect()
+    crate::primitives::relu_vec(x)
 }
 
 /// Fully-connected layer: `output = W * input + b`.

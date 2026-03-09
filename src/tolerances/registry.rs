@@ -201,6 +201,11 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             DISPATCH_TWOPASS_F64, DISPATCH_NEAR_ZERO_F64,
             DISPATCH_F32_ROUNDTRIP, DISPATCH_VITERBI_F32,
         ],
+        "domain_validation": [
+            GLUCOSE_CGM_STAT_TOL, GLUCOSE_TAU_TOL,
+            PLDDT_DEGENERACY_THRESHOLD,
+            GPU_KIMURA_BATCH_DIFF, TENSOR_RELU_DETERMINISM_F32,
+        ],
     ]
 }
 
@@ -272,6 +277,7 @@ mod tests {
             "cross_dispatch",
             "gpu_dispatch",
             "hardware",
+            "domain_validation",
         ] {
             assert!(cats.contains(&expected), "missing category: {expected}");
         }
@@ -281,7 +287,7 @@ mod tests {
     fn registry_complete() {
         let all = all_tolerances();
         assert!(
-            all.len() >= 145,
+            all.len() >= 150,
             "registry should contain all tolerances, got {}",
             all.len()
         );

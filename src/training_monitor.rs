@@ -333,12 +333,11 @@ mod tests {
         m.observe_epoch(0, 1.0, &mock_spectral(1.0, 0.5, 0.53));
         m.observe_epoch(1, 0.9, &mock_spectral(1.1, 0.005, 0.53));
         assert_eq!(m.attention(), AttentionState::Red);
-        match m.check_interrupt() {
-            TrainingInterrupt::EarlyStop { reason } => {
-                assert!(reason.contains("IPR collapsed"));
-            }
-            other => panic!("expected EarlyStop, got {other:?}"),
-        }
+        let interrupt = m.check_interrupt();
+        assert!(
+            matches!(&interrupt, TrainingInterrupt::EarlyStop { reason } if reason.contains("IPR collapsed")),
+            "expected EarlyStop(IPR collapsed), got {interrupt:?}"
+        );
     }
 
     #[test]
@@ -347,12 +346,11 @@ mod tests {
         m.observe_epoch(0, 1.0, &mock_spectral(1.0, 0.5, 0.53));
         m.observe_epoch(1, 15.0, &mock_spectral(1.0, 0.5, 0.53));
         assert_eq!(m.attention(), AttentionState::Red);
-        match m.check_interrupt() {
-            TrainingInterrupt::EarlyStop { reason } => {
-                assert!(reason.contains("diverging"));
-            }
-            other => panic!("expected EarlyStop, got {other:?}"),
-        }
+        let interrupt = m.check_interrupt();
+        assert!(
+            matches!(&interrupt, TrainingInterrupt::EarlyStop { reason } if reason.contains("diverging")),
+            "expected EarlyStop(diverging), got {interrupt:?}"
+        );
     }
 
     #[test]

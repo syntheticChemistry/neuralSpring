@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 8, 2026 (Session 132 — upstream rewire. 218/218 validate_all, 240 binaries, barraCuda v0.3.3 at `a898dee`, wgpu 28. ToadStool S130+ (`bfe7977b`), coralReef Iteration 10 (`d29a734`). `PrecisionRoutingAdvice` wired. `shaders::provenance` available. Fused GPU regression gated. V90 handoff)
+**Last Updated**: March 9, 2026 (Session 134 — upstream rewire. 220/220 validate_all, 246 binaries, barraCuda v0.3.3 at `a898dee`, wgpu 28. ToadStool S130+ (`bfe7977b`), coralReef Iteration 10 (`d29a734`). `PrecisionRoutingAdvice` wired. `shaders::provenance` available. Fused GPU regression gated. V90 handoff)
 **BarraCUDA version**: `0.3.3` at `a898dee` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89), 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -1166,11 +1166,11 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 | Barracuda functions imported | ~60+ |
 | Import sites | ~90 across 60+ files |
 | Upstream rewires | 44 |
-| Barracuda crate | 0.3.1, 767 WGSL shaders (standalone primal) |
+| Barracuda crate | 0.3.3, 767 WGSL shaders (standalone primal) |
 | Feature | `unidirectional` |
-| Lib tests | 869 |
-| Binaries | 232 |
+| Lib tests | 966 |
+| Binaries | 246 |
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 3, 2026. Session 120: 25+ submodules, 60+ functions, ~117 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via barracuda::nautilus. V80 handoff.
+*BarraCUDA usage audit — neuralSpring, March 3, 2026. Session 120: 25+ submodules, 60+ functions, ~100 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via barracuda::nautilus. V80 handoff.

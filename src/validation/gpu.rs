@@ -18,11 +18,11 @@ pub fn storage_buf(device: &wgpu::Device, label: &str, data: &[u8]) -> wgpu::Buf
     device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some(label),
         contents: data,
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     })
 }
 
-/// Create a GPU output buffer (storage + copy-src) of the given byte size.
+/// Create a GPU output buffer (storage + copy-src + copy-dst) of the given byte size.
 ///
 /// Shared across GPU validation binaries to replace the duplicated
 /// `output_buf` helper found in 14+ binaries.
@@ -31,7 +31,9 @@ pub fn output_buf(device: &wgpu::Device, label: &str, bytes: u64) -> wgpu::Buffe
     device.create_buffer(&wgpu::BufferDescriptor {
         label: Some(label),
         size: bytes,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        usage: wgpu::BufferUsages::STORAGE
+            | wgpu::BufferUsages::COPY_SRC
+            | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     })
 }

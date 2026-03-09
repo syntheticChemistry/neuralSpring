@@ -85,7 +85,9 @@ fn main() {
 
     for (&name, &ic50) in ic50_names.iter().zip(ic50_vals.iter()) {
         let rs_sweep = ic50_sweep(ic50, 1.0, &concs);
-        let mono = rs_sweep.windows(2).all(|w| w[0] <= w[1] + 1e-12);
+        let mono = rs_sweep
+            .windows(2)
+            .all(|w| w[0] <= w[1] + tolerances::EXACT_F64);
         h.check_bool(&format!("nS-601: {name} sweep monotonic"), mono);
 
         let py_sweep = baseline["cytokine_sweeps"][name]
@@ -346,7 +348,10 @@ fn main() {
             sym_err = sym_err.max((ham[i * n + j] - ham[j * n + i]).abs());
         }
     }
-    h.check_bool("nS-604: Tissue lattice symmetric", sym_err < 1e-15);
+    h.check_bool(
+        "nS-604: Tissue lattice symmetric",
+        sym_err < tolerances::NUMERICAL_DISTINCTNESS,
+    );
 
     // Level spacing ratio
     let decomp = neural_spring::eigh::eigh_householder_qr(&ham, n);
@@ -360,9 +365,12 @@ fn main() {
     h.check_bool("nS-604: Spectrum length = 5", spectrum.len() == 5);
     h.check_bool(
         "nS-604: First step intact",
-        (spectrum[0].0 - 1.0).abs() < 1e-10,
+        (spectrum[0].0 - 1.0).abs() < tolerances::CROSS_LANGUAGE,
     );
-    h.check_bool("nS-604: Last step breached", spectrum[4].0.abs() < 1e-10);
+    h.check_bool(
+        "nS-604: Last step breached",
+        spectrum[4].0.abs() < tolerances::CROSS_LANGUAGE,
+    );
 
     let py_spectrum = baseline["barrier_spectrum"]
         .as_array()

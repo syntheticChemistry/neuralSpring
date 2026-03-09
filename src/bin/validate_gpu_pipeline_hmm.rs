@@ -122,35 +122,39 @@ fn gpu_hmm_mean_log_lik(
     let log_trans_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("chain_log_trans"),
         contents: bytemuck::cast_slice(&params.log_trans),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let log_emit_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("chain_log_emit"),
         contents: bytemuck::cast_slice(&params.log_emit),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let log_pi_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("chain_log_pi"),
         contents: bytemuck::cast_slice(&params.log_pi),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
     let obs_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("chain_observations"),
         contents: bytemuck::cast_slice(&obs_flat),
-        usage: wgpu::BufferUsages::STORAGE,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
     });
 
     let alpha_size = u64::from(n_seqs) * u64::from(n_steps) * u64::from(params.n_states) * 8;
     let log_alpha_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("chain_log_alpha"),
         size: alpha_size,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        usage: wgpu::BufferUsages::STORAGE
+            | wgpu::BufferUsages::COPY_SRC
+            | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
     let log_lik_buf = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("chain_log_lik"),
         size: u64::from(n_seqs) * 8,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+        usage: wgpu::BufferUsages::STORAGE
+            | wgpu::BufferUsages::COPY_SRC
+            | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
 

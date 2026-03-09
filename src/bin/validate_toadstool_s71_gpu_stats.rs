@@ -39,6 +39,7 @@
 )]
 
 use neural_spring::gpu::Gpu;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 
@@ -91,7 +92,7 @@ fn validate_kimura_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device
             ),
             gpu_val,
             cpu,
-            1e-6,
+            tolerances::SPECIAL_FUNCTION_F64,
         );
     }
 
@@ -118,7 +119,11 @@ fn validate_kimura_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device
             max_diff = diff;
         }
     }
-    h.check_upper("KimuraGpu batch 1000: max diff", max_diff, 1e-4);
+    h.check_upper(
+        "KimuraGpu batch 1000: max diff",
+        max_diff,
+        tolerances::GPU_KIMURA_BATCH_DIFF,
+    );
 }
 
 fn try_gpu_op<T, F: FnOnce() -> T>(f: F) -> Result<T, String> {
@@ -153,13 +158,13 @@ fn validate_jackknife_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::dev
                 "JackknifeMeanGpu estimate parity (n=20)",
                 gpu_result.estimate,
                 cpu_result.estimate,
-                1e-10,
+                tolerances::CROSS_LANGUAGE,
             );
             h.check_abs(
                 "JackknifeMeanGpu variance parity (n=20)",
                 gpu_result.variance,
                 cpu_result.variance,
-                1e-8,
+                tolerances::DISPATCH_TWOPASS_F64,
             );
         }
         Ok(Err(e)) => {

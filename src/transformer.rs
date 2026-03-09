@@ -26,6 +26,8 @@
 
 /// Numerically stable softmax over a slice.
 ///
+/// Delegates to [`primitives::softmax`](crate::primitives::softmax).
+///
 /// ```
 /// # use neural_spring::transformer::softmax;
 /// let s = softmax(&[1.0, 2.0, 3.0]);
@@ -34,13 +36,12 @@
 /// ```
 #[must_use]
 pub fn softmax(x: &[f64]) -> Vec<f64> {
-    let max = x.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    let exp: Vec<f64> = x.iter().map(|&v| (v - max).exp()).collect();
-    let sum: f64 = exp.iter().sum();
-    exp.iter().map(|&v| v / sum).collect()
+    crate::primitives::softmax(x)
 }
 
 /// GELU activation (approximate, matching `PyTorch` `gelu('tanh')`).
+///
+/// Delegates to [`primitives::gelu`](crate::primitives::gelu).
 ///
 /// ```
 /// # use neural_spring::transformer::gelu;
@@ -49,9 +50,7 @@ pub fn softmax(x: &[f64]) -> Vec<f64> {
 /// ```
 #[must_use]
 pub fn gelu(x: f64) -> f64 {
-    use std::f64::consts::PI;
-    let inner = (2.0 / PI).sqrt() * 0.044_715f64.mul_add(x.powi(3), x);
-    0.5 * x * (1.0 + inner.tanh())
+    crate::primitives::gelu(x)
 }
 
 #[cfg(test)]

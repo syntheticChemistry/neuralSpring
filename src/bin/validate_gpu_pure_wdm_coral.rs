@@ -300,16 +300,16 @@ fn validate_wdm_sqw_lstm(h: &mut ValidationHarness, device: &Dev) {
             let h_new: Vec<f32> = (0..hs).map(|j| o_gate[j] * c_new[j].tanh()).collect();
             h.check_bool(
                 "wdm_sqw LSTM h_new bounded",
-                h_new.iter().all(|v| v.abs() <= 1.0 + 1e-6),
+                h_new
+                    .iter()
+                    .all(|v| f64::from(v.abs()) <= 1.0 + tolerances::TENSOR_EXACT_F32),
             );
         }
         Err(e) => h.check_bool(&format!("wdm_sqw LSTM: {e}"), false),
     }
 }
 
-fn sigmoid_f32(x: f32) -> f32 {
-    1.0 / (1.0 + (-x).exp())
-}
+use neural_spring::primitives::sigmoid_f32;
 
 // ═══════════════════════════════════════════════════════════════════
 // 4. WDM ESN reservoir (nW-05)
@@ -364,7 +364,8 @@ fn validate_wdm_esn_reservoir(h: &mut ValidationHarness, device: &Dev) {
             );
             h.check_bool(
                 "wdm_esn reservoir: all bounded",
-                gn.iter().all(|v| v.abs() <= 1.0 + 1e-6),
+                gn.iter()
+                    .all(|v| f64::from(v.abs()) <= 1.0 + tolerances::TENSOR_EXACT_F32),
             );
         }
         Err(e) => h.check_bool(&format!("wdm_esn reservoir: {e}"), false),
@@ -486,8 +487,8 @@ fn validate_coral_trimul(h: &mut ValidationHarness, device: &Dev) {
 
     match gpu_result {
         Ok(gpu_norm) => {
-            let rel =
-                (f64::from(gpu_norm) - f64::from(cpu_norm)).abs() / f64::from(cpu_norm).max(1e-10);
+            let rel = (f64::from(gpu_norm) - f64::from(cpu_norm)).abs()
+                / f64::from(cpu_norm).max(tolerances::RELATIVE_ERROR_FLOOR);
             h.check_bool(
                 &format!("coral_trimul outgoing: rel={rel:.2e}"),
                 rel < tolerances::ML_MLP_F32,

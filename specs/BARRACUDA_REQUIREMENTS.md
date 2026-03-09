@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: March 4, 2026 (Sessions 44–121 — 213/213 validate_all, 234 binaries, barraCuda v0.3.1 standalone primal, 46 upstream rewires, V81 handoff)
+**Last Updated**: March 4, 2026 (Sessions 44–121 — 220/220 validate_all, 246 binaries, barraCuda v0.3.3 standalone primal, 46 upstream rewires, V81 handoff)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---
@@ -58,7 +58,7 @@
 |------|-------|-----------|--------|
 | **MODES metric computation** | Dolson 2019 | `PairwiseL2Gpu` + `barracuda::stats::shannon` (S39+, S64) | **RESOLVED** |
 | **Phylogenetic likelihood** | Liu: SATé 2009, cophylogenetics 2023 | `FelsensteinGpu`, `FlatTree` (S39+) | **RESOLVED** |
-| **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | `barracuda::optimize::LbfgsGpu` available in barraCuda v0.3.1 (requires `gpu` feature) | **AVAILABLE** |
+| **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | `barracuda::optimize::LbfgsGpu` available in barraCuda v0.3.3 (requires `gpu` feature) | **AVAILABLE** |
 | **Directed evolution framework** | Dolson 2022 (eLife) | `MultiObjFitnessGpu`, `WrightFisherGpu`, `BatchedMultinomialGpu` (S39+, S61) | **RESOLVED** |
 | **Lanczos eigensolve** | Kachkovskiy: JAMS 2016, GAFA 2018 | `BatchedEighGpu`, `eigh_f64`, `sparse_eigh` (S39+) | **RESOLVED** |
 | **Sparse matrix-vector product** | Kachkovskiy (all) | `SparseGemmF64`, `cg_solve`, `bicgstab_solve` (S39+, S52) | **RESOLVED** |

@@ -211,7 +211,7 @@ fn main() {
             let s = torsion_rust[i * 14 + a * 2];
             let c = torsion_rust[i * 14 + a * 2 + 1];
             let r = s.hypot(c);
-            if (r - 1.0).abs() > 1e-10 {
+            if (r - 1.0).abs() > tolerances::CROSS_LANGUAGE {
                 unit_ok = false;
             }
         }
