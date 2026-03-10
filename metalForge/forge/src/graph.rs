@@ -12,10 +12,13 @@
 //! in topological order. Each stage specifies a `capability` string that
 //! biomeOS resolves to a primal at runtime, enabling dynamic routing.
 //!
-//! ## Absorption
+//! ## Absorption status
 //!
-//! `ToadStool` can absorb this into `barracuda::pipeline::graph` for
-//! ecosystem-wide DAG-based dispatch.
+//! Absorbed upstream into `toadstool::universal::pipeline_graph` (S139).
+//! toadStool's version is the generalized ecosystem-wide DAG dispatch.
+//! neuralSpring retains this local copy because toadStool is not a cargo
+//! dependency — when toadStool becomes a dependency, this module can be
+//! replaced with re-exports.
 
 use std::collections::HashMap;
 

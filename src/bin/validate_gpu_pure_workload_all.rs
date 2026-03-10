@@ -62,20 +62,13 @@ use neural_spring::tolerances;
 use neural_spring::validation::{output_buf, storage_buf, ValidationHarness};
 use std::sync::Arc;
 use std::time::Instant;
-use wgpu::util::DeviceExt;
-
 #[tokio::main]
 async fn main() {
-    let gpu = match Gpu::new().await {
-        Ok(g) => {
-            eprintln!(
-                "  adapter: {} ({:?}, {:?})",
-                g.adapter_name, g.device_type, g.backend
-            );
-            g
-        }
-        Err(_) => neural_spring::validation::exit_no_gpu(),
-    };
+    let gpu = neural_spring::validation::gpu_or_exit().await;
+    eprintln!(
+        "  adapter: {} ({:?}, {:?})",
+        gpu.adapter_name, gpu.device_type, gpu.backend
+    );
 
     let mut h = ValidationHarness::new("gpu_pure_workload_all");
     let t0 = Instant::now();
@@ -249,29 +242,8 @@ fn validate_swarm_nn(h: &mut ValidationHarness, gpu: &Gpu) {
         },
     );
 
-    let staging = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("swarm_staging"),
-        size: (n_actions * 4) as u64,
-        usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
-    let mut encoder =
-        device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-    encoder.copy_buffer_to_buffer(&act_buf, 0, &staging, 0, (n_actions * 4) as u64);
-    gpu.queue().submit(std::iter::once(encoder.finish()));
-    let slice = staging.slice(..);
-    let (tx, rx) = std::sync::mpsc::channel();
-    slice.map_async(wgpu::MapMode::Read, move |result| {
-        tx.send(result).ok();
-    });
-    let _ = device.poll(wgpu::PollType::Wait {
-        submission_index: None,
-        timeout: None,
-    });
-    match rx.recv() {
-        Ok(Ok(())) => {
-            let data = slice.get_mapped_range();
-            let gpu_actions: Vec<u32> = bytemuck::cast_slice(&data).to_vec();
+    match gpu.read_buffer_u32(&act_buf, n_actions) {
+        Ok(gpu_actions) => {
             let gpu_mean = gpu_actions.iter().sum::<u32>() as f64 / gpu_actions.len() as f64;
             h.check_bool(
                 &format!(
@@ -280,7 +252,7 @@ fn validate_swarm_nn(h: &mut ValidationHarness, gpu: &Gpu) {
                 gpu_actions.iter().all(|&a| a < output_dim),
             );
         }
-        _ => h.check_bool("swarm_nn: GPU readback failed", false),
+        Err(e) => h.check_bool(&format!("swarm_nn: {e}"), false),
     }
 }
 
@@ -934,8 +906,8 @@ fn gpu_lstm_forward(
 // ═══════════════════════════════════════════════════════════════════
 
 fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
-    let pop = 16_u32;
-    let glen = 8_u32;
+    let pop = 16_usize;
+    let glen = 8_usize;
     let mut rng = Rng::new(42);
     let genotypes: Vec<f64> = (0..pop * glen).map(|_| rng.uniform()).collect();
     let weights: Vec<f64> = (0..glen).map(|_| rng.uniform()).collect();
@@ -943,24 +915,11 @@ fn validate_determinism(h: &mut ValidationHarness, gpu: &Gpu) {
     let device = gpu.device();
 
     let run = || -> Result<f64, String> {
-        let g = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("det_g"),
-            contents: bytemuck::cast_slice(&genotypes),
-            usage: wgpu::BufferUsages::STORAGE,
-        });
-        let w = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("det_w"),
-            contents: bytemuck::cast_slice(&weights),
-            usage: wgpu::BufferUsages::STORAGE,
-        });
-        let o = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("det_o"),
-            size: u64::from(pop) * 8,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
-            mapped_at_creation: false,
-        });
-        op.dispatch(&g, &w, &o, pop, glen);
-        let f = gpu.read_buffer_f64(&o, pop as usize)?;
+        let g = storage_buf(device, "det_g", bytemuck::cast_slice(&genotypes));
+        let w = storage_buf(device, "det_w", bytemuck::cast_slice(&weights));
+        let o = output_buf(device, "det_o", (pop * 8) as u64);
+        op.dispatch(&g, &w, &o, pop as u32, glen as u32);
+        let f = gpu.read_buffer_f64(&o, pop)?;
         Ok(f.iter().sum::<f64>() / f.len() as f64)
     };
 

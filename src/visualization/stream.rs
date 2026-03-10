@@ -204,13 +204,16 @@ impl StreamSession {
         &self.session_id
     }
 
-    /// Whether the error rate exceeds a backpressure threshold.
+    /// Fraction of failed messages above which backpressure engages.
+    const BACKPRESSURE_THRESHOLD: f64 = 0.1;
+
+    /// Whether the error rate exceeds the backpressure threshold.
     ///
     /// If more than 10% of messages have failed, the caller should
     /// slow down or stop sending.
     #[must_use]
     pub fn backpressure_active(&self) -> bool {
-        self.stats().error_rate() > 0.1
+        self.stats().error_rate() > Self::BACKPRESSURE_THRESHOLD
     }
 }
 

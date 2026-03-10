@@ -24,6 +24,8 @@
 //! ], (workgroups_x, 1, 1), output_count);
 //! ```
 
+use barracuda::device::capabilities::WORKGROUP_SIZE_1D;
+
 use crate::gpu::Gpu;
 
 /// Buffer binding for GPU shader validation dispatch.
@@ -205,10 +207,10 @@ pub fn max_diff(a: &[f64], b: &[f64]) -> f64 {
         .fold(0.0_f64, f64::max)
 }
 
-/// Workgroup count for a 1D dispatch: `ceil(n / 256)`.
+/// Workgroup count for a 1D dispatch: `ceil(n / WORKGROUP_SIZE_1D)`.
 #[must_use]
 pub const fn wg1d(n: u32) -> (u32, u32, u32) {
-    (n.div_ceil(256), 1, 1)
+    (n.div_ceil(WORKGROUP_SIZE_1D), 1, 1)
 }
 
 #[cfg(test)]

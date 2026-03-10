@@ -28,7 +28,6 @@
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
-use neural_spring::gpu::Gpu;
 use neural_spring::require;
 use neural_spring::tolerances;
 use neural_spring::validation::{check_gpu_points, ValidationHarness};
@@ -36,9 +35,7 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    let Ok(gpu) = Gpu::new().await else {
-        neural_spring::validation::exit_no_gpu();
-    };
+    let gpu = neural_spring::validation::gpu_or_exit().await;
     eprintln!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,

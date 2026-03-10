@@ -10,6 +10,10 @@
 //! - Dispatch geometry (how to compute workgroup counts from problem dimensions)
 //! - Entry point name
 
+use barracuda::device::capabilities::WORKGROUP_SIZE_1D;
+
+const WG: u32 = WORKGROUP_SIZE_1D;
+
 /// Describes one buffer binding in a shader.
 #[derive(Debug, Clone, Copy)]
 pub struct BufferBinding {
@@ -61,7 +65,7 @@ const fn uniform(binding: u32, role: &'static str) -> BufferBinding {
 pub const HMM_FORWARD_LOG: ShaderLayout = ShaderLayout {
     name: "HMM_FORWARD_LOG",
     entry_point: "hmm_forward_log",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "alpha_prev", "array<f32>"),
         storage(1, "log_trans", "array<f32>"),
@@ -69,21 +73,21 @@ pub const HMM_FORWARD_LOG: ShaderLayout = ShaderLayout {
         storage(3, "alpha_curr", "array<f32>"),
         uniform(4, "HmmParams {n_states}"),
     ],
-    dispatch_note: "ceil(n_states / 256)",
+    dispatch_note: "ceil(n_states / WG)",
 };
 
 /// Batch linear fitness evaluation.
 pub const BATCH_FITNESS_EVAL: ShaderLayout = ShaderLayout {
     name: "BATCH_FITNESS_EVAL",
     entry_point: "batch_fitness_linear",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "population", "array<f32>"),
         storage(1, "weights", "array<f32>"),
         storage(2, "fitness", "array<f32>"),
         uniform(3, "FitnessParams {pop_size, genome_len}"),
     ],
-    dispatch_note: "ceil(pop_size / 256)",
+    dispatch_note: "ceil(pop_size / WG)",
 };
 
 /// Parallel RK4 ODE integration.
@@ -118,98 +122,98 @@ pub const MEAN_REDUCE: ShaderLayout = ShaderLayout {
 pub const PAIRWISE_JACCARD: ShaderLayout = ShaderLayout {
     name: "PAIRWISE_JACCARD",
     entry_point: "pairwise_jaccard",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "pa", "array<u32>"),
         storage(1, "distances", "array<f32>"),
         uniform(2, "JaccardParams {n_genomes, n_genes}"),
     ],
-    dispatch_note: "ceil(n_pairs / 256) where n_pairs = n_genomes*(n_genomes-1)/2",
+    dispatch_note: "ceil(n_pairs / WG) where n_pairs = n_genomes*(n_genomes-1)/2",
 };
 
 /// Per-locus allele frequency variance.
 pub const LOCUS_VARIANCE: ShaderLayout = ShaderLayout {
     name: "LOCUS_VARIANCE",
     entry_point: "locus_variance",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "allele_freqs", "array<f32>"),
         storage(1, "per_locus_var", "array<f32>"),
         uniform(2, "VarianceParams {n_loci, n_pops}"),
     ],
-    dispatch_note: "ceil(n_loci / 256)",
+    dispatch_note: "ceil(n_loci / WG)",
 };
 
 /// Spatial payoff (Moore neighborhood).
 pub const SPATIAL_PAYOFF: ShaderLayout = ShaderLayout {
     name: "SPATIAL_PAYOFF",
     entry_point: "spatial_payoff",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "grid", "array<u32>"),
         storage(1, "fitness", "array<f32>"),
         uniform(2, "Params {width, height, R, S, T, P}"),
     ],
-    dispatch_note: "ceil(width * height / 256)",
+    dispatch_note: "ceil(width * height / WG)",
 };
 
 /// Batch inverse participation ratio.
 pub const BATCH_IPR: ShaderLayout = ShaderLayout {
     name: "BATCH_IPR",
     entry_point: "batch_ipr",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "eigenvectors", "array<f32>"),
         storage(1, "ipr_out", "array<f32>"),
         uniform(2, "Params {n_vectors, dim}"),
     ],
-    dispatch_note: "ceil(n_vectors / 256)",
+    dispatch_note: "ceil(n_vectors / WG)",
 };
 
 /// Pairwise Hamming distance.
 pub const PAIRWISE_HAMMING: ShaderLayout = ShaderLayout {
     name: "PAIRWISE_HAMMING",
     entry_point: "pairwise_hamming",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "sequences", "array<u32>"),
         storage(1, "distances", "array<f32>"),
         uniform(2, "Params {n_seqs, seq_len}"),
     ],
-    dispatch_note: "ceil(n_pairs / 256) where n_pairs = n_seqs*(n_seqs-1)/2",
+    dispatch_note: "ceil(n_pairs / WG) where n_pairs = n_seqs*(n_seqs-1)/2",
 };
 
 /// Pairwise L2 (Euclidean) distance.
 pub const PAIRWISE_L2: ShaderLayout = ShaderLayout {
     name: "PAIRWISE_L2",
     entry_point: "pairwise_l2",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "features", "array<f32>"),
         storage(1, "distances", "array<f32>"),
         uniform(2, "Params {n_items, dim}"),
     ],
-    dispatch_note: "ceil(n_pairs / 256) where n_pairs = n_items*(n_items-1)/2",
+    dispatch_note: "ceil(n_pairs / WG) where n_pairs = n_items*(n_items-1)/2",
 };
 
 /// Multi-objective fitness evaluation.
 pub const MULTI_OBJ_FITNESS: ShaderLayout = ShaderLayout {
     name: "MULTI_OBJ_FITNESS",
     entry_point: "multi_obj_fitness",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "genotypes", "array<f32>"),
         storage(1, "fitness", "array<f32>"),
         uniform(2, "Params {pop_size, genome_len, n_objectives, chunk_size}"),
     ],
-    dispatch_note: "ceil(pop_size * n_objectives / 256)",
+    dispatch_note: "ceil(pop_size * n_objectives / WG)",
 };
 
 /// Batch swarm NN forward pass.
 pub const SWARM_NN_FORWARD: ShaderLayout = ShaderLayout {
     name: "SWARM_NN_FORWARD",
     entry_point: "swarm_nn_forward",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "params", "array<f32>"),
         storage(1, "inputs", "array<f32>"),
@@ -219,60 +223,60 @@ pub const SWARM_NN_FORWARD: ShaderLayout = ShaderLayout {
             "Config {n_controllers, n_evals, input_dim, hidden_dim, output_dim}",
         ),
     ],
-    dispatch_note: "ceil(n_controllers * n_evals / 256)",
+    dispatch_note: "ceil(n_controllers * n_evals / WG)",
 };
 
 /// Two-input Hill function AND gate.
 pub const HILL_GATE: ShaderLayout = ShaderLayout {
     name: "HILL_GATE",
     entry_point: "hill_gate",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "cdg_grid", "array<f32>"),
         storage(1, "ai_grid", "array<f32>"),
         storage(2, "output", "array<f32>"),
         uniform(3, "HillParams {n_cdg, n_ai, k_cdg, k_ai, n_hill, v_max}"),
     ],
-    dispatch_note: "ceil(n_cdg * n_ai / 256)",
+    dispatch_note: "ceil(n_cdg * n_ai / WG)",
 };
 
 /// GPU head split for multi-head attention.
 pub const HEAD_SPLIT: ShaderLayout = ShaderLayout {
     name: "HEAD_SPLIT",
     entry_point: "head_split",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "input", "array<f32>"),
         storage(1, "output", "array<f32>"),
         uniform(2, "Params {batch, seq_len, n_heads, d_head}"),
     ],
-    dispatch_note: "ceil(batch * seq_len * n_heads * d_head / 256)",
+    dispatch_note: "ceil(batch * seq_len * n_heads * d_head / WG)",
 };
 
 /// GPU head concatenation for multi-head attention.
 pub const HEAD_CONCAT: ShaderLayout = ShaderLayout {
     name: "HEAD_CONCAT",
     entry_point: "head_concat",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "input", "array<f32>"),
         storage(1, "output", "array<f32>"),
         uniform(2, "Params {batch, seq_len, n_heads, d_head}"),
     ],
-    dispatch_note: "ceil(batch * seq_len * n_heads * d_head / 256)",
+    dispatch_note: "ceil(batch * seq_len * n_heads * d_head / WG)",
 };
 
 /// GPU-parallel PRNG (Xoshiro128**).
 pub const XOSHIRO128SS: ShaderLayout = ShaderLayout {
     name: "XOSHIRO128SS",
     entry_point: "generate",
-    workgroup_size: [256, 1, 1],
+    workgroup_size: [WG, 1, 1],
     bindings: &[
         storage(0, "state", "array<u32>"),
         storage(1, "output", "array<f32>"),
         uniform(2, "Params {n_threads}"),
     ],
-    dispatch_note: "ceil(n_threads / 256)",
+    dispatch_note: "ceil(n_threads / WG)",
 };
 
 /// All shader layouts, for iteration.

@@ -154,6 +154,12 @@ pub const RK45_ADAPTIVE: &str = include_str!("../../shaders/rk45_adaptive.wgsl")
 ///
 /// Each thread handles one (population, locus) pair. Applies selection
 /// via fitness weighting, then binomial drift using inline xoshiro128**.
+///
+/// ## Absorption status
+///
+/// Absorbed upstream as `barracuda::ops::bio::WrightFisherGpu` (f64 variant).
+/// Validation binaries use the barracuda op directly. This local WGSL is
+/// retained in the shader catalog for provenance and coralReef corpus reference.
 pub const WRIGHT_FISHER_STEP: &str = include_str!("../../shaders/wright_fisher_step.wgsl");
 
 // ── Write phase: new extensions for ToadStool absorption (S64) ──────
@@ -164,7 +170,10 @@ pub const WRIGHT_FISHER_STEP: &str = include_str!("../../shaders/wright_fisher_s
 /// `gpu_ops::reduction::chi_squared_gpu`. Two input arrays (observed, expected),
 /// workgroup-parallel reduction.
 ///
-/// ## Absorption target: `barracuda::ops::fused_chi_squared_f64`
+/// ## Absorption status
+///
+/// Absorbed upstream as `barracuda::ops::fused_chi_squared_f64`.
+/// Local WGSL retained for provenance and coralReef corpus reference.
 pub const CHI_SQUARED_F64: &str = include_str!("../../shaders/chi_squared_f64.wgsl");
 
 /// Fused KL divergence (f64): `sum(p * ln(p/q))` in a single dispatch.
@@ -173,7 +182,10 @@ pub const CHI_SQUARED_F64: &str = include_str!("../../shaders/chi_squared_f64.wg
 /// `gpu_ops::reduction::kl_divergence_gpu`. Two input arrays (p, q),
 /// workgroup-parallel reduction with guard against zero.
 ///
-/// ## Absorption target: `barracuda::ops::fused_kl_divergence_f64`
+/// ## Absorption status
+///
+/// Absorbed upstream as `barracuda::ops::fused_kl_divergence_f64`.
+/// Local WGSL retained for provenance and coralReef corpus reference.
 pub const KL_DIVERGENCE_F64: &str = include_str!("../../shaders/kl_divergence_f64.wgsl");
 
 // ── Phase 4: New shaders for GPU-resident pipelines ─────────────────
@@ -183,7 +195,10 @@ pub const KL_DIVERGENCE_F64: &str = include_str!("../../shaders/kl_divergence_f6
 /// Per-timestep dispatch. Each thread computes `log_beta[i]` for one state
 /// via logsumexp over predecessors. Host iterates t = T-2..0.
 ///
-/// ## Absorption target: `barracuda::ops::bio::hmm`
+/// ## Absorption status
+///
+/// Absorbed upstream as `barracuda::ops::bio::hmm::hmm_backward`.
+/// Local WGSL retained for provenance and coralReef corpus reference.
 pub const HMM_BACKWARD_LOG: &str = include_str!("../../shaders/hmm_backward_log.wgsl");
 
 /// HMM Viterbi decoding in log-domain (Papers 016–018).
@@ -191,7 +206,10 @@ pub const HMM_BACKWARD_LOG: &str = include_str!("../../shaders/hmm_backward_log.
 /// Per-timestep dispatch. Each thread computes the best predecessor
 /// (argmax) and score for one state. Host handles backtracing.
 ///
-/// ## Absorption target: `barracuda::ops::bio::hmm`
+/// ## Absorption status
+///
+/// Absorbed upstream as `barracuda::ops::bio::hmm::hmm_viterbi`.
+/// Local WGSL retained for provenance and coralReef corpus reference.
 pub const HMM_VITERBI: &str = include_str!("../../shaders/hmm_viterbi.wgsl");
 
 /// Pearson correlation between upper triangles of two N×N matrices (Paper 025).
@@ -199,7 +217,10 @@ pub const HMM_VITERBI: &str = include_str!("../../shaders/hmm_viterbi.wgsl");
 /// Workgroup-parallel reduction of the 5 sufficient statistics
 /// (Σa, Σb, Σab, Σa², Σb²). Host finalizes r from partials.
 ///
-/// ## Absorption target: `barracuda::stats::matrix_correlation`
+/// ## Absorption status
+///
+/// Absorbed upstream as `barracuda::ops::stats_f64::matrix_correlation`.
+/// Local WGSL retained for provenance and coralReef corpus reference.
 pub const MATRIX_CORRELATION: &str = include_str!("../../shaders/matrix_correlation.wgsl");
 
 /// Simple linear regression via normal equations (Paper 012 — MODES).
@@ -207,7 +228,9 @@ pub const MATRIX_CORRELATION: &str = include_str!("../../shaders/matrix_correlat
 /// Workgroup-parallel reduction for (Sx, Sy, Sxx, Sxy, N).
 /// Host computes `a = (N·Sxy - Sx·Sy) / (N·Sxx - Sx²)`.
 ///
-/// ## Absorption target: `barracuda::stats::linear_regression_gpu`
+/// ## Absorption status
+///
+/// Absorbed upstream as `barracuda::ops::stats_f64::linear_regression`.
 pub const LINEAR_REGRESSION: &str = include_str!("../../shaders/linear_regression.wgsl");
 
 // ── coralForge: Evoformer primitives (Phase B) ────────────────

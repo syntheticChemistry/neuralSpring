@@ -5,7 +5,50 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 135 (March 9, 2026)
+## [Unreleased] — Session 139 (March 10, 2026)
+
+### Session 139 — Visualization Evolution + Deep Debt (2026-03-10)
+
+**4 new petalTongue scenario builders** in `src/visualization/scenarios/`:
+
+- `search_results.rs`: BLAST-like search pipeline — alignment scores Bar, seed density TimeSeries, pipeline Gauges
+- `streaming_io.rs`: streaming I/O quality — FASTQ quality Distribution, per-position TimeSeries, GC Gauge, VCF variant positions
+- `kokkos_parity.rs`: Kokkos GPU parity dashboard — timing comparison Heatmap, overhead gap Bar, mean/max overhead Gauges
+- `industry_coverage.rs`: ecosystem tool coverage — status Heatmap, domain completion Bar, primal ownership breakdown
+
+**Deep debt elimination**:
+
+- `config.rs` module centralizes primal identity (`PRIMAL_FAMILY`, `PRIMAL_DISPLAY_NAME`), env var names (`ENV_PETALTONGUE_SOCKET`, `ENV_REQUIRE_GPU`, etc.), petalTongue config (`PETALTONGUE_DOMAIN`, `PETALTONGUE_THEME`)
+- `LINE_BUF_CAPACITY` / `VCF_LINE_BUF_CAPACITY` named constants replace magic numbers in streaming parsers
+- `StreamSession::BACKPRESSURE_THRESHOLD` replaces inline `0.1`
+- `db_encoded.clone()` eliminated in search scenario via reordering (borrow before move)
+- Hardcoded `"neuralspring"`, `"neural-dark"`, `"PETALTONGUE_SOCKET"` strings replaced with config constants
+
+**Infrastructure**:
+
+- `full_study()` expanded from 12 → 16 tracks with cross-domain edges
+- New binary: `neuralspring_ecosystem_dashboard` — renders all 16 tracks + live gauge streaming
+- `scripts/visualize.sh` updated with `--ecosystem` option
+- 1048 lib tests (+82 from S136–S139), 233 binaries, 0 clippy, 0 doc warnings
+- V93 handoff written to wateringHole
+
+### Session 138 — Industry Gap Closure (2026-03-10)
+
+**Streaming I/O parsers**: FASTA (16 tests), FASTQ (13 tests), VCF (10 tests) — O(record_size) memory, zero-copy where possible.
+**CPU-reference BLAST pipeline**: `search/kmer_index` + `search/seed_extend` (19 tests) — k-mer seeding, ungapped extension, Smith-Waterman scoring.
+**Kokkos parity benchmark**: `bench_kokkos_parity` harness (9 ops × production scale).
+**Specs**: `INDUSTRY_TOOL_GAP_ANALYSIS.md`, `BLAST_LIKE_SEARCH_SCOPE.md`, `MSA_PIPELINE_SCOPE.md`.
+968 lib tests, V92 handoff written.
+
+### Session 137 — Upstream Rewire + Deep Debt (2026-03-10)
+
+**Rewires**: hardcoded `256` → `WORKGROUP_SIZE_1D` (library+forge, 15 sites). 7 WGSL shader absorption statuses updated.
+**Deep debt**: `gpu_or_exit()` async helper eliminates GPU init boilerplate (~75 binaries), duplicate `max_abs_diff` eliminated.
+**Full audit**: zero unsafe, zero TODOs, zero mocks, zero hardcoded paths, all files < 800 LOC. 968 lib + 71 forge tests PASS.
+
+### Session 136 — Deep Audit + Evolution (2026-03-10)
+
+`PetalTonguePushClient::headless()` eliminates socket hardcoding. `Gpu::read_buffer_u32` wired to upstream parity. `validate_gpu_pure_workload_all` refactored (976→940 LOC). Industry GPU parity gap documented. Kokkos/Polybench/cuBLAS gap formally requested. 968 lib tests (+2 headless client).
 
 ### Session 135 — petalTongue Visualization Evolution (2026-03-09)
 

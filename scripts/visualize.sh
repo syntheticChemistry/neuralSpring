@@ -6,6 +6,7 @@
 # Usage:
 #   ./scripts/visualize.sh              # dump all scenarios to sandbox/scenarios/
 #   ./scripts/visualize.sh --live       # start live training dashboard
+#   ./scripts/visualize.sh --ecosystem  # start ecosystem dashboard (16 tracks)
 #   ./scripts/visualize.sh --render     # dump + launch petalTongue on complete study
 #
 # Environment:
@@ -50,6 +51,13 @@ case "$MODE" in
             "$PROJECT_ROOT/target/release/neuralspring_live_dashboard"
         ;;
 
+    --ecosystem)
+        echo "Building neuralspring_ecosystem_dashboard..."
+        cargo build --release --bin neuralspring_ecosystem_dashboard --manifest-path "$PROJECT_ROOT/Cargo.toml"
+        echo ""
+        "$PROJECT_ROOT/target/release/neuralspring_ecosystem_dashboard"
+        ;;
+
     --render)
         dump_scenarios
         COMPLETE="$SCENARIO_DIR/neuralspring-complete-study.json"
@@ -68,7 +76,7 @@ case "$MODE" in
 
     *)
         echo "Unknown mode: $MODE"
-        echo "Usage: $0 [dump|--live|--render|--help]"
+        echo "Usage: $0 [dump|--live|--ecosystem|--render|--help]"
         exit 1
         ;;
 esac

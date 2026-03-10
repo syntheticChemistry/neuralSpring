@@ -48,16 +48,16 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch` (`hmm_viterbi_f64.wgsl`).
 21/21 WGSL shaders absorbed + 15 coralForge df64 shaders.
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
-966 lib tests, 150+ named tolerances, 0 clippy warnings (pedantic+nursery clean), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
-232 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/, 966 lib + 9 integration + 71 forge tests.
+1048 lib tests, 150+ named tolerances, 0 clippy warnings (pedantic+nursery clean), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
+233 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/, 1048 lib + 9 integration + 71 forge tests.
 **CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. **220/220 validate\_all**.
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 **220/220 validate\_all**. Pure Rust **38.6× faster** than Python/NumPy
 (geomean, 15 domains; fastest: multi-obj fitness 1028×; 2 BLAS-bound domains included). CPU→GPU portability proven (9/9, 7 domains).
 
-### petalTongue Visualization (Session 135)
+### petalTongue Visualization (Sessions 135–139)
 
-12 domain scenario builders covering all 8 `DataChannel` types (TimeSeries, Spectrum, Gauge, Bar, Scatter3D, **Heatmap**, **Distribution**, **FieldMap**). Live training dashboard via `TrainingVisualizer` streaming spectral diagnostics to petalTongue. 56/56 petalTongue validation checks. `scripts/visualize.sh` for offline/live/render modes.
+16 domain scenario builders covering all 8 `DataChannel` types (TimeSeries, Spectrum, Gauge, Bar, Scatter3D, **Heatmap**, **Distribution**, **FieldMap**). S139 added search results, streaming I/O quality, Kokkos GPU parity, and industry coverage scenarios. Live training dashboard via `TrainingVisualizer` streaming spectral diagnostics to petalTongue. `neuralspring_ecosystem_dashboard` binary for rendering all 16 tracks simultaneously. 56/56 petalTongue validation checks. `scripts/visualize.sh` for offline/live/render/ecosystem modes. `config.rs` centralizes primal identity, env var names, petalTongue domain/theme.
 S130: Upstream rewire — ToadStool S130 pin, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired, fused GPU regression gated via canary, coralNAK→coralReef rename, `baseline_path` consistency, inline threshold extraction. V88 handoff.
 S132: Upstream rewire — ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). Zero API breakage (spring sync confirmed). `shared_memory_f64_safe()` precision routing. `barracuda::shaders::provenance` wired (22 shaders, 17 cross-spring edges). 911 lib tests (+9 provenance/precision), 42/42 drift PASS. V90 handoff.
 S133: Phase 5–7 buildout — metalForge PCIe `transfer_buffer_strategy()`, `NpuToGpuP2P` substrate variant, biomeOS pipeline DAG (`graph.rs`: topological execution, 3 canonical pipelines), petalTongue `StreamSession` + `push_replace` + 64KB IPC buffer. `validate_nucleus_tower` + `validate_biomeos_graph` + `validate_petaltongue_scenarios` added (22+32+31 PASS). Feature-gated `validate_all` support. 966 lib + 71 forge tests, 232 binaries, 220/220 validate\_all.
@@ -87,7 +87,7 @@ WDM+coralForge CPU↔GPU parity 39/39 | metalForge WDM+coralForge NUCLEUS 41/41 
 Multi-GPU RTX 4070 + TITAN V (NVK): 384/384 bit-identical | CPU↔Python parity 39/39 (1e-10).
 Cross-spring rewire: 41/41 (`validate_cross_spring_rewire`) | modern bench 28/28 (`bench_cross_spring_modern`).
 S121 rewire: 80/80 (`validate_barracuda_s121_rewire`) — SimpleMlp EOS/Transport + HMM Viterbi/forward dispatcher parity.
-**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe | zero inline magic numbers | 100% SPDX headers | zero mocks in production | all files < 1000 LOC | 4 unused deps removed (S100).
+**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe | zero inline magic numbers | 100% SPDX headers | zero mocks in production | all files < 1000 LOC | 4 unused deps removed (S100) | `config.rs` centralizes primal identity, env vars, petalTongue config (S139).
 See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
 
 ### Phase 0 — Synthetic Baselines (48/48)
@@ -212,7 +212,7 @@ Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at mach
 
 Every Python experiment has a companion Rust validation binary following the
 hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module (129+ named
-constants), explicit pass/fail exit codes. Library code: 966 lib tests + 9
+constants), explicit pass/fail exit codes. Library code: 1048 lib tests + 9
 integration tests. baseCamp modules add 82 analytical checks + GPU pure 5/5 sub-theses.
 WDM surrogates add 6 Rust validators (CPU + BarraCUDA GPU): nW-01 transport 30/30,
 nW-02 EOS 36/36 + GPU 15/15, nW-03 S(q,ω) 27/27, nW-04 transfer 6/6, nW-05 ESN 39/39.
@@ -281,9 +281,9 @@ bash control/check_drift.sh        # drift detection (re-runs baselines)
 pip install pytest
 python3 -m pytest tests/ -v
 
-# Rust validation (966 lib + 9 integration)
+# Rust validation (1048 lib + 9 integration)
 cargo test --lib --test integration
-cargo run --release --bin validate_all   # all 246 validation binaries
+cargo run --release --bin validate_all   # all validation binaries
 
 # All quality gates at once
 make check    # or: just check
@@ -397,7 +397,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (330/330 — 26 papers + 5 WDM + baseCamp + coralForge)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (966 lib + 9 integration + 71 forge tests, 246 validation binaries, 41 modules + gpu_ops/ + gpu_dispatch/)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (1048 lib + 9 integration + 71 forge tests, 233 validation binaries, 41 modules + gpu_ops/ + gpu_dispatch/)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused `ToadStool` pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -461,7 +461,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 330/330 PASS |
-| Rust tests | `cargo test` | 966 lib + 9 integration + 71 forge PASS |
+| Rust tests | `cargo test` | 1048 lib + 9 integration + 71 forge PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery), 0 `#[allow(` in production code |
 | Rust coverage | `cargo llvm-cov --lib` | 91.66% line coverage |
 | Rust format | `cargo fmt --check` | clean |
@@ -511,7 +511,7 @@ neuralSpring/
 │   ├── wdm/                    #   WDM surrogates: EOS (nW-02), transport (nW-01), S(q,ω) (nW-03), transfer (nW-04), ESN regime (nW-05)
 │   ├── shared/                 #   Shared utilities (Open-Meteo, etc.)
 │   └── requirements.txt        #   Pinned dependencies
-├── src/                        # Rust library (41 modules + 2 evolved + gpu_ops/ + gpu_dispatch)
+├── src/                        # Rust library (41 modules + 2 evolved + config + gpu_ops/ + gpu_dispatch/ + streaming/ + search/ + visualization/)
 │   ├── lib.rs                  #   Crate root
 │   ├── validation.rs           #   ValidationHarness (hotSpring pattern)
 │   ├── tolerances/             #   Centralized tolerance constants + runtime introspection
@@ -551,7 +551,7 @@ neuralSpring/
 │   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
 │   ├── gpu_ops/                 #   41 GPU-accelerated ops (6 submodules: linalg, activation, reduction, bio, population, eigensolver)
 │   ├── gpu_dispatch/            #   Capability-based GPU/CPU dispatch (Dispatcher)
-│   └── bin/                    #   232 binaries (validate + bench)
+│   └── bin/                    #   233 binaries (validate + bench)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
 │       ├── validate_metrics.rs             # 10 checks
@@ -654,4 +654,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–134: March 9, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 331 Python + 3400+ Rust+GPU = 4100+ validation checks | 957 lib + 9 integration + 71 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 246 validation/bench binaries, 42 WGSL shaders | 150+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3+ standalone, nautilus absorbed, 220/220 validate\_all | 46 upstream rewires | V91 handoff | Cross-spring provenance: 22 tracked shaders, 5 springs, 17 dependency edges | biomeOS pipeline DAG + petalTongue StreamSession + metalForge PCIe P2P*
+*Initialized: February 16, 2026 | Sessions 40–139: March 10, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments, 331 Python + 3400+ Rust+GPU = 4100+ validation checks | 1048 lib + 9 integration + 71 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) — 41 modules, 233 validation/bench binaries, 42 WGSL shaders | 150+ named tolerances, 0 clippy warnings (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` in entire codebase | barraCuda v0.3.3+ standalone, nautilus absorbed, 220/220 validate\_all | 46 upstream rewires | S139 handoff | Cross-spring provenance: 22 tracked shaders, 5 springs, 17 dependency edges | biomeOS pipeline DAG + petalTongue StreamSession + metalForge PCIe P2P | 16 petalTongue scenario tracks + ecosystem dashboard | config.rs centralized identity + streaming FASTA/FASTQ/VCF + CPU BLAST pipeline + Kokkos parity harness*

@@ -3,8 +3,8 @@
 This document catalogues `BarraCUDA` / `ToadStool` shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 
-**Last reviewed:** barraCuda v0.3.3 standalone (`../barraCuda/crates/barracuda`), Mar 9, 2026. wgpu 28, ToadStool S130+ pin, coralReef Iteration 10 pin. **ALL 17 shortcomings RESOLVED, 46 upstream rewires, 128+ barracuda import sites, 45+ submodules exercised, 246 binaries, 966 lib tests, 71 forge tests, 0 clippy, 0 doc warnings.** S133: metalForge PCIe P2P, biomeOS pipeline DAG, petalTongue StreamSession. 220/220 validate_all.
-**Canonical handoff:** V91 (Session 133, Mar 9, 2026) — Phase 5–7 absorption handoff
+**Last reviewed:** barraCuda v0.3.3 standalone (`../barraCuda/crates/barracuda`), Mar 10, 2026. wgpu 28, ToadStool S130+ pin, coralReef Iteration 10 pin. **ALL 17 shortcomings RESOLVED, 46 upstream rewires, 128+ barracuda import sites, 45+ submodules exercised, 233 binaries, 1048 lib tests, 71 forge tests, 0 clippy, 0 doc warnings.** S139: visualization evolution + deep debt + streaming parsers + BLAST pipeline + Kokkos parity. 220/220 validate_all.
+**Canonical handoff:** S139 (Session 139, Mar 10, 2026) — Visualization evolution + toadStool/barraCuda absorption handoff
 **barraCuda standalone:** `../barraCuda/crates/barracuda` v0.3.3 at `a898dee` — 708 WGSL shaders, dual-protocol IPC, domain feature-gates, `PrecisionRoutingAdvice`, cross-spring provenance registry. Extracted from `ToadStool` S89. Deep debt: typed errors, named constants, lint compliance.
 **ToadStool:** S130+ at `bfe7977b` — hardware discovery + orchestration, coralReef shader proxy, JSON-RPC only (REST removed S90), `SubstrateType` 8 variants, capability-based discovery. Spring sync confirms zero API breakage. 19,777 tests.
 **coralReef:** Iteration 10 at `d29a734` — sovereign shader compiler (WGSL → native GPU binary), NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified), f64 transcendentals. 990 tests.
@@ -55,7 +55,7 @@ This document catalogues `BarraCUDA` / `ToadStool` shortcomings that
 
 **New validation**: `validate_barracuda_s121_rewire` (80/80 PASS) — SimpleMlp EOS/Transport/JSON-roundtrip + HMM Viterbi/forward dispatcher parity. `bench_cross_spring_modern` (28/28 PASS) — 5-spring provenance benchmark: SimpleMlp (0.0–1.4µs), HMM dispatcher, barraCuda::stats, eigh_f64, evolved dispatchers (softmax/gelu/matmul).
 
-**Quality gates**: 966 lib + 71 forge + 9 integration tests, 0 clippy (pedantic+nursery), 0 doc warnings, all files ≤1000 LOC. Total: **46 functions + 6 shader sources rewired to upstream**.
+**Quality gates**: 1048 lib + 71 forge + 9 integration tests, 0 clippy (pedantic+nursery), 0 doc warnings, all files ≤1000 LOC. Total: **46 functions + 6 shader sources rewired to upstream**.
 
 ---
 

@@ -64,7 +64,7 @@ fn main() {
         }
         Err(e) => {
             eprintln!("petalTongue not found ({e}) — running in headless mode (stats only)");
-            PetalTonguePushClient::new(std::env::temp_dir().join("neuralspring_headless.sock"))
+            PetalTonguePushClient::headless()
         }
     };
 
@@ -78,9 +78,7 @@ fn main() {
         Ok(s) => s,
         Err(e) => {
             eprintln!("Initial render failed ({e}), continuing in headless mode");
-            let fallback =
-                PetalTonguePushClient::new(std::env::temp_dir().join("neuralspring_headless.sock"));
-            StreamSession::resume(fallback, "live-training")
+            StreamSession::resume(PetalTonguePushClient::headless(), "live-training")
         }
     };
     let viz = TrainingVisualizer::new(session);

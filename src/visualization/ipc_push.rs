@@ -71,7 +71,7 @@ fn build_render_params(
         "title": title,
         "bindings": bindings,
         "thresholds": thresholds,
-        "domain": "neural",
+        "domain": crate::config::PETALTONGUE_DOMAIN,
     })
 }
 
@@ -134,13 +134,13 @@ impl PetalTonguePushClient {
     /// Returns [`PushError::NotFound`] if no petalTongue socket exists at
     /// any candidate path.
     pub fn discover() -> PushResult<Self> {
-        if let Ok(path) = std::env::var("PETALTONGUE_SOCKET") {
+        if let Ok(path) = std::env::var(crate::config::ENV_PETALTONGUE_SOCKET) {
             let path = PathBuf::from(path);
             if path.exists() {
                 return Ok(Self { socket_path: path });
             }
         }
-        if let Ok(runtime) = std::env::var("XDG_RUNTIME_DIR") {
+        if let Ok(runtime) = std::env::var(crate::config::ENV_XDG_RUNTIME_DIR) {
             let dir = PathBuf::from(runtime).join("petaltongue");
             if dir.is_dir() {
                 if let Ok(entries) = std::fs::read_dir(&dir) {
@@ -171,6 +171,19 @@ impl PetalTonguePushClient {
     #[must_use]
     pub const fn new(socket_path: PathBuf) -> Self {
         Self { socket_path }
+    }
+
+    /// Create a headless client that silently drops all push operations.
+    ///
+    /// Uses a non-existent temp-dir socket so every `send_rpc` call
+    /// returns `ConnectionFailed` — callers that ignore errors get a
+    /// zero-overhead no-op sink without hardcoded socket names.
+    #[must_use]
+    pub fn headless() -> Self {
+        Self {
+            socket_path: std::env::temp_dir()
+                .join(format!("neuralspring-headless-{}.sock", std::process::id())),
+        }
     }
 
     /// Socket path accessor (for tests).
@@ -370,6 +383,27 @@ mod tests {
     }
 
     #[test]
+    fn headless_client_uses_pid_unique_path() {
+        let client = PetalTonguePushClient::headless();
+        let path_str = client.socket_path().to_string_lossy().to_string();
+        assert!(
+            path_str.contains("neuralspring-headless-"),
+            "headless path should contain sentinel name"
+        );
+        assert!(
+            path_str.contains(&std::process::id().to_string()),
+            "headless path should include PID for uniqueness"
+        );
+    }
+
+    #[test]
+    fn headless_client_push_returns_connection_error() {
+        let client = PetalTonguePushClient::headless();
+        let result = client.push_gauge_update("s", "b", 1.0);
+        assert!(matches!(result, Err(PushError::ConnectionFailed(_))));
+    }
+
+    #[test]
     fn build_render_params_structure() {
         let (scenario, _) = scenarios::spectral_study();
         let params = build_render_params("sess-123", "Spectral Test", &scenario);
@@ -384,7 +418,7 @@ mod tests {
         );
         assert_eq!(
             params.get("domain").and_then(|v| v.as_str()),
-            Some("neural")
+            Some(crate::config::PETALTONGUE_DOMAIN)
         );
         assert!(params.get("bindings").is_some());
         assert!(params.get("thresholds").is_some());
@@ -465,7 +499,10 @@ mod tests {
         assert_eq!(request["jsonrpc"], "2.0");
         assert_eq!(request["method"], "visualization.render");
         assert_eq!(request["params"]["session_id"], "sess-1");
-        assert_eq!(request["params"]["domain"], "neural");
+        assert_eq!(
+            request["params"]["domain"],
+            crate::config::PETALTONGUE_DOMAIN
+        );
         socket_test_cleanup(&sock_path);
     }
 

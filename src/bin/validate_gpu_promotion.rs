@@ -25,14 +25,7 @@
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
-
-fn max_abs_diff(a: &[f64], b: &[f64]) -> f64 {
-    a.iter()
-        .zip(b.iter())
-        .map(|(x, y)| (x - y).abs())
-        .fold(0.0_f64, f64::max)
-}
+use neural_spring::validation::{max_abs_diff_f64, ValidationHarness};
 
 fn main() {
     let Ok(rt) = tokio::runtime::Runtime::new() else {
@@ -73,7 +66,7 @@ fn validate_linear_algebra(h: &mut ValidationHarness, disp: &Dispatcher) {
     let gpu_identity_prod = disp.mat_mul(&sequential, &ident, n);
     h.check_upper(
         "matmul A*I max_diff",
-        max_abs_diff(&cpu_identity_prod, &gpu_identity_prod),
+        max_abs_diff_f64(&cpu_identity_prod, &gpu_identity_prod),
         tolerances::GPU_MATMUL_IDENTITY_F32,
     );
 
@@ -84,7 +77,7 @@ fn validate_linear_algebra(h: &mut ValidationHarness, disp: &Dispatcher) {
     let gpu_random_prod = disp.mat_mul(&rand_a, &rand_b, n);
     h.check_upper(
         "matmul random 8x8 max_diff",
-        max_abs_diff(&cpu_random_prod, &gpu_random_prod),
+        max_abs_diff_f64(&cpu_random_prod, &gpu_random_prod),
         tolerances::GPU_MATMUL_RANDOM_F32,
     );
 
@@ -92,7 +85,7 @@ fn validate_linear_algebra(h: &mut ValidationHarness, disp: &Dispatcher) {
     let gpu_transposed = disp.transpose(&rand_a, n);
     h.check_upper(
         "transpose 8x8 max_diff",
-        max_abs_diff(&cpu_transposed, &gpu_transposed),
+        max_abs_diff_f64(&cpu_transposed, &gpu_transposed),
         tolerances::GPU_TRANSPOSE_F32,
     );
 
@@ -113,7 +106,7 @@ fn validate_linear_algebra(h: &mut ValidationHarness, disp: &Dispatcher) {
     let gpu_comm = disp.commutator(&comm_a, &comm_b, n4);
     h.check_upper(
         "commutator `[A,B]` max_diff",
-        max_abs_diff(&cpu_comm, &gpu_comm),
+        max_abs_diff_f64(&cpu_comm, &gpu_comm),
         tolerances::GPU_COMMUTATOR_F32,
     );
 
@@ -138,7 +131,7 @@ fn validate_activations(h: &mut ValidationHarness, disp: &Dispatcher) {
     let gpu_softmax = disp.softmax(&input);
     h.check_upper(
         "softmax max_diff",
-        max_abs_diff(&cpu_softmax, &gpu_softmax),
+        max_abs_diff_f64(&cpu_softmax, &gpu_softmax),
         tolerances::GPU_SOFTMAX_DISPATCH_F32,
     );
     h.check_abs(
@@ -153,7 +146,7 @@ fn validate_activations(h: &mut ValidationHarness, disp: &Dispatcher) {
     let gpu_boltz = disp.boltzmann(&fitnesses, 2.0);
     h.check_upper(
         "boltzmann max_diff",
-        max_abs_diff(&cpu_boltz, &gpu_boltz),
+        max_abs_diff_f64(&cpu_boltz, &gpu_boltz),
         tolerances::GPU_BOLTZMANN_F32,
     );
     h.check_abs(

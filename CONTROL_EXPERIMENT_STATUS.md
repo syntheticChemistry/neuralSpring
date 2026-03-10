@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 9, 2026 (Session 135 — petalTongue Visualization Evolution. 7 new domain scenario builders, all 8 DataChannel types, TrainingVisualizer live dashboard. 966 lib + 9 integration + 71 forge tests. 0 clippy. 220/220 validate_all, 56/56 petalTongue, 232 binaries)
+**Last updated**: March 10, 2026 (Session 139 — Visualization Evolution + Industry Gap Closure + Deep Debt. 4 new petalTongue scenarios (search, streaming I/O, Kokkos parity, industry coverage). 16 total tracks. Streaming FASTA/FASTQ/VCF parsers. CPU BLAST pipeline. Kokkos benchmark harness. `neuralspring_ecosystem_dashboard` binary. `config.rs` centralizes primal identity + env vars + petalTongue config. 1048 lib tests + 9 integration + 71 forge tests. 0 clippy. 233 binaries)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 331/331 Python PASS + 3400+ Rust+GPU validation PASS = **4100+ total validation checks**
-**Library**: 957 lib tests + 9 integration tests + 71 forge tests | 41 modules + gpu_ops/ + gpu_dispatch | 246 validation/bench binaries
+**Library**: 1048 lib tests + 9 integration tests + 71 forge tests | 41 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 233 validation/bench binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 6 biophysical AI modules + 11 validators (162/162 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 6/6 sub-theses PASS) — Sessions 50, 54, 56, 77, 104b, 107
@@ -19,10 +19,10 @@
 **ToadStool Absorption Readiness**: CPU correctness (eigh/Anderson/Hamiltonian) + GPU parity (3 matrix sizes) + batch scaling + mixed substrate: **294/294 PASS**. `validate_toadstool_spectral_absorption`
 **biomeOS Integration**: neuralSpring registered as science primal. 7 capabilities (spectral\_analysis, anderson\_localization, hessian\_eigen, agent\_coordination, ipr, disorder\_sweep, training\_trajectory). `neuralspring_primal` JSON-RPC server. `validate_biomeos_spectral`: **29/29 PASS**. **biomeOS graph coordination**: DAG pipeline engine (`graph.rs`) with topological execution, 3 canonical pipelines (spectral, popgen, folding). `validate_biomeos_graph`: **32/32 PASS** (S133). NUCLEUS ready (all plasmidBin primals built)
 **coralForge (df64 core streaming)**: 15 WGSL shaders — f64 buffer I/O → df64 compute on FP32 cores → f64 output. `Fp64Strategy::Hybrid` on RTX 4070. Arithmetic: 3.6e-8 to 5.6e-7 (tol 1e-6). Transcendental: 1.7e-4 to 3.4e-4 (tol 5e-4). **37/37 GPU checks**, 67/67 CPU checks, 25/25 Python checks
-**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero hardcoded primal names | zero unsafe | 0 clippy warnings (pedantic+nursery) | 0 doc warnings | zero inline magic numbers (150+ named tolerances) | zero bare `unwrap()` in validation code | 0 unused deps (4 removed S100) | zero mocks in production | all files < 1000 LOC | all PyTorch baselines fully seeded | barracuda usage audit complete (130+ imports, 44 rewires, zero duplicate math) | coralForge rename complete | capability-based primal discovery (S100)
-**Coverage**: 91.66% line coverage (llvm-cov, 966 lib tests), 150+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6% | anderson_localization expanded (+10 tests S100) | gpu_dispatch/basecamp expanded (+8 tests S100)
+**Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero hardcoded primal names | zero hardcoded socket names (headless evolved S136) | zero unsafe | 0 clippy warnings (pedantic+nursery) | 0 doc warnings | zero inline magic numbers (150+ named tolerances) | zero bare `unwrap()` in validation code | 0 unused deps (4 removed S100) | zero mocks in production | all files < 1000 LOC (largest: 859 bin, 794 lib) | all PyTorch baselines fully seeded | barracuda usage audit complete (130+ imports, 46 rewires, zero duplicate math) | coralForge rename complete | capability-based primal discovery (S100) | `Gpu::read_buffer_u32` wired to upstream (S136) | `WORKGROUP_SIZE_1D` from barracuda replaces hardcoded 256 in library+forge (S137) | 7 WGSL shader absorption statuses documented (S137) | toadStool S139 pipeline_graph absorption acknowledged (S137) | `gpu_or_exit()` async helper eliminates GPU init boilerplate (S137) | duplicate `max_abs_diff` in `validate_gpu_promotion` eliminated (S137) | pure Rust deps confirmed (wgpu is GPU bridge, not C binding) (S137) | `config.rs` centralizes primal identity, env var names, petalTongue domain/theme (S139) | `LINE_BUF_CAPACITY`/`VCF_LINE_BUF_CAPACITY` named constants (S139) | `StreamSession::BACKPRESSURE_THRESHOLD` (S139) | `db_encoded.clone()` eliminated via reordering (S139)
+**Coverage**: 91.66% line coverage (llvm-cov, 1048 lib tests), 150+ named tolerances in centralized registry | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6% | anderson_localization expanded (+10 tests S100) | gpu_dispatch/basecamp expanded (+8 tests S100)
 **Benchmarks**: Pure Rust **38.6× faster** than Python/NumPy (geomean, **15 domains** — all 15 Phase 0++ papers + Paper 026 LSTM glucose; fastest 1028× multi-obj; 2 BLAS-bound domains where LAPACK beats pure Rust at 64×64 eigensolve) | CPU→GPU portability proven (9/9, 7 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S94b pin, wgpu 28, BarraCUDA v0.3.3 | **46 upstream rewires** + 205 barracuda import files, 25+ submodules | V91 handoff
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S139 (`bfe7977b`), wgpu 28, BarraCUDA v0.3.3 | **46 upstream rewires** + 205 barracuda import files, 25+ submodules | V92 handoff (S137) | toadStool absorbed neuralSpring `pipeline_graph` (S139) + hotSpring `streaming_dispatch` | Compute triangle unblocked
 **petalTongue**: `StreamSession` with backpressure + `push_replace` + `query_capabilities` + 64KB IPC buffer. 5 scenario builders + `full_study()` combiner. Mock socket validation: `validate_petaltongue_scenarios`: **31/31 PASS** (S133)
 **Cross-Spring**: 68/68 evolution checks PASS (S113) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
@@ -317,7 +317,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | Python format | `ruff format` | **PASS** — 46 files conformant |
 | Python tests | `pytest tests/` | **PASS** — 48 tests |
 | Python baselines | `bash scripts/run_all_baselines.sh` | **PASS** — 233/233 |
-| Rust test | `cargo test` | **PASS** — 966 lib tests + 9 integration tests |
+| Rust test | `cargo test` | **PASS** — 1048 lib tests + 9 integration tests |
 | Rust clippy | `cargo clippy` (pedantic+nursery, -D warnings) | **PASS** — 0 warnings |
 | Rust format | `cargo fmt --check` | **PASS** |
 | Rust doc | `cargo doc --no-deps` | **PASS** |
@@ -338,7 +338,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (966 lib + 9 integration + 71 forge tests, 232 binaries, 41 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (1048 lib + 9 integration + 71 forge tests, 233 binaries, 41+ modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |

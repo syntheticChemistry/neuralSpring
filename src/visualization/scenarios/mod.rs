@@ -12,10 +12,14 @@ mod game_theory;
 mod glucose;
 mod hmm;
 mod immunological;
+mod industry_coverage;
+mod kokkos_parity;
 mod loss_landscape;
 mod population;
 mod provenance;
+mod search_results;
 mod spectral;
+mod streaming_io;
 mod training;
 mod wdm;
 
@@ -30,10 +34,14 @@ pub use game_theory::game_theory_study;
 pub use glucose::glucose_study;
 pub use hmm::hmm_study;
 pub use immunological::immunological_study;
+pub use industry_coverage::industry_coverage_study;
+pub use kokkos_parity::kokkos_parity_study;
 pub use loss_landscape::loss_landscape_study;
 pub use population::population_study;
 pub use provenance::provenance_study;
+pub use search_results::search_study;
 pub use spectral::spectral_study;
+pub use streaming_io::streaming_io_study;
 pub use training::training_study;
 pub use wdm::wdm_study;
 
@@ -55,7 +63,7 @@ fn scaffold(name: &str, description: &str) -> NeuralScenario {
             complexity_hint: "standard".into(),
         },
         ui_config: UiConfig {
-            theme: "neural-dark".into(),
+            theme: crate::config::PETALTONGUE_THEME.into(),
             animations: Animations {
                 enabled: true,
                 breathing_nodes: true,
@@ -250,7 +258,7 @@ pub(crate) fn node(
         id: id.into(),
         name: name.into(),
         node_type: node_type.into(),
-        family: "neuralspring".into(),
+        family: crate::config::PRIMAL_FAMILY.into(),
         status: "healthy".into(),
         health: 100,
         confidence: 95,
@@ -276,8 +284,9 @@ pub(crate) fn edge(from: &str, to: &str, label: &str) -> ScenarioEdge {
 
 /// Build a combined all-tracks scenario for the complete neuralSpring study.
 ///
-/// Merges spectral, training, coordination, provenance, and folding
-/// sub-studies into a single graph with cross-track edges.
+/// Merges all 16 tracks into a single graph with cross-track edges: the
+/// original 12 science tracks plus search, streaming I/O, Kokkos parity,
+/// and industry coverage.
 #[must_use]
 pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
@@ -293,15 +302,20 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         immunological_study(),
         population_study(),
         loss_landscape_study(),
+        search_study(),
+        streaming_io_study(),
+        kokkos_parity_study(),
+        industry_coverage_study(),
     ];
 
     let mut s = scaffold(
         "neuralSpring Complete Study",
-        "All 12 tracks: Spectral, Training, Coordination, Provenance, Folding, \
-         HMM, Game Theory, WDM, Glucose, Immunological, Population, Loss Landscape",
+        "All 16 tracks: Spectral, Training, Coordination, Provenance, Folding, \
+         HMM, Game Theory, WDM, Glucose, Immunological, Population, Loss Landscape, \
+         Search, Streaming I/O, Kokkos Parity, Industry Coverage",
     );
 
-    let offsets: [(f64, f64); 12] = [
+    let offsets: [(f64, f64); 16] = [
         (0.0, 0.0),
         (0.0, 500.0),
         (600.0, 0.0),
@@ -314,6 +328,10 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         (1500.0, 0.0),
         (1500.0, 500.0),
         (300.0, 1200.0),
+        (1800.0, 0.0),
+        (1800.0, 500.0),
+        (2100.0, 0.0),
+        (2100.0, 500.0),
     ];
 
     let mut all_edges = Vec::new();
@@ -370,6 +388,21 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         "immuno_anderson",
         "wdm_transport",
         "Anderson localization ↔ WDM transport",
+    ));
+    all_edges.push(edge(
+        "fastq_quality",
+        "search_pipeline",
+        "parsed reads → BLAST search",
+    ));
+    all_edges.push(edge(
+        "fasta_lengths",
+        "kmer_index",
+        "FASTA database → k-mer index",
+    ));
+    all_edges.push(edge(
+        "parity_overview",
+        "coverage_overview",
+        "GPU performance → industry readiness",
     ));
 
     (s, all_edges)
@@ -601,13 +634,20 @@ mod tests {
         assert!(ids.contains("agent_coordination"));
         assert!(ids.contains("shader_provenance"));
         assert!(ids.contains("folding_primitives"));
+        assert!(ids.contains("search_pipeline"));
+        assert!(ids.contains("kmer_index"));
+        assert!(ids.contains("fastq_quality"));
+        assert!(ids.contains("fasta_lengths"));
+        assert!(ids.contains("vcf_variants"));
+        assert!(ids.contains("parity_overview"));
+        assert!(ids.contains("coverage_overview"));
 
         assert_eq!(
             ids.len(),
             scenario.ecosystem.primals.len(),
             "no duplicate IDs"
         );
-        assert!(edges.len() >= 6, "full study should have >= 6 edges");
+        assert!(edges.len() >= 12, "full study should have >= 12 edges");
     }
 
     #[test]
@@ -710,7 +750,7 @@ mod tests {
     fn node_produces_scenario_node() {
         let n = super::node("n1", "N", "compute", 10.0, 20.0, &["cap1"], vec![], vec![]);
         assert_eq!(n.id, "n1");
-        assert_eq!(n.family, "neuralspring");
+        assert_eq!(n.family, crate::config::PRIMAL_FAMILY);
         assert_eq!(n.health, 100);
     }
 
@@ -720,5 +760,148 @@ mod tests {
         assert_eq!(e.from, "a");
         assert_eq!(e.to, "b");
         assert_eq!(e.edge_type, "data-flow");
+    }
+
+    // ── New scenario builder tests (S138+) ───────────────────────────────
+
+    #[test]
+    fn search_study_structure() {
+        let (scenario, edges) = search_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &["search_pipeline", "kmer_index", "hit_analysis"],
+            2,
+        );
+    }
+
+    #[test]
+    fn search_study_has_bar_and_gauge() {
+        let (scenario, _) = search_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_bar = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Bar { .. }));
+        let has_gauge = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Gauge { .. }));
+        assert!(has_bar, "search study should have Bar channel");
+        assert!(has_gauge, "search study should have Gauge channel");
+    }
+
+    #[test]
+    fn search_study_json_roundtrips() {
+        let (scenario, edges) = search_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn streaming_io_study_structure() {
+        let (scenario, edges) = streaming_io_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &["fastq_quality", "fasta_lengths", "vcf_variants"],
+            2,
+        );
+    }
+
+    #[test]
+    fn streaming_io_study_has_distribution() {
+        let (scenario, _) = streaming_io_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_dist = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Distribution { .. }));
+        assert!(has_dist, "streaming I/O study should have Distribution");
+    }
+
+    #[test]
+    fn streaming_io_study_json_roundtrips() {
+        let (scenario, edges) = streaming_io_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn kokkos_parity_study_structure() {
+        let (scenario, edges) = kokkos_parity_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &[
+                "parity_overview",
+                "parallel_for_ops",
+                "parallel_reduce_ops",
+                "domain_ops",
+            ],
+            3,
+        );
+    }
+
+    #[test]
+    fn kokkos_parity_study_has_heatmap() {
+        let (scenario, _) = kokkos_parity_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_hm = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Heatmap { .. }));
+        assert!(has_hm, "Kokkos parity should have Heatmap");
+    }
+
+    #[test]
+    fn kokkos_parity_study_json_roundtrips() {
+        let (scenario, edges) = kokkos_parity_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn industry_coverage_study_structure() {
+        let (scenario, edges) = industry_coverage_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &[
+                "coverage_overview",
+                "domain_progress",
+                "implementation_detail",
+            ],
+            2,
+        );
+    }
+
+    #[test]
+    fn industry_coverage_study_has_gauge() {
+        let (scenario, _) = industry_coverage_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_gauge = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Gauge { .. }));
+        assert!(has_gauge, "industry coverage should have Gauge");
+    }
+
+    #[test]
+    fn industry_coverage_study_json_roundtrips() {
+        let (scenario, edges) = industry_coverage_study();
+        assert_json_roundtrips(&scenario, &edges);
     }
 }

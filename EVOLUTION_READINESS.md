@@ -1,10 +1,14 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 9, 2026 (Session 135 — petalTongue Visualization Evolution)
-**barraCuda**: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`). 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Deep debt: typed errors, named constants, lint compliance.
-**ToadStool**: S130+ at `bfe7977b`. Hardware discovery + orchestration, coralReef shader proxy, JSON-RPC only, `SubstrateType` 8 variants, capability-based discovery. Spring sync confirms zero API breakage for all 5 springs. 19,777 tests.
-**coralReef**: Iteration 10 at `d29a734`. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2), f64 transcendentals. 8 neuralSpring shaders in corpus. 990 tests.
-**neuralSpring**: 966 lib + 71 forge + 9 integration tests, 232 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**Date**: March 10, 2026 (Session 139 — Visualization Evolution + Industry Gap Closure)
+**barraCuda**: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`). 712 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice` with `F64NativeNoSharedMem` Ada Lovelace reclassification, `WORKGROUP_SIZE_1D` constant, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Three-tier precision: F32/F64/Df64 (lean 3-tier model, F16+templates removed). Deep debt: typed errors, named constants, `Arc<str>` hot-path, `RwLock` compiler, ring buffer back-off, streaming pipeline completion.
+**ToadStool**: S139 at `bfe7977b`. Absorbed neuralSpring `pipeline_graph` DAG + hotSpring `streaming_dispatch`. Dual-write discovery (canonical + coralReef-compatible). `GpuDevice` enrichment (render_node, driver, arch). `gpu.dispatch` + `shader.compile` + `orchestration` capabilities. Compute triangle unblocked. 19,777 tests.
+**coralReef**: Iteration 10 at `d29a734`. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2). Three-tier precision architecture: f32 native, f64 DFMA+polynomial lowering, df64 preamble auto-prepend. `Fp64Strategy` in `CompileOptions`. Built-in `df64_preamble.wgsl`. 8 neuralSpring shaders in corpus. 990 tests.
+**neuralSpring**: 1048 lib + 71 forge + 9 integration tests, 233 binaries, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**S139**: Visualization evolution + deep debt. 4 new petalTongue scenario builders (search results, streaming I/O quality, Kokkos GPU parity, industry coverage). 16 tracks, 39 scenario tests. `neuralspring_ecosystem_dashboard` binary. **Deep debt**: `config.rs` centralizes primal identity, env var names, petalTongue domain/theme (zero scattered magic strings). `LINE_BUF_CAPACITY`/`VCF_LINE_BUF_CAPACITY` named constants. `StreamSession::BACKPRESSURE_THRESHOLD`. `db_encoded.clone()` eliminated via reordering. 1048 lib tests. V93 handoff written.
+**S138**: Industry gap closure — streaming FASTA parser (16 tests), CPU-reference BLAST pipeline (`search/kmer_index`, `search/seed_extend`, 19 tests), `bench_kokkos_parity` GPU benchmark harness (9 ops × production scale). `INDUSTRY_TOOL_GAP_ANALYSIS.md`, `BLAST_LIKE_SEARCH_SCOPE.md`, `MSA_PIPELINE_SCOPE.md`. V92 handoff written.
+**S137**: Upstream rewire + deep debt execution. Reviewed 27+ Mar 8–9 wateringHole handoffs (ToadStool S139, barraCuda Sprint 2 + deep debt + concurrency, coralReef precision architecture, groundSpring V98/V100 sovereign rewire). **Rewires**: hardcoded `256` → `WORKGROUP_SIZE_1D` (library+forge, 15 sites). **Absorption docs**: 7 WGSL shaders updated to "absorbed upstream" status. toadStool S139 `pipeline_graph` absorption acknowledged. **Deep debt**: `gpu_or_exit()` async helper eliminates 5-line GPU init boilerplate (~75 binaries); duplicate `max_abs_diff` in `validate_gpu_promotion` eliminated; 2 largest GPU binaries refactored to use `gpu_or_exit()`. **Full audit**: zero unsafe, zero TODOs, zero mocks in production, zero hardcoded paths, zero non-Rust deps (wgpu is the GPU bridge), all library files < 800 LOC. V92 handoff written. 968 lib + 71 forge tests PASS.
+**S136**: Deep audit + evolution — `PetalTonguePushClient::headless()` (socket hardcoding eliminated), `Gpu::read_buffer_u32` (upstream parity), `validate_gpu_pure_workload_all` refactored (976→940 LOC, raw wgpu eliminated), industry GPU parity gap documented (`specs/BENCHMARK_ANALYSIS.md`), Kokkos/Polybench/cuBLAS gap formally requested in V92 handoff. 968 lib tests (+2 headless client). All casts audited (f64→f32 for GPU, usize→f64 no From impl — legitimate).
 **S135**: petalTongue visualization evolution — 7 new domain scenario builders (HMM, game theory, WDM, glucose, immunological, population, loss landscape), all 8 DataChannel types exercised, `TrainingVisualizer` live streaming, `full_study()` 12-track combiner, `neuralspring_live_dashboard` binary, `scripts/visualize.sh`, 56/56 petalTongue validation.
 **S133**: metalForge PCIe `transfer_buffer_strategy()`, `NpuToGpuP2P` substrate, biomeOS pipeline DAG (`graph.rs`: topological execution, 3 canonical pipelines), petalTongue `StreamSession` + `push_replace` + 64KB IPC. Feature-gated `validate_all`. 220/220 `validate_all` PASS. V91 handoff.
 **S121 rewires**: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch`. 46 total upstream rewires. 80/80 S121 rewire validation + 28/28 cross-spring modern bench.
@@ -23,7 +27,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 330/330 | **COMPLETE** |
-| Rust native validation | 966 lib + 9 integration + 71 forge tests, 41 modules, 232 binaries | **COMPLETE** |
+| Rust native validation | 1048 lib + 9 integration + 71 forge tests, 41+ modules, 233 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -411,7 +415,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo fmt` | **Clean** — zero formatting violations |
 | `cargo clippy` pedantic + nursery | **0 warnings** — all `#[allow]` migrated to `#[expect(, reason)]` (0 in production code; 6 in `#[cfg(test)]` where `expect_used`/`unwrap_used` don't fire) |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **966 tests PASS** |
+| `cargo test --lib` | **1048 tests PASS** |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
 | `#![forbid(unsafe_code)]` | Enforced at crate root — zero `unsafe` blocks permitted |

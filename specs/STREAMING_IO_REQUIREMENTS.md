@@ -75,8 +75,10 @@ existing pattern for validation binaries.
 | `weight_loader.rs` | `std::fs::read` (full buffer) | Acceptable for safetensors (<10 MB). Evolve to chunked `BufReader` if files grow. |
 | Baseline JSON | `include_str!` (compile-time) | Exempt (R-06) |
 | Primal IPC | `BufReader` line-by-line | Compliant |
-| FASTQ parser | Not implemented | Future — must follow R-01..R-05 |
-| mzML parser | Not implemented | Future — must follow R-01..R-05 |
+| FASTQ parser | `streaming::fastq::FastqReader` | **Implemented** (S137). 15 tests, R-01/R-03/R-05 compliant. |
+| VCF parser | `streaming::vcf::VcfReader` | **Implemented** (S137). 15 tests, R-01/R-03/R-05 compliant. |
+| FASTA parser | `streaming::fasta::FastaReader` | **Implemented** (S138). 16 tests, R-01/R-03/R-05 compliant. |
+| mzML parser | Not implemented | Future — wetSpring owns. Must follow R-01/R-04/R-05. |
 | MS2 parser | Not implemented | Future — must follow R-01..R-05 |
 
 ---

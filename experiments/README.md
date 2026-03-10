@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 135)**: 966 lib tests, 232 binaries, 220/220 `validate_all`, 56/56 petalTongue, V91 `ToadStool`/`BarraCUDA` handoff. ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). March 9, 2026.
+**Current state (Session 139)**: 1048 lib tests, 233 binaries, 220/220 `validate_all`, 56/56 petalTongue, 16 scenario tracks, S139 handoff. ToadStool S139 (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). March 10, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -4654,6 +4654,88 @@ Deep code quality audit and debt resolution:
 | Named tolerances | 145 | 150+ |
 | Line coverage | ~90% | 91.66% |
 | Inline activation duplicates | 14 | 0 |
+
+---
+
+## Experiment 093 — Session 136: Deep Audit + Evolution
+
+**Date**: 2026-03-10
+**Session**: S136
+
+### Summary
+
+`PetalTonguePushClient::headless()` eliminates socket hardcoding. `Gpu::read_buffer_u32`
+wired to upstream parity. `validate_gpu_pure_workload_all` refactored (976→940 LOC, raw wgpu
+eliminated). Industry GPU parity gap documented in `specs/BENCHMARK_ANALYSIS.md`.
+Kokkos/Polybench/cuBLAS gap formally requested in V92 handoff. All casts audited.
+968 lib tests (+2 headless client).
+
+---
+
+## Experiment 094 — Session 137: Upstream Rewire + Deep Debt
+
+**Date**: 2026-03-10
+**Session**: S137
+
+### Summary
+
+Reviewed 27+ Mar 8–9 wateringHole handoffs. Hardcoded `256` → `WORKGROUP_SIZE_1D`
+(library+forge, 15 sites). 7 WGSL shader absorption statuses updated. toadStool S139
+`pipeline_graph` absorption acknowledged. `gpu_or_exit()` async helper eliminates GPU init
+boilerplate (~75 binaries). Duplicate `max_abs_diff` in `validate_gpu_promotion` eliminated.
+Full audit: zero unsafe, zero TODOs, zero mocks, all files < 800 LOC. 968 lib + 71 forge tests.
+
+---
+
+## Experiment 095 — Session 138: Industry Gap Closure
+
+**Date**: 2026-03-10
+**Session**: S138
+
+### Summary
+
+Streaming I/O parsers for bioinformatics: FASTA (16 tests), FASTQ (13 tests), VCF (10 tests) —
+O(record_size) memory. CPU-reference BLAST-like search pipeline: `search/kmer_index` (k-mer
+seed index), `search/seed_extend` (ungapped extension + Smith-Waterman scoring, 19 tests).
+`bench_kokkos_parity` GPU benchmark harness (9 ops × production scale). New specs:
+`INDUSTRY_TOOL_GAP_ANALYSIS.md`, `BLAST_LIKE_SEARCH_SCOPE.md`, `MSA_PIPELINE_SCOPE.md`.
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Streaming parser tests | 39 (16 FASTA + 13 FASTQ + 10 VCF) |
+| Search pipeline tests | 19 |
+| Kokkos benchmark ops | 9 |
+| Lib tests | 968 |
+
+---
+
+## Experiment 096 — Session 139: Visualization Evolution + Deep Debt
+
+**Date**: 2026-03-10
+**Session**: S139
+
+### Summary
+
+4 new petalTongue scenario builders: search results (runs BLAST pipeline, visualizes alignment
+scores), streaming I/O quality (runs parsers, shows quality distributions), Kokkos GPU parity
+(timing comparison heatmap), industry coverage (tool status overview). `full_study()` expanded
+12→16 tracks. New binary `neuralspring_ecosystem_dashboard` renders all tracks + streams live
+gauges. Deep debt: `config.rs` centralizes primal identity, env var names, petalTongue config.
+`LINE_BUF_CAPACITY`/`VCF_LINE_BUF_CAPACITY` replace magic numbers. `StreamSession::BACKPRESSURE_THRESHOLD`
+named constant. `db_encoded.clone()` eliminated via reordering. Hardcoded strings replaced with
+config constants across ipc_push, gpu, validation/env modules.
+
+### Key Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Lib tests | 968 | 1048 |
+| Scenario tracks | 12 | 16 |
+| Binaries | 232 | 233 |
+| Hardcoded env var strings | 6+ | 0 |
+| Hardcoded primal names | 3+ | 0 |
 
 ---
 

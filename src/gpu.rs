@@ -135,7 +135,7 @@ impl Gpu {
     /// Returns an error if the requested backend is unavailable.
     pub async fn new() -> Result<Self, String> {
         let selector = std::env::var("GPU_BACKEND")
-            .or_else(|_| std::env::var("NEURALSPRING_BACKEND"))
+            .or_else(|_| std::env::var(crate::config::ENV_GPU_BACKEND))
             .unwrap_or_default()
             .trim()
             .to_ascii_lowercase();
@@ -332,6 +332,17 @@ impl Gpu {
         self.wgpu_device
             .read_buffer_f64(buffer, count)
             .map_err(|e| format!("read_buffer_f64: {e}"))
+    }
+
+    /// Read u32 data back from a GPU buffer (blocking).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the GPU readback fails.
+    pub fn read_buffer_u32(&self, buffer: &wgpu::Buffer, count: usize) -> Result<Vec<u32>, String> {
+        self.wgpu_device
+            .read_buffer_u32(buffer, count)
+            .map_err(|e| format!("read_buffer_u32: {e}"))
     }
 
     /// Select a specific adapter by name substring or enumeration index.

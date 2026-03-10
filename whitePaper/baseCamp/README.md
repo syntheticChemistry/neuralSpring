@@ -1,8 +1,12 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 9, 2026 (Sessions 61–135)
-**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **220/220 validate\_all** (232 binaries), 966 lib tests. S135: petalTongue visualization evolution — 12 domain scenario builders, all 8 DataChannel types, live training dashboard. V91 handoff. barraCuda: v0.3.3 at `a898dee` (`../barraCuda/crates/barracuda`, 708 WGSL shaders, wgpu 28, cross-spring provenance, typed errors)
+**Last Updated**: March 10, 2026 (Sessions 61–139)
+**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **220/220 validate\_all** (233 binaries), 1048 lib tests. S139: visualization evolution + deep debt — 16 petalTongue scenario builders, ecosystem dashboard, config centralization, streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness. barraCuda: v0.3.3 at `a898dee` (712 WGSL shaders, wgpu 28, cross-spring provenance, typed errors)
 
+- **S139**: 4 new scenarios (search, streaming I/O, Kokkos parity, industry coverage), `config.rs`, deep debt elimination
+- **S138**: streaming parsers, BLAST pipeline, Kokkos benchmark harness, `INDUSTRY_TOOL_GAP_ANALYSIS.md`
+- **S137**: upstream rewire, `WORKGROUP_SIZE_1D`, shader absorption docs, `gpu_or_exit()` helper
+- **S136**: `PetalTonguePushClient::headless()`, `Gpu::read_buffer_u32`, industry GPU gap documented
 - **S135**: petalTongue visualization evolution — 7 new scenario builders, `TrainingVisualizer`, live dashboard binary
 - **S134**: activation consolidation, tolerance promotion, 91.66% coverage
 

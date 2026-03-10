@@ -709,7 +709,7 @@ fused map-reduce, combined correlation).
 |------|--------|
 | `cargo fmt --check` | PASS |
 | `cargo clippy --workspace -- -D warnings` | 0 warnings |
-| `cargo test --workspace` | 966 lib + 71 forge + 9 integration PASS |
+| `cargo test --workspace` | 1048 lib + 71 forge + 9 integration PASS |
 | `validate_all` | **150/150 PASS** |
 | `validate_cross_spring_evolution` | **52/52 PASS** |
 | `bench_cross_spring_evolution` | **28/28 PASS** |

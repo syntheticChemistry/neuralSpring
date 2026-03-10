@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 9, 2026 (Session 134 — upstream rewire. 220/220 validate_all, 246 binaries, barraCuda v0.3.3 at `a898dee`, wgpu 28. ToadStool S130+ (`bfe7977b`), coralReef Iteration 10 (`d29a734`). `PrecisionRoutingAdvice` wired. `shaders::provenance` available. Fused GPU regression gated. V90 handoff)
+**Last Updated**: March 10, 2026 (Session 139 — visualization evolution + deep debt. 220/220 validate_all, 233 binaries, 1048 lib tests, barraCuda v0.3.3 at `a898dee`, wgpu 28. ToadStool S130+ (`bfe7977b`), coralReef Iteration 10 (`d29a734`). `PrecisionRoutingAdvice` wired. `shaders::provenance` available. Fused GPU regression gated. S139 handoff)
 **BarraCUDA version**: `0.3.3` at `a898dee` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89), 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 

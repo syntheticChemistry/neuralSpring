@@ -46,7 +46,7 @@ impl std::fmt::Display for ValidationMode {
 #[must_use]
 pub fn gpu_required() -> bool {
     std::env::var("REQUIRE_GPU")
-        .or_else(|_| std::env::var("NEURALSPRING_REQUIRE_GPU"))
+        .or_else(|_| std::env::var(crate::config::ENV_REQUIRE_GPU))
         .is_ok_and(|v| v == "1" || v.eq_ignore_ascii_case("true"))
 }
 
@@ -64,6 +64,24 @@ pub fn exit_no_gpu() -> ! {
     }
     log::info!("0/0 checks — skipping gracefully (no GPU adapter)");
     process::exit(0);
+}
+
+/// Initialize a GPU adapter, exiting gracefully if unavailable.
+///
+/// Combines `Gpu::new().await` with [`exit_no_gpu`] to eliminate the
+/// 5-line boilerplate repeated across ~75 validation binaries:
+///
+/// ```ignore
+/// // Before (repeated everywhere):
+/// let Ok(gpu) = Gpu::new().await else { exit_no_gpu(); };
+///
+/// // After:
+/// let gpu = gpu_or_exit().await;
+/// ```
+pub async fn gpu_or_exit() -> crate::gpu::Gpu {
+    crate::gpu::Gpu::new()
+        .await
+        .unwrap_or_else(|_| exit_no_gpu())
 }
 
 /// Resolve a workspace-relative path to an absolute path.
