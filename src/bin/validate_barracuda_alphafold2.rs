@@ -27,6 +27,12 @@
 //!
 //! Jumper et al. "Highly accurate protein structure prediction with `AlphaFold`"
 //! Nature 596:583-589 (2021)
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (coralForge `AlphaFold2` hand-rolled implementations).
+//! GPU path: N/A (CPU validation; establishes CPU tier for GPU parity).
+//! Evolution: Jumper et al. 2021 → Python → Rust (CPU) → `BarraCUDA` CPU (this validates CPU tier).
 
 use neural_spring::coral_forge;
 use neural_spring::require;

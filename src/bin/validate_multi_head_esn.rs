@@ -7,6 +7,12 @@
 //! - head_disagreement uncertainty quantification
 //! - NPU weight export via barracuda int8 quantization
 //! - Typed JSON deserialization
+//!
+//! ## Provenance
+//!
+//! Cross-spring origin: hotSpring → `BarraCUDA`/`ToadStool` → neuralSpring.
+//! Absorption: MultiHeadEsn, head_disagreement, NPU export via barracuda int8.
+//! Validation: MultiHeadWdmClassifier, wdm_head_configs, NPU weight export vs CPU reference.
 
 #![expect(clippy::pedantic, reason = "validation binary")]
 

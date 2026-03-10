@@ -10,6 +10,12 @@
 //!
 //! This proves neuralSpring's spectral analysis is accessible through
 //! the biomeOS capability routing infrastructure.
+//!
+//! ## Provenance
+//!
+//! Validation class: Integration.
+//! CPU reference: direct Rust function calls (disorder_sweep, spectral analysis).
+//! Components: neuralspring_primal JSON-RPC server, biomeOS capability routing, spectral analysis.
 
 #![expect(
     clippy::cast_precision_loss,

@@ -37,8 +37,9 @@ pub fn wdm_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     let surrogate = json_path
         .exists()
         .then(|| {
-            let json = std::fs::read_to_string(&json_path).ok()?;
-            crate::wdm_transport::load_transport_from_json(&json).ok()
+            let file = std::fs::File::open(&json_path).ok()?;
+            let reader = std::io::BufReader::new(file);
+            crate::wdm_transport::load_transport_from_reader(reader).ok()
         })
         .flatten();
 

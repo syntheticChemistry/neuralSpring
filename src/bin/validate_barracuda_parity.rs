@@ -20,6 +20,12 @@
 //! ```text
 //! cargo run --release --bin validate_barracuda_parity
 //! ```
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (Dispatcher CPU path across all domains).
+//! GPU path: `BarraCUDA` Dispatcher GPU path via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 
 #![expect(
     clippy::too_many_lines,

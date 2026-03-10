@@ -17,12 +17,11 @@ fn try_gpu_dispatcher() -> Option<Dispatcher> {
 
 /// Like [`try_gpu_dispatcher`] but returns `None` when fused GPU shaders
 /// produce incorrect results (upstream `BarraCUDA` `Fp64Strategy` regression).
-/// Uses the canary check from [`crate::gpu_ops::tests_ops::test_device_hardware`].
+/// Delegates to `barracuda::device::test_harness::fused_ops_healthy`.
 fn try_hardware_gpu_dispatcher() -> Option<Dispatcher> {
     let gpu_arc = crate::gpu::tests::shared_gpu()?;
     let dev = gpu_arc.wgpu_device().clone();
-    let canary = crate::gpu_ops::variance_gpu(&[1.0, 2.0, 3.0, 4.0, 5.0], &dev).ok()?;
-    if !(canary > 0.1 && canary.is_finite()) {
+    if !barracuda::device::test_harness::fused_ops_healthy(&dev) {
         return None;
     }
     let gpu = crate::gpu::Gpu::from_device(dev);

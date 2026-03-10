@@ -24,6 +24,12 @@
 //!
 //! - GPU→NPU direct transfer cost vs GPU→CPU→NPU staged
 //! - Bandwidth tier detection from adapter name
+//!
+//! ## Provenance
+//!
+//! Validation class: GPU cross-dispatch.
+//! CPU reference: neuralSpring lib (Rust CPU).
+//! GPU path: metalForge mixed-hardware (WDM + coralForge via `DispatchConfig` routing).
 
 #![expect(
     clippy::cast_precision_loss,

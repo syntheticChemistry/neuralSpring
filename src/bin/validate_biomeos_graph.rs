@@ -22,9 +22,9 @@
 //!
 //! ## Provenance
 //!
-//! Validation class: Infrastructure (graph coordination layer)
-//! No Python baseline — validates graph algorithms and pipeline definitions
-//! against analytical expectations (topo order, DAG invariants, stage counts).
+//! Validation class: Infrastructure.
+//! Analytical reference: topo order, DAG invariants, stage counts (no Python baseline).
+//! Components: `neural_spring_forge::graph` (`PipelineGraph`, `StageNode`, `PipelineExecution`), `mixed::MixedSubstrate`.
 
 #![expect(
     clippy::too_many_lines,

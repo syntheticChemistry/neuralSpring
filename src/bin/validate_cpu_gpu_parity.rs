@@ -21,6 +21,12 @@
 //! 2. Run Tensor API on CPU device (llvmpipe, if available) → CPU result
 //! 3. Compare GPU vs CPU (when both available)
 //! 4. Compare each against pure Rust reference
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`CpuExecutor` pure Rust + Rayon).
+//! GPU path: `BarraCUDA` Tensor API (`MatMul`, activations, reductions, erf, gamma, conv/pool) via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 
 #![expect(
     clippy::cast_precision_loss,

@@ -26,8 +26,14 @@
 //! | Fused correlation | wetSpring bio + hotSpring precision | neuralSpring ML |
 //! | Matrix correlation | airSpring sensors + groundSpring stats | all springs |
 //! | Shannon entropy | wetSpring diversity | hotSpring fused map-reduce |
-//! | Chi-squared | neuralSpring → BarraCUDA S76 | hotSpring f64 pipeline |
-//! | KL divergence | neuralSpring → BarraCUDA S76 | hotSpring f64 pipeline |
+//! | Chi-squared | neuralSpring → `BarraCUDA` S76 | hotSpring f64 pipeline |
+//! | KL divergence | neuralSpring → `BarraCUDA` S76 | hotSpring f64 pipeline |
+//!
+//! ## Provenance
+//!
+//! Cross-spring origin: hotSpring, wetSpring, airSpring, groundSpring, neuralSpring → `ToadStool` S94b/`BarraCUDA` v0.3.3 → neuralSpring.
+//! Absorption: S125 sync — wgpu 22→28, VarianceF64/CorrelationF64 fused ops, `GuardedDeviceHandle`, `NpuDispatch`.
+//! Validation: wgpu 28 API, `BarraCUDA` v0.3.3 fused ops vs CPU reference.
 //!
 //! ```text
 //! cargo run --release --bin validate_toadstool_s94b_wgpu28

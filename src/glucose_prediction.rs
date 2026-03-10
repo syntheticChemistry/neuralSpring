@@ -43,6 +43,7 @@ use std::f64::consts::PI;
 
 use crate::rng::Rng;
 use crate::sequence::{lstm_cell, LstmWeights};
+use crate::tolerances;
 
 const WASHOUT: usize = 4;
 const BASAL_GLUCOSE: f64 = 120.0;
@@ -51,6 +52,13 @@ const ACOR_DECAY_STEPS: usize = 36;
 const INSULIN_DECAY_RATE: f64 = 0.02;
 const DT_MINUTES: f64 = 5.0;
 const SAMPLES_PER_DAY: usize = 288;
+
+/// Ridge regression regularization strength for LSTM readout.
+///
+/// Small enough to not bias predictions, large enough to stabilize
+/// the Cholesky solve for the ill-conditioned feature matrices
+/// produced by LSTM hidden-state pooling.
+const RIDGE_ALPHA: f64 = 1e-3;
 
 /// Per-horizon prediction results.
 #[derive(Debug, Clone)]
@@ -169,7 +177,7 @@ pub fn autocorrelation(series: &[f64], max_lag: usize) -> Vec<f64> {
             .map(|(&a, &b)| (a - mean) * (b - mean))
             .sum::<f64>()
             / n as f64;
-        acor.push(cov / var.max(1e-30));
+        acor.push(cov / var.max(tolerances::LOG_ZERO_GUARD));
     }
     acor
 }
@@ -234,28 +242,19 @@ fn extract_features(window: &[f64], lstm_w: &LstmWeights<'_>) -> Vec<f64> {
 }
 
 /// R² score between actual and predicted values.
+///
+/// Delegates to [`crate::metrics::r_squared`] → `barracuda::stats::r_squared`.
 #[must_use]
 pub fn r2_score(actual: &[f64], predicted: &[f64]) -> f64 {
-    let mean = actual.iter().sum::<f64>() / actual.len() as f64;
-    let ss_tot: f64 = actual.iter().map(|&a| (a - mean).powi(2)).sum();
-    let ss_res: f64 = actual
-        .iter()
-        .zip(predicted.iter())
-        .map(|(&a, &p)| (a - p).powi(2))
-        .sum();
-    1.0 - ss_res / ss_tot.max(1e-30)
+    crate::metrics::r_squared(actual, predicted)
 }
 
 /// RMSE between actual and predicted values.
+///
+/// Delegates to [`crate::metrics::rmse`] → `barracuda::stats::rmse`.
 #[must_use]
 pub fn rmse(actual: &[f64], predicted: &[f64]) -> f64 {
-    let mse: f64 = actual
-        .iter()
-        .zip(predicted.iter())
-        .map(|(&a, &p)| (a - p).powi(2))
-        .sum::<f64>()
-        / actual.len() as f64;
-    mse.sqrt()
+    crate::metrics::rmse(actual, predicted)
 }
 
 /// Run the full glucose prediction experiment at multiple horizons.
@@ -273,7 +272,7 @@ pub fn run_glucose_experiment(
 
     let g_mean = glucose.iter().sum::<f64>() / glucose.len() as f64;
     let g_var = glucose.iter().map(|&g| (g - g_mean).powi(2)).sum::<f64>() / glucose.len() as f64;
-    let g_std = g_var.sqrt().max(1e-12);
+    let g_std = g_var.sqrt().max(tolerances::VARIANCE_DIVISION_GUARD);
 
     let glucose_norm: Vec<f64> = glucose.iter().map(|&g| (g - g_mean) / g_std).collect();
 
@@ -283,7 +282,7 @@ pub fn run_glucose_experiment(
     let input_scale = 0.5;
     let spectral_radius = 0.9;
     let forget_bias = 1.0;
-    let ridge_alpha = 1e-3;
+    let ridge_alpha = RIDGE_ALPHA;
     let test_fraction = 0.2;
 
     let w_i: Vec<f64> = (0..4 * hs).map(|_| rng_w.normal() * input_scale).collect();
@@ -291,7 +290,7 @@ pub fn run_glucose_experiment(
     let mut w_h: Vec<f64> = (0..4 * hs * hs).map(|_| rng_w.normal() * 0.1).collect();
 
     let rho_max = spectral_radius_estimate(&w_h[..hs * hs], hs);
-    if rho_max > 1e-10 {
+    if rho_max > tolerances::RELATIVE_ERROR_FLOOR {
         let scale = spectral_radius / rho_max;
         for w in &mut w_h {
             *w *= scale;
@@ -402,7 +401,8 @@ pub fn run_glucose_experiment(
         let r2_persist = r2_score(&actual_test, &persist_pred);
         let rmse_persist = rmse(&actual_test, &persist_pred);
 
-        let improvement = (rmse_persist - rmse_lstm) / rmse_persist.max(1e-10) * 100.0;
+        let improvement =
+            (rmse_persist - rmse_lstm) / rmse_persist.max(tolerances::RELATIVE_ERROR_FLOOR) * 100.0;
 
         results.push(HorizonResult {
             horizon_steps: horizon,
@@ -443,7 +443,7 @@ fn spectral_radius_estimate(matrix: &[f64], n: usize) -> f64 {
             }
         }
         let norm: f64 = w.iter().map(|&x| x * x).sum::<f64>().sqrt();
-        if norm < 1e-30 {
+        if norm < tolerances::LOG_ZERO_GUARD {
             return 0.0;
         }
         for x in &mut w {
@@ -478,9 +478,13 @@ fn solve_symmetric(a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
             }
             if i == j {
                 let diag = a[i * n + i] - sum;
-                l[i * n + j] = if diag > 0.0 { diag.sqrt() } else { 1e-10 };
+                l[i * n + j] = if diag > 0.0 {
+                    diag.sqrt()
+                } else {
+                    tolerances::RELATIVE_ERROR_FLOOR
+                };
             } else {
-                l[i * n + j] = (a[i * n + j] - sum) / l[j * n + j].max(1e-30);
+                l[i * n + j] = (a[i * n + j] - sum) / l[j * n + j].max(tolerances::LOG_ZERO_GUARD);
             }
         }
     }
@@ -491,7 +495,7 @@ fn solve_symmetric(a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
         for j in 0..i {
             sum = l[i * n + j].mul_add(y[j], sum);
         }
-        y[i] = (b[i] - sum) / l[i * n + i].max(1e-30);
+        y[i] = (b[i] - sum) / l[i * n + i].max(tolerances::LOG_ZERO_GUARD);
     }
 
     let mut x = vec![0.0_f64; n];
@@ -500,7 +504,7 @@ fn solve_symmetric(a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
         for j in (i + 1)..n {
             sum = l[j * n + i].mul_add(x[j], sum);
         }
-        x[i] = (y[i] - sum) / l[i * n + i].max(1e-30);
+        x[i] = (y[i] - sum) / l[i * n + i].max(tolerances::LOG_ZERO_GUARD);
     }
 
     x
@@ -708,7 +712,7 @@ mod tests {
         let cgm = generate_synthetic_cgm(7, 42);
         let g_mean = cgm.iter().sum::<f64>() / cgm.len() as f64;
         let g_var = cgm.iter().map(|&g| (g - g_mean).powi(2)).sum::<f64>() / cgm.len() as f64;
-        let g_std = g_var.sqrt().max(1e-12);
+        let g_std = g_var.sqrt().max(tolerances::VARIANCE_DIVISION_GUARD);
         let norm: Vec<f64> = cgm.iter().map(|&g| (g - g_mean) / g_std).collect();
         let window = &norm[..24];
 
@@ -746,8 +750,11 @@ mod tests {
         let a = vec![1.0, 0.0, 0.0, 1.0];
         let b = vec![3.0, 7.0];
         let x = solve_symmetric(&a, &b, 2);
-        assert!((x[0] - 3.0).abs() < 1e-10, "I·x = b → x = b");
-        assert!((x[1] - 7.0).abs() < 1e-10);
+        assert!(
+            (x[0] - 3.0).abs() < tolerances::CROSS_LANGUAGE,
+            "I·x = b → x = b"
+        );
+        assert!((x[1] - 7.0).abs() < tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -757,8 +764,14 @@ mod tests {
         let x = solve_symmetric(&a, &b, 2);
         let residual_0 = (4.0f64.mul_add(x[0], 2.0 * x[1]) - 8.0).abs();
         let residual_1 = (2.0f64.mul_add(x[0], 3.0 * x[1]) - 7.0).abs();
-        assert!(residual_0 < 1e-8, "residual[0] = {residual_0}");
-        assert!(residual_1 < 1e-8, "residual[1] = {residual_1}");
+        assert!(
+            residual_0 < tolerances::ODE_ATOL,
+            "residual[0] = {residual_0}"
+        );
+        assert!(
+            residual_1 < tolerances::ODE_ATOL,
+            "residual[1] = {residual_1}"
+        );
     }
 
     #[test]
@@ -781,7 +794,7 @@ mod tests {
         let predictor = load_glucose_from_json(json).expect("valid JSON should parse");
         assert_eq!(predictor.hidden_size, 2);
         assert_eq!(predictor.seq_len, 12);
-        assert!((predictor.cgm_mean - 120.0).abs() < 1e-10);
+        assert!((predictor.cgm_mean - 120.0).abs() < tolerances::CROSS_LANGUAGE);
         assert_eq!(predictor.readouts.len(), 1);
         assert_eq!(predictor.readouts[0].0, 1);
     }

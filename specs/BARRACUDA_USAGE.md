@@ -1,7 +1,7 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 10, 2026 (Session 139 — visualization evolution + deep debt. 220/220 validate_all, 233 binaries, 1048 lib tests, barraCuda v0.3.3 at `a898dee`, wgpu 28. ToadStool S130+ (`bfe7977b`), coralReef Iteration 10 (`d29a734`). `PrecisionRoutingAdvice` wired. `shaders::provenance` available. Fused GPU regression gated. S139 handoff)
-**BarraCUDA version**: `0.3.3` at `a898dee` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89), 708 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
+**Last Updated**: March 10, 2026 (Session 142 — upstream rewire + `enable f64;` fix. 220/220 validate_all, 55/55 dispatch parity, 233 binaries, 1048 lib tests, barraCuda v0.3.3 at `83aa08a`, wgpu 28. ToadStool S142 (`a86bc546`), coralReef Iteration 29 (`2779c88`). Sprint 2 absorbed. `enable f64;` PTXAS fix. V95 handoff)
+**BarraCUDA version**: `0.3.3` at `83aa08a` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. 719 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
 ### At a Glance (Session 130)
@@ -27,8 +27,8 @@
 |--------|-----------|---------|
 | `device::WgpuDevice` | `gpu.rs`, all FFT/tensor/ML binaries | GPU device creation and management |
 | `device::GpuDriverProfile`, `Fp64Strategy`, `PrecisionRoutingAdvice` | `gpu_dispatch/mod.rs` | Hardware-adaptive f64 strategy, precision routing, pow workaround detection |
-| `device::WgpuDevice::compile_shader_universal` | `gpu.rs` (`compile_shader_universal`) | Universal precision compilation: one f64-canonical source → F16/F32/F64/Df64 (`BarraCUDA` S70+++) |
-| `shaders::precision::Precision` | `gpu.rs` (re-exported) | Precision enum: F16, F32, F64, Df64 for per-use/hardware shader compilation |
+| `device::WgpuDevice::compile_shader{,_f64,_df64}` | `gpu.rs` (`compile_shader_universal`) | Precision-routed compilation: F32→`compile_shader`, F64→`compile_shader_f64`, Df64→`compile_shader_df64` (S142: decomposed from universal, F16 removed) |
+| `shaders::precision::Precision` | `gpu.rs` (re-exported) | Precision enum: F32, F64, Df64 (lean 3-tier model; F16+templates removed upstream in Sprint 2) |
 | `device::capabilities::WORKGROUP_SIZE_*` | `evolved/mha.rs` | Shader workgroup sizing (legacy) |
 | `device.limits()` / `device.features()` | `gpu.rs` (`GpuCapabilities`) | Runtime hardware discovery — workgroup limits, f64/f16 support, buffer sizes |
 

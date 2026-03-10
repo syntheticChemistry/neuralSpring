@@ -33,6 +33,12 @@
 //! - Paper A: Weight Hamiltonians (baseCamp Sub-01, B-01..B-03)
 //! - Paper C: Anderson multi-agent (baseCamp Sub-05, B-13..B-15)
 //! - Papers 022-023: Spectral theory (Kachkovskiy)
+//!
+//! ## Provenance
+//!
+//! Validation class: Integration.
+//! Python baseline: Anderson spectral diagnostics at machine ε.
+//! Components: `BarraCUDA` `BatchIprGpu`, Dispatcher, `anderson_localization`, `weight_spectral`.
 
 #![expect(
     clippy::cast_precision_loss,

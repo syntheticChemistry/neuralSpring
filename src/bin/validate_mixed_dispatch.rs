@@ -11,6 +11,12 @@
 //! - `mixed::gpu_cpu_cost` / `gpu_npu_cost` — transfer cost model
 //! - `pcie_bridge::PcieBridge` — device pair abstraction
 //! - `pcie_bridge::detect_p2p` — P2P capability detection
+//!
+//! ## Provenance
+//!
+//! CPU reference: N/A (dispatch infrastructure validation).
+//! GPU path: `BarraCUDA` dispatch routing via wgpu.
+//! Evolution: Infrastructure validation for GPU-NPU-CPU routing (metalForge).
 
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::mixed::{

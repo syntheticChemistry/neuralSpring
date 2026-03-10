@@ -5,6 +5,12 @@
 //! Validates that `metalForge::forge::dispatch` substrate heuristics
 //! correctly recommend GPU vs CPU for various workload sizes, and that
 //! both paths produce identical results when exercised.
+//!
+//! ## Provenance
+//!
+//! Cross-spring origin: metalForge → `ToadStool` → neuralSpring.
+//! Absorption: `forge::dispatch` substrate heuristics (pairwise, fitness, ODE, HMM, spatial, IPR, logsumexp, stochastic).
+//! Validation: Substrate heuristics GPU vs CPU routing, compute parity across both paths.
 
 #![expect(
     clippy::cast_precision_loss,

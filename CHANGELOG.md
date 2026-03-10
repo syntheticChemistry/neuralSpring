@@ -5,7 +5,59 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 139 (March 10, 2026)
+## [Unreleased] — Session 142 (March 10, 2026)
+
+### Session 142 — Upstream Rewire + `enable f64;` Fix + Cross-Spring Evolution (2026-03-10)
+
+**Upstream rewire** to modern barraCuda/toadStool/coralReef:
+
+- barraCuda Sprint 2 absorption: `barracuda::activations` (sigmoid, gelu, relu, relu_batch)
+  delegated from `primitives.rs`; `fused_ops_healthy` canary adopted
+- `SpringDomain` API migration: enum→struct (`NeuralSpring`→`NEURAL_SPRING`, etc.)
+- `Precision::F16` removed (upstream dropped F16 tier); `compile_shader_universal`
+  decomposed to precision-routed dispatch
+- coralReef bridge discovery updated to ecosystem-aligned socket/manifest paths
+- 54 validation binaries received standard `## Provenance` blocks (Groups A–D)
+- 14 documentation/spec files and 2 validation binaries updated to current HEAD hashes
+
+**Critical bug fix — `enable f64;` PTXAS silent-zero regression**:
+
+- Diagnosed root cause: `enable f64;` in WGSL causes NVIDIA PTXAS on Ada Lovelace
+  (SM89, RTX 40xx) to silently produce broken shaders returning zeros for all outputs
+- Fix: `pipeline_cache.rs::get_or_compile_shader_f64_native` now strips `enable f64;`
+  before compilation (matching `compile_shader_f64`/`compile_shader_df64` behavior)
+- Resolved 5 of 7 dispatch parity failures: VarianceF64, CorrelationF64,
+  MatrixCorrelationF64, InterPopAfVariance, ThermalDiversityCorr
+- `fused_ops_healthy` canary: false→true
+- Diagnostic binary: `diagnose_f64_regression.rs`
+
+**HMM fused path workaround**:
+
+- `HmmBatchForwardF64` upstream has shader/binding mismatch (5-binding shader vs
+  7-binding dispatch) — silently returns 0.0
+- `hmm_forward_chain_gpu` now detects 0.0 from fused path and falls back to
+  per-step Tensor-based implementation
+
+**Tolerance adjustment**:
+
+- Glucose pearson CPU↔GPU: `TENSOR_EXACT_F32` (1e-6) → `GPU_DF64_TRANSCENDENTAL`
+  (5e-4) for 1008-element DF64 correlation (measured diff ~1.7e-5)
+
+**Validation results**:
+
+- `validate_barracuda_dispatch_parity`: 48/55 → **55/55 PASS**
+- `validate_toadstool_s79_rewire`: 19/19 PASS
+- `validate_modern_cross_spring`: 68/68 PASS
+- `cargo test --lib`: 1048/1048 PASS
+
+**Handoffs**:
+
+- V95 toadStool/barraCuda evolution handoff (enable f64 fix, cross-spring shader evolution)
+- V95 coralReef detailed handoff (precision lessons, bridge status, shader inventory)
+- V94 upstream rewire handoff
+- `enable f64;` fix handoff (targeted barraCuda bug report)
+
+**Pins**: barraCuda `83aa08a`, ToadStool S142 (`a86bc546`), coralReef Iteration 29 (`2779c88`)
 
 ### Session 139 — Visualization Evolution + Deep Debt (2026-03-10)
 
@@ -23,6 +75,12 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `StreamSession::BACKPRESSURE_THRESHOLD` replaces inline `0.1`
 - `db_encoded.clone()` eliminated in search scenario via reordering (borrow before move)
 - Hardcoded `"neuralspring"`, `"neural-dark"`, `"PETALTONGUE_SOCKET"` strings replaced with config constants
+
+**Upstream pin update** (documentation/specs):
+
+- barraCuda: `a898dee` → `83aa08a` (Sprint 2 APIs, healthSpring domain, batched logsumexp, CoralReefDevice, 719 WGSL shaders)
+- ToadStool: `bfe7977b` → `a86bc546` (S142, hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests)
+- coralReef: `d29a734` → `2779c88` (Iteration 29, NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, 1200+ tests)
 
 **Infrastructure**:
 

@@ -13,6 +13,12 @@
 //! ```text
 //! cargo run --release --bin validate_cpu_math_parity
 //! ```
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`Dispatcher::cpu_only()` Rust CPU math).
+//! GPU path: N/A (CPU-only validation; establishes CPU tier for GPU parity).
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU (this validates CPU tier).
 
 #![expect(
     clippy::cast_precision_loss,

@@ -20,6 +20,12 @@
 //!
 //! Abramson et al. "Accurate structure prediction for all molecules"
 //! Nature 630:493-500 (2024)
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (coralForge `AlphaFold3` hand-rolled implementations).
+//! GPU path: N/A (CPU validation; establishes CPU tier for GPU parity).
+//! Evolution: Abramson et al. 2024 → Python → Rust (CPU) → `BarraCUDA` CPU (this validates CPU tier).
 
 #![expect(
     clippy::cast_precision_loss,

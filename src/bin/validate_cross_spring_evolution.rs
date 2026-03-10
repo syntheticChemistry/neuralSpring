@@ -28,6 +28,12 @@
 //! ```text
 //! cargo run --release --bin validate_cross_spring_evolution
 //! ```
+//!
+//! ## Provenance
+//!
+//! Cross-spring origin: hotSpring, wetSpring, neuralSpring → `BarraCUDA`/`ToadStool` → neuralSpring.
+//! Absorption: S72 rewires (`softmax_dim`, `argmax_dim`, `fst_variance_decomposition`), driver profile.
+//! Validation: Dispatcher methods vs upstream `BarraCUDA`, `GpuDriverProfile` hardware detection, CPU reference parity.
 
 #![expect(
     clippy::cast_precision_loss,

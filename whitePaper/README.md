@@ -3,7 +3,7 @@
 ## The Isomorphic Learning Engine
 
 **Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 233 binaries, **220/220 validate\_all**. coralForge unified. 80+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 1048 lib + 9 integration + 71 forge tests. 46 upstream rewires, 130+ barracuda import files, 25+ submodules. barraCuda v0.3.3 standalone, wgpu 28. 16 petalTongue scenario builders, `neuralspring_ecosystem_dashboard`, `config.rs` centralized identity. Streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness.
-**Date**: March 10, 2026 (Sessions 40–139 — S139: Visualization evolution + deep debt. 4 new scenario builders, config centralization, streaming parsers, BLAST pipeline. 1048 lib tests, 233 binaries. barraCuda `a898dee`, ToadStool `bfe7977b`, coralReef `d29a734`)
+**Date**: March 10, 2026 (Sessions 40–142 — S142: Upstream rewire + `enable f64;` PTXAS fix + cross-spring evolution. 55/55 dispatch parity. V95 handoffs. 1048 lib tests, 233 binaries. barraCuda `83aa08a`, ToadStool S142 (`a86bc546`), coralReef Iteration 29 (`2779c88`))
 **License**: AGPL-3.0-or-later
 
 ---
@@ -359,4 +359,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *26 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 41+ modules. 1048 lib + 9 integration + 71 forge tests. 331 Python + 3400+ Rust/GPU = 4100+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 130+ barracuda import files. 233 binaries, 220/220 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. S139 handoff. barraCuda `a898dee`, ToadStool `bfe7977b`, coralReef `d29a734`. 16 petalTongue scenario tracks, ecosystem dashboard, config centralization, streaming FASTA/FASTQ/VCF, CPU BLAST, Kokkos parity.*
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 130+ barracuda import files. 233 binaries, 220/220 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. S139 handoff. barraCuda `83aa08a`, ToadStool `a86bc546`, coralReef `2779c88`. 16 petalTongue scenario tracks, ecosystem dashboard, config centralization, streaming FASTA/FASTQ/VCF, CPU BLAST, Kokkos parity.*

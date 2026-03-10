@@ -298,8 +298,15 @@ pub fn kokkos_parity_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
 /// Reference benchmark values from groundSpring V100 handoff.
 ///
 /// Format: `(operation, parallel_pattern, kokkos_µs, barracuda_µs, N)`.
-/// These are placeholder values that will be replaced with real measurements
-/// once `bench_kokkos_parity` runs on the same hardware as groundSpring.
+///
+/// **Status**: PLACEHOLDER — estimated from groundSpring V100 Kokkos-CUDA
+/// handoff notes and barraCuda RTX 4070 Vulkan dispatch measurements.
+/// These values are NOT from matched-hardware runs.  To produce real
+/// parity data, run `bench_kokkos_parity` on a system that has both
+/// a Kokkos-CUDA build and a barraCuda wgpu adapter on the same GPU.
+///
+/// **Debt**: Galaxy, BLAST+, GATK, and other industry-standard tool
+/// benchmarks are not yet included.  See `specs/INDUSTRY_TOOL_GAP_ANALYSIS.md`.
 fn reference_benchmarks() -> Vec<OpBenchmark> {
     vec![
         OpBenchmark {

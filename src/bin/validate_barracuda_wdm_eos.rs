@@ -5,10 +5,11 @@
 //! Runs MLP inference through `BarraCUDA` Tensor ops on GPU,
 //! comparing with Rust CPU reference path.
 //!
-//! Evolution chain:
-//! ```text
-//! FPEOS tables → Python MLP → Rust MLP (CPU) → BarraCUDA (GPU) → Pure GPU
-//! ```
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`wdm_surrogate` EOS Rust CPU math).
+//! GPU path: `BarraCUDA` Tensor API (MLP inference) via wgpu.
+//! Evolution: FPEOS tables → Python MLP → Rust MLP (CPU) → `BarraCUDA` GPU → Pure GPU.
 
 #![expect(
     clippy::cast_possible_truncation,

@@ -10,6 +10,12 @@
 //! 3. `ToadStool`-style streaming reduces round-trips
 //!
 //! This is the "portability proof" — same math, different hardware.
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (pure Rust math via CPU substrate).
+//! GPU path: `BarraCUDA` typed f64 ops via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 
 #![expect(
     clippy::cast_precision_loss,

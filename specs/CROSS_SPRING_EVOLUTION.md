@@ -2,12 +2,31 @@
 
 > *"We evolve locally, validate rigorously, hand off cleanly, then lean on upstream."*
 
-This document tracks how three ecoPrimals Springs — **hotSpring**, **wetSpring**,
-and **neuralSpring** — contribute shaders and primitives to `BarraCUDA`,
-creating a shared math engine whose capabilities grow with every absorption cycle.
+This document tracks how **six** ecoPrimals Springs — **hotSpring**, **wetSpring**,
+**neuralSpring**, **airSpring**, **groundSpring**, and **healthSpring** — contribute
+shaders and primitives to `BarraCUDA`, creating a shared math engine whose
+capabilities grow with every absorption cycle.
 
-**`ToadStool` HEAD**: `1dd7e338` (Sessions 59–70+++ sync — 46 upstream rewires, S-03b fully resolved, 21/21 shaders absorbed + 15 coralForge df64 shaders (df64 core streaming), 93.5% coverage, 611 tests, pure GPU all-domains 10/10 PASS, cross-system dispatch 46/46 PASS, cross-spring evolution 52/52 PASS, WDM surrogates validated, S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety, Feb 26, 2026)
+**`BarraCUDA`**: v0.3.3 at `83aa08a` — 719 WGSL shaders, 32 cross-spring shaders from 5 origins, Sprint 2 APIs (activations, eigensolver, LCG, Wright-Fisher), 3-tier precision (F32/F64/Df64), `healthSpring` domain.
+**`ToadStool`**: S142 at `a86bc546` — 19,900+ tests, hardware testing, PCIe transport, `ResourceOrchestrator`, pipeline DAG absorbed from neuralSpring S134, streaming dispatch from hotSpring.
+**`coralReef`**: Iteration 29 at `2779c88` — sovereign shader compiler, NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, `Fp64Strategy` (Native/DoubleFloat/F32Only).
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
+
+### Validation Status (March 10, 2026)
+
+| Binary | Result | Scope |
+|--------|--------|-------|
+| `validate_cross_spring_shader_evolution` | **42/42 PASS** | Full evolution chain: CPU→dispatch→GPU, provenance |
+| `validate_modern_cross_spring` | **68/68 PASS** | Universal precision, provenance across 5 springs |
+| `validate_cross_spring_evolution` | **52/52 PASS** | Upstream rewiring, `GpuDriverProfile` |
+| `validate_cross_spring_rewire` | **41/41 PASS** | neuralSpring→BarraCUDA/ToadStool, hotSpring extensions |
+| `validate_toadstool_s70_evolution` | **27/27 PASS** | S70+ absorbed APIs, 5-spring provenance |
+| `validate_toadstool_s87_sync` | **18/18 PASS** | S87 CPU ungating, error evolution |
+| `validate_compute_dispatch_evolution` | **14/14 PASS** | ToadStool `ComputeDispatch` evolution |
+| `validate_barracuda_precision` | **12/12 PASS** | CPU precision primitives |
+| `bench_cross_spring_shader_evolution` | **15/15 PASS** | Cross-spring benchmark with provenance |
+| `bench_cross_spring_evolution` | **12/12 PASS** | 13 GPU ops from 5 springs benchmarked |
+| `bench_cross_spring_modern` (release) | **28/28 PASS** | Full pipeline: MLP, Viterbi, eigensolve, precision |
 
 ---
 
@@ -21,8 +40,98 @@ Spring leans on upstream ←  `ToadStool` absorbs             ←  handoff to To
 
 Each Spring operates independently, evolving workarounds and new capabilities in
 response to its domain needs. When a primitive matures (validated, documented,
-binding layouts specified), it's handed off to `ToadStool`. After absorption, all
-three Springs — and any future Springs — benefit.
+binding layouts specified), it's handed off to barraCuda (math engine) via
+ToadStool (orchestration). After absorption, all Springs benefit.
+
+---
+
+## Cross-Spring Dependency Matrix (from barraCuda provenance registry)
+
+```
+             Consumes shaders FROM →
+             hotSpring  wetSpring  neuralSpring  airSpring  groundSpring
+ hotSpring       —          4           3            2           4
+ wetSpring       1          —           4            1           0
+ neuralSpring    3          2           —            1           2
+ airSpring       0          2           1            —           0
+ groundSpring    2          2           2            2           —
+```
+
+### What neuralSpring uses FROM other springs (via barraCuda)
+
+| Origin | Shader | Use in neuralSpring |
+|--------|--------|---------------------|
+| **hotSpring** | `df64_core.wgsl` | f64 emulation for consumer GPUs (RTX 4070, etc.) |
+| **hotSpring** | `df64_transcendentals.wgsl` | exp/log/sin/cos at f64 precision on f32 hardware |
+| **hotSpring** | `cg_kernels_f64.wgsl` | CG solver pattern for attention convergence |
+| **hotSpring** | `esn_readout_f64.wgsl` | Echo State Network readout layer |
+| **wetSpring** | `smith_waterman_banded_f64.wgsl` | Protein folding alignment, BLAST pipeline |
+| **wetSpring** | `gillespie_ssa_f64.wgsl` | Stochastic simulation for evolutionary dynamics |
+| **wetSpring** | `hmm_forward_f64.wgsl` | Batched HMM inference |
+| **groundSpring** | `anderson_lyapunov_f64.wgsl` | Anderson localization disorder sweeps |
+| **groundSpring** | `chi_squared_f64.wgsl` | Statistical hypothesis tests |
+| **groundSpring** | `welford_mean_variance_f64.wgsl` | GPU statistics (mean+variance in one pass) |
+| **airSpring** | `moving_window_f64.wgsl` | Streaming inference windows |
+
+### What neuralSpring contributed TO other springs (via barraCuda)
+
+| Shader | Origin Session | Consumers |
+|--------|---------------|-----------|
+| `matrix_correlation_f64.wgsl` | S69 → v0.3.0 | groundSpring, hotSpring |
+| `linear_regression_f64.wgsl` | S69 → v0.3.0 | airSpring |
+| `fused_kl_divergence_f64.wgsl` | S100 → v0.3.2 | wetSpring, groundSpring |
+| `fused_chi_squared_f64.wgsl` | S100 → v0.3.2 | hotSpring, wetSpring |
+| `batch_ipr_f64.wgsl` | V128 → v0.3.3 | hotSpring |
+
+### Precision Evolution: hotSpring → barraCuda → all Springs
+
+The most impactful cross-spring contribution is hotSpring's **precision pipeline**:
+
+1. **df64_core.wgsl** (S58 → v0.3.0) — double-float f32 pair arithmetic (~48-bit mantissa).
+   Consumed by ALL 5 springs. Unleashes FP32 cores for f64-class work: 12–18× throughput
+   vs native f64 on consumer GPUs.
+
+2. **df64_transcendentals.wgsl** (S60 → v0.3.1) — exp2, log2, sin, cos via df64.
+   Enables scientific compute on GPUs without native f64.
+
+3. **Three-tier precision model** — coralReef `Fp64Strategy`:
+   - `F32`: ~24-bit mantissa — visualization, inference
+   - `Df64`: ~48-bit mantissa (f32 pairs) — most scientific compute
+   - `F64`: ~53-bit mantissa — reference validation, accumulation
+
+4. **`compile_shader_universal`** decomposed (barraCuda `dfcc5e1`) to:
+   - `compile_shader()` — f64→f32 downcast for broad compatibility
+   - `compile_shader_f64()` — native f64 with driver-profile polyfills
+   - `compile_shader_df64()` — df64 core + transcendentals injection
+
+### GPU Benchmark Results (March 10, 2026)
+
+**Cross-Spring Evolution Benchmark** — 13 GPU ops from 5 springs:
+
+| Spring | Op | GPU µs/iter |
+|--------|-----|-------------|
+| hotSpring | `mean_variance` (Welford) | ~650 |
+| hotSpring | `logsumexp_reduce` | ~500 |
+| hotSpring | `batched_eigh` (4×32×32) | ~2,200 |
+| hotSpring | `variance_f64` | ~400 |
+| wetSpring | `shannon_entropy` | ~500 |
+| wetSpring | `diversity_fusion` (32×200) | ~1,450 |
+| wetSpring | `correlation_full` | ~600 |
+| wetSpring | `pearson_correlation` | ~400 |
+| neuralSpring | `chi_squared_gpu` (1k) | ~656 |
+| neuralSpring | `kl_divergence_gpu` (1k) | ~1,050 |
+| neuralSpring | `pairwise_l2_matrix` (100×32) | ~466 |
+| airSpring+groundSpring | `correlation_matrix` (200×10) | ~620 |
+
+**GPU Typed Op Benchmark** — Rust CPU → GPU speedups at scale:
+
+| Op | GPU µs | CPU µs | Speedup |
+|----|--------|--------|---------|
+| Pairwise Hamming (200×1000) | 156 | 7,063 | **45.2×** |
+| Pairwise Jaccard (100×2000) | 501 | 8,270 | **16.5×** |
+| Batch Fitness (50000×64) | 215 | — | dispatch-only |
+| Spatial Payoff (512×512) | 237 | — | dispatch-only |
+| Batch IPR (2000×256) | 88 | — | dispatch-only |
 
 ---
 

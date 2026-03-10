@@ -59,9 +59,10 @@ Pure Rust **38.6× faster** than Python/NumPy
 
 16 domain scenario builders covering all 8 `DataChannel` types (TimeSeries, Spectrum, Gauge, Bar, Scatter3D, **Heatmap**, **Distribution**, **FieldMap**). S139 added search results, streaming I/O quality, Kokkos GPU parity, and industry coverage scenarios. Live training dashboard via `TrainingVisualizer` streaming spectral diagnostics to petalTongue. `neuralspring_ecosystem_dashboard` binary for rendering all 16 tracks simultaneously. 56/56 petalTongue validation checks. `scripts/visualize.sh` for offline/live/render/ecosystem modes. `config.rs` centralizes primal identity, env var names, petalTongue domain/theme.
 S130: Upstream rewire — ToadStool S130 pin, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired, fused GPU regression gated via canary, coralNAK→coralReef rename, `baseline_path` consistency, inline threshold extraction. V88 handoff.
-S132: Upstream rewire — ToadStool S130+ (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). Zero API breakage (spring sync confirmed). `shared_memory_f64_safe()` precision routing. `barracuda::shaders::provenance` wired (22 shaders, 17 cross-spring edges). 911 lib tests (+9 provenance/precision), 42/42 drift PASS. V90 handoff.
+S132: Upstream rewire — ToadStool S142 (`a86bc546`), BarraCUDA `83aa08a`, coralReef Iteration 29 (`2779c88`). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. ToadStool: hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests. coralReef: NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, 1200+ tests. 719 WGSL shaders. `shared_memory_f64_safe()` precision routing. `barracuda::shaders::provenance` wired (22 shaders, 17 cross-spring edges). V90 handoff.
 S134: Deep debt — activation consolidation, tolerance promotion, provenance triplets, code quality.
 S135–S139: petalTongue visualization (16 scenario tracks), streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness, industry coverage dashboard, `config.rs` centralized primal identity, ecosystem dashboard binary. 1048 lib + 71 forge + 9 integration tests, 233 binaries, 220/220 validate\_all, 92% line coverage.
+S142: Upstream rewire + `enable f64;` PTXAS fix. Sprint 2 absorption (activations, `fused_ops_healthy`). `Precision::F16` removed. coralReef bridge aligned. 54 validation binaries with provenance blocks. **Critical fix**: `enable f64;` in WGSL causes NVIDIA PTXAS on Ada Lovelace to silently return zeros for fused f64 ops — fixed locally in `pipeline_cache.rs`, 5 ops restored. HMM fused path workaround. Dispatch parity: 48/55 → **55/55 PASS**. `fused_ops_healthy`: true. V95 handoffs (toadStool/barraCuda evolution + coralReef detailed).
 
 **Validation tiers**: 24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 pure GPU all-domains |
 5/5 baseCamp sub-theses GPU | 5 WDM surrogates (33/33 Py + 160/160 Rs+GPU) |
@@ -589,8 +590,8 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_TOADSTOOL_V93_S139_*.md # Current ToadStool/BarraCUDA handoff
-│   │   └── archive/           #   Superseded handoffs (V1–V92 + NestGate/biomeOS/Songbird V1)
+│   │   ├── NEURALSPRING_V95_S142_*.md # Current ToadStool/BarraCUDA/coralReef handoffs
+│   │   └── archive/           #   Superseded handoffs (V1–V93 + NestGate/biomeOS/Songbird V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-082)
 ├── whitePaper/                 # Study documentation
@@ -627,7 +628,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal ToadStool/BarraCUDA handoffs (V93 current: Session 139, barraCuda v0.3.3+) |
+| `wateringHole/handoffs/` | Formal ToadStool/BarraCUDA/coralReef handoffs (V95 current: Session 142, barraCuda v0.3.3 at `83aa08a`) |
 | `experiments/README.md` | Experiment journals (Sessions 40–139, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -637,4 +638,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–139: March 10, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 331 Python + 3400+ Rust+GPU = 4100+ validation checks | 1048 lib + 9 integration + 71 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 41 modules, 233 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.3+ standalone, nautilus absorbed, 220/220 validate\_all, 92% coverage | 46 upstream rewires | V93 handoff | 16 petalTongue scenario tracks + ecosystem dashboard | config.rs centralized identity + streaming I/O + CPU BLAST pipeline + Kokkos parity harness*
+*Initialized: February 16, 2026 | Sessions 40–142: March 10, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 331 Python + 3400+ Rust+GPU = 4100+ validation checks | 1048 lib + 9 integration + 71 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 41 modules, 233 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.3 at `83aa08a`, nautilus absorbed, 220/220 validate\_all, 55/55 dispatch parity, 92% coverage | 46 upstream rewires | V95 handoff (toadStool/barraCuda + coralReef) | `enable f64;` PTXAS fix | 16 petalTongue scenario tracks + ecosystem dashboard | config.rs centralized identity + streaming I/O + CPU BLAST pipeline + Kokkos parity harness*

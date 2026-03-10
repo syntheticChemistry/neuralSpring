@@ -229,20 +229,25 @@ impl Gpu {
         self.wgpu_device.compile_shader_df64(source, Some(label))
     }
 
-    /// Compile a shader at any precision via barraCuda's universal pipeline.
+    /// Compile a shader at any precision via barraCuda's per-precision methods.
     ///
     /// Routes one f64-canonical shader source through the appropriate
-    /// compilation pipeline (F16/F32/F64/Df64) based on the precision arg.
-    /// F32 via `LazyLock` downcast, F64 native with polyfills, Df64 via
-    /// `df64_core` injection, F16 via downcast with sentinel clamping.
+    /// compilation pipeline based on the precision arg:
+    /// - F32: `compile_shader` (auto-downcasts f64 sources)
+    /// - F64: `compile_shader_f64` (driver-profile–aware polyfills)
+    /// - Df64: `compile_shader_df64` (injects `df64_core` + transcendentals)
     #[must_use]
     pub fn compile_shader_universal(
         &self,
         source: &str,
         precision: barracuda::shaders::precision::Precision,
     ) -> wgpu::ShaderModule {
-        self.wgpu_device
-            .compile_shader_universal(source, precision, None)
+        use barracuda::shaders::precision::Precision;
+        match precision {
+            Precision::F64 => self.wgpu_device.compile_shader_f64(source, None),
+            Precision::Df64 => self.wgpu_device.compile_shader_df64(source, None),
+            Precision::F32 => self.wgpu_device.compile_shader(source, None),
+        }
     }
 
     /// Compute the number of workgroups for a 1D dispatch, validated

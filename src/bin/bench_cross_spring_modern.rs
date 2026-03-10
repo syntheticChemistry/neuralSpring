@@ -285,7 +285,7 @@ fn bench_precision_hotspring(h: &mut ValidationHarness) {
     eprintln!("═══ hotSpring → barraCuda: Precision & Spectral ═══");
     eprintln!("  Origin: hotSpring lattice QCD + spectral methods");
     eprintln!("  Evolution: lattice-specific → universal precision pipeline");
-    eprintln!("  Impact: compile_shader_universal(F16/F32/F64/Df64)");
+    eprintln!("  Impact: precision-routed compilation (F32/F64/Df64)");
     eprintln!();
 
     let mat_4x4: Vec<f64> = vec![

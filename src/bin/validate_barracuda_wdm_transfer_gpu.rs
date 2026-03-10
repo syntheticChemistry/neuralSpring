@@ -23,6 +23,12 @@
 //! 4. `ReLU` activation: GPU `relu()` matches CPU `max(0,x)`
 //! 5. Full pipeline: predict + R² on GPU matches CPU R²
 //! 6. Determinism: two GPU runs produce identical results
+//!
+//! ## Provenance
+//!
+//! WGSL source: `BarraCUDA` transfer MLP (matmul + add + relu).
+//! CPU baseline: neuralSpring `wdm_transport` SimpleMlp (Rust CPU).
+//! Evolution: Paper nW-04 Python → Rust CPU → WGSL GPU pipeline.
 
 #![expect(
     clippy::cast_precision_loss,

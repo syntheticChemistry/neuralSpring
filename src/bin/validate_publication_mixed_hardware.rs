@@ -11,6 +11,12 @@
 //! 5. NUCLEUS Nest atomic pattern: storage dispatch (result provenance)
 //!
 //! This is the "mixed NUCLEUS atomics" proof — coordinated via biomeOS graphs.
+//!
+//! ## Provenance
+//!
+//! Validation class: System.
+//! Analytical reference: Exp-050/052/053 mixed-hardware eigensolve, NUCLEUS Node/Nest patterns.
+//! Components: Dispatcher, `weight_spectral`, metalForge `mixed/pcie_bridge`, NUCLEUS atomics.
 
 #![expect(
     clippy::cast_precision_loss,

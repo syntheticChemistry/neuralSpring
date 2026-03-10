@@ -5,10 +5,11 @@
 //! Runs MLP inference through `BarraCUDA` Tensor ops on GPU,
 //! comparing with Rust CPU reference path.
 //!
-//! Evolution chain:
-//! ```text
-//! Stanton-Murillo model → Python MLP → Rust MLP (CPU) → BarraCUDA (GPU)
-//! ```
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`wdm_transport` Rust CPU math).
+//! GPU path: `BarraCUDA` Tensor API (MLP inference) via wgpu.
+//! Evolution: Stanton-Murillo model → Python MLP → Rust MLP (CPU) → `BarraCUDA` GPU.
 
 #![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 

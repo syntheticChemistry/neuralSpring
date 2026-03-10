@@ -17,6 +17,12 @@
 //! - `disorder_sweep` → `barracuda::spectral::disorder_sweep_gpu`
 //! - `weight_to_hamiltonian` → `barracuda::spectral::hamiltonian_from_weights`
 //! - `mixed_dispatch` → `barracuda::unified_hardware::route`
+//!
+//! ## Provenance
+//!
+//! Cross-spring origin: neuralSpring spectral pipeline → `ToadStool` absorption target → neuralSpring.
+//! Absorption: `eigh_householder_qr`, `mean_ipr`, `disorder_sweep`, `weight_to_hamiltonian`, `mixed_dispatch`.
+//! Validation: `BarraCUDA` CPU/GPU parity vs Python, dispatch portability, batch scaling, mixed substrate routing.
 
 #![expect(
     clippy::cast_precision_loss,

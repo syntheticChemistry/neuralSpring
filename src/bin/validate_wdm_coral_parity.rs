@@ -22,6 +22,12 @@
 //! - Confidence pLDDT: matmul → sigmoid mean (matmul + mean)
 //! - Layer norm: mean + variance composition
 //! - SE(3) equivariance: COM mean + L2 residual
+//!
+//! ## Provenance
+//!
+//! Validation class: GPU cross-dispatch.
+//! CPU reference: neuralSpring lib (Rust CPU).
+//! GPU path: `BarraCUDA` dispatch (`DispatchConfig` routing).
 
 #![expect(
     clippy::cast_precision_loss,

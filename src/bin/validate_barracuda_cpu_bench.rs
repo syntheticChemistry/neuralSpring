@@ -31,11 +31,11 @@
 //! | Global FST | 025 | `bench_meta_pop.py` | `meta_population/fst.rs` |
 //! | LSTM Glucose | 026 | `bench_glucose_lstm.py` | `glucose_prediction.rs` |
 //!
-//! The portability story:
-//! ```text
-//! `Python`/`NumPy` (interpreted) → `BarraCUDA` CPU (pure Rust) → `BarraCUDA` GPU (`WGSL`)
-//!                    ↑ parity proven here        ↑ parity proven in GPU validators
-//! ```
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (paper-domain Rust modules).
+//! GPU path: N/A (CPU benchmark; establishes CPU tier for GPU parity).
+//! Evolution: Python baseline → `BarraCUDA` CPU (pure Rust) → `BarraCUDA` GPU (WGSL).
 //!
 //! # Panics
 //!

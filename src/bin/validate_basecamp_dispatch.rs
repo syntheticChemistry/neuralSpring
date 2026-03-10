@@ -13,6 +13,12 @@
 //!
 //! This is the "dispatch portability proof" for baseCamp — same science,
 //! routed through the `Dispatcher` abstraction.
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (baseCamp modules Rust CPU math).
+//! GPU path: `BarraCUDA` Dispatcher GPU promotion via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 
 #![expect(clippy::too_many_lines, reason = "validation binary")]
 

@@ -5,9 +5,13 @@
 //! Proves GPU parity for loss landscape spectral diagnostics:
 //! CPU `eigh_householder_qr` → GPU `eigh_gpu` for Hessian eigensolve.
 //!
-//! Progression: Python (open data) → Rust CPU → **`BarraCUDA` GPU** (this) → pure GPU
-//!
 //! Papers: Sub-thesis 03 (Loss Landscapes), Paper D (Digital Discovery 2027).
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`eigh_householder_qr` Rust CPU math).
+//! GPU path: `BarraCUDA` `eigh_gpu` via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 
 #![expect(
     clippy::cast_precision_loss,

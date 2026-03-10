@@ -7,7 +7,7 @@
 //!
 //! ```text
 //! hotSpring  → DF64 core-streaming, Fp64Strategy, split_workgroups, lattice QCD
-//!              → `BarraCUDA` S68: universal precision F16/F32/F64/Df64
+//!              → `BarraCUDA` S68+: precision-routed compilation F32/F64/Df64
 //! wetSpring  → diversity (Shannon, Bray-Curtis), bio (Smith-Waterman, Gillespie,
 //!              Felsenstein, HMM), NMF, ODE bio
 //! neuralSpring → batch_fitness, pairwise ops, eigh, swarm_nn, ValidationHarness
@@ -496,17 +496,16 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
 fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     eprintln!("\n─── BarraCUDA (ToadStool S68): universal precision + modern APIs ───\n");
 
-    // Verify Precision enum is accessible (S67)
+    // Verify Precision enum is accessible (S67 — F16 removed upstream, 3 tiers remain)
     h.check_bool(
-        "TS S67: Precision enum (F16/F32/F64/Df64) accessible",
+        "TS S67: Precision enum (F32/F64/Df64) accessible",
         [
-            neural_spring::gpu::Precision::F16,
             neural_spring::gpu::Precision::F32,
             neural_spring::gpu::Precision::F64,
             neural_spring::gpu::Precision::Df64,
         ]
         .len()
-            == 4,
+            == 3,
     );
 
     // Dispatch domain heuristics (cross-spring)

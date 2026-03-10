@@ -5,14 +5,12 @@
 //! Validates the integration between neuralSpring's spectral analysis
 //! and hotSpring's evolutionary reservoir computing (Nautilus Shell).
 //!
-//! ## Cross-Spring Provenance
+//! ## Provenance
 //!
-//! ```text
-//! hotSpring (brain arch) → bingoCube Nautilus Shell → neuralSpring bridge
-//! hotSpring (proxy.rs)   → Anderson spectral features → Nautilus input
-//! neuralSpring (spectral) → WeightSpectralResult → Nautilus observation
-//! ```
-//!
+//! Cross-spring origin: hotSpring (brain arch, proxy.rs) → bingoCube Nautilus Shell → neuralSpring.
+//! Absorption: Nautilus Shell bridge, Anderson spectral features, `WeightSpectralResult` observation.
+//! Validation: Spectral analysis ↔ evolutionary reservoir integration, regime detection, drift monitoring vs Nautilus observation.
+
 //! ```text
 //! cargo run --release --bin validate_nautilus_bridge
 //! ```

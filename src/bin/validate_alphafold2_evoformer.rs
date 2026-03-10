@@ -1,13 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![expect(
-    clippy::pedantic,
-    clippy::cast_possible_truncation,
-    clippy::similar_names,
-    clippy::too_many_lines,
-    reason = "validation binary"
-)]
-
 //! nF-02: AlphaFold2 Evoformer Block Validation (Jumper et al. 2021)
 //!
 //! Validates the complete Evoformer block pipeline and Structure Module
@@ -15,6 +7,20 @@
 //!
 //! Reference: Jumper et al. "Highly accurate protein structure prediction
 //! with AlphaFold" Nature 596:583-589 (2021)
+//!
+//! ## Provenance
+//!
+//! Validation class: Integration.
+//! Python baseline: `control/coral_forge/evoformer_block_baselines.json` from `alphafold2_evoformer_block.py`.
+//! Components: coral_forge::structure (Evoformer, IPA, Structure Module).
+
+#![expect(
+    clippy::pedantic,
+    clippy::cast_possible_truncation,
+    clippy::similar_names,
+    clippy::too_many_lines,
+    reason = "validation binary"
+)]
 
 use neural_spring::coral_forge::structure;
 use neural_spring::coral_forge::structure::IpaConfig;

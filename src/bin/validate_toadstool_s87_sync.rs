@@ -16,6 +16,12 @@
 //! ```text
 //! cargo run --release --bin validate_toadstool_s87_sync
 //! ```
+//!
+//! ## Provenance
+//!
+//! Cross-spring origin: `ToadStool` S87 (`2dc26792`) → `BarraCUDA` → neuralSpring.
+//! Absorption: CPU module ungating, `gpu_helpers` refactor, `BarracudaError` evolution, FHE shader fixes.
+//! Validation: CPU modules accessible, `barracuda::stats`, `NautilusBrain`, Dispatcher vs S87 sync.
 
 #![expect(
     clippy::expect_used,

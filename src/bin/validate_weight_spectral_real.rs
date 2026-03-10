@@ -19,6 +19,12 @@
 //! - Does IPR correlate with layer depth?
 //! - Does Marchenko-Pastur departure predict layer importance?
 //! - Are there spectral fingerprints that distinguish architectures?
+//!
+//! ## Provenance
+//!
+//! Validation class: Integration.
+//! Analytical reference: GOE (r ~ 0.531), Poisson (r ~ 0.386), Marchenko-Pastur.
+//! Components: `weight_loader`, `weight_spectral` (`empirical_spectral_density`, `weight_spectral_analysis`).
 
 #![expect(
     clippy::cast_precision_loss,

@@ -17,6 +17,12 @@
 //! - `dispatcher.eigh` → `barracuda::linalg::batched_eigh_gpu`
 //! - `dispatcher.disorder_sweep` → `barracuda::spectral::disorder_sweep_gpu`
 //! - `dispatcher.mixed_dispatch` → `barracuda::unified_hardware::route`
+//!
+//! ## Provenance
+//!
+//! Validation class: System.
+//! CPU reference: `eigh_householder_qr`, `disorder_sweep`, `mean_ipr`, `weight_spectral`.
+//! Components: NUCLEUS Tower/Node/Nest, Dispatcher, metalForge inventory, `PcieBridge`, `MixedSubstrate`.
 
 #![expect(
     clippy::cast_precision_loss,

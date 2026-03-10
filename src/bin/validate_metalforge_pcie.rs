@@ -12,6 +12,12 @@
 //!
 //! This is the "cross-systems portability proof" — validates that
 //! the cost model correctly routes workloads to the optimal substrate.
+//!
+//! ## Provenance
+//!
+//! Validation class: Infrastructure.
+//! Analytical reference: bandwidth tier cost model, transfer path comparison.
+//! Components: metalForge `pcie_bridge`, mixed (`BandwidthTier`, `transfer_cost`), dispatch, Dispatcher.
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 

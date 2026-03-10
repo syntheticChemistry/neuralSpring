@@ -22,6 +22,12 @@
 //! Extend `apply_transcendental_workaround` to also replace `pow(` → `pow_f64(`
 //! when `needs_pow_f64_workaround()` is true (the detection already exists in
 //! `driver_profile.rs`). This is a one-line addition to `patch_exp_log_in_code`.
+//!
+//! ## Provenance
+//!
+//! Validation class: Integration.
+//! Analytical reference: `two_input_hill` CPU math, `pow_f64` polyfill (exp(n*log(x))).
+//! Components: `barracuda::ops::bio::hill_gate`, `signal_integration::two_input_hill`, `patch_pow_to_polyfill`.
 
 #![expect(
     clippy::cast_precision_loss,

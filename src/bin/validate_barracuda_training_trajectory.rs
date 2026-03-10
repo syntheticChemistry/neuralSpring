@@ -5,9 +5,13 @@
 //! Proves GPU parity for the spectral analysis pipeline:
 //! CPU `eigh_householder_qr` → GPU `eigh_gpu`, then IPR/variance on eigenvalues.
 //!
-//! Progression: Python (open data) → Rust CPU → **`BarraCUDA` GPU** (this) → pure GPU
-//!
 //! Papers: Sub-thesis 01 (Weight Hamiltonians), Paper A (ICML 2027).
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`weight_spectral`, `eigh_householder_qr` Rust CPU math).
+//! GPU path: `BarraCUDA` `eigh_gpu` via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 
 #![expect(
     clippy::cast_precision_loss,

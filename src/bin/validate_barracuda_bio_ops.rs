@@ -22,6 +22,12 @@
 //! | Locus Variance | neuralSpring Paper 025 | `LocusVarianceGpu` | `77f70b2e` |
 //! | Spatial Payoff | neuralSpring Paper 019 | `SpatialPayoffGpu` | `77f70b2e` |
 //! | Batch IPR | neuralSpring Paper 022–023 | `BatchIprGpu` | `77f70b2e` |
+//!
+//! ## Provenance
+//!
+//! Cross-spring origin: neuralSpring metalForge → `ToadStool`/`BarraCUDA` (Sessions 25–39) → neuralSpring.
+//! Absorption: `77f70b2e` — 6 bio ops (`BatchFitness`, `PairwiseHamming`, `PairwiseJaccard`, `LocusVariance`, `SpatialPayoff`, `BatchIpr`).
+//! Validation: `BarraCUDA` wrapper APIs vs CPU reference for all 6 bio ops.
 
 #![expect(
     clippy::cast_precision_loss,

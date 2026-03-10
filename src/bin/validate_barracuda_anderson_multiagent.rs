@@ -8,6 +8,12 @@
 //! Progression: Python (open data) → Rust CPU → **`BarraCUDA` GPU** (this) → pure GPU
 //!
 //! Papers: Sub-thesis 05 (Multi-Agent QS), Paper C (AAMAS 2027).
+//!
+//! ## Provenance
+//!
+//! Validation class: Integration.
+//! Python baseline: multi-agent spectral pipeline (interaction graph → Laplacian → eigensolve → IPR).
+//! Components: `agent_coordination`, `anderson_localization`, eigh, `gpu_ops`, `BarraCUDA` GPU.
 
 #![expect(
     clippy::cast_precision_loss,

@@ -3,21 +3,11 @@
 //! `ToadStool` S70+++ cross-spring evolution validator: exercises newly absorbed
 //! APIs and traces shader provenance across all five springs.
 //!
-//! ## S70+++ Absorption Provenance
+//! ## Provenance
 //!
-//! ```text
-//! hotSpring  → DF64 activation shaders (gelu_df64, sigmoid_df64, softmax_df64,
-//!              layer_norm_df64, sdpa_df64) → ToadStool S70+ → neuralSpring ML
-//! wetSpring  → bio diversity (chao1_classic), ODE bio → ToadStool S70+ → stats
-//! airSpring  → batched_elementwise (HargreavesEt0, SensorCal, KcClimate, DualKc),
-//!              seasonal_pipeline.wgsl, fao56_et0 → ToadStool S70+ → hydrology
-//! groundSpring → evolution stats (kimura, error_threshold, detection_power),
-//!                jackknife resampling → ToadStool S70+ → stats
-//! neuralSpring → matmul_ref (non-consuming for ESN/LSTM), SimpleMlp (JSON serde)
-//!                → ToadStool S70+ absorption → used by all springs
-//! ```
-//!
-//! Each check validates correctness and notes the cross-spring evolution chain.
+//! Cross-spring origin: hotSpring, wetSpring, airSpring, groundSpring, neuralSpring → `ToadStool` S70+ → neuralSpring.
+//! Absorption: DF64 activation shaders, chao1/ODE bio, Hargreaves/seasonal hydrology, kimura/jackknife stats, `matmul_ref/SimpleMlp`.
+//! Validation: Newly absorbed APIs, shader provenance across all five springs, correctness vs CPU reference.
 //!
 //! ```text
 //! cargo run --release --bin validate_toadstool_s70_evolution

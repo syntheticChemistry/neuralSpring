@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 10, 2026 (Sessions 44–139 — S139: Visualization evolution + deep debt. 16 petalTongue scenarios, ecosystem dashboard, config centralization, streaming parsers, BLAST pipeline, Kokkos parity. 1048 lib tests, 233 binaries. barraCuda `a898dee`, ToadStool `bfe7977b`, coralReef `d29a734`)
+**Last Updated**: March 10, 2026 (Sessions 44–142 — S142: Upstream rewire + `enable f64;` PTXAS fix + cross-spring evolution. 55/55 dispatch parity. V95 handoffs. 1048 lib tests, 233 binaries. barraCuda `83aa08a`, ToadStool S142 (`a86bc546`), coralReef Iteration 29 (`2779c88`))
 **Status**: Phase 5h+ — 331/331 Python + 3400+ Rust+GPU = **4100+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 233 binaries, **220/220 validate\_all**, 1048 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 

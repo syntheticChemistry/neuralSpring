@@ -77,10 +77,29 @@ impl TransportSurrogate {
     }
 }
 
-/// Load a [`TransportSurrogate`] from the Python baseline JSON.
+/// Load a [`TransportSurrogate`] from a JSON reader (streaming).
+///
+/// Preferred over [`load_transport_from_json`] for runtime I/O since the
+/// JSON is parsed directly from the reader without buffering the entire
+/// file into a `String`.
+///
+/// # Errors
+///
+/// Returns `Err` if the JSON structure is unexpected.
+pub fn load_transport_from_reader(
+    reader: impl std::io::Read,
+) -> Result<TransportSurrogate, String> {
+    let parsed: serde_json::Value =
+        serde_json::from_reader(reader).map_err(|e| format!("JSON parse error: {e}"))?;
+    build_transport_from_value(&parsed)
+}
+
+/// Load a [`TransportSurrogate`] from a JSON string.
 ///
 /// Parses `transport_surrogate_baseline.json` produced by
-/// `control/wdm/transport_surrogate.py`.
+/// `control/wdm/transport_surrogate.py`. For runtime file I/O,
+/// prefer [`load_transport_from_reader`] which avoids the intermediate
+/// `String` allocation.
 ///
 /// # Errors
 ///
@@ -88,7 +107,10 @@ impl TransportSurrogate {
 pub fn load_transport_from_json(json_str: &str) -> Result<TransportSurrogate, String> {
     let parsed: serde_json::Value =
         serde_json::from_str(json_str).map_err(|e| format!("JSON parse error: {e}"))?;
+    build_transport_from_value(&parsed)
+}
 
+fn build_transport_from_value(parsed: &serde_json::Value) -> Result<TransportSurrogate, String> {
     let norm_data = parsed
         .get("normalization")
         .ok_or("Missing 'normalization'")?;

@@ -12,6 +12,12 @@
 //! 3. metalForge mixed-hardware routing respects compute/data cost model
 //!
 //! Papers: A (Training Trajectory), C (Anderson Multi-Agent), D (Hessian).
+//!
+//! ## Provenance
+//!
+//! Validation class: Integration.
+//! Python baseline: spectral analysis pipeline (eigh, IPR, variance).
+//! Components: `BarraCUDA` `BatchIprGpu`, Dispatcher, `weight_spectral`, metalForge `MixedSubstrate`.
 
 #![expect(
     clippy::cast_precision_loss,

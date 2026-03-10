@@ -5,24 +5,11 @@
 //! Validates functions rewired during the S79 sync and benchmarks the modern
 //! upstream paths against the prior implementations.
 //!
-//! ## Cross-spring evolution provenance
+//! ## Provenance
 //!
-//! ```text
-//! hotSpring  → precision f64 pipeline, df64_core, Lanczos, Taylor trig
-//!              → BarraCUDA shaders (compile_shader_f64, compile_shader_df64)
-//!              → FusedChiSquaredGpu (f64 fused shader)
-//!              → FusedKlDivergenceGpu (f64 fused shader)
-//!              → spectral_bandwidth, spectral_condition_number
-//!
-//! wetSpring  → HMM bio shaders, quality filter, DADA2
-//!              → BarraCUDA ops::bio (HmmBatchForwardF64, BatchFitnessGpu)
-//!              → shannon_entropy via FusedMapReduceF64
-//!
-//! neuralSpring → chi_squared_f64.wgsl, kl_divergence_f64.wgsl
-//!              → ToadStool S76 absorption
-//!              → FusedChiSquaredGpu, FusedKlDivergenceGpu (consumed by all Springs)
-//!              → spectral_bandwidth, spectral_condition_number (S79 absorption)
-//! ```
+//! Cross-spring origin: hotSpring, wetSpring, neuralSpring → `BarraCUDA`/`ToadStool` S76/S79 → neuralSpring.
+//! Absorption: `FusedChiSquaredGpu`, `FusedKlDivergenceGpu`, `spectral_bandwidth`, `spectral_condition_number`, `shannon_entropy`.
+//! Validation: S79 rewired functions vs prior implementations, spectral/chi-squared/KL/shannon correctness.
 //!
 //! ```text
 //! cargo run --release --bin validate_toadstool_s79_rewire

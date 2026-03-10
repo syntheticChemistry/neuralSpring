@@ -27,8 +27,8 @@ pub fn test_device() -> Option<(
 /// `Fp64Strategy` regression (wgpu 28) that affects `VarianceF64`,
 /// `CorrelationF64`, and `HmmBatchForwardF64` on some drivers.
 ///
-/// Uses a canary test: dispatches a trivial `variance_gpu` and checks
-/// whether the result is sane. If not, fused-op tests are skipped.
+/// Delegates to `barracuda::device::test_harness::fused_ops_healthy`,
+/// caching the result with `OnceLock` so the probe runs once per process.
 pub fn test_device_hardware() -> Option<(
     std::sync::MutexGuard<'static, ()>,
     Arc<barracuda::device::WgpuDevice>,
@@ -40,12 +40,8 @@ pub fn test_device_hardware() -> Option<(
     let gpu = crate::gpu::tests::shared_gpu()?;
     let dev = gpu.wgpu_device().clone();
 
-    let healthy = *FUSED_OPS_HEALTHY.get_or_init(|| {
-        let Ok(v) = variance_gpu(&[1.0, 2.0, 3.0, 4.0, 5.0], &dev) else {
-            return false;
-        };
-        v > 0.1 && v.is_finite()
-    });
+    let healthy =
+        *FUSED_OPS_HEALTHY.get_or_init(|| barracuda::device::test_harness::fused_ops_healthy(&dev));
 
     if !healthy {
         return None;

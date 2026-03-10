@@ -5,6 +5,11 @@
 //! Imitates the hotSpring `validate_all` pattern: each sub-binary runs
 //! independently and reports exit 0 (pass) or 1 (fail). This binary
 //! aggregates and reports the overall status.
+//!
+//! ## Provenance
+//!
+//! Meta-validation runner: aggregates all `validate_*` binaries.
+//! No standalone validation.
 
 use std::process::{self, Command};
 

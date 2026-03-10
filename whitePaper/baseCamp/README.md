@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
 **Last Updated**: March 10, 2026 (Sessions 61–139)
-**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **220/220 validate\_all** (233 binaries), 1048 lib tests. S139: visualization evolution + deep debt — 16 petalTongue scenario builders, ecosystem dashboard, config centralization, streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness. barraCuda: v0.3.3 at `a898dee` (712 WGSL shaders, wgpu 28, cross-spring provenance, typed errors)
+**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **220/220 validate\_all** (233 binaries), 1048 lib tests. S139: visualization evolution + deep debt — 16 petalTongue scenario builders, ecosystem dashboard, config centralization, streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness. barraCuda: v0.3.3 at `83aa08a` (719 WGSL shaders, wgpu 28, Sprint 2 APIs, healthSpring domain, batched logsumexp, CoralReefDevice)
 
 - **S139**: 4 new scenarios (search, streaming I/O, Kokkos parity, industry coverage), `config.rs`, deep debt elimination
 - **S138**: streaming parsers, BLAST pipeline, Kokkos benchmark harness, `INDUSTRY_TOOL_GAP_ANALYSIS.md`

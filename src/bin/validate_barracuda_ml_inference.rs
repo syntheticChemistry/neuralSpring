@@ -12,7 +12,11 @@
 //! - `mlp_baseline.json` — MLP: 4 → 64 (`ReLU`) → 64 (`ReLU`) → 10 (softmax)
 //! - `transformer_baseline.json` — pre-norm transformer encoder block
 //!
-//! Provenance: `NumPy` 1.26+, seed=42, Xavier uniform init.
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (MLP, transformer encoder Rust CPU math).
+//! GPU path: `BarraCUDA` Tensor API (WGSL MLP/transformer) via wgpu.
+//! Evolution: Python baseline (`NumPy` 1.26+, seed=42, Xavier uniform) → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 //!
 //! ## Usage
 //!

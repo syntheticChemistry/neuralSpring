@@ -9,9 +9,13 @@
 //! 3. `neural_pgm` → HMM forward chain: GPU belief propagation
 //! 4. `agent_coordination` → `pairwise_l2`: GPU interaction graph distances
 //!
-//! Progression: Python (open data) → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU (this)
-//!
 //! Each check runs CPU (reference) → GPU (test) → compare (parity).
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`weight_spectral`, `loss_landscape`, `neural_pgm`, `agent_coordination` Rust CPU math).
+//! GPU path: `BarraCUDA` baseCamp promotions (matmul, eigensolve, GEMV, `pairwise_l2`) via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 
 #![expect(
     clippy::cast_precision_loss,

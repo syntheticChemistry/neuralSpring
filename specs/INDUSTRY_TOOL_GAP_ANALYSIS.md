@@ -170,6 +170,27 @@ O(`record_size`) memory footprint, and include round-trip fidelity tests.
 
 ---
 
+## Benchmark Parity Status
+
+### Python → BarraCUDA CPU
+
+**Status**: COMPLETE — `bench_phase0pp_kernels` provides 3-way Python vs CPU vs GPU
+comparison across MLP and Transformer at multiple scales. See `specs/BENCHMARK_ANALYSIS.md`.
+
+### Kokkos-CUDA → BarraCUDA GPU
+
+**Status**: PLACEHOLDER — `visualization/scenarios/kokkos_parity.rs` contains
+estimated values from groundSpring V100 handoff notes. Real matched-hardware runs
+require a system with both Kokkos-CUDA and barraCuda wgpu on the same GPU.
+
+### Galaxy / BLAST+ / GATK / Other Industry Tools
+
+**Status**: NOT STARTED — no external tool benchmarks. The `BLAST_LIKE_SEARCH_SCOPE.md`
+and `MSA_PIPELINE_SCOPE.md` specs scope the algorithmic rebuilds but do not yet include
+competitive performance benchmarks against the existing tools.
+
+---
+
 ## Related Documents
 
 - `specs/STREAMING_IO_REQUIREMENTS.md` — streaming I/O spec (R-01 through R-06)

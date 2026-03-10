@@ -450,9 +450,9 @@ fn print_evolution_summary() {
     eprintln!("║    groundSpring → uncertainty, bootstrap, normal distribution     ║");
     eprintln!("║    airSpring  → hydrology, ET₀, water balance                    ║");
     eprintln!("║                                                                    ║");
-    eprintln!("║  barraCuda v0.3.3 at a898dee (deep debt: typed errors, constants) ║");
-    eprintln!("║  ToadStool S130+ at bfe7977b (19,777 tests, spring sync clean)    ║");
-    eprintln!("║  coralReef Iteration 10 at d29a734 (AMD E2E GPU dispatch)         ║");
+    eprintln!("║  barraCuda v0.3.3 at 83aa08a (deep debt: typed errors, constants) ║");
+    eprintln!("║  ToadStool S142 at a86bc546 (19,777 tests, spring sync clean)    ║");
+    eprintln!("║  coralReef Iteration 29 at 2779c88 (AMD E2E GPU dispatch)        ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════════╝");
     eprintln!();
     eprintln!("── Programmatic provenance report (from barraCuda registry) ──");

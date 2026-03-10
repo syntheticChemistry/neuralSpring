@@ -2,11 +2,6 @@
 
 //! Pure GPU workload validation for all 5 baseCamp sub-theses.
 //!
-//! Proves the evolution chain for biophysical AI interpretability:
-//! ```text
-//! Python baseline → Rust CPU → BarraCUDA GPU → Pure GPU (scalar readback)
-//! ```
-//!
 //! Each sub-thesis dispatches its core computation through the GPU-aware
 //! `Dispatcher`, then compares scalar summaries against CPU references.
 //!
@@ -19,6 +14,12 @@
 //! | 03 | `loss_landscape` | `eigh_gpu` (Hessian eigensolve) |
 //! | 04 | `neural_pgm` | `matmul_dispatch` f64 (belief propagation GEMV) |
 //! | 05 | `agent_coordination` | `pairwise_l2_matrix_gpu` (interaction graph) |
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (baseCamp modules Rust CPU math).
+//! GPU path: `BarraCUDA` Dispatcher GPU path (`eigh_gpu`, `matmul_dispatch`, `pairwise_l2`) via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` GPU → Pure GPU (scalar readback).
 
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;

@@ -13,6 +13,7 @@
 
 use crate::loss_landscape::{landscape_analysis, spectral_gap};
 use crate::surrogate::rosenbrock_2d;
+use crate::tolerances;
 use crate::visualization::types::{NeuralScenario, ScenarioEdge, ThresholdRange};
 
 use super::{edge, fieldmap, gauge, node, scaffold, spectrum};
@@ -35,7 +36,12 @@ pub fn loss_landscape_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
 
     let params = vec![1.0, 1.0];
     let loss_fn = |x: &[f64]| rosenbrock_2d(x[0], x[1]);
-    let result = landscape_analysis(&loss_fn, &params, 1e-5, 1e-6);
+    let result = landscape_analysis(
+        &loss_fn,
+        &params,
+        tolerances::HESSIAN_FD_STEP,
+        tolerances::ODE_RTOL,
+    );
 
     let mut sorted_evals = result.hessian_eigenvalues.clone();
     sorted_evals.sort_by(f64::total_cmp);

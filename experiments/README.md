@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 139)**: 1048 lib tests, 233 binaries, 220/220 `validate_all`, 56/56 petalTongue, 16 scenario tracks, S139 handoff. ToadStool S139 (`bfe7977b`), BarraCUDA `a898dee`, coralReef Iteration 10 (`d29a734`). March 10, 2026.
+**Current state (Session 142)**: 1048 lib tests, 233 binaries, 220/220 `validate_all`, 55/55 dispatch parity, 56/56 petalTongue, 16 scenario tracks. `enable f64;` PTXAS fix. V95 handoffs (toadStool/barraCuda + coralReef). ToadStool S142 (`a86bc546`), BarraCUDA `83aa08a`, coralReef Iteration 29 (`2779c88`). March 10, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -107,6 +107,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 091 | Session 133 — petalTongue StreamSession + Full IPC Integration | Mar 9, 2026 | `StreamSession` with backpressure awareness + `SessionStats`. `push_replace()` + `query_capabilities()` added. IPC buffer 4KB→64KB. `validate_petaltongue_scenarios` 31/31 PASS (scenarios + streaming + mock socket roundtrips). 5 scenario builders + `full_study()` confirmed. 46 visualization unit tests |
 | 092 | Session 134 — Deep Debt: activation consolidation, tolerance promotion, 91.66% coverage | Mar 9, 2026 | 7 activations→primitives, 16+ tolerances promoted, 0 clippy pedantic, 91.66% coverage |
 | 093 | Session 135 — petalTongue Visualization Evolution: 12 domain scenarios, live dashboard | Mar 9, 2026 | 7 new scenario builders (HMM, game theory, WDM, glucose, immunological, population, loss landscape). All 8 DataChannel types exercised. TrainingVisualizer for live spectral streaming. full_study() 12-track combiner. neuralspring_live_dashboard binary. 56/56 petalTongue PASS |
+| 094 | Session 142 — Upstream Rewire + `enable f64;` PTXAS Fix + Cross-Spring Evolution | Mar 10, 2026 | Sprint 2 absorption (activations, fused\_ops\_healthy). `enable f64;` PTXAS regression diagnosed: NVIDIA Ada Lovelace silently returns zeros for fused f64 ops when directive present. Fix: strip directive in `pipeline_cache.rs`. 5 fused ops restored. HMM fused path workaround (0.0 detection → per-step fallback). DF64 tolerance characterized (1.7e-5 at N=1008). Dispatch parity: 48/55 → 55/55. V95 handoffs (toadStool/barraCuda + coralReef) |
 
 ---
 

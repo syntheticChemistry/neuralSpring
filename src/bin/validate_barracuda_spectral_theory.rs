@@ -6,6 +6,12 @@
 //! → validated here by neuralSpring. Proves the upstream spectral stack is
 //! correct by comparing tridiag eigensolvers, Aubry-André spectra, Lyapunov
 //! exponents, and level-spacing statistics against known analytic results.
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`eigh_householder_qr`, `aubry_andre_hamiltonian`, etc.).
+//! GPU path: N/A (spectral theory CPU validation; `barracuda::spectral` vs neuralSpring).
+//! Evolution: Kachkovskiy spectral theory → hotSpring → barracuda → neuralSpring validation.
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 

@@ -12,6 +12,12 @@
 //! 4. `Dispatcher::mixed_dispatch()` → end-to-end routing
 //!
 //! This validator is the "mixed-hardware portability proof" for `ToadStool`.
+//!
+//! ## Provenance
+//!
+//! Validation class: System.
+//! Analytical reference: substrate heuristics, cost model routing.
+//! Components: `Dispatcher::mixed_dispatch`, metalForge `dispatch/mixed/pcie_bridge`.
 
 #![expect(
     clippy::cast_precision_loss,

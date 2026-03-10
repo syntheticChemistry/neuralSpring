@@ -14,6 +14,12 @@
 //! This is the "cross-systems usage" proof for metalForge — validates
 //! that the cost model correctly routes workloads across GPU, NPU, and
 //! CPU substrates with numerical parity.
+//!
+//! ## Provenance
+//!
+//! Validation class: System.
+//! Analytical reference: hardware discovery, substrate capability classification, cost model.
+//! Components: metalForge inventory, dispatch heuristics, mixed (transfer cost), `pcie_bridge`, Dispatcher.
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 

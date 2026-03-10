@@ -9,10 +9,11 @@
 //! - PAE:   `Linear → softmax → expected distance` (pair alignment error)
 //! - pDE:   `Linear → softmax → expected distance` (pair distance error)
 //!
-//! Evolution chain:
-//! ```text
-//! Abramson et al. 2024 §5.9 → Python → Rust (CPU) → BarraCUDA (GPU)
-//! ```
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (coralForge confidence heads Rust CPU math).
+//! GPU path: `BarraCUDA` Tensor API (pLDDT, PAE, pDE heads) via wgpu.
+//! Evolution: Abramson et al. 2024 §5.9 → Python → Rust (CPU) → `BarraCUDA` GPU.
 
 #![expect(
     clippy::cast_precision_loss,

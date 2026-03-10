@@ -13,10 +13,11 @@
 //! Label:   argmax(scores)
 //! ```
 //!
-//! Evolution chain:
-//! ```text
-//! Jaeger ESN → Python (scikit-learn ridge) → Rust (CPU) → BarraCUDA (GPU)
-//! ```
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (`wdm_esn` ESN classifier Rust CPU math).
+//! GPU path: `BarraCUDA` Tensor API (ESN recurrence + readout) via wgpu.
+//! Evolution: Jaeger ESN → Python (scikit-learn ridge) → Rust (CPU) → `BarraCUDA` GPU.
 
 #![expect(clippy::cast_possible_truncation, reason = "validation binary")]
 

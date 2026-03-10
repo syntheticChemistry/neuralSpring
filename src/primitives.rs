@@ -176,16 +176,10 @@ pub fn hill_repression(x: f64, amplitude: f64, k: f64, n: f64) -> f64 {
 
 /// Numerically stable sigmoid: σ(x) = 1 / (1 + exp(-x)).
 ///
-/// Uses the split formula to avoid overflow: for x >= 0 compute
-/// directly, for x < 0 use exp(x)/(1+exp(x)).
+/// Delegates to `barracuda::activations::sigmoid` (identical split formula).
 #[must_use]
 pub fn sigmoid(x: f64) -> f64 {
-    if x >= 0.0 {
-        1.0 / (1.0 + (-x).exp())
-    } else {
-        let ex = x.exp();
-        ex / (1.0 + ex)
-    }
+    barracuda::activations::sigmoid(x)
 }
 
 /// Numerically stable f32 sigmoid: σ(x) = 1 / (1 + e^{-x}).
@@ -208,14 +202,14 @@ pub fn sigmoid_f32(x: f32) -> f32 {
 /// GELU activation (approximate, matching `PyTorch` `gelu('tanh')`):
 /// `0.5 * x * (1 + tanh(sqrt(2/π) * (x + 0.044715 * x³)))`.
 ///
+/// Delegates to `barracuda::activations::gelu`.
+///
 /// | GPU equivalent | Notes |
 /// |----------------|-------|
 /// | `Tensor::gelu_wgsl()` / `gelu_f64.wgsl` | GPU elementwise |
 #[must_use]
 pub fn gelu(x: f64) -> f64 {
-    use std::f64::consts::PI;
-    let inner = (2.0 / PI).sqrt() * (0.044_715_f64).mul_add(x * x * x, x);
-    0.5 * x * (1.0 + inner.tanh())
+    barracuda::activations::gelu(x)
 }
 
 /// f32 GELU activation for GPU validation (tensor outputs are f32).
@@ -249,16 +243,14 @@ pub fn softmax(x: &[f64]) -> Vec<f64> {
 
 /// Scalar `ReLU`: `max(0, x)`.
 ///
+/// Delegates to `barracuda::activations::relu`.
+///
 /// | GPU equivalent | Notes |
 /// |----------------|-------|
 /// | `Tensor::relu()` | GPU elementwise |
 #[must_use]
-pub const fn relu(x: f64) -> f64 {
-    if x > 0.0 {
-        x
-    } else {
-        0.0
-    }
+pub fn relu(x: f64) -> f64 {
+    barracuda::activations::relu(x)
 }
 
 /// Scalar f32 `ReLU` for GPU validation.
@@ -272,9 +264,11 @@ pub const fn relu_f32(x: f32) -> f32 {
 }
 
 /// Vectorized `ReLU` over a slice (allocating).
+///
+/// Delegates to `barracuda::activations::relu_batch`.
 #[must_use]
 pub fn relu_vec(x: &[f64]) -> Vec<f64> {
-    x.iter().map(|&v| v.max(0.0)).collect()
+    barracuda::activations::relu_batch(x)
 }
 
 /// In-place `ReLU`: `max(0, x)` for each element.

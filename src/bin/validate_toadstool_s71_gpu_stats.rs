@@ -7,14 +7,11 @@
 //! their CPU counterparts. S71 introduces `ComputeDispatch`-based pure
 //! math WGSL shaders for these operations.
 //!
-//! ## S71 Absorption Provenance
+//! ## Provenance
 //!
-//! ```text
-//! groundSpring → kimura, jackknife     → `ToadStool` S71 GPU dispatch
-//! airSpring    → hargreaves_et0        → `ToadStool` S71 GPU batch
-//! `ToadStool`    → ComputeDispatch       → pure math WGSL shaders
-//! `BarraCUDA`    → DF64 transcendentals  → gamma, erf, trig on f32 GPUs
-//! ```
+//! Cross-spring origin: groundSpring, airSpring → `ToadStool` S71 → `BarraCUDA` → neuralSpring.
+//! Absorption: `KimuraGpu`, `JackknifeMeanGpu`, `HargreavesBatchGpu`, `HistogramGpu` via `ComputeDispatch` pure math WGSL.
+//! Validation: GPU dispatch APIs vs CPU counterparts (Kimura, Jackknife, Hargreaves, Histogram).
 //!
 //! ## Known Upstream Shader Bugs
 //!

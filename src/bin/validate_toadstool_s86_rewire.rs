@@ -19,6 +19,12 @@
 //! ```text
 //! cargo run --release --bin validate_toadstool_s86_rewire
 //! ```
+//!
+//! ## Provenance
+//!
+//! Cross-spring origin: bingoCube Nautilus → `ToadStool` S80/S86 → `BarraCUDA` → neuralSpring.
+//! Absorption: `barracuda::nautilus` (7 files), `DriftMonitor` evolution, `BatchedEncoder`, `ComputeDispatch` 144 ops.
+//! Validation: `NautilusBrain`, `DriftMonitor`, `SpectralNautilusBridge` vs `barracuda::nautilus` APIs.
 
 #![expect(
     clippy::expect_used,

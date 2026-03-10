@@ -76,7 +76,14 @@ pub fn hmm_forward_chain_gpu(
     n_obs: usize,
     device: &Arc<WgpuDevice>,
 ) -> Result<f64, String> {
-    hmm_forward_chain_gpu_fused(
+    // Upstream `HmmBatchForwardF64` has a shader/binding mismatch:
+    // the WGSL shader (`hmm_forward_f64.wgsl`) is per-step (5 bindings)
+    // but the Rust dispatch passes 7 bindings for a batch API.
+    // The mismatched dispatch silently produces 0.0 (the log_lik buffer
+    // is never written).  Guard against this: if the fused path returns
+    // exactly 0.0 for a non-empty sequence, that's always wrong
+    // (log-likelihood is strictly negative for non-degenerate HMMs).
+    let fused = hmm_forward_chain_gpu_fused(
         initial,
         transition,
         emission,
@@ -84,8 +91,15 @@ pub fn hmm_forward_chain_gpu(
         n_states,
         n_obs,
         device,
-    )
-    .or_else(|_| {
+    );
+
+    let use_perstep = match &fused {
+        Ok(v) if !observations.is_empty() && *v == 0.0 => true,
+        Err(_) => true,
+        _ => false,
+    };
+
+    if use_perstep {
         hmm_forward_chain_gpu_perstep(
             initial,
             transition,
@@ -95,7 +109,9 @@ pub fn hmm_forward_chain_gpu(
             n_obs,
             device,
         )
-    })
+    } else {
+        fused
+    }
 }
 
 /// Single-dispatch forward chain via upstream `HmmBatchForwardF64` `ComputeDispatch`.

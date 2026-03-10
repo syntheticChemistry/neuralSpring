@@ -9,9 +9,11 @@
 //!    ISA for AMD) from WGSL source.
 //!
 //! 2. **Runtime discovery** (always available): Discovers a running coralReef
-//!    primal via socket at `$XDG_RUNTIME_DIR/{namespace}/coralreef.json` and
-//!    calls `shader.compile.wgsl` over JSON-RPC. This path requires no
-//!    compile-time dependency and follows the primal self-knowledge pattern.
+//!    primal via Unix socket at `$XDG_RUNTIME_DIR/biomeos/coralreef.sock`
+//!    or capability manifest at `$XDG_RUNTIME_DIR/ecoPrimals/*.json`
+//!    (with `shader.compile` capability), then calls `shader.compile.wgsl`
+//!    over JSON-RPC. This path requires no compile-time dependency and
+//!    follows the primal self-knowledge pattern.
 //!
 //! ## Absorption target
 //!
@@ -140,19 +142,37 @@ impl CoralCompiler {
 
     /// Discover a running coralReef primal's IPC socket.
     ///
-    /// Checks `$XDG_RUNTIME_DIR/{namespace}/coralreef.json` following the
-    /// biomeOS socket discovery convention. Returns `None` if no socket found.
+    /// Checks two paths following the ecosystem convention:
+    /// 1. Unix socket: `$XDG_RUNTIME_DIR/biomeos/coralreef.sock`
+    /// 2. Capability manifests: `$XDG_RUNTIME_DIR/ecoPrimals/*.json`
+    ///    (looks for `shader.compile` or `shader_compiler` capability)
+    ///
+    /// Returns the socket path if found, `None` otherwise.
     #[must_use]
     pub fn discover_socket() -> Option<PathBuf> {
         let xdg = std::env::var("XDG_RUNTIME_DIR").ok()?;
         let base = PathBuf::from(xdg);
 
-        let namespaces =
-            std::env::var("BIOMEOS_NAMESPACES").unwrap_or_else(|_| "ecoPrimals,biomeOS".to_owned());
-        for namespace in namespaces.split(',') {
-            let socket = base.join(namespace.trim()).join("coralreef.json");
-            if socket.exists() {
-                return Some(socket);
+        // Primary: Unix socket (coralReef Iteration 6+)
+        let sock = base.join("biomeos").join("coralreef.sock");
+        if sock.exists() {
+            return Some(sock);
+        }
+
+        // Fallback: capability manifest scan (dual-write discovery)
+        let manifest_dir = base.join("ecoPrimals");
+        if let Ok(entries) = std::fs::read_dir(&manifest_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().is_some_and(|e| e == "json") {
+                    if let Ok(contents) = std::fs::read_to_string(&path) {
+                        if contents.contains("shader.compile")
+                            || contents.contains("shader_compiler")
+                        {
+                            return Some(path);
+                        }
+                    }
+                }
             }
         }
 

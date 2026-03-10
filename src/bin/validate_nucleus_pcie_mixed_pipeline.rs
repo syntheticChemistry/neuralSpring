@@ -20,6 +20,12 @@
 //! NPU ←──PCIe──→ CPU   (standard: staged through host memory)
 //! GPU → NPU → CPU      (multi-hop: chained transfers)
 //! ```
+//!
+//! ## Provenance
+//!
+//! Validation class: System.
+//! Analytical reference: PCIe bypass pathways, NUCLEUS Tower/Node/Nest atomics.
+//! Components: metalForge inventory, pcie_bridge, mixed (BandwidthTier), Dispatcher, gpu_ops.
 
 #![expect(
     clippy::cast_precision_loss,

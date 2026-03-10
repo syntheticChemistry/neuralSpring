@@ -16,6 +16,12 @@
 //!   ↓ same math as
 //! `ToadStool` `ComputeDispatch` (144 ops, S86)
 //! ```
+//!
+//! ## Provenance
+//!
+//! Validation class: Integration.
+//! Analytical reference: Dispatcher → `barracuda::dispatch` → `ComputeDispatch` math parity.
+//! Components: Dispatcher, `barracuda::dispatch` (matmul, transpose, softmax, gelu, mean, variance).
 
 #![expect(
     clippy::cast_precision_loss,

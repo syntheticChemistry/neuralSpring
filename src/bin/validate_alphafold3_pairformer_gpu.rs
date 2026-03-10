@@ -16,6 +16,12 @@
 //! - `hotSpring`: df64 precision shaders for `TriMul`/`TriAttn` (validated Phase B)
 //! - `wetSpring`: evolutionary covariance → pair representations
 //! - `neuralSpring`: Pairformer block composition + timestep conditioning
+//!
+//! ## Provenance
+//!
+//! WGSL source: `BarraCUDA` Pairformer Tensor ops.
+//! CPU baseline: neuralSpring `coral_forge::pairformer` (Rust CPU).
+//! Evolution: Abramson et al. 2024 §3 Python → Rust CPU → WGSL GPU pipeline.
 
 #![expect(
     clippy::cast_precision_loss,

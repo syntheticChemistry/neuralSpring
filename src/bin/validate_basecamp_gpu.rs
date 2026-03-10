@@ -15,6 +15,12 @@
 //! ```text
 //! cargo run --release --bin validate_basecamp_gpu
 //! ```
+//!
+//! ## Provenance
+//!
+//! CPU reference: neuralSpring lib (baseCamp modules Rust CPU math).
+//! GPU path: `BarraCUDA` typed ops via wgpu.
+//! Evolution: Python baseline → Rust CPU → `BarraCUDA` CPU → `BarraCUDA` GPU.
 
 #![expect(
     clippy::cast_precision_loss,
