@@ -87,6 +87,28 @@ the constrained evolution argument: Dolson proves the theory, Anderson provides 
 empirical biology, and neuralSpring validates the computational primitives that
 bridge them.
 
+### Bioprocess ML Prediction (Liao / ADREC)
+
+Wei Liao (ADREC Director, MSU BAE) — the author interviewed with ADREC before
+the Sandia internship. Liao's group applied ML to predict anaerobic digestion
+performance from operational parameters. Profile: `whitePaper/attsi/non-anon/contact/liao/README.md`
+
+| # | Paper | Journal | Year | Faculty | Why | Status |
+|---|-------|---------|------|---------|-----|--------|
+| 27 | Wang et al. "Prediction of anaerobic digestion performance and identification of critical operational parameters using machine learning algorithms" | Bioresour Technol 298:122495 | 2020 | Liao | **ML for biogas yield prediction from operational parameters** — same time-series prediction as Exp 3/9 (weather LSTM) and Paper 026 (glucose LSTM), different domain (bioprocess engineering). Validates that neuralSpring surrogates generalize to environmental/bioprocess systems. Tests ESN/LSTM on digester community dynamics. Public datasets from ADREC operations | Queued |
+
+**Why this matters for neuralSpring**: We have LSTM weather (Exp 3/9, R²=0.93-0.849),
+LSTM glucose (Paper 026, 26/26), ESN WDM regime (nW-05, 96.5%), and ESN HAB sentinel
+(wetSpring Exp114-119). Wang 2020 adds a fourth domain — bioprocess engineering —
+proving the isomorphic learning thesis (Exp 5) extends to engineered biological
+systems. The paper uses random forests and gradient boosting; reproducing it with
+ESN/LSTM demonstrates that reservoir computing matches or exceeds their approach
+while running on GPU/NPU at sovereign speeds.
+
+**Connection to baseCamp Paper 16**: Anaerobic digester process monitoring via ESN
+regime classifier = Paper 04 (sentinels) applied to ADREC digesters. The QS
+dynamics that drive community stability in digesters are what Paper 16 models.
+
 ### Biomedical Time-Series Prediction (Chuna)
 
 Thomas Chuna (Physics & CMSE, MSU) — referred by Murillo (March 4, 2026).
@@ -237,7 +259,7 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 ## Completion Summary
 
-**All 26 papers complete. baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete. Paper 026 (Chuna LSTM glucose prediction) complete — validates LSTM prediction horizon limits, isomorphic cross-domain generalization (biomedical ↔ meteorological).**
+**All 26 papers complete. Paper 027 (Liao/Wang 2020 ML digestion prediction) queued — validates isomorphic generalization to bioprocess engineering. baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete. Paper 026 (Chuna LSTM glucose prediction) complete — validates LSTM prediction horizon limits, isomorphic cross-domain generalization (biomedical ↔ meteorological).**
 
 Session 139: Visualization evolution + deep debt. 16 petalTongue scenario tracks, ecosystem dashboard, config centralization, streaming parsers, BLAST pipeline, Kokkos parity. 1048 lib + 71 forge + 9 integration tests. 233 binaries. 220/220 validate_all. S139 handoff. All paper controls confirmed: open data only (SRA, Zenodo, EPA, PDB, synthetic). BarraCUDA CPU + GPU validated for all applicable papers. metalForge mixed hardware + NUCLEUS Tower/Node/Nest deployment via biomeOS atomic graphs: 43+38+22 PASS.
 Session 133: Phase 5–7 buildout. metalForge PCIe P2P, biomeOS pipeline DAG (3 canonical pipelines), petalTongue StreamSession. Feature-gated validate_all. 957 lib + 71 forge + 9 integration tests. 232 binaries. 220/220 validate_all. V91 handoff.
