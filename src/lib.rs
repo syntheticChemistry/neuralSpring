@@ -82,11 +82,19 @@ pub(crate) mod test_gpu_lock {
 
 pub mod agent_coordination;
 pub mod anderson_localization;
+#[expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "attention matrix dimension casts and f64 statistics"
+)]
+pub mod attention_anderson;
 pub mod bench;
 pub mod config;
 pub mod coral_forge;
 pub mod counterdiabatic;
 pub mod deeponet;
+pub mod digester_anderson;
+pub mod digestion_prediction;
 pub mod directed_evolution;
 pub mod eco_dynamics;
 pub mod eigh;
@@ -102,6 +110,18 @@ pub mod hmm;
 pub mod immunological_anderson;
 pub mod information_flow;
 pub mod introgression;
+#[expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "layer/path casts and f64 statistics"
+)]
+pub mod introgression_nn;
+#[expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "matrix dimension casts (n ≤ 512) and f64 statistics"
+)]
+pub mod isomorphic_reservoir;
 pub mod lenet;
 pub mod loss_landscape;
 pub mod meta_population;
@@ -132,6 +152,12 @@ pub mod visualization;
 pub mod wdm_esn;
 pub mod wdm_sqw;
 pub mod wdm_surrogate;
+#[expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "grid dimension casts (n ≤ 1024) and f64 statistics"
+)]
+pub mod wdm_ensemble_qs;
 pub mod wdm_transport;
 pub mod weight_loader;
 pub mod weight_spectral;

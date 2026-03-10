@@ -1,18 +1,21 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: March 2, 2026 (Session 98–104b)
+**Date**: March 10, 2026 (Session 98–143)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: PLAN — data/compute assessment, primal integration roadmap, extension priorities
+**Status**: ACTIVE — Axis 2 novel compositions complete. Data/compute assessment ready.
+**S143 update**: 5 novel composition experiments built and validated (Exp 096–100).
+Axis 2 "Novel Compositions (No New Math)" complete for all locally composable modules.
+1085 lib tests, 245 binaries, 46 modules, 0 clippy. Ready for Axis 1 (real data).
 
 ---
 
 ## Where We Stand
 
-neuralSpring has validated 3,600+ checks across 25 papers, 5 WDM surrogates,
-coralForge (nF-01/02/03), 5 baseCamp sub-theses, and 3 publication experiments.
-The full pipeline is proven: Python → Rust CPU → BarraCUDA CPU → GPU Tensor →
-Pure GPU → metalForge cross-substrate. 1048 lib tests, 233 binaries, zero clippy,
-zero debt. 83.6× faster than Python.
+neuralSpring has validated 4,200+ checks across **27 papers** (full queue complete),
+5 WDM surrogates, coralForge (nF-01/02/03), 6 baseCamp sub-theses, and 3
+publication experiments. The full pipeline is proven: Python → Rust CPU →
+BarraCUDA CPU → GPU Tensor → Pure GPU → metalForge cross-substrate. 1059 lib
+tests, 235 binaries, zero clippy, zero debt. 83.6× faster than Python.
 
 **Session 104b state**: Complete cross-spring rewire to modern ToadStool f97fc2ae.
 15 core functions delegate to upstream BarraCUDA (chi², KL divergence, spectral
@@ -47,6 +50,10 @@ are mature enough to start incorporating into the science pipeline.
 | **No-till soil microbiome real data** | gen3 Paper 06 | Earth Microbiome Project (EMP), Brandt farm time series | EMP: ~2TB 16S amplicon. Brandt: custom acquisition | EMP: public FTP. Brandt: field collection | 16S → diversity → Anderson r(t): CPU-light (wetSpring pipeline). **Light.** |
 | **LTEE frozen fossil sequences** | gen3 Paper 02 | Lenski lab E. coli genome data (NCBI BioProject) | ~100GB raw reads, ~500MB assembled genomes | NestGate `ESearch`/`EFetch` from NCBI SRA/GenBank | Alignment: CPU-medium. Variant calling: CPU-medium. coralForge structural prediction: GPU-heavy per mutant. **Medium.** |
 | **NCBI metagenomes for QS gene scan** | gen3 Paper 05 | SRA metagenome datasets (170 communities) | ~500GB–1TB raw reads | NestGate bulk SRA fetch | Assembly: CPU-heavy (Strandgate EPYC ideal). QS gene detection: CPU-light. **Heavy at acquisition, light at analysis.** |
+| **Anaerobic digester microbiome 16S** | gen3 Paper 16 | NCBI BioProjects (ADREC, municipal WWTP, thermophilic/mesophilic) | ~5–50GB per BioProject | NestGate `ESearch`/`EFetch` | 16S → diversity → Anderson W → ESN yield prediction. **Light.** Paper 027 ESN validated. |
+| **Real digester operational data** | gen3 Paper 16 | Published supplementary tables (Wang 2020, other Liao group papers) | ~10MB–100MB (tabular) | Manual + NestGate | Direct ESN training on real T/pH/OLR/HRT/yield. **Trivial.** |
+| **FNR/ArcAB/Rex QS regulon mapping** | gen3 Paper 16 | NCBI Protein (anaerobic QS gene families) | ~100MB | NestGate `ESearch` | Map oxygen-regulated QS genes in digester taxa. **Light.** |
+| **OhioT1DM / OpenAPS real CGM data** | Paper 026 ext | OhioT1DM (public), OpenAPS Data Commons | ~1–5GB | Direct download | LSTM glucose prediction on real patient data. **Light.** Paper 026 LSTM validated. |
 
 ### Axis 2: Novel Compositions (No New Math)
 
@@ -56,6 +63,9 @@ are mature enough to start incorporating into the science pipeline.
 | **WDM surrogate ensemble QS** | nS-05 (game theory, Anderson QS) + nW-01..05 (WDM surrogates) | Light — reuse existing validators | Treat surrogate ensemble as "quorum" — when do predictions agree? Disagreement = phase boundary signal |
 | **LSTM anomaly detection on MD trajectories** | nW-03 (LSTM S(q,ω)) + hotSpring transport coefficients | Light — feed existing MD output through existing LSTM | Phase transition signatures in transport time series |
 | **HMM introgression applied to neural network layers** | nS-04 (introgression.rs) + pretrained model layer weights | Light — reuse HMM infrastructure | Detect "knowledge transfer" between neural network layers via introgression statistics |
+| **ESN digester yield + Anderson QS disorder coupling** | Paper 027 (digestion_prediction.rs) + Anderson QS (anderson_localization.rs) + wetSpring 16S | Light — compose existing modules | ESN predicts methane yield from operational params; Anderson W predicts QS regime from community structure. Couple: does W predict ESN residuals? |
+| **ESN/LSTM ensemble: digester + glucose + weather** | Paper 027 ESN + Paper 026 LSTM + Study 003/004 LSTM | Light — run existing predictors, compare reservoir dynamics | Same reservoir computing architecture across three domains (bioprocess, biomedical, meteorology). Isomorphic thesis proof. |
+| **Digester → gut cross-domain transfer** | Paper 027 (ESN digester) + healthSpring (Anderson gut lattice) | Light — same ESN architecture, different domain | Anaerobic digester = engineered gut. Transfer learning: does ESN trained on digester params predict gut fermentation metrics? |
 
 ### Axis 3: System Scaling
 
@@ -139,8 +149,12 @@ On Eastgate alone (i9-12900, RTX 4070, 32GB):
 | P4: LTEE genome variant calling (10 genomes) | ~2 hours | ~500MB | **GO** |
 | P5: No-till Anderson on 50 EMP samples | ~5 min | ~10GB | **GO** (needs wetSpring 16S) |
 | P7: DF64 Anderson L=14 | ~20 min | 0 | **GO** |
-| Axis 2 compositions (4 novel combinations) | ~30 min total | 0 | **GO** |
-| **Total active compute** | **~4.5 hours** | **~16GB** | **All on Eastgate** |
+| P13: Digester 16S microbiome (5 BioProjects) | ~30 min | ~5–50GB | **GO** (NestGate + wetSpring 16S) |
+| P14: Real digester operational data (tabular) | ~5 min | ~10MB | **GO** (ESN retrain) |
+| P15: FNR/ArcAB/Rex QS regulon mapping | ~15 min | ~100MB | **GO** (NestGate Protein search) |
+| P16: OhioT1DM real CGM data | ~1 hour | ~1–5GB | **GO** (LSTM retrain) |
+| Axis 2 compositions (7 novel combinations) | ~1 hour total | 0 | **GO** |
+| **Total active compute** | **~7 hours** | **~26–76GB** | **All on Eastgate** |
 
 ### With LAN Towers (unpins P6–P12)
 
@@ -216,6 +230,12 @@ biomeGate (Node)          — Titan V (alternative GPU), 3090, NPU
 | **P4** | LTEE genome sequences (10 assembled genomes) | ~500MB (NCBI) | Medium (~2hr) | **ACTIVE** — local |
 | **P5** | No-till EMP pilot (50 samples) | ~10GB (EMP FTP) | Light (~5min) | **ACTIVE** — local |
 | **P7** | DF64 Anderson L=14 (fits 12GB VRAM) | 0 (synthetic) | Medium (~20min) | **ACTIVE** — local |
+| **P13** | Digester 16S microbiome (NCBI BioProjects) | ~5–50GB | Light (wetSpring 16S) | **ACTIVE** — NestGate EFetch |
+| **P14** | Real digester operational data (Wang 2020 supp) | ~10MB | Trivial (ESN retrain) | **ACTIVE** — manual |
+| **P15** | FNR/ArcAB/Rex QS regulon mapping (NCBI Protein) | ~100MB | Light | **ACTIVE** — NestGate |
+| **P16** | OhioT1DM / OpenAPS real CGM data | ~1–5GB | Light (LSTM retrain) | **ACTIVE** — download |
+| **P17** | ESN digester × Anderson QS coupling | 0 (compose) | Light | **DONE** — Exp 096 (S143) |
+| **P18** | ESN/LSTM ensemble isomorphic thesis | 0 (compose) | Light | **DONE** — Exp 097 (S143) |
 
 **PINNED — data ≥ 100GB or requires LAN hardware, deferred until NUCLEUS/LAN:**
 
@@ -295,9 +315,19 @@ NUCLEUS atomics. The bridge is:
 | P4: LTEE genomes (10 strains) | ~500MB | Medium (~2hr) | **GO** |
 | P5: No-till EMP pilot (50 samples) | ~10GB | Light (~5min) | **GO** |
 | P7: DF64 Anderson L=14 | 0 | Medium (~20min) | **GO** |
-| Axis 2 compositions (all 4) | 0 | Light | **GO** |
+| P13: Digester 16S microbiome | ~5–50GB | Light | **GO** (NestGate) |
+| P14: Real digester operational | ~10MB | Trivial | **GO** |
+| P15: FNR/ArcAB/Rex regulons | ~100MB | Light | **GO** (NestGate) |
+| P16: OhioT1DM / OpenAPS CGM | ~1–5GB | Light (~1hr) | **GO** |
+| P17: ESN × Anderson QS coupling | 0 | Light | **DONE** (Exp 096) |
+| P18: ESN/LSTM isomorphic ensemble | 0 | Light | **DONE** (Exp 097) |
+| Axis 2: WDM ensemble QS | 0 | Light | **DONE** (Exp 098) |
+| Axis 2: HMM introgression NN | 0 | Light | **DONE** (Exp 099) |
+| Axis 2: Attention Anderson spectral | 0 | Light | **DONE** (Exp 100) |
+| Axis 2: LSTM anomaly on MD trajectories | 0 | Light | **BLOCKED** (needs hotSpring MD data) |
+| Axis 2: Digester→gut cross-domain transfer | 0 | Light | **BLOCKED** (needs healthSpring) |
 
-**Total active data: ~16GB.** Fits on Eastgate local with room to spare.
+**Total active data: ~26–76GB.** Fits on Eastgate local with room to spare.
 
 ### PINNED — data ≥ 100GB or LAN hardware required
 
@@ -313,10 +343,12 @@ NUCLEUS atomics. The bridge is:
 
 **Total pinned data: ~3TB.** Lives on Westgate ZFS (76TB) once LAN online.
 
-**Bottom line**: 7 active extensions on <16GB local data. 7 pinned extensions
+**Bottom line**: 13 active extensions on <76GB local data. 7 pinned extensions
 on ~3TB deferred until NUCLEUS online + 10GbE cabled. Nothing requires cloud.
 The 100GB boundary cleanly separates what Eastgate handles solo from what
 needs the LAN aggregate (176GB GPU VRAM, 1.2TB RAM, 105TB storage).
+Paper 027 completion (S142) unlocked P13–P18: digester microbiome, real
+operational data, QS regulon mapping, real CGM, and two novel compositions.
 
 ---
 
@@ -430,9 +462,12 @@ and biomeOS Plasmodium deployment.
 
 ---
 
-*neuralSpring baseCamp extension plan — March 2, 2026. S104b planning.
-Data: 0–1TB depending on scope. Compute: Eastgate sufficient for P1–P5,
-LAN towers for P6–P10. Primal integration: NestGate for data, biomeOS
-NUCLEUS for orchestration, ToadStool for GPU compute. Zero cloud
-dependency. All infrastructure sovereign. Next step: wire NestGate
-data acquisition into first real-data experiment (nS-01 Paper A).*
+*neuralSpring baseCamp extension plan — March 10, 2026. S142 update.
+27/27 papers complete. Paper queue closed. Extension phase begins.
+Data: 0–3TB depending on scope. Compute: Eastgate sufficient for P1–P7 +
+P13–P18 (~7 hours, <76GB). LAN towers for P6–P12 (~3TB). Primal integration:
+NestGate for data, biomeOS NUCLEUS for orchestration, ToadStool for GPU
+compute. Zero cloud dependency. All infrastructure sovereign. Next steps:
+(1) wire NestGate data acquisition into first real-data experiment (nS-01),
+(2) start biomeOS NUCLEUS locally on Eastgate, (3) begin P13–P18 digester
+and biomedical extensions enabled by Paper 027.*

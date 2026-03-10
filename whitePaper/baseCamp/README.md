@@ -1,8 +1,9 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 10, 2026 (Sessions 61–139)
-**Status**: 26 papers + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4100+ checks**, ~97% GPU promotion, **220/220 validate\_all** (233 binaries), 1048 lib tests. S139: visualization evolution + deep debt — 16 petalTongue scenario builders, ecosystem dashboard, config centralization, streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness. barraCuda: v0.3.3 at `83aa08a` (719 WGSL shaders, wgpu 28, Sprint 2 APIs, healthSpring domain, batched logsumexp, CoralReefDevice)
+**Last Updated**: March 10, 2026 (Sessions 61–142)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4,200+ checks**, ~97% GPU promotion, 235 binaries, 1059 lib tests. S142: Paper 027 complete (Wang/Liao 2020 digester prediction — ESN methane yield, 36/36 CPU + 23/23 bC/gT), `enable f64;` PTXAS fix, 55/55 dispatch parity. barraCuda: v0.3.3 at `83aa08a` (719 WGSL shaders, wgpu 28, Sprint 2 APIs, healthSpring domain, batched logsumexp, CoralReefDevice)
 
+- **S142**: Paper 027 (anaerobic digestion prediction), `enable f64;` PTXAS fix, dispatch parity 55/55, V95 handoffs
 - **S139**: 4 new scenarios (search, streaming I/O, Kokkos parity, industry coverage), `config.rs`, deep debt elimination
 - **S138**: streaming parsers, BLAST pipeline, Kokkos benchmark harness, `INDUSTRY_TOOL_GAP_ANALYSIS.md`
 - **S137**: upstream rewire, `WORKGROUP_SIZE_1D`, shader absorption docs, `gpu_or_exit()` helper
@@ -29,8 +30,9 @@ sub-theses — now that we have pure GPU execution for ~97% of production math.
 | Chris Waters | Michigan | Microbial Cooperation | 3 (019–021) | 21 | Game theory, regulatory networks, signal integration |
 | Ilya Kachkovskiy | Michigan State | Spectral Theory | 2 (022–023) | 16 | Spectral commutativity, Anderson localization |
 | R. Anderson / Campbell | Various | Population Genetics | 2 (024–025) | 16 | Pangenome selection, meta-population dynamics |
+| Wei Liao (Wang et al.) | Michigan State (BAE/ADREC) | Bioprocess Engineering | 1 (027) | 59 | ESN digestion prediction, methane yield, bC/gT GPU |
 
-**Total**: 15 Phase 0++ papers + Paper 026 (Chuna LSTM glucose), 141+ Phase 0++ checks (all PASS at 7 tiers).
+**Total**: 15 Phase 0++ papers + Paper 026 (Chuna LSTM glucose) + Paper 027 (Wang/Liao digestion ESN), 200+ Phase 0++ checks (all PASS at 7 tiers).
 
 ## Validation Chain
 
@@ -134,6 +136,8 @@ All baseCamp experiments inherit neuralSpring's validated multi-tier pipeline:
 
 ### Open Data
 
-All papers use computationally generated data from published parameters.
+All 27 papers use computationally generated data from published parameters.
 No external datasets, no API dependencies, no proprietary sources.
 See `specs/DATA_PROVENANCE.md` for full inventory.
+Paper 027 (Wang/Liao digestion) is the gateway to real ADREC digester data
+and NCBI digester microbiome BioProjects — extension targets for gen3 Paper 16.

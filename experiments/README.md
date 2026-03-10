@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 142)**: 1048 lib tests, 233 binaries, 220/220 `validate_all`, 55/55 dispatch parity, 56/56 petalTongue, 16 scenario tracks. `enable f64;` PTXAS fix. V95 handoffs (toadStool/barraCuda + coralReef). ToadStool S142 (`a86bc546`), BarraCUDA `83aa08a`, coralReef Iteration 29 (`2779c88`). March 10, 2026.
+**Current state (Session 143)**: 1085 lib tests, 245 binaries, 46 modules, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Axis 2 complete. V96 handoff. barraCuda `83aa08a`, ToadStool S142, coralReef Iter 29. March 10, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -108,6 +108,13 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 092 | Session 134 — Deep Debt: activation consolidation, tolerance promotion, 91.66% coverage | Mar 9, 2026 | 7 activations→primitives, 16+ tolerances promoted, 0 clippy pedantic, 91.66% coverage |
 | 093 | Session 135 — petalTongue Visualization Evolution: 12 domain scenarios, live dashboard | Mar 9, 2026 | 7 new scenario builders (HMM, game theory, WDM, glucose, immunological, population, loss landscape). All 8 DataChannel types exercised. TrainingVisualizer for live spectral streaming. full_study() 12-track combiner. neuralspring_live_dashboard binary. 56/56 petalTongue PASS |
 | 094 | Session 142 — Upstream Rewire + `enable f64;` PTXAS Fix + Cross-Spring Evolution | Mar 10, 2026 | Sprint 2 absorption (activations, fused\_ops\_healthy). `enable f64;` PTXAS regression diagnosed: NVIDIA Ada Lovelace silently returns zeros for fused f64 ops when directive present. Fix: strip directive in `pipeline_cache.rs`. 5 fused ops restored. HMM fused path workaround (0.0 detection → per-step fallback). DF64 tolerance characterized (1.7e-5 at N=1008). Dispatch parity: 48/55 → 55/55. V95 handoffs (toadStool/barraCuda + coralReef) |
+| 095 | Session 142 — Paper 027: ML Digestion Prediction (Wang/Liao 2020) | Mar 10, 2026 | ESN reservoir (512 neurons, 2-step recurrence) predicts biogas yield from operational parameters (T, pH, OLR, HRT, VS/TS). Additive process model with T×OLR interaction. R²=0.91 train, R²=0.84 test (RMSE=8.1 mL/gVS). Isomorphic thesis: same ESN architecture as nW-05 (WDM regime), different domain (bioprocess engineering). Py 9/9, Rust 11 lib tests, CPU 36/36, bC/gT 23/23 PASS. GPU↔CPU diff ≤7.1e-5. 27th paper complete — full paper queue closed |
+| 096 | Session 139 — Visualization Evolution + Deep Debt | Mar 10, 2026 | 4 new petalTongue scenario builders, `full_study()` 12→16 tracks, ecosystem dashboard. `config.rs` centralizes primal identity. 968→1048 lib tests |
+| 097 | Session 143 — Digester×Anderson Coupling (Extension P17) | Mar 10, 2026 | ESN digester prediction × Anderson localization. Disorder W inversely correlates with ESN accuracy (r=-0.87). Py 17/17, CPU 55/55, GPU 22/22 PASS |
+| 098 | Session 143 — Isomorphic Reservoir Ensemble (Extension P18) | Mar 10, 2026 | ESN+LSTM glucose+LSTM weather spectral universality: eff_dim CV=0.003, spacing ratios [0.48–0.50] Wigner-like. Py 17/17, CPU 35/35, GPU 13/13 PASS |
+| 099 | Session 143 — WDM Ensemble Quorum Sensing (Axis 2) | Mar 10, 2026 | Surrogate disagreement → Anderson disorder → localization. Snowdrift QS dynamics: low-W promotes cooperation. Py 11/11, CPU 81/81, GPU 7/7 PASS |
+| 100 | Session 143 — HMM Introgression on NN Layers (Axis 2) | Mar 10, 2026 | PhyloNet-HMM detects anomalous NN weight layers. TPR=0.97, FPR=0, LLR>0. Isomorphic thesis: genomic algorithm works on neural networks. Py 11/11, CPU 15/15, GPU 6/6 PASS |
+| 101 | Session 143 — Attention Anderson Spectral (Axis 2) | Mar 10, 2026 | Attention quality → Anderson spectral properties. Higher quality → lower IPR (delocalized). Py 10/10, CPU 34/34, GPU 6/6 PASS |
 
 ---
 
@@ -4737,6 +4744,134 @@ config constants across ipc_push, gpu, validation/env modules.
 | Binaries | 232 | 233 |
 | Hardcoded env var strings | 6+ | 0 |
 | Hardcoded primal names | 3+ | 0 |
+
+---
+
+## Experiment 097 — Session 143: Digester×Anderson Coupling (Extension P17)
+
+**Date**: 2026-03-10
+**Session**: S143
+
+### Summary
+
+First novel composition experiment. Composes ESN digester prediction (Paper 027)
+with Anderson localization analysis (Paper 023) to show that disorder in
+operational parameters correlates with prediction degradation. When process
+conditions are disordered (high W), the ESN reservoir enters a localized regime
+and prediction accuracy drops. R(W, accuracy) ≈ -0.87.
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Python checks | 17/17 PASS |
+| Rust CPU checks | 55/55 PASS |
+| BarraCUDA GPU checks | 22/22 PASS |
+| New Rust module | `digester_anderson.rs` |
+| New control | `control/digester_anderson/` |
+
+---
+
+## Experiment 098 — Session 143: Isomorphic Reservoir Ensemble (Extension P18)
+
+**Date**: 2026-03-10
+**Session**: S143
+
+### Summary
+
+Composes ESN (digester), LSTM (glucose prediction), and LSTM (weather
+forecasting) to demonstrate spectral universality. All three recurrent
+architectures from unrelated domains produce weight matrices with nearly
+identical spectral profiles: effective dimension CV = 0.003, mean IPR CV = 0.003,
+level spacing ratios in [0.48, 0.50] (Wigner-like). Strongest validation of the
+isomorphic thesis: the same spectral DNA appears across domains.
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Python checks | 17/17 PASS |
+| Rust CPU checks | 35/35 PASS |
+| BarraCUDA GPU checks | 13/13 PASS |
+| New Rust module | `isomorphic_reservoir.rs` |
+| New control | `control/isomorphic_reservoir/` |
+
+---
+
+## Experiment 099 — Session 143: WDM Ensemble Quorum Sensing (Axis 2)
+
+**Date**: 2026-03-10
+**Session**: S143
+
+### Summary
+
+Treats an ensemble of WDM surrogates as a "quorum" where disagreement (variance
+in predictions) maps to Anderson disorder. The disorder drives a Snowdrift game
+where cooperation depends on the perceived environment: low-disorder conditions
+(agreement among surrogates) promote cooperation, high-disorder conditions promote
+defection. Demonstrates surrogate ensemble → physics → game theory composition.
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Python checks | 11/11 PASS |
+| Rust CPU checks | 81/81 PASS |
+| BarraCUDA GPU checks | 7/7 PASS |
+| New Rust module | `wdm_ensemble_qs.rs` |
+| New control | `control/wdm_ensemble_qs/` |
+
+---
+
+## Experiment 100 — Session 143: HMM Introgression on NN Layers (Axis 2)
+
+**Date**: 2026-03-10
+**Session**: S143
+
+### Summary
+
+Applies the PhyloNet-HMM introgression detection algorithm (originally for
+genomic analysis) to detect anomalous layers in neural network weight matrices.
+Treats NN layers as "genomic loci" and weight statistics as observations. Achieves
+TPR = 0.97, FPR = 0, positive LLR (2-state model is better fit than null). A
+direct demonstration of the isomorphic thesis at the algorithm level: a genomics
+tool works for neural network diagnostics without modification.
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Python checks | 11/11 PASS |
+| Rust CPU checks | 15/15 PASS |
+| BarraCUDA GPU checks | 6/6 PASS |
+| New Rust module | `introgression_nn.rs` |
+| New control | `control/introgression_nn/` |
+
+---
+
+## Experiment 101 — Session 143: Attention Anderson Spectral (Axis 2)
+
+**Date**: 2026-03-10
+**Session**: S143
+
+### Summary
+
+Investigates Anderson localization properties in self-attention weight matrices.
+Generates synthetic attention matrices with controllable "quality" (sharpness)
+and analyzes their spectral properties. Higher-quality attention has lower IPR
+(more delocalized eigenstates — information distributed across all positions),
+while lower-quality attention localizes. Correlates quality ↔ entropy ↔ IPR ↔
+participation number ↔ localization length.
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Python checks | 10/10 PASS |
+| Rust CPU checks | 34/34 PASS |
+| BarraCUDA GPU checks | 6/6 PASS |
+| New Rust module | `attention_anderson.rs` |
+| New control | `control/attention_anderson/` |
 
 ---
 

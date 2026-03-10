@@ -12,9 +12,10 @@ hotSpring (physics surrogates) → neuralSpring (neural surrogates) → faster-t
 Named after neural networks — the adaptive, learning counterpart to hotSpring's
 physics-driven computational springs. Both feed BarraCUDA the same six
 primitives; neuralSpring proves those primitives produce correct learning across
-26 scholarly reproductions spanning evolutionary computation, phylogenetics,
-game theory, spectral analysis, population genetics, regulatory biology, and
-biomedical time-series prediction.
+27 scholarly reproductions and 5 novel composition experiments spanning
+evolutionary computation, phylogenetics, game theory, spectral analysis,
+population genetics, regulatory biology, biomedical time-series prediction,
+and cross-domain reservoir computing.
 
 ## The Core Thesis: Isomorphic Learning Patterns
 
@@ -41,16 +42,20 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
 
-## Current Status: 331/331 Python PASS + 3400+ Rust+GPU PASS = **4100+ total validation checks**
+## Current Status: 397/397 Python PASS + 3600+ Rust+GPU PASS = **4500+ total validation checks**
+
+**S143: Extension phase — 5 novel composition experiments (Exp 096–100).**
+27/27 papers complete. Paper queue closed. Extension phase active: Axis 2 novel
+compositions (no new math — compose existing validated modules).
 
 **barraCuda v0.3.3 standalone** (extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
-46 upstream rewires + 128+ files with barracuda imports, 45+ submodules exercised. Nautilus absorbed into barracuda::nautilus (bingocube dep removed).
+46 upstream rewires + 209 files with barracuda imports, 45+ submodules exercised. Nautilus absorbed into barracuda::nautilus (bingocube dep removed).
 S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch` (`hmm_viterbi_f64.wgsl`).
 21/21 WGSL shaders absorbed + 15 coralForge df64 shaders.
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
-1048 lib tests, 80+ named tolerances (centralized registry with justifications), 0 clippy warnings (pedantic+nursery, `--all-features`), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
-233 validation/bench binaries, 41 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1048 lib + 9 integration + 71 forge tests.
-**CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. **220/220 validate\_all**. 92% line coverage (llvm-cov).
+1085 lib tests, 80+ named tolerances (centralized registry with justifications), 0 clippy warnings (pedantic+nursery, `--all-features`), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
+245 validation/bench binaries, 46 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1085 lib + 9 integration + 71 forge tests.
+**CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. 92% line coverage (llvm-cov).
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 Pure Rust **38.6× faster** than Python/NumPy
 (geomean, 15 domains; fastest: multi-obj fitness 1028×; 2 BLAS-bound domains included). CPU→GPU portability proven (9/9, 7 domains).

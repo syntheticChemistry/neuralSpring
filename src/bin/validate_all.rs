@@ -314,6 +314,24 @@ const BINARIES: &[&str] = &[
     // S123: Paper 026 (Chuna LSTM blood glucose prediction) — Py→Rs→bC→gT
     "validate_glucose_prediction",
     "validate_barracuda_glucose_prediction",
+    // S142: Paper 027 (Wang/Liao 2020 anaerobic digestion prediction) — Py→Rs→bC→gT
+    "validate_digestion_prediction",
+    "validate_barracuda_digestion",
+    // S143: Exp 096 (Digester-Anderson coupling: ESN × Anderson QS) — novel composition
+    "validate_digester_anderson",
+    "validate_barracuda_digester_anderson",
+    // S143: Exp 097 (Isomorphic reservoir ensemble: ESN/LSTM spectral universality) — novel composition
+    "validate_isomorphic_reservoir",
+    "validate_barracuda_isomorphic_reservoir",
+    // S143: Exp 098 (WDM surrogate ensemble QS: disagreement → Anderson disorder) — novel composition
+    "validate_wdm_ensemble_qs",
+    "validate_barracuda_wdm_ensemble_qs",
+    // S143: Exp 099 (HMM introgression on NN weight layers) — novel composition
+    "validate_introgression_nn",
+    "validate_barracuda_introgression_nn",
+    // S143: Exp 100 (Attention weight Anderson spectral analysis) — novel composition
+    "validate_attention_anderson",
+    "validate_barracuda_attention_anderson",
     // S126: ToadStool S94b + wgpu 28 + BarraCUDA v0.3.3 fused op absorption
     "validate_toadstool_s94b_wgpu28",
     // biomeOS graph coordination (DAG pipeline, topo sort, execution tracking)

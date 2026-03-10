@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: March 9, 2026 (Sessions 45–133)
+**Last Updated**: March 10, 2026 (Sessions 45–143 — 27/27 papers complete. Paper queue CLOSED. Extension phase: 5 novel compositions Exp 097–101)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---
@@ -95,7 +95,7 @@ performance from operational parameters. Profile: `whitePaper/attsi/non-anon/con
 
 | # | Paper | Journal | Year | Faculty | Why | Status |
 |---|-------|---------|------|---------|-----|--------|
-| 27 | Wang et al. "Prediction of anaerobic digestion performance and identification of critical operational parameters using machine learning algorithms" | Bioresour Technol 298:122495 | 2020 | Liao | **ML for biogas yield prediction from operational parameters** — same time-series prediction as Exp 3/9 (weather LSTM) and Paper 026 (glucose LSTM), different domain (bioprocess engineering). Validates that neuralSpring surrogates generalize to environmental/bioprocess systems. Tests ESN/LSTM on digester community dynamics. Public datasets from ADREC operations | Queued |
+| 27 | Wang et al. "Prediction of anaerobic digestion performance and identification of critical operational parameters using machine learning algorithms" | Bioresour Technol 298:122495 | 2020 | Liao | **ML for biogas yield prediction from operational parameters** — same ESN architecture as nW-05 (WDM classifier), different domain (bioprocess engineering). Validates that neuralSpring surrogates generalize to environmental/bioprocess systems. Tests ESN on digester operational parameters (T, pH, OLR, HRT, VS/TS) | **Complete + bC/gT** — `control/digestion_prediction/digestion_prediction.py` (9/9 PASS), `digestion_prediction.rs` (11 tests), `validate_digestion_prediction` (36/36 PASS), `validate_barracuda_digestion` (23/23 PASS: bC CPU 6, gT GPU 17, GPU↔CPU parity ≤7.1e-5) |
 
 **Why this matters for neuralSpring**: We have LSTM weather (Exp 3/9, R²=0.93-0.849),
 LSTM glucose (Paper 026, 26/26), ESN WDM regime (nW-05, 96.5%), and ESN HAB sentinel
@@ -259,7 +259,7 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 ## Completion Summary
 
-**All 26 papers complete. Paper 027 (Liao/Wang 2020 ML digestion prediction) queued — validates isomorphic generalization to bioprocess engineering. baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete. Paper 026 (Chuna LSTM glucose prediction) complete — validates LSTM prediction horizon limits, isomorphic cross-domain generalization (biomedical ↔ meteorological).**
+**All 27 papers complete. Paper 027 (Liao/Wang 2020 ML digestion prediction) complete — validates isomorphic ESN generalization to bioprocess engineering (R²=0.84, 36/36 Rust + 23/23 bC/gT PASS). baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete. Paper 026 (Chuna LSTM glucose prediction) complete — validates LSTM prediction horizon limits, isomorphic cross-domain generalization (biomedical ↔ meteorological).**
 
 Session 139: Visualization evolution + deep debt. 16 petalTongue scenario tracks, ecosystem dashboard, config centralization, streaming parsers, BLAST pipeline, Kokkos parity. 1048 lib + 71 forge + 9 integration tests. 233 binaries. 220/220 validate_all. S139 handoff. All paper controls confirmed: open data only (SRA, Zenodo, EPA, PDB, synthetic). BarraCUDA CPU + GPU validated for all applicable papers. metalForge mixed hardware + NUCLEUS Tower/Node/Nest deployment via biomeOS atomic graphs: 43+38+22 PASS.
 Session 133: Phase 5–7 buildout. metalForge PCIe P2P, biomeOS pipeline DAG (3 canonical pipelines), petalTongue StreamSession. Feature-gated validate_all. 957 lib + 71 forge + 9 integration tests. 232 binaries. 220/220 validate_all. V91 handoff.
@@ -369,6 +369,7 @@ from Python baseline through multi-GPU portability to mixed-hardware dispatch.
 | Study 004 LSTM | ✓ | ✓ | lstm ✓ | lstm ✓ | — | — | **4/4** |
 | Study 005 Quantized | ✓ | ✓ | quantized ✓ | — | — | — | **3/3** |
 | **026 Glucose (Chuna)** | ✓ | ✓ | glucose ✓ | LSTM+readout ✓ | — | — | **4/4** |
+| **027 Digestion (Liao)** | ✓ | ✓ | digestion ✓ | ESN+readout ✓ | — | — | **4/4** |
 
 Phase 0/0+ studies use PyTorch training workflows. mF/gP columns are N/A.
 Study 005 uses integer arithmetic (Q8/Q4), not Tensor ops — gT is N/A.

@@ -752,6 +752,61 @@ path = "src/bin/validate_glucose_prediction.rs"
 name = "validate_wdm_esn"
 path = "src/bin/validate_wdm_esn.rs"
 
+# ── Paper 027: Digestion prediction (Wang/Liao 2020) ─────────────
+
+[[bin]]
+name = "validate_digestion_prediction"
+path = "src/bin/validate_digestion_prediction.rs"
+
+[[bin]]
+name = "validate_barracuda_digestion"
+path = "src/bin/validate_barracuda_digestion.rs"
+
+# ── Experiment 096: Digester-Anderson coupling ────────────────────
+[[bin]]
+name = "validate_digester_anderson"
+path = "src/bin/validate_digester_anderson.rs"
+
+[[bin]]
+name = "validate_barracuda_digester_anderson"
+path = "src/bin/validate_barracuda_digester_anderson.rs"
+
+# ── Experiment 097: Isomorphic reservoir ensemble ─────────────────
+[[bin]]
+name = "validate_isomorphic_reservoir"
+path = "src/bin/validate_isomorphic_reservoir.rs"
+
+[[bin]]
+name = "validate_barracuda_isomorphic_reservoir"
+path = "src/bin/validate_barracuda_isomorphic_reservoir.rs"
+
+# ── Experiment 098: WDM surrogate ensemble QS ─────────────────────
+[[bin]]
+name = "validate_wdm_ensemble_qs"
+path = "src/bin/validate_wdm_ensemble_qs.rs"
+
+[[bin]]
+name = "validate_barracuda_wdm_ensemble_qs"
+path = "src/bin/validate_barracuda_wdm_ensemble_qs.rs"
+
+# ── Experiment 099: HMM introgression on NN layers ────────────────
+[[bin]]
+name = "validate_introgression_nn"
+path = "src/bin/validate_introgression_nn.rs"
+
+[[bin]]
+name = "validate_barracuda_introgression_nn"
+path = "src/bin/validate_barracuda_introgression_nn.rs"
+
+# ── Experiment 100: Attention Anderson spectral ───────────────────
+[[bin]]
+name = "validate_attention_anderson"
+path = "src/bin/validate_attention_anderson.rs"
+
+[[bin]]
+name = "validate_barracuda_attention_anderson"
+path = "src/bin/validate_barracuda_attention_anderson.rs"
+
 # ── baseCamp Sub-thesis validators ────────────────────────────────
 [[bin]]
 name = "validate_weight_spectral"
@@ -1065,6 +1120,24 @@ path = "src/bin/validate_barracuda_basecamp.rs"
 [[bin]]
 name = "diagnose_f64_regression"
 path = "src/bin/diagnose_f64_regression.rs"
+
+# ── Orphan binaries restored (cleanup S143)
+
+[[bin]]
+name = "validate_nucleus_pcie_mixed_pipeline"
+path = "src/bin/validate_nucleus_pcie_mixed_pipeline.rs"
+
+[[bin]]
+name = "validate_toadstool_s94b_wgpu28"
+path = "src/bin/validate_toadstool_s94b_wgpu28.rs"
+
+[[bin]]
+name = "neuralspring_live_dashboard"
+path = "src/bin/neuralspring_live_dashboard.rs"
+
+[[bin]]
+name = "neuralspring_ecosystem_dashboard"
+path = "src/bin/neuralspring_ecosystem_dashboard.rs"
 
 [lints.rust]
 unsafe_code = "forbid"

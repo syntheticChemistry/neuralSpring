@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 10, 2026 (Session 142 — Upstream Rewire + `enable f64;` PTXAS Fix + Cross-Spring Evolution. Sprint 2 absorption. `enable f64;` regression diagnosed and fixed: 5 fused f64 ops restored, dispatch parity 48/55 → 55/55. HMM fused path workaround. DF64 tolerance characterization. V95 toadStool/barraCuda + coralReef handoffs. barraCuda `83aa08a`, toadStool S142 (`a86bc546`), coralReef Iter 29 (`2779c88`). 1048 lib + 71 forge + 9 integration tests. 0 clippy. 233 binaries)
+**Last updated**: March 10, 2026 (Session 143 — Extension Phase: 5 Novel Composition Experiments. Exp 096 Digester×Anderson coupling, Exp 097 Isomorphic reservoir ensemble, Exp 098 WDM ensemble QS, Exp 099 HMM introgression on NN layers, Exp 100 Attention Anderson spectral. 5 new Rust modules, 10 new validation binaries, 5 Python controls. 1085 lib + 71 forge + 9 integration tests. 0 clippy. 245 binaries)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 331/331 Python PASS + 3400+ Rust+GPU validation PASS = **4100+ total validation checks**
-**Library**: 1048 lib tests + 9 integration tests + 71 forge tests | 41 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 233 validation/bench binaries
+**Grand Total**: 397/397 Python PASS + 3600+ Rust+GPU validation PASS = **4500+ total validation checks**
+**Library**: 1085 lib tests + 9 integration tests + 71 forge tests | 46 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 245 validation/bench binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 6 biophysical AI modules + 11 validators (162/162 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 6/6 sub-theses PASS) — Sessions 50, 54, 56, 77, 104b, 107
@@ -14,7 +14,7 @@
 **GPU Promotion**: 47 CPU→GPU ops via `gpu_dispatch::Dispatcher` (~97% of production math, +3: hill_gate, multi_obj_fitness, swarm_nn_forward)
 **Pure GPU All-Domains**: 11/11 PASS — `validate_gpu_pure_workload_all` (13 GPU domains across all Phase 0++ papers + Paper 026 LSTM + determinism check, scalar-only readback). **WDM+coralForge Pure GPU**: 24/24 PASS — `validate_gpu_pure_wdm_coral` (nW-01 MLP, nW-02 EOS, nW-03 LSTM, nW-05 ESN, coralForge attention, TriMul, AF3 pLDDT, AF3 PAE, AF3 diffusion forward, PF FFN, PF TriMul + determinism)
 **WDM Surrogates**: 5 Python baselines (33/33 PASS) + 7 Rust validators (160/160 PASS incl. GPU) + 4 GPU Tensor validators (nW-01 transport, nW-02 EOS, nW-03 S(q,ω), nW-04 transfer, nW-05 ESN) — `wdm_surrogate.rs`, `wdm_transport.rs`, `wdm_sqw.rs`, `wdm_esn.rs` modules
-**Publication Experiments (S88+)**: Exp-050 (Py 11/11, Rs 12/12, GPU 9/9), Exp-052 (Py 8/8, Rs 14/14, GPU 10/10), Exp-053 (Py 11/11, Rs 18/18, GPU 11/11). Pure GPU pipeline + metalForge cross-system: 13/13. Mixed-hardware NUCLEUS: 43/43. Phase 4 shader validation: 22/22. Streaming spectral pipeline: 28/28. **Dispatch parity: 53/53 (S115). ComputeDispatch bridge: 14/14. NUCLEUS PCIe bypass: 38/38. Mixed-hardware dispatch: 47/47. WDM+AlphaFold3 dispatch: 57/57. coralForge Evoformer dispatch: 47/47.** **232 binaries, 220/220 validate\_all**
+**Publication Experiments (S88+)**: Exp-050 (Py 11/11, Rs 12/12, GPU 9/9), Exp-052 (Py 8/8, Rs 14/14, GPU 10/10), Exp-053 (Py 11/11, Rs 18/18, GPU 11/11). Pure GPU pipeline + metalForge cross-system: 13/13. Mixed-hardware NUCLEUS: 43/43. Phase 4 shader validation: 22/22. Streaming spectral pipeline: 28/28. **Dispatch parity: 53/53 (S115). ComputeDispatch bridge: 14/14. NUCLEUS PCIe bypass: 38/38. Mixed-hardware dispatch: 47/47. WDM+AlphaFold3 dispatch: 57/57. coralForge Evoformer dispatch: 47/47.** **245 binaries**
 **NUCLEUS Compute Dispatch**: Tower discovery + Node eigensolve/Anderson/Hessian + Nest provenance + mixed atomic coordination + PCIe bypass: **43/43 PASS**. `validate_nucleus_compute_dispatch`. **NUCLEUS PCIe mixed pipeline**: Tower→Node→Nest chain + GPU↔NPU bypass + biomeOS graph coordination: **38/38 PASS** (S115). `validate_nucleus_pcie_mixed_pipeline`. **NUCLEUS Tower Mode**: JSON-RPC folding + GPU dispatch + cross-primal forwarding + concurrent: **22/22 PASS** (S133). `validate_nucleus_tower`
 **ToadStool Absorption Readiness**: CPU correctness (eigh/Anderson/Hamiltonian) + GPU parity (3 matrix sizes) + batch scaling + mixed substrate: **294/294 PASS**. `validate_toadstool_spectral_absorption`
 **biomeOS Integration**: neuralSpring registered as science primal. 7 capabilities (spectral\_analysis, anderson\_localization, hessian\_eigen, agent\_coordination, ipr, disorder\_sweep, training\_trajectory). `neuralspring_primal` JSON-RPC server. `validate_biomeos_spectral`: **29/29 PASS**. **biomeOS graph coordination**: DAG pipeline engine (`graph.rs`) with topological execution, 3 canonical pipelines (spectral, popgen, folding). `validate_biomeos_graph`: **32/32 PASS** (S133). NUCLEUS ready (all plasmidBin primals built)
@@ -338,7 +338,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (1048 lib + 9 integration + 71 forge tests, 233 binaries, 41+ modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (1085 lib + 9 integration + 71 forge tests, 245 binaries, 46 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -1187,3 +1187,53 @@ Closed the GPU Tensor validation tier for AlphaFold3 diffusion and Pairformer pr
 - nS-01 weight spectral CPU benchmarks: eigh\_f64 on 64×64, 128×128, 256×256 Hamiltonians
 
 **Re-validated**: `validate_weight_spectral_real` **12/12 PASS**. `validate_all` **200/200** (198 PASS + 2 pre-existing wright\_fisher WGSL parse). 216 binaries, 3500+ total checks.
+
+---
+
+## Session 143 — Extension Phase: 5 Novel Composition Experiments (Experiments 097–101)
+
+**Scope**: Axis 2 "Novel Compositions (No New Math)" — compose existing validated modules into new scientific applications. Each experiment has Python control baseline, Rust module with unit tests, CPU-only validator, and BarraCUDA CPU+GPU validator.
+
+**New modules**:
+
+| Module | Experiment | Composes |
+|--------|-----------|----------|
+| `digester_anderson.rs` | 097 — Digester×Anderson coupling | ESN (Paper 027) + Anderson (Paper 023) |
+| `isomorphic_reservoir.rs` | 098 — Isomorphic reservoir ensemble | ESN + LSTM glucose + LSTM weather |
+| `wdm_ensemble_qs.rs` | 099 — WDM ensemble QS | game theory + WDM surrogates + Anderson |
+| `introgression_nn.rs` | 100 — HMM introgression on NN | HMM (Paper 018) + weight statistics |
+| `attention_anderson.rs` | 101 — Attention Anderson spectral | attention + eigh + Anderson IPR |
+
+**New binaries** (10):
+
+| Binary | Type | Checks |
+|--------|------|--------|
+| `validate_digester_anderson` | CPU | 55/55 PASS |
+| `validate_barracuda_digester_anderson` | GPU | 22/22 PASS |
+| `validate_isomorphic_reservoir` | CPU | 35/35 PASS |
+| `validate_barracuda_isomorphic_reservoir` | GPU | 13/13 PASS |
+| `validate_wdm_ensemble_qs` | CPU | 81/81 PASS |
+| `validate_barracuda_wdm_ensemble_qs` | GPU | 7/7 PASS |
+| `validate_introgression_nn` | CPU | 15/15 PASS |
+| `validate_barracuda_introgression_nn` | GPU | 6/6 PASS |
+| `validate_attention_anderson` | CPU | 34/34 PASS |
+| `validate_barracuda_attention_anderson` | GPU | 6/6 PASS |
+
+**Python baselines** (5):
+
+| Control | Checks |
+|---------|--------|
+| `control/digester_anderson/digester_anderson.py` | 17/17 PASS |
+| `control/isomorphic_reservoir/isomorphic_reservoir.py` | 17/17 PASS |
+| `control/wdm_ensemble_qs/wdm_ensemble_qs.py` | 11/11 PASS |
+| `control/introgression_nn/introgression_nn.py` | 11/11 PASS |
+| `control/attention_anderson/attention_anderson.py` | 10/10 PASS |
+
+**Key findings**:
+
+- **Spectral universality**: ESN/LSTM ensembles from 3 domains produce identical spectral profiles (eff\_dim CV = 0.003)
+- **Disagreement = disorder**: Surrogate ensemble variance maps to Anderson localization parameter
+- **Algorithm isomorphism**: PhyloNet-HMM (genomics) detects anomalous NN layers (TPR = 0.97, FPR = 0)
+- **GPU↔CPU parity**: All 5 experiments ≤ 2.5e-4 max diff (f32 vs f64)
+
+**Totals**: 1085 lib tests + 9 integration + 71 forge tests. 245 binaries. 46 modules. 0 clippy. 0 unsafe. 4500+ total checks.
