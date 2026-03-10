@@ -170,7 +170,7 @@ For each Rust module → GPU promotion:
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
-| Phase 0 (Python baselines) | **330/330 PASS** | 25 experiments + 5 WDM + 3 pub exp + 5 coralForge + 2 nS-06, drift detection via `control/check_drift.sh` |
+| Phase 0 (Python baselines) | **331/331 PASS** | 25 experiments + 5 WDM + 3 pub exp + 5 coralForge + 2 nS-06, drift detection via `control/check_drift.sh` |
 | Phase 1a (neuralSpring Rust) | **1048 lib + 9 integration PASS** | 41+ modules, 1048 unit tests, 9 integration tests, 233 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |

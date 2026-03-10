@@ -275,6 +275,14 @@ fn unique_owners(tools: &[ToolEntry]) -> Vec<&'static str> {
 }
 
 /// Current ecosystem tool inventory from `specs/INDUSTRY_TOOL_GAP_ANALYSIS.md`.
+///
+/// Kept as a single cohesive list so additions/removals to the gap analysis
+/// spec are trivially mirrored here — splitting by domain would scatter the
+/// table across multiple functions with no gain.
+#[expect(
+    clippy::too_many_lines,
+    reason = "static data table — splitting by domain scatters a cohesive inventory"
+)]
 fn tool_inventory() -> Vec<ToolEntry> {
     vec![
         // ── Streaming parsers (neuralSpring) ─────────────────────────────

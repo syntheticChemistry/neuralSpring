@@ -462,6 +462,11 @@ fn spectral_radius_estimate(matrix: &[f64], n: usize) -> f64 {
 }
 
 /// Solve Ax = b for symmetric positive-definite A via Cholesky.
+///
+/// Kept local rather than dispatching to `barracuda::linalg::cholesky_f64` +
+/// `solve_f64` because the ridge regression systems are small (n ≤ 73 for
+/// hidden_size=24) and GPU dispatch overhead would dominate. Candidate for
+/// `BarraCUDA` migration if reservoir sizes grow significantly.
 fn solve_symmetric(a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
     let mut l = vec![0.0_f64; n * n];
 

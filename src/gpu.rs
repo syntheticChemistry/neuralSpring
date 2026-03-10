@@ -456,7 +456,7 @@ pub(crate) mod tests {
             .expect("read_buffer_f32 should succeed");
         for (i, (&got, &want)) in out.iter().zip(data.iter()).enumerate() {
             assert!(
-                (got - want).abs() < 1e-7,
+                f64::from((got - want).abs()) < crate::tolerances::TENSOR_EXACT_F32,
                 "roundtrip mismatch at {i}: got {got}, want {want}"
             );
         }
@@ -603,7 +603,7 @@ pub(crate) mod tests {
             .expect("read_buffer_f64 should succeed");
         for (i, (&got, &want)) in out.iter().zip(data.iter()).enumerate() {
             assert!(
-                (got - want).abs() < 1e-15,
+                (got - want).abs() < crate::tolerances::ZERO_DETECTION,
                 "f64 roundtrip mismatch at {i}: got {got}, want {want}"
             );
         }

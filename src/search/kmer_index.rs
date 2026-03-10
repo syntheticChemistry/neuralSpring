@@ -185,15 +185,13 @@ mod tests {
         let query = encode_dna(b"ACGTTTTT");
         let hits = idx.seed_query(&query);
 
-        let db0_hits: Vec<_> = hits.iter().filter(|(_, h)| h.seq_id == 0).collect();
         assert!(
-            !db0_hits.is_empty(),
+            hits.iter().any(|(_, h)| h.seq_id == 0),
             "ACGT in query should hit db sequence 0"
         );
 
-        let db1_hits: Vec<_> = hits.iter().filter(|(_, h)| h.seq_id == 1).collect();
         assert!(
-            !db1_hits.is_empty(),
+            hits.iter().any(|(_, h)| h.seq_id == 1),
             "TTTT in query should hit db sequence 1"
         );
     }

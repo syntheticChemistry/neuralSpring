@@ -244,14 +244,16 @@ cargo run --release --bin validate_agent_coordination     # nS05 (18 checks)
 *neuralSpring baseCamp: Biophysical AI Interpretability + Translational
 Immunology. 6 sub-theses, 21 grounding papers, 29 experiments (28 complete
 + 1 Session 61) + 5 proposed (nS-601..605), all built on 4100+ validated
-checks across 25 papers + 5 WDM surrogates + 3 publication experiments
+checks across 26 papers + 5 WDM surrogates + 3 publication experiments
 and 7+ scientific domains. Core primitives implemented in Sessions 50–55,
-quality-hardened Sessions 61–90, extended Session 105: 7 Rust modules, 8
-validation binaries, 128/128 PASS (114 CPU + 14 GPU), 966 lib tests, 0
-clippy warnings. 46 upstream rewires to upstream BarraCUDA. Sub-thesis 06
-(Session 105): Anderson localization in immunological signaling — Gonzales
-catalog (6 papers), Fajgenbaum drug repurposing bridge, dimensional
-promotion-collapse duality with Paper 06. neuralSpring primitives ready:
-MultiHeadWdmClassifier, TrainingMonitor, Dispatcher::kl_divergence. gen3
-baseCamp sub-theses 01–07 now cross-referenced with neuralSpring
-connections. No new math — only novel composition of validated primitives.*
+quality-hardened Sessions 61–90, extended Session 105, audited Session 139:
+7 Rust modules, 8 validation binaries, 128/128 PASS (114 CPU + 14 GPU),
+1048 lib tests, 0 clippy warnings (pedantic+nursery, all-features), 0 doc
+warnings. 46 upstream rewires to upstream BarraCUDA. 92% line coverage.
+Sub-thesis 06 (Session 105): Anderson localization in immunological
+signaling — Gonzales catalog (6 papers), Fajgenbaum drug repurposing
+bridge, dimensional promotion-collapse duality with Paper 06. neuralSpring
+primitives ready: MultiHeadWdmClassifier, TrainingMonitor,
+Dispatcher::kl\_divergence. gen3 baseCamp sub-theses 01–07 now
+cross-referenced with neuralSpring connections. No new math — only novel
+composition of validated primitives.*

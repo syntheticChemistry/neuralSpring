@@ -266,7 +266,10 @@ mod tests {
         let q = encode_dna(b"AAAA");
         let t = encode_dna(b"TTTT");
         let score = cpu_smith_waterman(&q, &t, 11.0, 1.0);
-        assert_eq!(score, 0.0);
+        assert!(
+            score.abs() < f64::EPSILON,
+            "no-match should score 0, got {score}"
+        );
     }
 
     #[test]
@@ -279,8 +282,16 @@ mod tests {
 
     #[test]
     fn cpu_sw_empty() {
-        assert_eq!(cpu_smith_waterman(&[], &[0, 1, 2], 11.0, 1.0), 0.0);
-        assert_eq!(cpu_smith_waterman(&[0, 1], &[], 11.0, 1.0), 0.0);
+        let s1 = cpu_smith_waterman(&[], &[0, 1, 2], 11.0, 1.0);
+        assert!(
+            s1.abs() < f64::EPSILON,
+            "empty query should score 0, got {s1}"
+        );
+        let s2 = cpu_smith_waterman(&[0, 1], &[], 11.0, 1.0);
+        assert!(
+            s2.abs() < f64::EPSILON,
+            "empty target should score 0, got {s2}"
+        );
     }
 
     #[test]
@@ -330,9 +341,8 @@ mod tests {
         let query = encode_dna(b"AAAAAAAA");
         let result = pipeline.search(&query);
 
-        let matching_hits: Vec<_> = result.hits.iter().filter(|h| h.score >= 8.0).collect();
         assert!(
-            matching_hits.is_empty(),
+            !result.hits.iter().any(|h| h.score >= 8.0),
             "AAAA should not strongly match TTTT"
         );
     }

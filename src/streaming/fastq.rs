@@ -247,6 +247,7 @@ impl<R: BufRead> Iterator for FastqReader<R> {
 }
 
 #[cfg(test)]
+#[expect(clippy::unwrap_used, reason = "test assertions use unwrap for clarity")]
 mod tests {
     use super::*;
     use std::io::Cursor;

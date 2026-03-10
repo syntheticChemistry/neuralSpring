@@ -344,68 +344,75 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         all_edges.append(&mut edges);
     }
 
-    all_edges.push(edge(
-        "spectral_analysis",
-        "training_trajectory",
-        "spectral diagnostics → training",
-    ));
-    all_edges.push(edge(
-        "spectral_analysis",
-        "agent_coordination",
-        "spectral theory → multi-agent",
-    ));
-    all_edges.push(edge(
-        "spectral_analysis",
-        "folding_primitives",
-        "spectral metrics inform folding",
-    ));
-    all_edges.push(edge(
-        "shader_provenance",
-        "spectral_analysis",
-        "shaders implement spectral ops",
-    ));
-    all_edges.push(edge(
-        "hessian_analysis",
-        "spectral_analysis",
-        "loss Hessian ↔ weight spectra",
-    ));
-    all_edges.push(edge(
-        "hmm_forward",
-        "meta_pop",
-        "phylogenetics → population structure",
-    ));
-    all_edges.push(edge(
-        "replicator_dynamics",
-        "qs_cooperation",
-        "classical → spatial dynamics",
-    ));
-    all_edges.push(edge(
-        "glucose_prediction",
-        "training_trajectory",
-        "LSTM training → glucose forecast",
-    ));
-    all_edges.push(edge(
-        "immuno_anderson",
-        "wdm_transport",
-        "Anderson localization ↔ WDM transport",
-    ));
-    all_edges.push(edge(
-        "fastq_quality",
-        "search_pipeline",
-        "parsed reads → BLAST search",
-    ));
-    all_edges.push(edge(
-        "fasta_lengths",
-        "kmer_index",
-        "FASTA database → k-mer index",
-    ));
-    all_edges.push(edge(
-        "parity_overview",
-        "coverage_overview",
-        "GPU performance → industry readiness",
-    ));
+    all_edges.extend(cross_track_edges());
 
     (s, all_edges)
+}
+
+/// Inter-track edges that connect nodes across different study tracks.
+fn cross_track_edges() -> Vec<ScenarioEdge> {
+    vec![
+        edge(
+            "spectral_analysis",
+            "training_trajectory",
+            "spectral diagnostics → training",
+        ),
+        edge(
+            "spectral_analysis",
+            "agent_coordination",
+            "spectral theory → multi-agent",
+        ),
+        edge(
+            "spectral_analysis",
+            "folding_primitives",
+            "spectral metrics inform folding",
+        ),
+        edge(
+            "shader_provenance",
+            "spectral_analysis",
+            "shaders implement spectral ops",
+        ),
+        edge(
+            "hessian_analysis",
+            "spectral_analysis",
+            "loss Hessian ↔ weight spectra",
+        ),
+        edge(
+            "hmm_forward",
+            "meta_pop",
+            "phylogenetics → population structure",
+        ),
+        edge(
+            "replicator_dynamics",
+            "qs_cooperation",
+            "classical → spatial dynamics",
+        ),
+        edge(
+            "glucose_prediction",
+            "training_trajectory",
+            "LSTM training → glucose forecast",
+        ),
+        edge(
+            "immuno_anderson",
+            "wdm_transport",
+            "Anderson localization ↔ WDM transport",
+        ),
+        edge(
+            "fastq_quality",
+            "search_pipeline",
+            "parsed reads → BLAST search",
+        ),
+        edge(
+            "fasta_lengths",
+            "kmer_index",
+            "FASTA database → k-mer index",
+        ),
+        edge(
+            "parity_overview",
+            "coverage_overview",
+            "GPU performance → industry readiness",
+        ),
+    ]
 }
 
 /// Serialize a scenario + edges to pretty JSON.

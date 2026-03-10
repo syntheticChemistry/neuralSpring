@@ -237,6 +237,11 @@ pub fn jacobian_spectral_radius(weights: &[f64], pre_activations: &[f64], n: usi
         .sqrt()
 }
 
+/// Compute A^T * A (Gram matrix) for small matrices (n ≤ 8).
+///
+/// Kept local rather than dispatching to `barracuda::dispatch::matmul_dispatch`
+/// because the Jacobian matrices are tiny (n=4..8) and GPU dispatch overhead
+/// would dominate. Candidate for `BarraCUDA` migration if problem sizes grow.
 fn mat_mul_transpose(a: &[f64], n: usize) -> Vec<f64> {
     let mut result = vec![0.0; n * n];
     for i in 0..n {

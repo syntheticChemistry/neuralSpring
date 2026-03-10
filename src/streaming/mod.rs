@@ -2,7 +2,7 @@
 
 //! Streaming I/O parsers for scientific file formats.
 //!
-//! All parsers follow [`specs/STREAMING_IO_REQUIREMENTS.md`]:
+//! All parsers follow `specs/STREAMING_IO_REQUIREMENTS.md`:
 //!
 //! - Accept `impl BufRead` (files, gzip streams, network, test cursors)
 //! - Yield records via `Iterator` with O(`record_size`) memory

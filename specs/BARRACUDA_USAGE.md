@@ -1168,8 +1168,8 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 | Upstream rewires | 44 |
 | Barracuda crate | 0.3.3, 767 WGSL shaders (standalone primal) |
 | Feature | `unidirectional` |
-| Lib tests | 966 |
-| Binaries | 246 |
+| Lib tests | 1048 |
+| Binaries | 233 |
 
 ---
 

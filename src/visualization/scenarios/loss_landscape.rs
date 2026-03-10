@@ -42,7 +42,7 @@ pub fn loss_landscape_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     let eval_indices: Vec<f64> = (0..sorted_evals.len()).map(|i| i as f64).collect();
     let gap = spectral_gap(&sorted_evals);
     let cond = if let (Some(&min), Some(&max)) = (sorted_evals.first(), sorted_evals.last()) {
-        if min.abs() > 1e-15 {
+        if min.abs() > crate::tolerances::ZERO_DETECTION {
             max.abs() / min.abs()
         } else {
             f64::INFINITY

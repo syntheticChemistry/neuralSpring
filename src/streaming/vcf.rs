@@ -365,6 +365,7 @@ fn truncate_preview(s: &str) -> String {
 }
 
 #[cfg(test)]
+#[expect(clippy::unwrap_used, reason = "test assertions use unwrap for clarity")]
 mod tests {
     use super::*;
     use std::io::Cursor;

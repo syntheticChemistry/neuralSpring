@@ -2,7 +2,7 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 233 binaries, **220/220 validate\_all**. coralForge unified. 150+ named tolerances, zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 1048 lib + 9 integration + 71 forge tests. 46 upstream rewires, 130+ barracuda import files, 25+ submodules. barraCuda v0.3.3 standalone, wgpu 28. 16 petalTongue scenario builders, `neuralspring_ecosystem_dashboard`, `config.rs` centralized identity. Streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness.
+**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 233 binaries, **220/220 validate\_all**. coralForge unified. 80+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 1048 lib + 9 integration + 71 forge tests. 46 upstream rewires, 130+ barracuda import files, 25+ submodules. barraCuda v0.3.3 standalone, wgpu 28. 16 petalTongue scenario builders, `neuralspring_ecosystem_dashboard`, `config.rs` centralized identity. Streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness.
 **Date**: March 10, 2026 (Sessions 40–139 — S139: Visualization evolution + deep debt. 4 new scenario builders, config centralization, streaming parsers, BLAST pipeline. 1048 lib tests, 233 binaries. barraCuda `a898dee`, ToadStool `bfe7977b`, coralReef `d29a734`)
 **License**: AGPL-3.0-or-later
 

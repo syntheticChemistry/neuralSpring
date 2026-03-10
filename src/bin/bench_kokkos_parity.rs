@@ -138,6 +138,10 @@ fn print_results(entries: &[KokkosEntry], adapter: &str) {
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "benchmark runner — sequential GPU kernel dispatch requires inline setup per kernel"
+)]
 #[tokio::main]
 async fn main() {
     let gpu = neural_spring::validation::gpu_or_exit().await;
