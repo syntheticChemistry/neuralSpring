@@ -6,13 +6,17 @@
 //! [`DataChannel`] / [`ScenarioNode`] / [`NeuralScenario`] so petalTongue
 //! can render them directly.
 
+mod attention_anderson;
 mod coordination;
+mod digester_anderson;
 mod folding;
 mod game_theory;
 mod glucose;
 mod hmm;
 mod immunological;
 mod industry_coverage;
+mod introgression_nn;
+mod isomorphic_reservoir;
 mod kokkos_parity;
 mod loss_landscape;
 mod population;
@@ -22,19 +26,24 @@ mod spectral;
 mod streaming_io;
 mod training;
 mod wdm;
+mod wdm_ensemble_qs;
 
 use super::types::{
     Animations, CapReqs, DataChannel, Ecosystem, NeuralApi, NeuralScenario, Performance, Position,
     ScenarioEdge, ScenarioNode, SensoryConfig, ThresholdRange, UiConfig,
 };
 
+pub use attention_anderson::attention_anderson_study;
 pub use coordination::coordination_study;
+pub use digester_anderson::digester_anderson_study;
 pub use folding::folding_study;
 pub use game_theory::game_theory_study;
 pub use glucose::glucose_study;
 pub use hmm::hmm_study;
 pub use immunological::immunological_study;
 pub use industry_coverage::industry_coverage_study;
+pub use introgression_nn::introgression_nn_study;
+pub use isomorphic_reservoir::isomorphic_reservoir_study;
 pub use kokkos_parity::kokkos_parity_study;
 pub use loss_landscape::loss_landscape_study;
 pub use population::population_study;
@@ -44,6 +53,7 @@ pub use spectral::spectral_study;
 pub use streaming_io::streaming_io_study;
 pub use training::training_study;
 pub use wdm::wdm_study;
+pub use wdm_ensemble_qs::wdm_ensemble_qs_study;
 
 fn scaffold(name: &str, description: &str) -> NeuralScenario {
     NeuralScenario {
@@ -284,9 +294,8 @@ pub(crate) fn edge(from: &str, to: &str, label: &str) -> ScenarioEdge {
 
 /// Build a combined all-tracks scenario for the complete neuralSpring study.
 ///
-/// Merges all 16 tracks into a single graph with cross-track edges: the
-/// original 12 science tracks plus search, streaming I/O, Kokkos parity,
-/// and industry coverage.
+/// Merges all 21 tracks into a single graph with cross-track edges: the
+/// original 16 tracks plus 5 novel composition experiments.
 #[must_use]
 pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
@@ -306,16 +315,20 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         streaming_io_study(),
         kokkos_parity_study(),
         industry_coverage_study(),
+        digester_anderson_study(),
+        isomorphic_reservoir_study(),
+        wdm_ensemble_qs_study(),
+        introgression_nn_study(),
+        attention_anderson_study(),
     ];
 
     let mut s = scaffold(
         "neuralSpring Complete Study",
-        "All 16 tracks: Spectral, Training, Coordination, Provenance, Folding, \
-         HMM, Game Theory, WDM, Glucose, Immunological, Population, Loss Landscape, \
-         Search, Streaming I/O, Kokkos Parity, Industry Coverage",
+        "All 21 tracks: 16 original + 5 novel compositions (Digester×Anderson, \
+         Isomorphic Reservoir, WDM Ensemble QS, HMM Introgression NN, Attention Anderson)",
     );
 
-    let offsets: [(f64, f64); 16] = [
+    let offsets: [(f64, f64); 21] = [
         (0.0, 0.0),
         (0.0, 500.0),
         (600.0, 0.0),
@@ -332,6 +345,12 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         (1800.0, 500.0),
         (2100.0, 0.0),
         (2100.0, 500.0),
+        // Composition experiments — row below
+        (0.0, 1600.0),
+        (600.0, 1600.0),
+        (1200.0, 1600.0),
+        (1800.0, 1600.0),
+        (2400.0, 1600.0),
     ];
 
     let mut all_edges = Vec::new();
@@ -347,6 +366,76 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     all_edges.extend(cross_track_edges());
 
     (s, all_edges)
+}
+
+/// Build the composition-only study: all 5 novel experiments in one graph.
+///
+/// Shows the isomorphic connections between composition experiments and links
+/// back to the foundational spectral and HMM tracks they compose.
+#[must_use]
+pub fn composition_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
+    let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
+        digester_anderson_study(),
+        isomorphic_reservoir_study(),
+        wdm_ensemble_qs_study(),
+        introgression_nn_study(),
+        attention_anderson_study(),
+    ];
+
+    let mut s = scaffold(
+        "neuralSpring Novel Compositions",
+        "5 composition experiments: Digester×Anderson coupling, Isomorphic reservoir \
+         ensemble, WDM ensemble quorum sensing, HMM introgression on NN layers, \
+         Attention Anderson spectral analysis",
+    );
+
+    let offsets: [(f64, f64); 5] = [
+        (0.0, 0.0),
+        (600.0, 0.0),
+        (1200.0, 0.0),
+        (0.0, 600.0),
+        (600.0, 600.0),
+    ];
+
+    let mut all_edges = Vec::new();
+    for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
+        for mut n in track.ecosystem.primals {
+            n.position.x += offset.0;
+            n.position.y += offset.1;
+            s.ecosystem.primals.push(n);
+        }
+        all_edges.append(&mut edges);
+    }
+
+    all_edges.extend(composition_cross_edges());
+
+    (s, all_edges)
+}
+
+/// Edges linking composition experiments to each other via shared physics.
+fn composition_cross_edges() -> Vec<ScenarioEdge> {
+    vec![
+        edge(
+            "anderson_coupling",
+            "anderson_phase",
+            "shared Anderson physics",
+        ),
+        edge(
+            "reservoir_spectral",
+            "attention_quality",
+            "shared spectral analysis",
+        ),
+        edge(
+            "nn_observations",
+            "reservoir_spectral",
+            "NN weights → spectral universality",
+        ),
+        edge(
+            "ensemble_disagreement",
+            "digester_community",
+            "surrogate variance ↔ community diversity",
+        ),
+    ]
 }
 
 /// Inter-track edges that connect nodes across different study tracks.
@@ -411,6 +500,32 @@ fn cross_track_edges() -> Vec<ScenarioEdge> {
             "parity_overview",
             "coverage_overview",
             "GPU performance → industry readiness",
+        ),
+        // Composition experiments ↔ foundation tracks
+        edge(
+            "anderson_sweep",
+            "digester_community",
+            "Anderson theory → digester coupling",
+        ),
+        edge(
+            "spectral_analysis",
+            "reservoir_spectral",
+            "spectral methods → isomorphic thesis",
+        ),
+        edge(
+            "wdm_transport",
+            "ensemble_disagreement",
+            "WDM surrogates → ensemble QS",
+        ),
+        edge(
+            "hmm_forward",
+            "nn_observations",
+            "HMM phylo → NN introgression",
+        ),
+        edge(
+            "spectral_analysis",
+            "attention_quality",
+            "Anderson theory → attention spectral",
         ),
     ]
 }
@@ -654,7 +769,7 @@ mod tests {
             scenario.ecosystem.primals.len(),
             "no duplicate IDs"
         );
-        assert!(edges.len() >= 12, "full study should have >= 12 edges");
+        assert!(edges.len() >= 17, "full study should have >= 17 edges (12 original + 5 composition cross)");
     }
 
     #[test]
@@ -910,5 +1025,217 @@ mod tests {
     fn industry_coverage_study_json_roundtrips() {
         let (scenario, edges) = industry_coverage_study();
         assert_json_roundtrips(&scenario, &edges);
+    }
+
+    // ── Composition experiment tests (S143) ────────────────────────────────
+
+    #[test]
+    fn digester_anderson_study_structure() {
+        let (scenario, edges) = digester_anderson_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &["digester_community", "anderson_coupling", "esn_accuracy"],
+            2,
+        );
+    }
+
+    #[test]
+    fn digester_anderson_study_has_timeseries() {
+        let (scenario, _) = digester_anderson_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_ts = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::TimeSeries { .. }));
+        assert!(has_ts, "digester×Anderson should have TimeSeries");
+    }
+
+    #[test]
+    fn digester_anderson_study_json_roundtrips() {
+        let (scenario, edges) = digester_anderson_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn isomorphic_reservoir_study_structure() {
+        let (scenario, edges) = isomorphic_reservoir_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &["reservoir_spectral", "universality_metrics"],
+            1,
+        );
+    }
+
+    #[test]
+    fn isomorphic_reservoir_study_has_spectrum_and_bar() {
+        let (scenario, _) = isomorphic_reservoir_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_sp = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Spectrum { .. }));
+        let has_bar = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Bar { .. }));
+        assert!(has_sp, "isomorphic reservoir should have Spectrum");
+        assert!(has_bar, "isomorphic reservoir should have Bar");
+    }
+
+    #[test]
+    fn isomorphic_reservoir_study_json_roundtrips() {
+        let (scenario, edges) = isomorphic_reservoir_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn wdm_ensemble_qs_study_structure() {
+        let (scenario, edges) = wdm_ensemble_qs_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &["ensemble_disagreement", "anderson_phase", "qs_dynamics"],
+            2,
+        );
+    }
+
+    #[test]
+    fn wdm_ensemble_qs_study_has_gauge() {
+        let (scenario, _) = wdm_ensemble_qs_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_gauge = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Gauge { .. }));
+        assert!(has_gauge, "WDM ensemble QS should have Gauge");
+    }
+
+    #[test]
+    fn wdm_ensemble_qs_study_json_roundtrips() {
+        let (scenario, edges) = wdm_ensemble_qs_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn introgression_nn_study_structure() {
+        let (scenario, edges) = introgression_nn_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &["nn_observations", "hmm_detection"],
+            1,
+        );
+    }
+
+    #[test]
+    fn introgression_nn_study_has_heatmap_and_gauge() {
+        let (scenario, _) = introgression_nn_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_hm = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Heatmap { .. }));
+        let has_gauge = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Gauge { .. }));
+        assert!(has_hm, "introgression NN should have Heatmap");
+        assert!(has_gauge, "introgression NN should have Gauge");
+    }
+
+    #[test]
+    fn introgression_nn_study_json_roundtrips() {
+        let (scenario, edges) = introgression_nn_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn attention_anderson_study_structure() {
+        let (scenario, edges) = attention_anderson_study();
+        assert_study_invariants(
+            &scenario,
+            &edges,
+            &["attention_quality", "spectral_localization"],
+            1,
+        );
+    }
+
+    #[test]
+    fn attention_anderson_study_has_spectrum() {
+        let (scenario, _) = attention_anderson_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        let has_sp = channels
+            .iter()
+            .any(|c| matches!(c, DataChannel::Spectrum { .. }));
+        assert!(has_sp, "attention Anderson should have Spectrum");
+    }
+
+    #[test]
+    fn attention_anderson_study_json_roundtrips() {
+        let (scenario, edges) = attention_anderson_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn composition_study_structure() {
+        let (scenario, edges) = composition_study();
+        let ids: std::collections::HashSet<&str> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .map(|n| n.id.as_str())
+            .collect();
+
+        assert!(ids.contains("digester_community"));
+        assert!(ids.contains("reservoir_spectral"));
+        assert!(ids.contains("ensemble_disagreement"));
+        assert!(ids.contains("nn_observations"));
+        assert!(ids.contains("attention_quality"));
+        assert_eq!(ids.len(), scenario.ecosystem.primals.len(), "no duplicate IDs");
+        assert!(edges.len() >= 10, "composition study should have >= 10 edges");
+    }
+
+    #[test]
+    fn composition_study_json_roundtrips() {
+        let (scenario, edges) = composition_study();
+        assert_json_roundtrips(&scenario, &edges);
+    }
+
+    #[test]
+    fn full_study_includes_composition_nodes() {
+        let (scenario, _) = full_study();
+        let ids: std::collections::HashSet<&str> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .map(|n| n.id.as_str())
+            .collect();
+
+        assert!(ids.contains("digester_community"), "full study has digester");
+        assert!(ids.contains("reservoir_spectral"), "full study has reservoir");
+        assert!(ids.contains("ensemble_disagreement"), "full study has ensemble");
+        assert!(ids.contains("nn_observations"), "full study has introgression");
+        assert!(ids.contains("attention_quality"), "full study has attention");
     }
 }

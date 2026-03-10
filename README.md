@@ -44,17 +44,18 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 3600+ Rust+GPU PASS = **4500+ total validation checks**
 
-**S143: Extension phase — 5 novel composition experiments (Exp 096–100).**
-27/27 papers complete. Paper queue closed. Extension phase active: Axis 2 novel
-compositions (no new math — compose existing validated modules).
+**S144: petalTongue visualization + NUCLEUS pipeline executor.**
+5 new scenario builders for composition experiments. `composition_study()` combiner.
+`composition_pipeline()` DAG in metalForge. `nucleus_pipeline` executor with 6-stage
+Tower→Node→Nest dispatch. 1112 lib tests, 73 forge tests, 0 clippy, 47 modules.
 
 **barraCuda v0.3.3 standalone** (extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 46 upstream rewires + 209 files with barracuda imports, 45+ submodules exercised. Nautilus absorbed into barracuda::nautilus (bingocube dep removed).
 S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch` (`hmm_viterbi_f64.wgsl`).
 21/21 WGSL shaders absorbed + 15 coralForge df64 shaders.
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
-1085 lib tests, 80+ named tolerances (centralized registry with justifications), 0 clippy warnings (pedantic+nursery, `--all-features`), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
-245 validation/bench binaries, 46 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1085 lib + 9 integration + 71 forge tests.
+1112 lib tests, 80+ named tolerances (centralized registry with justifications), 0 clippy warnings (pedantic+nursery, `--all-features`), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
+245 validation/bench binaries, 47 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1112 lib + 9 integration + 73 forge tests.
 **CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. 92% line coverage (llvm-cov).
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 Pure Rust **38.6× faster** than Python/NumPy

@@ -375,6 +375,67 @@ pub fn folding_pipeline() -> PipelineGraph {
     g
 }
 
+/// Composition experiments pipeline: Digester×Anderson → Isomorphic Reservoir →
+/// Attention Anderson, with WDM Ensemble QS and HMM Introgression as parallel branches.
+///
+/// ```text
+/// eigensolve → digester_anderson → isomorphic_reservoir → attention_anderson
+///                     ↓                                       ↑
+///              wdm_ensemble_qs ──────────────────────┘
+///                     ↓
+///              introgression_nn
+/// ```
+#[must_use]
+pub fn composition_pipeline() -> PipelineGraph {
+    let mut g = PipelineGraph::new("neuralSpring composition experiments");
+
+    g.add_stage(StageNode {
+        id: "eigensolve".to_string(),
+        capability: "science.eigensolve".to_string(),
+        substrate: MixedSubstrate::CpuOnly,
+        label: "Eigendecomposition (shared)".to_string(),
+    });
+    g.add_stage(StageNode {
+        id: "digester_anderson".to_string(),
+        capability: "science.digester_anderson_coupling".to_string(),
+        substrate: MixedSubstrate::CpuOnly,
+        label: "Digester × Anderson Coupling".to_string(),
+    });
+    g.add_stage(StageNode {
+        id: "isomorphic_reservoir".to_string(),
+        capability: "science.isomorphic_reservoir".to_string(),
+        substrate: MixedSubstrate::CpuOnly,
+        label: "Isomorphic Reservoir Ensemble".to_string(),
+    });
+    g.add_stage(StageNode {
+        id: "wdm_ensemble_qs".to_string(),
+        capability: "science.wdm_ensemble_qs".to_string(),
+        substrate: MixedSubstrate::CpuOnly,
+        label: "WDM Ensemble Quorum Sensing".to_string(),
+    });
+    g.add_stage(StageNode {
+        id: "introgression_nn".to_string(),
+        capability: "science.introgression_nn".to_string(),
+        substrate: MixedSubstrate::CpuOnly,
+        label: "HMM Introgression on NN Layers".to_string(),
+    });
+    g.add_stage(StageNode {
+        id: "attention_anderson".to_string(),
+        capability: "science.attention_anderson".to_string(),
+        substrate: MixedSubstrate::GpuOnly,
+        label: "Attention Anderson Spectral".to_string(),
+    });
+
+    g.add_edge("eigensolve", "digester_anderson");
+    g.add_edge("eigensolve", "isomorphic_reservoir");
+    g.add_edge("eigensolve", "attention_anderson");
+    g.add_edge("digester_anderson", "wdm_ensemble_qs");
+    g.add_edge("wdm_ensemble_qs", "introgression_nn");
+    g.add_edge("isomorphic_reservoir", "attention_anderson");
+
+    g
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -572,6 +633,33 @@ mod tests {
             .expect("diamond DAG should have valid topo order");
         assert_eq!(order[0], "a");
         assert_eq!(order.last().expect("non-empty topo order"), "d");
+    }
+
+    #[test]
+    fn composition_pipeline_is_valid() {
+        let g = composition_pipeline();
+        assert!(g.validate().is_ok());
+        assert_eq!(g.stage_count(), 6);
+        assert_eq!(g.edge_count(), 6);
+    }
+
+    #[test]
+    fn composition_pipeline_topo_order() {
+        let g = composition_pipeline();
+        let order = g.execute_order().expect("DAG should have valid topo order");
+        assert_eq!(order.len(), 6);
+        assert_eq!(order[0], "eigensolve", "eigensolve is the root");
+        assert!(
+            order
+                .iter()
+                .position(|s| s == "eigensolve")
+                .expect("eigensolve present")
+                < order
+                    .iter()
+                    .position(|s| s == "digester_anderson")
+                    .expect("digester present"),
+            "eigensolve before digester_anderson"
+        );
     }
 
     #[test]

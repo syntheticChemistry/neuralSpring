@@ -4,10 +4,11 @@
 # neuralSpring petalTongue visualization helper.
 #
 # Usage:
-#   ./scripts/visualize.sh              # dump all scenarios to sandbox/scenarios/
-#   ./scripts/visualize.sh --live       # start live training dashboard
-#   ./scripts/visualize.sh --ecosystem  # start ecosystem dashboard (16 tracks)
-#   ./scripts/visualize.sh --render     # dump + launch petalTongue on complete study
+#   ./scripts/visualize.sh                # dump all scenarios to sandbox/scenarios/
+#   ./scripts/visualize.sh --live         # start live training dashboard
+#   ./scripts/visualize.sh --ecosystem    # start ecosystem dashboard (21 tracks)
+#   ./scripts/visualize.sh --compositions # dump + render composition study (5 novel experiments)
+#   ./scripts/visualize.sh --render       # dump + launch petalTongue on complete study
 #
 # Environment:
 #   EPOCHS       - epochs for live dashboard (default: 100)
@@ -58,6 +59,18 @@ case "$MODE" in
         "$PROJECT_ROOT/target/release/neuralspring_ecosystem_dashboard"
         ;;
 
+    --compositions)
+        dump_scenarios
+        COMP="$SCENARIO_DIR/neuralspring-compositions.json"
+        if command -v petaltongue &>/dev/null; then
+            echo "Launching petalTongue on composition study..."
+            petaltongue ui --scenario "$COMP"
+        else
+            echo "petalTongue not found in PATH."
+            echo "Render manually: petaltongue ui --scenario $COMP"
+        fi
+        ;;
+
     --render)
         dump_scenarios
         COMPLETE="$SCENARIO_DIR/neuralspring-complete-study.json"
@@ -76,7 +89,7 @@ case "$MODE" in
 
     *)
         echo "Unknown mode: $MODE"
-        echo "Usage: $0 [dump|--live|--ecosystem|--render|--help]"
+        echo "Usage: $0 [dump|--live|--ecosystem|--compositions|--render|--help]"
         exit 1
         ;;
 esac

@@ -145,6 +145,7 @@ pub mod streaming;
 pub mod surrogate;
 pub mod swarm_robotics;
 pub mod tolerances;
+pub mod nucleus_pipeline;
 pub mod training_monitor;
 pub mod transformer;
 pub mod validation;

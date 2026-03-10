@@ -11,9 +11,11 @@
 )]
 
 use neural_spring::visualization::{
-    coordination_study, folding_study, full_study, game_theory_study, glucose_study, hmm_study,
-    immunological_study, loss_landscape_study, population_study, provenance_study,
-    scenario_with_edges_json, spectral_study, training_study, wdm_study,
+    attention_anderson_study, composition_study, coordination_study, digester_anderson_study,
+    folding_study, full_study, game_theory_study, glucose_study, hmm_study,
+    immunological_study, introgression_nn_study, isomorphic_reservoir_study,
+    loss_landscape_study, population_study, provenance_study, scenario_with_edges_json,
+    spectral_study, training_study, wdm_ensemble_qs_study, wdm_study,
 };
 
 fn main() {
@@ -33,6 +35,12 @@ fn main() {
         ("neuralspring-immunological-study", immunological_study()),
         ("neuralspring-population-study", population_study()),
         ("neuralspring-loss-landscape-study", loss_landscape_study()),
+        ("neuralspring-digester-anderson", digester_anderson_study()),
+        ("neuralspring-isomorphic-reservoir", isomorphic_reservoir_study()),
+        ("neuralspring-wdm-ensemble-qs", wdm_ensemble_qs_study()),
+        ("neuralspring-introgression-nn", introgression_nn_study()),
+        ("neuralspring-attention-anderson", attention_anderson_study()),
+        ("neuralspring-compositions", composition_study()),
         ("neuralspring-complete-study", full_study()),
     ];
 
