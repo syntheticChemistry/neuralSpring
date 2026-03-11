@@ -1139,6 +1139,26 @@ path = "src/bin/neuralspring_live_dashboard.rs"
 name = "neuralspring_ecosystem_dashboard"
 path = "src/bin/neuralspring_ecosystem_dashboard.rs"
 
+[[bin]]
+name = "validate_compute_dispatch_evolution"
+path = "src/bin/validate_compute_dispatch_evolution.rs"
+
+[[bin]]
+name = "validate_multi_head_esn"
+path = "src/bin/validate_multi_head_esn.rs"
+
+[[bin]]
+name = "validate_immunological_anderson_extended"
+path = "src/bin/validate_immunological_anderson_extended.rs"
+
+[[bin]]
+name = "validate_toadstool_s93_barracuda_extraction"
+path = "src/bin/validate_toadstool_s93_barracuda_extraction.rs"
+
+[[bin]]
+name = "bench_kokkos_parity"
+path = "src/bin/bench_kokkos_parity.rs"
+
 [lints.rust]
 unsafe_code = "forbid"
 

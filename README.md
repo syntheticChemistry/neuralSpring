@@ -50,12 +50,12 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 Tower→Node→Nest dispatch. 1112 lib tests, 73 forge tests, 0 clippy, 47 modules.
 
 **barraCuda v0.3.3 standalone** (extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
-46 upstream rewires + 209 files with barracuda imports, 45+ submodules exercised. Nautilus absorbed into barracuda::nautilus (bingocube dep removed).
+46 upstream rewires + 219 files with barracuda imports, 45+ submodules exercised. Nautilus absorbed into barracuda::nautilus (bingocube dep removed).
 S121 rewires: WDM surrogates → `barracuda::nn::SimpleMlp` (~300 LOC eliminated), HMM Viterbi chain → f64 `ComputeDispatch` (`hmm_viterbi_f64.wgsl`).
 21/21 WGSL shaders absorbed + 15 coralForge df64 shaders.
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
 1112 lib tests, 80+ named tolerances (centralized registry with justifications), 0 clippy warnings (pedantic+nursery, `--all-features`), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
-245 validation/bench binaries, 47 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1112 lib + 9 integration + 73 forge tests.
+254 validation/bench binaries, 47 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1112 lib + 9 integration + 73 forge tests.
 **CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. 92% line coverage (llvm-cov).
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
 Pure Rust **38.6× faster** than Python/NumPy
@@ -67,7 +67,8 @@ Pure Rust **38.6× faster** than Python/NumPy
 S130: Upstream rewire — ToadStool S130 pin, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired, fused GPU regression gated via canary, coralNAK→coralReef rename, `baseline_path` consistency, inline threshold extraction. V88 handoff.
 S132: Upstream rewire — ToadStool S142 (`a86bc546`), BarraCUDA `83aa08a`, coralReef Iteration 29 (`2779c88`). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. ToadStool: hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests. coralReef: NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, 1200+ tests. 719 WGSL shaders. `shared_memory_f64_safe()` precision routing. `barracuda::shaders::provenance` wired (22 shaders, 17 cross-spring edges). V90 handoff.
 S134: Deep debt — activation consolidation, tolerance promotion, provenance triplets, code quality.
-S135–S139: petalTongue visualization (16 scenario tracks), streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness, industry coverage dashboard, `config.rs` centralized primal identity, ecosystem dashboard binary. 1048 lib + 71 forge + 9 integration tests, 233 binaries, 220/220 validate\_all, 92% line coverage.
+S135–S139: petalTongue visualization (16 scenario tracks), streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness, industry coverage dashboard, `config.rs` centralized primal identity, ecosystem dashboard binary.
+S143–S144: 5 novel composition experiments, 5 petalTongue composition scenario builders (21 tracks total), `composition_pipeline()` DAG, `nucleus_pipeline` Tower→Node→Nest executor. 1112 lib + 73 forge + 9 integration tests, 245 binaries, 92% line coverage.
 S142: Upstream rewire + `enable f64;` PTXAS fix. Sprint 2 absorption (activations, `fused_ops_healthy`). `Precision::F16` removed. coralReef bridge aligned. 54 validation binaries with provenance blocks. **Critical fix**: `enable f64;` in WGSL causes NVIDIA PTXAS on Ada Lovelace to silently return zeros for fused f64 ops — fixed locally in `pipeline_cache.rs`, 5 ops restored. HMM fused path workaround. Dispatch parity: 48/55 → **55/55 PASS**. `fused_ops_healthy`: true. V95 handoffs (toadStool/barraCuda evolution + coralReef detailed).
 
 **Validation tiers**: 24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 pure GPU all-domains |
@@ -390,7 +391,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (331/331 — 26 papers + 5 WDM + baseCamp + coralForge)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (1048 lib + 9 integration + 71 forge tests, 233 validation binaries, 41 modules + gpu_ops/ + gpu_dispatch/)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (1112 lib + 9 integration + 73 forge tests, 245 validation binaries, 47 modules + gpu_ops/ + gpu_dispatch/)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused `ToadStool` pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -454,7 +455,7 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 331/331 PASS |
-| Rust tests | `cargo test` | 1048 lib + 9 integration + 71 forge PASS |
+| Rust tests | `cargo test` | 1112 lib + 9 integration + 73 forge PASS |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery), 0 `#[allow(` in production code |
 | Rust coverage | `cargo llvm-cov --lib` | 91.66% line coverage |
 | Rust format | `cargo fmt --check` | clean |
@@ -644,4 +645,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–142: March 10, 2026 | 26 papers + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 331 Python + 3400+ Rust+GPU = 4100+ validation checks | 1048 lib + 9 integration + 71 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 41 modules, 233 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.3 at `83aa08a`, nautilus absorbed, 220/220 validate\_all, 55/55 dispatch parity, 92% coverage | 46 upstream rewires | V95 handoff (toadStool/barraCuda + coralReef) | `enable f64;` PTXAS fix | 16 petalTongue scenario tracks + ecosystem dashboard | config.rs centralized identity + streaming I/O + CPU BLAST pipeline + Kokkos parity harness*
+*Initialized: February 16, 2026 | Sessions 40–144: March 10, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 3600+ Rust+GPU = 4500+ validation checks | 1112 lib + 9 integration + 73 forge tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 47 modules, 254 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.3 at `83aa08a`, nautilus absorbed, 92% coverage | 46 upstream rewires, 219 barracuda import files | V97 handoff (toadStool/barraCuda + coralReef) | `enable f64;` PTXAS fix | 21 petalTongue scenario tracks + ecosystem dashboard + composition visualization | nucleus\_pipeline Tower→Node→Nest executor | config.rs centralized identity + streaming I/O + CPU BLAST pipeline + Kokkos parity harness*

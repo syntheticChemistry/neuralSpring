@@ -1,6 +1,6 @@
 # neuralSpring — Paper Review Queue
 
-**Last Updated**: March 10, 2026 (Sessions 45–143 — 27/27 papers complete. Paper queue CLOSED. Extension phase: 5 novel compositions Exp 097–101)
+**Last Updated**: March 10, 2026 (Sessions 45–144 — 27/27 papers complete. Paper queue CLOSED. Extension phase: 5 novel compositions Exp 097–101. S144: composition visualization + NUCLEUS pipeline executor)
 **Purpose**: Track papers for reproduction/review, ordered by priority
 
 ---

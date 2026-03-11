@@ -5,7 +5,7 @@
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 397/397 Python PASS + 3600+ Rust+GPU validation PASS = **4500+ total validation checks**
-**Library**: 1112 lib tests + 9 integration tests + 73 forge tests | 47 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 245 validation/bench binaries
+**Library**: 1112 lib tests + 9 integration tests + 73 forge tests | 47 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 254 validation/bench binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 6 biophysical AI modules + 11 validators (162/162 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 6/6 sub-theses PASS) — Sessions 50, 54, 56, 77, 104b, 107
@@ -338,7 +338,7 @@ Target progression (following hotSpring): **Python < CPU < GPU**
 | 0 | Synthetic baselines (48 checks) | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | **COMPLETE** |
-| 1a | neuralSpring Rust validation (1085 lib + 9 integration + 71 forge tests, 245 binaries, 46 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
+| 1a | neuralSpring Rust validation (1112 lib + 9 integration + 73 forge tests, 254 binaries, 47 modules + gpu_ops/ + gpu_dispatch/) | **COMPLETE** |
 | 1b | BarraCUDA validation (272 checks) | **COMPLETE** |
 | 1c | Fused ToadStool pipeline (46–78×) | **COMPLETE** |
 | 1d | 3-way benchmark + double-buffered shaders | **COMPLETE** |
@@ -1236,4 +1236,24 @@ Closed the GPU Tensor validation tier for AlphaFold3 diffusion and Pairformer pr
 - **Algorithm isomorphism**: PhyloNet-HMM (genomics) detects anomalous NN layers (TPR = 0.97, FPR = 0)
 - **GPU↔CPU parity**: All 5 experiments ≤ 2.5e-4 max diff (f32 vs f64)
 
-**Totals**: 1085 lib tests + 9 integration + 71 forge tests. 245 binaries. 46 modules. 0 clippy. 0 unsafe. 4500+ total checks.
+**Totals**: 1112 lib tests + 9 integration + 73 forge tests. 254 binaries. 47 modules. 0 clippy. 0 unsafe. 4500+ total checks.
+
+### Session 144 — petalTongue Composition Visualization + NUCLEUS Pipeline Executor
+
+5 petalTongue scenario builders for composition experiments:
+- `digester_anderson_study()` — 3 nodes: community diversity → Anderson coupling → ESN accuracy
+- `isomorphic_reservoir_study()` — 2 nodes: cross-domain spectra → universality metrics
+- `wdm_ensemble_qs_study()` — 3 nodes: disagreement → Anderson phase → QS dynamics
+- `introgression_nn_study()` — 2 nodes: NN observations → HMM detection metrics
+- `attention_anderson_study()` — 2 nodes: quality sweep → spectral localization
+
+Infrastructure:
+- `composition_study()` combiner (all 5 experiments, cross-experiment edges)
+- `full_study()` expanded to 21 tracks (16 original + 5 composition)
+- `composition_pipeline()` 6-stage DAG in metalForge (eigensolve → 5 experiments)
+- `nucleus_pipeline.rs` Tower→Node→Nest executor (9 tests)
+- `visualize.sh --compositions` mode
+- 5 orphaned binaries registered in Cargo.toml
+
+New tests: 18 visualization + 9 nucleus pipeline + 2 forge = 29 total.
+Final: 1112 lib + 73 forge + 9 integration tests. 254 binaries. 47 modules.

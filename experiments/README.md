@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 143)**: 1085 lib tests, 245 binaries, 46 modules, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Axis 2 complete. V96 handoff. barraCuda `83aa08a`, ToadStool S142, coralReef Iter 29. March 10, 2026.
+**Current state (Session 144)**: 1112 lib tests, 73 forge tests, 254 binaries, 47 modules, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Axis 2 complete. S144: petalTongue composition visualization (5 scenario builders, `composition_study()`, 21-track `full_study()`), `composition_pipeline()` DAG, `nucleus_pipeline.rs` Tower→Node→Nest executor, `visualize.sh --compositions`. V97 handoff. barraCuda `83aa08a`, ToadStool S142, coralReef Iter 29. March 10, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -115,6 +115,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 099 | Session 143 — WDM Ensemble Quorum Sensing (Axis 2) | Mar 10, 2026 | Surrogate disagreement → Anderson disorder → localization. Snowdrift QS dynamics: low-W promotes cooperation. Py 11/11, CPU 81/81, GPU 7/7 PASS |
 | 100 | Session 143 — HMM Introgression on NN Layers (Axis 2) | Mar 10, 2026 | PhyloNet-HMM detects anomalous NN weight layers. TPR=0.97, FPR=0, LLR>0. Isomorphic thesis: genomic algorithm works on neural networks. Py 11/11, CPU 15/15, GPU 6/6 PASS |
 | 101 | Session 143 — Attention Anderson Spectral (Axis 2) | Mar 10, 2026 | Attention quality → Anderson spectral properties. Higher quality → lower IPR (delocalized). Py 10/10, CPU 34/34, GPU 6/6 PASS |
+| 102 | Session 144 — petalTongue Composition Visualization + NUCLEUS Pipeline | Mar 10, 2026 | 5 scenario builders, `composition_study()` 21-track combiner, `composition_pipeline()` 6-stage DAG, `nucleus_pipeline` Tower→Node→Nest executor. 27 new tests. 1112 lib, 73 forge |
 
 ---
 
@@ -4872,6 +4873,46 @@ participation number ↔ localization length.
 | BarraCUDA GPU checks | 6/6 PASS |
 | New Rust module | `attention_anderson.rs` |
 | New control | `control/attention_anderson/` |
+
+---
+
+---
+
+## Experiment 102 — Session 144: petalTongue Composition Visualization + NUCLEUS Pipeline
+
+**Date**: 2026-03-10
+**Session**: S144
+
+### Summary
+
+Makes the 5 novel composition experiments (Exp 097–101) visually accessible via
+petalTongue. Each experiment gets a dedicated scenario builder that calls real
+neuralSpring computation and packages results as typed `DataChannel` payloads.
+A `composition_study()` combiner merges all 5 into a single graph with
+cross-experiment edges highlighting shared Anderson physics, spectral analysis,
+and NN–universality connections. The `full_study()` combiner grows from 16 to
+21 tracks with cross-track edges connecting composition experiments to their
+foundation tracks.
+
+On the biomeOS/NUCLEUS side, a `composition_pipeline()` DAG in metalForge
+defines a 6-stage execution graph (eigensolve → digester_anderson →
+isomorphic_reservoir / wdm_ensemble_qs / introgression_nn → attention_anderson).
+The `nucleus_pipeline.rs` module implements the Tower→Node→Nest dispatch
+pattern: Tower resolves capability strings to local functions, Node executes
+with real computation, Nest records substrate/timing provenance.
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| New scenario builders | 5 (digester_anderson, isomorphic_reservoir, wdm_ensemble_qs, introgression_nn, attention_anderson) |
+| New Rust module | `nucleus_pipeline.rs` |
+| New metalForge pipeline | `composition_pipeline()` (6 stages, 6 edges) |
+| New tests | 27 (18 visualization + 9 nucleus pipeline) |
+| Lib tests | 1085 → 1112 |
+| Forge tests | 71 → 73 |
+| Modules | 46 → 47 |
+| Clippy | 0 |
 
 ---
 
