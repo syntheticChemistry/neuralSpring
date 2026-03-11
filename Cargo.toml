@@ -1159,6 +1159,24 @@ path = "src/bin/validate_toadstool_s93_barracuda_extraction.rs"
 name = "bench_kokkos_parity"
 path = "src/bin/bench_kokkos_parity.rs"
 
+# ── S145: GPU infrastructure experiments (Exp 103-106) ─────────────
+
+[[bin]]
+name = "validate_gpu_eigensolve_pipeline"
+path = "src/bin/validate_gpu_eigensolve_pipeline.rs"
+
+[[bin]]
+name = "validate_batched_spectral"
+path = "src/bin/validate_batched_spectral.rs"
+
+[[bin]]
+name = "validate_sovereign_compile"
+path = "src/bin/validate_sovereign_compile.rs"
+
+[[bin]]
+name = "validate_mixed_composition_pipeline"
+path = "src/bin/validate_mixed_composition_pipeline.rs"
+
 [lints.rust]
 unsafe_code = "forbid"
 

@@ -7,12 +7,12 @@ This document tracks how **six** ecoPrimals Springs — **hotSpring**, **wetSpri
 shaders and primitives to `BarraCUDA`, creating a shared math engine whose
 capabilities grow with every absorption cycle.
 
-**`BarraCUDA`**: v0.3.3 at `83aa08a` — 719 WGSL shaders, 32 cross-spring shaders from 5 origins, Sprint 2 APIs (activations, eigensolver, LCG, Wright-Fisher), 3-tier precision (F32/F64/Df64), `healthSpring` domain.
-**`ToadStool`**: S142 at `a86bc546` — 19,900+ tests, hardware testing, PCIe transport, `ResourceOrchestrator`, pipeline DAG absorbed from neuralSpring S134, streaming dispatch from hotSpring.
-**`coralReef`**: Iteration 29 at `2779c88` — sovereign shader compiler, NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, `Fp64Strategy` (Native/DoubleFloat/F32Only).
+**`BarraCUDA`**: v0.3.5 at `0649cd0` — 719 WGSL shaders, 32 cross-spring shaders from 5 origins, Sprint 2 APIs (activations, eigensolver, LCG, Wright-Fisher), 3-tier precision (F32/F64/Df64), `healthSpring` domain.
+**`ToadStool`**: S146 at `751b3849` — 19,900+ tests, hardware testing, PCIe transport, `ResourceOrchestrator`, pipeline DAG absorbed from neuralSpring S134, streaming dispatch from hotSpring.
+**`coralReef`**: Iteration 33 at `b783217` — sovereign shader compiler, NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, `Fp64Strategy` (Native/DoubleFloat/F32Only).
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders
 
-### Validation Status (March 10, 2026)
+### Validation Status (March 11, 2026)
 
 | Binary | Result | Scope |
 |--------|--------|-------|
@@ -826,4 +826,17 @@ fused map-reduce, combined correlation).
 
 ---
 
-*Cross-spring evolution tracker — every absorption makes all Springs stronger. S79: complete.*
+## Session 145 — GPU Dispatch Evolution & Sovereign Compute Readiness (March 11, 2026)
+
+| Change | Detail |
+|--------|--------|
+| **barraCuda** | v0.3.3 → v0.3.5 (`0649cd0`) |
+| **toadStool** | S142 → S146 (`751b3849`) |
+| **coralReef** | Iter 29 → Iter 33 (`b783217`) |
+| **Absorbed workloads** | 20 → 25 (+5 rewired: FusedChiSquaredGpu, FusedKlDivergenceGpu, hmm_backward, hmm_viterbi, PairwiseL2Gpu matrix) |
+| **GPU dispatch** | nucleus_pipeline executor evolved for GPU dispatch on composition DAG nodes |
+| **Sovereign compute** | CoralReefDevice, GpuBackend trait, tridiag_eigh_gpu advance sovereign pipeline readiness |
+
+---
+
+*Cross-spring evolution tracker — every absorption makes all Springs stronger. S145: complete.*

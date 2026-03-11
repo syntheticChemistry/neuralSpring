@@ -5,7 +5,60 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 142 (March 10, 2026)
+## [Unreleased] — Session 145 (March 11, 2026)
+
+### Session 145 — GPU Infrastructure Evolution Sprint (2026-03-11)
+
+**Upstream sync** to barraCuda v0.3.5 (`0649cd0`), toadStool S146 (`751b3849`),
+coralReef Iteration 33 (`b783217`):
+
+- barraCuda v0.3.5: `ReduceScalarPipeline` f64 fix, `BatchedComputeDispatch`,
+  `CoralReefDevice`, `FmaPolicy`, `tridiag_eigh_gpu`, 36 tolerances
+- toadStool S146: `nvvm_transcendental_risk` in `gpu.info`, PrecisionBrain in
+  `compile_wgsl_multi`, VRAM-aware routing, 19 SpringDomain variants
+- coralReef Iter 33: NVVM poisoning fix, struct ABI fixes, 46/46 sovereign compile
+
+**5 workload rewires** (absorbed workloads 20→25, local 6→1):
+
+- `FusedChiSquaredGpu` → upstream `ReduceScalarPipeline` f64 fused path
+- `FusedKlDivergenceGpu` → upstream `ReduceScalarPipeline` f64 fused path
+- `hmm_backward` → upstream `barracuda::ops::bio::hmm_backward` (log-domain)
+- `hmm_viterbi` → upstream `barracuda::ops::bio::hmm_viterbi` (f64 ComputeDispatch)
+- `PairwiseL2Gpu` → upstream `barracuda::ops::distance::PairwiseL2Gpu` (matrix variant)
+
+**NUCLEUS pipeline GPU dispatch**:
+
+- `eigensolve` stage → `Dispatcher::eigensolve` (GPU-accelerated tridiag_eigh)
+- `attention_anderson` stage → `Dispatcher::attention_anderson` (GPU-accelerated)
+- `dispatch_capability()` routes GPU-capable stages through metalForge cost model
+- `StageResult` records actual substrate in provenance metadata
+
+**4 GPU experiments** (Exp 103–106):
+
+- Exp 103: GPU-accelerated eigensolve pipeline via tridiag_eigh_gpu on RTX 4070
+- Exp 104: BatchedComputeDispatch for spectral analysis across composition experiments
+- Exp 105: Sovereign compile validation — ComputeDispatch<CoralReefDevice> on RTX 4070 Ada GSP
+- Exp 106: Mixed-hardware composition pipeline with GPU+CPU stages and transfer cost measurement
+
+**Validation**: 1115 lib + 73 forge + 9 integration tests. 258 binaries. 0 clippy.
+
+**Handoffs**: V98 GPU dispatch evolution handoff (toadStool/barraCuda/coralReef)
+
+### Session 143–144 — Novel Compositions + NUCLEUS Pipeline (2026-03-10)
+
+**Session 144**: petalTongue composition visualization + NUCLEUS pipeline executor.
+5 new scenario builders for composition experiments. `composition_study()` combiner.
+`composition_pipeline()` DAG in metalForge. `nucleus_pipeline` executor with 6-stage
+Tower→Node→Nest dispatch. 1112 lib + 73 forge tests, 254 binaries.
+
+**Session 143**: 5 novel composition experiments (Exp 097–101):
+- Exp 097: Anderson spectral analysis of attention weights
+- Exp 098: WDM surrogate ensemble QS
+- Exp 099: ESN/LSTM ensemble (digester + glucose + weather)
+- Exp 100: ESN digester yield + Anderson QS disorder coupling
+- Exp 101: HMM introgression applied to neural network layers
+
+V96 handoff + doc sweep + cleanup audit.
 
 ### Session 142 — Upstream Rewire + `enable f64;` Fix + Cross-Spring Evolution (2026-03-10)
 

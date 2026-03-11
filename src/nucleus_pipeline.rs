@@ -25,6 +25,9 @@
 use neural_spring_forge::graph::{
     PipelineExecution, PipelineGraph, StageOutput, StageResult,
 };
+use neural_spring_forge::mixed::MixedSubstrate;
+
+use crate::gpu_dispatch::Dispatcher;
 
 /// A completed pipeline report with provenance metadata.
 #[derive(Debug)]
@@ -33,6 +36,9 @@ pub struct PipelineReport {
     pub pipeline_name: String,
     pub substrate_used: String,
     pub total_stages: usize,
+    /// How many stages executed on GPU vs CPU.
+    pub gpu_stages: usize,
+    pub cpu_stages: usize,
 }
 
 impl PipelineReport {
@@ -59,6 +65,17 @@ impl PipelineReport {
 pub fn execute_composition_pipeline() -> PipelineReport {
     let graph = neural_spring_forge::graph::composition_pipeline();
     execute_graph(&graph)
+}
+
+/// Execute the composition pipeline with GPU dispatch where substrate permits.
+///
+/// GPU-capable stages (`GpuOnly`, `GpuPreferred`) route through the `Dispatcher`,
+/// which falls back to CPU if no GPU is available. CPU-only stages use direct
+/// function calls. Provenance records actual execution substrate per stage.
+#[must_use]
+pub fn execute_composition_pipeline_gpu(dispatcher: &Dispatcher) -> PipelineReport {
+    let graph = neural_spring_forge::graph::composition_pipeline();
+    execute_graph_gpu(&graph, dispatcher)
 }
 
 /// Execute any `PipelineGraph` by resolving capabilities to local functions.
@@ -105,11 +122,87 @@ pub fn execute_graph(graph: &PipelineGraph) -> PipelineReport {
         pipeline_name: graph.name.clone(),
         substrate_used: "CPU".to_string(),
         total_stages: order.len(),
+        gpu_stages: 0,
+        cpu_stages: order.len(),
         execution: exec,
     }
 }
 
-/// Tower: resolve a capability string to a local computation function.
+/// Execute a `PipelineGraph` with GPU dispatch for eligible stages.
+///
+/// Stages marked `GpuOnly` or `GpuPreferred` are dispatched through the
+/// `Dispatcher`, which routes to GPU when available and falls back to CPU.
+/// Stages marked `CpuOnly` always use direct function calls.
+///
+/// Provenance records the actual substrate used per stage:
+/// - `GpuOnly`/`GpuPreferred` with GPU available → `MixedSubstrate::GpuOnly`
+/// - `GpuOnly`/`GpuPreferred` with CPU fallback → `MixedSubstrate::CpuOnly`
+/// - `CpuOnly` stages → `MixedSubstrate::CpuOnly`
+///
+/// # Panics
+///
+/// Panics if the graph contains a cycle or references invalid stage IDs.
+#[must_use]
+#[expect(
+    clippy::expect_used,
+    reason = "graph is validated at construction — these are structural invariants"
+)]
+pub fn execute_graph_gpu(graph: &PipelineGraph, dispatcher: &Dispatcher) -> PipelineReport {
+    let order = graph
+        .execute_order()
+        .expect("graph must be a valid DAG");
+
+    let mut exec = PipelineExecution::new(&graph.name);
+    let mut gpu_count = 0_usize;
+    let mut cpu_count = 0_usize;
+
+    for stage_id in &order {
+        let stage = graph
+            .stage(stage_id)
+            .expect("topo order references valid stages");
+
+        let use_gpu = matches!(stage.substrate, MixedSubstrate::GpuOnly);
+
+        let start = std::time::Instant::now();
+        let (success, output, actual_substrate) = if use_gpu && dispatcher.has_gpu() {
+            let (s, o) = dispatch_capability_gpu(&stage.capability, dispatcher);
+            gpu_count += 1;
+            (s, o, stage.substrate)
+        } else {
+            let (s, o) = dispatch_capability(&stage.capability);
+            cpu_count += 1;
+            (s, o, MixedSubstrate::CpuOnly)
+        };
+        let elapsed_us = start.elapsed().as_secs_f64() * 1_000_000.0;
+
+        exec.record(StageResult {
+            stage_id: stage_id.clone(),
+            success,
+            elapsed_us,
+            actual_substrate,
+            output,
+        });
+    }
+
+    let substrate_label = if gpu_count > 0 && cpu_count > 0 {
+        format!("Mixed (GPU:{gpu_count} CPU:{cpu_count})")
+    } else if gpu_count > 0 {
+        "GPU".to_string()
+    } else {
+        "CPU".to_string()
+    };
+
+    PipelineReport {
+        pipeline_name: graph.name.clone(),
+        substrate_used: substrate_label,
+        total_stages: order.len(),
+        gpu_stages: gpu_count,
+        cpu_stages: cpu_count,
+        execution: exec,
+    }
+}
+
+/// Tower: resolve a capability string to a local computation function (CPU path).
 ///
 /// Returns `(success, output)`. Each capability maps to a real neuralSpring
 /// module function. Unknown capabilities return `(false, Empty)`.
@@ -125,6 +218,22 @@ fn dispatch_capability(capability: &str) -> (bool, StageOutput) {
     }
 }
 
+/// Tower: resolve a capability to GPU-accelerated dispatch.
+///
+/// GPU stages use the `Dispatcher` for eigensolve and spectral ops.
+/// Non-GPU stages fall through to the CPU path.
+fn dispatch_capability_gpu(capability: &str, dispatcher: &Dispatcher) -> (bool, StageOutput) {
+    match capability {
+        "science.eigensolve" => stage_eigensolve_gpu(dispatcher),
+        "science.attention_anderson" => stage_attention_anderson_gpu(dispatcher),
+        "science.digester_anderson_coupling" => stage_digester_anderson(),
+        "science.isomorphic_reservoir" => stage_isomorphic_reservoir(),
+        "science.wdm_ensemble_qs" => stage_wdm_ensemble_qs(),
+        "science.introgression_nn" => stage_introgression_nn(),
+        _ => (false, StageOutput::Empty),
+    }
+}
+
 fn stage_eigensolve() -> (bool, StageOutput) {
     let n = 16;
     let mut matrix = vec![0.0; n * n];
@@ -136,6 +245,20 @@ fn stage_eigensolve() -> (bool, StageOutput) {
     (
         (sum - n as f64).abs() < 1e-6,
         StageOutput::Vector(result.eigenvalues),
+    )
+}
+
+fn stage_eigensolve_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
+    let n = 16;
+    let mut matrix = vec![0.0; n * n];
+    for i in 0..n {
+        matrix[i * n + i] = 1.0;
+    }
+    let (eigenvalues, _eigenvectors) = dispatcher.eigh(&matrix, n);
+    let sum: f64 = eigenvalues.iter().sum();
+    (
+        (sum - n as f64).abs() < 1e-6,
+        StageOutput::Vector(eigenvalues),
     )
 }
 
@@ -259,11 +382,9 @@ fn stage_introgression_nn() -> (bool, StageOutput) {
     (valid, StageOutput::Map(map))
 }
 
-fn stage_attention_anderson() -> (bool, StageOutput) {
-    let n = 16;
+fn build_attention_matrix(n: usize) -> Vec<f64> {
     let mut rng = crate::rng::Rng::new(42);
     let quality = 0.8;
-
     let mut matrix = vec![0.0; n * n];
     for row in 0..n {
         let mut row_vals = Vec::with_capacity(n);
@@ -276,14 +397,18 @@ fn stage_attention_anderson() -> (bool, StageOutput) {
             matrix[row * n + col] = val / sum;
         }
     }
-    let sym: Vec<f64> = (0..n * n)
+    (0..n * n)
         .map(|idx| {
             let r = idx / n;
             let c = idx % n;
             (matrix[r * n + c] + matrix[c * n + r]) * 0.5
         })
-        .collect();
+        .collect()
+}
 
+fn stage_attention_anderson() -> (bool, StageOutput) {
+    let n = 16;
+    let sym = build_attention_matrix(n);
     let result = crate::attention_anderson::attention_spectral(&sym, n);
 
     let mut map = std::collections::HashMap::new();
@@ -294,6 +419,31 @@ fn stage_attention_anderson() -> (bool, StageOutput) {
     map.insert("participation".to_string(), result.participation);
 
     let valid = result.spectral_radius > 0.0 && result.participation > 0.0;
+    (valid, StageOutput::Map(map))
+}
+
+fn stage_attention_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
+    let n = 16;
+    let sym = build_attention_matrix(n);
+
+    let spectral = dispatcher.attention_spectral_analysis(&sym, n);
+
+    let mean_ipr = spectral.mean_ipr;
+    let lsr = spectral.level_spacing_ratio;
+    let spectral_radius = spectral
+        .eigenvalues
+        .iter()
+        .map(|e| e.abs())
+        .fold(0.0_f64, f64::max);
+    let participation = if mean_ipr > 0.0 { 1.0 / mean_ipr } else { 0.0 };
+
+    let mut map = std::collections::HashMap::new();
+    map.insert("mean_ipr".to_string(), mean_ipr);
+    map.insert("spectral_radius".to_string(), spectral_radius);
+    map.insert("participation".to_string(), participation);
+    map.insert("level_spacing_ratio".to_string(), lsr);
+
+    let valid = spectral_radius > 0.0 && participation > 0.0;
     (valid, StageOutput::Map(map))
 }
 
@@ -427,13 +577,63 @@ mod tests {
         let report = execute_composition_pipeline();
         for result in &report.execution.results {
             match result.stage_id.as_str() {
-                "attention_anderson" => {
-                    assert_eq!(result.actual_substrate, MixedSubstrate::GpuOnly);
+                "eigensolve" | "attention_anderson" => {
+                    assert_eq!(
+                        result.actual_substrate,
+                        MixedSubstrate::GpuOnly,
+                        "{} should be GpuOnly",
+                        result.stage_id
+                    );
                 }
                 _ => {
-                    assert_eq!(result.actual_substrate, MixedSubstrate::CpuOnly);
+                    assert_eq!(
+                        result.actual_substrate,
+                        MixedSubstrate::CpuOnly,
+                        "{} should be CpuOnly",
+                        result.stage_id
+                    );
                 }
             }
+        }
+    }
+
+    #[test]
+    fn gpu_pipeline_cpu_fallback() {
+        let dispatcher = Dispatcher::cpu_only();
+        let report = execute_composition_pipeline_gpu(&dispatcher);
+        assert!(report.all_passed(), "all stages pass on CPU fallback");
+        assert_eq!(report.total_stages, 6);
+        assert_eq!(report.gpu_stages, 0, "CPU-only dispatcher → no GPU stages");
+        assert_eq!(report.cpu_stages, 6);
+        assert_eq!(report.substrate_used, "CPU");
+    }
+
+    #[test]
+    fn gpu_pipeline_eigensolve_via_dispatcher() {
+        let dispatcher = Dispatcher::cpu_only();
+        let (success, output) = dispatch_capability_gpu("science.eigensolve", &dispatcher);
+        assert!(success);
+        if let StageOutput::Vector(evals) = output {
+            assert_eq!(evals.len(), 16);
+            for &e in &evals {
+                assert!((e - 1.0).abs() < 1e-6);
+            }
+        } else {
+            panic!("expected Vector output from GPU eigensolve");
+        }
+    }
+
+    #[test]
+    fn gpu_pipeline_attention_via_dispatcher() {
+        let dispatcher = Dispatcher::cpu_only();
+        let (success, output) = dispatch_capability_gpu("science.attention_anderson", &dispatcher);
+        assert!(success);
+        if let StageOutput::Map(m) = output {
+            assert!(m.contains_key("spectral_radius"));
+            assert!(m.contains_key("mean_ipr"));
+            assert!(*m.get("spectral_radius").expect("has spectral_radius") > 0.0);
+        } else {
+            panic!("expected Map output from GPU attention");
         }
     }
 }

@@ -231,62 +231,59 @@ pub const HMM_BATCH_F64: MlWorkload = MlWorkload {
     required: &[Capability::F64Compute, Capability::ShaderDispatch],
 };
 
-// ── Local: Write-phase extensions for ToadStool absorption ──────────
+// ── Absorbed: S145 rewire (chi-squared, KL, HMM backward/viterbi, pairwise L2 matrix)
 
-/// Chi-squared GPU — local elementwise `(o-e)²/e` + sum reduction.
+/// Chi-squared GPU — fused `(o-e)²/e` + sum reduction.
 ///
-/// Currently CPU loop in `gpu_ops::reduction::chi_squared_gpu`. Should be
-/// a fused GPU op similar to `FusedMapReduceF64`.
+/// Rewired to `barracuda::ops::fused_chi_squared_f64::FusedChiSquaredGpu`
+/// (barraCuda v0.3.5). Single-dispatch f64 WGSL shader.
 pub const CHI_SQUARED_GPU: MlWorkload = MlWorkload {
     name: "chi_squared_gpu",
-    origin: ShaderOrigin::Local,
-    primitive: None,
-    cross_spring_origin: "neuralSpring validation S-64",
+    origin: ShaderOrigin::Absorbed,
+    primitive: Some("FusedChiSquaredGpu"),
+    cross_spring_origin: "neuralSpring S-64 → barraCuda v0.3.5",
     required: &[Capability::F64Compute, Capability::FusedMapReduce],
 };
 
-/// KL divergence GPU — local `p*ln(p/q)` sum reduction.
+/// KL divergence GPU — fused `p*ln(p/q)` sum reduction.
 ///
-/// Currently CPU loop in `gpu_ops::reduction::kl_divergence_gpu`. Should be
-/// a fused GPU op.
+/// Rewired to `barracuda::ops::fused_kl_divergence_f64::FusedKlDivergenceGpu`
+/// (barraCuda v0.3.5). Single-dispatch f64 WGSL shader.
 pub const KL_DIVERGENCE_GPU: MlWorkload = MlWorkload {
     name: "kl_divergence_gpu",
-    origin: ShaderOrigin::Local,
-    primitive: None,
-    cross_spring_origin: "neuralSpring validation S-64",
+    origin: ShaderOrigin::Absorbed,
+    primitive: Some("FusedKlDivergenceGpu"),
+    cross_spring_origin: "neuralSpring S-64 → barraCuda v0.3.5",
     required: &[Capability::F64Compute, Capability::FusedMapReduce],
 };
 
-/// HMM backward step — CPU fallback loop in `gpu_dispatch`.
-///
-/// Needs an upstream `hmm_backward_dispatch` in `domain_ops`.
+/// HMM backward — rewired to `barracuda::ops::bio::hmm_backward`
+/// (barraCuda v0.3.5). Full backward pass via GPU WGSL shader.
 pub const HMM_BACKWARD: MlWorkload = MlWorkload {
     name: "hmm_backward",
-    origin: ShaderOrigin::Local,
-    primitive: None,
-    cross_spring_origin: "neuralSpring HMM S-46",
+    origin: ShaderOrigin::Absorbed,
+    primitive: Some("hmm_backward"),
+    cross_spring_origin: "neuralSpring HMM S-46 → barraCuda v0.3.5",
     required: &[Capability::F64Compute, Capability::ShaderDispatch],
 };
 
-/// HMM Viterbi step — CPU fallback loop + argmax.
-///
-/// Needs an upstream `hmm_viterbi_dispatch` in `domain_ops`.
+/// HMM Viterbi — rewired to `barracuda::ops::bio::hmm_viterbi`
+/// (barraCuda v0.3.5, S72 partial → S145 full). Chain dispatch GPU WGSL.
 pub const HMM_VITERBI: MlWorkload = MlWorkload {
     name: "hmm_viterbi",
-    origin: ShaderOrigin::Local,
-    primitive: None,
-    cross_spring_origin: "neuralSpring HMM S-46",
+    origin: ShaderOrigin::Absorbed,
+    primitive: Some("hmm_viterbi"),
+    cross_spring_origin: "neuralSpring HMM S-46 → barraCuda v0.3.5",
     required: &[Capability::F64Compute, Capability::ShaderDispatch],
 };
 
-/// Pairwise L2 matrix — CPU O(n²) loop over `l2_distance_gpu`.
-///
-/// Should use `PairwiseL2Gpu` directly for the full matrix.
+/// Pairwise L2 matrix — rewired to `barracuda::PairwiseL2Gpu` for
+/// single-dispatch full upper-triangle computation.
 pub const PAIRWISE_L2_MATRIX: MlWorkload = MlWorkload {
     name: "pairwise_l2_matrix",
-    origin: ShaderOrigin::Local,
-    primitive: None,
-    cross_spring_origin: "neuralSpring MODES S-42",
+    origin: ShaderOrigin::Absorbed,
+    primitive: Some("PairwiseL2Gpu"),
+    cross_spring_origin: "neuralSpring MODES S-42 → barraCuda v0.3.5",
     required: &[Capability::F64Compute, Capability::ShaderDispatch],
 };
 
@@ -349,12 +346,13 @@ pub fn all_workloads() -> Vec<&'static MlWorkload> {
         &BATCH_IPR,
         &EIGENSOLVE,
         &HMM_BATCH_F64,
-        // Write phase: local extensions
+        // Absorbed: S145 rewire (upstream barraCuda v0.3.5)
         &CHI_SQUARED_GPU,
         &KL_DIVERGENCE_GPU,
         &HMM_BACKWARD,
         &HMM_VITERBI,
         &PAIRWISE_L2_MATRIX,
+        // Write phase: local extension (no upstream equivalent)
         &REPLICATOR_STEP,
         // CPU-only
         &PARETO_FRONT,
@@ -394,8 +392,8 @@ mod tests {
     #[test]
     fn origin_counts_match() {
         let (absorbed, local, cpu_only) = origin_summary();
-        assert_eq!(absorbed, 20, "20 absorbed workloads");
-        assert_eq!(local, 6, "6 local write-phase extensions");
+        assert_eq!(absorbed, 25, "25 absorbed workloads (S145 rewire)");
+        assert_eq!(local, 1, "1 local write-phase extension (replicator_step)");
         assert_eq!(cpu_only, 2, "2 CPU-only domains");
     }
 

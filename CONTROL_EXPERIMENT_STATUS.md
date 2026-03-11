@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 10, 2026 (Session 144 — petalTongue Composition Visualization + NUCLEUS Pipeline Executor. 5 new scenario builders, composition_study() combiner, composition_pipeline() DAG in metalForge, nucleus_pipeline executor with 6-stage Tower→Node→Nest dispatch. 1112 lib + 73 forge tests. 0 clippy. 47 modules)
+**Last updated**: March 11, 2026 (Session 145 — GPU infrastructure evolution sprint. barraCuda v0.3.5 sync, 5 workload rewires, NUCLEUS GPU dispatch, 4 GPU experiments (Exp 103–106). 1115 lib + 73 forge + 9 integration tests. 0 clippy. 47 modules. 258 binaries. 25 absorbed workloads.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 397/397 Python PASS + 3600+ Rust+GPU validation PASS = **4500+ total validation checks**
-**Library**: 1112 lib tests + 9 integration tests + 73 forge tests | 47 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 254 validation/bench binaries
+**Grand Total**: 397/397 Python PASS + 4000+ Rust+GPU validation PASS = **4500+ total validation checks**
+**Library**: 1115 lib tests + 9 integration tests + 73 forge tests | 47 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 258 validation/bench binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 6 biophysical AI modules + 11 validators (162/162 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 6/6 sub-theses PASS) — Sessions 50, 54, 56, 77, 104b, 107
@@ -22,7 +22,7 @@
 **Debt**: Zero TODO/FIXME/MOCK/STUB in src/ | zero hardcoded paths | zero hardcoded primal names | zero hardcoded socket names (headless evolved S136) | zero unsafe | 0 clippy warnings (pedantic+nursery) | 0 doc warnings | zero inline magic numbers (80+ named tolerances) | zero bare `unwrap()` in validation code | 0 unused deps (4 removed S100) | zero mocks in production | all files < 1000 LOC (largest: 859 bin, 794 lib) | all PyTorch baselines fully seeded | barracuda usage audit complete (130+ imports, 46 rewires, zero duplicate math) | coralForge rename complete | capability-based primal discovery (S100) | `Gpu::read_buffer_u32` wired to upstream (S136) | `WORKGROUP_SIZE_1D` from barracuda replaces hardcoded 256 in library+forge (S137) | 7 WGSL shader absorption statuses documented (S137) | toadStool S139 pipeline_graph absorption acknowledged (S137) | `gpu_or_exit()` async helper eliminates GPU init boilerplate (S137) | duplicate `max_abs_diff` in `validate_gpu_promotion` eliminated (S137) | pure Rust deps confirmed (wgpu is GPU bridge, not C binding) (S137) | `config.rs` centralizes primal identity, env var names, petalTongue domain/theme (S139) | `LINE_BUF_CAPACITY`/`VCF_LINE_BUF_CAPACITY` named constants (S139) | `StreamSession::BACKPRESSURE_THRESHOLD` (S139) | `db_encoded.clone()` eliminated via reordering (S139)
 **Coverage**: 91.66% line coverage (llvm-cov, 1048 lib tests), 80+ named tolerances in centralized registry with justification comments | wdm_surrogate 97.6% | wdm_transport tested | wdm_sqw tested | wdm_esn tested | basecamp 90.6% | anderson_localization expanded (+10 tests S100) | gpu_dispatch/basecamp expanded (+8 tests S100)
 **Benchmarks**: Pure Rust **38.6× faster** than Python/NumPy (geomean, **15 domains** — all 15 Phase 0++ papers + Paper 026 LSTM glucose; fastest 1028× multi-obj; 2 BLAS-bound domains where LAPACK beats pure Rust at 64×64 eigensolve) | CPU→GPU portability proven (9/9, 7 domains)
-**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S142 (`a86bc546`), wgpu 28, BarraCUDA v0.3.3 | **46 upstream rewires** + 205 barracuda import files, 25+ submodules | V95 handoff (S142) | toadStool absorbed neuralSpring `pipeline_graph` (S139) + hotSpring `streaming_dispatch` | Compute triangle unblocked | hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests
+**ToadStool**: **ALL 17 shortcomings RESOLVED** (S-01..S-17) | S146 (`751b3849`), wgpu 28, barraCuda v0.3.5 (`0649cd0`), coralReef Iter 33 (`b783217`) | **25 absorbed workloads** + 219 barracuda import files, 45+ submodules | V98 handoff (S145) | toadStool absorbed neuralSpring `pipeline_graph` (S139) + hotSpring `streaming_dispatch` | Compute triangle unblocked | hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests | 46/46 sovereign compile
 **petalTongue**: `StreamSession` with backpressure + `push_replace` + `query_capabilities` + 64KB IPC buffer. 5 scenario builders + `full_study()` combiner. Mock socket validation: `validate_petaltongue_scenarios`: **31/31 PASS** (S133)
 **Cross-Spring**: 68/68 evolution checks PASS (S113) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
@@ -73,7 +73,7 @@
 
 ## Phase 1 — Rust Validation + BarraCUDA Evolution
 
-### Phase 1a: neuralSpring-Native Validation (883 lib tests + 9 integration + 43 forge tests, 240 validation binaries, 41 modules + gpu_ops/ + gpu_dispatch/)
+### Phase 1a: neuralSpring-Native Validation (1115 lib tests + 9 integration + 73 forge tests, 258 validation binaries, 47 modules + gpu_ops/ + gpu_dispatch/)
 
 | Rust Module | Python Source | Tests | Cross-Validation |
 |-------------|-------------|-------|------------------|

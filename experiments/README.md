@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 144)**: 1112 lib tests, 73 forge tests, 254 binaries, 47 modules, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Axis 2 complete. S144: petalTongue composition visualization (5 scenario builders, `composition_study()`, 21-track `full_study()`), `composition_pipeline()` DAG, `nucleus_pipeline.rs` Tower→Node→Nest executor, `visualize.sh --compositions`. V97 handoff. barraCuda `83aa08a`, ToadStool S142, coralReef Iter 29. March 10, 2026.
+**Current state (Session 145)**: 1115 lib tests, 73 forge tests, 47 modules, 258 binaries, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Axis 2 complete. S145: barraCuda v0.3.5 sync, 5 workload rewires (absorbed 20→25, local 6→1), NUCLEUS pipeline GPU dispatch evolution, 4 GPU experiments (Exp 103–106). barraCuda v0.3.5, toadStool S146, coralReef Iter 33. March 11, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -116,6 +116,10 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 100 | Session 143 — HMM Introgression on NN Layers (Axis 2) | Mar 10, 2026 | PhyloNet-HMM detects anomalous NN weight layers. TPR=0.97, FPR=0, LLR>0. Isomorphic thesis: genomic algorithm works on neural networks. Py 11/11, CPU 15/15, GPU 6/6 PASS |
 | 101 | Session 143 — Attention Anderson Spectral (Axis 2) | Mar 10, 2026 | Attention quality → Anderson spectral properties. Higher quality → lower IPR (delocalized). Py 10/10, CPU 34/34, GPU 6/6 PASS |
 | 102 | Session 144 — petalTongue Composition Visualization + NUCLEUS Pipeline | Mar 10, 2026 | 5 scenario builders, `composition_study()` 21-track combiner, `composition_pipeline()` 6-stage DAG, `nucleus_pipeline` Tower→Node→Nest executor. 27 new tests. 1112 lib, 73 forge |
+| 103 | Session 145 — GPU-accelerated eigensolve pipeline | Mar 11, 2026 | Eigensolve via Dispatcher, mixed-substrate routing |
+| 104 | Session 145 — Batched spectral analysis | Mar 11, 2026 | Batched spectral validation |
+| 105 | Session 145 — Sovereign compile validation | Mar 11, 2026 | Sovereign compile pipeline |
+| 106 | Session 145 — Mixed-hardware composition pipeline | Mar 11, 2026 | Mixed hardware composition validation |
 
 ---
 
@@ -4913,6 +4917,32 @@ with real computation, Nest records substrate/timing provenance.
 | Forge tests | 71 → 73 |
 | Modules | 46 → 47 |
 | Clippy | 0 |
+
+---
+
+## Session 145 — barraCuda v0.3.5 Sync, Workload Rewires, NUCLEUS GPU Dispatch, GPU Experiments
+
+**Date**: 2026-03-11
+**Session**: S145
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | barraCuda v0.3.5 sync: ESNConfig SGD fields, ReduceScalarPipeline f64 fix, BatchedComputeDispatch |
+| **Phase 2** | 5 workload rewires (chi², KL, HMM backward, HMM Viterbi, pairwise L2 matrix) — absorbed 20→25, local 6→1 |
+| **Phase 3** | NUCLEUS pipeline GPU dispatch evolution: eigensolve and attention_anderson via Dispatcher, mixed-substrate routing |
+| **Phase 4** | 4 GPU experiments (Exp 103–106): GPU-accelerated eigensolve pipeline, batched spectral analysis, sovereign compile validation, mixed-hardware composition pipeline |
+| **Upstream** | toadStool S146, coralReef Iter 33 |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Lib tests | 1112 → 1115 |
+| Binaries | 254 → 258 |
+| Absorbed workloads | 20 → 25 |
+| Local workloads | 6 → 1 |
 
 ---
 

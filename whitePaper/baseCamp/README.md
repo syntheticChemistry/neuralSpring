@@ -1,15 +1,15 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 10, 2026 (Sessions 61–142)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments, **4,200+ checks**, ~97% GPU promotion, 235 binaries, 1059 lib tests. S142: Paper 027 complete (Wang/Liao 2020 digester prediction — ESN methane yield, 36/36 CPU + 23/23 bC/gT), `enable f64;` PTXAS fix, 55/55 dispatch parity. barraCuda: v0.3.3 at `83aa08a` (719 WGSL shaders, wgpu 28, Sprint 2 APIs, healthSpring domain, batched logsumexp, CoralReefDevice)
+**Last Updated**: March 11, 2026 (Sessions 61–145)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments + 5 novel compositions + 4 GPU experiments, **4,500+ checks**, ~97% GPU promotion, 258 binaries, 1115 lib tests. S145: barraCuda v0.3.5 at `0649cd0`, 5 workload rewires (25 absorbed), NUCLEUS GPU dispatch, Exp 103–106 (eigensolve, batched spectral, sovereign compile, mixed-hardware). toadStool S146 (`751b3849`), coralReef Iter 33 (`b783217`, 46/46 sovereign compile)
 
+- **S145**: barraCuda v0.3.5 sync, 5 workload rewires, NUCLEUS GPU dispatch, 4 GPU experiments (Exp 103–106), V98 handoff
+- **S143–S144**: 5 novel composition experiments (Exp 097–101), petalTongue composition visualization, NUCLEUS pipeline executor, V96–V97 handoffs
 - **S142**: Paper 027 (anaerobic digestion prediction), `enable f64;` PTXAS fix, dispatch parity 55/55, V95 handoffs
 - **S139**: 4 new scenarios (search, streaming I/O, Kokkos parity, industry coverage), `config.rs`, deep debt elimination
 - **S138**: streaming parsers, BLAST pipeline, Kokkos benchmark harness, `INDUSTRY_TOOL_GAP_ANALYSIS.md`
 - **S137**: upstream rewire, `WORKGROUP_SIZE_1D`, shader absorption docs, `gpu_or_exit()` helper
-- **S136**: `PetalTonguePushClient::headless()`, `Gpu::read_buffer_u32`, industry GPU gap documented
 - **S135**: petalTongue visualization evolution — 7 new scenario builders, `TrainingVisualizer`, live dashboard binary
-- **S134**: activation consolidation, tolerance promotion, 91.66% coverage
 
 ## Purpose
 

@@ -1,7 +1,7 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 10, 2026 (Session 144 — Composition visualization + NUCLEUS pipeline. 254 binaries, 1112 lib tests, 219 barracuda import files, 47 modules, barraCuda v0.3.3 at `83aa08a`, wgpu 28. ToadStool S142 (`a86bc546`), coralReef Iteration 29 (`2779c88`). S143: 5 new experiments. S144: 5 petalTongue scenario builders, `composition_pipeline()` DAG, `nucleus_pipeline` executor. V97 handoff)
-**BarraCUDA version**: `0.3.3` at `83aa08a` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. 719 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
+**Last Updated**: March 11, 2026 (Session 145 — GPU dispatch evolution, sovereign compute readiness. 258 binaries, 1115 lib tests, 219 barracuda import files, 47 modules, barraCuda v0.3.5 at `0649cd0`, wgpu 28. ToadStool S146 (`751b3849`), coralReef Iteration 33 (`b783217`). S144: 5 petalTongue scenario builders, `composition_pipeline()` DAG, `nucleus_pipeline` executor. S145: 25 absorbed workloads (+5 rewired), nucleus_pipeline GPU dispatch evolution. V97 handoff)
+**BarraCUDA version**: `0.3.5` at `0649cd0` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. 719 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
 ### At a Glance (Session 130)
@@ -1158,7 +1158,7 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 | **Dispatcher** | Exposes `fp64_strategy()`, `needs_pow_workaround()`, `bandwidth_tier()`, `check_allocation_safe()` — all delegate to `GpuDriverProfile` / `BandwidthTier` |
 | **Nautilus bridge** | Integration via `bingocube-nautilus` crate: `SpectralNautilusBridge` maps weight spectral features to Nautilus evolutionary reservoir; `DriftMonitor` for training observation |
 
-### Current Usage Summary (S109)
+### Current Usage Summary (S145)
 
 | Metric | Value |
 |--------|-------|
@@ -1166,11 +1166,40 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 | Barracuda functions imported | ~60+ |
 | Import sites | ~90 across 60+ files |
 | Upstream rewires | 44 |
-| Barracuda crate | 0.3.3, 767 WGSL shaders (standalone primal) |
+| Barracuda crate | 0.3.5 (0649cd0), 767 WGSL shaders (standalone primal) |
 | Feature | `unidirectional` |
-| Lib tests | 1048 |
-| Binaries | 233 |
+| Lib tests | 1115 |
+| Binaries | 258 |
+| Absorbed workloads | 25 |
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 3, 2026. Session 120: 25+ submodules, 60+ functions, ~100 import sites, 44 upstream rewires. Dispatcher: fp64_strategy, needs_pow_workaround, bandwidth_tier, check_allocation_safe. Nautilus bridge via barracuda::nautilus. V80 handoff.
+## Session 145 — GPU Dispatch Evolution & Sovereign Compute Readiness (March 11, 2026)
+
+### 5 Newly Rewired Workloads
+
+| Workload | Domain | Purpose |
+|----------|--------|---------|
+| `FusedChiSquaredGpu` | Pangenome / stats | Chi-squared hypothesis testing |
+| `FusedKlDivergenceGpu` | Stats / divergence | KL divergence |
+| `hmm_backward` | HMM phylo | HMM backward pass |
+| `hmm_viterbi` | HMM phylo | Viterbi decoding |
+| `PairwiseL2Gpu` (matrix) | MODES novelty | Pairwise L2 distance for matrix |
+
+### New APIs Available
+
+| API | Purpose |
+|-----|---------|
+| `BatchedComputeDispatch` | Batched compute dispatch pattern |
+| `ReduceScalarPipeline` f64 fix | Scalar-only readback for f64 |
+| `tridiag_eigh_gpu` | Tridiagonal eigensolve on GPU |
+| `GpuBackend` trait | Unified GPU backend abstraction |
+| `CoralReefDevice` | Sovereign compiler device integration |
+
+### nucleus_pipeline GPU Dispatch Evolution
+
+`nucleus_pipeline` executor evolved to support GPU dispatch for composition DAG nodes, advancing sovereign compute readiness. GPU routing integrated with metalForge substrate selection.
+
+---
+
+*BarraCUDA usage audit — neuralSpring, March 11, 2026. Session 145: 25 absorbed workloads, 258 binaries, 1115 lib tests. barraCuda v0.3.5 (0649cd0). New APIs: BatchedComputeDispatch, ReduceScalarPipeline f64, tridiag_eigh_gpu, GpuBackend, CoralReefDevice. nucleus_pipeline GPU dispatch evolution. V97 handoff.

@@ -1,10 +1,10 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: March 10, 2026 (Session 98–144)
+**Date**: March 11, 2026 (Session 98–145)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: ACTIVE — Axis 2 compositions complete. Visualization + NUCLEUS pipeline wired.
-**S144 update**: petalTongue composition visualization (5 scenario builders, `composition_study()` 21-track combiner), `composition_pipeline()` 6-stage DAG in metalForge, `nucleus_pipeline.rs` Tower→Node→Nest executor, `visualize.sh --compositions`. 1112 lib tests, 73 forge tests, 254 binaries, 47 modules, 0 clippy.
-**S143 update**: 5 novel composition experiments built and validated (Exp 097–101).
+**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. Visualization + NUCLEUS pipeline wired.
+**S145 update**: barraCuda v0.3.5 (`0649cd0`), 5 workload rewires (chi², KL, HMM backward, HMM viterbi, pairwise L2), NUCLEUS GPU dispatch (eigensolve + attention_anderson), 4 GPU experiments (Exp 103–106). 1115 lib tests, 73 forge tests, 258 binaries, 47 modules, 0 clippy. 25 absorbed workloads. toadStool S146, coralReef Iter 33 (46/46 sovereign compile).
+**S143–S144 update**: 5 novel composition experiments (Exp 097–101), petalTongue composition visualization, NUCLEUS pipeline executor.
 Axis 2 "Novel Compositions (No New Math)" complete for all locally composable modules.
 
 ---

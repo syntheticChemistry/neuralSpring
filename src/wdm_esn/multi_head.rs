@@ -103,6 +103,9 @@ impl MultiHeadWdmClassifier {
             leak_rate: 0.3,
             regularization: 1e-6,
             seed: 42,
+            sgd_learning_rate: 0.01,
+            sgd_min_iterations: 50,
+            sgd_max_iterations: 1000,
         };
 
         let esn = MultiHeadEsn::new(config, wdm_head_configs(n_classes))

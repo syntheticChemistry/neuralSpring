@@ -3,7 +3,9 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**ToadStool HEAD**: `1dd7e338` (Sessions 50–70+++, S70+++: cross-spring absorption, DF64 ML shaders, SimpleMlp, matmul_ref, architecture safety, Feb 26, 2026)
+**barraCuda**: v0.3.5 at `0649cd0` (March 11, 2026)
+**ToadStool**: S146 at `751b3849` (March 11, 2026)
+**coralReef**: Iteration 33 at `b783217` (March 11, 2026)
 
 ---
 
@@ -31,18 +33,21 @@ shaders still hang on RTX 4070 — these remain the only truly local shaders.
 
 Local copies retained for raw WGSL validation binaries (our validators depend on local binding layouts).
 
-## Write-Phase Extensions (Session 64)
+## Write-Phase Extensions (Session 64) → Absorbed (Session 145)
 
-| Shader | Domain | Status | Origin |
-|--------|--------|--------|--------|
-| `chi_squared_f64.wgsl` | ML validation | **Validated** (forge tests) | neuralSpring S-64 |
-| `kl_divergence_f64.wgsl` | ML validation | **Validated** (forge tests) | neuralSpring S-64 |
+| Shader | Domain | Status | Origin | Upstream Primitive |
+|--------|--------|--------|--------|--------------------|
+| `chi_squared_f64.wgsl` | ML validation | **Absorbed** | neuralSpring S-64 | `barracuda::ops::fused_chi_squared_f64::FusedChiSquaredGpu` |
+| `kl_divergence_f64.wgsl` | ML validation | **Absorbed** | neuralSpring S-64 | `barracuda::ops::fused_kl_divergence_f64::FusedKlDivergenceGpu` |
+| `hmm_backward_log.wgsl` | HMM | **Absorbed S145** | neuralSpring | `barracuda::ops::bio::hmm_backward` |
+| `hmm_viterbi.wgsl` | HMM | **Absorbed S145** | neuralSpring S-121 | `barracuda::ops::bio::hmm_viterbi` |
+| `pairwise_l2.wgsl` | Distance | **Absorbed S145** | neuralSpring | `barracuda::ops::distance::PairwiseL2Gpu` (matrix) |
 
 ## Planned Shaders
 
 | Shader | Domain | Priority | Dependency |
 |--------|--------|----------|------------|
-| `tridiag_eigensolver.wgsl` | Spectral (022–023) | P3 | Needs Householder → bisection design |
+| `tridiag_eigensolver.wgsl` | Spectral (022–023) | P3 | Available upstream via `tridiag_eigh_gpu` — no local shader needed |
 
 ## Retired (Absorbed by ToadStool `5437c170`)
 

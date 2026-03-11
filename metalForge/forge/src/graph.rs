@@ -392,8 +392,8 @@ pub fn composition_pipeline() -> PipelineGraph {
     g.add_stage(StageNode {
         id: "eigensolve".to_string(),
         capability: "science.eigensolve".to_string(),
-        substrate: MixedSubstrate::CpuOnly,
-        label: "Eigendecomposition (shared)".to_string(),
+        substrate: MixedSubstrate::GpuOnly,
+        label: "Eigendecomposition (shared) — GPU BatchedEighGpu".to_string(),
     });
     g.add_stage(StageNode {
         id: "digester_anderson".to_string(),
