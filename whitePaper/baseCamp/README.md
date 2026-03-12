@@ -1,8 +1,9 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 11, 2026 (Sessions 61–145)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments + 5 novel compositions + 4 GPU experiments, **4,500+ checks**, ~97% GPU promotion, 258 binaries, 1115 lib tests. S145: barraCuda v0.3.5 at `0649cd0`, 5 workload rewires (25 absorbed), NUCLEUS GPU dispatch, Exp 103–106 (eigensolve, batched spectral, sovereign compile, mixed-hardware). toadStool S146 (`751b3849`), coralReef Iter 33 (`b783217`, 46/46 sovereign compile)
+**Last Updated**: March 12, 2026 (Sessions 61–146)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments + 5 novel compositions + 4 GPU experiments + 1 industry GPU parity experiment, **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1115 lib tests. S146: Industry GPU parity benchmarks (FFT beats cuFFT 0.19–0.85×, GEMM beats cuBLAS 0.16× at 2048²), deep audit, V99 handoff. S145: barraCuda v0.3.5 at `0649cd0`, 25 absorbed workloads. toadStool S146 (`751b3849`), coralReef Iter 33 (`b783217`, 46/46 sovereign compile)
 
+- **S146**: Industry GPU parity benchmarks (4 Python + 1 Rust, 31 kernel comparisons), deep audit (provenance, tolerances, visualization refactor), V99 handoff
 - **S145**: barraCuda v0.3.5 sync, 5 workload rewires, NUCLEUS GPU dispatch, 4 GPU experiments (Exp 103–106), V98 handoff
 - **S143–S144**: 5 novel composition experiments (Exp 097–101), petalTongue composition visualization, NUCLEUS pipeline executor, V96–V97 handoffs
 - **S142**: Paper 027 (anaerobic digestion prediction), `enable f64;` PTXAS fix, dispatch parity 55/55, V95 handoffs

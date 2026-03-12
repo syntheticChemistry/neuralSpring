@@ -65,6 +65,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
         "transformer": [
             SOFTMAX_SUM, SOFTMAX_CROSS_PYTHON,
             GELU_CROSS_PYTHON, GELU_LARGE_INPUT, SPECIAL_FUNCTION_F64,
+            SIGMOID_SATURATION,
         ],
         "metric": [METRIC_EXACT],
         "training": [
@@ -122,6 +123,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             GPU_UPSTREAM_MULTI_OBJ_PARITY_F32,
             GPU_MODES_L2_F32, GPU_HILL_F32,
             GPU_LOGSUMEXP_F32, GPU_RK45_F32, GPU_BOUNDS_SLACK_F32,
+            GPU_HILL_GATE_F64,
         ],
         "ml_pipeline": [
             ML_MLP_F32, ML_TRANSFORMER_F32, ML_PIPELINE_NORM_REL,

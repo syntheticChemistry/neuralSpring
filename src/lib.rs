@@ -129,6 +129,7 @@ pub mod metrics;
 pub mod modes;
 pub mod nautilus_bridge;
 pub mod neural_pgm;
+pub mod nucleus_pipeline;
 pub mod pangenome_selection;
 pub mod pinn;
 pub mod primitives;
@@ -145,20 +146,19 @@ pub mod streaming;
 pub mod surrogate;
 pub mod swarm_robotics;
 pub mod tolerances;
-pub mod nucleus_pipeline;
 pub mod training_monitor;
 pub mod transformer;
 pub mod validation;
 pub mod visualization;
-pub mod wdm_esn;
-pub mod wdm_sqw;
-pub mod wdm_surrogate;
 #[expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     reason = "grid dimension casts (n ≤ 1024) and f64 statistics"
 )]
 pub mod wdm_ensemble_qs;
+pub mod wdm_esn;
+pub mod wdm_sqw;
+pub mod wdm_surrogate;
 pub mod wdm_transport;
 pub mod weight_loader;
 pub mod weight_spectral;

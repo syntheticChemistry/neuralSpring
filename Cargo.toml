@@ -1148,6 +1148,10 @@ name = "validate_multi_head_esn"
 path = "src/bin/validate_multi_head_esn.rs"
 
 [[bin]]
+name = "validate_training_monitor"
+path = "src/bin/validate_training_monitor.rs"
+
+[[bin]]
 name = "validate_immunological_anderson_extended"
 path = "src/bin/validate_immunological_anderson_extended.rs"
 
@@ -1158,6 +1162,10 @@ path = "src/bin/validate_toadstool_s93_barracuda_extraction.rs"
 [[bin]]
 name = "bench_kokkos_parity"
 path = "src/bin/bench_kokkos_parity.rs"
+
+[[bin]]
+name = "bench_industry_gpu_parity"
+path = "src/bin/bench_industry_gpu_parity.rs"
 
 # ── S145: GPU infrastructure experiments (Exp 103-106) ─────────────
 

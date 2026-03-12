@@ -99,7 +99,9 @@ fn validate_gpu(
                 if let Ok(vals) = result.to_vec() {
                     let gpu_sum = f64::from(vals[0]);
                     let diff = (gpu_sum - cpu_sum).abs();
-                    eprintln!("  disorder sum: CPU={cpu_sum:.4}, GPU={gpu_sum:.4}, diff={diff:.2e}");
+                    eprintln!(
+                        "  disorder sum: CPU={cpu_sum:.4}, GPU={gpu_sum:.4}, diff={diff:.2e}"
+                    );
                     h.check_abs("GPU disorder sum", gpu_sum, cpu_sum, 0.1);
                 } else {
                     h.check_bool("GPU readback", false);
@@ -118,7 +120,10 @@ fn validate_gpu(
     if let Ok(t1) = Tensor::from_data(&ref_f32, vec![1, n], device.clone()) {
         if let Ok(t2) = Tensor::from_data(&ref_f32, vec![1, n], device.clone()) {
             if let (Ok(r1), Ok(r2)) = (t1.to_vec(), t2.to_vec()) {
-                let same = r1.iter().zip(r2.iter()).all(|(a, b)| (a - b).abs() < f32::EPSILON);
+                let same = r1
+                    .iter()
+                    .zip(r2.iter())
+                    .all(|(a, b)| (a - b).abs() < f32::EPSILON);
                 h.check_bool("GPU deterministic", same);
             } else {
                 h.check_bool("GPU deterministic", false);

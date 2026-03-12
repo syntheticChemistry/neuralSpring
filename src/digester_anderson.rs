@@ -179,9 +179,7 @@ pub fn noise_from_xi(xi: f64) -> f64 {
 /// then normalize. Low α → dominated, high α → even.
 #[must_use]
 pub fn dirichlet_abundances(n_species: usize, alpha: f64, rng: &mut Rng) -> Vec<f64> {
-    let mut raw: Vec<f64> = (0..n_species)
-        .map(|_| gamma_variate(alpha, rng))
-        .collect();
+    let mut raw: Vec<f64> = (0..n_species).map(|_| gamma_variate(alpha, rng)).collect();
     let sum: f64 = raw.iter().sum();
     if sum > 1e-30 {
         for v in &mut raw {
@@ -205,9 +203,7 @@ fn gamma_variate(alpha: f64, rng: &mut Rng) -> f64 {
         if v > 0.0 {
             let u = rng.uniform();
             let half_x2 = 0.5 * x * x;
-            if u < 1.0 - 0.0331 * x * x * x * x
-                || u.ln() < half_x2 + d * (1.0 - v + v.ln())
-            {
+            if u < 1.0 - 0.0331 * x * x * x * x || u.ln() < half_x2 + d * (1.0 - v + v.ln()) {
                 return d * v;
             }
         }
@@ -288,8 +284,7 @@ pub fn load_coupling_from_json(json_str: &str) -> Result<CouplingBaseline, Strin
     let esn = &parsed["esn"];
     let rs: usize = esn["reservoir_size"]
         .as_u64()
-        .ok_or("missing reservoir_size")?
-        as usize;
+        .ok_or("missing reservoir_size")? as usize;
 
     let w_in = flatten_2d(esn["w_in"].as_array().ok_or("missing w_in")?)?;
     let w_res = flatten_2d(esn["w_res"].as_array().ok_or("missing w_res")?)?;
@@ -318,8 +313,12 @@ pub fn load_coupling_from_json(json_str: &str) -> Result<CouplingBaseline, Strin
 
     let coupling = &parsed["coupling"];
     let metrics = CouplingMetrics {
-        pearson_w_r2: coupling["pearson_w_r2"].as_f64().ok_or("missing pearson_w_r2")?,
-        pearson_xi_r2: coupling["pearson_xi_r2"].as_f64().ok_or("missing pearson_xi_r2")?,
+        pearson_w_r2: coupling["pearson_w_r2"]
+            .as_f64()
+            .ok_or("missing pearson_w_r2")?,
+        pearson_xi_r2: coupling["pearson_xi_r2"]
+            .as_f64()
+            .ok_or("missing pearson_xi_r2")?,
         pearson_ipr_r2: coupling["pearson_ipr_r2"]
             .as_f64()
             .ok_or("missing pearson_ipr_r2")?,
@@ -362,7 +361,9 @@ pub fn load_coupling_from_json(json_str: &str) -> Result<CouplingBaseline, Strin
             Ok(ReferencePrediction {
                 input,
                 esn_yield: rp["esn_yield"].as_f64().ok_or("missing esn_yield")?,
-                analytical_yield: rp["analytical_yield"].as_f64().ok_or("missing analytical_yield")?,
+                analytical_yield: rp["analytical_yield"]
+                    .as_f64()
+                    .ok_or("missing analytical_yield")?,
             })
         })
         .collect::<Result<Vec<_>, String>>()?;
@@ -372,7 +373,9 @@ pub fn load_coupling_from_json(json_str: &str) -> Result<CouplingBaseline, Strin
         metrics,
         communities,
         reference_predictions,
-        lattice_size: parsed["lattice_size"].as_u64().ok_or("missing lattice_size")? as usize,
+        lattice_size: parsed["lattice_size"]
+            .as_u64()
+            .ok_or("missing lattice_size")? as usize,
     })
 }
 
@@ -465,7 +468,7 @@ mod tests {
         let (h, ev, w, ipr, xi) = community_anderson(20, 5.0, 32, &mut rng);
         assert!(h > 0.0, "diversity > 0");
         assert!((0.0..=1.0).contains(&ev), "evenness in [0,1]");
-        assert!(w >= 0.0 && w <= W_MAX, "W in [0, W_MAX]");
+        assert!((0.0..=W_MAX).contains(&w), "W in [0, W_MAX]");
         assert!(ipr > 0.0, "IPR > 0");
         assert!(xi > 0.0, "ξ > 0");
     }

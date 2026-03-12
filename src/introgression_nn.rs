@@ -86,11 +86,8 @@ pub fn detection_metrics(path: &[usize], truth: &[usize]) -> (f64, f64, f64) {
 /// # Errors
 ///
 /// Returns `Err` if JSON structure is unexpected.
-pub fn load_introgression_nn_from_json(
-    json_str: &str,
-) -> Result<IntrogressionNnBaseline, String> {
-    let v: serde_json::Value =
-        serde_json::from_str(json_str).map_err(|e| format!("parse: {e}"))?;
+pub fn load_introgression_nn_from_json(json_str: &str) -> Result<IntrogressionNnBaseline, String> {
+    let v: serde_json::Value = serde_json::from_str(json_str).map_err(|e| format!("parse: {e}"))?;
 
     let hmm_v = &v["hmm"];
     let transition = parse_2d(hmm_v, "transition")?;
@@ -152,7 +149,11 @@ fn parse_usize_array(v: &serde_json::Value, key: &str) -> Result<Vec<usize>, Str
         .as_array()
         .ok_or_else(|| format!("missing {key}"))?
         .iter()
-        .map(|x| x.as_u64().ok_or_else(|| "not u64".to_string()).map(|n| n as usize))
+        .map(|x| {
+            x.as_u64()
+                .ok_or_else(|| "not u64".to_string())
+                .map(|n| n as usize)
+        })
         .collect()
 }
 
@@ -166,7 +167,10 @@ mod tests {
         let obs = vec![0, 0, 0, 2, 2, 2, 0, 0];
         let (path, log_prob) = hmm.viterbi(&obs);
         assert_eq!(path.len(), obs.len());
-        assert!(path[3] == 1 || path[4] == 1, "should detect introgression at obs=2 block");
+        assert!(
+            path[3] == 1 || path[4] == 1,
+            "should detect introgression at obs=2 block"
+        );
         assert!(log_prob.is_finite());
     }
 

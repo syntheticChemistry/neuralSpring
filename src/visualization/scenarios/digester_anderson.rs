@@ -37,8 +37,7 @@ pub fn digester_anderson_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     let alphas = [0.1, 0.3, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0];
 
     for &alpha in &alphas {
-        let (h, _evenness, w, ipr, xi) =
-            community_anderson(n_species, alpha, 20, &mut rng);
+        let (h, _evenness, w, ipr, xi) = community_anderson(n_species, alpha, 20, &mut rng);
         diversities.push(h);
         disorders.push(w);
         iprs.push(ipr);

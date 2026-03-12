@@ -98,10 +98,7 @@ fn validate_likelihood(
     let (_, log_lik_baseline) = hmm_baseline.forward(&baseline.observations);
 
     let rust_llr = 2.0 * (log_lik_introg - log_lik_baseline);
-    eprintln!(
-        "  Rust LLR: {rust_llr:.2}, Python LLR: {:.2}",
-        baseline.llr
-    );
+    eprintln!("  Rust LLR: {rust_llr:.2}, Python LLR: {:.2}", baseline.llr);
 
     h.check_abs("LLR parity", rust_llr, baseline.llr, 2.0);
     h.check_bool("LLR > 0", baseline.llr > 0.0);

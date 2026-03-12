@@ -55,10 +55,7 @@ pub fn disagreement_to_disorder(disagreement: f64, d_min: f64, d_max: f64, w_sca
 pub fn snowdrift_payoff(w_frac: f64) -> [[f64; 2]; 2] {
     let b = 3.0;
     let c = 4.0_f64.mul_add(w_frac, 1.0);
-    [
-        [b - c / 2.0, b - c],
-        [b, 0.0],
-    ]
+    [[b - c / 2.0, b - c], [b, 0.0]]
 }
 
 /// Run replicator dynamics for `n_steps` with given payoff.
@@ -121,8 +118,7 @@ pub fn pearson_r(x: &[f64], y: &[f64]) -> f64 {
 ///
 /// Returns `Err` if the JSON structure is unexpected.
 pub fn load_ensemble_from_json(json_str: &str) -> Result<EnsembleBaseline, String> {
-    let v: serde_json::Value =
-        serde_json::from_str(json_str).map_err(|e| format!("parse: {e}"))?;
+    let v: serde_json::Value = serde_json::from_str(json_str).map_err(|e| format!("parse: {e}"))?;
 
     let grid = &v["grid"];
     let d_stats = &v["disagreement_stats"];

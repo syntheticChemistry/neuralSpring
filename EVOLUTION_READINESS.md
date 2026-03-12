@@ -1,10 +1,11 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 11, 2026 (Session 145 — GPU Infra Evolution Sprint)
+**Date**: March 12, 2026 (Session 146 — Industry GPU Parity + Deep Audit + Doc Evolution)
 **barraCuda**: v0.3.5 at `0649cd0` (`../barraCuda/crates/barracuda`). 719 WGSL shaders, wgpu 28, Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. `PrecisionRoutingAdvice` with `F64NativeNoSharedMem` Ada Lovelace reclassification, `WORKGROUP_SIZE_1D` constant, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Three-tier precision: F32/F64/Df64 (lean 3-tier model, F16+templates removed). Deep debt: typed errors, named constants, `Arc<str>` hot-path, `RwLock` compiler, ring buffer back-off, streaming pipeline completion. **Known issue**: `enable f64;` in WGSL triggers PTXAS silent-zero regression on Ada Lovelace — fix implemented locally in `pipeline_cache.rs`, pending upstream absorption.
 **ToadStool**: S146 at `751b3849`. Hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests. Absorbed neuralSpring `pipeline_graph` DAG + hotSpring `streaming_dispatch`. Dual-write discovery (canonical + coralReef-compatible). `GpuDevice` enrichment (render_node, driver, arch). `gpu.dispatch` + `shader.compile` + `orchestration` capabilities. Compute triangle unblocked. Deep debt, zero-copy.
 **coralReef**: Iteration 33 at `b783217`. NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, 1200+ tests. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2). Three-tier precision architecture: f32 native, f64 DFMA+polynomial lowering, df64 preamble auto-prepend. `Fp64Strategy` in `CompileOptions`. Built-in `df64_preamble.wgsl`. 8 neuralSpring shaders in corpus.
-**neuralSpring**: 1115 lib + 73 forge + 9 integration tests, 258 binaries, 47 modules, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**neuralSpring**: 1115 lib + 73 forge + 9 integration tests, 260 binaries, 47 modules, 0 clippy warnings (pedantic+nursery), 0 doc warnings. All files ≤1000 LOC. AGPL-3.0-or-later. Pure Rust deps (ecoBin compliant).
+**S146**: Industry GPU parity benchmarks — BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT/FlashAttention on RTX 4070 (PyTorch/CUDA control scripts). FFT beats cuFFT at sizes 256–16K (0.19–0.85×). GEMM beats cuBLAS at 2048×2048 (0.16×). Deep audit: provenance accuracy fix, tolerance tightening (GPU_SOFTMAX_SUM_F32 0.01→5e-3), visualization refactor (3-file split, all < 1000 LOC), Clippy pedantic clean. 4 Python control scripts + 1 Rust benchmark binary.
 **S145**: GPU infra evolution sprint — barraCuda v0.3.5 sync, 5 workload rewires (chi², KL, HMM backward, HMM Viterbi, pairwise L2), NUCLEUS pipeline GPU dispatch (eigensolve + attention_anderson via Dispatcher), composition_pipeline() mixed-hardware substrates, 4 GPU experiment binaries (Exp 103-106).
 **S144**: petalTongue composition visualization + NUCLEUS pipeline executor. 5 new scenario builders for composition experiments. `composition_study()` combiner (21 tracks). `composition_pipeline()` 6-stage DAG in metalForge. `nucleus_pipeline.rs` executor implementing Tower→Node→Nest dispatch. `visualize.sh --compositions` mode. 219 files with barracuda imports. V97 handoff.
 **S143**: 5 novel composition experiments (Exp 097–101): digester×Anderson, isomorphic reservoir ensemble, WDM ensemble QS, HMM introgression NN, attention Anderson spectral. Axis 2 complete. V96 handoff.
@@ -436,7 +437,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | Determinism tests | **16 tests** covering all stochastic modules (up from 7) |
 | SPDX headers | All 40 Python/shell files have `AGPL-3.0-or-later` license identifier |
 | Line coverage | **91.66%** line via `cargo llvm-cov` (remaining gap: GPU-only code paths unreachable on CPU) |
-| All files < 1000 LOC | Largest: `validate_barracuda_tensor.rs` at 966 lines |
+| All files < 1000 LOC | Largest bin: `validate_modern_cross_spring.rs` (949), largest lib: `glucose_prediction.rs` (812) |
 | `unsafe` | Forbidden (`#![forbid(unsafe_code)]`) |
 | Mocks/stubs | Zero in production code — zero `todo!`/`unimplemented!` |
 | External dependencies | All pure Rust — zero C/C++ wrapper crates |

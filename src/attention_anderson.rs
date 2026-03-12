@@ -89,8 +89,7 @@ pub fn pearson_r(x: &[f64], y: &[f64]) -> f64 {
 pub fn load_attention_anderson_from_json(
     json_str: &str,
 ) -> Result<AttentionAndersonBaseline, String> {
-    let v: serde_json::Value =
-        serde_json::from_str(json_str).map_err(|e| format!("parse: {e}"))?;
+    let v: serde_json::Value = serde_json::from_str(json_str).map_err(|e| format!("parse: {e}"))?;
 
     let results = v["results"]
         .as_array()

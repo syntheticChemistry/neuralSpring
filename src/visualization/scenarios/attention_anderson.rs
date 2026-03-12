@@ -36,7 +36,6 @@ pub fn attention_anderson_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     let mut entropies = Vec::with_capacity(n_configs);
     let mut ipr_vals = Vec::with_capacity(n_configs);
     let mut xi_vals = Vec::with_capacity(n_configs);
-    
 
     for i in 0..n_configs {
         #[expect(clippy::cast_precision_loss, reason = "i, n_configs ≤ 8")]
@@ -67,7 +66,6 @@ pub fn attention_anderson_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         entropies.push(result.entropy);
         ipr_vals.push(result.mean_ipr);
         xi_vals.push(result.xi);
-        
     }
 
     s.ecosystem.primals.push(node(
@@ -157,10 +155,7 @@ pub fn attention_anderson_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         "compute",
         400.0,
         0.0,
-        &[
-            "science.spectral_analysis",
-            "science.anderson_localization",
-        ],
+        &["science.spectral_analysis", "science.anderson_localization"],
         vec![
             spectrum(
                 "ref-eigenvalues",

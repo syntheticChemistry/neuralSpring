@@ -403,9 +403,9 @@ pub const GPU_SOFTMAX_DISPATCH_F32: f64 = 0.01;
 ///
 /// After exp/sum/div on f32 GPU, the row sum deviates from 1.0 by
 /// `O(n·eps_f32)` where n is the vector length.  For n ≤ 256 this is ~3e-5,
-/// but the f64→f32→f64 round-trip widens the gap.  0.01 is conservative;
-/// observed max deviation ~1e-3 on llvmpipe/NVK backends.
-pub const GPU_SOFTMAX_SUM_F32: f64 = 0.01;
+/// but the f64→f32→f64 round-trip widens the gap.  Observed max
+/// deviation ~1e-3 on llvmpipe/NVK backends; 5e-3 provides 5× margin.
+pub const GPU_SOFTMAX_SUM_F32: f64 = 5e-3;
 
 /// GPU Boltzmann distribution vs CPU max element-wise difference.
 ///

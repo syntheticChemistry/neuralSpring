@@ -4946,4 +4946,46 @@ with real computation, Nest records substrate/timing provenance.
 
 ---
 
+## Session 146 — Industry GPU Parity Benchmarks + Deep Audit + Doc Evolution
+
+**Date**: 2026-03-12
+**Session**: S146
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | Deep audit: provenance accuracy, tolerance tightening, visualization refactor, Clippy pedantic clean |
+| **Phase 2** | Industry GPU benchmark validators: 4 Python control scripts (cuBLAS, cuDNN, cuFFT, FlashAttention) + 1 Rust binary |
+| **Phase 3** | Doc evolution: root docs, CHANGELOG, experiments journal, wateringHole handoff, whitePaper/baseCamp update |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Lib tests | 1115 (unchanged) |
+| Binaries | 258 → 260 (+`bench_industry_gpu_parity`) |
+| Industry benchmark kernels | 31 (9 GEMM + 18 cuDNN + 10 FFT + 3 MHA) |
+| BarraCUDA wins vs CUDA | 9/31 kernels (FFT + GEMM at select scales) |
+
+### Industry GPU Parity Results (RTX 4070, Vulkan vs CUDA)
+
+| Category | BarraCUDA wins | Notable |
+|----------|---------------|---------|
+| **GEMM** | 5/6 scales | 0.16× at 2048², dispatch overhead at 512² |
+| **FFT** | 4/5 scales | 0.19× at 256, WGSL butterfly beats cuFFT |
+| **RFFT** | 0/5 | Structural gap (delegates to Fft1D + copy) |
+| **cuDNN ops** | 0/12 | Dispatch overhead dominates small vectors |
+| **MHA** | 0/3 | FlashAttention fused kernel ~30× faster |
+
+### Exp 107 — Industry GPU Parity Benchmark
+
+**Date**: 2026-03-12
+**Hardware**: RTX 4070 (Vulkan) vs RTX 4070 (CUDA via PyTorch 2.9.0+cu128)
+**Motivation**: Quantify BarraCUDA WGSL competitiveness against industry-standard CUDA libraries
+**Procedure**: Python control scripts invoke PyTorch (cuBLAS/cuDNN/cuFFT) on same GPU; Rust binary runs BarraCUDA equivalents; compare timings and numerical parity
+**Findings**: FFT is a genuine win (WGSL butterfly structure); GEMM competitive at most scales; cuDNN dispatch overhead gap is the primary upstream evolution target
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

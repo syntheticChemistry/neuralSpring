@@ -73,7 +73,11 @@ fn validate_anderson_physics(h: &mut ValidationHarness, baseline: &CouplingBasel
 
     let w_vals: Vec<f64> = baseline.communities.iter().map(|c| c.disorder_w).collect();
     let ipr_vals: Vec<f64> = baseline.communities.iter().map(|c| c.mean_ipr).collect();
-    let xi_vals: Vec<f64> = baseline.communities.iter().map(|c| c.loc_length_xi).collect();
+    let xi_vals: Vec<f64> = baseline
+        .communities
+        .iter()
+        .map(|c| c.loc_length_xi)
+        .collect();
 
     let w_med = median_f64(&w_vals);
 
@@ -104,21 +108,27 @@ fn validate_esn_parity(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
     let pred = &baseline.predictor;
 
     for (i, rp) in baseline.reference_predictions.iter().enumerate() {
-        let y_rust = pred.predict(rp.input[0], rp.input[1], rp.input[2], rp.input[3], rp.input[4]);
-        h.check_abs(
-            &format!("ref {i} ESN parity"),
-            y_rust,
-            rp.esn_yield,
-            1e-6,
+        let y_rust = pred.predict(
+            rp.input[0],
+            rp.input[1],
+            rp.input[2],
+            rp.input[3],
+            rp.input[4],
         );
+        h.check_abs(&format!("ref {i} ESN parity"), y_rust, rp.esn_yield, 1e-6);
     }
 }
 
 fn validate_analytical_parity(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
     eprintln!("\n── Analytical yield parity ──");
     for (i, rp) in baseline.reference_predictions.iter().enumerate() {
-        let y_analytical =
-            biogas_yield(rp.input[0], rp.input[1], rp.input[2], rp.input[3], rp.input[4]);
+        let y_analytical = biogas_yield(
+            rp.input[0],
+            rp.input[1],
+            rp.input[2],
+            rp.input[3],
+            rp.input[4],
+        );
         h.check_abs(
             &format!("ref {i} analytical parity"),
             y_analytical,
@@ -133,7 +143,11 @@ fn validate_coupling(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
 
     let w_vals: Vec<f64> = baseline.communities.iter().map(|c| c.disorder_w).collect();
     let r2_vals: Vec<f64> = baseline.communities.iter().map(|c| c.r2_test).collect();
-    let xi_vals: Vec<f64> = baseline.communities.iter().map(|c| c.loc_length_xi).collect();
+    let xi_vals: Vec<f64> = baseline
+        .communities
+        .iter()
+        .map(|c| c.loc_length_xi)
+        .collect();
 
     let r_w = pearson_r(&w_vals, &r2_vals);
     h.check_bool("Pearson r(W, R²) < 0", r_w < 0.0);
@@ -141,7 +155,12 @@ fn validate_coupling(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
 
     let r_xi = pearson_r(&xi_vals, &r2_vals);
     h.check_bool("Pearson r(ξ, R²) > 0", r_xi > 0.0);
-    h.check_abs("r(ξ, R²) parity", r_xi, baseline.metrics.pearson_xi_r2, 1e-6);
+    h.check_abs(
+        "r(ξ, R²) parity",
+        r_xi,
+        baseline.metrics.pearson_xi_r2,
+        1e-6,
+    );
 
     h.check_bool("|r(W, R²)| > 0.3", r_w.abs() > 0.3);
     h.check_bool("r(ξ, R²) > 0.5", r_xi > 0.5);

@@ -5,7 +5,37 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 145 (March 11, 2026)
+## [Unreleased] — Session 146 (March 12, 2026)
+
+### Session 146 — Industry GPU Parity + Deep Audit (2026-03-12)
+
+**Industry GPU benchmark validators** — BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT/FlashAttention:
+
+- `control/industry_gpu/bench_cuda_common.py`: shared CUDA timing harness
+- `control/industry_gpu/bench_cublas_gemm.py`: SGEMM (6 scales) + DGEMM (3 scales)
+- `control/industry_gpu/bench_cudnn_ops.py`: softmax, layernorm, GELU, conv2d, sigmoid
+- `control/industry_gpu/bench_cufft.py`: FFT/RFFT f32 + f64
+- `control/industry_gpu/bench_flash_attention.py`: MHA at 3 configs
+- `src/bin/bench_industry_gpu_parity.rs`: Rust binary, invokes Python, comparison table
+
+**Key findings** (RTX 4070, Vulkan vs CUDA):
+
+- FFT beats cuFFT at 256–16K (0.19–0.85×)
+- GEMM beats cuBLAS at small scales and 2048×2048 (0.16×)
+- Softmax/GELU/Sigmoid: cuDNN ~7µs vs BarraCUDA ~170µs (dispatch overhead)
+- RFFT: 700–1000× gap (structural, needs upstream fix)
+- MHA: ~30× gap (decomposed vs FlashAttention fused kernel)
+
+**Deep audit**:
+
+- Provenance accuracy: `CPU_PARITY_COMMIT`/`CPU_PARITY_DATE`/`CPU_PARITY_ENVIRONMENT`
+  constants added, test updated for multi-commit validation
+- Tolerance tightening: `GPU_SOFTMAX_SUM_F32` 0.01→5e-3, `SIGMOID_SATURATION` +
+  `GPU_HILL_GATE_F64` added to registry
+- Visualization refactor: `scenarios/mod.rs` (1241 LOC) split into `mod.rs` +
+  `scaffold.rs` + `combiners.rs` — all under 1000 LOC
+- Clippy pedantic clean: `manual_range_contains`, `doc_markdown`, `expect_fun_call`,
+  `semicolon_if_nothing_returned` fixes
 
 ### Session 145 — GPU Infrastructure Evolution Sprint (2026-03-11)
 

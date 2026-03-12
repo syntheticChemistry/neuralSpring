@@ -44,8 +44,7 @@ fn gpu_esn_predict(
     let b_res_f32: Vec<f32> = pred.b_res.iter().map(|&v| v as f32).collect();
     let w_out_f32: Vec<f32> = pred.w_out.iter().map(|&v| v as f32).collect();
 
-    let x_t =
-        Tensor::from_data(&x, vec![1, 5], device.clone()).map_err(|e| format!("x: {e}"))?;
+    let x_t = Tensor::from_data(&x, vec![1, 5], device.clone()).map_err(|e| format!("x: {e}"))?;
     let w_in_t = Tensor::from_data(&w_in_f32, vec![rs, 5], device.clone())
         .map_err(|e| format!("W_in: {e}"))?;
     let w_in_tr = w_in_t.transpose().map_err(|e| format!("W_in^T: {e}"))?;
@@ -67,7 +66,9 @@ fn gpu_esn_predict(
 
     let w_out_t = Tensor::from_data(&w_out_f32, vec![rs, 1], device.clone())
         .map_err(|e| format!("w_out: {e}"))?;
-    let y_t = h2.matmul_ref(&w_out_t).map_err(|e| format!("readout: {e}"))?;
+    let y_t = h2
+        .matmul_ref(&w_out_t)
+        .map_err(|e| format!("readout: {e}"))?;
     let y_vec = y_t.to_vec().map_err(|e| format!("read: {e}"))?;
 
     let y_norm = f64::from(y_vec[0]);
@@ -122,7 +123,11 @@ fn validate_bc_cpu_stats(
 ) {
     let w_vals: Vec<f64> = baseline.communities.iter().map(|c| c.disorder_w).collect();
     let r2_vals: Vec<f64> = baseline.communities.iter().map(|c| c.r2_test).collect();
-    let xi_vals: Vec<f64> = baseline.communities.iter().map(|c| c.loc_length_xi).collect();
+    let xi_vals: Vec<f64> = baseline
+        .communities
+        .iter()
+        .map(|c| c.loc_length_xi)
+        .collect();
 
     let bc_r_w = pearson_r(&w_vals, &r2_vals);
     h.check_abs(

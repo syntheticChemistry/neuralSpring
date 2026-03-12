@@ -8,8 +8,8 @@
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
-use neural_spring::isomorphic_reservoir::load_isomorphic_from_json;
 use neural_spring::gpu::Gpu;
+use neural_spring::isomorphic_reservoir::load_isomorphic_from_json;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
@@ -78,15 +78,17 @@ fn validate_bc_cpu(
     let iprs: Vec<f64> = baseline.spectra.iter().map(|s| s.mean_ipr).collect();
 
     let bc_r2 = barracuda::stats::r_squared(&eff_ratios, &eff_ratios);
-    h.check_abs("bC CPU eff_ratio self-R²", bc_r2, 1.0, tolerances::EXACT_F64);
+    h.check_abs(
+        "bC CPU eff_ratio self-R²",
+        bc_r2,
+        1.0,
+        tolerances::EXACT_F64,
+    );
 
     match barracuda::stats::correlation::pearson_correlation(&eff_ratios, &iprs) {
         Ok(r) => {
             h.check_bool("bC CPU Pearson(eff_ratio, IPR) finite", r.is_finite());
-            h.check_bool(
-                "bC CPU Pearson(eff_ratio, IPR) < 0 (inverse)",
-                r < 0.0,
-            );
+            h.check_bool("bC CPU Pearson(eff_ratio, IPR) < 0 (inverse)", r < 0.0);
         }
         Err(e) => {
             eprintln!("  Pearson error: {e}");
@@ -148,10 +150,11 @@ fn validate_gpu_matmul(
         match mat_t.matmul_ref(&id_t) {
             Ok(result) => {
                 if let Ok(result_vec) = result.to_vec() {
-                    let gpu_trace: f64 =
-                        (0..n).map(|i| f64::from(result_vec[i * n + i])).sum();
+                    let gpu_trace: f64 = (0..n).map(|i| f64::from(result_vec[i * n + i])).sum();
                     let diff = (gpu_trace - cpu_trace).abs();
-                    eprintln!("  {name}: trace CPU={cpu_trace:.4}, GPU={gpu_trace:.4}, diff={diff:.2e}");
+                    eprintln!(
+                        "  {name}: trace CPU={cpu_trace:.4}, GPU={gpu_trace:.4}, diff={diff:.2e}"
+                    );
                     h.check_abs(
                         &format!("{name} GPU trace parity"),
                         gpu_trace,
@@ -185,8 +188,7 @@ fn validate_gpu_cross_domain(
             if let Ok(t_trans) = t.transpose() {
                 if let Ok(product) = t.matmul_ref(&t_trans) {
                     if let Ok(vals) = product.to_vec() {
-                        let trace: f64 =
-                            (0..n).map(|i| f64::from(vals[i * n + i])).sum();
+                        let trace: f64 = (0..n).map(|i| f64::from(vals[i * n + i])).sum();
                         gpu_traces.push(trace);
                     }
                 }

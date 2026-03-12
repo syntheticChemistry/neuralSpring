@@ -10,7 +10,9 @@
 #![expect(clippy::expect_used, reason = "binary entry point")]
 
 use neural_spring::gpu_dispatch::Dispatcher;
-use neural_spring::nucleus_pipeline::{execute_composition_pipeline, execute_composition_pipeline_gpu};
+use neural_spring::nucleus_pipeline::{
+    execute_composition_pipeline, execute_composition_pipeline_gpu,
+};
 use std::time::Instant;
 
 fn main() {
@@ -27,7 +29,10 @@ fn main() {
     let seq_report = execute_composition_pipeline();
     let seq_us = seq_start.elapsed().as_secs_f64() * 1_000_000.0;
     assert!(seq_report.all_passed(), "sequential pipeline should pass");
-    println!("  Total: {seq_us:.1}µs ({} stages)", seq_report.total_stages);
+    println!(
+        "  Total: {seq_us:.1}µs ({} stages)",
+        seq_report.total_stages
+    );
     for result in &seq_report.execution.results {
         println!(
             "    {}: {:.1}µs {:?}",

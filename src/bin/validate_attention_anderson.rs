@@ -80,9 +80,24 @@ fn validate_correlations(
         "  r(q,entropy)={corr_quality_entropy:.4} r(q,ipr)={corr_quality_ipr:.4} r(ent,ipr)={corr_entropy_ipr:.4}"
     );
 
-    h.check_abs("r(quality, entropy)", corr_quality_entropy, baseline.r_quality_entropy, 0.1);
-    h.check_abs("r(quality, ipr)", corr_quality_ipr, baseline.r_quality_ipr, 0.1);
-    h.check_abs("r(entropy, ipr)", corr_entropy_ipr, baseline.r_entropy_ipr, 0.1);
+    h.check_abs(
+        "r(quality, entropy)",
+        corr_quality_entropy,
+        baseline.r_quality_entropy,
+        0.1,
+    );
+    h.check_abs(
+        "r(quality, ipr)",
+        corr_quality_ipr,
+        baseline.r_quality_ipr,
+        0.1,
+    );
+    h.check_abs(
+        "r(entropy, ipr)",
+        corr_entropy_ipr,
+        baseline.r_entropy_ipr,
+        0.1,
+    );
 
     h.check_bool("r(quality, entropy) < 0", baseline.r_quality_entropy < 0.0);
 }

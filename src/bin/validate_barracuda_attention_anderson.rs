@@ -73,7 +73,11 @@ fn validate_gpu(
     device: &Dev,
 ) {
     let n = baseline.reference_n;
-    let mat_f32: Vec<f32> = baseline.reference_matrix.iter().map(|&v| v as f32).collect();
+    let mat_f32: Vec<f32> = baseline
+        .reference_matrix
+        .iter()
+        .map(|&v| v as f32)
+        .collect();
 
     let cpu_trace: f64 = (0..n).map(|i| baseline.reference_matrix[i * n + i]).sum();
 
@@ -109,7 +113,10 @@ fn validate_gpu(
     if let Ok(t1) = Tensor::from_data(&mat_f32, vec![n, n], device.clone()) {
         if let Ok(t2) = Tensor::from_data(&mat_f32, vec![n, n], device.clone()) {
             if let (Ok(v1), Ok(v2)) = (t1.to_vec(), t2.to_vec()) {
-                let same = v1.iter().zip(v2.iter()).all(|(a, b)| (a - b).abs() < f32::EPSILON);
+                let same = v1
+                    .iter()
+                    .zip(v2.iter())
+                    .all(|(a, b)| (a - b).abs() < f32::EPSILON);
                 h.check_bool("GPU deterministic", same);
             } else {
                 h.check_bool("GPU deterministic", false);

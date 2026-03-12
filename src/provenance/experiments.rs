@@ -3,8 +3,9 @@
 //! Provenance records for Phase 0, 0+, 0++ experiments and related baselines.
 
 use super::{
-    BaselineProvenance, BASELINE_COMMIT, BASELINE_DATE, ENVIRONMENT, NS06_BASELINE_DATE,
-    PUBLICATION_BASELINE_DATE, PUBLICATION_ENVIRONMENT,
+    BaselineProvenance, BASELINE_COMMIT, BASELINE_DATE, CPU_PARITY_COMMIT, CPU_PARITY_DATE,
+    CPU_PARITY_ENVIRONMENT, ENVIRONMENT, NS06_BASELINE_DATE, PUBLICATION_BASELINE_DATE,
+    PUBLICATION_ENVIRONMENT,
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -340,13 +341,16 @@ pub const ML_INFERENCE_PROVENANCE: BaselineProvenance = BaselineProvenance {
 };
 
 /// Provenance for CPU math parity baselines (`validate_cpu_math_parity`).
+///
+/// Generated post-baseline-freeze with `NumPy` 2.1.3.  Values are within
+/// `CROSS_LANGUAGE` tolerance of the Phase 0 baselines.
 pub const CPU_PARITY_PROVENANCE: BaselineProvenance = BaselineProvenance {
     label: "CPU Math Parity References (9 primitives + 9 paper kernels)",
     script: "control/generate_cpu_references.py",
-    commit: BASELINE_COMMIT,
-    date: BASELINE_DATE,
+    commit: CPU_PARITY_COMMIT,
+    date: CPU_PARITY_DATE,
     command: "python3 control/generate_cpu_references.py > control/cpu_parity_references.json",
-    environment: ENVIRONMENT,
+    environment: CPU_PARITY_ENVIRONMENT,
     value: 1.0,
     unit: "reference file generated (cpu_parity_references.json)",
 };

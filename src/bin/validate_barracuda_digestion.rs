@@ -103,12 +103,8 @@ fn gpu_esn_predict(
     let input_proj = x_tensor
         .matmul_ref(&w_in_t)
         .map_err(|e| format!("ip: {e}"))?;
-    let res_proj = h1
-        .matmul_ref(&w_res_t)
-        .map_err(|e| format!("rp: {e}"))?;
-    let z2 = input_proj
-        .add(&res_proj)
-        .map_err(|e| format!("z2: {e}"))?;
+    let res_proj = h1.matmul_ref(&w_res_t).map_err(|e| format!("rp: {e}"))?;
+    let z2 = input_proj.add(&res_proj).map_err(|e| format!("z2: {e}"))?;
     let z2b = z2.add(&b_tensor).map_err(|e| format!("z2b: {e}"))?;
     let h2 = z2b.tanh().map_err(|e| format!("h2: {e}"))?;
 
@@ -186,12 +182,22 @@ fn validate_barracuda_cpu_stats(h: &mut ValidationHarness) {
     let rs_r2 = 1.0 - ss_res / ss_tot;
 
     let bc_r2 = barracuda::stats::r_squared(&y_true, &y_pred);
-    h.check_abs("bC CPU R² matches Rust", bc_r2, rs_r2, tolerances::CROSS_LANGUAGE);
+    h.check_abs(
+        "bC CPU R² matches Rust",
+        bc_r2,
+        rs_r2,
+        tolerances::CROSS_LANGUAGE,
+    );
 
-    let rs_var = y_true.iter().map(|v| (v - mean_t).powi(2)).sum::<f64>()
-        / (y_true.len() as f64 - 1.0);
+    let rs_var =
+        y_true.iter().map(|v| (v - mean_t).powi(2)).sum::<f64>() / (y_true.len() as f64 - 1.0);
     match barracuda::stats::correlation::variance(&y_true) {
-        Ok(bc_var) => h.check_abs("bC CPU variance matches Rust", bc_var, rs_var, tolerances::EXACT_F64),
+        Ok(bc_var) => h.check_abs(
+            "bC CPU variance matches Rust",
+            bc_var,
+            rs_var,
+            tolerances::EXACT_F64,
+        ),
         Err(e) => {
             eprintln!("  bC variance failed: {e}");
             h.check_bool("bC CPU variance", false);
@@ -229,14 +235,9 @@ fn validate_gpu_esn(h: &mut ValidationHarness, pred: &DigestionPredictor, device
         match gpu_result {
             Ok((gpu_pred, gpu_h)) => {
                 let diff = (gpu_pred - cpu_pred).abs();
-                eprintln!(
-                    "  {desc}: CPU={cpu_pred:.2}, GPU={gpu_pred:.2}, diff={diff:.2e}"
-                );
+                eprintln!("  {desc}: CPU={cpu_pred:.2}, GPU={gpu_pred:.2}, diff={diff:.2e}");
 
-                h.check_bool(
-                    &format!("GPU finite ({desc})"),
-                    gpu_pred.is_finite(),
-                );
+                h.check_bool(&format!("GPU finite ({desc})"), gpu_pred.is_finite());
                 h.check_abs(
                     &format!("GPU yield vs CPU ({desc})"),
                     gpu_pred,

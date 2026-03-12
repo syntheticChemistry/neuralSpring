@@ -65,6 +65,20 @@ pub const PUBLICATION_BASELINE_DATE: &str = "2026-02-26";
 /// Extended experiments ran after the Phase 0 baseline freeze.
 pub const NS06_BASELINE_DATE: &str = "2026-03-02";
 
+/// Pinned commit for CPU parity references (generated post-baseline freeze).
+///
+/// `cpu_parity_references.json` was regenerated on 2026-03-05 at a later
+/// commit than the Phase 0 baseline freeze.  `NumPy` 2.1.3 (vs 2.2.6 for
+/// Phase 0).  Values are stable: cross-language tolerance (`CROSS_LANGUAGE`)
+/// absorbs the version difference.
+pub const CPU_PARITY_COMMIT: &str = "359fc1d815791e8269904484ffd76e3d10f2bba6";
+
+/// Pinned date for CPU parity references.
+pub const CPU_PARITY_DATE: &str = "2026-03-05";
+
+/// Environment for CPU parity references.
+pub const CPU_PARITY_ENVIRONMENT: &str = "Python 3.10.12, NumPy 2.1.3";
+
 /// Pinned environment for publication experiment baselines.
 pub const PUBLICATION_ENVIRONMENT: &str = "Python 3.12, PyTorch 2.9.0+cu128, NumPy, seed=42";
 
@@ -178,12 +192,18 @@ mod tests {
             &IMMUNOLOGICAL_ANDERSON_PROVENANCE,
             &IMMUNOLOGICAL_ANDERSON_EXTENDED_PROVENANCE,
         ];
+        let valid_commits = [BASELINE_COMMIT, CPU_PARITY_COMMIT];
         for p in records {
             assert!(!p.label.is_empty(), "empty label: {}", p.script);
             assert!(!p.script.is_empty());
             assert!(!p.date.is_empty());
             assert!(!p.command.is_empty());
-            assert_eq!(p.commit, BASELINE_COMMIT);
+            assert!(
+                valid_commits.contains(&p.commit),
+                "{}: commit {} not in valid set",
+                p.label,
+                p.commit,
+            );
         }
     }
 

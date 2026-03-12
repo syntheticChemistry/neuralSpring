@@ -7,6 +7,7 @@
 //! can render them directly.
 
 mod attention_anderson;
+mod combiners;
 mod coordination;
 mod digester_anderson;
 mod folding;
@@ -21,6 +22,7 @@ mod kokkos_parity;
 mod loss_landscape;
 mod population;
 mod provenance;
+pub(crate) mod scaffold;
 mod search_results;
 mod spectral;
 mod streaming_io;
@@ -28,12 +30,8 @@ mod training;
 mod wdm;
 mod wdm_ensemble_qs;
 
-use super::types::{
-    Animations, CapReqs, DataChannel, Ecosystem, NeuralApi, NeuralScenario, Performance, Position,
-    ScenarioEdge, ScenarioNode, SensoryConfig, ThresholdRange, UiConfig,
-};
-
 pub use attention_anderson::attention_anderson_study;
+pub use combiners::{composition_study, full_study, scenario_with_edges_json};
 pub use coordination::coordination_study;
 pub use digester_anderson::digester_anderson_study;
 pub use folding::folding_study;
@@ -55,507 +53,21 @@ pub use training::training_study;
 pub use wdm::wdm_study;
 pub use wdm_ensemble_qs::wdm_ensemble_qs_study;
 
-fn scaffold(name: &str, description: &str) -> NeuralScenario {
-    NeuralScenario {
-        name: name.into(),
-        description: description.into(),
-        version: "1.0.0".into(),
-        mode: "research".into(),
-        sensory_config: SensoryConfig {
-            required_capabilities: CapReqs {
-                outputs: vec!["visual".into()],
-                inputs: vec![],
-            },
-            optional_capabilities: CapReqs {
-                outputs: vec!["audio".into()],
-                inputs: vec!["pointer".into(), "keyboard".into()],
-            },
-            complexity_hint: "standard".into(),
-        },
-        ui_config: UiConfig {
-            theme: crate::config::PETALTONGUE_THEME.into(),
-            animations: Animations {
-                enabled: true,
-                breathing_nodes: true,
-                connection_pulses: true,
-                smooth_transitions: true,
-                celebration_effects: false,
-            },
-            performance: Performance {
-                target_fps: 60,
-                vsync: true,
-                hardware_acceleration: true,
-            },
-            show_panels: None,
-            awakening_enabled: Some(true),
-            initial_zoom: None,
-        },
-        ecosystem: Ecosystem { primals: vec![] },
-        neural_api: NeuralApi { enabled: false },
-        edges: Vec::new(),
-    }
-}
-
-#[expect(
-    clippy::too_many_arguments,
-    reason = "internal helper — all args have clear roles"
-)]
-pub(crate) fn gauge(
-    id: &str,
-    label: &str,
-    value: f64,
-    min: f64,
-    max: f64,
-    unit: &str,
-    normal: [f64; 2],
-    warn: [f64; 2],
-) -> DataChannel {
-    DataChannel::Gauge {
-        id: id.into(),
-        label: label.into(),
-        value,
-        min,
-        max,
-        unit: unit.into(),
-        normal_range: normal,
-        warning_range: warn,
-    }
-}
-
-pub(crate) fn timeseries(
-    id: &str,
-    label: &str,
-    x_label: &str,
-    y_label: &str,
-    unit: &str,
-    xs: Vec<f64>,
-    ys: Vec<f64>,
-) -> DataChannel {
-    DataChannel::TimeSeries {
-        id: id.into(),
-        label: label.into(),
-        x_label: x_label.into(),
-        y_label: y_label.into(),
-        unit: unit.into(),
-        x_values: xs,
-        y_values: ys,
-    }
-}
-
-pub(crate) fn bar(
-    id: &str,
-    label: &str,
-    cats: Vec<String>,
-    vals: Vec<f64>,
-    unit: &str,
-) -> DataChannel {
-    DataChannel::Bar {
-        id: id.into(),
-        label: label.into(),
-        categories: cats,
-        values: vals,
-        unit: unit.into(),
-    }
-}
-
-pub(crate) fn spectrum(
-    id: &str,
-    label: &str,
-    unit: &str,
-    frequencies: Vec<f64>,
-    amplitudes: Vec<f64>,
-) -> DataChannel {
-    DataChannel::Spectrum {
-        id: id.into(),
-        label: label.into(),
-        frequencies,
-        amplitudes,
-        unit: unit.into(),
-    }
-}
-
-pub(crate) fn scatter3d(
-    id: &str,
-    label: &str,
-    unit: &str,
-    x: Vec<f64>,
-    y: Vec<f64>,
-    z: Vec<f64>,
-    point_labels: Vec<String>,
-) -> DataChannel {
-    DataChannel::Scatter3D {
-        id: id.into(),
-        label: label.into(),
-        x,
-        y,
-        z,
-        point_labels,
-        unit: unit.into(),
-    }
-}
-
-pub(crate) fn heatmap(
-    id: &str,
-    label: &str,
-    x_labels: Vec<String>,
-    y_labels: Vec<String>,
-    values: Vec<f64>,
-    unit: &str,
-) -> DataChannel {
-    DataChannel::Heatmap {
-        id: id.into(),
-        label: label.into(),
-        x_labels,
-        y_labels,
-        values,
-        unit: unit.into(),
-    }
-}
-
-pub(crate) fn distribution(
-    id: &str,
-    label: &str,
-    unit: &str,
-    values: Vec<f64>,
-    mean: f64,
-    std: f64,
-    comparison_value: f64,
-) -> DataChannel {
-    DataChannel::Distribution {
-        id: id.into(),
-        label: label.into(),
-        unit: unit.into(),
-        values,
-        mean,
-        std,
-        comparison_value,
-    }
-}
-
-pub(crate) fn fieldmap(
-    id: &str,
-    label: &str,
-    grid_x: Vec<f64>,
-    grid_y: Vec<f64>,
-    values: Vec<f64>,
-    unit: &str,
-) -> DataChannel {
-    DataChannel::FieldMap {
-        id: id.into(),
-        label: label.into(),
-        grid_x,
-        grid_y,
-        values,
-        unit: unit.into(),
-    }
-}
-
-#[expect(
-    clippy::too_many_arguments,
-    reason = "internal helper — all args have clear roles"
-)]
-pub(crate) fn node(
-    id: &str,
-    name: &str,
-    node_type: &str,
-    x: f64,
-    y: f64,
-    caps: &[&str],
-    channels: Vec<DataChannel>,
-    thresholds: Vec<ThresholdRange>,
-) -> ScenarioNode {
-    ScenarioNode {
-        id: id.into(),
-        name: name.into(),
-        node_type: node_type.into(),
-        family: crate::config::PRIMAL_FAMILY.into(),
-        status: "healthy".into(),
-        health: 100,
-        confidence: 95,
-        position: Position { x, y },
-        capabilities: caps.iter().map(|s| (*s).into()).collect(),
-        data_channels: channels,
-        thresholds,
-    }
-}
-
-pub(crate) fn edge(from: &str, to: &str, label: &str) -> ScenarioEdge {
-    ScenarioEdge {
-        from: from.into(),
-        to: to.into(),
-        edge_type: "data-flow".into(),
-        label: label.into(),
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Full Study (all 5 tracks combined)
-// ---------------------------------------------------------------------------
-
-/// Build a combined all-tracks scenario for the complete neuralSpring study.
-///
-/// Merges all 21 tracks into a single graph with cross-track edges: the
-/// original 16 tracks plus 5 novel composition experiments.
-#[must_use]
-pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
-    let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
-        spectral_study(),
-        training_study(),
-        coordination_study(),
-        provenance_study(),
-        folding_study(),
-        hmm_study(),
-        game_theory_study(),
-        wdm_study(),
-        glucose_study(),
-        immunological_study(),
-        population_study(),
-        loss_landscape_study(),
-        search_study(),
-        streaming_io_study(),
-        kokkos_parity_study(),
-        industry_coverage_study(),
-        digester_anderson_study(),
-        isomorphic_reservoir_study(),
-        wdm_ensemble_qs_study(),
-        introgression_nn_study(),
-        attention_anderson_study(),
-    ];
-
-    let mut s = scaffold(
-        "neuralSpring Complete Study",
-        "All 21 tracks: 16 original + 5 novel compositions (Digester×Anderson, \
-         Isomorphic Reservoir, WDM Ensemble QS, HMM Introgression NN, Attention Anderson)",
-    );
-
-    let offsets: [(f64, f64); 21] = [
-        (0.0, 0.0),
-        (0.0, 500.0),
-        (600.0, 0.0),
-        (600.0, 500.0),
-        (300.0, 800.0),
-        (900.0, 0.0),
-        (900.0, 500.0),
-        (1200.0, 0.0),
-        (1200.0, 500.0),
-        (1500.0, 0.0),
-        (1500.0, 500.0),
-        (300.0, 1200.0),
-        (1800.0, 0.0),
-        (1800.0, 500.0),
-        (2100.0, 0.0),
-        (2100.0, 500.0),
-        // Composition experiments — row below
-        (0.0, 1600.0),
-        (600.0, 1600.0),
-        (1200.0, 1600.0),
-        (1800.0, 1600.0),
-        (2400.0, 1600.0),
-    ];
-
-    let mut all_edges = Vec::new();
-    for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
-        for mut n in track.ecosystem.primals {
-            n.position.x += offset.0;
-            n.position.y += offset.1;
-            s.ecosystem.primals.push(n);
-        }
-        all_edges.append(&mut edges);
-    }
-
-    all_edges.extend(cross_track_edges());
-
-    (s, all_edges)
-}
-
-/// Build the composition-only study: all 5 novel experiments in one graph.
-///
-/// Shows the isomorphic connections between composition experiments and links
-/// back to the foundational spectral and HMM tracks they compose.
-#[must_use]
-pub fn composition_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
-    let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
-        digester_anderson_study(),
-        isomorphic_reservoir_study(),
-        wdm_ensemble_qs_study(),
-        introgression_nn_study(),
-        attention_anderson_study(),
-    ];
-
-    let mut s = scaffold(
-        "neuralSpring Novel Compositions",
-        "5 composition experiments: Digester×Anderson coupling, Isomorphic reservoir \
-         ensemble, WDM ensemble quorum sensing, HMM introgression on NN layers, \
-         Attention Anderson spectral analysis",
-    );
-
-    let offsets: [(f64, f64); 5] = [
-        (0.0, 0.0),
-        (600.0, 0.0),
-        (1200.0, 0.0),
-        (0.0, 600.0),
-        (600.0, 600.0),
-    ];
-
-    let mut all_edges = Vec::new();
-    for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
-        for mut n in track.ecosystem.primals {
-            n.position.x += offset.0;
-            n.position.y += offset.1;
-            s.ecosystem.primals.push(n);
-        }
-        all_edges.append(&mut edges);
-    }
-
-    all_edges.extend(composition_cross_edges());
-
-    (s, all_edges)
-}
-
-/// Edges linking composition experiments to each other via shared physics.
-fn composition_cross_edges() -> Vec<ScenarioEdge> {
-    vec![
-        edge(
-            "anderson_coupling",
-            "anderson_phase",
-            "shared Anderson physics",
-        ),
-        edge(
-            "reservoir_spectral",
-            "attention_quality",
-            "shared spectral analysis",
-        ),
-        edge(
-            "nn_observations",
-            "reservoir_spectral",
-            "NN weights → spectral universality",
-        ),
-        edge(
-            "ensemble_disagreement",
-            "digester_community",
-            "surrogate variance ↔ community diversity",
-        ),
-    ]
-}
-
-/// Inter-track edges that connect nodes across different study tracks.
-fn cross_track_edges() -> Vec<ScenarioEdge> {
-    vec![
-        edge(
-            "spectral_analysis",
-            "training_trajectory",
-            "spectral diagnostics → training",
-        ),
-        edge(
-            "spectral_analysis",
-            "agent_coordination",
-            "spectral theory → multi-agent",
-        ),
-        edge(
-            "spectral_analysis",
-            "folding_primitives",
-            "spectral metrics inform folding",
-        ),
-        edge(
-            "shader_provenance",
-            "spectral_analysis",
-            "shaders implement spectral ops",
-        ),
-        edge(
-            "hessian_analysis",
-            "spectral_analysis",
-            "loss Hessian ↔ weight spectra",
-        ),
-        edge(
-            "hmm_forward",
-            "meta_pop",
-            "phylogenetics → population structure",
-        ),
-        edge(
-            "replicator_dynamics",
-            "qs_cooperation",
-            "classical → spatial dynamics",
-        ),
-        edge(
-            "glucose_prediction",
-            "training_trajectory",
-            "LSTM training → glucose forecast",
-        ),
-        edge(
-            "immuno_anderson",
-            "wdm_transport",
-            "Anderson localization ↔ WDM transport",
-        ),
-        edge(
-            "fastq_quality",
-            "search_pipeline",
-            "parsed reads → BLAST search",
-        ),
-        edge(
-            "fasta_lengths",
-            "kmer_index",
-            "FASTA database → k-mer index",
-        ),
-        edge(
-            "parity_overview",
-            "coverage_overview",
-            "GPU performance → industry readiness",
-        ),
-        // Composition experiments ↔ foundation tracks
-        edge(
-            "anderson_sweep",
-            "digester_community",
-            "Anderson theory → digester coupling",
-        ),
-        edge(
-            "spectral_analysis",
-            "reservoir_spectral",
-            "spectral methods → isomorphic thesis",
-        ),
-        edge(
-            "wdm_transport",
-            "ensemble_disagreement",
-            "WDM surrogates → ensemble QS",
-        ),
-        edge(
-            "hmm_forward",
-            "nn_observations",
-            "HMM phylo → NN introgression",
-        ),
-        edge(
-            "spectral_analysis",
-            "attention_quality",
-            "Anderson theory → attention spectral",
-        ),
-    ]
-}
-
-/// Serialize a scenario + edges to pretty JSON.
-///
-/// Edges are merged into the scenario's `edges` field for a single JSON output.
-///
-/// # Panics
-///
-/// Cannot panic — all types implement `Serialize`.
-#[must_use]
-pub fn scenario_with_edges_json(scenario: &NeuralScenario, edges: &[ScenarioEdge]) -> String {
-    let mut merged = scenario.clone();
-    merged.edges.extend_from_slice(edges);
-    serde_json::to_string_pretty(&merged).unwrap_or_default()
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+// Re-export scaffold helpers for sub-modules.
+pub(crate) use scaffold::{
+    bar, distribution, edge, fieldmap, gauge, heatmap, node, scaffold, scatter3d, spectrum,
+    timeseries,
+};
 
 #[cfg(test)]
 #[expect(clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;
+    use crate::visualization::types::DataChannel;
 
     fn assert_study_invariants(
-        scenario: &NeuralScenario,
-        edges: &[ScenarioEdge],
+        scenario: &crate::visualization::types::NeuralScenario,
+        edges: &[crate::visualization::types::ScenarioEdge],
         expected_node_ids: &[&str],
         min_edge_count: usize,
     ) {
@@ -576,7 +88,10 @@ mod tests {
         );
     }
 
-    fn assert_json_roundtrips(scenario: &NeuralScenario, edges: &[ScenarioEdge]) {
+    fn assert_json_roundtrips(
+        scenario: &crate::visualization::types::NeuralScenario,
+        edges: &[crate::visualization::types::ScenarioEdge],
+    ) {
         let json = scenario_with_edges_json(scenario, edges);
         let parsed: serde_json::Value = serde_json::from_str(&json).expect("JSON must be valid");
         assert!(parsed.get("name").is_some());
@@ -740,153 +255,6 @@ mod tests {
     }
 
     #[test]
-    fn full_study_all_nodes() {
-        let (scenario, edges) = full_study();
-        let ids: std::collections::HashSet<&str> = scenario
-            .ecosystem
-            .primals
-            .iter()
-            .map(|n| n.id.as_str())
-            .collect();
-
-        assert!(ids.contains("anderson_sweep"));
-        assert!(ids.contains("spectral_analysis"));
-        assert!(ids.contains("hessian_eigen"));
-        assert!(ids.contains("training_trajectory"));
-        assert!(ids.contains("agent_coordination"));
-        assert!(ids.contains("shader_provenance"));
-        assert!(ids.contains("folding_primitives"));
-        assert!(ids.contains("search_pipeline"));
-        assert!(ids.contains("kmer_index"));
-        assert!(ids.contains("fastq_quality"));
-        assert!(ids.contains("fasta_lengths"));
-        assert!(ids.contains("vcf_variants"));
-        assert!(ids.contains("parity_overview"));
-        assert!(ids.contains("coverage_overview"));
-
-        assert_eq!(
-            ids.len(),
-            scenario.ecosystem.primals.len(),
-            "no duplicate IDs"
-        );
-        assert!(edges.len() >= 17, "full study should have >= 17 edges (12 original + 5 composition cross)");
-    }
-
-    #[test]
-    fn full_study_cross_track_edges() {
-        let (_, edges) = full_study();
-        let edge_pairs: std::collections::HashSet<(String, String)> = edges
-            .iter()
-            .map(|e| (e.from.clone(), e.to.clone()))
-            .collect();
-        assert!(
-            edge_pairs.contains(&("spectral_analysis".into(), "training_trajectory".into())),
-            "cross-track: spectral → training"
-        );
-        assert!(
-            edge_pairs.contains(&("spectral_analysis".into(), "agent_coordination".into())),
-            "cross-track: spectral → coordination"
-        );
-        assert!(
-            edge_pairs.contains(&("shader_provenance".into(), "spectral_analysis".into())),
-            "cross-track: provenance → spectral"
-        );
-    }
-
-    #[test]
-    fn full_study_json_roundtrips() {
-        let (scenario, edges) = full_study();
-        assert_json_roundtrips(&scenario, &edges);
-    }
-
-    #[test]
-    fn scaffold_structure() {
-        let (scenario, _) = spectral_study();
-        assert!(!scenario.name.is_empty());
-        assert!(!scenario.description.is_empty());
-        assert_eq!(scenario.version, "1.0.0");
-        assert_eq!(scenario.mode, "research");
-        assert!(scenario.ui_config.theme.contains("neural"));
-        assert!(!scenario.neural_api.enabled);
-    }
-
-    #[test]
-    fn scenario_with_edges_json_valid() {
-        let (scenario, edges) = spectral_study();
-        let json = scenario_with_edges_json(&scenario, &edges);
-        let parsed: serde_json::Value = serde_json::from_str(&json).expect("valid JSON");
-        assert!(parsed["name"].as_str().is_some());
-        assert!(parsed["ecosystem"]["primals"].is_array());
-        assert!(parsed["edges"].is_array());
-        assert_eq!(parsed["edges"].as_array().expect("edges").len(), 2);
-    }
-
-    #[test]
-    fn gauge_produces_gauge_channel() {
-        let ch = super::gauge(
-            "g1",
-            "Test",
-            50.0,
-            0.0,
-            100.0,
-            "u",
-            [20.0, 80.0],
-            [10.0, 20.0],
-        );
-        assert!(matches!(ch, DataChannel::Gauge { .. }));
-    }
-
-    #[test]
-    fn timeseries_produces_timeseries_channel() {
-        let ch = super::timeseries("ts1", "T", "X", "Y", "u", vec![1.0], vec![2.0]);
-        assert!(matches!(ch, DataChannel::TimeSeries { .. }));
-    }
-
-    #[test]
-    fn bar_produces_bar_channel() {
-        let ch = super::bar("b1", "B", vec!["A".into()], vec![1.0], "u");
-        assert!(matches!(ch, DataChannel::Bar { .. }));
-    }
-
-    #[test]
-    fn spectrum_produces_spectrum_channel() {
-        let ch = super::spectrum("s1", "S", "u", vec![1.0], vec![2.0]);
-        assert!(matches!(ch, DataChannel::Spectrum { .. }));
-    }
-
-    #[test]
-    fn scatter3d_produces_scatter3d_channel() {
-        let ch = super::scatter3d(
-            "sc1",
-            "SC",
-            "u",
-            vec![1.0],
-            vec![2.0],
-            vec![3.0],
-            vec!["a".into()],
-        );
-        assert!(matches!(ch, DataChannel::Scatter3D { .. }));
-    }
-
-    #[test]
-    fn node_produces_scenario_node() {
-        let n = super::node("n1", "N", "compute", 10.0, 20.0, &["cap1"], vec![], vec![]);
-        assert_eq!(n.id, "n1");
-        assert_eq!(n.family, crate::config::PRIMAL_FAMILY);
-        assert_eq!(n.health, 100);
-    }
-
-    #[test]
-    fn edge_produces_scenario_edge() {
-        let e = super::edge("a", "b", "test");
-        assert_eq!(e.from, "a");
-        assert_eq!(e.to, "b");
-        assert_eq!(e.edge_type, "data-flow");
-    }
-
-    // ── New scenario builder tests (S138+) ───────────────────────────────
-
-    #[test]
     fn search_study_structure() {
         let (scenario, edges) = search_study();
         assert_study_invariants(
@@ -1027,8 +395,6 @@ mod tests {
         assert_json_roundtrips(&scenario, &edges);
     }
 
-    // ── Composition experiment tests (S143) ────────────────────────────────
-
     #[test]
     fn digester_anderson_study_structure() {
         let (scenario, edges) = digester_anderson_study();
@@ -1132,12 +498,7 @@ mod tests {
     #[test]
     fn introgression_nn_study_structure() {
         let (scenario, edges) = introgression_nn_study();
-        assert_study_invariants(
-            &scenario,
-            &edges,
-            &["nn_observations", "hmm_detection"],
-            1,
-        );
+        assert_study_invariants(&scenario, &edges, &["nn_observations", "hmm_detection"], 1);
     }
 
     #[test]
@@ -1195,47 +556,5 @@ mod tests {
     fn attention_anderson_study_json_roundtrips() {
         let (scenario, edges) = attention_anderson_study();
         assert_json_roundtrips(&scenario, &edges);
-    }
-
-    #[test]
-    fn composition_study_structure() {
-        let (scenario, edges) = composition_study();
-        let ids: std::collections::HashSet<&str> = scenario
-            .ecosystem
-            .primals
-            .iter()
-            .map(|n| n.id.as_str())
-            .collect();
-
-        assert!(ids.contains("digester_community"));
-        assert!(ids.contains("reservoir_spectral"));
-        assert!(ids.contains("ensemble_disagreement"));
-        assert!(ids.contains("nn_observations"));
-        assert!(ids.contains("attention_quality"));
-        assert_eq!(ids.len(), scenario.ecosystem.primals.len(), "no duplicate IDs");
-        assert!(edges.len() >= 10, "composition study should have >= 10 edges");
-    }
-
-    #[test]
-    fn composition_study_json_roundtrips() {
-        let (scenario, edges) = composition_study();
-        assert_json_roundtrips(&scenario, &edges);
-    }
-
-    #[test]
-    fn full_study_includes_composition_nodes() {
-        let (scenario, _) = full_study();
-        let ids: std::collections::HashSet<&str> = scenario
-            .ecosystem
-            .primals
-            .iter()
-            .map(|n| n.id.as_str())
-            .collect();
-
-        assert!(ids.contains("digester_community"), "full study has digester");
-        assert!(ids.contains("reservoir_spectral"), "full study has reservoir");
-        assert!(ids.contains("ensemble_disagreement"), "full study has ensemble");
-        assert!(ids.contains("nn_observations"), "full study has introgression");
-        assert!(ids.contains("attention_quality"), "full study has attention");
     }
 }

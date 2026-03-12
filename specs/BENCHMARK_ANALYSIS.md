@@ -320,7 +320,7 @@ Pure GPU pipeline (scalar-only readback, Session 74: 10/10 PASS)
 | Framework | Scope | Status | Owner |
 |-----------|-------|--------|-------|
 | **Kokkos** (Sandia/DOE) | CUDA ↔ BarraCUDA WGSL kernel parity | **NOT PRESENT** — referenced doc does not exist | ToadStool/BarraCUDA team |
-| **cuBLAS/cuDNN** | Dense linear algebra, convolution, FFT | **NOT PRESENT** — no direct comparison exists | ToadStool/BarraCUDA team |
+| **cuBLAS/cuDNN/cuFFT** | Dense linear algebra, convolution, FFT | **PRESENT** — `bench_industry_gpu_parity` (BarraCUDA WGSL vs PyTorch/CUDA) | neuralSpring |
 | **Galaxy** (bioinformatics) | Genomics pipeline throughput | **NOT APPLICABLE** — Galaxy is a workflow engine, not a compute kernel | N/A |
 | **Polybench** | Computational kernel suite (BLAS, stencils) | **NOT PRESENT** — standardized benchmark suite not yet run | ToadStool/BarraCUDA team |
 | **oneDNN** (Intel) | ML inference kernel comparison | **NOT PRESENT** | ToadStool/BarraCUDA team |
@@ -349,3 +349,36 @@ kernels in `bench_upstream_vs_local` (BatchFitness, PairwiseHamming,
 PairwiseJaccard, LocusVariance, SpatialPayoff, BatchIPR, HillGate,
 MultiObjFitness, PairwiseL2, SwarmNN). Publish results to
 `wateringHole/BARRACUDA_KOKKOS_GPU_BENCHMARK_RESULTS.md`.
+
+### Industry GPU Parity Results (RTX 4070, Vulkan)
+
+`cargo run --release --bin bench_industry_gpu_parity -- --with-python`
+
+**BarraCUDA wins (ratio < 1.0):**
+
+| Kernel | BarraCUDA µs | CUDA µs | Ratio |
+|--------|-------------|---------|-------|
+| SGEMM 64 | 12.6 | 38.4 | 0.33× |
+| SGEMM 128 | 13.3 | 33.9 | 0.39× |
+| SGEMM 256 | 15.1 | 31.2 | 0.48× |
+| SGEMM 1024 | 102.2 | 140.2 | 0.73× |
+| SGEMM 2048 | 176.8 | 1135.6 | 0.16× |
+| FFT 256 | 2.2 | 11.9 | 0.19× |
+| FFT 1024 | 2.7 | 11.8 | 0.23× |
+| FFT 4096 | 4.9 | 12.2 | 0.40× |
+| FFT 16384 | 14.0 | 16.4 | 0.85× |
+
+**Key findings:**
+
+- **GEMM**: BarraCUDA wins at small scales (dispatch overhead dominates for
+  cuBLAS) and at 2048×2048 (evolved tiled kernel). cuBLAS wins at 512×512.
+- **FFT**: BarraCUDA WGSL butterfly FFT beats cuFFT at all sizes up to 16K.
+  cuFFT catches up at 65K due to optimized radix-mixed plans.
+- **RFFT**: Known structural gap — `Rfft` delegates to `Fft1D` with extra
+  copy overhead. Upstream BarraCUDA fix needed.
+- **Softmax/GELU/Sigmoid**: cuDNN has ~7 µs constant-time kernels; BarraCUDA
+  dispatch overhead dominates at small sizes. Upstream optimization needed.
+- **MHA**: FlashAttention/cuDNN fused attention is ~30× faster. Expected —
+  BarraCUDA MHA uses decomposed matmul+split+concat vs fused kernel.
+
+Python control scripts: `control/industry_gpu/bench_*.py` (PyTorch 2.9.0+cu128).

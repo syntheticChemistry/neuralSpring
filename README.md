@@ -44,18 +44,18 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
-**S145: GPU infrastructure evolution sprint — barraCuda v0.3.5 + NUCLEUS GPU dispatch + 4 GPU experiments.**
-5 workload rewires (FusedChiSquaredGpu, FusedKlDivergenceGpu, hmm_backward, hmm_viterbi, PairwiseL2Gpu matrix).
-NUCLEUS pipeline GPU dispatch (eigensolve + attention_anderson via Dispatcher).
-4 GPU experiments: Exp 103 (eigensolve pipeline), Exp 104 (batched spectral), Exp 105 (sovereign compile), Exp 106 (mixed-hardware composition).
-1115 lib tests, 73 forge tests, 9 integration tests, 0 clippy, 47 modules, 258 binaries.
+**S146: Industry GPU parity benchmarks + deep audit + doc evolution.**
+Industry GPU benchmark validators: BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT/FlashAttention (PyTorch/CUDA on RTX 4070).
+BarraCUDA FFT beats cuFFT at sizes 256–16K (0.19–0.85×). GEMM beats cuBLAS at small and large scales.
+Deep audit: provenance fix, tolerance tightening, visualization refactor (all files < 1000 LOC), Clippy pedantic clean.
+1115 lib tests, 73 forge tests, 9 integration tests, 0 clippy, 47 modules, 260 binaries.
 
 **barraCuda v0.3.5** at `0649cd0` (standalone, extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 `ReduceScalarPipeline` f64 fix, `BatchedComputeDispatch`, `CoralReefDevice`, `FmaPolicy`, `tridiag_eigh_gpu`, 36 tolerances.
 25 absorbed workloads (was 20), 1 local workload remaining. 219 files with barracuda imports, 45+ submodules exercised.
 42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
 1115 lib tests, 80+ named tolerances (centralized registry with justifications), 0 clippy warnings (pedantic+nursery, `--all-features`), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
-258 validation/bench binaries, 47 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1115 lib + 9 integration + 73 forge tests.
+260 validation/bench binaries, 47 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1115 lib + 9 integration + 73 forge tests.
 **toadStool** S146 at `751b3849`. **coralReef** Iteration 33 at `b783217` (46/46 sovereign compile).
 **CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. 92% line coverage (llvm-cov).
 **coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.

@@ -395,10 +395,24 @@ pub const PINN_FD_RESIDUAL_MAX: f64 = 10.0;
 /// Seasonal temperature model annual mean (DC offset ≈ 8.5°C).
 ///
 /// The synthetic cosine model `T(d) = 8.5 - 17·cos(2πd/365)` has
-/// mean 8.5°C.  Tolerance 0.5°C for discrete sampling (365 points).
+/// analytical mean 8.5°C over a continuous period.  Discrete sampling
+/// at 365 points introduces a residual `O(1/N)` bias from the
+/// trapezoidal-rule approximation of cos over one period.
+///
+/// Provenance: `control/sequence/sequence_forecasting.py` (seed=42,
+/// `BASELINE_COMMIT`).  Analytical derivation: `∫₀¹ cos(2πt) dt = 0`,
+/// so the mean of `8.5 - 17·cos` is exactly 8.5.
 pub const SEASONAL_ANNUAL_MEAN: f64 = 8.5;
 
 /// Seasonal temperature model mean tolerance.
+///
+/// 0.5°C accounts for discrete-sampling bias (365 points) and any
+/// floating-point accumulation in the mean computation.  Observed
+/// deviation from analytical 8.5°C is < 0.05°C; the 0.5°C margin
+/// is conservative to accommodate alternative sampling resolutions.
+///
+/// Provenance: `control/sequence/sequence_forecasting.py` (seed=42,
+/// `BASELINE_COMMIT`).
 pub const SEASONAL_ANNUAL_MEAN_TOL: f64 = 0.5;
 
 /// Spectral theory: Jacobi (dense) vs Sturm bisection (tridiag)

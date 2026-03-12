@@ -6,10 +6,10 @@
 //! localization → QS cooperation dynamics.
 
 use crate::rng::Rng;
+use crate::visualization::types::{NeuralScenario, ScenarioEdge, ThresholdRange};
 use crate::wdm_ensemble_qs::{
     anderson_from_disorder, disagreement_to_disorder, replicator_final_coop, snowdrift_payoff,
 };
-use crate::visualization::types::{NeuralScenario, ScenarioEdge, ThresholdRange};
 
 use super::{edge, gauge, node, scaffold, timeseries};
 

@@ -22,9 +22,7 @@
     reason = "timing and dimension values fit in f64"
 )]
 
-use neural_spring_forge::graph::{
-    PipelineExecution, PipelineGraph, StageOutput, StageResult,
-};
+use neural_spring_forge::graph::{PipelineExecution, PipelineGraph, StageOutput, StageResult};
 use neural_spring_forge::mixed::MixedSubstrate;
 
 use crate::gpu_dispatch::Dispatcher;
@@ -94,9 +92,7 @@ pub fn execute_composition_pipeline_gpu(dispatcher: &Dispatcher) -> PipelineRepo
     reason = "graph is validated at construction — these are structural invariants"
 )]
 pub fn execute_graph(graph: &PipelineGraph) -> PipelineReport {
-    let order = graph
-        .execute_order()
-        .expect("graph must be a valid DAG");
+    let order = graph.execute_order().expect("graph must be a valid DAG");
 
     let mut exec = PipelineExecution::new(&graph.name);
 
@@ -148,9 +144,7 @@ pub fn execute_graph(graph: &PipelineGraph) -> PipelineReport {
     reason = "graph is validated at construction — these are structural invariants"
 )]
 pub fn execute_graph_gpu(graph: &PipelineGraph, dispatcher: &Dispatcher) -> PipelineReport {
-    let order = graph
-        .execute_order()
-        .expect("graph must be a valid DAG");
+    let order = graph.execute_order().expect("graph must be a valid DAG");
 
     let mut exec = PipelineExecution::new(&graph.name);
     let mut gpu_count = 0_usize;
@@ -483,7 +477,7 @@ mod tests {
         let pos = |id: &str| -> usize {
             ids.iter()
                 .position(|&s| s == id)
-                .expect(&format!("{id} should be in results"))
+                .unwrap_or_else(|| panic!("{id} should be in results"))
         };
 
         assert!(
@@ -509,7 +503,11 @@ mod tests {
         let report = execute_composition_pipeline();
         assert!(report.total_us() > 0.0, "pipeline should take > 0µs");
         for result in &report.execution.results {
-            assert!(result.elapsed_us > 0.0, "{} should have timing", result.stage_id);
+            assert!(
+                result.elapsed_us > 0.0,
+                "{} should have timing",
+                result.stage_id
+            );
         }
     }
 
@@ -518,8 +516,12 @@ mod tests {
         let report = execute_composition_pipeline();
         for result in &report.execution.results {
             match &result.output {
-                StageOutput::Map(m) => assert!(!m.is_empty(), "{} map should be non-empty", result.stage_id),
-                StageOutput::Vector(v) => assert!(!v.is_empty(), "{} vec should be non-empty", result.stage_id),
+                StageOutput::Map(m) => {
+                    assert!(!m.is_empty(), "{} map should be non-empty", result.stage_id);
+                }
+                StageOutput::Vector(v) => {
+                    assert!(!v.is_empty(), "{} vec should be non-empty", result.stage_id);
+                }
                 _ => panic!("{} should produce Map or Vector output", result.stage_id),
             }
         }
@@ -532,7 +534,10 @@ mod tests {
         if let StageOutput::Vector(evals) = output {
             assert_eq!(evals.len(), 16);
             for &e in &evals {
-                assert!((e - 1.0).abs() < 1e-6, "identity matrix eigenvalue should be 1.0");
+                assert!(
+                    (e - 1.0).abs() < 1e-6,
+                    "identity matrix eigenvalue should be 1.0"
+                );
             }
         } else {
             panic!("eigensolve should produce Vector output");
@@ -553,8 +558,8 @@ mod tests {
         if let StageOutput::Map(m) = output {
             assert!(m.contains_key("shannon_h"));
             assert!(m.contains_key("mean_ipr"));
-            assert!(*m.get("mean_ipr").unwrap() >= 0.0);
-            assert!(*m.get("mean_ipr").unwrap() <= 1.0);
+            assert!(*m.get("mean_ipr").expect("mean_ipr key missing") >= 0.0);
+            assert!(*m.get("mean_ipr").expect("mean_ipr key missing") <= 1.0);
         } else {
             panic!("expected Map output");
         }
@@ -565,8 +570,14 @@ mod tests {
         let (success, output) = dispatch_capability("science.introgression_nn");
         assert!(success);
         if let StageOutput::Map(m) = output {
-            assert!(*m.get("tpr").unwrap() > 0.5, "TPR should be > 0.5");
-            assert!(*m.get("accuracy").unwrap() > 0.5, "accuracy should be > 0.5");
+            assert!(
+                *m.get("tpr").expect("tpr key missing") > 0.5,
+                "TPR should be > 0.5"
+            );
+            assert!(
+                *m.get("accuracy").expect("accuracy key missing") > 0.5,
+                "accuracy should be > 0.5"
+            );
         } else {
             panic!("expected Map output");
         }

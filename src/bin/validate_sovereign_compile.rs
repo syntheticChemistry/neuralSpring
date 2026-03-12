@@ -32,9 +32,15 @@ fn report_hardware(dispatcher: &Dispatcher) {
     println!("── Precision Strategy ──");
     if let Some(profile) = dispatcher.driver_profile() {
         println!("  FP64 strategy: {:?}", profile.fp64_strategy());
-        println!("  DF64 SPIR-V poisoning: {}", profile.has_df64_spir_v_poisoning());
+        println!(
+            "  DF64 SPIR-V poisoning: {}",
+            profile.has_df64_spir_v_poisoning()
+        );
         println!("  Precision routing: {:?}", profile.precision_routing());
-        println!("  Shared memory f64 safe: {}", dispatcher.shared_memory_f64_safe());
+        println!(
+            "  Shared memory f64 safe: {}",
+            dispatcher.shared_memory_f64_safe()
+        );
     } else {
         println!("  (no GPU driver profile — CPU mode)");
     }
@@ -42,7 +48,10 @@ fn report_hardware(dispatcher: &Dispatcher) {
 
     println!("── Bandwidth Tier ──");
     println!("  PCIe tier: {:?}", dispatcher.bandwidth_tier());
-    println!("  Pow workaround needed: {}", dispatcher.needs_pow_workaround());
+    println!(
+        "  Pow workaround needed: {}",
+        dispatcher.needs_pow_workaround()
+    );
 }
 
 fn report_compute_triangle() {

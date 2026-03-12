@@ -53,10 +53,12 @@ fn validate_spectral_parity(
             .spectra
             .iter()
             .find(|s| s.name.contains(name.split('_').next().unwrap_or(name)))
-            .or_else(|| baseline.spectra.iter().find(|s| {
-                s.name.contains(name.as_str())
-                    || name.contains(s.name.split('_').next().unwrap_or(&s.name))
-            }));
+            .or_else(|| {
+                baseline.spectra.iter().find(|s| {
+                    s.name.contains(name.as_str())
+                        || name.contains(s.name.split('_').next().unwrap_or(&s.name))
+                })
+            });
 
         if let Some(py) = sp_py {
             eprintln!(
@@ -148,14 +150,14 @@ fn validate_universality(
 ) {
     eprintln!("\n── Universality checks ──");
 
-    h.check_bool("eff_ratio CV < 0.5", baseline.cross_domain.eff_ratio_cv < 0.5);
+    h.check_bool(
+        "eff_ratio CV < 0.5",
+        baseline.cross_domain.eff_ratio_cv < 0.5,
+    );
     h.check_bool("IPR CV < 0.5", baseline.cross_domain.ipr_cv < 0.5);
 
     for sp in &baseline.spectra {
-        h.check_bool(
-            &format!("{} IPR < 1", sp.name),
-            sp.mean_ipr < 1.0,
-        );
+        h.check_bool(&format!("{} IPR < 1", sp.name), sp.mean_ipr < 1.0);
         h.check_bool(
             &format!("{} eff_dim > 1", sp.name),
             sp.effective_dimension > 1.0,
@@ -173,9 +175,6 @@ fn validate_reference_sums(
 ) {
     eprintln!("\n── Reference sums ──");
     for (name, val) in &baseline.reference_sums {
-        h.check_bool(
-            &format!("{name} w_out sum finite"),
-            val.is_finite(),
-        );
+        h.check_bool(&format!("{name} w_out sum finite"), val.is_finite());
     }
 }

@@ -65,7 +65,10 @@ pub fn spectral_properties(matrix: &[f64], n: usize, name: &str) -> SpectralProf
 
     let sum: f64 = evals.iter().sum();
     let eigenvalue_mean = sum / n as f64;
-    let eigenvalue_std = (evals.iter().map(|e| (e - eigenvalue_mean).powi(2)).sum::<f64>()
+    let eigenvalue_std = (evals
+        .iter()
+        .map(|e| (e - eigenvalue_mean).powi(2))
+        .sum::<f64>()
         / n as f64)
         .sqrt();
 
@@ -125,7 +128,12 @@ pub fn cross_domain_metrics(profiles: &[SpectralProfile]) -> CrossDomainMetrics 
     let spacings: Vec<f64> = profiles.iter().map(|p| p.mean_spacing_ratio).collect();
 
     let eff_mean = eff_ratios.iter().sum::<f64>() / n;
-    let eff_std = (eff_ratios.iter().map(|v| (v - eff_mean).powi(2)).sum::<f64>() / n).sqrt();
+    let eff_std = (eff_ratios
+        .iter()
+        .map(|v| (v - eff_mean).powi(2))
+        .sum::<f64>()
+        / n)
+        .sqrt();
 
     let ipr_mean = iprs.iter().sum::<f64>() / n;
     let ipr_std = (iprs.iter().map(|v| (v - ipr_mean).powi(2)).sum::<f64>() / n).sqrt();
@@ -154,9 +162,7 @@ pub fn load_isomorphic_from_json(json_str: &str) -> Result<IsomorphicBaseline, S
     let parsed: serde_json::Value =
         serde_json::from_str(json_str).map_err(|e| format!("JSON parse error: {e}"))?;
 
-    let spectra_map = parsed["spectra"]
-        .as_object()
-        .ok_or("missing spectra")?;
+    let spectra_map = parsed["spectra"].as_object().ok_or("missing spectra")?;
 
     let mut spectra = Vec::new();
     for (name, sp) in spectra_map {
@@ -170,15 +176,21 @@ pub fn load_isomorphic_from_json(json_str: &str) -> Result<IsomorphicBaseline, S
             eigenvalue_max: sp["eigenvalue_max"].as_f64().ok_or("missing ev_max")?,
             mean_spacing_ratio: sp["mean_spacing_ratio"].as_f64().ok_or("missing spacing")?,
             mean_ipr: sp["mean_ipr"].as_f64().ok_or("missing ipr")?,
-            effective_dimension: sp["effective_dimension"].as_f64().ok_or("missing eff_dim")?,
+            effective_dimension: sp["effective_dimension"]
+                .as_f64()
+                .ok_or("missing eff_dim")?,
             effective_ratio: sp["effective_ratio"].as_f64().ok_or("missing eff_ratio")?,
         });
     }
 
     let cd = &parsed["cross_domain"];
     let cross_domain = CrossDomainMetrics {
-        eff_ratio_mean: cd["eff_ratio_mean"].as_f64().ok_or("missing eff_ratio_mean")?,
-        eff_ratio_std: cd["eff_ratio_std"].as_f64().ok_or("missing eff_ratio_std")?,
+        eff_ratio_mean: cd["eff_ratio_mean"]
+            .as_f64()
+            .ok_or("missing eff_ratio_mean")?,
+        eff_ratio_std: cd["eff_ratio_std"]
+            .as_f64()
+            .ok_or("missing eff_ratio_std")?,
         eff_ratio_cv: cd["eff_ratio_cv"].as_f64().ok_or("missing eff_ratio_cv")?,
         ipr_mean: cd["ipr_mean"].as_f64().ok_or("missing ipr_mean")?,
         ipr_std: cd["ipr_std"].as_f64().ok_or("missing ipr_std")?,

@@ -43,7 +43,10 @@ fn main() {
     h.finish();
 }
 
-fn validate_disorder_mapping(h: &mut ValidationHarness, baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline) {
+fn validate_disorder_mapping(
+    h: &mut ValidationHarness,
+    baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
+) {
     eprintln!("\n── Disorder mapping ──");
 
     let w0 = disagreement_to_disorder(0.0, 0.0, 1.0, W_SCALE);
@@ -59,28 +62,32 @@ fn validate_disorder_mapping(h: &mut ValidationHarness, baseline: &neural_spring
     h.check_bool("W field std > 0", baseline.w_field_std > 0.0);
 }
 
-fn validate_anderson_physics(h: &mut ValidationHarness, baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline) {
+fn validate_anderson_physics(
+    h: &mut ValidationHarness,
+    baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
+) {
     eprintln!("\n── Anderson physics ──");
 
     for s in &baseline.slices {
-        h.check_bool(
-            &format!("slice {} IPR > 0", s.temp_idx),
-            s.mean_ipr > 0.0,
-        );
-        h.check_bool(
-            &format!("slice {} ξ > 0", s.temp_idx),
-            s.xi > 0.0,
-        );
+        h.check_bool(&format!("slice {} IPR > 0", s.temp_idx), s.mean_ipr > 0.0);
+        h.check_bool(&format!("slice {} ξ > 0", s.temp_idx), s.xi > 0.0);
     }
 
-    let low_disorder: Vec<f64> = (0..16).map(|i| 0.01_f64.mul_add(f64::from(i), 0.5)).collect();
-    let high_disorder: Vec<f64> = (0..16).map(|i| 0.5_f64.mul_add(f64::from(i), 10.0)).collect();
+    let low_disorder: Vec<f64> = (0..16)
+        .map(|i| 0.01_f64.mul_add(f64::from(i), 0.5))
+        .collect();
+    let high_disorder: Vec<f64> = (0..16)
+        .map(|i| 0.5_f64.mul_add(f64::from(i), 10.0))
+        .collect();
     let (ipr_low, _) = anderson_from_disorder(&low_disorder);
     let (ipr_high, _) = anderson_from_disorder(&high_disorder);
     h.check_bool("high W → higher IPR", ipr_high > ipr_low);
 }
 
-fn validate_qs_dynamics(h: &mut ValidationHarness, baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline) {
+fn validate_qs_dynamics(
+    h: &mut ValidationHarness,
+    baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
+) {
     eprintln!("\n── QS dynamics ──");
 
     let p_low = snowdrift_payoff(0.1);
@@ -90,11 +97,16 @@ fn validate_qs_dynamics(h: &mut ValidationHarness, baseline: &neural_spring::wdm
     let fc_high = replicator_final_coop(&p_high, 500);
 
     h.check_bool("low W → higher cooperation", fc_low > fc_high);
-    h.check_bool("baseline low-W coop > high-W coop",
-                  baseline.mean_coop_low_w > baseline.mean_coop_high_w);
+    h.check_bool(
+        "baseline low-W coop > high-W coop",
+        baseline.mean_coop_low_w > baseline.mean_coop_high_w,
+    );
 }
 
-fn validate_coupling(h: &mut ValidationHarness, baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline) {
+fn validate_coupling(
+    h: &mut ValidationHarness,
+    baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
+) {
     eprintln!("\n── Coupling ──");
 
     h.check_bool("r(W, ξ) < 0", baseline.r_w_xi < 0.0);
@@ -107,12 +119,22 @@ fn validate_coupling(h: &mut ValidationHarness, baseline: &neural_spring::wdm_en
     h.check_abs("Rust r(W,ξ) vs Python", r_rust, baseline.r_w_xi, 0.05);
 }
 
-fn validate_reference_disorder(h: &mut ValidationHarness, baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline) {
+fn validate_reference_disorder(
+    h: &mut ValidationHarness,
+    baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
+) {
     eprintln!("\n── Reference disorder ──");
 
-    h.check_bool("10 reference disorder values", baseline.reference_disorder.len() == 10);
-    h.check_bool("all finite",
-                  baseline.reference_disorder.iter().all(|v| v.is_finite()));
-    h.check_bool("all non-negative",
-                  baseline.reference_disorder.iter().all(|&v| v >= 0.0));
+    h.check_bool(
+        "10 reference disorder values",
+        baseline.reference_disorder.len() == 10,
+    );
+    h.check_bool(
+        "all finite",
+        baseline.reference_disorder.iter().all(|v| v.is_finite()),
+    );
+    h.check_bool(
+        "all non-negative",
+        baseline.reference_disorder.iter().all(|&v| v >= 0.0),
+    );
 }

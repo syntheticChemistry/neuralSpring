@@ -18,7 +18,6 @@
 //! Python baseline: `control/digestion_prediction/digestion_prediction.py`
 //! Reference: Wang et al. (2020), Bioresour Technol 298:122495
 
-
 use neural_spring::digestion_prediction::{
     biogas_yield, hrt_response, load_digestion_from_json, olr_response, ph_response,
     temperature_response,

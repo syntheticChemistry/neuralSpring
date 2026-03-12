@@ -31,8 +31,14 @@ fn main() {
     let cpu_report = execute_composition_pipeline();
     let cpu_us = cpu_start.elapsed().as_secs_f64() * 1_000_000.0;
     assert!(cpu_report.all_passed());
-    println!("  Total: {cpu_us:.1}µs | substrate: {}", cpu_report.substrate_used);
-    println!("  GPU stages: {} | CPU stages: {}", cpu_report.gpu_stages, cpu_report.cpu_stages);
+    println!(
+        "  Total: {cpu_us:.1}µs | substrate: {}",
+        cpu_report.substrate_used
+    );
+    println!(
+        "  GPU stages: {} | CPU stages: {}",
+        cpu_report.gpu_stages, cpu_report.cpu_stages
+    );
     println!();
 
     println!("── Phase 2: Mixed GPU/CPU pipeline ──");
@@ -51,7 +57,10 @@ fn main() {
     println!();
 
     println!("── Per-stage breakdown ──");
-    println!("  {:<25} {:>10} {:>14} {:>8}", "Stage", "Time (µs)", "Substrate", "Status");
+    println!(
+        "  {:<25} {:>10} {:>14} {:>8}",
+        "Stage", "Time (µs)", "Substrate", "Status"
+    );
     println!("  {}", "─".repeat(60));
     for result in &mixed_report.execution.results {
         println!(
@@ -95,7 +104,10 @@ fn main() {
     println!("  GPU stage time: {gpu_stage_us:.1}µs");
     println!("  CPU stage time: {cpu_stage_us:.1}µs");
     println!("  Overhead/transfer: {overhead_us:.1}µs");
-    println!("  GPU fraction: {:.1}%", gpu_stage_us / total_us.max(0.001) * 100.0);
+    println!(
+        "  GPU fraction: {:.1}%",
+        gpu_stage_us / total_us.max(0.001) * 100.0
+    );
     println!();
 
     println!("── Output validation ──");
@@ -111,7 +123,12 @@ fn main() {
         if !ok {
             all_valid = false;
         }
-        println!("  {}: {} {}", result.stage_id, desc, if ok { "✓" } else { "✗" });
+        println!(
+            "  {}: {} {}",
+            result.stage_id,
+            desc,
+            if ok { "✓" } else { "✗" }
+        );
     }
     println!();
 

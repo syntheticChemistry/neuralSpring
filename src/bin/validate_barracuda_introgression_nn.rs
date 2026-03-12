@@ -56,7 +56,10 @@ async fn main() {
         }
     }
 
-    #[expect(clippy::cast_precision_loss, reason = "observation indices 0..2 fit in f64")]
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "observation indices 0..2 fit in f64"
+    )]
     let obs_f64: Vec<f64> = baseline.observations.iter().map(|&o| o as f64).collect();
     let bc_rmse = barracuda::stats::rmse(&obs_f64, &path_f64);
     h.check_bool("bC CPU RMSE finite", bc_rmse.is_finite());

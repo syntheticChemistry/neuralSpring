@@ -327,9 +327,7 @@ pub fn load_digestion_from_json(json_str: &str) -> Result<DigestionBaseline, Str
     let v: serde_json::Value =
         serde_json::from_str(json_str).map_err(|e| format!("JSON parse: {e}"))?;
 
-    let norm_obj = v
-        .get("normalization")
-        .ok_or("missing normalization")?;
+    let norm_obj = v.get("normalization").ok_or("missing normalization")?;
     let x_mean: Vec<f64> = norm_obj["x_mean"]
         .as_array()
         .ok_or("bad x_mean")?
@@ -346,9 +344,7 @@ pub fn load_digestion_from_json(json_str: &str) -> Result<DigestionBaseline, Str
     let y_std = norm_obj["y_std"].as_f64().ok_or("bad y_std")?;
 
     let esn = v.get("esn_config").ok_or("missing esn_config")?;
-    let reservoir_size = esn["reservoir_size"]
-        .as_u64()
-        .ok_or("bad reservoir_size")? as usize;
+    let reservoir_size = esn["reservoir_size"].as_u64().ok_or("bad reservoir_size")? as usize;
 
     let w = v.get("weights").ok_or("missing weights")?;
     let parse_vec = |key: &str| -> Result<Vec<f64>, String> {
