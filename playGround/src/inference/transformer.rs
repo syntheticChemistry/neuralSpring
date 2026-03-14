@@ -263,3 +263,102 @@ impl TransformerEngine {
         &self.config
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn top_k_returns_k_elements() {
+        let logits = vec![1.0, 5.0, 3.0, 2.0, 4.0];
+        let top = TransformerEngine::top_k(&logits, 3);
+        assert_eq!(top.len(), 3);
+    }
+
+    #[test]
+    fn top_k_sorted_descending() {
+        let logits = vec![1.0, 5.0, 3.0, 2.0, 4.0];
+        let top = TransformerEngine::top_k(&logits, 5);
+        assert_eq!(top[0], (1, 5.0));
+        assert_eq!(top[1], (4, 4.0));
+        assert_eq!(top[2], (2, 3.0));
+        assert_eq!(top[3], (3, 2.0));
+        assert_eq!(top[4], (0, 1.0));
+    }
+
+    #[test]
+    fn top_k_handles_k_larger_than_len() {
+        let logits = vec![1.0, 2.0];
+        let top = TransformerEngine::top_k(&logits, 10);
+        assert_eq!(top.len(), 2);
+    }
+
+    #[test]
+    fn top_k_empty_input() {
+        let logits: Vec<f32> = vec![];
+        let top = TransformerEngine::top_k(&logits, 5);
+        assert!(top.is_empty());
+    }
+
+    #[test]
+    fn softmax_sums_to_one() {
+        let logits = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let probs = TransformerEngine::softmax(&logits);
+        let sum: f32 = probs.iter().sum();
+        assert!(
+            (sum - 1.0).abs() < 1e-5,
+            "softmax sum should be ~1.0, got {sum}"
+        );
+    }
+
+    #[test]
+    fn softmax_all_positive() {
+        let logits = vec![-10.0, 0.0, 10.0];
+        let probs = TransformerEngine::softmax(&logits);
+        for (i, &p) in probs.iter().enumerate() {
+            assert!(p >= 0.0, "softmax[{i}] = {p} should be >= 0");
+        }
+    }
+
+    #[test]
+    fn softmax_largest_gets_highest_prob() {
+        let logits = vec![1.0, 5.0, 3.0];
+        let probs = TransformerEngine::softmax(&logits);
+        assert!(probs[1] > probs[2]);
+        assert!(probs[2] > probs[0]);
+    }
+
+    #[test]
+    fn softmax_numerically_stable() {
+        let logits = vec![1000.0, 1001.0, 1002.0];
+        let probs = TransformerEngine::softmax(&logits);
+        let sum: f32 = probs.iter().sum();
+        assert!(
+            (sum - 1.0).abs() < 1e-5,
+            "should be stable with large values, sum = {sum}"
+        );
+        assert!(
+            !probs.iter().any(|p| p.is_nan()),
+            "no NaN in softmax output"
+        );
+    }
+
+    #[test]
+    fn softmax_single_element() {
+        let probs = TransformerEngine::softmax(&[42.0]);
+        assert_eq!(probs.len(), 1);
+        assert!((probs[0] - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn softmax_uniform_input() {
+        let logits = vec![1.0; 4];
+        let probs = TransformerEngine::softmax(&logits);
+        for &p in &probs {
+            assert!(
+                (p - 0.25).abs() < 1e-5,
+                "uniform input should give uniform probs"
+            );
+        }
+    }
+}

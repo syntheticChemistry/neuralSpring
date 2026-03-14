@@ -127,6 +127,25 @@ impl TransformerConfig {
         })
     }
 
+    /// GPT-2 small defaults for testing.
+    #[must_use]
+    pub fn default_gpt2() -> Self {
+        Self {
+            model_type: "gpt2".into(),
+            vocab_size: 50257,
+            hidden_size: 768,
+            num_layers: 12,
+            num_heads: 12,
+            num_kv_heads: 12,
+            intermediate_size: 3072,
+            max_position_embeddings: 1024,
+            head_dim: 64,
+            layer_norm_eps: 1e-5,
+            activation: Activation::GeluNew,
+            tie_word_embeddings: true,
+        }
+    }
+
     /// Total parameters estimate (rough).
     #[must_use]
     pub fn estimated_params(&self) -> usize {
@@ -212,5 +231,97 @@ mod tests {
         assert_eq!(config.num_heads, 32);
         assert_eq!(config.num_kv_heads, 8);
         assert_eq!(config.activation, Activation::Silu);
+    }
+
+    #[test]
+    fn default_gpt2_has_correct_dims() {
+        let config = TransformerConfig::default_gpt2();
+        assert_eq!(config.vocab_size, 50257);
+        assert_eq!(config.hidden_size, 768);
+        assert_eq!(config.num_layers, 12);
+        assert_eq!(config.head_dim, 64);
+        assert!(config.tie_word_embeddings);
+    }
+
+    #[test]
+    fn estimated_params_gpt2() {
+        let config = TransformerConfig::default_gpt2();
+        let params = config.estimated_params();
+        assert!(
+            params > 80_000_000,
+            "GPT-2 should have >80M params, got {params}"
+        );
+        assert!(
+            params < 200_000_000,
+            "GPT-2 should have <200M params, got {params}"
+        );
+    }
+
+    #[test]
+    fn estimated_memory_f32() {
+        let config = TransformerConfig::default_gpt2();
+        let mem = config.estimated_memory_f32();
+        assert_eq!(mem, config.estimated_params() * 4);
+    }
+
+    #[test]
+    fn minimal_json_uses_defaults() {
+        let config = TransformerConfig::from_json("{}").unwrap();
+        assert_eq!(config.model_type, "unknown");
+        assert_eq!(config.hidden_size, 768);
+        assert_eq!(config.num_layers, 12);
+        assert_eq!(config.activation, Activation::Gelu);
+    }
+
+    #[test]
+    fn activation_parsing() {
+        assert_eq!(Activation::from_str("gelu"), Activation::Gelu);
+        assert_eq!(Activation::from_str("gelu_new"), Activation::GeluNew);
+        assert_eq!(Activation::from_str("gelu_fast"), Activation::GeluNew);
+        assert_eq!(Activation::from_str("relu"), Activation::Relu);
+        assert_eq!(Activation::from_str("silu"), Activation::Silu);
+        assert_eq!(Activation::from_str("swiglu"), Activation::Silu);
+        assert_eq!(Activation::from_str("swish"), Activation::Swish);
+        assert_eq!(Activation::from_str("mish"), Activation::Mish);
+        assert_eq!(Activation::from_str("unknown_activation"), Activation::Gelu);
+    }
+
+    #[test]
+    fn display_format() {
+        let config = TransformerConfig::default_gpt2();
+        let s = config.to_string();
+        assert!(s.contains("gpt2"));
+        assert!(s.contains("MHA"));
+        assert!(s.contains("12L"));
+        assert!(s.contains("12H"));
+        assert!(s.contains("768d"));
+    }
+
+    #[test]
+    fn gqa_display() {
+        let mut config = TransformerConfig::default_gpt2();
+        config.num_kv_heads = 4;
+        let s = config.to_string();
+        assert!(s.contains("GQA"));
+    }
+
+    #[test]
+    fn parse_phi_style_config() {
+        let json = r#"{
+            "model_type": "phi",
+            "vocab_size": 51200,
+            "hidden_size": 2048,
+            "num_hidden_layers": 24,
+            "num_attention_heads": 32,
+            "intermediate_size": 8192,
+            "max_position_embeddings": 2048,
+            "hidden_act": "gelu_new",
+            "head_dim": 64,
+            "tie_word_embeddings": false
+        }"#;
+        let config = TransformerConfig::from_json(json).unwrap();
+        assert_eq!(config.model_type, "phi");
+        assert_eq!(config.head_dim, 64);
+        assert!(!config.tie_word_embeddings);
     }
 }

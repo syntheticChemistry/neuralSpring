@@ -214,3 +214,85 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "science.cross_spring_benchmark",
     "science.precision_routing",
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tool_count_matches_capabilities() {
+        let tools = tool_definitions();
+        assert_eq!(
+            tools.len(),
+            ALL_CAPABILITIES.len(),
+            "tool_definitions() and ALL_CAPABILITIES must have same count"
+        );
+        assert_eq!(tools.len(), 14);
+    }
+
+    #[test]
+    fn tool_names_match_capabilities() {
+        let tools = tool_definitions();
+        let tool_names: Vec<&str> = tools.iter().map(|t| t.name).collect();
+        for cap in ALL_CAPABILITIES {
+            assert!(
+                tool_names.contains(cap),
+                "ALL_CAPABILITIES entry {cap} missing from tool_definitions()"
+            );
+        }
+    }
+
+    #[test]
+    fn all_tools_have_science_domain() {
+        for tool in tool_definitions() {
+            assert_eq!(
+                tool.domain, "science",
+                "tool {} should have domain 'science'",
+                tool.name
+            );
+        }
+    }
+
+    #[test]
+    fn all_tools_have_valid_schema() {
+        for tool in tool_definitions() {
+            assert!(!tool.name.is_empty(), "tool name must not be empty");
+            assert!(
+                !tool.description.is_empty(),
+                "tool {} must have a description",
+                tool.name
+            );
+            assert_eq!(
+                tool.input_schema["type"], "object",
+                "tool {} schema must be type: object",
+                tool.name
+            );
+            assert!(
+                tool.input_schema.get("properties").is_some(),
+                "tool {} schema must have 'properties'",
+                tool.name
+            );
+        }
+    }
+
+    #[test]
+    fn tool_names_start_with_science_prefix() {
+        for tool in tool_definitions() {
+            assert!(
+                tool.name.starts_with("science."),
+                "tool name '{}' must start with 'science.'",
+                tool.name
+            );
+        }
+    }
+
+    #[test]
+    fn tools_serialize_to_json() {
+        for tool in tool_definitions() {
+            let json = serde_json::to_value(&tool).expect("tool must serialize");
+            assert!(json.is_object());
+            assert!(json["name"].is_string());
+            assert!(json["input_schema"].is_object());
+        }
+    }
+}

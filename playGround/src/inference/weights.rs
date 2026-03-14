@@ -96,21 +96,31 @@ fn bf16_to_f32(bits: u16) -> f32 {
     f32::from_bits(u32::from(bits) << 16)
 }
 
+/// Reinterpret raw bytes as a typed slice, handling unaligned data.
+fn safe_cast_slice<T: bytemuck::Pod>(data: &[u8]) -> Vec<T> {
+    let size = std::mem::size_of::<T>();
+    let count = data.len() / size;
+    let mut out = vec![T::zeroed(); count];
+    let dst = bytemuck::cast_slice_mut::<T, u8>(&mut out);
+    dst.copy_from_slice(&data[..count * size]);
+    out
+}
+
 /// Load f32 data from a safetensors tensor, converting from f16/bf16/f64 as needed.
 fn tensor_to_f32(view: &safetensors::tensor::TensorView<'_>) -> Vec<f32> {
     use safetensors::Dtype;
     match view.dtype() {
-        Dtype::F32 => bytemuck::cast_slice(view.data()).to_vec(),
+        Dtype::F32 => safe_cast_slice::<f32>(view.data()),
         Dtype::F16 => {
-            let raw: &[u16] = bytemuck::cast_slice(view.data());
+            let raw: Vec<u16> = safe_cast_slice(view.data());
             raw.iter().map(|&bits| f16_to_f32(bits)).collect()
         }
         Dtype::BF16 => {
-            let raw: &[u16] = bytemuck::cast_slice(view.data());
+            let raw: Vec<u16> = safe_cast_slice(view.data());
             raw.iter().map(|&bits| bf16_to_f32(bits)).collect()
         }
         Dtype::F64 => {
-            let raw: &[f64] = bytemuck::cast_slice(view.data());
+            let raw: Vec<f64> = safe_cast_slice(view.data());
             #[expect(
                 clippy::cast_possible_truncation,
                 reason = "intentional f64→f32 downcast for GPU"
@@ -122,7 +132,7 @@ fn tensor_to_f32(view: &safetensors::tensor::TensorView<'_>) -> Vec<f32> {
                 "Unsupported dtype {:?}, treating as f32 (may be wrong)",
                 view.dtype()
             );
-            bytemuck::cast_slice(view.data()).to_vec()
+            safe_cast_slice::<f32>(view.data())
         }
     }
 }
@@ -408,4 +418,129 @@ pub fn inspect_safetensors(
 
     entries.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(entries)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── f16 conversion ──────────────────────────────────────────
+
+    #[test]
+    fn f16_zero() {
+        assert_eq!(f16_to_f32(0x0000), 0.0);
+    }
+
+    #[test]
+    fn f16_negative_zero() {
+        assert_eq!(f16_to_f32(0x8000), -0.0);
+        assert!(f16_to_f32(0x8000).is_sign_negative());
+    }
+
+    #[test]
+    fn f16_one() {
+        assert!((f16_to_f32(0x3C00) - 1.0).abs() < 1e-7);
+    }
+
+    #[test]
+    fn f16_negative_one() {
+        assert!((f16_to_f32(0xBC00) + 1.0).abs() < 1e-7);
+    }
+
+    #[test]
+    fn f16_half() {
+        assert!((f16_to_f32(0x3800) - 0.5).abs() < 1e-7);
+    }
+
+    #[test]
+    fn f16_infinity() {
+        assert!(f16_to_f32(0x7C00).is_infinite());
+        assert!(f16_to_f32(0x7C00).is_sign_positive());
+    }
+
+    #[test]
+    fn f16_negative_infinity() {
+        assert!(f16_to_f32(0xFC00).is_infinite());
+        assert!(f16_to_f32(0xFC00).is_sign_negative());
+    }
+
+    #[test]
+    fn f16_nan() {
+        assert!(f16_to_f32(0x7E00).is_nan());
+    }
+
+    #[test]
+    fn f16_subnormal() {
+        let val = f16_to_f32(0x0001);
+        assert!(val > 0.0);
+        assert!(val < 1e-6);
+    }
+
+    // ── bf16 conversion ─────────────────────────────────────────
+
+    #[test]
+    fn bf16_zero() {
+        assert_eq!(bf16_to_f32(0x0000), 0.0);
+    }
+
+    #[test]
+    fn bf16_one() {
+        assert!((bf16_to_f32(0x3F80) - 1.0).abs() < 1e-7);
+    }
+
+    #[test]
+    fn bf16_negative_one() {
+        assert!((bf16_to_f32(0xBF80) + 1.0).abs() < 1e-7);
+    }
+
+    #[test]
+    fn bf16_infinity() {
+        assert!(bf16_to_f32(0x7F80).is_infinite());
+    }
+
+    #[test]
+    fn bf16_nan() {
+        assert!(bf16_to_f32(0x7FC0).is_nan());
+    }
+
+    // ── layer index extraction ──────────────────────────────────
+
+    #[test]
+    fn extract_gpt2_layer() {
+        assert_eq!(extract_layer_index("h.0.attn.c_attn.weight"), Some(0));
+        assert_eq!(extract_layer_index("h.11.mlp.c_fc.bias"), Some(11));
+    }
+
+    #[test]
+    fn extract_llama_layer() {
+        assert_eq!(
+            extract_layer_index("model.layers.0.self_attn.q_proj.weight"),
+            Some(0)
+        );
+        assert_eq!(
+            extract_layer_index("model.layers.31.mlp.down_proj.weight"),
+            Some(31)
+        );
+    }
+
+    #[test]
+    fn extract_no_layer() {
+        assert_eq!(extract_layer_index("model.embed_tokens.weight"), None);
+        assert_eq!(extract_layer_index("lm_head.weight"), None);
+    }
+
+    // ── weight organization ─────────────────────────────────────
+
+    #[test]
+    fn organize_handles_empty_weights() {
+        let config = crate::model_config::TransformerConfig {
+            num_layers: 2,
+            ..crate::model_config::TransformerConfig::default_gpt2()
+        };
+        let model = organize_weights(vec![], &config);
+        assert!(model.token_embedding.is_none());
+        assert!(model.position_embedding.is_none());
+        assert_eq!(model.layers.len(), 2);
+        assert!(model.unmatched.is_empty());
+    }
 }

@@ -203,3 +203,74 @@ pub fn default_cache_dir() -> PathBuf {
     let workspace = Path::new(env!("CARGO_MANIFEST_DIR"));
     workspace.join(".model_cache")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_cache_dir_is_under_manifest() {
+        let dir = default_cache_dir();
+        assert!(dir.ends_with(".model_cache"));
+        assert!(dir.parent().is_some());
+    }
+
+    #[test]
+    fn model_cache_dir_normalizes_slashes() {
+        let hub = HfHub::new(None, PathBuf::from("/tmp/hf_test")).unwrap();
+        let dir = hub.model_cache_dir("openai-community/gpt2");
+        assert_eq!(dir, PathBuf::from("/tmp/hf_test/openai-community--gpt2"));
+    }
+
+    #[test]
+    fn model_cache_dir_handles_simple_id() {
+        let hub = HfHub::new(None, PathBuf::from("/tmp/hf_test")).unwrap();
+        let dir = hub.model_cache_dir("bert-base-uncased");
+        assert_eq!(dir, PathBuf::from("/tmp/hf_test/bert-base-uncased"));
+    }
+
+    #[test]
+    fn model_files_is_complete() {
+        let complete = ModelFiles {
+            model_id: "test".into(),
+            config: Some(PathBuf::from("config.json")),
+            safetensors: vec![PathBuf::from("model.safetensors")],
+            tokenizer: None,
+        };
+        assert!(complete.is_complete());
+    }
+
+    #[test]
+    fn model_files_incomplete_no_config() {
+        let no_config = ModelFiles {
+            model_id: "test".into(),
+            config: None,
+            safetensors: vec![PathBuf::from("model.safetensors")],
+            tokenizer: None,
+        };
+        assert!(!no_config.is_complete());
+    }
+
+    #[test]
+    fn model_files_incomplete_no_safetensors() {
+        let no_weights = ModelFiles {
+            model_id: "test".into(),
+            config: Some(PathBuf::from("config.json")),
+            safetensors: vec![],
+            tokenizer: None,
+        };
+        assert!(!no_weights.is_complete());
+    }
+
+    #[test]
+    fn hub_client_creates_without_token() {
+        let hub = HfHub::new(None, PathBuf::from("/tmp/hf_test"));
+        assert!(hub.is_ok());
+    }
+
+    #[test]
+    fn hub_client_creates_with_token() {
+        let hub = HfHub::new(Some("hf_test_token"), PathBuf::from("/tmp/hf_test"));
+        assert!(hub.is_ok());
+    }
+}

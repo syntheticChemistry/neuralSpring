@@ -24,29 +24,31 @@ pub struct ToadStoolClient {
 #[derive(Debug, Deserialize)]
 pub struct GpuInfo {
     #[serde(default)]
-    pub name: String,
-    #[serde(default)]
-    pub vendor: String,
+    pub devices: Vec<GpuDevice>,
     #[serde(default)]
     pub driver: String,
     #[serde(default)]
-    pub memory_mb: u64,
+    pub compute_backends: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GpuDevice {
     #[serde(default)]
-    pub compute_units: u32,
+    pub id: String,
     #[serde(default)]
-    pub supports_f64: bool,
+    pub backend: String,
+    #[serde(default)]
+    pub index: u32,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ComputeCapabilities {
     #[serde(default)]
-    pub gpu_available: bool,
+    pub service_id: String,
     #[serde(default)]
-    pub npu_available: bool,
+    pub supported_workload_types: Vec<String>,
     #[serde(default)]
-    pub substrates: Vec<String>,
-    #[serde(default)]
-    pub shader_compiler: bool,
+    pub compute_units: Vec<serde_json::Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -76,16 +78,31 @@ pub struct JobResult {
 #[derive(Debug, Deserialize)]
 pub struct HealthStatus {
     #[serde(default)]
-    pub status: String,
+    pub healthy: bool,
     #[serde(default)]
     pub uptime_secs: u64,
     #[serde(default)]
     pub version: String,
+    #[serde(default)]
+    pub active_workloads: u32,
+    #[serde(default)]
+    pub queued_workloads: u32,
 }
 
 impl ToadStoolClient {
     /// Connect to `ToadStool` via automatic socket discovery.
+    ///
+    /// Prefers the JSON-RPC socket (`toadstool.jsonrpc.sock`) over the tarpc
+    /// socket (`toadstool.sock`) since this client speaks JSON-RPC 2.0.
     pub fn discover() -> Result<Self> {
+        let socket_dir = ipc_client::resolve_socket_dir();
+        let jsonrpc_sock = socket_dir.join("toadstool.jsonrpc.sock");
+        if jsonrpc_sock.exists() {
+            return Ok(Self {
+                socket: jsonrpc_sock,
+                timeout: Duration::from_secs(30),
+            });
+        }
         let socket =
             ipc_client::discover_socket("toadstool").context("discovering ToadStool socket")?;
         Ok(Self {

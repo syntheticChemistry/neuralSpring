@@ -76,18 +76,22 @@ async fn main() -> Result<()> {
             match client.health().await {
                 Ok(health) => {
                     let latency_ms = t0.elapsed().as_secs_f64() * 1000.0;
-                    println!("  Status:  AVAILABLE");
+                    println!(
+                        "  Status:  {}",
+                        if health.healthy {
+                            "AVAILABLE"
+                        } else {
+                            "UNHEALTHY"
+                        }
+                    );
                     println!("  Version: {}", health.version);
                     println!("  Uptime:  {}s", health.uptime_secs);
                     println!("  Latency: {latency_ms:.1}ms (health check)");
 
                     if let Ok(caps) = client.capabilities().await {
-                        println!("  GPU:     {}", caps.gpu_available);
-                        println!("  NPU:     {}", caps.npu_available);
-                        println!("  Shader:  {}", caps.shader_compiler);
-                        if !caps.substrates.is_empty() {
-                            println!("  Substrates: {}", caps.substrates.join(", "));
-                        }
+                        println!("  Service: {}", caps.service_id);
+                        println!("  Workloads: {}", caps.supported_workload_types.join(", "));
+                        println!("  Compute units: {}", caps.compute_units.len());
                     }
                 }
                 Err(e) => {
