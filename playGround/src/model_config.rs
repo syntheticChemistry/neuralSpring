@@ -100,12 +100,12 @@ impl TransformerConfig {
             .intermediate_size
             .or(raw.n_inner)
             .unwrap_or(hidden_size * 4);
-        let max_position_embeddings = raw.max_position_embeddings.or(raw.n_positions).unwrap_or(2048);
+        let max_position_embeddings = raw
+            .max_position_embeddings
+            .or(raw.n_positions)
+            .unwrap_or(2048);
         let head_dim = raw.head_dim.unwrap_or(hidden_size / num_heads);
-        let layer_norm_eps = raw
-            .layer_norm_epsilon
-            .or(raw.rms_norm_eps)
-            .unwrap_or(1e-5);
+        let layer_norm_eps = raw.layer_norm_epsilon.or(raw.rms_norm_eps).unwrap_or(1e-5);
         let activation_str = raw
             .hidden_act
             .or(raw.activation_function)

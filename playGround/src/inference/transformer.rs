@@ -34,11 +34,7 @@ pub struct ForwardOutput {
 impl TransformerEngine {
     /// Create a new engine from loaded weights and config.
     #[must_use]
-    pub fn new(
-        device: Arc<WgpuDevice>,
-        config: TransformerConfig,
-        weights: ModelWeights,
-    ) -> Self {
+    pub fn new(device: Arc<WgpuDevice>, config: TransformerConfig, weights: ModelWeights) -> Self {
         Self {
             device,
             config,
@@ -141,7 +137,10 @@ impl TransformerEngine {
             let start = tid as usize * hidden;
             let end = start + hidden;
             if end > emb_data.len() {
-                anyhow::bail!("token ID {tid} out of range (vocab size {})", self.config.vocab_size);
+                anyhow::bail!(
+                    "token ID {tid} out of range (vocab size {})",
+                    self.config.vocab_size
+                );
             }
             output.extend_from_slice(&emb_data[start..end]);
         }
