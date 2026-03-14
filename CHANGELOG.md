@@ -5,7 +5,36 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 149 (March 14, 2026)
+## [Unreleased] — Session 150 (March 14, 2026)
+
+### Session 150 — playGround: Compute Triangle (ToadStool + coralReef) (2026-03-14)
+
+**Compute triangle integration** — wired playGround into ToadStool (compute
+orchestration) and coralReef (sovereign shader compiler), with hot dispatch
+benchmarking:
+
+- `toadstool_client.rs`: Typed IPC client for ToadStool — `compute.submit`,
+  `compute.status`, `compute.result`, `gpu.info`, `gpu.memory`,
+  `science.gpu.dispatch`, `science.substrate.discover` (30s timeout for jobs)
+- `coralreef_client.rs`: Typed IPC client for coralReef — `shader.compile.wgsl`,
+  `shader.compile.wgsl.multi`, `shader.compile.spirv`, compiler capabilities
+  and status (60s timeout for compilation)
+- `neuralspring_compute_probe` binary: Probes all three compute tiers
+  (barraCuda direct, ToadStool IPC, coralReef IPC) for availability, latency,
+  and capabilities. Reports pipeline compilation time and hot/cold dispatch.
+- `neuralspring_bench_inference` refactored with `--hot` mode: Reuses
+  `TensorSession` via `reset()` to benchmark pure kernel dispatch (pipelines
+  compiled once). 7-45x faster than cold dispatch. GELU drops from 5329µs to
+  118µs on RTX 4070.
+- `bench/compare.sh` updated: Now runs both cold and hot barraCuda modes
+  alongside PyTorch/CUDA for 4-way comparison with speedup ratios.
+- Library `lib.rs`: Added `toadstool_client` and `coralreef_client` modules,
+  updated doc comments for compute triangle.
+
+**Key benchmark findings (RTX 4070, seq=128, hidden=768):**
+- Cold→Hot speedup: 7x (matmul), 10x (layer_norm), 45x (GELU)
+- Remaining gap vs PyTorch/CUDA: 8-22x (bind-group creation + Vulkan submit)
+- Path to parity: coralReef sovereign dispatch (bypass Vulkan entirely)
 
 ### Session 149 — playGround: HuggingFace Model Lab + barraCuda Inference (2026-03-14)
 

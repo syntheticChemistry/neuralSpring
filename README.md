@@ -44,6 +44,16 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S150: playGround — Compute triangle integration (ToadStool + coralReef).**
+Added typed IPC clients for ToadStool (compute orchestration) and coralReef (sovereign shader compiler).
+Refactored benchmark to support hot dispatch (reused TensorSession) — 7-45x faster than cold.
+New `neuralspring_compute_probe` binary probes all three compute tiers. Updated compare.sh for
+cold/hot side-by-side. README documents compute triangle architecture.
+
+**S149: playGround — HuggingFace Model Lab + inference benchmark.**
+GPU inference engine via barraCuda TensorSession. HuggingFace Hub client, model config parser,
+safetensors weight loader, transformer forward pass. PyTorch/CUDA benchmark baseline.
+
 **S148: playGround — Squirrel MCP adapter + interactive experiment runner.**
 `playGround/` workspace member: MCP adapter binary (bridges 14 science.* capabilities to Squirrel),
 interactive AI-driven experiment runner, reusable IPC client library with biomeOS 5-tier discovery.

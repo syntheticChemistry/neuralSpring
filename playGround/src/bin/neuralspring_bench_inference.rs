@@ -4,6 +4,12 @@
 //!
 //! Benchmarks the same operations and model forward passes as
 //! `bench/pytorch_baseline.py`, outputting results in compatible format.
+//!
+//! Two dispatch modes:
+//! - **cold** (default): new `TensorSession` per call — measures pipeline
+//!   compilation + dispatch (worst case, equivalent to no caching)
+//! - **hot** (`--hot`): reuse `TensorSession` with pre-compiled pipelines
+//!   — measures pure kernel dispatch (comparable to PyTorch/CUDA)
 
 #![expect(clippy::pedantic, reason = "benchmark binary")]
 
@@ -53,6 +59,11 @@ struct Cli {
     #[arg(long)]
     forward_only: bool,
 
+    /// Hot mode: reuse TensorSession (pre-compiled pipelines)
+    /// Without this flag, each iteration creates a fresh session (cold dispatch)
+    #[arg(long)]
+    hot: bool,
+
     /// Override HuggingFace token
     #[arg(long)]
     hf_token: Option<String>,
@@ -81,26 +92,61 @@ fn bench_fn<F: FnMut()>(mut f: F, warmup: usize, iters: usize) -> f64 {
     timings[timings.len() / 2]
 }
 
-fn bench_ops(device: &Arc<WgpuDevice>, hidden: usize, seq_len: usize, num_heads: usize, warmup: usize, iters: usize) -> Vec<BenchResult> {
+fn bench_ops(
+    device: &Arc<WgpuDevice>,
+    hidden: usize,
+    seq_len: usize,
+    num_heads: usize,
+    warmup: usize,
+    iters: usize,
+    hot: bool,
+) -> Vec<BenchResult> {
     let mut results = Vec::new();
     let head_dim = hidden / num_heads;
 
     // --- MatMul ---
     {
-        let a_data: Vec<f32> = (0..seq_len * hidden).map(|i| (i as f32 * 0.001).sin()).collect();
-        let b_data: Vec<f32> = (0..hidden * hidden).map(|i| (i as f32 * 0.002).cos()).collect();
+        let a_data: Vec<f32> = (0..seq_len * hidden)
+            .map(|i| (i as f32 * 0.001).sin())
+            .collect();
+        let b_data: Vec<f32> = (0..hidden * hidden)
+            .map(|i| (i as f32 * 0.002).cos())
+            .collect();
 
-        let median = bench_fn(
-            || {
-                let mut session = TensorSession::with_device(device.clone());
-                let a = session.tensor_with_shape(&a_data, &[seq_len, hidden]).unwrap();
-                let b = session.tensor_with_shape(&b_data, &[hidden, hidden]).unwrap();
-                let _c = session.matmul(&a, &b).unwrap();
-                session.run().unwrap();
-            },
-            warmup,
-            iters,
-        );
+        let median = if hot {
+            let mut session = TensorSession::with_device(device.clone());
+            bench_fn(
+                || {
+                    session.reset();
+                    let a = session
+                        .tensor_with_shape(&a_data, &[seq_len, hidden])
+                        .unwrap();
+                    let b = session
+                        .tensor_with_shape(&b_data, &[hidden, hidden])
+                        .unwrap();
+                    let _c = session.matmul(&a, &b).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        } else {
+            bench_fn(
+                || {
+                    let mut session = TensorSession::with_device(device.clone());
+                    let a = session
+                        .tensor_with_shape(&a_data, &[seq_len, hidden])
+                        .unwrap();
+                    let b = session
+                        .tensor_with_shape(&b_data, &[hidden, hidden])
+                        .unwrap();
+                    let _c = session.matmul(&a, &b).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        };
 
         results.push(BenchResult {
             name: "matmul".into(),
@@ -111,18 +157,38 @@ fn bench_ops(device: &Arc<WgpuDevice>, hidden: usize, seq_len: usize, num_heads:
 
     // --- Layer Norm ---
     {
-        let x_data: Vec<f32> = (0..seq_len * hidden).map(|i| (i as f32 * 0.001).sin()).collect();
+        let x_data: Vec<f32> = (0..seq_len * hidden)
+            .map(|i| (i as f32 * 0.001).sin())
+            .collect();
 
-        let median = bench_fn(
-            || {
-                let mut session = TensorSession::with_device(device.clone());
-                let x = session.tensor_with_shape(&x_data, &[seq_len, hidden]).unwrap();
-                let _y = session.layer_norm(&x, hidden).unwrap();
-                session.run().unwrap();
-            },
-            warmup,
-            iters,
-        );
+        let median = if hot {
+            let mut session = TensorSession::with_device(device.clone());
+            bench_fn(
+                || {
+                    session.reset();
+                    let x = session
+                        .tensor_with_shape(&x_data, &[seq_len, hidden])
+                        .unwrap();
+                    let _y = session.layer_norm(&x, hidden).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        } else {
+            bench_fn(
+                || {
+                    let mut session = TensorSession::with_device(device.clone());
+                    let x = session
+                        .tensor_with_shape(&x_data, &[seq_len, hidden])
+                        .unwrap();
+                    let _y = session.layer_norm(&x, hidden).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        };
 
         results.push(BenchResult {
             name: "layer_norm".into(),
@@ -133,18 +199,38 @@ fn bench_ops(device: &Arc<WgpuDevice>, hidden: usize, seq_len: usize, num_heads:
 
     // --- GELU ---
     {
-        let x_data: Vec<f32> = (0..seq_len * hidden).map(|i| (i as f32 * 0.001).sin()).collect();
+        let x_data: Vec<f32> = (0..seq_len * hidden)
+            .map(|i| (i as f32 * 0.001).sin())
+            .collect();
 
-        let median = bench_fn(
-            || {
-                let mut session = TensorSession::with_device(device.clone());
-                let x = session.tensor_with_shape(&x_data, &[seq_len, hidden]).unwrap();
-                let _y = session.gelu(&x).unwrap();
-                session.run().unwrap();
-            },
-            warmup,
-            iters,
-        );
+        let median = if hot {
+            let mut session = TensorSession::with_device(device.clone());
+            bench_fn(
+                || {
+                    session.reset();
+                    let x = session
+                        .tensor_with_shape(&x_data, &[seq_len, hidden])
+                        .unwrap();
+                    let _y = session.gelu(&x).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        } else {
+            bench_fn(
+                || {
+                    let mut session = TensorSession::with_device(device.clone());
+                    let x = session
+                        .tensor_with_shape(&x_data, &[seq_len, hidden])
+                        .unwrap();
+                    let _y = session.gelu(&x).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        };
 
         results.push(BenchResult {
             name: "gelu".into(),
@@ -155,18 +241,38 @@ fn bench_ops(device: &Arc<WgpuDevice>, hidden: usize, seq_len: usize, num_heads:
 
     // --- Softmax ---
     {
-        let x_data: Vec<f32> = (0..seq_len * hidden).map(|i| (i as f32 * 0.001).sin()).collect();
+        let x_data: Vec<f32> = (0..seq_len * hidden)
+            .map(|i| (i as f32 * 0.001).sin())
+            .collect();
 
-        let median = bench_fn(
-            || {
-                let mut session = TensorSession::with_device(device.clone());
-                let x = session.tensor_with_shape(&x_data, &[seq_len, hidden]).unwrap();
-                let _y = session.softmax(&x).unwrap();
-                session.run().unwrap();
-            },
-            warmup,
-            iters,
-        );
+        let median = if hot {
+            let mut session = TensorSession::with_device(device.clone());
+            bench_fn(
+                || {
+                    session.reset();
+                    let x = session
+                        .tensor_with_shape(&x_data, &[seq_len, hidden])
+                        .unwrap();
+                    let _y = session.softmax(&x).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        } else {
+            bench_fn(
+                || {
+                    let mut session = TensorSession::with_device(device.clone());
+                    let x = session
+                        .tensor_with_shape(&x_data, &[seq_len, hidden])
+                        .unwrap();
+                    let _y = session.softmax(&x).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        };
 
         results.push(BenchResult {
             name: "softmax".into(),
@@ -189,18 +295,36 @@ fn bench_ops(device: &Arc<WgpuDevice>, hidden: usize, seq_len: usize, num_heads:
             head_dim,
         };
 
-        let median = bench_fn(
-            || {
-                let mut session = TensorSession::with_device(device.clone());
-                let q = session.tensor_with_shape(&q_data, &[1, num_heads, seq_len, head_dim]).unwrap();
-                let k = session.tensor_with_shape(&k_data, &[1, num_heads, seq_len, head_dim]).unwrap();
-                let v = session.tensor_with_shape(&v_data, &[1, num_heads, seq_len, head_dim]).unwrap();
-                let _out = session.attention(&q, &k, &v, &dims).unwrap();
-                session.run().unwrap();
-            },
-            warmup,
-            iters,
-        );
+        let shape_arr = [1, num_heads, seq_len, head_dim];
+
+        let median = if hot {
+            let mut session = TensorSession::with_device(device.clone());
+            bench_fn(
+                || {
+                    session.reset();
+                    let q = session.tensor_with_shape(&q_data, &shape_arr).unwrap();
+                    let k = session.tensor_with_shape(&k_data, &shape_arr).unwrap();
+                    let v = session.tensor_with_shape(&v_data, &shape_arr).unwrap();
+                    let _out = session.attention(&q, &k, &v, &dims).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        } else {
+            bench_fn(
+                || {
+                    let mut session = TensorSession::with_device(device.clone());
+                    let q = session.tensor_with_shape(&q_data, &shape_arr).unwrap();
+                    let k = session.tensor_with_shape(&k_data, &shape_arr).unwrap();
+                    let v = session.tensor_with_shape(&v_data, &shape_arr).unwrap();
+                    let _out = session.attention(&q, &k, &v, &dims).unwrap();
+                    session.run().unwrap();
+                },
+                warmup,
+                iters,
+            )
+        };
 
         results.push(BenchResult {
             name: "sdpa".into(),
@@ -219,20 +343,17 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     eprintln!("Initializing barraCuda GPU device...");
-    let device = Arc::new(
-        WgpuDevice::new()
-            .await
-            .context("creating GPU device")?,
-    );
+    let device = Arc::new(WgpuDevice::new().await.context("creating GPU device")?);
     let adapter_info = device.adapter_info();
 
-    let hidden = 768; // GPT-2 small
+    let hidden = 768;
     let num_heads = 12;
+    let mode = if cli.hot { "hot" } else { "cold" };
 
     if cli.json {
-        print_json(&cli, &device, adapter_info, hidden, num_heads).await?;
+        print_json(&cli, &device, adapter_info, hidden, num_heads, mode).await?;
     } else {
-        print_human(&cli, &device, adapter_info, hidden, num_heads).await?;
+        print_human(&cli, &device, adapter_info, hidden, num_heads, mode).await?;
     }
 
     Ok(())
@@ -244,14 +365,28 @@ async fn print_human(
     adapter_info: &wgpu::AdapterInfo,
     hidden: usize,
     num_heads: usize,
+    mode: &str,
 ) -> Result<()> {
     println!("\n{}", "=".repeat(60));
-    println!("barraCuda/WGSL Benchmark");
+    println!("barraCuda/WGSL Benchmark ({mode} dispatch)");
     println!("GPU: {} ({:?})", adapter_info.name, adapter_info.backend);
+    if mode == "hot" {
+        println!("Mode: HOT — reusing TensorSession (pre-compiled pipelines)");
+    } else {
+        println!("Mode: COLD — new TensorSession per call (includes pipeline compilation)");
+    }
     println!("{}\n", "=".repeat(60));
 
     if !cli.forward_only {
-        let ops = bench_ops(device, hidden, cli.seq_len, num_heads, cli.warmup, cli.iters);
+        let ops = bench_ops(
+            device,
+            hidden,
+            cli.seq_len,
+            num_heads,
+            cli.warmup,
+            cli.iters,
+            cli.hot,
+        );
         println!("Individual Operations:");
         println!("  {:<20} {:<45} {:>12}", "Operation", "Shape", "Median µs");
         println!("  {} {} {}", "-".repeat(20), "-".repeat(45), "-".repeat(12));
@@ -279,7 +414,7 @@ async fn print_human(
 
     println!("\n---");
     println!("Compare with: python3 playGround/bench/pytorch_baseline.py --device cuda");
-    println!("              python3 playGround/bench/pytorch_baseline.py --device cpu");
+    println!("Run with --hot to use pre-compiled pipelines (closer to PyTorch dispatch)");
 
     Ok(())
 }
@@ -290,16 +425,26 @@ async fn print_json(
     adapter_info: &wgpu::AdapterInfo,
     hidden: usize,
     num_heads: usize,
+    mode: &str,
 ) -> Result<()> {
     let mut output = serde_json::json!({
         "framework": "barracuda",
         "device": format!("{:?}", adapter_info.backend),
         "gpu_name": adapter_info.name,
         "wgpu_backend": format!("{:?}", adapter_info.backend),
+        "dispatch_mode": mode,
     });
 
     if !cli.forward_only {
-        let ops = bench_ops(device, hidden, cli.seq_len, num_heads, cli.warmup, cli.iters);
+        let ops = bench_ops(
+            device,
+            hidden,
+            cli.seq_len,
+            num_heads,
+            cli.warmup,
+            cli.iters,
+            cli.hot,
+        );
         let ops_json: serde_json::Map<String, serde_json::Value> = ops
             .into_iter()
             .map(|r| {
@@ -370,11 +515,8 @@ async fn bench_forward(cli: &Cli, device: &Arc<WgpuDevice>) -> Result<ForwardRes
     let load_time_s = t0.elapsed().as_secs_f64();
 
     let engine = TransformerEngine::new(device.clone(), config, model_weights);
-
-    // Generate deterministic token IDs
     let token_ids: Vec<u32> = (0..cli.seq_len as u32).map(|i| i % 50257).collect();
 
-    // Warmup
     let fwd_warmup = cli.warmup.min(10);
     let fwd_iters = cli.iters.min(50);
     eprintln!("Warmup ({fwd_warmup} iters)...");
@@ -382,7 +524,6 @@ async fn bench_forward(cli: &Cli, device: &Arc<WgpuDevice>) -> Result<ForwardRes
         let _ = engine.forward(&token_ids);
     }
 
-    // Benchmark
     eprintln!("Benchmarking ({fwd_iters} iters)...");
     let mut timings: Vec<f64> = Vec::with_capacity(fwd_iters);
     for _ in 0..fwd_iters {
