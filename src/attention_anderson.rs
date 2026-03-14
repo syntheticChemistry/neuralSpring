@@ -12,6 +12,7 @@
 //! - [`crate::information_flow`] — attention spectral analysis concept
 
 use crate::anderson_localization;
+use crate::tolerances;
 
 /// Per-configuration spectral result.
 #[derive(Debug, Clone)]
@@ -57,7 +58,7 @@ pub fn attention_spectral(matrix: &[f64], n: usize) -> AttentionSpectralResult {
         iprs.push(anderson_localization::ipr(&psi));
     }
     let mean_ipr = iprs.iter().sum::<f64>() / n as f64;
-    let participation = if mean_ipr > 1e-12 {
+    let participation = if mean_ipr > tolerances::EXACT_F64 {
         1.0 / mean_ipr
     } else {
         n as f64

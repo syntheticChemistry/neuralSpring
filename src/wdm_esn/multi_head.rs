@@ -18,6 +18,12 @@
 use super::argmax_f32;
 use super::classifier::EsnNormalization;
 
+/// Tikhonov regularization parameter for ESN readout layer.
+///
+/// Prevents ill-conditioning in the reservoir-to-output weight solve.
+/// Standard value for ESN applications (Lukoševičius & Jaeger, 2009).
+const ESN_TIKHONOV_REGULARIZATION: f32 = 1e-6;
+
 pub use barracuda::esn_v2::{
     quantize_affine_i8_f64, ExportedWeights, HeadConfig, HeadGroup, MultiHeadEsn, NpuReadoutWeights,
 };
@@ -101,7 +107,7 @@ impl MultiHeadWdmClassifier {
             spectral_radius: 0.95,
             connectivity: 0.1,
             leak_rate: 0.3,
-            regularization: 1e-6,
+            regularization: ESN_TIKHONOV_REGULARIZATION,
             seed: 42,
             sgd_learning_rate: 0.01,
             sgd_min_iterations: 50,

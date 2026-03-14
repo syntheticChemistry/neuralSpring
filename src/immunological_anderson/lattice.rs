@@ -6,6 +6,7 @@
 //! computes level spacing ratio spectral sweeps across barrier states.
 
 use super::{dimensional_promotion, evenness_to_disorder, pielou_evenness};
+use crate::tolerances;
 
 /// Per-compartment disorder analysis.
 ///
@@ -128,7 +129,7 @@ pub fn level_spacing_ratio(sorted_eigenvalues: &[f64]) -> f64 {
         .windows(2)
         .filter_map(|w| {
             let (a, b) = (w[0], w[1]);
-            if a > 1e-15 || b > 1e-15 {
+            if a > tolerances::NUMERICAL_DISTINCTNESS || b > tolerances::NUMERICAL_DISTINCTNESS {
                 Some(a.min(b) / a.max(b))
             } else {
                 None

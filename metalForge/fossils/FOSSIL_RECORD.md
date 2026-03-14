@@ -2,8 +2,8 @@
 
 > **Pattern**: `hotSpring` evolve → validate → hand off → absorb → fossil  
 > **Spring**: neuralSpring (Feb 2026)  
-> **Absorbed by**: ToadStool `77f70b2e` / BarraCUDA 0.2+  
-> **ToadStool HEAD**: `9d359814` — absorption span `d45fdfb3`..`9d359814` (Sessions 42–124, S87: deep debt evolution, FHE shader fixes, CPU ungating, unsafe audit. S89: `BarraCUDA` extraction. S93+: standalone math engine, 844+ WGSL shaders. S94b.)
+> **Absorbed by**: ToadStool `77f70b2e` / BarraCUDA 0.2+ → v0.3.5  
+> **ToadStool HEAD**: `751b3849` (S146) — absorption span `d45fdfb3`..`751b3849` (Sessions 42–146, S87: deep debt, S89: BarraCUDA extraction, S93+: standalone math engine, 719+ WGSL shaders, S146: VRAM-aware routing)
 
 ## Purpose
 
@@ -68,6 +68,21 @@ of the sync approach. Zero callers remained after upstream fix at `d45fdfb3`.
 These diagnostic scripts were one-off investigation tools. The findings are
 documented in `specs/TOADSTOOL_HANDOFF.md` (S-15 section) and the V11 handoff.
 
+### evolved_hmm_forward_gpu/ — HMM Forward GPU Workaround
+
+| File | LOC | Shortcoming | BarraCUDA Replacement | Status |
+|------|-----|-------------|----------------------|--------|
+| `hmm_forward_gpu.rs.fossil` | ~200 | S-03b (no HMM GPU op) | `barracuda::ops::bio::HmmBatchForwardF64` (wetSpring origin) | Absorbed |
+
+Fossilized Session 40. `HmmBatchForwardF64` is primary. S-03b fully resolved upstream at `ToadStool` `0c998992` (S60–S61).
+
+### absorbed_shaders/ — WGSL Shaders Absorbed Upstream
+
+| File | Shortcoming | BarraCUDA Replacement | Status |
+|------|-------------|----------------------|--------|
+| `rk4_parallel.wgsl.fossil` | Local RK4 shader | `barracuda::ops::ode::BatchedOdeRK4F64` | Absorbed |
+| `hmm_forward_log.wgsl.fossil` | Local HMM shader | `barracuda::ops::bio::HmmBatchForwardF64` | Absorbed |
+
 ## What Remains Active
 
 One evolved module survives in `src/evolved/`:
@@ -75,9 +90,6 @@ One evolved module survives in `src/evolved/`:
 | Module | Why active | Path to absorption |
 |--------|-----------|-------------------|
 | `mha.rs` | Thin wrapper delegating to upstream `barracuda::ops::mha::MultiHeadAttention`. Retained until all callers migrate to the 3D API. | Retire when callers use upstream directly |
-
-`hmm_forward_gpu.rs` was fossilized in Session 40 — `HmmBatchForwardF64` (wetSpring origin) is primary.
-S-03b fully resolved upstream at `ToadStool` `0c998992` (S60–S61).
 
 ## Timeline
 

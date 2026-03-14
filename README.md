@@ -44,11 +44,18 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S147: Deep debt execution + barracuda evolution + doc cleanup.**
+Zero inline magic numbers in production library code — all centralized in `tolerances::` registry.
+Shannon diversity in `digester_anderson` rewired to `barracuda::stats::shannon_from_frequencies` (zero duplicate math).
+6 missing composition provenance records added (Exp 096–100 + Paper 027). Hardcoded
+`"petaltongue"` discovery strings evolved to `config::PETALTONGUE_SOCKET_DIR` / `PETALTONGUE_SOCKET_PREFIX`.
+V100 handoff for toadStool/barraCuda absorption. Root doc, baseCamp, and wateringHole handoff updates.
+1115 lib tests, 73 forge tests, 9 integration tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings.
+
 **S146: Industry GPU parity benchmarks + deep audit + doc evolution.**
 Industry GPU benchmark validators: BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT/FlashAttention (PyTorch/CUDA on RTX 4070).
 BarraCUDA FFT beats cuFFT at sizes 256–16K (0.19–0.85×). GEMM beats cuBLAS at small and large scales.
 Deep audit: provenance fix, tolerance tightening, visualization refactor (all files < 1000 LOC), Clippy pedantic clean.
-1115 lib tests, 73 forge tests, 9 integration tests, 0 clippy, 47 modules, 260 binaries.
 
 **barraCuda v0.3.5** at `0649cd0` (standalone, extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
 `ReduceScalarPipeline` f64 fix, `BatchedComputeDispatch`, `CoralReefDevice`, `FmaPolicy`, `tridiag_eigh_gpu`, 36 tolerances.

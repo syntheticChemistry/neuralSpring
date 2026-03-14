@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 145)**: 1115 lib tests, 73 forge tests, 47 modules, 258 binaries, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Axis 2 complete. S145: barraCuda v0.3.5 sync, 5 workload rewires (absorbed 20→25, local 6→1), NUCLEUS pipeline GPU dispatch evolution, 4 GPU experiments (Exp 103–106). barraCuda v0.3.5, toadStool S146, coralReef Iter 33. March 11, 2026.
+**Current state (Session 147)**: 1115 lib tests, 73 forge tests, 47 modules, 260 binaries, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Zero inline magic numbers in production code. Zero duplicate math (all delegated to barracuda). Full provenance coverage for all experiments. S147: deep debt execution, barracuda evolution, doc cleanup. V100 handoff. barraCuda v0.3.5, toadStool S146, coralReef Iter 33. March 14, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 

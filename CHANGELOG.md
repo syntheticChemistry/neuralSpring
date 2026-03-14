@@ -5,7 +5,49 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 146 (March 12, 2026)
+## [Unreleased] — Session 147 (March 14, 2026)
+
+### Session 147 — Deep Debt Execution + BarraCUDA Evolution + Doc Cleanup (2026-03-14)
+
+**Zero inline magic numbers** — all production tolerances centralized:
+
+- `digester_anderson.rs`: `1e-30` → `tolerances::LOG_ZERO_GUARD` (2 sites), `1e-12` →
+  `tolerances::EXACT_F64` (2 sites), `0.01` → named `XI_FLOOR` constant
+- `nucleus_pipeline.rs`: `1e-6` → `tolerances::SPECIAL_FUNCTION_F64`, WDM stage
+  parameters → 6 named constants
+- `isomorphic_reservoir.rs`: `1e-30` → `LOG_ZERO_GUARD`, `1e-12` → `EXACT_F64` (3 sites)
+- `attention_anderson.rs`: `1e-12` → `EXACT_F64`
+- `counterdiabatic.rs`: `SAFETY_EPS` → `LOG_ZERO_GUARD`, `1e-15` → `NUMERICAL_DISTINCTNESS`
+- `immunological_anderson/lattice.rs`: `1e-15` → `NUMERICAL_DISTINCTNESS`
+- `wdm_esn/multi_head.rs`: `1e-6` → named `ESN_TIKHONOV_REGULARIZATION` (f32)
+- `wdm_ensemble_qs.rs`: `1e-12` → `EXACT_F64` (2 sites)
+
+**BarraCUDA evolution** — eliminate duplicate math:
+
+- `digester_anderson::shannon_diversity` rewired to delegate to
+  `barracuda::stats::shannon_from_frequencies` via `primitives::shannon_entropy`
+  (zero duplicate math — was reimplementing `-Σ(p*ln(p))`)
+
+**Provenance completeness** — 6 missing composition experiment records:
+
+- Paper 027 (Digestion Prediction), Exp 096 (Digester-Anderson), Exp 097
+  (Isomorphic Reservoir), Exp 098 (WDM Ensemble QS), Exp 099 (Introgression NN),
+  Exp 100 (Attention Anderson) — all wired into provenance validation test
+
+**Capability-based discovery** — hardcoded primal names eliminated:
+
+- `ipc_push.rs`: `"petaltongue"` → `config::PETALTONGUE_SOCKET_DIR` /
+  `config::PETALTONGUE_SOCKET_PREFIX`
+- `config.rs`: new centralised discovery constants
+
+**Documentation and handoff**:
+
+- V100 toadStool/barraCuda absorption handoff (S147 deep debt + evolution)
+- Root docs updated (README, CHANGELOG, EVOLUTION_READINESS)
+- ecoPrimals/whitePaper/gen3/baseCamp/ updated
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy --workspace -- -W clippy::pedantic` clean
+(0 warnings), 1115/1115 lib tests pass, 0 doc warnings.
 
 ### Session 146 — Industry GPU Parity + Deep Audit (2026-03-12)
 

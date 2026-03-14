@@ -26,6 +26,7 @@ use neural_spring_forge::graph::{PipelineExecution, PipelineGraph, StageOutput, 
 use neural_spring_forge::mixed::MixedSubstrate;
 
 use crate::gpu_dispatch::Dispatcher;
+use crate::tolerances;
 
 /// A completed pipeline report with provenance metadata.
 #[derive(Debug)]
@@ -237,7 +238,7 @@ fn stage_eigensolve() -> (bool, StageOutput) {
     let result = crate::eigh::eigh_householder_qr(&matrix, n);
     let sum: f64 = result.eigenvalues.iter().sum();
     (
-        (sum - n as f64).abs() < 1e-6,
+        (sum - n as f64).abs() < tolerances::SPECIAL_FUNCTION_F64,
         StageOutput::Vector(result.eigenvalues),
     )
 }
@@ -251,7 +252,7 @@ fn stage_eigensolve_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
     let (eigenvalues, _eigenvectors) = dispatcher.eigh(&matrix, n);
     let sum: f64 = eigenvalues.iter().sum();
     (
-        (sum - n as f64).abs() < 1e-6,
+        (sum - n as f64).abs() < tolerances::SPECIAL_FUNCTION_F64,
         StageOutput::Vector(eigenvalues),
     )
 }
@@ -310,17 +311,31 @@ fn stage_isomorphic_reservoir() -> (bool, StageOutput) {
     (valid, StageOutput::Map(map))
 }
 
+/// WDM ensemble QS stage domain parameters.
+const WDM_DISAGREEMENT_INPUT: f64 = 0.5;
+const WDM_DISAGREEMENT_MIN: f64 = 0.01;
+const WDM_DISAGREEMENT_MAX: f64 = 1.0;
+const WDM_W_SCALE: f64 = 16.0;
+const WDM_DISORDER_SAMPLES: usize = 20;
+const WDM_REPLICATOR_STEPS: usize = 500;
+
 fn stage_wdm_ensemble_qs() -> (bool, StageOutput) {
     let mut rng = crate::rng::Rng::new(42);
-    let disagree = 0.5;
-    let w = crate::wdm_ensemble_qs::disagreement_to_disorder(disagree, 0.01, 1.0, 16.0);
+    let w = crate::wdm_ensemble_qs::disagreement_to_disorder(
+        WDM_DISAGREEMENT_INPUT,
+        WDM_DISAGREEMENT_MIN,
+        WDM_DISAGREEMENT_MAX,
+        WDM_W_SCALE,
+    );
 
-    let disorder_vec: Vec<f64> = (0..20).map(|_| rng.uniform() * w).collect();
+    let disorder_vec: Vec<f64> = (0..WDM_DISORDER_SAMPLES)
+        .map(|_| rng.uniform() * w)
+        .collect();
     let (ipr, xi) = crate::wdm_ensemble_qs::anderson_from_disorder(&disorder_vec);
 
-    let w_frac = (w / 16.0).clamp(0.0, 1.0);
+    let w_frac = (w / WDM_W_SCALE).clamp(0.0, 1.0);
     let payoff = crate::wdm_ensemble_qs::snowdrift_payoff(w_frac);
-    let coop = crate::wdm_ensemble_qs::replicator_final_coop(&payoff, 500);
+    let coop = crate::wdm_ensemble_qs::replicator_final_coop(&payoff, WDM_REPLICATOR_STEPS);
 
     let mut map = std::collections::HashMap::new();
     map.insert("disorder".to_string(), w);

@@ -3,7 +3,7 @@
 #
 # Python baseline drift detector for neuralSpring CI.
 #
-# Re-runs all 39 Python control experiments and verifies they still produce
+# Re-runs all 45 Python control experiments and verifies they still produce
 # the same pass/fail results. Any failure indicates baseline drift — either
 # a dependency update changed numeric behavior, or a script was modified
 # without updating the Rust validation targets.
@@ -73,6 +73,12 @@ MODULES=(
     "immunological_anderson/immunological_anderson.py"
     "immunological_anderson/immunological_anderson_extended.py"
     "glucose_prediction/glucose_prediction.py"
+    "digestion_prediction/digestion_prediction.py"
+    "digester_anderson/digester_anderson.py"
+    "isomorphic_reservoir/isomorphic_reservoir.py"
+    "wdm_ensemble_qs/wdm_ensemble_qs.py"
+    "introgression_nn/introgression_nn.py"
+    "attention_anderson/attention_anderson.py"
 )
 
 run_module() {

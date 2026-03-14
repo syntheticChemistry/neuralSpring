@@ -28,9 +28,17 @@
 use crate::anderson_localization;
 use crate::digestion_prediction;
 use crate::rng::Rng;
+use crate::tolerances;
 
 const W_MAX: f64 = 20.0;
 const RECURRENCE_STEPS: usize = 2;
+
+/// Minimum localization length clamp for noise computation.
+///
+/// Prevents division by zero in [`noise_from_xi`] when ξ → 0.
+/// Domain-appropriate: smallest physically meaningful localization
+/// in a lattice is ~1 site spacing, far above 0.01.
+const XI_FLOOR: f64 = 0.01;
 
 /// Community profile with diversity and Anderson properties.
 #[derive(Debug, Clone)]
@@ -170,7 +178,7 @@ pub fn noise_from_xi(xi: f64) -> f64 {
     let base = 2.0;
     let scale = 2.0;
     let cap = 15.0;
-    (base + scale / xi.max(0.01)).min(cap)
+    (base + scale / xi.max(XI_FLOOR)).min(cap)
 }
 
 /// Generate Dirichlet-distributed abundances.
@@ -181,7 +189,7 @@ pub fn noise_from_xi(xi: f64) -> f64 {
 pub fn dirichlet_abundances(n_species: usize, alpha: f64, rng: &mut Rng) -> Vec<f64> {
     let mut raw: Vec<f64> = (0..n_species).map(|_| gamma_variate(alpha, rng)).collect();
     let sum: f64 = raw.iter().sum();
-    if sum > 1e-30 {
+    if sum > tolerances::LOG_ZERO_GUARD {
         for v in &mut raw {
             *v /= sum;
         }
@@ -211,13 +219,12 @@ fn gamma_variate(alpha: f64, rng: &mut Rng) -> f64 {
 }
 
 /// Shannon diversity index: `H' = -Σ(p_i * ln(p_i))`.
+///
+/// Delegates to `barracuda::stats::shannon_from_frequencies` via
+/// [`crate::primitives::shannon_entropy`] (absorbed upstream S64).
 #[must_use]
 pub fn shannon_diversity(abundances: &[f64]) -> f64 {
-    -abundances
-        .iter()
-        .filter(|&&p| p > 1e-30)
-        .map(|&p| p * p.ln())
-        .sum::<f64>()
+    crate::primitives::shannon_entropy(abundances)
 }
 
 /// Generate a community's Anderson properties.
@@ -231,11 +238,15 @@ pub fn community_anderson(
     let abundances = dirichlet_abundances(n_species, alpha, rng);
     let h_prime = shannon_diversity(&abundances);
     let h_max = (n_species as f64).ln();
-    let evenness = if h_max > 1e-12 { h_prime / h_max } else { 0.0 };
+    let evenness = if h_max > tolerances::EXACT_F64 {
+        h_prime / h_max
+    } else {
+        0.0
+    };
     let w = evenness_to_disorder(evenness);
 
     let mipr = anderson_localization::disorder_sweep(lattice_size, 1.0, &[w], rng)[0];
-    let xi = if mipr > 1e-12 {
+    let xi = if mipr > tolerances::EXACT_F64 {
         1.0 / (lattice_size as f64 * mipr)
     } else {
         lattice_size as f64

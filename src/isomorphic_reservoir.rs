@@ -13,6 +13,7 @@
 //! - `crate::metrics` — R², RMSE
 
 use crate::anderson_localization;
+use crate::tolerances;
 
 /// Spectral properties of a weight matrix.
 #[derive(Debug, Clone)]
@@ -77,7 +78,7 @@ pub fn spectral_properties(matrix: &[f64], n: usize, name: &str) -> SpectralProf
     let mean_spacing_ratio = if gaps.len() > 1 {
         let ratios: Vec<f64> = gaps
             .windows(2)
-            .map(|w| w[0].min(w[1]) / w[0].max(w[1]).max(1e-30))
+            .map(|w| w[0].min(w[1]) / w[0].max(w[1]).max(tolerances::LOG_ZERO_GUARD))
             .filter(|r| r.is_finite())
             .collect();
         if ratios.is_empty() {
@@ -97,7 +98,7 @@ pub fn spectral_properties(matrix: &[f64], n: usize, name: &str) -> SpectralProf
     }
     let mean_ipr = iprs.iter().sum::<f64>() / n as f64;
 
-    let effective_dimension = if mean_ipr > 1e-12 {
+    let effective_dimension = if mean_ipr > tolerances::EXACT_F64 {
         1.0 / mean_ipr
     } else {
         n as f64
@@ -144,10 +145,10 @@ pub fn cross_domain_metrics(profiles: &[SpectralProfile]) -> CrossDomainMetrics 
     CrossDomainMetrics {
         eff_ratio_mean: eff_mean,
         eff_ratio_std: eff_std,
-        eff_ratio_cv: eff_std / eff_mean.max(1e-12),
+        eff_ratio_cv: eff_std / eff_mean.max(tolerances::EXACT_F64),
         ipr_mean,
         ipr_std,
-        ipr_cv: ipr_std / ipr_mean.max(1e-12),
+        ipr_cv: ipr_std / ipr_mean.max(tolerances::EXACT_F64),
         spacing_ratio_mean: sp_mean,
         spacing_ratio_std: sp_std,
     }

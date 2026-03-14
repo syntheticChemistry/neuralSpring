@@ -34,6 +34,19 @@ pub const ENV_PETALTONGUE_SOCKET: &str = "PETALTONGUE_SOCKET";
 /// XDG runtime directory (standard freedesktop.org).
 pub const ENV_XDG_RUNTIME_DIR: &str = "XDG_RUNTIME_DIR";
 
+/// Socket directory name for petalTongue discovery.
+///
+/// Used when probing `$XDG_RUNTIME_DIR` and `temp_dir()` for a
+/// petalTongue instance. Centralised here so changing the primal
+/// name changes one constant, not N call sites.
+pub const PETALTONGUE_SOCKET_DIR: &str = "petaltongue";
+
+/// Socket file prefix for petalTongue discovery.
+///
+/// Used when scanning `temp_dir()` for petalTongue socket files
+/// matching the `{prefix}*.sock` pattern.
+pub const PETALTONGUE_SOCKET_PREFIX: &str = "petaltongue";
+
 /// Require GPU for validation binaries (exit 0 if absent when unset).
 pub const ENV_REQUIRE_GPU: &str = "NEURALSPRING_REQUIRE_GPU";
 

@@ -571,6 +571,86 @@ pub const GLUCOSE_PREDICTION_PROVENANCE: BaselineProvenance = BaselineProvenance
     unit: "checks passed",
 };
 
+// ═══════════════════════════════════════════════════════════════════
+// Paper 027 — Digestion Prediction (Wang/Liao 2020)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Provenance for Paper 027: Digestion Prediction ESN.
+pub const DIGESTION_PREDICTION_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Paper 027: Digestion Prediction ESN",
+    script: "control/digestion_prediction/digestion_prediction.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/digestion_prediction/digestion_prediction.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated",
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// Composition Experiments (Exp 096–100)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Provenance for Exp 096: Digester Community–Performance Coupling via Anderson-ESN.
+pub const DIGESTER_ANDERSON_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp 096: Digester-Anderson Coupling",
+    script: "control/digester_anderson/digester_anderson.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/digester_anderson/digester_anderson.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated",
+};
+
+/// Provenance for Exp 097: Isomorphic Reservoir Ensemble.
+pub const ISOMORPHIC_RESERVOIR_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp 097: Isomorphic Reservoir Ensemble",
+    script: "control/isomorphic_reservoir/isomorphic_reservoir.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/isomorphic_reservoir/isomorphic_reservoir.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated",
+};
+
+/// Provenance for Exp 098: WDM Surrogate Ensemble Quorum Sensing.
+pub const WDM_ENSEMBLE_QS_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp 098: WDM Ensemble QS",
+    script: "control/wdm_ensemble_qs/wdm_ensemble_qs.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/wdm_ensemble_qs/wdm_ensemble_qs.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated",
+};
+
+/// Provenance for Exp 099: HMM Introgression on Neural Network Layers.
+pub const INTROGRESSION_NN_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp 099: Introgression NN",
+    script: "control/introgression_nn/introgression_nn.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/introgression_nn/introgression_nn.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated",
+};
+
+/// Provenance for Exp 100: Attention Anderson Spectral Analysis.
+pub const ATTENTION_ANDERSON_PROVENANCE: BaselineProvenance = BaselineProvenance {
+    label: "Exp 100: Attention Anderson Spectral",
+    script: "control/attention_anderson/attention_anderson.py",
+    commit: BASELINE_COMMIT,
+    date: BASELINE_DATE,
+    command: "python3 control/attention_anderson/attention_anderson.py",
+    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    value: 1.0,
+    unit: "baselines generated",
+};
+
 /// Provenance for nS-06 extended: Gonzales dose-response, pruritus time-series,
 /// lokivetmab PK, 3D tissue lattice, Fajgenbaum MATRIX scoring.
 pub const IMMUNOLOGICAL_ANDERSON_EXTENDED_PROVENANCE: BaselineProvenance = BaselineProvenance {

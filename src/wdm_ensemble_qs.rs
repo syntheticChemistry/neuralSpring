@@ -12,6 +12,7 @@
 
 use crate::anderson_localization;
 use crate::rng::Rng;
+use crate::tolerances;
 
 /// Per-temperature-slice Anderson localization result.
 #[derive(Debug, Clone)]
@@ -42,7 +43,7 @@ pub struct EnsembleBaseline {
 /// Map disagreement (coefficient of variation) to Anderson disorder.
 #[must_use]
 pub fn disagreement_to_disorder(disagreement: f64, d_min: f64, d_max: f64, w_scale: f64) -> f64 {
-    let d_range = (d_max - d_min).max(1e-12);
+    let d_range = (d_max - d_min).max(tolerances::EXACT_F64);
     let d_norm = (disagreement - d_min) / d_range;
     d_norm * w_scale
 }
@@ -98,7 +99,7 @@ pub fn anderson_from_disorder(disorder: &[f64]) -> (f64, f64) {
     }
 
     let mean_ipr = iprs.iter().sum::<f64>() / n as f64;
-    let xi = if mean_ipr > 1e-12 {
+    let xi = if mean_ipr > tolerances::EXACT_F64 {
         1.0 / (n as f64 * mean_ipr)
     } else {
         n as f64

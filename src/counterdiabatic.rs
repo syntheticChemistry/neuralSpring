@@ -24,11 +24,12 @@ use crate::rng::Rng;
 
 /// Probability floor for Boltzmann weights to prevent `log(0)` in KL divergence.
 ///
-/// Domain-specific: 1e-30 is larger than [`crate::primitives::LOG_GUARD`] (1e-300)
-/// because NK model Boltzmann weights at β=1 can legitimately be O(1e-20)
-/// and we need this floor to be well below the smallest real probability
-/// while staying above the threshold where f64 arithmetic degrades.
-const SAFETY_EPS: f64 = 1e-30;
+/// Domain-specific: [`crate::tolerances::LOG_ZERO_GUARD`] (1e-30) is larger
+/// than [`crate::primitives::LOG_GUARD`] (1e-300) because NK model Boltzmann
+/// weights at β=1 can legitimately be O(1e-20) and we need this floor to be
+/// well below the smallest real probability while staying above the threshold
+/// where f64 arithmetic degrades.
+const SAFETY_EPS: f64 = crate::tolerances::LOG_ZERO_GUARD;
 
 /// Floor for Fisher information metric to prevent `ds/dt → ∞`.
 ///
@@ -208,7 +209,7 @@ pub fn compute_cd_schedule(f0: &[f64], f1: &[f64], t: usize, beta: f64) -> Vec<f
             let i1 = (idx + 1).min(N_STEPS);
             let c0 = cumulative[i0];
             let c1 = cumulative[i1];
-            let frac = if (c1 - c0).abs() < 1e-15 {
+            let frac = if (c1 - c0).abs() < crate::tolerances::NUMERICAL_DISTINCTNESS {
                 0.0
             } else {
                 ((tv - c0) / (c1 - c0)).clamp(0.0, 1.0)

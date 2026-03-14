@@ -141,7 +141,7 @@ impl PetalTonguePushClient {
             }
         }
         if let Ok(runtime) = std::env::var(crate::config::ENV_XDG_RUNTIME_DIR) {
-            let dir = PathBuf::from(runtime).join("petaltongue");
+            let dir = PathBuf::from(runtime).join(crate::config::PETALTONGUE_SOCKET_DIR);
             if dir.is_dir() {
                 if let Ok(entries) = std::fs::read_dir(&dir) {
                     for entry in entries.flatten() {
@@ -157,7 +157,9 @@ impl PetalTonguePushClient {
             for entry in entries.flatten() {
                 let name = entry.file_name();
                 let name = name.to_string_lossy();
-                if name.starts_with("petaltongue") && name.ends_with(".sock") {
+                if name.starts_with(crate::config::PETALTONGUE_SOCKET_PREFIX)
+                    && name.ends_with(".sock")
+                {
                     return Ok(Self {
                         socket_path: entry.path(),
                     });
