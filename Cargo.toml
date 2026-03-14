@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "metalForge/forge"]
+members = [".", "metalForge/forge", "playGround"]
 
 [package]
 name = "neural-spring"

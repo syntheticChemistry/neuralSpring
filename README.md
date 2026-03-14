@@ -44,6 +44,11 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S148: playGround — Squirrel MCP adapter + interactive experiment runner.**
+`playGround/` workspace member: MCP adapter binary (bridges 14 science.* capabilities to Squirrel),
+interactive AI-driven experiment runner, reusable IPC client library with biomeOS 5-tier discovery.
+Squirrel evolution handoff written. Lysogeny/scyBorg awareness documented.
+
 **S147: Deep debt execution + barracuda evolution + doc cleanup.**
 Zero inline magic numbers in production library code — all centralized in `tolerances::` registry.
 Shannon diversity in `digester_anderson` rewired to `barracuda::stats::shannon_from_frequencies` (zero duplicate math).

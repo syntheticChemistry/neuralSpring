@@ -5,7 +5,39 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 147 (March 14, 2026)
+## [Unreleased] — Session 148 (March 14, 2026)
+
+### Session 148 — playGround: Squirrel MCP + Interactive Runner (2026-03-14)
+
+**playGround workspace member** — application sandbox for Squirrel MCP integration:
+
+- `playGround/Cargo.toml`: new workspace member (tokio, serde, clap, anyhow)
+- `ipc_client.rs`: reusable JSON-RPC 2.0 client over Unix sockets with biomeOS
+  5-tier socket discovery (`BIOMEOS_SOCKET_DIR` → `XDG_RUNTIME_DIR/biomeos` →
+  `/run/user/$UID/biomeos` → Android → temp)
+- `squirrel_client.rs`: typed Squirrel MCP client (`ai.query`, `tool.execute`,
+  `capability.announce`, `system.health`, `ai.list_providers`)
+- `primal_client.rs`: typed neuralSpring primal client (all 14 `science.*`
+  capabilities + `health` + `capability.list`)
+- `mcp_tools.rs`: MCP tool definitions (JSON Schema) for all 14 capabilities
+
+**Binaries**:
+
+- `neuralspring_mcp_adapter`: bridge between Squirrel MCP and neuralSpring
+  primal — discovers both sockets, registers capabilities, forwards tool calls,
+  standalone mode if Squirrel unavailable
+- `neuralspring_interactive`: AI-driven conversational experiment runner —
+  `run`, `analyze`, `ask`, natural language queries with experiment context
+
+**Squirrel evolution handoff**: `NEURALSPRING_SQUIRREL_EVOLUTION_HANDOFF_MAR14_2026.md`
+to wateringHole — `#[allow()]` → `#[expect()]` migration, PRIMAL_REGISTRY update,
+spec freshness, legacy removal (grpc_port, SongbirdClient), coverage 70% → 90%.
+
+**Lysogeny/scyBorg awareness**: playGround README documents cross-domain
+validation assignments (Usurper, Symbiont, Pathogen) and triple copyleft.
+
+**Quality gates**: `cargo fmt` clean, `cargo clippy --workspace -- -W clippy::pedantic`
+clean (0 warnings), 1115 lib tests pass, `#![forbid(unsafe_code)]` on playGround lib.
 
 ### Session 147 — Deep Debt Execution + BarraCUDA Evolution + Doc Cleanup (2026-03-14)
 

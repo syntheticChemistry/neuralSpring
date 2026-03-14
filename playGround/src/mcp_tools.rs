@@ -1,0 +1,216 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! MCP tool definitions for neuralSpring's 14 `science.*` capabilities.
+//!
+//! Each tool has a name, description, and JSON Schema for input parameters.
+//! These definitions are registered with Squirrel via `capability.announce`
+//! by the MCP adapter binary.
+
+use serde::Serialize;
+use serde_json::json;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct McpToolDef {
+    pub name: &'static str,
+    pub description: &'static str,
+    pub domain: &'static str,
+    pub input_schema: serde_json::Value,
+}
+
+/// All neuralSpring science capabilities as MCP tool definitions.
+#[must_use]
+#[expect(clippy::too_many_lines, reason = "14 tool definitions in one registry")]
+pub fn tool_definitions() -> Vec<McpToolDef> {
+    vec![
+        McpToolDef {
+            name: "science.spectral_analysis",
+            description: "Spectral analysis of weight matrices: eigenvalue distribution, \
+                          Marchenko-Pastur fit, bulk ratio, and localization metrics",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "matrix": { "type": "array", "description": "Flat weight matrix (row-major)" },
+                    "rows": { "type": "integer", "description": "Number of rows" },
+                    "cols": { "type": "integer", "description": "Number of columns" }
+                },
+                "required": ["matrix", "rows", "cols"]
+            }),
+        },
+        McpToolDef {
+            name: "science.anderson_localization",
+            description: "Anderson localization analysis: disorder sweep, IPR, level spacing \
+                          ratio, and localization length for 1D tight-binding Hamiltonians",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "size": { "type": "integer", "description": "Lattice size" },
+                    "disorder": { "type": "number", "description": "Disorder strength W" },
+                    "samples": { "type": "integer", "description": "Disorder realizations" }
+                },
+                "required": ["size", "disorder"]
+            }),
+        },
+        McpToolDef {
+            name: "science.hessian_eigen",
+            description: "Hessian eigenanalysis: eigenvalue spectrum of the loss landscape \
+                          Hessian for neural network training diagnostics",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "hessian": { "type": "array", "description": "Flat Hessian matrix" },
+                    "size": { "type": "integer", "description": "Matrix dimension" }
+                },
+                "required": ["hessian", "size"]
+            }),
+        },
+        McpToolDef {
+            name: "science.agent_coordination",
+            description: "Multi-agent coordination metrics: graph Laplacian, Fiedler value, \
+                          cooperation index from interaction matrices",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "adjacency": { "type": "array", "description": "Flat adjacency matrix" },
+                    "agents": { "type": "integer", "description": "Number of agents" }
+                },
+                "required": ["adjacency", "agents"]
+            }),
+        },
+        McpToolDef {
+            name: "science.ipr",
+            description: "Inverse Participation Ratio for eigenvector localization measurement",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "eigenvector": { "type": "array", "description": "Eigenvector components" }
+                },
+                "required": ["eigenvector"]
+            }),
+        },
+        McpToolDef {
+            name: "science.disorder_sweep",
+            description: "Sweep disorder strength and compute localization metrics at each point",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "size": { "type": "integer", "description": "Lattice size" },
+                    "disorder_min": { "type": "number" },
+                    "disorder_max": { "type": "number" },
+                    "steps": { "type": "integer" }
+                },
+                "required": ["size", "disorder_min", "disorder_max", "steps"]
+            }),
+        },
+        McpToolDef {
+            name: "science.training_trajectory",
+            description: "Analyze neural network training trajectory: loss curve, gradient norms, \
+                          spectral evolution across epochs",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "trajectory": { "type": "array", "description": "Per-epoch metrics" }
+                },
+                "required": ["trajectory"]
+            }),
+        },
+        McpToolDef {
+            name: "science.evoformer_block",
+            description: "Execute an Evoformer block (MSA attention + pair attention) for \
+                          protein structure prediction validation",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "msa": { "type": "array", "description": "MSA representation" },
+                    "pair": { "type": "array", "description": "Pair representation" }
+                },
+                "required": ["msa", "pair"]
+            }),
+        },
+        McpToolDef {
+            name: "science.structure_module",
+            description: "Run the structure module for 3D coordinate prediction from \
+                          single representation",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "single": { "type": "array", "description": "Single representation" }
+                },
+                "required": ["single"]
+            }),
+        },
+        McpToolDef {
+            name: "science.folding_health",
+            description: "Health check for the protein folding pipeline: GPU availability, \
+                          model readiness, and validation status",
+            domain: "science",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        McpToolDef {
+            name: "science.gpu_dispatch",
+            description: "Route arbitrary GPU operations through the neuralSpring Dispatcher: \
+                          matmul, eigensolve, reduction, etc.",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "op": { "type": "string", "description": "Operation name" },
+                    "params": { "type": "object", "description": "Operation-specific parameters" }
+                },
+                "required": ["op"]
+            }),
+        },
+        McpToolDef {
+            name: "science.cross_spring_provenance",
+            description: "Query cross-spring provenance: which Python baselines, barraCuda \
+                          primitives, and validation binaries exist for each experiment",
+            domain: "science",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        McpToolDef {
+            name: "science.cross_spring_benchmark",
+            description: "Run cross-spring benchmarks: Python vs Rust vs GPU performance \
+                          comparison across domains",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "domain": { "type": "string", "description": "Benchmark domain filter" }
+                }
+            }),
+        },
+        McpToolDef {
+            name: "science.precision_routing",
+            description: "Query precision routing advice: f32/f64/df64 strategy for the \
+                          current GPU hardware profile",
+            domain: "science",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+    ]
+}
+
+/// Capability name list (mirrors `neuralspring_primal` `ALL_CAPABILITIES`).
+pub const ALL_CAPABILITIES: &[&str] = &[
+    "science.spectral_analysis",
+    "science.anderson_localization",
+    "science.hessian_eigen",
+    "science.agent_coordination",
+    "science.ipr",
+    "science.disorder_sweep",
+    "science.training_trajectory",
+    "science.evoformer_block",
+    "science.structure_module",
+    "science.folding_health",
+    "science.gpu_dispatch",
+    "science.cross_spring_provenance",
+    "science.cross_spring_benchmark",
+    "science.precision_routing",
+];
