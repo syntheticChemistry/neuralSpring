@@ -10,9 +10,13 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 
 [dependencies]
 anyhow = "1"
+barracuda = { path = "../../barraCuda/crates/barracuda" }
+bytemuck = { version = "1.21", features = ["derive"] }
 clap = { version = "4.5", features = ["derive"] }
 env_logger = "0.11"
 log = "0.4"
+reqwest = { version = "0.12", features = ["json", "stream"] }
+safetensors = "0.7"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1.49", features = [
@@ -25,6 +29,7 @@ tokio = { version = "1.49", features = [
     "fs",
     "time",
 ] }
+toml = "0.8"
 
 [[bin]]
 name = "neuralspring_mcp_adapter"
@@ -33,3 +38,7 @@ path = "src/bin/neuralspring_mcp_adapter.rs"
 [[bin]]
 name = "neuralspring_interactive"
 path = "src/bin/neuralspring_interactive.rs"
+
+[[bin]]
+name = "neuralspring_model_lab"
+path = "src/bin/neuralspring_model_lab.rs"

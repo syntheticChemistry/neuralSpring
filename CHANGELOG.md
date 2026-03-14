@@ -5,7 +5,31 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 148 (March 14, 2026)
+## [Unreleased] — Session 149 (March 14, 2026)
+
+### Session 149 — playGround: HuggingFace Model Lab + barraCuda Inference (2026-03-14)
+
+**Model inference pipeline** — download HuggingFace models and run forward passes
+through barraCuda's sovereign WGSL shader pipeline:
+
+- `secrets.rs`: API key loader for `ecoPrimals/testing-secrets/api-keys.toml`
+  (HF token, Anthropic, OpenAI, plus loose-format top-section parsing)
+- `hf_hub.rs`: HuggingFace Hub REST client — model info, safetensors listing,
+  file download with caching, full model download (config + weights + tokenizer)
+- `model_config.rs`: Typed `TransformerConfig` from HF `config.json` — supports
+  GPT-2, Llama, Mistral, Phi field naming conventions; auto-normalizes
+  hidden_size, num_layers, num_heads, activation function
+- `inference/weights.rs`: Load safetensors to barraCuda `Tensor` GPU buffers
+  (f16/bf16/f32/f64 → f32 conversion, per-layer weight organization, weight
+  summary reporting)
+- `inference/transformer.rs`: GPU forward pass via `TensorSession` — embedding
+  lookup, layer norm, attention dispatch, FFN with GELU, logit projection,
+  top-k and softmax utilities
+- `neuralspring_model_lab` binary: CLI for model exploration (info, download,
+  inspect, load, forward, cached subcommands)
+
+Dependencies added: `barracuda` (GPU compute), `reqwest` (HF Hub HTTP),
+`safetensors` (weight loading), `toml` (secrets parsing), `bytemuck` (GPU buffer casting)
 
 ### Session 148 — playGround: Squirrel MCP + Interactive Runner (2026-03-14)
 
