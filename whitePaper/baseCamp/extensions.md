@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: March 10, 2026 (Sessions 49–142 — S142: Upstream rewire + `enable f64;` PTXAS fix + cross-spring evolution. 55/55 dispatch parity. V95 handoffs. 1048 lib tests, 92% coverage. **233 binaries**, zero clippy, 4,100+ checks, 46 upstream rewires)
+**Date**: March 14, 2026 (Sessions 49–150 — S150: Compute triangle integration, playGround hot/cold dispatch benchmarks, Squirrel MCP adapter, HuggingFace Model Lab. V100 handoffs. 1115 lib tests, 92% coverage. **260 binaries**, zero clippy, 4,500+ checks, 46 upstream rewires)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---

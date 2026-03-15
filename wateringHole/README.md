@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### ToadStool/barraCuda
+### ToadStool/barraCuda/coralReef (Compute Triangle)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V100 S147** | `handoffs/NEURALSPRING_V100_S147_DEEP_DEBT_EVOLUTION_HANDOFF_MAR14_2026.md` | Mar 14, 2026 | Deep debt: zero inline magic numbers, zero duplicate math, provenance completeness, capability-based discovery. Absorption candidates: tolerance registry, ValidationHarness, BaselineProvenance. Supersedes V99 |
+| **V101 S150** | `handoffs/NEURALSPRING_V101_S150_COMPUTE_TRIANGLE_HANDOFF_MAR14_2026.md` | Mar 14, 2026 | Compute triangle integration: typed IPC clients, hot/cold dispatch benchmarks (7–45× pipeline reuse speedup, 8–22× PyTorch/CUDA gap), live ToadStool verified, safetensors alignment fix, 63+13 playGround tests. Supersedes V100 |
 
 ### coralReef
 
@@ -23,7 +23,8 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 |---------|------|------|-------|
 | **—** | `handoffs/NEURALSPRING_ENABLE_F64_FIX_HANDOFF_MAR10_2026.md` | Mar 10, 2026 | Critical: `enable f64;` PTXAS silent-zero regression on Ada Lovelace. Local fix for upstream absorption |
 
-Central wateringHole handoffs (S135–S147) live at `ecoPrimals/wateringHole/handoffs/`:
+Central wateringHole handoffs (S135–S150) live at `ecoPrimals/wateringHole/handoffs/`:
+- `NEURALSPRING_V101_S150_COMPUTE_TRIANGLE_HANDOFF_MAR14_2026.md`
 - `NEURALSPRING_V100_S147_DEEP_DEBT_EVOLUTION_HANDOFF_MAR14_2026.md`
 - `NEURALSPRING_S139_TOADSTOOL_BARRACUDA_ABSORPTION_HANDOFF_MAR10_2026.md`
 - `NEURALSPRING_S139_VISUALIZATION_EVOLUTION_HANDOFF_MAR10_2026.md`
@@ -33,7 +34,7 @@ Central wateringHole handoffs (S135–S147) live at `ecoPrimals/wateringHole/han
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V99 + NestGate V1 + biomeOS V1 + Songbird V1). V74–V99 span S86 through S146. Central handoffs for S135–S147 live in `ecoPrimals/wateringHole/handoffs/`.
+Superseded handoffs: `handoffs/archive/` (V1–V100 + NestGate V1 + biomeOS V1 + Songbird V1). V74–V100 span S86 through S147. Central handoffs for S135–S150 live in `ecoPrimals/wateringHole/handoffs/`.
 
 ## Conventions
 

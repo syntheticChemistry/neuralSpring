@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: March 12, 2026 (Sessions 40–146 — S146: Industry GPU parity benchmarks (FFT beats cuFFT 0.19–0.85×, GEMM beats cuBLAS 0.16× at 2048²). 260 binaries, 1115 lib tests. S145: barraCuda v0.3.5, 25 absorbed workloads. S102: Nautilus Shell cross-spring bridge)
+**Date**: March 14, 2026 (Sessions 40–150 — S150: Compute triangle (ToadStool/coralReef IPC, hot/cold dispatch benchmarks — 7–45× pipeline reuse speedup, 8–22× PyTorch/CUDA gap). S149: HuggingFace Model Lab, GPT-2 inference. S148: Squirrel MCP. S146: Industry GPU parity. 260 binaries, 1115 lib + 63 playGround unit + 13 integration tests. barraCuda v0.3.5, 25 absorbed workloads)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK)
 **Methodology**: Python control → Rust validation → WGSL shader evolution → multi-GPU portability
 

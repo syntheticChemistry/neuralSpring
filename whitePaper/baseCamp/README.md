@@ -1,8 +1,12 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 12, 2026 (Sessions 61–146)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments + 5 novel compositions + 4 GPU experiments + 1 industry GPU parity experiment, **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1115 lib tests. S146: Industry GPU parity benchmarks (FFT beats cuFFT 0.19–0.85×, GEMM beats cuBLAS 0.16× at 2048²), deep audit, V99 handoff. S145: barraCuda v0.3.5 at `0649cd0`, 25 absorbed workloads. toadStool S146 (`751b3849`), coralReef Iter 33 (`b783217`, 46/46 sovereign compile)
+**Last Updated**: March 14, 2026 (Sessions 61–150)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments + 5 novel compositions + 4 GPU experiments + 1 industry GPU parity experiment + playGround (Squirrel MCP + HuggingFace Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1115 lib tests + 63 playGround unit + 13 integration tests. S150: Compute triangle (ToadStool+coralReef IPC clients, hot/cold dispatch benchmarks, live ToadStool coordination). S149: HuggingFace Model Lab, GPT-2 inference. S148: Squirrel MCP adapter, playGround scaffold. barraCuda v0.3.5 at `0649cd0`, toadStool S146+, coralReef Phase 10
 
+- **S150**: Compute triangle — ToadStool/coralReef typed IPC clients, hot/cold dispatch benchmarks (matmul 7× hot, layer_norm 10×, GELU 45×), `neuralspring_compute_probe`, 63 unit + 13 integration tests, live ToadStool verified, `safe_cast_slice` for unaligned safetensors
+- **S149**: HuggingFace Model Lab — `neuralspring_model_lab` binary, safetensors weight loading, GPT-2 transformer forward pass on barraCuda, f16/bf16 conversion
+- **S148**: Squirrel MCP adapter — `neuralspring_mcp_adapter`, `neuralspring_interactive`, 14 MCP tool definitions, JSON-RPC Unix socket IPC with biomeOS 5-tier discovery
+- **S147**: Deep debt evolution — zero inline magic numbers, modern idiomatic Rust, V100 handoff
 - **S146**: Industry GPU parity benchmarks (4 Python + 1 Rust, 31 kernel comparisons), deep audit (provenance, tolerances, visualization refactor), V99 handoff
 - **S145**: barraCuda v0.3.5 sync, 5 workload rewires, NUCLEUS GPU dispatch, 4 GPU experiments (Exp 103–106), V98 handoff
 - **S143–S144**: 5 novel composition experiments (Exp 097–101), petalTongue composition visualization, NUCLEUS pipeline executor, V96–V97 handoffs

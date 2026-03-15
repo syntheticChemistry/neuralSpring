@@ -1,9 +1,11 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: March 11, 2026 (Session 98–145)
+**Date**: March 14, 2026 (Session 98–150)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. Visualization + NUCLEUS pipeline wired.
-**S145 update**: barraCuda v0.3.5 (`0649cd0`), 5 workload rewires (chi², KL, HMM backward, HMM viterbi, pairwise L2), NUCLEUS GPU dispatch (eigensolve + attention_anderson), 4 GPU experiments (Exp 103–106). 1115 lib tests, 73 forge tests, 258 binaries, 47 modules, 0 clippy. 25 absorbed workloads. toadStool S146, coralReef Iter 33 (46/46 sovereign compile).
+**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab.
+**S148–S150 update**: playGround evolution — Squirrel MCP adapter (14 tool definitions), HuggingFace Model Lab (GPT-2 inference on barraCuda), compute triangle (ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks: 7–45× pipeline reuse, 8–22× PyTorch/CUDA gap). 63 playGround unit + 13 integration tests. Live ToadStool verified. V101 handoff.
+**S147 update**: Deep debt — zero inline magic numbers, zero duplicate math, capability-based discovery. V100 handoff.
+**S145–S146 update**: barraCuda v0.3.5 (`0649cd0`), 5 workload rewires, NUCLEUS GPU dispatch, 4 GPU experiments (Exp 103–106), industry GPU parity benchmarks. 1115 lib tests, 73 forge tests, 260 binaries, 47 modules, 0 clippy. 25 absorbed workloads. toadStool S146+, coralReef Phase 10.
 **S143–S144 update**: 5 novel composition experiments (Exp 097–101), petalTongue composition visualization, NUCLEUS pipeline executor.
 Axis 2 "Novel Compositions (No New Math)" complete for all locally composable modules.
 

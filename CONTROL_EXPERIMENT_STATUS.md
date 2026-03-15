@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 12, 2026 (Session 146 — Industry GPU parity benchmarks + deep audit + doc evolution. Industry GPU validators: BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT/FlashAttention (PyTorch/CUDA). FFT beats cuFFT (0.19–0.85×), GEMM beats cuBLAS at 2048×2048 (0.16×). Deep audit: provenance fix, tolerance tightening, visualization refactor. 1115 lib + 73 forge + 9 integration tests. 0 clippy. 47 modules. 260 binaries. 25 absorbed workloads.)
+**Last updated**: March 14, 2026 (Session 150 — Compute triangle integration + playGround test suite + live ToadStool verification. ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks (7–45× pipeline reuse, 8–22× PyTorch/CUDA gap), HuggingFace Model Lab, Squirrel MCP adapter. 1115 lib + 63 playGround unit + 13 integration + 73 forge tests. 0 clippy. 47 modules. 260 binaries. 25 absorbed workloads. V101 handoff.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid

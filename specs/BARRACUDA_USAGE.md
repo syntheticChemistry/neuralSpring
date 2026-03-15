@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 11, 2026 (Session 145 — GPU dispatch evolution, sovereign compute readiness. 258 binaries, 1115 lib tests, 219 barracuda import files, 47 modules, barraCuda v0.3.5 at `0649cd0`, wgpu 28. ToadStool S146 (`751b3849`), coralReef Iteration 33 (`b783217`). S144: 5 petalTongue scenario builders, `composition_pipeline()` DAG, `nucleus_pipeline` executor. S145: 25 absorbed workloads (+5 rewired), nucleus_pipeline GPU dispatch evolution. V97 handoff)
+**Last Updated**: March 14, 2026 (Session 150 — Compute triangle integration, playGround hot/cold dispatch benchmarks. 260 binaries, 1115 lib + 63 playGround unit + 13 integration tests, 219 barracuda import files, 47 modules, barraCuda v0.3.5 at `0649cd0`, wgpu 28. ToadStool S146+, coralReef Phase 10. S150: ToadStool/coralReef IPC clients, compute_probe, safe_cast_slice. S149: HuggingFace Model Lab, GPT-2 inference. S148: Squirrel MCP adapter. V101 handoff)
 **BarraCUDA version**: `0.3.5` at `0649cd0` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. 719 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 

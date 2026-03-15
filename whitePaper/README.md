@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4100+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 233 binaries, **220/220 validate\_all**. coralForge unified. 80+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 1048 lib + 9 integration + 71 forge tests. 46 upstream rewires, 130+ barracuda import files, 25+ submodules. barraCuda v0.3.3 standalone, wgpu 28. 16 petalTongue scenario builders, `neuralspring_ecosystem_dashboard`, `config.rs` centralized identity. Streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness.
-**Date**: March 10, 2026 (Sessions 40–142 — S142: Upstream rewire + `enable f64;` PTXAS fix + cross-spring evolution. 55/55 dispatch parity. V95 handoffs. 1048 lib tests, 233 binaries. barraCuda `83aa08a`, ToadStool S142 (`a86bc546`), coralReef Iteration 29 (`2779c88`))
+**Status**: Phase 5h+ — **4500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 260 binaries, **220/220 validate\_all**. coralForge unified. 80+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 1115 lib + 63 playGround unit + 13 integration + 73 forge tests. 46 upstream rewires, 219 barracuda import files, 45+ submodules. barraCuda v0.3.5 at `0649cd0`, wgpu 28. playGround: Squirrel MCP adapter + HuggingFace Model Lab + compute triangle (ToadStool/coralReef IPC clients). 16 petalTongue scenario builders, `neuralspring_ecosystem_dashboard`, `config.rs` centralized identity. Streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness.
+**Date**: March 14, 2026 (Sessions 40–150 — S150: Compute triangle integration (ToadStool+coralReef IPC, hot/cold dispatch benchmarks). S149: HuggingFace Model Lab. S148: Squirrel MCP adapter. S147: Deep debt, V100 handoff. 1115 lib tests, 260 binaries. barraCuda v0.3.5 at `0649cd0`, toadStool S146+, coralReef Phase 10)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -75,9 +75,9 @@ WGSL serves every domain.
 
 ### Key Results Summary
 
-**Phase 0/0+/0++**: 331/331 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge + 1 isomorphic fix)
-**Phase 1–5h+**: 3400+ Rust+GPU validation PASS (1048 lib + 9 integration + 71 forge tests + 233 binaries across 41+ modules)
-**Grand Total**: 4100+ PASS — **ALL GREEN** across all applicable tiers
+**Phase 0/0+/0++**: 397/397 Python PASS (48 synthetic + 31 scholarly + 127 paper reproductions + 30 pub exp + 27 WDM + 19 coralForge + 1 isomorphic fix + 114 extended baselines)
+**Phase 1–5h+**: 4000+ Rust+GPU validation PASS (1115 lib + 63 playGround unit + 13 integration + 73 forge tests + 260 binaries across 47+ modules)
+**Grand Total**: 4500+ PASS — **ALL GREEN** across all applicable tiers
 **Multi-GPU**: 220 validators on RTX 4070, 384+ additional on TITAN V (NVK) — **bit-identical**
 **GPU Promotion**: 47 CPU-bound ops → GPU dispatch (Phase A: 27, Phase B: 11, Phase C: 6, +3 upstream). ~97% of production math on GPU.
 **Mixed-Hardware**: `Dispatcher::mixed_dispatch()` wired to metalForge cost model (GPU↔NPU↔CPU routing).
@@ -181,7 +181,7 @@ then Rust/WGSL evolution — applies to ML inference:
 
 | Stage | What Happened | Result |
 |-------|---------------|--------|
-| Python control | NumPy/PyTorch baselines for all 26 papers + WDM + pub exp | 331/331 PASS |
+| Python control | NumPy/PyTorch baselines for all 27 papers + WDM + pub exp | 397/397 PASS |
 | BarraCUDA validation | 272 checks across 12 modules (CPU + GPU + FFT) | 272/272 PASS |
 | Fused pipeline | Single-encoder dispatch, eliminate per-op overhead | **46–78× over per-op** |
 | BLAS-evolved CPU shader | 32×32 tiles, vec4, 8×4 micro-kernel, k-unroll | CPU beats Py at 3M+ FLOPs |
@@ -310,11 +310,11 @@ Full handoff: `wateringHole/handoffs/`
 ### Reproduction
 
 ```bash
-# Phase 0/0+/0++ Python baselines (331/331)
+# Phase 0/0+/0++ Python baselines (397/397)
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (1048 lib + 9 integration + 71 forge tests + 233 binaries)
+# Rust validation (1115 lib + 63 playGround unit + 13 integration + 73 forge tests + 260 binaries)
 cargo test
 cargo run --release --bin validate_all
 
@@ -358,5 +358,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*26 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments. 5 disciplines. 4 faculty. 41+ modules. 1048 lib + 9 integration + 71 forge tests. 331 Python + 3400+ Rust/GPU = 4100+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 130+ barracuda import files. 233 binaries, 220/220 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. S139 handoff. barraCuda `83aa08a`, ToadStool `a86bc546`, coralReef `2779c88`. 16 petalTongue scenario tracks, ecosystem dashboard, config centralization, streaming FASTA/FASTQ/VCF, CPU BLAST, Kokkos parity.*
+*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 47+ modules. 1115 lib + 63 playGround unit + 13 integration + 73 forge tests. 397 Python + 4000+ Rust/GPU = 4500+ total checks.
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 219 barracuda import files. 260 binaries, 220/220 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V100 handoff. barraCuda v0.3.5 at `0649cd0`, toadStool S146+, coralReef Phase 10. 16 petalTongue scenario tracks, ecosystem dashboard, playGround compute triangle, Squirrel MCP adapter.*

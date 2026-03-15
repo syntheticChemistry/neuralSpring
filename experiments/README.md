@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 147)**: 1115 lib tests, 73 forge tests, 47 modules, 260 binaries, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Zero inline magic numbers in production code. Zero duplicate math (all delegated to barracuda). Full provenance coverage for all experiments. S147: deep debt execution, barracuda evolution, doc cleanup. V100 handoff. barraCuda v0.3.5, toadStool S146, coralReef Iter 33. March 14, 2026.
+**Current state (Session 150)**: 1115 lib + 63 playGround unit + 13 integration tests, 73 forge tests, 47 modules, 260 binaries, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Zero inline magic numbers in production code. Zero duplicate math (all delegated to barracuda). Full provenance coverage for all experiments. S150: playGround compute triangle (ToadStool+coralReef IPC clients, hot/cold dispatch benchmarks, live ToadStool verified). S149: HuggingFace Model Lab, GPT-2 inference. S148: Squirrel MCP adapter, playGround scaffold. V100 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Phase 10. March 14, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
