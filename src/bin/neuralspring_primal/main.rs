@@ -121,22 +121,7 @@ fn heartbeat_interval_secs() -> u64 {
         .unwrap_or(30)
 }
 
-pub const ALL_CAPABILITIES: &[&str] = &[
-    "science.spectral_analysis",
-    "science.anderson_localization",
-    "science.hessian_eigen",
-    "science.agent_coordination",
-    "science.ipr",
-    "science.disorder_sweep",
-    "science.training_trajectory",
-    "science.evoformer_block",
-    "science.structure_module",
-    "science.folding_health",
-    "science.gpu_dispatch",
-    "science.cross_spring_provenance",
-    "science.cross_spring_benchmark",
-    "science.precision_routing",
-];
+pub use neural_spring::config::ALL_CAPABILITIES;
 
 // ═══════════════════════════════════════════════════════════════════
 // Request dispatcher

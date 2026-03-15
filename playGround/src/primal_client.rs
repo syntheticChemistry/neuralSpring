@@ -35,9 +35,8 @@ impl PrimalClient {
     /// `science.spectral_analysis`, falling back to name-based discovery
     /// if no capability probe succeeds.
     pub fn discover() -> Result<Self> {
-        let socket =
-            ipc_client::discover_by_capability(DISCOVERY_CAPABILITY, PRIMAL_SOCKET_HINT)
-                .context("discovering neuralSpring socket")?;
+        let socket = ipc_client::discover_by_capability(DISCOVERY_CAPABILITY, PRIMAL_SOCKET_HINT)
+            .context("discovering neuralSpring socket")?;
         Ok(Self {
             socket,
             timeout: ipc_client::ipc_timeout(),

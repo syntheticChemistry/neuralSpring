@@ -41,6 +41,29 @@ pub struct BaselineProvenance {
     pub unit: &'static str,
 }
 
+impl BaselineProvenance {
+    /// Where expected reference values live for this experiment.
+    ///
+    /// Links to `provenance::references::*` constants, JSON baselines in
+    /// `control/`, or `tolerances::*` constants. Derived from the script
+    /// path when not overridden.
+    #[must_use]
+    pub fn expected_source(&self) -> &'static str {
+        match self.label {
+            "surrogate" => "provenance::references::{RASTRIGIN,ROSENBROCK,ACKLEY}_REFERENCE",
+            "transformer" => "provenance::references::{SOFTMAX_1_TO_5,GELU_REFERENCE}",
+            "wdm_transport" => "control/wdm/transport_surrogate_baseline.json",
+            "wdm_eos" => "control/wdm/eos_surrogate_baseline.json",
+            "wdm_sqw" => "control/wdm/sqw_baseline.json",
+            "digester_anderson" => "control/digester_anderson/digester_anderson_baseline.json",
+            "glucose_prediction" => "control/glucose_prediction/glucose_baseline.json",
+            "lenet" => "control/lenet/lenet_baseline.json",
+            "cpu_parity" => "control/cpu_parity/cpu_parity_references.json",
+            _ => "",
+        }
+    }
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Environment
 // ═══════════════════════════════════════════════════════════════════

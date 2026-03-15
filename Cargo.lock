@@ -1191,6 +1191,7 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "neural-spring",
  "reqwest",
  "safetensors",
  "serde",

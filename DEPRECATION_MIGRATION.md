@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: March 15, 2026 (Sessions 44–152)
+**Date**: March 15, 2026 (Sessions 44–153)
 **barraCuda**: v0.3.5 at `0649cd0` (`../barraCuda/crates/barracuda`). 719+ WGSL shaders, wgpu 28, Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. ToadStool S146+, coralReef Phase 10.
-**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 260 binaries, 1115 lib tests + 61 playGround unit + 13 integration, 0 clippy (pedantic+nursery), 0 doc warnings. Zero unsafe, zero production mocks, zero cross-primal logic. Standalone barraCuda confirmed. V103 handoff (S152 deep debt execution). `enable f64;` PTXAS fix implemented locally for upstream absorption.
+**Status**: Migration complete — deprecated modules fossilized, S-03b resolved upstream, gpu_dispatch active (47 ops, ~97% GPU, 7 domain files). coralForge unified. 260 binaries, 1290 tests, 0 clippy (pedantic+nursery), 0 doc warnings. Zero unsafe (forbid on all 3 crate roots), zero production mocks, zero cross-primal logic. Standalone barraCuda confirmed. V104 handoff (S153 ecosystem audit). `enable f64;` PTXAS fix implemented locally for upstream absorption.
 **S130**: `PrecisionRoutingAdvice` wired, fused GPU regression gated, coralNAK→coralReef rename.
 **S121**: `MlpLayer` struct removed from `wdm_surrogate.rs` and `wdm_transport.rs` — replaced by `barracuda::nn::SimpleMlp` with `DenseLayer` format. `hmm_viterbi_chain_gpu` per-step f32 Tensor loop replaced by single f64 `barracuda::ops::bio::hmm_viterbi` dispatch.
 

@@ -178,4 +178,30 @@ mod tests {
             assert!((0.0..=1.0).contains(&v), "Hill output out of [0,1]: {v}");
         }
     }
+
+    #[test]
+    fn gpu_hill_activation_empty_input() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let result = hill_activation_batch_gpu(&[], 1.0, 0.5, 2.0, &dev)
+            .expect("empty input should succeed");
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn gpu_hill_activation_monotonic() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let xs: Vec<f64> = (0..10).map(|i| f64::from(i) * 0.5).collect();
+        let result = hill_activation_batch_gpu(&xs, 1.0, 2.0, 3.0, &dev)
+            .expect("monotonicity test should succeed");
+        for pair in result.windows(2) {
+            assert!(
+                pair[1] >= pair[0] - 1e-5,
+                "Hill activation must be monotonically non-decreasing"
+            );
+        }
+    }
 }

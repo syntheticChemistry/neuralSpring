@@ -197,23 +197,7 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
     ]
 }
 
-/// Capability name list (mirrors `neuralspring_primal` `ALL_CAPABILITIES`).
-pub const ALL_CAPABILITIES: &[&str] = &[
-    "science.spectral_analysis",
-    "science.anderson_localization",
-    "science.hessian_eigen",
-    "science.agent_coordination",
-    "science.ipr",
-    "science.disorder_sweep",
-    "science.training_trajectory",
-    "science.evoformer_block",
-    "science.structure_module",
-    "science.folding_health",
-    "science.gpu_dispatch",
-    "science.cross_spring_provenance",
-    "science.cross_spring_benchmark",
-    "science.precision_routing",
-];
+pub use neural_spring::config::ALL_CAPABILITIES;
 
 #[cfg(test)]
 mod tests {

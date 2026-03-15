@@ -148,7 +148,7 @@ impl TransformerConfig {
 
     /// Total parameters estimate (rough).
     #[must_use]
-    pub fn estimated_params(&self) -> usize {
+    pub const fn estimated_params(&self) -> usize {
         let embed = self.vocab_size * self.hidden_size;
         let per_layer = 4 * self.hidden_size * self.hidden_size // attention QKV + out
             + 2 * self.hidden_size * self.intermediate_size // FFN up + down
@@ -158,7 +158,7 @@ impl TransformerConfig {
 
     /// Memory estimate in bytes at f32 precision.
     #[must_use]
-    pub fn estimated_memory_f32(&self) -> usize {
+    pub const fn estimated_memory_f32(&self) -> usize {
         self.estimated_params() * 4
     }
 }

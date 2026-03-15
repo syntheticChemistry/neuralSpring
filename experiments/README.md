@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 151)**: 1115 lib + 61 playGround unit + 13 integration tests, 73 forge tests, 47 modules, 260 binaries, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Zero inline magic numbers in production code. Zero duplicate math (all delegated to barracuda). Full provenance coverage for all experiments. S151: Deep audit (ecoBin compliance, capability-based discovery, tolerance centralization, V102 handoff). S150: playGround compute triangle. V102 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Phase 10. March 15, 2026.
+**Current state (Session 153)**: 1290 tests (lib + forge + playGround), 47 modules, 260 binaries, 0 clippy (pedantic+nursery), 0 doc warnings, 0 fmt diffs, 0 unsafe. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized. All capabilities unified. All validation harnesses on hotSpring pattern. S153: Full ecosystem audit + deep debt execution (V104 handoff). barraCuda v0.3.5, toadStool S146+, coralReef Phase 10. March 15, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -122,6 +122,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 106 | Session 145 — Mixed-hardware composition pipeline | Mar 11, 2026 | Mixed hardware composition validation |
 | 107 | Session 151 — Deep Audit: ecoBin Compliance, Capability Discovery, Tolerance Centralization | Mar 15, 2026 | `openssl-sys`/`native-tls` eliminated (`reqwest`→`rustls-tls`). IPC clients evolved to `discover_by_capability()`. 12 hardcoded tolerances→named constants. 4 `#[expect()]` reasons upgraded. 3 rustdoc warnings fixed. `mock_response`→`accept_and_reply`. metalForge bridge→biomeOS 5-tier socket resolution. V102 handoff. 1115+73+61 tests, 0 clippy (pedantic+nursery), 0 doc warnings |
 | 108 | Session 152 — Deep Debt Execution: Tolerance Centralization, Capability Discovery, Shared Infrastructure | Mar 15, 2026 | 15+ tolerance literals→named constants (`IPR_CROSS_PYTHON` added). `PrimalClient`→capability-based discovery. coralReef bridge→capability-first. `BIOMEOS_SOCKET_SUBDIR` constant. `validate_tensor_binary` + `gen_test_f64` shared helpers. playGround test tolerances named. V103 handoff. 1115+73+61 tests, 0 clippy, 0 doc warnings |
+| 109 | Session 153 — Comprehensive Ecosystem Audit + Deep Debt Execution | Mar 15, 2026 | Full 11-dimension audit against wateringHole standards. Zero clippy (pedantic+nursery) across all 3 workspace crates. `ALL_CAPABILITIES` unified into `config.rs`. `validate_gpu_eigensolve_pipeline`→`ValidationHarness`. 3 new tolerances. 3 `fn sigmoid` wrappers→`primitives::sigmoid`. playGround lint alignment. `#![forbid(unsafe_code)]` on forge. `BaselineProvenance::expected_source()`. 4 new GPU tests. V104 handoff. 1290 tests, 0 warnings |
 
 ---
 

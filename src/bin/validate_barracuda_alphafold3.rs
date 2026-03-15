@@ -483,9 +483,7 @@ fn validate_se3_com_removal(h: &mut ValidationHarness, rng: &mut Rng) {
 // Helpers
 // ═══════════════════════════════════════════════════════════════════
 
-fn sigmoid(x: f64) -> f64 {
-    neural_spring::primitives::sigmoid(x)
-}
+use neural_spring::primitives::sigmoid;
 
 fn gelu_f64(x: f64) -> f64 {
     neural_spring::primitives::gelu(x)

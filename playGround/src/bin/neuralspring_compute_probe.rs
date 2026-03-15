@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
 
             let device = Arc::new(device);
             let t0 = Instant::now();
-            let mut session = TensorSession::with_device(device.clone());
+            let mut session = TensorSession::with_device(Arc::clone(&device));
             let pipeline_ms = t0.elapsed().as_secs_f64() * 1000.0;
             println!("  Pipelines: {pipeline_ms:.1}ms (17 shaders compiled)");
 

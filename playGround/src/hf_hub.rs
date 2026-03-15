@@ -192,7 +192,7 @@ pub struct ModelFiles {
 impl ModelFiles {
     /// Check if we have the minimum files needed for inference.
     #[must_use]
-    pub fn is_complete(&self) -> bool {
+    pub const fn is_complete(&self) -> bool {
         self.config.is_some() && !self.safetensors.is_empty()
     }
 }

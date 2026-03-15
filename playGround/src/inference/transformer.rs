@@ -34,7 +34,11 @@ pub struct ForwardOutput {
 impl TransformerEngine {
     /// Create a new engine from loaded weights and config.
     #[must_use]
-    pub fn new(device: Arc<WgpuDevice>, config: TransformerConfig, weights: ModelWeights) -> Self {
+    pub const fn new(
+        device: Arc<WgpuDevice>,
+        config: TransformerConfig,
+        weights: ModelWeights,
+    ) -> Self {
         Self {
             device,
             config,
@@ -259,7 +263,7 @@ impl TransformerEngine {
 
     /// Get model config.
     #[must_use]
-    pub fn config(&self) -> &TransformerConfig {
+    pub const fn config(&self) -> &TransformerConfig {
         &self.config
     }
 }

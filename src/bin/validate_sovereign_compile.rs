@@ -105,7 +105,11 @@ fn validate_eigensolve(dispatcher: &Dispatcher) {
         .fold(0.0_f64, f64::max);
     println!(
         "  Diagonal matrix N={n}: max_diff={max_diff:.2e} {}",
-        if max_diff < tolerances::GELU_LARGE_INPUT { "PASS" } else { "FAIL" }
+        if max_diff < tolerances::GELU_LARGE_INPUT {
+            "PASS"
+        } else {
+            "FAIL"
+        }
     );
 }
 

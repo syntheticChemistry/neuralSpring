@@ -84,7 +84,7 @@ impl CoralReefClient {
 
     /// Connect to coralReef at a specific socket path.
     #[must_use]
-    pub fn new(socket: PathBuf) -> Self {
+    pub const fn new(socket: PathBuf) -> Self {
         Self {
             socket,
             timeout: Duration::from_secs(60),

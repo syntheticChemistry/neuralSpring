@@ -10,6 +10,7 @@ use neural_spring::digester_anderson::{
     evenness_to_disorder, load_coupling_from_json, noise_from_xi, pearson_r, CouplingBaseline,
 };
 use neural_spring::digestion_prediction::biogas_yield;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 const BASELINE_JSON: &str =
@@ -54,7 +55,7 @@ fn validate_mapping(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
         "evenness=0.5 → W=10",
         evenness_to_disorder(0.5),
         10.0,
-        1e-10,
+        tolerances::CROSS_LANGUAGE,
     );
 
     for comm in &baseline.communities {
@@ -63,7 +64,7 @@ fn validate_mapping(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
             &format!("comm {} disorder parity", comm.id),
             w_rust,
             comm.disorder_w,
-            1e-10,
+            tolerances::CROSS_LANGUAGE,
         );
     }
 }
@@ -98,7 +99,7 @@ fn validate_noise_model(h: &mut ValidationHarness, baseline: &CouplingBaseline) 
             &format!("comm {} noise parity", comm.id),
             noise_rust,
             comm.noise_std,
-            1e-10,
+            tolerances::CROSS_LANGUAGE,
         );
     }
 }
@@ -115,7 +116,12 @@ fn validate_esn_parity(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
             rp.input[3],
             rp.input[4],
         );
-        h.check_abs(&format!("ref {i} ESN parity"), y_rust, rp.esn_yield, 1e-6);
+        h.check_abs(
+            &format!("ref {i} ESN parity"),
+            y_rust,
+            rp.esn_yield,
+            tolerances::SPECIAL_FUNCTION_F64,
+        );
     }
 }
 
@@ -133,7 +139,7 @@ fn validate_analytical_parity(h: &mut ValidationHarness, baseline: &CouplingBase
             &format!("ref {i} analytical parity"),
             y_analytical,
             rp.analytical_yield,
-            1e-10,
+            tolerances::CROSS_LANGUAGE,
         );
     }
 }
@@ -151,7 +157,12 @@ fn validate_coupling(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
 
     let r_w = pearson_r(&w_vals, &r2_vals);
     h.check_bool("Pearson r(W, R²) < 0", r_w < 0.0);
-    h.check_abs("r(W, R²) parity", r_w, baseline.metrics.pearson_w_r2, 1e-6);
+    h.check_abs(
+        "r(W, R²) parity",
+        r_w,
+        baseline.metrics.pearson_w_r2,
+        tolerances::SPECIAL_FUNCTION_F64,
+    );
 
     let r_xi = pearson_r(&xi_vals, &r2_vals);
     h.check_bool("Pearson r(ξ, R²) > 0", r_xi > 0.0);
@@ -159,7 +170,7 @@ fn validate_coupling(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
         "r(ξ, R²) parity",
         r_xi,
         baseline.metrics.pearson_xi_r2,
-        1e-6,
+        tolerances::SPECIAL_FUNCTION_F64,
     );
 
     h.check_bool("|r(W, R²)| > 0.3", r_w.abs() > 0.3);

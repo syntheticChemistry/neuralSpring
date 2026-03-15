@@ -178,9 +178,7 @@ impl CoralCompiler {
             let path = entry.path();
             if path.extension().is_some_and(|e| e == "json") {
                 if let Ok(contents) = std::fs::read_to_string(&path) {
-                    if contents.contains("shader.compile")
-                        || contents.contains("shader_compiler")
-                    {
+                    if contents.contains("shader.compile") || contents.contains("shader_compiler") {
                         return Some(path);
                     }
                 }
@@ -216,8 +214,7 @@ impl CoralCompiler {
             use std::os::unix::fs::MetadataExt;
             if let Ok(meta) = std::fs::metadata("/proc/self") {
                 let uid = meta.uid();
-                let dir =
-                    PathBuf::from(format!("/run/user/{uid}")).join(BIOMEOS_SOCKET_SUBDIR);
+                let dir = PathBuf::from(format!("/run/user/{uid}")).join(BIOMEOS_SOCKET_SUBDIR);
                 if dir.parent().is_some_and(std::path::Path::exists) {
                     return dir;
                 }

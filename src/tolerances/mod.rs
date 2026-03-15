@@ -744,6 +744,32 @@ pub const MONOTONICITY_EPS: f64 = 1e-15;
 pub const GPU_HYDROLOGY_F64: f64 = 1e-6;
 
 // ═══════════════════════════════════════════════════════════════════
+// Eigensolve / linalg tolerances
+// ═══════════════════════════════════════════════════════════════════
+
+/// CPU vs GPU eigenvalue agreement after sorting.
+///
+/// Householder-QR (CPU) and Jacobi/batched GPU eigensolvers use different
+/// algorithms, accumulating different rounding. 1e-6 allows 6 digits of
+/// agreement, which is sufficient for eigenvalues of random symmetric
+/// matrices at sizes 8--64.
+pub const GPU_EIGENVALUE_AGREEMENT: f64 = 1e-6;
+
+/// Additive floor for variance parity checks (handrolled vs upstream).
+///
+/// Prevents division-by-zero in relative error when comparing variance
+/// estimates across ddof conventions. Suppresses noise for near-zero
+/// variance (uniform data). Distinct from `gpu::VARIANCE_FLOOR` which
+/// is a readback lower-bound guard.
+pub const VARIANCE_PARITY_FLOOR: f64 = 1e-10;
+
+/// Pairformer / structure module element-wise parity.
+///
+/// `AlphaFold` pairformer blocks apply layer norms, GELUs, and outer
+/// products that accumulate ~6 digits of rounding in f64.
+pub const PAIRFORMER_PARITY: f64 = 1e-6;
+
+// ═══════════════════════════════════════════════════════════════════
 // Provenance date constants
 // ═══════════════════════════════════════════════════════════════════
 

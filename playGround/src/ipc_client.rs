@@ -203,26 +203,17 @@ pub fn discover_by_capability(required_capability: &str, hint_name: &str) -> Res
 /// Returns a list of capability strings, or an error if the primal does
 /// not respond within 2 seconds.
 fn probe_capabilities(socket_path: &std::path::Path) -> Result<Vec<String>> {
-    let rt = tokio::runtime::Handle::try_current()
-        .map(|h| {
-            h.block_on(call(
-                socket_path,
-                "capability.list",
-                &serde_json::json!({}),
-                Duration::from_secs(2),
-            ))
-        })
-        .unwrap_or_else(|_| {
-            let rt = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()?;
-            rt.block_on(call(
-                socket_path,
-                "capability.list",
-                &serde_json::json!({}),
-                Duration::from_secs(2),
-            ))
-        })?;
+    let params = serde_json::json!({});
+    let timeout = Duration::from_secs(2);
+
+    let rt = if let Ok(h) = tokio::runtime::Handle::try_current() {
+        h.block_on(call(socket_path, "capability.list", &params, timeout))
+    } else {
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()?;
+        rt.block_on(call(socket_path, "capability.list", &params, timeout))
+    }?;
 
     let caps: Vec<String> = serde_json::from_value(rt)?;
     Ok(caps)

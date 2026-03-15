@@ -5,7 +5,32 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 152 (March 15, 2026)
+## [Unreleased] — Session 153 (March 15, 2026)
+
+### Session 153 — Comprehensive Ecosystem Audit + Deep Debt Execution (2026-03-15)
+
+**Full 11-dimension audit** against wateringHole ecosystem standards, followed by
+systematic execution of all findings. Deep debt solutions, modern idiomatic Rust:
+
+- Zero clippy warnings (pedantic+nursery) across all 3 workspace crates — fixed
+  9 playGround warnings (`missing_const_for_fn`, `or_fun_call`, `single_match_else`,
+  `redundant_clone`) and 2 forge `rustfmt` diffs
+- `ALL_CAPABILITIES` unified into single source of truth in `config.rs` — primal
+  binary and playGround `mcp_tools` now re-export from shared constant
+- `validate_gpu_eigensolve_pipeline.rs` migrated from ad-hoc pass/fail to
+  `ValidationHarness` with centralized `tolerances::GPU_EIGENVALUE_AGREEMENT`
+- 3 new tolerance constants: `GPU_EIGENVALUE_AGREEMENT` (1e-6), `VARIANCE_PARITY_FLOOR`
+  (1e-10), `PAIRFORMER_PARITY` (1e-6) — all with scientific justification
+- 6 validation binaries migrated from inline tolerances to `tolerances::` constants
+- 3 validator-local `fn sigmoid` wrappers replaced with `use primitives::sigmoid`
+- playGround lints aligned: `[lints]` section added to `Cargo.toml` matching
+  workspace standard (pedantic, nursery, unsafe_code=forbid, unwrap/expect=warn)
+- `#![forbid(unsafe_code)]` added to `metalForge/forge/src/lib.rs`
+- `neural-spring` added as playGround dependency for shared `ALL_CAPABILITIES`
+- Provenance linked to expected-value sources via `BaselineProvenance::expected_source()`
+- 4 new GPU tests in `gpu_ops/bio/` (evolution edge cases, activation monotonicity)
+- V104 absorption handoff for barraCuda/toadStool team
+- 1290 tests, 0 clippy (pedantic+nursery), 0 doc warnings, 0 fmt diffs
 
 ### Session 152 — Deep Debt Execution: Tolerance Centralization, Capability Discovery, Shared Infrastructure (2026-03-15)
 

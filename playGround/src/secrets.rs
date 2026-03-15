@@ -27,7 +27,7 @@ impl Secrets {
     pub fn default_path() -> PathBuf {
         let workspace = Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
-            .unwrap_or(Path::new("."));
+            .unwrap_or_else(|| Path::new("."));
         workspace
             .parent()
             .unwrap_or(workspace)

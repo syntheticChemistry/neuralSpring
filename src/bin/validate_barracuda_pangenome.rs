@@ -58,7 +58,7 @@ fn validate_gene_frequency_variance(h: &mut ValidationHarness) {
 
     // barracuda uses sample variance (ddof=1); hand-rolled uses population (ddof=0).
     // For n=200, ratio is 200/199 ≈ 1.005. Allow 2% tolerance.
-    let tol = hand_var.mul_add(0.02, 1e-10);
+    let tol = hand_var.mul_add(0.02, tolerances::VARIANCE_PARITY_FLOOR);
     h.check_abs(
         &format!("gene freq variance: barracuda={barracuda_var:.6} vs hand={hand_var:.6}"),
         barracuda_var,

@@ -262,4 +262,31 @@ mod tests {
             "dist([0,0],[3,4]) ≈ 5"
         );
     }
+
+    #[test]
+    fn gpu_pairwise_l2_single_vector_returns_empty() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let result = pairwise_l2_matrix_gpu(&[1.0, 2.0, 3.0], 1, 3, &dev)
+            .expect("single vector should succeed");
+        assert!(result.is_empty(), "n=1 → 0 pairs");
+    }
+
+    #[test]
+    fn gpu_pairwise_l2_identity_vectors_zero_distance() {
+        let Some((_guard, dev)) = test_device() else {
+            return;
+        };
+        let vectors = vec![1.0, 2.0, 1.0, 2.0, 1.0, 2.0];
+        let dist =
+            pairwise_l2_matrix_gpu(&vectors, 3, 2, &dev).expect("identical vectors should succeed");
+        assert_eq!(dist.len(), 3, "3 vectors → 3 pairs");
+        for (i, &d) in dist.iter().enumerate() {
+            assert!(
+                d < tolerances::GPU_CHI_SQUARED_F32,
+                "pair {i}: identical vectors → distance ≈ 0, got {d}"
+            );
+        }
+    }
 }

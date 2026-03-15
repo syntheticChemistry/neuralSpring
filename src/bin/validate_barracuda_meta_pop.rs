@@ -197,7 +197,7 @@ fn validate_af_variance_via_barracuda(
 
     // barracuda uses ddof=1 (sample variance) while hand-rolled uses ddof=0 (population).
     // For n_pops=6, ratio is 6/5 = 1.2. Allow 25% tolerance to accommodate.
-    let tol = hand_var.mul_add(0.25, 1e-10);
+    let tol = hand_var.mul_add(0.25, tolerances::VARIANCE_PARITY_FLOOR);
     h.check_abs(
         &format!("AF var: barracuda={mean_barracuda_var:.6} vs hand={hand_var:.6}"),
         mean_barracuda_var,

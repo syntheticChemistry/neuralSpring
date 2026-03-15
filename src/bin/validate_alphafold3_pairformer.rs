@@ -177,7 +177,7 @@ fn main() {
             rs_out
                 .iter()
                 .zip(pair_input.iter())
-                .any(|(r, p)| (r - p).abs() > 1e-6),
+                .any(|(r, p)| (r - p).abs() > tolerances::PAIRFORMER_PARITY),
         );
     }
 
@@ -210,7 +210,7 @@ fn main() {
             rs_out
                 .iter()
                 .zip(py_out_no_cond.iter())
-                .any(|(r, p)| (r - p).abs() > 1e-6),
+                .any(|(r, p)| (r - p).abs() > tolerances::PAIRFORMER_PARITY),
         );
     }
 

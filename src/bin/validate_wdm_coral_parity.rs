@@ -632,9 +632,7 @@ fn transpose_rect(m: &[f64], rows: usize, cols: usize) -> Vec<f64> {
     t
 }
 
-fn sigmoid(x: f64) -> f64 {
-    neural_spring::primitives::sigmoid(x)
-}
+use neural_spring::primitives::sigmoid;
 
 fn softplus(x: f64) -> f64 {
     if x > 20.0 {

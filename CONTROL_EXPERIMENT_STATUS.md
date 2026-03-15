@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 15, 2026 (Session 152 — Deep debt execution: 15+ tolerance literals centralized, capability-based primal discovery, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), biomeOS path constants, V103 handoff. 1115 lib + 61 playGround unit + 13 integration + 73 forge tests. 0 clippy. 0 doc warnings. 47 modules. 260 binaries. 25 absorbed workloads.)
+**Last updated**: March 15, 2026 (Session 153 — Comprehensive ecosystem audit + deep debt execution: zero clippy (pedantic+nursery) across 3 workspace crates, ALL_CAPABILITIES unified, ValidationHarness migration, forbid(unsafe_code) on all crate roots, BaselineProvenance::expected_source(), playGround lint alignment, V104 handoff. 1290 tests. 0 warnings. 47 modules. 260 binaries. 25 absorbed workloads.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 397/397 Python PASS + 4000+ Rust+GPU validation PASS = **4500+ total validation checks**
-**Library**: 1115 lib tests + 9 integration tests + 73 forge tests | 47 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 260 validation/bench binaries
+**Library**: 1290 tests (lib + forge + playGround) | 47 modules + config + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 260 validation/bench binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 6 biophysical AI modules + 11 validators (162/162 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 6/6 sub-theses PASS) — Sessions 50, 54, 56, 77, 104b, 107

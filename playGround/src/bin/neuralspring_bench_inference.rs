@@ -11,7 +11,7 @@
 //! - **hot** (`--hot`): reuse `TensorSession` with pre-compiled pipelines
 //!   — measures pure kernel dispatch (comparable to PyTorch/CUDA)
 
-#![expect(clippy::pedantic, reason = "benchmark binary")]
+#![expect(clippy::pedantic, clippy::unwrap_used, reason = "benchmark binary")]
 
 use std::sync::Arc;
 use std::time::Instant;

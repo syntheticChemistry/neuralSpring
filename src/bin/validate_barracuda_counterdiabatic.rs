@@ -49,7 +49,7 @@ fn validate_nk_fitness_variance(h: &mut ValidationHarness) {
 
     // barracuda uses sample variance (ddof=1), hand-rolled uses population (ddof=0).
     // Ratio ≈ n/(n-1); relax tolerance for statistical definition difference.
-    let var_tol = (handrolled_var * 0.01).max(1e-6);
+    let var_tol = (handrolled_var * 0.01).max(tolerances::SPECIAL_FUNCTION_F64);
     h.check_abs(
         &format!(
             "fitness variance: barracuda={barracuda_var:.6} vs hand-rolled={handrolled_var:.6}"

@@ -60,6 +60,27 @@ pub const ENV_GPU_BACKEND: &str = "NEURALSPRING_BACKEND";
 /// Prefix for all neuralSpring capabilities.
 pub const CAPABILITY_PREFIX: &str = "science";
 
+/// Complete capability set advertised by neuralSpring via `capability.list`.
+///
+/// Single source of truth — imported by `neuralspring_primal` and
+/// `playGround::mcp_tools` instead of maintaining duplicate lists.
+pub const ALL_CAPABILITIES: &[&str] = &[
+    "science.spectral_analysis",
+    "science.anderson_localization",
+    "science.hessian_eigen",
+    "science.agent_coordination",
+    "science.ipr",
+    "science.disorder_sweep",
+    "science.training_trajectory",
+    "science.evoformer_block",
+    "science.structure_module",
+    "science.folding_health",
+    "science.gpu_dispatch",
+    "science.cross_spring_provenance",
+    "science.cross_spring_benchmark",
+    "science.precision_routing",
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;

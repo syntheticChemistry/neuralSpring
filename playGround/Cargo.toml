@@ -11,6 +11,7 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 [dependencies]
 anyhow = "1"
 barracuda = { path = "../../barraCuda/crates/barracuda" }
+neural-spring = { path = ".." }
 bytemuck = { version = "1.21", features = ["derive"] }
 clap = { version = "4.5", features = ["derive"] }
 env_logger = "0.11"
@@ -31,6 +32,15 @@ tokio = { version = "1.49", features = [
 ] }
 toml = "0.8"
 wgpu = { version = "28", default-features = false }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
 
 [[bin]]
 name = "neuralspring_mcp_adapter"
