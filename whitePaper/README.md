@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 260 binaries, **220/220 validate\_all**. coralForge unified. 80+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 1115 lib + 63 playGround unit + 13 integration + 73 forge tests. 46 upstream rewires, 219 barracuda import files, 45+ submodules. barraCuda v0.3.5 at `0649cd0`, wgpu 28. playGround: Squirrel MCP adapter + HuggingFace Model Lab + compute triangle (ToadStool/coralReef IPC clients). 16 petalTongue scenario builders, `neuralspring_ecosystem_dashboard`, `config.rs` centralized identity. Streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness.
-**Date**: March 14, 2026 (Sessions 40–150 — S150: Compute triangle integration (ToadStool+coralReef IPC, hot/cold dispatch benchmarks). S149: HuggingFace Model Lab. S148: Squirrel MCP adapter. S147: Deep debt, V100 handoff. 1115 lib tests, 260 binaries. barraCuda v0.3.5 at `0649cd0`, toadStool S146+, coralReef Phase 10)
+**Status**: Phase 5h+ — **4500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 260 binaries, **220/220 validate\_all**. coralForge unified. 80+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. 1115 lib + 61 playGround unit + 13 integration + 73 forge tests. 46 upstream rewires, 219 barracuda import files, 45+ submodules. barraCuda v0.3.5 at `0649cd0`, wgpu 28. playGround: Squirrel MCP adapter + HuggingFace Model Lab + compute triangle (ToadStool/coralReef IPC clients). 16 petalTongue scenario builders, `neuralspring_ecosystem_dashboard`, `config.rs` centralized identity. Streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness.
+**Date**: March 15, 2026 (Sessions 40–151 — S151: Deep audit (ecoBin compliance, capability-based discovery, tolerance centralization, V102 handoff). S150: Compute triangle integration. S149: HuggingFace Model Lab. S148: Squirrel MCP adapter. 1115 lib tests, 260 binaries. barraCuda v0.3.5 at `0649cd0`, toadStool S146+, coralReef Phase 10)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -21,8 +21,8 @@
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all 17 resolved (S-01 through S-17) |
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
-| `experiments/README.md` | Engineering | Experiment journals (001–096, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | S139 handoff (Session 139 — visualization evolution + deep debt) |
+| `experiments/README.md` | Engineering | Experiment journals (001–106, hotSpring pattern) |
+| `wateringHole/handoffs/` | Cross-project | V102 handoff (Session 151 — deep audit, ecoBin compliance, capability discovery) |
 
 ---
 
@@ -359,4 +359,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 47+ modules. 1115 lib + 63 playGround unit + 13 integration + 73 forge tests. 397 Python + 4000+ Rust/GPU = 4500+ total checks.
-Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 219 barracuda import files. 260 binaries, 220/220 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V100 handoff. barraCuda v0.3.5 at `0649cd0`, toadStool S146+, coralReef Phase 10. 16 petalTongue scenario tracks, ecosystem dashboard, playGround compute triangle, Squirrel MCP adapter.*
+Phase 5h+: ALL GREEN — bC 24/25 (96%) · gT 23/25 (92%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 219 barracuda import files. 260 binaries, 220/220 validate\_all. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V102 handoff. barraCuda v0.3.5 at `0649cd0`, toadStool S146+, coralReef Phase 10. 16 petalTongue scenario tracks, ecosystem dashboard, playGround compute triangle, Squirrel MCP adapter.*

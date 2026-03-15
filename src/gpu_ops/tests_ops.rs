@@ -50,7 +50,10 @@ pub fn test_device_hardware() -> Option<(
 }
 
 #[test]
-#[expect(clippy::cast_possible_truncation, reason = "intentional suppression")]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "f64→f32 roundtrip; precision loss is the subject under test"
+)]
 fn f32_f64_roundtrip_precision() {
     let x = [1.0_f64, 2.0, 3.0, 0.5, -1.0];
     for &orig in &x {

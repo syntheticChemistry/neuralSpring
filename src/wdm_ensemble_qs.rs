@@ -170,16 +170,23 @@ mod tests {
 
     #[test]
     fn test_disagreement_to_disorder() {
-        assert!((disagreement_to_disorder(0.5, 0.0, 1.0, 20.0) - 10.0).abs() < 1e-10);
-        assert!((disagreement_to_disorder(0.0, 0.0, 1.0, 20.0) - 0.0).abs() < 1e-10);
-        assert!((disagreement_to_disorder(1.0, 0.0, 1.0, 20.0) - 20.0).abs() < 1e-10);
+        use crate::tolerances::CROSS_LANGUAGE;
+        assert!((disagreement_to_disorder(0.5, 0.0, 1.0, 20.0) - 10.0).abs() < CROSS_LANGUAGE);
+        assert!((disagreement_to_disorder(0.0, 0.0, 1.0, 20.0) - 0.0).abs() < CROSS_LANGUAGE);
+        assert!((disagreement_to_disorder(1.0, 0.0, 1.0, 20.0) - 20.0).abs() < CROSS_LANGUAGE);
     }
 
     #[test]
     fn test_snowdrift_payoff() {
         let p = snowdrift_payoff(0.0);
-        assert!((p[0][0] - 2.5).abs() < 1e-10, "b - c/2 = 3 - 0.5");
-        assert!((p[0][1] - 2.0).abs() < 1e-10, "b - c = 3 - 1");
+        assert!(
+            (p[0][0] - 2.5).abs() < crate::tolerances::CROSS_LANGUAGE,
+            "b - c/2 = 3 - 0.5"
+        );
+        assert!(
+            (p[0][1] - 2.0).abs() < crate::tolerances::CROSS_LANGUAGE,
+            "b - c = 3 - 1"
+        );
     }
 
     #[test]

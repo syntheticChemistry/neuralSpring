@@ -118,7 +118,10 @@ fn introgression_deterministic() {
 }
 
 #[test]
-#[expect(clippy::float_cmp, reason = "intentional suppression")]
+#[expect(
+    clippy::float_cmp,
+    reason = "determinism test: bitwise-identical outputs from identical inputs"
+)]
 fn regulatory_network_deterministic() {
     let p = GrnParams::default();
     let x0 = [0.5, 0.1, 0.5, 0.1];

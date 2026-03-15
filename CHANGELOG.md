@@ -5,7 +5,29 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 150 (March 14, 2026)
+## [Unreleased] — Session 151 (March 15, 2026)
+
+### Session 151 — Deep Audit: ecoBin Compliance, Capability Discovery, Tolerance Centralization (2026-03-15)
+
+**Deep audit and evolution pass** — ecoBin compliance, capability-based IPC,
+tolerance centralization, and V102 handoff:
+
+- Eliminated `openssl-sys`/`native-tls` C dependency in playGround by switching
+  `reqwest` to `rustls-tls` backend. Main crates remain zero C deps.
+- ToadStool and coralReef IPC clients evolved from hardcoded primal names to
+  `discover_by_capability()` — probes running primals for required capabilities
+  via `capability.list` JSON-RPC.
+- 12 hardcoded tolerance values in tests centralized to `tolerances::` constants.
+- 4 weak `#[expect()]` reasons replaced with specific mathematical justifications.
+- 3 rustdoc intra-doc link warnings fixed (full qualification in visualization/).
+- `mock_response` renamed to `accept_and_reply` in validation binary (real IPC).
+- metalForge coralReef bridge evolved to biomeOS 5-tier socket resolution.
+- Handoff naming fix: `ENABLE_F64_FIX` → `V95_ENABLE_F64_FIX`.
+- V102 handoff for barraCuda/toadStool/coralReef absorption.
+- Updated all stale v0.3.3 → v0.3.5 references across docs and source.
+- Updated all root docs, whitePaper, experiments journal, wateringHole README.
+- Updated ecoPrimals/whitePaper/gen3/baseCamp with S151 state.
+- 1115 lib + 73 forge + 61 playGround tests. 0 clippy (pedantic+nursery). 0 doc warnings.
 
 ### Session 150 — playGround: Compute Triangle (ToadStool + coralReef) (2026-03-14)
 

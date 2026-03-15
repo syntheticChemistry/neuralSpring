@@ -130,7 +130,7 @@ mod tests {
     #[test]
     fn softmax_reference_sums_near_one() {
         let sum: f64 = SOFTMAX_1_TO_5.iter().sum();
-        assert!((sum - 1.0).abs() < 1e-14);
+        assert!((sum - 1.0).abs() < crate::tolerances::SOFTMAX_CROSS_PYTHON);
     }
 
     #[test]
@@ -143,7 +143,7 @@ mod tests {
             .iter()
             .find(|(x, _)| *x == 0.0)
             .expect("GELU_REFERENCE must contain x=0.0");
-        assert!(y.abs() < 1e-15);
+        assert!(y.abs() < crate::tolerances::NUMERICAL_DISTINCTNESS);
     }
 
     #[test]

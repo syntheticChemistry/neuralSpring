@@ -4,7 +4,7 @@
 //!
 //! Follows healthSpring's push-based `DataBinding` pattern: scenario
 //! builders call real neuralSpring functions and package results as
-//! typed [`DataChannel`] payloads that petalTongue renders via
+//! typed [`types::DataChannel`] payloads that petalTongue renders via
 //! `visualization.render` / `visualization.render.stream`.
 //!
 //! Domain: `"neural"` (triggers electric blue/magenta palette).

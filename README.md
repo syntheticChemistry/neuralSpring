@@ -44,6 +44,16 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S151: Deep audit — ecoBin compliance, capability-based discovery, tolerance centralization.**
+Eliminated `openssl-sys`/`native-tls` C dependency in playGround (`reqwest` → `rustls-tls`).
+ToadStool and coralReef IPC clients evolved from hardcoded primal names to capability-based
+discovery (`discover_by_capability`). 12 hardcoded tolerance values centralized into `tolerances::`.
+4 weak `#[expect()]` reasons replaced with specific justifications. 3 rustdoc link warnings fixed.
+`mock_response` in validation binary renamed to `accept_and_reply` (real IPC, not a mock).
+metalForge coralReef bridge evolved to biomeOS 5-tier socket resolution. Handoff naming convention
+fix (`ENABLE_F64_FIX` → `V95_ENABLE_F64_FIX`). V102 handoff for barraCuda/toadStool absorption.
+1115 lib + 73 forge + 61 playGround tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings.
+
 **S150: playGround — Compute triangle integration (ToadStool + coralReef).**
 Added typed IPC clients for ToadStool (compute orchestration) and coralReef (sovereign shader compiler).
 Refactored benchmark to support hot dispatch (reused TensorSession) — 7-45x faster than cold.
@@ -64,7 +74,7 @@ Zero inline magic numbers in production library code — all centralized in `tol
 Shannon diversity in `digester_anderson` rewired to `barracuda::stats::shannon_from_frequencies` (zero duplicate math).
 6 missing composition provenance records added (Exp 096–100 + Paper 027). Hardcoded
 `"petaltongue"` discovery strings evolved to `config::PETALTONGUE_SOCKET_DIR` / `PETALTONGUE_SOCKET_PREFIX`.
-V100 handoff for toadStool/barraCuda absorption. Root doc, baseCamp, and wateringHole handoff updates.
+V100 handoff for toadStool/barraCuda absorption (superseded by V101/V102). Root doc, baseCamp, and wateringHole handoff updates.
 1115 lib tests, 73 forge tests, 9 integration tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings.
 
 **S146: Industry GPU parity benchmarks + deep audit + doc evolution.**
@@ -597,7 +607,7 @@ neuralSpring/
 │       ├── validate_eigh_accuracy.rs      # Householder+QR eigensolver (9 checks)
 │       ├── validate_mha_gpu.rs            # GPU head_split/head_concat (10 checks)
 │       ├── bench_*.rs                     # 6 benchmark binaries
-│       └── validate_all.rs                 # Meta-binary: runs all 220 validators
+│       └── validate_all.rs                 # Meta-binary: runs all 220 validators + 2 feature-gated
 │   ├── evolved/                #   Active evolutions (2 modules)
 │       ├── mod.rs                   # WGSL shader exports (batch_fitness, rk4, mean_reduce)
 │       ├── mha.rs                   # MHA — thin wrapper to barracuda::ops::mha::MultiHeadAttention (S-03b resolved)
@@ -623,8 +633,8 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_V100_S147_*.md # Current ToadStool/BarraCUDA/coralReef handoffs
-│   │   └── archive/           #   Superseded handoffs (V1–V99 + NestGate/biomeOS/Songbird V1)
+│   │   ├── NEURALSPRING_V102_*.md # Current ToadStool/BarraCUDA/coralReef handoffs
+│   │   └── archive/           #   Superseded handoffs (V1–V100 + NestGate/biomeOS/Songbird V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-106)
 ├── whitePaper/                 # Study documentation
@@ -661,7 +671,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal ToadStool/BarraCUDA/coralReef handoffs (V100 current: Session 147, barraCuda v0.3.5 at `0649cd0`) |
+| `wateringHole/handoffs/` | Formal ToadStool/BarraCUDA/coralReef handoffs (V102 current: Session 151, barraCuda v0.3.5 at `0649cd0`) |
 | `experiments/README.md` | Experiment journals (Sessions 40–150, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -671,4 +681,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–150: March 14, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU = 4500+ validation checks | 1115 lib + 9 integration + 73 forge + 63 playGround tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 47 modules, 260 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.5 at `0649cd0`, nautilus absorbed, 92% coverage | 46 upstream rewires, 219 barracuda import files | V100 handoff (toadStool/barraCuda + coralReef) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 63 unit + 13 integration tests | `enable f64;` PTXAS fix | 21 petalTongue scenario tracks + ecosystem dashboard + composition visualization | nucleus\_pipeline Tower→Node→Nest executor*
+*Initialized: February 16, 2026 | Sessions 40–151: March 15, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU = 4500+ validation checks | 1115 lib + 9 integration + 73 forge + 61 playGround tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 47 modules, 260 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.5 at `0649cd0`, nautilus absorbed, 92% coverage | 46 upstream rewires, 219 barracuda import files | V102 handoff (toadStool/barraCuda + coralReef) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 61 unit + 13 integration tests | `enable f64;` PTXAS fix | ecoBin compliant (zero C deps in main crates) | capability-based IPC discovery | 21 petalTongue scenario tracks + ecosystem dashboard + composition visualization | nucleus\_pipeline Tower→Node→Nest executor*

@@ -2,8 +2,8 @@
 
 //! Reusable scaffold helpers for building petalTongue scenarios.
 //!
-//! Thin constructors that map domain-specific data into [`DataChannel`],
-//! [`ScenarioNode`], and [`ScenarioEdge`] types.  Used by every per-domain
+//! Thin constructors that map domain-specific data into [`super::super::types::DataChannel`],
+//! [`super::super::types::ScenarioNode`], and [`super::super::types::ScenarioEdge`] types.  Used by every per-domain
 //! scenario builder and the study combiners.
 
 use super::super::types::{

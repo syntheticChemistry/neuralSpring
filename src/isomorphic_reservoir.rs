@@ -265,9 +265,9 @@ mod tests {
     fn test_spectral_identity() {
         let m = make_identity(8);
         let sp = spectral_properties(&m, 8, "identity");
-        assert!((sp.spectral_radius - 1.0).abs() < 1e-10);
-        assert!((sp.eigenvalue_mean - 1.0).abs() < 1e-10);
-        assert!(sp.eigenvalue_std < 1e-10);
+        assert!((sp.spectral_radius - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+        assert!((sp.eigenvalue_mean - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+        assert!(sp.eigenvalue_std < crate::tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -278,9 +278,9 @@ mod tests {
             m[i * n + i] = (i + 1) as f64;
         }
         let sp = spectral_properties(&m, n, "diagonal");
-        assert!((sp.spectral_radius - 8.0).abs() < 1e-10);
-        assert!((sp.eigenvalue_min - 1.0).abs() < 1e-10);
-        assert!((sp.eigenvalue_max - 8.0).abs() < 1e-10);
+        assert!((sp.spectral_radius - 8.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+        assert!((sp.eigenvalue_min - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+        assert!((sp.eigenvalue_max - 8.0).abs() < crate::tolerances::CROSS_LANGUAGE);
         assert!(sp.mean_ipr > 0.0);
     }
 
@@ -290,7 +290,10 @@ mod tests {
         let sp = spectral_properties(&m, 8, "a");
         let sp2 = spectral_properties(&m, 8, "b");
         let cd = cross_domain_metrics(&[sp, sp2]);
-        assert!(cd.eff_ratio_cv < 1e-10, "identical matrices → CV=0");
+        assert!(
+            cd.eff_ratio_cv < crate::tolerances::CROSS_LANGUAGE,
+            "identical matrices → CV=0"
+        );
     }
 
     #[test]
@@ -302,7 +305,7 @@ mod tests {
         }
         let sp = spectral_properties(&m, n, "diag");
         assert!(
-            (sp.mean_ipr - 1.0).abs() < 1e-6,
+            (sp.mean_ipr - 1.0).abs() < crate::tolerances::GELU_LARGE_INPUT,
             "diagonal → basis eigenvectors → IPR=1"
         );
     }
@@ -311,6 +314,6 @@ mod tests {
     fn test_effective_dimension_formula() {
         let ipr = 0.05_f64;
         let eff_dim = 1.0 / ipr;
-        assert!((eff_dim - 20.0).abs() < 1e-10);
+        assert!((eff_dim - 20.0).abs() < crate::tolerances::CROSS_LANGUAGE);
     }
 }

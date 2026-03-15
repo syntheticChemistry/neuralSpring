@@ -168,7 +168,7 @@ mod tests {
         for i in 0..n {
             for j in 0..n {
                 assert!(
-                    (h[i * n + j] - h[j * n + i]).abs() < 1e-15,
+                    (h[i * n + j] - h[j * n + i]).abs() < crate::tolerances::NUMERICAL_DISTINCTNESS,
                     "Hamiltonian must be symmetric"
                 );
             }
@@ -186,8 +186,14 @@ mod tests {
     fn test_barrier_promotion_spectrum() {
         let results = barrier_promotion_spectrum(16, 5, 1.0, 1.0);
         assert_eq!(results.len(), 5);
-        assert!((results[0].0 - 1.0).abs() < 1e-10, "first step = intact");
-        assert!((results[4].0).abs() < 1e-10, "last step = fully breached");
+        assert!(
+            (results[0].0 - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE,
+            "first step = intact"
+        );
+        assert!(
+            (results[4].0).abs() < crate::tolerances::CROSS_LANGUAGE,
+            "last step = fully breached"
+        );
         for &(_, d_eff, r) in &results {
             assert!((2.0..=3.0).contains(&d_eff));
             assert!((0.0..=1.0).contains(&r), "r out of bounds: {r}");

@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 150)**: 1115 lib + 63 playGround unit + 13 integration tests, 73 forge tests, 47 modules, 260 binaries, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Zero inline magic numbers in production code. Zero duplicate math (all delegated to barracuda). Full provenance coverage for all experiments. S150: playGround compute triangle (ToadStool+coralReef IPC clients, hot/cold dispatch benchmarks, live ToadStool verified). S149: HuggingFace Model Lab, GPT-2 inference. S148: Squirrel MCP adapter, playGround scaffold. V100 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Phase 10. March 14, 2026.
+**Current state (Session 151)**: 1115 lib + 61 playGround unit + 13 integration tests, 73 forge tests, 47 modules, 260 binaries, 0 clippy, 0 debt. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). Zero inline magic numbers in production code. Zero duplicate math (all delegated to barracuda). Full provenance coverage for all experiments. S151: Deep audit (ecoBin compliance, capability-based discovery, tolerance centralization, V102 handoff). S150: playGround compute triangle. V102 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Phase 10. March 15, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -120,6 +120,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 104 | Session 145 — Batched spectral analysis | Mar 11, 2026 | Batched spectral validation |
 | 105 | Session 145 — Sovereign compile validation | Mar 11, 2026 | Sovereign compile pipeline |
 | 106 | Session 145 — Mixed-hardware composition pipeline | Mar 11, 2026 | Mixed hardware composition validation |
+| 107 | Session 151 — Deep Audit: ecoBin Compliance, Capability Discovery, Tolerance Centralization | Mar 15, 2026 | `openssl-sys`/`native-tls` eliminated (`reqwest`→`rustls-tls`). IPC clients evolved to `discover_by_capability()`. 12 hardcoded tolerances→named constants. 4 `#[expect()]` reasons upgraded. 3 rustdoc warnings fixed. `mock_response`→`accept_and_reply`. metalForge bridge→biomeOS 5-tier socket resolution. V102 handoff. 1115+73+61 tests, 0 clippy (pedantic+nursery), 0 doc warnings |
 
 ---
 

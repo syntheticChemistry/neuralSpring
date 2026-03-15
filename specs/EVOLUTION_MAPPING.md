@@ -122,7 +122,7 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### `BarraCUDA`/`ToadStool` Infrastructure Available for GPU Promotion
 
-`BarraCUDA` (reviewed `9d359814`, Mar 5, 2026 — wgpu 28, v0.3.3, all shortcomings through S-17 fixed, standalone v0.3.3, 844+ WGSL shaders, HmmBatchForwardF64 ComputeDispatch, SimpleMlp, precision per use/hardware)
+`BarraCUDA` (reviewed `9d359814`, Mar 5, 2026 — wgpu 28, v0.3.5, all shortcomings through S-17 fixed, standalone v0.3.5, 844+ WGSL shaders, HmmBatchForwardF64 ComputeDispatch, SimpleMlp, precision per use/hardware)
 provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |

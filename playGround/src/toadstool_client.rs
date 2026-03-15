@@ -90,21 +90,15 @@ pub struct HealthStatus {
 }
 
 impl ToadStoolClient {
-    /// Connect to `ToadStool` via automatic socket discovery.
+    /// Connect to `ToadStool` via capability-based discovery.
     ///
-    /// Prefers the JSON-RPC socket (`toadstool.jsonrpc.sock`) over the tarpc
-    /// socket (`toadstool.sock`) since this client speaks JSON-RPC 2.0.
+    /// Discovers the compute orchestration primal by probing for the
+    /// `compute.submit` capability on all sockets in the biomeOS directory.
+    /// Falls back to name-based discovery (`toadstool`) if no capability
+    /// probe succeeds.
     pub fn discover() -> Result<Self> {
-        let socket_dir = ipc_client::resolve_socket_dir();
-        let jsonrpc_sock = socket_dir.join("toadstool.jsonrpc.sock");
-        if jsonrpc_sock.exists() {
-            return Ok(Self {
-                socket: jsonrpc_sock,
-                timeout: Duration::from_secs(30),
-            });
-        }
-        let socket =
-            ipc_client::discover_socket("toadstool").context("discovering ToadStool socket")?;
+        let socket = ipc_client::discover_by_capability("compute.submit", "toadstool")
+            .context("discovering compute orchestration primal")?;
         Ok(Self {
             socket,
             timeout: Duration::from_secs(30),

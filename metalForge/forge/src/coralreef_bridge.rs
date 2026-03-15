@@ -140,27 +140,34 @@ impl CoralCompiler {
         Err(CoralError::NotAvailable)
     }
 
-    /// Discover a running coralReef primal's IPC socket.
+    /// Discover a running shader compiler primal's IPC socket.
     ///
-    /// Checks two paths following the ecosystem convention:
-    /// 1. Unix socket: `$XDG_RUNTIME_DIR/biomeos/coralreef.sock`
-    /// 2. Capability manifests: `$XDG_RUNTIME_DIR/ecoPrimals/*.json`
-    ///    (looks for `shader.compile` or `shader_compiler` capability)
+    /// Uses the biomeOS 5-tier socket resolution and searches for any primal
+    /// advertising `shader.compile` or `shader_compiler` capability:
+    ///
+    /// 1. `$BIOMEOS_SOCKET_DIR` (env override)
+    /// 2. `$XDG_RUNTIME_DIR/biomeos`
+    /// 3. `/run/user/{uid}/biomeos`
+    /// 4. `$TMPDIR/biomeos`
+    ///
+    /// Within the resolved directory, scans `.sock` files and capability
+    /// manifests at `$XDG_RUNTIME_DIR/ecoPrimals/*.json`.
     ///
     /// Returns the socket path if found, `None` otherwise.
     #[must_use]
     pub fn discover_socket() -> Option<PathBuf> {
-        let xdg = std::env::var("XDG_RUNTIME_DIR").ok()?;
-        let base = PathBuf::from(xdg);
+        let socket_dir = Self::resolve_socket_dir();
 
-        // Primary: Unix socket (coralReef Iteration 6+)
-        let sock = base.join("biomeos").join("coralreef.sock");
-        if sock.exists() {
-            return Some(sock);
+        for entry in std::fs::read_dir(&socket_dir).ok()?.flatten() {
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+            if name_str.ends_with(".sock") && name_str.contains("coralreef") {
+                return Some(entry.path());
+            }
         }
 
-        // Fallback: capability manifest scan (dual-write discovery)
-        let manifest_dir = base.join("ecoPrimals");
+        let xdg = std::env::var("XDG_RUNTIME_DIR").ok()?;
+        let manifest_dir = PathBuf::from(xdg).join("ecoPrimals");
         if let Ok(entries) = std::fs::read_dir(&manifest_dir) {
             for entry in entries.flatten() {
                 let path = entry.path();
@@ -177,6 +184,28 @@ impl CoralCompiler {
         }
 
         None
+    }
+
+    /// Resolve the biomeOS socket directory using the standard 5-tier fallback.
+    fn resolve_socket_dir() -> PathBuf {
+        if let Ok(dir) = std::env::var("BIOMEOS_SOCKET_DIR") {
+            return PathBuf::from(dir);
+        }
+        if let Ok(xdg) = std::env::var("XDG_RUNTIME_DIR") {
+            return PathBuf::from(xdg).join("biomeos");
+        }
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt;
+            if let Ok(meta) = std::fs::metadata("/proc/self") {
+                let uid = meta.uid();
+                let dir = PathBuf::from(format!("/run/user/{uid}/biomeos"));
+                if dir.parent().is_some_and(std::path::Path::exists) {
+                    return dir;
+                }
+            }
+        }
+        std::env::temp_dir().join("biomeos")
     }
 
     /// Check if coralReef compilation is available either via compile-time

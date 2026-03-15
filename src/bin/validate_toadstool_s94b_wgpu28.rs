@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! `ToadStool` S94b + wgpu 28 + `BarraCUDA` v0.3.3 validation.
+//! `ToadStool` S94b + wgpu 28 + `BarraCUDA` v0.3.5 validation.
 //!
 //! Validates the S125 upstream sync: wgpu 22→28 API migration, `BarraCUDA`
-//! v0.3.3 fused op absorption, and `ToadStool` S94b pin.
+//! v0.3.5 fused op absorption, and `ToadStool` S94b pin.
 //!
 //! ## What changed (S87 → S94b / v0.3.1 → v0.3.3)
 //!
@@ -31,9 +31,9 @@
 //!
 //! ## Provenance
 //!
-//! Cross-spring origin: hotSpring, wetSpring, airSpring, groundSpring, neuralSpring → `ToadStool` S94b/`BarraCUDA` v0.3.3 → neuralSpring.
+//! Cross-spring origin: hotSpring, wetSpring, airSpring, groundSpring, neuralSpring → `ToadStool` S94b/`BarraCUDA` v0.3.5 → neuralSpring.
 //! Absorption: S125 sync — wgpu 22→28, VarianceF64/CorrelationF64 fused ops, `GuardedDeviceHandle`, `NpuDispatch`.
-//! Validation: wgpu 28 API, `BarraCUDA` v0.3.3 fused ops vs CPU reference.
+//! Validation: wgpu 28 API, `BarraCUDA` v0.3.5 fused ops vs CPU reference.
 //!
 //! ```text
 //! cargo run --release --bin validate_toadstool_s94b_wgpu28
@@ -50,7 +50,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn validate_fused_mean_variance(h: &mut ValidationHarness, gpu: &Gpu) {
-    eprintln!("\n── VarianceF64::mean_variance() (hotSpring Welford → BarraCUDA v0.3.3) ──");
+    eprintln!("\n── VarianceF64::mean_variance() (hotSpring Welford → BarraCUDA v0.3.5) ──");
     let dev = gpu.wgpu_device();
     let data = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
 
@@ -69,7 +69,7 @@ fn validate_fused_mean_variance(h: &mut ValidationHarness, gpu: &Gpu) {
 
 fn validate_fused_correlation(h: &mut ValidationHarness, gpu: &Gpu) {
     eprintln!(
-        "\n── CorrelationF64::correlation_full() (wetSpring bio + hotSpring precision → BarraCUDA v0.3.3) ──"
+        "\n── CorrelationF64::correlation_full() (wetSpring bio + hotSpring precision → BarraCUDA v0.3.5) ──"
     );
     let dev = gpu.wgpu_device();
     let x = [1.0, 2.0, 3.0, 4.0, 5.0];
@@ -111,7 +111,7 @@ fn validate_fused_correlation(h: &mut ValidationHarness, gpu: &Gpu) {
 
 fn validate_correlation_matrix(h: &mut ValidationHarness, gpu: &Gpu) {
     eprintln!(
-        "\n── matrix_correlation() (airSpring sensors + groundSpring stats → BarraCUDA v0.3.3) ──"
+        "\n── matrix_correlation() (airSpring sensors + groundSpring stats → BarraCUDA v0.3.5) ──"
     );
     let dev = gpu.wgpu_device();
     // 4 samples, 3 features: col0=[1,2,3,4], col1=[2,4,6,8], col2=[4,3,2,1]
@@ -210,7 +210,7 @@ fn validate_existing_fused_ops(h: &mut ValidationHarness, gpu: &Gpu) {
         }
     }
 
-    // Variance via fused Welford (hotSpring → BarraCUDA v0.3.3)
+    // Variance via fused Welford (hotSpring → BarraCUDA v0.3.5)
     match gpu_ops::variance_gpu(&[2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0], dev) {
         Ok(v) => {
             h.check_abs("variance_welford", v, 4.0, tolerances::GPU_CHI_SQUARED_F32);
@@ -265,7 +265,7 @@ fn validate_wgpu28_api(h: &mut ValidationHarness, gpu: &Gpu) {
 
 fn main() {
     eprintln!("╔════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  ToadStool S94b + wgpu 28 + BarraCUDA v0.3.3 Validation              ║");
+    eprintln!("║  ToadStool S94b + wgpu 28 + BarraCUDA v0.3.5 Validation              ║");
     eprintln!("║  Session 126 — Cross-spring fused op absorption + API migration       ║");
     eprintln!("╚════════════════════════════════════════════════════════════════════════╝");
 

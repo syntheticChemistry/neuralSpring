@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Cross-spring shader evolution benchmark — exercises fused `BarraCUDA` v0.3.3
+//! Cross-spring shader evolution benchmark — exercises fused `BarraCUDA` v0.3.5
 //! ops that originated across all five Springs, tracking provenance and timing.
 //!
 //! ## Cross-Spring Evolution Map
@@ -13,7 +13,7 @@
 //! groundSpring (hydrology)       → matrix correlation, multinomial, jackknife
 //! ```
 //!
-//! All absorbed into `BarraCUDA` v0.3.3 (845+ WGSL shaders, wgpu 28).
+//! All absorbed into `BarraCUDA` v0.3.5 (845+ WGSL shaders, wgpu 28).
 //!
 //! ## What This Benchmarks
 //!
@@ -231,7 +231,7 @@ fn bench_cross_spring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng:
 fn main() {
     eprintln!("╔════════════════════════════════════════════════════════════════════════════╗");
     eprintln!("║  Cross-Spring Shader Evolution Benchmark                                   ║");
-    eprintln!("║  BarraCUDA v0.3.3 (wgpu 28) · ToadStool S94b · 845+ f64-canonical WGSL    ║");
+    eprintln!("║  BarraCUDA v0.3.5 (wgpu 28) · ToadStool S94b · 845+ f64-canonical WGSL    ║");
     eprintln!("╚════════════════════════════════════════════════════════════════════════════╝");
     eprintln!();
     eprintln!("  Five Springs → one math engine:");
@@ -269,7 +269,7 @@ fn main() {
     eprintln!("    neuralSpring  → 3 ops (chi-squared, KL divergence, pairwise L2)");
     eprintln!("    airSpring     → 1 op  (correlation matrix)");
     eprintln!("    groundSpring  → 1 op  (correlation matrix, shared with airSpring)");
-    eprintln!("  Total: 13 benchmarked ops from 5 Springs → BarraCUDA v0.3.3");
+    eprintln!("  Total: 13 benchmarked ops from 5 Springs → BarraCUDA v0.3.5");
     eprintln!("────────────────────────────────────────────────────────────");
 
     h.finish();

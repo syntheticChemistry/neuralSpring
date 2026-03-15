@@ -450,7 +450,7 @@ fn print_evolution_summary() {
     eprintln!("║    groundSpring → uncertainty, bootstrap, normal distribution     ║");
     eprintln!("║    airSpring  → hydrology, ET₀, water balance                    ║");
     eprintln!("║                                                                    ║");
-    eprintln!("║  barraCuda v0.3.3 at 83aa08a (deep debt: typed errors, constants) ║");
+    eprintln!("║  barraCuda v0.3.5 at 83aa08a (deep debt: typed errors, constants) ║");
     eprintln!("║  ToadStool S142 at a86bc546 (19,777 tests, spring sync clean)    ║");
     eprintln!("║  coralReef Iteration 29 at 2779c88 (AMD E2E GPU dispatch)        ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════════╝");
@@ -463,7 +463,7 @@ fn main() {
     let shader_count = barracuda::shaders::provenance::cross_spring_shaders().len();
     eprintln!("╔══════════════════════════════════════════════════════════════════════╗");
     eprintln!("║  neuralSpring — Cross-Spring Shader Evolution Benchmark            ║");
-    eprintln!("║  All springs → barraCuda v0.3.3: {shader_count} tracked shaders      ║");
+    eprintln!("║  All springs → barraCuda v0.3.5: {shader_count} tracked shaders      ║");
     eprintln!("║  Provenance tiers: T0 local → T1 bc::dispatch → T2 Dispatcher GPU ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════════╝");
     eprintln!();

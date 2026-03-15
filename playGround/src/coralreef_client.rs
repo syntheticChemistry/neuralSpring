@@ -67,10 +67,15 @@ pub struct CompilerStatus {
 }
 
 impl CoralReefClient {
-    /// Connect to coralReef via automatic socket discovery.
+    /// Connect to coralReef via capability-based discovery.
+    ///
+    /// Discovers the sovereign shader compiler by probing for the
+    /// `shader.compile.wgsl` capability on all sockets in the biomeOS
+    /// directory.  Falls back to name-based discovery (`coralreef`) if no
+    /// capability probe succeeds.
     pub fn discover() -> Result<Self> {
-        let socket =
-            ipc_client::discover_socket("coralreef").context("discovering coralReef socket")?;
+        let socket = ipc_client::discover_by_capability("shader.compile.wgsl", "coralreef")
+            .context("discovering shader compiler primal")?;
         Ok(Self {
             socket,
             timeout: Duration::from_secs(60),

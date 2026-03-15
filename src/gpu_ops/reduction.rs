@@ -235,7 +235,7 @@ pub fn variance_gpu(data: &[f64], device: &Arc<WgpuDevice>) -> Result<f64, Strin
 /// Returns `[mean, variance]` from one kernel launch — no intermediate
 /// readback between mean and deviation passes. Uses `ddof=0` (population).
 ///
-/// Cross-spring: hotSpring Welford fused shader → `BarraCUDA` v0.3.3
+/// Cross-spring: hotSpring Welford fused shader → `BarraCUDA` v0.3.5
 /// `VarianceF64::mean_variance()`.
 ///
 /// # Errors
@@ -275,7 +275,7 @@ pub fn pearson_correlation_gpu(
 ///
 /// Returns means, variances, and Pearson r — all from one kernel launch.
 /// Cross-spring: wetSpring bio shaders (diversity correlation) → hotSpring
-/// precision infrastructure (f64 compilation) → `BarraCUDA` v0.3.3
+/// precision infrastructure (f64 compilation) → `BarraCUDA` v0.3.5
 /// `CorrelationResult` fused shader.
 ///
 /// # Errors

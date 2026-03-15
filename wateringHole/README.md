@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### ToadStool/barraCuda/coralReef (Compute Triangle)
+### ToadStool/barraCuda/coralReef (Deep Audit + Evolution)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V101 S150** | `handoffs/NEURALSPRING_V101_S150_COMPUTE_TRIANGLE_HANDOFF_MAR14_2026.md` | Mar 14, 2026 | Compute triangle integration: typed IPC clients, hot/cold dispatch benchmarks (7–45× pipeline reuse speedup, 8–22× PyTorch/CUDA gap), live ToadStool verified, safetensors alignment fix, 63+13 playGround tests. Supersedes V100 |
+| **V102 S151** | `handoffs/NEURALSPRING_V102_S151_DEEP_AUDIT_BARRACUDA_TOADSTOOL_HANDOFF_MAR15_2026.md` | Mar 15, 2026 | Deep audit: ecoBin compliance (zero C deps), capability-based IPC discovery, tolerance centralization, 4 absorption candidates, P0 `enable f64;` fix, P1 TensorSession docs + prng f32 API, P2 WGSL_MEAN_REDUCE + Hamming f64 perf. Spring deployment guidance. Supersedes V101 |
 
 ### coralReef
 
@@ -21,9 +21,10 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **—** | `handoffs/NEURALSPRING_ENABLE_F64_FIX_HANDOFF_MAR10_2026.md` | Mar 10, 2026 | Critical: `enable f64;` PTXAS silent-zero regression on Ada Lovelace. Local fix for upstream absorption |
+| **V95** | `handoffs/NEURALSPRING_V95_ENABLE_F64_FIX_HANDOFF_MAR10_2026.md` | Mar 10, 2026 | Critical: `enable f64;` PTXAS silent-zero regression on Ada Lovelace. Local fix for upstream absorption |
 
-Central wateringHole handoffs (S135–S150) live at `ecoPrimals/wateringHole/handoffs/`:
+Central wateringHole handoffs (S135–S151) live at `ecoPrimals/wateringHole/handoffs/`:
+- `NEURALSPRING_V102_S151_DEEP_AUDIT_BARRACUDA_TOADSTOOL_HANDOFF_MAR15_2026.md`
 - `NEURALSPRING_V101_S150_COMPUTE_TRIANGLE_HANDOFF_MAR14_2026.md`
 - `NEURALSPRING_V100_S147_DEEP_DEBT_EVOLUTION_HANDOFF_MAR14_2026.md`
 - `NEURALSPRING_S139_TOADSTOOL_BARRACUDA_ABSORPTION_HANDOFF_MAR10_2026.md`
@@ -34,7 +35,7 @@ Central wateringHole handoffs (S135–S150) live at `ecoPrimals/wateringHole/han
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V100 + NestGate V1 + biomeOS V1 + Songbird V1). V74–V100 span S86 through S147. Central handoffs for S135–S150 live in `ecoPrimals/wateringHole/handoffs/`.
+Superseded handoffs: `handoffs/archive/` (V1–V101 + NestGate V1 + biomeOS V1 + Songbird V1). V74–V101 span S86 through S150. Central handoffs for S135–S151 live in `ecoPrimals/wateringHole/handoffs/`.
 
 ## Conventions
 

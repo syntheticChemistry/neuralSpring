@@ -9,7 +9,7 @@
 //!   4. JSON serialization round-trips
 //!   5. IPC client param builders produce correct JSON-RPC payloads
 //!   6. `StreamSession` lifecycle and statistics
-//!   7. Mock socket roundtrip (render, append, gauge, replace)
+//!   7. Local IPC roundtrip (render, append, gauge, replace)
 //!   8. Scenario edge graph structure
 //!
 //! ## Provenance
@@ -33,7 +33,12 @@ use neural_spring::visualization::{
     self, DataChannel, NeuralScenario, PetalTonguePushClient, SessionStats, StreamSession,
 };
 
-fn mock_response(listener: &UnixListener) -> serde_json::Value {
+/// Accept one JSON-RPC request on a local validation socket and reply "ok".
+///
+/// This is a real (not mocked) IPC roundtrip over a Unix socket — the
+/// validator creates a local listener, the `PetalTonguePushClient` connects,
+/// and this function verifies the request payload matches the expected schema.
+fn accept_and_reply(listener: &UnixListener) -> serde_json::Value {
     let (mut stream, _) = listener.accept().expect("accept");
     let mut buf = vec![0u8; 65536];
     let n = stream.read(&mut buf).expect("read");
@@ -576,7 +581,7 @@ fn main() {
     let (sock_path, listener) = test_socket("pt_render");
     let pt_client = PetalTonguePushClient::new(sock_path.clone());
 
-    let handle = std::thread::spawn(move || mock_response(&listener));
+    let handle = std::thread::spawn(move || accept_and_reply(&listener));
     let render_result = pt_client.push_render("sess-v1", "Validate Render", &spectral);
     let request = handle.join().expect("mock thread");
 
@@ -619,7 +624,7 @@ fn main() {
     let (sock_path, listener) = test_socket("pt_append");
     let pt_client = PetalTonguePushClient::new(sock_path.clone());
 
-    let handle = std::thread::spawn(move || mock_response(&listener));
+    let handle = std::thread::spawn(move || accept_and_reply(&listener));
     let append_result = pt_client.push_append("sess-v2", "series-1", &[1.0, 2.0], &[10.0, 20.0]);
     let request = handle.join().expect("mock thread");
 
@@ -653,7 +658,7 @@ fn main() {
     let (sock_path, listener) = test_socket("pt_replace");
     let pt_client = PetalTonguePushClient::new(sock_path.clone());
 
-    let handle = std::thread::spawn(move || mock_response(&listener));
+    let handle = std::thread::spawn(move || accept_and_reply(&listener));
     let replace_data = serde_json::json!({"matrix": [[1, 2], [3, 4]]});
     let replace_result = pt_client.push_replace("sess-v3", "heatmap-1", &replace_data);
     let request = handle.join().expect("mock thread");
@@ -690,8 +695,8 @@ fn main() {
     let pt_client = PetalTonguePushClient::new(sock_path.clone());
 
     let handle = std::thread::spawn(move || {
-        mock_response(&listener);
-        mock_response(&listener)
+        accept_and_reply(&listener);
+        accept_and_reply(&listener)
     });
     let session = StreamSession::start(pt_client, "stream-v1", "Stream Test", &spectral2)
         .expect("session start");

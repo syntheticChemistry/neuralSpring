@@ -165,6 +165,6 @@ mod tests {
     fn test_pearson_self() {
         let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let r = pearson_r(&x, &x);
-        assert!((r - 1.0).abs() < 1e-10);
+        assert!((r - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
     }
 }

@@ -550,7 +550,7 @@ mod tests {
             assert_eq!(evals.len(), 16);
             for &e in &evals {
                 assert!(
-                    (e - 1.0).abs() < 1e-6,
+                    (e - 1.0).abs() < crate::tolerances::GELU_LARGE_INPUT,
                     "identity matrix eigenvalue should be 1.0"
                 );
             }
@@ -642,7 +642,7 @@ mod tests {
         if let StageOutput::Vector(evals) = output {
             assert_eq!(evals.len(), 16);
             for &e in &evals {
-                assert!((e - 1.0).abs() < 1e-6);
+                assert!((e - 1.0).abs() < crate::tolerances::GELU_LARGE_INPUT);
             }
         } else {
             panic!("expected Vector output from GPU eigensolve");

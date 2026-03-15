@@ -430,9 +430,10 @@ mod tests {
 
     #[test]
     fn test_evenness_to_disorder_boundaries() {
-        assert!((evenness_to_disorder(0.0) - W_MAX).abs() < 1e-10);
-        assert!(evenness_to_disorder(1.0).abs() < 1e-10);
-        assert!((evenness_to_disorder(0.5) - W_MAX / 2.0).abs() < 1e-10);
+        use crate::tolerances::CROSS_LANGUAGE;
+        assert!((evenness_to_disorder(0.0) - W_MAX).abs() < CROSS_LANGUAGE);
+        assert!(evenness_to_disorder(1.0).abs() < CROSS_LANGUAGE);
+        assert!((evenness_to_disorder(0.5) - W_MAX / 2.0).abs() < CROSS_LANGUAGE);
     }
 
     #[test]
@@ -448,7 +449,10 @@ mod tests {
         let mut rng = Rng::new(42);
         let abundances = dirichlet_abundances(20, 0.5, &mut rng);
         let sum: f64 = abundances.iter().sum();
-        assert!((sum - 1.0).abs() < 1e-10, "abundances sum to 1");
+        assert!(
+            (sum - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE,
+            "abundances sum to 1"
+        );
     }
 
     #[test]
@@ -470,7 +474,7 @@ mod tests {
         let uniform: Vec<f64> = vec![1.0 / n as f64; n];
         let h = shannon_diversity(&uniform);
         let expected = (n as f64).ln();
-        assert!((h - expected).abs() < 1e-10);
+        assert!((h - expected).abs() < crate::tolerances::CROSS_LANGUAGE);
     }
 
     #[test]
@@ -496,7 +500,10 @@ mod tests {
         let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
         let r = pearson_r(&x, &y);
-        assert!((r - 1.0).abs() < 1e-10, "perfect positive correlation");
+        assert!(
+            (r - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE,
+            "perfect positive correlation"
+        );
     }
 
     #[test]
@@ -504,7 +511,10 @@ mod tests {
         let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let y = vec![10.0, 8.0, 6.0, 4.0, 2.0];
         let r = pearson_r(&x, &y);
-        assert!((r - (-1.0)).abs() < 1e-10, "perfect negative correlation");
+        assert!(
+            (r - (-1.0)).abs() < crate::tolerances::CROSS_LANGUAGE,
+            "perfect negative correlation"
+        );
     }
 
     #[test]

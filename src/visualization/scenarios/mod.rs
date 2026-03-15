@@ -3,7 +3,7 @@
 //! Per-domain petalTongue scenario builders for neuralSpring.
 //!
 //! Each builder calls real neuralSpring computation and wraps outputs in
-//! [`DataChannel`] / [`ScenarioNode`] / [`NeuralScenario`] so petalTongue
+//! [`super::types::DataChannel`] / [`super::types::ScenarioNode`] / [`super::types::NeuralScenario`] so petalTongue
 //! can render them directly.
 
 mod attention_anderson;

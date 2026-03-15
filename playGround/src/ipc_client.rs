@@ -159,6 +159,72 @@ pub fn discover_socket(primal_name: &str) -> Result<PathBuf> {
     )
 }
 
+/// Discover a primal socket by required capability.
+///
+/// Scans the biomeOS socket directory for any primal that advertises the
+/// given capability via `capability.list`.  Falls back to `discover_socket`
+/// with the `hint_name` if no capability probe succeeds (e.g. primal is
+/// not yet running).
+///
+/// This follows the ecoPrimals self-knowledge principle: a client only
+/// knows *what* it needs (a capability), not *who* provides it.
+pub fn discover_by_capability(required_capability: &str, hint_name: &str) -> Result<PathBuf> {
+    let socket_dir = resolve_socket_dir();
+
+    if let Ok(entries) = std::fs::read_dir(&socket_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+            if !name_str.ends_with(".sock") {
+                continue;
+            }
+            if let Ok(caps) = probe_capabilities(&path) {
+                if caps.iter().any(|c| c == required_capability) {
+                    return Ok(path);
+                }
+            }
+        }
+    }
+
+    discover_socket(hint_name).with_context(|| {
+        format!(
+            "no primal advertising '{required_capability}' found, \
+             fallback name '{hint_name}' also failed"
+        )
+    })
+}
+
+/// Probe a primal's capabilities by sending `capability.list` over JSON-RPC.
+///
+/// Returns a list of capability strings, or an error if the primal does
+/// not respond within 2 seconds.
+fn probe_capabilities(socket_path: &std::path::Path) -> Result<Vec<String>> {
+    let rt = tokio::runtime::Handle::try_current()
+        .map(|h| {
+            h.block_on(call(
+                socket_path,
+                "capability.list",
+                &serde_json::json!({}),
+                Duration::from_secs(2),
+            ))
+        })
+        .unwrap_or_else(|_| {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()?;
+            rt.block_on(call(
+                socket_path,
+                "capability.list",
+                &serde_json::json!({}),
+                Duration::from_secs(2),
+            ))
+        })?;
+
+    let caps: Vec<String> = serde_json::from_value(rt)?;
+    Ok(caps)
+}
+
 /// Read the IPC timeout from environment, defaulting to 5 seconds.
 #[must_use]
 pub fn ipc_timeout() -> Duration {

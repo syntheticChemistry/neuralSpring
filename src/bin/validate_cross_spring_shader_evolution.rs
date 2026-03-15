@@ -515,7 +515,7 @@ fn print_provenance_summary() {
     eprintln!("║  groundSpring ─ bootstrap, jackknife, kimura, norm_cdf/ppf     ║");
     eprintln!("║  airSpring ──── hydrology (ET₀), regression, water balance     ║");
     eprintln!("║                                                                ║");
-    eprintln!("║  barraCuda v0.3.3 at 83aa08a · ToadStool S142 at a86bc546    ║");
+    eprintln!("║  barraCuda v0.3.5 at 83aa08a · ToadStool S142 at a86bc546    ║");
     eprintln!("║  coralReef Iteration 29 at 2779c88 (AMD E2E GPU dispatch)    ║");
     eprintln!("║  Precision per hardware: F32 / F64 / DF64                    ║");
     eprintln!("╚══════════════════════════════════════════════════════════════════╝");
@@ -526,7 +526,7 @@ async fn main() {
     let shader_count = barracuda::shaders::provenance::cross_spring_shaders().len();
     eprintln!("=== Cross-Spring Shader Evolution Validator ===");
     eprintln!(
-        "barraCuda v0.3.3 at 83aa08a — {shader_count} tracked shaders (provenance registry)\n"
+        "barraCuda v0.3.5 at 83aa08a — {shader_count} tracked shaders (provenance registry)\n"
     );
 
     let mut h = ValidationHarness::new("cross_spring_shader_evolution");
