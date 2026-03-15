@@ -5,7 +5,31 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 153 (March 15, 2026)
+## [Unreleased] — Session 154 (March 15, 2026)
+
+### Session 154 — Niche Deployment + Cross-Spring Absorption + Hardcoding Elimination (2026-03-15)
+
+**Niche architecture** following airSpring/groundSpring pattern. Cross-spring
+absorption from 5 sibling springs. Hardcoded primal names eliminated:
+
+- `src/niche.rs` — niche self-knowledge module: NICHE_NAME, CAPABILITIES (22
+  capabilities including provenance/compute/discovery), `operation_dependencies()`,
+  `cost_estimates()`, `science_semantic_mappings()`, 7 unit tests
+- `graphs/neuralspring_deploy.toml` — biomeOS deploy graph: 5-phase deployment
+  (Tower Atomic → optional ToadStool/NestGate → neuralSpring → health check →
+  provenance), all `by_capability` discovery, zero hardcoded primal names
+- Hardcoded `"biomeOS.sock"` fallback → biomeOS 5-tier socket resolution
+  (`$BIOMEOS_ORCHESTRATOR_SOCKET` → `$XDG_RUNTIME_DIR/biomeos/` → `temp_dir()`)
+- Hardcoded `"toadstool"`, `"coralreef"`, `"squirrel"` name hints → centralized
+  `config::TOADSTOOL_NAME_HINT`, `config::CORALREEF_NAME_HINT`,
+  `config::SQUIRREL_NAME_HINT` constants
+- `config.rs` expanded: `BIOMEOS_SOCKET_SUBDIR`, `BIOMEOS_ORCHESTRATOR_SOCKET`,
+  `ENV_BIOMEOS_ORCHESTRATOR`, 3 primal name hint constants
+- Niche deployment Steps 1-4 of 7 complete (UniBin, capabilities, deploy graph,
+  niche module). Steps 5-7 (provenance trio, cross-spring time series, workflow
+  graphs) documented as evolution targets
+- 1297 tests (1126 lib + 7 niche + 73 forge + 61+2 playGround + 13 doc + 15 integration),
+  0 clippy (pedantic+nursery), 0 fmt diffs, 0 unsafe
 
 ### Session 153 — Comprehensive Ecosystem Audit + Deep Debt Execution (2026-03-15)
 

@@ -46,8 +46,8 @@ pub struct HealthStatus {
 impl SquirrelClient {
     /// Connect to Squirrel via automatic socket discovery.
     pub fn discover() -> Result<Self> {
-        let socket =
-            ipc_client::discover_socket("squirrel").context("discovering Squirrel socket")?;
+        let socket = ipc_client::discover_socket(neural_spring::config::SQUIRREL_NAME_HINT)
+            .context("discovering Squirrel socket")?;
         Ok(Self {
             socket,
             timeout: ipc_client::ipc_timeout(),

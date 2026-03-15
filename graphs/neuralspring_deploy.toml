@@ -1,0 +1,222 @@
+# neuralSpring Niche Deploy Graph
+# Canonical deploy graph following SPRING_AS_NICHE_DEPLOYMENT_STANDARD.md
+#
+# Deploys neuralSpring as an ML/spectral science provider atop a biomeOS
+# Tower Atomic (BearDog + Songbird). Optional Node (ToadStool) and Nest
+# (NestGate) dependencies are declared but gracefully skipped when absent.
+#
+# Composable: other graphs can reference this as a sub-graph via depends_on.
+# biomeOS orchestrates germination order; Songbird provides IPC mesh.
+#
+# STATUS: V104 (March 15, 2026)
+# Run: biomeos deploy graphs/neuralspring_deploy.toml
+#      biomeos niche deploy neuralspring-science
+
+[graph]
+id = "neuralspring_deploy"
+description = "neuralSpring ML/spectral science provider atop Tower Atomic"
+coordination = "Sequential"
+
+[graph.metadata]
+neuralspring_version = "S153"
+domain = "science"
+target_node = "eastgate"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 1: TOWER ATOMIC — BearDog (security) + Songbird (discovery)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "germinate_beardog"
+output = "beardog_genesis"
+capabilities = ["crypto", "identity"]
+
+[nodes.primal]
+by_capability = "crypto"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 10000
+
+[[nodes]]
+id = "germinate_songbird"
+depends_on = ["germinate_beardog"]
+output = "songbird_genesis"
+capabilities = ["discovery", "mesh"]
+
+[nodes.primal]
+by_capability = "discovery"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 15000
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2: OPTIONAL DEPENDENCIES — ToadStool (GPU) + NestGate (data/storage)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "germinate_toadstool"
+depends_on = ["germinate_songbird"]
+output = "toadstool_genesis"
+capabilities = ["compute"]
+
+[nodes.primal]
+by_capability = "compute"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+features = ["gpu", "f64"]
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 30000
+fallback = "skip"
+
+[[nodes]]
+id = "germinate_nestgate"
+depends_on = ["germinate_songbird"]
+output = "nestgate_genesis"
+capabilities = ["storage", "data"]
+
+[nodes.primal]
+by_capability = "storage"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+providers = ["ncbi", "zenodo", "pdb"]
+storage_backend = "local_fs"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 20000
+fallback = "skip"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 3: NEURALSPRING — ML/spectral science provider
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "germinate_neuralspring"
+depends_on = ["germinate_beardog", "germinate_songbird"]
+output = "neuralspring_genesis"
+capabilities = ["science"]
+
+[nodes.primal]
+by_capability = "science.spectral_analysis"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 15000
+
+[nodes.capabilities_provided]
+"science.spectral_analysis" = "science.spectral_analysis"
+"science.anderson_localization" = "science.anderson_localization"
+"science.hessian_eigen" = "science.hessian_eigen"
+"science.agent_coordination" = "science.agent_coordination"
+"science.ipr" = "science.ipr"
+"science.disorder_sweep" = "science.disorder_sweep"
+"science.training_trajectory" = "science.training_trajectory"
+"science.evoformer_block" = "science.evoformer_block"
+"science.structure_module" = "science.structure_module"
+"science.folding_health" = "science.folding_health"
+"science.gpu_dispatch" = "science.gpu_dispatch"
+"science.cross_spring_provenance" = "science.cross_spring_provenance"
+"science.cross_spring_benchmark" = "science.cross_spring_benchmark"
+"science.precision_routing" = "science.precision_routing"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 4: VALIDATION — health check the deployed niche
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "validate_neuralspring_atomic"
+depends_on = ["germinate_beardog", "germinate_songbird", "germinate_neuralspring"]
+output = "neuralspring_validated"
+
+[nodes.operation]
+name = "health_check"
+
+[nodes.operation.params]
+check_neuralspring = true
+timeout_seconds = 15
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 5: PROVENANCE — record niche genesis (optional)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "provenance_session_start"
+depends_on = ["validate_neuralspring_atomic"]
+output = "provenance_session_id"
+
+[nodes.operation]
+name = "capability_call"
+
+[nodes.operation.params]
+capability = "provenance.session_create"
+params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S153", family_id = "neuralspring" }
+
+[nodes.constraints]
+timeout_ms = 10000
+fallback = "skip"
+
+[[nodes]]
+id = "provenance_store_genesis"
+depends_on = ["provenance_session_start"]
+output = "genesis_stored"
+
+[nodes.operation]
+name = "capability_call"
+
+[nodes.operation.params]
+capability = "storage.put"
+params = { key = "neuralspring:niche:deploy:${TIMESTAMP}", value = "${NEURALSPRING_GENESIS_JSON}", family_id = "neuralspring" }
+
+[nodes.constraints]
+timeout_ms = 10000
+fallback = "skip"

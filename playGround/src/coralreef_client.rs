@@ -74,8 +74,11 @@ impl CoralReefClient {
     /// directory.  Falls back to name-based discovery (`coralreef`) if no
     /// capability probe succeeds.
     pub fn discover() -> Result<Self> {
-        let socket = ipc_client::discover_by_capability("shader.compile.wgsl", "coralreef")
-            .context("discovering shader compiler primal")?;
+        let socket = ipc_client::discover_by_capability(
+            "shader.compile.wgsl",
+            neural_spring::config::CORALREEF_NAME_HINT,
+        )
+        .context("discovering shader compiler primal")?;
         Ok(Self {
             socket,
             timeout: Duration::from_secs(60),

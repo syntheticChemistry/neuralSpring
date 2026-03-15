@@ -129,6 +129,7 @@ pub mod metrics;
 pub mod modes;
 pub mod nautilus_bridge;
 pub mod neural_pgm;
+pub mod niche;
 pub mod nucleus_pipeline;
 pub mod pangenome_selection;
 pub mod pinn;

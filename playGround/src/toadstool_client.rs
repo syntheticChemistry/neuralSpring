@@ -97,8 +97,11 @@ impl ToadStoolClient {
     /// Falls back to name-based discovery (`toadstool`) if no capability
     /// probe succeeds.
     pub fn discover() -> Result<Self> {
-        let socket = ipc_client::discover_by_capability("compute.submit", "toadstool")
-            .context("discovering compute orchestration primal")?;
+        let socket = ipc_client::discover_by_capability(
+            "compute.submit",
+            neural_spring::config::TOADSTOOL_NAME_HINT,
+        )
+        .context("discovering compute orchestration primal")?;
         Ok(Self {
             socket,
             timeout: Duration::from_secs(30),

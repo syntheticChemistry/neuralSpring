@@ -47,6 +47,40 @@ pub const PETALTONGUE_SOCKET_DIR: &str = "petaltongue";
 /// matching the `{prefix}*.sock` pattern.
 pub const PETALTONGUE_SOCKET_PREFIX: &str = "petaltongue";
 
+// ═══════════════════════════════════════════════════════════════════
+// biomeOS socket resolution
+// ═══════════════════════════════════════════════════════════════════
+
+/// biomeOS socket subdirectory name (under `$XDG_RUNTIME_DIR`).
+pub const BIOMEOS_SOCKET_SUBDIR: &str = "biomeos";
+
+/// biomeOS orchestrator socket filename.
+pub const BIOMEOS_ORCHESTRATOR_SOCKET: &str = "biomeos.sock";
+
+/// biomeOS orchestrator socket env var override.
+pub const ENV_BIOMEOS_ORCHESTRATOR: &str = "BIOMEOS_ORCHESTRATOR_SOCKET";
+
+// ═══════════════════════════════════════════════════════════════════
+// Primal name hints for capability-based discovery fallback
+//
+// These are fallback hints only — discovery always tries capability
+// probing first. If a primal changes its socket name, the capability
+// probe still works. These hints are the last resort.
+// ═══════════════════════════════════════════════════════════════════
+
+/// `ToadStool` name hint for fallback discovery.
+pub const TOADSTOOL_NAME_HINT: &str = "toadstool";
+
+/// coralReef name hint for fallback discovery.
+pub const CORALREEF_NAME_HINT: &str = "coralreef";
+
+/// Squirrel name hint for fallback discovery.
+pub const SQUIRREL_NAME_HINT: &str = "squirrel";
+
+// ═══════════════════════════════════════════════════════════════════
+// Validation / GPU env vars
+// ═══════════════════════════════════════════════════════════════════
+
 /// Require GPU for validation binaries (exit 0 if absent when unset).
 pub const ENV_REQUIRE_GPU: &str = "NEURALSPRING_REQUIRE_GPU";
 

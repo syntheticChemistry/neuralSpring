@@ -44,17 +44,15 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
-**S153: Comprehensive ecosystem audit + deep debt execution.**
-Full 11-dimension audit against wateringHole standards. Zero clippy warnings (pedantic+nursery)
-across all 3 workspace crates. Zero `rustfmt` diffs. Zero `unsafe` code. All files under 1000 LOC.
-`ALL_CAPABILITIES` unified into single source of truth in `config.rs`. `validate_gpu_eigensolve_pipeline`
-migrated to `ValidationHarness` with centralized `GPU_EIGENVALUE_AGREEMENT` tolerance. 3 new tolerance
-constants (`GPU_EIGENVALUE_AGREEMENT`, `VARIANCE_PARITY_FLOOR`, `PAIRFORMER_PARITY`). 3 validator-local
-`fn sigmoid` wrappers replaced with `use primitives::sigmoid`. playGround lints aligned with workspace
-standard (`pedantic + nursery + unsafe_code=forbid`). `#![forbid(unsafe_code)]` added to forge crate.
-Provenance records linked to expected-value sources via `BaselineProvenance::expected_source()`.
-4 new GPU tests in `gpu_ops/bio/`. V104 absorption handoff for barraCuda/toadStool.
-1290 tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings.
+**S154: Niche deployment architecture + cross-spring absorption.**
+Niche self-knowledge module (`src/niche.rs`) following airSpring/groundSpring pattern: 22 capabilities,
+operation dependencies, cost estimates, semantic mappings. biomeOS deploy graph
+(`graphs/neuralspring_deploy.toml`): 5-phase deployment with capability-based discovery. Hardcoded
+`"biomeOS.sock"` fallback evolved to 5-tier socket resolution. Hardcoded `"toadstool"`, `"coralreef"`,
+`"squirrel"` name hints centralized to `config::*_NAME_HINT` constants. Cross-spring absorption:
+pulled hotSpring v0.6.31, groundSpring V105, wetSpring V118, airSpring v0.8.2, healthSpring V25,
+barraCuda `709edf03`, toadStool S155b, coralReef Iter 47.
+1297 tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings.
 
 **S151: Deep audit — ecoBin compliance, capability-based discovery, tolerance centralization.**
 Eliminated `openssl-sys`/`native-tls` C dependency in playGround (`reqwest` → `rustls-tls`).
