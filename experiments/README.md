@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 153)**: 1290 tests (lib + forge + playGround), 47 modules, 260 binaries, 0 clippy (pedantic+nursery), 0 doc warnings, 0 fmt diffs, 0 unsafe. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized. All capabilities unified. All validation harnesses on hotSpring pattern. S153: Full ecosystem audit + deep debt execution (V104 handoff). barraCuda v0.3.5, toadStool S146+, coralReef Phase 10. March 15, 2026.
+**Current state (Session 154)**: 1297 tests (1126 lib + 7 niche + 73 forge + 63 playGround + 13 doc + 15 integration), 47 modules, 260 binaries, 0 clippy (pedantic+nursery), 0 doc warnings, 0 fmt diffs, 0 unsafe. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized. All capabilities unified. All validation harnesses on hotSpring pattern. S154: Niche deployment architecture + cross-spring absorption (V105 handoff). barraCuda v0.3.5, toadStool S146+, coralReef Phase 10. March 15, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -5034,6 +5034,43 @@ with real computation, Nest records substrate/timing provenance.
 | Industry GPU parity | cuBLAS/cuDNN/cuFFT/FlashAttention | Complete (S146) |
 | Kokkos GPU parity | 9 ops scaffolded | Placeholder data; needs real Kokkos-CUDA runs |
 | TensorSession fused | playGround only (7–45× speedup) | Main library uses per-op dispatch |
+
+---
+
+## Session 154 — Niche Deployment Architecture + Cross-Spring Absorption
+
+**Date**: 2026-03-15
+**Session**: S154
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | Cross-spring review: pulled 6 springs + 7 primals, reviewed latest handoffs and evolution status |
+| **Phase 2** | Niche deployment: `src/niche.rs` (airSpring pattern), `graphs/neuralspring_deploy.toml` (groundSpring pattern) |
+| **Phase 3** | Hardcoding elimination: 5-tier socket resolution, 3 name hint constants, zero inline primal names |
+| **Phase 4** | Doc evolution: V105 handoff, all root docs updated, baseCamp + experiments journal |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Niche capabilities | 22 (science + provenance + cross-primal + compute) |
+| Deploy graph phases | 5 (Tower → ToadStool/NestGate → neuralSpring → health → provenance) |
+| Hardcoded primal names eliminated | 4 (biomeOS.sock, toadstool, coralreef, squirrel) |
+| Config constants added | 6 (BIOMEOS_*, *_NAME_HINT) |
+| New tests (niche module) | 7 |
+| Cross-spring patterns absorbed | 5 (airSpring niche.rs, groundSpring deploy graph, wetSpring tolerance naming, hotSpring sovereign dispatch, healthSpring tissue context) |
+| Lib tests | 1126 (+7 niche) |
+| Total tests | 1297 |
+
+### Exp 110 — Niche Deployment Architecture
+
+**Date**: 2026-03-15
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Implement biomeOS BYOB niche deployment (Steps 1–4 of 7) following airSpring/groundSpring patterns identified during cross-spring review
+**Procedure**: Created `src/niche.rs` with self-knowledge (capabilities, dependencies, costs, semantic mappings). Created `graphs/neuralspring_deploy.toml` with 5-phase capability-based deployment. Evolved hardcoded primal names and socket paths to centralized config constants with runtime discovery.
+**Findings**: The deploy graph pattern from groundSpring translates directly — `by_capability` resolution for all primal dependencies with `fallback = "skip"` for optional dependencies (ToadStool, NestGate). The airSpring `niche.rs` pattern provides clean separation between capability advertising and science logic. Remaining niche deployment steps (5–7: provenance trio, cross-spring time series, workflow graphs) need IPC wiring to the provenance primals.
 
 ---
 
