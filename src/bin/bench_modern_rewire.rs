@@ -331,7 +331,7 @@ fn main() {
                 eigh_n,
                 eigh_batch,
                 30,
-                1e-12,
+                tolerances::JACOBI_GPU_CONVERGENCE,
             )
             .expect("BatchedEighGpu execute"),
         );
@@ -343,7 +343,7 @@ fn main() {
         eigh_n,
         eigh_batch,
         30,
-        1e-12,
+        tolerances::JACOBI_GPU_CONVERGENCE,
     )
     .expect("BatchedEighGpu execute");
     h.check_bool(
@@ -360,7 +360,7 @@ fn main() {
     let eigh_ok = batch0_evals
         .iter()
         .zip(cpu_sorted.iter())
-        .all(|(&a, &b)| (a - b).abs() < 0.05);
+        .all(|(&a, &b)| (a - b).abs() < tolerances::SPECTRAL_EIGENSOLVER_CROSS);
     h.check_bool("BatchedEighGpu batch[0] ≈ eigh_gpu single", eigh_ok);
     h.check_bool(
         &format!("BatchedEighGpu {eigh_us:.0}µs"),

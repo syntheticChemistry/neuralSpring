@@ -5,12 +5,16 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'metalForge/**'
+      - 'playGround/**'
       - 'Cargo.toml'
       - '.github/workflows/rust.yml'
   pull_request:
     branches: [main]
     paths:
       - 'src/**'
+      - 'metalForge/**'
+      - 'playGround/**'
       - 'Cargo.toml'
 
 env:

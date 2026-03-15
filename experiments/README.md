@@ -121,6 +121,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 105 | Session 145 — Sovereign compile validation | Mar 11, 2026 | Sovereign compile pipeline |
 | 106 | Session 145 — Mixed-hardware composition pipeline | Mar 11, 2026 | Mixed hardware composition validation |
 | 107 | Session 151 — Deep Audit: ecoBin Compliance, Capability Discovery, Tolerance Centralization | Mar 15, 2026 | `openssl-sys`/`native-tls` eliminated (`reqwest`→`rustls-tls`). IPC clients evolved to `discover_by_capability()`. 12 hardcoded tolerances→named constants. 4 `#[expect()]` reasons upgraded. 3 rustdoc warnings fixed. `mock_response`→`accept_and_reply`. metalForge bridge→biomeOS 5-tier socket resolution. V102 handoff. 1115+73+61 tests, 0 clippy (pedantic+nursery), 0 doc warnings |
+| 108 | Session 152 — Deep Debt Execution: Tolerance Centralization, Capability Discovery, Shared Infrastructure | Mar 15, 2026 | 15+ tolerance literals→named constants (`IPR_CROSS_PYTHON` added). `PrimalClient`→capability-based discovery. coralReef bridge→capability-first. `BIOMEOS_SOCKET_SUBDIR` constant. `validate_tensor_binary` + `gen_test_f64` shared helpers. playGround test tolerances named. V103 handoff. 1115+73+61 tests, 0 clippy, 0 doc warnings |
 
 ---
 
@@ -4986,6 +4987,52 @@ with real computation, Nest records substrate/timing provenance.
 **Motivation**: Quantify BarraCUDA WGSL competitiveness against industry-standard CUDA libraries
 **Procedure**: Python control scripts invoke PyTorch (cuBLAS/cuDNN/cuFFT) on same GPU; Rust binary runs BarraCUDA equivalents; compare timings and numerical parity
 **Findings**: FFT is a genuine win (WGSL butterfly structure); GEMM competitive at most scales; cuDNN dispatch overhead gap is the primary upstream evolution target
+
+---
+
+## Session 152 — Deep Debt Execution: Tolerance Centralization, Capability Discovery, Shared Infrastructure
+
+**Date**: 2026-03-15
+**Session**: S152
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | Comprehensive audit of entire codebase against ecosystem standards (wateringHole), sibling springs, and all quality dimensions |
+| **Phase 2** | Deep debt execution: tolerance centralization, capability-based discovery, shared validation infrastructure |
+| **Phase 3** | Doc evolution: root docs, CHANGELOG, experiments journal, handoff, archive cleanup |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Tolerance literals centralized | 15+ (across 9 binaries) |
+| New tolerance constant | `IPR_CROSS_PYTHON` (0.005, spectral category) |
+| New shared helpers | `validate_tensor_binary`, `BinaryTensorInputs`, `gen_test_f64` |
+| Capability-based discovery | `PrimalClient`, `CoralCompiler::discover_socket()` |
+| Named constants added | `BIOMEOS_SOCKET_SUBDIR`, `PRIMAL_SOCKET_HINT`, `DISCOVERY_CAPABILITY`, `F32_SOFTMAX_SUM`, `F16_EXACT` |
+| Clippy warnings fixed | 3 pre-existing `single_match` in playGround |
+| Lib tests | 1115 (unchanged) |
+| Forge tests | 73 (unchanged) |
+| playGround tests | 61 (unchanged) |
+
+### Exp 108 — Deep Debt Execution
+
+**Date**: 2026-03-15
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Execute all findings from comprehensive ecosystem audit — evolve hardcoded patterns to agnostic, capability-based, and centralized idioms
+**Procedure**: Systematic replacement of hardcoded tolerances, primal names, and socket paths; capability-first discovery; shared validation helpers; doc/handoff evolution
+**Findings**: The codebase was already in excellent shape (A overall). Execution focused on refinement: single-source-of-truth for tolerances, self-knowledge-only discovery, and reusable validation patterns. The `#[allow(clippy::wildcard_imports)]` in `tolerances/registry.rs` is correct — the lint doesn't fire in this configuration, so `#[expect]` produces an unfulfilled warning. Python-vs-barraCuda-CPU benchmarks exist but route through direct Rust calls, not barraCuda dispatch. Kokkos parity data is placeholder — needs real Kokkos-CUDA runs on matching hardware.
+
+### Benchmark Gap Analysis
+
+| Category | Status | Gap |
+|----------|--------|-----|
+| Python vs Rust CPU | 20 `bench_*.py`, 178.5× geomean | No dedicated barraCuda-dispatch-routed CPU benchmark |
+| Industry GPU parity | cuBLAS/cuDNN/cuFFT/FlashAttention | Complete (S146) |
+| Kokkos GPU parity | 9 ops scaffolded | Placeholder data; needs real Kokkos-CUDA runs |
+| TensorSession fused | playGround only (7–45× speedup) | Main library uses per-op dispatch |
 
 ---
 

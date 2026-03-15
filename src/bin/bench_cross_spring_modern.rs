@@ -43,6 +43,7 @@ use barracuda::stats;
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::time::Instant;
 
@@ -339,7 +340,7 @@ fn bench_dispatcher_evolved(h: &mut ValidationHarness) {
     let sum: f64 = sm.iter().sum();
     h.check_bool(
         &format!("softmax sums to 1 (got {sum:.6})"),
-        (sum - 1.0).abs() < 1e-6,
+        (sum - 1.0).abs() < tolerances::GELU_LARGE_INPUT,
     );
 
     let t_gelu = bench("  gelu_dispatch (n=256)", || {
@@ -349,7 +350,7 @@ fn bench_dispatcher_evolved(h: &mut ValidationHarness) {
 
     let gelu_out = dispatcher.gelu(&input);
     h.check_bool("gelu output length", gelu_out.len() == input.len());
-    h.check_bool("gelu(0) ≈ 0", gelu_out[128].abs() < 0.01);
+    h.check_bool("gelu(0) ≈ 0", gelu_out[128].abs() < tolerances::EIGENSOLVER_SMALL_MATRIX);
 
     let a: Vec<f64> = (0..64).map(|i| (i as f64) * 0.1).collect();
     let b: Vec<f64> = (0..64).map(|i| (i as f64) * 0.05 + 0.5).collect();

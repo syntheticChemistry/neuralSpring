@@ -38,6 +38,9 @@
 
 use std::path::PathBuf;
 
+/// biomeOS socket subdirectory name within the XDG runtime directory.
+const BIOMEOS_SOCKET_SUBDIR: &str = "biomeos";
+
 /// Result type for coralReef operations.
 pub type CoralResult<T> = Result<T, CoralError>;
 
@@ -154,10 +157,42 @@ impl CoralCompiler {
     /// manifests at `$XDG_RUNTIME_DIR/ecoPrimals/*.json`.
     ///
     /// Returns the socket path if found, `None` otherwise.
+    ///
+    /// Discovery order (capability-first, name-fallback):
+    /// 1. Scan capability manifests at `$XDG_RUNTIME_DIR/ecoPrimals/*.json`
+    ///    for any primal advertising `shader.compile` or `shader_compiler`.
+    /// 2. Fall back to scanning `.sock` files for any matching socket.
     #[must_use]
     pub fn discover_socket() -> Option<PathBuf> {
-        let socket_dir = Self::resolve_socket_dir();
+        if let Some(path) = Self::discover_by_capability() {
+            return Some(path);
+        }
+        Self::discover_by_socket_scan()
+    }
 
+    /// Capability-based discovery: scan manifests for `shader.compile`.
+    fn discover_by_capability() -> Option<PathBuf> {
+        let xdg = std::env::var("XDG_RUNTIME_DIR").ok()?;
+        let manifest_dir = PathBuf::from(xdg).join("ecoPrimals");
+        for entry in std::fs::read_dir(&manifest_dir).ok()?.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "json") {
+                if let Ok(contents) = std::fs::read_to_string(&path) {
+                    if contents.contains("shader.compile")
+                        || contents.contains("shader_compiler")
+                    {
+                        return Some(path);
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    /// Fallback: scan socket directory for `.sock` files whose companion
+    /// manifest (if any) advertises shader compilation.
+    fn discover_by_socket_scan() -> Option<PathBuf> {
+        let socket_dir = Self::resolve_socket_dir();
         for entry in std::fs::read_dir(&socket_dir).ok()?.flatten() {
             let name = entry.file_name();
             let name_str = name.to_string_lossy();
@@ -165,24 +200,6 @@ impl CoralCompiler {
                 return Some(entry.path());
             }
         }
-
-        let xdg = std::env::var("XDG_RUNTIME_DIR").ok()?;
-        let manifest_dir = PathBuf::from(xdg).join("ecoPrimals");
-        if let Ok(entries) = std::fs::read_dir(&manifest_dir) {
-            for entry in entries.flatten() {
-                let path = entry.path();
-                if path.extension().is_some_and(|e| e == "json") {
-                    if let Ok(contents) = std::fs::read_to_string(&path) {
-                        if contents.contains("shader.compile")
-                            || contents.contains("shader_compiler")
-                        {
-                            return Some(path);
-                        }
-                    }
-                }
-            }
-        }
-
         None
     }
 
@@ -192,20 +209,21 @@ impl CoralCompiler {
             return PathBuf::from(dir);
         }
         if let Ok(xdg) = std::env::var("XDG_RUNTIME_DIR") {
-            return PathBuf::from(xdg).join("biomeos");
+            return PathBuf::from(xdg).join(BIOMEOS_SOCKET_SUBDIR);
         }
         #[cfg(unix)]
         {
             use std::os::unix::fs::MetadataExt;
             if let Ok(meta) = std::fs::metadata("/proc/self") {
                 let uid = meta.uid();
-                let dir = PathBuf::from(format!("/run/user/{uid}/biomeos"));
+                let dir =
+                    PathBuf::from(format!("/run/user/{uid}")).join(BIOMEOS_SOCKET_SUBDIR);
                 if dir.parent().is_some_and(std::path::Path::exists) {
                     return dir;
                 }
             }
         }
-        std::env::temp_dir().join("biomeos")
+        std::env::temp_dir().join(BIOMEOS_SOCKET_SUBDIR)
     }
 
     /// Check if coralReef compilation is available either via compile-time

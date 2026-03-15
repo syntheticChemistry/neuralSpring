@@ -42,6 +42,7 @@
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::primitives;
+use neural_spring::tolerances;
 use neural_spring::transformer;
 use neural_spring::validation::ValidationHarness;
 use std::time::Instant;
@@ -327,7 +328,7 @@ fn bench_groundspring_origins(h: &mut ValidationHarness) {
     );
     h.check_bool(
         "groundSpring norm_cdf: Φ(0) = 0.5",
-        (barracuda::stats::norm_cdf(0.0) - 0.5).abs() < 1e-12,
+        (barracuda::stats::norm_cdf(0.0) - 0.5).abs() < tolerances::EXACT_F64,
     );
     eprintln!();
 }

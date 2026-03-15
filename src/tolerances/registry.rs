@@ -146,7 +146,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             PANGENOME_MIN_ASSOCIATED_GENES,
         ],
         "spectral": [
-            SPECTRAL_EIGENSOLVER_CROSS, KAPPUS_WEGNER_REL,
+            SPECTRAL_EIGENSOLVER_CROSS, IPR_CROSS_PYTHON, KAPPUS_WEGNER_REL,
             LEVEL_SPACING_POISSON_TOL,
             LEVEL_SPACING_GOE_SLACK, SPECTRAL_IPR_COMPARISON_SLACK,
             NUMERICAL_DISTINCTNESS,

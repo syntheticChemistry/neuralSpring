@@ -179,6 +179,52 @@ pub fn validate_tensor_reduction(
     }
 }
 
+/// Inputs for a binary tensor validation.
+pub struct BinaryTensorInputs<'a> {
+    pub data_a: &'a [f32],
+    pub data_b: &'a [f32],
+    pub shape: &'a [usize],
+}
+
+/// Validate a binary tensor operation against expected point checks.
+///
+/// Handles the common pattern:
+///   create `input_a` → create `input_b` → apply op → readback → `check_gpu_points`
+/// with graceful error recording on failure at any step.
+pub fn validate_tensor_binary(
+    h: &mut ValidationHarness,
+    device: &Arc<WgpuDevice>,
+    inputs: &BinaryTensorInputs<'_>,
+    op: impl FnOnce(&Tensor, &Tensor) -> Result<Tensor, BarracudaError>,
+    op_name: &str,
+    checks: &[(&str, usize, f64, f64)],
+) {
+    let Some(a) = gpu_tensor(h, inputs.data_a, inputs.shape, device) else {
+        return;
+    };
+    let Some(b) = gpu_tensor(h, inputs.data_b, inputs.shape, device) else {
+        return;
+    };
+    match op(&a, &b) {
+        Ok(out) => {
+            let Some(v) = gpu_readback(h, &out) else {
+                return;
+            };
+            check_gpu_points(h, &v, checks);
+        }
+        Err(e) => h.check_bool(&format!("{op_name} [ERROR: {e}]"), false),
+    }
+}
+
+/// Generate a deterministic f64 test vector of given length.
+///
+/// Shared across cross-spring and evolution validators to replace
+/// duplicated `gen_f64_vec` helpers.
+#[must_use]
+pub fn gen_test_f64(rng: &mut crate::rng::Rng, n: usize) -> Vec<f64> {
+    (0..n).map(|_| rng.next_f64()).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

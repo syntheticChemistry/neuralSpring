@@ -424,6 +424,17 @@ pub fn inspect_safetensors(
 mod tests {
     use super::*;
 
+    /// f16/bf16 exact-representable-value tolerance.
+    ///
+    /// Half-precision (f16) has 10-bit mantissa (~3.3 decimal digits).
+    /// Exact representable values (1.0, 0.5, -1.0) round-trip through
+    /// f16→f32 with zero error; 1e-7 guards against implementation bugs.
+    const F16_EXACT: f32 = 1e-7;
+
+    /// f16 subnormal upper bound — smallest positive f16 normal is ~6.1e-5;
+    /// subnormals are smaller.
+    const F16_SUBNORMAL_UPPER: f32 = 1e-6;
+
     // ── f16 conversion ──────────────────────────────────────────
 
     #[test]
@@ -439,17 +450,17 @@ mod tests {
 
     #[test]
     fn f16_one() {
-        assert!((f16_to_f32(0x3C00) - 1.0).abs() < 1e-7);
+        assert!((f16_to_f32(0x3C00) - 1.0).abs() < F16_EXACT);
     }
 
     #[test]
     fn f16_negative_one() {
-        assert!((f16_to_f32(0xBC00) + 1.0).abs() < 1e-7);
+        assert!((f16_to_f32(0xBC00) + 1.0).abs() < F16_EXACT);
     }
 
     #[test]
     fn f16_half() {
-        assert!((f16_to_f32(0x3800) - 0.5).abs() < 1e-7);
+        assert!((f16_to_f32(0x3800) - 0.5).abs() < F16_EXACT);
     }
 
     #[test]
@@ -473,7 +484,7 @@ mod tests {
     fn f16_subnormal() {
         let val = f16_to_f32(0x0001);
         assert!(val > 0.0);
-        assert!(val < 1e-6);
+        assert!(val < F16_SUBNORMAL_UPPER);
     }
 
     // ── bf16 conversion ─────────────────────────────────────────
@@ -485,12 +496,12 @@ mod tests {
 
     #[test]
     fn bf16_one() {
-        assert!((bf16_to_f32(0x3F80) - 1.0).abs() < 1e-7);
+        assert!((bf16_to_f32(0x3F80) - 1.0).abs() < F16_EXACT);
     }
 
     #[test]
     fn bf16_negative_one() {
-        assert!((bf16_to_f32(0xBF80) + 1.0).abs() < 1e-7);
+        assert!((bf16_to_f32(0xBF80) + 1.0).abs() < F16_EXACT);
     }
 
     #[test]

@@ -14,6 +14,9 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 
+/// biomeOS socket subdirectory name within the XDG runtime directory.
+const BIOMEOS_SOCKET_SUBDIR: &str = "biomeos";
+
 static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(1);
 
 fn next_id() -> u64 {
@@ -103,20 +106,20 @@ pub fn resolve_socket_dir() -> PathBuf {
         return PathBuf::from(dir);
     }
     if let Ok(xdg) = std::env::var("XDG_RUNTIME_DIR") {
-        return PathBuf::from(xdg).join("biomeos");
+        return PathBuf::from(xdg).join(BIOMEOS_SOCKET_SUBDIR);
     }
     #[cfg(unix)]
     {
         use std::os::unix::fs::MetadataExt;
         if let Ok(meta) = std::fs::metadata("/proc/self") {
             let uid = meta.uid();
-            let dir = PathBuf::from(format!("/run/user/{uid}/biomeos"));
+            let dir = PathBuf::from(format!("/run/user/{uid}")).join(BIOMEOS_SOCKET_SUBDIR);
             if dir.parent().is_some_and(Path::exists) {
                 return dir;
             }
         }
     }
-    std::env::temp_dir().join("biomeos")
+    std::env::temp_dir().join(BIOMEOS_SOCKET_SUBDIR)
 }
 
 fn get_family_id() -> String {
@@ -284,13 +287,11 @@ mod tests {
         std::env::remove_var("FAMILY_ID");
         std::env::remove_var("BIOMEOS_FAMILY_ID");
         assert_eq!(get_family_id(), "default");
-        match prev_f {
-            Some(v) => std::env::set_var("FAMILY_ID", v),
-            None => {}
+        if let Some(v) = prev_f {
+            std::env::set_var("FAMILY_ID", v);
         }
-        match prev_b {
-            Some(v) => std::env::set_var("BIOMEOS_FAMILY_ID", v),
-            None => {}
+        if let Some(v) = prev_b {
+            std::env::set_var("BIOMEOS_FAMILY_ID", v);
         }
     }
 
@@ -338,9 +339,8 @@ mod tests {
             Some(v) => std::env::set_var("BIOMEOS_SOCKET_DIR", v),
             None => std::env::remove_var("BIOMEOS_SOCKET_DIR"),
         }
-        match prev_f {
-            Some(v) => std::env::set_var("FAMILY_ID", v),
-            None => {}
+        if let Some(v) = prev_f {
+            std::env::set_var("FAMILY_ID", v);
         }
     }
 }

@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 15, 2026 (Session 151 — Deep audit: ecoBin compliance (zero C deps in main crates), capability-based IPC discovery, tolerance centralization, V102 handoff. 1115 lib + 61 playGround unit + 13 integration + 73 forge tests. 0 clippy. 0 doc warnings. 47 modules. 260 binaries. 25 absorbed workloads.)
+**Last updated**: March 15, 2026 (Session 152 — Deep debt execution: 15+ tolerance literals centralized, capability-based primal discovery, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), biomeOS path constants, V103 handoff. 1115 lib + 61 playGround unit + 13 integration + 73 forge tests. 0 clippy. 0 doc warnings. 47 modules. 260 binaries. 25 absorbed workloads.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid

@@ -44,6 +44,17 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S152: Deep debt execution — tolerance centralization, capability-based discovery, shared validation infrastructure.**
+Comprehensive audit execution: 15+ hardcoded tolerance literals across bench/validation binaries
+replaced with named `tolerances::` constants (added `IPR_CROSS_PYTHON` with provenance). `PrimalClient`
+evolved from `discover_socket("neuralspring")` to `discover_by_capability("science.spectral_analysis")`
+with named hint constant. coralReef bridge restructured to capability-first discovery (manifest scan
+before socket name-matching). biomeOS socket subdirectory extracted to `BIOMEOS_SOCKET_SUBDIR` constant
+in both `ipc_client` and `coralreef_bridge`. Shared `validate_tensor_binary` + `BinaryTensorInputs` +
+`gen_test_f64` infrastructure added to `validation::gpu`. playGround test tolerances named (`F32_SOFTMAX_SUM`,
+`F16_EXACT`). Pre-existing clippy `single_match` warnings fixed in `ipc_client` tests. V103 handoff for
+barraCuda/toadStool. 1115 lib + 73 forge + 61 playGround tests, 0 clippy (pedantic+nursery), 0 doc warnings.
+
 **S151: Deep audit — ecoBin compliance, capability-based discovery, tolerance centralization.**
 Eliminated `openssl-sys`/`native-tls` C dependency in playGround (`reqwest` → `rustls-tls`).
 ToadStool and coralReef IPC clients evolved from hardcoded primal names to capability-based

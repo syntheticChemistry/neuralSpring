@@ -268,6 +268,11 @@ impl TransformerEngine {
 mod tests {
     use super::*;
 
+    /// f32 softmax sum-to-one tolerance (5 digits of f32 mantissa).
+    const F32_SOFTMAX_SUM: f32 = 1e-5;
+    /// f32 single-element exactness tolerance.
+    const F32_ELEMENT_EXACT: f32 = 1e-6;
+
     #[test]
     fn top_k_returns_k_elements() {
         let logits = vec![1.0, 5.0, 3.0, 2.0, 4.0];
@@ -306,7 +311,7 @@ mod tests {
         let probs = TransformerEngine::softmax(&logits);
         let sum: f32 = probs.iter().sum();
         assert!(
-            (sum - 1.0).abs() < 1e-5,
+            (sum - 1.0).abs() < F32_SOFTMAX_SUM,
             "softmax sum should be ~1.0, got {sum}"
         );
     }
@@ -334,7 +339,7 @@ mod tests {
         let probs = TransformerEngine::softmax(&logits);
         let sum: f32 = probs.iter().sum();
         assert!(
-            (sum - 1.0).abs() < 1e-5,
+            (sum - 1.0).abs() < F32_SOFTMAX_SUM,
             "should be stable with large values, sum = {sum}"
         );
         assert!(
@@ -347,7 +352,7 @@ mod tests {
     fn softmax_single_element() {
         let probs = TransformerEngine::softmax(&[42.0]);
         assert_eq!(probs.len(), 1);
-        assert!((probs[0] - 1.0).abs() < 1e-6);
+        assert!((probs[0] - 1.0).abs() < F32_ELEMENT_EXACT);
     }
 
     #[test]
@@ -356,7 +361,7 @@ mod tests {
         let probs = TransformerEngine::softmax(&logits);
         for &p in &probs {
             assert!(
-                (p - 0.25).abs() < 1e-5,
+                (p - 0.25).abs() < F32_SOFTMAX_SUM,
                 "uniform input should give uniform probs"
             );
         }

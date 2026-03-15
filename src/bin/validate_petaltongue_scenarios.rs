@@ -583,16 +583,16 @@ fn main() {
 
     let handle = std::thread::spawn(move || accept_and_reply(&listener));
     let render_result = pt_client.push_render("sess-v1", "Validate Render", &spectral);
-    let request = handle.join().expect("mock thread");
+    let request = handle.join().expect("accept thread");
 
     h.check_abs(
-        "mock.render_ok",
+        "ipc.render_ok",
         if render_result.is_ok() { 1.0 } else { 0.0 },
         1.0,
         tolerances::BOOLEAN_VALIDATION_SLACK,
     );
     h.check_abs(
-        "mock.render_method",
+        "ipc.render_method",
         if request.get("method").and_then(|m| m.as_str()) == Some("visualization.render") {
             1.0
         } else {
@@ -602,7 +602,7 @@ fn main() {
         tolerances::BOOLEAN_VALIDATION_SLACK,
     );
     h.check_abs(
-        "mock.render_domain",
+        "ipc.render_domain",
         if request
             .get("params")
             .and_then(|p| p.get("domain"))
@@ -619,23 +619,23 @@ fn main() {
     cleanup_socket(&sock_path);
 
     // ═══════════════════════════════════════════════════════════════════
-    // 11. Mock socket: push_append roundtrip
+    // 11. IPC roundtrip: push_append
     // ═══════════════════════════════════════════════════════════════════
     let (sock_path, listener) = test_socket("pt_append");
     let pt_client = PetalTonguePushClient::new(sock_path.clone());
 
     let handle = std::thread::spawn(move || accept_and_reply(&listener));
     let append_result = pt_client.push_append("sess-v2", "series-1", &[1.0, 2.0], &[10.0, 20.0]);
-    let request = handle.join().expect("mock thread");
+    let request = handle.join().expect("accept thread");
 
     h.check_abs(
-        "mock.append_ok",
+        "ipc.append_ok",
         if append_result.is_ok() { 1.0 } else { 0.0 },
         1.0,
         tolerances::BOOLEAN_VALIDATION_SLACK,
     );
     h.check_abs(
-        "mock.append_op_type",
+        "ipc.append_op_type",
         if request
             .get("params")
             .and_then(|p| p.get("operation"))
@@ -653,7 +653,7 @@ fn main() {
     cleanup_socket(&sock_path);
 
     // ═══════════════════════════════════════════════════════════════════
-    // 12. Mock socket: push_replace roundtrip
+    // 12. IPC roundtrip: push_replace
     // ═══════════════════════════════════════════════════════════════════
     let (sock_path, listener) = test_socket("pt_replace");
     let pt_client = PetalTonguePushClient::new(sock_path.clone());
@@ -661,16 +661,16 @@ fn main() {
     let handle = std::thread::spawn(move || accept_and_reply(&listener));
     let replace_data = serde_json::json!({"matrix": [[1, 2], [3, 4]]});
     let replace_result = pt_client.push_replace("sess-v3", "heatmap-1", &replace_data);
-    let request = handle.join().expect("mock thread");
+    let request = handle.join().expect("accept thread");
 
     h.check_abs(
-        "mock.replace_ok",
+        "ipc.replace_ok",
         if replace_result.is_ok() { 1.0 } else { 0.0 },
         1.0,
         tolerances::BOOLEAN_VALIDATION_SLACK,
     );
     h.check_abs(
-        "mock.replace_op_type",
+        "ipc.replace_op_type",
         if request
             .get("params")
             .and_then(|p| p.get("operation"))
@@ -688,7 +688,7 @@ fn main() {
     cleanup_socket(&sock_path);
 
     // ═══════════════════════════════════════════════════════════════════
-    // 13. Mock socket: StreamSession start + append
+    // 13. IPC roundtrip: StreamSession start + append
     // ═══════════════════════════════════════════════════════════════════
     let spectral2 = visualization::spectral_study().0;
     let (sock_path, listener) = test_socket("pt_stream");
@@ -701,7 +701,7 @@ fn main() {
     let session = StreamSession::start(pt_client, "stream-v1", "Stream Test", &spectral2)
         .expect("session start");
     let append_result = session.append("series-1", &[1.0], &[0.25]);
-    let _requests = handle.join().expect("mock thread");
+    let _requests = handle.join().expect("accept thread");
 
     h.check_abs(
         "stream.start_ok",

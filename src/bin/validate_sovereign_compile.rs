@@ -15,6 +15,7 @@
 #![expect(clippy::cast_precision_loss, reason = "small indices fit in f64")]
 
 use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::tolerances;
 
 fn report_hardware(dispatcher: &Dispatcher) {
     println!("── Hardware Discovery ──");
@@ -104,7 +105,7 @@ fn validate_eigensolve(dispatcher: &Dispatcher) {
         .fold(0.0_f64, f64::max);
     println!(
         "  Diagonal matrix N={n}: max_diff={max_diff:.2e} {}",
-        if max_diff < 1e-6 { "PASS" } else { "FAIL" }
+        if max_diff < tolerances::GELU_LARGE_INPUT { "PASS" } else { "FAIL" }
     );
 }
 

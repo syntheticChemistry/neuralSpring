@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 14, 2026 (Sessions 44–150 — S150: Compute triangle (ToadStool+coralReef IPC clients), playGround hot/cold dispatch benchmarks, 63 unit + 13 integration tests. V100 handoffs. 1115 lib tests, 260 binaries. barraCuda v0.3.5 at `0649cd0`, ToadStool S146+, coralReef Phase 10)
+**Last Updated**: March 15, 2026 (Sessions 44–152 — S152: Deep debt execution (tolerance centralization, capability-based discovery, shared validation infrastructure). V103 handoff. 1115 lib tests, 260 binaries. barraCuda v0.3.5 at `0649cd0`, ToadStool S146+, coralReef Phase 10)
 **Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 260 binaries, **220/220 validate\_all**, 1115 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
@@ -14,10 +14,10 @@
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
 | Rust native validation | 1115 lib + 73 forge + 9 integration PASS — 260 binaries, 47+ modules |
-| BarraCUDA CPU (bC) | 24/25 papers (96%), 203 checks | ALL GREEN |
-| BarraCUDA GPU Tensor (gT) | 23/25 papers (92%), 98+ checks | ALL GREEN |
-| metalForge WGSL (mF) | 15/25 papers, 17 shaders, 108 checks | ALL PASS |
-| GPU Pipeline (gP) | 15/25 papers, 94 checks | ALL PASS |
+| BarraCUDA CPU (bC) | 24/27 papers (89%), 203 checks | ALL GREEN |
+| BarraCUDA GPU Tensor (gT) | 23/27 papers (85%), 98+ checks | ALL GREEN |
+| metalForge WGSL (mF) | 15/27 papers, 17 shaders, 108 checks | ALL PASS |
+| GPU Pipeline (gP) | 15/27 papers, 94 checks | ALL PASS |
 | Cross-dispatch (xD) | 15/15 Phase 0++ papers, 49 checks | ALL GREEN |
 | Code quality | fmt + clippy (pedantic+nursery) + doc: zero warnings |
 | Isomorphism Theorem | 6 primitives explain ALL neural architectures. BarraCUDA covers all 6 |
@@ -35,7 +35,7 @@
 
 | Spec | Status | Description |
 |------|--------|-------------|
-| [PAPER_REVIEW_QUEUE.md](PAPER_REVIEW_QUEUE.md) | **Complete** | 25/25 papers reproduced — 7-tier validation matrix |
+| [PAPER_REVIEW_QUEUE.md](PAPER_REVIEW_QUEUE.md) | **Complete** | 27/27 papers reproduced — 7-tier validation matrix |
 | [BARRACUDA_REQUIREMENTS.md](BARRACUDA_REQUIREMENTS.md) | Active | GPU kernel requirements and gap analysis |
 | [EVOLUTION_MAPPING.md](EVOLUTION_MAPPING.md) | Active | Python → Rust → GPU module mapping (Tier A/B/C) |
 | [DATA_PROVENANCE.md](DATA_PROVENANCE.md) | Active | All dataset sources, accession numbers, licenses |
@@ -47,7 +47,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; S139 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V103 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 
@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | S139 handoff (current, Sessions 134–139) |
+| wateringHole/handoffs/ | `../wateringHole/` | V103 handoff (current, Sessions 147–152) |
 
 ---
 
@@ -70,7 +70,7 @@
 
 ### neuralSpring IS:
 - **ML primitive validation** — proving each neural operation is correct from scratch
-- **Scholarly reproduction** — 25 published papers reproduced in Python/PyTorch
+- **Scholarly reproduction** — 27 published papers reproduced in Python/PyTorch
 - **Isomorphic pattern discovery** — the shared primitives across all architectures
 - **BarraCUDA ML roadmap** — identifying which GPU kernels cover which ML workloads
 - **Transfer learning framework** — domain adaptation across climates, physics, biology
@@ -103,7 +103,7 @@ All neural architectures decompose into 6 fundamental primitives:
 | 6 | Gating (sigmoid × value) | 5-30% | `hill_gate.wgsl`, sigmoid gating |
 
 Optimizing these 6 operations in WGSL serves language, protein, vision, physics,
-and time series simultaneously. All 6 validated across 25 papers from 5 disciplines.
+and time series simultaneously. All 6 validated across 27 papers from 5 disciplines.
 
 ---
 

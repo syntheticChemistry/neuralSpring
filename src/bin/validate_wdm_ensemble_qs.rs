@@ -5,6 +5,7 @@
 //! Validates disagreement→disorder mapping, Anderson localization
 //! physics, and QS cooperation dynamics.
 
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::wdm_ensemble_qs::{
     anderson_from_disorder, disagreement_to_disorder, load_ensemble_from_json, pearson_r,
@@ -50,13 +51,13 @@ fn validate_disorder_mapping(
     eprintln!("\n── Disorder mapping ──");
 
     let w0 = disagreement_to_disorder(0.0, 0.0, 1.0, W_SCALE);
-    h.check_abs("W(d=0) = 0", w0, 0.0, 1e-10);
+    h.check_abs("W(d=0) = 0", w0, 0.0, tolerances::CROSS_LANGUAGE);
 
     let w1 = disagreement_to_disorder(1.0, 0.0, 1.0, W_SCALE);
-    h.check_abs("W(d=1) = 20", w1, W_SCALE, 1e-10);
+    h.check_abs("W(d=1) = 20", w1, W_SCALE, tolerances::CROSS_LANGUAGE);
 
     let w05 = disagreement_to_disorder(0.5, 0.0, 1.0, W_SCALE);
-    h.check_abs("W(d=0.5) = 10", w05, 10.0, 1e-10);
+    h.check_abs("W(d=0.5) = 10", w05, 10.0, tolerances::CROSS_LANGUAGE);
 
     h.check_bool("W field mean > 0", baseline.w_field_mean > 0.0);
     h.check_bool("W field std > 0", baseline.w_field_std > 0.0);

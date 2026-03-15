@@ -332,11 +332,11 @@ const BINARIES: &[&str] = &[
     // S143: Exp 100 (Attention weight Anderson spectral analysis) — novel composition
     "validate_attention_anderson",
     "validate_barracuda_attention_anderson",
-    // S126: ToadStool S94b + wgpu 28 + BarraCUDA v0.3.3 fused op absorption
+    // S126: ToadStool S94b + wgpu 28 + BarraCUDA v0.3.5 fused op absorption
     "validate_toadstool_s94b_wgpu28",
     // biomeOS graph coordination (DAG pipeline, topo sort, execution tracking)
     "validate_biomeos_graph",
-    // petalTongue visualization (scenarios, streaming, mock IPC roundtrip)
+    // petalTongue visualization (scenarios, streaming, IPC roundtrip)
     "validate_petaltongue_scenarios",
 ];
 

@@ -1,8 +1,9 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: March 14, 2026 (Session 98–150)
+**Date**: March 15, 2026 (Session 98–152)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab.
+**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. S152: deep debt execution.
+**S151–S152 update**: Deep audit + deep debt execution — ecoBin compliance, 15+ tolerance literals centralized, capability-based primal discovery, coralReef bridge capability-first, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), V103 handoff.
 **S148–S150 update**: playGround evolution — Squirrel MCP adapter (14 tool definitions), HuggingFace Model Lab (GPT-2 inference on barraCuda), compute triangle (ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks: 7–45× pipeline reuse, 8–22× PyTorch/CUDA gap). 63 playGround unit + 13 integration tests. Live ToadStool verified. V101 handoff.
 **S147 update**: Deep debt — zero inline magic numbers, zero duplicate math, capability-based discovery. V100 handoff.
 **S145–S146 update**: barraCuda v0.3.5 (`0649cd0`), 5 workload rewires, NUCLEUS GPU dispatch, 4 GPU experiments (Exp 103–106), industry GPU parity benchmarks. 1115 lib tests, 73 forge tests, 260 binaries, 47 modules, 0 clippy. 25 absorbed workloads. toadStool S146+, coralReef Phase 10.

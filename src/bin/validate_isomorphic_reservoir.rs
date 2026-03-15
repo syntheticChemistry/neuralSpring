@@ -9,6 +9,7 @@
 use neural_spring::isomorphic_reservoir::{
     cross_domain_metrics, load_isomorphic_from_json, spectral_properties,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 const BASELINE_JSON: &str =
@@ -70,31 +71,31 @@ fn validate_spectral_parity(
                 &format!("{name} spectral_radius"),
                 sp_rust.spectral_radius,
                 py.spectral_radius,
-                0.01,
+                tolerances::EIGENSOLVER_SMALL_MATRIX,
             );
             h.check_abs(
                 &format!("{name} mean_ipr"),
                 sp_rust.mean_ipr,
                 py.mean_ipr,
-                0.005,
+                tolerances::IPR_CROSS_PYTHON,
             );
             h.check_abs(
                 &format!("{name} eff_ratio"),
                 sp_rust.effective_ratio,
                 py.effective_ratio,
-                0.01,
+                tolerances::EIGENSOLVER_SMALL_MATRIX,
             );
             h.check_abs(
                 &format!("{name} ev_mean"),
                 sp_rust.eigenvalue_mean,
                 py.eigenvalue_mean,
-                0.01,
+                tolerances::EIGENSOLVER_SMALL_MATRIX,
             );
             h.check_abs(
                 &format!("{name} spacing_ratio"),
                 sp_rust.mean_spacing_ratio,
                 py.mean_spacing_ratio,
-                0.05,
+                tolerances::SPECTRAL_EIGENSOLVER_CROSS,
             );
         } else {
             eprintln!("  {name}: no matching Python spectrum found");
@@ -128,19 +129,19 @@ fn validate_cross_domain(
         "cross-domain eff_ratio_mean",
         cd.eff_ratio_mean,
         baseline.cross_domain.eff_ratio_mean,
-        0.02,
+        tolerances::EIGH_JACOBI_RECONSTRUCT,
     );
     h.check_abs(
         "cross-domain ipr_mean",
         cd.ipr_mean,
         baseline.cross_domain.ipr_mean,
-        0.005,
+        tolerances::IPR_CROSS_PYTHON,
     );
     h.check_abs(
         "cross-domain eff_ratio_cv",
         cd.eff_ratio_cv,
         baseline.cross_domain.eff_ratio_cv,
-        0.05,
+        tolerances::SPECTRAL_EIGENSOLVER_CROSS,
     );
 }
 

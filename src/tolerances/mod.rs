@@ -422,6 +422,17 @@ pub const SEASONAL_ANNUAL_MEAN_TOL: f64 = 0.5;
 /// differ by ~1e-2 for n=64 Aubry-André Hamiltonians.
 pub const SPECTRAL_EIGENSOLVER_CROSS: f64 = 0.05;
 
+/// IPR cross-validation: Rust-recomputed vs Python-baseline IPR.
+///
+/// Isomorphic reservoir ensemble IPR values (mean IPR across weight
+/// matrices) agree within 0.005 between Rust and Python.  The tolerance
+/// covers f64 operation-ordering differences in the IPR summation
+/// (1/Σ ψᵢ⁴) and eigenvector sign conventions.
+///
+/// Provenance: `control/isomorphic_reservoir/isomorphic_reservoir_baseline.json`
+/// (seed=42, commit `BASELINE_COMMIT`)
+pub const IPR_CROSS_PYTHON: f64 = 0.005;
+
 /// Spectral theory: Kappus-Wegner anomaly γ(E=0) ≈ W²/96 for
 /// small disorder.
 ///

@@ -53,6 +53,7 @@ use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_ops;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use std::time::Instant;
@@ -124,7 +125,7 @@ fn bench_hotspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &m
             dim,
             n_mat,
             100,
-            1e-12,
+            tolerances::JACOBI_GPU_CONVERGENCE,
         );
     });
     h.check_bool("bench_batched_eigh", eigh_us < 200_000.0);

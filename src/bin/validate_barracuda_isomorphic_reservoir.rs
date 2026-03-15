@@ -106,7 +106,8 @@ fn validate_bc_cpu(
 
     h.check_bool(
         "bC CPU IPR mean matches baseline",
-        (iprs.iter().sum::<f64>() / 3.0 - baseline.cross_domain.ipr_mean).abs() < 1e-10,
+        (iprs.iter().sum::<f64>() / 3.0 - baseline.cross_domain.ipr_mean).abs()
+            < tolerances::CROSS_LANGUAGE,
     );
 }
 

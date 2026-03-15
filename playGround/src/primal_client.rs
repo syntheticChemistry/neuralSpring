@@ -13,16 +13,31 @@ use anyhow::{Context, Result};
 
 use crate::ipc_client;
 
+/// Primal socket hint for name-based fallback discovery.
+///
+/// Capability-based discovery (`science.spectral_analysis`) is the primary
+/// path; this hint is only used when no running primal advertises the
+/// required capability.
+const PRIMAL_SOCKET_HINT: &str = "neuralspring";
+
+/// Primary capability used to discover a neuralSpring primal instance.
+const DISCOVERY_CAPABILITY: &str = "science.spectral_analysis";
+
 pub struct PrimalClient {
     socket: PathBuf,
     timeout: Duration,
 }
 
 impl PrimalClient {
-    /// Connect to neuralSpring via automatic socket discovery.
+    /// Connect to neuralSpring via capability-based socket discovery.
+    ///
+    /// Probes the biomeOS socket directory for any primal advertising
+    /// `science.spectral_analysis`, falling back to name-based discovery
+    /// if no capability probe succeeds.
     pub fn discover() -> Result<Self> {
-        let socket = ipc_client::discover_socket("neuralspring")
-            .context("discovering neuralSpring socket")?;
+        let socket =
+            ipc_client::discover_by_capability(DISCOVERY_CAPABILITY, PRIMAL_SOCKET_HINT)
+                .context("discovering neuralSpring socket")?;
         Ok(Self {
             socket,
             timeout: ipc_client::ipc_timeout(),

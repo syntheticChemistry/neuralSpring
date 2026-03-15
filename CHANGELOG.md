@@ -5,7 +5,35 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 151 (March 15, 2026)
+## [Unreleased] — Session 152 (March 15, 2026)
+
+### Session 152 — Deep Debt Execution: Tolerance Centralization, Capability Discovery, Shared Infrastructure (2026-03-15)
+
+**Deep debt execution** — centralize hardcoded tolerances, evolve to capability-based
+discovery, add shared validation infrastructure, clean archive, update all docs:
+
+- 15+ hardcoded tolerance literals in bench/validation binaries replaced with named
+  `tolerances::` constants (`CROSS_LANGUAGE`, `JACOBI_GPU_CONVERGENCE`, `EXACT_F64`,
+  `SPECTRAL_EIGENSOLVER_CROSS`, `GELU_LARGE_INPUT`, `EIGENSOLVER_SMALL_MATRIX`).
+- New `IPR_CROSS_PYTHON` tolerance (0.005) with provenance documentation, registered
+  in spectral category of tolerance registry.
+- `PrimalClient::discover()` evolved from `discover_socket("neuralspring")` to
+  `discover_by_capability("science.spectral_analysis", PRIMAL_SOCKET_HINT)` —
+  capability-first with name fallback.
+- coralReef bridge `discover_socket()` restructured: capability manifests scanned
+  first, socket name-matching as fallback.
+- `BIOMEOS_SOCKET_SUBDIR` constant extracted in both `ipc_client` and `coralreef_bridge`
+  — no more inline `"biomeos"` strings in path construction.
+- `validate_tensor_binary()` + `BinaryTensorInputs` struct added to `validation::gpu`
+  (avoids `too_many_arguments` while providing shared binary-op validation pattern).
+- `gen_test_f64()` helper added to `validation::gpu` for deterministic test data.
+- playGround test tolerances named: `F32_SOFTMAX_SUM`, `F32_ELEMENT_EXACT` (transformer),
+  `F16_EXACT`, `F16_SUBNORMAL_UPPER` (weights).
+- 3 pre-existing clippy `single_match` warnings fixed in `ipc_client` tests.
+- V95 coralReef handoff archived (superseded by V102).
+- V103 handoff for barraCuda/toadStool absorption.
+- All docs updated: README, CHANGELOG, CONTROL_EXPERIMENT_STATUS, experiments journal,
+  whitePaper/baseCamp, wateringHole handoff, ecoPrimals/whitePaper/gen3/baseCamp.
 
 ### Session 151 — Deep Audit: ecoBin Compliance, Capability Discovery, Tolerance Centralization (2026-03-15)
 
