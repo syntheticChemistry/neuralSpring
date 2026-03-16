@@ -44,6 +44,16 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S158: Cross-ecosystem absorption + deep debt continuation.**
+`#[allow()]` → `#[expect(reason)]` complete (zero `#[allow()]` in active code, zero unfulfilled
+expectations across `--all-targets`). Stale lint expectations pruned (`clippy::unwrap_used` in
+`diagnose_f64_regression` after evolving `unwrap()` → `expect("context")`). `temp-env` adopted for
+safe env var testing (26 `set_var`/`remove_var` → `temp_env::with_var`, Rust 2024 ready).
+`validate_barracuda_tensor.rs` 918→875 LOC via `check_binary_op` + `check_scalar_op` extraction.
+Hardcoded primal names → constants (`discovery.rs` 3× `"biomeos"` → `BIOMEOS_SOCKET_SUBDIR`,
+`songbird_http` → `primal_names::SONGBIRD`, `primal_client` → `niche::NICHE_NAME`).
+1128 lib tests, 61 playGround tests, 0 clippy warnings (pedantic+nursery, -D warnings), 0 fmt diffs. V109 handoff.
+
 **S157: Deep debt + idiomatic Rust evolution + Tower Atomic (zero C deps).**
 5 blanket `#![expect(clippy::pedantic,...)]` evolved to targeted `#[expect()]` with reasons.
 Primal binary smart-refactored (3 function extractions, `set_var` eliminated). Error handling

@@ -15,10 +15,11 @@ use std::time::Duration;
 
 use anyhow::{Context, Result};
 
+use neural_spring::primal_names;
+
 use crate::ipc_client;
 
 const HTTP_CAPABILITY: &str = "http.request";
-const SONGBIRD_HINT: &str = "songbird";
 
 /// Pure-Rust HTTP client that routes through the Songbird primal.
 pub struct SongbirdHttp {
@@ -30,7 +31,7 @@ pub struct SongbirdHttp {
 impl SongbirdHttp {
     /// Discover Songbird via capability-based resolution.
     pub fn discover() -> Result<Self> {
-        let socket = ipc_client::discover_by_capability(HTTP_CAPABILITY, SONGBIRD_HINT)
+        let socket = ipc_client::discover_by_capability(HTTP_CAPABILITY, primal_names::SONGBIRD)
             .context("discovering Songbird (http.request capability)")?;
         Ok(Self {
             socket,

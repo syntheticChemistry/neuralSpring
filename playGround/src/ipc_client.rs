@@ -248,78 +248,57 @@ mod tests {
 
     #[test]
     fn ipc_timeout_default() {
-        std::env::remove_var("PRIMAL_IPC_TIMEOUT_SECS");
-        assert_eq!(ipc_timeout(), Duration::from_secs(5));
+        temp_env::with_var_unset("PRIMAL_IPC_TIMEOUT_SECS", || {
+            assert_eq!(ipc_timeout(), Duration::from_secs(5));
+        });
     }
 
     #[test]
     fn resolve_socket_dir_respects_env() {
-        let prev = std::env::var("BIOMEOS_SOCKET_DIR").ok();
-        std::env::set_var("BIOMEOS_SOCKET_DIR", "/tmp/test_biomeos");
-        let dir = resolve_socket_dir();
-        assert_eq!(dir, PathBuf::from("/tmp/test_biomeos"));
-        match prev {
-            Some(v) => std::env::set_var("BIOMEOS_SOCKET_DIR", v),
-            None => std::env::remove_var("BIOMEOS_SOCKET_DIR"),
-        }
+        temp_env::with_var("BIOMEOS_SOCKET_DIR", Some("/tmp/test_biomeos"), || {
+            assert_eq!(resolve_socket_dir(), PathBuf::from("/tmp/test_biomeos"));
+        });
     }
 
     #[test]
     fn resolve_socket_dir_falls_through_tiers() {
-        let prev_bio = std::env::var("BIOMEOS_SOCKET_DIR").ok();
-        let prev_xdg = std::env::var("XDG_RUNTIME_DIR").ok();
-
-        std::env::remove_var("BIOMEOS_SOCKET_DIR");
-        std::env::set_var("XDG_RUNTIME_DIR", "/tmp/xdg_test");
-        let dir = resolve_socket_dir();
-        assert_eq!(dir, PathBuf::from("/tmp/xdg_test/biomeos"));
-
-        match prev_bio {
-            Some(v) => std::env::set_var("BIOMEOS_SOCKET_DIR", v),
-            None => std::env::remove_var("BIOMEOS_SOCKET_DIR"),
-        }
-        match prev_xdg {
-            Some(v) => std::env::set_var("XDG_RUNTIME_DIR", v),
-            None => std::env::remove_var("XDG_RUNTIME_DIR"),
-        }
+        temp_env::with_vars(
+            [
+                ("BIOMEOS_SOCKET_DIR", None::<&str>),
+                ("XDG_RUNTIME_DIR", Some("/tmp/xdg_test")),
+            ],
+            || {
+                assert_eq!(resolve_socket_dir(), PathBuf::from("/tmp/xdg_test/biomeos"));
+            },
+        );
     }
 
     #[test]
     fn get_family_id_default() {
-        let prev_f = std::env::var("FAMILY_ID").ok();
-        let prev_b = std::env::var("BIOMEOS_FAMILY_ID").ok();
-        std::env::remove_var("FAMILY_ID");
-        std::env::remove_var("BIOMEOS_FAMILY_ID");
-        assert_eq!(get_family_id(), "default");
-        if let Some(v) = prev_f {
-            std::env::set_var("FAMILY_ID", v);
-        }
-        if let Some(v) = prev_b {
-            std::env::set_var("BIOMEOS_FAMILY_ID", v);
-        }
+        temp_env::with_vars(
+            [("FAMILY_ID", None::<&str>), ("BIOMEOS_FAMILY_ID", None)],
+            || {
+                assert_eq!(get_family_id(), "default");
+            },
+        );
     }
 
     #[test]
     fn get_family_id_from_env() {
-        let prev = std::env::var("FAMILY_ID").ok();
-        std::env::set_var("FAMILY_ID", "test_family");
-        assert_eq!(get_family_id(), "test_family");
-        match prev {
-            Some(v) => std::env::set_var("FAMILY_ID", v),
-            None => std::env::remove_var("FAMILY_ID"),
-        }
+        temp_env::with_var("FAMILY_ID", Some("test_family"), || {
+            assert_eq!(get_family_id(), "test_family");
+        });
     }
 
     #[test]
     fn discover_socket_fails_when_dir_missing() {
-        let prev = std::env::var("BIOMEOS_SOCKET_DIR").ok();
-        std::env::set_var("BIOMEOS_SOCKET_DIR", "/tmp/nonexistent_biomeos_test_dir");
-        let result = discover_socket("some_primal");
-        assert!(result.is_err());
-        match prev {
-            Some(v) => std::env::set_var("BIOMEOS_SOCKET_DIR", v),
-            None => std::env::remove_var("BIOMEOS_SOCKET_DIR"),
-        }
+        temp_env::with_var(
+            "BIOMEOS_SOCKET_DIR",
+            Some("/tmp/nonexistent_biomeos_test_dir"),
+            || {
+                assert!(discover_socket("some_primal").is_err());
+            },
+        );
     }
 
     #[test]
@@ -346,22 +325,18 @@ mod tests {
         let sock = dir.join("testprimal.sock");
         std::fs::write(&sock, b"").unwrap();
 
-        let prev = std::env::var("BIOMEOS_SOCKET_DIR").ok();
-        let prev_f = std::env::var("FAMILY_ID").ok();
-        std::env::set_var("BIOMEOS_SOCKET_DIR", dir.to_str().unwrap());
-        std::env::remove_var("FAMILY_ID");
-        std::env::remove_var("BIOMEOS_FAMILY_ID");
-
-        let found = discover_socket("testprimal").unwrap();
-        assert_eq!(found, sock);
+        temp_env::with_vars(
+            [
+                ("BIOMEOS_SOCKET_DIR", Some(dir.to_str().unwrap())),
+                ("FAMILY_ID", None),
+                ("BIOMEOS_FAMILY_ID", None),
+            ],
+            || {
+                let found = discover_socket("testprimal").unwrap();
+                assert_eq!(found, sock);
+            },
+        );
 
         let _ = std::fs::remove_dir_all(&dir);
-        match prev {
-            Some(v) => std::env::set_var("BIOMEOS_SOCKET_DIR", v),
-            None => std::env::remove_var("BIOMEOS_SOCKET_DIR"),
-        }
-        if let Some(v) = prev_f {
-            std::env::set_var("FAMILY_ID", v);
-        }
     }
 }

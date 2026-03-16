@@ -18,7 +18,6 @@
 
 #![expect(
     clippy::too_many_lines,
-    clippy::unwrap_used,
     clippy::expect_used,
     clippy::items_after_statements,
     clippy::cast_possible_truncation,
@@ -29,7 +28,7 @@
 use std::sync::Arc;
 
 fn main() {
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
     let gpu = rt
         .block_on(neural_spring::gpu::Gpu::new())
         .expect("GPU init");

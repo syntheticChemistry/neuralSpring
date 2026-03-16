@@ -60,3 +60,6 @@ path = "src/bin/neuralspring_bench_inference.rs"
 [[bin]]
 name = "neuralspring_compute_probe"
 path = "src/bin/neuralspring_compute_probe.rs"
+
+[dev-dependencies]
+temp-env = "0.3.6"

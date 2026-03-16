@@ -5,7 +5,27 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 157 (March 16, 2026)
+## [Unreleased] — Session 158 (March 16, 2026)
+
+### Session 158 — Cross-Ecosystem Absorption + Deep Debt Continuation (2026-03-16)
+
+**Lint, env safety, smart refactoring, hardcoded names → constants.**
+
+- **LINT**: `#[allow(clippy::wildcard_imports)]` in `tolerances/registry.rs` → `#[expect(reason)]`
+  with `#[cfg_attr(not(test), ...)]` to handle cross-cfg boundary. Stale `clippy::unwrap_used` in
+  `diagnose_f64_regression.rs` removed after evolving `unwrap()` → `expect("tokio runtime")`.
+  Zero unfulfilled lint expectations across `--all-targets`.
+- **ENV SAFETY**: `temp-env` v0.3.6 adopted for playGround tests. 26 `set_var`/`remove_var` calls
+  in `ipc_client.rs` + `biomeos_client.rs` → `temp_env::with_var`/`temp_env::with_vars`.
+  Eliminates Rust 2024 `unsafe` env mutation in tests. 61 playGround tests pass.
+- **REFACTOR**: `validate_barracuda_tensor.rs` 918→875 LOC via `check_binary_op` + `check_scalar_op`
+  helpers extracting the repeated alloc→dispatch→readback→check pattern for binary and scalar ops.
+- **CONSTANTS**: 3 hardcoded `"biomeos"` in `discovery.rs` → `config::BIOMEOS_SOCKET_SUBDIR`.
+  `songbird_http.rs` SONGBIRD_HINT → `primal_names::SONGBIRD`.
+  `primal_client.rs` → `niche::NICHE_NAME`. Zero hardcoded primal strings in discovery paths.
+- **AUDIT**: All `unwrap()` in library code confirmed test-only. All mocks confirmed `#[cfg(test)]`
+  only. `#![forbid(unsafe_code)]` enforced at lib root. Only C-adjacent dep is `blake3/cc`
+  (build-time, via barraCuda).
 
 ### Session 157 — Deep Debt + Idiomatic Rust + Tower Atomic (2026-03-16)
 

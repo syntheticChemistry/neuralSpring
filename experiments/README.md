@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 155)**: 1301 tests (1128 lib + 73 forge + 63 playGround + 13 doc + 15 integration + 9 bin), 47 modules, 260 binaries, 0 clippy (pedantic+nursery), 0 doc warnings, 0 fmt diffs, 0 unsafe. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. S155: Cross-spring absorption + V106 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
+**Current state (Session 158)**: 1189+ tests (1128 lib + 61 playGround), 47 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Zero `#[allow()]` in active code. temp-env for safe env testing. Hardcoded primal names → constants. S158: Cross-ecosystem absorption + deep debt. V109 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -5200,6 +5200,31 @@ with real computation, Nest records substrate/timing provenance.
 **Motivation**: Sync all documentation to V108 state. Archive superseded V107 handoff. Update ecosystem-level docs. Craft toadStool/barraCuda absorption handoff.
 **Procedure**: Updated README.md, whitePaper/baseCamp/README.md, specs/BARRACUDA_REQUIREMENTS.md (v0.3.3→v0.3.5 refs), wateringHole/README.md (V108 active, V107 archived), experiments journal (S157 + Exp 113-114), ecoPrimals/whitePaper/gen3/baseCamp/README.md, PRIMAL_REGISTRY.md (neuralSpring V108/S157).
 **Findings**: Documentation was 2 sessions behind (referencing V106/S155). Gen3 baseCamp referenced S156 but not S157. PRIMAL_REGISTRY had neuralSpring at V98/S145 — significantly stale; updated to V108/S157 with Tower Atomic and zero C deps highlights.
+
+## Session 158 — Cross-Ecosystem Absorption + Deep Debt Continuation
+
+**Date**: 2026-03-16
+**Session**: S158
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | `#[allow()]` → `#[expect(reason)]` complete, stale expectations pruned, zero unfulfilled across `--all-targets` |
+| **Phase 2** | `temp-env` adopted for safe env var testing (26 `set_var` → `temp_env::with_var`, Rust 2024 ready) |
+| **Phase 3** | `validate_barracuda_tensor.rs` 918→875 LOC via `check_binary_op` + `check_scalar_op` extraction |
+| **Phase 4** | Hardcoded primal names → constants (discovery.rs, songbird_http, primal_client) |
+| **Phase 5** | Full mock audit (test-only), unsafe audit (`#![forbid]`), external dep analysis (blake3/cc only) |
+
+**Key metrics**: 1128 lib + 61 playGround tests, 0 clippy warnings, 0 unfulfilled expectations, 0 `#[allow()]` in active code, 0 hardcoded primal names in discovery paths.
+
+### Exp 115 — Cross-Ecosystem Absorption Sweep
+
+**Date**: 2026-03-16
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Execute on absorption priorities from cross-ecosystem review (S157). Adopt groundSpring zero-panic pattern, wetSpring `#[expect(reason)]` audit, airSpring primal name constants, petalTongue temp-env pattern.
+**Procedure**: Migrated last `#[allow()]` to `#[expect()]` with `cfg_attr` for cross-cfg boundaries. Removed stale `clippy::unwrap_used` expectation after evolving `unwrap` → `expect`. Added temp-env for all env var tests (ipc_client + biomeos_client). Extracted `check_binary_op` and `check_scalar_op` from tensor validation. Replaced hardcoded primal strings with `primal_names::*` and `config::*` constants. Verified all mocks test-only, all code `#![forbid(unsafe_code)]`, only C-adjacent dep is blake3/cc via barraCuda.
+**Findings**: The `#[expect()]` cross-cfg issue (wildcard import unfulfilled under `--test` but fulfilled under `--lib`) is solved by `#[cfg_attr(not(test), expect(...))]`. `temp-env` is zero-overhead in release builds and provides automatic save/restore. The tensor validation helpers reduce 72 lines of binary op boilerplate to 3 declarative calls. All discovery paths now use constants — zero literal primal strings in socket resolution.
 
 ---
 

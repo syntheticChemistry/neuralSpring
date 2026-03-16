@@ -1,8 +1,9 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 16, 2026 (Sessions 61–157)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments + 5 novel compositions + 4 GPU experiments + 1 industry GPU parity experiment + playGround (Squirrel MCP + HuggingFace Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1128 tests, zero C deps (Tower Atomic). S157: Deep debt + idiomatic Rust + reqwest→Songbird IPC + V108 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49
+**Last Updated**: March 16, 2026 (Sessions 61–158)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments + 5 novel compositions + 4 GPU experiments + 1 industry GPU parity experiment + playGround (Squirrel MCP + HuggingFace Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1128+61 tests, zero C deps (Tower Atomic). S158: Cross-ecosystem absorption + deep debt + V109 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49
 
+- **S158**: Cross-ecosystem absorption — `#[expect(reason)]` audit (zero `#[allow()]` in active code, zero unfulfilled expectations), `temp-env` for safe env testing (Rust 2024 ready), `validate_barracuda_tensor` 918→875 LOC, hardcoded primal names → constants, V109 handoff
 - **S157**: Deep debt + idiomatic Rust — 5 blanket lint suppressions evolved to targeted `#[expect()]`, primal binary refactored (3 function extractions, `set_var` eliminated), error handling evolved, `validate_modern_cross_spring` 949→865 LOC, **reqwest+ring removed** (Tower Atomic via Songbird IPC), zero C deps in workspace, `bytemuck` aligned, Kokkos provenance documented, 1128 tests, V108 handoff
 - **S156**: Comprehensive audit + IPC bug fixes — 2 critical IPC discovery bugs fixed, typed `BiomeOsClient`, 3 validators to harness, `ProvenanceLevel` enum, V107 handoff
 - **S155**: Cross-spring absorption — `src/primal_names.rs`, `control/tolerances.py`, deploy graph provenance trio, V106 handoff

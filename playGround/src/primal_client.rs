@@ -18,7 +18,7 @@ use crate::ipc_client;
 /// Capability-based discovery (`science.spectral_analysis`) is the primary
 /// path; this hint is only used when no running primal advertises the
 /// required capability.
-const PRIMAL_SOCKET_HINT: &str = "neuralspring";
+const PRIMAL_SOCKET_HINT: &str = neural_spring::niche::NICHE_NAME;
 
 /// Primary capability used to discover a neuralSpring primal instance.
 const DISCOVERY_CAPABILITY: &str = "science.spectral_analysis";

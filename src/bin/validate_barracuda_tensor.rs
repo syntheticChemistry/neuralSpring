@@ -248,79 +248,62 @@ fn validate_layer_norm(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 
 // ── Arithmetic ──────────────────────────────────────────────────────────
 
+fn check_binary_op(
+    h: &mut ValidationHarness,
+    device: &Arc<WgpuDevice>,
+    lhs_data: &[f32],
+    rhs_data: &[f32],
+    op: fn(&Tensor, &Tensor) -> Result<Tensor, barracuda::error::BarracudaError>,
+    name: &str,
+    checks: &[(usize, f32)],
+) {
+    let lhs = require!(h, tensor(lhs_data, vec![lhs_data.len()], device), "alloc");
+    let rhs = require!(h, tensor(rhs_data, vec![rhs_data.len()], device), "alloc");
+    match op(&lhs, &rhs) {
+        Ok(out) => {
+            let v = require!(h, readback(&out), "readback");
+            let tol = tolerances::TENSOR_EXACT_F32;
+            for &(idx, expected) in checks {
+                h.check_abs(
+                    &format!("{name} [{idx}] = {expected}"),
+                    f64::from(v[idx]),
+                    f64::from(expected),
+                    tol,
+                );
+            }
+        }
+        Err(e) => h.check_bool(&format!("{name} [ERROR: {e}]"), false),
+    }
+}
+
 fn validate_arithmetic(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let lhs = require!(
+    check_binary_op(
         h,
-        tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[1.0, 2.0, 3.0, 4.0],
+        &[5.0, 6.0, 7.0, 8.0],
+        Tensor::add,
+        "add",
+        &[(0, 6.0), (3, 12.0)],
     );
-    let rhs = require!(
+    check_binary_op(
         h,
-        tensor(&[5.0, 6.0, 7.0, 8.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[10.0, 20.0, 30.0, 40.0],
+        &[1.0, 2.0, 3.0, 4.0],
+        Tensor::sub,
+        "sub",
+        &[(0, 9.0), (3, 36.0)],
     );
-
-    match lhs.add(&rhs) {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[("add [0] = 6", 0, 6.0, tol), ("add [3] = 12", 3, 12.0, tol)],
-            );
-        }
-        Err(e) => h.check_bool(&format!("add [ERROR: {e}]"), false),
-    }
-
-    let lhs2 = require!(
+    check_binary_op(
         h,
-        tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[2.0, 3.0, 4.0, 5.0],
+        &[10.0, 20.0, 30.0, 40.0],
+        Tensor::mul,
+        "mul",
+        &[(0, 20.0), (3, 200.0)],
     );
-    let rhs2 = require!(
-        h,
-        tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
-    );
-    match lhs2.sub(&rhs2) {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[("sub [0] = 9", 0, 9.0, tol), ("sub [3] = 36", 3, 36.0, tol)],
-            );
-        }
-        Err(e) => h.check_bool(&format!("sub [ERROR: {e}]"), false),
-    }
-
-    let lhs3 = require!(
-        h,
-        tensor(&[2.0, 3.0, 4.0, 5.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
-    );
-    let rhs3 = require!(
-        h,
-        tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
-    );
-    match lhs3.mul(&rhs3) {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[
-                    ("mul [0] = 20", 0, 20.0, tol),
-                    ("mul [3] = 200", 3, 200.0, tol),
-                ],
-            );
-        }
-        Err(e) => h.check_bool(&format!("mul [ERROR: {e}]"), false),
-    }
 }
 
 // ── MatMul ──────────────────────────────────────────────────────────────
@@ -542,97 +525,71 @@ fn validate_exp_log_sqrt(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 
 // ── Scalar ops ──────────────────────────────────────────────────────────
 
+fn check_scalar_op(
+    h: &mut ValidationHarness,
+    device: &Arc<WgpuDevice>,
+    data: &[f32],
+    op: impl FnOnce(Tensor) -> Result<Tensor, barracuda::error::BarracudaError>,
+    name: &str,
+    checks: &[(usize, f32)],
+) {
+    let t = require!(h, tensor(data, vec![data.len()], device), "alloc");
+    match op(t) {
+        Ok(out) => {
+            let v = require!(h, readback(&out), "readback");
+            let tol = tolerances::TENSOR_EXACT_F32;
+            for &(idx, expected) in checks {
+                h.check_abs(
+                    &format!("{name} [{idx}] = {expected}"),
+                    f64::from(v[idx]),
+                    f64::from(expected),
+                    tol,
+                );
+            }
+        }
+        Err(e) => h.check_bool(&format!("{name} [ERROR: {e}]"), false),
+    }
+}
+
 fn validate_scalar_ops(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let input = require!(
+    check_scalar_op(
         h,
-        tensor(&[2.0, 4.0, 6.0, 8.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[2.0, 4.0, 6.0, 8.0],
+        |t| t.mul_scalar(3.0),
+        "mul_scalar",
+        &[(0, 6.0), (3, 24.0)],
     );
-
-    match input.mul_scalar(3.0) {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[
-                    ("mul_scalar [0] = 6", 0, 6.0, tol),
-                    ("mul_scalar [3] = 24", 3, 24.0, tol),
-                ],
-            );
-        }
-        Err(e) => h.check_bool(&format!("mul_scalar [ERROR: {e}]"), false),
-    }
-
-    let input2 = require!(
+    check_scalar_op(
         h,
-        tensor(&[1.0, 2.0, 3.0, 4.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[1.0, 2.0, 3.0, 4.0],
+        |t| t.add_scalar(10.0),
+        "add_scalar",
+        &[(0, 11.0), (3, 14.0)],
     );
-    match input2.add_scalar(10.0) {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[
-                    ("add_scalar [0] = 11", 0, 11.0, tol),
-                    ("add_scalar [3] = 14", 3, 14.0, tol),
-                ],
-            );
-        }
-        Err(e) => h.check_bool(&format!("add_scalar [ERROR: {e}]"), false),
-    }
-
-    let input3 = require!(
+    check_scalar_op(
         h,
-        tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[10.0, 20.0, 30.0, 40.0],
+        |t| t.div_scalar(5.0),
+        "div_scalar",
+        &[(0, 2.0), (3, 8.0)],
     );
-    match input3.div_scalar(5.0) {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[
-                    ("div_scalar [0] = 2", 0, 2.0, tol),
-                    ("div_scalar [3] = 8", 3, 8.0, tol),
-                ],
-            );
-        }
-        Err(e) => h.check_bool(&format!("div_scalar [ERROR: {e}]"), false),
-    }
 }
 
 // ── Element-wise div ────────────────────────────────────────────────────
 
 fn validate_div(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    let lhs = require!(
+    check_binary_op(
         h,
-        tensor(&[10.0, 20.0, 30.0, 40.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
+        device,
+        &[10.0, 20.0, 30.0, 40.0],
+        &[2.0, 4.0, 5.0, 8.0],
+        Tensor::div,
+        "div",
+        &[(0, 5.0), (3, 5.0)],
     );
-    let rhs = require!(
-        h,
-        tensor(&[2.0, 4.0, 5.0, 8.0], vec![4], device),
-        "Tensor::from_data: GPU buffer alloc"
-    );
-    match lhs.div(&rhs) {
-        Ok(out) => {
-            let v = require!(h, readback(&out), "tensor readback from GPU");
-            let tol = tolerances::TENSOR_EXACT_F32;
-            check_gpu_points(
-                h,
-                &v,
-                &[("div [0] = 5", 0, 5.0, tol), ("div [3] = 5", 3, 5.0, tol)],
-            );
-        }
-        Err(e) => h.check_bool(&format!("div [ERROR: {e}]"), false),
-    }
 }
 
 // ── Reductions ──────────────────────────────────────────────────────────

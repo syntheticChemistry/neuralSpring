@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 16, 2026 (Session 157 — Deep debt + idiomatic Rust + Tower Atomic zero C deps. 5 blanket lint suppressions eliminated, primal binary refactored, reqwest+ring removed via Songbird IPC. V108 handoff. 1128 lib tests. 0 warnings (pedantic+nursery, -D warnings). 47 modules. 260 binaries. 25 absorbed workloads.)
+**Last updated**: March 16, 2026 (Session 158 — Cross-ecosystem absorption + deep debt. `#[expect(reason)]` audit, temp-env adoption, smart refactoring, hardcoded names → constants. V109 handoff. 1128 lib tests + 61 playGround tests. 0 warnings (pedantic+nursery, -D warnings). 47 modules. 260 binaries. 25 absorbed workloads.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid

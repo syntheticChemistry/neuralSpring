@@ -175,13 +175,13 @@ mod tests {
 
     #[test]
     fn discover_returns_none_when_no_orchestrator() {
-        let prev = std::env::var("BIOMEOS_SOCKET_DIR").ok();
-        std::env::set_var("BIOMEOS_SOCKET_DIR", "/tmp/biomeos_client_test_nonexistent");
-        assert!(BiomeOsClient::discover().is_none());
-        match prev {
-            Some(v) => std::env::set_var("BIOMEOS_SOCKET_DIR", v),
-            None => std::env::remove_var("BIOMEOS_SOCKET_DIR"),
-        }
+        temp_env::with_var(
+            "BIOMEOS_SOCKET_DIR",
+            Some("/tmp/biomeos_client_test_nonexistent"),
+            || {
+                assert!(BiomeOsClient::discover().is_none());
+            },
+        );
     }
 
     #[test]
