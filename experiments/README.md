@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 154)**: 1297 tests (1126 lib + 7 niche + 73 forge + 63 playGround + 13 doc + 15 integration), 47 modules, 260 binaries, 0 clippy (pedantic+nursery), 0 doc warnings, 0 fmt diffs, 0 unsafe. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized. All capabilities unified. All validation harnesses on hotSpring pattern. S154: Niche deployment architecture + cross-spring absorption (V105 handoff). barraCuda v0.3.5, toadStool S146+, coralReef Phase 10. March 15, 2026.
+**Current state (Session 155)**: 1301 tests (1128 lib + 73 forge + 63 playGround + 13 doc + 15 integration + 9 bin), 47 modules, 260 binaries, 0 clippy (pedantic+nursery), 0 doc warnings, 0 fmt diffs, 0 unsafe. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. S155: Cross-spring absorption + V106 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -123,6 +123,8 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 107 | Session 151 — Deep Audit: ecoBin Compliance, Capability Discovery, Tolerance Centralization | Mar 15, 2026 | `openssl-sys`/`native-tls` eliminated (`reqwest`→`rustls-tls`). IPC clients evolved to `discover_by_capability()`. 12 hardcoded tolerances→named constants. 4 `#[expect()]` reasons upgraded. 3 rustdoc warnings fixed. `mock_response`→`accept_and_reply`. metalForge bridge→biomeOS 5-tier socket resolution. V102 handoff. 1115+73+61 tests, 0 clippy (pedantic+nursery), 0 doc warnings |
 | 108 | Session 152 — Deep Debt Execution: Tolerance Centralization, Capability Discovery, Shared Infrastructure | Mar 15, 2026 | 15+ tolerance literals→named constants (`IPR_CROSS_PYTHON` added). `PrimalClient`→capability-based discovery. coralReef bridge→capability-first. `BIOMEOS_SOCKET_SUBDIR` constant. `validate_tensor_binary` + `gen_test_f64` shared helpers. playGround test tolerances named. V103 handoff. 1115+73+61 tests, 0 clippy, 0 doc warnings |
 | 109 | Session 153 — Comprehensive Ecosystem Audit + Deep Debt Execution | Mar 15, 2026 | Full 11-dimension audit against wateringHole standards. Zero clippy (pedantic+nursery) across all 3 workspace crates. `ALL_CAPABILITIES` unified into `config.rs`. `validate_gpu_eigensolve_pipeline`→`ValidationHarness`. 3 new tolerances. 3 `fn sigmoid` wrappers→`primitives::sigmoid`. playGround lint alignment. `#![forbid(unsafe_code)]` on forge. `BaselineProvenance::expected_source()`. 4 new GPU tests. V104 handoff. 1290 tests, 0 warnings |
+| 110 | Session 154 — Niche Deployment Architecture + Cross-Spring Absorption | Mar 15, 2026 | `src/niche.rs` (22 capabilities, airSpring pattern). `graphs/neuralspring_deploy.toml` (5-phase biomeOS deploy, groundSpring pattern). Hardcoded primal names eliminated. 5-tier socket resolution. V105 handoff. 1297 tests |
+| 111 | Session 155 — Cross-Spring Absorption: primal_names, tolerances.py, provenance trio | Mar 16, 2026 | `src/primal_names.rs` (11 primal + 4 domain constants). `control/tolerances.py` (80+ Python tolerance mirror). Deploy graph provenance trio (rhizoCrypt/loamSpine/sweetGrass). `config.rs` delegates to `primal_names::*`. V106 handoff. 1301 tests |
 
 ---
 
@@ -5071,6 +5073,45 @@ with real computation, Nest records substrate/timing provenance.
 **Motivation**: Implement biomeOS BYOB niche deployment (Steps 1–4 of 7) following airSpring/groundSpring patterns identified during cross-spring review
 **Procedure**: Created `src/niche.rs` with self-knowledge (capabilities, dependencies, costs, semantic mappings). Created `graphs/neuralspring_deploy.toml` with 5-phase capability-based deployment. Evolved hardcoded primal names and socket paths to centralized config constants with runtime discovery.
 **Findings**: The deploy graph pattern from groundSpring translates directly — `by_capability` resolution for all primal dependencies with `fallback = "skip"` for optional dependencies (ToadStool, NestGate). The airSpring `niche.rs` pattern provides clean separation between capability advertising and science logic. Remaining niche deployment steps (5–7: provenance trio, cross-spring time series, workflow graphs) need IPC wiring to the provenance primals.
+
+---
+
+## Session 155 — Cross-Spring Absorption: primal_names, tolerances.py, provenance trio
+
+**Date**: 2026-03-16
+**Session**: S155
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | Deep pull and review: 4 springs (hotSpring v0.6.31+, groundSpring V106, wetSpring V120, airSpring v0.8.2+) + 5 primals (coralReef Iter 49, loamSpine v0.8.8, rhizoCrypt v0.13.0-dev, sweetGrass v0.7.12, biomeOS) |
+| **Phase 2** | `src/primal_names.rs`: ecosystem-aligned module with 11 primal constants + 4 capability domain constants (airSpring/groundSpring pattern) |
+| **Phase 3** | `control/tolerances.py`: shared Python tolerance vocabulary mirroring 80+ Rust constants (wetSpring/airSpring pattern) |
+| **Phase 4** | Deploy graph evolution: provenance trio nodes (rhizoCrypt, loamSpine, sweetGrass) as Phase 2b with `fallback = "skip"` (wetSpring/rhizoCrypt pattern) |
+| **Phase 5** | Doc evolution: V106 handoff, all root docs updated, baseCamp + experiments journal, ecoPrimals baseCamp |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Primal constants centralized | 11 (TOADSTOOL, BEARDOG, SONGBIRD, NESTGATE, SQUIRREL, CORALREEF, RHIZOCRYPT, LOAMSPINE, SWEETGRASS, PETALTONGUE, BIOMEOS) |
+| Domain constants | 4 (DAG, COMMIT, PROVENANCE, COMPUTE) |
+| Python tolerance constants | 80+ (mirroring `src/tolerances/mod.rs`) |
+| Deploy graph phases | 7 (Tower + provenance trio + ToadStool/NestGate + neuralSpring + health + provenance record) |
+| Duplicate string literals eliminated | 5 (`config.rs` → `primal_names::*`) |
+| Cross-spring patterns absorbed | 4 (airSpring primal_names, groundSpring primal_names, wetSpring tolerances.py, wetSpring/rhizoCrypt deploy graph provenance trio) |
+| Primal evolutions reviewed | coralReef `coral-glowplug`, loamSpine Edition 2024, rhizoCrypt `capability_registry.toml`, sweetGrass chaos tests |
+| New tests | 4 (2 primal_names + 2 deploy graph assertions) |
+| Total tests | 1301 |
+
+### Exp 111 — Cross-Spring Absorption
+
+**Date**: 2026-03-16
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Absorb cross-spring patterns identified during comprehensive pull of 4 springs and 5 primals. Eliminate remaining duplicate string literals. Establish shared Python tolerance vocabulary. Wire provenance trio into deploy graph.
+**Procedure**: Created `src/primal_names.rs` following airSpring/groundSpring pattern. Refactored `config.rs` to delegate all primal name constants to `primal_names::*`. Created `control/tolerances.py` mirroring 80+ Rust tolerance constants. Extended `graphs/neuralspring_deploy.toml` with Phase 2b provenance trio nodes (rhizoCrypt/loamSpine/sweetGrass) using `by_capability` resolution and `fallback = "skip"`.
+**Findings**: The `primal_names` pattern from airSpring/groundSpring cleanly eliminates all remaining duplicate primal name strings. The Python tolerance mirror (wetSpring/airSpring pattern) ensures Python baseline scripts use the same named tolerance vocabulary as Rust validation — critical for cross-language reproducibility. The provenance trio deploy graph pattern from wetSpring/rhizoCrypt works directly for neuralSpring. Remaining evolution targets: Edition 2024 migration (following 4 primals), typed `BiomeOsError` (groundSpring V106 pattern), `sovereign_resolves_poisoning()` (hotSpring v0.6.31 pattern for f64 ML on consumer GPUs).
 
 ---
 

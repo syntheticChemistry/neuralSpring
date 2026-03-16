@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### toadStool/barraCuda/coralReef (Absorption + Niche Architecture)
+### toadStool/barraCuda/coralReef (Cross-Spring Absorption)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V105 S154** | `handoffs/NEURALSPRING_V105_S154_NICHE_ARCHITECTURE_BARRACUDA_TOADSTOOL_HANDOFF_MAR15_2026.md` | Mar 15, 2026 | Niche deployment architecture (Steps 1–4), 100+ barraCuda primitives consumed, 4 delegation candidates, 22 capabilities, deploy graph, cross-spring patterns. Supersedes V104 |
+| **V106 S155** | `handoffs/NEURALSPRING_V106_S155_CROSS_SPRING_ABSORPTION_BARRACUDA_TOADSTOOL_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | Cross-spring absorption from 4 springs + 5 primals, `primal_names.rs`, `tolerances.py`, provenance trio deploy, 100+ barraCuda primitives consumed, V106 quality gates. Supersedes V105 |
 
 ### barraCuda (Bug Fix)
 
@@ -20,13 +20,14 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 ### Central wateringHole Copies
 
 Handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-project visibility:
+- `NEURALSPRING_V106_S155_CROSS_SPRING_ABSORPTION_BARRACUDA_TOADSTOOL_HANDOFF_MAR16_2026.md`
 - `NEURALSPRING_V105_S154_NICHE_ARCHITECTURE_BARRACUDA_TOADSTOOL_HANDOFF_MAR15_2026.md`
 - `NEURALSPRING_V104_S153_AUDIT_ABSORPTION_BARRACUDA_TOADSTOOL_HANDOFF_MAR15_2026.md`
 - `NEURALSPRING_V101_S150_COMPUTE_TRIANGLE_HANDOFF_MAR14_2026.md`
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V104 + NestGate V1 + biomeOS V1 + Songbird V1).
+Superseded handoffs: `handoffs/archive/` (V1–V105 + NestGate V1 + biomeOS V1 + Songbird V1).
 
 ## Conventions
 

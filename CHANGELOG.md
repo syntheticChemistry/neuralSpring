@@ -23,7 +23,15 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `graphs/neuralspring_deploy.toml` — provenance trio nodes added (rhizoCrypt,
   loamSpine, sweetGrass) as Phase 2b with `fallback = "skip"`, following
   wetSpring/rhizoCrypt deploy graph patterns
-- 1301 tests (1128 lib + 73 forge + 63 playGround + 13 doc + 15 integration + 9 niche),
+- V106 handoff crafted: cross-spring absorption (4 springs + 5 primals),
+  100+ barraCuda primitives consumed, provenance trio deploy, quality gates
+- V105 archived, wateringHole README updated, central wateringHole copy published
+- All root docs updated to S155 (README, EVOLUTION_READINESS, CONTROL_EXPERIMENT_STATUS,
+  DEPRECATION_MIGRATION, whitePaper/baseCamp, experiments journal Exp 111)
+- ecoPrimals/whitePaper/gen3/baseCamp updated with S155 status
+- Debris review: zero real TODOs, zero stale files, zero archive candidates
+  beyond V105 (now archived)
+- 1301 tests (1128 lib + 73 forge + 63 playGround + 13 doc + 15 integration + 9 bin),
   0 clippy (pedantic+nursery), 0 fmt diffs, 0 unsafe
 
 ### Session 154 — Niche Deployment + Cross-Spring Absorption + Hardcoding Elimination (2026-03-15)
