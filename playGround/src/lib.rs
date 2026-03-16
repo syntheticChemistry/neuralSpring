@@ -6,6 +6,7 @@
 //!
 //! This crate provides:
 //! - [`ipc_client`]: Reusable JSON-RPC 2.0 client over Unix domain sockets
+//! - [`biomeos_client`]: Typed biomeOS orchestrator client (nucleus.*, capability.*)
 //! - [`squirrel_client`]: Typed Squirrel MCP client (ai.query, tool.execute)
 //! - [`primal_client`]: Typed neuralSpring primal client (science.* capabilities)
 //! - [`toadstool_client`]: Typed `ToadStool` compute client (compute.submit, gpu.dispatch)
@@ -22,6 +23,7 @@
     reason = "playground — evolving API surface"
 )]
 
+pub mod biomeos_client;
 pub mod coralreef_client;
 pub mod hf_hub;
 pub mod inference;

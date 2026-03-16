@@ -7,12 +7,19 @@
 //! `capability.list`.
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use anyhow::{Context, Result};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 
 use super::{ipc_response_timeout_secs, orchestrator_socket, PRIMAL_NAME};
+
+static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(1);
+
+fn next_id() -> u64 {
+    REQUEST_COUNTER.fetch_add(1, Ordering::Relaxed)
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // Socket resolution (capability-based, no hardcoded paths)
@@ -103,7 +110,7 @@ pub async fn forward_to_primal(
         "jsonrpc": "2.0",
         "method": method,
         "params": params,
-        "id": 1
+        "id": next_id()
     });
 
     let mut payload = serde_json::to_vec(&request)?;
@@ -131,7 +138,7 @@ pub async fn forward_to_primal_raw(
         "jsonrpc": "2.0",
         "method": method,
         "params": params,
-        "id": 1
+        "id": next_id()
     });
 
     let mut payload = serde_json::to_vec(&request)?;

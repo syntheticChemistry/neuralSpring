@@ -200,13 +200,17 @@ pub fn discover_by_capability(required_capability: &str, hint_name: &str) -> Res
 
 /// Probe a primal's capabilities by sending `capability.list` over JSON-RPC.
 ///
+/// Handles both response formats used across the ecosystem:
+///   - Object: `{"primal": "...", "capabilities": ["a", "b"]}`
+///   - Array:  `["a", "b"]`
+///
 /// Returns a list of capability strings, or an error if the primal does
 /// not respond within 2 seconds.
 fn probe_capabilities(socket_path: &std::path::Path) -> Result<Vec<String>> {
     let params = serde_json::json!({});
     let timeout = Duration::from_secs(2);
 
-    let rt = if let Ok(h) = tokio::runtime::Handle::try_current() {
+    let result = if let Ok(h) = tokio::runtime::Handle::try_current() {
         h.block_on(call(socket_path, "capability.list", &params, timeout))
     } else {
         let rt = tokio::runtime::Builder::new_current_thread()
@@ -215,8 +219,17 @@ fn probe_capabilities(socket_path: &std::path::Path) -> Result<Vec<String>> {
         rt.block_on(call(socket_path, "capability.list", &params, timeout))
     }?;
 
-    let caps: Vec<String> = serde_json::from_value(rt)?;
-    Ok(caps)
+    parse_capability_list(&result)
+}
+
+/// Extract capability strings from either the object or array response format.
+fn parse_capability_list(value: &serde_json::Value) -> Result<Vec<String>> {
+    let arr = match value {
+        serde_json::Value::Array(_) => value,
+        serde_json::Value::Object(map) => map.get("capabilities").unwrap_or(value),
+        _ => anyhow::bail!("unexpected capability.list result type"),
+    };
+    serde_json::from_value(arr.clone()).context("parsing capability list")
 }
 
 /// Read the IPC timeout from environment, defaulting to 5 seconds.
@@ -307,6 +320,23 @@ mod tests {
             Some(v) => std::env::set_var("BIOMEOS_SOCKET_DIR", v),
             None => std::env::remove_var("BIOMEOS_SOCKET_DIR"),
         }
+    }
+
+    #[test]
+    fn parse_capability_list_object_format() {
+        let obj = serde_json::json!({
+            "primal": "neuralspring",
+            "capabilities": ["science.ipr", "science.spectral_analysis"]
+        });
+        let caps = parse_capability_list(&obj).unwrap();
+        assert_eq!(caps, vec!["science.ipr", "science.spectral_analysis"]);
+    }
+
+    #[test]
+    fn parse_capability_list_array_format() {
+        let arr = serde_json::json!(["compute.submit", "compute.probe"]);
+        let caps = parse_capability_list(&arr).unwrap();
+        assert_eq!(caps, vec!["compute.submit", "compute.probe"]);
     }
 
     #[test]

@@ -8,72 +8,66 @@
 //! This proves the NUCLEUS executor can orchestrate mixed GPU/CPU DAGs.
 
 #![expect(clippy::expect_used, reason = "binary entry point")]
-#![expect(clippy::too_many_lines, reason = "mixed pipeline validation binary")]
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::nucleus_pipeline::{
     execute_composition_pipeline, execute_composition_pipeline_gpu,
 };
+use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::graph::StageOutput;
 use std::time::Instant;
 
 fn main() {
+    let mut h = ValidationHarness::new("mixed_composition_pipeline");
+
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
     let dispatcher = rt.block_on(Dispatcher::new());
 
-    println!("═══ Exp 106: Mixed-Hardware Composition Pipeline ═══");
-    println!("Backend: {}", dispatcher.backend());
-    println!("Adapter: {}", dispatcher.adapter_name());
-    println!();
+    eprintln!("═══ Exp 106: Mixed-Hardware Composition Pipeline ═══");
+    eprintln!("Backend: {}", dispatcher.backend());
+    eprintln!("Adapter: {}", dispatcher.adapter_name());
 
-    println!("── Phase 1: CPU-only baseline ──");
+    eprintln!("\n── Phase 1: CPU-only baseline ──");
     let cpu_start = Instant::now();
     let cpu_report = execute_composition_pipeline();
     let cpu_us = cpu_start.elapsed().as_secs_f64() * 1_000_000.0;
-    assert!(cpu_report.all_passed());
-    println!(
+    h.check_bool("CPU pipeline passes", cpu_report.all_passed());
+    eprintln!(
         "  Total: {cpu_us:.1}µs | substrate: {}",
         cpu_report.substrate_used
     );
-    println!(
+    eprintln!(
         "  GPU stages: {} | CPU stages: {}",
         cpu_report.gpu_stages, cpu_report.cpu_stages
     );
-    println!();
 
-    println!("── Phase 2: Mixed GPU/CPU pipeline ──");
+    eprintln!("\n── Phase 2: Mixed GPU/CPU pipeline ──");
     let mixed_start = Instant::now();
     let mixed_report = execute_composition_pipeline_gpu(&dispatcher);
     let mixed_us = mixed_start.elapsed().as_secs_f64() * 1_000_000.0;
-    assert!(mixed_report.all_passed(), "mixed pipeline should pass");
-    println!(
+    h.check_bool("mixed pipeline passes", mixed_report.all_passed());
+    eprintln!(
         "  Total: {mixed_us:.1}µs | substrate: {}",
         mixed_report.substrate_used
     );
-    println!(
+    eprintln!(
         "  GPU stages: {} | CPU stages: {}",
         mixed_report.gpu_stages, mixed_report.cpu_stages
     );
-    println!();
 
-    println!("── Per-stage breakdown ──");
-    println!(
-        "  {:<25} {:>10} {:>14} {:>8}",
-        "Stage", "Time (µs)", "Substrate", "Status"
-    );
-    println!("  {}", "─".repeat(60));
+    eprintln!("\n── Per-stage breakdown ──");
     for result in &mixed_report.execution.results {
-        println!(
-            "  {:<25} {:>10.1} {:>14?} {:>8}",
+        h.check_bool(&format!("stage {} passes", result.stage_id), result.success);
+        eprintln!(
+            "  {:<25} {:>10.1}µs {:>14?} {}",
             result.stage_id,
             result.elapsed_us,
             result.actual_substrate,
             if result.success { "PASS" } else { "FAIL" }
         );
     }
-    println!();
 
-    println!("── Transfer cost analysis ──");
+    eprintln!("\n── Transfer cost analysis ──");
     let gpu_stage_us: f64 = mixed_report
         .execution
         .results
@@ -100,18 +94,11 @@ fn main() {
         .sum();
     let total_us = mixed_report.total_us();
     let overhead_us = total_us - gpu_stage_us - cpu_stage_us;
-
-    println!("  GPU stage time: {gpu_stage_us:.1}µs");
-    println!("  CPU stage time: {cpu_stage_us:.1}µs");
-    println!("  Overhead/transfer: {overhead_us:.1}µs");
-    println!(
-        "  GPU fraction: {:.1}%",
-        gpu_stage_us / total_us.max(0.001) * 100.0
+    eprintln!(
+        "  GPU: {gpu_stage_us:.1}µs | CPU: {cpu_stage_us:.1}µs | overhead: {overhead_us:.1}µs"
     );
-    println!();
 
-    println!("── Output validation ──");
-    let mut all_valid = true;
+    eprintln!("\n── Output shapes ──");
     for result in &mixed_report.execution.results {
         let desc = match &result.output {
             StageOutput::Map(m) => format!("{} keys", m.len()),
@@ -119,31 +106,14 @@ fn main() {
             StageOutput::Scalar(s) => format!("scalar={s:.4}"),
             StageOutput::Empty => "empty".to_string(),
         };
-        let ok = result.success;
-        if !ok {
-            all_valid = false;
-        }
-        println!(
-            "  {}: {} {}",
-            result.stage_id,
-            desc,
-            if ok { "✓" } else { "✗" }
-        );
+        eprintln!("  {}: {desc}", result.stage_id);
     }
-    println!();
 
     let speedup = cpu_us / mixed_us.max(0.001);
-    println!("── Summary ──");
-    println!("  CPU-only:  {cpu_us:.1}µs");
-    println!("  Mixed:     {mixed_us:.1}µs");
-    println!("  Speedup:   {speedup:.2}×");
-    println!("  All valid: {all_valid}");
-    println!();
+    eprintln!("\n── Summary ──");
+    eprintln!("  CPU-only:  {cpu_us:.1}µs");
+    eprintln!("  Mixed:     {mixed_us:.1}µs");
+    eprintln!("  Speedup:   {speedup:.2}×");
 
-    if all_valid {
-        println!("✓ Exp 106 complete — mixed-hardware composition pipeline validated");
-    } else {
-        println!("✗ Some stages failed");
-        std::process::exit(1);
-    }
+    h.finish();
 }

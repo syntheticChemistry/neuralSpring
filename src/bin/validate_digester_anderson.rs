@@ -49,8 +49,18 @@ fn main() {
 
 fn validate_mapping(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
     eprintln!("\n── Diversity → Disorder mapping ──");
-    h.check_abs("evenness=0 → W=20", evenness_to_disorder(0.0), 20.0, 1e-10);
-    h.check_abs("evenness=1 → W=0", evenness_to_disorder(1.0), 0.0, 1e-10);
+    h.check_abs(
+        "evenness=0 → W=20",
+        evenness_to_disorder(0.0),
+        20.0,
+        tolerances::CROSS_LANGUAGE,
+    );
+    h.check_abs(
+        "evenness=1 → W=0",
+        evenness_to_disorder(1.0),
+        0.0,
+        tolerances::CROSS_LANGUAGE,
+    );
     h.check_abs(
         "evenness=0.5 → W=10",
         evenness_to_disorder(0.5),

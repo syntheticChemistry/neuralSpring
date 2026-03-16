@@ -5,7 +5,41 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 155 (March 16, 2026)
+## [Unreleased] — Session 156 (March 16, 2026)
+
+### Session 156 — Comprehensive Audit + IPC Discovery Fixes + Deep Debt (2026-03-16)
+
+**Full codebase audit** against ecosystem standards. Two critical bugs fixed, deep debt
+executed, docs and handoffs updated:
+
+- **P1 CRITICAL**: `playGround/src/ipc_client.rs` — `probe_capabilities()` expected raw
+  array from `capability.list` but primals return `{"primal": "...", "capabilities": [...]}`.
+  New `parse_capability_list()` handles both formats. 2 tests added.
+- **P2 CRITICAL**: `metalForge/forge/src/coralreef_bridge.rs` — `discover_by_capability()`
+  returned `.json` manifest file path instead of socket path. Now parses manifest for
+  `socket_path`/`socket`/`name` fields. Socket scan widened from hardcoded `"coralreef"` to
+  capability hints (`["coralreef", "coral-reef", "shader"]`). `serde_json` dep added to forge.
+- **P3**: Squirrel client evolved from name-only to `discover_by_capability("ai.query", ...)`
+  with name fallback — matching ToadStool/coralReef client patterns.
+- **P4**: New `playGround/src/biomeos_client.rs` — typed `BiomeOsClient` with methods for
+  `nucleus.register`, `nucleus.deregister`, `nucleus.heartbeat`, `capability.register`,
+  `register_all_capabilities`, `capability.resolve`. 2 tests. Registered in `lib.rs`.
+- **P5**: `src/bin/neuralspring_primal/discovery.rs` — hardcoded `"id": 1` in
+  `forward_to_primal` and `forward_to_primal_raw` replaced with `AtomicU64` counter.
+- **D2**: `validate_digester_anderson.rs` — magic `1e-10` replaced with
+  `tolerances::CROSS_LANGUAGE`.
+- **D3**: 3 validators (`validate_sovereign_compile`, `validate_mixed_composition_pipeline`,
+  `validate_batched_spectral`) converted from `assert!`/`println!` to `ValidationHarness`
+  with proper `check_bool`/`check_abs` and exit 0/1.
+- **E1**: SPDX header added to root `Cargo.toml`.
+- **D1**: `kokkos_parity.rs` placeholder benchmarks evolved to `ProvenanceLevel` enum
+  (`Estimated`/`Measured`) — data maturity now machine-introspectable and shown in dashboard.
+- Scripts synced: `check_drift.sh` count comment fixed (45→48), `requirements.txt` date
+  updated (206→397 PASS).
+- V107 handoff crafted for barraCuda/toadStool team.
+- Superseded V106 archived. All root docs, experiments journal, wateringHole updated to S156.
+- 1301 tests (1128 lib + 73 forge + 65 playGround + 13 doc + 15 integration + 7 bin),
+  0 clippy (pedantic+nursery), 0 fmt diffs, 0 unsafe, 0 doc warnings
 
 ### Session 155 — Cross-Spring Absorption: primal_names, tolerances.py, provenance trio (2026-03-16)
 

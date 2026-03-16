@@ -44,20 +44,23 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
-**S154: Niche deployment architecture + cross-spring absorption.**
-Niche self-knowledge module (`src/niche.rs`) following airSpring/groundSpring pattern: 22 capabilities,
-operation dependencies, cost estimates, semantic mappings. biomeOS deploy graph
-(`graphs/neuralspring_deploy.toml`): 5-phase deployment with capability-based discovery. Hardcoded
-`"biomeOS.sock"` fallback evolved to 5-tier socket resolution. Hardcoded `"toadstool"`, `"coralreef"`,
-`"squirrel"` name hints centralized to `config::*_NAME_HINT` constants. Cross-spring absorption:
-pulled hotSpring v0.6.31, groundSpring V105, wetSpring V118, airSpring v0.8.2, healthSpring V25,
-barraCuda `709edf03`, toadStool S155b, coralReef Iter 47.
-1297 tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings.
+**S156: Comprehensive audit + IPC bug fixes + deep debt execution.**
+Full codebase audit against ecosystem standards. Two critical IPC discovery bugs fixed:
+`probe_capabilities` response format mismatch (object vs array), `coralreef_bridge` returning
+manifest path instead of socket. Squirrel client evolved to capability-based discovery. Typed
+`BiomeOsClient` created (replacing ad-hoc `forward_to_primal_raw`). Atomic request ID generation
+aligned across discovery.rs and ipc_client. 3 validators converted from assert/println to
+`ValidationHarness`. Magic tolerance `1e-10` replaced with `tolerances::CROSS_LANGUAGE`. Kokkos
+parity benchmarks evolved to `ProvenanceLevel` enum. SPDX header on root `Cargo.toml`.
+1301 tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings. V107 handoff.
 
-**S151: Deep audit — ecoBin compliance, capability-based discovery, tolerance centralization.**
-Eliminated `openssl-sys`/`native-tls` C dependency in playGround (`reqwest` → `rustls-tls`).
-ToadStool and coralReef IPC clients evolved from hardcoded primal names to capability-based
-discovery (`discover_by_capability`). 12 hardcoded tolerance values centralized into `tolerances::`.
+**S155: Cross-spring absorption — primal_names, tolerances.py, provenance trio.**
+`src/primal_names.rs` (11 primal + 4 domain constants). `control/tolerances.py` (80+ shared Python
+tolerance constants). Deploy graph provenance trio (rhizoCrypt/loamSpine/sweetGrass). V106 handoff.
+
+**S154: Niche deployment architecture + cross-spring absorption.**
+`src/niche.rs` (22 capabilities, costs, semantic mappings). `graphs/neuralspring_deploy.toml`
+(5-phase capability-based deployment). Hardcoded primal names eliminated. V105 handoff.
 4 weak `#[expect()]` reasons replaced with specific justifications. 3 rustdoc link warnings fixed.
 `mock_response` in validation binary renamed to `accept_and_reply` (real IPC, not a mock).
 metalForge coralReef bridge evolved to biomeOS 5-tier socket resolution. Handoff naming convention

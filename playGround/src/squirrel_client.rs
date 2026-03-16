@@ -43,11 +43,17 @@ pub struct HealthStatus {
     pub uptime_secs: u64,
 }
 
+/// Squirrel's primary capability for capability-based discovery.
+const SQUIRREL_CAPABILITY: &str = "ai.query";
+
 impl SquirrelClient {
-    /// Connect to Squirrel via automatic socket discovery.
+    /// Connect to Squirrel via capability-based discovery with name fallback.
     pub fn discover() -> Result<Self> {
-        let socket = ipc_client::discover_socket(neural_spring::config::SQUIRREL_NAME_HINT)
-            .context("discovering Squirrel socket")?;
+        let socket = ipc_client::discover_by_capability(
+            SQUIRREL_CAPABILITY,
+            neural_spring::config::SQUIRREL_NAME_HINT,
+        )
+        .context("discovering Squirrel socket")?;
         Ok(Self {
             socket,
             timeout: ipc_client::ipc_timeout(),

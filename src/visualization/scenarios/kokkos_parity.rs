@@ -23,11 +23,22 @@ use crate::visualization::types::{NeuralScenario, ScenarioEdge, ThresholdRange};
 
 use super::{bar, edge, gauge, heatmap, node, scaffold, timeseries};
 
+/// Provenance level for benchmark values, tracking data maturity.
+#[derive(Clone, Copy)]
+enum ProvenanceLevel {
+    /// Estimated from handoff notes — not from matched-hardware runs.
+    Estimated,
+    /// Measured on matching hardware with documented methodology.
+    #[expect(dead_code, reason = "will be used as benchmarks graduate")]
+    Measured,
+}
+
 struct OpBenchmark {
     name: &'static str,
     pattern: &'static str,
     kokkos_us: f64,
     barracuda_us: f64,
+    provenance: ProvenanceLevel,
     problem_size: u32,
 }
 
@@ -52,6 +63,19 @@ pub fn kokkos_parity_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     );
 
     let benchmarks = reference_benchmarks();
+
+    let estimated_count = benchmarks
+        .iter()
+        .filter(|b| matches!(b.provenance, ProvenanceLevel::Estimated))
+        .count();
+    if estimated_count > 0 {
+        use std::fmt::Write;
+        let _ = write!(
+            s.description,
+            " [{estimated_count}/{} benchmarks are estimated, not from matched-hardware runs.]",
+            benchmarks.len()
+        );
+    }
 
     // ── Overview node ────────────────────────────────────────────────────
 
@@ -299,15 +323,20 @@ pub fn kokkos_parity_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
 ///
 /// Format: `(operation, parallel_pattern, kokkos_µs, barracuda_µs, N)`.
 ///
-/// **Status**: PLACEHOLDER — estimated from groundSpring V100 Kokkos-CUDA
-/// handoff notes and barraCuda RTX 4070 Vulkan dispatch measurements.
-/// These values are NOT from matched-hardware runs.  To produce real
-/// parity data, run `bench_kokkos_parity` on a system that has both
-/// a Kokkos-CUDA build and a barraCuda wgpu adapter on the same GPU.
+/// **Provenance**: `Estimated` — derived from groundSpring V100
+/// Kokkos-CUDA handoff notes and barraCuda RTX 4070 Vulkan dispatch
+/// measurements. These values are NOT from matched-hardware runs.
+///
+/// **To graduate to `Measured`**: run `bench_kokkos_parity` on a system
+/// with both a Kokkos-CUDA build and a barraCuda wgpu adapter on the
+/// same GPU, then update each entry's `provenance` to `Measured`.
+///
+/// **Source**: groundSpring V100 handoff (Mar 2026), barraCuda RTX 4070.
 ///
 /// **Debt**: Galaxy, BLAST+, GATK, and other industry-standard tool
-/// benchmarks are not yet included.  See `specs/INDUSTRY_TOOL_GAP_ANALYSIS.md`.
+/// benchmarks not yet included.  See `specs/INDUSTRY_TOOL_GAP_ANALYSIS.md`.
 fn reference_benchmarks() -> Vec<OpBenchmark> {
+    let p = ProvenanceLevel::Estimated;
     vec![
         OpBenchmark {
             name: "BatchFitness",
@@ -315,6 +344,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 45.0,
             barracuda_us: 82.0,
             problem_size: 65536,
+            provenance: p,
         },
         OpBenchmark {
             name: "PairwiseHamming",
@@ -322,6 +352,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 120.0,
             barracuda_us: 195.0,
             problem_size: 65536,
+            provenance: p,
         },
         OpBenchmark {
             name: "PairwiseJaccard",
@@ -329,6 +360,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 130.0,
             barracuda_us: 210.0,
             problem_size: 65536,
+            provenance: p,
         },
         OpBenchmark {
             name: "PairwiseL2",
@@ -336,6 +368,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 110.0,
             barracuda_us: 180.0,
             problem_size: 65536,
+            provenance: p,
         },
         OpBenchmark {
             name: "LocusVariance",
@@ -343,6 +376,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 85.0,
             barracuda_us: 150.0,
             problem_size: 65536,
+            provenance: p,
         },
         OpBenchmark {
             name: "SpatialPayoff",
@@ -350,6 +384,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 95.0,
             barracuda_us: 160.0,
             problem_size: 4096,
+            provenance: p,
         },
         OpBenchmark {
             name: "HillGate",
@@ -357,6 +392,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 200.0,
             barracuda_us: 320.0,
             problem_size: 65536,
+            provenance: p,
         },
         OpBenchmark {
             name: "SmithWaterman",
@@ -364,6 +400,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 350.0,
             barracuda_us: 520.0,
             problem_size: 1024,
+            provenance: p,
         },
         OpBenchmark {
             name: "MultiObjFitness",
@@ -371,6 +408,7 @@ fn reference_benchmarks() -> Vec<OpBenchmark> {
             kokkos_us: 55.0,
             barracuda_us: 95.0,
             problem_size: 65536,
+            provenance: p,
         },
     ]
 }

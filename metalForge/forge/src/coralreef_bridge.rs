@@ -170,7 +170,8 @@ impl CoralCompiler {
         Self::discover_by_socket_scan()
     }
 
-    /// Capability-based discovery: scan manifests for `shader.compile`.
+    /// Capability-based discovery: scan manifests for `shader.compile`
+    /// and extract the socket path from the manifest contents.
     fn discover_by_capability() -> Option<PathBuf> {
         let xdg = std::env::var("XDG_RUNTIME_DIR").ok()?;
         let manifest_dir = PathBuf::from(xdg).join("ecoPrimals");
@@ -179,7 +180,9 @@ impl CoralCompiler {
             if path.extension().is_some_and(|e| e == "json") {
                 if let Ok(contents) = std::fs::read_to_string(&path) {
                     if contents.contains("shader.compile") || contents.contains("shader_compiler") {
-                        return Some(path);
+                        if let Some(sock) = Self::extract_socket_from_manifest(&contents) {
+                            return Some(sock);
+                        }
                     }
                 }
             }
@@ -187,14 +190,38 @@ impl CoralCompiler {
         None
     }
 
-    /// Fallback: scan socket directory for `.sock` files whose companion
-    /// manifest (if any) advertises shader compilation.
+    /// Parse a manifest JSON for a `socket_path` or `socket` field,
+    /// falling back to deriving the socket from the primal `name`.
+    fn extract_socket_from_manifest(contents: &str) -> Option<PathBuf> {
+        let parsed: serde_json::Value = serde_json::from_str(contents).ok()?;
+        if let Some(sock) = parsed
+            .get("socket_path")
+            .or_else(|| parsed.get("socket"))
+            .and_then(|v| v.as_str())
+        {
+            let p = PathBuf::from(sock);
+            if p.exists() {
+                return Some(p);
+            }
+        }
+        let name = parsed.get("name").and_then(|v| v.as_str())?;
+        let socket_dir = Self::resolve_socket_dir();
+        let sock = socket_dir.join(format!("{name}.sock"));
+        if sock.exists() {
+            return Some(sock);
+        }
+        None
+    }
+
+    /// Fallback: scan socket directory for any `.sock` file whose name
+    /// suggests shader compilation capability.
     fn discover_by_socket_scan() -> Option<PathBuf> {
         let socket_dir = Self::resolve_socket_dir();
+        let shader_hints = ["coralreef", "coral-reef", "shader"];
         for entry in std::fs::read_dir(&socket_dir).ok()?.flatten() {
             let name = entry.file_name();
             let name_str = name.to_string_lossy();
-            if name_str.ends_with(".sock") && name_str.contains("coralreef") {
+            if name_str.ends_with(".sock") && shader_hints.iter().any(|h| name_str.contains(h)) {
                 return Some(entry.path());
             }
         }

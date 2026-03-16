@@ -5115,4 +5115,43 @@ with real computation, Nest records substrate/timing provenance.
 
 ---
 
+## Session 156 — Comprehensive Audit + IPC Discovery Fixes + Deep Debt
+
+**Date**: 2026-03-16
+**Session**: S156
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | Full codebase audit against ecosystem standards (completion, quality, validation, barraCuda health, GPU readiness, tests, ecosystem, primal coordination) |
+| **Phase 2** | 2 critical IPC discovery bugs fixed (probe_capabilities format, coralreef_bridge manifest path) |
+| **Phase 3** | Deep debt execution: 3 validators to harness, magic tolerance, atomic IDs, typed BiomeOsClient, Squirrel capability discovery, ProvenanceLevel enum |
+| **Phase 4** | Doc evolution: V107 handoff, all root docs updated, experiments journal, wateringHole, scripts synced |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Critical bugs fixed | 2 (P1: probe_capabilities format, P2: coralreef_bridge manifest-vs-socket) |
+| Validators converted to harness | 3 (sovereign_compile, mixed_composition_pipeline, batched_spectral) |
+| New typed IPC client | 1 (BiomeOsClient — nucleus.*, capability.*) |
+| Clients evolved to capability-based | 1 (SquirrelClient → discover_by_capability) |
+| Magic numbers eliminated | 1 (1e-10 → tolerances::CROSS_LANGUAGE) |
+| Files modified | 12 |
+| Files created | 1 (biomeos_client.rs) |
+| Lib tests | 1128 |
+| Total tests | 1301 |
+| Clippy warnings | 0 (pedantic+nursery) |
+
+### Exp 112 — Comprehensive Audit + IPC Discovery Fixes
+
+**Date**: 2026-03-16
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Full audit against wateringHole ecosystem standards. Identify and fix completion gaps, code quality issues, validation fidelity problems, and IPC coordination bugs before V107 handoff.
+**Procedure**: Audited all active source (src/, playGround/src/, metalForge/forge/src/) against 8 categories. Found 2 critical IPC bugs, 3 medium issues, 5 low items. Executed all fixes, verified with clippy/fmt/test/doc zero-warning gates.
+**Findings**: The `probe_capabilities` bug in `ipc_client.rs` was silently breaking capability-based discovery for any primal returning the object response format — `discover_by_capability()` would fall through to name-based fallback every time. The `coralreef_bridge` bug would cause callers to try connecting to a `.json` file as a Unix socket. Both bugs masked by the fallback chains but would cause capability-first discovery to never work. The `BiomeOsClient` pattern should be adopted by the primal binary itself — currently `biomeos.rs` uses ad-hoc `forward_to_primal_raw` calls which now have atomic IDs but lack the typed method structure. Edition 2024 migration and typed `BiomeOsError` remain as future evolution targets.
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

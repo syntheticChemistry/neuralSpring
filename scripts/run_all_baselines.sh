@@ -219,6 +219,24 @@ echo "================================================================"
 run_experiment "Paper 026: LSTM Glucose Prediction (Chuna)" \
     control/glucose_prediction/glucose_prediction.py
 
+echo ""
+echo "================================================================"
+echo "  Composition Experiments (Axis 2)"
+echo "================================================================"
+
+run_experiment "Composition: Digestion Prediction (Paper 027)" \
+    control/digestion_prediction/digestion_prediction.py
+run_experiment "Composition: Digester-Anderson Coupling" \
+    control/digester_anderson/digester_anderson.py
+run_experiment "Composition: Isomorphic Reservoir Ensemble" \
+    control/isomorphic_reservoir/isomorphic_reservoir.py
+run_experiment "Composition: WDM Ensemble QS" \
+    control/wdm_ensemble_qs/wdm_ensemble_qs.py
+run_experiment "Composition: Introgression NN" \
+    control/introgression_nn/introgression_nn.py
+run_experiment "Composition: Attention-Anderson Spectral" \
+    control/attention_anderson/attention_anderson.py
+
 # ═══════════════════════════════════════════════════════════════════
 # CPU Benchmark Baselines (Python timing for BarraCUDA CPU parity)
 # ═══════════════════════════════════════════════════════════════════
