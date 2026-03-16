@@ -5,7 +5,26 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 154 (March 15, 2026)
+## [Unreleased] — Session 155 (March 16, 2026)
+
+### Session 155 — Cross-Spring Absorption: primal_names, tolerances.py, provenance trio (2026-03-16)
+
+**Deep absorption** from 4 spring pulls + 5 primal pulls. Ecosystem-aligned patterns:
+
+- `src/primal_names.rs` — dedicated primal name module following airSpring/groundSpring
+  pattern: 11 primal constants (TOADSTOOL, BEARDOG, SONGBIRD, NESTGATE, SQUIRREL,
+  CORALREEF, RHIZOCRYPT, LOAMSPINE, SWEETGRASS, PETALTONGUE, BIOMEOS) + 4 domain
+  constants (DAG, COMMIT, PROVENANCE, COMPUTE) + 2 unit tests
+- `config.rs` evolved: `*_NAME_HINT` constants now delegate to `primal_names::*`,
+  `PETALTONGUE_SOCKET_DIR/PREFIX` delegate to `primal_names::PETALTONGUE` — zero
+  duplicate string literals
+- `control/tolerances.py` — shared Python tolerance module mirroring 80+ Rust
+  constants from `src/tolerances/mod.rs` (following wetSpring/airSpring pattern)
+- `graphs/neuralspring_deploy.toml` — provenance trio nodes added (rhizoCrypt,
+  loamSpine, sweetGrass) as Phase 2b with `fallback = "skip"`, following
+  wetSpring/rhizoCrypt deploy graph patterns
+- 1301 tests (1128 lib + 73 forge + 63 playGround + 13 doc + 15 integration + 9 niche),
+  0 clippy (pedantic+nursery), 0 fmt diffs, 0 unsafe
 
 ### Session 154 — Niche Deployment + Cross-Spring Absorption + Hardcoding Elimination (2026-03-15)
 

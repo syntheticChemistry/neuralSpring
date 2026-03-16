@@ -133,6 +133,7 @@ pub mod niche;
 pub mod nucleus_pipeline;
 pub mod pangenome_selection;
 pub mod pinn;
+pub mod primal_names;
 pub mod primitives;
 pub mod provenance;
 pub mod quantized;

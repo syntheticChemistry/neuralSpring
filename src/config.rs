@@ -37,15 +37,14 @@ pub const ENV_XDG_RUNTIME_DIR: &str = "XDG_RUNTIME_DIR";
 /// Socket directory name for petalTongue discovery.
 ///
 /// Used when probing `$XDG_RUNTIME_DIR` and `temp_dir()` for a
-/// petalTongue instance. Centralised here so changing the primal
-/// name changes one constant, not N call sites.
-pub const PETALTONGUE_SOCKET_DIR: &str = "petaltongue";
+/// petalTongue instance. Delegates to `primal_names::PETALTONGUE`.
+pub const PETALTONGUE_SOCKET_DIR: &str = crate::primal_names::PETALTONGUE;
 
 /// Socket file prefix for petalTongue discovery.
 ///
 /// Used when scanning `temp_dir()` for petalTongue socket files
 /// matching the `{prefix}*.sock` pattern.
-pub const PETALTONGUE_SOCKET_PREFIX: &str = "petaltongue";
+pub const PETALTONGUE_SOCKET_PREFIX: &str = crate::primal_names::PETALTONGUE;
 
 // ═══════════════════════════════════════════════════════════════════
 // biomeOS socket resolution
@@ -61,21 +60,17 @@ pub const BIOMEOS_ORCHESTRATOR_SOCKET: &str = "biomeos.sock";
 pub const ENV_BIOMEOS_ORCHESTRATOR: &str = "BIOMEOS_ORCHESTRATOR_SOCKET";
 
 // ═══════════════════════════════════════════════════════════════════
-// Primal name hints for capability-based discovery fallback
-//
-// These are fallback hints only — discovery always tries capability
-// probing first. If a primal changes its socket name, the capability
-// probe still works. These hints are the last resort.
+// Primal name hints (re-exported from primal_names for backwards compat)
 // ═══════════════════════════════════════════════════════════════════
 
 /// `ToadStool` name hint for fallback discovery.
-pub const TOADSTOOL_NAME_HINT: &str = "toadstool";
+pub const TOADSTOOL_NAME_HINT: &str = crate::primal_names::TOADSTOOL;
 
 /// coralReef name hint for fallback discovery.
-pub const CORALREEF_NAME_HINT: &str = "coralreef";
+pub const CORALREEF_NAME_HINT: &str = crate::primal_names::CORALREEF;
 
 /// Squirrel name hint for fallback discovery.
-pub const SQUIRREL_NAME_HINT: &str = "squirrel";
+pub const SQUIRREL_NAME_HINT: &str = crate::primal_names::SQUIRREL;
 
 // ═══════════════════════════════════════════════════════════════════
 // Validation / GPU env vars

@@ -8,7 +8,7 @@
 # Composable: other graphs can reference this as a sub-graph via depends_on.
 # biomeOS orchestrates germination order; Songbird provides IPC mesh.
 #
-# STATUS: V104 (March 15, 2026)
+# STATUS: V105 (March 16, 2026)
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -18,7 +18,7 @@ description = "neuralSpring ML/spectral science provider atop Tower Atomic"
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S153"
+neuralspring_version = "S155"
 domain = "science"
 target_node = "eastgate"
 
@@ -127,6 +127,82 @@ timeout_ms = 20000
 fallback = "skip"
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2b: PROVENANCE TRIO — rhizoCrypt + loamSpine + sweetGrass (optional)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "germinate_rhizocrypt"
+depends_on = ["germinate_songbird"]
+output = "rhizocrypt_genesis"
+capabilities = ["dag"]
+
+[nodes.primal]
+by_capability = "dag.session.create"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 15000
+fallback = "skip"
+
+[[nodes]]
+id = "germinate_loamspine"
+depends_on = ["germinate_songbird"]
+output = "loamspine_genesis"
+capabilities = ["commit"]
+
+[nodes.primal]
+by_capability = "commit.session"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 15000
+fallback = "skip"
+
+[[nodes]]
+id = "germinate_sweetgrass"
+depends_on = ["germinate_songbird"]
+output = "sweetgrass_genesis"
+capabilities = ["provenance"]
+
+[nodes.primal]
+by_capability = "provenance.create_braid"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 15000
+fallback = "skip"
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 3: NEURALSPRING — ML/spectral science provider
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -199,7 +275,7 @@ name = "capability_call"
 
 [nodes.operation.params]
 capability = "provenance.session_create"
-params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S153", family_id = "neuralspring" }
+params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S155", family_id = "neuralspring" }
 
 [nodes.constraints]
 timeout_ms = 10000
