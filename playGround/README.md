@@ -60,7 +60,8 @@ PyTorch/CUDA dispatch latency gap.
 | `coralreef_client` | Typed coralReef client: `shader.compile.wgsl`, compiler capabilities |
 | `mcp_tools` | MCP tool definitions (JSON Schema) for Squirrel registration |
 | `secrets` | API key loading from `testing-secrets/api-keys.toml` |
-| `hf_hub` | HuggingFace Hub download client (safetensors, config.json, tokenizer) |
+| `songbird_http` | Tower Atomic HTTP via Songbird IPC (pure Rust, zero C deps) |
+| `hf_hub` | HuggingFace Hub download client via Songbird (safetensors, config.json, tokenizer) |
 | `model_config` | HF model config parser → unified `TransformerConfig` |
 | `inference` | GPU inference engine: weight loading + transformer forward pass |
 

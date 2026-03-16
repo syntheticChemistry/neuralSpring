@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![expect(clippy::pedantic, clippy::expect_used, reason = "validation binary")]
-
 //! GPU-batched ODE integration validator (Phase B gap closure).
 //!
 //! Validates `integrate_ode_batch` against CPU reference for the Hill ODE.
 //! Uses encoder batching: N systems × T timesteps in one dispatch, final state only.
 //!
-//! For deterministic validation we use the generic Hill ODE (rk4_parallel.wgsl).
-//! The signal_integration vpsT ODE uses stochastic noise; with noise_scale=0
+//! For deterministic validation we use the generic Hill ODE (`rk4_parallel.wgsl`).
+//! The `signal_integration` vpsT ODE uses stochastic noise; with `noise_scale=0`
 //! the deterministic part could be validated via a dedicated vpsT shader (future).
 //!
 //! ## Papers validated
@@ -19,7 +17,7 @@
 //! ## Provenance
 //!
 //! CPU reference: neuralSpring library modules (Rust CPU).
-//! GPU dispatch: `BarraCUDA` typed GPU ops via WGSL shaders (rk4_parallel.wgsl).
+//! GPU dispatch: `BarraCUDA` typed GPU ops via WGSL shaders (`rk4_parallel.wgsl`).
 //! Validated on: llvmpipe (software Vulkan) and RTX 4070 (hardware Vulkan).
 //! No Python baseline — GPU parity validated against Rust CPU reference.
 
@@ -100,10 +98,10 @@ fn validate_batch_vs_cpu(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     h.check_bool("batch ODE: all outputs finite", all_finite);
 }
 
-/// Validate signal_integration::integrate_ode with zero noise (deterministic).
+/// Validate `signal_integration::integrate_ode` with zero noise (deterministic).
 ///
 /// This tests the CPU reference path. Full GPU validation of vpsT ODE
-/// would require a dedicated shader (two_input_hill RHS).
+/// would require a dedicated shader (`two_input_hill` RHS).
 fn validate_signal_integration_deterministic(h: &mut ValidationHarness) {
     let y0 = OdeState {
         cdg: 0.1,
@@ -117,7 +115,10 @@ fn validate_signal_integration_deterministic(h: &mut ValidationHarness) {
     };
 
     let trace = integrate_ode(1.0, 0.01, &y0, &params);
-    let final_state = trace.last().copied().expect("ODE trace must be non-empty");
+    let Some(final_state) = trace.last().copied() else {
+        h.check_bool("signal_integration (noise=0): trace non-empty", false);
+        h.finish();
+    };
 
     h.check_bool(
         "signal_integration (noise=0): trace non-empty",

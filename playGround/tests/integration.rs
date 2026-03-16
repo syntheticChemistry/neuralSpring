@@ -7,6 +7,7 @@
 
 use neuralspring_playground::coralreef_client::CoralReefClient;
 use neuralspring_playground::hf_hub::{self, HfHub};
+// HfHub now routes through Songbird (Tower Atomic) — tests require live Songbird daemon.
 use neuralspring_playground::inference::{transformer::TransformerEngine, weights};
 use neuralspring_playground::model_config::TransformerConfig;
 use neuralspring_playground::toadstool_client::ToadStoolClient;
@@ -171,8 +172,11 @@ async fn gpu_tensor_session_basic() {
 
     let result = c.to_vec().unwrap();
     assert_eq!(result.len(), 4);
-    assert!((result[0] - 6.0).abs() < 1e-5);
-    assert!((result[3] - 12.0).abs() < 1e-5);
+    // Provenance: analytical — [1,2;3,4] + [5,6;7,8] = [6,8;10,12].
+    // Tolerance: f32 GPU roundtrip (IEEE 754 single precision).
+    let f32_gpu_tol = 1e-5;
+    assert!((result[0] - 6.0).abs() < f32_gpu_tol);
+    assert!((result[3] - 12.0).abs() < f32_gpu_tol);
 }
 
 #[tokio::test]

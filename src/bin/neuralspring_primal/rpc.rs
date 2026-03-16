@@ -31,7 +31,7 @@ pub struct JsonRpcError {
 }
 
 impl JsonRpcResponse {
-    pub fn success(id: serde_json::Value, result: serde_json::Value) -> Self {
+    pub const fn success(id: serde_json::Value, result: serde_json::Value) -> Self {
         Self {
             jsonrpc: "2.0",
             result: Some(result),
@@ -40,7 +40,7 @@ impl JsonRpcResponse {
         }
     }
 
-    pub fn error(id: serde_json::Value, code: i32, message: String) -> Self {
+    pub const fn error(id: serde_json::Value, code: i32, message: String) -> Self {
         Self {
             jsonrpc: "2.0",
             result: None,

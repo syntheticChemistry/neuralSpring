@@ -17,6 +17,13 @@
 //! | Pearson r (1M f64) | 47 µs | 125 ms | 2,669× |
 //! | Bootstrap mean | 2.2 ms | 123 ms | 57× |
 //!
+//! ## Provenance
+//!
+//! Kokkos-CUDA baselines above are **PLACEHOLDER** — extracted from groundSpring V100
+//! handoff notes, not from a matched hardware run. Real parity requires running both
+//! Kokkos-CUDA and barraCuda WGSL on the same GPU, same driver, same input sizes.
+//! Track: `wateringHole/BARRACUDA_KOKKOS_GPU_BENCHMARK_RESULTS_*.md` (not yet created).
+//!
 //! This harness produces timing for neuralSpring's domain-specific ops
 //! to establish the full picture: which ops are compute-bound (small gap)
 //! vs dispatch-overhead-bound (large gap).
@@ -127,6 +134,9 @@ fn print_results(entries: &[KokkosEntry], adapter: &str) {
     eprintln!();
     eprintln!("Compare median against groundSpring Kokkos-CUDA baseline.");
     eprintln!("  <2×  = at parity    2-10× = dispatch overhead    >10× = structural gap");
+    eprintln!();
+    eprintln!("⚠ PROVENANCE: Kokkos baselines are PLACEHOLDER (groundSpring V100 handoff).");
+    eprintln!("  Real parity requires matched-hardware runs. See doc comment for details.");
     eprintln!();
 
     println!("kernel\tscale\twarmup_us\tmedian_us\tmin_us\tcategory");

@@ -13,7 +13,8 @@
 //! - [`coralreef_client`]: Typed coralReef shader compiler client (shader.compile.wgsl)
 //! - [`mcp_tools`]: MCP tool definitions for all 14 science capabilities
 //! - [`secrets`]: API key loading from testing-secrets
-//! - [`hf_hub`]: `HuggingFace` Hub download client
+//! - [`songbird_http`]: Tower Atomic HTTP via Songbird IPC (zero C deps)
+//! - [`hf_hub`]: `HuggingFace` Hub download client (via Songbird)
 //! - [`model_config`]: HF model config parser
 //! - [`inference`]: GPU inference via barraCuda shaders
 
@@ -32,5 +33,6 @@ pub mod mcp_tools;
 pub mod model_config;
 pub mod primal_client;
 pub mod secrets;
+pub mod songbird_http;
 pub mod squirrel_client;
 pub mod toadstool_client;

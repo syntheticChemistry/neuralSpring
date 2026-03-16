@@ -758,6 +758,21 @@ fn validate_toadstool_s86_evolution(h: &mut ValidationHarness) {
     );
 }
 
+fn bench_pair(label: &str, gpu_fn: impl FnOnce(), cpu_fn: impl FnOnce()) -> (f64, f64) {
+    let ((), gpu_t) = bench_once(&format!("{label} GPU"), gpu_fn);
+    let ((), cpu_t) = bench_once(&format!("{label} CPU"), cpu_fn);
+    (gpu_t, cpu_t)
+}
+
+fn print_bench_row(label: &str, prov: &str, gpu_us: f64, cpu_us: f64) {
+    let ratio = if cpu_us > 0.0 {
+        gpu_us / cpu_us
+    } else {
+        f64::NAN
+    };
+    eprintln!("  │ {label:<15} │ {prov:<10} │ {gpu_us:>8.1} │ {cpu_us:>8.1} │ {ratio:>7.2}× │");
+}
+
 fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     eprintln!("\n─── Cross-spring throughput benchmark ───\n");
 
@@ -765,60 +780,8 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
     let n = 256;
     let mut rng = Rng::new(99);
     let data: Vec<f64> = (0..n * n).map(|_| rng.uniform()).collect();
-
-    struct BenchResult {
-        label: &'static str,
-        provenance: &'static str,
-        gpu_us: f64,
-        cpu_us: f64,
-    }
-
-    let mut results = Vec::new();
-
-    // Matmul (neuralSpring → BarraCUDA → GPU)
-    let (_, gpu_t) = bench_once("matmul 256×256 GPU", || {
-        dispatcher.mat_mul(&data, &data, n)
-    });
-    let (_, cpu_t) = bench_once("matmul 256×256 CPU", || cpu.mat_mul(&data, &data, n));
-    results.push(BenchResult {
-        label: "matmul 256²",
-        provenance: "nS→TS",
-        gpu_us: gpu_t,
-        cpu_us: cpu_t,
-    });
-
-    // Softmax (neuralSpring → BarraCUDA → GPU)
     let flat: Vec<f64> = data[..1024].to_vec();
-    let (_, gpu_t) = bench_once("softmax 1024 GPU", || dispatcher.softmax(&flat));
-    let (_, cpu_t) = bench_once("softmax 1024 CPU", || cpu.softmax(&flat));
-    results.push(BenchResult {
-        label: "softmax 1K",
-        provenance: "nS→TS",
-        gpu_us: gpu_t,
-        cpu_us: cpu_t,
-    });
 
-    // Variance (cross-spring)
-    let (_, gpu_t) = bench_once("variance 65K GPU", || dispatcher.variance(&data));
-    let (_, cpu_t) = bench_once("variance 65K CPU", || cpu.variance(&data));
-    results.push(BenchResult {
-        label: "variance 65K",
-        provenance: "hS+nS→TS",
-        gpu_us: gpu_t,
-        cpu_us: cpu_t,
-    });
-
-    // GELU (neuralSpring → BarraCUDA → GPU)
-    let (_, gpu_t) = bench_once("GELU 1024 GPU", || dispatcher.gelu(&flat));
-    let (_, cpu_t) = bench_once("GELU 1024 CPU", || cpu.gelu(&flat));
-    results.push(BenchResult {
-        label: "GELU 1K",
-        provenance: "nS→TS",
-        gpu_us: gpu_t,
-        cpu_us: cpu_t,
-    });
-
-    // Eigh (hotSpring DF64 → BarraCUDA → GPU)
     let n_eig = 32;
     let mut sym: Vec<f64> = (0..n_eig * n_eig).map(|_| rng.uniform() - 0.5).collect();
     for i in 0..n_eig {
@@ -826,97 +789,85 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
             sym[j * n_eig + i] = sym[i * n_eig + j];
         }
     }
-    let (_, gpu_t) = bench_once("eigh 32×32 GPU", || dispatcher.eigh(&sym, n_eig));
-    let (_, cpu_t) = bench_once("eigh 32×32 CPU", || cpu.eigh(&sym, n_eig));
-    results.push(BenchResult {
-        label: "eigh 32²",
-        provenance: "hS→TS",
-        gpu_us: gpu_t,
-        cpu_us: cpu_t,
-    });
 
-    // Frobenius norm (neuralSpring → BarraCUDA → GPU)
-    let (_, gpu_t) = bench_once("frobenius 65K GPU", || dispatcher.frobenius_norm(&data));
-    let (_, cpu_t) = bench_once("frobenius 65K CPU", || cpu.frobenius_norm(&data));
-    results.push(BenchResult {
-        label: "frobenius 65K",
-        provenance: "nS→TS",
-        gpu_us: gpu_t,
-        cpu_us: cpu_t,
-    });
+    let mut total_gpu = 0.0_f64;
+    let mut total_cpu = 0.0_f64;
+    let mut count = 0_usize;
 
-    // Print benchmark table
-    eprintln!("\n  ┌─────────────────┬────────────┬──────────┬──────────┬──────────┐");
+    eprintln!("  ┌─────────────────┬────────────┬──────────┬──────────┬──────────┐");
     eprintln!("  │ Operation       │ Provenance │  GPU µs  │  CPU µs  │ Ratio    │");
     eprintln!("  ├─────────────────┼────────────┼──────────┼──────────┼──────────┤");
-    for r in &results {
-        let ratio = if r.cpu_us > 0.0 {
-            r.gpu_us / r.cpu_us
-        } else {
-            f64::NAN
-        };
-        eprintln!(
-            "  │ {:<15} │ {:<10} │ {:>8.1} │ {:>8.1} │ {:>7.2}× │",
-            r.label, r.provenance, r.gpu_us, r.cpu_us, ratio
-        );
+
+    macro_rules! bench_row {
+        ($label:expr, $prov:expr, $gpu:expr, $cpu:expr) => {{
+            let (g, c) = bench_pair(
+                $label,
+                || {
+                    let _ = $gpu;
+                },
+                || {
+                    let _ = $cpu;
+                },
+            );
+            print_bench_row($label, $prov, g, c);
+            total_gpu += g;
+            total_cpu += c;
+            count += 1;
+        }};
     }
+
+    bench_row!(
+        "matmul 256²",
+        "nS→TS",
+        dispatcher.mat_mul(&data, &data, n),
+        cpu.mat_mul(&data, &data, n)
+    );
+    bench_row!(
+        "softmax 1K",
+        "nS→TS",
+        dispatcher.softmax(&flat),
+        cpu.softmax(&flat)
+    );
+    bench_row!(
+        "variance 65K",
+        "hS+nS→TS",
+        dispatcher.variance(&data),
+        cpu.variance(&data)
+    );
+    bench_row!("GELU 1K", "nS→TS", dispatcher.gelu(&flat), cpu.gelu(&flat));
+    bench_row!(
+        "eigh 32²",
+        "hS→TS",
+        dispatcher.eigh(&sym, n_eig),
+        cpu.eigh(&sym, n_eig)
+    );
+    bench_row!(
+        "frobenius 65K",
+        "nS→TS",
+        dispatcher.frobenius_norm(&data),
+        cpu.frobenius_norm(&data)
+    );
+
     eprintln!("  └─────────────────┴────────────┴──────────┴──────────┴──────────┘");
 
-    let total_gpu: f64 = results.iter().map(|r| r.gpu_us).sum();
-    let total_cpu: f64 = results.iter().map(|r| r.cpu_us).sum();
     h.check_bool(
-        &format!(
-            "bench: {}/{} ops timed (total GPU {total_gpu:.0}µs, CPU {total_cpu:.0}µs)",
-            results.len(),
-            results.len()
-        ),
-        results.len() == 6,
+        &format!("bench: {count}/6 ops timed (total GPU {total_gpu:.0}µs, CPU {total_cpu:.0}µs)"),
+        count == 6,
     );
 }
 
 fn report_provenance_summary() {
-    eprintln!("\n═══ Cross-Spring Evolution Provenance Summary (S112) ═══");
-    eprintln!();
-    eprintln!("  Source Spring    → ToadStool/BarraCUDA Layer    → neuralSpring Usage");
-    eprintln!("  ─────────────────────────────────────────────────────────────────────");
-    eprintln!("  hotSpring        → DF64 core, Fp64Strategy,     → Dispatcher GPU path,");
-    eprintln!("                     split_workgroups, lattice       eigh/eigensolve,");
-    eprintln!("                     QCD, universal precision,       compile_shader_universal,");
-    eprintln!("                     DF64 ML shaders (S70+),        gelu/sigmoid/softmax_df64,");
-    eprintln!("                     brain arch (S80 nautilus)       NautilusBrain observations");
-    eprintln!("  wetSpring        → diversity (Shannon, Bray-    → alpha_diversity,");
-    eprintln!("                     Curtis, Simpson, chao1),       HMM chains, FST,");
-    eprintln!("                     NMF, HMM, ODE bio, ridge       chao1_classic (S70+)");
-    eprintln!("  airSpring        → regression, hydrology,       → fit_linear/quad/exp,");
-    eprintln!("                     metrics (RMSE,R²,NSE,MAE),     fao56_et0, crop_kc,");
-    eprintln!("                     moving_window, spearman,       soil_water_balance,");
-    eprintln!("                     Thornthwaite/Hamon/Makkink/    thornthwaite_et0,");
-    eprintln!("                     Turc ET₀ (S81 absorption)      hamon/makkink/turc_et0");
-    eprintln!("  groundSpring     → bootstrap (rawr_mean),       → bootstrap_ci,");
-    eprintln!("                     multinomial, MC propagation,    norm_cdf/pdf/ppf,");
-    eprintln!("                     evolution, jackknife (S70+)    kimura, jackknife");
-    eprintln!("  neuralSpring     → batch_fitness, pairwise,     → Dispatcher (47 ops),");
-    eprintln!("                     eigh, swarm_nn, matmul_ref,    graph_laplacian,");
-    eprintln!("                     SimpleMlp, ValHarness (S70+),  effective_rank, WDM MLP,");
-    eprintln!("                     SpectralNautilusBridge (S80+)  nautilus_bridge roundtrip");
-    eprintln!();
-    eprintln!("  bingoCube        → NautilusBrain, DriftMonitor, → ABSORBED into");
-    eprintln!("                     EvolutionConfig, NautilusShell   barracuda::nautilus S80");
-    eprintln!("                     (evolutionary reservoir)         (dep removed in nS S112)");
-    eprintln!();
-    eprintln!("  BarraCUDA (ToadStool S87, 2dc26792):");
-    eprintln!("    844+ WGSL shaders (f64 canonical), 37 DF64, ZERO f32-only");
-    eprintln!("    Precision enum: F16 / F32 / F64 / Df64");
-    eprintln!("    compile_shader_universal(source, precision) — one source, any hardware");
-    eprintln!("    BatchedEncoder: single CommandEncoder multi-op GPU pipeline");
-    eprintln!("    ComputeDispatch: 144 ops (76→95→111→144 across S80–S86)");
-    eprintln!("    barracuda::nautilus: evolutionary reservoir (absorbed S80)");
-    eprintln!("    barracuda::optimize: Nelder-Mead GPU, Brent, L-BFGS, Anderson accel");
-    eprintln!("    barracuda::pde: Richards PDE GPU, hydrology module split");
-    eprintln!("    S87: deep debt — FHE fixes, unsafe audit, gpu_helpers refactor");
-    eprintln!();
-    eprintln!("  neuralSpring S112: 44 upstream rewires + 205 files w/ barracuda imports");
-    eprintln!("  All springs → BarraCUDA → GPU sovereign pipeline → all springs benefit");
+    eprintln!("\n═══ Cross-Spring Provenance: 5 springs → BarraCUDA → sovereign GPU ═══\n");
+    eprintln!(
+        "  hotSpring    → DF64/Fp64Strategy/lattice QCD/nautilus → eigh, eigensolve, precision"
+    );
+    eprintln!(
+        "  wetSpring    → diversity/HMM/NMF/ODE bio/chao1       → alpha_diversity, FST chains"
+    );
+    eprintln!("  airSpring    → regression/hydrology/metrics           → ET₀ (5 methods), fit_*");
+    eprintln!("  groundSpring → bootstrap/multinomial/jackknife        → bootstrap_ci, norm_*");
+    eprintln!("  neuralSpring → batch_fitness/pairwise/eigh/swarm_nn  → Dispatcher (47 ops)");
+    eprintln!("  BarraCUDA v0.3.5: 719+ WGSL, 144 ComputeDispatch ops, nautilus absorbed S80");
     eprintln!();
 }
 

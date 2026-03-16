@@ -204,9 +204,8 @@ pub async fn discover_data_primal_and_forward(
                     .trim_end_matches(".sock")
                     .rsplit_once('-')
                     .map_or_else(|| name_str.trim_end_matches(".sock"), |(base, _)| base);
-                match forward_to_primal(primal, method, params).await {
-                    Ok(resp) => return Ok(resp),
-                    Err(_) => continue,
+                if let Ok(resp) = forward_to_primal(primal, method, params).await {
+                    return Ok(resp);
                 }
             }
         }
@@ -221,17 +220,18 @@ pub async fn discover_data_primal_and_forward(
 async fn probe_capabilities(socket_path: &std::path::Path) -> Vec<String> {
     let resp = forward_to_primal_raw(socket_path, "capability.list", &serde_json::json!({})).await;
 
-    match resp {
-        Ok(v) => v
-            .get("result")
-            .and_then(|r| r.get("capabilities"))
-            .and_then(|c| c.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
-            })
-            .unwrap_or_default(),
-        Err(_) => Vec::new(),
-    }
+    resp.map_or_else(
+        |_| Vec::new(),
+        |v| {
+            v.get("result")
+                .and_then(|r| r.get("capabilities"))
+                .and_then(|c| c.as_array())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|v| v.as_str().map(String::from))
+                        .collect()
+                })
+                .unwrap_or_default()
+        },
+    )
 }

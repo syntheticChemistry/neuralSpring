@@ -98,8 +98,8 @@ pub fn handle_spectral_analysis(
     let decomp = eigh_householder_qr(&h, n);
 
     let ipr_val = mean_ipr(&decomp.eigenvectors, n);
-    let mut evals = decomp.eigenvalues.clone();
-    evals.sort_by(|a, b| a.total_cmp(b));
+    let mut evals = decomp.eigenvalues;
+    evals.sort_by(f64::total_cmp);
     let lsr = neural_spring::weight_spectral::level_spacing_ratio(&evals);
     let bw = neural_spring::weight_spectral::spectral_bandwidth(&evals);
     let cond = neural_spring::weight_spectral::spectral_condition_number(&evals);
@@ -137,7 +137,7 @@ pub fn handle_anderson_localization(
         let (eigenvalues, eigenvectors) = jacobi_eigh(&h, n);
         let ipr_val = mean_ipr(&eigenvectors, n);
         let mut sorted_evals = eigenvalues.clone();
-        sorted_evals.sort_by(|a, b| a.total_cmp(b));
+        sorted_evals.sort_by(f64::total_cmp);
         let lsr = neural_spring::weight_spectral::level_spacing_ratio(&sorted_evals);
 
         let bw = neural_spring::weight_spectral::spectral_bandwidth(&sorted_evals);
@@ -173,30 +173,24 @@ pub fn handle_hessian_eigen(id: serde_json::Value, params: &serde_json::Value) -
         .and_then(|v| v.as_str())
         .unwrap_or("quadratic");
 
-    let hessian: Vec<f64> = match surface {
-        "rosenbrock" => {
-            let mut h = vec![0.0; n * n];
-            for i in 0..n {
-                h[i * n + i] = 200.0 + 2.0;
-                if i + 1 < n {
-                    h[i * n + i + 1] = -200.0;
-                    h[(i + 1) * n + i] = -200.0;
-                }
+    let mut hessian = vec![0.0; n * n];
+    if surface == "rosenbrock" {
+        for i in 0..n {
+            hessian[i * n + i] = 202.0;
+            if i + 1 < n {
+                hessian[i * n + i + 1] = -200.0;
+                hessian[(i + 1) * n + i] = -200.0;
             }
-            h
         }
-        _ => {
-            let mut h = vec![0.0; n * n];
-            for i in 0..n {
-                h[i * n + i] = (i + 1) as f64;
-            }
-            h
+    } else {
+        for i in 0..n {
+            hessian[i * n + i] = (i + 1) as f64;
         }
-    };
+    }
 
     let decomp = eigh_householder_qr(&hessian, n);
-    let mut evals = decomp.eigenvalues.clone();
-    evals.sort_by(|a, b| a.total_cmp(b));
+    let mut evals = decomp.eigenvalues;
+    evals.sort_by(f64::total_cmp);
     let entropy = neural_spring::primitives::shannon_entropy(&evals);
     let trace: f64 = evals.iter().sum();
     let cond = neural_spring::weight_spectral::spectral_condition_number(&evals);
@@ -293,7 +287,7 @@ pub fn handle_training_trajectory(
         let decomp = eigh_householder_qr(&w, dim);
         let ipr_val = mean_ipr(&decomp.eigenvectors, dim);
         let mut evals = decomp.eigenvalues.clone();
-        evals.sort_by(|a, b| a.total_cmp(b));
+        evals.sort_by(f64::total_cmp);
         let entropy = neural_spring::primitives::shannon_entropy(&evals);
         let lsr = neural_spring::weight_spectral::level_spacing_ratio(&evals);
         let phase = neural_spring::weight_spectral::classify_phase(lsr);
@@ -324,16 +318,29 @@ pub fn handle_training_trajectory(
 // Typed parameter extraction (replaces raw unwrap_or chains)
 // ═══════════════════════════════════════════════════════════════════
 
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "JSON dimension params are small (≤10_000); u64→usize safe on all targets"
+)]
 fn params_usize(params: &serde_json::Value, key: &str, default: u64) -> usize {
-    params.get(key).and_then(|v| v.as_u64()).unwrap_or(default) as usize
+    params
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(default) as usize
 }
 
 fn params_f64(params: &serde_json::Value, key: &str, default: f64) -> f64 {
-    params.get(key).and_then(|v| v.as_f64()).unwrap_or(default)
+    params
+        .get(key)
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(default)
 }
 
 fn params_u64(params: &serde_json::Value, key: &str, default: u64) -> u64 {
-    params.get(key).and_then(|v| v.as_u64()).unwrap_or(default)
+    params
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(default)
 }
 
 fn params_f64_vec(params: &serde_json::Value, key: &str, default: &[f64]) -> Vec<f64> {

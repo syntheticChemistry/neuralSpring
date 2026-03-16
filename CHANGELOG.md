@@ -5,7 +5,33 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 156 (March 16, 2026)
+## [Unreleased] — Session 157 (March 16, 2026)
+
+### Session 157 — Deep Debt + Idiomatic Rust + Tower Atomic (2026-03-16)
+
+**Zero C dependencies achieved.** 5 blanket lint suppressions eliminated, primal binary
+refactored, error handling evolved, Tower Atomic HTTP via Songbird IPC:
+
+- **TOWER ATOMIC**: `playGround/src/songbird_http.rs` — HTTP routed through Songbird via
+  `http.request` IPC capability. `reqwest` + `ring` completely removed from workspace.
+  `hf_hub.rs` rewritten to use `SongbirdHttp`. Zero compile-time HTTP deps, zero C deps.
+- **LINT**: 5 binaries evolved from blanket `#![expect(clippy::pedantic,...)]` to targeted
+  `#[expect()]` with documented reasons: `neuralspring_primal/main.rs`,
+  `validate_alphafold2_evoformer.rs`, `validate_multi_head_esn.rs`,
+  `validate_gpu_ode_batch.rs`, `validate_training_monitor.rs`.
+- **REFACTOR**: `neuralspring_primal/main.rs` — 3 functions extracted
+  (`push_petaltongue_scenario`, `spawn_lifecycle_tasks`, `accept_loop`).
+  `std::env::set_var` eliminated (deprecated Rust 2024). Sub-modules cleaned:
+  `discovery.rs`, `folding.rs`, `spectral.rs`.
+- **ERROR**: `expect()`/`unwrap()`/`panic!()` replaced with `Result<()>`, `let...else`,
+  `process::exit(1)` in `dump_neuralspring_scenarios.rs`, `validate_gpu_ode_batch.rs`,
+  `neuralspring_primal/main.rs`.
+- **FILE SIZE**: `validate_modern_cross_spring.rs` 949→865 LOC (`bench_row!` macro,
+  `bench_pair` helper). `validate_gpu_pure_workload_all.rs` — `check_gpu_f32_mean` extracted.
+- **DEPS**: `bytemuck` 1.14→1.21 (metalForge/forge), hardcoded `sandbox/scenarios` →
+  `NEURALSPRING_SCENARIO_DIR` env var, Kokkos benchmark provenance documented.
+- V108 handoff. V107 archived.
+- 1128 lib tests, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs.
 
 ### Session 156 — Comprehensive Audit + IPC Discovery Fixes + Deep Debt (2026-03-16)
 

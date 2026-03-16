@@ -4,11 +4,14 @@
 //!
 //! Exercises the hotSpring cross-spring evolution:
 //! - Attention state machine (GREEN/YELLOW/RED)
-//! - BrainInterrupt pattern (Continue, ReduceLearningRate, EarlyStop)
-//! - DriftMonitor integration for training populations
-//! - SpectralNautilusBridge training epoch observation
+//! - `BrainInterrupt` pattern (Continue, `ReduceLearningRate`, `EarlyStop`)
+//! - `DriftMonitor` integration for training populations
+//! - `SpectralNautilusBridge` training epoch observation
 
-#![expect(clippy::pedantic, clippy::nursery, reason = "validation binary")]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "loop index i (≤20) fits exactly in f64"
+)]
 
 use neural_spring::nautilus_bridge::SpectralNautilusBridge;
 use neural_spring::training_monitor::{AttentionState, TrainingInterrupt, TrainingMonitor};
@@ -122,8 +125,12 @@ fn validate_nautilus_training_bridge(h: &mut ValidationHarness) {
     let mut bridge = SpectralNautilusBridge::new("training-test");
 
     for i in 0..10 {
-        let loss = 1.0 / (i as f64 + 1.0);
-        let spectral = synthetic_spectral(1.0 + i as f64 * 0.1, 0.3, 0.45 + i as f64 * 0.01);
+        let loss = 1.0 / (f64::from(i) + 1.0);
+        let spectral = synthetic_spectral(
+            f64::from(i).mul_add(0.1, 1.0),
+            0.3,
+            f64::from(i).mul_add(0.01, 0.45),
+        );
         bridge.observe_training_epoch(loss, &spectral);
     }
 

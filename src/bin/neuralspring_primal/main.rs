@@ -29,13 +29,8 @@
 //! Socket: `$XDG_RUNTIME_DIR/biomeos/neuralspring-{family_id}.sock`
 
 #![expect(
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::expect_used,
-    clippy::too_many_lines,
-    clippy::cast_possible_truncation,
     clippy::similar_names,
-    reason = "validation binary"
+    reason = "cli / state / reader / writer naming mirrors JSON-RPC protocol terms"
 )]
 
 mod biomeos;
@@ -79,7 +74,7 @@ struct Cli {
 enum Commands {
     /// Start the JSON-RPC server (Tower mode, default)
     Serve {
-        /// Override family ID (default: $FAMILY_ID or "default")
+        /// Override family ID (default: $`FAMILY_ID` or "default")
         #[arg(long)]
         family_id: Option<String>,
     },
@@ -194,15 +189,16 @@ async fn main() -> Result<()> {
             }
             return Ok(());
         }
-        Some(Commands::Serve {
-            family_id: Some(id),
-        }) => {
-            std::env::set_var("FAMILY_ID", id);
-        }
-        Some(Commands::Serve { family_id: None }) | None => {}
+        Some(Commands::Serve { .. }) | None => {}
     }
 
-    let family_id = discovery::get_family_id();
+    let cli_family = match &cli.command {
+        Some(Commands::Serve {
+            family_id: Some(id),
+        }) => Some(id.clone()),
+        _ => None,
+    };
+    let family_id = cli_family.unwrap_or_else(discovery::get_family_id);
     let socket_path = discovery::resolve_socket_path(&family_id);
 
     if let Some(parent) = socket_path.parent() {
@@ -243,13 +239,17 @@ async fn main() -> Result<()> {
     }
 
     biomeos::register_with_biomeos(&socket_path).await;
+    push_petaltongue_scenario(&family_id);
+    spawn_lifecycle_tasks(&socket_path);
 
-    // Optional petalTongue integration: push a full-study scenario on startup.
-    // If petalTongue is unavailable, this silently skips (no compile-time dep).
+    accept_loop(listener, state).await
+}
+
+fn push_petaltongue_scenario(family_id: &str) {
     match neural_spring::visualization::PetalTonguePushClient::discover() {
         Ok(client) => {
             let (scenario, edges) = neural_spring::visualization::full_study();
-            let mut merged = scenario.clone();
+            let mut merged = scenario;
             merged.edges.extend_from_slice(&edges);
             match client.push_render(
                 &format!("neuralspring-{family_id}"),
@@ -264,11 +264,13 @@ async fn main() -> Result<()> {
             eprintln!("[petaltongue] Not found (optional, skipping visualization push)");
         }
     }
+}
 
-    let heartbeat_socket = socket_path.clone();
+fn spawn_lifecycle_tasks(socket_path: &std::path::Path) {
+    let heartbeat_socket = socket_path.to_path_buf();
     tokio::spawn(biomeos::heartbeat_loop(heartbeat_socket));
 
-    let shutdown_socket = socket_path.clone();
+    let shutdown_socket = socket_path.to_path_buf();
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.ok();
         eprintln!("\n[shutdown] SIGINT received, deregistering...");
@@ -279,12 +281,13 @@ async fn main() -> Result<()> {
 
     #[cfg(unix)]
     {
-        let sigterm_socket = socket_path.clone();
+        let sigterm_socket = socket_path.to_path_buf();
         tokio::spawn(async move {
-            let mut sig = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-                .expect(
-                    "SIGTERM handler registration requires a tokio runtime with signal support",
-                );
+            let Ok(mut sig) =
+                tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            else {
+                return;
+            };
             sig.recv().await;
             eprintln!("\n[shutdown] SIGTERM received, deregistering...");
             biomeos::deregister_from_nucleus(&sigterm_socket).await;
@@ -292,7 +295,9 @@ async fn main() -> Result<()> {
             std::process::exit(0);
         });
     }
+}
 
+async fn accept_loop(listener: UnixListener, state: Arc<PrimalState>) -> Result<()> {
     let max_concurrent: usize = std::env::var("PRIMAL_MAX_CONCURRENT")
         .or_else(|_| std::env::var("NEURALSPRING_MAX_CONCURRENT"))
         .ok()

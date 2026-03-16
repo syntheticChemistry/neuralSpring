@@ -282,15 +282,12 @@ pub fn handle_gpu_dispatch(
     params: &serde_json::Value,
     state: &PrimalState,
 ) -> JsonRpcResponse {
-    let op = match params.get("op").and_then(|v| v.as_str()) {
-        Some(o) => o,
-        None => {
-            return JsonRpcResponse::error(
-                id,
-                super::rpc::error_code::INVALID_PARAMS,
-                "Missing 'op' parameter".into(),
-            )
-        }
+    let Some(op) = params.get("op").and_then(|v| v.as_str()) else {
+        return JsonRpcResponse::error(
+            id,
+            super::rpc::error_code::INVALID_PARAMS,
+            "Missing 'op' parameter".into(),
+        );
     };
 
     match op {
@@ -435,12 +432,22 @@ fn extract_f64_vec(params: &serde_json::Value, key: &str) -> Option<Vec<f64>> {
         .and_then(|v| serde_json::from_value(v.clone()).ok())
 }
 
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "JSON dimension params are small (≤10_000); u64→usize safe on all targets"
+)]
 fn p_usize(params: &serde_json::Value, key: &str, default: u64) -> usize {
-    params.get(key).and_then(|v| v.as_u64()).unwrap_or(default) as usize
+    params
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(default) as usize
 }
 
 fn p_u64(params: &serde_json::Value, key: &str, default: u64) -> u64 {
-    params.get(key).and_then(|v| v.as_u64()).unwrap_or(default)
+    params
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(default)
 }
 
 fn rand_vec(rng: &mut Rng, n: usize) -> Vec<f64> {

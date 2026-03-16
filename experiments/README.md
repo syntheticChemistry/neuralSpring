@@ -5154,4 +5154,53 @@ with real computation, Nest records substrate/timing provenance.
 
 ---
 
+## Session 157 — Deep Debt + Idiomatic Rust + Tower Atomic (Zero C Deps)
+
+**Date**: 2026-03-16
+**Session**: S157
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | 5 blanket `#![expect(clippy::pedantic,...)]` evolved to targeted `#[expect()]` with documented reasons across 5 binaries |
+| **Phase 2** | Primal binary smart-refactored: 3 function extractions, `std::env::set_var` eliminated, SIGTERM handler evolved, discovery/folding/spectral sub-modules cleaned |
+| **Phase 3** | Error handling evolution: `expect()`/`unwrap()`/`panic!()` → `Result<()>`, `let...else`, `process::exit(1)` |
+| **Phase 4** | Large file refactoring: `validate_modern_cross_spring` 949→865 LOC (`bench_row!` macro), `validate_gpu_pure_workload_all` `check_gpu_f32_mean` extraction |
+| **Phase 5** | **Tower Atomic evolution**: reqwest+ring removed, `songbird_http` module routes all HTTP through Songbird IPC. Zero C dependencies in entire workspace |
+| **Phase 6** | Dependency fixes: `bytemuck` 1.14→1.21 alignment, hardcoded paths → env vars, Kokkos placeholder provenance documented |
+| **Phase 7** | Root docs, handoffs, baseCamp, experiments, specs, gen3 baseCamp updated. V108 handoff |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Blanket lint suppressions eliminated | 5 binaries |
+| Functions extracted (primal binary) | 3 (`push_petaltongue_scenario`, `spawn_lifecycle_tasks`, `accept_loop`) |
+| Production `expect()`/`panic!()` eliminated | 5 |
+| Largest file reduction | 949 → 865 LOC (validate_modern_cross_spring) |
+| C dependencies eliminated | reqwest, ring, rustls (all via Tower Atomic) |
+| New modules | 1 (`playGround/src/songbird_http.rs`) |
+| Lib tests | 1128 |
+| Clippy warnings (pedantic+nursery, -D warnings) | 0 |
+| Format diffs | 0 |
+
+### Exp 113 — Deep Debt + Idiomatic Rust Evolution
+
+**Date**: 2026-03-16
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Execute on all audit findings from S156. Evolve to modern idiomatic Rust, eliminate C dependencies, refactor large files smart (not just split), evolve unsafe/error-prone patterns.
+**Procedure**: Removed blanket lint suppressions from 5 binaries, ran `cargo clippy --fix` to expose specific issues, applied targeted `#[expect()]` with reasons. Refactored primal main.rs (147→split functions). Replaced `std::env::set_var` (deprecated Rust 2024) with value passing. Evolved HfHub from reqwest to Tower Atomic (Songbird IPC). Extracted bench_row! macro for validation benchmark boilerplate. Verified zero warnings, zero format diffs, 1128 tests pass.
+**Findings**: The Tower Atomic pattern (BearDog + Songbird = Pure Rust HTTPS) cleanly replaces reqwest for all HTTP use cases. Model downloads use `download_to_file` (Songbird writes to disk), API calls use `get_json`. The blanket pedantic suppressions were masking only 3-5 actual issues per binary — most code was already pedantic-clean. The `bench_row!` macro eliminated ~60 lines of repetitive benchmark timing code while improving readability.
+
+### Exp 114 — Root Docs + Handoff + Gen3 baseCamp Update
+
+**Date**: 2026-03-16
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Sync all documentation to V108 state. Archive superseded V107 handoff. Update ecosystem-level docs. Craft toadStool/barraCuda absorption handoff.
+**Procedure**: Updated README.md, whitePaper/baseCamp/README.md, specs/BARRACUDA_REQUIREMENTS.md (v0.3.3→v0.3.5 refs), wateringHole/README.md (V108 active, V107 archived), experiments journal (S157 + Exp 113-114), ecoPrimals/whitePaper/gen3/baseCamp/README.md, PRIMAL_REGISTRY.md (neuralSpring V108/S157).
+**Findings**: Documentation was 2 sessions behind (referencing V106/S155). Gen3 baseCamp referenced S156 but not S157. PRIMAL_REGISTRY had neuralSpring at V98/S145 — significantly stale; updated to V108/S157 with Tower Atomic and zero C deps highlights.
+
+---
+
 *Experiment journals — following the hotSpring pattern.*

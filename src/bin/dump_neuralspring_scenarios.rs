@@ -2,13 +2,8 @@
 
 //! Dump neuralSpring visualization scenarios to JSON files.
 //!
-//! Generates scenario JSON in `sandbox/scenarios/` for offline rendering
-//! by petalTongue: `petaltongue ui --scenario sandbox/scenarios/neuralspring-full-study.json`
-
-#![expect(
-    clippy::expect_used,
-    reason = "standalone utility binary — panics on I/O failure are acceptable"
-)]
+//! Generates scenario JSON for offline rendering by petalTongue:
+//! `petaltongue ui --scenario sandbox/scenarios/neuralspring-full-study.json`
 
 use neural_spring::visualization::{
     attention_anderson_study, composition_study, coordination_study, digester_anderson_study,
@@ -19,8 +14,12 @@ use neural_spring::visualization::{
 };
 
 fn main() {
-    let dir = "sandbox/scenarios";
-    std::fs::create_dir_all(dir).expect("create sandbox/scenarios/");
+    let dir = std::env::var("NEURALSPRING_SCENARIO_DIR")
+        .unwrap_or_else(|_| "sandbox/scenarios".to_owned());
+    if let Err(e) = std::fs::create_dir_all(&dir) {
+        eprintln!("ERROR: cannot create {dir}: {e}");
+        std::process::exit(1);
+    }
 
     let studies: Vec<(&str, _)> = vec![
         ("neuralspring-spectral-study", spectral_study()),
@@ -53,7 +52,10 @@ fn main() {
     for (name, (scenario, edges)) in &studies {
         let json = scenario_with_edges_json(scenario, edges);
         let path = format!("{dir}/{name}.json");
-        std::fs::write(&path, &json).unwrap_or_else(|e| panic!("write {path}: {e}"));
+        if let Err(e) = std::fs::write(&path, &json) {
+            eprintln!("ERROR: write {path}: {e}");
+            std::process::exit(1);
+        }
         println!(
             "{path}: {} nodes, {} edges, {} bytes",
             scenario.ecosystem.primals.len(),

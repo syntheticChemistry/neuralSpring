@@ -3,18 +3,21 @@
 //! `HuggingFace` Hub client for downloading model files.
 //!
 //! Downloads `config.json` and `*.safetensors` files from HF Hub
-//! using the REST API. Supports authentication via HF token.
+//! using the REST API. Routes all HTTP through the Tower Atomic stack
+//! (Songbird) via IPC — zero direct HTTP dependencies, zero C deps.
 
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
+use crate::songbird_http::SongbirdHttp;
+
 const HF_API_BASE: &str = "https://huggingface.co/api/models";
 const HF_DOWNLOAD_BASE: &str = "https://huggingface.co";
 
-/// `HuggingFace` Hub client.
+/// `HuggingFace` Hub client routed through Tower Atomic (Songbird).
 pub struct HfHub {
-    client: reqwest::Client,
+    http: SongbirdHttp,
     cache_dir: PathBuf,
 }
 
@@ -41,44 +44,26 @@ pub struct HfSibling {
 
 impl HfHub {
     /// Create a new Hub client with optional authentication.
+    ///
+    /// Discovers Songbird at runtime for all HTTP operations.
     pub fn new(token: Option<&str>, cache_dir: PathBuf) -> Result<Self> {
-        let mut headers = reqwest::header::HeaderMap::new();
+        let mut http =
+            SongbirdHttp::discover().context("HfHub requires Songbird (Tower Atomic) for HTTP")?;
+
         if let Some(t) = token {
-            headers.insert(
-                reqwest::header::AUTHORIZATION,
-                reqwest::header::HeaderValue::from_str(&format!("Bearer {t}"))
-                    .context("invalid token")?,
-            );
+            http.set_header("Authorization", format!("Bearer {t}"));
         }
 
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .user_agent("neuralSpring-playGround/0.1.0")
-            .build()
-            .context("building HTTP client")?;
-
-        Ok(Self { client, cache_dir })
+        Ok(Self { http, cache_dir })
     }
 
     /// Fetch model metadata from HF Hub.
     pub async fn model_info(&self, model_id: &str) -> Result<ModelInfo> {
         let url = format!("{HF_API_BASE}/{model_id}");
-        let resp = self
-            .client
-            .get(&url)
-            .send()
+        self.http
+            .get_json(&url)
             .await
-            .with_context(|| format!("fetching model info for {model_id}"))?;
-
-        if !resp.status().is_success() {
-            anyhow::bail!(
-                "HF Hub returned {} for {model_id}: {}",
-                resp.status(),
-                resp.text().await.unwrap_or_default()
-            );
-        }
-
-        resp.json::<ModelInfo>().await.context("parsing model info")
+            .with_context(|| format!("fetching model info for {model_id}"))
     }
 
     /// List safetensors files in a model.
@@ -104,7 +89,6 @@ impl HfHub {
             return Ok(dest);
         }
 
-        // Ensure parent dirs exist for nested filenames
         if let Some(parent) = dest.parent() {
             tokio::fs::create_dir_all(parent).await?;
         }
@@ -112,24 +96,13 @@ impl HfHub {
         let url = format!("{HF_DOWNLOAD_BASE}/{model_id}/resolve/main/{filename}");
         log::info!("Downloading {url} -> {}", dest.display());
 
-        let resp = self
-            .client
-            .get(&url)
-            .send()
+        let bytes = self
+            .http
+            .download_to_file(&url, &dest)
             .await
             .with_context(|| format!("downloading {filename} from {model_id}"))?;
 
-        if !resp.status().is_success() {
-            anyhow::bail!(
-                "HF download returned {} for {model_id}/{filename}",
-                resp.status()
-            );
-        }
-
-        let bytes = resp.bytes().await?;
-        tokio::fs::write(&dest, &bytes).await?;
-
-        log::info!("Downloaded {} bytes -> {}", bytes.len(), dest.display());
+        log::info!("Downloaded {bytes} bytes -> {}", dest.display());
         Ok(dest)
     }
 
@@ -144,23 +117,23 @@ impl HfHub {
         let filenames: Vec<String> = info.siblings.iter().map(|s| s.filename.clone()).collect();
 
         for filename in &filenames {
-            let dominated = filename.as_str();
-            let should_download = dominated == "config.json"
-                || dominated.ends_with(".safetensors")
-                || dominated == "tokenizer.json"
-                || dominated == "tokenizer_config.json";
+            let name = filename.as_str();
+            let should_download = name == "config.json"
+                || name.ends_with(".safetensors")
+                || name == "tokenizer.json"
+                || name == "tokenizer_config.json";
 
             if !should_download {
                 continue;
             }
 
-            let path = self.download_file(model_id, dominated).await?;
+            let path = self.download_file(model_id, name).await?;
 
-            if dominated == "config.json" {
+            if name == "config.json" {
                 config_path = Some(path);
-            } else if dominated.ends_with(".safetensors") {
+            } else if name.ends_with(".safetensors") {
                 safetensor_paths.push(path);
-            } else if dominated == "tokenizer.json" {
+            } else if name == "tokenizer.json" {
                 tokenizer_path = Some(path);
             }
         }
@@ -216,20 +189,6 @@ mod tests {
     }
 
     #[test]
-    fn model_cache_dir_normalizes_slashes() {
-        let hub = HfHub::new(None, PathBuf::from("/tmp/hf_test")).unwrap();
-        let dir = hub.model_cache_dir("openai-community/gpt2");
-        assert_eq!(dir, PathBuf::from("/tmp/hf_test/openai-community--gpt2"));
-    }
-
-    #[test]
-    fn model_cache_dir_handles_simple_id() {
-        let hub = HfHub::new(None, PathBuf::from("/tmp/hf_test")).unwrap();
-        let dir = hub.model_cache_dir("bert-base-uncased");
-        assert_eq!(dir, PathBuf::from("/tmp/hf_test/bert-base-uncased"));
-    }
-
-    #[test]
     fn model_files_is_complete() {
         let complete = ModelFiles {
             model_id: "test".into(),
@@ -260,17 +219,5 @@ mod tests {
             tokenizer: None,
         };
         assert!(!no_weights.is_complete());
-    }
-
-    #[test]
-    fn hub_client_creates_without_token() {
-        let hub = HfHub::new(None, PathBuf::from("/tmp/hf_test"));
-        assert!(hub.is_ok());
-    }
-
-    #[test]
-    fn hub_client_creates_with_token() {
-        let hub = HfHub::new(Some("hf_test_token"), PathBuf::from("/tmp/hf_test"));
-        assert!(hub.is_ok());
     }
 }

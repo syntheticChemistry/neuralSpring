@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: March 15, 2026 (Sessions 44–152 — 220/220 validate_all, 55/55 dispatch parity, 260 binaries, 1115 lib tests, barraCuda v0.3.5 at `0649cd0`, 46 upstream rewires, V103 handoff)
+**Last Updated**: March 16, 2026 (Sessions 44–157 — 220/220 validate_all, 55/55 dispatch parity, 260 binaries, 1128 lib tests, barraCuda v0.3.5 at `0649cd0`, 46 upstream rewires, V108 handoff)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---
@@ -58,7 +58,7 @@
 |------|-------|-----------|--------|
 | **MODES metric computation** | Dolson 2019 | `PairwiseL2Gpu` + `barracuda::stats::shannon` (S39+, S64) | **RESOLVED** |
 | **Phylogenetic likelihood** | Liu: SATé 2009, cophylogenetics 2023 | `FelsensteinGpu`, `FlatTree` (S39+) | **RESOLVED** |
-| **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | `barracuda::optimize::LbfgsGpu` available in barraCuda v0.3.3 (requires `gpu` feature) | **AVAILABLE** |
+| **L-BFGS optimizer** | Raissi 2019 (PINN improvement) | `barracuda::optimize::LbfgsGpu` available in barraCuda v0.3.5 (requires `gpu` feature) | **AVAILABLE** |
 | **Directed evolution framework** | Dolson 2022 (eLife) | `MultiObjFitnessGpu`, `WrightFisherGpu`, `BatchedMultinomialGpu` (S39+, S61) | **RESOLVED** |
 | **Lanczos eigensolve** | Kachkovskiy: JAMS 2016, GAFA 2018 | `BatchedEighGpu`, `eigh_f64`, `sparse_eigh` (S39+) | **RESOLVED** |
 | **Sparse matrix-vector product** | Kachkovskiy (all) | `SparseGemmF64`, `cg_solve`, `bicgstab_solve` (S39+, S52) | **RESOLVED** |
@@ -91,7 +91,7 @@ PyTorch quantized           ────────→   BarraCUDA Q4/Q8 (gemv_
 N/A                         ────────→   Evolutionary optimization (BatchFitnessGpu)  ✓
 N/A                         ────────→   HMM Viterbi (HmmBatchForwardF64+argmax)      ✓
 N/A                         ────────→   Gillespie simulation (GillespieGpu)          ✓
-N/A                         ────────→   L-BFGS optimizer (LbfgsGpu v0.3.1)           AVAILABLE
+N/A                         ────────→   L-BFGS optimizer (LbfgsGpu v0.3.5)           AVAILABLE
 
 Phase 1 (GPU)                           Phase 2 (Applications)
 ─────────────                           ──────────────────────

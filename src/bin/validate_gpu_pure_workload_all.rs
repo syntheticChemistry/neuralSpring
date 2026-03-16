@@ -594,6 +594,30 @@ fn validate_batch_ipr(h: &mut ValidationHarness, gpu: &Gpu) {
     }
 }
 
+fn check_gpu_f32_mean(
+    h: &mut ValidationHarness,
+    gpu: &Gpu,
+    label: &str,
+    out_buf: &wgpu::Buffer,
+    n: usize,
+    cpu_mean: f64,
+    tol: f64,
+) {
+    match gpu.read_buffer_f32(out_buf, n) {
+        Ok(gpu_d) => {
+            let gpu_mean: f64 =
+                gpu_d.iter().map(|&v| f64::from(v)).sum::<f64>() / gpu_d.len() as f64;
+            h.check_abs(
+                &format!("{label}: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
+                gpu_mean,
+                cpu_mean,
+                tol,
+            );
+        }
+        Err(e) => h.check_bool(&format!("{label}: {e}"), false),
+    }
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // 6. Pairwise Hamming — SATé Alignment (Paper 017)
 // ═══════════════════════════════════════════════════════════════════
@@ -627,21 +651,16 @@ fn validate_hamming(h: &mut ValidationHarness, gpu: &Gpu) {
     let device = gpu.device();
     let seqs_buf = storage_buf(device, "ham_s", bytemuck::cast_slice(&seqs));
     let out_buf = output_buf(device, "ham_out", (n_pairs * 4) as u64);
-
     op.dispatch(&seqs_buf, &out_buf, n_seqs as u32, seq_len as u32);
-
-    match gpu.read_buffer_f32(&out_buf, n_pairs) {
-        Ok(gpu_d) => {
-            let gpu_mean = gpu_d.iter().sum::<f32>() / gpu_d.len() as f32;
-            h.check_abs(
-                &format!("Hamming 6×20: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
-                f64::from(gpu_mean),
-                f64::from(cpu_mean),
-                tolerances::GPU_HAMMING_F32,
-            );
-        }
-        Err(e) => h.check_bool(&format!("Hamming: {e}"), false),
-    }
+    check_gpu_f32_mean(
+        h,
+        gpu,
+        "Hamming 6×20",
+        &out_buf,
+        n_pairs,
+        f64::from(cpu_mean),
+        tolerances::GPU_HAMMING_F32,
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -680,20 +699,15 @@ fn validate_l2(h: &mut ValidationHarness, gpu: &Gpu) {
         h.check_bool(&format!("PairwiseL2 dispatch: {e}"), false);
         return;
     }
-
-    match gpu.read_buffer_f32(&out_buf, n_pairs) {
-        Ok(gpu_d) => {
-            let gpu_mean: f64 =
-                gpu_d.iter().map(|&v| f64::from(v)).sum::<f64>() / gpu_d.len() as f64;
-            h.check_abs(
-                &format!("L2 8×6: GPU={gpu_mean:.4} vs CPU={cpu_mean:.4}"),
-                gpu_mean,
-                cpu_mean,
-                tolerances::GPU_MODES_L2_F32,
-            );
-        }
-        Err(e) => h.check_bool(&format!("L2: {e}"), false),
-    }
+    check_gpu_f32_mean(
+        h,
+        gpu,
+        "L2 8×6",
+        &out_buf,
+        n_pairs,
+        cpu_mean,
+        tolerances::GPU_MODES_L2_F32,
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -719,28 +733,21 @@ fn validate_jaccard(h: &mut ValidationHarness, gpu: &Gpu) {
     let cpu_mean = cpu_upper.iter().sum::<f64>() / cpu_upper.len() as f64;
 
     let pa_f32: Vec<f32> = pa_f64.iter().map(|&v| v as f32).collect();
-
     let op = PairwiseJaccardGpu::new(Arc::clone(gpu.wgpu_device()));
     let device = gpu.device();
     let n_pairs = n_genomes * (n_genomes - 1) / 2;
     let pa_buf = storage_buf(device, "jac_pa", bytemuck::cast_slice(&pa_f32));
     let out_buf = output_buf(device, "jac_out", (n_pairs * 4) as u64);
-
     op.dispatch(&pa_buf, &out_buf, n_genomes as u32, n_genes as u32);
-
-    match gpu.read_buffer_f32(&out_buf, n_pairs) {
-        Ok(gpu_d) => {
-            let gpu_mean: f64 =
-                gpu_d.iter().map(|&v| f64::from(v)).sum::<f64>() / gpu_d.len() as f64;
-            h.check_abs(
-                &format!("Jaccard 8×32: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
-                gpu_mean,
-                cpu_mean,
-                tolerances::GPU_JACCARD_F32,
-            );
-        }
-        Err(e) => h.check_bool(&format!("Jaccard: {e}"), false),
-    }
+    check_gpu_f32_mean(
+        h,
+        gpu,
+        "Jaccard 8×32",
+        &out_buf,
+        n_pairs,
+        cpu_mean,
+        tolerances::GPU_JACCARD_F32,
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -773,7 +780,7 @@ fn validate_locus_variance(h: &mut ValidationHarness, gpu: &Gpu) {
         Ok(gpu_v) => {
             let gpu_mean = gpu_v.iter().sum::<f64>() / gpu_v.len() as f64;
             h.check_abs(
-                &format!("locus_var 4×16: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
+                "locus_var 4×16",
                 gpu_mean,
                 cpu_mean,
                 tolerances::GPU_LOCUS_VARIANCE_F32,

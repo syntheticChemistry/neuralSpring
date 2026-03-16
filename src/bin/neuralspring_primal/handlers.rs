@@ -68,8 +68,8 @@ pub fn handle_cross_spring_benchmark(
 ) -> JsonRpcResponse {
     use std::time::Instant;
 
-    let data: Vec<f64> = (0..1024).map(|i| (i as f64) * 0.001).collect();
-    let mat: Vec<f64> = (0..16 * 16).map(|i| i as f64 * 0.01).collect();
+    let data: Vec<f64> = (0..1024).map(|i| f64::from(i) * 0.001).collect();
+    let mat: Vec<f64> = (0..16 * 16).map(|i| f64::from(i) * 0.01).collect();
 
     let t0 = Instant::now();
     let var = state.dispatcher.variance(&data);

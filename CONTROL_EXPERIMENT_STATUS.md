@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 16, 2026 (Session 156 — Full audit + 2 critical IPC discovery bugs fixed + 3 validators converted to hotSpring harness + typed BiomeOsClient + capability-based Squirrel discovery + atomic request IDs + magic tolerance eliminated + kokkos provenance enum. V107 handoff. 1301 tests. 0 warnings. 47 modules. 260 binaries. 25 absorbed workloads.)
+**Last updated**: March 16, 2026 (Session 157 — Deep debt + idiomatic Rust + Tower Atomic zero C deps. 5 blanket lint suppressions eliminated, primal binary refactored, reqwest+ring removed via Songbird IPC. V108 handoff. 1128 lib tests. 0 warnings (pedantic+nursery, -D warnings). 47 modules. 260 binaries. 25 absorbed workloads.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid

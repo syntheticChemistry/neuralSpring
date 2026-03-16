@@ -44,40 +44,30 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
-**S156: Comprehensive audit + IPC bug fixes + deep debt execution.**
+**S157: Deep debt + idiomatic Rust evolution + Tower Atomic (zero C deps).**
+5 blanket `#![expect(clippy::pedantic,...)]` evolved to targeted `#[expect()]` with reasons.
+Primal binary smart-refactored (3 function extractions, `set_var` eliminated). Error handling
+evolved (`expect()`/`panic!()` → `Result<()>`, `let...else`, `process::exit`). `validate_modern_cross_spring`
+949→865 LOC via `bench_row!` macro. **reqwest + ring completely removed** — playGround HTTP
+evolved to Tower Atomic pattern (`songbird_http` → Songbird IPC). Zero C dependencies in entire
+workspace. `bytemuck` aligned across workspace. Kokkos benchmark provenance documented.
+1128 lib tests, 0 clippy warnings (pedantic+nursery, -D warnings), 0 fmt diffs. V108 handoff.
+
+**S156: Comprehensive audit + IPC bug fixes.**
 Full codebase audit against ecosystem standards. Two critical IPC discovery bugs fixed:
 `probe_capabilities` response format mismatch (object vs array), `coralreef_bridge` returning
-manifest path instead of socket. Squirrel client evolved to capability-based discovery. Typed
-`BiomeOsClient` created (replacing ad-hoc `forward_to_primal_raw`). Atomic request ID generation
-aligned across discovery.rs and ipc_client. 3 validators converted from assert/println to
-`ValidationHarness`. Magic tolerance `1e-10` replaced with `tolerances::CROSS_LANGUAGE`. Kokkos
-parity benchmarks evolved to `ProvenanceLevel` enum. SPDX header on root `Cargo.toml`.
-1301 tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings. V107 handoff.
+manifest path instead of socket. Typed `BiomeOsClient` created. 3 validators converted to
+`ValidationHarness`. Magic tolerance `1e-10` → `tolerances::CROSS_LANGUAGE`. V107 handoff.
 
 **S155: Cross-spring absorption — primal_names, tolerances.py, provenance trio.**
 `src/primal_names.rs` (11 primal + 4 domain constants). `control/tolerances.py` (80+ shared Python
 tolerance constants). Deploy graph provenance trio (rhizoCrypt/loamSpine/sweetGrass). V106 handoff.
 
-**S154: Niche deployment architecture + cross-spring absorption.**
-`src/niche.rs` (22 capabilities, costs, semantic mappings). `graphs/neuralspring_deploy.toml`
-(5-phase capability-based deployment). Hardcoded primal names eliminated. V105 handoff.
-4 weak `#[expect()]` reasons replaced with specific justifications. 3 rustdoc link warnings fixed.
-`mock_response` in validation binary renamed to `accept_and_reply` (real IPC, not a mock).
-metalForge coralReef bridge evolved to biomeOS 5-tier socket resolution. Handoff naming convention
-fix (`ENABLE_F64_FIX` → `V95_ENABLE_F64_FIX`). V102 handoff for barraCuda/toadStool absorption.
-1115 lib + 73 forge + 61 playGround tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings.
+**S150–S154: playGround compute triangle + niche architecture + deep debt.**
+ToadStool/coralReef typed IPC clients. Hot dispatch benchmarks (7-45x). HuggingFace Model Lab.
+Squirrel MCP adapter. Niche deployment architecture. 22 capabilities, biomeOS 5-tier discovery.
 
-**S150: playGround — Compute triangle integration (ToadStool + coralReef).**
-Added typed IPC clients for ToadStool (compute orchestration) and coralReef (sovereign shader compiler).
-Refactored benchmark to support hot dispatch (reused TensorSession) — 7-45x faster than cold.
-New `neuralspring_compute_probe` binary probes all three compute tiers. Updated compare.sh for
-cold/hot side-by-side. README documents compute triangle architecture.
-
-**S149: playGround — HuggingFace Model Lab + inference benchmark.**
-GPU inference engine via barraCuda TensorSession. HuggingFace Hub client, model config parser,
-safetensors weight loader, transformer forward pass. PyTorch/CUDA benchmark baseline.
-
-**S148: playGround — Squirrel MCP adapter + interactive experiment runner.**
+**S148–S149: playGround — Squirrel MCP adapter + HuggingFace Model Lab.**
 `playGround/` workspace member: MCP adapter binary (bridges 14 science.* capabilities to Squirrel),
 interactive AI-driven experiment runner, reusable IPC client library with biomeOS 5-tier discovery.
 Squirrel evolution handoff written. Lysogeny/scyBorg awareness documented.
