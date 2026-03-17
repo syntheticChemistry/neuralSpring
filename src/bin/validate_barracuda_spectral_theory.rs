@@ -16,12 +16,12 @@
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use barracuda::spectral::{
-    almost_mathieu_hamiltonian, anderson_hamiltonian, anderson_potential, detect_bands,
-    find_all_eigenvalues, hofstadter_butterfly, lanczos, lanczos_eigenvalues, level_spacing_ratio,
-    lyapunov_averaged, lyapunov_exponent, GOLDEN_RATIO as BARRACUDA_GOLDEN, POISSON_R,
+    GOLDEN_RATIO as BARRACUDA_GOLDEN, POISSON_R, almost_mathieu_hamiltonian, anderson_hamiltonian,
+    anderson_potential, detect_bands, find_all_eigenvalues, hofstadter_butterfly, lanczos,
+    lanczos_eigenvalues, level_spacing_ratio, lyapunov_averaged, lyapunov_exponent,
 };
 use neural_spring::anderson_localization::{
-    aubry_andre_hamiltonian, jacobi_eigh, GOLDEN_RATIO as NS_GOLDEN,
+    GOLDEN_RATIO as NS_GOLDEN, aubry_andre_hamiltonian, jacobi_eigh,
 };
 use neural_spring::eigh::eigh_householder_qr;
 use neural_spring::tolerances;

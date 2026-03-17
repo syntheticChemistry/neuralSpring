@@ -34,7 +34,7 @@ use barracuda::ops::bio::hill_gate::{HillGateParams, WGSL_HILL_GATE_F64};
 use neural_spring::gpu::Gpu;
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::tolerances;
-use neural_spring::validation::{patch_pow_to_polyfill, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, patch_pow_to_polyfill};
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 

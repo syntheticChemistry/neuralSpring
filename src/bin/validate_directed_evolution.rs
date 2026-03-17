@@ -15,7 +15,7 @@ use neural_spring::directed_evolution::{
     lexicase_selection, random_selection, run_selection_experiment, tournament_selection,
     truncation_selection,
 };
-use neural_spring::validation::{mean_last_n, mean_last_n_usize, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, mean_last_n, mean_last_n_usize};
 
 fn main() {
     let mut h = ValidationHarness::new("directed_evolution");

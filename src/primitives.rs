@@ -224,11 +224,18 @@ pub fn gelu_f32(x: f32) -> f32 {
 // Softmax
 // ═══════════════════════════════════════════════════════════════════
 
-/// Numerically stable softmax over a 1-D slice.
+/// Numerically stable softmax over a 1-D slice (CPU reference).
+///
+/// Intentional CPU-reference implementation for f64 validation.
+/// Production GPU path: `barracuda::dispatch::softmax_dispatch` or
+/// `Tensor::softmax_wgsl()`.  Kept here for cross-validation and
+/// determinism tests that require bit-exact f64 softmax without
+/// GPU dispatch overhead.
 ///
 /// | GPU equivalent | Notes |
 /// |----------------|-------|
 /// | `Tensor::softmax_wgsl()` | GPU-resident f32 |
+/// | `barracuda::dispatch::softmax_dispatch` | CPU/GPU auto |
 #[must_use]
 pub fn softmax(x: &[f64]) -> Vec<f64> {
     let max = x.iter().copied().fold(f64::NEG_INFINITY, f64::max);
@@ -256,11 +263,7 @@ pub fn relu(x: f64) -> f64 {
 /// Scalar f32 `ReLU` for GPU validation.
 #[must_use]
 pub const fn relu_f32(x: f32) -> f32 {
-    if x > 0.0 {
-        x
-    } else {
-        0.0
-    }
+    if x > 0.0 { x } else { 0.0 }
 }
 
 /// Vectorized `ReLU` over a slice (allocating).
@@ -492,5 +495,75 @@ mod tests {
     #[test]
     fn log_guard_prevents_negative_infinity() {
         assert!(LOG_GUARD.ln().is_finite());
+    }
+}
+
+#[cfg(test)]
+mod proptests {
+    use super::*;
+    use crate::tolerances;
+    use proptest::prelude::*;
+
+    proptest! {
+        /// Softmax outputs always sum to 1.0 for any non-empty finite input.
+        #[test]
+        fn softmax_sums_to_one(xs in proptest::collection::vec(-100.0f64..100.0, 1..64)) {
+            let s = softmax(&xs);
+            let sum: f64 = s.iter().sum();
+            prop_assert!((sum - 1.0).abs() < tolerances::SOFTMAX_SUM,
+                "softmax sum = {sum}, expected 1.0 ± {}", tolerances::SOFTMAX_SUM);
+        }
+
+        /// Softmax outputs are always non-negative.
+        #[test]
+        fn softmax_nonnegative(xs in proptest::collection::vec(-100.0f64..100.0, 1..64)) {
+            let s = softmax(&xs);
+            for (i, &v) in s.iter().enumerate() {
+                prop_assert!(v >= 0.0, "softmax[{i}] = {v} < 0");
+            }
+        }
+
+        /// Shannon entropy is non-negative for any valid probability distribution.
+        #[test]
+        fn shannon_entropy_nonnegative(
+            xs in proptest::collection::vec(0.01f64..1.0, 2..32)
+        ) {
+            let sum: f64 = xs.iter().sum();
+            let normalized: Vec<f64> = xs.iter().map(|&x| x / sum).collect();
+            let h = shannon_entropy(&normalized);
+            prop_assert!(h >= -tolerances::EXACT_F64,
+                "shannon entropy = {h} < 0");
+        }
+
+        /// ReLU is idempotent: relu(relu(x)) == relu(x).
+        #[test]
+        fn relu_idempotent(x in -1000.0f64..1000.0) {
+            prop_assert_eq!(relu(relu(x)), relu(x));
+        }
+
+        /// ReLU preserves non-negative inputs exactly.
+        #[test]
+        fn relu_identity_for_positive(x in 0.0f64..1000.0) {
+            prop_assert_eq!(relu(x), x);
+        }
+
+        /// RK4 energy conservation: harmonic oscillator energy stays bounded
+        /// for arbitrary initial conditions.
+        #[test]
+        fn rk4_energy_bounded(
+            x0 in -10.0f64..10.0,
+            v0 in -10.0f64..10.0,
+        ) {
+            let mut state = [x0, v0];
+            let dt = 0.01;
+            let initial_energy = x0 * x0 + v0 * v0;
+            for _ in 0..100 {
+                state = rk4_step(&state, dt, |y| [-y[1], y[0]]);
+            }
+            let final_energy = state[0] * state[0] + state[1] * state[1];
+            let drift = (final_energy - initial_energy).abs();
+            prop_assert!(drift < initial_energy.max(1.0) * 0.01,
+                "energy drift = {drift}, initial = {initial_energy}");
+        }
     }
 }

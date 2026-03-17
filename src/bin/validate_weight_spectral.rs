@@ -25,9 +25,9 @@ use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::weight_spectral::{
-    activation_ipr, empirical_spectral_density, marchenko_pastur_bounds,
-    marchenko_pastur_departure, spectral_comparison, spectral_entropy, weight_spectral_analysis,
-    weight_to_hamiltonian, GOE_LEVEL_SPACING, POISSON_LEVEL_SPACING,
+    GOE_LEVEL_SPACING, POISSON_LEVEL_SPACING, activation_ipr, empirical_spectral_density,
+    marchenko_pastur_bounds, marchenko_pastur_departure, spectral_comparison, spectral_entropy,
+    weight_spectral_analysis, weight_to_hamiltonian,
 };
 
 fn random_weight_matrix(m: usize, n: usize, rng: &mut Rng) -> Vec<f64> {

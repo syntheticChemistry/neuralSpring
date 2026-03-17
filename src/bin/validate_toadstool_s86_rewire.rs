@@ -80,7 +80,7 @@ fn validate_drift_monitor(h: &mut ValidationHarness) {
     h.check_bool("DriftMonitor starts empty", drift.ne_s_history.is_empty());
     h.check_bool("DriftMonitor not drifting when empty", !drift.is_drifting());
 
-    let gen = GenerationRecord {
+    let record = GenerationRecord {
         generation: 0,
         mean_fitness: 0.5,
         best_fitness: 0.8,
@@ -88,7 +88,7 @@ fn validate_drift_monitor(h: &mut ValidationHarness) {
         origin: InstanceId("s86-test".to_string()),
         training_size: 10,
     };
-    drift.record(&gen, 100);
+    drift.record(&record, 100);
     h.check_bool(
         "DriftMonitor records ne_s entry",
         drift.ne_s_history.len() == 1,

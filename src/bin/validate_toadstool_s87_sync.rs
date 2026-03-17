@@ -37,7 +37,7 @@ use barracuda::nautilus::{
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;
-use neural_spring::validation::{exit_no_gpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, exit_no_gpu};
 
 fn validate_cpu_modules_accessible(h: &mut ValidationHarness) {
     println!("\n── CPU module accessibility (S87 ungating fix) ──");
@@ -123,7 +123,7 @@ fn validate_nautilus_s87_compat(h: &mut ValidationHarness) {
     );
 
     let mut drift = DriftMonitor::default();
-    let gen = GenerationRecord {
+    let record = GenerationRecord {
         generation: 0,
         mean_fitness: 0.5,
         best_fitness: 0.8,
@@ -131,7 +131,7 @@ fn validate_nautilus_s87_compat(h: &mut ValidationHarness) {
         origin: InstanceId("s87-test".to_string()),
         training_size: 10,
     };
-    drift.record(&gen, 100);
+    drift.record(&record, 100);
     h.check_bool("DriftMonitor records on S87", drift.ne_s_history.len() == 1);
 }
 

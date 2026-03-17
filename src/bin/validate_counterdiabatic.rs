@@ -14,8 +14,8 @@
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::counterdiabatic::{
-    boltzmann_distribution, compute_cd_schedule, interpolated_fitness, kl_divergence,
-    run_protocol_deterministic, NkLandscape,
+    NkLandscape, boltzmann_distribution, compute_cd_schedule, interpolated_fitness, kl_divergence,
+    run_protocol_deterministic,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

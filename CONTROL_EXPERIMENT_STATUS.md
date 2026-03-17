@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 16, 2026 (Session 162 — cross-ecosystem absorption: 4-format parse_capabilities, discover_primal, DispatchOutcome, resilient_call, safe_cast, zero eprintln workspace-wide. V113 handoff. 1133 lib + 70 playGround + 73 forge tests. 0 warnings. 0 unfulfilled expectations.)
+**Last updated**: March 17, 2026 (Session 163 — Edition 2024, health probes (health.liveness/health.readiness), ipc_resilience (RetryPolicy + CircuitBreaker), 6 proptest invariants, deny.toml hardened. V114 handoff. 1152 lib + 70 playGround + 73 forge tests. 0 warnings. 0 unfulfilled expectations.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 397/397 Python PASS + 4000+ Rust+GPU validation PASS = **4500+ total validation checks**
-**Library**: 1276 tests (1133 lib + 73 forge + 70 playGround) | 47 modules + config + niche + primal_names + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 260 validation/bench binaries
+**Library**: 1295 tests (1152 lib + 73 forge + 70 playGround) | 47 modules + config + niche + primal_names + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 260 validation/bench binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 6 biophysical AI modules + 11 validators (162/162 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 6/6 sub-theses PASS) — Sessions 50, 54, 56, 77, 104b, 107

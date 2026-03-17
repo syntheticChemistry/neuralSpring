@@ -25,7 +25,7 @@
 
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;
-use neural_spring::validation::{max_abs_diff_f64, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, max_abs_diff_f64};
 
 fn main() {
     let Ok(rt) = tokio::runtime::Runtime::new() else {

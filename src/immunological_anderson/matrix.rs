@@ -6,7 +6,7 @@
 //! geometry for tissue accessibility. Scores drug candidates by pathway
 //! fit, tissue penetration, and residual disorder reduction.
 
-use super::{tissue_geometry_factor, AndersonDrugScore, DrugMechanism};
+use super::{AndersonDrugScore, DrugMechanism, tissue_geometry_factor};
 
 /// Drug candidate for Anderson-augmented MATRIX scoring.
 #[derive(Debug, Clone)]

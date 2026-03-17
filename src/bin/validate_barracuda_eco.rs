@@ -19,7 +19,7 @@
 
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
-use neural_spring::eco_dynamics::{run_ea, MultiNicheLandscape};
+use neural_spring::eco_dynamics::{MultiNicheLandscape, run_ea};
 use neural_spring::validation::ValidationHarness;
 
 fn main() {

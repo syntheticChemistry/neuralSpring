@@ -44,7 +44,7 @@ use neural_spring::glucose_prediction::{
     load_glucose_from_json, r2_score, rmse, run_glucose_experiment,
 };
 use neural_spring::gpu::Gpu;
-use neural_spring::sequence::{lstm_cell, LstmWeights};
+use neural_spring::sequence::{LstmWeights, lstm_cell};
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;

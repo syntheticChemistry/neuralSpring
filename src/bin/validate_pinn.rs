@@ -18,7 +18,7 @@
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::pinn::{
-    burgers_exact_grid, burgers_exact_point, max_gradient, mlp_forward, pde_residual_fd, BURGERS_NU,
+    BURGERS_NU, burgers_exact_grid, burgers_exact_point, max_gradient, mlp_forward, pde_residual_fd,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

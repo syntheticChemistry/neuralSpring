@@ -31,7 +31,7 @@
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::require;
 use neural_spring::tolerances;
-use neural_spring::validation::{baseline_path, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, baseline_path};
 use serde_json::Value;
 
 const CROSS_LANG: f64 = tolerances::CROSS_LANGUAGE;

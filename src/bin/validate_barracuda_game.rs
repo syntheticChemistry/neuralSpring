@@ -18,7 +18,7 @@
 //! Rust baseline: `validate_game_theory`
 
 use neural_spring::game_theory::{
-    prisoners_dilemma_payoff, qs_cooperation_model, replicator_dynamics, QsConfig,
+    QsConfig, prisoners_dilemma_payoff, qs_cooperation_model, replicator_dynamics,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

@@ -16,7 +16,7 @@
     reason = "validation binary"
 )]
 
-use barracuda::dispatch::{dispatch_for, DispatchTarget};
+use barracuda::dispatch::{DispatchTarget, dispatch_for};
 use bytemuck::{Pod, Zeroable};
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;

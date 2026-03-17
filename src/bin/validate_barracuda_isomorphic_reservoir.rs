@@ -185,15 +185,13 @@ fn validate_gpu_cross_domain(
     for (_, matrix, n) in &baseline.domain_matrices {
         let n = *n;
         let mat_f32: Vec<f32> = matrix.iter().map(|&v| v as f32).collect();
-        if let Ok(t) = Tensor::from_data(&mat_f32, vec![n, n], device.clone()) {
-            if let Ok(t_trans) = t.transpose() {
-                if let Ok(product) = t.matmul_ref(&t_trans) {
-                    if let Ok(vals) = product.to_vec() {
-                        let trace: f64 = (0..n).map(|i| f64::from(vals[i * n + i])).sum();
-                        gpu_traces.push(trace);
-                    }
-                }
-            }
+        if let Ok(t) = Tensor::from_data(&mat_f32, vec![n, n], device.clone())
+            && let Ok(t_trans) = t.transpose()
+            && let Ok(product) = t.matmul_ref(&t_trans)
+            && let Ok(vals) = product.to_vec()
+        {
+            let trace: f64 = (0..n).map(|i| f64::from(vals[i * n + i])).sum();
+            gpu_traces.push(trace);
         }
     }
 

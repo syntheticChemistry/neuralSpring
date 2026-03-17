@@ -33,7 +33,7 @@
 use bytemuck::{Pod, Zeroable};
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
-use neural_spring::swarm_robotics::{create_controller, neural_forward_max_score, ControllerType};
+use neural_spring::swarm_robotics::{ControllerType, create_controller, neural_forward_max_score};
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use wgpu::util::DeviceExt;

@@ -47,7 +47,7 @@ use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::primitives;
 use neural_spring::tolerances;
 use neural_spring::transformer;
-use neural_spring::validation::{exit_no_gpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, exit_no_gpu};
 
 // ── neuralSpring origins ────────────────────────────────────────────
 
@@ -246,7 +246,9 @@ fn validate_matmul_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
 
 fn validate_rk4_evolution(h: &mut ValidationHarness) {
     println!("\n── RK4 evolution: neuralSpring → rk4_parallel.wgsl ──");
-    println!("  provenance: neuralSpring primitives::rk4_step → metalForge rk4_parallel.wgsl (GPU batch)");
+    println!(
+        "  provenance: neuralSpring primitives::rk4_step → metalForge rk4_parallel.wgsl (GPU batch)"
+    );
 
     let state = [1.0, 0.0];
     let next = primitives::rk4_step(&state, 0.01, |y| [-y[1], y[0]]);
@@ -412,7 +414,9 @@ fn validate_precision_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
 
 fn validate_uncertainty_evolution(h: &mut ValidationHarness) {
     println!("\n── uncertainty evolution: groundSpring → barracuda::stats ──");
-    println!("  provenance: groundSpring bootstrap/jackknife → barracuda::stats::bootstrap_ci, jackknife");
+    println!(
+        "  provenance: groundSpring bootstrap/jackknife → barracuda::stats::bootstrap_ci, jackknife"
+    );
 
     let data = [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0];
     let ci = barracuda::stats::bootstrap_ci(

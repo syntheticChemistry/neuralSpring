@@ -13,8 +13,8 @@
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::regulatory_network::{
-    env_params, integrate_grn, phenotype_classifier, shannon_diversity, GrnParams,
-    ENV_NUTRIENT_POOR, ENV_NUTRIENT_RICH, ENV_STRESS,
+    ENV_NUTRIENT_POOR, ENV_NUTRIENT_RICH, ENV_STRESS, GrnParams, env_params, integrate_grn,
+    phenotype_classifier, shannon_diversity,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

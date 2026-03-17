@@ -43,6 +43,9 @@ pub const CAPABILITIES: &[&str] = &[
     "science.cross_spring_provenance",
     "science.cross_spring_benchmark",
     "science.precision_routing",
+    // ── Health probes (biomeOS/Kubernetes pattern) ──
+    "health.liveness",
+    "health.readiness",
     // ── Provenance trio (biomeOS composition) ──
     "provenance.begin",
     "provenance.record",
@@ -78,6 +81,8 @@ pub fn operation_dependencies() -> serde_json::Value {
         "science.cross_spring_provenance": ["experiment_id"],
         "science.cross_spring_benchmark":  ["benchmark_suite"],
         "science.precision_routing":    ["operation", "precision_hint"],
+        "health.liveness":             [],
+        "health.readiness":            [],
         "provenance.begin":    ["experiment_name"],
         "provenance.record":   ["session_id", "step_data"],
         "provenance.complete": ["session_id"],
@@ -105,6 +110,8 @@ pub fn cost_estimates() -> serde_json::Value {
         "science.cross_spring_provenance": { "latency_ms": 10.0,  "cpu": "low",    "memory_bytes": 2048 },
         "science.cross_spring_benchmark":  { "latency_ms": 500.0, "cpu": "high",   "gpu": "preferred", "memory_bytes": 524_288 },
         "science.precision_routing":       { "latency_ms": 0.5,   "cpu": "low",    "memory_bytes": 256 },
+        "health.liveness":                 { "latency_ms": 0.1,   "cpu": "none",   "memory_bytes": 64 },
+        "health.readiness":                { "latency_ms": 0.2,   "cpu": "none",   "memory_bytes": 128 },
         "provenance.begin":    { "latency_ms": 10.0, "cpu": "low", "memory_bytes": 512 },
         "provenance.record":   { "latency_ms": 5.0,  "cpu": "low", "memory_bytes": 1024 },
         "provenance.complete": { "latency_ms": 50.0, "cpu": "medium", "memory_bytes": 2048 },
@@ -183,11 +190,12 @@ mod tests {
         let mappings = science_semantic_mappings();
         let map = mappings.as_object().unwrap();
         for cap in config::ALL_CAPABILITIES {
-            let short = cap.strip_prefix("science.").unwrap();
-            assert!(
-                map.contains_key(short),
-                "science capability '{cap}' (key '{short}') missing from semantic mappings"
-            );
+            if let Some(short) = cap.strip_prefix("science.") {
+                assert!(
+                    map.contains_key(short),
+                    "science capability '{cap}' (key '{short}') missing from semantic mappings"
+                );
+            }
         }
     }
 

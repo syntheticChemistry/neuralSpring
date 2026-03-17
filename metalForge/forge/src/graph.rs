@@ -139,8 +139,8 @@ impl PipelineGraph {
 
         let mut queue: Vec<&str> = in_degree
             .iter()
-            .filter(|(_, &deg)| deg == 0)
-            .map(|(&id, _)| id)
+            .filter(|(_, deg)| **deg == 0)
+            .map(|(id, _)| *id)
             .collect();
         queue.sort_unstable();
 

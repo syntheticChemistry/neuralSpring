@@ -67,7 +67,7 @@ struct RegParams {
 }
 
 use neural_spring::gpu::Gpu;
-use neural_spring::gpu_shader_validation::{dispatch_shader, wg1d, ShaderBinding};
+use neural_spring::gpu_shader_validation::{ShaderBinding, dispatch_shader, wg1d};
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

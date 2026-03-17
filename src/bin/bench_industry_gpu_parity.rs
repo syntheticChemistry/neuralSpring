@@ -178,10 +178,10 @@ fn bench_fft(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
     for &n in fft_sizes {
         let data: Vec<f32> = (0..n).map(|i| (i as f32) * 0.001).collect();
         let us = bench_median(WARMUP, ITERATIONS, || {
-            if let Ok(t) = Tensor::from_data(&data, vec![n], device.clone()) {
-                if let Ok(fft) = Fft1D::new(t, n as u32) {
-                    let _ = fft.execute();
-                }
+            if let Ok(t) = Tensor::from_data(&data, vec![n], device.clone())
+                && let Ok(fft) = Fft1D::new(t, n as u32)
+            {
+                let _ = fft.execute();
             }
         });
         println!("  FFT {n}: {us:.1} µs");
@@ -197,10 +197,10 @@ fn bench_fft(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
     for &n in fft_sizes {
         let data: Vec<f32> = (0..n).map(|i| (i as f32) * 0.001).collect();
         let us = bench_median(WARMUP, ITERATIONS, || {
-            if let Ok(t) = Tensor::from_data(&data, vec![n], device.clone()) {
-                if let Ok(rfft) = Rfft::new(t, n as u32) {
-                    let _ = rfft.execute();
-                }
+            if let Ok(t) = Tensor::from_data(&data, vec![n], device.clone())
+                && let Ok(rfft) = Rfft::new(t, n as u32)
+            {
+                let _ = rfft.execute();
             }
         });
         println!("  RFFT {n}: {us:.1} µs");
@@ -321,11 +321,19 @@ fn match_python_timings(results: &mut [IndustryEntry], timings: &HashMap<String,
 
 fn print_summary(results: &[IndustryEntry], adapter: &str) {
     println!();
-    println!("╔═══════════════════════════════════════════════════════════════════════════════════════════════════╗");
-    println!("║  INDUSTRY GPU PARITY — BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT (PyTorch/CUDA)                     ║");
+    println!(
+        "╔═══════════════════════════════════════════════════════════════════════════════════════════════════╗"
+    );
+    println!(
+        "║  INDUSTRY GPU PARITY — BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT (PyTorch/CUDA)                     ║"
+    );
     println!("║  Adapter: {adapter:<84}║");
-    println!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                                                                          ║");
-    println!("╚═══════════════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!(
+        "║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                                                                          ║"
+    );
+    println!(
+        "╚═══════════════════════════════════════════════════════════════════════════════════════════════════╝"
+    );
     println!();
     println!(
         "{:<10} {:<20} {:>12} {:>14} {:>14} {:>10}",

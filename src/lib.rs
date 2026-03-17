@@ -116,6 +116,7 @@ pub mod introgression;
     reason = "layer/path casts and f64 statistics"
 )]
 pub mod introgression_nn;
+pub mod ipc_resilience;
 #[expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,

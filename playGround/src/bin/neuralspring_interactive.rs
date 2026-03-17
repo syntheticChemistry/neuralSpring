@@ -174,7 +174,9 @@ impl Session {
         let squirrel = match &self.squirrel {
             Some(s) => s,
             None => {
-                log::warn!("No Squirrel connection — cannot analyze. Start Squirrel or use --squirrel-socket.");
+                log::warn!(
+                    "No Squirrel connection — cannot analyze. Start Squirrel or use --squirrel-socket."
+                );
                 return Ok(());
             }
         };

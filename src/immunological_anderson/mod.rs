@@ -48,12 +48,12 @@ use crate::weight_spectral::WeightSpectralResult;
 
 // Re-export submodule types for backward compatibility.
 pub use lattice::{
-    barrier_promotion_spectrum, level_spacing_ratio, three_compartment_disorder,
-    tissue_lattice_hamiltonian, ThreeCompartmentDisorder,
+    ThreeCompartmentDisorder, barrier_promotion_spectrum, level_spacing_ratio,
+    three_compartment_disorder, tissue_lattice_hamiltonian,
 };
 pub use matrix::{
-    fajgenbaum_matrix_score, score_all_candidates, DiseaseProfile, DrugCandidate,
-    AD_CHRONIC_PROFILE, AD_FLARE_PROFILE, DRUG_CANDIDATES,
+    AD_CHRONIC_PROFILE, AD_FLARE_PROFILE, DRUG_CANDIDATES, DiseaseProfile, DrugCandidate,
+    fajgenbaum_matrix_score, score_all_candidates,
 };
 
 /// AD skin states mapped to Anderson localization regimes.
@@ -354,11 +354,7 @@ pub fn pielou_evenness(cell_fractions: &[f64]) -> f64 {
         .map(|&p| -p * p.ln())
         .sum();
     let h_max = (s as f64).ln();
-    if h_max == 0.0 {
-        0.0
-    } else {
-        h_prime / h_max
-    }
+    if h_max == 0.0 { 0.0 } else { h_prime / h_max }
 }
 
 /// Map Pielou evenness to Anderson disorder W.

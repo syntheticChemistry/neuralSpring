@@ -7,8 +7,8 @@
     reason = "slice lengths → f64 for mean/variance in reduction dispatch"
 )]
 
-use super::cpu_fallback;
 use super::Dispatcher;
+use super::cpu_fallback;
 
 impl Dispatcher {
     /// L2 distance: delegates to upstream `barracuda::dispatch::l2_distance_dispatch`.

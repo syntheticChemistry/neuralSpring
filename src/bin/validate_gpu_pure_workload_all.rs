@@ -55,11 +55,11 @@ use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
 use neural_spring::hmm::Hmm;
 use neural_spring::rng::Rng;
-use neural_spring::sequence::{lstm_cell, LstmWeights};
+use neural_spring::sequence::{LstmWeights, lstm_cell};
 use neural_spring::signal_integration::two_input_hill;
-use neural_spring::swarm_robotics::{create_controller, neural_forward, ControllerType};
+use neural_spring::swarm_robotics::{ControllerType, create_controller, neural_forward};
 use neural_spring::tolerances;
-use neural_spring::validation::{output_buf, storage_buf, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, output_buf, storage_buf};
 use std::sync::Arc;
 use std::time::Instant;
 #[tokio::main]

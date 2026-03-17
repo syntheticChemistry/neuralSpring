@@ -20,7 +20,7 @@
 use barracuda::device::WgpuDevice;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;
-use neural_spring::validation::{bench_once, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, bench_once};
 use neural_spring::weight_spectral;
 use std::sync::Arc;
 

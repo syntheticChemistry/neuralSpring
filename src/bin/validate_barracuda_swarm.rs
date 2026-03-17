@@ -19,8 +19,8 @@
 
 use barracuda::device::WgpuDevice;
 use neural_spring::swarm_robotics::{
-    create_controller, run_evolution_heterogeneous, run_evolution_homogeneous, shannon_diversity,
-    ControllerType,
+    ControllerType, create_controller, run_evolution_heterogeneous, run_evolution_homogeneous,
+    shannon_diversity,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

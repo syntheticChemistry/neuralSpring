@@ -6,7 +6,7 @@
 //! Structure Module implements Algorithm 22 (IPA + backbone + torsion).
 
 use neural_spring::coral_forge::structure::{
-    backbone_update, ipa_scores, torsion_angles, IpaConfig,
+    IpaConfig, backbone_update, ipa_scores, torsion_angles,
 };
 use neural_spring::coral_forge::{
     msa_col_attention, msa_row_attention, outer_product_mean, triangle_attention_scores,
@@ -14,8 +14,8 @@ use neural_spring::coral_forge::{
 };
 use neural_spring::rng::Rng;
 
-use super::rpc::JsonRpcResponse;
 use super::PrimalState;
+use super::rpc::JsonRpcResponse;
 
 #[expect(clippy::too_many_lines, reason = "validation binary")]
 pub fn handle_evoformer_block(
@@ -461,8 +461,16 @@ fn add_inplace(target: &mut [f64], source: &[f64]) {
 }
 
 // ── Linear algebra for Evoformer composition ─────────────────────
+//
+// Primary path delegates to `barracuda::dispatch::matmul_dispatch`.
+// CPU fallback retained for resilience when dispatch fails (e.g.
+// GPU unavailable); upstream absorption tracked in
+// specs/BARRACUDA_USAGE.md as medium-priority.
 
-/// Batched matmul: [batch, rows, in] × [in, out] → [batch, rows, out]
+/// Batched matmul: \[batch, rows, in\] × \[in, out\] → \[batch, rows, out\]
+///
+/// Each batch slice is dispatched to `barracuda::dispatch::matmul_dispatch`;
+/// CPU fallback only fires when the dispatch layer is unavailable.
 fn matmul_3d(
     a: &[f64],
     w: &[f64],
@@ -495,13 +503,18 @@ fn matmul_3d(
     out
 }
 
-/// 2D matmul: [rows, in] × [in, out] → [rows, out]
+/// 2D matmul: \[rows, in\] × \[in, out\] → \[rows, out\]
 fn matmul_2d(a: &[f64], w: &[f64], rows: usize, in_dim: usize, out_dim: usize) -> Vec<f64> {
     barracuda::dispatch::matmul_dispatch(a, w, rows, in_dim, out_dim, None)
         .unwrap_or_else(|_| matmul_3d(a, w, 1, rows, in_dim, out_dim))
 }
 
 /// einsum("ijc,ch->hij") for pair bias computation.
+///
+/// Domain-specific 4-index tensor contraction that has no direct
+/// barraCuda equivalent.  Candidate for upstream `ops::tensor_contract`
+/// if the general API lands.  Until then, CPU reference is the
+/// authoritative path.
 fn einsum_ijc_ch(
     tensor: &[f64],
     weight: &[f64],

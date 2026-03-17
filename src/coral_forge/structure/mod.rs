@@ -39,4 +39,4 @@ mod ipa;
 
 pub use backbone::{backbone_update, torsion_angles};
 pub use frame::{apply_frame, compose_frames, invert_frame, quat_to_rotation};
-pub use ipa::{ipa_apply, ipa_scores, IpaConfig};
+pub use ipa::{IpaConfig, ipa_apply, ipa_scores};

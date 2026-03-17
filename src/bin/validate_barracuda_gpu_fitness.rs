@@ -25,7 +25,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, gpu_readback, max_abs_diff_gpu_vs_cpu};
 use std::sync::Arc;
 
 fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
@@ -72,16 +72,16 @@ fn validate_batch_fitness(h: &mut ValidationHarness, device: &Arc<barracuda::dev
     let dim = 10_usize;
     let n_traits = 3_usize;
 
-    let gen: Vec<Vec<f64>> = (0..pop)
+    let genomes: Vec<Vec<f64>> = (0..pop)
         .map(|_| (0..dim).map(|_| rng.uniform()).collect())
         .collect();
     let traits: Vec<Vec<f64>> = (0..n_traits)
         .map(|_| (0..dim).map(|_| rng.uniform()).collect())
         .collect();
 
-    let cpu_dots = cpu_a_bt(&gen, &traits);
+    let cpu_dots = cpu_a_bt(&genomes, &traits);
 
-    let gen_flat: Vec<f32> = gen
+    let gen_flat: Vec<f32> = genomes
         .iter()
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();
@@ -134,16 +134,16 @@ fn validate_multi_objective(
     let dim = 8_usize;
     let n_obj = 4_usize;
 
-    let gen: Vec<Vec<f64>> = (0..pop)
+    let genomes: Vec<Vec<f64>> = (0..pop)
         .map(|_| (0..dim).map(|_| rng.uniform()).collect())
         .collect();
     let obj: Vec<Vec<f64>> = (0..n_obj)
         .map(|_| (0..dim).map(|_| rng.uniform()).collect())
         .collect();
 
-    let cpu_dots = cpu_a_bt(&gen, &obj);
+    let cpu_dots = cpu_a_bt(&genomes, &obj);
 
-    let gen_flat: Vec<f32> = gen
+    let gen_flat: Vec<f32> = genomes
         .iter()
         .flat_map(|r| r.iter().map(|&x| x as f32))
         .collect();

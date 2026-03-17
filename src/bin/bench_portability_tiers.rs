@@ -61,7 +61,7 @@ use neural_spring::hmm::Hmm;
 use neural_spring::modes;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{median_duration_us, OrExit, ValidationHarness};
+use neural_spring::validation::{OrExit, ValidationHarness, median_duration_us};
 use std::time::Instant;
 use wgpu::util::DeviceExt;
 

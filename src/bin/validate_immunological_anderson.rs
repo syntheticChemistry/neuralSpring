@@ -22,9 +22,9 @@
 )]
 
 use neural_spring::immunological_anderson::{
-    classify_ad_state, dimensional_promotion, evenness_to_disorder, gonzales_ic50,
-    ic50_to_w_reduction, lokivetmab_pk, pielou_evenness, tissue_geometry_factor, AdSkinState,
-    AndersonDrugScore, DrugMechanism, PharmacoMonitor, SKIN_LAYERS,
+    AdSkinState, AndersonDrugScore, DrugMechanism, PharmacoMonitor, SKIN_LAYERS, classify_ad_state,
+    dimensional_promotion, evenness_to_disorder, gonzales_ic50, ic50_to_w_reduction, lokivetmab_pk,
+    pielou_evenness, tissue_geometry_factor,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

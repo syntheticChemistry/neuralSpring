@@ -37,7 +37,7 @@
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{bench_once, max_abs_diff_f64, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, bench_once, max_abs_diff_f64};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // hotSpring provenance: precision infrastructure
@@ -216,7 +216,7 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
             max_iter: 100,
             objective: barracuda::linalg::NmfObjective::Euclidean,
             seed: 42,
-            tol: 1e-6,
+            tol: tolerances::NMF_CONVERGENCE_TOL,
         },
     );
     h.check_bool("wS→linalg: NMF converges", nmf_result.is_ok());
@@ -560,7 +560,7 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
     let quadratic: &dyn Fn(&[f64]) -> f64 =
         &|params: &[f64]| params[0] * params[0] + params[1] * params[1];
     let (hess, _) = bench_once("numerical_hessian (nS→TS S54)", || {
-        barracuda::numerical::numerical_hessian(quadratic, &[1.0, 2.0], 1e-5)
+        barracuda::numerical::numerical_hessian(quadratic, &[1.0, 2.0], tolerances::HESSIAN_FD_STEP)
     });
     h.check_abs(
         "TS→numerical: hessian[0,0] ≈ 2",
@@ -664,7 +664,7 @@ fn validate_toadstool_s86_evolution(h: &mut ValidationHarness) {
     );
 
     let mut drift = DriftMonitor::default();
-    let gen = GenerationRecord {
+    let record = GenerationRecord {
         generation: 0,
         mean_fitness: 0.5,
         best_fitness: 0.8,
@@ -672,7 +672,7 @@ fn validate_toadstool_s86_evolution(h: &mut ValidationHarness) {
         origin: InstanceId("cross-spring-s86".to_string()),
         training_size: 10,
     };
-    drift.record(&gen, 100);
+    drift.record(&record, 100);
     let ne_s = drift.ne_s_history[0];
     let expected_ne_s = (100.0 * 0.8) / (1.0 + 0.8);
     h.check_abs(

@@ -38,7 +38,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::weight_loader;
 use neural_spring::weight_spectral::{
-    empirical_spectral_density, weight_spectral_analysis, GOE_LEVEL_SPACING, POISSON_LEVEL_SPACING,
+    GOE_LEVEL_SPACING, POISSON_LEVEL_SPACING, empirical_spectral_density, weight_spectral_analysis,
 };
 use std::path::PathBuf;
 use std::time::Instant;
@@ -206,7 +206,9 @@ fn main() {
             / all_lsr.len() as f64;
 
         println!("═══ Aggregate Results ({total_layers} layers) ═══");
-        println!("  Mean LSR:          {mean_lsr:.4} (GOE={GOE_LEVEL_SPACING:.3}, Poisson={POISSON_LEVEL_SPACING:.3})");
+        println!(
+            "  Mean LSR:          {mean_lsr:.4} (GOE={GOE_LEVEL_SPACING:.3}, Poisson={POISSON_LEVEL_SPACING:.3})"
+        );
         println!("  Mean IPR:          {mean_ipr:.6}");
         println!("  Mean MP departure: {mean_mp:.4}");
         println!(

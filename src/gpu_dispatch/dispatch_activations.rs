@@ -17,17 +17,16 @@ impl Dispatcher {
     /// Row-wise softmax: uses upstream `Tensor::softmax_dim(1)`.
     #[must_use]
     pub fn softmax_row_wise(&self, matrix: &[f64], n_rows: usize, n_cols: usize) -> Vec<f64> {
-        if let Some(dev) = self.wgpu_device() {
-            let m_f32: Vec<f32> = matrix.iter().map(|&v| v as f32).collect();
-            if let Ok(t) =
-                barracuda::tensor::Tensor::from_data(&m_f32, vec![n_rows, n_cols], dev.clone())
-            {
-                if let Ok(sm) = t.softmax_dim(1) {
-                    if let Ok(out) = sm.to_vec() {
-                        return out.into_iter().map(f64::from).collect();
-                    }
-                }
-            }
+        if let Some(dev) = self.wgpu_device()
+            && let Ok(t) = barracuda::tensor::Tensor::from_data(
+                &matrix.iter().map(|&v| v as f32).collect::<Vec<f32>>(),
+                vec![n_rows, n_cols],
+                dev.clone(),
+            )
+            && let Ok(sm) = t.softmax_dim(1)
+            && let Ok(out) = sm.to_vec()
+        {
+            return out.into_iter().map(f64::from).collect();
         }
         crate::neural_pgm::weight_to_transition(matrix, n_rows, n_cols)
     }

@@ -41,6 +41,13 @@ use std::path::PathBuf;
 /// biomeOS socket subdirectory name within the XDG runtime directory.
 const BIOMEOS_SOCKET_SUBDIR: &str = "biomeos";
 
+/// Socket name hints for shader-compiler capability discovery (fallback).
+///
+/// Used only when capability manifests are unavailable.  The primary
+/// discovery path (`discover_by_capability`) uses capability strings
+/// from manifests rather than hardcoded names.
+const SHADER_COMPILER_SOCKET_HINTS: &[&str] = &["coralreef", "coral-reef", "shader"];
+
 /// Result type for coralReef operations.
 pub type CoralResult<T> = Result<T, CoralError>;
 
@@ -177,14 +184,12 @@ impl CoralCompiler {
         let manifest_dir = PathBuf::from(xdg).join("ecoPrimals");
         for entry in std::fs::read_dir(&manifest_dir).ok()?.flatten() {
             let path = entry.path();
-            if path.extension().is_some_and(|e| e == "json") {
-                if let Ok(contents) = std::fs::read_to_string(&path) {
-                    if contents.contains("shader.compile") || contents.contains("shader_compiler") {
-                        if let Some(sock) = Self::extract_socket_from_manifest(&contents) {
-                            return Some(sock);
-                        }
-                    }
-                }
+            if path.extension().is_some_and(|e| e == "json")
+                && let Ok(contents) = std::fs::read_to_string(&path)
+                && (contents.contains("shader.compile") || contents.contains("shader_compiler"))
+                && let Some(sock) = Self::extract_socket_from_manifest(&contents)
+            {
+                return Some(sock);
             }
         }
         None
@@ -217,11 +222,14 @@ impl CoralCompiler {
     /// suggests shader compilation capability.
     fn discover_by_socket_scan() -> Option<PathBuf> {
         let socket_dir = Self::resolve_socket_dir();
-        let shader_hints = ["coralreef", "coral-reef", "shader"];
         for entry in std::fs::read_dir(&socket_dir).ok()?.flatten() {
             let name = entry.file_name();
             let name_str = name.to_string_lossy();
-            if name_str.ends_with(".sock") && shader_hints.iter().any(|h| name_str.contains(h)) {
+            if name_str.ends_with(".sock")
+                && SHADER_COMPILER_SOCKET_HINTS
+                    .iter()
+                    .any(|h| name_str.contains(h))
+            {
                 return Some(entry.path());
             }
         }

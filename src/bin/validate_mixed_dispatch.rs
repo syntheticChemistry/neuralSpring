@@ -20,10 +20,10 @@
 
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::mixed::{
-    gpu_cpu_cost, gpu_npu_cost, mixed_substrate, MixedSubstrate, PCIE4_X16_BANDWIDTH_GBPS,
-    PCIE4_X4_BANDWIDTH_GBPS,
+    MixedSubstrate, PCIE4_X4_BANDWIDTH_GBPS, PCIE4_X16_BANDWIDTH_GBPS, gpu_cpu_cost, gpu_npu_cost,
+    mixed_substrate,
 };
-use neural_spring_forge::pcie_bridge::{detect_p2p, PcieBridge};
+use neural_spring_forge::pcie_bridge::{PcieBridge, detect_p2p};
 
 fn main() {
     let mut h = ValidationHarness::new("mixed_dispatch");

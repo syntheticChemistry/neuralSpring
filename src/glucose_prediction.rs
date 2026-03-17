@@ -42,7 +42,7 @@
 use std::f64::consts::PI;
 
 use crate::rng::Rng;
-use crate::sequence::{lstm_cell, LstmWeights};
+use crate::sequence::{LstmWeights, lstm_cell};
 use crate::tolerances;
 
 const WASHOUT: usize = 4;

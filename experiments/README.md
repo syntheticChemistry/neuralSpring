@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 162)**: 1276 tests (1133 lib + 70 playGround + 73 forge), 48 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, `resilient_call()` circuit breaker, typed `compute.dispatch` protocol, `DispatchOutcome` enum. `discover_primal()` + `socket_env_var()`. `safe_cast` module. 4-format `parse_capability_list()`. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging complete (primal + playGround). S162: cross-ecosystem absorption execution. V113 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
+**Current state (Session 163)**: 1295 tests (1152 lib + 70 playGround + 73 forge), 48 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, `resilient_call()` circuit breaker, typed `compute.dispatch` protocol, `DispatchOutcome` enum. `discover_primal()` + `socket_env_var()`. `safe_cast` module. 4-format `parse_capability_list()`. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging complete (primal + playGround). Edition 2024 (all 3 crates), `health.liveness`/`health.readiness` probes, `ipc_resilience` (RetryPolicy + CircuitBreaker), 6 proptest invariants. S163: Edition 2024 + health probes + proptest. V114 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 17, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -125,6 +125,7 @@ complement to the quantitative checks in `CONTROL_EXPERIMENT_STATUS.md`.
 | 109 | Session 153 — Comprehensive Ecosystem Audit + Deep Debt Execution | Mar 15, 2026 | Full 11-dimension audit against wateringHole standards. Zero clippy (pedantic+nursery) across all 3 workspace crates. `ALL_CAPABILITIES` unified into `config.rs`. `validate_gpu_eigensolve_pipeline`→`ValidationHarness`. 3 new tolerances. 3 `fn sigmoid` wrappers→`primitives::sigmoid`. playGround lint alignment. `#![forbid(unsafe_code)]` on forge. `BaselineProvenance::expected_source()`. 4 new GPU tests. V104 handoff. 1290 tests, 0 warnings |
 | 110 | Session 154 — Niche Deployment Architecture + Cross-Spring Absorption | Mar 15, 2026 | `src/niche.rs` (22 capabilities, airSpring pattern). `graphs/neuralspring_deploy.toml` (5-phase biomeOS deploy, groundSpring pattern). Hardcoded primal names eliminated. 5-tier socket resolution. V105 handoff. 1297 tests |
 | 111 | Session 155 — Cross-Spring Absorption: primal_names, tolerances.py, provenance trio | Mar 16, 2026 | `src/primal_names.rs` (11 primal + 4 domain constants). `control/tolerances.py` (80+ Python tolerance mirror). Deploy graph provenance trio (rhizoCrypt/loamSpine/sweetGrass). `config.rs` delegates to `primal_names::*`. V106 handoff. 1301 tests |
+| 112 | Session 163 — Edition 2024 + Health Probes + Property Testing | Mar 17, 2026 | Rust 2024 upgrade (all 3 crates), reserved `gen`→`genomes`/`record`, let chains, closure patterns, `health.liveness`/`health.readiness` probes, `ipc_resilience` (RetryPolicy + CircuitBreaker), 6 proptest invariants, deny.toml unknown-git, DispatchOutcome classify_response, tolerance provenance. 1295 tests (1152+70+73). V114 handoff |
 
 ---
 
@@ -5200,6 +5201,31 @@ with real computation, Nest records substrate/timing provenance.
 **Motivation**: Sync all documentation to V108 state. Archive superseded V107 handoff. Update ecosystem-level docs. Craft toadStool/barraCuda absorption handoff.
 **Procedure**: Updated README.md, whitePaper/baseCamp/README.md, specs/BARRACUDA_REQUIREMENTS.md (v0.3.3→v0.3.5 refs), wateringHole/README.md (V108 active, V107 archived), experiments journal (S157 + Exp 113-114), ecoPrimals/whitePaper/gen3/baseCamp/README.md, PRIMAL_REGISTRY.md (neuralSpring V108/S157).
 **Findings**: Documentation was 2 sessions behind (referencing V106/S155). Gen3 baseCamp referenced S156 but not S157. PRIMAL_REGISTRY had neuralSpring at V98/S145 — significantly stale; updated to V108/S157 with Tower Atomic and zero C deps highlights.
+
+## Session 163 — Edition 2024 + Health Probes + Property Testing
+
+**Date**: 2026-03-17
+**Session**: S163
+
+### Experiment 112 — Edition 2024 + Health Probes + Property Testing
+
+**Motivation**: Prepare neuralSpring for Rust Edition 2024. Add health probes for IPC/orchestration integration. Introduce property-based testing for primitives. Strengthen IPC resilience patterns.
+
+**Procedure**:
+1. **Rust Edition 2024 upgrade** across all 3 workspace crates (neural-spring, neuralspring-playground, neural-spring-forge).
+2. **Reserved `gen` keyword**: Renamed to `genomes`/`record` in 8 validation binaries.
+3. **Let chains**: ~15 nested `if let` patterns collapsed to `if let ... && let ...`.
+4. **Closure pattern fixes**: Edition 2024 implicit dereference rules applied.
+5. **`health.liveness` + `health.readiness` IPC probes**: Config, niche, dispatch, handlers, MCP tools.
+6. **`src/ipc_resilience.rs`**: RetryPolicy (exponential backoff) + CircuitBreaker (Closed/Open/HalfOpen).
+7. **6 proptest invariants** for primitives (softmax, entropy, relu, rk4).
+8. **deny.toml**: unknown-git=deny, advisory DB URLs.
+9. **DispatchOutcome**: classify_response, is_protocol_error, is_method_not_found.
+10. **Tolerance provenance**: 6 constants enriched with validation citations.
+
+**Findings**: 1295 tests (1152 lib + 70 playGround + 73 forge), zero warnings, zero regressions. All Edition 2024 migrations complete. Health probes enable orchestration readiness. Proptest invariants catch edge cases. V114 handoff.
+
+---
 
 ## Session 162 — Cross-Ecosystem Absorption Execution
 

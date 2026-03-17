@@ -5,7 +5,32 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 162 (March 16, 2026)
+## [Unreleased] — Session 163 (March 17, 2026)
+
+### Session 163 — Edition 2024 + Health Probes + Property Testing (2026-03-17)
+
+**Rust Edition 2024, health probes, IPC resilience, proptest, deny.toml hardening.**
+
+- **EDITION 2024**: Full workspace upgrade from 2021 to 2024. Reserved `gen` keyword renamed
+  across 8 validation binaries. Let chains (`if let ... && let ...`) applied to ~15 collapsible
+  `if let` patterns. Edition 2024 implicit dereference patterns fixed in closures.
+- **HEALTH PROBES**: `health.liveness` and `health.readiness` IPC methods implemented in
+  neuralspring_primal (handlers, dispatch, capability registration). MCP tools expanded 14→16
+  with health domain. `niche.rs` updated with cost estimates and operation dependencies.
+- **IPC RESILIENCE**: New `src/ipc_resilience.rs` module — generic `RetryPolicy` (exponential
+  backoff with configurable delay/multiplier/max) and `CircuitBreaker` (Closed/Open/HalfOpen
+  states, threshold/cooldown, epoch-based timing). 8 unit tests.
+- **PROPTEST**: `proptest = "1"` added to dev-dependencies. 6 property-based tests for core
+  primitives: softmax sums-to-one, softmax non-negative, shannon_entropy non-negative,
+  relu idempotent, relu identity-for-positive, rk4 energy conservation (harmonic oscillator).
+- **TOLERANCE PROVENANCE**: Doc comments enriched with validation citations on EXACT_F64,
+  CROSS_LANGUAGE, LAYER_NORM_EPS, ODE_ATOL, ODE_RTOL, EIGH_JACOBI_RECONSTRUCT.
+- **DENY.TOML**: Hardened — `unknown-git = "deny"` (was warn), advisory DB URLs added,
+  `allow-git = []` explicit.
+- **DISPATCH**: `DispatchOutcome` enriched with `classify_response()`, `is_protocol_error()`,
+  `is_method_not_found()` for structured RPC error handling.
+- **QUALITY**: 1295 tests (1152 lib + 73 forge + 70 playGround), 0 warnings (clippy
+  pedantic+nursery), 0 fmt diffs, 0 unsafe, Rust Edition 2024.
 
 ### Session 162 — Cross-Ecosystem Absorption Execution (2026-03-16)
 
@@ -28,7 +53,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   truncated.
 - **LOGGING**: All 1642 remaining `eprintln!` → `println!` across 186 src/ files. Zero
   `eprintln!` in entire workspace (src/ + playGround/).
-- **QUALITY**: 1276 tests (1133 lib + 73 forge + 70 playGround), 0 warnings, 0 unfulfilled
+- **QUALITY**: 1295 tests (1152 lib + 73 forge + 70 playGround), 0 warnings, 0 unfulfilled
   expectations, 0 fmt diffs, 0 `eprintln!`, 0 unsafe, 0 hardcoded paths.
 
 ### Session 161 — Doc Cleanup + Structured Logging Completion (2026-03-16)

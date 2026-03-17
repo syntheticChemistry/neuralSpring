@@ -26,10 +26,10 @@
 )]
 
 use neural_spring::immunological_anderson::{
-    barrier_promotion_spectrum, cytokine_barrier_heights, gonzales_ic50, hill_dose_response,
-    ic50_sweep, level_spacing_ratio, lokivetmab_duration_predict, pk_exponential_decay,
-    pruritus_score_model, score_all_candidates, three_compartment_disorder,
-    tissue_lattice_hamiltonian, AD_CHRONIC_PROFILE, AD_FLARE_PROFILE,
+    AD_CHRONIC_PROFILE, AD_FLARE_PROFILE, barrier_promotion_spectrum, cytokine_barrier_heights,
+    gonzales_ic50, hill_dose_response, ic50_sweep, level_spacing_ratio,
+    lokivetmab_duration_predict, pk_exponential_decay, pruritus_score_model, score_all_candidates,
+    three_compartment_disorder, tissue_lattice_hamiltonian,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

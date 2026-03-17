@@ -12,11 +12,11 @@
 //! Result: 8/8 PASS (seed=42, PD/snowdrift/QS/spatial)
 
 use neural_spring::game_theory::{
-    prisoners_dilemma_payoff, qs_cooperation_model, replicator_dynamics, snowdrift_payoff,
-    spatial_cooperation, QsConfig,
+    QsConfig, prisoners_dilemma_payoff, qs_cooperation_model, replicator_dynamics,
+    snowdrift_payoff, spatial_cooperation,
 };
 use neural_spring::tolerances;
-use neural_spring::validation::{mean_last_n, variance_last_n, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, mean_last_n, variance_last_n};
 
 fn main() {
     let mut h = ValidationHarness::new("game_theory");

@@ -12,8 +12,8 @@
 //! Result: 8/8 PASS (seed=42, N=64, Aubry-André model)
 
 use neural_spring::anderson_localization::{
-    anderson_hamiltonian_random, aubry_andre_hamiltonian, disorder_sweep, jacobi_eigh, mean_ipr,
-    two_particle_hamiltonian, GOLDEN_RATIO,
+    GOLDEN_RATIO, anderson_hamiltonian_random, aubry_andre_hamiltonian, disorder_sweep,
+    jacobi_eigh, mean_ipr, two_particle_hamiltonian,
 };
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;

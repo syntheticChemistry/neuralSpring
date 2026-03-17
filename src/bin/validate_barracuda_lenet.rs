@@ -35,7 +35,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::require;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{max_abs_diff_gpu_vs_cpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, max_abs_diff_gpu_vs_cpu};
 use std::sync::Arc;
 
 const BATCH: usize = 4;

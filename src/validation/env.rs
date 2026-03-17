@@ -171,40 +171,69 @@ mod tests {
     }
 
     #[test]
-    fn gpu_required_respects_env() {
-        std::env::remove_var("GPU_BACKEND");
-        let original = std::env::var("REQUIRE_GPU").ok();
-        let legacy = std::env::var("NEURALSPRING_REQUIRE_GPU").ok();
+    fn gpu_required_zero_is_false() {
+        temp_env::with_vars(
+            [
+                ("REQUIRE_GPU", Some("0")),
+                ("NEURALSPRING_REQUIRE_GPU", None::<&str>),
+            ],
+            || assert!(!gpu_required(), "0 → false"),
+        );
+    }
 
-        std::env::remove_var("NEURALSPRING_REQUIRE_GPU");
+    #[test]
+    fn gpu_required_one_is_true() {
+        temp_env::with_vars(
+            [
+                ("REQUIRE_GPU", Some("1")),
+                ("NEURALSPRING_REQUIRE_GPU", None::<&str>),
+            ],
+            || assert!(gpu_required(), "1 → true"),
+        );
+    }
 
-        std::env::set_var("REQUIRE_GPU", "0");
-        assert!(!gpu_required(), "0 → false");
+    #[test]
+    fn gpu_required_true_is_true() {
+        temp_env::with_vars(
+            [
+                ("REQUIRE_GPU", Some("true")),
+                ("NEURALSPRING_REQUIRE_GPU", None::<&str>),
+            ],
+            || assert!(gpu_required(), "true → true"),
+        );
+    }
 
-        std::env::set_var("REQUIRE_GPU", "1");
-        assert!(gpu_required(), "1 → true");
+    #[test]
+    fn gpu_required_true_uppercase_is_true() {
+        temp_env::with_vars(
+            [
+                ("REQUIRE_GPU", Some("TRUE")),
+                ("NEURALSPRING_REQUIRE_GPU", None::<&str>),
+            ],
+            || assert!(gpu_required(), "TRUE → true"),
+        );
+    }
 
-        std::env::set_var("REQUIRE_GPU", "true");
-        assert!(gpu_required(), "true → true");
+    #[test]
+    fn gpu_required_legacy_fallback() {
+        temp_env::with_vars(
+            [
+                ("REQUIRE_GPU", None::<&str>),
+                ("NEURALSPRING_REQUIRE_GPU", Some("1")),
+            ],
+            || assert!(gpu_required(), "legacy fallback → true"),
+        );
+    }
 
-        std::env::set_var("REQUIRE_GPU", "TRUE");
-        assert!(gpu_required(), "TRUE → true");
-
-        // Fallback to legacy env var
-        std::env::remove_var("REQUIRE_GPU");
-        std::env::set_var("NEURALSPRING_REQUIRE_GPU", "1");
-        assert!(gpu_required(), "legacy fallback → true");
-
-        std::env::remove_var("REQUIRE_GPU");
-        std::env::remove_var("NEURALSPRING_REQUIRE_GPU");
-        assert!(!gpu_required(), "unset → false");
-
-        if let Some(v) = original {
-            std::env::set_var("REQUIRE_GPU", v);
-        }
-        if let Some(v) = legacy {
-            std::env::set_var("NEURALSPRING_REQUIRE_GPU", v);
-        }
+    #[test]
+    fn gpu_required_unset_is_false() {
+        temp_env::with_vars(
+            [
+                ("REQUIRE_GPU", None::<&str>),
+                ("NEURALSPRING_REQUIRE_GPU", None::<&str>),
+            ],
+            || assert!(!gpu_required(), "unset → false"),
+        );
     }
 
     #[test]

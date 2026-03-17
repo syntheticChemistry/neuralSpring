@@ -427,9 +427,15 @@ fn bench_hill(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 
 fn print_summary(results: &[TierResult], has_gpu: bool) {
     println!();
-    println!("╔═══════════════════════════════════════════════════════════════════════════════════════════════╗");
-    println!("║  THREE-TIER DISPATCH BENCHMARK RESULTS                                                      ║");
-    println!("╚═══════════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!(
+        "╔═══════════════════════════════════════════════════════════════════════════════════════════════╗"
+    );
+    println!(
+        "║  THREE-TIER DISPATCH BENCHMARK RESULTS                                                      ║"
+    );
+    println!(
+        "╚═══════════════════════════════════════════════════════════════════════════════════════════════╝"
+    );
     println!();
 
     if has_gpu {
@@ -494,7 +500,9 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
 
     println!();
     println!("Key findings:");
-    println!("  1. Dispatcher::cpu_only() overhead: {overhead_avg:.2}× (negligible — dispatch layer is transparent)");
+    println!(
+        "  1. Dispatcher::cpu_only() overhead: {overhead_avg:.2}× (negligible — dispatch layer is transparent)"
+    );
     println!("  2. Per-call GPU dispatch dominated by driver overhead for small workloads");
     println!(
         "     → This is expected and motivates StatefulPipeline / UnidirectionalPipeline batching"
@@ -504,7 +512,9 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
     println!("Pipeline status:");
     println!("  Session 67: Rust CPU = Python/NumPy (39/39 PASS, 1e-10 cross-language)");
     println!("  Session 65: Rust CPU is 83.6× faster than Python/NumPy (11 kernels)");
-    println!("  This run:   Dispatcher overhead {overhead_avg:.2}× — pure math preserved through dispatch");
+    println!(
+        "  This run:   Dispatcher overhead {overhead_avg:.2}× — pure math preserved through dispatch"
+    );
     println!("  Next:       ToadStool pipeline batching for GPU-resident acceleration");
 }
 

@@ -37,7 +37,7 @@
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::digestion_prediction::{
-    biogas_yield, load_digestion_from_json, DigestionPredictor,
+    DigestionPredictor, biogas_yield, load_digestion_from_json,
 };
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;

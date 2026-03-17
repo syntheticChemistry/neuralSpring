@@ -107,11 +107,19 @@ fn bench_op(
 
 fn print_results(entries: &[KokkosEntry], adapter: &str) {
     println!();
-    println!("╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗");
-    println!("║  KOKKOS PARITY BENCHMARK — barraCuda GPU ops at production scale                                   ║");
+    println!(
+        "╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+    );
+    println!(
+        "║  KOKKOS PARITY BENCHMARK — barraCuda GPU ops at production scale                                   ║"
+    );
     println!("║  Adapter: {adapter:<84}║");
-    println!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                                                                          ║");
-    println!("╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!(
+        "║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                                                                          ║"
+    );
+    println!(
+        "╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+    );
     println!();
     println!(
         "{:<25} {:>15} {:>12} {:>12} {:>12} {:>15}",

@@ -30,7 +30,7 @@ use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::require;
 use neural_spring::tolerances;
-use neural_spring::validation::{check_gpu_points, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, check_gpu_points};
 use std::sync::Arc;
 
 #[tokio::main]
@@ -595,7 +595,7 @@ fn validate_div(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 // ── Reductions ──────────────────────────────────────────────────────────
 
 fn validate_reductions(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
-    use neural_spring::validation::{validate_tensor_reduction, ReductionExpected};
+    use neural_spring::validation::{ReductionExpected, validate_tensor_reduction};
     let tex = tolerances::TENSOR_EXACT_F32;
 
     validate_tensor_reduction(

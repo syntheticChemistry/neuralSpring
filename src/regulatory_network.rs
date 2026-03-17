@@ -160,9 +160,10 @@ mod tests {
         let p = GrnParams::default();
         let x0 = [0.5, 0.1, 0.5, 0.1];
         let x = integrate_grn(&x0, 0.5, &p, 2000, 0.02);
-        assert!(x
-            .iter()
-            .all(|&v| v.is_finite() && v >= -tolerances::CROSS_LANGUAGE));
+        assert!(
+            x.iter()
+                .all(|&v| v.is_finite() && v >= -tolerances::CROSS_LANGUAGE)
+        );
     }
 
     #[test]

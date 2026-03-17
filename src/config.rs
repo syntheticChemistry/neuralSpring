@@ -108,6 +108,8 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "science.cross_spring_provenance",
     "science.cross_spring_benchmark",
     "science.precision_routing",
+    "health.liveness",
+    "health.readiness",
 ];
 
 #[cfg(test)]

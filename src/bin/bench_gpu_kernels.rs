@@ -409,9 +409,15 @@ where
 
 fn print_summary(results: &[GpuBenchResult]) {
     println!();
-    println!("╔════════════════════════════════════════════════════════════════════════════════════════════════╗");
-    println!("║  BENCHMARK RESULTS — Full Python → Rust CPU → GPU BarraCUDA Typed Op Performance Chain       ║");
-    println!("╚════════════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!(
+        "╔════════════════════════════════════════════════════════════════════════════════════════════════╗"
+    );
+    println!(
+        "║  BENCHMARK RESULTS — Full Python → Rust CPU → GPU BarraCUDA Typed Op Performance Chain       ║"
+    );
+    println!(
+        "╚════════════════════════════════════════════════════════════════════════════════════════════════╝"
+    );
     println!();
     println!(
         "{:<40} {:>7} {:>10} {:>10} {:>10} {:>12} {:>12}",

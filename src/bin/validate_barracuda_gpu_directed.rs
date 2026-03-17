@@ -29,7 +29,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{gpu_readback, max_abs_diff_gpu_vs_cpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, gpu_readback, max_abs_diff_gpu_vs_cpu};
 use std::sync::Arc;
 
 fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {

@@ -63,7 +63,7 @@ pub fn bench_once<F: FnOnce() -> T, T>(label: &str, f: F) -> (T, f64) {
     let start = std::time::Instant::now();
     let result = f();
     let us = start.elapsed().as_secs_f64() * 1e6;
-    println!("  {label}: {us:.1} µs");
+    log::info!("  {label}: {us:.1} µs");
     (result, us)
 }
 

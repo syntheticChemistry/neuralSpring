@@ -31,7 +31,7 @@ use barracuda::spectral::BatchIprGpu;
 use bytemuck::{Pod, Zeroable};
 use neural_spring::bench::BenchResult;
 use neural_spring::bench::{
-    self, alloc_f32, bind_entry as be, buf_desc, create_pipeline, BindingKind, DispatchParams,
+    self, BindingKind, DispatchParams, alloc_f32, bind_entry as be, buf_desc, create_pipeline,
 };
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;

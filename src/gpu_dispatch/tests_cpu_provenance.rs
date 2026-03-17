@@ -4,7 +4,7 @@
 
 #[test]
 fn provenance_registry_has_neuralspring_shaders() {
-    use barracuda::shaders::provenance::{shaders_from, SpringDomain};
+    use barracuda::shaders::provenance::{SpringDomain, shaders_from};
     let ns = shaders_from(SpringDomain::NEURAL_SPRING);
     assert!(
         !ns.is_empty(),
@@ -14,7 +14,7 @@ fn provenance_registry_has_neuralspring_shaders() {
 
 #[test]
 fn provenance_registry_has_hotspring_math() {
-    use barracuda::shaders::provenance::{shaders_from, SpringDomain};
+    use barracuda::shaders::provenance::{SpringDomain, shaders_from};
     let hs = shaders_from(SpringDomain::HOT_SPRING);
     assert!(
         hs.len() >= 5,
@@ -49,7 +49,7 @@ fn provenance_evolution_report_has_sections() {
 
 #[test]
 fn provenance_neuralspring_consumed_by_others() {
-    use barracuda::shaders::provenance::{shaders_from, SpringDomain};
+    use barracuda::shaders::provenance::{SpringDomain, shaders_from};
     let ns = shaders_from(SpringDomain::NEURAL_SPRING);
     assert!(
         ns.iter().any(|s| s
@@ -62,7 +62,7 @@ fn provenance_neuralspring_consumed_by_others() {
 
 #[test]
 fn provenance_hotspring_df64_consumed_by_neuralspring() {
-    use barracuda::shaders::provenance::{shaders_from, SpringDomain};
+    use barracuda::shaders::provenance::{SpringDomain, shaders_from};
     let hs = shaders_from(SpringDomain::HOT_SPRING);
     assert!(
         hs.iter()
@@ -73,7 +73,7 @@ fn provenance_hotspring_df64_consumed_by_neuralspring() {
 
 #[test]
 fn provenance_wetspring_bio_shaders_exist() {
-    use barracuda::shaders::provenance::{shaders_from, SpringDomain};
+    use barracuda::shaders::provenance::{SpringDomain, shaders_from};
     let ws = shaders_from(SpringDomain::WET_SPRING);
     assert!(
         !ws.is_empty(),

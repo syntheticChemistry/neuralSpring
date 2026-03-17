@@ -1,8 +1,9 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 16, 2026 (Session 162)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1133 lib + 70 playGround + 73 forge tests, zero C deps (Tower Atomic), zero `#[allow()]`, zero `eprintln!` workspace-wide, zero hardcoded socket paths, `deny.toml`, structured `IpcError` + `resilient_call()` circuit breaker, `DispatchOutcome` enum, 4-format `parse_capability_list()`, `discover_primal()`, `safe_cast` module, typed `compute.dispatch`, `OrExit<T>`, structured logging. V113 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49
+**Last Updated**: March 17, 2026 (Session 163)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1152 lib + 70 playGround + 73 forge tests, zero C deps (Tower Atomic), zero `#[allow()]`, zero `eprintln!` workspace-wide, zero hardcoded socket paths, `deny.toml`, structured `IpcError` + `resilient_call()` circuit breaker, `DispatchOutcome` enum, 4-format `parse_capability_list()`, `discover_primal()`, `safe_cast` module, typed `compute.dispatch`, `OrExit<T>`, structured logging, Edition 2024, `health.liveness`/`health.readiness` IPC probes, `ipc_resilience` (RetryPolicy + CircuitBreaker), proptest invariants. V114 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49
 
+- **S163**: Edition 2024 upgrade (all 3 crates), reserved `gen`→`genomes`/`record`, let chains, closure pattern fixes, `health.liveness`/`health.readiness` probes, `ipc_resilience.rs` (RetryPolicy + CircuitBreaker), 6 proptest invariants, deny.toml unknown-git, DispatchOutcome classify_response, tolerance provenance. V114 handoff
 - **S162**: Cross-ecosystem absorption — 4-format `parse_capabilities()`, `discover_primal()` + `socket_env_var()`, `DispatchOutcome`, `resilient_call()`, `safe_cast` module, zero `eprintln!` workspace-wide (1642 → 0), safe GPU casts. V113 handoff
 - **S159–S161**: IPC evolution (structured `IpcError`, `call_typed()`, `extract_rpc_error()`, typed `compute.dispatch`), `OrExit<T>`, `deny.toml`, structured logging, hardcoded path elimination. V110–V112 handoffs
 - **S157–S158**: Modern Rust — zero `#[allow()]`, `#[expect(reason)]`, Tower Atomic (reqwest+ring removed), temp-env, smart refactoring, V108–V109 handoffs
@@ -40,6 +41,10 @@ Python baseline (seed=42) → Rust CPU (provenance) → BarraCUDA CPU
       → gpu_dispatch (~97% pure GPU, Phase C: HMM chains, FST, introgression)
         → CPU↔Python parity (39/39 PASS, 1e-10 cross-language)
 ```
+
+Edition 2024 (S163): All 3 workspace crates on Rust 2024. Proptest invariants
+(softmax, entropy, relu, rk4). `ipc_resilience` (RetryPolicy + CircuitBreaker)
+for transient IPC failures. `health.liveness` / `health.readiness` probes.
 
 ## Briefings
 

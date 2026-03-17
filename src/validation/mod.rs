@@ -68,7 +68,7 @@ pub trait OrExit<T> {
 impl<T, E: std::fmt::Display> OrExit<T> for Result<T, E> {
     fn or_exit(self, context: &str) -> T {
         self.unwrap_or_else(|e| {
-            println!("FATAL: {context}: {e}");
+            log::error!("FATAL: {context}: {e}");
             process::exit(1)
         })
     }
@@ -77,7 +77,7 @@ impl<T, E: std::fmt::Display> OrExit<T> for Result<T, E> {
 impl<T> OrExit<T> for Option<T> {
     fn or_exit(self, context: &str) -> T {
         self.unwrap_or_else(|| {
-            println!("FATAL: {context}");
+            log::error!("FATAL: {context}");
             process::exit(1)
         })
     }
@@ -262,17 +262,21 @@ impl ValidationHarness {
 
     /// Print summary and exit with appropriate code.
     pub fn finish(&self) -> ! {
-        println!();
+        log::info!("");
         for check in &self.checks {
             let icon = if check.passed { "PASS" } else { "FAIL" };
-            println!(
+            log::info!(
                 "  [{icon}] {}: observed={:.10e}, expected={:.10e}, tol={:.2e} ({})",
-                check.label, check.observed, check.expected, check.tolerance, check.mode
+                check.label,
+                check.observed,
+                check.expected,
+                check.tolerance,
+                check.mode
             );
         }
 
-        println!();
-        println!(
+        log::info!("");
+        log::info!(
             "=== {}: {}/{} PASS, {} FAIL ===",
             self.name,
             self.passed_count(),
@@ -289,7 +293,7 @@ impl ValidationHarness {
                 .filter(|c| !c.passed)
                 .map(|c| c.label.as_ref())
                 .collect();
-            println!("FAILED: {}", failed.join(", "));
+            log::error!("FAILED: {}", failed.join(", "));
             process::exit(1);
         }
     }

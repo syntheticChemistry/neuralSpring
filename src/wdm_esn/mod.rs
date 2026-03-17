@@ -46,13 +46,13 @@ mod classifier;
 mod gpu_path;
 mod multi_head;
 
-pub use classifier::{load_esn_from_json, EsnClassifier, EsnNormalization};
+pub use classifier::{EsnClassifier, EsnNormalization, load_esn_from_json};
 pub use gpu_path::classify_via_barracuda;
-pub use multi_head::{wdm_head_configs, wdm_heads, MultiHeadResult, MultiHeadWdmClassifier};
+pub use multi_head::{MultiHeadResult, MultiHeadWdmClassifier, wdm_head_configs, wdm_heads};
 
 pub use barracuda::esn_v2::{
-    quantize_affine_i8_f64, ESNConfig, ExportedWeights, HeadConfig, HeadGroup, MultiHeadEsn,
-    NpuReadoutWeights,
+    ESNConfig, ExportedWeights, HeadConfig, HeadGroup, MultiHeadEsn, NpuReadoutWeights,
+    quantize_affine_i8_f64,
 };
 
 pub(crate) fn argmax_f64(scores: &[f64]) -> usize {

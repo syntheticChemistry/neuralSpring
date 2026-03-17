@@ -42,7 +42,7 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use barracuda::dispatch::{dispatch_for, DispatchTarget};
+use barracuda::dispatch::{DispatchTarget, dispatch_for};
 use barracuda::ops::bio::{LocusVarianceGpu, PairwiseJaccardGpu};
 use neural_spring::gpu::Gpu;
 use neural_spring::meta_population::{allele_frequencies, generate_population};

@@ -46,7 +46,7 @@ use std::time::Instant;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::neural_pgm;
 use neural_spring::tolerances;
-use neural_spring::validation::{bench_once, max_abs_diff_f64, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, bench_once, max_abs_diff_f64};
 use neural_spring::weight_spectral;
 
 fn gen_f64_vec(n: usize, scale: f64) -> Vec<f64> {
@@ -782,7 +782,9 @@ fn report_cross_spring_lineage() {
     println!();
     println!("wetSpring \u{2192} BarraCUDA bio+spectral layer:");
     println!("  \u{2022} HMM forward/backward (phylogenetics)");
-    println!("  \u{2022} 5 ODE bio systems (Capacitor, Cooperation, MultiSignal, Bistable, PhageDefense)");
+    println!(
+        "  \u{2022} 5 ODE bio systems (Capacitor, Cooperation, MultiSignal, Bistable, PhageDefense)"
+    );
     println!("  \u{2022} NMF (non-negative matrix factorization)");
     println!("  \u{2022} Anderson localization (3d_correlated, sweep_averaged, find_w_c)");
     println!("  \u{2022} Ridge regression (ESN readout)");
@@ -807,7 +809,9 @@ fn report_cross_spring_lineage() {
         "  \u{2022} softmax_dim(axis) \u{2192} Dispatcher::softmax_row_wise (was manual per-row)"
     );
     println!("  \u{2022} fst_variance_decomposition \u{2192} fst_single_locus + pairwise_fst_full");
-    println!("  \u{2022} All 17 shortcomings RESOLVED upstream (S-14/15/16 at a4996b34, S-17 at c82c23d1)");
+    println!(
+        "  \u{2022} All 17 shortcomings RESOLVED upstream (S-14/15/16 at a4996b34, S-17 at c82c23d1)"
+    );
     println!();
     println!("airSpring \u{2192} BarraCUDA stats+regression layer:");
     println!(
@@ -830,16 +834,22 @@ fn report_cross_spring_lineage() {
     println!(
         "  \u{2022} modes::complexity_metric \u{2192} barracuda::stats::fit_linear (airSpring origin)"
     );
-    println!("  \u{2022} 9 metalForge shaders aligned to compile_shader_df64 convention (hotSpring origin)");
+    println!(
+        "  \u{2022} 9 metalForge shaders aligned to compile_shader_df64 convention (hotSpring origin)"
+    );
     println!();
     println!("All springs \u{2192} ToadStool (GPU sovereign pipeline):");
     println!("  \u{2022} 633+ WGSL shaders (cross-spring evolved, S66 Wave 5)");
     println!("  \u{2022} domain_ops dispatch \u{2014} 9 methods rewired (S58: 7, S59: +2)");
     println!("  \u{2022} stats/linalg \u{2014} 3 library functions rewired (S59)");
-    println!("  \u{2022} S72 \u{2014} 4 new rewires (softmax_row_wise, fst_single_locus, fst_full, argmax_dim)");
+    println!(
+        "  \u{2022} S72 \u{2014} 4 new rewires (softmax_row_wise, fst_single_locus, fst_full, argmax_dim)"
+    );
     println!("  \u{2022} S76 \u{2014} 2 rewires (pearson_correlation)");
     println!("  \u{2022} S78 \u{2014} 6 rewires (mae, shannon, hill x2, l2_distance, fit_linear)");
-    println!("  \u{2022} S91 \u{2014} 2 rewires (primal matmul_2d/3d \u{2192} matmul_dispatch, compile_shader_universal)");
+    println!(
+        "  \u{2022} S91 \u{2014} 2 rewires (primal matmul_2d/3d \u{2192} matmul_dispatch, compile_shader_universal)"
+    );
     println!("  \u{2022} Total: 44 functions + 6 shader sources rewired");
     println!("  \u{2022} GpuDriverProfile (this benchmark validates detection)");
 }

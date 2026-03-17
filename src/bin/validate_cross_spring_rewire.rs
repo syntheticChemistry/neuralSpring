@@ -26,8 +26,8 @@ use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::weight_spectral::{
-    classify_phase, spectral_bandwidth, spectral_condition_number, weight_spectral_analysis,
-    SpectralPhase,
+    SpectralPhase, classify_phase, spectral_bandwidth, spectral_condition_number,
+    weight_spectral_analysis,
 };
 
 fn main() {
@@ -282,7 +282,9 @@ fn validate_esn_barracuda_bridge(h: &mut ValidationHarness) {
                     gpu_scores.iter().all(|s| s.is_finite()),
                 );
                 h.check_bool(
-                    &format!("ESN barracuda: {desc} label matches CPU (cpu={cpu_label}, gpu={gpu_label})"),
+                    &format!(
+                        "ESN barracuda: {desc} label matches CPU (cpu={cpu_label}, gpu={gpu_label})"
+                    ),
                     gpu_label == cpu_label,
                 );
 

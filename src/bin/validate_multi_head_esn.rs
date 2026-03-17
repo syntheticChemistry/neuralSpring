@@ -17,7 +17,7 @@
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring::wdm_esn::{
-    load_esn_from_json, wdm_head_configs, wdm_heads, MultiHeadWdmClassifier,
+    MultiHeadWdmClassifier, load_esn_from_json, wdm_head_configs, wdm_heads,
 };
 
 #[tokio::main]

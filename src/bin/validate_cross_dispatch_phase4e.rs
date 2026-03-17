@@ -30,7 +30,7 @@
 
 use std::sync::Arc;
 
-use barracuda::dispatch::{dispatch_for, DispatchTarget};
+use barracuda::dispatch::{DispatchTarget, dispatch_for};
 use barracuda::ops::bio::hill_gate::WGSL_HILL_GATE_F64;
 use barracuda::ops::bio::swarm_nn::SwarmNnParams;
 use barracuda::ops::bio::{HillGateParams, MultiObjFitnessGpu, PairwiseL2Gpu, SwarmNnGpu};
@@ -40,7 +40,7 @@ use neural_spring::rng::Rng;
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::swarm_robotics::neural_forward;
 use neural_spring::tolerances;
-use neural_spring::validation::{patch_pow_to_polyfill, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, patch_pow_to_polyfill};
 use wgpu::util::DeviceExt;
 
 #[tokio::main]
@@ -360,7 +360,7 @@ fn validate_swarm_nn_parity(h: &mut ValidationHarness, gpu: &Gpu) {
             let mismatches = gpu_actions
                 .iter()
                 .zip(cpu_actions.iter())
-                .filter(|(&g, &c)| g != c)
+                .filter(|(g, c)| *g != *c)
                 .count();
 
             h.check_bool(

@@ -25,7 +25,7 @@ use neural_spring::require;
 use neural_spring::rng::Rng;
 use neural_spring::surrogate::{ackley_2d, rastrigin_2d, rosenbrock_2d};
 use neural_spring::tolerances;
-use neural_spring::validation::{max_abs_diff_gpu_vs_cpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, max_abs_diff_gpu_vs_cpu};
 use std::sync::Arc;
 
 type Dev = Arc<WgpuDevice>;

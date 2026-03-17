@@ -24,11 +24,11 @@
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::gpu::Gpu;
-use neural_spring::gpu_dispatch::cpu_fallback;
 use neural_spring::gpu_dispatch::Dispatcher;
-use neural_spring::signal_integration::{integrate_ode, OdeParams, OdeState};
+use neural_spring::gpu_dispatch::cpu_fallback;
+use neural_spring::signal_integration::{OdeParams, OdeState, integrate_ode};
 use neural_spring::tolerances;
-use neural_spring::validation::{exit_no_gpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, exit_no_gpu};
 
 #[tokio::main]
 async fn main() {

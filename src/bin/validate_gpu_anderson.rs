@@ -26,7 +26,7 @@
 use barracuda::pipeline::ReduceScalarPipeline;
 use barracuda::spectral::BatchIprGpu;
 use neural_spring::anderson_localization::{
-    aubry_andre_hamiltonian, ipr, jacobi_eigh, GOLDEN_RATIO,
+    GOLDEN_RATIO, aubry_andre_hamiltonian, ipr, jacobi_eigh,
 };
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;

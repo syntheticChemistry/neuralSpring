@@ -65,15 +65,15 @@ fn main() {
 
     println!("\n── Cross-experiment spectral summary ──");
     for result in &gpu_report.execution.results {
-        if let neural_spring_forge::graph::StageOutput::Map(m) = &result.output {
-            if let Some(&ipr) = m.get("mean_ipr") {
-                let sr = m.get("spectral_radius").copied().unwrap_or(0.0);
-                h.check_bool(&format!("{} IPR > 0", result.stage_id), ipr > 0.0);
-                println!(
-                    "  {}: mean_ipr={ipr:.4} spectral_radius={sr:.4}",
-                    result.stage_id
-                );
-            }
+        if let neural_spring_forge::graph::StageOutput::Map(m) = &result.output
+            && let Some(&ipr) = m.get("mean_ipr")
+        {
+            let sr = m.get("spectral_radius").copied().unwrap_or(0.0);
+            h.check_bool(&format!("{} IPR > 0", result.stage_id), ipr > 0.0);
+            println!(
+                "  {}: mean_ipr={ipr:.4} spectral_radius={sr:.4}",
+                result.stage_id
+            );
         }
     }
 

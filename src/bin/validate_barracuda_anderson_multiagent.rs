@@ -31,7 +31,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::gpu_ops;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{exit_no_gpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, exit_no_gpu};
 use std::sync::Arc;
 
 #[tokio::main]

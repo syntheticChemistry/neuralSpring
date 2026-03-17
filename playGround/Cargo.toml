@@ -3,7 +3,7 @@
 [package]
 name = "neuralspring-playground"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 license = "AGPL-3.0-or-later"
 description = "Application sandbox: Squirrel MCP adapter, interactive experiment runner, primal IPC client"
 repository = "https://github.com/ecoPrimals/neuralSpring"

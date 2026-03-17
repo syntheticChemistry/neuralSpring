@@ -30,7 +30,7 @@
     reason = "domain-specific numeric patterns"
 )]
 
-use crate::sequence::{lstm_cell, LstmWeights};
+use crate::sequence::{LstmWeights, lstm_cell};
 
 const WASHOUT: usize = 4;
 

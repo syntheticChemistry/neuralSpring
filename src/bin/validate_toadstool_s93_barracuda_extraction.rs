@@ -52,7 +52,7 @@ use barracuda::unified_math::MathOp;
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;
-use neural_spring::validation::{exit_no_gpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, exit_no_gpu};
 
 fn validate_standalone_path(h: &mut ValidationHarness) {
     println!("\n── Standalone path verification (v0.3.1) ──");
@@ -245,7 +245,7 @@ fn validate_nautilus_continuity(h: &mut ValidationHarness) {
     );
 
     let mut drift = DriftMonitor::default();
-    let gen = GenerationRecord {
+    let record = GenerationRecord {
         generation: 0,
         mean_fitness: 0.5,
         best_fitness: 0.8,
@@ -253,7 +253,7 @@ fn validate_nautilus_continuity(h: &mut ValidationHarness) {
         origin: InstanceId("s93-test".to_string()),
         training_size: 10,
     };
-    drift.record(&gen, 100);
+    drift.record(&record, 100);
     let ne_s = drift.ne_s_history[0];
     let expected = (100.0 * 0.8) / (1.0 + 0.8);
     h.check_abs(

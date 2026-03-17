@@ -7,18 +7,18 @@
 //! rerun-identical checks for all seeded algorithms.
 
 use crate::anderson_localization;
-use crate::counterdiabatic::{compute_cd_schedule, NkLandscape};
+use crate::counterdiabatic::{NkLandscape, compute_cd_schedule};
 use crate::directed_evolution::{lexicase_selection, run_selection_experiment};
 use crate::eco_dynamics::{self, MultiNicheLandscape};
-use crate::game_theory::{qs_cooperation_model, QsConfig};
+use crate::game_theory::{QsConfig, qs_cooperation_model};
 use crate::hmm;
 use crate::introgression;
 use crate::meta_population;
 use crate::pangenome_selection;
-use crate::regulatory_network::{integrate_grn, GrnParams};
+use crate::regulatory_network::{GrnParams, integrate_grn};
 use crate::rng::Rng;
 use crate::sate_alignment;
-use crate::signal_integration::{integrate_ode, OdeParams, OdeState};
+use crate::signal_integration::{OdeParams, OdeState, integrate_ode};
 use crate::spectral_commutativity;
 use crate::swarm_robotics;
 

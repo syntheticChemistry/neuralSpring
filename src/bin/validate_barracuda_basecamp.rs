@@ -32,7 +32,7 @@ use neural_spring::gpu_ops;
 use neural_spring::primitives::PROBABILITY_FLOOR;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{exit_no_gpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, exit_no_gpu};
 use neural_spring::weight_spectral;
 use std::sync::Arc;
 
@@ -158,7 +158,11 @@ async fn main() {
             .sum()
     };
 
-    let hessian = neural_spring::loss_landscape::numerical_hessian(&loss_fn, &loss_params, 1e-5);
+    let hessian = neural_spring::loss_landscape::numerical_hessian(
+        &loss_fn,
+        &loss_params,
+        tolerances::HESSIAN_FD_STEP,
+    );
     let cpu_hess_evals = neural_spring::loss_landscape::hessian_spectrum(&hessian, loss_dim);
 
     let (gpu_hess_evals_raw, _) =

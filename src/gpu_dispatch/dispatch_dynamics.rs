@@ -7,8 +7,8 @@
     reason = "domain-specific numeric patterns"
 )]
 
-use super::cpu_fallback;
 use super::Dispatcher;
+use super::cpu_fallback;
 
 impl Dispatcher {
     // ─── Game theory ─────────────────────────────────────────────

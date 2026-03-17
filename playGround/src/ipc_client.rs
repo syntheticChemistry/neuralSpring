@@ -284,10 +284,10 @@ pub fn discover_by_capability(required_capability: &str, hint_name: &str) -> Res
             if !name_str.ends_with(".sock") {
                 continue;
             }
-            if let Ok(caps) = probe_capabilities(&path) {
-                if caps.iter().any(|c| c == required_capability) {
-                    return Ok(path);
-                }
+            if let Ok(caps) = probe_capabilities(&path)
+                && caps.iter().any(|c| c == required_capability)
+            {
+                return Ok(path);
             }
         }
     }
@@ -452,10 +452,47 @@ impl DispatchOutcome {
         }
     }
 
+    /// Classify a parsed JSON-RPC response value (healthSpring V28 pattern).
+    ///
+    /// Inspects `"result"` and `"error"` fields to determine outcome type.
+    #[must_use]
+    pub fn classify_response(response: &serde_json::Value) -> Self {
+        if let Some(result) = response.get("result") {
+            return Self::Ok(result.clone());
+        }
+        if let Some((code, message)) = extract_rpc_error(response) {
+            return if (-32700..=-32600).contains(&code) {
+                Self::ProtocolError { code, message }
+            } else {
+                Self::ApplicationError { code, message }
+            };
+        }
+        Self::ProtocolError {
+            code: -1,
+            message: "response missing both 'result' and 'error'".to_owned(),
+        }
+    }
+
     /// Whether the outcome represents success.
     #[must_use]
     pub const fn is_ok(&self) -> bool {
         matches!(self, Self::Ok(_))
+    }
+
+    /// Whether the outcome is a protocol-level error (JSON-RPC spec codes).
+    #[must_use]
+    pub const fn is_protocol_error(&self) -> bool {
+        matches!(self, Self::ProtocolError { .. })
+    }
+
+    /// Whether the error indicates the called method does not exist
+    /// (JSON-RPC code -32601).
+    #[must_use]
+    pub const fn is_method_not_found(&self) -> bool {
+        matches!(
+            self,
+            Self::ProtocolError { code: -32601, .. } | Self::ApplicationError { code: -32601, .. }
+        )
     }
 }
 

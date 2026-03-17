@@ -25,7 +25,7 @@ use super::classifier::EsnNormalization;
 const ESN_TIKHONOV_REGULARIZATION: f32 = 1e-6;
 
 pub use barracuda::esn_v2::{
-    quantize_affine_i8_f64, ExportedWeights, HeadConfig, HeadGroup, MultiHeadEsn, NpuReadoutWeights,
+    ExportedWeights, HeadConfig, HeadGroup, MultiHeadEsn, NpuReadoutWeights, quantize_affine_i8_f64,
 };
 
 /// WDM head indices for the 3-head multi-head ESN.

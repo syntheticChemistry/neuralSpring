@@ -1,10 +1,11 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 16, 2026 (Session 162 — Cross-Ecosystem Absorption Execution + V113 Handoff)
+**Date**: March 17, 2026 (Session 163 — Edition 2024 + Health Probes + Property Testing + V114 Handoff)
 **barraCuda**: v0.3.5 at `0649cd0` (`../barraCuda/crates/barracuda`). 719 WGSL shaders, wgpu 28, Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. `PrecisionRoutingAdvice` with `F64NativeNoSharedMem` Ada Lovelace reclassification, `WORKGROUP_SIZE_1D` constant, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Three-tier precision: F32/F64/Df64 (lean 3-tier model, F16+templates removed). Deep debt: typed errors, named constants, `Arc<str>` hot-path, `RwLock` compiler, ring buffer back-off, streaming pipeline completion. **Known issue**: `enable f64;` in WGSL triggers PTXAS silent-zero regression on Ada Lovelace — fix implemented locally in `pipeline_cache.rs`, pending upstream absorption.
 **ToadStool**: S146 at `751b3849`. Hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests. Absorbed neuralSpring `pipeline_graph` DAG + hotSpring `streaming_dispatch`. Dual-write discovery (canonical + coralReef-compatible). `GpuDevice` enrichment (render_node, driver, arch). `gpu.dispatch` + `shader.compile` + `orchestration` capabilities. Compute triangle unblocked. Deep debt, zero-copy.
 **coralReef**: Iteration 49. `coral-glowplug` crate (sovereign PCIe broker), GV100 per-runlist registers, HBM2 training, bar cartography, 1842+ tests. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2). Three-tier precision architecture: f32 native, f64 DFMA+polynomial lowering, df64 preamble auto-prepend. `Fp64Strategy` in `CompileOptions`. Built-in `df64_preamble.wgsl`. 8 neuralSpring shaders in corpus.
-**neuralSpring**: 1133 lib tests + 70 playGround + 73 forge tests, 260 binaries, 48 modules, 0 clippy warnings (pedantic+nursery, -D warnings), 0 fmt diffs. All 3 crate roots `forbid(unsafe_code)`. All files ≤1000 LOC. AGPL-3.0-or-later. **Zero C dependencies** in entire workspace (ecoBin compliant — reqwest/ring eliminated via Tower Atomic). Rust 2024 ready (temp-env for env tests).
+**neuralSpring**: 1152 lib tests + 70 playGround + 73 forge tests, 260 binaries, 48 modules, 0 clippy warnings (pedantic+nursery, -D warnings), 0 fmt diffs. All 3 crate roots `forbid(unsafe_code)`. All files ≤1000 LOC. AGPL-3.0-or-later. **Zero C dependencies** in entire workspace (ecoBin compliant — reqwest/ring eliminated via Tower Atomic). **Rust Edition 2024** (let chains, reserved `gen` keyword, pattern ergonomics). proptest property-based testing (6 invariants).
+**S163**: Edition 2024 evolution — Rust Edition 2024 upgrade, `health.liveness`+`health.readiness` IPC probes, `ipc_resilience.rs` (RetryPolicy + CircuitBreaker), proptest (6 property tests), MCP tools 14→16, tolerance provenance doc comments, deny.toml hardened (unknown-git=deny, advisory DB), DispatchOutcome enriched.
 **S162**: Cross-ecosystem absorption execution — 4-format `parse_capability_list()`, `discover_primal()` + `socket_env_var()`, `DispatchOutcome` enum, `resilient_call()` circuit breaker, `safe_cast` module (5 helpers), zero `eprintln!` workspace-wide (1642 → 0), safe GPU casts. V113 handoff.
 **S161**: Doc cleanup + structured logging completion — hardcoded `"biomeos.sock"` → config constants (3 files), playGround 28× `eprintln!` → `log::*` (zero remaining), root doc consolidation, archive sweep clean. V112 handoff.
 **S160**: IPC evolution — `IpcError` typed enum (healthSpring V31 / rhizoCrypt V13), `extract_rpc_error()` centralized (airSpring V0.8.6), `call_typed()` for structured errors, typed `compute.dispatch` protocol (wetSpring V124). `JsonRpcError::code` i32→i64. V111 handoff.
@@ -46,7 +47,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Category | Count | Status |
 |----------|-------|--------|
 | Python baselines | 397/397 | **COMPLETE** |
-| Rust native validation | 1115 lib + 9 integration + 73 forge tests, 47 modules, 258 binaries | **COMPLETE** |
+| Rust native validation | 1152 lib + 9 integration + 73 forge tests, 47 modules, 258 binaries | **COMPLETE** |
 | BarraCUDA primitives | 272/272 | **COMPLETE** |
 | BarraCUDA CPU (bC) | **24/25** papers (96%) | **ALL GREEN** |
 | BarraCUDA GPU Tensor (gT) | **23/25** papers (92%) | **ALL GREEN** |
@@ -434,7 +435,7 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 | `cargo fmt` | **Clean** — zero formatting violations |
 | `cargo clippy` pedantic + nursery | **0 warnings** — all `#[allow]` migrated to `#[expect(, reason)]` (0 in production code; 6 in `#[cfg(test)]` where `expect_used`/`unwrap_used` don't fire) |
 | `cargo doc --no-deps` | **0 warnings** — all rustdoc links valid |
-| `cargo test --lib` | **1048 tests PASS** |
+| `cargo test --lib` | **1152 tests PASS** |
 | `cargo test --test integration` | **9 integration tests PASS** |
 | `#[must_use]` | Applied to 24+ pure public functions across 5 modules |
 | `#![forbid(unsafe_code)]` | Enforced at crate root — zero `unsafe` blocks permitted |

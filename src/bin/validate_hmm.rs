@@ -95,12 +95,12 @@ fn main() {
     let posterior_acc = gamma
         .chunks(n)
         .zip(true_states.iter())
-        .filter(|(row, &s)| {
+        .filter(|(row, s)| {
             row.iter()
                 .enumerate()
                 .max_by(|(_, a), (_, b)| f64::total_cmp(a, b))
                 .map_or(0, |(i, _)| i)
-                == s
+                == **s
         })
         .count() as f64
         / gen_obs.len() as f64;

@@ -21,8 +21,8 @@
 //! FPEOS tables (Militzer) → Python MLP → Rust MLP → BarraCUDA GPU → Pure GPU
 //! ```
 
-use barracuda::nn::simple_mlp::{Activation, DenseLayer};
 use barracuda::nn::SimpleMlp;
+use barracuda::nn::simple_mlp::{Activation, DenseLayer};
 
 /// Normalization parameters for MLP input/output.
 #[derive(Debug, Clone)]

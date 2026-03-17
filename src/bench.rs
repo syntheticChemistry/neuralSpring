@@ -98,18 +98,26 @@ fn median_us(timings: &[Duration]) -> f64 {
 
 /// Print a formatted summary table of benchmark results.
 pub fn print_summary(results: &[BenchResult]) {
-    println!();
-    println!("╔════════════════════════════════════════════════════════════════════════════════════════╗");
-    println!(
+    log::info!("");
+    log::info!(
+        "╔════════════════════════════════════════════════════════════════════════════════════════╗"
+    );
+    log::info!(
         "║  LOCAL vs UPSTREAM — Same Shaders, Different Dispatch Paths                           ║"
     );
-    println!("╚════════════════════════════════════════════════════════════════════════════════════════╝");
-    println!();
-    println!(
-        "{:<35} {:>30} {:>10} {:>10} {:>10}",
-        "Kernel", "Origin", "Local µs", "Upstr µs", "Ratio"
+    log::info!(
+        "╚════════════════════════════════════════════════════════════════════════════════════════╝"
     );
-    println!("{}", "─".repeat(99));
+    log::info!("");
+    log::info!(
+        "{:<35} {:>30} {:>10} {:>10} {:>10}",
+        "Kernel",
+        "Origin",
+        "Local µs",
+        "Upstr µs",
+        "Ratio"
+    );
+    log::info!("{}", "─".repeat(99));
     for r in results {
         let ratio = r.upstream_us / r.local_us;
         let marker = if ratio < RATIO_NEGLIGIBLE {
@@ -119,14 +127,18 @@ pub fn print_summary(results: &[BenchResult]) {
         } else {
             "~"
         };
-        println!(
+        log::info!(
             "{:<35} {:>30} {:>10.1} {:>10.1} {:>8.2}× {marker}",
-            r.name, r.origin, r.local_us, r.upstream_us, ratio
+            r.name,
+            r.origin,
+            r.local_us,
+            r.upstream_us,
+            ratio
         );
     }
-    println!("{}", "─".repeat(99));
-    println!("≈ = negligible overhead, ~ = minor overhead, ⚠ = investigate");
-    println!(
+    log::info!("{}", "─".repeat(99));
+    log::info!("≈ = negligible overhead, ~ = minor overhead, ⚠ = investigate");
+    log::info!(
         "Upstream wrappers re-create params buffer per dispatch (expected ~0.5-1µs overhead)."
     );
 }

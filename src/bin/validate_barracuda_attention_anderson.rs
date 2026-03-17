@@ -110,17 +110,17 @@ fn validate_gpu(
     }
 
     // GPU determinism
-    if let Ok(t1) = Tensor::from_data(&mat_f32, vec![n, n], device.clone()) {
-        if let Ok(t2) = Tensor::from_data(&mat_f32, vec![n, n], device.clone()) {
-            if let (Ok(v1), Ok(v2)) = (t1.to_vec(), t2.to_vec()) {
-                let same = v1
-                    .iter()
-                    .zip(v2.iter())
-                    .all(|(a, b)| (a - b).abs() < f32::EPSILON);
-                h.check_bool("GPU deterministic", same);
-            } else {
-                h.check_bool("GPU deterministic", false);
-            }
+    if let Ok(t1) = Tensor::from_data(&mat_f32, vec![n, n], device.clone())
+        && let Ok(t2) = Tensor::from_data(&mat_f32, vec![n, n], device.clone())
+    {
+        if let (Ok(v1), Ok(v2)) = (t1.to_vec(), t2.to_vec()) {
+            let same = v1
+                .iter()
+                .zip(v2.iter())
+                .all(|(a, b)| (a - b).abs() < f32::EPSILON);
+            h.check_bool("GPU deterministic", same);
+        } else {
+            h.check_bool("GPU deterministic", false);
         }
     }
 }

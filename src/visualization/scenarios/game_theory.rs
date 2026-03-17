@@ -10,7 +10,7 @@
     reason = "index-to-f64 conversions for visualization axes"
 )]
 
-use crate::game_theory::{prisoners_dilemma_payoff, replicator_dynamics, QsConfig, QsResult};
+use crate::game_theory::{QsConfig, QsResult, prisoners_dilemma_payoff, replicator_dynamics};
 use crate::visualization::types::{NeuralScenario, ScenarioEdge, ThresholdRange};
 
 use super::{edge, gauge, heatmap, node, scaffold, timeseries};

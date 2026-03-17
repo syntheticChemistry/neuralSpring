@@ -19,7 +19,12 @@ pub fn gelu_vec(xs: &[f64]) -> Vec<f64> {
     xs.iter().copied().map(crate::primitives::gelu).collect()
 }
 
-/// Layer normalization along the last axis.
+/// Layer normalization along the last axis (CPU reference).
+///
+/// Intentional CPU-reference implementation for f64 coralForge validation.
+/// Production GPU path: `Tensor::layer_norm_wgsl()` in barraCuda.
+/// Kept here for coralForge cross-validation and AlphaFold-style
+/// fold pipelines that need f64-exact layer norm without GPU dispatch.
 ///
 /// `x`: `[rows, dim]`, `gamma`/`beta`: `[dim]`, `eps`: stability constant.
 /// Returns `gamma * (x - mean) / sqrt(var + eps) + beta` for each row.
@@ -52,7 +57,11 @@ pub fn layer_norm(
         .collect()
 }
 
-/// Row-wise numerically stable softmax.
+/// Row-wise numerically stable softmax (CPU reference).
+///
+/// Intentional CPU-reference implementation for f64 coralForge validation.
+/// Production GPU path: `Tensor::softmax_dim(1)` or
+/// `barracuda::dispatch::softmax_dispatch` (row-wise).
 ///
 /// `x`: `[rows, cols]` in row-major. Returns same shape.
 ///

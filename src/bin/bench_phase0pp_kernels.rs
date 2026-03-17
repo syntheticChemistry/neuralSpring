@@ -427,11 +427,11 @@ fn run_python_benchmarks(results: &mut [BenchResult]) {
                 let reader = BufReader::new(&*o.stdout);
                 for line in reader.lines().map_while(Result::ok) {
                     let prefix = format!("{tag}_US=");
-                    if let Some(val) = line.strip_prefix(&prefix) {
-                        if let Ok(us) = val.parse::<f64>() {
-                            r.python_us = Some(us);
-                            println!("BENCH_{tag}_PYTHON_US={us:.1}");
-                        }
+                    if let Some(val) = line.strip_prefix(&prefix)
+                        && let Ok(us) = val.parse::<f64>()
+                    {
+                        r.python_us = Some(us);
+                        println!("BENCH_{tag}_PYTHON_US={us:.1}");
                     }
                 }
                 if r.python_us.is_none() {

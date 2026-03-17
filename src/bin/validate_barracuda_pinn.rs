@@ -20,7 +20,7 @@
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
-use neural_spring::pinn::{burgers_exact_point, max_gradient, BURGERS_NU};
+use neural_spring::pinn::{BURGERS_NU, burgers_exact_point, max_gradient};
 use neural_spring::require;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

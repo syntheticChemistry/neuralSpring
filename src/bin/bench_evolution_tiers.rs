@@ -59,7 +59,9 @@ fn main() {
     println!("╔══════════════════════════════════════════════════════════════════════════════╗");
     println!("║  neuralSpring — Evolution Tier Benchmark                                     ║");
     println!("║  Rust CPU → BarraCUDA CPU → BarraCUDA GPU                                    ║");
-    println!("║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║");
+    println!(
+        "║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║"
+    );
     println!("╚══════════════════════════════════════════════════════════════════════════════╝");
     println!();
 

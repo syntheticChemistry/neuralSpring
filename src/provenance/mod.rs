@@ -58,7 +58,7 @@ impl BaselineProvenance {
             "digester_anderson" => "control/digester_anderson/digester_anderson_baseline.json",
             "glucose_prediction" => "control/glucose_prediction/glucose_baseline.json",
             "lenet" => "control/lenet/lenet_baseline.json",
-            "cpu_parity" => "control/cpu_parity/cpu_parity_references.json",
+            "cpu_parity" => "control/cpu_parity_references.json",
             _ => "",
         }
     }
@@ -242,9 +242,11 @@ mod tests {
         reason = "global minima are exactly 0.0 by mathematical definition"
     )]
     fn benchmark_references_have_global_minima() {
-        assert!(RASTRIGIN_REFERENCE
-            .iter()
-            .any(|(x, y, _)| *x == 1.0 && *y == 1.0));
+        assert!(
+            RASTRIGIN_REFERENCE
+                .iter()
+                .any(|(x, y, _)| *x == 1.0 && *y == 1.0)
+        );
         assert!(ROSENBROCK_REFERENCE.iter().any(|(_, _, f)| *f == 0.0));
     }
 

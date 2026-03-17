@@ -17,7 +17,7 @@
 
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
-use neural_spring::digester_anderson::{load_coupling_from_json, pearson_r, CouplingPredictor};
+use neural_spring::digester_anderson::{CouplingPredictor, load_coupling_from_json, pearson_r};
 use neural_spring::gpu::Gpu;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

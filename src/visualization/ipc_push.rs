@@ -142,13 +142,13 @@ impl PetalTonguePushClient {
         }
         if let Ok(runtime) = std::env::var(crate::config::ENV_XDG_RUNTIME_DIR) {
             let dir = PathBuf::from(runtime).join(crate::config::PETALTONGUE_SOCKET_DIR);
-            if dir.is_dir() {
-                if let Ok(entries) = std::fs::read_dir(&dir) {
-                    for entry in entries.flatten() {
-                        let p = entry.path();
-                        if p.extension().is_some_and(|e| e == "sock") {
-                            return Ok(Self { socket_path: p });
-                        }
+            if dir.is_dir()
+                && let Ok(entries) = std::fs::read_dir(&dir)
+            {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if p.extension().is_some_and(|e| e == "sock") {
+                        return Ok(Self { socket_path: p });
                     }
                 }
             }
@@ -299,6 +299,9 @@ impl PetalTonguePushClient {
 
         let mut stream =
             UnixStream::connect(&self.socket_path).map_err(PushError::ConnectionFailed)?;
+        stream
+            .set_read_timeout(Some(std::time::Duration::from_secs(5)))
+            .map_err(PushError::ConnectionFailed)?;
         stream
             .write_all(&payload)
             .map_err(PushError::ConnectionFailed)?;
@@ -453,12 +456,20 @@ mod tests {
     }
 
     fn mock_petaltongue_response(listener: &std::os::unix::net::UnixListener) -> serde_json::Value {
-        let (mut stream, _) = listener.accept().expect("accept");
-        let mut buf = vec![0u8; 65536];
-        let n = stream.read(&mut buf).expect("read");
-        let request: serde_json::Value = serde_json::from_slice(&buf[..n]).expect("parse request");
-        let response = serde_json::json!({"jsonrpc": "2.0", "result": "ok", "id": 1});
+        listener
+            .set_nonblocking(false)
+            .expect("set listener blocking");
+        let (stream, _) = listener.accept().expect("accept");
         stream
+            .set_read_timeout(Some(std::time::Duration::from_secs(5)))
+            .expect("set read timeout");
+        let mut reader = std::io::BufReader::new(&stream);
+        let mut line = String::new();
+        std::io::BufRead::read_line(&mut reader, &mut line).expect("read line");
+        let request: serde_json::Value = serde_json::from_str(line.trim()).expect("parse request");
+        let response = serde_json::json!({"jsonrpc": "2.0", "result": "ok", "id": 1});
+        let mut writer = &stream;
+        writer
             .write_all(serde_json::to_vec(&response).expect("ser").as_slice())
             .expect("write");
         request
@@ -477,6 +488,9 @@ mod tests {
         let sock_path = dir.join(format!("{name}.sock"));
         let _ = std::fs::remove_file(&sock_path);
         let listener = std::os::unix::net::UnixListener::bind(&sock_path).expect("bind");
+        listener
+            .set_nonblocking(false)
+            .expect("set listener blocking");
         (sock_path, listener)
     }
 
@@ -494,10 +508,11 @@ mod tests {
         let (scenario, _) = scenarios::spectral_study();
 
         let handle = std::thread::spawn(move || mock_petaltongue_response(&listener));
+        std::thread::yield_now();
         let result = client.push_render("sess-1", "Test Render", &scenario);
         let request = handle.join().expect("mock thread");
 
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "push_render failed: {result:?}");
         assert_eq!(request["jsonrpc"], "2.0");
         assert_eq!(request["method"], "visualization.render");
         assert_eq!(request["params"]["session_id"], "sess-1");

@@ -25,7 +25,7 @@
 
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{bench_once, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, bench_once};
 
 struct BenchResult {
     label: &'static str,

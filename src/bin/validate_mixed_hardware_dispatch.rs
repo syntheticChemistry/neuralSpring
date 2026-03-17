@@ -31,8 +31,8 @@ use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::mixed::{
-    self, BandwidthTier, MixedSubstrate, PCIE4_X16_BANDWIDTH_GBPS, PCIE4_X4_BANDWIDTH_GBPS,
-    PCIE_DMA_LATENCY_US,
+    self, BandwidthTier, MixedSubstrate, PCIE_DMA_LATENCY_US, PCIE4_X4_BANDWIDTH_GBPS,
+    PCIE4_X16_BANDWIDTH_GBPS,
 };
 use neural_spring_forge::pcie_bridge::PcieBridge;
 use neural_spring_forge::substrate::{Capability, Identity, Properties, Substrate, SubstrateKind};

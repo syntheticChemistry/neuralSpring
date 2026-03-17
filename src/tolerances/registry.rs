@@ -143,6 +143,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             SEASONAL_ANNUAL_MEAN, SEASONAL_ANNUAL_MEAN_TOL,
             DIVERSITY_EPSILON, VARIANCE_FLOOR,
             RELATIVE_ERROR_FLOOR, ODE_STEADY_STATE_SLACK,
+            SVD_PINV_CUTOFF, NMF_CONVERGENCE_TOL,
         ],
         "statistical": [
             CHI2_CRITICAL_DF9_P05, CHI2_CRITICAL_DF1_P05,

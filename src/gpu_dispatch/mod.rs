@@ -30,8 +30,8 @@ mod dispatch_linalg;
 mod dispatch_popgen;
 mod dispatch_stats;
 
-use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile, PrecisionRoutingAdvice};
 use barracuda::device::WgpuDevice;
+use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile, PrecisionRoutingAdvice};
 use barracuda::unified_hardware::BandwidthTier;
 use std::sync::Arc;
 
@@ -300,7 +300,7 @@ impl Dispatcher {
         gpu_fn: impl FnOnce(&Arc<WgpuDevice>) -> Result<T, String>,
         cpu_fn: impl FnOnce() -> T,
     ) -> (T, neural_spring_forge::mixed::MixedSubstrate) {
-        use neural_spring_forge::mixed::{mixed_substrate, MixedSubstrate};
+        use neural_spring_forge::mixed::{MixedSubstrate, mixed_substrate};
 
         let substrate = mixed_substrate(
             workload.compute_us,

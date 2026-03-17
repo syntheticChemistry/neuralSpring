@@ -29,8 +29,8 @@
     reason = "domain terms (Stanton-Murillo, MLP) are not crate links"
 )]
 
-use barracuda::nn::simple_mlp::{Activation, DenseLayer};
 use barracuda::nn::SimpleMlp;
+use barracuda::nn::simple_mlp::{Activation, DenseLayer};
 
 /// Normalization parameters for 3-input/3-output MLP.
 #[derive(Debug, Clone)]

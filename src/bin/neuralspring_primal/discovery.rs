@@ -15,7 +15,7 @@ use tokio::net::UnixStream;
 
 use neural_spring::config::BIOMEOS_SOCKET_SUBDIR;
 
-use super::{ipc_response_timeout_secs, orchestrator_socket, PRIMAL_NAME};
+use super::{PRIMAL_NAME, ipc_response_timeout_secs, orchestrator_socket};
 
 static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(1);
 
@@ -178,14 +178,13 @@ pub async fn discover_data_primal_and_forward(
             &serde_json::json!({ "capability": method }),
         )
         .await;
-        if let Ok(resp) = discovery {
-            if let Some(primal_name) = resp
+        if let Ok(resp) = discovery
+            && let Some(primal_name) = resp
                 .get("result")
                 .and_then(|r| r.get("primal"))
                 .and_then(|p| p.as_str())
-            {
-                return forward_to_primal(primal_name, method, params).await;
-            }
+        {
+            return forward_to_primal(primal_name, method, params).await;
         }
     }
 

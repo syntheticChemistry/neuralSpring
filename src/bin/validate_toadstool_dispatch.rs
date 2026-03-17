@@ -23,8 +23,8 @@ use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::dispatch::{
-    batch_fitness_substrate, batch_ipr_substrate, hmm_substrate, logsumexp_substrate,
-    ode_substrate, pairwise_substrate, spatial_substrate, stochastic_substrate, Substrate,
+    Substrate, batch_fitness_substrate, batch_ipr_substrate, hmm_substrate, logsumexp_substrate,
+    ode_substrate, pairwise_substrate, spatial_substrate, stochastic_substrate,
 };
 
 #[tokio::main]

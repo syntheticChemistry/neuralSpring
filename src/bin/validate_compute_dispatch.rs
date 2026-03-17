@@ -29,8 +29,8 @@ use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
-use neural_spring_forge::dispatch::{batch_ipr_substrate, pairwise_substrate, Substrate};
-use neural_spring_forge::mixed::{mixed_substrate, MixedSubstrate};
+use neural_spring_forge::dispatch::{Substrate, batch_ipr_substrate, pairwise_substrate};
+use neural_spring_forge::mixed::{MixedSubstrate, mixed_substrate};
 use std::sync::Arc;
 
 #[tokio::main]

@@ -7,7 +7,7 @@
 //! digestion) and Paper 023 (Anderson localization).
 
 use neural_spring::digester_anderson::{
-    evenness_to_disorder, load_coupling_from_json, noise_from_xi, pearson_r, CouplingBaseline,
+    CouplingBaseline, evenness_to_disorder, load_coupling_from_json, noise_from_xi, pearson_r,
 };
 use neural_spring::digestion_prediction::biogas_yield;
 use neural_spring::tolerances;
@@ -216,8 +216,8 @@ fn avg_where(vals: &[f64], keys: &[f64], pred: impl Fn(f64) -> bool) -> f64 {
     let (sum, cnt) = vals
         .iter()
         .zip(keys)
-        .filter(|(_, &k)| pred(k))
-        .fold((0.0_f64, 0_u32), |(s, c), (&v, _)| (s + v, c + 1));
+        .filter(|(_, k)| pred(**k))
+        .fold((0.0_f64, 0_u32), |(s, c), (v, _)| (s + *v, c + 1));
     sum / f64::from(cnt)
 }
 

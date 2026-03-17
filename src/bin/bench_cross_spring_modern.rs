@@ -37,8 +37,8 @@
     reason = "benchmark binary"
 )]
 
-use barracuda::nn::simple_mlp::{Activation, DenseLayer};
 use barracuda::nn::SimpleMlp;
+use barracuda::nn::simple_mlp::{Activation, DenseLayer};
 use barracuda::stats;
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::Dispatcher;

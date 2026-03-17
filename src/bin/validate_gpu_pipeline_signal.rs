@@ -33,7 +33,7 @@ use barracuda::ops::bio::hill_gate::{HillGateParams, WGSL_HILL_GATE_F64};
 use neural_spring::gpu::Gpu;
 use neural_spring::signal_integration::two_input_hill;
 use neural_spring::tolerances;
-use neural_spring::validation::{patch_pow_to_polyfill, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, patch_pow_to_polyfill};
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
@@ -205,11 +205,7 @@ fn cpu_mean_hill_grid(
             count += 1;
         }
     }
-    if count == 0 {
-        0.0
-    } else {
-        sum / count as f64
-    }
+    if count == 0 { 0.0 } else { sum / count as f64 }
 }
 
 fn make_linear_grid(n: usize, low: f64, high: f64) -> Vec<f64> {

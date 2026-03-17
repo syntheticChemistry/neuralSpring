@@ -37,7 +37,7 @@ use neural_spring::coral_forge::structure;
 use neural_spring::coral_forge::structure::IpaConfig;
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_shader_validation::{
-    dispatch_and_read, dispatch_shader, max_diff, upload_f64, upload_params, wg1d, ShaderBinding,
+    ShaderBinding, dispatch_and_read, dispatch_shader, max_diff, upload_f64, upload_params, wg1d,
 };
 use neural_spring::require;
 use neural_spring::rng::Rng;

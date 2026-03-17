@@ -21,6 +21,7 @@ use neural_spring::information_flow;
 use neural_spring::loss_landscape;
 use neural_spring::neural_pgm;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::weight_spectral;
 use std::sync::Arc;
 use std::time::Instant;
@@ -79,7 +80,9 @@ async fn run() -> BenchResult<()> {
         let a = information_flow::attention_spectral_analysis(&attn, 8);
         (xi, w, a.mean_ipr)
     });
-    println!("  Sub-02 info_flow       : {cpu_us:8.1} µs  ξ={xi:.3}, W={w_dis:.4}, attn_IPR={attn_ipr:.4}");
+    println!(
+        "  Sub-02 info_flow       : {cpu_us:8.1} µs  ξ={xi:.3}, W={w_dis:.4}, attn_IPR={attn_ipr:.4}"
+    );
 
     // ── Sub-thesis 03: Loss Landscape ───────────────────────────────
 
@@ -88,7 +91,7 @@ async fn run() -> BenchResult<()> {
     let quadratic = |x: &[f64]| -> f64 { x.iter().map(|&v| v * v).sum() };
 
     let (cpu_us, r) = bench("Sub-03 loss_landscape (8-dim Hessian)", || {
-        loss_landscape::landscape_analysis(&quadratic, &ll_params, 1e-5, 0.1)
+        loss_landscape::landscape_analysis(&quadratic, &ll_params, tolerances::HESSIAN_FD_STEP, 0.1)
     });
     println!(
         "  Sub-03 loss_landscape  : {cpu_us:8.1} µs  saddle={}, sharpness={:.3}",

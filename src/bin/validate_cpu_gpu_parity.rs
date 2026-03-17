@@ -212,60 +212,60 @@ async fn validate_activation_parity(
     };
 
     // ReLU
-    if let Ok(out) = t.clone().relu() {
-        if let Ok(v) = out.to_vec() {
-            let ref_relu: Vec<f32> = data.iter().map(|&x| relu_cpu(x)).collect();
-            let max_diff = v
-                .iter()
-                .zip(ref_relu.iter())
-                .map(|(a, b)| (a - b).abs())
-                .fold(0.0f32, f32::max);
-            h.check_upper(
-                &format!("{label} ReLU vs Rust"),
-                f64::from(max_diff),
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
+    if let Ok(out) = t.clone().relu()
+        && let Ok(v) = out.to_vec()
+    {
+        let ref_relu: Vec<f32> = data.iter().map(|&x| relu_cpu(x)).collect();
+        let max_diff = v
+            .iter()
+            .zip(ref_relu.iter())
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0f32, f32::max);
+        h.check_upper(
+            &format!("{label} ReLU vs Rust"),
+            f64::from(max_diff),
+            tolerances::TENSOR_EXACT_F32,
+        );
     }
 
     // Sigmoid
     let Ok(t2) = Tensor::from_vec_on(data.clone(), vec![n], device.clone()).await else {
         return;
     };
-    if let Ok(out) = t2.sigmoid() {
-        if let Ok(v) = out.to_vec() {
-            let ref_sig: Vec<f32> = data.iter().map(|&x| sigmoid_cpu(x)).collect();
-            let max_diff = v
-                .iter()
-                .zip(ref_sig.iter())
-                .map(|(a, b)| (a - b).abs())
-                .fold(0.0f32, f32::max);
-            h.check_upper(
-                &format!("{label} Sigmoid vs Rust"),
-                f64::from(max_diff),
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
+    if let Ok(out) = t2.sigmoid()
+        && let Ok(v) = out.to_vec()
+    {
+        let ref_sig: Vec<f32> = data.iter().map(|&x| sigmoid_cpu(x)).collect();
+        let max_diff = v
+            .iter()
+            .zip(ref_sig.iter())
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0f32, f32::max);
+        h.check_upper(
+            &format!("{label} Sigmoid vs Rust"),
+            f64::from(max_diff),
+            tolerances::TENSOR_EXACT_F32,
+        );
     }
 
     // Tanh
     let Ok(t3) = Tensor::from_vec_on(data.clone(), vec![n], device.clone()).await else {
         return;
     };
-    if let Ok(out) = t3.tanh() {
-        if let Ok(v) = out.to_vec() {
-            let ref_tanh: Vec<f32> = data.iter().map(|&x| tanh_cpu(x)).collect();
-            let max_diff = v
-                .iter()
-                .zip(ref_tanh.iter())
-                .map(|(a, b)| (a - b).abs())
-                .fold(0.0f32, f32::max);
-            h.check_upper(
-                &format!("{label} Tanh vs Rust"),
-                f64::from(max_diff),
-                tolerances::TENSOR_EXACT_F32,
-            );
-        }
+    if let Ok(out) = t3.tanh()
+        && let Ok(v) = out.to_vec()
+    {
+        let ref_tanh: Vec<f32> = data.iter().map(|&x| tanh_cpu(x)).collect();
+        let max_diff = v
+            .iter()
+            .zip(ref_tanh.iter())
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0f32, f32::max);
+        h.check_upper(
+            &format!("{label} Tanh vs Rust"),
+            f64::from(max_diff),
+            tolerances::TENSOR_EXACT_F32,
+        );
     }
 }
 
@@ -290,18 +290,17 @@ async fn validate_reduction_parity(
         }
     };
 
-    if let Ok(sum_t) = t.sum() {
-        if let Ok(v) = sum_t.to_vec() {
-            if let Some(&got) = v.first() {
-                let tol = f64::from(ref_sum.abs()).max(1.0) * tolerances::GPU_FITNESS_F32;
-                h.check_abs(
-                    &format!("{label} sum vs manual"),
-                    f64::from(got),
-                    f64::from(ref_sum),
-                    tol,
-                );
-            }
-        }
+    if let Ok(sum_t) = t.sum()
+        && let Ok(v) = sum_t.to_vec()
+        && let Some(&got) = v.first()
+    {
+        let tol = f64::from(ref_sum.abs()).max(1.0) * tolerances::GPU_FITNESS_F32;
+        h.check_abs(
+            &format!("{label} sum vs manual"),
+            f64::from(got),
+            f64::from(ref_sum),
+            tol,
+        );
     } else {
         h.check_bool(&format!("{label} sum (Tensor API unavailable)"), true);
     }

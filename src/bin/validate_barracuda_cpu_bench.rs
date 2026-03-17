@@ -62,15 +62,15 @@ use neural_spring::pangenome_selection;
 use neural_spring::regulatory_network::{self, GrnParams};
 use neural_spring::rng::Rng;
 use neural_spring::sate_alignment;
-use neural_spring::sequence::{lstm_cell, LstmWeights};
+use neural_spring::sequence::{LstmWeights, lstm_cell};
 use neural_spring::signal_integration;
 use neural_spring::spectral_commutativity;
 use neural_spring::swarm_robotics;
 use neural_spring::tolerances;
 use neural_spring::validation::cpu_bench::{
-    print_cpu_summary, record_domain, run_python_bench, CpuBenchResult,
+    CpuBenchResult, print_cpu_summary, record_domain, run_python_bench,
 };
-use neural_spring::validation::{bench_median, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, bench_median};
 
 const WARMUP: usize = 10;
 const ITERS: usize = 200;
@@ -79,7 +79,9 @@ fn main() {
     println!("╔══════════════════════════════════════════════════════════════════════════════╗");
     println!("║  neuralSpring — BarraCUDA CPU Parity & Performance Benchmark               ║");
     println!("║  Python/NumPy (interpreted) vs Pure Rust (BarraCUDA CPU) — 15 domains      ║");
-    println!("║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║");
+    println!(
+        "║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║"
+    );
     println!("╚══════════════════════════════════════════════════════════════════════════════╝");
     println!();
 

@@ -27,7 +27,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::dispatch;
 use neural_spring_forge::mixed::{
-    self, compare_transfer_paths, transfer_cost_for_tier, BandwidthTier, MixedSubstrate,
+    self, BandwidthTier, MixedSubstrate, compare_transfer_paths, transfer_cost_for_tier,
 };
 use neural_spring_forge::pcie_bridge::PcieBridge;
 

@@ -11,9 +11,9 @@
 //! Command: `python3 control/eco_dynamics/eco_dynamics.py`
 //! Result: 7/7 PASS (seed=42, `n_loci`=20, `pop_size`=200, 300 gen)
 
-use neural_spring::eco_dynamics::{run_ea, MultiNicheLandscape};
+use neural_spring::eco_dynamics::{MultiNicheLandscape, run_ea};
 use neural_spring::tolerances;
-use neural_spring::validation::{mean_first_n, mean_last_n, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, mean_first_n, mean_last_n};
 
 fn main() {
     let mut h = ValidationHarness::new("eco_dynamics");

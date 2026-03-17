@@ -2,8 +2,8 @@
 
 //! HMM dispatch operations (Liu 016–018).
 
-use super::cpu_fallback;
 use super::Dispatcher;
+use super::cpu_fallback;
 
 impl Dispatcher {
     /// HMM backward step: GPU if available, CPU fallback.

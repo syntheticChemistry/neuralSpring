@@ -22,11 +22,11 @@
     reason = "validation binary"
 )]
 
-use barracuda::ops::bio::swarm_nn::SwarmNnParams;
 use barracuda::ops::bio::SwarmNnGpu;
+use barracuda::ops::bio::swarm_nn::SwarmNnParams;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
-use neural_spring::swarm_robotics::{create_controller, neural_forward, ControllerType};
+use neural_spring::swarm_robotics::{ControllerType, create_controller, neural_forward};
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;

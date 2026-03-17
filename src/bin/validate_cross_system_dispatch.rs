@@ -30,8 +30,8 @@ use neural_spring::validation::ValidationHarness;
 use neural_spring_forge::dispatch::{self, Substrate};
 use neural_spring_forge::inventory;
 use neural_spring_forge::mixed::{
-    self, chained_transfer_cost, compare_transfer_paths, transfer_cost_for_tier, BandwidthTier,
-    MixedSubstrate,
+    self, BandwidthTier, MixedSubstrate, chained_transfer_cost, compare_transfer_paths,
+    transfer_cost_for_tier,
 };
 use neural_spring_forge::pcie_bridge::PcieBridge;
 use neural_spring_forge::substrate::{Capability, SubstrateKind};

@@ -104,10 +104,16 @@ async fn run() -> BenchResult<()> {
 
     println!("\n=== Cross-Spring Provenance ===\n");
     println!("  VarianceF64        : hotSpring Welford algorithm → BarraCUDA → neuralSpring");
-    println!("  CorrelationF64      : wetSpring bio stats → hotSpring f64 precision → BarraCUDA → neuralSpring");
+    println!(
+        "  CorrelationF64      : wetSpring bio stats → hotSpring f64 precision → BarraCUDA → neuralSpring"
+    );
     println!("  FusedMapReduceF64   : wetSpring fused map-reduce → BarraCUDA → neuralSpring");
-    println!("  pow_f64 polyfill    : hotSpring math_f64.wgsl + wetSpring (zero+literal) fix → S-17 HillGate fix");
-    println!("  HillGate f64        : neuralSpring metalForge → BarraCUDA (ToadStool absorption) → S-17 pow polyfill");
+    println!(
+        "  pow_f64 polyfill    : hotSpring math_f64.wgsl + wetSpring (zero+literal) fix → S-17 HillGate fix"
+    );
+    println!(
+        "  HillGate f64        : neuralSpring metalForge → BarraCUDA (ToadStool absorption) → S-17 pow polyfill"
+    );
     Ok(())
 }
 

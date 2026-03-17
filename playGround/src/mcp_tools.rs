@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! MCP tool definitions for neuralSpring's 14 `science.*` capabilities.
+//! MCP tool definitions for neuralSpring's capabilities (science + health).
 //!
 //! Each tool has a name, description, and JSON Schema for input parameters.
 //! These definitions are registered with Squirrel via `capability.announce`
@@ -17,9 +17,9 @@ pub struct McpToolDef {
     pub input_schema: serde_json::Value,
 }
 
-/// All neuralSpring science capabilities as MCP tool definitions.
+/// All neuralSpring capabilities as MCP tool definitions.
 #[must_use]
-#[expect(clippy::too_many_lines, reason = "14 tool definitions in one registry")]
+#[expect(clippy::too_many_lines, reason = "16 tool definitions in one registry")]
 pub fn tool_definitions() -> Vec<McpToolDef> {
     vec![
         McpToolDef {
@@ -194,6 +194,19 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
             domain: "science",
             input_schema: json!({ "type": "object", "properties": {} }),
         },
+        McpToolDef {
+            name: "health.liveness",
+            description: "Liveness probe: returns immediately if the primal process is alive",
+            domain: "health",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        McpToolDef {
+            name: "health.readiness",
+            description: "Readiness probe: reports subsystem status (dispatcher, GPU backend) \
+                          and uptime",
+            domain: "health",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
     ]
 }
 
@@ -211,7 +224,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 14);
+        assert_eq!(tools.len(), 16);
     }
 
     #[test]
@@ -227,12 +240,14 @@ mod tests {
     }
 
     #[test]
-    fn all_tools_have_science_domain() {
+    fn all_tools_have_valid_domain() {
+        let valid_domains = ["science", "health"];
         for tool in tool_definitions() {
-            assert_eq!(
-                tool.domain, "science",
-                "tool {} should have domain 'science'",
-                tool.name
+            assert!(
+                valid_domains.contains(&tool.domain),
+                "tool {} has unexpected domain '{}'",
+                tool.name,
+                tool.domain
             );
         }
     }
@@ -260,12 +275,14 @@ mod tests {
     }
 
     #[test]
-    fn tool_names_start_with_science_prefix() {
+    fn tool_names_start_with_domain_prefix() {
         for tool in tool_definitions() {
+            let expected_prefix = format!("{}.", tool.domain);
             assert!(
-                tool.name.starts_with("science."),
-                "tool name '{}' must start with 'science.'",
-                tool.name
+                tool.name.starts_with(&expected_prefix),
+                "tool name '{}' must start with '{}'",
+                tool.name,
+                expected_prefix
             );
         }
     }

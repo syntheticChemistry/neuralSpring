@@ -13,8 +13,8 @@ use neural_spring::anderson_localization::{
 use neural_spring::eigh::eigh_householder_qr;
 use neural_spring::rng::Rng;
 
-use super::rpc::JsonRpcResponse;
 use super::PrimalState;
+use super::rpc::JsonRpcResponse;
 
 pub fn handle_health(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
     use std::sync::atomic::Ordering;
@@ -58,7 +58,7 @@ pub fn handle_ipr(id: serde_json::Value, params: &serde_json::Value) -> JsonRpcR
                 id,
                 super::rpc::error_code::INVALID_PARAMS,
                 format!("Invalid params: {e}"),
-            )
+            );
         }
     };
     let result = ipr(&wavefunction);

@@ -5,7 +5,7 @@
 use std::path::PathBuf;
 
 use super::discovery::{forward_to_primal_raw, resolve_socket_dir};
-use super::{heartbeat_interval_secs, orchestrator_socket, ALL_CAPABILITIES, PRIMAL_NAME};
+use super::{ALL_CAPABILITIES, PRIMAL_NAME, heartbeat_interval_secs, orchestrator_socket};
 
 pub async fn register_with_biomeos(our_socket: &std::path::Path) {
     let biomeos_socket = resolve_socket_dir().join(orchestrator_socket());

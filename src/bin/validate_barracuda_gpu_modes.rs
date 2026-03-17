@@ -32,7 +32,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::gpu_tensor;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{gpu_readback, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, gpu_readback};
 use std::sync::Arc;
 
 /// CPU Gram matrix: A × A^T for A [n×dim].

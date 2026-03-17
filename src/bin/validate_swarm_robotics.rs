@@ -12,7 +12,7 @@
 
 use neural_spring::swarm_robotics::{run_evolution_heterogeneous, run_evolution_homogeneous};
 use neural_spring::tolerances;
-use neural_spring::validation::{mean_last_n, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, mean_last_n};
 
 fn main() {
     let mut h = ValidationHarness::new("swarm_robotics");

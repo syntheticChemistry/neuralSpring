@@ -25,7 +25,7 @@
 
 use std::sync::Arc;
 
-use barracuda::dispatch::{dispatch_for, DispatchTarget};
+use barracuda::dispatch::{DispatchTarget, dispatch_for};
 use barracuda::ops::bio::HmmBatchForwardF64;
 use neural_spring::gpu::Gpu;
 use neural_spring::hmm::Hmm;

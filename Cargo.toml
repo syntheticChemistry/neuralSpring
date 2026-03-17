@@ -6,7 +6,7 @@ members = [".", "metalForge/forge", "playGround"]
 [package]
 name = "neural-spring"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 license = "AGPL-3.0-or-later"
 description = "Validation harness proving BarraCUDA Rust/WGSL primitives reproduce Python ML baselines"
 repository = "https://github.com/ecoPrimals/neuralSpring"
@@ -53,6 +53,8 @@ primal = ["anyhow", "clap", "env_logger", "tarpc"]
 
 [dev-dependencies]
 approx = "0.5"
+proptest = "1"
+temp-env = "0.3"
 
 # Validation binaries follow the hotSpring pattern:
 # - ValidationHarness with check_abs / check_rel / check_abs_or_rel

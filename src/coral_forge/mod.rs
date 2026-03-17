@@ -41,17 +41,16 @@ mod triangle;
 // Re-export all public API items for backward compatibility.
 pub use activation::{gelu, gelu_vec, layer_norm, softmax_rows};
 pub use attention::{attention_apply, sdpa_full, sdpa_scores};
-pub use confidence::{pae_head, pde_head, plddt_head, ranking_score, RankingWeights};
+pub use confidence::{RankingWeights, pae_head, pde_head, plddt_head, ranking_score};
 pub use diffusion::{
-    cosine_beta_schedule, ddim_reverse_step, ddpm_reverse_step, forward_diffusion,
+    NoiseSchedule, cosine_beta_schedule, ddim_reverse_step, ddpm_reverse_step, forward_diffusion,
     linear_beta_schedule, pair_transition_ffn, remove_center_of_mass, se3_equivariant_noise,
-    NoiseSchedule,
 };
 pub use msa::{
     msa_col_attention, msa_col_attention_scores, msa_row_attention, msa_row_attention_scores,
     outer_product_mean,
 };
 pub use pairformer::{
-    condition_pair_with_timestep, pairformer_block, sinusoidal_embedding, PairformerWeights,
+    PairformerWeights, condition_pair_with_timestep, pairformer_block, sinusoidal_embedding,
 };
 pub use triangle::{triangle_attention_scores, triangle_mul_incoming, triangle_mul_outgoing};

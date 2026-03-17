@@ -4,7 +4,45 @@
 
 use super::discovery::{discover_data_primal_and_forward, forward_to_primal};
 use super::rpc::{self, JsonRpcResponse};
-use super::{PrimalState, ALL_CAPABILITIES, PRIMAL_NAME};
+use super::{ALL_CAPABILITIES, PRIMAL_NAME, PrimalState};
+
+/// Kubernetes-style liveness probe: is the process alive and able to
+/// handle requests?  Always returns `"alive": true` — if the process
+/// can dispatch this method, it is live.
+pub fn handle_liveness(id: serde_json::Value) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "alive": true,
+            "primal": PRIMAL_NAME,
+        }),
+    )
+}
+
+/// Kubernetes-style readiness probe: is the primal fully initialized
+/// and ready to serve science requests?  Checks that the GPU dispatcher
+/// is constructed (it initializes asynchronously at startup).
+pub fn handle_readiness(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
+    let gpu_ready = state.dispatcher.has_gpu() || {
+        // CPU-only mode is also "ready" — GPU is optional
+        true
+    };
+    let uptime = state.start_time.elapsed().as_secs();
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "ready": gpu_ready,
+            "primal": PRIMAL_NAME,
+            "version": env!("CARGO_PKG_VERSION"),
+            "subsystems": {
+                "dispatcher": true,
+                "gpu": state.dispatcher.has_gpu(),
+                "backend": format!("{}", state.dispatcher.backend()),
+            },
+            "uptime_seconds": uptime,
+        }),
+    )
+}
 
 pub fn handle_capability_list(id: serde_json::Value) -> JsonRpcResponse {
     JsonRpcResponse::success(
@@ -146,7 +184,7 @@ pub async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -
                 id,
                 rpc::error_code::INVALID_PARAMS,
                 "Missing 'primal' parameter".to_string(),
-            )
+            );
         }
     };
     let method = match params.get("method").and_then(|v| v.as_str()) {
@@ -156,7 +194,7 @@ pub async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -
                 id,
                 rpc::error_code::INVALID_PARAMS,
                 "Missing 'method' parameter".to_string(),
-            )
+            );
         }
     };
     let inner_params = params

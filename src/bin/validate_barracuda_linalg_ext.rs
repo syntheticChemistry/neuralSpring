@@ -63,7 +63,7 @@ fn validate_svd(h: &mut ValidationHarness) {
     }
 
     // Analytical: pinv(diag(3,2)) = diag(1/3, 1/2)
-    match barracuda::ops::linalg::svd::svd_pinv(&a, 2, 2, 1e-10) {
+    match barracuda::ops::linalg::svd::svd_pinv(&a, 2, 2, tolerances::SVD_PINV_CUTOFF) {
         Ok(pinv) => {
             h.check_abs(
                 "svd_pinv diag [0,0]=1/3",

@@ -16,8 +16,8 @@
 //! math that `BarraCUDA`'s `lstm_cell.wgsl` and `gru_cell.wgsl` will implement.
 
 use neural_spring::sequence::{
-    gru_cell, gru_forward, lstm_cell, lstm_forward, sigmoid, tanh_activation, GruWeights,
-    LstmWeights,
+    GruWeights, LstmWeights, gru_cell, gru_forward, lstm_cell, lstm_forward, sigmoid,
+    tanh_activation,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

@@ -42,7 +42,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{exit_no_gpu, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, exit_no_gpu};
 use neural_spring_forge::mixed::MixedSubstrate;
 
 #[tokio::main]

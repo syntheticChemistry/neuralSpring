@@ -20,7 +20,7 @@
 #![expect(clippy::too_many_lines, reason = "validation binary")]
 
 use neural_spring::lenet::{
-    conv2d, conv2d_multi, fc_forward, max_pool2d, relu, Conv2dMultiParams, Conv2dParams,
+    Conv2dMultiParams, Conv2dParams, conv2d, conv2d_multi, fc_forward, max_pool2d, relu,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

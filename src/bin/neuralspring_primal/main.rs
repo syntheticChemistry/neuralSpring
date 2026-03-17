@@ -40,8 +40,8 @@ mod handlers;
 mod rpc;
 mod spectral;
 
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
 
 use anyhow::{Context, Result};
@@ -157,6 +157,8 @@ fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<J
         "science.cross_spring_provenance" => handlers::handle_cross_spring_provenance(id),
         "science.cross_spring_benchmark" => handlers::handle_cross_spring_benchmark(id, state),
         "science.precision_routing" => handlers::handle_precision_routing(id, state),
+        "health.liveness" => handlers::handle_liveness(id),
+        "health.readiness" => handlers::handle_readiness(id, state),
         "primal.forward" | "data.ncbi_search" | "data.ncbi_fetch" | "data.pdb_search"
         | "data.pdb_fetch" => return None,
         _ => JsonRpcResponse::error(

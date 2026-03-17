@@ -19,8 +19,8 @@
 
 use neural_spring::primitives::QUANTIZATION_FLOOR;
 use neural_spring::signal_integration::{
-    dose_response_cdg, integrate_ode, logic_gate_sweep, two_input_hill, LogicGate, OdeParams,
-    OdeState,
+    LogicGate, OdeParams, OdeState, dose_response_cdg, integrate_ode, logic_gate_sweep,
+    two_input_hill,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;

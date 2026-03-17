@@ -42,7 +42,7 @@
 use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::{max_abs_diff_f64, ValidationHarness};
+use neural_spring::validation::{ValidationHarness, max_abs_diff_f64};
 
 fn rect_matmul(disp: &Dispatcher, a: &[f64], b: &[f64], m: usize, k: usize, n: usize) -> Vec<f64> {
     barracuda::dispatch::matmul_dispatch(a, b, m, k, n, disp.wgpu_device()).unwrap_or_else(|_| {
@@ -635,9 +635,5 @@ fn transpose_rect(m: &[f64], rows: usize, cols: usize) -> Vec<f64> {
 use neural_spring::primitives::sigmoid;
 
 fn softplus(x: f64) -> f64 {
-    if x > 20.0 {
-        x
-    } else {
-        x.exp().ln_1p()
-    }
+    if x > 20.0 { x } else { x.exp().ln_1p() }
 }
