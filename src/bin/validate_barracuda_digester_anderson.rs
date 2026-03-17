@@ -79,13 +79,13 @@ fn gpu_esn_predict(
 async fn main() {
     let mut h = ValidationHarness::new("barracuda_digester_anderson");
 
-    eprintln!("\n── Exp 096: BarraCUDA Digester-Anderson Coupling ──");
+    println!("\n── Exp 096: BarraCUDA Digester-Anderson Coupling ──");
 
     let baseline = match load_coupling_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -96,16 +96,16 @@ async fn main() {
     // ══════════════════════════════════════════════════════════════
     // Tier 1: BarraCUDA CPU (stats primitives on coupling vectors)
     // ══════════════════════════════════════════════════════════════
-    eprintln!("\n── Tier 1: BarraCUDA CPU stats ──");
+    println!("\n── Tier 1: BarraCUDA CPU stats ──");
     validate_bc_cpu_stats(&mut h, &baseline);
 
     // ══════════════════════════════════════════════════════════════
     // Tier 2: BarraCUDA GPU (Tensor ESN + coupling)
     // ══════════════════════════════════════════════════════════════
-    eprintln!("\n── Tier 2: BarraCUDA GPU Tensor ──");
+    println!("\n── Tier 2: BarraCUDA GPU Tensor ──");
 
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  GPU unavailable — skipping GPU tier");
+        println!("  GPU unavailable — skipping GPU tier");
         h.finish();
     };
 
@@ -151,7 +151,7 @@ fn validate_bc_cpu_stats(
     match barracuda::stats::correlation::variance(&w_vals) {
         Ok(var) => h.check_bool("bC CPU W variance > 0", var > 0.0),
         Err(e) => {
-            eprintln!("  bC variance error: {e}");
+            println!("  bC variance error: {e}");
             h.check_bool("bC CPU W variance", false);
         }
     }
@@ -179,7 +179,7 @@ fn validate_gpu_esn(
         match gpu_esn_predict(pred, &rp.input, device) {
             Ok(gpu_y) => {
                 let diff = (gpu_y - cpu_y).abs();
-                eprintln!("  ref {i}: CPU={cpu_y:.2}, GPU={gpu_y:.2}, diff={diff:.2e}");
+                println!("  ref {i}: CPU={cpu_y:.2}, GPU={gpu_y:.2}, diff={diff:.2e}");
 
                 h.check_bool(&format!("GPU ref {i} finite"), gpu_y.is_finite());
                 h.check_abs(
@@ -190,7 +190,7 @@ fn validate_gpu_esn(
                 );
             }
             Err(e) => {
-                eprintln!("  ref {i}: GPU FAILED — {e}");
+                println!("  ref {i}: GPU FAILED — {e}");
                 h.check_bool(&format!("GPU ref {i}"), false);
             }
         }
@@ -235,7 +235,7 @@ fn validate_gpu_coupling(
             .zip(&gpu_predictions)
             .map(|(c, g)| (c - g).abs())
             .fold(0.0_f64, f64::max);
-        eprintln!("  max GPU↔CPU diff: {max_diff:.2e}");
+        println!("  max GPU↔CPU diff: {max_diff:.2e}");
         h.check_bool("GPU↔CPU max diff < 1.0", max_diff < 1.0);
     } else {
         h.check_bool("GPU coupling (failed)", false);

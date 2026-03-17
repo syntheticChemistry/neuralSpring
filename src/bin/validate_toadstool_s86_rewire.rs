@@ -40,7 +40,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn validate_nautilus_types(h: &mut ValidationHarness) {
-    eprintln!("\n── barracuda::nautilus types (absorbed from bingoCube) ──");
+    println!("\n── barracuda::nautilus types (absorbed from bingoCube) ──");
 
     let config = NautilusBrainConfig::default();
     let brain = NautilusBrain::new(config, "s86-test");
@@ -74,7 +74,7 @@ fn validate_nautilus_types(h: &mut ValidationHarness) {
 }
 
 fn validate_drift_monitor(h: &mut ValidationHarness) {
-    eprintln!("\n── DriftMonitor S86 API (GenerationRecord) ──");
+    println!("\n── DriftMonitor S86 API (GenerationRecord) ──");
 
     let mut drift = DriftMonitor::default();
     h.check_bool("DriftMonitor starts empty", drift.ne_s_history.is_empty());
@@ -122,7 +122,7 @@ fn validate_drift_monitor(h: &mut ValidationHarness) {
 }
 
 fn validate_bridge_absorption(h: &mut ValidationHarness) {
-    eprintln!("\n── SpectralNautilusBridge (barracuda::nautilus) ──");
+    println!("\n── SpectralNautilusBridge (barracuda::nautilus) ──");
 
     let mut bridge = SpectralNautilusBridge::new("s86-bridge");
     h.check_bool("Bridge creates with barracuda::nautilus", true);
@@ -170,7 +170,7 @@ fn validate_bridge_absorption(h: &mut ValidationHarness) {
 }
 
 fn validate_beta_observation(h: &mut ValidationHarness) {
-    eprintln!("\n── BetaObservation struct (field compatibility) ──");
+    println!("\n── BetaObservation struct (field compatibility) ──");
 
     let obs = BetaObservation {
         beta: 5.5,
@@ -207,10 +207,10 @@ fn validate_beta_observation(h: &mut ValidationHarness) {
 }
 
 fn main() {
-    eprintln!("=== ToadStool S86 Rewire Validation ===\n");
-    eprintln!("Pin: f97fc2ae → 2fee1969 (S79→S86, 7 commits)");
-    eprintln!("Key: bingocube_nautilus → barracuda::nautilus (absorption)");
-    eprintln!("ComputeDispatch: 76 → 144 ops (+68 migrations)");
+    println!("=== ToadStool S86 Rewire Validation ===\n");
+    println!("Pin: f97fc2ae → 2fee1969 (S79→S86, 7 commits)");
+    println!("Key: bingocube_nautilus → barracuda::nautilus (absorption)");
+    println!("ComputeDispatch: 76 → 144 ops (+68 migrations)");
 
     let mut h = ValidationHarness::new("toadstool_s86_rewire");
 

@@ -68,7 +68,7 @@ pub trait OrExit<T> {
 impl<T, E: std::fmt::Display> OrExit<T> for Result<T, E> {
     fn or_exit(self, context: &str) -> T {
         self.unwrap_or_else(|e| {
-            eprintln!("FATAL: {context}: {e}");
+            println!("FATAL: {context}: {e}");
             process::exit(1)
         })
     }
@@ -77,7 +77,7 @@ impl<T, E: std::fmt::Display> OrExit<T> for Result<T, E> {
 impl<T> OrExit<T> for Option<T> {
     fn or_exit(self, context: &str) -> T {
         self.unwrap_or_else(|| {
-            eprintln!("FATAL: {context}");
+            println!("FATAL: {context}");
             process::exit(1)
         })
     }

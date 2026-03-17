@@ -18,13 +18,13 @@ const BASELINE_JSON: &str =
 fn main() {
     let mut h = ValidationHarness::new("isomorphic_reservoir");
 
-    eprintln!("\n── Exp 097: Isomorphic Reservoir Ensemble ──");
+    println!("\n── Exp 097: Isomorphic Reservoir Ensemble ──");
 
     let baseline = match load_isomorphic_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -45,7 +45,7 @@ fn validate_spectral_parity(
     h: &mut ValidationHarness,
     baseline: &neural_spring::isomorphic_reservoir::IsomorphicBaseline,
 ) {
-    eprintln!("\n── Spectral parity (Rust vs Python) ──");
+    println!("\n── Spectral parity (Rust vs Python) ──");
 
     for (name, matrix, n) in &baseline.domain_matrices {
         let sp_rust = spectral_properties(matrix, *n, name);
@@ -62,7 +62,7 @@ fn validate_spectral_parity(
             });
 
         if let Some(py) = sp_py {
-            eprintln!(
+            println!(
                 "  {name}: SR_rust={:.4}, SR_py={:.4}",
                 sp_rust.spectral_radius, py.spectral_radius
             );
@@ -98,7 +98,7 @@ fn validate_spectral_parity(
                 tolerances::SPECTRAL_EIGENSOLVER_CROSS,
             );
         } else {
-            eprintln!("  {name}: no matching Python spectrum found");
+            println!("  {name}: no matching Python spectrum found");
             h.check_bool(&format!("{name} spectrum found"), false);
         }
     }
@@ -108,7 +108,7 @@ fn validate_cross_domain(
     h: &mut ValidationHarness,
     baseline: &neural_spring::isomorphic_reservoir::IsomorphicBaseline,
 ) {
-    eprintln!("\n── Cross-domain metrics (Rust-computed) ──");
+    println!("\n── Cross-domain metrics (Rust-computed) ──");
 
     let mut rust_spectra = Vec::new();
     for (name, matrix, n) in &baseline.domain_matrices {
@@ -116,11 +116,11 @@ fn validate_cross_domain(
     }
 
     let cd = cross_domain_metrics(&rust_spectra);
-    eprintln!(
+    println!(
         "  Rust eff_ratio: {:.4} ± {:.4} (CV={:.4})",
         cd.eff_ratio_mean, cd.eff_ratio_std, cd.eff_ratio_cv
     );
-    eprintln!(
+    println!(
         "  Rust IPR: {:.4} ± {:.4} (CV={:.4})",
         cd.ipr_mean, cd.ipr_std, cd.ipr_cv
     );
@@ -149,7 +149,7 @@ fn validate_universality(
     h: &mut ValidationHarness,
     baseline: &neural_spring::isomorphic_reservoir::IsomorphicBaseline,
 ) {
-    eprintln!("\n── Universality checks ──");
+    println!("\n── Universality checks ──");
 
     h.check_bool(
         "eff_ratio CV < 0.5",
@@ -174,7 +174,7 @@ fn validate_reference_sums(
     h: &mut ValidationHarness,
     baseline: &neural_spring::isomorphic_reservoir::IsomorphicBaseline,
 ) {
-    eprintln!("\n── Reference sums ──");
+    println!("\n── Reference sums ──");
     for (name, val) in &baseline.reference_sums {
         h.check_bool(&format!("{name} w_out sum finite"), val.is_finite());
     }

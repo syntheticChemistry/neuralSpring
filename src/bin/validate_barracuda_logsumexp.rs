@@ -92,7 +92,7 @@ async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         neural_spring::validation::exit_no_gpu();
     };
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -101,7 +101,7 @@ async fn main() {
     let mut h = ValidationHarness::new("barracuda_logsumexp");
 
     if !logsumexp_probe(&device) {
-        eprintln!("  [skip] LogSumExp op not functional — skipping all checks");
+        println!("  [skip] LogSumExp op not functional — skipping all checks");
         h.check_bool("LogSumExp probe: op not functional", false);
         h.finish();
     }

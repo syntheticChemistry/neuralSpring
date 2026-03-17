@@ -562,7 +562,7 @@ fn main() {
     let mut h = ValidationHarness::new("cpu_math_parity");
     let refs = require!(h, load_refs(), "load reference JSON");
     let meta = &refs["meta"];
-    eprintln!(
+    println!(
         "CPU parity references: Python {} / NumPy {}",
         meta["python_version"].as_str().unwrap_or("?"),
         meta["numpy_version"].as_str().unwrap_or("?"),

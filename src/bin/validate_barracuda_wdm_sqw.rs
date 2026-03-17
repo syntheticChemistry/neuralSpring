@@ -46,7 +46,7 @@ async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         neural_spring::validation::exit_no_gpu();
     };
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -57,7 +57,7 @@ async fn main() {
         Ok(p) => p,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load SQW predictor: {e}");
+            println!("FATAL: failed to load SQW predictor: {e}");
             h.finish();
         }
     };
@@ -248,7 +248,7 @@ fn validate_gpu_sqw(h: &mut ValidationHarness, pred: &SqwPredictor, device: &Dev
         Ok(r) => r,
         Err(e) => {
             h.check_bool("GPU forward pass", false);
-            eprintln!("  GPU forward failed: {e}");
+            println!("  GPU forward failed: {e}");
             return;
         }
     };

@@ -70,7 +70,7 @@ fn validate_accuracy(h: &mut ValidationHarness, n: usize) {
         .sum::<f64>()
         .sqrt();
 
-    eprintln!(
+    println!(
         "  n={n:>3}: HQR err={hqr_err:.2e}, Jacobi err={jacobi_err:.2e}, improvement={:.0}×",
         jacobi_err / hqr_err.max(RATIO_GUARD)
     );
@@ -112,7 +112,7 @@ fn validate_anderson_hamiltonian(h: &mut ValidationHarness) {
 
     let hqr = eigh::eigh_householder_qr(&a, n);
     let err = hqr.reconstruction_error(&a);
-    eprintln!("  Anderson n=32, W=4: HQR err={err:.2e}");
+    println!("  Anderson n=32, W=4: HQR err={err:.2e}");
 
     h.check_abs(
         "Anderson Hamiltonian n=32 reconstruction",
@@ -173,7 +173,7 @@ fn validate_orthogonality(h: &mut ValidationHarness) {
         }
     }
 
-    eprintln!("  n=32 orthogonality: diag_err={max_diag_err:.2e}, off_diag={max_off:.2e}");
+    println!("  n=32 orthogonality: diag_err={max_diag_err:.2e}, off_diag={max_off:.2e}");
 
     h.check_abs(
         "n=32 eigenvector orthogonality (diagonal)",

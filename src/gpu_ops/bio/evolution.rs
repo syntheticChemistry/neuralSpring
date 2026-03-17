@@ -20,6 +20,7 @@ pub fn pairwise_l2_matrix_gpu(
     dim: usize,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
+    use crate::safe_cast::{f64_f32, usize_u32, usize_u64};
     use barracuda::ops::bio::PairwiseL2Gpu;
     use wgpu::util::DeviceExt;
 
@@ -28,7 +29,7 @@ pub fn pairwise_l2_matrix_gpu(
         return Ok(Vec::new());
     }
 
-    let input_f32: Vec<f32> = data.iter().map(|&v| v as f32).collect();
+    let input_f32: Vec<f32> = data.iter().map(|&v| f64_f32(v)).collect();
     let d = device.device();
 
     let input_buf = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -36,25 +37,31 @@ pub fn pairwise_l2_matrix_gpu(
         contents: bytemuck::cast_slice(&input_f32),
         usage: wgpu::BufferUsages::STORAGE,
     });
+    let out_bytes = usize_u64(n_pairs * 4);
     let output_buf = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("pairwise_l2_output"),
-        size: (n_pairs * 4) as u64,
+        size: out_bytes,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
 
     let op = PairwiseL2Gpu::new(device.clone());
-    op.dispatch(&input_buf, &output_buf, n as u32, dim as u32)
-        .map_err(|e| format!("PairwiseL2 dispatch: {e}"))?;
+    op.dispatch(
+        &input_buf,
+        &output_buf,
+        usize_u32(n, "n_vectors")?,
+        usize_u32(dim, "dim")?,
+    )
+    .map_err(|e| format!("PairwiseL2 dispatch: {e}"))?;
 
     let staging = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("pairwise_l2_staging"),
-        size: (n_pairs * 4) as u64,
+        size: out_bytes,
         usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
     let mut encoder = d.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-    encoder.copy_buffer_to_buffer(&output_buf, 0, &staging, 0, (n_pairs * 4) as u64);
+    encoder.copy_buffer_to_buffer(&output_buf, 0, &staging, 0, out_bytes);
     device.queue().submit(Some(encoder.finish()));
 
     let slice = staging.slice(..);
@@ -88,6 +95,7 @@ pub fn multi_obj_fitness_gpu(
     n_objectives: usize,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
+    use crate::safe_cast::{usize_u32, usize_u64};
     use barracuda::ops::bio::MultiObjFitnessGpu;
     use wgpu::util::DeviceExt;
 
@@ -105,7 +113,7 @@ pub fn multi_obj_fitness_gpu(
         contents: bytemuck::cast_slice(genotypes),
         usage: wgpu::BufferUsages::STORAGE,
     });
-    let out_bytes = (total_out * elem_size) as u64;
+    let out_bytes = usize_u64(total_out * elem_size);
     let fit_buf = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("multi_obj_fitness"),
         size: out_bytes,
@@ -117,9 +125,9 @@ pub fn multi_obj_fitness_gpu(
     op.dispatch(
         &geno_buf,
         &fit_buf,
-        pop_size as u32,
-        genome_len as u32,
-        n_objectives as u32,
+        usize_u32(pop_size, "pop_size")?,
+        usize_u32(genome_len, "genome_len")?,
+        usize_u32(n_objectives, "n_objectives")?,
     );
 
     let staging = d.create_buffer(&wgpu::BufferDescriptor {
@@ -172,6 +180,7 @@ pub fn swarm_nn_forward_gpu(
     dims: &SwarmNnDims,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<u32>, String> {
+    use crate::safe_cast::{usize_u32, usize_u64};
     use barracuda::ops::bio::swarm_nn::{SwarmNnGpu, SwarmNnParams};
     use wgpu::util::DeviceExt;
 
@@ -192,7 +201,7 @@ pub fn swarm_nn_forward_gpu(
         contents: bytemuck::cast_slice(inputs),
         usage: wgpu::BufferUsages::STORAGE,
     });
-    let action_bytes = (total_actions * std::mem::size_of::<u32>()) as u64;
+    let action_bytes = usize_u64(total_actions * std::mem::size_of::<u32>());
     let a_buf = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("swarm_nn_actions"),
         size: action_bytes,
@@ -201,11 +210,11 @@ pub fn swarm_nn_forward_gpu(
     });
 
     let params = SwarmNnParams {
-        n_controllers: dims.n_controllers as u32,
-        n_evals: dims.n_evals as u32,
-        input_dim: dims.input_dim as u32,
-        hidden_dim: dims.hidden_dim as u32,
-        output_dim: dims.output_dim as u32,
+        n_controllers: usize_u32(dims.n_controllers, "n_controllers")?,
+        n_evals: usize_u32(dims.n_evals, "n_evals")?,
+        input_dim: usize_u32(dims.input_dim, "input_dim")?,
+        hidden_dim: usize_u32(dims.hidden_dim, "hidden_dim")?,
+        output_dim: usize_u32(dims.output_dim, "output_dim")?,
         _pad0: 0,
         _pad1: 0,
         _pad2: 0,

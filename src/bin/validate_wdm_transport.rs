@@ -24,7 +24,7 @@ fn main() {
         Ok(s) => s,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load transport surrogate: {e}");
+            println!("FATAL: failed to load transport surrogate: {e}");
             h.finish();
         }
     };

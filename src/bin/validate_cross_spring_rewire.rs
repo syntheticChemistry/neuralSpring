@@ -259,12 +259,12 @@ fn validate_esn_barracuda_bridge(h: &mut ValidationHarness) {
         .expect("tokio runtime creation failed — required for async validation")
         .block_on(async { neural_spring::gpu::Gpu::new().await })
     else {
-        eprintln!("  GPU not available — skipping barracuda Tensor ESN bridge");
+        println!("  GPU not available — skipping barracuda Tensor ESN bridge");
         h.check_bool("ESN bridge: barracuda Tensor (GPU not available)", true);
         return;
     };
     let device = gpu.wgpu_device().clone();
-    eprintln!(
+    println!(
         "  GPU: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend
     );

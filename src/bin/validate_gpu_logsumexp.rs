@@ -135,7 +135,7 @@ fn gpu_logsumexp(gpu: &Gpu, input: &[f32], batch: u32, width: u32) -> Result<Vec
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );

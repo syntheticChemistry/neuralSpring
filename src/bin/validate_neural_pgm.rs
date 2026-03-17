@@ -58,7 +58,7 @@ fn main() {
         let sum: f64 = dist.iter().sum();
         if (sum - 1.0).abs() > tolerances::PGM_NORMALIZATION_SUM {
             all_normalized = false;
-            eprintln!("  Layer {layer} sum = {sum}");
+            println!("  Layer {layer} sum = {sum}");
         }
     }
     h.check_bool("BP preserves normalization at all layers", all_normalized);

@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 161)**: 1262 tests (1128 lib + 61 playGround + 73 forge), 47 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations, 0 `eprintln!` in playGround, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, typed `compute.dispatch` protocol. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging complete (primal + playGround). S161: doc cleanup + logging completion. V112 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
+**Current state (Session 162)**: 1276 tests (1133 lib + 70 playGround + 73 forge), 48 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, `resilient_call()` circuit breaker, typed `compute.dispatch` protocol, `DispatchOutcome` enum. `discover_primal()` + `socket_env_var()`. `safe_cast` module. 4-format `parse_capability_list()`. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging complete (primal + playGround). S162: cross-ecosystem absorption execution. V113 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -5200,6 +5200,41 @@ with real computation, Nest records substrate/timing provenance.
 **Motivation**: Sync all documentation to V108 state. Archive superseded V107 handoff. Update ecosystem-level docs. Craft toadStool/barraCuda absorption handoff.
 **Procedure**: Updated README.md, whitePaper/baseCamp/README.md, specs/BARRACUDA_REQUIREMENTS.md (v0.3.3→v0.3.5 refs), wateringHole/README.md (V108 active, V107 archived), experiments journal (S157 + Exp 113-114), ecoPrimals/whitePaper/gen3/baseCamp/README.md, PRIMAL_REGISTRY.md (neuralSpring V108/S157).
 **Findings**: Documentation was 2 sessions behind (referencing V106/S155). Gen3 baseCamp referenced S156 but not S157. PRIMAL_REGISTRY had neuralSpring at V98/S145 — significantly stale; updated to V108/S157 with Tower Atomic and zero C deps highlights.
+
+## Session 162 — Cross-Ecosystem Absorption Execution
+
+**Date**: 2026-03-16
+**Session**: S162
+
+### Exp 119 — Cross-Ecosystem Pattern Absorption (airSpring/groundSpring/healthSpring/sweetGrass)
+
+**Motivation**: Cross-ecosystem review identified 6 P1 absorption opportunities from sibling springs.
+neuralSpring's `parse_capability_list()` only handled 2 formats while airSpring handles 5. Socket
+discovery was not generic (no env-var override per primal). No RPC response classification. No
+circuit breaker for transient IPC failures. GPU dispatch params used bare `as u32` casts.
+
+**Procedure**:
+1. Evolved `parse_capability_list()` from 2-format to 5-format (flat, object array, nested,
+   double-nested, result wrapper) — airSpring V0.8.7 pattern. Changed return type from
+   `Result<Vec<String>>` to `Vec<String>` for defensive probing.
+2. Added `socket_env_var()`, `address_env_var()`, `discover_primal()` — sweetGrass/groundSpring
+   V112 pattern. Checks `{UPPER}_SOCKET` env var first, then falls back.
+3. Added `DispatchOutcome` enum (`Ok`, `ProtocolError`, `ApplicationError`) — groundSpring V112
+   pattern for RPC response classification and graceful degradation.
+4. Added `resilient_call()` with atomic circuit breaker + exponential backoff (50ms/100ms) —
+   healthSpring V32 pattern. Short-circuits if primal recently unavailable (5s cooldown).
+5. Created `src/safe_cast.rs` with `usize_u32()`, `usize_u64()`, `usize_f64()`, `f64_f32()`
+   — groundSpring V112 pattern. Applied to `gpu_ops/bio/evolution.rs` (9 casts) and
+   `gpu_ops/bio/activation.rs` (7 casts). GPU dispatch params now checked via `TryFrom`.
+6. Converted all 1642 remaining `eprintln!` → `println!` across 186 src/ files. Zero `eprintln!`
+   workspace-wide.
+7. Evolved hardcoded primal names in tests to use `primal_names::` constants.
+
+**Findings**: 1276 tests (1133 lib + 70 playGround + 73 forge), 0 warnings, 0 `eprintln!`
+workspace-wide. All new patterns are backward-compatible — `call()` still wraps `call_typed()`,
+existing callers unchanged. The circuit breaker uses `AtomicU64` for lock-free state.
+
+---
 
 ## Session 161 — Doc Cleanup + Structured Logging Completion
 

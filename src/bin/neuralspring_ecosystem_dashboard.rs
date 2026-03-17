@@ -64,7 +64,7 @@ fn dump_scenarios() {
         let path = dir.join(format!("{name}.json"));
         match std::fs::write(&path, &json) {
             Ok(()) => println!("  wrote {}", path.display()),
-            Err(err) => eprintln!("  FAIL {}: {err}", path.display()),
+            Err(err) => println!("  FAIL {}: {err}", path.display()),
         }
     }
 
@@ -79,7 +79,7 @@ fn live_dashboard() {
             c
         }
         Err(err) => {
-            eprintln!("petalTongue not found ({err}) — running in headless mode");
+            println!("petalTongue not found ({err}) — running in headless mode");
             PetalTonguePushClient::headless()
         }
     };
@@ -93,7 +93,7 @@ fn live_dashboard() {
     ) {
         Ok(s) => s,
         Err(err) => {
-            eprintln!("Initial render failed ({err}), continuing headless");
+            println!("Initial render failed ({err}), continuing headless");
             StreamSession::resume(PetalTonguePushClient::headless(), "ecosystem-dashboard")
         }
     };

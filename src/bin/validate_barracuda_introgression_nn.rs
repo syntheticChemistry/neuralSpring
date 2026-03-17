@@ -13,13 +13,13 @@ const BASELINE_JSON: &str =
 async fn main() {
     let mut h = ValidationHarness::new("barracuda_introgression_nn");
 
-    eprintln!("\n── Exp 099: BarraCUDA Introgression NN ──");
+    println!("\n── Exp 099: BarraCUDA Introgression NN ──");
 
     let baseline = match load_introgression_nn_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -27,7 +27,7 @@ async fn main() {
     h.check_bool("baseline loaded", baseline.n_layers == 100);
 
     // Tier 1: BarraCUDA CPU stats on detection metrics
-    eprintln!("\n── Tier 1: BarraCUDA CPU ──");
+    println!("\n── Tier 1: BarraCUDA CPU ──");
 
     #[expect(clippy::cast_precision_loss, reason = "HMM states 0/1 fit in f64")]
     let path_f64: Vec<f64> = baseline.viterbi_path.iter().map(|&s| s as f64).collect();
@@ -43,7 +43,7 @@ async fn main() {
             h.check_bool("bC CPU Pearson finite", r.is_finite());
         }
         Err(e) => {
-            eprintln!("  Pearson error: {e}");
+            println!("  Pearson error: {e}");
             h.check_bool("bC CPU Pearson", false);
         }
     }
@@ -51,7 +51,7 @@ async fn main() {
     match barracuda::stats::correlation::variance(&path_f64) {
         Ok(v) => h.check_bool("bC CPU path variance > 0", v > 0.0),
         Err(e) => {
-            eprintln!("  variance error: {e}");
+            println!("  variance error: {e}");
             h.check_bool("bC CPU variance", false);
         }
     }

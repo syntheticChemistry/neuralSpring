@@ -50,7 +50,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn validate_fused_mean_variance(h: &mut ValidationHarness, gpu: &Gpu) {
-    eprintln!("\n── VarianceF64::mean_variance() (hotSpring Welford → BarraCUDA v0.3.5) ──");
+    println!("\n── VarianceF64::mean_variance() (hotSpring Welford → BarraCUDA v0.3.5) ──");
     let dev = gpu.wgpu_device();
     let data = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
 
@@ -58,17 +58,17 @@ fn validate_fused_mean_variance(h: &mut ValidationHarness, gpu: &Gpu) {
         Ok([m, v]) => {
             h.check_abs("fused_mean", m, 5.0, tolerances::CROSS_LANGUAGE);
             h.check_abs("fused_variance", v, 4.0, tolerances::GPU_CHI_SQUARED_F32);
-            eprintln!("    [PASS] mean={m:.6}, variance={v:.6} (single Welford dispatch)");
+            println!("    [PASS] mean={m:.6}, variance={v:.6} (single Welford dispatch)");
         }
         Err(e) => {
-            eprintln!("    [SKIP] mean_variance_gpu failed: {e}");
+            println!("    [SKIP] mean_variance_gpu failed: {e}");
             h.check_bool("fused_mean_variance_available", false);
         }
     }
 }
 
 fn validate_fused_correlation(h: &mut ValidationHarness, gpu: &Gpu) {
-    eprintln!(
+    println!(
         "\n── CorrelationF64::correlation_full() (wetSpring bio + hotSpring precision → BarraCUDA v0.3.5) ──"
     );
     let dev = gpu.wgpu_device();
@@ -97,20 +97,20 @@ fn validate_fused_correlation(h: &mut ValidationHarness, gpu: &Gpu) {
             );
             h.check_bool("corr_full_var_x_positive", result.var_x > 0.0);
             h.check_bool("corr_full_var_y_positive", result.var_y > 0.0);
-            eprintln!(
+            println!(
                 "    [PASS] r={:.6}, mean_x={:.6}, mean_y={:.6}, var_x={:.6}, var_y={:.6}",
                 result.pearson_r, result.mean_x, result.mean_y, result.var_x, result.var_y
             );
         }
         Err(e) => {
-            eprintln!("    [SKIP] correlation_full_gpu failed: {e}");
+            println!("    [SKIP] correlation_full_gpu failed: {e}");
             h.check_bool("correlation_full_available", false);
         }
     }
 }
 
 fn validate_correlation_matrix(h: &mut ValidationHarness, gpu: &Gpu) {
-    eprintln!(
+    println!(
         "\n── matrix_correlation() (airSpring sensors + groundSpring stats → BarraCUDA v0.3.5) ──"
     );
     let dev = gpu.wgpu_device();
@@ -155,17 +155,17 @@ fn validate_correlation_matrix(h: &mut ValidationHarness, gpu: &Gpu) {
                 -1.0,
                 tolerances::GPU_PEARSON_F32,
             );
-            eprintln!("    [PASS] 3×3 matrix: diag all 1.0, [0,1]=+1.0, [0,2]=-1.0");
+            println!("    [PASS] 3×3 matrix: diag all 1.0, [0,1]=+1.0, [0,2]=-1.0");
         }
         Err(e) => {
-            eprintln!("    [SKIP] correlation_matrix_gpu failed: {e}");
+            println!("    [SKIP] correlation_matrix_gpu failed: {e}");
             h.check_bool("correlation_matrix_available", false);
         }
     }
 }
 
 fn validate_existing_fused_ops(h: &mut ValidationHarness, gpu: &Gpu) {
-    eprintln!("\n── Existing fused ops (neuralSpring → BarraCUDA, cross-spring) ──");
+    println!("\n── Existing fused ops (neuralSpring → BarraCUDA, cross-spring) ──");
     let dev = gpu.wgpu_device();
 
     // Shannon entropy (wetSpring diversity → hotSpring fused map-reduce → BarraCUDA)
@@ -178,10 +178,10 @@ fn validate_existing_fused_ops(h: &mut ValidationHarness, gpu: &Gpu) {
                 expected,
                 tolerances::GPU_ENTROPY_F32,
             );
-            eprintln!("    [PASS] Shannon H(uniform4) = {h_val:.6} (expected {expected:.6})");
+            println!("    [PASS] Shannon H(uniform4) = {h_val:.6} (expected {expected:.6})");
         }
         Err(e) => {
-            eprintln!("    [SKIP] shannon_entropy_gpu: {e}");
+            println!("    [SKIP] shannon_entropy_gpu: {e}");
             h.check_bool("shannon_available", false);
         }
     }
@@ -190,10 +190,10 @@ fn validate_existing_fused_ops(h: &mut ValidationHarness, gpu: &Gpu) {
     match gpu_ops::chi_squared_gpu(&[10.0, 20.0, 30.0, 40.0], &[25.0, 25.0, 25.0, 25.0], dev) {
         Ok(chi2) => {
             h.check_abs("chi2_known", chi2, 20.0, tolerances::GPU_CHI_SQUARED_F32);
-            eprintln!("    [PASS] χ²([10,20,30,40], [25,25,25,25]) = {chi2:.6} (expected 20)");
+            println!("    [PASS] χ²([10,20,30,40], [25,25,25,25]) = {chi2:.6} (expected 20)");
         }
         Err(e) => {
-            eprintln!("    [SKIP] chi_squared_gpu: {e}");
+            println!("    [SKIP] chi_squared_gpu: {e}");
             h.check_bool("chi2_available", false);
         }
     }
@@ -202,10 +202,10 @@ fn validate_existing_fused_ops(h: &mut ValidationHarness, gpu: &Gpu) {
     match gpu_ops::kl_divergence_gpu(&[0.25, 0.25, 0.25, 0.25], &[0.25, 0.25, 0.25, 0.25], dev) {
         Ok(kl) => {
             h.check_abs("kl_identical", kl, 0.0, tolerances::GPU_KL_DISPATCH_F32);
-            eprintln!("    [PASS] KL(p,p) = {kl:.6} (expected 0)");
+            println!("    [PASS] KL(p,p) = {kl:.6} (expected 0)");
         }
         Err(e) => {
-            eprintln!("    [SKIP] kl_divergence_gpu: {e}");
+            println!("    [SKIP] kl_divergence_gpu: {e}");
             h.check_bool("kl_available", false);
         }
     }
@@ -214,10 +214,10 @@ fn validate_existing_fused_ops(h: &mut ValidationHarness, gpu: &Gpu) {
     match gpu_ops::variance_gpu(&[2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0], dev) {
         Ok(v) => {
             h.check_abs("variance_welford", v, 4.0, tolerances::GPU_CHI_SQUARED_F32);
-            eprintln!("    [PASS] Var([2,4,4,4,5,5,7,9]) = {v:.6} (expected 4)");
+            println!("    [PASS] Var([2,4,4,4,5,5,7,9]) = {v:.6} (expected 4)");
         }
         Err(e) => {
-            eprintln!("    [SKIP] variance_gpu: {e}");
+            println!("    [SKIP] variance_gpu: {e}");
             h.check_bool("variance_available", false);
         }
     }
@@ -226,22 +226,22 @@ fn validate_existing_fused_ops(h: &mut ValidationHarness, gpu: &Gpu) {
     match gpu_ops::pearson_correlation_gpu(&[1.0, 2.0, 3.0], &[2.0, 4.0, 6.0], dev) {
         Ok(r) => {
             h.check_abs("pearson_perfect", r, 1.0, tolerances::GPU_PEARSON_F32);
-            eprintln!("    [PASS] Pearson r(x, 2x) = {r:.6} (expected 1)");
+            println!("    [PASS] Pearson r(x, 2x) = {r:.6} (expected 1)");
         }
         Err(e) => {
-            eprintln!("    [SKIP] pearson_correlation_gpu: {e}");
+            println!("    [SKIP] pearson_correlation_gpu: {e}");
             h.check_bool("pearson_available", false);
         }
     }
 }
 
 fn validate_wgpu28_api(h: &mut ValidationHarness, gpu: &Gpu) {
-    eprintln!("\n── wgpu 28 API surface (PollType::Wait, immediate_size, etc.) ──");
+    println!("\n── wgpu 28 API surface (PollType::Wait, immediate_size, etc.) ──");
 
     h.check_bool("gpu_adapter_available", !gpu.adapter_name.is_empty());
-    eprintln!("    adapter: {}", gpu.adapter_name);
-    eprintln!("    device_type: {:?}", gpu.device_type);
-    eprintln!("    backend: {:?}", gpu.backend);
+    println!("    adapter: {}", gpu.adapter_name);
+    println!("    device_type: {:?}", gpu.device_type);
+    println!("    backend: {:?}", gpu.backend);
 
     // wgpu 28 PollType::Wait exercised via Tensor creation + readback
     let dev = gpu.wgpu_device();
@@ -249,25 +249,25 @@ fn validate_wgpu28_api(h: &mut ValidationHarness, gpu: &Gpu) {
         Ok(t) => match t.to_vec() {
             Ok(v) => {
                 h.check_bool("wgpu28_tensor_roundtrip", v == [1.0, 2.0, 3.0]);
-                eprintln!("    [PASS] Tensor f32 roundtrip via wgpu 28 pipeline");
+                println!("    [PASS] Tensor f32 roundtrip via wgpu 28 pipeline");
             }
             Err(e) => {
-                eprintln!("    [SKIP] Tensor readback failed (upstream SIGSEGV?): {e}");
+                println!("    [SKIP] Tensor readback failed (upstream SIGSEGV?): {e}");
                 h.check_bool("wgpu28_tensor_readback", false);
             }
         },
         Err(e) => {
-            eprintln!("    [SKIP] Tensor creation failed: {e}");
+            println!("    [SKIP] Tensor creation failed: {e}");
             h.check_bool("wgpu28_tensor_creation", false);
         }
     }
 }
 
 fn main() {
-    eprintln!("╔════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  ToadStool S94b + wgpu 28 + BarraCUDA v0.3.5 Validation              ║");
-    eprintln!("║  Session 126 — Cross-spring fused op absorption + API migration       ║");
-    eprintln!("╚════════════════════════════════════════════════════════════════════════╝");
+    println!("╔════════════════════════════════════════════════════════════════════════╗");
+    println!("║  ToadStool S94b + wgpu 28 + BarraCUDA v0.3.5 Validation              ║");
+    println!("║  Session 126 — Cross-spring fused op absorption + API migration       ║");
+    println!("╚════════════════════════════════════════════════════════════════════════╝");
 
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
     let gpu_result = rt.block_on(async { Gpu::new().await });
@@ -283,8 +283,8 @@ fn main() {
             validate_existing_fused_ops(&mut h, &gpu);
         }
         Err(e) => {
-            eprintln!("\n  [SKIP] No GPU available: {e}");
-            eprintln!("  GPU tests cannot run without a GPU adapter.");
+            println!("\n  [SKIP] No GPU available: {e}");
+            println!("  GPU tests cannot run without a GPU adapter.");
             h.check_bool("gpu_available", false);
         }
     }

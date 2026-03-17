@@ -25,7 +25,7 @@ use neural_spring::weight_spectral;
 use std::sync::Arc;
 
 fn validate_spectral(h: &mut ValidationHarness) {
-    eprintln!("── spectral_bandwidth (upstream delegate) ──");
+    println!("── spectral_bandwidth (upstream delegate) ──");
     let eigenvalues = vec![-3.0, -1.5, 0.0, 1.0, 4.5];
     let bw = weight_spectral::spectral_bandwidth(&eigenvalues);
     h.check_abs("spectral_bandwidth sorted", bw, 7.5, tolerances::EXACT_F64);
@@ -47,7 +47,7 @@ fn validate_spectral(h: &mut ValidationHarness) {
         tolerances::EXACT_F64,
     );
 
-    eprintln!("\n── spectral_condition_number (upstream delegate) ──");
+    println!("\n── spectral_condition_number (upstream delegate) ──");
     let evals_cond = vec![1.0, 2.0, 3.0, 4.0];
     let cond = weight_spectral::spectral_condition_number(&evals_cond);
     h.check_abs(
@@ -73,7 +73,7 @@ fn validate_gpu_chi_squared(
     dispatcher: &Dispatcher,
     dev: &Arc<WgpuDevice>,
 ) {
-    eprintln!("\n── chi_squared_gpu (FusedChiSquaredGpu, neuralSpring→ToadStool→back) ──");
+    println!("\n── chi_squared_gpu (FusedChiSquaredGpu, neuralSpring→ToadStool→back) ──");
 
     let observed: Vec<f64> = vec![10.0, 20.0, 30.0, 40.0];
     let expected: Vec<f64> = vec![12.5, 17.5, 27.5, 42.5];
@@ -104,7 +104,7 @@ fn validate_gpu_chi_squared(
     let (_, chi2_large_us) = bench_once("chi2_gpu 1K", || {
         neural_spring::gpu_ops::chi_squared_gpu(&large_obs, &large_exp, dev)
     });
-    eprintln!("  chi2 benchmark: small={chi2_us:.0}µs, large={chi2_large_us:.0}µs");
+    println!("  chi2 benchmark: small={chi2_us:.0}µs, large={chi2_large_us:.0}µs");
 
     let d_chi2 = dispatcher.chi_squared(&observed, &expected);
     h.check_abs(
@@ -116,7 +116,7 @@ fn validate_gpu_chi_squared(
 }
 
 fn validate_gpu_kl_divergence(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
-    eprintln!("\n── kl_divergence_gpu (FusedKlDivergenceGpu, neuralSpring→ToadStool→back) ──");
+    println!("\n── kl_divergence_gpu (FusedKlDivergenceGpu, neuralSpring→ToadStool→back) ──");
 
     let p: Vec<f64> = vec![0.4, 0.3, 0.2, 0.1];
     let q: Vec<f64> = vec![0.25, 0.25, 0.25, 0.25];
@@ -151,11 +151,11 @@ fn validate_gpu_kl_divergence(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) 
     let (_, kl_large_us) = bench_once("kl_gpu 1K", || {
         neural_spring::gpu_ops::kl_divergence_gpu(&large_p, &large_q, dev)
     });
-    eprintln!("  kl benchmark: small={kl_us:.0}µs, large={kl_large_us:.0}µs");
+    println!("  kl benchmark: small={kl_us:.0}µs, large={kl_large_us:.0}µs");
 }
 
 fn validate_gpu_entropy_variance_pearson(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>) {
-    eprintln!("\n── shannon_entropy_gpu (wetSpring bio → hotSpring precision → ToadStool) ──");
+    println!("\n── shannon_entropy_gpu (wetSpring bio → hotSpring precision → ToadStool) ──");
 
     let probs: Vec<f64> = vec![0.25, 0.25, 0.25, 0.25];
     let expected_entropy = 4.0_f64.ln();
@@ -171,9 +171,9 @@ fn validate_gpu_entropy_variance_pearson(h: &mut ValidationHarness, dev: &Arc<Wg
             tolerances::GPU_ENTROPY_F64,
         );
     }
-    eprintln!("  entropy benchmark: {ent_us:.0}µs");
+    println!("  entropy benchmark: {ent_us:.0}µs");
 
-    eprintln!("\n── variance_gpu (hotSpring Welford → ToadStool VarianceF64) ──");
+    println!("\n── variance_gpu (hotSpring Welford → ToadStool VarianceF64) ──");
 
     let var_data: Vec<f64> = vec![2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
     let cpu_mean = var_data.iter().sum::<f64>() / var_data.len() as f64;
@@ -194,9 +194,9 @@ fn validate_gpu_entropy_variance_pearson(h: &mut ValidationHarness, dev: &Arc<Wg
             tolerances::GPU_VARIANCE_F64,
         );
     }
-    eprintln!("  variance benchmark: {var_us:.0}µs");
+    println!("  variance benchmark: {var_us:.0}µs");
 
-    eprintln!("\n── pearson_gpu (wetSpring stats → hotSpring f64 → ToadStool CorrelationF64) ──");
+    println!("\n── pearson_gpu (wetSpring stats → hotSpring f64 → ToadStool CorrelationF64) ──");
 
     let x_corr: Vec<f64> = (0..100).map(f64::from).collect();
     let y_corr: Vec<f64> = (0..100).map(|i| f64::from(i).mul_add(2.0, 1.0)).collect();
@@ -212,14 +212,14 @@ fn validate_gpu_entropy_variance_pearson(h: &mut ValidationHarness, dev: &Arc<Wg
             tolerances::GPU_PEARSON_F64,
         );
     }
-    eprintln!("  pearson benchmark: {pearson_us:.0}µs");
+    println!("  pearson benchmark: {pearson_us:.0}µs");
 }
 
 fn validate_fp64_strategy(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
-    eprintln!("\n── Fp64Strategy (hotSpring hardware detection → ToadStool driver profile) ──");
+    println!("\n── Fp64Strategy (hotSpring hardware detection → ToadStool driver profile) ──");
 
     let strategy = dispatcher.fp64_strategy();
-    eprintln!("  Fp64Strategy: {strategy:?}");
+    println!("  Fp64Strategy: {strategy:?}");
     h.check_bool(
         "fp64 strategy valid (Native|Hybrid|Concurrent)",
         matches!(
@@ -232,7 +232,7 @@ fn validate_fp64_strategy(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
 }
 
 fn validate_weight_spectral(h: &mut ValidationHarness) {
-    eprintln!("\n── Weight spectral analysis (all rewired paths compose) ──");
+    println!("\n── Weight spectral analysis (all rewired paths compose) ──");
 
     let mut rng = neural_spring::rng::Rng::new(42);
     let weights: Vec<f64> = (0..64).map(|_| rng.normal()).collect();
@@ -254,8 +254,8 @@ fn validate_weight_spectral(h: &mut ValidationHarness) {
         ),
     );
 
-    eprintln!("  spectral analysis: {spectral_us:.0}µs");
-    eprintln!(
+    println!("  spectral analysis: {spectral_us:.0}µs");
+    println!(
         "  phase={}, bandwidth={:.3}, cond={:.1}, ipr={:.4}, lsr={:.4}",
         result.phase,
         result.bandwidth,
@@ -267,9 +267,9 @@ fn validate_weight_spectral(h: &mut ValidationHarness) {
 
 #[tokio::main]
 async fn main() {
-    eprintln!("╔══════════════════════════════════════════════════╗");
-    eprintln!("║  ToadStool S79 Rewire Validation + Benchmark    ║");
-    eprintln!("╚══════════════════════════════════════════════════╝\n");
+    println!("╔══════════════════════════════════════════════════╗");
+    println!("║  ToadStool S79 Rewire Validation + Benchmark    ║");
+    println!("╚══════════════════════════════════════════════════╝\n");
 
     let mut h = ValidationHarness::new("toadstool_s79_rewire");
     let dispatcher = Dispatcher::new().await;
@@ -282,7 +282,7 @@ async fn main() {
         validate_gpu_entropy_variance_pearson(&mut h, dev);
         validate_fp64_strategy(&mut h, &dispatcher);
     } else {
-        eprintln!("\n[skip] No GPU available — skipping GPU rewire validation");
+        println!("\n[skip] No GPU available — skipping GPU rewire validation");
         h.check_bool("chi_squared (no GPU, skip)", true);
         h.check_bool("kl_divergence (no GPU, skip)", true);
         h.check_bool("shannon_entropy (no GPU, skip)", true);
@@ -293,14 +293,14 @@ async fn main() {
 
     validate_weight_spectral(&mut h);
 
-    eprintln!("\n╔══════════════════════════════════════════════════╗");
-    eprintln!("║  Cross-Spring Provenance Map                     ║");
-    eprintln!("╠══════════════════════════════════════════════════╣");
-    eprintln!("║  hotSpring  → f64 pipeline, VarianceF64        ║");
-    eprintln!("║  wetSpring  → FusedMapReduceF64, CorrelationF64 ║");
-    eprintln!("║  neuralSpring → chi², KL, spectral → ToadStool  ║");
-    eprintln!("║  ToadStool  → FusedChiSquared, FusedKL (back)   ║");
-    eprintln!("╚══════════════════════════════════════════════════╝");
+    println!("\n╔══════════════════════════════════════════════════╗");
+    println!("║  Cross-Spring Provenance Map                     ║");
+    println!("╠══════════════════════════════════════════════════╣");
+    println!("║  hotSpring  → f64 pipeline, VarianceF64        ║");
+    println!("║  wetSpring  → FusedMapReduceF64, CorrelationF64 ║");
+    println!("║  neuralSpring → chi², KL, spectral → ToadStool  ║");
+    println!("║  ToadStool  → FusedChiSquared, FusedKL (back)   ║");
+    println!("╚══════════════════════════════════════════════════╝");
 
     h.finish();
 }

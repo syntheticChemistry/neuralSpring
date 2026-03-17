@@ -30,7 +30,7 @@ async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         neural_spring::validation::exit_no_gpu();
     };
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -41,7 +41,7 @@ async fn main() {
         Ok(s) => s,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load transport surrogate: {e}");
+            println!("FATAL: failed to load transport surrogate: {e}");
             h.finish();
         }
     };
@@ -113,7 +113,7 @@ fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &TransportSurrogate, device
             Ok(out) => out,
             Err(e) => {
                 h.check_bool(&format!("GPU forward (ρ={log_rho})"), false);
-                eprintln!("  GPU forward failed: {e}");
+                println!("  GPU forward failed: {e}");
                 continue;
             }
         };

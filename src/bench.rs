@@ -98,18 +98,18 @@ fn median_us(timings: &[Duration]) -> f64 {
 
 /// Print a formatted summary table of benchmark results.
 pub fn print_summary(results: &[BenchResult]) {
-    eprintln!();
-    eprintln!("╔════════════════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!(
+    println!();
+    println!("╔════════════════════════════════════════════════════════════════════════════════════════╗");
+    println!(
         "║  LOCAL vs UPSTREAM — Same Shaders, Different Dispatch Paths                           ║"
     );
-    eprintln!("╚════════════════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!(
+    println!("╚════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!(
         "{:<35} {:>30} {:>10} {:>10} {:>10}",
         "Kernel", "Origin", "Local µs", "Upstr µs", "Ratio"
     );
-    eprintln!("{}", "─".repeat(99));
+    println!("{}", "─".repeat(99));
     for r in results {
         let ratio = r.upstream_us / r.local_us;
         let marker = if ratio < RATIO_NEGLIGIBLE {
@@ -119,14 +119,14 @@ pub fn print_summary(results: &[BenchResult]) {
         } else {
             "~"
         };
-        eprintln!(
+        println!(
             "{:<35} {:>30} {:>10.1} {:>10.1} {:>8.2}× {marker}",
             r.name, r.origin, r.local_us, r.upstream_us, ratio
         );
     }
-    eprintln!("{}", "─".repeat(99));
-    eprintln!("≈ = negligible overhead, ~ = minor overhead, ⚠ = investigate");
-    eprintln!(
+    println!("{}", "─".repeat(99));
+    println!("≈ = negligible overhead, ~ = minor overhead, ⚠ = investigate");
+    println!(
         "Upstream wrappers re-create params buffer per dispatch (expected ~0.5-1µs overhead)."
     );
 }

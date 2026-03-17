@@ -55,7 +55,7 @@ fn main() {
     let file = match std::fs::File::open(&json_path) {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("Run alphafold3_confidence.py first: {e}");
+            println!("Run alphafold3_confidence.py first: {e}");
             std::process::exit(1);
         }
     };

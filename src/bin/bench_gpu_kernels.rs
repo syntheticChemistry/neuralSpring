@@ -42,7 +42,7 @@ const PYTHON_NK_FITNESS_US: f64 = 14087.2;
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "GPU: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
@@ -51,14 +51,14 @@ async fn main() {
         Err(_) => neural_spring::validation::exit_no_gpu(),
     };
 
-    eprintln!("╔══════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — GPU BarraCUDA Typed Op Benchmarks          ║");
-    eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                              ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — GPU BarraCUDA Typed Op Benchmarks          ║");
+    println!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                              ║");
+    println!("╚══════════════════════════════════════════════════════════════╝");
+    println!();
 
-    eprintln!("── Small scale (matches Phase 4a sizes) ──");
-    eprintln!();
+    println!("── Small scale (matches Phase 4a sizes) ──");
+    println!();
     let mut results: Vec<GpuBenchResult> = vec![
         bench_pairwise_hamming(&gpu, 20, 500, "small"),
         bench_pairwise_jaccard(&gpu, 30, 500, "small"),
@@ -67,9 +67,9 @@ async fn main() {
         bench_batch_ipr(&gpu, 64, 100, "small"),
     ];
 
-    eprintln!();
-    eprintln!("── Large scale (GPU parallelism wins) ──");
-    eprintln!();
+    println!();
+    println!("── Large scale (GPU parallelism wins) ──");
+    println!();
     results.push(bench_pairwise_hamming_with_cpu(&gpu, 200, 1000));
     results.push(bench_pairwise_jaccard_with_cpu(&gpu, 100, 2000));
     results.push(bench_batch_fitness(&gpu, 50_000, 64, "large"));
@@ -408,16 +408,16 @@ where
 // ── Summary ───────────────────────────────────────────────────────────
 
 fn print_summary(results: &[GpuBenchResult]) {
-    eprintln!();
-    eprintln!("╔════════════════════════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  BENCHMARK RESULTS — Full Python → Rust CPU → GPU BarraCUDA Typed Op Performance Chain       ║");
-    eprintln!("╚════════════════════════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!(
+    println!();
+    println!("╔════════════════════════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  BENCHMARK RESULTS — Full Python → Rust CPU → GPU BarraCUDA Typed Op Performance Chain       ║");
+    println!("╚════════════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!(
         "{:<40} {:>7} {:>10} {:>10} {:>10} {:>12} {:>12}",
         "Kernel", "Paper", "GPU µs", "Rust µs", "Py µs", "GPU/Rust", "GPU/Python"
     );
-    eprintln!("{}", "─".repeat(104));
+    println!("{}", "─".repeat(104));
 
     for r in results {
         let rust_str = r
@@ -433,19 +433,19 @@ fn print_summary(results: &[GpuBenchResult]) {
             .python_us
             .map_or_else(|| "—".to_string(), |py| format!("{:.0}×", py / r.gpu_us));
 
-        eprintln!(
+        println!(
             "{:<40} {:>7} {:>10.1} {:>10} {:>10} {:>12} {:>12}",
             r.name, r.papers, r.gpu_us, rust_str, py_str, gpu_vs_rust, gpu_vs_python
         );
     }
 
-    eprintln!("{}", "─".repeat(104));
-    eprintln!();
-    eprintln!("GPU/Rust > 1.0× means GPU is faster. GPU/Python is total speedup vs interpreted.");
-    eprintln!(
+    println!("{}", "─".repeat(104));
+    println!();
+    println!("GPU/Rust > 1.0× means GPU is faster. GPU/Python is total speedup vs interpreted.");
+    println!(
         "Small sizes show dispatch overhead (~1.5ms/op). Large sizes show GPU parallelism winning."
     );
-    eprintln!("Cross-dispatch routes small→CPU, large→GPU based on these crossover points.");
+    println!("Cross-dispatch routes small→CPU, large→GPU based on these crossover points.");
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────

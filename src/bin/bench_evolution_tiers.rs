@@ -56,26 +56,26 @@ const ITERS: usize = 100;
 fn main() {
     let with_python = std::env::args().any(|a| a == "--with-python");
 
-    eprintln!("╔══════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Evolution Tier Benchmark                                     ║");
-    eprintln!("║  Rust CPU → BarraCUDA CPU → BarraCUDA GPU                                    ║");
-    eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — Evolution Tier Benchmark                                     ║");
+    println!("║  Rust CPU → BarraCUDA CPU → BarraCUDA GPU                                    ║");
+    println!("║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║");
+    println!("╚══════════════════════════════════════════════════════════════════════════════╝");
+    println!();
 
     let rt = tokio::runtime::Runtime::new()
         .expect("tokio runtime creation failed — required for async benchmark");
     let gpu = rt.block_on(async { Gpu::new().await.ok() });
 
     if let Some(ref g) = gpu {
-        eprintln!(
+        println!(
             "  GPU: {} ({:?}, {:?})",
             g.adapter_name, g.device_type, g.backend
         );
     } else {
-        eprintln!("  GPU: not available (CPU-only benchmark)");
+        println!("  GPU: not available (CPU-only benchmark)");
     }
-    eprintln!();
+    println!();
 
     let results = vec![
         bench_hmm_forward(gpu.as_ref()),
@@ -89,7 +89,7 @@ fn main() {
     ];
 
     if with_python {
-        eprintln!("  (Python benchmarks: run control/bench_*.py separately)\n");
+        println!("  (Python benchmarks: run control/bench_*.py separately)\n");
     }
 
     print_table(&results);
@@ -208,7 +208,7 @@ fn bench_hmm_forward(gpu: Option<&Gpu>) -> TierResult {
     });
 
     let name = format!("BENCH_HMM_FWD_3x{seq_len}_RUST_US={rust_us:.1}");
-    eprintln!("{name}");
+    println!("{name}");
 
     TierResult {
         name: "HMM forward (3×5000)".into(),
@@ -272,7 +272,7 @@ fn bench_nk_fitness(gpu: Option<&Gpu>) -> TierResult {
     });
 
     let name = format!("BENCH_NK_FITNESS_1000x10_RUST_US={rust_us:.1}");
-    eprintln!("{name}");
+    println!("{name}");
 
     TierResult {
         name: "NK fitness (1000×10)".into(),
@@ -322,7 +322,7 @@ fn bench_pairwise_hamming(gpu: Option<&Gpu>) -> TierResult {
     });
 
     let name = format!("BENCH_HAMMING_20x500_RUST_US={rust_us:.1}");
-    eprintln!("{name}");
+    println!("{name}");
 
     TierResult {
         name: "Pairwise Hamming (20×500)".into(),
@@ -377,7 +377,7 @@ fn bench_pairwise_l2(gpu: Option<&Gpu>) -> TierResult {
     });
 
     let name = format!("BENCH_L2_10x8_RUST_US={rust_us:.1}");
-    eprintln!("{name}");
+    println!("{name}");
 
     TierResult {
         name: "Pairwise L2 (10×8)".into(),
@@ -428,7 +428,7 @@ fn bench_pairwise_jaccard(gpu: Option<&Gpu>) -> TierResult {
     });
 
     let name = format!("BENCH_JACCARD_30x500_RUST_US={rust_us:.1}");
-    eprintln!("{name}");
+    println!("{name}");
 
     TierResult {
         name: "Pairwise Jaccard (30×500)".into(),
@@ -505,7 +505,7 @@ fn bench_spatial_payoff(gpu: Option<&Gpu>) -> TierResult {
     });
 
     let name = format!("BENCH_SPATIAL_32x32_RUST_US={rust_us:.1}");
-    eprintln!("{name}");
+    println!("{name}");
 
     TierResult {
         name: "Spatial payoff (32×32)".into(),
@@ -535,7 +535,7 @@ fn bench_hill_gate() -> TierResult {
     });
 
     let name = format!("BENCH_HILL_50x50_RUST_US={rust_us:.1}");
-    eprintln!("{name}");
+    println!("{name}");
 
     TierResult {
         name: "Hill gate (50×50)".into(),
@@ -562,7 +562,7 @@ fn bench_commutator() -> TierResult {
     });
 
     let name = format!("BENCH_COMMUTATOR_64x64_RUST_US={rust_us:.1}");
-    eprintln!("{name}");
+    println!("{name}");
 
     TierResult {
         name: "Commutator ‖[A,B]‖_F (64×64)".into(),

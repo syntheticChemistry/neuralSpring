@@ -14,13 +14,13 @@ const BASELINE_JSON: &str =
 fn main() {
     let mut h = ValidationHarness::new("introgression_nn");
 
-    eprintln!("\n── Exp 099: HMM Introgression on NN Layers ──");
+    println!("\n── Exp 099: HMM Introgression on NN Layers ──");
 
     let baseline = match load_introgression_nn_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -40,7 +40,7 @@ fn validate_viterbi_parity(
     h: &mut ValidationHarness,
     baseline: &neural_spring::introgression_nn::IntrogressionNnBaseline,
 ) {
-    eprintln!("\n── Viterbi parity ──");
+    println!("\n── Viterbi parity ──");
 
     let hmm = build_nn_hmm();
     let (rust_path, _) = hmm.viterbi(&baseline.observations);
@@ -56,7 +56,7 @@ fn validate_viterbi_parity(
             .count();
         matching as f64 / 100.0
     };
-    eprintln!("  Viterbi match rate: {match_rate:.2}");
+    println!("  Viterbi match rate: {match_rate:.2}");
     h.check_bool("Viterbi match > 0.9", match_rate > 0.9);
 
     let rust_frac = introgression_fraction(&rust_path);
@@ -72,7 +72,7 @@ fn validate_metrics(
     h: &mut ValidationHarness,
     baseline: &neural_spring::introgression_nn::IntrogressionNnBaseline,
 ) {
-    eprintln!("\n── Detection metrics ──");
+    println!("\n── Detection metrics ──");
 
     let (tpr, fpr, acc) = detection_metrics(&baseline.viterbi_path, &baseline.true_states);
 
@@ -89,7 +89,7 @@ fn validate_likelihood(
     h: &mut ValidationHarness,
     baseline: &neural_spring::introgression_nn::IntrogressionNnBaseline,
 ) {
-    eprintln!("\n── Likelihood ratio ──");
+    println!("\n── Likelihood ratio ──");
 
     let hmm_introg = build_nn_hmm();
     let hmm_baseline = build_null_hmm();
@@ -98,7 +98,7 @@ fn validate_likelihood(
     let (_, log_lik_baseline) = hmm_baseline.forward(&baseline.observations);
 
     let rust_llr = 2.0 * (log_lik_introg - log_lik_baseline);
-    eprintln!("  Rust LLR: {rust_llr:.2}, Python LLR: {:.2}", baseline.llr);
+    println!("  Rust LLR: {rust_llr:.2}, Python LLR: {:.2}", baseline.llr);
 
     h.check_abs("LLR parity", rust_llr, baseline.llr, 2.0);
     h.check_bool("LLR > 0", baseline.llr > 0.0);

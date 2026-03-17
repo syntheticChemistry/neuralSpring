@@ -42,7 +42,7 @@ async fn main() {
 
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "GPU: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );

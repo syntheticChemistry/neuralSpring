@@ -38,7 +38,7 @@ async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         neural_spring::validation::exit_no_gpu();
     };
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -49,7 +49,7 @@ async fn main() {
         Ok(e) => e,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load ESN: {e}");
+            println!("FATAL: failed to load ESN: {e}");
             h.finish();
         }
     };
@@ -154,7 +154,7 @@ fn validate_gpu_esn(h: &mut ValidationHarness, esn: &EsnClassifier, device: &Dev
             Ok(r) => r,
             Err(e) => {
                 h.check_bool(&format!("GPU classify {desc}"), false);
-                eprintln!("  GPU classify failed for {desc}: {e}");
+                println!("  GPU classify failed for {desc}: {e}");
                 continue;
             }
         };

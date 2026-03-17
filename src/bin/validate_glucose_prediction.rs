@@ -38,13 +38,13 @@ const BASELINE_JSON: &str =
 fn main() {
     let mut h = ValidationHarness::new("glucose_prediction");
 
-    eprintln!("\n── Paper 026: LSTM Blood Glucose Prediction (Chuna 2020) ──");
+    println!("\n── Paper 026: LSTM Blood Glucose Prediction (Chuna 2020) ──");
 
     let baseline = match load_glucose_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load baseline: {e}");
+            println!("FATAL: failed to load baseline: {e}");
             h.finish();
         }
     };
@@ -55,7 +55,7 @@ fn main() {
     h.check_bool("seq_len = 12", baseline.seq_len == 12);
 
     // ── Synthetic CGM validation ──
-    eprintln!("\n── Synthetic CGM generation ──");
+    println!("\n── Synthetic CGM generation ──");
 
     let cgm = generate_synthetic_cgm(14, 42);
     h.check_bool("CGM length = 4032", cgm.len() == 14 * 288);
@@ -81,7 +81,7 @@ fn main() {
     );
 
     // ── Autocorrelation validation ──
-    eprintln!("\n── Autocorrelation analysis ──");
+    println!("\n── Autocorrelation analysis ──");
 
     let acor = autocorrelation(&cgm, 144);
     let tau_steps = estimate_tau(&acor);
@@ -113,20 +113,20 @@ fn main() {
     );
 
     // ── Full Rust experiment ──
-    eprintln!("\n── Full Rust glucose experiment (5 horizons) ──");
+    println!("\n── Full Rust glucose experiment (5 horizons) ──");
 
     let horizons = [1, 6, 12, 24, 48];
     let (results, _predictor) = run_glucose_experiment(14, 24, 12, &horizons, 42);
 
     for r in &results {
-        eprintln!(
+        println!(
             "  Horizon {:>3} min: R²={:.4}, RMSE={:.2} mg/dL, improvement={:.1}%",
             r.horizon_minutes, r.r2_lstm, r.rmse_lstm, r.lstm_improvement_pct
         );
     }
 
     // ── Horizon degradation checks ──
-    eprintln!("\n── Horizon degradation analysis ──");
+    println!("\n── Horizon degradation analysis ──");
 
     h.check_bool(
         "R²(5min) > 0.85 (short horizon accurate)",
@@ -167,7 +167,7 @@ fn main() {
     );
 
     // ── Determinism ──
-    eprintln!("\n── Determinism ──");
+    println!("\n── Determinism ──");
 
     let (results2, _) = run_glucose_experiment(14, 24, 12, &horizons, 42);
     for (r1, r2) in results.iter().zip(results2.iter()) {
@@ -180,7 +180,7 @@ fn main() {
     }
 
     // ── Cross-validation with Python horizon results ──
-    eprintln!("\n── Python ↔ Rust R² comparison ──");
+    println!("\n── Python ↔ Rust R² comparison ──");
 
     if let Some(py_horizons) = parsed["horizons"].as_array() {
         for py_h in py_horizons {
@@ -188,7 +188,7 @@ fn main() {
             let py_r2 = py_h["r2_lstm"].as_f64().unwrap_or(0.0);
 
             if let Some(rs_result) = results.iter().find(|r| r.horizon_steps == steps) {
-                eprintln!(
+                println!(
                     "  {}min: Python R²={:.4}, Rust R²={:.4}",
                     steps * 5,
                     py_r2,
@@ -199,7 +199,7 @@ fn main() {
     }
 
     // ── R² and RMSE sanity on known data ──
-    eprintln!("\n── Metric sanity checks ──");
+    println!("\n── Metric sanity checks ──");
 
     let actual = vec![100.0, 120.0, 140.0, 160.0, 180.0];
     let r2_perfect = r2_score(&actual, &actual);

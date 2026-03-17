@@ -40,7 +40,7 @@ async fn main() {
 
     let gpu = Gpu::new().await.ok();
     let dev = gpu.as_ref().map(|g| {
-        eprintln!(
+        println!(
             "GPU: {} ({:?}, {:?})",
             g.adapter_name, g.device_type, g.backend
         );

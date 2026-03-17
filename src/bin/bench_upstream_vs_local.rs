@@ -49,7 +49,7 @@ const ITERATIONS: usize = 100;
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "GPU: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
@@ -58,11 +58,11 @@ async fn main() {
         Err(_) => neural_spring::validation::exit_no_gpu(),
     };
 
-    eprintln!("╔══════════════════════════════════════════════════════════════╗");
-    eprintln!("║  Local metalForge vs Upstream BarraCUDA Wrapper Benchmarks  ║");
-    eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                              ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════╗");
+    println!("║  Local metalForge vs Upstream BarraCUDA Wrapper Benchmarks  ║");
+    println!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                              ║");
+    println!("╚══════════════════════════════════════════════════════════════╝");
+    println!();
 
     let results = vec![
         bench_fitness(&gpu),

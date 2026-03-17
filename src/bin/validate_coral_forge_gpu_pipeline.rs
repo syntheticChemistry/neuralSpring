@@ -121,7 +121,7 @@ fn validate_sdpa_scores(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  SDPA scores GPU max diff: {md:.2e}");
+    println!("  SDPA scores GPU max diff: {md:.2e}");
     h.check_abs(
         "SDPA scores GPU max diff",
         md,
@@ -194,7 +194,7 @@ fn validate_attention_apply(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  AttnApply GPU max diff: {md:.2e}");
+    println!("  AttnApply GPU max diff: {md:.2e}");
     h.check_abs(
         "AttnApply GPU max diff",
         md,
@@ -314,7 +314,7 @@ fn validate_sdpa_pipeline(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  SDPA pipeline GPU max diff: {md:.2e}");
+    println!("  SDPA pipeline GPU max diff: {md:.2e}");
     h.check_abs(
         "SDPA pipeline GPU max diff",
         md,
@@ -428,7 +428,7 @@ fn validate_ipa_scores(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  IPA scores GPU max diff: {md:.2e}");
+    println!("  IPA scores GPU max diff: {md:.2e}");
     h.check_abs(
         "IPA scores GPU max diff",
         md,
@@ -511,7 +511,7 @@ fn validate_backbone_update(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  Backbone GPU max diff: {md:.2e}");
+    println!("  Backbone GPU max diff: {md:.2e}");
     h.check_abs(
         "Backbone GPU max diff",
         md,
@@ -587,7 +587,7 @@ fn validate_torsion_angles(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  Torsion GPU max diff: {md:.2e}");
+    println!("  Torsion GPU max diff: {md:.2e}");
     h.check_abs(
         "Torsion GPU max diff",
         md,
@@ -615,14 +615,14 @@ fn validate_torsion_angles(h: &mut ValidationHarness, gpu: &Gpu) {
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
             let profile =
                 barracuda::device::driver_profile::GpuDriverProfile::from_device(g.wgpu_device());
-            eprintln!("  FP64 strategy: {:?}", profile.fp64_strategy());
-            eprintln!("  precision: df64 core streaming (f64 buffers, df64 compute)");
+            println!("  FP64 strategy: {:?}", profile.fp64_strategy());
+            println!("  precision: df64 core streaming (f64 buffers, df64 compute)");
             g
         }
         Err(_) => neural_spring::validation::exit_no_gpu(),

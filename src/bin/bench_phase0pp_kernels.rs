@@ -50,12 +50,12 @@ const ITERATIONS: usize = 200;
 fn main() {
     let with_python = std::env::args().any(|a| a == "--with-python");
 
-    eprintln!("╔══════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Phase 0++ Kernel Benchmarks                 ║");
-    eprintln!("║  Pure Rust math vs Python/NumPy (single-thread)             ║");
-    eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                             ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — Phase 0++ Kernel Benchmarks                 ║");
+    println!("║  Pure Rust math vs Python/NumPy (single-thread)             ║");
+    println!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                             ║");
+    println!("╚══════════════════════════════════════════════════════════════╝");
+    println!();
 
     let mut results: Vec<BenchResult> = vec![
         bench_hmm_forward(),
@@ -408,11 +408,11 @@ fn bench_swarm_nn_forward() -> BenchResult {
 // ── Python execution ──────────────────────────────────────────────────
 
 fn run_python_benchmarks(results: &mut [BenchResult]) {
-    eprintln!("\n─── Python benchmarks (single-thread NumPy) ───");
+    println!("\n─── Python benchmarks (single-thread NumPy) ───");
     for r in results.iter_mut() {
         let tag = &r.kernel_tag;
         let script = &r.python_script;
-        eprintln!("  Running {script} ...");
+        println!("  Running {script} ...");
 
         let python = std::env::var("NEURALSPRING_PYTHON").unwrap_or_else(|_| "python3".to_string());
         let output = Command::new(&python)
@@ -435,17 +435,17 @@ fn run_python_benchmarks(results: &mut [BenchResult]) {
                     }
                 }
                 if r.python_us.is_none() {
-                    eprintln!("    WARN: no machine-readable line found for {tag}");
+                    println!("    WARN: no machine-readable line found for {tag}");
                 }
             }
             Ok(o) => {
-                eprintln!("    FAIL: exit {}", o.status);
+                println!("    FAIL: exit {}", o.status);
                 let stderr = String::from_utf8_lossy(&o.stderr);
                 for line in stderr.lines().take(5) {
-                    eprintln!("      {line}");
+                    println!("      {line}");
                 }
             }
-            Err(e) => eprintln!("    SKIP: {e}"),
+            Err(e) => println!("    SKIP: {e}"),
         }
     }
 }
@@ -453,16 +453,16 @@ fn run_python_benchmarks(results: &mut [BenchResult]) {
 // ── Summary ───────────────────────────────────────────────────────────
 
 fn print_summary(results: &[BenchResult]) {
-    eprintln!();
-    eprintln!("╔══════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  BENCHMARK RESULTS — Phase 0++ Pure Math Kernels                            ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!(
+    println!();
+    println!("╔══════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  BENCHMARK RESULTS — Phase 0++ Pure Math Kernels                            ║");
+    println!("╚══════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!(
         "{:<38} {:>6} {:>12} {:>12} {:>10}",
         "Kernel", "Paper", "Rust µs", "Python µs", "Speedup"
     );
-    eprintln!("{}", "─".repeat(80));
+    println!("{}", "─".repeat(80));
 
     for r in results {
         let py_str = r
@@ -472,7 +472,7 @@ fn print_summary(results: &[BenchResult]) {
             .python_us
             .map_or_else(|| "—".to_string(), |py| format!("{:.1}×", py / r.rust_us));
 
-        eprintln!(
+        println!(
             "{:<38} {:>6} {:>12.1} {:>12} {:>10}",
             r.name, r.papers, r.rust_us, py_str, speedup
         );
@@ -490,8 +490,8 @@ fn print_summary(results: &[BenchResult]) {
     let overall_speedup =
         total_py.map_or_else(|| "—".to_string(), |py| format!("{:.1}×", py / total_rust));
 
-    eprintln!("{}", "─".repeat(80));
-    eprintln!(
+    println!("{}", "─".repeat(80));
+    println!(
         "{:<38} {:>6} {:>12.1} {:>12} {:>10}",
         "TOTAL",
         "",
@@ -499,13 +499,13 @@ fn print_summary(results: &[BenchResult]) {
         total_py.map_or_else(|| "—".to_string(), |v| format!("{v:.1}")),
         overall_speedup
     );
-    eprintln!();
+    println!();
 
     if total_py.is_some() {
-        eprintln!("Rust pure math is {overall_speedup} faster than single-thread NumPy.");
-        eprintln!("Next: GPU WGSL shaders via metalForge/ for additional acceleration.");
+        println!("Rust pure math is {overall_speedup} faster than single-thread NumPy.");
+        println!("Next: GPU WGSL shaders via metalForge/ for additional acceleration.");
     } else {
-        eprintln!("Run with --with-python to get Python comparison timings.");
+        println!("Run with --with-python to get Python comparison timings.");
     }
 }
 

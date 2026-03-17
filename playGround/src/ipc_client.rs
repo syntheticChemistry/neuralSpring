@@ -302,9 +302,8 @@ pub fn discover_by_capability(required_capability: &str, hint_name: &str) -> Res
 
 /// Probe a primal's capabilities by sending `capability.list` over JSON-RPC.
 ///
-/// Handles both response formats used across the ecosystem:
-///   - Object: `{"primal": "...", "capabilities": ["a", "b"]}`
-///   - Array:  `["a", "b"]`
+/// Handles all ecosystem response formats (flat, object array, nested,
+/// double-nested, result wrapper) via [`parse_capability_list`].
 ///
 /// Returns a list of capability strings, or an error if the primal does
 /// not respond within 2 seconds.
@@ -321,17 +320,46 @@ fn probe_capabilities(socket_path: &std::path::Path) -> Result<Vec<String>> {
         rt.block_on(call(socket_path, "capability.list", &params, timeout))
     }?;
 
-    parse_capability_list(&result)
+    Ok(parse_capability_list(&result))
 }
 
-/// Extract capability strings from either the object or array response format.
-fn parse_capability_list(value: &serde_json::Value) -> Result<Vec<String>> {
-    let arr = match value {
-        serde_json::Value::Array(_) => value,
-        serde_json::Value::Object(map) => map.get("capabilities").unwrap_or(value),
-        _ => anyhow::bail!("unexpected capability.list result type"),
-    };
-    serde_json::from_value(arr.clone()).context("parsing capability list")
+/// Extract capability strings from any response format used across the ecosystem.
+///
+/// Handles all 4 formats (airSpring V0.8.7 pattern):
+///   - **Flat**: `["cap.a", "cap.b"]`
+///   - **Object array**: `[{"name": "cap.a"}, {"capability": "cap.b"}]`
+///   - **Nested wrapper**: `{"capabilities": ["cap.a"]}`
+///   - **Double-nested**: `{"capabilities": {"capabilities": ["cap.a"]}}`
+///   - **Result wrapper**: `{"result": ["cap.a"]}`
+///
+/// Returns an empty vec (never errors) for unrecognized formats — defensive
+/// parsing is safer than panicking during discovery probes.
+#[must_use]
+pub fn parse_capability_list(value: &serde_json::Value) -> Vec<String> {
+    if let serde_json::Value::Object(obj) = value {
+        if let Some(inner) = obj.get("capabilities") {
+            return parse_capability_list(inner);
+        }
+        if let Some(inner) = obj.get("result") {
+            return parse_capability_list(inner);
+        }
+    }
+
+    match value {
+        serde_json::Value::Array(arr) => arr
+            .iter()
+            .filter_map(|v| match v {
+                serde_json::Value::String(s) => Some(s.clone()),
+                serde_json::Value::Object(obj) => obj
+                    .get("name")
+                    .or_else(|| obj.get("capability"))
+                    .and_then(|n| n.as_str())
+                    .map(str::to_owned),
+                _ => None,
+            })
+            .collect(),
+        _ => Vec::new(),
+    }
 }
 
 /// Read the IPC timeout from environment, defaulting to 5 seconds.
@@ -342,6 +370,174 @@ pub fn ipc_timeout() -> Duration {
         .and_then(|v| v.parse().ok())
         .unwrap_or(5);
     Duration::from_secs(secs)
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Generic primal discovery (sweetGrass / groundSpring V112 pattern)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Generate the environment variable name for a primal's socket override.
+///
+/// Follows the ecosystem convention: `{UPPER_NAME}_SOCKET`.
+/// Example: `socket_env_var("toadstool")` → `"TOADSTOOL_SOCKET"`.
+#[must_use]
+pub fn socket_env_var(primal_name: &str) -> String {
+    format!("{}_SOCKET", primal_name.to_uppercase())
+}
+
+/// Generate the environment variable name for a primal's address (host:port).
+///
+/// Follows the ecosystem convention: `{UPPER_NAME}_ADDRESS`.
+#[must_use]
+pub fn address_env_var(primal_name: &str) -> String {
+    format!("{}_ADDRESS", primal_name.to_uppercase())
+}
+
+/// Discover a primal socket by name, checking the `{UPPER}_SOCKET` env var
+/// first, then falling back to biomeOS socket directory resolution.
+///
+/// This is the generic discovery helper — primals should not hardcode
+/// socket paths or peer names beyond their own `niche`.
+pub fn discover_primal(primal_name: &str) -> Result<PathBuf> {
+    let env_key = socket_env_var(primal_name);
+    if let Ok(path) = std::env::var(&env_key) {
+        let p = PathBuf::from(&path);
+        if p.exists() {
+            return Ok(p);
+        }
+    }
+    discover_socket(primal_name)
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RPC response classification (groundSpring V112 pattern)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Classifies a JSON-RPC response for graceful degradation.
+///
+/// Callers can match on `DispatchOutcome` to decide whether a failure is
+/// retryable (protocol error) vs application-level (wrong capability).
+#[derive(Debug)]
+pub enum DispatchOutcome {
+    /// The RPC succeeded and returned a result value.
+    Ok(serde_json::Value),
+    /// Protocol-level error (JSON-RPC spec codes -32700 to -32600).
+    ProtocolError { code: i64, message: String },
+    /// Application-level error (code >= -32000 or non-standard).
+    ApplicationError { code: i64, message: String },
+}
+
+impl DispatchOutcome {
+    /// Classify a typed [`IpcError`] into a `DispatchOutcome`.
+    #[must_use]
+    pub fn from_ipc_error(err: &IpcError) -> Self {
+        match err {
+            IpcError::RpcError { code, message } => {
+                if *code <= -32600 && *code >= -32700 {
+                    Self::ProtocolError {
+                        code: *code,
+                        message: message.clone(),
+                    }
+                } else {
+                    Self::ApplicationError {
+                        code: *code,
+                        message: message.clone(),
+                    }
+                }
+            }
+            other => Self::ProtocolError {
+                code: -1,
+                message: other.to_string(),
+            },
+        }
+    }
+
+    /// Whether the outcome represents success.
+    #[must_use]
+    pub const fn is_ok(&self) -> bool {
+        matches!(self, Self::Ok(_))
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Resilient IPC call (healthSpring V32 pattern)
+// ═══════════════════════════════════════════════════════════════════
+
+const RESILIENT_MAX_RETRIES: u32 = 2;
+const RESILIENT_RETRY_BASE_MS: u64 = 50;
+const RESILIENT_CIRCUIT_OPEN_MS: u64 = 5000;
+
+static LAST_FAILURE_EPOCH_MS: AtomicU64 = AtomicU64::new(0);
+
+fn epoch_ms_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| {
+            #[expect(
+                clippy::cast_possible_truncation,
+                reason = "epoch millis fits u64 for ~584 million years"
+            )]
+            let ms = d.as_millis() as u64;
+            ms
+        })
+}
+
+fn circuit_is_open() -> bool {
+    let last = LAST_FAILURE_EPOCH_MS.load(Ordering::Relaxed);
+    last > 0 && epoch_ms_now().saturating_sub(last) < RESILIENT_CIRCUIT_OPEN_MS
+}
+
+fn record_failure() {
+    LAST_FAILURE_EPOCH_MS.store(epoch_ms_now(), Ordering::Relaxed);
+}
+
+fn record_success() {
+    LAST_FAILURE_EPOCH_MS.store(0, Ordering::Relaxed);
+}
+
+/// IPC call with circuit breaker + exponential backoff retry.
+///
+/// Retries recoverable failures (connect, timeout) up to 2 times with
+/// 50ms/100ms backoff. If the circuit breaker is open (failure within
+/// last 5 seconds), short-circuits immediately.
+///
+/// Use this for calls to external primals (provenance trio, biomeOS)
+/// where transient unavailability is expected.
+pub async fn resilient_call(
+    socket_path: &Path,
+    method: &str,
+    params: &serde_json::Value,
+    timeout: Duration,
+) -> std::result::Result<serde_json::Value, IpcError> {
+    if circuit_is_open() {
+        return Err(IpcError::Connect(std::io::Error::new(
+            std::io::ErrorKind::ConnectionRefused,
+            "circuit open — primal recently unavailable",
+        )));
+    }
+
+    let mut last_err = IpcError::Timeout;
+    for attempt in 0..=RESILIENT_MAX_RETRIES {
+        match call_typed(socket_path, method, params, timeout).await {
+            Ok(v) => {
+                record_success();
+                return Ok(v);
+            }
+            Err(e) => {
+                if !e.is_recoverable() {
+                    record_failure();
+                    return Err(e);
+                }
+                last_err = e;
+                if attempt < RESILIENT_MAX_RETRIES {
+                    let delay = RESILIENT_RETRY_BASE_MS * 2_u64.saturating_pow(attempt);
+                    tokio::time::sleep(Duration::from_millis(delay)).await;
+                }
+            }
+        }
+    }
+    record_failure();
+    Err(last_err)
 }
 
 #[cfg(test)]
@@ -404,20 +600,126 @@ mod tests {
     }
 
     #[test]
+    fn parse_capability_list_flat_array() {
+        let val = serde_json::json!(["compute.submit", "compute.probe"]);
+        assert_eq!(
+            parse_capability_list(&val),
+            vec!["compute.submit", "compute.probe"]
+        );
+    }
+
+    #[test]
     fn parse_capability_list_object_format() {
         let obj = serde_json::json!({
             "primal": "neuralspring",
             "capabilities": ["science.ipr", "science.spectral_analysis"]
         });
-        let caps = parse_capability_list(&obj).unwrap();
-        assert_eq!(caps, vec!["science.ipr", "science.spectral_analysis"]);
+        assert_eq!(
+            parse_capability_list(&obj),
+            vec!["science.ipr", "science.spectral_analysis"]
+        );
     }
 
     #[test]
-    fn parse_capability_list_array_format() {
-        let arr = serde_json::json!(["compute.submit", "compute.probe"]);
-        let caps = parse_capability_list(&arr).unwrap();
-        assert_eq!(caps, vec!["compute.submit", "compute.probe"]);
+    fn parse_capability_list_object_array_format() {
+        let val = serde_json::json!([
+            {"name": "health", "version": "1.0"},
+            {"capability": "compute.dispatch"}
+        ]);
+        assert_eq!(
+            parse_capability_list(&val),
+            vec!["health", "compute.dispatch"]
+        );
+    }
+
+    #[test]
+    fn parse_capability_list_double_nested() {
+        let val = serde_json::json!({
+            "capabilities": {"capabilities": ["health", "compute.dispatch"]}
+        });
+        assert_eq!(
+            parse_capability_list(&val),
+            vec!["health", "compute.dispatch"]
+        );
+    }
+
+    #[test]
+    fn parse_capability_list_result_wrapper() {
+        let val = serde_json::json!({"result": ["health", "data.weather"]});
+        assert_eq!(parse_capability_list(&val), vec!["health", "data.weather"]);
+    }
+
+    #[test]
+    fn parse_capability_list_empty_and_junk() {
+        assert!(parse_capability_list(&serde_json::json!(null)).is_empty());
+        assert!(parse_capability_list(&serde_json::json!(42)).is_empty());
+        assert!(parse_capability_list(&serde_json::json!([])).is_empty());
+    }
+
+    #[test]
+    fn socket_env_var_uppercases() {
+        assert_eq!(
+            socket_env_var(neural_spring::primal_names::TOADSTOOL),
+            "TOADSTOOL_SOCKET"
+        );
+        assert_eq!(
+            socket_env_var(neural_spring::primal_names::BIOMEOS),
+            "BIOMEOS_SOCKET"
+        );
+    }
+
+    #[test]
+    fn address_env_var_uppercases() {
+        assert_eq!(
+            address_env_var(neural_spring::primal_names::NESTGATE),
+            "NESTGATE_ADDRESS"
+        );
+    }
+
+    #[test]
+    fn discover_primal_falls_back_to_socket_dir() {
+        temp_env::with_vars(
+            [
+                ("TOADSTOOL_SOCKET", None::<&str>),
+                (
+                    "BIOMEOS_SOCKET_DIR",
+                    Some("/tmp/nonexistent_biomeos_test_dir"),
+                ),
+            ],
+            || {
+                assert!(discover_primal(neural_spring::primal_names::TOADSTOOL).is_err());
+            },
+        );
+    }
+
+    #[test]
+    fn dispatch_outcome_protocol_vs_application() {
+        let proto = IpcError::RpcError {
+            code: -32601,
+            message: "method not found".into(),
+        };
+        let app = IpcError::RpcError {
+            code: -1,
+            message: "custom error".into(),
+        };
+        assert!(matches!(
+            DispatchOutcome::from_ipc_error(&proto),
+            DispatchOutcome::ProtocolError { .. }
+        ));
+        assert!(matches!(
+            DispatchOutcome::from_ipc_error(&app),
+            DispatchOutcome::ApplicationError { .. }
+        ));
+    }
+
+    #[test]
+    fn circuit_breaker_opens_and_closes() {
+        record_success();
+        assert!(!circuit_is_open());
+        record_failure();
+        assert!(circuit_is_open());
+        record_success();
+        assert!(!circuit_is_open());
     }
 
     #[test]

@@ -22,54 +22,54 @@ fn main() {
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
     let dispatcher = rt.block_on(Dispatcher::new());
 
-    eprintln!("═══ Exp 104: Batched Spectral Analysis ═══");
-    eprintln!("Backend: {}", dispatcher.backend());
-    eprintln!("Adapter: {}", dispatcher.adapter_name());
+    println!("═══ Exp 104: Batched Spectral Analysis ═══");
+    println!("Backend: {}", dispatcher.backend());
+    println!("Adapter: {}", dispatcher.adapter_name());
 
-    eprintln!("\n── Sequential (CPU-only pipeline) ──");
+    println!("\n── Sequential (CPU-only pipeline) ──");
     let seq_start = Instant::now();
     let seq_report = execute_composition_pipeline();
     let seq_us = seq_start.elapsed().as_secs_f64() * 1_000_000.0;
     h.check_bool("sequential pipeline passes", seq_report.all_passed());
-    eprintln!(
+    println!(
         "  Total: {seq_us:.1}µs ({} stages)",
         seq_report.total_stages
     );
     for result in &seq_report.execution.results {
-        eprintln!(
+        println!(
             "    {}: {:.1}µs {:?}",
             result.stage_id, result.elapsed_us, result.actual_substrate
         );
     }
 
-    eprintln!("\n── GPU-Dispatch pipeline ──");
+    println!("\n── GPU-Dispatch pipeline ──");
     let gpu_start = Instant::now();
     let gpu_report = execute_composition_pipeline_gpu(&dispatcher);
     let gpu_us = gpu_start.elapsed().as_secs_f64() * 1_000_000.0;
     h.check_bool("GPU pipeline passes", gpu_report.all_passed());
-    eprintln!(
+    println!(
         "  Total: {gpu_us:.1}µs ({} stages, substrate: {})",
         gpu_report.total_stages, gpu_report.substrate_used
     );
 
     for result in &gpu_report.execution.results {
         h.check_bool(&format!("stage {} passes", result.stage_id), result.success);
-        eprintln!(
+        println!(
             "    {}: {:.1}µs {:?}",
             result.stage_id, result.elapsed_us, result.actual_substrate
         );
     }
 
     let speedup = seq_us / gpu_us.max(0.001);
-    eprintln!("\nSpeedup: {speedup:.2}× (sequential vs GPU-dispatch)");
+    println!("\nSpeedup: {speedup:.2}× (sequential vs GPU-dispatch)");
 
-    eprintln!("\n── Cross-experiment spectral summary ──");
+    println!("\n── Cross-experiment spectral summary ──");
     for result in &gpu_report.execution.results {
         if let neural_spring_forge::graph::StageOutput::Map(m) = &result.output {
             if let Some(&ipr) = m.get("mean_ipr") {
                 let sr = m.get("spectral_radius").copied().unwrap_or(0.0);
                 h.check_bool(&format!("{} IPR > 0", result.stage_id), ipr > 0.0);
-                eprintln!(
+                println!(
                     "  {}: mean_ipr={ipr:.4} spectral_radius={sr:.4}",
                     result.stage_id
                 );

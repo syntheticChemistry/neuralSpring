@@ -444,7 +444,7 @@ async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         validation::exit_no_gpu();
     };
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );

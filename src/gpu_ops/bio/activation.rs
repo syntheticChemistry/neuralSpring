@@ -31,19 +31,21 @@ pub fn hill_activation_batch_gpu(
     n_hill: f64,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
+    use crate::safe_cast::f64_f32;
+
     let len = x.len();
     if len == 0 {
         return Ok(Vec::new());
     }
 
-    let kn = (k.powf(n_hill)) as f32;
-    let n_f32 = n_hill as f32;
-    let vmax_f32 = vmax as f32;
-    let guard = crate::primitives::HILL_EPS as f32;
+    let kn = f64_f32(k.powf(n_hill));
+    let n_f32 = f64_f32(n_hill);
+    let vmax_f32 = f64_f32(vmax);
+    let guard = f64_f32(crate::primitives::HILL_EPS);
 
     let x_f32: Vec<f32> = x
         .iter()
-        .map(|&v| (v.max(crate::primitives::LOG_GUARD)) as f32)
+        .map(|&v| f64_f32(v.max(crate::primitives::LOG_GUARD)))
         .collect();
 
     let x_t =
@@ -86,6 +88,7 @@ pub fn hill_gate_gpu(
     cfg: &HillGateConfig,
     device: &Arc<WgpuDevice>,
 ) -> Result<Vec<f64>, String> {
+    use crate::safe_cast::{usize_u32, usize_u64};
     use barracuda::ops::bio::hill_gate::{HillGateGpu, HillGateParams};
     use wgpu::util::DeviceExt;
 
@@ -111,14 +114,14 @@ pub fn hill_gate_gpu(
     });
     let out_buf = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("hill_gate_out"),
-        size: (out_len * elem_size) as u64,
+        size: usize_u64(out_len * elem_size),
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
 
     let params = HillGateParams {
-        n_a: len_a as u32,
-        n_b: len_b as u32,
+        n_a: usize_u32(len_a, "hill_gate_n_a")?,
+        n_b: usize_u32(len_b, "hill_gate_n_b")?,
         mode: 1,
         _pad: 0,
         k_a: cfg.k_a,
@@ -132,7 +135,7 @@ pub fn hill_gate_gpu(
     let op = HillGateGpu::new(device.clone());
     op.dispatch(&a_buf, &b_buf, &out_buf, &params);
 
-    let out_bytes = (out_len * elem_size) as u64;
+    let out_bytes = usize_u64(out_len * elem_size);
     let staging = d.create_buffer(&wgpu::BufferDescriptor {
         label: Some("hill_gate_staging"),
         size: out_bytes,

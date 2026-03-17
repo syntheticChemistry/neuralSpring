@@ -19,13 +19,13 @@ const BASELINE_JSON: &str =
 fn main() {
     let mut h = ValidationHarness::new("digester_anderson");
 
-    eprintln!("\n── Exp 096: Digester-Anderson Coupling ──");
+    println!("\n── Exp 096: Digester-Anderson Coupling ──");
 
     let baseline = match load_coupling_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load baseline: {e}");
+            println!("FATAL: failed to load baseline: {e}");
             h.finish();
         }
     };
@@ -48,7 +48,7 @@ fn main() {
 }
 
 fn validate_mapping(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
-    eprintln!("\n── Diversity → Disorder mapping ──");
+    println!("\n── Diversity → Disorder mapping ──");
     h.check_abs(
         "evenness=0 → W=20",
         evenness_to_disorder(0.0),
@@ -80,7 +80,7 @@ fn validate_mapping(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
 }
 
 fn validate_anderson_physics(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
-    eprintln!("\n── Anderson physics ──");
+    println!("\n── Anderson physics ──");
 
     let w_vals: Vec<f64> = baseline.communities.iter().map(|c| c.disorder_w).collect();
     let ipr_vals: Vec<f64> = baseline.communities.iter().map(|c| c.mean_ipr).collect();
@@ -102,7 +102,7 @@ fn validate_anderson_physics(h: &mut ValidationHarness, baseline: &CouplingBasel
 }
 
 fn validate_noise_model(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
-    eprintln!("\n── Noise model ──");
+    println!("\n── Noise model ──");
     for comm in &baseline.communities {
         let noise_rust = noise_from_xi(comm.loc_length_xi);
         h.check_abs(
@@ -115,7 +115,7 @@ fn validate_noise_model(h: &mut ValidationHarness, baseline: &CouplingBaseline) 
 }
 
 fn validate_esn_parity(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
-    eprintln!("\n── ESN inference parity (Rust vs Python) ──");
+    println!("\n── ESN inference parity (Rust vs Python) ──");
     let pred = &baseline.predictor;
 
     for (i, rp) in baseline.reference_predictions.iter().enumerate() {
@@ -136,7 +136,7 @@ fn validate_esn_parity(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
 }
 
 fn validate_analytical_parity(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
-    eprintln!("\n── Analytical yield parity ──");
+    println!("\n── Analytical yield parity ──");
     for (i, rp) in baseline.reference_predictions.iter().enumerate() {
         let y_analytical = biogas_yield(
             rp.input[0],
@@ -155,7 +155,7 @@ fn validate_analytical_parity(h: &mut ValidationHarness, baseline: &CouplingBase
 }
 
 fn validate_coupling(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
-    eprintln!("\n── Coupling signal ──");
+    println!("\n── Coupling signal ──");
 
     let w_vals: Vec<f64> = baseline.communities.iter().map(|c| c.disorder_w).collect();
     let r2_vals: Vec<f64> = baseline.communities.iter().map(|c| c.r2_test).collect();
@@ -188,7 +188,7 @@ fn validate_coupling(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
 }
 
 fn validate_physics_expectations(h: &mut ValidationHarness, baseline: &CouplingBaseline) {
-    eprintln!("\n── Physical expectations ──");
+    println!("\n── Physical expectations ──");
 
     let r2_vals: Vec<f64> = baseline.communities.iter().map(|c| c.r2_test).collect();
     let w_vals: Vec<f64> = baseline.communities.iter().map(|c| c.disorder_w).collect();

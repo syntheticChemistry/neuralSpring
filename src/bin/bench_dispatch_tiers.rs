@@ -27,7 +27,7 @@ const GPU_ITERATIONS: usize = 20;
 
 fn main() {
     let Ok(rt) = tokio::runtime::Runtime::new() else {
-        eprintln!("FATAL: could not create tokio runtime");
+        println!("FATAL: could not create tokio runtime");
         std::process::exit(1);
     };
 
@@ -36,17 +36,17 @@ fn main() {
     let gpu_name = gpu.adapter_name().to_string();
     let has_gpu = gpu.has_gpu();
 
-    eprintln!("╔══════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Three-Tier Dispatch Benchmark               ║");
-    eprintln!("║  Library → Dispatcher CPU → Dispatcher GPU                  ║");
-    eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                               ║");
+    println!("╔══════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — Three-Tier Dispatch Benchmark               ║");
+    println!("║  Library → Dispatcher CPU → Dispatcher GPU                  ║");
+    println!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                               ║");
     if has_gpu {
-        eprintln!("║  GPU: {gpu_name:<52} ║");
+        println!("║  GPU: {gpu_name:<52} ║");
     } else {
-        eprintln!("║  GPU: none (CPU-only mode)                                 ║");
+        println!("║  GPU: none (CPU-only mode)                                 ║");
     }
-    eprintln!("╚══════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╚══════════════════════════════════════════════════════════════╝");
+    println!();
 
     let results = vec![
         bench_matmul(&cpu, &gpu),
@@ -426,18 +426,18 @@ fn bench_hill(cpu: &Dispatcher, gpu: &Dispatcher) -> TierResult {
 // ── Summary ──────────────────────────────────────────────────────────
 
 fn print_summary(results: &[TierResult], has_gpu: bool) {
-    eprintln!();
-    eprintln!("╔═══════════════════════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  THREE-TIER DISPATCH BENCHMARK RESULTS                                                      ║");
-    eprintln!("╚═══════════════════════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!();
+    println!("╔═══════════════════════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  THREE-TIER DISPATCH BENCHMARK RESULTS                                                      ║");
+    println!("╚═══════════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!();
 
     if has_gpu {
-        eprintln!(
+        println!(
             "{:<18} {:>8} {:>12} {:>12} {:>12} {:>12} {:>12}",
             "Kernel", "Size", "Library µs", "CPU Disp µs", "GPU Disp µs", "Overhead", "GPU Accel"
         );
-        eprintln!("{}", "─".repeat(90));
+        println!("{}", "─".repeat(90));
         for r in results {
             let overhead = format!("{:.2}×", r.cpu_dispatch_us / r.lib_us);
             let gpu_str = r
@@ -447,20 +447,20 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
                 || "—".to_string(),
                 |g| format!("{:.1}×", r.cpu_dispatch_us / g),
             );
-            eprintln!(
+            println!(
                 "{:<18} {:>8} {:>12.1} {:>12.1} {:>12} {:>12} {:>12}",
                 r.name, r.problem_size, r.lib_us, r.cpu_dispatch_us, gpu_str, overhead, accel
             );
         }
     } else {
-        eprintln!(
+        println!(
             "{:<18} {:>8} {:>12} {:>12} {:>12}",
             "Kernel", "Size", "Library µs", "CPU Disp µs", "Overhead"
         );
-        eprintln!("{}", "─".repeat(64));
+        println!("{}", "─".repeat(64));
         for r in results {
             let overhead = format!("{:.2}×", r.cpu_dispatch_us / r.lib_us);
-            eprintln!(
+            println!(
                 "{:<18} {:>8} {:>12.1} {:>12.1} {:>12}",
                 r.name, r.problem_size, r.lib_us, r.cpu_dispatch_us, overhead
             );
@@ -478,34 +478,34 @@ fn print_summary(results: &[TierResult], has_gpu: bool) {
         }
     };
 
-    eprintln!("{}", "─".repeat(if has_gpu { 90 } else { 64 }));
+    println!("{}", "─".repeat(if has_gpu { 90 } else { 64 }));
     let overhead_avg = agg_dispatch / agg_library;
-    eprintln!();
-    eprintln!(
+    println!();
+    println!(
         "Dispatch overhead (CPU): {overhead_avg:.2}× (aggregate library → Dispatcher::cpu_only())"
     );
 
     if let Some(gpu_total) = agg_accelerated {
         let gpu_accel = agg_dispatch / gpu_total;
         let total_accel = agg_library / gpu_total;
-        eprintln!("GPU acceleration:       {gpu_accel:.1}× (Dispatcher CPU → Dispatcher GPU)");
-        eprintln!("Total GPU vs library:   {total_accel:.1}× (library direct → Dispatcher GPU)");
+        println!("GPU acceleration:       {gpu_accel:.1}× (Dispatcher CPU → Dispatcher GPU)");
+        println!("Total GPU vs library:   {total_accel:.1}× (library direct → Dispatcher GPU)");
     }
 
-    eprintln!();
-    eprintln!("Key findings:");
-    eprintln!("  1. Dispatcher::cpu_only() overhead: {overhead_avg:.2}× (negligible — dispatch layer is transparent)");
-    eprintln!("  2. Per-call GPU dispatch dominated by driver overhead for small workloads");
-    eprintln!(
+    println!();
+    println!("Key findings:");
+    println!("  1. Dispatcher::cpu_only() overhead: {overhead_avg:.2}× (negligible — dispatch layer is transparent)");
+    println!("  2. Per-call GPU dispatch dominated by driver overhead for small workloads");
+    println!(
         "     → This is expected and motivates StatefulPipeline / UnidirectionalPipeline batching"
     );
-    eprintln!("     → GPU wins at scale via batched kernels (see validate_gpu_* binaries)");
-    eprintln!();
-    eprintln!("Pipeline status:");
-    eprintln!("  Session 67: Rust CPU = Python/NumPy (39/39 PASS, 1e-10 cross-language)");
-    eprintln!("  Session 65: Rust CPU is 83.6× faster than Python/NumPy (11 kernels)");
-    eprintln!("  This run:   Dispatcher overhead {overhead_avg:.2}× — pure math preserved through dispatch");
-    eprintln!("  Next:       ToadStool pipeline batching for GPU-resident acceleration");
+    println!("     → GPU wins at scale via batched kernels (see validate_gpu_* binaries)");
+    println!();
+    println!("Pipeline status:");
+    println!("  Session 67: Rust CPU = Python/NumPy (39/39 PASS, 1e-10 cross-language)");
+    println!("  Session 65: Rust CPU is 83.6× faster than Python/NumPy (11 kernels)");
+    println!("  This run:   Dispatcher overhead {overhead_avg:.2}× — pure math preserved through dispatch");
+    println!("  Next:       ToadStool pipeline batching for GPU-resident acceleration");
 }
 
 // ── Harness ──────────────────────────────────────────────────────────

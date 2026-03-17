@@ -43,7 +43,7 @@ fn main() {
         Ok(p) => p,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load SQW predictor: {e}");
+            println!("FATAL: failed to load SQW predictor: {e}");
             h.finish();
         }
     };

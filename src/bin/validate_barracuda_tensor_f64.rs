@@ -41,7 +41,7 @@ async fn main() {
         neural_spring::validation::exit_no_gpu();
     };
 
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -49,8 +49,8 @@ async fn main() {
     let device = gpu.wgpu_device().clone();
 
     if !device.has_f64_shaders() {
-        eprintln!("SKIP: adapter does not support SHADER_F64");
-        eprintln!("  0/0 checks — skipping gracefully");
+        println!("SKIP: adapter does not support SHADER_F64");
+        println!("  0/0 checks — skipping gracefully");
         std::process::exit(0);
     }
 

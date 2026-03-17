@@ -175,10 +175,10 @@ fn transformer_forward(
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("SKIP — no adapter");
+        println!("SKIP — no adapter");
         return;
     };
-    eprintln!(
+    println!(
         "Transformer Block Benchmark: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -187,13 +187,13 @@ async fn main() {
     let baseline = match load_baseline() {
         Ok(b) => b,
         Err(e) => {
-            eprintln!("ERROR: {e}");
+            println!("ERROR: {e}");
             std::process::exit(1);
         }
     };
     let cfg = &baseline.config;
 
-    eprintln!(
+    println!(
         "  Config: d_model={}, n_heads={}, d_ff={}, seq_len={}",
         cfg.d_model, cfg.n_heads, cfg.d_ff, cfg.seq_len,
     );
@@ -205,14 +205,14 @@ async fn main() {
     ) {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("ERROR: input upload: {e}");
+            println!("ERROR: input upload: {e}");
             std::process::exit(1);
         }
     };
     let weights = match upload_weights(&baseline, &device) {
         Ok(w) => w,
         Err(e) => {
-            eprintln!("ERROR: {e}");
+            println!("ERROR: {e}");
             std::process::exit(1);
         }
     };
@@ -223,7 +223,7 @@ async fn main() {
             let out_data = match output.to_vec() {
                 Ok(d) => d,
                 Err(e) => {
-                    eprintln!("  Readback ERROR: {e}");
+                    println!("  Readback ERROR: {e}");
                     return;
                 }
             };
@@ -244,17 +244,17 @@ async fn main() {
                 (sum_sq / out_data.len() as f64).sqrt()
             };
 
-            eprintln!("  Max abs diff vs Python:  {max_diff:.6e}");
-            eprintln!("  RMS diff vs Python:      {rms_diff:.6e}");
+            println!("  Max abs diff vs Python:  {max_diff:.6e}");
+            println!("  RMS diff vs Python:      {rms_diff:.6e}");
 
             if max_diff < 0.05 {
-                eprintln!("  Correctness: PASS (max_diff < 0.05)");
+                println!("  Correctness: PASS (max_diff < 0.05)");
             } else {
-                eprintln!("  Correctness: FAIL (max_diff = {max_diff:.4e})");
+                println!("  Correctness: FAIL (max_diff = {max_diff:.4e})");
             }
         }
         Err(e) => {
-            eprintln!("  Forward pass ERROR: {e}");
+            println!("  Forward pass ERROR: {e}");
             return;
         }
     }
@@ -279,15 +279,15 @@ async fn main() {
     #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
     let mean_t: Duration = timings.iter().sum::<Duration>() / timings.len() as u32;
 
-    eprintln!();
-    eprintln!("  Transformer Block Forward ({ITERATIONS} iterations):");
-    eprintln!("    Median:  {}", fmt_dur(median));
-    eprintln!("    Mean:    {}", fmt_dur(mean_t));
-    eprintln!("    Min:     {}", fmt_dur(min_t));
-    eprintln!("    Max:     {}", fmt_dur(max_t));
+    println!();
+    println!("  Transformer Block Forward ({ITERATIONS} iterations):");
+    println!("    Median:  {}", fmt_dur(median));
+    println!("    Mean:    {}", fmt_dur(mean_t));
+    println!("    Min:     {}", fmt_dur(min_t));
+    println!("    Max:     {}", fmt_dur(max_t));
 
     let throughput = 1_000_000.0 / median.as_micros() as f64;
-    eprintln!("    Throughput: {throughput:.0} blocks/sec");
+    println!("    Throughput: {throughput:.0} blocks/sec");
 }
 
 fn fmt_dur(d: Duration) -> String {

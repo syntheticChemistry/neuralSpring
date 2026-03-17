@@ -19,13 +19,13 @@ type Dev = Arc<WgpuDevice>;
 async fn main() {
     let mut h = ValidationHarness::new("barracuda_attention_anderson");
 
-    eprintln!("\n── Exp 100: BarraCUDA Attention Anderson ──");
+    println!("\n── Exp 100: BarraCUDA Attention Anderson ──");
 
     let baseline = match load_attention_anderson_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -33,7 +33,7 @@ async fn main() {
     h.check_bool("baseline loaded", !baseline.results.is_empty());
 
     // Tier 1: BarraCUDA CPU stats
-    eprintln!("\n── Tier 1: BarraCUDA CPU ──");
+    println!("\n── Tier 1: BarraCUDA CPU ──");
 
     let iprs: Vec<f64> = baseline.results.iter().map(|r| r.mean_ipr).collect();
     let xis: Vec<f64> = baseline.results.iter().map(|r| r.xi).collect();
@@ -47,16 +47,16 @@ async fn main() {
             h.check_bool("bC CPU Pearson(IPR, ξ) < 0", r < 0.0);
         }
         Err(e) => {
-            eprintln!("  Pearson error: {e}");
+            println!("  Pearson error: {e}");
             h.check_bool("bC CPU Pearson", false);
         }
     }
 
     // Tier 2: GPU on reference matrix
-    eprintln!("\n── Tier 2: BarraCUDA GPU ──");
+    println!("\n── Tier 2: BarraCUDA GPU ──");
 
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  GPU unavailable");
+        println!("  GPU unavailable");
         h.finish();
     };
 
@@ -94,7 +94,7 @@ fn validate_gpu(
                 if let Ok(vals) = result.to_vec() {
                     let gpu_trace: f64 = (0..n).map(|i| f64::from(vals[i * n + i])).sum();
                     let diff = (gpu_trace - cpu_trace).abs();
-                    eprintln!("  trace CPU={cpu_trace:.6}, GPU={gpu_trace:.6}, diff={diff:.2e}");
+                    println!("  trace CPU={cpu_trace:.6}, GPU={gpu_trace:.6}, diff={diff:.2e}");
                     h.check_abs("GPU trace parity", gpu_trace, cpu_trace, 0.01);
                 } else {
                     h.check_bool("GPU readback", false);

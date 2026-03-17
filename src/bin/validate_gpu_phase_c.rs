@@ -28,7 +28,7 @@ use neural_spring::validation::ValidationHarness;
 
 fn main() {
     let Ok(rt) = tokio::runtime::Runtime::new() else {
-        eprintln!("FATAL: could not create tokio runtime");
+        println!("FATAL: could not create tokio runtime");
         std::process::exit(1);
     };
     let dispatcher = rt.block_on(Dispatcher::new());
@@ -36,10 +36,10 @@ fn main() {
     let mut h = ValidationHarness::new("validate_gpu_phase_c");
 
     if !dispatcher.has_gpu() {
-        eprintln!("WARNING: No GPU available — all checks use CPU fallback");
+        println!("WARNING: No GPU available — all checks use CPU fallback");
     }
 
-    eprintln!(
+    println!(
         "Backend: {} ({})",
         dispatcher.backend(),
         dispatcher.adapter_name(),

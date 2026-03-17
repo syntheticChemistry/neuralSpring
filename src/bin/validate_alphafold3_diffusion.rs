@@ -66,7 +66,7 @@ fn main() {
     let mut h = ValidationHarness::new("alphafold3_diffusion");
 
     let Ok(baselines) = serde_json::from_str::<serde_json::Value>(BASELINE_JSON) else {
-        eprintln!("[ERROR] Failed to parse diffusion_baselines.json");
+        println!("[ERROR] Failed to parse diffusion_baselines.json");
         std::process::exit(1);
     };
 

@@ -123,12 +123,12 @@ async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => g,
         Err(e) => {
-            eprintln!("SKIP: {e}");
+            println!("SKIP: {e}");
             return;
         }
     };
 
-    eprintln!(
+    println!(
         "MLP Inference Benchmark: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -137,7 +137,7 @@ async fn main() {
     let baseline = match load_baseline() {
         Ok(b) => b,
         Err(e) => {
-            eprintln!("ERROR: {e}");
+            println!("ERROR: {e}");
             std::process::exit(1);
         }
     };
@@ -146,14 +146,14 @@ async fn main() {
     {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("ERROR: input upload: {e}");
+            println!("ERROR: input upload: {e}");
             std::process::exit(1);
         }
     };
     let weights = match upload_weights(&baseline, &device) {
         Ok(w) => w,
         Err(e) => {
-            eprintln!("ERROR: {e}");
+            println!("ERROR: {e}");
             std::process::exit(1);
         }
     };
@@ -164,7 +164,7 @@ async fn main() {
             let probs = match output.to_vec() {
                 Ok(p) => p,
                 Err(e) => {
-                    eprintln!("  Readback ERROR: {e}");
+                    println!("  Readback ERROR: {e}");
                     return;
                 }
             };
@@ -174,14 +174,14 @@ async fn main() {
                 .max_by(|a, b| f32::total_cmp(a.1, b.1))
                 .map_or(0, |(i, _)| i);
 
-            eprintln!(
+            println!(
                 "  Predicted class: {predicted} (expected: {})",
                 baseline.predicted_class
             );
             if predicted == baseline.predicted_class {
-                eprintln!("  Correctness: PASS");
+                println!("  Correctness: PASS");
             } else {
-                eprintln!("  Correctness: FAIL (class mismatch)");
+                println!("  Correctness: FAIL (class mismatch)");
             }
 
             let max_diff: f64 = probs
@@ -189,10 +189,10 @@ async fn main() {
                 .zip(baseline.output.iter())
                 .map(|(&p, &e)| (f64::from(p) - e).abs())
                 .fold(0.0_f64, f64::max);
-            eprintln!("  Max abs diff vs Python: {max_diff:.6e}");
+            println!("  Max abs diff vs Python: {max_diff:.6e}");
         }
         Err(e) => {
-            eprintln!("  Forward pass ERROR: {e}");
+            println!("  Forward pass ERROR: {e}");
             return;
         }
     }
@@ -217,15 +217,15 @@ async fn main() {
     #[expect(clippy::cast_possible_truncation, reason = "validation binary")]
     let mean_t: Duration = timings.iter().sum::<Duration>() / timings.len() as u32;
 
-    eprintln!();
-    eprintln!("  MLP Forward Pass ({ITERATIONS} iterations):");
-    eprintln!("    Median:  {}", fmt_dur(median));
-    eprintln!("    Mean:    {}", fmt_dur(mean_t));
-    eprintln!("    Min:     {}", fmt_dur(min_t));
-    eprintln!("    Max:     {}", fmt_dur(max_t));
+    println!();
+    println!("  MLP Forward Pass ({ITERATIONS} iterations):");
+    println!("    Median:  {}", fmt_dur(median));
+    println!("    Mean:    {}", fmt_dur(mean_t));
+    println!("    Min:     {}", fmt_dur(min_t));
+    println!("    Max:     {}", fmt_dur(max_t));
 
     let throughput = 1_000_000.0 / median.as_micros() as f64;
-    eprintln!("    Throughput: {throughput:.0} inferences/sec");
+    println!("    Throughput: {throughput:.0} inferences/sec");
 }
 
 fn fmt_dur(d: Duration) -> String {

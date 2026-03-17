@@ -266,14 +266,14 @@ async fn main() {
     let mut h = ValidationHarness::new("barracuda_glucose_prediction");
 
     // ── Tier 1: BarraCUDA CPU primitives ──
-    eprintln!("\n═══ Tier 1: BarraCUDA CPU primitives ═══");
+    println!("\n═══ Tier 1: BarraCUDA CPU primitives ═══");
     validate_barracuda_cpu(&mut h);
 
     // ── Tier 2: BarraCUDA GPU Tensor ──
-    eprintln!("\n═══ Tier 2: BarraCUDA GPU Tensor ═══");
+    println!("\n═══ Tier 2: BarraCUDA GPU Tensor ═══");
     match Gpu::new().await {
         Ok(gpu) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 gpu.adapter_name, gpu.device_type, gpu.backend,
             );
@@ -281,7 +281,7 @@ async fn main() {
             validate_barracuda_gpu(&mut h, &device);
         }
         Err(_) => {
-            eprintln!("  [skip] No GPU available — Tier 2 skipped");
+            println!("  [skip] No GPU available — Tier 2 skipped");
         }
     }
 
@@ -393,7 +393,7 @@ fn validate_barracuda_cpu(h: &mut ValidationHarness) {
         bc_corr > 0.999,
     );
 
-    eprintln!("  bC CPU: LSTM inference, stats primitives, and experiment orchestration verified");
+    println!("  bC CPU: LSTM inference, stats primitives, and experiment orchestration verified");
     let _ = (inputs, targets);
 }
 
@@ -406,7 +406,7 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("GPU: JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             return;
         }
     };
@@ -432,7 +432,7 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
     };
 
     // ── Single-window GPU LSTM vs CPU LSTM ──
-    eprintln!("\n  GPU LSTM gate-level parity check...");
+    println!("\n  GPU LSTM gate-level parity check...");
 
     let test_window = &cgm_norm[0..12];
 
@@ -458,7 +458,7 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
         Ok(f) => f,
         Err(e) => {
             h.check_bool("GPU: LSTM forward pass", false);
-            eprintln!("  GPU LSTM failed: {e}");
+            println!("  GPU LSTM failed: {e}");
             return;
         }
     };
@@ -492,7 +492,7 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
     );
 
     // ── Multi-horizon GPU vs CPU parity ──
-    eprintln!("\n  Multi-horizon GPU vs CPU parity...");
+    println!("\n  Multi-horizon GPU vs CPU parity...");
 
     for &(horizon, ref readout) in &baseline.readouts {
         let (inputs, _targets) = create_sequences(&cgm_norm, baseline.seq_len, horizon);
@@ -520,7 +520,7 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
                 Ok(f) => f,
                 Err(e) => {
                     h.check_bool(&format!("GPU: horizon {horizon_min}min sample {i}"), false);
-                    eprintln!("  GPU failed: {e}");
+                    println!("  GPU failed: {e}");
                     return;
                 }
             };
@@ -530,7 +530,7 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
                     Ok(p) => p,
                     Err(e) => {
                         h.check_bool(&format!("GPU: readout {horizon_min}min sample {i}"), false);
-                        eprintln!("  GPU readout failed: {e}");
+                        println!("  GPU readout failed: {e}");
                         return;
                     }
                 };
@@ -555,11 +555,11 @@ fn validate_barracuda_gpu(h: &mut ValidationHarness, device: &Dev) {
             &format!("GPU: {horizon_min}min CPU parity (rel={max_rel_diff:.2e})"),
             max_rel_diff < tolerances::ML_MLP_F32,
         );
-        eprintln!("    {horizon_min:>3}min: GPU↔CPU max_rel={max_rel_diff:.2e}, n={n_test}");
+        println!("    {horizon_min:>3}min: GPU↔CPU max_rel={max_rel_diff:.2e}, n={n_test}");
     }
 
     // ── GPU determinism ──
-    eprintln!("\n  GPU determinism check...");
+    println!("\n  GPU determinism check...");
     let test_win = &cgm_norm[100..112];
 
     let f1 = gpu_lstm_features(test_win, &wt, device);

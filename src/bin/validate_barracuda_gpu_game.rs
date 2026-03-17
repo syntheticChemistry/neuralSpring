@@ -53,7 +53,7 @@ fn cpu_a_bt(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );

@@ -52,8 +52,8 @@ use neural_spring::validation::{exit_no_gpu, ValidationHarness};
 // ── neuralSpring origins ────────────────────────────────────────────
 
 fn validate_softmax_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── softmax evolution: neuralSpring → barracuda → Dispatcher ──");
-    eprintln!("  provenance: neuralSpring transformer.rs → barracuda::dispatch::softmax_dispatch");
+    println!("\n── softmax evolution: neuralSpring → barracuda → Dispatcher ──");
+    println!("  provenance: neuralSpring transformer.rs → barracuda::dispatch::softmax_dispatch");
 
     let x = [1.0, 2.0, 3.0, 4.0, 5.0];
 
@@ -105,8 +105,8 @@ fn validate_softmax_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
 }
 
 fn validate_gelu_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── gelu evolution: neuralSpring → barracuda → Dispatcher ──");
-    eprintln!("  provenance: neuralSpring transformer.rs → barracuda::dispatch::gelu_dispatch");
+    println!("\n── gelu evolution: neuralSpring → barracuda → Dispatcher ──");
+    println!("  provenance: neuralSpring transformer.rs → barracuda::dispatch::gelu_dispatch");
 
     let x: Vec<f64> = (-5..=5).map(|i| i as f64 * 0.5).collect();
 
@@ -148,8 +148,8 @@ fn validate_gelu_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
 }
 
 fn validate_sigmoid_evolution(h: &mut ValidationHarness) {
-    eprintln!("\n── sigmoid evolution: neuralSpring → barracuda (GPU sigmoid_f64.wgsl) ──");
-    eprintln!("  provenance: neuralSpring primitives.rs → metalForge sigmoid_f64.wgsl");
+    println!("\n── sigmoid evolution: neuralSpring → barracuda (GPU sigmoid_f64.wgsl) ──");
+    println!("  provenance: neuralSpring primitives.rs → metalForge sigmoid_f64.wgsl");
 
     h.check_abs(
         "sigmoid(0) = 0.5",
@@ -174,8 +174,8 @@ fn validate_sigmoid_evolution(h: &mut ValidationHarness) {
 }
 
 fn validate_coralforge_activation_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── coralForge activation evolution: neuralSpring → barracuda ──");
-    eprintln!(
+    println!("\n── coralForge activation evolution: neuralSpring → barracuda ──");
+    println!(
         "  provenance: neuralSpring coral_forge/activation.rs → gelu_f64.wgsl, softmax_f64.wgsl"
     );
 
@@ -218,8 +218,8 @@ fn validate_coralforge_activation_evolution(h: &mut ValidationHarness, disp: &Di
 }
 
 fn validate_matmul_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── matmul evolution: neuralSpring → barracuda → BarraCUDA ──");
-    eprintln!(
+    println!("\n── matmul evolution: neuralSpring → barracuda → BarraCUDA ──");
+    println!(
         "  provenance: neuralSpring matmul_gpu_evolved.wgsl → barracuda::dispatch::matmul_dispatch"
     );
 
@@ -245,8 +245,8 @@ fn validate_matmul_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
 }
 
 fn validate_rk4_evolution(h: &mut ValidationHarness) {
-    eprintln!("\n── RK4 evolution: neuralSpring → rk4_parallel.wgsl ──");
-    eprintln!("  provenance: neuralSpring primitives::rk4_step → metalForge rk4_parallel.wgsl (GPU batch)");
+    println!("\n── RK4 evolution: neuralSpring → rk4_parallel.wgsl ──");
+    println!("  provenance: neuralSpring primitives::rk4_step → metalForge rk4_parallel.wgsl (GPU batch)");
 
     let state = [1.0, 0.0];
     let next = primitives::rk4_step(&state, 0.01, |y| [-y[1], y[0]]);
@@ -274,10 +274,8 @@ fn validate_rk4_evolution(h: &mut ValidationHarness) {
 // ── wetSpring origins ───────────────────────────────────────────────
 
 fn validate_diversity_evolution(h: &mut ValidationHarness) {
-    eprintln!("\n── diversity evolution: wetSpring → barracuda::stats ──");
-    eprintln!(
-        "  provenance: wetSpring bio → barracuda::stats::{{shannon,simpson,alpha_diversity}}"
-    );
+    println!("\n── diversity evolution: wetSpring → barracuda::stats ──");
+    println!("  provenance: wetSpring bio → barracuda::stats::{{shannon,simpson,alpha_diversity}}");
 
     let counts = [10.0, 20.0, 30.0, 40.0];
     let sh = barracuda::stats::shannon(&counts);
@@ -305,8 +303,8 @@ fn validate_diversity_evolution(h: &mut ValidationHarness) {
 }
 
 fn validate_hmm_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── HMM evolution: wetSpring → barracuda → Dispatcher ──");
-    eprintln!(
+    println!("\n── HMM evolution: wetSpring → barracuda → Dispatcher ──");
+    println!(
         "  provenance: wetSpring hmm_forward_log.wgsl → barracuda::dispatch::hmm_forward_dispatch"
     );
 
@@ -351,8 +349,8 @@ fn validate_hmm_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
 // ── hotSpring origins ───────────────────────────────────────────────
 
 fn validate_spectral_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── spectral evolution: hotSpring → barracuda::linalg → Dispatcher ──");
-    eprintln!(
+    println!("\n── spectral evolution: hotSpring → barracuda::linalg → Dispatcher ──");
+    println!(
         "  provenance: hotSpring eigh_f64 → barracuda::linalg::eigh_f64 → Dispatcher::eigensolve"
     );
 
@@ -389,8 +387,8 @@ fn validate_spectral_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
 }
 
 fn validate_precision_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── precision evolution: hotSpring → barracuda f64 canonical ──");
-    eprintln!("  provenance: hotSpring DF64 core + math_f64.wgsl → compile_shader_universal");
+    println!("\n── precision evolution: hotSpring → barracuda f64 canonical ──");
+    println!("  provenance: hotSpring DF64 core + math_f64.wgsl → compile_shader_universal");
 
     let data: Vec<f64> = (0..100).map(|i| (i as f64) * 0.01).collect();
 
@@ -413,8 +411,8 @@ fn validate_precision_evolution(h: &mut ValidationHarness, disp: &Dispatcher) {
 // ── groundSpring origins ────────────────────────────────────────────
 
 fn validate_uncertainty_evolution(h: &mut ValidationHarness) {
-    eprintln!("\n── uncertainty evolution: groundSpring → barracuda::stats ──");
-    eprintln!("  provenance: groundSpring bootstrap/jackknife → barracuda::stats::bootstrap_ci, jackknife");
+    println!("\n── uncertainty evolution: groundSpring → barracuda::stats ──");
+    println!("  provenance: groundSpring bootstrap/jackknife → barracuda::stats::bootstrap_ci, jackknife");
 
     let data = [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0];
     let ci = barracuda::stats::bootstrap_ci(
@@ -449,8 +447,8 @@ fn validate_uncertainty_evolution(h: &mut ValidationHarness) {
 // ── cross-spring convergence ────────────────────────────────────────
 
 fn validate_cross_spring_convergence(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── cross-spring convergence: all springs → BarraCUDA ──");
-    eprintln!("  provenance: multi-spring ops converge through BarraCUDA 844+ shaders");
+    println!("\n── cross-spring convergence: all springs → BarraCUDA ──");
+    println!("  provenance: multi-spring ops converge through BarraCUDA 844+ shaders");
 
     let data: Vec<f64> = (0..64).map(|i| (i as f64) * 0.1).collect();
 
@@ -501,31 +499,31 @@ fn print_provenance_summary() {
     let shader_count = provenance::cross_spring_shaders().len();
     let matrix = provenance::cross_spring_matrix();
 
-    eprintln!("\n╔══════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  Cross-Spring Shader Evolution — Provenance Summary            ║");
-    eprintln!("╠══════════════════════════════════════════════════════════════════╣");
-    eprintln!(
+    println!("\n╔══════════════════════════════════════════════════════════════════╗");
+    println!("║  Cross-Spring Shader Evolution — Provenance Summary            ║");
+    println!("╠══════════════════════════════════════════════════════════════════╣");
+    println!(
         "║  {shader_count} shaders tracked · {n} cross-spring edges",
         n = matrix.len()
     );
-    eprintln!("║                                                                ║");
-    eprintln!("║  hotSpring ─── DF64 core/transcendentals, spectral, eigensolve ║");
-    eprintln!("║  wetSpring ─── diversity, HMM, bio, Gillespie, Wright-Fisher   ║");
-    eprintln!("║  neuralSpring ─ ML activations, matmul, RK4, attention, swarm  ║");
-    eprintln!("║  groundSpring ─ bootstrap, jackknife, kimura, norm_cdf/ppf     ║");
-    eprintln!("║  airSpring ──── hydrology (ET₀), regression, water balance     ║");
-    eprintln!("║                                                                ║");
-    eprintln!("║  barraCuda v0.3.5 at 83aa08a · ToadStool S142 at a86bc546    ║");
-    eprintln!("║  coralReef Iteration 29 at 2779c88 (AMD E2E GPU dispatch)    ║");
-    eprintln!("║  Precision per hardware: F32 / F64 / DF64                    ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════╝");
+    println!("║                                                                ║");
+    println!("║  hotSpring ─── DF64 core/transcendentals, spectral, eigensolve ║");
+    println!("║  wetSpring ─── diversity, HMM, bio, Gillespie, Wright-Fisher   ║");
+    println!("║  neuralSpring ─ ML activations, matmul, RK4, attention, swarm  ║");
+    println!("║  groundSpring ─ bootstrap, jackknife, kimura, norm_cdf/ppf     ║");
+    println!("║  airSpring ──── hydrology (ET₀), regression, water balance     ║");
+    println!("║                                                                ║");
+    println!("║  barraCuda v0.3.5 at 83aa08a · ToadStool S142 at a86bc546    ║");
+    println!("║  coralReef Iteration 29 at 2779c88 (AMD E2E GPU dispatch)    ║");
+    println!("║  Precision per hardware: F32 / F64 / DF64                    ║");
+    println!("╚══════════════════════════════════════════════════════════════════╝");
 }
 
 #[tokio::main]
 async fn main() {
     let shader_count = barracuda::shaders::provenance::cross_spring_shaders().len();
-    eprintln!("=== Cross-Spring Shader Evolution Validator ===");
-    eprintln!(
+    println!("=== Cross-Spring Shader Evolution Validator ===");
+    println!(
         "barraCuda v0.3.5 at 83aa08a — {shader_count} tracked shaders (provenance registry)\n"
     );
 

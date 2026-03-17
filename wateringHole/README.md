@@ -5,12 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V112 — Session 161
+### V113 — Session 162
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V112 S161** | `handoffs/NEURALSPRING_V112_S161_DOC_CLEANUP_LOGGING_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | Hardcoded path elimination, playGround logging, doc sync. Supersedes V111 |
-| **V112 bC/tS** | `handoffs/NEURALSPRING_V112_BARRACUDA_TOADSTOOL_EVOLUTION_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | Updated barracuda inventory (28 modules, 155 files), IpcError, compute.dispatch, evolution opps. Supersedes V110 bC/tS |
+| **V113 S162** | `handoffs/NEURALSPRING_V113_S162_ABSORPTION_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | Cross-ecosystem absorption: 4-format parse_capabilities, discover_primal, DispatchOutcome, resilient_call, safe_cast, zero eprintln workspace-wide. Supersedes V112 |
 
 ### Central wateringHole Copies
 
@@ -18,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V111 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
+Superseded handoffs: `handoffs/archive/` (V1–V112 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
 
 ## Conventions
 

@@ -109,7 +109,7 @@ async fn main() {
 
     let socket_dir = std::env::temp_dir().join("biomeos-tower-test");
     if let Err(e) = std::fs::create_dir_all(&socket_dir) {
-        eprintln!("  Failed to create socket directory: {e}");
+        println!("  Failed to create socket directory: {e}");
         h.check_abs(
             "setup.socket_dir",
             0.0,
@@ -129,7 +129,7 @@ async fn main() {
             if let Some(dir) = exe.parent() {
                 dir.join("neuralspring_primal")
             } else {
-                eprintln!("  current_exe has no parent directory");
+                println!("  current_exe has no parent directory");
                 h.check_abs(
                     "setup.primal_bin",
                     0.0,
@@ -140,7 +140,7 @@ async fn main() {
             }
         }
         Err(e) => {
-            eprintln!("  Failed to resolve current_exe: {e}");
+            println!("  Failed to resolve current_exe: {e}");
             h.check_abs(
                 "setup.primal_bin",
                 0.0,
@@ -152,12 +152,12 @@ async fn main() {
     };
 
     if !primal_bin.exists() {
-        eprintln!(
+        println!(
             "  neuralspring_primal binary not found at {}",
             primal_bin.display()
         );
-        eprintln!("  Build with: cargo build --features primal --bin neuralspring_primal");
-        eprintln!("  Skipping NUCLEUS Tower tests (primal binary not available)");
+        println!("  Build with: cargo build --features primal --bin neuralspring_primal");
+        println!("  Skipping NUCLEUS Tower tests (primal binary not available)");
         h.finish();
     }
 
@@ -172,7 +172,7 @@ async fn main() {
     {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("  Failed to spawn neuralspring_primal: {e}");
+            println!("  Failed to spawn neuralspring_primal: {e}");
             h.check_abs(
                 "setup.spawn_primal",
                 0.0,
@@ -191,7 +191,7 @@ async fn main() {
     }
 
     if !socket_path.exists() {
-        eprintln!("  Socket did not appear after 10s. Primal may have failed to start.");
+        println!("  Socket did not appear after 10s. Primal may have failed to start.");
         child.kill().await.ok();
         h.finish();
     }
@@ -243,7 +243,7 @@ async fn main() {
             );
         }
         Err(e) => {
-            eprintln!("  Health check failed: {e}");
+            println!("  Health check failed: {e}");
             h.check_abs(
                 "health.reachable",
                 0.0,
@@ -343,7 +343,7 @@ async fn main() {
             );
         }
         Err(e) => {
-            eprintln!("  science.evoformer_block failed: {e}");
+            println!("  science.evoformer_block failed: {e}");
             h.check_abs(
                 "evoformer.reachable",
                 0.0,
@@ -438,7 +438,7 @@ async fn main() {
             );
         }
         Err(e) => {
-            eprintln!("  science.structure_module failed: {e}");
+            println!("  science.structure_module failed: {e}");
             h.check_abs(
                 "structure.ipa",
                 0.0,
@@ -509,7 +509,7 @@ async fn main() {
             }
         }
         Err(e) => {
-            eprintln!("  science.folding_health failed: {e}");
+            println!("  science.folding_health failed: {e}");
             h.check_abs(
                 "folding_health.reachable",
                 0.0,
@@ -558,7 +558,7 @@ async fn main() {
             );
         }
         Err(e) => {
-            eprintln!("  science.gpu_dispatch softmax failed: {e}");
+            println!("  science.gpu_dispatch softmax failed: {e}");
             h.check_abs(
                 "gpu_dispatch.softmax",
                 0.0,
@@ -594,7 +594,7 @@ async fn main() {
             h.check_abs("gpu_dispatch.mean", result, 5.0, tolerances::CROSS_LANGUAGE);
         }
         Err(e) => {
-            eprintln!("  science.gpu_dispatch mean failed: {e}");
+            println!("  science.gpu_dispatch mean failed: {e}");
             h.check_abs(
                 "gpu_dispatch.mean",
                 0.0,
@@ -677,7 +677,7 @@ async fn main() {
             );
         }
         Err(e) => {
-            eprintln!("  Health check 2 failed: {e}");
+            println!("  Health check 2 failed: {e}");
             h.check_abs(
                 "stats.requests_served",
                 0.0,

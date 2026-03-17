@@ -91,23 +91,23 @@ struct TierResult {
 }
 
 fn main() {
-    eprintln!("╔══════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Portability Tier Benchmark                                 ║");
-    eprintln!("║  BarraCUDA CPU (pure Rust) → BarraCUDA GPU (WGSL streaming)                ║");
-    eprintln!("║  ToadStool unidirectional streaming: upload → compute → scalar readback     ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — Portability Tier Benchmark                                 ║");
+    println!("║  BarraCUDA CPU (pure Rust) → BarraCUDA GPU (WGSL streaming)                ║");
+    println!("║  ToadStool unidirectional streaming: upload → compute → scalar readback     ║");
+    println!("╚══════════════════════════════════════════════════════════════════════════════╝");
+    println!();
 
     let rt = tokio::runtime::Runtime::new().or_exit("tokio runtime");
     let gpu = rt
         .block_on(async { Gpu::new().await })
         .or_exit("GPU required for benchmark");
 
-    eprintln!(
+    println!(
         "  GPU: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend
     );
-    eprintln!();
+    println!();
 
     let device = gpu.wgpu_device().clone();
     let mut h = ValidationHarness::new("portability_tiers");
@@ -116,8 +116,8 @@ fn main() {
     // ═══════════════════════════════════════════════════════════════════
     // 1. HMM Forward (Papers 016-018) — wetSpring origin
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [1/7] HMM Forward — Papers 016-018 ═══");
-    eprintln!("  Provenance: wetSpring metagenomics → hmm_forward_log.wgsl");
+    println!("═══ [1/7] HMM Forward — Papers 016-018 ═══");
+    println!("  Provenance: wetSpring metagenomics → hmm_forward_log.wgsl");
     {
         let mut rng = Rng::new(42);
         let n_states = 3_usize;
@@ -262,7 +262,7 @@ fn main() {
             tolerances::TENSOR_TRANSCENDENTAL_F32,
         );
 
-        eprintln!(
+        println!(
             "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
             cpu_us / gpu_us
         );
@@ -275,13 +275,13 @@ fn main() {
             parity,
         });
     }
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // 2. Batch Fitness (Papers 011-013) — neuralSpring origin
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [2/7] Batch Fitness — Papers 011-013 ═══");
-    eprintln!("  Provenance: neuralSpring neuroevolution → batch_fitness_eval.wgsl");
+    println!("═══ [2/7] Batch Fitness — Papers 011-013 ═══");
+    println!("  Provenance: neuralSpring neuroevolution → batch_fitness_eval.wgsl");
     {
         let mut rng = Rng::new(42);
         let pop = 256_usize;
@@ -358,7 +358,7 @@ fn main() {
             tolerances::TENSOR_TRANSCENDENTAL_F32,
         );
 
-        eprintln!(
+        println!(
             "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
             cpu_us / gpu_us
         );
@@ -371,13 +371,13 @@ fn main() {
             parity,
         });
     }
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // 3. Pairwise L2 (Paper 012) — neuralSpring MODES origin
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [3/7] Pairwise L2 — Paper 012 ═══");
-    eprintln!("  Provenance: neuralSpring MODES → pairwise_l2.wgsl (BarraCUDA)");
+    println!("═══ [3/7] Pairwise L2 — Paper 012 ═══");
+    println!("  Provenance: neuralSpring MODES → pairwise_l2.wgsl (BarraCUDA)");
     {
         let mut rng = Rng::new(42);
         let n = 100_usize;
@@ -452,7 +452,7 @@ fn main() {
             parity,
         );
 
-        eprintln!(
+        println!(
             "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
             cpu_us / gpu_us
         );
@@ -465,13 +465,13 @@ fn main() {
             parity,
         });
     }
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // 4. Eigensolve + IPR (Papers 022-023) — neuralSpring Anderson
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [4/7] Eigensolve + IPR — Papers 022-023 ═══");
-    eprintln!("  Provenance: neuralSpring Anderson → batch_ipr.wgsl + eigh.wgsl");
+    println!("═══ [4/7] Eigensolve + IPR — Papers 022-023 ═══");
+    println!("  Provenance: neuralSpring Anderson → batch_ipr.wgsl + eigh.wgsl");
     {
         let mut rng = Rng::new(42);
         let n = 16_usize;
@@ -504,7 +504,7 @@ fn main() {
         let all_finite = cpu_iprs.iter().all(|v| v.is_finite());
         h.check_bool("Eigensolve+IPR GPU results finite", all_finite);
 
-        eprintln!(
+        println!(
             "    GPU dispatch: {cpu_us:.1}µs (already GPU-resident via BatchedEighGpu+BatchIprGpu)"
         );
         results.push(TierResult {
@@ -516,13 +516,13 @@ fn main() {
             parity: all_finite,
         });
     }
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // 5. Spatial Payoff (Paper 019) — neuralSpring game theory
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [5/7] Spatial Payoff — Paper 019 ═══");
-    eprintln!("  Provenance: neuralSpring game theory → spatial_payoff.wgsl");
+    println!("═══ [5/7] Spatial Payoff — Paper 019 ═══");
+    println!("  Provenance: neuralSpring game theory → spatial_payoff.wgsl");
     {
         let n = 32_usize;
         #[expect(clippy::cast_possible_wrap, reason = "validation binary")]
@@ -619,7 +619,7 @@ fn main() {
             gpu_mean.is_finite(),
         );
 
-        eprintln!(
+        println!(
             "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
             cpu_us / gpu_us
         );
@@ -632,13 +632,13 @@ fn main() {
             parity,
         });
     }
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // 6. Dispatcher CPU↔GPU (cross-domain)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [6/7] Dispatcher CPU↔GPU — All Domains ═══");
-    eprintln!("  Provenance: neuralSpring Dispatcher routes to optimal substrate");
+    println!("═══ [6/7] Dispatcher CPU↔GPU — All Domains ═══");
+    println!("  Provenance: neuralSpring Dispatcher routes to optimal substrate");
     {
         let mut rng = Rng::new(42);
         let data: Vec<f64> = (0..10_000).map(|_| rng.normal()).collect();
@@ -660,7 +660,7 @@ fn main() {
             let _ = std::hint::black_box(dispatcher.variance(&data));
         });
 
-        eprintln!("    Variance: CPU {cpu_us:.1}µs, Dispatcher {gpu_us:.1}µs");
+        println!("    Variance: CPU {cpu_us:.1}µs, Dispatcher {gpu_us:.1}µs");
 
         let cpu_pearson =
             barracuda::stats::correlation::pearson_correlation(&data[..5000], &data[5000..])
@@ -672,7 +672,7 @@ fn main() {
             pearson_diff < tolerances::CROSS_LANGUAGE,
         );
 
-        eprintln!("    Dispatcher proves: same math routes to optimal substrate transparently");
+        println!("    Dispatcher proves: same math routes to optimal substrate transparently");
         results.push(TierResult {
             domain: "Dispatcher var+pearson",
             papers: "All",
@@ -683,13 +683,13 @@ fn main() {
                 && pearson_diff < tolerances::CROSS_LANGUAGE,
         });
     }
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // 7. Pairwise Hamming (Paper 017) — wetSpring alignment
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ [7/7] Pairwise Hamming — Paper 017 ═══");
-    eprintln!("  Provenance: wetSpring alignment → pairwise_hamming.wgsl");
+    println!("═══ [7/7] Pairwise Hamming — Paper 017 ═══");
+    println!("  Provenance: wetSpring alignment → pairwise_hamming.wgsl");
     {
         let mut rng = Rng::new(42);
         let n_seqs = 50_usize;
@@ -760,7 +760,7 @@ fn main() {
             parity,
         );
 
-        eprintln!(
+        println!(
             "    CPU: {cpu_us:.1}µs, GPU: {gpu_us:.1}µs, GPU/CPU: {:.1}×",
             cpu_us / gpu_us
         );
@@ -773,24 +773,24 @@ fn main() {
             parity,
         });
     }
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // Summary
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("╔══════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  Portability Proof Summary                                                 ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!(
+    println!("╔══════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  Portability Proof Summary                                                 ║");
+    println!("╚══════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!(
         "  {:<25} {:>8} {:>10} {:>10} {:>10} {:>7}",
         "Domain", "Papers", "CPU µs", "GPU µs", "GPU/CPU", "Parity"
     );
-    eprintln!("  {}", "─".repeat(72));
+    println!("  {}", "─".repeat(72));
 
     for r in &results {
         let par_str = if r.parity { "✓" } else { "✗" };
-        eprintln!(
+        println!(
             "  {:<25} {:>8} {:>10.1} {:>10.1} {:>9.1}× {:>7}",
             r.domain, r.papers, r.cpu_us, r.gpu_us, r.gpu_cpu_speedup, par_str
         );
@@ -799,12 +799,12 @@ fn main() {
     let all_parity = results.iter().all(|r| r.parity);
     h.check_bool("All GPU-CPU parity checks passed", all_parity);
 
-    eprintln!("  {}", "─".repeat(72));
-    eprintln!();
-    eprintln!("  Portability proven: Python/NumPy → BarraCUDA CPU → BarraCUDA GPU");
-    eprintln!("  ToadStool streaming: upload once → compute GPU-resident → scalar readback");
-    eprintln!("  Same math at every tier, verified to machine precision.");
-    eprintln!();
+    println!("  {}", "─".repeat(72));
+    println!();
+    println!("  Portability proven: Python/NumPy → BarraCUDA CPU → BarraCUDA GPU");
+    println!("  ToadStool streaming: upload once → compute GPU-resident → scalar readback");
+    println!("  Same math at every tier, verified to machine precision.");
+    println!();
 
     h.finish();
 }

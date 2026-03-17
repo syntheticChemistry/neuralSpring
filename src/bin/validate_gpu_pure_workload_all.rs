@@ -65,7 +65,7 @@ use std::time::Instant;
 #[tokio::main]
 async fn main() {
     let gpu = neural_spring::validation::gpu_or_exit().await;
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend
     );
@@ -89,7 +89,7 @@ async fn main() {
     validate_determinism(&mut h, &gpu);
 
     let elapsed = t0.elapsed();
-    eprintln!(
+    println!(
         "\n  total GPU pure-workload time: {:.1}ms (13 domains + determinism)",
         elapsed.as_secs_f64() * 1000.0,
     );

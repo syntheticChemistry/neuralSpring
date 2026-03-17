@@ -23,42 +23,42 @@ fn main() {
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
     let dispatcher = rt.block_on(Dispatcher::new());
 
-    eprintln!("═══ Exp 106: Mixed-Hardware Composition Pipeline ═══");
-    eprintln!("Backend: {}", dispatcher.backend());
-    eprintln!("Adapter: {}", dispatcher.adapter_name());
+    println!("═══ Exp 106: Mixed-Hardware Composition Pipeline ═══");
+    println!("Backend: {}", dispatcher.backend());
+    println!("Adapter: {}", dispatcher.adapter_name());
 
-    eprintln!("\n── Phase 1: CPU-only baseline ──");
+    println!("\n── Phase 1: CPU-only baseline ──");
     let cpu_start = Instant::now();
     let cpu_report = execute_composition_pipeline();
     let cpu_us = cpu_start.elapsed().as_secs_f64() * 1_000_000.0;
     h.check_bool("CPU pipeline passes", cpu_report.all_passed());
-    eprintln!(
+    println!(
         "  Total: {cpu_us:.1}µs | substrate: {}",
         cpu_report.substrate_used
     );
-    eprintln!(
+    println!(
         "  GPU stages: {} | CPU stages: {}",
         cpu_report.gpu_stages, cpu_report.cpu_stages
     );
 
-    eprintln!("\n── Phase 2: Mixed GPU/CPU pipeline ──");
+    println!("\n── Phase 2: Mixed GPU/CPU pipeline ──");
     let mixed_start = Instant::now();
     let mixed_report = execute_composition_pipeline_gpu(&dispatcher);
     let mixed_us = mixed_start.elapsed().as_secs_f64() * 1_000_000.0;
     h.check_bool("mixed pipeline passes", mixed_report.all_passed());
-    eprintln!(
+    println!(
         "  Total: {mixed_us:.1}µs | substrate: {}",
         mixed_report.substrate_used
     );
-    eprintln!(
+    println!(
         "  GPU stages: {} | CPU stages: {}",
         mixed_report.gpu_stages, mixed_report.cpu_stages
     );
 
-    eprintln!("\n── Per-stage breakdown ──");
+    println!("\n── Per-stage breakdown ──");
     for result in &mixed_report.execution.results {
         h.check_bool(&format!("stage {} passes", result.stage_id), result.success);
-        eprintln!(
+        println!(
             "  {:<25} {:>10.1}µs {:>14?} {}",
             result.stage_id,
             result.elapsed_us,
@@ -67,7 +67,7 @@ fn main() {
         );
     }
 
-    eprintln!("\n── Transfer cost analysis ──");
+    println!("\n── Transfer cost analysis ──");
     let gpu_stage_us: f64 = mixed_report
         .execution
         .results
@@ -94,11 +94,11 @@ fn main() {
         .sum();
     let total_us = mixed_report.total_us();
     let overhead_us = total_us - gpu_stage_us - cpu_stage_us;
-    eprintln!(
+    println!(
         "  GPU: {gpu_stage_us:.1}µs | CPU: {cpu_stage_us:.1}µs | overhead: {overhead_us:.1}µs"
     );
 
-    eprintln!("\n── Output shapes ──");
+    println!("\n── Output shapes ──");
     for result in &mixed_report.execution.results {
         let desc = match &result.output {
             StageOutput::Map(m) => format!("{} keys", m.len()),
@@ -106,14 +106,14 @@ fn main() {
             StageOutput::Scalar(s) => format!("scalar={s:.4}"),
             StageOutput::Empty => "empty".to_string(),
         };
-        eprintln!("  {}: {desc}", result.stage_id);
+        println!("  {}: {desc}", result.stage_id);
     }
 
     let speedup = cpu_us / mixed_us.max(0.001);
-    eprintln!("\n── Summary ──");
-    eprintln!("  CPU-only:  {cpu_us:.1}µs");
-    eprintln!("  Mixed:     {mixed_us:.1}µs");
-    eprintln!("  Speedup:   {speedup:.2}×");
+    println!("\n── Summary ──");
+    println!("  CPU-only:  {cpu_us:.1}µs");
+    println!("  Mixed:     {mixed_us:.1}µs");
+    println!("  Speedup:   {speedup:.2}×");
 
     h.finish();
 }

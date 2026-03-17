@@ -20,13 +20,13 @@ const W_SCALE: f64 = 20.0;
 fn main() {
     let mut h = ValidationHarness::new("wdm_ensemble_qs");
 
-    eprintln!("\n── Exp 098: WDM Surrogate Ensemble QS ──");
+    println!("\n── Exp 098: WDM Surrogate Ensemble QS ──");
 
     let baseline = match load_ensemble_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -48,7 +48,7 @@ fn validate_disorder_mapping(
     h: &mut ValidationHarness,
     baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
 ) {
-    eprintln!("\n── Disorder mapping ──");
+    println!("\n── Disorder mapping ──");
 
     let w0 = disagreement_to_disorder(0.0, 0.0, 1.0, W_SCALE);
     h.check_abs("W(d=0) = 0", w0, 0.0, tolerances::CROSS_LANGUAGE);
@@ -67,7 +67,7 @@ fn validate_anderson_physics(
     h: &mut ValidationHarness,
     baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
 ) {
-    eprintln!("\n── Anderson physics ──");
+    println!("\n── Anderson physics ──");
 
     for s in &baseline.slices {
         h.check_bool(&format!("slice {} IPR > 0", s.temp_idx), s.mean_ipr > 0.0);
@@ -89,7 +89,7 @@ fn validate_qs_dynamics(
     h: &mut ValidationHarness,
     baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
 ) {
-    eprintln!("\n── QS dynamics ──");
+    println!("\n── QS dynamics ──");
 
     let p_low = snowdrift_payoff(0.1);
     let fc_low = replicator_final_coop(&p_low, 500);
@@ -108,7 +108,7 @@ fn validate_coupling(
     h: &mut ValidationHarness,
     baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
 ) {
-    eprintln!("\n── Coupling ──");
+    println!("\n── Coupling ──");
 
     h.check_bool("r(W, ξ) < 0", baseline.r_w_xi < 0.0);
     h.check_bool("r(W, ξ) > -1", baseline.r_w_xi > -1.0);
@@ -124,7 +124,7 @@ fn validate_reference_disorder(
     h: &mut ValidationHarness,
     baseline: &neural_spring::wdm_ensemble_qs::EnsembleBaseline,
 ) {
-    eprintln!("\n── Reference disorder ──");
+    println!("\n── Reference disorder ──");
 
     h.check_bool(
         "10 reference disorder values",

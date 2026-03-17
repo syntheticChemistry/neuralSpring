@@ -39,7 +39,7 @@ fn main() {
 }
 
 fn validate_bridge_lifecycle(h: &mut ValidationHarness) {
-    eprintln!("\n─── Nautilus Bridge Lifecycle ───\n");
+    println!("\n─── Nautilus Bridge Lifecycle ───\n");
 
     let bridge = SpectralNautilusBridge::new("lifecycle-test");
     h.check_bool("bridge: creation succeeds", true);
@@ -52,7 +52,7 @@ fn validate_bridge_lifecycle(h: &mut ValidationHarness) {
 }
 
 fn validate_spectral_regime_detection(h: &mut ValidationHarness) {
-    eprintln!("\n─── Spectral Regime Detection via Nautilus ───\n");
+    println!("\n─── Spectral Regime Detection via Nautilus ───\n");
 
     let mut bridge = SpectralNautilusBridge::new("spectral-regime");
 
@@ -85,7 +85,7 @@ fn validate_spectral_regime_detection(h: &mut ValidationHarness) {
 
     if let Some(mse_val) = mse {
         h.check_bool("spectral: MSE is finite", mse_val.is_finite());
-        eprintln!("  training MSE: {mse_val:.6}");
+        println!("  training MSE: {mse_val:.6}");
     }
 
     // Predict in each regime
@@ -106,13 +106,13 @@ fn validate_spectral_regime_detection(h: &mut ValidationHarness) {
             "spectral: localized IPR > extended IPR (regime separation)",
             ipr_loc > ipr_ext,
         );
-        eprintln!("  extended  IPR_scaled={ipr_ext:.4}");
-        eprintln!("  localized IPR_scaled={ipr_loc:.4}");
+        println!("  extended  IPR_scaled={ipr_ext:.4}");
+        println!("  localized IPR_scaled={ipr_loc:.4}");
     }
 }
 
 fn validate_esn_vs_nautilus_comparison(h: &mut ValidationHarness) {
-    eprintln!("\n─── ESN vs Nautilus Architecture Comparison ───\n");
+    println!("\n─── ESN vs Nautilus Architecture Comparison ───\n");
 
     // Both ESN and Nautilus should be able to learn the Anderson transition
     let mut bridge_a = SpectralNautilusBridge::new("esn-compare-a");
@@ -161,7 +161,7 @@ fn validate_esn_vs_nautilus_comparison(h: &mut ValidationHarness) {
     );
 
     let top_beta = scored[0].0;
-    eprintln!("  highest-information disorder: W={top_beta:.1}");
+    println!("  highest-information disorder: W={top_beta:.1}");
     h.check_bool(
         "comparison: screening identifies informative region",
         scored[0].1 >= 0.0,
@@ -169,7 +169,7 @@ fn validate_esn_vs_nautilus_comparison(h: &mut ValidationHarness) {
 }
 
 fn validate_serialization_roundtrip(h: &mut ValidationHarness) {
-    eprintln!("\n─── Serialization Roundtrip ───\n");
+    println!("\n─── Serialization Roundtrip ───\n");
 
     let mut bridge = SpectralNautilusBridge::new("ser-test");
 
@@ -211,7 +211,7 @@ fn validate_serialization_roundtrip(h: &mut ValidationHarness) {
 }
 
 fn validate_drift_monitoring(h: &mut ValidationHarness) {
-    eprintln!("\n─── Drift Monitor Integration ───\n");
+    println!("\n─── Drift Monitor Integration ───\n");
 
     let bridge = SpectralNautilusBridge::new("drift-test");
 
@@ -226,7 +226,7 @@ fn validate_drift_monitoring(h: &mut ValidationHarness) {
 }
 
 fn validate_concept_edge_detection(h: &mut ValidationHarness) {
-    eprintln!("\n─── Concept Edge Detection ───\n");
+    println!("\n─── Concept Edge Detection ───\n");
 
     let mut bridge = SpectralNautilusBridge::new("edge-test");
 
@@ -246,9 +246,9 @@ fn validate_concept_edge_detection(h: &mut ValidationHarness) {
     let edges = bridge.detect_concept_edges();
 
     h.check_bool("edges: detection completes without panic", true);
-    eprintln!("  detected edges: {}", edges.len());
+    println!("  detected edges: {}", edges.len());
     for (beta, err) in &edges {
-        eprintln!("    W={beta:.2}, LOO error={err:.4}");
+        println!("    W={beta:.2}, LOO error={err:.4}");
     }
 
     // The edge detection is stochastic but should find at least some signal

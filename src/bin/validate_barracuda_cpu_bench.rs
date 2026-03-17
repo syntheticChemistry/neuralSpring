@@ -76,12 +76,12 @@ const WARMUP: usize = 10;
 const ITERS: usize = 200;
 
 fn main() {
-    eprintln!("╔══════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — BarraCUDA CPU Parity & Performance Benchmark               ║");
-    eprintln!("║  Python/NumPy (interpreted) vs Pure Rust (BarraCUDA CPU) — 15 domains      ║");
-    eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — BarraCUDA CPU Parity & Performance Benchmark               ║");
+    println!("║  Python/NumPy (interpreted) vs Pure Rust (BarraCUDA CPU) — 15 domains      ║");
+    println!("║  Warmup: {WARMUP}, Iterations: {ITERS}                                                    ║");
+    println!("╚══════════════════════════════════════════════════════════════════════════════╝");
+    println!();
 
     let mut h = ValidationHarness::new("barracuda_cpu_bench");
     let mut results: Vec<CpuBenchResult> = Vec::new();
@@ -107,7 +107,7 @@ fn main() {
 }
 
 fn bench_hmm_forward(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [1/15] HMM Forward — Papers 016-018 (Liu) ═══");
+    println!("═══ [1/15] HMM Forward — Papers 016-018 (Liu) ═══");
     let py_us = run_python_bench("control/hmm_phylo/bench_hmm_forward.py");
 
     let mut rng = Rng::new(42);
@@ -146,11 +146,11 @@ fn bench_hmm_forward(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult
     h.check_bool("HMM forward log-likelihood finite and negative", valid);
     h.check_bool("HMM forward Rust completes", true);
     record_domain(results, "HMM Forward", "016-018", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_nk_fitness(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [2/15] NK Fitness — Paper 011 (Dolson) ═══");
+    println!("═══ [2/15] NK Fitness — Paper 011 (Dolson) ═══");
     let py_us = run_python_bench("control/counterdiabatic/bench_nk_fitness.py");
 
     let landscape = NkLandscape::new(10, 2, 42);
@@ -170,11 +170,11 @@ fn bench_nk_fitness(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>
     h.check_bool("NK fitness in [0,1] range", valid);
     h.check_bool("NK fitness Rust completes", true);
     record_domain(results, "NK Fitness", "011", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_pairwise_l2(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [3/15] Pairwise L2 — Paper 012 (Dolson) ═══");
+    println!("═══ [3/15] Pairwise L2 — Paper 012 (Dolson) ═══");
     let py_us = run_python_bench("control/modes/bench_pairwise_l2.py");
 
     let (n, dim) = (10_usize, 8_usize);
@@ -200,11 +200,11 @@ fn bench_pairwise_l2(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult
     h.check_bool("Pairwise L2 distances positive and finite", valid);
     h.check_bool("Pairwise L2 Rust completes", true);
     record_domain(results, "Pairwise L2", "012", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_eco_fitness(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [4/15] Eco Batch Fitness — Paper 013 (Dolson) ═══");
+    println!("═══ [4/15] Eco Batch Fitness — Paper 013 (Dolson) ═══");
     let py_us = run_python_bench("control/eco_dynamics/bench_eco.py");
 
     let mut rng = Rng::new(42);
@@ -223,11 +223,11 @@ fn bench_eco_fitness(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult
     h.check_bool("Eco batch fitness valid and finite", valid);
     h.check_bool("Eco batch fitness Rust completes", true);
     record_domain(results, "Eco Batch Fitness", "013", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_hamming(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [5/15] Pairwise Hamming — Paper 017 (Liu) ═══");
+    println!("═══ [5/15] Pairwise Hamming — Paper 017 (Liu) ═══");
     let py_us = run_python_bench("control/sate_alignment/bench_hamming.py");
 
     let mut rng = Rng::new(42);
@@ -247,11 +247,11 @@ fn bench_hamming(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
     h.check_bool("Hamming distances in [0,1] range", valid);
     h.check_bool("Hamming Rust completes", true);
     record_domain(results, "Pairwise Hamming", "017", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_jaccard(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [6/15] Pairwise Jaccard — Paper 024 (Anderson) ═══");
+    println!("═══ [6/15] Pairwise Jaccard — Paper 024 (Anderson) ═══");
     let py_us = run_python_bench("control/pangenome_selection/bench_jaccard.py");
 
     let mut rng = Rng::new(42);
@@ -271,11 +271,11 @@ fn bench_jaccard(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
     h.check_bool("Jaccard distances in [0,1] range", valid);
     h.check_bool("Jaccard Rust completes", true);
     record_domain(results, "Pairwise Jaccard", "024", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_replicator(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [7/15] Replicator Dynamics — Paper 019 (Waters) ═══");
+    println!("═══ [7/15] Replicator Dynamics — Paper 019 (Waters) ═══");
     let py_us = run_python_bench("control/game_theory/bench_replicator.py");
 
     let (b, c) = (3.0_f64, 1.0_f64);
@@ -304,11 +304,11 @@ fn bench_replicator(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>
         rust_us,
         sum_ok,
     );
-    eprintln!();
+    println!();
 }
 
 fn bench_rk4_grn(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [8/15] RK4 GRN Integration — Paper 020 (Waters) ═══");
+    println!("═══ [8/15] RK4 GRN Integration — Paper 020 (Waters) ═══");
     let py_us = run_python_bench("control/regulatory_network/bench_rk4.py");
 
     let params = GrnParams::default();
@@ -336,11 +336,11 @@ fn bench_rk4_grn(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
     h.check_bool("RK4 GRN state positive and finite", valid);
     h.check_bool("RK4 GRN Rust completes", true);
     record_domain(results, "RK4 GRN", "020", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_commutator(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [9/15] Commutator Frobenius Norm — Paper 022 (Kachkovskiy) ═══");
+    println!("═══ [9/15] Commutator Frobenius Norm — Paper 022 (Kachkovskiy) ═══");
     let py_us = run_python_bench("control/spectral_commutativity/bench_commutator.py");
 
     let mut rng = Rng::new(42);
@@ -367,11 +367,11 @@ fn bench_commutator(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>
         rust_us,
         valid,
     );
-    eprintln!();
+    println!();
 }
 
 fn bench_anderson_ipr(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [10/15] Anderson Localization IPR — Paper 023 (Kachkovskiy) ═══");
+    println!("═══ [10/15] Anderson Localization IPR — Paper 023 (Kachkovskiy) ═══");
     let py_us = run_python_bench("control/anderson_localization/bench_anderson.py");
 
     let (n, t, w) = (64_usize, 1.0_f64, 4.0_f64);
@@ -391,11 +391,11 @@ fn bench_anderson_ipr(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResul
     h.check_bool("Anderson IPR in (0,1] and finite", valid);
     h.check_bool("Anderson IPR Rust completes", true);
     record_domain(results, "Anderson IPR 64", "023", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_hill_gate(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [11/15] Two-Input Hill Gate — Paper 021 (Waters) ═══");
+    println!("═══ [11/15] Two-Input Hill Gate — Paper 021 (Waters) ═══");
     let py_us = run_python_bench("control/signal_integration/bench_hill_gate.py");
 
     let (nx, ny) = (50_usize, 50_usize);
@@ -427,11 +427,11 @@ fn bench_hill_gate(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>)
     h.check_bool("Hill gate output in [0,1] and finite", valid);
     h.check_bool("Hill gate Rust completes", true);
     record_domain(results, "Hill Gate 50×50", "021", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_multi_obj(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [12/15] Multi-Objective Fitness — Paper 014 (Dolson) ═══");
+    println!("═══ [12/15] Multi-Objective Fitness — Paper 014 (Dolson) ═══");
     let py_us = run_python_bench("control/directed_evolution/bench_multi_obj.py");
 
     let mut rng = Rng::new(42);
@@ -451,11 +451,11 @@ fn bench_multi_obj(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>)
     h.check_bool("Multi-obj fitness dimension and finiteness", valid);
     h.check_bool("Multi-obj fitness Rust completes", true);
     record_domain(results, "Multi-Obj Fitness", "014", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_swarm_nn(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [13/15] Swarm NN Forward — Paper 015 (Dolson) ═══");
+    println!("═══ [13/15] Swarm NN Forward — Paper 015 (Dolson) ═══");
     let py_us = run_python_bench("control/swarm_robotics/bench_swarm_nn.py");
 
     let mut rng = Rng::new(123);
@@ -478,11 +478,11 @@ fn bench_swarm_nn(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) 
     h.check_bool("Swarm NN action index in valid range", valid);
     h.check_bool("Swarm NN Rust completes", true);
     record_domain(results, "Swarm NN Forward", "015", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_global_fst(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [14/15] Global FST — Paper 025 (R. Anderson) ═══");
+    println!("═══ [14/15] Global FST — Paper 025 (R. Anderson) ═══");
     let py_us = run_python_bench("control/meta_population/bench_meta_pop.py");
 
     let mut rng = Rng::new(42);
@@ -523,11 +523,11 @@ fn bench_global_fst(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>
     h.check_bool("Global FST in [0,1] and finite", valid);
     h.check_bool("Global FST Rust completes", true);
     record_domain(results, "Global FST", "025", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }
 
 fn bench_lstm_glucose(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResult>) {
-    eprintln!("═══ [15/15] LSTM Glucose — Paper 026 (Chuna) ═══");
+    println!("═══ [15/15] LSTM Glucose — Paper 026 (Chuna) ═══");
     let py_us = run_python_bench("control/glucose_prediction/bench_glucose_lstm.py");
 
     let mut rng = Rng::new(42);
@@ -585,5 +585,5 @@ fn bench_lstm_glucose(h: &mut ValidationHarness, results: &mut Vec<CpuBenchResul
     h.check_bool("LSTM glucose hidden finite + acor(0)≈1 + τ>0", valid);
     h.check_bool("LSTM glucose Rust completes", true);
     record_domain(results, "LSTM Glucose", "026", py_us, rust_us, valid);
-    eprintln!();
+    println!();
 }

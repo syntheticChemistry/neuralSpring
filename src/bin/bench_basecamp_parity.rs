@@ -33,7 +33,7 @@ type BenchResult<T> = Result<T, Box<dyn std::error::Error>>;
 #[tokio::main]
 async fn main() {
     if let Err(e) = run().await {
-        eprintln!("FAIL: {e}");
+        println!("FAIL: {e}");
         std::process::exit(1);
     }
 }
@@ -41,7 +41,7 @@ async fn main() {
 async fn run() -> BenchResult<()> {
     let gpu = Gpu::new().await.ok();
     let dev = gpu.as_ref().map(|g| {
-        eprintln!(
+        println!(
             "GPU: {} ({:?}, {:?})",
             g.adapter_name, g.device_type, g.backend
         );

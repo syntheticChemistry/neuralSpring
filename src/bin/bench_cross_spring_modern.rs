@@ -60,16 +60,16 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
     }
     let elapsed = start.elapsed();
     let us_per_iter = elapsed.as_micros() as f64 / ITERS as f64;
-    eprintln!("    {label}: {us_per_iter:.1}µs/iter");
+    println!("    {label}: {us_per_iter:.1}µs/iter");
     us_per_iter
 }
 
 fn bench_simplemlp(h: &mut ValidationHarness) {
-    eprintln!("═══ neuralSpring → barraCuda: SimpleMlp (S83 absorption) ═══");
-    eprintln!("  Origin: neuralSpring WDM surrogates (nW-01, nW-02)");
-    eprintln!("  Evolution: hand-rolled matmul → barracuda::nn::SimpleMlp");
-    eprintln!("  Impact: all springs can load and run MLP inference");
-    eprintln!();
+    println!("═══ neuralSpring → barraCuda: SimpleMlp (S83 absorption) ═══");
+    println!("  Origin: neuralSpring WDM surrogates (nW-01, nW-02)");
+    println!("  Evolution: hand-rolled matmul → barracuda::nn::SimpleMlp");
+    println!("  Impact: all springs can load and run MLP inference");
+    println!();
 
     let small = SimpleMlp::new(vec![
         DenseLayer {
@@ -128,15 +128,15 @@ fn bench_simplemlp(h: &mut ValidationHarness) {
         &format!("JSON roundtrip exact (max_diff={max_diff:.2e})"),
         max_diff < f64::EPSILON,
     );
-    eprintln!();
+    println!();
 }
 
 fn bench_hmm_dispatcher(h: &mut ValidationHarness) {
-    eprintln!("═══ wetSpring → barraCuda: HMM f64 Viterbi (S69 absorption) ═══");
-    eprintln!("  Origin: wetSpring bio HMM (forward/backward/Viterbi)");
-    eprintln!("  Evolution: neuralSpring per-step f32 Tensor → barraCuda f64 shader");
-    eprintln!("  Impact: f64 precision, single-dispatch GPU execution");
-    eprintln!();
+    println!("═══ wetSpring → barraCuda: HMM f64 Viterbi (S69 absorption) ═══");
+    println!("  Origin: wetSpring bio HMM (forward/backward/Viterbi)");
+    println!("  Evolution: neuralSpring per-step f32 Tensor → barraCuda f64 shader");
+    println!("  Impact: f64 precision, single-dispatch GPU execution");
+    println!();
 
     let n_states = 4;
     let n_obs = 6;
@@ -239,15 +239,15 @@ fn bench_hmm_dispatcher(h: &mut ValidationHarness) {
 
     h.check_bool("CPU forward runs", t_cpu_fwd > 0.0);
     h.check_bool("Dispatcher forward runs", t_disp_fwd > 0.0);
-    eprintln!();
+    println!();
 }
 
 fn bench_stats_cross_spring(h: &mut ValidationHarness) {
-    eprintln!("═══ airSpring+groundSpring → barraCuda::stats (S64) ═══");
-    eprintln!("  Origin: airSpring metrics + groundSpring hydrology stats");
-    eprintln!("  Evolution: per-spring implementations → unified barraCuda::stats");
-    eprintln!("  Impact: all springs share single, tested stats library");
-    eprintln!();
+    println!("═══ airSpring+groundSpring → barraCuda::stats (S64) ═══");
+    println!("  Origin: airSpring metrics + groundSpring hydrology stats");
+    println!("  Evolution: per-spring implementations → unified barraCuda::stats");
+    println!("  Impact: all springs share single, tested stats library");
+    println!();
 
     let mut rng = Rng::new(123);
     let x: Vec<f64> = (0..10_000).map(|_| rng.next_f64()).collect();
@@ -279,15 +279,15 @@ fn bench_stats_cross_spring(h: &mut ValidationHarness) {
         let _ = stats::shannon(&counts);
     });
     h.check_bool("stats::shannon < 200µs", t_shannon < 200.0);
-    eprintln!();
+    println!();
 }
 
 fn bench_precision_hotspring(h: &mut ValidationHarness) {
-    eprintln!("═══ hotSpring → barraCuda: Precision & Spectral ═══");
-    eprintln!("  Origin: hotSpring lattice QCD + spectral methods");
-    eprintln!("  Evolution: lattice-specific → universal precision pipeline");
-    eprintln!("  Impact: precision-routed compilation (F32/F64/Df64)");
-    eprintln!();
+    println!("═══ hotSpring → barraCuda: Precision & Spectral ═══");
+    println!("  Origin: hotSpring lattice QCD + spectral methods");
+    println!("  Evolution: lattice-specific → universal precision pipeline");
+    println!("  Impact: precision-routed compilation (F32/F64/Df64)");
+    println!();
 
     let mat_4x4: Vec<f64> = vec![
         4.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 2.0, 1.0, 0.0, 0.0, 1.0, 1.0,
@@ -313,20 +313,20 @@ fn bench_precision_hotspring(h: &mut ValidationHarness) {
 
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
     if let Ok(gpu) = rt.block_on(Gpu::new()) {
-        eprintln!("  GPU: {} ({:?})", gpu.adapter_name, gpu.device_type);
+        println!("  GPU: {} ({:?})", gpu.adapter_name, gpu.device_type);
         h.check_bool("GPU available for precision benchmarks", true);
     } else {
-        eprintln!("  GPU: not available (CPU-only benchmarks)");
+        println!("  GPU: not available (CPU-only benchmarks)");
     }
-    eprintln!();
+    println!();
 }
 
 fn bench_dispatcher_evolved(h: &mut ValidationHarness) {
-    eprintln!("═══ neuralSpring → barraCuda: Evolved Dispatchers ═══");
-    eprintln!("  Origin: neuralSpring local GPU ops");
-    eprintln!("  Evolution: local Tensor ops → barracuda::dispatch (S52+)");
-    eprintln!("  Impact: softmax, gelu, matmul all use upstream shaders");
-    eprintln!();
+    println!("═══ neuralSpring → barraCuda: Evolved Dispatchers ═══");
+    println!("  Origin: neuralSpring local GPU ops");
+    println!("  Evolution: local Tensor ops → barracuda::dispatch (S52+)");
+    println!("  Impact: softmax, gelu, matmul all use upstream shaders");
+    println!();
 
     let dispatcher = Dispatcher::cpu_only();
 
@@ -361,18 +361,18 @@ fn bench_dispatcher_evolved(h: &mut ValidationHarness) {
         let _ = dispatcher.mat_mul(&a, &b, 8);
     });
     h.check_bool("matmul runs", t_matmul > 0.0);
-    eprintln!();
+    println!();
 }
 
 fn main() {
-    eprintln!("╔══════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Modern Cross-Spring Evolution Benchmark (S121)  ║");
-    eprintln!("║  barraCuda v0.3.1 standalone · 5 springs · 767 WGSL shaders    ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!("  Cross-spring evolution: each spring contributes shaders to barraCuda,");
-    eprintln!("  and all springs benefit from each other's work.");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — Modern Cross-Spring Evolution Benchmark (S121)  ║");
+    println!("║  barraCuda v0.3.1 standalone · 5 springs · 767 WGSL shaders    ║");
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!("  Cross-spring evolution: each spring contributes shaders to barraCuda,");
+    println!("  and all springs benefit from each other's work.");
+    println!();
 
     let mut h = ValidationHarness::new("cross_spring_modern_bench");
 

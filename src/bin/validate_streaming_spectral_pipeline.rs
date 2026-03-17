@@ -67,14 +67,14 @@ async fn main() {
 
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "GPU: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
             g
         }
         Err(e) => {
-            eprintln!("No GPU available ({e}), skipping");
+            println!("No GPU available ({e}), skipping");
             h.finish();
         }
     };

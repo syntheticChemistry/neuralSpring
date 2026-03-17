@@ -13,13 +13,13 @@ const BASELINE_JSON: &str =
 fn main() {
     let mut h = ValidationHarness::new("attention_anderson");
 
-    eprintln!("\n── Exp 100: Attention Anderson Spectral ──");
+    println!("\n── Exp 100: Attention Anderson Spectral ──");
 
     let baseline = match load_attention_anderson_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -38,12 +38,12 @@ fn validate_spectral_parity(
     h: &mut ValidationHarness,
     baseline: &neural_spring::attention_anderson::AttentionAndersonBaseline,
 ) {
-    eprintln!("\n── Spectral parity (reference matrix) ──");
+    println!("\n── Spectral parity (reference matrix) ──");
 
     let sp = attention_spectral(&baseline.reference_matrix, baseline.reference_n);
 
     let ref_result = &baseline.results[baseline.n_configs / 2];
-    eprintln!(
+    println!(
         "  Rust: SR={:.4}, IPR={:.4}, ξ={:.4}",
         sp.spectral_radius, sp.mean_ipr, sp.xi
     );
@@ -66,7 +66,7 @@ fn validate_correlations(
     h: &mut ValidationHarness,
     baseline: &neural_spring::attention_anderson::AttentionAndersonBaseline,
 ) {
-    eprintln!("\n── Correlations ──");
+    println!("\n── Correlations ──");
 
     let qs: Vec<f64> = baseline.results.iter().map(|r| r.quality).collect();
     let entropies: Vec<f64> = baseline.results.iter().map(|r| r.entropy).collect();
@@ -76,7 +76,7 @@ fn validate_correlations(
     let corr_quality_ipr = pearson_r(&qs, &iprs);
     let corr_entropy_ipr = pearson_r(&entropies, &iprs);
 
-    eprintln!(
+    println!(
         "  r(q,entropy)={corr_quality_entropy:.4} r(q,ipr)={corr_quality_ipr:.4} r(ent,ipr)={corr_entropy_ipr:.4}"
     );
 
@@ -106,7 +106,7 @@ fn validate_physics(
     h: &mut ValidationHarness,
     baseline: &neural_spring::attention_anderson::AttentionAndersonBaseline,
 ) {
-    eprintln!("\n── Physics checks ──");
+    println!("\n── Physics checks ──");
 
     for r in &baseline.results {
         h.check_bool(

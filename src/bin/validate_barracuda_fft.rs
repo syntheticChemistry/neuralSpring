@@ -550,7 +550,7 @@ async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         neural_spring::validation::exit_no_gpu();
     };
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -575,14 +575,14 @@ async fn main() {
 
     // f64 FFT (Fft1DF64) — requires SHADER_F64, 8 checks when available
     if device.has_f64_shaders() {
-        eprintln!("  SHADER_F64 available — running f64 FFT validation");
+        println!("  SHADER_F64 available — running f64 FFT validation");
         validate_f64_inverse_roundtrip(&mut h, &device).await;
         validate_f64_parseval(&mut h, &device).await;
         validate_f64_delta_to_constant(&mut h, &device).await;
         validate_f64_constant_to_delta(&mut h, &device).await;
         validate_f64_cosine_concentration(&mut h, &device).await;
     } else {
-        eprintln!("  SHADER_F64 not available — skipping f64 FFT tests");
+        println!("  SHADER_F64 not available — skipping f64 FFT tests");
     }
 
     h.finish();

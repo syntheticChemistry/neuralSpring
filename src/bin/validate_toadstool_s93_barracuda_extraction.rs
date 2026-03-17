@@ -55,7 +55,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::{exit_no_gpu, ValidationHarness};
 
 fn validate_standalone_path(h: &mut ValidationHarness) {
-    eprintln!("\n── Standalone path verification (v0.3.1) ──");
+    println!("\n── Standalone path verification (v0.3.1) ──");
 
     let version = env!("CARGO_PKG_VERSION");
     h.check_bool(
@@ -65,7 +65,7 @@ fn validate_standalone_path(h: &mut ValidationHarness) {
 }
 
 fn validate_tridiag_eigenvectors(h: &mut ValidationHarness) {
-    eprintln!("\n── barracuda::spectral::tridiag_eigenvectors (S88) ──");
+    println!("\n── barracuda::spectral::tridiag_eigenvectors (S88) ──");
 
     let diag = vec![2.0, 2.0, 2.0];
     let off = vec![1.0, 1.0];
@@ -124,7 +124,7 @@ fn validate_tridiag_eigenvectors(h: &mut ValidationHarness) {
 }
 
 fn validate_tolerance_constants(h: &mut ValidationHarness) {
-    eprintln!("\n── barracuda::tolerances domain constants (S88+) ──");
+    println!("\n── barracuda::tolerances domain constants (S88+) ──");
 
     let hydro_et0 = barracuda::tolerances::HYDRO_ET0;
     h.check_bool("HYDRO_ET0 accessible", hydro_et0.abs_tol > 0.0);
@@ -175,7 +175,7 @@ fn validate_tolerance_constants(h: &mut ValidationHarness) {
 }
 
 fn validate_unified_math(h: &mut ValidationHarness) {
-    eprintln!("\n── barracuda::unified_math::MathOp vocabulary ──");
+    println!("\n── barracuda::unified_math::MathOp vocabulary ──");
 
     let ops = [
         MathOp::Negate,
@@ -204,7 +204,7 @@ fn validate_unified_math(h: &mut ValidationHarness) {
 }
 
 fn validate_fp64_strategy(h: &mut ValidationHarness) {
-    eprintln!("\n── barracuda::device::Fp64Strategy (precision routing) ──");
+    println!("\n── barracuda::device::Fp64Strategy (precision routing) ──");
 
     let native = Fp64Strategy::Native;
     let hybrid = Fp64Strategy::Hybrid;
@@ -225,7 +225,7 @@ fn validate_fp64_strategy(h: &mut ValidationHarness) {
 }
 
 fn validate_compute_executor_trait(h: &mut ValidationHarness) {
-    eprintln!("\n── barracuda::unified_hardware::ComputeExecutor trait ──");
+    println!("\n── barracuda::unified_hardware::ComputeExecutor trait ──");
 
     const fn assert_trait_object_safe<T: ComputeExecutor + ?Sized>() {}
     h.check_bool("ComputeExecutor trait is accessible and object-safe", {
@@ -235,7 +235,7 @@ fn validate_compute_executor_trait(h: &mut ValidationHarness) {
 }
 
 fn validate_nautilus_continuity(h: &mut ValidationHarness) {
-    eprintln!("\n── Nautilus API continuity (S86→S93 standalone) ──");
+    println!("\n── Nautilus API continuity (S86→S93 standalone) ──");
 
     let config = NautilusBrainConfig::default();
     let brain = NautilusBrain::new(config, "s93-continuity");
@@ -265,7 +265,7 @@ fn validate_nautilus_continuity(h: &mut ValidationHarness) {
 }
 
 fn validate_dispatcher_continuity(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── Dispatcher continuity on standalone barraCuda ──");
+    println!("\n── Dispatcher continuity on standalone barraCuda ──");
 
     let a: Vec<f64> = (0..64_i32).map(|i| f64::from(i) * 0.01).collect();
     let b: Vec<f64> = (0..64_i32)
@@ -296,11 +296,11 @@ fn validate_dispatcher_continuity(h: &mut ValidationHarness, disp: &Dispatcher) 
 
 #[tokio::main]
 async fn main() {
-    eprintln!("=== ToadStool S93 / barraCuda Standalone Extraction Validation ===\n");
-    eprintln!("Migration: ../phase1/toadstool/crates/barracuda → ../barraCuda/crates/barracuda");
-    eprintln!("Pin: ToadStool S87 (2dc26792) → BarraCUDA v0.3.1 standalone");
-    eprintln!("Key: standalone extraction, tridiag_eigenvectors, domain tolerances,");
-    eprintln!("     unified_math::MathOp, Fp64Strategy, ComputeExecutor trait");
+    println!("=== ToadStool S93 / barraCuda Standalone Extraction Validation ===\n");
+    println!("Migration: ../phase1/toadstool/crates/barracuda → ../barraCuda/crates/barracuda");
+    println!("Pin: ToadStool S87 (2dc26792) → BarraCUDA v0.3.1 standalone");
+    println!("Key: standalone extraction, tridiag_eigenvectors, domain tolerances,");
+    println!("     unified_math::MathOp, Fp64Strategy, ComputeExecutor trait");
 
     let mut h = ValidationHarness::new("toadstool_s93_barracuda_extraction");
 

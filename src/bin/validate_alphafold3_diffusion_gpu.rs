@@ -43,7 +43,7 @@ async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         neural_spring::validation::exit_no_gpu();
     };
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -562,7 +562,7 @@ fn benchmark_diffusion_gpu(h: &mut ValidationHarness, device: &Dev) {
     let elapsed = start.elapsed();
     let per_iter_us = elapsed.as_micros() as f64 / f64::from(iters);
 
-    eprintln!("  diffusion forward GPU: {per_iter_us:.1}µs/iter ({iters} iters, n={n})");
+    println!("  diffusion forward GPU: {per_iter_us:.1}µs/iter ({iters} iters, n={n})");
     h.check_bool(
         &format!("nF-D→bench: {per_iter_us:.0}µs/iter (GPU diffusion forward)"),
         per_iter_us < 50_000.0,

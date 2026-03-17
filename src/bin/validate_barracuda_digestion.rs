@@ -134,13 +134,13 @@ fn gpu_esn_predict(
 async fn main() {
     let mut h = ValidationHarness::new("barracuda_digestion");
 
-    eprintln!("\n── Paper 027: BarraCUDA Digestion Prediction ──");
+    println!("\n── Paper 027: BarraCUDA Digestion Prediction ──");
 
     let baseline = match load_digestion_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -149,15 +149,15 @@ async fn main() {
     h.check_bool("baseline loaded", pred.reservoir_size == 512);
 
     // ── Tier 1: BarraCUDA CPU (stats primitives) ──
-    eprintln!("\n── Tier 1: BarraCUDA CPU stats ──");
+    println!("\n── Tier 1: BarraCUDA CPU stats ──");
 
     validate_barracuda_cpu_stats(&mut h);
 
     // ── Tier 2: BarraCUDA GPU (Tensor ESN inference) ──
-    eprintln!("\n── Tier 2: BarraCUDA GPU Tensor ESN ──");
+    println!("\n── Tier 2: BarraCUDA GPU Tensor ESN ──");
 
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  GPU unavailable — skipping GPU tier");
+        println!("  GPU unavailable — skipping GPU tier");
         h.finish();
     };
 
@@ -199,7 +199,7 @@ fn validate_barracuda_cpu_stats(h: &mut ValidationHarness) {
             tolerances::EXACT_F64,
         ),
         Err(e) => {
-            eprintln!("  bC variance failed: {e}");
+            println!("  bC variance failed: {e}");
             h.check_bool("bC CPU variance", false);
         }
     }
@@ -210,7 +210,7 @@ fn validate_barracuda_cpu_stats(h: &mut ValidationHarness) {
             h.check_bool("bC CPU Pearson > 0.9", bc_pearson > 0.9);
         }
         Err(e) => {
-            eprintln!("  bC Pearson failed: {e}");
+            println!("  bC Pearson failed: {e}");
             h.check_bool("bC CPU Pearson", false);
         }
     }
@@ -235,7 +235,7 @@ fn validate_gpu_esn(h: &mut ValidationHarness, pred: &DigestionPredictor, device
         match gpu_result {
             Ok((gpu_pred, gpu_h)) => {
                 let diff = (gpu_pred - cpu_pred).abs();
-                eprintln!("  {desc}: CPU={cpu_pred:.2}, GPU={gpu_pred:.2}, diff={diff:.2e}");
+                println!("  {desc}: CPU={cpu_pred:.2}, GPU={gpu_pred:.2}, diff={diff:.2e}");
 
                 h.check_bool(&format!("GPU finite ({desc})"), gpu_pred.is_finite());
                 h.check_abs(
@@ -250,7 +250,7 @@ fn validate_gpu_esn(h: &mut ValidationHarness, pred: &DigestionPredictor, device
                 );
             }
             Err(e) => {
-                eprintln!("  {desc}: GPU FAILED — {e}");
+                println!("  {desc}: GPU FAILED — {e}");
                 h.check_bool(&format!("GPU ESN ({desc})"), false);
             }
         }

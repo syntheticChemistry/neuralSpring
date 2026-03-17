@@ -136,7 +136,7 @@ fn validate_barracuda_phenotypes(h: &mut ValidationHarness) {
             let rk45_phenotype = phenotype_classifier(&x);
             if rk4_pheno != rk45_phenotype {
                 all_match = false;
-                eprintln!("  {name}: RK4 pheno={rk4_pheno}, RK45 pheno={rk45_phenotype}");
+                println!("  {name}: RK4 pheno={rk4_pheno}, RK45 pheno={rk45_phenotype}");
             }
         }
     }

@@ -31,14 +31,14 @@ const BASELINE_JSON: &str =
 fn main() {
     let mut h = ValidationHarness::new("digestion_prediction");
 
-    eprintln!("\n── Paper 027: ML Digestion Prediction (Wang et al. 2020) ──");
+    println!("\n── Paper 027: ML Digestion Prediction (Wang et al. 2020) ──");
 
     // ── Load baseline ──
     let baseline = match load_digestion_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load baseline: {e}");
+            println!("FATAL: failed to load baseline: {e}");
             h.finish();
         }
     };
@@ -49,7 +49,7 @@ fn main() {
     h.check_bool("has references", !baseline.reference_predictions.is_empty());
 
     // ── Process model validation ──
-    eprintln!("\n── Process model response functions ──");
+    println!("\n── Process model response functions ──");
 
     let f_t_meso = temperature_response(35.0);
     h.check_abs("T response mesophilic peak", f_t_meso, 0.7, 0.05);
@@ -82,7 +82,7 @@ fn main() {
     h.check_bool("optimum yield < 400", y_opt < 400.0);
 
     // ── ESN inference parity ──
-    eprintln!("\n── ESN inference vs Python baseline ──");
+    println!("\n── ESN inference vs Python baseline ──");
 
     for rp in &baseline.reference_predictions {
         let [t, ph, olr, hrt, vs_ts] = rp.inputs;
@@ -90,7 +90,7 @@ fn main() {
         let py_pred = rp.predicted;
         let diff = (rs_pred - py_pred).abs();
 
-        eprintln!(
+        println!(
             "  {}: Rust={rs_pred:.2}, Python={py_pred:.2}, diff={diff:.2e}",
             rp.desc
         );
@@ -118,7 +118,7 @@ fn main() {
     }
 
     // ── Analytical yield vs ESN prediction comparison ──
-    eprintln!("\n── Analytical model vs ESN prediction ──");
+    println!("\n── Analytical model vs ESN prediction ──");
 
     for rp in &baseline.reference_predictions {
         let [t, ph, olr, hrt, vs_ts] = rp.inputs;
@@ -132,7 +132,7 @@ fn main() {
     }
 
     // ── Physical expectation checks ──
-    eprintln!("\n── Physical expectations ──");
+    println!("\n── Physical expectations ──");
 
     let y_meso = pred.predict(35.0, 7.2, 3.0, 20.0, 75.0);
     let y_thermo = pred.predict(55.0, 7.2, 3.0, 20.0, 75.0);

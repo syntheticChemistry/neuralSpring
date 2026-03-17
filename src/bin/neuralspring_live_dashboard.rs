@@ -63,7 +63,7 @@ fn main() {
             c
         }
         Err(e) => {
-            eprintln!("petalTongue not found ({e}) — running in headless mode (stats only)");
+            println!("petalTongue not found ({e}) — running in headless mode (stats only)");
             PetalTonguePushClient::headless()
         }
     };
@@ -77,7 +77,7 @@ fn main() {
     ) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("Initial render failed ({e}), continuing in headless mode");
+            println!("Initial render failed ({e}), continuing in headless mode");
             StreamSession::resume(PetalTonguePushClient::headless(), "live-training")
         }
     };

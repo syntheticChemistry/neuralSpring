@@ -27,14 +27,14 @@ fn median(times: &mut [Duration]) -> Duration {
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
             g
         }
         Err(e) => {
-            eprintln!("No GPU: {e}");
+            println!("No GPU: {e}");
             std::process::exit(0);
         }
     };
@@ -42,12 +42,12 @@ async fn main() {
     let gpu_disp = Dispatcher::from_gpu(gpu);
     let cpu_disp = Dispatcher::cpu_only();
 
-    eprintln!("\n=== baseCamp GPU vs CPU Benchmark ===\n");
-    eprintln!(
+    println!("\n=== baseCamp GPU vs CPU Benchmark ===\n");
+    println!(
         "{:<45} {:>10} {:>10} {:>8}",
         "Operation", "CPU µs", "GPU µs", "Speedup"
     );
-    eprintln!("{}", "-".repeat(78));
+    println!("{}", "-".repeat(78));
 
     bench_sub01(&gpu_disp, &cpu_disp);
     bench_sub02(&gpu_disp, &cpu_disp);
@@ -55,7 +55,7 @@ async fn main() {
     bench_sub04(&gpu_disp, &cpu_disp);
     bench_sub05(&gpu_disp, &cpu_disp);
 
-    eprintln!();
+    println!();
 }
 
 fn report(name: &str, cpu_times: &mut [Duration], gpu_times: &mut [Duration]) {
@@ -66,7 +66,7 @@ fn report(name: &str, cpu_times: &mut [Duration], gpu_times: &mut [Duration]) {
     } else {
         f64::INFINITY
     };
-    eprintln!("{name:<45} {cpu_us:>10} {gpu_us:>10} {speedup:>7.2}×");
+    println!("{name:<45} {cpu_us:>10} {gpu_us:>10} {speedup:>7.2}×");
 }
 
 fn bench_sub01(gpu: &Dispatcher, cpu: &Dispatcher) {

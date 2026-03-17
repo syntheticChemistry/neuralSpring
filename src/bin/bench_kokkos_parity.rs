@@ -106,38 +106,38 @@ fn bench_op(
 }
 
 fn print_results(entries: &[KokkosEntry], adapter: &str) {
-    eprintln!();
-    eprintln!("╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  KOKKOS PARITY BENCHMARK — barraCuda GPU ops at production scale                                   ║");
-    eprintln!("║  Adapter: {adapter:<84}║");
-    eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                                                                          ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!(
+    println!();
+    println!("╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  KOKKOS PARITY BENCHMARK — barraCuda GPU ops at production scale                                   ║");
+    println!("║  Adapter: {adapter:<84}║");
+    println!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                                                                          ║");
+    println!("╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!(
         "{:<25} {:>15} {:>12} {:>12} {:>12} {:>15}",
         "Kernel", "Scale", "Warmup µs", "Median µs", "Min µs", "Category"
     );
-    eprintln!("{}", "─".repeat(95));
+    println!("{}", "─".repeat(95));
 
     for e in entries {
-        eprintln!(
+        println!(
             "{:<25} {:>15} {:>12.1} {:>12.1} {:>12.1} {:>15}",
             e.name, e.scale, e.warmup_us, e.median_us, e.min_us, e.category
         );
     }
-    eprintln!("{}", "─".repeat(95));
-    eprintln!();
-    eprintln!("Categories:");
-    eprintln!("  parallel_for  = Kokkos::parallel_for equivalent (map over elements)");
-    eprintln!("  parallel_reduce = Kokkos::parallel_reduce equivalent (reduction)");
-    eprintln!("  domain        = Domain-specific (no direct Kokkos equivalent)");
-    eprintln!();
-    eprintln!("Compare median against groundSpring Kokkos-CUDA baseline.");
-    eprintln!("  <2×  = at parity    2-10× = dispatch overhead    >10× = structural gap");
-    eprintln!();
-    eprintln!("⚠ PROVENANCE: Kokkos baselines are PLACEHOLDER (groundSpring V100 handoff).");
-    eprintln!("  Real parity requires matched-hardware runs. See doc comment for details.");
-    eprintln!();
+    println!("{}", "─".repeat(95));
+    println!();
+    println!("Categories:");
+    println!("  parallel_for  = Kokkos::parallel_for equivalent (map over elements)");
+    println!("  parallel_reduce = Kokkos::parallel_reduce equivalent (reduction)");
+    println!("  domain        = Domain-specific (no direct Kokkos equivalent)");
+    println!();
+    println!("Compare median against groundSpring Kokkos-CUDA baseline.");
+    println!("  <2×  = at parity    2-10× = dispatch overhead    >10× = structural gap");
+    println!();
+    println!("⚠ PROVENANCE: Kokkos baselines are PLACEHOLDER (groundSpring V100 handoff).");
+    println!("  Real parity requires matched-hardware runs. See doc comment for details.");
+    println!();
 
     println!("kernel\tscale\twarmup_us\tmedian_us\tmin_us\tcategory");
     for e in entries {
@@ -159,7 +159,7 @@ async fn main() {
         "{} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend
     );
-    eprintln!("  adapter: {adapter}");
+    println!("  adapter: {adapter}");
 
     let dev_arc = Arc::clone(gpu.wgpu_device());
     let device = gpu.device();

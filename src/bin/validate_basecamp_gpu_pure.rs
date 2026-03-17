@@ -33,7 +33,7 @@ use std::time::Instant;
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
@@ -55,7 +55,7 @@ async fn main() {
     validate_cross_dispatch(&mut h, &dispatcher, &cpu);
 
     let elapsed = t0.elapsed();
-    eprintln!(
+    println!(
         "\n  total baseCamp pure-GPU time: {:.1}ms (5 sub-theses + cross)",
         elapsed.as_secs_f64() * 1000.0,
     );

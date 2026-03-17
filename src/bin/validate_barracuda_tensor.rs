@@ -36,7 +36,7 @@ use std::sync::Arc;
 #[tokio::main]
 async fn main() {
     let gpu = neural_spring::validation::gpu_or_exit().await;
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );

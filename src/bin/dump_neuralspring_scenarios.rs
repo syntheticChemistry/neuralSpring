@@ -17,7 +17,7 @@ fn main() {
     let dir = std::env::var("NEURALSPRING_SCENARIO_DIR")
         .unwrap_or_else(|_| "sandbox/scenarios".to_owned());
     if let Err(e) = std::fs::create_dir_all(&dir) {
-        eprintln!("ERROR: cannot create {dir}: {e}");
+        println!("ERROR: cannot create {dir}: {e}");
         std::process::exit(1);
     }
 
@@ -53,7 +53,7 @@ fn main() {
         let json = scenario_with_edges_json(scenario, edges);
         let path = format!("{dir}/{name}.json");
         if let Err(e) = std::fs::write(&path, &json) {
-            eprintln!("ERROR: write {path}: {e}");
+            println!("ERROR: write {path}: {e}");
             std::process::exit(1);
         }
         println!(

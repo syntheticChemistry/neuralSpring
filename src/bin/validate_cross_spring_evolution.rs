@@ -410,16 +410,16 @@ fn validate_rewired_viterbi_argmax(
 
 fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     if let Some(profile) = dispatcher.driver_profile() {
-        eprintln!("[profile] Driver: {:?}", profile.driver);
-        eprintln!("[profile] Compiler: {:?}", profile.compiler);
-        eprintln!("[profile] Arch: {:?}", profile.arch);
-        eprintln!("[profile] FP64 rate: {:?}", profile.fp64_rate);
-        eprintln!("[profile] FP64 strategy: {:?}", profile.fp64_strategy());
-        eprintln!(
+        println!("[profile] Driver: {:?}", profile.driver);
+        println!("[profile] Compiler: {:?}", profile.compiler);
+        println!("[profile] Arch: {:?}", profile.arch);
+        println!("[profile] FP64 rate: {:?}", profile.fp64_rate);
+        println!("[profile] FP64 strategy: {:?}", profile.fp64_strategy());
+        println!(
             "[profile] pow workaround: {}",
             profile.needs_pow_f64_workaround()
         );
-        eprintln!(
+        println!(
             "[profile] Eigensolve strategy: {:?}",
             profile.optimal_eigensolve_strategy()
         );
@@ -435,7 +435,7 @@ fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
         );
         h.check_bool("fp64 strategy valid", strategy_valid);
     } else {
-        eprintln!("[profile] No GPU — skipping driver profile checks");
+        println!("[profile] No GPU — skipping driver profile checks");
         h.check_bool("driver profile (no GPU, skip)", true);
     }
 }
@@ -444,8 +444,8 @@ const fn benchmark_s72_throughput(_dispatcher: &Dispatcher, _cpu: &Dispatcher) {
 
 #[expect(clippy::too_many_lines, reason = "validation binary")]
 fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
-    eprintln!("\n=== Cross-Spring Throughput Benchmark ===");
-    eprintln!("(upstream dispatch includes GPU routing + size-based thresholds)\n");
+    println!("\n=== Cross-Spring Throughput Benchmark ===");
+    println!("(upstream dispatch includes GPU routing + size-based thresholds)\n");
 
     let sizes: [u32; 4] = [64, 256, 1024, 4096];
     for sz in sizes {
@@ -464,7 +464,7 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
         let cpu_us = start.elapsed().as_secs_f64() * 1e4;
 
         let ratio = cpu_us / upstream_us;
-        eprintln!(
+        println!(
             "  mean(n={sz:>5}): upstream {upstream_us:>8.1}µs  cpu {cpu_us:>8.1}µs  ratio {ratio:.2}x"
         );
     }
@@ -487,13 +487,13 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
         let cpu_us = start.elapsed().as_secs_f64() * 1e5;
 
         let ratio = cpu_us / upstream_us;
-        eprintln!(
+        println!(
             "  matmul({n:>3}x{n:>3}): upstream {upstream_us:>8.1}µs  cpu {cpu_us:>8.1}µs  ratio {ratio:.2}x"
         );
     }
 
-    eprintln!();
-    eprintln!("--- S59 Rewired Ops Throughput ---\n");
+    println!();
+    println!("--- S59 Rewired Ops Throughput ---\n");
 
     for sz in [64_i32, 256, 1024, 4096] {
         let data: Vec<f64> = (-50..(-50 + sz)).map(|i| f64::from(i) * 0.01).collect();
@@ -511,7 +511,7 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
         let cpu_us = start.elapsed().as_secs_f64() * 1e4;
 
         let ratio = cpu_us / upstream_us;
-        eprintln!(
+        println!(
             "  gelu(n={sz:>5}): upstream {upstream_us:>8.1}µs  cpu {cpu_us:>8.1}µs  ratio {ratio:.2}x"
         );
     }
@@ -543,13 +543,13 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
         let cpu_us = start.elapsed().as_secs_f64() * 1e4;
 
         let ratio = cpu_us / upstream_us;
-        eprintln!(
+        println!(
             "  hmm_fwd(s={n_states:>3}): upstream {upstream_us:>8.1}µs  cpu {cpu_us:>8.1}µs  ratio {ratio:.2}x"
         );
     }
 
-    eprintln!();
-    eprintln!("--- S72 Rewired Ops Throughput ---\n");
+    println!();
+    println!("--- S72 Rewired Ops Throughput ---\n");
 
     for &(rows, cols) in &[(4, 64), (16, 128), (64, 256)] {
         let matrix: Vec<f64> = (0..rows * cols)
@@ -569,7 +569,7 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
         let cpu_us = start.elapsed().as_secs_f64() * 1e4;
 
         let ratio = cpu_us / upstream_us;
-        eprintln!(
+        println!(
             "  softmax_row({rows:>3}x{cols:>3}): upstream {upstream_us:>8.1}\u{00b5}s  cpu {cpu_us:>8.1}\u{00b5}s  ratio {ratio:.2}x"
         );
     }
@@ -616,7 +616,7 @@ fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
         let cpu_us = start.elapsed().as_secs_f64() * 5e4;
 
         let ratio = cpu_us / upstream_us;
-        eprintln!(
+        println!(
             "  viterbi(s={n_states:>3}): upstream {upstream_us:>8.1}\u{00b5}s  cpu {cpu_us:>8.1}\u{00b5}s  ratio {ratio:.2}x"
         );
     }
@@ -771,79 +771,77 @@ fn validate_rewired_complexity_metric_s78(h: &mut ValidationHarness) {
 }
 
 fn report_cross_spring_lineage() {
-    eprintln!("\n=== Cross-Spring Evolution Lineage ===\n");
-    eprintln!("hotSpring \u{2192} BarraCUDA precision layer:");
-    eprintln!("  \u{2022} df64_core.wgsl (double-float f32-pair emulation)");
-    eprintln!("  \u{2022} pow_f64 polyfill (transcendental workaround \u{2192} S-17 RESOLVED)");
-    eprintln!("  \u{2022} Fp64Strategy (Native/Hybrid detection)");
-    eprintln!("  \u{2022} GpuDriverProfile (hardware-adaptive dispatch)");
-    eprintln!("  \u{2022} Taylor-series sin/cos (7-term + Cody-Waite)");
-    eprintln!("  \u{2022} Lanczos eigensolver (lattice QCD heritage)");
-    eprintln!();
-    eprintln!("wetSpring \u{2192} BarraCUDA bio+spectral layer:");
-    eprintln!("  \u{2022} HMM forward/backward (phylogenetics)");
-    eprintln!("  \u{2022} 5 ODE bio systems (Capacitor, Cooperation, MultiSignal, Bistable, PhageDefense)");
-    eprintln!("  \u{2022} NMF (non-negative matrix factorization)");
-    eprintln!("  \u{2022} Anderson localization (3d_correlated, sweep_averaged, find_w_c)");
-    eprintln!("  \u{2022} Ridge regression (ESN readout)");
-    eprintln!(
+    println!("\n=== Cross-Spring Evolution Lineage ===\n");
+    println!("hotSpring \u{2192} BarraCUDA precision layer:");
+    println!("  \u{2022} df64_core.wgsl (double-float f32-pair emulation)");
+    println!("  \u{2022} pow_f64 polyfill (transcendental workaround \u{2192} S-17 RESOLVED)");
+    println!("  \u{2022} Fp64Strategy (Native/Hybrid detection)");
+    println!("  \u{2022} GpuDriverProfile (hardware-adaptive dispatch)");
+    println!("  \u{2022} Taylor-series sin/cos (7-term + Cody-Waite)");
+    println!("  \u{2022} Lanczos eigensolver (lattice QCD heritage)");
+    println!();
+    println!("wetSpring \u{2192} BarraCUDA bio+spectral layer:");
+    println!("  \u{2022} HMM forward/backward (phylogenetics)");
+    println!("  \u{2022} 5 ODE bio systems (Capacitor, Cooperation, MultiSignal, Bistable, PhageDefense)");
+    println!("  \u{2022} NMF (non-negative matrix factorization)");
+    println!("  \u{2022} Anderson localization (3d_correlated, sweep_averaged, find_w_c)");
+    println!("  \u{2022} Ridge regression (ESN readout)");
+    println!(
         "  \u{2022} fst_variance_decomposition (population genetics F-statistics)  [S72 rewire]"
     );
-    eprintln!();
-    eprintln!("neuralSpring \u{2192} BarraCUDA validation+ops layer:");
-    eprintln!("  \u{2022} ValidationHarness + exit_no_gpu + require! macro");
-    eprintln!("  \u{2022} batch_fitness_eval, pairwise_l2, pairwise_hamming/jaccard");
-    eprintln!("  \u{2022} spatial_payoff, hill_gate, multi_obj_fitness");
-    eprintln!("  \u{2022} eigh_householder_qr, batch_ipr, swarm_nn");
-    eprintln!("  \u{2022} 4-tier matmul KernelRouter");
-    eprintln!("  \u{2022} empirical_spectral_density, marchenko_pastur_bounds (S54)");
-    eprintln!("  \u{2022} effective_rank (S54), gelu_dispatch + hmm_forward_dispatch (S52)");
-    eprintln!();
-    eprintln!("S72 cross-spring rewiring:");
-    eprintln!(
+    println!();
+    println!("neuralSpring \u{2192} BarraCUDA validation+ops layer:");
+    println!("  \u{2022} ValidationHarness + exit_no_gpu + require! macro");
+    println!("  \u{2022} batch_fitness_eval, pairwise_l2, pairwise_hamming/jaccard");
+    println!("  \u{2022} spatial_payoff, hill_gate, multi_obj_fitness");
+    println!("  \u{2022} eigh_householder_qr, batch_ipr, swarm_nn");
+    println!("  \u{2022} 4-tier matmul KernelRouter");
+    println!("  \u{2022} empirical_spectral_density, marchenko_pastur_bounds (S54)");
+    println!("  \u{2022} effective_rank (S54), gelu_dispatch + hmm_forward_dispatch (S52)");
+    println!();
+    println!("S72 cross-spring rewiring:");
+    println!(
         "  \u{2022} argmax_dim(axis) \u{2192} Viterbi psi extraction (was CPU loop, now upstream)"
     );
-    eprintln!(
+    println!(
         "  \u{2022} softmax_dim(axis) \u{2192} Dispatcher::softmax_row_wise (was manual per-row)"
     );
-    eprintln!(
-        "  \u{2022} fst_variance_decomposition \u{2192} fst_single_locus + pairwise_fst_full"
-    );
-    eprintln!("  \u{2022} All 17 shortcomings RESOLVED upstream (S-14/15/16 at a4996b34, S-17 at c82c23d1)");
-    eprintln!();
-    eprintln!("airSpring \u{2192} BarraCUDA stats+regression layer:");
-    eprintln!(
+    println!("  \u{2022} fst_variance_decomposition \u{2192} fst_single_locus + pairwise_fst_full");
+    println!("  \u{2022} All 17 shortcomings RESOLVED upstream (S-14/15/16 at a4996b34, S-17 at c82c23d1)");
+    println!();
+    println!("airSpring \u{2192} BarraCUDA stats+regression layer:");
+    println!(
         "  \u{2022} mae, rmse, r_squared, nash_sutcliffe, index_of_agreement [S64\u{2013}S66]"
     );
-    eprintln!("  \u{2022} fit_linear, fit_quadratic, fit_exponential, fit_logarithmic [S66]");
-    eprintln!("  \u{2022} hydrology (hargreaves, soil_water_balance) [S66]");
-    eprintln!();
-    eprintln!("S78 cross-spring rewiring (neuralSpring \u{2192} BarraCUDA via ToadStool S66):");
-    eprintln!("  \u{2022} metrics::mae \u{2192} barracuda::stats::mae (airSpring origin)");
-    eprintln!(
+    println!("  \u{2022} fit_linear, fit_quadratic, fit_exponential, fit_logarithmic [S66]");
+    println!("  \u{2022} hydrology (hargreaves, soil_water_balance) [S66]");
+    println!();
+    println!("S78 cross-spring rewiring (neuralSpring \u{2192} BarraCUDA via ToadStool S66):");
+    println!("  \u{2022} metrics::mae \u{2192} barracuda::stats::mae (airSpring origin)");
+    println!(
         "  \u{2022} primitives::shannon_entropy \u{2192} barracuda::stats::shannon_from_frequencies (wetSpring origin)"
     );
-    eprintln!(
+    println!(
         "  \u{2022} primitives::hill_activation/repression \u{2192} barracuda::stats::hill (wetSpring+hotSpring origin)"
     );
-    eprintln!(
+    println!(
         "  \u{2022} modes::l2_distance \u{2192} barracuda::dispatch::l2_distance_dispatch (neuralSpring origin)"
     );
-    eprintln!(
+    println!(
         "  \u{2022} modes::complexity_metric \u{2192} barracuda::stats::fit_linear (airSpring origin)"
     );
-    eprintln!("  \u{2022} 9 metalForge shaders aligned to compile_shader_df64 convention (hotSpring origin)");
-    eprintln!();
-    eprintln!("All springs \u{2192} ToadStool (GPU sovereign pipeline):");
-    eprintln!("  \u{2022} 633+ WGSL shaders (cross-spring evolved, S66 Wave 5)");
-    eprintln!("  \u{2022} domain_ops dispatch \u{2014} 9 methods rewired (S58: 7, S59: +2)");
-    eprintln!("  \u{2022} stats/linalg \u{2014} 3 library functions rewired (S59)");
-    eprintln!("  \u{2022} S72 \u{2014} 4 new rewires (softmax_row_wise, fst_single_locus, fst_full, argmax_dim)");
-    eprintln!("  \u{2022} S76 \u{2014} 2 rewires (pearson_correlation)");
-    eprintln!("  \u{2022} S78 \u{2014} 6 rewires (mae, shannon, hill x2, l2_distance, fit_linear)");
-    eprintln!("  \u{2022} S91 \u{2014} 2 rewires (primal matmul_2d/3d \u{2192} matmul_dispatch, compile_shader_universal)");
-    eprintln!("  \u{2022} Total: 44 functions + 6 shader sources rewired");
-    eprintln!("  \u{2022} GpuDriverProfile (this benchmark validates detection)");
+    println!("  \u{2022} 9 metalForge shaders aligned to compile_shader_df64 convention (hotSpring origin)");
+    println!();
+    println!("All springs \u{2192} ToadStool (GPU sovereign pipeline):");
+    println!("  \u{2022} 633+ WGSL shaders (cross-spring evolved, S66 Wave 5)");
+    println!("  \u{2022} domain_ops dispatch \u{2014} 9 methods rewired (S58: 7, S59: +2)");
+    println!("  \u{2022} stats/linalg \u{2014} 3 library functions rewired (S59)");
+    println!("  \u{2022} S72 \u{2014} 4 new rewires (softmax_row_wise, fst_single_locus, fst_full, argmax_dim)");
+    println!("  \u{2022} S76 \u{2014} 2 rewires (pearson_correlation)");
+    println!("  \u{2022} S78 \u{2014} 6 rewires (mae, shannon, hill x2, l2_distance, fit_linear)");
+    println!("  \u{2022} S91 \u{2014} 2 rewires (primal matmul_2d/3d \u{2192} matmul_dispatch, compile_shader_universal)");
+    println!("  \u{2022} Total: 44 functions + 6 shader sources rewired");
+    println!("  \u{2022} GpuDriverProfile (this benchmark validates detection)");
 }
 
 #[tokio::main]
@@ -853,7 +851,7 @@ async fn main() {
     let dispatcher = Dispatcher::new().await;
     let cpu = Dispatcher::cpu_only();
 
-    eprintln!(
+    println!(
         "[evolution] GPU: {} ({}), f64 strategy: {:?}, pow workaround: {}",
         dispatcher.has_gpu(),
         dispatcher.adapter_name(),
@@ -861,7 +859,7 @@ async fn main() {
         dispatcher.needs_pow_workaround(),
     );
 
-    eprintln!("\n--- Rewired Dispatcher Methods (S58) ---\n");
+    println!("\n--- Rewired Dispatcher Methods (S58) ---\n");
     validate_rewired_matmul(&mut h, &dispatcher, &cpu);
     validate_rewired_frobenius(&mut h, &dispatcher, &cpu);
     validate_rewired_transpose(&mut h, &dispatcher, &cpu);
@@ -870,27 +868,27 @@ async fn main() {
     validate_rewired_mean(&mut h, &dispatcher, &cpu);
     validate_rewired_variance(&mut h, &dispatcher, &cpu);
 
-    eprintln!("\n--- Rewired S59: Dispatcher + Library Functions ---\n");
+    println!("\n--- Rewired S59: Dispatcher + Library Functions ---\n");
     validate_rewired_gelu(&mut h, &dispatcher, &cpu);
     validate_rewired_hmm_forward(&mut h, &dispatcher, &cpu);
     validate_rewired_esd(&mut h);
     validate_rewired_mp_bounds(&mut h);
     validate_rewired_effective_rank(&mut h);
 
-    eprintln!("\n--- S72 Rewires: Upstream Tensor APIs + FST ---\n");
+    println!("\n--- S72 Rewires: Upstream Tensor APIs + FST ---\n");
     validate_rewired_softmax_row_wise(&mut h, &dispatcher, &cpu);
     validate_rewired_fst_single_locus(&mut h, &dispatcher);
     validate_rewired_pairwise_fst_full(&mut h, &dispatcher, &cpu);
     validate_rewired_viterbi_argmax(&mut h, &dispatcher, &cpu);
 
-    eprintln!("\n--- S78 Rewires: Stats Absorption + Cross-Spring Primitives ---\n");
+    println!("\n--- S78 Rewires: Stats Absorption + Cross-Spring Primitives ---\n");
     validate_rewired_mae_s78(&mut h);
     validate_rewired_shannon_from_frequencies_s78(&mut h);
     validate_rewired_hill_s78(&mut h);
     validate_rewired_l2_distance_s78(&mut h);
     validate_rewired_complexity_metric_s78(&mut h);
 
-    eprintln!("\n--- Driver Profile Validation ---\n");
+    println!("\n--- Driver Profile Validation ---\n");
     validate_driver_profile(&mut h, &dispatcher);
 
     benchmark_throughput(&dispatcher, &cpu);

@@ -61,7 +61,7 @@ type Dev = Arc<WgpuDevice>;
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
@@ -88,7 +88,7 @@ async fn main() {
     validate_determinism(&mut h, &device);
 
     let elapsed = t0.elapsed();
-    eprintln!(
+    println!(
         "\n  total pure-GPU WDM+coralForge time: {:.1}ms (11 domains + determinism)",
         elapsed.as_secs_f64() * 1000.0,
     );

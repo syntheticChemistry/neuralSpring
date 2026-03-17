@@ -34,13 +34,13 @@ fn gpu_matmul_trace(matrix: &[f64], n: usize, device: &Dev) -> Result<f64, Strin
 async fn main() {
     let mut h = ValidationHarness::new("barracuda_isomorphic_reservoir");
 
-    eprintln!("\n── Exp 097: BarraCUDA Isomorphic Reservoir ──");
+    println!("\n── Exp 097: BarraCUDA Isomorphic Reservoir ──");
 
     let baseline = match load_isomorphic_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -50,16 +50,16 @@ async fn main() {
     // ══════════════════════════════════════════════════════════════
     // Tier 1: BarraCUDA CPU (stats on spectral vectors)
     // ══════════════════════════════════════════════════════════════
-    eprintln!("\n── Tier 1: BarraCUDA CPU stats ──");
+    println!("\n── Tier 1: BarraCUDA CPU stats ──");
     validate_bc_cpu(&mut h, &baseline);
 
     // ══════════════════════════════════════════════════════════════
     // Tier 2: BarraCUDA GPU (Tensor matmul on weight matrices)
     // ══════════════════════════════════════════════════════════════
-    eprintln!("\n── Tier 2: BarraCUDA GPU Tensor ──");
+    println!("\n── Tier 2: BarraCUDA GPU Tensor ──");
 
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  GPU unavailable — skipping GPU tier");
+        println!("  GPU unavailable — skipping GPU tier");
         h.finish();
     };
 
@@ -91,7 +91,7 @@ fn validate_bc_cpu(
             h.check_bool("bC CPU Pearson(eff_ratio, IPR) < 0 (inverse)", r < 0.0);
         }
         Err(e) => {
-            eprintln!("  Pearson error: {e}");
+            println!("  Pearson error: {e}");
             h.check_bool("bC CPU Pearson", false);
         }
     }
@@ -99,7 +99,7 @@ fn validate_bc_cpu(
     match barracuda::stats::correlation::variance(&eff_ratios) {
         Ok(var) => h.check_bool("bC CPU eff_ratio variance > 0", var > 0.0),
         Err(e) => {
-            eprintln!("  variance error: {e}");
+            println!("  variance error: {e}");
             h.check_bool("bC CPU variance", false);
         }
     }
@@ -126,7 +126,7 @@ fn validate_gpu_matmul(
         let mat_t = match Tensor::from_data(&mat_f32, vec![n, n], device.clone()) {
             Ok(t) => t,
             Err(e) => {
-                eprintln!("  {name}: GPU tensor creation failed — {e}");
+                println!("  {name}: GPU tensor creation failed — {e}");
                 h.check_bool(&format!("{name} GPU tensor"), false);
                 continue;
             }
@@ -142,7 +142,7 @@ fn validate_gpu_matmul(
         let id_t = match Tensor::from_data(&id_f32, vec![n, n], device.clone()) {
             Ok(t) => t,
             Err(e) => {
-                eprintln!("  {name}: GPU identity creation failed — {e}");
+                println!("  {name}: GPU identity creation failed — {e}");
                 h.check_bool(&format!("{name} GPU identity"), false);
                 continue;
             }
@@ -153,7 +153,7 @@ fn validate_gpu_matmul(
                 if let Ok(result_vec) = result.to_vec() {
                     let gpu_trace: f64 = (0..n).map(|i| f64::from(result_vec[i * n + i])).sum();
                     let diff = (gpu_trace - cpu_trace).abs();
-                    eprintln!(
+                    println!(
                         "  {name}: trace CPU={cpu_trace:.4}, GPU={gpu_trace:.4}, diff={diff:.2e}"
                     );
                     h.check_abs(
@@ -167,7 +167,7 @@ fn validate_gpu_matmul(
                 }
             }
             Err(e) => {
-                eprintln!("  {name}: GPU matmul failed — {e}");
+                println!("  {name}: GPU matmul failed — {e}");
                 h.check_bool(&format!("{name} GPU matmul"), false);
             }
         }

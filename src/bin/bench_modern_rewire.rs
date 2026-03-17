@@ -78,27 +78,27 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
     }
     let elapsed = start.elapsed();
     let us_per_iter = elapsed.as_micros() as f64 / ITERS as f64;
-    eprintln!("    {label}: {us_per_iter:.1}µs/iter");
+    println!("    {label}: {us_per_iter:.1}µs/iter");
     us_per_iter
 }
 
 fn main() {
-    eprintln!("╔══════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Modern Rewire & Cross-Spring Provenance Bench   ║");
-    eprintln!("║  BarraCUDA v0.3.5 (ToadStool S94b, 9d359814) · 845+ WGSL          ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — Modern Rewire & Cross-Spring Provenance Bench   ║");
+    println!("║  BarraCUDA v0.3.5 (ToadStool S94b, 9d359814) · 845+ WGSL          ║");
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+    println!();
 
     let rt = tokio::runtime::Runtime::new().or_exit("tokio runtime");
     let gpu = rt
         .block_on(async { Gpu::new().await })
         .or_exit("GPU required for benchmark");
 
-    eprintln!(
+    println!(
         "  GPU: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend
     );
-    eprintln!();
+    println!();
 
     let device = gpu.wgpu_device().clone();
     let mut h = ValidationHarness::new("modern_rewire_bench");
@@ -106,12 +106,12 @@ fn main() {
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 1: Rewired GPU Ops — pairwise_l2_matrix_gpu
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Rewire #1: pairwise_l2_matrix_gpu → PairwiseL2Gpu ═══");
-    eprintln!("  OLD: O(n²) loop calling l2_distance_gpu per pair");
-    eprintln!("  NEW: single PairwiseL2Gpu::dispatch (1 GPU dispatch)");
-    eprintln!("  Provenance: neuralSpring metalForge pairwise_l2.wgsl → BarraCUDA");
-    eprintln!("              neuralSpring absorbed from MODES (Exp-012) novelty search");
-    eprintln!();
+    println!("═══ Rewire #1: pairwise_l2_matrix_gpu → PairwiseL2Gpu ═══");
+    println!("  OLD: O(n²) loop calling l2_distance_gpu per pair");
+    println!("  NEW: single PairwiseL2Gpu::dispatch (1 GPU dispatch)");
+    println!("  Provenance: neuralSpring metalForge pairwise_l2.wgsl → BarraCUDA");
+    println!("              neuralSpring absorbed from MODES (Exp-012) novelty search");
+    println!();
 
     let n_vecs = 200;
     let dim = 50;
@@ -139,16 +139,16 @@ fn main() {
         &format!("pairwise_l2_matrix {rewire1_us:.0}µs (PairwiseL2Gpu)"),
         rewire1_us.is_finite(),
     );
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 2: Rewired GPU Ops — geographic_distance_matrix_gpu
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Rewire #2: geographic_distance_matrix_gpu → PairwiseL2Gpu ═══");
-    eprintln!("  OLD: O(n²) loop calling l2_distance_gpu per pair");
-    eprintln!("  NEW: delegates to pairwise_l2_matrix_gpu (PairwiseL2Gpu), expands to full matrix");
-    eprintln!("  Provenance: neuralSpring 025 MetaPop → PairwiseL2Gpu (BarraCUDA)");
-    eprintln!();
+    println!("═══ Rewire #2: geographic_distance_matrix_gpu → PairwiseL2Gpu ═══");
+    println!("  OLD: O(n²) loop calling l2_distance_gpu per pair");
+    println!("  NEW: delegates to pairwise_l2_matrix_gpu (PairwiseL2Gpu), expands to full matrix");
+    println!("  Provenance: neuralSpring 025 MetaPop → PairwiseL2Gpu (BarraCUDA)");
+    println!();
 
     let n_coords = 100;
     let coords: Vec<(f64, f64)> = (0..n_coords)
@@ -182,17 +182,17 @@ fn main() {
         &format!("geo_distance {rewire2_us:.0}µs (PairwiseL2Gpu)"),
         rewire2_us.is_finite(),
     );
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 3: Rewired GPU Ops — disorder_sweep_gpu IPR
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Rewire #3: disorder_sweep_gpu CPU IPR → BatchIprGpu ═══");
-    eprintln!("  OLD: CPU loop computing Σ|ψ|⁴ per eigenvector after eigensolve");
-    eprintln!("  NEW: BatchIprGpu::dispatch on GPU after BatchedEighGpu");
-    eprintln!("  Provenance: neuralSpring 022-023 Anderson → BatchIprGpu (BarraCUDA)");
-    eprintln!("              Eigensolve: hotSpring Jacobi → BatchedEighGpu (BarraCUDA)");
-    eprintln!();
+    println!("═══ Rewire #3: disorder_sweep_gpu CPU IPR → BatchIprGpu ═══");
+    println!("  OLD: CPU loop computing Σ|ψ|⁴ per eigenvector after eigensolve");
+    println!("  NEW: BatchIprGpu::dispatch on GPU after BatchedEighGpu");
+    println!("  Provenance: neuralSpring 022-023 Anderson → BatchIprGpu (BarraCUDA)");
+    println!("              Eigensolve: hotSpring Jacobi → BatchedEighGpu (BarraCUDA)");
+    println!();
 
     let n_dim = 16;
     let batch_size = 20;
@@ -236,19 +236,19 @@ fn main() {
         &format!("disorder_sweep {rewire3_us:.0}µs (BatchIprGpu)"),
         rewire3_us.is_finite(),
     );
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 4: Modern API — LogSumExp (hotSpring precision)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Modern API: LogSumExp ═══");
-    eprintln!("  Provenance: hotSpring log-domain HMM precision → BarraCUDA logsumexp_f64.wgsl");
-    eprintln!("  Used by: HMM forward, softmax, log-likelihood computation");
-    eprintln!("  Cross-spring: hotSpring needed log-domain stability for lattice QCD;");
-    eprintln!(
+    println!("═══ Modern API: LogSumExp ═══");
+    println!("  Provenance: hotSpring log-domain HMM precision → BarraCUDA logsumexp_f64.wgsl");
+    println!("  Used by: HMM forward, softmax, log-likelihood computation");
+    println!("  Cross-spring: hotSpring needed log-domain stability for lattice QCD;");
+    println!(
         "                wetSpring needed it for HMM Baum-Welch; neuralSpring for log-likelihood"
     );
-    eprintln!();
+    println!();
 
     let lse_n = 10_000_usize;
     let lse_data_f64: Vec<f64> = (0..lse_n).map(|_| rng.next_f64() * 20.0 - 10.0).collect();
@@ -268,18 +268,18 @@ fn main() {
     );
     let _ = lse_result;
     h.check_bool(&format!("LogSumExp {lse_us:.0}µs"), lse_us.is_finite());
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 5: Modern API — PairwiseDistance (universal)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Modern API: PairwiseDistance ═══");
-    eprintln!("  Provenance: neuralSpring MODES pairwise_l2 → BarraCUDA pairwise_distance");
-    eprintln!("  Universal distance metric: L1, L2, Lp norms");
-    eprintln!("  Cross-spring: neuralSpring needed L2 for novelty search;");
-    eprintln!("                wetSpring needed Hamming/Jaccard for genomics;");
-    eprintln!("                BarraCUDA generalized to PairwiseDistance(p)");
-    eprintln!();
+    println!("═══ Modern API: PairwiseDistance ═══");
+    println!("  Provenance: neuralSpring MODES pairwise_l2 → BarraCUDA pairwise_distance");
+    println!("  Universal distance metric: L1, L2, Lp norms");
+    println!("  Cross-spring: neuralSpring needed L2 for novelty search;");
+    println!("                wetSpring needed Hamming/Jaccard for genomics;");
+    println!("                BarraCUDA generalized to PairwiseDistance(p)");
+    println!();
 
     let pd_n = 5000_usize;
     let pd_dim = 32_usize;
@@ -295,17 +295,17 @@ fn main() {
         let _ = std::hint::black_box(op.execute().expect("PairwiseDistance execute"));
     });
     h.check_bool(&format!("PairwiseDistance {pd_us:.0}µs"), pd_us.is_finite());
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 6: Modern API — BatchedEighGpu (hotSpring eigensolve)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Modern API: BatchedEighGpu ═══");
-    eprintln!("  Provenance: hotSpring HFB diagonalization → BarraCUDA Jacobi GPU sweeps");
-    eprintln!("  neuralSpring uses it for Anderson localization, weight spectral analysis");
-    eprintln!("  Cross-spring: hotSpring needed batched eigensolve for HFB nuclear structure;");
-    eprintln!("                neuralSpring adopted for weight spectral analysis (Exp-040+)");
-    eprintln!();
+    println!("═══ Modern API: BatchedEighGpu ═══");
+    println!("  Provenance: hotSpring HFB diagonalization → BarraCUDA Jacobi GPU sweeps");
+    println!("  neuralSpring uses it for Anderson localization, weight spectral analysis");
+    println!("  Cross-spring: hotSpring needed batched eigensolve for HFB nuclear structure;");
+    println!("                neuralSpring adopted for weight spectral analysis (Exp-040+)");
+    println!();
 
     let eigh_n = 24;
     let eigh_batch = 50;
@@ -365,78 +365,78 @@ fn main() {
         &format!("BatchedEighGpu {eigh_us:.0}µs"),
         eigh_us.is_finite(),
     );
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 7: Modern API — BatchIprGpu (neuralSpring spectral)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Modern API: BatchIprGpu ═══");
-    eprintln!("  Provenance: neuralSpring Anderson localization 022-023 → BarraCUDA");
-    eprintln!("  IPR = Σ|ψ_i|⁴ measures eigenvector localization");
-    eprintln!("  Cross-spring: neuralSpring needed for disorder sweep;");
-    eprintln!("                hotSpring uses for nuclear wavefunction localization");
-    eprintln!();
+    println!("═══ Modern API: BatchIprGpu ═══");
+    println!("  Provenance: neuralSpring Anderson localization 022-023 → BarraCUDA");
+    println!("  IPR = Σ|ψ_i|⁴ measures eigenvector localization");
+    println!("  Cross-spring: neuralSpring needed for disorder sweep;");
+    println!("                hotSpring uses for nuclear wavefunction localization");
+    println!();
 
     bench_ipr_gpu(&mut h, &device);
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 8: Cross-spring GPU diversity (wetSpring)
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Modern API: DiversityFusionGpu ═══");
-    eprintln!("  Provenance: wetSpring diversity.rs → diversity_fusion_f64.wgsl → BarraCUDA");
-    eprintln!("  Fused Shannon + Simpson + Pielou in one GPU dispatch");
-    eprintln!("  Cross-spring: wetSpring metagenomics → neuralSpring eco_dynamics;");
-    eprintln!("                neuralSpring added GPU dispatch path (metalForge);");
-    eprintln!("                BarraCUDA absorbed and f64-canonicalized");
-    eprintln!();
+    println!("═══ Modern API: DiversityFusionGpu ═══");
+    println!("  Provenance: wetSpring diversity.rs → diversity_fusion_f64.wgsl → BarraCUDA");
+    println!("  Fused Shannon + Simpson + Pielou in one GPU dispatch");
+    println!("  Cross-spring: wetSpring metagenomics → neuralSpring eco_dynamics;");
+    println!("                neuralSpring added GPU dispatch path (metalForge);");
+    println!("                BarraCUDA absorbed and f64-canonicalized");
+    println!();
 
     bench_diversity_fusion(&mut h, &device);
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // SECTION 9: Dispatcher cross-spring f64 ops
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Dispatcher: Cross-Spring f64 Precision Ops ═══");
-    eprintln!("  Dispatcher auto-routes CPU→GPU based on size threshold");
-    eprintln!("  f64 ops evolved from: hotSpring (Welford variance), wetSpring (correlation),");
-    eprintln!("  neuralSpring (matmul), airSpring (regression) → BarraCUDA universal precision");
-    eprintln!();
+    println!("═══ Dispatcher: Cross-Spring f64 Precision Ops ═══");
+    println!("  Dispatcher auto-routes CPU→GPU based on size threshold");
+    println!("  f64 ops evolved from: hotSpring (Welford variance), wetSpring (correlation),");
+    println!("  neuralSpring (matmul), airSpring (regression) → BarraCUDA universal precision");
+    println!();
 
     bench_dispatcher_f64(&mut h);
-    eprintln!();
+    println!();
 
     // ═══════════════════════════════════════════════════════════════════
     // Summary
     // ═══════════════════════════════════════════════════════════════════
-    eprintln!("═══ Cross-Spring Shader Provenance Summary ═══");
-    eprintln!();
-    eprintln!("  ┌─────────────┬──────────────────────────────────────────────────┐");
-    eprintln!("  │ Spring      │ Key Contributions to BarraCUDA Shaders          │");
-    eprintln!("  ├─────────────┼──────────────────────────────────────────────────┤");
-    eprintln!("  │ hotSpring   │ DF64 core, eigensolve, Welford var, logsumexp   │");
-    eprintln!("  │             │ → precision shaders, Jacobi sweeps, HFB         │");
-    eprintln!("  ├─────────────┼──────────────────────────────────────────────────┤");
-    eprintln!("  │ wetSpring   │ Shannon, Simpson, HMM, diversity fusion         │");
-    eprintln!("  │             │ → bio shaders, Bray-Curtis, Felsenstein         │");
-    eprintln!("  ├─────────────┼──────────────────────────────────────────────────┤");
-    eprintln!("  │ neuralSpring│ Pairwise L2, IPR, batch fitness, swarm NN       │");
-    eprintln!("  │             │ → ML shaders, novelty search, Anderson disorder │");
-    eprintln!("  ├─────────────┼──────────────────────────────────────────────────┤");
-    eprintln!("  │ airSpring   │ RMSE, R², NSE, fit_linear, moving_window        │");
-    eprintln!("  │             │ → stats shaders, regression, ET₀                │");
-    eprintln!("  ├─────────────┼──────────────────────────────────────────────────┤");
-    eprintln!("  │ groundSpring│ multinomial sampling, MC propagation, ET₀       │");
-    eprintln!("  │             │ → stochastic shaders, bootstrap                 │");
-    eprintln!("  └─────────────┴──────────────────────────────────────────────────┘");
-    eprintln!();
-    eprintln!("  844+ f64-canonical WGSL shaders in BarraCUDA (ToadStool S87, 2dc26792)");
-    eprintln!("  All springs benefit via path-dependent evolution:");
-    eprintln!("    hotSpring precision → neuralSpring eigensolve");
-    eprintln!("    wetSpring bio → neuralSpring eco_dynamics");
-    eprintln!("    neuralSpring ML → hotSpring batch fitness");
-    eprintln!("  Each spring pushes domain expertise → BarraCUDA absorbs → all benefit");
-    eprintln!();
+    println!("═══ Cross-Spring Shader Provenance Summary ═══");
+    println!();
+    println!("  ┌─────────────┬──────────────────────────────────────────────────┐");
+    println!("  │ Spring      │ Key Contributions to BarraCUDA Shaders          │");
+    println!("  ├─────────────┼──────────────────────────────────────────────────┤");
+    println!("  │ hotSpring   │ DF64 core, eigensolve, Welford var, logsumexp   │");
+    println!("  │             │ → precision shaders, Jacobi sweeps, HFB         │");
+    println!("  ├─────────────┼──────────────────────────────────────────────────┤");
+    println!("  │ wetSpring   │ Shannon, Simpson, HMM, diversity fusion         │");
+    println!("  │             │ → bio shaders, Bray-Curtis, Felsenstein         │");
+    println!("  ├─────────────┼──────────────────────────────────────────────────┤");
+    println!("  │ neuralSpring│ Pairwise L2, IPR, batch fitness, swarm NN       │");
+    println!("  │             │ → ML shaders, novelty search, Anderson disorder │");
+    println!("  ├─────────────┼──────────────────────────────────────────────────┤");
+    println!("  │ airSpring   │ RMSE, R², NSE, fit_linear, moving_window        │");
+    println!("  │             │ → stats shaders, regression, ET₀                │");
+    println!("  ├─────────────┼──────────────────────────────────────────────────┤");
+    println!("  │ groundSpring│ multinomial sampling, MC propagation, ET₀       │");
+    println!("  │             │ → stochastic shaders, bootstrap                 │");
+    println!("  └─────────────┴──────────────────────────────────────────────────┘");
+    println!();
+    println!("  844+ f64-canonical WGSL shaders in BarraCUDA (ToadStool S87, 2dc26792)");
+    println!("  All springs benefit via path-dependent evolution:");
+    println!("    hotSpring precision → neuralSpring eigensolve");
+    println!("    wetSpring bio → neuralSpring eco_dynamics");
+    println!("    neuralSpring ML → hotSpring batch fitness");
+    println!("  Each spring pushes domain expertise → BarraCUDA absorbs → all benefit");
+    println!();
 
     h.finish();
 }
@@ -520,7 +520,7 @@ fn bench_diversity_fusion(h: &mut ValidationHarness, device: &Arc<WgpuDevice>) {
 
     if gpu_us > 0.0 && cpu_us > 0.0 {
         let ratio = cpu_us / gpu_us;
-        eprintln!("    → GPU/CPU ratio: {ratio:.2}×");
+        println!("    → GPU/CPU ratio: {ratio:.2}×");
     }
 
     h.check_bool(

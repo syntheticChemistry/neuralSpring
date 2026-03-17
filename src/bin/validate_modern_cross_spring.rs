@@ -44,7 +44,7 @@ use neural_spring::validation::{bench_once, max_abs_diff_f64, ValidationHarness}
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_hotspring_precision(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
-    eprintln!("\n─── hotSpring provenance: precision infrastructure ───\n");
+    println!("\n─── hotSpring provenance: precision infrastructure ───\n");
 
     // Fp64Strategy detection (hotSpring S58 → BarraCUDA)
     let strategy = dispatcher.fp64_strategy();
@@ -127,7 +127,7 @@ fn validate_hotspring_precision(h: &mut ValidationHarness, dispatcher: &Dispatch
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_wetspring_bio(h: &mut ValidationHarness) {
-    eprintln!("\n─── wetSpring provenance: bio + diversity ───\n");
+    println!("\n─── wetSpring provenance: bio + diversity ───\n");
 
     // Shannon diversity (wetSpring → BarraCUDA)
     let counts = [10.0, 20.0, 30.0, 40.0];
@@ -233,7 +233,7 @@ fn validate_wetspring_bio(h: &mut ValidationHarness) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_airspring_stats(h: &mut ValidationHarness) {
-    eprintln!("\n─── airSpring provenance: stats + regression ───\n");
+    println!("\n─── airSpring provenance: stats + regression ───\n");
 
     // Regression fitting (airSpring → BarraCUDA)
     let x = [1.0, 2.0, 3.0, 4.0, 5.0];
@@ -335,7 +335,7 @@ fn validate_airspring_stats(h: &mut ValidationHarness) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
-    eprintln!("\n─── groundSpring provenance: bootstrap + sampling ───\n");
+    println!("\n─── groundSpring provenance: bootstrap + sampling ───\n");
 
     // Bootstrap CI (groundSpring → BarraCUDA)
     let data: Vec<f64> = (0..100).map(|i| (i as f64) * 0.1).collect();
@@ -413,7 +413,7 @@ fn validate_groundspring_bootstrap(h: &mut ValidationHarness) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
-    eprintln!("\n─── neuralSpring provenance: ML + dispatch ───\n");
+    println!("\n─── neuralSpring provenance: ML + dispatch ───\n");
 
     // Dispatcher: softmax (nS S58 → BarraCUDA domain_ops)
     let logits = [1.0, 2.0, 3.0, 4.0];
@@ -494,7 +494,7 @@ fn validate_neuralspring_dispatch(h: &mut ValidationHarness, dispatcher: &Dispat
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
-    eprintln!("\n─── BarraCUDA (ToadStool S68): universal precision + modern APIs ───\n");
+    println!("\n─── BarraCUDA (ToadStool S68): universal precision + modern APIs ───\n");
 
     // Verify Precision enum is accessible (S67 — F16 removed upstream, 3 tiers remain)
     h.check_bool(
@@ -632,7 +632,7 @@ fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Disp
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_toadstool_s86_evolution(h: &mut ValidationHarness) {
-    eprintln!("\n─── BarraCUDA (ToadStool S86): nautilus + hydrology + optimizers ───\n");
+    println!("\n─── BarraCUDA (ToadStool S86): nautilus + hydrology + optimizers ───\n");
 
     // S80: barracuda::nautilus absorbed from bingoCube → hotSpring brain arch
     use barracuda::nautilus::{
@@ -741,7 +741,7 @@ fn validate_toadstool_s86_evolution(h: &mut ValidationHarness) {
         true,
     );
 
-    eprintln!(
+    println!(
         "\n  Cross-spring provenance chain:\n\
          \n  hotSpring (brain arch, lattice QCD, BetaObservation)\n\
            \t↓\n\
@@ -770,11 +770,11 @@ fn print_bench_row(label: &str, prov: &str, gpu_us: f64, cpu_us: f64) {
     } else {
         f64::NAN
     };
-    eprintln!("  │ {label:<15} │ {prov:<10} │ {gpu_us:>8.1} │ {cpu_us:>8.1} │ {ratio:>7.2}× │");
+    println!("  │ {label:<15} │ {prov:<10} │ {gpu_us:>8.1} │ {cpu_us:>8.1} │ {ratio:>7.2}× │");
 }
 
 fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
-    eprintln!("\n─── Cross-spring throughput benchmark ───\n");
+    println!("\n─── Cross-spring throughput benchmark ───\n");
 
     let cpu = Dispatcher::cpu_only();
     let n = 256;
@@ -794,9 +794,9 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
     let mut total_cpu = 0.0_f64;
     let mut count = 0_usize;
 
-    eprintln!("  ┌─────────────────┬────────────┬──────────┬──────────┬──────────┐");
-    eprintln!("  │ Operation       │ Provenance │  GPU µs  │  CPU µs  │ Ratio    │");
-    eprintln!("  ├─────────────────┼────────────┼──────────┼──────────┼──────────┤");
+    println!("  ┌─────────────────┬────────────┬──────────┬──────────┬──────────┐");
+    println!("  │ Operation       │ Provenance │  GPU µs  │  CPU µs  │ Ratio    │");
+    println!("  ├─────────────────┼────────────┼──────────┼──────────┼──────────┤");
 
     macro_rules! bench_row {
         ($label:expr, $prov:expr, $gpu:expr, $cpu:expr) => {{
@@ -848,7 +848,7 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
         cpu.frobenius_norm(&data)
     );
 
-    eprintln!("  └─────────────────┴────────────┴──────────┴──────────┴──────────┘");
+    println!("  └─────────────────┴────────────┴──────────┴──────────┴──────────┘");
 
     h.check_bool(
         &format!("bench: {count}/6 ops timed (total GPU {total_gpu:.0}µs, CPU {total_cpu:.0}µs)"),
@@ -857,18 +857,18 @@ fn benchmark_cross_spring_throughput(h: &mut ValidationHarness, dispatcher: &Dis
 }
 
 fn report_provenance_summary() {
-    eprintln!("\n═══ Cross-Spring Provenance: 5 springs → BarraCUDA → sovereign GPU ═══\n");
-    eprintln!(
+    println!("\n═══ Cross-Spring Provenance: 5 springs → BarraCUDA → sovereign GPU ═══\n");
+    println!(
         "  hotSpring    → DF64/Fp64Strategy/lattice QCD/nautilus → eigh, eigensolve, precision"
     );
-    eprintln!(
+    println!(
         "  wetSpring    → diversity/HMM/NMF/ODE bio/chao1       → alpha_diversity, FST chains"
     );
-    eprintln!("  airSpring    → regression/hydrology/metrics           → ET₀ (5 methods), fit_*");
-    eprintln!("  groundSpring → bootstrap/multinomial/jackknife        → bootstrap_ci, norm_*");
-    eprintln!("  neuralSpring → batch_fitness/pairwise/eigh/swarm_nn  → Dispatcher (47 ops)");
-    eprintln!("  BarraCUDA v0.3.5: 719+ WGSL, 144 ComputeDispatch ops, nautilus absorbed S80");
-    eprintln!();
+    println!("  airSpring    → regression/hydrology/metrics           → ET₀ (5 methods), fit_*");
+    println!("  groundSpring → bootstrap/multinomial/jackknife        → bootstrap_ci, norm_*");
+    println!("  neuralSpring → batch_fitness/pairwise/eigh/swarm_nn  → Dispatcher (47 ops)");
+    println!("  BarraCUDA v0.3.5: 719+ WGSL, 144 ComputeDispatch ops, nautilus absorbed S80");
+    println!();
 }
 
 #[tokio::main]
@@ -877,7 +877,7 @@ async fn main() {
 
     let dispatcher = Dispatcher::new().await;
 
-    eprintln!(
+    println!(
         "[modern] backend={}, gpu={}, adapter={}, fp64={:?}",
         dispatcher.backend(),
         dispatcher.has_gpu(),

@@ -30,7 +30,7 @@ pub struct CpuBenchResult {
 pub fn run_python_bench(script_rel: &str) -> Option<f64> {
     let script = baseline_path(script_rel);
     if !script.exists() {
-        eprintln!("    [skip] Python script not found: {}", script.display());
+        println!("    [skip] Python script not found: {}", script.display());
         return None;
     }
     let output = Command::new("python3")
@@ -42,7 +42,7 @@ pub fn run_python_bench(script_rel: &str) -> Option<f64> {
         .ok()?;
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        eprintln!(
+        println!(
             "    [skip] Python script failed: {}",
             stderr.lines().next().unwrap_or("")
         );
@@ -73,9 +73,9 @@ pub fn record_domain(
 ) {
     let speedup = python_us.map(|p| p / rust_us);
     if let (Some(s), Some(p)) = (speedup, python_us) {
-        eprintln!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
+        println!("    Python: {p:.1}µs, Rust: {rust_us:.1}µs, Speedup: {s:.1}×");
     } else {
-        eprintln!("    Rust: {rust_us:.1}µs (Python unavailable)");
+        println!("    Rust: {rust_us:.1}µs (Python unavailable)");
     }
     results.push(CpuBenchResult {
         domain,
@@ -93,15 +93,15 @@ pub fn record_domain(
 /// then computes the geometric mean speedup across all domains with
 /// Python timings.
 pub fn print_cpu_summary(h: &mut super::ValidationHarness, results: &[CpuBenchResult]) {
-    eprintln!("╔══════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  Summary: BarraCUDA CPU vs Python/NumPy                                    ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!(
+    println!("╔══════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  Summary: BarraCUDA CPU vs Python/NumPy                                    ║");
+    println!("╚══════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!(
         "  {:<25} {:>6} {:>10} {:>10} {:>8} {:>7}",
         "Domain", "Papers", "Python µs", "Rust µs", "Speedup", "Parity"
     );
-    eprintln!("  {}", "─".repeat(70));
+    println!("  {}", "─".repeat(70));
 
     let mut speedup_count = 0_u32;
     let mut all_parity = true;
@@ -114,7 +114,7 @@ pub fn print_cpu_summary(h: &mut super::ValidationHarness, results: &[CpuBenchRe
             .speedup
             .map_or_else(|| "—".to_string(), |s| format!("{s:.1}×"));
         let par_str = if r.parity_ok { "✓" } else { "✗" };
-        eprintln!(
+        println!(
             "  {:<25} {:>6} {:>10} {:>10.1} {:>8} {:>7}",
             r.domain, r.papers, py_str, r.rust_us, sp_str, par_str
         );
@@ -126,7 +126,7 @@ pub fn print_cpu_summary(h: &mut super::ValidationHarness, results: &[CpuBenchRe
         }
     }
 
-    eprintln!("  {}", "─".repeat(70));
+    println!("  {}", "─".repeat(70));
     if speedup_count > 0 {
         let geomean = (results
             .iter()
@@ -135,7 +135,7 @@ pub fn print_cpu_summary(h: &mut super::ValidationHarness, results: &[CpuBenchRe
             .sum::<f64>()
             / f64::from(speedup_count))
         .exp();
-        eprintln!("  Geometric mean speedup: {geomean:.1}× (across {speedup_count} domains)");
+        println!("  Geometric mean speedup: {geomean:.1}× (across {speedup_count} domains)");
         h.check_bool(
             &format!("Geometric mean speedup > 1.0× ({geomean:.1}×)"),
             geomean > 1.0,
@@ -143,7 +143,7 @@ pub fn print_cpu_summary(h: &mut super::ValidationHarness, results: &[CpuBenchRe
     }
     h.check_bool("All parity checks passed", all_parity);
 
-    eprintln!(
+    println!(
         "\n  Portability chain: Python/NumPy \u{2192} BarraCUDA CPU (pure Rust) \u{2192} BarraCUDA GPU\n"
     );
 }

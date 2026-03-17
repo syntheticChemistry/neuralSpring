@@ -59,17 +59,17 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
     }
     let elapsed = start.elapsed();
     let us_per_iter = elapsed.as_micros() as f64 / ITERS as f64;
-    eprintln!("    {label}: {us_per_iter:.1}µs/iter");
+    println!("    {label}: {us_per_iter:.1}µs/iter");
     us_per_iter
 }
 
 fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("═══ neuralSpring origins → BarraCUDA absorption ═══");
-    eprintln!("  softmax: transformer.rs → barracuda::dispatch → softmax_f64.wgsl");
-    eprintln!("  gelu: transformer.rs → barracuda::dispatch → gelu_f64.wgsl");
-    eprintln!("  matmul: matmul_gpu_evolved → barracuda::dispatch → matmul.wgsl");
-    eprintln!("  RK4: primitives.rs → metalForge rk4_parallel.wgsl");
-    eprintln!();
+    println!("═══ neuralSpring origins → BarraCUDA absorption ═══");
+    println!("  softmax: transformer.rs → barracuda::dispatch → softmax_f64.wgsl");
+    println!("  gelu: transformer.rs → barracuda::dispatch → gelu_f64.wgsl");
+    println!("  matmul: matmul_gpu_evolved → barracuda::dispatch → matmul.wgsl");
+    println!("  RK4: primitives.rs → metalForge rk4_parallel.wgsl");
+    println!();
 
     let x256: Vec<f64> = (0..256).map(|i| (i as f64) * 0.01).collect();
     let x1k: Vec<f64> = (0..1024).map(|i| (i as f64) * 0.001).collect();
@@ -90,10 +90,10 @@ fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
     } else {
         0.0
     };
-    eprintln!("    → softmax GPU speedup: {speedup_sm:.2}x vs local CPU");
+    println!("    → softmax GPU speedup: {speedup_sm:.2}x vs local CPU");
     h.check_bool("softmax: barracuda::dispatch works", bc_sm > 0.0);
 
-    eprintln!();
+    println!();
     let local_gelu = bench("gelu T0: local CPU (1024)", || {
         let _: Vec<f64> = x1k.iter().copied().map(transformer::gelu).collect();
     });
@@ -108,9 +108,9 @@ fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
     } else {
         0.0
     };
-    eprintln!("    → gelu GPU speedup: {speedup_gelu:.2}x vs local CPU");
+    println!("    → gelu GPU speedup: {speedup_gelu:.2}x vs local CPU");
 
-    eprintln!();
+    println!();
     let n = 64;
     let mat_a: Vec<f64> = (0..n * n).map(|i| (i as f64) * 0.01).collect();
     let mat_b: Vec<f64> = (0..n * n).map(|i| (i as f64) * 0.005 + 0.1).collect();
@@ -127,15 +127,15 @@ fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
     h.check_bool("matmul: GPU dispatch functional", disp_mm > 0.0);
     h.check_bool("matmul: barracuda::dispatch functional", bc_mm > 0.0);
 
-    eprintln!();
+    println!();
     bench("sigmoid T0: local CPU (1024 evals)", || {
         for &v in &x1k {
             std::hint::black_box(primitives::sigmoid(v));
         }
     });
-    eprintln!("    → sigmoid: local CPU reference; GPU via sigmoid_f64.wgsl in coralForge");
+    println!("    → sigmoid: local CPU reference; GPU via sigmoid_f64.wgsl in coralForge");
 
-    eprintln!();
+    println!();
     bench(
         "rk4 T0: local CPU (1000 steps, harmonic oscillator)",
         || {
@@ -146,17 +146,17 @@ fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
             std::hint::black_box(y);
         },
     );
-    eprintln!("    → RK4: local single-step; GPU batch via rk4_parallel.wgsl");
-    eprintln!();
+    println!("    → RK4: local single-step; GPU batch via rk4_parallel.wgsl");
+    println!();
 }
 
 fn bench_wetspring_origins(h: &mut ValidationHarness) {
-    eprintln!("═══ wetSpring origins → BarraCUDA absorption ═══");
-    eprintln!("  Shannon/Simpson: wetSpring diversity → barracuda::stats");
-    eprintln!("  HMM: wetSpring hmm_forward_log.wgsl → barracuda::dispatch");
-    eprintln!("  Bray-Curtis: wetSpring ecological → barracuda::stats");
-    eprintln!("  chao1/pielou: wetSpring richness → barracuda::stats::diversity");
-    eprintln!();
+    println!("═══ wetSpring origins → BarraCUDA absorption ═══");
+    println!("  Shannon/Simpson: wetSpring diversity → barracuda::stats");
+    println!("  HMM: wetSpring hmm_forward_log.wgsl → barracuda::dispatch");
+    println!("  Bray-Curtis: wetSpring ecological → barracuda::stats");
+    println!("  chao1/pielou: wetSpring richness → barracuda::stats::diversity");
+    println!();
 
     let counts_256: Vec<f64> = (1..=256).map(|i| (i * i) as f64).collect();
     let freqs: Vec<f64> = {
@@ -200,16 +200,16 @@ fn bench_wetspring_origins(h: &mut ValidationHarness) {
         barracuda::stats::simpson(&counts_256) >= 0.0
             && barracuda::stats::simpson(&counts_256) <= 1.0,
     );
-    eprintln!();
+    println!();
 }
 
 fn bench_hotspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("═══ hotSpring origins → BarraCUDA absorption ═══");
-    eprintln!("  eigensolve: hotSpring Householder+QR → barracuda::linalg → Dispatcher");
-    eprintln!("  spectral: hotSpring level_spacing_ratio → barracuda::spectral");
-    eprintln!("  precision: hotSpring DF64 → math_f64.wgsl (28 fn) + df64_transcendentals.wgsl");
-    eprintln!("  pearson: hotSpring correlation → barracuda::stats → Dispatcher");
-    eprintln!();
+    println!("═══ hotSpring origins → BarraCUDA absorption ═══");
+    println!("  eigensolve: hotSpring Householder+QR → barracuda::linalg → Dispatcher");
+    println!("  spectral: hotSpring level_spacing_ratio → barracuda::spectral");
+    println!("  precision: hotSpring DF64 → math_f64.wgsl (28 fn) + df64_transcendentals.wgsl");
+    println!("  pearson: hotSpring correlation → barracuda::stats → Dispatcher");
+    println!();
 
     let n = 32;
     let mut sym: Vec<f64> = vec![0.0; n * n];
@@ -242,7 +242,7 @@ fn bench_hotspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
         ));
     });
 
-    eprintln!();
+    println!();
     let data_a: Vec<f64> = (0..512).map(|i| (i as f64) * 0.1).collect();
     let data_b: Vec<f64> = (0..512).map(|i| (i as f64) * 0.1 + 0.5).collect();
 
@@ -262,16 +262,16 @@ fn bench_hotspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
     h.check_bool("hotSpring eigensolve: functional", evals.len() == n);
     h.check_bool("hotSpring precision: dispatched", disp_var_t > 0.0);
     h.check_bool("hotSpring precision: barracuda path", bc_var_t > 0.0);
-    eprintln!();
+    println!();
 }
 
 fn bench_groundspring_origins(h: &mut ValidationHarness) {
-    eprintln!("═══ groundSpring origins → BarraCUDA absorption ═══");
-    eprintln!("  bootstrap: groundSpring uncertainty → barracuda::stats::bootstrap_ci");
-    eprintln!("  jackknife: groundSpring leave-one-out → barracuda::stats::jackknife");
-    eprintln!("  kimura: groundSpring evolution → barracuda::stats::kimura_fixation_prob");
-    eprintln!("  norm_cdf: groundSpring normal dist → barracuda::stats::norm_cdf");
-    eprintln!();
+    println!("═══ groundSpring origins → BarraCUDA absorption ═══");
+    println!("  bootstrap: groundSpring uncertainty → barracuda::stats::bootstrap_ci");
+    println!("  jackknife: groundSpring leave-one-out → barracuda::stats::jackknife");
+    println!("  kimura: groundSpring evolution → barracuda::stats::kimura_fixation_prob");
+    println!("  norm_cdf: groundSpring normal dist → barracuda::stats::norm_cdf");
+    println!();
 
     let data: Vec<f64> = (0..200).map(|i| (i as f64) * 0.1).collect();
 
@@ -329,14 +329,14 @@ fn bench_groundspring_origins(h: &mut ValidationHarness) {
         "groundSpring norm_cdf: Φ(0) = 0.5",
         (barracuda::stats::norm_cdf(0.0) - 0.5).abs() < tolerances::EXACT_F64,
     );
-    eprintln!();
+    println!();
 }
 
 fn bench_airspring_origins(h: &mut ValidationHarness) {
-    eprintln!("═══ airSpring origins → BarraCUDA absorption ═══");
-    eprintln!("  hydrology: airSpring ET₀ methods → barracuda::stats::hydrology");
-    eprintln!("  FAO-56, Hargreaves, Thornthwaite, Hamon, Makkink, Turc");
-    eprintln!();
+    println!("═══ airSpring origins → BarraCUDA absorption ═══");
+    println!("  hydrology: airSpring ET₀ methods → barracuda::stats::hydrology");
+    println!("  FAO-56, Hargreaves, Thornthwaite, Hamon, Makkink, Turc");
+    println!();
 
     bench("hargreaves_et0 T3: barracuda::stats", || {
         std::hint::black_box(barracuda::stats::hargreaves_et0(20.0, 35.0, 15.0));
@@ -379,14 +379,14 @@ fn bench_airspring_origins(h: &mut ValidationHarness) {
         "airSpring hydrology: thornthwaite produces positive ET₀",
         barracuda::stats::thornthwaite_et0(20.0, 50.0, 12.0, 30.0).is_some_and(|v| v > 0.0),
     );
-    eprintln!();
+    println!();
 }
 
 fn bench_convergence_pipeline(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("═══ Cross-spring convergence pipeline (all → BarraCUDA) ═══");
-    eprintln!("  Full pipeline: Dispatcher wraps barracuda::dispatch wraps WGSL shaders");
-    eprintln!("  All springs converge through BarraCUDA's 844+ WGSL shaders");
-    eprintln!();
+    println!("═══ Cross-spring convergence pipeline (all → BarraCUDA) ═══");
+    println!("  Full pipeline: Dispatcher wraps barracuda::dispatch wraps WGSL shaders");
+    println!("  All springs converge through BarraCUDA's 844+ WGSL shaders");
+    println!();
 
     let data: Vec<f64> = (0..2048).map(|i| (i as f64) * 0.001).collect();
 
@@ -428,7 +428,7 @@ fn bench_convergence_pipeline(h: &mut ValidationHarness, disp: &Dispatcher) {
         "convergence: transpose via Dispatcher",
         transpose_val.len() == n * n,
     );
-    eprintln!();
+    println!();
 }
 
 fn print_evolution_summary() {
@@ -437,36 +437,36 @@ fn print_evolution_summary() {
     let shader_count = all_shaders.len();
     let matrix = barracuda::shaders::provenance::cross_spring_matrix();
 
-    eprintln!("╔══════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  Cross-Spring Shader Evolution — Provenance Registry Summary       ║");
-    eprintln!("╠══════════════════════════════════════════════════════════════════════╣");
-    eprintln!("║  {shader_count} shaders tracked in barraCuda provenance registry");
-    eprintln!("║  {n} cross-spring dependency edges", n = matrix.len());
-    eprintln!("║                                                                    ║");
-    eprintln!("║  Springs that converge here:                                       ║");
-    eprintln!("║    hotSpring  → precision, DF64, spectral, eigensolve             ║");
-    eprintln!("║    wetSpring  → diversity, HMM, bio, Wright-Fisher                ║");
-    eprintln!("║    neuralSpring → ML activations, matmul, RK4, attention          ║");
-    eprintln!("║    groundSpring → uncertainty, bootstrap, normal distribution     ║");
-    eprintln!("║    airSpring  → hydrology, ET₀, water balance                    ║");
-    eprintln!("║                                                                    ║");
-    eprintln!("║  barraCuda v0.3.5 at 83aa08a (deep debt: typed errors, constants) ║");
-    eprintln!("║  ToadStool S142 at a86bc546 (19,777 tests, spring sync clean)    ║");
-    eprintln!("║  coralReef Iteration 29 at 2779c88 (AMD E2E GPU dispatch)        ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!("── Programmatic provenance report (from barraCuda registry) ──");
-    eprintln!("{report}");
+    println!("╔══════════════════════════════════════════════════════════════════════╗");
+    println!("║  Cross-Spring Shader Evolution — Provenance Registry Summary       ║");
+    println!("╠══════════════════════════════════════════════════════════════════════╣");
+    println!("║  {shader_count} shaders tracked in barraCuda provenance registry");
+    println!("║  {n} cross-spring dependency edges", n = matrix.len());
+    println!("║                                                                    ║");
+    println!("║  Springs that converge here:                                       ║");
+    println!("║    hotSpring  → precision, DF64, spectral, eigensolve             ║");
+    println!("║    wetSpring  → diversity, HMM, bio, Wright-Fisher                ║");
+    println!("║    neuralSpring → ML activations, matmul, RK4, attention          ║");
+    println!("║    groundSpring → uncertainty, bootstrap, normal distribution     ║");
+    println!("║    airSpring  → hydrology, ET₀, water balance                    ║");
+    println!("║                                                                    ║");
+    println!("║  barraCuda v0.3.5 at 83aa08a (deep debt: typed errors, constants) ║");
+    println!("║  ToadStool S142 at a86bc546 (19,777 tests, spring sync clean)    ║");
+    println!("║  coralReef Iteration 29 at 2779c88 (AMD E2E GPU dispatch)        ║");
+    println!("╚══════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!("── Programmatic provenance report (from barraCuda registry) ──");
+    println!("{report}");
 }
 
 fn main() {
     let shader_count = barracuda::shaders::provenance::cross_spring_shaders().len();
-    eprintln!("╔══════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Cross-Spring Shader Evolution Benchmark            ║");
-    eprintln!("║  All springs → barraCuda v0.3.5: {shader_count} tracked shaders      ║");
-    eprintln!("║  Provenance tiers: T0 local → T1 bc::dispatch → T2 Dispatcher GPU ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — Cross-Spring Shader Evolution Benchmark            ║");
+    println!("║  All springs → barraCuda v0.3.5: {shader_count} tracked shaders      ║");
+    println!("║  Provenance tiers: T0 local → T1 bc::dispatch → T2 Dispatcher GPU ║");
+    println!("╚══════════════════════════════════════════════════════════════════════╝");
+    println!();
 
     let mut h = ValidationHarness::new("cross_spring_shader_evolution_bench");
 

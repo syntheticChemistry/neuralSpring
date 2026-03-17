@@ -109,7 +109,7 @@ async fn main() {
 
     let socket_dir = std::env::temp_dir().join("biomeos-test");
     if let Err(e) = std::fs::create_dir_all(&socket_dir) {
-        eprintln!("  Failed to create socket directory: {e}");
+        println!("  Failed to create socket directory: {e}");
         h.check_abs(
             "setup.socket_dir",
             0.0,
@@ -129,7 +129,7 @@ async fn main() {
             if let Some(dir) = exe.parent() {
                 dir.join("neuralspring_primal")
             } else {
-                eprintln!("  current_exe has no parent directory");
+                println!("  current_exe has no parent directory");
                 h.check_abs(
                     "setup.primal_bin",
                     0.0,
@@ -140,7 +140,7 @@ async fn main() {
             }
         }
         Err(e) => {
-            eprintln!("  Failed to resolve current_exe: {e}");
+            println!("  Failed to resolve current_exe: {e}");
             h.check_abs(
                 "setup.primal_bin",
                 0.0,
@@ -152,12 +152,12 @@ async fn main() {
     };
 
     if !primal_bin.exists() {
-        eprintln!(
+        println!(
             "  neuralspring_primal binary not found at {}",
             primal_bin.display()
         );
-        eprintln!("  Build with: cargo build --features primal --bin neuralspring_primal");
-        eprintln!("  Skipping biomeOS integration tests (primal binary not available)");
+        println!("  Build with: cargo build --features primal --bin neuralspring_primal");
+        println!("  Skipping biomeOS integration tests (primal binary not available)");
         h.finish();
     }
 
@@ -171,7 +171,7 @@ async fn main() {
     {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("  Failed to spawn neuralspring_primal: {e}");
+            println!("  Failed to spawn neuralspring_primal: {e}");
             h.check_abs(
                 "setup.spawn_primal",
                 0.0,
@@ -190,7 +190,7 @@ async fn main() {
     }
 
     if !socket_path.exists() {
-        eprintln!("  Socket did not appear after 5s. Primal may have failed to start.");
+        println!("  Socket did not appear after 5s. Primal may have failed to start.");
         child.kill().await.ok();
         h.finish();
     }
@@ -226,7 +226,7 @@ async fn main() {
             );
         }
         Err(e) => {
-            eprintln!("  Health check failed: {e}");
+            println!("  Health check failed: {e}");
             h.check_abs(
                 "health.reachable",
                 0.0,
@@ -264,7 +264,7 @@ async fn main() {
             );
         }
         Err(e) => {
-            eprintln!("  science.ipr failed: {e}");
+            println!("  science.ipr failed: {e}");
             h.check_abs(
                 "science.ipr reachable",
                 0.0,
@@ -314,7 +314,7 @@ async fn main() {
             }
         }
         Err(e) => {
-            eprintln!("  science.disorder_sweep failed: {e}");
+            println!("  science.disorder_sweep failed: {e}");
             h.check_abs(
                 "science.disorder_sweep reachable",
                 0.0,
@@ -373,7 +373,7 @@ async fn main() {
             );
         }
         Err(e) => {
-            eprintln!("  science.spectral_analysis failed: {e}");
+            println!("  science.spectral_analysis failed: {e}");
             h.check_abs(
                 "spectral reachable",
                 0.0,
@@ -434,7 +434,7 @@ async fn main() {
             }
         }
         Err(e) => {
-            eprintln!("  science.anderson_localization failed: {e}");
+            println!("  science.anderson_localization failed: {e}");
             h.check_abs(
                 "anderson reachable",
                 0.0,
@@ -488,7 +488,7 @@ async fn main() {
             h.check_abs("hessian.trace", trace, 55.0, tolerances::CROSS_LANGUAGE);
         }
         Err(e) => {
-            eprintln!("  science.hessian_eigen failed: {e}");
+            println!("  science.hessian_eigen failed: {e}");
             h.check_abs(
                 "hessian reachable",
                 0.0,
@@ -553,7 +553,7 @@ async fn main() {
             }
         }
         Err(e) => {
-            eprintln!("  science.agent_coordination failed: {e}");
+            println!("  science.agent_coordination failed: {e}");
             h.check_abs(
                 "coordination reachable",
                 0.0,
@@ -607,7 +607,7 @@ async fn main() {
             }
         }
         Err(e) => {
-            eprintln!("  science.training_trajectory failed: {e}");
+            println!("  science.training_trajectory failed: {e}");
             h.check_abs(
                 "trajectory reachable",
                 0.0,

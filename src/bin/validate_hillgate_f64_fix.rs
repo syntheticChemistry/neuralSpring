@@ -47,7 +47,7 @@ use wgpu::util::DeviceExt;
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
@@ -66,10 +66,10 @@ async fn main() {
     .is_ok();
 
     if unpatched_ok {
-        eprintln!("  NOTE: Unpatched shader compiled — this adapter may not exhibit the bug");
-        eprintln!("  Validating polyfill path anyway for correctness");
+        println!("  NOTE: Unpatched shader compiled — this adapter may not exhibit the bug");
+        println!("  Validating polyfill path anyway for correctness");
     } else {
-        eprintln!("  CONFIRMED: Unpatched hill_gate_f64 fails (native pow(f64) NVVM failure)");
+        println!("  CONFIRMED: Unpatched hill_gate_f64 fails (native pow(f64) NVVM failure)");
     }
 
     h.check_bool("unpatched shader status documented", true);
@@ -82,11 +82,11 @@ async fn main() {
     let Ok(patched_module) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         dev.compile_shader_f64(&patched_source, Some("polyfill_hill_gate_f64"))
     })) else {
-        eprintln!("  FAIL: Patched shader also failed to compile");
+        println!("  FAIL: Patched shader also failed to compile");
         h.check_bool("patched shader compiles", false);
         h.finish();
     };
-    eprintln!("  PASS: Patched shader compiled successfully");
+    println!("  PASS: Patched shader compiled successfully");
     h.check_bool("patched shader compiles", true);
 
     // Phase 4: Build pipeline and dispatch

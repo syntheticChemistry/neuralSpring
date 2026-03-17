@@ -26,15 +26,15 @@ const ITERATIONS: usize = 20;
 #[tokio::main]
 async fn main() {
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("SKIP — no adapter");
+        println!("SKIP — no adapter");
         return;
     };
-    eprintln!(
+    println!(
         "Benchmark: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
-    eprintln!("Warmup: {WARMUP}, iterations: {ITERATIONS}");
-    eprintln!();
+    println!("Warmup: {WARMUP}, iterations: {ITERATIONS}");
+    println!();
 
     let device = gpu.wgpu_device().clone();
     let results = vec![
@@ -107,13 +107,13 @@ async fn main() {
         }),
     ];
 
-    eprintln!("{:<30} {:>12} {:>12} {:>12}", "op", "median", "min", "max");
-    eprintln!("{}", "-".repeat(68));
+    println!("{:<30} {:>12} {:>12} {:>12}", "op", "median", "min", "max");
+    println!("{}", "-".repeat(68));
     for (name, timings) in &results {
         let med = median(timings);
         let min_t = timings.iter().min().copied().unwrap_or_default();
         let max_t = timings.iter().max().copied().unwrap_or_default();
-        eprintln!(
+        println!(
             "{:<30} {:>12} {:>12} {:>12}",
             name,
             fmt_dur(med),
@@ -131,7 +131,7 @@ fn mk_tensor(shape: &[usize], dev: &Arc<barracuda::device::WgpuDevice>) -> Tenso
     match Tensor::from_data(&data, shape.to_vec(), dev.clone()) {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("FATAL: mk_tensor GPU alloc: {e}");
+            println!("FATAL: mk_tensor GPU alloc: {e}");
             std::process::exit(1);
         }
     }

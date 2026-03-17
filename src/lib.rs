@@ -139,6 +139,7 @@ pub mod provenance;
 pub mod quantized;
 pub mod regulatory_network;
 pub mod rng;
+pub mod safe_cast;
 pub mod sate_alignment;
 pub mod search;
 pub mod sequence;

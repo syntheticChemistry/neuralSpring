@@ -63,7 +63,7 @@ async fn main() {
     let gpu_disp = Dispatcher::new().await;
     let cpu_disp = Dispatcher::cpu_only();
 
-    eprintln!(
+    println!(
         "[parity] GPU: {} ({})",
         gpu_disp.has_gpu(),
         gpu_disp.adapter_name()

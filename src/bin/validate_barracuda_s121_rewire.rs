@@ -35,7 +35,7 @@ const EOS_JSON: &str = include_str!("../../control/wdm/eos_surrogate_baseline.js
 const TRANSPORT_JSON: &str = include_str!("../../control/wdm/transport_surrogate_baseline.json");
 
 fn validate_simplemlp_eos(h: &mut ValidationHarness) {
-    eprintln!("\n── WDM EOS → SimpleMlp rewire ──");
+    println!("\n── WDM EOS → SimpleMlp rewire ──");
 
     for element in ["H", "He", "C"] {
         let surr = neural_spring::wdm_surrogate::load_surrogate_from_json(EOS_JSON, element)
@@ -93,7 +93,7 @@ fn validate_simplemlp_eos(h: &mut ValidationHarness) {
 }
 
 fn validate_simplemlp_transport(h: &mut ValidationHarness) {
-    eprintln!("\n── WDM Transport → SimpleMlp rewire ──");
+    println!("\n── WDM Transport → SimpleMlp rewire ──");
 
     let surr = neural_spring::wdm_transport::load_transport_from_json(TRANSPORT_JSON)
         .expect("transport JSON load");
@@ -149,7 +149,7 @@ fn validate_simplemlp_transport(h: &mut ValidationHarness) {
 }
 
 fn validate_hmm_viterbi_f64(h: &mut ValidationHarness) {
-    eprintln!("\n── HMM Viterbi chain → f64 ComputeDispatch ──");
+    println!("\n── HMM Viterbi chain → f64 ComputeDispatch ──");
 
     let transition = vec![0.7, 0.3, 0.4, 0.6];
     let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
@@ -213,7 +213,7 @@ fn validate_hmm_viterbi_f64(h: &mut ValidationHarness) {
 }
 
 fn validate_hmm_forward_chain(h: &mut ValidationHarness) {
-    eprintln!("\n── HMM forward chain (dispatcher) ──");
+    println!("\n── HMM forward chain (dispatcher) ──");
 
     let transition = vec![0.7, 0.3, 0.4, 0.6];
     let emission = vec![0.1, 0.4, 0.5, 0.6, 0.3, 0.1];
@@ -245,14 +245,14 @@ fn validate_hmm_forward_chain(h: &mut ValidationHarness) {
 }
 
 fn main() {
-    eprintln!("╔══════════════════════════════════════════════════════════════╗");
-    eprintln!("║  barraCuda v0.3.1 S121 Rewire Validation                   ║");
-    eprintln!("║  SimpleMlp + HMM f64 ComputeDispatch                       ║");
-    eprintln!("╚══════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!("  WDM surrogates: local MLP → barracuda::nn::SimpleMlp");
-    eprintln!("  HMM Viterbi:    per-step f32 Tensor → f64 hmm_viterbi_f64.wgsl");
-    eprintln!();
+    println!("╔══════════════════════════════════════════════════════════════╗");
+    println!("║  barraCuda v0.3.1 S121 Rewire Validation                   ║");
+    println!("║  SimpleMlp + HMM f64 ComputeDispatch                       ║");
+    println!("╚══════════════════════════════════════════════════════════════╝");
+    println!();
+    println!("  WDM surrogates: local MLP → barracuda::nn::SimpleMlp");
+    println!("  HMM Viterbi:    per-step f32 Tensor → f64 hmm_viterbi_f64.wgsl");
+    println!();
 
     let mut h = ValidationHarness::new("barracuda_s121_rewire");
 

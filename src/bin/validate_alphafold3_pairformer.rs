@@ -52,7 +52,7 @@ fn main() {
     let mut h = ValidationHarness::new("alphafold3_pairformer");
 
     let Ok(baselines) = serde_json::from_str::<serde_json::Value>(BASELINE_JSON) else {
-        eprintln!("[ERROR] Failed to parse pairformer_baselines.json");
+        println!("[ERROR] Failed to parse pairformer_baselines.json");
         std::process::exit(1);
     };
 

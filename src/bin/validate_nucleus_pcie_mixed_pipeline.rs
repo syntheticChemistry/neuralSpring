@@ -63,7 +63,7 @@ async fn main() {
 }
 
 fn validate_pcie_bypass_cost_model(h: &mut ValidationHarness) {
-    eprintln!("\n── PCIe bypass cost model ──");
+    println!("\n── PCIe bypass cost model ──");
 
     let gpu_npu = PcieBridge::new("RTX_4070", "AKD1000_NPU");
     let gpu_cpu = PcieBridge::new("RTX_4070", "x86_64_CPU");
@@ -93,7 +93,7 @@ fn validate_pcie_bypass_cost_model(h: &mut ValidationHarness) {
 }
 
 fn validate_pcie_multi_hop_chain(h: &mut ValidationHarness) {
-    eprintln!("\n── PCIe multi-hop transfer chain ──");
+    println!("\n── PCIe multi-hop transfer chain ──");
 
     let gpu_npu = PcieBridge::new("RTX_4070", "AKD1000_NPU");
     let npu_cpu = PcieBridge::new("AKD1000_NPU", "x86_64_CPU");
@@ -130,7 +130,7 @@ fn validate_pcie_multi_hop_chain(h: &mut ValidationHarness) {
 }
 
 fn validate_npu_routing_decisions(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
-    eprintln!("\n── NPU routing decisions ──");
+    println!("\n── NPU routing decisions ──");
 
     let (_, sub_rt) = dispatcher.mixed_dispatch(
         &MixedWorkload {
@@ -218,7 +218,7 @@ fn validate_gpu_npu_bypass_science_pipeline(
     dispatcher: &Dispatcher,
     rng: &mut Rng,
 ) {
-    eprintln!("\n── GPU→NPU bypass science pipeline ──");
+    println!("\n── GPU→NPU bypass science pipeline ──");
 
     let n = 256;
     let data: Vec<f64> = (0..n).map(|_| rng.normal()).collect();
@@ -243,7 +243,7 @@ fn validate_gpu_npu_bypass_science_pipeline(
         cpu_var,
         tolerances::GPU_VARIANCE_F64,
     );
-    eprintln!("  variance routed to: {var_sub:?}");
+    println!("  variance routed to: {var_sub:?}");
 
     let (npu_mean, npu_sub) = dispatcher.mixed_dispatch(
         &MixedWorkload {
@@ -280,7 +280,7 @@ fn validate_nucleus_tower_node_nest_chain(
     dispatcher: &Dispatcher,
     rng: &mut Rng,
 ) {
-    eprintln!("\n── NUCLEUS Tower→Node→Nest chain ──");
+    println!("\n── NUCLEUS Tower→Node→Nest chain ──");
 
     // Tower: discover hardware substrates
     let substrates = inventory::discover();
@@ -337,7 +337,7 @@ fn validate_nucleus_tower_node_nest_chain(
         "Node: eigenvalue variance > 0 (non-degenerate)",
         node_var > 0.0,
     );
-    eprintln!("  node variance routed to: {node_sub:?}");
+    println!("  node variance routed to: {node_sub:?}");
 
     // Nest: provenance entropy — information content of eigenspectrum
     let probs: Vec<f64> = {
@@ -358,7 +358,7 @@ fn validate_biomeos_multi_stage_graph(
     dispatcher: &Dispatcher,
     rng: &mut Rng,
 ) {
-    eprintln!("\n── biomeOS multi-stage graph coordination ──");
+    println!("\n── biomeOS multi-stage graph coordination ──");
 
     // biomeOS graph: spectral → population → information pipeline
     // Each stage routes independently through NUCLEUS atomics.
@@ -440,7 +440,7 @@ fn validate_biomeos_multi_stage_graph(
         tolerances::GPU_ENTROPY_F64,
     );
 
-    eprintln!(
+    println!(
         "  pipeline summary: {dim} eigenvalues → IPR={ipr:.4} → BW={bandwidth:.2} → LSR={lsr:.4} → H={entropy:.4}"
     );
 }

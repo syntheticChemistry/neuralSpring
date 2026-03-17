@@ -31,7 +31,7 @@ use neural_spring::validation::ValidationHarness;
 
 fn main() {
     let Ok(rt) = tokio::runtime::Runtime::new() else {
-        eprintln!("FATAL: could not create tokio runtime");
+        println!("FATAL: could not create tokio runtime");
         std::process::exit(1);
     };
     let dispatcher = rt.block_on(Dispatcher::new());
@@ -39,10 +39,10 @@ fn main() {
     let mut h = ValidationHarness::new("validate_gpu_phase_b");
 
     if !dispatcher.has_gpu() {
-        eprintln!("WARNING: No GPU available — all checks use CPU fallback");
+        println!("WARNING: No GPU available — all checks use CPU fallback");
     }
 
-    eprintln!(
+    println!(
         "Backend: {} ({})",
         dispatcher.backend(),
         dispatcher.adapter_name(),
@@ -378,7 +378,7 @@ fn main() {
                 );
             }
             Err(e) => {
-                eprintln!("inter_pop_af_variance GPU error: {e}");
+                println!("inter_pop_af_variance GPU error: {e}");
                 h.check_bool("inter_pop_af_variance (GPU error)", false);
             }
         }

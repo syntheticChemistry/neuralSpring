@@ -26,7 +26,7 @@ fn main() {
         Ok(c) => c,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: failed to load ESN classifier: {e}");
+            println!("FATAL: failed to load ESN classifier: {e}");
             h.finish();
         }
     };

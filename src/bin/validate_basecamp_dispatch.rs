@@ -34,7 +34,7 @@ async fn main() {
     let mut rng = Rng::new(42);
     let dispatcher = Dispatcher::new().await;
 
-    eprintln!(
+    println!(
         "[basecamp_dispatch] backend: {}, GPU: {}",
         dispatcher.backend(),
         dispatcher.has_gpu()

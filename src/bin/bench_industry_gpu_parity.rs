@@ -55,7 +55,7 @@ fn mk_tensor(shape: &[usize], dev: &Arc<WgpuDevice>) -> Tensor {
     let count: usize = shape.iter().product();
     let data: Vec<f32> = (0..count).map(|i| (i as f32) * 0.001).collect();
     Tensor::from_data(&data, shape.to_vec(), dev.clone()).unwrap_or_else(|e| {
-        eprintln!("FATAL: mk_tensor failed: {e}");
+        println!("FATAL: mk_tensor failed: {e}");
         std::process::exit(1);
     })
 }
@@ -65,7 +65,7 @@ fn mk_randn(shape: &[usize], dev: &Arc<WgpuDevice>, seed_offset: u64) -> Tensor 
     let mut rng = neural_spring::rng::Rng::new(42 + seed_offset);
     let data: Vec<f32> = (0..count).map(|_| rng.normal() as f32).collect();
     Tensor::from_data(&data, shape.to_vec(), dev.clone()).unwrap_or_else(|e| {
-        eprintln!("FATAL: mk_randn failed: {e}");
+        println!("FATAL: mk_randn failed: {e}");
         std::process::exit(1);
     })
 }
@@ -85,7 +85,7 @@ fn bench_gemm(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
             let _ = a.matmul_ref(&b);
         });
 
-        eprintln!("  SGEMM {n}×{n}: {us:.1} µs");
+        println!("  SGEMM {n}×{n}: {us:.1} µs");
         results.push(IndustryEntry {
             category: "cuBLAS",
             kernel: format!("SGEMM_{n}"),
@@ -107,7 +107,7 @@ fn bench_cudnn_ops(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
         let us = bench_median(WARMUP, ITERATIONS, || {
             let _ = t.clone().softmax();
         });
-        eprintln!("  Softmax {n}: {us:.1} µs");
+        println!("  Softmax {n}: {us:.1} µs");
         results.push(IndustryEntry {
             category: "cuDNN",
             kernel: format!("SOFTMAX_{n}"),
@@ -125,7 +125,7 @@ fn bench_cudnn_ops(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
         let us = bench_median(WARMUP, ITERATIONS, || {
             let _ = t.clone().layer_norm_wgsl(eps);
         });
-        eprintln!("  LayerNorm {m}×{n}: {us:.1} µs");
+        println!("  LayerNorm {m}×{n}: {us:.1} µs");
         results.push(IndustryEntry {
             category: "cuDNN",
             kernel: format!("LAYERNORM_{m}x{n}"),
@@ -141,7 +141,7 @@ fn bench_cudnn_ops(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
         let us = bench_median(WARMUP, ITERATIONS, || {
             let _ = t.clone().gelu_wgsl();
         });
-        eprintln!("  GELU {n}: {us:.1} µs");
+        println!("  GELU {n}: {us:.1} µs");
         results.push(IndustryEntry {
             category: "cuDNN",
             kernel: format!("GELU_{n}"),
@@ -157,7 +157,7 @@ fn bench_cudnn_ops(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
         let us = bench_median(WARMUP, ITERATIONS, || {
             let _ = t.clone().sigmoid();
         });
-        eprintln!("  Sigmoid {n}: {us:.1} µs");
+        println!("  Sigmoid {n}: {us:.1} µs");
         results.push(IndustryEntry {
             category: "cuDNN",
             kernel: format!("SIGMOID_{n}"),
@@ -184,7 +184,7 @@ fn bench_fft(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
                 }
             }
         });
-        eprintln!("  FFT {n}: {us:.1} µs");
+        println!("  FFT {n}: {us:.1} µs");
         results.push(IndustryEntry {
             category: "cuFFT",
             kernel: format!("FFT_{n}"),
@@ -203,7 +203,7 @@ fn bench_fft(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
                 }
             }
         });
-        eprintln!("  RFFT {n}: {us:.1} µs");
+        println!("  RFFT {n}: {us:.1} µs");
         results.push(IndustryEntry {
             category: "cuFFT",
             kernel: format!("RFFT_{n}"),
@@ -247,7 +247,7 @@ fn bench_mha(results: &mut Vec<IndustryEntry>, device: &Arc<WgpuDevice>) {
         });
 
         let label = format!("{seq}×{d_model}×{n_heads}");
-        eprintln!("  MHA {label}: {us:.1} µs");
+        println!("  MHA {label}: {us:.1} µs");
         results.push(IndustryEntry {
             category: "MHA",
             kernel: format!("MHA_{seq}x{d_model}x{n_heads}"),
@@ -267,7 +267,7 @@ fn run_python_industry(script_rel: &str) -> HashMap<String, f64> {
     let mut timings = HashMap::new();
 
     if !script.exists() {
-        eprintln!("    [skip] {}: not found", script.display());
+        println!("    [skip] {}: not found", script.display());
         return timings;
     }
 
@@ -288,13 +288,13 @@ fn run_python_industry(script_rel: &str) -> HashMap<String, f64> {
             }
         }
         Ok(o) => {
-            eprintln!("    [fail] {script_rel}: exit {}", o.status);
+            println!("    [fail] {script_rel}: exit {}", o.status);
             let stderr = String::from_utf8_lossy(&o.stderr);
             for line in stderr.lines().take(5) {
-                eprintln!("      {line}");
+                println!("      {line}");
             }
         }
-        Err(e) => eprintln!("    [skip] {script_rel}: {e}"),
+        Err(e) => println!("    [skip] {script_rel}: {e}"),
     }
 
     timings
@@ -320,18 +320,18 @@ fn match_python_timings(results: &mut [IndustryEntry], timings: &HashMap<String,
 // ═══════════════════════════════════════════════════════════════════════
 
 fn print_summary(results: &[IndustryEntry], adapter: &str) {
-    eprintln!();
-    eprintln!("╔═══════════════════════════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  INDUSTRY GPU PARITY — BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT (PyTorch/CUDA)                     ║");
-    eprintln!("║  Adapter: {adapter:<84}║");
-    eprintln!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                                                                          ║");
-    eprintln!("╚═══════════════════════════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!(
+    println!();
+    println!("╔═══════════════════════════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  INDUSTRY GPU PARITY — BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT (PyTorch/CUDA)                     ║");
+    println!("║  Adapter: {adapter:<84}║");
+    println!("║  Warmup: {WARMUP}, Iterations: {ITERATIONS}                                                                          ║");
+    println!("╚═══════════════════════════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!(
         "{:<10} {:<20} {:>12} {:>14} {:>14} {:>10}",
         "Library", "Kernel", "Scale", "BarraCUDA µs", "CUDA µs", "Ratio"
     );
-    eprintln!("{}", "─".repeat(84));
+    println!("{}", "─".repeat(84));
 
     let mut wins = 0_u32;
     let mut losses = 0_u32;
@@ -354,18 +354,18 @@ fn print_summary(results: &[IndustryEntry], adapter: &str) {
                 format!("{r:.2}×")
             },
         );
-        eprintln!(
+        println!(
             "{:<10} {:<20} {:>12} {:>14.1} {:>14} {:>10}",
             e.category, e.kernel, e.scale, e.barracuda_us, cuda_str, ratio_str
         );
     }
 
-    eprintln!("{}", "─".repeat(84));
+    println!("{}", "─".repeat(84));
     if comparable > 0 {
-        eprintln!("  BarraCUDA faster: {wins}/{comparable}, CUDA faster: {losses}/{comparable}");
-        eprintln!("  Ratio < 1.0 = BarraCUDA wins, > 1.0 = CUDA wins");
+        println!("  BarraCUDA faster: {wins}/{comparable}, CUDA faster: {losses}/{comparable}");
+        println!("  Ratio < 1.0 = BarraCUDA wins, > 1.0 = CUDA wins");
     }
-    eprintln!();
+    println!();
 
     // Machine-readable stdout
     println!("category\tkernel\tscale\tbarracuda_us\tcuda_us\tratio");
@@ -397,33 +397,33 @@ async fn main() {
     let device = gpu.wgpu_device().clone();
     let with_python = std::env::args().any(|a| a == "--with-python");
 
-    eprintln!("╔═══════════════════════════════════════════════════════════════╗");
-    eprintln!("║  neuralSpring — Industry GPU Parity Benchmark                ║");
-    eprintln!("║  BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT/FlashAttention        ║");
-    eprintln!("║  Adapter: {:<50}║", gpu.adapter_name);
-    eprintln!("╚═══════════════════════════════════════════════════════════════╝");
-    eprintln!();
+    println!("╔═══════════════════════════════════════════════════════════════╗");
+    println!("║  neuralSpring — Industry GPU Parity Benchmark                ║");
+    println!("║  BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT/FlashAttention        ║");
+    println!("║  Adapter: {:<50}║", gpu.adapter_name);
+    println!("╚═══════════════════════════════════════════════════════════════╝");
+    println!();
 
     let mut results: Vec<IndustryEntry> = Vec::new();
 
-    eprintln!("── cuBLAS GEMM (Tensor::matmul) ──");
+    println!("── cuBLAS GEMM (Tensor::matmul) ──");
     bench_gemm(&mut results, &device);
-    eprintln!();
+    println!();
 
-    eprintln!("── cuDNN ops (softmax, layernorm, gelu, sigmoid) ──");
+    println!("── cuDNN ops (softmax, layernorm, gelu, sigmoid) ──");
     bench_cudnn_ops(&mut results, &device);
-    eprintln!();
+    println!();
 
-    eprintln!("── cuFFT (Fft1D, Rfft) ──");
+    println!("── cuFFT (Fft1D, Rfft) ──");
     bench_fft(&mut results, &device);
-    eprintln!();
+    println!();
 
-    eprintln!("── FlashAttention / MHA ──");
+    println!("── FlashAttention / MHA ──");
     bench_mha(&mut results, &device);
-    eprintln!();
+    println!();
 
     if with_python {
-        eprintln!("── Running Python/CUDA control scripts ──");
+        println!("── Running Python/CUDA control scripts ──");
         let scripts = [
             "control/industry_gpu/bench_cublas_gemm.py",
             "control/industry_gpu/bench_cudnn_ops.py",
@@ -432,16 +432,16 @@ async fn main() {
         ];
         let mut all_timings = HashMap::new();
         for script in &scripts {
-            eprintln!("  Running {script} ...");
+            println!("  Running {script} ...");
             let t = run_python_industry(script);
-            eprintln!("    → {} timing(s)", t.len());
+            println!("    → {} timing(s)", t.len());
             all_timings.extend(t);
         }
         match_python_timings(&mut results, &all_timings);
     } else {
-        eprintln!("(run with --with-python to compare against CUDA)");
+        println!("(run with --with-python to compare against CUDA)");
     }
-    eprintln!();
+    println!();
 
     print_summary(&results, &adapter);
 }

@@ -55,13 +55,13 @@ fn main() {
 
     let dir = pretrained_dir();
     if !dir.exists() {
-        eprintln!("╔══════════════════════════════════════════════════════════════╗");
-        eprintln!("║  No pretrained weights found. Run:                          ║");
-        eprintln!("║    python scripts/download_pretrained.py                    ║");
-        eprintln!("║  to download models into control/weight_spectral/pretrained ║");
-        eprintln!("╚══════════════════════════════════════════════════════════════╝");
-        eprintln!();
-        eprintln!("[SKIP] No pretrained data — generating synthetic fallback");
+        println!("╔══════════════════════════════════════════════════════════════╗");
+        println!("║  No pretrained weights found. Run:                          ║");
+        println!("║    python scripts/download_pretrained.py                    ║");
+        println!("║  to download models into control/weight_spectral/pretrained ║");
+        println!("╚══════════════════════════════════════════════════════════════╝");
+        println!();
+        println!("[SKIP] No pretrained data — generating synthetic fallback");
         validate_synthetic_fallback(&mut h);
         h.finish();
     }
@@ -69,7 +69,7 @@ fn main() {
     let read_dir = match std::fs::read_dir(&dir) {
         Ok(rd) => rd,
         Err(e) => {
-            eprintln!("[ERROR] Cannot read pretrained dir {}: {e}", dir.display());
+            println!("[ERROR] Cannot read pretrained dir {}: {e}", dir.display());
             h.check_bool("pretrained dir readable", false);
             h.finish();
         }
@@ -81,17 +81,17 @@ fn main() {
     models.sort();
 
     if models.is_empty() {
-        eprintln!("[SKIP] No .safetensors files found — using synthetic fallback");
+        println!("[SKIP] No .safetensors files found — using synthetic fallback");
         validate_synthetic_fallback(&mut h);
         h.finish();
     }
 
-    eprintln!(
+    println!(
         "Found {} pretrained models in {}",
         models.len(),
         dir.display()
     );
-    eprintln!();
+    println!();
 
     let mut total_layers = 0usize;
     let mut total_time_ms = 0.0f64;
@@ -105,12 +105,12 @@ fn main() {
             .unwrap_or_default()
             .to_string_lossy()
             .to_string();
-        eprintln!("═══ {model_name} ═══");
+        println!("═══ {model_name} ═══");
 
         let weights = match weight_loader::load_all_weight_matrices(model_path) {
             Ok(w) => w,
             Err(e) => {
-                eprintln!("  ERROR loading {model_name}: {e}");
+                println!("  ERROR loading {model_name}: {e}");
                 continue;
             }
         };
@@ -172,7 +172,7 @@ fn main() {
             all_ipr.push(result.mean_ipr);
             all_mp_dep.push(result.mp_departure);
 
-            eprintln!(
+            println!(
                 "  {}: {}×{} | IPR={:.4} LSR={:.4} entropy={:.4} MP_dep={:.4} | {:.1}ms",
                 tensor.name,
                 tensor.rows,
@@ -188,8 +188,8 @@ fn main() {
             total_layers += 1;
         }
 
-        eprintln!("  [{model_name}] {model_layers} layers analyzed");
-        eprintln!();
+        println!("  [{model_name}] {model_layers} layers analyzed");
+        println!();
     }
 
     // ── Aggregate spectral characterization ──────────────────────────
@@ -205,19 +205,19 @@ fn main() {
             .count() as f64
             / all_lsr.len() as f64;
 
-        eprintln!("═══ Aggregate Results ({total_layers} layers) ═══");
-        eprintln!("  Mean LSR:          {mean_lsr:.4} (GOE={GOE_LEVEL_SPACING:.3}, Poisson={POISSON_LEVEL_SPACING:.3})");
-        eprintln!("  Mean IPR:          {mean_ipr:.6}");
-        eprintln!("  Mean MP departure: {mean_mp:.4}");
-        eprintln!(
+        println!("═══ Aggregate Results ({total_layers} layers) ═══");
+        println!("  Mean LSR:          {mean_lsr:.4} (GOE={GOE_LEVEL_SPACING:.3}, Poisson={POISSON_LEVEL_SPACING:.3})");
+        println!("  Mean IPR:          {mean_ipr:.6}");
+        println!("  Mean MP departure: {mean_mp:.4}");
+        println!(
             "  GOE-like fraction: {goe_fraction:.2} ({}/{total_layers})",
             (goe_fraction * total_layers as f64).round() as usize
         );
-        eprintln!(
+        println!(
             "  Total time:        {total_time_ms:.1}ms ({:.1}ms/layer)",
             total_time_ms / total_layers as f64
         );
-        eprintln!();
+        println!();
 
         h.check_bool("Aggregate: mean LSR finite", mean_lsr.is_finite());
         h.check_bool("Aggregate: mean IPR finite", mean_ipr.is_finite());
@@ -263,7 +263,7 @@ fn validate_synthetic_fallback(h: &mut ValidationHarness) {
             result.level_spacing_ratio >= 0.0 && result.level_spacing_ratio <= 1.0,
         );
 
-        eprintln!(
+        println!(
             "  synthetic/{label} ({}×{}): IPR={:.4} LSR={:.4} entropy={:.4}",
             m, n, result.mean_ipr, result.level_spacing_ratio, result.spectral_entropy
         );

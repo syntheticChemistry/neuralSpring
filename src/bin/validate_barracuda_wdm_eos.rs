@@ -34,7 +34,7 @@ async fn main() {
     let Ok(gpu) = Gpu::new().await else {
         neural_spring::validation::exit_no_gpu();
     };
-    eprintln!(
+    println!(
         "  adapter: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend,
     );
@@ -46,7 +46,7 @@ async fn main() {
             Ok(s) => s,
             Err(e) => {
                 h.check_bool(&format!("{element}: JSON load"), false);
-                eprintln!("FATAL: failed to load {element}: {e}");
+                println!("FATAL: failed to load {element}: {e}");
                 h.finish();
             }
         };
@@ -120,7 +120,7 @@ fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &EosSurrogate, device: &Dev
         Ok(out) => out,
         Err(e) => {
             h.check_bool(&format!("{elem}: GPU forward pass"), false);
-            eprintln!("  GPU forward failed for {elem}: {e}");
+            println!("  GPU forward failed for {elem}: {e}");
             return;
         }
     };
@@ -161,7 +161,7 @@ fn validate_gpu_mlp(h: &mut ValidationHarness, surr: &EosSurrogate, device: &Dev
         Ok(out) => out,
         Err(e) => {
             h.check_bool(&format!("{elem}: GPU determinism (re-run)"), false);
-            eprintln!("  GPU determinism re-run failed for {elem}: {e}");
+            println!("  GPU determinism re-run failed for {elem}: {e}");
             return;
         }
     };

@@ -38,7 +38,7 @@ struct BenchResult {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_groundspring_evolution(h: &mut ValidationHarness) {
-    eprintln!("\n─── groundSpring → ToadStool S70+: evolution stats ───\n");
+    println!("\n─── groundSpring → ToadStool S70+: evolution stats ───\n");
 
     // Kimura fixation probability (groundSpring → ToadStool S70+ → barracuda::stats::evolution)
     let (fix_neutral, _) = bench_once("kimura fixation (neutral)", || {
@@ -122,7 +122,7 @@ fn validate_groundspring_evolution(h: &mut ValidationHarness) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_airspring_hydrology(h: &mut ValidationHarness) {
-    eprintln!("\n─── airSpring → ToadStool S70+: hydrology ───\n");
+    println!("\n─── airSpring → ToadStool S70+: hydrology ───\n");
 
     // FAO-56 Penman-Monteith ET₀ (airSpring → ToadStool S70+)
     // fao56_et0(t_max, t_min, rh_max, rh_min, wind_2m, rs, elevation, lat_deg, doy)
@@ -194,7 +194,7 @@ fn validate_airspring_hydrology(h: &mut ValidationHarness) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 fn validate_wetspring_diversity(h: &mut ValidationHarness) {
-    eprintln!("\n─── wetSpring → ToadStool S70+: diversity ───\n");
+    println!("\n─── wetSpring → ToadStool S70+: diversity ───\n");
 
     // chao1_classic with u64 counts (wetSpring Chao 1984 → ToadStool S70+)
     let counts_u64: Vec<u64> = vec![10, 5, 3, 1, 1, 1, 1, 0, 0, 0];
@@ -228,7 +228,7 @@ fn validate_neuralspring_s70(
     h: &mut ValidationHarness,
     device: &std::sync::Arc<barracuda::device::WgpuDevice>,
 ) {
-    eprintln!("\n─── neuralSpring → ToadStool S70+: matmul_ref + SimpleMlp ───\n");
+    println!("\n─── neuralSpring → ToadStool S70+: matmul_ref + SimpleMlp ───\n");
 
     let m = 8;
     let k = 16;
@@ -332,7 +332,7 @@ fn validate_neuralspring_s70(
         tolerances::NUMERICAL_DISTINCTNESS,
     );
 
-    eprintln!("\n  matmul_ref benchmark: call1={t1:.1}µs, call2={t2:.1}µs (no clone overhead)");
+    println!("\n  matmul_ref benchmark: call1={t1:.1}µs, call2={t2:.1}µs (no clone overhead)");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -343,7 +343,7 @@ fn benchmark_s70_throughput(
     h: &mut ValidationHarness,
     device: &std::sync::Arc<barracuda::device::WgpuDevice>,
 ) {
-    eprintln!("\n─── S70+++ throughput benchmark (cross-spring provenance) ───\n");
+    println!("\n─── S70+++ throughput benchmark (cross-spring provenance) ───\n");
 
     let mut results: Vec<BenchResult> = Vec::new();
     let mut rng = Rng::new(42);
@@ -454,16 +454,16 @@ fn benchmark_s70_throughput(
     });
 
     // Print benchmark table
-    eprintln!("\n  ┌─────────────────┬────────────┬──────────┐");
-    eprintln!("  │ Operation       │ Provenance │    µs    │");
-    eprintln!("  ├─────────────────┼────────────┼──────────┤");
+    println!("\n  ┌─────────────────┬────────────┬──────────┐");
+    println!("  │ Operation       │ Provenance │    µs    │");
+    println!("  ├─────────────────┼────────────┼──────────┤");
     for r in &results {
-        eprintln!(
+        println!(
             "  │ {:<15} │ {:<10} │ {:>8.1} │",
             r.label, r.provenance, r.us
         );
     }
-    eprintln!("  └─────────────────┴────────────┴──────────┘");
+    println!("  └─────────────────┴────────────┴──────────┘");
 
     h.check_bool(
         &format!("bench: {}/6 S70+++ ops timed", results.len()),
@@ -472,30 +472,30 @@ fn benchmark_s70_throughput(
 }
 
 fn report_s70_provenance() {
-    eprintln!("\n═══ S70+++ Cross-Spring Evolution Provenance ═══");
-    eprintln!();
-    eprintln!("  Source Spring    → ToadStool S70+ Absorption        → neuralSpring S97c");
-    eprintln!("  ───────────────────────────────────────────────────────────────────────");
-    eprintln!("  hotSpring        → gelu_df64, sigmoid_df64,         → DF64 ML precision");
-    eprintln!("                     softmax_df64, layer_norm_df64,     path ready for");
-    eprintln!("                     sdpa_df64 (DF64 ML shaders)        protein folding");
-    eprintln!("  wetSpring        → chao1_classic (u64 counts),      → alpha diversity,");
-    eprintln!("                     diversity extensions                metagenomics QC");
-    eprintln!("  airSpring        → fao56_et0, hargreaves_et0,       → hydrology stats,");
-    eprintln!("                     crop_coefficient, soil_water_      water balance");
-    eprintln!("                     balance, seasonal_pipeline.wgsl    pipeline GPU");
-    eprintln!("  groundSpring     → kimura_fixation_prob, error_     → evolution theory,");
-    eprintln!("                     threshold, detection_power,        rare biosphere");
-    eprintln!("                     jackknife (leave-one-out)          uncertainty");
-    eprintln!("  neuralSpring     → matmul_ref (non-consuming),      → ESN/LSTM recurrence");
-    eprintln!("                     SimpleMlp (JSON serde, 5 acts)     WDM surrogates S97d");
-    eprintln!();
-    eprintln!("  ToadStool S70+++ (1dd7e338):");
-    eprintln!("    668 WGSL shaders, 26 DF64, 4700+ workspace tests");
-    eprintln!("    ComputeDispatch: 34/250 migrated to fluent builder");
-    eprintln!("    chrono eliminated, unsafe 45, 0 clippy warnings");
-    eprintln!("    All springs contribute → ToadStool absorbs → all springs benefit");
-    eprintln!();
+    println!("\n═══ S70+++ Cross-Spring Evolution Provenance ═══");
+    println!();
+    println!("  Source Spring    → ToadStool S70+ Absorption        → neuralSpring S97c");
+    println!("  ───────────────────────────────────────────────────────────────────────");
+    println!("  hotSpring        → gelu_df64, sigmoid_df64,         → DF64 ML precision");
+    println!("                     softmax_df64, layer_norm_df64,     path ready for");
+    println!("                     sdpa_df64 (DF64 ML shaders)        protein folding");
+    println!("  wetSpring        → chao1_classic (u64 counts),      → alpha diversity,");
+    println!("                     diversity extensions                metagenomics QC");
+    println!("  airSpring        → fao56_et0, hargreaves_et0,       → hydrology stats,");
+    println!("                     crop_coefficient, soil_water_      water balance");
+    println!("                     balance, seasonal_pipeline.wgsl    pipeline GPU");
+    println!("  groundSpring     → kimura_fixation_prob, error_     → evolution theory,");
+    println!("                     threshold, detection_power,        rare biosphere");
+    println!("                     jackknife (leave-one-out)          uncertainty");
+    println!("  neuralSpring     → matmul_ref (non-consuming),      → ESN/LSTM recurrence");
+    println!("                     SimpleMlp (JSON serde, 5 acts)     WDM surrogates S97d");
+    println!();
+    println!("  ToadStool S70+++ (1dd7e338):");
+    println!("    668 WGSL shaders, 26 DF64, 4700+ workspace tests");
+    println!("    ComputeDispatch: 34/250 migrated to fluent builder");
+    println!("    chrono eliminated, unsafe 45, 0 clippy warnings");
+    println!("    All springs contribute → ToadStool absorbs → all springs benefit");
+    println!();
 }
 
 #[tokio::main]

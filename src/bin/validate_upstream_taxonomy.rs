@@ -97,7 +97,7 @@ fn gpu_taxonomy_fc(
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
@@ -107,8 +107,8 @@ async fn main() {
     };
 
     if !gpu.capabilities.supports_f64 {
-        eprintln!("  SKIP: f64 shader support required for TaxonomyFcGpu");
-        eprintln!("  0/0 checks — skipping gracefully");
+        println!("  SKIP: f64 shader support required for TaxonomyFcGpu");
+        println!("  0/0 checks — skipping gracefully");
         std::process::exit(0);
     }
 

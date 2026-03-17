@@ -70,15 +70,15 @@ fn bench<F: FnMut()>(label: &str, mut f: F) -> f64 {
         f();
     }
     let us_per = start.elapsed().as_micros() as f64 / ITERS as f64;
-    eprintln!("    {label}: {us_per:.1}µs/iter");
+    println!("    {label}: {us_per:.1}µs/iter");
     us_per
 }
 
 fn bench_hotspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &mut Rng) {
-    eprintln!("\n┌──────────────────────────────────────────────────────────┐");
-    eprintln!("│  hotSpring: precision physics → BarraCUDA               │");
-    eprintln!("│  DF64 core, Welford variance, logsumexp, eigensolve     │");
-    eprintln!("└──────────────────────────────────────────────────────────┘");
+    println!("\n┌──────────────────────────────────────────────────────────┐");
+    println!("│  hotSpring: precision physics → BarraCUDA               │");
+    println!("│  DF64 core, Welford variance, logsumexp, eigensolve     │");
+    println!("└──────────────────────────────────────────────────────────┘");
 
     // Fused mean+variance (Welford) — 50k f64 elements
     let data: Vec<f64> = (0..50_000)
@@ -132,10 +132,10 @@ fn bench_hotspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &m
 }
 
 fn bench_wetspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &mut Rng) {
-    eprintln!("\n┌──────────────────────────────────────────────────────────┐");
-    eprintln!("│  wetSpring: bioinformatics → BarraCUDA                  │");
-    eprintln!("│  Shannon entropy, diversity fusion, fused correlation    │");
-    eprintln!("└──────────────────────────────────────────────────────────┘");
+    println!("\n┌──────────────────────────────────────────────────────────┐");
+    println!("│  wetSpring: bioinformatics → BarraCUDA                  │");
+    println!("│  Shannon entropy, diversity fusion, fused correlation    │");
+    println!("└──────────────────────────────────────────────────────────┘");
 
     // Shannon entropy — 10k probabilities
     let raw: Vec<f64> = (0..10_000)
@@ -180,10 +180,10 @@ fn bench_wetspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &m
 }
 
 fn bench_neuralspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &mut Rng) {
-    eprintln!("\n┌──────────────────────────────────────────────────────────┐");
-    eprintln!("│  neuralSpring: ML/neuroevolution → BarraCUDA            │");
-    eprintln!("│  chi-squared, KL divergence, pairwise L2                │");
-    eprintln!("└──────────────────────────────────────────────────────────┘");
+    println!("\n┌──────────────────────────────────────────────────────────┐");
+    println!("│  neuralSpring: ML/neuroevolution → BarraCUDA            │");
+    println!("│  chi-squared, KL divergence, pairwise L2                │");
+    println!("└──────────────────────────────────────────────────────────┘");
 
     // Chi-squared — 1k bins
     let observed: Vec<f64> = (0..1000).map(|_| rng.next_f64() * 45.0 + 5.0).collect();
@@ -212,10 +212,10 @@ fn bench_neuralspring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng:
 }
 
 fn bench_cross_spring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng: &mut Rng) {
-    eprintln!("\n┌──────────────────────────────────────────────────────────┐");
-    eprintln!("│  airSpring + groundSpring: sensor/hydrology → BarraCUDA │");
-    eprintln!("│  correlation matrix (multi-spring convergence)           │");
-    eprintln!("└──────────────────────────────────────────────────────────┘");
+    println!("\n┌──────────────────────────────────────────────────────────┐");
+    println!("│  airSpring + groundSpring: sensor/hydrology → BarraCUDA │");
+    println!("│  correlation matrix (multi-spring convergence)           │");
+    println!("└──────────────────────────────────────────────────────────┘");
 
     // Correlation matrix — 200 samples × 10 features
     let n = 200_u32;
@@ -230,29 +230,29 @@ fn bench_cross_spring_ops(h: &mut ValidationHarness, dev: &Arc<WgpuDevice>, rng:
 }
 
 fn main() {
-    eprintln!("╔════════════════════════════════════════════════════════════════════════════╗");
-    eprintln!("║  Cross-Spring Shader Evolution Benchmark                                   ║");
-    eprintln!("║  BarraCUDA v0.3.5 (wgpu 28) · ToadStool S94b · 845+ f64-canonical WGSL    ║");
-    eprintln!("╚════════════════════════════════════════════════════════════════════════════╝");
-    eprintln!();
-    eprintln!("  Five Springs → one math engine:");
-    eprintln!("    hotSpring:    DF64 core, Welford variance, logsumexp, eigensolve");
-    eprintln!("    wetSpring:    Shannon entropy, diversity fusion, fused correlation");
-    eprintln!("    neuralSpring: chi-squared, KL divergence, pairwise L2, MHA");
-    eprintln!("    airSpring:    sensor correlation, statistical metrics");
-    eprintln!("    groundSpring: matrix correlation, multinomial, jackknife");
-    eprintln!();
+    println!("╔════════════════════════════════════════════════════════════════════════════╗");
+    println!("║  Cross-Spring Shader Evolution Benchmark                                   ║");
+    println!("║  BarraCUDA v0.3.5 (wgpu 28) · ToadStool S94b · 845+ f64-canonical WGSL    ║");
+    println!("╚════════════════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!("  Five Springs → one math engine:");
+    println!("    hotSpring:    DF64 core, Welford variance, logsumexp, eigensolve");
+    println!("    wetSpring:    Shannon entropy, diversity fusion, fused correlation");
+    println!("    neuralSpring: chi-squared, KL divergence, pairwise L2, MHA");
+    println!("    airSpring:    sensor correlation, statistical metrics");
+    println!("    groundSpring: matrix correlation, multinomial, jackknife");
+    println!();
 
     let rt = tokio::runtime::Runtime::new().or_exit("tokio runtime");
     let gpu = rt
         .block_on(async { Gpu::new().await })
         .or_exit("GPU required for benchmark");
 
-    eprintln!(
+    println!(
         "  GPU: {} ({:?}, {:?})",
         gpu.adapter_name, gpu.device_type, gpu.backend
     );
-    eprintln!();
+    println!();
 
     let device = gpu.wgpu_device().clone();
     let mut h = ValidationHarness::new("cross_spring_evolution");
@@ -263,15 +263,15 @@ fn main() {
     bench_neuralspring_ops(&mut h, &device, &mut rng);
     bench_cross_spring_ops(&mut h, &device, &mut rng);
 
-    eprintln!("\n────────────────────────────────────────────────────────────");
-    eprintln!("  Cross-Spring Provenance Summary:");
-    eprintln!("    hotSpring     → 4 ops (Welford, logsumexp, eigensolve, variance)");
-    eprintln!("    wetSpring     → 4 ops (Shannon, diversity, correlation_full, pearson)");
-    eprintln!("    neuralSpring  → 3 ops (chi-squared, KL divergence, pairwise L2)");
-    eprintln!("    airSpring     → 1 op  (correlation matrix)");
-    eprintln!("    groundSpring  → 1 op  (correlation matrix, shared with airSpring)");
-    eprintln!("  Total: 13 benchmarked ops from 5 Springs → BarraCUDA v0.3.5");
-    eprintln!("────────────────────────────────────────────────────────────");
+    println!("\n────────────────────────────────────────────────────────────");
+    println!("  Cross-Spring Provenance Summary:");
+    println!("    hotSpring     → 4 ops (Welford, logsumexp, eigensolve, variance)");
+    println!("    wetSpring     → 4 ops (Shannon, diversity, correlation_full, pearson)");
+    println!("    neuralSpring  → 3 ops (chi-squared, KL divergence, pairwise L2)");
+    println!("    airSpring     → 1 op  (correlation matrix)");
+    println!("    groundSpring  → 1 op  (correlation matrix, shared with airSpring)");
+    println!("  Total: 13 benchmarked ops from 5 Springs → BarraCUDA v0.3.5");
+    println!("────────────────────────────────────────────────────────────");
 
     h.finish();
 }

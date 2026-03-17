@@ -47,7 +47,7 @@ async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => g,
         Err(e) => {
-            eprintln!("GPU not available ({e}), skipping GPU parity checks");
+            println!("GPU not available ({e}), skipping GPU parity checks");
             h.finish();
         }
     };
@@ -62,7 +62,7 @@ async fn main() {
 }
 
 fn validate_kimura_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
-    eprintln!("\n─── KimuraGpu CPU↔GPU parity ───\n");
+    println!("\n─── KimuraGpu CPU↔GPU parity ───\n");
 
     let kimura =
         barracuda::stats::evolution::KimuraGpu::new(Arc::clone(device)).expect("KimuraGpu::new");
@@ -136,7 +136,7 @@ fn try_gpu_op<T, F: FnOnce() -> T>(f: F) -> Result<T, String> {
 }
 
 fn validate_jackknife_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
-    eprintln!("\n─── JackknifeMeanGpu CPU↔GPU parity ───\n");
+    println!("\n─── JackknifeMeanGpu CPU↔GPU parity ───\n");
 
     let dev = Arc::clone(device);
     let result = try_gpu_op(|| {
@@ -165,14 +165,14 @@ fn validate_jackknife_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::dev
             );
         }
         Ok(Err(e)) => {
-            eprintln!("  JackknifeMeanGpu error: {e}");
+            println!("  JackknifeMeanGpu error: {e}");
             h.check_bool(
                 "JackknifeMeanGpu: skipped (upstream bitcast<f64> shader bug)",
                 true,
             );
         }
         Err(panic_msg) => {
-            eprintln!("  JackknifeMeanGpu panicked: {panic_msg}");
+            println!("  JackknifeMeanGpu panicked: {panic_msg}");
             h.check_bool(
                 "JackknifeMeanGpu: skipped (upstream bitcast<f64> naga panic)",
                 true,
@@ -182,7 +182,7 @@ fn validate_jackknife_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::dev
 }
 
 fn validate_hargreaves_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
-    eprintln!("\n─── HargreavesBatchGpu CPU↔GPU parity ───\n");
+    println!("\n─── HargreavesBatchGpu CPU↔GPU parity ───\n");
 
     let dev = Arc::clone(device);
     let result = try_gpu_op(|| {
@@ -212,14 +212,14 @@ fn validate_hargreaves_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::de
             }
         }
         Ok(Err(e)) => {
-            eprintln!("  HargreavesBatchGpu error: {e}");
+            println!("  HargreavesBatchGpu error: {e}");
             h.check_bool(
                 "HargreavesBatchGpu: skipped (upstream `enable f64` shader bug)",
                 true,
             );
         }
         Err(panic_msg) => {
-            eprintln!("  HargreavesBatchGpu panicked: {panic_msg}");
+            println!("  HargreavesBatchGpu panicked: {panic_msg}");
             h.check_bool(
                 "HargreavesBatchGpu: skipped (upstream `enable f64` naga panic)",
                 true,
@@ -229,7 +229,7 @@ fn validate_hargreaves_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::de
 }
 
 fn validate_histogram_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::device::WgpuDevice>) {
-    eprintln!("\n─── HistogramGpu CPU↔GPU parity ───\n");
+    println!("\n─── HistogramGpu CPU↔GPU parity ───\n");
 
     let dev = Arc::clone(device);
     let result = try_gpu_op(|| {
@@ -256,11 +256,11 @@ fn validate_histogram_gpu(h: &mut ValidationHarness, device: &Arc<barracuda::dev
             );
         }
         Ok(Err(e)) => {
-            eprintln!("  HistogramGpu error: {e}");
+            println!("  HistogramGpu error: {e}");
             h.check_bool("HistogramGpu: skipped (upstream shader bug)", true);
         }
         Err(panic_msg) => {
-            eprintln!("  HistogramGpu panicked: {panic_msg}");
+            println!("  HistogramGpu panicked: {panic_msg}");
             h.check_bool("HistogramGpu: skipped (upstream shader naga panic)", true);
         }
     }

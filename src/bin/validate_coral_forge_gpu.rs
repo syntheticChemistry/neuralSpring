@@ -82,7 +82,7 @@ fn validate_gelu(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  GELU GPU max diff: {md:.2e}");
+    println!("  GELU GPU max diff: {md:.2e}");
     h.check_abs(
         "GELU GPU max diff",
         md,
@@ -144,7 +144,7 @@ fn validate_triangle_outgoing(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  TriMul outgoing GPU max diff: {md:.2e}");
+    println!("  TriMul outgoing GPU max diff: {md:.2e}");
     h.check_abs(
         "TriMul outgoing GPU max diff",
         md,
@@ -209,7 +209,7 @@ fn validate_triangle_incoming(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  TriMul incoming GPU max diff: {md:.2e}");
+    println!("  TriMul incoming GPU max diff: {md:.2e}");
     h.check_abs(
         "TriMul incoming GPU max diff",
         md,
@@ -290,7 +290,7 @@ fn validate_triangle_attention(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  TriAttn scores GPU max diff: {md:.2e}");
+    println!("  TriAttn scores GPU max diff: {md:.2e}");
     h.check_abs(
         "TriAttn scores GPU max diff",
         md,
@@ -351,7 +351,7 @@ fn validate_softmax(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  Softmax GPU max diff: {md:.2e}");
+    println!("  Softmax GPU max diff: {md:.2e}");
     h.check_abs(
         "Softmax GPU max diff",
         md,
@@ -439,7 +439,7 @@ fn validate_layer_norm(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  LayerNorm GPU max diff: {md:.2e}");
+    println!("  LayerNorm GPU max diff: {md:.2e}");
     h.check_abs(
         "LayerNorm GPU max diff",
         md,
@@ -511,7 +511,7 @@ fn validate_outer_product_mean(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  OPM GPU max diff: {md:.2e}");
+    println!("  OPM GPU max diff: {md:.2e}");
     h.check_abs("OPM GPU max diff", md, 0.0, tolerances::GPU_DF64_ARITHMETIC);
     h.check_bool("OPM GPU finite", result.iter().all(|v| v.is_finite()));
 }
@@ -584,7 +584,7 @@ fn validate_msa_row_attention(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  MSA row scores GPU max diff: {md:.2e}");
+    println!("  MSA row scores GPU max diff: {md:.2e}");
     h.check_abs(
         "MSA row scores GPU max diff",
         md,
@@ -660,7 +660,7 @@ fn validate_msa_col_attention(h: &mut ValidationHarness, gpu: &Gpu) {
     .expect("dispatch_and_read");
 
     let md = max_diff(&result, &cpu_ref);
-    eprintln!("  MSA col scores GPU max diff: {md:.2e}");
+    println!("  MSA col scores GPU max diff: {md:.2e}");
     h.check_abs(
         "MSA col scores GPU max diff",
         md,
@@ -679,14 +679,14 @@ fn validate_msa_col_attention(h: &mut ValidationHarness, gpu: &Gpu) {
 async fn main() {
     let gpu = match Gpu::new().await {
         Ok(g) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
             let profile =
                 barracuda::device::driver_profile::GpuDriverProfile::from_device(g.wgpu_device());
-            eprintln!("  FP64 strategy: {:?}", profile.fp64_strategy());
-            eprintln!("  precision: df64 core streaming (f64 buffers, df64 compute)");
+            println!("  FP64 strategy: {:?}", profile.fp64_strategy());
+            println!("  precision: df64 core streaming (f64 buffers, df64 compute)");
             g
         }
         Err(_) => neural_spring::validation::exit_no_gpu(),

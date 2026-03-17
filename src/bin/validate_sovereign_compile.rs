@@ -19,10 +19,10 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 fn report_hardware(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
-    eprintln!("\n── Hardware Discovery ──");
-    eprintln!("  Backend: {}", dispatcher.backend());
-    eprintln!("  Adapter: {}", dispatcher.adapter_name());
-    eprintln!("  Has GPU: {}", dispatcher.has_gpu());
+    println!("\n── Hardware Discovery ──");
+    println!("  Backend: {}", dispatcher.backend());
+    println!("  Adapter: {}", dispatcher.adapter_name());
+    println!("  Has GPU: {}", dispatcher.has_gpu());
 
     h.check_bool("dispatcher initialized", true);
     h.check_bool(
@@ -31,39 +31,39 @@ fn report_hardware(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     );
 
     if let Some(caps) = dispatcher.capabilities() {
-        eprintln!("  Max workgroup X: {}", caps.max_compute_workgroup_size_x);
-        eprintln!("  Max buffer size: {} bytes", caps.max_buffer_size);
-        eprintln!("  Supports f64: {}", caps.supports_f64);
-        eprintln!("  Supports f16: {}", caps.supports_f16);
+        println!("  Max workgroup X: {}", caps.max_compute_workgroup_size_x);
+        println!("  Max buffer size: {} bytes", caps.max_buffer_size);
+        println!("  Supports f64: {}", caps.supports_f64);
+        println!("  Supports f16: {}", caps.supports_f16);
         h.check_bool("workgroup size > 0", caps.max_compute_workgroup_size_x > 0);
         h.check_bool("buffer size > 0", caps.max_buffer_size > 0);
     }
 
     if let Some(profile) = dispatcher.driver_profile() {
-        eprintln!("\n── Precision Strategy ──");
-        eprintln!("  FP64 strategy: {:?}", profile.fp64_strategy());
-        eprintln!(
+        println!("\n── Precision Strategy ──");
+        println!("  FP64 strategy: {:?}", profile.fp64_strategy());
+        println!(
             "  DF64 SPIR-V poisoning: {}",
             profile.has_df64_spir_v_poisoning()
         );
-        eprintln!("  Precision routing: {:?}", profile.precision_routing());
-        eprintln!(
+        println!("  Precision routing: {:?}", profile.precision_routing());
+        println!(
             "  Shared memory f64 safe: {}",
             dispatcher.shared_memory_f64_safe()
         );
         h.check_bool("driver profile available", true);
     }
 
-    eprintln!("\n── Bandwidth Tier ──");
-    eprintln!("  PCIe tier: {:?}", dispatcher.bandwidth_tier());
-    eprintln!(
+    println!("\n── Bandwidth Tier ──");
+    println!("  PCIe tier: {:?}", dispatcher.bandwidth_tier());
+    println!(
         "  Pow workaround needed: {}",
         dispatcher.needs_pow_workaround()
     );
 }
 
 fn validate_eigensolve(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
-    eprintln!("\n── Eigensolve GPU Validation ──");
+    println!("\n── Eigensolve GPU Validation ──");
     let n = 32;
     let mut matrix = vec![0.0_f64; n * n];
     for i in 0..n {
@@ -87,7 +87,7 @@ fn validate_eigensolve(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
 fn main() {
     let mut h = ValidationHarness::new("sovereign_compile");
 
-    eprintln!("═══ Exp 105: Sovereign Compile & Compute Triangle Validation ═══");
+    println!("═══ Exp 105: Sovereign Compile & Compute Triangle Validation ═══");
 
     let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
     let dispatcher = rt.block_on(Dispatcher::new());

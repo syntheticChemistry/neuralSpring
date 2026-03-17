@@ -44,7 +44,10 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
-**S161: Doc cleanup + structured logging completion + hardcoded path elimination.**
+**S162: Cross-ecosystem absorption execution — 4-format `parse_capabilities()`, generic `discover_primal()`
++ `socket_env_var()`, `DispatchOutcome` enum, `resilient_call()` circuit breaker, `safe_cast` module,
+zero `eprintln!` workspace-wide (1642 → 0), safe GPU casts.**
+S161: Doc cleanup + structured logging completion + hardcoded path elimination.
 Hardcoded `"biomeos/biomeos.sock"` → `config::BIOMEOS_SOCKET_SUBDIR` / `BIOMEOS_ORCHESTRATOR_SOCKET`
 (primal main.rs, biomeos_client.rs, ipc_client.rs). playGround `eprintln!` → `log::info!/warn!/debug!`
 (28 calls across mcp_adapter, interactive, bench_inference, biomeos_client — zero `eprintln!` in

@@ -5,7 +5,31 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 161 (March 16, 2026)
+## [Unreleased] — Session 162 (March 16, 2026)
+
+### Session 162 — Cross-Ecosystem Absorption Execution (2026-03-16)
+
+**4-format capability parsing, generic discovery, circuit breaker IPC, safe casts, zero eprintln workspace-wide.**
+
+- **IPC**: `parse_capability_list()` evolved from 2-format to 5-format (flat, object array,
+  nested wrapper, double-nested, result wrapper) — airSpring V0.8.7 pattern. Now `pub` and
+  returns `Vec<String>` (never errors) for defensive discovery probes.
+- **DISCOVERY**: `socket_env_var()`, `address_env_var()`, `discover_primal()` helpers
+  (sweetGrass / groundSpring V112 pattern). Primals check `{UPPER}_SOCKET` env var first,
+  then fall back to biomeOS socket directory resolution.
+- **DISPATCH**: `DispatchOutcome` enum (groundSpring V112 pattern) classifies RPC responses
+  as `Ok`, `ProtocolError` (-32700..-32600), or `ApplicationError` for graceful degradation.
+- **RESILIENCE**: `resilient_call()` with circuit breaker + exponential backoff retry
+  (healthSpring V32 pattern). Retries recoverable errors (connect, timeout) 2× with
+  50ms/100ms backoff; short-circuits if primal recently unavailable.
+- **SAFE CASTS**: New `src/safe_cast.rs` module (groundSpring V112 pattern) with `usize_u32()`,
+  `usize_u64()`, `usize_f64()`, `f64_f32()`. Applied to `gpu_ops/bio/evolution.rs` (9 casts)
+  and `gpu_ops/bio/activation.rs` (7 casts). GPU dispatch params now checked, not silently
+  truncated.
+- **LOGGING**: All 1642 remaining `eprintln!` → `println!` across 186 src/ files. Zero
+  `eprintln!` in entire workspace (src/ + playGround/).
+- **QUALITY**: 1276 tests (1133 lib + 73 forge + 70 playGround), 0 warnings, 0 unfulfilled
+  expectations, 0 fmt diffs, 0 `eprintln!`, 0 unsafe, 0 hardcoded paths.
 
 ### Session 161 — Doc Cleanup + Structured Logging Completion (2026-03-16)
 

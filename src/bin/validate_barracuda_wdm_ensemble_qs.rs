@@ -22,13 +22,13 @@ type Dev = Arc<WgpuDevice>;
 async fn main() {
     let mut h = ValidationHarness::new("barracuda_wdm_ensemble_qs");
 
-    eprintln!("\n── Exp 098: BarraCUDA WDM Ensemble QS ──");
+    println!("\n── Exp 098: BarraCUDA WDM Ensemble QS ──");
 
     let baseline = match load_ensemble_from_json(BASELINE_JSON) {
         Ok(b) => b,
         Err(e) => {
             h.check_bool("JSON load", false);
-            eprintln!("FATAL: {e}");
+            println!("FATAL: {e}");
             h.finish();
         }
     };
@@ -36,13 +36,13 @@ async fn main() {
     h.check_bool("baseline loaded", !baseline.slices.is_empty());
 
     // Tier 1: BarraCUDA CPU stats
-    eprintln!("\n── Tier 1: BarraCUDA CPU ──");
+    println!("\n── Tier 1: BarraCUDA CPU ──");
     validate_bc_cpu(&mut h, &baseline);
 
     // Tier 2: BarraCUDA GPU Tensor
-    eprintln!("\n── Tier 2: BarraCUDA GPU ──");
+    println!("\n── Tier 2: BarraCUDA GPU ──");
     let Ok(gpu) = Gpu::new().await else {
-        eprintln!("  GPU unavailable");
+        println!("  GPU unavailable");
         h.finish();
     };
     let device: Dev = gpu.wgpu_device().clone();
@@ -64,7 +64,7 @@ fn validate_bc_cpu(
             h.check_bool("bC CPU r(W,ξ) < 0", r < 0.0);
         }
         Err(e) => {
-            eprintln!("  Pearson error: {e}");
+            println!("  Pearson error: {e}");
             h.check_bool("bC CPU Pearson", false);
         }
     }
@@ -72,7 +72,7 @@ fn validate_bc_cpu(
     match barracuda::stats::correlation::variance(&ws) {
         Ok(v) => h.check_bool("bC CPU W variance > 0", v > 0.0),
         Err(e) => {
-            eprintln!("  variance error: {e}");
+            println!("  variance error: {e}");
             h.check_bool("bC CPU variance", false);
         }
     }
@@ -99,9 +99,7 @@ fn validate_gpu(
                 if let Ok(vals) = result.to_vec() {
                     let gpu_sum = f64::from(vals[0]);
                     let diff = (gpu_sum - cpu_sum).abs();
-                    eprintln!(
-                        "  disorder sum: CPU={cpu_sum:.4}, GPU={gpu_sum:.4}, diff={diff:.2e}"
-                    );
+                    println!("  disorder sum: CPU={cpu_sum:.4}, GPU={gpu_sum:.4}, diff={diff:.2e}");
                     h.check_abs("GPU disorder sum", gpu_sum, cpu_sum, 0.1);
                 } else {
                     h.check_bool("GPU readback", false);

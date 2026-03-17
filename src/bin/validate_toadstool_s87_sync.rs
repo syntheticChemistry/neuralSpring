@@ -40,7 +40,7 @@ use neural_spring::tolerances;
 use neural_spring::validation::{exit_no_gpu, ValidationHarness};
 
 fn validate_cpu_modules_accessible(h: &mut ValidationHarness) {
-    eprintln!("\n── CPU module accessibility (S87 ungating fix) ──");
+    println!("\n── CPU module accessibility (S87 ungating fix) ──");
 
     let v = barracuda::stats::correlation::variance(&[1.0, 2.0, 3.0, 4.0, 5.0])
         .expect("variance should succeed");
@@ -75,7 +75,7 @@ fn validate_cpu_modules_accessible(h: &mut ValidationHarness) {
 }
 
 fn validate_error_type_evolution(h: &mut ValidationHarness) {
-    eprintln!("\n── BarracudaError S87 evolution ──");
+    println!("\n── BarracudaError S87 evolution ──");
 
     let err = BarracudaError::Gpu("test device error".into());
     h.check_bool(
@@ -99,7 +99,7 @@ fn validate_error_type_evolution(h: &mut ValidationHarness) {
 }
 
 fn validate_nautilus_s87_compat(h: &mut ValidationHarness) {
-    eprintln!("\n── Nautilus S87 compatibility ──");
+    println!("\n── Nautilus S87 compatibility ──");
 
     let config = NautilusBrainConfig::default();
     let mut brain = NautilusBrain::new(config, "s87-compat-test");
@@ -136,7 +136,7 @@ fn validate_nautilus_s87_compat(h: &mut ValidationHarness) {
 }
 
 fn validate_dispatcher_s87(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── Dispatcher core ops on S87 ──");
+    println!("\n── Dispatcher core ops on S87 ──");
 
     let a: Vec<f64> = (0..64_i32).map(|i| f64::from(i) * 0.01).collect();
     let b: Vec<f64> = (0..64_i32)
@@ -175,7 +175,7 @@ fn validate_dispatcher_s87(h: &mut ValidationHarness, disp: &Dispatcher) {
 }
 
 fn validate_dispatch_bridge_s87(h: &mut ValidationHarness, disp: &Dispatcher) {
-    eprintln!("\n── barracuda::dispatch bridge on S87 ──");
+    println!("\n── barracuda::dispatch bridge on S87 ──");
 
     let n = 8_usize;
     let data: Vec<f64> = (0..n * n).map(|i| i as f64 * 0.1).collect();
@@ -203,11 +203,11 @@ fn validate_dispatch_bridge_s87(h: &mut ValidationHarness, disp: &Dispatcher) {
 
 #[tokio::main]
 async fn main() {
-    eprintln!("=== ToadStool S87 Sync Validation ===\n");
-    eprintln!("Pin: 2fee1969 → 2dc26792 (S86→S87, 2 commits)");
-    eprintln!("Key: deep debt evolution, CPU ungating, gpu_helpers refactor");
-    eprintln!("FHE: NTT/INTT u64_mod_simple fix, pointwise_mul correction");
-    eprintln!("Unsafe: 60+ sites documented with // SAFETY:");
+    println!("=== ToadStool S87 Sync Validation ===\n");
+    println!("Pin: 2fee1969 → 2dc26792 (S86→S87, 2 commits)");
+    println!("Key: deep debt evolution, CPU ungating, gpu_helpers refactor");
+    println!("FHE: NTT/INTT u64_mod_simple fix, pointwise_mul correction");
+    println!("Unsafe: 60+ sites documented with // SAFETY:");
 
     let mut h = ValidationHarness::new("toadstool_s87_sync");
 

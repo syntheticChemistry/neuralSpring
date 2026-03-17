@@ -34,7 +34,7 @@ use neural_spring::validation::{exit_no_gpu, ValidationHarness};
 async fn main() {
     let dispatcher = match Gpu::new().await {
         Ok(gpu) => {
-            eprintln!(
+            println!(
                 "  adapter: {} ({:?}, {:?})",
                 gpu.adapter_name, gpu.device_type, gpu.backend
             );
