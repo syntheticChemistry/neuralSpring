@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 15, 2026 (Session 152 — Deep debt execution: tolerance centralization, capability-based discovery, shared validation infrastructure. 260 binaries, 1115 lib + 61 playGround unit + 13 integration tests, 219 barracuda import files, 47 modules, barraCuda v0.3.5 at `0649cd0`, wgpu 28. ToadStool S146+, coralReef Phase 10. V103 handoff)
+**Last Updated**: March 16, 2026 (Session 162 — Cross-ecosystem absorption: 4-format parse_capabilities, discover_primal, DispatchOutcome, resilient_call, safe_cast, zero eprintln workspace-wide. 260 binaries, 1133 lib + 70 playGround + 73 forge tests, 216 barracuda import files, 48 modules, barraCuda v0.3.5 at `0649cd0`, wgpu 28. ToadStool S146+, coralReef Iter 49. V113 handoff)
 **BarraCUDA version**: `0.3.5` at `0649cd0` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. 719 WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 

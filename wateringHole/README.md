@@ -10,6 +10,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 | Version | File | Date | Scope |
 |---------|------|------|-------|
 | **V113 S162** | `handoffs/NEURALSPRING_V113_S162_ABSORPTION_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | Cross-ecosystem absorption: 4-format parse_capabilities, discover_primal, DispatchOutcome, resilient_call, safe_cast, zero eprintln workspace-wide. Supersedes V112 |
+| **V113 bC/tS** | `handoffs/NEURALSPRING_V113_BARRACUDA_TOADSTOOL_EVOLUTION_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | Updated barracuda inventory (216 files, 178 binaries), S162 patterns (resilient_call, DispatchOutcome, safe_cast, discover_primal), evolution opps. Supersedes V112 bC/tS |
 
 ### Central wateringHole Copies
 

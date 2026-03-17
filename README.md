@@ -47,21 +47,9 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 **S162: Cross-ecosystem absorption execution — 4-format `parse_capabilities()`, generic `discover_primal()`
 + `socket_env_var()`, `DispatchOutcome` enum, `resilient_call()` circuit breaker, `safe_cast` module,
 zero `eprintln!` workspace-wide (1642 → 0), safe GPU casts.**
-S161: Doc cleanup + structured logging completion + hardcoded path elimination.
-Hardcoded `"biomeos/biomeos.sock"` → `config::BIOMEOS_SOCKET_SUBDIR` / `BIOMEOS_ORCHESTRATOR_SOCKET`
-(primal main.rs, biomeos_client.rs, ipc_client.rs). playGround `eprintln!` → `log::info!/warn!/debug!`
-(28 calls across mcp_adapter, interactive, bench_inference, biomeos_client — zero `eprintln!` in
-playGround src now). barracuda/toadstool handoff updated to V111. All root docs, baseCamp, experiments,
-wateringHole synced. Archive sweep clean.
-1128 lib + 61 playGround + 73 forge tests, 0 clippy warnings, 0 unfulfilled expectations, 0 fmt diffs. V112 handoff.
-
-**S160: IPC evolution — structured IpcError, call_typed(), compute.dispatch.**
-`IpcError` typed enum (healthSpring V31 / rhizoCrypt V13): 7 phases + `is_recoverable()`.
-`extract_rpc_error()` centralized (airSpring V0.8.6). Typed `compute.dispatch` protocol on
-`ToadStoolClient` (wetSpring V124). `JsonRpcError::code` i32→i64. V111 handoff.
-
-**S159: OrExit<T>, deny.toml, structured logging.** Zero-panic trait on 6 binaries, supply-chain
-hygiene, primal `eprintln!`→`log::*`. V110 handoff.
+**S159–S161** (condensed): IPC evolution (`IpcError` typed enum, `call_typed()`, `extract_rpc_error()`,
+typed `compute.dispatch`, `JsonRpcError::code` i32→i64), `OrExit<T>` zero-panic, `deny.toml`,
+structured logging (primal + playGround 28→0 `eprintln!`), hardcoded path elimination. V110–V112 handoffs.
 
 **S157–S158** (condensed): Modern idiomatic Rust evolution — `#[allow()]`→`#[expect(reason)]` (zero
 remaining), `temp-env` for Rust 2024, smart refactoring (validate_barracuda_tensor 918→875 LOC),
@@ -79,11 +67,12 @@ deploy graph), capability-based discovery across all clients, tolerance centrali
 deep debt (zero magic numbers, zero hardcoded primal names). V99–V107 handoffs.
 
 **barraCuda v0.3.5** at `0649cd0` (standalone, extracted from ToadStool S89): ALL 17 shortcomings resolved.
-25 absorbed workloads, 167 binaries consume barracuda, 13+ modules exercised (stats, dispatch, ops,
-linalg, tensor, device, spectral, numerical, nautilus, shaders, nn, error, unified\_hardware).
-47 CPU→GPU dispatch ops (~97% GPU), 42 metalForge WGSL shaders. ToadStool S146 (`751b3849`),
-coralReef Iteration 49 (`coral-glowplug`). Pure Rust **83.6×** faster than Python (geomean, 15 domains).
-**coralForge** — sovereign structure prediction (AlphaFold2/3 Evoformer, IPA, diffusion, pairformer, confidence).
+216 files consume barracuda (211 src + 5 playGround), 178 binaries, 71 wgpu files. 14+ modules
+exercised (stats, dispatch, ops, linalg, tensor, device, spectral, numerical, nautilus, shaders, nn,
+error, unified\_hardware, prelude). 47 CPU→GPU dispatch ops (~97% GPU), 42 metalForge WGSL shaders.
+ToadStool S146 (`751b3849`), coralReef Iteration 49 (`coral-glowplug`). Pure Rust **83.6×** faster
+than Python (geomean, 15 domains). **coralForge** — sovereign structure prediction (AlphaFold2/3
+Evoformer, IPA, diffusion, pairformer, confidence).
 
 ### petalTongue Visualization (Sessions 135–139)
 
@@ -104,7 +93,7 @@ WDM+coralForge CPU↔GPU parity 39/39 | metalForge WDM+coralForge NUCLEUS 41/41 
 Multi-GPU RTX 4070 + TITAN V (NVK): 384/384 bit-identical | CPU↔Python parity 39/39 (1e-10).
 Cross-spring rewire: 41/41 (`validate_cross_spring_rewire`) | modern bench 28/28 (`bench_cross_spring_modern`).
 S121 rewire: 80/80 (`validate_barracuda_s121_rewire`) — SimpleMlp EOS/Transport + HMM Viterbi/forward dispatcher parity.
-**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe (`#![forbid(unsafe_code)]` on all 3 crates) | zero inline magic numbers | zero `#[allow()]` (all `#[expect(reason)]`) | zero unfulfilled expectations | zero C dependencies (Tower Atomic) | 100% SPDX headers | zero mocks in production | all files ≤1000 LOC | `deny.toml` supply-chain hygiene | `OrExit<T>` zero-panic binaries | structured logging (`log::info!/warn!/debug!`) | `temp-env` safe env testing (Rust 2024 ready).
+**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe (`#![forbid(unsafe_code)]` on all 3 crates) | zero inline magic numbers | zero `#[allow()]` (all `#[expect(reason)]`) | zero unfulfilled expectations | zero C dependencies (Tower Atomic) | 100% SPDX headers | zero mocks in production | all files ≤1000 LOC | `deny.toml` supply-chain hygiene | `OrExit<T>` zero-panic binaries | structured logging (`log::info!/warn!/debug!`) | `temp-env` safe env testing (Rust 2024 ready) | zero `eprintln!` workspace-wide | `safe_cast` module (checked GPU dispatch params) | `resilient_call()` circuit breaker | `DispatchOutcome` RPC classification | 4-format `parse_capability_list()` | `discover_primal()` generic socket discovery.
 See `wateringHole/handoffs/` for active handoffs.
 
 ### Phase 0 — Synthetic Baselines (48/48)

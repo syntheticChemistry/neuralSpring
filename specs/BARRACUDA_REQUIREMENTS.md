@@ -1,6 +1,6 @@
 # neuralSpring — BarraCUDA Requirements
 
-**Last Updated**: March 16, 2026 (Sessions 44–157 — 220/220 validate_all, 55/55 dispatch parity, 260 binaries, 1128 lib tests, barraCuda v0.3.5 at `0649cd0`, 46 upstream rewires, V108 handoff)
+**Last Updated**: March 16, 2026 (Sessions 44–162 — 220/220 validate_all, 55/55 dispatch parity, 260 binaries, 1133 lib + 70 playGround + 73 forge tests, barraCuda v0.3.5 at `0649cd0`, 216 import files, V113 handoff)
 **Purpose**: GPU kernel requirements, gap analysis, and evolution priorities
 
 ---
