@@ -5,7 +5,24 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 159 (March 16, 2026)
+## [Unreleased] — Session 160 (March 16, 2026)
+
+### Session 160 — IPC Evolution: Structured Errors + compute.dispatch (2026-03-16)
+
+**Typed IPC errors, centralized RPC error extraction, compute.dispatch protocol.**
+
+- **IPC**: `IpcError` typed enum in `playGround/src/ipc_client.rs` (healthSpring V31 / rhizoCrypt V13
+  pattern): `Connect`, `Write`, `Read`, `InvalidJson`, `NoResult`, `RpcError{code,message}`,
+  `Timeout`. `is_recoverable()` for retry logic. `call_typed()` for structured error reporting.
+  Backward-compatible `call()` preserved.
+- **RPC**: `extract_rpc_error()` centralized helper (airSpring V0.8.6 pattern) — replaces ad-hoc
+  `response.get("error")` checks.
+- **DISPATCH**: Typed `compute.dispatch` IPC methods on `ToadStoolClient`:
+  `dispatch_submit(operation, input)` → `DispatchHandle`, `dispatch_result(id)` → `DispatchResult`,
+  `dispatch_capabilities()` → `Vec<String>` (wetSpring V124 / healthSpring V31 pattern).
+- **TYPES**: `JsonRpcError::code` evolved `i32` → `i64` for JSON-RPC 2.0 spec compliance.
+  `DispatchHandle` and `DispatchResult` response types.
+- **QUALITY**: 1128 lib + 61 playGround tests, 0 warnings, 0 unfulfilled expectations, 0 fmt diffs.
 
 ### Session 159 — Cross-Ecosystem Absorption Execution (2026-03-16)
 

@@ -241,4 +241,79 @@ impl ToadStoolClient {
         let status: HealthStatus = serde_json::from_value(result)?;
         Ok(status)
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // compute.dispatch protocol (wetSpring V124 / healthSpring V31)
+    // ═══════════════════════════════════════════════════════════════
+
+    /// Submit a dispatch operation via `compute.dispatch.submit`.
+    ///
+    /// Returns a [`DispatchHandle`] for retrieving the result.
+    pub async fn dispatch_submit(
+        &self,
+        operation: &str,
+        input: &serde_json::Value,
+    ) -> Result<DispatchHandle> {
+        let params = serde_json::json!({
+            "operation": operation,
+            "input": input,
+        });
+        let result = ipc_client::call(
+            &self.socket,
+            "compute.dispatch.submit",
+            &params,
+            self.timeout,
+        )
+        .await?;
+        let handle: DispatchHandle = serde_json::from_value(result)?;
+        Ok(handle)
+    }
+
+    /// Retrieve the result of a dispatch operation via `compute.dispatch.result`.
+    pub async fn dispatch_result(&self, dispatch_id: &str) -> Result<DispatchResult> {
+        let params = serde_json::json!({ "dispatch_id": dispatch_id });
+        let result = ipc_client::call(
+            &self.socket,
+            "compute.dispatch.result",
+            &params,
+            self.timeout,
+        )
+        .await?;
+        let dr: DispatchResult = serde_json::from_value(result)?;
+        Ok(dr)
+    }
+
+    /// Query available dispatch capabilities via `compute.dispatch.capabilities`.
+    pub async fn dispatch_capabilities(&self) -> Result<Vec<String>> {
+        let result = ipc_client::call(
+            &self.socket,
+            "compute.dispatch.capabilities",
+            &serde_json::json!({}),
+            self.timeout,
+        )
+        .await?;
+        let caps: Vec<String> = serde_json::from_value(result)?;
+        Ok(caps)
+    }
+}
+
+/// Handle returned by `compute.dispatch.submit` for result retrieval.
+#[derive(Debug, Deserialize)]
+pub struct DispatchHandle {
+    pub dispatch_id: String,
+    #[serde(default)]
+    pub status: String,
+}
+
+/// Result of a completed dispatch operation.
+#[derive(Debug, Deserialize)]
+pub struct DispatchResult {
+    #[serde(default)]
+    pub dispatch_id: String,
+    #[serde(default)]
+    pub status: String,
+    #[serde(default)]
+    pub output: Option<serde_json::Value>,
+    #[serde(default)]
+    pub elapsed_ms: u64,
 }

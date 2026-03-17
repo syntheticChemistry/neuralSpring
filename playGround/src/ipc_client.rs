@@ -43,7 +43,7 @@ pub struct JsonRpcResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct JsonRpcError {
-    pub code: i32,
+    pub code: i64,
     pub message: String,
 }
 
@@ -53,16 +53,110 @@ impl std::fmt::Display for JsonRpcError {
     }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// Structured IPC errors (healthSpring V31 / rhizoCrypt V13 pattern)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Typed IPC error phases for observability and targeted retry logic.
+///
+/// Each variant captures the phase where the failure occurred, enabling
+/// callers to decide whether a retry is appropriate (e.g. `Connect` and
+/// `Timeout` are often transient, while `RpcError` is application-level).
+#[derive(Debug)]
+pub enum IpcError {
+    /// Socket connection failed (primal may not be running).
+    Connect(std::io::Error),
+    /// Failed to write the request payload.
+    Write(std::io::Error),
+    /// Failed to read the response.
+    Read(std::io::Error),
+    /// Response was not valid JSON.
+    InvalidJson(serde_json::Error),
+    /// Response contained neither `result` nor `error`.
+    NoResult,
+    /// Remote JSON-RPC error with code and message.
+    RpcError { code: i64, message: String },
+    /// IPC call exceeded the configured timeout.
+    Timeout,
+}
+
+impl IpcError {
+    /// Whether this error is likely transient and worth retrying.
+    #[must_use]
+    pub const fn is_recoverable(&self) -> bool {
+        matches!(self, Self::Connect(_) | Self::Timeout)
+    }
+}
+
+impl std::fmt::Display for IpcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Connect(e) => write!(f, "connect: {e}"),
+            Self::Write(e) => write!(f, "write: {e}"),
+            Self::Read(e) => write!(f, "read: {e}"),
+            Self::InvalidJson(e) => write!(f, "parse: {e}"),
+            Self::NoResult => write!(f, "response missing 'result' field"),
+            Self::RpcError { code, message } => write!(f, "rpc error {code}: {message}"),
+            Self::Timeout => write!(f, "ipc timeout"),
+        }
+    }
+}
+
+impl std::error::Error for IpcError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Connect(e) | Self::Write(e) | Self::Read(e) => Some(e),
+            Self::InvalidJson(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+/// Extract a JSON-RPC error code and message from a raw response value.
+///
+/// Centralizes the `response.get("error")` pattern used across IPC call
+/// sites (airSpring V0.8.6 pattern).
+#[must_use]
+pub fn extract_rpc_error(response: &serde_json::Value) -> Option<(i64, String)> {
+    let err = response.get("error")?;
+    let code = err.get("code")?.as_i64()?;
+    let message = err.get("message")?.as_str()?.to_owned();
+    Some((code, message))
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Core IPC call
+// ═══════════════════════════════════════════════════════════════════
+
 /// Send a single JSON-RPC 2.0 request to a Unix socket and return the result.
+///
+/// Returns `Result<Value>` for backward compatibility. Use [`call_typed`]
+/// for structured `IpcError` reporting.
 pub async fn call(
     socket_path: &Path,
     method: &str,
     params: &serde_json::Value,
     timeout: Duration,
 ) -> Result<serde_json::Value> {
+    call_typed(socket_path, method, params, timeout)
+        .await
+        .map_err(|e| anyhow::anyhow!("{e}"))
+}
+
+/// Send a JSON-RPC 2.0 request with structured [`IpcError`] reporting.
+///
+/// Prefer this over [`call`] in new code — the typed error lets callers
+/// distinguish transient failures (connect, timeout) from application
+/// errors (RPC error, invalid JSON).
+pub async fn call_typed(
+    socket_path: &Path,
+    method: &str,
+    params: &serde_json::Value,
+    timeout: Duration,
+) -> std::result::Result<serde_json::Value, IpcError> {
     let stream = UnixStream::connect(socket_path)
         .await
-        .with_context(|| format!("connecting to {}", socket_path.display()))?;
+        .map_err(IpcError::Connect)?;
 
     let (reader, mut writer) = stream.into_split();
 
@@ -73,27 +167,35 @@ pub async fn call(
         id: next_id(),
     };
 
-    let mut payload = serde_json::to_vec(&request)?;
+    let mut payload = serde_json::to_vec(&request).map_err(IpcError::InvalidJson)?;
     payload.push(b'\n');
-    writer.write_all(&payload).await?;
-    writer.flush().await?;
+    writer.write_all(&payload).await.map_err(IpcError::Write)?;
+    writer.flush().await.map_err(IpcError::Write)?;
 
     let mut buf_reader = BufReader::new(reader);
     let mut line = String::new();
-    tokio::time::timeout(timeout, buf_reader.read_line(&mut line))
+    let read_result = tokio::time::timeout(timeout, buf_reader.read_line(&mut line))
         .await
-        .with_context(|| format!("timeout after {timeout:?} waiting for {method}"))?
-        .with_context(|| format!("reading response from {}", socket_path.display()))?;
+        .map_err(|_| IpcError::Timeout)?
+        .map_err(IpcError::Read)?;
 
-    let resp: JsonRpcResponse =
-        serde_json::from_str(line.trim()).context("parsing JSON-RPC response")?;
-
-    if let Some(err) = resp.error {
-        anyhow::bail!("{err}");
+    if read_result == 0 {
+        return Err(IpcError::Read(std::io::Error::new(
+            std::io::ErrorKind::UnexpectedEof,
+            "empty response",
+        )));
     }
 
-    resp.result
-        .ok_or_else(|| anyhow::anyhow!("JSON-RPC response has neither result nor error"))
+    let resp: JsonRpcResponse = serde_json::from_str(line.trim()).map_err(IpcError::InvalidJson)?;
+
+    if let Some(err) = resp.error {
+        return Err(IpcError::RpcError {
+            code: err.code,
+            message: err.message,
+        });
+    }
+
+    resp.result.ok_or(IpcError::NoResult)
 }
 
 // ═══════════════════════════════════════════════════════════════════

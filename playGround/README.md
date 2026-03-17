@@ -53,10 +53,10 @@ PyTorch/CUDA dispatch latency gap.
 
 | Module | Purpose |
 |--------|---------|
-| `ipc_client` | Reusable JSON-RPC 2.0 client, biomeOS 5-tier socket discovery |
+| `ipc_client` | Reusable JSON-RPC 2.0 client, biomeOS 5-tier socket discovery, structured `IpcError`, `call_typed()`, `extract_rpc_error()` |
 | `squirrel_client` | Typed Squirrel MCP client: `ai.query`, `tool.execute`, `capability.announce` |
 | `primal_client` | Typed neuralSpring primal client: all 14 `science.*` capabilities |
-| `toadstool_client` | Typed ToadStool client: `compute.submit`, `gpu.dispatch`, `gpu.info` |
+| `toadstool_client` | Typed ToadStool client: `compute.submit`, `gpu.dispatch`, `gpu.info`, `compute.dispatch.*` protocol |
 | `coralreef_client` | Typed coralReef client: `shader.compile.wgsl`, compiler capabilities |
 | `mcp_tools` | MCP tool definitions (JSON Schema) for Squirrel registration |
 | `secrets` | API key loading from `testing-secrets/api-keys.toml` |

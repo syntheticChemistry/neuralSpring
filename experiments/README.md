@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 159)**: 1189+ tests (1128 lib + 61 playGround), 47 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging in primal binary. S159: cross-ecosystem absorption execution. V110 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
+**Current state (Session 160)**: 1189+ tests (1128 lib + 61 playGround), 47 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, typed `compute.dispatch` protocol. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging in primal binary. S160: IPC evolution execution. V111 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -5200,6 +5200,27 @@ with real computation, Nest records substrate/timing provenance.
 **Motivation**: Sync all documentation to V108 state. Archive superseded V107 handoff. Update ecosystem-level docs. Craft toadStool/barraCuda absorption handoff.
 **Procedure**: Updated README.md, whitePaper/baseCamp/README.md, specs/BARRACUDA_REQUIREMENTS.md (v0.3.3→v0.3.5 refs), wateringHole/README.md (V108 active, V107 archived), experiments journal (S157 + Exp 113-114), ecoPrimals/whitePaper/gen3/baseCamp/README.md, PRIMAL_REGISTRY.md (neuralSpring V108/S157).
 **Findings**: Documentation was 2 sessions behind (referencing V106/S155). Gen3 baseCamp referenced S156 but not S157. PRIMAL_REGISTRY had neuralSpring at V98/S145 — significantly stale; updated to V108/S157 with Tower Atomic and zero C deps highlights.
+
+## Session 160 — IPC Evolution: Structured Errors + compute.dispatch
+
+**Date**: 2026-03-16
+**Session**: S160
+
+### Exp 117 — Structured IPC Error Absorption
+
+**Motivation**: `ipc_client::call()` returns `anyhow::Result` — all IPC failures are opaque strings.
+Callers cannot distinguish transient failures (socket not found, timeout) from application errors
+(RPC error, invalid JSON). This blocks retry logic and circuit-breaker patterns.
+
+**Procedure**: Absorbed `IpcError` typed enum from healthSpring V31 / rhizoCrypt V13. Seven variants
+with phase-based discrimination. `call_typed()` returns `Result<Value, IpcError>`. `call()` preserved
+as backward-compatible wrapper. `extract_rpc_error()` centralized from airSpring V0.8.6 pattern.
+Typed `compute.dispatch` protocol added to `ToadStoolClient` (wetSpring V124 pattern).
+
+**Findings**: Zero test regressions (1128 lib + 61 playGround). The `is_recoverable()` method
+enables future circuit-breaker integration without changing call sites. `JsonRpcError::code`
+evolved i32 → i64 for JSON-RPC 2.0 spec compliance — no runtime impact since all ecosystem
+error codes fit in i32, but the type is now correct for the protocol.
 
 ## Session 159 — Cross-Ecosystem Absorption Execution
 

@@ -44,6 +44,16 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S160: IPC evolution — structured errors, compute.dispatch, cross-ecosystem absorption.**
+`IpcError` typed enum absorbed from healthSpring V31 / rhizoCrypt V13: `Connect`, `Write`, `Read`,
+`InvalidJson`, `NoResult`, `RpcError{code,message}`, `Timeout` — with `is_recoverable()` for
+retry logic. `extract_rpc_error()` centralized helper (airSpring V0.8.6 pattern). `call_typed()`
+for structured error reporting alongside backward-compatible `call()`. Typed `compute.dispatch`
+IPC client: `dispatch_submit`/`dispatch_result`/`dispatch_capabilities` with `DispatchHandle`
+and `DispatchResult` types (wetSpring V124 / healthSpring V31 pattern). `JsonRpcError::code`
+evolved `i32` → `i64` for JSON-RPC spec compliance.
+1128 lib tests, 61 playGround tests, 0 clippy warnings, 0 unfulfilled expectations, 0 fmt diffs. V111 handoff.
+
 **S159: Cross-ecosystem absorption execution — OrExit, deny.toml, structured logging.**
 `OrExit<T>` trait absorbed from wetSpring V123: panic-free `process::exit(1)` for `Result`
 and `Option`, applied to 6 binaries' setup code (runtime + GPU init). Stale `clippy::expect_used`
