@@ -5,7 +5,23 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 160 (March 16, 2026)
+## [Unreleased] — Session 161 (March 16, 2026)
+
+### Session 161 — Doc Cleanup + Structured Logging Completion (2026-03-16)
+
+**Hardcoded path elimination, playGround logging, doc sync, archive sweep.**
+
+- **PATHS**: Hardcoded `"biomeos/biomeos.sock"` → `config::BIOMEOS_SOCKET_SUBDIR` /
+  `BIOMEOS_ORCHESTRATOR_SOCKET` in primal `main.rs`, `biomeos_client.rs`, `ipc_client.rs`.
+  Duplicate `BIOMEOS_SOCKET_SUBDIR` constant in playGround → delegates to lib `config::`.
+- **LOGGING**: 28 `eprintln!` → `log::info!/warn!/debug!` across playGround binaries
+  (`neuralspring_mcp_adapter`, `neuralspring_interactive`, `neuralspring_bench_inference`,
+  `biomeos_client`). Zero `eprintln!` remaining in playGround src.
+- **DOCS**: All root docs, baseCamp, experiments, wateringHole synced to S161.
+  barracuda/toadstool evolution handoff updated. ecoPrimals docs updated.
+  README consolidated (S155–S158 condensed). Archive sweep: workspace clean.
+- **QUALITY**: 1128 lib + 61 playGround + 73 forge tests, 0 warnings, 0 unfulfilled
+  expectations, 0 fmt diffs, 0 `eprintln!` in playGround, 0 hardcoded socket paths.
 
 ### Session 160 — IPC Evolution: Structured Errors + compute.dispatch (2026-03-16)
 

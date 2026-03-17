@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 160)**: 1189+ tests (1128 lib + 61 playGround), 47 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, typed `compute.dispatch` protocol. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging in primal binary. S160: IPC evolution execution. V111 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
+**Current state (Session 161)**: 1262 tests (1128 lib + 61 playGround + 73 forge), 47 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations, 0 `eprintln!` in playGround, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, typed `compute.dispatch` protocol. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging complete (primal + playGround). S161: doc cleanup + logging completion. V112 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -5200,6 +5200,28 @@ with real computation, Nest records substrate/timing provenance.
 **Motivation**: Sync all documentation to V108 state. Archive superseded V107 handoff. Update ecosystem-level docs. Craft toadStool/barraCuda absorption handoff.
 **Procedure**: Updated README.md, whitePaper/baseCamp/README.md, specs/BARRACUDA_REQUIREMENTS.md (v0.3.3→v0.3.5 refs), wateringHole/README.md (V108 active, V107 archived), experiments journal (S157 + Exp 113-114), ecoPrimals/whitePaper/gen3/baseCamp/README.md, PRIMAL_REGISTRY.md (neuralSpring V108/S157).
 **Findings**: Documentation was 2 sessions behind (referencing V106/S155). Gen3 baseCamp referenced S156 but not S157. PRIMAL_REGISTRY had neuralSpring at V98/S145 — significantly stale; updated to V108/S157 with Tower Atomic and zero C deps highlights.
+
+## Session 161 — Doc Cleanup + Structured Logging Completion
+
+**Date**: 2026-03-16
+**Session**: S161
+
+### Exp 118 — Hardcoded Path Elimination + Structured Logging Completion
+
+**Motivation**: Audit found 3 hardcoded `"biomeos.sock"` / `"biomeos/biomeos.sock"` paths (primal
+main.rs, biomeos_client.rs, ipc_client.rs) and 28 `eprintln!` calls in playGround binaries.
+These violate the agnostic/capability-based principle and structured logging standard.
+
+**Procedure**: Replaced hardcoded paths with `config::BIOMEOS_SOCKET_SUBDIR` and
+`config::BIOMEOS_ORCHESTRATOR_SOCKET`. Replaced 28 `eprintln!` in playGround binaries
+(mcp_adapter, interactive, bench_inference, biomeos_client) with `log::info!/warn!/debug!`.
+User-facing output converted to `println!`. Consolidated README session history (S155–S158).
+Updated all root docs, baseCamp, experiments, wateringHole to S161. barracuda/toadstool
+handoff refreshed. Archive sweep confirmed clean.
+
+**Findings**: Zero `eprintln!` remaining in playGround src. Zero hardcoded socket paths.
+All 1262 tests pass. No regressions. The `ipc_client.rs` BIOMEOS_SOCKET_SUBDIR constant was
+a duplicate of the library's `config::BIOMEOS_SOCKET_SUBDIR` — now delegates via const reference.
 
 ## Session 160 — IPC Evolution: Structured Errors + compute.dispatch
 

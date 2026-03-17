@@ -97,16 +97,20 @@ pub struct PrimalState {
 const PRIMAL_NAME: &str = env!("CARGO_PKG_NAME");
 
 fn orchestrator_socket() -> String {
-    if let Ok(s) = std::env::var("BIOMEOS_ORCHESTRATOR_SOCKET") {
+    if let Ok(s) = std::env::var(neural_spring::config::ENV_BIOMEOS_ORCHESTRATOR) {
         return s;
     }
-    if let Ok(xdg) = std::env::var("XDG_RUNTIME_DIR") {
-        let path = format!("{xdg}/biomeos/biomeos.sock");
-        if std::path::Path::new(&path).exists() {
-            return path;
+    if let Ok(xdg) = std::env::var(neural_spring::config::ENV_XDG_RUNTIME_DIR) {
+        let path = std::path::PathBuf::from(xdg)
+            .join(neural_spring::config::BIOMEOS_SOCKET_SUBDIR)
+            .join(neural_spring::config::BIOMEOS_ORCHESTRATOR_SOCKET);
+        if path.exists() {
+            return path.to_string_lossy().into_owned();
         }
     }
-    let tmp = std::env::temp_dir().join("biomeos/biomeos.sock");
+    let tmp = std::env::temp_dir()
+        .join(neural_spring::config::BIOMEOS_SOCKET_SUBDIR)
+        .join(neural_spring::config::BIOMEOS_ORCHESTRATOR_SOCKET);
     tmp.to_string_lossy().into_owned()
 }
 

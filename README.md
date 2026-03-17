@@ -44,56 +44,32 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
-**S160: IPC evolution — structured errors, compute.dispatch, cross-ecosystem absorption.**
-`IpcError` typed enum absorbed from healthSpring V31 / rhizoCrypt V13: `Connect`, `Write`, `Read`,
-`InvalidJson`, `NoResult`, `RpcError{code,message}`, `Timeout` — with `is_recoverable()` for
-retry logic. `extract_rpc_error()` centralized helper (airSpring V0.8.6 pattern). `call_typed()`
-for structured error reporting alongside backward-compatible `call()`. Typed `compute.dispatch`
-IPC client: `dispatch_submit`/`dispatch_result`/`dispatch_capabilities` with `DispatchHandle`
-and `DispatchResult` types (wetSpring V124 / healthSpring V31 pattern). `JsonRpcError::code`
-evolved `i32` → `i64` for JSON-RPC spec compliance.
-1128 lib tests, 61 playGround tests, 0 clippy warnings, 0 unfulfilled expectations, 0 fmt diffs. V111 handoff.
+**S161: Doc cleanup + structured logging completion + hardcoded path elimination.**
+Hardcoded `"biomeos/biomeos.sock"` → `config::BIOMEOS_SOCKET_SUBDIR` / `BIOMEOS_ORCHESTRATOR_SOCKET`
+(primal main.rs, biomeos_client.rs, ipc_client.rs). playGround `eprintln!` → `log::info!/warn!/debug!`
+(28 calls across mcp_adapter, interactive, bench_inference, biomeos_client — zero `eprintln!` in
+playGround src now). barracuda/toadstool handoff updated to V111. All root docs, baseCamp, experiments,
+wateringHole synced. Archive sweep clean.
+1128 lib + 61 playGround + 73 forge tests, 0 clippy warnings, 0 unfulfilled expectations, 0 fmt diffs. V112 handoff.
 
-**S159: Cross-ecosystem absorption execution — OrExit, deny.toml, structured logging.**
-`OrExit<T>` trait absorbed from wetSpring V123: panic-free `process::exit(1)` for `Result`
-and `Option`, applied to 6 binaries' setup code (runtime + GPU init). Stale `clippy::expect_used`
-expectations pruned from `diagnose_f64_regression` and `bench_cross_spring_shader_evolution`.
-`deny.toml` created (groundSpring V110 / healthSpring V30 pattern): license allowlist,
-`wildcards = "deny"`, advisory/yanked/source hygiene. Primal binary 18× `eprintln!` →
-`log::info!/warn!/debug!` (RUST_LOG-controllable). External dep audit confirmed: only `cc`
-(build-time) via `blake3` in barraCuda — zero C deps in neuralSpring itself.
-1128 lib tests, 61 playGround tests, 0 clippy warnings, 0 unfulfilled expectations, 0 fmt diffs. V110 handoff.
+**S160: IPC evolution — structured IpcError, call_typed(), compute.dispatch.**
+`IpcError` typed enum (healthSpring V31 / rhizoCrypt V13): 7 phases + `is_recoverable()`.
+`extract_rpc_error()` centralized (airSpring V0.8.6). Typed `compute.dispatch` protocol on
+`ToadStoolClient` (wetSpring V124). `JsonRpcError::code` i32→i64. V111 handoff.
 
-**S158: Cross-ecosystem absorption + deep debt continuation.**
-`#[allow()]` → `#[expect(reason)]` complete (zero `#[allow()]` in active code, zero unfulfilled
-expectations across `--all-targets`). Stale lint expectations pruned (`clippy::unwrap_used` in
-`diagnose_f64_regression` after evolving `unwrap()` → `expect("context")`). `temp-env` adopted for
-safe env var testing (26 `set_var`/`remove_var` → `temp_env::with_var`, Rust 2024 ready).
-`validate_barracuda_tensor.rs` 918→875 LOC via `check_binary_op` + `check_scalar_op` extraction.
-Hardcoded primal names → constants (`discovery.rs` 3× `"biomeos"` → `BIOMEOS_SOCKET_SUBDIR`,
-`songbird_http` → `primal_names::SONGBIRD`, `primal_client` → `niche::NICHE_NAME`).
-1128 lib tests, 61 playGround tests, 0 clippy warnings (pedantic+nursery, -D warnings), 0 fmt diffs. V109 handoff.
+**S159: OrExit<T>, deny.toml, structured logging.** Zero-panic trait on 6 binaries, supply-chain
+hygiene, primal `eprintln!`→`log::*`. V110 handoff.
 
-**S157: Deep debt + idiomatic Rust evolution + Tower Atomic (zero C deps).**
-5 blanket `#![expect(clippy::pedantic,...)]` evolved to targeted `#[expect()]` with reasons.
-Primal binary smart-refactored (3 function extractions, `set_var` eliminated). Error handling
-evolved (`expect()`/`panic!()` → `Result<()>`, `let...else`, `process::exit`). `validate_modern_cross_spring`
-949→865 LOC via `bench_row!` macro. **reqwest + ring completely removed** — playGround HTTP
-evolved to Tower Atomic pattern (`songbird_http` → Songbird IPC). Zero C dependencies in entire
-workspace. `bytemuck` aligned across workspace. Kokkos benchmark provenance documented.
-1128 lib tests, 0 clippy warnings (pedantic+nursery, -D warnings), 0 fmt diffs. V108 handoff.
+**S157–S158** (condensed): Modern idiomatic Rust evolution — `#[allow()]`→`#[expect(reason)]` (zero
+remaining), `temp-env` for Rust 2024, smart refactoring (validate_barracuda_tensor 918→875 LOC),
+hardcoded names → constants, Tower Atomic (reqwest/ring removed — zero C deps), targeted lint
+expectations with reasons, `validate_modern_cross_spring` 949→865 LOC. V108–V109 handoffs.
 
-**S156: Comprehensive audit + IPC bug fixes.**
-Full codebase audit against ecosystem standards. Two critical IPC discovery bugs fixed:
-`probe_capabilities` response format mismatch (object vs array), `coralreef_bridge` returning
-manifest path instead of socket. Typed `BiomeOsClient` created. 3 validators converted to
-`ValidationHarness`. Magic tolerance `1e-10` → `tolerances::CROSS_LANGUAGE`. V107 handoff.
+**S155–S156** (condensed): Cross-spring absorption (`primal_names.rs`, `tolerances.py`, provenance
+trio), IPC bug fixes (probe_capabilities format, coralreef_bridge socket), typed BiomeOsClient,
+3 validators to ValidationHarness. V106–V107 handoffs.
 
-**S155: Cross-spring absorption — primal_names, tolerances.py, provenance trio.**
-`src/primal_names.rs` (11 primal + 4 domain constants). `control/tolerances.py` (80+ shared Python
-tolerance constants). Deploy graph provenance trio (rhizoCrypt/loamSpine/sweetGrass). V106 handoff.
-
-**S146–S154** (condensed): Industry GPU parity (BarraCUDA beats cuBLAS/cuFFT at target scales),
+**S146–S154** (condensed): Industry GPU parity (barraCuda beats cuBLAS/cuFFT at target scales),
 playGround compute triangle (ToadStool/coralReef IPC, hot/cold benchmarks 7–45×), Squirrel MCP
 adapter (14 tools), HuggingFace Model Lab (GPT-2 on barraCuda), niche architecture (`niche.rs`,
 deploy graph), capability-based discovery across all clients, tolerance centralization (80+ named),

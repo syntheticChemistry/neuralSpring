@@ -342,7 +342,7 @@ async fn main() -> Result<()> {
 
     let cli = Cli::parse();
 
-    eprintln!("Initializing barraCuda GPU device...");
+    log::info!("Initializing barraCuda GPU device...");
     let device = Arc::new(WgpuDevice::new().await.context("creating GPU device")?);
     let adapter_info = device.adapter_info();
 
@@ -502,13 +502,13 @@ async fn bench_forward(cli: &Cli, device: &Arc<WgpuDevice>) -> Result<ForwardRes
     let cache_dir = hf_hub::default_cache_dir();
     let hub = HfHub::new(hf_token.as_deref(), cache_dir)?;
 
-    eprintln!("Downloading {}...", cli.model);
+    log::info!("Downloading {}...", cli.model);
     let files = hub.download_model(&cli.model).await?;
     let config_path = files.config.context("no config.json")?;
     let config = TransformerConfig::from_file(&config_path)?;
     let config_summary = config.to_string();
 
-    eprintln!("Loading weights to GPU...");
+    log::info!("Loading weights to GPU...");
     let t0 = Instant::now();
     let raw_weights = weights::load_safetensors(&files.safetensors, device)?;
     let model_weights = weights::organize_weights(raw_weights, &config);
@@ -519,12 +519,12 @@ async fn bench_forward(cli: &Cli, device: &Arc<WgpuDevice>) -> Result<ForwardRes
 
     let fwd_warmup = cli.warmup.min(10);
     let fwd_iters = cli.iters.min(50);
-    eprintln!("Warmup ({fwd_warmup} iters)...");
+    log::info!("Warmup ({fwd_warmup} iters)...");
     for _ in 0..fwd_warmup {
         let _ = engine.forward(&token_ids);
     }
 
-    eprintln!("Benchmarking ({fwd_iters} iters)...");
+    log::info!("Benchmarking ({fwd_iters} iters)...");
     let mut timings: Vec<f64> = Vec::with_capacity(fwd_iters);
     for _ in 0..fwd_iters {
         let t0 = Instant::now();

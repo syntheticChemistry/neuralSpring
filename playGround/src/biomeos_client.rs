@@ -38,7 +38,7 @@ impl BiomeOsClient {
     #[must_use]
     pub fn discover() -> Option<Self> {
         let socket_dir = ipc_client::resolve_socket_dir();
-        let orchestrator = socket_dir.join("biomeos.sock");
+        let orchestrator = socket_dir.join(neural_spring::config::BIOMEOS_ORCHESTRATOR_SOCKET);
         if orchestrator.exists() {
             Some(Self {
                 socket: orchestrator,
@@ -145,7 +145,7 @@ impl BiomeOsClient {
     ) {
         for cap in capabilities {
             if let Err(e) = self.register_capability(primal_name, cap, our_socket).await {
-                eprintln!("[biomeos] capability.register({cap}) failed (non-fatal): {e}");
+                log::warn!("capability.register({cap}) failed (non-fatal): {e}");
             }
         }
     }

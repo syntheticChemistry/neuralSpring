@@ -1,14 +1,13 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 16, 2026 (Session 159)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1128 lib + 61 playGround + 73 forge tests, zero C deps (Tower Atomic), zero `#[allow()]`, `deny.toml`, `OrExit<T>`, structured logging. V110 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49
+**Last Updated**: March 16, 2026 (Session 161)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1128 lib + 61 playGround + 73 forge tests, zero C deps (Tower Atomic), zero `#[allow()]`, zero `eprintln!` in playGround, zero hardcoded socket paths, `deny.toml`, structured `IpcError`, typed `compute.dispatch`, `OrExit<T>`, structured logging. V112 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49
 
-- **S159**: Cross-ecosystem absorption execution — `OrExit<T>` (6 binaries), `deny.toml`, primal `eprintln!` → `log::info!/warn!/debug!`, dep audit zero C, V110 handoff
-- **S158**: Lint audit — zero `#[allow()]`, zero unfulfilled expectations, `temp-env`, `validate_barracuda_tensor` 918→875 LOC, hardcoded names → constants, V109 handoff
-- **S157**: Deep debt — Tower Atomic (reqwest+ring removed), targeted `#[expect(reason)]`, primal refactored, `validate_modern_cross_spring` 949→865 LOC, V108 handoff
-- **S150–S156**: playGround (Squirrel MCP, Model Lab, compute triangle), niche architecture, deep debt (tolerance centralization, capability-based discovery, IPC bug fixes), V101–V107 handoffs
-- **S142–S149**: Industry GPU parity, 5 composition experiments, petalTongue visualization, streaming parsers, Model Lab, deep debt, V95–V100 handoffs
-- **S130–S141**: Upstream rewires (ToadStool S130→S146), petalTongue scenario builders, BLAST pipeline, Kokkos parity, V88–V94 handoffs
+- **S161**: Doc cleanup + structured logging completion — hardcoded paths eliminated, playGround 28× `eprintln!` → `log::*`, doc consolidation, V112 handoff
+- **S160**: IPC evolution — structured `IpcError` (7 phases), `call_typed()`, `extract_rpc_error()`, typed `compute.dispatch` protocol, V111 handoff
+- **S159**: Cross-ecosystem absorption — `OrExit<T>` (6 binaries), `deny.toml`, primal structured logging, dep audit zero C, V110 handoff
+- **S157–S158**: Modern Rust — zero `#[allow()]`, `#[expect(reason)]`, Tower Atomic (reqwest+ring removed), temp-env, smart refactoring, V108–V109 handoffs
+- **S146–S156**: playGround compute triangle, industry GPU parity, niche architecture, IPC bug fixes, capability-based discovery, tolerance centralization, V99–V107 handoffs
 
 ## Purpose
 

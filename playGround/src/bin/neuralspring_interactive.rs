@@ -13,6 +13,7 @@
     reason = "playground binary — iterating rapidly"
 )]
 
+use std::io::Write;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
@@ -100,7 +101,7 @@ impl Session {
                     println!("  {cap}");
                 }
             }
-            Err(e) => eprintln!("Error listing capabilities: {e}"),
+            Err(e) => log::error!("Error listing capabilities: {e}"),
         }
         Ok(())
     }
@@ -108,12 +109,12 @@ impl Session {
     async fn show_health(&self) -> Result<()> {
         match self.primal.health().await {
             Ok(h) => println!("neuralSpring: {h}"),
-            Err(e) => eprintln!("neuralSpring health error: {e}"),
+            Err(e) => log::error!("neuralSpring health error: {e}"),
         }
         if let Some(sq) = &self.squirrel {
             match sq.health().await {
                 Ok(h) => println!("Squirrel: {} (uptime {}s)", h.status, h.uptime_secs),
-                Err(e) => eprintln!("Squirrel health error: {e}"),
+                Err(e) => log::error!("Squirrel health error: {e}"),
             }
         } else {
             println!("Squirrel: not connected");
@@ -125,10 +126,10 @@ impl Session {
         if let Some(sq) = &self.squirrel {
             match sq.list_providers().await {
                 Ok(p) => println!("{}", serde_json::to_string_pretty(&p)?),
-                Err(e) => eprintln!("Error: {e}"),
+                Err(e) => log::error!("Error: {e}"),
             }
         } else {
-            eprintln!("No Squirrel connection — cannot list AI providers.");
+            log::warn!("No Squirrel connection — cannot list AI providers.");
         }
         Ok(())
     }
@@ -147,12 +148,13 @@ impl Session {
         let params: serde_json::Value = match serde_json::from_str(params_str) {
             Ok(v) => v,
             Err(_) => {
-                eprintln!("Invalid JSON params. Usage: run <capability> {{\"key\": value}}");
+                log::warn!("Invalid JSON params. Usage: run <capability> {{\"key\": value}}");
                 return Ok(());
             }
         };
 
-        eprint!("Running {full_cap}... ");
+        print!("Running {full_cap}... ");
+        let _ = std::io::stdout().flush();
         match self.primal.call_capability(&full_cap, &params).await {
             Ok(result) => {
                 println!("done.");
@@ -162,7 +164,7 @@ impl Session {
             }
             Err(e) => {
                 println!("failed.");
-                eprintln!("Error: {e}");
+                log::error!("Error: {e}");
             }
         }
         Ok(())
@@ -172,7 +174,7 @@ impl Session {
         let squirrel = match &self.squirrel {
             Some(s) => s,
             None => {
-                eprintln!("No Squirrel connection — cannot analyze. Start Squirrel or use --squirrel-socket.");
+                log::warn!("No Squirrel connection — cannot analyze. Start Squirrel or use --squirrel-socket.");
                 return Ok(());
             }
         };
@@ -180,7 +182,7 @@ impl Session {
         let (result, cap) = match (&self.last_result, &self.last_capability) {
             (Some(r), Some(c)) => (r, c),
             _ => {
-                eprintln!("No experiment results to analyze. Run an experiment first.");
+                log::warn!("No experiment results to analyze. Run an experiment first.");
                 return Ok(());
             }
         };
@@ -194,7 +196,8 @@ impl Session {
             serde_json::to_string_pretty(result)?
         );
 
-        eprint!("Sending to AI for analysis... ");
+        print!("Sending to AI for analysis... ");
+        let _ = std::io::stdout().flush();
         match squirrel
             .ai_query(&prompt, Some(&self.model), Some(1024), Some(0.7))
             .await
@@ -205,7 +208,7 @@ impl Session {
             }
             Err(e) => {
                 println!("failed.");
-                eprintln!("AI error: {e}");
+                log::error!("AI error: {e}");
             }
         }
         Ok(())
@@ -215,12 +218,13 @@ impl Session {
         let squirrel = match &self.squirrel {
             Some(s) => s,
             None => {
-                eprintln!("No Squirrel connection.");
+                log::warn!("No Squirrel connection.");
                 return Ok(());
             }
         };
 
-        eprint!("Thinking... ");
+        print!("Thinking... ");
+        let _ = std::io::stdout().flush();
         match squirrel
             .ai_query(question, Some(&self.model), Some(1024), Some(0.7))
             .await
@@ -231,7 +235,7 @@ impl Session {
             }
             Err(e) => {
                 println!("failed.");
-                eprintln!("AI error: {e}");
+                log::error!("AI error: {e}");
             }
         }
         Ok(())
@@ -241,8 +245,8 @@ impl Session {
         let squirrel = match &self.squirrel {
             Some(s) => s,
             None => {
-                eprintln!("Unknown command: '{input}'. Type 'help' for commands.");
-                eprintln!("(Connect Squirrel for natural language queries.)");
+                log::warn!("Unknown command: '{input}'. Type 'help' for commands.");
+                log::warn!("(Connect Squirrel for natural language queries.)");
                 return Ok(());
             }
         };
@@ -263,7 +267,8 @@ impl Session {
 
         prompt.push_str(&format!("User question: {input}"));
 
-        eprint!("Thinking... ");
+        print!("Thinking... ");
+        let _ = std::io::stdout().flush();
         match squirrel
             .ai_query(&prompt, Some(&self.model), Some(1024), Some(0.7))
             .await
@@ -274,7 +279,7 @@ impl Session {
             }
             Err(e) => {
                 println!("failed.");
-                eprintln!("AI error: {e}");
+                log::error!("AI error: {e}");
             }
         }
         Ok(())
@@ -305,8 +310,8 @@ async fn main() -> Result<()> {
 
     let cli = Cli::parse();
 
-    eprintln!("neuralSpring Interactive Experiment Runner");
-    eprintln!("==========================================\n");
+    println!("neuralSpring Interactive Experiment Runner");
+    println!("==========================================\n");
 
     let primal = match &cli.primal_socket {
         Some(path) => PrimalClient::new(path.clone()),
@@ -314,18 +319,18 @@ async fn main() -> Result<()> {
             .context("Could not find neuralSpring primal. Is neuralspring_primal running?")?,
     };
 
-    eprintln!("[init] Connected to neuralSpring primal.");
+    log::info!("Connected to neuralSpring primal.");
 
     let squirrel = match &cli.squirrel_socket {
         Some(path) => Some(SquirrelClient::new(path.clone())),
         None => match SquirrelClient::discover() {
             Ok(s) => {
-                eprintln!("[init] Connected to Squirrel (AI routing enabled).");
+                log::info!("Connected to Squirrel (AI routing enabled).");
                 Some(s)
             }
             Err(_) => {
-                eprintln!("[init] Squirrel not found — AI features disabled.");
-                eprintln!("[init] Start Squirrel or use --squirrel-socket to enable AI.\n");
+                log::warn!("Squirrel not found — AI features disabled.");
+                log::warn!("Start Squirrel or use --squirrel-socket to enable AI.");
                 None
             }
         },
@@ -346,9 +351,8 @@ async fn main() -> Result<()> {
     let mut lines = stdin.lines();
 
     loop {
-        eprint!("> ");
-        // Flush stderr prompt
-        tokio::task::yield_now().await;
+        print!("> ");
+        let _ = std::io::stdout().flush();
 
         match lines.next_line().await? {
             Some(ref line) => {
@@ -358,7 +362,7 @@ async fn main() -> Result<()> {
                     break;
                 }
                 if let Err(e) = session.handle_command(&trimmed).await {
-                    eprintln!("Error: {e}");
+                    log::error!("Error: {e}");
                 }
                 println!();
             }

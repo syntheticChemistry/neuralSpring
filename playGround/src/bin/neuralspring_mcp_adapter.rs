@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
 
     let cli = Cli::parse();
 
-    eprintln!("[adapter] neuralSpring MCP Adapter starting...");
+    log::info!("neuralSpring MCP Adapter starting...");
 
     // --- Discover neuralSpring primal ---
     let primal = match &cli.primal_socket {
@@ -56,10 +56,10 @@ async fn main() -> Result<()> {
     };
 
     match primal.health().await {
-        Ok(h) => eprintln!("[adapter] neuralSpring primal: healthy — {h}"),
+        Ok(h) => log::info!("neuralSpring primal: healthy — {h}"),
         Err(e) => {
-            eprintln!("[adapter] WARNING: neuralSpring health check failed: {e}");
-            eprintln!("[adapter] Continuing anyway — primal may start later.");
+            log::warn!("neuralSpring health check failed: {e}");
+            log::warn!("Continuing anyway — primal may start later.");
         }
     }
 
@@ -69,9 +69,9 @@ async fn main() -> Result<()> {
         None => match SquirrelClient::discover() {
             Ok(s) => s,
             Err(e) => {
-                eprintln!("[adapter] Squirrel not found: {e}");
-                eprintln!("[adapter] Running in standalone mode (no AI routing).");
-                eprintln!("[adapter] Set --squirrel-socket or start Squirrel to enable.");
+                log::warn!("Squirrel not found: {e}");
+                log::warn!("Running in standalone mode (no AI routing).");
+                log::warn!("Set --squirrel-socket or start Squirrel to enable.");
                 run_standalone_listener(&cli, &primal).await?;
                 return Ok(());
             }
@@ -79,12 +79,9 @@ async fn main() -> Result<()> {
     };
 
     match squirrel.health().await {
-        Ok(h) => eprintln!(
-            "[adapter] Squirrel: {} (uptime {}s)",
-            h.status, h.uptime_secs
-        ),
+        Ok(h) => log::info!("Squirrel: {} (uptime {}s)", h.status, h.uptime_secs),
         Err(e) => {
-            eprintln!("[adapter] WARNING: Squirrel health check failed: {e}");
+            log::warn!("Squirrel health check failed: {e}");
         }
     }
 
@@ -99,19 +96,16 @@ async fn main() -> Result<()> {
         .announce_capabilities("neuralspring-playground", &cap_names, &socket_str)
         .await
     {
-        Ok(_) => eprintln!(
-            "[adapter] Registered {} capabilities with Squirrel",
-            cap_names.len()
-        ),
+        Ok(_) => log::info!("Registered {} capabilities with Squirrel", cap_names.len()),
         Err(e) => {
-            eprintln!("[adapter] WARNING: capability.announce failed: {e}");
-            eprintln!("[adapter] Tools may not be discoverable via Squirrel.");
+            log::warn!("capability.announce failed: {e}");
+            log::warn!("Tools may not be discoverable via Squirrel.");
         }
     }
 
-    eprintln!("[adapter] Registered tools:");
+    log::info!("Registered tools:");
     for tool in &tools {
-        eprintln!(
+        log::info!(
             "  - {} ({})",
             tool.name,
             tool.description.split(':').next().unwrap_or("")
@@ -131,7 +125,7 @@ fn adapter_socket_path(cli: &Cli) -> PathBuf {
 }
 
 async fn run_standalone_listener(cli: &Cli, primal: &PrimalClient) -> Result<()> {
-    eprintln!("[adapter] Standalone mode: forwarding JSON-RPC to neuralSpring primal.");
+    log::info!("Standalone mode: forwarding JSON-RPC to neuralSpring primal.");
     run_listener(cli, primal).await
 }
 
@@ -148,13 +142,13 @@ async fn run_listener(cli: &Cli, primal: &PrimalClient) -> Result<()> {
     let listener = UnixListener::bind(&socket_path)
         .context(format!("binding to {}", socket_path.display()))?;
 
-    eprintln!("[adapter] Listening on {}", socket_path.display());
-    eprintln!("[adapter] Ready to bridge tool.execute -> neuralSpring primal");
+    log::info!("Listening on {}", socket_path.display());
+    log::info!("Ready to bridge tool.execute -> neuralSpring primal");
 
     let shutdown_path = socket_path.clone();
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.ok();
-        eprintln!("\n[adapter] Shutting down...");
+        log::info!("Shutting down...");
         let _ = tokio::fs::remove_file(&shutdown_path).await;
         std::process::exit(0);
     });

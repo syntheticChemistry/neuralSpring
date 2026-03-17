@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 16, 2026 (Session 160 — IPC evolution: structured IpcError (healthSpring V31/rhizoCrypt V13), call_typed(), extract_rpc_error() (airSpring V0.8.6), typed compute.dispatch protocol (wetSpring V124). V111 handoff. 1128 lib + 61 playGround tests. 0 warnings. 0 unfulfilled expectations.)
+**Last updated**: March 16, 2026 (Session 161 — doc cleanup, structured logging completion (zero eprintln in playGround), hardcoded paths eliminated. V112 handoff. 1128 lib + 61 playGround + 73 forge tests. 0 warnings. 0 unfulfilled expectations.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid

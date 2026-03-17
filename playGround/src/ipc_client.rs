@@ -15,7 +15,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 
 /// biomeOS socket subdirectory name within the XDG runtime directory.
-const BIOMEOS_SOCKET_SUBDIR: &str = "biomeos";
+const BIOMEOS_SOCKET_SUBDIR: &str = neural_spring::config::BIOMEOS_SOCKET_SUBDIR;
 
 static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(1);
 
