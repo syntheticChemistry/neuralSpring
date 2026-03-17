@@ -44,6 +44,16 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S159: Cross-ecosystem absorption execution — OrExit, deny.toml, structured logging.**
+`OrExit<T>` trait absorbed from wetSpring V123: panic-free `process::exit(1)` for `Result`
+and `Option`, applied to 6 binaries' setup code (runtime + GPU init). Stale `clippy::expect_used`
+expectations pruned from `diagnose_f64_regression` and `bench_cross_spring_shader_evolution`.
+`deny.toml` created (groundSpring V110 / healthSpring V30 pattern): license allowlist,
+`wildcards = "deny"`, advisory/yanked/source hygiene. Primal binary 18× `eprintln!` →
+`log::info!/warn!/debug!` (RUST_LOG-controllable). External dep audit confirmed: only `cc`
+(build-time) via `blake3` in barraCuda — zero C deps in neuralSpring itself.
+1128 lib tests, 61 playGround tests, 0 clippy warnings, 0 unfulfilled expectations, 0 fmt diffs. V110 handoff.
+
 **S158: Cross-ecosystem absorption + deep debt continuation.**
 `#[allow()]` → `#[expect(reason)]` complete (zero `#[allow()]` in active code, zero unfulfilled
 expectations across `--all-targets`). Stale lint expectations pruned (`clippy::unwrap_used` in

@@ -5,7 +5,29 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 158 (March 16, 2026)
+## [Unreleased] — Session 159 (March 16, 2026)
+
+### Session 159 — Cross-Ecosystem Absorption Execution (2026-03-16)
+
+**OrExit<T>, deny.toml, structured logging, dep audit.**
+
+- **OREXIT**: Absorbed `OrExit<T>` trait from wetSpring V123 into `validation::OrExit` — panic-free
+  `process::exit(1)` for `Result<T,E>` and `Option<T>`. Applied to 6 binaries:
+  `bench_modern_rewire`, `bench_cross_spring_shader_evolution`, `bench_cross_spring_evolution`,
+  `bench_portability_tiers`, `diagnose_f64_regression`, `bench_evolution_tiers` (setup code only;
+  `.expect()` in GPU dispatch still uses expect). Stale `clippy::expect_used` expectations pruned
+  from `diagnose_f64_regression` (zero `.expect()` remaining) and
+  `bench_cross_spring_shader_evolution` (zero `.expect()` remaining).
+- **DENY**: Created `deny.toml` (groundSpring V110 / healthSpring V30 pattern): `wildcards = "deny"`,
+  license allowlist (AGPL-3.0, MIT, Apache-2.0, BSD, etc.), advisory `vulnerability = "deny"`,
+  `yanked = "deny"`, `unknown-registry = "deny"`.
+- **LOGGING**: Primal binary `src/bin/neuralspring_primal/main.rs` + `biomeos.rs`: 18× `eprintln!`
+  → `log::info!` / `log::warn!` / `log::debug!`. All server lifecycle messages now controllable
+  via `RUST_LOG`. Capability list moved to `debug!` level.
+- **DEP AUDIT**: Confirmed only external non-Rust dependency: `cc` (build-time C compiler tool)
+  via `blake3` in barraCuda. Zero C dependencies in neuralSpring itself. `ring`/`openssl`/`cmake`
+  all absent from dependency tree. `blake3 pure` feature noted for barraCuda team.
+- **QUALITY**: 1128 lib + 61 playGround tests, 0 warnings, 0 unfulfilled expectations, 0 fmt diffs.
 
 ### Session 158 — Cross-Ecosystem Absorption + Deep Debt Continuation (2026-03-16)
 

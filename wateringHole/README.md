@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V109 S158 — Cross-Ecosystem Absorption + Deep Debt
+### V110 S159 — Cross-Ecosystem Absorption Execution
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V109 S158** | `handoffs/NEURALSPRING_V109_S158_CROSS_ECOSYSTEM_ABSORPTION_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | `#[expect(reason)]` audit, temp-env, smart refactoring, hardcoded names → constants, 1128+61 tests. Supersedes V108 |
+| **V110 S159** | `handoffs/NEURALSPRING_V110_S159_CROSS_ECOSYSTEM_ABSORPTION_EXEC_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | OrExit<T>, deny.toml, structured logging, dep audit. Supersedes V109 |
 
 ### Central wateringHole Copies
 
@@ -23,7 +23,7 @@ Handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-project
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V108 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
+Superseded handoffs: `handoffs/archive/` (V1–V109 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
 
 ## Conventions
 

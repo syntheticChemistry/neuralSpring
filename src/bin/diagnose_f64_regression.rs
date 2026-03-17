@@ -18,20 +18,20 @@
 
 #![expect(
     clippy::too_many_lines,
-    clippy::expect_used,
     clippy::items_after_statements,
     clippy::cast_possible_truncation,
     clippy::default_trait_access,
     reason = "diagnostic binary"
 )]
 
+use neural_spring::validation::OrExit;
 use std::sync::Arc;
 
 fn main() {
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
+    let rt = tokio::runtime::Runtime::new().or_exit("tokio runtime");
     let gpu = rt
         .block_on(neural_spring::gpu::Gpu::new())
-        .expect("GPU init");
+        .or_exit("GPU init");
     let dev: Arc<barracuda::device::WgpuDevice> = gpu.wgpu_device().clone();
 
     println!("=== GPU: {} ===", dev.adapter_info().name);

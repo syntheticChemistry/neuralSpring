@@ -32,7 +32,6 @@
 #![expect(
     clippy::cast_precision_loss,
     clippy::cast_lossless,
-    clippy::expect_used,
     clippy::unwrap_used,
     clippy::suboptimal_flops,
     clippy::similar_names,
@@ -44,7 +43,7 @@ use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::primitives;
 use neural_spring::tolerances;
 use neural_spring::transformer;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{OrExit, ValidationHarness};
 use std::time::Instant;
 
 const WARMUP: usize = 3;
@@ -471,8 +470,8 @@ fn main() {
 
     let mut h = ValidationHarness::new("cross_spring_shader_evolution_bench");
 
-    let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
-    let gpu = rt.block_on(Gpu::new()).expect("GPU init");
+    let rt = tokio::runtime::Runtime::new().or_exit("tokio runtime");
+    let gpu = rt.block_on(Gpu::new()).or_exit("GPU init");
     let disp = Dispatcher::from_gpu(gpu);
 
     bench_neuralspring_origins(&mut h, &disp);

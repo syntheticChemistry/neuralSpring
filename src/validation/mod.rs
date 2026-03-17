@@ -49,6 +49,40 @@ macro_rules! require {
     };
 }
 
+/// Panic-free unwrap for validation binaries (wetSpring V123 pattern).
+///
+/// Replaces `.expect()` and `.unwrap()` with clean stderr output and
+/// `process::exit(1)` — no stack trace, no panic handler overhead.
+/// Use in `main()` setup code where [`require!`] (which returns from
+/// the enclosing function) cannot be used.
+///
+/// ```ignore
+/// let gpu = Gpu::new().await.or_exit("GPU init");
+/// let rt = Runtime::new().or_exit("tokio runtime");
+/// let data = serde_json::from_str(json).or_exit("baseline JSON");
+/// ```
+pub trait OrExit<T> {
+    fn or_exit(self, context: &str) -> T;
+}
+
+impl<T, E: std::fmt::Display> OrExit<T> for Result<T, E> {
+    fn or_exit(self, context: &str) -> T {
+        self.unwrap_or_else(|e| {
+            eprintln!("FATAL: {context}: {e}");
+            process::exit(1)
+        })
+    }
+}
+
+impl<T> OrExit<T> for Option<T> {
+    fn or_exit(self, context: &str) -> T {
+        self.unwrap_or_else(|| {
+            eprintln!("FATAL: {context}");
+            process::exit(1)
+        })
+    }
+}
+
 /// How a tolerance threshold is applied.
 #[derive(Debug, Clone, Copy)]
 pub enum ToleranceMode {

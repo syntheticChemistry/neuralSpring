@@ -10,8 +10,8 @@ use super::{heartbeat_interval_secs, orchestrator_socket, ALL_CAPABILITIES, PRIM
 pub async fn register_with_biomeos(our_socket: &std::path::Path) {
     let biomeos_socket = resolve_socket_dir().join(orchestrator_socket());
     if !biomeos_socket.exists() {
-        eprintln!(
-            "[biomeos] No orchestrator found at {}, running standalone",
+        log::info!(
+            "No biomeOS orchestrator at {}, running standalone",
             biomeos_socket.display()
         );
         return;
@@ -29,8 +29,8 @@ pub async fn register_with_biomeos(our_socket: &std::path::Path) {
     .await;
 
     match reg_result {
-        Ok(_) => eprintln!("[biomeos] Registered with NUCLEUS"),
-        Err(e) => eprintln!("[biomeos] nucleus.register failed (non-fatal): {e}"),
+        Ok(_) => log::info!("Registered with biomeOS NUCLEUS"),
+        Err(e) => log::warn!("nucleus.register failed (non-fatal): {e}"),
     }
 
     for cap in ALL_CAPABILITIES {
@@ -46,12 +46,12 @@ pub async fn register_with_biomeos(our_socket: &std::path::Path) {
         .await;
 
         if let Err(e) = cap_result {
-            eprintln!("[biomeos] capability.register({cap}) failed (non-fatal): {e}");
+            log::warn!("capability.register({cap}) failed (non-fatal): {e}");
         }
     }
 
-    eprintln!(
-        "[biomeos] All {} capabilities registered",
+    log::info!(
+        "All {} capabilities registered with biomeOS",
         ALL_CAPABILITIES.len()
     );
 }
@@ -70,7 +70,7 @@ pub async fn deregister_from_nucleus(our_socket: &std::path::Path) {
         }),
     )
     .await;
-    eprintln!("[biomeos] Deregistered from NUCLEUS");
+    log::info!("Deregistered from biomeOS NUCLEUS");
 }
 
 pub async fn heartbeat_loop(our_socket: PathBuf) {

@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 158)**: 1189+ tests (1128 lib + 61 playGround), 47 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Zero `#[allow()]` in active code. temp-env for safe env testing. Hardcoded primal names → constants. S158: Cross-ecosystem absorption + deep debt. V109 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
+**Current state (Session 159)**: 1189+ tests (1128 lib + 61 playGround), 47 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging in primal binary. S159: cross-ecosystem absorption execution. V110 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 16, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -5200,6 +5200,39 @@ with real computation, Nest records substrate/timing provenance.
 **Motivation**: Sync all documentation to V108 state. Archive superseded V107 handoff. Update ecosystem-level docs. Craft toadStool/barraCuda absorption handoff.
 **Procedure**: Updated README.md, whitePaper/baseCamp/README.md, specs/BARRACUDA_REQUIREMENTS.md (v0.3.3→v0.3.5 refs), wateringHole/README.md (V108 active, V107 archived), experiments journal (S157 + Exp 113-114), ecoPrimals/whitePaper/gen3/baseCamp/README.md, PRIMAL_REGISTRY.md (neuralSpring V108/S157).
 **Findings**: Documentation was 2 sessions behind (referencing V106/S155). Gen3 baseCamp referenced S156 but not S157. PRIMAL_REGISTRY had neuralSpring at V98/S145 — significantly stale; updated to V108/S157 with Tower Atomic and zero C deps highlights.
+
+## Session 159 — Cross-Ecosystem Absorption Execution
+
+**Date**: 2026-03-16
+**Session**: S159
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | `OrExit<T>` trait absorbed from wetSpring V123 — panic-free `process::exit(1)` for `Result`/`Option`, applied to 6 binaries |
+| **Phase 2** | `deny.toml` created (groundSpring V110 / healthSpring V30 pattern) — supply-chain hygiene |
+| **Phase 3** | Primal binary `eprintln!` → `log::info!/warn!/debug!` (18 calls, RUST_LOG controllable) |
+| **Phase 4** | External dependency audit — zero C deps in neuralSpring (only `cc` via blake3 in barraCuda) |
+| **Phase 5** | Stale `clippy::expect_used` pruned from 2 binaries now at zero `.expect()` calls |
+
+**Key metrics**: 1128 lib + 61 playGround tests, 0 clippy warnings, 0 unfulfilled expectations, 0 fmt diffs.
+
+### Exp 116 — OrExit<T> Absorption
+
+**Motivation**: Other springs (wetSpring, groundSpring, healthSpring) have adopted `OrExit<T>` for
+zero-panic validation binaries. `process::exit(1)` produces clean stderr without stack traces,
+which is more suitable for CI/headless environments than `panic!`/`expect`.
+
+**Procedure**: Implemented trait in `validation::OrExit` with `unwrap_or_else` closures (Clippy nursery
+clean). Applied to all binaries with setup `.expect()` (tokio runtime + GPU init). Pruned stale
+`clippy::expect_used` from binaries now at zero `.expect()`.
+
+**Finding**: 6 binaries converted. 2 binaries (`diagnose_f64_regression`, `bench_cross_spring_shader_evolution`)
+reached zero `.expect()` — their `clippy::expect_used` suppression became unfulfilled and was removed.
+Remaining binaries still need `clippy::expect_used` for GPU dispatch calls.
+
+---
 
 ## Session 158 — Cross-Ecosystem Absorption + Deep Debt Continuation
 

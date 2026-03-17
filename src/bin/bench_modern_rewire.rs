@@ -61,7 +61,7 @@ use neural_spring::gpu_ops::{
 };
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
-use neural_spring::validation::ValidationHarness;
+use neural_spring::validation::{OrExit, ValidationHarness};
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -89,11 +89,10 @@ fn main() {
     eprintln!("╚══════════════════════════════════════════════════════════════════╝");
     eprintln!();
 
-    let rt = tokio::runtime::Runtime::new()
-        .expect("tokio runtime creation failed — required for async benchmark");
+    let rt = tokio::runtime::Runtime::new().or_exit("tokio runtime");
     let gpu = rt
         .block_on(async { Gpu::new().await })
-        .expect("GPU required for benchmark — no adapter available");
+        .or_exit("GPU required for benchmark");
 
     eprintln!(
         "  GPU: {} ({:?}, {:?})",

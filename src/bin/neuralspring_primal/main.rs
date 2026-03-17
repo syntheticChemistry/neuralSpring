@@ -213,10 +213,10 @@ async fn main() -> Result<()> {
             .context("removing stale socket")?;
     }
 
-    eprintln!("[init] Initializing GPU dispatcher...");
+    log::info!("Initializing GPU dispatcher...");
     let dispatcher = Dispatcher::new().await;
-    eprintln!(
-        "[init] Dispatcher ready: backend={}, gpu={}",
+    log::info!(
+        "Dispatcher ready: backend={}, gpu={}",
         dispatcher.backend(),
         dispatcher.has_gpu()
     );
@@ -230,12 +230,12 @@ async fn main() -> Result<()> {
     let listener = UnixListener::bind(&socket_path)
         .context(format!("binding to {}", socket_path.display()))?;
 
-    eprintln!("neuralSpring primal listening on {}", socket_path.display());
-    eprintln!("  Family ID: {family_id}");
-    eprintln!("  Mode: Tower (local Eastgate)");
-    eprintln!("  Capabilities ({}):", ALL_CAPABILITIES.len());
+    log::info!("neuralSpring primal listening on {}", socket_path.display());
+    log::info!("Family ID: {family_id}");
+    log::info!("Mode: Tower (local Eastgate)");
+    log::info!("Capabilities ({}):", ALL_CAPABILITIES.len());
     for cap in ALL_CAPABILITIES {
-        eprintln!("    - {cap}");
+        log::debug!("  {cap}");
     }
 
     biomeos::register_with_biomeos(&socket_path).await;
@@ -256,12 +256,12 @@ fn push_petaltongue_scenario(family_id: &str) {
                 "neuralSpring Full Study",
                 &merged,
             ) {
-                Ok(()) => eprintln!("[petaltongue] Pushed full study scenario"),
-                Err(e) => eprintln!("[petaltongue] Push failed (non-fatal): {e}"),
+                Ok(()) => log::info!("petalTongue: pushed full study scenario"),
+                Err(e) => log::warn!("petalTongue: push failed (non-fatal): {e}"),
             }
         }
         Err(_) => {
-            eprintln!("[petaltongue] Not found (optional, skipping visualization push)");
+            log::debug!("petalTongue not found (optional, skipping visualization push)");
         }
     }
 }
@@ -273,7 +273,7 @@ fn spawn_lifecycle_tasks(socket_path: &std::path::Path) {
     let shutdown_socket = socket_path.to_path_buf();
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.ok();
-        eprintln!("\n[shutdown] SIGINT received, deregistering...");
+        log::info!("SIGINT received, deregistering...");
         biomeos::deregister_from_nucleus(&shutdown_socket).await;
         let _ = tokio::fs::remove_file(&shutdown_socket).await;
         std::process::exit(0);
@@ -289,7 +289,7 @@ fn spawn_lifecycle_tasks(socket_path: &std::path::Path) {
                 return;
             };
             sig.recv().await;
-            eprintln!("\n[shutdown] SIGTERM received, deregistering...");
+            log::info!("SIGTERM received, deregistering...");
             biomeos::deregister_from_nucleus(&sigterm_socket).await;
             let _ = tokio::fs::remove_file(&sigterm_socket).await;
             std::process::exit(0);
