@@ -1,28 +1,14 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 16, 2026 (Sessions 61–158)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03 Phase C) + 3 publication experiments + 5 novel compositions + 4 GPU experiments + 1 industry GPU parity experiment + playGround (Squirrel MCP + HuggingFace Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1128+61 tests, zero C deps (Tower Atomic). S158: Cross-ecosystem absorption + deep debt + V109 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49
+**Last Updated**: March 16, 2026 (Session 159)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 260 binaries, 1128 lib + 61 playGround + 73 forge tests, zero C deps (Tower Atomic), zero `#[allow()]`, `deny.toml`, `OrExit<T>`, structured logging. V110 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49
 
-- **S158**: Cross-ecosystem absorption — `#[expect(reason)]` audit (zero `#[allow()]` in active code, zero unfulfilled expectations), `temp-env` for safe env testing (Rust 2024 ready), `validate_barracuda_tensor` 918→875 LOC, hardcoded primal names → constants, V109 handoff
-- **S157**: Deep debt + idiomatic Rust — 5 blanket lint suppressions evolved to targeted `#[expect()]`, primal binary refactored (3 function extractions, `set_var` eliminated), error handling evolved, `validate_modern_cross_spring` 949→865 LOC, **reqwest+ring removed** (Tower Atomic via Songbird IPC), zero C deps in workspace, `bytemuck` aligned, Kokkos provenance documented, 1128 tests, V108 handoff
-- **S156**: Comprehensive audit + IPC bug fixes — 2 critical IPC discovery bugs fixed, typed `BiomeOsClient`, 3 validators to harness, `ProvenanceLevel` enum, V107 handoff
-- **S155**: Cross-spring absorption — `src/primal_names.rs`, `control/tolerances.py`, deploy graph provenance trio, V106 handoff
-- **S154**: Niche deployment architecture — `src/niche.rs` (22 capabilities, operation dependencies, cost estimates, semantic mappings), `graphs/neuralspring_deploy.toml` (5-phase biomeOS deploy), hardcoded primal names eliminated (config constants), biomeOS 5-tier socket resolution, cross-spring absorption from 5 sibling springs, V105 handoff
-- **S153**: Full 11-dimension ecosystem audit + deep debt execution — zero clippy (pedantic+nursery) across 3 workspace crates, `ALL_CAPABILITIES` unified into `config.rs`, `ValidationHarness` migration, 3 new tolerances, forge `#![forbid(unsafe_code)]`, `BaselineProvenance::expected_source()`, playGround lint alignment, V104 handoff
-- **S152**: Deep debt execution — 15+ tolerance literals centralized, `PrimalClient` evolved to capability-based discovery, coralReef bridge capability-first, `BIOMEOS_SOCKET_SUBDIR` constants, `validate_tensor_binary` + `gen_test_f64` shared helpers, V103 handoff
-- **S151**: Deep audit — ecoBin compliance (`reqwest` → `rustls-tls`, zero C deps in main crates), capability-based IPC discovery (`discover_by_capability()`), 12 hardcoded tolerances centralized, rustdoc link fixes, clippy reason upgrades, V102 handoff
-- **S150**: Compute triangle — ToadStool/coralReef typed IPC clients, hot/cold dispatch benchmarks (matmul 7× hot, layer_norm 10×, GELU 45×), `neuralspring_compute_probe`, 63 unit + 13 integration tests, live ToadStool verified, `safe_cast_slice` for unaligned safetensors
-- **S149**: HuggingFace Model Lab — `neuralspring_model_lab` binary, safetensors weight loading, GPT-2 transformer forward pass on barraCuda, f16/bf16 conversion
-- **S148**: Squirrel MCP adapter — `neuralspring_mcp_adapter`, `neuralspring_interactive`, 14 MCP tool definitions, JSON-RPC Unix socket IPC with biomeOS 5-tier discovery
-- **S147**: Deep debt evolution — zero inline magic numbers, modern idiomatic Rust, V100 handoff
-- **S146**: Industry GPU parity benchmarks (4 Python + 1 Rust, 31 kernel comparisons), deep audit (provenance, tolerances, visualization refactor), V99 handoff
-- **S145**: barraCuda v0.3.5 sync, 5 workload rewires, NUCLEUS GPU dispatch, 4 GPU experiments (Exp 103–106), V98 handoff
-- **S143–S144**: 5 novel composition experiments (Exp 097–101), petalTongue composition visualization, NUCLEUS pipeline executor, V96–V97 handoffs
-- **S142**: Paper 027 (anaerobic digestion prediction), `enable f64;` PTXAS fix, dispatch parity 55/55, V95 handoffs
-- **S139**: 4 new scenarios (search, streaming I/O, Kokkos parity, industry coverage), `config.rs`, deep debt elimination
-- **S138**: streaming parsers, BLAST pipeline, Kokkos benchmark harness, `INDUSTRY_TOOL_GAP_ANALYSIS.md`
-- **S137**: upstream rewire, `WORKGROUP_SIZE_1D`, shader absorption docs, `gpu_or_exit()` helper
-- **S135**: petalTongue visualization evolution — 7 new scenario builders, `TrainingVisualizer`, live dashboard binary
+- **S159**: Cross-ecosystem absorption execution — `OrExit<T>` (6 binaries), `deny.toml`, primal `eprintln!` → `log::info!/warn!/debug!`, dep audit zero C, V110 handoff
+- **S158**: Lint audit — zero `#[allow()]`, zero unfulfilled expectations, `temp-env`, `validate_barracuda_tensor` 918→875 LOC, hardcoded names → constants, V109 handoff
+- **S157**: Deep debt — Tower Atomic (reqwest+ring removed), targeted `#[expect(reason)]`, primal refactored, `validate_modern_cross_spring` 949→865 LOC, V108 handoff
+- **S150–S156**: playGround (Squirrel MCP, Model Lab, compute triangle), niche architecture, deep debt (tolerance centralization, capability-based discovery, IPC bug fixes), V101–V107 handoffs
+- **S142–S149**: Industry GPU parity, 5 composition experiments, petalTongue visualization, streaming parsers, Model Lab, deep debt, V95–V100 handoffs
+- **S130–S141**: Upstream rewires (ToadStool S130→S146), petalTongue scenario builders, BLAST pipeline, Kokkos parity, V88–V94 handoffs
 
 ## Purpose
 

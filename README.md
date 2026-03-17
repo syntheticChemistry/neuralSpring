@@ -40,7 +40,7 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 - **Reduction** (sum, mean, max) — aggregation
 - **Quantization** (Q4, Q8, FP16) — deployment compression
 
-neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA already has ~100+ WGSL shaders covering most of these — neuralSpring provides the **test harness** that proves they produce correct learning.
+neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 719+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
@@ -83,52 +83,27 @@ manifest path instead of socket. Typed `BiomeOsClient` created. 3 validators con
 `src/primal_names.rs` (11 primal + 4 domain constants). `control/tolerances.py` (80+ shared Python
 tolerance constants). Deploy graph provenance trio (rhizoCrypt/loamSpine/sweetGrass). V106 handoff.
 
-**S150–S154: playGround compute triangle + niche architecture + deep debt.**
-ToadStool/coralReef typed IPC clients. Hot dispatch benchmarks (7-45x). HuggingFace Model Lab.
-Squirrel MCP adapter. Niche deployment architecture. 22 capabilities, biomeOS 5-tier discovery.
+**S146–S154** (condensed): Industry GPU parity (BarraCUDA beats cuBLAS/cuFFT at target scales),
+playGround compute triangle (ToadStool/coralReef IPC, hot/cold benchmarks 7–45×), Squirrel MCP
+adapter (14 tools), HuggingFace Model Lab (GPT-2 on barraCuda), niche architecture (`niche.rs`,
+deploy graph), capability-based discovery across all clients, tolerance centralization (80+ named),
+deep debt (zero magic numbers, zero hardcoded primal names). V99–V107 handoffs.
 
-**S148–S149: playGround — Squirrel MCP adapter + HuggingFace Model Lab.**
-`playGround/` workspace member: MCP adapter binary (bridges 14 science.* capabilities to Squirrel),
-interactive AI-driven experiment runner, reusable IPC client library with biomeOS 5-tier discovery.
-Squirrel evolution handoff written. Lysogeny/scyBorg awareness documented.
-
-**S147: Deep debt execution + barracuda evolution + doc cleanup.**
-Zero inline magic numbers in production library code — all centralized in `tolerances::` registry.
-Shannon diversity in `digester_anderson` rewired to `barracuda::stats::shannon_from_frequencies` (zero duplicate math).
-6 missing composition provenance records added (Exp 096–100 + Paper 027). Hardcoded
-`"petaltongue"` discovery strings evolved to `config::PETALTONGUE_SOCKET_DIR` / `PETALTONGUE_SOCKET_PREFIX`.
-V100 handoff for toadStool/barraCuda absorption (superseded by V101/V102). Root doc, baseCamp, and wateringHole handoff updates.
-1115 lib tests, 73 forge tests, 9 integration tests, 0 clippy warnings (pedantic+nursery), 0 doc warnings.
-
-**S146: Industry GPU parity benchmarks + deep audit + doc evolution.**
-Industry GPU benchmark validators: BarraCUDA WGSL vs cuBLAS/cuDNN/cuFFT/FlashAttention (PyTorch/CUDA on RTX 4070).
-BarraCUDA FFT beats cuFFT at sizes 256–16K (0.19–0.85×). GEMM beats cuBLAS at small and large scales.
-Deep audit: provenance fix, tolerance tightening, visualization refactor (all files < 1000 LOC), Clippy pedantic clean.
-
-**barraCuda v0.3.5** at `0649cd0` (standalone, extracted from `ToadStool` S89): **ALL 17 shortcomings RESOLVED** upstream (S-01–S-17).
-`ReduceScalarPipeline` f64 fix, `BatchedComputeDispatch`, `CoralReefDevice`, `FmaPolicy`, `tridiag_eigh_gpu`, 36 tolerances.
-25 absorbed workloads (was 20), 1 local workload remaining. 219 files with barracuda imports, 45+ submodules exercised.
-42 metalForge WGSL shaders. 47 CPU→GPU dispatch ops (~97%, split into 7 domain files).
-1115 lib tests, 80+ named tolerances (centralized registry with justifications), 0 clippy warnings (pedantic+nursery, `--all-features`), 0 doc warnings. Zero `#[allow(` in production code — all migrated to `#[expect(` with reasons.
-260 validation/bench binaries, 47 modules + gpu\_ops/ + gpu\_dispatch/ + streaming/ + search/ + visualization/, 1115 lib + 9 integration + 73 forge tests.
-**toadStool** S146 at `751b3849`. **coralReef** Iteration 33 at `b783217` (46/46 sovereign compile).
-**CPU benchmark**: 15 domains, 38.6× geomean Rust vs Python/NumPy. 92% line coverage (llvm-cov).
-**coralForge** — sovereign structure prediction engine (formerly `sovereign_folding` + `structure_module`), unified under `coral_forge/` with `structure/` submodule.
-Pure Rust **38.6× faster** than Python/NumPy
-(geomean, 15 domains; fastest: multi-obj fitness 1028×; 2 BLAS-bound domains included). CPU→GPU portability proven (9/9, 7 domains).
+**barraCuda v0.3.5** at `0649cd0` (standalone, extracted from ToadStool S89): ALL 17 shortcomings resolved.
+25 absorbed workloads, 167 binaries consume barracuda, 13+ modules exercised (stats, dispatch, ops,
+linalg, tensor, device, spectral, numerical, nautilus, shaders, nn, error, unified\_hardware).
+47 CPU→GPU dispatch ops (~97% GPU), 42 metalForge WGSL shaders. ToadStool S146 (`751b3849`),
+coralReef Iteration 49 (`coral-glowplug`). Pure Rust **83.6×** faster than Python (geomean, 15 domains).
+**coralForge** — sovereign structure prediction (AlphaFold2/3 Evoformer, IPA, diffusion, pairformer, confidence).
 
 ### petalTongue Visualization (Sessions 135–139)
 
 16 domain scenario builders covering all 8 `DataChannel` types (TimeSeries, Spectrum, Gauge, Bar, Scatter3D, **Heatmap**, **Distribution**, **FieldMap**). S139 added search results, streaming I/O quality, Kokkos GPU parity, and industry coverage scenarios. Live training dashboard via `TrainingVisualizer` streaming spectral diagnostics to petalTongue. `neuralspring_ecosystem_dashboard` binary for rendering all 16 tracks simultaneously. 56/56 petalTongue validation checks. `scripts/visualize.sh` for offline/live/render/ecosystem modes. `config.rs` centralizes primal identity, env var names, petalTongue domain/theme.
-S130: Upstream rewire — ToadStool S130 pin, BarraCUDA `2a6c072`, coralReef Iteration 7. `PrecisionRoutingAdvice` wired, fused GPU regression gated via canary, coralNAK→coralReef rename, `baseline_path` consistency, inline threshold extraction. V88 handoff.
-S132: Upstream rewire — ToadStool S142 (`a86bc546`), BarraCUDA `83aa08a`, coralReef Iteration 29 (`2779c88`). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. ToadStool: hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests. coralReef: NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, 1200+ tests. 719 WGSL shaders. `shared_memory_f64_safe()` precision routing. `barracuda::shaders::provenance` wired (22 shaders, 17 cross-spring edges). V90 handoff.
-S134: Deep debt — activation consolidation, tolerance promotion, provenance triplets, code quality.
-S135–S139: petalTongue visualization (16 scenario tracks), streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness, industry coverage dashboard, `config.rs` centralized primal identity, ecosystem dashboard binary.
-S148–S150: playGround evolution — Squirrel MCP adapter (14 tool definitions), HuggingFace Model Lab (GPT-2 inference on barraCuda), compute triangle (ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks, `compute_probe` diagnostic). 63 playGround unit + 13 integration tests. Live ToadStool verified. V101 handoff.
-S147: Deep debt — zero inline magic numbers, zero duplicate math, capability-based discovery, provenance completeness. V100 handoff.
-S145–S146: Industry GPU parity benchmarks (FFT beats cuFFT, GEMM beats cuBLAS at 2048²), GPU infra evolution (5 workload rewires, NUCLEUS GPU dispatch, 4 GPU experiments). barraCuda v0.3.5 sync. V98–V99 handoffs.
-S143–S144: 5 novel composition experiments, 5 petalTongue composition scenario builders (21 tracks total), `composition_pipeline()` DAG, `nucleus_pipeline` Tower→Node→Nest executor. V96–V97 handoffs.
-S142: Upstream rewire + `enable f64;` PTXAS fix. Dispatch parity: **55/55 PASS**. V95 handoffs.
+S130–S150 condensed: Upstream rewires (ToadStool S130→S146, barraCuda v0.3.5, coralReef Iter 7→49),
+petalTongue visualization (16 scenario builders, live training dashboard), streaming parsers (FASTA/FASTQ/VCF),
+CPU BLAST pipeline, Kokkos parity harness, industry gap analysis, composition experiments (Exp 097–101),
+NUCLEUS pipeline executor, playGround (Squirrel MCP, Model Lab, compute triangle), deep debt
+(zero inline magic numbers, capability-based discovery, `config.rs`). V88–V101 handoffs.
 
 **Validation tiers**: 24/25 bC (96%) | 23/25 gT (92%) | 15/15 xD (100%) | 10/10 pure GPU all-domains |
 5/5 baseCamp sub-theses GPU | 5 WDM surrogates (33/33 Py + 160/160 Rs+GPU) |
@@ -140,8 +115,8 @@ WDM+coralForge CPU↔GPU parity 39/39 | metalForge WDM+coralForge NUCLEUS 41/41 
 Multi-GPU RTX 4070 + TITAN V (NVK): 384/384 bit-identical | CPU↔Python parity 39/39 (1e-10).
 Cross-spring rewire: 41/41 (`validate_cross_spring_rewire`) | modern bench 28/28 (`bench_cross_spring_modern`).
 S121 rewire: 80/80 (`validate_barracuda_s121_rewire`) — SimpleMlp EOS/Transport + HMM Viterbi/forward dispatcher parity.
-**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe | zero inline magic numbers | 100% SPDX headers | zero mocks in production | all files < 1000 LOC | 4 unused deps removed (S100) | `config.rs` centralizes primal identity, env vars, petalTongue config (S139).
-See `specs/TOADSTOOL_HANDOFF.md` and `wateringHole/handoffs/`.
+**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe (`#![forbid(unsafe_code)]` on all 3 crates) | zero inline magic numbers | zero `#[allow()]` (all `#[expect(reason)]`) | zero unfulfilled expectations | zero C dependencies (Tower Atomic) | 100% SPDX headers | zero mocks in production | all files ≤1000 LOC | `deny.toml` supply-chain hygiene | `OrExit<T>` zero-panic binaries | structured logging (`log::info!/warn!/debug!`) | `temp-env` safe env testing (Rust 2024 ready).
+See `wateringHole/handoffs/` for active handoffs.
 
 ### Phase 0 — Synthetic Baselines (48/48)
 
@@ -684,7 +659,7 @@ neuralSpring/
 |----------|-------------|
 | `specs/EVOLUTION_MAPPING.md` | Tier A/B/C mapping from Python modules → Rust → WGSL shaders |
 | `specs/DATA_PROVENANCE.md` | All dataset sources, accession numbers, and licenses |
-| `specs/TOADSTOOL_HANDOFF.md` | 12 BarraCUDA shortcomings — all absorbed + absorption handoff |
+| `specs/TOADSTOOL_HANDOFF.md` | 17 BarraCUDA shortcomings (S-01–S-17) — all resolved upstream |
 | `specs/CROSS_SPRING_EVOLUTION.md` | Cross-spring shader/primitive provenance (hotSpring/wetSpring/neuralSpring) |
 | `specs/BENCHMARK_ANALYSIS.md` | Python vs BarraCUDA CPU vs GPU + fused pipeline results |
 | `specs/PAPER_REVIEW_QUEUE.md` | 26 papers — all complete + baseCamp + WDM controls |
@@ -694,8 +669,8 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal ToadStool/BarraCUDA/coralReef handoffs (V106 current: Session 155, barraCuda v0.3.5 at `0649cd0`) |
-| `experiments/README.md` | Experiment journals (Sessions 40–155, hotSpring pattern) |
+| `wateringHole/handoffs/` | Formal ToadStool/BarraCUDA/coralReef handoffs (V110 current: Session 159, barraCuda v0.3.5) |
+| `experiments/README.md` | Experiment journals (Sessions 40–159, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
 ## License

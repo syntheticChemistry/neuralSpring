@@ -5,21 +5,16 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V110 S159 — Cross-Ecosystem Absorption Execution
+### V110 — Session 159
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
 | **V110 S159** | `handoffs/NEURALSPRING_V110_S159_CROSS_ECOSYSTEM_ABSORPTION_EXEC_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | OrExit<T>, deny.toml, structured logging, dep audit. Supersedes V109 |
+| **V110 bC/tS** | `handoffs/NEURALSPRING_V110_BARRACUDA_TOADSTOOL_EVOLUTION_HANDOFF_MAR16_2026.md` | Mar 16, 2026 | barraCuda consumption inventory, evolution opportunities, absorption patterns |
 
 ### Central wateringHole Copies
 
-Handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-project visibility:
-- `NEURALSPRING_V109_S158_CROSS_ECOSYSTEM_ABSORPTION_HANDOFF_MAR16_2026.md`
-- `NEURALSPRING_V108_S157_DEEP_DEBT_IDIOMATIC_RUST_HANDOFF_MAR16_2026.md`
-- `NEURALSPRING_V108_S157_BARRACUDA_TOADSTOOL_ABSORPTION_HANDOFF_MAR16_2026.md`
-- `NEURALSPRING_V105_S154_NICHE_ARCHITECTURE_BARRACUDA_TOADSTOOL_HANDOFF_MAR15_2026.md`
-- `NEURALSPRING_V104_S153_AUDIT_ABSORPTION_BARRACUDA_TOADSTOOL_HANDOFF_MAR15_2026.md`
-- `NEURALSPRING_V101_S150_COMPUTE_TRIANGLE_HANDOFF_MAR14_2026.md`
+Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-project visibility.
 
 ## Archive
 
