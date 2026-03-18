@@ -585,7 +585,9 @@ fn r_squared_perfect_prediction_is_one() {
     let mut rng = Rng::new(3001);
     for _ in 0..N_TRIALS {
         let n = 5 + rng.usize(50);
-        let y: Vec<f64> = (0..n).map(|_| rng.uniform().mul_add(100.0, -50.0)).collect();
+        let y: Vec<f64> = (0..n)
+            .map(|_| rng.uniform().mul_add(100.0, -50.0))
+            .collect();
         let r2 = metrics::r_squared(&y, &y);
         assert!(
             (r2 - 1.0).abs() < 1e-10,
@@ -600,8 +602,12 @@ fn rmse_always_nonnegative() {
     let mut rng = Rng::new(3002);
     for _ in 0..N_TRIALS {
         let n = 5 + rng.usize(50);
-        let y_true: Vec<f64> = (0..n).map(|_| rng.uniform().mul_add(100.0, -50.0)).collect();
-        let y_pred: Vec<f64> = (0..n).map(|_| rng.uniform().mul_add(100.0, -50.0)).collect();
+        let y_true: Vec<f64> = (0..n)
+            .map(|_| rng.uniform().mul_add(100.0, -50.0))
+            .collect();
+        let y_pred: Vec<f64> = (0..n)
+            .map(|_| rng.uniform().mul_add(100.0, -50.0))
+            .collect();
         let val = metrics::rmse(&y_true, &y_pred);
         assert!(val >= 0.0, "RMSE must be non-negative, got {val}");
     }
@@ -613,8 +619,12 @@ fn mae_always_nonnegative() {
     let mut rng = Rng::new(3003);
     for _ in 0..N_TRIALS {
         let n = 5 + rng.usize(50);
-        let y_true: Vec<f64> = (0..n).map(|_| rng.uniform().mul_add(100.0, -50.0)).collect();
-        let y_pred: Vec<f64> = (0..n).map(|_| rng.uniform().mul_add(100.0, -50.0)).collect();
+        let y_true: Vec<f64> = (0..n)
+            .map(|_| rng.uniform().mul_add(100.0, -50.0))
+            .collect();
+        let y_pred: Vec<f64> = (0..n)
+            .map(|_| rng.uniform().mul_add(100.0, -50.0))
+            .collect();
         let val = metrics::mae(&y_true, &y_pred);
         assert!(val >= 0.0, "MAE must be non-negative, got {val}");
     }
@@ -626,8 +636,12 @@ fn rmse_geq_mae() {
     let mut rng = Rng::new(3004);
     for _ in 0..N_TRIALS {
         let n = 5 + rng.usize(50);
-        let y_true: Vec<f64> = (0..n).map(|_| rng.uniform().mul_add(100.0, -50.0)).collect();
-        let y_pred: Vec<f64> = (0..n).map(|_| rng.uniform().mul_add(100.0, -50.0)).collect();
+        let y_true: Vec<f64> = (0..n)
+            .map(|_| rng.uniform().mul_add(100.0, -50.0))
+            .collect();
+        let y_pred: Vec<f64> = (0..n)
+            .map(|_| rng.uniform().mul_add(100.0, -50.0))
+            .collect();
         let r = metrics::rmse(&y_true, &y_pred);
         let m = metrics::mae(&y_true, &y_pred);
         assert!(
@@ -647,7 +661,9 @@ fn frobenius_norm_always_nonnegative() {
     let mut rng = Rng::new(3010);
     for _ in 0..N_TRIALS {
         let n = 4 + rng.usize(8);
-        let a: Vec<f64> = (0..n * n).map(|_| rng.uniform().mul_add(10.0, -5.0)).collect();
+        let a: Vec<f64> = (0..n * n)
+            .map(|_| rng.uniform().mul_add(10.0, -5.0))
+            .collect();
         let norm = frobenius_norm(&a);
         assert!(norm >= 0.0, "Frobenius norm must be non-negative");
         assert!(norm.is_finite(), "Frobenius norm must be finite");
@@ -670,7 +686,9 @@ fn transpose_involution() {
     let mut rng = Rng::new(3011);
     for _ in 0..N_TRIALS {
         let n = 3 + rng.usize(8);
-        let a: Vec<f64> = (0..n * n).map(|_| rng.uniform().mul_add(10.0, -5.0)).collect();
+        let a: Vec<f64> = (0..n * n)
+            .map(|_| rng.uniform().mul_add(10.0, -5.0))
+            .collect();
         let tt = transpose(&transpose(&a, n), n);
         let diff: f64 = a.iter().zip(tt.iter()).map(|(x, y)| (x - y).abs()).sum();
         assert!(diff < 1e-12, "transpose(transpose(A)) != A, diff = {diff}");
@@ -683,7 +701,9 @@ fn distance_to_normal_nonneg_for_arbitrary_matrices() {
     let mut rng = Rng::new(3012);
     for _ in 0..N_TRIALS {
         let n = 3 + rng.usize(6);
-        let a: Vec<f64> = (0..n * n).map(|_| rng.uniform().mul_add(10.0, -5.0)).collect();
+        let a: Vec<f64> = (0..n * n)
+            .map(|_| rng.uniform().mul_add(10.0, -5.0))
+            .collect();
         let d = distance_to_normal(&a, n);
         assert!(d >= 0.0, "distance_to_normal must be non-negative, got {d}");
     }

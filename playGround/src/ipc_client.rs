@@ -123,6 +123,25 @@ pub fn extract_rpc_error(response: &serde_json::Value) -> Option<(i64, String)> 
     Some((code, message))
 }
 
+/// Extract the `"result"` field from a JSON-RPC response, returning `None`
+/// if an `"error"` field is present (healthSpring V37 / wetSpring V127 pattern).
+#[must_use]
+pub fn extract_rpc_result(response: &serde_json::Value) -> Option<&serde_json::Value> {
+    if response.get("error").is_some() {
+        return None;
+    }
+    response.get("result")
+}
+
+/// Consuming variant that clones the result value.
+#[must_use]
+pub fn extract_rpc_result_owned(response: &serde_json::Value) -> Option<serde_json::Value> {
+    if response.get("error").is_some() {
+        return None;
+    }
+    response.get("result").cloned()
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Core IPC call
 // ═══════════════════════════════════════════════════════════════════
@@ -233,10 +252,10 @@ impl DispatchOutcome {
         }
     }
 
-    /// Classify a parsed JSON-RPC response value (healthSpring V28 pattern).
+    /// Classify a parsed JSON-RPC response value (healthSpring V37 pattern).
     #[must_use]
     pub fn classify_response(response: &serde_json::Value) -> Self {
-        if let Some(result) = response.get("result") {
+        if let Some(result) = extract_rpc_result(response) {
             return Self::Ok(result.clone());
         }
         if let Some((code, message)) = extract_rpc_error(response) {
@@ -419,6 +438,51 @@ mod tests {
         ];
         for val in fuzz_values {
             let _ = extract_rpc_error(val);
+        }
+    }
+
+    #[test]
+    fn extract_rpc_result_returns_result_when_no_error() {
+        let resp = serde_json::json!({"jsonrpc": "2.0", "result": 42, "id": 1});
+        assert_eq!(extract_rpc_result(&resp), Some(&serde_json::json!(42)));
+    }
+
+    #[test]
+    fn extract_rpc_result_returns_none_when_error_present() {
+        let resp = serde_json::json!({"jsonrpc": "2.0", "error": {"code": -32601, "message": "nf"}, "id": 1});
+        assert!(extract_rpc_result(&resp).is_none());
+    }
+
+    #[test]
+    fn extract_rpc_result_returns_none_when_neither() {
+        let resp = serde_json::json!({"jsonrpc": "2.0", "id": 1});
+        assert!(extract_rpc_result(&resp).is_none());
+    }
+
+    #[test]
+    fn extract_rpc_result_owned_clones_value() {
+        let resp = serde_json::json!({"result": [1, 2, 3]});
+        assert_eq!(
+            extract_rpc_result_owned(&resp),
+            Some(serde_json::json!([1, 2, 3]))
+        );
+    }
+
+    #[test]
+    fn extract_rpc_result_never_panics() {
+        let fuzz_values: &[serde_json::Value] = &[
+            serde_json::json!(null),
+            serde_json::json!(42),
+            serde_json::json!({}),
+            serde_json::json!({"result": "ok"}),
+            serde_json::json!({"error": null}),
+            serde_json::json!({"error": null, "result": "ok"}),
+            serde_json::json!({"error": {"code": -32600, "message": "invalid"}}),
+            serde_json::json!({"result": null}),
+        ];
+        for val in fuzz_values {
+            let _ = extract_rpc_result(val);
+            let _ = extract_rpc_result_owned(val);
         }
     }
 

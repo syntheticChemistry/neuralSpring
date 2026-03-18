@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V119 — Session 168
+### V120 — Session 168b
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V119 bC/tS** | `handoffs/NEURALSPRING_V119_DEEP_DEBT_EXECUTION_HANDOFF_MAR18_2026.md` | Mar 18, 2026 | Deep debt execution: provenance fix, 66 clippy→zero, ipc_client smart refactor, TensorSession/StatefulPipeline, 8 proptests, absorption manifest, CI workspace-wide. Supersedes V118 bC/tS |
+| **V120 eco** | `handoffs/NEURALSPRING_V120_CROSS_ECOSYSTEM_ABSORPTION_HANDOFF_MAR18_2026.md` | Mar 18, 2026 | Cross-ecosystem absorption: extract_rpc_result (healthSpring V37), PRIMAL_DOMAIN (healthSpring V34), OnceLock GPU probe (groundSpring V116), PROVENANCE_REGISTRY (49 entries, 4 tests), cast lint deny (airSpring V0.9.0). Supersedes V119 bC/tS |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V118 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
+Superseded handoffs: `handoffs/archive/` (V1–V119 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
 
 ## Conventions
 

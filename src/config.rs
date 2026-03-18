@@ -18,6 +18,10 @@ pub const PRIMAL_FAMILY: &str = env!("CARGO_PKG_NAME");
 /// Human-readable display name (capitalized).
 pub const PRIMAL_DISPLAY_NAME: &str = "neuralSpring";
 
+/// biomeOS Neural API domain for capability registration and Songbird
+/// discovery (healthSpring V34 pattern).
+pub const PRIMAL_DOMAIN: &str = "science.learning";
+
 /// petalTongue domain palette key (triggers electric blue/magenta).
 pub const PETALTONGUE_DOMAIN: &str = "neural";
 

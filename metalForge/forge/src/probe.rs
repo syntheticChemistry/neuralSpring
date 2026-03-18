@@ -15,14 +15,26 @@
 
 use crate::substrate::{Capability, Identity, Properties, Substrate, SubstrateKind};
 use std::fs;
+use std::sync::OnceLock;
 
-/// Probe all GPU adapters via wgpu.
+/// Cached GPU probe result (groundSpring V116 pattern).
+///
+/// Creating a `wgpu::Instance` is expensive and can SIGSEGV when multiple
+/// threads race. Cache the result so parallel tests and repeated probes
+/// share a single discovery pass.
+static GPU_PROBE_CACHE: OnceLock<Vec<Substrate>> = OnceLock::new();
+
+/// Probe all GPU adapters via wgpu (cached after first call).
 ///
 /// Uses the same wgpu instance/backend configuration that `BarraCUDA` uses.
 /// Each adapter becomes a substrate with capabilities derived from its
 /// feature flags (`SHADER_F64` → `F64Compute`, etc.).
 #[must_use]
 pub fn probe_gpus() -> Vec<Substrate> {
+    GPU_PROBE_CACHE.get_or_init(probe_gpus_inner).clone()
+}
+
+fn probe_gpus_inner() -> Vec<Substrate> {
     let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
         ..Default::default()

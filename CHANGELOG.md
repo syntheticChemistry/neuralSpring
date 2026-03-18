@@ -5,6 +5,41 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — 2026-03-18 (Session 168b: Cross-Ecosystem Absorption)
+
+### Added
+
+- `extract_rpc_result()` / `extract_rpc_result_owned()` — centralized JSON-RPC
+  result extraction (healthSpring V37 / wetSpring V127 pattern), replacing
+  ad-hoc `response.get("result")` in `classify_response`
+- `PRIMAL_DOMAIN` constant (`"science.learning"`) for biomeOS Neural API
+  registration (healthSpring V34 pattern)
+- `PROVENANCE_REGISTRY` — complete array of all 49 `BaselineProvenance`
+  records with 4 completeness/integrity tests
+- `OnceLock` GPU probe cache in `metalForge/forge/src/probe.rs` —
+  avoids SIGSEGV from concurrent `wgpu::Instance` creation in parallel
+  tests (groundSpring V116 pattern)
+- Cast lint deny in all 3 workspace `Cargo.toml` files:
+  `cast_precision_loss`, `cast_possible_truncation`, `cast_sign_loss`,
+  `cast_lossless` (airSpring V0.9.0 pattern)
+- 5 new `extract_rpc_result` tests (borrow, error-present, neither,
+  owned, fuzz)
+- 4 new provenance registry tests (completeness, no-duplicate-scripts,
+  expected-source-complete, records-non-empty via registry)
+
+### Changed
+
+- `classify_response` now delegates to `extract_rpc_result()` instead
+  of raw `response.get("result")`
+- Provenance test `provenance_records_non_empty` evolved from hand-
+  maintained inline array to `PROVENANCE_REGISTRY` reference
+
+### Validated
+
+- 1320 tests PASS (1167 lib + 73 forge + 80 playGround, +8 from S168)
+- 0 clippy warnings (pedantic+nursery+cast lints, workspace-wide)
+- 0 fmt diffs, 0 doc warnings, 0 unsafe, 0 C deps
+
 ## [Unreleased] — 2026-03-18 (Session 168: Deep Debt Execution + Ecosystem Handoff)
 
 ### Added

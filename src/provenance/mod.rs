@@ -48,6 +48,10 @@ impl BaselineProvenance {
     /// record maps to either a `provenance::references::*` constant, a JSON
     /// baseline in `control/`, or inline analytical values.
     #[must_use]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "pure data mapping — one arm per experiment script, no logic to extract"
+    )]
     pub fn expected_source(&self) -> &'static str {
         match self.script {
             "control/surrogate/surrogate_validation.py" => {
@@ -56,28 +60,47 @@ impl BaselineProvenance {
             "control/transformer/transformer_inference.py" => {
                 "provenance::references::{SOFTMAX_1_TO_5,GELU_REFERENCE}"
             }
-            "control/sequence/sequence_forecasting.py"
-            | "control/lstm_weather/lstm_era5.py" => "inline analytical (seasonal model)",
+            "control/sequence/sequence_forecasting.py" | "control/lstm_weather/lstm_era5.py" => {
+                "inline analytical (seasonal model)"
+            }
             "control/transfer/transfer_learning.py" => "inline analytical (isomorphic catalog)",
             "control/isomorphic/isomorphic_catalog.py" => "inline analytical (benchmark functions)",
             "control/pinn/pinn_burgers.py" => "inline analytical (Cole-Hopf exact solution)",
             "control/deeponet/deeponet_antideriv.py" => "inline analytical (antiderivative)",
             "control/lenet/lenet_mnist.py" => "control/lenet/lenet_baseline.json",
-            "control/quantized/quantized_inference.py" => "inline analytical (quantization error bounds)",
-            "control/counterdiabatic/counterdiabatic_evolution.py" => "inline analytical (NK landscape)",
+            "control/quantized/quantized_inference.py" => {
+                "inline analytical (quantization error bounds)"
+            }
+            "control/counterdiabatic/counterdiabatic_evolution.py" => {
+                "inline analytical (NK landscape)"
+            }
             "control/modes/modes_toolbox.py" => "inline analytical (MODES metrics)",
-            "control/eco_dynamics/eco_dynamics.py" => "inline analytical (Lotka-Volterra equilibria)",
-            "control/directed_evolution/directed_evolution.py" => "inline analytical (selection pressure)",
+            "control/eco_dynamics/eco_dynamics.py" => {
+                "inline analytical (Lotka-Volterra equilibria)"
+            }
+            "control/directed_evolution/directed_evolution.py" => {
+                "inline analytical (selection pressure)"
+            }
             "control/hmm_phylo/hmm_phylo.py" => "inline analytical (HMM forward/Viterbi)",
             "control/game_theory/game_theory.py" => "inline analytical (Nash equilibria)",
             "control/swarm_robotics/swarm_robotics.py" => "inline analytical (swarm fitness)",
             "control/sate_alignment/sate_alignment.py" => "inline analytical (NJ tree + MSA)",
             "control/introgression/introgression.py" => "inline analytical (PhyloNet-HMM)",
-            "control/regulatory_network/regulatory_network.py" => "inline analytical (GRN ODE steady state)",
-            "control/signal_integration/signal_integration.py" => "inline analytical (Hill gate output)",
-            "control/spectral_commutativity/spectral_commutativity.py" => "inline analytical (commutator norm)",
-            "control/anderson_localization/anderson_localization.py" => "inline analytical (IPR, Lyapunov)",
-            "control/pangenome_selection/pangenome_selection.py" => "inline analytical (chi² selection)",
+            "control/regulatory_network/regulatory_network.py" => {
+                "inline analytical (GRN ODE steady state)"
+            }
+            "control/signal_integration/signal_integration.py" => {
+                "inline analytical (Hill gate output)"
+            }
+            "control/spectral_commutativity/spectral_commutativity.py" => {
+                "inline analytical (commutator norm)"
+            }
+            "control/anderson_localization/anderson_localization.py" => {
+                "inline analytical (IPR, Lyapunov)"
+            }
+            "control/pangenome_selection/pangenome_selection.py" => {
+                "inline analytical (chi² selection)"
+            }
             "control/meta_population/meta_population.py" => "inline analytical (FST, Mantel)",
             "control/ml_inference/generate_baselines.py" => {
                 "control/ml_inference/{mlp,transformer}_baseline.json"
@@ -185,6 +208,63 @@ pub const CPU_PARITY_ENVIRONMENT: &str = "Python 3.10.12, NumPy 2.1.3";
 /// Pinned environment for publication experiment baselines.
 pub const PUBLICATION_ENVIRONMENT: &str = "Python 3.12, PyTorch 2.9.0+cu128, NumPy, seed=42";
 
+/// Complete registry of all provenance records (healthSpring V37 pattern).
+///
+/// Every `BaselineProvenance` constant must appear here. The test suite
+/// validates that the count matches the number of `pub const *_PROVENANCE`
+/// declarations in `experiments.rs`, catching any omission at compile time.
+pub const PROVENANCE_REGISTRY: &[&BaselineProvenance] = &[
+    &SURROGATE_PROVENANCE,
+    &TRANSFORMER_PROVENANCE,
+    &SEQUENCE_PROVENANCE,
+    &TRANSFER_PROVENANCE,
+    &ISOMORPHIC_PROVENANCE,
+    &PINN_PROVENANCE,
+    &DEEPONET_PROVENANCE,
+    &LENET_PROVENANCE,
+    &LSTM_ERA5_PROVENANCE,
+    &QUANTIZED_PROVENANCE,
+    &COUNTERDIABATIC_PROVENANCE,
+    &MODES_PROVENANCE,
+    &ECO_DYNAMICS_PROVENANCE,
+    &DIRECTED_EVOLUTION_PROVENANCE,
+    &HMM_PROVENANCE,
+    &GAME_THEORY_PROVENANCE,
+    &SWARM_ROBOTICS_PROVENANCE,
+    &SATE_ALIGNMENT_PROVENANCE,
+    &INTROGRESSION_PROVENANCE,
+    &REGULATORY_NETWORK_PROVENANCE,
+    &SIGNAL_INTEGRATION_PROVENANCE,
+    &SPECTRAL_COMMUTATIVITY_PROVENANCE,
+    &ANDERSON_LOCALIZATION_PROVENANCE,
+    &PANGENOME_SELECTION_PROVENANCE,
+    &META_POPULATION_PROVENANCE,
+    &ML_INFERENCE_PROVENANCE,
+    &CPU_PARITY_PROVENANCE,
+    &WDM_TRANSPORT_PROVENANCE,
+    &WDM_EOS_PROVENANCE,
+    &WDM_SQW_PROVENANCE,
+    &WDM_TRANSFER_PROVENANCE,
+    &WDM_ESN_PROVENANCE,
+    &CORAL_FORGE_PROVENANCE,
+    &TRAINING_TRAJECTORY_PROVENANCE,
+    &HESSIAN_EIGENANALYSIS_PROVENANCE,
+    &ANDERSON_MULTIAGENT_PROVENANCE,
+    &ALPHAFOLD2_EVOFORMER_PROVENANCE,
+    &ALPHAFOLD3_DIFFUSION_PROVENANCE,
+    &ALPHAFOLD3_PAIRFORMER_PROVENANCE,
+    &ALPHAFOLD3_CONFIDENCE_PROVENANCE,
+    &IMMUNOLOGICAL_ANDERSON_PROVENANCE,
+    &IMMUNOLOGICAL_ANDERSON_EXTENDED_PROVENANCE,
+    &GLUCOSE_PREDICTION_PROVENANCE,
+    &DIGESTION_PREDICTION_PROVENANCE,
+    &DIGESTER_ANDERSON_PROVENANCE,
+    &ISOMORPHIC_RESERVOIR_PROVENANCE,
+    &WDM_ENSEMBLE_QS_PROVENANCE,
+    &INTROGRESSION_NN_PROVENANCE,
+    &ATTENTION_ANDERSON_PROVENANCE,
+];
+
 /// Runtime-detected execution environment.
 ///
 /// Discovers Rust version, OS, and architecture at runtime rather than
@@ -250,59 +330,9 @@ mod tests {
     }
 
     #[test]
-    fn provenance_records_non_empty() {
-        let records = [
-            &SURROGATE_PROVENANCE,
-            &TRANSFORMER_PROVENANCE,
-            &SEQUENCE_PROVENANCE,
-            &TRANSFER_PROVENANCE,
-            &ISOMORPHIC_PROVENANCE,
-            &PINN_PROVENANCE,
-            &DEEPONET_PROVENANCE,
-            &LENET_PROVENANCE,
-            &LSTM_ERA5_PROVENANCE,
-            &QUANTIZED_PROVENANCE,
-            &COUNTERDIABATIC_PROVENANCE,
-            &MODES_PROVENANCE,
-            &ECO_DYNAMICS_PROVENANCE,
-            &DIRECTED_EVOLUTION_PROVENANCE,
-            &HMM_PROVENANCE,
-            &GAME_THEORY_PROVENANCE,
-            &SWARM_ROBOTICS_PROVENANCE,
-            &SATE_ALIGNMENT_PROVENANCE,
-            &INTROGRESSION_PROVENANCE,
-            &REGULATORY_NETWORK_PROVENANCE,
-            &SIGNAL_INTEGRATION_PROVENANCE,
-            &SPECTRAL_COMMUTATIVITY_PROVENANCE,
-            &ANDERSON_LOCALIZATION_PROVENANCE,
-            &ML_INFERENCE_PROVENANCE,
-            &WDM_TRANSPORT_PROVENANCE,
-            &WDM_EOS_PROVENANCE,
-            &WDM_SQW_PROVENANCE,
-            &WDM_TRANSFER_PROVENANCE,
-            &WDM_ESN_PROVENANCE,
-            &PANGENOME_SELECTION_PROVENANCE,
-            &META_POPULATION_PROVENANCE,
-            &CORAL_FORGE_PROVENANCE,
-            &ALPHAFOLD2_EVOFORMER_PROVENANCE,
-            &ALPHAFOLD3_DIFFUSION_PROVENANCE,
-            &ALPHAFOLD3_PAIRFORMER_PROVENANCE,
-            &ALPHAFOLD3_CONFIDENCE_PROVENANCE,
-            &TRAINING_TRAJECTORY_PROVENANCE,
-            &HESSIAN_EIGENANALYSIS_PROVENANCE,
-            &ANDERSON_MULTIAGENT_PROVENANCE,
-            &CPU_PARITY_PROVENANCE,
-            &IMMUNOLOGICAL_ANDERSON_PROVENANCE,
-            &IMMUNOLOGICAL_ANDERSON_EXTENDED_PROVENANCE,
-            &DIGESTION_PREDICTION_PROVENANCE,
-            &DIGESTER_ANDERSON_PROVENANCE,
-            &ISOMORPHIC_RESERVOIR_PROVENANCE,
-            &WDM_ENSEMBLE_QS_PROVENANCE,
-            &INTROGRESSION_NN_PROVENANCE,
-            &ATTENTION_ANDERSON_PROVENANCE,
-        ];
+    fn provenance_registry_records_non_empty() {
         let valid_commits = [BASELINE_COMMIT, CPU_PARITY_COMMIT];
-        for p in records {
+        for p in PROVENANCE_REGISTRY {
             assert!(!p.label.is_empty(), "empty label: {}", p.script);
             assert!(!p.script.is_empty());
             assert!(!p.date.is_empty());
@@ -312,6 +342,53 @@ mod tests {
                 "{}: commit {} not in valid set",
                 p.label,
                 p.commit,
+            );
+        }
+    }
+
+    #[test]
+    fn provenance_registry_completeness() {
+        let src = include_str!("experiments.rs");
+        let declared = src.matches("pub const ").count();
+        let extra_non_provenance = src
+            .lines()
+            .filter(|l| {
+                l.contains("pub const ")
+                    && !l.contains("PROVENANCE")
+                    && !l.contains("BaselineProvenance")
+            })
+            .count();
+        let expected = declared - extra_non_provenance;
+        assert_eq!(
+            PROVENANCE_REGISTRY.len(),
+            expected,
+            "PROVENANCE_REGISTRY has {} entries but experiments.rs declares {} *_PROVENANCE constants",
+            PROVENANCE_REGISTRY.len(),
+            expected,
+        );
+    }
+
+    #[test]
+    fn provenance_registry_no_duplicate_scripts() {
+        let mut scripts: Vec<&str> = PROVENANCE_REGISTRY.iter().map(|p| p.script).collect();
+        scripts.sort_unstable();
+        for pair in scripts.windows(2) {
+            assert_ne!(
+                pair[0], pair[1],
+                "duplicate script in PROVENANCE_REGISTRY: {}",
+                pair[0]
+            );
+        }
+    }
+
+    #[test]
+    fn provenance_registry_expected_source_complete() {
+        for p in PROVENANCE_REGISTRY {
+            let src = p.expected_source();
+            assert!(
+                !src.is_empty(),
+                "expected_source() returned empty for script: {}",
+                p.script,
             );
         }
     }
