@@ -175,18 +175,17 @@ mod tests {
 
     #[test]
     fn discover_returns_none_when_no_orchestrator() {
-        temp_env::with_var(
-            "BIOMEOS_SOCKET_DIR",
-            Some("/tmp/biomeos_client_test_nonexistent"),
-            || {
-                assert!(BiomeOsClient::discover().is_none());
-            },
-        );
+        let missing = std::env::temp_dir().join("ns_biomeos_client_test_nonexistent");
+        let missing_str = missing.to_str().expect("temp_dir is valid UTF-8");
+        temp_env::with_var("BIOMEOS_SOCKET_DIR", Some(missing_str), || {
+            assert!(BiomeOsClient::discover().is_none());
+        });
     }
 
     #[test]
     fn new_sets_socket_path() {
-        let client = BiomeOsClient::new(PathBuf::from("/tmp/test.sock"));
-        assert_eq!(client.socket_path(), Path::new("/tmp/test.sock"));
+        let sock = std::env::temp_dir().join("ns_test.sock");
+        let client = BiomeOsClient::new(sock.clone());
+        assert_eq!(client.socket_path(), sock.as_path());
     }
 }

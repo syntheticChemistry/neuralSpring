@@ -60,7 +60,12 @@ fn validate_bc_cpu(
 
     match barracuda::stats::correlation::pearson_correlation(&ws, &xis) {
         Ok(r) => {
-            h.check_abs("bC CPU r(W,ξ)", r, baseline.r_w_xi, 0.05);
+            h.check_abs(
+                "bC CPU r(W,ξ)",
+                r,
+                baseline.r_w_xi,
+                tolerances::CORRELATION_CROSS_VALIDATION,
+            );
             h.check_bool("bC CPU r(W,ξ) < 0", r < 0.0);
         }
         Err(e) => {
@@ -100,7 +105,12 @@ fn validate_gpu(
                     let gpu_sum = f64::from(vals[0]);
                     let diff = (gpu_sum - cpu_sum).abs();
                     println!("  disorder sum: CPU={cpu_sum:.4}, GPU={gpu_sum:.4}, diff={diff:.2e}");
-                    h.check_abs("GPU disorder sum", gpu_sum, cpu_sum, 0.1);
+                    h.check_abs(
+                        "GPU disorder sum",
+                        gpu_sum,
+                        cpu_sum,
+                        tolerances::GPU_ACCUMULATION_F32,
+                    );
                 } else {
                     h.check_bool("GPU readback", false);
                 }

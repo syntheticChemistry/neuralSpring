@@ -1,9 +1,9 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 17, 2026 (Session 163 — Edition 2024, health probes (health.liveness/health.readiness), ipc_resilience (RetryPolicy + CircuitBreaker), 6 proptest invariants, deny.toml hardened. V114 handoff. 1152 lib + 70 playGround + 73 forge tests. 0 warnings. 0 unfulfilled expectations.)
+**Last updated**: March 17, 2026 (Session 164 — Deep debt: 7 tolerances named, solve_symmetric→barraCuda, MSRV 1.87 pinned, platform-agnostic /tmp, total_cmp, tolerances/training.rs extracted, test socket→niche::NICHE_NAME. V115 handoff. 1152 lib + 70 playGround + 73 forge tests. 0 warnings. 0 unfulfilled expectations.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
-**Rust**: Edition 2021, clippy pedantic + nursery, unsafe_code=forbid
+**Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid
 **Grand Total**: 397/397 Python PASS + 4000+ Rust+GPU validation PASS = **4500+ total validation checks**
 **Library**: 1295 tests (1152 lib + 73 forge + 70 playGround) | 47 modules + config + niche + primal_names + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch | 260 validation/bench binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)

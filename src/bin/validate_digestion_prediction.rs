@@ -28,6 +28,7 @@ use neural_spring::validation::ValidationHarness;
 const BASELINE_JSON: &str =
     include_str!("../../control/digestion_prediction/digestion_prediction_baseline.json");
 
+#[expect(clippy::too_many_lines, reason = "validation binary")]
 fn main() {
     let mut h = ValidationHarness::new("digestion_prediction");
 
@@ -52,10 +53,20 @@ fn main() {
     println!("\n── Process model response functions ──");
 
     let f_t_meso = temperature_response(35.0);
-    h.check_abs("T response mesophilic peak", f_t_meso, 0.7, 0.05);
+    h.check_abs(
+        "T response mesophilic peak",
+        f_t_meso,
+        0.7,
+        tolerances::PROCESS_MODEL_RESPONSE,
+    );
 
     let f_t_thermo = temperature_response(55.0);
-    h.check_abs("T response thermophilic peak", f_t_thermo, 0.3, 0.05);
+    h.check_abs(
+        "T response thermophilic peak",
+        f_t_thermo,
+        0.3,
+        tolerances::PROCESS_MODEL_RESPONSE,
+    );
 
     let f_t_cold = temperature_response(20.0);
     h.check_bool("cold T < mesophilic", f_t_cold < f_t_meso);

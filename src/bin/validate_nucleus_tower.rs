@@ -118,7 +118,7 @@ async fn main() {
         );
         h.finish();
     }
-    let socket_path = socket_dir.join("neural-spring-test.sock");
+    let socket_path = socket_dir.join(format!("{}-test.sock", neural_spring::niche::NICHE_NAME));
 
     if socket_path.exists() {
         let _ = std::fs::remove_file(&socket_path);
@@ -516,7 +516,12 @@ async fn main() {
                 1.0,
                 tolerances::BOOLEAN_VALIDATION_SLACK,
             );
-            h.check_abs("folding_health.count", 0.0, 14.0, 0.5);
+            h.check_abs(
+                "folding_health.count",
+                0.0,
+                14.0,
+                tolerances::RPC_COUNT_FALLBACK,
+            );
         }
     }
 

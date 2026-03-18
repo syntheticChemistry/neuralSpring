@@ -117,7 +117,12 @@ fn validate_coupling(
     let xis: Vec<f64> = baseline.slices.iter().map(|s| s.xi).collect();
     let r_rust = pearson_r(&ws, &xis);
 
-    h.check_abs("Rust r(W,ξ) vs Python", r_rust, baseline.r_w_xi, 0.05);
+    h.check_abs(
+        "Rust r(W,ξ) vs Python",
+        r_rust,
+        baseline.r_w_xi,
+        tolerances::CORRELATION_CROSS_VALIDATION,
+    );
 }
 
 fn validate_reference_disorder(

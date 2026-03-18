@@ -590,20 +590,24 @@ mod tests {
 
     #[test]
     fn resolve_socket_dir_respects_env() {
-        temp_env::with_var("BIOMEOS_SOCKET_DIR", Some("/tmp/test_biomeos"), || {
-            assert_eq!(resolve_socket_dir(), PathBuf::from("/tmp/test_biomeos"));
+        let test_dir = std::env::temp_dir().join("ns_test_biomeos");
+        let test_str = test_dir.to_str().expect("temp_dir is valid UTF-8");
+        temp_env::with_var("BIOMEOS_SOCKET_DIR", Some(test_str), || {
+            assert_eq!(resolve_socket_dir(), test_dir);
         });
     }
 
     #[test]
     fn resolve_socket_dir_falls_through_tiers() {
+        let xdg_dir = std::env::temp_dir().join("ns_xdg_test");
+        let xdg_str = xdg_dir.to_str().expect("temp_dir is valid UTF-8");
         temp_env::with_vars(
             [
                 ("BIOMEOS_SOCKET_DIR", None::<&str>),
-                ("XDG_RUNTIME_DIR", Some("/tmp/xdg_test")),
+                ("XDG_RUNTIME_DIR", Some(xdg_str)),
             ],
             || {
-                assert_eq!(resolve_socket_dir(), PathBuf::from("/tmp/xdg_test/biomeos"));
+                assert_eq!(resolve_socket_dir(), xdg_dir.join("biomeos"));
             },
         );
     }
@@ -627,13 +631,11 @@ mod tests {
 
     #[test]
     fn discover_socket_fails_when_dir_missing() {
-        temp_env::with_var(
-            "BIOMEOS_SOCKET_DIR",
-            Some("/tmp/nonexistent_biomeos_test_dir"),
-            || {
-                assert!(discover_socket("some_primal").is_err());
-            },
-        );
+        let missing = std::env::temp_dir().join("ns_nonexistent_biomeos_test_dir");
+        let missing_str = missing.to_str().expect("temp_dir is valid UTF-8");
+        temp_env::with_var("BIOMEOS_SOCKET_DIR", Some(missing_str), || {
+            assert!(discover_socket("some_primal").is_err());
+        });
     }
 
     #[test]
@@ -715,13 +717,12 @@ mod tests {
 
     #[test]
     fn discover_primal_falls_back_to_socket_dir() {
+        let missing = std::env::temp_dir().join("ns_nonexistent_biomeos_test_dir");
+        let missing_str = missing.to_str().expect("temp_dir is valid UTF-8");
         temp_env::with_vars(
             [
                 ("TOADSTOOL_SOCKET", None::<&str>),
-                (
-                    "BIOMEOS_SOCKET_DIR",
-                    Some("/tmp/nonexistent_biomeos_test_dir"),
-                ),
+                ("BIOMEOS_SOCKET_DIR", Some(missing_str)),
             ],
             || {
                 assert!(discover_primal(neural_spring::primal_names::TOADSTOOL).is_err());

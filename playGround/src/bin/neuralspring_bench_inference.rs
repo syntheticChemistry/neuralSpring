@@ -11,7 +11,11 @@
 //! - **hot** (`--hot`): reuse `TensorSession` with pre-compiled pipelines
 //!   — measures pure kernel dispatch (comparable to PyTorch/CUDA)
 
-#![expect(clippy::pedantic, clippy::unwrap_used, reason = "benchmark binary")]
+#![expect(
+    clippy::pedantic,
+    clippy::unwrap_used,
+    reason = "benchmark binary: unwrap inside timing loops avoids error-handling overhead in hot path"
+)]
 
 use std::sync::Arc;
 use std::time::Instant;
@@ -88,7 +92,7 @@ fn bench_fn<F: FnMut()>(mut f: F, warmup: usize, iters: usize) -> f64 {
         })
         .collect();
 
-    timings.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    timings.sort_by(|a, b| a.total_cmp(b));
     timings[timings.len() / 2]
 }
 
@@ -532,7 +536,7 @@ async fn bench_forward(cli: &Cli, device: &Arc<WgpuDevice>) -> Result<ForwardRes
         timings.push(t0.elapsed().as_nanos() as f64 / 1000.0);
     }
 
-    timings.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    timings.sort_by(|a, b| a.total_cmp(b));
     let median_us = timings[timings.len() / 2];
 
     Ok(ForwardResult {

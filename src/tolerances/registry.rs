@@ -165,6 +165,10 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             SINGLETON_FREQ_EPS, PHENOTYPE_TIE_EPS,
             FITNESS_FLOOR, LEXICASE_EPSILON,
             BOOLEAN_VALIDATION_SLACK, EIGENSOLVER_SMALL_MATRIX,
+            GPU_TRACE_F32_ROUNDTRIP, CORRELATION_CROSS_VALIDATION,
+            GPU_ACCUMULATION_F32, CLASSIFIER_METRIC_CROSS,
+            INTROGRESSION_FRACTION_CROSS, PROCESS_MODEL_RESPONSE,
+            RPC_COUNT_FALLBACK,
         ],
         "gpu_pipeline": [GPU_REDUCE_F64],
         "gpu_dispatch": [

@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–112, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V114 handoff (Session 163 — Edition 2024, health probes, proptest) |
+| `wateringHole/handoffs/` | Cross-project | V115 handoff (Session 164 — Edition 2024, health probes, proptest) |
 
 ---
 

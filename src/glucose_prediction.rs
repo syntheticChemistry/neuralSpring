@@ -34,7 +34,6 @@
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
     clippy::doc_markdown,
-    clippy::many_single_char_names,
     clippy::too_many_lines,
     reason = "domain-specific numeric patterns and CGM simulation require index↔float casts and long experiment orchestration"
 )]
@@ -461,53 +460,20 @@ fn spectral_radius_estimate(matrix: &[f64], n: usize) -> f64 {
     mv.iter().map(|&x| x * x).sum::<f64>().sqrt()
 }
 
-/// Solve Ax = b for symmetric positive-definite A via Cholesky.
+/// Solve Ax = b for symmetric positive-definite A.
 ///
-/// Kept local rather than dispatching to `barracuda::linalg::cholesky_f64` +
-/// `solve_f64` because the ridge regression systems are small (n ≤ 73 for
-/// hidden_size=24) and GPU dispatch overhead would dominate. Candidate for
-/// `BarraCUDA` migration if reservoir sizes grow significantly.
+/// Delegates to `barracuda::linalg::solve::solve_f64_cpu` (Gaussian
+/// elimination with partial pivoting).  Falls back to a
+/// ridge-regularized system if the matrix is near-singular (degenerate
+/// reservoir states produce rank-deficient gram matrices).
 fn solve_symmetric(a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
-    let mut l = vec![0.0_f64; n * n];
-
-    for i in 0..n {
-        for j in 0..=i {
-            let mut sum = 0.0_f64;
-            for k in 0..j {
-                sum = l[i * n + k].mul_add(l[j * n + k], sum);
-            }
-            if i == j {
-                let diag = a[i * n + i] - sum;
-                l[i * n + j] = if diag > 0.0 {
-                    diag.sqrt()
-                } else {
-                    tolerances::RELATIVE_ERROR_FLOOR
-                };
-            } else {
-                l[i * n + j] = (a[i * n + j] - sum) / l[j * n + j].max(tolerances::LOG_ZERO_GUARD);
-            }
+    barracuda::linalg::solve::solve_f64_cpu(a, b, n).unwrap_or_else(|_| {
+        let mut regularized = a.to_vec();
+        for i in 0..n {
+            regularized[i * n + i] += tolerances::RELATIVE_ERROR_FLOOR;
         }
-    }
-
-    let mut y = vec![0.0_f64; n];
-    for i in 0..n {
-        let mut sum = 0.0_f64;
-        for j in 0..i {
-            sum = l[i * n + j].mul_add(y[j], sum);
-        }
-        y[i] = (b[i] - sum) / l[i * n + i].max(tolerances::LOG_ZERO_GUARD);
-    }
-
-    let mut x = vec![0.0_f64; n];
-    for i in (0..n).rev() {
-        let mut sum = 0.0_f64;
-        for j in (i + 1)..n {
-            sum = l[j * n + i].mul_add(x[j], sum);
-        }
-        x[i] = (y[i] - sum) / l[i * n + i].max(tolerances::LOG_ZERO_GUARD);
-    }
-
-    x
+        barracuda::linalg::solve::solve_f64_cpu(&regularized, b, n).unwrap_or_else(|_| vec![0.0; n])
+    })
 }
 
 /// Load a [`GlucosePredictor`] from the Python baseline JSON.

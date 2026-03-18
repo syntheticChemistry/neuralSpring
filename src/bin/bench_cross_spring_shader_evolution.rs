@@ -35,7 +35,7 @@
     clippy::unwrap_used,
     clippy::suboptimal_flops,
     clippy::similar_names,
-    reason = "validation binary"
+    reason = "benchmark binary: unwrap inside timing loops avoids error-handling overhead; casts are small known constants"
 )]
 
 use neural_spring::gpu::Gpu;

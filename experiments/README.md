@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session 163)**: 1295 tests (1152 lib + 70 playGround + 73 forge), 48 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (80+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, `resilient_call()` circuit breaker, typed `compute.dispatch` protocol, `DispatchOutcome` enum. `discover_primal()` + `socket_env_var()`. `safe_cast` module. 4-format `parse_capability_list()`. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging complete (primal + playGround). Edition 2024 (all 3 crates), `health.liveness`/`health.readiness` probes, `ipc_resilience` (RetryPolicy + CircuitBreaker), 6 proptest invariants. S163: Edition 2024 + health probes + proptest. V114 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 17, 2026.
+**Current state (Session 164)**: 1295 tests (1152 lib + 70 playGround + 73 forge), 48 modules, 260 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 unfulfilled expectations, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). All tolerances centralized (180+ Rust + 80+ Python mirror). All capabilities unified. All validation harnesses on hotSpring pattern. Structured IPC errors (`IpcError` enum), `call_typed()`, `extract_rpc_error()`, `resilient_call()` circuit breaker, typed `compute.dispatch` protocol, `DispatchOutcome` enum. `discover_primal()` + `socket_env_var()`. `safe_cast` module. 4-format `parse_capability_list()`. OrExit<T> zero-panic for 6 binaries. deny.toml supply-chain hygiene. Structured logging complete (primal + playGround). Edition 2024 (all 3 crates), `health.liveness`/`health.readiness` probes, `ipc_resilience` (RetryPolicy + CircuitBreaker), 6 proptest invariants. MSRV pinned (`rust-version = "1.87"`). `solve_symmetric` → `barracuda::linalg::solve::solve_f64_cpu`. S164: deep debt + delegation + MSRV + platform-agnostic. V115 handoff. barraCuda v0.3.5, toadStool S146+, coralReef Iter 49. March 17, 2026.
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 
@@ -5362,6 +5362,33 @@ Remaining binaries still need `clippy::expect_used` for GPU dispatch calls.
 **Motivation**: Execute on absorption priorities from cross-ecosystem review (S157). Adopt groundSpring zero-panic pattern, wetSpring `#[expect(reason)]` audit, airSpring primal name constants, petalTongue temp-env pattern.
 **Procedure**: Migrated last `#[allow()]` to `#[expect()]` with `cfg_attr` for cross-cfg boundaries. Removed stale `clippy::unwrap_used` expectation after evolving `unwrap` → `expect`. Added temp-env for all env var tests (ipc_client + biomeos_client). Extracted `check_binary_op` and `check_scalar_op` from tensor validation. Replaced hardcoded primal strings with `primal_names::*` and `config::*` constants. Verified all mocks test-only, all code `#![forbid(unsafe_code)]`, only C-adjacent dep is blake3/cc via barraCuda.
 **Findings**: The `#[expect()]` cross-cfg issue (wildcard import unfulfilled under `--test` but fulfilled under `--lib`) is solved by `#[cfg_attr(not(test), expect(...))]`. `temp-env` is zero-overhead in release builds and provides automatic save/restore. The tensor validation helpers reduce 72 lines of binary op boilerplate to 3 declarative calls. All discovery paths now use constants — zero literal primal strings in socket resolution.
+
+---
+
+## Session 164 — Deep Debt Evolution: Tolerance Naming, barraCuda Delegation, MSRV
+
+**Date**: 2026-03-17
+**Session**: S164
+
+### Summary
+
+| Phase | Description |
+|-------|-------------|
+| **Phase 1** | 7 inline tolerance literals named, registered in `domain_guards` category, wired to 6 validation binaries |
+| **Phase 2** | `glucose_prediction::solve_symmetric` delegated to `barracuda::linalg::solve::solve_f64_cpu()` with ridge fallback |
+| **Phase 3** | MSRV pinned (`rust-version = "1.87"`) across all 3 workspace Cargo.toml files |
+| **Phase 4** | 6 hardcoded `/tmp` paths → `std::env::temp_dir()`, 2 test socket names → `niche::NICHE_NAME` |
+| **Phase 5** | `partial_cmp().unwrap()` → `total_cmp()`, `tolerances/training.rs` extracted, doc clarity |
+
+**Key metrics**: 1152 lib + 73 forge + 2 playGround + 9 integration tests, 0 clippy warnings (pedantic+nursery), 0 fmt diffs, all CI gates green.
+
+### Exp 120 — Deep Debt: Tolerance Naming + barraCuda Math Delegation
+
+**Date**: 2026-03-17
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Motivation**: Execute remaining deep debt items from S163 audit. Name all remaining inline tolerance literals, delegate local math to barraCuda, pin MSRV for reproducibility, evolve hardcoded paths to platform-agnostic patterns, improve idiomatic Rust.
+**Procedure**: Identified 7 inline tolerance literals across 6 validation binaries. Added named constants to `tolerances/mod.rs` with scientific justification. Registered all 7 in `tolerance_registry!` under `domain_guards`. Analyzed 3 local math functions (`solve_symmetric`, `mat_mul_transpose`, `softmax_rows`) for barraCuda delegation — delegated `solve_symmetric` to `barracuda::linalg::solve::solve_f64_cpu()`; documented `mat_mul_transpose` and `softmax_rows` as intentional CPU-only references. Pinned `rust-version = "1.87"` in root, forge, and playGround Cargo.toml. Replaced `/tmp/` paths with `std::env::temp_dir()` in playGround tests. Evolved `partial_cmp().unwrap()` to `total_cmp()` in benchmark sorting. Extracted training tolerances into `tolerances/training.rs` submodule. Replaced hardcoded test socket names with `niche::NICHE_NAME`-based format.
+**Findings**: The `barracuda::linalg::solve::solve_f64_cpu` public API is robust for delegation — handles near-singular matrices gracefully with error return (neuralSpring adds ridge fallback). The `cholesky_f64_cpu` function is `#[cfg(test)]`-gated in barraCuda and not suitable for library use. The `total_cmp()` method (stable since Rust 1.62) is the correct idiom for float sorting — handles NaN deterministically without `partial_cmp().unwrap_or()` workaround. Smart refactoring of `tolerances/mod.rs` into submodules prevents crossing the 1000 LOC limit while maintaining a coherent API via `pub use`. Hardcoded `/tmp` paths were the last platform-specific assumption in test code.
 
 ---
 

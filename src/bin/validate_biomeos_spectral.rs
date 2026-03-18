@@ -118,7 +118,7 @@ async fn main() {
         );
         h.finish();
     }
-    let socket_path = socket_dir.join("neural-spring-test.sock");
+    let socket_path = socket_dir.join(format!("{}-test.sock", neural_spring::niche::NICHE_NAME));
 
     if socket_path.exists() {
         let _ = std::fs::remove_file(&socket_path);

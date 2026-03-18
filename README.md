@@ -44,6 +44,13 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S164: Deep debt evolution — 7 inline tolerances named and wired (`GPU_TRACE_F32_ROUNDTRIP`,
+`CORRELATION_CROSS_VALIDATION`, `GPU_ACCUMULATION_F32`, `CLASSIFIER_METRIC_CROSS`,
+`INTROGRESSION_FRACTION_CROSS`, `PROCESS_MODEL_RESPONSE`, `RPC_COUNT_FALLBACK`),
+`solve_symmetric` delegated to `barracuda::linalg::solve::solve_f64_cpu()`,
+MSRV pinned (`rust-version = "1.87"` across all 3 crates), hardcoded `/tmp` paths → `std::env::temp_dir()`,
+`partial_cmp().unwrap()` → `total_cmp()` (idiomatic float sort), `tolerances/training.rs` extracted
+(smart refactor), test socket paths → `niche::NICHE_NAME`-based format. V115 handoff.**
 **S163: Edition 2024 evolution — Rust Edition 2024 (let chains, reserved `gen` keyword, pattern ergonomics),
 `health.liveness`+`health.readiness` probes, `ipc_resilience.rs` (RetryPolicy + CircuitBreaker),
 proptest property-based testing (6 invariants: softmax, entropy, relu, rk4), MCP tools 14→16,
@@ -97,7 +104,7 @@ WDM+coralForge CPU↔GPU parity 39/39 | metalForge WDM+coralForge NUCLEUS 41/41 
 Multi-GPU RTX 4070 + TITAN V (NVK): 384/384 bit-identical | CPU↔Python parity 39/39 (1e-10).
 Cross-spring rewire: 41/41 (`validate_cross_spring_rewire`) | modern bench 28/28 (`bench_cross_spring_modern`).
 S121 rewire: 80/80 (`validate_barracuda_s121_rewire`) — SimpleMlp EOS/Transport + HMM Viterbi/forward dispatcher parity.
-**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe (`#![forbid(unsafe_code)]` on all 3 crates) | zero inline magic numbers | zero `#[allow()]` (all `#[expect(reason)]`) | zero unfulfilled expectations | zero C dependencies (Tower Atomic) | 100% SPDX headers | zero mocks in production | all files ≤1000 LOC | `deny.toml` supply-chain hygiene | `OrExit<T>` zero-panic binaries | structured logging (`log::info!/warn!/debug!`) | `temp-env` safe env testing (Rust 2024 ready) | zero `eprintln!` workspace-wide | `safe_cast` module (checked GPU dispatch params) | `resilient_call()` circuit breaker | `DispatchOutcome` RPC classification | 4-format `parse_capability_list()` | `discover_primal()` generic socket discovery | Rust Edition 2024 | proptest property-based testing | 1152 lib + 70 playGround + 73 forge tests.
+**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe (`#![forbid(unsafe_code)]` on all 3 crates) | zero inline magic numbers | zero `#[allow()]` (all `#[expect(reason)]`) | zero unfulfilled expectations | zero C dependencies (Tower Atomic) | 100% SPDX headers | zero mocks in production | all files ≤1000 LOC | `deny.toml` supply-chain hygiene | `OrExit<T>` zero-panic binaries | structured logging (`log::info!/warn!/debug!`) | `temp-env` safe env testing (Rust 2024 ready) | zero `eprintln!` workspace-wide | `safe_cast` module (checked GPU dispatch params) | `resilient_call()` circuit breaker | `DispatchOutcome` RPC classification | 4-format `parse_capability_list()` | `discover_primal()` generic socket discovery | Rust Edition 2024 | proptest property-based testing | MSRV pinned (`rust-version = "1.87"`) | `solve_symmetric` → `barracuda::linalg::solve` | 1152 lib + 70 playGround + 73 forge tests.
 See `wateringHole/handoffs/` for active handoffs.
 
 ### Phase 0 — Synthetic Baselines (48/48)
@@ -221,7 +228,7 @@ Cross-eigensolver: dense Householder+QR vs tridiag Sturm bisection agree at mach
 #### Rust Validation (3080+ PASS across 210 validation binaries)
 
 Every Python experiment has a companion Rust validation binary following the
-hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module (80+ named
+hotSpring pattern: `ValidationHarness`, centralized `tolerances/` module (180+ named
 constants with justification comments), explicit pass/fail exit codes. Library code: 1152 lib tests + 9
 integration tests. baseCamp modules add 82 analytical checks + GPU pure 5/5 sub-theses.
 WDM surrogates add 6 Rust validators (CPU + BarraCUDA GPU): nW-01 transport 30/30,
@@ -661,4 +668,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–163: March 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU = 4500+ validation checks | 1152 lib + 73 forge + 70 playGround + 13 doc + 15 integration + 9 bin tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 47 modules, 260 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry + `control/tolerances.py` Python mirror), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.5 at `0649cd0`, nautilus absorbed, 92% coverage | 46 upstream rewires, 250+ barracuda import files | V106 handoff (toadStool/barraCuda + coralReef cross-spring absorption) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 70 unit + 13 integration tests | `enable f64;` PTXAS fix | ecoBin compliant (zero C deps in main crates) | capability-based IPC discovery | 16 MCP tools, 16 capabilities | 21 petalTongue scenario tracks + ecosystem dashboard + composition visualization | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` (biomeOS BYOB Steps 1–4 + provenance trio) | `src/primal_names.rs` (zero duplicate primal name strings) | cross-spring absorption from hotSpring/groundSpring/wetSpring/airSpring + coralReef/loamSpine/rhizoCrypt/sweetGrass*
+*Initialized: February 16, 2026 | Sessions 40–164: March 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU = 4500+ validation checks | 1152 lib + 73 forge + 70 playGround + 13 doc + 15 integration + 9 bin tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 47 modules, 260 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry + `control/tolerances.py` Python mirror), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.5 at `0649cd0`, nautilus absorbed, 92% coverage | 46 upstream rewires, 250+ barracuda import files | V106 handoff (toadStool/barraCuda + coralReef cross-spring absorption) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 70 unit + 13 integration tests | `enable f64;` PTXAS fix | ecoBin compliant (zero C deps in main crates) | capability-based IPC discovery | 16 MCP tools, 16 capabilities | 21 petalTongue scenario tracks + ecosystem dashboard + composition visualization | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` (biomeOS BYOB Steps 1–4 + provenance trio) | `src/primal_names.rs` (zero duplicate primal name strings) | cross-spring absorption from hotSpring/groundSpring/wetSpring/airSpring + coralReef/loamSpine/rhizoCrypt/sweetGrass*

@@ -6,6 +6,7 @@ use neural_spring::introgression_nn::{
     build_nn_hmm, build_null_hmm, detection_metrics, introgression_fraction,
     load_introgression_nn_from_json,
 };
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 const BASELINE_JSON: &str =
@@ -64,7 +65,7 @@ fn validate_viterbi_parity(
         "introgression fraction",
         rust_frac,
         baseline.introgression_fraction,
-        0.05,
+        tolerances::INTROGRESSION_FRACTION_CROSS,
     );
 }
 
@@ -76,9 +77,24 @@ fn validate_metrics(
 
     let (tpr, fpr, acc) = detection_metrics(&baseline.viterbi_path, &baseline.true_states);
 
-    h.check_abs("TPR", tpr, baseline.tpr, 0.01);
-    h.check_abs("FPR", fpr, baseline.fpr, 0.01);
-    h.check_abs("Accuracy", acc, baseline.accuracy, 0.01);
+    h.check_abs(
+        "TPR",
+        tpr,
+        baseline.tpr,
+        tolerances::CLASSIFIER_METRIC_CROSS,
+    );
+    h.check_abs(
+        "FPR",
+        fpr,
+        baseline.fpr,
+        tolerances::CLASSIFIER_METRIC_CROSS,
+    );
+    h.check_abs(
+        "Accuracy",
+        acc,
+        baseline.accuracy,
+        tolerances::CLASSIFIER_METRIC_CROSS,
+    );
 
     h.check_bool("TPR > 0.5", baseline.tpr > 0.5);
     h.check_bool("FPR < 0.3", baseline.fpr < 0.3);

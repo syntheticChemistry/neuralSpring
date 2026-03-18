@@ -95,7 +95,12 @@ fn validate_gpu(
                     let gpu_trace: f64 = (0..n).map(|i| f64::from(vals[i * n + i])).sum();
                     let diff = (gpu_trace - cpu_trace).abs();
                     println!("  trace CPU={cpu_trace:.6}, GPU={gpu_trace:.6}, diff={diff:.2e}");
-                    h.check_abs("GPU trace parity", gpu_trace, cpu_trace, 0.01);
+                    h.check_abs(
+                        "GPU trace parity",
+                        gpu_trace,
+                        cpu_trace,
+                        tolerances::GPU_TRACE_F32_ROUNDTRIP,
+                    );
                 } else {
                     h.check_bool("GPU readback", false);
                 }

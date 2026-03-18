@@ -5,7 +5,36 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 163 (March 17, 2026)
+## [Unreleased] — Session 164 (March 17, 2026)
+
+### Session 164 — Deep Debt Evolution: Tolerance Naming, barraCuda Delegation, MSRV, Platform-Agnostic (2026-03-17)
+
+**7 inline tolerances named, barraCuda math delegation, MSRV pinning, platform-agnostic testing.**
+
+- **TOLERANCES**: 7 inline magic numbers replaced with named constants in `tolerances/mod.rs`:
+  `GPU_TRACE_F32_ROUNDTRIP` (0.01), `CORRELATION_CROSS_VALIDATION` (0.05),
+  `GPU_ACCUMULATION_F32` (0.1), `CLASSIFIER_METRIC_CROSS` (0.01),
+  `INTROGRESSION_FRACTION_CROSS` (0.05), `PROCESS_MODEL_RESPONSE` (0.05),
+  `RPC_COUNT_FALLBACK` (0.5). All registered in `domain_guards` category of tolerance
+  registry. Wired into 6 validation binaries.
+- **BARRACUDA DELEGATION**: `glucose_prediction::solve_symmetric` rewritten to delegate to
+  `barracuda::linalg::solve::solve_f64_cpu()` with ridge-regularized fallback for
+  near-singular matrices. Eliminates local Cholesky implementation (~40 LOC).
+- **MSRV**: `rust-version = "1.87"` pinned across all 3 workspace `Cargo.toml` files
+  (root, metalForge/forge, playGround).
+- **PLATFORM-AGNOSTIC**: 6 hardcoded `/tmp/` paths in playGround test files replaced with
+  `std::env::temp_dir().join(...)` (ipc_client.rs: 4, biomeos_client.rs: 2).
+- **IDIOMATIC**: `partial_cmp(b).unwrap()` → `total_cmp(b)` for float sorting in
+  `neuralspring_bench_inference.rs`. `#[expect]` reasons clarified in 2 benchmark binaries.
+- **REFACTOR**: `tolerances/mod.rs` training section extracted into `tolerances/training.rs`
+  submodule (smart refactor — proactive growth management).
+- **PRIMAL SELF-KNOWLEDGE**: 2 validation binaries (`validate_nucleus_tower`,
+  `validate_biomeos_spectral`) evolved from hardcoded `"neural-spring-test.sock"` to
+  `format!("{}-test.sock", niche::NICHE_NAME)`.
+- **DOC**: `information_flow::mat_mul_transpose` doc comment updated with barraCuda migration
+  clarity. `AᵀA` backticked for `doc_markdown` compliance.
+- **QUALITY**: 1152 lib + 73 forge + 2 playGround + 9 integration tests pass, 0 warnings
+  (clippy pedantic+nursery), 0 fmt diffs, 0 unsafe, Rust Edition 2024.
 
 ### Session 163 — Edition 2024 + Health Probes + Property Testing (2026-03-17)
 
