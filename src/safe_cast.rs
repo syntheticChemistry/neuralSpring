@@ -54,6 +54,10 @@ pub const fn f64_f32(value: f64) -> f32 {
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::unwrap_used,
+    reason = "test inputs are small known constants — unwrap documents expected success"
+)]
 mod tests {
     use super::*;
 

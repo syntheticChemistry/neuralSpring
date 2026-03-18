@@ -515,6 +515,10 @@ mod tests {
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::float_cmp,
+    reason = "relu returns exact 0.0 or identity — bitwise comparison is correct"
+)]
 mod proptests {
     use super::*;
     use crate::tolerances;
@@ -572,11 +576,11 @@ mod proptests {
         ) {
             let mut state = [x0, v0];
             let dt = 0.01;
-            let initial_energy = x0 * x0 + v0 * v0;
+            let initial_energy = x0.mul_add(x0, v0 * v0);
             for _ in 0..100 {
                 state = rk4_step(&state, dt, |y| [-y[1], y[0]]);
             }
-            let final_energy = state[0] * state[0] + state[1] * state[1];
+            let final_energy = state[0].mul_add(state[0], state[1] * state[1]);
             let drift = (final_energy - initial_energy).abs();
             prop_assert!(drift < initial_energy.max(1.0) * 0.01,
                 "energy drift = {drift}, initial = {initial_energy}");

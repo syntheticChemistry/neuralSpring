@@ -1,16 +1,15 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 17, 2026 (Session 166)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,500+ checks**, ~97% GPU promotion, 267 binaries, 1155 lib + 75 playGround + 73 forge tests, zero C deps (Tower Atomic), zero `#[allow()]`, zero `eprintln!` workspace-wide, zero hardcoded socket paths, `deny.toml`, structured `IpcError` + `resilient_call()` circuit breaker, `DispatchOutcome` enum, 4-format `parse_capability_list()`, `discover_primal()`, `safe_cast` module, typed `compute.dispatch`, `OrExit<T>`, structured logging, Edition 2024, MSRV 1.87, `health.liveness`/`health.readiness` IPC probes, `ipc_resilience` (RetryPolicy + CircuitBreaker), 28 proptest + IPC fuzz tests, `solve_symmetric` → barraCuda, 225 named tolerances, `mul_add()` FMA across 10 modules. V117 handoff. barraCuda v0.3.5 Sprint 7, toadStool S146+, coralReef Iter 49
+**Last Updated**: March 18, 2026 (Session 168)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,600+ checks**, ~97% GPU promotion, 267 binaries, 1164 lib + 73 playGround + 75 forge = 1312 tests, 68 modules, 225 named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery, workspace-wide), zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. All files ≤500 LOC. Edition 2024, MSRV 1.87. `TensorSession`/`StatefulPipeline` wired to `Dispatcher`. V119 handoff. barraCuda v0.3.5 Sprint 7, toadStool S146+, coralReef Iter 49
 
-- **S166**: Doc evolution — stale counts corrected (1155/75/73/267/67/225), full barraCuda Sprint 7 review, V117 handoff, archive sweep
-- **S165**: Ecosystem absorption — `mul_add()` FMA sweep (14 sites, 10 modules), IPC proptest (3 resilience + 5 IPC parsing fuzz), `ECOSYSTEM_LEVERAGE_GUIDE.md`. V116 handoff
-- **S164**: Deep debt — 7 tolerances named, `solve_symmetric`→`barracuda::linalg::solve::solve_f64_cpu()`, MSRV 1.87, `/tmp`→`temp_dir()`, `total_cmp()`, `tolerances/training.rs` extracted, test sockets→`niche::NICHE_NAME`. V115 handoff
-- **S163**: Edition 2024 upgrade (all 3 crates), reserved `gen`→`genomes`/`record`, let chains, closure pattern fixes, `health.liveness`/`health.readiness` probes, `ipc_resilience.rs` (RetryPolicy + CircuitBreaker), 6 proptest invariants, deny.toml unknown-git, DispatchOutcome classify_response, tolerance provenance. V114 handoff
-- **S162**: Cross-ecosystem absorption — 4-format `parse_capabilities()`, `discover_primal()` + `socket_env_var()`, `DispatchOutcome`, `resilient_call()`, `safe_cast` module, zero `eprintln!` workspace-wide (1642 → 0), safe GPU casts. V113 handoff
-- **S159–S161**: IPC evolution (structured `IpcError`, `call_typed()`, `extract_rpc_error()`, typed `compute.dispatch`), `OrExit<T>`, `deny.toml`, structured logging, hardcoded path elimination. V110–V112 handoffs
-- **S157–S158**: Modern Rust — zero `#[allow()]`, `#[expect(reason)]`, Tower Atomic (reqwest+ring removed), temp-env, smart refactoring, V108–V109 handoffs
-- **S146–S156**: playGround compute triangle, industry GPU parity, niche architecture, IPC bug fixes, capability-based discovery, tolerance centralization, V99–V107 handoffs
+- **S168**: Deep debt execution — `expected_source()` provenance fix (9→49+ mappings), 66 clippy→zero, `ipc_client.rs` 885→448 LOC (`discovery.rs` extracted), `TensorSession`/`StatefulPipeline` wired, 8 new proptests, `head_split`/`head_concat` lean cycle, CI workspace-wide. V119 handoff
+- **S167**: Deep audit + ecosystem evolution — `pearson_r` centralized, `primal_names::display`, fossil `#[allow()]`→`#[expect()]`, ecoBin CI, `capability_registry.toml`, upstream `WGSL_MEAN_REDUCE` re-export, L-BFGS path. V118 handoff
+- **S166**: Doc evolution — stale counts corrected, full barraCuda Sprint 7 review. V117 handoff
+- **S165**: Ecosystem absorption — `mul_add()` FMA sweep (14 sites), IPC proptest, `ECOSYSTEM_LEVERAGE_GUIDE.md`. V116 handoff
+- **S163–S164**: Edition 2024, deep debt, health probes, RetryPolicy/CircuitBreaker. V114–V115 handoffs
+- **S157–S162**: IPC evolution, cross-ecosystem absorption, Tower Atomic, safe_cast, discover_primal. V108–V113 handoffs
+- **S146–S156**: playGround compute triangle, niche architecture, capability discovery. V99–V107 handoffs
 
 ## Purpose
 
@@ -147,15 +146,20 @@ See `specs/DATA_PROVENANCE.md` for full inventory.
 Paper 027 (Wang/Liao digestion) is the gateway to real ADREC digester data
 and NCBI digester microbiome BioProjects — extension targets for gen3 Paper 16.
 
+### Session 168 — Deep Debt Execution + Ecosystem Handoff (March 18, 2026)
+
+- `expected_source()` provenance fix: 9 → 49+ script mappings (was non-functional)
+- 66 clippy warnings → zero (workspace-wide including tests)
+- `ipc_client.rs` smart refactor: 885 → 448 LOC (`discovery.rs` extracted, 439 LOC)
+- `TensorSession`/`StatefulPipeline` wired to `Dispatcher` for fused GPU pipelines
+- 8 new proptests: metrics (R²/RMSE/MAE), spectral (Frobenius/transpose/normal)
+- `head_split`/`head_concat` lean cycle completed in absorption manifest
+- CI workspace-wide: `cargo clippy`/`cargo test`/`cargo fmt`/`cargo doc`
+- **Quality**: 1312 tests (1164+73+75), 0 clippy, 0 fmt, 0 doc warnings, 0 unsafe
+
 ### Session 167 — Deep Audit + Ecosystem Evolution (March 18, 2026)
 
-- **Comprehensive ecosystem audit** against wateringHole standards (15 dimensions)
-- Centralized `pearson_r` in `primitives.rs` — 3 domain modules deduplicated
-- `primal_names::display` module: 12 display-name constants for UI/presentation
-- 24 fossil `#[allow()]` → `#[expect(reason)]` with provenance justifications
-- `config/capability_registry.toml`: 16 capabilities, sync-tested
-- ecoBin CI: musl + ARM cross-compile + banned C crate detection
-- Upstream `WGSL_MEAN_REDUCE` re-export in forge shaders
-- L-BFGS Tier A evolution path documented (pinn, loss_landscape)
-- Kokkos benchmark provenance restructured
+- Comprehensive ecosystem audit against wateringHole standards (15 dimensions)
+- `pearson_r` centralized, `primal_names::display`, fossil `#[allow()]`→`#[expect()]`
+- ecoBin CI, `capability_registry.toml`, upstream `WGSL_MEAN_REDUCE` re-export
 - **Quality**: 1156 lib tests, 0 clippy, 0 fmt, 0 doc warnings, 0 unsafe

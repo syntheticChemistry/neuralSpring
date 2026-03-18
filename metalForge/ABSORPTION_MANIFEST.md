@@ -89,12 +89,17 @@ New upstream capabilities available (not yet wired):
 | `rk45_adaptive.wgsl` | `barracuda::ops::rk45_adaptive` | S51 |
 | `swarm_nn_scores.wgsl` | `barracuda::SwarmNnGpu` | S52 (L-009) |
 
-### Still local (pending absorption)
+### Lean phase — upstream equivalents exist, local retained for compatibility
 
-| WGSL Shader | Library Export | Domain | Validation | Checks | Absorption Target |
-|-------------|--------------|--------|------------|--------|-------------------|
-| `head_split.wgsl` | `evolved::WGSL_HEAD_SPLIT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` — absorbed upstream per TOADSTOOL_HANDOFF S-03b |
-| `head_concat.wgsl` | `evolved::WGSL_HEAD_CONCAT` | MHA (S-03b) | `validate_mha_gpu` | 5/5 | `barracuda::ops::mha` — absorbed upstream per TOADSTOOL_HANDOFF S-03b |
+All locally-evolved shaders have been absorbed upstream. Local copies in
+`metalForge/shaders/` are retained for binding-layout compatibility with
+existing validators. New code should use the upstream `barracuda::ops::mha`
+API directly.
+
+| WGSL Shader | Upstream Equivalent | Status | Lean Since |
+|-------------|-------------------|--------|------------|
+| `head_split.wgsl` | `barracuda::ops::mha::head_split` | Lean (upstream canonical) | S168 |
+| `head_concat.wgsl` | `barracuda::ops::mha::head_concat` | Lean (upstream canonical) | S168 |
 
 ### Newly wired upstream APIs (Session 89)
 
@@ -203,7 +208,6 @@ that match GPU buffer bindings directly:
 | Shader | Domain | Priority | Dependency |
 |--------|--------|----------|------------|
 | `tridiag_eigensolver.wgsl` | Spectral 022–023 | P3 | Householder → bisection design |
-| `logsumexp_reduce.wgsl` | HMM/phylogenetics | P2 | Complements `hmm_forward_log.wgsl` |
 
 ---
 

@@ -170,6 +170,10 @@ impl BiomeOsClient {
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::expect_used,
+    reason = "test temp paths are always valid UTF-8"
+)]
 mod tests {
     use super::*;
 

@@ -54,6 +54,18 @@ use neural_spring::gpu_dispatch::Dispatcher;
 use neural_spring::tolerances;
 use neural_spring::validation::{ValidationHarness, exit_no_gpu};
 
+/// Expected upstream `barracuda::tolerances` contract values.
+///
+/// These are the published `abs_tol` values of barraCuda's domain tolerance
+/// constants at v0.3.1+. We validate that upstream has not silently changed
+/// them, since our validation binaries depend on these values being stable.
+mod upstream_expected {
+    pub const HYDRO_CROP_COEFFICIENT_ABS_TOL: f64 = 1e-6;
+    pub const PHYSICS_ANDERSON_EIGENVALUE_ABS_TOL: f64 = 1e-10;
+    pub const BIO_DIVERSITY_SHANNON_ABS_TOL: f64 = 1e-8;
+    pub const BIO_DIVERSITY_SIMPSON_ABS_TOL: f64 = 1e-10;
+}
+
 fn validate_standalone_path(h: &mut ValidationHarness) {
     println!("\n── Standalone path verification (v0.3.1) ──");
 
@@ -145,7 +157,7 @@ fn validate_tolerance_constants(h: &mut ValidationHarness) {
     h.check_abs(
         "HYDRO_CROP_COEFFICIENT.abs_tol",
         hydro_kc.abs_tol,
-        1e-6,
+        upstream_expected::HYDRO_CROP_COEFFICIENT_ABS_TOL,
         tolerances::EXACT_F64,
     );
 
@@ -153,7 +165,7 @@ fn validate_tolerance_constants(h: &mut ValidationHarness) {
     h.check_abs(
         "PHYSICS_ANDERSON_EIGENVALUE.abs_tol",
         anderson.abs_tol,
-        1e-10,
+        upstream_expected::PHYSICS_ANDERSON_EIGENVALUE_ABS_TOL,
         tolerances::EXACT_F64,
     );
 
@@ -161,7 +173,7 @@ fn validate_tolerance_constants(h: &mut ValidationHarness) {
     h.check_abs(
         "BIO_DIVERSITY_SHANNON.abs_tol",
         shannon.abs_tol,
-        1e-8,
+        upstream_expected::BIO_DIVERSITY_SHANNON_ABS_TOL,
         tolerances::EXACT_F64,
     );
 
@@ -169,7 +181,7 @@ fn validate_tolerance_constants(h: &mut ValidationHarness) {
     h.check_abs(
         "BIO_DIVERSITY_SIMPSON.abs_tol",
         simpson.abs_tol,
-        1e-10,
+        upstream_expected::BIO_DIVERSITY_SIMPSON_ABS_TOL,
         tolerances::EXACT_F64,
     );
 }

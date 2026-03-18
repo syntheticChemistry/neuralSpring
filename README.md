@@ -42,41 +42,29 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 719+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
 
-## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4600+ total validation checks**
+## Current Status: 397/397 Python PASS + 4200+ Rust+GPU PASS = **4600+ total validation checks**
 
-**S167: Deep audit + ecosystem evolution — centralized `pearson_r` wrapper (3 domain modules deduplicated),
-`primal_names::display` module (12 mixed-case display constants for UI), hardcoded primal name strings
-evolved to constants across industry_coverage, kokkos_parity, coralreef_bridge (20+ sites),
-`metalForge/fossils/` `#[allow()]` → `#[expect(reason)]` (24 attributes, 8 files), ecoBin CI
-(musl + ARM cross-compile + banned C crate detection), `config/capability_registry.toml`
-(16 capabilities, sync-tested), upstream `WGSL_MEAN_REDUCE` re-export in forge shaders,
-L-BFGS evolution path documented (pinn + loss_landscape), Kokkos benchmark provenance
-structured. 1156 lib tests, 0 clippy, 0 fmt, 0 doc warnings. V118 handoff.**
+**S168: Deep debt execution + ecosystem handoff — `expected_source()` provenance fix (9→49+ script
+mappings, was non-functional), 66 clippy warnings→zero (workspace-wide including tests),
+`ipc_client.rs` smart refactor 885→448 LOC (`discovery.rs` extracted, 439 LOC),
+`TensorSession`/`StatefulPipeline` wired to `Dispatcher` for fused GPU pipelines,
+8 new proptests (R²/RMSE/MAE metrics, Frobenius/transpose/normal-distance spectral),
+`head_split`/`head_concat` lean cycle, CI workspace-wide, barraCuda contract constants named.
+1312 tests (1164 lib + 73 playGround + 75 forge), 0 clippy, 0 fmt, 0 doc warnings. V119 handoff.**
 
-**S166: Doc evolution + V117 handoff — test counts corrected (1155 lib + 75 playGround + 73 forge = 1303,
-267 binaries, 67 modules, 225 named tolerances), full barracuda evolution review (Sprint 7,
-`execute_gemm_ex`, `WGSL_MEAN_REDUCE`), V117 handoff with action items for barraCuda/toadStool,
-archive sweep, stale TODO/count cleanup across all docs.**
+**S167: Deep audit + ecosystem evolution — `pearson_r` centralized, `primal_names::display`,
+fossil `#[allow()]`→`#[expect(reason)]`, ecoBin CI, `capability_registry.toml`,
+upstream `WGSL_MEAN_REDUCE` re-export, L-BFGS path documented. V118 handoff.**
 
-**S165: Ecosystem absorption execution — `mul_add()` FMA precision sweep (14 sites, 10 modules:
-glucose_prediction, swarm_robotics, loss_landscape, pangenome_selection, pinn,
-spectral_commutativity, coral_forge/confidence, coral_forge/pairformer, coral_forge/structure/ipa),
-IPC proptest invariants (3 library: RetryPolicy delay bounds, CircuitBreaker state machine +
-rapid cycling; 5 playground: parse_capability_list fuzz, DispatchOutcome classify fuzz,
-extract_rpc_error fuzz, flat roundtrip, IpcError contract), `specs/ECOSYSTEM_LEVERAGE_GUIDE.md`
-(absorption map, composition guide, evolution readiness), V116 handoff.**
+**S166: Doc evolution + V117 handoff — test counts corrected, full barraCuda Sprint 7 review,
+archive sweep. V117 handoff.**
 
-**S164: Deep debt evolution — 7 inline tolerances named and wired (`GPU_TRACE_F32_ROUNDTRIP`,
-`CORRELATION_CROSS_VALIDATION`, `GPU_ACCUMULATION_F32`, `CLASSIFIER_METRIC_CROSS`,
-`INTROGRESSION_FRACTION_CROSS`, `PROCESS_MODEL_RESPONSE`, `RPC_COUNT_FALLBACK`),
-`solve_symmetric` delegated to `barracuda::linalg::solve::solve_f64_cpu()`,
-MSRV pinned (`rust-version = "1.87"` across all 3 crates), hardcoded `/tmp` paths → `std::env::temp_dir()`,
-`partial_cmp().unwrap()` → `total_cmp()` (idiomatic float sort), `tolerances/training.rs` extracted
-(smart refactor), test socket paths → `niche::NICHE_NAME`-based format. V115 handoff.**
-**S163: Edition 2024 evolution — Rust Edition 2024 (let chains, reserved `gen` keyword, pattern ergonomics),
-`health.liveness`+`health.readiness` probes, `ipc_resilience.rs` (RetryPolicy + CircuitBreaker),
-proptest property-based testing (6 invariants: softmax, entropy, relu, rk4), MCP tools 14→16,
-tolerance provenance doc comments, deny.toml hardened (unknown-git=deny, advisory DB).**
+**S165: Ecosystem absorption — `mul_add()` FMA sweep (14 sites, 10 modules), IPC proptest
+invariants, `ECOSYSTEM_LEVERAGE_GUIDE.md`. V116 handoff.**
+
+**S164: Deep debt — 7 tolerances named, `solve_symmetric`→barraCuda, MSRV 1.87, `total_cmp()`,
+`tolerances/training.rs` extracted. V115 handoff.**
+**S163: Edition 2024 — Rust 2024, health probes, RetryPolicy/CircuitBreaker, 6 proptests. V114.**
 **S162: Cross-ecosystem absorption execution — 4-format `parse_capabilities()`, generic `discover_primal()`
 + `socket_env_var()`, `DispatchOutcome` enum, `resilient_call()` circuit breaker, `safe_cast` module,
 zero `eprintln!` workspace-wide (1642 → 0), safe GPU casts.**

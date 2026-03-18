@@ -185,6 +185,10 @@ impl std::fmt::Display for TransformerConfig {
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::unwrap_used,
+    reason = "test JSON inputs are known-valid — unwrap documents expected success"
+)]
 mod tests {
     use super::*;
 

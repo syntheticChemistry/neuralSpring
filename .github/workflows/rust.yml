@@ -52,20 +52,23 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
 
-      - name: Build
-        run: cargo build --all-targets
+      - name: Build (workspace)
+        run: cargo build --workspace --all-targets
 
-      - name: Test
-        run: cargo test
+      - name: Test (workspace, lib + unit)
+        run: cargo test --workspace --lib
+
+      - name: Test (workspace, integration)
+        run: cargo test --workspace --test '*'
 
       - name: Clippy (pedantic + nursery, all features)
-        run: cargo clippy --all-targets --all-features -- -D warnings -W clippy::pedantic -W clippy::nursery
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings -W clippy::pedantic -W clippy::nursery
 
-      - name: Format check
-        run: cargo fmt --check
+      - name: Format check (workspace)
+        run: cargo fmt --all -- --check
 
-      - name: Doc check
-        run: cargo doc --no-deps
+      - name: Doc check (workspace)
+        run: cargo doc --workspace --no-deps
         env:
           RUSTDOCFLAGS: "-D warnings"
 
@@ -149,8 +152,8 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-cov-${{ hashFiles('Cargo.toml') }}
 
-      - name: Collect coverage
-        run: cargo llvm-cov --lib --json --output-path coverage.json
+      - name: Collect coverage (workspace)
+        run: cargo llvm-cov --workspace --lib --json --output-path coverage.json
 
       - name: Check coverage threshold (90%)
         run: |

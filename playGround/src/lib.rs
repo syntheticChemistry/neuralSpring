@@ -26,6 +26,7 @@
 
 pub mod biomeos_client;
 pub mod coralreef_client;
+pub mod discovery;
 pub mod hf_hub;
 pub mod inference;
 pub mod ipc_client;

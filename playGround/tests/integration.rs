@@ -5,6 +5,12 @@
 //! Tests marked `#[ignore]` require live primals or GPU hardware.
 //! Run them with: `cargo test -p neuralspring-playground -- --ignored`
 
+#![expect(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    reason = "integration tests — panic on failure is the intended behavior"
+)]
+
 use neuralspring_playground::coralreef_client::CoralReefClient;
 use neuralspring_playground::hf_hub::{self, HfHub};
 // HfHub now routes through Songbird (Tower Atomic) — tests require live Songbird daemon.

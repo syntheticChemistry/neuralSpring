@@ -421,6 +421,10 @@ pub fn inspect_safetensors(
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::float_cmp,
+    reason = "IEEE 754 zero is bitwise exact for f16/bf16→f32 conversion"
+)]
 mod tests {
     use super::*;
 

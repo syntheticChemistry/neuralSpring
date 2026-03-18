@@ -183,6 +183,37 @@ impl Dispatcher {
         self.gpu.as_ref()
     }
 
+    /// Create a `TensorSession` for fused multi-op GPU pipelines.
+    ///
+    /// `TensorSession` batches multiple operations (matmul, GELU, softmax,
+    /// `layer_norm`) into a single command encoder submission, eliminating
+    /// per-op CPU round-trips. Prefer this over per-op `gpu_or_cpu` dispatch
+    /// for HMM forward chains, ODE integration loops, and multi-layer
+    /// inference where the intermediate tensors stay on-device.
+    ///
+    /// Returns `None` in CPU-only mode.
+    #[must_use]
+    pub fn tensor_session(&self) -> Option<barracuda::prelude::TensorSession> {
+        self.wgpu_device()
+            .map(|dev| barracuda::prelude::TensorSession::with_device(dev.clone()))
+    }
+
+    /// Create a `StatefulPipeline` for iterative GPU kernels.
+    ///
+    /// `StatefulPipeline` maintains state across iterations (ODE integrators,
+    /// iterative eigensolvers, training loops) without CPU readback between
+    /// steps. The pipeline caches compiled shaders and reuses GPU buffers.
+    ///
+    /// Returns `None` in CPU-only mode.
+    #[must_use]
+    pub fn stateful_pipeline(
+        &self,
+        config: barracuda::staging::StatefulConfig,
+    ) -> Option<barracuda::staging::StatefulPipeline> {
+        self.wgpu_device()
+            .map(|dev| barracuda::staging::StatefulPipeline::new(dev.clone(), config))
+    }
+
     /// Upstream driver profile (hotSpring-evolved hardware detection).
     #[must_use]
     pub const fn driver_profile(&self) -> Option<&GpuDriverProfile> {

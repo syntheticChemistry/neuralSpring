@@ -125,17 +125,17 @@ mod tests {
         let x = vec![1.0, 2.0, 3.0, 4.0];
         let gamma = vec![1.0; 4];
         let beta = vec![0.0; 4];
-        let out = layer_norm(&x, 1, 4, &gamma, &beta, 1e-5);
+        let out = layer_norm(&x, 1, 4, &gamma, &beta, tolerances::LAYER_NORM_EPS);
 
         let mean: f64 = out.iter().sum::<f64>() / 4.0;
         assert!(
-            mean.abs() < 1e-10,
+            mean.abs() < tolerances::CROSS_LANGUAGE,
             "post-norm mean should be ≈ 0, got {mean}"
         );
 
         let var: f64 = out.iter().map(|v| v * v).sum::<f64>() / 4.0;
         assert!(
-            (var - 1.0).abs() < 1e-4,
+            (var - 1.0).abs() < tolerances::OPTIMIZER_VALUE_AT_MIN,
             "post-norm var should be ≈ 1, got {var}"
         );
     }
@@ -145,9 +145,9 @@ mod tests {
         let x = vec![0.0, 0.0, 0.0, 0.0];
         let gamma = vec![1.0; 4];
         let beta = vec![0.0; 4];
-        let out = layer_norm(&x, 1, 4, &gamma, &beta, 1e-5);
+        let out = layer_norm(&x, 1, 4, &gamma, &beta, tolerances::LAYER_NORM_EPS);
         for v in &out {
-            assert!(v.abs() < 1e-10, "norm of constant = 0");
+            assert!(v.abs() < tolerances::CROSS_LANGUAGE, "norm of constant = 0");
         }
     }
 

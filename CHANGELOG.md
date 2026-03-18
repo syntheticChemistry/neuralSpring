@@ -5,6 +5,50 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — 2026-03-18 (Session 168: Deep Debt Execution + Ecosystem Handoff)
+
+### Added
+
+- `playGround/src/discovery.rs` — extracted 5-tier socket resolution, capability
+  discovery, and primal discovery into focused module (439 LOC)
+- `Dispatcher::tensor_session()` — `TensorSession` factory for fused multi-op GPU
+  pipelines (eliminates per-op CPU round-trips)
+- `Dispatcher::stateful_pipeline()` — `StatefulPipeline` factory for iterative
+  GPU kernels (ODE loops, eigensolvers, training)
+- 8 new property tests: metrics invariants (R² perfect=1, RMSE/MAE non-neg,
+  RMSE≥MAE Cauchy-Schwarz), spectral invariants (Frobenius non-neg, transpose
+  involution, distance-to-normal non-neg)
+- `upstream_expected` module in `validate_toadstool_s93_barracuda_extraction.rs`
+  — named constants for barraCuda tolerance contract validation
+- V119 ecosystem handoff with full absorption inventory
+
+### Changed
+
+- `expected_source()` provenance mapping: 9 → 49+ script paths (was matching on
+  label strings that never matched; now matches on stable `script` field)
+- `ipc_client.rs` smart refactor: 885 → 448 LOC (discovery logic extracted)
+- `coral_forge/activation.rs` tests: inline `1e-5` → `tolerances::LAYER_NORM_EPS`
+- `primitives.rs` proptest: `x*x + v*v` → `x.mul_add(x, v*v)` (FMA)
+- `property_tests.rs`: `as u32` → `u32::try_from()` (safe cast)
+- metalForge absorption manifest: `head_split`/`head_concat` → lean phase,
+  stale `logsumexp_reduce.wgsl` removed from planned shaders
+- CI: workspace-wide `cargo test`, `cargo clippy`, `cargo fmt`, `cargo doc`
+
+### Fixed
+
+- 66 clippy warnings (pedantic+nursery) → zero workspace-wide
+  - playGround test modules: `#[expect(unwrap_used, expect_used)]`
+  - `weights.rs` tests: `#[expect(float_cmp)]` for IEEE 754 zero exactness
+  - `3.14` approx-PI lint in fuzz test → arbitrary `7.89`
+- `expected_source()` was non-functional (short label strings never matched
+  actual long label values) — now correctly maps all 49+ experiments
+
+### Validated
+
+- 1312 tests PASS (1164 lib + 73 playGround + 75 forge, +8 from S167)
+- 0 clippy warnings (pedantic+nursery, workspace-wide including tests)
+- 0 fmt diffs, 0 doc warnings, 0 unsafe, 0 C deps
+
 ## [Unreleased] — 2026-03-18 (Session 167: Deep Audit + Ecosystem Evolution)
 
 ### Added

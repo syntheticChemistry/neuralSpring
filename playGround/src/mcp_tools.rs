@@ -213,6 +213,10 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
 pub use neural_spring::config::ALL_CAPABILITIES;
 
 #[cfg(test)]
+#[expect(
+    clippy::expect_used,
+    reason = "test assertions — tool definitions are known-valid"
+)]
 mod tests {
     use super::*;
 

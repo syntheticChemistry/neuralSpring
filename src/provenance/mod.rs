@@ -44,21 +44,101 @@ pub struct BaselineProvenance {
 impl BaselineProvenance {
     /// Where expected reference values live for this experiment.
     ///
-    /// Links to `provenance::references::*` constants, JSON baselines in
-    /// `control/`, or `tolerances::*` constants. Derived from the script
-    /// path when not overridden.
+    /// Derives the source location from the `script` path — every provenance
+    /// record maps to either a `provenance::references::*` constant, a JSON
+    /// baseline in `control/`, or inline analytical values.
     #[must_use]
     pub fn expected_source(&self) -> &'static str {
-        match self.label {
-            "surrogate" => "provenance::references::{RASTRIGIN,ROSENBROCK,ACKLEY}_REFERENCE",
-            "transformer" => "provenance::references::{SOFTMAX_1_TO_5,GELU_REFERENCE}",
-            "wdm_transport" => "control/wdm/transport_surrogate_baseline.json",
-            "wdm_eos" => "control/wdm/eos_surrogate_baseline.json",
-            "wdm_sqw" => "control/wdm/sqw_baseline.json",
-            "digester_anderson" => "control/digester_anderson/digester_anderson_baseline.json",
-            "glucose_prediction" => "control/glucose_prediction/glucose_baseline.json",
-            "lenet" => "control/lenet/lenet_baseline.json",
-            "cpu_parity" => "control/cpu_parity_references.json",
+        match self.script {
+            "control/surrogate/surrogate_validation.py" => {
+                "provenance::references::{RASTRIGIN,ROSENBROCK,ACKLEY}_REFERENCE"
+            }
+            "control/transformer/transformer_inference.py" => {
+                "provenance::references::{SOFTMAX_1_TO_5,GELU_REFERENCE}"
+            }
+            "control/sequence/sequence_forecasting.py"
+            | "control/lstm_weather/lstm_era5.py" => "inline analytical (seasonal model)",
+            "control/transfer/transfer_learning.py" => "inline analytical (isomorphic catalog)",
+            "control/isomorphic/isomorphic_catalog.py" => "inline analytical (benchmark functions)",
+            "control/pinn/pinn_burgers.py" => "inline analytical (Cole-Hopf exact solution)",
+            "control/deeponet/deeponet_antideriv.py" => "inline analytical (antiderivative)",
+            "control/lenet/lenet_mnist.py" => "control/lenet/lenet_baseline.json",
+            "control/quantized/quantized_inference.py" => "inline analytical (quantization error bounds)",
+            "control/counterdiabatic/counterdiabatic_evolution.py" => "inline analytical (NK landscape)",
+            "control/modes/modes_toolbox.py" => "inline analytical (MODES metrics)",
+            "control/eco_dynamics/eco_dynamics.py" => "inline analytical (Lotka-Volterra equilibria)",
+            "control/directed_evolution/directed_evolution.py" => "inline analytical (selection pressure)",
+            "control/hmm_phylo/hmm_phylo.py" => "inline analytical (HMM forward/Viterbi)",
+            "control/game_theory/game_theory.py" => "inline analytical (Nash equilibria)",
+            "control/swarm_robotics/swarm_robotics.py" => "inline analytical (swarm fitness)",
+            "control/sate_alignment/sate_alignment.py" => "inline analytical (NJ tree + MSA)",
+            "control/introgression/introgression.py" => "inline analytical (PhyloNet-HMM)",
+            "control/regulatory_network/regulatory_network.py" => "inline analytical (GRN ODE steady state)",
+            "control/signal_integration/signal_integration.py" => "inline analytical (Hill gate output)",
+            "control/spectral_commutativity/spectral_commutativity.py" => "inline analytical (commutator norm)",
+            "control/anderson_localization/anderson_localization.py" => "inline analytical (IPR, Lyapunov)",
+            "control/pangenome_selection/pangenome_selection.py" => "inline analytical (chi² selection)",
+            "control/meta_population/meta_population.py" => "inline analytical (FST, Mantel)",
+            "control/ml_inference/generate_baselines.py" => {
+                "control/ml_inference/{mlp,transformer}_baseline.json"
+            }
+            "control/generate_cpu_references.py" => "control/cpu_parity_references.json",
+            "control/wdm/transport_surrogate.py" => "control/wdm/transport_surrogate_baseline.json",
+            "control/wdm/eos_surrogate.py" => "control/wdm/eos_surrogate_baseline.json",
+            "control/wdm/sqw_peak_predictor.py" => "control/wdm/sqw_peak_baseline.json",
+            "control/wdm/transfer_classical_to_wdm.py" => "control/wdm/transfer_baseline.json",
+            "control/wdm/esn_regime_classifier.py" => "control/wdm/esn_regime_baseline.json",
+            "control/coral_forge/evoformer_primitives.py" => {
+                "control/coral_forge/evoformer_baselines.json"
+            }
+            "control/coral_forge/alphafold2_evoformer_block.py" => {
+                "control/coral_forge/evoformer_block_baselines.json"
+            }
+            "control/coral_forge/alphafold3_diffusion.py" => {
+                "control/coral_forge/diffusion_baselines.json"
+            }
+            "control/coral_forge/alphafold3_pairformer.py" => {
+                "control/coral_forge/pairformer_baselines.json"
+            }
+            "control/coral_forge/alphafold3_confidence.py" => {
+                "control/coral_forge/confidence_baselines.json"
+            }
+            "control/training_trajectory/training_trajectory.py" => {
+                "control/training_trajectory/baseline_values.json"
+            }
+            "control/hessian_eigenanalysis/hessian_eigenanalysis.py" => {
+                "control/hessian_eigenanalysis/baseline_values.json"
+            }
+            "control/anderson_multiagent/anderson_multiagent.py" => {
+                "control/anderson_multiagent/baseline_values.json"
+            }
+            "control/immunological_anderson/immunological_anderson.py" => {
+                "inline analytical (Anderson localization in immune signaling)"
+            }
+            "control/immunological_anderson/immunological_anderson_extended.py" => {
+                "inline analytical (Gonzales dose-response, PK, lattice, MATRIX)"
+            }
+            "control/glucose_prediction/glucose_prediction.py" => {
+                "control/glucose_prediction/glucose_baseline.json"
+            }
+            "control/digestion_prediction/digestion_prediction.py" => {
+                "control/digestion_prediction/digestion_prediction_baseline.json"
+            }
+            "control/digester_anderson/digester_anderson.py" => {
+                "control/digester_anderson/digester_anderson_baseline.json"
+            }
+            "control/isomorphic_reservoir/isomorphic_reservoir.py" => {
+                "control/isomorphic_reservoir/isomorphic_reservoir_baseline.json"
+            }
+            "control/wdm_ensemble_qs/wdm_ensemble_qs.py" => {
+                "control/wdm_ensemble_qs/wdm_ensemble_qs_baseline.json"
+            }
+            "control/introgression_nn/introgression_nn.py" => {
+                "control/introgression_nn/introgression_nn_baseline.json"
+            }
+            "control/attention_anderson/attention_anderson.py" => {
+                "control/attention_anderson/attention_anderson_baseline.json"
+            }
             _ => "",
         }
     }
