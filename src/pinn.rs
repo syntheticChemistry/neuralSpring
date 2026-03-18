@@ -228,7 +228,7 @@ pub fn pde_residual_fd(u_grid: &[f64], t_vals: &[f64], x_vals: &[f64], nu: f64) 
             let u_x = (u_grid[i * nx + j + 1] - u_grid[i * nx + j - 1]) / dx;
             let u_xx = (u_grid[i * nx + j + 1] - 2.0 * u + u_grid[i * nx + j - 1]) / dx2;
 
-            residuals.push(u_t + u * u_x - nu * u_xx);
+            residuals.push(u.mul_add(u_x, u_t) - nu * u_xx);
         }
     }
 

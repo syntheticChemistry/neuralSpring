@@ -272,7 +272,7 @@ pub fn jaccard_distance_matrix(pa: &[f64], n_genes: usize, n_genomes: usize) -> 
             for g in 0..n_genes {
                 let a = pa[g * n_genomes + i];
                 let b = pa[g * n_genomes + j];
-                intersection += a * b;
+                intersection = a.mul_add(b, intersection);
                 union += a.max(b);
             }
             let d = if union > 0.0 {

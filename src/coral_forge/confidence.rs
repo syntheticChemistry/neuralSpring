@@ -209,7 +209,7 @@ fn softmax_expected(logits: &[f64], bin_centers: &[f64]) -> (Vec<f64>, f64) {
         .zip(bin_centers)
         .map(|(&e, &c)| {
             let p = e / sum;
-            exp_val += p * c;
+            exp_val = p.mul_add(c, exp_val);
             p
         })
         .collect();

@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: March 17, 2026 (Sessions 60–164: 1152 lib + 70 playGround + 73 forge tests, 260 binaries, 220/220 validate_all, barraCuda v0.3.5 at `0649cd0`, 216 import files, V115 handoff)
+**Last Updated**: March 17, 2026 (Sessions 60–165: 1152 lib + 70 playGround + 73 forge tests, 260 binaries, 220/220 validate_all, barraCuda v0.3.5 at `0649cd0`, 216 import files, V116 handoff)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---

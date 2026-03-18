@@ -99,7 +99,7 @@ pub fn neural_forward(params: &[f64], sense: f64) -> usize {
     for j in 0..5 {
         let mut sum = params[28 + j];
         for (i, &hv) in h.iter().enumerate() {
-            sum += hv * params[8 + i * 5 + j];
+            sum = hv.mul_add(params[8 + i * 5 + j], sum);
         }
         out[j] = sigmoid(sum);
     }
@@ -120,7 +120,7 @@ pub fn neural_forward_max_score(params: &[f64], sense: f64) -> f64 {
     for j in 0..5 {
         let mut sum = params[28 + j];
         for (i, &hv) in h.iter().enumerate() {
-            sum += hv * params[8 + i * 5 + j];
+            sum = hv.mul_add(params[8 + i * 5 + j], sum);
         }
         let o_j = sigmoid(sum);
         if o_j > best {

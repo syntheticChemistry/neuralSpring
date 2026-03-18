@@ -160,7 +160,7 @@ pub fn pairformer_block(
         pair_out
             .iter_mut()
             .zip(gate.iter().zip(tri_out.iter()))
-            .for_each(|(p, (&g, &t))| *p += g * t);
+            .for_each(|(p, (&g, &t))| *p = g.mul_add(t, *p));
     }
 
     // 2. Triangle multiplicative incoming
@@ -173,7 +173,7 @@ pub fn pairformer_block(
         pair_out
             .iter_mut()
             .zip(gate.iter().zip(tri_in.iter()))
-            .for_each(|(p, (&g, &t))| *p += g * t);
+            .for_each(|(p, (&g, &t))| *p = g.mul_add(t, *p));
     }
 
     // 3. Triangle attention (Algorithms 13-14)

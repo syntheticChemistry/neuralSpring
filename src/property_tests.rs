@@ -6,6 +6,8 @@
 //! Covers mathematical invariants that should hold for ALL valid inputs,
 //! not just specific test cases.
 
+use std::time::Duration;
+
 use crate::eigh;
 use crate::hmm::Hmm;
 use crate::primitives;
@@ -482,4 +484,93 @@ fn hmm_forward_stable_with_near_zero_emissions() {
         log_lik.is_finite(),
         "HMM forward unstable: log_lik = {log_lik}"
     );
+}
+
+// ── IPC resilience: RetryPolicy invariants ──────────────────────────
+
+#[test]
+fn retry_policy_delay_never_exceeds_max() {
+    use crate::ipc_resilience::RetryPolicy;
+
+    let configs: &[(u64, u64, f64)] = &[
+        (50, 2000, 2.0),
+        (1, 100, 10.0),
+        (100, 500, 1.5),
+        (10, 10, 3.0),
+    ];
+    for &(init_ms, max_ms, mult) in configs {
+        let p = RetryPolicy {
+            max_retries: 20,
+            initial_delay: Duration::from_millis(init_ms),
+            max_delay: Duration::from_millis(max_ms),
+            multiplier: mult,
+        };
+        for attempt in 0..100 {
+            let delay = p.delay_for_attempt(attempt);
+            assert!(
+                delay <= p.max_delay,
+                "delay {delay:?} > max {:?} at attempt {attempt} (init={init_ms}ms, mult={mult})",
+                p.max_delay
+            );
+        }
+    }
+}
+
+// ── IPC resilience: CircuitBreaker state machine ────────────────────
+
+#[test]
+fn circuit_breaker_state_machine_sweep() {
+    use crate::ipc_resilience::{CircuitBreaker, CircuitState};
+
+    let mut rng = Rng::new(2001);
+    for _ in 0..N_TRIALS {
+        let threshold = 1 + (rng.usize(5) as u32);
+        let cb = CircuitBreaker::new(threshold, Duration::from_millis(0));
+
+        assert_eq!(cb.state(), CircuitState::Closed, "initial state");
+        assert!(cb.is_allowed(), "initial is_allowed");
+
+        for i in 0..threshold.saturating_sub(1) {
+            cb.record_failure();
+            assert_eq!(
+                cb.state(),
+                CircuitState::Closed,
+                "still Closed after {i} failures (threshold={threshold})"
+            );
+        }
+
+        cb.record_failure();
+        let after_threshold = cb.state();
+        assert!(
+            after_threshold == CircuitState::Open || after_threshold == CircuitState::HalfOpen,
+            "should be Open or HalfOpen after {threshold} failures, got {after_threshold:?}"
+        );
+
+        cb.record_success();
+        assert_eq!(
+            cb.state(),
+            CircuitState::Closed,
+            "should reset to Closed after success"
+        );
+        assert!(cb.is_allowed(), "should be allowed after reset");
+    }
+}
+
+// ── IPC resilience: CircuitBreaker never panics under rapid cycling ─
+
+#[test]
+fn circuit_breaker_rapid_cycle_no_panic() {
+    use crate::ipc_resilience::CircuitBreaker;
+
+    let cb = CircuitBreaker::new(2, Duration::from_millis(0));
+    let mut rng = Rng::new(2002);
+    for _ in 0..1000 {
+        if rng.uniform() < 0.3 {
+            cb.record_success();
+        } else {
+            cb.record_failure();
+        }
+        let _ = cb.state();
+        let _ = cb.is_allowed();
+    }
 }

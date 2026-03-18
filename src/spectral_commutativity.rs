@@ -68,7 +68,7 @@ pub fn mat_mul(a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
         for k in 0..n {
             let a_ik = a[i * n + k];
             for j in 0..n {
-                c[i * n + j] += a_ik * b[k * n + j];
+                c[i * n + j] = a_ik.mul_add(b[k * n + j], c[i * n + j]);
             }
         }
     }

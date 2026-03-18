@@ -114,7 +114,7 @@ pub fn metropolis_step(
 ) -> (Vec<f64>, bool) {
     let mut proposed = params.to_vec();
     for p in &mut proposed {
-        *p += step_size * rng.normal();
+        *p = step_size.mul_add(rng.normal(), *p);
     }
 
     let proposed_loss = loss_fn(&proposed);

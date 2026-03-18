@@ -44,6 +44,14 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
 
+**S165: Ecosystem absorption execution — `mul_add()` FMA precision sweep (14 sites, 10 modules:
+glucose_prediction, swarm_robotics, loss_landscape, pangenome_selection, pinn,
+spectral_commutativity, coral_forge/confidence, coral_forge/pairformer, coral_forge/structure/ipa),
+IPC proptest invariants (3 library: RetryPolicy delay bounds, CircuitBreaker state machine +
+rapid cycling; 5 playground: parse_capability_list fuzz, DispatchOutcome classify fuzz,
+extract_rpc_error fuzz, flat roundtrip, IpcError contract), `specs/ECOSYSTEM_LEVERAGE_GUIDE.md`
+(absorption map, composition guide, evolution readiness), V116 handoff.**
+
 **S164: Deep debt evolution — 7 inline tolerances named and wired (`GPU_TRACE_F32_ROUNDTRIP`,
 `CORRELATION_CROSS_VALIDATION`, `GPU_ACCUMULATION_F32`, `CLASSIFIER_METRIC_CROSS`,
 `INTROGRESSION_FRACTION_CROSS`, `PROCESS_MODEL_RESPONSE`, `RPC_COUNT_FALLBACK`),
@@ -668,4 +676,4 @@ AGPL-3.0-or-later
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–164: March 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU = 4500+ validation checks | 1152 lib + 73 forge + 70 playGround + 13 doc + 15 integration + 9 bin tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 47 modules, 260 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry + `control/tolerances.py` Python mirror), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.5 at `0649cd0`, nautilus absorbed, 92% coverage | 46 upstream rewires, 250+ barracuda import files | V106 handoff (toadStool/barraCuda + coralReef cross-spring absorption) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 70 unit + 13 integration tests | `enable f64;` PTXAS fix | ecoBin compliant (zero C deps in main crates) | capability-based IPC discovery | 16 MCP tools, 16 capabilities | 21 petalTongue scenario tracks + ecosystem dashboard + composition visualization | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` (biomeOS BYOB Steps 1–4 + provenance trio) | `src/primal_names.rs` (zero duplicate primal name strings) | cross-spring absorption from hotSpring/groundSpring/wetSpring/airSpring + coralReef/loamSpine/rhizoCrypt/sweetGrass*
+*Initialized: February 16, 2026 | Sessions 40–165: March 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU = 4500+ validation checks | 1152 lib + 73 forge + 70 playGround + 13 doc + 15 integration + 9 bin tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 47 modules, 260 binaries, 42 WGSL shaders | 80+ named tolerances (centralized registry + `control/tolerances.py` Python mirror), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.5 at `0649cd0`, nautilus absorbed, 92% coverage | 46 upstream rewires, 250+ barracuda import files | V106 handoff (toadStool/barraCuda + coralReef cross-spring absorption) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 70 unit + 13 integration tests | `enable f64;` PTXAS fix | ecoBin compliant (zero C deps in main crates) | capability-based IPC discovery | 16 MCP tools, 16 capabilities | 21 petalTongue scenario tracks + ecosystem dashboard + composition visualization | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` (biomeOS BYOB Steps 1–4 + provenance trio) | `src/primal_names.rs` (zero duplicate primal name strings) | cross-spring absorption from hotSpring/groundSpring/wetSpring/airSpring + coralReef/loamSpine/rhizoCrypt/sweetGrass*

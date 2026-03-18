@@ -5,7 +5,39 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 164 (March 17, 2026)
+## [Unreleased] — Session 165 (March 17, 2026)
+
+### Session 165 — Ecosystem Absorption: FMA Sweep, IPC Proptest, Leverage Guide (2026-03-17)
+
+**mul_add() FMA precision, IPC property invariants, ecosystem leverage documentation.**
+
+- **FMA SWEEP**: 14 `a * b + c` patterns in 10 production library modules replaced with
+  `mul_add()` for IEEE 754 fused-multiply-add precision. Affected modules:
+  `glucose_prediction` (3: ridge regression accumulation, prediction dot product),
+  `swarm_robotics` (2: neural forward hidden→output layer),
+  `loss_landscape` (1: Metropolis perturbation),
+  `pangenome_selection` (1: Jaccard intersection),
+  `coral_forge/confidence` (1: softmax expected value),
+  `coral_forge/pairformer` (2: triangle multiplicative gating),
+  `coral_forge/structure/ipa` (1: point distance squared),
+  `spectral_commutativity` (1: mat_mul inner loop),
+  `pinn` (1: Burgers equation residual).
+- **IPC PROPTEST**: 3 new property tests in `property_tests.rs`:
+  `retry_policy_delay_never_exceeds_max` (4 configs × 100 attempts),
+  `circuit_breaker_state_machine_sweep` (50 trials, threshold 1–5),
+  `circuit_breaker_rapid_cycle_no_panic` (1000 random ops).
+  5 new IPC fuzz tests in `playGround/src/ipc_client.rs`:
+  `parse_capability_list_never_panics_on_arbitrary_json` (24 fuzz values),
+  `parse_capability_list_flat_roundtrip_preserves_strings`,
+  `dispatch_outcome_classify_never_panics` (9 fuzz values),
+  `extract_rpc_error_never_panics` (9 fuzz values),
+  `ipc_error_is_recoverable_contract`.
+- **LEVERAGE GUIDE**: New `specs/ECOSYSTEM_LEVERAGE_GUIDE.md` documenting all ecosystem
+  absorption sources (barraCuda, toadStool, coralReef, biomeOS, 6 sibling springs),
+  registered capabilities (16), IPC protocol, self-knowledge constants, and evolution
+  readiness assessment (what stays local vs. what migrates upstream).
+- **QUALITY**: 28 property tests (25 prior + 3 new), 23 playground IPC tests (18 prior + 5 new).
+  Zero clippy warnings (pedantic+nursery). Zero new unsafe.
 
 ### Session 164 — Deep Debt Evolution: Tolerance Naming, barraCuda Delegation, MSRV, Platform-Agnostic (2026-03-17)
 

@@ -781,4 +781,105 @@ mod tests {
 
         let _ = std::fs::remove_dir_all(&dir);
     }
+
+    #[test]
+    fn parse_capability_list_never_panics_on_arbitrary_json() {
+        let fuzz_values: &[serde_json::Value] = &[
+            serde_json::json!(null),
+            serde_json::json!(true),
+            serde_json::json!(false),
+            serde_json::json!(42),
+            serde_json::json!(-1),
+            serde_json::json!(3.14),
+            serde_json::json!(f64::NAN),
+            serde_json::json!(f64::INFINITY),
+            serde_json::json!(""),
+            serde_json::json!("hello"),
+            serde_json::json!([]),
+            serde_json::json!([null, true, 42, "cap"]),
+            serde_json::json!({}),
+            serde_json::json!({"capabilities": null}),
+            serde_json::json!({"capabilities": 42}),
+            serde_json::json!({"capabilities": "not_array"}),
+            serde_json::json!({"capabilities": []}),
+            serde_json::json!({"result": null}),
+            serde_json::json!({"result": []}),
+            serde_json::json!({"result": [null, 42]}),
+            serde_json::json!({"capabilities": {"capabilities": null}}),
+            serde_json::json!([{"name": null}, {"capability": 42}]),
+            serde_json::json!([{"other_field": "val"}]),
+            serde_json::json!({"nested": {"capabilities": ["a"]}}),
+        ];
+        for val in fuzz_values {
+            let _ = parse_capability_list(val);
+        }
+    }
+
+    #[test]
+    fn parse_capability_list_flat_roundtrip_preserves_strings() {
+        let caps = vec!["health.liveness", "compute.submit", "science.ipr"];
+        let val = serde_json::json!(caps);
+        let parsed = parse_capability_list(&val);
+        assert_eq!(parsed, caps);
+    }
+
+    #[test]
+    fn dispatch_outcome_classify_never_panics() {
+        let fuzz_values: &[serde_json::Value] = &[
+            serde_json::json!(null),
+            serde_json::json!(42),
+            serde_json::json!({}),
+            serde_json::json!({"result": "ok"}),
+            serde_json::json!({"error": null}),
+            serde_json::json!({"error": {"code": -32600, "message": "invalid"}}),
+            serde_json::json!({"error": {"code": -1, "message": "app error"}}),
+            serde_json::json!({"result": null, "error": null}),
+            serde_json::json!({"error": {"code": "not_int"}}),
+        ];
+        for val in fuzz_values {
+            let _ = DispatchOutcome::classify_response(val);
+        }
+    }
+
+    #[test]
+    fn extract_rpc_error_never_panics() {
+        let fuzz_values: &[serde_json::Value] = &[
+            serde_json::json!(null),
+            serde_json::json!(42),
+            serde_json::json!({}),
+            serde_json::json!({"error": null}),
+            serde_json::json!({"error": {}}),
+            serde_json::json!({"error": {"code": "not_int"}}),
+            serde_json::json!({"error": {"code": 42}}),
+            serde_json::json!({"error": {"code": 42, "message": 123}}),
+            serde_json::json!({"error": {"code": -32601, "message": "method not found"}}),
+        ];
+        for val in fuzz_values {
+            let _ = extract_rpc_error(val);
+        }
+    }
+
+    #[test]
+    fn ipc_error_is_recoverable_contract() {
+        assert!(
+            IpcError::Connect(std::io::Error::new(
+                std::io::ErrorKind::ConnectionRefused,
+                "test"
+            ))
+            .is_recoverable()
+        );
+        assert!(IpcError::Timeout.is_recoverable());
+        assert!(!IpcError::NoResult.is_recoverable());
+        assert!(
+            !IpcError::RpcError {
+                code: -1,
+                message: "err".into()
+            }
+            .is_recoverable()
+        );
+        assert!(
+            !IpcError::InvalidJson(serde_json::from_str::<serde_json::Value>("{{").unwrap_err())
+                .is_recoverable()
+        );
+    }
 }

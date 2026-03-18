@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 17, 2026 (Session 164 — Deep debt: 7 tolerances named, solve_symmetric→barraCuda, MSRV 1.87 pinned, platform-agnostic /tmp, total_cmp, tolerances/training.rs extracted, test socket→niche::NICHE_NAME. V115 handoff. 1152 lib + 70 playGround + 73 forge tests. 0 warnings. 0 unfulfilled expectations.)
+**Last updated**: March 17, 2026 (Session 165 — Ecosystem absorption: mul_add FMA sweep 14 sites, IPC proptest 8 new tests, ECOSYSTEM_LEVERAGE_GUIDE.md. V116 handoff. 1152 lib + 70 playGround + 73 forge tests. 28 property + 23 playground IPC tests. 0 warnings. 0 unfulfilled expectations.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

@@ -124,7 +124,7 @@ pub fn ipa_scores(
 
                     for xyz in 0..3 {
                         let diff = qp_global[xyz] - kp_global[xyz];
-                        point_dist_sq += diff * diff;
+                        point_dist_sq = diff.mul_add(diff, point_dist_sq);
                     }
                 }
                 let point_term = w_p * point_coeff * point_dist_sq;

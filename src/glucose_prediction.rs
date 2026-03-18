@@ -350,14 +350,14 @@ pub fn run_glucose_experiment(
                 let fi = h_train[feat_start + i];
                 for j in i..feat_dim {
                     let fj = h_train[feat_start + j];
-                    hth[i * augmented_dim + j] += fi * fj;
+                    hth[i * augmented_dim + j] = fi.mul_add(fj, hth[i * augmented_dim + j]);
                     if i != j {
-                        hth[j * augmented_dim + i] += fi * fj;
+                        hth[j * augmented_dim + i] = fi.mul_add(fj, hth[j * augmented_dim + i]);
                     }
                 }
                 hth[i * augmented_dim + feat_dim] += fi;
                 hth[feat_dim * augmented_dim + i] += fi;
-                hty[i] += fi * y_val;
+                hty[i] = fi.mul_add(y_val, hty[i]);
             }
             hth[feat_dim * augmented_dim + feat_dim] += 1.0;
             hty[feat_dim] += y_val;
@@ -381,9 +381,7 @@ pub fn run_glucose_experiment(
             let pred_norm: f64 = features
                 .iter()
                 .zip(w_out.iter())
-                .map(|(&f, &w)| f * w)
-                .sum::<f64>()
-                + b_out;
+                .fold(b_out, |acc, (&f, &w)| f.mul_add(w, acc));
             pred_test.push(pred_norm.mul_add(g_std, g_mean));
             actual_test.push(targets[idx].mul_add(g_std, g_mean));
             persist_pred.push(
