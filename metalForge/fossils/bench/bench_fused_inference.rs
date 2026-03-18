@@ -14,7 +14,11 @@
 //! NEURALSPRING_BACKEND=gpu  cargo run --release --bin bench_fused_inference
 //! ```
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "fossil record — dimension casts in evolved code"
+)]
 
 use barracuda::tensor::Tensor;
 use neural_spring::evolved::fused_mlp::{FusedMlp, MlpDims};
@@ -41,7 +45,7 @@ struct MlpBaseline {
     weight_shapes: Vec<[usize; 2]>,
     biases: Vec<Vec<f32>>,
     output: Vec<f64>,
-    #[allow(dead_code)]
+    #[expect(dead_code, reason = "fossil record — evolved code preserved for provenance")]
     predicted_class: usize,
 }
 
@@ -79,7 +83,7 @@ struct TransformerBaseline {
 // Per-op forward passes (reused from existing benchmarks)
 // ═══════════════════════════════════════════════════════════════════
 
-#[allow(clippy::expect_used)]
+#[expect(clippy::expect_used, reason = "fossil benchmark — panics on invalid state are acceptable")]
 fn mlp_forward_per_op(input: &Tensor, weights: &[Tensor], biases: &[Tensor]) -> Tensor {
     let count: usize = input.shape().iter().product();
     let hidden = input.reshape(vec![1, count]).expect("reshape");
@@ -110,7 +114,7 @@ fn mlp_forward_per_op(input: &Tensor, weights: &[Tensor], biases: &[Tensor]) -> 
         .expect("softmax")
 }
 
-#[allow(clippy::expect_used)]
+#[expect(clippy::expect_used, reason = "fossil benchmark — panics on invalid state are acceptable")]
 fn transformer_forward_per_op(
     input: &Tensor,
     cfg: &TransformerConfig,
@@ -241,7 +245,8 @@ fn bench_python() -> Option<(Duration, Duration)> {
             tf_us = rest.trim().parse::<f64>().ok();
         }
     }
-    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_sign_loss, reason = "fossil record — index casts in evolved code")]
+    #[expect(clippy::cast_possible_truncation, reason = "fossil record — dimension casts in evolved code")]
     Some((
         Duration::from_micros(mlp_us? as u64),
         Duration::from_micros(tf_us? as u64),
@@ -252,7 +257,7 @@ fn bench_python() -> Option<(Duration, Duration)> {
 // Scaled benchmark (random weights at different model sizes)
 // ═══════════════════════════════════════════════════════════════════
 
-#[allow(clippy::cast_precision_loss)]
+#[expect(clippy::cast_precision_loss, reason = "fossil record — dimension casts in evolved code")]
 fn random_f32(count: usize, seed: u64) -> Vec<f32> {
     let mut state = seed;
     (0..count)
@@ -426,7 +431,11 @@ fn validate_fused_transformer(device: &Dev, baseline: &TransformerBaseline) -> f
 // Main
 // ═══════════════════════════════════════════════════════════════════
 
-#[allow(clippy::expect_used, clippy::too_many_lines)]
+#[expect(
+    clippy::expect_used,
+    clippy::too_many_lines,
+    reason = "fossil benchmark — panics on invalid state are acceptable; monolithic benchmark preserved as-is"
+)]
 #[tokio::main]
 async fn main() {
     let gpu = match Gpu::new().await {

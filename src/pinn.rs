@@ -36,6 +36,16 @@
 //! This Rust module validates the *mathematics* — exact solutions and
 //! inference primitives — not the training loop.  `BarraCUDA` training
 //! will use `fd_gradient_f64.wgsl` or a future AD pipeline.
+//!
+//! ## Evolution: L-BFGS optimizer (Tier A rewire)
+//!
+//! `barracuda::optimize::lbfgs` (CPU) and `barracuda::optimize::LbfgsGpu`
+//! are available for gradient-based parameter optimization.  The natural
+//! wiring point is PDE residual minimization: the Burgers' equation residual
+//! evaluated on a grid of collocation points can serve as the objective
+//! function for L-BFGS, replacing the autograd-based training loop with
+//! a physics-residual minimizer.  This is a Tier A rewire — the API
+//! exists, only the wiring effort remains.
 
 use crate::tolerances;
 use std::f64::consts::PI;

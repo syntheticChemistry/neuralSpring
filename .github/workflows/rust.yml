@@ -69,6 +69,52 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
 
+  ecobin-cross-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout barraCuda (standalone math primal)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
+          sparse-checkout: crates/barracuda
+
+      - name: Install stable toolchain with musl target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl, aarch64-unknown-linux-gnu
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-musl-${{ hashFiles('Cargo.toml') }}
+
+      - name: ecoBin musl check (zero C deps)
+        run: cargo check --target x86_64-unknown-linux-musl
+
+      - name: ecoBin ARM check (cross-compile)
+        run: cargo check --target aarch64-unknown-linux-gnu
+
+      - name: Verify no banned C sys crates
+        run: |
+          if cargo tree --all-features 2>/dev/null | grep -qE "(openssl-sys|ring |aws-lc-sys|zstd-sys|lz4-sys|sysinfo )"; then
+            echo "FAIL: Banned C sys crate detected in dependency tree"
+            cargo tree --all-features | grep -E "(openssl-sys|ring |aws-lc-sys|zstd-sys|lz4-sys|sysinfo )"
+            exit 1
+          fi
+          echo "PASS: No banned C sys crates"
+
   coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 10

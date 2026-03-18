@@ -59,7 +59,7 @@ impl LogSoftmaxOutput {
 /// # Errors
 ///
 /// Returns an error if buffer allocation or shader compilation fails.
-#[allow(clippy::cast_possible_truncation)]
+#[expect(clippy::cast_possible_truncation, reason = "fossil record — dimension casts in evolved code")]
 pub fn log_softmax(
     gpu: &Gpu,
     input_buffer: &wgpu::Buffer,

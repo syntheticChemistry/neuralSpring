@@ -182,6 +182,22 @@ pub fn sigmoid(x: f64) -> f64 {
     barracuda::activations::sigmoid(x)
 }
 
+/// Pearson correlation coefficient with zero fallback.
+///
+/// Thin wrapper around [`barracuda::stats::correlation::pearson_correlation`]
+/// that returns `0.0` on degenerate inputs (constant arrays, length < 2)
+/// rather than propagating an error.  Shared across science modules that
+/// compute cross-variable correlation (WDM ensemble QS, attention Anderson,
+/// digester Anderson).
+///
+/// | GPU equivalent | Notes |
+/// |----------------|-------|
+/// | `barracuda::stats::CorrelationF64` | GPU batch correlation |
+#[must_use]
+pub fn pearson_r(x: &[f64], y: &[f64]) -> f64 {
+    barracuda::stats::correlation::pearson_correlation(x, y).unwrap_or(0.0)
+}
+
 /// Numerically stable f32 sigmoid: σ(x) = 1 / (1 + e^{-x}).
 ///
 /// Used in GPU validation binaries where tensor outputs are f32.

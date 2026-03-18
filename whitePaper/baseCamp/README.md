@@ -146,3 +146,16 @@ No external datasets, no API dependencies, no proprietary sources.
 See `specs/DATA_PROVENANCE.md` for full inventory.
 Paper 027 (Wang/Liao digestion) is the gateway to real ADREC digester data
 and NCBI digester microbiome BioProjects — extension targets for gen3 Paper 16.
+
+### Session 167 — Deep Audit + Ecosystem Evolution (March 18, 2026)
+
+- **Comprehensive ecosystem audit** against wateringHole standards (15 dimensions)
+- Centralized `pearson_r` in `primitives.rs` — 3 domain modules deduplicated
+- `primal_names::display` module: 12 display-name constants for UI/presentation
+- 24 fossil `#[allow()]` → `#[expect(reason)]` with provenance justifications
+- `config/capability_registry.toml`: 16 capabilities, sync-tested
+- ecoBin CI: musl + ARM cross-compile + banned C crate detection
+- Upstream `WGSL_MEAN_REDUCE` re-export in forge shaders
+- L-BFGS Tier A evolution path documented (pinn, loss_landscape)
+- Kokkos benchmark provenance restructured
+- **Quality**: 1156 lib tests, 0 clippy, 0 fmt, 0 doc warnings, 0 unsafe

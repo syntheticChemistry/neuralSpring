@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V117 — Session 166
+### V118 — Session 167
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V117 bC/tS** | `handoffs/NEURALSPRING_V117_EVOLUTION_REVIEW_HANDOFF_MAR17_2026.md` | Mar 17, 2026 | Full barraCuda Sprint 6-7 review, evolution mapping, per-primal action items, count sync. Supersedes V116 bC/tS |
+| **V118 bC/tS** | `handoffs/NEURALSPRING_V118_DEEP_AUDIT_ECOSYSTEM_EVOLUTION_HANDOFF_MAR18_2026.md` | Mar 18, 2026 | Deep 15-dimension audit, hardcoding evolution, ecoBin CI, capability registry, upstream WGSL wiring, L-BFGS path. Supersedes V117 bC/tS |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V116 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
+Superseded handoffs: `handoffs/archive/` (V1–V117 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
 
 ## Conventions
 

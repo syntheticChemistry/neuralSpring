@@ -5,6 +5,43 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — 2026-03-18 (Session 167: Deep Audit + Ecosystem Evolution)
+
+### Added
+
+- `primitives::pearson_r` — centralized Pearson correlation wrapper with zero
+  fallback, shared across `wdm_ensemble_qs`, `attention_anderson`,
+  `digester_anderson` (3 modules deduplicated)
+- `primal_names::display` module — 12 mixed-case display-name constants for
+  presentation contexts (dashboards, handoffs, reports)
+- `config/capability_registry.toml` — canonical capability definitions (16
+  capabilities with descriptions), sync-tested against `config::ALL_CAPABILITIES`
+- `MEAN_REDUCE_UPSTREAM` / `MEAN_REDUCE_F64_UPSTREAM` re-exports in forge
+  shaders from `barracuda::ops::WGSL_MEAN_REDUCE`
+- ecoBin cross-compile CI job: `x86_64-unknown-linux-musl` + `aarch64-unknown-linux-gnu`
+  + banned C sys crate detection
+- L-BFGS evolution path documented in `pinn` and `loss_landscape` modules
+- Kokkos benchmark provenance restructured with verified-baseline requirements
+- 1 new test: `capability_registry_toml_in_sync`
+
+### Changed
+
+- `industry_coverage.rs`: all 20+ hardcoded owner strings → `display::*` constants
+- `kokkos_parity.rs`: "barraCuda" label → `display::BARRACUDA` constant
+- `coralreef_bridge.rs`: socket hints use `CORALREEF_NAME` constant
+- `metalForge/fossils/`: 24 `#[allow()]` → `#[expect(reason)]` across 8 files
+- `wdm_ensemble_qs.rs`, `attention_anderson.rs`, `digester_anderson.rs`:
+  local `pearson_r` → re-export from `crate::primitives`
+- `bench_kokkos_parity.rs`: doc comment restructured with explicit provenance
+  level, verification requirements, and op classification
+
+### Validated
+
+- 1156/1156 lib + 75 playGround + 73 forge tests PASS
+- 0 clippy warnings (pedantic+nursery, production code)
+- 0 fmt diffs, 0 doc warnings
+- All pre-existing CI gates green
+
 ## [Unreleased] — Session 166 (March 17, 2026)
 
 ### Session 166 — Doc Evolution, V117 Handoff, Archive Sweep (2026-03-17)

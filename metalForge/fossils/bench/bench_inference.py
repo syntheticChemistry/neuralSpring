@@ -6,8 +6,11 @@
 Measures MLP and Transformer encoder block forward pass times using
 the same weights/inputs as the BarraCUDA benchmarks.
 
-Usage:
-    python control/ml_inference/bench_inference.py
+Fossil: originally at control/ml_inference/bench_inference.py.
+Loads mlp_baseline.json and transformer_baseline.json from control/ml_inference/.
+
+Usage (from repo root):
+    python metalForge/fossils/bench/bench_inference.py
 """
 
 import json

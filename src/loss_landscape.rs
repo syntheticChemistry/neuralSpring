@@ -18,6 +18,15 @@
 //!
 //! - [`crate::eigh::eigh_householder_qr`] — Hessian eigendecomposition
 //! - [`crate::rng::Rng`] — deterministic PRNG for Boltzmann sampling
+//!
+//! ## Evolution: L-BFGS gradient-based exploration (Tier A rewire)
+//!
+//! `barracuda::optimize::lbfgs_numerical` (CPU) and
+//! `barracuda::optimize::LbfgsGpu` are available for gradient-based
+//! optimization.  The current Metropolis sampler explores the loss landscape
+//! stochastically; L-BFGS could provide deterministic descent to nearby
+//! minima for transition-state analysis (find saddle → L-BFGS to adjacent
+//! minima → characterize barrier heights).
 
 #![expect(
     clippy::cast_precision_loss,

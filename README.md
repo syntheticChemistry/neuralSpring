@@ -42,7 +42,16 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 719+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
 
-## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4500+ total validation checks**
+## Current Status: 397/397 Python PASS + 4000+ Rust+GPU PASS = **4600+ total validation checks**
+
+**S167: Deep audit + ecosystem evolution — centralized `pearson_r` wrapper (3 domain modules deduplicated),
+`primal_names::display` module (12 mixed-case display constants for UI), hardcoded primal name strings
+evolved to constants across industry_coverage, kokkos_parity, coralreef_bridge (20+ sites),
+`metalForge/fossils/` `#[allow()]` → `#[expect(reason)]` (24 attributes, 8 files), ecoBin CI
+(musl + ARM cross-compile + banned C crate detection), `config/capability_registry.toml`
+(16 capabilities, sync-tested), upstream `WGSL_MEAN_REDUCE` re-export in forge shaders,
+L-BFGS evolution path documented (pinn + loss_landscape), Kokkos benchmark provenance
+structured. 1156 lib tests, 0 clippy, 0 fmt, 0 doc warnings. V118 handoff.**
 
 **S166: Doc evolution + V117 handoff — test counts corrected (1155 lib + 75 playGround + 73 forge = 1303,
 267 binaries, 67 modules, 225 named tolerances), full barracuda evolution review (Sprint 7,

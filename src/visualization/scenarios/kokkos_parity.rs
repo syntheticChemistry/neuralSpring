@@ -104,7 +104,10 @@ pub fn kokkos_parity_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
     let gap_labels: Vec<String> = names.iter().map(|n| format!("{n} gap")).collect();
     let gap_values: Vec<f64> = overhead_ratios.iter().map(|r| (r - 1.0) * 100.0).collect();
 
-    let hm_labels = vec!["Kokkos".to_string(), "barraCuda".to_string()];
+    let hm_labels = vec![
+        "Kokkos".to_string(),
+        crate::primal_names::display::BARRACUDA.to_string(),
+    ];
     let hm_values: Vec<f64> = benchmarks
         .iter()
         .flat_map(|b| [b.kokkos_us, b.barracuda_us])

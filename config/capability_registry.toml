@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# neuralSpring capability registry.
+#
+# Single source of truth for capabilities advertised via `capability.list`.
+# Consumed by `neuralspring_primal` at startup and by biomeOS deploy graphs.
+# Mirrors src/config.rs::ALL_CAPABILITIES — keep in sync or generate from
+# this file at build time.
+#
+# See: wateringHole/SPRING_AS_NICHE_DEPLOYMENT_STANDARD.md
+
+[primal]
+family = "neural-spring"
+display_name = "neuralSpring"
+domain = "science"
+version = "0.1.0"
+
+[capabilities]
+
+[capabilities.spectral_analysis]
+method = "science.spectral_analysis"
+description = "Weight matrix spectral analysis (eigenvalues, IPR, level spacing)"
+
+[capabilities.anderson_localization]
+method = "science.anderson_localization"
+description = "Anderson localization regime classification and disorder sweeps"
+
+[capabilities.hessian_eigen]
+method = "science.hessian_eigen"
+description = "Loss landscape Hessian eigendecomposition and saddle index"
+
+[capabilities.agent_coordination]
+method = "science.agent_coordination"
+description = "Multi-agent quorum sensing coordination metrics"
+
+[capabilities.ipr]
+method = "science.ipr"
+description = "Inverse participation ratio computation for localization"
+
+[capabilities.disorder_sweep]
+method = "science.disorder_sweep"
+description = "Parametric disorder sweep with spectral observables"
+
+[capabilities.training_trajectory]
+method = "science.training_trajectory"
+description = "Training monitor FSM with drift detection and early stopping"
+
+[capabilities.evoformer_block]
+method = "science.evoformer_block"
+description = "AlphaFold2 Evoformer MSA+pair representation update"
+
+[capabilities.structure_module]
+method = "science.structure_module"
+description = "AlphaFold2/3 structure module (IPA, backbone update)"
+
+[capabilities.folding_health]
+method = "science.folding_health"
+description = "Protein folding confidence metrics (pLDDT, PAE, pTM)"
+
+[capabilities.gpu_dispatch]
+method = "science.gpu_dispatch"
+description = "Capability-based GPU/CPU dispatch for numerical operations"
+
+[capabilities.cross_spring_provenance]
+method = "science.cross_spring_provenance"
+description = "Cross-spring validation provenance chain queries"
+
+[capabilities.cross_spring_benchmark]
+method = "science.cross_spring_benchmark"
+description = "Cross-spring benchmark execution and comparison"
+
+[capabilities.precision_routing]
+method = "science.precision_routing"
+description = "f32/f64/emulated-f64 precision tier routing"
+
+[capabilities.health_liveness]
+method = "health.liveness"
+description = "Liveness probe (is the primal running?)"
+
+[capabilities.health_readiness]
+method = "health.readiness"
+description = "Readiness probe (is the primal ready to accept work?)"

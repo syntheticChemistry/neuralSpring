@@ -76,11 +76,8 @@ pub fn attention_spectral(matrix: &[f64], n: usize) -> AttentionSpectralResult {
     }
 }
 
-/// Pearson correlation.
-#[must_use]
-pub fn pearson_r(x: &[f64], y: &[f64]) -> f64 {
-    barracuda::stats::correlation::pearson_correlation(x, y).unwrap_or(0.0)
-}
+/// Re-export centralized Pearson correlation wrapper.
+pub use crate::primitives::pearson_r;
 
 /// Load baseline from Python JSON.
 ///

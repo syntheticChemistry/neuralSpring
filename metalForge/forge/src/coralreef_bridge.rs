@@ -41,12 +41,19 @@ use std::path::PathBuf;
 /// biomeOS socket subdirectory name within the XDG runtime directory.
 const BIOMEOS_SOCKET_SUBDIR: &str = "biomeos";
 
+/// Canonical lowercase primal name for coralReef (shader compiler).
+///
+/// Mirrors `neural_spring::primal_names::CORALREEF` — kept as a local
+/// constant because the forge crate is an independent workspace member
+/// and does not depend on the parent library.
+const CORALREEF_NAME: &str = "coralreef";
+
 /// Socket name hints for shader-compiler capability discovery (fallback).
 ///
 /// Used only when capability manifests are unavailable.  The primary
 /// discovery path (`discover_by_capability`) uses capability strings
 /// from manifests rather than hardcoded names.
-const SHADER_COMPILER_SOCKET_HINTS: &[&str] = &["coralreef", "coral-reef", "shader"];
+const SHADER_COMPILER_SOCKET_HINTS: &[&str] = &[CORALREEF_NAME, "coral-reef", "shader"];
 
 /// Result type for coralReef operations.
 pub type CoralResult<T> = Result<T, CoralError>;

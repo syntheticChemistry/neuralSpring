@@ -66,7 +66,7 @@ pub const LAYER_NORM_WGSL: &str =
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
-#[allow(clippy::pub_underscore_fields)]
+#[expect(clippy::pub_underscore_fields, reason = "fossil record — internal pipeline fields preserved as-is")]
 pub struct MatMulParams {
     pub m: u32,
     pub k: u32,
@@ -184,7 +184,7 @@ pub fn buf_init(device: &Dev, data: &[f32], label: &str) -> wgpu::Buffer {
 /// Create an empty storage buffer for `count` f32 values.
 #[must_use]
 pub fn buf_empty(device: &Dev, count: usize, label: &str) -> wgpu::Buffer {
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "fossil record — dimension casts in evolved code")]
     let size = (count * 4) as u64;
     device.device().create_buffer(&wgpu::BufferDescriptor {
         label: Some(label),
@@ -215,9 +215,9 @@ pub fn buf_uniform<T: Pod>(device: &Dev, data: &T, label: &str) -> wgpu::Buffer 
 /// Panics if the GPU buffer map fails — this indicates a driver-level error
 /// with no meaningful recovery path.
 #[must_use]
-#[allow(clippy::expect_used)]
+#[expect(clippy::expect_used, reason = "fossil benchmark — panics on invalid state are acceptable")]
 pub fn readback(device: &Dev, buffer: &wgpu::Buffer, count: usize) -> Vec<f32> {
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "fossil record — dimension casts in evolved code")]
     let byte_size = (count * 4) as u64;
     let staging = device.device().create_buffer(&wgpu::BufferDescriptor {
         label: Some("readback_staging"),
@@ -256,7 +256,7 @@ pub fn readback(device: &Dev, buffer: &wgpu::Buffer, count: usize) -> Vec<f32> {
 
 /// Create a bind group matching a pipeline's auto-layout at group 0.
 #[must_use]
-#[allow(clippy::cast_possible_truncation)]
+#[expect(clippy::cast_possible_truncation, reason = "fossil record — dimension casts in evolved code")]
 pub fn bind_group(
     device: &Dev,
     pipeline: &wgpu::ComputePipeline,

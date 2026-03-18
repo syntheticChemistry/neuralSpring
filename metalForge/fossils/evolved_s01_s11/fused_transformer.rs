@@ -17,7 +17,11 @@
 //! **`ToadStool` handoff**: Once `TensorSession` supports the full op
 //! set and MHA dispatch is fixed upstream, this can be retired.
 
-#![allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
+#![expect(
+    clippy::cast_possible_truncation,
+    clippy::too_many_lines,
+    reason = "fossil record — dimension casts in evolved code; monolithic fossil preserved as-is"
+)]
 
 use super::fused_pipeline::{
     self as fp, Dev, GeluParams, HeadShapeParams, LayerNormParams, MatMulParams, MatmulConfig,
@@ -27,7 +31,7 @@ use super::fused_pipeline::{
 /// Pre-built fused Transformer encoder block.
 ///
 /// Fields that appear unused keep GPU buffers alive for bind groups.
-#[allow(dead_code)]
+#[expect(dead_code, reason = "fossil record — evolved code preserved for provenance")]
 pub struct FusedTransformer {
     shaders: ShaderCache,
     device: Dev,
@@ -144,7 +148,7 @@ impl FusedTransformer {
     /// Build a fused transformer block. Compiles shaders, uploads weights,
     /// allocates all intermediates and bind groups once.
     #[must_use]
-    #[allow(clippy::similar_names)]
+    #[expect(clippy::similar_names, reason = "fossil record — original naming preserved for provenance")]
     pub fn new(device: Dev, weights: &TransformerWeightsRef<'_>, cfg: TransformerDims) -> Self {
         let shaders = ShaderCache::new(&device);
         let d = cfg.d_model;
@@ -226,11 +230,11 @@ impl FusedTransformer {
                 label,
             )
         };
-        #[allow(clippy::similar_names)]
+        #[expect(clippy::similar_names, reason = "fossil record — original naming preserved for provenance")]
         let mm_q_params = mm_proj("tf_mm_q_p");
-        #[allow(clippy::similar_names)]
+        #[expect(clippy::similar_names, reason = "fossil record — original naming preserved for provenance")]
         let mm_k_params = mm_proj("tf_mm_k_p");
-        #[allow(clippy::similar_names)]
+        #[expect(clippy::similar_names, reason = "fossil record — original naming preserved for provenance")]
         let mm_v_params = mm_proj("tf_mm_v_p");
         let mm_wo_params = mm_proj("tf_mm_wo_p");
 
@@ -276,7 +280,7 @@ impl FusedTransformer {
             "tf_hc_p",
         );
 
-        #[allow(clippy::cast_precision_loss)]
+        #[expect(clippy::cast_precision_loss, reason = "fossil record — dimension casts in evolved code")]
         let scale = 1.0 / (d_head as f32).sqrt();
         let attn_params = fp::buf_uniform(
             &device,

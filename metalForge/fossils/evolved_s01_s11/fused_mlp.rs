@@ -12,14 +12,14 @@
 //! **`ToadStool` handoff**: Once `TensorSession` supports `MatMul` +
 //! activation ops, this fused pipeline can be retired.
 
-#![allow(clippy::cast_possible_truncation)]
+#![expect(clippy::cast_possible_truncation, reason = "fossil record — dimension casts in evolved code")]
 
 use super::fused_pipeline::{self as fp, Dev, MatMulParams, MatmulConfig, ShaderCache};
 
 /// Pre-built fused MLP pipeline with all GPU resources allocated.
 ///
 /// Fields that appear unused keep GPU buffers alive for bind groups.
-#[allow(dead_code)]
+#[expect(dead_code, reason = "fossil record — evolved code preserved for provenance")]
 pub struct FusedMlp {
     shaders: ShaderCache,
     device: Dev,
@@ -60,7 +60,7 @@ impl FusedMlp {
     /// `weights`: `[W0, W1, W2]` as flat f32 slices (row-major).
     /// `biases`: `[b0, b1, b2]` as flat f32 slices.
     #[must_use]
-    #[allow(clippy::too_many_lines)]
+    #[expect(clippy::too_many_lines, reason = "fossil benchmark — monolithic benchmark preserved as-is")]
     pub fn new(device: Dev, weights: [&[f32]; 3], biases: [&[f32]; 3], dims: MlpDims) -> Self {
         let shaders = ShaderCache::new(&device);
         let mm_config = fp::MatmulConfig::from_device(&device);

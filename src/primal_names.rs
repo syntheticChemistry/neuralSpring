@@ -44,6 +44,25 @@ pub const PETALTONGUE: &str = "petaltongue";
 /// biomeOS orchestrator.
 pub const BIOMEOS: &str = "biomeos";
 
+/// Display names for presentation contexts (dashboards, reports, handoffs).
+///
+/// These are the canonical mixed-case names as used in prose and UI,
+/// distinct from the lowercase discovery hints above.
+pub mod display {
+    pub const BARRACUDA: &str = "barraCuda";
+    pub const TOADSTOOL: &str = "toadStool";
+    pub const CORALREEF: &str = "coralReef";
+    pub const NEURALSPRING: &str = "neuralSpring";
+    pub const WETSPRING: &str = "wetSpring";
+    pub const HOTSPRING: &str = "hotSpring";
+    pub const GROUNDSPRING: &str = "groundSpring";
+    pub const AIRSPRING: &str = "airSpring";
+    pub const SQUIRREL: &str = "Squirrel";
+    pub const PETALTONGUE: &str = "petalTongue";
+    pub const BIOMEOS: &str = "biomeOS";
+    pub const NESTGATE: &str = "NestGate";
+}
+
 /// Provenance trio capability domains (used in `capability.call`).
 pub mod domains {
     /// rhizoCrypt DAG session domain.

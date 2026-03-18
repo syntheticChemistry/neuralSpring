@@ -107,11 +107,8 @@ pub fn anderson_from_disorder(disorder: &[f64]) -> (f64, f64) {
     (mean_ipr, xi)
 }
 
-/// Pearson correlation coefficient.
-#[must_use]
-pub fn pearson_r(x: &[f64], y: &[f64]) -> f64 {
-    barracuda::stats::correlation::pearson_correlation(x, y).unwrap_or(0.0)
-}
+/// Re-export centralized Pearson correlation wrapper.
+pub use crate::primitives::pearson_r;
 
 /// Load baseline from Python JSON.
 ///

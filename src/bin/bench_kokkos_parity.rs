@@ -3,30 +3,45 @@
 //! Kokkos GPU parity benchmark harness.
 //!
 //! Runs representative barraCuda GPU ops at production scale and produces
-//! timing output formatted for direct comparison against groundSpring's
-//! Kokkos-CUDA baseline numbers (published in `wateringHole/
-//! BARRACUDA_KOKKOS_GPU_BENCHMARK_RESULTS_MAR04_2026.md`).
+//! timing output formatted for direct comparison against Kokkos-CUDA.
 //!
-//! ## Known Gaps (groundSpring Kokkos baseline, RTX 4070)
+//! ## Reference Baselines (groundSpring V100 handoff — ESTIMATED)
 //!
-//! | Kernel | Kokkos CUDA | barraCuda WGSL | Gap |
-//! |--------|-------------|----------------|-----|
-//! | Anderson Lyapunov | 36 ms | 126 ms | 3.5× |
-//! | mean (1M f64) | 58 µs | 8,454 µs | 146× |
-//! | variance (1M f64) | 24 µs | 8,515 µs | 355× |
-//! | Pearson r (1M f64) | 47 µs | 125 ms | 2,669× |
-//! | Bootstrap mean | 2.2 ms | 123 ms | 57× |
+//! | Kernel | Kokkos CUDA | barraCuda WGSL | Gap | Provenance |
+//! |--------|-------------|----------------|-----|------------|
+//! | Anderson Lyapunov | 36 ms | 126 ms | 3.5× | estimated |
+//! | mean (1M f64) | 58 µs | 8,454 µs | 146× | estimated |
+//! | variance (1M f64) | 24 µs | 8,515 µs | 355× | estimated |
+//! | Pearson r (1M f64) | 47 µs | 125 ms | 2,669× | estimated |
+//! | Bootstrap mean | 2.2 ms | 123 ms | 57× | estimated |
 //!
-//! ## Provenance
+//! ## Provenance Status
 //!
-//! Kokkos-CUDA baselines above are **PLACEHOLDER** — extracted from groundSpring V100
-//! handoff notes, not from a matched hardware run. Real parity requires running both
-//! Kokkos-CUDA and barraCuda WGSL on the same GPU, same driver, same input sizes.
-//! Track: `wateringHole/BARRACUDA_KOKKOS_GPU_BENCHMARK_RESULTS_*.md` (not yet created).
+//! **Level: Estimated.** Kokkos-CUDA numbers above are extracted from
+//! groundSpring V100 handoff notes (not matched-hardware runs).
 //!
-//! This harness produces timing for neuralSpring's domain-specific ops
-//! to establish the full picture: which ops are compute-bound (small gap)
-//! vs dispatch-overhead-bound (large gap).
+//! To produce verified baselines, run both Kokkos-CUDA and barraCuda WGSL
+//! on identical hardware, driver, and input sizes, then publish results to:
+//! `wateringHole/BARRACUDA_KOKKOS_GPU_BENCHMARK_RESULTS_{DATE}.md`
+//!
+//! Required for verified provenance:
+//! - Same GPU (e.g., RTX 4070)
+//! - Same driver version
+//! - Same input dimensions and data
+//! - Median of 30 iterations after 5 warmup
+//! - Kokkos version and build flags documented
+//!
+//! ## Op Classification
+//!
+//! - `parallel_for`: Kokkos `parallel_for` equivalent (map over elements)
+//! - `parallel_reduce`: Kokkos `parallel_reduce` equivalent (reduction)
+//! - `domain`: Domain-specific (no direct Kokkos equivalent)
+//!
+//! ## Parity Interpretation
+//!
+//! - `<2×`: At parity (compute-bound)
+//! - `2–10×`: Dispatch overhead (wgpu submission cost)
+//! - `>10×`: Structural gap (algorithm or driver inefficiency)
 //!
 //! ## Usage
 //!

@@ -10,6 +10,7 @@
 //! actual implementation status across neuralSpring, barraCuda, and other
 //! Springs.
 
+use crate::primal_names::display;
 use crate::visualization::types::{NeuralScenario, ScenarioEdge, ThresholdRange};
 
 use super::{bar, edge, gauge, heatmap, node, scaffold};
@@ -290,182 +291,182 @@ fn tool_inventory() -> Vec<ToolEntry> {
             name: "FASTQ parser",
             domain: "I/O",
             status: Status::Done,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "FASTA parser",
             domain: "I/O",
             status: Status::Done,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "VCF parser",
             domain: "I/O",
             status: Status::Done,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "mzML parser",
             domain: "I/O",
             status: Status::Deferred,
-            owner: "wetSpring",
+            owner: display::WETSPRING,
         },
         ToolEntry {
             name: "SAM/BAM parser",
             domain: "I/O",
             status: Status::Missing,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         // ── Sequence search / alignment ──────────────────────────────────
         ToolEntry {
             name: "BLAST-like search (CPU)",
             domain: "Alignment",
             status: Status::Done,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "BLAST-like search (GPU)",
             domain: "Alignment",
             status: Status::Scoped,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         ToolEntry {
             name: "Smith-Waterman GPU",
             domain: "Alignment",
             status: Status::Done,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         ToolEntry {
             name: "BLOSUM62 substitution",
             domain: "Alignment",
             status: Status::Scoped,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         // ── MSA / HMM ───────────────────────────────────────────────────
         ToolEntry {
             name: "HMM forward/Viterbi",
             domain: "HMM/MSA",
             status: Status::Done,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "HMM GPU (f64)",
             domain: "HMM/MSA",
             status: Status::Done,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         ToolEntry {
             name: "JackHMMER equiv",
             domain: "HMM/MSA",
             status: Status::Scoped,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "MMseqs2 clustering",
             domain: "HMM/MSA",
             status: Status::Scoped,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         // ── GPU primitives (barraCuda) ───────────────────────────────────
         ToolEntry {
             name: "Tensor operations",
             domain: "Linear Algebra",
             status: Status::Done,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         ToolEntry {
             name: "Pairwise distances",
             domain: "Linear Algebra",
             status: Status::Done,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         ToolEntry {
             name: "BatchFitness",
             domain: "Evolutionary",
             status: Status::Done,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         ToolEntry {
             name: "HillGate activation",
             domain: "Evolutionary",
             status: Status::Done,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         ToolEntry {
             name: "MultiObj fitness",
             domain: "Evolutionary",
             status: Status::Done,
-            owner: "barraCuda",
+            owner: display::BARRACUDA,
         },
         // ── Protein structure ────────────────────────────────────────────
         ToolEntry {
             name: "Protein folding (primitives)",
             domain: "Structure",
             status: Status::Done,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "AlphaFold MSA pipeline",
             domain: "Structure",
             status: Status::Scoped,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         // ── Pipeline / compute ───────────────────────────────────────────
         ToolEntry {
             name: "Pipeline DAG (pipeline_graph)",
             domain: "Compute",
             status: Status::Done,
-            owner: "toadStool",
+            owner: display::TOADSTOOL,
         },
         ToolEntry {
             name: "GPU capability discovery",
             domain: "Compute",
             status: Status::Done,
-            owner: "toadStool",
+            owner: display::TOADSTOOL,
         },
         ToolEntry {
             name: "Sovereign WGSL compilation",
             domain: "Compute",
             status: Status::Done,
-            owner: "coralReef",
+            owner: display::CORALREEF,
         },
         // ── Benchmarking ─────────────────────────────────────────────────
         ToolEntry {
             name: "Kokkos parity harness",
             domain: "Benchmarks",
             status: Status::Done,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "Python CPU baselines",
             domain: "Benchmarks",
             status: Status::Done,
-            owner: "neuralSpring",
+            owner: display::NEURALSPRING,
         },
         ToolEntry {
             name: "Kokkos-CUDA baselines",
             domain: "Benchmarks",
             status: Status::InProgress,
-            owner: "groundSpring",
+            owner: display::GROUNDSPRING,
         },
         // ── Chromatography (wetSpring) ───────────────────────────────────
         ToolEntry {
             name: "Chromeleon equiv",
             domain: "Chromatography",
             status: Status::Deferred,
-            owner: "wetSpring",
+            owner: display::WETSPRING,
         },
         ToolEntry {
             name: "DADA2 equiv",
             domain: "Metagenomics",
             status: Status::Missing,
-            owner: "wetSpring",
+            owner: display::WETSPRING,
         },
         ToolEntry {
             name: "QIIME2 pipeline",
             domain: "Metagenomics",
             status: Status::Missing,
-            owner: "wetSpring",
+            owner: display::WETSPRING,
         },
     ]
 }

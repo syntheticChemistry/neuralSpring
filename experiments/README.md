@@ -5406,6 +5406,16 @@ Remaining binaries still need `clippy::expect_used` for GPU dispatch calls.
 **Procedure**: Verified actual counts via `cargo test` (1155 lib, 75 playGround, 73 forge), `ls src/bin/*.rs | wc -l` (267 binaries), `grep -c "^pub mod" src/lib.rs` (67 modules), `grep -rh "pub const.*f64" src/tolerances/ | wc -l` (225 named tolerances). Updated README, CHANGELOG, EVOLUTION_READINESS, CONTROL_EXPERIMENT_STATUS, DEPRECATION_MIGRATION, all specs/*.md, experiments/README.md, whitePaper/baseCamp/. Reviewed barraCuda CHANGELOG Sprint 6-7 for new APIs neuralSpring could leverage. Created V117 handoff with per-primal action items (hotSpring pattern). Archive sweep for stale code/docs/debris.
 **Findings**: Counts had drifted by 3 lib tests, 5 playground tests, 7 binaries, and 20 modules since the last full count sync. Tolerance count was documented as "180+" but actual is 225 (growth from S147-S165 tolerance additions never updated the base number). barraCuda `execute_gemm_ex(trans_a, trans_b)` is available for A^T*A computations but neuralSpring's small-matrix `mat_mul_transpose` (n≤8) correctly stays local. `WGSL_MEAN_REDUCE` re-export could simplify local shader pipelines in future GPU work. barraCuda's own `mul_add()` sweep (Sprint 7, 10 sites) confirms ecosystem-wide FMA adoption.
 
+### Exp 123 — Deep Ecosystem Audit + Evolution Execution
+
+**Date**: 2026-03-18
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Session**: S167
+**Motivation**: Comprehensive audit of neuralSpring against all wateringHole ecosystem standards (15 audit dimensions: completion status, code quality, validation fidelity, barraCuda dependency health, GPU evolution readiness, test coverage, ecosystem standards, primal coordination). Execute on all audit findings.
+**Procedure**: Reviewed entire codebase (430+ Rust files, 267 binaries, 43 WGSL shaders, 92 Python scripts), all ecosystem standards documents, and sibling spring patterns. Identified 5 should-fix and 5 nice-to-have items. Executed all: centralized `pearson_r` (3 modules), display-name constants (20+ sites), fossil `#[allow()]` evolution (24 attributes), ecoBin CI job, capability registry, upstream mean reduction wiring, L-BFGS documentation, Kokkos provenance structure.
+**Findings**: Production code is clean — zero unsafe, zero unwrap in library, zero mocks outside tests, zero TODO/FIXME, all files under 1000 LOC. Inline tolerance literals flagged in audit are actually in `#[cfg(test)]` blocks (false positive). `pearson_r` "duplication" was already delegating to barraCuda — consolidated the wrapper. Fossil `#[allow()]` attributes are the last non-`#[expect()]` instances in the workspace. ecoBin compliance needs musl CI verification. `capability_registry.toml` closes the SPRING_AS_NICHE_DEPLOYMENT_STANDARD gap.
+**Result**: 1156/1156 tests PASS (+1 new sync test). Zero new clippy warnings. V118 handoff crafted.
+
 ---
 
 *Experiment journals — following the hotSpring pattern.*

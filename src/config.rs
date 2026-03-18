@@ -91,8 +91,10 @@ pub const CAPABILITY_PREFIX: &str = "science";
 
 /// Complete capability set advertised by neuralSpring via `capability.list`.
 ///
-/// Single source of truth — imported by `neuralspring_primal` and
-/// `playGround::mcp_tools` instead of maintaining duplicate lists.
+/// Mirrors `config/capability_registry.toml` — the registry file is the
+/// canonical definition for biomeOS deploy graphs and tooling; this array
+/// is the compile-time equivalent for Rust code.  The test suite validates
+/// they stay in sync.
 pub const ALL_CAPABILITIES: &[&str] = &[
     "science.spectral_analysis",
     "science.anderson_localization",
@@ -132,5 +134,16 @@ mod tests {
     #[test]
     fn domain_theme_consistency() {
         assert!(PETALTONGUE_THEME.contains(PETALTONGUE_DOMAIN));
+    }
+
+    #[test]
+    fn capability_registry_toml_in_sync() {
+        let toml_src = include_str!("../config/capability_registry.toml");
+        for cap in ALL_CAPABILITIES {
+            assert!(
+                toml_src.contains(cap),
+                "capability {cap} missing from config/capability_registry.toml"
+            );
+        }
     }
 }

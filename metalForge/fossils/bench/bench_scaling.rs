@@ -16,7 +16,11 @@
 //! cargo run --release --bin bench_scaling
 //! ```
 
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![expect(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    reason = "fossil record — dimension casts in evolved code"
+)]
 
 use neural_spring::evolved::fused_mlp::{FusedMlp, MlpDims};
 use neural_spring::evolved::fused_pipeline::Dev;
@@ -94,7 +98,7 @@ const SCALES: &[Scale] = &[
     },
 ];
 
-#[allow(clippy::cast_precision_loss)]
+#[expect(clippy::cast_precision_loss, reason = "fossil record — dimension casts in evolved code")]
 fn random_f32(count: usize, seed: u64) -> Vec<f32> {
     let mut state = seed;
     (0..count)
@@ -259,7 +263,11 @@ fn bench_backend(device: &Dev) -> BackendResults {
     BackendResults { mlp_us, tf_us }
 }
 
-#[allow(clippy::expect_used, clippy::too_many_lines)]
+#[expect(
+    clippy::expect_used,
+    clippy::too_many_lines,
+    reason = "fossil benchmark — panics on invalid state are acceptable; monolithic benchmark preserved as-is"
+)]
 #[tokio::main]
 async fn main() {
     eprintln!("=== 3-Way Scaling Benchmark: Python vs BarraCUDA CPU vs GPU ===");

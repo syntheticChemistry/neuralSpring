@@ -1019,7 +1019,7 @@ Phase E (full pipeline + MSA databases via NestGate).
 
 ### Phase A — Baseline Assessment (DONE)
 
-Evaluation script: `coral_forge/openfold3_eval.py` (9/9 checks)
+Evaluation script: `specs/coral_forge_assessment/openfold3_eval.py` (9/9 checks)
 
 - RTX 4070: 12 GB VRAM, Compute 8.9, Vulkan + SHADER_F64 confirmed
 - PyTorch 2.9.0+cu128 available, 316x GPU speedup on attention

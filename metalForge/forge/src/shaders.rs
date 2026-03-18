@@ -83,8 +83,25 @@ pub const PAIRWISE_HAMMING: &str = include_str!("../../shaders/pairwise_hamming.
 
 // ── Still local (pending absorption) ────────────────────────────────
 
-/// Scalar mean reduction.
+/// Scalar mean reduction (local validation shader — single workgroup).
+///
+/// Used in 7 GPU pipeline validation binaries for end-to-end chaining.
+/// Upstream `barracuda::ops::WGSL_MEAN_REDUCE` provides a production
+/// tree-reduction variant with different binding layouts.
+///
+/// Absorption path: migrate pipeline binaries to upstream mean reduction
+/// once binding layout compatibility is confirmed.
 pub const MEAN_REDUCE: &str = include_str!("../../shaders/mean_reduce.wgsl");
+
+/// Upstream mean reduction re-export for new code.
+///
+/// New GPU pipelines should prefer this over the local `MEAN_REDUCE` which
+/// uses a naive single-workgroup pass.  The upstream shader uses shared-memory
+/// tree reduction for production workloads.
+pub const MEAN_REDUCE_UPSTREAM: &str = barracuda::ops::WGSL_MEAN_REDUCE;
+
+/// Upstream f64 mean reduction re-export.
+pub const MEAN_REDUCE_F64_UPSTREAM: &str = barracuda::ops::WGSL_MEAN_REDUCE_F64;
 
 /// Pairwise L2 (Euclidean) distance (Paper 012 — MODES novelty).
 ///
