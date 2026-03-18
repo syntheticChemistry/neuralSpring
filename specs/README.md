@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 17, 2026 (Sessions 44–165 — S165: FMA sweep, IPC proptest, ECOSYSTEM_LEVERAGE_GUIDE.md. V116 handoff. 1152 lib + 70 playGround + 73 forge tests, 260 binaries. barraCuda v0.3.5 at `0649cd0`, ToadStool S146+, coralReef Iter 49)
-**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 260 binaries, **220/220 validate\_all**, 1115 lib tests
+**Last Updated**: March 17, 2026 (Sessions 44–166 — S166: FMA sweep, IPC proptest, ECOSYSTEM_LEVERAGE_GUIDE.md. V117 handoff. 1155 lib + 75 playGround + 73 forge tests, 267 binaries. barraCuda v0.3.5 at `0649cd0`, ToadStool S146+, coralReef Iter 49)
+**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 267 binaries, **220/220 validate\_all**, 1115 lib tests
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---

@@ -5,7 +5,25 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Session 165 (March 17, 2026)
+## [Unreleased] — Session 166 (March 17, 2026)
+
+### Session 166 — Doc Evolution, V117 Handoff, Archive Sweep (2026-03-17)
+
+**Stale count cleanup, full barracuda evolution review, V117 handoff, archive sweep.**
+
+- **DOC CLEANUP**: Test counts corrected across all docs: 1155 lib (was 1152) + 75 playGround
+  (was 70) + 73 forge = 1303 total. Binary count: 267 (was 260). Module count: 67 (was 47).
+  Tolerance count: 225 named constants (was "180+"). All root docs, specs, experiments,
+  whitePaper, and wateringHole synchronized.
+- **BARRACUDA REVIEW**: Full evolution mapping against barraCuda Sprint 7 (3772 tests,
+  `execute_gemm_ex` TransA/TransB, `WGSL_MEAN_REDUCE` re-export, 10 `mul_add()` evolutions,
+  typed `BarracudaError`). Confirmed neuralSpring leverages 45+ submodules, 80+ functions,
+  216+ import files. Identified new wiring opportunities: L-BFGS optimizer, `StatefulPipeline`,
+  `WGSL_MEAN_REDUCE` re-export.
+- **V117 HANDOFF**: New `NEURALSPRING_V117_EVOLUTION_REVIEW_HANDOFF_MAR17_2026.md` with
+  action items for barraCuda (FMA sweep recommendation, `WGSL_MEAN_REDUCE` absorption) and
+  toadStool (IPC proptest pattern, `StatefulPipeline` for HMM chains).
+- **ARCHIVE SWEEP**: Stale TODO/FIXME review, outdated count corrections, debris check.
 
 ### Session 165 — Ecosystem Absorption: FMA Sweep, IPC Proptest, Leverage Guide (2026-03-17)
 
