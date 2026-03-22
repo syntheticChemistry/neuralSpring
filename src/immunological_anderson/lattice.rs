@@ -15,9 +15,13 @@ use crate::tolerances;
 /// Pielou evenness / disorder W value.
 #[derive(Debug, Clone)]
 pub struct ThreeCompartmentDisorder {
+    /// Effective disorder W for the immune compartment (from Pielou evenness).
     pub immune_w: f64,
+    /// Effective disorder W for the skin compartment (from Pielou evenness).
     pub skin_w: f64,
+    /// Effective disorder W for the neural compartment (from Pielou evenness).
     pub neural_w: f64,
+    /// Variance of W across the three compartments (heterogeneity measure).
     pub cross_compartment_variance: f64,
 }
 

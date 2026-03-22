@@ -9,10 +9,15 @@ use std::sync::Arc;
 /// Hill gate kinetic parameters for the two-input AND gate model.
 #[derive(Debug, Clone, Copy)]
 pub struct HillGateConfig {
+    /// Maximum gate output scaling `V_max`.
     pub vmax: f64,
+    /// Half-saturation constant for input `a`.
     pub k_a: f64,
+    /// Half-saturation constant for input `b`.
     pub k_b: f64,
+    /// Hill coefficient for input `a`.
     pub n_a: f64,
+    /// Hill coefficient for input `b`.
     pub n_b: f64,
 }
 

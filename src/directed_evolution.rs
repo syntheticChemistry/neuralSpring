@@ -261,8 +261,11 @@ pub fn pareto_front_count(fitnesses: &[f64], n: usize, n_objectives: usize) -> u
 /// Result of a selection experiment run.
 #[derive(Debug, Clone)]
 pub struct ExperimentResult {
+    /// Mean pairwise phenotype distance across sampled individuals per generation.
     pub diversity: Vec<f64>,
+    /// Pareto-optimal individual count per generation.
     pub pareto_front: Vec<usize>,
+    /// Mean per-individual aggregate fitness per generation.
     pub mean_fitness: Vec<f64>,
 }
 

@@ -17,26 +17,42 @@ use crate::tolerances;
 /// Per-temperature-slice Anderson localization result.
 #[derive(Debug, Clone)]
 pub struct SliceResult {
+    /// Index of this slice on the temperature grid.
     pub temp_idx: usize,
+    /// Mean Anderson disorder strength W for this slice.
     pub mean_w: f64,
+    /// Mean inverse participation ratio across states in this slice.
     pub mean_ipr: f64,
+    /// Localization length estimate ξ for this slice.
     pub xi: f64,
 }
 
 /// Full baseline loaded from Python JSON.
 #[derive(Debug, Clone)]
 pub struct EnsembleBaseline {
+    /// Number of density grid points in the surrogate sweep.
     pub n_rho: usize,
+    /// Number of temperature steps in the surrogate sweep.
     pub n_temp: usize,
+    /// Number of WDM surrogate models in the ensemble.
     pub n_surrogates: usize,
+    /// Mean surrogate disagreement (coefficient of variation).
     pub disagreement_mean: f64,
+    /// Standard deviation of surrogate disagreement.
     pub disagreement_std: f64,
+    /// Mean mapped Anderson disorder field W.
     pub w_field_mean: f64,
+    /// Standard deviation of the mapped disorder field W.
     pub w_field_std: f64,
+    /// Pearson correlation between W and localization length ξ.
     pub r_w_xi: f64,
+    /// Mean quorum-sensing cooperation at low W (replicator steady state).
     pub mean_coop_low_w: f64,
+    /// Mean quorum-sensing cooperation at high W (replicator steady state).
     pub mean_coop_high_w: f64,
+    /// Per-temperature Anderson localization results for the baseline.
     pub slices: Vec<SliceResult>,
+    /// Reference 1D disorder profile used for Anderson comparisons.
     pub reference_disorder: Vec<f64>,
 }
 

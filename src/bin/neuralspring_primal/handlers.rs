@@ -6,6 +6,8 @@ use super::discovery::{discover_data_primal_and_forward, forward_to_primal};
 use super::rpc::{self, JsonRpcResponse};
 use super::{ALL_CAPABILITIES, PRIMAL_NAME, PrimalState};
 
+use neural_spring::niche;
+
 /// Kubernetes-style liveness probe: is the process alive and able to
 /// handle requests?  Always returns `"alive": true` — if the process
 /// can dispatch this method, it is live.
@@ -157,6 +159,54 @@ pub fn handle_cross_spring_benchmark(
                 "total_tracked_shaders": barracuda::shaders::provenance::cross_spring_shaders().len(),
                 "cross_spring_edges": barracuda::shaders::provenance::cross_spring_matrix().len(),
             }
+        }),
+    )
+}
+
+/// biomeOS provenance trio RPC surface (begin / record / complete / status).
+/// Acknowledges the call on this niche; full DAG lifecycle is composed via biomeOS graphs.
+pub fn handle_provenance(
+    id: serde_json::Value,
+    method: &str,
+    params: &serde_json::Value,
+) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "niche": niche::NICHE_NAME,
+            "method": method,
+            "params": params,
+        }),
+    )
+}
+
+/// Advertises this niche's capability surface for cross-primal discovery.
+pub fn handle_primal_discover(id: serde_json::Value) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "niche": niche::NICHE_NAME,
+            "capabilities": niche::CAPABILITIES,
+        }),
+    )
+}
+
+/// Node Atomic compute offload hook: reports dispatcher readiness and echoes request params.
+pub fn handle_compute_offload(
+    id: serde_json::Value,
+    params: &serde_json::Value,
+    state: &PrimalState,
+) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "niche": niche::NICHE_NAME,
+            "params": params,
+            "gpu_available": state.dispatcher.has_gpu(),
+            "backend": format!("{}", state.dispatcher.backend()),
         }),
     )
 }

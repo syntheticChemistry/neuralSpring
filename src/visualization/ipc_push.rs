@@ -18,7 +18,7 @@ pub struct PetalTonguePushClient {
     socket_path: PathBuf,
 }
 
-/// Result type for push operations.
+/// Result of a petalTongue push or RPC call (`Ok` value or [`PushError`]).
 pub type PushResult<T> = Result<T, PushError>;
 
 /// Error type for push operations.
@@ -31,7 +31,12 @@ pub enum PushError {
     /// JSON serialization error.
     SerializationError(String),
     /// RPC error response.
-    RpcError { code: i64, message: String },
+    RpcError {
+        /// JSON-RPC error code from the peer.
+        code: i64,
+        /// Human-readable error message from the peer.
+        message: String,
+    },
 }
 
 impl std::fmt::Display for PushError {

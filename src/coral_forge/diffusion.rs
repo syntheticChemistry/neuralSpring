@@ -31,7 +31,9 @@ use std::f64::consts::PI;
 /// Noise schedule: beta values and cumulative alpha-bar values.
 #[derive(Debug, Clone)]
 pub struct NoiseSchedule {
+    /// Per-timestep noise variances in the diffusion schedule.
     pub betas: Vec<f64>,
+    /// Cumulative signal retention (alpha-bar) at each timestep.
     pub alpha_bar: Vec<f64>,
 }
 

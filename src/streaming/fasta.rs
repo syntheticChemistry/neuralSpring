@@ -32,6 +32,11 @@
 use std::io::BufRead;
 
 /// A single FASTA record (header + concatenated sequence lines).
+///
+/// Sequence data is stored in an owned [`Vec`] because a record may span many
+/// physical lines; there is no single borrowable slice into one read buffer.
+/// Zero-copy line reads are handled inside [`FastaReader`] (no extra `String`
+/// per line beyond the buffer that [`BufRead::read_line`](std::io::BufRead::read_line) fills).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FastaRecord {
     header: String,
@@ -151,14 +156,16 @@ impl<R: BufRead> FastaReader<R> {
         }
     }
 
-    fn read_line_trimmed(&mut self) -> Result<Option<String>, FastaError> {
+    /// Reads one line, strips trailing newlines in place, then moves the buffer out
+    /// (avoids allocating a second [`String`] for the trimmed line).
+    fn read_line_owned(&mut self) -> Result<Option<String>, FastaError> {
         self.line_buf.clear();
         let n = self.reader.read_line(&mut self.line_buf)?;
         if n == 0 {
             return Ok(None);
         }
-        let trimmed = self.line_buf.trim_end_matches(['\n', '\r']).to_string();
-        Ok(Some(trimmed))
+        super::trim_end_newlines_in_place(&mut self.line_buf);
+        Ok(Some(std::mem::take(&mut self.line_buf)))
     }
 }
 
@@ -171,13 +178,13 @@ impl<R: BufRead> Iterator for FastaReader<R> {
         } else {
             // Find the first header line, skipping blanks.
             loop {
-                match self.read_line_trimmed() {
+                match self.read_line_owned() {
                     Ok(Some(line)) if line.is_empty() => {}
-                    Ok(Some(line)) => {
+                    Ok(Some(mut line)) => {
                         if !line.starts_with('>') {
                             return Some(Err(FastaError::InvalidHeader(line)));
                         }
-                        break line[1..].to_string();
+                        break line.split_off(1);
                     }
                     Ok(None) => return None,
                     Err(e) => return Some(Err(e)),
@@ -188,10 +195,10 @@ impl<R: BufRead> Iterator for FastaReader<R> {
         let mut sequence = Vec::with_capacity(super::LINE_BUF_CAPACITY);
 
         loop {
-            match self.read_line_trimmed() {
+            match self.read_line_owned() {
                 Ok(Some(line)) if line.is_empty() => {}
-                Ok(Some(line)) if line.starts_with('>') => {
-                    self.pending_header = Some(line[1..].to_string());
+                Ok(Some(mut line)) if line.starts_with('>') => {
+                    self.pending_header = Some(line.split_off(1));
                     break;
                 }
                 Ok(Some(line)) => {

@@ -49,17 +49,29 @@ pub const BIOMEOS: &str = "biomeos";
 /// These are the canonical mixed-case names as used in prose and UI,
 /// distinct from the lowercase discovery hints above.
 pub mod display {
+    /// Display name for the `barraCuda` primal.
     pub const BARRACUDA: &str = "barraCuda";
+    /// Display name for the toadstool primal.
     pub const TOADSTOOL: &str = "toadStool";
+    /// Display name for the coralreef primal.
     pub const CORALREEF: &str = "coralReef";
+    /// Display name for the neuralSpring primal.
     pub const NEURALSPRING: &str = "neuralSpring";
+    /// Display name for the wetSpring primal.
     pub const WETSPRING: &str = "wetSpring";
+    /// Display name for the hotSpring primal.
     pub const HOTSPRING: &str = "hotSpring";
+    /// Display name for the groundSpring primal.
     pub const GROUNDSPRING: &str = "groundSpring";
+    /// Display name for the airSpring primal.
     pub const AIRSPRING: &str = "airSpring";
+    /// Display name for the squirrel primal.
     pub const SQUIRREL: &str = "Squirrel";
+    /// Display name for the petaltongue primal.
     pub const PETALTONGUE: &str = "petalTongue";
+    /// Display name for the biomeOS primal.
     pub const BIOMEOS: &str = "biomeOS";
+    /// Display name for the nestgate primal.
     pub const NESTGATE: &str = "NestGate";
 }
 

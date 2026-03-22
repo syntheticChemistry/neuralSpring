@@ -84,3 +84,57 @@ pub fn classify_via_barracuda(
 
     Ok((label, scores_vec))
 }
+
+#[cfg(test)]
+#[expect(
+    clippy::expect_used,
+    reason = "test assertions use expect for clear messages"
+)]
+mod tests {
+    use super::*;
+    use crate::wdm_esn::classifier::{EsnClassifier, EsnNormalization};
+    use approx::assert_relative_eq;
+    use serial_test::serial;
+    use std::sync::Arc;
+
+    fn tiny_esn() -> EsnClassifier {
+        let rs = 4;
+        let nc = 3;
+        EsnClassifier {
+            w_in: vec![0.1; rs * 2],
+            w_res: vec![0.01; rs * rs],
+            b_res: vec![0.0; rs],
+            w_out: vec![0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],
+            b_out: vec![0.0; nc],
+            reservoir_size: rs,
+            n_classes: nc,
+            norm: EsnNormalization {
+                x_mean: [0.5, 6.0],
+                x_std: [1.0, 1.5],
+            },
+        }
+    }
+
+    /// CPU-relaxed `WgpuDevice` (Tensor fallback). Keep in a separate `#[serial]` test from
+    /// `multi_head` GPU work — mixing both device lifetimes in one test can trip wgpu bind groups.
+    #[serial]
+    #[tokio::test]
+    async fn classify_via_barracuda_matches_cpu_reference() {
+        let tensor_dev = Arc::new(
+            barracuda::device::WgpuDevice::new_cpu_relaxed()
+                .await
+                .expect("CPU-relaxed WgpuDevice"),
+        );
+        let esn = tiny_esn();
+        for &(lr, lt) in &[(0.5_f64, 5.5_f64), (-0.25, 7.0)] {
+            let (label_cpu, scores_cpu) = esn.classify(lr, lt);
+            let (label_gpu, scores_gpu) =
+                classify_via_barracuda(&esn, lr, lt, &tensor_dev).expect("Tensor classify");
+            assert_eq!(label_cpu, label_gpu);
+            assert_eq!(scores_cpu.len(), scores_gpu.len());
+            for (a, b) in scores_cpu.iter().zip(scores_gpu.iter()) {
+                assert_relative_eq!(*a as f32, *b, epsilon = 1e-3, max_relative = 2e-3);
+            }
+        }
+    }
+}

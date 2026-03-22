@@ -14,7 +14,9 @@ use super::argmax_f64;
 /// Input normalization for (log_rho, log_T).
 #[derive(Debug, Clone)]
 pub struct EsnNormalization {
+    /// Per-input mean for `(log_rho, log_T)` normalization.
     pub x_mean: [f64; 2],
+    /// Per-input standard deviation for `(log_rho, log_T)` normalization.
     pub x_std: [f64; 2],
 }
 

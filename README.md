@@ -678,4 +678,16 @@ AGPL-3.0-or-later
 
 ---
 
+## Part of ecoPrimals
+
+This repo is a domain validation spring in the
+[ecoPrimals](https://github.com/ecoPrimals) sovereign computing ecosystem.
+Springs reproduce published scientific results using pure Rust and
+[barraCuda](https://github.com/ecoPrimals/barraCuda) GPU primitives.
+
+See [wateringHole](https://github.com/ecoPrimals/wateringHole) for ecosystem
+documentation and standards.
+
+---
+
 *Initialized: February 16, 2026 | Sessions 40–166: March 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU = 4500+ validation checks | 1155 lib + 73 forge + 75 playGround + 13 doc + 15 integration + 9 bin tests | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 67 modules, 267 binaries, 42 WGSL shaders | 225 named tolerances (centralized registry + `control/tolerances.py` Python mirror), 0 clippy (pedantic+nursery, all-features), 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.5 at `0649cd0`, nautilus absorbed, 92% coverage | 46 upstream rewires, 250+ barracuda import files | V106 handoff (toadStool/barraCuda + coralReef cross-spring absorption) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 70 unit + 13 integration tests | `enable f64;` PTXAS fix | ecoBin compliant (zero C deps in main crates) | capability-based IPC discovery | 16 MCP tools, 16 capabilities | 21 petalTongue scenario tracks + ecosystem dashboard + composition visualization | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` (biomeOS BYOB Steps 1–4 + provenance trio) | `src/primal_names.rs` (zero duplicate primal name strings) | cross-spring absorption from hotSpring/groundSpring/wetSpring/airSpring + coralReef/loamSpine/rhizoCrypt/sweetGrass*

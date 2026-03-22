@@ -88,20 +88,30 @@ pub fn replicator_dynamics(
 /// Configuration for QS cooperation model.
 #[derive(Debug, Clone)]
 pub struct QsConfig {
+    /// Population size (number of individuals).
     pub pop_size: usize,
+    /// Number of generations to simulate.
     pub n_gen: usize,
+    /// Quorum-sensing activation threshold on cooperator frequency.
     pub qs_threshold: f64,
+    /// Fitness cost paid by cooperators.
     pub cooperation_cost: f64,
+    /// Benefit from public-good cooperation scaled by cooperator frequency.
     pub cooperation_benefit: f64,
+    /// Extra fitness when QS is active and the agent cooperates.
     pub dispersal_bonus: f64,
+    /// Per-locus Bernoulli mutation probability per generation.
     pub mutation_rate: f64,
+    /// RNG seed for reproducible runs.
     pub seed: u64,
 }
 
 /// Result of QS cooperation simulation.
 #[derive(Debug, Clone)]
 pub struct QsResult {
+    /// Cooperator frequency per generation.
     pub coop_freq: Vec<f64>,
+    /// Mean population fitness per generation.
     pub mean_fitness: Vec<f64>,
 }
 

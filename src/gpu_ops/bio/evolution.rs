@@ -157,10 +157,15 @@ pub fn multi_obj_fitness_gpu(
 /// Dimension parameters for swarm neural-network forward pass.
 #[derive(Debug, Clone, Copy)]
 pub struct SwarmNnDims {
+    /// Number of swarm controllers evaluated in the batch.
     pub n_controllers: usize,
+    /// Number of forward evaluations per controller.
     pub n_evals: usize,
+    /// Input feature dimension per evaluation.
     pub input_dim: usize,
+    /// Hidden layer width.
     pub hidden_dim: usize,
+    /// Output dimension (discrete action space size).
     pub output_dim: usize,
 }
 

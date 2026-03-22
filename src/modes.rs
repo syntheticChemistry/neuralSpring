@@ -139,13 +139,21 @@ pub fn ecology_metric(abundances: &[Vec<f64>]) -> Vec<f64> {
 /// Aggregate scores from all four MODES metrics.
 #[derive(Debug, Clone)]
 pub struct Scores {
+    /// Sum of per-timestep lineage-count deltas.
     pub change_total: f64,
+    /// Mean per-timestep change in lineage counts.
     pub change_mean: f64,
+    /// Mean novelty distance across all timesteps.
     pub novelty_mean: f64,
+    /// Mean novelty over the trailing timestep window.
     pub novelty_final: f64,
+    /// Linear regression slope of complexity over time.
     pub complexity_slope: f64,
+    /// Whether the complexity slope is positive.
     pub complexity_increasing: bool,
+    /// Mean Shannon equitability across all timesteps.
     pub ecology_mean: f64,
+    /// Mean equitability over the trailing timestep window.
     pub ecology_final: f64,
 }
 

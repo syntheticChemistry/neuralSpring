@@ -111,12 +111,19 @@ pub fn max_gpu(data: &[f64], device: &Arc<WgpuDevice>) -> Result<f64, String> {
 
 /// Two-layer neural network parameters for GPU forward pass.
 pub struct NeuralForwardParams<'a> {
+    /// Hidden-layer weight matrix in row-major layout.
     pub weights_hidden: &'a [f64],
+    /// Hidden-layer bias vector.
     pub bias_hidden: &'a [f64],
+    /// Output-layer weight matrix in row-major layout.
     pub weights_output: &'a [f64],
+    /// Output-layer bias vector.
     pub bias_output: &'a [f64],
+    /// Input activation vector passed into the network.
     pub input: &'a [f64],
+    /// Number of hidden units.
     pub hidden_size: usize,
+    /// Number of output units.
     pub output_size: usize,
 }
 

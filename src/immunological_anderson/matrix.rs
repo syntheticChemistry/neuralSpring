@@ -11,20 +11,30 @@ use super::{AndersonDrugScore, DrugMechanism, tissue_geometry_factor};
 /// Drug candidate for Anderson-augmented MATRIX scoring.
 #[derive(Debug, Clone)]
 pub struct DrugCandidate {
+    /// Generic or trade name of the drug candidate.
     pub name: &'static str,
+    /// Approved or historical indication for the compound.
     pub original_indication: &'static str,
+    /// Pharmacological mechanism category used in scoring.
     pub mechanism: DrugMechanism,
+    /// Pathway fit score in `[0, 1]` from the pathway layer.
     pub pathway_score: f64,
+    /// Molecular weight in kilodaltons for tissue geometry.
     pub molecular_weight_kda: f64,
+    /// Whether delivery is systemic (vs topical/local).
     pub delivery_systemic: bool,
 }
 
 /// Disease profile for MATRIX tissue geometry evaluation.
 #[derive(Debug, Clone)]
 pub struct DiseaseProfile {
+    /// Short label for the disease state or cohort.
     pub name: &'static str,
+    /// Fraction of barrier breach affecting accessibility (0–1).
     pub barrier_breach_fraction: f64,
+    /// Effective spatial dimension used in Anderson geometry.
     pub effective_dimension: f64,
+    /// Mean disorder parameter `W` for residual disorder scaling.
     pub mean_disorder_w: f64,
 }
 
@@ -116,6 +126,7 @@ pub const AD_FLARE_PROFILE: DiseaseProfile = DiseaseProfile {
     mean_disorder_w: 0.75,
 };
 
+/// Atopic dermatitis chronic-stratum profile for MATRIX scoring.
 pub const AD_CHRONIC_PROFILE: DiseaseProfile = DiseaseProfile {
     name: "Atopic dermatitis (chronic)",
     barrier_breach_fraction: 0.6,

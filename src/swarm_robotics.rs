@@ -48,6 +48,7 @@ pub enum ControllerType {
 }
 
 impl ControllerType {
+    /// Discriminant index for this controller type (0 = neural, 1 = tree, 2 = rules).
     #[must_use]
     pub const fn as_usize(self) -> usize {
         match self {
@@ -57,6 +58,7 @@ impl ControllerType {
         }
     }
 
+    /// Length of the flat parameter vector for this representation.
     #[must_use]
     pub const fn param_len(self) -> usize {
         match self {
@@ -79,6 +81,7 @@ pub struct Controller {
 }
 
 impl Controller {
+    /// Builds a controller with the given type and parameter vector.
     #[must_use]
     pub const fn new(ctrl_type: ControllerType, params: Vec<f64>) -> Self {
         Self { ctrl_type, params }
@@ -89,6 +92,7 @@ fn sigmoid(x: f64) -> f64 {
     primitives::sigmoid(x)
 }
 
+/// Neural MLP controller: hidden sigmoid layer then argmax over five actions.
 #[must_use]
 pub fn neural_forward(params: &[f64], sense: f64) -> usize {
     let mut h = [0.0_f64; 4];
@@ -130,6 +134,7 @@ pub fn neural_forward_max_score(params: &[f64], sense: f64) -> f64 {
     best
 }
 
+/// Behavior-tree controller: threshold rules mapping sense to a discrete action.
 #[expect(
     clippy::cast_possible_truncation,
     reason = "clamped f64 → usize for discrete action index"
@@ -144,6 +149,7 @@ pub fn behavior_forward(params: &[f64], sense: f64) -> usize {
     (params[9] * 5.0).clamp(0.0, 4.99) as usize
 }
 
+/// Rule-based controller: count of sorted thresholds exceeded by the sense input.
 #[must_use]
 pub fn rule_forward(params: &[f64], sense: f64) -> usize {
     let mut t = [params[0], params[1], params[2], params[3]];
@@ -151,6 +157,7 @@ pub fn rule_forward(params: &[f64], sense: f64) -> usize {
     t.iter().filter(|&&x| sense > x).count().min(4)
 }
 
+/// Dispatches to the forward pass for the controller's representation type.
 #[must_use]
 pub fn controller_forward(ctrl: &Controller, sense: f64) -> usize {
     match ctrl.ctrl_type {
@@ -184,6 +191,7 @@ pub struct SwarmSimulation {
 }
 
 impl SwarmSimulation {
+    /// Randomly places food and agents on a `GRID_SIZE`² torus-like grid.
     #[must_use]
     pub fn new(rng: &mut Rng) -> Self {
         let g = GRID_SIZE as usize;
@@ -205,6 +213,7 @@ impl SwarmSimulation {
         }
     }
 
+    /// Runs the foraging episode and returns food collected (fitness).
     #[must_use]
     pub fn run(&mut self, ctrl: &Controller) -> f64 {
         static MOVES: [(i32, i32); 5] = [(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)];
@@ -237,6 +246,7 @@ impl SwarmSimulation {
     }
 }
 
+/// Shannon entropy of controller-type frequencies in the population.
 #[must_use]
 pub fn shannon_diversity(types: &[ControllerType]) -> f64 {
     if types.is_empty() {
@@ -251,12 +261,14 @@ pub fn shannon_diversity(types: &[ControllerType]) -> f64 {
     primitives::shannon_entropy(&freqs)
 }
 
+/// Samples a random parameter vector in `[0,1]` for the given controller type.
 #[must_use]
 pub fn create_controller(ctrl_type: ControllerType, rng: &mut Rng) -> Controller {
     let params = (0..ctrl_type.param_len()).map(|_| rng.uniform()).collect();
     Controller::new(ctrl_type, params)
 }
 
+/// Gaussian perturbation of each parameter, clamped to `[0,1]`, same controller type.
 #[must_use]
 pub fn mutate(c: &Controller, rng: &mut Rng, mutation_rate: f64) -> Controller {
     let params = c
@@ -286,11 +298,13 @@ pub struct EvolutionResult {
     pub diversity: Vec<f64>,
 }
 
+/// Runs evolution with an all–neural-net population for the given RNG seed.
 #[must_use]
 pub fn run_evolution_homogeneous(seed: u64) -> EvolutionResult {
     run_evolution_inner(seed, true)
 }
 
+/// Runs evolution with mixed controller types and periodic type reseeding.
 #[must_use]
 pub fn run_evolution_heterogeneous(seed: u64) -> EvolutionResult {
     run_evolution_inner(seed, false)

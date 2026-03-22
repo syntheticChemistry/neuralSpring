@@ -62,33 +62,51 @@ const RIDGE_ALPHA: f64 = 1e-3;
 /// Per-horizon prediction results.
 #[derive(Debug, Clone)]
 pub struct HorizonResult {
+    /// Forecast horizon in CGM samples (steps ahead).
     pub horizon_steps: usize,
+    /// Forecast horizon in minutes (steps × sample interval).
     pub horizon_minutes: usize,
+    /// Coefficient of determination for the LSTM predictor.
     pub r2_lstm: f64,
+    /// Root mean squared error for the LSTM predictor (mg/dL).
     pub rmse_lstm: f64,
+    /// R² for the naive persistence baseline (last value).
     pub r2_persistence: f64,
+    /// RMSE for the persistence baseline (mg/dL).
     pub rmse_persistence: f64,
+    /// Percent improvement of LSTM RMSE over persistence.
     pub lstm_improvement_pct: f64,
 }
 
 /// Trained glucose predictor for a single horizon.
 #[derive(Debug, Clone)]
 pub struct GlucoseReadout {
+    /// Linear readout weight vector on pooled LSTM features.
     pub w_out: Vec<f64>,
+    /// Linear readout bias term.
     pub b_out: f64,
 }
 
 /// Complete glucose prediction model (multi-horizon).
 #[derive(Debug, Clone)]
 pub struct GlucosePredictor {
+    /// LSTM input weight matrix (flattened).
     pub w_i: Vec<f64>,
+    /// LSTM hidden recurrent weight matrix (flattened).
     pub w_h: Vec<f64>,
+    /// LSTM input bias vector.
     pub b_i: Vec<f64>,
+    /// LSTM hidden bias vector.
     pub b_h: Vec<f64>,
+    /// LSTM hidden state width.
     pub hidden_size: usize,
+    /// Input window length (past CGM samples).
     pub seq_len: usize,
+    /// CGM training mean used for normalization (mg/dL).
     pub cgm_mean: f64,
+    /// CGM training standard deviation used for normalization.
     pub cgm_std: f64,
+    /// Per-horizon linear readouts `(horizon_steps, readout)`.
     pub readouts: Vec<(usize, GlucoseReadout)>,
 }
 

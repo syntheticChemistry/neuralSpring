@@ -134,6 +134,15 @@ impl MultiHeadWdmClassifier {
         self.norm = norm;
     }
 
+    /// `WgpuDevice` used by the internal reservoir.
+    ///
+    /// [`Tensor`] inputs in [`Self::update`](Self::update) must be created on this
+    /// device (typically `self.wgpu_device().clone()`).
+    #[must_use]
+    pub fn wgpu_device(&self) -> &std::sync::Arc<barracuda::device::WgpuDevice> {
+        self.esn.wgpu_device()
+    }
+
     /// Feed an input through the shared reservoir.
     ///
     /// Returns the reservoir state tensor (also cached internally for
@@ -289,5 +298,116 @@ impl MultiHeadWdmClassifier {
     #[must_use]
     pub const fn n_classes(&self) -> usize {
         self.n_classes
+    }
+}
+
+#[cfg(test)]
+#[expect(
+    clippy::expect_used,
+    reason = "test assertions use expect for clear messages"
+)]
+mod tests {
+    use super::*;
+    use crate::wdm_esn::classifier::EsnNormalization;
+    use approx::assert_relative_eq;
+    use serial_test::serial;
+
+    #[test]
+    fn wdm_head_configs_structure() {
+        let heads = wdm_head_configs(3);
+        assert_eq!(heads.len(), wdm_heads::COUNT);
+        assert_eq!(heads[wdm_heads::REGIME_LABEL].label, "regime_label");
+        assert_eq!(
+            heads[wdm_heads::SPECTRAL_BANDWIDTH].group,
+            HeadGroup::Steering
+        );
+        assert_eq!(heads[wdm_heads::CONFIDENCE].output_size, 1);
+    }
+
+    #[tokio::test]
+    async fn new_export_and_train_errors_without_reservoir_step() {
+        let mut c = MultiHeadWdmClassifier::new(8, 3)
+            .await
+            .expect("MultiHeadEsn init");
+        assert_eq!(c.n_classes(), 3);
+
+        c.set_normalization(EsnNormalization {
+            x_mean: [0.25, -1.0],
+            x_std: [2.0, 0.5],
+        });
+        assert_relative_eq!(c.norm().x_mean[0], 0.25);
+
+        let err = c
+            .classify_from_state()
+            .expect_err("should fail without cached state");
+        assert!(err.contains("cached state"));
+        let err = c
+            .head_disagreement()
+            .expect_err("should fail without cached state");
+        assert!(err.contains("cached state"));
+        let err = c
+            .export_npu_weights()
+            .expect_err("should fail without trained heads");
+        assert!(err.contains("trained"));
+
+        assert!(c.train_head(99, &[0.0; 8], &[0.0; 3], 1e-3).is_err());
+        assert!(c.train_head(0, &[], &[0.0; 3], 1e-3).is_err());
+        assert!(c.train_head(0, &[0.0; 8], &[0.0; 3], -1.0).is_err());
+
+        let _ = c.wgpu_device();
+    }
+
+    /// Full reservoir `update` / `train_head` / `classify`. Ignored in default `cargo test`
+    /// because parallel GPU tests elsewhere in the crate race global wgpu state; run with
+    /// `cargo test -p neural-spring multi_head_wdm_reservoir_smoke --lib -- --ignored --test-threads=1`.
+    #[ignore = "parallel GPU tests race wgpu global state; run with --test-threads=1"]
+    #[serial]
+    #[tokio::test]
+    async fn multi_head_wdm_reservoir_smoke() {
+        let mut c = MultiHeadWdmClassifier::new(8, 3)
+            .await
+            .expect("MultiHeadEsn init");
+
+        let device = c.wgpu_device().clone();
+
+        let state_tensor = c
+            .update(0.15, -0.4, &device)
+            .await
+            .expect("reservoir update");
+        let state_f64: Vec<f64> = state_tensor
+            .to_vec()
+            .expect("readback")
+            .into_iter()
+            .map(f64::from)
+            .collect();
+
+        c.train_head(0, &state_f64, &[1.0, 0.0, 0.0], 1e-3)
+            .expect("train regime head");
+
+        let result = c.classify_from_state().expect("classify");
+        assert!(result.label < 3);
+        assert_eq!(result.scores.len(), 3);
+
+        let exported = c.export_weights().expect("export weights");
+        assert!(exported.w_out.is_some());
+        let npu = c.export_npu_weights().expect("NPU export");
+        assert_eq!(npu.input_dim, 8);
+        assert!(!npu.weights_i8.is_empty());
+
+        let t = c.update(0.0, 0.0, &device).await.expect("update");
+        let s: Vec<f64> = t
+            .to_vec()
+            .expect("to_vec")
+            .into_iter()
+            .map(f64::from)
+            .collect();
+        c.train_head(0, &s, &[0.0, 1.0, 0.0], 1e-2)
+            .expect("train again");
+
+        let out = c
+            .classify_multi_head(0.3, 0.1, &device)
+            .await
+            .expect("multi-head classify");
+        assert_eq!(out.scores.len(), 3);
     }
 }

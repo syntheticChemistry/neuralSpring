@@ -18,7 +18,9 @@ use std::collections::HashMap;
 /// A seed hit: (database sequence index, position within that sequence).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SeedHit {
+    /// Index of the database sequence containing this hit.
     pub seq_id: u32,
+    /// Zero-based start position of the k-mer within that sequence.
     pub pos: u32,
 }
 

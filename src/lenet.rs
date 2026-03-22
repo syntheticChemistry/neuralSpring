@@ -10,13 +10,21 @@
 
 /// Single-channel 2D convolution parameters.
 pub struct Conv2dParams<'a> {
+    /// Row-major input feature map (`h`×`w`).
     pub input: &'a [f64],
+    /// Input height in pixels.
     pub h: usize,
+    /// Input width in pixels.
     pub w: usize,
+    /// Convolution kernel weights (`kh`×`kw`, row-major).
     pub kernel: &'a [f64],
+    /// Kernel height.
     pub kh: usize,
+    /// Kernel width.
     pub kw: usize,
+    /// Per-filter bias added to the convolution sum.
     pub bias: f64,
+    /// Zero-padding width on each spatial edge.
     pub pad: usize,
 }
 
@@ -51,15 +59,25 @@ pub fn conv2d(p: &Conv2dParams<'_>) -> Vec<f64> {
 
 /// Multi-channel `Conv2d` parameters.
 pub struct Conv2dMultiParams<'a> {
+    /// Row-major input tensor (`c_in`×`h`×`w`).
     pub input: &'a [f64],
+    /// Number of input channels.
     pub c_in: usize,
+    /// Spatial height.
     pub h: usize,
+    /// Spatial width.
     pub w: usize,
+    /// Kernel tensor (`c_out`×`c_in`×`kh`×`kw`, row-major).
     pub kernel: &'a [f64],
+    /// Number of output channels.
     pub c_out: usize,
+    /// Kernel height.
     pub kh: usize,
+    /// Kernel width.
     pub kw: usize,
+    /// Per output-channel bias values.
     pub bias: &'a [f64],
+    /// Zero-padding width on each spatial edge.
     pub pad: usize,
 }
 

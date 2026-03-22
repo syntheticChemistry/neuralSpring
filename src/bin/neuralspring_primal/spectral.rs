@@ -136,7 +136,7 @@ pub fn handle_anderson_localization(
         let h = anderson_hamiltonian_random(n, t, w, &mut rng);
         let (eigenvalues, eigenvectors) = jacobi_eigh(&h, n);
         let ipr_val = mean_ipr(&eigenvectors, n);
-        let mut sorted_evals = eigenvalues.clone();
+        let mut sorted_evals = eigenvalues;
         sorted_evals.sort_by(f64::total_cmp);
         let lsr = neural_spring::weight_spectral::level_spacing_ratio(&sorted_evals);
 
@@ -286,7 +286,7 @@ pub fn handle_training_trajectory(
 
         let decomp = eigh_householder_qr(&w, dim);
         let ipr_val = mean_ipr(&decomp.eigenvectors, dim);
-        let mut evals = decomp.eigenvalues.clone();
+        let mut evals = decomp.eigenvalues;
         evals.sort_by(f64::total_cmp);
         let entropy = neural_spring::primitives::shannon_entropy(&evals);
         let lsr = neural_spring::weight_spectral::level_spacing_ratio(&evals);

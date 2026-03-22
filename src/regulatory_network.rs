@@ -22,17 +22,29 @@ use crate::primitives;
 /// GRN parameters. State: [sasa, biofilm, motility, virulence].
 #[derive(Debug, Clone)]
 pub struct GrnParams {
+    /// Hill coefficient for regulatory interactions.
     pub n: f64,
+    /// `SasA` production scale vs environmental signal.
     pub a_s: f64,
+    /// `SasA` linear decay rate.
     pub d_s: f64,
+    /// Half-saturation for biofilm activation by `SasA`.
     pub k_b: f64,
+    /// Half-saturation for motility repression by `SasA`.
     pub k_m: f64,
+    /// Half-saturation for virulence activation by `SasA`.
     pub k_v: f64,
+    /// Biofilm production gain (Hill activation numerator scale).
     pub a_b: f64,
+    /// Biofilm linear decay rate.
     pub d_b: f64,
+    /// Motility production gain (Hill repression scale).
     pub a_m: f64,
+    /// Motility linear decay rate.
     pub d_m: f64,
+    /// Virulence production gain (Hill activation numerator scale).
     pub a_v: f64,
+    /// Virulence linear decay rate.
     pub d_v: f64,
 }
 
@@ -121,7 +133,9 @@ pub fn shannon_diversity(counts: &[f64]) -> f64 {
 
 /// Environment configurations (signal, `K_b`, `K_m`, `K_v`).
 pub const ENV_NUTRIENT_RICH: (f64, f64, f64, f64) = (0.9, 0.3, 0.5, 0.8);
+/// Nutrient-poor environment: `(signal, K_b, K_m, K_v)`.
 pub const ENV_NUTRIENT_POOR: (f64, f64, f64, f64) = (0.2, 0.4, 0.3, 0.9);
+/// Stress environment: `(signal, K_b, K_m, K_v)`.
 pub const ENV_STRESS: (f64, f64, f64, f64) = (0.6, 0.35, 0.4, 0.5);
 
 /// Build params for an environment (`K_b`, `K_m`, `K_v` from env).

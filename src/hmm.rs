@@ -60,7 +60,9 @@ pub struct Hmm {
 pub struct ForwardResult {
     /// T×N alpha matrix (flat row-major): `alpha[t*n + i]`.
     pub alpha: Vec<f64>,
+    /// Per-timestep scaling factors from the forward pass (for backward / likelihood).
     pub scales: Vec<f64>,
+    /// Log-likelihood of the observation sequence under the model.
     pub log_likelihood: f64,
     /// Number of hidden states (stride for alpha).
     pub n: usize,

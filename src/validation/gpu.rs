@@ -181,8 +181,11 @@ pub fn validate_tensor_reduction(
 
 /// Inputs for a binary tensor validation.
 pub struct BinaryTensorInputs<'a> {
+    /// Left operand tensor elements in row-major order.
     pub data_a: &'a [f32],
+    /// Right operand tensor elements in row-major order.
     pub data_b: &'a [f32],
+    /// Shape shared by both operands.
     pub shape: &'a [usize],
 }
 

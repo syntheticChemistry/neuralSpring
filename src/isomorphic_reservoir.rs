@@ -18,38 +18,61 @@ use crate::tolerances;
 /// Spectral properties of a weight matrix.
 #[derive(Debug, Clone)]
 pub struct SpectralProfile {
+    /// Reservoir or matrix label.
     pub name: String,
+    /// Matrix side length `n` (symmetric `n × n`).
     pub size: usize,
+    /// Spectral radius (max |λ|).
     pub spectral_radius: f64,
+    /// Mean eigenvalue.
     pub eigenvalue_mean: f64,
+    /// Standard deviation of eigenvalues.
     pub eigenvalue_std: f64,
+    /// Smallest eigenvalue after sorting.
     pub eigenvalue_min: f64,
+    /// Largest eigenvalue after sorting.
     pub eigenvalue_max: f64,
+    /// Mean adjacent gap ratio (level spacing statistic).
     pub mean_spacing_ratio: f64,
+    /// Mean inverse participation ratio over eigenvectors.
     pub mean_ipr: f64,
+    /// Effective dimension from IPR (`1 / mean_ipr` when IPR > 0).
     pub effective_dimension: f64,
+    /// Effective dimension normalized by matrix size.
     pub effective_ratio: f64,
 }
 
 /// Cross-domain comparison metrics.
 #[derive(Debug, Clone)]
 pub struct CrossDomainMetrics {
+    /// Mean effective-dimension ratio across domains.
     pub eff_ratio_mean: f64,
+    /// Standard deviation of effective-dimension ratios.
     pub eff_ratio_std: f64,
+    /// Coefficient of variation of effective-dimension ratios.
     pub eff_ratio_cv: f64,
+    /// Mean IPR across domains.
     pub ipr_mean: f64,
+    /// Standard deviation of IPR.
     pub ipr_std: f64,
+    /// Coefficient of variation of IPR.
     pub ipr_cv: f64,
+    /// Mean level-spacing ratio across domains.
     pub spacing_ratio_mean: f64,
+    /// Standard deviation of level-spacing ratios.
     pub spacing_ratio_std: f64,
 }
 
 /// Full baseline loaded from JSON.
 #[derive(Debug, Clone)]
 pub struct IsomorphicBaseline {
+    /// Per-domain spectral profiles from the baseline run.
     pub spectra: Vec<SpectralProfile>,
+    /// Aggregated cross-domain spectral statistics.
     pub cross_domain: CrossDomainMetrics,
+    /// Flattened symmetric weight matrices per domain `(name, data, n)`.
     pub domain_matrices: Vec<(String, Vec<f64>, usize)>,
+    /// Reference output-head weight sums per domain name.
     pub reference_sums: Vec<(String, f64)>,
 }
 

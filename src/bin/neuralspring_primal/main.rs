@@ -47,8 +47,9 @@ use std::time::Instant;
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::net::UnixListener;
+use tokio::net::{TcpListener, UnixListener};
 use tokio::sync::Semaphore;
+use tokio::sync::watch;
 
 use neural_spring::gpu_dispatch::Dispatcher;
 
@@ -96,6 +97,10 @@ pub struct PrimalState {
 
 const PRIMAL_NAME: &str = env!("CARGO_PKG_NAME");
 
+const DEFAULT_IPC_TIMEOUT_SECS: u64 = 5;
+const DEFAULT_HEARTBEAT_SECS: u64 = 30;
+const DEFAULT_MAX_CONCURRENT: usize = 4;
+
 fn orchestrator_socket() -> String {
     if let Ok(s) = std::env::var(neural_spring::config::ENV_BIOMEOS_ORCHESTRATOR) {
         return s;
@@ -119,7 +124,7 @@ fn ipc_response_timeout_secs() -> u64 {
         .or_else(|_| std::env::var("NEURALSPRING_IPC_TIMEOUT_SECS"))
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(5)
+        .unwrap_or(DEFAULT_IPC_TIMEOUT_SECS)
 }
 
 fn heartbeat_interval_secs() -> u64 {
@@ -127,7 +132,7 @@ fn heartbeat_interval_secs() -> u64 {
         .or_else(|_| std::env::var("NEURALSPRING_HEARTBEAT_SECS"))
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(30)
+        .unwrap_or(DEFAULT_HEARTBEAT_SECS)
 }
 
 pub use neural_spring::config::ALL_CAPABILITIES;
@@ -159,6 +164,11 @@ fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<J
         "science.precision_routing" => handlers::handle_precision_routing(id, state),
         "health.liveness" => handlers::handle_liveness(id),
         "health.readiness" => handlers::handle_readiness(id, state),
+        "provenance.begin" | "provenance.record" | "provenance.complete" | "provenance.status" => {
+            handlers::handle_provenance(id, request.method.as_str(), params)
+        }
+        "primal.discover" => handlers::handle_primal_discover(id),
+        "compute.offload" => handlers::handle_compute_offload(id, params, state),
         "primal.forward" | "data.ncbi_search" | "data.ncbi_fetch" | "data.pdb_search"
         | "data.pdb_fetch" => return None,
         _ => JsonRpcResponse::error(
@@ -236,9 +246,20 @@ async fn main() -> Result<()> {
     let listener = UnixListener::bind(&socket_path)
         .context(format!("binding to {}", socket_path.display()))?;
 
+    let tcp_port: u16 = std::env::var("PRIMAL_TCP_PORT")
+        .or_else(|_| std::env::var("NEURALSPRING_TCP_PORT"))
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0);
+    let tcp_listener = TcpListener::bind(("127.0.0.1", tcp_port))
+        .await
+        .context("binding TCP fallback")?;
+    let tcp_addr = tcp_listener.local_addr().context("TCP local address")?;
+    log::info!("TCP fallback listening on {tcp_addr}");
+
     log::info!("neuralSpring primal listening on {}", socket_path.display());
     log::info!("Family ID: {family_id}");
-    log::info!("Mode: Tower (local Eastgate)");
+    log::info!("Mode: Tower (biomeOS niche)");
     log::info!("Capabilities ({}):", ALL_CAPABILITIES.len());
     for cap in ALL_CAPABILITIES {
         log::debug!("  {cap}");
@@ -246,9 +267,11 @@ async fn main() -> Result<()> {
 
     biomeos::register_with_biomeos(&socket_path).await;
     push_petaltongue_scenario(&family_id);
-    spawn_lifecycle_tasks(&socket_path);
 
-    accept_loop(listener, state).await
+    let (shutdown_tx, shutdown_rx) = watch::channel(false);
+    spawn_lifecycle_tasks(&socket_path, shutdown_tx);
+
+    accept_loop(listener, tcp_listener, state, shutdown_rx).await
 }
 
 fn push_petaltongue_scenario(family_id: &str) {
@@ -272,22 +295,24 @@ fn push_petaltongue_scenario(family_id: &str) {
     }
 }
 
-fn spawn_lifecycle_tasks(socket_path: &std::path::Path) {
+fn spawn_lifecycle_tasks(socket_path: &std::path::Path, shutdown_tx: watch::Sender<bool>) {
     let heartbeat_socket = socket_path.to_path_buf();
     tokio::spawn(biomeos::heartbeat_loop(heartbeat_socket));
 
     let shutdown_socket = socket_path.to_path_buf();
+    let shutdown_tx_int = shutdown_tx.clone();
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.ok();
         log::info!("SIGINT received, deregistering...");
         biomeos::deregister_from_nucleus(&shutdown_socket).await;
         let _ = tokio::fs::remove_file(&shutdown_socket).await;
-        std::process::exit(0);
+        let _ = shutdown_tx_int.send(true);
     });
 
     #[cfg(unix)]
     {
         let sigterm_socket = socket_path.to_path_buf();
+        let shutdown_tx_term = shutdown_tx.clone();
         tokio::spawn(async move {
             let Ok(mut sig) =
                 tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
@@ -298,60 +323,104 @@ fn spawn_lifecycle_tasks(socket_path: &std::path::Path) {
             log::info!("SIGTERM received, deregistering...");
             biomeos::deregister_from_nucleus(&sigterm_socket).await;
             let _ = tokio::fs::remove_file(&sigterm_socket).await;
-            std::process::exit(0);
+            let _ = shutdown_tx_term.send(true);
         });
     }
+    drop(shutdown_tx);
 }
 
-async fn accept_loop(listener: UnixListener, state: Arc<PrimalState>) -> Result<()> {
+async fn handle_connection<R, W>(
+    reader: R,
+    mut writer: W,
+    state: Arc<PrimalState>,
+    permit: tokio::sync::OwnedSemaphorePermit,
+) where
+    R: tokio::io::AsyncRead + Unpin + Send + 'static,
+    W: tokio::io::AsyncWrite + Unpin + Send + 'static,
+{
+    let mut buf_reader = BufReader::new(reader);
+    let mut line = String::new();
+
+    while buf_reader.read_line(&mut line).await.unwrap_or(0) > 0 {
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            line.clear();
+            continue;
+        }
+
+        let response = match serde_json::from_str::<rpc::JsonRpcRequest>(trimmed) {
+            Ok(req) => {
+                state.requests_served.fetch_add(1, Ordering::Relaxed);
+                match dispatch_sync(&req, &state) {
+                    Some(resp) => resp,
+                    None => handlers::dispatch_async(&req).await,
+                }
+            }
+            Err(e) => JsonRpcResponse::error(
+                serde_json::Value::Null,
+                rpc::error_code::PARSE_ERROR,
+                format!("Parse error: {e}"),
+            ),
+        };
+
+        let resp_json = serde_json::to_vec(&response).unwrap_or_default();
+        let _ = writer.write_all(&resp_json).await;
+        let _ = writer.write_all(b"\n").await;
+        let _ = writer.flush().await;
+
+        line.clear();
+    }
+
+    drop(permit);
+}
+
+async fn accept_loop(
+    unix_listener: UnixListener,
+    tcp_listener: TcpListener,
+    state: Arc<PrimalState>,
+    mut shutdown_rx: watch::Receiver<bool>,
+) -> Result<()> {
     let max_concurrent: usize = std::env::var("PRIMAL_MAX_CONCURRENT")
         .or_else(|_| std::env::var("NEURALSPRING_MAX_CONCURRENT"))
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(4);
+        .unwrap_or(DEFAULT_MAX_CONCURRENT);
     let concurrency = Arc::new(Semaphore::new(max_concurrent));
 
     loop {
-        let (stream, _addr) = listener.accept().await?;
-        let permit = concurrency.clone().acquire_owned().await?;
-        let state = state.clone();
+        tokio::select! {
+            result = unix_listener.accept() => {
+                let (stream, _addr) = result?;
+                let permit = concurrency.clone().acquire_owned().await?;
+                let state = state.clone();
 
-        tokio::spawn(async move {
-            let (reader, mut writer) = stream.into_split();
-            let mut buf_reader = BufReader::new(reader);
-            let mut line = String::new();
-
-            while buf_reader.read_line(&mut line).await.unwrap_or(0) > 0 {
-                let trimmed = line.trim();
-                if trimmed.is_empty() {
-                    line.clear();
-                    continue;
-                }
-
-                let response = match serde_json::from_str::<rpc::JsonRpcRequest>(trimmed) {
-                    Ok(req) => {
-                        state.requests_served.fetch_add(1, Ordering::Relaxed);
-                        match dispatch_sync(&req, &state) {
-                            Some(resp) => resp,
-                            None => handlers::dispatch_async(&req).await,
-                        }
-                    }
-                    Err(e) => JsonRpcResponse::error(
-                        serde_json::Value::Null,
-                        rpc::error_code::PARSE_ERROR,
-                        format!("Parse error: {e}"),
-                    ),
-                };
-
-                let resp_json = serde_json::to_vec(&response).unwrap_or_default();
-                let _ = writer.write_all(&resp_json).await;
-                let _ = writer.write_all(b"\n").await;
-                let _ = writer.flush().await;
-
-                line.clear();
+                tokio::spawn(async move {
+                    let (reader, writer) = stream.into_split();
+                    handle_connection(reader, writer, state, permit).await;
+                });
             }
+            result = tcp_listener.accept() => {
+                let (stream, addr) = result?;
+                log::debug!("TCP connection from {addr}");
+                let permit = concurrency.clone().acquire_owned().await?;
+                let state = state.clone();
 
-            drop(permit);
-        });
+                tokio::spawn(async move {
+                    let (reader, writer) = stream.into_split();
+                    handle_connection(reader, writer, state, permit).await;
+                });
+            }
+            result = shutdown_rx.changed() => {
+                if result.is_err() {
+                    log::info!("Shutting down accept loop (shutdown channel closed)");
+                    break;
+                }
+                if *shutdown_rx.borrow() {
+                    log::info!("Shutting down accept loop");
+                    break;
+                }
+            }
+        }
     }
+    Ok(())
 }

@@ -19,6 +19,7 @@
 //! - [`inference`]: GPU inference via barraCuda shaders
 
 #![forbid(unsafe_code)]
+#![warn(missing_docs)]
 #![expect(
     clippy::missing_errors_doc,
     reason = "playground — evolving API surface"

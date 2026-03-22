@@ -30,3 +30,13 @@ pub(crate) const LINE_BUF_CAPACITY: usize = 256;
 
 /// Default initial capacity for VCF line buffers (wider records).
 pub(crate) const VCF_LINE_BUF_CAPACITY: usize = 512;
+
+/// Strips trailing `\r` / `\n` in place (what [`std::io::BufRead::read_line`] leaves).
+///
+/// Avoids allocating a second [`String`] for a trimmed copy of each line.
+#[inline]
+pub(crate) fn trim_end_newlines_in_place(s: &mut String) {
+    while matches!(s.as_bytes().last(), Some(b'\n' | b'\r')) {
+        s.pop();
+    }
+}

@@ -83,25 +83,45 @@ pub fn condition_pair_with_timestep(
 
 /// Full Pairformer block weights.
 pub struct PairformerWeights<'a> {
+    /// `LayerNorm` scale (gamma) per channel.
     pub ln_gamma: &'a [f64],
+    /// `LayerNorm` shift (beta) per channel.
     pub ln_beta: &'a [f64],
+    /// Triangle multiplicative outgoing: projection A weights.
     pub tri_out_wa: &'a [f64],
+    /// Triangle multiplicative outgoing: projection B weights.
     pub tri_out_wb: &'a [f64],
+    /// Triangle multiplicative outgoing: gate weights.
     pub tri_out_wg: &'a [f64],
+    /// Triangle multiplicative incoming: projection A weights.
     pub tri_in_wa: &'a [f64],
+    /// Triangle multiplicative incoming: projection B weights.
     pub tri_in_wb: &'a [f64],
+    /// Triangle multiplicative incoming: gate weights.
     pub tri_in_wg: &'a [f64],
+    /// Number of triangular attention heads.
     pub n_heads: usize,
+    /// Per-head feature dimension.
     pub head_dim: usize,
+    /// Triangular attention query projection weights.
     pub tri_attn_wq: &'a [f64],
+    /// Triangular attention key projection weights.
     pub tri_attn_wk: &'a [f64],
+    /// Triangular attention value projection weights.
     pub tri_attn_wv: &'a [f64],
+    /// Pair FFN first linear layer weights.
     pub ffn_w1: &'a [f64],
+    /// Pair FFN first linear layer biases.
     pub ffn_b1: &'a [f64],
+    /// FFN hidden width after the first linear.
     pub d_hidden: usize,
+    /// Pair FFN second linear layer weights.
     pub ffn_w2: &'a [f64],
+    /// Pair FFN second linear layer biases.
     pub ffn_b2: &'a [f64],
+    /// Timestep conditioning projection weights.
     pub cond_w: &'a [f64],
+    /// Timestep conditioning biases.
     pub cond_b: &'a [f64],
 }
 

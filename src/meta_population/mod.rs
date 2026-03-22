@@ -39,7 +39,9 @@
 use crate::primitives::DIVISION_GUARD;
 use crate::rng::Rng;
 
+/// FST estimation and related population-structure metrics.
 pub mod fst;
+/// Geographic distance, isolation, and spatial meta-population helpers.
 pub mod geography;
 
 pub use fst::*;

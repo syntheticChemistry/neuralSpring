@@ -89,9 +89,13 @@ pub enum TissueCompartment {
 /// Skin layer with Anderson geometry parameters.
 #[derive(Debug, Clone)]
 pub struct SkinLayer {
+    /// Tissue layer name (barrier identity).
     pub name: &'static str,
+    /// Thickness range in micrometers (min, max).
     pub thickness_um: (f64, f64),
+    /// Effective Anderson dimension for propagation in this layer.
     pub effective_dimension: f64,
+    /// Whether the layer is acellular (no resident cells).
     pub acellular: bool,
 }
 
@@ -148,11 +152,17 @@ pub enum DrugMechanism {
 /// `f(pathway) * g(geometry, delivery, size)`.
 #[derive(Debug, Clone)]
 pub struct AndersonDrugScore {
+    /// Drug name for reporting and lookup.
     pub drug_name: String,
+    /// Pathway-level potency or coverage score.
     pub pathway_score: f64,
+    /// Barrier geometry and delivery accessibility score.
     pub geometry_score: f64,
+    /// Product of pathway and geometry scores.
     pub combined_score: f64,
+    /// Mechanism class (signal removal, transduction, barrier, receptor).
     pub mechanism: DrugMechanism,
+    /// True if delivery is systemic (vs topical).
     pub delivery_systemic: bool,
 }
 
@@ -246,6 +256,7 @@ pub struct PharmacoMonitor {
 }
 
 impl PharmacoMonitor {
+    /// Builds a monitor at the given dose with zero elapsed hours.
     #[must_use]
     pub fn new(dose_mg_per_kg: f64) -> Self {
         Self {
@@ -276,21 +287,25 @@ impl PharmacoMonitor {
         self.monitor.check_interrupt()
     }
 
+    /// Attention state of the wrapped training monitor.
     #[must_use]
     pub const fn attention_state(&self) -> AttentionState {
         self.monitor.attention()
     }
 
+    /// Dose in mg per kg for this pharmacokinetic trajectory.
     #[must_use]
     pub const fn dose(&self) -> f64 {
         self.dose_mg_per_kg
     }
 
+    /// Hours since start at the last observation.
     #[must_use]
     pub const fn hours_elapsed(&self) -> f64 {
         self.hours_elapsed
     }
 
+    /// Whether spectral drift is detected (treatment may need review).
     #[must_use]
     pub fn is_drifting(&self) -> bool {
         self.monitor.is_drifting()
@@ -300,9 +315,13 @@ impl PharmacoMonitor {
 /// AD disease state classifier output.
 #[derive(Debug, Clone)]
 pub struct AdClassification {
+    /// Inferred AD skin Anderson regime.
     pub state: AdSkinState,
+    /// Classifier confidence in the state assignment.
     pub confidence: f64,
+    /// Disagreement between tissue-compartment heads.
     pub compartment_disagreement: f64,
+    /// Effective dimension from cytokine spectral analysis.
     pub effective_dimension: f64,
 }
 
@@ -382,11 +401,17 @@ pub fn ic50_to_w_reduction(drug_concentration_nm: f64, ic50_nm: f64, max_w_reduc
 
 /// Gonzales (2014) JAK1 IC50 values (nM).
 pub mod gonzales_ic50 {
+    /// JAK1 inhibition IC50 reference (nM).
     pub const JAK1: f64 = 10.0;
+    /// IL-2 cytokine IC50 reference (nM).
     pub const IL2: f64 = 36.0;
+    /// IL-4 cytokine IC50 reference (nM).
     pub const IL4: f64 = 159.0;
+    /// IL-6 cytokine IC50 reference (nM).
     pub const IL6: f64 = 36.0;
+    /// IL-13 cytokine IC50 reference (nM).
     pub const IL13: f64 = 249.0;
+    /// IL-31 cytokine IC50 reference (nM).
     pub const IL31: f64 = 63.0;
 }
 
@@ -400,6 +425,7 @@ pub mod lokivetmab_pk {
     /// `duration_days = A * ln(dose_mg_kg) + B`
     /// Fit: A ≈ 10.09, B ≈ 33.28 (R² ≈ 0.971)
     pub const REGRESSION_A: f64 = 10.09;
+    /// Regression intercept `B` in `duration_days = A * ln(dose_mg_kg) + B`.
     pub const REGRESSION_B: f64 = 33.28;
 }
 

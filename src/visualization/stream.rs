@@ -220,6 +220,8 @@ impl StreamSession {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::visualization::{PushError, full_study};
+    use approx::assert_relative_eq;
 
     #[test]
     fn session_stats_zero_uptime() {
@@ -273,5 +275,63 @@ mod tests {
             PetalTonguePushClient::new(std::env::temp_dir().join("nonexistent_ns_stream.sock"));
         let session = StreamSession::resume(client, "test-bp");
         assert!(!session.backpressure_active());
+    }
+
+    #[test]
+    fn session_stats_messages_per_second_partial_uptime() {
+        let stats = SessionStats {
+            messages_sent: 10,
+            bytes_sent: 0,
+            errors: 0,
+            uptime_ms: 2000,
+        };
+        assert_relative_eq!(stats.messages_per_second(), 5.0);
+    }
+
+    #[test]
+    fn session_stats_error_rate_when_only_errors() {
+        let stats = SessionStats {
+            messages_sent: 0,
+            bytes_sent: 0,
+            errors: 4,
+            uptime_ms: 100,
+        };
+        assert_relative_eq!(stats.error_rate(), 1.0);
+    }
+
+    #[test]
+    fn failed_append_triggers_backpressure() {
+        let client = PetalTonguePushClient::headless();
+        let session = StreamSession::resume(client, "bp-fail");
+        assert!(!session.backpressure_active());
+        assert!(session.append("ts", &[1.0], &[2.0]).is_err());
+        assert!(session.backpressure_active());
+        let st = session.stats();
+        assert_eq!(st.errors, 1);
+        assert_eq!(st.messages_sent, 0);
+    }
+
+    #[test]
+    fn failed_gauge_and_replace_increment_errors() {
+        let client = PetalTonguePushClient::headless();
+        let session = StreamSession::resume(client, "bp-gauge-replace");
+        assert!(session.set_gauge("g", 1.0).is_err());
+        assert!(
+            session
+                .replace("h", &serde_json::json!({ "a": 1 }))
+                .is_err()
+        );
+        let st = session.stats();
+        assert_eq!(st.errors, 2);
+    }
+
+    #[test]
+    fn start_fails_without_petaltongue_socket() {
+        let client = PetalTonguePushClient::headless();
+        let (scenario, _) = full_study();
+        match StreamSession::start(client, "s1", "title", &scenario) {
+            Ok(_) => panic!("headless client should not connect to petalTongue"),
+            Err(e) => assert!(matches!(e, PushError::ConnectionFailed(_))),
+        }
     }
 }

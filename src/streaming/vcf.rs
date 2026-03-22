@@ -57,6 +57,11 @@ impl VcfHeader {
 }
 
 /// A single VCF data record (one variant site).
+///
+/// Fields are owned [`String`]s because each data line is read into a reusable
+/// buffer that is overwritten on the next iteration; owned values are required
+/// for [`VcfRecord`] to outlive the reader. Parsing avoids an extra [`String`]
+/// copy per `##` meta line in [`VcfReader::new`].
 #[derive(Debug, Clone, PartialEq)]
 pub struct VcfRecord {
     chrom: String,
@@ -149,16 +154,18 @@ impl VcfRecord {
     pub fn write_to(&self, w: &mut impl std::io::Write) -> std::io::Result<()> {
         write!(
             w,
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            "{}\t{}\t{}\t{}\t{}\t",
             self.chrom,
             self.pos,
             self.id,
             self.ref_allele,
             self.alt_alleles.join(","),
-            self.qual.map_or_else(|| ".".to_string(), |q| q.to_string()),
-            self.filter,
-            self.info,
         )?;
+        match self.qual {
+            None => write!(w, ".")?,
+            Some(q) => write!(w, "{q}")?,
+        }
+        write!(w, "\t{}\t{}", self.filter, self.info)?;
         for gt in &self.genotypes {
             write!(w, "\t{gt}")?;
         }
@@ -175,15 +182,22 @@ pub enum VcfError {
     /// Missing `#CHROM` header line.
     MissingHeader,
     /// Data line has fewer than 8 required fields.
-    TooFewFields { line_preview: String },
+    TooFewFields {
+        /// Truncated preview of the malformed line.
+        line_preview: String,
+    },
     /// Position field is not a valid integer.
     InvalidPosition {
+        /// Truncated preview of the malformed line.
         line_preview: String,
+        /// Parser error message for the position field.
         detail: String,
     },
     /// Quality field is not a valid float or `.`.
     InvalidQuality {
+        /// Truncated preview of the malformed line.
         line_preview: String,
+        /// Parser error message for the quality field.
         detail: String,
     },
 }
@@ -244,12 +258,14 @@ impl<R: BufRead> VcfReader<R> {
             if n == 0 {
                 break;
             }
-            let trimmed = line_buf.trim_end_matches(['\n', '\r']);
+            super::trim_end_newlines_in_place(&mut line_buf);
 
-            if let Some(meta) = trimmed.strip_prefix("##") {
-                meta_lines.push(meta.to_string());
-            } else if trimmed.starts_with("#CHROM") {
-                let cols: Vec<&str> = trimmed.split('\t').collect();
+            if line_buf.starts_with("##") {
+                let mut owned = std::mem::take(&mut line_buf);
+                let meta = owned.split_off(2);
+                meta_lines.push(meta);
+            } else if line_buf.starts_with("#CHROM") {
+                let cols: Vec<&str> = line_buf.as_str().split('\t').collect();
                 if cols.len() > 9 {
                     samples = cols[9..].iter().map(|s| (*s).to_string()).collect();
                 }
@@ -293,12 +309,13 @@ impl<R: BufRead> Iterator for VcfReader<R> {
                 Ok(_) => {}
             }
 
-            let trimmed = self.line_buf.trim_end_matches(['\n', '\r']);
-            if trimmed.is_empty() || trimmed.starts_with('#') {
+            super::trim_end_newlines_in_place(&mut self.line_buf);
+            let line = self.line_buf.as_str();
+            if line.is_empty() || line.starts_with('#') {
                 continue;
             }
 
-            return Some(parse_record(trimmed));
+            return Some(parse_record(line));
         }
     }
 }

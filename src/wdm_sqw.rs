@@ -37,9 +37,13 @@ const WASHOUT: usize = 4;
 /// Normalization parameters for time series input/output.
 #[derive(Debug, Clone)]
 pub struct SqwNormalization {
+    /// Mean of the input density fluctuation time series before z-scoring.
     pub series_mean: f64,
+    /// Standard deviation of the input time series.
     pub series_std: f64,
+    /// Mean of normalized `(ω, γ)` outputs before denormalization.
     pub y_mean: [f64; 2],
+    /// Standard deviation of normalized `(ω, γ)` outputs.
     pub y_std: [f64; 2],
 }
 

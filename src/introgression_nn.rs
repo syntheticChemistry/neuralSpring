@@ -15,18 +15,31 @@ use crate::hmm::Hmm;
 /// Baseline loaded from Python JSON.
 #[derive(Debug, Clone)]
 pub struct IntrogressionNnBaseline {
+    /// Number of neural network layers in the benchmark.
     pub n_layers: usize,
+    /// Ground-truth count of introgressed layers.
     pub n_introgressed: usize,
+    /// Hidden Markov model (transition, emission, initial) from the baseline.
     pub hmm: Hmm,
+    /// Per-layer discrete observations fed to the HMM.
     pub observations: Vec<usize>,
+    /// Ground-truth hidden states per layer.
     pub true_states: Vec<usize>,
+    /// Viterbi-decoded state path over layers.
     pub viterbi_path: Vec<usize>,
+    /// True positive rate of introgression detection.
     pub tpr: f64,
+    /// False positive rate of introgression detection.
     pub fpr: f64,
+    /// Overall accuracy vs ground truth.
     pub accuracy: f64,
+    /// Fraction of Viterbi path in the introgressed state.
     pub introgression_fraction: f64,
+    /// Log-likelihood of observations under the full (two-state) HMM.
     pub log_likelihood_full: f64,
+    /// Log-likelihood of observations under the null (single-state) HMM.
     pub log_likelihood_null: f64,
+    /// Log-likelihood ratio (full vs null).
     pub llr: f64,
 }
 

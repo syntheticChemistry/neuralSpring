@@ -78,18 +78,31 @@ pub fn classify_logic_gate(cdg: f64, ai: f64, cdg_thresh: f64, ai_thresh: f64) -
 /// Parameters for the vpsT regulatory ODE.
 #[derive(Debug, Clone)]
 pub struct OdeParams {
+    /// Cell density scaling autoinducer production.
     pub cell_density: f64,
+    /// c-di-GMP synthesis rate constant.
     pub cdg_synth: f64,
+    /// c-di-GMP degradation rate constant.
     pub cdg_deg: f64,
+    /// Autoinducer production coefficient.
     pub ai_prod: f64,
+    /// Autoinducer decay rate constant.
     pub ai_decay: f64,
+    /// vpsT transcript/protein degradation rate.
     pub vps_degradation: f64,
+    /// Maximum vpsT production rate in the Hill AND term.
     pub vmax: f64,
+    /// Half-saturation constant for c-di-GMP (Hill on cdg).
     pub k1: f64,
+    /// Half-saturation constant for autoinducer (Hill on ai).
     pub k2: f64,
+    /// Hill coefficient for c-di-GMP.
     pub n1: f64,
+    /// Hill coefficient for autoinducer.
     pub n2: f64,
+    /// Standard deviation scale for additive Gaussian noise on cdg dynamics.
     pub noise_scale: f64,
+    /// RNG seed for stochastic noise in the ODE integration.
     pub seed: u64,
 }
 
@@ -116,9 +129,13 @@ impl Default for OdeParams {
 /// ODE state: [cdg, ai, vpsT, biofilm]
 #[derive(Debug, Clone, Copy)]
 pub struct OdeState {
+    /// Cyclic di-GMP concentration.
     pub cdg: f64,
+    /// Autoinducer concentration.
     pub ai: f64,
+    /// vpsT expression level (promoter output).
     pub vps_t: f64,
+    /// Integrated biofilm biomass proxy.
     pub biofilm: f64,
 }
 

@@ -42,7 +42,7 @@ wgpu = { version = "28", default-features = false, features = [
     "vulkan-portability",
 ] }
 
-# Optional deps for the neuralspring_primal binary.
+# Optional deps for the neuralspring binary (UniBin, feature-gated).
 anyhow = { version = "1", optional = true }
 clap = { version = "4.5", features = ["derive"], optional = true }
 env_logger = { version = "0.11", optional = true }
@@ -55,6 +55,7 @@ primal = ["anyhow", "clap", "env_logger", "tarpc"]
 [dev-dependencies]
 approx = "0.5"
 proptest = "1"
+serial_test = "3"
 temp-env = "0.3"
 
 # Validation binaries follow the hotSpring pattern:
@@ -986,7 +987,7 @@ path = "src/bin/dump_neuralspring_scenarios.rs"
 # ── biomeOS primal adapter ──────────────────────────────────────────
 
 [[bin]]
-name = "neuralspring_primal"
+name = "neuralspring"
 path = "src/bin/neuralspring_primal/main.rs"
 required-features = ["primal"]
 

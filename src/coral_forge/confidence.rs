@@ -178,10 +178,15 @@ pub fn ranking_score(
 
 /// Weights for the ranking score computation.
 pub struct RankingWeights {
+    /// Weight on mean pLDDT in the combined score.
     pub w_plddt: f64,
+    /// Weight on the normalized PAE term in the combined score.
     pub w_pae: f64,
+    /// Weight on the normalized pDE term in the combined score.
     pub w_pde: f64,
+    /// Maximum PAE (Angstroms) used to normalize the PAE term.
     pub max_pae: f64,
+    /// Maximum pDE (Angstroms) used to normalize the pDE term.
     pub max_pde: f64,
 }
 

@@ -90,7 +90,7 @@ pub fn operation_dependencies() -> serde_json::Value {
     })
 }
 
-/// Cost estimates for biomeOS scheduling (measured on Eastgate hardware).
+/// Cost estimates for biomeOS scheduling (reference hardware).
 ///
 /// RTX 4070 12 GB + i9-12900K. Latency is p50 for representative inputs.
 #[must_use]

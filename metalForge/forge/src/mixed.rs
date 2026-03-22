@@ -11,12 +11,19 @@
 /// Mixed dispatch substrate — extends `Substrate` with cross-device targets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MixedSubstrate {
+    /// Run compute entirely on the GPU.
     GpuOnly,
+    /// Run compute entirely on the CPU.
     CpuOnly,
+    /// Run inference entirely on the NPU.
     NpuOnly,
+    /// Transfer results from GPU to CPU after compute.
     GpuToCpu,
+    /// Stage or upload data from CPU to GPU before compute.
     CpuToGpu,
+    /// Hand off from GPU to NPU (e.g. for realtime inference).
     GpuToNpu,
+    /// Transfer from NPU to GPU with CPU staging when P2P is unavailable.
     NpuToGpu,
     /// NPU→GPU via `PCIe` P2P DMA (bypasses CPU roundtrip).
     ///
@@ -29,8 +36,11 @@ pub enum MixedSubstrate {
 /// Estimated transfer cost for a cross-device data movement.
 #[derive(Debug, Clone, Copy)]
 pub struct TransferCost {
+    /// Payload size moved across the link in bytes.
     pub bytes: u64,
+    /// Fixed DMA or staging latency in microseconds.
     pub latency_us: f64,
+    /// Effective link bandwidth in gigabytes per second.
     pub bandwidth_gbps: f64,
 }
 

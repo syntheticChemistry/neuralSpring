@@ -11,11 +11,17 @@ use std::process::Command;
 
 /// Result of a single Python-vs-Rust CPU benchmark domain.
 pub struct CpuBenchResult {
+    /// Short name of the benchmark domain (e.g. matmul).
     pub domain: &'static str,
+    /// Paper or reference id string shown in the summary table.
     pub papers: &'static str,
+    /// Median Python timing in microseconds, if the script ran successfully.
     pub python_us: Option<f64>,
+    /// Measured Rust timing in microseconds.
     pub rust_us: f64,
+    /// Python time divided by Rust time when Python timing exists.
     pub speedup: Option<f64>,
+    /// Whether numerical parity checks passed for this domain.
     pub parity_ok: bool,
 }
 

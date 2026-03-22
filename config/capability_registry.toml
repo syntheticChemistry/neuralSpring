@@ -3,7 +3,7 @@
 # neuralSpring capability registry.
 #
 # Single source of truth for capabilities advertised via `capability.list`.
-# Consumed by `neuralspring_primal` at startup and by biomeOS deploy graphs.
+# Consumed by `neuralspring` binary at startup and by biomeOS deploy graphs.
 # Mirrors src/config.rs::ALL_CAPABILITIES — keep in sync or generate from
 # this file at build time.
 #

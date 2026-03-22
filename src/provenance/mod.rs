@@ -31,13 +31,21 @@ pub use references::*;
 /// A single provenance record tying a Rust reference value to its Python origin.
 #[derive(Debug, Clone)]
 pub struct BaselineProvenance {
+    /// Human-readable label for this baseline record.
     pub label: &'static str,
+    /// Path to the Python control script that produced the reference.
     pub script: &'static str,
+    /// Git commit hash pinned for this baseline.
     pub commit: &'static str,
+    /// Date string for when the baseline was captured.
     pub date: &'static str,
+    /// Full command line used to run the control script.
     pub command: &'static str,
+    /// Frozen Python/NumPy environment string for the control run.
     pub environment: &'static str,
+    /// Reference numeric value validated against Rust.
     pub value: f64,
+    /// Unit string for the reference value (e.g. dimensionless).
     pub unit: &'static str,
 }
 
@@ -271,9 +279,13 @@ pub const PROVENANCE_REGISTRY: &[&BaselineProvenance] = &[
 /// relying on hardcoded strings. Each primal carries self-knowledge.
 #[derive(Debug, Clone)]
 pub struct RuntimeEnvironment {
+    /// `rustc` version string for the running build.
     pub rust_version: String,
+    /// Operating system name from `std::env::consts::OS`.
     pub os: String,
+    /// CPU architecture from `std::env::consts::ARCH`.
     pub arch: String,
+    /// Crate version from `CARGO_PKG_VERSION`.
     pub neuralspring_version: String,
 }
 

@@ -12,8 +12,13 @@ use anyhow::{Context, Result};
 
 use crate::songbird_http::SongbirdHttp;
 
-const HF_API_BASE: &str = "https://huggingface.co/api/models";
-const HF_DOWNLOAD_BASE: &str = "https://huggingface.co";
+fn hf_api_base() -> String {
+    std::env::var("HF_API_BASE").unwrap_or_else(|_| "https://huggingface.co/api/models".to_string())
+}
+
+fn hf_download_base() -> String {
+    std::env::var("HF_DOWNLOAD_BASE").unwrap_or_else(|_| "https://huggingface.co".to_string())
+}
 
 /// `HuggingFace` Hub client routed through Tower Atomic (Songbird).
 pub struct HfHub {
@@ -59,7 +64,7 @@ impl HfHub {
 
     /// Fetch model metadata from HF Hub.
     pub async fn model_info(&self, model_id: &str) -> Result<ModelInfo> {
-        let url = format!("{HF_API_BASE}/{model_id}");
+        let url = format!("{}/{model_id}", hf_api_base());
         self.http
             .get_json(&url)
             .await
@@ -93,7 +98,7 @@ impl HfHub {
             tokio::fs::create_dir_all(parent).await?;
         }
 
-        let url = format!("{HF_DOWNLOAD_BASE}/{model_id}/resolve/main/{filename}");
+        let url = format!("{}/{model_id}/resolve/main/{filename}", hf_download_base());
         log::info!("Downloading {url} -> {}", dest.display());
 
         let bytes = self

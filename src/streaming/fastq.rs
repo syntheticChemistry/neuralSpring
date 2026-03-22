@@ -30,6 +30,10 @@
 use std::io::BufRead;
 
 /// A single FASTQ record (4-line group).
+///
+/// Sequence and quality are stored as owned [`Vec`]s so each [`FastqRecord`]
+/// outlives the reader's line buffer. Line assembly avoids an extra [`String`]
+/// allocation per line via in-place trimming and [`std::mem::take`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FastqRecord {
     header: String,
@@ -127,8 +131,11 @@ pub enum FastqError {
     TruncatedRecord(String),
     /// Quality line length does not match sequence length.
     LengthMismatch {
+        /// Record header (without the leading `@`).
         header: String,
+        /// Nucleotide sequence length in bases.
         seq_len: usize,
+        /// Quality string length in bytes.
         qual_len: usize,
     },
     /// Separator line does not start with `+`.
@@ -179,14 +186,14 @@ impl<R: BufRead> FastqReader<R> {
         }
     }
 
-    fn read_line_trimmed(&mut self) -> Result<Option<String>, FastqError> {
+    fn read_line_owned(&mut self) -> Result<Option<String>, FastqError> {
         self.line_buf.clear();
         let n = self.reader.read_line(&mut self.line_buf)?;
         if n == 0 {
             return Ok(None);
         }
-        let trimmed = self.line_buf.trim_end_matches(['\n', '\r']).to_string();
-        Ok(Some(trimmed))
+        super::trim_end_newlines_in_place(&mut self.line_buf);
+        Ok(Some(std::mem::take(&mut self.line_buf)))
     }
 }
 
@@ -194,8 +201,8 @@ impl<R: BufRead> Iterator for FastqReader<R> {
     type Item = Result<FastqRecord, FastqError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let header_line = loop {
-            match self.read_line_trimmed() {
+        let mut header_line = loop {
+            match self.read_line_owned() {
                 Ok(Some(line)) if line.is_empty() => {}
                 Ok(Some(line)) => break line,
                 Ok(None) => return None,
@@ -206,15 +213,15 @@ impl<R: BufRead> Iterator for FastqReader<R> {
         if !header_line.starts_with('@') {
             return Some(Err(FastqError::InvalidHeader(header_line)));
         }
-        let header = header_line[1..].to_string();
+        let header = header_line.split_off(1);
 
-        let sequence = match self.read_line_trimmed() {
+        let sequence = match self.read_line_owned() {
             Ok(Some(s)) => s.into_bytes(),
             Ok(None) => return Some(Err(FastqError::TruncatedRecord(header))),
             Err(e) => return Some(Err(e)),
         };
 
-        let separator = match self.read_line_trimmed() {
+        let separator = match self.read_line_owned() {
             Ok(Some(s)) => s,
             Ok(None) => return Some(Err(FastqError::TruncatedRecord(header))),
             Err(e) => return Some(Err(e)),
@@ -224,7 +231,7 @@ impl<R: BufRead> Iterator for FastqReader<R> {
             return Some(Err(FastqError::InvalidSeparator(separator)));
         }
 
-        let quality = match self.read_line_trimmed() {
+        let quality = match self.read_line_owned() {
             Ok(Some(q)) => q.into_bytes(),
             Ok(None) => return Some(Err(FastqError::TruncatedRecord(header))),
             Err(e) => return Some(Err(e)),

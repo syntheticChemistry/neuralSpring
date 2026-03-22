@@ -96,6 +96,7 @@ pub struct CompiledShader {
 /// When the `coralreef` feature is disabled, all compile methods return
 /// [`CoralError::NotAvailable`].
 pub struct CoralCompiler {
+    /// coralReef compile options when the `coralreef` feature is enabled.
     #[cfg(feature = "coralreef")]
     options: coral_reef::CompileOptions,
     /// Whether compile-time support is available.
@@ -116,6 +117,7 @@ impl CoralCompiler {
         }
     }
 
+    /// Auto-detect `coralReef` availability (stub when feature is disabled).
     #[cfg(not(feature = "coralreef"))]
     #[must_use]
     pub const fn auto() -> Self {

@@ -33,29 +33,43 @@ use std::path::Path;
 /// Metadata for a loaded weight tensor.
 #[derive(Debug, Clone)]
 pub struct WeightTensor {
+    /// Tensor name as stored in the source file.
     pub name: String,
+    /// Flattened weight values upcast to `f64`.
     pub data: Vec<f64>,
+    /// Original tensor shape (dimensions).
     pub shape: Vec<usize>,
+    /// Row count for the interpreted matrix view.
     pub rows: usize,
+    /// Column count for the interpreted matrix view.
     pub cols: usize,
+    /// Source dtype label (e.g. `F32`) before upcast.
     pub dtype: String,
 }
 
 /// Summary of all weight tensors in a model file.
 #[derive(Debug, Clone)]
 pub struct ModelWeights {
+    /// Source path or identifier for this load (often the file path).
     pub source: String,
+    /// All weight tensors extracted from the file.
     pub tensors: Vec<WeightTensor>,
+    /// Arbitrary string metadata from the format (e.g. safetensors header).
     pub metadata: HashMap<String, String>,
 }
 
 /// JSON baseline format for weight matrices.
 #[derive(Debug, Deserialize)]
 pub struct WeightBaseline {
+    /// Model name in the baseline JSON.
     pub model_name: String,
+    /// Layer name for this weight matrix.
     pub layer_name: String,
+    /// Flattened matrix entries in row-major order.
     pub weights: Vec<f64>,
+    /// Row count `m` of the weight matrix.
     pub m: usize,
+    /// Column count `n` of the weight matrix.
     pub n: usize,
 }
 

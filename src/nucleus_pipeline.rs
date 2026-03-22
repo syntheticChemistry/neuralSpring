@@ -31,12 +31,17 @@ use crate::tolerances;
 /// A completed pipeline report with provenance metadata.
 #[derive(Debug)]
 pub struct PipelineReport {
+    /// Per-stage results, timings, and outputs from the run.
     pub execution: PipelineExecution,
+    /// Name of the `PipelineGraph` that was executed.
     pub pipeline_name: String,
+    /// Summary label for substrate mix (CPU, GPU, or mixed).
     pub substrate_used: String,
+    /// Number of stages in topological execution order.
     pub total_stages: usize,
     /// How many stages executed on GPU vs CPU.
     pub gpu_stages: usize,
+    /// Stages that ran on the CPU path (including GPU fallback).
     pub cpu_stages: usize,
 }
 
@@ -457,9 +462,13 @@ fn stage_attention_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) 
 }
 
 #[cfg(test)]
-#[expect(clippy::expect_used, reason = "test assertions")]
+#[expect(
+    clippy::expect_used,
+    reason = "test assertions use expect for clear messages"
+)]
 mod tests {
     use super::*;
+    use neural_spring_forge::graph::{PipelineGraph, StageNode};
     use neural_spring_forge::mixed::MixedSubstrate;
 
     #[test]
@@ -661,5 +670,114 @@ mod tests {
         } else {
             panic!("expected Map output from GPU attention");
         }
+    }
+
+    #[test]
+    fn execute_graph_empty_runs_zero_stages() {
+        let graph = PipelineGraph::new("empty");
+        let report = execute_graph(&graph);
+        assert_eq!(report.total_stages, 0);
+        assert!(report.total_us().abs() < f64::EPSILON);
+        assert!(report.execution.results.is_empty());
+        assert!(
+            !report.all_passed(),
+            "all_passed is false when no stages ran (see PipelineExecution::all_passed)"
+        );
+        assert_eq!(report.substrate_used, "CPU");
+    }
+
+    #[test]
+    fn execute_graph_unknown_capability_marks_failure() {
+        let mut graph = PipelineGraph::new("bad-cap");
+        graph.add_stage(StageNode {
+            id: "only".to_string(),
+            capability: "science.not_a_real_capability".to_string(),
+            substrate: MixedSubstrate::CpuOnly,
+            label: "noop".to_string(),
+        });
+        let report = execute_graph(&graph);
+        assert!(!report.all_passed());
+        assert_eq!(report.total_stages, 1);
+    }
+
+    #[test]
+    fn dispatch_gpu_unknown_capability_returns_empty() {
+        let dispatcher = Dispatcher::cpu_only();
+        let (success, output) =
+            dispatch_capability_gpu("science.unknown_capability_xyz", &dispatcher);
+        assert!(!success);
+        assert!(matches!(output, StageOutput::Empty));
+    }
+
+    #[test]
+    fn wdm_ensemble_qs_stage_runs() {
+        let (success, output) = dispatch_capability("science.wdm_ensemble_qs");
+        assert!(success);
+        let StageOutput::Map(m) = output else {
+            panic!("expected Map");
+        };
+        assert!(m.contains_key("disorder"));
+        assert!(m.contains_key("cooperation"));
+    }
+
+    #[test]
+    fn isomorphic_reservoir_stage_runs() {
+        let (success, output) = dispatch_capability("science.isomorphic_reservoir");
+        assert!(success);
+        let StageOutput::Map(m) = output else {
+            panic!("expected Map");
+        };
+        assert!(m.contains_key("eff_ratio_cv"));
+    }
+
+    #[test]
+    fn pipeline_report_total_us_delegates_to_execution() {
+        let report = execute_composition_pipeline();
+        assert!((report.total_us() - report.execution.total_elapsed_us()).abs() < f64::EPSILON);
+    }
+
+    #[tokio::test]
+    async fn gpu_composition_pipeline_substrate_when_available() {
+        let dispatcher = Dispatcher::new().await;
+        let report = execute_composition_pipeline_gpu(&dispatcher);
+        assert!(report.all_passed());
+        if dispatcher.has_gpu() {
+            assert!(
+                report.substrate_used.starts_with("Mixed (GPU:")
+                    || report.substrate_used == "GPU"
+                    || report.substrate_used == "CPU",
+                "unexpected substrate label: {}",
+                report.substrate_used
+            );
+            assert!(
+                report.gpu_stages >= 2,
+                "expected GpuOnly eigensolve + attention on GPU"
+            );
+        } else {
+            assert_eq!(report.substrate_used, "CPU");
+        }
+    }
+
+    #[tokio::test]
+    async fn gpu_only_single_stage_uses_gpu_label_when_device_present() {
+        let Ok(gpu) = crate::gpu::Gpu::new().await else {
+            return;
+        };
+        let dispatcher = Dispatcher::from_gpu(gpu);
+        if !dispatcher.has_gpu() {
+            return;
+        }
+        let mut graph = PipelineGraph::new("gpu-only-test");
+        graph.add_stage(StageNode {
+            id: "eig".to_string(),
+            capability: "science.eigensolve".to_string(),
+            substrate: MixedSubstrate::GpuOnly,
+            label: "eigensolve".to_string(),
+        });
+        let report = execute_graph_gpu(&graph, &dispatcher);
+        assert!(report.all_passed());
+        assert_eq!(report.substrate_used, "GPU");
+        assert_eq!(report.gpu_stages, 1);
+        assert_eq!(report.cpu_stages, 0);
     }
 }

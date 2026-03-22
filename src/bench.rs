@@ -24,21 +24,33 @@ const NANOS_PER_MICROSECOND: f64 = 1000.0;
 
 /// Result of a single local-vs-upstream benchmark comparison.
 pub struct BenchResult {
+    /// Benchmark kernel or scenario label.
     pub name: String,
+    /// Provenance string for the upstream dispatch path (e.g. crate or wrapper name).
     pub origin: &'static str,
+    /// Median local dispatch time in microseconds.
     pub local_us: f64,
+    /// Median upstream dispatch time in microseconds.
     pub upstream_us: f64,
 }
 
 /// Parameters for a local GPU compute dispatch.
 pub struct DispatchParams<'a> {
+    /// WebGPU device used to encode the compute pass.
     pub device: &'a wgpu::Device,
+    /// Submission queue for finished command buffers.
     pub queue: &'a wgpu::Queue,
+    /// Shared GPU handle for readback after dispatch.
     pub gpu: &'a Gpu,
+    /// Compute pipeline to run for this benchmark.
     pub pipeline: &'a wgpu::ComputePipeline,
+    /// Bind group bound at index 0 for the pipeline.
     pub bg: &'a wgpu::BindGroup,
+    /// Number of workgroups along the X dimension.
     pub workgroups: u32,
+    /// Buffer read back after dispatch to force GPU completion.
     pub readback_buf: &'a wgpu::Buffer,
+    /// Number of `f32` elements to read from the readback buffer.
     pub readback_count: usize,
 }
 
@@ -179,8 +191,11 @@ pub fn bind_entry(binding: u32, buf: &wgpu::Buffer) -> wgpu::BindGroupEntry<'_> 
 /// Binding kind for pipeline layout construction.
 #[derive(Copy, Clone)]
 pub enum BindingKind {
+    /// Read-only storage buffer binding.
     StorageRead,
+    /// Read-write storage buffer binding.
     StorageWrite,
+    /// Uniform buffer binding.
     Uniform,
 }
 

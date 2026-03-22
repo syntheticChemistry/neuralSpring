@@ -35,9 +35,13 @@ use barracuda::nn::simple_mlp::{Activation, DenseLayer};
 /// Normalization parameters for 3-input/3-output MLP.
 #[derive(Debug, Clone)]
 pub struct Normalization3 {
+    /// Mean of `[log10(rho), log10(T), Z*]` inputs used for z-scoring.
     pub x_mean: [f64; 3],
+    /// Standard deviation of `[log10(rho), log10(T), Z*]` inputs.
     pub x_std: [f64; 3],
+    /// Mean of normalized log transport outputs `(D*, η*, λ*)`.
     pub y_mean: [f64; 3],
+    /// Standard deviation of normalized log transport outputs.
     pub y_std: [f64; 3],
 }
 
@@ -48,7 +52,9 @@ pub struct Normalization3 {
 /// to upstream `SimpleMlp::forward` (Session 121, barraCuda v0.3.1).
 #[derive(Debug, Clone)]
 pub struct TransportSurrogate {
+    /// Trained MLP for reduced transport coefficients.
     pub mlp: SimpleMlp,
+    /// Input/output normalization parameters for the MLP.
     pub norm: Normalization3,
 }
 

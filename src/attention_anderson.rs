@@ -17,26 +17,42 @@ use crate::tolerances;
 /// Per-configuration spectral result.
 #[derive(Debug, Clone)]
 pub struct AttentionSpectralResult {
+    /// Attention quality score from the upstream configuration.
     pub quality: f64,
+    /// Entropy of the attention or spectrum (configuration-dependent).
     pub entropy: f64,
+    /// Largest absolute eigenvalue of the symmetrized attention matrix.
     pub spectral_radius: f64,
+    /// Mean inverse participation ratio across eigenstates.
     pub mean_ipr: f64,
+    /// Effective participation number (inverse-IPR scale).
     pub participation: f64,
+    /// Normalized localization metric (participation divided by n).
     pub xi: f64,
+    /// Span between smallest and largest eigenvalues.
     pub eigenvalue_spread: f64,
 }
 
 /// Baseline loaded from Python JSON.
 #[derive(Debug, Clone)]
 pub struct AttentionAndersonBaseline {
+    /// Sequence length used when forming attention matrices.
     pub seq_len: usize,
+    /// Number of attention matrix configurations in the baseline.
     pub n_configs: usize,
+    /// Spectral summaries for each configuration.
     pub results: Vec<AttentionSpectralResult>,
+    /// Pearson correlation between quality and entropy.
     pub r_quality_entropy: f64,
+    /// Pearson correlation between quality and mean IPR.
     pub r_quality_ipr: f64,
+    /// Pearson correlation between quality and ξ.
     pub r_quality_xi: f64,
+    /// Pearson correlation between entropy and mean IPR.
     pub r_entropy_ipr: f64,
+    /// Row-major flattened reference attention matrix.
     pub reference_matrix: Vec<f64>,
+    /// Side length n of the square reference matrix.
     pub reference_n: usize,
 }
 

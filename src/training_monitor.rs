@@ -34,9 +34,15 @@ pub enum TrainingInterrupt {
     /// Training proceeding normally.
     Continue,
     /// Reduce learning rate by the given factor (Yellow → corrective action).
-    ReduceLearningRate { factor: f64 },
+    ReduceLearningRate {
+        /// Multiplicative factor applied to the learning rate (< 1.0).
+        factor: f64,
+    },
     /// Stop training immediately (Red → irrecoverable state).
-    EarlyStop { reason: String },
+    EarlyStop {
+        /// Human-readable explanation shown when training halts.
+        reason: String,
+    },
 }
 
 /// Attention state for the training monitor (hotSpring 3-state FSM).

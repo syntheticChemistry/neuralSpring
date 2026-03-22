@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #![forbid(unsafe_code)]
+#![warn(missing_docs)]
 
 //! neuralSpring forge — ML dispatch, substrate discovery, shader catalog,
 //! and `BarraCUDA` bridge.

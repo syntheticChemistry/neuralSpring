@@ -19,37 +19,54 @@ use std::fmt;
 /// A compute substrate discovered at runtime.
 #[derive(Debug, Clone)]
 pub struct Substrate {
+    /// Substrate type (GPU or CPU).
     pub kind: SubstrateKind,
+    /// Device identity (name and driver/backend identifiers).
     pub identity: Identity,
+    /// Measured hardware properties (memory, cores, feature flags).
     pub properties: Properties,
+    /// Runtime capability set used for shader dispatch and feature checks.
     pub capabilities: Vec<Capability>,
 }
 
 /// How we found this device and what to call it.
 #[derive(Debug, Clone)]
 pub struct Identity {
+    /// Human-readable device name.
     pub name: String,
+    /// Graphics or compute driver identifier, if known.
     pub driver: Option<String>,
+    /// Backend API (e.g. Vulkan, Metal), if known.
     pub backend: Option<String>,
+    /// Enumerated adapter index from the runtime, if applicable.
     pub adapter_index: Option<usize>,
+    /// PCI bus ID string for the device, if known.
     pub pci_id: Option<String>,
 }
 
 /// Measured properties of a substrate.
 #[derive(Debug, Clone, Default)]
 pub struct Properties {
+    /// Total device memory in bytes, if reported.
     pub memory_bytes: Option<u64>,
+    /// Physical or logical core count, if known.
     pub core_count: Option<u32>,
+    /// Hardware thread count, if known.
     pub thread_count: Option<u32>,
+    /// Last-level cache size in kilobytes, if known.
     pub cache_kb: Option<u32>,
+    /// Whether double-precision (f64) shader or CPU compute is available.
     pub has_f64: bool,
+    /// Whether GPU timestamp queries are supported.
     pub has_timestamps: bool,
 }
 
 /// The kind of compute device.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SubstrateKind {
+    /// GPU compute device (wgpu adapter).
     Gpu,
+    /// CPU compute device (host).
     Cpu,
     /// Neural processing unit (e.g., Intel AKD1000, Apple ANE).
     /// Discovered at runtime; routed via `mixed::MixedSubstrate`.
@@ -146,6 +163,7 @@ impl Capability {
 }
 
 impl Identity {
+    /// Build an identity with only a name; other fields unset.
     #[must_use]
     pub fn named(name: impl Into<String>) -> Self {
         Self {

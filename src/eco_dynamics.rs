@@ -126,9 +126,13 @@ impl MultiNicheLandscape {
 /// Result of running the evolutionary algorithm.
 #[derive(Debug, Clone)]
 pub struct EaResult {
+    /// Shannon equitability trace per generation.
     pub diversity: Vec<f64>,
+    /// Unique-genotype count trace per generation.
     pub richness: Vec<usize>,
+    /// Berger-Parker dominance trace per generation.
     pub dominance: Vec<f64>,
+    /// Mean aggregate fitness trace per generation.
     pub mean_fitness: Vec<f64>,
 }
 

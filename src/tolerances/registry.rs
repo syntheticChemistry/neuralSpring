@@ -21,8 +21,11 @@ use super::*;
 /// without hardcoded assumptions about what's defined.
 #[derive(Debug, Clone, Copy)]
 pub struct NamedTolerance {
+    /// Tolerance constant identifier (matches the `tolerances::` symbol name).
     pub name: &'static str,
+    /// Numeric threshold value for this tolerance.
     pub value: f64,
+    /// Category label grouping related tolerances (e.g. `"machine"`, `"spectral"`).
     pub category: &'static str,
 }
 

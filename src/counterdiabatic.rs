@@ -99,6 +99,7 @@ impl NkLandscape {
         self.k
     }
 
+    /// Fitness for every genotype index `0..2^N` as a flat vector.
     #[expect(
         clippy::cast_possible_truncation,
         reason = "genotype bit extraction uses known-small shift amounts"
@@ -225,7 +226,9 @@ pub fn compute_cd_schedule(f0: &[f64], f1: &[f64], t: usize, beta: f64) -> Vec<f
 /// Result of running deterministic protocol.
 #[derive(Debug, Clone)]
 pub struct ProtocolResult {
+    /// Mean KL divergence between population and equilibrium at each schedule step.
     pub mean_kl: Vec<f64>,
+    /// Total absolute deviation from the target Boltzmann distribution at the end.
     pub final_dist: f64,
 }
 

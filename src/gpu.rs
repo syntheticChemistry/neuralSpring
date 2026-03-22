@@ -48,12 +48,19 @@ use std::sync::Arc;
 /// assumptions about buffer sizes, workgroup limits, or feature support.
 #[derive(Debug, Clone)]
 pub struct GpuCapabilities {
+    /// Maximum storage buffer size in bytes supported by the device.
     pub max_buffer_size: u64,
+    /// Maximum X dimension of a compute workgroup.
     pub max_compute_workgroup_size_x: u32,
+    /// Maximum number of workgroups along one dispatch dimension.
     pub max_compute_workgroups_per_dimension: u32,
+    /// Maximum storage buffers bound per shader stage.
     pub max_storage_buffers_per_shader_stage: u32,
+    /// Whether `SHADER_F64` is available.
     pub supports_f64: bool,
+    /// Whether `SHADER_F16` is available.
     pub supports_f16: bool,
+    /// Whether `TIMESTAMP_QUERY` is available.
     pub supports_timestamp_query: bool,
 }
 
@@ -101,9 +108,13 @@ impl GpuCapabilities {
 /// Exposes raw `wgpu` handles for direct buffer management.
 pub struct Gpu {
     wgpu_device: Arc<WgpuDevice>,
+    /// Human-readable adapter name from `wgpu`.
     pub adapter_name: String,
+    /// Discrete vs integrated vs CPU adapter classification.
     pub device_type: wgpu::DeviceType,
+    /// Graphics API backend in use (Vulkan, Metal, etc.).
     pub backend: wgpu::Backend,
+    /// Runtime limits and feature flags discovered for this device.
     pub capabilities: GpuCapabilities,
 }
 

@@ -43,39 +43,63 @@ const XI_FLOOR: f64 = 0.01;
 /// Community profile with diversity and Anderson properties.
 #[derive(Debug, Clone)]
 pub struct CommunityProfile {
+    /// Community index.
     pub id: usize,
+    /// Species abundance parameter (Dirichlet concentration).
     pub alpha: f64,
+    /// Number of species in the community.
     pub n_species: usize,
+    /// Shannon diversity index H′.
     pub shannon_h: f64,
+    /// Pielou evenness J = H′ / ln(S).
     pub evenness: f64,
+    /// Anderson disorder strength W.
     pub disorder_w: f64,
+    /// Mean inverse participation ratio (IPR) over the disorder sweep.
     pub mean_ipr: f64,
+    /// Anderson localization length ξ.
     pub loc_length_xi: f64,
+    /// Environmental noise standard deviation on observed yield.
     pub noise_std: f64,
+    /// Test-set coefficient of determination R².
     pub r2_test: f64,
+    /// Test-set root mean squared error.
     pub rmse_test: f64,
 }
 
 /// Coupling metrics between Anderson disorder and ESN prediction quality.
 #[derive(Debug, Clone)]
 pub struct CouplingMetrics {
+    /// Pearson correlation between disorder W and test R².
     pub pearson_w_r2: f64,
+    /// Pearson correlation between localization length ξ and test R².
     pub pearson_xi_r2: f64,
+    /// Pearson correlation between mean IPR and test R².
     pub pearson_ipr_r2: f64,
+    /// Average test R² pooled over all communities.
     pub pooled_r2_test: f64,
 }
 
 /// ESN predictor loaded from the coupling baseline JSON.
 #[derive(Debug, Clone)]
 pub struct CouplingPredictor {
+    /// ESN reservoir state dimension.
     pub reservoir_size: usize,
+    /// Input-to-reservoir weight matrix (flattened).
     pub w_in: Vec<f64>,
+    /// Reservoir recurrent weight matrix (flattened row-major).
     pub w_res: Vec<f64>,
+    /// Reservoir bias vector.
     pub b_res: Vec<f64>,
+    /// Linear readout weights from reservoir to scalar output.
     pub w_out: Vec<f64>,
+    /// Per-input feature means for normalization.
     pub x_mean: [f64; 5],
+    /// Per-input feature standard deviations for normalization.
     pub x_std: [f64; 5],
+    /// Target mean for denormalizing the readout.
     pub y_mean: f64,
+    /// Target scale for denormalizing the readout.
     pub y_std: f64,
 }
 
@@ -390,18 +414,26 @@ pub fn load_coupling_from_json(json_str: &str) -> Result<CouplingBaseline, Strin
 /// Reference prediction for Rust parity checking.
 #[derive(Debug, Clone)]
 pub struct ReferencePrediction {
+    /// Raw operational feature vector (T, pH, OLR, HRT, VS/TS).
     pub input: [f64; 5],
+    /// ESN-predicted methane yield.
     pub esn_yield: f64,
+    /// Analytical methane yield from the process model.
     pub analytical_yield: f64,
 }
 
 /// Complete coupling baseline loaded from JSON.
 #[derive(Debug, Clone)]
 pub struct CouplingBaseline {
+    /// Trained ESN predictor for yield.
     pub predictor: CouplingPredictor,
+    /// Disorder–prediction-quality coupling statistics.
     pub metrics: CouplingMetrics,
+    /// One profile per simulated microbial community.
     pub communities: Vec<CommunityProfile>,
+    /// Per-community reference predictions for parity checks.
     pub reference_predictions: Vec<ReferencePrediction>,
+    /// Spatial dimension of the Anderson localization lattice.
     pub lattice_size: usize,
 }
 

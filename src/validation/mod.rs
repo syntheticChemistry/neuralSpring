@@ -12,6 +12,7 @@
 //! binary (`validate_*`) uses [`ValidationHarness`] to accumulate
 //! checks and produce a deterministic exit code.
 
+/// CPU-side benchmark validation helpers shared by `validate_*` binaries.
 pub mod cpu_bench;
 mod env;
 mod gpu;
@@ -62,6 +63,7 @@ macro_rules! require {
 /// let data = serde_json::from_str(json).or_exit("baseline JSON");
 /// ```
 pub trait OrExit<T> {
+    /// Unwrap the value or log `context` and terminate the process with code 1.
     fn or_exit(self, context: &str) -> T;
 }
 
@@ -113,18 +115,26 @@ impl std::fmt::Display for ToleranceMode {
 /// owned for runtime-formatted labels.
 #[derive(Debug, Clone)]
 pub struct Check {
+    /// Human-readable name or description of this validation check.
     pub label: Cow<'static, str>,
+    /// Whether the check passed given `mode`, `tolerance`, and expected value.
     pub passed: bool,
+    /// Value measured during validation.
     pub observed: f64,
+    /// Reference or threshold value (meaning depends on `mode`).
     pub expected: f64,
+    /// Tolerance or bound width used by `mode` (see [`ToleranceMode`]).
     pub tolerance: f64,
+    /// How `observed` is compared to `expected` / `tolerance`.
     pub mode: ToleranceMode,
 }
 
 /// Accumulates validation checks and produces a summary with exit code.
 #[derive(Debug, Default)]
 pub struct ValidationHarness {
+    /// Display name of the validation binary or suite (printed in summaries).
     pub name: String,
+    /// Recorded checks in submission order.
     pub checks: Vec<Check>,
 }
 
@@ -245,16 +255,19 @@ impl ValidationHarness {
         }
     }
 
+    /// Count of checks that passed so far.
     #[must_use]
     pub fn passed_count(&self) -> usize {
         self.checks.iter().filter(|c| c.passed).count()
     }
 
+    /// Total number of checks recorded in this harness.
     #[must_use]
     pub const fn total_count(&self) -> usize {
         self.checks.len()
     }
 
+    /// Returns true when every recorded check passed (or when there are zero checks).
     #[must_use]
     pub fn all_passed(&self) -> bool {
         self.checks.iter().all(|c| c.passed)
@@ -301,8 +314,11 @@ impl ValidationHarness {
 
 /// Expected value and tolerance for a scalar reduction check.
 pub struct ReductionExpected<'a> {
+    /// Label identifying this reduction in logs and reports.
     pub label: &'a str,
+    /// Expected scalar value from the reference implementation.
     pub value: f64,
+    /// Maximum allowed absolute deviation from `value`.
     pub tolerance: f64,
 }
 

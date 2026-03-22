@@ -27,9 +27,13 @@ use barracuda::nn::simple_mlp::{Activation, DenseLayer};
 /// Normalization parameters for MLP input/output.
 #[derive(Debug, Clone)]
 pub struct Normalization {
+    /// Mean of `[log10(rho), log10(T)]` inputs used for z-scoring.
     pub x_mean: [f64; 2],
+    /// Standard deviation of `[log10(rho), log10(T)]` inputs.
     pub x_std: [f64; 2],
+    /// Mean of normalized log-pressure and log-energy outputs.
     pub y_mean: [f64; 2],
+    /// Standard deviation of normalized log-pressure and log-energy outputs.
     pub y_std: [f64; 2],
 }
 
@@ -40,8 +44,11 @@ pub struct Normalization {
 /// to upstream `SimpleMlp::forward` (Session 121, barraCuda v0.3.1).
 #[derive(Debug, Clone)]
 pub struct EosSurrogate {
+    /// Element symbol (e.g. H, He, C) this surrogate was trained for.
     pub element: String,
+    /// Trained MLP weights for pressure and energy prediction.
     pub mlp: SimpleMlp,
+    /// Input/output normalization parameters for the MLP.
     pub norm: Normalization,
 }
 

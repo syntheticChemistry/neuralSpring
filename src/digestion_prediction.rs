@@ -119,12 +119,19 @@ pub fn biogas_yield(t: f64, ph: f64, olr: f64, hrt: f64, vs_ts: f64) -> f64 {
 /// Synthetic digester operational conditions and observed yield.
 #[derive(Debug, Clone)]
 pub struct DigesterSample {
+    /// Digester temperature (°C).
     pub temperature: f64,
+    /// Liquid pH.
     pub ph: f64,
+    /// Organic loading rate (g VS/L·d).
     pub olr: f64,
+    /// Hydraulic retention time (d).
     pub hrt: f64,
+    /// Volatile solids to total solids ratio (%).
     pub vs_ts: f64,
+    /// Analytical methane yield from the process model (mL CH₄/gVS).
     pub yield_true: f64,
+    /// Noise-perturbed observed yield (mL CH₄/gVS).
     pub yield_observed: f64,
 }
 
@@ -162,20 +169,30 @@ pub fn generate_dataset(n_samples: usize, seed: u64) -> Vec<DigesterSample> {
 /// Normalization parameters for input features and target.
 #[derive(Debug, Clone)]
 pub struct DigestionNormalization {
+    /// Per-input feature means.
     pub x_mean: [f64; INPUT_DIM],
+    /// Per-input feature standard deviations.
     pub x_std: [f64; INPUT_DIM],
+    /// Target mean for denormalization.
     pub y_mean: f64,
+    /// Target scale for denormalization.
     pub y_std: f64,
 }
 
 /// ESN regression predictor for biogas yield.
 #[derive(Debug, Clone)]
 pub struct DigestionPredictor {
+    /// ESN reservoir state dimension.
     pub reservoir_size: usize,
+    /// Input-to-reservoir weight matrix (flattened).
     pub w_in: Vec<f64>,
+    /// Reservoir recurrent weight matrix (flattened).
     pub w_res: Vec<f64>,
+    /// Reservoir bias vector.
     pub b_res: Vec<f64>,
+    /// Linear readout weights.
     pub w_out: Vec<f64>,
+    /// Input and target normalization parameters.
     pub norm: DigestionNormalization,
 }
 
@@ -300,21 +317,32 @@ pub fn rmse(y_true: &[f64], y_pred: &[f64]) -> f64 {
 /// Reference prediction from the Python baseline.
 #[derive(Debug, Clone)]
 pub struct ReferencePrediction {
+    /// Human-readable label or case description.
     pub desc: String,
+    /// Operational input feature vector.
     pub inputs: [f64; INPUT_DIM],
+    /// ESN-predicted methane yield.
     pub predicted: f64,
+    /// Analytical yield from the process model.
     pub analytical: f64,
+    /// ESN reservoir activations after the recurrence.
     pub reservoir_state: Vec<f64>,
 }
 
 /// Baseline loaded from the Python JSON.
 #[derive(Debug, Clone)]
 pub struct DigestionBaseline {
+    /// Trained ESN loaded from the baseline JSON.
     pub predictor: DigestionPredictor,
+    /// Training-set coefficient of determination R².
     pub r2_train: f64,
+    /// Held-out test-set coefficient of determination R².
     pub r2_test: f64,
+    /// Training-set RMSE (mL CH₄/gVS).
     pub rmse_train: f64,
+    /// Test-set RMSE (mL CH₄/gVS).
     pub rmse_test: f64,
+    /// Stored reference rows for numerical parity with Python.
     pub reference_predictions: Vec<ReferencePrediction>,
 }
 
