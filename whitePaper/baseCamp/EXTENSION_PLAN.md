@@ -1,8 +1,8 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: March 15, 2026 (Session 98–152)
+**Date**: March 23, 2026 (Session S170)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. S152: deep debt execution.
+**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **1,195 lib tests / 1,217 Rust total** (9 forge + 13 doc). S170: status refresh + doc alignment.
 **S151–S152 update**: Deep audit + deep debt execution — ecoBin compliance, 15+ tolerance literals centralized, capability-based primal discovery, coralReef bridge capability-first, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), V103 handoff.
 **S148–S150 update**: playGround evolution — Squirrel MCP adapter (14 tool definitions), HuggingFace Model Lab (GPT-2 inference on barraCuda), compute triangle (ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks: 7–45× pipeline reuse, 8–22× PyTorch/CUDA gap). 63 playGround unit + 13 integration tests. Live ToadStool verified. V101 handoff.
 **S147 update**: Deep debt — zero inline magic numbers, zero duplicate math, capability-based discovery. V100 handoff.
@@ -394,9 +394,9 @@ This starts:
 - NestGate: storage + data acquisition (NCBI, PDB)
 - Squirrel: AI routing (experiment orchestration)
 
-neuralSpring registers as a primal via `neuralspring_primal`:
+neuralSpring registers as a primal via `neuralspring`:
 ```bash
-neuralspring_primal --family-id eastgate
+neuralspring --family-id eastgate
 ```
 
 11 science capabilities become available to the NUCLEUS:

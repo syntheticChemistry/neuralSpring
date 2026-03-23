@@ -7,6 +7,36 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] — 2026-03-18 (Session 168b: Cross-Ecosystem Absorption)
 
+### 2026-03-22 — Session S170b (proptests)
+
+- 12 new property-based tests (proptest) across 5 modules: HMM (alpha sums, log-likelihood, viterbi), game theory (simplex preservation), Anderson localization (IPR bounds, symmetry), isomorphic reservoir (spectral radius, stats), FASTA (roundtrip)
+- **1,195 lib + 9 forge + 13 doc = 1,217 Rust tests**
+
+### 2026-03-22 — Session S170 (cross-ecosystem absorption)
+
+- barraCuda v0.3.7 compatibility: `Precision::F16` handling, `MultiHeadEsn::wgpu_device()` removal, `GpuDriverProfile` deprecation
+- Semantic Method Naming v2.1: `capabilities.list` (canonical) + `capability.list` (legacy) + `primal.capabilities` (alias)
+- `health.liveness` response: `{"status": "alive"}` per standard
+- biomeOS 5-tier discovery: `socket-registry.json` lookup (tier 5), 4-format capability response parsing
+- `publish = false` on all 3 workspace Cargo.toml
+- wateringHole handoff written, PRIMAL_REGISTRY updated to S170
+
+### 2026-03-22 — Session S169 (deep debt evolution)
+
+- Eliminated all 626 `missing_docs` warnings → 0; documented every public item across 40+ files
+- Created `CONTEXT.md` per `PUBLIC_SURFACE_STANDARD.md`
+- Full AGPL-3.0 LICENSE file (661-line canonical); GitHub description + 14 topics
+- README "Part of ecoPrimals" footer
+- Named constants (`DEFAULT_IPC_TIMEOUT_SECS`, `DEFAULT_HEARTBEAT_SECS`, `DEFAULT_MAX_CONCURRENT`)
+- Graceful shutdown via `tokio::sync::watch` (replaces `std::process::exit`)
+- TCP fallback transport via `PRIMAL_TCP_PORT`/`NEURALSPRING_TCP_PORT`
+- HuggingFace URLs configurable via env vars
+- Zero-copy streaming (FASTA/FASTQ/VCF in-place trimming)
+- Binary renamed `neuralspring_primal` → `neuralspring` (UniBin compliance)
+- Provenance/discover/offload handlers wired
+- Unnecessary `.clone()` eliminated in spectral.rs
+- **1,183 lib + 9 forge + 13 doc = 1,205 Rust tests** (pre-proptest)
+
 ### Added
 
 - `extract_rpc_result()` / `extract_rpc_result_owned()` — centralized JSON-RPC

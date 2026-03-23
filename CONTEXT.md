@@ -14,7 +14,7 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 - **Language:** Rust 2024 edition, `rust-version` **1.87**
 - **License:** AGPL-3.0-or-later (scyBorg: AGPL code + ORC mechanics + CC-BY-SA creative)
 - **Workspace:** 3 crates — `neural-spring` (library), `neural-spring-forge`, `neuralspring-playground`
-- **Scale:** 478 Rust source files; every file under 1000 lines
+- **Scale:** 477 Rust source files; every file under 1000 lines
 - **Safety:** zero `unsafe` (`#![forbid(unsafe_code)]` workspace-wide)
 - **Linting:** Clippy pedantic + nursery, zero warnings
 - **Dependencies:** `barracuda` (math engine), `wgpu` **28** (GPU), `tokio` (async), `tarpc` (optional RPC for the primal binary)
@@ -27,7 +27,7 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 
 ## Key Capabilities (JSON-RPC)
 
-Sixteen capabilities (`domain.verb`) when composed in biomeOS:
+Sixteen capabilities (`domain.verb`) when composed in biomeOS. Method naming follows Semantic Method Naming v2.1: discovery may list or resolve these via `capabilities.list` (canonical), `capability.list` (legacy), or `primal.capabilities` (alias).
 
 - `science.spectral_analysis`, `science.anderson_localization`, `science.hessian_eigen`, `science.agent_coordination`
 - `science.ipr`, `science.disorder_sweep`, `science.training_trajectory`, `science.evoformer_block`, `science.structure_module`
@@ -36,7 +36,7 @@ Sixteen capabilities (`domain.verb`) when composed in biomeOS:
 
 ## Test Coverage
 
-Approximately **85%** line coverage (`llvm-cov`). Suite includes unit tests, property tests, determinism tests, doc tests, and integration tests.
+Approximately **92%** line coverage (`llvm-cov`). Suite includes unit tests, property tests, determinism tests, doc tests, and integration tests.
 
 ## What This Does NOT Do
 

@@ -1,9 +1,9 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: March 18, 2026 (Session 168)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,600+ checks**, ~97% GPU promotion, 267 binaries, 1164 lib + 73 playGround + 75 forge = 1312 tests, 68 modules, 225 named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery, workspace-wide), zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. All files ≤500 LOC. Edition 2024, MSRV 1.87. `TensorSession`/`StatefulPipeline` wired to `Dispatcher`. V119 handoff. barraCuda v0.3.5 Sprint 7, toadStool S146+, coralReef Iter 49
+**Last Updated**: March 23, 2026 (Session S170)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,600+ checks**, ~97% GPU promotion, 267 binaries, 1195 lib + 9 forge + 13 doc = 1217 Rust tests, 68 modules, 225 named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery, workspace-wide), zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. All files ≤500 LOC. Edition 2024, MSRV 1.87. `TensorSession`/`StatefulPipeline` wired to `Dispatcher`. V119 handoff. barraCuda v0.3.7 Sprint 7, toadStool S146+, coralReef Iter 49. Binary: `neuralspring`
 
-- **S168**: Deep debt execution — `expected_source()` provenance fix (9→49+ mappings), 66 clippy→zero, `ipc_client.rs` 885→448 LOC (`discovery.rs` extracted), `TensorSession`/`StatefulPipeline` wired, 8 new proptests, `head_split`/`head_concat` lean cycle, CI workspace-wide. V119 handoff
+- **S170**: Deep debt execution — `expected_source()` provenance fix (9→49+ mappings), 66 clippy→zero, `ipc_client.rs` 885→448 LOC (`discovery.rs` extracted), `TensorSession`/`StatefulPipeline` wired, 8 new proptests, `head_split`/`head_concat` lean cycle, CI workspace-wide. V119 handoff
 - **S167**: Deep audit + ecosystem evolution — `pearson_r` centralized, `primal_names::display`, fossil `#[allow()]`→`#[expect()]`, ecoBin CI, `capability_registry.toml`, upstream `WGSL_MEAN_REDUCE` re-export, L-BFGS path. V118 handoff
 - **S166**: Doc evolution — stale counts corrected, full barraCuda Sprint 7 review. V117 handoff
 - **S165**: Ecosystem absorption — `mul_add()` FMA sweep (14 sites), IPC proptest, `ECOSYSTEM_LEVERAGE_GUIDE.md`. V116 handoff

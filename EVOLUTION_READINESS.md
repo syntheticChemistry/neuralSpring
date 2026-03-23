@@ -491,7 +491,7 @@ All external dependencies are pure Rust with no C/C++ bindings:
 | `approx` | 0.5 (dev) | Float comparison in tests | Test-only |
 
 **No dependencies require evolution to Rust** — all are already pure Rust crates.
-The optional primal deps (`anyhow`, `uuid`, `chrono`, `log`, `env_logger`) are gated behind the `primal` feature and only affect the `neuralspring_primal` binary.
+The optional primal deps (`anyhow`, `uuid`, `chrono`, `log`, `env_logger`) are gated behind the `primal` feature and only affect the `neuralspring` binary.
 
 ---
 
