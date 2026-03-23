@@ -4,7 +4,15 @@
 //!
 //! Primals only have self-knowledge; others are discovered at runtime
 //! via the biomeOS orchestrator or by probing live sockets with
-//! `capability.list`.
+//! `capabilities.list` (Semantic Method Naming Standard v2.1).
+//!
+//! ## biomeOS 5-Tier Discovery
+//!
+//! 1. `BIOMEOS_SOCKET_DIR` env override
+//! 2. `$XDG_RUNTIME_DIR/biomeos/`
+//! 3. `/run/user/{uid}/biomeos/` (identity socket)
+//! 4. `temp_dir()/biomeos/`
+//! 5. `socket-registry.json` in the resolved socket directory
 
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -66,6 +74,7 @@ pub fn discover_primal_socket(primal_name: &str) -> Result<PathBuf> {
     let socket_dir = resolve_socket_dir();
     let family_id = get_family_id();
 
+    // Tier 1-4: direct socket file lookup
     let with_family = socket_dir.join(format!("{primal_name}-{family_id}.sock"));
     if with_family.exists() {
         return Ok(with_family);
@@ -76,6 +85,14 @@ pub fn discover_primal_socket(primal_name: &str) -> Result<PathBuf> {
         return Ok(without_family);
     }
 
+    // Tier 5: socket-registry.json (biomeOS v2.66+)
+    if let Some(path) = lookup_socket_registry(&socket_dir, primal_name) {
+        if path.exists() {
+            return Ok(path);
+        }
+    }
+
+    // Fallback: scan directory for prefix match
     if let Ok(entries) = std::fs::read_dir(&socket_dir) {
         for entry in entries.flatten() {
             let name = entry.file_name();
@@ -90,6 +107,23 @@ pub fn discover_primal_socket(primal_name: &str) -> Result<PathBuf> {
         "No socket found for primal '{primal_name}' in {}",
         socket_dir.display()
     )
+}
+
+/// Look up a primal's socket path from the biomeOS `socket-registry.json`.
+///
+/// The registry maps primal names to socket paths. Returns `None` if the
+/// registry file does not exist or does not contain the requested primal.
+fn lookup_socket_registry(socket_dir: &std::path::Path, primal_name: &str) -> Option<PathBuf> {
+    let registry_path = socket_dir.join(neural_spring::config::SOCKET_REGISTRY_FILENAME);
+    let contents = std::fs::read_to_string(&registry_path).ok()?;
+    let registry: serde_json::Value = serde_json::from_str(&contents).ok()?;
+    let socket_str = registry.get(primal_name)?.as_str()?;
+    let path = PathBuf::from(socket_str);
+    if path.is_absolute() {
+        Some(path)
+    } else {
+        Some(socket_dir.join(path))
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -218,21 +252,63 @@ pub async fn discover_data_primal_and_forward(
     )
 }
 
+/// Probe a primal socket for its advertised capabilities.
+///
+/// Tries canonical `capabilities.list` first (v2.1 standard), then falls
+/// back to legacy `capability.list` for older primals.
 async fn probe_capabilities(socket_path: &std::path::Path) -> Vec<String> {
-    let resp = forward_to_primal_raw(socket_path, "capability.list", &serde_json::json!({})).await;
+    let empty = serde_json::json!({});
 
-    resp.map_or_else(
-        |_| Vec::new(),
-        |v| {
-            v.get("result")
-                .and_then(|r| r.get("capabilities"))
-                .and_then(|c| c.as_array())
-                .map(|arr| {
-                    arr.iter()
-                        .filter_map(|v| v.as_str().map(String::from))
-                        .collect()
-                })
-                .unwrap_or_default()
-        },
-    )
+    if let Ok(v) = forward_to_primal_raw(socket_path, "capabilities.list", &empty).await {
+        let caps = parse_capability_response(&v);
+        if !caps.is_empty() {
+            return caps;
+        }
+    }
+
+    if let Ok(v) = forward_to_primal_raw(socket_path, "capability.list", &empty).await {
+        return parse_capability_response(&v);
+    }
+
+    Vec::new()
+}
+
+/// Parse capabilities from any of the 4 standard response formats.
+fn parse_capability_response(v: &serde_json::Value) -> Vec<String> {
+    let Some(result) = v.get("result") else {
+        return Vec::new();
+    };
+
+    // Format A: { "capabilities": ["cap1", "cap2"] }
+    if let Some(arr) = result.get("capabilities").and_then(|c| c.as_array()) {
+        return arr
+            .iter()
+            .filter_map(|v| v.as_str().map(String::from))
+            .collect();
+    }
+
+    // Format B: { "capabilities": [{"name": "cap1"}, ...] }
+    if let Some(arr) = result.get("capabilities").and_then(|c| c.as_array()) {
+        let names: Vec<String> = arr
+            .iter()
+            .filter_map(|v| v.get("name")?.as_str().map(String::from))
+            .collect();
+        if !names.is_empty() {
+            return names;
+        }
+    }
+
+    // Format C: result is directly an array
+    if let Some(arr) = result.as_array() {
+        return arr
+            .iter()
+            .filter_map(|v| {
+                v.as_str()
+                    .map(String::from)
+                    .or_else(|| v.get("name")?.as_str().map(String::from))
+            })
+            .collect();
+    }
+
+    Vec::new()
 }

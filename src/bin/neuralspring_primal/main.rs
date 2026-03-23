@@ -147,7 +147,9 @@ fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<J
 
     Some(match request.method.as_str() {
         "health" => spectral::handle_health(id, state),
-        "capability.list" => handlers::handle_capability_list(id),
+        "capabilities.list" | "capability.list" | "primal.capabilities" => {
+            handlers::handle_capability_list(id)
+        }
         "science.ipr" => spectral::handle_ipr(id, params),
         "science.disorder_sweep" => spectral::handle_disorder_sweep(id, params),
         "science.spectral_analysis" => spectral::handle_spectral_analysis(id, params),

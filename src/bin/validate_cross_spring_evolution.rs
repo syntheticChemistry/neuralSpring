@@ -408,6 +408,10 @@ fn validate_rewired_viterbi_argmax(
     );
 }
 
+#[expect(
+    deprecated,
+    reason = "GpuDriverProfile → DeviceCapabilities migration pending"
+)]
 fn validate_driver_profile(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     if let Some(profile) = dispatcher.driver_profile() {
         println!("[profile] Driver: {:?}", profile.driver);

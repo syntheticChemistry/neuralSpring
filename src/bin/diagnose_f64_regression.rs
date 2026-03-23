@@ -36,6 +36,7 @@ fn main() {
 
     println!("=== GPU: {} ===", dev.adapter_info().name);
 
+    #[expect(deprecated, reason = "migrate to DeviceCapabilities")]
     let profile = barracuda::device::driver_profile::GpuDriverProfile::from_device(&dev);
     println!("  fp64_strategy: {:?}", profile.fp64_strategy());
     println!("  precision_routing: {:?}", profile.precision_routing());

@@ -51,6 +51,7 @@ pub mod wdm_heads {
 /// between head predictions (phase boundary signal from hotSpring).
 pub struct MultiHeadWdmClassifier {
     esn: MultiHeadEsn,
+    device: std::sync::Arc<barracuda::device::WgpuDevice>,
     last_state: Option<barracuda::tensor::Tensor>,
     norm: EsnNormalization,
     n_classes: usize,
@@ -118,8 +119,15 @@ impl MultiHeadWdmClassifier {
             .await
             .map_err(|e| format!("MultiHeadEsn init: {e}"))?;
 
+        let device = std::sync::Arc::new(
+            barracuda::device::WgpuDevice::new()
+                .await
+                .map_err(|e| format!("WgpuDevice init: {e}"))?,
+        );
+
         Ok(Self {
             esn,
+            device,
             last_state: None,
             norm: EsnNormalization {
                 x_mean: [0.0, 0.0],
@@ -134,13 +142,13 @@ impl MultiHeadWdmClassifier {
         self.norm = norm;
     }
 
-    /// `WgpuDevice` used by the internal reservoir.
+    /// `WgpuDevice` used for tensor creation.
     ///
     /// [`Tensor`] inputs in [`Self::update`](Self::update) must be created on this
     /// device (typically `self.wgpu_device().clone()`).
     #[must_use]
-    pub fn wgpu_device(&self) -> &std::sync::Arc<barracuda::device::WgpuDevice> {
-        self.esn.wgpu_device()
+    pub const fn wgpu_device(&self) -> &std::sync::Arc<barracuda::device::WgpuDevice> {
+        &self.device
     }
 
     /// Feed an input through the shared reservoir.

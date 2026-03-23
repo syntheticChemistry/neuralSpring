@@ -9,13 +9,13 @@ use super::{ALL_CAPABILITIES, PRIMAL_NAME, PrimalState};
 use neural_spring::niche;
 
 /// Kubernetes-style liveness probe: is the process alive and able to
-/// handle requests?  Always returns `"alive": true` — if the process
-/// can dispatch this method, it is live.
+/// handle requests?  Returns `{"status": "alive"}` per Semantic Method
+/// Naming Standard v2.1.
 pub fn handle_liveness(id: serde_json::Value) -> JsonRpcResponse {
     JsonRpcResponse::success(
         id,
         serde_json::json!({
-            "alive": true,
+            "status": "alive",
             "primal": PRIMAL_NAME,
         }),
     )

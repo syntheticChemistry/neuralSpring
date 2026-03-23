@@ -31,6 +31,10 @@ mod dispatch_popgen;
 mod dispatch_stats;
 
 use barracuda::device::WgpuDevice;
+#[expect(
+    deprecated,
+    reason = "migrate to DeviceCapabilities when barraCuda removes GpuDriverProfile"
+)]
 use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile, PrecisionRoutingAdvice};
 use barracuda::unified_hardware::BandwidthTier;
 use std::sync::Arc;

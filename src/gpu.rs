@@ -255,9 +255,9 @@ impl Gpu {
     ) -> wgpu::ShaderModule {
         use barracuda::shaders::precision::Precision;
         match precision {
-            Precision::F64 => self.wgpu_device.compile_shader_f64(source, None),
+            Precision::F16 | Precision::F32 => self.wgpu_device.compile_shader(source, None),
             Precision::Df64 => self.wgpu_device.compile_shader_df64(source, None),
-            Precision::F32 => self.wgpu_device.compile_shader(source, None),
+            Precision::F64 => self.wgpu_device.compile_shader_f64(source, None),
         }
     }
 

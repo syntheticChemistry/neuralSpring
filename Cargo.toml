@@ -9,6 +9,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.87"
 license = "AGPL-3.0-or-later"
+publish = false
 description = "Validation harness proving BarraCUDA Rust/WGSL primitives reproduce Python ML baselines"
 repository = "https://github.com/ecoPrimals/neuralSpring"
 

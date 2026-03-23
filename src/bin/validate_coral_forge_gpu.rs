@@ -683,6 +683,7 @@ async fn main() {
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
+            #[expect(deprecated, reason = "migrate to DeviceCapabilities")]
             let profile =
                 barracuda::device::driver_profile::GpuDriverProfile::from_device(g.wgpu_device());
             println!("  FP64 strategy: {:?}", profile.fp64_strategy());

@@ -4,6 +4,7 @@ version = "0.2.0"
 edition = "2024"
 rust-version = "1.87"
 license = "AGPL-3.0-or-later"
+publish = false
 description = "ML dispatch, substrate discovery, workload tracking, and BarraCUDA bridge for ToadStool absorption"
 repository = "https://github.com/ecoPrimals/neuralSpring"
 

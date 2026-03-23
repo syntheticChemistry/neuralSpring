@@ -93,7 +93,10 @@ pub const ENV_GPU_BACKEND: &str = "NEURALSPRING_BACKEND";
 /// Prefix for all neuralSpring capabilities.
 pub const CAPABILITY_PREFIX: &str = "science";
 
-/// Complete capability set advertised by neuralSpring via `capability.list`.
+/// Socket registry filename for biomeOS 5-tier discovery (tier 5).
+pub const SOCKET_REGISTRY_FILENAME: &str = "socket-registry.json";
+
+/// Complete capability set advertised by neuralSpring via `capabilities.list`.
 ///
 /// Mirrors `config/capability_registry.toml` — the registry file is the
 /// canonical definition for biomeOS deploy graphs and tooling; this array
