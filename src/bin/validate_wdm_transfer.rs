@@ -23,6 +23,7 @@
     reason = "validation binary"
 )]
 
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::validation::ValidationHarness;
 
@@ -220,7 +221,7 @@ fn generate_classical_data(n: usize, rng: &mut Rng) -> (Vec<f64>, Vec<f64>) {
         x.push(kappa);
 
         let d_star = 0.3 / (gamma.powf(1.5) + 0.1) + 0.01;
-        y.push((d_star + 1e-30).log10());
+        y.push((d_star + primitives::R2_DENOMINATOR_FLOOR).log10());
     }
     (x, y)
 }
@@ -237,7 +238,7 @@ fn generate_wdm_data(n: usize, rng: &mut Rng) -> (Vec<f64>, Vec<f64>) {
 
         let gamma_eff = (gamma * (1.0 + kappa / 3.0) * (-kappa).exp()).clamp(0.01, 200.0);
         let d_star = 0.3 / (gamma_eff.powf(1.5) + 0.1) + 0.01;
-        y.push((d_star + 1e-30).log10());
+        y.push((d_star + primitives::R2_DENOMINATOR_FLOOR).log10());
     }
     (x, y)
 }
@@ -285,7 +286,7 @@ fn r2_score(y_true: &[f64], y_pred: &[f64]) -> f64 {
         .map(|(&t, &p)| (t - p).powi(2))
         .sum();
     let ss_tot: f64 = y_true.iter().map(|&t| (t - mean).powi(2)).sum();
-    1.0 - ss_res / ss_tot.max(1e-30)
+    1.0 - ss_res / ss_tot.max(primitives::R2_DENOMINATOR_FLOOR)
 }
 
 fn apply_norm(data: &[f64], cols: usize, mean: &[f64], std: &[f64]) -> Vec<f64> {

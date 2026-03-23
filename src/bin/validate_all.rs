@@ -247,16 +247,12 @@ const BINARIES: &[&str] = &[
     // Phase B gap closure: ODE batch GPU + FST + introgression HMM chain
     "validate_gpu_ode_batch",
     "validate_gpu_phase_b_extended",
-    // Modern rewire + cross-spring provenance benchmark
-    "bench_modern_rewire",
     // BarraCUDA CPU parity + performance (Python/NumPy vs pure Rust)
     "validate_barracuda_cpu_bench",
     // BarraCUDA dispatch parity (CPU ↔ GPU same math)
     "validate_barracuda_dispatch_parity",
     // Mixed-hardware dispatch (NPU/GPU/CPU substrate routing + PCIe bridge)
     "validate_mixed_hardware_dispatch",
-    // Portability tier benchmark (CPU → GPU parity + ToadStool streaming proof)
-    "bench_portability_tiers",
     // S91: Modern cross-spring evolution — BarraCUDA S68 universal precision,
     // provenance tracking across all 5 springs, bio+stats+precision validation
     "validate_modern_cross_spring",

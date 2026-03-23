@@ -1159,6 +1159,10 @@ name = "validate_training_monitor"
 path = "src/bin/validate_training_monitor.rs"
 
 [[bin]]
+name = "validate_immunological_anderson"
+path = "src/bin/validate_immunological_anderson.rs"
+
+[[bin]]
 name = "validate_immunological_anderson_extended"
 path = "src/bin/validate_immunological_anderson_extended.rs"
 

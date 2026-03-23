@@ -44,6 +44,7 @@
 use barracuda::device::WgpuDevice;
 use barracuda::tensor::Tensor;
 use neural_spring::gpu::Gpu;
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::{ValidationHarness, exit_no_gpu};
@@ -327,7 +328,7 @@ fn r2_f32(y_true: &[f32], y_pred: &[f32]) -> f32 {
         .map(|(t, p)| (t - p).powi(2))
         .sum();
     let ss_tot: f32 = y_true.iter().map(|t| (t - mean).powi(2)).sum();
-    1.0 - ss_res / ss_tot.max(1e-30)
+    1.0 - ss_res / ss_tot.max(primitives::R2_DENOMINATOR_FLOOR as f32)
 }
 
 // ═══════════════════════════════════════════════════════════════════

@@ -36,7 +36,7 @@ use std::io::BufRead;
 /// Sequence data is stored in an owned [`Vec`] because a record may span many
 /// physical lines; there is no single borrowable slice into one read buffer.
 /// Zero-copy line reads are handled inside [`FastaReader`] (no extra `String`
-/// per line beyond the buffer that [`BufRead::read_line`](std::io::BufRead::read_line) fills).
+/// per line beyond the buffer that [`BufRead::read_line`] fills).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FastaRecord {
     header: String,

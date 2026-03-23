@@ -1,10 +1,11 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 18, 2026 (Session 168b — Cross-ecosystem absorption. 1167 lib + 73 forge + 80 playGround = 1320 tests, 267 binaries, 68 modules, 225 named tolerances)
-**barraCuda**: v0.3.5 at `0649cd0` (`../barraCuda/crates/barracuda`). 719 WGSL shaders, wgpu 28, Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. `PrecisionRoutingAdvice` with `F64NativeNoSharedMem` Ada Lovelace reclassification, `WORKGROUP_SIZE_1D` constant, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Three-tier precision: F32/F64/Df64 (lean 3-tier model, F16+templates removed). Deep debt: typed errors, named constants, `Arc<str>` hot-path, `RwLock` compiler, ring buffer back-off, streaming pipeline completion. **Known issue**: `enable f64;` in WGSL triggers PTXAS silent-zero regression on Ada Lovelace — fix implemented locally in `pipeline_cache.rs`, pending upstream absorption.
+**Date**: March 23, 2026 (Session 171 — Deep debt audit execution. 1195 lib + 73 forge + 80 playGround = 1348 tests, 267 binaries, 68 modules, 227 named tolerances)
+**barraCuda**: v0.3.7 (`../barraCuda/crates/barracuda`). 806+ WGSL shaders, wgpu 28, Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. `PrecisionRoutingAdvice` with `F64NativeNoSharedMem` Ada Lovelace reclassification, `WORKGROUP_SIZE_1D` constant, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Three-tier precision: F32/F64/Df64 (lean 3-tier model, F16+templates removed). Deep debt: typed errors, named constants, `Arc<str>` hot-path, `RwLock` compiler, ring buffer back-off, streaming pipeline completion. **Known issue**: `enable f64;` in WGSL triggers PTXAS silent-zero regression on Ada Lovelace — fix implemented locally in `pipeline_cache.rs`, pending upstream absorption.
 **ToadStool**: S146 at `751b3849`. Hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests. Absorbed neuralSpring `pipeline_graph` DAG + hotSpring `streaming_dispatch`. Dual-write discovery (canonical + coralReef-compatible). `GpuDevice` enrichment (render_node, driver, arch). `gpu.dispatch` + `shader.compile` + `orchestration` capabilities. Compute triangle unblocked. Deep debt, zero-copy.
 **coralReef**: Iteration 49. `coral-glowplug` crate (sovereign PCIe broker), GV100 per-runlist registers, HBM2 training, bar cartography, 1842+ tests. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2). Three-tier precision architecture: f32 native, f64 DFMA+polynomial lowering, df64 preamble auto-prepend. `Fp64Strategy` in `CompileOptions`. Built-in `df64_preamble.wgsl`. 8 neuralSpring shaders in corpus.
-**neuralSpring**: 1167 lib tests + 73 forge + 80 playGround = 1320 tests, 267 binaries, 68 modules, 0 clippy warnings (pedantic+nursery+cast lints, workspace-wide), 0 fmt diffs. All 3 crate roots `forbid(unsafe_code)`. All files ≤500 LOC. AGPL-3.0-or-later. **Zero C dependencies** (ecoBin compliant). **Rust Edition 2024**. proptest 14 invariants. **Zero `#[allow()]` workspace-wide**. ecoBin CI (musl+ARM cross-compile). `PROVENANCE_REGISTRY` (49 records, completeness-tested). `OnceLock` GPU probe cache. Cast lint deny. `PRIMAL_DOMAIN`.
+**neuralSpring**: 1195 lib tests + 73 forge + 80 playGround = 1348 tests, 267 binaries, 68 modules, 0 clippy warnings (pedantic+nursery+cast lints, workspace-wide), 0 fmt diffs. All 3 crate roots `forbid(unsafe_code)`. All files ≤500 LOC. AGPL-3.0-or-later. **Zero C dependencies** (ecoBin compliant). **Rust Edition 2024**. proptest 14 invariants. **Zero `#[allow()]` workspace-wide**. ecoBin CI (musl+ARM cross-compile). `PROVENANCE_REGISTRY` (49 records, completeness-tested). `OnceLock` GPU probe cache. Cast lint deny. `PRIMAL_DOMAIN`.
+**S171**: Deep debt audit execution — `PipelineError` typed error (nucleus_pipeline .expect()→Result), `POSITIVE_DATA_GUARD` + `R2_DENOMINATOR_FLOOR` named constants (primitives.rs), 2 bench_* removed from validate_all, metalForge forge lint parity (unwrap_used/expect_used), barraCuda version refs refreshed (v0.3.5→v0.3.7 across 4 specs + ABSORPTION_TRACKER), 12 proptest invariants expanded. V121 handoff.
 **S168b**: Cross-ecosystem absorption — `extract_rpc_result()`/`extract_rpc_result_owned()` (healthSpring V37), `PRIMAL_DOMAIN` (healthSpring V34), `OnceLock` GPU probe cache (groundSpring V116), `PROVENANCE_REGISTRY` (49 entries, 4 tests), cast lint deny (airSpring V0.9.0). V120 handoff.
 **S168**: Deep debt execution — `expected_source()` fixed (9→49+ provenance mappings), 66 clippy warnings→zero, `ipc_client.rs` 885→448 LOC (discovery.rs extracted), `TensorSession`/`StatefulPipeline` wired to `Dispatcher`, 8 new proptests (metrics+spectral), `head_split`/`head_concat` lean cycle, CI workspace-wide, barraCuda contract constants named. V119 handoff.
 **S167**: Deep ecosystem audit — `pearson_r` centralized (3 modules), `primal_names::display` (12 constants, 20+ sites), fossil `#[allow()]` → `#[expect(reason)]` (24 attrs, 8 files), ecoBin CI, `capability_registry.toml` (16 caps), upstream `WGSL_MEAN_REDUCE` re-export, L-BFGS path documented. V118 handoff.
@@ -94,7 +95,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 44→127: benchmarks | Pure Rust vs Python (15 domains, geomean) | **38.6× faster** (honest: includes 2 BLAS-bound) |
 | Evolved LOC | ~2,864 fossilized | Documented, bench migration complete |
 | gpu_dispatch, gpu_ops | Capability-based GPU/CPU dispatch + 47 promoted ops (now split into 7 domain files), 9 rewired to upstream domain_ops | **240 binaries** |
-| `validate_all` (S115) | **220/220 PASS** (RTX 4070, all green) | **ALL GREEN** |
+| `validate_all` (S115) | **230/230 PASS** (RTX 4070, all green) | **ALL GREEN** |
 | Session 47: typed op migration | 10 validators rewired raw wgpu → typed BarraCUDA ops | **Cross-spring complete** |
 | Session 48: mass typed op rewiring | 28 binaries rewired raw wgpu → typed BarraCUDA ops | **Complete** |
 | Session 48: f32→f64 upstream sync | BatchFitnessGpu, LocusVarianceGpu, MultiObjFitnessGpu, WrightFisherGpu, StencilCooperationGpu, SwarmNnGpu | **Data type alignment** |
@@ -108,7 +109,7 @@ Mixed-hardware (mH), and Multi-GPU (mG).
 | Session 55: `Dispatcher::mixed_dispatch()` | metalForge mixed-hardware wiring integrated into `gpu_dispatch` | **Wired** |
 | Session 55: `validate_mixed_hardware` | Mixed-hardware dispatch (GPU↔NPU↔CPU routing, PCIe bridge, crossover) | **14/14 PASS** |
 | Session 55: doc cleanup | 5 sub-thesis docs fixed (binary refs, check counts), 15 grounding papers → Primitives validated | **Done** |
-| `validate_all` | **220/220 PASS** (RTX 4070) | **ALL GREEN** |
+| `validate_all` | **230/230 PASS** (RTX 4070) | **ALL GREEN** |
 | Session 74: pure GPU all-domains | `validate_gpu_pure_workload_all` 10/10 PASS (9 typed GPU ops + determinism) | **ALL GREEN** |
 | Session 74: evolution tier bench | `bench_evolution_tiers` 8 domains CPU→GPU portability | **PROVEN** |
 | Session 74: cross-system dispatch | `validate_cross_system_dispatch` 46/46 PASS (discovery + heuristics + parity + NPU) | **ALL GREEN** |
@@ -477,7 +478,7 @@ All external dependencies are pure Rust with no C/C++ bindings:
 
 | Crate | Version | Role | Evolution Path |
 |-------|---------|------|----------------|
-| `barracuda` | path (v0.3.5 at `0649cd0`) | GPU compute abstraction (in-house) | Standalone barraCuda primal (extracted from ToadStool S89) |
+| `barracuda` | path (v0.3.7) | GPU compute abstraction (in-house) | Standalone barraCuda primal (extracted from ToadStool S89) |
 | `neural-spring-forge` | path | Shader catalog (in-house) | Evolves with metalForge |
 | `biomeos-primal-sdk` | path (opt) | Primal IPC framework (in-house) | Evolves with biomeOS |
 | `bytemuck` | 1.21 | Zero-copy GPU buffer casting | Stable, pure Rust, no alternative needed |
@@ -1005,7 +1006,7 @@ documents provenance across 5 springs.
 
 | Metric | Value |
 |--------|-------|
-| validate_all | **220/220 PASS** |
+| validate_all | **230/230 PASS** |
 | Binaries | 234 |
 | Library tests | 869 |
 | Latest handoff | **V81** (S121) |

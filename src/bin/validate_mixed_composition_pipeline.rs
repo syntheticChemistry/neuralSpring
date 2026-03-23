@@ -29,7 +29,7 @@ fn main() {
 
     println!("\n── Phase 1: CPU-only baseline ──");
     let cpu_start = Instant::now();
-    let cpu_report = execute_composition_pipeline();
+    let cpu_report = execute_composition_pipeline().expect("cpu pipeline");
     let cpu_us = cpu_start.elapsed().as_secs_f64() * 1_000_000.0;
     h.check_bool("CPU pipeline passes", cpu_report.all_passed());
     println!(
@@ -43,7 +43,7 @@ fn main() {
 
     println!("\n── Phase 2: Mixed GPU/CPU pipeline ──");
     let mixed_start = Instant::now();
-    let mixed_report = execute_composition_pipeline_gpu(&dispatcher);
+    let mixed_report = execute_composition_pipeline_gpu(&dispatcher).expect("gpu pipeline");
     let mixed_us = mixed_start.elapsed().as_secs_f64() * 1_000_000.0;
     h.check_bool("mixed pipeline passes", mixed_report.all_passed());
     println!(

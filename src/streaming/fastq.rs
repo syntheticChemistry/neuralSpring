@@ -414,4 +414,55 @@ mod tests {
         assert!(s.contains("quality length (2)"));
         assert!(s.contains("sequence length (4)"));
     }
+
+    proptest::proptest! {
+        #![proptest_config(proptest::prelude::ProptestConfig::with_cases(64))]
+
+        #[test]
+        fn write_then_parse_roundtrip(
+            len in 1_usize..200,
+            seed in 0_u64..10000,
+        ) {
+            let bases = b"ACGTN";
+            let seq: Vec<u8> = (0..len).map(|i| bases[((seed as usize) + i) % 5]).collect();
+            let qual: Vec<u8> = (0..len).map(|i| b'!' + ((i + seed as usize) % 62) as u8).collect();
+
+            let header = format!("@prop_{seed}");
+            let mut buf = Vec::new();
+            buf.extend_from_slice(header.as_bytes());
+            buf.push(b'\n');
+            buf.extend_from_slice(&seq);
+            buf.push(b'\n');
+            buf.extend_from_slice(b"+\n");
+            buf.extend_from_slice(&qual);
+            buf.push(b'\n');
+
+            let records = parse_all(&buf).unwrap();
+            proptest::prop_assert_eq!(records.len(), 1);
+            proptest::prop_assert_eq!(records[0].seq(), seq.as_slice());
+            proptest::prop_assert_eq!(records[0].len(), len);
+
+            let mut written = Vec::new();
+            records[0].write_to(&mut written).unwrap();
+            let reparsed = parse_all(&written).unwrap();
+            proptest::prop_assert_eq!(records, reparsed);
+        }
+
+        #[test]
+        fn sequence_length_matches_quality(
+            len in 1_usize..500,
+        ) {
+            let seq: Vec<u8> = (0..len).map(|i| b"ACGT"[i % 4]).collect();
+            let qual: Vec<u8> = vec![b'I'; len];
+            let mut buf = Vec::new();
+            buf.extend_from_slice(b"@test\n");
+            buf.extend_from_slice(&seq);
+            buf.extend_from_slice(b"\n+\n");
+            buf.extend_from_slice(&qual);
+            buf.push(b'\n');
+
+            let records = parse_all(&buf).unwrap();
+            proptest::prop_assert_eq!(records[0].len(), len);
+        }
+    }
 }

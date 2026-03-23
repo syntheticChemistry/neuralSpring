@@ -1,6 +1,6 @@
 # neuralSpring — Data Provenance
 
-**Last Updated**: March 2, 2026 (Sessions 83–109)
+**Last Updated**: March 23, 2026 (Sessions 83–171)
 **Purpose**: Document all external datasets, APIs, and pre-trained assets used in validation experiments. Every data source must be public, reproducible, and free of access restrictions.
 
 ---
@@ -74,6 +74,28 @@
 | Exp-050 (Training Trajectory) | MNIST subset | torchvision | [yann.lecun.com/exdb/mnist](http://yann.lecun.com/exdb/mnist/) | CC BY-SA 3.0 | 4 architectures, spectral diagnostics per epoch. Seed=42. |
 | Exp-052 (Hessian Eigen) | MNIST 5K subset | torchvision | [yann.lecun.com/exdb/mnist](http://yann.lecun.com/exdb/mnist/) | CC BY-SA 3.0 | 15 configs (5 LR × 3 WD), Hessian at convergence. Seed=42. |
 | Exp-053 (Anderson Multi-Agent) | Synthetic agent networks | Generated in-code | N/A — pure math | N/A | 64/125/216/512 agents, disorder sweep. Seed=42. |
+
+### baseCamp Composition Experiments (Sessions 143–170)
+
+| Experiment | Dataset | Source | Access | License | Notes |
+|-----------|---------|--------|--------|---------|-------|
+| Exp-096 (Digester-Anderson) | ESN + Anderson coupling | Generated in-code | N/A — composition | N/A | Shannon×IPR cross-domain. Seed=42. |
+| Exp-097 (Isomorphic Reservoir) | ESN/LSTM spectral ensemble | Generated in-code | N/A — pure math | N/A | Cross-domain spectral universality. Seed=42. |
+| Exp-098 (WDM Ensemble QS) | WDM disagreement → Anderson | Generated in-code | N/A — composition | N/A | Surrogate disagreement → disorder. Seed=42. |
+| Exp-099 (Introgression NN) | HMM on NN weight layers | Generated in-code | N/A — composition | N/A | Gene-flow detection on NN weights. Seed=42. |
+| Exp-100 (Attention Anderson) | Attention matrix spectral | Generated in-code | N/A — pure math | N/A | Anderson localization on attention. Seed=42. |
+| Exp-103..106 (GPU pipeline) | Composition pipeline stages | Generated in-code | N/A — composition | N/A | GPU eigensolve, batched spectral, mixed DAG. Seed=42. |
+
+### baseCamp Sub-thesis Data (Sessions 50–170)
+
+| Sub-thesis | Dataset | Source | Access | License | Notes |
+|-----------|---------|--------|--------|---------|-------|
+| nS-01 (Weight Spectral) | Random + pretrained weights | Generated + HuggingFace | [huggingface.co](https://huggingface.co/) | Apache-2.0/MIT | GPT-2 safetensors. Seed=42 for synthetic. |
+| nS-02 (Information Flow) | Layer activation sequences | Generated in-code | N/A — pure math | N/A | Synthetic gradient propagation. Seed=42. |
+| nS-03 (Loss Landscape) | Energy landscape Hessians | Generated in-code | N/A — pure math | N/A | Simulated annealing + eigendecomp. Seed=42. |
+| nS-04 (Neural PGM) | HMM transition matrices | Generated in-code | N/A — pure math | N/A | PGM belief propagation. Seed=42. |
+| nS-05 (Agent Coordination) | Multi-agent interaction graphs | Generated in-code | N/A — pure math | N/A | Quorum sensing on agent networks. Seed=42. |
+| nS-06 (Immunological Anderson) | Lattice disorder models | Generated in-code | N/A — pure math | N/A | Anderson localization in signaling. Seed=42. |
 
 ---
 

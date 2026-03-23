@@ -34,6 +34,7 @@ use neural_spring::anderson_localization::{anderson_hamiltonian_random, disorder
 use neural_spring::eigh::eigh_householder_qr;
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
 use neural_spring::gpu_ops;
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -425,7 +426,9 @@ fn validate_mixed_atomic_coordination(
     }
 
     let probs: Vec<f64> = {
-        let raw: Vec<f64> = (0..64).map(|_| rng.uniform().abs() + 1e-10).collect();
+        let raw: Vec<f64> = (0..64)
+            .map(|_| rng.uniform().abs() + primitives::POSITIVE_DATA_GUARD)
+            .collect();
         let sum: f64 = raw.iter().sum();
         raw.iter().map(|v| v / sum).collect()
     };

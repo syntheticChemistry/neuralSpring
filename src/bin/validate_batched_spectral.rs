@@ -28,7 +28,8 @@ fn main() {
 
     println!("\n── Sequential (CPU-only pipeline) ──");
     let seq_start = Instant::now();
-    let seq_report = execute_composition_pipeline();
+    let seq_report = execute_composition_pipeline().expect("composition pipeline");
+
     let seq_us = seq_start.elapsed().as_secs_f64() * 1_000_000.0;
     h.check_bool("sequential pipeline passes", seq_report.all_passed());
     println!(
@@ -44,7 +45,7 @@ fn main() {
 
     println!("\n── GPU-Dispatch pipeline ──");
     let gpu_start = Instant::now();
-    let gpu_report = execute_composition_pipeline_gpu(&dispatcher);
+    let gpu_report = execute_composition_pipeline_gpu(&dispatcher).expect("gpu pipeline");
     let gpu_us = gpu_start.elapsed().as_secs_f64() * 1_000_000.0;
     h.check_bool("GPU pipeline passes", gpu_report.all_passed());
     println!(

@@ -40,44 +40,31 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 - **Reduction** (sum, mean, max) — aggregation
 - **Quantization** (Q4, Q8, FP16) — deployment compression
 
-neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 719+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
+neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 806+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
 
-## Current Status: 397/397 Python PASS + 4200+ Rust+GPU PASS = **4600+ total validation checks**
+## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
 
-**S170: UniBin compliance — primary binary `neuralspring`, barraCuda v0.3.7, 1217 Rust tests (1195 lib + 9 forge + 13 doc), 0 clippy (pedantic+nursery), 0 fmt, 0 doc warnings. V120 handoff.**
+**S171: Deep debt audit execution — `PipelineError` typed error (nucleus_pipeline .expect()→Result),
+`POSITIVE_DATA_GUARD` + `R2_DENOMINATOR_FLOOR` named constants (primitives.rs), 2 bench_* removed
+from validate_all, metalForge forge lint parity (unwrap_used/expect_used), barraCuda version refs
+refreshed (v0.3.5→v0.3.7 across 4 specs + ABSORPTION_TRACKER), 6 new proptests (FASTQ/VCF/WDM),
+0 doc warnings on main crate (2 link fixes). 1356 tests (1203 lib + 73 forge + 80 playGround),
+0 clippy (pedantic+nursery), 0 fmt, 0 doc warnings. V121 handoff.**
 
-**S168: Deep debt execution + ecosystem handoff — `expected_source()` provenance fix (9→49+ script
-mappings, was non-functional), 66 clippy warnings→zero (workspace-wide including tests),
-`ipc_client.rs` smart refactor 885→448 LOC (`discovery.rs` extracted, 439 LOC),
-`TensorSession`/`StatefulPipeline` wired to `Dispatcher` for fused GPU pipelines,
-8 new proptests (R²/RMSE/MAE metrics, Frobenius/transpose/normal-distance spectral),
-`head_split`/`head_concat` lean cycle, CI workspace-wide, barraCuda contract constants named.
-1312 tests (1164 lib + 73 playGround + 75 forge), 0 clippy, 0 fmt, 0 doc warnings. V119 handoff.**
+**S170: UniBin compliance — primary binary `neuralspring`, barraCuda v0.3.7, 1320 tests, 0 clippy. V120.**
 
-**S167: Deep audit + ecosystem evolution — `pearson_r` centralized, `primal_names::display`,
-fossil `#[allow()]`→`#[expect(reason)]`, ecoBin CI, `capability_registry.toml`,
-upstream `WGSL_MEAN_REDUCE` re-export, L-BFGS path documented. V118 handoff.**
+**S168–S169** (condensed): Deep debt — `expected_source()` provenance fix (9→49+ mappings),
+66 clippy→zero, `ipc_client.rs` 885→448 LOC, `TensorSession`/`StatefulPipeline` wired to `Dispatcher`,
+`CONTEXT.md`, AGPL LICENSE, graceful shutdown, TCP fallback, zero-copy streaming. V119–V120 handoffs.
 
-**S166: Doc evolution + V117 handoff — test counts corrected, full barraCuda Sprint 7 review,
-archive sweep. V117 handoff.**
+**S164–S167** (condensed): Ecosystem evolution — `mul_add()` FMA sweep, `pearson_r` centralized,
+`#[allow()]`→`#[expect(reason)]` (zero remaining), ecoBin CI, `capability_registry.toml`,
+MSRV 1.87, `total_cmp()`, Edition 2024, health probes, RetryPolicy/CircuitBreaker, 28 proptests.
+V115–V118 handoffs.
 
-**S165: Ecosystem absorption — `mul_add()` FMA sweep (14 sites, 10 modules), IPC proptest
-invariants, `ECOSYSTEM_LEVERAGE_GUIDE.md`. V116 handoff.**
-
-**S164: Deep debt — 7 tolerances named, `solve_symmetric`→barraCuda, MSRV 1.87, `total_cmp()`,
-`tolerances/training.rs` extracted. V115 handoff.**
-**S163: Edition 2024 — Rust 2024, health probes, RetryPolicy/CircuitBreaker, 6 proptests. V114.**
-**S162: Cross-ecosystem absorption execution — 4-format `parse_capabilities()`, generic `discover_primal()`
-+ `socket_env_var()`, `DispatchOutcome` enum, `resilient_call()` circuit breaker, `safe_cast` module,
-zero `eprintln!` workspace-wide (1642 → 0), safe GPU casts.**
-**S159–S161** (condensed): IPC evolution (`IpcError` typed enum, `call_typed()`, `extract_rpc_error()`,
-typed `compute.dispatch`, `JsonRpcError::code` i32→i64), `OrExit<T>` zero-panic, `deny.toml`,
-structured logging (primal + playGround 28→0 `eprintln!`), hardcoded path elimination. V110–V112 handoffs.
-
-**S157–S158** (condensed): Modern idiomatic Rust evolution — `#[allow()]`→`#[expect(reason)]` (zero
-remaining), `temp-env` for Rust 2024, smart refactoring (validate_barracuda_tensor 918→875 LOC),
-hardcoded names → constants, Tower Atomic (reqwest/ring removed — zero C deps), targeted lint
-expectations with reasons, `validate_modern_cross_spring` 949→865 LOC. V108–V109 handoffs.
+**S157–S162** (condensed): Modern idiomatic Rust — `IpcError` typed enum, `call_typed()`,
+`discover_primal()`, `DispatchOutcome`, `safe_cast`, zero `eprintln!` workspace-wide, Tower Atomic
+(reqwest/ring removed — zero C deps), `OrExit<T>`, `deny.toml`. V108–V113 handoffs.
 
 **S155–S156** (condensed): Cross-spring absorption (`primal_names.rs`, `tolerances.py`, provenance
 trio), IPC bug fixes (probe_capabilities format, coralreef_bridge socket), typed BiomeOsClient,

@@ -22,11 +22,48 @@
     reason = "timing and dimension values fit in f64"
 )]
 
+use std::fmt;
+
 use neural_spring_forge::graph::{PipelineExecution, PipelineGraph, StageOutput, StageResult};
 use neural_spring_forge::mixed::MixedSubstrate;
 
 use crate::gpu_dispatch::Dispatcher;
 use crate::tolerances;
+
+/// Errors from pipeline graph execution.
+///
+/// Returned when a `PipelineGraph` cannot be topologically sorted
+/// (cycle detected) or references a stage ID not present in the graph.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PipelineError {
+    /// The graph contains a cycle and cannot be topologically sorted.
+    CyclicGraph {
+        /// Name of the pipeline that failed validation.
+        pipeline: String,
+    },
+    /// A stage ID from the topological order was not found in the graph.
+    MissingStage {
+        /// The stage ID that could not be resolved.
+        stage_id: String,
+        /// Name of the pipeline containing the missing reference.
+        pipeline: String,
+    },
+}
+
+impl fmt::Display for PipelineError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::CyclicGraph { pipeline } => {
+                write!(f, "pipeline '{pipeline}' contains a cycle")
+            }
+            Self::MissingStage { stage_id, pipeline } => {
+                write!(f, "stage '{stage_id}' not found in pipeline '{pipeline}'")
+            }
+        }
+    }
+}
+
+impl std::error::Error for PipelineError {}
 
 /// A completed pipeline report with provenance metadata.
 #[derive(Debug)]
@@ -65,8 +102,11 @@ impl PipelineReport {
 /// `eigensolve` → `digester_anderson` / `isomorphic_reservoir` → ... → `attention_anderson`
 ///
 /// Each stage calls the real neuralSpring module and records timing + outputs.
-#[must_use]
-pub fn execute_composition_pipeline() -> PipelineReport {
+///
+/// # Errors
+///
+/// Returns [`PipelineError`] if the composition graph is malformed.
+pub fn execute_composition_pipeline() -> Result<PipelineReport, PipelineError> {
     let graph = neural_spring_forge::graph::composition_pipeline();
     execute_graph(&graph)
 }
@@ -76,8 +116,13 @@ pub fn execute_composition_pipeline() -> PipelineReport {
 /// GPU-capable stages (`GpuOnly`, `GpuPreferred`) route through the `Dispatcher`,
 /// which falls back to CPU if no GPU is available. CPU-only stages use direct
 /// function calls. Provenance records actual execution substrate per stage.
-#[must_use]
-pub fn execute_composition_pipeline_gpu(dispatcher: &Dispatcher) -> PipelineReport {
+///
+/// # Errors
+///
+/// Returns [`PipelineError`] if the composition graph is malformed.
+pub fn execute_composition_pipeline_gpu(
+    dispatcher: &Dispatcher,
+) -> Result<PipelineReport, PipelineError> {
     let graph = neural_spring_forge::graph::composition_pipeline();
     execute_graph_gpu(&graph, dispatcher)
 }
@@ -88,24 +133,26 @@ pub fn execute_composition_pipeline_gpu(dispatcher: &Dispatcher) -> PipelineRepo
 /// Node phase: dispatch each stage to local computation.
 /// Nest phase: record provenance (substrate, timing, outputs).
 ///
-/// # Panics
+/// # Errors
 ///
-/// Panics if the graph contains a cycle or references invalid stage IDs
-/// (both of which are prevented by `PipelineGraph::validate`).
-#[must_use]
-#[expect(
-    clippy::expect_used,
-    reason = "graph is validated at construction — these are structural invariants"
-)]
-pub fn execute_graph(graph: &PipelineGraph) -> PipelineReport {
-    let order = graph.execute_order().expect("graph must be a valid DAG");
+/// Returns [`PipelineError::CyclicGraph`] if topological sort fails, or
+/// [`PipelineError::MissingStage`] if a stage ID from the order is absent.
+pub fn execute_graph(graph: &PipelineGraph) -> Result<PipelineReport, PipelineError> {
+    let order = graph
+        .execute_order()
+        .ok_or_else(|| PipelineError::CyclicGraph {
+            pipeline: graph.name.clone(),
+        })?;
 
     let mut exec = PipelineExecution::new(&graph.name);
 
     for stage_id in &order {
         let stage = graph
             .stage(stage_id)
-            .expect("topo order references valid stages");
+            .ok_or_else(|| PipelineError::MissingStage {
+                stage_id: stage_id.clone(),
+                pipeline: graph.name.clone(),
+            })?;
 
         let start = std::time::Instant::now();
         let (success, output) = dispatch_capability(&stage.capability);
@@ -120,14 +167,14 @@ pub fn execute_graph(graph: &PipelineGraph) -> PipelineReport {
         });
     }
 
-    PipelineReport {
+    Ok(PipelineReport {
         pipeline_name: graph.name.clone(),
         substrate_used: "CPU".to_string(),
         total_stages: order.len(),
         gpu_stages: 0,
         cpu_stages: order.len(),
         execution: exec,
-    }
+    })
 }
 
 /// Execute a `PipelineGraph` with GPU dispatch for eligible stages.
@@ -141,16 +188,19 @@ pub fn execute_graph(graph: &PipelineGraph) -> PipelineReport {
 /// - `GpuOnly`/`GpuPreferred` with CPU fallback → `MixedSubstrate::CpuOnly`
 /// - `CpuOnly` stages → `MixedSubstrate::CpuOnly`
 ///
-/// # Panics
+/// # Errors
 ///
-/// Panics if the graph contains a cycle or references invalid stage IDs.
-#[must_use]
-#[expect(
-    clippy::expect_used,
-    reason = "graph is validated at construction — these are structural invariants"
-)]
-pub fn execute_graph_gpu(graph: &PipelineGraph, dispatcher: &Dispatcher) -> PipelineReport {
-    let order = graph.execute_order().expect("graph must be a valid DAG");
+/// Returns [`PipelineError::CyclicGraph`] if topological sort fails, or
+/// [`PipelineError::MissingStage`] if a stage ID from the order is absent.
+pub fn execute_graph_gpu(
+    graph: &PipelineGraph,
+    dispatcher: &Dispatcher,
+) -> Result<PipelineReport, PipelineError> {
+    let order = graph
+        .execute_order()
+        .ok_or_else(|| PipelineError::CyclicGraph {
+            pipeline: graph.name.clone(),
+        })?;
 
     let mut exec = PipelineExecution::new(&graph.name);
     let mut gpu_count = 0_usize;
@@ -159,7 +209,10 @@ pub fn execute_graph_gpu(graph: &PipelineGraph, dispatcher: &Dispatcher) -> Pipe
     for stage_id in &order {
         let stage = graph
             .stage(stage_id)
-            .expect("topo order references valid stages");
+            .ok_or_else(|| PipelineError::MissingStage {
+                stage_id: stage_id.clone(),
+                pipeline: graph.name.clone(),
+            })?;
 
         let use_gpu = matches!(stage.substrate, MixedSubstrate::GpuOnly);
 
@@ -192,14 +245,14 @@ pub fn execute_graph_gpu(graph: &PipelineGraph, dispatcher: &Dispatcher) -> Pipe
         "CPU".to_string()
     };
 
-    PipelineReport {
+    Ok(PipelineReport {
         pipeline_name: graph.name.clone(),
         substrate_used: substrate_label,
         total_stages: order.len(),
         gpu_stages: gpu_count,
         cpu_stages: cpu_count,
         execution: exec,
-    }
+    })
 }
 
 /// Tower: resolve a capability string to a local computation function (CPU path).
@@ -473,7 +526,7 @@ mod tests {
 
     #[test]
     fn composition_pipeline_executes_all_stages() {
-        let report = execute_composition_pipeline();
+        let report = execute_composition_pipeline().expect("composition pipeline");
         assert!(
             report.all_passed(),
             "all stages should pass: {:?}",
@@ -490,7 +543,7 @@ mod tests {
 
     #[test]
     fn composition_pipeline_respects_topo_order() {
-        let report = execute_composition_pipeline();
+        let report = execute_composition_pipeline().expect("composition pipeline");
         let ids: Vec<&str> = report
             .execution
             .results
@@ -524,7 +577,7 @@ mod tests {
 
     #[test]
     fn composition_pipeline_records_timing() {
-        let report = execute_composition_pipeline();
+        let report = execute_composition_pipeline().expect("composition pipeline");
         assert!(report.total_us() > 0.0, "pipeline should take > 0µs");
         for result in &report.execution.results {
             assert!(
@@ -537,7 +590,7 @@ mod tests {
 
     #[test]
     fn composition_pipeline_outputs_are_populated() {
-        let report = execute_composition_pipeline();
+        let report = execute_composition_pipeline().expect("composition pipeline");
         for result in &report.execution.results {
             match &result.output {
                 StageOutput::Map(m) => {
@@ -609,7 +662,7 @@ mod tests {
 
     #[test]
     fn substrate_provenance_is_recorded() {
-        let report = execute_composition_pipeline();
+        let report = execute_composition_pipeline().expect("composition pipeline");
         for result in &report.execution.results {
             match result.stage_id.as_str() {
                 "eigensolve" | "attention_anderson" => {
@@ -635,7 +688,7 @@ mod tests {
     #[test]
     fn gpu_pipeline_cpu_fallback() {
         let dispatcher = Dispatcher::cpu_only();
-        let report = execute_composition_pipeline_gpu(&dispatcher);
+        let report = execute_composition_pipeline_gpu(&dispatcher).expect("gpu pipeline");
         assert!(report.all_passed(), "all stages pass on CPU fallback");
         assert_eq!(report.total_stages, 6);
         assert_eq!(report.gpu_stages, 0, "CPU-only dispatcher → no GPU stages");
@@ -675,7 +728,7 @@ mod tests {
     #[test]
     fn execute_graph_empty_runs_zero_stages() {
         let graph = PipelineGraph::new("empty");
-        let report = execute_graph(&graph);
+        let report = execute_graph(&graph).expect("empty graph");
         assert_eq!(report.total_stages, 0);
         assert!(report.total_us().abs() < f64::EPSILON);
         assert!(report.execution.results.is_empty());
@@ -695,7 +748,7 @@ mod tests {
             substrate: MixedSubstrate::CpuOnly,
             label: "noop".to_string(),
         });
-        let report = execute_graph(&graph);
+        let report = execute_graph(&graph).expect("single-stage graph");
         assert!(!report.all_passed());
         assert_eq!(report.total_stages, 1);
     }
@@ -732,14 +785,14 @@ mod tests {
 
     #[test]
     fn pipeline_report_total_us_delegates_to_execution() {
-        let report = execute_composition_pipeline();
+        let report = execute_composition_pipeline().expect("composition pipeline");
         assert!((report.total_us() - report.execution.total_elapsed_us()).abs() < f64::EPSILON);
     }
 
     #[tokio::test]
     async fn gpu_composition_pipeline_substrate_when_available() {
         let dispatcher = Dispatcher::new().await;
-        let report = execute_composition_pipeline_gpu(&dispatcher);
+        let report = execute_composition_pipeline_gpu(&dispatcher).expect("gpu pipeline");
         assert!(report.all_passed());
         if dispatcher.has_gpu() {
             assert!(
@@ -774,10 +827,48 @@ mod tests {
             substrate: MixedSubstrate::GpuOnly,
             label: "eigensolve".to_string(),
         });
-        let report = execute_graph_gpu(&graph, &dispatcher);
+        let report = execute_graph_gpu(&graph, &dispatcher).expect("gpu single-stage");
         assert!(report.all_passed());
         assert_eq!(report.substrate_used, "GPU");
         assert_eq!(report.gpu_stages, 1);
         assert_eq!(report.cpu_stages, 0);
+    }
+
+    #[test]
+    fn cyclic_graph_returns_error() {
+        let mut graph = PipelineGraph::new("cycle-test");
+        graph.add_stage(StageNode {
+            id: "a".to_string(),
+            capability: "science.eigensolve".to_string(),
+            substrate: MixedSubstrate::CpuOnly,
+            label: "a".to_string(),
+        });
+        graph.add_stage(StageNode {
+            id: "b".to_string(),
+            capability: "science.eigensolve".to_string(),
+            substrate: MixedSubstrate::CpuOnly,
+            label: "b".to_string(),
+        });
+        graph.add_edge("a", "b");
+        graph.add_edge("b", "a");
+        let err = execute_graph(&graph).expect_err("should detect cycle");
+        assert!(
+            matches!(err, PipelineError::CyclicGraph { .. }),
+            "expected CyclicGraph, got {err:?}"
+        );
+    }
+
+    #[test]
+    fn pipeline_error_display() {
+        let err = PipelineError::CyclicGraph {
+            pipeline: "test".to_string(),
+        };
+        assert!(err.to_string().contains("cycle"));
+
+        let err = PipelineError::MissingStage {
+            stage_id: "ghost".to_string(),
+            pipeline: "test".to_string(),
+        };
+        assert!(err.to_string().contains("ghost"));
     }
 }

@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: March 17, 2026 (Sessions 60–166: 1155 lib + 75 playGround + 73 forge tests, 267 binaries, 220/220 validate_all, barraCuda v0.3.5 at `0649cd0`, 216 import files, V117 handoff)
+**Last Updated**: March 23, 2026 (Sessions 60–170: 1195 lib + 80 playGround + 73 forge tests, 267 binaries, 234/234 validate_all, barraCuda v0.3.7, 216 import files, V120 handoff)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -122,7 +122,7 @@ Direct `barracuda::*` calls validated against analytical / NIST DLMF baselines.
 
 ### `BarraCUDA`/`ToadStool` Infrastructure Available for GPU Promotion
 
-`BarraCUDA` (reviewed `9d359814`, Mar 5, 2026 — wgpu 28, v0.3.5, all shortcomings through S-17 fixed, standalone v0.3.5, 844+ WGSL shaders, HmmBatchForwardF64 ComputeDispatch, SimpleMlp, precision per use/hardware)
+`BarraCUDA` (reviewed Mar 23, 2026 — wgpu 28, v0.3.7, all shortcomings through S-17 fixed, standalone, 844+ WGSL shaders, HmmBatchForwardF64 ComputeDispatch, SimpleMlp, precision per use/hardware)
 provides infrastructure directly usable for Phase 0++ GPU promotion:
 
 | Capability | API | Use Case |
@@ -166,12 +166,12 @@ For each Rust module → GPU promotion:
 
 ---
 
-## Current Status (March 2, 2026)
+## Current Status (March 23, 2026)
 
 | Phase | Status | Coverage |
 |-------|--------|----------|
 | Phase 0 (Python baselines) | **397/397 PASS** | 27 experiments + 5 WDM + 3 pub exp + 5 coralForge + 2 nS-06 + baseCamp, drift detection via `control/check_drift.sh` |
-| Phase 1a (neuralSpring Rust) | **1048 lib + 9 integration PASS** | 41+ modules, 1048 unit tests, 9 integration tests, 233 validation binaries |
+| Phase 1a (neuralSpring Rust) | **1195 lib + 9 integration PASS** | 41+ modules, 1195 unit tests, 9 integration tests, 267 validation binaries |
 | Phase 1b (BarraCUDA) | **272/272 PASS** | 12 validation binaries, incl. Tensor/WGSL (90), tensor_f64 (35), ml_inference (13), FFT (24), LogSumExp (5) |
 | Phase 1c (Fused pipeline) | **46–78× speedup** | Single-encoder dispatch, GPU-resident ops |
 | Phase 2 (BarraCUDA CPU ports) | **203/203 PASS** | 24/25 papers validated (96% bC coverage) |

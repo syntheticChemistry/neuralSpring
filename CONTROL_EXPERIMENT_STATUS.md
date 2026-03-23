@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 18, 2026 (Session 167 — Deep ecosystem audit: pearson_r centralized, primal_names::display, 24 fossil #[allow()]→#[expect()], ecoBin CI, capability_registry.toml, upstream WGSL_MEAN_REDUCE. V118 handoff. 1156 lib + 75 playGround + 73 forge tests. 28 property + 23 playground IPC tests. 0 warnings. 0 unfulfilled expectations.)
+**Last updated**: March 23, 2026 (Session 171 — Deep ecosystem audit: pearson_r centralized, primal_names::display, 24 fossil #[allow()]→#[expect()], ecoBin CI, capability_registry.toml, upstream WGSL_MEAN_REDUCE. V118 handoff. 1156 lib + 75 playGround + 73 forge tests. 28 property + 23 playground IPC tests. 0 warnings. 0 unfulfilled expectations.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

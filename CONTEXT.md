@@ -36,7 +36,7 @@ Sixteen capabilities (`domain.verb`) when composed in biomeOS. Method naming fol
 
 ## Test Coverage
 
-Approximately **92%** line coverage (`llvm-cov`). Suite includes unit tests, property tests, determinism tests, doc tests, and integration tests.
+Approximately **93%** line coverage (`llvm-cov`). 1,356 tests (1,203 lib + 73 forge + 80 playGround). Suite includes unit tests, property tests, determinism tests, doc tests, and integration tests.
 
 ## What This Does NOT Do
 

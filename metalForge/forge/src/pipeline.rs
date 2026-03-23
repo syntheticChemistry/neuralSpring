@@ -437,6 +437,7 @@ const fn uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
 }
 
 #[cfg(test)]
+#[expect(clippy::unwrap_used, clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;
 

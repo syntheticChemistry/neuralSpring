@@ -5,7 +5,18 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-03-18 (Session 168b: Cross-Ecosystem Absorption)
+## [Unreleased] — 2026-03-23 (Session 171: Deep Debt Audit Execution)
+
+### 2026-03-23 — Session S171 (deep debt audit execution)
+
+- `PipelineError` typed error: `nucleus_pipeline` functions return `Result` instead of panicking (`.expect()` → `?`); `CyclicGraph` + `MissingStage` variants with `Display` + `Error` impls
+- `POSITIVE_DATA_GUARD` (1e-10) and `R2_DENOMINATOR_FLOOR` (1e-30) named constants in `primitives.rs`; wired into 9 validation binaries replacing inline literals
+- 2 `bench_*` entries removed from `validate_all.rs` (benchmarks ≠ validators): 232→230 entries
+- metalForge forge lint parity: `unwrap_used` + `expect_used` warnings added to `Cargo.toml`
+- barraCuda version refs refreshed v0.3.5→v0.3.7 across 4 specs + ABSORPTION_TRACKER
+- 6 new proptests: FASTQ roundtrip + length, VCF position + chrom, WDM surrogate finiteness + determinism
+- 2 doc warning fixes: unresolved `[Tensor]` link, redundant explicit link target
+- **1,356 tests** (1,203 lib + 73 forge + 80 playGround), 0 clippy, 0 fmt, 0 doc warnings
 
 ### 2026-03-22 — Session S170b (proptests)
 

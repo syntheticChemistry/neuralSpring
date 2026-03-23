@@ -24,6 +24,7 @@
 #![expect(clippy::cast_precision_loss, reason = "validation binary")]
 
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -220,7 +221,9 @@ fn validate_multi_substrate_parity(
         h.check_bool("parity: Pearson CPU-only finite", mixed_pearson.is_finite());
     }
 
-    let raw: Vec<f64> = (0..256).map(|_| rng.uniform().abs() + 1e-10).collect();
+    let raw: Vec<f64> = (0..256)
+        .map(|_| rng.uniform().abs() + primitives::POSITIVE_DATA_GUARD)
+        .collect();
     let sum: f64 = raw.iter().sum();
     let e_data: Vec<f64> = raw.iter().map(|&x| x / sum).collect();
     let cpu_entropy = neural_spring::primitives::shannon_entropy(&e_data);

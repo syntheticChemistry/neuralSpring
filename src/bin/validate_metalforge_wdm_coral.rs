@@ -43,6 +43,7 @@
 
 use neural_spring::gpu::Gpu;
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::{ValidationHarness, exit_no_gpu};
@@ -540,7 +541,10 @@ fn validate_node_coral_confidence(h: &mut ValidationHarness, disp: &Dispatcher, 
         || rect_matmul_cpu(&repr, &w, n_res, d, 1),
     );
 
-    let pldt: Vec<f64> = logits.iter().map(|&l| sigmoid(l + bias)).collect();
+    let pldt: Vec<f64> = logits
+        .iter()
+        .map(|&l| primitives::sigmoid(l + bias))
+        .collect();
 
     h.check_bool(
         "Node coral confidence: pLDDT in [0,1]",
@@ -576,7 +580,10 @@ fn validate_nest_wdm_provenance(h: &mut ValidationHarness, disp: &Dispatcher, rn
     );
 
     let probs: Vec<f64> = {
-        let raw: Vec<f64> = predictions.iter().map(|v| v.abs() + 1e-10).collect();
+        let raw: Vec<f64> = predictions
+            .iter()
+            .map(|v| v.abs() + primitives::POSITIVE_DATA_GUARD)
+            .collect();
         let sum: f64 = raw.iter().sum();
         raw.iter().map(|&r| r / sum).collect()
     };
@@ -815,5 +822,3 @@ fn rect_matmul_cpu(a: &[f64], b: &[f64], m: usize, k: usize, n: usize) -> Vec<f6
     }
     c
 }
-
-use neural_spring::primitives::sigmoid;

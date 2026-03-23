@@ -79,6 +79,26 @@ pub const DIVISION_GUARD: f64 = 1e-15;
 /// safely to the quantization range.
 pub const QUANTIZATION_FLOOR: f64 = 1e-30;
 
+/// Offset to ensure generated data stays strictly positive for log/division.
+///
+/// Applied as `value.abs() + POSITIVE_DATA_GUARD` when constructing
+/// synthetic probability or rate vectors from random draws. Must be
+/// large enough that downstream `ln()` produces reasonable values
+/// (not -inf), small enough to not dominate legitimate signals.
+///
+/// Derivation: random draws `U(0,1)` can be arbitrarily close to 0.
+/// Adding 1e-10 keeps `ln(x) ≥ -23.03` which is numerically benign
+/// for entropy/KL computations.
+pub const POSITIVE_DATA_GUARD: f64 = 1e-10;
+
+/// Floor for R² (coefficient of determination) denominators.
+///
+/// Used as `.max(R2_DENOMINATOR_FLOOR)` on `SS_tot` to prevent
+/// division by zero when the target variance is negligible.
+/// Smaller than [`DIVISION_GUARD`] because R² computation involves
+/// sums of squares that are inherently non-negative.
+pub const R2_DENOMINATOR_FLOOR: f64 = 1e-30;
+
 /// Floor for generated probability values to ensure non-zero.
 ///
 /// Applied to `rng.uniform().max(PROBABILITY_FLOOR)` when generating

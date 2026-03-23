@@ -144,7 +144,7 @@ impl MultiHeadWdmClassifier {
 
     /// `WgpuDevice` used for tensor creation.
     ///
-    /// [`Tensor`] inputs in [`Self::update`](Self::update) must be created on this
+    /// `Tensor` inputs in [`Self::update`](Self::update) must be created on this
     /// device (typically `self.wgpu_device().clone()`).
     #[must_use]
     pub const fn wgpu_device(&self) -> &std::sync::Arc<barracuda::device::WgpuDevice> {

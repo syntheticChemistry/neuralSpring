@@ -556,4 +556,36 @@ mod tests {
         let records: Vec<VcfRecord> = reader.collect::<Result<Vec<_>, _>>().unwrap();
         assert!(records.is_empty());
     }
+
+    proptest::proptest! {
+        #![proptest_config(proptest::prelude::ProptestConfig::with_cases(64))]
+
+        #[test]
+        fn parsed_position_always_positive(pos in 1_u64..1_000_000_000) {
+            let data = format!(
+                "##fileformat=VCFv4.3\n\
+                 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n\
+                 chr1\t{pos}\t.\tA\tG\t30\tPASS\tDP=10\n"
+            );
+            let reader = VcfReader::new(Cursor::new(data.as_bytes())).unwrap();
+            let records: Vec<VcfRecord> = reader.collect::<Result<Vec<_>, _>>().unwrap();
+            proptest::prop_assert_eq!(records.len(), 1);
+            proptest::prop_assert_eq!(records[0].pos(), pos);
+        }
+
+        #[test]
+        fn chrom_name_preserved(
+            idx in 1_u32..22,
+        ) {
+            let chrom = format!("chr{idx}");
+            let data = format!(
+                "##fileformat=VCFv4.3\n\
+                 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n\
+                 {chrom}\t100\t.\tA\tG\t30\tPASS\tDP=10\n"
+            );
+            let reader = VcfReader::new(Cursor::new(data.as_bytes())).unwrap();
+            let records: Vec<VcfRecord> = reader.collect::<Result<Vec<_>, _>>().unwrap();
+            proptest::prop_assert_eq!(records[0].chrom(), chrom.as_str());
+        }
+    }
 }

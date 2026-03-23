@@ -33,6 +33,7 @@
 use neural_spring::anderson_localization::{anderson_hamiltonian_random, disorder_sweep, mean_ipr};
 use neural_spring::eigh::eigh_householder_qr;
 use neural_spring::gpu_dispatch::{Dispatcher, MixedWorkload};
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -186,7 +187,7 @@ fn validate_cpu_anderson(h: &mut ValidationHarness) {
         iprs[5] > iprs[0],
     );
 
-    let ipr_ratio = iprs[5] / iprs[0].max(1e-30);
+    let ipr_ratio = iprs[5] / iprs[0].max(primitives::R2_DENOMINATOR_FLOOR);
     h.check_bool(
         "CPU Anderson: strong localization ratio > 2",
         ipr_ratio > 2.0,

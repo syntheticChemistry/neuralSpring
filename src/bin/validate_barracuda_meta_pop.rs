@@ -29,6 +29,7 @@ use neural_spring::meta_population::{
     inter_population_af_variance, matrix_correlation, nucleotide_diversity,
     thermal_diversity_correlation,
 };
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -217,7 +218,10 @@ fn validate_geographic_correlation(
     let n = populations.len();
     let geo_dist = geographic_distance_matrix(coords);
     let fst_mat = fst_matrix(populations, n_indivs, n_loci);
-    let gen_dist: Vec<f64> = fst_mat.iter().map(|&f| f / (1.0 - f + 1e-10)).collect();
+    let gen_dist: Vec<f64> = fst_mat
+        .iter()
+        .map(|&f| f / (1.0 - f + primitives::POSITIVE_DATA_GUARD))
+        .collect();
 
     // Hand-rolled matrix correlation
     let r_hand = matrix_correlation(&geo_dist, &gen_dist, n);

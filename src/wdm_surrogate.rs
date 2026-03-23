@@ -399,4 +399,33 @@ mod tests {
         let result = parse_f64_array(&val, "arr");
         assert!(result.is_err());
     }
+
+    proptest::proptest! {
+        #![proptest_config(proptest::prelude::ProptestConfig::with_cases(64))]
+
+        #[test]
+        fn predict_always_finite(
+            log_rho in -2.0_f64..2.0,
+            log_t in 3.0_f64..6.0,
+        ) {
+            let surr = test_surrogate();
+            let rho = 10.0_f64.powf(log_rho);
+            let t = 10.0_f64.powf(log_t);
+            let (p, e) = surr.predict(rho, t);
+            proptest::prop_assert!(p.is_finite(), "pressure must be finite at rho={rho}, T={t}");
+            proptest::prop_assert!(e.is_finite(), "energy must be finite at rho={rho}, T={t}");
+        }
+
+        #[test]
+        fn predict_deterministic(
+            rho in 0.1_f64..100.0,
+            t in 1000.0_f64..1_000_000.0,
+        ) {
+            let surr = test_surrogate();
+            let (p1, e1) = surr.predict(rho, t);
+            let (p2, e2) = surr.predict(rho, t);
+            proptest::prop_assert!((p1 - p2).abs() < f64::EPSILON);
+            proptest::prop_assert!((e1 - e2).abs() < f64::EPSILON);
+        }
+    }
 }

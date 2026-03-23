@@ -59,6 +59,7 @@ use neural_spring::gpu::Gpu;
 use neural_spring::gpu_ops::{
     disorder_sweep_gpu, eigh_gpu, geographic_distance_matrix_gpu, pairwise_l2_matrix_gpu,
 };
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::{OrExit, ValidationHarness};
@@ -564,7 +565,10 @@ fn bench_dispatcher_f64(h: &mut ValidationHarness) {
         pearson_us.is_finite(),
     );
 
-    let probs: Vec<f64> = big_a.iter().map(|x| x.abs() / 1000.0 + 1e-10).collect();
+    let probs: Vec<f64> = big_a
+        .iter()
+        .map(|x| x.abs() / 1000.0 + primitives::POSITIVE_DATA_GUARD)
+        .collect();
     let shannon_us = bench("Dispatcher::shannon 50k (wetSpring fused→GPU)", || {
         let _ = std::hint::black_box(dispatcher.shannon_entropy(&probs));
     });

@@ -20,6 +20,7 @@ use neural_spring::meta_population::{
     allele_frequencies, fst_matrix, generate_population, geographic_distance_matrix, global_fst,
     inter_population_af_variance, mantel_test, nucleotide_diversity, thermal_diversity_correlation,
 };
+use neural_spring::primitives;
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -110,7 +111,10 @@ fn main() {
 
     // Check 5: Mantel test computes successfully
     let geo_dist = geographic_distance_matrix(&coords);
-    let gen_dist: Vec<f64> = fst_mat.iter().map(|&f| f / (1.0 - f + 1e-10)).collect();
+    let gen_dist: Vec<f64> = fst_mat
+        .iter()
+        .map(|&f| f / (1.0 - f + primitives::POSITIVE_DATA_GUARD))
+        .collect();
     let (r_mantel, p_mantel) = mantel_test(&geo_dist, &gen_dist, n_pops, 999, &mut rng);
     h.check_bool(
         &format!("Mantel test (r={r_mantel:.4}, p={p_mantel:.4})"),
