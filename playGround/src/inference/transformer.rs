@@ -28,6 +28,7 @@ pub struct ForwardOutput {
     pub logits: Vec<f32>,
     /// Hidden states after the final layer norm.
     pub hidden_states: Vec<f32>,
+    /// Sequence length used for this forward pass (token count).
     pub seq_len: usize,
 }
 

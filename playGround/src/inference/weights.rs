@@ -16,44 +16,72 @@ use crate::model_config::TransformerConfig;
 /// A single named weight tensor on the GPU.
 #[derive(Debug)]
 pub struct GpuWeight {
+    /// Original safetensors key for this tensor.
     pub name: String,
+    /// Uploaded GPU tensor handle.
     pub tensor: Tensor,
+    /// Shape before any layout transforms for debugging.
     pub original_shape: Vec<usize>,
 }
 
 /// All weights for a single transformer layer.
 #[derive(Debug, Default)]
 pub struct LayerWeights {
+    /// Query projection weights (decoder self-attention).
     pub attn_q_weight: Option<Tensor>,
+    /// Key projection weights.
     pub attn_k_weight: Option<Tensor>,
+    /// Value projection weights.
     pub attn_v_weight: Option<Tensor>,
+    /// Attention output projection weights.
     pub attn_out_weight: Option<Tensor>,
+    /// Query projection bias, if present.
     pub attn_q_bias: Option<Tensor>,
+    /// Key projection bias, if present.
     pub attn_k_bias: Option<Tensor>,
+    /// Value projection bias, if present.
     pub attn_v_bias: Option<Tensor>,
+    /// Attention output bias, if present.
     pub attn_out_bias: Option<Tensor>,
+    /// Pre-attention layer norm scale.
     pub ln1_weight: Option<Tensor>,
+    /// Pre-attention layer norm bias.
     pub ln1_bias: Option<Tensor>,
+    /// FFN up-projection weights.
     pub ffn_up_weight: Option<Tensor>,
+    /// FFN down-projection weights.
     pub ffn_down_weight: Option<Tensor>,
+    /// FFN up-projection bias.
     pub ffn_up_bias: Option<Tensor>,
+    /// FFN down-projection bias.
     pub ffn_down_bias: Option<Tensor>,
+    /// Post-attention layer norm scale.
     pub ln2_weight: Option<Tensor>,
+    /// Post-attention layer norm bias.
     pub ln2_bias: Option<Tensor>,
     // GPT-2 uses combined QKV projection
+    /// Combined QKV projection weights (GPT-2 `c_attn` style).
     pub attn_qkv_weight: Option<Tensor>,
+    /// Combined QKV projection bias.
     pub attn_qkv_bias: Option<Tensor>,
 }
 
 /// Complete model weights organized for inference.
 #[derive(Debug)]
 pub struct ModelWeights {
+    /// Token embedding matrix (or tied embedding source).
     pub token_embedding: Option<Tensor>,
+    /// Positional embedding table when the model uses learned positions.
     pub position_embedding: Option<Tensor>,
+    /// Final layer norm scale before the language-model head.
     pub ln_final_weight: Option<Tensor>,
+    /// Final layer norm bias.
     pub ln_final_bias: Option<Tensor>,
+    /// Language-model head projection when not tied to embeddings.
     pub lm_head_weight: Option<Tensor>,
+    /// Per-decoder-layer weight bundles, indexed by layer id.
     pub layers: Vec<LayerWeights>,
+    /// Tensors that did not map cleanly to the expected architecture slots.
     pub unmatched: Vec<GpuWeight>,
 }
 

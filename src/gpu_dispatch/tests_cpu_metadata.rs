@@ -33,7 +33,7 @@ fn cpu_fp64_strategy_native() {
     let d = cpu();
     assert_eq!(
         d.fp64_strategy(),
-        barracuda::device::driver_profile::Fp64Strategy::Native
+        barracuda::device::capabilities::Fp64Strategy::Native
     );
 }
 
@@ -59,9 +59,9 @@ fn cpu_check_allocation_safe_ok() {
 }
 
 #[test]
-fn cpu_driver_profile_none() {
+fn cpu_device_caps_none() {
     let d = cpu();
-    assert!(d.driver_profile().is_none());
+    assert!(d.device_caps().is_none());
 }
 
 // ── mixed_dispatch (CPU-only path) ─────────────────────────
@@ -125,7 +125,7 @@ fn cpu_precision_routing_default() {
     let d = cpu();
     assert_eq!(
         d.precision_routing(),
-        barracuda::device::driver_profile::PrecisionRoutingAdvice::F64Native
+        barracuda::device::capabilities::PrecisionRoutingAdvice::F64Native
     );
     assert!(d.shared_memory_f64_safe());
 }
@@ -135,14 +135,14 @@ fn cpu_fp64_strategy_default() {
     let d = cpu();
     assert_eq!(
         d.fp64_strategy(),
-        barracuda::device::driver_profile::Fp64Strategy::Native
+        barracuda::device::capabilities::Fp64Strategy::Native
     );
 }
 
 #[test]
-fn cpu_only_driver_profile_none() {
+fn cpu_only_device_caps_none() {
     let d = cpu();
-    assert!(d.driver_profile().is_none());
+    assert!(d.device_caps().is_none());
     assert!(!d.needs_pow_workaround());
     assert!(d.check_allocation_safe(1_000_000).is_ok());
 }
@@ -163,7 +163,7 @@ fn cpu_fp64_strategy_defaults_native() {
         format!("{:?}", d.fp64_strategy()),
         format!(
             "{:?}",
-            barracuda::device::driver_profile::Fp64Strategy::Native
+            barracuda::device::capabilities::Fp64Strategy::Native
         )
     );
 }

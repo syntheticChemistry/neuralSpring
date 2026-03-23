@@ -33,19 +33,26 @@ struct JsonRpcRequest<'a> {
     id: u64,
 }
 
+/// Parsed JSON-RPC 2.0 response object from a single-line socket reply.
 #[derive(Debug, Deserialize)]
 pub struct JsonRpcResponse {
+    /// Successful result payload when no error was returned.
     #[serde(default)]
     pub result: Option<serde_json::Value>,
+    /// Error object when the remote reported a JSON-RPC failure.
     #[serde(default)]
     pub error: Option<JsonRpcError>,
+    /// Request id echoed by the server (may be string or number per spec).
     #[serde(default)]
     pub id: serde_json::Value,
 }
 
+/// JSON-RPC 2.0 error object (`error` field) from the remote primal.
 #[derive(Debug, Deserialize)]
 pub struct JsonRpcError {
+    /// JSON-RPC error code (transport, application, or custom).
     pub code: i64,
+    /// Short human-readable error description from the remote.
     pub message: String,
 }
 
@@ -77,7 +84,12 @@ pub enum IpcError {
     /// Response contained neither `result` nor `error`.
     NoResult,
     /// Remote JSON-RPC error with code and message.
-    RpcError { code: i64, message: String },
+    RpcError {
+        /// JSON-RPC error code from the peer.
+        code: i64,
+        /// Error message string from the peer.
+        message: String,
+    },
     /// IPC call exceeded the configured timeout.
     Timeout,
 }
@@ -222,9 +234,19 @@ pub enum DispatchOutcome {
     /// The RPC succeeded and returned a result value.
     Ok(serde_json::Value),
     /// Protocol-level error (JSON-RPC spec codes -32700 to -32600).
-    ProtocolError { code: i64, message: String },
+    ProtocolError {
+        /// JSON-RPC error code in the protocol range.
+        code: i64,
+        /// Error message from the classified IPC failure.
+        message: String,
+    },
     /// Application-level error (code >= -32000 or non-standard).
-    ApplicationError { code: i64, message: String },
+    ApplicationError {
+        /// Application-defined or custom JSON-RPC error code.
+        code: i64,
+        /// Error message from the remote or synthesized from [`IpcError`].
+        message: String,
+    },
 }
 
 impl DispatchOutcome {

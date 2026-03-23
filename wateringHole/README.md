@@ -5,11 +5,12 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V120 — Session 168b
+### V122 — Session 172
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V120 eco** | `handoffs/NEURALSPRING_V120_CROSS_ECOSYSTEM_ABSORPTION_HANDOFF_MAR18_2026.md` | Mar 18, 2026 | Cross-ecosystem absorption: extract_rpc_result (healthSpring V37), PRIMAL_DOMAIN (healthSpring V34), OnceLock GPU probe (groundSpring V116), PROVENANCE_REGISTRY (49 entries, 4 tests), cast lint deny (airSpring V0.9.0). Supersedes V119 bC/tS |
+| **V122 evo** | `handoffs/NEURALSPRING_V122_DEEP_EVOLUTION_ECOSYSTEM_ABSORPTION_HANDOFF_MAR23_2026.md` | Mar 23, 2026 | Deep evolution & ecosystem absorption: DeviceCapabilities migration (11 files), workspace lint inheritance, 163 playGround docs, normalize_method IPC, 3 binary smart refactors, config centralization, #[allow]→#[expect] complete. 1,380 tests, 0 clippy/fmt/doc. |
+| **V121 audit** | `handoffs/NEURALSPRING_V121_DEEP_DEBT_AUDIT_HANDOFF_MAR23_2026.md` | Mar 23, 2026 | Deep debt audit: PipelineError, named guards, metalForge lint parity, proptest expansion |
 
 ### Central wateringHole Copies
 
@@ -17,7 +18,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V119 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
+Superseded handoffs: `handoffs/archive/` (V1–V120 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
 
 ## Conventions
 

@@ -39,19 +39,19 @@ fn report_hardware(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
         h.check_bool("buffer size > 0", caps.max_buffer_size > 0);
     }
 
-    if let Some(profile) = dispatcher.driver_profile() {
+    if let Some(caps) = dispatcher.device_caps() {
         println!("\n── Precision Strategy ──");
-        println!("  FP64 strategy: {:?}", profile.fp64_strategy());
+        println!("  FP64 strategy: {:?}", caps.fp64_strategy());
         println!(
             "  DF64 SPIR-V poisoning: {}",
-            profile.has_df64_spir_v_poisoning()
+            caps.has_df64_spir_v_poisoning()
         );
-        println!("  Precision routing: {:?}", profile.precision_routing());
+        println!("  Precision routing: {:?}", caps.precision_routing());
         println!(
             "  Shared memory f64 safe: {}",
             dispatcher.shared_memory_f64_safe()
         );
-        h.check_bool("driver profile available", true);
+        h.check_bool("device capabilities available", true);
     }
 
     println!("\n── Bandwidth Tier ──");

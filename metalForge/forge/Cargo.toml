@@ -8,20 +8,8 @@ publish = false
 description = "ML dispatch, substrate discovery, workload tracking, and BarraCUDA bridge for ToadStool absorption"
 repository = "https://github.com/ecoPrimals/neuralSpring"
 
-[lints.rust]
-unsafe_code = "forbid"
-
-[lints.clippy]
-pedantic = { level = "warn", priority = -1 }
-nursery = { level = "warn", priority = -1 }
-# Justified: inline format args are clearer in GPU dispatch code.
-uninlined_format_args = "allow"
-unwrap_used = "warn"
-expect_used = "warn"
-cast_precision_loss = "warn"
-cast_possible_truncation = "warn"
-cast_sign_loss = "warn"
-cast_lossless = "warn"
+[lints]
+workspace = true
 
 [features]
 default = []

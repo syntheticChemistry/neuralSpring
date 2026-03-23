@@ -31,11 +31,7 @@ mod dispatch_popgen;
 mod dispatch_stats;
 
 use barracuda::device::WgpuDevice;
-#[expect(
-    deprecated,
-    reason = "migrate to DeviceCapabilities when barraCuda removes GpuDriverProfile"
-)]
-use barracuda::device::driver_profile::{Fp64Strategy, GpuDriverProfile, PrecisionRoutingAdvice};
+use barracuda::device::capabilities::{DeviceCapabilities, Fp64Strategy, PrecisionRoutingAdvice};
 use barracuda::unified_hardware::BandwidthTier;
 use std::sync::Arc;
 
@@ -81,14 +77,16 @@ pub struct MixedWorkload<'a> {
 /// precision shaders and wetSpring bio shaders). When unavailable,
 /// local CPU references are used.
 ///
-/// The `driver_profile` field (from `barracuda::device::GpuDriverProfile`)
+/// The `device_caps` field (from `barracuda::device::capabilities::DeviceCapabilities`)
 /// provides hardware-adaptive f64 strategy, driver workaround detection,
 /// and optimal eigensolve configuration — evolved from hotSpring's
-/// core-streaming discovery work.
+/// core-streaming discovery work. Migrated from deprecated `GpuDriverProfile`
+/// per ecosystem-wide `DeviceCapabilities` convergence (airSpring v0.10,
+/// wetSpring V132, groundSpring V120).
 pub struct Dispatcher {
     gpu: Option<Gpu>,
     prefer_gpu: bool,
-    driver_profile: Option<GpuDriverProfile>,
+    device_caps: Option<DeviceCapabilities>,
 }
 
 impl Dispatcher {
@@ -98,19 +96,19 @@ impl Dispatcher {
     pub async fn new() -> Self {
         match Gpu::new().await {
             Ok(gpu) => {
-                let profile = GpuDriverProfile::from_device(gpu.wgpu_device());
+                let caps = DeviceCapabilities::from_device(gpu.wgpu_device());
                 let tier = BandwidthTier::detect_from_adapter_name(&gpu.adapter_name);
                 log::info!(
                     "GPU available: {} ({:?}, {:?}, f64={:?}, pcie={tier:?})",
                     gpu.adapter_name,
                     gpu.device_type,
                     gpu.backend,
-                    profile.fp64_strategy(),
+                    caps.fp64_strategy(),
                 );
                 Self {
                     gpu: Some(gpu),
                     prefer_gpu: true,
-                    driver_profile: Some(profile),
+                    device_caps: Some(caps),
                 }
             }
             Err(e) => {
@@ -118,7 +116,7 @@ impl Dispatcher {
                 Self {
                     gpu: None,
                     prefer_gpu: false,
-                    driver_profile: None,
+                    device_caps: None,
                 }
             }
         }
@@ -130,18 +128,18 @@ impl Dispatcher {
         Self {
             gpu: None,
             prefer_gpu: false,
-            driver_profile: None,
+            device_caps: None,
         }
     }
 
     /// Create from an existing `Gpu` context.
     #[must_use]
     pub fn from_gpu(gpu: Gpu) -> Self {
-        let profile = GpuDriverProfile::from_device(gpu.wgpu_device());
+        let caps = DeviceCapabilities::from_device(gpu.wgpu_device());
         Self {
             gpu: Some(gpu),
             prefer_gpu: true,
-            driver_profile: Some(profile),
+            device_caps: Some(caps),
         }
     }
 
@@ -218,10 +216,10 @@ impl Dispatcher {
             .map(|dev| barracuda::staging::StatefulPipeline::new(dev.clone(), config))
     }
 
-    /// Upstream driver profile (hotSpring-evolved hardware detection).
+    /// Runtime device capabilities (hardware-adaptive dispatch).
     #[must_use]
-    pub const fn driver_profile(&self) -> Option<&GpuDriverProfile> {
-        self.driver_profile.as_ref()
+    pub const fn device_caps(&self) -> Option<&DeviceCapabilities> {
+        self.device_caps.as_ref()
     }
 
     /// Hardware-adaptive f64 strategy:
@@ -231,9 +229,9 @@ impl Dispatcher {
     ///   (`ToadStool` S70++, enables cross-checking precision on mixed hardware)
     #[must_use]
     pub fn fp64_strategy(&self) -> Fp64Strategy {
-        self.driver_profile
+        self.device_caps
             .as_ref()
-            .map_or(Fp64Strategy::Native, GpuDriverProfile::fp64_strategy)
+            .map_or(Fp64Strategy::Native, DeviceCapabilities::fp64_strategy)
     }
 
     /// Precision routing advice integrating `ToadStool` S128 f64 shared-memory
@@ -241,18 +239,21 @@ impl Dispatcher {
     /// shared-memory reliability axis for workgroup-based reductions.
     #[must_use]
     pub fn precision_routing(&self) -> PrecisionRoutingAdvice {
-        self.driver_profile.as_ref().map_or(
+        self.device_caps.as_ref().map_or(
             PrecisionRoutingAdvice::F64Native,
-            GpuDriverProfile::precision_routing,
+            DeviceCapabilities::precision_routing,
         )
     }
 
-    /// Whether the GPU driver needs `pow(f64,f64)` polyfill workaround.
+    /// Whether the GPU driver needs `exp(f64)` polyfill workaround.
+    ///
+    /// On Ada Lovelace (SM89) with NVIDIA proprietary, native f64 transcendentals
+    /// (exp, log, pow) produce broken results. Callers should substitute polyfills.
     #[must_use]
     pub fn needs_pow_workaround(&self) -> bool {
-        self.driver_profile
+        self.device_caps
             .as_ref()
-            .is_some_and(GpuDriverProfile::needs_pow_f64_workaround)
+            .is_some_and(DeviceCapabilities::needs_exp_f64_workaround)
     }
 
     /// Whether the hardware reliably executes fused workgroup-based
@@ -291,8 +292,8 @@ impl Dispatcher {
     /// Returns [`barracuda::error::BarracudaError::DeviceLimitExceeded`] when
     /// `total_bytes` exceeds the NVK safe allocation limit (~1.2 GB).
     pub fn check_allocation_safe(&self, total_bytes: u64) -> barracuda::error::Result<()> {
-        if let Some(ref profile) = self.driver_profile {
-            profile.check_allocation_safe(total_bytes)?;
+        if let Some(ref caps) = self.device_caps {
+            caps.check_allocation_safe(total_bytes)?;
         }
         Ok(())
     }

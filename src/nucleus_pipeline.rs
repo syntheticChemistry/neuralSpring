@@ -13,7 +13,7 @@
 //!
 //! ```no_run
 //! use neural_spring::nucleus_pipeline::{execute_composition_pipeline, PipelineReport};
-//! let report = execute_composition_pipeline();
+//! let report = execute_composition_pipeline().expect("pipeline execution");
 //! assert!(report.all_passed());
 //! ```
 

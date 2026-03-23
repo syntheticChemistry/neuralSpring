@@ -120,16 +120,16 @@ fn orchestrator_socket() -> String {
 }
 
 fn ipc_response_timeout_secs() -> u64 {
-    std::env::var("PRIMAL_IPC_TIMEOUT_SECS")
-        .or_else(|_| std::env::var("NEURALSPRING_IPC_TIMEOUT_SECS"))
+    std::env::var(neural_spring::config::ENV_IPC_TIMEOUT)
+        .or_else(|_| std::env::var(neural_spring::config::ENV_IPC_TIMEOUT_SPRING))
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(DEFAULT_IPC_TIMEOUT_SECS)
 }
 
 fn heartbeat_interval_secs() -> u64 {
-    std::env::var("PRIMAL_HEARTBEAT_SECS")
-        .or_else(|_| std::env::var("NEURALSPRING_HEARTBEAT_SECS"))
+    std::env::var(neural_spring::config::ENV_HEARTBEAT_SECS)
+        .or_else(|_| std::env::var(neural_spring::config::ENV_HEARTBEAT_SECS_SPRING))
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(DEFAULT_HEARTBEAT_SECS)
@@ -144,8 +144,9 @@ pub use neural_spring::config::ALL_CAPABILITIES;
 fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<JsonRpcResponse> {
     let id = request.id.clone();
     let params = &request.params;
+    let method = rpc::normalize_method(&request.method);
 
-    Some(match request.method.as_str() {
+    Some(match method {
         "health" => spectral::handle_health(id, state),
         "capabilities.list" | "capability.list" | "primal.capabilities" => {
             handlers::handle_capability_list(id)
@@ -167,7 +168,7 @@ fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<J
         "health.liveness" => handlers::handle_liveness(id),
         "health.readiness" => handlers::handle_readiness(id, state),
         "provenance.begin" | "provenance.record" | "provenance.complete" | "provenance.status" => {
-            handlers::handle_provenance(id, request.method.as_str(), params)
+            handlers::handle_provenance(id, method, params)
         }
         "primal.discover" => handlers::handle_primal_discover(id),
         "compute.offload" => handlers::handle_compute_offload(id, params, state),
@@ -176,7 +177,7 @@ fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<J
         _ => JsonRpcResponse::error(
             id,
             rpc::error_code::METHOD_NOT_FOUND,
-            format!("Method not found: {}", request.method),
+            format!("Method not found: {method}"),
         ),
     })
 }
@@ -248,12 +249,12 @@ async fn main() -> Result<()> {
     let listener = UnixListener::bind(&socket_path)
         .context(format!("binding to {}", socket_path.display()))?;
 
-    let tcp_port: u16 = std::env::var("PRIMAL_TCP_PORT")
-        .or_else(|_| std::env::var("NEURALSPRING_TCP_PORT"))
+    let tcp_port: u16 = std::env::var(neural_spring::config::ENV_TCP_PORT)
+        .or_else(|_| std::env::var(neural_spring::config::ENV_TCP_PORT_SPRING))
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(0);
-    let tcp_listener = TcpListener::bind(("127.0.0.1", tcp_port))
+    let tcp_listener = TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, tcp_port))
         .await
         .context("binding TCP fallback")?;
     let tcp_addr = tcp_listener.local_addr().context("TCP local address")?;

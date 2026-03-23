@@ -14,31 +14,44 @@ use serde::Deserialize;
 
 use crate::ipc_client;
 
+/// Typed JSON-RPC client for the Squirrel MCP / AI gateway primal.
 pub struct SquirrelClient {
+    /// Path to Squirrel's Unix domain socket.
     socket: PathBuf,
+    /// Per-RPC timeout for IPC calls.
     timeout: Duration,
 }
 
+/// Parsed `ai.query` reply: model output and usage metadata from Squirrel.
 #[derive(Debug, Deserialize)]
 pub struct AiResponse {
+    /// Completion text returned by the provider.
     #[serde(default)]
     pub response: String,
+    /// Provider id that served the request (e.g. openai, anthropic).
     #[serde(default)]
     pub provider: String,
+    /// Model id or name used for the call.
     #[serde(default)]
     pub model: String,
+    /// Total tokens billed or reported by the provider.
     #[serde(default)]
     pub tokens_used: u64,
+    /// End-to-end latency for the query (milliseconds).
     #[serde(default)]
     pub latency_ms: u64,
+    /// Whether Squirrel reported the call as successful.
     #[serde(default)]
     pub success: bool,
 }
 
+/// `system.health` snapshot from Squirrel.
 #[derive(Debug, Deserialize)]
 pub struct HealthStatus {
+    /// High-level status string (e.g. ok, degraded).
     #[serde(default)]
     pub status: String,
+    /// Process uptime in seconds.
     #[serde(default)]
     pub uptime_secs: u64,
 }

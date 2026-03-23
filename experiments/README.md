@@ -1,6 +1,17 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S171)**: 1356 Rust tests (1203 lib + 73 forge + 80 playGround), 68 modules, 267 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 227 named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 23, 2026.
+**Current state (Session S172)**: 1380 Rust tests, 68 modules, 267 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 227+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 23, 2026.
+
+### Session S172 — 2026-03-23 (Deep Evolution & Ecosystem Absorption)
+
+- DeviceCapabilities migration complete (11 files, last spring to converge)
+- Workspace lint inheritance: [workspace.lints] single source of truth
+- 163 playGround missing-docs resolved
+- normalize_method IPC absorption from barraCuda
+- 3 validation binaries smart-refactored by responsibility (942→209, 913→189, 900→137 max LOC)
+- Config centralization: 8 env var names in config.rs
+- #[allow]→#[expect] complete across workspace
+- 1,380 tests, 0 clippy, 0 fmt, 0 doc warnings
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 

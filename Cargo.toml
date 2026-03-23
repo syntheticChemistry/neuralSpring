@@ -3,6 +3,19 @@
 [workspace]
 members = [".", "metalForge/forge", "playGround"]
 
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
+cast_precision_loss = "warn"
+cast_possible_truncation = "warn"
+cast_sign_loss = "warn"
+cast_lossless = "warn"
+
 [package]
 name = "neural-spring"
 version = "0.1.0"
@@ -711,7 +724,7 @@ path = "src/bin/validate_hillgate_f64_fix.rs"
 
 [[bin]]
 name = "validate_cross_spring_evolution"
-path = "src/bin/validate_cross_spring_evolution.rs"
+path = "src/bin/validate_cross_spring_evolution/main.rs"
 
 # ── WDM Surrogate validators (nW-01, nW-02, nW-04) ───────────────
 
@@ -841,7 +854,7 @@ path = "src/bin/validate_agent_coordination.rs"
 
 [[bin]]
 name = "validate_gpu_pure_workload_all"
-path = "src/bin/validate_gpu_pure_workload_all.rs"
+path = "src/bin/validate_gpu_pure_workload_all/main.rs"
 
 [[bin]]
 name = "validate_cross_system_dispatch"
@@ -1006,7 +1019,7 @@ required-features = ["primal"]
 
 [[bin]]
 name = "validate_modern_cross_spring"
-path = "src/bin/validate_modern_cross_spring.rs"
+path = "src/bin/validate_modern_cross_spring/main.rs"
 
 [[bin]]
 name = "validate_barracuda_alphafold2"
@@ -1196,16 +1209,6 @@ path = "src/bin/validate_sovereign_compile.rs"
 name = "validate_mixed_composition_pipeline"
 path = "src/bin/validate_mixed_composition_pipeline.rs"
 
-[lints.rust]
-unsafe_code = "forbid"
-
-[lints.clippy]
-pedantic = { level = "warn", priority = -1 }
-nursery = { level = "warn", priority = -1 }
-unwrap_used = "warn"
-expect_used = "warn"
-cast_precision_loss = "warn"
-cast_possible_truncation = "warn"
-cast_sign_loss = "warn"
-cast_lossless = "warn"
+[lints]
+workspace = true
 

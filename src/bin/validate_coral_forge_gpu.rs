@@ -683,10 +683,9 @@ async fn main() {
                 "  adapter: {} ({:?}, {:?})",
                 g.adapter_name, g.device_type, g.backend
             );
-            #[expect(deprecated, reason = "migrate to DeviceCapabilities")]
-            let profile =
-                barracuda::device::driver_profile::GpuDriverProfile::from_device(g.wgpu_device());
-            println!("  FP64 strategy: {:?}", profile.fp64_strategy());
+            let caps =
+                barracuda::device::capabilities::DeviceCapabilities::from_device(g.wgpu_device());
+            println!("  FP64 strategy: {:?}", caps.fp64_strategy());
             println!("  precision: df64 core streaming (f64 buffers, df64 compute)");
             g
         }

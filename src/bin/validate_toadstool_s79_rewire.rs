@@ -224,9 +224,9 @@ fn validate_fp64_strategy(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
         "fp64 strategy valid (Native|Hybrid|Concurrent)",
         matches!(
             strategy,
-            barracuda::device::driver_profile::Fp64Strategy::Native
-                | barracuda::device::driver_profile::Fp64Strategy::Hybrid
-                | barracuda::device::driver_profile::Fp64Strategy::Concurrent
+            barracuda::device::capabilities::Fp64Strategy::Native
+                | barracuda::device::capabilities::Fp64Strategy::Hybrid
+                | barracuda::device::capabilities::Fp64Strategy::Concurrent
         ),
     );
 }

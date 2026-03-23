@@ -29,20 +29,27 @@ pub struct HfHub {
 /// Metadata about a model from HF Hub.
 #[derive(Debug, serde::Deserialize)]
 pub struct ModelInfo {
+    /// Hugging Face repo id (`org/model`).
     #[serde(rename = "modelId")]
     pub model_id: String,
+    /// Optional revision or content hash from the Hub API.
     #[serde(default)]
     pub sha: String,
+    /// Task tag when present (e.g. `text-generation`).
     #[serde(default)]
     pub pipeline_tag: Option<String>,
+    /// Library hint from metadata (e.g. transformers).
     #[serde(default)]
     pub library_name: Option<String>,
+    /// Repo file listing used to resolve weights and config paths.
     #[serde(default)]
     pub siblings: Vec<HfSibling>,
 }
 
+/// One file entry in a Hub model repo listing (`/api/models/...`).
 #[derive(Debug, serde::Deserialize)]
 pub struct HfSibling {
+    /// Repo-relative path (e.g. `model.safetensors`).
     #[serde(rename = "rfilename")]
     pub filename: String,
 }
@@ -161,9 +168,13 @@ impl HfHub {
 /// Paths to downloaded model files.
 #[derive(Debug)]
 pub struct ModelFiles {
+    /// Hugging Face repo id this download set corresponds to.
     pub model_id: String,
+    /// Local path to `config.json` when downloaded.
     pub config: Option<PathBuf>,
+    /// Local paths to all downloaded `*.safetensors` shards.
     pub safetensors: Vec<PathBuf>,
+    /// Local path to tokenizer JSON when downloaded.
     pub tokenizer: Option<PathBuf>,
 }
 

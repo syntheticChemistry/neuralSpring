@@ -13,10 +13,15 @@ use anyhow::{Context, Result};
 /// All API keys loaded from testing-secrets.
 #[derive(Debug, Default)]
 pub struct Secrets {
+    /// Hugging Face API token for Hub downloads (when present in the file).
     pub huggingface_token: Option<String>,
+    /// Anthropic API key from `[ai_providers]` or similar sections.
     pub anthropic_api_key: Option<String>,
+    /// `OpenAI` API key from `[ai_providers]` or similar sections.
     pub openai_api_key: Option<String>,
+    /// Cohere API key parsed from loose key lines.
     pub cohere_api_key: Option<String>,
+    /// Together AI API key parsed from loose key lines.
     pub together_api_key: Option<String>,
     sections: HashMap<String, HashMap<String, String>>,
 }

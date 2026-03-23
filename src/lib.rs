@@ -104,10 +104,6 @@ pub mod fft;
 pub mod game_theory;
 pub mod glucose_prediction;
 pub mod gpu;
-#[expect(
-    deprecated,
-    reason = "GpuDriverProfile → DeviceCapabilities migration pending barraCuda API removal"
-)]
 pub mod gpu_dispatch;
 pub mod gpu_ops;
 pub mod gpu_shader_validation;

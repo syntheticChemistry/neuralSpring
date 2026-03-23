@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-03-23 (Session 171: Deep Debt Audit Execution)
+## [Unreleased] — 2026-03-23 (Session 172: Deep Evolution & Ecosystem Absorption)
+
+### 2026-03-23 — Session S172 (deep evolution & ecosystem absorption)
+
+- **DeviceCapabilities migration**: replaced all deprecated `GpuDriverProfile` usage across 11 files with `barracuda::device::capabilities::DeviceCapabilities` — last spring to complete ecosystem convergence
+- **Workspace lint inheritance**: moved `[lints.rust]` + `[lints.clippy]` to `[workspace.lints]`; all 3 workspace members inherit via `[lints] workspace = true`
+- **playGround missing-docs**: added docs to all 163 previously-undocumented public items across 14 files
+- **normalize_method absorption**: IPC dispatch normalizes legacy `neuralspring.{method}` prefix per ecosystem convention (barraCuda v0.3.7, loamSpine v0.9.8, wetSpring V132)
+- **Smart refactoring**: 3 validation binaries refactored by domain responsibility: `validate_gpu_pure_workload_all` (942→7 modules, max 209), `validate_cross_spring_evolution` (913→9 modules, max 189), `validate_modern_cross_spring` (900→10 modules, max 137)
+- **Config centralization**: 8 env var names centralized in `config.rs`; `127.0.0.1` → `Ipv4Addr::LOCALHOST`
+- **`#[allow]` → `#[expect]`**: last `#[allow]` in forge converted; zero `#[allow]` in production code
+- **Doctest fix**: `nucleus_pipeline.rs` doctest unwraps `Result` correctly
+- **1,380 tests** (1,203 lib + 73 forge + 80 playGround + 13 doc), 0 clippy, 0 fmt, 0 doc warnings
 
 ### 2026-03-23 — Session S171 (deep debt audit execution)
 

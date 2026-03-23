@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#![allow(clippy::cast_precision_loss)]
+#![expect(
+    clippy::cast_precision_loss,
+    reason = "substrate scoring uses f64 from usize dimensions"
+)]
 
 //! Mixed-hardware substrate selection — GPU ↔ NPU ↔ CPU dispatch.
 //!

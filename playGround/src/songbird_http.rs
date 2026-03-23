@@ -133,7 +133,10 @@ impl SongbirdHttp {
 
 /// HTTP response from Songbird.
 pub struct HttpResponse {
+    /// HTTP status code from the upstream response.
     pub status: u16,
+    /// Response body as UTF-8 text (Songbird IPC payload).
     pub body: String,
+    /// Declared `Content-Length` when the remote provided it.
     pub content_length: u64,
 }

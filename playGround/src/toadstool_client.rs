@@ -16,75 +16,106 @@ use serde::Deserialize;
 
 use crate::ipc_client;
 
+/// Typed JSON-RPC client for the `ToadStool` compute orchestration primal.
 pub struct ToadStoolClient {
+    /// Path to `ToadStool`'s Unix domain socket.
     socket: PathBuf,
+    /// Per-RPC timeout for compute and GPU IPC calls.
     timeout: Duration,
 }
 
+/// `gpu.info` payload: devices and driver/backends visible to `ToadStool`.
 #[derive(Debug, Deserialize)]
 pub struct GpuInfo {
+    /// Discovered GPU devices (ids, backends, ordering).
     #[serde(default)]
     pub devices: Vec<GpuDevice>,
+    /// Driver or runtime version string from the GPU stack.
     #[serde(default)]
     pub driver: String,
+    /// Backend identifiers available for compute (e.g. wgpu, CUDA).
     #[serde(default)]
     pub compute_backends: Vec<String>,
 }
 
+/// One entry in the `gpu.info` device list.
 #[derive(Debug, Deserialize)]
 pub struct GpuDevice {
+    /// Stable device id or name from the primal.
     #[serde(default)]
     pub id: String,
+    /// Backend used for this device (e.g. Vulkan, CUDA).
     #[serde(default)]
     pub backend: String,
+    /// Ordinal index within the backend enumeration.
     #[serde(default)]
     pub index: u32,
 }
 
+/// `compute.capabilities` reply: supported workload kinds and scheduling metadata.
 #[derive(Debug, Deserialize)]
 pub struct ComputeCapabilities {
+    /// Service or primal instance id for this endpoint.
     #[serde(default)]
     pub service_id: String,
+    /// Workload type strings accepted by `compute.submit`.
     #[serde(default)]
     pub supported_workload_types: Vec<String>,
+    /// Opaque per-unit descriptors (scheduler-dependent JSON).
     #[serde(default)]
     pub compute_units: Vec<serde_json::Value>,
 }
 
+/// `compute.status` poll result for a submitted job.
 #[derive(Debug, Deserialize)]
 pub struct JobStatus {
+    /// Job id returned by `compute.submit`.
     #[serde(default)]
     pub id: String,
+    /// Coarse lifecycle state (queued, running, completed, failed, …).
     #[serde(default)]
     pub status: String,
+    /// Normalized progress in \[0, 1\] when reported.
     #[serde(default)]
     pub progress: f64,
+    /// Elapsed wall time since submission (milliseconds).
     #[serde(default)]
     pub elapsed_ms: u64,
 }
 
+/// `compute.result` payload when a job finishes.
 #[derive(Debug, Deserialize)]
 pub struct JobResult {
+    /// Job id matching `compute.submit` / status polls.
     #[serde(default)]
     pub id: String,
+    /// Final lifecycle state string.
     #[serde(default)]
     pub status: String,
+    /// Structured result payload from the workload when successful.
     #[serde(default)]
     pub result: Option<serde_json::Value>,
+    /// Total elapsed time for the job (milliseconds).
     #[serde(default)]
     pub elapsed_ms: u64,
 }
 
+/// `toadstool.health` summary for orchestrator observability.
 #[derive(Debug, Deserialize)]
 pub struct HealthStatus {
+    /// Whether the primal considers itself healthy.
     #[serde(default)]
     pub healthy: bool,
+    /// Process uptime in seconds.
     #[serde(default)]
     pub uptime_secs: u64,
+    /// Build or protocol version string.
     #[serde(default)]
     pub version: String,
+    /// Number of in-flight workloads currently executing.
     #[serde(default)]
     pub active_workloads: u32,
+    /// Number of workloads waiting in the scheduler queue.
     #[serde(default)]
     pub queued_workloads: u32,
 }
@@ -300,7 +331,9 @@ impl ToadStoolClient {
 /// Handle returned by `compute.dispatch.submit` for result retrieval.
 #[derive(Debug, Deserialize)]
 pub struct DispatchHandle {
+    /// Opaque id for `compute.dispatch.result` polling.
     pub dispatch_id: String,
+    /// Initial or last-known dispatch state from the submit response.
     #[serde(default)]
     pub status: String,
 }
@@ -308,12 +341,16 @@ pub struct DispatchHandle {
 /// Result of a completed dispatch operation.
 #[derive(Debug, Deserialize)]
 pub struct DispatchResult {
+    /// Dispatch id matching the submit handle.
     #[serde(default)]
     pub dispatch_id: String,
+    /// Terminal state of the dispatch (success, error, cancelled, …).
     #[serde(default)]
     pub status: String,
+    /// Structured output from the dispatched operation when available.
     #[serde(default)]
     pub output: Option<serde_json::Value>,
+    /// Wall time for the dispatch (milliseconds).
     #[serde(default)]
     pub elapsed_ms: u64,
 }

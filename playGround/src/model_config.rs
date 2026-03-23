@@ -16,28 +16,47 @@ use serde::Deserialize;
 /// normalizes them into a common representation.
 #[derive(Debug, Clone)]
 pub struct TransformerConfig {
+    /// Architecture name from `config.json` (e.g. gpt2, llama).
     pub model_type: String,
+    /// Vocabulary size (embedding rows / logits width).
     pub vocab_size: usize,
+    /// Hidden width (model `d_model`).
     pub hidden_size: usize,
+    /// Number of transformer blocks / layers.
     pub num_layers: usize,
+    /// Attention head count for queries (and keys/values when not using GQA).
     pub num_heads: usize,
+    /// Key/value head count for grouped-query attention (GQA); equals `num_heads` for MHA.
     pub num_kv_heads: usize,
+    /// Feed-forward hidden dimension (up-projection width).
     pub intermediate_size: usize,
+    /// Maximum sequence length the config supports (context window).
     pub max_position_embeddings: usize,
+    /// Per-head dimension (`hidden_size / num_heads` unless overridden).
     pub head_dim: usize,
+    /// Epsilon for layer norm (or RMS norm) in the source config.
     pub layer_norm_eps: f64,
+    /// Nonlinearity used in MLP and sometimes attention (mapped from HF strings).
     pub activation: Activation,
+    /// Whether input embeddings and LM head share weights.
     pub tie_word_embeddings: bool,
 }
 
+/// Nonlinearity used by the loaded HF model (normalized from `hidden_act` / `activation_function`).
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum Activation {
+    /// Standard GELU.
     #[default]
     Gelu,
+    /// GPT-2 / transformers-style `gelu_new` (tanh approximation).
     GeluNew,
+    /// `ReLU`.
     Relu,
+    /// `SiLU` (Swish with β=1); used by many Llama-family configs.
     Silu,
+    /// Explicit Swish activation.
     Swish,
+    /// Mish activation.
     Mish,
 }
 

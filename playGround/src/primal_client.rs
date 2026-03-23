@@ -23,8 +23,11 @@ const PRIMAL_SOCKET_HINT: &str = neural_spring::niche::NICHE_NAME;
 /// Primary capability used to discover a neuralSpring primal instance.
 const DISCOVERY_CAPABILITY: &str = "science.spectral_analysis";
 
+/// Typed JSON-RPC client for the neuralSpring primal (science capabilities over Unix IPC).
 pub struct PrimalClient {
+    /// Path to the primal's Unix domain socket.
     socket: PathBuf,
+    /// Per-RPC timeout for IPC calls.
     timeout: Duration,
 }
 
@@ -87,11 +90,13 @@ impl PrimalClient {
         Ok(caps)
     }
 
+    /// Run spectral analysis on a weight matrix (`science.spectral_analysis`).
     pub async fn spectral_analysis(&self, params: &serde_json::Value) -> Result<serde_json::Value> {
         self.call_capability("science.spectral_analysis", params)
             .await
     }
 
+    /// Anderson localization study on a tight-binding Hamiltonian (`science.anderson_localization`).
     pub async fn anderson_localization(
         &self,
         params: &serde_json::Value,
@@ -100,10 +105,12 @@ impl PrimalClient {
             .await
     }
 
+    /// Hessian eigen-spectrum for loss-landscape diagnostics (`science.hessian_eigen`).
     pub async fn hessian_eigen(&self, params: &serde_json::Value) -> Result<serde_json::Value> {
         self.call_capability("science.hessian_eigen", params).await
     }
 
+    /// Multi-agent coordination metrics from an interaction graph (`science.agent_coordination`).
     pub async fn agent_coordination(
         &self,
         params: &serde_json::Value,
@@ -112,14 +119,17 @@ impl PrimalClient {
             .await
     }
 
+    /// Inverse participation ratio and related localization metrics (`science.ipr`).
     pub async fn ipr(&self, params: &serde_json::Value) -> Result<serde_json::Value> {
         self.call_capability("science.ipr", params).await
     }
 
+    /// Disorder-strength sweep across a lattice (`science.disorder_sweep`).
     pub async fn disorder_sweep(&self, params: &serde_json::Value) -> Result<serde_json::Value> {
         self.call_capability("science.disorder_sweep", params).await
     }
 
+    /// Training trajectory / dynamics summary (`science.training_trajectory`).
     pub async fn training_trajectory(
         &self,
         params: &serde_json::Value,
@@ -128,6 +138,7 @@ impl PrimalClient {
             .await
     }
 
+    /// GPU shader dispatch workload (`science.gpu_dispatch`).
     pub async fn gpu_dispatch(&self, params: &serde_json::Value) -> Result<serde_json::Value> {
         self.call_capability("science.gpu_dispatch", params).await
     }

@@ -17,15 +17,21 @@ use serde::Deserialize;
 
 use crate::ipc_client;
 
+/// Typed JSON-RPC client for the biomeOS NUCLEUS orchestrator over Unix sockets.
 pub struct BiomeOsClient {
+    /// Path to the orchestrator's Unix domain socket.
     socket: PathBuf,
+    /// Per-call timeout for IPC round-trips.
     timeout: Duration,
 }
 
+/// Result of `capability.resolve`: which primal hosts a requested capability.
 #[derive(Debug, Deserialize)]
 pub struct ResolveResult {
+    /// Advertised primal name that owns the capability.
     #[serde(default)]
     pub primal: String,
+    /// Unix socket path where that primal accepts JSON-RPC.
     #[serde(default)]
     pub socket_path: String,
 }

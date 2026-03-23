@@ -86,6 +86,34 @@ pub const ENV_REQUIRE_GPU: &str = "NEURALSPRING_REQUIRE_GPU";
 /// Override GPU backend selection (`vulkan`, `metal`, `dx12`).
 pub const ENV_GPU_BACKEND: &str = "NEURALSPRING_BACKEND";
 
+/// Legacy alias for GPU backend (ecosystem-wide).
+pub const ENV_GPU_BACKEND_LEGACY: &str = "GPU_BACKEND";
+
+// ═══════════════════════════════════════════════════════════════════
+// Primal runtime env vars
+// ═══════════════════════════════════════════════════════════════════
+
+/// TCP port for JSON-RPC fallback listener (0 = ephemeral).
+pub const ENV_TCP_PORT: &str = "PRIMAL_TCP_PORT";
+
+/// Spring-specific TCP port override.
+pub const ENV_TCP_PORT_SPRING: &str = "NEURALSPRING_TCP_PORT";
+
+/// IPC response timeout in seconds.
+pub const ENV_IPC_TIMEOUT: &str = "PRIMAL_IPC_TIMEOUT_SECS";
+
+/// Spring-specific IPC timeout override.
+pub const ENV_IPC_TIMEOUT_SPRING: &str = "NEURALSPRING_IPC_TIMEOUT_SECS";
+
+/// Heartbeat interval for biomeOS registration (seconds).
+pub const ENV_HEARTBEAT_SECS: &str = "PRIMAL_HEARTBEAT_SECS";
+
+/// Spring-specific heartbeat override.
+pub const ENV_HEARTBEAT_SECS_SPRING: &str = "NEURALSPRING_HEARTBEAT_SECS";
+
+/// Family ID for multi-instance primal isolation.
+pub const ENV_FAMILY_ID: &str = "FAMILY_ID";
+
 // ═══════════════════════════════════════════════════════════════════
 // Capability strings announced via Songbird
 // ═══════════════════════════════════════════════════════════════════

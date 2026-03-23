@@ -19,8 +19,8 @@ fn main() {
     let mut h = ValidationHarness::new("Exp 103: GPU-Accelerated Eigensolve Pipeline");
     println!("Backend: {}", dispatcher.backend());
     println!("Adapter: {}", dispatcher.adapter_name());
-    if let Some(profile) = dispatcher.driver_profile() {
-        println!("FP64 strategy: {:?}", profile.fp64_strategy());
+    if let Some(caps) = dispatcher.device_caps() {
+        println!("FP64 strategy: {:?}", caps.fp64_strategy());
     }
     println!();
 

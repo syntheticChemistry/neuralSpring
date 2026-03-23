@@ -9,11 +9,16 @@
 use serde::Serialize;
 use serde_json::json;
 
+/// Metadata for one MCP tool exposed to Squirrel (`capability.announce` / MCP adapter).
 #[derive(Debug, Clone, Serialize)]
 pub struct McpToolDef {
+    /// Stable tool id matching the neuralSpring JSON-RPC capability name.
     pub name: &'static str,
+    /// Short description shown to MCP clients and operators.
     pub description: &'static str,
+    /// Logical grouping (e.g. `science`, `health`) for UI and policy.
     pub domain: &'static str,
+    /// JSON Schema for tool arguments, serialized for MCP registration.
     pub input_schema: serde_json::Value,
 }
 

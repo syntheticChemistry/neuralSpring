@@ -50,6 +50,18 @@ impl JsonRpcResponse {
     }
 }
 
+/// Normalize a JSON-RPC method name: accepts both `{domain}.{operation}`
+/// (standard) and legacy `neuralspring.{domain}.{operation}` (backward-compatible).
+///
+/// Mirrors `barracuda-core::ipc::methods::normalize_method` per ecosystem
+/// convention (wetSpring V132, loamSpine v0.9.8, barraCuda v0.3.7).
+pub fn normalize_method(method: &str) -> &str {
+    method
+        .strip_prefix(super::PRIMAL_NAME)
+        .and_then(|s| s.strip_prefix('.'))
+        .unwrap_or(method)
+}
+
 /// JSON-RPC 2.0 standard error codes (§5.1).
 pub mod error_code {
     pub const PARSE_ERROR: i32 = -32_700;

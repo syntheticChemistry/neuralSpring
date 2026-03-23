@@ -16,23 +16,33 @@ use serde::Deserialize;
 
 use crate::ipc_client;
 
+/// Typed JSON-RPC client for the coralReef sovereign shader compiler primal.
 pub struct CoralReefClient {
+    /// Path to coralReef's Unix domain socket.
     socket: PathBuf,
+    /// Per-RPC timeout (compile calls may be long-running).
     timeout: Duration,
 }
 
+/// Parsed `shader.compile.*` response: native binary metadata from the IPC reply.
 #[derive(Debug, Deserialize)]
 pub struct CompileResult {
+    /// Size of the compiled native binary in bytes.
     #[serde(default)]
     pub binary_size: usize,
+    /// Wall-clock compile time reported by the compiler (milliseconds).
     #[serde(default)]
     pub compile_time_ms: f64,
+    /// GPU ISA or backend identifier (e.g. SASS, GFX).
     #[serde(default)]
     pub target_arch: String,
+    /// General-purpose register usage reported for the kernel.
     #[serde(default)]
     pub gpr_count: u32,
+    /// Static shared memory required by the kernel (bytes).
     #[serde(default)]
     pub shared_mem_bytes: u32,
+    /// Launch grid local size (x, y, z) for the compiled kernel.
     #[serde(default)]
     pub local_size: [u32; 3],
     /// Base64-encoded native binary (for dispatch via coral-driver)
@@ -40,28 +50,39 @@ pub struct CompileResult {
     pub binary_b64: String,
 }
 
+/// `shader.compile.capabilities` payload: supported targets and feature flags.
 #[derive(Debug, Deserialize)]
 pub struct CompilerCapabilities {
+    /// NVIDIA target triples or chip names the compiler can emit.
     #[serde(default)]
     pub nvidia_targets: Vec<String>,
+    /// AMD GFX / ISA targets the compiler can emit.
     #[serde(default)]
     pub amd_targets: Vec<String>,
+    /// Whether double-precision is supported in generated kernels.
     #[serde(default)]
     pub supports_f64: bool,
+    /// Whether SPIR-V ingestion is supported.
     #[serde(default)]
     pub supports_spirv: bool,
+    /// Fused multiply-add policy string from the compiler.
     #[serde(default)]
     pub fma_policy: String,
 }
 
+/// `shader.compile.status` snapshot: uptime and cache statistics.
 #[derive(Debug, Deserialize)]
 pub struct CompilerStatus {
+    /// High-level compiler state (e.g. ready, busy).
     #[serde(default)]
     pub status: String,
+    /// Compiler build or protocol version string.
     #[serde(default)]
     pub version: String,
+    /// Total shaders compiled since process start (if reported).
     #[serde(default)]
     pub shaders_compiled: u64,
+    /// Number of entries in the on-disk or in-memory shader cache.
     #[serde(default)]
     pub cache_entries: u64,
 }

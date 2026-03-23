@@ -40,7 +40,7 @@ fn gpu_dispatcher_metadata() {
     assert_ne!(d.adapter_name(), "(none)");
     assert!(d.wgpu_device().is_some());
     assert!(d.gpu().is_some());
-    assert!(d.driver_profile().is_some());
+    assert!(d.device_caps().is_some());
 }
 
 #[test]

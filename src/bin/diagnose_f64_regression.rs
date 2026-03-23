@@ -36,11 +36,10 @@ fn main() {
 
     println!("=== GPU: {} ===", dev.adapter_info().name);
 
-    #[expect(deprecated, reason = "migrate to DeviceCapabilities")]
-    let profile = barracuda::device::driver_profile::GpuDriverProfile::from_device(&dev);
-    println!("  fp64_strategy: {:?}", profile.fp64_strategy());
-    println!("  precision_routing: {:?}", profile.precision_routing());
-    println!("  f64_zeros_risk: {}", profile.f64_zeros_risk());
+    let caps = barracuda::device::capabilities::DeviceCapabilities::from_device(&dev);
+    println!("  fp64_strategy: {:?}", caps.fp64_strategy());
+    println!("  precision_routing: {:?}", caps.precision_routing());
+    println!("  has_reliable_f64: {}", caps.has_reliable_f64());
 
     // Run probes
     let caps = rt.block_on(barracuda::device::probe::probe_f64_builtins(&dev));

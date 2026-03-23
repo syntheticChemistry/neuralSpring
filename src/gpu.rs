@@ -145,7 +145,7 @@ impl Gpu {
     ///
     /// Returns an error if the requested backend is unavailable.
     pub async fn new() -> Result<Self, String> {
-        let selector = std::env::var("GPU_BACKEND")
+        let selector = std::env::var(crate::config::ENV_GPU_BACKEND_LEGACY)
             .or_else(|_| std::env::var(crate::config::ENV_GPU_BACKEND))
             .unwrap_or_default()
             .trim()
