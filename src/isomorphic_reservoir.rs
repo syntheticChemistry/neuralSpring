@@ -339,4 +339,64 @@ mod tests {
         let eff_dim = 1.0 / ipr;
         assert!((eff_dim - 20.0).abs() < crate::tolerances::CROSS_LANGUAGE);
     }
+
+    mod proptests {
+        use super::*;
+        use crate::rng::Rng as PrimalRng;
+        use proptest::prelude::*;
+
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(48))]
+
+            #[test]
+            fn spectral_radius_matches_eigenvalue_extremes(
+                n in 3_usize..12,
+                seed in 0_u64..10_000,
+            ) {
+                let mut rng = PrimalRng::new(seed);
+                let mut m = vec![0.0; n * n];
+                for i in 0..n {
+                    for j in i..n {
+                        let v = rng.uniform() * 2.0 - 1.0;
+                        m[i * n + j] = v;
+                        m[j * n + i] = v;
+                    }
+                }
+
+                let sp = spectral_properties(&m, n, "proptest");
+
+                prop_assert!(sp.spectral_radius.is_finite());
+                prop_assert!(sp.spectral_radius >= 0.0);
+
+                let expected = sp.eigenvalue_min.abs().max(sp.eigenvalue_max.abs());
+                prop_assert!((sp.spectral_radius - expected).abs() < 1e-8,
+                    "spectral_radius={} vs max(|min|,|max|)={}",
+                    sp.spectral_radius, expected);
+            }
+
+            #[test]
+            fn eigenvalue_stats_consistent(
+                n in 3_usize..12,
+                seed in 0_u64..10_000,
+            ) {
+                let mut rng = PrimalRng::new(seed);
+                let mut m = vec![0.0; n * n];
+                for i in 0..n {
+                    for j in i..n {
+                        let v = rng.uniform() * 2.0 - 1.0;
+                        m[i * n + j] = v;
+                        m[j * n + i] = v;
+                    }
+                }
+
+                let sp = spectral_properties(&m, n, "proptest");
+
+                prop_assert!(sp.eigenvalue_min <= sp.eigenvalue_max + 1e-10);
+                prop_assert!(sp.eigenvalue_mean.is_finite());
+                prop_assert!(sp.eigenvalue_std >= 0.0);
+                prop_assert!(sp.mean_ipr > 0.0);
+                prop_assert!(sp.effective_dimension.is_finite());
+            }
+        }
+    }
 }

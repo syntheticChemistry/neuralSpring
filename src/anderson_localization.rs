@@ -343,4 +343,73 @@ mod tests {
         assert_eq!(evals.len(), n);
         assert!(evals.iter().all(|&e| e.is_finite()));
     }
+
+    mod proptests {
+        use super::*;
+        use crate::rng::Rng as PrimalRng;
+        use proptest::prelude::*;
+
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(64))]
+
+            #[test]
+            fn ipr_bounds_for_eigenvectors(
+                n in 3_usize..15,
+                w in 0.1_f64..10.0,
+                seed in 0_u64..10_000,
+            ) {
+                let mut rng = PrimalRng::new(seed);
+                let h = anderson_hamiltonian_random(n, 1.0, w, &mut rng);
+                let (evals, evecs) = jacobi_eigh(&h, n);
+
+                prop_assert_eq!(evals.len(), n);
+                prop_assert!(evals.iter().all(|v| v.is_finite()));
+
+                let inv_n = 1.0 / (n as f64);
+                for k in 0..n {
+                    let col: Vec<f64> = (0..n).map(|row| evecs[row * n + k]).collect();
+                    let norm_sq: f64 = col.iter().map(|x| x * x).sum();
+                    let ipr_val = ipr(&col);
+
+                    if (norm_sq - 1.0).abs() < 1e-6 {
+                        prop_assert!(ipr_val >= inv_n - 1e-10,
+                            "IPR={ipr_val} < 1/N={inv_n} for n={n}, k={k}");
+                        prop_assert!(ipr_val <= 1.0 + 1e-10,
+                            "IPR={ipr_val} > 1.0 for n={n}, k={k}");
+                    }
+                }
+            }
+
+            #[test]
+            fn anderson_hamiltonian_symmetric(
+                n in 2_usize..20,
+                w in 0.1_f64..10.0,
+                seed in 0_u64..10_000,
+            ) {
+                let mut rng = PrimalRng::new(seed);
+                let h = anderson_hamiltonian_random(n, 1.0, w, &mut rng);
+                for i in 0..n {
+                    for j in 0..n {
+                        prop_assert!((h[i * n + j] - h[j * n + i]).abs() < 1e-15,
+                            "not symmetric at ({i},{j})");
+                    }
+                }
+            }
+
+            #[test]
+            fn mean_ipr_finite_and_bounded(
+                n in 3_usize..12,
+                w in 0.1_f64..10.0,
+                seed in 0_u64..10_000,
+            ) {
+                let mut rng = PrimalRng::new(seed);
+                let h = anderson_hamiltonian_random(n, 1.0, w, &mut rng);
+                let (_, evecs) = jacobi_eigh(&h, n);
+                let m = mean_ipr(&evecs, n);
+
+                prop_assert!(m.is_finite(), "mean_ipr not finite: {m}");
+                prop_assert!(m > 0.0, "mean_ipr non-positive: {m}");
+            }
+        }
+    }
 }

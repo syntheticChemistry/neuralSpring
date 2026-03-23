@@ -406,4 +406,82 @@ mod tests {
         assert_eq!(nested.transition, flat.transition);
         assert_eq!(nested.emission, flat.emission);
     }
+
+    mod proptests {
+        use super::*;
+        use crate::rng::Rng as PrimalRng;
+        use proptest::prelude::*;
+
+        fn random_stochastic_row(n: usize, rng: &mut PrimalRng) -> Vec<f64> {
+            let raw: Vec<f64> = (0..n).map(|_| rng.uniform() + 0.01).collect();
+            let sum: f64 = raw.iter().sum();
+            raw.into_iter().map(|x| x / sum).collect()
+        }
+
+        fn random_hmm(n: usize, m: usize, seed: u64) -> Hmm {
+            let mut rng = PrimalRng::new(seed);
+            let trans: Vec<Vec<f64>> = (0..n).map(|_| random_stochastic_row(n, &mut rng)).collect();
+            let emit: Vec<Vec<f64>> = (0..n).map(|_| random_stochastic_row(m, &mut rng)).collect();
+            let init = random_stochastic_row(n, &mut rng);
+            Hmm::new(trans, emit, init)
+        }
+
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(64))]
+
+            #[test]
+            fn forward_alpha_sums_to_one(
+                n in 2_usize..5,
+                m in 2_usize..5,
+                t_len in 1_usize..20,
+                seed in 0_u64..10_000,
+            ) {
+                let hmm = random_hmm(n, m, seed);
+                let mut rng = PrimalRng::new(seed.wrapping_add(1));
+                let (_, obs) = hmm.generate_sequence(t_len, &mut rng);
+                let fwd = hmm.forward_full(&obs);
+
+                for t in 0..obs.len() {
+                    let sum: f64 = fwd.alpha_at(t).iter().sum();
+                    prop_assert!((sum - 1.0).abs() < 1e-10,
+                        "alpha sum at t={t} was {sum}, expected ~1.0");
+                }
+            }
+
+            #[test]
+            fn forward_loglik_always_finite(
+                n in 2_usize..5,
+                m in 2_usize..5,
+                t_len in 1_usize..30,
+                seed in 0_u64..10_000,
+            ) {
+                let hmm = random_hmm(n, m, seed);
+                let mut rng = PrimalRng::new(seed.wrapping_add(1));
+                let (_, obs) = hmm.generate_sequence(t_len, &mut rng);
+                let (_, log_lik) = hmm.forward(&obs);
+
+                prop_assert!(log_lik.is_finite(),
+                    "log-likelihood should be finite, got {log_lik}");
+            }
+
+            #[test]
+            fn viterbi_path_in_valid_range(
+                n in 2_usize..5,
+                m in 2_usize..5,
+                t_len in 1_usize..30,
+                seed in 0_u64..10_000,
+            ) {
+                let hmm = random_hmm(n, m, seed);
+                let mut rng = PrimalRng::new(seed.wrapping_add(1));
+                let (_, obs) = hmm.generate_sequence(t_len, &mut rng);
+                let (path, score) = hmm.viterbi(&obs);
+
+                prop_assert_eq!(path.len(), obs.len());
+                prop_assert!(score.is_finite());
+                for &s in &path {
+                    prop_assert!(s < n, "viterbi state {s} >= n={n}");
+                }
+            }
+        }
+    }
 }

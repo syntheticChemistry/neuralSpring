@@ -356,4 +356,45 @@ mod tests {
         let s2 = spatial_cooperation(10, 20, 3.0, 1.0, 42);
         assert_eq!(s1, s2);
     }
+
+    mod proptests {
+        use super::*;
+        use proptest::prelude::*;
+
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(128))]
+
+            #[test]
+            fn replicator_preserves_simplex(
+                f0 in 0.01_f64..0.99,
+                a00 in -5.0_f64..5.0,
+                a01 in -5.0_f64..5.0,
+                a10 in -5.0_f64..5.0,
+                a11 in -5.0_f64..5.0,
+                n_steps in 1_usize..200,
+            ) {
+                let payoff = [[a00, a01], [a10, a11]];
+                let freq = [f0, 1.0 - f0];
+                let trace = replicator_dynamics(&freq, &payoff, n_steps, 0.01);
+
+                prop_assert_eq!(trace.len(), n_steps + 1);
+                for (t, step) in trace.iter().enumerate() {
+                    let sum = step[0] + step[1];
+                    prop_assert!((sum - 1.0).abs() < 1e-10,
+                        "simplex violated at t={t}: sum={sum}");
+                    prop_assert!(step[0] >= 0.0 && step[1] >= 0.0,
+                        "negative freq at t={t}: {:?}", step);
+                }
+            }
+
+            #[test]
+            fn replicator_trace_correct_length(
+                n_steps in 0_usize..500,
+            ) {
+                let pd = prisoners_dilemma_payoff(3.0, 1.0);
+                let trace = replicator_dynamics(&[0.5, 0.5], &pd, n_steps, 0.01);
+                prop_assert_eq!(trace.len(), n_steps + 1);
+            }
+        }
+    }
 }

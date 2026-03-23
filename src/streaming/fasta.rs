@@ -373,4 +373,56 @@ mod tests {
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].seq(), b"ACGT");
     }
+
+    mod proptests {
+        use super::*;
+        use proptest::prelude::*;
+
+        fn dna_sequence(max_len: usize) -> impl Strategy<Value = Vec<u8>> {
+            proptest::collection::vec(
+                prop_oneof![Just(b'A'), Just(b'C'), Just(b'G'), Just(b'T')],
+                1..=max_len,
+            )
+        }
+
+        fn header_string() -> impl Strategy<Value = String> {
+            "[a-zA-Z0-9_.]{1,40}"
+        }
+
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(64))]
+
+            #[test]
+            fn write_then_parse_roundtrip(
+                hdr in header_string(),
+                seq in dna_sequence(500),
+            ) {
+                let mut fasta_text = format!(">{hdr}\n").into_bytes();
+                fasta_text.extend_from_slice(&seq);
+                fasta_text.push(b'\n');
+
+                let parsed = parse_all(&fasta_text).unwrap();
+                prop_assert_eq!(parsed.len(), 1);
+                prop_assert_eq!(parsed[0].header(), hdr.as_str());
+                prop_assert_eq!(parsed[0].seq(), seq.as_slice());
+
+                let mut written = Vec::new();
+                parsed[0].write_to(&mut written).unwrap();
+
+                let reparsed = parse_all(&written).unwrap();
+                prop_assert_eq!(reparsed.len(), 1);
+                prop_assert_eq!(reparsed[0].seq(), seq.as_slice());
+            }
+
+            #[test]
+            fn sequence_length_preserved(
+                seq in dna_sequence(1000),
+            ) {
+                let fasta = format!(">test\n{}\n", std::str::from_utf8(&seq).unwrap()).into_bytes();
+                let parsed = parse_all(&fasta).unwrap();
+                prop_assert_eq!(parsed[0].len(), seq.len());
+                prop_assert!(!parsed[0].is_empty());
+            }
+        }
+    }
 }
