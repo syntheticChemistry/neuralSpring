@@ -1,6 +1,14 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S174)**: ~1,385 Rust tests, 68 modules, 261 binaries, 464 `.rs` files, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`, 0 tolerance literals in validators. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 232+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 24, 2026.
+**Current state (Session S175)**: ~1,400 Rust tests, 68 modules, 261 binaries, 465 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`. `ValidationSink` pattern (JSON, NDJSON, collecting). 4 provenance integrity tests. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 232+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 24, 2026.
+
+### Session S175 — 2026-03-24 (Ecosystem Absorption — ValidationSink, Cast Deny, Provenance Integrity)
+
+- `ValidationSink` trait + 5 implementations (StdoutSink, JsonSink, NdjsonSink, CollectingSink, SilentSink) — absorbed from wetSpring/airSpring/groundSpring convergence
+- `cast_possible_truncation` + `cast_sign_loss` promoted warn → deny in workspace lints
+- 4 provenance integrity tests (existence, headers, SPDX, content stability)
+- Deploy graph bumped V124/S174; leverage guide refreshed
+- 1,211 lib tests (+12 sink + 4 provenance), zero clippy/fmt/doc
 
 ### Session S174 — 2026-03-24 (Deep Audit Execution — Zero Debt, Provenance, Self-Knowledge)
 

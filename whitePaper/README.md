@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 261 binaries, **220/220 validate\_all**. coralForge unified. 225 named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery warnings, 0 doc warnings. ~1,385 tests (1,199 lib + 72 forge + 80 playGround + 9 integration + 25 tokio). 46 upstream rewires, 216+ barracuda import files, 45+ submodules. barraCuda v0.3.7 at `0649cd0`, wgpu 28. playGround: Squirrel MCP adapter + HuggingFace Model Lab + compute triangle (ToadStool/coralReef IPC clients). 16 petalTongue scenario builders, `neuralspring_ecosystem_dashboard`, `config.rs` centralized identity. Streaming FASTA/FASTQ/VCF parsers, CPU BLAST pipeline, Kokkos parity harness. Edition 2024, health probes, 28 proptest + IPC fuzz tests, ipc_resilience, mul_add FMA.
-**Date**: March 24, 2026 (Sessions 40–173 — S173: typed errors, doc sync. ~1,385 tests, 261 binaries, 464 `.rs` files, 67 modules. barraCuda v0.3.7 at `0649cd0`, toadStool S146+, coralReef Phase 10)
+**Status**: Phase 5h+ — **4500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 261 binaries, **220/220 validate\_all**. coralForge unified. 232+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. ~1,400 tests (1,211 lib + 73 forge + 80 playGround + 9 integration + 25 tokio). 46 upstream rewires, 216+ barracuda import files, 45+ submodules. barraCuda v0.3.7 at `0649cd0`, wgpu 28. `ValidationSink` pattern (JSON, NDJSON, collecting). Provenance integrity tests. Edition 2024, health probes, 34 proptest + IPC fuzz tests, ipc_resilience, mul_add FMA.
+**Date**: March 24, 2026 (Sessions 40–175 — S175: ecosystem absorption, ValidationSink, cast deny. ~1,400 tests, 261 binaries, 465 `.rs` files, 68 modules. barraCuda v0.3.7 at `0649cd0`, toadStool S146+, coralReef Iter 49)
 **License**: AGPL-3.0-or-later
 
 ---

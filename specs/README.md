@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: March 24, 2026 (Sessions 44–174 — S174: deep audit execution, zero debt. ~1,385 tests: 1,199 lib + 72 forge + 80 playGround + 9 integration + 25 tokio. 261 binaries, 464 `.rs` files. barraCuda v0.3.7 at `0649cd0`, ToadStool S146+, coralReef Iter 49)
-**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 261 binaries, **220/220 validate\_all**, ~1,199 lib tests (workspace total ~1,385)
+**Last Updated**: March 24, 2026 (Sessions 44–175 — S175: ecosystem absorption, ValidationSink, cast deny. ~1,400 tests: 1,211 lib + 73 forge + 80 playGround + 9 integration + 25 tokio. 261 binaries, 465 `.rs` files. barraCuda v0.3.7 at `0649cd0`, ToadStool S146+, coralReef Iter 49)
+**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 261 binaries, **220/220 validate\_all**, ~1,211 lib tests (workspace total ~1,400)
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | ~1,385 tests (1,199 lib + 72 forge + 80 playGround + 9 integration + 25 tokio) PASS — 261 binaries, 47+ modules |
+| Rust native validation | ~1,400 tests (1,211 lib + 73 forge + 80 playGround + 9 integration + 25 tokio) PASS — 261 binaries, 47+ modules |
 | BarraCUDA CPU (bC) | 24/27 papers (89%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/27 papers (85%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/27 papers, 17 shaders, 108 checks | ALL PASS |
