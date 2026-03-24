@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: March 24, 2026 (Session S174 — deep audit execution, zero debt, provenance alignment).
+**Last updated**: March 24, 2026 (Session S175 — ecosystem absorption: ValidationSink, cast deny, provenance integrity).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

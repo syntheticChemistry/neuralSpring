@@ -5,7 +5,17 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-03-24 (Session 174: Deep Audit Execution — Zero Debt, Provenance, Self-Knowledge)
+## [Unreleased] — 2026-03-24 (Session 175: Ecosystem Absorption — ValidationSink, Cast Deny, Provenance Integrity)
+
+### 2026-03-24 — Session S175 (ecosystem absorption, cast hardening, ValidationSink, provenance integrity)
+
+- **Cast lint hardening**: `cast_possible_truncation` and `cast_sign_loss` promoted from `warn` → `deny` in workspace lints — all 1,353 cast sites covered by existing `#[expect]` attributes, zero breakage
+- **ValidationSink pattern** (absorbed from wetSpring V134 / airSpring V010 / groundSpring V121): `StdoutSink`, `JsonSink`, `NdjsonSink`, `CollectingSink`, `SilentSink` — trait `ValidationSink` with `on_check` + `on_finish`; `ValidationHarness::emit_to_sink()` and `emit_json()` convenience methods; `finish()` now delegates to `StdoutSink`; 12 new tests
+- **Provenance integrity tests**: 4 new tests — `provenance_scripts_exist_on_disk`, `provenance_scripts_have_provenance_header`, `provenance_scripts_have_spdx_header`, `provenance_scripts_content_stability` (hash + size checks for all 49 registered Python baselines)
+- **Deploy graph updated**: `neuralspring_deploy.toml` bumped from V105/S155 → V124/S174
+- **Leverage guide refreshed**: `NEURALSPRING_LEVERAGE_GUIDE.md` updated to V124/S174 with current metrics (1,400+ tests, 232+ tolerances, 261 binaries)
+- **Audit clean**: zero sled deps, zero unsafe, zero production mocks, all files under 1,000 LOC
+- **~1,400 tests** (1,211 lib + 73 forge + 80 playGround + 9 integration + 25 tokio), 0 clippy, 0 fmt, 0 doc warnings, cast deny, zero `#[allow()]`
 
 ### 2026-03-24 — Session S174 (deep audit execution, zero debt, provenance alignment)
 

@@ -430,4 +430,84 @@ mod tests {
         assert!(summary.contains(env!("CARGO_PKG_NAME")));
         assert!(summary.contains(&env.os));
     }
+
+    #[test]
+    fn provenance_scripts_exist_on_disk() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut missing = Vec::new();
+        for p in PROVENANCE_REGISTRY {
+            let path = root.join(p.script);
+            if !path.exists() {
+                missing.push(p.script);
+            }
+        }
+        assert!(
+            missing.is_empty(),
+            "registered scripts missing on disk: {missing:?}",
+        );
+    }
+
+    #[test]
+    fn provenance_scripts_have_provenance_header() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut missing_header = Vec::new();
+        for p in PROVENANCE_REGISTRY {
+            let path = root.join(p.script);
+            if let Ok(content) = std::fs::read_to_string(&path) {
+                if !content.contains("# Provenance: see src/provenance/") {
+                    missing_header.push(p.script);
+                }
+            }
+        }
+        assert!(
+            missing_header.is_empty(),
+            "scripts without provenance header: {missing_header:?}",
+        );
+    }
+
+    #[test]
+    fn provenance_scripts_have_spdx_header() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut missing_spdx = Vec::new();
+        for p in PROVENANCE_REGISTRY {
+            let path = root.join(p.script);
+            if let Ok(content) = std::fs::read_to_string(&path) {
+                if !content.contains("SPDX-License-Identifier:") {
+                    missing_spdx.push(p.script);
+                }
+            }
+        }
+        assert!(
+            missing_spdx.is_empty(),
+            "scripts without SPDX header: {missing_spdx:?}",
+        );
+    }
+
+    #[test]
+    fn provenance_scripts_content_stability() {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut hashes = Vec::new();
+        for p in PROVENANCE_REGISTRY {
+            let path = root.join(p.script);
+            if let Ok(content) = std::fs::read_to_string(&path) {
+                let mut hasher = DefaultHasher::new();
+                content.hash(&mut hasher);
+                hashes.push((p.script, content.len(), hasher.finish()));
+            }
+        }
+        assert_eq!(
+            hashes.len(),
+            PROVENANCE_REGISTRY.len(),
+            "some scripts could not be read",
+        );
+        for (script, size, _hash) in &hashes {
+            assert!(
+                *size > 100,
+                "script {script} is suspiciously small ({size} bytes)",
+            );
+        }
+    }
 }

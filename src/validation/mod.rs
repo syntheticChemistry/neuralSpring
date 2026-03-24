@@ -16,10 +16,13 @@
 pub mod cpu_bench;
 mod env;
 mod gpu;
+/// Output sinks for machine-readable validation (JSON, NDJSON, collecting).
+pub mod sink;
 mod stats;
 
 pub use env::*;
 pub use gpu::*;
+pub use sink::{CollectingSink, JsonSink, NdjsonSink, SilentSink, StdoutSink, ValidationSink};
 pub use stats::*;
 
 use crate::tolerances;
@@ -273,29 +276,35 @@ impl ValidationHarness {
         self.checks.iter().all(|c| c.passed)
     }
 
-    /// Print summary and exit with appropriate code.
-    pub fn finish(&self) -> ! {
-        log::info!("");
+    /// Emit all check results to a [`ValidationSink`], then emit the finish event.
+    ///
+    /// Does **not** exit the process — call [`Self::finish`] afterward if you
+    /// need the standard exit behavior, or use the return value for CI.
+    pub fn emit_to_sink(&self, sink: &mut dyn ValidationSink) {
         for check in &self.checks {
-            let icon = if check.passed { "PASS" } else { "FAIL" };
-            log::info!(
-                "  [{icon}] {}: observed={:.10e}, expected={:.10e}, tol={:.2e} ({})",
-                check.label,
-                check.observed,
-                check.expected,
-                check.tolerance,
-                check.mode
-            );
+            sink.on_check(check);
         }
-
-        log::info!("");
-        log::info!(
-            "=== {}: {}/{} PASS, {} FAIL ===",
-            self.name,
+        sink.on_finish(
+            &self.name,
             self.passed_count(),
             self.total_count(),
-            self.total_count() - self.passed_count(),
+            self.all_passed(),
         );
+    }
+
+    /// Emit a JSON report of all checks to the given writer.
+    ///
+    /// Convenience wrapper around [`JsonSink`]. Call before [`Self::finish`].
+    pub fn emit_json<W: std::io::Write>(&self, writer: W) {
+        let mut json = JsonSink::new(writer);
+        json.emit(&self.name, &self.checks);
+    }
+
+    /// Print summary and exit with appropriate code.
+    pub fn finish(&self) -> ! {
+        let mut stdout_sink = StdoutSink;
+        log::info!("");
+        self.emit_to_sink(&mut stdout_sink);
 
         if self.all_passed() {
             process::exit(0);
@@ -476,6 +485,33 @@ mod tests {
         let mut h = ValidationHarness::new("test");
         h.check_abs_or_rel("abs_wins", 0.0001, 0.0, 0.001);
         assert!(h.checks[0].passed, "abs diff < tolerance → pass");
+    }
+
+    #[test]
+    fn emit_to_collecting_sink() {
+        let mut h = ValidationHarness::new("sink_test");
+        h.check_abs("ok", 1.0, 1.0, 1e-10);
+        h.check_abs("fail", 2.0, 1.0, 1e-10);
+        let mut sink = CollectingSink::new();
+        h.emit_to_sink(&mut sink);
+        assert_eq!(sink.checks.len(), 2);
+        assert!(sink.checks[0].passed);
+        assert!(!sink.checks[1].passed);
+        let r = sink.result.as_ref().unwrap();
+        assert_eq!(r.passed, 1);
+        assert_eq!(r.total, 2);
+        assert!(!r.success);
+    }
+
+    #[test]
+    fn emit_json_produces_output() {
+        let mut h = ValidationHarness::new("json_test");
+        h.check_abs("ok", 1.0, 1.0, 1e-10);
+        let mut buf = Vec::new();
+        h.emit_json(&mut buf);
+        let json = String::from_utf8(buf).unwrap();
+        assert!(json.contains("\"suite\":\"json_test\""));
+        assert!(json.contains("\"all_passed\":true"));
     }
 
     #[test]

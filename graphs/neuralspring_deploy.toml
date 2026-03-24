@@ -8,7 +8,7 @@
 # Composable: other graphs can reference this as a sub-graph via depends_on.
 # biomeOS orchestrates germination order; Songbird provides IPC mesh.
 #
-# STATUS: V105 (March 16, 2026)
+# STATUS: V124 (March 24, 2026)
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -18,7 +18,7 @@ description = "neuralSpring ML/spectral science provider atop Tower Atomic"
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S155"
+neuralspring_version = "S174"
 domain = "science"
 target_node = "eastgate"
 
@@ -275,7 +275,7 @@ name = "capability_call"
 
 [nodes.operation.params]
 capability = "provenance.session_create"
-params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S155", family_id = "neuralspring" }
+params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S174", family_id = "neuralspring" }
 
 [nodes.constraints]
 timeout_ms = 10000
