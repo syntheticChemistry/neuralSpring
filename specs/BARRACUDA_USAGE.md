@@ -345,7 +345,7 @@ This validates the reverse pipeline: prove math on GPU, then optimize CPU with B
 ### Multi-GPU Adapter Selection
 
 `NEURALSPRING_BACKEND=titan` selects TITAN V; default selects RTX 4070.
-Implemented via `Gpu::new()` adapter name-substring matching in `src/gpu.rs`.
+Implemented via `Gpu::new()` adapter name-substring matching in `src/gpu/mod.rs`.
 
 ---
 

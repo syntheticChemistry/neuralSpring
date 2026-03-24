@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 261 binaries, **220/220 validate\_all**. coralForge unified. 232+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. ~1,400 tests (1,211 lib + 73 forge + 80 playGround + 9 integration + 25 tokio). 46 upstream rewires, 216+ barracuda import files, 45+ submodules. barraCuda v0.3.7 at `0649cd0`, wgpu 28. `ValidationSink` pattern (JSON, NDJSON, collecting). Provenance integrity tests. Edition 2024, health probes, 34 proptest + IPC fuzz tests, ipc_resilience, mul_add FMA.
-**Date**: March 24, 2026 (Sessions 40–175 — S175: ecosystem absorption, ValidationSink, cast deny. ~1,400 tests, 261 binaries, 465 `.rs` files, 68 modules. barraCuda v0.3.7 at `0649cd0`, toadStool S146+, coralReef Iter 49)
+**Status**: Phase 5h+ — **4500+ total checks**, ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 261 binaries, **220/220 validate\_all**. coralForge unified. 232+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. ~1,403 tests (1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio). 46 upstream rewires, 216+ barracuda import files, 45+ submodules. barraCuda v0.3.7 at `0649cd0`, wgpu 28. `ValidationSink` pattern (JSON, NDJSON, collecting). Provenance integrity tests. IPC resilience wired. Edition 2024, health probes, 34 proptest + IPC fuzz tests, mul_add FMA.
+**Date**: March 24, 2026 (Sessions 40–176 — S176: IPC resilience, environment centralization, GPU refactor, integration test expansion. ~1,403 tests, 261 binaries, 466 `.rs` files, 68 modules. barraCuda v0.3.7 at `0649cd0`, toadStool S146+, coralReef Iter 49)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -21,8 +21,8 @@
 | `specs/TOADSTOOL_HANDOFF.md` | Engineering | BarraCUDA shortcomings — all 17 resolved (S-01 through S-17) |
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
-| `experiments/README.md` | Engineering | Experiment journals (001–112, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V116 handoff (Session 165 — FMA sweep, IPC proptest, ecosystem leverage guide) |
+| `experiments/README.md` | Engineering | Experiment journals (001–123+, hotSpring pattern) |
+| `wateringHole/handoffs/` | Cross-project | V126 handoff (Session 176 — IPC resilience, environment centralization, GPU refactor) |
 
 ---
 

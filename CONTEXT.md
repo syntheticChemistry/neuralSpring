@@ -14,7 +14,7 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 - **Language:** Rust 2024 edition, `rust-version` **1.87**
 - **License:** AGPL-3.0-or-later (scyBorg: AGPL code + ORC mechanics + CC-BY-SA creative)
 - **Workspace:** 3 crates — `neural-spring` (library), `neural-spring-forge`, `neuralspring-playground`
-- **Scale:** 465 Rust source files; every file under 1000 lines
+- **Scale:** 466 Rust source files; every file under 1000 lines
 - **Safety:** zero `unsafe` (`#![forbid(unsafe_code)]` workspace-wide); cast lints (`cast_possible_truncation`, `cast_sign_loss`) denied
 - **Linting:** Clippy pedantic + nursery, zero warnings, zero `#[allow()]`
 - **Dependencies:** `barracuda` (math engine, `default-features = false`), `wgpu` **28** (GPU), `tokio` (async), `tarpc` (optional RPC for the primal binary), `thiserror` (typed errors: `GpuError`, `TensorError`, `ParseError`)
@@ -37,7 +37,7 @@ Sixteen capabilities (`domain.verb`) when composed in biomeOS. Method naming fol
 
 ## Test Coverage
 
-CI-enforced **≥90%** line coverage (`llvm-cov`). ~1,400 tests (1,211 lib + 73 forge + 80 playGround + 9 integration + 25 tokio). Suite includes unit tests, property tests, determinism tests, doc tests, integration tests, and provenance integrity tests. `ValidationSink` for machine-readable CI output (JSON, NDJSON, collecting).
+CI-enforced **≥90%** line coverage (`llvm-cov`). ~1,400 tests (1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio). Suite includes unit tests, property tests, determinism tests, doc tests, integration tests, and provenance integrity tests. `ValidationSink` for machine-readable CI output (JSON, NDJSON, collecting).
 
 ## What This Does NOT Do
 

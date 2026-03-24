@@ -12,10 +12,17 @@ use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 
 use super::types::{DataChannel, NeuralScenario, ThresholdRange};
+use crate::ipc_resilience::{CircuitBreaker, RetryPolicy};
 
 /// Client for pushing visualization data to petalTongue.
+///
+/// Wraps every IPC call with a [`RetryPolicy`] (exponential backoff on
+/// transient failures) and a [`CircuitBreaker`] (prevents hammering an
+/// unresponsive petalTongue instance).
 pub struct PetalTonguePushClient {
     socket_path: PathBuf,
+    retry_policy: RetryPolicy,
+    circuit_breaker: CircuitBreaker,
 }
 
 /// Result of a petalTongue push or RPC call (`Ok` value or [`PushError`]).
@@ -126,6 +133,11 @@ fn build_replace_params(
     })
 }
 
+/// Default circuit breaker threshold for petalTongue IPC: trip after 3
+/// consecutive connection failures, cooldown for 10 seconds.
+const BREAKER_THRESHOLD: u32 = 3;
+const BREAKER_COOLDOWN: std::time::Duration = std::time::Duration::from_secs(10);
+
 impl PetalTonguePushClient {
     /// Discover petalTongue socket at runtime.
     ///
@@ -142,7 +154,7 @@ impl PetalTonguePushClient {
         if let Ok(path) = std::env::var(crate::config::ENV_PETALTONGUE_SOCKET) {
             let path = PathBuf::from(path);
             if path.exists() {
-                return Ok(Self { socket_path: path });
+                return Ok(Self::with_socket(path));
             }
         }
         if let Ok(runtime) = std::env::var(crate::config::ENV_XDG_RUNTIME_DIR) {
@@ -153,7 +165,7 @@ impl PetalTonguePushClient {
                 for entry in entries.flatten() {
                     let p = entry.path();
                     if p.extension().is_some_and(|e| e == "sock") {
-                        return Ok(Self { socket_path: p });
+                        return Ok(Self::with_socket(p));
                     }
                 }
             }
@@ -165,19 +177,25 @@ impl PetalTonguePushClient {
                 if name.starts_with(crate::config::PETALTONGUE_SOCKET_PREFIX)
                     && name.ends_with(".sock")
                 {
-                    return Ok(Self {
-                        socket_path: entry.path(),
-                    });
+                    return Ok(Self::with_socket(entry.path()));
                 }
             }
         }
         Err(PushError::NotFound("no petalTongue socket found".into()))
     }
 
+    fn with_socket(socket_path: PathBuf) -> Self {
+        Self {
+            socket_path,
+            retry_policy: RetryPolicy::default(),
+            circuit_breaker: CircuitBreaker::new(BREAKER_THRESHOLD, BREAKER_COOLDOWN),
+        }
+    }
+
     /// Create client with an explicit socket path.
     #[must_use]
-    pub const fn new(socket_path: PathBuf) -> Self {
-        Self { socket_path }
+    pub fn new(socket_path: PathBuf) -> Self {
+        Self::with_socket(socket_path)
     }
 
     /// Create a headless client that silently drops all push operations.
@@ -187,10 +205,9 @@ impl PetalTonguePushClient {
     /// zero-overhead no-op sink without hardcoded socket names.
     #[must_use]
     pub fn headless() -> Self {
-        Self {
-            socket_path: std::env::temp_dir()
-                .join(format!("neuralspring-headless-{}.sock", std::process::id())),
-        }
+        Self::with_socket(
+            std::env::temp_dir().join(format!("neuralspring-headless-{}.sock", std::process::id())),
+        )
     }
 
     /// Socket path accessor (for tests).
@@ -292,6 +309,12 @@ impl PetalTonguePushClient {
     }
 
     fn send_rpc(&self, method: &str, params: &serde_json::Value) -> PushResult<serde_json::Value> {
+        if !self.circuit_breaker.is_allowed() {
+            return Err(PushError::ConnectionFailed(std::io::Error::other(
+                "circuit breaker open — petalTongue unreachable",
+            )));
+        }
+
         let request = serde_json::json!({
             "jsonrpc": "2.0",
             "method": method,
@@ -302,13 +325,36 @@ impl PetalTonguePushClient {
         let payload = serde_json::to_vec(&request)
             .map_err(|e| PushError::SerializationError(e.to_string()))?;
 
+        let mut last_err = None;
+        for attempt in 0..=self.retry_policy.max_retries {
+            match self.try_send(&payload) {
+                Ok(response) => {
+                    self.circuit_breaker.record_success();
+                    return Self::check_rpc_error(response);
+                }
+                Err(e) => {
+                    last_err = Some(e);
+                    if attempt < self.retry_policy.max_retries {
+                        std::thread::sleep(self.retry_policy.delay_for_attempt(attempt));
+                    }
+                }
+            }
+        }
+
+        self.circuit_breaker.record_failure();
+        Err(last_err.unwrap_or_else(|| {
+            PushError::ConnectionFailed(std::io::Error::other("all retries exhausted"))
+        }))
+    }
+
+    fn try_send(&self, payload: &[u8]) -> PushResult<serde_json::Value> {
         let mut stream =
             UnixStream::connect(&self.socket_path).map_err(PushError::ConnectionFailed)?;
         stream
             .set_read_timeout(Some(std::time::Duration::from_secs(5)))
             .map_err(PushError::ConnectionFailed)?;
         stream
-            .write_all(&payload)
+            .write_all(payload)
             .map_err(PushError::ConnectionFailed)?;
         stream
             .write_all(b"\n")
@@ -318,9 +364,10 @@ impl PetalTonguePushClient {
         let mut buf = vec![0u8; 65536];
         let n = stream.read(&mut buf).map_err(PushError::ConnectionFailed)?;
 
-        let response: serde_json::Value = serde_json::from_slice(&buf[..n])
-            .map_err(|e| PushError::SerializationError(e.to_string()))?;
+        serde_json::from_slice(&buf[..n]).map_err(|e| PushError::SerializationError(e.to_string()))
+    }
 
+    fn check_rpc_error(response: serde_json::Value) -> PushResult<serde_json::Value> {
         if let Some(error) = response.get("error") {
             return Err(PushError::RpcError {
                 code: error
@@ -334,7 +381,6 @@ impl PetalTonguePushClient {
                     .to_string(),
             });
         }
-
         Ok(response)
     }
 }

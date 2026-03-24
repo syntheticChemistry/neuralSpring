@@ -2,13 +2,13 @@
 
 //! Locally evolved GPU-resident ops and WGSL shader exports.
 //!
-//! ## Absorption status (Mar 4, 2026 — barraCuda v0.3.1 standalone)
+//! ## Absorption status (Mar 24, 2026 — barraCuda v0.3.7 standalone)
 //!
 //! **All 21 WGSL shaders absorbed upstream.** S-01 through S-12 absorbed by
 //! `ToadStool` `77f70b2e`. `head_split.wgsl` and `head_concat.wgsl` absorbed
 //! by `ToadStool` `0c998992` (S60–S61) as part of the MHA decomposition that
 //! resolved S-03b. `barraCuda` extracted from `ToadStool` at S89; neuralSpring
-//! now depends on standalone `../barraCuda/crates/barracuda` v0.3.1.
+//! now depends on standalone `../barraCuda/crates/barracuda` v0.3.7.
 //!
 //! The `mha` module provides a 2D→3D→2D adapter over upstream
 //! `barracuda::ops::mha::MultiHeadAttention` for science callers that

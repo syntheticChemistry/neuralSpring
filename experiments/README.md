@@ -1,6 +1,16 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S175)**: ~1,400 Rust tests, 68 modules, 261 binaries, 465 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`. `ValidationSink` pattern (JSON, NDJSON, collecting). 4 provenance integrity tests. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 232+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 24, 2026.
+**Current state (Session S176)**: ~1,403 Rust tests, 68 modules, 261 binaries, 466 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`. `ValidationSink` pattern (JSON, NDJSON, collecting). IPC resilience wired. 12 integration tests (49/49 provenance). 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 232+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 24, 2026.
+
+### Session S176 — 2026-03-24 (Deep Audit — IPC Resilience, Environment Centralization, GPU Refactor)
+
+- Clippy zero-warning gate restored: 6 test-code errors (similar_names, unwrap_used)
+- Provenance environment centralization: 19 literal strings → `WDM_ENVIRONMENT` + `ANDERSON_MULTIAGENT_ENVIRONMENT`
+- IPC resilience wired: RetryPolicy + CircuitBreaker → PetalTonguePushClient
+- GPU module refactor: `src/gpu.rs` (714 LOC) → `src/gpu/mod.rs` (475) + `src/gpu/tests.rs` (238)
+- Integration tests expanded 9→12, full 49/49 provenance coverage
+- Documentation reconciliation: capabilities, pretrained models, tolerance commits, version strings, paths
+- V126 handoff (V124/V125 archived)
 
 ### Session S175 — 2026-03-24 (Ecosystem Absorption — ValidationSink, Cast Deny, Provenance Integrity)
 

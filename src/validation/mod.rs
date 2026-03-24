@@ -355,6 +355,10 @@ macro_rules! gpu_tensor {
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::unwrap_used,
+    reason = "test assertions on known-populated test fixtures"
+)]
 mod tests {
     use super::*;
 

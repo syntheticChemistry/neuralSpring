@@ -109,7 +109,14 @@
 
 ## Pre-trained Models / Weights
 
-None. All models are trained from scratch during validation. This is by design — neuralSpring validates the training pipeline, not pre-trained checkpoints.
+Core validation trains all models from scratch — neuralSpring validates the
+training pipeline, not pre-trained checkpoints.
+
+**Exception:** nS-01 (Weight Spectral Analysis) optionally loads GPT-2
+safetensors from HuggingFace for spectral analysis of real pretrained weight
+matrices. These weights are used as read-only analysis inputs, not for
+inference or fine-tuning. See the nS-01 entry in baseCamp Sub-thesis Data
+above (Apache-2.0/MIT licensed).
 
 ---
 

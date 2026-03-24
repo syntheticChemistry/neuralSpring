@@ -10,48 +10,15 @@ use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 
 #[test]
-fn provenance_records_reference_consistent_environment() {
-    let records = [
-        &provenance::SURROGATE_PROVENANCE,
-        &provenance::TRANSFORMER_PROVENANCE,
-        &provenance::SEQUENCE_PROVENANCE,
-        &provenance::TRANSFER_PROVENANCE,
-        &provenance::ISOMORPHIC_PROVENANCE,
-        &provenance::PINN_PROVENANCE,
-        &provenance::DEEPONET_PROVENANCE,
-        &provenance::LENET_PROVENANCE,
-        &provenance::LSTM_ERA5_PROVENANCE,
-        &provenance::QUANTIZED_PROVENANCE,
-        &provenance::COUNTERDIABATIC_PROVENANCE,
-        &provenance::MODES_PROVENANCE,
-        &provenance::ECO_DYNAMICS_PROVENANCE,
-        &provenance::DIRECTED_EVOLUTION_PROVENANCE,
-        &provenance::HMM_PROVENANCE,
-        &provenance::GAME_THEORY_PROVENANCE,
-        &provenance::SWARM_ROBOTICS_PROVENANCE,
-        &provenance::SATE_ALIGNMENT_PROVENANCE,
-        &provenance::INTROGRESSION_PROVENANCE,
-        &provenance::REGULATORY_NETWORK_PROVENANCE,
-        &provenance::SIGNAL_INTEGRATION_PROVENANCE,
-        &provenance::SPECTRAL_COMMUTATIVITY_PROVENANCE,
-        &provenance::ANDERSON_LOCALIZATION_PROVENANCE,
-        &provenance::ML_INFERENCE_PROVENANCE,
-        &provenance::PANGENOME_SELECTION_PROVENANCE,
-        &provenance::META_POPULATION_PROVENANCE,
-    ];
+fn provenance_registry_all_records_have_valid_commit_and_command() {
+    let valid_commits = [provenance::BASELINE_COMMIT, provenance::CPU_PARITY_COMMIT];
 
-    for p in &records {
-        assert_eq!(
-            p.commit,
-            provenance::BASELINE_COMMIT,
-            "{} has wrong commit",
-            p.label
-        );
-        assert_eq!(
-            p.environment,
-            provenance::ENVIRONMENT,
-            "{} has wrong environment",
-            p.label
+    for p in provenance::PROVENANCE_REGISTRY {
+        assert!(
+            valid_commits.contains(&p.commit),
+            "{} has unknown commit '{}' — expected one of {valid_commits:?}",
+            p.label,
+            p.commit
         );
         assert!(!p.command.is_empty(), "{} has empty command", p.label);
         assert!(
@@ -60,7 +27,66 @@ fn provenance_records_reference_consistent_environment() {
             p.label,
             p.command
         );
+        assert!(!p.date.is_empty(), "{} has empty date", p.label);
+        assert!(!p.script.is_empty(), "{} has empty script path", p.label);
+        assert!(!p.unit.is_empty(), "{} has empty unit", p.label);
     }
+}
+
+#[test]
+fn provenance_all_records_have_well_formed_environment() {
+    let known_envs = [
+        provenance::ENVIRONMENT,
+        provenance::CPU_PARITY_ENVIRONMENT,
+        provenance::PUBLICATION_ENVIRONMENT,
+        provenance::WDM_ENVIRONMENT,
+        provenance::ANDERSON_MULTIAGENT_ENVIRONMENT,
+    ];
+
+    for p in provenance::PROVENANCE_REGISTRY {
+        assert!(
+            !p.environment.is_empty(),
+            "{} has empty environment",
+            p.label
+        );
+        assert!(
+            p.environment.contains("Python"),
+            "{} environment missing Python version: {}",
+            p.label,
+            p.environment
+        );
+        assert!(
+            known_envs.contains(&p.environment),
+            "{} has non-centralized environment string '{}' — \
+             add a named constant to provenance/mod.rs",
+            p.label,
+            p.environment
+        );
+    }
+}
+
+#[test]
+fn provenance_cpu_parity_records_have_parity_environment() {
+    for p in provenance::PROVENANCE_REGISTRY {
+        if p.commit == provenance::CPU_PARITY_COMMIT {
+            assert_eq!(
+                p.environment,
+                provenance::CPU_PARITY_ENVIRONMENT,
+                "{} (cpu-parity commit) has wrong environment: {}",
+                p.label,
+                p.environment
+            );
+        }
+    }
+}
+
+#[test]
+fn provenance_registry_minimum_record_count() {
+    assert!(
+        provenance::PROVENANCE_REGISTRY.len() >= 49,
+        "expected at least 49 provenance records, found {}",
+        provenance::PROVENANCE_REGISTRY.len()
+    );
 }
 
 #[test]

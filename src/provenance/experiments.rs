@@ -3,9 +3,9 @@
 //! Provenance records for Phase 0, 0+, 0++ experiments and related baselines.
 
 use super::{
-    BASELINE_COMMIT, BASELINE_DATE, BaselineProvenance, CPU_PARITY_COMMIT, CPU_PARITY_DATE,
-    CPU_PARITY_ENVIRONMENT, ENVIRONMENT, NS06_BASELINE_DATE, PUBLICATION_BASELINE_DATE,
-    PUBLICATION_ENVIRONMENT,
+    ANDERSON_MULTIAGENT_ENVIRONMENT, BASELINE_COMMIT, BASELINE_DATE, BaselineProvenance,
+    CPU_PARITY_COMMIT, CPU_PARITY_DATE, CPU_PARITY_ENVIRONMENT, ENVIRONMENT, NS06_BASELINE_DATE,
+    PUBLICATION_BASELINE_DATE, PUBLICATION_ENVIRONMENT, WDM_ENVIRONMENT,
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -362,7 +362,7 @@ pub const WDM_TRANSPORT_PROVENANCE: BaselineProvenance = BaselineProvenance {
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/wdm/transport_surrogate.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "surrogate trained → transport_surrogate_baseline.json",
 };
@@ -374,7 +374,7 @@ pub const WDM_EOS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/wdm/eos_surrogate.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 3.0,
     unit: "elements trained (H, He, C) → eos_surrogate_baseline.json",
 };
@@ -386,7 +386,7 @@ pub const WDM_SQW_PROVENANCE: BaselineProvenance = BaselineProvenance {
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/wdm/sqw_peak_predictor.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "predictor trained → sqw_peak_baseline.json",
 };
@@ -398,7 +398,7 @@ pub const WDM_TRANSFER_PROVENANCE: BaselineProvenance = BaselineProvenance {
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/wdm/transfer_classical_to_wdm.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "transfer experiment → transfer_baseline.json",
 };
@@ -410,7 +410,7 @@ pub const WDM_ESN_PROVENANCE: BaselineProvenance = BaselineProvenance {
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/wdm/esn_regime_classifier.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "classifier trained → esn_regime_baseline.json",
 };
@@ -422,7 +422,7 @@ pub const CORAL_FORGE_PROVENANCE: BaselineProvenance = BaselineProvenance {
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/coral_forge/evoformer_primitives.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated → evoformer_baselines.json",
 };
@@ -462,7 +462,7 @@ pub const ANDERSON_MULTIAGENT_PROVENANCE: BaselineProvenance = BaselineProvenanc
     commit: BASELINE_COMMIT,
     date: PUBLICATION_BASELINE_DATE,
     command: "python3 control/anderson_multiagent/anderson_multiagent.py",
-    environment: "Python 3.12, NumPy, seed=42",
+    environment: ANDERSON_MULTIAGENT_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated → baseline_values.json",
 };
@@ -481,7 +481,7 @@ pub const ALPHAFOLD2_EVOFORMER_PROVENANCE: BaselineProvenance = BaselineProvenan
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/coral_forge/alphafold2_evoformer_block.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated → evoformer_block_baselines.json",
 };
@@ -500,7 +500,7 @@ pub const ALPHAFOLD3_DIFFUSION_PROVENANCE: BaselineProvenance = BaselineProvenan
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/coral_forge/alphafold3_diffusion.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated → diffusion_baselines.json",
 };
@@ -514,7 +514,7 @@ pub const ALPHAFOLD3_PAIRFORMER_PROVENANCE: BaselineProvenance = BaselineProvena
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/coral_forge/alphafold3_pairformer.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated → pairformer_baselines.json",
 };
@@ -528,7 +528,7 @@ pub const ALPHAFOLD3_CONFIDENCE_PROVENANCE: BaselineProvenance = BaselineProvena
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/coral_forge/alphafold3_confidence.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated → confidence_baselines.json",
 };
@@ -547,7 +547,7 @@ pub const IMMUNOLOGICAL_ANDERSON_PROVENANCE: BaselineProvenance = BaselineProven
     commit: BASELINE_COMMIT,
     date: NS06_BASELINE_DATE,
     command: "python3 control/immunological_anderson/immunological_anderson.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 20.0,
     unit: "checks passed",
 };
@@ -566,7 +566,7 @@ pub const GLUCOSE_PREDICTION_PROVENANCE: BaselineProvenance = BaselineProvenance
     commit: BASELINE_COMMIT,
     date: crate::tolerances::GLUCOSE_BASELINE_DATE,
     command: "python3 control/glucose_prediction/glucose_prediction.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 9.0,
     unit: "checks passed",
 };
@@ -582,7 +582,7 @@ pub const DIGESTION_PREDICTION_PROVENANCE: BaselineProvenance = BaselineProvenan
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/digestion_prediction/digestion_prediction.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated",
 };
@@ -598,7 +598,7 @@ pub const DIGESTER_ANDERSON_PROVENANCE: BaselineProvenance = BaselineProvenance 
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/digester_anderson/digester_anderson.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated",
 };
@@ -610,7 +610,7 @@ pub const ISOMORPHIC_RESERVOIR_PROVENANCE: BaselineProvenance = BaselineProvenan
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/isomorphic_reservoir/isomorphic_reservoir.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated",
 };
@@ -622,7 +622,7 @@ pub const WDM_ENSEMBLE_QS_PROVENANCE: BaselineProvenance = BaselineProvenance {
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/wdm_ensemble_qs/wdm_ensemble_qs.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated",
 };
@@ -634,7 +634,7 @@ pub const INTROGRESSION_NN_PROVENANCE: BaselineProvenance = BaselineProvenance {
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/introgression_nn/introgression_nn.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated",
 };
@@ -646,7 +646,7 @@ pub const ATTENTION_ANDERSON_PROVENANCE: BaselineProvenance = BaselineProvenance
     commit: BASELINE_COMMIT,
     date: BASELINE_DATE,
     command: "python3 control/attention_anderson/attention_anderson.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 1.0,
     unit: "baselines generated",
 };
@@ -659,7 +659,7 @@ pub const IMMUNOLOGICAL_ANDERSON_EXTENDED_PROVENANCE: BaselineProvenance = Basel
     commit: BASELINE_COMMIT,
     date: NS06_BASELINE_DATE,
     command: "python3 control/immunological_anderson/immunological_anderson_extended.py",
-    environment: "Python 3.10.12, NumPy 2.2.6, seed=42",
+    environment: WDM_ENVIRONMENT,
     value: 28.0,
     unit: "checks passed",
 };

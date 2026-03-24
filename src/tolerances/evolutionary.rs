@@ -86,7 +86,7 @@ pub const GAME_COOPERATION_MIN: f64 = 0.05;
 /// Cross-language validation shows Rust and Python agree to ~1e-7;
 /// 1e-6 provides margin for different FP summation order.
 ///
-/// Provenance: `control/game_theory/game_theory.py` (seed=42, commit `BASELINE_COMMIT`)
+/// Provenance: `control/game_theory/game_theory.py` (seed=42, commit `f9ad0268`)
 pub const REPLICATOR_DYNAMICS: f64 = 1e-6;
 
 /// Regulatory network: minimum Hill function response.

@@ -66,7 +66,7 @@ pub const BENCHMARK_GLOBAL_MIN: f64 = EXACT_F64;
 /// Cross-validated against `NumPy` 2.2.6 at 4 reference points per function.
 /// Differences arise from transcendental evaluation (cos, exp, sqrt).
 ///
-/// Provenance: `control/isomorphic/isomorphic_catalog.py` (seed=42, commit `BASELINE_COMMIT`)
+/// Provenance: `control/isomorphic/isomorphic_catalog.py` (seed=42, commit `f9ad0268`)
 pub const BENCHMARK_CROSS_PYTHON: f64 = CROSS_LANGUAGE;
 
 /// Nelder-Mead convergence to known minimum position.
@@ -347,7 +347,7 @@ pub const PINN_FD_RESIDUAL_MAX: f64 = 10.0;
 /// trapezoidal-rule approximation of cos over one period.
 ///
 /// Provenance: `control/sequence/sequence_forecasting.py` (seed=42,
-/// `BASELINE_COMMIT`).  Analytical derivation: `∫₀¹ cos(2πt) dt = 0`,
+/// commit `f9ad0268`).  Analytical derivation: `∫₀¹ cos(2πt) dt = 0`,
 /// so the mean of `8.5 - 17·cos` is exactly 8.5.
 pub const SEASONAL_ANNUAL_MEAN: f64 = 8.5;
 
@@ -359,7 +359,7 @@ pub const SEASONAL_ANNUAL_MEAN: f64 = 8.5;
 /// is conservative to accommodate alternative sampling resolutions.
 ///
 /// Provenance: `control/sequence/sequence_forecasting.py` (seed=42,
-/// `BASELINE_COMMIT`).
+/// commit `f9ad0268`).
 pub const SEASONAL_ANNUAL_MEAN_TOL: f64 = 0.5;
 
 /// Spectral theory: Jacobi (dense) vs Sturm bisection (tridiag)
@@ -377,7 +377,7 @@ pub const SPECTRAL_EIGENSOLVER_CROSS: f64 = 0.05;
 /// (1/Σ ψᵢ⁴) and eigenvector sign conventions.
 ///
 /// Provenance: `control/isomorphic_reservoir/isomorphic_reservoir_baseline.json`
-/// (seed=42, commit `BASELINE_COMMIT`)
+/// (seed=42, commit `f9ad0268`)
 pub const IPR_CROSS_PYTHON: f64 = 0.005;
 
 /// Spectral theory: Kappus-Wegner anomaly γ(E=0) ≈ W²/96 for

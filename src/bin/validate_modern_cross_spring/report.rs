@@ -13,6 +13,6 @@ pub fn report_provenance_summary() {
     println!("  airSpring    → regression/hydrology/metrics           → ET₀ (5 methods), fit_*");
     println!("  groundSpring → bootstrap/multinomial/jackknife        → bootstrap_ci, norm_*");
     println!("  neuralSpring → batch_fitness/pairwise/eigh/swarm_nn  → Dispatcher (47 ops)");
-    println!("  BarraCUDA v0.3.5: 719+ WGSL, 144 ComputeDispatch ops, nautilus absorbed S80");
+    println!("  BarraCUDA v0.3.7: 806+ WGSL, 144+ ComputeDispatch ops, nautilus absorbed S80");
     println!();
 }

@@ -217,6 +217,13 @@ pub const CPU_PARITY_ENVIRONMENT: &str = "Python 3.10.12, NumPy 2.1.3";
 pub const PUBLICATION_ENVIRONMENT: &str =
     "Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3";
 
+/// Pinned environment for WDM surrogates, `AlphaFold`, and baseCamp composition
+/// experiments. `NumPy`-only (no `PyTorch`) with deterministic seeding.
+pub const WDM_ENVIRONMENT: &str = "Python 3.10.12, NumPy 2.2.6, seed=42";
+
+/// Environment for Exp-053 Anderson multi-agent (ran on a Python 3.12 env).
+pub const ANDERSON_MULTIAGENT_ENVIRONMENT: &str = "Python 3.12, NumPy, seed=42";
+
 /// Complete registry of all provenance records (healthSpring V37 pattern).
 ///
 /// Every `BaselineProvenance` constant must appear here. The test suite
@@ -493,9 +500,9 @@ mod tests {
         for p in PROVENANCE_REGISTRY {
             let path = root.join(p.script);
             if let Ok(content) = std::fs::read_to_string(&path) {
-                let mut hasher = DefaultHasher::new();
-                content.hash(&mut hasher);
-                hashes.push((p.script, content.len(), hasher.finish()));
+                let mut content_hasher = DefaultHasher::new();
+                content.hash(&mut content_hasher);
+                hashes.push((p.script, content.len(), content_hasher.finish()));
             }
         }
         assert_eq!(

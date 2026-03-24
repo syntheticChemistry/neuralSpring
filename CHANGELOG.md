@@ -5,7 +5,18 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-03-24 (Session 175: Ecosystem Absorption — ValidationSink, Cast Deny, Provenance Integrity)
+## [Unreleased] — 2026-03-24 (Session 176: Deep Audit — IPC Resilience, Environment Centralization, GPU Refactor)
+
+### 2026-03-24 — Session S176 (deep audit, IPC resilience, environment centralization, GPU module refactor)
+
+- **Clippy zero-warning gate restored**: 6 test-code errors fixed — `clippy::similar_names` (provenance `hasher` → `content_hasher`), `clippy::unwrap_used` in validation test modules (4 sites, `#[expect]` with documented reasons)
+- **Provenance environment centralization**: 19 literal `"Python 3.10.12, NumPy 2.2.6, seed=42"` → `WDM_ENVIRONMENT` constant; 1 `"Python 3.12, NumPy, seed=42"` → `ANDERSON_MULTIAGENT_ENVIRONMENT`; zero non-centralized environment strings in registry
+- **IPC resilience wired**: `RetryPolicy` (exponential backoff) + `CircuitBreaker` (3 failures → 10s cooldown) integrated into `PetalTonguePushClient::send_rpc()`; extracted `try_send()` and `check_rpc_error()` helpers
+- **GPU module refactor**: `src/gpu.rs` (714 LOC) → `src/gpu/mod.rs` (475 LOC) + `src/gpu/tests.rs` (238 LOC); module path `crate::gpu::tests::shared_gpu` preserved for 4 downstream consumers
+- **Integration test expansion**: 9 → 12 tests; full 49/49 provenance registry coverage (commit validation, environment centralization enforcement, CPU parity environment check, minimum record count guard)
+- **Documentation reconciliation**: `CONTROL_EXPERIMENT_STATUS.md` capabilities 7→16; `specs/DATA_PROVENANCE.md` pretrained models clarified; tolerance `BASELINE_COMMIT` placeholders → `f9ad0268`; `src/evolved/mod.rs` v0.3.1→v0.3.7; `validate_modern_cross_spring/report.rs` v0.3.5→v0.3.7; `specs/BARRACUDA_USAGE.md` `src/gpu.rs`→`src/gpu/mod.rs`; `CONTEXT.md` file/test counts updated
+- **V126 handoff**: archived V124/V125, crafted V126 cross-team handoff
+- **~1,403 tests** (1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio + 2 test-module additions), 0 clippy, 0 fmt, 0 doc warnings
 
 ### 2026-03-24 — Session S175 (ecosystem absorption, cast hardening, ValidationSink, provenance integrity)
 

@@ -266,6 +266,10 @@ fn escape_json(s: &str) -> String {
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::unwrap_used,
+    reason = "test assertions on known-populated test fixtures"
+)]
 mod tests {
     use super::*;
     use crate::validation::ToleranceMode;

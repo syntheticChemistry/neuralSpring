@@ -15,7 +15,7 @@
 /// FAO-56 ET₀ MLP achieves R² > 0.95 consistently with seed=42.
 /// Benchmark functions (Rastrigin) may be lower due to multimodality.
 ///
-/// Provenance: `control/surrogate/surrogate_validation.py` (seed=42, commit `BASELINE_COMMIT`)
+/// Provenance: `control/surrogate/surrogate_validation.py` (seed=42, commit `f9ad0268`)
 pub const SURROGATE_R2_MIN: f64 = 0.40;
 
 /// Transformer `NumPy` vs `PyTorch`: max absolute difference.
@@ -36,7 +36,7 @@ pub const CAUSAL_MASK_LEAK: f64 = 1e-6;
 ///
 /// Persistence baseline is ~0.94; neural models should be competitive.
 ///
-/// Provenance: `control/sequence/sequence_forecasting.py` (seed=42, commit `BASELINE_COMMIT`)
+/// Provenance: `control/sequence/sequence_forecasting.py` (seed=42, commit `f9ad0268`)
 pub const SEQUENCE_R2_MIN: f64 = 0.80;
 
 /// PINN L2 relative error threshold (Adam-only, no L-BFGS).
