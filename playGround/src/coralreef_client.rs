@@ -97,7 +97,7 @@ impl CoralReefClient {
     pub fn discover() -> Result<Self> {
         let socket = ipc_client::discover_by_capability(
             "shader.compile.wgsl",
-            neural_spring::config::CORALREEF_NAME_HINT,
+            neural_spring::primal_names::CORALREEF,
         )
         .context("discovering shader compiler primal")?;
         Ok(Self {

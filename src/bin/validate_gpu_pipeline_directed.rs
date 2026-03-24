@@ -122,11 +122,10 @@ fn validate_single(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match gpu_multi_obj_mean(gpu, &genotype_f64, pop_size, genome_len, n_objectives) {
         Ok(gpu_mean) => {
-            // Bessel correction (n-1 vs n) in MultiObjFitnessGpu yields ~2e-3 diff vs CPU
             h.check_upper(
                 &format!("directed single 1×4: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
                 (gpu_mean - cpu_mean).abs(),
-                2e-3,
+                tolerances::GPU_MULTI_OBJ_BESSEL_F64,
             );
         }
         Err(e) => {
@@ -154,11 +153,10 @@ fn validate_batch(h: &mut ValidationHarness, gpu: &Gpu) {
 
     match gpu_multi_obj_mean(gpu, &genotypes_flat, pop_size, genome_len, n_objectives) {
         Ok(gpu_mean) => {
-            // Bessel correction (n-1 vs n) in MultiObjFitnessGpu yields ~2e-3 diff vs CPU
             h.check_upper(
                 &format!("directed batch 10×4: GPU={gpu_mean:.6} vs CPU={cpu_mean:.6}"),
                 (gpu_mean - cpu_mean).abs(),
-                2e-3,
+                tolerances::GPU_MULTI_OBJ_BESSEL_F64,
             );
         }
         Err(e) => {

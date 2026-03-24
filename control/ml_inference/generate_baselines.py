@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — ML_INFERENCE_PROVENANCE
 
 #!/usr/bin/env python3
 """Generate ML inference baselines for neuralSpring BarraCUDA validation.

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — CPU_PARITY_PROVENANCE
 """
 Generate cross-language reference data for CPU math parity validation.
 

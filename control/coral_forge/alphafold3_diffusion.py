@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — ALPHAFOLD3_DIFFUSION_PROVENANCE
 #
 # alphafold3_diffusion.py — NumPy reference implementations of diffusion model
 # primitives for AlphaFold3 coralForge (nF-03 Phase A).

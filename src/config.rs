@@ -64,19 +64,6 @@ pub const BIOMEOS_ORCHESTRATOR_SOCKET: &str = "biomeos.sock";
 pub const ENV_BIOMEOS_ORCHESTRATOR: &str = "BIOMEOS_ORCHESTRATOR_SOCKET";
 
 // ═══════════════════════════════════════════════════════════════════
-// Primal name hints (re-exported from primal_names for backwards compat)
-// ═══════════════════════════════════════════════════════════════════
-
-/// `ToadStool` name hint for fallback discovery.
-pub const TOADSTOOL_NAME_HINT: &str = crate::primal_names::TOADSTOOL;
-
-/// coralReef name hint for fallback discovery.
-pub const CORALREEF_NAME_HINT: &str = crate::primal_names::CORALREEF;
-
-/// Squirrel name hint for fallback discovery.
-pub const SQUIRREL_NAME_HINT: &str = crate::primal_names::SQUIRREL;
-
-// ═══════════════════════════════════════════════════════════════════
 // Validation / GPU env vars
 // ═══════════════════════════════════════════════════════════════════
 
@@ -110,6 +97,13 @@ pub const ENV_HEARTBEAT_SECS: &str = "PRIMAL_HEARTBEAT_SECS";
 
 /// Spring-specific heartbeat override.
 pub const ENV_HEARTBEAT_SECS_SPRING: &str = "NEURALSPRING_HEARTBEAT_SECS";
+
+/// Enable visualization push on startup (set to `1` or `true`).
+///
+/// When unset or `0`, neuralSpring will still discover petalTongue
+/// if it happens to be present. When set, the primal proactively
+/// pushes its scenario graph at startup.
+pub const ENV_VISUALIZATION_PUSH: &str = "NEURALSPRING_VISUALIZATION_PUSH";
 
 /// Family ID for multi-instance primal isolation.
 pub const ENV_FAMILY_ID: &str = "FAMILY_ID";

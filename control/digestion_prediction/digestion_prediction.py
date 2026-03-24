@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — DIGESTION_PREDICTION_PROVENANCE
 """
 Paper 027: ML Prediction of Anaerobic Digestion Performance.
 

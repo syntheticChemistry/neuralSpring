@@ -20,6 +20,7 @@ use barracuda::ops::bio::MultiObjFitnessGpu;
 use neural_spring::directed_evolution::multi_objective_fitness;
 use neural_spring::gpu::Gpu;
 use neural_spring::rng::Rng;
+use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
@@ -103,7 +104,7 @@ fn validate_single_genotype(h: &mut ValidationHarness, gpu: &Gpu, op: &MultiObjF
             h.check_upper(
                 &format!("single genotype: max GPU-CPU diff ({max_diff:.2e})"),
                 max_diff,
-                2e-3,
+                tolerances::GPU_MULTI_OBJ_BESSEL_F64,
             );
         }
         Err(e) => {
@@ -148,7 +149,7 @@ fn validate_batch(h: &mut ValidationHarness, gpu: &Gpu, op: &MultiObjFitnessGpu)
             h.check_upper(
                 &format!("batch: max GPU-CPU diff ({max_diff:.2e})"),
                 max_diff,
-                2e-3,
+                tolerances::GPU_MULTI_OBJ_BESSEL_F64,
             );
         }
         Err(e) => {
@@ -202,7 +203,7 @@ fn validate_uniform_genotype(h: &mut ValidationHarness, gpu: &Gpu, op: &MultiObj
             h.check_upper(
                 &format!("uniform genotype 0.5: all fitness≈0.5 (max diff {max_diff:.2e})"),
                 max_diff,
-                2e-3,
+                tolerances::GPU_MULTI_OBJ_BESSEL_F64,
             );
         }
         Err(e) => {

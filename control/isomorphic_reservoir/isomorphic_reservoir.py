@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — ISOMORPHIC_RESERVOIR_PROVENANCE
 """
 Experiment 097: Isomorphic Reservoir Ensemble — Cross-Domain Spectral Proof.
 

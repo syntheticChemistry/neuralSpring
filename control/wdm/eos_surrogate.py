@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — WDM_EOS_PROVENANCE
 """
 nW-02: EOS Surrogate Validation — MLP surrogate for FPEOS tables.
 

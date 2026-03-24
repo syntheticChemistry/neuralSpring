@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — SPECTRAL_COMMUTATIVITY_PROVENANCE
 
 #!/usr/bin/env python3
 """

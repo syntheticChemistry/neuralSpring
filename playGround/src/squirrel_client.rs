@@ -64,7 +64,7 @@ impl SquirrelClient {
     pub fn discover() -> Result<Self> {
         let socket = ipc_client::discover_by_capability(
             SQUIRREL_CAPABILITY,
-            neural_spring::config::SQUIRREL_NAME_HINT,
+            neural_spring::primal_names::SQUIRREL,
         )
         .context("discovering Squirrel socket")?;
         Ok(Self {

@@ -200,7 +200,8 @@ const fn bgl_uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::cast_precision_loss, clippy::expect_used)]
+    #![expect(clippy::cast_precision_loss, reason = "fossil test — f32 GPU shader validation")]
+    #![expect(clippy::expect_used, reason = "fossil test code — GPU setup may fail")]
 
     use super::*;
 

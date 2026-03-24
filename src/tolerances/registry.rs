@@ -126,6 +126,7 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             GPU_JACCARD_F32, GPU_LOCUS_VARIANCE_F32,
             GPU_SPATIAL_PAYOFF_F32, GPU_BATCH_IPR_F32,
             GPU_HAMMING_F32, GPU_MULTI_OBJ_FITNESS_F32,
+            GPU_MULTI_OBJ_BESSEL_F64,
             GPU_UPSTREAM_MULTI_OBJ_PARITY_F32,
             GPU_MODES_L2_F32, GPU_HILL_F32,
             GPU_LOGSUMEXP_F32, GPU_RK45_F32, GPU_BOUNDS_SLACK_F32,
@@ -221,6 +222,12 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
             VARIANCE_DIVISION_GUARD, MONOTONICITY_EPS,
             GPU_HYDROLOGY_F64,
         ],
+        "upstream_contract": [
+            UPSTREAM_HYDRO_CROP_COEFFICIENT,
+            UPSTREAM_PHYSICS_ANDERSON_EIGENVALUE,
+            UPSTREAM_BIO_DIVERSITY_SHANNON,
+            UPSTREAM_BIO_DIVERSITY_SIMPSON,
+        ],
     ]
 }
 
@@ -293,6 +300,7 @@ mod tests {
             "gpu_dispatch",
             "hardware",
             "domain_validation",
+            "upstream_contract",
         ] {
             assert!(cats.contains(&expected), "missing category: {expected}");
         }

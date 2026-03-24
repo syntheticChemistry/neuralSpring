@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — GLUCOSE_PREDICTION_PROVENANCE
 """
 Paper 026: LSTM Blood Glucose Prediction — Horizon Limit Analysis.
 

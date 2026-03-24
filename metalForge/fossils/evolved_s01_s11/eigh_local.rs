@@ -354,7 +354,7 @@ fn ql_implicit(diag_in: &[f64], off_in: &[f64], n: usize) -> (Vec<f64>, Vec<f64>
 }
 
 #[cfg(test)]
-#[allow(clippy::suboptimal_flops)]
+#[expect(clippy::suboptimal_flops, reason = "fossil test — explicit formula matches paper")]
 mod tests {
     use super::*;
 

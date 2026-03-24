@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-#![allow(missing_docs)]
 
 //! Typed error hierarchy for neuralSpring library code.
 //!
@@ -15,23 +14,42 @@ use std::fmt;
 pub enum GpuError {
     /// GPU device creation or adapter selection failed.
     #[error("gpu device: {reason}")]
-    Device { reason: String },
+    Device {
+        /// What went wrong during device creation.
+        reason: String,
+    },
 
     /// Shader compilation failed.
     #[error("shader compile ({label}): {reason}")]
-    ShaderCompile { label: String, reason: String },
+    ShaderCompile {
+        /// Shader module label.
+        label: String,
+        /// Compiler diagnostic.
+        reason: String,
+    },
 
     /// Buffer creation, upload, or mapping failed.
     #[error("gpu buffer ({op}): {reason}")]
-    Buffer { op: &'static str, reason: String },
+    Buffer {
+        /// Buffer operation that failed (e.g. "create", "upload", "map").
+        op: &'static str,
+        /// Driver or validation-layer message.
+        reason: String,
+    },
 
     /// Readback from GPU to CPU failed.
     #[error("gpu readback: {reason}")]
-    Readback { reason: String },
+    Readback {
+        /// What went wrong during readback.
+        reason: String,
+    },
 
     /// Compute dispatch or pipeline submission failed.
     #[error("gpu dispatch: {reason}")]
-    Dispatch { reason: String },
+    Dispatch {
+        /// Dispatch failure description.
+        reason: String,
+    },
 }
 
 /// Errors from tensor creation or arithmetic.
@@ -39,19 +57,39 @@ pub enum GpuError {
 pub enum TensorError {
     /// Tensor creation from data failed (shape or device mismatch).
     #[error("tensor create ({context}): {reason}")]
-    Create { context: String, reason: String },
+    Create {
+        /// Which tensor was being created.
+        context: String,
+        /// Why creation failed.
+        reason: String,
+    },
 
     /// A tensor operation (add, sub, matmul, etc.) failed.
     #[error("tensor op ({op}): {reason}")]
-    Operation { op: &'static str, reason: String },
+    Operation {
+        /// Operation name (e.g. "matmul", "softmax").
+        op: &'static str,
+        /// Failure description.
+        reason: String,
+    },
 
     /// Readback to host memory failed.
     #[error("tensor readback ({context}): {reason}")]
-    Readback { context: String, reason: String },
+    Readback {
+        /// Which readback was attempted.
+        context: String,
+        /// Why readback failed.
+        reason: String,
+    },
 
     /// Shape mismatch between operands.
     #[error("tensor shape mismatch: expected {expected}, got {actual}")]
-    ShapeMismatch { expected: String, actual: String },
+    ShapeMismatch {
+        /// Shape that was expected.
+        expected: String,
+        /// Shape that was found.
+        actual: String,
+    },
 }
 
 /// Errors from streaming I/O parsers (FASTA, FASTQ, VCF).
@@ -60,15 +98,20 @@ pub enum ParseError {
     /// Invalid record format in a bioinformatics file.
     #[error("{format} parse error at record {record}: {reason}")]
     InvalidRecord {
+        /// File format being parsed (e.g. "FASTA", "VCF").
         format: &'static str,
+        /// Zero-based record index where the error occurred.
         record: usize,
+        /// What was wrong with the record.
         reason: String,
     },
 
     /// Underlying I/O failure.
     #[error("{format} I/O: {source}")]
     Io {
+        /// File format being parsed.
         format: &'static str,
+        /// The I/O error from the underlying reader.
         source: std::io::Error,
     },
 }

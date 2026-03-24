@@ -208,6 +208,16 @@ pub const GPU_HAMMING_F32: f64 = 1e-6;
 /// mean and population std over a genome chunk. f32 vs f64 CPU gives ~1e-3.
 pub const GPU_MULTI_OBJ_FITNESS_F32: f64 = 1e-3;
 
+/// GPU multi-objective fitness: Bessel correction gap GPU↔CPU (f64 buffers).
+///
+/// `barracuda::ops::bio::MultiObjFitnessGpu` uses sample std (n-1) while
+/// CPU `multi_objective_fitness` uses population std (n).  For genome chunks
+/// of length 10 (`genome_len`=40 / `n_objectives`=4), this algorithmic
+/// difference yields ~2e-3 observed absolute gap.  3e-3 provides 50% margin.
+///
+/// Validated: RTX 4070 Vulkan + llvmpipe, seed=42/77/123, commit `f9ad0268`.
+pub const GPU_MULTI_OBJ_BESSEL_F64: f64 = 3e-3;
+
 /// Upstream parity: local `metalForge` vs `BarraCuda` `MultiObjFitnessGpu` (f32).
 ///
 /// Upstream uses Bessel correction (n-1) for std; local uses population n.

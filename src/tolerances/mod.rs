@@ -735,6 +735,31 @@ pub const VARIANCE_PARITY_FLOOR: f64 = 1e-10;
 pub const PAIRFORMER_PARITY: f64 = 1e-6;
 
 // ═══════════════════════════════════════════════════════════════════
+// Upstream contract expectations (barraCuda tolerance invariants)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Expected `barracuda::tolerances::HYDRO_CROP_COEFFICIENT_ABS_TOL` value.
+///
+/// Contract pin: barraCuda v0.3.1+ publishes this as the hydrology
+/// crop-coefficient tolerance.  We verify it has not silently changed.
+pub const UPSTREAM_HYDRO_CROP_COEFFICIENT: f64 = 1e-6;
+
+/// Expected `barracuda::tolerances::PHYSICS_ANDERSON_EIGENVALUE_ABS_TOL`.
+///
+/// Contract pin: Anderson localization eigenvalue tolerance from barraCuda.
+pub const UPSTREAM_PHYSICS_ANDERSON_EIGENVALUE: f64 = 1e-10;
+
+/// Expected `barracuda::tolerances::BIO_DIVERSITY_SHANNON_ABS_TOL`.
+///
+/// Contract pin: Shannon diversity index tolerance from barraCuda.
+pub const UPSTREAM_BIO_DIVERSITY_SHANNON: f64 = 1e-8;
+
+/// Expected `barracuda::tolerances::BIO_DIVERSITY_SIMPSON_ABS_TOL`.
+///
+/// Contract pin: Simpson diversity index tolerance from barraCuda.
+pub const UPSTREAM_BIO_DIVERSITY_SIMPSON: f64 = 1e-10;
+
+// ═══════════════════════════════════════════════════════════════════
 // Provenance date constants
 // ═══════════════════════════════════════════════════════════════════
 

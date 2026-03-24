@@ -130,7 +130,7 @@ impl ToadStoolClient {
     pub fn discover() -> Result<Self> {
         let socket = ipc_client::discover_by_capability(
             "compute.submit",
-            neural_spring::config::TOADSTOOL_NAME_HINT,
+            neural_spring::primal_names::TOADSTOOL,
         )
         .context("discovering compute orchestration primal")?;
         Ok(Self {

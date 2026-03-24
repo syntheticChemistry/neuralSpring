@@ -5,7 +5,18 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-03-24 (Session 173: Deep Debt — Typed Errors, Module Decomposition, CI Hardening)
+## [Unreleased] — 2026-03-24 (Session 174: Deep Audit Execution — Zero Debt, Provenance, Self-Knowledge)
+
+### 2026-03-24 — Session S174 (deep audit execution, zero debt, provenance alignment)
+
+- **Zero `#[allow()]`**: removed last `#![allow(missing_docs)]` from `error.rs`; added full field docs to all 20 error enum fields; converted `rpc.rs` `#[allow(dead_code)]` → `#[expect(dead_code)]`; converted 5 fossil `#[allow]` → `#[expect]` with reasons
+- **Tolerance fidelity**: aligned `check_rel` zero-detection with `tolerances::ZERO_DETECTION` (was `f64::EPSILON`); added `GPU_MULTI_OBJ_BESSEL_F64` (3e-3) for Bessel correction gap; added 4 upstream contract constants (`UPSTREAM_HYDRO_*`, `UPSTREAM_PHYSICS_*`, `UPSTREAM_BIO_*`); new `upstream_contract` registry category; replaced all `2e-3` literals in `validate_gpu_directed.rs` / `validate_gpu_pipeline_directed.rs`; centralized `validate_toadstool_s93` local constants
+- **Self-knowledge compliance**: removed 3 dead `*_NAME_HINT` config re-exports; neutralized `handlers.rs` cross-spring origin strings → semantic dispatch paths; gated petalTongue push behind `NEURALSPRING_VISUALIZATION_PUSH` env var; updated playGround clients to use `primal_names::*` directly
+- **Provenance alignment**: added `# Provenance: see src/provenance/experiments.rs` headers to all 49 registered Python baseline scripts
+- **Community files**: added `CONTRIBUTING.md` (quality standards, tolerance policy, barraCuda evolution, IPC conventions) and `SECURITY.md` (security model, reporting, dependency audit)
+- **Clippy**: fixed `map_or` → `is_ok_and` (modern idiomatic Rust)
+- **V124 handoff**: comprehensive barraCuda absorption handoff with S174 evolution context
+- **~1,385 tests** (1,199 lib + 72 forge + 80 playGround + 9 integration + 25 tokio), 0 clippy, 0 fmt, 0 doc warnings, 0 `#[allow()]`, 0 tolerance literals in validators
 
 ### 2026-03-24 — Session S173 (typed errors, module decomposition, CI hardening)
 

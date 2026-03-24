@@ -192,7 +192,7 @@ const fn bgl_uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used)]
+    #![expect(clippy::expect_used, reason = "fossil test code — GPU setup may fail")]
 
     use super::*;
 

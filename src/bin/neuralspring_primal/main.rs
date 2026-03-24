@@ -271,7 +271,12 @@ async fn main() -> Result<()> {
     }
 
     biomeos::register_with_biomeos(&socket_path).await;
-    push_petaltongue_scenario(&family_id);
+
+    if std::env::var(neural_spring::config::ENV_VISUALIZATION_PUSH)
+        .is_ok_and(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+    {
+        push_petaltongue_scenario(&family_id);
+    }
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
     spawn_lifecycle_tasks(&socket_path, shutdown_tx);

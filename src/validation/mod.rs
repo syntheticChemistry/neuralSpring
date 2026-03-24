@@ -163,7 +163,7 @@ impl ValidationHarness {
 
     /// Relative tolerance check: |observed - expected| / |expected| < tolerance
     pub fn check_rel(&mut self, label: &str, observed: f64, expected: f64, tolerance: f64) {
-        let passed = if expected.abs() > f64::EPSILON {
+        let passed = if expected.abs() > tolerances::ZERO_DETECTION {
             ((observed - expected) / expected).abs() < tolerance
         } else {
             observed.abs() < tolerance

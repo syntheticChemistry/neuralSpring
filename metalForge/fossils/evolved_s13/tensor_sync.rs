@@ -98,7 +98,7 @@ pub fn fenced_matmul(
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::expect_used)]
+    #![expect(clippy::expect_used, reason = "fossil test code — GPU setup may fail")]
 
     use super::*;
 

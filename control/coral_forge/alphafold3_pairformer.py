@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — ALPHAFOLD3_PAIRFORMER_PROVENANCE
 #
 # alphafold3_pairformer.py — NumPy reference for Pairformer block (nF-03 Phase B)
 #

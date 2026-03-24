@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — DIGESTER_ANDERSON_PROVENANCE
 """
 Experiment 096: Digester Community–Performance Coupling via Anderson-ESN.
 

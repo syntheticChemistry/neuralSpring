@@ -1,6 +1,15 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S173)**: ~1,385 Rust tests, 68 modules, 261 binaries, 464 `.rs` files, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 227+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 24, 2026.
+**Current state (Session S174)**: ~1,385 Rust tests, 68 modules, 261 binaries, 464 `.rs` files, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`, 0 tolerance literals in validators. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 232+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 24, 2026.
+
+### Session S174 — 2026-03-24 (Deep Audit Execution — Zero Debt, Provenance, Self-Knowledge)
+
+- Zero `#[allow()]`: removed `#![allow(missing_docs)]` from error.rs, added 20 field docs; `#[allow]` → `#[expect]` in rpc.rs + 5 fossil files
+- Tolerance fidelity: `check_rel` aligned with `ZERO_DETECTION`; `GPU_MULTI_OBJ_BESSEL_F64` constant; 4 upstream contract constants; `upstream_contract` registry category; centralized toadstool s93 locals; replaced all `2e-3` literals
+- Self-knowledge: removed 3 dead `*_NAME_HINT` config re-exports; neutralized handler origins; gated petalTongue push behind env var; playGround clients → `primal_names::*`
+- 49 Python provenance headers added to baseline scripts
+- CONTRIBUTING.md + SECURITY.md created
+- V124 handoff
 
 ### Session S172 — 2026-03-23 (Deep Evolution & Ecosystem Absorption)
 

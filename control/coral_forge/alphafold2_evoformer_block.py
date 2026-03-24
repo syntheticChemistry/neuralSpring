@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — ALPHAFOLD2_EVOFORMER_PROVENANCE
 #
 # alphafold2_evoformer_block.py — Full Evoformer block iteration (Algorithm 6)
 #

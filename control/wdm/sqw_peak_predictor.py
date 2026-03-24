@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — WDM_SQW_PROVENANCE
 """
 nW-03: S(q,ω) Peak Predictor — LSTM on MD density fluctuation time series.
 

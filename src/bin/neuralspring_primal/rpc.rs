@@ -70,7 +70,7 @@ pub mod error_code {
     pub const INVALID_PARAMS: i32 = -32_602;
     pub const INTERNAL_ERROR: i32 = -32_603;
     /// JSON-RPC application-defined server error range floor (−32000..−32099).
-    #[allow(
+    #[expect(
         dead_code,
         reason = "reserved range anchor; handlers use INTERNAL_ERROR"
     )]

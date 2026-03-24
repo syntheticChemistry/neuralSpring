@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — WDM_TRANSPORT_PROVENANCE
 """
 nW-01: WDM Transport Surrogate — MLP for Stanton-Murillo coefficients.
 

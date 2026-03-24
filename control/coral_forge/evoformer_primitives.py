@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Provenance: see src/provenance/experiments.rs — CORAL_FORGE_PROVENANCE
 #
 # evoformer_primitives.py — NumPy reference implementations of Evoformer ops
 #

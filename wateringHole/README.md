@@ -5,12 +5,12 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V123 — Session 173
+### V124 — Session 174
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V123 debt** | `handoffs/NEURALSPRING_V123_DEEP_DEBT_TYPED_ERRORS_MODULE_DECOMPOSITION_HANDOFF_MAR24_2026.md` | Mar 24, 2026 | Typed errors (`thiserror`), nucleus/glucose/immunological module decomposition, explicit barraCuda features, cargo-deny + IPC smoke + rustfmt, dead-code/JSON-RPC/provenance fixes. ~1,385 tests, 0 clippy/fmt/doc. |
-| **barraCuda evolution** | `handoffs/NEURALSPRING_BARRACUDA_EVOLUTION_REQUEST_TYPED_ERRORS_DOMAIN_FOLD_MAR24_2026.md` | Mar 24, 2026 | Request: generic f64 ops upstream (`gelu`/`sigmoid`/`layer_norm`/`softmax`), proposed `domain-fold`, typed-error convention alignment. |
+| **V124 audit** | `handoffs/NEURALSPRING_V124_DEEP_AUDIT_EXECUTION_ZERO_DEBT_PROVENANCE_HANDOFF_MAR24_2026.md` | Mar 24, 2026 | Zero `#[allow()]`, tolerance fidelity (all literals centralized), self-knowledge compliance, 49 Python provenance headers, CONTRIBUTING.md + SECURITY.md. 232+ tolerances, ~1,385 tests, 0 clippy/fmt/doc. |
+| **barraCuda absorption** | `handoffs/NEURALSPRING_BARRACUDA_ABSORPTION_HANDOFF_S174_MAR24_2026.md` | Mar 24, 2026 | Comprehensive: 4 generic f64 ops for upstream absorption, `domain-fold` proposal, upstream contract pinning pattern, Bessel correction documentation, typed error convention, self-knowledge lessons. |
 
 ### Central wateringHole Copies
 
@@ -18,7 +18,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V120 + V95 + NestGate V1 + biomeOS V1 + Songbird V1 + V121 + V122).
+Superseded handoffs: `handoffs/archive/` (V1–V120 + V95 + NestGate V1 + biomeOS V1 + Songbird V1 + V121 + V122 + V123 + barraCuda evolution request).
 
 ## Conventions
 

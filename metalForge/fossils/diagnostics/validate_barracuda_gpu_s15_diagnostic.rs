@@ -2,10 +2,11 @@
 
 //! S-15 diagnostic v4: test with warmup call first, then binary search fill.
 
-#![allow(
+#![expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    clippy::similar_names
+    clippy::similar_names,
+    reason = "fossil diagnostic — GPU memory probe with intentional cast patterns"
 )]
 
 use barracuda::tensor::Tensor;
