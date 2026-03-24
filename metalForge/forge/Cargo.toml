@@ -16,7 +16,13 @@ default = []
 coralreef = ["dep:coral-reef"]
 
 [dependencies]
-barracuda = { path = "../../../barraCuda/crates/barracuda" }
+barracuda = { path = "../../../barraCuda/crates/barracuda", default-features = false, features = [
+    "gpu",
+    "domain-nn",
+    "domain-esn",
+    "domain-genomics",
+    "domain-timeseries",
+] }
 bytemuck = { version = "1.21", features = ["derive"] }
 coral-reef = { path = "../../../coralReef/crates/coral-reef", optional = true }
 pollster = "0.4"

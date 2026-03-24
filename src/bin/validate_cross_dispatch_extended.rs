@@ -157,7 +157,7 @@ fn gpu_payoff(gpu: &Gpu, grid: &[u32], grid_size: u32, b: f32, c: f32) -> Result
 
     op.dispatch(&grid_buf, &fitness_buf, grid_size, b, c);
 
-    gpu.read_buffer_f32(&fitness_buf, n_cells)
+    Ok(gpu.read_buffer_f32(&fitness_buf, n_cells)?)
 }
 
 fn validate_payoff_parity(h: &mut ValidationHarness, gpu: &Gpu) {
@@ -229,7 +229,7 @@ fn gpu_batch_ipr(
 
     op.dispatch(&ev_buf, &ipr_buf, dim, n_vectors);
 
-    gpu.read_buffer_f32(&ipr_buf, n_vectors_usize)
+    Ok(gpu.read_buffer_f32(&ipr_buf, n_vectors_usize)?)
 }
 
 fn validate_ipr_parity(h: &mut ValidationHarness, gpu: &Gpu) {
@@ -325,7 +325,7 @@ fn gpu_pairwise_hamming(
 
     op.dispatch(&seq_buf, &dist_buf, n_seqs, seq_len);
 
-    gpu.read_buffer_f32(&dist_buf, n_pairs)
+    Ok(gpu.read_buffer_f32(&dist_buf, n_pairs)?)
 }
 
 fn validate_hamming_parity(h: &mut ValidationHarness, gpu: &Gpu) {

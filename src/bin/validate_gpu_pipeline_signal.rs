@@ -185,7 +185,7 @@ fn dispatch_hill_f64(
     }
     queue.submit(std::iter::once(encoder.finish()));
 
-    gpu.read_buffer_f64(&output, n_total)
+    Ok(gpu.read_buffer_f64(&output, n_total)?)
 }
 
 fn cpu_mean_hill_grid(

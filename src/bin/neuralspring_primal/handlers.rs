@@ -256,7 +256,7 @@ pub async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -
         Ok(resp) => JsonRpcResponse::success(id, resp),
         Err(e) => JsonRpcResponse::error(
             id,
-            rpc::error_code::SERVER_ERROR,
+            rpc::error_code::INTERNAL_ERROR,
             format!("Forward failed: {e}"),
         ),
     }
@@ -273,7 +273,7 @@ pub async fn dispatch_async(request: &rpc::JsonRpcRequest) -> JsonRpcResponse {
                 Ok(resp) => JsonRpcResponse::success(id, resp),
                 Err(e) => JsonRpcResponse::error(
                     id,
-                    rpc::error_code::SERVER_ERROR,
+                    rpc::error_code::INTERNAL_ERROR,
                     format!("data.* forward failed: {e}"),
                 ),
             }

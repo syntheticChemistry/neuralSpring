@@ -7,7 +7,7 @@ This document tracks how **six** ecoPrimals Springs — **hotSpring**, **wetSpri
 shaders and primitives to `BarraCUDA`, creating a shared math engine whose
 capabilities grow with every absorption cycle.
 
-**`BarraCUDA`**: v0.3.5 at `0649cd0` — 719 WGSL shaders, 32 cross-spring shaders from 5 origins, Sprint 2 APIs (activations, eigensolver, LCG, Wright-Fisher), 3-tier precision (F32/F64/Df64), `healthSpring` domain.
+**`BarraCUDA`**: v0.3.7 at `0649cd0` — 719+ WGSL shaders, 32 cross-spring shaders from 5 origins, Sprint 2 APIs (activations, eigensolver, LCG, Wright-Fisher), 3-tier precision (F32/F64/Df64), `healthSpring` domain.
 **`ToadStool`**: S146 at `751b3849` — 19,900+ tests, hardware testing, PCIe transport, `ResourceOrchestrator`, pipeline DAG absorbed from neuralSpring S134, streaming dispatch from hotSpring.
 **`coralReef`**: Iteration 33 at `b783217` — sovereign shader compiler, NVIDIA last mile pipeline, SSA repair, multi-GPU sovereignty, `Fp64Strategy` (Native/DoubleFloat/F32Only).
 **Multi-GPU**: RTX 4070 (proprietary) + TITAN V (NVK) — bit-identical across all Springs' shaders

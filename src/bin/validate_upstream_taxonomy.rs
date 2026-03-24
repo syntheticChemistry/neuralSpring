@@ -90,7 +90,7 @@ fn gpu_taxonomy_fc(
         n_features,
     );
 
-    gpu.read_buffer_f64(&scores_buf, scores_size)
+    Ok(gpu.read_buffer_f64(&scores_buf, scores_size)?)
 }
 
 #[tokio::main]

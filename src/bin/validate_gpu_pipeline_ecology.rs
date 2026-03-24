@@ -121,7 +121,9 @@ fn gpu_spatial_mean_fitness(
 
     op.dispatch(&grid_buf, &fitness_buf, n, b, c);
 
-    let fitness = gpu.read_buffer_f32(&fitness_buf, nn)?;
+    let fitness = gpu
+        .read_buffer_f32(&fitness_buf, nn)
+        .map_err(|e| e.to_string())?;
     let mean = fitness.iter().sum::<f32>() / fitness.len() as f32;
     Ok(mean)
 }

@@ -236,7 +236,7 @@ fn validate_multi_substrate_parity(
             npu_available: false,
             needs_realtime: false,
         },
-        |dev| neural_spring::gpu_ops::shannon_entropy_gpu(&e_data, dev),
+        |dev| neural_spring::gpu_ops::shannon_entropy_gpu(&e_data, dev).map_err(|e| e.to_string()),
         || cpu_entropy,
     );
 

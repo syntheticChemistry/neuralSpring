@@ -51,6 +51,8 @@ use tokio::net::{TcpListener, UnixListener};
 use tokio::sync::Semaphore;
 use tokio::sync::watch;
 
+use serde_json::error::Category;
+
 use neural_spring::gpu_dispatch::Dispatcher;
 
 use rpc::JsonRpcResponse;
@@ -351,19 +353,60 @@ async fn handle_connection<R, W>(
             continue;
         }
 
-        let response = match serde_json::from_str::<rpc::JsonRpcRequest>(trimmed) {
-            Ok(req) => {
-                state.requests_served.fetch_add(1, Ordering::Relaxed);
-                match dispatch_sync(&req, &state) {
-                    Some(resp) => resp,
-                    None => handlers::dispatch_async(&req).await,
+        let response = match serde_json::from_str::<serde_json::Value>(trimmed) {
+            Err(e) => {
+                let msg = format!("Parse error: {e}");
+                match e.classify() {
+                    Category::Syntax | Category::Eof | Category::Io => JsonRpcResponse::error(
+                        serde_json::Value::Null,
+                        rpc::error_code::PARSE_ERROR,
+                        msg,
+                    ),
+                    Category::Data => JsonRpcResponse::error(
+                        serde_json::Value::Null,
+                        rpc::error_code::INVALID_REQUEST,
+                        msg,
+                    ),
                 }
             }
-            Err(e) => JsonRpcResponse::error(
-                serde_json::Value::Null,
-                rpc::error_code::PARSE_ERROR,
-                format!("Parse error: {e}"),
-            ),
+            Ok(v) => {
+                let id_fallback = v.get("id").cloned().unwrap_or(serde_json::Value::Null);
+                match serde_json::from_value::<rpc::JsonRpcRequest>(v) {
+                    Err(e) => JsonRpcResponse::error(
+                        id_fallback,
+                        rpc::error_code::INVALID_REQUEST,
+                        format!("Invalid request: {e}"),
+                    ),
+                    Ok(req) => {
+                        if req.jsonrpc_version != "2.0" {
+                            JsonRpcResponse::error(
+                                req.id.clone(),
+                                rpc::error_code::INVALID_REQUEST,
+                                "jsonrpc must be \"2.0\"".to_string(),
+                            )
+                        } else if req.method.is_empty() {
+                            JsonRpcResponse::error(
+                                req.id.clone(),
+                                rpc::error_code::INVALID_REQUEST,
+                                "method must not be empty".to_string(),
+                            )
+                        } else {
+                            state.requests_served.fetch_add(1, Ordering::Relaxed);
+                            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                dispatch_sync(&req, &state)
+                            })) {
+                                Err(_) => JsonRpcResponse::error(
+                                    req.id.clone(),
+                                    rpc::error_code::INTERNAL_ERROR,
+                                    "Internal error: handler panicked".to_string(),
+                                ),
+                                Ok(Some(resp)) => resp,
+                                Ok(None) => handlers::dispatch_async(&req).await,
+                            }
+                        }
+                    }
+                }
+            }
         };
 
         let resp_json = serde_json::to_vec(&response).unwrap_or_default();

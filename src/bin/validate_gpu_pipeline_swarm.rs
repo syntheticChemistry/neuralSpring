@@ -202,7 +202,9 @@ fn gpu_mean_swarm_scores(
 
     gpu.queue().submit(std::iter::once(encoder.finish()));
 
-    let scores = gpu.read_buffer_f32(&scores_buf, n_total)?;
+    let scores = gpu
+        .read_buffer_f32(&scores_buf, n_total)
+        .map_err(|e| e.to_string())?;
     let mean = scores.iter().sum::<f32>() / scores.len() as f32;
     Ok(mean)
 }

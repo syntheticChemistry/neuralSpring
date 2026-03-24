@@ -78,7 +78,7 @@ python3 control/surrogate/surrogate_validation.py
 ## Provenance Protocol
 
 Every baseline must be reproducible. The canonical provenance record
-includes five fields, all captured in `src/provenance.rs`:
+includes five fields, all captured in `src/provenance/`:
 
 | Field | Value |
 |-------|-------|
@@ -88,7 +88,7 @@ includes five fields, all captured in `src/provenance.rs`:
 | **Environment** | Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3 |
 | **Command** | `python3 control/<subdir>/<script>.py` |
 
-When regenerating baselines, update `src/provenance.rs` with the new
+When regenerating baselines, update `src/provenance/` with the new
 commit hash, date, and verify the Rust validators still pass.
 
 ## Determinism

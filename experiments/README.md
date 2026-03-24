@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S172)**: 1380 Rust tests, 68 modules, 267 binaries, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 227+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 23, 2026.
+**Current state (Session S173)**: ~1,385 Rust tests, 68 modules, 261 binaries, 464 `.rs` files, 0 clippy (pedantic+nursery, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths. 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 227+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 24, 2026.
 
 ### Session S172 — 2026-03-23 (Deep Evolution & Ecosystem Absorption)
 
@@ -11,7 +11,24 @@
 - 3 validation binaries smart-refactored by responsibility (942→209, 913→189, 900→137 max LOC)
 - Config centralization: 8 env var names in config.rs
 - #[allow]→#[expect] complete across workspace
-- 1,380 tests, 0 clippy, 0 fmt, 0 doc warnings
+- ~1,385 tests, 0 clippy, 0 fmt, 0 doc warnings
+
+### Session S173 — 2026-03-24 (Deep Debt: Typed Errors, Module Decomposition, CI Hardening)
+
+- `thiserror` typed error hierarchy: `GpuError`, `TensorError`, `ParseError`, `Error`
+- Migrated `gpu.rs` and `gpu_ops/reduction.rs` from `Result<T, String>` to typed errors
+- Smart module decomposition: `nucleus_pipeline` (5 files), `glucose_prediction` (5 files), `immunological_anderson` (+2 submodules)
+- barraCuda `default-features = false` with explicit feature selection (dropped unused domain-pde/snn/vision)
+- cargo-deny supply chain audit added to CI
+- IPC smoke test in CI: builds primal, sends `health.liveness` over Unix socket
+- `rustfmt.toml` with explicit edition 2024 / max_width 100
+- JSON-RPC dead code evolved: `INVALID_REQUEST`/`INTERNAL_ERROR` wired to dispatch
+- `_jsonrpc` → `jsonrpc_version` (proper field naming)
+- `Measured` visualization variant wired to env-var runtime selection
+- SciPy version drift fixed (1.14.1 → 1.15.3)
+- `_provenance` metadata added to `mlp_baseline.json`, `baseline_values.json`
+- Coral forge shader absorption plan documented in EVOLUTION_MAPPING.md
+- ~1,385 tests, 0 clippy, 0 fmt, 0 doc warnings
 
 **Pattern**: Following hotSpring's `experiments/00X_NAME.md` convention.
 

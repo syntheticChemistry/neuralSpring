@@ -119,7 +119,7 @@ fn gpu_spatial_payoff(
 
     op.dispatch(&grid_buf, &fitness_buf, grid_size, b, c);
 
-    gpu.read_buffer_f32(&fitness_buf, n_cells)
+    Ok(gpu.read_buffer_f32(&fitness_buf, n_cells)?)
 }
 
 fn make_grid(grid_size: usize, seed: u64) -> Vec<u32> {

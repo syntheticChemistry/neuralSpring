@@ -118,7 +118,7 @@ fn gpu_wright_fisher(
         two_n,
     );
 
-    gpu.read_buffer_f64(&freq_out_buf, n_total)
+    Ok(gpu.read_buffer_f64(&freq_out_buf, n_total)?)
 }
 
 fn validate_neutral_drift(h: &mut ValidationHarness, gpu: &Gpu) {

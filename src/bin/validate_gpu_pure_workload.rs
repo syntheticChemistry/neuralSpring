@@ -300,7 +300,9 @@ fn gpu_chained_mean_fitness(
 
     queue.submit(std::iter::once(encoder.finish()));
 
-    let result = gpu.read_buffer_f32(&result_buf, 1)?;
+    let result = gpu
+        .read_buffer_f32(&result_buf, 1)
+        .map_err(|e| e.to_string())?;
     Ok(result[0])
 }
 

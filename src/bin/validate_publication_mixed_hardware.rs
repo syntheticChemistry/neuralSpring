@@ -278,7 +278,7 @@ async fn main() {
                 npu_available: false,
                 needs_realtime: false,
             },
-            |dev| gpu_ops::shannon_entropy_gpu(&cpu_iprs, dev),
+            |dev| gpu_ops::shannon_entropy_gpu(&cpu_iprs, dev).map_err(|e| e.to_string()),
             || cpu_entropy,
         );
 

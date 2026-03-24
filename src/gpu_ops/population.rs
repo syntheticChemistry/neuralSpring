@@ -106,7 +106,7 @@ pub fn matrix_correlation_gpu(
     if xs.len() < 2 {
         return Ok(0.0);
     }
-    pearson_correlation_gpu(&xs, &ys, device)
+    Ok(pearson_correlation_gpu(&xs, &ys, device)?)
 }
 
 /// GPU geographic distance matrix: pairwise Euclidean from 2D coordinates.
@@ -153,7 +153,7 @@ pub fn thermal_diversity_correlation_gpu(
     temperatures: &[f64],
     device: &Arc<WgpuDevice>,
 ) -> Result<f64, String> {
-    pearson_correlation_gpu(pi_values, temperatures, device)
+    Ok(pearson_correlation_gpu(pi_values, temperatures, device)?)
 }
 
 /// GPU inter-population allele frequency variance.
@@ -187,7 +187,7 @@ pub fn inter_population_af_variance_gpu(
         locus_variances.push(variance_gpu(&vals, device)?);
     }
 
-    mean_gpu(&locus_variances, device)
+    Ok(mean_gpu(&locus_variances, device)?)
 }
 
 /// GPU pairwise FST (Weir-Cockerham): allele freqs via GPU, locus-level terms on CPU.

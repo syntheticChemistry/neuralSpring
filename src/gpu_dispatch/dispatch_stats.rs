@@ -25,7 +25,7 @@ impl Dispatcher {
     pub fn shannon_entropy(&self, p: &[f64]) -> f64 {
         self.gpu_or_cpu(
             "shannon_entropy",
-            |dev| crate::gpu_ops::shannon_entropy_gpu(p, dev),
+            |dev| crate::gpu_ops::shannon_entropy_gpu(p, dev).map_err(|e| e.to_string()),
             || crate::primitives::shannon_entropy(p),
         )
     }
@@ -57,7 +57,7 @@ impl Dispatcher {
     pub fn pearson_correlation(&self, x: &[f64], y: &[f64]) -> f64 {
         self.gpu_or_cpu(
             "pearson_correlation",
-            |dev| crate::gpu_ops::pearson_correlation_gpu(x, y, dev),
+            |dev| crate::gpu_ops::pearson_correlation_gpu(x, y, dev).map_err(|e| e.to_string()),
             || cpu_fallback::pearson(x, y),
         )
     }
@@ -67,7 +67,9 @@ impl Dispatcher {
     pub fn chi_squared(&self, observed: &[f64], expected: &[f64]) -> f64 {
         self.gpu_or_cpu(
             "chi_squared",
-            |dev| crate::gpu_ops::chi_squared_gpu(observed, expected, dev),
+            |dev| {
+                crate::gpu_ops::chi_squared_gpu(observed, expected, dev).map_err(|e| e.to_string())
+            },
             || cpu_fallback::chi_squared(observed, expected),
         )
     }
@@ -80,7 +82,7 @@ impl Dispatcher {
     pub fn kl_divergence(&self, p: &[f64], q: &[f64]) -> f64 {
         self.gpu_or_cpu(
             "kl_divergence",
-            |dev| crate::gpu_ops::kl_divergence_gpu(p, q, dev),
+            |dev| crate::gpu_ops::kl_divergence_gpu(p, q, dev).map_err(|e| e.to_string()),
             || cpu_fallback::kl_divergence(p, q),
         )
     }

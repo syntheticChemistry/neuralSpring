@@ -174,7 +174,7 @@ fn gpu_generate(
 
     queue.submit(std::iter::once(encoder.finish()));
 
-    gpu.read_buffer_f32(&output_buf, output_len)
+    Ok(gpu.read_buffer_f32(&output_buf, output_len)?)
 }
 
 #[tokio::main]
@@ -398,7 +398,9 @@ fn gpu_generate_multi_call(
         queue.submit(std::iter::once(enc.finish()));
     }
 
-    let out_run1 = gpu.read_buffer_f32(&output_buf, output_len)?;
+    let out_run1 = gpu
+        .read_buffer_f32(&output_buf, output_len)
+        .map_err(|e| e.to_string())?;
 
     // Run 2: state was updated in-place; dispatch again
     {
@@ -417,7 +419,9 @@ fn gpu_generate_multi_call(
         queue.submit(std::iter::once(enc.finish()));
     }
 
-    let out_run2 = gpu.read_buffer_f32(&output_buf, output_len)?;
+    let out_run2 = gpu
+        .read_buffer_f32(&output_buf, output_len)
+        .map_err(|e| e.to_string())?;
 
     Ok((out_run1, out_run2))
 }

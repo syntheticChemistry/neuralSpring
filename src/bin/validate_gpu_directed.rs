@@ -50,7 +50,7 @@ fn gpu_multi_obj_fitness(
 
     op.dispatch(&genotypes_buf, &fitness_buf, pop, genome_len, n_obj);
 
-    gpu.read_buffer_f64(&fitness_buf, n_fitness)
+    Ok(gpu.read_buffer_f64(&fitness_buf, n_fitness)?)
 }
 
 #[tokio::main]

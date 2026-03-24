@@ -101,7 +101,9 @@ fn gpu_chained_mean_ipr(
 
     op.dispatch(&eigenvectors_buf, &ipr_buf, dim, n_vectors);
 
-    let ipr_out = gpu.read_buffer_f32(&ipr_buf, n_vectors as usize)?;
+    let ipr_out = gpu
+        .read_buffer_f32(&ipr_buf, n_vectors as usize)
+        .map_err(|e| e.to_string())?;
     let mean = ipr_out.iter().sum::<f32>() / ipr_out.len() as f32;
     Ok(mean)
 }

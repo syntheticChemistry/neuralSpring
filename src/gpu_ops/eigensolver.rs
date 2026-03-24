@@ -151,7 +151,7 @@ pub fn spectrum_chi_squared_gpu(
         return Ok(0.0);
     }
     let expected: Vec<f64> = expected_frac.iter().map(|&f| f * total).collect();
-    chi_squared_gpu(observed, &expected, device)
+    Ok(chi_squared_gpu(observed, &expected, device)?)
 }
 
 /// GPU selection coefficient: L2 deviation of normalized spectrum from neutral.

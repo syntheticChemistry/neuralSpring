@@ -5,7 +5,24 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-03-23 (Session 172: Deep Evolution & Ecosystem Absorption)
+## [Unreleased] — 2026-03-24 (Session 173: Deep Debt — Typed Errors, Module Decomposition, CI Hardening)
+
+### 2026-03-24 — Session S173 (typed errors, module decomposition, CI hardening)
+
+- **`thiserror` typed error hierarchy**: `GpuError`, `TensorError`, `ParseError`, top-level `Error` enum in `src/error.rs` — replaces `Result<T, String>` at library boundaries
+- **Error migration**: `gpu.rs` → `Result<T, GpuError>`, `gpu_ops/reduction.rs` → `Result<T, TensorError>`; `From` bridges for gradual migration
+- **Module decomposition**: `nucleus_pipeline.rs` (874 LOC → 5 files: mod/error/report/dispatch/executor), `glucose_prediction.rs` (794 LOC → 5 files: mod/cgm/analysis/experiment/tests), `immunological_anderson/mod.rs` (779 LOC → 3 new submodules: classification/pharma)
+- **barraCuda feature selection**: `default-features = false`, explicit `gpu`, `domain-nn`, `domain-esn`, `domain-genomics`, `domain-timeseries` (dropped unused `domain-pde`/`domain-snn`/`domain-vision`)
+- **cargo-deny in CI**: supply chain audit job (licenses, advisories, bans, sources)
+- **IPC smoke test in CI**: build primal, start on Unix socket, `health.liveness` JSON-RPC roundtrip via `socat`
+- **`rustfmt.toml`**: edition 2024, `max_width = 100`, `use_field_init_shorthand`, `use_try_shorthand`
+- **JSON-RPC dead code evolved**: `INVALID_REQUEST` / `INTERNAL_ERROR` wired to dispatch paths; `_jsonrpc` → `jsonrpc_version`
+- **Visualization**: `Measured` variant wired to env-var runtime selection (removed dead_code expect)
+- **Provenance**: SciPy 1.14.1 → 1.15.3 in tolerance comments; `_provenance` metadata added to `mlp_baseline.json` and `baseline_values.json`; `PUBLICATION_ENVIRONMENT` pinned to exact versions
+- **Coral forge shader plan**: 41 WGSL shaders mapped to Group A (generic, barraCuda absorption) and Group B (domain-fold candidates) in `EVOLUTION_MAPPING.md`
+- **Doc version sweep**: stale v0.3.5 → v0.3.7 across 8+ spec/whitePaper files; session/test/binary counts synchronized
+- **Handoff management**: V121/V122 archived; V123 + barraCuda evolution request created
+- **~1,385 tests** (1,199 lib + 72 forge + 80 playGround + 9 integration + 25 tokio), 0 clippy, 0 fmt, 0 doc warnings
 
 ### 2026-03-23 — Session S172 (deep evolution & ecosystem absorption)
 

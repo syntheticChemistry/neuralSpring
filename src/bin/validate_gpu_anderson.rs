@@ -59,7 +59,7 @@ fn gpu_batch_ipr(
 
     op.dispatch(&ev_buf, &ipr_buf, dim, n_vectors);
 
-    gpu.read_buffer_f32(&ipr_buf, n_vectors_usize)
+    Ok(gpu.read_buffer_f32(&ipr_buf, n_vectors_usize)?)
 }
 
 #[tokio::main]

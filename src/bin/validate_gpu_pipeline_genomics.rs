@@ -113,7 +113,9 @@ fn gpu_chained_mean_jaccard(
 
     op.dispatch(&pa_buf, &distances_buf, n_genomes, n_genes);
 
-    let distances = gpu.read_buffer_f32(&distances_buf, n_pairs)?;
+    let distances = gpu
+        .read_buffer_f32(&distances_buf, n_pairs)
+        .map_err(|e| e.to_string())?;
     let mean = distances.iter().sum::<f32>() / distances.len() as f32;
     Ok(mean)
 }

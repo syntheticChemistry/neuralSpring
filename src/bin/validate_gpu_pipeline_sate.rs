@@ -107,7 +107,9 @@ fn gpu_mean_pairwise_hamming(
 
     op.dispatch(&seq_buf, &dist_buf, n_seqs, seq_len);
 
-    let distances = gpu.read_buffer_f32(&dist_buf, n_pairs)?;
+    let distances = gpu
+        .read_buffer_f32(&dist_buf, n_pairs)
+        .map_err(|e| e.to_string())?;
     let mean = distances.iter().sum::<f32>() / distances.len() as f32;
     Ok(mean)
 }

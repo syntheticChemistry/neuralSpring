@@ -84,7 +84,7 @@ fn gpu_pairwise_hamming(
 
     op.dispatch(&sequences_buf, &distances_buf, n_seqs, seq_len);
 
-    gpu.read_buffer_f32(&distances_buf, n_pairs)
+    Ok(gpu.read_buffer_f32(&distances_buf, n_pairs)?)
 }
 
 fn validate_small(h: &mut ValidationHarness, gpu: &Gpu, op: &PairwiseHammingGpu) {

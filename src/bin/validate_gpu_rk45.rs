@@ -292,8 +292,12 @@ fn gpu_rk45(
     }
     queue.submit(std::iter::once(encoder.finish()));
 
-    let new_state = gpu.read_buffer_f32(&new_state_buf, (n_systems * dim) as usize)?;
-    let error = gpu.read_buffer_f32(&error_buf, (n_systems * dim) as usize)?;
+    let new_state = gpu
+        .read_buffer_f32(&new_state_buf, (n_systems * dim) as usize)
+        .map_err(|e| e.to_string())?;
+    let error = gpu
+        .read_buffer_f32(&error_buf, (n_systems * dim) as usize)
+        .map_err(|e| e.to_string())?;
     Ok((new_state, error))
 }
 

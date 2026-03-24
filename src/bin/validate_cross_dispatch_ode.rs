@@ -254,7 +254,7 @@ fn gpu_rk4(
     }
     queue.submit(std::iter::once(encoder.finish()));
 
-    gpu.read_buffer_f32(&state_out_buf, (n_systems * dim) as usize)
+    Ok(gpu.read_buffer_f32(&state_out_buf, (n_systems * dim) as usize)?)
 }
 
 // ── wgpu layout helpers ──────────────────────────────────────────

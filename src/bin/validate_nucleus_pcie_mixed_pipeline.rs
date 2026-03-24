@@ -234,7 +234,7 @@ fn validate_gpu_npu_bypass_science_pipeline(
             npu_available: false,
             needs_realtime: false,
         },
-        |dev| gpu_ops::variance_gpu(&data, dev),
+        |dev| gpu_ops::variance_gpu(&data, dev).map_err(|e| e.to_string()),
         || cpu_var,
     );
     h.check_abs(
@@ -253,7 +253,7 @@ fn validate_gpu_npu_bypass_science_pipeline(
             npu_available: true,
             needs_realtime: true,
         },
-        |dev| gpu_ops::mean_gpu(&data, dev),
+        |dev| gpu_ops::mean_gpu(&data, dev).map_err(|e| e.to_string()),
         || cpu_mean,
     );
     h.check_abs(
@@ -326,7 +326,7 @@ fn validate_nucleus_tower_node_nest_chain(
             npu_available: false,
             needs_realtime: false,
         },
-        |dev| gpu_ops::variance_gpu(&evals, dev),
+        |dev| gpu_ops::variance_gpu(&evals, dev).map_err(|e| e.to_string()),
         || {
             let n = evals.len() as f64;
             let m = evals.iter().sum::<f64>() / n;

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize)]
 pub struct JsonRpcRequest {
     #[serde(rename = "jsonrpc")]
-    pub _jsonrpc: String,
+    pub jsonrpc_version: String,
     pub method: String,
     #[serde(default)]
     pub params: serde_json::Value,
@@ -65,11 +65,14 @@ pub fn normalize_method(method: &str) -> &str {
 /// JSON-RPC 2.0 standard error codes (§5.1).
 pub mod error_code {
     pub const PARSE_ERROR: i32 = -32_700;
-    #[expect(dead_code, reason = "protocol completeness")]
     pub const INVALID_REQUEST: i32 = -32_600;
     pub const METHOD_NOT_FOUND: i32 = -32_601;
     pub const INVALID_PARAMS: i32 = -32_602;
-    #[expect(dead_code, reason = "protocol completeness")]
     pub const INTERNAL_ERROR: i32 = -32_603;
+    /// JSON-RPC application-defined server error range floor (−32000..−32099).
+    #[allow(
+        dead_code,
+        reason = "reserved range anchor; handlers use INTERNAL_ERROR"
+    )]
     pub const SERVER_ERROR: i32 = -32_000;
 }

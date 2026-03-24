@@ -153,7 +153,7 @@ fn gpu_pairwise_l2(gpu: &Gpu, features: &[f32], n: u32, dim: u32) -> Result<Vec<
     op.dispatch(&features_buf, &dist_buf, n, dim)
         .map_err(|e| format!("PairwiseL2 dispatch: {e}"))?;
 
-    gpu.read_buffer_f32(&dist_buf, n_pairs)
+    Ok(gpu.read_buffer_f32(&dist_buf, n_pairs)?)
 }
 
 fn validate_pairwise_l2_parity(h: &mut ValidationHarness, gpu: &Gpu) {
@@ -234,7 +234,7 @@ fn gpu_multi_obj_fitness(
         n_objectives,
     );
 
-    gpu.read_buffer_f64(&fitness_buf, n_fitness)
+    Ok(gpu.read_buffer_f64(&fitness_buf, n_fitness)?)
 }
 
 fn validate_multi_obj_fitness_parity(h: &mut ValidationHarness, gpu: &Gpu) {
@@ -502,7 +502,7 @@ fn gpu_hill_gate(
     }
     queue.submit(std::iter::once(encoder.finish()));
 
-    gpu.read_buffer_f64(&output_buf, n_total)
+    Ok(gpu.read_buffer_f64(&output_buf, n_total)?)
 }
 
 const fn bgl_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {

@@ -357,7 +357,7 @@ mod tests {
                 let mut m = vec![0.0; n * n];
                 for i in 0..n {
                     for j in i..n {
-                        let v = rng.uniform() * 2.0 - 1.0;
+                        let v = 2.0f64.mul_add(rng.uniform(), -1.0);
                         m[i * n + j] = v;
                         m[j * n + i] = v;
                     }
@@ -383,7 +383,7 @@ mod tests {
                 let mut m = vec![0.0; n * n];
                 for i in 0..n {
                     for j in i..n {
-                        let v = rng.uniform() * 2.0 - 1.0;
+                        let v = 2.0f64.mul_add(rng.uniform(), -1.0);
                         m[i * n + j] = v;
                         m[j * n + i] = v;
                     }

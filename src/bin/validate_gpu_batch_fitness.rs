@@ -106,7 +106,7 @@ fn gpu_batch_fitness(
 
     op.dispatch(&pop_buf, &weight_buf, &fitness_buf, pop_size, genome_len);
 
-    gpu.read_buffer_f64(&fitness_buf, pop_size as usize)
+    Ok(gpu.read_buffer_f64(&fitness_buf, pop_size as usize)?)
 }
 
 fn validate_small_population(h: &mut ValidationHarness, gpu: &Gpu, op: &BatchFitnessGpu) {

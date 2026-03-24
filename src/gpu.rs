@@ -24,6 +24,8 @@ pub use barracuda::shaders::precision::Precision;
 use bytemuck;
 use std::sync::Arc;
 
+use crate::error::GpuError;
+
 /// GPU context for `neuralSpring` workloads.
 ///
 /// Wraps `WgpuDevice` with relaxed limits (llvmpipe caps at 128 MB)
@@ -32,7 +34,8 @@ use std::sync::Arc;
 /// # Example
 ///
 /// ```no_run
-/// # async fn example() -> Result<(), String> {
+/// # async fn example() -> Result<(), GpuError> {
+/// use neural_spring::error::GpuError;
 /// use neural_spring::gpu::Gpu;
 ///
 /// let gpu = Gpu::new().await?;
@@ -144,7 +147,7 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if the requested backend is unavailable.
-    pub async fn new() -> Result<Self, String> {
+    pub async fn new() -> Result<Self, GpuError> {
         let selector = std::env::var(crate::config::ENV_GPU_BACKEND_LEGACY)
             .or_else(|_| std::env::var(crate::config::ENV_GPU_BACKEND))
             .unwrap_or_default()
@@ -161,17 +164,23 @@ impl Gpu {
                     backend = info.backend,
                 );
             }
-            return Err("GPU_BACKEND=list: adapter enumeration complete".to_string());
+            return Err(GpuError::Device {
+                reason: "GPU_BACKEND=list: adapter enumeration complete".into(),
+            });
         }
 
         match selector.as_str() {
             "gpu" => match WgpuDevice::new_gpu().await {
                 Ok(dev) => Ok(Self::from_device(Arc::new(dev))),
-                Err(e) => Err(format!("gpu: {e}")),
+                Err(e) => Err(GpuError::Device {
+                    reason: format!("gpu: {e}"),
+                }),
             },
             "" | "auto" => match WgpuDevice::new().await {
                 Ok(dev) => Ok(Self::from_device(Arc::new(dev))),
-                Err(e) => Err(format!("auto: {e}")),
+                Err(e) => Err(GpuError::Device {
+                    reason: format!("auto: {e}"),
+                }),
             },
             "cpu" => Self::new_cpu().await,
             other => Self::select_adapter(other).await,
@@ -186,10 +195,12 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if no CPU adapter is available.
-    pub async fn new_cpu() -> Result<Self, String> {
+    pub async fn new_cpu() -> Result<Self, GpuError> {
         match WgpuDevice::new_cpu_relaxed().await {
             Ok(dev) => Ok(Self::from_device(Arc::new(dev))),
-            Err(e) => Err(format!("cpu: {e}")),
+            Err(e) => Err(GpuError::Device {
+                reason: format!("cpu: {e}"),
+            }),
         }
     }
 
@@ -198,10 +209,12 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if no GPU adapter is available.
-    pub async fn new_gpu() -> Result<Self, String> {
+    pub async fn new_gpu() -> Result<Self, GpuError> {
         match WgpuDevice::new_gpu().await {
             Ok(dev) => Ok(Self::from_device(Arc::new(dev))),
-            Err(e) => Err(format!("gpu: {e}")),
+            Err(e) => Err(GpuError::Device {
+                reason: format!("gpu: {e}"),
+            }),
         }
     }
 
@@ -285,10 +298,13 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if the GPU allocation fails.
-    pub fn create_buffer_f32(&self, count: usize) -> Result<wgpu::Buffer, String> {
+    pub fn create_buffer_f32(&self, count: usize) -> Result<wgpu::Buffer, GpuError> {
         self.wgpu_device
             .create_buffer_f32(count)
-            .map_err(|e| format!("create_buffer_f32: {e}"))
+            .map_err(|e| GpuError::Buffer {
+                op: "create_buffer_f32",
+                reason: e.to_string(),
+            })
     }
 
     /// Upload f32 data to a new GPU storage buffer.
@@ -296,7 +312,7 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if the buffer allocation fails.
-    pub fn upload_f32(&self, data: &[f32]) -> Result<wgpu::Buffer, String> {
+    pub fn upload_f32(&self, data: &[f32]) -> Result<wgpu::Buffer, GpuError> {
         let buf = self.create_buffer_f32(data.len())?;
         self.wgpu_device
             .queue()
@@ -309,7 +325,7 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if the buffer allocation fails.
-    pub fn upload_f64(&self, data: &[f64]) -> Result<wgpu::Buffer, String> {
+    pub fn upload_f64(&self, data: &[f64]) -> Result<wgpu::Buffer, GpuError> {
         let buf = self.create_buffer_f64(data.len())?;
         self.wgpu_device
             .queue()
@@ -322,10 +338,13 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if the GPU allocation fails.
-    pub fn create_buffer_f64(&self, count: usize) -> Result<wgpu::Buffer, String> {
+    pub fn create_buffer_f64(&self, count: usize) -> Result<wgpu::Buffer, GpuError> {
         self.wgpu_device
             .create_buffer_f64(count)
-            .map_err(|e| format!("create_buffer_f64: {e}"))
+            .map_err(|e| GpuError::Buffer {
+                op: "create_buffer_f64",
+                reason: e.to_string(),
+            })
     }
 
     /// Read f32 data back from a GPU buffer (blocking).
@@ -333,10 +352,17 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if the GPU readback fails.
-    pub fn read_buffer_f32(&self, buffer: &wgpu::Buffer, count: usize) -> Result<Vec<f32>, String> {
+    pub fn read_buffer_f32(
+        &self,
+        buffer: &wgpu::Buffer,
+        count: usize,
+    ) -> Result<Vec<f32>, GpuError> {
         self.wgpu_device
             .read_buffer_f32(buffer, count)
-            .map_err(|e| format!("read_buffer_f32: {e}"))
+            .map_err(|e| GpuError::Buffer {
+                op: "read_buffer_f32",
+                reason: e.to_string(),
+            })
     }
 
     /// Read f64 data back from a GPU buffer (blocking).
@@ -344,10 +370,17 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if the GPU readback fails.
-    pub fn read_buffer_f64(&self, buffer: &wgpu::Buffer, count: usize) -> Result<Vec<f64>, String> {
+    pub fn read_buffer_f64(
+        &self,
+        buffer: &wgpu::Buffer,
+        count: usize,
+    ) -> Result<Vec<f64>, GpuError> {
         self.wgpu_device
             .read_buffer_f64(buffer, count)
-            .map_err(|e| format!("read_buffer_f64: {e}"))
+            .map_err(|e| GpuError::Buffer {
+                op: "read_buffer_f64",
+                reason: e.to_string(),
+            })
     }
 
     /// Read u32 data back from a GPU buffer (blocking).
@@ -355,16 +388,23 @@ impl Gpu {
     /// # Errors
     ///
     /// Returns an error if the GPU readback fails.
-    pub fn read_buffer_u32(&self, buffer: &wgpu::Buffer, count: usize) -> Result<Vec<u32>, String> {
+    pub fn read_buffer_u32(
+        &self,
+        buffer: &wgpu::Buffer,
+        count: usize,
+    ) -> Result<Vec<u32>, GpuError> {
         self.wgpu_device
             .read_buffer_u32(buffer, count)
-            .map_err(|e| format!("read_buffer_u32: {e}"))
+            .map_err(|e| GpuError::Buffer {
+                op: "read_buffer_u32",
+                reason: e.to_string(),
+            })
     }
 
     /// Select a specific adapter by name substring or enumeration index.
     ///
     /// Uses relaxed limits so CPU software adapters (llvmpipe) work.
-    async fn select_adapter(selector: &str) -> Result<Self, String> {
+    async fn select_adapter(selector: &str) -> Result<Self, GpuError> {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
@@ -380,7 +420,9 @@ impl Gpu {
                 .into_iter()
                 .find(|a| a.get_info().name.to_ascii_lowercase().contains(&sel))
         }
-        .ok_or_else(|| format!("no adapter matches '{selector}'"))?;
+        .ok_or_else(|| GpuError::Device {
+            reason: format!("no adapter matches '{selector}'"),
+        })?;
 
         let info = adapter.get_info();
         let mut features = wgpu::Features::empty();
@@ -420,7 +462,9 @@ impl Gpu {
                 trace: wgpu::Trace::default(),
             })
             .await
-            .map_err(|e| format!("device creation: {e}"))?;
+            .map_err(|e| GpuError::Device {
+                reason: format!("device creation: {e}"),
+            })?;
 
         let dev = WgpuDevice::from_existing(device, queue, info);
         Ok(Self::from_device(Arc::new(dev)))

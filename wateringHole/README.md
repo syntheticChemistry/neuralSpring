@@ -5,12 +5,12 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V122 — Session 172
+### V123 — Session 173
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V122 evo** | `handoffs/NEURALSPRING_V122_DEEP_EVOLUTION_ECOSYSTEM_ABSORPTION_HANDOFF_MAR23_2026.md` | Mar 23, 2026 | Deep evolution & ecosystem absorption: DeviceCapabilities migration (11 files), workspace lint inheritance, 163 playGround docs, normalize_method IPC, 3 binary smart refactors, config centralization, #[allow]→#[expect] complete. 1,380 tests, 0 clippy/fmt/doc. |
-| **V121 audit** | `handoffs/NEURALSPRING_V121_DEEP_DEBT_AUDIT_HANDOFF_MAR23_2026.md` | Mar 23, 2026 | Deep debt audit: PipelineError, named guards, metalForge lint parity, proptest expansion |
+| **V123 debt** | `handoffs/NEURALSPRING_V123_DEEP_DEBT_TYPED_ERRORS_MODULE_DECOMPOSITION_HANDOFF_MAR24_2026.md` | Mar 24, 2026 | Typed errors (`thiserror`), nucleus/glucose/immunological module decomposition, explicit barraCuda features, cargo-deny + IPC smoke + rustfmt, dead-code/JSON-RPC/provenance fixes. ~1,385 tests, 0 clippy/fmt/doc. |
+| **barraCuda evolution** | `handoffs/NEURALSPRING_BARRACUDA_EVOLUTION_REQUEST_TYPED_ERRORS_DOMAIN_FOLD_MAR24_2026.md` | Mar 24, 2026 | Request: generic f64 ops upstream (`gelu`/`sigmoid`/`layer_norm`/`softmax`), proposed `domain-fold`, typed-error convention alignment. |
 
 ### Central wateringHole Copies
 
@@ -18,7 +18,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V120 + V95 + NestGate V1 + biomeOS V1 + Songbird V1).
+Superseded handoffs: `handoffs/archive/` (V1–V120 + V95 + NestGate V1 + biomeOS V1 + Songbird V1 + V121 + V122).
 
 ## Conventions
 

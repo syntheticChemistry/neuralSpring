@@ -85,7 +85,7 @@ fn gpu_locus_variance(
 
     op.dispatch(&allele_freqs_buf, &output_buf, n_pops, n_loci);
 
-    gpu.read_buffer_f64(&output_buf, n_loci as usize)
+    Ok(gpu.read_buffer_f64(&output_buf, n_loci as usize)?)
 }
 
 fn cpu_locus_variance(all_freqs: &[Vec<f64>], n_loci: usize) -> Vec<f64> {

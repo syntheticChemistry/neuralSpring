@@ -359,7 +359,7 @@ fn validate_nest_provenance(
             npu_available: false,
             needs_realtime: false,
         },
-        |dev| gpu_ops::mean_gpu(&data, dev),
+        |dev| gpu_ops::mean_gpu(&data, dev).map_err(|e| e.to_string()),
         || cpu_mean,
     );
 
@@ -442,7 +442,7 @@ fn validate_mixed_atomic_coordination(
             npu_available: false,
             needs_realtime: false,
         },
-        |dev| gpu_ops::shannon_entropy_gpu(&probs, dev),
+        |dev| gpu_ops::shannon_entropy_gpu(&probs, dev).map_err(|e| e.to_string()),
         || cpu_entropy,
     );
 

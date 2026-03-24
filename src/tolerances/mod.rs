@@ -171,7 +171,7 @@ pub use training::*;
 /// 1e-8 is standard for biological ODE systems (GRN, replicator dynamics)
 /// where state variables are O(1).  Matches `SciPy` `solve_ivp` default.
 ///
-/// Validated: `SciPy` 1.14.1 `solve_ivp(method='RK45', atol=1e-8)`.
+/// Validated: `SciPy` 1.15.3 `solve_ivp(method='RK45', atol=1e-8)`.
 /// Confirmed via `control/regulatory_network/regulatory_network.py`
 /// (commit `f9ad0268`, 2026-02-16).
 pub const ODE_ATOL: f64 = 1e-8;
@@ -181,7 +181,7 @@ pub const ODE_ATOL: f64 = 1e-8;
 /// 1e-6 balances accuracy against step count for smooth ODE systems.
 /// Matches `SciPy` `solve_ivp` default.
 ///
-/// Validated: `SciPy` 1.14.1 `solve_ivp(method='RK45', rtol=1e-6)`.
+/// Validated: `SciPy` 1.15.3 `solve_ivp(method='RK45', rtol=1e-6)`.
 pub const ODE_RTOL: f64 = 1e-6;
 
 // ═══════════════════════════════════════════════════════════════════

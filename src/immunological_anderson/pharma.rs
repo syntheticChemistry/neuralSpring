@@ -1,0 +1,515 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! Pharmacodynamics, drug delivery geometry, PK decay, and dose-response.
+//!
+//! Anderson-augmented drug scoring, tissue accessibility factors, Hill
+//! dose-response, and pharmacokinetic helpers for AD intervention modeling.
+
+use crate::training_monitor::{AttentionState, TrainingInterrupt, TrainingMonitor};
+use crate::weight_spectral::WeightSpectralResult;
+
+use super::DrugMechanism;
+
+/// Anderson-augmented drug repurposing score.
+///
+/// Extends Fajgenbaum MATRIX: `Score(drug, disease, tissue)` =
+/// `f(pathway) * g(geometry, delivery, size)`.
+#[derive(Debug, Clone)]
+pub struct AndersonDrugScore {
+    /// Drug name for reporting and lookup.
+    pub drug_name: String,
+    /// Pathway-level potency or coverage score.
+    pub pathway_score: f64,
+    /// Barrier geometry and delivery accessibility score.
+    pub geometry_score: f64,
+    /// Product of pathway and geometry scores.
+    pub combined_score: f64,
+    /// Mechanism class (signal removal, transduction, barrier, receptor).
+    pub mechanism: DrugMechanism,
+    /// True if delivery is systemic (vs topical).
+    pub delivery_systemic: bool,
+}
+
+impl AndersonDrugScore {
+    /// Compute the combined Anderson-augmented score.
+    #[must_use]
+    pub fn compute(
+        drug_name: &str,
+        pathway_score: f64,
+        geometry_score: f64,
+        mechanism: DrugMechanism,
+        delivery_systemic: bool,
+    ) -> Self {
+        let combined = pathway_score * geometry_score;
+        Self {
+            drug_name: drug_name.to_owned(),
+            pathway_score,
+            geometry_score,
+            combined_score: combined,
+            mechanism,
+            delivery_systemic,
+        }
+    }
+}
+
+/// Systemic delivery: molecular-weight attenuation rate (per kDa).
+const SYSTEMIC_MW_ATTENUATION: f64 = 0.001;
+/// Systemic delivery: minimum geometry factor floor.
+const SYSTEMIC_FLOOR: f64 = 0.5;
+/// Small-molecule threshold for topical penetration (kDa).
+const SMALL_MOLECULE_KDA: f64 = 0.5;
+/// Large-molecule threshold for topical penetration (kDa).
+const LARGE_MOLECULE_KDA: f64 = 5.0;
+/// Topical penetration factor for small molecules (<0.5 kDa).
+const TOPICAL_SMALL: f64 = 0.8;
+/// Topical penetration factor for medium molecules (0.5–5 kDa).
+const TOPICAL_MEDIUM: f64 = 0.5;
+/// Topical penetration factor for large molecules (>5 kDa).
+const TOPICAL_LARGE: f64 = 0.1;
+/// Barrier breach bonus scaling factor for topical delivery.
+const BREACH_BONUS_SCALE: f64 = 0.3;
+
+/// Geometry factor for drug tissue accessibility.
+///
+/// Large molecules (mAbs) require systemic delivery to reach 3D dermis.
+/// Small molecules can penetrate the 2D barrier topically, especially
+/// when the barrier is compromised (higher `barrier_breach_fraction`).
+#[must_use]
+pub fn tissue_geometry_factor(
+    molecular_weight_kda: f64,
+    delivery_systemic: bool,
+    barrier_breach_fraction: f64,
+) -> f64 {
+    if delivery_systemic {
+        SYSTEMIC_MW_ATTENUATION
+            .mul_add(-molecular_weight_kda, 1.0)
+            .clamp(SYSTEMIC_FLOOR, 1.0)
+    } else {
+        let size_factor = if molecular_weight_kda < SMALL_MOLECULE_KDA {
+            TOPICAL_SMALL
+        } else if molecular_weight_kda < LARGE_MOLECULE_KDA {
+            TOPICAL_MEDIUM
+        } else {
+            TOPICAL_LARGE
+        };
+        let breach_bonus = barrier_breach_fraction * BREACH_BONUS_SCALE;
+        (size_factor + breach_bonus).clamp(0.0, 1.0)
+    }
+}
+
+/// Pharmacokinetic monitor for drug signal extinction tracking.
+///
+/// Wraps [`TrainingMonitor`] to track drug efficacy decay as an Anderson
+/// signal extinction process. Maps pharmacokinetic half-life curves onto
+/// the attention state machine.
+pub struct PharmacoMonitor {
+    monitor: TrainingMonitor,
+    dose_mg_per_kg: f64,
+    hours_elapsed: f64,
+}
+
+impl PharmacoMonitor {
+    /// Builds a monitor at the given dose with zero elapsed hours.
+    #[must_use]
+    pub fn new(dose_mg_per_kg: f64) -> Self {
+        Self {
+            monitor: TrainingMonitor::new(),
+            dose_mg_per_kg,
+            hours_elapsed: 0.0,
+        }
+    }
+
+    /// Record an observation timepoint.
+    ///
+    /// `pruritus_score` is a clinical score (lower = better), mapped to
+    /// "loss" in the training monitor.
+    pub fn observe(&mut self, hours: f64, pruritus_score: f64, spectral: &WeightSpectralResult) {
+        let epoch = self.monitor.epoch_count();
+        self.hours_elapsed = hours;
+        self.monitor.observe_epoch(epoch, pruritus_score, spectral);
+    }
+
+    /// Check whether the treatment needs adjustment.
+    ///
+    /// Maps [`TrainingInterrupt`] to pharmacological decisions:
+    /// - `Continue` -> treatment working, maintain dose
+    /// - `ReduceLearningRate` -> partial response, consider dose adjustment
+    /// - `EarlyStop` -> treatment failure, switch therapy
+    #[must_use]
+    pub fn check_treatment(&self) -> TrainingInterrupt {
+        self.monitor.check_interrupt()
+    }
+
+    /// Attention state of the wrapped training monitor.
+    #[must_use]
+    pub const fn attention_state(&self) -> AttentionState {
+        self.monitor.attention()
+    }
+
+    /// Dose in mg per kg for this pharmacokinetic trajectory.
+    #[must_use]
+    pub const fn dose(&self) -> f64 {
+        self.dose_mg_per_kg
+    }
+
+    /// Hours since start at the last observation.
+    #[must_use]
+    pub const fn hours_elapsed(&self) -> f64 {
+        self.hours_elapsed
+    }
+
+    /// Whether spectral drift is detected (treatment may need review).
+    #[must_use]
+    pub fn is_drifting(&self) -> bool {
+        self.monitor.is_drifting()
+    }
+}
+
+/// IC50 as Anderson barrier height.
+///
+/// Maps drug IC50 concentration to the effective disorder reduction:
+/// at IC50, half the signaling is blocked (effective W reduced by half).
+/// Below IC50, W reduction proportional to `[drug]/IC50` (Hill equation, n=1).
+#[must_use]
+pub fn ic50_to_w_reduction(drug_concentration_nm: f64, ic50_nm: f64, max_w_reduction: f64) -> f64 {
+    if ic50_nm <= 0.0 {
+        return 0.0;
+    }
+    let occupancy = drug_concentration_nm / (drug_concentration_nm + ic50_nm);
+    occupancy * max_w_reduction
+}
+
+/// Gonzales (2014) JAK1 IC50 values (nM).
+pub mod gonzales_ic50 {
+    /// JAK1 inhibition IC50 reference (nM).
+    pub const JAK1: f64 = 10.0;
+    /// IL-2 cytokine IC50 reference (nM).
+    pub const IL2: f64 = 36.0;
+    /// IL-4 cytokine IC50 reference (nM).
+    pub const IL4: f64 = 159.0;
+    /// IL-6 cytokine IC50 reference (nM).
+    pub const IL6: f64 = 36.0;
+    /// IL-13 cytokine IC50 reference (nM).
+    pub const IL13: f64 = 249.0;
+    /// IL-31 cytokine IC50 reference (nM).
+    pub const IL31: f64 = 63.0;
+}
+
+/// Fleck/Gonzales (2021) lokivetmab dose-duration data.
+pub mod lokivetmab_pk {
+    /// `(dose_mg_per_kg, onset_hours, duration_days)`
+    pub const DOSE_DURATION: [(f64, f64, f64); 3] =
+        [(0.125, 3.0, 14.0), (0.5, 3.0, 28.0), (2.0, 3.0, 42.0)];
+
+    /// Log-linear regression coefficients fit to G4 dose-duration data.
+    /// `duration_days = A * ln(dose_mg_kg) + B`
+    /// Fit: A ≈ 10.09, B ≈ 33.28 (R² ≈ 0.971)
+    pub const REGRESSION_A: f64 = 10.09;
+    /// Regression intercept `B` in `duration_days = A * ln(dose_mg_kg) + B`.
+    pub const REGRESSION_B: f64 = 33.28;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// nS-601: Gonzales dose-response modeling (generalized Hill equation)
+// ═══════════════════════════════════════════════════════════════════════
+
+/// Generalized Hill equation for dose-response modeling.
+///
+/// `response = E_max * [drug]^n / ([drug]^n + IC50^n)`
+///
+/// When `n=1` this reduces to the simple Michaelis-Menten form used in
+/// `ic50_to_w_reduction`. The Hill coefficient `n` captures cooperativity:
+/// n>1 = positive cooperativity (steeper curve), n<1 = negative.
+#[must_use]
+pub fn hill_dose_response(concentration: f64, ic50: f64, hill_n: f64, e_max: f64) -> f64 {
+    if ic50 <= 0.0 || concentration < 0.0 {
+        return 0.0;
+    }
+    let c_n = concentration.powf(hill_n);
+    let ic50_n = ic50.powf(hill_n);
+    e_max * c_n / (c_n + ic50_n)
+}
+
+/// Sweep Hill dose-response across a concentration range.
+///
+/// Returns `(concentrations, responses)` for plotting dose-response curves.
+#[must_use]
+pub fn ic50_sweep(ic50: f64, hill_n: f64, concentrations: &[f64]) -> Vec<f64> {
+    concentrations
+        .iter()
+        .map(|&c| hill_dose_response(c, ic50, hill_n, 1.0))
+        .collect()
+}
+
+/// Compute Anderson barrier heights for all 6 Gonzales cytokines.
+///
+/// Maps each IC50 to `W = ln(IC50) * scale`, quantifying how much
+/// effective disorder each pathway contributes to cytokine localization.
+#[must_use]
+pub fn cytokine_barrier_heights(scale: f64) -> [(f64, f64); 6] {
+    let ic50s = [
+        gonzales_ic50::JAK1,
+        gonzales_ic50::IL2,
+        gonzales_ic50::IL4,
+        gonzales_ic50::IL6,
+        gonzales_ic50::IL13,
+        gonzales_ic50::IL31,
+    ];
+    let mut result = [(0.0, 0.0); 6];
+    for (i, &ic50) in ic50s.iter().enumerate() {
+        result[i] = (ic50, ic50.ln() * scale);
+    }
+    result
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// nS-603: Pharmacokinetic decay modeling
+// ═══════════════════════════════════════════════════════════════════════
+
+/// Exponential PK decay: concentration at time t.
+///
+/// `C(t) = C_0 * exp(-k * t)` where `k = ln(2) / half_life`.
+#[must_use]
+pub fn pk_exponential_decay(c0: f64, time_hours: f64, half_life_hours: f64) -> f64 {
+    if half_life_hours <= 0.0 {
+        return 0.0;
+    }
+    let k = core::f64::consts::LN_2 / half_life_hours;
+    c0 * (-k * time_hours).exp()
+}
+
+/// Predict lokivetmab duration from dose using log-linear regression.
+///
+/// Fit to Fleck/Gonzales (2021) G4 data:
+/// `duration = A * ln(dose) + B` where A=10.09, B=33.28.
+#[must_use]
+pub fn lokivetmab_duration_predict(dose_mg_kg: f64) -> f64 {
+    if dose_mg_kg <= 0.0 {
+        return 0.0;
+    }
+    dose_mg_kg
+        .ln()
+        .mul_add(lokivetmab_pk::REGRESSION_A, lokivetmab_pk::REGRESSION_B)
+}
+
+/// Pruritus score model from Gonzales (2016) G3.
+///
+/// Treatment effect decays exponentially from initial suppression.
+/// `score(t) = baseline - (baseline - nadir) * exp(-decay_rate * t)`
+/// where nadir is the maximum suppression at t=0 post-dose.
+#[must_use]
+pub fn pruritus_score_model(
+    time_hours: f64,
+    baseline_score: f64,
+    treatment_suppression: f64,
+    decay_rate: f64,
+) -> f64 {
+    let nadir = baseline_score * (1.0 - treatment_suppression.clamp(0.0, 1.0));
+    let recovery = (baseline_score - nadir) * (1.0 - (-decay_rate * time_hours).exp());
+    nadir + recovery
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::DrugMechanism;
+    use super::*;
+    use crate::training_monitor::TrainingInterrupt;
+
+    #[test]
+    fn test_ic50_to_w_reduction() {
+        let at_ic50 = ic50_to_w_reduction(gonzales_ic50::JAK1, gonzales_ic50::JAK1, 1.0);
+        assert!((at_ic50 - 0.5).abs() < 1e-10, "at IC50 = 50% reduction");
+
+        let at_zero = ic50_to_w_reduction(0.0, gonzales_ic50::JAK1, 1.0);
+        assert!(at_zero.abs() < 1e-10, "no drug = no reduction");
+
+        let at_10x = ic50_to_w_reduction(100.0, gonzales_ic50::JAK1, 1.0);
+        assert!(at_10x > 0.9, "10x IC50 = >90% reduction");
+    }
+
+    #[test]
+    fn test_tissue_geometry_systemic() {
+        let small_systemic = tissue_geometry_factor(0.3, true, 0.0);
+        assert!(small_systemic > 0.9, "small systemic reaches dermis");
+
+        let large_systemic = tissue_geometry_factor(150.0, true, 0.0);
+        assert!(large_systemic > 0.5, "large mAb still reaches via blood");
+    }
+
+    #[test]
+    fn test_tissue_geometry_topical() {
+        let small_topical_intact = tissue_geometry_factor(0.3, false, 0.0);
+        let small_topical_breached = tissue_geometry_factor(0.3, false, 0.5);
+        assert!(
+            small_topical_breached > small_topical_intact,
+            "breached barrier improves topical access"
+        );
+
+        let large_topical = tissue_geometry_factor(150.0, false, 0.0);
+        assert!(
+            large_topical < 0.3,
+            "large molecules cannot penetrate topically"
+        );
+    }
+
+    #[test]
+    fn test_anderson_drug_score() {
+        let score = AndersonDrugScore::compute(
+            "Oclacitinib",
+            0.95,
+            0.90,
+            DrugMechanism::TransductionBlock,
+            true,
+        );
+        assert!((score.combined_score - 0.855).abs() < 1e-10);
+        assert_eq!(score.mechanism, DrugMechanism::TransductionBlock);
+    }
+
+    #[test]
+    fn test_lokivetmab_dose_duration_monotonic() {
+        let doses = lokivetmab_pk::DOSE_DURATION;
+        for i in 1..doses.len() {
+            assert!(doses[i].2 > doses[i - 1].2, "higher dose = longer duration");
+        }
+    }
+
+    #[test]
+    fn test_gonzales_ic50_ordering() {
+        const _: () = assert!(
+            gonzales_ic50::JAK1 < gonzales_ic50::IL31,
+            "JAK1 is more potent than IL-31 pathway"
+        );
+        const _: () = assert!(
+            gonzales_ic50::IL13 > gonzales_ic50::IL2,
+            "IL-13 requires higher concentration"
+        );
+    }
+
+    #[test]
+    fn test_hill_dose_response_n1() {
+        let r = hill_dose_response(10.0, 10.0, 1.0, 1.0);
+        assert!((r - 0.5).abs() < 1e-10, "n=1 at IC50 = 0.5");
+    }
+
+    #[test]
+    fn test_hill_dose_response_cooperativity() {
+        let r_n1 = hill_dose_response(5.0, 10.0, 1.0, 1.0);
+        let r_n2 = hill_dose_response(5.0, 10.0, 2.0, 1.0);
+        assert!(r_n2 < r_n1, "Hill n=2 steeper -> lower response below IC50");
+    }
+
+    #[test]
+    fn test_ic50_sweep_monotonic() {
+        let concs: Vec<f64> = (1..=10).map(|i| f64::from(i) * 10.0).collect();
+        let responses = ic50_sweep(gonzales_ic50::JAK1, 1.0, &concs);
+        for i in 1..responses.len() {
+            assert!(
+                responses[i] >= responses[i - 1],
+                "dose-response must be monotonic"
+            );
+        }
+    }
+
+    #[test]
+    fn test_cytokine_barrier_heights() {
+        let heights = cytokine_barrier_heights(1.0);
+        assert_eq!(heights.len(), 6);
+        assert!(heights[0].1 < heights[2].1, "JAK1 barrier < IL4 barrier");
+    }
+
+    #[test]
+    fn test_pk_exponential_decay_half_life() {
+        let c = pk_exponential_decay(100.0, 24.0, 24.0);
+        assert!((c - 50.0).abs() < 0.01, "at t=half_life, C = C0/2");
+    }
+
+    #[test]
+    fn test_pk_exponential_decay_zero() {
+        let c = pk_exponential_decay(100.0, 0.0, 24.0);
+        assert!((c - 100.0).abs() < 1e-10, "at t=0, C = C0");
+    }
+
+    #[test]
+    fn test_lokivetmab_duration_predict() {
+        for &(dose, _, expected_dur) in &lokivetmab_pk::DOSE_DURATION {
+            let predicted = lokivetmab_duration_predict(dose);
+            assert!(
+                (predicted - expected_dur).abs() < 5.0,
+                "dose={dose}: predicted={predicted:.1}, expected={expected_dur}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_pruritus_score_model() {
+        let baseline = 8.0;
+        let at_zero = pruritus_score_model(0.0, baseline, 0.7, 0.01);
+        assert!(
+            (at_zero - baseline * 0.3).abs() < 0.01,
+            "at t=0, score = baseline * (1-suppression)"
+        );
+        let later = pruritus_score_model(500.0, baseline, 0.7, 0.01);
+        assert!(later > at_zero, "score recovers toward baseline over time");
+    }
+
+    #[test]
+    fn pharmaco_monitor_creation() {
+        let pm = PharmacoMonitor::new(2.0);
+        assert!((pm.dose() - 2.0).abs() < 1e-15);
+        assert!((pm.hours_elapsed() - 0.0).abs() < 1e-15);
+        assert!(!pm.is_drifting());
+    }
+
+    #[test]
+    fn pharmaco_monitor_observe_tracks_time() {
+        let mut pm = PharmacoMonitor::new(1.5);
+        let spectral = make_test_spectral();
+        pm.observe(24.0, 5.0, &spectral);
+        assert!((pm.hours_elapsed() - 24.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn pharmaco_monitor_check_treatment_initial() {
+        let pm = PharmacoMonitor::new(2.0);
+        let interrupt = pm.check_treatment();
+        assert!(
+            matches!(interrupt, TrainingInterrupt::Continue),
+            "fresh monitor should continue"
+        );
+    }
+
+    #[test]
+    fn pharmaco_monitor_not_drifting_initially() {
+        let pm = PharmacoMonitor::new(2.0);
+        assert!(!pm.is_drifting(), "fresh monitor should not drift");
+    }
+
+    #[test]
+    fn pharmaco_monitor_observe_multiple() {
+        let mut pm = PharmacoMonitor::new(2.0);
+        let spectral = make_test_spectral();
+        for hour in [0.0_f64, 24.0, 48.0, 72.0] {
+            let score = hour.mul_add(-0.05, 8.0);
+            pm.observe(hour, score, &spectral);
+        }
+        assert!((pm.hours_elapsed() - 72.0).abs() < 1e-15);
+        let interrupt = pm.check_treatment();
+        assert!(
+            matches!(interrupt, TrainingInterrupt::Continue),
+            "improving scores → continue treatment"
+        );
+    }
+
+    fn make_test_spectral() -> crate::weight_spectral::WeightSpectralResult {
+        crate::weight_spectral::WeightSpectralResult {
+            eigenvalues: vec![1.0, 2.0, 3.0],
+            mean_ipr: 0.33,
+            level_spacing_ratio: 0.53,
+            spectral_entropy: 0.95,
+            mp_departure: 0.1,
+            bandwidth: 2.0,
+            condition_number: 3.0,
+            phase: crate::weight_spectral::SpectralPhase::Extended,
+        }
+    }
+}

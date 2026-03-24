@@ -87,7 +87,7 @@ fn gpu_pairwise_l2(
     op.dispatch(&input_buf, &output_buf, n, dim)
         .map_err(|e| format!("PairwiseL2 dispatch: {e}"))?;
 
-    gpu.read_buffer_f32(&output_buf, n_pairs)
+    Ok(gpu.read_buffer_f32(&output_buf, n_pairs)?)
 }
 
 fn validate_small_features(h: &mut ValidationHarness, gpu: &Gpu, op: &PairwiseL2Gpu) {

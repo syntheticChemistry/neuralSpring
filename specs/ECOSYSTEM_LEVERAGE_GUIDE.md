@@ -1,6 +1,6 @@
 # Ecosystem Leverage Guide — neuralSpring
 
-**Last Updated**: March 17, 2026 (Session 165 — FMA sweep, IPC proptest, ecosystem absorption)
+**Last Updated**: March 24, 2026 (Session S173 — doc sync; barraCuda pin v0.3.7)
 **Purpose**: Map what neuralSpring absorbs from the ecoPrimals ecosystem and how other
 components can compose with neuralSpring.
 
@@ -25,7 +25,7 @@ components can compose with neuralSpring.
 | Special functions | `special::log_sum_exp`, Gaussian CDF | `hmm.rs`, `neural_pgm.rs` |
 | Numerical | `numerical::rk4`, ODE solvers | `primitives.rs` |
 
-**Version**: v0.3.5 at `0649cd0` (path dep `../barraCuda/crates/barracuda`)
+**Version**: v0.3.7 at `0649cd0` (path dep `../barraCuda/crates/barracuda`)
 **Evolution**: We delegate to barraCuda when it has the primitive. Local code stays only
 for (a) tiny matrices where dispatch overhead dominates, or (b) pending absorption.
 

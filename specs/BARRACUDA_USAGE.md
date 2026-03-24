@@ -1,6 +1,6 @@
 # BarraCUDA Usage Audit — neuralSpring
 
-**Last Updated**: March 23, 2026 (Session 170 — Edition 2024, health probes, ipc_resilience (RetryPolicy + CircuitBreaker), 14 proptest invariants, deny.toml hardened. 267 binaries, 1195 lib + 80 playGround + 73 forge tests, 216 barracuda import files, 68 modules, barraCuda v0.3.7, wgpu 28. ToadStool S146+, coralReef Iter 49. V120 handoff)
+**Last Updated**: March 24, 2026 (Session S173 — Edition 2024, health probes, ipc_resilience (RetryPolicy + CircuitBreaker), 14 proptest invariants, deny.toml hardened. 261 binaries, ~1,385 tests (1,199 lib + 72 forge + 80 playGround + 9 integration + 25 tokio), 464 `.rs` files, 216 barracuda import files, 68 modules, barraCuda v0.3.7, wgpu 28. ToadStool S146+, coralReef Iter 49. V123 handoff)
 **BarraCUDA version**: `0.3.7` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. 806+ WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
@@ -12,7 +12,7 @@
 | Barracuda functions imported | 80+ |
 | Files with barracuda imports | 128+ |
 | Upstream rewires (local → barracuda) | 46 |
-| Feature flags | (none — `unidirectional` removed in v0.3.3) |
+| Feature flags | none (all former feature flags absorbed into defaults as of v0.3.3) |
 | CPU bench domains | 14 (38.6× geomean vs Python) |
 
 **Key modules**: `device`, `tensor`, `ops::bio` (18+ GPU kernels), `ops::linalg`, `ops::fft`, `ops::variance_reduce_f64`, `ops::correlation_f64_wgsl`, `ops::fused_map_reduce_f64`, `dispatch`, `stats`, `special`, `linalg`, `numerical`, `nn::simple_mlp`, `esn_v2`, `unified_hardware` (BandwidthTier)
@@ -1158,7 +1158,9 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 | **Dispatcher** | Exposes `fp64_strategy()`, `needs_pow_workaround()`, `bandwidth_tier()`, `check_allocation_safe()` — all delegate to `GpuDriverProfile` / `BandwidthTier` |
 | **Nautilus bridge** | Integration via `bingocube-nautilus` crate: `SpectralNautilusBridge` maps weight spectral features to Nautilus evolutionary reservoir; `DriftMonitor` for training observation |
 
-### Current Usage Summary (S145)
+### Usage summary (Session 145 — historical snapshot, March 11, 2026)
+
+*The table below records metrics as of Session 145. For the current barraCuda pin and workspace counts, see the document header above.*
 
 | Metric | Value |
 |--------|-------|
@@ -1202,4 +1204,4 @@ CROSS_SPRING_SHADER_LINEAGE expanded to five-spring model.
 
 ---
 
-*BarraCUDA usage audit — neuralSpring, March 11, 2026. Session 145: 25 absorbed workloads, 258 binaries, 1115 lib tests. barraCuda v0.3.5 (0649cd0). New APIs: BatchedComputeDispatch, ReduceScalarPipeline f64, tridiag_eigh_gpu, GpuBackend, CoralReefDevice. nucleus_pipeline GPU dispatch evolution. V97 handoff.
+*Historical footnote — March 11, 2026 (Session 145): 25 absorbed workloads, 258 binaries, 1115 lib tests. barraCuda v0.3.5 (0649cd0). New APIs: BatchedComputeDispatch, ReduceScalarPipeline f64, tridiag_eigh_gpu, GpuBackend, CoralReefDevice. nucleus_pipeline GPU dispatch evolution. V97 handoff.*

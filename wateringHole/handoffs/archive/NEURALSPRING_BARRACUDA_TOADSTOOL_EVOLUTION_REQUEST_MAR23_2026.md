@@ -1,7 +1,7 @@
 # NEURALSPRING → BARRACUDA/TOADSTOOL — Evolution & Absorption Request
 
 **Date:** 2026-03-23  
-**neuralSpring:** V122 (S172), 1,380 tests, 0 clippy/fmt/doc  
+**neuralSpring:** V123 (S173), ~1,385 tests, 0 clippy/fmt/doc  
 **barraCuda:** v0.3.7  
 **License:** AGPL-3.0-or-later  
 

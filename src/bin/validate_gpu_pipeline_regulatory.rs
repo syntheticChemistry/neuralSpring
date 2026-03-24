@@ -276,7 +276,9 @@ fn gpu_mean_rk4(
 
     queue.submit(std::iter::once(encoder.finish()));
 
-    let state_out = gpu.read_buffer_f32(&state_out_buf, n_total)?;
+    let state_out = gpu
+        .read_buffer_f32(&state_out_buf, n_total)
+        .map_err(|e| e.to_string())?;
     let mean = state_out.iter().sum::<f32>() / state_out.len() as f32;
     Ok(mean)
 }

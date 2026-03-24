@@ -14,10 +14,11 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 - **Language:** Rust 2024 edition, `rust-version` **1.87**
 - **License:** AGPL-3.0-or-later (scyBorg: AGPL code + ORC mechanics + CC-BY-SA creative)
 - **Workspace:** 3 crates — `neural-spring` (library), `neural-spring-forge`, `neuralspring-playground`
-- **Scale:** 477 Rust source files; every file under 1000 lines
+- **Scale:** 464 Rust source files; every file under 1000 lines
 - **Safety:** zero `unsafe` (`#![forbid(unsafe_code)]` workspace-wide)
 - **Linting:** Clippy pedantic + nursery, zero warnings
-- **Dependencies:** `barracuda` (math engine), `wgpu` **28** (GPU), `tokio` (async), `tarpc` (optional RPC for the primal binary)
+- **Dependencies:** `barracuda` (math engine), `wgpu` **28** (GPU), `tokio` (async), `tarpc` (optional RPC for the primal binary), `thiserror` (typed errors: `GpuError`, `TensorError`, `ParseError`)
+- **Supply chain:** `cargo-deny` in CI; `rustfmt.toml` for formatting consistency
 - **IPC:** JSON-RPC 2.0 over Unix domain sockets; methods use semantic `domain.verb` naming
 - **GPU:** WGSL shaders via barraCuda; f64-canonical precision dispatch
 
@@ -36,7 +37,7 @@ Sixteen capabilities (`domain.verb`) when composed in biomeOS. Method naming fol
 
 ## Test Coverage
 
-Approximately **93%** line coverage (`llvm-cov`). 1,356 tests (1,203 lib + 73 forge + 80 playGround). Suite includes unit tests, property tests, determinism tests, doc tests, and integration tests.
+CI-enforced **≥90%** line coverage (`llvm-cov`). ~1,385 tests (1,199 lib + 72 forge + 80 playGround + 9 integration + 25 tokio). Suite includes unit tests, property tests, determinism tests, doc tests, and integration tests.
 
 ## What This Does NOT Do
 

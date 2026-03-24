@@ -289,7 +289,7 @@ fn validate_mixed_hardware_routing(
             npu_available: false,
             needs_realtime: false,
         },
-        |dev| neural_spring::gpu_ops::shannon_entropy_gpu(&probs, dev),
+        |dev| neural_spring::gpu_ops::shannon_entropy_gpu(&probs, dev).map_err(|e| e.to_string()),
         || cpu_entropy,
     );
 
@@ -322,7 +322,7 @@ fn validate_mixed_hardware_routing(
             npu_available: false,
             needs_realtime: false,
         },
-        |dev| gpu_ops::sum_gpu(&parity_data, dev),
+        |dev| gpu_ops::sum_gpu(&parity_data, dev).map_err(|e| e.to_string()),
         || cpu_sum,
     );
 

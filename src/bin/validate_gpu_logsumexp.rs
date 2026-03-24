@@ -128,7 +128,7 @@ fn gpu_logsumexp(gpu: &Gpu, input: &[f32], batch: u32, width: u32) -> Result<Vec
     }
     queue.submit(std::iter::once(encoder.finish()));
 
-    gpu.read_buffer_f32(&output_buf, batch as usize)
+    Ok(gpu.read_buffer_f32(&output_buf, batch as usize)?)
 }
 
 #[tokio::main]

@@ -86,7 +86,7 @@ fn gpu_pairwise_jaccard(
 
     op.dispatch(&pa_buf, &distances_buf, n_genomes, n_genes);
 
-    gpu.read_buffer_f32(&distances_buf, n_pairs)
+    Ok(gpu.read_buffer_f32(&distances_buf, n_pairs)?)
 }
 
 fn validate_small_pa(h: &mut ValidationHarness, gpu: &Gpu, op: &PairwiseJaccardGpu) {

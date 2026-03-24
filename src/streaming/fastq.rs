@@ -424,8 +424,13 @@ mod tests {
             seed in 0_u64..10000,
         ) {
             let bases = b"ACGTN";
-            let seq: Vec<u8> = (0..len).map(|i| bases[((seed as usize) + i) % 5]).collect();
-            let qual: Vec<u8> = (0..len).map(|i| b'!' + ((i + seed as usize) % 62) as u8).collect();
+            #[expect(clippy::cast_possible_truncation, reason = "proptest seed ≤ 10000 fits in usize")]
+            let seed_idx = seed as usize;
+            let seq: Vec<u8> = (0..len).map(|i| bases[(seed_idx + i) % 5]).collect();
+            #[expect(clippy::cast_possible_truncation, reason = "mod 62 always fits in u8")]
+            let qual: Vec<u8> = (0..len).map(|i| {
+                b'!' + ((i + seed_idx) % 62) as u8
+            }).collect();
 
             let header = format!("@prop_{seed}");
             let mut buf = Vec::new();

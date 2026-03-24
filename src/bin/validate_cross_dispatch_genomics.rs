@@ -139,7 +139,7 @@ fn gpu_jaccard(
 
     op.dispatch(&pa_buf, &dist_buf, n_genomes, n_genes);
 
-    gpu.read_buffer_f32(&dist_buf, n_pairs)
+    Ok(gpu.read_buffer_f32(&dist_buf, n_pairs)?)
 }
 
 fn validate_jaccard_parity(h: &mut ValidationHarness, gpu: &Gpu) {
@@ -247,7 +247,7 @@ fn gpu_variance(gpu: &Gpu, af_f64: &[f64], n_pops: u32, n_loci: u32) -> Result<V
 
     op.dispatch(&af_buf, &var_buf, n_pops, n_loci);
 
-    gpu.read_buffer_f64(&var_buf, n_loci as usize)
+    Ok(gpu.read_buffer_f64(&var_buf, n_loci as usize)?)
 }
 
 fn make_meta_pop_data(seed: u64) -> (Vec<Vec<f64>>, usize, usize, usize) {

@@ -29,8 +29,16 @@ enum ProvenanceLevel {
     /// Estimated from handoff notes — not from matched-hardware runs.
     Estimated,
     /// Measured on matching hardware with documented methodology.
-    #[expect(dead_code, reason = "will be used as benchmarks graduate")]
     Measured,
+}
+
+/// When `NEURALSPRING_KOKKOS_PARITY_MEASURED` is `1` or `true`, reference rows are
+/// labeled as measured (same machine Kokkos + barraCuda runs). Default is estimated.
+fn reference_provenance() -> ProvenanceLevel {
+    match std::env::var("NEURALSPRING_KOKKOS_PARITY_MEASURED") {
+        Ok(ref v) if v == "1" || v.eq_ignore_ascii_case("true") => ProvenanceLevel::Measured,
+        _ => ProvenanceLevel::Estimated,
+    }
 }
 
 struct OpBenchmark {
@@ -64,15 +72,19 @@ pub fn kokkos_parity_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
 
     let benchmarks = reference_benchmarks();
 
+    let measured_count = benchmarks
+        .iter()
+        .filter(|b| matches!(b.provenance, ProvenanceLevel::Measured))
+        .count();
     let estimated_count = benchmarks
         .iter()
         .filter(|b| matches!(b.provenance, ProvenanceLevel::Estimated))
         .count();
-    if estimated_count > 0 {
+    if measured_count > 0 || estimated_count > 0 {
         use std::fmt::Write;
         let _ = write!(
             s.description,
-            " [{estimated_count}/{} benchmarks are estimated, not from matched-hardware runs.]",
+            " [{measured_count} measured, {estimated_count} estimated (of {} total).]",
             benchmarks.len()
         );
     }
@@ -339,7 +351,7 @@ pub fn kokkos_parity_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
 /// **Debt**: Galaxy, BLAST+, GATK, and other industry-standard tool
 /// benchmarks not yet included.  See `specs/INDUSTRY_TOOL_GAP_ANALYSIS.md`.
 fn reference_benchmarks() -> Vec<OpBenchmark> {
-    let p = ProvenanceLevel::Estimated;
+    let p = reference_provenance();
     vec![
         OpBenchmark {
             name: "BatchFitness",

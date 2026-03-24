@@ -214,7 +214,8 @@ pub const CPU_PARITY_DATE: &str = "2026-03-05";
 pub const CPU_PARITY_ENVIRONMENT: &str = "Python 3.10.12, NumPy 2.1.3";
 
 /// Pinned environment for publication experiment baselines.
-pub const PUBLICATION_ENVIRONMENT: &str = "Python 3.12, PyTorch 2.9.0+cu128, NumPy, seed=42";
+pub const PUBLICATION_ENVIRONMENT: &str =
+    "Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3";
 
 /// Complete registry of all provenance records (healthSpring V37 pattern).
 ///

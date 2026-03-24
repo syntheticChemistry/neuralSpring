@@ -6,7 +6,9 @@
     "python_version": "3.10.12",
     "numpy_version": "2.1.3",
     "git_commit": "359fc1d815791e8269904484ffd76e3d10f2bba6",
-    "tree_state": "dirty"
+    "tree_state": "dirty",
+    "regeneration_needed": true,
+    "regeneration_note": "Regenerate from clean HEAD: python3 control/generate_cpu_references.py"
   },
   "primitives": {
     "variance": {

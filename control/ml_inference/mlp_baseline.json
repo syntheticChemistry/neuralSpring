@@ -1,4 +1,12 @@
 {
+  "_provenance": {
+    "generated_by": "control/ml_inference/generate_baselines.py",
+    "generated_at": "2026-02-16",
+    "python_version": "3.10.12",
+    "numpy_version": "2.2.6",
+    "git_commit": "f9ad0268917a335dce2b1175ea0d77add271b25b",
+    "note": "Provenance metadata added retroactively for traceability"
+  },
   "architecture": "MLP: 4 -> 64 (ReLU) -> 64 (ReLU) -> 10 (softmax)",
   "seed": 42,
   "input": [

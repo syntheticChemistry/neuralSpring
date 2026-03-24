@@ -1,6 +1,6 @@
 # neuralSpring — Evolution Mapping: Rust Module → WGSL Shader → Pipeline Stage
 
-**Last Updated**: March 23, 2026 (Sessions 60–170: 1195 lib + 80 playGround + 73 forge tests, 267 binaries, 234/234 validate_all, barraCuda v0.3.7, 216 import files, V120 handoff)
+**Last Updated**: March 24, 2026 (Sessions 60–173: ~1,385 tests (1,199 lib + 72 forge + 80 playGround + 9 integration + 25 tokio), 261 binaries, 464 `.rs` files, 234/234 validate_all, barraCuda v0.3.7, 216 import files, V123 handoff)
 **Purpose**: Concrete mapping from Phase 0 Python → Phase 1 Rust → Phase 2 GPU
 
 ---
@@ -374,3 +374,77 @@ All 5 modules use `eigh_f64` (via `eigh.rs` → `barracuda::ops::linalg`) which
 is already GPU-capable. The primary GPU promotion targets are the matrix
 construction steps (symmetrization, pairwise distance, finite differences),
 not the eigendecomposition itself.
+
+## Coral Forge Shader Absorption Plan
+
+### Group A: Generic Evolution / Bio Kernels (upstream barraCuda absorption)
+
+These 25 shaders in `metalForge/shaders/` mirror existing or forthcoming
+`barracuda::ops::bio::*` kernels. Absorption path: Write → Validate → Handoff
+→ barraCuda Absorbs → neuralSpring leans on upstream.
+
+| Shader | barraCuda Target | Status |
+|--------|-----------------|--------|
+| `batch_fitness_eval.wgsl` | `ops::bio::batch_fitness` | Absorbed |
+| `batch_ipr.wgsl` | `ops::spectral::BatchIprGpu` | Absorbed |
+| `hmm_backward_log.wgsl` | `ops::bio::hmm_backward` | Absorbed |
+| `hmm_viterbi.wgsl` | `ops::bio::hmm_viterbi` | Absorbed |
+| `rk4_parallel.wgsl` | `ops::bio::rk4_batch` | Absorbed |
+| `rk45_adaptive.wgsl` | `ops::bio::rk45_adaptive` | Absorbed |
+| `wright_fisher_step.wgsl` | `ops::bio::wright_fisher` | Absorbed |
+| `spatial_payoff.wgsl` | `ops::bio::spatial_payoff` | Absorbed |
+| `hill_gate.wgsl` | `ops::bio::hill_gate` | Absorbed |
+| `swarm_nn_forward.wgsl` | `ops::bio::swarm_nn` | Absorbed |
+| `pairwise_hamming.wgsl` | `ops::bio::pairwise_hamming` | Absorbed |
+| `pairwise_jaccard.wgsl` | `ops::bio::pairwise_jaccard` | Absorbed |
+| `pairwise_l2.wgsl` | `ops::bio::pairwise_l2` | Absorbed |
+| `logsumexp_reduce.wgsl` | `ops::logsumexp` | Absorbed |
+| `mean_reduce.wgsl` | `ops::reduction::mean` | Absorbed |
+| `xoshiro128ss.wgsl` | `ops::rng::xoshiro128` | Absorbed |
+| `locus_variance.wgsl` | `ops::bio::locus_variance` | Absorbed |
+| `stencil_cooperation.wgsl` | `ops::bio::stencil_cooperation` | Absorbed |
+| `linear_regression.wgsl` | `ops::linalg::linear_regression` | Candidate |
+| `matrix_correlation.wgsl` | `ops::correlation` | Candidate |
+| `multi_obj_fitness.wgsl` | `ops::bio::multi_obj_fitness` | Absorbed |
+| `chi_squared_f64.wgsl` | `ops::chi_squared` | Absorbed |
+| `kl_divergence_f64.wgsl` | `ops::kl_divergence` | Absorbed |
+| `head_split.wgsl` | `ops::attention::head_split` | Absorbed |
+| `head_concat.wgsl` | `ops::attention::head_concat` | Absorbed |
+
+### Group B: AlphaFold3 / Structural Biology Domain (coralReef corpus)
+
+These 16 shaders implement AlphaFold3-specific attention, geometry, and
+structural biology operations. Too domain-specific for generic barraCuda
+`ops`; absorption path is either:
+
+1. **coralReef corpus**: Ship as a named coralReef shader collection
+2. **barraCuda `domain-fold`**: New domain feature pack (like `domain-nn`)
+3. **Stay local**: Remain in metalForge as neuralSpring-specific shaders
+
+| Shader | Category | Recommended Path |
+|--------|----------|-----------------|
+| `gelu_f64.wgsl` | Activation | barraCuda `ops::activation` (generic) |
+| `sigmoid_f64.wgsl` | Activation | barraCuda `ops::activation` (generic) |
+| `layer_norm_f64.wgsl` | Normalization | barraCuda `ops::norm` (generic) |
+| `softmax_f64.wgsl` | Attention | barraCuda `ops::attention` (generic) |
+| `sdpa_scores_f64.wgsl` | Attention | barraCuda `nn::attention` |
+| `attention_apply_f64.wgsl` | Attention | barraCuda `nn::attention` |
+| `msa_row_attention_scores_f64.wgsl` | MSA | domain-fold or coralReef |
+| `msa_col_attention_scores_f64.wgsl` | MSA | domain-fold or coralReef |
+| `triangle_attention_f64.wgsl` | Triangle | domain-fold or coralReef |
+| `triangle_mul_incoming_f64.wgsl` | Triangle | domain-fold or coralReef |
+| `triangle_mul_outgoing_f64.wgsl` | Triangle | domain-fold or coralReef |
+| `outer_product_mean_f64.wgsl` | Pairformer | domain-fold or coralReef |
+| `ipa_scores_f64.wgsl` | Structure | domain-fold or coralReef |
+| `backbone_update_f64.wgsl` | Structure | domain-fold or coralReef |
+| `torsion_angles_f64.wgsl` | Structure | domain-fold or coralReef |
+
+### Recommended Next Steps
+
+1. **Immediate**: Generic activations/norms (gelu, sigmoid, layer_norm, softmax)
+   should be proposed for `barracuda::ops::activation` and `ops::norm` — they
+   benefit all springs, not just neuralSpring.
+2. **Medium-term**: Propose `domain-fold` feature in barraCuda for structural
+   biology ops (triangle, IPA, backbone, torsion) — gated like `domain-nn`.
+3. **Long-term**: MSA-specific shaders may stay in coralReef corpus or graduate
+   to `domain-fold` as the fold pipeline matures.

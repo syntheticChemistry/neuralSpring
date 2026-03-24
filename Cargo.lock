@@ -914,6 +914,7 @@ dependencies = [
  "serial_test",
  "tarpc",
  "temp-env",
+ "thiserror",
  "tokio",
  "wgpu",
 ]

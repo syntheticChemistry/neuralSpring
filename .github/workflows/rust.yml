@@ -8,6 +8,7 @@ on:
       - 'metalForge/**'
       - 'playGround/**'
       - 'Cargo.toml'
+      - 'deny.toml'
       - '.github/workflows/rust.yml'
   pull_request:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - 'metalForge/**'
       - 'playGround/**'
       - 'Cargo.toml'
+      - 'deny.toml'
 
 env:
   CARGO_TERM_COLOR: always
@@ -117,6 +119,41 @@ jobs:
             exit 1
           fi
           echo "PASS: No banned C sys crates"
+
+  supply-chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout barraCuda (standalone math primal)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
+          sparse-checkout: crates/barracuda
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-deny
+        run: cargo install --locked cargo-deny
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-deny-${{ hashFiles('Cargo.toml') }}
+
+      - name: Run cargo-deny (licenses, advisories, bans, sources)
+        run: cargo deny check
 
   coverage:
     runs-on: ubuntu-latest
@@ -616,3 +653,82 @@ jobs:
 
       - name: Run bench_gpu_kernels (WGSL shader timing)
         run: cargo run --release --bin bench_gpu_kernels
+
+  ipc-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout barraCuda (standalone math primal)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../barraCuda
+          sparse-checkout: crates/barracuda
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
+
+      - name: Install socat
+        run: sudo apt-get update && sudo apt-get install -y socat
+
+      - name: Build primal binary
+        run: cargo build --bin neuralspring --features primal
+
+      - name: IPC smoke test (health.liveness)
+        run: |
+          SOCKET_DIR=$(mktemp -d)
+          export BIOMEOS_SOCKET_DIR="${SOCKET_DIR}"
+          export FAMILY_ID=smoke
+          SOCKET_PATH="${SOCKET_DIR}/neural-spring-smoke.sock"
+
+          # Start primal in background (socket: $BIOMEOS_SOCKET_DIR/$CARGO_PKG_NAME-$FAMILY_ID.sock)
+          cargo run --bin neuralspring --features primal -- serve &
+          PRIMAL_PID=$!
+
+          # Wait for socket to appear (up to 10s)
+          for i in $(seq 1 20); do
+            if [ -S "${SOCKET_PATH}" ]; then
+              echo "Socket ready after $((i * 500))ms"
+              break
+            fi
+            sleep 0.5
+          done
+
+          if [ ! -S "${SOCKET_PATH}" ]; then
+            echo "FAIL: Socket not created within 10s"
+            kill $PRIMAL_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          # Send JSON-RPC health.liveness probe
+          RESPONSE=$(echo '{"jsonrpc":"2.0","method":"health.liveness","params":{},"id":1}' | socat - UNIX-CONNECT:"${SOCKET_PATH}")
+          echo "Response: ${RESPONSE}"
+
+          # Verify response contains result (not error)
+          if echo "${RESPONSE}" | python3 -c "import sys,json; r=json.load(sys.stdin); assert 'result' in r, f'No result: {r}'; print('PASS: health.liveness')"; then
+            echo "IPC smoke test passed"
+          else
+            echo "FAIL: Invalid response"
+            kill $PRIMAL_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          # Clean shutdown
+          kill $PRIMAL_PID 2>/dev/null || true
+          wait $PRIMAL_PID 2>/dev/null || true
+          rm -rf "${SOCKET_DIR}"

@@ -99,6 +99,7 @@ pub mod digestion_prediction;
 pub mod directed_evolution;
 pub mod eco_dynamics;
 pub mod eigh;
+pub mod error;
 pub mod evolved;
 pub mod fft;
 pub mod game_theory;
