@@ -5,7 +5,21 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-10 (Session 177: NUCLEUS Composition Validation, Inference Wiring, ecoBin Harvest)
+## [Unreleased] — 2026-04-11 (Session 178: Composition Validation Phase, Three-Layer Stack)
+
+### 2026-04-11 — Session S178 (Composition validation phase: Python→Rust→NUCLEUS)
+
+- **Three-layer validation stack**: Python baselines → Rust baselines → NUCLEUS composition. Composition validators wired to `validate_all` with exit-2 honest skip handling (PASS/SKIP/FAIL summary)
+- **`validate_all` composition integration**: `COMPOSITION_BINARIES` array (3 validators), `exit_code()` helper, skip-aware counting. 264 binaries total (261 science/GPU + 3 composition)
+- **`docs/PRIMAL_GAPS.md` reconciled**: Gap 1 (inference.*) updated from `open` to `wip` — surface fully wired, provider pending. Gap 8 (binary naming) resolved. Added Resolved section (R1 binary naming, R2 inference registration). Removed stale "do not appear in source" claim
+- **Version string alignment**: barraCuda v0.3.7 → v0.3.11 across `EVOLUTION_MAPPING.md`, `ABSORPTION_TRACKER.md`, `EVOLUTION_READINESS.md` dependency table
+- **Deploy graph reconciled**: V124/S174 → V128/S178 in `graphs/neuralspring_deploy.toml`
+- **`EVOLUTION_READINESS.md`**: Added NUCLEUS Composition Validation section (primal IPC wiring status table, niche self-knowledge summary), S178 session entry
+- **`capability_registry.toml`**: Expanded to full 26 capabilities (added provenance.*, primal.forward, primal.discover, capability.list, compute.offload)
+- **`CONTROL_EXPERIMENT_STATUS.md`**: Updated to S178 with composition validation counts
+- **Root docs updated**: README, CHANGELOG, baseCamp, experiments, wateringHole, CONTRIBUTING aligned to S178/V128
+- **V128 handoff**: Composition patterns, NUCLEUS deployment via Neural API, primal absorption candidates
+- **~1,403+ tests** (1,225 lib + 73 forge + 80 playGround + 14 integration), 264 binaries, 518 `.rs` files, 0 clippy, 0 fmt, 0 doc warnings, barraCuda v0.3.11
 
 ### 2026-04-10 — Session S177 (NUCLEUS composition validation, inference.* wiring, ecoBin harvest)
 

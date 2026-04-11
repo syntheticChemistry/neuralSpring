@@ -8,7 +8,7 @@
 # stages artifacts for infra/plasmidBin.
 #
 # Usage:
-#   ./scripts/harvest_ecobin.sh [--arch x86_64|aarch64] [--skip-verify]
+#   ./scripts/harvest_ecobin.sh [x86_64|aarch64] [--skip-verify]
 #
 # Environment:
 #   PLASMIDB_DIR    Override plasmidBin directory (default: ../../infra/plasmidBin)

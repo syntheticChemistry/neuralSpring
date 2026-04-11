@@ -5,7 +5,8 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `neuralspring_inference_proto_nucleate.toml` v1.1.0.
 >
-> **Date:** 2026-04-10 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.9
+> **Date:** 2026-04-11 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.9
+> **Session:** S178 — Composition validation phase
 
 ---
 
@@ -23,20 +24,29 @@ wired and validated | `deferred` — blocked on upstream primal
 
 ## 1. Inference Capability Surface (`inference.*`)
 
-**Status:** open
+**Status:** wip (surface wired, provider stub)
 **Proto-nucleate declares:** `inference.complete`, `inference.embed`, `inference.models`
-**Current state:** These method strings do not appear in neuralSpring source.
-Squirrel integration exists only in `playGround/` (`SquirrelClient`) as an
-MCP adapter shell — `ai.query`, `capability.announce`, `tool.execute`.
+**Current state (S178):** All three method strings are registered and wired:
+- `src/niche.rs`: `CAPABILITIES` array includes all three `inference.*` methods,
+  with `operation_dependencies()` and `cost_estimates()` entries.
+- `src/config.rs`: `ALL_CAPABILITIES` includes `inference.*` (unit-tested
+  against `niche::CAPABILITIES`).
+- `config/capability_registry.toml`: All three declared with descriptions.
+- `src/rpc_service.rs`: tarpc service trait defines `inference_complete`,
+  `inference_embed`, `inference_models` with typed request/response structs.
+- `src/bin/neuralspring_primal/handlers.rs`: JSON-RPC handlers return
+  `"provider": "stub", "status": "not_yet_wired"` — honest stubs pending
+  Squirrel provider connection.
+- Composition validators (`validate_inference_composition`,
+  `validate_nucleus_composition`) verify capability advertisement.
 
-**What is needed:**
-- Wire types for `inference.*` methods in `src/rpc_service.rs` and JSON-RPC
-  handler in `neuralspring_primal/handlers.rs`
+**What remains:**
 - Squirrel provider registration (`inference.register_provider`) so Squirrel
   discovers neuralSpring as an inference backend
 - WGSL tokenization pipeline (forward pass as shader composition through
   coralReef → toadStool → barraCuda)
 - Model weight loading via NestGate (`storage.retrieve`)
+- Replace stub handlers with live Squirrel routing
 
 **Blocked on:**
 - Squirrel `inference.register_provider` wire — does this method exist yet?
@@ -159,14 +169,14 @@ document this explicitly.
 
 ## 8. Binary Name Reconciliation
 
-**Status:** open
+**Status:** resolved (S178)
 **Details:** The proto-nucleate graph uses binary name `neuralspring` for
-the spring node. The pipeline and deploy graphs use `neuralspring_primal`.
-The actual `Cargo.toml` `[[bin]]` entry with `required-features = ["primal"]`
-is named `neuralspring`. These should be reconciled — the proto-nucleate is
-correct; pipeline/deploy graphs should be updated.
+the spring node. `Cargo.toml` `[[bin]]` entry is named `neuralspring`
+(source directory is `src/bin/neuralspring_primal/` but binary name is
+canonical `neuralspring`). Deploy graph `graphs/neuralspring_deploy.toml`
+also uses `neuralspring`. All three are consistent.
 
-**Hand back to:** primalSpring (graph consistency)
+**Hand back to:** N/A — resolved
 
 ---
 
@@ -223,4 +233,21 @@ barraCuda's `ops/` or `stats/` WGSL modules (Write→Absorb→Lean cycle):
 
 ## Resolved Gaps
 
-_None yet — this is the initial gap inventory._
+### R1. Binary Name Reconciliation (resolved S178)
+
+**Original gap:** Proto-nucleate graph, deploy graph, and Cargo.toml binary
+name appeared inconsistent.
+**Resolution:** Verified all three sources use `neuralspring`. Source directory
+`src/bin/neuralspring_primal/` is an internal path; the compiled binary name
+is `neuralspring` as declared in `Cargo.toml [[bin]]`.
+
+### R2. Inference Method Registration (resolved S177–S178)
+
+**Original gap:** `inference.*` method strings did not appear in neuralSpring
+source.
+**Resolution:** S177 wired `inference.complete`, `inference.embed`,
+`inference.models` into `niche.rs`, `config.rs`, `capability_registry.toml`,
+`rpc_service.rs`, and `handlers.rs`. Composition validators
+(`validate_nucleus_composition`, `validate_inference_composition`) verify
+capability advertisement. Handlers return honest stubs until Squirrel is
+connected. Gap 1 re-scoped to "provider wiring" (upstream dependency).

@@ -1,10 +1,11 @@
 # neuralSpring — Evolution Readiness
 
-**Date**: March 24, 2026 (Session S176 — Deep audit: IPC resilience, environment centralization, GPU module refactor, integration test expansion. ~1,403 tests: 1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio, 261 binaries, 466 `.rs` files, 68 modules, 232+ named tolerances)
+**Date**: April 11, 2026 (Session S178 — Composition validation phase: Python→Rust→NUCLEUS three-layer stack. ~1,403+ tests: 1,225 lib + 73 forge + 80 playGround + 14 integration + 25 tokio, 264 binaries, 518 `.rs` files, 68 modules, 232+ named tolerances, 26 capabilities, 3 composition validators)
 **barraCuda**: v0.3.11 (`../../primals/barraCuda/crates/barracuda`). 806+ WGSL shaders, wgpu 28, Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. `PrecisionRoutingAdvice` with `F64NativeNoSharedMem` Ada Lovelace reclassification, `WORKGROUP_SIZE_1D` constant, cross-spring provenance registry, `BatchedOdeRK45F64`, `mean_variance_to_buffer`, coralReef Phase 10 IPC. Three-tier precision: F32/F64/Df64 (lean 3-tier model, F16+templates removed). Deep debt: typed errors, named constants, `Arc<str>` hot-path, `RwLock` compiler, ring buffer back-off, streaming pipeline completion. **Known issue**: `enable f64;` in WGSL triggers PTXAS silent-zero regression on Ada Lovelace — fix implemented locally in `pipeline_cache.rs`, pending upstream absorption.
 **ToadStool**: S146 at `751b3849`. Hardware testing, PCIe transport, ResourceOrchestrator, 19,900+ tests. Absorbed neuralSpring `pipeline_graph` DAG + hotSpring `streaming_dispatch`. Dual-write discovery (canonical + coralReef-compatible). `GpuDevice` enrichment (render_node, driver, arch). `gpu.dispatch` + `shader.compile` + `orchestration` capabilities. Compute triangle unblocked. Deep debt, zero-copy.
 **coralReef**: Iteration 49. `coral-glowplug` crate (sovereign PCIe broker), GV100 per-runlist registers, HBM2 training, bar cartography, 1842+ tests. Sovereign shader compiler (WGSL → native GPU binary). NVIDIA SM70-SM89, AMD RDNA2+ (E2E GPU dispatch verified on RDNA2). Three-tier precision architecture: f32 native, f64 DFMA+polynomial lowering, df64 preamble auto-prepend. `Fp64Strategy` in `CompileOptions`. Built-in `df64_preamble.wgsl`. 8 neuralSpring shaders in corpus.
 **neuralSpring**: ~1,403 tests (1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio), 261 binaries, 466 `.rs` files, 68 modules, 0 clippy warnings (pedantic+nursery+cast deny, workspace-wide), 0 fmt diffs. All 3 crate roots `forbid(unsafe_code)`. All files ≤1000 LOC (largest: 475 after GPU refactor). AGPL-3.0-or-later. **Zero C dependencies** (ecoBin compliant). **Rust Edition 2024**. proptest 14 invariants. **Zero `#[allow()]` workspace-wide**. ecoBin CI (musl+ARM cross-compile). `PROVENANCE_REGISTRY` (49 records, 12 tests). `OnceLock` GPU probe cache. Cast lint deny. `PRIMAL_DOMAIN`. `ValidationSink` pattern (5 sinks, 12 tests). 4 provenance integrity tests. IPC resilience wired (RetryPolicy+CircuitBreaker in live PetalTongue path).
+**S178**: Composition validation phase — Python→Rust→NUCLEUS three-layer validation stack. `validate_all` wired with 3 composition validators (`validate_nucleus_composition`, `validate_inference_composition`, `validate_primal_discovery`) and exit-2 honest skip handling. `docs/PRIMAL_GAPS.md` reconciled with actual source (inference.* wip not open, binary naming resolved). Version strings aligned to barraCuda v0.3.11 across all specs. Deploy graph V128/S178. EVOLUTION_READINESS primal IPC wiring status added. 264 binaries, 518 `.rs` files, 1,225 lib tests. V128 handoff.
 **S176**: Deep audit execution — clippy zero-warning gate restored (6 test errors), provenance environment centralization (19 literals → 2 constants), IPC resilience wired into PetalTonguePushClient, GPU module refactor (gpu.rs → gpu/mod.rs + gpu/tests.rs), integration tests 9→12 (49/49 provenance), doc reconciliation. V126 handoff.
 **S175**: Ecosystem absorption — `ValidationSink` (StdoutSink, JsonSink, NdjsonSink, CollectingSink, SilentSink), `cast_possible_truncation`/`cast_sign_loss` deny, 4 provenance integrity tests, deploy graph V124/S174, leverage guide refresh. V125 handoff.
 **S174**: Deep audit execution — zero `#[allow()]`, tolerance fidelity (all literals centralized, `GPU_MULTI_OBJ_BESSEL_F64`, 4 upstream contract constants), self-knowledge compliance, 49 Python provenance headers, CONTRIBUTING.md + SECURITY.md. V124 handoff.
@@ -476,13 +477,49 @@ NAK-optimized GPU eigensolve shaders (`WGSL_BATCHED_EIGH_NAK_OPTIMIZED`).
 
 ---
 
+## NUCLEUS Composition Validation (S178)
+
+Three-layer validation stack: Python baselines → Rust baselines → NUCLEUS composition.
+
+| Layer | Target | Validators | Status |
+|-------|--------|------------|--------|
+| Python → Rust | Science correctness | `validate_all` (261 binaries) | PASS |
+| Rust → GPU | Shader promotion | GPU tier validators, dispatch parity | PASS |
+| Rust → NUCLEUS | Primal composition | `validate_nucleus_composition`, `validate_inference_composition`, `validate_primal_discovery` | PASS/SKIP |
+
+**Composition validators** use exit-2 honest skip when the ecosystem is not
+running (standalone CI). `validate_all` now includes all three with
+skip-aware exit code handling.
+
+### Primal IPC Wiring Status
+
+| Primal | Protocol | Status |
+|--------|----------|--------|
+| biomeOS | JSON-RPC UDS | Wired (register/heartbeat/deregister) |
+| petalTongue | JSON-RPC UDS | Wired (retry + circuit breaker) |
+| barraCuda | Direct Rust import | Correct at validation stage (deferred IPC) |
+| coralReef | JSON-RPC UDS | Open (`shader.compile` not yet routed) |
+| toadStool | JSON-RPC UDS | Discoverable (`primal.forward` routing) |
+| Squirrel | JSON-RPC UDS | Stub (`inference.*` registered, provider not connected) |
+| NestGate | JSON-RPC UDS | Open (provenance ack-only) |
+| BearDog/Songbird | JSON-RPC UDS | Discoverable (BTSP not yet established) |
+
+### Niche Self-Knowledge
+
+- `src/niche.rs`: 26 capabilities, bonding policy (Metallic / InternalNucleus), encryption tiers, operation dependencies, cost estimates, semantic mappings
+- `config/capability_registry.toml`: 17 methods (science + health + inference)
+- `graphs/neuralspring_deploy.toml`: V128/S178, sequential coordination
+- Proto-nucleate: `neuralspring_inference_proto_nucleate.toml` v1.1.0
+
+---
+
 ## Dependency Analysis
 
 All external dependencies are pure Rust with no C/C++ bindings:
 
 | Crate | Version | Role | Evolution Path |
 |-------|---------|------|----------------|
-| `barracuda` | path (v0.3.7) | GPU compute abstraction (in-house) | Standalone barraCuda primal (extracted from ToadStool S89) |
+| `barracuda` | path (v0.3.11) | GPU compute abstraction (in-house) | Standalone barraCuda primal (extracted from ToadStool S89) |
 | `neural-spring-forge` | path | Shader catalog (in-house) | Evolves with metalForge |
 | `biomeos-primal-sdk` | path (opt) | Primal IPC framework (in-house) | Evolves with biomeOS |
 | `bytemuck` | 1.21 | Zero-copy GPU buffer casting | Stable, pure Rust, no alternative needed |

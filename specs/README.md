@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: April 10, 2026 (Sessions 44–177 — S177: NUCLEUS composition validation, inference.* wiring, ecoBin harvest. ~1,392 tests: 1,225 lib + 73 forge + 80 playGround + 14 integration. 264 binaries, 518 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
-**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), dispatch parity 55/55, mixed-hardware dispatch 47/47, WDM+coralForge parity 47/47, metalForge NUCLEUS 44/44, 261 binaries, **220/220 validate\_all**, ~1,211 lib tests (workspace total ~1,400)
+**Last Updated**: April 11, 2026 (Sessions 44–178 — S178: Composition validation phase, Python→Rust→NUCLEUS three-layer stack. ~1,403+ tests: 1,225 lib + 73 forge + 80 playGround + 14 integration. 264 binaries, 518 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
+**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU + 3 composition = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 264 binaries (261 science/GPU + 3 composition), ~1,225 lib tests (workspace total ~1,403+), Python→Rust→NUCLEUS validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---

@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V127 — Session 177
+### V128 — Session 178
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V127** | `handoffs/NEURALSPRING_V127_NUCLEUS_COMPOSITION_VALIDATION_INFERENCE_WIRING_ECOBIN_HANDOFF_APR10_2026.md` | Apr 10, 2026 | NUCLEUS composition validation layer (3 validators, bonding policy, proto-nucleate graph), inference.* capability wiring, ecoBin harvest, barraCuda path correction, Precision exhaustiveness. ~1,392 tests, 264 binaries. |
+| **V128** | `handoffs/NEURALSPRING_V128_COMPOSITION_VALIDATION_NUCLEUS_PATTERNS_HANDOFF_APR11_2026.md` | Apr 11, 2026 | Composition validation phase: Python→Rust→NUCLEUS three-layer stack, validate_all composition integration, PRIMAL_GAPS reconciled, version alignment, Neural API deployment patterns, primal absorption candidates. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V126 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V127 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

@@ -6,12 +6,25 @@
 //! independently and reports exit 0 (pass) or 1 (fail). This binary
 //! aggregates and reports the overall status.
 //!
+//! ## Exit codes
+//!
+//! Sub-binaries may return:
+//! - 0: pass
+//! - 1: fail
+//! - 2: honest skip (composition validators — no primals available)
+//!
+//! Exit 2 is treated as a pass: the binary truthfully reports that it could
+//! not validate because the ecosystem is not running, which is expected in
+//! standalone CI. Only exit 1 (actual failure) counts as a failure.
+//!
 //! ## Provenance
 //!
 //! Meta-validation runner: aggregates all `validate_*` binaries.
 //! No standalone validation.
 
-use std::process::{self, Command};
+use std::process::{self, Command, ExitStatus};
+
+const EXIT_SKIP: i32 = 2;
 
 const BINARIES: &[&str] = &[
     // neuralSpring-native validation (Phase 0)
@@ -336,6 +349,18 @@ const BINARIES: &[&str] = &[
     "validate_petaltongue_scenarios",
 ];
 
+/// Composition validators that may return exit 2 (honest skip) when the
+/// ecosystem is not running. These validate primal composition patterns —
+/// the NUCLEUS-layer validation target beyond Rust+Python science baselines.
+const COMPOSITION_BINARIES: &[&str] = &[
+    // Proto-nucleate graph composition (niche bonding, capabilities, discovery)
+    "validate_nucleus_composition",
+    // Inference composition (Squirrel → neuralSpring provider chain)
+    "validate_inference_composition",
+    // Primal socket discovery (5-tier resolution)
+    "validate_primal_discovery",
+];
+
 /// Feature-gated validation binaries: `(name, feature)`.
 ///
 /// These require `cargo run --release --features <feature> --bin <name>`.
@@ -364,20 +389,37 @@ fn run_binary(name: &str, features: Option<&str>) -> (bool, String, String) {
     }
 }
 
+fn exit_code(status: ExitStatus) -> i32 {
+    status.code().unwrap_or(1)
+}
+
+fn print_filtered_output(stdout: &str, stderr: &str) {
+    for line in stdout.lines() {
+        println!("    {line}");
+    }
+    for line in stderr.lines() {
+        if !line.contains("Compiling") && !line.contains("Finished") {
+            println!("    {line}");
+        }
+    }
+    println!();
+}
+
 fn main() {
     println!("=== neural-spring validate_all ===\n");
 
     let mut total_pass = 0_u32;
     let mut total_fail = 0_u32;
+    let mut total_skip = 0_u32;
 
+    // ── Science + GPU validation binaries ──
     for &name in BINARIES {
         print!("Running {name}... ");
 
-        let result = Command::new("cargo")
+        match Command::new("cargo")
             .args(["run", "--release", "--bin", name])
-            .output();
-
-        match result {
+            .output()
+        {
             Ok(output) => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
@@ -390,15 +432,7 @@ fn main() {
                     total_fail += 1;
                 }
 
-                for line in stdout.lines() {
-                    println!("    {line}");
-                }
-                for line in stderr.lines() {
-                    if !line.contains("Compiling") && !line.contains("Finished") {
-                        println!("    {line}");
-                    }
-                }
-                println!();
+                print_filtered_output(&stdout, &stderr);
             }
             Err(e) => {
                 println!("ERROR: {e}");
@@ -407,7 +441,7 @@ fn main() {
         }
     }
 
-    // Feature-gated binaries
+    // ── Feature-gated binaries ──
     for &(name, feature) in FEATURE_BINARIES {
         print!("Running {name} (--features {feature})... ");
 
@@ -420,19 +454,49 @@ fn main() {
             total_fail += 1;
         }
 
-        for line in stdout.lines() {
-            println!("    {line}");
-        }
-        for line in stderr.lines() {
-            if !line.contains("Compiling") && !line.contains("Finished") {
-                println!("    {line}");
-            }
-        }
-        println!();
+        print_filtered_output(&stdout, &stderr);
     }
 
-    let total = total_pass + total_fail;
-    println!("=== validate_all: {total_pass}/{total} binaries PASS, {total_fail} FAIL ===");
+    // ── Composition validators (exit 2 = honest skip) ──
+    println!("── Composition Validators (NUCLEUS primal patterns) ──\n");
+
+    for &name in COMPOSITION_BINARIES {
+        print!("Running {name}... ");
+
+        match Command::new("cargo")
+            .args(["run", "--release", "--bin", name])
+            .output()
+        {
+            Ok(output) => {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let code = exit_code(output.status);
+
+                if output.status.success() {
+                    println!("PASS");
+                    total_pass += 1;
+                } else if code == EXIT_SKIP {
+                    println!("SKIP (no primals running — honest skip)");
+                    total_skip += 1;
+                } else {
+                    println!("FAIL");
+                    total_fail += 1;
+                }
+
+                print_filtered_output(&stdout, &stderr);
+            }
+            Err(e) => {
+                println!("ERROR: {e}");
+                total_fail += 1;
+            }
+        }
+    }
+
+    // ── Summary ──
+    let total = total_pass + total_fail + total_skip;
+    println!(
+        "=== validate_all: {total_pass}/{total} PASS, {total_skip} SKIP, {total_fail} FAIL ==="
+    );
 
     if total_fail > 0 {
         process::exit(1);

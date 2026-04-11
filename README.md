@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 10, 2026 (Session S177 — NUCLEUS composition validation layer, inference.* capability wiring, ecoBin harvest, primal discovery validators, bonding policy, proto-nucleate graph validation).
+**Last updated**: April 11, 2026 (Session S178 — Composition validation phase: Python→Rust→NUCLEUS three-layer validation stack, composition validators wired to validate_all with exit-2 honest skip, PRIMAL_GAPS.md reconciled, version strings aligned to barraCuda v0.3.11, deploy graph V128/S178, primal IPC wiring status documented).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -670,8 +670,8 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal ToadStool/BarraCUDA/coralReef handoffs (V126 current: Session 176, barraCuda v0.3.7) |
-| `experiments/README.md` | Experiment journals (Sessions 40–176, hotSpring pattern) |
+| `wateringHole/handoffs/` | Formal primal team handoffs (V128 current: Session 178, barraCuda v0.3.11) |
+| `experiments/README.md` | Experiment journals (Sessions 40–178, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
 ## License
@@ -692,4 +692,4 @@ documentation and standards.
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–177: April 10, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU = 4500+ validation checks | ~1,392 Rust tests (1,225 lib + 73 forge + 80 playGround + 14 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 264 binaries, 518 `.rs` files, 42 WGSL shaders | 232+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.11, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V127 handoff (NUCLEUS composition validation + inference.* wiring + ecoBin harvest) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 80 unit + 2 integration tests | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 19 MCP tools, 19 capabilities | 21 petalTongue scenario tracks | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` + NUCLEUS composition validators (proto-nucleate, inference chain, primal discovery) | Metallic bonding policy + InternalNucleus trust model | cross-spring absorption from hotSpring/groundSpring/wetSpring/airSpring + coralReef/loamSpine/rhizoCrypt/sweetGrass*
+*Initialized: February 16, 2026 | Sessions 40–178: April 11, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU + 3 composition validators = 4500+ total validation checks | ~1,403+ Rust tests (1,225 lib + 73 forge + 80 playGround + 14 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 264 binaries, 518 `.rs` files, 42 WGSL shaders | 232+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.11, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V128 handoff (composition validation phase + NUCLEUS patterns) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 80 unit + 2 integration tests | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 26 capabilities registered | 21 petalTongue scenario tracks | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` + NUCLEUS composition validators (proto-nucleate, inference chain, primal discovery) | Metallic bonding policy + InternalNucleus trust model | Python→Rust→NUCLEUS three-layer validation stack*

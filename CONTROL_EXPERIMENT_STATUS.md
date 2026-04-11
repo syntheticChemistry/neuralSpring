@@ -1,11 +1,11 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: March 24, 2026 (Session S176 — Deep audit: IPC resilience, environment centralization, GPU module refactor, integration test expansion. ~1,403 tests: 1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio. 261 binaries, 466 `.rs` files. 34 property + 23 playground IPC tests. 0 warnings. Cast lints denied.)
+**Last updated**: April 11, 2026 (Session S178 — Composition validation phase: Python→Rust→NUCLEUS. Composition validators wired to validate_all with exit-2 honest skip. ~1,403+ tests: 1,225 lib + 73 forge + 80 playGround + 12 integration + 25 tokio. 264 binaries (261 science/GPU + 3 composition), 518 `.rs` files. 0 warnings. Cast lints denied. barraCuda v0.3.11.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid
-**Grand Total**: 397/397 Python PASS + 4000+ Rust+GPU validation PASS = **4500+ total validation checks**
-**Library**: ~1,403 tests (1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio) | 68 modules + config + niche + primal_names + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch + validation/sink | 261 validation/bench binaries
+**Grand Total**: 397/397 Python PASS + 4000+ Rust+GPU validation PASS + 3 composition validators = **4500+ total validation checks**
+**Library**: ~1,403+ tests (1,225 lib + 73 forge + 80 playGround + 12 integration + 25 tokio) | 68 modules + config + niche + primal_names + streaming/ + search/ + visualization/ + gpu_ops/ + gpu_dispatch + validation/sink + validation/composition | 264 validation/bench/composition binaries
 **CPU↔Python Parity**: 41/41 PASS — `validate_cpu_math_parity` (9 primitives + 10 paper kernels + 6 Dispatcher cpu_only checks, all within 1e-10)
 **Dispatch Overhead**: `bench_dispatch_tiers` — 9/10 ops ≤1.04× overhead (CPU dispatch is transparent), per-call GPU driver-bound for small workloads (motivates pipeline batching)
 **baseCamp**: 6 biophysical AI modules + 11 validators (162/162 CPU + 14/14 GPU + 19/19 dispatch + GPU pure 6/6 sub-theses PASS) — Sessions 50, 54, 56, 77, 104b, 107
@@ -26,6 +26,7 @@
 **petalTongue**: `StreamSession` with backpressure + `push_replace` + `query_capabilities` + 64KB IPC buffer. 5 scenario builders + `full_study()` combiner. Mock socket validation: `validate_petaltongue_scenarios`: **31/31 PASS** (S133)
 **Cross-Spring**: 68/68 evolution checks PASS (S113) | Variance 2.46× (hotSpring Welford), Entropy 2.59× (wetSpring fused), Pearson 1.11× (joint) | 15 metalForge shaders evolved to df64 core streaming (S88)
 **Open Data**: All 25+5+3 papers use open data and open systems — zero proprietary or paywalled sources
+**Composition Validation (S178)**: Proto-nucleate NUCLEUS composition validators wired to `validate_all` with exit-2 honest skip. `validate_nucleus_composition` (niche bonding + capability coverage + proto-nucleate node discovery + bonding rules), `validate_inference_composition` (inference.* capability chain), `validate_primal_discovery` (5-tier socket resolution). All 3 pass standalone (exit 0 when primals running, exit 2 honest skip otherwise). Python baselines → Rust baselines → NUCLEUS composition: three-layer validation stack complete.
 
 ---
 

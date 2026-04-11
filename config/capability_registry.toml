@@ -92,3 +92,35 @@ description = "Text embedding via Squirrel → provider chain"
 [capabilities.inference_models]
 method = "inference.models"
 description = "List available inference models and their capabilities"
+
+[capabilities.provenance_begin]
+method = "provenance.begin"
+description = "Begin a provenance tracking session for an experiment"
+
+[capabilities.provenance_record]
+method = "provenance.record"
+description = "Record a step in an active provenance session"
+
+[capabilities.provenance_complete]
+method = "provenance.complete"
+description = "Complete and finalize a provenance session"
+
+[capabilities.provenance_status]
+method = "provenance.status"
+description = "Query status of provenance sessions"
+
+[capabilities.primal_forward]
+method = "primal.forward"
+description = "Forward a request to another primal via capability routing"
+
+[capabilities.primal_discover]
+method = "primal.discover"
+description = "Discover niche capabilities and primal composition"
+
+[capabilities.capability_list]
+method = "capability.list"
+description = "List all capabilities this niche exposes to biomeOS"
+
+[capabilities.compute_offload]
+method = "compute.offload"
+description = "Node Atomic compute offload via dispatcher (GPU/CPU routing)"

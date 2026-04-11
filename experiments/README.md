@@ -5488,4 +5488,36 @@ Remaining binaries still need `clippy::expect_used` for GPU dispatch calls.
 
 ---
 
+## Session S176–S177 — Deep Audit + NUCLEUS Composition (2026-03-24 / 2026-04-10)
+
+### Exp 124 — Deep Audit: IPC Resilience, Environment Centralization, GPU Module Refactor
+
+**Date**: 2026-03-24
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Session**: S176
+**Motivation**: Comprehensive deep audit execution: restore clippy zero-warning gate, centralize provenance environment strings, wire IPC resilience patterns into production code, refactor GPU module for maintainability, expand integration test coverage.
+**Procedure**: Fixed 6 clippy test-code errors (similar_names, unwrap_used). Centralized 19 provenance environment literals into 2 constants. Wired `RetryPolicy` + `CircuitBreaker` into `PetalTonguePushClient::send_rpc()`. Refactored `src/gpu.rs` (714 LOC) into `gpu/mod.rs` (475) + `gpu/tests.rs` (238). Expanded integration tests from 9 to 12 (full 49/49 provenance coverage).
+**Result**: ~1,403 tests PASS (1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio). Zero clippy. V126 handoff.
+
+### Exp 125 — NUCLEUS Composition Validation Layer + Inference Wiring + ecoBin Harvest
+
+**Date**: 2026-04-10
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Session**: S177
+**Motivation**: The evolution path reaches primal composition: Python baselines validated Rust correctness, now Rust validates NUCLEUS composition patterns. Build the third validation layer: composition validators that prove proto-nucleate graph nodes can discover each other, advertise correct capabilities, and follow bonding policy.
+**Procedure**: Built `validate_nucleus_composition` (niche bonding + capability coverage + node discovery + bonding rules), `validate_inference_composition` (Squirrel→neuralSpring inference chain), `validate_primal_discovery` (5-tier socket resolution). Created `src/validation/composition.rs` with JSON-RPC discovery, probes, BondType enum, skip-aware exit codes. Wired `inference.complete/embed/models` across niche.rs, config.rs, rpc_service.rs, handlers.rs. Built ecoBin harvest script. Fixed barraCuda paths across all Cargo.toml files. Exhaustive Precision enum handling (12 variants).
+**Result**: ~1,392 tests PASS (1,225 lib + 73 forge + 80 playGround + 14 integration). 264 binaries, 518 `.rs` files. Composition validators pass standalone (exit 2 honest skip when no primals running). V127 handoff.
+
+### Exp 126 — Composition Validation Phase: Three-Layer Stack Completion
+
+**Date**: 2026-04-11
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Session**: S178
+**Motivation**: Wire composition validators into `validate_all` meta-runner. Reconcile stale documentation. Align version strings across all specs. Complete the Python→Rust→NUCLEUS three-layer validation narrative.
+**Procedure**: Added `COMPOSITION_BINARIES` to `validate_all.rs` with exit-2 honest skip handling (PASS/SKIP/FAIL). Updated `docs/PRIMAL_GAPS.md` (inference.* from `open` to `wip`, binary naming resolved, added Resolved section). Aligned barraCuda version strings to 0.3.11 across 3 spec files. Reconciled deploy graph V128/S178. Expanded `capability_registry.toml` to full 26 capabilities. Added NUCLEUS Composition Validation section to `EVOLUTION_READINESS.md` with primal IPC wiring status. Updated all root docs, baseCamp, wateringHole. Crafted V128 handoff for primal and spring teams.
+**Findings**: The three-layer validation stack is structurally complete: (1) Python baselines validate science correctness, (2) Rust validators prove faithful porting with centralized tolerances and provenance, (3) composition validators prove NUCLEUS primal patterns (bonding, capability discovery, proto-nucleate graph resolution). Stale songbird sockets on dev machine cause exit-1 in composition validators — correct behavior (stale socket = real discovery that fails liveness). All quality gates pass: 1,225 lib tests, 0 clippy, 0 fmt, 0 doc, cargo-deny clean.
+**Result**: 1,225/1,225 lib tests PASS, 12/12 integration PASS. 264 binaries. V128 handoff crafted.
+
+---
+
 *Experiment journals — following the hotSpring pattern.*
