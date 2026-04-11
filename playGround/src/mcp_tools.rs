@@ -24,7 +24,7 @@ pub struct McpToolDef {
 
 /// All neuralSpring capabilities as MCP tool definitions.
 #[must_use]
-#[expect(clippy::too_many_lines, reason = "16 tool definitions in one registry")]
+#[expect(clippy::too_many_lines, reason = "19 tool definitions in one registry")]
 pub fn tool_definitions() -> Vec<McpToolDef> {
     vec![
         McpToolDef {
@@ -212,6 +212,43 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
             domain: "health",
             input_schema: json!({ "type": "object", "properties": {} }),
         },
+        McpToolDef {
+            name: "inference.complete",
+            description: "Text completion via Squirrel → provider chain. Returns generated \
+                          text, token count, and provider metadata.",
+            domain: "inference",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "prompt": { "type": "string", "description": "Input text for completion" },
+                    "max_tokens": { "type": "integer", "description": "Maximum tokens to generate (default 256)" },
+                    "temperature": { "type": "number", "description": "Sampling temperature 0.0-1.0 (default 0.7)" },
+                    "model": { "type": "string", "description": "Optional model identifier" }
+                },
+                "required": ["prompt"]
+            }),
+        },
+        McpToolDef {
+            name: "inference.embed",
+            description: "Text embedding via Squirrel → provider chain. Returns a dense \
+                          vector representation of the input text.",
+            domain: "inference",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "text": { "type": "string", "description": "Text to embed" },
+                    "model": { "type": "string", "description": "Optional embedding model identifier" }
+                },
+                "required": ["text"]
+            }),
+        },
+        McpToolDef {
+            name: "inference.models",
+            description: "List available inference models and their capabilities \
+                          (complete, embed, context length, parameter count).",
+            domain: "inference",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
     ]
 }
 
@@ -233,7 +270,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 16);
+        assert_eq!(tools.len(), 19);
     }
 
     #[test]
@@ -250,7 +287,7 @@ mod tests {
 
     #[test]
     fn all_tools_have_valid_domain() {
-        let valid_domains = ["science", "health"];
+        let valid_domains = ["science", "health", "inference"];
         for tool in tool_definitions() {
             assert!(
                 valid_domains.contains(&tool.domain),

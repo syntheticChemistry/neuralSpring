@@ -141,6 +141,9 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "science.precision_routing",
     "health.liveness",
     "health.readiness",
+    "inference.complete",
+    "inference.embed",
+    "inference.models",
 ];
 
 #[cfg(test)]

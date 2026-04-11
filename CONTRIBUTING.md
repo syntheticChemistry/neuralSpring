@@ -9,7 +9,7 @@ or advance GPU evolution are welcome.
 ## Prerequisites
 
 - **Rust 1.87+** (edition 2024)
-- **barraCuda** checkout at `../barraCuda` (path dependency)
+- **barraCuda** checkout at `../../primals/barraCuda` (path dependency)
 - GPU with Vulkan support (optional — CI validates on llvmpipe fallback)
 - Python 3.11+ with NumPy (for baseline regeneration)
 

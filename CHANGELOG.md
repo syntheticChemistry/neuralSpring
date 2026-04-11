@@ -5,7 +5,20 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-03-24 (Session 176: Deep Audit — IPC Resilience, Environment Centralization, GPU Refactor)
+## [Unreleased] — 2026-04-10 (Session 177: NUCLEUS Composition Validation, Inference Wiring, ecoBin Harvest)
+
+### 2026-04-10 — Session S177 (NUCLEUS composition validation, inference.* wiring, ecoBin harvest)
+
+- **NUCLEUS composition validation layer**: 3 new validators (`validate_nucleus_composition`, `validate_inference_composition`, `validate_primal_discovery`) — proto-nucleate graph validation, inference chain validation, capability-based discovery validation. Honest skip pattern (exit 2).
+- **Composition infrastructure**: `src/validation/composition.rs` — `discover_primal_socket()` (5-tier biomeOS discovery), `json_rpc_call()`, `probe_liveness()`, `probe_capabilities()`, `call_capability()`, `BondType` enum, `exit_code_skip_aware()`, proto-nucleate node descriptors
+- **inference.* capability wiring**: `inference.complete`, `inference.embed`, `inference.models` wired across niche.rs, config.rs, rpc_service.rs (typed structs), handlers.rs (stub), main.rs (dispatch), mcp_tools.rs (19 tools), capability_registry.toml
+- **NUCLEUS bonding policy**: `niche.rs` constants — `BOND_TYPE = "Metallic"`, `TRUST_MODEL = "InternalNucleus"`, encryption tiers per atomic boundary (Tower=full, Node/Nest/Meta=tower_delegated)
+- **ecoBin harvest**: release profile (strip/LTO/codegen-units=1), `scripts/harvest_ecobin.sh` (musl build, static verify, plasmidBin staging)
+- **barraCuda path fix**: all Cargo.toml files corrected to `../../primals/barraCuda/crates/barracuda`; CI checkout paths aligned; `include_str!` macros updated
+- **Precision exhaustiveness**: `compile_shader_universal()` handles all 12 `Precision` variants (Binary, Int2, Q4, Q8, Fp8E5M2, Fp8E4M3, Bf16, F16, F32, Df64, Qf128, Df128)
+- **CI**: composition-validation job (handles exit 2 honest skip)
+- **V127 handoff**: archived V126, crafted V127 cross-team handoff with absorption candidates, primal gaps, evolution roadmap
+- **~1,392 tests** (1,225 lib + 73 forge + 80 playGround + 14 integration), 264 binaries, 518 `.rs` files, 0 clippy, 0 fmt, 0 doc warnings, barraCuda v0.3.11
 
 ### 2026-03-24 — Session S176 (deep audit, IPC resilience, environment centralization, GPU module refactor)
 

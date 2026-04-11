@@ -80,3 +80,15 @@ description = "Liveness probe (is the primal running?)"
 [capabilities.health_readiness]
 method = "health.readiness"
 description = "Readiness probe (is the primal ready to accept work?)"
+
+[capabilities.inference_complete]
+method = "inference.complete"
+description = "Text completion via Squirrel → provider chain (Ollama fallback until native WGSL inference)"
+
+[capabilities.inference_embed]
+method = "inference.embed"
+description = "Text embedding via Squirrel → provider chain"
+
+[capabilities.inference_models]
+method = "inference.models"
+description = "List available inference models and their capabilities"

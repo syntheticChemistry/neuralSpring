@@ -66,7 +66,95 @@ pub struct HealthStatus {
     pub gpu_available: bool,
 }
 
-/// Typed tarpc surface for health, IPR, disorder sweeps, and capabilities.
+// ═══════════════════════════════════════════════════════════════════
+// Inference capability wire types (proto-nucleate: inference.*)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Request payload for `inference.complete`.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InferenceCompleteRequest {
+    /// The prompt or input text for completion.
+    pub prompt: String,
+    /// Maximum number of tokens to generate.
+    #[serde(default = "default_max_tokens")]
+    pub max_tokens: u32,
+    /// Sampling temperature (0.0 = deterministic, 1.0 = creative).
+    #[serde(default = "default_temperature")]
+    pub temperature: f64,
+    /// Optional model identifier (routes to specific provider).
+    pub model: Option<String>,
+}
+
+const fn default_max_tokens() -> u32 {
+    256
+}
+
+const fn default_temperature() -> f64 {
+    0.7
+}
+
+/// Response payload for `inference.complete`.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InferenceCompleteResponse {
+    /// Generated text.
+    pub text: String,
+    /// Number of tokens in the completion.
+    pub tokens_generated: u32,
+    /// Model that served the request.
+    pub model: String,
+    /// Provider that fulfilled the request (e.g. "squirrel", "ollama", "native-wgsl").
+    pub provider: String,
+    /// Whether the response was truncated at `max_tokens`.
+    pub truncated: bool,
+}
+
+/// Request payload for `inference.embed`.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InferenceEmbedRequest {
+    /// Text to embed.
+    pub text: String,
+    /// Optional model identifier for the embedding model.
+    pub model: Option<String>,
+}
+
+/// Response payload for `inference.embed`.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InferenceEmbedResponse {
+    /// The embedding vector.
+    pub embedding: Vec<f64>,
+    /// Dimensionality of the embedding.
+    pub dimensions: usize,
+    /// Model that produced the embedding.
+    pub model: String,
+    /// Provider that fulfilled the request.
+    pub provider: String,
+}
+
+/// Response payload for `inference.models`.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InferenceModelsResponse {
+    /// Available models with metadata.
+    pub models: Vec<ModelInfo>,
+    /// The provider serving these models.
+    pub provider: String,
+}
+
+/// Metadata for a single available model.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ModelInfo {
+    /// Model identifier (used in `model` field of requests).
+    pub id: String,
+    /// Human-readable name.
+    pub name: String,
+    /// Capabilities: "complete", "embed", or both.
+    pub capabilities: Vec<String>,
+    /// Parameter count (if known).
+    pub parameters: Option<u64>,
+    /// Context window size in tokens (if known).
+    pub context_length: Option<u32>,
+}
+
+/// Typed tarpc surface for health, IPR, disorder sweeps, inference, and capabilities.
 #[tarpc::service]
 pub trait NeuralSpring {
     /// Health check — returns primal status and capability list.
@@ -85,6 +173,15 @@ pub trait NeuralSpring {
 
     /// Full spectral analysis of a random Anderson Hamiltonian.
     async fn spectral_analysis(dim: usize, disorder: f64, seed: u64) -> SpectralAnalysisResult;
+
+    /// Text completion via Squirrel → provider chain.
+    async fn inference_complete(request: InferenceCompleteRequest) -> InferenceCompleteResponse;
+
+    /// Text embedding via Squirrel → provider chain.
+    async fn inference_embed(request: InferenceEmbedRequest) -> InferenceEmbedResponse;
+
+    /// List available inference models.
+    async fn inference_models() -> InferenceModelsResponse;
 
     /// List advertised capabilities (sovereign discovery).
     async fn capability_list() -> Vec<String>;

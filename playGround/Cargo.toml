@@ -12,12 +12,13 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 
 [dependencies]
 anyhow = "1"
-barracuda = { path = "../../barraCuda/crates/barracuda", default-features = false, features = [
+barracuda = { path = "../../../primals/barraCuda/crates/barracuda", default-features = false, features = [
     "gpu",
     "domain-nn",
     "domain-esn",
     "domain-genomics",
     "domain-timeseries",
+    "domain-lattice",
 ] }
 neural-spring = { path = ".." }
 bytemuck = { version = "1.21", features = ["derive"] }

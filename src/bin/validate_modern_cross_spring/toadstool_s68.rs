@@ -9,16 +9,18 @@ use neural_spring::validation::{ValidationHarness, bench_once};
 pub fn validate_toadstool_s68_precision(h: &mut ValidationHarness, dispatcher: &Dispatcher) {
     println!("\n─── BarraCUDA (ToadStool S68): universal precision + modern APIs ───\n");
 
-    // Verify Precision enum is accessible (S67 — F16 removed upstream, 3 tiers remain)
+    // Verify core Precision enum variants accessible (quantized + float tiers)
     h.check_bool(
-        "TS S67: Precision enum (F32/F64/Df64) accessible",
+        "TS S67: Precision enum core tiers accessible",
         [
             neural_spring::gpu::Precision::F32,
             neural_spring::gpu::Precision::F64,
             neural_spring::gpu::Precision::Df64,
+            neural_spring::gpu::Precision::Bf16,
+            neural_spring::gpu::Precision::Q4,
         ]
         .len()
-            == 3,
+            == 5,
     );
 
     // Dispatch domain heuristics (cross-spring)

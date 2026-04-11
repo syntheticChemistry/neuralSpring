@@ -193,6 +193,78 @@ pub fn handle_primal_discover(id: serde_json::Value) -> JsonRpcResponse {
     )
 }
 
+/// Inference completion — routes through Squirrel when available, otherwise
+/// returns a stub indicating the provider is not yet wired.
+pub fn handle_inference_complete(
+    id: serde_json::Value,
+    params: &serde_json::Value,
+) -> JsonRpcResponse {
+    let prompt = params.get("prompt").and_then(|v| v.as_str()).unwrap_or("");
+    let model = params
+        .get("model")
+        .and_then(|v| v.as_str())
+        .unwrap_or("default");
+
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "text": "",
+            "tokens_generated": 0,
+            "model": model,
+            "provider": "stub",
+            "truncated": false,
+            "status": "not_yet_wired",
+            "message": format!(
+                "inference.complete registered but Squirrel provider not yet connected. \
+                 Prompt length: {} chars, model: {model}",
+                prompt.len()
+            ),
+        }),
+    )
+}
+
+/// Inference embedding — routes through Squirrel when available.
+pub fn handle_inference_embed(
+    id: serde_json::Value,
+    params: &serde_json::Value,
+) -> JsonRpcResponse {
+    let text = params.get("text").and_then(|v| v.as_str()).unwrap_or("");
+    let model = params
+        .get("model")
+        .and_then(|v| v.as_str())
+        .unwrap_or("default");
+
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "embedding": [],
+            "dimensions": 0,
+            "model": model,
+            "provider": "stub",
+            "status": "not_yet_wired",
+            "message": format!(
+                "inference.embed registered but Squirrel provider not yet connected. \
+                 Text length: {} chars, model: {model}",
+                text.len()
+            ),
+        }),
+    )
+}
+
+/// List available inference models — stub until Squirrel provider is wired.
+pub fn handle_inference_models(id: serde_json::Value) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "models": [],
+            "provider": "stub",
+            "status": "not_yet_wired",
+            "message": "inference.models registered but Squirrel provider not yet connected. \
+                        Models will be discovered via Squirrel once wired.",
+        }),
+    )
+}
+
 /// Node Atomic compute offload hook: reports dispatcher readiness and echoes request params.
 pub fn handle_compute_offload(
     id: serde_json::Value,

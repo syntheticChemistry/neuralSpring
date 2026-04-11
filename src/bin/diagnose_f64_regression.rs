@@ -98,8 +98,9 @@ fn main() {{
 
 fn test_df64_sum_shader(dev: &Arc<barracuda::device::WgpuDevice>, with_enable_f64: bool) {
     let enable = if with_enable_f64 { "enable f64;\n" } else { "" };
-    let df64_core =
-        include_str!("../../../barraCuda/crates/barracuda/src/shaders/math/df64_core.wgsl");
+    let df64_core = include_str!(
+        "../../../../primals/barraCuda/crates/barracuda/src/shaders/math/df64_core.wgsl"
+    );
 
     let src = format!(
         "{enable}\
@@ -134,10 +135,11 @@ fn main() {{
 }
 
 fn test_variance_via_compile_shader_f64(dev: &Arc<barracuda::device::WgpuDevice>) {
-    let df64_core =
-        include_str!("../../../barraCuda/crates/barracuda/src/shaders/math/df64_core.wgsl");
+    let df64_core = include_str!(
+        "../../../../primals/barraCuda/crates/barracuda/src/shaders/math/df64_core.wgsl"
+    );
     let df64_shader = include_str!(
-        "../../../barraCuda/crates/barracuda/src/shaders/reduce/mean_variance_df64.wgsl"
+        "../../../../primals/barraCuda/crates/barracuda/src/shaders/reduce/mean_variance_df64.wgsl"
     );
 
     let combined = format!("enable f64;\n{df64_core}\n{df64_shader}");

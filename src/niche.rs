@@ -23,6 +23,40 @@
 /// Niche identity (lowercase, used in IPC and deploy graphs).
 pub const NICHE_NAME: &str = "neuralspring";
 
+// ═══════════════════════════════════════════════════════════════════
+// NUCLEUS bonding policy (proto-nucleate: neuralspring_inference)
+// ═══════════════════════════════════════════════════════════════════
+
+/// Bond type for inter-atomic composition.
+///
+/// `Metallic` indicates shared electron density — all primals in the
+/// composition share a common trust domain and can freely exchange
+/// capability calls without per-call authentication overhead.
+pub const BOND_TYPE: &str = "Metallic";
+
+/// Trust model governing cross-atomic boundaries.
+///
+/// `InternalNucleus` means all traffic stays within the NUCLEUS perimeter;
+/// no external (internet-facing) endpoints are exposed. Tower Atomic
+/// provides the BTSP encryption boundary.
+pub const TRUST_MODEL: &str = "InternalNucleus";
+
+/// Encryption tiers per atomic boundary.
+///
+/// | Atomic | Tier |
+/// |--------|------|
+/// | Tower (BearDog + Songbird) | Full BTSP encryption |
+/// | Node (compute primals) | Delegated — Tower establishes session |
+/// | Nest (storage primals) | Delegated — Tower establishes session |
+/// | Meta (biomeOS, Squirrel) | Delegated — Tower establishes session |
+pub const ENCRYPTION_TIER_TOWER: &str = "full";
+/// Encryption tier for Node Atomic boundary.
+pub const ENCRYPTION_TIER_NODE: &str = "tower_delegated";
+/// Encryption tier for Nest Atomic boundary.
+pub const ENCRYPTION_TIER_NEST: &str = "tower_delegated";
+/// Encryption tier for Meta-tier boundary.
+pub const ENCRYPTION_TIER_META: &str = "tower_delegated";
+
 /// All capabilities this niche exposes to biomeOS.
 ///
 /// Re-exports `config::ALL_CAPABILITIES` and adds niche-infrastructure
@@ -51,6 +85,10 @@ pub const CAPABILITIES: &[&str] = &[
     "provenance.record",
     "provenance.complete",
     "provenance.status",
+    // ── Inference (Squirrel composition — proto-nucleate inference.*) ──
+    "inference.complete",
+    "inference.embed",
+    "inference.models",
     // ── Cross-primal ──
     "primal.forward",
     "primal.discover",
@@ -81,6 +119,9 @@ pub fn operation_dependencies() -> serde_json::Value {
         "science.cross_spring_provenance": ["experiment_id"],
         "science.cross_spring_benchmark":  ["benchmark_suite"],
         "science.precision_routing":    ["operation", "precision_hint"],
+        "inference.complete":          ["prompt", "max_tokens", "temperature"],
+        "inference.embed":             ["text"],
+        "inference.models":            [],
         "health.liveness":             [],
         "health.readiness":            [],
         "provenance.begin":    ["experiment_name"],
@@ -110,6 +151,9 @@ pub fn cost_estimates() -> serde_json::Value {
         "science.cross_spring_provenance": { "latency_ms": 10.0,  "cpu": "low",    "memory_bytes": 2048 },
         "science.cross_spring_benchmark":  { "latency_ms": 500.0, "cpu": "high",   "gpu": "preferred", "memory_bytes": 524_288 },
         "science.precision_routing":       { "latency_ms": 0.5,   "cpu": "low",    "memory_bytes": 256 },
+        "inference.complete":              { "latency_ms": 500.0, "cpu": "high",   "gpu": "preferred", "memory_bytes": 2_097_152 },
+        "inference.embed":                 { "latency_ms": 100.0, "cpu": "medium", "gpu": "preferred", "memory_bytes": 1_048_576 },
+        "inference.models":                { "latency_ms": 1.0,   "cpu": "none",   "memory_bytes": 256 },
         "health.liveness":                 { "latency_ms": 0.1,   "cpu": "none",   "memory_bytes": 64 },
         "health.readiness":                { "latency_ms": 0.2,   "cpu": "none",   "memory_bytes": 128 },
         "provenance.begin":    { "latency_ms": 10.0, "cpu": "low", "memory_bytes": 512 },
@@ -203,5 +247,31 @@ mod tests {
     fn niche_name_matches_convention() {
         assert_eq!(NICHE_NAME, "neuralspring");
         assert!(NICHE_NAME.chars().all(|c| c.is_ascii_lowercase()));
+    }
+
+    #[test]
+    fn bonding_policy_declared() {
+        assert_eq!(BOND_TYPE, "Metallic");
+        assert_eq!(TRUST_MODEL, "InternalNucleus");
+        assert_eq!(ENCRYPTION_TIER_TOWER, "full");
+        assert_eq!(ENCRYPTION_TIER_NODE, "tower_delegated");
+        assert_eq!(ENCRYPTION_TIER_NEST, "tower_delegated");
+        assert_eq!(ENCRYPTION_TIER_META, "tower_delegated");
+    }
+
+    #[test]
+    fn inference_capabilities_present() {
+        assert!(
+            CAPABILITIES.contains(&"inference.complete"),
+            "niche must advertise inference.complete"
+        );
+        assert!(
+            CAPABILITIES.contains(&"inference.embed"),
+            "niche must advertise inference.embed"
+        );
+        assert!(
+            CAPABILITIES.contains(&"inference.models"),
+            "niche must advertise inference.models"
+        );
     }
 }

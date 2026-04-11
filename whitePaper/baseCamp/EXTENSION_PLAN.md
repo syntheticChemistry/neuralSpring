@@ -1,8 +1,8 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: March 24, 2026 (Session S175)
+**Date**: April 10, 2026 (Session S177)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **~1,400 tests** (1,211 lib + 73 forge + 80 playGround + 9 integration + 25 tokio), **261 binaries**, **465 `.rs` files**. S175: ValidationSink, cast deny, provenance integrity.
+**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. NUCLEUS composition validation layer. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **~1,392 tests** (1,225 lib + 73 forge + 80 playGround + 14 integration), **264 binaries**, **518 `.rs` files**. S177: proto-nucleate validation, inference.* wiring, ecoBin harvest.
 **S151–S152 update**: Deep audit + deep debt execution — ecoBin compliance, 15+ tolerance literals centralized, capability-based primal discovery, coralReef bridge capability-first, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), V103 handoff.
 **S148–S150 update**: playGround evolution — Squirrel MCP adapter (14 tool definitions), HuggingFace Model Lab (GPT-2 inference on barraCuda), compute triangle (ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks: 7–45× pipeline reuse, 8–22× PyTorch/CUDA gap). 63 playGround unit + 13 integration tests. Live ToadStool verified. V101 handoff.
 **S147 update**: Deep debt — zero inline magic numbers, zero duplicate math, capability-based discovery. V100 handoff.
@@ -17,8 +17,10 @@ Axis 2 "Novel Compositions (No New Math)" complete for all locally composable mo
 neuralSpring has validated 4,200+ checks across **27 papers** (full queue complete),
 5 WDM surrogates, coralForge (nF-01/02/03), 6 baseCamp sub-theses, and 3
 publication experiments. The full pipeline is proven: Python → Rust CPU →
-BarraCUDA CPU → GPU Tensor → Pure GPU → metalForge cross-substrate. 1059 lib
-tests, 235 binaries, zero clippy, zero debt. 83.6× faster than Python.
+BarraCUDA CPU → GPU Tensor → Pure GPU → metalForge cross-substrate → NUCLEUS
+composition validation. 1,225 lib tests, 264 binaries, zero clippy, zero debt.
+83.6× faster than Python. NUCLEUS composition validators prove primal
+composition patterns alongside science validation targets.
 
 **Session 104b state**: Complete cross-spring rewire to modern ToadStool f97fc2ae.
 15 core functions delegate to upstream BarraCUDA (chi², KL divergence, spectral

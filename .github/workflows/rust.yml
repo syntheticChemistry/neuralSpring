@@ -30,12 +30,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # barraCuda is a standalone primal (path dep at ../barraCuda/crates/barracuda).
+      # barraCuda is a standalone primal (path dep at ../../primals/barraCuda/crates/barracuda).
       - name: Checkout barraCuda (standalone math primal)
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -86,7 +86,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain with musl target
@@ -132,7 +132,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -167,7 +167,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -189,8 +189,8 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-cov-${{ hashFiles('Cargo.toml') }}
 
-      - name: Collect coverage (workspace)
-        run: cargo llvm-cov --workspace --lib --json --output-path coverage.json
+      - name: Collect coverage (workspace lib + integration tests)
+        run: cargo llvm-cov --workspace --lib --tests --json --output-path coverage.json
 
       - name: Check coverage threshold (90%)
         run: |
@@ -218,7 +218,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -325,7 +325,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -387,7 +387,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -582,7 +582,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Set up Python 3.10
@@ -631,7 +631,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -666,7 +666,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/barraCuda
-          path: ../barraCuda
+          path: ../../primals/barraCuda
           sparse-checkout: crates/barracuda
 
       - name: Install stable toolchain
@@ -732,3 +732,65 @@ jobs:
           kill $PRIMAL_PID 2>/dev/null || true
           wait $PRIMAL_PID 2>/dev/null || true
           rm -rf "${SOCKET_DIR}"
+
+  composition-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout barraCuda (standalone math primal)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/barraCuda
+          path: ../../primals/barraCuda
+          sparse-checkout: crates/barracuda
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml') }}
+
+      - name: Validate NUCLEUS composition (proto-nucleate graph)
+        run: |
+          EXIT_CODE=0
+          cargo run --bin validate_nucleus_composition || EXIT_CODE=$?
+          if [ $EXIT_CODE -eq 2 ]; then
+            echo "SKIP: no primals available (honest skip — exit 2)"
+          elif [ $EXIT_CODE -ne 0 ]; then
+            echo "FAIL: composition validation failed"
+            exit 1
+          fi
+
+      - name: Validate inference composition (inference.* chain)
+        run: |
+          EXIT_CODE=0
+          cargo run --bin validate_inference_composition || EXIT_CODE=$?
+          if [ $EXIT_CODE -eq 2 ]; then
+            echo "SKIP: no inference providers (honest skip — exit 2)"
+          elif [ $EXIT_CODE -ne 0 ]; then
+            echo "FAIL: inference composition failed"
+            exit 1
+          fi
+
+      - name: Validate primal discovery (by_capability routing)
+        run: |
+          EXIT_CODE=0
+          cargo run --bin validate_primal_discovery || EXIT_CODE=$?
+          if [ $EXIT_CODE -eq 2 ]; then
+            echo "SKIP: no primals discoverable (honest skip — exit 2)"
+          elif [ $EXIT_CODE -ne 0 ]; then
+            echo "FAIL: primal discovery failed"
+            exit 1
+          fi

@@ -257,9 +257,15 @@ impl Gpu {
     ///
     /// Routes one f64-canonical shader source through the appropriate
     /// compilation pipeline based on the precision arg:
-    /// - F32: `compile_shader` (auto-downcasts f64 sources)
+    ///
+    /// - Sub-f32 quantized (Binary..Bf16): `compile_shader` — arithmetic
+    ///   runs in f32; quantization is a data-format concern, not a shader
+    ///   compilation concern.
+    /// - F16/F32: `compile_shader` (auto-downcasts f64 sources)
     /// - F64: `compile_shader_f64` (driver-profile–aware polyfills)
     /// - Df64: `compile_shader_df64` (injects `df64_core` + transcendentals)
+    /// - Qf128: `compile_shader_df64` — quad-float builds on f32-pair infra
+    /// - Df128: `compile_shader_f64` — double-double on native f64
     #[must_use]
     pub fn compile_shader_universal(
         &self,
@@ -268,9 +274,19 @@ impl Gpu {
     ) -> wgpu::ShaderModule {
         use barracuda::shaders::precision::Precision;
         match precision {
-            Precision::F16 | Precision::F32 => self.wgpu_device.compile_shader(source, None),
-            Precision::Df64 => self.wgpu_device.compile_shader_df64(source, None),
-            Precision::F64 => self.wgpu_device.compile_shader_f64(source, None),
+            Precision::Binary
+            | Precision::Int2
+            | Precision::Q4
+            | Precision::Q8
+            | Precision::Fp8E5M2
+            | Precision::Fp8E4M3
+            | Precision::Bf16
+            | Precision::F16
+            | Precision::F32 => self.wgpu_device.compile_shader(source, None),
+            Precision::Df64 | Precision::Qf128 => {
+                self.wgpu_device.compile_shader_df64(source, None)
+            }
+            Precision::F64 | Precision::Df128 => self.wgpu_device.compile_shader_f64(source, None),
         }
     }
 

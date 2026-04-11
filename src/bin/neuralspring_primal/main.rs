@@ -167,6 +167,9 @@ fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<J
         "science.cross_spring_provenance" => handlers::handle_cross_spring_provenance(id),
         "science.cross_spring_benchmark" => handlers::handle_cross_spring_benchmark(id, state),
         "science.precision_routing" => handlers::handle_precision_routing(id, state),
+        "inference.complete" => handlers::handle_inference_complete(id, params),
+        "inference.embed" => handlers::handle_inference_embed(id, params),
+        "inference.models" => handlers::handle_inference_models(id),
         "health.liveness" => handlers::handle_liveness(id),
         "health.readiness" => handlers::handle_readiness(id, state),
         "provenance.begin" | "provenance.record" | "provenance.complete" | "provenance.status" => {

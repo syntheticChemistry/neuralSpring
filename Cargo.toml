@@ -29,12 +29,13 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 [dependencies]
 # barraCuda standalone primal — sovereign math engine for ecoPrimals.
 # Extracted from toadStool (S89); Springs depend on barraCuda directly.
-barracuda = { path = "../barraCuda/crates/barracuda", default-features = false, features = [
+barracuda = { path = "../../primals/barraCuda/crates/barracuda", default-features = false, features = [
     "gpu",
     "domain-nn",
     "domain-esn",
     "domain-genomics",
     "domain-timeseries",
+    "domain-lattice",
 ] }
 
 # Local forge crate — shader catalog, binding layouts, dispatch routing.
@@ -1215,6 +1216,33 @@ path = "src/bin/validate_sovereign_compile.rs"
 [[bin]]
 name = "validate_mixed_composition_pipeline"
 path = "src/bin/validate_mixed_composition_pipeline.rs"
+
+# ── NUCLEUS composition validators ──────────────────────────────────
+
+[[bin]]
+name = "validate_nucleus_composition"
+path = "src/bin/validate_nucleus_composition.rs"
+
+[[bin]]
+name = "validate_inference_composition"
+path = "src/bin/validate_inference_composition.rs"
+
+[[bin]]
+name = "validate_primal_discovery"
+path = "src/bin/validate_primal_discovery.rs"
+
+# ── ecoBin release profiles ────────────────────────────────────────
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+
+[profile.ecobin]
+inherits = "release"
+strip = true
+lto = true
+codegen-units = 1
 
 [lints]
 workspace = true

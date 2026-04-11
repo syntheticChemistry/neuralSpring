@@ -12,6 +12,8 @@
 //! binary (`validate_*`) uses [`ValidationHarness`] to accumulate
 //! checks and produce a deterministic exit code.
 
+/// Composition validation for NUCLEUS proto-nucleate patterns.
+pub mod composition;
 /// CPU-side benchmark validation helpers shared by `validate_*` binaries.
 pub mod cpu_bench;
 mod env;

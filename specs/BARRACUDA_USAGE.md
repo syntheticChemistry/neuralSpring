@@ -1,7 +1,7 @@
 # BarraCUDA Usage Audit — neuralSpring
 
 **Last Updated**: March 24, 2026 (Session S175 — Edition 2024, health probes, ipc_resilience (RetryPolicy + CircuitBreaker), 14 proptest invariants, deny.toml hardened. 261 binaries, ~1,400 tests (1,211 lib + 73 forge + 80 playGround + 9 integration + 25 tokio), 465 `.rs` files, 216 barracuda import files, 68 modules, barraCuda v0.3.7, wgpu 28. ToadStool S146+, coralReef Iter 49. V125 handoff, 232+ named tolerances, upstream contract pinning)
-**BarraCUDA version**: `0.3.7` (path dep: `../barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. 806+ WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
+**BarraCUDA version**: `0.3.11` (path dep: `../../primals/barraCuda/crates/barracuda` — standalone primal, extracted from `ToadStool` at S89). Sprint 2 APIs (activations, rng, tridiagonal_ql), healthSpring domain, batched logsumexp, CoralReefDevice. 806+ WGSL shaders, wgpu 28, `PrecisionRoutingAdvice`, cross-spring provenance registry, typed errors, named constants
 **Purpose**: Map every barracuda capability we use, what we're missing, and the evolution path
 
 ### At a Glance (Session 130)

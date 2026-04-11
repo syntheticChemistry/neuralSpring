@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V126 — Session 176
+### V127 — Session 177
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V126** | `handoffs/NEURALSPRING_V126_DEEP_AUDIT_IPC_RESILIENCE_ENVIRONMENT_CENTRALIZATION_HANDOFF_MAR24_2026.md` | Mar 24, 2026 | Clippy zero-warning gate restored, provenance environment centralization, IPC resilience wired (RetryPolicy+CircuitBreaker → PetalTongue), GPU module refactor, integration test expansion (9→12, 49/49 provenance), doc reconciliation. ~1,403 tests. |
+| **V127** | `handoffs/NEURALSPRING_V127_NUCLEUS_COMPOSITION_VALIDATION_INFERENCE_WIRING_ECOBIN_HANDOFF_APR10_2026.md` | Apr 10, 2026 | NUCLEUS composition validation layer (3 validators, bonding policy, proto-nucleate graph), inference.* capability wiring, ecoBin harvest, barraCuda path correction, Precision exhaustiveness. ~1,392 tests, 264 binaries. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V125 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V126 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

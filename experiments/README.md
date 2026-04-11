@@ -1,6 +1,20 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S176)**: ~1,403 Rust tests, 68 modules, 261 binaries, 466 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`. `ValidationSink` pattern (JSON, NDJSON, collecting). IPC resilience wired. 12 integration tests (49/49 provenance). 27/27 papers complete. 5 novel composition experiments (Exp 097–101). 232+ named tolerances (Rust) + 80+ Python mirror. All capabilities unified. All validation harnesses on hotSpring pattern. `PipelineError` typed errors. 34 property tests. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.7, toadStool S146+, coralReef Iter 49. March 24, 2026.
+**Current state (Session S177)**: ~1,392 Rust tests, 68 modules, 264 binaries, 518 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`. NUCLEUS composition validation layer (3 validators, bonding policy, proto-nucleate graph). `inference.*` capabilities wired (niche, config, handlers, RPC, MCP). ecoBin harvest script. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. April 10, 2026.
+
+### Session S177 — 2026-04-10 (NUCLEUS Composition Validation — Proto-Nucleate, Inference, Discovery)
+
+- Proto-nucleate graph composition validator (`validate_nucleus_composition`) — validates bonding policy (Metallic/InternalNucleus), encryption tiers, capability coverage, 7-node proto-nucleate discovery sweep with honest skip (exit 2)
+- Inference chain composition validator (`validate_inference_composition`) — validates inference.* capability registration, Squirrel discovery, neuralSpring→Squirrel→provider chain
+- Capability-based primal discovery validator (`validate_primal_discovery`) — validates by_capability routing for 7 ecosystem primals, 5-tier socket discovery order
+- Composition validation infrastructure (`src/validation/composition.rs`) — `discover_primal_socket()`, `json_rpc_call()`, `probe_liveness()`, `probe_capabilities()`, `call_capability()`, `BondType` enum, `exit_code_skip_aware()`, proto-nucleate node descriptor
+- `inference.*` capability wiring across niche.rs, config.rs, handlers.rs, rpc_service.rs, mcp_tools.rs, capability_registry.toml
+- NUCLEUS bonding policy constants in niche.rs (bond type, trust model, encryption tiers per atomic boundary)
+- ecoBin build profile (release + ecobin with strip/LTO/codegen-units=1), harvest script for plasmidBin staging
+- CI composition-validation job (handles exit 2 honest skip)
+- barraCuda path correction (../../primals/barraCuda/) across all Cargo.toml files + CI checkout paths
+- Precision enum exhaustiveness (12 tiers) in compile_shader_universal
+- V127 handoff
 
 ### Session S176 — 2026-03-24 (Deep Audit — IPC Resilience, Environment Centralization, GPU Refactor)
 
