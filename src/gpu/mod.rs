@@ -34,9 +34,10 @@ use crate::error::GpuError;
 /// # Example
 ///
 /// ```no_run
-/// # async fn example() -> Result<(), GpuError> {
 /// use neural_spring::error::GpuError;
 /// use neural_spring::gpu::Gpu;
+///
+/// # async fn example() -> Result<(), GpuError> {
 ///
 /// let gpu = Gpu::new().await?;
 /// let buf = gpu.upload_f32(&[1.0, 2.0, 3.0])?;

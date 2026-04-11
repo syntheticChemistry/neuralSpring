@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-11 (Session 178: Composition Validation Phase, Three-Layer Stack)
+## [Unreleased] — 2026-04-11 (Session 179: S179/V129 status alignment; Session 178: Composition Validation Phase, Three-Layer Stack)
+
+### 2026-04-11 — Session S179 (Deploy graph proto-nucleate alignment, composition validation execution)
+
+- **Deploy graph proto-nucleate alignment**: `neuralspring_deploy.toml` V128→V129. Added coralReef (`shader.compile.wgsl`), barraCuda (`math.tensor`), Squirrel (`ai.query`) germination nodes. BearDog `by_capability` updated `crypto`→`security`. ToadStool updated to `compute.dispatch.submit`, NestGate to `storage.retrieve`. Graph metadata now declares `composition_model`, `bond_type`, `trust_model`, `transport`, `fragments`, `proto_nucleate` reference
+- **Capability surface reconciled**: `config::ALL_CAPABILITIES` expanded 18→26 to match `niche::CAPABILITIES`. `capabilities_provided` in deploy graph expanded from 14 science-only to full 26-capability niche surface. `operation_dependencies()` and `cost_estimates()` now cover all 26 capabilities
+- **Doctest fix**: `src/gpu/mod.rs` `GpuCapabilities` example — import ordering corrected (0 doctest failures, was 1)
+- **Provenance pinned**: `ANDERSON_MULTIAGENT_ENVIRONMENT` `"Python 3.12, NumPy, seed=42"` → `"Python 3.12.3, NumPy 2.2.6, seed=42"` with documented rationale
+- **Kokkos benchmark**: Provenance reclassified from `PLACEHOLDER` to `ESTIMATED` (honest status)
+- **`PRIMAL_GAPS.md` updated**: R3 (deploy graph alignment) and R4 (capability surface reconciliation) resolved
+- **Root docs, whitePaper, experiments, specs aligned**: All "current" status references updated S178→S179, V128→V129 across 12+ doc files
+- **V129 handoff**: Deploy graph alignment, composition metadata, primal absorption candidates. V127/V128 archived at central wateringHole
+- **~1,403+ tests** (1,225 lib + 73 forge + 80 playGround + 12 integration + 25 tokio), 264 binaries, 518 `.rs` files, 0 clippy, 0 fmt, 0 doctest failures, barraCuda v0.3.11
 
 ### 2026-04-11 — Session S178 (Composition validation phase: Python→Rust→NUCLEUS)
 

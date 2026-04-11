@@ -6,7 +6,7 @@
 > Reviewed against `neuralspring_inference_proto_nucleate.toml` v1.1.0.
 >
 > **Date:** 2026-04-11 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.9
-> **Session:** S178 — Composition validation phase
+> **Session:** S179 — Composition validation execution phase
 
 ---
 
@@ -251,3 +251,31 @@ source.
 (`validate_nucleus_composition`, `validate_inference_composition`) verify
 capability advertisement. Handlers return honest stubs until Squirrel is
 connected. Gap 1 re-scoped to "provider wiring" (upstream dependency).
+
+### R3. Deploy Graph Proto-Nucleate Alignment (resolved S179)
+
+**Original gap:** `neuralspring_deploy.toml` was missing coralReef, barraCuda,
+and Squirrel germination nodes. BearDog used `crypto` instead of `security`.
+`capabilities_provided` omitted `inference.*`, `health.*`, `provenance.*`,
+`capability.list`, `compute.offload`, `primal.*`. Version string was stale
+(S174). No composition metadata (bonding, fragments, transport).
+**Resolution:** S179 added all missing germination nodes (coralReef via
+`shader.compile.wgsl`, barraCuda via `math.tensor`, Squirrel via `ai.query`).
+BearDog now advertises `security` alongside `crypto`. `capabilities_provided`
+expanded to full 26-capability niche surface. Graph metadata now declares
+`composition_model`, `bond_type`, `trust_model`, `transport`, `fragments`,
+and `proto_nucleate` reference. Version updated to V129/S179. NestGate
+`by_capability` updated to `storage.retrieve` (was `storage`). ToadStool
+`by_capability` updated to `compute.dispatch.submit` (was `compute`).
+
+### R4. Capability Surface Reconciliation (resolved S179)
+
+**Original gap:** `config::ALL_CAPABILITIES` was a subset (18 entries) of
+`niche::CAPABILITIES` (26 entries), missing `provenance.*`, `primal.*`,
+`capability.list`, and `compute.offload`. `operation_dependencies()` and
+`cost_estimates()` did not cover all niche capabilities.
+**Resolution:** S179 expanded `ALL_CAPABILITIES` to 26 entries matching the
+full niche surface. Added `operation_dependencies()` entries for
+`primal.forward`, `primal.discover`, `capability.list`, `compute.offload`.
+Added `cost_estimates()` entries for `provenance.status`, `primal.forward`,
+`primal.discover`, `capability.list`, `compute.offload`.

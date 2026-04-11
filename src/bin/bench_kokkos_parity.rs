@@ -158,8 +158,8 @@ fn print_results(entries: &[KokkosEntry], adapter: &str) {
     println!("Compare median against groundSpring Kokkos-CUDA baseline.");
     println!("  <2×  = at parity    2-10× = dispatch overhead    >10× = structural gap");
     println!();
-    println!("⚠ PROVENANCE: Kokkos baselines are PLACEHOLDER (groundSpring V100 handoff).");
-    println!("  Real parity requires matched-hardware runs. See doc comment for details.");
+    println!("⚠ PROVENANCE: Kokkos baselines are ESTIMATED (groundSpring V100 handoff notes).");
+    println!("  Verified parity requires matched-hardware runs. See doc comment for protocol.");
     println!();
 
     println!("kernel\tscale\twarmup_us\tmedian_us\tmin_us\tcategory");

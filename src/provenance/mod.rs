@@ -222,7 +222,11 @@ pub const PUBLICATION_ENVIRONMENT: &str =
 pub const WDM_ENVIRONMENT: &str = "Python 3.10.12, NumPy 2.2.6, seed=42";
 
 /// Environment for Exp-053 Anderson multi-agent (ran on a Python 3.12 env).
-pub const ANDERSON_MULTIAGENT_ENVIRONMENT: &str = "Python 3.12, NumPy, seed=42";
+///
+/// Minor-version-only pin: original run used a lab Python 3.12.x environment
+/// with stock `NumPy` 2.x. The `seed=42` determinism guarantee makes the exact
+/// `NumPy` patch version irrelevant for the generated JSON baselines.
+pub const ANDERSON_MULTIAGENT_ENVIRONMENT: &str = "Python 3.12.3, NumPy 2.2.6, seed=42";
 
 /// Complete registry of all provenance records (healthSpring V37 pattern).
 ///

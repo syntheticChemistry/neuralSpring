@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S177)**: ~1,392 Rust tests, 68 modules, 264 binaries, 518 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`. NUCLEUS composition validation layer (3 validators, bonding policy, proto-nucleate graph). `inference.*` capabilities wired (niche, config, handlers, RPC, MCP). ecoBin harvest script. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. April 10, 2026.
+**Current state (Session S179)**: ~1,403+ Rust tests, 68 modules, 264 binaries, 518 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`. NUCLEUS composition validation layer (3 validators, bonding policy, proto-nucleate graph). `inference.*` capabilities wired (niche, config, handlers, RPC, MCP). ecoBin harvest script. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. Deploy graph V129/S179. April 11, 2026.
 
 ### Session S177 — 2026-04-10 (NUCLEUS Composition Validation — Proto-Nucleate, Inference, Discovery)
 

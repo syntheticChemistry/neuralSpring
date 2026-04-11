@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: April 11, 2026 (Session S178 — Composition validation phase: Python→Rust→NUCLEUS. Composition validators wired to validate_all with exit-2 honest skip. ~1,403+ tests: 1,225 lib + 73 forge + 80 playGround + 12 integration + 25 tokio. 264 binaries (261 science/GPU + 3 composition), 518 `.rs` files. 0 warnings. Cast lints denied. barraCuda v0.3.11.)
+**Last updated**: April 11, 2026 (Session S179 — Composition validation phase: Python→Rust→NUCLEUS. Composition validators wired to validate_all with exit-2 honest skip. ~1,403+ tests: 1,225 lib + 73 forge + 80 playGround + 12 integration + 25 tokio. 264 binaries (261 science/GPU + 3 composition), 518 `.rs` files. 0 warnings. Cast lints denied. barraCuda v0.3.11.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

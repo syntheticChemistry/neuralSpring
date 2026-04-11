@@ -120,11 +120,12 @@ pub const SOCKET_REGISTRY_FILENAME: &str = "socket-registry.json";
 
 /// Complete capability set advertised by neuralSpring via `capabilities.list`.
 ///
-/// Mirrors `config/capability_registry.toml` — the registry file is the
-/// canonical definition for biomeOS deploy graphs and tooling; this array
-/// is the compile-time equivalent for Rust code.  The test suite validates
-/// they stay in sync.
+/// Mirrors `config/capability_registry.toml` and `niche::CAPABILITIES` — the
+/// registry file is the canonical definition for biomeOS deploy graphs and
+/// tooling; this array is the compile-time equivalent for Rust code.  The
+/// test suite validates they stay in sync.
 pub const ALL_CAPABILITIES: &[&str] = &[
+    // Science domain
     "science.spectral_analysis",
     "science.anderson_localization",
     "science.hessian_eigen",
@@ -139,11 +140,25 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "science.cross_spring_provenance",
     "science.cross_spring_benchmark",
     "science.precision_routing",
+    // Health probes
     "health.liveness",
     "health.readiness",
+    // Inference (Squirrel composition)
     "inference.complete",
     "inference.embed",
     "inference.models",
+    // Provenance tracking
+    "provenance.begin",
+    "provenance.record",
+    "provenance.complete",
+    "provenance.status",
+    // Cross-primal routing
+    "primal.forward",
+    "primal.discover",
+    // Niche deployment surface
+    "capability.list",
+    // Compute offload (Node Atomic)
+    "compute.offload",
 ];
 
 #[cfg(test)]

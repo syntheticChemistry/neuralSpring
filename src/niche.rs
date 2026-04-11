@@ -128,6 +128,10 @@ pub fn operation_dependencies() -> serde_json::Value {
         "provenance.record":   ["session_id", "step_data"],
         "provenance.complete": ["session_id"],
         "provenance.status":   [],
+        "primal.forward":      ["capability", "params"],
+        "primal.discover":     [],
+        "capability.list":     [],
+        "compute.offload":     ["operation", "tensors"],
     })
 }
 
@@ -159,6 +163,11 @@ pub fn cost_estimates() -> serde_json::Value {
         "provenance.begin":    { "latency_ms": 10.0, "cpu": "low", "memory_bytes": 512 },
         "provenance.record":   { "latency_ms": 5.0,  "cpu": "low", "memory_bytes": 1024 },
         "provenance.complete": { "latency_ms": 50.0, "cpu": "medium", "memory_bytes": 2048 },
+        "provenance.status":   { "latency_ms": 1.0,  "cpu": "none", "memory_bytes": 256 },
+        "primal.forward":      { "latency_ms": 10.0, "cpu": "low", "memory_bytes": 2048 },
+        "primal.discover":     { "latency_ms": 1.0,  "cpu": "none", "memory_bytes": 512 },
+        "capability.list":     { "latency_ms": 0.1,  "cpu": "none", "memory_bytes": 256 },
+        "compute.offload":     { "latency_ms": 5.0,  "cpu": "low", "gpu": "preferred", "memory_bytes": 4096 },
     })
 }
 

@@ -1,26 +1,37 @@
 # neuralSpring Niche Deploy Graph
 # Canonical deploy graph following SPRING_AS_NICHE_DEPLOYMENT_STANDARD.md
 #
-# Deploys neuralSpring as an ML/spectral science provider atop a biomeOS
-# Tower Atomic (BearDog + Songbird). Optional Node (ToadStool) and Nest
-# (NestGate) dependencies are declared but gracefully skipped when absent.
+# Deploys neuralSpring as an ML/spectral science + inference provider atop
+# a biomeOS NUCLEUS composition.  Aligns with the proto-nucleate graph:
+#   primalSpring/graphs/downstream/neuralspring_inference_proto_nucleate.toml
+#
+# Fragments: tower_atomic, node_atomic, meta_tier
+# Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
 # Composable: other graphs can reference this as a sub-graph via depends_on.
 # biomeOS orchestrates germination order; Songbird provides IPC mesh.
 #
-# STATUS: V128 / S178 (April 11, 2026)
+# STATUS: V129 / S179 (April 11, 2026)
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
 [graph]
 id = "neuralspring_deploy"
-description = "neuralSpring ML/spectral science provider atop Tower Atomic"
+description = "neuralSpring ML/spectral science + inference provider atop NUCLEUS composition"
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S178"
+neuralspring_version = "S179"
 domain = "science"
 target_node = "eastgate"
+composition_model = "nucleated"
+bond_type = "Metallic"
+trust_model = "InternalNucleus"
+transport = "uds"
+tcp_ports = 0
+encryption_boundary = "tower"
+fragments = ["tower_atomic", "node_atomic", "meta_tier"]
+proto_nucleate = "neuralspring_inference_proto_nucleate"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 1: TOWER ATOMIC — BearDog (security) + Songbird (discovery)
@@ -29,10 +40,10 @@ target_node = "eastgate"
 [[nodes]]
 id = "germinate_beardog"
 output = "beardog_genesis"
-capabilities = ["crypto", "identity"]
+capabilities = ["security", "crypto", "identity"]
 
 [nodes.primal]
-by_capability = "crypto"
+by_capability = "security"
 
 [nodes.operation]
 name = "start"
@@ -72,8 +83,32 @@ FAMILY_ID = "${FAMILY_ID}"
 timeout_ms = 15000
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PHASE 2: OPTIONAL DEPENDENCIES — ToadStool (GPU) + NestGate (data/storage)
+# PHASE 2: NODE ATOMIC — coralReef (shader) + ToadStool (compute) + barraCuda (math)
 # ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "germinate_coralreef"
+depends_on = ["germinate_songbird"]
+output = "coralreef_genesis"
+capabilities = ["shader.compile"]
+
+[nodes.primal]
+by_capability = "shader.compile.wgsl"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 20000
+fallback = "skip"
 
 [[nodes]]
 id = "germinate_toadstool"
@@ -82,7 +117,7 @@ output = "toadstool_genesis"
 capabilities = ["compute"]
 
 [nodes.primal]
-by_capability = "compute"
+by_capability = "compute.dispatch.submit"
 
 [nodes.operation]
 name = "start"
@@ -101,13 +136,41 @@ timeout_ms = 30000
 fallback = "skip"
 
 [[nodes]]
+id = "germinate_barracuda"
+depends_on = ["germinate_songbird"]
+output = "barracuda_genesis"
+capabilities = ["math.tensor", "math.stats", "math.activation"]
+
+[nodes.primal]
+by_capability = "math.tensor"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 20000
+fallback = "skip"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2b: NEST ATOMIC — NestGate (storage) + Provenance Trio (optional)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
 id = "germinate_nestgate"
 depends_on = ["germinate_songbird"]
 output = "nestgate_genesis"
 capabilities = ["storage", "data"]
 
 [nodes.primal]
-by_capability = "storage"
+by_capability = "storage.retrieve"
 
 [nodes.operation]
 name = "start"
@@ -125,10 +188,6 @@ FAMILY_ID = "${FAMILY_ID}"
 [nodes.constraints]
 timeout_ms = 20000
 fallback = "skip"
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# PHASE 2b: PROVENANCE TRIO — rhizoCrypt + loamSpine + sweetGrass (optional)
-# ═══════════════════════════════════════════════════════════════════════════════
 
 [[nodes]]
 id = "germinate_rhizocrypt"
@@ -203,14 +262,42 @@ timeout_ms = 15000
 fallback = "skip"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PHASE 3: NEURALSPRING — ML/spectral science provider
+# PHASE 2c: META-TIER — Squirrel (AI/inference routing)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "germinate_squirrel"
+depends_on = ["germinate_songbird"]
+output = "squirrel_genesis"
+capabilities = ["ai.query", "inference"]
+
+[nodes.primal]
+by_capability = "ai.query"
+
+[nodes.operation]
+name = "start"
+
+[nodes.operation.params]
+mode = "server"
+family_id = "${FAMILY_ID}"
+
+[nodes.operation.environment]
+BIOMEOS_SOCKET_DIR = "${XDG_RUNTIME_DIR}/biomeos"
+FAMILY_ID = "${FAMILY_ID}"
+
+[nodes.constraints]
+timeout_ms = 20000
+fallback = "skip"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 3: NEURALSPRING — ML/spectral science + inference provider
 # ═══════════════════════════════════════════════════════════════════════════════
 
 [[nodes]]
 id = "germinate_neuralspring"
 depends_on = ["germinate_beardog", "germinate_songbird"]
 output = "neuralspring_genesis"
-capabilities = ["science"]
+capabilities = ["science", "inference"]
 
 [nodes.primal]
 by_capability = "science.spectral_analysis"
@@ -230,6 +317,7 @@ FAMILY_ID = "${FAMILY_ID}"
 timeout_ms = 15000
 
 [nodes.capabilities_provided]
+# Science domain
 "science.spectral_analysis" = "science.spectral_analysis"
 "science.anderson_localization" = "science.anderson_localization"
 "science.hessian_eigen" = "science.hessian_eigen"
@@ -244,6 +332,23 @@ timeout_ms = 15000
 "science.cross_spring_provenance" = "science.cross_spring_provenance"
 "science.cross_spring_benchmark" = "science.cross_spring_benchmark"
 "science.precision_routing" = "science.precision_routing"
+# Inference (Squirrel composition — proto-nucleate inference.*)
+"inference.complete" = "inference.complete"
+"inference.embed" = "inference.embed"
+"inference.models" = "inference.models"
+# Health probes (biomeOS/Kubernetes pattern)
+"health.liveness" = "health.liveness"
+"health.readiness" = "health.readiness"
+# Provenance tracking
+"provenance.begin" = "provenance.begin"
+"provenance.record" = "provenance.record"
+"provenance.complete" = "provenance.complete"
+"provenance.status" = "provenance.status"
+# Niche deployment surface
+"capability.list" = "capability.list"
+"compute.offload" = "compute.offload"
+"primal.forward" = "primal.forward"
+"primal.discover" = "primal.discover"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 4: VALIDATION — health check the deployed niche
@@ -275,7 +380,7 @@ name = "capability_call"
 
 [nodes.operation.params]
 capability = "provenance.session_create"
-params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S174", family_id = "neuralspring" }
+params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S179", family_id = "neuralspring" }
 
 [nodes.constraints]
 timeout_ms = 10000

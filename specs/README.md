@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: April 11, 2026 (Sessions 44–178 — S178: Composition validation phase, Python→Rust→NUCLEUS three-layer stack. ~1,403+ tests: 1,225 lib + 73 forge + 80 playGround + 14 integration. 264 binaries, 518 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
+**Last Updated**: April 11, 2026 (Sessions 44–179 — S179: Composition validation phase, Python→Rust→NUCLEUS three-layer stack. ~1,403+ tests: 1,225 lib + 73 forge + 80 playGround + 14 integration. 264 binaries, 518 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
 **Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU + 3 composition = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 264 binaries (261 science/GPU + 3 composition), ~1,225 lib tests (workspace total ~1,403+), Python→Rust→NUCLEUS validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
@@ -47,7 +47,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V127 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V129 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 
@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V127 handoff (current, Sessions 176–177) |
+| wateringHole/handoffs/ | `../wateringHole/` | V129 handoff (current, Sessions 176–179) |
 
 ---
 
