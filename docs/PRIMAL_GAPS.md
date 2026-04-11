@@ -6,7 +6,8 @@
 > Reviewed against `neuralspring_inference_proto_nucleate.toml` v1.1.0.
 >
 > **Date:** 2026-04-11 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.9
-> **Session:** S180 — Composition evolution: deployment triad, MCP, identity
+> **Session:** S181 — Composition evolution: full capability surface, Squirrel
+> routing, Tower discovery, Tier 3 validation binary, `composed` feature gate
 
 ---
 
@@ -24,9 +25,10 @@ wired and validated | `deferred` — blocked on upstream primal
 
 ## 1. Inference Capability Surface (`inference.*`)
 
-**Status:** wip (surface wired, provider stub)
+**Status:** wip (Squirrel routing wired, provider registration pending)
 **Proto-nucleate declares:** `inference.complete`, `inference.embed`, `inference.models`
-**Current state (S178):** All three method strings are registered and wired:
+**Current state (S181):** All three method strings are registered, wired,
+and now route through Squirrel when discovered:
 - `src/niche.rs`: `CAPABILITIES` array includes all three `inference.*` methods,
   with `operation_dependencies()` and `cost_estimates()` entries.
 - `src/config.rs`: `ALL_CAPABILITIES` includes `inference.*` (unit-tested
@@ -34,11 +36,13 @@ wired and validated | `deferred` — blocked on upstream primal
 - `config/capability_registry.toml`: All three declared with descriptions.
 - `src/rpc_service.rs`: tarpc service trait defines `inference_complete`,
   `inference_embed`, `inference_models` with typed request/response structs.
-- `src/bin/neuralspring_primal/handlers.rs`: JSON-RPC handlers return
-  `"provider": "stub", "status": "not_yet_wired"` — honest stubs pending
-  Squirrel provider connection.
+- `src/bin/neuralspring_primal/handlers.rs`: JSON-RPC handlers now attempt
+  Squirrel discovery via `try_squirrel_route()` — if Squirrel is running,
+  inference requests are forwarded. Falls back to stub with
+  `"status": "squirrel_unavailable"` when Squirrel is not present.
 - Composition validators (`validate_inference_composition`,
-  `validate_nucleus_composition`) verify capability advertisement.
+  `validate_nucleus_composition`, `validate_composition_evolution`) verify
+  capability advertisement and live IPC probing.
 
 **What remains:**
 - Squirrel provider registration (`inference.register_provider`) so Squirrel
@@ -46,7 +50,6 @@ wired and validated | `deferred` — blocked on upstream primal
 - WGSL tokenization pipeline (forward pass as shader composition through
   coralReef → toadStool → barraCuda)
 - Model weight loading via NestGate (`storage.retrieve`)
-- Replace stub handlers with live Squirrel routing
 
 **Blocked on:**
 - Squirrel `inference.register_provider` wire — does this method exist yet?
@@ -138,32 +141,36 @@ dispatches via `barracuda::dispatch` (local).
 
 ## 6. BearDog/Songbird Tower Integration
 
-**Status:** open
+**Status:** wip (discovery probing wired, BTSP session pending)
 **Proto-nucleate declares:** BearDog (crypto) + Songbird (discovery) as
 Tower Atomic foundation
-**Current state:** `primal_names.rs` has discovery hint constants. No
-runtime integration with BearDog signing or Songbird mesh.
+**Current state (S181):** `primal_names.rs` has discovery hint constants.
+`src/bin/neuralspring_primal/tower.rs` probes BearDog and Songbird at
+startup via capability-based socket discovery with `health.liveness`
+checks. Logs Tower Atomic status (complete/partial/standalone).
+`validate_composition_evolution.rs` validates Tower nodes in Phase 3.
 
-**What is needed:**
+**What remains:**
 - BTSP session establishment for composed-mode IPC
 - Songbird-based primal discovery instead of filesystem socket scanning
 - Signed capability announcements
 
-**Hand back to:** BearDog, Songbird, primalSpring (Tower Atomic validation)
+**Hand back to:** BearDog (BTSP wire), Songbird (mesh discovery),
+primalSpring (Tower Atomic validation)
 
 ---
 
 ## 7. Proto-nucleate Fragment Inconsistency
 
-**Status:** open
+**Status:** resolved (S181 — local deploy graph; upstream pending)
 **Details:** The proto-nucleate graph declares
 `fragments = ["tower_atomic", "node_atomic", "meta_tier"]` but includes
-NestGate as a node. If NestGate is part of the composition, `nest_atomic`
-should be in the fragment list. NestGate is marked `required = false`
-(optional) which may explain the omission, but the fragment list should
-document this explicitly.
+NestGate as a node. Local deploy graph
+(`graphs/neuralspring_deploy.toml`) now includes `nest_atomic` in its
+fragment list (fixed in R7/S180, header comment fixed in S181).
+Upstream proto-nucleate in primalSpring may still need reconciliation.
 
-**Hand back to:** primalSpring (graph authoring)
+**Hand back to:** primalSpring (upstream proto-nucleate graph fragment list)
 
 ---
 

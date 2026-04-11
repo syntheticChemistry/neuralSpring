@@ -73,6 +73,7 @@ tarpc = { version = "0.37", features = ["tokio1", "serde-transport"], optional =
 [features]
 default = []
 primal = ["anyhow", "clap", "env_logger", "tarpc"]
+composed = ["primal"]
 
 [dev-dependencies]
 approx = "0.5"
@@ -1230,6 +1231,10 @@ path = "src/bin/validate_inference_composition.rs"
 [[bin]]
 name = "validate_primal_discovery"
 path = "src/bin/validate_primal_discovery.rs"
+
+[[bin]]
+name = "validate_composition_evolution"
+path = "src/bin/validate_composition_evolution.rs"
 
 # ── ecoBin release profiles ────────────────────────────────────────
 

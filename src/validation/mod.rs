@@ -191,14 +191,21 @@ impl ValidationHarness {
         } else {
             abs_err
         };
-        let passed = abs_err < tolerance || rel_err < tolerance;
+        let abs_pass = abs_err < tolerance;
+        let rel_pass = rel_err < tolerance;
+        let passed = abs_pass || rel_pass;
+        let mode = if abs_pass {
+            ToleranceMode::Absolute
+        } else {
+            ToleranceMode::Relative
+        };
         self.checks.push(Check {
             label: Cow::Owned(label.to_owned()),
             passed,
             observed,
             expected,
             tolerance,
-            mode: ToleranceMode::Absolute,
+            mode,
         });
     }
 

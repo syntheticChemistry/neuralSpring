@@ -39,6 +39,7 @@ mod folding;
 mod handlers;
 mod rpc;
 mod spectral;
+mod tower;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -275,6 +276,8 @@ async fn main() -> Result<()> {
     for cap in ALL_CAPABILITIES {
         log::debug!("  {cap}");
     }
+
+    tower::probe_tower_atomic();
 
     biomeos::register_with_biomeos(&socket_path).await;
 

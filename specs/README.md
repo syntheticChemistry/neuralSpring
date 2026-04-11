@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: April 11, 2026 (Sessions 44–180 — S180: Composition evolution, deployment triad, MCP tool parity, upstream graph reconciliation. 1,378 tests: 1,225 lib + 73 forge + 80 playGround. 264 binaries, 505 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
-**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU + 3 composition = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 264 binaries (241 validate + 18 bench + 5 other), ~1,378 workspace tests, Python→Rust→NUCLEUS→Primal composition validation stack
+**Last Updated**: April 11, 2026 (Sessions 44–181 — S181: Full composition evolution, 30-capability surface, Squirrel routing, Tower discovery, Tier 3 validator. 1,225+ lib + 73 forge + 80 playGround tests. 265 binaries, 520 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
+**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU + 4 composition = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 265 binaries (242 validate + 18 bench + 5 other), 1,225+ lib tests, Python→Rust→NUCLEUS→Primal four-layer validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---

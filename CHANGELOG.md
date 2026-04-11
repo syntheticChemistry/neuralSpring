@@ -5,7 +5,23 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-11 (Session 180: Composition Evolution, Deployment Triad, MCP Parity, Upstream Reconciliation)
+## [Unreleased] — 2026-04-11 (Session 181: Full Capability Surface, Squirrel Routing, Tower Discovery, Tier 3 Validation)
+
+### 2026-04-11 — Session S181 (Composition evolution: full capability surface, Squirrel routing, Tower discovery, Tier 3 validation)
+
+- **Full capability surface**: `ALL_CAPABILITIES` expanded 27 → 30 (`health.check`, `identity.get`, `mcp.tools.list`). Every dispatched method is now registered, discoverable via `capability.list`, and present in biomeOS `capability.register` loop. `niche::CAPABILITIES`, `config::ALL_CAPABILITIES`, `capability_registry.toml`, and MCP tool definitions (30) all in sync
+- **Squirrel routing**: Inference handlers (`inference.complete`, `inference.embed`, `inference.models`) now attempt Squirrel discovery via `try_squirrel_route()` — forwards to Squirrel when running, falls back to stub with `"status": "squirrel_unavailable"` when absent. Replaces static `"not_yet_wired"` stubs
+- **Tower Atomic discovery**: `src/bin/neuralspring_primal/tower.rs` probes BearDog + Songbird at startup via capability-based socket discovery + `health.liveness`. Logs Tower status (complete/partial/standalone). Non-blocking
+- **Tier 3 composition validator**: `validate_composition_evolution.rs` — validates science→primal→NUCLEUS coherence: capability surface completeness, deploy graph alignment, proto-nucleate IPC wiring, inference evolution readiness, health triad probes. 265 binaries total
+- **`composed` feature gate**: Cargo feature `composed` (implies `primal`) for future IPC-only composition paths
+- **ToadStoolClient fix**: Discovery capability `compute.submit` → `compute.dispatch.submit` (aligns with proto-nucleate and deploy graph)
+- **Deploy graph V131/S181**: Header comment includes `nest_atomic` fragment, provenance session version updated S179→S181
+- **Tolerance forensics**: `check_abs_or_rel` now records the actual tolerance mode (Absolute vs Relative) that satisfied the check, not always Absolute
+- **Clippy zero-warning**: Fixed 3 pre-existing `doc_markdown` warnings in `handlers.rs` and `rpc.rs`
+- **BARRACUDA_REQUIREMENTS.md**: Version references updated v0.3.7 → v0.3.11
+- **PRIMAL_GAPS.md**: Gap 1 updated (Squirrel routing wired), Gap 6 updated (Tower discovery), Gap 7 resolved (fragment list). Session S181
+- **MCP tool definitions**: 27 → 30 (`health.check`, `identity.get`, `mcp.tools.list`), domains `identity` and `mcp` added to valid set
+- **1,225+ lib tests passing**, 265 binaries, 520 `.rs` files, 0 clippy, 0 fmt warnings, barraCuda v0.3.11
 
 ### 2026-04-11 — Session S180 (Composition evolution: deployment triad, identity, MCP, upstream reconciliation)
 

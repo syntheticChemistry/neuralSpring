@@ -59,10 +59,10 @@ pub const ENCRYPTION_TIER_META: &str = "tower_delegated";
 
 /// All capabilities this niche exposes to biomeOS.
 ///
-/// Re-exports `config::ALL_CAPABILITIES` and adds niche-infrastructure
-/// capabilities (provenance, data forwarding, compute offload).
+/// Mirrors `config::ALL_CAPABILITIES` exactly — the test suite validates
+/// parity between this array, the config constant, and the TOML registry.
 pub const CAPABILITIES: &[&str] = &[
-    // ── Science domain (from config::ALL_CAPABILITIES) ──
+    // ── Science domain ──
     "science.spectral_analysis",
     "science.anderson_localization",
     "science.hessian_eigen",
@@ -77,9 +77,10 @@ pub const CAPABILITIES: &[&str] = &[
     "science.cross_spring_provenance",
     "science.cross_spring_benchmark",
     "science.precision_routing",
-    // ── Health probes (biomeOS/Kubernetes pattern) ──
+    // ── Health probes (DEPLOYMENT_VALIDATION_STANDARD triad) ──
     "health.liveness",
     "health.readiness",
+    "health.check",
     // ── Provenance trio (biomeOS composition) ──
     "provenance.begin",
     "provenance.record",
@@ -96,6 +97,9 @@ pub const CAPABILITIES: &[&str] = &[
     "capability.list",
     // ── Compute offload (Node Atomic) ──
     "compute.offload",
+    // ── Identity + MCP (T4 discovery, composition pattern) ──
+    "identity.get",
+    "mcp.tools.list",
 ];
 
 /// Operation dependency hints for biomeOS Pathway Learner parallelization.
@@ -132,6 +136,9 @@ pub fn operation_dependencies() -> serde_json::Value {
         "primal.discover":     [],
         "capability.list":     [],
         "compute.offload":     ["operation", "tensors"],
+        "health.check":        [],
+        "identity.get":        [],
+        "mcp.tools.list":      [],
     })
 }
 
@@ -168,6 +175,9 @@ pub fn cost_estimates() -> serde_json::Value {
         "primal.discover":     { "latency_ms": 1.0,  "cpu": "none", "memory_bytes": 512 },
         "capability.list":     { "latency_ms": 0.1,  "cpu": "none", "memory_bytes": 256 },
         "compute.offload":     { "latency_ms": 5.0,  "cpu": "low", "gpu": "preferred", "memory_bytes": 4096 },
+        "health.check":        { "latency_ms": 0.2,  "cpu": "none", "memory_bytes": 128 },
+        "identity.get":        { "latency_ms": 0.1,  "cpu": "none", "memory_bytes": 256 },
+        "mcp.tools.list":      { "latency_ms": 0.2,  "cpu": "none", "memory_bytes": 512 },
     })
 }
 

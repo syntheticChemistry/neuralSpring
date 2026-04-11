@@ -124,3 +124,15 @@ description = "List all capabilities this niche exposes to biomeOS"
 [capabilities.compute_offload]
 method = "compute.offload"
 description = "Node Atomic compute offload via dispatcher (GPU/CPU routing)"
+
+[capabilities.health_check]
+method = "health.check"
+description = "Combined health triad check (liveness + readiness in one call)"
+
+[capabilities.identity_get]
+method = "identity.get"
+description = "T4 primal identity: name, niche, version, domain, license, capabilities"
+
+[capabilities.mcp_tools_list]
+method = "mcp.tools.list"
+description = "MCP tool registry: all capabilities as discoverable tools with schemas"

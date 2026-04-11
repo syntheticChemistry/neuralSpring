@@ -346,6 +346,29 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
                 }
             }),
         },
+        // ── Identity + MCP (T4 discovery, composition pattern) ──────
+        McpToolDef {
+            name: "identity.get",
+            description: "T4 primal identity for biomeOS discovery: returns primal name, niche, \
+                          version, domain, license, and full capability list.",
+            domain: "identity",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        McpToolDef {
+            name: "mcp.tools.list",
+            description: "MCP tool registry: lists every advertised capability as a tool with \
+                          domain grouping for Squirrel and MCP adapter consumption.",
+            domain: "mcp",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        // ── Health triad (combined check) ───────────────────────────
+        McpToolDef {
+            name: "health.check",
+            description: "Combined health triad: liveness + readiness in a single probe for \
+                          benchScale, plasmidBin smoke tests, and composition validators.",
+            domain: "health",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
     ]
 }
 
@@ -367,7 +390,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 27);
+        assert_eq!(tools.len(), 30);
     }
 
     #[test]
@@ -392,6 +415,8 @@ mod tests {
             "primal",
             "capability",
             "compute",
+            "identity",
+            "mcp",
         ];
         for tool in tool_definitions() {
             assert!(

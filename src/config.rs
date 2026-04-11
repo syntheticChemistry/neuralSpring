@@ -140,9 +140,10 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "science.cross_spring_provenance",
     "science.cross_spring_benchmark",
     "science.precision_routing",
-    // Health probes
+    // Health probes (DEPLOYMENT_VALIDATION_STANDARD triad)
     "health.liveness",
     "health.readiness",
+    "health.check",
     // Inference (Squirrel composition)
     "inference.complete",
     "inference.embed",
@@ -159,6 +160,9 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "capability.list",
     // Compute offload (Node Atomic)
     "compute.offload",
+    // Identity + MCP (T4 discovery, composition pattern)
+    "identity.get",
+    "mcp.tools.list",
 ];
 
 #[cfg(test)]

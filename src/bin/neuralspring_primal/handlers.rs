@@ -4,7 +4,7 @@
 
 use super::discovery::{discover_data_primal_and_forward, forward_to_primal};
 use super::rpc::{self, JsonRpcResponse};
-use super::{ALL_CAPABILITIES, PRIMAL_NAME, PrimalState};
+use super::{PRIMAL_NAME, PrimalState};
 
 use neural_spring::config::ALL_CAPABILITIES;
 use neural_spring::niche;
@@ -47,7 +47,7 @@ pub fn handle_readiness(id: serde_json::Value, state: &PrimalState) -> JsonRpcRe
     )
 }
 
-/// Combined health check (DEPLOYMENT_VALIDATION_STANDARD triad).
+/// Combined health check (`DEPLOYMENT_VALIDATION_STANDARD` triad).
 /// Returns liveness + readiness in a single response for benchScale and
 /// plasmidBin smoke tests.
 pub fn handle_health_check(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
@@ -70,7 +70,7 @@ pub fn handle_health_check(id: serde_json::Value, state: &PrimalState) -> JsonRp
     )
 }
 
-/// Primal identity for T4 discovery (ECOSYSTEM_COMPLIANCE_MATRIX).
+/// Primal identity for T4 discovery (`ECOSYSTEM_COMPLIANCE_MATRIX`).
 pub fn handle_identity_get(id: serde_json::Value) -> JsonRpcResponse {
     JsonRpcResponse::success(
         id,
@@ -256,12 +256,32 @@ pub fn handle_primal_discover(id: serde_json::Value) -> JsonRpcResponse {
     )
 }
 
+/// Discover Squirrel's socket and forward an inference request.
+///
+/// Returns `None` if Squirrel is not running or the call fails, allowing
+/// the caller to fall back to a stub response.
+fn try_squirrel_route(method: &str, params: &serde_json::Value) -> Option<serde_json::Value> {
+    use neural_spring::primal_names;
+    use neural_spring::validation::composition;
+    use std::time::Duration;
+
+    let socket = match composition::discover_primal_socket(primal_names::SQUIRREL) {
+        composition::DiscoveryResult::Found(path) => path,
+        composition::DiscoveryResult::NotFound { .. } => return None,
+    };
+    composition::json_rpc_call(&socket, method, params, Duration::from_secs(30)).ok()
+}
+
 /// Inference completion — routes through Squirrel when available, otherwise
 /// returns a stub indicating the provider is not yet wired.
 pub fn handle_inference_complete(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
+    if let Some(result) = try_squirrel_route("inference.complete", params) {
+        return JsonRpcResponse::success(id, result);
+    }
+
     let prompt = params.get("prompt").and_then(|v| v.as_str()).unwrap_or("");
     let model = params
         .get("model")
@@ -276,9 +296,9 @@ pub fn handle_inference_complete(
             "model": model,
             "provider": "stub",
             "truncated": false,
-            "status": "not_yet_wired",
+            "status": "squirrel_unavailable",
             "message": format!(
-                "inference.complete registered but Squirrel provider not yet connected. \
+                "inference.complete: Squirrel not discovered, returning stub. \
                  Prompt length: {} chars, model: {model}",
                 prompt.len()
             ),
@@ -291,6 +311,10 @@ pub fn handle_inference_embed(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
+    if let Some(result) = try_squirrel_route("inference.embed", params) {
+        return JsonRpcResponse::success(id, result);
+    }
+
     let text = params.get("text").and_then(|v| v.as_str()).unwrap_or("");
     let model = params
         .get("model")
@@ -304,9 +328,9 @@ pub fn handle_inference_embed(
             "dimensions": 0,
             "model": model,
             "provider": "stub",
-            "status": "not_yet_wired",
+            "status": "squirrel_unavailable",
             "message": format!(
-                "inference.embed registered but Squirrel provider not yet connected. \
+                "inference.embed: Squirrel not discovered, returning stub. \
                  Text length: {} chars, model: {model}",
                 text.len()
             ),
@@ -314,16 +338,20 @@ pub fn handle_inference_embed(
     )
 }
 
-/// List available inference models — stub until Squirrel provider is wired.
+/// List available inference models — routes through Squirrel, falls back to stub.
 pub fn handle_inference_models(id: serde_json::Value) -> JsonRpcResponse {
+    if let Some(result) = try_squirrel_route("inference.models", &serde_json::json!({})) {
+        return JsonRpcResponse::success(id, result);
+    }
+
     JsonRpcResponse::success(
         id,
         serde_json::json!({
             "models": [],
             "provider": "stub",
-            "status": "not_yet_wired",
-            "message": "inference.models registered but Squirrel provider not yet connected. \
-                        Models will be discovered via Squirrel once wired.",
+            "status": "squirrel_unavailable",
+            "message": "inference.models: Squirrel not discovered. \
+                        Models will be available when Squirrel routes to a provider.",
         }),
     )
 }

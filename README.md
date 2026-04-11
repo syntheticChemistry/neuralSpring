@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 11, 2026 (Session S180 — Composition evolution: deployment health triad, identity.get, mcp.tools.list, iterative method normalization, MCP tool parity (27/27), deploy graph V130/S180 with nest_atomic, primalSpring + plasmidBin graph and metadata reconciliation, upstream capability set alignment).
+**Last updated**: April 11, 2026 (Session S181 — Composition evolution: full 30-capability surface, Squirrel inference routing, Tower Atomic startup discovery, Tier 3 composition validator, `composed` feature gate, ToadStool capability fix, tolerance forensics, deploy graph V131/S181. 1,225+ lib tests, 265 binaries, 520 `.rs` files. V131 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -46,9 +46,9 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
 
-**S180: Composition evolution — deployment health triad (`health.check`), T4 discovery (`identity.get`), MCP tool listing on primal surface (`mcp.tools.list`), iterative multi-prefix method normalization, 27/27 MCP tool definitions, deploy graph `nest_atomic` fragment, primalSpring graph reconciliation (binary name, health method, capability set), plasmidBin metadata refresh (30 capabilities, correct version/domain). 1,378 tests, 264 binaries, 505 `.rs` files. V130 handoff.**
+**S181: Full composition evolution — 30-capability surface (health.check + identity.get + mcp.tools.list now in ALL_CAPABILITIES), Squirrel inference routing (try_squirrel_route fallback), Tower Atomic startup discovery (BearDog + Songbird liveness probes), Tier 3 `validate_composition_evolution` (5-phase coherence validator), `composed` feature gate, ToadStool discovery fix (compute.dispatch.submit), tolerance forensics (check_abs_or_rel mode accuracy), deploy graph V131/S181. 1,225+ lib tests, 265 binaries, 520 `.rs` files. V131 handoff.**
 
-**S179: Composition validation — PRIMAL_GAPS.md reconciled (10 gaps, 4 resolved), deploy graph V129/S179, capability surface expanded to 26 entries, version strings aligned to barraCuda v0.3.11, primal IPC wiring status documented.**
+**S180: Composition evolution — deployment health triad (`health.check`), T4 discovery (`identity.get`), MCP tool listing on primal surface (`mcp.tools.list`), iterative multi-prefix method normalization, 27/27 MCP tool definitions, deploy graph `nest_atomic` fragment, primalSpring graph reconciliation (binary name, health method, capability set), plasmidBin metadata refresh (30 capabilities, correct version/domain). 1,378 tests, 264 binaries, 505 `.rs` files. V130 handoff.**
 
 **S177–S178: NUCLEUS composition validation — proto-nucleate graph validator (`validate_nucleus_composition`), inference chain validator (`validate_inference_composition`), capability-based discovery validator (`validate_primal_discovery`), bonding policy (Metallic/InternalNucleus), composition infrastructure (`validation::composition` — 5-tier socket discovery, JSON-RPC probes, honest skip exit 2), `inference.*` capability wiring (niche, config, handlers, rpc_service, MCP tools), ecoBin harvest script (`scripts/harvest_ecobin.sh`), CI composition-validation job. V127–V128 handoffs.**
 

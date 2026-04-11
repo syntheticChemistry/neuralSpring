@@ -1,8 +1,9 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: April 11, 2026 (Session S180)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 264 binaries, 505 `.rs` files, **1,378 Rust tests**, 68 modules, **232+** named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery+cast deny, workspace-wide), zero fmt, zero doc warnings, zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. **Python→Rust→NUCLEUS→Primal four-layer validation stack** — composition validators wired to validate_all, primal speaks full deployment standard (health triad, identity, MCP). `inference.*` capabilities wired (stub, pending Squirrel). ecoBin harvest. Edition 2024, MSRV 1.87. **V130 handoff**. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49.
+**Last Updated**: April 11, 2026 (Session S181)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 265 binaries, 520 `.rs` files, **1,225+ lib + 73 forge + 80 playGround tests**, 68 modules, **232+** named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery+cast deny, workspace-wide), zero fmt, zero doc warnings, zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. **Python→Rust→NUCLEUS→Primal four-layer validation stack** — 4 composition validators, primal speaks full deployment standard (30 capabilities: health triad, identity, MCP, Squirrel routing, Tower discovery). `inference.*` routed through Squirrel (try_squirrel_route fallback). ecoBin harvest. Edition 2024, MSRV 1.87. **V131 handoff**. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49.
 
+- **S181 (Apr 11, 2026)**: Full composition evolution — 30-capability surface (health.check, identity.get, mcp.tools.list added to ALL_CAPABILITIES), Squirrel inference routing (try_squirrel_route fallback), Tower Atomic startup discovery (BearDog + Songbird probes), Tier 3 `validate_composition_evolution` validator, `composed` feature gate, ToadStool discovery fix, tolerance forensics, deploy graph V131/S181. V131 handoff.
 - **S180 (Apr 11, 2026)**: Composition evolution — deployment health triad (`health.check`), T4 discovery (`identity.get`), `mcp.tools.list` on primal, iterative method normalization, 27/27 MCP tool definitions, deploy graph `nest_atomic`, primalSpring graph reconciliation, plasmidBin metadata refresh. V130 handoff.
 - **S179 (Apr 11, 2026)**: Composition validation — PRIMAL_GAPS.md reconciled (10 gaps, 4 resolved), deploy graph V129, capability surface expanded to 26, version strings aligned. V129 handoff.
 - **S178 (Apr 11, 2026)**: Composition validation phase — three-layer stack (Python→Rust→NUCLEUS). `validate_all` wired with 3 composition validators + exit-2 honest skip. `PRIMAL_GAPS.md` reconciled (inference.* wip, binary naming resolved). Version strings aligned to barraCuda v0.3.11. Deploy graph V128/S178. V128 handoff.
@@ -57,10 +58,12 @@ Layer 2 — Compute Sovereignty (Rust validates GPU/WGSL):
     → f64/df64 precision dispatch → cross-substrate (RTX 4070 + TITAN V NVK)
 
 Layer 3 — NUCLEUS Composition (Rust+Python validate primal IPC):
-  niche.rs (identity + 27 capabilities) → biomeOS registration
+  niche.rs (identity + 30 capabilities) → biomeOS registration
     → health triad (liveness + readiness + check) → identity.get (T4)
-      → mcp.tools.list (27 tools) → capability.list → composition validators
-        → proto-nucleate graph alignment → deploy graph (V130, nest_atomic)
+      → mcp.tools.list (30 tools) → capability.list → 4 composition validators
+        → proto-nucleate graph alignment → deploy graph (V131, nest_atomic)
+          → Squirrel inference routing (try_squirrel_route fallback)
+            → Tower Atomic discovery (BearDog + Songbird probes at startup)
 
 Layer 4 — Deployment (plasmidBin + benchScale validate ecoBin):
   harvest ecoBin → plasmidBin metadata (30 capabilities) → fetch + smoke
@@ -69,7 +72,8 @@ Layer 4 — Deployment (plasmidBin + benchScale validate ecoBin):
 
 Edition 2024 (S163): All 3 workspace crates on Rust 2024. Proptest invariants
 (softmax, entropy, relu, rk4). `ipc_resilience` (RetryPolicy + CircuitBreaker)
-for transient IPC failures. Deployment health triad (S180).
+for transient IPC failures. Deployment health triad (S180). Squirrel routing +
+Tower Atomic discovery (S181). Tier 3 composition evolution validator (S181).
 
 ## Briefings
 

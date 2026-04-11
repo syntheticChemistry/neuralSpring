@@ -1,6 +1,20 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S180)**: 1,378 Rust tests, 68 modules, 264 binaries, 505 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. NUCLEUS composition evolution: deployment health triad, T4 identity, MCP tool listing on primal, 27/27 MCP tool definitions, iterative method normalization, deploy graph V130 with `nest_atomic`, primalSpring + plasmidBin reconciliation. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. April 11, 2026.
+**Current state (Session S181)**: 1,225+ lib + 73 forge + 80 playGround tests, 68 modules, 265 binaries, 520 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. NUCLEUS composition evolution: 30-capability surface, Squirrel inference routing, Tower Atomic discovery, Tier 3 composition validator, deploy graph V131. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. April 11, 2026.
+
+### Session S181 — 2026-04-11 (Full Composition Evolution — Squirrel Routing, Tower Discovery, Tier 3 Validator)
+
+- **30-capability surface** — `health.check`, `identity.get`, `mcp.tools.list` added to `ALL_CAPABILITIES`, niche `CAPABILITIES`, `capability_registry.toml`, and MCP tool definitions (27→30)
+- **Squirrel inference routing** — `try_squirrel_route` dynamic fallback in `handlers.rs` for `inference.complete`/`embed`/`models` — discovers Squirrel via `inference.route` capability, forwards via JSON-RPC, falls back to stub on discovery failure
+- **Tower Atomic startup discovery** — `tower.rs` module in `neuralspring_primal/` probes `BearDog` (security) + `Songbird` (discovery mesh) via `capability.security.attest`/`discovery.mesh.join`, reports Tower readiness at startup
+- **Tier 3 `validate_composition_evolution`** — 5-phase coherence validator: capability surface completeness, deploy graph alignment, proto-nucleate IPC wiring, inference evolution readiness, health triad probes
+- **`composed` feature gate** — `composed = ["primal"]` in Cargo.toml for composition-dependent validators
+- **ToadStool discovery fix** — `compute.submit` → `compute.dispatch.submit` in `toadstool_client.rs`
+- **Tolerance forensics** — `check_abs_or_rel` in `validation/mod.rs` now correctly records `ToleranceMode::Absolute` vs `Relative`
+- **Deploy graph V131/S181** — version strings updated, `nest_atomic` in fragment list comment
+- **Clippy clean** — `doc_markdown` backtick fixes in `tower.rs`, `handlers.rs`, `rpc.rs`; `equatable_if_let`, `redundant_closure_for_method_calls` in validator
+- `docs/PRIMAL_GAPS.md` updated: Gap 1 (Squirrel routing wired), Gap 6 (Tower discovery wired), Gap 7 (fragment resolved)
+- Full `cargo test --workspace` + `cargo clippy --workspace` green
 
 ### Session S180 — 2026-04-11 (Composition Evolution — Deployment Triad, MCP, Identity, Upstream Reconciliation)
 

@@ -54,7 +54,7 @@ impl JsonRpcResponse {
 /// so that `neuralspring.science.ipr`, `neural-spring.science.ipr`, and
 /// `science.ipr` all resolve to `science.ipr`.
 ///
-/// Follows SPRING_COMPOSITION_PATTERNS §1 iterative multi-prefix strip.
+/// Follows `SPRING_COMPOSITION_PATTERNS` §1 iterative multi-prefix strip.
 /// Mirrors `barracuda-core::ipc::methods::normalize_method` per ecosystem
 /// convention (wetSpring V132, loamSpine v0.9.8, barraCuda v0.3.7).
 pub fn normalize_method(method: &str) -> &str {

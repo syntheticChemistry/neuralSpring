@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 264 binaries, **Python→Rust→NUCLEUS→Primal four-layer validation stack**. coralForge unified. 232+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,378 tests (1,225 lib + 73 forge + 80 playGround). 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.11, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 27 capabilities, deployment health triad, MCP parity. ecoBin compliant.
-**Date**: April 11, 2026 (Sessions 40–180 — S180: Composition evolution, deployment triad, MCP parity, deploy graph V130/S180. 264 binaries, 505 `.rs` files, 68 modules. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49)
+**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 265 binaries, **Python→Rust→NUCLEUS→Primal four-layer validation stack**. coralForge unified. 232+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,225+ lib + 73 forge + 80 playGround tests. 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.11, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 30 capabilities, deployment health triad, MCP parity, Squirrel routing, Tower discovery. ecoBin compliant.
+**Date**: April 11, 2026 (Sessions 40–181 — S181: Full composition evolution, 30-capability surface, Squirrel routing, Tower discovery, deploy graph V131/S181. 265 binaries, 520 `.rs` files, 68 modules. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -358,5 +358,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 1,378 tests (1,225 lib + 73 forge + 80 playGround). 397 Python + 4500+ Rust/GPU = 4900+ total checks.
-Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 264 binaries, 505 `.rs` files, 27 capabilities, 4-layer validation stack (Python→Rust→NUCLEUS→Primal). 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V130 handoff. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. Deploy health triad + MCP tool parity.*
+*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 1,225+ lib + 73 forge + 80 playGround tests. 397 Python + 4500+ Rust/GPU = 4900+ total checks.
+Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 265 binaries, 520 `.rs` files, 30 capabilities, 4-layer validation stack (Python→Rust→NUCLEUS→Primal). 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V131 handoff. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. Deploy health triad + MCP tool parity + Squirrel routing + Tower discovery.*

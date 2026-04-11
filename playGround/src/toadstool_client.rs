@@ -124,12 +124,12 @@ impl ToadStoolClient {
     /// Connect to `ToadStool` via capability-based discovery.
     ///
     /// Discovers the compute orchestration primal by probing for the
-    /// `compute.submit` capability on all sockets in the biomeOS directory.
-    /// Falls back to name-based discovery (`toadstool`) if no capability
-    /// probe succeeds.
+    /// `compute.dispatch.submit` capability on all sockets in the biomeOS
+    /// directory. Falls back to name-based discovery (`toadstool`) if no
+    /// capability probe succeeds.
     pub fn discover() -> Result<Self> {
         let socket = ipc_client::discover_by_capability(
-            "compute.submit",
+            "compute.dispatch.submit",
             neural_spring::primal_names::TOADSTOOL,
         )
         .context("discovering compute orchestration primal")?;
