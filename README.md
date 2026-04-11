@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 11, 2026 (Session S179 — Composition validation phase: Python→Rust→NUCLEUS three-layer validation stack, composition validators wired to validate_all with exit-2 honest skip, PRIMAL_GAPS.md reconciled, version strings aligned to barraCuda v0.3.11, deploy graph V129/S179, primal IPC wiring status documented).
+**Last updated**: April 11, 2026 (Session S180 — Composition evolution: deployment health triad, identity.get, mcp.tools.list, iterative method normalization, MCP tool parity (27/27), deploy graph V130/S180 with nest_atomic, primalSpring + plasmidBin graph and metadata reconciliation, upstream capability set alignment).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -46,7 +46,11 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
 
-**S177: NUCLEUS composition validation — proto-nucleate graph validator (`validate_nucleus_composition`), inference chain validator (`validate_inference_composition`), capability-based discovery validator (`validate_primal_discovery`), bonding policy (Metallic/InternalNucleus), composition infrastructure (`validation::composition` — 5-tier socket discovery, JSON-RPC probes, honest skip exit 2), `inference.*` capability wiring (niche, config, handlers, rpc_service, MCP tools), ecoBin harvest script (`scripts/harvest_ecobin.sh`), CI composition-validation job. ~1,392 tests, 264 binaries, 518 `.rs` files. V127 handoff.**
+**S180: Composition evolution — deployment health triad (`health.check`), T4 discovery (`identity.get`), MCP tool listing on primal surface (`mcp.tools.list`), iterative multi-prefix method normalization, 27/27 MCP tool definitions, deploy graph `nest_atomic` fragment, primalSpring graph reconciliation (binary name, health method, capability set), plasmidBin metadata refresh (30 capabilities, correct version/domain). 1,378 tests, 264 binaries, 505 `.rs` files. V130 handoff.**
+
+**S179: Composition validation — PRIMAL_GAPS.md reconciled (10 gaps, 4 resolved), deploy graph V129/S179, capability surface expanded to 26 entries, version strings aligned to barraCuda v0.3.11, primal IPC wiring status documented.**
+
+**S177–S178: NUCLEUS composition validation — proto-nucleate graph validator (`validate_nucleus_composition`), inference chain validator (`validate_inference_composition`), capability-based discovery validator (`validate_primal_discovery`), bonding policy (Metallic/InternalNucleus), composition infrastructure (`validation::composition` — 5-tier socket discovery, JSON-RPC probes, honest skip exit 2), `inference.*` capability wiring (niche, config, handlers, rpc_service, MCP tools), ecoBin harvest script (`scripts/harvest_ecobin.sh`), CI composition-validation job. V127–V128 handoffs.**
 
 **S176: Deep audit execution — clippy zero-warning gate restored, provenance environment centralization (20 literals → 2 named constants), IPC resilience wired (RetryPolicy + CircuitBreaker into PetalTongue), GPU module refactor (gpu.rs → gpu/mod.rs + gpu/tests.rs), integration tests expanded (9 → 12, full 49/49 provenance coverage), doc reconciliation. ~1,403 tests, 261 binaries, 466 `.rs` files. V126 handoff.**
 

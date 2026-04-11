@@ -50,16 +50,28 @@ impl JsonRpcResponse {
     }
 }
 
-/// Normalize a JSON-RPC method name: accepts both `{domain}.{operation}`
-/// (standard) and legacy `neuralspring.{domain}.{operation}` (backward-compatible).
+/// Normalize a JSON-RPC method name: iteratively strips known primal prefixes
+/// so that `neuralspring.science.ipr`, `neural-spring.science.ipr`, and
+/// `science.ipr` all resolve to `science.ipr`.
 ///
+/// Follows SPRING_COMPOSITION_PATTERNS §1 iterative multi-prefix strip.
 /// Mirrors `barracuda-core::ipc::methods::normalize_method` per ecosystem
 /// convention (wetSpring V132, loamSpine v0.9.8, barraCuda v0.3.7).
 pub fn normalize_method(method: &str) -> &str {
-    method
-        .strip_prefix(super::PRIMAL_NAME)
-        .and_then(|s| s.strip_prefix('.'))
-        .unwrap_or(method)
+    const PREFIXES: &[&str] = &["neuralspring.", "neural-spring.", "neural_spring."];
+    let mut m = method;
+    loop {
+        let before = m;
+        for prefix in PREFIXES {
+            if let Some(rest) = m.strip_prefix(prefix) {
+                m = rest;
+                break;
+            }
+        }
+        if m == before {
+            return m;
+        }
+    }
 }
 
 /// JSON-RPC 2.0 standard error codes (§5.1).

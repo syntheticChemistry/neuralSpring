@@ -1,9 +1,11 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: April 11, 2026 (Session S179)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 264 binaries, 518 `.rs` files, **~1,403+ Rust tests**, 68 modules, **232+** named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery+cast deny, workspace-wide), zero fmt, zero doc warnings, zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. **Python→Rust→NUCLEUS three-layer validation stack** — composition validators wired to validate_all. `inference.*` capabilities wired (stub, pending Squirrel). ecoBin harvest. Edition 2024, MSRV 1.87. **V129 handoff**. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49.
+**Last Updated**: April 11, 2026 (Session S180)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 264 binaries, 505 `.rs` files, **1,378 Rust tests**, 68 modules, **232+** named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery+cast deny, workspace-wide), zero fmt, zero doc warnings, zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. **Python→Rust→NUCLEUS→Primal four-layer validation stack** — composition validators wired to validate_all, primal speaks full deployment standard (health triad, identity, MCP). `inference.*` capabilities wired (stub, pending Squirrel). ecoBin harvest. Edition 2024, MSRV 1.87. **V130 handoff**. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49.
 
-- **S178 (Apr 11, 2026)**: Composition validation phase — three-layer stack (Python→Rust→NUCLEUS). `validate_all` wired with 3 composition validators + exit-2 honest skip. `PRIMAL_GAPS.md` reconciled (inference.* wip, binary naming resolved). Version strings aligned to barraCuda v0.3.11. Deploy graph V128/S178. Root docs, baseCamp, experiments aligned. V128 handoff.
+- **S180 (Apr 11, 2026)**: Composition evolution — deployment health triad (`health.check`), T4 discovery (`identity.get`), `mcp.tools.list` on primal, iterative method normalization, 27/27 MCP tool definitions, deploy graph `nest_atomic`, primalSpring graph reconciliation, plasmidBin metadata refresh. V130 handoff.
+- **S179 (Apr 11, 2026)**: Composition validation — PRIMAL_GAPS.md reconciled (10 gaps, 4 resolved), deploy graph V129, capability surface expanded to 26, version strings aligned. V129 handoff.
+- **S178 (Apr 11, 2026)**: Composition validation phase — three-layer stack (Python→Rust→NUCLEUS). `validate_all` wired with 3 composition validators + exit-2 honest skip. `PRIMAL_GAPS.md` reconciled (inference.* wip, binary naming resolved). Version strings aligned to barraCuda v0.3.11. Deploy graph V128/S178. V128 handoff.
 - **S177 (Apr 10, 2026)**: NUCLEUS composition validation — proto-nucleate graph validator, inference chain validator, primal discovery validator, bonding policy (Metallic/InternalNucleus), composition infrastructure (`validation::composition`), `inference.*` capability wiring (niche, config, handlers, rpc_service, MCP tools), ecoBin harvest script, CI composition-validation job. V127 handoff.
 - **S176 (Mar 24, 2026)**: Deep audit — clippy zero-warning gate restored, provenance environment centralization (19 literals → 2 constants), IPC resilience wired (RetryPolicy+CircuitBreaker → PetalTongue), GPU module refactor (gpu.rs → gpu/), integration tests 9→12 (49/49 provenance), doc reconciliation. V126 handoff.
 - **S175 (Mar 24, 2026)**: Ecosystem absorption — `ValidationSink` (5 sinks, 12 tests), `cast_possible_truncation`/`cast_sign_loss` deny, 4 provenance integrity tests, deploy graph V124/S174, leverage guide refresh.
@@ -44,16 +46,30 @@ sub-theses — now that we have pure GPU execution for ~97% of production math.
 ## Validation Chain
 
 ```
-Python baseline (seed=42) → Rust CPU (provenance) → BarraCUDA CPU
-  → GPU Tensor (WGSL) → metalForge shaders → GPU pipeline → cross-dispatch
-    → multi-GPU (bit-identical RTX 4070 + TITAN V NVK)
+Layer 1 — Science Fidelity (Python validates Rust):
+  Python baseline (seed=42) → Rust CPU (provenance) → BarraCUDA CPU
+    → GPU Tensor (WGSL) → metalForge shaders → GPU pipeline → cross-dispatch
       → gpu_dispatch (~97% pure GPU, Phase C: HMM chains, FST, introgression)
         → CPU↔Python parity (39/39 PASS, 1e-10 cross-language)
+
+Layer 2 — Compute Sovereignty (Rust validates GPU/WGSL):
+  Rust reference → barraCuda ops → WGSL shaders → TensorSession pipeline
+    → f64/df64 precision dispatch → cross-substrate (RTX 4070 + TITAN V NVK)
+
+Layer 3 — NUCLEUS Composition (Rust+Python validate primal IPC):
+  niche.rs (identity + 27 capabilities) → biomeOS registration
+    → health triad (liveness + readiness + check) → identity.get (T4)
+      → mcp.tools.list (27 tools) → capability.list → composition validators
+        → proto-nucleate graph alignment → deploy graph (V130, nest_atomic)
+
+Layer 4 — Deployment (plasmidBin + benchScale validate ecoBin):
+  harvest ecoBin → plasmidBin metadata (30 capabilities) → fetch + smoke
+    → benchscale validate ipc → C1-C7 composition probes
 ```
 
 Edition 2024 (S163): All 3 workspace crates on Rust 2024. Proptest invariants
 (softmax, entropy, relu, rk4). `ipc_resilience` (RetryPolicy + CircuitBreaker)
-for transient IPC failures. `health.liveness` / `health.readiness` probes.
+for transient IPC failures. Deployment health triad (S180).
 
 ## Briefings
 

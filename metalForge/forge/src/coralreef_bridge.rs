@@ -289,6 +289,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::unwrap_used,
+        reason = "test asserts known-Err variant via unwrap_err"
+    )]
     fn compile_without_feature_returns_not_available() {
         #[cfg(not(feature = "coralreef"))]
         {

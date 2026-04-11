@@ -1,8 +1,30 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S179)**: ~1,403+ Rust tests, 68 modules, 264 binaries, 518 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `eprintln!` workspace-wide, 0 hardcoded socket paths, 0 `#[allow()]`. NUCLEUS composition validation layer (3 validators, bonding policy, proto-nucleate graph). `inference.*` capabilities wired (niche, config, handlers, RPC, MCP). ecoBin harvest script. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. Deploy graph V129/S179. April 11, 2026.
+**Current state (Session S180)**: 1,378 Rust tests, 68 modules, 264 binaries, 505 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. NUCLEUS composition evolution: deployment health triad, T4 identity, MCP tool listing on primal, 27/27 MCP tool definitions, iterative method normalization, deploy graph V130 with `nest_atomic`, primalSpring + plasmidBin reconciliation. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. April 11, 2026.
 
-### Session S177 — 2026-04-10 (NUCLEUS Composition Validation — Proto-Nucleate, Inference, Discovery)
+### Session S180 — 2026-04-11 (Composition Evolution — Deployment Triad, MCP, Identity, Upstream Reconciliation)
+
+- Full-spectrum audit against wateringHole ecosystem standards, primalSpring composition patterns, and plasmidBin deployment expectations
+- **Deployment health triad** (`health.check`) per `DEPLOYMENT_VALIDATION_STANDARD.md` — combined liveness + readiness for benchScale/plasmidBin smoke tests
+- **T4 discovery** (`identity.get`) per `ECOSYSTEM_COMPLIANCE_MATRIX.md` — primal name, niche, version, domain, license, capabilities
+- **MCP tool listing** (`mcp.tools.list`) per hotSpring composition pattern — returns all 27 capabilities as discoverable tools
+- **MCP tool parity** — `playGround/src/mcp_tools.rs` expanded from 19 to 27 definitions (added `provenance.*`, `primal.*`, `capability.list`, `compute.offload`)
+- **Method normalization** — iterative multi-prefix strip (`neuralspring.`, `neural-spring.`, `neural_spring.`) per `SPRING_COMPOSITION_PATTERNS` §1
+- **Deploy graph** V130/S180 — added `nest_atomic` fragment, `health.check`, `identity.get`, `mcp.tools.list` capabilities
+- **primalSpring reconciliation** — pipeline graph: `neuralspring_primal` → `neuralspring`, `neural.health` → `health.liveness`; deploy graph: capability set aligned to actual 14+3 surface
+- **plasmidBin refresh** — version `0.7.0` → `0.1.0`, domain `ml` → `science.learning`, capabilities from 2 stale `ml.*` to 30-capability surface
+- **Clippy fix** — `#[expect(clippy::unwrap_used)]` on forge `coralreef_bridge.rs` test
+- **PRIMAL_GAPS.md** — 6 new resolved items (R5–R10)
+- V130 handoff
+
+### Session S179 — 2026-04-11 (Composition Validation — Gap Reconciliation, Deploy Graph, Capability Surface)
+
+- PRIMAL_GAPS.md reconciled (10 gaps, 4 resolved R1–R4)
+- Deploy graph V129/S179 — germination nodes, bonding policy, capability expansion
+- `ALL_CAPABILITIES` expanded to 26 entries, sync-tested against niche
+- Version strings aligned to barraCuda v0.3.11
+
+### Session S177–S178 — 2026-04-10 (NUCLEUS Composition Validation — Proto-Nucleate, Inference, Discovery)
 
 - Proto-nucleate graph composition validator (`validate_nucleus_composition`) — validates bonding policy (Metallic/InternalNucleus), encryption tiers, capability coverage, 7-node proto-nucleate discovery sweep with honest skip (exit 2)
 - Inference chain composition validator (`validate_inference_composition`) — validates inference.* capability registration, Squirrel discovery, neuralSpring→Squirrel→provider chain

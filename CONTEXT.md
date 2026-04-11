@@ -14,7 +14,7 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 - **Language:** Rust 2024 edition, `rust-version` **1.87**
 - **License:** AGPL-3.0-or-later (scyBorg: AGPL code + ORC mechanics + CC-BY-SA creative)
 - **Workspace:** 3 crates — `neural-spring` (library), `neural-spring-forge`, `neuralspring-playground`
-- **Scale:** 466 Rust source files; every file under 1000 lines
+- **Scale:** 505 Rust source files; every file under 1000 lines
 - **Safety:** zero `unsafe` (`#![forbid(unsafe_code)]` workspace-wide); cast lints (`cast_possible_truncation`, `cast_sign_loss`) denied
 - **Linting:** Clippy pedantic + nursery, zero warnings, zero `#[allow()]`
 - **Dependencies:** `barracuda` (math engine, `default-features = false`), `wgpu` **28** (GPU), `tokio` (async), `tarpc` (optional RPC for the primal binary), `thiserror` (typed errors: `GpuError`, `TensorError`, `ParseError`)
@@ -28,16 +28,17 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 
 ## Key Capabilities (JSON-RPC)
 
-Sixteen capabilities (`domain.verb`) when composed in biomeOS. Method naming follows Semantic Method Naming v2.1: discovery may list or resolve these via `capabilities.list` (canonical), `capability.list` (legacy), or `primal.capabilities` (alias).
+Thirty capabilities (`domain.verb`) when composed in biomeOS. Method naming follows Semantic Method Naming v2.1: discovery may list or resolve these via `capability.list` (canonical), `identity.get` (T4 discovery), or `mcp.tools.list` (MCP adapter).
 
-- `science.spectral_analysis`, `science.anderson_localization`, `science.hessian_eigen`, `science.agent_coordination`
-- `science.ipr`, `science.disorder_sweep`, `science.training_trajectory`, `science.evoformer_block`, `science.structure_module`
-- `science.folding_health`, `science.gpu_dispatch`, `science.cross_spring_provenance`, `science.cross_spring_benchmark`, `science.precision_routing`
-- `health.liveness`, `health.readiness`
+- **Science (14):** `science.spectral_analysis`, `science.anderson_localization`, `science.hessian_eigen`, `science.agent_coordination`, `science.ipr`, `science.disorder_sweep`, `science.training_trajectory`, `science.evoformer_block`, `science.structure_module`, `science.folding_health`, `science.gpu_dispatch`, `science.cross_spring_provenance`, `science.cross_spring_benchmark`, `science.precision_routing`
+- **Health (3):** `health.liveness`, `health.readiness`, `health.check`
+- **Inference (3):** `inference.complete`, `inference.embed`, `inference.models`
+- **Provenance (4):** `provenance.begin`, `provenance.record`, `provenance.complete`, `provenance.status`
+- **Routing (6):** `primal.forward`, `primal.discover`, `capability.list`, `identity.get`, `mcp.tools.list`, `compute.offload`
 
 ## Test Coverage
 
-CI-enforced **≥90%** line coverage (`llvm-cov`). ~1,400 tests (1,211 lib + 73 forge + 80 playGround + 12 integration + 25 tokio). Suite includes unit tests, property tests, determinism tests, doc tests, integration tests, and provenance integrity tests. `ValidationSink` for machine-readable CI output (JSON, NDJSON, collecting).
+CI-enforced **≥90%** line coverage (`llvm-cov`). ~1,378 tests (1,225 lib + 73 forge + 80 playGround). Suite includes unit tests, property tests, determinism tests, doc tests, integration tests, and provenance integrity tests. `ValidationSink` for machine-readable CI output (JSON, NDJSON, collecting).
 
 ## What This Does NOT Do
 
@@ -55,7 +56,8 @@ CI-enforced **≥90%** line coverage (`llvm-cov`). ~1,400 tests (1,211 lib + 73 
 ## Evolution Path
 
 ```text
-Python baseline (control/) → Rust validation (src/) → GPU (WGSL via barraCuda) → sovereign pipeline
+Python baseline (control/) → Rust validation (src/) → GPU (WGSL via barraCuda)
+  → NUCLEUS composition (primal IPC via biomeOS) → sovereign deployment
 ```
 
 ## Design Philosophy

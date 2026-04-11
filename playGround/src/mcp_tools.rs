@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! MCP tool definitions for neuralSpring's capabilities (science + health).
+//! MCP tool definitions for the full neuralSpring capability surface.
 //!
 //! Each tool has a name, description, and JSON Schema for input parameters.
 //! These definitions are registered with Squirrel via `capability.announce`
-//! by the MCP adapter binary.
+//! by the MCP adapter binary.  The set covers science, health, inference,
+//! provenance, cross-primal routing, niche deployment, and compute offload.
 
 use serde::Serialize;
 use serde_json::json;
@@ -24,7 +25,7 @@ pub struct McpToolDef {
 
 /// All neuralSpring capabilities as MCP tool definitions.
 #[must_use]
-#[expect(clippy::too_many_lines, reason = "19 tool definitions in one registry")]
+#[expect(clippy::too_many_lines, reason = "27 tool definitions in one registry")]
 pub fn tool_definitions() -> Vec<McpToolDef> {
     vec![
         McpToolDef {
@@ -249,6 +250,102 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
             domain: "inference",
             input_schema: json!({ "type": "object", "properties": {} }),
         },
+        // ── Provenance tracking (biomeOS trio composition) ───────────
+        McpToolDef {
+            name: "provenance.begin",
+            description: "Begin a provenance session for an experiment or niche deploy. \
+                          Acknowledges on this niche; full DAG lifecycle is composed via \
+                          biomeOS graphs (rhizoCrypt → loamSpine → sweetGrass).",
+            domain: "provenance",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "experiment_id": { "type": "string", "description": "Experiment or session identifier" },
+                    "agent": { "type": "string", "description": "Initiating agent / primal name" }
+                },
+                "required": ["experiment_id"]
+            }),
+        },
+        McpToolDef {
+            name: "provenance.record",
+            description: "Record a provenance event within an active session.",
+            domain: "provenance",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "session_id": { "type": "string", "description": "Active session identifier" },
+                    "event": { "type": "object", "description": "Event payload to record" }
+                },
+                "required": ["session_id", "event"]
+            }),
+        },
+        McpToolDef {
+            name: "provenance.complete",
+            description: "Complete and seal a provenance session.",
+            domain: "provenance",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "session_id": { "type": "string", "description": "Session to complete" }
+                },
+                "required": ["session_id"]
+            }),
+        },
+        McpToolDef {
+            name: "provenance.status",
+            description: "Query the status of a provenance session or the provenance subsystem.",
+            domain: "provenance",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "session_id": { "type": "string", "description": "Optional session to query" }
+                }
+            }),
+        },
+        // ── Cross-primal routing ─────────────────────────────────────
+        McpToolDef {
+            name: "primal.forward",
+            description: "Forward a JSON-RPC request to another primal via biomeOS capability \
+                          routing or direct socket discovery.",
+            domain: "primal",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "primal": { "type": "string", "description": "Target primal name or capability" },
+                    "method": { "type": "string", "description": "JSON-RPC method to call on the target" },
+                    "params": { "type": "object", "description": "Parameters for the forwarded call" }
+                },
+                "required": ["primal", "method"]
+            }),
+        },
+        McpToolDef {
+            name: "primal.discover",
+            description: "Advertise this niche's capability surface for cross-primal discovery. \
+                          Returns primal name, niche, and full capability list.",
+            domain: "primal",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        // ── Niche deployment surface ─────────────────────────────────
+        McpToolDef {
+            name: "capability.list",
+            description: "List all capabilities advertised by this neuralSpring niche. \
+                          Used by biomeOS, Songbird, and composition validators.",
+            domain: "capability",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        McpToolDef {
+            name: "compute.offload",
+            description: "Node Atomic compute offload: reports GPU dispatcher readiness and \
+                          routes compute workloads through the neuralSpring Dispatcher.",
+            domain: "compute",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "op": { "type": "string", "description": "Compute operation to offload" },
+                    "params": { "type": "object", "description": "Operation-specific parameters" }
+                }
+            }),
+        },
     ]
 }
 
@@ -270,7 +367,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 19);
+        assert_eq!(tools.len(), 27);
     }
 
     #[test]
@@ -287,7 +384,15 @@ mod tests {
 
     #[test]
     fn all_tools_have_valid_domain() {
-        let valid_domains = ["science", "health", "inference"];
+        let valid_domains = [
+            "science",
+            "health",
+            "inference",
+            "provenance",
+            "primal",
+            "capability",
+            "compute",
+        ];
         for tool in tool_definitions() {
             assert!(
                 valid_domains.contains(&tool.domain),

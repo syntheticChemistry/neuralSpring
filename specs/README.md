@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: April 11, 2026 (Sessions 44–179 — S179: Composition validation phase, Python→Rust→NUCLEUS three-layer stack. ~1,403+ tests: 1,225 lib + 73 forge + 80 playGround + 14 integration. 264 binaries, 518 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
-**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU + 3 composition = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 264 binaries (261 science/GPU + 3 composition), ~1,225 lib tests (workspace total ~1,403+), Python→Rust→NUCLEUS validation stack
+**Last Updated**: April 11, 2026 (Sessions 44–180 — S180: Composition evolution, deployment triad, MCP tool parity, upstream graph reconciliation. 1,378 tests: 1,225 lib + 73 forge + 80 playGround. 264 binaries, 505 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
+**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU + 3 composition = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 264 binaries (241 validate + 18 bench + 5 other), ~1,378 workspace tests, Python→Rust→NUCLEUS→Primal composition validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | ~1,392 tests (1,225 lib + 73 forge + 80 playGround + 14 integration) PASS — 264 binaries, 47+ modules |
+| Rust native validation | 1,378 tests (1,225 lib + 73 forge + 80 playGround) PASS — 264 binaries, 47+ modules |
 | BarraCUDA CPU (bC) | 24/27 papers (89%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/27 papers (85%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/27 papers, 17 shaders, 108 checks | ALL PASS |

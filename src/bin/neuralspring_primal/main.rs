@@ -150,6 +150,9 @@ fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<J
 
     Some(match method {
         "health" => spectral::handle_health(id, state),
+        "health.check" => handlers::handle_health_check(id, state),
+        "identity.get" => handlers::handle_identity_get(id),
+        "mcp.tools.list" => handlers::handle_mcp_tools_list(id),
         "capabilities.list" | "capability.list" | "primal.capabilities" => {
             handlers::handle_capability_list(id)
         }

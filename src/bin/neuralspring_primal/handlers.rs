@@ -6,6 +6,7 @@ use super::discovery::{discover_data_primal_and_forward, forward_to_primal};
 use super::rpc::{self, JsonRpcResponse};
 use super::{ALL_CAPABILITIES, PRIMAL_NAME, PrimalState};
 
+use neural_spring::config::ALL_CAPABILITIES;
 use neural_spring::niche;
 
 /// Kubernetes-style liveness probe: is the process alive and able to
@@ -42,6 +43,68 @@ pub fn handle_readiness(id: serde_json::Value, state: &PrimalState) -> JsonRpcRe
                 "backend": format!("{}", state.dispatcher.backend()),
             },
             "uptime_seconds": uptime,
+        }),
+    )
+}
+
+/// Combined health check (DEPLOYMENT_VALIDATION_STANDARD triad).
+/// Returns liveness + readiness in a single response for benchScale and
+/// plasmidBin smoke tests.
+pub fn handle_health_check(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
+    let uptime = state.start_time.elapsed().as_secs();
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "status": "ok",
+            "alive": true,
+            "ready": true,
+            "primal": PRIMAL_NAME,
+            "version": env!("CARGO_PKG_VERSION"),
+            "subsystems": {
+                "dispatcher": true,
+                "gpu": state.dispatcher.has_gpu(),
+                "backend": format!("{}", state.dispatcher.backend()),
+            },
+            "uptime_seconds": uptime,
+        }),
+    )
+}
+
+/// Primal identity for T4 discovery (ECOSYSTEM_COMPLIANCE_MATRIX).
+pub fn handle_identity_get(id: serde_json::Value) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "niche": niche::NICHE_NAME,
+            "version": env!("CARGO_PKG_VERSION"),
+            "domain": neural_spring::config::PRIMAL_DOMAIN,
+            "license": "AGPL-3.0-or-later",
+            "capabilities": ALL_CAPABILITIES,
+        }),
+    )
+}
+
+/// MCP tool listing — hotSpring composition pattern (`mcp.tools.list` on the
+/// primal surface).  Returns each capability as a discoverable tool with its
+/// domain parsed from the `domain.verb` naming convention.
+pub fn handle_mcp_tools_list(id: serde_json::Value) -> JsonRpcResponse {
+    let tools: Vec<serde_json::Value> = ALL_CAPABILITIES
+        .iter()
+        .map(|cap| {
+            let domain = cap.split('.').next().unwrap_or("unknown");
+            serde_json::json!({
+                "name": cap,
+                "domain": domain,
+            })
+        })
+        .collect();
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "tools": tools,
+            "count": tools.len(),
         }),
     )
 }

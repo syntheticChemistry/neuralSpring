@@ -5,7 +5,22 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-11 (Session 179: S179/V129 status alignment; Session 178: Composition Validation Phase, Three-Layer Stack)
+## [Unreleased] — 2026-04-11 (Session 180: Composition Evolution, Deployment Triad, MCP Parity, Upstream Reconciliation)
+
+### 2026-04-11 — Session S180 (Composition evolution: deployment triad, identity, MCP, upstream reconciliation)
+
+- **Deployment health triad**: `health.check` handler — combined liveness + readiness for benchScale/plasmidBin smoke tests (DEPLOYMENT_VALIDATION_STANDARD)
+- **T4 discovery**: `identity.get` handler — primal name, niche, version, domain, license, full capability list (ECOSYSTEM_COMPLIANCE_MATRIX)
+- **MCP tool listing**: `mcp.tools.list` on primal JSON-RPC surface — returns all 27 capabilities as discoverable tools with domain parsed from `domain.verb`
+- **MCP tool parity**: `playGround/src/mcp_tools.rs` expanded 19 → 27 definitions (added `provenance.begin`, `provenance.record`, `provenance.complete`, `provenance.status`, `primal.forward`, `primal.discover`, `capability.list`, `compute.offload`)
+- **Method normalization**: Iterative multi-prefix strip (`neuralspring.`, `neural-spring.`, `neural_spring.`) per SPRING_COMPOSITION_PATTERNS §1
+- **Deploy graph V130/S180**: Added `nest_atomic` fragment, `health.check`, `identity.get`, `mcp.tools.list` capabilities
+- **primalSpring graph reconciliation**: `neuralspring_inference_pipeline.toml` binary name fix + health method fix; `spring_deploy/neuralspring_deploy.toml` binary name + capability set alignment
+- **plasmidBin metadata refresh**: version 0.7.0→0.1.0, domain ml→science.learning, 2 stale capabilities → 30-capability surface, UniBin modes aligned
+- **Clippy fix**: `#[expect(clippy::unwrap_used)]` on forge `coralreef_bridge.rs` test (`unwrap_err` in known-Err assertion)
+- **PRIMAL_GAPS.md**: R5 (MCP parity), R6 (deployment triad), R7 (fragment alignment), R8 (upstream graph reconciliation), R9 (plasmidBin metadata), R10 (method normalization breadth)
+- **Ecosystem handoff**: `NEURALSPRING_V130_PRIMAL_COMPOSITION_PATTERNS_HANDOFF_APR11_2026.md` — patterns for primal + spring teams
+- **1,378 tests** (1,225 lib + 73 forge + 80 playGround), 264 binaries, 505 `.rs` files, 0 clippy, 0 fmt, 0 doc warnings
 
 ### 2026-04-11 — Session S179 (Deploy graph proto-nucleate alignment, composition validation execution)
 

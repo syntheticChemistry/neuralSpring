@@ -6,7 +6,7 @@
 > Reviewed against `neuralspring_inference_proto_nucleate.toml` v1.1.0.
 >
 > **Date:** 2026-04-11 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.9
-> **Session:** S179 — Composition validation execution phase
+> **Session:** S180 — Composition evolution: deployment triad, MCP, identity
 
 ---
 
@@ -279,3 +279,59 @@ full niche surface. Added `operation_dependencies()` entries for
 `primal.forward`, `primal.discover`, `capability.list`, `compute.offload`.
 Added `cost_estimates()` entries for `provenance.status`, `primal.forward`,
 `primal.discover`, `capability.list`, `compute.offload`.
+
+### R5. MCP Tool Definitions Parity (resolved S180)
+
+**Original gap:** `playGround/src/mcp_tools.rs` defined 19 MCP tool
+definitions (science 14 + health 2 + inference 3) but `ALL_CAPABILITIES`
+had 27 entries. Tests `tool_count_matches_capabilities` and
+`tool_names_match_capabilities` were failing.
+**Resolution:** S180 added 8 MCP tool definitions for `provenance.begin`,
+`provenance.record`, `provenance.complete`, `provenance.status`,
+`primal.forward`, `primal.discover`, `capability.list`, `compute.offload`.
+Updated test domains to include `provenance`, `primal`, `capability`,
+`compute`. All 27 capabilities now have matching MCP tool definitions.
+
+### R6. Deployment Health Triad (resolved S180)
+
+**Original gap:** `DEPLOYMENT_VALIDATION_STANDARD.md` requires a health
+triad (`health.liveness`, `health.readiness`, `health.check`) but
+neuralSpring only had the first two.
+**Resolution:** S180 added `health.check` handler to the primal dispatcher.
+Also added `identity.get` (T4 discovery) and `mcp.tools.list` (hotSpring
+composition pattern). Deploy graph updated with new capabilities.
+
+### R7. Deploy Graph Fragment Alignment (resolved S180)
+
+**Original gap:** Local deploy graph declared
+`fragments = ["tower_atomic", "node_atomic", "meta_tier"]` but included
+NestGate and provenance trio nodes. primalSpring's deploy graph used
+the full fragment set.
+**Resolution:** S180 added `nest_atomic` to local deploy graph fragments.
+
+### R8. Upstream Graph Reconciliation (resolved S180)
+
+**Original gap:** primalSpring graphs used wrong binary name
+`neuralspring_primal` (pipeline + deploy) and wrong health method
+`neural.health` (pipeline). Deploy graph capability set was stale (listed
+capabilities neuralSpring doesn't advertise, omitted ones it does).
+**Resolution:** S180 fixed binary name to `neuralspring`, health method to
+`health.liveness`, and aligned capability set to match the actual 14
+science + 3 inference capabilities.
+
+### R9. plasmidBin Metadata Refresh (resolved S180)
+
+**Original gap:** `plasmidBin/neuralspring/metadata.toml` listed
+`version = "0.7.0"`, `domain = "ml"`, and only 2 capabilities using
+stale `ml.*` prefix.
+**Resolution:** S180 updated to `version = "0.1.0"`,
+`domain = "science.learning"`, and the full 30-capability surface
+(27 niche + `health.check` + `identity.get` + `mcp.tools.list`).
+
+### R10. Method Normalization Breadth (resolved S180)
+
+**Original gap:** `normalize_method` in `rpc.rs` only stripped a single
+`neuralspring.` prefix. `SPRING_COMPOSITION_PATTERNS` §1 requires
+iterative multi-prefix strip.
+**Resolution:** S180 evolved to loop over `neuralspring.`,
+`neural-spring.`, `neural_spring.` prefixes iteratively.
