@@ -41,6 +41,9 @@ pub const SWEETGRASS: &str = "sweetgrass";
 /// Visualization / interactive exploration primal.
 pub const PETALTONGUE: &str = "petaltongue";
 
+/// Pure math / GPU compute (WGSL shaders, tensor ops, stats).
+pub const BARRACUDA: &str = "barracuda";
+
 /// biomeOS orchestrator.
 pub const BIOMEOS: &str = "biomeos";
 
@@ -100,6 +103,7 @@ mod tests {
             NESTGATE,
             SQUIRREL,
             CORALREEF,
+            BARRACUDA,
             RHIZOCRYPT,
             LOAMSPINE,
             SWEETGRASS,

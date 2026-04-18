@@ -57,6 +57,10 @@ const DISCOVERY_TARGETS: &[DiscoveryTarget] = &[
         by_capability: "discovery",
     },
     DiscoveryTarget {
+        name: primal_names::BARRACUDA,
+        by_capability: "tensor.matmul",
+    },
+    DiscoveryTarget {
         name: primal_names::NESTGATE,
         by_capability: "storage.retrieve",
     },

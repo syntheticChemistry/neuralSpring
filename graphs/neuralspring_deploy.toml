@@ -1,17 +1,25 @@
-# neuralSpring Niche Deploy Graph
+# neuralSpring Niche Deploy Graph (spring_deploy — Level 2+)
 # Canonical deploy graph following SPRING_AS_NICHE_DEPLOYMENT_STANDARD.md
 #
-# Deploys neuralSpring as an ML/spectral science + inference provider atop
-# a biomeOS NUCLEUS composition.  Aligns with the proto-nucleate entry:
-#   primalSpring/graphs/downstream/downstream_manifest.toml [[downstream]] spring_name = "neuralspring"
+# This is the SPRING DEPLOY graph (spring binary + NUCLEUS primals for
+# integration). It is RICHER than the proto-nucleate (which is pure primals
+# only, no spring binary — Level 5 "primal proof").
 #
-# Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier
+# Proto-nucleate (upstream truth):
+#   primalSpring/graphs/downstream/downstream_manifest.toml
+#   [[downstream]] spring_name = "neuralspring"
+#   fragments:  ["tower_atomic", "node_atomic", "meta_tier"]
+#   depends_on: ["beardog", "songbird", "coralreef", "toadstool", "barracuda", "squirrel"]
+#
+# This deploy graph extends that with:
+#   + nest_atomic (NestGate + provenance trio) for weight storage
+#   + neuralspring binary node (the spring itself)
+#   + provenance session nodes
+#
+# Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# Composable: other graphs can reference this as a sub-graph via depends_on.
-# biomeOS orchestrates germination order; Songbird provides IPC mesh.
-#
-# STATUS: V131 / S181 (April 11, 2026)
+# STATUS: V131 / S181+ (April 17, 2026)
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 

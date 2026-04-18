@@ -6,9 +6,11 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-04-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.15
-> **Session:** S181+ — Audit remediation: manifest reconciliation, composition
-> parity validation (Tier 3: Rust→IPC), discovery bug fix, GpuPreferred dispatch,
-> tolerance hygiene, science baselines for composition round-trip validation.
+> **Session:** S181+ — Evolved to primal composition validation that primalSpring
+> has validated. Proto-nucleate nodes aligned to upstream `downstream_manifest.toml`
+> truth. `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` added. NestGate correctly
+> scoped to spring-deploy (not proto-nucleate). barraCuda added as proto-nucleate
+> node. R12 corrected (was aspirational, not pushed upstream).
 
 ---
 
@@ -64,26 +66,27 @@ and now route through Squirrel when discovered:
 
 ## 2. barraCuda Direct Import → IPC Migration
 
-**Status:** deferred
-**Proto-nucleate declares:** barraCuda as IPC node (`math.tensor`,
-`math.stats`, `math.activation`, `math.noise` capabilities)
+**Status:** deferred (proto-nucleate node added; IPC client pending)
+**Proto-nucleate declares:** barraCuda in `depends_on` with upstream
+`validation_capabilities`: `tensor.matmul`, `tensor.create`, `stats.mean`
 **Current state:** barraCuda is a compile-time `path` dependency. All math
 is called via direct Rust imports (`barracuda::ops::*`, `barracuda::nn::*`,
-`barracuda::dispatch::*`).
+`barracuda::dispatch::*`). `inference_proto_nucleate_nodes()` now includes
+barraCuda as a node with `by_capability = "tensor.matmul"`, matching the
+upstream manifest.
 
-**What is needed:**
-- Capability-based IPC client for `math.*` operations
-- Gradual migration: keep direct import for validation baselines, add IPC
-  path for composition mode
+**What is needed for primal proof:**
+- IPC client for `tensor.matmul`, `tensor.create`, `stats.mean` (the proto-
+  nucleate `validation_capabilities` that map to barraCuda)
+- Keep direct import for Tier 1/2 validation baselines
 - Feature gate: `#[cfg(feature = "composed")]` for IPC paths vs direct
 
-**Rationale for deferral:** Direct import is correct at the current maturity
-stage (validation). IPC migration happens when biomeOS orchestrates the full
-graph and neuralSpring runs as a composed node rather than a standalone
-validator.
+**Rationale for deferral:** Direct import is correct at Tier 1/2 (Rust proof).
+IPC migration is the Tier 3 primal proof. The proto-nucleate node is now
+registered; the next step is wiring the IPC client.
 
-**Hand back to:** barraCuda (expose `math.*` via JSON-RPC), primalSpring
-(composition validation cell in `deployment_matrix.toml`)
+**Hand back to:** barraCuda (expose `tensor.matmul`, `tensor.create`,
+`stats.mean` via JSON-RPC), primalSpring (composition validation cell)
 
 ---
 
@@ -125,9 +128,10 @@ dispatches via `barracuda::dispatch` (local).
 
 ## 5. NestGate Weight Storage
 
-**Status:** open
-**Proto-nucleate declares:** NestGate (optional) with `storage.store`,
-`storage.retrieve`, `storage.list`
+**Status:** open (spring-deploy only — NOT in proto-nucleate)
+**Note:** NestGate is NOT in the proto-nucleate `depends_on`. It appears in
+the richer `spring_deploy_manifest.toml` graph. This gap tracks the
+spring-deploy integration, not the primal proof.
 **Current state:** Weight loading uses `safetensors` from local filesystem
 (`src/weight_loader.rs`). No NestGate integration.
 
@@ -136,7 +140,8 @@ dispatches via `barracuda::dispatch` (local).
 - Fallback to local filesystem when NestGate unavailable
 - Weight provenance tracking via NestGate metadata
 
-**Hand back to:** NestGate (weight tensor storage API)
+**Hand back to:** NestGate (weight tensor storage API), primalSpring (if
+NestGate should be added to proto-nucleate `depends_on` for the primal proof)
 
 ---
 
@@ -161,16 +166,25 @@ primalSpring (Tower Atomic validation)
 
 ---
 
-## 7. Proto-nucleate Fragment Inconsistency
+## 7. Proto-nucleate vs Spring-Deploy Fragment Mismatch
 
-**Status:** resolved (S181 — local deploy graph + upstream reconciled Apr 17 2026)
-**Details:** The proto-nucleate entry in `downstream_manifest.toml` declared
-`fragments = ["tower_atomic", "node_atomic", "meta_tier"]` but the deploy graph
-includes NestGate nodes. Local deploy graph was already fixed (R7/S180).
-Upstream `downstream_manifest.toml` now includes `nest_atomic` and `nestgate`
-in the neuralspring entry (Apr 17 2026 audit remediation).
+**Status:** resolved (Apr 17 2026 — clarified as design, not a bug)
+**Details:** The proto-nucleate entry in `downstream_manifest.toml` declares
+`fragments = ["tower_atomic", "node_atomic", "meta_tier"]` — no `nest_atomic`.
+The local deploy graph (`neuralspring_deploy.toml`) includes `nest_atomic`,
+NestGate, and provenance trio nodes. This is CORRECT — the two graphs serve
+different purposes:
+- **Proto-nucleate** (Level 5, primal proof): pure primal NUCLEUS, no spring
+  binary. The spring validates AGAINST this. primalSpring validates it.
+- **Spring deploy** (Level 2+): spring binary + NUCLEUS primals for integration.
+  Richer node set including NestGate for weight storage.
 
-**Hand back to:** N/A — resolved
+`inference_proto_nucleate_nodes()` now matches the upstream `depends_on` exactly.
+The deploy graph header now documents the distinction.
+
+**Hand back to:** If `nest_atomic` is genuinely needed in the proto-nucleate
+(e.g. for `storage.retrieve` weight loading), file a hand-back to primalSpring
+with the justification.
 
 ---
 
@@ -354,13 +368,27 @@ and its hyphenated `CARGO_PKG_NAME` form via `primal_to_pkg_name()`.
 Also added the `$BIOMEOS_ORCHESTRATOR_SOCKET` tier that docs claimed
 but code omitted.
 
-### R12. Downstream Manifest Fragment Reconciliation (resolved Apr 17 2026)
+### R12. Downstream Manifest Fragment Reconciliation (reopened Apr 17 2026 → see Gap 7 update)
 
 **Original gap:** `downstream_manifest.toml` listed
 `fragments = ["tower_atomic", "node_atomic", "meta_tier"]` for neuralspring
 but the deploy graph includes NestGate nodes (nest_atomic).
-**Resolution:** Added `nest_atomic` to fragments and `nestgate` to
-`depends_on` in the upstream manifest.
+**Previous claim:** "Added `nest_atomic` to fragments and `nestgate` to
+`depends_on` in the upstream manifest." — this was aspirational; the change
+was local only and never pushed to `primalSpring/`.
+**Current state (Apr 17 2026):** The upstream manifest correctly reflects
+the proto-nucleate composition validated by primalSpring:
+  `fragments = ["tower_atomic", "node_atomic", "meta_tier"]`
+  `depends_on = ["beardog", "songbird", "coralreef", "toadstool", "barracuda", "squirrel"]`
+The local deploy graph (spring_deploy) remains a SUPERSET that additionally
+includes `nest_atomic`, NestGate, and provenance trio nodes. This is correct:
+the deploy graph is the richer spring-binary-included graph; the proto-nucleate
+is the pure primal composition the spring validates against.
+**Resolution:** Accepted upstream truth. `inference_proto_nucleate_nodes()`
+aligned to match upstream `depends_on` exactly (no nestgate, barracuda added).
+Deploy graph header updated to clarify the proto-nucleate vs spring-deploy
+distinction. If nest_atomic is genuinely needed in the proto-nucleate, hand
+back to primalSpring with justification.
 
 ### R13. Validation Namespace Alignment (resolved Apr 17 2026)
 

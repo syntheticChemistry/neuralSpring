@@ -271,7 +271,16 @@ pub struct ProtoNucleateNode {
 
 /// The proto-nucleate graph for neuralSpring inference composition.
 ///
-/// Derived from `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
+/// Derived from `primalSpring/graphs/downstream/downstream_manifest.toml`
+/// `[[downstream]] spring_name = "neuralspring"`.
+///
+/// The upstream manifest entry defines:
+///   fragments:  `["tower_atomic", "node_atomic", "meta_tier"]`
+///   `depends_on`: `["beardog", "songbird", "coralreef", "toadstool", "barracuda", "squirrel"]`
+///
+/// This function returns one node per `depends_on` primal plus biomeOS (the
+/// orchestrator). `NestGate` is NOT in the proto-nucleate `depends_on` — it
+/// appears in the richer `spring_deploy_manifest.toml` graph instead.
 #[must_use]
 pub fn inference_proto_nucleate_nodes() -> Vec<ProtoNucleateNode> {
     vec![
@@ -280,6 +289,7 @@ pub fn inference_proto_nucleate_nodes() -> Vec<ProtoNucleateNode> {
             by_capability: "graph.deploy",
             required: false,
         },
+        // Tower Atomic
         ProtoNucleateNode {
             name: primal_names::BEARDOG,
             by_capability: "security",
@@ -290,6 +300,7 @@ pub fn inference_proto_nucleate_nodes() -> Vec<ProtoNucleateNode> {
             by_capability: "discovery",
             required: false,
         },
+        // Node Atomic
         ProtoNucleateNode {
             name: primal_names::CORALREEF,
             by_capability: "shader.compile.wgsl",
@@ -301,17 +312,36 @@ pub fn inference_proto_nucleate_nodes() -> Vec<ProtoNucleateNode> {
             required: false,
         },
         ProtoNucleateNode {
+            name: primal_names::BARRACUDA,
+            by_capability: "tensor.matmul",
+            required: false,
+        },
+        // Meta-tier
+        ProtoNucleateNode {
             name: primal_names::SQUIRREL,
             by_capability: "ai.query",
             required: false,
         },
-        ProtoNucleateNode {
-            name: primal_names::NESTGATE,
-            by_capability: "storage.retrieve",
-            required: false,
-        },
     ]
 }
+
+/// The `validation_capabilities` from the upstream proto-nucleate manifest.
+///
+/// These are the IPC methods that the primal proof must exercise: each one
+/// is a capability that the NUCLEUS composition exposes and that neuralSpring's
+/// science depends on. The primal proof calls these via IPC and compares
+/// results against Python/Rust baselines.
+///
+/// Source: `downstream_manifest.toml` `[[downstream]] spring_name = "neuralspring"`
+pub const PROTO_NUCLEATE_VALIDATION_CAPABILITIES: &[&str] = &[
+    "tensor.matmul",
+    "tensor.create",
+    "compute.dispatch",
+    "inference.complete",
+    "inference.embed",
+    "stats.mean",
+    "crypto.hash",
+];
 
 /// Bonding policy for NUCLEUS composition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -521,13 +551,28 @@ mod tests {
     }
 
     #[test]
-    fn proto_nucleate_nodes_cover_key_primals() {
+    fn proto_nucleate_nodes_match_upstream_manifest() {
         let nodes = inference_proto_nucleate_nodes();
         let names: Vec<&str> = nodes.iter().map(|n| n.name).collect();
-        assert!(names.contains(&"toadstool"));
-        assert!(names.contains(&"squirrel"));
+        // depends_on from downstream_manifest.toml:
+        assert!(names.contains(&"beardog"));
+        assert!(names.contains(&"songbird"));
         assert!(names.contains(&"coralreef"));
+        assert!(names.contains(&"toadstool"));
+        assert!(names.contains(&"barracuda"));
+        assert!(names.contains(&"squirrel"));
+        // biomeOS is the orchestrator (not in depends_on but always present)
         assert!(names.contains(&"biomeos"));
+        // nestgate is NOT in the proto-nucleate depends_on
+        assert!(!names.contains(&"nestgate"));
+    }
+
+    #[test]
+    fn validation_capabilities_match_upstream_manifest() {
+        assert_eq!(PROTO_NUCLEATE_VALIDATION_CAPABILITIES.len(), 7);
+        assert!(PROTO_NUCLEATE_VALIDATION_CAPABILITIES.contains(&"tensor.matmul"));
+        assert!(PROTO_NUCLEATE_VALIDATION_CAPABILITIES.contains(&"inference.complete"));
+        assert!(PROTO_NUCLEATE_VALIDATION_CAPABILITIES.contains(&"crypto.hash"));
     }
 
     #[test]
