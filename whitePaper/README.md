@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 266 binaries, **Python→Rust→IPC three-tier validation stack**. coralForge unified. 234+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,229 lib + 73 forge + 80 playGround tests. 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.12, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 30 capabilities, deployment health triad, MCP parity, Squirrel routing, Tower discovery. ecoBin compliant.
-**Date**: April 17, 2026 (Sessions 40–181+ — S181+: Proto-nucleate aligned to upstream primalSpring-validated composition. Python→Rust→Primal 3-tier validation of peer-reviewed science. 266 binaries, 520+ `.rs` files, 68 modules. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. V132 handoff)
+**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 267 binaries, **Python→Rust→IPC three-tier validation stack**. Level 5 primal proof: `validate_proto_nucleate_capabilities` + `IpcMathClient`. coralForge unified. 234+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,234 lib + 73 forge + 80 playGround tests. 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.12, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 30 capabilities, deployment health triad, MCP parity, Squirrel routing, Tower discovery. Stadial `deny.toml` bans enforced. ecoBin compliant.
+**Date**: April 17, 2026 (Sessions 40–182 — S182: Level 5 primal proof: `validate_proto_nucleate_capabilities` + `IpcMathClient`. Stadial `deny.toml` bans. `rust-toolchain.toml`. 18 barraCuda surface gaps documented. Python→Rust→Primal 3-tier validation of peer-reviewed science. 267 binaries, 520+ `.rs` files, 68 modules. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. V133 handoff)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–123+, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V132 handoff (Sessions 179–181+ — proto-nucleate aligned to upstream, 3-tier primal proof) |
+| `wateringHole/handoffs/` | Cross-project | V133 handoff (Sessions 179–182 — Level 5 primal proof: proto-nucleate capabilities harness, IPC dispatch, stadial bans) |
 
 ---
 
@@ -359,4 +359,4 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 ---
 
 *27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 1,225+ lib + 73 forge + 80 playGround tests. 397 Python + 4500+ Rust/GPU = 4900+ total checks.
-Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 266 binaries, 520+ `.rs` files, 30 capabilities, 3-tier validation stack (Python→Rust→IPC). 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V131 handoff. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. Deploy health triad + MCP tool parity + Squirrel routing + Tower discovery.*
+Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 267 binaries, 520+ `.rs` files, 30 capabilities, 3-tier validation stack (Python→Rust→IPC). Level 5: `IpcMathClient` + proto-nucleate capabilities harness. Stadial `deny.toml` bans. 0 clippy pedantic+nursery, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V133 handoff. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. Deploy health triad + MCP tool parity + Squirrel routing + Tower discovery.*

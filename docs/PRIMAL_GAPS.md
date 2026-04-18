@@ -423,3 +423,70 @@ stages through GPU when a device is available, falling back to CPU.
 **Details:** Replaced ad-hoc multipliers (`* 0.1`, `* 2.0`) with named constants
 `GPU_HMM_LOG_LIKELIHOOD_F64` and `GPU_HMM_LOG_LIKELIHOOD_F32_EXTENDED`.
 9 validation binary sites updated across 4 files.
+
+---
+
+## 11. barraCuda JSON-RPC Surface Gaps (IPC Migration Blockers)
+
+**Status:** open (Apr 17 2026)
+**Context:** `barraCuda` exposes 32 JSON-RPC methods. neuralSpring's domain
+math uses many `barracuda::` library calls that have no 1:1 JSON-RPC
+equivalent. These block full Level 5 IPC migration.
+
+| neuralSpring call | `barracuda::` module | JSON-RPC equivalent | Status |
+|-------------------|---------------------|---------------------|--------|
+| `eigh_householder_qr` | `ops::linalg` | **None** — no `linalg.eigh` RPC | GAP |
+| `pearson_correlation` | `stats::correlation` | **None** — no `stats.pearson` RPC | GAP |
+| `chi_squared_statistic` | `special` | **None** — no `stats.chi_squared` RPC | GAP |
+| `empirical_spectral_density` | `stats` | **None** | GAP |
+| `marchenko_pastur_bounds` | `stats` | **None** | GAP |
+| `shannon_from_frequencies` | `stats` | **None** — no `stats.shannon` RPC | GAP |
+| `solve_f64_cpu` | `linalg::solve` | **None** — no `linalg.solve` RPC | GAP |
+| `esn_v2::*` | `esn_v2` | **None** — no ESN surface | GAP |
+| `nn::SimpleMlp` / `DenseLayer` | `nn` | **None** — no `nn.forward` RPC | GAP |
+| `belief_propagation_chain` | `linalg::graph` | **None** | GAP |
+| `graph_laplacian` / `disordered_laplacian` | `linalg::graph` | **None** | GAP |
+| `effective_rank` | `linalg` | **None** | GAP |
+| `numerical_hessian` | `numerical` | **None** | GAP |
+| `boltzmann_sampling` | `sample` | **None** | GAP |
+| `nautilus::*` | `nautilus` | **None** | GAP |
+| `dot` | `stats` | **None** — composable via `tensor.*` | COMPOSABLE |
+| `l2_norm` / `rmse` / `mae` | `stats` | **None** — composable | COMPOSABLE |
+| `fit_linear` | `stats` | **None** | GAP |
+
+**Resolution path:** Either barraCuda expands its JSON-RPC surface (preferred
+for eigendecomposition, Pearson, chi-squared, Shannon, ESN) or neuralSpring
+composes multiple existing methods (`tensor.matmul` + `tensor.reduce` chains).
+For `nautilus` and `nn`, these may remain library-only until barraCuda adds
+training/monitoring surfaces.
+
+**Hand back to:** barraCuda (surface expansion), primalSpring (composition
+patterns for multi-method science operations)
+
+---
+
+## 12. Proto-Nucleate Capabilities Harness
+
+**Status:** implemented (Apr 17 2026)
+**Details:** New `validate_proto_nucleate_capabilities` binary iterates all 7
+`PROTO_NUCLEATE_VALIDATION_CAPABILITIES`, maps each to its owning primal
+(`barraCuda` for `tensor.*`/`stats.*`, `toadStool` for `compute.dispatch`,
+`BearDog` for `crypto.hash`, `Squirrel` for `inference.*`), discovers the
+socket, calls via IPC, and validates parity. Exit codes 0/1/2.
+
+### CE4. IPC Math Client (`ipc_dispatch.rs`)
+
+**Status:** implemented (Apr 17 2026)
+**Details:** New `ipc_dispatch::IpcMathClient` provides the Level 5 counterpart
+to `gpu_dispatch::Dispatcher`. Wraps `stats.mean`, `stats.std_dev`,
+`stats.weighted_mean`, `tensor.matmul`, `tensor.create`, `compute.dispatch`,
+`crypto.hash`, `inference.complete`, `inference.embed` as typed Rust methods
+routing through JSON-RPC IPC. Discovery-based (env-driven sockets, no
+hardcoded paths).
+
+### CE5. Stadial `deny.toml` Enforcement
+
+**Status:** implemented (Apr 17 2026)
+**Details:** Added `deny = [...]` list to `deny.toml` banning `ring`,
+`openssl-sys`, `openssl`, `async-trait`, `rustls`, `ed25519-dalek`, `cmake`,
+and `cc` (with `blake3` wrapper exemption). `cargo deny check` passes.

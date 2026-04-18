@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Pinned toolchain for reproducible builds (stadial parity gate).
+# MSRV is enforced via rust-version = "1.87" in Cargo.toml.
+
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy", "llvm-tools-preview"]

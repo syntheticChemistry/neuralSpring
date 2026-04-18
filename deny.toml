@@ -41,6 +41,16 @@ wildcards = "deny"
 allow-wildcard-paths = true
 multiple-versions = "warn"
 highlight = "all"
+deny = [
+    { crate = "ring", wrappers = [], reason = "Tower Atomic delegation: BearDog owns crypto. No spring should bundle ring directly." },
+    { crate = "openssl-sys", wrappers = [], reason = "ecoBin: zero C dependencies in application code." },
+    { crate = "openssl", wrappers = [], reason = "ecoBin: zero C dependencies in application code." },
+    { crate = "async-trait", wrappers = [], reason = "Stadial invariant: use native async fn in traits (RPITIT, Rust 1.75+)." },
+    { crate = "rustls", wrappers = [], reason = "Tower Atomic delegation: Songbird owns TLS." },
+    { crate = "ed25519-dalek", wrappers = [], reason = "Tower Atomic delegation: BearDog owns Ed25519." },
+    { crate = "cmake", wrappers = [], reason = "ecoBin: zero C build tools." },
+    { crate = "cc", wrappers = ["blake3"], reason = "ecoBin: zero C build tools. blake3 uses cc for optional asm; pure Rust fallback exists." },
+]
 
 [sources]
 unknown-registry = "deny"

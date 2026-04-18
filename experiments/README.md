@@ -5574,6 +5574,23 @@ Remaining binaries still need `clippy::expect_used` for GPU dispatch calls.
 **Findings**: The proto-nucleate is a PURE PRIMAL composition — the spring validates AGAINST it, the spring is not IN it. The deploy graph (spring_deploy) is a SUPERSET that includes the spring binary + additional nodes like NestGate. This is correct by design, not a bug. `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` (`tensor.matmul`, `tensor.create`, `compute.dispatch`, `inference.complete`, `inference.embed`, `stats.mean`, `crypto.hash`) defines the IPC surface the primal proof must exercise.
 **Result**: 1,230 lib tests PASS, 0 clippy, 0 fmt. V132 handoff. Proto-nucleate nodes match upstream exactly. All docs updated and reconciled.
 
+### Exp 129 — Level 5 Primal Proof Infrastructure: Capabilities Harness + IPC Dispatch + Stadial Enforcement
+
+**Date**: 2026-04-17
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Session**: S182
+**Motivation**: Close the gap between "validation capabilities codified as constant" and "Level 5 proof runs against a deployed NUCLEUS." Build the harness that exercises all 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` against their owning primals via IPC. Create the IPC dispatch module as the Level 5 counterpart to the Level 2 `Dispatcher`. Enforce stadial parity gate bans. Document barraCuda JSON-RPC surface gaps for upstream hand-back.
+**Procedure**:
+1. Created `src/bin/validate_proto_nucleate_capabilities.rs` — iterates all 7 capabilities, maps each to owning primal (barraCuda for `tensor.*`/`stats.*`, toadStool for `compute.dispatch`, BearDog for `crypto.hash`, Squirrel for `inference.*`), discovers socket, calls via IPC, validates parity against baselines, reports PASS/FAIL/SKIP with exit codes 0/1/2.
+2. Created `src/ipc_dispatch.rs` (`IpcMathClient`) — typed Rust methods for `stats.mean`, `stats.std_dev`, `stats.weighted_mean`, `tensor.matmul`, `tensor.create`, `compute.dispatch`, `crypto.hash`, `inference.complete`, `inference.embed`. Discovery-based socket resolution, `IpcLivenessReport` for health probing.
+3. Updated `deny.toml` — added `deny = [...]` banning `ring`, `openssl-sys`, `openssl`, `async-trait`, `rustls`, `ed25519-dalek`, `cmake`, `cc` (with `blake3` wrapper exemption). All stadial parity gate bans now enforced.
+4. Created `rust-toolchain.toml` — `channel = "stable"`, MSRV enforced via `rust-version = "1.87"`.
+5. Updated `PRIMAL_GAPS.md` — added Gap 11 (18-row barraCuda JSON-RPC surface gap table: eigh, Pearson, chi-squared, spectral density, linear solve, ESN, NN, belief propagation, Hessian, Boltzmann sampling, nautilus, dot, l2_norm, etc.). Added CE4 (IpcMathClient), CE5 (stadial enforcement), CE12 (capabilities harness).
+6. Created `scripts/validate_clean_machine.sh` — Level 6 clean-machine NUCLEUS validation runner (Tier 2 + Tier 3 validators, env-driven socket discovery, exit 0/1/2).
+7. Verified: all primal name string literals in handlers.rs already use `primal_names::` constants.
+**Findings**: barraCuda's 32 JSON-RPC methods cover the core tensor/stats/compute surface but lack 18 domain-specific methods neuralSpring uses (eigendecomposition, Pearson correlation, chi-squared, spectral density, ESN, NN forward, belief propagation, Hessian, Boltzmann sampling). These are Level 5 IPC migration blockers requiring either barraCuda surface expansion or multi-method composition. `crypto.hash` correctly routes to BearDog (not barraCuda) — this was a manifest taxonomy issue, not a wiring bug.
+**Result**: 1,234 lib tests PASS (+4 new ipc_dispatch tests), 0 clippy, 0 fmt, `cargo deny check` passes with bans. V133 handoff.
+
 ---
 
 *Experiment journals — following the hotSpring pattern.*

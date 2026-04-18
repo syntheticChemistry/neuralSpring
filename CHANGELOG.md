@@ -5,7 +5,17 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-11 (Session 181: Full Capability Surface, Squirrel Routing, Tower Discovery, Tier 3 Validation)
+## [Unreleased] — 2026-04-17 (Session 182: Level 5 Primal Proof — Capabilities Harness, IPC Dispatch, Stadial Bans)
+
+### 2026-04-17 — Session S182 (Level 5 primal proof: capabilities harness, IPC dispatch, stadial enforcement)
+
+- **Proto-nucleate capabilities harness**: New `validate_proto_nucleate_capabilities` binary exercises all 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` against owning primals via IPC (barraCuda: `tensor.matmul`/`tensor.create`/`stats.mean`, toadStool: `compute.dispatch`, BearDog: `crypto.hash`, Squirrel: `inference.complete`/`inference.embed`). Exit 0/1/2
+- **IPC math client**: New `src/ipc_dispatch.rs` with `IpcMathClient` — typed Rust methods routing domain math through JSON-RPC IPC. Discovery-based sockets. `IpcLivenessReport` for primal health probing. 4 new tests
+- **Stadial `deny.toml` enforcement**: Added `deny = [...]` ban list — `ring`, `openssl-sys`, `openssl`, `async-trait`, `rustls`, `ed25519-dalek`, `cmake`, `cc` (blake3 wrapper exempted). All stadial parity gate bans now enforced
+- **`rust-toolchain.toml`**: Pinned `channel = "stable"` with `rustfmt`, `clippy`, `llvm-tools-preview`. MSRV via `rust-version = "1.87"`
+- **barraCuda surface gaps**: `PRIMAL_GAPS.md` Gap 11 documents 18 `barracuda::` library calls that lack 1:1 JSON-RPC equivalents (eigh, Pearson, chi-squared, spectral density, ESN, NN, belief propagation, etc.)
+- **Clean-machine validation script**: `scripts/validate_clean_machine.sh` — Level 6 runner (Tier 2 + Tier 3 validators, env-driven socket discovery)
+- **1,234 lib tests passing**, 267 binaries, 520+ `.rs` files, 0 clippy, 0 fmt, `cargo deny check` clean. V133 handoff
 
 ### 2026-04-11 — Session S181 (Composition evolution: full capability surface, Squirrel routing, Tower discovery, Tier 3 validation)
 

@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 17, 2026 (Session S181+ — Proto-nucleate aligned to upstream primalSpring-validated composition. 3-tier validation stack: Python→Rust→Primal (IPC composition parity). `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` codified from `downstream_manifest.toml`. Proto-nucleate nodes match upstream `depends_on` exactly (barracuda added, nestgate scoped to spring-deploy). Deploy graph clarifies proto-nucleate vs spring-deploy distinction. 1,230+ lib tests, 266 binaries, 520+ `.rs` files. barraCuda v0.3.12. V132 handoff).
+**Last updated**: April 17, 2026 (Session S182 — Level 5 primal proof infrastructure: `validate_proto_nucleate_capabilities` harness exercises all 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` against owning primals via IPC. `ipc_dispatch::IpcMathClient` routes `tensor.*`/`stats.*` → barraCuda, `compute.dispatch` → toadStool, `crypto.hash` → BearDog, `inference.*` → Squirrel. Stadial `deny.toml` bans enforced (ring/openssl/async-trait/rustls/ed25519-dalek/cc/cmake). `rust-toolchain.toml` added. 18 barraCuda JSON-RPC surface gaps documented for hand-back. 1,234 lib tests, 267 binaries, 520+ `.rs` files. barraCuda v0.3.12. V133 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -46,7 +46,7 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
 
-**S181+ (Apr 17 2026): Comprehensive audit remediation + composition evolution. 3-tier validation stack: Python→Rust (Tier 1) → GPU parity (Tier 2) → IPC composition parity (Tier 3, `validate_science_composition`). Manifest reconciliation (`downstream_manifest.toml` + `spring_validate_manifest.toml` aligned). `GpuPreferred` dispatch variant added. Named tolerance constants (`GPU_HMM_LOG_LIKELIHOOD_F64/EXTENDED`). Self-discovery bug fixed (`primal_to_pkg_name` maps `neuralspring` ↔ `neural-spring`). Science baselines for 4 IPC round-trip validators. Cross-team handoff for primal/spring absorption. 1,229 lib + 73 forge + 12 integration tests, 266 binaries, 520+ `.rs` files. barraCuda v0.3.12. V131 handoff.**
+**S182 (Apr 17 2026): Level 5 primal proof infrastructure. `validate_proto_nucleate_capabilities` harness exercises all 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` against owning primals via IPC (barraCuda: tensor.matmul/create/stats.mean, toadStool: compute.dispatch, BearDog: crypto.hash, Squirrel: inference.complete/embed). `ipc_dispatch::IpcMathClient` routes domain math through JSON-RPC (Level 5 counterpart to Level 2 `Dispatcher`). Stadial `deny.toml` bans enforced (ring/openssl/async-trait/rustls/ed25519-dalek/cc/cmake). `rust-toolchain.toml` added. 18 barraCuda JSON-RPC surface gaps documented. Clean-machine validation script. 1,234 lib + 73 forge + 12 integration tests, 267 binaries, 520+ `.rs` files. barraCuda v0.3.12. V133 handoff.**
 
 **S181: Full composition evolution — 30-capability surface (health.check + identity.get + mcp.tools.list now in ALL_CAPABILITIES), Squirrel inference routing (try_squirrel_route fallback), Tower Atomic startup discovery (BearDog + Songbird liveness probes), Tier 3 `validate_composition_evolution` (5-phase coherence validator), `composed` feature gate, ToadStool discovery fix (compute.dispatch.submit), tolerance forensics (check_abs_or_rel mode accuracy), deploy graph V131/S181. 1,225+ lib tests, 265 binaries, 520 `.rs` files. V131 handoff.**
 
@@ -638,7 +638,7 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_V131_*.md # Current handoffs (V131/S181+)
+│   │   ├── NEURALSPRING_V133_*.md # Current handoffs (V133/S182)
 │   │   └── archive/           #   Superseded handoffs (V1–V130 + NestGate/biomeOS/Songbird V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-123+)
@@ -676,7 +676,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal primal team handoffs (V131 current: Sessions 179–181+, barraCuda v0.3.12) |
+| `wateringHole/handoffs/` | Formal primal team handoffs (V133 current: Sessions 179–182, barraCuda v0.3.12) |
 | `experiments/README.md` | Experiment journals (Sessions 40–179, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -698,4 +698,4 @@ documentation and standards.
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–181+: April 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4500+ Rust+GPU + 5 composition validators = 4900+ total validation checks | ~1,400+ Rust tests (1,230 lib + 73 forge + 80 playGround + 12 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 266 binaries, 520+ `.rs` files, 42 WGSL shaders | 234+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.12, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V132 handoff (Python→Rust→Primal validation of peer-reviewed science) | Proto-nucleate aligned to upstream primalSpring-validated composition: `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` (7 IPC methods), barracuda node added, nestgate scoped to spring-deploy | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 80 unit + 2 integration tests | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 30 capabilities registered | 21 petalTongue scenario tracks | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` + NUCLEUS composition validators (proto-nucleate, inference chain, primal discovery, science composition parity) | Metallic bonding policy + InternalNucleus trust model | Python→Rust→Primal three-layer validation stack*
+*Initialized: February 16, 2026 | Sessions 40–182: April 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4500+ Rust+GPU + 6 composition validators = 4900+ total validation checks | ~1,400+ Rust tests (1,234 lib + 73 forge + 80 playGround + 12 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 267 binaries, 520+ `.rs` files, 42 WGSL shaders | 234+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.12, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V133 handoff (Python→Rust→Primal validation of peer-reviewed science) | Level 5 primal proof: `validate_proto_nucleate_capabilities` exercises 7 IPC methods against owning primals, `IpcMathClient` routes math through JSON-RPC | Stadial `deny.toml` bans enforced (ring/openssl/async-trait/rustls/ed25519-dalek) | 18 barraCuda JSON-RPC surface gaps documented for hand-back | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 80 unit + 2 integration tests | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 30 capabilities registered | Metallic bonding policy + InternalNucleus trust model | Python→Rust→Primal three-layer validation stack*

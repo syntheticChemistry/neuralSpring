@@ -1240,6 +1240,10 @@ path = "src/bin/validate_composition_evolution.rs"
 name = "validate_science_composition"
 path = "src/bin/validate_science_composition.rs"
 
+[[bin]]
+name = "validate_proto_nucleate_capabilities"
+path = "src/bin/validate_proto_nucleate_capabilities.rs"
+
 # ── ecoBin release profiles ────────────────────────────────────────
 
 [profile.release]
