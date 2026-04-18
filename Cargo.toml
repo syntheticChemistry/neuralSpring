@@ -1236,6 +1236,10 @@ path = "src/bin/validate_primal_discovery.rs"
 name = "validate_composition_evolution"
 path = "src/bin/validate_composition_evolution.rs"
 
+[[bin]]
+name = "validate_science_composition"
+path = "src/bin/validate_science_composition.rs"
+
 # ── ecoBin release profiles ────────────────────────────────────────
 
 [profile.release]

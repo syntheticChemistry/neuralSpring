@@ -29,6 +29,8 @@ use std::time::Instant;
 const WARMUP: usize = 3;
 const ITERS: usize = 20;
 
+// Box<dyn Error> retained: bench binary (not production library code), and the
+// heterogeneous error types from barracuda/wgpu/serde require trait-object erasure.
 type BenchResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 #[tokio::main]

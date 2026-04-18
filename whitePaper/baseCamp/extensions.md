@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: March 14, 2026 (Sessions 49–150 — S150: Compute triangle integration, playGround hot/cold dispatch benchmarks, Squirrel MCP adapter, HuggingFace Model Lab. V100 handoffs. 1115 lib tests, 92% coverage. **260 binaries**, zero clippy, 4,500+ checks, 46 upstream rewires)
+**Date**: April 17, 2026 (Sessions 49–181+ — S181+: 3-tier validation (Python→Rust→IPC composition parity), manifest reconciliation, GpuPreferred dispatch, science baselines. V131 handoff. 1,229 lib tests, 91.66% coverage. **266 binaries**, zero clippy, 4,900+ checks, 46 upstream rewires. barraCuda v0.3.12)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---

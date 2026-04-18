@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S181)**: 1,225+ lib + 73 forge + 80 playGround tests, 68 modules, 265 binaries, 520 `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. NUCLEUS composition evolution: 30-capability surface, Squirrel inference routing, Tower Atomic discovery, Tier 3 composition validator, deploy graph V131. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.11, toadStool S146+, coralReef Iter 49. April 11, 2026.
+**Current state (Session S181+)**: 1,229 lib + 73 forge + 80 playGround tests, 68 modules, 266 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. 3-tier validation: Python→Rust→IPC composition parity. NUCLEUS composition evolution: 30-capability surface, Squirrel inference routing, Tower Atomic discovery, science composition baselines, deploy graph V131. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 17, 2026.
 
 ### Session S181 — 2026-04-11 (Full Composition Evolution — Squirrel Routing, Tower Discovery, Tier 3 Validator)
 

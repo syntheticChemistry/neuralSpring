@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 11, 2026 (Session S181 — Composition evolution: full 30-capability surface, Squirrel inference routing, Tower Atomic startup discovery, Tier 3 composition validator, `composed` feature gate, ToadStool capability fix, tolerance forensics, deploy graph V131/S181. 1,225+ lib tests, 265 binaries, 520 `.rs` files. V131 handoff).
+**Last updated**: April 17, 2026 (Session S181+ — Audit remediation + composition evolution: 3-tier validation stack (Python→Rust→IPC composition parity), manifest reconciliation, GpuPreferred dispatch, named tolerance constants, self-discovery fix, science composition baselines, comprehensive cross-team handoff. 1,229+ lib tests, 266 binaries, 520+ `.rs` files. barraCuda v0.3.12. V131 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -45,6 +45,8 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 806+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
+
+**S181+ (Apr 17 2026): Comprehensive audit remediation + composition evolution. 3-tier validation stack: Python→Rust (Tier 1) → GPU parity (Tier 2) → IPC composition parity (Tier 3, `validate_science_composition`). Manifest reconciliation (`downstream_manifest.toml` + `spring_validate_manifest.toml` aligned). `GpuPreferred` dispatch variant added. Named tolerance constants (`GPU_HMM_LOG_LIKELIHOOD_F64/EXTENDED`). Self-discovery bug fixed (`primal_to_pkg_name` maps `neuralspring` ↔ `neural-spring`). Science baselines for 4 IPC round-trip validators. Cross-team handoff for primal/spring absorption. 1,229 lib + 73 forge + 12 integration tests, 266 binaries, 520+ `.rs` files. barraCuda v0.3.12. V131 handoff.**
 
 **S181: Full composition evolution — 30-capability surface (health.check + identity.get + mcp.tools.list now in ALL_CAPABILITIES), Squirrel inference routing (try_squirrel_route fallback), Tower Atomic startup discovery (BearDog + Songbird liveness probes), Tier 3 `validate_composition_evolution` (5-phase coherence validator), `composed` feature gate, ToadStool discovery fix (compute.dispatch.submit), tolerance forensics (check_abs_or_rel mode accuracy), deploy graph V131/S181. 1,225+ lib tests, 265 binaries, 520 `.rs` files. V131 handoff.**
 
@@ -335,7 +337,7 @@ make check    # or: just check
 ## BarraCUDA Connection
 
 BarraCUDA is the **unified math** — the same WGSL shaders run on GPU, CPU, or NPU.
-barraCuda is now a standalone primal (`../../primals/barraCuda/crates/barracuda` v0.3.11), extracted from `ToadStool` at S89.
+barraCuda is now a standalone primal (`../../primals/barraCuda/crates/barracuda` v0.3.12), extracted from `ToadStool` at S89.
 `ToadStool` dispatches across hardware; `BarraCUDA` provides the universal math engine.
 neuralSpring calls `barracuda::*` directly — no abstraction layer — matching the hotSpring pattern.
 Each Spring evolves independently; the barraCuda team absorbs changes asynchronously.
@@ -626,7 +628,7 @@ neuralSpring/
 ├── specs/                      # Specifications & tracking
 │   ├── EVOLUTION_MAPPING.md    #   Python → Rust → GPU mapping
 │   ├── DATA_PROVENANCE.md      #   Dataset sources & licenses
-│   ├── TOADSTOOL_HANDOFF.md    #   12 BarraCUDA shortcomings — all absorbed
+│   ├── TOADSTOOL_HANDOFF.md    #   17 BarraCUDA shortcomings — all absorbed
 │   ├── BENCHMARK_ANALYSIS.md   #   Python vs BarraCUDA CPU vs GPU analysis
 │   ├── PAPER_REVIEW_QUEUE.md   #   25/25 papers — all complete + baseCamp controls
 │   ├── BARRACUDA_REQUIREMENTS.md # BarraCUDA primitive requirements
@@ -636,8 +638,8 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_V126_*.md # Current handoffs (V129/S179)
-│   │   └── archive/           #   Superseded handoffs (V1–V125 + NestGate/biomeOS/Songbird V1)
+│   │   ├── NEURALSPRING_V131_*.md # Current handoffs (V131/S181+)
+│   │   └── archive/           #   Superseded handoffs (V1–V130 + NestGate/biomeOS/Songbird V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-123+)
 ├── whitePaper/                 # Study documentation
@@ -674,7 +676,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal primal team handoffs (V129 current: Session 179, barraCuda v0.3.11) |
+| `wateringHole/handoffs/` | Formal primal team handoffs (V131 current: Sessions 179–181+, barraCuda v0.3.12) |
 | `experiments/README.md` | Experiment journals (Sessions 40–179, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -696,4 +698,4 @@ documentation and standards.
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–179: April 11, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4000+ Rust+GPU + 3 composition validators = 4500+ total validation checks | ~1,403+ Rust tests (1,225 lib + 73 forge + 80 playGround + 14 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 264 binaries, 518 `.rs` files, 42 WGSL shaders | 232+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.11, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V129 handoff (composition validation phase + NUCLEUS patterns) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 80 unit + 2 integration tests | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 26 capabilities registered | 21 petalTongue scenario tracks | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` + NUCLEUS composition validators (proto-nucleate, inference chain, primal discovery) | Metallic bonding policy + InternalNucleus trust model | Python→Rust→NUCLEUS three-layer validation stack*
+*Initialized: February 16, 2026 | Sessions 40–181+: April 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4500+ Rust+GPU + 4 composition validators = 4900+ total validation checks | ~1,400+ Rust tests (1,229 lib + 73 forge + 80 playGround + 12 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 266 binaries, 520+ `.rs` files, 42 WGSL shaders | 234+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.12, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V131 handoff (3-tier validation: Python→Rust→IPC composition parity) | playGround: Squirrel MCP + HuggingFace Model Lab + compute triangle (ToadStool/coralReef clients) + 80 unit + 2 integration tests | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 30 capabilities registered | 21 petalTongue scenario tracks | nucleus\_pipeline Tower→Node→Nest executor | niche deployment: `src/niche.rs` + `graphs/neuralspring_deploy.toml` + NUCLEUS composition validators (proto-nucleate, inference chain, primal discovery, science composition parity) | Metallic bonding policy + InternalNucleus trust model | Python→Rust→IPC three-layer validation stack*

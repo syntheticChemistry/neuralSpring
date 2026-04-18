@@ -18,7 +18,7 @@
 //!
 //! ## Provenance
 //!
-//! Proto-nucleate: `primalSpring/graphs/downstream/neuralspring_inference_proto_nucleate.toml`
+//! Proto-nucleate: `primalSpring/graphs/downstream/downstream_manifest.toml` `[[downstream]]` `spring_name` = "neuralspring"
 //! Version: v1.1.0 (2026-03-23)
 
 use neural_spring::niche;

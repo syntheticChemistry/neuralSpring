@@ -152,6 +152,19 @@ pub const RFFT_DC_COMPONENT_F32: f64 = 1e-3;
 /// within 0.5 (log-likelihood absolute difference).
 pub const GPU_HMM_LOG_LIKELIHOOD_F32: f64 = 0.5;
 
+/// GPU HMM forward: f64 log-likelihood agreement with CPU (upstream `HmmBatchForwardF64`).
+///
+/// The f64 shader is strictly tighter than the f32 path: with double-precision
+/// log-domain arithmetic the accumulated rounding over T ≤ 100 timesteps and
+/// N ≤ 10 states stays within 0.05 (10× tighter than f32).
+pub const GPU_HMM_LOG_LIKELIHOOD_F64: f64 = GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1;
+
+/// GPU HMM forward: f32 log-likelihood for extended sequences (T > 100, N > 4).
+///
+/// Longer sequences and larger state spaces accumulate more logsumexp rounding.
+/// 2× the base tolerance covers T ≤ 1000 with N ≤ 10 states.
+pub const GPU_HMM_LOG_LIKELIHOOD_F32_EXTENDED: f64 = GPU_HMM_LOG_LIKELIHOOD_F32 * 2.0;
+
 /// GPU HMM forward: per-state alpha agreement with CPU (f32).
 ///
 /// Each timestep accumulates f32 logsumexp error.  For T ≤ 100,

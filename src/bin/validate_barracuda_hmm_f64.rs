@@ -225,7 +225,7 @@ fn validate_2state_weather_single(h: &mut ValidationHarness, gpu: &Gpu) {
                 &format!("2-state weather: GPU LL ≈ CPU LL ({gpu_ll:.6} vs {cpu_ll:.6})"),
                 gpu_ll,
                 cpu_ll,
-                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F64,
             );
             let all_finite = alpha.iter().all(|v| v.is_finite());
             h.check_bool("2-state weather: all alpha values finite", all_finite);
@@ -262,7 +262,7 @@ fn validate_3state_genomic_single(h: &mut ValidationHarness, gpu: &Gpu) {
                 &format!("3-state genomic: GPU LL ≈ CPU LL ({gpu_ll:.6} vs {cpu_ll:.6})"),
                 gpu_ll,
                 cpu_ll,
-                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F64,
             );
         }
         Err(e) => h.check_bool(&format!("3-state genomic: dispatch failed — {e}"), false),
@@ -311,7 +311,7 @@ fn validate_batch_sequences(h: &mut ValidationHarness, gpu: &Gpu) {
             h.check_upper(
                 &format!("batch ({n_batch}×{obs_len}): max LL diff {max_diff:.2e}"),
                 max_diff,
-                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F64,
             );
         }
         Err(e) => h.check_bool(&format!("batch: dispatch failed — {e}"), false),
@@ -372,15 +372,15 @@ fn validate_precision_vs_f32(h: &mut ValidationHarness, gpu: &Gpu) {
         Ok((_, log_lik)) => {
             let gpu_ll = log_lik[0];
             let diff = (gpu_ll - cpu_ll).abs();
-            let old_tol = tolerances::GPU_HMM_LOG_LIKELIHOOD_F32;
-            let new_tol = old_tol * 0.1;
+            let f64_tol = tolerances::GPU_HMM_LOG_LIKELIHOOD_F64;
+            let f32_tol = tolerances::GPU_HMM_LOG_LIKELIHOOD_F32;
 
             h.check_upper(
                 &format!(
-                    "f64 precision: diff {diff:.2e} < {new_tol:.2e} (10× tighter than f32 tol {old_tol:.2e})"
+                    "f64 precision: diff {diff:.2e} < {f64_tol:.2e} (10× tighter than f32 tol {f32_tol:.2e})"
                 ),
                 diff,
-                new_tol,
+                f64_tol,
             );
 
             h.check_bool(

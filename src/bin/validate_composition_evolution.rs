@@ -27,7 +27,7 @@
 //!
 //! ## Provenance
 //!
-//! Proto-nucleate: `neuralspring_inference_proto_nucleate.toml` v1.1.0
+//! Proto-nucleate: `primalSpring/graphs/downstream/downstream_manifest.toml` `[[downstream]]` `spring_name` = "neuralspring"
 //! Deploy graph: `graphs/neuralspring_deploy.toml` V131/S181
 
 use neural_spring::config;
@@ -137,7 +137,7 @@ fn validate_deploy_graph_alignment(h: &mut ValidationHarness) {
 
     h.check_bool(
         "deploy graph references proto-nucleate",
-        deploy_src.contains("neuralspring_inference_proto_nucleate"),
+        deploy_src.contains("downstream_manifest::neuralspring"),
     );
 
     h.check_bool(

@@ -110,7 +110,7 @@ fn main() {
         "hmm4 forward chain 100-step",
         gpu_ll100,
         cpu_fwd100.1,
-        tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 2.0,
+        tolerances::GPU_HMM_LOG_LIKELIHOOD_F32_EXTENDED,
     );
 
     // ═══════════════════════════════════════════════════════════════

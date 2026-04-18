@@ -3,11 +3,12 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
 > Living gap log for neuralSpring's proto-nucleate composition.
-> Reviewed against `neuralspring_inference_proto_nucleate.toml` v1.1.0.
+> Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-04-11 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.9
-> **Session:** S181 — Composition evolution: full capability surface, Squirrel
-> routing, Tower discovery, Tier 3 validation binary, `composed` feature gate
+> **Date:** 2026-04-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.15
+> **Session:** S181+ — Audit remediation: manifest reconciliation, composition
+> parity validation (Tier 3: Rust→IPC), discovery bug fix, GpuPreferred dispatch,
+> tolerance hygiene, science baselines for composition round-trip validation.
 
 ---
 
@@ -162,15 +163,14 @@ primalSpring (Tower Atomic validation)
 
 ## 7. Proto-nucleate Fragment Inconsistency
 
-**Status:** resolved (S181 — local deploy graph; upstream pending)
-**Details:** The proto-nucleate graph declares
-`fragments = ["tower_atomic", "node_atomic", "meta_tier"]` but includes
-NestGate as a node. Local deploy graph
-(`graphs/neuralspring_deploy.toml`) now includes `nest_atomic` in its
-fragment list (fixed in R7/S180, header comment fixed in S181).
-Upstream proto-nucleate in primalSpring may still need reconciliation.
+**Status:** resolved (S181 — local deploy graph + upstream reconciled Apr 17 2026)
+**Details:** The proto-nucleate entry in `downstream_manifest.toml` declared
+`fragments = ["tower_atomic", "node_atomic", "meta_tier"]` but the deploy graph
+includes NestGate nodes. Local deploy graph was already fixed (R7/S180).
+Upstream `downstream_manifest.toml` now includes `nest_atomic` and `nestgate`
+in the neuralspring entry (Apr 17 2026 audit remediation).
 
-**Hand back to:** primalSpring (upstream proto-nucleate graph fragment list)
+**Hand back to:** N/A — resolved
 
 ---
 
@@ -342,3 +342,56 @@ stale `ml.*` prefix.
 iterative multi-prefix strip.
 **Resolution:** S180 evolved to loop over `neuralspring.`,
 `neural-spring.`, `neural_spring.` prefixes iteratively.
+
+### R11. Self-Discovery Name Mismatch (resolved Apr 17 2026)
+
+**Original gap:** `composition::discover_primal_socket("neuralspring")`
+searched for filenames containing `neuralspring`, but the primal binds
+as `neural-spring-{family}.sock` (from `CARGO_PKG_NAME`). Self-discovery
+in composition validators always failed.
+**Resolution:** `discover_primal_socket` now tries both the niche name
+and its hyphenated `CARGO_PKG_NAME` form via `primal_to_pkg_name()`.
+Also added the `$BIOMEOS_ORCHESTRATOR_SOCKET` tier that docs claimed
+but code omitted.
+
+### R12. Downstream Manifest Fragment Reconciliation (resolved Apr 17 2026)
+
+**Original gap:** `downstream_manifest.toml` listed
+`fragments = ["tower_atomic", "node_atomic", "meta_tier"]` for neuralspring
+but the deploy graph includes NestGate nodes (nest_atomic).
+**Resolution:** Added `nest_atomic` to fragments and `nestgate` to
+`depends_on` in the upstream manifest.
+
+### R13. Validation Namespace Alignment (resolved Apr 17 2026)
+
+**Original gap:** `spring_validate_manifest.toml` used `domain = "neural"`
+with `neural.*` capabilities, mismatched vs the actual `science.*` namespace.
+**Resolution:** Changed to `domain = "science"` with `science.spectral_analysis`,
+`science.anderson_localization`, `science.hessian_eigen`.
+
+---
+
+## Composition Evolution (added Apr 17 2026)
+
+### CE1. Science Composition Parity Validation
+
+**Status:** implemented
+**Details:** New `validate_science_composition` binary implements Tier 3
+validation: calls `science.*` capabilities via JSON-RPC IPC and compares
+results to deterministic Rust baselines computed with identical parameters.
+4 baselines: `spectral_analysis`, `ipr`, `hessian_eigen`, `disorder_sweep`.
+Science baselines are centralized in `validation::composition::science_baselines()`.
+
+### CE2. GpuPreferred Dispatch
+
+**Status:** implemented
+**Details:** Added `MixedSubstrate::GpuPreferred` variant to forge enum.
+Nucleus pipeline executor and `Dispatcher::gpu_or_cpu` now route `GpuPreferred`
+stages through GPU when a device is available, falling back to CPU.
+
+### CE3. Named Tolerance Constants
+
+**Status:** implemented
+**Details:** Replaced ad-hoc multipliers (`* 0.1`, `* 2.0`) with named constants
+`GPU_HMM_LOG_LIKELIHOOD_F64` and `GPU_HMM_LOG_LIKELIHOOD_F32_EXTENDED`.
+9 validation binary sites updated across 4 files.

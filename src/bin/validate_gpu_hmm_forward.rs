@@ -217,7 +217,7 @@ fn validate_2state_weather(h: &mut ValidationHarness, gpu: &Gpu) {
                 &format!("2-state weather: GPU LL ≈ CPU LL ({gpu_ll:.6} vs {cpu_ll:.6})"),
                 gpu_ll,
                 cpu_ll,
-                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F64,
             );
             h.check_bool(
                 &format!("2-state weather: CPU LL finite ({cpu_ll:.6})"),
@@ -261,7 +261,7 @@ fn validate_3state_genomic(h: &mut ValidationHarness, gpu: &Gpu) {
                 &format!("3-state genomic: GPU LL ≈ CPU LL ({gpu_ll:.6} vs {cpu_ll:.6})"),
                 gpu_ll,
                 cpu_ll,
-                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F64,
             );
         }
         Err(e) => {
@@ -373,7 +373,7 @@ fn validate_longer_sequence(h: &mut ValidationHarness, gpu: &Gpu) {
                 &format!("100-obs genomic: GPU LL ≈ CPU LL ({gpu_ll:.6} vs {cpu_ll:.6})"),
                 gpu_ll,
                 cpu_ll,
-                tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 0.1,
+                tolerances::GPU_HMM_LOG_LIKELIHOOD_F64,
             );
             h.check_bool(
                 &format!("100-obs genomic: GPU LL finite ({gpu_ll:.8})"),

@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: April 11, 2026 (Session S181 — Composition evolution: 30-capability surface, Squirrel routing, Tower discovery, Tier 3 validator. 1,225+ lib + 73 forge + 80 playGround tests. 265 binaries (242 validate + 18 bench + 5 other), 520 `.rs` files. 0 warnings. Cast lints denied. barraCuda v0.3.11.)
+**Last updated**: April 17, 2026 (Session S181+ — Audit remediation + composition evolution: 3-tier validation (Python→Rust→IPC parity), manifest reconciliation, GpuPreferred dispatch, science baselines. 1,229 lib + 73 forge + 80 playGround tests. 266 binaries (243 validate + 18 bench + 5 other), 520+ `.rs` files. 0 warnings. Cast lints denied. barraCuda v0.3.12.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

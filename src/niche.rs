@@ -6,7 +6,8 @@
 //! scientific Python baselines can be faithfully ported to sovereign
 //! Rust + GPU compute using the ecoPrimals stack. The niche deploys as
 //! a biomeOS graph (`graphs/neuralspring_deploy.toml`) that composes
-//! real primals (`BearDog`, `Songbird`, `ToadStool`, etc.).
+//! real primals (`BearDog`, `Songbird`, `ToadStool`, etc.). The proto-nucleate
+//! entry lives in `primalSpring/graphs/downstream/downstream_manifest.toml`.
 //!
 //! This module holds the niche's self-knowledge:
 //! - Capability table (what the niche exposes via biomeOS)

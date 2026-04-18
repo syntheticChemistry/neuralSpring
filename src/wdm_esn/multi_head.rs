@@ -22,6 +22,10 @@ use super::classifier::EsnNormalization;
 ///
 /// Prevents ill-conditioning in the reservoir-to-output weight solve.
 /// Standard value for ESN applications (Lukoševičius & Jaeger, 2009).
+///
+/// This is a physics/ML constant (ridge penalty), not a validation tolerance —
+/// it controls the ESN training algorithm, not a pass/fail comparison.
+/// Changing it affects trained model quality, not validation accuracy.
 const ESN_TIKHONOV_REGULARIZATION: f32 = 1e-6;
 
 pub use barracuda::esn_v2::{

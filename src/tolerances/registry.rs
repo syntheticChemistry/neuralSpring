@@ -121,7 +121,8 @@ pub const fn all_tolerances() -> &'static [NamedTolerance] {
         ],
         "gpu_shader": [
             BARRACUDA_GPU_ECO_F32,
-            GPU_HMM_LOG_LIKELIHOOD_F32, GPU_HMM_ALPHA_F32,
+            GPU_HMM_LOG_LIKELIHOOD_F32, GPU_HMM_LOG_LIKELIHOOD_F64,
+            GPU_HMM_LOG_LIKELIHOOD_F32_EXTENDED, GPU_HMM_ALPHA_F32,
             GPU_FITNESS_F32, GPU_RK4_F32,
             GPU_JACCARD_F32, GPU_LOCUS_VARIANCE_F32,
             GPU_SPATIAL_PAYOFF_F32, GPU_BATCH_IPR_F32,

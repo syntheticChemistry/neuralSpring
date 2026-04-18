@@ -45,38 +45,53 @@ impl DiscoveryResult {
 
 /// Discover a primal's Unix socket using the biomeOS 5-tier discovery order.
 ///
-/// 1. `$BIOMEOS_ORCHESTRATOR_SOCKET` override
+/// 1. `$BIOMEOS_ORCHESTRATOR_SOCKET` env override
 /// 2. `$XDG_RUNTIME_DIR/biomeos/{primal}*.sock`
 /// 3. `/tmp/biomeos/{primal}*.sock`
 /// 4. `$XDG_RUNTIME_DIR/{primal}/*.sock` (legacy)
 /// 5. `/tmp/{primal}-*.sock` (legacy)
+///
+/// Socket matching uses both the niche name (e.g. `neuralspring`) and the
+/// hyphenated `CARGO_PKG_NAME` form (e.g. `neural-spring`) to handle springs
+/// whose binary name differs from their niche name.
 #[must_use]
 pub fn discover_primal_socket(primal: &str) -> DiscoveryResult {
     let mut searched = Vec::new();
 
+    // Tier 0: explicit orchestrator socket override
+    if let Ok(override_path) = std::env::var(config::ENV_BIOMEOS_ORCHESTRATOR) {
+        let p = PathBuf::from(&override_path);
+        searched.push(p.clone());
+        if p.exists() {
+            return DiscoveryResult::Found(p);
+        }
+    }
+
+    let alt_name = primal_to_pkg_name(primal);
+
     if let Ok(xdg) = std::env::var(config::ENV_XDG_RUNTIME_DIR) {
         let biomeos_dir = PathBuf::from(&xdg).join(config::BIOMEOS_SOCKET_SUBDIR);
         searched.push(biomeos_dir.clone());
-        if let Some(sock) = find_socket_in_dir(&biomeos_dir, primal) {
+        if let Some(sock) = find_socket_in_dir(&biomeos_dir, primal, alt_name.as_deref()) {
             return DiscoveryResult::Found(sock);
         }
 
         let legacy_dir = PathBuf::from(&xdg).join(primal);
         searched.push(legacy_dir.clone());
-        if let Some(sock) = find_socket_in_dir(&legacy_dir, primal) {
+        if let Some(sock) = find_socket_in_dir(&legacy_dir, primal, alt_name.as_deref()) {
             return DiscoveryResult::Found(sock);
         }
     }
 
     let tmp_biomeos = std::env::temp_dir().join(config::BIOMEOS_SOCKET_SUBDIR);
     searched.push(tmp_biomeos.clone());
-    if let Some(sock) = find_socket_in_dir(&tmp_biomeos, primal) {
+    if let Some(sock) = find_socket_in_dir(&tmp_biomeos, primal, alt_name.as_deref()) {
         return DiscoveryResult::Found(sock);
     }
 
     let tmp_legacy = std::env::temp_dir();
     searched.push(tmp_legacy.clone());
-    if let Some(sock) = find_socket_in_dir(&tmp_legacy, primal) {
+    if let Some(sock) = find_socket_in_dir(&tmp_legacy, primal, alt_name.as_deref()) {
         return DiscoveryResult::Found(sock);
     }
 
@@ -86,13 +101,45 @@ pub fn discover_primal_socket(primal: &str) -> DiscoveryResult {
     }
 }
 
-fn find_socket_in_dir(dir: &Path, primal: &str) -> Option<PathBuf> {
+/// Convert a niche name (e.g. `neuralspring`) to its probable `CARGO_PKG_NAME`
+/// form (e.g. `neural-spring`). Returns `None` if the name contains no
+/// recognizable camelCase boundary (i.e. it's already a simple name like
+/// `beardog` that doesn't need an alternate form).
+fn primal_to_pkg_name(niche: &str) -> Option<String> {
+    let known = [
+        ("neuralspring", "neural-spring"),
+        ("hotspring", "hot-spring"),
+        ("wetspring", "wet-spring"),
+        ("groundspring", "ground-spring"),
+        ("airspring", "air-spring"),
+        ("healthspring", "health-spring"),
+        ("ludospring", "ludo-spring"),
+        ("primalspring", "primal-spring"),
+        ("esotericwebb", "esoteric-webb"),
+    ];
+    for &(niche_name, pkg_name) in &known {
+        if niche == niche_name {
+            return Some(pkg_name.to_string());
+        }
+    }
+    None
+}
+
+fn find_socket_in_dir(dir: &Path, primal: &str, alt_name: Option<&str>) -> Option<PathBuf> {
     let entries = std::fs::read_dir(dir).ok()?;
     for entry in entries.flatten() {
         let name = entry.file_name();
         let name_str = name.to_string_lossy();
-        if name_str.contains(primal) && name_str.ends_with(".sock") {
+        if !name_str.ends_with(".sock") {
+            continue;
+        }
+        if name_str.contains(primal) {
             return Some(entry.path());
+        }
+        if let Some(alt) = alt_name {
+            if name_str.contains(alt) {
+                return Some(entry.path());
+            }
         }
     }
     None
@@ -224,7 +271,7 @@ pub struct ProtoNucleateNode {
 
 /// The proto-nucleate graph for neuralSpring inference composition.
 ///
-/// Derived from `neuralspring_inference_proto_nucleate.toml` v1.1.0.
+/// Derived from `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 #[must_use]
 pub fn inference_proto_nucleate_nodes() -> Vec<ProtoNucleateNode> {
     vec![
@@ -307,6 +354,137 @@ pub const fn exit_code_skip_aware(passed: usize, failed: usize, skipped: usize) 
     }
 }
 
+/// Science capability baseline for Rust→IPC parity validation.
+///
+/// Each baseline defines:
+/// - The JSON-RPC method name
+/// - The params to send
+/// - A closure that computes the expected result via direct Rust calls
+/// - Tolerance for numeric comparison
+///
+/// This is the third validation tier: Python validated Rust, now Rust validates IPC.
+#[derive(Clone)]
+pub struct ScienceBaseline {
+    /// JSON-RPC method name (e.g. `science.spectral_analysis`).
+    pub method: &'static str,
+    /// JSON-RPC params to send.
+    pub params: serde_json::Value,
+    /// Keys in the IPC response to validate (each maps to a known Rust value).
+    pub expected: Vec<(&'static str, f64)>,
+    /// Absolute tolerance for numeric comparison.
+    pub tolerance: f64,
+}
+
+/// Canonical science baselines for Rust→IPC parity.
+///
+/// Each entry exercises a science capability via IPC and compares to the
+/// known Rust result computed with identical parameters (same seed, dim, disorder).
+#[must_use]
+pub fn science_baselines() -> Vec<ScienceBaseline> {
+    use crate::anderson_localization::{anderson_hamiltonian_random, mean_ipr};
+    use crate::eigh::eigh_householder_qr;
+    use crate::rng::Rng;
+    use crate::tolerances;
+    use crate::weight_spectral;
+
+    // Baseline 1: science.spectral_analysis (dim=16, disorder=2.0, seed=42)
+    let spectral = {
+        let n = 16;
+        let w = 2.0;
+        let seed = 42;
+        let mut rng = Rng::new(seed);
+        let h = anderson_hamiltonian_random(n, 1.0, w, &mut rng);
+        let decomp = eigh_householder_qr(&h, n);
+        let ipr_val = mean_ipr(&decomp.eigenvectors, n);
+        let mut evals = decomp.eigenvalues;
+        evals.sort_by(f64::total_cmp);
+        let lsr = weight_spectral::level_spacing_ratio(&evals);
+        let bw = weight_spectral::spectral_bandwidth(&evals);
+
+        ScienceBaseline {
+            method: "science.spectral_analysis",
+            params: serde_json::json!({ "dim": n, "disorder": w, "seed": seed }),
+            expected: vec![
+                ("mean_ipr", ipr_val),
+                ("level_spacing_ratio", lsr),
+                ("bandwidth", bw),
+            ],
+            tolerance: tolerances::SPECIAL_FUNCTION_F64,
+        }
+    };
+
+    // Baseline 2: science.ipr (uniform wavefunction, IPR = 1/n)
+    let ipr_uniform = {
+        let n = 8_usize;
+        let n_f64 = 8.0_f64;
+        let amp = 1.0 / n_f64.sqrt();
+        let wf: Vec<f64> = vec![amp; n];
+        let expected_ipr = crate::anderson_localization::ipr(&wf);
+
+        ScienceBaseline {
+            method: "science.ipr",
+            params: serde_json::json!({ "wavefunction": wf }),
+            expected: vec![("ipr", expected_ipr)],
+            tolerance: tolerances::EXACT_F64,
+        }
+    };
+
+    // Baseline 3: science.hessian_eigen (quadratic surface, dim=10)
+    let hessian_quad = {
+        let n = 10;
+        let mut hessian = vec![0.0; n * n];
+        for i in 0..n {
+            #[expect(clippy::cast_precision_loss, reason = "small index → f64")]
+            let v = (i + 1) as f64;
+            hessian[i * n + i] = v;
+        }
+        let _decomp = eigh_householder_qr(&hessian, n);
+        #[expect(clippy::cast_precision_loss, reason = "small index → f64")]
+        let expected_trace = (1..=n).map(|i| i as f64).sum::<f64>();
+
+        ScienceBaseline {
+            method: "science.hessian_eigen",
+            params: serde_json::json!({ "dim": n, "surface_type": "quadratic" }),
+            expected: vec![("trace", expected_trace)],
+            tolerance: tolerances::SPECIAL_FUNCTION_F64,
+        }
+    };
+
+    // Baseline 4: science.disorder_sweep (lattice_size=10, seed=42)
+    let disorder_sweep = {
+        let n = 10;
+        let seed = 42_u64;
+        let w_vals = vec![1.0, 4.0, 16.0];
+        let mut rng = Rng::new(seed);
+        let iprs = crate::anderson_localization::disorder_sweep(n, 1.0, &w_vals, &mut rng);
+
+        ScienceBaseline {
+            method: "science.disorder_sweep",
+            params: serde_json::json!({
+                "lattice_size": n,
+                "disorder_values": w_vals,
+                "seed": seed,
+                "hopping": 1.0,
+            }),
+            expected: iprs
+                .iter()
+                .enumerate()
+                .map(|(i, &v)| {
+                    // ipr_values[i] — we'll check these in the binary by index
+                    match i {
+                        0 => ("ipr_w1", v),
+                        1 => ("ipr_w4", v),
+                        _ => ("ipr_w16", v),
+                    }
+                })
+                .collect(),
+            tolerance: tolerances::SPECIAL_FUNCTION_F64,
+        }
+    };
+
+    vec![spectral, ipr_uniform, hessian_quad, disorder_sweep]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -356,5 +534,51 @@ mod tests {
     fn bond_type_display() {
         assert_eq!(BondType::Metallic.to_string(), "Metallic");
         assert_eq!(BondType::Ionic.to_string(), "Ionic");
+    }
+
+    #[test]
+    fn science_baselines_non_empty() {
+        let baselines = science_baselines();
+        assert!(baselines.len() >= 4, "should have at least 4 baselines");
+        for b in &baselines {
+            assert!(!b.method.is_empty());
+            assert!(!b.expected.is_empty());
+            assert!(b.tolerance > 0.0);
+        }
+    }
+
+    #[test]
+    fn science_baselines_deterministic() {
+        let b1 = science_baselines();
+        let b2 = science_baselines();
+        for (a, b) in b1.iter().zip(b2.iter()) {
+            assert_eq!(a.method, b.method);
+            for ((k1, v1), (k2, v2)) in a.expected.iter().zip(b.expected.iter()) {
+                assert_eq!(k1, k2);
+                assert_eq!(
+                    v1.to_bits(),
+                    v2.to_bits(),
+                    "baseline {k1} must be deterministic"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn primal_to_pkg_name_known() {
+        assert_eq!(
+            primal_to_pkg_name("neuralspring"),
+            Some("neural-spring".to_string())
+        );
+        assert_eq!(
+            primal_to_pkg_name("hotspring"),
+            Some("hot-spring".to_string())
+        );
+        assert_eq!(primal_to_pkg_name("beardog"), None);
+    }
+
+    #[test]
+    fn primal_to_pkg_name_unknown() {
+        assert_eq!(primal_to_pkg_name("unknownprimal"), None);
     }
 }

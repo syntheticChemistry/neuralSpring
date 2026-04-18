@@ -193,6 +193,15 @@ impl Dispatcher {
     /// for HMM forward chains, ODE integration loops, and multi-layer
     /// inference where the intermediate tensors stay on-device.
     ///
+    /// ## Adoption path
+    ///
+    /// Current science pipeline stages (eigensolve, spectral analysis) are
+    /// dominated by single large ops (`eigh`) that `TensorSession` does not wrap.
+    /// Adoption targets for fused sessions:
+    /// - **Inference pipelines** (`matmul` → `gelu` → `layer_norm` → `attention` chains)
+    /// - **HMM batched forward** (log-domain `matmul` chains)
+    /// - **`coral_forge` evoformer** (`triangle_attention` → `outer_product` → `layer_norm`)
+    ///
     /// Returns `None` in CPU-only mode.
     #[must_use]
     pub fn tensor_session(&self) -> Option<barracuda::prelude::TensorSession> {
@@ -347,7 +356,7 @@ impl Dispatcher {
         );
 
         match substrate {
-            MixedSubstrate::GpuOnly | MixedSubstrate::CpuToGpu => {
+            MixedSubstrate::GpuOnly | MixedSubstrate::GpuPreferred | MixedSubstrate::CpuToGpu => {
                 if let Some(dev) = self.wgpu_device() {
                     match gpu_fn(dev) {
                         Ok(result) => return (result, substrate),

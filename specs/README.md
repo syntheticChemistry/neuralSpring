@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: April 11, 2026 (Sessions 44–181 — S181: Full composition evolution, 30-capability surface, Squirrel routing, Tower discovery, Tier 3 validator. 1,225+ lib + 73 forge + 80 playGround tests. 265 binaries, 520 `.rs` files. barraCuda v0.3.11, ToadStool S146+, coralReef Iter 49)
-**Status**: Phase 5h+ — 397/397 Python + 4000+ Rust+GPU + 4 composition = **4500+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 265 binaries (242 validate + 18 bench + 5 other), 1,225+ lib tests, Python→Rust→NUCLEUS→Primal four-layer validation stack
+**Last Updated**: April 17, 2026 (Sessions 44–181+ — S181+: Comprehensive audit + composition evolution, 3-tier validation stack (Python→Rust→IPC composition parity), manifest reconciliation, GpuPreferred dispatch, science baselines. 1,229 lib + 73 forge + 80 playGround tests. 266 binaries, 520+ `.rs` files. barraCuda v0.3.12, ToadStool S146+, coralReef Iter 49)
+**Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 266 binaries (243 validate + 18 bench + 5 other), 1,229 lib tests, Python→Rust→IPC three-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 1,378 tests (1,225 lib + 73 forge + 80 playGround) PASS — 264 binaries, 47+ modules |
+| Rust native validation | 1,382 tests (1,229 lib + 73 forge + 80 playGround) PASS — 266 binaries, 47+ modules |
 | BarraCUDA CPU (bC) | 24/27 papers (89%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/27 papers (85%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/27 papers, 17 shaders, 108 checks | ALL PASS |
@@ -47,7 +47,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V129 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V131 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 
@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V129 handoff (current, Sessions 176–179) |
+| wateringHole/handoffs/ | `../wateringHole/` | V131 handoff (current, Sessions 176–181+) |
 
 ---
 

@@ -16,6 +16,13 @@
 pub enum MixedSubstrate {
     /// Run compute entirely on the GPU.
     GpuOnly,
+    /// Prefer GPU but fall back to CPU when no device is available.
+    ///
+    /// Stages tagged `GpuPreferred` are dispatched through the GPU path
+    /// when a device is present and fall back transparently to CPU.
+    /// Use for workloads that benefit from GPU acceleration but produce
+    /// correct results on CPU (e.g. batched matmul, IPR reduction).
+    GpuPreferred,
     /// Run compute entirely on the CPU.
     CpuOnly,
     /// Run inference entirely on the NPU.

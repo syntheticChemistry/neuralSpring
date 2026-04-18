@@ -99,8 +99,8 @@ pub fn execute_graph(graph: &PipelineGraph) -> Result<PipelineReport, PipelineEr
 /// Stages marked `CpuOnly` always use direct function calls.
 ///
 /// Provenance records the actual substrate used per stage:
-/// - `GpuOnly`/`GpuPreferred` with GPU available → `MixedSubstrate::GpuOnly`
-/// - `GpuOnly`/`GpuPreferred` with CPU fallback → `MixedSubstrate::CpuOnly`
+/// - `GpuOnly`/`GpuPreferred` with GPU available → original `MixedSubstrate` tag
+/// - `GpuOnly`/`GpuPreferred` without GPU → `MixedSubstrate::CpuOnly` (fallback)
 /// - `CpuOnly` stages → `MixedSubstrate::CpuOnly`
 ///
 /// # Errors
@@ -129,7 +129,10 @@ pub fn execute_graph_gpu(
                 pipeline: graph.name.clone(),
             })?;
 
-        let use_gpu = matches!(stage.substrate, MixedSubstrate::GpuOnly);
+        let use_gpu = matches!(
+            stage.substrate,
+            MixedSubstrate::GpuOnly | MixedSubstrate::GpuPreferred
+        );
 
         let start = std::time::Instant::now();
         let (success, output, actual_substrate) = if use_gpu && dispatcher.has_gpu() {

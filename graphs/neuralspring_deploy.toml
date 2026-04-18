@@ -2,8 +2,8 @@
 # Canonical deploy graph following SPRING_AS_NICHE_DEPLOYMENT_STANDARD.md
 #
 # Deploys neuralSpring as an ML/spectral science + inference provider atop
-# a biomeOS NUCLEUS composition.  Aligns with the proto-nucleate graph:
-#   primalSpring/graphs/downstream/neuralspring_inference_proto_nucleate.toml
+# a biomeOS NUCLEUS composition.  Aligns with the proto-nucleate entry:
+#   primalSpring/graphs/downstream/downstream_manifest.toml [[downstream]] spring_name = "neuralspring"
 #
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
@@ -31,7 +31,7 @@ transport = "uds"
 tcp_ports = 0
 encryption_boundary = "tower"
 fragments = ["tower_atomic", "node_atomic", "nest_atomic", "meta_tier"]
-proto_nucleate = "neuralspring_inference_proto_nucleate"
+proto_nucleate = "downstream_manifest::neuralspring"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 1: TOWER ATOMIC — BearDog (security) + Songbird (discovery)

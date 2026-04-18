@@ -1,8 +1,8 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: April 11, 2026 (Session S179)
+**Date**: April 17, 2026 (Session S181+)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. **Python→Rust→NUCLEUS three-layer validation stack**. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **~1,403+ tests** (1,225 lib + 73 forge + 80 playGround + 14 integration), **264 binaries**, **518 `.rs` files**. S179: composition validation phase, validate_all integration, PRIMAL_GAPS reconciled, V129 handoff.
+**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. **Python→Rust→IPC three-tier validation stack** (Tier 3: `validate_science_composition` proves IPC round-trip parity). playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **~1,400+ tests** (1,229 lib + 73 forge + 80 playGround + 12 integration), **266 binaries**, **520+ `.rs` files**. S181+: audit remediation, manifest reconciliation, GpuPreferred dispatch, science baselines, V131 handoff. barraCuda v0.3.12.
 **S151–S152 update**: Deep audit + deep debt execution — ecoBin compliance, 15+ tolerance literals centralized, capability-based primal discovery, coralReef bridge capability-first, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), V103 handoff.
 **S148–S150 update**: playGround evolution — Squirrel MCP adapter (14 tool definitions), HuggingFace Model Lab (GPT-2 inference on barraCuda), compute triangle (ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks: 7–45× pipeline reuse, 8–22× PyTorch/CUDA gap). 63 playGround unit + 13 integration tests. Live ToadStool verified. V101 handoff.
 **S147 update**: Deep debt — zero inline magic numbers, zero duplicate math, capability-based discovery. V100 handoff.

@@ -3,7 +3,7 @@
 **Parent**: ecoPrimals/neuralSpring/metalForge
 **License**: AGPL-3.0-or-later
 **Pattern**: Evolve locally → validate → handoff → ToadStool absorbs → retire
-**barraCuda**: v0.3.11 (April 11, 2026)
+**barraCuda**: v0.3.12 (April 17, 2026)
 **ToadStool**: S146 at `751b3849` (March 11, 2026)
 **coralReef**: Iteration 49 (March 23, 2026)
 

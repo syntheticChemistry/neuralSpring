@@ -33,6 +33,11 @@
     clippy::doc_markdown,
     reason = "domain-specific numeric patterns"
 )]
+// dyn Fn(&[f64]) -> f64 is used for loss function callbacks because callers pass
+// closures with heterogeneous captures (different loss functions with different
+// captured state). Generic parameters would require monomorphization for each
+// caller and propagate through the public API. The dyn dispatch overhead is
+// negligible vs the O(n^3) eigensolve that dominates these functions.
 
 use crate::eigh::eigh_householder_qr;
 use crate::primitives::LOG_GUARD;

@@ -155,7 +155,7 @@ fn main() {
     h.check_upper(
         "hmm viterbi logprob diff",
         viterbi_logprob_diff,
-        tolerances::GPU_HMM_LOG_LIKELIHOOD_F32 * 2.0,
+        tolerances::GPU_HMM_LOG_LIKELIHOOD_F32_EXTENDED,
     );
 
     // ─── Allele frequencies ───────────────────────────────────────
