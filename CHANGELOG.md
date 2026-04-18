@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-17 (Session 182: Level 5 Primal Proof — Capabilities Harness, IPC Dispatch, Stadial Bans)
+## [Unreleased] — 2026-04-18 (Session 183: guideStone Evolution — Level 1 → Level 2)
+
+### 2026-04-18 — Session S183 (guideStone evolution: neuralspring_guidestone binary, 5 properties documented, primalspring composition API)
+
+- **guideStone binary**: New `src/bin/neuralspring_guidestone.rs` — self-validating NUCLEUS deployable (Level 5). 4-phase validation: bare properties (P1: deterministic RNG, P2: provenance registry, P4: ecoBin compliance, P5: tolerance documentation), discovery + liveness (`validate_liveness` on tensor/security/compute/ai), domain science parity (7 capabilities via `validate_parity`/`validate_parity_vec`), additive NUCLEUS (BearDog signing receipt, Songbird discovery). Feature-gated: `guidestone` → `primalspring` + `primal`. Exit codes 0/1/2
+- **primalspring dependency**: Added `primalspring` as optional path dependency (`../primalSpring/ecoPrimal`). New `guidestone` feature in `[features]`
+- **guideStone properties**: New `docs/GUIDESTONE_PROPERTIES.md` — documents all 5 certified properties for neuralSpring domain (Deterministic Output: CERTIFIED, Reference-Traceable: PARTIAL, Self-Verifying: PARTIAL, Environment-Agnostic: CERTIFIED, Tolerance-Documented: CERTIFIED). Level 3 blockers identified (CHECKSUMS, machine-readable provenance, tolerance derivation metadata)
+- **Gap 11 confirmed**: barraCuda JSON-RPC surface gaps (18 methods) verified still open against `REGISTERED_METHODS` in barraCuda source. primalSpring v0.9.15 blurb incorrectly claimed expanded surface
+- **PRIMAL_GAPS.md**: Added Gap 13 (guideStone evolution) with readiness matrix, Level 3/4/5 blockers, validation window documentation
+- **268 binaries** (+1 neuralspring_guidestone), 0 clippy, 0 fmt, `cargo deny check` clean. V134 handoff
 
 ### 2026-04-17 — Session S182 (Level 5 primal proof: capabilities harness, IPC dispatch, stadial enforcement)
 

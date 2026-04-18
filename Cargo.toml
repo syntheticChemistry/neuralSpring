@@ -70,10 +70,15 @@ clap = { version = "4.5", features = ["derive"], optional = true }
 env_logger = { version = "0.11", optional = true }
 tarpc = { version = "0.37", features = ["tokio1", "serde-transport"], optional = true }
 
+# primalSpring composition API — used by the guideStone binary for
+# discovery, liveness, parity validation, and capability routing.
+primalspring = { path = "../primalSpring/ecoPrimal", optional = true }
+
 [features]
 default = []
 primal = ["anyhow", "clap", "env_logger", "tarpc"]
 composed = ["primal"]
+guidestone = ["primalspring", "primal"]
 
 [dev-dependencies]
 approx = "0.5"
@@ -1243,6 +1248,13 @@ path = "src/bin/validate_science_composition.rs"
 [[bin]]
 name = "validate_proto_nucleate_capabilities"
 path = "src/bin/validate_proto_nucleate_capabilities.rs"
+
+# ── guideStone (Level 5 self-validating deployable) ─────────────────
+
+[[bin]]
+name = "neuralspring_guidestone"
+path = "src/bin/neuralspring_guidestone.rs"
+required-features = ["guidestone"]
 
 # ── ecoBin release profiles ────────────────────────────────────────
 

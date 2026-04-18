@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: April 17, 2026 (Session S182)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 267 binaries, 520+ `.rs` files, **1,234 lib + 73 forge + 80 playGround tests**, 68 modules, **234+** named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery+cast deny, workspace-wide), zero fmt, zero doc warnings, zero unsafe, zero `#[allow()]`, zero mocks in production. **Python→Rust→Primal three-tier validation stack** — 6 composition validators + `IpcMathClient`, proto-nucleate aligned to upstream `downstream_manifest.toml` (7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES`), primal speaks full deployment standard (30 capabilities: health triad, identity, MCP, Squirrel routing, Tower discovery). Level 5 `validate_proto_nucleate_capabilities` exercises all 7 IPC methods against owning primals. `crypto.hash` routed to `BearDog` (not barraCuda). Stadial `deny.toml` bans enforced. `rust-toolchain.toml`. ecoBin harvest. Edition 2024, MSRV 1.87. **V133 handoff**. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49.
+**Last Updated**: April 18, 2026 (Session S183)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 268 binaries, 520+ `.rs` files, **1,234 lib + 73 forge + 80 playGround tests**, 68 modules, **234+** named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery+cast deny, workspace-wide), zero fmt, zero doc warnings, zero unsafe, zero `#[allow()]`, zero mocks in production. **Python→Rust→Primal→guideStone validation stack** — 6 composition validators + `IpcMathClient` + `neuralspring_guidestone` (via `primalspring::composition` API), proto-nucleate aligned to upstream `downstream_manifest.toml` (7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES`), primal speaks full deployment standard (30 capabilities: health triad, identity, MCP, Squirrel routing, Tower discovery). guideStone Level 2: 5 properties documented, bare properties validated, domain parity via `validate_parity`. Stadial `deny.toml` bans enforced. `rust-toolchain.toml`. ecoBin harvest. Edition 2024, MSRV 1.87. **V134 handoff**. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49.
 
 - **S181 (Apr 11, 2026)**: Full composition evolution — 30-capability surface (health.check, identity.get, mcp.tools.list added to ALL_CAPABILITIES), Squirrel inference routing (try_squirrel_route fallback), Tower Atomic startup discovery (BearDog + Songbird probes), Tier 3 `validate_composition_evolution` validator, `composed` feature gate, ToadStool discovery fix, tolerance forensics, deploy graph V131/S181. V131 handoff.
 - **S180 (Apr 11, 2026)**: Composition evolution — deployment health triad (`health.check`), T4 discovery (`identity.get`), `mcp.tools.list` on primal, iterative method normalization, 27/27 MCP tool definitions, deploy graph `nest_atomic`, primalSpring graph reconciliation, plasmidBin metadata refresh. V130 handoff.
@@ -63,10 +63,9 @@ Layer 3 — Primal Composition Proof (Rust+Python validate primal IPC):
     → 7 PROTO_NUCLEATE_VALIDATION_CAPABILITIES (tensor.matmul, tensor.create,
         compute.dispatch, inference.complete, inference.embed, stats.mean, crypto.hash)
       → call primals by capability via IPC → compare against Python/Rust baselines
-        → 6 composition validators (proto-nucleate, inference chain, primal discovery,
-            science composition parity, composition evolution, proto-nucleate capabilities)
-          → Squirrel inference routing (try_squirrel_route fallback)
-            → Tower Atomic discovery (BearDog + Songbird probes at startup)
+        → 6 composition validators + neuralspring_guidestone (via primalspring::composition)
+          → guideStone: bare properties (P1-P5) → discovery + liveness → domain parity
+            → additive NUCLEUS (BearDog signing, Songbird discovery)
               → honest skip (exit 2) when primals unavailable
 
 Layer 4 — Deployment (plasmidBin + benchScale validate ecoBin):

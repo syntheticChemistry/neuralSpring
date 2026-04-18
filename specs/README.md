@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: April 17, 2026 (Sessions 44–182 — S182: Level 5 primal proof: `validate_proto_nucleate_capabilities` harness + `IpcMathClient` dispatch. Stadial `deny.toml` bans enforced. `rust-toolchain.toml`. 1,234 lib + 73 forge + 80 playGround tests. 267 binaries, 520+ `.rs` files. barraCuda v0.3.12, ToadStool S146+, coralReef Iter 49. V133 handoff)
+**Last Updated**: April 18, 2026 (Sessions 44–183 — S183: guideStone evolution: `neuralspring_guidestone` binary via `primalspring::composition` API. 5 properties documented. Readiness Level 1 → 2. 1,234 lib + 73 forge + 80 playGround tests. 268 binaries, 520+ `.rs` files. barraCuda v0.3.12, ToadStool S146+, coralReef Iter 49. V134 handoff)
 **Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 266 binaries (243 validate + 18 bench + 5 other), 1,229 lib tests, Python→Rust→IPC three-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
@@ -47,7 +47,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V133 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V134 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 
@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V133 handoff (current, Sessions 176–182) |
+| wateringHole/handoffs/ | `../wateringHole/` | V134 handoff (current, Sessions 176–183) |
 
 ---
 

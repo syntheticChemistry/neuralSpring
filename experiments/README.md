@@ -5591,6 +5591,21 @@ Remaining binaries still need `clippy::expect_used` for GPU dispatch calls.
 **Findings**: barraCuda's 32 JSON-RPC methods cover the core tensor/stats/compute surface but lack 18 domain-specific methods neuralSpring uses (eigendecomposition, Pearson correlation, chi-squared, spectral density, ESN, NN forward, belief propagation, Hessian, Boltzmann sampling). These are Level 5 IPC migration blockers requiring either barraCuda surface expansion or multi-method composition. `crypto.hash` correctly routes to BearDog (not barraCuda) — this was a manifest taxonomy issue, not a wiring bug.
 **Result**: 1,234 lib tests PASS (+4 new ipc_dispatch tests), 0 clippy, 0 fmt, `cargo deny check` passes with bans. V133 handoff.
 
+### Exp 130 — guideStone Evolution: Level 1 → Level 2 (primalspring::composition API, 5 Properties, neuralspring_guidestone)
+
+**Date**: 2026-04-18
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Session**: S183
+**Motivation**: Evolve neuralSpring from guideStone Level 1 (IpcMathClient + validate_proto_nucleate_capabilities exist) to Level 2 (5 properties documented) with partial Level 3 (bare guideStone compiles and validates P1-P5 without primals). Follows primalSpring v0.9.15 GUIDESTONE_COMPOSITION_STANDARD.
+**Procedure**:
+1. Added `primalspring` as optional path dependency (`../primalSpring/ecoPrimal`) with new `guidestone` feature gate (implies `primal`).
+2. Created `src/bin/neuralspring_guidestone.rs` — 4-phase validation binary: Phase 1 (bare properties: deterministic RNG, provenance registry integrity, ecoBin compliance, tolerance documentation), Phase 2 (discovery + liveness via `validate_liveness` on `["tensor", "security", "compute", "ai"]`), Phase 3 (domain science parity: 7 capabilities via `validate_parity`/`validate_parity_vec` + direct IPC calls), Phase 4 (additive NUCLEUS: BearDog signing receipt + Songbird discovery).
+3. Created `docs/GUIDESTONE_PROPERTIES.md` — documents all 5 certified properties with evidence tables, readiness matrix, Level 3/4/5 blockers.
+4. Updated `docs/PRIMAL_GAPS.md` — added Gap 13 (guideStone evolution), confirmed Gap 11 still open against actual barraCuda `REGISTERED_METHODS`.
+5. Verified: `cargo check --features guidestone`, `cargo clippy` (pedantic+nursery, zero warnings), `cargo fmt --check`, `cargo deny check` all pass.
+**Findings**: The primalSpring v0.9.15 blurb claims expanded barraCuda IPC surface (stats.correlation, linalg.solve, spectral.fft, etc.) but barraCuda's actual `REGISTERED_METHODS` still has exactly 32 methods. Gap 11 (18 surface gaps) remains accurate. hotSpring's guideStone (validate_chuna) absorbs composition patterns locally rather than depending on `primalspring` — neuralSpring opts for direct `primalspring` dependency to maintain API alignment. Properties 2 (Reference-Traceable) and 3 (Self-Verifying) are PARTIAL — machine-readable provenance JSON output and CHECKSUMS file are Level 3 blockers.
+**Result**: 1,234 lib tests PASS (+0 new — guideStone is feature-gated binary, no lib tests added), 0 clippy, 0 fmt, `cargo deny check` passes. 268 binaries. V134 handoff.
+
 ---
 
 *Experiment journals — following the hotSpring pattern.*

@@ -5,12 +5,12 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-04-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.15
-> **Session:** S181+ — Evolved to primal composition validation that primalSpring
-> has validated. Proto-nucleate nodes aligned to upstream `downstream_manifest.toml`
-> truth. `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` added. NestGate correctly
-> scoped to spring-deploy (not proto-nucleate). barraCuda added as proto-nucleate
-> node. R12 corrected (was aspirational, not pushed upstream).
+> **Date:** 2026-04-18 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.15
+> **Session:** S183 — guideStone evolution. `neuralspring_guidestone` binary
+> created using `primalspring::composition` API. 5 guideStone properties
+> documented (`docs/GUIDESTONE_PROPERTIES.md`). Readiness Level 1 → 2.
+> Gap 11 (barraCuda surface) confirmed still open despite upstream blurb
+> claiming expanded surface.
 
 ---
 
@@ -428,10 +428,17 @@ stages through GPU when a device is available, falling back to CPU.
 
 ## 11. barraCuda JSON-RPC Surface Gaps (IPC Migration Blockers)
 
-**Status:** open (Apr 17 2026)
+**Status:** open (Apr 17 2026, confirmed Apr 18 2026)
 **Context:** `barraCuda` exposes 32 JSON-RPC methods. neuralSpring's domain
 math uses many `barracuda::` library calls that have no 1:1 JSON-RPC
 equivalent. These block full Level 5 IPC migration.
+
+**Note (Apr 18 2026, S183):** The primalSpring v0.9.15 continuation blurb
+claims an expanded barraCuda IPC surface including `stats.correlation`,
+`linalg.solve`, `linalg.eigenvalues`, `spectral.fft`, etc. Verified against
+`barraCuda/crates/barracuda-core/src/ipc/methods/mod.rs` — **these methods
+do NOT exist in `REGISTERED_METHODS`**. barraCuda still has exactly 32
+JSON-RPC methods. The 18 gaps documented below remain accurate.
 
 | neuralSpring call | `barracuda::` module | JSON-RPC equivalent | Status |
 |-------------------|---------------------|---------------------|--------|
@@ -490,3 +497,52 @@ hardcoded paths).
 **Details:** Added `deny = [...]` list to `deny.toml` banning `ring`,
 `openssl-sys`, `openssl`, `async-trait`, `rustls`, `ed25519-dalek`, `cmake`,
 and `cc` (with `blake3` wrapper exemption). `cargo deny check` passes.
+
+---
+
+## 13. guideStone Evolution (Apr 18 2026)
+
+**Status:** in progress (Level 2 — properties documented)
+**Standard:** `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md`
+
+### guideStone Readiness
+
+| Level | Description | Status |
+|-------|-------------|--------|
+| 1 | Validation exists (`IpcMathClient`, `validate_proto_nucleate_capabilities`) | DONE |
+| 2 | Properties documented (`docs/GUIDESTONE_PROPERTIES.md`) | DONE |
+| 3 | Bare guideStone works (P1-P5 validated without primals) | PARTIAL |
+| 4 | NUCLEUS guideStone works (validates against live NUCLEUS) | PENDING |
+| 5 | Certified (all 5 properties, cross-substrate parity) | PENDING |
+
+### Binary
+
+`neuralspring_guidestone` (feature-gated: `guidestone` → `primalspring` + `primal`)
+
+Uses `primalspring::composition` API directly:
+- `CompositionContext::from_live_discovery_with_fallback()` for UDS+TCP discovery
+- `validate_liveness()` for Phase 2 primal health checks
+- `validate_parity()` / `validate_parity_vec()` for Phase 3 domain science
+- `hash_bytes()` / `resolve_capability()` for Phase 4 additive NUCLEUS
+
+### Level 3 Blockers
+
+- **CHECKSUMS file**: Property 3 (Self-Verifying) requires binary integrity manifest
+- **Machine-readable provenance**: Property 2 needs JSON output of provenance records
+- **Machine-readable tolerance derivations**: Property 5 needs structured derivation metadata
+
+### Level 4/5 Blockers
+
+- **Gap 11**: 18 barraCuda IPC surface gaps block full domain science parity
+- **Live NUCLEUS**: Requires `plasmidBin/` ecobins deployed via `biomeOS`
+- **`primalspring_guidestone`**: Must pass (exit 0) as base certification layer
+
+### Validation Window
+
+The existing `IpcMathClient` and `validate_proto_nucleate_capabilities` are retained
+as the "validation window" (per guideStone standard §"The Validation Window"). These
+temporary tools prove math works through NUCLEUS before the guideStone binary takes
+over as the certified artifact.
+
+**Hand back to:** primalSpring (Level 4 testing once NUCLEUS deployable),
+barraCuda (Gap 11 surface expansion), biomeOS (plasmidBin deployment tooling)
