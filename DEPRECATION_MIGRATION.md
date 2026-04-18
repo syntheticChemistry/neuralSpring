@@ -2,7 +2,7 @@
 
 **Date**: April 17, 2026 (Sessions 44–181+)
 **barraCuda**: v0.3.12 (path dep, `default-features = false`). ToadStool S146+, coralReef Iter 49.
-**Status**: Migration complete — deprecated modules fossilized, gpu_dispatch active (47 ops, ~97% GPU). 266 binaries, 1,229 lib + 73 forge + 80 playGround tests, 0 clippy (pedantic+nursery+cast deny), 0 fmt diffs. `#![forbid(unsafe_code)]` workspace-wide, zero `#[allow()]`, zero production mocks, zero C deps. 3-tier validation (Python→Rust→IPC). V131 handoff.
+**Status**: Migration complete — deprecated modules fossilized, gpu_dispatch active (47 ops, ~97% GPU). 266 binaries, 1,229 lib + 73 forge + 80 playGround tests, 0 clippy (pedantic+nursery+cast deny), 0 fmt diffs. `#![forbid(unsafe_code)]` workspace-wide, zero `#[allow()]`, zero production mocks, zero C deps. 3-tier validation (Python→Rust→Primal). V132 handoff.
 **S130**: `PrecisionRoutingAdvice` wired, fused GPU regression gated, coralNAK→coralReef rename.
 **S121**: `MlpLayer` struct removed from `wdm_surrogate.rs` and `wdm_transport.rs` — replaced by `barracuda::nn::SimpleMlp` with `DenseLayer` format. `hmm_viterbi_chain_gpu` per-step f32 Tensor loop replaced by single f64 `barracuda::ops::bio::hmm_viterbi` dispatch.
 

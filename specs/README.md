@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: April 17, 2026 (Sessions 44–181+ — S181+: Comprehensive audit + composition evolution, 3-tier validation stack (Python→Rust→IPC composition parity), manifest reconciliation, GpuPreferred dispatch, science baselines. 1,229 lib + 73 forge + 80 playGround tests. 266 binaries, 520+ `.rs` files. barraCuda v0.3.12, ToadStool S146+, coralReef Iter 49)
+**Last Updated**: April 17, 2026 (Sessions 44–181+ — S181+: Proto-nucleate aligned to upstream primalSpring-validated composition. Python→Rust→Primal 3-tier validation. `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` codified. 1,230 lib + 73 forge + 80 playGround tests. 266 binaries, 520+ `.rs` files. barraCuda v0.3.12, ToadStool S146+, coralReef Iter 49)
 **Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 266 binaries (243 validate + 18 bench + 5 other), 1,229 lib tests, Python→Rust→IPC three-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 

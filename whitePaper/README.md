@@ -3,7 +3,7 @@
 ## The Isomorphic Learning Engine
 
 **Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 266 binaries, **Python→Rust→IPC three-tier validation stack**. coralForge unified. 234+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,229 lib + 73 forge + 80 playGround tests. 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.12, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 30 capabilities, deployment health triad, MCP parity, Squirrel routing, Tower discovery. ecoBin compliant.
-**Date**: April 17, 2026 (Sessions 40–181+ — S181+: Audit remediation + composition evolution, 3-tier validation, manifest reconciliation, GpuPreferred dispatch. 266 binaries, 520+ `.rs` files, 68 modules. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. V131 handoff)
+**Date**: April 17, 2026 (Sessions 40–181+ — S181+: Proto-nucleate aligned to upstream primalSpring-validated composition. Python→Rust→Primal 3-tier validation of peer-reviewed science. 266 binaries, 520+ `.rs` files, 68 modules. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. V132 handoff)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–123+, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V129 handoff (Session 179 — deploy graph, proto-nucleate alignment) |
+| `wateringHole/handoffs/` | Cross-project | V132 handoff (Sessions 179–181+ — proto-nucleate aligned to upstream, 3-tier primal proof) |
 
 ---
 

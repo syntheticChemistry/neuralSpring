@@ -5554,6 +5554,26 @@ Remaining binaries still need `clippy::expect_used` for GPU dispatch calls.
 **Findings**: The three-layer validation stack is structurally complete: (1) Python baselines validate science correctness, (2) Rust validators prove faithful porting with centralized tolerances and provenance, (3) composition validators prove NUCLEUS primal patterns (bonding, capability discovery, proto-nucleate graph resolution). Stale songbird sockets on dev machine cause exit-1 in composition validators — correct behavior (stale socket = real discovery that fails liveness). All quality gates pass: 1,225 lib tests, 0 clippy, 0 fmt, 0 doc, cargo-deny clean.
 **Result**: 1,225/1,225 lib tests PASS, 12/12 integration PASS. 264 binaries. V128 handoff crafted.
 
+### Exp 127 — Composition Evolution Sessions S179–S181+: 30-Capability Surface + Tier 3 IPC Parity
+
+**Date**: 2026-04-11 — 2026-04-17
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Sessions**: S179–S181+
+**Motivation**: Complete the evolution from Python→Rust validation to Python→Rust→Primal validation. Wire the primal proof: call NUCLEUS primals by capability via IPC, compare against deterministic Rust baselines. Align to what primalSpring has actually validated upstream.
+**Procedure**: S179: deploy graph proto-nucleate alignment, capability surface expanded to 26. S180: deployment health triad, MCP parity, primalSpring graph reconciliation, plasmidBin metadata refresh. S181: full composition evolution — 30-capability surface, Squirrel inference routing, Tower Atomic discovery, `validate_composition_evolution` 5-phase validator. S181+: comprehensive audit remediation — manifest reconciliation, `GpuPreferred` dispatch, named tolerance constants, self-discovery fix (`primal_to_pkg_name`), science baselines for IPC round-trip validation (`validate_science_composition`), cross-team handoff.
+**Findings**: The Tier 3 IPC parity validators (`science.spectral_analysis`, `science.ipr`, `science.hessian_eigen`, `science.disorder_sweep`) prove composition round-trip correctness. Science baselines are deterministic (seeded RNG) and centralized in `validation::composition::science_baselines()`. Proto-nucleate nodes now match upstream `downstream_manifest.toml` exactly.
+**Result**: 1,230 lib tests PASS, 0 clippy, 0 fmt. V131 handoff. 5 composition validators. 30 registered capabilities.
+
+### Exp 128 — Proto-Nucleate Alignment to Upstream primalSpring-Validated Composition
+
+**Date**: 2026-04-17
+**Hardware**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB)
+**Session**: S181+ (continued)
+**Motivation**: Evolve to primal composition that primalSpring has validated. Correct false R12 claim (nest_atomic/nestgate in proto-nucleate — was aspirational, not pushed upstream). Align composition code to upstream truth.
+**Procedure**: Pulled upstream `primalSpring/` and `infra/wateringHole/`. Read upstream `downstream_manifest.toml` — neuralSpring proto-nucleate is `fragments = ["tower_atomic", "node_atomic", "meta_tier"]`, `depends_on = ["beardog", "songbird", "coralreef", "toadstool", "barracuda", "squirrel"]`. Fixed `inference_proto_nucleate_nodes()`: removed nestgate (spring-deploy only), added barracuda (`by_capability = "tensor.matmul"`). Added `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` constant (7 IPC methods from manifest). Updated deploy graph header to clarify proto-nucleate vs spring-deploy distinction. Added `primal_names::BARRACUDA` discovery hint. Corrected PRIMAL_GAPS.md R12, Gap 7, Gap 2, Gap 5. Added barracuda to discovery probe targets. Updated all root docs, baseCamp, whitePaper, experiments. Created V132 handoff for primal/spring teams.
+**Findings**: The proto-nucleate is a PURE PRIMAL composition — the spring validates AGAINST it, the spring is not IN it. The deploy graph (spring_deploy) is a SUPERSET that includes the spring binary + additional nodes like NestGate. This is correct by design, not a bug. `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` (`tensor.matmul`, `tensor.create`, `compute.dispatch`, `inference.complete`, `inference.embed`, `stats.mean`, `crypto.hash`) defines the IPC surface the primal proof must exercise.
+**Result**: 1,230 lib tests PASS, 0 clippy, 0 fmt. V132 handoff. Proto-nucleate nodes match upstream exactly. All docs updated and reconciled.
+
 ---
 
 *Experiment journals — following the hotSpring pattern.*

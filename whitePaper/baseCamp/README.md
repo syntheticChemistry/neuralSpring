@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
 **Last Updated**: April 17, 2026 (Session S181+)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 266 binaries, 520+ `.rs` files, **1,229 lib + 73 forge + 80 playGround tests**, 68 modules, **234+** named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery+cast deny, workspace-wide), zero fmt, zero doc warnings, zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. **Python→Rust→IPC three-tier validation stack** — 4 composition validators + `validate_science_composition` (Tier 3 IPC parity), primal speaks full deployment standard (30 capabilities: health triad, identity, MCP, Squirrel routing, Tower discovery). `inference.*` routed through Squirrel (try_squirrel_route fallback). ecoBin harvest. Edition 2024, MSRV 1.87. **V131 handoff**. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49.
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 266 binaries, 520+ `.rs` files, **1,230 lib + 73 forge + 80 playGround tests**, 68 modules, **234+** named tolerances, 14 proptest invariants. Zero clippy (pedantic+nursery+cast deny, workspace-wide), zero fmt, zero doc warnings, zero C deps, zero unsafe, zero `#[allow()]`, zero mocks in production. **Python→Rust→Primal three-tier validation stack** — 5 composition validators, proto-nucleate aligned to upstream `downstream_manifest.toml` (7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES`), primal speaks full deployment standard (30 capabilities: health triad, identity, MCP, Squirrel routing, Tower discovery). `inference.*` routed through Squirrel (try_squirrel_route fallback). ecoBin harvest. Edition 2024, MSRV 1.87. **V132 handoff**. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49.
 
 - **S181 (Apr 11, 2026)**: Full composition evolution — 30-capability surface (health.check, identity.get, mcp.tools.list added to ALL_CAPABILITIES), Squirrel inference routing (try_squirrel_route fallback), Tower Atomic startup discovery (BearDog + Songbird probes), Tier 3 `validate_composition_evolution` validator, `composed` feature gate, ToadStool discovery fix, tolerance forensics, deploy graph V131/S181. V131 handoff.
 - **S180 (Apr 11, 2026)**: Composition evolution — deployment health triad (`health.check`), T4 discovery (`identity.get`), `mcp.tools.list` on primal, iterative method normalization, 27/27 MCP tool definitions, deploy graph `nest_atomic`, primalSpring graph reconciliation, plasmidBin metadata refresh. V130 handoff.
@@ -25,7 +25,8 @@
 
 Per-faculty validation briefings and cross-domain extension proposals.
 Each briefing maps: paper → Python baseline → Rust validation → BarraCUDA CPU →
-GPU Tensor → metalForge WGSL → pipeline → cross-dispatch → multi-GPU.
+GPU Tensor → metalForge WGSL → pipeline → cross-dispatch → multi-GPU →
+primal composition (IPC round-trip parity against NUCLEUS primals).
 
 Extension proposals identify where neuralSpring's validated primitives can
 serve larger fields of study, cross-domain science, and the gen3 baseCamp
@@ -57,13 +58,16 @@ Layer 2 — Compute Sovereignty (Rust validates GPU/WGSL):
   Rust reference → barraCuda ops → WGSL shaders → TensorSession pipeline
     → f64/df64 precision dispatch → cross-substrate (RTX 4070 + TITAN V NVK)
 
-Layer 3 — NUCLEUS Composition (Rust+Python validate primal IPC):
-  niche.rs (identity + 30 capabilities) → biomeOS registration
-    → health triad (liveness + readiness + check) → identity.get (T4)
-      → mcp.tools.list (30 tools) → capability.list → 4 composition validators
-        → proto-nucleate graph alignment → deploy graph (V131, nest_atomic)
+Layer 3 — Primal Composition Proof (Rust+Python validate primal IPC):
+  downstream_manifest.toml → proto-nucleate = pure primal NUCLEUS (no spring binary)
+    → 7 PROTO_NUCLEATE_VALIDATION_CAPABILITIES (tensor.matmul, tensor.create,
+        compute.dispatch, inference.complete, inference.embed, stats.mean, crypto.hash)
+      → call primals by capability via IPC → compare against Python/Rust baselines
+        → 5 composition validators (proto-nucleate, inference chain, primal discovery,
+            science composition parity, composition evolution)
           → Squirrel inference routing (try_squirrel_route fallback)
             → Tower Atomic discovery (BearDog + Songbird probes at startup)
+              → honest skip (exit 2) when primals unavailable
 
 Layer 4 — Deployment (plasmidBin + benchScale validate ecoBin):
   harvest ecoBin → plasmidBin metadata (30 capabilities) → fetch + smoke
