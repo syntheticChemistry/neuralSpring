@@ -647,7 +647,9 @@ neuralSpring/
 ├── scripts/
 │   ├── run_all_baselines.sh    #   Orchestrates all 39 Python runs (25 papers + 5 WDM + ML inference + 5 coralForge + 3 pub + 2 nS-06)
 │   ├── download_pretrained.py  #   Download pretrained models for nS-01 Paper A (safetensors)
-│   └── visualize.sh            #   petalTongue visualization: dump scenarios / live dashboard / render
+│   ├── visualize.sh            #   petalTongue visualization: dump scenarios / live dashboard / render
+│   ├── harvest_ecobin.sh       #   Stage primal binary to infra/plasmidBin/neuralspring/
+│   └── validate_clean_machine.sh # Level 6 clean-machine NUCLEUS validation runner
 ├── .github/workflows/          # CI
 │   ├── baselines.yml           #   Python baselines + lint + tests
 │   └── rust.yml                #   Rust test + clippy + validate (261 binaries)

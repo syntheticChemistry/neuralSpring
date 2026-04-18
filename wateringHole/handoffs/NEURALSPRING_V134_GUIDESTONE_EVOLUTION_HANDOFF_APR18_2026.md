@@ -178,3 +178,75 @@ cargo deny check                               # ✓ advisories ok, bans ok, lic
 ```
 
 Tests: 1,234 lib + 73 forge + 80 playGround. 268 binaries. 520+ `.rs` files.
+
+---
+
+## Primal Use & Evolution Status
+
+### Current primal dependency profile
+
+| Primal | Usage | Level |
+|--------|-------|-------|
+| **barraCuda** | 234 files, library-level (`barracuda::` crate). Heavy: ops, dispatch, stats, nn, linalg, spectral, nautilus | Library (L2) + IPC (L5 for 3 methods) |
+| **toadStool** | IPC only (`compute.dispatch`). playGround `ToadStoolClient` for `compute.submit`/`status`/`result` | IPC (L5) |
+| **BearDog** | IPC only (`crypto.hash`). Tower Atomic discovery probes (`health.liveness`) | IPC (L5) |
+| **Songbird** | IPC only. Tower Atomic discovery probes (`health.liveness`) | IPC (L5) |
+| **Squirrel** | IPC only (`inference.complete`/`embed`/`models`). `try_squirrel_route` fallback in handlers | IPC (L5) |
+| **coralReef** | Optional forge bridge (`coralreef_bridge.rs`). Not yet IPC-wired in main lib | Library (forge only) |
+| **NestGate** | Not used (spring-deploy only, not proto-nucleate) | Not wired |
+| **rhizoCrypt** | `primal_names::RHIZOCRYPT` defined but no active IPC wiring | Not wired |
+| **loamSpine** | `primal_names::LOAMSPINE` defined but no active IPC wiring | Not wired |
+| **sweetGrass** | `primal_names::SWEETGRASS` defined but no active IPC wiring | Not wired |
+| **petalTongue** | IPC via `PetalTonguePushClient` (visualization push). RetryPolicy + CircuitBreaker | IPC (active) |
+| **biomeOS** | IPC via `BiomeosClient` in playGround. Socket registration in primal binary | IPC (active) |
+
+### IPC migration summary (barraCuda)
+
+234 files use `barracuda::` as a library dependency. Only 3 methods are wired
+for IPC today (`tensor.matmul`, `tensor.create`, `stats.mean`). Gap 11 documents
+18 additional methods that lack JSON-RPC equivalents. For the guideStone to reach
+Level 4+, these must migrate:
+- **Immediate** (existing IPC methods): `stats.mean`, `tensor.matmul`, `tensor.create`
+- **Composable** (via existing methods): `dot`, `l2_norm`, `rmse`, `mae`
+- **Blocked** (no IPC equivalent): `eigh`, `pearson`, `chi_squared`, `solve_f64_cpu`,
+  `esn_v2::*`, `nn::SimpleMlp`, `belief_propagation`, `graph_laplacian`, `nautilus::*`
+
+### Composition patterns for NUCLEUS deployment via biomeOS
+
+neuralSpring's deploy graph (`graphs/neuralspring_deploy.toml`) defines a
+sequential coordination pattern:
+
+```
+biomeOS orchestrates → BearDog + Songbird (Tower) → toadStool + barraCuda + coralReef (Node)
+  → NestGate + provenance trio (Nest) → Squirrel (Meta) → neuralspring (spring binary)
+```
+
+The spring binary registers with biomeOS at startup, advertises 30 capabilities
+via `capability.register`, and serves domain science over JSON-RPC. The guideStone
+binary validates this composition externally — it is NOT a graph node, it runs
+OUTSIDE the NUCLEUS and certifies that the composition is sound.
+
+### Patterns learned for ecosystem evolution
+
+1. **Dual IPC stacks**: neuralSpring has sync IPC (`validation/composition.rs` +
+   `IpcMathClient`) for validation binaries and async IPC (`playGround/ipc_client.rs`)
+   for interactive tooling. Springs should standardize on `primalspring::composition`
+   for guideStone-level work; playground async stacks are development tooling.
+
+2. **ToadStool method naming**: `IpcMathClient` uses `compute.dispatch` while
+   playGround's `ToadStoolClient` uses `compute.submit`/`status`/`result`. The
+   proto-nucleate manifest declares `compute.dispatch`. toadStool should clarify
+   which is canonical.
+
+3. **`composed` feature unused**: neuralSpring defines `composed = ["primal"]`
+   but no code gates on it. Originally intended for IPC-only composition paths.
+   The `guidestone` feature now serves this role. Other springs should use
+   `guidestone` as the standard feature gate for composition API access.
+
+4. **Provenance trio names defined but unwired**: `primal_names::RHIZOCRYPT`,
+   `LOAMSPINE`, `SWEETGRASS` exist as constants but have zero active IPC
+   clients. These are ready for wiring when Nest Atomic composition is needed.
+
+5. **guideStone inherits primalspring_guidestone**: Domain guideStones should NOT
+   re-validate base composition correctness. `primalspring_guidestone` (exit 0)
+   certifies that. Domain guideStones validate only their domain science on top.

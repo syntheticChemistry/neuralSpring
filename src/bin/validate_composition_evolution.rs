@@ -28,7 +28,7 @@
 //! ## Provenance
 //!
 //! Proto-nucleate: `primalSpring/graphs/downstream/downstream_manifest.toml` `[[downstream]]` `spring_name` = "neuralspring"
-//! Deploy graph: `graphs/neuralspring_deploy.toml` V131/S181
+//! Deploy graph: `graphs/neuralspring_deploy.toml` V134/S183
 
 use neural_spring::config;
 use neural_spring::niche;
