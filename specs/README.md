@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: April 18, 2026 (Sessions 44–183 — S183: guideStone evolution: `neuralspring_guidestone` binary via `primalspring::composition` API. 5 properties documented. Readiness Level 1 → 2. 1,234 lib + 73 forge + 80 playGround tests. 268 binaries, 520+ `.rs` files. barraCuda v0.3.12, ToadStool S146+, coralReef Iter 49. V134 handoff)
+**Last Updated**: April 19, 2026 (Sessions 44–184 — S184: guideStone Level 3: `neuralspring_guidestone` v0.2.0 — 29/29 bare ALL PASS. BLAKE3 CHECKSUMS (15 files). P3 CERTIFIED. primalSpring v0.9.16. 1,234 lib + 73 forge + 80 playGround tests. 269 binaries, 520+ `.rs` files. barraCuda v0.3.12, ToadStool S146+, coralReef Iter 49. V135 handoff)
 **Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 266 binaries (243 validate + 18 bench + 5 other), 1,229 lib tests, Python→Rust→IPC three-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 

@@ -1256,6 +1256,12 @@ name = "neuralspring_guidestone"
 path = "src/bin/neuralspring_guidestone.rs"
 required-features = ["guidestone"]
 
+# ── examples ────────────────────────────────────────────────────────
+
+[[example]]
+name = "gen_checksums"
+required-features = ["guidestone"]
+
 # ── ecoBin release profiles ────────────────────────────────────────
 
 [profile.release]

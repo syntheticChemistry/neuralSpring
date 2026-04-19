@@ -1,6 +1,17 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S181+)**: 1,229 lib + 73 forge + 80 playGround tests, 68 modules, 266 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. 3-tier validation: Python→Rust→IPC composition parity. NUCLEUS composition evolution: 30-capability surface, Squirrel inference routing, Tower Atomic discovery, science composition baselines, deploy graph V131. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 17, 2026.
+**Current state (Session S184)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: 29/29 bare ALL PASS (P1-P5 certified). BLAKE3 CHECKSUMS (15 files). primalSpring v0.9.16. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 19, 2026.
+
+### Session S184 — 2026-04-19 (guideStone Level 3 — Bare ALL PASS, BLAKE3 Checksums)
+
+- **Exp 131 — guideStone Level 3 Evolution**: `neuralspring_guidestone` v0.2.0 upgraded from Level 2 (properties documented) to Level 3 (bare ALL PASS: 29/29 checks, P1-P5 certified)
+  - **BLAKE3 CHECKSUMS**: `validation/CHECKSUMS` manifest — 15 validation-critical files checksummed via `primalspring::checksums`. P3 Self-Verifying: PARTIAL → CERTIFIED
+  - **gen_checksums example**: `examples/gen_checksums.rs` generates manifest (feature-gated: `guidestone`)
+  - **Structured output**: `v.section()` for Phase 1–4 headers. `print_banner()`. JSON output via `PRIMALSPRING_JSON=1`
+  - **FAMILY_ID support**: Family-isolated socket discovery per v0.9.16 depot pattern
+  - **Protocol tolerance**: `is_protocol_error()` classifies HTTP-on-UDS as SKIP (Songbird, petalTongue)
+  - **primalSpring v0.9.16 integration**: checksums module, family-aware discovery, protocol tolerance
+- 269 binaries, 0 clippy, 0 fmt, `cargo deny check` clean
 
 ### Session S181 — 2026-04-11 (Full Composition Evolution — Squirrel Routing, Tower Discovery, Tier 3 Validator)
 

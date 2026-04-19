@@ -19,7 +19,7 @@
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# STATUS: V134 / S183 (April 18, 2026)
+# STATUS: V135 / S184 (April 19, 2026)
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -29,7 +29,7 @@ description = "neuralSpring ML/spectral science + inference provider atop NUCLEU
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S183"
+neuralspring_version = "S184"
 domain = "science"
 target_node = "eastgate"
 composition_model = "nucleated"
@@ -391,7 +391,7 @@ name = "capability_call"
 
 [nodes.operation.params]
 capability = "provenance.session_create"
-params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S183", family_id = "neuralspring" }
+params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S184", family_id = "neuralspring" }
 
 [nodes.constraints]
 timeout_ms = 10000

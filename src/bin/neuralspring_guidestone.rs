@@ -2,13 +2,13 @@
 
 #![forbid(unsafe_code)]
 
-//! neuralSpring guideStone — self-validating NUCLEUS deployable (Level 5).
+//! neuralSpring guideStone v0.2.0 — self-validating NUCLEUS deployable.
 //!
 //! A guideStone carries 5 certified properties:
 //!
 //! 1. **Deterministic Output** — same binary, same results, any architecture
 //! 2. **Reference-Traceable** — every number traces to a paper or proof
-//! 3. **Self-Verifying** — tampered inputs detected, non-zero exit
+//! 3. **Self-Verifying** — tampered inputs detected, non-zero exit (BLAKE3)
 //! 4. **Environment-Agnostic** — pure Rust, ecoBin, no network, no sudo
 //! 5. **Tolerance-Documented** — every tolerance has a derivation
 //!
@@ -20,15 +20,17 @@
 //!
 //! ```text
 //! ┌─ Bare Properties (always runs, no primals needed) ───────────┐
-//! │  Tolerance registry introspection (234+ named constants)     │
-//! │  Provenance registry validation (49 records)                 │
-//! │  Determinism check (seeded RNG)                              │
-//! │  ecoBin compliance (no network, no sudo, CPU-only)           │
+//! │  P1: Determinism — seeded RNG reproducibility                │
+//! │  P2: Traceability — provenance registry (49+ records)        │
+//! │  P3: Self-Verifying — BLAKE3 CHECKSUMS (15 files)            │
+//! │  P4: Environment-Agnostic — ecoBin, no network, no sudo     │
+//! │  P5: Tolerances — 234+ named, categorized, finite            │
 //! └──────────────────────────────────────────────────────────────┘
 //!         │
 //! ┌─ Discovery + Liveness (via primalspring::composition) ──────┐
 //! │  validate_liveness on [tensor, security, compute, ai]       │
 //! │  alive == 0 → exit(2) bare-only                             │
+//! │  FAMILY_ID-aware socket discovery                            │
 //! └──────────────────────────────────────────────────────────────┘
 //!         │
 //! ┌─ Domain Science Parity (7 PROTO_NUCLEATE capabilities) ─────┐
@@ -38,6 +40,7 @@
 //!         │
 //! ┌─ Additive NUCLEUS layer (graceful skip) ────────────────────┐
 //! │  BearDog signing receipt (if security available)             │
+//! │  Protocol tolerance: HTTP-on-UDS → SKIP, not FAIL           │
 //! └──────────────────────────────────────────────────────────────┘
 //! ```
 //!
@@ -50,7 +53,7 @@
 //! ## Provenance
 //!
 //! Capabilities: `downstream_manifest.toml` `[[downstream]]` `spring_name = "neuralspring"`
-//! guideStone standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md`
+//! guideStone standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.1.0
 
 use neural_spring::provenance::PROVENANCE_REGISTRY;
 use neural_spring::tolerances::all_tolerances;
@@ -61,61 +64,57 @@ use primalspring::tolerances;
 use primalspring::validation::ValidationResult;
 
 const SPRING_NAME: &str = "neuralSpring";
-const GUIDESTONE_VERSION: &str = "0.1.0";
+const GUIDESTONE_VERSION: &str = "0.2.0";
 
 fn main() {
-    println!("╔══════════════════════════════════════════════════════════════╗");
-    println!("║  {SPRING_NAME} guideStone v{GUIDESTONE_VERSION}");
-    println!("║  Self-validating NUCLEUS deployable — Level 5");
-    println!("╚══════════════════════════════════════════════════════════════╝");
-    println!();
+    ValidationResult::print_banner(&format!(
+        "{SPRING_NAME} guideStone v{GUIDESTONE_VERSION} — Level 3"
+    ));
 
     let mut v = ValidationResult::new(&format!("{SPRING_NAME} guideStone v{GUIDESTONE_VERSION}"));
+
+    let family_id = std::env::var("FAMILY_ID").ok();
+    if let Some(ref fid) = family_id {
+        eprintln!("[guideStone] FAMILY_ID={fid} — family-isolated socket discovery");
+    }
 
     // ══════════════════════════════════════════════════════════════════════
     // Phase 1: Bare Properties (no primals needed)
     // ══════════════════════════════════════════════════════════════════════
-    println!("── Phase 1: Bare Properties ──");
+    v.section("Phase 1: Bare Properties");
     validate_bare_properties(&mut v);
-    println!();
 
     // ══════════════════════════════════════════════════════════════════════
     // Phase 2: Discovery + Liveness
     // ══════════════════════════════════════════════════════════════════════
-    println!("── Phase 2: Discovery + Liveness ──");
+    v.section("Phase 2: Discovery + Liveness");
     let mut ctx = CompositionContext::from_live_discovery_with_fallback();
 
     let required_capabilities: &[&str] = &["tensor", "security", "compute", "ai"];
     let alive = validate_liveness(&mut ctx, &mut v, required_capabilities);
 
     if alive == 0 {
-        println!();
-        println!("No NUCLEUS primals discovered. Bare guideStone only.");
+        eprintln!("[guideStone] No NUCLEUS primals discovered — bare guideStone only.");
+        eprintln!("  Deploy from plasmidBin and rerun for full certification.");
         v.finish();
-        std::process::exit(v.exit_code_skip_aware());
+        let code = if v.exit_code() == 0 { 2 } else { 1 };
+        std::process::exit(code);
     }
-    println!(
-        "  {alive}/{} capabilities alive",
-        required_capabilities.len()
-    );
-    println!();
 
     // ══════════════════════════════════════════════════════════════════════
     // Phase 3: Domain Science Parity
     // ══════════════════════════════════════════════════════════════════════
-    println!(
-        "── Phase 3: Domain Science Parity ({} capabilities) ──",
+    v.section(&format!(
+        "Phase 3: Domain Science Parity ({} capabilities)",
         PROTO_NUCLEATE_VALIDATION_CAPABILITIES.len()
-    );
+    ));
     validate_domain_parity(&mut ctx, &mut v);
-    println!();
 
     // ══════════════════════════════════════════════════════════════════════
     // Phase 4: Additive NUCLEUS layer
     // ══════════════════════════════════════════════════════════════════════
-    println!("── Phase 4: Additive NUCLEUS ──");
+    v.section("Phase 4: Additive NUCLEUS");
     validate_additive_nucleus(&mut ctx, &mut v);
-    println!();
 
     // ══════════════════════════════════════════════════════════════════════
     // Summary + exit
@@ -123,9 +122,9 @@ fn main() {
     v.finish();
     let code = v.exit_code_skip_aware();
     match code {
-        0 => println!("CERTIFIED: {SPRING_NAME} guideStone — all checks passed"),
-        1 => println!("FAILED: {SPRING_NAME} guideStone — regression detected"),
-        2 => println!("BARE ONLY: {SPRING_NAME} guideStone — no NUCLEUS available"),
+        0 => eprintln!("CERTIFIED: {SPRING_NAME} guideStone — all checks passed"),
+        1 => eprintln!("FAILED: {SPRING_NAME} guideStone — regression detected"),
+        2 => eprintln!("BARE ONLY: {SPRING_NAME} guideStone — no NUCLEUS available"),
         _ => {}
     }
     std::process::exit(code);
@@ -138,6 +137,7 @@ fn main() {
 fn validate_bare_properties(v: &mut ValidationResult) {
     validate_property_1_deterministic(v);
     validate_property_2_traceable(v);
+    validate_property_3_self_verifying(v);
     validate_property_4_environment_agnostic(v);
     validate_property_5_tolerance_documented(v);
 }
@@ -213,6 +213,14 @@ fn validate_property_2_traceable(v: &mut ValidationResult) {
         all_have_commits,
         &format!("{count} records, all have git commits"),
     );
+}
+
+/// Property 3: Self-Verifying — tampered inputs detected via BLAKE3 checksums.
+///
+/// Validates `validation/CHECKSUMS` manifest covering all validation-critical
+/// source files (tolerances, provenance, RNG, capability registry).
+fn validate_property_3_self_verifying(v: &mut ValidationResult) {
+    primalspring::checksums::verify_manifest(v, "validation/CHECKSUMS");
 }
 
 /// Property 4: Environment-Agnostic — pure Rust, ecoBin, no network, no sudo.
@@ -503,7 +511,7 @@ fn validate_inference_embed_parity(ctx: &mut CompositionContext, v: &mut Validat
 fn validate_additive_nucleus(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     // BearDog signing receipt: if security is available, sign a marker
     // payload and verify the signature is non-empty (actual crypto
-    // verification is BearDog's domain — we only check round-trip).
+    // verification is `BearDog`'s domain — we only check round-trip).
     match ctx.hash_bytes(b"guidestone:neuralspring:certified", "blake3") {
         Ok(receipt) => {
             v.check_bool(
@@ -518,6 +526,12 @@ fn validate_additive_nucleus(ctx: &mut CompositionContext, v: &mut ValidationRes
                 &format!("security not available (graceful skip): {e}"),
             );
         }
+        Err(e) if e.is_protocol_error() => {
+            v.check_skip(
+                "additive:beardog_signing_receipt",
+                &format!("protocol mismatch (BTSP required): {e}"),
+            );
+        }
         Err(e) => {
             v.check_bool(
                 "additive:beardog_signing_receipt",
@@ -527,7 +541,8 @@ fn validate_additive_nucleus(ctx: &mut CompositionContext, v: &mut ValidationRes
         }
     }
 
-    // Songbird discovery: resolve our own capabilities
+    // Songbird discovery: resolve our own capabilities.
+    // Songbird/petalTongue speak HTTP on UDS → protocol tolerance classifies as SKIP.
     match ctx.resolve_capability("tensor") {
         Ok(result) => {
             let found = result
@@ -546,6 +561,12 @@ fn validate_additive_nucleus(ctx: &mut CompositionContext, v: &mut ValidationRes
             v.check_skip(
                 "additive:songbird_discovery",
                 &format!("discovery not available (graceful skip): {e}"),
+            );
+        }
+        Err(e) if e.is_protocol_error() => {
+            v.check_skip(
+                "additive:songbird_discovery",
+                &format!("HTTP-on-UDS protocol mismatch (graceful skip): {e}"),
             );
         }
         Err(e) => {

@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 268 binaries, **Python→Rust→Primal→guideStone validation stack**. guideStone Level 2: `neuralspring_guidestone` binary via `primalspring::composition` API, 5 properties documented. `validate_proto_nucleate_capabilities` + `IpcMathClient` retained as validation window. coralForge unified. 234+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,234 lib + 73 forge + 80 playGround tests. 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.12, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 30 capabilities, deployment health triad, MCP parity, Squirrel routing, Tower discovery. Stadial `deny.toml` bans enforced. ecoBin compliant.
-**Date**: April 18, 2026 (Sessions 40–183 — S183: guideStone evolution: `neuralspring_guidestone` + 5 properties documented + `primalspring` composition API. Gap 11 confirmed still open. 268 binaries, 520+ `.rs` files, 68 modules. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. V134 handoff)
+**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 269 binaries, **Python→Rust→Primal→guideStone validation stack**. guideStone Level 3: `neuralspring_guidestone` v0.2.0 — 29/29 bare ALL PASS (P1-P5 certified). BLAKE3 CHECKSUMS (15 files). primalSpring v0.9.16. `validate_proto_nucleate_capabilities` + `IpcMathClient` retained as validation window. coralForge unified. 228+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,234 lib + 73 forge + 80 playGround tests. 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.12, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 30 capabilities, deployment health triad, MCP parity, Squirrel routing, Tower discovery. Stadial `deny.toml` bans enforced. ecoBin compliant.
+**Date**: April 19, 2026 (Sessions 40–184 — S184: guideStone Level 3: 29/29 bare ALL PASS. BLAKE3 CHECKSUMS. P3 CERTIFIED. primalSpring v0.9.16. 269 binaries, 520+ `.rs` files, 68 modules. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. V135 handoff)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–123+, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V133 handoff (Sessions 179–182 — Level 5 primal proof: proto-nucleate capabilities harness, IPC dispatch, stadial bans) |
+| `wateringHole/handoffs/` | Cross-project | V135 handoff (Session S184 — guideStone Level 3: 29/29 bare ALL PASS, BLAKE3 checksums, primalSpring v0.9.16) |
 
 ---
 

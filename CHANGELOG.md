@@ -5,15 +5,27 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-18 (Session 183: guideStone Evolution — Level 1 → Level 2)
+## [Unreleased] — 2026-04-19 (Session 184: guideStone Level 3 — Bare ALL PASS)
+
+### 2026-04-19 — Session S184 (guideStone Level 3: BLAKE3 checksums, structured output, family discovery, protocol tolerance)
+
+- **guideStone v0.2.0**: `neuralspring_guidestone` upgraded to Level 3 — 29/29 bare checks ALL PASS. All 5 properties certified without primals running
+- **BLAKE3 CHECKSUMS**: New `validation/CHECKSUMS` manifest covering 15 validation-critical files (guideStone binary, tolerances, provenance, validation, RNG, capability registry, Python baselines, Cargo.toml). Verified via `primalspring::checksums::verify_manifest()` in Phase 1 bare properties. Property 3 (Self-Verifying): PARTIAL → CERTIFIED
+- **gen_checksums example**: New `examples/gen_checksums.rs` (feature-gated: `guidestone`) generates BLAKE3 CHECKSUMS manifest, following primalSpring pattern
+- **Structured output**: `v.section()` replaces raw `println!` section headers. `ValidationResult::print_banner()` for banner. Supports `PRIMALSPRING_JSON=1`
+- **FAMILY_ID support**: Reads `FAMILY_ID` env for family-isolated socket discovery per v0.9.16 depot pattern
+- **Protocol tolerance**: `is_protocol_error()` classifies HTTP-on-UDS (Songbird, petalTongue) as SKIP, not FAIL
+- **Bare exit logic**: Aligned with primalSpring pattern — `exit_code() == 0 → exit(2)` for bare-only mode
+- **primalSpring v0.9.16 integration**: BLAKE3 checksums module, family-aware discovery, protocol tolerance, v.section() API
+- **269 binaries** (+1 gen_checksums example), 0 clippy, 0 fmt, `cargo deny check` clean. V135 handoff
 
 ### 2026-04-18 — Session S183 (guideStone evolution: neuralspring_guidestone binary, 5 properties documented, primalspring composition API)
 
-- **guideStone binary**: New `src/bin/neuralspring_guidestone.rs` — self-validating NUCLEUS deployable (Level 5). 4-phase validation: bare properties (P1: deterministic RNG, P2: provenance registry, P4: ecoBin compliance, P5: tolerance documentation), discovery + liveness (`validate_liveness` on tensor/security/compute/ai), domain science parity (7 capabilities via `validate_parity`/`validate_parity_vec`), additive NUCLEUS (BearDog signing receipt, Songbird discovery). Feature-gated: `guidestone` → `primalspring` + `primal`. Exit codes 0/1/2
+- **guideStone binary**: New `src/bin/neuralspring_guidestone.rs` — self-validating NUCLEUS deployable. 4-phase validation: bare properties (P1: deterministic RNG, P2: provenance registry, P4: ecoBin compliance, P5: tolerance documentation), discovery + liveness, domain science parity (7 capabilities), additive NUCLEUS. Feature-gated: `guidestone` → `primalspring` + `primal`. Exit codes 0/1/2
 - **primalspring dependency**: Added `primalspring` as optional path dependency (`../primalSpring/ecoPrimal`). New `guidestone` feature in `[features]`
-- **guideStone properties**: New `docs/GUIDESTONE_PROPERTIES.md` — documents all 5 certified properties for neuralSpring domain (Deterministic Output: CERTIFIED, Reference-Traceable: PARTIAL, Self-Verifying: PARTIAL, Environment-Agnostic: CERTIFIED, Tolerance-Documented: CERTIFIED). Level 3 blockers identified (CHECKSUMS, machine-readable provenance, tolerance derivation metadata)
-- **Gap 11 confirmed**: barraCuda JSON-RPC surface gaps (18 methods) verified still open against `REGISTERED_METHODS` in barraCuda source. primalSpring v0.9.15 blurb incorrectly claimed expanded surface
-- **PRIMAL_GAPS.md**: Added Gap 13 (guideStone evolution) with readiness matrix, Level 3/4/5 blockers, validation window documentation
+- **guideStone properties**: New `docs/GUIDESTONE_PROPERTIES.md` — documents all 5 certified properties
+- **Gap 11 confirmed**: barraCuda JSON-RPC surface gaps (18 methods) verified still open
+- **PRIMAL_GAPS.md**: Added Gap 13 (guideStone evolution) with readiness matrix
 - **268 binaries** (+1 neuralspring_guidestone), 0 clippy, 0 fmt, `cargo deny check` clean. V134 handoff
 
 ### 2026-04-17 — Session S182 (Level 5 primal proof: capabilities harness, IPC dispatch, stadial enforcement)

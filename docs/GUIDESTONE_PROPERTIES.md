@@ -1,9 +1,9 @@
 # neuralSpring guideStone — Certified Properties
 
-**Standard**: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md`
-**Binary**: `neuralspring_guidestone` (feature-gated: `guidestone`)
-**Level**: 2 (properties documented, partial Level 3: bare guideStone compiles and validates)
-**Date**: April 18, 2026 — Session S183
+**Standard**: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.1.0
+**Binary**: `neuralspring_guidestone` v0.2.0 (feature-gated: `guidestone`)
+**Level**: 3 (bare ALL PASS — all 5 properties certified without primals)
+**Date**: April 19, 2026 — Session S184
 
 ---
 
@@ -59,18 +59,20 @@ in Rust constants but the guideStone does not emit a structured provenance manif
 
 > Tampered inputs detected, non-zero exit.
 
-**Status**: PARTIAL (Level 2 — exit code semantics, no CHECKSUMS file)
+**Status**: CERTIFIED (BLAKE3 CHECKSUMS via `primalspring::checksums`)
 
 | Aspect | Evidence |
 |--------|----------|
 | Exit codes | 0 = all pass, 1 = regression, 2 = bare only (no NUCLEUS) |
+| BLAKE3 CHECKSUMS | `validation/CHECKSUMS` — 15 validation-critical files hashed |
+| Checksum verification | `primalspring::checksums::verify_manifest()` in Phase 1 bare checks |
+| Manifest generation | `examples/gen_checksums.rs` generates manifest (feature-gated) |
 | ValidationHarness | Every validation binary uses `check_abs` / `check_rel` / `check_bool` |
 | Parity checks | 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` validated against baselines |
 | Domain integrity | 1,234+ lib tests with `#![forbid(unsafe_code)]` |
 
-**Gap**: No `CHECKSUMS` file for binary integrity verification. This is a Level 3
-requirement — the guideStone binary should carry a manifest of known-good hashes
-for its inputs and report tampering as a non-zero exit.
+**Checksummed files**: guideStone binary, tolerances (5 modules), provenance (3 modules),
+validation (2 modules), RNG, capability registry, Python baseline tolerances, Cargo.toml.
 
 ---
 
@@ -123,25 +125,28 @@ A structured `ToleranceDerivation` type with paper DOIs would strengthen this fo
 | 0 | Not started | -- |
 | 1 | Validation exists (IpcMathClient, validate_proto_nucleate_capabilities) | DONE |
 | 2 | Properties documented (this file) | DONE |
-| 3 | Bare guideStone works (compiles, validates P1-P5 without primals) | PARTIAL |
+| 3 | Bare guideStone works (29/29 pass, P1-P5 certified without primals) | DONE |
 | 4 | NUCLEUS guideStone works (validates against live NUCLEUS) | PENDING |
 | 5 | Certified (all 5 properties hold, cross-substrate parity) | PENDING |
 
-### Level 3 Blockers
+### Level 3 Evidence (S184)
 
-- **CHECKSUMS file** for Property 3 (Self-Verifying)
-- **Machine-readable provenance** for Property 2 (JSON output)
-- **Machine-readable tolerance derivations** for Property 5
+- `neuralspring_guidestone` v0.2.0: 29/29 bare checks PASS (4 SKIP for missing NUCLEUS)
+- P3 BLAKE3 CHECKSUMS: 15 files verified via `primalspring::checksums::verify_manifest()`
+- `v.section()` structured output for Phase 1–4
+- `FAMILY_ID` env support for family-isolated socket discovery
+- Protocol tolerance: `is_protocol_error()` classifies HTTP-on-UDS as SKIP
+- Exit code 2 correctly returned for bare-only mode
 
 ### Level 4 Requirements
 
-- Live NUCLEUS deployed from `plasmidBin/` ecobins
+- Live NUCLEUS deployed from `plasmidBin/` ecobins (12 primals)
 - `primalspring_guidestone` passes (exit 0) as base certification
 - All 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` return PASS (not SKIP)
 
 ### Level 5 Requirements
 
-- All Level 3 + Level 4 blockers resolved
+- All Level 4 requirements met
 - Cross-substrate parity: Python / CPU / GPU / IPC all within tolerances
 - barraCuda surface gaps (Gap 11: 18 methods) resolved upstream
 - BearDog signing receipt validates end-to-end
@@ -150,7 +155,9 @@ A structured `ToleranceDerivation` type with paper DOIs would strengthen this fo
 
 ## References
 
-- guideStone Standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md`
+- guideStone Standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` (v1.1.0)
 - Composition Guidance: `primalSpring/wateringHole/PRIMALSPRING_COMPOSITION_GUIDANCE.md`
 - Downstream Manifest: `primalSpring/graphs/downstream/downstream_manifest.toml`
+- plasmidBin Depot: `primalSpring/wateringHole/PLASMINBIN_DEPOT_PATTERN.md`
 - hotSpring reference: `hotSpring-guideStone-v0.7.0` (Level 5 certified)
+- primalSpring reference: `primalspring_guidestone` (Level 4 — 67/67 live NUCLEUS checks)

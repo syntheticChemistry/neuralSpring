@@ -5,12 +5,12 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-04-18 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.15
-> **Session:** S183 — guideStone evolution. `neuralspring_guidestone` binary
-> created using `primalspring::composition` API. 5 guideStone properties
-> documented (`docs/GUIDESTONE_PROPERTIES.md`). Readiness Level 1 → 2.
-> Gap 11 (barraCuda surface) confirmed still open despite upstream blurb
-> claiming expanded surface.
+> **Date:** 2026-04-19 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.16
+> **Session:** S184 — guideStone Level 3. `neuralspring_guidestone` v0.2.0:
+> 29/29 bare checks PASS. BLAKE3 CHECKSUMS (15 files) via
+> `primalspring::checksums::verify_manifest()`. `v.section()` structured
+> output. `FAMILY_ID` env for family-isolated discovery. Protocol tolerance
+> (`is_protocol_error()` for HTTP-on-UDS). Readiness Level 2 → 3.
 
 ---
 
@@ -440,6 +440,11 @@ claims an expanded barraCuda IPC surface including `stats.correlation`,
 do NOT exist in `REGISTERED_METHODS`**. barraCuda still has exactly 32
 JSON-RPC methods. The 18 gaps documented below remain accurate.
 
+**Note (Apr 19 2026, S184):** primalSpring v0.9.16 does not change this.
+The v0.9.16 blurb re-lists barraCuda methods (tensor, stats, compute,
+spectral, linalg, health) but these are the same 32 methods. No new
+methods were added. Gap remains open.
+
 | neuralSpring call | `barracuda::` module | JSON-RPC equivalent | Status |
 |-------------------|---------------------|---------------------|--------|
 | `eigh_householder_qr` | `ops::linalg` | **None** — no `linalg.eigh` RPC | GAP |
@@ -500,10 +505,10 @@ and `cc` (with `blake3` wrapper exemption). `cargo deny check` passes.
 
 ---
 
-## 13. guideStone Evolution (Apr 18 2026)
+## 13. guideStone Evolution (Apr 18–19 2026)
 
-**Status:** in progress (Level 2 — properties documented)
-**Standard:** `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md`
+**Status:** Level 3 — bare ALL PASS (29/29 checks, P1-P5 certified)
+**Standard:** `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.1.0
 
 ### guideStone Readiness
 
@@ -511,31 +516,53 @@ and `cc` (with `blake3` wrapper exemption). `cargo deny check` passes.
 |-------|-------------|--------|
 | 1 | Validation exists (`IpcMathClient`, `validate_proto_nucleate_capabilities`) | DONE |
 | 2 | Properties documented (`docs/GUIDESTONE_PROPERTIES.md`) | DONE |
-| 3 | Bare guideStone works (P1-P5 validated without primals) | PARTIAL |
+| 3 | Bare guideStone works (29/29 pass, P1-P5 certified without primals) | DONE |
 | 4 | NUCLEUS guideStone works (validates against live NUCLEUS) | PENDING |
 | 5 | Certified (all 5 properties, cross-substrate parity) | PENDING |
 
 ### Binary
 
-`neuralspring_guidestone` (feature-gated: `guidestone` → `primalspring` + `primal`)
+`neuralspring_guidestone` v0.2.0 (feature-gated: `guidestone` → `primalspring` + `primal`)
 
 Uses `primalspring::composition` API directly:
 - `CompositionContext::from_live_discovery_with_fallback()` for UDS+TCP discovery
 - `validate_liveness()` for Phase 2 primal health checks
 - `validate_parity()` / `validate_parity_vec()` for Phase 3 domain science
 - `hash_bytes()` / `resolve_capability()` for Phase 4 additive NUCLEUS
+- `primalspring::checksums::verify_manifest()` for P3 BLAKE3 checksums
+- `v.section()` for structured output (supports `PRIMALSPRING_JSON=1`)
+- `FAMILY_ID` env for family-isolated socket discovery (v0.9.16 depot pattern)
+- `is_protocol_error()` tolerance for HTTP-on-UDS primals (Songbird, petalTongue)
 
-### Level 3 Blockers
+### Level 3 Evidence (S184)
 
-- **CHECKSUMS file**: Property 3 (Self-Verifying) requires binary integrity manifest
-- **Machine-readable provenance**: Property 2 needs JSON output of provenance records
-- **Machine-readable tolerance derivations**: Property 5 needs structured derivation metadata
+- **P1 Deterministic**: Seeded RNG triple-match, exact bitwise equality
+- **P2 Traceable**: 49 provenance records, all labelled/scripted/committed
+- **P3 Self-Verifying**: BLAKE3 CHECKSUMS — 15 validation-critical files verified
+- **P4 Environment-Agnostic**: ecoBin, `#![forbid(unsafe_code)]`, no network
+- **P5 Tolerance-Documented**: 228+ named tolerances, all finite/named/categorized
 
-### Level 4/5 Blockers
+### v0.9.16 Integration Notes
+
+- **Family-aware discovery**: `FAMILY_ID` env propagated to `CompositionContext`;
+  `discover_by_capability()` resolves `{capability}-{family}.sock` first
+- **Protocol tolerance**: `is_protocol_error()` classifies HTTP-on-UDS as SKIP
+  (Songbird, petalTongue)
+- **BLAKE3 checksums**: `primalspring::checksums` used for P3 manifest verification
+- **Known issues absorbed**: `BearDog` requires `BEARDOG_FAMILY_SEED` env;
+  `BearDog` resets connection without BTSP handshake (expected behavior)
+
+### Level 4 Blockers
+
+- **Live NUCLEUS**: Requires `plasmidBin/` ecobins deployed via `nucleus_launcher.sh`
+- **`primalspring_guidestone`**: Must pass (exit 0) as base certification layer
+- **All 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES`**: Must return PASS (not SKIP)
+
+### Level 5 Blockers
 
 - **Gap 11**: 18 barraCuda IPC surface gaps block full domain science parity
-- **Live NUCLEUS**: Requires `plasmidBin/` ecobins deployed via `biomeOS`
-- **`primalspring_guidestone`**: Must pass (exit 0) as base certification layer
+- Cross-substrate parity: Python / CPU / GPU / IPC all within tolerances
+- `BearDog` signing receipt validates end-to-end
 
 ### Validation Window
 

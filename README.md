@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 18, 2026 (Session S183 — guideStone evolution: `neuralspring_guidestone` binary created via `primalspring::composition` API — 4-phase validation (bare properties → discovery + liveness → domain science parity → additive NUCLEUS). 5 guideStone properties documented (`docs/GUIDESTONE_PROPERTIES.md`). `primalspring` optional path dep + `guidestone` feature gate. Readiness Level 1 → 2. Gap 11 confirmed still open (18 barraCuda surface gaps). 1,234 lib tests, 268 binaries, 520+ `.rs` files. barraCuda v0.3.12. V134 handoff).
+**Last updated**: April 19, 2026 (Session S184 — guideStone Level 3: `neuralspring_guidestone` v0.2.0 — 29/29 bare ALL PASS. BLAKE3 CHECKSUMS (15 files) via `primalspring::checksums::verify_manifest()`. `v.section()` structured output. `FAMILY_ID` env for family-isolated discovery. Protocol tolerance (`is_protocol_error()`). P3 Self-Verifying: CERTIFIED. Readiness Level 2 → 3. primalSpring v0.9.16 integration. 1,234 lib tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V135 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -46,7 +46,9 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
 
-**S183 (Apr 18 2026): guideStone evolution. `neuralspring_guidestone` binary (feature-gated: `guidestone`) — uses `primalspring::composition` API for 4-phase validation: bare properties (P1-P5: determinism, provenance, ecoBin, tolerances), discovery + liveness (`validate_liveness` on tensor/security/compute/ai), domain science parity (7 capabilities via `validate_parity`), additive NUCLEUS (BearDog signing, Songbird discovery). 5 guideStone properties documented (`docs/GUIDESTONE_PROPERTIES.md`). `primalspring` optional dep. Readiness Level 1 → 2. Gap 11 confirmed still open (18 barraCuda surface gaps). 1,234 lib + 73 forge + 12 integration tests, 268 binaries, 520+ `.rs` files. barraCuda v0.3.12. V134 handoff.**
+**S184 (Apr 19 2026): guideStone Level 3. `neuralspring_guidestone` v0.2.0 — 29/29 bare ALL PASS (P1-P5 certified). BLAKE3 CHECKSUMS: 15 validation-critical files via `primalspring::checksums::verify_manifest()`. `v.section()` structured output. `FAMILY_ID` env for family-isolated socket discovery. Protocol tolerance: `is_protocol_error()` classifies HTTP-on-UDS as SKIP. primalSpring v0.9.16 integration. P3 Self-Verifying: PARTIAL → CERTIFIED. 1,234 lib + 73 forge + 12 integration tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V135 handoff.**
+
+**S183 (Apr 18 2026): guideStone evolution. `neuralspring_guidestone` binary (feature-gated: `guidestone`) — uses `primalspring::composition` API for 4-phase validation: bare properties, discovery + liveness, domain science parity, additive NUCLEUS. 5 guideStone properties documented. `primalspring` optional dep. Readiness Level 1 → 2. Gap 11 confirmed still open (18 barraCuda surface gaps). 268 binaries. V134 handoff.**
 
 **S181: Full composition evolution — 30-capability surface (health.check + identity.get + mcp.tools.list now in ALL_CAPABILITIES), Squirrel inference routing (try_squirrel_route fallback), Tower Atomic startup discovery (BearDog + Songbird liveness probes), Tier 3 `validate_composition_evolution` (5-phase coherence validator), `composed` feature gate, ToadStool discovery fix (compute.dispatch.submit), tolerance forensics (check_abs_or_rel mode accuracy), deploy graph V131/S181. 1,225+ lib tests, 265 binaries, 520 `.rs` files. V131 handoff.**
 
