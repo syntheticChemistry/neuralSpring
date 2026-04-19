@@ -161,4 +161,79 @@ Exit code: 2 (bare only)
 
 ---
 
+## Primal Use & Evolution Patterns
+
+### Primal Dependency Profile
+
+neuralSpring uses primals in two distinct modes:
+
+| Primal | Library (Level 2) | IPC (Level 5+) | Status |
+|--------|-------------------|-----------------|--------|
+| **barraCuda** | ~400 `barracuda::` imports across `src/`, `metalForge/`, `playGround/` (device, tensor, ops, stats, nn, spectral, nautilus, dispatch, staging) | `IpcMathClient`: 9 methods (`stats.mean`, `tensor.matmul`, `tensor.create`, `compute.dispatch`, `crypto.hash`, `inference.*`) | Library = production; IPC = guideStone + proto-nucleate validators |
+| **primalSpring** | `primalspring::composition`, `checksums`, `tolerances`, `validation` (optional, `guidestone` feature only) | N/A (library API only) | guideStone binary + gen_checksums example |
+| **toadStool** | None (zero library imports) | `compute.dispatch.submit` via `ToadStoolClient` in playGround; `CompositionContext::call("compute", ...)` in guideStone | IPC only |
+| **BearDog** | None | `crypto.hash` via `hash_bytes()` in guideStone; health probes in `tower.rs` | IPC only |
+| **Songbird** | None | Discovery mesh probes in `tower.rs`; `resolve_capability()` in guideStone | IPC only |
+| **Squirrel** | None | `inference.complete`/`inference.embed` via `try_squirrel_route()` in handlers; guideStone Phase 3 | IPC only |
+| **coralReef** | `coralreef_bridge.rs` (forge, optional feature) | `shader.compile.wgsl` via `CoralReefClient` in playGround | Both, but forge bridge is thin |
+| **petalTongue** | `PetalTonguePushClient` (`src/visualization/`) | Push visualization data over UDS | Library-thin IPC |
+| **NestGate** | None | Not in proto-nucleate; weight storage planned for spring-deploy | Deferred |
+
+### IPC Migration Summary (barraCuda)
+
+barraCuda is the primary math dependency. For the Rust proof (Level 2), all math
+is called via direct library imports (`barracuda::ops::*`, `barracuda::stats::*`,
+etc.). For the primal proof (Level 5+), these calls must migrate to IPC.
+
+**Already wired via IPC**: `stats.mean`, `tensor.matmul`, `tensor.create`,
+`stats.std_dev`, `stats.weighted_mean`, `compute.dispatch`, `crypto.hash`,
+`inference.complete`, `inference.embed` (9 methods via `IpcMathClient` + guideStone)
+
+**Blocked on Gap 11** (18 methods with no JSON-RPC equivalent): `eigh_householder_qr`,
+`pearson_correlation`, `chi_squared_statistic`, `empirical_spectral_density`,
+`solve_f64_cpu`, `esn_v2::*`, `nn::SimpleMlp`, `nautilus::*`, etc.
+
+### NUCLEUS Deployment Patterns
+
+neuralSpring's guideStone follows the layered certification model:
+
+```
+primalspring_guidestone (Level 4, 67/67)
+    ↓ certifies base composition
+neuralspring_guidestone (Level 3, 29/29 bare)
+    ↓ validates domain science on top
+```
+
+Deploy from `plasmidBin/` ecobins → launch NUCLEUS (12 primals) → run
+`primalspring_guidestone` → exit 0 → run `neuralspring_guidestone` → validate
+7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` via IPC → exit 0 = primal proof.
+
+### Ecosystem Learnings for Upstream Teams
+
+1. **Dual IPC stacks**: neuralSpring maintains both `IpcMathClient` (custom, 9
+   methods) and `primalspring::composition::CompositionContext` (upstream API).
+   The custom client was built before the upstream API existed. Springs should
+   use `CompositionContext` directly — it handles discovery, fallback, health
+   checks, and protocol tolerance. The custom client is retained only as a
+   "validation window" for development-time parity comparison.
+
+2. **`composed` feature is unused**: The `composed = ["primal"]` feature in
+   `Cargo.toml` was created for future IPC-only paths but no `#[cfg(feature =
+   "composed")]` exists in source. It can be removed or left as a no-op alias.
+
+3. **Protocol tolerance is essential**: Songbird and petalTongue speak HTTP on
+   UDS sockets. Without `is_protocol_error()` classification, health checks
+   for these primals produce confusing failures. All springs should adopt this.
+
+4. **BLAKE3 checksums pattern**: `examples/gen_checksums.rs` + `validation/CHECKSUMS`
+   is reusable. Any spring can adopt `primalspring::checksums` for P3 certification
+   in under 50 lines of code.
+
+5. **guideStone inheritance works**: Our guideStone binary uses only
+   `primalspring::composition` and `primalspring::checksums` — no internal primalSpring
+   APIs. The layered model (base certification → domain certification) is clean
+   and springs should follow it rather than reimplementing composition validation.
+
+---
+
 **License**: AGPL-3.0-or-later

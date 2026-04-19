@@ -47,7 +47,7 @@
 | Spec | Status | Description |
 |------|--------|-------------|
 | [PURE_GPU_ROADMAP.md](PURE_GPU_ROADMAP.md) | **Active** | Pure GPU roadmap — Phase A+B+C complete (44 ops), ~97% GPU coverage |
-| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V134 handoff |
+| [TOADSTOOL_HANDOFF.md](TOADSTOOL_HANDOFF.md) | Active | 17 shortcomings — **ALL RESOLVED** upstream; 46 upstream rewires; V135 handoff |
 | [BENCHMARK_ANALYSIS.md](BENCHMARK_ANALYSIS.md) | Active | Python vs BarraCUDA CPU vs GPU 3-way benchmark |
 | [CROSS_SPRING_EVOLUTION.md](CROSS_SPRING_EVOLUTION.md) | Active | Cross-spring shader/primitive provenance |
 
@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V134 handoff (current, Sessions 176–183) |
+| wateringHole/handoffs/ | `../wateringHole/` | V135 handoff (current, Session S184 — guideStone Level 3) |
 
 ---
 

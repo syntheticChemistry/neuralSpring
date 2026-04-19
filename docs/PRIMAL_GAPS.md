@@ -30,7 +30,7 @@ wired and validated | `deferred` — blocked on upstream primal
 
 **Status:** wip (Squirrel routing wired, provider registration pending)
 **Proto-nucleate declares:** `inference.complete`, `inference.embed`, `inference.models`
-**Current state (S181):** All three method strings are registered, wired,
+**Current state (S184):** All three method strings are registered, wired,
 and now route through Squirrel when discovered:
 - `src/niche.rs`: `CAPABILITIES` array includes all three `inference.*` methods,
   with `operation_dependencies()` and `cost_estimates()` entries.
@@ -150,7 +150,7 @@ NestGate should be added to proto-nucleate `depends_on` for the primal proof)
 **Status:** wip (discovery probing wired, BTSP session pending)
 **Proto-nucleate declares:** BearDog (crypto) + Songbird (discovery) as
 Tower Atomic foundation
-**Current state (S181):** `primal_names.rs` has discovery hint constants.
+**Current state (S184):** `primal_names.rs` has discovery hint constants.
 `src/bin/neuralspring_primal/tower.rs` probes BearDog and Songbird at
 startup via capability-based socket discovery with `health.liveness`
 checks. Logs Tower Atomic status (complete/partial/standalone).

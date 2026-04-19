@@ -24,7 +24,7 @@
 //! │  P2: Traceability — provenance registry (49+ records)        │
 //! │  P3: Self-Verifying — BLAKE3 CHECKSUMS (15 files)            │
 //! │  P4: Environment-Agnostic — ecoBin, no network, no sudo     │
-//! │  P5: Tolerances — 234+ named, categorized, finite            │
+//! │  P5: Tolerances — 228+ named, categorized, finite            │
 //! └──────────────────────────────────────────────────────────────┘
 //!         │
 //! ┌─ Discovery + Liveness (via primalspring::composition) ──────┐

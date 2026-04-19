@@ -37,7 +37,7 @@ science output is IDENTICAL either way. NUCLEUS adds metadata, not math.
 
 > Every number traces to a paper or proof.
 
-**Status**: PARTIAL (Level 2 — documented, not yet machine-readable JSON)
+**Status**: PARTIAL (documented, not yet machine-readable JSON output)
 
 | Aspect | Evidence |
 |--------|----------|

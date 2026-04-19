@@ -24,13 +24,23 @@
 ## Purpose
 
 Per-faculty validation briefings and cross-domain extension proposals.
-Each briefing maps: paper → Python baseline → Rust validation → BarraCUDA CPU →
-GPU Tensor → metalForge WGSL → pipeline → cross-dispatch → multi-GPU →
-primal composition (IPC round-trip parity against NUCLEUS primals).
 
-Extension proposals identify where neuralSpring's validated primitives can
-serve larger fields of study, cross-domain science, and the gen3 baseCamp
-sub-theses — now that we have pure GPU execution for ~97% of production math.
+The validation chain proves peer-reviewed science runs faithfully through the
+sovereign compute stack:
+
+```
+Python baseline (peer-reviewed science, documented provenance)
+    → Rust validation (spring binary — the "Rust proof", Level 2)
+    → BarraCUDA CPU → GPU Tensor → metalForge WGSL → pipeline
+    → cross-dispatch → multi-GPU (~97% GPU promotion)
+    → Primal composition (IPC round-trip parity against NUCLEUS primals)
+    → guideStone (self-validating bare: 29/29 PASS, 5 properties certified)
+    → NUCLEUS deployment (plasmidBin ecobins on clean machine) [Level 4+]
+```
+
+Each briefing maps this chain per-paper. Extension proposals identify where
+neuralSpring's validated primitives can serve larger fields of study,
+cross-domain science, and the gen3 baseCamp sub-theses.
 
 ## Faculty Summary
 

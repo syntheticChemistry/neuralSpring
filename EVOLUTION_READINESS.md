@@ -511,7 +511,7 @@ skip-aware exit code handling.
 
 - `src/niche.rs`: 26 capabilities, bonding policy (Metallic / InternalNucleus), encryption tiers, operation dependencies, cost estimates, semantic mappings
 - `config/capability_registry.toml`: 17 methods (science + health + inference)
-- `graphs/neuralspring_deploy.toml`: V134/S183, sequential coordination
+- `graphs/neuralspring_deploy.toml`: V135/S184, sequential coordination
 - Proto-nucleate: `downstream_manifest::neuralspring` (consolidated in `primalSpring/graphs/downstream/downstream_manifest.toml`)
 
 ---
