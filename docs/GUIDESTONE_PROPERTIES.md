@@ -1,9 +1,9 @@
 # neuralSpring guideStone — Certified Properties
 
-**Standard**: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.1.0
-**Binary**: `neuralspring_guidestone` v0.2.0 (feature-gated: `guidestone`)
+**Standard**: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
+**Binary**: `neuralspring_guidestone` v0.3.0 (feature-gated: `guidestone`)
 **Level**: 3 (bare ALL PASS — all 5 properties certified without primals)
-**Date**: April 19, 2026 — Session S184
+**Date**: April 20, 2026 — Session S185
 
 ---
 
@@ -129,14 +129,15 @@ A structured `ToleranceDerivation` type with paper DOIs would strengthen this fo
 | 4 | NUCLEUS guideStone works (validates against live NUCLEUS) | PENDING |
 | 5 | Certified (all 5 properties hold, cross-substrate parity) | PENDING |
 
-### Level 3 Evidence (S184)
+### Level 3 Evidence (S184 → S185)
 
-- `neuralspring_guidestone` v0.2.0: 29/29 bare checks PASS (4 SKIP for missing NUCLEUS)
+- `neuralspring_guidestone` v0.3.0: 29/29 bare checks PASS (4 SKIP for missing NUCLEUS)
 - P3 BLAKE3 CHECKSUMS: 15 files verified via `primalspring::checksums::verify_manifest()`
 - `v.section()` structured output for Phase 1–4
 - `FAMILY_ID` env support for family-isolated socket discovery
-- Protocol tolerance: `is_protocol_error()` classifies HTTP-on-UDS as SKIP
+- Protocol tolerance: `is_skip_error()` unified skip classification (v0.9.17 pattern)
 - Exit code 2 correctly returned for bare-only mode
+- S185: absorbed `primalspring::composition::is_skip_error` — replaces 7 manual error arms
 
 ### Level 4 Requirements
 
@@ -155,7 +156,7 @@ A structured `ToleranceDerivation` type with paper DOIs would strengthen this fo
 
 ## References
 
-- guideStone Standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` (v1.1.0)
+- guideStone Standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` (v1.2.0)
 - Composition Guidance: `primalSpring/wateringHole/PRIMALSPRING_COMPOSITION_GUIDANCE.md`
 - Downstream Manifest: `primalSpring/graphs/downstream/downstream_manifest.toml`
 - plasmidBin Depot: `primalSpring/wateringHole/PLASMINBIN_DEPOT_PATTERN.md`

@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S184)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: 29/29 bare ALL PASS (P1-P5 certified). BLAKE3 CHECKSUMS (15 files). primalSpring v0.9.16. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 19, 2026.
+**Current state (Session S185)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: `neuralspring_guidestone` v0.3.0 — 29/29 bare ALL PASS (P1-P5 certified). `is_skip_error` unified skip. guideStone standard v1.2.0. BLAKE3 CHECKSUMS (15 files). primalSpring v0.9.17. genomeBin v5.1. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 20, 2026.
 
 ### Session S184 — 2026-04-19 (guideStone Level 3 — Bare ALL PASS, BLAKE3 Checksums)
 

@@ -2,7 +2,7 @@
 
 #![forbid(unsafe_code)]
 
-//! neuralSpring guideStone v0.2.0 — self-validating NUCLEUS deployable.
+//! neuralSpring guideStone v0.3.0 — self-validating NUCLEUS deployable.
 //!
 //! A guideStone carries 5 certified properties:
 //!
@@ -53,18 +53,20 @@
 //! ## Provenance
 //!
 //! Capabilities: `downstream_manifest.toml` `[[downstream]]` `spring_name = "neuralspring"`
-//! guideStone standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.1.0
+//! guideStone standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
 
 use neural_spring::provenance::PROVENANCE_REGISTRY;
 use neural_spring::tolerances::all_tolerances;
 use neural_spring::validation::composition::PROTO_NUCLEATE_VALIDATION_CAPABILITIES;
 
-use primalspring::composition::{self, CompositionContext, validate_liveness, validate_parity};
+use primalspring::composition::{
+    self, CompositionContext, is_skip_error, validate_liveness, validate_parity,
+};
 use primalspring::tolerances;
 use primalspring::validation::ValidationResult;
 
 const SPRING_NAME: &str = "neuralSpring";
-const GUIDESTONE_VERSION: &str = "0.2.0";
+const GUIDESTONE_VERSION: &str = "0.3.0";
 
 fn main() {
     ValidationResult::print_banner(&format!(
@@ -355,7 +357,7 @@ fn validate_tensor_create_parity(ctx: &mut CompositionContext, v: &mut Validatio
                 &format!("response: {result}"),
             );
         }
-        Err(e) if e.is_connection_error() => {
+        Err(e) if is_skip_error(&e) => {
             v.check_skip(
                 "tensor_create_has_shape",
                 &format!("tensor not available: {e}"),
@@ -387,7 +389,7 @@ fn validate_compute_dispatch_parity(ctx: &mut CompositionContext, v: &mut Valida
                 &format!("response: {result}"),
             );
         }
-        Err(e) if e.is_connection_error() => {
+        Err(e) if is_skip_error(&e) => {
             v.check_skip(
                 "compute_dispatch_ack",
                 &format!("compute not available: {e}"),
@@ -429,7 +431,7 @@ fn validate_crypto_hash_parity(ctx: &mut CompositionContext, v: &mut ValidationR
                 }
             }
         }
-        Err(e) if e.is_connection_error() => {
+        Err(e) if is_skip_error(&e) => {
             v.check_skip(
                 "crypto_hash_nonempty",
                 &format!("security not available: {e}"),
@@ -457,7 +459,7 @@ fn validate_inference_complete_parity(ctx: &mut CompositionContext, v: &mut Vali
                 &format!("response: {result}"),
             );
         }
-        Err(e) if e.is_connection_error() => {
+        Err(e) if is_skip_error(&e) => {
             v.check_skip(
                 "inference_complete_has_text",
                 &format!("ai not available: {e}"),
@@ -488,7 +490,7 @@ fn validate_inference_embed_parity(ctx: &mut CompositionContext, v: &mut Validat
                 &format!("response: {result}"),
             );
         }
-        Err(e) if e.is_connection_error() => {
+        Err(e) if is_skip_error(&e) => {
             v.check_skip(
                 "inference_embed_has_embedding",
                 &format!("ai not available: {e}"),
@@ -520,16 +522,10 @@ fn validate_additive_nucleus(ctx: &mut CompositionContext, v: &mut ValidationRes
                 &format!("signing receipt len={}", receipt.len()),
             );
         }
-        Err(e) if e.is_connection_error() => {
+        Err(e) if is_skip_error(&e) => {
             v.check_skip(
                 "additive:beardog_signing_receipt",
                 &format!("security not available (graceful skip): {e}"),
-            );
-        }
-        Err(e) if e.is_protocol_error() => {
-            v.check_skip(
-                "additive:beardog_signing_receipt",
-                &format!("protocol mismatch (BTSP required): {e}"),
             );
         }
         Err(e) => {
@@ -557,16 +553,10 @@ fn validate_additive_nucleus(ctx: &mut CompositionContext, v: &mut ValidationRes
                 &format!("resolved tensor provider: {result}"),
             );
         }
-        Err(e) if e.is_connection_error() => {
+        Err(e) if is_skip_error(&e) => {
             v.check_skip(
                 "additive:songbird_discovery",
                 &format!("discovery not available (graceful skip): {e}"),
-            );
-        }
-        Err(e) if e.is_protocol_error() => {
-            v.check_skip(
-                "additive:songbird_discovery",
-                &format!("HTTP-on-UDS protocol mismatch (graceful skip): {e}"),
             );
         }
         Err(e) => {

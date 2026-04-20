@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V135 — Session S184 (guideStone Level 3)
+### V136 — Session S185 (primalSpring v0.9.17 Absorption)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V135** | `handoffs/NEURALSPRING_V135_GUIDESTONE_LEVEL3_HANDOFF_APR19_2026.md` | Apr 19, 2026 | guideStone Level 3: `neuralspring_guidestone` v0.2.0 — 29/29 bare ALL PASS. BLAKE3 CHECKSUMS (15 files). `v.section()` structured output. `FAMILY_ID` family-isolated discovery. Protocol tolerance. P3 CERTIFIED. primalSpring v0.9.16 integration. Readiness Level 2 → 3. |
+| **V136** | `handoffs/NEURALSPRING_V136_V0917_ABSORPTION_HANDOFF_APR20_2026.md` | Apr 20, 2026 | primalSpring v0.9.17 absorption. `neuralspring_guidestone` v0.3.0: `is_skip_error` unified skip classification (7 manual arms replaced), guideStone standard v1.2.0. genomeBin v5.1 (46 binaries, 6 target triples). Operational awareness: coralReef `--rpc-bind`, beardog/songbird/nestgate env vars. Level 4 path documented. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V134 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V135 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 19, 2026 (Session S184 — guideStone Level 3: `neuralspring_guidestone` v0.2.0 — 29/29 bare ALL PASS. BLAKE3 CHECKSUMS (15 files) via `primalspring::checksums::verify_manifest()`. `v.section()` structured output. `FAMILY_ID` env for family-isolated discovery. Protocol tolerance (`is_protocol_error()`). P3 Self-Verifying: CERTIFIED. Readiness Level 2 → 3. primalSpring v0.9.16 integration. 1,234 lib tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V135 handoff).
+**Last updated**: April 20, 2026 (Session S185 — primalSpring v0.9.17 absorption. `neuralspring_guidestone` v0.3.0: `is_skip_error` unified skip classification, guideStone standard v1.2.0. genomeBin v5.1 (46 binaries, 6 target triples). Operational awareness: coralReef `--rpc-bind`, `BEARDOG_FAMILY_SEED`, `SONGBIRD_SECURITY_PROVIDER`, `NESTGATE_JWT_SECRET`. 1,234 lib tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V136 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

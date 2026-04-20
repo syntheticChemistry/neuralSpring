@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-19 (Session 184: guideStone Level 3 — Bare ALL PASS)
+## [Unreleased] — 2026-04-20 (Session 185: primalSpring v0.9.17 absorption)
+
+### 2026-04-20 — Session S185 (primalSpring v0.9.17 absorption: `is_skip_error`, guideStone v0.3.0, standard v1.2.0, genomeBin v5.1)
+
+- **guideStone v0.3.0**: `neuralspring_guidestone` absorbs `primalspring::composition::is_skip_error` — replaces 7 manual `is_connection_error()` / `is_protocol_error()` arms with unified skip classification (connection errors + protocol mismatches + transport dialect). Covers BTSP, HTTP-on-UDS, and absent primals in a single predicate
+- **guideStone standard v1.2.0**: Doc reference updated from v1.1.0. v1.2.0 adds tolerance hierarchy as ecosystem standard, `call_or_skip`/`is_skip_error` in `primalspring::composition`, "domain functions are local compositions" pattern
+- **primalSpring v0.9.17 integration**: Absorbed upstream (Phase 45). No new library API (checksums, ValidationResult, IPC unchanged from v0.9.16). Delta is deployment validation and operational contracts
+- **Operational awareness**: coralReef `--port` → `--rpc-bind` (iter84); `BEARDOG_FAMILY_SEED` required for production BTSP; `SONGBIRD_SECURITY_PROVIDER=beardog`; `NESTGATE_JWT_SECRET` required
+- **genomeBin v5.1**: 46 binaries across 6 target triples (x86_64-musl, aarch64-musl, armv7-musl, x86_64-windows, aarch64-android, riscv64-musl). Level 4 deployment path clear
+- **269 binaries**, 0 clippy, 0 fmt, `cargo deny check` clean. V136 handoff
 
 ### 2026-04-19 — Session S184 (guideStone Level 3: BLAKE3 checksums, structured output, family discovery, protocol tolerance)
 

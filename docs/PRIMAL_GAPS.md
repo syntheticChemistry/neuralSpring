@@ -5,12 +5,11 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-04-19 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.16
-> **Session:** S184 — guideStone Level 3. `neuralspring_guidestone` v0.2.0:
-> 29/29 bare checks PASS. BLAKE3 CHECKSUMS (15 files) via
-> `primalspring::checksums::verify_manifest()`. `v.section()` structured
-> output. `FAMILY_ID` env for family-isolated discovery. Protocol tolerance
-> (`is_protocol_error()` for HTTP-on-UDS). Readiness Level 2 → 3.
+> **Date:** 2026-04-20 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.17
+> **Session:** S185 — primalSpring v0.9.17 absorption. `neuralspring_guidestone`
+> v0.3.0: `is_skip_error` unified skip classification, guideStone standard
+> v1.2.0. genomeBin v5.1 (46 binaries, 6 target triples). Operational
+> awareness documented (coralReef CLI, beardog/songbird/nestgate env vars).
 
 ---
 
@@ -505,10 +504,10 @@ and `cc` (with `blake3` wrapper exemption). `cargo deny check` passes.
 
 ---
 
-## 13. guideStone Evolution (Apr 18–19 2026)
+## 13. guideStone Evolution (Apr 18–20 2026)
 
 **Status:** Level 3 — bare ALL PASS (29/29 checks, P1-P5 certified)
-**Standard:** `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.1.0
+**Standard:** `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
 
 ### guideStone Readiness
 
@@ -522,17 +521,17 @@ and `cc` (with `blake3` wrapper exemption). `cargo deny check` passes.
 
 ### Binary
 
-`neuralspring_guidestone` v0.2.0 (feature-gated: `guidestone` → `primalspring` + `primal`)
+`neuralspring_guidestone` v0.3.0 (feature-gated: `guidestone` → `primalspring` + `primal`)
 
 Uses `primalspring::composition` API directly:
 - `CompositionContext::from_live_discovery_with_fallback()` for UDS+TCP discovery
 - `validate_liveness()` for Phase 2 primal health checks
 - `validate_parity()` / `validate_parity_vec()` for Phase 3 domain science
+- `is_skip_error()` — unified skip classification (v0.9.17 pattern)
 - `hash_bytes()` / `resolve_capability()` for Phase 4 additive NUCLEUS
 - `primalspring::checksums::verify_manifest()` for P3 BLAKE3 checksums
 - `v.section()` for structured output (supports `PRIMALSPRING_JSON=1`)
-- `FAMILY_ID` env for family-isolated socket discovery (v0.9.16 depot pattern)
-- `is_protocol_error()` tolerance for HTTP-on-UDS primals (Songbird, petalTongue)
+- `FAMILY_ID` env for family-isolated socket discovery
 
 ### Level 3 Evidence (S184)
 
@@ -551,6 +550,27 @@ Uses `primalspring::composition` API directly:
 - **BLAKE3 checksums**: `primalspring::checksums` used for P3 manifest verification
 - **Known issues absorbed**: `BearDog` requires `BEARDOG_FAMILY_SEED` env;
   `BearDog` resets connection without BTSP handshake (expected behavior)
+
+### v0.9.17 Integration Notes (S185)
+
+- **`is_skip_error` adoption**: Replaced 7 manual `is_connection_error()` /
+  `is_protocol_error()` match arms with `primalspring::composition::is_skip_error()`.
+  Covers connection errors + protocol mismatches + transport dialect in one predicate
+- **guideStone standard v1.2.0**: Tolerance hierarchy as ecosystem standard,
+  `call_or_skip`/`is_skip_error` absorbed into `primalspring::composition`,
+  "domain functions are local compositions" pattern documented
+- **No new library API**: checksums, ValidationResult, IPC, composition — all
+  unchanged from v0.9.16. Delta is deployment validation and operational contracts
+- **genomeBin v5.1**: 46 binaries across 6 target triples — Level 4 deployment
+  path clear (x86_64-musl, aarch64-musl, armv7-musl, x86_64-windows,
+  aarch64-android, riscv64-musl)
+- **Operational requirements for Level 4 deployment**:
+  - coralReef: `--port` → `--rpc-bind` (iter84 CLI change)
+  - beardog: `BEARDOG_FAMILY_SEED` env required for production BTSP
+  - songbird: `SONGBIRD_SECURITY_PROVIDER=beardog` env required
+  - nestgate: `NESTGATE_JWT_SECRET` env required (random Base64)
+- **Manifest note**: `downstream_manifest.toml` shows `guidestone_readiness = 2`
+  for neuralSpring; actual status is Level 3 (manifest is upstream's responsibility)
 
 ### Level 4 Blockers
 
