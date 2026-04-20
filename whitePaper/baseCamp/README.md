@@ -78,15 +78,18 @@ Layer 3 — Primal Composition Proof (Rust+Python validate primal IPC):
             → additive NUCLEUS (BearDog signing, Songbird discovery)
               → honest skip (exit 2) when primals unavailable
 
-Layer 4 — Deployment (plasmidBin + benchScale validate ecoBin):
-  harvest ecoBin → plasmidBin metadata (30 capabilities) → fetch + smoke
+Layer 4 — Deployment (plasmidBin/genomeBin + benchScale validate ecoBin):
+  harvest ecoBin → genomeBin v5.1 (46 binaries, 6 target triples) → fetch + smoke
     → benchscale validate ipc → C1-C7 composition probes
+      → Level 4: deploy NUCLEUS from plasmidBin, run guideStone externally
 ```
 
 Edition 2024 (S163): All 3 workspace crates on Rust 2024. Proptest invariants
 (softmax, entropy, relu, rk4). `ipc_resilience` (RetryPolicy + CircuitBreaker)
 for transient IPC failures. Deployment health triad (S180). Squirrel routing +
 Tower Atomic discovery (S181). Tier 3 composition evolution validator (S181).
+primalSpring v0.9.17 absorption (S185): `is_skip_error` unified skip
+classification, guideStone standard v1.2.0, genomeBin v5.1 for Level 4 path.
 
 ## Briefings
 

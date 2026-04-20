@@ -2,6 +2,14 @@
 
 **Current state (Session S185)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: `neuralspring_guidestone` v0.3.0 — 29/29 bare ALL PASS (P1-P5 certified). `is_skip_error` unified skip. guideStone standard v1.2.0. BLAKE3 CHECKSUMS (15 files). primalSpring v0.9.17. genomeBin v5.1. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 20, 2026.
 
+### Session S185 — 2026-04-20 (primalSpring v0.9.17 Absorption)
+
+- **Exp 132 — v0.9.17 Absorption**: `neuralspring_guidestone` v0.3.0 absorbs `is_skip_error` from `primalspring::composition` — unified skip classification replaces 7 manual `is_connection_error()`/`is_protocol_error()` arms. guideStone standard reference v1.1.0 → v1.2.0. No new library API in v0.9.17; delta is deployment validation and operational contracts
+  - **genomeBin v5.1**: 46 binaries across 6 target triples (x86_64-musl, aarch64-musl, armv7-musl, x86_64-windows, aarch64-android, riscv64-musl). Level 4 deployment path clear
+  - **Operational awareness**: coralReef `--port` → `--rpc-bind` (iter84); `BEARDOG_FAMILY_SEED` required; `SONGBIRD_SECURITY_PROVIDER=beardog`; `NESTGATE_JWT_SECRET` required
+  - **Ecosystem pattern**: `is_skip_error` covers connection + protocol + transport errors in one predicate; Phase 3 functions now correctly skip on protocol errors (previously only caught connection errors)
+  - **Result**: 0 clippy, 0 fmt, `cargo deny check` clean. V136 handoff
+
 ### Session S184 — 2026-04-19 (guideStone Level 3 — Bare ALL PASS, BLAKE3 Checksums)
 
 - **Exp 131 — guideStone Level 3 Evolution**: `neuralspring_guidestone` v0.2.0 upgraded from Level 2 (properties documented) to Level 3 (bare ALL PASS: 29/29 checks, P1-P5 certified)

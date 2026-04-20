@@ -25,7 +25,7 @@ science output is IDENTICAL either way. NUCLEUS adds metadata, not math.
 | Aspect | Evidence |
 |--------|----------|
 | Seeded RNG | All 27 papers use `Rng::new(42)` (xoshiro256++ via SplitMix64 seeding) |
-| Named tolerances | 234+ constants in `tolerances/` — no ad-hoc magic numbers |
+| Named tolerances | 228+ constants in `tolerances/` — no ad-hoc magic numbers |
 | CPU-only path | Full validation coverage without GPU — CPU path is the reference |
 | Cross-substrate | Python/CPU/GPU parity documented for all active experiments |
 
@@ -104,7 +104,7 @@ validation (2 modules), RNG, capability registry, Python baseline tolerances, Ca
 
 | Aspect | Evidence |
 |--------|----------|
-| Named constants | 234+ in `tolerances/` with justification comments |
+| Named constants | 228+ in `tolerances/` with justification comments |
 | Categories | machine, cross-language, spectral, training, literature, gpu, evolutionary |
 | Registry introspection | `all_tolerances()` returns `NamedTolerance` with name/value/category |
 | Finite values | Test suite validates no NaN/Inf in any tolerance |

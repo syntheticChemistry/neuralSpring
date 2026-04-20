@@ -46,6 +46,8 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
 
+**S185 (Apr 20 2026): primalSpring v0.9.17 absorption. `neuralspring_guidestone` v0.3.0: `is_skip_error` unified skip classification (7 manual arms replaced), guideStone standard v1.2.0. genomeBin v5.1 (46 binaries, 6 target triples). Operational awareness: coralReef `--rpc-bind`, beardog/songbird/nestgate env vars. V136 handoff.**
+
 **S184 (Apr 19 2026): guideStone Level 3. `neuralspring_guidestone` v0.2.0 — 29/29 bare ALL PASS (P1-P5 certified). BLAKE3 CHECKSUMS: 15 validation-critical files via `primalspring::checksums::verify_manifest()`. `v.section()` structured output. `FAMILY_ID` env for family-isolated socket discovery. Protocol tolerance: `is_protocol_error()` classifies HTTP-on-UDS as SKIP. primalSpring v0.9.16 integration. P3 Self-Verifying: PARTIAL → CERTIFIED. 1,234 lib + 73 forge + 12 integration tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V135 handoff.**
 
 **S183 (Apr 18 2026): guideStone evolution. `neuralspring_guidestone` binary (feature-gated: `guidestone`) — uses `primalspring::composition` API for 4-phase validation: bare properties, discovery + liveness, domain science parity, additive NUCLEUS. 5 guideStone properties documented. `primalspring` optional dep. Readiness Level 1 → 2. Gap 11 confirmed still open (18 barraCuda surface gaps). 268 binaries. V134 handoff.**
@@ -640,8 +642,8 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_V135_*.md # Current handoffs (V135/S184)
-│   │   └── archive/           #   Superseded handoffs (V1–V134 + NestGate/biomeOS/Songbird V1)
+│   │   ├── NEURALSPRING_V136_*.md # Current handoffs (V136/S185)
+│   │   └── archive/           #   Superseded handoffs (V1–V135 + NestGate/biomeOS/Songbird V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-123+)
 ├── whitePaper/                 # Study documentation
@@ -702,4 +704,4 @@ documentation and standards.
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–184: April 19, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4500+ Rust+GPU + 6 composition validators = 4900+ total validation checks | ~1,400+ Rust tests (1,234 lib + 73 forge + 80 playGround + 12 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 269 binaries, 520+ `.rs` files, 42 WGSL shaders | 228+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.12, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V135 handoff (guideStone Level 3: 29/29 bare ALL PASS, BLAKE3 checksums, primalSpring v0.9.16) | guideStone Level 3: `neuralspring_guidestone` v0.2.0 — bare properties + discovery + domain parity + additive NUCLEUS | `IpcMathClient` + `validate_proto_nucleate_capabilities` retained as validation window | Stadial `deny.toml` bans enforced (ring/openssl/async-trait/rustls/ed25519-dalek) | 18 barraCuda JSON-RPC surface gaps confirmed still open | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 30 capabilities registered | Metallic bonding policy + InternalNucleus trust model | Python→Rust→Primal→guideStone validation stack*
+*Initialized: February 16, 2026 | Sessions 40–185: April 20, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4500+ Rust+GPU + 6 composition validators = 4900+ total validation checks | ~1,400+ Rust tests (1,234 lib + 73 forge + 80 playGround + 12 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 269 binaries, 520+ `.rs` files, 42 WGSL shaders | 228+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.12, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V136 handoff (primalSpring v0.9.17 absorption: `is_skip_error` unified skip, guideStone standard v1.2.0, genomeBin v5.1) | guideStone Level 3: `neuralspring_guidestone` v0.3.0 — bare properties + discovery + domain parity + additive NUCLEUS | `IpcMathClient` + `validate_proto_nucleate_capabilities` retained as validation window | Stadial `deny.toml` bans enforced (ring/openssl/async-trait/rustls/ed25519-dalek) | 18 barraCuda JSON-RPC surface gaps confirmed still open | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 30 capabilities registered | Metallic bonding policy + InternalNucleus trust model | Python→Rust→Primal→guideStone validation stack*
