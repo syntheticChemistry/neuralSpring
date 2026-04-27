@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 20, 2026 (Session S185 — primalSpring v0.9.17 absorption. `neuralspring_guidestone` v0.3.0: `is_skip_error` unified skip classification, guideStone standard v1.2.0. genomeBin v5.1 (46 binaries, 6 target triples). Operational awareness: coralReef `--rpc-bind`, `BEARDOG_FAMILY_SEED`, `SONGBIRD_SECURITY_PROVIDER`, `NESTGATE_JWT_SECRET`. 1,234 lib tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V136 handoff).
+**Last updated**: April 27, 2026 (Session S186 — Phase 46 composition explorer. Agent-driven composition + AI feedback loops via `neural_composition.sh`. Squirrel-mediated inference, DAG provenance, braid audit trail, closed-loop feedback. Phase 45c BTSP default auto-absorbed. 1,234 lib tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V137 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -45,6 +45,8 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 806+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
+
+**S186 (Apr 27 2026): Phase 46 composition explorer. `neural_composition.sh` — agent-driven composition + AI feedback loops. Squirrel-mediated `inference.complete`/`inference.embed`, DAG provenance, braid audit trail, closed-loop feedback (act→observe→adjust). Phase 45c BTSP default auto-absorbed. PRIMAL_GAPS Gap 14 (composition findings). V137 handoff.**
 
 **S185 (Apr 20 2026): primalSpring v0.9.17 absorption. `neuralspring_guidestone` v0.3.0: `is_skip_error` unified skip classification (7 manual arms replaced), guideStone standard v1.2.0. genomeBin v5.1 (46 binaries, 6 target triples). Operational awareness: coralReef `--rpc-bind`, beardog/songbird/nestgate env vars. V136 handoff.**
 
@@ -642,12 +644,17 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_V136_*.md # Current handoffs (V136/S185)
-│   │   └── archive/           #   Superseded handoffs (V1–V135 + NestGate/biomeOS/Songbird V1)
+│   │   ├── NEURALSPRING_V137_*.md # Current handoffs (V137/S186)
+│   │   └── archive/           #   Superseded handoffs (V1–V136 + NestGate/biomeOS/Songbird V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-123+)
 ├── whitePaper/                 # Study documentation
 │   ├── baseCamp/              #   Per-faculty research briefings
+├── tools/                      # Phase 46 composition tooling
+│   ├── nucleus_composition_lib.sh  #  41-function NUCLEUS composition library (from primalSpring)
+│   ├── composition_template.sh     #  Reference starter (hook pattern)
+│   ├── composition_nucleus.sh      #  Parameterized NUCLEUS launcher (plasmidBin or local)
+│   └── neural_composition.sh       #  Agent-driven composition: Squirrel inference, DAG, braids, feedback
 ├── scripts/
 │   ├── run_all_baselines.sh    #   Orchestrates all 39 Python runs (25 papers + 5 WDM + ML inference + 5 coralForge + 3 pub + 2 nS-06)
 │   ├── download_pretrained.py  #   Download pretrained models for nS-01 Paper A (safetensors)
@@ -682,7 +689,7 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal primal team handoffs (V135 current: Session S184, barraCuda v0.3.12) |
+| `wateringHole/handoffs/` | Formal primal team handoffs (V137 current: Session S186, Phase 46 composition) |
 | `experiments/README.md` | Experiment journals (Sessions 40–184, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
@@ -704,4 +711,4 @@ documentation and standards.
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–185: April 20, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4500+ Rust+GPU + 6 composition validators = 4900+ total validation checks | ~1,400+ Rust tests (1,234 lib + 73 forge + 80 playGround + 12 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 269 binaries, 520+ `.rs` files, 42 WGSL shaders | 228+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.12, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V136 handoff (primalSpring v0.9.17 absorption: `is_skip_error` unified skip, guideStone standard v1.2.0, genomeBin v5.1) | guideStone Level 3: `neuralspring_guidestone` v0.3.0 — bare properties + discovery + domain parity + additive NUCLEUS | `IpcMathClient` + `validate_proto_nucleate_capabilities` retained as validation window | Stadial `deny.toml` bans enforced (ring/openssl/async-trait/rustls/ed25519-dalek) | 18 barraCuda JSON-RPC surface gaps confirmed still open | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 30 capabilities registered | Metallic bonding policy + InternalNucleus trust model | Python→Rust→Primal→guideStone validation stack*
+*Initialized: February 16, 2026 | Sessions 40–186: April 27, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 publication experiments | 397 Python + 4500+ Rust+GPU + 6 composition validators = 4900+ total validation checks | ~1,400+ Rust tests (1,234 lib + 73 forge + 80 playGround + 12 integration) | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 269 binaries, 520+ `.rs` files, 42 WGSL shaders | 228+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(` | barraCuda v0.3.12, nautilus absorbed | 46 upstream rewires, 250+ barracuda import files | V137 handoff (Phase 46 composition explorer: agent-driven AI feedback loops, Squirrel inference, DAG provenance, braid audit trail) | guideStone Level 3: `neuralspring_guidestone` v0.3.0 — bare properties + discovery + domain parity + additive NUCLEUS | Phase 46 composition tools: `neural_composition.sh` + `nucleus_composition_lib.sh` | `IpcMathClient` + `validate_proto_nucleate_capabilities` retained as validation window | Stadial `deny.toml` bans enforced (ring/openssl/async-trait/rustls/ed25519-dalek) | 18 barraCuda JSON-RPC surface gaps confirmed still open | ecoBin compliant (zero C deps, musl static, harvest.sh) | capability-based IPC discovery | 30 capabilities registered | Metallic bonding policy + InternalNucleus trust model | Python→Rust→Primal→guideStone validation stack*

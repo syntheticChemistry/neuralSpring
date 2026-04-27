@@ -1,6 +1,17 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S185)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: `neuralspring_guidestone` v0.3.0 — 29/29 bare ALL PASS (P1-P5 certified). `is_skip_error` unified skip. guideStone standard v1.2.0. BLAKE3 CHECKSUMS (15 files). primalSpring v0.9.17. genomeBin v5.1. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 20, 2026.
+**Current state (Session S186)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: `neuralspring_guidestone` v0.3.0 — 29/29 bare ALL PASS (P1-P5 certified). Phase 46 composition explorer: `neural_composition.sh` — agent-driven AI feedback loops. Phase 45c BTSP default auto-absorbed. primalSpring v0.9.17+. genomeBin v5.1. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 27, 2026.
+
+### Session S186 — 2026-04-27 (Phase 46 Composition Explorer — Agent-Driven AI Feedback Loops)
+
+- **Exp 133 — Phase 46 Composition Explorer**: neuralSpring's assigned lane — agent-driven composition + AI feedback loops via `neural_composition.sh`
+  - **Composition tools**: Copied `nucleus_composition_lib.sh` (41 functions), `composition_template.sh`, `composition_nucleus.sh` from primalSpring into `tools/`
+  - **`neural_composition.sh`**: Domain composition implementing Squirrel-mediated `inference.complete`/`inference.embed` via IPC, DAG branching for AI decisions, braid provenance audit trail (`application/x-neuralspring-agent` content-type), closed-loop feedback (act→observe→adjust via `domain_on_tick` + `check_proprioception`), petalTongue dashboard
+  - **Agentic IPC patterns**: `cap_socket "ai"` → `send_rpc` for inference, `dag_append_event` with structured AI metadata (prompt, result, model, confidence), `braid_record` for decision tracing. DAG provides causal ordering; braids provide searchable payload
+  - **Closed-loop feedback**: Configurable auto-reason interval (every N ticks), sensor stream integration, autonomous inference triggers
+  - **Phase 45c BTSP default**: Auto-absorbed via `primalspring` path dependency — BTSP now mandatory for all 13 capabilities. No Rust code changes needed
+  - **PRIMAL_GAPS Gap 14**: Squirrel discovery requires explicit `REQUIRED_CAPS="ai"`, `inference.register_provider` unverified, DAG requires rhizoCrypt (Nest atomic), recommendation for `EXTRA_PRIMALS` env var in launcher
+  - **Result**: 0 clippy, 0 fmt, `cargo deny check` clean. V137 handoff
 
 ### Session S185 — 2026-04-20 (primalSpring v0.9.17 Absorption)
 

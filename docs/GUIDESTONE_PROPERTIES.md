@@ -3,7 +3,7 @@
 **Standard**: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
 **Binary**: `neuralspring_guidestone` v0.3.0 (feature-gated: `guidestone`)
 **Level**: 3 (bare ALL PASS — all 5 properties certified without primals)
-**Date**: April 20, 2026 — Session S185
+**Date**: April 27, 2026 — Session S186 (Phase 45c BTSP default auto-absorbed via path dep)
 
 ---
 

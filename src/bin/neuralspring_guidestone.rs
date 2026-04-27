@@ -54,6 +54,14 @@
 //!
 //! Capabilities: `downstream_manifest.toml` `[[downstream]]` `spring_name = "neuralspring"`
 //! guideStone standard: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
+//!
+//! ## Phase 46 Composition Tooling (S186)
+//!
+//! `neuralSpring/tools/neural_composition.sh` implements the agent-driven composition
+//! lane via `nucleus_composition_lib.sh`: Squirrel-mediated inference, DAG branching
+//! for AI decisions, braid provenance audit trail, and closed-loop feedback.
+//! Phase 45c made BTSP the default (13/13 capabilities) — absorbed automatically
+//! through the `primalspring` path dependency.
 
 use neural_spring::provenance::PROVENANCE_REGISTRY;
 use neural_spring::tolerances::all_tolerances;

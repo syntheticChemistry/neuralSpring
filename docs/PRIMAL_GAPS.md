@@ -5,11 +5,11 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-04-20 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.17
-> **Session:** S185 — primalSpring v0.9.17 absorption. `neuralspring_guidestone`
-> v0.3.0: `is_skip_error` unified skip classification, guideStone standard
-> v1.2.0. genomeBin v5.1 (46 binaries, 6 target triples). Operational
-> awareness documented (coralReef CLI, beardog/songbird/nestgate env vars).
+> **Date:** 2026-04-27 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.17+
+> **Session:** S186 — Phase 46 composition explorer. Agent-driven composition
+> lane implemented via `neural_composition.sh`. Squirrel-mediated inference,
+> DAG provenance, braid audit trail, closed-loop feedback patterns explored.
+> Phase 45c BTSP default auto-absorbed via path dep. guideStone v0.3.0 / v1.2.0.
 
 ---
 
@@ -593,3 +593,83 @@ over as the certified artifact.
 
 **Hand back to:** primalSpring (Level 4 testing once NUCLEUS deployable),
 barraCuda (Gap 11 surface expansion), biomeOS (plasmidBin deployment tooling)
+
+---
+
+## 14. Phase 46 Composition Explorer Findings (S186)
+
+**Status:** explored — patterns documented, gaps identified
+**Context:** primalSpring Phase 46 extracted `nucleus_composition_lib.sh` (41
+functions) as a reusable NUCLEUS composition library. neuralSpring's assigned
+lane: **Agent-Driven Composition + AI Feedback Loops**.
+
+### Agentic IPC Patterns Discovered
+
+- **Squirrel-mediated inference via composition library**: `cap_socket "ai"` +
+  `send_rpc` with `inference.complete` / `inference.embed`. Works when Squirrel
+  is in `PRIMAL_LIST` and `REQUIRED_CAPS` includes `ai`. Socket discovery via
+  `resolve_capability()` supports family-aware paths.
+- **DAG branching for AI decisions**: Each inference call is recorded as a
+  `dag_append_event` with structured metadata (prompt, result, model, confidence).
+  DAG provides causal ordering of agent decisions — important for multi-step
+  reasoning where later decisions depend on earlier inference results.
+- **Braid provenance audit trail**: Every agent action gets a `braid_record`
+  with content-type `application/x-neuralspring-agent`, enabling post-hoc
+  tracing of why the agent chose a particular path. The braid + DAG together
+  form a complete decision audit: DAG for causal structure, braids for payload.
+- **Closed-loop feedback**: `domain_on_tick` + `check_proprioception` implements
+  the act → observe → adjust cycle. Sensor streams provide real-time feedback;
+  the agent can trigger autonomous reasoning steps at configurable intervals.
+
+### Squirrel Integration Reliability
+
+- **Discovery**: Squirrel must be explicitly added to composition startup
+  (`REQUIRED_CAPS="ai"` or `OPTIONAL_CAPS="ai"`). Without it, `cap_socket "ai"`
+  returns empty and inference calls fail silently.
+- **`inference.complete`**: Works via standard JSON-RPC. Parameters: `prompt`,
+  `model` (default: "default"), `max_tokens`. Response contains `text` or
+  `completion` field. Latency depends on model backend.
+- **`inference.embed`**: Works via JSON-RPC. Parameters: `text`, `model`.
+  Response contains `embedding` or `embeddings` field.
+- **`inference.register_provider`**: NOT YET VERIFIED — neuralSpring needs this
+  to register as an inference backend. Gap 1 still open.
+- **BTSP interaction**: Phase 45c made BTSP mandatory. Squirrel connections
+  through BearDog now require BTSP handshake. `is_skip_error` handles
+  BTSP failures gracefully.
+
+### Missing / Gaps
+
+| Finding | Impact | Hand back to |
+|---------|--------|--------------|
+| Squirrel not in default `PRIMAL_LIST` in `composition_nucleus.sh` | Must manually add for AI compositions | primalSpring (consider `squirrel` in extended PRIMAL_LIST) |
+| `inference.register_provider` wire unknown | neuralSpring cannot self-register as inference backend | Squirrel |
+| No `inference.models` via composition lib | Cannot enumerate available models pre-inference | Squirrel |
+| DAG session requires `dag` capability (rhizoCrypt) | Full Nest atomic needed for provenance | primalSpring (clarify Nest requirement for agent compositions) |
+| Braid query latency uncharacterized | Audit trail retrieval may bottleneck real-time loops | loamSpine |
+| Sensor stream polling interval fixed | No adaptive polling for high-frequency agent loops | primalSpring (composition lib enhancement) |
+
+### AI Provenance Schema
+
+Agent decisions are recorded with this structure:
+
+```
+DAG event:  { session, action, state, metadata: [{prompt, result, model, confidence}], input_type, hover }
+Braid record: { action, content_type: "application/x-neuralspring-agent", state, payload: {prompt, result, tick}, input_type, hover }
+```
+
+Both are keyed to the composition session. The DAG provides causal ordering;
+braids provide searchable payload. Together they answer "what did the agent
+decide, when, why, and with what input?"
+
+### Recommendation
+
+`composition_nucleus.sh` should support an optional `EXTRA_PRIMALS` env var
+(or `--with-squirrel` flag) so domain compositions can request Squirrel without
+forking the launcher. This would allow:
+```bash
+EXTRA_PRIMALS="squirrel" COMPOSITION_NAME=neuralspring ./composition_nucleus.sh start
+```
+
+**Hand back to:** Squirrel (provider registration), primalSpring (composition
+lib enhancements for AI lane, Squirrel in default/optional PRIMAL_LIST),
+loamSpine (braid query performance), rhizoCrypt (DAG session for agent comps)

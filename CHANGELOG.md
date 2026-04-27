@@ -5,7 +5,17 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-20 (Session 185: primalSpring v0.9.17 absorption)
+## [Unreleased] — 2026-04-27 (Session 186: Phase 46 composition explorer)
+
+### 2026-04-27 — Session S186 (Phase 46 composition explorer: agent-driven composition, Squirrel inference, DAG provenance, braid audit trail)
+
+- **Phase 46 composition tools**: Copied `nucleus_composition_lib.sh` (41 functions), `composition_template.sh`, `composition_nucleus.sh` from primalSpring into `tools/`. New `tools/` directory for composition-era tooling
+- **`neural_composition.sh`**: Domain composition script implementing neuralSpring's assigned lane — agent-driven composition + AI feedback loops. Squirrel-mediated `inference.complete`/`inference.embed` via IPC, DAG branching for AI decisions, braid provenance audit trail (`application/x-neuralspring-agent`), closed-loop feedback (`domain_on_tick` + `check_proprioception`), petalTongue dashboard
+- **Agentic IPC patterns**: Documented Squirrel `cap_socket "ai"` + `send_rpc` pattern, DAG `append_event` with structured AI metadata, braid records for decision tracing, act→observe→adjust cycle via sensor streams
+- **AI provenance schema**: DAG events carry `{prompt, result, model, confidence}`; braids carry full payload with content-type tagging. Together they form a complete decision audit trail
+- **Phase 45c BTSP default**: Auto-absorbed via `primalspring` path dependency — BTSP now mandatory for all 13 capabilities, cleartext connections FAIL
+- **PRIMAL_GAPS.md**: Gap 14 (Phase 46 composition findings) — Squirrel integration reliability, missing `inference.register_provider`, agentic composition patterns, AI provenance schema, recommendation for `EXTRA_PRIMALS` env var
+- **269 binaries**, 0 clippy, 0 fmt, `cargo deny check` clean. V137 handoff
 
 ### 2026-04-20 — Session S185 (primalSpring v0.9.17 absorption: `is_skip_error`, guideStone v0.3.0, standard v1.2.0, genomeBin v5.1)
 
