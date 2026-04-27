@@ -5,7 +5,22 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-27 (Session 186: Phase 46 composition explorer)
+## [Unreleased] — 2026-04-27 (Session 187: Deep debt cleanup + ecosystem handoff)
+
+### 2026-04-27 — Session S187 (Deep debt cleanup: 6 smart refactors, centralized discovery, full audit, ecosystem handoff)
+
+- **6 large-file smart refactors** — all `.rs` files >800 lines split into companion modules by logical domain boundary (not arbitrary splits):
+  - `validate_barracuda_tensor.rs` (875L) → `main.rs` (424L) + `extended.rs` (467L) — core vs transcendental/extended ops
+  - `validate_gpu_pure_wdm_coral.rs` (834L) → `main.rs` (366L) + `coral_af3.rs` (470L) — WDM vs coralForge/AlphaFold3
+  - `validate_metalforge_wdm_coral.rs` (824L) → `main.rs` (376L) + `coral_mixed.rs` (465L) — NUCLEUS roles vs mixed routing
+  - `bench_upstream_vs_local.rs` (879L) → `main.rs` (628L) + `extended.rs` (250L) — core bio vs DirEvo/MODES/Swarm
+  - `bench_portability_tiers.rs` (810L) → `main.rs` (527L) + `extended.rs` (280L) — HMM/Fitness/L2/IPR vs Spatial/Dispatcher/Hamming
+  - `validate_barracuda_dispatch_parity.rs` (805L) → `main.rs` (607L) + `expanded.rs` (200L) — original 32 checks vs S115/S127 expanded
+- **Centralized discovery** — `resolve_biomeos_socket_dir()` extracted to `config.rs` (4-tier resolution: env → XDG → `/run/user/{uid}` → temp), consumers in `neuralspring_primal/discovery.rs` and `playGround/src/discovery.rs` delegate to it
+- **`eprintln!`→`log::`** — 4 `eprintln!` calls in `neuralspring_guidestone.rs` replaced with `info!`/`warn!` per ecosystem logging standard
+- **Full codebase audit** — zero `unsafe` (`#![forbid(unsafe_code)]` workspace-wide), zero mocks in production (2 legitimate fallbacks: Squirrel routing stub + coralReef feature-gate), zero `#[allow()]` (all lint suppression via `#[expect()]`), zero TODO/FIXME/HACK, all external deps pure Rust (except `wgpu` GPU HAL)
+- **BarraCUDA API alignment** — 4 stale tensor method calls fixed (`tanh_wgsl→tanh`, `exp→exp_wgsl`, `log→log_wgsl`, `sqrt→sqrt_wgsl`)
+- **269 binaries**, 0 clippy, 0 fmt, `cargo deny check` clean. V138 handoff
 
 ### 2026-04-27 — Session S186 (Phase 46 composition explorer: agent-driven composition, Squirrel inference, DAG provenance, braid audit trail)
 

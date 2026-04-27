@@ -15,28 +15,10 @@ use std::time::Duration;
 
 use anyhow::{Context, Result};
 
-const BIOMEOS_SOCKET_SUBDIR: &str = neural_spring::config::BIOMEOS_SOCKET_SUBDIR;
-
-/// Resolve the biomeOS socket directory using the standard 5-tier fallback.
+/// Resolve the biomeOS socket directory using the standard 4-tier fallback.
+#[must_use]
 pub fn resolve_socket_dir() -> PathBuf {
-    if let Ok(dir) = std::env::var("BIOMEOS_SOCKET_DIR") {
-        return PathBuf::from(dir);
-    }
-    if let Ok(xdg) = std::env::var("XDG_RUNTIME_DIR") {
-        return PathBuf::from(xdg).join(BIOMEOS_SOCKET_SUBDIR);
-    }
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::MetadataExt;
-        if let Ok(meta) = std::fs::metadata("/proc/self") {
-            let uid = meta.uid();
-            let dir = PathBuf::from(format!("/run/user/{uid}")).join(BIOMEOS_SOCKET_SUBDIR);
-            if dir.parent().is_some_and(Path::exists) {
-                return dir;
-            }
-        }
-    }
-    std::env::temp_dir().join(BIOMEOS_SOCKET_SUBDIR)
+    neural_spring::config::resolve_biomeos_socket_dir()
 }
 
 fn get_family_id() -> String {
@@ -115,7 +97,7 @@ pub fn discover_by_capability(required_capability: &str, hint_name: &str) -> Res
 }
 
 /// Probe a primal's capabilities by sending `capability.list` over JSON-RPC.
-fn probe_capabilities(socket_path: &std::path::Path) -> Result<Vec<String>> {
+fn probe_capabilities(socket_path: &Path) -> Result<Vec<String>> {
     let params = serde_json::json!({});
     let timeout = Duration::from_secs(2);
 

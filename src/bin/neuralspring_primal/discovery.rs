@@ -21,7 +21,7 @@ use anyhow::{Context, Result};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 
-use neural_spring::config::BIOMEOS_SOCKET_SUBDIR;
+use neural_spring::config;
 
 use super::{PRIMAL_NAME, ipc_response_timeout_secs, orchestrator_socket};
 
@@ -36,24 +36,7 @@ fn next_id() -> u64 {
 // ═══════════════════════════════════════════════════════════════════
 
 pub fn resolve_socket_dir() -> PathBuf {
-    if let Ok(dir) = std::env::var("BIOMEOS_SOCKET_DIR") {
-        return PathBuf::from(dir);
-    }
-    if let Ok(xdg) = std::env::var("XDG_RUNTIME_DIR") {
-        return PathBuf::from(xdg).join(BIOMEOS_SOCKET_SUBDIR);
-    }
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::MetadataExt;
-        if let Ok(meta) = std::fs::metadata("/proc/self") {
-            let uid = meta.uid();
-            let dir = PathBuf::from(format!("/run/user/{uid}")).join(BIOMEOS_SOCKET_SUBDIR);
-            if dir.parent().is_some_and(std::path::Path::exists) {
-                return dir;
-            }
-        }
-    }
-    std::env::temp_dir().join(BIOMEOS_SOCKET_SUBDIR)
+    config::resolve_biomeos_socket_dir()
 }
 
 pub fn resolve_socket_path(family_id: &str) -> PathBuf {

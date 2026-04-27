@@ -63,6 +63,36 @@ pub const BIOMEOS_ORCHESTRATOR_SOCKET: &str = "biomeos.sock";
 /// biomeOS orchestrator socket env var override.
 pub const ENV_BIOMEOS_ORCHESTRATOR: &str = "BIOMEOS_ORCHESTRATOR_SOCKET";
 
+/// Resolve the biomeOS socket directory following the standard 4-tier hierarchy:
+///
+/// 1. `$BIOMEOS_SOCKET_DIR` — explicit override
+/// 2. `$XDG_RUNTIME_DIR/biomeos/` — freedesktop standard
+/// 3. `/run/user/{uid}/biomeos/` — Linux UID-based fallback
+/// 4. `temp_dir()/biomeos/` — last resort
+#[must_use]
+pub fn resolve_biomeos_socket_dir() -> std::path::PathBuf {
+    use std::path::PathBuf;
+
+    if let Ok(dir) = std::env::var("BIOMEOS_SOCKET_DIR") {
+        return PathBuf::from(dir);
+    }
+    if let Ok(xdg) = std::env::var(ENV_XDG_RUNTIME_DIR) {
+        return PathBuf::from(xdg).join(BIOMEOS_SOCKET_SUBDIR);
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        if let Ok(meta) = std::fs::metadata("/proc/self") {
+            let uid = meta.uid();
+            let dir = PathBuf::from(format!("/run/user/{uid}")).join(BIOMEOS_SOCKET_SUBDIR);
+            if dir.parent().is_some_and(std::path::Path::exists) {
+                return dir;
+            }
+        }
+    }
+    std::env::temp_dir().join(BIOMEOS_SOCKET_SUBDIR)
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Validation / GPU env vars
 // ═══════════════════════════════════════════════════════════════════

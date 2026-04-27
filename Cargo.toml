@@ -240,7 +240,7 @@ path = "src/bin/validate_barracuda_precision.rs"
 
 [[bin]]
 name = "validate_barracuda_tensor"
-path = "src/bin/validate_barracuda_tensor.rs"
+path = "src/bin/validate_barracuda_tensor/main.rs"
 
 [[bin]]
 name = "validate_barracuda_quantized"
@@ -276,7 +276,7 @@ path = "src/bin/validate_barracuda_spectral_theory.rs"
 
 [[bin]]
 name = "bench_upstream_vs_local"
-path = "src/bin/bench_upstream_vs_local.rs"
+path = "src/bin/bench_upstream_vs_local/main.rs"
 
 # --- ML Inference Validation ---
 
@@ -998,7 +998,7 @@ path = "src/bin/validate_toadstool_spectral_absorption.rs"
 
 [[bin]]
 name = "validate_barracuda_dispatch_parity"
-path = "src/bin/validate_barracuda_dispatch_parity.rs"
+path = "src/bin/validate_barracuda_dispatch_parity/main.rs"
 
 # ── Mixed-hardware dispatch ────────────────────────────────────────
 
@@ -1049,7 +1049,7 @@ path = "src/bin/validate_barracuda_cpu_bench.rs"
 
 [[bin]]
 name = "bench_portability_tiers"
-path = "src/bin/bench_portability_tiers.rs"
+path = "src/bin/bench_portability_tiers/main.rs"
 
 [[bin]]
 name = "validate_wdm_alphafold_dispatch"
@@ -1057,7 +1057,7 @@ path = "src/bin/validate_wdm_alphafold_dispatch.rs"
 
 [[bin]]
 name = "validate_gpu_pure_wdm_coral"
-path = "src/bin/validate_gpu_pure_wdm_coral.rs"
+path = "src/bin/validate_gpu_pure_wdm_coral/main.rs"
 
 [[bin]]
 name = "validate_barracuda_wdm_transfer_gpu"
@@ -1077,7 +1077,7 @@ path = "src/bin/validate_wdm_coral_parity.rs"
 
 [[bin]]
 name = "validate_metalforge_wdm_coral"
-path = "src/bin/validate_metalforge_wdm_coral.rs"
+path = "src/bin/validate_metalforge_wdm_coral/main.rs"
 
 [[bin]]
 name = "validate_toadstool_s70_evolution"

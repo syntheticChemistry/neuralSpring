@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 27, 2026 (Session S186 — Phase 46 composition explorer. Agent-driven composition + AI feedback loops via `neural_composition.sh`. Squirrel-mediated inference, DAG provenance, braid audit trail, closed-loop feedback. Phase 45c BTSP default auto-absorbed. 1,234 lib tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V137 handoff).
+**Last updated**: April 27, 2026 (Session S187 — Deep debt cleanup + ecosystem handoff. 6 large-file smart refactors (all >800L binaries split into logical companion modules). Full codebase audit: zero unsafe, zero mocks in production, zero `#[allow()]`, zero TODO/FIXME. Centralized `resolve_biomeos_socket_dir()`. `eprintln!`→`log::` in guidestone. All external deps pure Rust (except `wgpu` GPU HAL). 1,234 lib tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V138 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -45,6 +45,8 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 806+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
+
+**S187 (Apr 27 2026): Deep debt cleanup + ecosystem handoff. 6 large-file smart refactors (validate_barracuda_tensor, validate_gpu_pure_wdm_coral, validate_metalforge_wdm_coral, bench_upstream_vs_local, bench_portability_tiers, validate_barracuda_dispatch_parity — all >800L split into companion modules). `eprintln!`→`log::` in guidestone. Centralized `resolve_biomeos_socket_dir()` in config.rs. Full codebase audit: zero unsafe (`#![forbid(unsafe_code)]`), zero mocks in prod, zero `#[allow()]`, zero TODO/FIXME, all external deps pure Rust. V138 handoff.**
 
 **S186 (Apr 27 2026): Phase 46 composition explorer. `neural_composition.sh` — agent-driven composition + AI feedback loops. Squirrel-mediated `inference.complete`/`inference.embed`, DAG provenance, braid audit trail, closed-loop feedback (act→observe→adjust). Phase 45c BTSP default auto-absorbed. PRIMAL_GAPS Gap 14 (composition findings). V137 handoff.**
 

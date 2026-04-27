@@ -63,6 +63,7 @@
 //! Phase 45c made BTSP the default (13/13 capabilities) — absorbed automatically
 //! through the `primalspring` path dependency.
 
+use log::{info, warn};
 use neural_spring::provenance::PROVENANCE_REGISTRY;
 use neural_spring::tolerances::all_tolerances;
 use neural_spring::validation::composition::PROTO_NUCLEATE_VALIDATION_CAPABILITIES;
@@ -77,6 +78,7 @@ const SPRING_NAME: &str = "neuralSpring";
 const GUIDESTONE_VERSION: &str = "0.3.0";
 
 fn main() {
+    env_logger::init();
     ValidationResult::print_banner(&format!(
         "{SPRING_NAME} guideStone v{GUIDESTONE_VERSION} — Level 3"
     ));
@@ -85,7 +87,7 @@ fn main() {
 
     let family_id = std::env::var("FAMILY_ID").ok();
     if let Some(ref fid) = family_id {
-        eprintln!("[guideStone] FAMILY_ID={fid} — family-isolated socket discovery");
+        info!("FAMILY_ID={fid} — family-isolated socket discovery");
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -104,8 +106,8 @@ fn main() {
     let alive = validate_liveness(&mut ctx, &mut v, required_capabilities);
 
     if alive == 0 {
-        eprintln!("[guideStone] No NUCLEUS primals discovered — bare guideStone only.");
-        eprintln!("  Deploy from plasmidBin and rerun for full certification.");
+        warn!("No NUCLEUS primals discovered — bare guideStone only");
+        info!("Deploy from plasmidBin and rerun for full certification");
         v.finish();
         let code = if v.exit_code() == 0 { 2 } else { 1 };
         std::process::exit(code);
@@ -132,9 +134,9 @@ fn main() {
     v.finish();
     let code = v.exit_code_skip_aware();
     match code {
-        0 => eprintln!("CERTIFIED: {SPRING_NAME} guideStone — all checks passed"),
-        1 => eprintln!("FAILED: {SPRING_NAME} guideStone — regression detected"),
-        2 => eprintln!("BARE ONLY: {SPRING_NAME} guideStone — no NUCLEUS available"),
+        0 => info!("CERTIFIED: {SPRING_NAME} guideStone — all checks passed"),
+        1 => warn!("FAILED: {SPRING_NAME} guideStone — regression detected"),
+        2 => info!("BARE ONLY: {SPRING_NAME} guideStone — no NUCLEUS available"),
         _ => {}
     }
     std::process::exit(code);

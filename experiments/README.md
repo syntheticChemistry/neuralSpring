@@ -1,6 +1,16 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S186)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: `neuralspring_guidestone` v0.3.0 — 29/29 bare ALL PASS (P1-P5 certified). Phase 46 composition explorer: `neural_composition.sh` — agent-driven AI feedback loops. Phase 45c BTSP default auto-absorbed. primalSpring v0.9.17+. genomeBin v5.1. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 27, 2026.
+**Current state (Session S187)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: `neuralspring_guidestone` v0.3.0 — 29/29 bare ALL PASS (P1-P5 certified). Deep debt cleanup: 6 large-file smart refactors, centralized biomeOS discovery, full audit clean. primalSpring v0.9.17+. genomeBin v5.1. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 27, 2026.
+
+### Session S187 — 2026-04-27 (Deep Debt Cleanup + Ecosystem Handoff)
+
+- **Exp 134 — Deep Debt Cleanup**: Comprehensive code quality and architecture pass
+  - **6 large-file smart refactors**: All `.rs` files >800L split into logically coherent companion modules (not arbitrary splits). `validate_barracuda_tensor` (core vs transcendental), `validate_gpu_pure_wdm_coral` (WDM vs coralForge/AF3), `validate_metalforge_wdm_coral` (NUCLEUS roles vs mixed routing), `bench_upstream_vs_local` (core bio vs extended), `bench_portability_tiers` (core tier proofs vs extended), `validate_barracuda_dispatch_parity` (original 32 vs S115/S127 expanded)
+  - **Centralized discovery**: `resolve_biomeos_socket_dir()` extracted to `config.rs` — 4-tier resolution (env → XDG → `/run/user/{uid}` → temp). Two consumers now delegate to it
+  - **Logging evolution**: `eprintln!` → `log::` macros in guidestone binary
+  - **BarraCUDA API alignment**: 4 stale tensor method calls fixed in `extended.rs` (`tanh_wgsl→tanh`, `exp→exp_wgsl`, `log→log_wgsl`, `sqrt→sqrt_wgsl`)
+  - **Full codebase audit**: zero unsafe, zero mocks in production, zero `#[allow()]`, zero TODO/FIXME, all external deps pure Rust
+  - **Result**: 0 clippy, 0 fmt, `cargo deny check` clean. V138 handoff
 
 ### Session S186 — 2026-04-27 (Phase 46 Composition Explorer — Agent-Driven AI Feedback Loops)
 

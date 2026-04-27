@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V137 — Session S186 (Phase 46 Composition Explorer)
+### V138 — Session S187 (Deep Debt Cleanup + Ecosystem Handoff)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V137** | `handoffs/NEURALSPRING_V137_PHASE46_COMPOSITION_EXPLORER_HANDOFF_APR27_2026.md` | Apr 27, 2026 | Phase 46 composition explorer. Agent-driven composition + AI feedback loops via `neural_composition.sh`. Squirrel-mediated inference, DAG provenance, braid audit trail, closed-loop feedback. Agentic IPC patterns documented. AI provenance schema. PRIMAL_GAPS Gap 14. Phase 45c BTSP default auto-absorbed. |
+| **V138** | `handoffs/NEURALSPRING_V138_DEEP_DEBT_ECOSYSTEM_HANDOFF_APR27_2026.md` | Apr 27, 2026 | Deep debt cleanup: 6 smart refactors (all >800L binaries → companion modules), centralized biomeOS socket discovery, `eprintln!`→`log::`, full codebase audit (zero unsafe/mocks/allow/TODO), BarraCUDA API alignment. Ecosystem handoff for primal + spring teams: NUCLEUS composition patterns, neuralAPI deployment, primal evolution recommendations. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V136 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V137 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 
