@@ -69,6 +69,38 @@ with open(RESULTS / '<file>.json') as f:
 | 04 | `04-cross-spring-connections.ipynb` | Primal consumption matrix, ecosystem flows |
 | 05 | `05-btsp-security-deep-dive.ipynb` | Per-primal BTSP posture, security convergence arc |
 
+## Paper Baseline Notebooks
+
+Paper baselines live in `notebooks/papers/` and follow a different pattern from
+sporePrint notebooks — they contain the **full inline implementation** of a
+peer-reviewed paper's computational core (pure Python/NumPy). These are
+self-contained, publishable-grade notebooks executable on JupyterHub without the
+neuralSpring repo.
+
+### Cell structure (paper baselines)
+
+1. **Title (markdown):** Paper number, full citation with DOI, summary, provenance
+2. **Background (markdown):** Model description, core thesis, BarraCUDA connection
+3. **Setup (code):** `numpy`, `matplotlib`, color palette constants
+4. **Implementation (alternating markdown/code):** Full code broken into logical sections
+5. **Validation (code):** All checks with PASS/FAIL output
+6. **Visualization (code):** 2–4 matplotlib charts per notebook
+7. **Summary (markdown):** Validation table, provenance block, primals.eco link
+
+### Naming
+
+`paper-{NNN}-{slug}.ipynb` — NNN matches canonical paper ID (001–027).
+
+### Paper notebooks (Batch 1: Dolson)
+
+| # | File | Checks |
+|---|------|--------|
+| 011 | `paper-011-counterdiabatic-evolution.ipynb` | 11/11 |
+| 012 | `paper-012-modes-toolbox.ipynb` | 9/9 |
+| 013 | `paper-013-eco-dynamics.ipynb` | 7/7 |
+| 014 | `paper-014-directed-evolution.ipynb` | 8/8 |
+| 015 | `paper-015-swarm-robotics.ipynb` | 11/11 |
+
 ## Data Sources
 
 All in `experiments/results/`:
@@ -79,3 +111,4 @@ All in `experiments/results/`:
 - `cross-spring-matrix.json` — primal consumption, proto-nucleate
 - `benchmark-data.json` — Rust vs Python, GPU, multi-GPU
 - `gap-status.json` — 14 gaps, 13 resolved, composition evolution
+- `paper-baselines.json` — 5 paper notebooks, 46 checks, faculty, BarraCUDA mappings

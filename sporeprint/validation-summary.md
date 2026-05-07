@@ -12,8 +12,8 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S188 | **Date:** May 7, 2026 | **Version:** 0.1.0
-> **Tier:** 2 (sporePrint: frozen data + notebooks)
+> **Session:** S189 | **Date:** May 7, 2026 | **Version:** 0.1.0
+> **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 
 ---
 
@@ -77,7 +77,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 ---
 
-## Notebooks
+## Notebooks — sporePrint
 
 | # | Notebook | Focus |
 |---|----------|-------|
@@ -86,6 +86,27 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 | 03 | `03-ecosystem-evidence.ipynb` | 134 experiments, gap resolution, security posture |
 | 04 | `04-cross-spring-connections.ipynb` | Primal consumption matrix, ecosystem flows |
 | 05 | `05-btsp-security-deep-dive.ipynb` | Per-primal BTSP posture, security convergence arc |
+
+---
+
+## Notebooks — Paper Baselines (Batch 1: Dolson Faculty)
+
+Publishable-grade Jupyter notebooks with full inline Python/NumPy implementations of
+peer-reviewed science. Each notebook is the **math validation base** — the foundation
+layer that Rust, GPU, and primal IPC are validated against. Self-contained; executable
+on JupyterHub without the neuralSpring repo.
+
+| Paper | Notebook | Citation | Checks |
+|-------|----------|----------|--------|
+| 011 | [`paper-011-counterdiabatic-evolution.ipynb`](../notebooks/papers/paper-011-counterdiabatic-evolution.ipynb) | Iram, Dolson et al. (2020) *Nature Physics* 17:135–142 | 11/11 |
+| 012 | [`paper-012-modes-toolbox.ipynb`](../notebooks/papers/paper-012-modes-toolbox.ipynb) | Dolson et al. (2019) *Artificial Life* 25(1):50–73 | 9/9 |
+| 013 | [`paper-013-eco-dynamics.ipynb`](../notebooks/papers/paper-013-eco-dynamics.ipynb) | Dolson & Ofria (2018) *GECCO '18 Companion* | 7/7 |
+| 014 | [`paper-014-directed-evolution.ipynb`](../notebooks/papers/paper-014-directed-evolution.ipynb) | Dolson, Banzhaf, Ofria (2022) *eLife* 11:e79665 | 8/8 |
+| 015 | [`paper-015-swarm-robotics.ipynb`](../notebooks/papers/paper-015-swarm-robotics.ipynb) | Foreback, Bohm, Dolson (2025) IEEE | 11/11 |
+
+**Total:** 5 notebooks, 46/46 checks PASS, 2,058 lines of validated Python source.
+Faculty: Emily Dolson (Michigan State) — Evolutionary Computation.
+Remaining batches: 22 papers across 5 additional faculties.
 
 ---
 
@@ -99,6 +120,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 | `cross-spring-matrix.json` | 8 primal dependencies, proto-nucleate |
 | `benchmark-data.json` | Rust vs Python, GPU, multi-GPU, isomorphic primitives |
 | `gap-status.json` | 14 gaps, 13 resolved, 5 composition evolution |
+| `paper-baselines.json` | 5 paper notebooks, 46 checks, faculty, BarraCUDA mappings |
 
 ---
 
@@ -124,4 +146,4 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 ---
 
-**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S188
+**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S189
