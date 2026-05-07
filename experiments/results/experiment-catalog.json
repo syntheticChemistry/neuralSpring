@@ -1,0 +1,86 @@
+{
+  "spring": "neuralSpring",
+  "session": "S188",
+  "date": "2026-05-07",
+  "total_experiments": 134,
+  "domains": [
+    "evolutionary_computation",
+    "phylogenetics",
+    "game_theory",
+    "spectral_analysis",
+    "population_genetics",
+    "regulatory_biology",
+    "biomedical_time_series",
+    "reservoir_computing",
+    "protein_folding",
+    "gpu_compute",
+    "composition_validation"
+  ],
+  "faculties": [
+    {
+      "name": "Emily Dolson",
+      "institution": "Michigan State",
+      "track": "Evolutionary Computation",
+      "papers": ["011", "012", "013", "014", "015"],
+      "checks": 50,
+      "domains": ["NK_fitness", "MODES", "eco_dynamics", "directed_evolution", "swarm_robotics"]
+    },
+    {
+      "name": "Kevin Liu",
+      "institution": "Michigan State",
+      "track": "Phylogenetics / HMM",
+      "papers": ["016", "017", "018"],
+      "checks": 38,
+      "domains": ["HMM_forward_backward_viterbi", "SATe_alignment", "introgression_detection"]
+    },
+    {
+      "name": "Chris Waters",
+      "institution": "Michigan",
+      "track": "Microbial Cooperation",
+      "papers": ["019", "020", "021"],
+      "checks": 21,
+      "domains": ["game_theory", "regulatory_networks", "signal_integration"]
+    },
+    {
+      "name": "Ilya Kachkovskiy",
+      "institution": "Michigan State",
+      "track": "Spectral Theory",
+      "papers": ["022", "023"],
+      "checks": 16,
+      "domains": ["spectral_commutativity", "anderson_localization"]
+    },
+    {
+      "name": "Anderson / Campbell",
+      "institution": "Various",
+      "track": "Population Genetics",
+      "papers": ["024", "025"],
+      "checks": 16,
+      "domains": ["pangenome_selection", "meta_population_dynamics"]
+    },
+    {
+      "name": "Wei Liao (Wang et al.)",
+      "institution": "Michigan State (BAE/ADREC)",
+      "track": "Bioprocess Engineering",
+      "papers": ["027"],
+      "checks": 59,
+      "domains": ["ESN_digestion_prediction", "methane_yield", "gpu_dispatch"]
+    }
+  ],
+  "milestone_experiments": [
+    {"id": "Exp 001-010", "scope": "Foundation — Python baselines, Rust ports, initial GPU"},
+    {"id": "Exp 011-027", "scope": "Phase 0++ — 27 papers across 6 faculties, 200+ checks"},
+    {"id": "Exp 028-050", "scope": "GPU evolution — WGSL shaders, metalForge, dispatch parity"},
+    {"id": "Exp 051-080", "scope": "Deep compute — multi-GPU, fused pipelines, cross-substrate"},
+    {"id": "Exp 081-100", "scope": "Composition — primal IPC, NUCLEUS validators, capability wiring"},
+    {"id": "Exp 101-120", "scope": "Ecosystem absorption — primalSpring API, Tower, guideStone"},
+    {"id": "Exp 121-130", "scope": "Deployment — genomeBin, ecoBin, clean machine validation"},
+    {"id": "Exp 131-134", "scope": "Maturity — guideStone Level 3, deep debt cleanup, composition explorer"}
+  ],
+  "validation_tiers": [
+    {"tier": 1, "name": "Python baseline", "status": "complete", "checks": 397},
+    {"tier": 2, "name": "Rust CPU proof", "status": "complete", "checks": 1387},
+    {"tier": 3, "name": "GPU/WGSL parity", "status": "complete", "checks": 4500},
+    {"tier": 4, "name": "Primal IPC composition", "status": "wip", "checks": "6 validators"},
+    {"tier": 5, "name": "guideStone certified", "status": "Level 3 (bare)", "checks": "29/29"}
+  ]
+}

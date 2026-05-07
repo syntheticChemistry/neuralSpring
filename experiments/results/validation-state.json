@@ -1,0 +1,73 @@
+{
+  "spring": "neuralSpring",
+  "version": "0.1.0",
+  "session": "S188",
+  "date": "2026-05-07",
+  "tests": {
+    "lib": 1234,
+    "forge": 73,
+    "playground": 80,
+    "total_workspace": 1387,
+    "proptest_properties": 24,
+    "python_baselines": 397,
+    "rust_gpu_checks": 4500,
+    "total_validation_checks": 4900
+  },
+  "binaries": {
+    "total": 269,
+    "validate": 244,
+    "bench": 18,
+    "other": 7
+  },
+  "capabilities": {
+    "total": 30,
+    "science": 14,
+    "health": 3,
+    "inference": 3,
+    "provenance": 4,
+    "primal": 2,
+    "niche": 1,
+    "compute": 1,
+    "identity": 1,
+    "mcp": 1
+  },
+  "tolerances": {
+    "named_constants": 233,
+    "categories": ["machine", "cross_language", "training", "literature", "gpu", "evolutionary"],
+    "files": ["mod.rs", "gpu.rs", "evolutionary.rs", "training.rs"]
+  },
+  "deploy_graph": {
+    "nodes": 14,
+    "capabilities_provided": 30,
+    "bond_type": "Metallic",
+    "trust_model": "InternalNucleus",
+    "fragments": ["tower_atomic", "node_atomic", "meta_tier"]
+  },
+  "guidestone": {
+    "version": "v0.3.0",
+    "level": 3,
+    "bare_checks": "29/29",
+    "properties_certified": ["P1_Deterministic", "P2_Traceable", "P3_SelfVerifying", "P4_EnvironmentAgnostic", "P5_ToleranceDocumented"],
+    "level4_status": "PENDING",
+    "level5_status": "PENDING"
+  },
+  "code_quality": {
+    "clippy_warnings": 0,
+    "fmt_diffs": 0,
+    "doc_warnings": 0,
+    "unsafe_blocks": 0,
+    "allow_attributes": 0,
+    "todo_fixme_hack": 0,
+    "mocks_in_production": 0,
+    "forbid_unsafe": true,
+    "edition": "2024",
+    "msrv": "1.87"
+  },
+  "codebase": {
+    "rs_files": 520,
+    "modules": 68,
+    "papers_reproduced": 27,
+    "novel_compositions": 5,
+    "experiments": 134
+  }
+}

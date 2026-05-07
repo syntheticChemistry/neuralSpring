@@ -1,0 +1,71 @@
+{
+  "spring": "neuralSpring",
+  "session": "S188",
+  "date": "2026-05-07",
+  "btsp": {
+    "status": "default",
+    "capabilities_covered": "13/13",
+    "phase": "45c",
+    "note": "BTSP mandatory for all capabilities; cleartext connections FAIL",
+    "session_establishment": "deferred — pending BearDog crypto.btsp_handshake"
+  },
+  "unsafe_code": {
+    "forbid_unsafe": true,
+    "attribute": "#![forbid(unsafe_code)]",
+    "scope": "workspace-wide (all 3 crates)",
+    "unsafe_blocks": 0,
+    "note": "wgpu transitive -sys crates are GPU HAL infrastructure, not processing untrusted input"
+  },
+  "cargo_deny": {
+    "status": "clean",
+    "banned_crates": ["ring", "openssl-sys", "openssl", "async-trait", "rustls", "ed25519-dalek", "cmake", "cc"],
+    "exemptions": ["blake3 (cc wrapper)"],
+    "advisory_check": "pass",
+    "license_check": "pass",
+    "source_check": "pass"
+  },
+  "lint_policy": {
+    "allow_attributes": 0,
+    "expect_with_reason": true,
+    "clippy_level": "pedantic+nursery+cast_deny",
+    "fmt_check": "zero diffs",
+    "doc_warnings": 0
+  },
+  "encryption_tiers": {
+    "tower": {"tier": "full", "description": "Full BTSP encryption"},
+    "node": {"tier": "tower_delegated", "description": "Delegated to Tower"},
+    "nest": {"tier": "tower_delegated", "description": "Delegated to Tower"},
+    "meta": {"tier": "tower_delegated", "description": "Delegated to Tower"}
+  },
+  "composition_security": {
+    "bond_type": "Metallic",
+    "trust_model": "InternalNucleus",
+    "transport": "unix_domain_sockets",
+    "protocol": "JSON-RPC 2.0",
+    "no_shared_memory": true,
+    "no_global_state": true,
+    "family_isolation": "FAMILY_ID env"
+  },
+  "supply_chain": {
+    "pure_rust": true,
+    "exception": "wgpu GPU HAL (-sys transitive only)",
+    "spdx": "AGPL-3.0-or-later",
+    "spdx_headers": "all .rs files",
+    "no_network_services": true,
+    "no_user_auth": true,
+    "no_sensitive_data": true
+  },
+  "checksums": {
+    "algorithm": "BLAKE3",
+    "manifest": "validation/CHECKSUMS",
+    "files_covered": 15,
+    "scope": "validation-critical files (guidestone, tolerances, provenance, RNG, registry, baselines, Cargo.toml)"
+  },
+  "guidestone_security": {
+    "p1_deterministic": "seeded RNG triple-match, bitwise equality",
+    "p2_traceable": "49 provenance records, all labelled/scripted/committed",
+    "p3_self_verifying": "BLAKE3 CHECKSUMS — 15 files verified",
+    "p4_environment_agnostic": "ecoBin, forbid(unsafe_code), no network",
+    "p5_tolerance_documented": "233+ named tolerances, all finite/named/categorized"
+  }
+}

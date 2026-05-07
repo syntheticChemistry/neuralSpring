@@ -1,0 +1,70 @@
+{
+  "spring": "neuralSpring",
+  "session": "S188",
+  "date": "2026-05-07",
+  "rust_vs_python": {
+    "geomean_speedup": 83.6,
+    "domains_measured": 11,
+    "fastest_speedup": 1104.0,
+    "fastest_domain": "multi-objective optimization",
+    "cpu_python_parity": {
+      "pass": 39,
+      "total": 39,
+      "tolerance": "1e-10 cross-language"
+    },
+    "domain_speedups": [
+      {"domain": "Multi-objective (MODES)", "speedup": 1104.0},
+      {"domain": "Swarm robotics", "speedup": 500.0},
+      {"domain": "Directed evolution", "speedup": 200.0},
+      {"domain": "NK fitness landscape", "speedup": 150.0},
+      {"domain": "Game theory (Nash)", "speedup": 100.0},
+      {"domain": "HMM Viterbi", "speedup": 80.0},
+      {"domain": "Anderson localization", "speedup": 60.0},
+      {"domain": "Population genetics", "speedup": 45.0},
+      {"domain": "ESN reservoir", "speedup": 30.0},
+      {"domain": "Spectral analysis", "speedup": 25.0},
+      {"domain": "Regulatory network", "speedup": 15.0}
+    ]
+  },
+  "gpu_performance": {
+    "max_speedup_vs_python": 104.0,
+    "max_domain": "transformer medium",
+    "gpu_crossover_latency_ms": 1.5,
+    "dispatch_overhead": "<=1.04x for 9/10 ops",
+    "fused_pipeline_speedup": "46-78x over per-op dispatch",
+    "gpu_coverage_percent": 97,
+    "phase": "Phase C complete"
+  },
+  "multi_gpu": {
+    "parity": "bit-identical",
+    "devices_tested": ["RTX 4070", "TITAN V NVK"],
+    "titan_v_checks": {
+      "pass": 384,
+      "total": 384,
+      "session": "S82"
+    }
+  },
+  "validation_chain_tiers": [
+    {"tier": "Python baseline", "checks": 397, "status": "all pass"},
+    {"tier": "Rust CPU", "checks": 1387, "status": "all pass"},
+    {"tier": "GPU Tensor (WGSL)", "checks": 4500, "status": "all pass"},
+    {"tier": "Cross-dispatch", "checks": "9/10 <=1.04x", "status": "pass"},
+    {"tier": "Multi-GPU", "checks": "384/384", "status": "bit-identical"},
+    {"tier": "Primal IPC", "checks": "6 validators", "status": "wip"},
+    {"tier": "guideStone", "checks": "29/29", "status": "Level 3 (bare)"}
+  ],
+  "isomorphic_primitives": [
+    {"primitive": "MatMul (GEMM/GEMV)", "role": "universal workhorse"},
+    {"primitive": "Attention (SDPA)", "role": "weighted information routing"},
+    {"primitive": "Normalization (LayerNorm)", "role": "scale stabilization"},
+    {"primitive": "Nonlinearity (GELU/SiLU)", "role": "feature carving"},
+    {"primitive": "Reduction (sum/mean/max)", "role": "aggregation"},
+    {"primitive": "Quantization (Q4/Q8/FP16)", "role": "deployment compression"}
+  ],
+  "guidestone_phases": {
+    "phase1_bare": "P1-P5 certified (deterministic, traceable, self-verifying, env-agnostic, tolerance-documented)",
+    "phase2_discovery": "BearDog + Songbird probing, health triad",
+    "phase3_domain": "7 capabilities via IPC (honest skip when unavailable)",
+    "phase4_nucleus": "additive NUCLEUS (BearDog signing + Songbird discovery)"
+  }
+}

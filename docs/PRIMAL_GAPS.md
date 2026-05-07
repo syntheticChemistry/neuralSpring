@@ -5,11 +5,10 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-04-27 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.17+
-> **Session:** S187 — Deep debt cleanup + ecosystem handoff. 6 large-file
-> smart refactors, centralized biomeOS discovery, full codebase audit (zero
-> unsafe/mocks/allow/TODO). V138 handoff with primal evolution recommendations.
-> Prior: S186 Phase 46 composition explorer (agent-driven AI feedback loops).
+> **Date:** 2026-05-07 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.17+
+> **Session:** S188 — sporePrint Tier 2 absorption. 5 notebooks + 6 frozen JSON
+> + validation summary + notify-sporeprint.yml. Following primalSpring pattern.
+> Prior: S187 deep debt cleanup + ecosystem handoff (V138).
 
 ---
 

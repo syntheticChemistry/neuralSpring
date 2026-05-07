@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V138 — Session S187 (Deep Debt Cleanup + Ecosystem Handoff)
+### V139 — Session S188 (sporePrint Tier 2)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V138** | `handoffs/NEURALSPRING_V138_DEEP_DEBT_ECOSYSTEM_HANDOFF_APR27_2026.md` | Apr 27, 2026 | Deep debt cleanup: 6 smart refactors (all >800L binaries → companion modules), centralized biomeOS socket discovery, `eprintln!`→`log::`, full codebase audit (zero unsafe/mocks/allow/TODO), BarraCUDA API alignment. Ecosystem handoff for primal + spring teams: NUCLEUS composition patterns, neuralAPI deployment, primal evolution recommendations. |
+| **V139** | `handoffs/NEURALSPRING_V139_SPOREPRINT_TIER2_HANDOFF_MAY07_2026.md` | May 7, 2026 | sporePrint Tier 2 absorption: 5 notebooks + 6 frozen JSON datasets + validation summary + notify-sporeprint.yml. Following primalSpring/wetSpring pattern. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V137 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V138 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

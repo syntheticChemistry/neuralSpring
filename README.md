@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: April 27, 2026 (Session S187 — Deep debt cleanup + ecosystem handoff. 6 large-file smart refactors (all >800L binaries split into logical companion modules). Full codebase audit: zero unsafe, zero mocks in production, zero `#[allow()]`, zero TODO/FIXME. Centralized `resolve_biomeos_socket_dir()`. `eprintln!`→`log::` in guidestone. All external deps pure Rust (except `wgpu` GPU HAL). 1,234 lib tests, 269 binaries, 520+ `.rs` files. barraCuda v0.3.12. V138 handoff).
+**Last updated**: May 7, 2026 (Session S188 — sporePrint Tier 2: 5 public notebooks + 6 frozen JSON validation datasets + `sporeprint/validation-summary.md`. Following primalSpring pattern. `notify-sporeprint.yml` wired. 1,387 workspace tests (1,234 lib + 73 forge + 80 playGround), 134 experiments, 269 binaries, 520+ `.rs` files, 233 named tolerances. barraCuda v0.3.12. V139 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -45,6 +45,8 @@ The **isomorphic pattern**: at the primitive level, all of these are composition
 neuralSpring validates these primitives in Python, then hands off to the BarraCUDA team for Rust/WGSL evolution. BarraCUDA has 806+ WGSL shaders covering all of these — neuralSpring provides the **test harness** that proves they produce correct learning across all six primitives.
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
+
+**S188 (May 7 2026): sporePrint Tier 2 absorption. 5 public notebooks (composition validation, benchmark comparison, ecosystem evidence, cross-spring connections, BTSP security deep dive) + 6 frozen JSON datasets in `experiments/results/` + `sporeprint/validation-summary.md`. `notify-sporeprint.yml` wired. Following primalSpring/wetSpring pattern. V139 handoff.**
 
 **S187 (Apr 27 2026): Deep debt cleanup + ecosystem handoff. 6 large-file smart refactors (validate_barracuda_tensor, validate_gpu_pure_wdm_coral, validate_metalforge_wdm_coral, bench_upstream_vs_local, bench_portability_tiers, validate_barracuda_dispatch_parity — all >800L split into companion modules). `eprintln!`→`log::` in guidestone. Centralized `resolve_biomeos_socket_dir()` in config.rs. Full codebase audit: zero unsafe (`#![forbid(unsafe_code)]`), zero mocks in prod, zero `#[allow()]`, zero TODO/FIXME, all external deps pure Rust. V138 handoff.**
 

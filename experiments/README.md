@@ -1,6 +1,16 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S187)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3: `neuralspring_guidestone` v0.3.0 — 29/29 bare ALL PASS (P1-P5 certified). Deep debt cleanup: 6 large-file smart refactors, centralized biomeOS discovery, full audit clean. primalSpring v0.9.17+. genomeBin v5.1. Edition 2024 (all 3 crates). MSRV 1.87. barraCuda v0.3.12, toadStool S146+, coralReef Iter 49. April 27, 2026.
+**Current state (Session S188)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3. sporePrint Tier 2: 5 notebooks + 6 frozen JSON + validation summary. primalSpring v0.9.17+. genomeBin v5.1. Edition 2024. MSRV 1.87. barraCuda v0.3.12. May 7, 2026.
+
+### Session S188 — 2026-05-07 (sporePrint Tier 2 Absorption)
+
+- **Exp 135 — sporePrint Tier 2**: Following primalSpring/wetSpring pattern for Tier 2 sporePrint content
+  - **6 frozen JSON datasets** in `experiments/results/`: validation-state, experiment-catalog, security-posture, cross-spring-matrix, benchmark-data, gap-status — capturing full validation state as frozen data for notebooks
+  - **5 public notebooks** in `notebooks/`: composition-validation, benchmark-comparison, ecosystem-evidence, cross-spring-connections, btsp-security-deep-dive — matplotlib charts loading from frozen JSON, CI-executable
+  - **`NOTEBOOK_PATTERN.md`**: Cell structure standard adapted from primalSpring/wetSpring — title, imports+data loading, domain cells, summary
+  - **`sporeprint/validation-summary.md`**: Headline numbers (1,387 tests, 134 experiments, 269 binaries, guideStone L3 29/29, BTSP 13/13)
+  - **`notify-sporeprint.yml`**: CI workflow fires on `sporeprint/`, `notebooks/`, `experiments/results/` changes
+  - **Result**: 0 clippy, 0 fmt, `cargo deny check` clean. V139 handoff
 
 ### Session S187 — 2026-04-27 (Deep Debt Cleanup + Ecosystem Handoff)
 

@@ -1,6 +1,8 @@
 # Data (downloaded, computed — not tracked)
 data/
 results/
+# sporePrint frozen data is tracked
+!experiments/results/
 sandbox/
 *.csv.gz
 *.nc

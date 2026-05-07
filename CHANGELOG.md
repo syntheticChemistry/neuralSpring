@@ -5,7 +5,22 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-04-27 (Session 187: Deep debt cleanup + ecosystem handoff)
+## [Unreleased] — 2026-05-07 (Session 188: sporePrint Tier 2 — notebooks + frozen data)
+
+### 2026-05-07 — Session S188 (sporePrint Tier 2: 5 notebooks + 6 frozen JSON + validation summary + notify workflow)
+
+- **sporePrint absorption**: Following primalSpring/wetSpring pattern for Tier 2 sporePrint content
+- **6 frozen JSON datasets** in `experiments/results/` — validation-state, experiment-catalog, security-posture, cross-spring-matrix, benchmark-data, gap-status. All loaded from notebooks with no live primals needed
+- **5 public notebooks** in `notebooks/`:
+  - `01-composition-validation.ipynb` — deploy graphs, bond types, 30 capabilities, discovery tiers, guideStone readiness
+  - `02-benchmark-comparison.ipynb` — Rust vs Python (83.6x geomean, 1104x peak), GPU (104x peak, 97% coverage), multi-GPU parity (384/384), isomorphic primitives
+  - `03-ecosystem-evidence.ipynb` — 134 experiments, 27 papers / 6 faculties, gap resolution (14 main, 13 resolved appendix), security timeline
+  - `04-cross-spring-connections.ipynb` — 8 primal consumption matrix, ecosystem flow tiers, proto-nucleate (7 capabilities, 6 deps), barraCuda usage depth
+  - `05-btsp-security-deep-dive.ipynb` — BTSP convergence (Phase 45c, 13/13), encryption tiers, per-primal posture, supply chain integrity, guideStone P1-P5
+- **`notebooks/NOTEBOOK_PATTERN.md`**: Cell structure standard (title, imports+data, domain cells, summary), color palette (#2ecc71/#e74c3c/#3498db), conventions
+- **`sporeprint/validation-summary.md`**: Headline numbers (1,387 tests, 134 experiments, 269 binaries, 30 capabilities, 233 tolerances, guideStone L3 29/29, BTSP 13/13), code quality, performance, notebook list
+- **`notify-sporeprint.yml`**: CI workflow fires on push to `sporeprint/`, `notebooks/`, `experiments/results/`
+- 269 binaries, 0 clippy, 0 fmt, `cargo deny check` clean. V139 handoff
 
 ### 2026-04-27 — Session S187 (Deep debt cleanup: 6 smart refactors, centralized discovery, full audit, ecosystem handoff)
 
