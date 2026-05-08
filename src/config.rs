@@ -227,4 +227,49 @@ mod tests {
             );
         }
     }
+
+    /// Cross-sync: verify neuralSpring's shared methods appear in
+    /// primalSpring's canonical 389-method capability registry.
+    ///
+    /// Methods prefixed with `science.` are neuralSpring-only (niche
+    /// capabilities not in the canonical registry). Same for
+    /// `provenance.begin/record/complete/status` (neuralSpring's
+    /// provenance surface differs from sweetGrass's canonical names)
+    /// and `primal.forward/discover` (neuralSpring routing, not
+    /// canonical primalSpring).
+    #[test]
+    fn registry_methods_in_primalspring_canonical() {
+        let canonical = include_str!("../../primalSpring/config/capability_registry.toml");
+
+        let neuralspring_only_prefixes = [
+            "science.",
+            "provenance.begin",
+            "provenance.record",
+            "provenance.complete",
+            "provenance.status",
+            "primal.forward",
+            "primal.discover",
+        ];
+
+        let mut shared_count = 0u32;
+        for cap in ALL_CAPABILITIES {
+            let is_niche = neuralspring_only_prefixes
+                .iter()
+                .any(|prefix| cap.starts_with(prefix));
+            if is_niche {
+                continue;
+            }
+            assert!(
+                canonical.contains(cap),
+                "shared capability {cap} missing from primalSpring canonical \
+                 registry (config/capability_registry.toml). Either add it \
+                 upstream or move it to the neuralSpring-only list."
+            );
+            shared_count += 1;
+        }
+        assert!(
+            shared_count >= 10,
+            "expected at least 10 shared capabilities with primalSpring, found {shared_count}"
+        );
+    }
 }

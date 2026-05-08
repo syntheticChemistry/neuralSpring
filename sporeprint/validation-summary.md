@@ -12,7 +12,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S189 | **Date:** May 7, 2026 | **Version:** 0.1.0
+> **Session:** S192 | **Date:** May 8, 2026 | **Version:** 0.1.0
 > **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 
 ---
@@ -21,7 +21,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 | Metric | Value |
 |--------|-------|
-| **Workspace lib tests** | 1,387 (1,234 lib + 73 forge + 80 playGround) |
+| **Workspace lib tests** | 1,432 (1,279 lib + 73 forge + 80 playGround) |
 | **Proptest properties** | 24 |
 | **Python baselines** | 397 PASS |
 | **Rust+GPU checks** | 4,500+ |
@@ -89,12 +89,14 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 ---
 
-## Notebooks — Paper Baselines (Batch 1: Dolson Faculty)
+## Notebooks — Paper Baselines (2 faculties, 8 notebooks)
 
 Publishable-grade Jupyter notebooks with full inline Python/NumPy implementations of
 peer-reviewed science. Each notebook is the **math validation base** — the foundation
 layer that Rust, GPU, and primal IPC are validated against. Self-contained; executable
 on JupyterHub without the neuralSpring repo.
+
+### Batch 1: Dolson Faculty (Evolutionary Computation)
 
 | Paper | Notebook | Citation | Checks |
 |-------|----------|----------|--------|
@@ -104,9 +106,17 @@ on JupyterHub without the neuralSpring repo.
 | 014 | [`paper-014-directed-evolution.ipynb`](../notebooks/papers/paper-014-directed-evolution.ipynb) | Dolson, Banzhaf, Ofria (2022) *eLife* 11:e79665 | 8/8 |
 | 015 | [`paper-015-swarm-robotics.ipynb`](../notebooks/papers/paper-015-swarm-robotics.ipynb) | Foreback, Bohm, Dolson (2025) IEEE | 11/11 |
 
-**Total:** 5 notebooks, 46/46 checks PASS, 2,058 lines of validated Python source.
-Faculty: Emily Dolson (Michigan State) — Evolutionary Computation.
-Remaining batches: 22 papers across 5 additional faculties.
+### Batch 2: Liu Faculty (HMM & Phylogenetic Inference)
+
+| # | Notebook | Paper | Checks |
+|---|----------|-------|--------|
+| 016 | [`paper-016-hmm-phylo.ipynb`](../notebooks/papers/paper-016-hmm-phylo.ipynb) | Liu et al. (2014) PLoS Comp Bio | 10/10 |
+| 017 | [`paper-017-sate-alignment.ipynb`](../notebooks/papers/paper-017-sate-alignment.ipynb) | Liu et al. (2009) Science | 8/8 |
+| 018 | [`paper-018-introgression.ipynb`](../notebooks/papers/paper-018-introgression.ipynb) | Liu et al. (2015) PNAS | 8/8 |
+
+**Total:** 8 notebooks, 72/72 checks PASS, 3,337 lines of validated Python source.
+Faculties: Emily Dolson (Evolutionary Computation), Kevin Liu (Phylogenetic Inference).
+Remaining batches: 19 papers across 4 additional faculties.
 
 ---
 

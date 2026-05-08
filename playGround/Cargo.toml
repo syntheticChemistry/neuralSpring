@@ -12,7 +12,7 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 
 [dependencies]
 anyhow = "1"
-barracuda = { path = "../../../primals/barraCuda/crates/barracuda", default-features = false, features = [
+barracuda = { path = "../../../primals/barraCuda/crates/barracuda", default-features = false, optional = true, features = [
     "gpu",
     "domain-nn",
     "domain-esn",
@@ -39,7 +39,11 @@ tokio = { version = "1.49", features = [
     "time",
 ] }
 toml = "0.8"
-wgpu = { version = "28", default-features = false }
+wgpu = { version = "28", default-features = false, optional = true }
+
+[features]
+default = ["barracuda"]
+barracuda = ["dep:barracuda", "dep:wgpu"]
 
 [lints]
 workspace = true

@@ -100,13 +100,18 @@ pub mod directed_evolution;
 pub mod eco_dynamics;
 pub mod eigh;
 pub mod error;
+#[cfg(feature = "barracuda")]
 pub mod evolved;
 pub mod fft;
 pub mod game_theory;
 pub mod glucose_prediction;
+#[cfg(feature = "barracuda")]
 pub mod gpu;
+#[cfg(feature = "barracuda")]
 pub mod gpu_dispatch;
+#[cfg(feature = "barracuda")]
 pub mod gpu_ops;
+#[cfg(feature = "barracuda")]
 pub mod gpu_shader_validation;
 pub mod hmm;
 pub mod immunological_anderson;
@@ -131,6 +136,7 @@ pub mod loss_landscape;
 pub mod meta_population;
 pub mod metrics;
 pub mod modes;
+#[cfg(feature = "barracuda")]
 pub mod nautilus_bridge;
 pub mod neural_pgm;
 pub mod niche;
@@ -153,6 +159,7 @@ pub mod streaming;
 pub mod surrogate;
 pub mod swarm_robotics;
 pub mod tolerances;
+#[cfg(feature = "barracuda")]
 pub mod training_monitor;
 pub mod transformer;
 pub mod validation;
@@ -165,7 +172,9 @@ pub mod visualization;
 pub mod wdm_ensemble_qs;
 pub mod wdm_esn;
 pub mod wdm_sqw;
+#[cfg(feature = "barracuda")]
 pub mod wdm_surrogate;
+#[cfg(feature = "barracuda")]
 pub mod wdm_transport;
 pub mod weight_loader;
 pub mod weight_spectral;

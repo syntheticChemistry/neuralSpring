@@ -107,3 +107,76 @@ pub const TRANSFORMER_REFS: &str = "NumPy 2.2.6 transformer_inference.py (softma
 
 /// Analytical reference source for statistical metrics.
 pub const METRICS_REFS: &str = "Analytical (pure arithmetic on known arrays)";
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn softmax_sums_to_one() {
+        let sum: f64 = SOFTMAX_1_TO_5.iter().sum();
+        assert!((sum - 1.0).abs() < 1e-12, "softmax sum = {sum}");
+    }
+
+    #[test]
+    fn softmax_monotonically_increasing() {
+        for w in SOFTMAX_1_TO_5.windows(2) {
+            assert!(w[1] > w[0], "softmax not monotonic: {} >= {}", w[0], w[1]);
+        }
+    }
+
+    #[test]
+    fn gelu_zero_at_origin() {
+        let (x, y) = GELU_REFERENCE[2];
+        assert_eq!(x, 0.0);
+        assert_eq!(y, 0.0);
+    }
+
+    #[test]
+    fn gelu_negative_for_negative_inputs() {
+        for &(x, y) in &GELU_REFERENCE[..2] {
+            assert!(x < 0.0);
+            assert!(y < 0.0, "GELU({x}) = {y}, expected negative");
+        }
+    }
+
+    #[test]
+    fn gelu_positive_for_positive_inputs() {
+        for &(x, y) in &GELU_REFERENCE[3..] {
+            assert!(x > 0.0);
+            assert!(y > 0.0, "GELU({x}) = {y}, expected positive");
+        }
+    }
+
+    #[test]
+    fn rosenbrock_global_minimum_at_1_1() {
+        let (x, y, val) = ROSENBROCK_REFERENCE[0];
+        assert_eq!(x, 1.0);
+        assert_eq!(y, 1.0);
+        assert_eq!(val, 0.0);
+    }
+
+    #[test]
+    fn rastrigin_global_minimum_above_zero() {
+        for &(_, _, val) in &RASTRIGIN_REFERENCE {
+            assert!(val >= 0.0, "Rastrigin value {val} < 0");
+        }
+    }
+
+    #[test]
+    fn ackley_positive_everywhere() {
+        for &(_, _, val) in &ACKLEY_REFERENCE {
+            assert!(val > 0.0, "Ackley value {val} <= 0");
+        }
+    }
+
+    #[test]
+    fn ref_strings_nonempty() {
+        assert!(!BARRACUDA_ANALYTICAL_REFS.is_empty());
+        assert!(!CHI_SQUARED_REFS.is_empty());
+        assert!(!FFT_ANALYTICAL_REFS.is_empty());
+        assert!(!BENCHMARK_REFS.is_empty());
+        assert!(!TRANSFORMER_REFS.is_empty());
+        assert!(!METRICS_REFS.is_empty());
+    }
+}

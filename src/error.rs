@@ -175,3 +175,133 @@ impl From<TensorError> for String {
 
 /// Convenience alias for library functions.
 pub type Result<T> = std::result::Result<T, Error>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gpu_error_display_device() {
+        let e = GpuError::Device {
+            reason: "no adapter".into(),
+        };
+        assert_eq!(e.to_string(), "gpu device: no adapter");
+    }
+
+    #[test]
+    fn gpu_error_display_shader() {
+        let e = GpuError::ShaderCompile {
+            label: "relu.wgsl".into(),
+            reason: "syntax error at line 3".into(),
+        };
+        assert!(e.to_string().contains("relu.wgsl"));
+        assert!(e.to_string().contains("syntax error"));
+    }
+
+    #[test]
+    fn gpu_error_display_buffer() {
+        let e = GpuError::Buffer {
+            op: "create",
+            reason: "out of memory".into(),
+        };
+        assert_eq!(e.to_string(), "gpu buffer (create): out of memory");
+    }
+
+    #[test]
+    fn tensor_error_display_shape_mismatch() {
+        let e = TensorError::ShapeMismatch {
+            expected: "[4, 8]".into(),
+            actual: "[4, 16]".into(),
+        };
+        assert!(e.to_string().contains("[4, 8]"));
+        assert!(e.to_string().contains("[4, 16]"));
+    }
+
+    #[test]
+    fn tensor_error_display_operation() {
+        let e = TensorError::Operation {
+            op: "matmul",
+            reason: "dimension mismatch".into(),
+        };
+        assert!(e.to_string().contains("matmul"));
+    }
+
+    #[test]
+    fn parse_error_display_invalid_record() {
+        let e = ParseError::InvalidRecord {
+            format: "FASTA",
+            record: 42,
+            reason: "missing > header".into(),
+        };
+        let s = e.to_string();
+        assert!(s.contains("FASTA"));
+        assert!(s.contains("42"));
+    }
+
+    #[test]
+    fn top_level_error_from_gpu() {
+        let gpu = GpuError::Readback {
+            reason: "timeout".into(),
+        };
+        let e: Error = gpu.into();
+        assert!(e.to_string().contains("timeout"));
+    }
+
+    #[test]
+    fn top_level_error_from_tensor() {
+        let tensor = TensorError::Create {
+            context: "weights".into(),
+            reason: "bad shape".into(),
+        };
+        let e: Error = tensor.into();
+        assert!(e.to_string().contains("weights"));
+    }
+
+    #[test]
+    fn top_level_error_from_parse() {
+        let parse = ParseError::InvalidRecord {
+            format: "VCF",
+            record: 0,
+            reason: "missing header".into(),
+        };
+        let e: Error = parse.into();
+        assert!(e.to_string().contains("VCF"));
+    }
+
+    #[test]
+    fn context_error_from_string() {
+        let e: Error = "something went wrong".into();
+        assert_eq!(e.to_string(), "something went wrong");
+    }
+
+    #[test]
+    fn context_error_from_owned_string() {
+        let e: Error = String::from("owned error").into();
+        assert_eq!(e.to_string(), "owned error");
+    }
+
+    #[test]
+    fn context_helper() {
+        let e = Error::context("helper message");
+        assert_eq!(e.to_string(), "helper message");
+    }
+
+    #[test]
+    fn gpu_error_to_string_conversion() {
+        let gpu = GpuError::Dispatch {
+            reason: "queue full".into(),
+        };
+        let s: String = gpu.into();
+        assert!(s.contains("queue full"));
+    }
+
+    #[test]
+    fn tensor_error_to_string_conversion() {
+        let tensor = TensorError::Readback {
+            context: "output".into(),
+            reason: "device lost".into(),
+        };
+        let s: String = tensor.into();
+        assert!(s.contains("device lost"));
+    }
+}

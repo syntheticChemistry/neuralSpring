@@ -17,12 +17,14 @@ pub mod composition;
 /// CPU-side benchmark validation helpers shared by `validate_*` binaries.
 pub mod cpu_bench;
 mod env;
+#[cfg(feature = "barracuda")]
 mod gpu;
 /// Output sinks for machine-readable validation (JSON, NDJSON, collecting).
 pub mod sink;
 mod stats;
 
 pub use env::*;
+#[cfg(feature = "barracuda")]
 pub use gpu::*;
 pub use sink::{CollectingSink, JsonSink, NdjsonSink, SilentSink, StdoutSink, ValidationSink};
 pub use stats::*;

@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V139 — Session S188 (sporePrint Tier 2)
+### V142 — Session S192 (Doc Cleanup, Upstream Primal Handoffs, Archive Sweep)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V139** | `handoffs/NEURALSPRING_V139_SPOREPRINT_TIER2_HANDOFF_MAY07_2026.md` | May 7, 2026 | sporePrint Tier 2 absorption: 5 notebooks + 6 frozen JSON datasets + validation summary + notify-sporeprint.yml. Following primalSpring/wetSpring pattern. |
+| **V142** | `handoffs/NEURALSPRING_V142_DOC_CLEANUP_UPSTREAM_HANDOFF_MAY08_2026.md` | May 8, 2026 | Root docs synchronized to S192. baseCamp/experiments/wateringHole refreshed. Upstream primal handoff (debt, evolution gaps, absorption targets for all 13 primal teams). Downstream absorption review (projectNUCLEUS + foundation patterns). Archive sweep (zero debris). |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V138 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V141 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

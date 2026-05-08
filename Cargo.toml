@@ -1,7 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [workspace]
-members = [".", "metalForge/forge", "playGround"]
+members = [
+    ".",
+    "metalForge/forge",
+    "playGround",
+    "experiments/exp094_neuralspring_composition_parity",
+]
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -29,7 +34,9 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 [dependencies]
 # barraCuda standalone primal — sovereign math engine for ecoPrimals.
 # Extracted from toadStool (S89); Springs depend on barraCuda directly.
-barracuda = { path = "../../primals/barraCuda/crates/barracuda", default-features = false, features = [
+# Optional with IPC-first: sovereign NUCLEUS deploys use IPC to barraCuda
+# primal rather than linking the library. Default-enabled for dev/test.
+barracuda = { path = "../../primals/barraCuda/crates/barracuda", default-features = false, optional = true, features = [
     "gpu",
     "domain-nn",
     "domain-esn",
@@ -40,7 +47,7 @@ barracuda = { path = "../../primals/barraCuda/crates/barracuda", default-feature
 
 # Local forge crate — shader catalog, binding layouts, dispatch routing.
 # Single source of truth for WGSL shaders; ToadStool absorbs from here.
-neural-spring-forge = { path = "metalForge/forge" }
+neural-spring-forge = { path = "metalForge/forge", optional = true }
 
 bytemuck = { version = "1.21", features = ["derive"] }
 safetensors = "0.7"
@@ -59,7 +66,8 @@ log = "0.4"
 thiserror = "2"
 
 # Must match barracuda's wgpu version (28) to avoid type conflicts.
-wgpu = { version = "28", default-features = false, features = [
+# Optional: only needed when barracuda feature is active (GPU validation).
+wgpu = { version = "28", default-features = false, optional = true, features = [
     "wgsl",
     "vulkan-portability",
 ] }
@@ -75,7 +83,10 @@ tarpc = { version = "0.37", features = ["tokio1", "serde-transport"], optional =
 primalspring = { path = "../primalSpring/ecoPrimal", optional = true }
 
 [features]
-default = []
+default = ["barracuda"]
+# barraCuda library linking — enables GPU validation, tensor ops, and all
+# barracuda-dependent modules. Disable for IPC-only sovereign deployment.
+barracuda = ["dep:barracuda", "dep:neural-spring-forge", "dep:wgpu"]
 primal = ["anyhow", "clap", "env_logger", "tarpc"]
 composed = ["primal"]
 guidestone = ["primalspring", "primal"]

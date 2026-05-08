@@ -1,34 +1,34 @@
 {
   "spring": "neuralSpring",
-  "session": "S188",
-  "date": "2026-05-07",
+  "session": "S192",
+  "date": "2026-05-08",
+  "audit_response": "primalSpring Phase 60 cross-spring composition parity (v0.9.25) + full sweep + doc cleanup + upstream handoff",
   "summary": {
     "total_main_gaps": 14,
     "resolved_main": 2,
-    "wip": 2,
-    "open": 5,
-    "deferred": 1,
+    "implemented": 5,
+    "wip": 1,
+    "open": 3,
     "tracking": 1,
-    "implemented": 1,
-    "explored": 1,
     "partial": 1,
+    "explored": 1,
     "resolved_appendix": 13,
-    "composition_evolution": 5
+    "composition_evolution": 8
   },
   "gaps": [
-    {"id": 1, "title": "Inference Capability Surface", "status": "wip", "blocker": "Squirrel provider registration", "hand_back": "Squirrel, primalSpring"},
-    {"id": 2, "title": "barraCuda Direct Import → IPC", "status": "deferred", "blocker": "IPC client for tensor.matmul/create/stats.mean", "hand_back": "barraCuda"},
-    {"id": 3, "title": "coralReef Shader Compilation via IPC", "status": "open", "blocker": "shader.compile.wgsl IPC route", "hand_back": "coralReef, primalSpring"},
-    {"id": 4, "title": "toadStool Compute Dispatch via IPC", "status": "open", "blocker": "compute.dispatch.submit IPC client", "hand_back": "toadStool, primalSpring"},
-    {"id": 5, "title": "NestGate Weight Storage", "status": "open", "blocker": "storage.retrieve IPC client", "hand_back": "NestGate, primalSpring"},
-    {"id": 6, "title": "BearDog/Songbird Tower Integration", "status": "wip", "blocker": "BTSP session, Songbird mesh discovery", "hand_back": "BearDog, Songbird, primalSpring"},
-    {"id": 7, "title": "Proto-nucleate vs Spring-Deploy Fragments", "status": "resolved", "resolution": "Design clarification — proto-nucleate is pure primal, deploy graph is superset"},
-    {"id": 8, "title": "Binary Name Reconciliation", "status": "resolved", "resolution": "All three sources use 'neuralspring'"},
+    {"id": 1, "title": "Inference Capability Surface", "status": "implemented", "resolution": "exp094 probes inference.complete/embed/models, deploy graph created, JH-0 MethodGate adopted"},
+    {"id": 2, "title": "barraCuda Direct Import → IPC", "status": "implemented", "resolution": "barracuda now optional=true with feature flag, exp094 validates stats.mean parity over IPC"},
+    {"id": 3, "title": "coralReef Shader Compilation via IPC", "status": "implemented", "resolution": "exp094 validates shader.compile.capabilities, deploy graph includes coralReef node, JH-0 adopted"},
+    {"id": 4, "title": "toadStool Compute Dispatch via IPC", "status": "implemented", "resolution": "exp094 validates compute dispatch health, math pipeline graph includes dispatch node, JH-0 adopted"},
+    {"id": 5, "title": "NestGate Weight Storage", "status": "open", "blocker": "storage.retrieve IPC client for model weights", "hand_back": "NestGate, primalSpring"},
+    {"id": 6, "title": "BearDog/Songbird Tower Integration", "status": "wip", "blocker": "BTSP session, Songbird mesh discovery", "hand_back": "BearDog, Songbird"},
+    {"id": 7, "title": "Proto-nucleate vs Spring-Deploy Fragments", "status": "resolved", "resolution": "Design clarification"},
+    {"id": 8, "title": "Binary Name Reconciliation", "status": "resolved", "resolution": "All sources use 'neuralspring'"},
     {"id": 9, "title": "barraCuda Feature-Gate Bug", "status": "open", "blocker": "plasma_dispersion unconditional import", "hand_back": "barraCuda"},
     {"id": 10, "title": "Shader Upstream Absorption", "status": "tracking", "candidates": 24, "neuralspring_specific": 7, "upstream_candidates": 17},
     {"id": 11, "title": "barraCuda JSON-RPC Surface Gaps", "status": "open", "gaps": 18, "hand_back": "barraCuda"},
     {"id": 12, "title": "Proto-Nucleate Capabilities Harness", "status": "implemented", "validators": 7},
-    {"id": 13, "title": "guideStone Evolution", "status": "partial", "level": 3, "bare_checks": "29/29", "level4_blocked": "live NUCLEUS deployment", "level5_blocked": "18 barraCuda IPC gaps"},
+    {"id": 13, "title": "guideStone Evolution", "status": "partial", "level": 3, "bare_checks": "29/29", "level4_blocked": "live NUCLEUS deployment", "level5_blocked": "18 barraCuda IPC gaps", "note": "exp094 is L4 preparation; barracuda optional is L5 preparation"},
     {"id": 14, "title": "Phase 46 Composition Explorer", "status": "explored", "patterns": ["agentic IPC", "DAG branching", "braid provenance", "closed-loop feedback"]}
   ],
   "resolved_appendix": [
@@ -51,6 +51,20 @@
     {"id": "CE2", "title": "GpuPreferred Dispatch", "status": "implemented"},
     {"id": "CE3", "title": "Named Tolerance Constants", "status": "implemented"},
     {"id": "CE4", "title": "IPC Math Client", "status": "implemented"},
-    {"id": "CE5", "title": "Stadial deny.toml Enforcement", "status": "implemented"}
-  ]
+    {"id": "CE5", "title": "Stadial deny.toml Enforcement", "status": "implemented"},
+    {"id": "CE6", "title": "barraCuda Optional (IPC-first)", "status": "implemented", "session": "S190"},
+    {"id": "CE7", "title": "Registry Cross-Sync vs primalSpring Canonical", "status": "implemented", "session": "S190"},
+    {"id": "CE8", "title": "exp094 NUCLEUS Composition Parity Crate", "status": "implemented", "session": "S190"}
+  ],
+  "parity_scorecard_response": {
+    "audit": "primalSpring Phase 60 (v0.9.25, May 8 2026)",
+    "score": "GOOD",
+    "deploy_graphs": 4,
+    "experiment_crates": 1,
+    "barracuda_optional": true,
+    "registry_cross_sync": true,
+    "guidestone_level": 3,
+    "notebooks": 10,
+    "deny_clean": true
+  }
 }

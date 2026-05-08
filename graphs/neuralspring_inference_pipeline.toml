@@ -1,0 +1,145 @@
+# neuralSpring Inference Pipeline Deploy Graph
+#
+# Domain-specific graph for the inference composition:
+#   Squirrel (MCP/AI gateway) → barraCuda (tensor compute) → neuralSpring (science)
+#   + NestGate for model weight storage and provenance tracking
+#
+# This graph specializes the NUCLEUS for inference workloads:
+#   - Model routing through Squirrel (inference.complete, inference.embed)
+#   - Tensor compute via barraCuda IPC (stats.mean, tensor.matmul)
+#   - Weight retrieval from NestGate
+#   - Provenance tracking for inference sessions
+#
+# STATUS: V140 / S190 (May 8, 2026)
+# Run: biomeos deploy graphs/neuralspring_inference_pipeline.toml
+
+[graph]
+id = "neuralspring_inference_pipeline"
+description = "Inference composition: model routing, tensor compute, weight retrieval"
+coordination = "Sequential"
+
+[graph.metadata]
+neuralspring_version = "S190"
+domain = "inference"
+composition_model = "nucleated"
+bond_type = "Metallic"
+trust_model = "InternalNucleus"
+transport = "uds"
+tcp_ports = 0
+encryption_boundary = "tower"
+fragments = ["tower_atomic", "node_atomic", "nest_atomic", "meta_tier"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 1: TOWER — Security + Discovery
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "tower_security"
+output = "security_genesis"
+primal = "beardog"
+capability = "security"
+method = "health.check"
+params = {}
+
+[[nodes]]
+id = "tower_discovery"
+output = "discovery_genesis"
+primal = "songbird"
+capability = "discovery"
+method = "rpc.discover"
+params = {}
+depends_on = ["tower_security"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2: NODE — Compute Triangle
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "barracuda_tensor_ready"
+output = "tensor_status"
+primal = "barracuda"
+capability = "tensor"
+method = "health.check"
+params = {}
+depends_on = ["tower_discovery"]
+
+[[nodes]]
+id = "compute_dispatch_ready"
+output = "dispatch_status"
+primal = "toadstool"
+capability = "compute"
+method = "health.check"
+params = {}
+depends_on = ["tower_discovery"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 3: NEST — Weight Storage
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "nestgate_storage_ready"
+output = "storage_status"
+primal = "nestgate"
+capability = "storage"
+method = "health.check"
+params = {}
+depends_on = ["tower_discovery"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 4: META — Squirrel AI Gateway
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "squirrel_inference_ready"
+output = "inference_gateway"
+primal = "squirrel"
+capability = "ai"
+method = "health.check"
+params = {}
+depends_on = ["barracuda_tensor_ready", "compute_dispatch_ready"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 5: NICHE — neuralSpring inference capabilities
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "neuralspring_inference"
+output = "inference_service"
+primal = "neuralspring"
+capability = "inference"
+method = "capability.list"
+params = {}
+depends_on = ["squirrel_inference_ready", "nestgate_storage_ready"]
+capabilities_provided = [
+    "inference.complete",
+    "inference.embed",
+    "inference.models",
+]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 6: VALIDATION — Inference pipeline health
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "validate_inference_pipeline"
+output = "pipeline_validation"
+primal = "neuralspring"
+capability = "inference"
+method = "health.readiness"
+params = { "check_chain" = ["tensor", "inference", "storage"] }
+depends_on = ["neuralspring_inference"]
+fallback = "skip"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 7: PROVENANCE — Session tracking
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "provenance_session"
+output = "provenance_receipt"
+primal = "sweetgrass"
+capability = "commit"
+method = "provenance.session_create"
+params = { "graph" = "neuralspring_inference_pipeline", "domain" = "inference" }
+depends_on = ["validate_inference_pipeline"]
+fallback = "skip"

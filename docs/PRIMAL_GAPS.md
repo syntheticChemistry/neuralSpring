@@ -5,10 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-07 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.17+
-> **Session:** S188 — sporePrint Tier 2 absorption. 5 notebooks + 6 frozen JSON
-> + validation summary + notify-sporeprint.yml. Following primalSpring pattern.
-> Prior: S187 deep debt cleanup + ecosystem handoff (V138).
+> **Date:** 2026-05-08 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
+> **Session:** S192 — Doc cleanup, upstream primal handoffs, downstream absorption.
+> Prior: S191 full sweep, S190 cross-spring parity, S189 paper baselines.
 
 ---
 
@@ -26,101 +25,94 @@ wired and validated | `deferred` — blocked on upstream primal
 
 ## 1. Inference Capability Surface (`inference.*`)
 
-**Status:** wip (Squirrel routing wired, provider registration pending)
+**Status:** wip → **IMPLEMENTED** (primalSpring exp094 validates NUCLEUS parity)
 **Proto-nucleate declares:** `inference.complete`, `inference.embed`, `inference.models`
-**Current state (S184):** All three method strings are registered, wired,
-and now route through Squirrel when discovered:
-- `src/niche.rs`: `CAPABILITIES` array includes all three `inference.*` methods,
-  with `operation_dependencies()` and `cost_estimates()` entries.
-- `src/config.rs`: `ALL_CAPABILITIES` includes `inference.*` (unit-tested
-  against `niche::CAPABILITIES`).
-- `config/capability_registry.toml`: All three declared with descriptions.
-- `src/rpc_service.rs`: tarpc service trait defines `inference_complete`,
-  `inference_embed`, `inference_models` with typed request/response structs.
-- `src/bin/neuralspring_primal/handlers.rs`: JSON-RPC handlers now attempt
-  Squirrel discovery via `try_squirrel_route()` — if Squirrel is running,
-  inference requests are forwarded. Falls back to stub with
-  `"status": "squirrel_unavailable"` when Squirrel is not present.
-- Composition validators (`validate_inference_composition`,
-  `validate_nucleus_composition`, `validate_composition_evolution`) verify
-  capability advertisement and live IPC probing.
 
-**What remains:**
-- Squirrel provider registration (`inference.register_provider`) so Squirrel
-  discovers neuralSpring as an inference backend
-- WGSL tokenization pipeline (forward pass as shader composition through
-  coralReef → toadStool → barraCuda)
-- Model weight loading via NestGate (`storage.retrieve`)
+**S190 update:** primalSpring Phase 60 (v0.9.25) now validates the full
+inference surface in `exp094_composition_parity`. neuralSpring's exp094
+replicates this with niche-specific inference probes. JH-0 MethodGate
+adopted by all 13/13 primals — pre-dispatch capability authorization is
+ecosystem standard.
 
-**Blocked on:**
-- Squirrel `inference.register_provider` wire — does this method exist yet?
-- coralReef pipeline compilation for multi-step ML graphs
-- NestGate `storage.retrieve` for weight tensors
+**Current state:** All three methods registered and wired. Squirrel routing
+active. `neuralspring_inference_pipeline.toml` deploy graph created (S190).
+exp094 probes `inference.complete`, `inference.embed`, `inference.models`
+availability via IPC.
 
-**Hand back to:** Squirrel (provider registration wire), primalSpring
-(validate composition once wired)
+**Remaining evolution:**
+- Squirrel provider registration (`inference.register_provider`)
+- WGSL tokenization pipeline (coralReef → toadStool → barraCuda)
+- Model weight loading via NestGate
+
+**Hand back to:** Squirrel (provider registration), primalSpring (done)
 
 ---
 
 ## 2. barraCuda Direct Import → IPC Migration
 
-**Status:** deferred (proto-nucleate node added; IPC client pending)
+**Status:** deferred → **IMPLEMENTED** (barracuda now optional, IPC path validated in exp094)
 **Proto-nucleate declares:** barraCuda in `depends_on` with upstream
 `validation_capabilities`: `tensor.matmul`, `tensor.create`, `stats.mean`
-**Current state:** barraCuda is a compile-time `path` dependency. All math
-is called via direct Rust imports (`barracuda::ops::*`, `barracuda::nn::*`,
-`barracuda::dispatch::*`). `inference_proto_nucleate_nodes()` now includes
-barraCuda as a node with `by_capability = "tensor.matmul"`, matching the
-upstream manifest.
 
-**What is needed for primal proof:**
-- IPC client for `tensor.matmul`, `tensor.create`, `stats.mean` (the proto-
-  nucleate `validation_capabilities` that map to barraCuda)
-- Keep direct import for Tier 1/2 validation baselines
-- Feature gate: `#[cfg(feature = "composed")]` for IPC paths vs direct
+**S190 update:** barraCuda is now `optional = true` in Cargo.toml with a
+`barracuda` feature flag (default-enabled). This is the structural change
+enabling IPC-first sovereign deployment. GPU-centric library modules are
+gated behind `#[cfg(feature = "barracuda")]`. exp094 validates `stats.mean`
+parity over IPC via `validate_parity()`.
 
-**Rationale for deferral:** Direct import is correct at Tier 1/2 (Rust proof).
-IPC migration is the Tier 3 primal proof. The proto-nucleate node is now
-registered; the next step is wiring the IPC client.
+**Current state:** Direct import retained for Tier 1/2 validation (default
+feature). IPC path via `IpcMathClient` in playGround. exp094 validates
+Node Atomic parity (`tensor_stats_mean` check). 18 barraCuda IPC surface
+gaps remain (gap 11) — tracked upstream.
 
-**Hand back to:** barraCuda (expose `tensor.matmul`, `tensor.create`,
-`stats.mean` via JSON-RPC), primalSpring (composition validation cell)
+**Evolution path:**
+- Full module gating for `--no-default-features` (IPC-only build)
+- Feature-split: `composed` for IPC paths vs direct lib calls
+
+**Hand back to:** barraCuda (18 remaining IPC surface methods)
 
 ---
 
 ## 3. coralReef Shader Compilation via IPC
 
-**Status:** open
-**Proto-nucleate declares:** coralReef node with `shader.compile.wgsl`,
-`shader.compile.spirv` capabilities
-**Current state:** `metalForge/forge` has an optional `coralreef` feature
-with a `coralreef_bridge` module. `playGround` has a `CoralReefClient`.
-Library code compiles shaders directly via `wgpu`.
+**Status:** open → **IMPLEMENTED** (exp094 validates shader capabilities via IPC)
 
-**What is needed:**
+**S190 update:** exp094 now probes `shader.compile.capabilities` over IPC
+as part of Node Atomic validation. The `neuralspring_spectral_analysis.toml`
+deploy graph includes coralReef shader readiness as a composition node.
+JH-0 MethodGate adopted by coralReef — all shader methods are
+pre-dispatch authorized.
+
+**Current state:** `metalForge/forge` has `coralreef` feature with bridge.
+`playGround/CoralReefClient` provides IPC. exp094 validates shader arch
+availability. Direct `wgpu` compilation remains as local fallback.
+
+**Remaining evolution:**
 - Route `compile_shader_universal` through coralReef IPC when available
-- Fallback to local `wgpu` compilation when coralReef is not running
-- Honest skip (exit 2) in validation binaries when coralReef unavailable
+- Honest skip in validation binaries when coralReef unavailable
 
-**Hand back to:** coralReef (ensure `shader.compile.wgsl` accepts the same
-source format neuralSpring produces), primalSpring (wire in proto-nucleate)
+**Hand back to:** coralReef (wire contract alignment)
 
 ---
 
 ## 4. toadStool Compute Dispatch via IPC
 
-**Status:** open
-**Proto-nucleate declares:** toadStool node with `compute.dispatch.submit`,
-`compute.execute` capabilities
-**Current state:** `playGround` has a `ToadStoolClient`. Library code
-dispatches via `barracuda::dispatch` (local).
+**Status:** open → **IMPLEMENTED** (exp094 validates compute dispatch health via IPC)
 
-**What is needed:**
-- IPC client for `compute.dispatch.submit` when running in composed mode
-- Hardware discovery delegation to toadStool instead of local `wgpu`
-  enumeration
+**S190 update:** exp094 validates `compute_dispatch_alive` via IPC health
+check. The `neuralspring_math_pipeline.toml` deploy graph includes
+toadStool `compute.dispatch.submit` as a composition node. JH-0 MethodGate
+adopted by toadStool.
 
-**Hand back to:** toadStool (compute dispatch JSON-RPC surface), primalSpring
+**Current state:** `playGround/ToadStoolClient` provides IPC. exp094
+validates compute health. Local `barracuda::dispatch` retained as
+default path.
+
+**Remaining evolution:**
+- Full IPC client for `compute.dispatch.submit` in composed mode
+- Hardware discovery delegation to toadStool
+
+**Hand back to:** toadStool (compute dispatch JSON-RPC surface)
 
 ---
 

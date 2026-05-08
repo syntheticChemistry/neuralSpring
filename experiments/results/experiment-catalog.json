@@ -80,7 +80,7 @@
     {"tier": 1, "name": "Python baseline", "status": "complete", "checks": 397},
     {"tier": 2, "name": "Rust CPU proof", "status": "complete", "checks": 1387},
     {"tier": 3, "name": "GPU/WGSL parity", "status": "complete", "checks": 4500},
-    {"tier": 4, "name": "Primal IPC composition", "status": "wip", "checks": "6 validators"},
-    {"tier": 5, "name": "guideStone certified", "status": "Level 3 (bare)", "checks": "29/29"}
+    {"tier": 4, "name": "Primal IPC composition", "status": "wip", "checks": "8 validators (160 checks, 11 skip-when-offline)", "validators": ["validate_nucleus_composition (22 checks, 2 skip)", "validate_inference_composition (16 checks, 3 skip)", "validate_science_composition (9 checks, 2 skip)", "validate_composition_evolution (30 checks, 4 skip)", "validate_nucleus_tower (47 checks)", "validate_nucleus_compute_dispatch (36 checks)", "validate_mixed_composition_pipeline", "validate_nucleus_pcie_mixed_pipeline"]},
+    {"tier": 5, "name": "guideStone certified", "status": "Level 3 (bare)", "checks": "29/29", "blockers": ["live NUCLEUS deployment (Level 4)", "18 barraCuda IPC surface gaps (Level 5)"]}
   ]
 }

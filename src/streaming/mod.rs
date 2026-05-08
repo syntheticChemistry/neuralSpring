@@ -40,3 +40,61 @@ pub(crate) fn trim_end_newlines_in_place(s: &mut String) {
         s.pop();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn trim_unix_newline() {
+        let mut s = String::from("ACGT\n");
+        trim_end_newlines_in_place(&mut s);
+        assert_eq!(s, "ACGT");
+    }
+
+    #[test]
+    fn trim_windows_newline() {
+        let mut s = String::from("ACGT\r\n");
+        trim_end_newlines_in_place(&mut s);
+        assert_eq!(s, "ACGT");
+    }
+
+    #[test]
+    fn trim_multiple_trailing() {
+        let mut s = String::from("data\n\n\n");
+        trim_end_newlines_in_place(&mut s);
+        assert_eq!(s, "data");
+    }
+
+    #[test]
+    fn trim_no_trailing() {
+        let mut s = String::from("clean");
+        trim_end_newlines_in_place(&mut s);
+        assert_eq!(s, "clean");
+    }
+
+    #[test]
+    fn trim_empty_string() {
+        let mut s = String::new();
+        trim_end_newlines_in_place(&mut s);
+        assert!(s.is_empty());
+    }
+
+    #[test]
+    fn trim_only_newlines() {
+        let mut s = String::from("\r\n\r\n");
+        trim_end_newlines_in_place(&mut s);
+        assert!(s.is_empty());
+    }
+
+    #[test]
+    fn line_buf_capacity_reasonable() {
+        assert!(LINE_BUF_CAPACITY >= 128);
+        assert!(LINE_BUF_CAPACITY <= 1024);
+    }
+
+    #[test]
+    fn vcf_buf_larger_than_default() {
+        assert!(VCF_LINE_BUF_CAPACITY > LINE_BUF_CAPACITY);
+    }
+}

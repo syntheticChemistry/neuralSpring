@@ -1,17 +1,16 @@
 {
   "spring": "neuralSpring",
-  "session": "S189",
-  "date": "2026-05-07",
+  "session": "S191",
+  "date": "2026-05-08",
   "description": "Publishable paper baseline notebooks — full inline Python/NumPy implementations of peer-reviewed science, serving as the math validation base for Rust, GPU, and primal IPC layers.",
-  "total_notebooks": 5,
-  "total_checks": 46,
-  "total_passed": 46,
-  "total_source_lines": 2058,
-  "faculty": {
-    "name": "Emily Dolson",
-    "institution": "Michigan State University",
-    "track": "Evolutionary Computation"
-  },
+  "total_notebooks": 8,
+  "total_checks": 72,
+  "total_passed": 72,
+  "total_source_lines": 3337,
+  "faculties": [
+    {"name": "Emily Dolson", "institution": "Michigan State University", "track": "Evolutionary Computation", "papers": ["011", "012", "013", "014", "015"]},
+    {"name": "Kevin Liu", "institution": "Michigan State University", "track": "HMM & Phylogenetic Inference", "papers": ["016", "017", "018"]}
+  ],
   "notebooks": [
     {
       "id": "011",
@@ -94,8 +93,56 @@
       "barracuda_mapping": ["GEMM + sigmoid (NeuralNet forward)", "threshold ops (BehaviorTree/RuleBased)", "buffer management (population)"]
     }
   ],
+    {
+      "id": "016",
+      "file": "paper-016-hmm-phylo.ipynb",
+      "title": "HMM Forward/Backward/Viterbi for Genomic Inference",
+      "citation": "Liu et al. (2014) PLoS Computational Biology 10(4):e1003649",
+      "doi": "10.1371/journal.pcbi.1003649",
+      "checks": 10,
+      "passed": 10,
+      "source": "control/hmm_phylo/hmm_phylo.py",
+      "source_lines": 411,
+      "provenance_const": "HMM_PROVENANCE",
+      "domain": "HMM_phylo",
+      "key_result": "Forward/backward/Viterbi/Baum-Welch all validated; EM log-likelihood non-decreasing",
+      "visualizations": ["State probability heatmap", "EM convergence curve"],
+      "barracuda_mapping": ["gemm_f64.wgsl (transition × emission × state)", "reduce_max.wgsl + argmax (Viterbi)", "outer products via gemm_f64.wgsl (Baum-Welch)"]
+    },
+    {
+      "id": "017",
+      "file": "paper-017-sate-alignment.ipynb",
+      "title": "SATe: Iterative Co-estimation of MSA and Phylogeny",
+      "citation": "Liu et al. (2009) Science 324:1561-1564",
+      "doi": "10.1126/science.1171243",
+      "checks": 8,
+      "passed": 8,
+      "source": "control/sate_alignment/sate_alignment.py",
+      "source_lines": 482,
+      "provenance_const": "SATE_ALIGNMENT_PROVENANCE",
+      "domain": "sate_alignment",
+      "key_result": "NJ tree reconstruction, progressive alignment, iterative refinement all validated",
+      "visualizations": ["Distance matrix heatmap", "Alignment score vs iteration"],
+      "barracuda_mapping": ["gemm_f64 (N×N pairwise distance)", "reduction + argmin (NJ)", "affine-gap recurrence (alignment)"]
+    },
+    {
+      "id": "018",
+      "file": "paper-018-introgression.ipynb",
+      "title": "PhyloNet-HMM for Introgression Detection",
+      "citation": "Liu et al. (2015) PNAS 112:196-201",
+      "doi": "10.1073/pnas.1413856112",
+      "checks": 8,
+      "passed": 8,
+      "source": "control/introgression/introgression.py",
+      "source_lines": 386,
+      "provenance_const": "INTROGRESSION_PROVENANCE",
+      "domain": "introgression",
+      "key_result": "PhyloNet-HMM detects introgression regions; Viterbi path matches ground truth",
+      "visualizations": ["Posterior probability heatmap", "Introgression region plot", "Topology bar chart"],
+      "barracuda_mapping": ["gemm_f64.wgsl (transition × emission × state)", "reduce_max.wgsl + argmax (Viterbi)", "same HMM primitives as Paper 016"]
+    }
+  ],
   "future_batches": [
-    {"batch": 2, "faculty": "Liu", "papers": ["016", "017", "018"], "scope": "HMM, SATe, Introgression"},
     {"batch": 3, "faculty": "Waters", "papers": ["019", "020", "021"], "scope": "Game theory, Regulatory, Signal"},
     {"batch": 4, "faculty": "Kachkovskiy", "papers": ["022", "023"], "scope": "Spectral, Anderson"},
     {"batch": 5, "faculty": "Anderson/Campbell", "papers": ["024", "025"], "scope": "Pangenome, Meta-population"},

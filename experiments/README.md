@@ -1,6 +1,43 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S188)**: 1,234 lib + 73 forge + 80 playGround tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy (pedantic+nursery+cast deny, -D warnings), 0 fmt diffs, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3. sporePrint Tier 2: 5 notebooks + 6 frozen JSON + validation summary. primalSpring v0.9.17+. genomeBin v5.1. Edition 2024. MSRV 1.87. barraCuda v0.3.12. May 7, 2026.
+**Current state (Session S192)**: 1,279 lib + 73 forge + 80 playGround = 1,432 workspace tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy, 0 fmt, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3 (29/29). barraCuda optional (IPC-first). 8 paper notebooks (72/72 checks, 2 faculties). sporePrint Tier 2. 4 deploy graphs. exp094 NUCLEUS composition parity. primalSpring v0.9.25+. Edition 2024. MSRV 1.87. barraCuda v0.3.13. May 8, 2026.
+
+### Session S192 — 2026-05-08 (Doc Cleanup, Upstream Handoffs, Archive Sweep)
+
+- **Doc cleanup and canonical alignment**: Root README, baseCamp, experiments, wateringHole all synchronized to S192.
+  - **Stale reference cleanup**: All V137/S186 footer/table references → V142/S192. Quality gates test count 1,217 → 1,432.
+  - **Upstream primal handoff**: Consolidated debt, evolution gaps, and absorption targets for primal teams.
+  - **Downstream absorption review**: projectNUCLEUS + foundation pattern integration notes.
+  - **Archive sweep**: Verified zero false-positive TODOs, zero orphan files, zero archivable debris.
+  - **Result**: 0 clippy, 0 fmt. V142 handoff
+
+### Session S191 — 2026-05-08 (Full Sweep: Deep Debt, Coverage, Downstream Review)
+
+- **Exp 138 — Full sweep**: Coverage expansion + downstream alignment
+  - **projectNUCLEUS + foundation review**: Both repos in `gardens/` pulled and reviewed. neuralSpring in foundation threads 5 (Evolutionary Biology) + 7 (Anderson Mathematics). projectNUCLEUS deploys 13/13 primals with BTSP Phase 3.
+  - **45 new inline unit tests** across 5 library modules (error, streaming, search, provenance/references, visualization/types) — lib tests 1,234 → 1,279
+  - **Liu faculty paper notebooks** (016-018, 26/26 checks): HMM, SATe, Introgression. Paper notebooks total: 8, 72/72 checks.
+  - **Benchmark gap roadmap**: `BENCHMARK_ANALYSIS.md` updated with Kokkos/Polybench assessment.
+  - **Tier 4 IPC audit**: 8 composition validators, 160 checks (11 skip-when-offline), documented in `experiment-catalog.json`.
+  - **Result**: 0 clippy, 0 fmt. V141 handoff
+
+### Session S190 — 2026-05-08 (Cross-Spring Composition Parity Response)
+
+- **Exp 137 — Cross-spring parity response**: primalSpring Phase 60 audit response
+  - **barraCuda `optional = true`**: IPC-first sovereign deployment. `dep:barracuda`, `dep:neural-spring-forge`, `dep:wgpu` feature-gated. 9 GPU modules conditionally compiled.
+  - **Registry cross-sync test**: `registry_methods_in_primalspring_canonical()` validates neuralSpring capabilities against primalSpring's 389-method canonical registry.
+  - **exp094 NUCLEUS composition parity**: Workspace experiment crate replicating primalSpring's composition test pattern (Tower + Node + Nest + Science + Cross-Atomic).
+  - **3 new deploy graphs** (4 total): inference pipeline, spectral analysis, math pipeline (composition/).
+  - **PRIMAL_GAPS 1-4 IMPLEMENTED**: Inference surface, barraCuda IPC migration, coralReef IPC, toadStool IPC — all validated via exp094.
+  - **Result**: 0 clippy, 0 fmt, `cargo deny check` clean. V140 handoff
+
+### Session S189 — 2026-05-07 (Paper Baseline Notebooks — Dolson Faculty)
+
+- **Exp 136 — Paper baseline notebooks (Dolson faculty)**: 5 publishable Jupyter notebooks for papers 011-015
+  - Full inline Python/NumPy implementations: counterdiabatic evolution, MODES toolbox, eco dynamics, directed evolution, swarm robotics
+  - 46/46 checks PASS, matplotlib visualizations, provenance links
+  - `paper-baselines.json` frozen data, `NOTEBOOK_PATTERN.md` updated, `sporeprint/validation-summary.md` updated
+  - **Result**: V139 handoff → sporePrint
 
 ### Session S188 — 2026-05-07 (sporePrint Tier 2 Absorption)
 

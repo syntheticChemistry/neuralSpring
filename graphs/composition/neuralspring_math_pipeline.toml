@@ -1,0 +1,70 @@
+# neuralSpring Math Pipeline — Minimal Composition Graph
+#
+# Smallest meaningful NUCLEUS composition for neuralSpring:
+#   tensor.create → stats.mean → compute.dispatch
+#
+# This is the validation graph for barraCuda IPC parity — it exercises
+# the Node Atomic triangle (barraCuda + toadStool) without Nest or
+# full Tower overhead. Used by exp094 and guidestone Phase 3.
+#
+# STATUS: V140 / S190 (May 8, 2026)
+# Run: biomeos deploy graphs/composition/neuralspring_math_pipeline.toml
+
+[graph]
+id = "neuralspring_math_pipeline"
+description = "Minimal compute chain: tensor create → stats mean → dispatch"
+coordination = "Sequential"
+
+[graph.metadata]
+neuralspring_version = "S190"
+domain = "compute"
+composition_model = "nucleated"
+bond_type = "Metallic"
+trust_model = "InternalNucleus"
+transport = "uds"
+tcp_ports = 0
+fragments = ["node_atomic"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NODE ATOMIC — barraCuda + toadStool compute triangle
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "tensor_create"
+output = "tensor_handle"
+primal = "barracuda"
+capability = "tensor"
+method = "tensor.create"
+params = { "data" = [1.0, 2.0, 3.0, 4.0, 5.0], "dtype" = "f64" }
+
+[[nodes]]
+id = "compute_mean"
+output = "mean_result"
+primal = "barracuda"
+capability = "tensor"
+method = "stats.mean"
+params = { "source" = "tensor_handle" }
+depends_on = ["tensor_create"]
+
+[[nodes]]
+id = "dispatch_validate"
+output = "dispatch_result"
+primal = "toadstool"
+capability = "compute"
+method = "compute.dispatch.submit"
+params = { "workload" = "stats_mean", "substrate" = "cpu" }
+depends_on = ["compute_mean"]
+fallback = "skip"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VALIDATION — Parity check against Python baseline
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "parity_check"
+output = "parity_result"
+primal = "neuralspring"
+capability = "science"
+method = "health.readiness"
+params = { "expected_mean" = 3.0, "tolerance" = 1e-10 }
+depends_on = ["compute_mean"]

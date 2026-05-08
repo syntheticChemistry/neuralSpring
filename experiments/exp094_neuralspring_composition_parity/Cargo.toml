@@ -1,0 +1,19 @@
+[package]
+name = "neuralspring-exp094"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.87"
+license = "AGPL-3.0-or-later"
+publish = false
+description = "NUCLEUS composition parity validation for neuralSpring niche"
+
+[[bin]]
+name = "exp094_neuralspring_composition_parity"
+path = "src/main.rs"
+
+[dependencies]
+primalspring = { path = "../../../primalSpring/ecoPrimal" }
+serde_json = "1"
+
+[lints]
+workspace = true

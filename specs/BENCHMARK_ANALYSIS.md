@@ -382,3 +382,51 @@ MultiObjFitness, PairwiseL2, SwarmNN). Publish results to
   BarraCUDA MHA uses decomposed matmul+split+concat vs fused kernel.
 
 Python control scripts: `control/industry_gpu/bench_*.py` (PyTorch 2.9.0+cu128).
+
+---
+
+## Benchmark Gap Roadmap (S191 — May 8, 2026)
+
+### Current Coverage
+
+| Category | Status | Details |
+|----------|--------|---------|
+| Python CPU vs Rust CPU | **Complete** | 83.6x geomean, 15 domains, `validate_barracuda_cpu_bench.rs` |
+| GPU vs CPU | **Complete** | 5-scale MLP+TF benchmark, tiered shader routing |
+| cuBLAS/cuDNN/cuFFT/FlashAttn | **Complete** | `bench_industry_gpu_parity.rs`, Python controls in `control/industry_gpu/` |
+| Kokkos | **Partial** | `bench_kokkos_parity.rs` with estimated baselines, not matched-hardware |
+| Galaxy (bioinformatics) | **Not applicable** | Different scope (pipeline tool, not kernel library) |
+
+### Gaps and Next Steps
+
+**1. Kokkos matched-hardware baselines** (priority: medium)
+
+`bench_kokkos_parity.rs` has estimated baselines from published papers, not
+actual runs on matching hardware. To close:
+- Install Kokkos on ironGate (same RTX 4070 used for BarraCUDA benchmarks)
+- Run 10 canonical Kokkos-CUDA kernels: SpMV, Jacobi3D, Heat3D, GEMM, etc.
+- Replace estimated baselines with measured timings
+- Hand back to: projectNUCLEUS/barraCuda teams
+
+**2. Polybench/GPU** (priority: low)
+
+Not started. Polybench/GPU provides ~30 CUDA kernels in categories:
+data mining, linear algebra, stencils, medley. Relevant subset for BarraCUDA:
+- 2MM, 3MM, GEMM (linear algebra) — direct overlap with BarraCUDA matmul
+- ATAX, BICG, MVT (linear algebra) — mat-vec multiply, BarraCUDA `gemv`
+- FDTD-2D, JACOBI-2D (stencils) — not in BarraCUDA scope today
+Decision: defer until BarraCUDA absorbs stencil ops.
+
+**3. SPEC/Rodinia/Parboil** (priority: out of scope)
+
+These are application-level suites, not kernel benchmarks. BarraCUDA validates
+at the kernel level (GEMM, reduce, FFT, softmax). Application-level validation
+happens at the spring level via paper reproductions.
+
+### Benchmark Provenance
+
+| Benchmark | Hardware | Python | BarraCUDA | Source |
+|-----------|----------|--------|-----------|--------|
+| CPU parity | i9-12900K (1T) | NumPy 2.2.6/OpenBLAS | Rust native | `validate_barracuda_cpu_bench.rs` |
+| GPU parity | RTX 4070 (Vulkan) | PyTorch 2.9.0+cu128 | wgpu 28 WGSL | `bench_industry_gpu_parity.rs` |
+| Kokkos | **RTX 4070 (estimated)** | N/A | wgpu 28 WGSL | `bench_kokkos_parity.rs` |

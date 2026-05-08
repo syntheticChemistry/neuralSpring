@@ -5,7 +5,68 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-07 (Session 188: sporePrint Tier 2 — notebooks + frozen data)
+## [Unreleased] — 2026-05-08 (Session 192: Doc Cleanup, Upstream Handoffs, Archive Sweep)
+
+### 2026-05-08 — Session S192 (Doc cleanup, upstream primal handoffs, downstream absorption review, archive sweep)
+
+- **Root docs synchronized** — README, CHANGELOG, quality gates, footer, directory tree all aligned to S192. Test count canonical: 1,279 lib + 73 forge + 80 playGround = 1,432. Eliminated S186/V137 stale references from footer, specs table, directory structure comments. Quality gates test line updated from 1,217 → 1,432.
+- **whitePaper/baseCamp/README.md** refreshed to S192 — session, handoff version, test counts, barraCuda version, paper notebook status all current.
+- **experiments/README.md** refreshed to S192 — added S189-S192 session entries, updated header status line.
+- **wateringHole/README.md** updated — V142 active, V141 archived, archive range V1-V141.
+- **Upstream primal handoff (V142)** — consolidated evolution targets for all primal teams:
+  - barraCuda: 18 IPC surface gaps (A: tensor lifecycle, B: core math, C: ML ops)
+  - Squirrel: `inference.register_provider`
+  - coralReef: shader compile wire contract
+  - toadStool: compute dispatch surface stabilization
+  - NestGate: weight tensor storage API
+  - BearDog/Songbird: BTSP session wire
+  - barraCuda: `special::plasma_dispersion` feature gate
+- **Downstream absorption notes** — projectNUCLEUS (4 deploy graphs ready, neuralAPI biomeOS integration), foundation (Threads 5 + 7, 8 notebooks ready)
+- **Archive sweep** — zero stale TODOs, zero orphans, zero debris. 2 provenance-retained assessment files noted.
+- **PRIMAL_GAPS.md** session header updated to S192
+
+### 2026-05-08 — Session S191 (Full sweep: downstream review, test coverage, Liu faculty notebooks, benchmark audit, IPC review)
+
+- **projectNUCLEUS + foundation review** — both repos pulled and reviewed. projectNUCLEUS deploys 13/13 primals on ironGate with BTSP Phase 3, 5-tier discovery, full provenance chain. foundation maps 10 domain threads (neuralSpring in threads 5 + 7). Both repos inform neuralSpring's downstream patterns for NUCLEUS composition.
+- **45 new inline unit tests** across 5 library modules:
+  - `src/error.rs` (14 tests) — error type construction, Display impls, From conversions
+  - `src/streaming/mod.rs` (8 tests) — newline trimming, buffer capacity invariants
+  - `src/search/mod.rs` (5 tests) — k-mer index build, lookup, N-base skipping
+  - `src/provenance/references.rs` (8 tests) — softmax sum-to-one, GELU sign, Rosenbrock global min, Ackley positivity
+  - `src/visualization/types.rs` (10 tests) — DataChannel serialization (timeseries, gauge, heatmap, scatter3d, spectrum), ScenarioNode empty-vec skipping
+- **Liu faculty paper notebooks** (3 new, 8 total, 72/72 checks):
+  - `paper-016-hmm-phylo.ipynb` — Forward/Backward/Viterbi/Baum-Welch (10/10 PASS)
+  - `paper-017-sate-alignment.ipynb` — NJ tree, progressive alignment, iterative SATe (8/8 PASS)
+  - `paper-018-introgression.ipynb` — PhyloNet-HMM introgression detection (8/8 PASS)
+- **Benchmark gap roadmap** — `specs/BENCHMARK_ANALYSIS.md` updated with coverage matrix, Kokkos/Polybench/SPEC gap assessment and prioritization
+- **Tier 4 IPC validator audit** — 8 validators with 160 total checks (11 skip-when-offline), documented in `experiment-catalog.json`
+- **paper-baselines.json** updated to S191 with Liu faculty entries (8 notebooks, 72 checks)
+- 1,279 lib tests (45 new), 0 clippy, 0 fmt. V141 handoff
+
+### 2026-05-08 — Session S190 (Cross-spring composition parity response: barraCuda optional, exp094, 3 deploy graphs, registry cross-sync)
+
+- **barraCuda `optional = true`** — barracuda, wgpu, neural-spring-forge now optional deps with `barracuda` feature flag (default-enabled). GPU-centric modules gated behind `#[cfg(feature = "barracuda")]`. playGround barracuda+wgpu also optional. Satisfies universal evolution target from primalSpring Phase 60 audit.
+- **Registry cross-sync test** — new `registry_methods_in_primalspring_canonical` test validates 10+ shared methods against primalSpring's canonical 389-method `config/capability_registry.toml`. Documents neuralSpring-only methods (`science.*`, `provenance.*`, `primal.forward/discover`).
+- **exp094 composition parity crate** — `experiments/exp094_neuralspring_composition_parity/` replicates primalSpring's NUCLEUS parity template. Validates Tower (BearDog/Songbird), Node (barraCuda/coralReef/toadStool), Nest (NestGate/provenance), niche science parity (`stats.mean`, `spectral_analysis`), inference probes, and cross-atomic hash→store→retrieve pipeline.
+- **3 new deploy graphs** (total 4):
+  - `neuralspring_inference_pipeline.toml` — Squirrel → barraCuda → inference → provenance
+  - `neuralspring_spectral_analysis.toml` — eigendecomp → IPR → NestGate → provenance
+  - `composition/neuralspring_math_pipeline.toml` — minimal tensor→mean→dispatch chain
+- **PRIMAL_GAPS items 1-4 → IMPLEMENTED** — reflecting primalSpring exp094 validation and JH-0 MethodGate adoption by all 13/13 primals
+- **gap-status.json** updated to S190 with 3 new composition evolution items (CE6-CE8) and parity scorecard response
+- 269 binaries, 0 clippy, 0 fmt, `cargo deny check` clean. V140 handoff
+
+### 2026-05-07 — Session S189 (Paper baseline notebooks: Dolson faculty, 5 notebooks, 46/46 checks)
+
+- **5 publishable-grade paper baseline notebooks** in `notebooks/papers/`:
+  - `paper-011-counterdiabatic-evolution.ipynb` — Iram/Dolson (2020) Nature Physics, NK landscapes, CD schedule (11/11 PASS)
+  - `paper-012-modes-toolbox.ipynb` — Dolson et al. (2019) Artificial Life, MODES metrics (9/9 PASS)
+  - `paper-013-eco-dynamics.ipynb` — Dolson & Ofria (2018) GECCO, ecological dynamics (7/7 PASS)
+  - `paper-014-directed-evolution.ipynb` — Dolson et al. (2022) eLife, selection algorithms (8/8 PASS)
+  - `paper-015-swarm-robotics.ipynb` — Foreback et al. (2025) IEEE, heterogeneous controllers (11/11 PASS)
+- **`experiments/results/paper-baselines.json`** frozen data with citations, DOIs, BarraCUDA mappings
+- **`sporeprint/validation-summary.md`** updated with paper baselines section
+- **`notebooks/NOTEBOOK_PATTERN.md`** expanded with paper baseline cell structure
 
 ### 2026-05-07 — Session S188 (sporePrint Tier 2: 5 notebooks + 6 frozen JSON + validation summary + notify workflow)
 

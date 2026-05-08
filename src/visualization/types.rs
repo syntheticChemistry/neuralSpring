@@ -351,3 +351,125 @@ pub struct NeuralApi {
     /// Whether the neural/API integration layer is enabled.
     pub enabled: bool,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn timeseries_serializes_correctly() {
+        let ch = DataChannel::TimeSeries {
+            id: "ts1".into(),
+            label: "Loss curve".into(),
+            x_label: "Epoch".into(),
+            y_label: "Loss".into(),
+            unit: "dimensionless".into(),
+            x_values: vec![0.0, 1.0, 2.0],
+            y_values: vec![1.0, 0.5, 0.25],
+        };
+        let json = serde_json::to_value(&ch).expect("serialize");
+        assert_eq!(json["channel_type"], "timeseries");
+        assert_eq!(json["id"], "ts1");
+        assert_eq!(json["x_values"].as_array().expect("array").len(), 3);
+    }
+
+    #[test]
+    fn gauge_serializes_with_ranges() {
+        let ch = DataChannel::Gauge {
+            id: "g1".into(),
+            label: "Temperature".into(),
+            value: 42.0,
+            min: 0.0,
+            max: 100.0,
+            unit: "C".into(),
+            normal_range: [20.0, 60.0],
+            warning_range: [60.0, 80.0],
+        };
+        let json = serde_json::to_value(&ch).expect("serialize");
+        assert_eq!(json["channel_type"], "gauge");
+        assert_eq!(json["value"], 42.0);
+    }
+
+    #[test]
+    fn heatmap_serializes_grid() {
+        let ch = DataChannel::Heatmap {
+            id: "h1".into(),
+            label: "Attention".into(),
+            x_labels: vec!["a".into(), "b".into()],
+            y_labels: vec!["c".into(), "d".into()],
+            values: vec![1.0, 2.0, 3.0, 4.0],
+            unit: "weight".into(),
+        };
+        let json = serde_json::to_value(&ch).expect("serialize");
+        assert_eq!(json["channel_type"], "heatmap");
+        assert_eq!(json["values"].as_array().expect("array").len(), 4);
+    }
+
+    #[test]
+    fn scatter3d_serializes() {
+        let ch = DataChannel::Scatter3D {
+            id: "s3d".into(),
+            label: "Phase space".into(),
+            x: vec![1.0],
+            y: vec![2.0],
+            z: vec![3.0],
+            point_labels: vec!["origin".into()],
+            unit: "eV".into(),
+        };
+        let json = serde_json::to_value(&ch).expect("serialize");
+        assert_eq!(json["channel_type"], "scatter3d");
+    }
+
+    #[test]
+    fn spectrum_serializes() {
+        let ch = DataChannel::Spectrum {
+            id: "sp1".into(),
+            label: "Eigenvalues".into(),
+            frequencies: vec![1.0, 2.0, 3.0],
+            amplitudes: vec![0.5, 0.8, 0.3],
+            unit: "eV".into(),
+        };
+        let json = serde_json::to_value(&ch).expect("serialize");
+        assert_eq!(json["channel_type"], "spectrum");
+    }
+
+    #[test]
+    fn threshold_range_construction() {
+        let tr = ThresholdRange {
+            label: "Extended".into(),
+            min: 0.0,
+            max: 1.0,
+            status: "healthy".into(),
+        };
+        assert_eq!(tr.label, "Extended");
+        assert!(tr.max > tr.min);
+    }
+
+    #[test]
+    fn scenario_node_skips_empty_vecs() {
+        let node = ScenarioNode {
+            id: "n1".into(),
+            name: "Test".into(),
+            node_type: "primal".into(),
+            family: "test".into(),
+            status: "healthy".into(),
+            health: 100,
+            confidence: 95,
+            position: Position { x: 0.0, y: 0.0 },
+            capabilities: vec![],
+            data_channels: vec![],
+            thresholds: vec![],
+        };
+        let json = serde_json::to_value(&node).expect("serialize");
+        assert!(json.get("capabilities").is_none());
+        assert!(json.get("data_channels").is_none());
+        assert!(json.get("thresholds").is_none());
+    }
+
+    #[test]
+    fn neural_api_toggle() {
+        let api = NeuralApi { enabled: true };
+        let json = serde_json::to_value(&api).expect("serialize");
+        assert_eq!(json["enabled"], true);
+    }
+}

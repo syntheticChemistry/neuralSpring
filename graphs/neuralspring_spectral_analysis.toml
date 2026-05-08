@@ -1,0 +1,131 @@
+# neuralSpring Spectral Analysis Deploy Graph
+#
+# Domain-specific graph for weight matrix spectral analysis:
+#   BearDog auth → barraCuda eigenvalue → neuralSpring spectral analysis
+#   → NestGate result storage → provenance tracking
+#
+# This is the core science pipeline for nS-01 (Weight Matrices as
+# Disordered Hamiltonians). It validates that the spectral analysis
+# capability chain works end-to-end as a NUCLEUS composition.
+#
+# Capabilities exercised:
+#   - science.spectral_analysis (eigenvalues, IPR, level spacing)
+#   - science.anderson_localization (localization detection)
+#   - science.hessian_eigen (loss landscape Hessian)
+#   - science.ipr (inverse participation ratio)
+#
+# STATUS: V140 / S190 (May 8, 2026)
+# Run: biomeos deploy graphs/neuralspring_spectral_analysis.toml
+
+[graph]
+id = "neuralspring_spectral_analysis"
+description = "Weight matrix spectral analysis pipeline: eigendecomp, IPR, Anderson localization"
+coordination = "Sequential"
+
+[graph.metadata]
+neuralspring_version = "S190"
+domain = "science"
+composition_model = "nucleated"
+bond_type = "Metallic"
+trust_model = "InternalNucleus"
+transport = "uds"
+tcp_ports = 0
+encryption_boundary = "tower"
+fragments = ["tower_atomic", "node_atomic", "nest_atomic"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 1: TOWER — Security boundary
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "tower_auth"
+output = "auth_genesis"
+primal = "beardog"
+capability = "security"
+method = "health.check"
+params = {}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2: NODE — Compute substrate for eigendecomposition
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "barracuda_math"
+output = "math_ready"
+primal = "barracuda"
+capability = "tensor"
+method = "health.check"
+params = {}
+depends_on = ["tower_auth"]
+
+[[nodes]]
+id = "coralreef_shaders"
+output = "shader_ready"
+primal = "coralreef"
+capability = "shader"
+method = "shader.compile.capabilities"
+params = {}
+depends_on = ["tower_auth"]
+fallback = "skip"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 3: NICHE — Spectral analysis capabilities
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "neuralspring_spectral"
+output = "spectral_service"
+primal = "neuralspring"
+capability = "science"
+method = "capability.list"
+params = {}
+depends_on = ["barracuda_math"]
+capabilities_provided = [
+    "science.spectral_analysis",
+    "science.anderson_localization",
+    "science.hessian_eigen",
+    "science.ipr",
+    "science.disorder_sweep",
+]
+
+[[nodes]]
+id = "run_spectral_analysis"
+output = "spectral_result"
+primal = "neuralspring"
+capability = "science"
+method = "science.spectral_analysis"
+params = { "mode" = "eigenvalues", "source" = "weight_matrix" }
+depends_on = ["neuralspring_spectral"]
+
+[[nodes]]
+id = "run_ipr_analysis"
+output = "ipr_result"
+primal = "neuralspring"
+capability = "science"
+method = "science.ipr"
+params = { "source" = "spectral_result" }
+depends_on = ["run_spectral_analysis"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 4: NEST — Store results
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "store_spectral_results"
+output = "storage_receipt"
+primal = "nestgate"
+capability = "storage"
+method = "storage.put"
+params = { "key" = "spectral_analysis_latest" }
+depends_on = ["run_ipr_analysis"]
+fallback = "skip"
+
+[[nodes]]
+id = "provenance_record"
+output = "provenance_receipt"
+primal = "sweetgrass"
+capability = "commit"
+method = "provenance.session_create"
+params = { "graph" = "neuralspring_spectral_analysis", "domain" = "science.spectral" }
+depends_on = ["store_spectral_results"]
+fallback = "skip"
