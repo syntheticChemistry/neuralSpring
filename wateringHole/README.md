@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V144 — Session S194 (Deep Debt Sweep)
+### V145 — Session S195 (Doc Reconciliation & Upstream Primal Handoff)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V144** | `handoffs/NEURALSPRING_V144_DEEP_DEBT_SWEEP_HANDOFF_MAY09_2026.md` | May 9, 2026 | Feature gate alignment (loss_landscape, weight_spectral, wdm_esn), 12 new inline tests, centralized BIOMEOS_FAMILY_ID, dep alignment, 1,448 workspace tests. |
+| **V145** | `handoffs/NEURALSPRING_V145_DOC_RECONCILIATION_UPSTREAM_HANDOFF_MAY09_2026.md` | May 9, 2026 | Doc reconciliation (all test counts, handoff refs, deploy graph metadata), comprehensive upstream primal handoff (barraCuda 18 IPC gaps, toadStool dispatch, coralReef shaders, BearDog/Songbird Tower, Squirrel provider reg), downstream absorption patterns, NUCLEUS/neuralAPI composition, archive sweep. 1,448 workspace tests. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V143 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V144 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

@@ -5,7 +5,15 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-09 (Session 194: Deep Debt Sweep)
+## [Unreleased] — 2026-05-09 (Session 195: Doc Reconciliation & Upstream Handoff)
+
+### 2026-05-09 — Session S195 (Doc reconciliation, upstream primal handoff, archive sweep, deploy graph sync)
+
+- **Doc reconciliation** — README, experiments/README, sporeprint/validation-summary, NOTEBOOK_PATTERN, whitePaper/baseCamp all synchronized to S195/V145. Test counts reconciled to 1,295 lib + 73 forge + 80 playGround = 1,448 across all canonical references. Stale handoff refs (V142/S192) updated to V145/S195. Binary/validator counts corrected. Paper count unified to 27. Directory tree updated for post-eukaryotic layout (ipc/, certification/, validation/scenarios/).
+- **Deploy graph metadata** — `neuralspring_deploy.toml` updated from V137/S186 to V145/S195 (version, status, params).
+- **Frozen data refreshed** — `validation-state.json` updated from S188/1,234 lib to S195/1,295 lib.
+- **NOTEBOOK_PATTERN** — added Liu faculty batch (016-018, 26 checks) to documented notebook list; session/date synced.
+- **Upstream primal handoff (V145)** — comprehensive handoff for primal teams (barraCuda, toadStool, coralReef, BearDog, Squirrel) and downstream spring teams documenting evolution patterns, NUCLEUS composition, neuralAPI deployment, and absorption readiness.
 
 ### 2026-05-09 — Session S194 (Deep debt: feature gates, inline tests, centralized env, dep alignment)
 

@@ -1,8 +1,8 @@
 {
   "spring": "neuralSpring",
-  "session": "S194",
+  "session": "S195",
   "date": "2026-05-09",
-  "audit_response": "Deep debt sweep: feature gates for barracuda-dependent modules, 12 inline tests, centralized BIOMEOS_FAMILY_ID, dep alignment",
+  "audit_response": "Doc reconciliation: all canonical test counts, handoff refs, session numbers, deploy graph metadata, frozen data synchronized to S195/V145",
   "summary": {
     "total_main_gaps": 14,
     "resolved_main": 2,

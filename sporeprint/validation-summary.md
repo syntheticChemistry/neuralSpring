@@ -1,7 +1,7 @@
 +++
 title = "neuralSpring Validation Summary"
 description = "ML primitives and sovereign structure prediction — 4,900+ checks, Isomorphism Theorem, 83.6x faster than Python"
-date = 2026-05-07
+date = 2026-05-09
 
 [taxonomies]
 primals = ["barracuda", "toadstool", "biomeos", "squirrel"]
@@ -12,7 +12,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S194 | **Date:** May 9, 2026 | **Version:** 0.1.0
+> **Session:** S195 | **Date:** May 9, 2026 | **Version:** 0.1.0
 > **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 
 ---
@@ -21,7 +21,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 | Metric | Value |
 |--------|-------|
-| **Workspace lib tests** | 1,432 (1,279 lib + 73 forge + 80 playGround) |
+| **Workspace lib tests** | 1,448 (1,295 lib + 73 forge + 80 playGround) |
 | **Proptest properties** | 24 |
 | **Python baselines** | 397 PASS |
 | **Rust+GPU checks** | 4,500+ |
@@ -130,7 +130,7 @@ Remaining batches: 19 papers across 4 additional faculties.
 | `cross-spring-matrix.json` | 8 primal dependencies, proto-nucleate |
 | `benchmark-data.json` | Rust vs Python, GPU, multi-GPU, isomorphic primitives |
 | `gap-status.json` | 14 gaps, 13 resolved, 5 composition evolution |
-| `paper-baselines.json` | 5 paper notebooks, 46 checks, faculty, BarraCUDA mappings |
+| `paper-baselines.json` | 8 paper notebooks, 72 checks, 2 faculties, BarraCUDA mappings |
 
 ---
 
@@ -138,8 +138,8 @@ Remaining batches: 19 papers across 4 additional faculties.
 
 - **Edition**: 2024
 - **MSRV**: 1.87
-- **barraCuda**: v0.3.12
-- **primalSpring**: v0.9.17+
+- **barraCuda**: v0.3.13
+- **primalSpring**: v0.9.25+
 - **genomeBin**: v5.1 (46 binaries, 6 target triples)
 - **Bond type**: Metallic
 - **Trust model**: InternalNucleus
@@ -156,4 +156,4 @@ Remaining batches: 19 papers across 4 additional faculties.
 
 ---
 
-**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S189
+**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S195

@@ -26,7 +26,7 @@ Default build (`barracuda` feature on) is unaffected. This aligns with the
 existing pattern used by `gpu`, `gpu_dispatch`, `gpu_ops`, `evolved`,
 `nautilus_bridge`, `training_monitor`, `wdm_surrogate`, and `wdm_transport`.
 
-### 2. Inline Test Expansion (+12 tests)
+### 2. Inline Test Expansion (+20 tests, 12 in default build)
 
 | Module | New tests | Coverage added |
 |--------|-----------|---------------|

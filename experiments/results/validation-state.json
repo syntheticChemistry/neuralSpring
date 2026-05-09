@@ -1,13 +1,13 @@
 {
   "spring": "neuralSpring",
   "version": "0.1.0",
-  "session": "S188",
-  "date": "2026-05-07",
+  "session": "S195",
+  "date": "2026-05-09",
   "tests": {
-    "lib": 1234,
+    "lib": 1295,
     "forge": 73,
     "playground": 80,
-    "total_workspace": 1387,
+    "total_workspace": 1448,
     "proptest_properties": 24,
     "python_baselines": 397,
     "rust_gpu_checks": 4500,

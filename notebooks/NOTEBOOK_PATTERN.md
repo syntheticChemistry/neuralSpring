@@ -3,7 +3,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
 > Adapted from primalSpring/wetSpring sporePrint pattern for neuralSpring.
-> Date: May 7, 2026 | Session: S188
+> Date: May 9, 2026 | Session: S195
 
 ## Purpose
 
@@ -91,7 +91,9 @@ neuralSpring repo.
 
 `paper-{NNN}-{slug}.ipynb` — NNN matches canonical paper ID (001–027).
 
-### Paper notebooks (Batch 1: Dolson)
+### Paper notebooks (2 faculties, 8 notebooks, 72/72 checks)
+
+#### Batch 1: Dolson Faculty (Evolutionary Computation)
 
 | # | File | Checks |
 |---|------|--------|
@@ -100,6 +102,14 @@ neuralSpring repo.
 | 013 | `paper-013-eco-dynamics.ipynb` | 7/7 |
 | 014 | `paper-014-directed-evolution.ipynb` | 8/8 |
 | 015 | `paper-015-swarm-robotics.ipynb` | 11/11 |
+
+#### Batch 2: Liu Faculty (HMM & Phylogenetic Inference)
+
+| # | File | Checks |
+|---|------|--------|
+| 016 | `paper-016-hmm-phylo.ipynb` | 10/10 |
+| 017 | `paper-017-sate-alignment.ipynb` | 8/8 |
+| 018 | `paper-018-introgression.ipynb` | 8/8 |
 
 ## Data Sources
 
@@ -111,4 +121,4 @@ All in `experiments/results/`:
 - `cross-spring-matrix.json` — primal consumption, proto-nucleate
 - `benchmark-data.json` — Rust vs Python, GPU, multi-GPU
 - `gap-status.json` — 14 gaps, 13 resolved, composition evolution
-- `paper-baselines.json` — 5 paper notebooks, 46 checks, faculty, BarraCUDA mappings
+- `paper-baselines.json` — 8 paper notebooks, 72 checks, 2 faculties, BarraCUDA mappings
