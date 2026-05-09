@@ -1,6 +1,16 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S192)**: 1,279 lib + 73 forge + 80 playGround = 1,432 workspace tests, 68 modules, 269 binaries, 520+ `.rs` files, 0 clippy, 0 fmt, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. guideStone Level 3 (29/29). barraCuda optional (IPC-first). 8 paper notebooks (72/72 checks, 2 faculties). sporePrint Tier 2. 4 deploy graphs. exp094 NUCLEUS composition parity. primalSpring v0.9.25+. Edition 2024. MSRV 1.87. barraCuda v0.3.13. May 8, 2026.
+**Current state (Session S193)**: 1,291 lib + 73 forge + 80 playGround = 1,444 workspace tests, 68+ modules, 269 binaries, 520+ `.rs` files, 0 clippy, 0 fmt, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→IPC→guideStone validation stack. Eukaryotic evolution: certification organelle (4 layers), IPC tree (5 per-primal modules), validation scenarios (6), UniBin binary (5 subcommands), 3 fossilized patterns. guideStone Level 3 (29/29). barraCuda optional (IPC-first). 8 paper notebooks (72/72 checks, 2 faculties). sporePrint Tier 2. 4 deploy graphs. exp094 NUCLEUS composition parity. primalSpring v0.9.25+. Edition 2024. MSRV 1.87. barraCuda v0.3.13. May 9, 2026.
+
+### Session S193 — 2026-05-09 (Interstadial Eukaryotic Evolution)
+
+- **IPC tree graduation**: `src/ipc_dispatch.rs` (401 lines) graduated to `src/ipc/` tree with 5 per-primal modules (barracuda, toadstool, beardog, squirrel, coralreef). Unified `IpcMathClient` facade preserved.
+- **Certification organelle**: `src/certification/` with 4 layers (bare, discovery, parity, nucleus). `certify(max_layer)` public API.
+- **Validation scenarios**: `src/validation/scenarios/` with 6 absorbed scenarios, `ScenarioMeta` provenance, `ScenarioRegistry`, two-tier execution.
+- **UniBin binary**: `neuralspring-unibin` with certify/validate/serve/status/version subcommands.
+- **Fossilization**: 3 pre-extinction patterns in `fossilRecord/` with provenance READMEs.
+- **Deprecated migrations**: `PrimalClient`, `discover_primal()`, `discover_by_capability()` annotated with `#[deprecated]`.
+- **8 new tests** (scenario registry + IPC module).
 
 ### Session S192 — 2026-05-08 (Doc Cleanup, Upstream Handoffs, Archive Sweep)
 

@@ -90,6 +90,8 @@ pub mod anderson_localization;
 )]
 pub mod attention_anderson;
 pub mod bench;
+#[cfg(feature = "guidestone")]
+pub mod certification;
 pub mod config;
 pub mod coral_forge;
 pub mod counterdiabatic;
@@ -123,6 +125,11 @@ pub mod introgression;
     reason = "layer/path casts and f64 statistics"
 )]
 pub mod introgression_nn;
+pub mod ipc;
+#[deprecated(
+    since = "0.2.0",
+    note = "use `ipc` module instead — graduated to per-primal tree at interstadial"
+)]
 pub mod ipc_dispatch;
 pub mod ipc_resilience;
 #[expect(

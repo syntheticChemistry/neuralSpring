@@ -5,7 +5,17 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-08 (Session 192: Doc Cleanup, Upstream Handoffs, Archive Sweep)
+## [Unreleased] — 2026-05-09 (Session 193: Interstadial Eukaryotic Evolution)
+
+### 2026-05-09 — Session S193 (Interstadial eukaryotic evolution — UniBin, IPC tree, certification organelle, validation scenarios, fossilization)
+
+- **IPC tree graduation** — monolithic `src/ipc_dispatch.rs` (401 lines) graduated to `src/ipc/` tree with per-primal modules: `barracuda.rs` (tensor/stats), `toadstool.rs` (compute), `beardog.rs` (crypto), `squirrel.rs` (inference), `coralreef.rs` (shader compilation, new). `IpcMathClient` facade preserved in `ipc/mod.rs`. Old `ipc_dispatch` module deprecated with `note =`.
+- **Certification organelle** — `src/certification/` created with 4 layer modules: `bare.rs` (L0: determinism, traceability, checksums, env-agnostic, tolerances), `discovery.rs` (L1: `CompositionContext` liveness), `parity.rs` (L2: 7-capability science parity), `nucleus.rs` (L3: BearDog signing, Songbird discovery). `certify(max_layer)` public API.
+- **Validation scenarios** — `src/validation/scenarios/` created with `ScenarioMeta`, `Scenario`, `ScenarioRegistry`, `Tier` (Rust/Live/Both), `Track` (6 domain tracks). 6 initial scenarios absorbed from `validate_*` binaries: `nucleus_composition` (22 checks), `inference_composition` (16), `science_composition` (9), `nucleus_tower` (47), `compute_dispatch` (36), `composition_evolution` (30). `build_registry()` function.
+- **UniBin binary** — `neuralspring-unibin` with 5 subcommands: `certify --layer N --bare`, `validate --track X --scenario Y --tier Z --list`, `serve` (stub, future absorption), `status` (IPC liveness + scenario count), `version`. Feature-gated behind `guidestone`.
+- **Fossilization** — 3 pre-extinction patterns fossilized to `fossilRecord/`: `guidestone_prokaryotic_may2026/`, `ipc_dispatch_prokaryotic_may2026/`, `primal_server_prokaryotic_may2026/`. Each with provenance README.
+- **Deprecated pattern migration** — `PrimalClient`, `discover_primal()`, `discover_by_capability()` in playGround annotated with `#[deprecated(since = "0.2.0", note = "use CompositionContext...")]`.
+- **Quality gates** — zero bare `#[allow]`, zero TODO/FIXME/HACK/DEBT in library, `cargo build + fmt + clippy + test` all clean. 1,291 lib tests pass (8 new scenario/registry tests).
 
 ### 2026-05-08 — Session S192 (Doc cleanup, upstream primal handoffs, downstream absorption review, archive sweep)
 

@@ -69,6 +69,10 @@ pub fn discover_socket(primal_name: &str) -> Result<PathBuf> {
 ///
 /// Follows the ecoPrimals self-knowledge principle: a client only knows
 /// *what* it needs (a capability), not *who* provides it.
+#[deprecated(
+    since = "0.2.0",
+    note = "use CompositionContext::from_live_discovery_with_fallback() for capability-based discovery"
+)]
 pub fn discover_by_capability(required_capability: &str, hint_name: &str) -> Result<PathBuf> {
     let socket_dir = resolve_socket_dir();
 
@@ -187,6 +191,10 @@ pub fn address_env_var(primal_name: &str) -> String {
 
 /// Discover a primal socket by name, checking the `{UPPER}_SOCKET` env var
 /// first, then falling back to biomeOS socket directory resolution.
+#[deprecated(
+    since = "0.2.0",
+    note = "use CompositionContext::from_live_discovery_with_fallback() instead of name-based discovery"
+)]
 pub fn discover_primal(primal_name: &str) -> Result<PathBuf> {
     let env_key = socket_env_var(primal_name);
     if let Ok(path) = std::env::var(&env_key) {

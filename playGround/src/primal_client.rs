@@ -24,6 +24,10 @@ const PRIMAL_SOCKET_HINT: &str = neural_spring::niche::NICHE_NAME;
 const DISCOVERY_CAPABILITY: &str = "science.spectral_analysis";
 
 /// Typed JSON-RPC client for the neuralSpring primal (science capabilities over Unix IPC).
+#[deprecated(
+    since = "0.2.0",
+    note = "use CompositionContext::from_live_discovery_with_fallback() and ctx.call() instead"
+)]
 pub struct PrimalClient {
     /// Path to the primal's Unix domain socket.
     socket: PathBuf,

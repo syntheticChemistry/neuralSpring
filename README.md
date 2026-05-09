@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 8, 2026 (Session S192 — Doc cleanup, baseCamp/experiments/wateringHole refresh, upstream primal handoff, downstream absorption review, archive sweep. 1,279 lib + 73 forge + 80 playGround = 1,432 workspace tests. 8 paper notebooks (72/72 checks). V142 handoff).
+**Last updated**: May 9, 2026 (Session S193 — Interstadial eukaryotic evolution. IPC tree graduated to `src/ipc/` with per-primal modules. Certification organelle (`src/certification/`) absorbed guidestone layers. 6 validation scenarios in `src/validation/scenarios/`. UniBin binary with certify/validate/serve/status/version subcommands. 3 fossilized pre-extinction patterns. Deprecated `PrimalClient`/`discover_primal`/`discover_by_capability`. 1,291 lib + 73 forge + 80 playGround = 1,444 workspace tests. V143 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
