@@ -186,3 +186,112 @@ pub trait NeuralSpring {
     /// List advertised capabilities (sovereign discovery).
     async fn capability_list() -> Vec<String>;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn spectral_result_serde_roundtrip() {
+        let result = SpectralAnalysisResult {
+            eigenvalues: vec![-1.0, 0.0, 1.0],
+            mean_ipr: 0.25,
+            level_spacing_ratio: 0.53,
+            bandwidth: 2.0,
+            condition_number: 1.5,
+            phase: "Extended".to_string(),
+        };
+        let json = serde_json::to_string(&result).expect("serialize");
+        let deser: SpectralAnalysisResult = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(deser.eigenvalues.len(), 3);
+        assert_eq!(deser.phase, "Extended");
+    }
+
+    #[test]
+    fn disorder_sweep_serde_roundtrip() {
+        let sweep = DisorderSweepResult {
+            disorder_values: vec![0.5, 1.0, 2.0],
+            ipr_values: vec![0.1, 0.3, 0.8],
+        };
+        let json = serde_json::to_string(&sweep).expect("serialize");
+        let deser: DisorderSweepResult = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(deser.disorder_values.len(), 3);
+    }
+
+    #[test]
+    fn health_status_serde_roundtrip() {
+        let status = HealthStatus {
+            status: "ok".to_string(),
+            primal: "neuralspring".to_string(),
+            version: "0.1.0".to_string(),
+            capabilities: vec!["science.ipr".to_string()],
+            requests_served: 42,
+            uptime_seconds: 3600,
+            gpu_available: false,
+        };
+        let json = serde_json::to_string(&status).expect("serialize");
+        let deser: HealthStatus = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(deser.primal, "neuralspring");
+        assert_eq!(deser.requests_served, 42);
+    }
+
+    #[test]
+    fn inference_request_defaults() {
+        let json = r#"{"prompt":"test"}"#;
+        let req: InferenceCompleteRequest = serde_json::from_str(json).expect("deserialize");
+        assert_eq!(req.prompt, "test");
+        assert_eq!(req.max_tokens, 256);
+        assert!((req.temperature - 0.7).abs() < f64::EPSILON);
+        assert!(req.model.is_none());
+    }
+
+    #[test]
+    fn inference_response_serde() {
+        let resp = InferenceCompleteResponse {
+            text: "hello".to_string(),
+            tokens_generated: 1,
+            model: "test-model".to_string(),
+            provider: "squirrel".to_string(),
+            truncated: false,
+        };
+        let json = serde_json::to_string(&resp).expect("serialize");
+        assert!(json.contains("squirrel"));
+    }
+
+    #[test]
+    fn embed_request_serde() {
+        let req = InferenceEmbedRequest {
+            text: "test text".to_string(),
+            model: Some("e5".to_string()),
+        };
+        let json = serde_json::to_string(&req).expect("serialize");
+        let deser: InferenceEmbedRequest = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(deser.model, Some("e5".to_string()));
+    }
+
+    #[test]
+    fn model_info_optional_fields() {
+        let json = r#"{"id":"m1","name":"Model 1","capabilities":["complete"]}"#;
+        let info: ModelInfo = serde_json::from_str(json).expect("deserialize");
+        assert!(info.parameters.is_none());
+        assert!(info.context_length.is_none());
+    }
+
+    #[test]
+    fn models_response_serde() {
+        let resp = InferenceModelsResponse {
+            models: vec![ModelInfo {
+                id: "m1".to_string(),
+                name: "Model 1".to_string(),
+                capabilities: vec!["complete".to_string(), "embed".to_string()],
+                parameters: Some(7_000_000_000),
+                context_length: Some(4096),
+            }],
+            provider: "squirrel".to_string(),
+        };
+        let json = serde_json::to_string(&resp).expect("serialize");
+        let deser: InferenceModelsResponse = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(deser.models.len(), 1);
+        assert_eq!(deser.models[0].parameters, Some(7_000_000_000));
+    }
+}

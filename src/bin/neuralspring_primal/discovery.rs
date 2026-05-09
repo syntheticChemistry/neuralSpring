@@ -44,13 +44,7 @@ pub fn resolve_socket_path(family_id: &str) -> PathBuf {
 }
 
 pub fn get_family_id() -> String {
-    if let Ok(id) = std::env::var("FAMILY_ID") {
-        return id;
-    }
-    if let Ok(id) = std::env::var("BIOMEOS_FAMILY_ID") {
-        return id;
-    }
-    "default".to_string()
+    config::resolve_family_id()
 }
 
 pub fn discover_primal_socket(primal_name: &str) -> Result<PathBuf> {

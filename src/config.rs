@@ -135,8 +135,20 @@ pub const ENV_HEARTBEAT_SECS_SPRING: &str = "NEURALSPRING_HEARTBEAT_SECS";
 /// pushes its scenario graph at startup.
 pub const ENV_VISUALIZATION_PUSH: &str = "NEURALSPRING_VISUALIZATION_PUSH";
 
-/// Family ID for multi-instance primal isolation.
+/// Family ID for multi-instance primal isolation (primary).
 pub const ENV_FAMILY_ID: &str = "FAMILY_ID";
+
+/// biomeOS-namespaced family ID fallback (ecosystem alias).
+pub const ENV_BIOMEOS_FAMILY_ID: &str = "BIOMEOS_FAMILY_ID";
+
+/// Resolve the family ID from environment with fallback chain:
+/// `FAMILY_ID` → `BIOMEOS_FAMILY_ID` → `"default"`.
+#[must_use]
+pub fn resolve_family_id() -> String {
+    std::env::var(ENV_FAMILY_ID)
+        .or_else(|_| std::env::var(ENV_BIOMEOS_FAMILY_ID))
+        .unwrap_or_else(|_| "default".to_string())
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // Capability strings announced via Songbird
@@ -210,6 +222,46 @@ mod tests {
         assert!(!ENV_XDG_RUNTIME_DIR.is_empty());
         assert!(!ENV_REQUIRE_GPU.is_empty());
         assert!(!ENV_GPU_BACKEND.is_empty());
+        assert!(!ENV_BIOMEOS_FAMILY_ID.is_empty());
+    }
+
+    #[test]
+    fn resolve_family_id_default_when_unset() {
+        temp_env::with_vars(
+            [
+                (ENV_FAMILY_ID, None::<&str>),
+                (ENV_BIOMEOS_FAMILY_ID, None::<&str>),
+            ],
+            || {
+                assert_eq!(resolve_family_id(), "default");
+            },
+        );
+    }
+
+    #[test]
+    fn resolve_family_id_primary_takes_precedence() {
+        temp_env::with_vars(
+            [
+                (ENV_FAMILY_ID, Some("primary")),
+                (ENV_BIOMEOS_FAMILY_ID, Some("secondary")),
+            ],
+            || {
+                assert_eq!(resolve_family_id(), "primary");
+            },
+        );
+    }
+
+    #[test]
+    fn resolve_family_id_biomeos_fallback() {
+        temp_env::with_vars(
+            [
+                (ENV_FAMILY_ID, None::<&str>),
+                (ENV_BIOMEOS_FAMILY_ID, Some("bio-family")),
+            ],
+            || {
+                assert_eq!(resolve_family_id(), "bio-family");
+            },
+        );
     }
 
     #[test]

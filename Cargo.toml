@@ -95,7 +95,7 @@ guidestone = ["primalspring", "primal"]
 approx = "0.5"
 proptest = "1"
 serial_test = "3"
-temp-env = "0.3"
+temp-env = "0.3.6"
 
 # Validation binaries follow the hotSpring pattern:
 # - ValidationHarness with check_abs / check_rel / check_abs_or_rel

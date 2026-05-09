@@ -139,6 +139,7 @@ pub mod ipc_resilience;
 )]
 pub mod isomorphic_reservoir;
 pub mod lenet;
+#[cfg(feature = "barracuda")]
 pub mod loss_landscape;
 pub mod meta_population;
 pub mod metrics;
@@ -177,6 +178,7 @@ pub mod visualization;
     reason = "grid dimension casts (n ≤ 1024) and f64 statistics"
 )]
 pub mod wdm_ensemble_qs;
+#[cfg(feature = "barracuda")]
 pub mod wdm_esn;
 pub mod wdm_sqw;
 #[cfg(feature = "barracuda")]
@@ -184,6 +186,7 @@ pub mod wdm_surrogate;
 #[cfg(feature = "barracuda")]
 pub mod wdm_transport;
 pub mod weight_loader;
+#[cfg(feature = "barracuda")]
 pub mod weight_spectral;
 
 #[cfg(feature = "primal")]

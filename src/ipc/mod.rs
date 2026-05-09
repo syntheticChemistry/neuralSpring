@@ -386,4 +386,79 @@ mod tests {
         let arr = extract_f64_array(&v, &["data", "result"]);
         assert_eq!(arr, Some(vec![1.0, 2.0, 3.0]));
     }
+
+    #[test]
+    fn extract_f64_none_for_non_numeric() {
+        let v = serde_json::json!({"name": "test"});
+        assert_eq!(extract_f64(&v, &["name", "result"]), None);
+    }
+
+    #[test]
+    fn extract_f64_array_empty_on_non_array() {
+        let v = serde_json::json!({"data": "not-an-array"});
+        assert_eq!(extract_f64_array(&v, &["data"]), None);
+    }
+
+    #[test]
+    fn extract_f64_array_skips_non_float_elements() {
+        let v = serde_json::json!({"data": ["a", "b"]});
+        assert_eq!(extract_f64_array(&v, &["data"]), None);
+    }
+
+    #[test]
+    fn client_require_returns_err_for_missing_primals() {
+        let client = IpcMathClient::discover();
+        assert!(client.stats_mean(&[1.0]).is_err());
+        assert!(client.crypto_hash("blake3", "test").is_err());
+        assert!(client.compute_dispatch(&serde_json::json!({})).is_err());
+        assert!(client.inference_complete(&serde_json::json!({})).is_err());
+        assert!(client.shader_capabilities().is_err());
+    }
+
+    #[test]
+    fn with_timeout_overrides_default() {
+        let client = IpcMathClient::discover().with_timeout(Duration::from_millis(500));
+        assert_eq!(client.timeout, Duration::from_millis(500));
+    }
+
+    #[test]
+    fn primal_slot_values() {
+        assert_eq!(PrimalSlot::Barracuda as usize, 0);
+        assert_eq!(PrimalSlot::Toadstool as usize, 1);
+        assert_eq!(PrimalSlot::Beardog as usize, 2);
+        assert_eq!(PrimalSlot::Squirrel as usize, 3);
+        assert_eq!(PrimalSlot::Coralreef as usize, 4);
+    }
+
+    #[test]
+    fn has_coralreef_false_when_absent() {
+        let client = IpcMathClient::discover();
+        assert!(!client.has_coralreef());
+    }
+
+    #[test]
+    fn liveness_report_zero_on_no_primals() {
+        let report = IpcLivenessReport { alive: [false; 5] };
+        assert_eq!(report.alive_count(), 0);
+        for slot in [
+            PrimalSlot::Barracuda,
+            PrimalSlot::Toadstool,
+            PrimalSlot::Beardog,
+            PrimalSlot::Squirrel,
+            PrimalSlot::Coralreef,
+        ] {
+            assert!(!report.is_alive(slot));
+        }
+    }
+
+    #[test]
+    fn liveness_report_partial() {
+        let report = IpcLivenessReport {
+            alive: [true, false, true, false, false],
+        };
+        assert_eq!(report.alive_count(), 2);
+        assert!(report.is_alive(PrimalSlot::Barracuda));
+        assert!(!report.is_alive(PrimalSlot::Toadstool));
+        assert!(report.is_alive(PrimalSlot::Beardog));
+    }
 }

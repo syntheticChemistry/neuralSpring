@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-09 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S193 — Interstadial eukaryotic evolution (UniBin, IPC tree, certification organelle).
-> Prior: S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
+> **Session:** S194 — Deep debt sweep (feature gates, inline tests, centralized env, dep alignment).
+> Prior: S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---
 

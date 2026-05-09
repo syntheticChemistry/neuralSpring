@@ -5,7 +5,15 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-09 (Session 193: Interstadial Eukaryotic Evolution)
+## [Unreleased] — 2026-05-09 (Session 194: Deep Debt Sweep)
+
+### 2026-05-09 — Session S194 (Deep debt: feature gates, inline tests, centralized env, dep alignment)
+
+- **Feature gate alignment** — `loss_landscape`, `weight_spectral`, `wdm_esn` modules now gated behind `#[cfg(feature = "barracuda")]` in `src/lib.rs`, matching their direct imports of `barracuda::` crate types. Default build (`barracuda` on) unaffected; `--no-default-features` no longer tries to compile barracuda-dependent modules.
+- **Inline test expansion** — 12 new tests: 9 for `ipc::tests` (edge cases: non-numeric extract, non-array extract, missing primal error paths, `with_timeout`, `PrimalSlot` enum values, liveness report partial/zero), 8 for `rpc_service::tests` (serde round-trips for all wire types, default inference params, optional fields), 3 for `config::tests` (family ID resolution: default/primary/biomeos fallback).
+- **Centralized BIOMEOS_FAMILY_ID** — added `config::ENV_BIOMEOS_FAMILY_ID` constant and `config::resolve_family_id()` function with `FAMILY_ID` → `BIOMEOS_FAMILY_ID` → `"default"` chain. `playGround/src/discovery.rs` and `src/bin/neuralspring_primal/discovery.rs` now delegate to the central resolver instead of duplicating env var strings.
+- **Dependency alignment** — `temp-env` version aligned to `"0.3.6"` across root and playGround `Cargo.toml` files.
+- **Quality gates** — 1,295 lib + 73 forge + 80 playGround = 1,448 workspace tests. `cargo build + fmt + clippy + test` all clean.
 
 ### 2026-05-09 — Session S193 (Interstadial eukaryotic evolution — UniBin, IPC tree, certification organelle, validation scenarios, fossilization)
 
