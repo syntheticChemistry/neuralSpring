@@ -12,7 +12,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S196 | **Date:** May 10, 2026 | **Version:** 0.1.0
+> **Session:** S197 | **Date:** May 10, 2026 | **Version:** 0.1.0
 > **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 
 ---
@@ -29,7 +29,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 | **Binaries** | 269 (244 validate, 18 bench, 7 other) |
 | **Experiments** | 134 across 11 domains |
 | **Papers reproduced** | 27 (6 faculties) |
-| **Capabilities** | 30 (9 domains) |
+| **Capabilities** | 33 (12 domains) |
 | **Named tolerances** | 233 |
 | **guideStone** | Level 3 — 29/29 bare ALL PASS (P1-P5) |
 | **BTSP** | 13/13 mandatory |
@@ -156,4 +156,4 @@ Remaining batches: 19 papers across 4 additional faculties.
 
 ---
 
-**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S195
+**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S197

@@ -5,8 +5,8 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-09 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S196 — Post-interstadial river delta evolution (primalSpring audit response).
+> **Date:** 2026-05-10 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
+> **Session:** S197 — Deep debt sweep II + doc reconciliation (May 10, 2026).
 > Prior: S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---
@@ -530,7 +530,7 @@ Uses `primalspring::composition` API directly:
 - **P2 Traceable**: 49 provenance records, all labelled/scripted/committed
 - **P3 Self-Verifying**: BLAKE3 CHECKSUMS — 15 validation-critical files verified
 - **P4 Environment-Agnostic**: ecoBin, `#![forbid(unsafe_code)]`, no network
-- **P5 Tolerance-Documented**: 228+ named tolerances, all finite/named/categorized
+- **P5 Tolerance-Documented**: 233+ named tolerances, all finite/named/categorized
 
 ### v0.9.16 Integration Notes
 

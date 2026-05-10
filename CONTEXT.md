@@ -57,7 +57,7 @@ Thirty-three capabilities (`domain.verb`) when composed in biomeOS:
 
 ## Test Coverage
 
-CI-enforced **~92%** line coverage (`llvm-cov`). **1,295 lib + 73 forge + 80 playGround = 1,448 workspace tests**. Suite includes unit tests, property tests (24 proptest), determinism tests, doc tests, integration tests, provenance integrity tests, and 8 composition validators. `ValidationSink` for machine-readable CI output. **guideStone Level 3** (29/29 bare ALL PASS). 8 paper notebooks (72/72 checks, 2 faculties). 233 named tolerances.
+CI-enforced **~92%** line coverage (`llvm-cov`). **1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests** + 13 certification tests (guidestone feature). Suite includes unit tests, property tests (24 proptest), determinism tests, doc tests, integration tests, provenance integrity tests, and 8 composition validators. `ValidationSink` for machine-readable CI output. **guideStone Level 3** (29/29 bare ALL PASS). 8 paper notebooks (72/72 checks, 2 faculties). 233+ named tolerances.
 
 ## What This Does NOT Do
 

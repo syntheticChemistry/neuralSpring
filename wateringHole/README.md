@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V146 — Session S196 (Post-Interstadial River Delta Evolution)
+### V147 — Session S197 (Deep Debt Sweep II & Doc Reconciliation)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V146** | `handoffs/NEURALSPRING_V146_POST_INTERSTADIAL_HANDOFF_MAY10_2026.md` | May 10, 2026 | primalSpring audit response: CI cross-sync 389→403, skunkBat JH-5 wired (deploy graph + IPC module), composition.status + method.register absorbed from biomeOS v3.51, CONTEXT.md eukaryotic alignment, Evoformer/folding IPC hooks. 33 capabilities (was 30). 1,450 workspace tests. |
+| **V147** | `handoffs/NEURALSPRING_V147_DEEP_DEBT_II_HANDOFF_MAY10_2026.md` | May 10, 2026 | IPC `&PathBuf`→`&Path` (6 modules, zero clippy). 13 certification tests (guidestone). CHECKSUMS regenerated (L0 29/29). Waters citations fixed. Doc reconciliation: all living docs → S197. paper-baselines.json fixed. Primal evolution review + NUCLEUS composition patterns. 1,450 workspace tests + 13 cert. V147 handoff. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V145 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V146 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

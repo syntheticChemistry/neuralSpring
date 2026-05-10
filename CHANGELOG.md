@@ -5,7 +5,15 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-10 (Session 197: Deep Debt Sweep II)
+## [Unreleased] — 2026-05-10 (Session 197: Deep Debt Sweep II + Doc Reconciliation)
+
+### 2026-05-10 — Session S197b (Doc reconciliation, V147 handoff, archive sweep)
+
+- **Full doc reconciliation** — all living docs updated to S197/V147: README, CONTEXT, PRIMAL_GAPS, EVOLUTION_READINESS, CONTROL_EXPERIMENT_STATUS, whitePaper/README, whitePaper/baseCamp/README, experiments/README, sporeprint/validation-summary, notebooks/NOTEBOOK_PATTERN. Deploy graph metadata → V147/S197.
+- **Frozen data sync** — `validation-state.json`, `gap-status.json`, `paper-baselines.json` all → S197. Paper-baselines malformed JSON fixed (notebooks array broken at entry 016).
+- **V147 handoff** — `NEURALSPRING_V147_DEEP_DEBT_II_HANDOFF_MAY10_2026.md`: primal evolution review, NUCLEUS composition patterns, upstream guidance for 6 primal teams, downstream pattern absorption (projectNUCLEUS + foundation).
+- **V146 archived** — moved to `handoffs/archive/`.
+- **Stale references eliminated** — S196→S197, V146→V147, 1,295→1,297, 1,448→1,450, 228→233+, 30→33 capabilities, 5→6 IPC modules across all canonical docs.
 
 ### 2026-05-10 — Session S197 (Deep debt: IPC idiomatic Rust, certification tests, checksums, citation fixes)
 

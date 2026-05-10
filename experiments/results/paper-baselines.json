@@ -1,7 +1,7 @@
 {
   "spring": "neuralSpring",
-  "session": "S195",
-  "date": "2026-05-09",
+  "session": "S197",
+  "date": "2026-05-10",
   "description": "Publishable paper baseline notebooks — full inline Python/NumPy implementations of peer-reviewed science, serving as the math validation base for Rust, GPU, and primal IPC layers.",
   "total_notebooks": 8,
   "total_checks": 72,
@@ -91,8 +91,7 @@
       "key_result": "Heterogeneous controllers maintain higher diversity than homogeneous; both improve fitness",
       "visualizations": ["Fitness over generations", "Diversity comparison", "Controller type performance"],
       "barracuda_mapping": ["GEMM + sigmoid (NeuralNet forward)", "threshold ops (BehaviorTree/RuleBased)", "buffer management (population)"]
-    }
-  ],
+    },
     {
       "id": "016",
       "file": "paper-016-hmm-phylo.ipynb",
