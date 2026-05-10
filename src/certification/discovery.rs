@@ -34,3 +34,35 @@ pub fn validate(v: &mut ValidationResult) -> (CompositionContext, usize) {
 
     (ctx, alive)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn required_capabilities_nonempty() {
+        assert!(
+            !REQUIRED_CAPABILITIES.is_empty(),
+            "must require at least one capability family"
+        );
+    }
+
+    #[test]
+    fn required_capabilities_are_lowercase() {
+        for cap in REQUIRED_CAPABILITIES {
+            assert_eq!(
+                *cap,
+                cap.to_lowercase(),
+                "capability family '{cap}' must be lowercase"
+            );
+        }
+    }
+
+    #[test]
+    fn required_capabilities_cover_core_domains() {
+        assert!(REQUIRED_CAPABILITIES.contains(&"tensor"));
+        assert!(REQUIRED_CAPABILITIES.contains(&"security"));
+        assert!(REQUIRED_CAPABILITIES.contains(&"compute"));
+        assert!(REQUIRED_CAPABILITIES.contains(&"ai"));
+    }
+}

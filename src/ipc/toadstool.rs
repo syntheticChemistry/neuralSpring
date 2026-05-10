@@ -4,14 +4,18 @@
 //!
 //! Methods: `compute.dispatch`.
 
-use std::path::PathBuf;
+use std::path::Path;
 use std::time::Duration;
 
 use crate::validation::composition::call_capability;
 
 /// `compute.dispatch` via toadStool IPC.
+///
+/// # Errors
+///
+/// Returns an error if toadStool is not reachable or the IPC call fails.
 pub fn compute_dispatch(
-    socket: &PathBuf,
+    socket: &Path,
     params: &serde_json::Value,
     timeout: Duration,
 ) -> Result<serde_json::Value, String> {

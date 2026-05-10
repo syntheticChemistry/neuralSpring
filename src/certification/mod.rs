@@ -34,7 +34,7 @@ pub const MAX_LAYER: u8 = 3;
 const SPRING_NAME: &str = "neuralSpring";
 const GUIDESTONE_VERSION: &str = "0.4.0";
 
-/// Run certification up to `max_layer` (0-3) and return a `ValidationResult`.
+/// Run certification up to `max_layer` (0-3) and return a [`ValidationResult`].
 ///
 /// - L0: bare properties (determinism, traceability, checksums, env-agnostic, tolerances)
 /// - L1: primal discovery + liveness
@@ -98,4 +98,31 @@ pub fn certify(max_layer: u8) -> ValidationResult {
     }
 
     v
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn max_layer_constant() {
+        assert_eq!(MAX_LAYER, 3);
+    }
+
+    #[test]
+    fn certify_bare_layer_returns_result() {
+        let result = certify(0);
+        let code = result.exit_code_skip_aware();
+        assert!(
+            code <= 2,
+            "L0 exit code must be 0 (pass), 1 (fail/stale checksums), or 2 (skip), got {code}"
+        );
+    }
+
+    #[test]
+    fn certify_clamps_above_max() {
+        let result = certify(255);
+        let code = result.exit_code_skip_aware();
+        assert!(code <= 2, "exit code must be 0, 1, or 2, got {code}");
+    }
 }

@@ -5,13 +5,17 @@
 //! Methods: `stats.mean`, `stats.std_dev`, `stats.weighted_mean`,
 //! `tensor.matmul`, `tensor.create`.
 
-use std::path::PathBuf;
+use std::path::Path;
 use std::time::Duration;
 
 use crate::validation::composition::call_capability;
 
 /// `stats.mean` via barraCuda IPC.
-pub fn stats_mean(socket: &PathBuf, data: &[f64], timeout: Duration) -> Result<f64, String> {
+///
+/// # Errors
+///
+/// Returns an error if barraCuda is not reachable or the response is malformed.
+pub fn stats_mean(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64, String> {
     let result = call_capability(
         socket,
         "stats.mean",
@@ -23,7 +27,11 @@ pub fn stats_mean(socket: &PathBuf, data: &[f64], timeout: Duration) -> Result<f
 }
 
 /// `stats.std_dev` via barraCuda IPC.
-pub fn stats_std_dev(socket: &PathBuf, data: &[f64], timeout: Duration) -> Result<f64, String> {
+///
+/// # Errors
+///
+/// Returns an error if barraCuda is not reachable or the response is malformed.
+pub fn stats_std_dev(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64, String> {
     let result = call_capability(
         socket,
         "stats.std_dev",
@@ -35,8 +43,12 @@ pub fn stats_std_dev(socket: &PathBuf, data: &[f64], timeout: Duration) -> Resul
 }
 
 /// `stats.weighted_mean` via barraCuda IPC.
+///
+/// # Errors
+///
+/// Returns an error if barraCuda is not reachable or the response is malformed.
 pub fn stats_weighted_mean(
-    socket: &PathBuf,
+    socket: &Path,
     data: &[f64],
     weights: &[f64],
     timeout: Duration,
@@ -52,8 +64,12 @@ pub fn stats_weighted_mean(
 }
 
 /// `tensor.matmul` via barraCuda IPC.
+///
+/// # Errors
+///
+/// Returns an error if barraCuda is not reachable or the response is malformed.
 pub fn tensor_matmul(
-    socket: &PathBuf,
+    socket: &Path,
     a: &[f64],
     b: &[f64],
     rows_a: usize,
@@ -75,8 +91,12 @@ pub fn tensor_matmul(
 }
 
 /// `tensor.create` via barraCuda IPC.
+///
+/// # Errors
+///
+/// Returns an error if barraCuda is not reachable or the response is malformed.
 pub fn tensor_create(
-    socket: &PathBuf,
+    socket: &Path,
     shape: &[usize],
     fill: &str,
     timeout: Duration,

@@ -195,6 +195,30 @@ fn inference_complete(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::validation::composition::PROTO_NUCLEATE_VALIDATION_CAPABILITIES;
+
+    #[test]
+    fn proto_nucleate_capabilities_nonempty() {
+        assert!(
+            !PROTO_NUCLEATE_VALIDATION_CAPABILITIES.is_empty(),
+            "proto-nucleate must define validation capabilities"
+        );
+    }
+
+    #[test]
+    fn proto_nucleate_includes_core_methods() {
+        let caps = PROTO_NUCLEATE_VALIDATION_CAPABILITIES;
+        assert!(caps.contains(&"stats.mean"), "must include stats.mean");
+        assert!(
+            caps.contains(&"tensor.matmul"),
+            "must include tensor.matmul"
+        );
+        assert!(caps.contains(&"crypto.hash"), "must include crypto.hash");
+    }
+}
+
 fn inference_embed(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     match ctx.call(
         "ai",

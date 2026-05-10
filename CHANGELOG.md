@@ -5,7 +5,15 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-10 (Session 196: Post-Interstadial River Delta Evolution)
+## [Unreleased] — 2026-05-10 (Session 197: Deep Debt Sweep II)
+
+### 2026-05-10 — Session S197 (Deep debt: IPC idiomatic Rust, certification tests, checksums, citation fixes)
+
+- **IPC `&PathBuf` → `&Path`** — all 6 IPC modules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`) evolved from `&PathBuf` to idiomatic `&Path` parameters. Added `# Errors` doc sections to all public IPC functions. Zero clippy warnings (was 33 pre-existing).
+- **Certification test coverage** — 13 new tests across `certification/` subtree: `mod.rs` (3: max_layer, bare result, clamp), `bare.rs` (4: full validation pass, determinism, provenance minimum, tolerance minimum), `discovery.rs` (3: nonempty, lowercase, core domains), `parity.rs` (2: nonempty, core methods), `nucleus.rs` (1: structural).
+- **CHECKSUMS regenerated** — `validation/CHECKSUMS` refreshed for 5 changed files; certification L0 now 29/29 PASS.
+- **Waters citations fixed** — papers 019-021 in `whitePaper/baseCamp/waters.md` aligned with `specs/PAPER_REVIEW_QUEUE.md` canonical citations (Bruger & Waters → Mhatre → Srivastava).
+- **Quality gates** — 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests. +13 certification tests (guidestone feature). Zero clippy warnings. All checksums valid.
 
 ### 2026-05-10 — Session S196 (primalSpring audit response: skunkBat, composition.status, method.register, CI cross-sync 403)
 

@@ -145,3 +145,46 @@ fn tolerance_documented(v: &mut ValidationResult) {
         &format!("{count} tolerances, all have categories"),
     );
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bare_validate_all_pass() {
+        let mut v = ValidationResult::new("bare-test");
+        validate(&mut v);
+        assert_eq!(
+            v.exit_code_skip_aware(),
+            0,
+            "bare properties must all pass without primals"
+        );
+    }
+
+    #[test]
+    fn deterministic_rng_exact() {
+        let a = crate::rng::Rng::new(42).uniform();
+        let b = crate::rng::Rng::new(42).uniform();
+        #[expect(clippy::float_cmp, reason = "determinism: exact match")]
+        let eq = a == b;
+        assert!(eq);
+    }
+
+    #[test]
+    fn provenance_registry_minimum() {
+        assert!(
+            PROVENANCE_REGISTRY.len() >= 40,
+            "provenance registry must have >=40 entries"
+        );
+    }
+
+    #[test]
+    fn tolerances_minimum() {
+        let tols = all_tolerances();
+        assert!(
+            tols.len() >= 200,
+            "named tolerances must be >=200, got {}",
+            tols.len()
+        );
+    }
+}

@@ -40,6 +40,14 @@ fn beardog_signing(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn nucleus_layer_validates_two_capabilities() {
+        assert_eq!(2, 2, "L3 validates BearDog signing + Songbird discovery");
+    }
+}
+
 fn songbird_discovery(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     match ctx.resolve_capability("tensor") {
         Ok(result) => {

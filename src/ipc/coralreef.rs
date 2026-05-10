@@ -4,14 +4,18 @@
 //!
 //! Methods: `shader.compile.wgsl`, `shader.compile.capabilities`.
 
-use std::path::PathBuf;
+use std::path::Path;
 use std::time::Duration;
 
 use crate::validation::composition::call_capability;
 
 /// `shader.compile.wgsl` via coralReef IPC.
+///
+/// # Errors
+///
+/// Returns an error if coralReef is not reachable or the IPC call fails.
 pub fn shader_compile_wgsl(
-    socket: &PathBuf,
+    socket: &Path,
     source: &str,
     label: &str,
     timeout: Duration,
@@ -25,10 +29,11 @@ pub fn shader_compile_wgsl(
 }
 
 /// `shader.compile.capabilities` via coralReef IPC.
-pub fn shader_capabilities(
-    socket: &PathBuf,
-    timeout: Duration,
-) -> Result<serde_json::Value, String> {
+///
+/// # Errors
+///
+/// Returns an error if coralReef is not reachable or the IPC call fails.
+pub fn shader_capabilities(socket: &Path, timeout: Duration) -> Result<serde_json::Value, String> {
     call_capability(
         socket,
         "shader.compile.capabilities",
