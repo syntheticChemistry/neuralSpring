@@ -101,6 +101,11 @@ pub const CAPABILITIES: &[&str] = &[
     // ── Identity + MCP (T4 discovery, composition pattern) ──
     "identity.get",
     "mcp.tools.list",
+    // ── biomeOS v3.51 composition surface ──
+    "composition.status",
+    "method.register",
+    // ── Security audit (skunkBat JH-5 forwarding) ──
+    "security.audit_log",
 ];
 
 /// Operation dependency hints for biomeOS Pathway Learner parallelization.
@@ -292,6 +297,38 @@ mod tests {
         assert!(
             CAPABILITIES.contains(&"inference.models"),
             "niche must advertise inference.models"
+        );
+    }
+
+    #[test]
+    fn evoformer_folding_capabilities_present() {
+        assert!(
+            CAPABILITIES.contains(&"science.evoformer_block"),
+            "niche must advertise science.evoformer_block"
+        );
+        assert!(
+            CAPABILITIES.contains(&"science.structure_module"),
+            "niche must advertise science.structure_module"
+        );
+        assert!(
+            CAPABILITIES.contains(&"science.folding_health"),
+            "niche must advertise science.folding_health"
+        );
+    }
+
+    #[test]
+    fn composition_and_security_capabilities_present() {
+        assert!(
+            CAPABILITIES.contains(&"composition.status"),
+            "niche must advertise composition.status (biomeOS v3.51)"
+        );
+        assert!(
+            CAPABILITIES.contains(&"method.register"),
+            "niche must advertise method.register (biomeOS v3.51)"
+        );
+        assert!(
+            CAPABILITIES.contains(&"security.audit_log"),
+            "niche must advertise security.audit_log (skunkBat JH-5)"
         );
     }
 }

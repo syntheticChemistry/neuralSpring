@@ -44,6 +44,9 @@ pub const PETALTONGUE: &str = "petaltongue";
 /// Pure math / GPU compute (WGSL shaders, tensor ops, stats).
 pub const BARRACUDA: &str = "barracuda";
 
+/// Defensive network security primal (metadata-only reconnaissance, threat detection).
+pub const SKUNKBAT: &str = "skunkbat";
+
 /// biomeOS orchestrator.
 pub const BIOMEOS: &str = "biomeos";
 
@@ -76,6 +79,8 @@ pub mod display {
     pub const BIOMEOS: &str = "biomeOS";
     /// Display name for the nestgate primal.
     pub const NESTGATE: &str = "NestGate";
+    /// Display name for the skunkBat primal.
+    pub const SKUNKBAT: &str = "skunkBat";
 }
 
 /// Provenance trio capability domains (used in `capability.call`).
@@ -108,6 +113,7 @@ mod tests {
             LOAMSPINE,
             SWEETGRASS,
             PETALTONGUE,
+            SKUNKBAT,
             BIOMEOS,
         ] {
             assert_eq!(name, name.to_lowercase(), "{name} must be lowercase");

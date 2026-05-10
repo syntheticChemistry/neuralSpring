@@ -6,7 +6,7 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-09 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S195 — Doc reconciliation, upstream primal handoff, archive sweep.
+> **Session:** S196 — Post-interstadial river delta evolution (primalSpring audit response).
 > Prior: S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---

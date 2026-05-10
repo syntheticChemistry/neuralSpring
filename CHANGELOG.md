@@ -5,7 +5,18 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-09 (Session 195: Doc Reconciliation & Upstream Handoff)
+## [Unreleased] — 2026-05-10 (Session 196: Post-Interstadial River Delta Evolution)
+
+### 2026-05-10 — Session S196 (primalSpring audit response: skunkBat, composition.status, method.register, CI cross-sync 403)
+
+- **CI cross-sync** — updated canonical registry reference from 389 to 403 methods; test comment and cross-sync validation aligned with primalSpring v0.9.25 canonical 403-method registry.
+- **skunkBat wired** — `primal_names::SKUNKBAT` + `display::SKUNKBAT` constants added; `src/ipc/skunkbat.rs` IPC module for `security.audit_log` (JH-5 forwarding to rhizoCrypt DAG + sweetGrass braid); `IpcMathClient` expanded to 6-slot discovery (was 5); `PrimalSlot::Skunkbat` variant; deploy graph `neuralspring_deploy.toml` now includes `germinate_skunkbat` node in Tower phase.
+- **composition.status + method.register absorbed** — added as capabilities in `ALL_CAPABILITIES`, `niche::CAPABILITIES`, and `config/capability_registry.toml`; biomeOS v3.51 surface (active_users, primal_health, resource_pressure + dynamic method registration).
+- **security.audit_log** — third new capability; end-to-end: `niche::CAPABILITIES` → `config::ALL_CAPABILITIES` → `capability_registry.toml` → `src/ipc/skunkbat.rs` → deploy graph node.
+- **CONTEXT.md aligned** — eukaryotic architecture, UniBin, IPC tree (6 modules), certification organelle, validation scenarios, fossilization, 33 capabilities (was 30), 1,297 lib tests. Evolution path updated through Layer 5.
+- **Evoformer/folding IPC** — `niche::tests::evoformer_folding_capabilities_present` + `composition_and_security_capabilities_present` structural tests; Evoformer/structure_module/folding_health capabilities validated in both niche and config.
+- **Clippy hygiene** — `BearDog` backtick warnings in `ipc/mod.rs` fixed (5 instances).
+- **Quality gates** — 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests. `cargo build + clippy + test` all clean.
 
 ### 2026-05-09 — Session S195 (Doc reconciliation, upstream primal handoff, archive sweep, deploy graph sync)
 

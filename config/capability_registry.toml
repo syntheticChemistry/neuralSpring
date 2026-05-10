@@ -136,3 +136,15 @@ description = "T4 primal identity: name, niche, version, domain, license, capabi
 [capabilities.mcp_tools_list]
 method = "mcp.tools.list"
 description = "MCP tool registry: all capabilities as discoverable tools with schemas"
+
+[capabilities.composition_status]
+method = "composition.status"
+description = "biomeOS v3.51 composition status: active_users, primal_health, resource_pressure"
+
+[capabilities.method_register]
+method = "method.register"
+description = "biomeOS v3.51 dynamic method registration: register spring-specific methods without manual config"
+
+[capabilities.security_audit_log]
+method = "security.audit_log"
+description = "skunkBat JH-5 audit log forwarding: cross-primal audit events to rhizoCrypt DAG + sweetGrass braid"

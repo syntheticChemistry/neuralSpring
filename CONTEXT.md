@@ -7,38 +7,57 @@ neuralSpring is a validation harness (spring / niche) proving [barraCuda](https:
 
 ## Role in the Ecosystem
 
-neuralSpring is a **spring** (niche validation domain), **not** a primal. It validates that scientific Python baselines can be faithfully ported to sovereign Rust plus GPU compute. In deployment it participates as a **biomeOS graph** composing real primals — BearDog (crypto), Songbird (networking), ToadStool (orchestration), coralReef (WGSL compiler), and barraCuda (math engine) — rather than standing alone as a monolith.
+neuralSpring is a **spring** (niche validation domain), **not** a primal. It validates that scientific Python baselines can be faithfully ported to sovereign Rust plus GPU compute. In deployment it participates as a **biomeOS graph** composing real primals — BearDog (crypto), Songbird (networking), ToadStool (orchestration), coralReef (WGSL compiler), barraCuda (math engine), Squirrel (inference), and skunkBat (security audit) — rather than standing alone as a monolith.
+
+## Architecture (Eukaryotic — post-interstadial May 2026)
+
+- **UniBin**: Single `neuralspring-unibin` binary with `certify`, `validate`, `serve`, `status`, `version` subcommands
+- **IPC tree**: `src/ipc/` with 6 per-primal modules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`) + `IpcMathClient` facade
+- **Certification organelle**: `src/certification/` — 4-layer guidestone (bare/discovery/parity/nucleus)
+- **Validation scenarios**: `src/validation/scenarios/` — 6 absorbed scenarios with `ScenarioMeta`, `ScenarioRegistry`, tiered execution
+- **Fossilized patterns**: `fossilRecord/` — 3 pre-extinction patterns preserved with provenance READMEs
 
 ## Technical Facts
 
 - **Language:** Rust 2024 edition, `rust-version` **1.87**
 - **License:** AGPL-3.0-or-later (scyBorg: AGPL code + ORC mechanics + CC-BY-SA creative)
 - **Workspace:** 3 crates — `neural-spring` (library), `neural-spring-forge`, `neuralspring-playground`
-- **Scale:** 520 Rust source files; every file under 1000 lines
+- **Scale:** 520+ Rust source files; every file under 800 lines
 - **Safety:** zero `unsafe` (`#![forbid(unsafe_code)]` workspace-wide); cast lints (`cast_possible_truncation`, `cast_sign_loss`) denied
-- **Linting:** Clippy pedantic + nursery, zero warnings, zero `#[allow()]`
-- **Dependencies:** `barracuda` (math engine, `default-features = false`), `wgpu` **28** (GPU), `tokio` (async), `tarpc` (optional RPC for the primal binary), `thiserror` (typed errors: `GpuError`, `TensorError`, `ParseError`)
-- **Supply chain:** `cargo-deny` in CI; `rustfmt.toml` for formatting consistency; zero C application dependencies (ecoBin compliant)
-- **IPC:** JSON-RPC 2.0 over Unix domain sockets; methods use semantic `domain.verb` naming
-- **GPU:** WGSL shaders via barraCuda; f64-canonical precision dispatch
+- **Linting:** Clippy pedantic + nursery, zero warnings, zero `#[allow()]` (all `#[expect(reason)]`)
+- **Dependencies:** `barracuda` (math engine, `optional = true`, IPC-first), `wgpu` **28** (GPU), `tokio` (async), `tarpc` (optional RPC), `thiserror` (typed errors). 11 modules feature-gated behind `barracuda`.
+- **Supply chain:** `cargo-deny` in CI; `deny.toml` bans ring/openssl/rustls; zero C application dependencies (ecoBin compliant)
+- **IPC:** JSON-RPC 2.0 over Unix domain sockets; methods use semantic `domain.verb` naming; `CompositionContext::from_live_discovery_with_fallback()` for all cross-primal calls
+- **GPU:** WGSL shaders via barraCuda; f64-canonical precision dispatch; ~97% GPU promotion
+- **Config:** Centralized `config.rs` — all env vars, socket resolution (`resolve_biomeos_socket_dir()`), family ID resolution (`resolve_family_id()`), capability constants
 
 ## Key Modules
 
-`surrogate`, `transformer`, spectral analysis, Anderson localization, `coral_forge` (protein folding), `streaming` (FASTA / FASTQ / VCF), GPU dispatch, visualization (`petalTongue`), `weight_spectral` (baseCamp).
+`surrogate`, `transformer`, spectral analysis, Anderson localization, `coral_forge` (protein folding), `streaming` (FASTA / FASTQ / VCF), GPU dispatch, visualization (`petalTongue`), `weight_spectral` (baseCamp), `certification` (guidestone layers), `validation::scenarios` (absorbed validators), `ipc` (per-primal IPC tree).
 
 ## Key Capabilities (JSON-RPC)
 
-Thirty capabilities (`domain.verb`) when composed in biomeOS. Method naming follows Semantic Method Naming v2.1: discovery may list or resolve these via `capability.list` (canonical), `identity.get` (T4 discovery), or `mcp.tools.list` (MCP adapter).
+Thirty-three capabilities (`domain.verb`) when composed in biomeOS:
 
 - **Science (14):** `science.spectral_analysis`, `science.anderson_localization`, `science.hessian_eigen`, `science.agent_coordination`, `science.ipr`, `science.disorder_sweep`, `science.training_trajectory`, `science.evoformer_block`, `science.structure_module`, `science.folding_health`, `science.gpu_dispatch`, `science.cross_spring_provenance`, `science.cross_spring_benchmark`, `science.precision_routing`
 - **Health (3):** `health.liveness`, `health.readiness`, `health.check`
 - **Inference (3):** `inference.complete`, `inference.embed`, `inference.models`
 - **Provenance (4):** `provenance.begin`, `provenance.record`, `provenance.complete`, `provenance.status`
 - **Routing (6):** `primal.forward`, `primal.discover`, `capability.list`, `identity.get`, `mcp.tools.list`, `compute.offload`
+- **Composition (2):** `composition.status`, `method.register` (biomeOS v3.51)
+- **Security (1):** `security.audit_log` (skunkBat JH-5 forwarding)
+
+## Deploy Graphs
+
+4 TOML deploy graphs in `graphs/`:
+- `neuralspring_deploy.toml` — full NUCLEUS composition (7 primals incl. skunkBat)
+- `neuralspring_spectral_analysis.toml` — science domain (barraCuda)
+- `neuralspring_inference_pipeline.toml` — inference chain (Squirrel)
+- `composition/neuralspring_math_pipeline.toml` — math composition (barraCuda + toadStool)
 
 ## Test Coverage
 
-CI-enforced **≥90%** line coverage (`llvm-cov`). ~1,225+ lib + 73 forge + 80 playGround tests. Suite includes unit tests, property tests, determinism tests, doc tests, integration tests, provenance integrity tests, and 4 composition validators. `ValidationSink` for machine-readable CI output (JSON, NDJSON, collecting).
+CI-enforced **~92%** line coverage (`llvm-cov`). **1,295 lib + 73 forge + 80 playGround = 1,448 workspace tests**. Suite includes unit tests, property tests (24 proptest), determinism tests, doc tests, integration tests, provenance integrity tests, and 8 composition validators. `ValidationSink` for machine-readable CI output. **guideStone Level 3** (29/29 bare ALL PASS). 8 paper notebooks (72/72 checks, 2 faculties). 233 named tolerances.
 
 ## What This Does NOT Do
 
@@ -52,6 +71,7 @@ CI-enforced **≥90%** line coverage (`llvm-cov`). ~1,225+ lib + 73 forge + 80 p
 - [barraCuda](https://github.com/ecoPrimals/barraCuda) — math engine and WGSL primitives
 - [toadStool](https://github.com/ecoPrimals/toadStool) — hardware / workload orchestration
 - [coralReef](https://github.com/ecoPrimals/coralReef) — WGSL compiler pipeline
+- [skunkBat](https://github.com/ecoPrimals/skunkBat) — defensive network security
 
 ## Evolution Path
 
@@ -60,11 +80,12 @@ Layer 1: Python baseline (control/) → Rust validation (src/)
 Layer 2: Rust validation → GPU (WGSL via barraCuda)
 Layer 3: Rust+Python validate primal IPC (composition validators, deploy graph)
 Layer 4: NUCLEUS composition (biomeOS deploy) → sovereign deployment (plasmidBin ecoBin)
+Layer 5: Eukaryotic UniBin → certification organelle → validation scenarios → fossilization
 ```
 
 ## Design Philosophy
 
-Built with AI-assisted constrained evolution: Rust’s ownership and type system narrow the search space; springs prove numerical and protocol fidelity before GPU promotion. Primals remain capability-local; graphs compose behavior at runtime.
+Built with AI-assisted constrained evolution: Rust's ownership and type system narrow the search space; springs prove numerical and protocol fidelity before GPU promotion. Primals remain capability-local; graphs compose behavior at runtime. Code evolves through fossilization (old patterns archived with provenance) rather than deletion.
 
 ---
 

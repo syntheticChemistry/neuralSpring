@@ -205,6 +205,11 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     // Identity + MCP (T4 discovery, composition pattern)
     "identity.get",
     "mcp.tools.list",
+    // biomeOS v3.51 composition surface
+    "composition.status",
+    "method.register",
+    // Security audit (skunkBat JH-5 forwarding)
+    "security.audit_log",
 ];
 
 #[cfg(test)]
@@ -281,7 +286,7 @@ mod tests {
     }
 
     /// Cross-sync: verify neuralSpring's shared methods appear in
-    /// primalSpring's canonical 389-method capability registry.
+    /// primalSpring's canonical 403-method capability registry.
     ///
     /// Methods prefixed with `science.` are neuralSpring-only (niche
     /// capabilities not in the canonical registry). Same for
@@ -301,6 +306,8 @@ mod tests {
             "provenance.status",
             "primal.forward",
             "primal.discover",
+            "composition.status",
+            "method.register",
         ];
 
         let mut shared_count = 0u32;

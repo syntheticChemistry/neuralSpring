@@ -10,9 +10,10 @@
 //! |--------------|--------------|--------------|
 //! | [`barracuda`] | barraCuda   | `stats.*`, `tensor.*` |
 //! | [`toadstool`] | toadStool   | `compute.dispatch` |
-//! | [`beardog`]   | BearDog     | `crypto.hash` |
+//! | [`beardog`]   | `BearDog`   | `crypto.hash` |
 //! | [`squirrel`]  | Squirrel    | `inference.*` |
 //! | [`coralreef`] | coralReef   | `shader.compile.*` |
+//! | [`skunkbat`]  | skunkBat    | `security.audit_log` |
 //!
 //! The [`IpcMathClient`] facade provides unified discovery and
 //! delegates to per-primal functions.
@@ -20,6 +21,7 @@
 pub mod barracuda;
 pub mod beardog;
 pub mod coralreef;
+pub mod skunkbat;
 pub mod squirrel;
 pub mod toadstool;
 
@@ -42,6 +44,7 @@ pub struct IpcMathClient {
     beardog_socket: Option<PathBuf>,
     squirrel_socket: Option<PathBuf>,
     coralreef_socket: Option<PathBuf>,
+    skunkbat_socket: Option<PathBuf>,
     timeout: Duration,
 }
 
@@ -58,6 +61,7 @@ impl IpcMathClient {
             beardog_socket: resolve(primal_names::BEARDOG),
             squirrel_socket: resolve(primal_names::SQUIRREL),
             coralreef_socket: resolve(primal_names::CORALREEF),
+            skunkbat_socket: resolve(primal_names::SKUNKBAT),
             timeout: DEFAULT_TIMEOUT,
         }
     }
@@ -81,7 +85,7 @@ impl IpcMathClient {
         self.toadstool_socket.is_some()
     }
 
-    /// Whether the BearDog primal was discovered.
+    /// Whether the `BearDog` primal was discovered.
     #[must_use]
     pub const fn has_beardog(&self) -> bool {
         self.beardog_socket.is_some()
@@ -108,6 +112,7 @@ impl IpcMathClient {
                 check(&self.beardog_socket),
                 check(&self.squirrel_socket),
                 check(&self.coralreef_socket),
+                check(&self.skunkbat_socket),
             ],
         }
     }
@@ -196,11 +201,11 @@ impl IpcMathClient {
     // BearDog surface
     // ═══════════════════════════════════════════════════════════════
 
-    /// `crypto.hash` via BearDog IPC.
+    /// `crypto.hash` via `BearDog` IPC.
     ///
     /// # Errors
     ///
-    /// Returns an error if BearDog is not discovered or the IPC call fails.
+    /// Returns an error if `BearDog` is not discovered or the IPC call fails.
     pub fn crypto_hash(&self, algorithm: &str, data: &str) -> Result<String, String> {
         beardog::crypto_hash(self.require_beardog()?, algorithm, data, self.timeout)
     }
@@ -257,6 +262,36 @@ impl IpcMathClient {
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // skunkBat surface
+    // ═══════════════════════════════════════════════════════════════
+
+    /// `security.audit_log` via skunkBat IPC.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if skunkBat is not discovered or the IPC call fails.
+    pub fn audit_log(
+        &self,
+        event_type: &str,
+        source: &str,
+        payload: &serde_json::Value,
+    ) -> Result<serde_json::Value, String> {
+        skunkbat::audit_log(
+            self.require_skunkbat()?,
+            event_type,
+            source,
+            payload,
+            self.timeout,
+        )
+    }
+
+    /// Whether the skunkBat primal was discovered.
+    #[must_use]
+    pub const fn has_skunkbat(&self) -> bool {
+        self.skunkbat_socket.is_some()
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // Internal helpers
     // ═══════════════════════════════════════════════════════════════
 
@@ -289,13 +324,19 @@ impl IpcMathClient {
             .as_ref()
             .ok_or_else(|| "coralReef not discovered — is it running?".to_string())
     }
+
+    fn require_skunkbat(&self) -> Result<&PathBuf, String> {
+        self.skunkbat_socket
+            .as_ref()
+            .ok_or_else(|| "skunkBat not discovered — is it running?".to_string())
+    }
 }
 
 /// Liveness status for all math-relevant primals.
 ///
 /// Indexed by [`PrimalSlot`] to avoid a flat struct with > 3 bools.
 pub struct IpcLivenessReport {
-    alive: [bool; 5],
+    alive: [bool; 6],
 }
 
 /// Index into [`IpcLivenessReport`].
@@ -306,12 +347,14 @@ pub enum PrimalSlot {
     Barracuda = 0,
     /// toadStool.
     Toadstool = 1,
-    /// BearDog.
+    /// `BearDog`.
     Beardog = 2,
     /// Squirrel.
     Squirrel = 3,
     /// coralReef.
     Coralreef = 4,
+    /// skunkBat.
+    Skunkbat = 5,
 }
 
 impl IpcLivenessReport {
@@ -413,6 +456,11 @@ mod tests {
         assert!(client.compute_dispatch(&serde_json::json!({})).is_err());
         assert!(client.inference_complete(&serde_json::json!({})).is_err());
         assert!(client.shader_capabilities().is_err());
+        assert!(
+            client
+                .audit_log("test", "neuralspring", &serde_json::json!({}))
+                .is_err()
+        );
     }
 
     #[test]
@@ -428,6 +476,7 @@ mod tests {
         assert_eq!(PrimalSlot::Beardog as usize, 2);
         assert_eq!(PrimalSlot::Squirrel as usize, 3);
         assert_eq!(PrimalSlot::Coralreef as usize, 4);
+        assert_eq!(PrimalSlot::Skunkbat as usize, 5);
     }
 
     #[test]
@@ -438,7 +487,7 @@ mod tests {
 
     #[test]
     fn liveness_report_zero_on_no_primals() {
-        let report = IpcLivenessReport { alive: [false; 5] };
+        let report = IpcLivenessReport { alive: [false; 6] };
         assert_eq!(report.alive_count(), 0);
         for slot in [
             PrimalSlot::Barracuda,
@@ -446,6 +495,7 @@ mod tests {
             PrimalSlot::Beardog,
             PrimalSlot::Squirrel,
             PrimalSlot::Coralreef,
+            PrimalSlot::Skunkbat,
         ] {
             assert!(!report.is_alive(slot));
         }
@@ -454,11 +504,12 @@ mod tests {
     #[test]
     fn liveness_report_partial() {
         let report = IpcLivenessReport {
-            alive: [true, false, true, false, false],
+            alive: [true, false, true, false, false, false],
         };
         assert_eq!(report.alive_count(), 2);
         assert!(report.is_alive(PrimalSlot::Barracuda));
         assert!(!report.is_alive(PrimalSlot::Toadstool));
         assert!(report.is_alive(PrimalSlot::Beardog));
+        assert!(!report.is_alive(PrimalSlot::Skunkbat));
     }
 }

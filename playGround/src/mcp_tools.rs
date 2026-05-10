@@ -369,6 +369,42 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
             domain: "health",
             input_schema: json!({ "type": "object", "properties": {} }),
         },
+        // ── biomeOS v3.51 composition surface ────────────────────────
+        McpToolDef {
+            name: "composition.status",
+            description: "biomeOS v3.51 composition status: active_users, primal_health, \
+                          resource_pressure for adaptive daemon monitoring.",
+            domain: "composition",
+            input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        McpToolDef {
+            name: "method.register",
+            description: "biomeOS v3.51 dynamic method registration: register spring-specific \
+                          methods into semantic routing without manual biomeOS configuration.",
+            domain: "method",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "methods": { "type": "array", "items": { "type": "string" }, "description": "Method names to register" },
+                    "transport": { "type": "string", "description": "Transport endpoint (socket path or tcp://host:port)" }
+                }
+            }),
+        },
+        // ── Security audit (skunkBat JH-5) ───────────────────────────
+        McpToolDef {
+            name: "security.audit_log",
+            description: "skunkBat JH-5 audit log forwarding: submit audit events for \
+                          cross-primal logging into rhizoCrypt DAG + sweetGrass braid.",
+            domain: "security",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "event_type": { "type": "string", "description": "Audit event type" },
+                    "source": { "type": "string", "description": "Event source identifier" },
+                    "payload": { "type": "object", "description": "Event payload" }
+                }
+            }),
+        },
     ]
 }
 
@@ -390,7 +426,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 30);
+        assert_eq!(tools.len(), 33);
     }
 
     #[test]
@@ -417,6 +453,9 @@ mod tests {
             "compute",
             "identity",
             "mcp",
+            "composition",
+            "method",
+            "security",
         ];
         for tool in tool_definitions() {
             assert!(
