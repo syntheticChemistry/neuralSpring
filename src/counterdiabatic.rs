@@ -19,6 +19,7 @@
 //! - Fisher information: `barracuda::ops::FusedMapReduceF64` (gradient inner product)
 //! - Geodesic distance: scalar reduction (L2 norm of Fisher transport)
 
+#[cfg(feature = "barracuda")]
 use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
@@ -34,6 +35,7 @@ const SAFETY_EPS: f64 = crate::tolerances::LOG_ZERO_GUARD;
 /// Floor for Fisher information metric to prevent `ds/dt → ∞`.
 ///
 /// See [`crate::tolerances::FISHER_EPS`] for justification.
+#[cfg(feature = "barracuda")]
 const FISHER_EPS: f64 = crate::tolerances::FISHER_EPS;
 
 /// NK fitness landscape: N binary loci, K epistatic interactions.
@@ -159,6 +161,7 @@ pub fn kl_divergence(p: &[f64], q: &[f64]) -> f64 {
     clippy::cast_precision_loss,
     reason = "schedule grid steps → f64 for numerical integration"
 )]
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn compute_cd_schedule(f0: &[f64], f1: &[f64], t: usize, beta: f64) -> Vec<f64> {
     // Grid resolution for Fisher information integration.
@@ -308,6 +311,7 @@ mod tests {
         assert_relative_eq!(kl, 0.0, epsilon = tolerances::CROSS_LANGUAGE);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn cd_schedule_endpoints() {
         let f0 = [0.1, 0.2, 0.3, 0.4];
@@ -317,6 +321,7 @@ mod tests {
         assert!(sched[sched.len() - 1] > 0.9, "end near 1");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn deterministic_protocol_deterministic() {
         let f0 = vec![0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];

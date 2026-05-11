@@ -27,7 +27,6 @@
     reason = "domain-specific numeric patterns"
 )]
 
-use crate::eigh::eigh_householder_qr;
 use crate::primitives::LOG_GUARD;
 
 /// Convert a weight matrix to a row-stochastic transition matrix.
@@ -61,6 +60,7 @@ pub fn weight_to_transition(weights: &[f64], n_rows: usize, n_cols: usize) -> Ve
 /// matrices, computes the output distribution.
 ///
 /// Returns per-layer output distributions.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn belief_propagation_chain(
     input_dist: &[f64],
@@ -96,8 +96,11 @@ pub fn pgm_nn_divergence(nn_output: &[f64], pgm_output: &[f64]) -> f64 {
 /// Computes the cosine similarity between sorted eigenvalue spectra
 /// of the two symmetrized weight matrices. High similarity between
 /// distant layers suggests "knowledge transfer" (introgression analog).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn layer_spectral_similarity(w1: &[f64], n1: usize, w2: &[f64], n2: usize) -> f64 {
+    use crate::eigh::eigh_householder_qr;
+
     let s1 = symmetrize_square(w1, n1);
     let s2 = symmetrize_square(w2, n2);
 
@@ -127,6 +130,7 @@ pub fn layer_spectral_similarity(w1: &[f64], n1: usize, w2: &[f64], n2: usize) -
     (dot / (norm1 * norm2)).clamp(-1.0, 1.0)
 }
 
+#[cfg(feature = "barracuda")]
 fn symmetrize_square(m: &[f64], n: usize) -> Vec<f64> {
     let mut s = vec![0.0; n * n];
     for i in 0..n {
@@ -147,6 +151,7 @@ fn symmetrize_square(m: &[f64], n: usize) -> Vec<f64> {
 /// perform simple computations (single circuits).
 ///
 /// Delegates to `barracuda::linalg::graph::effective_rank` (absorbed S54, H-009).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn effective_rank(eigenvalues: &[f64]) -> f64 {
     barracuda::linalg::effective_rank(eigenvalues)
@@ -184,6 +189,7 @@ pub fn pgm_complexity(transition_matrices: &[&[f64]], dims: &[usize], threshold:
 ///
 /// Converts weights to transitions, runs belief propagation, and
 /// compares with direct forward pass. Returns PGM quality metrics.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn pgm_analysis(
     weight_matrices: &[&[f64]],
@@ -219,6 +225,7 @@ pub fn pgm_analysis(
 }
 
 /// Result of PGM analysis.
+#[cfg(feature = "barracuda")]
 #[derive(Debug, Clone)]
 pub struct PgmAnalysisResult {
     /// PGM belief propagation output distribution.
@@ -257,6 +264,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn bp_preserves_normalization() {
         let input = vec![0.25, 0.25, 0.25, 0.25];
@@ -295,6 +303,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn effective_rank_of_identity() {
         let eigenvalues = vec![1.0; 8];
@@ -305,6 +314,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn effective_rank_of_single() {
         let mut eigenvalues = vec![0.0; 8];
@@ -316,6 +326,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn spectral_similarity_self() {
         let w = vec![1.0, 0.5, 0.5, 1.0, 0.3, 0.7, 0.7, 0.3, 1.0];
@@ -361,6 +372,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn bp_chain_multi_layer() {
         let input = vec![0.5, 0.5];
@@ -379,6 +391,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn effective_rank_all_zeros() {
         let eigenvalues = vec![0.0; 8];
@@ -389,6 +402,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn effective_rank_two_equal() {
         let eigenvalues = vec![1.0, 1.0, 0.0, 0.0];
@@ -399,6 +413,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn layer_spectral_similarity_different_sizes() {
         let w1 = vec![1.0, 0.5, 0.5, 1.0];
@@ -414,6 +429,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn layer_spectral_similarity_zero_matrix() {
         let zeros = vec![0.0; 4];
@@ -448,6 +464,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn pgm_analysis_round_trip() {
         let input = vec![0.5, 0.5];
@@ -466,6 +483,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn pgm_analysis_kl_small_for_identity_like() {
         let input = vec![0.25, 0.25, 0.25, 0.25];

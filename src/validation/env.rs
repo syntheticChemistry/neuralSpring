@@ -78,6 +78,7 @@ pub fn exit_no_gpu() -> ! {
 /// // After:
 /// let gpu = gpu_or_exit().await;
 /// ```
+#[cfg(feature = "barracuda")]
 pub async fn gpu_or_exit() -> crate::gpu::Gpu {
     crate::gpu::Gpu::new()
         .await

@@ -57,6 +57,7 @@ pub fn seasonal_tmax(doy: u32) -> f64 {
 /// Sigmoid activation (used in LSTM/GRU gates).
 ///
 /// Delegates to [`crate::primitives::sigmoid`] (numerically stable).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn sigmoid(x: f64) -> f64 {
     crate::primitives::sigmoid(x)
@@ -99,6 +100,7 @@ pub struct LstmWeights<'a> {
 ///   - `h = o * tanh(c)`
 ///
 /// Returns `(h_new, c_new)`.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn lstm_cell(
     x: &[f64],
@@ -166,6 +168,7 @@ pub struct GruWeights<'a> {
 ///   - `h' = (1 - z) * n + z * h`
 ///
 /// Returns `h_new`.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn gru_cell(x: &[f64], h_prev: &[f64], w: &GruWeights<'_>) -> Vec<f64> {
     let input_size = x.len();
@@ -203,6 +206,7 @@ pub fn gru_cell(x: &[f64], h_prev: &[f64], w: &GruWeights<'_>) -> Vec<f64> {
 }
 
 /// Process a full sequence through an LSTM, returning final hidden state.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn lstm_forward(sequence: &[Vec<f64>], w: &LstmWeights<'_>) -> Vec<f64> {
     let mut h = vec![0.0; w.hidden_size];
@@ -216,6 +220,7 @@ pub fn lstm_forward(sequence: &[Vec<f64>], w: &LstmWeights<'_>) -> Vec<f64> {
 }
 
 /// Process a full sequence through a GRU, returning final hidden state.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn gru_forward(sequence: &[Vec<f64>], w: &GruWeights<'_>) -> Vec<f64> {
     let mut h = vec![0.0; w.hidden_size];
@@ -268,6 +273,7 @@ mod tests {
         assert!(winter < 0.0, "winter should be < 0°C");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn sigmoid_bounds() {
         assert_relative_eq!(sigmoid(0.0), 0.5);
@@ -275,6 +281,7 @@ mod tests {
         assert!(sigmoid(-100.0) < 0.01);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn sigmoid_symmetry() {
         let x = 2.5;
@@ -312,6 +319,7 @@ mod tests {
         assert_eq!(run1, run2, "seasonal_tmax must be bit-identical");
     }
 
+    #[cfg(feature = "barracuda")]
     fn make_lstm_weights(
         hs: usize,
         is: usize,
@@ -325,6 +333,7 @@ mod tests {
         )
     }
 
+    #[cfg(feature = "barracuda")]
     fn make_gru_weights(
         hs: usize,
         is: usize,
@@ -338,6 +347,7 @@ mod tests {
         )
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn lstm_cell_zero_input() {
         let hs = 2;
@@ -362,6 +372,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn lstm_cell_nonzero_bias() {
         let wi = vec![0.0; 4];
@@ -382,6 +393,7 @@ mod tests {
         assert_relative_eq!(h_new[0], 0.0, epsilon = tolerances::EXACT_F64);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn gru_cell_zero_input() {
         let hs = 2;
@@ -401,6 +413,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn lstm_forward_sequence() {
         let hs = 2;
@@ -420,6 +433,7 @@ mod tests {
         assert_eq!(h1.len(), hs);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn gru_forward_sequence() {
         let hs = 2;

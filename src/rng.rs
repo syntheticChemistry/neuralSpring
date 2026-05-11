@@ -24,6 +24,7 @@ use std::f64::consts::PI;
 ///
 /// Absorption target: `barracuda::ops::prng`.
 /// Validated: `validate_gpu_prng` (5/5 PASS).
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::XOSHIRO128SS as WGSL_XOSHIRO128SS;
 
 /// Deterministic PRNG based on Xoshiro256**.

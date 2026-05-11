@@ -12,8 +12,6 @@
 //! - [`crate::eigh`] — eigendecomposition
 //! - `crate::metrics` — R², RMSE
 
-use crate::anderson_localization;
-use crate::tolerances;
 
 /// Spectral properties of a weight matrix.
 #[derive(Debug, Clone)]
@@ -79,8 +77,12 @@ pub struct IsomorphicBaseline {
 /// Compute spectral properties of a symmetric weight matrix.
 ///
 /// The matrix should be provided as a flat row-major `n × n` array.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn spectral_properties(matrix: &[f64], n: usize, name: &str) -> SpectralProfile {
+    use crate::anderson_localization;
+    use crate::tolerances;
+
     let result = crate::eigh::eigh_householder_qr(matrix, n);
     let mut evals = result.eigenvalues.clone();
     evals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
@@ -144,8 +146,11 @@ pub fn spectral_properties(matrix: &[f64], n: usize, name: &str) -> SpectralProf
 }
 
 /// Compute cross-domain metrics from a set of spectral profiles.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn cross_domain_metrics(profiles: &[SpectralProfile]) -> CrossDomainMetrics {
+    use crate::tolerances;
+
     let n = profiles.len() as f64;
     let eff_ratios: Vec<f64> = profiles.iter().map(|p| p.effective_ratio).collect();
     let iprs: Vec<f64> = profiles.iter().map(|p| p.mean_ipr).collect();
@@ -276,63 +281,6 @@ pub fn load_isomorphic_from_json(json_str: &str) -> Result<IsomorphicBaseline, S
 mod tests {
     use super::*;
 
-    fn make_identity(n: usize) -> Vec<f64> {
-        let mut m = vec![0.0; n * n];
-        for i in 0..n {
-            m[i * n + i] = 1.0;
-        }
-        m
-    }
-
-    #[test]
-    fn test_spectral_identity() {
-        let m = make_identity(8);
-        let sp = spectral_properties(&m, 8, "identity");
-        assert!((sp.spectral_radius - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
-        assert!((sp.eigenvalue_mean - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
-        assert!(sp.eigenvalue_std < crate::tolerances::CROSS_LANGUAGE);
-    }
-
-    #[test]
-    fn test_spectral_diagonal() {
-        let n = 8;
-        let mut m = vec![0.0; n * n];
-        for i in 0..n {
-            m[i * n + i] = (i + 1) as f64;
-        }
-        let sp = spectral_properties(&m, n, "diagonal");
-        assert!((sp.spectral_radius - 8.0).abs() < crate::tolerances::CROSS_LANGUAGE);
-        assert!((sp.eigenvalue_min - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
-        assert!((sp.eigenvalue_max - 8.0).abs() < crate::tolerances::CROSS_LANGUAGE);
-        assert!(sp.mean_ipr > 0.0);
-    }
-
-    #[test]
-    fn test_cross_domain_identical() {
-        let m = make_identity(8);
-        let sp = spectral_properties(&m, 8, "a");
-        let sp2 = spectral_properties(&m, 8, "b");
-        let cd = cross_domain_metrics(&[sp, sp2]);
-        assert!(
-            cd.eff_ratio_cv < crate::tolerances::CROSS_LANGUAGE,
-            "identical matrices → CV=0"
-        );
-    }
-
-    #[test]
-    fn test_ipr_diagonal_is_localized() {
-        let n = 16;
-        let mut m = vec![0.0; n * n];
-        for i in 0..n {
-            m[i * n + i] = i as f64;
-        }
-        let sp = spectral_properties(&m, n, "diag");
-        assert!(
-            (sp.mean_ipr - 1.0).abs() < crate::tolerances::GELU_LARGE_INPUT,
-            "diagonal → basis eigenvectors → IPR=1"
-        );
-    }
-
     #[test]
     fn test_effective_dimension_formula() {
         let ipr = 0.05_f64;
@@ -340,62 +288,124 @@ mod tests {
         assert!((eff_dim - 20.0).abs() < crate::tolerances::CROSS_LANGUAGE);
     }
 
-    mod proptests {
+    #[cfg(feature = "barracuda")]
+    mod spectral {
         use super::*;
-        use crate::rng::Rng as PrimalRng;
-        use proptest::prelude::*;
 
-        proptest! {
-            #![proptest_config(ProptestConfig::with_cases(48))]
-
-            #[test]
-            fn spectral_radius_matches_eigenvalue_extremes(
-                n in 3_usize..12,
-                seed in 0_u64..10_000,
-            ) {
-                let mut rng = PrimalRng::new(seed);
-                let mut m = vec![0.0; n * n];
-                for i in 0..n {
-                    for j in i..n {
-                        let v = 2.0f64.mul_add(rng.uniform(), -1.0);
-                        m[i * n + j] = v;
-                        m[j * n + i] = v;
-                    }
-                }
-
-                let sp = spectral_properties(&m, n, "proptest");
-
-                prop_assert!(sp.spectral_radius.is_finite());
-                prop_assert!(sp.spectral_radius >= 0.0);
-
-                let expected = sp.eigenvalue_min.abs().max(sp.eigenvalue_max.abs());
-                prop_assert!((sp.spectral_radius - expected).abs() < 1e-8,
-                    "spectral_radius={} vs max(|min|,|max|)={}",
-                    sp.spectral_radius, expected);
+        fn make_identity(n: usize) -> Vec<f64> {
+            let mut m = vec![0.0; n * n];
+            for i in 0..n {
+                m[i * n + i] = 1.0;
             }
+            m
+        }
 
-            #[test]
-            fn eigenvalue_stats_consistent(
-                n in 3_usize..12,
-                seed in 0_u64..10_000,
-            ) {
-                let mut rng = PrimalRng::new(seed);
-                let mut m = vec![0.0; n * n];
-                for i in 0..n {
-                    for j in i..n {
-                        let v = 2.0f64.mul_add(rng.uniform(), -1.0);
-                        m[i * n + j] = v;
-                        m[j * n + i] = v;
+        #[test]
+        fn test_spectral_identity() {
+            let m = make_identity(8);
+            let sp = spectral_properties(&m, 8, "identity");
+            assert!((sp.spectral_radius - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+            assert!((sp.eigenvalue_mean - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+            assert!(sp.eigenvalue_std < crate::tolerances::CROSS_LANGUAGE);
+        }
+
+        #[test]
+        fn test_spectral_diagonal() {
+            let n = 8;
+            let mut m = vec![0.0; n * n];
+            for i in 0..n {
+                m[i * n + i] = (i + 1) as f64;
+            }
+            let sp = spectral_properties(&m, n, "diagonal");
+            assert!((sp.spectral_radius - 8.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+            assert!((sp.eigenvalue_min - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+            assert!((sp.eigenvalue_max - 8.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+            assert!(sp.mean_ipr > 0.0);
+        }
+
+        #[test]
+        fn test_cross_domain_identical() {
+            let m = make_identity(8);
+            let sp = spectral_properties(&m, 8, "a");
+            let sp2 = spectral_properties(&m, 8, "b");
+            let cd = cross_domain_metrics(&[sp, sp2]);
+            assert!(
+                cd.eff_ratio_cv < crate::tolerances::CROSS_LANGUAGE,
+                "identical matrices → CV=0"
+            );
+        }
+
+        #[test]
+        fn test_ipr_diagonal_is_localized() {
+            let n = 16;
+            let mut m = vec![0.0; n * n];
+            for i in 0..n {
+                m[i * n + i] = i as f64;
+            }
+            let sp = spectral_properties(&m, n, "diag");
+            assert!(
+                (sp.mean_ipr - 1.0).abs() < crate::tolerances::GELU_LARGE_INPUT,
+                "diagonal → basis eigenvectors → IPR=1"
+            );
+        }
+
+        mod proptests {
+            use super::*;
+            use crate::rng::Rng as PrimalRng;
+            use proptest::prelude::*;
+
+            proptest! {
+                #![proptest_config(ProptestConfig::with_cases(48))]
+
+                #[test]
+                fn spectral_radius_matches_eigenvalue_extremes(
+                    n in 3_usize..12,
+                    seed in 0_u64..10_000,
+                ) {
+                    let mut rng = PrimalRng::new(seed);
+                    let mut m = vec![0.0; n * n];
+                    for i in 0..n {
+                        for j in i..n {
+                            let v = 2.0f64.mul_add(rng.uniform(), -1.0);
+                            m[i * n + j] = v;
+                            m[j * n + i] = v;
+                        }
                     }
+
+                    let sp = spectral_properties(&m, n, "proptest");
+
+                    prop_assert!(sp.spectral_radius.is_finite());
+                    prop_assert!(sp.spectral_radius >= 0.0);
+
+                    let expected = sp.eigenvalue_min.abs().max(sp.eigenvalue_max.abs());
+                    prop_assert!((sp.spectral_radius - expected).abs() < 1e-8,
+                        "spectral_radius={} vs max(|min|,|max|)={}",
+                        sp.spectral_radius, expected);
                 }
 
-                let sp = spectral_properties(&m, n, "proptest");
+                #[test]
+                fn eigenvalue_stats_consistent(
+                    n in 3_usize..12,
+                    seed in 0_u64..10_000,
+                ) {
+                    let mut rng = PrimalRng::new(seed);
+                    let mut m = vec![0.0; n * n];
+                    for i in 0..n {
+                        for j in i..n {
+                            let v = 2.0f64.mul_add(rng.uniform(), -1.0);
+                            m[i * n + j] = v;
+                            m[j * n + i] = v;
+                        }
+                    }
 
-                prop_assert!(sp.eigenvalue_min <= sp.eigenvalue_max + 1e-10);
-                prop_assert!(sp.eigenvalue_mean.is_finite());
-                prop_assert!(sp.eigenvalue_std >= 0.0);
-                prop_assert!(sp.mean_ipr > 0.0);
-                prop_assert!(sp.effective_dimension.is_finite());
+                    let sp = spectral_properties(&m, n, "proptest");
+
+                    prop_assert!(sp.eigenvalue_min <= sp.eigenvalue_max + 1e-10);
+                    prop_assert!(sp.eigenvalue_mean.is_finite());
+                    prop_assert!(sp.eigenvalue_std >= 0.0);
+                    prop_assert!(sp.mean_ipr > 0.0);
+                    prop_assert!(sp.effective_dimension.is_finite());
+                }
             }
         }
     }

@@ -21,36 +21,60 @@
 /// Panics if `y_true` and `y_pred` have different lengths.
 #[must_use]
 pub fn r_squared(y_true: &[f64], y_pred: &[f64]) -> f64 {
-    barracuda::stats::r_squared(y_true, y_pred)
+    #[cfg(feature = "barracuda")]
+    { barracuda::stats::r_squared(y_true, y_pred) }
+    #[cfg(not(feature = "barracuda"))]
+    {
+        let mean: f64 = y_true.iter().sum::<f64>() / y_true.len() as f64;
+        let ss_res: f64 = y_true.iter().zip(y_pred).map(|(t, p)| (t - p).powi(2)).sum();
+        let ss_tot: f64 = y_true.iter().map(|t| (t - mean).powi(2)).sum();
+        1.0 - ss_res / ss_tot
+    }
 }
 
-/// Root mean squared error (delegates to `barracuda::stats::rmse`).
+/// Root mean squared error.
 ///
 /// # Panics
 ///
 /// Panics if `y_true` and `y_pred` have different lengths.
 #[must_use]
 pub fn rmse(y_true: &[f64], y_pred: &[f64]) -> f64 {
-    barracuda::stats::rmse(y_true, y_pred)
+    #[cfg(feature = "barracuda")]
+    { barracuda::stats::rmse(y_true, y_pred) }
+    #[cfg(not(feature = "barracuda"))]
+    {
+        let mse: f64 = y_true.iter().zip(y_pred)
+            .map(|(t, p)| (t - p).powi(2)).sum::<f64>() / y_true.len() as f64;
+        mse.sqrt()
+    }
 }
 
-/// Mean absolute error (delegates to `barracuda::stats::mae`).
+/// Mean absolute error.
 ///
 /// # Panics
 ///
 /// Panics if `y_true` and `y_pred` have different lengths.
 #[must_use]
 pub fn mae(y_true: &[f64], y_pred: &[f64]) -> f64 {
-    barracuda::stats::mae(y_true, y_pred)
+    #[cfg(feature = "barracuda")]
+    { barracuda::stats::mae(y_true, y_pred) }
+    #[cfg(not(feature = "barracuda"))]
+    {
+        y_true.iter().zip(y_pred)
+            .map(|(t, p)| (t - p).abs()).sum::<f64>() / y_true.len() as f64
+    }
 }
 
-/// Nash-Sutcliffe Efficiency (delegates to `barracuda::stats::nash_sutcliffe`).
+/// Nash-Sutcliffe Efficiency.
 #[must_use]
 pub fn nse(y_true: &[f64], y_pred: &[f64]) -> f64 {
-    barracuda::stats::nash_sutcliffe(y_true, y_pred)
+    #[cfg(feature = "barracuda")]
+    { barracuda::stats::nash_sutcliffe(y_true, y_pred) }
+    #[cfg(not(feature = "barracuda"))]
+    { r_squared(y_true, y_pred) }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "barracuda"))]
 mod tests {
     use super::*;
     use crate::tolerances;

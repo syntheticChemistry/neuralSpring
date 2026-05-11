@@ -70,6 +70,7 @@ fn create_sequences_lengths() {
     assert_eq!(inputs[0].len(), 12);
 }
 
+#[cfg(all(test, feature = "barracuda"))]
 #[test]
 fn r2_score_perfect() {
     let actual = vec![1.0, 2.0, 3.0, 4.0, 5.0];
@@ -77,6 +78,7 @@ fn r2_score_perfect() {
     assert!((r2 - 1.0).abs() < tolerances::ZERO_DETECTION);
 }
 
+#[cfg(all(test, feature = "barracuda"))]
 #[test]
 fn rmse_zero_for_identical() {
     let actual = vec![1.0, 2.0, 3.0];
@@ -84,6 +86,7 @@ fn rmse_zero_for_identical() {
     assert!(r.abs() < tolerances::ZERO_DETECTION);
 }
 
+#[cfg(all(test, feature = "barracuda"))]
 #[test]
 fn run_experiment_produces_results() {
     let horizons = [1, 6];
@@ -95,6 +98,7 @@ fn run_experiment_produces_results() {
     assert_eq!(predictor.readouts.len(), 2);
 }
 
+#[cfg(all(test, feature = "barracuda"))]
 #[test]
 fn short_horizon_better_than_long() {
     let horizons = [1, 12];
@@ -105,6 +109,7 @@ fn short_horizon_better_than_long() {
     );
 }
 
+#[cfg(all(test, feature = "barracuda"))]
 #[test]
 fn experiment_deterministic() {
     let horizons = [1, 6];
@@ -118,6 +123,7 @@ fn experiment_deterministic() {
     }
 }
 
+#[cfg(all(test, feature = "barracuda"))]
 #[test]
 fn extract_features_dimension() {
     let cgm = generate_synthetic_cgm(7, 42);
@@ -156,6 +162,7 @@ fn extract_features_dimension() {
     );
 }
 
+#[cfg(all(test, feature = "barracuda"))]
 #[test]
 fn solve_symmetric_identity() {
     let a = vec![1.0, 0.0, 0.0, 1.0];
@@ -168,6 +175,7 @@ fn solve_symmetric_identity() {
     assert!((x[1] - 7.0).abs() < tolerances::CROSS_LANGUAGE);
 }
 
+#[cfg(all(test, feature = "barracuda"))]
 #[test]
 fn solve_symmetric_known_system() {
     let a = vec![4.0, 2.0, 2.0, 3.0];

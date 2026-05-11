@@ -116,6 +116,36 @@ pub enum ParseError {
     },
 }
 
+/// Errors from IPC calls to primal services.
+#[derive(Debug, thiserror::Error)]
+pub enum IpcError {
+    /// The target primal was not discovered on the local socket bus.
+    #[error("ipc discovery: {primal} not found — is it running?")]
+    NotDiscovered {
+        /// Primal name (e.g. "barraCuda", "toadStool").
+        primal: &'static str,
+    },
+
+    /// The JSON-RPC transport failed (socket connect, send, or recv).
+    #[error("ipc transport ({capability}): {reason}")]
+    Transport {
+        /// The capability that was being called (e.g. "stats.mean").
+        capability: String,
+        /// Transport-level failure description.
+        reason: String,
+    },
+
+    /// The primal responded but the payload was malformed or missing
+    /// expected fields.
+    #[error("ipc protocol ({capability}): {reason}")]
+    Protocol {
+        /// The capability that was being called.
+        capability: String,
+        /// What was wrong with the response.
+        reason: String,
+    },
+}
+
 /// Top-level library error type.
 ///
 /// Composes domain-specific error types into a single `Result<T, Error>`
@@ -133,6 +163,10 @@ pub enum Error {
     /// Streaming parser error.
     #[error(transparent)]
     Parse(#[from] ParseError),
+
+    /// IPC call to a primal service failed.
+    #[error(transparent)]
+    Ipc(#[from] IpcError),
 
     /// Contextual error with a descriptive message.
     ///
@@ -170,6 +204,21 @@ impl From<GpuError> for String {
 impl From<TensorError> for String {
     fn from(e: TensorError) -> Self {
         e.to_string()
+    }
+}
+
+impl From<IpcError> for String {
+    fn from(e: IpcError) -> Self {
+        e.to_string()
+    }
+}
+
+impl From<String> for IpcError {
+    fn from(s: String) -> Self {
+        Self::Transport {
+            capability: String::new(),
+            reason: s,
+        }
     }
 }
 
@@ -303,5 +352,59 @@ mod tests {
         };
         let s: String = tensor.into();
         assert!(s.contains("device lost"));
+    }
+
+    #[test]
+    fn ipc_not_discovered_display() {
+        let e = IpcError::NotDiscovered {
+            primal: "barraCuda",
+        };
+        assert!(e.to_string().contains("barraCuda"));
+        assert!(e.to_string().contains("not found"));
+    }
+
+    #[test]
+    fn ipc_transport_display() {
+        let e = IpcError::Transport {
+            capability: "stats.mean".into(),
+            reason: "connection refused".into(),
+        };
+        let s = e.to_string();
+        assert!(s.contains("stats.mean"));
+        assert!(s.contains("connection refused"));
+    }
+
+    #[test]
+    fn ipc_protocol_display() {
+        let e = IpcError::Protocol {
+            capability: "tensor.matmul".into(),
+            reason: "missing data array".into(),
+        };
+        assert!(e.to_string().contains("tensor.matmul"));
+    }
+
+    #[test]
+    fn top_level_error_from_ipc() {
+        let ipc = IpcError::NotDiscovered {
+            primal: "toadStool",
+        };
+        let e: Error = ipc.into();
+        assert!(e.to_string().contains("toadStool"));
+    }
+
+    #[test]
+    fn ipc_error_to_string_conversion() {
+        let ipc = IpcError::Transport {
+            capability: "crypto.hash".into(),
+            reason: "timeout".into(),
+        };
+        let s: String = ipc.into();
+        assert!(s.contains("timeout"));
+    }
+
+    #[test]
+    fn ipc_error_from_string() {
+        let e: IpcError = "socket error".to_string().into();
+        assert!(e.to_string().contains("socket error"));
     }
 }

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+#[cfg(feature = "barracuda")]
 use crate::rng::Rng;
 
 /// Euclidean distance matrix from 2D coordinates.
@@ -24,6 +25,7 @@ pub fn geographic_distance_matrix(coords: &[(f64, f64)]) -> Vec<f64> {
 /// Extracts the upper triangle, then delegates to
 /// `barracuda::stats::pearson_correlation` (absorbed from airSpring/groundSpring
 /// hydrology metrics via `ToadStool` S64, now in `BarraCUDA`).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
     let (xs, ys): (Vec<f64>, Vec<f64>) = (0..n)
@@ -36,6 +38,7 @@ pub fn matrix_correlation(a: &[f64], b: &[f64], n: usize) -> f64 {
 }
 
 /// Mantel test: correlation between distance matrices with permutation p-value.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn mantel_test(
     dist_a: &[f64],
@@ -95,6 +98,7 @@ mod tests {
         assert!((dist[1] - 5.0).abs() < tolerances::CROSS_LANGUAGE);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn matrix_correlation_perfect() {
         let a = vec![0.0, 1.0, 1.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0];
@@ -105,6 +109,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn mantel_test_produces_finite() {
         let mut rng = Rng::new(42);

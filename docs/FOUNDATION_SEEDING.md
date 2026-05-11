@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 # neuralSpring — Foundation Seeding Manifest
 
-**Status**: Ready for contribution | **Session**: S200b | **Date**: May 11, 2026
+**Status**: Threads 5+7 seeded | **Session**: S201 | **Date**: May 11, 2026
 
 neuralSpring contributes validated science to two foundation threads:
 
@@ -59,13 +59,12 @@ integration.
 
 ## Contribution Path
 
-1. Create `data/targets/thread07_anderson_targets.toml` in foundation with
-   neuralSpring's spectral validation results (IPR, localization length,
-   level spacing statistics)
-2. Create `data/sources/thread05_ltee.toml` in foundation with Dolson's
-   5 paper references (already implemented as notebooks)
-3. Link `data/targets/thread05_ltee_targets.toml` with evolutionary
-   dynamics validation results
+1. ~~Create `data/targets/thread07_anderson_targets.toml` in foundation~~ **DONE** (S201) — 6 neuralSpring targets added
+2. ~~Create `data/sources/thread05_ml_surrogates.toml` in foundation~~ **DONE** (S201) — 15 sources
+3. ~~Create `data/targets/thread05_ml_surrogates_targets.toml`~~ **DONE** (S201) — 12 targets
 4. Register BLAKE3 hashes via sweetGrass braid + NestGate content pipeline
 
-*neuralSpring V151 | Session S200b | AGPL-3.0-or-later*
+Foundation now at 7/10 threads with sources (was 5/10). neuralSpring
+contributed Thread 5 (new) and expanded Thread 7.
+
+*neuralSpring V152 | Session S201 | AGPL-3.0-or-later*

@@ -7,6 +7,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
 /// `inference.complete` via Squirrel IPC.
@@ -18,8 +19,8 @@ pub fn inference_complete(
     socket: &Path,
     params: &serde_json::Value,
     timeout: Duration,
-) -> Result<serde_json::Value, String> {
-    call_capability(socket, "inference.complete", params, timeout)
+) -> Result<serde_json::Value, IpcError> {
+    Ok(call_capability(socket, "inference.complete", params, timeout)?)
 }
 
 /// `inference.embed` via Squirrel IPC.
@@ -31,8 +32,8 @@ pub fn inference_embed(
     socket: &Path,
     params: &serde_json::Value,
     timeout: Duration,
-) -> Result<serde_json::Value, String> {
-    call_capability(socket, "inference.embed", params, timeout)
+) -> Result<serde_json::Value, IpcError> {
+    Ok(call_capability(socket, "inference.embed", params, timeout)?)
 }
 
 /// `inference.models` via Squirrel IPC.
@@ -40,6 +41,6 @@ pub fn inference_embed(
 /// # Errors
 ///
 /// Returns an error if Squirrel is not reachable or the IPC call fails.
-pub fn inference_models(socket: &Path, timeout: Duration) -> Result<serde_json::Value, String> {
-    call_capability(socket, "inference.models", &serde_json::json!({}), timeout)
+pub fn inference_models(socket: &Path, timeout: Duration) -> Result<serde_json::Value, IpcError> {
+    Ok(call_capability(socket, "inference.models", &serde_json::json!({}), timeout)?)
 }

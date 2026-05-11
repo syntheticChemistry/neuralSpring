@@ -411,38 +411,6 @@ pub struct ScienceBaseline {
 /// known Rust result computed with identical parameters (same seed, dim, disorder).
 #[must_use]
 pub fn science_baselines() -> Vec<ScienceBaseline> {
-    use crate::anderson_localization::{anderson_hamiltonian_random, mean_ipr};
-    use crate::eigh::eigh_householder_qr;
-    use crate::rng::Rng;
-    use crate::tolerances;
-    use crate::weight_spectral;
-
-    // Baseline 1: science.spectral_analysis (dim=16, disorder=2.0, seed=42)
-    let spectral = {
-        let n = 16;
-        let w = 2.0;
-        let seed = 42;
-        let mut rng = Rng::new(seed);
-        let h = anderson_hamiltonian_random(n, 1.0, w, &mut rng);
-        let decomp = eigh_householder_qr(&h, n);
-        let ipr_val = mean_ipr(&decomp.eigenvectors, n);
-        let mut evals = decomp.eigenvalues;
-        evals.sort_by(f64::total_cmp);
-        let lsr = weight_spectral::level_spacing_ratio(&evals);
-        let bw = weight_spectral::spectral_bandwidth(&evals);
-
-        ScienceBaseline {
-            method: "science.spectral_analysis",
-            params: serde_json::json!({ "dim": n, "disorder": w, "seed": seed }),
-            expected: vec![
-                ("mean_ipr", ipr_val),
-                ("level_spacing_ratio", lsr),
-                ("bandwidth", bw),
-            ],
-            tolerance: tolerances::SPECIAL_FUNCTION_F64,
-        }
-    };
-
     // Baseline 2: science.ipr (uniform wavefunction, IPR = 1/n)
     let ipr_uniform = {
         let n = 8_usize;
@@ -455,64 +423,108 @@ pub fn science_baselines() -> Vec<ScienceBaseline> {
             method: "science.ipr",
             params: serde_json::json!({ "wavefunction": wf }),
             expected: vec![("ipr", expected_ipr)],
-            tolerance: tolerances::EXACT_F64,
+            tolerance: crate::tolerances::EXACT_F64,
         }
     };
 
-    // Baseline 3: science.hessian_eigen (quadratic surface, dim=10)
-    let hessian_quad = {
-        let n = 10;
-        let mut hessian = vec![0.0; n * n];
-        for i in 0..n {
+    #[cfg(not(feature = "barracuda"))]
+    {
+        return vec![ipr_uniform];
+    }
+
+    #[cfg(feature = "barracuda")]
+    {
+        use crate::anderson_localization::{anderson_hamiltonian_random, mean_ipr};
+        use crate::eigh::eigh_householder_qr;
+        use crate::rng::Rng;
+        use crate::tolerances;
+        use crate::weight_spectral;
+
+        // Baseline 1: science.spectral_analysis (dim=16, disorder=2.0, seed=42)
+        let spectral = {
+            let n = 16;
+            let w = 2.0;
+            let seed = 42;
+            let mut rng = Rng::new(seed);
+            let h = anderson_hamiltonian_random(n, 1.0, w, &mut rng);
+            let decomp = eigh_householder_qr(&h, n);
+            let ipr_val = mean_ipr(&decomp.eigenvectors, n);
+            let mut evals = decomp.eigenvalues;
+            evals.sort_by(f64::total_cmp);
+            let lsr = weight_spectral::level_spacing_ratio(&evals);
+            let bw = weight_spectral::spectral_bandwidth(&evals);
+
+            ScienceBaseline {
+                method: "science.spectral_analysis",
+                params: serde_json::json!({ "dim": n, "disorder": w, "seed": seed }),
+                expected: vec![
+                    ("mean_ipr", ipr_val),
+                    ("level_spacing_ratio", lsr),
+                    ("bandwidth", bw),
+                ],
+                tolerance: tolerances::SPECIAL_FUNCTION_F64,
+            }
+        };
+
+        // Baseline 3: science.hessian_eigen (quadratic surface, dim=10)
+        let hessian_quad = {
+            let n = 10;
+            let mut hessian = vec![0.0; n * n];
+            for i in 0..n {
+                #[expect(clippy::cast_precision_loss, reason = "small index → f64")]
+                let v = (i + 1) as f64;
+                hessian[i * n + i] = v;
+            }
+            let _decomp = eigh_householder_qr(&hessian, n);
             #[expect(clippy::cast_precision_loss, reason = "small index → f64")]
-            let v = (i + 1) as f64;
-            hessian[i * n + i] = v;
-        }
-        let _decomp = eigh_householder_qr(&hessian, n);
-        #[expect(clippy::cast_precision_loss, reason = "small index → f64")]
-        let expected_trace = (1..=n).map(|i| i as f64).sum::<f64>();
+            let expected_trace = (1..=n).map(|i| i as f64).sum::<f64>();
 
-        ScienceBaseline {
-            method: "science.hessian_eigen",
-            params: serde_json::json!({ "dim": n, "surface_type": "quadratic" }),
-            expected: vec![("trace", expected_trace)],
-            tolerance: tolerances::SPECIAL_FUNCTION_F64,
-        }
-    };
+            ScienceBaseline {
+                method: "science.hessian_eigen",
+                params: serde_json::json!({ "dim": n, "surface_type": "quadratic" }),
+                expected: vec![("trace", expected_trace)],
+                tolerance: tolerances::SPECIAL_FUNCTION_F64,
+            }
+        };
 
-    // Baseline 4: science.disorder_sweep (lattice_size=10, seed=42)
-    let disorder_sweep = {
-        let n = 10;
-        let seed = 42_u64;
-        let w_vals = vec![1.0, 4.0, 16.0];
-        let mut rng = Rng::new(seed);
-        let iprs = crate::anderson_localization::disorder_sweep(n, 1.0, &w_vals, &mut rng);
+        // Baseline 4: science.disorder_sweep (lattice_size=10, seed=42)
+        let disorder_sweep_baseline = {
+            let n = 10;
+            let seed = 42_u64;
+            let w_vals = vec![1.0, 4.0, 16.0];
+            let mut rng = Rng::new(seed);
+            let iprs = crate::anderson_localization::disorder_sweep(n, 1.0, &w_vals, &mut rng);
 
-        ScienceBaseline {
-            method: "science.disorder_sweep",
-            params: serde_json::json!({
-                "lattice_size": n,
-                "disorder_values": w_vals,
-                "seed": seed,
-                "hopping": 1.0,
-            }),
-            expected: iprs
-                .iter()
-                .enumerate()
-                .map(|(i, &v)| {
-                    // ipr_values[i] — we'll check these in the binary by index
-                    match i {
-                        0 => ("ipr_w1", v),
-                        1 => ("ipr_w4", v),
-                        _ => ("ipr_w16", v),
-                    }
-                })
-                .collect(),
-            tolerance: tolerances::SPECIAL_FUNCTION_F64,
-        }
-    };
+            ScienceBaseline {
+                method: "science.disorder_sweep",
+                params: serde_json::json!({
+                    "lattice_size": n,
+                    "disorder_values": w_vals,
+                    "seed": seed,
+                    "hopping": 1.0,
+                }),
+                expected: iprs
+                    .iter()
+                    .enumerate()
+                    .map(|(i, &v)| {
+                        match i {
+                            0 => ("ipr_w1", v),
+                            1 => ("ipr_w4", v),
+                            _ => ("ipr_w16", v),
+                        }
+                    })
+                    .collect(),
+                tolerance: tolerances::SPECIAL_FUNCTION_F64,
+            }
+        };
 
-    vec![spectral, ipr_uniform, hessian_quad, disorder_sweep]
+        vec![
+            spectral,
+            ipr_uniform,
+            hessian_quad,
+            disorder_sweep_baseline,
+        ]
+    }
 }
 
 #[cfg(test)]
@@ -581,6 +593,7 @@ mod tests {
         assert_eq!(BondType::Ionic.to_string(), "Ionic");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn science_baselines_non_empty() {
         let baselines = science_baselines();
@@ -592,6 +605,15 @@ mod tests {
         }
     }
 
+    #[cfg(not(feature = "barracuda"))]
+    #[test]
+    fn science_baselines_cpu_minimal() {
+        let baselines = science_baselines();
+        assert_eq!(baselines.len(), 1);
+        assert_eq!(baselines[0].method, "science.ipr");
+    }
+
+    #[cfg(feature = "barracuda")]
     #[test]
     fn science_baselines_deterministic() {
         let b1 = science_baselines();

@@ -25,6 +25,7 @@
     reason = "domain-specific numeric patterns, coupling simulation, and Marsaglia-Tsang standard notation (d, c, x, v, u)"
 )]
 
+#[cfg(feature = "barracuda")]
 use crate::anderson_localization;
 use crate::digestion_prediction;
 use crate::rng::Rng;
@@ -246,12 +247,14 @@ fn gamma_variate(alpha: f64, rng: &mut Rng) -> f64 {
 ///
 /// Delegates to `barracuda::stats::shannon_from_frequencies` via
 /// [`crate::primitives::shannon_entropy`] (absorbed upstream S64).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn shannon_diversity(abundances: &[f64]) -> f64 {
     crate::primitives::shannon_entropy(abundances)
 }
 
 /// Generate a community's Anderson properties.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn community_anderson(
     n_species: usize,
@@ -302,6 +305,7 @@ pub fn generate_community_data(
 }
 
 /// Re-export centralized Pearson correlation wrapper.
+#[cfg(feature = "barracuda")]
 pub use crate::primitives::pearson_r;
 
 /// Load coupling baseline from Python JSON.
@@ -484,6 +488,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn test_dirichlet_evenness_ordering() {
         let mut rng_low = Rng::new(42);
@@ -497,6 +502,7 @@ mod tests {
         assert!(h_high > h_low, "high α → higher diversity");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn test_shannon_diversity_uniform() {
         let n = 10;
@@ -506,6 +512,7 @@ mod tests {
         assert!((h - expected).abs() < crate::tolerances::CROSS_LANGUAGE);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn test_community_anderson_produces_valid_range() {
         let mut rng = Rng::new(42);
@@ -524,6 +531,7 @@ mod tests {
         assert_eq!(data.len(), 100);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn test_pearson_r_perfect_correlation() {
         let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
@@ -535,6 +543,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn test_pearson_r_negative() {
         let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
@@ -546,6 +555,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn test_disorder_coupling_direction() {
         let mut rng = Rng::new(42);

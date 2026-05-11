@@ -28,6 +28,7 @@
 ///
 /// Absorption target: `barracuda::ops::batch_gemm`.
 /// Validated: `validate_gpu_swarm` (9/9 PASS).
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::SWARM_NN_FORWARD as WGSL_SWARM_NN_FORWARD;
 
 use crate::primitives;

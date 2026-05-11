@@ -6,60 +6,84 @@
 //! [`super::types::DataChannel`] / [`super::types::ScenarioNode`] / [`super::types::NeuralScenario`] so petalTongue
 //! can render them directly.
 
+#[cfg(feature = "barracuda")]
 mod attention_anderson;
 mod combiners;
+#[cfg(feature = "barracuda")]
 mod coordination;
+#[cfg(feature = "barracuda")]
 mod digester_anderson;
 mod folding;
 mod game_theory;
+#[cfg(feature = "barracuda")]
 mod glucose;
 mod hmm;
 mod immunological;
 mod industry_coverage;
 mod introgression_nn;
+#[cfg(feature = "barracuda")]
 mod isomorphic_reservoir;
 mod kokkos_parity;
+#[cfg(feature = "barracuda")]
 mod loss_landscape;
 mod population;
+#[cfg(feature = "barracuda")]
 mod provenance;
 pub(crate) mod scaffold;
 mod search_results;
+#[cfg(feature = "barracuda")]
 mod spectral;
 mod streaming_io;
+#[cfg(feature = "barracuda")]
 mod training;
+#[cfg(feature = "barracuda")]
 mod wdm;
+#[cfg(feature = "barracuda")]
 mod wdm_ensemble_qs;
 
+#[cfg(feature = "barracuda")]
 pub use attention_anderson::attention_anderson_study;
 pub use combiners::{composition_study, full_study, scenario_with_edges_json};
+#[cfg(feature = "barracuda")]
 pub use coordination::coordination_study;
+#[cfg(feature = "barracuda")]
 pub use digester_anderson::digester_anderson_study;
 pub use folding::folding_study;
 pub use game_theory::game_theory_study;
+#[cfg(feature = "barracuda")]
 pub use glucose::glucose_study;
 pub use hmm::hmm_study;
 pub use immunological::immunological_study;
 pub use industry_coverage::industry_coverage_study;
 pub use introgression_nn::introgression_nn_study;
+#[cfg(feature = "barracuda")]
 pub use isomorphic_reservoir::isomorphic_reservoir_study;
 pub use kokkos_parity::kokkos_parity_study;
+#[cfg(feature = "barracuda")]
 pub use loss_landscape::loss_landscape_study;
 pub use population::population_study;
+#[cfg(feature = "barracuda")]
 pub use provenance::provenance_study;
 pub use search_results::search_study;
+#[cfg(feature = "barracuda")]
 pub use spectral::spectral_study;
 pub use streaming_io::streaming_io_study;
+#[cfg(feature = "barracuda")]
 pub use training::training_study;
+#[cfg(feature = "barracuda")]
 pub use wdm::wdm_study;
+#[cfg(feature = "barracuda")]
 pub use wdm_ensemble_qs::wdm_ensemble_qs_study;
 
 // Re-export scaffold helpers for sub-modules.
 pub(crate) use scaffold::{
-    bar, distribution, edge, fieldmap, gauge, heatmap, node, scaffold, scatter3d, spectrum,
+    bar, distribution, edge, gauge, heatmap, node, scaffold, scatter3d, spectrum,
     timeseries,
 };
+#[cfg(feature = "barracuda")]
+pub(crate) use scaffold::fieldmap;
 
-#[cfg(test)]
+#[cfg(all(test, feature = "barracuda"))]
 #[expect(clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;

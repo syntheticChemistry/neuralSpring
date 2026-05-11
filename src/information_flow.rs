@@ -27,7 +27,6 @@
 )]
 
 use crate::anderson_localization::ipr;
-use crate::eigh::eigh_householder_qr;
 use crate::primitives::LOG_GUARD;
 
 /// Compute signal variance at each layer for depth-scale analysis.
@@ -129,12 +128,27 @@ pub fn attention_to_hamiltonian(attention: &[f64], n: usize) -> Vec<f64> {
     h
 }
 
+/// Result of attention matrix spectral analysis.
+#[cfg(feature = "barracuda")]
+#[derive(Debug, Clone)]
+pub struct AttentionSpectralResult {
+    /// Sorted eigenvalues.
+    pub eigenvalues: Vec<f64>,
+    /// Mean IPR of eigenstates.
+    pub mean_ipr: f64,
+    /// Level spacing ratio (GOE ≈ 0.531, Poisson ≈ 0.386).
+    pub level_spacing_ratio: f64,
+}
+
 /// Spectral analysis of attention matrix.
 ///
 /// Returns eigenvalues, mean IPR, and level spacing ratio of the
 /// symmetrized attention Hamiltonian.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn attention_spectral_analysis(attention: &[f64], n: usize) -> AttentionSpectralResult {
+    use crate::eigh::eigh_householder_qr;
+
     let h = attention_to_hamiltonian(attention, n);
     let decomp = eigh_householder_qr(&h, n);
 
@@ -149,17 +163,6 @@ pub fn attention_spectral_analysis(attention: &[f64], n: usize) -> AttentionSpec
         mean_ipr: mean_ipr_val,
         level_spacing_ratio: lsr,
     }
-}
-
-/// Result of attention matrix spectral analysis.
-#[derive(Debug, Clone)]
-pub struct AttentionSpectralResult {
-    /// Sorted eigenvalues.
-    pub eigenvalues: Vec<f64>,
-    /// Mean IPR of eigenstates.
-    pub mean_ipr: f64,
-    /// Level spacing ratio (GOE ≈ 0.531, Poisson ≈ 0.386).
-    pub level_spacing_ratio: f64,
 }
 
 /// Compute per-layer signal propagation for an MLP.
@@ -213,8 +216,11 @@ pub fn mlp_signal_propagation(
 /// - ρ < 1: ordered phase (signal dies)
 /// - ρ = 1: edge of chaos (signal propagates)
 /// - ρ > 1: chaotic phase (signal explodes)
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn jacobian_spectral_radius(weights: &[f64], pre_activations: &[f64], n: usize) -> f64 {
+    use crate::eigh::eigh_householder_qr;
+
     let mut jacobian = vec![0.0; n * n];
     for i in 0..n {
         let mask = if pre_activations.get(i).copied().unwrap_or(0.0) > 0.0 {
@@ -242,6 +248,7 @@ pub fn jacobian_spectral_radius(weights: &[f64], pre_activations: &[f64], n: usi
 /// Intentional CPU-only implementation: Jacobian matrices are tiny (n=4..8)
 /// and `barracuda::dispatch::matmul_dispatch` routing overhead would dominate.
 /// When problem sizes grow past n~64, rewire to `matmul_dispatch`.
+#[cfg(feature = "barracuda")]
 fn mat_mul_transpose(a: &[f64], n: usize) -> Vec<f64> {
     let mut result = vec![0.0; n * n];
     for i in 0..n {
@@ -423,6 +430,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn attention_spectral_analysis_produces_results() {
         let mut rng = Rng::new(42);
@@ -441,6 +449,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn jacobian_spectral_radius_identity() {
         let n = 4;
@@ -456,6 +465,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn jacobian_spectral_radius_zero_pre_activations() {
         let n = 4;
@@ -469,6 +479,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn jacobian_spectral_radius_random() {
         let mut rng = Rng::new(42);
@@ -482,6 +493,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn mat_mul_transpose_symmetry() {
         let mut rng = Rng::new(42);

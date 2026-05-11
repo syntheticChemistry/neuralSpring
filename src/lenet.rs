@@ -145,6 +145,7 @@ pub fn max_pool2d(input: &[f64], h: usize, w: usize) -> Vec<f64> {
 /// `ReLU` activation (element-wise).
 ///
 /// Delegates to [`primitives::relu_vec`](crate::primitives::relu_vec).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn relu(x: &[f64]) -> Vec<f64> {
     crate::primitives::relu_vec(x)
@@ -233,6 +234,7 @@ mod tests {
         assert!((out[0] - 4.0).abs() < tolerances::EXACT_F64);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn relu_positive_and_negative() {
         let out = relu(&[-2.0, 0.0, 3.0, -1.0]);

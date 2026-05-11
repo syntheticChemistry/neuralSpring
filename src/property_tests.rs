@@ -8,6 +8,7 @@
 
 use std::time::Duration;
 
+#[cfg(feature = "barracuda")]
 use crate::eigh;
 use crate::hmm::Hmm;
 use crate::primitives;
@@ -50,6 +51,7 @@ fn softmax_always_nonnegative() {
 
 // ── Sigmoid invariants ──────────────────────────────────────────────
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn sigmoid_always_in_unit_interval() {
     let mut rng = Rng::new(1003);
@@ -60,6 +62,7 @@ fn sigmoid_always_in_unit_interval() {
     }
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn sigmoid_symmetry_property() {
     let mut rng = Rng::new(1004);
@@ -117,6 +120,7 @@ fn symmetric_matrices_have_zero_distance_to_normal() {
 
 // ── Eigensolver: eigenvalues of symmetric matrices are real ─────────
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn eigh_eigenvalues_real_and_sorted() {
     let mut rng = Rng::new(1007);
@@ -141,6 +145,7 @@ fn eigh_eigenvalues_real_and_sorted() {
 
 // ── Eigensolver: trace equals sum of eigenvalues ────────────────────
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn eigh_trace_equals_eigenvalue_sum() {
     let mut rng = Rng::new(1008);
@@ -309,6 +314,7 @@ fn random_distribution(n: usize, rng: &mut Rng) -> Vec<f64> {
 
 // ── GELU monotonicity (for x > 0) ──────────────────────────────────
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn gelu_monotone_for_positive_inputs() {
     let mut rng = Rng::new(1015);
@@ -326,6 +332,7 @@ fn gelu_monotone_for_positive_inputs() {
 
 // ── Layer norm invariant: zero mean, unit variance ──────────────────
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn layer_norm_zero_mean_unit_var() {
     use crate::coral_forge::layer_norm;
@@ -351,6 +358,7 @@ fn layer_norm_zero_mean_unit_var() {
 
 // ── Shannon entropy non-negativity ──────────────────────────────────
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn shannon_entropy_always_nonnegative() {
     let mut rng = Rng::new(1017);
@@ -364,6 +372,7 @@ fn shannon_entropy_always_nonnegative() {
 
 // ── Hill activation bounded in [0, vmax] ────────────────────────────
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn hill_activation_bounded() {
     let mut rng = Rng::new(1018);
@@ -437,6 +446,7 @@ fn softmax_stable_with_extreme_negative() {
     );
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn sigmoid_stable_at_extremes() {
     assert!((primitives::sigmoid(1e10) - 1.0).abs() < tolerances::EXACT_F64);
@@ -444,6 +454,7 @@ fn sigmoid_stable_at_extremes() {
     assert!((primitives::sigmoid(0.0) - 0.5).abs() < tolerances::EXACT_F64);
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn gelu_finite_for_extreme_inputs() {
     for &x in &[-1e10, -1e5, 0.0, 1e5, 1e10] {
@@ -452,6 +463,7 @@ fn gelu_finite_for_extreme_inputs() {
     }
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn eigh_stable_with_near_singular_matrix() {
     let n = 5;

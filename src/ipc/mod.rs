@@ -28,6 +28,7 @@ pub mod toadstool;
 use std::path::PathBuf;
 use std::time::Duration;
 
+use crate::error::IpcError;
 use crate::primal_names;
 use crate::validation::composition::{DiscoveryResult, discover_primal_socket, probe_liveness};
 
@@ -126,7 +127,7 @@ impl IpcMathClient {
     /// # Errors
     ///
     /// Returns an error if barraCuda is not discovered or the IPC call fails.
-    pub fn stats_mean(&self, data: &[f64]) -> Result<f64, String> {
+    pub fn stats_mean(&self, data: &[f64]) -> Result<f64, IpcError> {
         barracuda::stats_mean(self.require_barracuda()?, data, self.timeout)
     }
 
@@ -135,7 +136,7 @@ impl IpcMathClient {
     /// # Errors
     ///
     /// Returns an error if barraCuda is not discovered or the IPC call fails.
-    pub fn stats_std_dev(&self, data: &[f64]) -> Result<f64, String> {
+    pub fn stats_std_dev(&self, data: &[f64]) -> Result<f64, IpcError> {
         barracuda::stats_std_dev(self.require_barracuda()?, data, self.timeout)
     }
 
@@ -144,7 +145,7 @@ impl IpcMathClient {
     /// # Errors
     ///
     /// Returns an error if barraCuda is not discovered or the IPC call fails.
-    pub fn stats_weighted_mean(&self, data: &[f64], weights: &[f64]) -> Result<f64, String> {
+    pub fn stats_weighted_mean(&self, data: &[f64], weights: &[f64]) -> Result<f64, IpcError> {
         barracuda::stats_weighted_mean(self.require_barracuda()?, data, weights, self.timeout)
     }
 
@@ -160,7 +161,7 @@ impl IpcMathClient {
         rows_a: usize,
         cols_a: usize,
         cols_b: usize,
-    ) -> Result<Vec<f64>, String> {
+    ) -> Result<Vec<f64>, IpcError> {
         barracuda::tensor_matmul(
             self.require_barracuda()?,
             a,
@@ -177,7 +178,7 @@ impl IpcMathClient {
     /// # Errors
     ///
     /// Returns an error if barraCuda is not discovered or the IPC call fails.
-    pub fn tensor_create(&self, shape: &[usize], fill: &str) -> Result<serde_json::Value, String> {
+    pub fn tensor_create(&self, shape: &[usize], fill: &str) -> Result<serde_json::Value, IpcError> {
         barracuda::tensor_create(self.require_barracuda()?, shape, fill, self.timeout)
     }
 
@@ -193,7 +194,7 @@ impl IpcMathClient {
     pub fn compute_dispatch(
         &self,
         params: &serde_json::Value,
-    ) -> Result<serde_json::Value, String> {
+    ) -> Result<serde_json::Value, IpcError> {
         toadstool::compute_dispatch(self.require_toadstool()?, params, self.timeout)
     }
 
@@ -206,7 +207,7 @@ impl IpcMathClient {
     /// # Errors
     ///
     /// Returns an error if `BearDog` is not discovered or the IPC call fails.
-    pub fn crypto_hash(&self, algorithm: &str, data: &str) -> Result<String, String> {
+    pub fn crypto_hash(&self, algorithm: &str, data: &str) -> Result<String, IpcError> {
         beardog::crypto_hash(self.require_beardog()?, algorithm, data, self.timeout)
     }
 
@@ -222,7 +223,7 @@ impl IpcMathClient {
     pub fn inference_complete(
         &self,
         params: &serde_json::Value,
-    ) -> Result<serde_json::Value, String> {
+    ) -> Result<serde_json::Value, IpcError> {
         squirrel::inference_complete(self.require_squirrel()?, params, self.timeout)
     }
 
@@ -231,7 +232,7 @@ impl IpcMathClient {
     /// # Errors
     ///
     /// Returns an error if Squirrel is not discovered or the IPC call fails.
-    pub fn inference_embed(&self, params: &serde_json::Value) -> Result<serde_json::Value, String> {
+    pub fn inference_embed(&self, params: &serde_json::Value) -> Result<serde_json::Value, IpcError> {
         squirrel::inference_embed(self.require_squirrel()?, params, self.timeout)
     }
 
@@ -248,7 +249,7 @@ impl IpcMathClient {
         &self,
         source: &str,
         label: &str,
-    ) -> Result<serde_json::Value, String> {
+    ) -> Result<serde_json::Value, IpcError> {
         coralreef::shader_compile_wgsl(self.require_coralreef()?, source, label, self.timeout)
     }
 
@@ -257,7 +258,7 @@ impl IpcMathClient {
     /// # Errors
     ///
     /// Returns an error if coralReef is not discovered or the IPC call fails.
-    pub fn shader_capabilities(&self) -> Result<serde_json::Value, String> {
+    pub fn shader_capabilities(&self) -> Result<serde_json::Value, IpcError> {
         coralreef::shader_capabilities(self.require_coralreef()?, self.timeout)
     }
 
@@ -275,7 +276,7 @@ impl IpcMathClient {
         event_type: &str,
         source: &str,
         payload: &serde_json::Value,
-    ) -> Result<serde_json::Value, String> {
+    ) -> Result<serde_json::Value, IpcError> {
         skunkbat::audit_log(
             self.require_skunkbat()?,
             event_type,
@@ -295,40 +296,40 @@ impl IpcMathClient {
     // Internal helpers
     // ═══════════════════════════════════════════════════════════════
 
-    fn require_barracuda(&self) -> Result<&PathBuf, String> {
+    fn require_barracuda(&self) -> Result<&PathBuf, IpcError> {
         self.barracuda_socket
             .as_ref()
-            .ok_or_else(|| "barraCuda not discovered — is it running?".to_string())
+            .ok_or(IpcError::NotDiscovered { primal: "barraCuda" })
     }
 
-    fn require_toadstool(&self) -> Result<&PathBuf, String> {
+    fn require_toadstool(&self) -> Result<&PathBuf, IpcError> {
         self.toadstool_socket
             .as_ref()
-            .ok_or_else(|| "toadStool not discovered — is it running?".to_string())
+            .ok_or(IpcError::NotDiscovered { primal: "toadStool" })
     }
 
-    fn require_beardog(&self) -> Result<&PathBuf, String> {
+    fn require_beardog(&self) -> Result<&PathBuf, IpcError> {
         self.beardog_socket
             .as_ref()
-            .ok_or_else(|| "BearDog not discovered — is it running?".to_string())
+            .ok_or(IpcError::NotDiscovered { primal: "BearDog" })
     }
 
-    fn require_squirrel(&self) -> Result<&PathBuf, String> {
+    fn require_squirrel(&self) -> Result<&PathBuf, IpcError> {
         self.squirrel_socket
             .as_ref()
-            .ok_or_else(|| "Squirrel not discovered — is it running?".to_string())
+            .ok_or(IpcError::NotDiscovered { primal: "Squirrel" })
     }
 
-    fn require_coralreef(&self) -> Result<&PathBuf, String> {
+    fn require_coralreef(&self) -> Result<&PathBuf, IpcError> {
         self.coralreef_socket
             .as_ref()
-            .ok_or_else(|| "coralReef not discovered — is it running?".to_string())
+            .ok_or(IpcError::NotDiscovered { primal: "coralReef" })
     }
 
-    fn require_skunkbat(&self) -> Result<&PathBuf, String> {
+    fn require_skunkbat(&self) -> Result<&PathBuf, IpcError> {
         self.skunkbat_socket
             .as_ref()
-            .ok_or_else(|| "skunkBat not discovered — is it running?".to_string())
+            .ok_or(IpcError::NotDiscovered { primal: "skunkBat" })
     }
 }
 

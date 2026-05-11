@@ -36,6 +36,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::hmm` or `StatefulPipeline`.
 /// Validated: `validate_gpu_hmm_forward` (13/13 PASS).
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::HMM_FORWARD_LOG as WGSL_HMM_FORWARD_LOG;
 
 /// Discrete HMM with N hidden states and M observation symbols.

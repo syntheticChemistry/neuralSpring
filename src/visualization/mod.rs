@@ -21,6 +21,13 @@ pub mod stream;
 pub mod types;
 
 pub use ipc_push::{PetalTonguePushClient, PushError, PushResult};
+#[cfg(not(feature = "barracuda"))]
+pub use scenarios::{
+    composition_study, folding_study, full_study, game_theory_study, hmm_study, immunological_study,
+    industry_coverage_study, introgression_nn_study, kokkos_parity_study, population_study,
+    scenario_with_edges_json, search_study, streaming_io_study,
+};
+#[cfg(feature = "barracuda")]
 pub use scenarios::{
     attention_anderson_study, composition_study, coordination_study, digester_anderson_study,
     folding_study, full_study, game_theory_study, glucose_study, hmm_study, immunological_study,

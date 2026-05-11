@@ -5,7 +5,23 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-11 (Session 200b: doc reconciliation + V151 handoff)
+## [Unreleased] — 2026-05-11 (Session 201: Tier 4 IPC-first + deep debt + LTEE B1 + foundation seeding)
+
+### 2026-05-11 — Session S201 (Tier 4 IPC-first defaults, deep debt cleanup, LTEE B1 baseline, foundation seeding)
+
+- **Tier 4 IPC-first defaults** — `default = ["barracuda"]` → `default = []`. barracuda no longer linked by default. `cargo build --no-default-features` produces a slim library without GPU/forge dependencies. 48 files feature-gated: 11 shader re-exports (`#[cfg(feature = "barracuda")] pub use`), `bench`, `nucleus_pipeline`, and per-function gates across 26 modules. CPU fallback implementations for `primitives::{sigmoid, gelu, relu, hill_activation, hill_repression, shannon_entropy, pearson_r}` and `metrics::{r_squared, rmse, mae, nse}` — same math, no barracuda dependency.
+- **`required-features` gating** — 241 GPU-dependent `[[bin]]` stanzas now have `required-features = ["barracuda"]`. `cargo check --workspace` passes without barracuda feature (bins simply skipped). Idiomatic Rust approach for IPC-first builds.
+- **Deprecated `ipc_dispatch` removed** — monolithic 400-line `src/ipc_dispatch.rs` deleted. Was deprecated since 0.2.0 (graduated to per-primal `src/ipc/` tree). Zero callers remained.
+- **Typed `IpcError` hierarchy** — new `error::IpcError` with `NotDiscovered`, `Transport`, `Protocol` variants. IPC facade (`ipc/mod.rs`) and all 6 submodules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`) migrated from `Result<_, String>` to `Result<_, IpcError>`. `From<IpcError> for String` preserves backward compatibility at binary boundaries. 6 new tests.
+- **Dead code gate fixed** — `scaffold::fieldmap` changed from `#[cfg_attr(not(feature = "barracuda"), allow(dead_code))]` to `#[cfg(feature = "barracuda")]`.
+- **Playground warnings eliminated** — `#![allow(deprecated)]` in playground `lib.rs` silences 18 deprecation warnings from planned `discover_by_capability` / `PrimalClient` migration. Zero workspace warnings.
+- **UniBin IPC-first build** — `cargo build --no-default-features --features guidestone --bin neuralspring_unibin` compiles cleanly. neuralSpring now qualifies for the Tier 4 exit gate alongside groundSpring, healthSpring, and ludoSpring.
+- **LTEE B1 baseline** — `control/ltee_mutation_accumulation/ltee_mutation_accumulation.py` (8/8 PASS). Barrick 2009 mutation accumulation time series: linear rate 3.59e-3 mut/gen, power-law exponent 0.82 (sublinear). Expected values JSON generated for lithoSpore module 2.
+- **LTEE queue seeded** — 12 papers (B1-B4, B6-B9, E2-E5) added to `specs/PAPER_REVIEW_QUEUE.md`. B1 marked STARTED.
+- **Foundation Thread 5 seeded** — new `thread05_ml_surrogates.toml` (15 sources) and `thread05_ml_surrogates_targets.toml` (12 targets) in `gardens/foundation/data/`. Covers LSTM, ESN, transport surrogates, evolutionary dynamics, LTEE B1.
+- **Foundation Thread 7 expanded** — 6 neuralSpring targets added to `thread07_anderson_targets.toml` (nS-01..06 + Evoformer spectral). Total thread 7 targets: 18→24.
+- **CHECKSUMS regenerated** — updated for Cargo.toml, rng.rs, validation/composition.rs.
+- **Quality gates** — 1,299 lib (692 IPC-first) + 73 forge + 80 playGround = 1,452 workspace tests + 19 certification tests. Zero warnings.
 
 ### 2026-05-11 — Session S200b (doc reconciliation, upstream gap analysis, V151 handoff)
 

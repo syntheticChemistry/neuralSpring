@@ -89,6 +89,7 @@ pub mod anderson_localization;
     reason = "attention matrix dimension casts and f64 statistics"
 )]
 pub mod attention_anderson;
+#[cfg(feature = "barracuda")]
 pub mod bench;
 #[cfg(feature = "guidestone")]
 pub mod certification;
@@ -126,11 +127,6 @@ pub mod introgression;
 )]
 pub mod introgression_nn;
 pub mod ipc;
-#[deprecated(
-    since = "0.2.0",
-    note = "use `ipc` module instead — graduated to per-primal tree at interstadial"
-)]
-pub mod ipc_dispatch;
 pub mod ipc_resilience;
 #[expect(
     clippy::cast_precision_loss,
@@ -148,6 +144,7 @@ pub mod modes;
 pub mod nautilus_bridge;
 pub mod neural_pgm;
 pub mod niche;
+#[cfg(feature = "barracuda")]
 pub mod nucleus_pipeline;
 pub mod pangenome_selection;
 pub mod pinn;
@@ -180,6 +177,7 @@ pub mod visualization;
 pub mod wdm_ensemble_qs;
 #[cfg(feature = "barracuda")]
 pub mod wdm_esn;
+#[cfg(feature = "barracuda")]
 pub mod wdm_sqw;
 #[cfg(feature = "barracuda")]
 pub mod wdm_surrogate;

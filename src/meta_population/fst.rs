@@ -48,6 +48,7 @@ pub fn pairwise_fst(pop_a: &[f64], n_a: usize, pop_b: &[f64], n_b: usize, n_loci
 }
 
 /// Global FST across multiple populations.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn global_fst(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usize) -> f64 {
     let n_pops = populations.len();
@@ -140,6 +141,7 @@ pub fn fst_matrix(populations: &[Vec<f64>], n_individuals: &[usize], n_loci: usi
 /// # Errors
 ///
 /// Returns `Err` if fewer than 2 populations or invalid allele frequencies.
+#[cfg(feature = "barracuda")]
 pub fn fst_single_locus(
     allele_freqs: &[f64],
     population_sizes: &[usize],
@@ -154,6 +156,7 @@ pub fn fst_single_locus(
 /// Computes per-locus F-statistics using upstream `fst_variance_decomposition`,
 /// then averages across loci (ratio-of-averages estimator, same as
 /// `pairwise_fst` but enriched with `f_is` and `f_it`).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn pairwise_fst_full(
     pop_a: &[f64],
@@ -269,6 +272,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn global_fst_positive() {
         let mut rng = Rng::new(42);
@@ -349,6 +353,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     #[expect(
         clippy::similar_names,
@@ -366,6 +371,7 @@ mod tests {
         assert!(f_it.is_finite(), "F must be finite");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     #[expect(
         clippy::similar_names,
@@ -382,12 +388,14 @@ mod tests {
         assert!(f_it.is_finite());
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn fst_single_locus_one_pop_errors() {
         let result = fst_single_locus(&[0.5], &[10]);
         assert!(result.is_err());
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn global_fst_three_populations() {
         let mut rng = Rng::new(99);

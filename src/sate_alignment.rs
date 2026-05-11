@@ -45,6 +45,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::pairwise_distance` or `cdist_wgsl`.
 /// Validated: `validate_gpu_sate`.
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::PAIRWISE_HAMMING as WGSL_PAIRWISE_HAMMING;
 
 /// Gap character sentinel in the 0-3 nucleotide encoding (A=0, C=1, G=2, T=3).

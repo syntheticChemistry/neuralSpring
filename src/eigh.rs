@@ -18,6 +18,7 @@
 ///
 /// Type alias for the upstream `barracuda` decomposition struct.
 /// Fields: `eigenvalues`, `eigenvectors` (n×n row-major columns), `n`.
+#[cfg(feature = "barracuda")]
 pub type EighResult = barracuda::ops::linalg::EighDecompositionF64;
 
 /// Symmetric eigenvalue decomposition via Householder + implicit QR.
@@ -29,12 +30,13 @@ pub type EighResult = barracuda::ops::linalg::EighDecompositionF64;
 /// # Panics
 ///
 /// Panics if `a.len() != n * n` or `n == 0`.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn eigh_householder_qr(a: &[f64], n: usize) -> EighResult {
     barracuda::ops::linalg::eigh_householder_qr(a, n)
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "barracuda"))]
 #[expect(
     clippy::suboptimal_flops,
     reason = "clarity over micro-optimization in test arithmetic"

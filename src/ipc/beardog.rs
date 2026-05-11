@@ -7,6 +7,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
 /// `crypto.hash` via `BearDog` IPC.
@@ -19,7 +20,7 @@ pub fn crypto_hash(
     algorithm: &str,
     data: &str,
     timeout: Duration,
-) -> Result<String, String> {
+) -> Result<String, IpcError> {
     let result = call_capability(
         socket,
         "crypto.hash",
@@ -32,5 +33,8 @@ pub fn crypto_hash(
         .or_else(|| result.get("result"))
         .and_then(|v| v.as_str())
         .map(String::from)
-        .ok_or_else(|| "crypto.hash: response missing hash string".to_string())
+        .ok_or_else(|| IpcError::Protocol {
+            capability: "crypto.hash".into(),
+            reason: "response missing hash string".into(),
+        })
 }

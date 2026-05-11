@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V151 — Session S200b (doc reconciliation + upstream gap analysis)
+### V152 — Session S201 (Tier 4 IPC-first + LTEE B1 + foundation seeding)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V151** | `handoffs/NEURALSPRING_V151_DOC_RECONCILIATION_HANDOFF_MAY11_2026.md` | May 11, 2026 | Doc reconciliation (16 living docs, 2 JSON artifacts). Upstream gap analysis: NestGate P0, provenance trio P1, advertised-undispatched P2, Tier 4 P3. Foundation seeding ready (Threads 5+7). guideStone Level 5, 19 cert tests, 1,450 workspace tests. V151 handoff. |
+| **V152** | `handoffs/NEURALSPRING_V152_TIER4_IPC_FIRST_HANDOFF_MAY11_2026.md` | May 11, 2026 | Tier 4 IPC-first defaults (`default = []`). 48 files feature-gated. CPU fallbacks for 12 primitives. 690 IPC-first tests. LTEE B1 baseline (8/8 PASS). Foundation Threads 5+7 seeded (7/10 active). V152 handoff. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V150 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V151 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

@@ -51,6 +51,7 @@ pub use geography::*;
 ///
 /// Absorption target: `barracuda::ops::VarianceF64`.
 /// Validated: `validate_gpu_meta_pop` (7/7 PASS).
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::LOCUS_VARIANCE as WGSL_LOCUS_VARIANCE;
 
 /// Generate synthetic diploid genotype data for one population.
@@ -140,6 +141,7 @@ pub fn nucleotide_diversity(pop: &[f64], n_individuals: usize, n_loci: usize) ->
 ///
 /// Delegates to `barracuda::stats::pearson_correlation` (absorbed from
 /// airSpring/groundSpring hydrology metrics via `ToadStool` S64, now in `BarraCUDA`).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn thermal_diversity_correlation(pi_values: &[f64], temperatures: &[f64]) -> f64 {
     if pi_values.len() < 2 {
@@ -181,6 +183,7 @@ mod tests {
         assert_eq!(p1, p2, "population genotypes must be deterministic");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn thermal_diversity_correlation_bounded() {
         let pi = vec![0.1, 0.2, 0.3, 0.4];

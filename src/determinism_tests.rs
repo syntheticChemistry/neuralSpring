@@ -6,8 +6,12 @@
 //! Complements `tests/test_determinism.py` (Python side) with Rust-native
 //! rerun-identical checks for all seeded algorithms.
 
+#[cfg(feature = "barracuda")]
 use crate::anderson_localization;
+#[cfg(feature = "barracuda")]
 use crate::counterdiabatic::{NkLandscape, compute_cd_schedule};
+#[cfg(not(feature = "barracuda"))]
+use crate::counterdiabatic::NkLandscape;
 use crate::directed_evolution::{lexicase_selection, run_selection_experiment};
 use crate::eco_dynamics::{self, MultiNicheLandscape};
 use crate::game_theory::{QsConfig, qs_cooperation_model};
@@ -15,6 +19,7 @@ use crate::hmm;
 use crate::introgression;
 use crate::meta_population;
 use crate::pangenome_selection;
+
 use crate::regulatory_network::{GrnParams, integrate_grn};
 use crate::rng::Rng;
 use crate::sate_alignment;
@@ -42,6 +47,7 @@ fn nk_landscape_deterministic() {
     assert_eq!(f1, f2, "NK landscape fitnesses must be bitwise identical");
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn cd_schedule_deterministic() {
     let l1 = NkLandscape::new(4, 2, 42);
@@ -79,6 +85,7 @@ fn hmm_forward_deterministic() {
     );
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn swarm_evolution_deterministic() {
     let r1 = swarm_robotics::run_evolution_heterogeneous(42);
@@ -117,6 +124,7 @@ fn introgression_deterministic() {
     );
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 #[expect(
     clippy::float_cmp,
@@ -183,6 +191,7 @@ fn sate_alignment_deterministic() {
     );
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn signal_integration_deterministic() {
     let y0 = OdeState {
@@ -240,6 +249,7 @@ fn spectral_commutativity_deterministic() {
     );
 }
 
+#[cfg(feature = "barracuda")]
 #[test]
 fn anderson_localization_deterministic() {
     let w_vals = [1.0, 2.0, 3.0];

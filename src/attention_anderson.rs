@@ -11,9 +11,10 @@
 //! - [`crate::eigh`] — eigendecomposition
 //! - [`crate::information_flow`] — attention spectral analysis concept
 
+#[cfg(feature = "barracuda")]
 use crate::anderson_localization;
+#[cfg(feature = "barracuda")]
 use crate::tolerances;
-
 /// Per-configuration spectral result.
 #[derive(Debug, Clone)]
 pub struct AttentionSpectralResult {
@@ -59,6 +60,7 @@ pub struct AttentionAndersonBaseline {
 /// Compute spectral properties of a symmetrized attention matrix.
 ///
 /// Input: flat row-major `n x n` symmetric matrix.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn attention_spectral(matrix: &[f64], n: usize) -> AttentionSpectralResult {
     let result = crate::eigh::eigh_householder_qr(matrix, n);
@@ -93,6 +95,7 @@ pub fn attention_spectral(matrix: &[f64], n: usize) -> AttentionSpectralResult {
 }
 
 /// Re-export centralized Pearson correlation wrapper.
+#[cfg(feature = "barracuda")]
 pub use crate::primitives::pearson_r;
 
 /// Load baseline from Python JSON.
@@ -149,7 +152,7 @@ pub fn load_attention_anderson_from_json(
     })
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "barracuda"))]
 mod tests {
     use super::*;
 

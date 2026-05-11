@@ -43,6 +43,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::batch_reduce` or `FusedMapReduceF64`.
 /// Validated: `validate_gpu_anderson`.
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::BATCH_IPR as WGSL_BATCH_IPR;
 use std::f64::consts::PI;
 
@@ -123,6 +124,7 @@ pub fn mean_ipr(eigenvectors: &[f64], n: usize) -> f64 {
 ///
 /// Returns (eigenvalues, eigenvectors as flat row-major n×n).
 /// Column k of the eigenvector matrix is the k-th eigenvector.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn jacobi_eigh(matrix: &[f64], n: usize) -> (Vec<f64>, Vec<f64>) {
     let decomp = crate::eigh::eigh_householder_qr(matrix, n);
@@ -157,6 +159,7 @@ pub fn two_particle_hamiltonian(n: usize, t: f64, w: f64, u: f64, alpha: f64) ->
 }
 
 /// Disorder strength sweep: compute mean IPR for each W.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn disorder_sweep(n: usize, t: f64, w_vals: &[f64], rng: &mut Rng) -> Vec<f64> {
     w_vals
@@ -241,6 +244,7 @@ mod tests {
         assert!(!all_same, "quasiperiodic potential should not be constant");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn aubry_andre_transition() {
         let n = 16;
@@ -273,6 +277,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn disorder_sweep_monotonic_trend() {
         let mut rng = Rng::new(42);
@@ -289,6 +294,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn disorder_sweep_deterministic() {
         let mut rng1 = Rng::new(99);
@@ -299,6 +305,7 @@ mod tests {
         assert_eq!(a, b, "same seed should produce identical sweeps");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn two_particle_finite() {
         let n = 4;
@@ -334,6 +341,7 @@ mod tests {
         assert_eq!(aa.len(), n * n);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn jacobi_eigh_eigenvalues_sorted_and_finite() {
         let mut rng = Rng::new(7);
@@ -344,6 +352,7 @@ mod tests {
         assert!(evals.iter().all(|&e| e.is_finite()));
     }
 
+    #[cfg(feature = "barracuda")]
     mod proptests {
         use super::*;
         use crate::rng::Rng as PrimalRng;

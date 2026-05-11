@@ -42,6 +42,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::pairwise_distance`.
 /// Validated: `validate_gpu_pangenome` (6/6 PASS).
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::PAIRWISE_JACCARD as WGSL_PAIRWISE_JACCARD;
 
 /// Generate a synthetic gene presence/absence matrix.
@@ -258,7 +259,21 @@ pub fn gene_repertoire_diversity(pa: &[f64], n_genes: usize, n_genomes: usize) -
 
     let total = n_genomes as f64;
     let freqs: Vec<f64> = counts.values().map(|&c| c as f64 / total).collect();
-    primitives::shannon_entropy(&freqs)
+    #[cfg(feature = "barracuda")]
+    return primitives::shannon_entropy(&freqs);
+    #[cfg(not(feature = "barracuda"))]
+    shannon_entropy_cpu(&freqs)
+}
+
+#[cfg(not(feature = "barracuda"))]
+fn shannon_entropy_cpu(frequencies: &[f64]) -> f64 {
+    let mut h = 0.0;
+    for &p in frequencies {
+        if p > primitives::DIVISION_GUARD {
+            h -= p * p.ln();
+        }
+    }
+    h
 }
 
 /// Pairwise Jaccard distance between genomes (columns of PA matrix).

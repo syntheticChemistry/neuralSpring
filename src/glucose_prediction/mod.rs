@@ -34,6 +34,7 @@
     reason = "Paper 026 table and citation formatting in module docs"
 )]
 
+#[cfg(feature = "barracuda")]
 /// Ridge regression regularization strength for LSTM readout.
 ///
 /// Small enough to not bias predictions, large enough to stabilize

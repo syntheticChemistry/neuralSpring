@@ -42,6 +42,7 @@ pub fn estimate_tau(acor: &[f64]) -> usize {
 /// R² score between actual and predicted values.
 ///
 /// Delegates to [`crate::metrics::r_squared`] → `barracuda::stats::r_squared`.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn r2_score(actual: &[f64], predicted: &[f64]) -> f64 {
     crate::metrics::r_squared(actual, predicted)
@@ -50,6 +51,7 @@ pub fn r2_score(actual: &[f64], predicted: &[f64]) -> f64 {
 /// RMSE between actual and predicted values.
 ///
 /// Delegates to [`crate::metrics::rmse`] → `barracuda::stats::rmse`.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn rmse(actual: &[f64], predicted: &[f64]) -> f64 {
     crate::metrics::rmse(actual, predicted)

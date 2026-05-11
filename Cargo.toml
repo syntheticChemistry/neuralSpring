@@ -83,9 +83,11 @@ tarpc = { version = "0.37", features = ["tokio1", "serde-transport"], optional =
 primalspring = { path = "../primalSpring/ecoPrimal", optional = true }
 
 [features]
-default = ["barracuda"]
+default = []
+# IPC-first: default build links no GPU library. Opt in with:
+#   cargo build --features barracuda
 # barraCuda library linking — enables GPU validation, tensor ops, and all
-# barracuda-dependent modules. Disable for IPC-only sovereign deployment.
+# barracuda-dependent modules.
 barracuda = ["dep:barracuda", "dep:neural-spring-forge", "dep:wgpu"]
 primal = ["anyhow", "clap", "env_logger", "tarpc"]
 composed = ["primal"]
@@ -108,10 +110,12 @@ temp-env = "0.3.6"
 [[bin]]
 name = "validate_surrogate"
 path = "src/bin/validate_surrogate.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_transformer"
 path = "src/bin/validate_transformer.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_metrics"
@@ -120,6 +124,7 @@ path = "src/bin/validate_metrics.rs"
 [[bin]]
 name = "validate_lenet"
 path = "src/bin/validate_lenet.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_transfer"
@@ -128,10 +133,12 @@ path = "src/bin/validate_transfer.rs"
 [[bin]]
 name = "validate_isomorphic"
 path = "src/bin/validate_isomorphic.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_lstm"
 path = "src/bin/validate_lstm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_quantized"
@@ -142,20 +149,24 @@ path = "src/bin/validate_quantized.rs"
 [[bin]]
 name = "validate_sequence"
 path = "src/bin/validate_sequence.rs"
+required-features = ["barracuda"]
 
 # --- Phase 0++ Paper Reproduction Validation (53/53 Python PASS) ---
 
 [[bin]]
 name = "validate_counterdiabatic"
 path = "src/bin/validate_counterdiabatic.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_deeponet"
 path = "src/bin/validate_deeponet.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_modes"
 path = "src/bin/validate_modes.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_eco_dynamics"
@@ -180,6 +191,7 @@ path = "src/bin/validate_game_theory.rs"
 [[bin]]
 name = "validate_sate_alignment"
 path = "src/bin/validate_sate_alignment.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_signal_integration"
@@ -200,6 +212,7 @@ path = "src/bin/validate_spectral_commutativity.rs"
 [[bin]]
 name = "validate_anderson_localization"
 path = "src/bin/validate_anderson_localization.rs"
+required-features = ["barracuda"]
 
 # --- Phase 0++ Paper Reproduction: R. Anderson (Pangenomics) ---
 
@@ -210,6 +223,7 @@ path = "src/bin/validate_pangenome_selection.rs"
 [[bin]]
 name = "validate_meta_population"
 path = "src/bin/validate_meta_population.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_pinn"
@@ -220,619 +234,768 @@ path = "src/bin/validate_pinn.rs"
 [[bin]]
 name = "validate_barracuda_sequence"
 path = "src/bin/validate_barracuda_sequence.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_lenet"
 path = "src/bin/validate_barracuda_lenet.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_lstm"
 path = "src/bin/validate_barracuda_lstm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_stats"
 path = "src/bin/validate_barracuda_stats.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_linalg"
 path = "src/bin/validate_barracuda_linalg.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_special"
 path = "src/bin/validate_barracuda_special.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_optimize"
 path = "src/bin/validate_barracuda_optimize.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_precision"
 path = "src/bin/validate_barracuda_precision.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_tensor"
 path = "src/bin/validate_barracuda_tensor/main.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_quantized"
 path = "src/bin/validate_barracuda_quantized.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_linalg_ext"
 path = "src/bin/validate_barracuda_linalg_ext.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_tensor_f64"
 path = "src/bin/validate_barracuda_tensor_f64.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_bio_ops"
 path = "src/bin/validate_barracuda_bio_ops.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cpu_gpu_parity"
 path = "src/bin/validate_cpu_gpu_parity.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_chi_squared"
 path = "src/bin/validate_barracuda_chi_squared.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_hmm_f64"
 path = "src/bin/validate_barracuda_hmm_f64.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_spectral_theory"
 path = "src/bin/validate_barracuda_spectral_theory.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_upstream_vs_local"
 path = "src/bin/bench_upstream_vs_local/main.rs"
+required-features = ["barracuda"]
 
 # --- ML Inference Validation ---
 
 [[bin]]
 name = "validate_barracuda_ml_inference"
 path = "src/bin/validate_barracuda_ml_inference.rs"
+required-features = ["barracuda"]
 
 # --- BarraCUDA CPU Ports (Phase 0++ algorithms via barracuda primitives) ---
 
 [[bin]]
 name = "validate_barracuda_spectral"
 path = "src/bin/validate_barracuda_spectral.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_anderson"
 path = "src/bin/validate_barracuda_anderson.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_regulatory"
 path = "src/bin/validate_barracuda_regulatory.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_signal"
 path = "src/bin/validate_barracuda_signal.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_hmm"
 path = "src/bin/validate_barracuda_hmm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_introgression"
 path = "src/bin/validate_barracuda_introgression.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_counterdiabatic"
 path = "src/bin/validate_barracuda_counterdiabatic.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_deeponet"
 path = "src/bin/validate_barracuda_deeponet.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_modes"
 path = "src/bin/validate_barracuda_modes.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_eco"
 path = "src/bin/validate_barracuda_eco.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_directed"
 path = "src/bin/validate_barracuda_directed.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_swarm"
 path = "src/bin/validate_barracuda_swarm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_sate"
 path = "src/bin/validate_barracuda_sate.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_game"
 path = "src/bin/validate_barracuda_game.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_pangenome"
 path = "src/bin/validate_barracuda_pangenome.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_pinn"
 path = "src/bin/validate_barracuda_pinn.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_surrogate"
 path = "src/bin/validate_barracuda_surrogate.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_transfer"
 path = "src/bin/validate_barracuda_transfer.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_meta_pop"
 path = "src/bin/validate_barracuda_meta_pop.rs"
+required-features = ["barracuda"]
 
 # --- Benchmark ---
 
 [[bin]]
 name = "bench_barracuda_tensor"
 path = "src/bin/bench_barracuda_tensor.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_mlp_inference"
 path = "src/bin/bench_mlp_inference.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_transformer_block"
 path = "src/bin/bench_transformer_block.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_phase0pp_kernels"
 path = "src/bin/bench_phase0pp_kernels.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_gpu_kernels"
 path = "src/bin/bench_gpu_kernels.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_eigh_accuracy"
 path = "src/bin/validate_eigh_accuracy.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_mha_gpu"
 path = "src/bin/validate_mha_gpu.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_fft"
 path = "src/bin/validate_barracuda_fft.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_logsumexp"
 path = "src/bin/validate_barracuda_logsumexp.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_spectral"
 path = "src/bin/validate_barracuda_gpu_spectral.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_eco"
 path = "src/bin/validate_barracuda_gpu_eco.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_hmm"
 path = "src/bin/validate_barracuda_gpu_hmm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_fitness"
 path = "src/bin/validate_barracuda_gpu_fitness.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_nn"
 path = "src/bin/validate_barracuda_gpu_nn.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_pairwise"
 path = "src/bin/validate_barracuda_gpu_pairwise.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_anderson"
 path = "src/bin/validate_barracuda_gpu_anderson.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_introgression"
 path = "src/bin/validate_barracuda_gpu_introgression.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_regulatory"
 path = "src/bin/validate_barracuda_gpu_regulatory.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_signal"
 path = "src/bin/validate_barracuda_gpu_signal.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_meta_pop"
 path = "src/bin/validate_barracuda_gpu_meta_pop.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_modes"
 path = "src/bin/validate_barracuda_gpu_modes.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_directed"
 path = "src/bin/validate_barracuda_gpu_directed.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_swarm"
 path = "src/bin/validate_barracuda_gpu_swarm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_transformer"
 path = "src/bin/validate_barracuda_gpu_transformer.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_game"
 path = "src/bin/validate_barracuda_gpu_game.rs"
+required-features = ["barracuda"]
 
 # --- Phase 3c: GPU shader validation (metalForge) ---
 
 [[bin]]
 name = "validate_gpu_hmm_forward"
 path = "src/bin/validate_gpu_hmm_forward.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_batch_fitness"
 path = "src/bin/validate_gpu_batch_fitness.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_prng"
 path = "src/bin/validate_gpu_prng.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_rk4"
 path = "src/bin/validate_gpu_rk4.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_ode_batch"
 path = "src/bin/validate_gpu_ode_batch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_rk45"
 path = "src/bin/validate_gpu_rk45.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_wright_fisher"
 path = "src/bin/validate_gpu_wright_fisher.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_gillespie"
 path = "src/bin/validate_gpu_gillespie.rs"
+required-features = ["barracuda"]
 
 # --- Phase 3d: Pure GPU workload + StatefulPipeline + cross-dispatch ---
 
 [[bin]]
 name = "validate_gpu_stateful_pipeline"
 path = "src/bin/validate_gpu_stateful_pipeline.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pure_workload"
 path = "src/bin/validate_gpu_pure_workload.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_hmm"
 path = "src/bin/validate_gpu_pipeline_hmm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_directed"
 path = "src/bin/validate_gpu_pipeline_directed.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_ecology"
 path = "src/bin/validate_gpu_pipeline_ecology.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_dispatch"
 path = "src/bin/validate_cross_dispatch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pangenome"
 path = "src/bin/validate_gpu_pangenome.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_sate"
 path = "src/bin/validate_gpu_sate.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_signal"
 path = "src/bin/validate_gpu_signal.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_anderson"
 path = "src/bin/validate_gpu_anderson.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_game_theory"
 path = "src/bin/validate_gpu_game_theory.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_swarm"
 path = "src/bin/validate_gpu_swarm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_logsumexp"
 path = "src/bin/validate_gpu_logsumexp.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_stencil"
 path = "src/bin/validate_gpu_stencil.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_upstream_taxonomy"
 path = "src/bin/validate_upstream_taxonomy.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_upstream_kmer"
 path = "src/bin/validate_upstream_kmer.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_upstream_unifrac"
 path = "src/bin/validate_upstream_unifrac.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_meta_pop"
 path = "src/bin/validate_gpu_meta_pop.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_toadstool_dispatch"
 path = "src/bin/validate_toadstool_dispatch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_mixed_dispatch"
 path = "src/bin/validate_mixed_dispatch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_modes"
 path = "src/bin/validate_gpu_modes.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_directed"
 path = "src/bin/validate_gpu_directed.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_dispatch_genomics"
 path = "src/bin/validate_cross_dispatch_genomics.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_dispatch_extended"
 path = "src/bin/validate_cross_dispatch_extended.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_dispatch_hmm"
 path = "src/bin/validate_cross_dispatch_hmm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_dispatch_ode"
 path = "src/bin/validate_cross_dispatch_ode.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_dispatch_phase4e"
 path = "src/bin/validate_cross_dispatch_phase4e.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_spectral"
 path = "src/bin/validate_gpu_pipeline_spectral.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_genomics"
 path = "src/bin/validate_gpu_pipeline_genomics.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_modes"
 path = "src/bin/validate_gpu_pipeline_modes.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_signal"
 path = "src/bin/validate_gpu_pipeline_signal.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_fitness"
 path = "src/bin/validate_gpu_pipeline_fitness.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_eco"
 path = "src/bin/validate_gpu_pipeline_eco.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_swarm"
 path = "src/bin/validate_gpu_pipeline_swarm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_sate"
 path = "src/bin/validate_gpu_pipeline_sate.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_regulatory"
 path = "src/bin/validate_gpu_pipeline_regulatory.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_meta_pop"
 path = "src/bin/validate_gpu_pipeline_meta_pop.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_wright_fisher"
 path = "src/bin/validate_gpu_pipeline_wright_fisher.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pipeline_gillespie"
 path = "src/bin/validate_gpu_pipeline_gillespie.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_gpu_lenet"
 path = "src/bin/validate_barracuda_gpu_lenet.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_transformer"
 path = "src/bin/validate_barracuda_transformer.rs"
+required-features = ["barracuda"]
 
 # --- Meta ---
 
 [[bin]]
 name = "validate_gpu_promotion"
 path = "src/bin/validate_gpu_promotion.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_phase_b"
 path = "src/bin/validate_gpu_phase_b.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_phase_b_extended"
 path = "src/bin/validate_gpu_phase_b_extended.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_phase_c"
 path = "src/bin/validate_gpu_phase_c.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cpu_math_parity"
 path = "src/bin/validate_cpu_math_parity.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_dispatch_tiers"
 path = "src/bin/bench_dispatch_tiers.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_all"
 path = "src/bin/validate_all.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_cross_spring_evolution"
 path = "src/bin/bench_cross_spring_evolution.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_rewire_evolution"
 path = "src/bin/bench_rewire_evolution.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_basecamp_parity"
 path = "src/bin/bench_basecamp_parity.rs"
+required-features = ["barracuda"]
 
 # ── Dispatch + parity + metalForge validators ────────────────────
 
 [[bin]]
 name = "validate_compute_dispatch"
 path = "src/bin/validate_compute_dispatch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_mixed_hardware"
 path = "src/bin/validate_mixed_hardware.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_basecamp_dispatch"
 path = "src/bin/validate_basecamp_dispatch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_parity"
 path = "src/bin/validate_barracuda_parity.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_metalforge_pcie"
 path = "src/bin/validate_metalforge_pcie.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_basecamp_gpu"
 path = "src/bin/validate_basecamp_gpu.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_hillgate_f64_fix"
 path = "src/bin/validate_hillgate_f64_fix.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_spring_evolution"
 path = "src/bin/validate_cross_spring_evolution/main.rs"
+required-features = ["barracuda"]
 
 # ── WDM Surrogate validators (nW-01, nW-02, nW-04) ───────────────
 
 [[bin]]
 name = "validate_wdm_eos"
 path = "src/bin/validate_wdm_eos.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_wdm_eos"
 path = "src/bin/validate_barracuda_wdm_eos.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_wdm_transport"
 path = "src/bin/validate_barracuda_wdm_transport.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_wdm_esn"
 path = "src/bin/validate_barracuda_wdm_esn.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_wdm_sqw"
 path = "src/bin/validate_barracuda_wdm_sqw.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_wdm_transport"
 path = "src/bin/validate_wdm_transport.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_wdm_transfer"
 path = "src/bin/validate_wdm_transfer.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_wdm_sqw"
 path = "src/bin/validate_wdm_sqw.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_glucose_prediction"
 path = "src/bin/validate_barracuda_glucose_prediction.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_glucose_prediction"
 path = "src/bin/validate_glucose_prediction.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_wdm_esn"
 path = "src/bin/validate_wdm_esn.rs"
+required-features = ["barracuda"]
 
 # ── Paper 027: Digestion prediction (Wang/Liao 2020) ─────────────
 
 [[bin]]
 name = "validate_digestion_prediction"
 path = "src/bin/validate_digestion_prediction.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_digestion"
 path = "src/bin/validate_barracuda_digestion.rs"
+required-features = ["barracuda"]
 
 # ── Experiment 096: Digester-Anderson coupling ────────────────────
 [[bin]]
 name = "validate_digester_anderson"
 path = "src/bin/validate_digester_anderson.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_digester_anderson"
 path = "src/bin/validate_barracuda_digester_anderson.rs"
+required-features = ["barracuda"]
 
 # ── Experiment 097: Isomorphic reservoir ensemble ─────────────────
 [[bin]]
 name = "validate_isomorphic_reservoir"
 path = "src/bin/validate_isomorphic_reservoir.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_isomorphic_reservoir"
 path = "src/bin/validate_barracuda_isomorphic_reservoir.rs"
+required-features = ["barracuda"]
 
 # ── Experiment 098: WDM surrogate ensemble QS ─────────────────────
 [[bin]]
 name = "validate_wdm_ensemble_qs"
 path = "src/bin/validate_wdm_ensemble_qs.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_wdm_ensemble_qs"
 path = "src/bin/validate_barracuda_wdm_ensemble_qs.rs"
+required-features = ["barracuda"]
 
 # ── Experiment 099: HMM introgression on NN layers ────────────────
 [[bin]]
@@ -842,62 +1005,76 @@ path = "src/bin/validate_introgression_nn.rs"
 [[bin]]
 name = "validate_barracuda_introgression_nn"
 path = "src/bin/validate_barracuda_introgression_nn.rs"
+required-features = ["barracuda"]
 
 # ── Experiment 100: Attention Anderson spectral ───────────────────
 [[bin]]
 name = "validate_attention_anderson"
 path = "src/bin/validate_attention_anderson.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_attention_anderson"
 path = "src/bin/validate_barracuda_attention_anderson.rs"
+required-features = ["barracuda"]
 
 # ── baseCamp Sub-thesis validators ────────────────────────────────
 [[bin]]
 name = "validate_weight_spectral"
 path = "src/bin/validate_weight_spectral.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_weight_spectral_real"
 path = "src/bin/validate_weight_spectral_real.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_information_flow"
 path = "src/bin/validate_information_flow.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_loss_landscape"
 path = "src/bin/validate_loss_landscape.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_neural_pgm"
 path = "src/bin/validate_neural_pgm.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_agent_coordination"
 path = "src/bin/validate_agent_coordination.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pure_workload_all"
 path = "src/bin/validate_gpu_pure_workload_all/main.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_system_dispatch"
 path = "src/bin/validate_cross_system_dispatch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_evolution_tiers"
 path = "src/bin/bench_evolution_tiers.rs"
+required-features = ["barracuda"]
 
 # ── coralForge (Phase B) ──────────────────────────────────────────
 
 [[bin]]
 name = "validate_coral_forge"
 path = "src/bin/validate_coral_forge.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_alphafold2_evoformer"
 path = "src/bin/validate_alphafold2_evoformer.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_alphafold3_diffusion"
@@ -906,122 +1083,144 @@ path = "src/bin/validate_alphafold3_diffusion.rs"
 [[bin]]
 name = "validate_alphafold3_pairformer"
 path = "src/bin/validate_alphafold3_pairformer.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_alphafold3_confidence"
 path = "src/bin/validate_alphafold3_confidence.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_alphafold3_confidence_gpu"
 path = "src/bin/validate_barracuda_alphafold3_confidence_gpu.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_coral_forge_gpu"
 path = "src/bin/validate_coral_forge_gpu.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_coral_forge_gpu_pipeline"
 path = "src/bin/validate_coral_forge_gpu_pipeline.rs"
+required-features = ["barracuda"]
 
 # ── baseCamp GPU benchmarks ────────────────────────────────────────
 
 [[bin]]
 name = "validate_basecamp_gpu_pure"
 path = "src/bin/validate_basecamp_gpu_pure.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_basecamp_gpu_pure"
 path = "src/bin/bench_basecamp_gpu_pure.rs"
+required-features = ["barracuda"]
 
 # ── Exp-053: Anderson multi-agent coordination ─────────────────────
 
 [[bin]]
 name = "validate_anderson_multiagent"
 path = "src/bin/validate_anderson_multiagent.rs"
+required-features = ["barracuda"]
 
 # ── Exp-050: Training trajectory spectral analysis ─────────────────
 
 [[bin]]
 name = "validate_training_trajectory"
 path = "src/bin/validate_training_trajectory.rs"
+required-features = ["barracuda"]
 
 # ── Exp-052: Hessian eigenanalysis at trained minima ───────────────
 
 [[bin]]
 name = "validate_hessian_eigenanalysis"
 path = "src/bin/validate_hessian_eigenanalysis.rs"
+required-features = ["barracuda"]
 
 # ── GPU tier: Exp-050 training trajectory ───────────────────────────
 
 [[bin]]
 name = "validate_barracuda_training_trajectory"
 path = "src/bin/validate_barracuda_training_trajectory.rs"
+required-features = ["barracuda"]
 
 # ── GPU tier: Exp-052 Hessian eigenanalysis ─────────────────────────
 
 [[bin]]
 name = "validate_barracuda_hessian_eigen"
 path = "src/bin/validate_barracuda_hessian_eigen.rs"
+required-features = ["barracuda"]
 
 # ── GPU tier: Exp-053 Anderson multi-agent ──────────────────────────
 
 [[bin]]
 name = "validate_barracuda_anderson_multiagent"
 path = "src/bin/validate_barracuda_anderson_multiagent.rs"
+required-features = ["barracuda"]
 
 # ── Pure GPU pipeline + metalForge: publication experiments ─────────
 
 [[bin]]
 name = "validate_publication_gpu_pipeline"
 path = "src/bin/validate_publication_gpu_pipeline.rs"
+required-features = ["barracuda"]
 
 # ── Streaming spectral pipeline (ToadStool absorption proof) ─────
 
 [[bin]]
 name = "validate_streaming_spectral_pipeline"
 path = "src/bin/validate_streaming_spectral_pipeline.rs"
+required-features = ["barracuda"]
 
 # ── Phase 4 metalForge WGSL shader validation ────────────────────
 
 [[bin]]
 name = "validate_gpu_shader_phase4"
 path = "src/bin/validate_gpu_shader_phase4.rs"
+required-features = ["barracuda"]
 
 # ── Publication mixed-hardware validation ─────────────────────────
 
 [[bin]]
 name = "validate_publication_mixed_hardware"
 path = "src/bin/validate_publication_mixed_hardware.rs"
+required-features = ["barracuda"]
 
 # ── NUCLEUS compute dispatch validation ──────────────────────────
 
 [[bin]]
 name = "validate_nucleus_compute_dispatch"
 path = "src/bin/validate_nucleus_compute_dispatch.rs"
+required-features = ["barracuda"]
 
 # ── ToadStool spectral absorption readiness ──────────────────────
 
 [[bin]]
 name = "validate_toadstool_spectral_absorption"
 path = "src/bin/validate_toadstool_spectral_absorption.rs"
+required-features = ["barracuda"]
 
 # ── BarraCUDA dispatch parity ───────────────────────────────────────
 
 [[bin]]
 name = "validate_barracuda_dispatch_parity"
 path = "src/bin/validate_barracuda_dispatch_parity/main.rs"
+required-features = ["barracuda"]
 
 # ── Mixed-hardware dispatch ────────────────────────────────────────
 
 [[bin]]
 name = "validate_mixed_hardware_dispatch"
 path = "src/bin/validate_mixed_hardware_dispatch.rs"
+required-features = ["barracuda"]
 
 # ── petalTongue scenario dump ───────────────────────────────────────
 
 [[bin]]
 name = "dump_neuralspring_scenarios"
 path = "src/bin/dump_neuralspring_scenarios.rs"
+required-features = ["barracuda"]
 
 # ── biomeOS primal adapter ──────────────────────────────────────────
 
@@ -1045,140 +1244,172 @@ required-features = ["primal"]
 [[bin]]
 name = "validate_modern_cross_spring"
 path = "src/bin/validate_modern_cross_spring/main.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_alphafold2"
 path = "src/bin/validate_barracuda_alphafold2.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_modern_rewire"
 path = "src/bin/bench_modern_rewire.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_cpu_bench"
 path = "src/bin/validate_barracuda_cpu_bench.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_portability_tiers"
 path = "src/bin/bench_portability_tiers/main.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_wdm_alphafold_dispatch"
 path = "src/bin/validate_wdm_alphafold_dispatch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_gpu_pure_wdm_coral"
 path = "src/bin/validate_gpu_pure_wdm_coral/main.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_wdm_transfer_gpu"
 path = "src/bin/validate_barracuda_wdm_transfer_gpu.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_coral_forge_dispatch"
 path = "src/bin/validate_coral_forge_dispatch.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_alphafold3"
 path = "src/bin/validate_barracuda_alphafold3.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_wdm_coral_parity"
 path = "src/bin/validate_wdm_coral_parity.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_metalforge_wdm_coral"
 path = "src/bin/validate_metalforge_wdm_coral/main.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_toadstool_s70_evolution"
 path = "src/bin/validate_toadstool_s70_evolution.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_toadstool_s71_gpu_stats"
 path = "src/bin/validate_toadstool_s71_gpu_stats.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_toadstool_s79_rewire"
 path = "src/bin/validate_toadstool_s79_rewire.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_toadstool_s86_rewire"
 path = "src/bin/validate_toadstool_s86_rewire.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_toadstool_s87_sync"
 path = "src/bin/validate_toadstool_s87_sync.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_spring_shader_evolution"
 path = "src/bin/validate_cross_spring_shader_evolution.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_nautilus_bridge"
 path = "src/bin/validate_nautilus_bridge.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_alphafold3_diffusion_gpu"
 path = "src/bin/validate_alphafold3_diffusion_gpu.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_alphafold3_pairformer_gpu"
 path = "src/bin/validate_alphafold3_pairformer_gpu.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_cross_spring_rewire"
 path = "src/bin/validate_cross_spring_rewire.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_barracuda_s121_rewire"
 path = "src/bin/validate_barracuda_s121_rewire.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_cross_spring_modern"
 path = "src/bin/bench_cross_spring_modern.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_cross_spring_shader_evolution"
 path = "src/bin/bench_cross_spring_shader_evolution.rs"
+required-features = ["barracuda"]
 
 # biomeOS graph coordination (DAG pipeline execution)
 
 [[bin]]
 name = "validate_biomeos_graph"
 path = "src/bin/validate_biomeos_graph.rs"
+required-features = ["barracuda"]
 
 # petalTongue visualization (scenarios + streaming + IPC roundtrip)
 
 [[bin]]
 name = "validate_petaltongue_scenarios"
 path = "src/bin/validate_petaltongue_scenarios.rs"
+required-features = ["barracuda"]
 
 # ── S105: baseCamp GPU promotions (weight_spectral, loss_landscape, neural_pgm, agent_coordination)
 
 [[bin]]
 name = "validate_barracuda_basecamp"
 path = "src/bin/validate_barracuda_basecamp.rs"
+required-features = ["barracuda"]
 
 # ── S142: enable f64; PTXAS regression diagnostic
 
 [[bin]]
 name = "diagnose_f64_regression"
 path = "src/bin/diagnose_f64_regression.rs"
+required-features = ["barracuda"]
 
 # ── Orphan binaries restored (cleanup S143)
 
 [[bin]]
 name = "validate_nucleus_pcie_mixed_pipeline"
 path = "src/bin/validate_nucleus_pcie_mixed_pipeline.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_toadstool_s94b_wgpu28"
 path = "src/bin/validate_toadstool_s94b_wgpu28.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "neuralspring_live_dashboard"
 path = "src/bin/neuralspring_live_dashboard.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "neuralspring_ecosystem_dashboard"
@@ -1187,52 +1418,64 @@ path = "src/bin/neuralspring_ecosystem_dashboard.rs"
 [[bin]]
 name = "validate_compute_dispatch_evolution"
 path = "src/bin/validate_compute_dispatch_evolution.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_multi_head_esn"
 path = "src/bin/validate_multi_head_esn.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_training_monitor"
 path = "src/bin/validate_training_monitor.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_immunological_anderson"
 path = "src/bin/validate_immunological_anderson.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_immunological_anderson_extended"
 path = "src/bin/validate_immunological_anderson_extended.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_toadstool_s93_barracuda_extraction"
 path = "src/bin/validate_toadstool_s93_barracuda_extraction.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_kokkos_parity"
 path = "src/bin/bench_kokkos_parity.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "bench_industry_gpu_parity"
 path = "src/bin/bench_industry_gpu_parity.rs"
+required-features = ["barracuda"]
 
 # ── S145: GPU infrastructure experiments (Exp 103-106) ─────────────
 
 [[bin]]
 name = "validate_gpu_eigensolve_pipeline"
 path = "src/bin/validate_gpu_eigensolve_pipeline.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_batched_spectral"
 path = "src/bin/validate_batched_spectral.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_sovereign_compile"
 path = "src/bin/validate_sovereign_compile.rs"
+required-features = ["barracuda"]
 
 [[bin]]
 name = "validate_mixed_composition_pipeline"
 path = "src/bin/validate_mixed_composition_pipeline.rs"
+required-features = ["barracuda"]
 
 # ── NUCLEUS composition validators ──────────────────────────────────
 

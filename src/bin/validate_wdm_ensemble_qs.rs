@@ -7,8 +7,9 @@
 
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
+use neural_spring::primitives::pearson_r;
 use neural_spring::wdm_ensemble_qs::{
-    anderson_from_disorder, disagreement_to_disorder, load_ensemble_from_json, pearson_r,
+    anderson_from_disorder, disagreement_to_disorder, load_ensemble_from_json,
     replicator_final_coop, snowdrift_payoff,
 };
 

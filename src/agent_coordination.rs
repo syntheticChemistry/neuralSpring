@@ -20,7 +20,7 @@
 //! - [`crate::anderson_localization`] — IPR, Hamiltonian construction
 //! - [`crate::game_theory`] — replicator dynamics, spatial cooperation
 //! - [`crate::swarm_robotics`] — swarm fitness evaluation
-//! - [`crate::eigh::eigh_householder_qr`] — eigendecomposition
+//! - [`crate::eigh::eigh_householder_qr`] — eigendecomposition (`barracuda` feature)
 
 #![expect(
     clippy::cast_precision_loss,
@@ -28,8 +28,8 @@
     reason = "lattice coordination model uses usize→f64 casts for metrics and multi-parameter experiment configs"
 )]
 
+#[cfg(feature = "barracuda")]
 use crate::anderson_localization::mean_ipr;
-use crate::eigh::eigh_householder_qr;
 use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
@@ -82,6 +82,7 @@ fn euclidean_distance(a: &[f64], b: &[f64]) -> f64 {
 ///
 /// L = D - A where D is the degree matrix (diagonal with row sums).
 /// Returns flat row-major n×n matrix.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn graph_laplacian(adjacency: &[f64], n: usize) -> Vec<f64> {
     barracuda::linalg::graph::graph_laplacian(adjacency, n)
@@ -91,6 +92,7 @@ pub fn graph_laplacian(adjacency: &[f64], n: usize) -> Vec<f64> {
 ///
 /// Returns H = L + W * diag(heterogeneity), where heterogeneity
 /// is derived from agent capability variance.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn disordered_laplacian(
     laplacian: &[f64],
@@ -107,12 +109,14 @@ pub fn disordered_laplacian(
 /// Computes the IPR and level spacing ratio of the disordered Laplacian
 /// to predict whether coordination will succeed (delocalized = coordinated)
 /// or fail (localized = fragmented).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn coordination_spectral_analysis(
     agents: &[Agent],
     comm_range: f64,
     disorder_strength: f64,
 ) -> CoordinationResult {
+    use crate::eigh::eigh_householder_qr;
     let n = agents.len();
     let adj = interaction_graph(agents, comm_range);
     let lap = graph_laplacian(&adj, n);
@@ -140,6 +144,7 @@ pub fn coordination_spectral_analysis(
 }
 
 /// Result of coordination spectral analysis.
+#[cfg(feature = "barracuda")]
 #[derive(Debug, Clone)]
 pub struct CoordinationResult {
     /// Mean IPR (high = localized/fragmented, low = delocalized/coordinated).
@@ -236,6 +241,7 @@ pub fn generate_lattice_agents(
 /// Generates agents on 1D, 2D, and 3D lattices and measures
 /// coordination efficiency for each. Returns coordination fractions
 /// for each dimension after `n_steps` QS signaling steps.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn dimensional_coordination_sweep(
     n_per_side: usize,
@@ -271,6 +277,7 @@ pub fn dimensional_coordination_sweep(
 }
 
 /// Result of dimensional coordination sweep.
+#[cfg(feature = "barracuda")]
 #[derive(Debug, Clone)]
 pub struct DimensionalResult {
     /// Coordination fraction in 1D.
@@ -312,6 +319,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn laplacian_row_sums_zero() {
         let agents = test_agents(4);
@@ -358,6 +366,7 @@ mod tests {
         assert!(any_cooperating, "at least some agents should cooperate");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn spectral_analysis_finite() {
         let agents = test_agents(4);
@@ -390,6 +399,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn disordered_laplacian_adds_on_site() {
         let agents = test_agents(4);
@@ -428,6 +438,7 @@ mod tests {
         assert!((coordination_fraction(&agents) - 1.0).abs() < tolerances::EXACT_F64);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn dimensional_coordination_sweep_produces_results() {
         let result = dimensional_coordination_sweep(3, 0.1, 2.0, 3.0, 0.1, 0.5, 5, 42);
@@ -482,6 +493,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn algebraic_connectivity_single_agent() {
         let agents = vec![Agent {

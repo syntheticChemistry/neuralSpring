@@ -36,6 +36,7 @@
 ///
 /// Absorption target: `barracuda::ops::batch_gemm`.
 /// Validated: `validate_gpu_directed` (6/6 PASS).
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::MULTI_OBJ_FITNESS as WGSL_MULTI_OBJ_FITNESS;
 
 use crate::rng::Rng;

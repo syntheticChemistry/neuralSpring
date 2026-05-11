@@ -7,7 +7,16 @@
 //! [`scenario_with_edges_json`] serializes any scenario + edges to JSON.
 
 use super::super::types::{NeuralScenario, ScenarioEdge};
+#[cfg(feature = "barracuda")]
 use super::scaffold::{edge, scaffold};
+#[cfg(not(feature = "barracuda"))]
+use super::scaffold::scaffold;
+#[cfg(not(feature = "barracuda"))]
+use super::{
+    folding_study, game_theory_study, hmm_study, immunological_study, industry_coverage_study,
+    introgression_nn_study, kokkos_parity_study, population_study, search_study, streaming_io_study,
+};
+#[cfg(feature = "barracuda")]
 use super::{
     attention_anderson_study, coordination_study, digester_anderson_study, folding_study,
     game_theory_study, glucose_study, hmm_study, immunological_study, industry_coverage_study,
@@ -22,73 +31,121 @@ use super::{
 /// original 16 tracks plus 5 novel composition experiments.
 #[must_use]
 pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
-    let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
-        spectral_study(),
-        training_study(),
-        coordination_study(),
-        provenance_study(),
-        folding_study(),
-        hmm_study(),
-        game_theory_study(),
-        wdm_study(),
-        glucose_study(),
-        immunological_study(),
-        population_study(),
-        loss_landscape_study(),
-        search_study(),
-        streaming_io_study(),
-        kokkos_parity_study(),
-        industry_coverage_study(),
-        digester_anderson_study(),
-        isomorphic_reservoir_study(),
-        wdm_ensemble_qs_study(),
-        introgression_nn_study(),
-        attention_anderson_study(),
-    ];
+    #[cfg(feature = "barracuda")]
+    {
+        let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
+            spectral_study(),
+            training_study(),
+            coordination_study(),
+            provenance_study(),
+            folding_study(),
+            hmm_study(),
+            game_theory_study(),
+            wdm_study(),
+            glucose_study(),
+            immunological_study(),
+            population_study(),
+            loss_landscape_study(),
+            search_study(),
+            streaming_io_study(),
+            kokkos_parity_study(),
+            industry_coverage_study(),
+            digester_anderson_study(),
+            isomorphic_reservoir_study(),
+            wdm_ensemble_qs_study(),
+            introgression_nn_study(),
+            attention_anderson_study(),
+        ];
 
-    let mut s = scaffold(
-        "neuralSpring Complete Study",
-        "All 21 tracks: 16 original + 5 novel compositions (Digester×Anderson, \
-         Isomorphic Reservoir, WDM Ensemble QS, HMM Introgression NN, Attention Anderson)",
-    );
+        let mut s = scaffold(
+            "neuralSpring Complete Study",
+            "All 21 tracks: 16 original + 5 novel compositions (Digester×Anderson, \
+             Isomorphic Reservoir, WDM Ensemble QS, HMM Introgression NN, Attention Anderson)",
+        );
 
-    let offsets: [(f64, f64); 21] = [
-        (0.0, 0.0),
-        (0.0, 500.0),
-        (600.0, 0.0),
-        (600.0, 500.0),
-        (300.0, 800.0),
-        (900.0, 0.0),
-        (900.0, 500.0),
-        (1200.0, 0.0),
-        (1200.0, 500.0),
-        (1500.0, 0.0),
-        (1500.0, 500.0),
-        (300.0, 1200.0),
-        (1800.0, 0.0),
-        (1800.0, 500.0),
-        (2100.0, 0.0),
-        (2100.0, 500.0),
-        (0.0, 1600.0),
-        (600.0, 1600.0),
-        (1200.0, 1600.0),
-        (1800.0, 1600.0),
-        (2400.0, 1600.0),
-    ];
+        let offsets: [(f64, f64); 21] = [
+            (0.0, 0.0),
+            (0.0, 500.0),
+            (600.0, 0.0),
+            (600.0, 500.0),
+            (300.0, 800.0),
+            (900.0, 0.0),
+            (900.0, 500.0),
+            (1200.0, 0.0),
+            (1200.0, 500.0),
+            (1500.0, 0.0),
+            (1500.0, 500.0),
+            (300.0, 1200.0),
+            (1800.0, 0.0),
+            (1800.0, 500.0),
+            (2100.0, 0.0),
+            (2100.0, 500.0),
+            (0.0, 1600.0),
+            (600.0, 1600.0),
+            (1200.0, 1600.0),
+            (1800.0, 1600.0),
+            (2400.0, 1600.0),
+        ];
 
-    let mut all_edges = Vec::new();
-    for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
-        for mut n in track.ecosystem.primals {
-            n.position.x += offset.0;
-            n.position.y += offset.1;
-            s.ecosystem.primals.push(n);
+        let mut all_edges = Vec::new();
+        for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
+            for mut n in track.ecosystem.primals {
+                n.position.x += offset.0;
+                n.position.y += offset.1;
+                s.ecosystem.primals.push(n);
+            }
+            all_edges.append(&mut edges);
         }
-        all_edges.append(&mut edges);
+
+        all_edges.extend(cross_track_edges());
+
+        return (s, all_edges);
     }
 
-    all_edges.extend(cross_track_edges());
+    #[cfg(not(feature = "barracuda"))]
+    {
+        let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
+            folding_study(),
+            hmm_study(),
+            game_theory_study(),
+            immunological_study(),
+            population_study(),
+            search_study(),
+            streaming_io_study(),
+            kokkos_parity_study(),
+            industry_coverage_study(),
+            introgression_nn_study(),
+        ];
 
-    (s, all_edges)
+        let mut s = scaffold(
+            "neuralSpring Complete Study (IPC / CPU tier)",
+            "Subset of study tracks built without linking BarraCUDA (no spectral, training WDM, or GPU shaders).",
+        );
+
+        let offsets: [(f64, f64); 9] = [
+            (300.0, 800.0),
+            (900.0, 0.0),
+            (900.0, 500.0),
+            (1500.0, 0.0),
+            (1500.0, 500.0),
+            (1800.0, 0.0),
+            (1800.0, 500.0),
+            (2100.0, 0.0),
+            (2100.0, 500.0),
+        ];
+
+        let mut all_edges = Vec::new();
+        for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
+            for mut n in track.ecosystem.primals {
+                n.position.x += offset.0;
+                n.position.y += offset.1;
+                s.ecosystem.primals.push(n);
+            }
+            all_edges.append(&mut edges);
+        }
+
+        (s, all_edges)
+    }
 }
 
 /// Build the composition-only study: all 5 novel experiments in one graph.
@@ -97,45 +154,72 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
 /// back to the foundational spectral and HMM tracks they compose.
 #[must_use]
 pub fn composition_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
-    let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
-        digester_anderson_study(),
-        isomorphic_reservoir_study(),
-        wdm_ensemble_qs_study(),
-        introgression_nn_study(),
-        attention_anderson_study(),
-    ];
+    #[cfg(feature = "barracuda")]
+    {
+        let tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)> = vec![
+            digester_anderson_study(),
+            isomorphic_reservoir_study(),
+            wdm_ensemble_qs_study(),
+            introgression_nn_study(),
+            attention_anderson_study(),
+        ];
 
-    let mut s = scaffold(
-        "neuralSpring Novel Compositions",
-        "5 composition experiments: Digester×Anderson coupling, Isomorphic reservoir \
-         ensemble, WDM ensemble quorum sensing, HMM introgression on NN layers, \
-         Attention Anderson spectral analysis",
-    );
+        let mut s = scaffold(
+            "neuralSpring Novel Compositions",
+            "5 composition experiments: Digester×Anderson coupling, Isomorphic reservoir \
+             ensemble, WDM ensemble quorum sensing, HMM introgression on NN layers, \
+             Attention Anderson spectral analysis",
+        );
 
-    let offsets: [(f64, f64); 5] = [
-        (0.0, 0.0),
-        (600.0, 0.0),
-        (1200.0, 0.0),
-        (0.0, 600.0),
-        (600.0, 600.0),
-    ];
+        let offsets: [(f64, f64); 5] = [
+            (0.0, 0.0),
+            (600.0, 0.0),
+            (1200.0, 0.0),
+            (0.0, 600.0),
+            (600.0, 600.0),
+        ];
 
-    let mut all_edges = Vec::new();
-    for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
-        for mut n in track.ecosystem.primals {
-            n.position.x += offset.0;
-            n.position.y += offset.1;
-            s.ecosystem.primals.push(n);
+        let mut all_edges = Vec::new();
+        for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
+            for mut n in track.ecosystem.primals {
+                n.position.x += offset.0;
+                n.position.y += offset.1;
+                s.ecosystem.primals.push(n);
+            }
+            all_edges.append(&mut edges);
         }
-        all_edges.append(&mut edges);
+
+        all_edges.extend(composition_cross_edges());
+
+        return (s, all_edges);
     }
 
-    all_edges.extend(composition_cross_edges());
+    #[cfg(not(feature = "barracuda"))]
+    {
+        let tracks = vec![introgression_nn_study()];
+        let mut s = scaffold(
+            "neuralSpring Novel Compositions (IPC / CPU tier)",
+            "Subset of composition tracks available without BarraCUDA: introgression NN only.",
+        );
 
-    (s, all_edges)
+        let offsets = [(0.0, 0.0)];
+
+        let mut all_edges = Vec::new();
+        for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
+            for mut n in track.ecosystem.primals {
+                n.position.x += offset.0;
+                n.position.y += offset.1;
+                s.ecosystem.primals.push(n);
+            }
+            all_edges.append(&mut edges);
+        }
+
+        (s, all_edges)
+    }
 }
 
 /// Edges linking composition experiments to each other via shared physics.
+#[cfg(feature = "barracuda")]
 fn composition_cross_edges() -> Vec<ScenarioEdge> {
     vec![
         edge(
@@ -162,6 +246,7 @@ fn composition_cross_edges() -> Vec<ScenarioEdge> {
 }
 
 /// Inter-track edges that connect nodes across different study tracks.
+#[cfg(feature = "barracuda")]
 fn cross_track_edges() -> Vec<ScenarioEdge> {
     vec![
         edge(
@@ -266,7 +351,7 @@ pub fn scenario_with_edges_json(scenario: &NeuralScenario, edges: &[ScenarioEdge
     serde_json::to_string_pretty(&merged).unwrap_or_default()
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "barracuda"))]
 #[expect(clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;

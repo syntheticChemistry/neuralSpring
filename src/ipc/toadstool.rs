@@ -7,6 +7,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
 /// `compute.dispatch` via toadStool IPC.
@@ -18,6 +19,6 @@ pub fn compute_dispatch(
     socket: &Path,
     params: &serde_json::Value,
     timeout: Duration,
-) -> Result<serde_json::Value, String> {
-    call_capability(socket, "compute.dispatch", params, timeout)
+) -> Result<serde_json::Value, IpcError> {
+    Ok(call_capability(socket, "compute.dispatch", params, timeout)?)
 }

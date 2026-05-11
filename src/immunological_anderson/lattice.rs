@@ -5,7 +5,9 @@
 //! Builds 1D Anderson lattice Hamiltonians for the skin tissue stack and
 //! computes level spacing ratio spectral sweeps across barrier states.
 
-use super::{dimensional_promotion, evenness_to_disorder, pielou_evenness};
+#[cfg(feature = "barracuda")]
+use super::dimensional_promotion;
+use super::{evenness_to_disorder, pielou_evenness};
 use crate::tolerances;
 
 /// Per-compartment disorder analysis.
@@ -88,6 +90,7 @@ pub fn tissue_lattice_hamiltonian(
 ///
 /// Sweeps intact_fraction from 1.0 (intact) to 0.0 (fully breached),
 /// building a lattice at each state and computing the level spacing ratio r.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn barrier_promotion_spectrum(
     n_sites: usize,
@@ -186,6 +189,7 @@ mod tests {
         assert!(r > 0.0 && r <= 1.0, "r must be in (0,1], got {r}");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn test_barrier_promotion_spectrum() {
         let results = barrier_promotion_spectrum(16, 5, 1.0, 1.0);

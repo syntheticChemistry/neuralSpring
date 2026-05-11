@@ -10,7 +10,9 @@
 //! - [`crate::game_theory`] — replicator dynamics, snowdrift payoffs
 //! - [`crate::anderson_localization`] — 1D Anderson Hamiltonian, IPR
 
+#[cfg(feature = "barracuda")]
 use crate::anderson_localization;
+#[cfg(feature = "barracuda")]
 use crate::rng::Rng;
 use crate::tolerances;
 
@@ -94,6 +96,7 @@ pub fn replicator_final_coop(payoff: &[[f64; 2]; 2], n_steps: usize) -> f64 {
 /// Compute Anderson localization on a 1D disorder field.
 ///
 /// Returns `(mean_ipr, localization_length)`.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn anderson_from_disorder(disorder: &[f64]) -> (f64, f64) {
     let n = disorder.len();
@@ -123,10 +126,6 @@ pub fn anderson_from_disorder(disorder: &[f64]) -> (f64, f64) {
     (mean_ipr, xi)
 }
 
-/// Re-export centralized Pearson correlation wrapper.
-pub use crate::primitives::pearson_r;
-
-/// Load baseline from Python JSON.
 ///
 /// # Errors
 ///
@@ -213,6 +212,7 @@ mod tests {
         assert!(fc > fc_hard, "higher cost → less cooperation");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn test_anderson_disorder_localizes() {
         let mut rng = crate::rng::Rng::new(99);

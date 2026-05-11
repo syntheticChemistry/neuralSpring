@@ -214,7 +214,32 @@ pub fn shannon_diversity(population: &[Vec<u8>]) -> f64 {
     }
     let total = population.len() as f64;
     let freqs: Vec<f64> = counts.values().map(|&c| c as f64 / total).collect();
-    primitives::shannon_equitability(&freqs)
+    #[cfg(feature = "barracuda")]
+    return primitives::shannon_equitability(&freqs);
+    #[cfg(not(feature = "barracuda"))]
+    shannon_equitability_cpu(&freqs)
+}
+
+#[cfg(not(feature = "barracuda"))]
+fn shannon_equitability_cpu(frequencies: &[f64]) -> f64 {
+    let n_nonzero = frequencies
+        .iter()
+        .filter(|&&p| p > primitives::DIVISION_GUARD)
+        .count();
+    if n_nonzero <= 1 {
+        return 0.0;
+    }
+    let mut h = 0.0;
+    for &p in frequencies {
+        if p > primitives::DIVISION_GUARD {
+            h -= p * p.ln();
+        }
+    }
+    let h_max = (n_nonzero as f64).ln();
+    if h_max <= 0.0 {
+        return 0.0;
+    }
+    h / h_max
 }
 
 /// Number of unique genotypes in the population.

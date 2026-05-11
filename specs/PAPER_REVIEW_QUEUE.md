@@ -257,6 +257,36 @@ computation). No proprietary models, no external downloads, no API dependencies.
 
 ---
 
+## LTEE GuideStone Queue
+
+**Purpose**: Contribute to the LTEE GuideStone subsystem — a USB-deployable
+artifact reproducing Barrick/Lenski and Eaves/Woldring papers with new
+predictions via the Anderson disorder framework. neuralSpring provides ML
+surrogate models (LSTM, HMM, ESN) for evolutionary dynamics prediction.
+
+See: `infra/wateringHole/handoffs/LTEE_GUIDESTONE_SUBSYSTEM_HANDOFF_MAY11_2026.md`
+
+| # | Paper | Year | neuralSpring Role | lithoSpore Module | Status |
+|---|-------|------|-------------------|-------------------|--------|
+| B1 | Barrick et al. "Genome evolution and adaptation in a long-term experiment with *E. coli*" Nature 461:1243-1247 | 2009 | LSTM mutation accumulation predictor — predict cumulative mutation count from generation number | Module 2 (mutation accumulation) | **STARTED** — `control/ltee_mutation_accumulation/` |
+| B2 | Wiser et al. "Long-term dynamics of adaptation in asexual populations" Science 342:1364-1367 | 2013 | LSTM fitness trajectory predictor — predict population fitness from generation | Module 1 (power-law fitness) | QUEUED |
+| B3 | Good et al. "The dynamics of molecular evolution over 60,000 generations" Nature 551:45-50 | 2017 | LSTM+HMM+ESN allele trajectory classifier — classify allele fate (fixation/loss/polymorphic) | Module 3 (allele trajectories) | QUEUED |
+| B4 | Blount et al. "Historical contingency and the evolution of a key innovation" PNAS 105:7899-7906 | 2008 | ESN early-warning classifier — detect potentiating mutations before citrate innovation | Module 4 (citrate structural) | QUEUED |
+| B6 | Burden et al. "Fitness cost distribution of random insertion transposon mutations" PNAS 121:e2318547121 | 2024 | ML burden predictor — predict fitness cost from plasmid/gene features | Module 5 (BioBrick burden) | QUEUED |
+| B7 | Tenaillon et al. "Tempo and mode of genome evolution in a 50,000-generation experiment" Nature 536:165-170 | 2016 | LSTM mutation rate predictor — predict mutation accumulation curves from genome data | Module 6 (breseq) | QUEUED |
+| B8 | Wielgoss et al. "Mutation rate dynamics in a bacterial population reflect tension between adaptation and genetic load" PNAS 110:222-227 | 2013 | LSTM mutator predictor — predict mutator emergence from population dynamics | — | QUEUED |
+| B9 | Wiser et al. "Anderson disorder analogy for LTEE fitness landscape" (Anderson framework application) | — | Anderson disorder → fitness landscape mapping — DFE ↔ RMT eigenvalue analysis | Module 7 (Anderson-QS) | QUEUED |
+| E2 | Eaves OATP transporter bridge paper | — | ESN pharmacokinetic predictor | — | QUEUED |
+| E3 | Eaves FLS2 plant immunity paper | — | Cross-domain immunity modeling | — | QUEUED |
+| E4 | Eaves cyclic peptide screening paper | — | ML screening surrogate | — | QUEUED |
+| E5 | Eaves additional evolution paper | — | LSTM evolutionary dynamics | — | QUEUED |
+
+**Total**: 12 papers assigned to neuralSpring.
+**Priority**: B1 (LSTM mutation accumulation) → B3 (LSTM+HMM+ESN allele classification).
+**Infrastructure overlap**: AlphaFold2 primitives, compute.dispatch, LSTM/ESN/HMM modules.
+
+---
+
 ## Completion Summary
 
 **All 27 papers complete. Paper 027 (Liao/Wang 2020 ML digestion prediction) complete — validates isomorphic ESN generalization to bioprocess engineering (R²=0.84, 36/36 Rust + 23/23 bC/gT PASS). baseCamp (B-01..B-15) primitives validated. baseCamp Sub-thesis 06 (B-16..B-21, immunological Anderson) added — proposal stage, awaiting wetSpring Exp 270-274. All 5 WDM surrogates (nW-01..nW-05) complete. nF-03 AlphaFold3 Phase C (confidence heads) complete. Paper 026 (Chuna LSTM glucose prediction) complete — validates LSTM prediction horizon limits, isomorphic cross-domain generalization (biomedical ↔ meteorological).**

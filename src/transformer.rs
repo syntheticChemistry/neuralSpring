@@ -48,6 +48,7 @@ pub fn softmax(x: &[f64]) -> Vec<f64> {
 /// assert!((gelu(0.0) - 0.0).abs() < 1e-12);
 /// assert!(gelu(5.0) > 4.9);
 /// ```
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn gelu(x: f64) -> f64 {
     crate::primitives::gelu(x)
@@ -100,17 +101,20 @@ mod tests {
         assert_relative_eq!(sum, 1.0, epsilon = tolerances::ZERO_DETECTION);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn gelu_at_zero() {
         assert_relative_eq!(gelu(0.0), 0.0, epsilon = tolerances::EXACT_F64);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn gelu_positive_for_large_input() {
         assert!(gelu(5.0) > 4.9);
     }
 
     // Cross-validation: Python transformer_inference.gelu_numpy
+    #[cfg(feature = "barracuda")]
     #[test]
     fn gelu_cross_python() {
         let cases = [
@@ -134,6 +138,7 @@ mod tests {
         assert_eq!(run1, run2, "softmax must be bit-identical across runs");
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn gelu_deterministic() {
         let inputs = [-2.0, -1.0, 0.0, 0.5, 1.0, 3.0];

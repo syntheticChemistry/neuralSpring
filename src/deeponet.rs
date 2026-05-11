@@ -38,6 +38,7 @@
 //! DeepONet IS attention between functions and locations
 //! ```
 
+#[cfg(feature = "barracuda")]
 use crate::primitives::DIVISION_GUARD;
 use crate::rng::Rng;
 
@@ -167,6 +168,7 @@ pub fn mlp_forward(input: &[f64], layers: &[(&[f64], &[f64], usize)]) -> Vec<f64
 /// Branch-trunk dot product: <`branch_out`, `trunk_out`> + bias.
 ///
 /// Delegates to `barracuda::stats::dot` (absorbed S64).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn branch_trunk_dot(branch_out: &[f64], trunk_out: &[f64], bias: f64) -> f64 {
     barracuda::stats::dot(branch_out, trunk_out) + bias
@@ -175,6 +177,7 @@ pub fn branch_trunk_dot(branch_out: &[f64], trunk_out: &[f64], bias: f64) -> f64
 /// L2 relative error between predicted and exact operator outputs.
 ///
 /// Delegates to `barracuda::stats::l2_norm` (absorbed S64).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn l2_relative_error(predicted: &[f64], exact: &[f64]) -> f64 {
     let diff: Vec<f64> = predicted
@@ -188,6 +191,7 @@ pub fn l2_relative_error(predicted: &[f64], exact: &[f64]) -> f64 {
 }
 
 /// RMSE between predicted and exact values (delegates to `barracuda::stats::rmse`).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn rmse(predicted: &[f64], exact: &[f64]) -> f64 {
     barracuda::stats::rmse(predicted, exact)
@@ -295,6 +299,7 @@ mod tests {
         assert_eq!(g.len(), 100 * 15);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn branch_trunk_dot_identity() {
         let a = [1.0, 2.0, 3.0];
@@ -303,12 +308,14 @@ mod tests {
         assert!((result - 6.0).abs() < tolerances::EXACT_F64);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn l2_relative_exact_match() {
         let a = [1.0, 2.0, 3.0];
         assert!(l2_relative_error(&a, &a) < tolerances::ZERO_DETECTION);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn rmse_exact_match() {
         let a = [1.0, 2.0, 3.0];

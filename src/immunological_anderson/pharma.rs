@@ -5,7 +5,9 @@
 //! Anderson-augmented drug scoring, tissue accessibility factors, Hill
 //! dose-response, and pharmacokinetic helpers for AD intervention modeling.
 
+#[cfg(feature = "barracuda")]
 use crate::training_monitor::{AttentionState, TrainingInterrupt, TrainingMonitor};
+#[cfg(feature = "barracuda")]
 use crate::weight_spectral::WeightSpectralResult;
 
 use super::DrugMechanism;
@@ -102,12 +104,14 @@ pub fn tissue_geometry_factor(
 /// Wraps [`TrainingMonitor`] to track drug efficacy decay as an Anderson
 /// signal extinction process. Maps pharmacokinetic half-life curves onto
 /// the attention state machine.
+#[cfg(feature = "barracuda")]
 pub struct PharmacoMonitor {
     monitor: TrainingMonitor,
     dose_mg_per_kg: f64,
     hours_elapsed: f64,
 }
 
+#[cfg(feature = "barracuda")]
 impl PharmacoMonitor {
     /// Builds a monitor at the given dose with zero elapsed hours.
     #[must_use]
@@ -309,7 +313,7 @@ pub fn pruritus_score_model(
     nadir + recovery
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "barracuda"))]
 mod tests {
     use super::super::DrugMechanism;
     use super::*;

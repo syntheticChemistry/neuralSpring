@@ -30,6 +30,7 @@
 ///
 /// Absorption target: `barracuda::ops::pairwise_distance`.
 /// Validated: `validate_gpu_modes` (15/15 PASS).
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::PAIRWISE_L2 as WGSL_PAIRWISE_L2;
 
 /// Rate of novel type appearance over time.
@@ -52,6 +53,7 @@ pub fn change_metric(lineage_counts: &[usize]) -> Vec<f64> {
 ///
 /// For each timestep, mean L2 distance from current features to all
 /// previously seen features. `novelty[0] = 0`.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn novelty_metric(type_features: &[Vec<f64>]) -> Vec<f64> {
     let mut novelty = vec![0.0; type_features.len()];
@@ -77,6 +79,7 @@ pub fn novelty_metric(type_features: &[Vec<f64>]) -> Vec<f64> {
 ///
 /// Delegates to `barracuda::dispatch::l2_distance_dispatch` (CPU path).
 /// Used by `novelty_metric`. Exposed for GPU validation.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn l2_distance(a: &[f64], b: &[f64]) -> f64 {
     barracuda::dispatch::l2_distance_dispatch(a, b, None).unwrap_or_else(|_| {
@@ -97,6 +100,7 @@ pub fn l2_distance(a: &[f64], b: &[f64]) -> f64 {
 ///
 /// Delegates to `barracuda::stats::fit_linear` (absorbed from airSpring V009
 /// via `ToadStool` S66, now in `BarraCUDA`). Returns (slope, increasing).
+#[cfg(feature = "barracuda")]
 #[must_use]
 #[expect(
     clippy::cast_precision_loss,
@@ -121,6 +125,7 @@ pub fn complexity_metric(complexities: &[f64]) -> (f64, bool) {
 ///
 /// p = abd/sum(abd), H = -sum(p*ln(p)), `H_max` = ln(S).
 /// Delegates to [`crate::primitives::shannon_equitability`].
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn ecology_metric(abundances: &[Vec<f64>]) -> Vec<f64> {
     abundances
@@ -137,6 +142,7 @@ pub fn ecology_metric(abundances: &[Vec<f64>]) -> Vec<f64> {
 }
 
 /// Aggregate scores from all four MODES metrics.
+#[cfg(feature = "barracuda")]
 #[derive(Debug, Clone)]
 pub struct Scores {
     /// Sum of per-timestep lineage-count deltas.
@@ -158,6 +164,7 @@ pub struct Scores {
 }
 
 /// Compute all four MODES metrics and aggregate scores.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn score_system(
     lineage_counts: &[usize],
@@ -232,6 +239,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn novelty_identical_zero() {
         let features = vec![vec![1.0, 2.0, 3.0]; 5];
@@ -242,6 +250,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn complexity_increasing_positive_slope() {
         let cpx = vec![1.0, 2.0, 3.0, 4.0, 5.0];
@@ -250,6 +259,7 @@ mod tests {
         assert!(inc);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn ecology_uniform_high() {
         let abd = vec![vec![0.25, 0.25, 0.25, 0.25]];
@@ -257,6 +267,7 @@ mod tests {
         assert_relative_eq!(eco[0], 1.0, epsilon = tolerances::CROSS_LANGUAGE);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn ecology_skewed_low() {
         let abd = vec![vec![0.9, 0.05, 0.05]];
@@ -264,6 +275,7 @@ mod tests {
         assert!(eco[0] < 0.5);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn determinism() {
         let counts = vec![1, 3, 5, 7, 10];
@@ -285,6 +297,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn l2_distance_known() {
         let a = vec![0.0, 0.0];
@@ -292,6 +305,7 @@ mod tests {
         assert_relative_eq!(l2_distance(&a, &b), 5.0, epsilon = tolerances::EXACT_F64);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn l2_distance_same() {
         let a = vec![1.0, 2.0, 3.0];
@@ -302,6 +316,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn ecology_zero_abundances() {
         let abd = vec![vec![0.0, 0.0, 0.0]];
@@ -309,6 +324,7 @@ mod tests {
         assert_relative_eq!(eco[0], 0.0, epsilon = tolerances::ZERO_DETECTION);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn complexity_single_point() {
         let cpx = vec![5.0];
@@ -317,6 +333,7 @@ mod tests {
         assert!(!inc);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn score_system_empty_inputs() {
         let s = score_system(&[], &[], &[], &[]);
@@ -325,6 +342,7 @@ mod tests {
         assert_relative_eq!(s.ecology_mean, 0.0, epsilon = tolerances::ZERO_DETECTION);
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn score_system_short_sequences() {
         let s = score_system(

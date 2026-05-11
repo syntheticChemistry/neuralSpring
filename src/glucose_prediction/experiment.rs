@@ -12,16 +12,22 @@
     reason = "domain-specific numeric patterns and long experiment orchestration for Paper 026"
 )]
 
+#[cfg(feature = "barracuda")]
 use crate::sequence::{LstmWeights, lstm_cell};
 use crate::tolerances;
 
-use super::analysis::{r2_score, rmse};
+#[cfg(feature = "barracuda")]
 use super::cgm::{DT_MINUTES, WASHOUT, create_sequences, generate_synthetic_cgm};
-use super::{GlucosePredictor, GlucoseReadout, HorizonResult, RIDGE_ALPHA};
+#[cfg(feature = "barracuda")]
+use super::analysis::{r2_score, rmse};
+#[cfg(feature = "barracuda")]
+use super::{HorizonResult, RIDGE_ALPHA};
+use super::{GlucosePredictor, GlucoseReadout};
 
 /// Run the full glucose prediction experiment at multiple horizons.
 ///
 /// Returns per-horizon results and the trained predictor model.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn run_glucose_experiment(
     n_days: usize,
@@ -193,6 +199,7 @@ pub fn run_glucose_experiment(
 }
 
 /// Extract LSTM hidden state features [mean, std, last] from a window.
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn extract_features(window: &[f64], lstm_w: &LstmWeights<'_>) -> Vec<f64> {
     let hs = lstm_w.hidden_size;
@@ -279,6 +286,7 @@ pub fn spectral_radius_estimate(matrix: &[f64], n: usize) -> f64 {
 /// elimination with partial pivoting).  Falls back to a
 /// ridge-regularized system if the matrix is near-singular (degenerate
 /// reservoir states produce rank-deficient gram matrices).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn solve_symmetric(a: &[f64], b: &[f64], n: usize) -> Vec<f64> {
     barracuda::linalg::solve::solve_f64_cpu(a, b, n).unwrap_or_else(|_| {

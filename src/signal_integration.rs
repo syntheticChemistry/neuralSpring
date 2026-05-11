@@ -31,6 +31,7 @@
 ///
 /// Absorption target: `barracuda::ops::elementwise`.
 /// Validated: `validate_gpu_signal` (9/9 PASS).
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::HILL_GATE as WGSL_HILL_GATE;
 
 use crate::primitives;

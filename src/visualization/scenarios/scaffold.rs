@@ -182,6 +182,7 @@ pub fn distribution(
     }
 }
 
+#[cfg(feature = "barracuda")]
 pub fn fieldmap(
     id: &str,
     label: &str,

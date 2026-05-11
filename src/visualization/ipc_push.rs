@@ -459,6 +459,7 @@ mod tests {
         assert!(matches!(result, Err(PushError::ConnectionFailed(_))));
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn build_render_params_structure() {
         let (scenario, _) = scenarios::spectral_study();
@@ -552,6 +553,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "barracuda")]
     #[test]
     fn push_render_sends_valid_jsonrpc() {
         let (sock_path, listener) = socket_test_setup("render");

@@ -32,6 +32,7 @@ use crate::rng::Rng;
 ///
 /// Absorption target: `barracuda::ops::stencil`.
 /// Validated: `validate_gpu_game_theory`.
+#[cfg(feature = "barracuda")]
 pub use neural_spring_forge::shaders::SPATIAL_PAYOFF as WGSL_SPATIAL_PAYOFF;
 
 /// Standard prisoner's dilemma payoff matrix.

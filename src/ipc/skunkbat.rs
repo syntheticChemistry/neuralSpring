@@ -7,6 +7,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
 /// `security.audit_log` via skunkBat IPC.
@@ -23,8 +24,8 @@ pub fn audit_log(
     source: &str,
     payload: &serde_json::Value,
     timeout: Duration,
-) -> Result<serde_json::Value, String> {
-    call_capability(
+) -> Result<serde_json::Value, IpcError> {
+    Ok(call_capability(
         socket,
         "security.audit_log",
         &serde_json::json!({
@@ -34,7 +35,7 @@ pub fn audit_log(
             "timestamp": chrono_timestamp(),
         }),
         timeout,
-    )
+    )?)
 }
 
 fn chrono_timestamp() -> String {

@@ -8,6 +8,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
 /// `stats.mean` via barraCuda IPC.
@@ -15,15 +16,17 @@ use crate::validation::composition::call_capability;
 /// # Errors
 ///
 /// Returns an error if barraCuda is not reachable or the response is malformed.
-pub fn stats_mean(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64, String> {
+pub fn stats_mean(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64, IpcError> {
     let result = call_capability(
         socket,
         "stats.mean",
         &serde_json::json!({ "data": data }),
         timeout,
     )?;
-    super::extract_f64(&result, &["mean", "result", "value"])
-        .ok_or_else(|| "stats.mean: response missing numeric result".to_string())
+    super::extract_f64(&result, &["mean", "result", "value"]).ok_or_else(|| IpcError::Protocol {
+        capability: "stats.mean".into(),
+        reason: "response missing numeric result".into(),
+    })
 }
 
 /// `stats.std_dev` via barraCuda IPC.
@@ -31,15 +34,19 @@ pub fn stats_mean(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64,
 /// # Errors
 ///
 /// Returns an error if barraCuda is not reachable or the response is malformed.
-pub fn stats_std_dev(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64, String> {
+pub fn stats_std_dev(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64, IpcError> {
     let result = call_capability(
         socket,
         "stats.std_dev",
         &serde_json::json!({ "data": data }),
         timeout,
     )?;
-    super::extract_f64(&result, &["std_dev", "result", "value"])
-        .ok_or_else(|| "stats.std_dev: response missing numeric result".to_string())
+    super::extract_f64(&result, &["std_dev", "result", "value"]).ok_or_else(|| {
+        IpcError::Protocol {
+            capability: "stats.std_dev".into(),
+            reason: "response missing numeric result".into(),
+        }
+    })
 }
 
 /// `stats.weighted_mean` via barraCuda IPC.
@@ -52,15 +59,19 @@ pub fn stats_weighted_mean(
     data: &[f64],
     weights: &[f64],
     timeout: Duration,
-) -> Result<f64, String> {
+) -> Result<f64, IpcError> {
     let result = call_capability(
         socket,
         "stats.weighted_mean",
         &serde_json::json!({ "data": data, "weights": weights }),
         timeout,
     )?;
-    super::extract_f64(&result, &["weighted_mean", "result", "value"])
-        .ok_or_else(|| "stats.weighted_mean: response missing numeric result".to_string())
+    super::extract_f64(&result, &["weighted_mean", "result", "value"]).ok_or_else(|| {
+        IpcError::Protocol {
+            capability: "stats.weighted_mean".into(),
+            reason: "response missing numeric result".into(),
+        }
+    })
 }
 
 /// `tensor.matmul` via barraCuda IPC.
@@ -76,7 +87,7 @@ pub fn tensor_matmul(
     cols_a: usize,
     cols_b: usize,
     timeout: Duration,
-) -> Result<Vec<f64>, String> {
+) -> Result<Vec<f64>, IpcError> {
     let result = call_capability(
         socket,
         "tensor.matmul",
@@ -86,8 +97,10 @@ pub fn tensor_matmul(
         }),
         timeout,
     )?;
-    super::extract_f64_array(&result, &["data", "result"])
-        .ok_or_else(|| "tensor.matmul: response missing data array".to_string())
+    super::extract_f64_array(&result, &["data", "result"]).ok_or_else(|| IpcError::Protocol {
+        capability: "tensor.matmul".into(),
+        reason: "response missing data array".into(),
+    })
 }
 
 /// `tensor.create` via barraCuda IPC.
@@ -100,11 +113,11 @@ pub fn tensor_create(
     shape: &[usize],
     fill: &str,
     timeout: Duration,
-) -> Result<serde_json::Value, String> {
-    call_capability(
+) -> Result<serde_json::Value, IpcError> {
+    Ok(call_capability(
         socket,
         "tensor.create",
         &serde_json::json!({ "shape": shape, "fill": fill }),
         timeout,
-    )
+    )?)
 }

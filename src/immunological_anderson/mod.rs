@@ -50,9 +50,11 @@ pub use pharma::*;
 
 // Re-export submodule types for backward compatibility.
 pub use lattice::{
-    ThreeCompartmentDisorder, barrier_promotion_spectrum, level_spacing_ratio,
-    three_compartment_disorder, tissue_lattice_hamiltonian,
+    ThreeCompartmentDisorder, level_spacing_ratio, three_compartment_disorder,
+    tissue_lattice_hamiltonian,
 };
+#[cfg(feature = "barracuda")]
+pub use lattice::barrier_promotion_spectrum;
 pub use matrix::{
     AD_CHRONIC_PROFILE, AD_FLARE_PROFILE, DRUG_CANDIDATES, DiseaseProfile, DrugCandidate,
     fajgenbaum_matrix_score, score_all_candidates,
