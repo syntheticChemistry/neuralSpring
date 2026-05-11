@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V150 — Session S200 (guideStone L5 + plasmidBin)
+### V151 — Session S200b (doc reconciliation + upstream gap analysis)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V150** | `handoffs/NEURALSPRING_V150_GUIDESTONE_L5_HANDOFF_MAY11_2026.md` | May 11, 2026 | guideStone L3→L5 (L4 NUCLEUS composition + L5 cross-spring). 19 certification tests (was 13). plasmidBin release binary (2.8M). Tier 4 IPC-first gap documented. Upstream audit response. 1,450 workspace tests + 19 cert. V150 handoff. |
+| **V151** | `handoffs/NEURALSPRING_V151_DOC_RECONCILIATION_HANDOFF_MAY11_2026.md` | May 11, 2026 | Doc reconciliation (16 living docs, 2 JSON artifacts). Upstream gap analysis: NestGate P0, provenance trio P1, advertised-undispatched P2, Tier 4 P3. Foundation seeding ready (Threads 5+7). guideStone Level 5, 19 cert tests, 1,450 workspace tests. V151 handoff. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V149 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V150 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

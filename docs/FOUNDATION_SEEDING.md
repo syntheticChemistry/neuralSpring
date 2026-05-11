@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 # neuralSpring — Foundation Seeding Manifest
 
-**Status**: Ready for contribution | **Session**: S200 | **Date**: May 11, 2026
+**Status**: Ready for contribution | **Session**: S200b | **Date**: May 11, 2026
 
 neuralSpring contributes validated science to two foundation threads:
 
@@ -37,7 +37,7 @@ regimes, connecting to groundSpring's ODE/disorder physics and hotSpring's MD.
 
 | Domain | Result | Tolerance | Source |
 |--------|--------|-----------|--------|
-| 1D Anderson tight-binding | Lyapunov exponent vs disorder W | abs 1e-6 | `control/spectral_analysis/` |
+| 1D Anderson tight-binding | Lyapunov exponent vs disorder W | abs 1e-6 | `control/anderson_localization/` |
 | IPR (Inverse Participation Ratio) | IPR scaling with system size | rel 1e-8 | `src/bin/validate_immunological_anderson.rs` |
 | Level spacing statistics | Wigner-Dyson to Poisson transition | abs 1e-4 | `src/bin/validate_immunological_anderson.rs` |
 | Anderson transition (3D) | W_c ~ 16.5 critical disorder | rel 5% | `src/bin/validate_immunological_anderson_extended.rs` |
@@ -68,4 +68,4 @@ integration.
    dynamics validation results
 4. Register BLAKE3 hashes via sweetGrass braid + NestGate content pipeline
 
-*neuralSpring V150 | Session S200 | AGPL-3.0-or-later*
+*neuralSpring V151 | Session S200b | AGPL-3.0-or-later*

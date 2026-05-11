@@ -31,7 +31,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 | **Papers reproduced** | 27 (6 faculties) |
 | **Capabilities** | 34 (12 domains) |
 | **Named tolerances** | 233 |
-| **guideStone** | Level 3 — 29/29 bare ALL PASS (P1-P5) |
+| **guideStone** | Level 5 — 19 certification tests ALL PASS (L0-L5) |
 | **BTSP** | 13/13 mandatory |
 | **PRIMAL_GAPS** | 14 main (2 resolved, 13 appendix resolved) |
 
@@ -73,7 +73,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 - `validate_dispatch_parity` — multi-GPU bit-identical
 - `validate_helixvision` — Evoformer, IPA, diffusion
 - `validate_all` — full validation suite (244 binaries)
-- `neuralspring_guidestone` — guideStone Level 3 (29/29 bare)
+- `neuralspring_guidestone` — guideStone Level 5 (19 certification tests)
 
 ---
 
@@ -156,4 +156,4 @@ Remaining batches: 19 papers across 4 additional faculties.
 
 ---
 
-**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S200
+**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S200b

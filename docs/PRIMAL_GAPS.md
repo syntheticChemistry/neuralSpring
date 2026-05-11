@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-11 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S200 — guideStone L3→L5, plasmidBin release (May 11, 2026).
-> Prior: S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
+> **Session:** S200b — doc reconciliation, V151 handoff (May 11, 2026).
+> Prior: S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---
 
@@ -497,7 +497,7 @@ and `cc` (with `blake3` wrapper exemption). `cargo deny check` passes.
 
 ## 13. guideStone Evolution (Apr 18–20 2026)
 
-**Status:** Level 3 — bare ALL PASS (29/29 checks, P1-P5 certified)
+**Status:** Level 5 — 19 certification tests ALL PASS (L0-L5, implemented S200)
 **Standard:** `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
 
 ### guideStone Readiness
@@ -507,8 +507,8 @@ and `cc` (with `blake3` wrapper exemption). `cargo deny check` passes.
 | 1 | Validation exists (`IpcMathClient`, `validate_proto_nucleate_capabilities`) | DONE |
 | 2 | Properties documented (`docs/GUIDESTONE_PROPERTIES.md`) | DONE |
 | 3 | Bare guideStone works (29/29 pass, P1-P5 certified without primals) | DONE |
-| 4 | NUCLEUS guideStone works (validates against live NUCLEUS) | PENDING |
-| 5 | Certified (all 5 properties, cross-substrate parity) | PENDING |
+| 4 | NUCLEUS composition (deploy graphs + registry + 4 family calls) | DONE (S200) |
+| 5 | Cross-spring (frozen artifacts + protocol liveness + hash determinism) | DONE (S200) |
 
 ### Binary
 
@@ -561,7 +561,7 @@ Uses `primalspring::composition` API directly:
   - songbird: `SONGBIRD_SECURITY_PROVIDER=beardog` env required
   - nestgate: `NESTGATE_JWT_SECRET` env required (random Base64)
 - **Manifest note**: `downstream_manifest.toml` shows `guidestone_readiness = 2`
-  for neuralSpring; actual status is Level 3 (manifest is upstream's responsibility)
+  for neuralSpring; actual status is Level 5 (manifest is upstream's responsibility)
 
 ### Level 4 Blockers
 

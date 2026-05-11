@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: May 11, 2026 (Sessions 44–200 — S200: guideStone L5, plasmidBin release. 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 19 certification (guidestone). 269 binaries, 521+ `.rs` files. 34 capabilities. barraCuda v0.3.13, ToadStool S146+, coralReef Iter 49. V150 handoff)
+**Last Updated**: May 11, 2026 (Sessions 44–200b — S200b: doc reconciliation, V151 handoff. 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 19 certification (guidestone L5). 269 binaries, 521+ `.rs` files. 34 capabilities. barraCuda v0.3.13, ToadStool S146+, coralReef Iter 49. V151 handoff)
 **Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 266 binaries (243 validate + 18 bench + 5 other), 1,229 lib tests, Python→Rust→IPC three-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V135 handoff (current, Session S184 — guideStone Level 3) |
+| wateringHole/handoffs/ | `../wateringHole/` | V151 handoff (current, Session S200b — guideStone Level 5) |
 
 ---
 

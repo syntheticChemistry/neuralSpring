@@ -1,8 +1,8 @@
 {
   "spring": "neuralSpring",
-  "session": "S200",
-  "date": "2026-05-09",
-  "audit_response": "S197: Deep debt II (IPC &Path, 13 cert tests, CHECKSUMS, citations). S196: post-interstadial (CI 403, skunkBat, composition.status, method.register, CONTEXT.md). V147",
+  "session": "S200b",
+  "date": "2026-05-11",
+  "audit_response": "S200b: Doc reconciliation + V151 handoff. S200: guideStone L5 (19 cert tests), plasmidBin release. S199: stubs→errors, bench evolve. V151",
   "summary": {
     "total_main_gaps": 14,
     "resolved_main": 2,
@@ -28,7 +28,7 @@
     {"id": 10, "title": "Shader Upstream Absorption", "status": "tracking", "candidates": 24, "neuralspring_specific": 7, "upstream_candidates": 17},
     {"id": 11, "title": "barraCuda JSON-RPC Surface Gaps", "status": "open", "gaps": 18, "hand_back": "barraCuda"},
     {"id": 12, "title": "Proto-Nucleate Capabilities Harness", "status": "implemented", "validators": 7},
-    {"id": 13, "title": "guideStone Evolution", "status": "partial", "level": 3, "bare_checks": "29/29", "level4_blocked": "live NUCLEUS deployment", "level5_blocked": "18 barraCuda IPC gaps", "note": "exp094 is L4 preparation; barracuda optional is L5 preparation"},
+    {"id": 13, "title": "guideStone Evolution", "status": "resolved", "level": 5, "certification_tests": 19, "bare_checks": "29/29", "level4_status": "PASS", "level5_status": "PASS", "note": "L4 composition + L5 cross-spring implemented S200"},
     {"id": 14, "title": "Phase 46 Composition Explorer", "status": "explored", "patterns": ["agentic IPC", "DAG branching", "braid provenance", "closed-loop feedback"]}
   ],
   "resolved_appendix": [
@@ -63,7 +63,7 @@
     "experiment_crates": 1,
     "barracuda_optional": true,
     "registry_cross_sync": true,
-    "guidestone_level": 3,
+    "guidestone_level": 5,
     "notebooks": 10,
     "deny_clean": true
   }

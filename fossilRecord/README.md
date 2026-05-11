@@ -20,4 +20,4 @@ Superseded code patterns preserved with provenance. Each fossil has its own
 - Source code in fossils is dead code — not compiled, not tested
 - Provenance links back to the session and handoff that triggered fossilization
 
-*Last updated: S200 (May 11, 2026)*
+*Last updated: S200b (May 11, 2026)*

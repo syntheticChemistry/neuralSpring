@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 11, 2026 (Session S200 — guideStone L3→L5. Layer 4 (NUCLEUS composition): deploy graphs + registry + 4 family calls. Layer 5 (cross-spring): frozen artifacts + protocol liveness + hash determinism. 6 new certification tests (19 total). plasmidBin release binary (2.8M). 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests. 34 capabilities. V150 handoff).
+**Last updated**: May 11, 2026 (Session S200b — deep debt sweep IV + doc reconciliation. guideStone Level 5, 19 certification tests, plasmidBin release binary (2.8M). 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests. 34 capabilities. V151 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

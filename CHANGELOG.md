@@ -5,15 +5,23 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-11 (Session 200b: deep debt sweep IV)
+## [Unreleased] — 2026-05-11 (Session 200b: doc reconciliation + V151 handoff)
 
-### 2026-05-11 — Session S200b (stale graph TOMLs, comment alignment, deep audit)
+### 2026-05-11 — Session S200b (doc reconciliation, upstream gap analysis, V151 handoff)
 
-- **Deploy graph version sync** — 3 stale graphs (`neuralspring_inference_pipeline.toml`, `neuralspring_spectral_analysis.toml`, `composition/neuralspring_math_pipeline.toml`) updated V140/S190 → V150/S200.
-- **Handler comment alignment** — `handlers.rs` doc comment corrected from "stub response" to "`SERVICE_UNAVAILABLE` error" to match S199 implementation.
-- **Validator doc cleanup** — `validate_toadstool_s87_sync.rs` `TODO→NOTE` phrasing cleaned to avoid grep noise.
+- **16 living doc updates** — README, EVOLUTION_READINESS, CONTROL_EXPERIMENT_STATUS, PRIMAL_GAPS, FOUNDATION_SEEDING, specs/README, experiments/README, whitePaper/README, baseCamp/README, NOTEBOOK_PATTERN, fossilRecord/README, sporeprint/validation-summary, wateringHole/README — all to S200b/V151.
+- **GuideStone Level 3→5 corrections** — fixed stale "Level 3" and "13 certification" references across sporeprint, whitePaper, baseCamp, EVOLUTION_READINESS, PRIMAL_GAPS gap 13 table.
+- **validation-state.json** — `level` 3→5, `certification_tests` 19, L4/L5 `PENDING`→`PASS`, `date` corrected.
+- **gap-status.json** — gap 13 resolved (L5), scorecard `guidestone_level` 5, audit response updated.
+- **FOUNDATION_SEEDING.md** — stale `control/spectral_analysis/` → `control/anderson_localization/`.
+- **specs/README.md** — stale V135/S184 cross-reference → V151/S200b.
+- **4 deploy graphs** — all updated to V151/S200b.
+- **V151 handoff crafted** — upstream gap analysis (NestGate P0, provenance trio P1, advertised-undispatched methods P2, Tier 4 P3), spring patterns, NUCLEUS composition guidance.
+- **V150 archived** — moved to `wateringHole/handoffs/archive/`.
+- **Deploy graph version sync** — 3 stale graphs updated V140/S190 → V150/S200 (earlier in session).
+- **Handler comment alignment** — `handlers.rs` doc comment corrected from "stub response" to "`SERVICE_UNAVAILABLE` error".
 - **Zero >800L files confirmed** — all `.rs` files under 800 lines.
-- **Full audit** — no production unwraps, no hardcoded paths, no mocks in production, zero TODO/FIXME in production code, zero dead_code suppressions outside fossil record. Paper queue 27/27 closed (Py + Rust + GPU + notebooks for all).
+- **Quality gates** — 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 19 certification tests. 34 capabilities. Zero clippy warnings.
 
 ## 2026-05-11 (Session 200: guideStone L5 + plasmidBin)
 
