@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-11 (Session 198: Post-Interstadial Audit Response II)
+## [Unreleased] — 2026-05-11 (Session 199: Deep Debt Sweep III)
+
+### 2026-05-11 — Session S199 (stub→error, bench unwrap, deprecated isolation, path drift)
+
+- **Inference stubs → JSON-RPC errors** — `handle_inference_complete`, `handle_inference_embed`, `handle_inference_models` no longer return `success` with fake `"provider": "stub"` data. Now return `error_code::SERVICE_UNAVAILABLE` (-32001) when Squirrel is not discovered — honest API contract, no mocks in production.
+- **Bench unwrap() → expect()** — all 7 bare `.unwrap()` calls in `bench_cross_spring_shader_evolution.rs` replaced with `.expect()` providing dispatch context.
+- **Deprecated API isolation** — `neuralspring_interactive` and `neuralspring_mcp_adapter` playground binaries now carry `#![expect(deprecated)]` with migration note, acknowledging `PrimalClient` → `CompositionContext` evolution path.
+- **`dead_code` → `SERVICE_UNAVAILABLE`** — replaced reserved-but-unused `SERVER_ERROR` constant in `rpc.rs` with actively-used `SERVICE_UNAVAILABLE` (-32001) error code for Squirrel absence.
+- **FOUNDATION_SEEDING.md path fix** — corrected stale `control/wdm/esn_surrogate/` → `control/wdm/esn_regime_classifier.py`.
+- **CHECKSUMS regenerated** — `certify` 29/29 ALL PASS, `validate` 21/21 ALL PASS.
+- **Quality gates** — 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests. 34 capabilities. Zero clippy warnings.
+
+## 2026-05-11 (Session 198: Post-Interstadial Audit Response II)
 
 ### 2026-05-11 — Session S198 (CI cross-sync 413, compute.dispatch, UniBin rename, foundation seeding)
 

@@ -49,7 +49,7 @@ regimes, connecting to groundSpring's ODE/disorder physics and hotSpring's MD.
 | Evoformer MSA attention | Self-attention + outer product update | rel 1e-6 | `src/validate_alphafold3.rs` |
 | Structure module IPA | Invariant point attention + backbone | rel 1e-6 | `src/validate_alphafold3.rs` |
 | Folding health (pLDDT/PAE/pTM) | Confidence metrics validated | abs 1e-4 | `src/validate_alphafold3.rs` |
-| ESN multi-target prediction | ESN surrogate vs physics baselines | rel 1e-3 | `control/wdm/esn_surrogate/` |
+| ESN multi-target prediction | ESN surrogate vs physics baselines | rel 1e-3 | `control/wdm/esn_regime_classifier.py` |
 
 ### BLAKE3 Provenance
 

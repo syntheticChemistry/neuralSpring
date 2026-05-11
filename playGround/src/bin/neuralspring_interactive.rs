@@ -12,6 +12,10 @@
     clippy::nursery,
     reason = "playground binary — iterating rapidly"
 )]
+#![expect(
+    deprecated,
+    reason = "PrimalClient migration to CompositionContext tracked; playground binary"
+)]
 
 use std::io::Write;
 use std::path::PathBuf;

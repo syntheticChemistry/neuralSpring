@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 10, 2026 (Session S197 — Deep debt sweep II + doc reconciliation. IPC modules evolved &PathBuf→&Path (zero clippy). 13 certification tests (guidestone). CHECKSUMS regenerated (L0 29/29). Waters citations aligned. S196 primalSpring audit: CI cross-sync 413, skunkBat JH-5, composition.status + method.register, CONTEXT.md eukaryotic. 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests. V147 handoff).
+**Last updated**: May 11, 2026 (Session S199 — Deep debt sweep III. Inference stubs→JSON-RPC errors (no mocks in production). Bench unwrap()→expect() with context. Deprecated playground API isolation. 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests. 34 capabilities. V148 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

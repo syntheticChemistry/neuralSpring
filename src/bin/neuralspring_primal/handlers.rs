@@ -3,7 +3,7 @@
 //! JSON-RPC method handlers for neuralSpring primal capabilities.
 
 use super::discovery::{discover_data_primal_and_forward, forward_to_primal};
-use super::rpc::{self, JsonRpcResponse};
+use super::rpc::{self, error_code, JsonRpcResponse};
 use super::{PRIMAL_NAME, PrimalState};
 
 use neural_spring::config::ALL_CAPABILITIES;
@@ -272,8 +272,7 @@ fn try_squirrel_route(method: &str, params: &serde_json::Value) -> Option<serde_
     composition::json_rpc_call(&socket, method, params, Duration::from_secs(30)).ok()
 }
 
-/// Inference completion — routes through Squirrel when available, otherwise
-/// returns a stub indicating the provider is not yet wired.
+/// Inference completion — routes through Squirrel when available.
 pub fn handle_inference_complete(
     id: serde_json::Value,
     params: &serde_json::Value,
@@ -282,27 +281,12 @@ pub fn handle_inference_complete(
         return JsonRpcResponse::success(id, result);
     }
 
-    let prompt = params.get("prompt").and_then(|v| v.as_str()).unwrap_or("");
-    let model = params
-        .get("model")
-        .and_then(|v| v.as_str())
-        .unwrap_or("default");
-
-    JsonRpcResponse::success(
+    JsonRpcResponse::error(
         id,
-        serde_json::json!({
-            "text": "",
-            "tokens_generated": 0,
-            "model": model,
-            "provider": "stub",
-            "truncated": false,
-            "status": "squirrel_unavailable",
-            "message": format!(
-                "inference.complete: Squirrel not discovered, returning stub. \
-                 Prompt length: {} chars, model: {model}",
-                prompt.len()
-            ),
-        }),
+        error_code::SERVICE_UNAVAILABLE,
+        "inference.complete: Squirrel primal not discovered — \
+         no inference provider available"
+            .to_string(),
     )
 }
 
@@ -315,44 +299,27 @@ pub fn handle_inference_embed(
         return JsonRpcResponse::success(id, result);
     }
 
-    let text = params.get("text").and_then(|v| v.as_str()).unwrap_or("");
-    let model = params
-        .get("model")
-        .and_then(|v| v.as_str())
-        .unwrap_or("default");
-
-    JsonRpcResponse::success(
+    JsonRpcResponse::error(
         id,
-        serde_json::json!({
-            "embedding": [],
-            "dimensions": 0,
-            "model": model,
-            "provider": "stub",
-            "status": "squirrel_unavailable",
-            "message": format!(
-                "inference.embed: Squirrel not discovered, returning stub. \
-                 Text length: {} chars, model: {model}",
-                text.len()
-            ),
-        }),
+        error_code::SERVICE_UNAVAILABLE,
+        "inference.embed: Squirrel primal not discovered — \
+         no embedding provider available"
+            .to_string(),
     )
 }
 
-/// List available inference models — routes through Squirrel, falls back to stub.
+/// List available inference models — routes through Squirrel when available.
 pub fn handle_inference_models(id: serde_json::Value) -> JsonRpcResponse {
     if let Some(result) = try_squirrel_route("inference.models", &serde_json::json!({})) {
         return JsonRpcResponse::success(id, result);
     }
 
-    JsonRpcResponse::success(
+    JsonRpcResponse::error(
         id,
-        serde_json::json!({
-            "models": [],
-            "provider": "stub",
-            "status": "squirrel_unavailable",
-            "message": "inference.models: Squirrel not discovered. \
-                        Models will be available when Squirrel routes to a provider.",
-        }),
+        error_code::SERVICE_UNAVAILABLE,
+        "inference.models: Squirrel primal not discovered — \
+         no inference provider available"
+            .to_string(),
     )
 }
 
@@ -395,7 +362,7 @@ pub async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -
         None => {
             return JsonRpcResponse::error(
                 id,
-                rpc::error_code::INVALID_PARAMS,
+                error_code::INVALID_PARAMS,
                 "Missing 'primal' parameter".to_string(),
             );
         }
@@ -405,7 +372,7 @@ pub async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -
         None => {
             return JsonRpcResponse::error(
                 id,
-                rpc::error_code::INVALID_PARAMS,
+                error_code::INVALID_PARAMS,
                 "Missing 'method' parameter".to_string(),
             );
         }
@@ -419,7 +386,7 @@ pub async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -
         Ok(resp) => JsonRpcResponse::success(id, resp),
         Err(e) => JsonRpcResponse::error(
             id,
-            rpc::error_code::INTERNAL_ERROR,
+            error_code::INTERNAL_ERROR,
             format!("Forward failed: {e}"),
         ),
     }
@@ -436,14 +403,14 @@ pub async fn dispatch_async(request: &rpc::JsonRpcRequest) -> JsonRpcResponse {
                 Ok(resp) => JsonRpcResponse::success(id, resp),
                 Err(e) => JsonRpcResponse::error(
                     id,
-                    rpc::error_code::INTERNAL_ERROR,
+                    error_code::INTERNAL_ERROR,
                     format!("data.* forward failed: {e}"),
                 ),
             }
         }
         _ => JsonRpcResponse::error(
             id,
-            rpc::error_code::METHOD_NOT_FOUND,
+            error_code::METHOD_NOT_FOUND,
             format!("Method not found: {}", request.method),
         ),
     }

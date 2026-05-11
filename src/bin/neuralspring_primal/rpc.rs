@@ -81,10 +81,6 @@ pub mod error_code {
     pub const METHOD_NOT_FOUND: i32 = -32_601;
     pub const INVALID_PARAMS: i32 = -32_602;
     pub const INTERNAL_ERROR: i32 = -32_603;
-    /// JSON-RPC application-defined server error range floor (−32000..−32099).
-    #[expect(
-        dead_code,
-        reason = "reserved range anchor; handlers use INTERNAL_ERROR"
-    )]
-    pub const SERVER_ERROR: i32 = -32_000;
+    /// Upstream primal not available (Squirrel not discovered, etc.).
+    pub const SERVICE_UNAVAILABLE: i32 = -32_001;
 }

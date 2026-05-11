@@ -1,7 +1,7 @@
 +++
 title = "neuralSpring Validation Summary"
 description = "ML primitives and sovereign structure prediction — 4,900+ checks, Isomorphism Theorem, 83.6x faster than Python"
-date = 2026-05-10
+date = 2026-05-11
 
 [taxonomies]
 primals = ["barracuda", "toadstool", "biomeos", "squirrel"]
@@ -12,7 +12,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S197 | **Date:** May 10, 2026 | **Version:** 0.1.0
+> **Session:** S199 | **Date:** May 11, 2026 | **Version:** 0.1.0
 > **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 
 ---
@@ -156,4 +156,4 @@ Remaining batches: 19 papers across 4 additional faculties.
 
 ---
 
-**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S197
+**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S199

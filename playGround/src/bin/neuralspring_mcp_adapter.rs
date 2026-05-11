@@ -7,6 +7,10 @@
 //! from Squirrel and forwards them to the neuralSpring primal.
 
 #![expect(clippy::nursery, reason = "playground binary — iterating rapidly")]
+#![expect(
+    deprecated,
+    reason = "PrimalClient migration to CompositionContext tracked; playground binary"
+)]
 
 use anyhow::{Context, Result};
 use clap::Parser;

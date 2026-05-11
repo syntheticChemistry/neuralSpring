@@ -82,7 +82,8 @@ fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
     });
     let bc_sm = bench("softmax T1: barracuda::dispatch (256)", || {
         std::hint::black_box(
-            barracuda::dispatch::softmax_dispatch(&x256, disp.wgpu_device()).unwrap(),
+            barracuda::dispatch::softmax_dispatch(&x256, disp.wgpu_device())
+                .expect("softmax_dispatch failed"),
         );
     });
     let speedup_sm = if disp_sm > 0.0 {
@@ -101,7 +102,10 @@ fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
         std::hint::black_box(disp.gelu(&x1k));
     });
     let _bc_gelu = bench("gelu T1: barracuda::dispatch (1024)", || {
-        std::hint::black_box(barracuda::dispatch::gelu_dispatch(&x1k, disp.wgpu_device()).unwrap());
+        std::hint::black_box(
+            barracuda::dispatch::gelu_dispatch(&x1k, disp.wgpu_device())
+                .expect("gelu_dispatch failed"),
+        );
     });
     let speedup_gelu = if disp_gelu > 0.0 {
         local_gelu / disp_gelu
@@ -121,7 +125,7 @@ fn bench_neuralspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
     let bc_mm = bench("matmul T1: barracuda::dispatch (64x64)", || {
         std::hint::black_box(
             barracuda::dispatch::matmul_dispatch(&mat_a, &mat_b, n, n, n, disp.wgpu_device())
-                .unwrap(),
+                .expect("matmul_dispatch failed"),
         );
     });
     h.check_bool("matmul: GPU dispatch functional", disp_mm > 0.0);
@@ -247,7 +251,10 @@ fn bench_hotspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
     let data_b: Vec<f64> = (0..512).map(|i| (i as f64) * 0.1 + 0.5).collect();
 
     bench("pearson T3: barracuda::stats (512 pairs)", || {
-        std::hint::black_box(barracuda::stats::pearson_correlation(&data_a, &data_b).unwrap());
+        std::hint::black_box(
+            barracuda::stats::pearson_correlation(&data_a, &data_b)
+                .expect("pearson_correlation failed"),
+        );
     });
 
     let disp_var_t = bench("variance T2: Dispatcher GPU (512)", || {
@@ -255,7 +262,8 @@ fn bench_hotspring_origins(h: &mut ValidationHarness, disp: &Dispatcher) {
     });
     let bc_var_t = bench("variance T1: barracuda::dispatch (512)", || {
         std::hint::black_box(
-            barracuda::dispatch::variance_dispatch(&data_a, disp.wgpu_device()).unwrap(),
+            barracuda::dispatch::variance_dispatch(&data_a, disp.wgpu_device())
+                .expect("variance_dispatch failed"),
         );
     });
 
@@ -286,7 +294,7 @@ fn bench_groundspring_origins(h: &mut ValidationHarness) {
                     0.95,
                     42,
                 )
-                .unwrap(),
+                .expect("bootstrap_ci failed"),
             );
         },
     );
@@ -294,7 +302,7 @@ fn bench_groundspring_origins(h: &mut ValidationHarness) {
     bench("jackknife T3: barracuda::stats (200 pts)", || {
         std::hint::black_box(
             barracuda::stats::jackknife(&data, |s: &[f64]| s.iter().sum::<f64>() / s.len() as f64)
-                .unwrap(),
+                .expect("jackknife failed"),
         );
     });
 
