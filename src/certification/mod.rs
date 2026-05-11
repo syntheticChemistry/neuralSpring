@@ -35,7 +35,7 @@ use primalspring::validation::ValidationResult;
 /// Maximum supported certification layer.
 pub const MAX_LAYER: u8 = 5;
 
-const SPRING_NAME: &str = "neuralSpring";
+const SPRING_NAME: &str = crate::config::PRIMAL_DISPLAY_NAME;
 const GUIDESTONE_VERSION: &str = "0.4.0";
 
 /// Run certification up to `max_layer` (0-5) and return a [`ValidationResult`].

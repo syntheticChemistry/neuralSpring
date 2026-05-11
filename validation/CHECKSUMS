@@ -3,7 +3,7 @@
 # Files: 15
 #
 # Verify: primalspring::checksums::verify_manifest()
-9c661b8dfc91da88ab012cfb5ac204256e767a682ce3e176f9c996e73286500e  src/bin/neuralspring_guidestone.rs
+9190faa0bb46afa463efbeeb1f3c8dc887518ce4b9c8c0e8934ca9c255669954  src/bin/neuralspring_guidestone.rs
 dfe856a18aaf96879d60a72e3d44a59d7b5210f1a625bb6bfc809aa5637d0c19  src/tolerances/mod.rs
 91046731508348076d0c38a2a194b1dcc5ac8b3220526b2475e659fa21d54c45  src/tolerances/registry.rs
 5502bf0c903320986bacaea4de5fb1440ad3ce180a4e427c1b85056827843059  src/tolerances/gpu.rs
@@ -17,4 +17,4 @@ daa9b0fcff5adac295527232c9dd13ee248138df0d6aa10c83dd4a8edf356efd  src/validation
 d069cef6e85b694aeceff2c19eceec46b8139fdc8a4ec3fe1c818d6ce0112022  src/rng.rs
 fe3491d34ed3230e152465db4a9d70b89d35089bd24d7f83c7535bc4c43624b1  config/capability_registry.toml
 0288dbc479b2349bfa13c213a617f49a4e92f1ed667e4cee3cc7b9a08ba56c01  control/tolerances.py
-2c084cc19fd2ced04f1ba0e7fc6807beaee623e1c42f7a609f401ad81b5459ca  Cargo.toml
+22305baa5c50f1b90bd7e99c76e411e1aca2701f81f435af999994417e81f5a2  Cargo.toml

@@ -7,6 +7,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::capabilities;
 use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
@@ -23,7 +24,7 @@ pub fn shader_compile_wgsl(
 ) -> Result<serde_json::Value, IpcError> {
     Ok(call_capability(
         socket,
-        "shader.compile.wgsl",
+        capabilities::SHADER_COMPILE_WGSL,
         &serde_json::json!({ "source": source, "label": label }),
         timeout,
     )?)
@@ -37,7 +38,7 @@ pub fn shader_compile_wgsl(
 pub fn shader_capabilities(socket: &Path, timeout: Duration) -> Result<serde_json::Value, IpcError> {
     Ok(call_capability(
         socket,
-        "shader.compile.capabilities",
+        capabilities::SHADER_COMPILE_CAPABILITIES,
         &serde_json::json!({}),
         timeout,
     )?)

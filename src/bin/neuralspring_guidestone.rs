@@ -74,7 +74,7 @@ use primalspring::composition::{
 use primalspring::tolerances;
 use primalspring::validation::ValidationResult;
 
-const SPRING_NAME: &str = "neuralSpring";
+const SPRING_NAME: &str = neural_spring::config::PRIMAL_DISPLAY_NAME;
 const GUIDESTONE_VERSION: &str = "0.3.0";
 
 fn main() {

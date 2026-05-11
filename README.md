@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 11, 2026 (Session S201 — Tier 4 IPC-first defaults + LTEE B1 baseline + deep debt cleanup + foundation seeding. guideStone Level 5, 19 certification tests, plasmidBin release binary (2.8M). 1,299 lib (692 IPC-first) + 73 forge + 80 playGround = 1,452 workspace tests. Zero warnings. 34 capabilities. `default = []`, 241 bins require-features gated. V152 handoff).
+**Last updated**: May 11, 2026 (Session S201b — Deep debt sweep: `capabilities` module (31 constants), `primal_names::display` complete (20 entries), `IpcError` typed hierarchy, `[workspace.dependencies]`, `config` named constants. 1,300 lib (693 IPC-first) + 73 forge + 80 playGround = 1,453 workspace tests. Zero warnings. V152 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

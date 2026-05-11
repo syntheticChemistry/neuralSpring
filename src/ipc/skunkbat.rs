@@ -7,6 +7,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::capabilities;
 use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
@@ -27,7 +28,7 @@ pub fn audit_log(
 ) -> Result<serde_json::Value, IpcError> {
     Ok(call_capability(
         socket,
-        "security.audit_log",
+        capabilities::SECURITY_AUDIT_LOG,
         &serde_json::json!({
             "event_type": event_type,
             "source": source,

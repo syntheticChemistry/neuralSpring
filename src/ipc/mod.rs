@@ -299,37 +299,37 @@ impl IpcMathClient {
     fn require_barracuda(&self) -> Result<&PathBuf, IpcError> {
         self.barracuda_socket
             .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: "barraCuda" })
+            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::BARRACUDA })
     }
 
     fn require_toadstool(&self) -> Result<&PathBuf, IpcError> {
         self.toadstool_socket
             .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: "toadStool" })
+            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::TOADSTOOL })
     }
 
     fn require_beardog(&self) -> Result<&PathBuf, IpcError> {
         self.beardog_socket
             .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: "BearDog" })
+            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::BEARDOG })
     }
 
     fn require_squirrel(&self) -> Result<&PathBuf, IpcError> {
         self.squirrel_socket
             .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: "Squirrel" })
+            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::SQUIRREL })
     }
 
     fn require_coralreef(&self) -> Result<&PathBuf, IpcError> {
         self.coralreef_socket
             .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: "coralReef" })
+            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::CORALREEF })
     }
 
     fn require_skunkbat(&self) -> Result<&PathBuf, IpcError> {
         self.skunkbat_socket
             .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: "skunkBat" })
+            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::SKUNKBAT })
     }
 }
 

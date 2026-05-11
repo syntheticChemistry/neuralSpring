@@ -7,6 +7,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::capabilities;
 use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
@@ -23,7 +24,7 @@ pub fn crypto_hash(
 ) -> Result<String, IpcError> {
     let result = call_capability(
         socket,
-        "crypto.hash",
+        capabilities::CRYPTO_HASH,
         &serde_json::json!({ "algorithm": algorithm, "data": data }),
         timeout,
     )?;
@@ -34,7 +35,7 @@ pub fn crypto_hash(
         .and_then(|v| v.as_str())
         .map(String::from)
         .ok_or_else(|| IpcError::Protocol {
-            capability: "crypto.hash".into(),
+            capability: capabilities::CRYPTO_HASH.into(),
             reason: "response missing hash string".into(),
         })
 }

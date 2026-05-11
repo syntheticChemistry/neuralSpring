@@ -8,6 +8,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::capabilities;
 use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
@@ -19,12 +20,12 @@ use crate::validation::composition::call_capability;
 pub fn stats_mean(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64, IpcError> {
     let result = call_capability(
         socket,
-        "stats.mean",
+        capabilities::STATS_MEAN,
         &serde_json::json!({ "data": data }),
         timeout,
     )?;
     super::extract_f64(&result, &["mean", "result", "value"]).ok_or_else(|| IpcError::Protocol {
-        capability: "stats.mean".into(),
+        capability: capabilities::STATS_MEAN.into(),
         reason: "response missing numeric result".into(),
     })
 }
@@ -37,13 +38,13 @@ pub fn stats_mean(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64,
 pub fn stats_std_dev(socket: &Path, data: &[f64], timeout: Duration) -> Result<f64, IpcError> {
     let result = call_capability(
         socket,
-        "stats.std_dev",
+        capabilities::STATS_STD_DEV,
         &serde_json::json!({ "data": data }),
         timeout,
     )?;
     super::extract_f64(&result, &["std_dev", "result", "value"]).ok_or_else(|| {
         IpcError::Protocol {
-            capability: "stats.std_dev".into(),
+            capability: capabilities::STATS_STD_DEV.into(),
             reason: "response missing numeric result".into(),
         }
     })
@@ -62,13 +63,13 @@ pub fn stats_weighted_mean(
 ) -> Result<f64, IpcError> {
     let result = call_capability(
         socket,
-        "stats.weighted_mean",
+        capabilities::STATS_WEIGHTED_MEAN,
         &serde_json::json!({ "data": data, "weights": weights }),
         timeout,
     )?;
     super::extract_f64(&result, &["weighted_mean", "result", "value"]).ok_or_else(|| {
         IpcError::Protocol {
-            capability: "stats.weighted_mean".into(),
+            capability: capabilities::STATS_WEIGHTED_MEAN.into(),
             reason: "response missing numeric result".into(),
         }
     })
@@ -90,7 +91,7 @@ pub fn tensor_matmul(
 ) -> Result<Vec<f64>, IpcError> {
     let result = call_capability(
         socket,
-        "tensor.matmul",
+        capabilities::TENSOR_MATMUL,
         &serde_json::json!({
             "a": a, "b": b,
             "rows_a": rows_a, "cols_a": cols_a, "cols_b": cols_b,
@@ -98,7 +99,7 @@ pub fn tensor_matmul(
         timeout,
     )?;
     super::extract_f64_array(&result, &["data", "result"]).ok_or_else(|| IpcError::Protocol {
-        capability: "tensor.matmul".into(),
+        capability: capabilities::TENSOR_MATMUL.into(),
         reason: "response missing data array".into(),
     })
 }
@@ -116,7 +117,7 @@ pub fn tensor_create(
 ) -> Result<serde_json::Value, IpcError> {
     Ok(call_capability(
         socket,
-        "tensor.create",
+        capabilities::TENSOR_CREATE,
         &serde_json::json!({ "shape": shape, "fill": fill }),
         timeout,
     )?)

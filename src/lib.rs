@@ -83,6 +83,7 @@ pub(crate) mod test_gpu_lock {
 
 pub mod agent_coordination;
 pub mod anderson_localization;
+pub mod capabilities;
 #[expect(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,

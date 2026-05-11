@@ -57,6 +57,9 @@ pub const PETALTONGUE_SOCKET_PREFIX: &str = crate::primal_names::PETALTONGUE;
 /// biomeOS socket subdirectory name (under `$XDG_RUNTIME_DIR`).
 pub const BIOMEOS_SOCKET_SUBDIR: &str = "biomeos";
 
+/// biomeOS socket directory override env var.
+pub const ENV_BIOMEOS_SOCKET_DIR: &str = "BIOMEOS_SOCKET_DIR";
+
 /// biomeOS orchestrator socket filename.
 pub const BIOMEOS_ORCHESTRATOR_SOCKET: &str = "biomeos.sock";
 
@@ -73,7 +76,7 @@ pub const ENV_BIOMEOS_ORCHESTRATOR: &str = "BIOMEOS_ORCHESTRATOR_SOCKET";
 pub fn resolve_biomeos_socket_dir() -> std::path::PathBuf {
     use std::path::PathBuf;
 
-    if let Ok(dir) = std::env::var("BIOMEOS_SOCKET_DIR") {
+    if let Ok(dir) = std::env::var(ENV_BIOMEOS_SOCKET_DIR) {
         return PathBuf::from(dir);
     }
     if let Ok(xdg) = std::env::var(ENV_XDG_RUNTIME_DIR) {
@@ -141,13 +144,16 @@ pub const ENV_FAMILY_ID: &str = "FAMILY_ID";
 /// biomeOS-namespaced family ID fallback (ecosystem alias).
 pub const ENV_BIOMEOS_FAMILY_ID: &str = "BIOMEOS_FAMILY_ID";
 
+/// Default family ID when neither env var is set.
+pub const DEFAULT_FAMILY_ID: &str = "default";
+
 /// Resolve the family ID from environment with fallback chain:
-/// `FAMILY_ID` → `BIOMEOS_FAMILY_ID` → `"default"`.
+/// `FAMILY_ID` → `BIOMEOS_FAMILY_ID` → [`DEFAULT_FAMILY_ID`].
 #[must_use]
 pub fn resolve_family_id() -> String {
     std::env::var(ENV_FAMILY_ID)
         .or_else(|_| std::env::var(ENV_BIOMEOS_FAMILY_ID))
-        .unwrap_or_else(|_| "default".to_string())
+        .unwrap_or_else(|_| DEFAULT_FAMILY_ID.to_string())
 }
 
 // ═══════════════════════════════════════════════════════════════════

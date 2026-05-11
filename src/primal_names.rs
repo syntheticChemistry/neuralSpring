@@ -57,30 +57,45 @@ pub const BIOMEOS: &str = "biomeos";
 pub mod display {
     /// Display name for the `barraCuda` primal.
     pub const BARRACUDA: &str = "barraCuda";
-    /// Display name for the toadstool primal.
+    /// Display name for the toadStool primal.
     pub const TOADSTOOL: &str = "toadStool";
-    /// Display name for the coralreef primal.
+    /// Display name for the coralReef primal.
     pub const CORALREEF: &str = "coralReef";
-    /// Display name for the neuralSpring primal.
-    pub const NEURALSPRING: &str = "neuralSpring";
-    /// Display name for the wetSpring primal.
-    pub const WETSPRING: &str = "wetSpring";
-    /// Display name for the hotSpring primal.
-    pub const HOTSPRING: &str = "hotSpring";
-    /// Display name for the groundSpring primal.
-    pub const GROUNDSPRING: &str = "groundSpring";
-    /// Display name for the airSpring primal.
-    pub const AIRSPRING: &str = "airSpring";
-    /// Display name for the squirrel primal.
+    /// Display name for the BearDog primal.
+    pub const BEARDOG: &str = "BearDog";
+    /// Display name for the Songbird primal.
+    pub const SONGBIRD: &str = "Songbird";
+    /// Display name for the Squirrel primal.
     pub const SQUIRREL: &str = "Squirrel";
-    /// Display name for the petaltongue primal.
+    /// Display name for the petalTongue primal.
     pub const PETALTONGUE: &str = "petalTongue";
-    /// Display name for the biomeOS primal.
+    /// Display name for the biomeOS orchestrator.
     pub const BIOMEOS: &str = "biomeOS";
-    /// Display name for the nestgate primal.
+    /// Display name for the NestGate primal.
     pub const NESTGATE: &str = "NestGate";
     /// Display name for the skunkBat primal.
     pub const SKUNKBAT: &str = "skunkBat";
+    /// Display name for the rhizoCrypt primal.
+    pub const RHIZOCRYPT: &str = "rhizoCrypt";
+    /// Display name for the loamSpine primal.
+    pub const LOAMSPINE: &str = "loamSpine";
+    /// Display name for the sweetGrass primal.
+    pub const SWEETGRASS: &str = "sweetGrass";
+
+    /// Display name for the neuralSpring spring.
+    pub const NEURALSPRING: &str = "neuralSpring";
+    /// Display name for the wetSpring spring.
+    pub const WETSPRING: &str = "wetSpring";
+    /// Display name for the hotSpring spring.
+    pub const HOTSPRING: &str = "hotSpring";
+    /// Display name for the groundSpring spring.
+    pub const GROUNDSPRING: &str = "groundSpring";
+    /// Display name for the airSpring spring.
+    pub const AIRSPRING: &str = "airSpring";
+    /// Display name for the healthSpring spring.
+    pub const HEALTHSPRING: &str = "healthSpring";
+    /// Display name for the ludoSpring spring.
+    pub const LUDOSPRING: &str = "ludoSpring";
 }
 
 /// Provenance trio capability domains (used in `capability.call`).

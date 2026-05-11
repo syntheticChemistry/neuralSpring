@@ -11,35 +11,19 @@ description = "Application sandbox: Squirrel MCP adapter, interactive experiment
 repository = "https://github.com/ecoPrimals/neuralSpring"
 
 [dependencies]
-anyhow = "1"
-barracuda = { path = "../../../primals/barraCuda/crates/barracuda", default-features = false, optional = true, features = [
-    "gpu",
-    "domain-nn",
-    "domain-esn",
-    "domain-genomics",
-    "domain-timeseries",
-    "domain-lattice",
-] }
+anyhow = { workspace = true }
+barracuda = { workspace = true, optional = true }
 neural-spring = { path = ".." }
-bytemuck = { version = "1.21", features = ["derive"] }
-clap = { version = "4.5", features = ["derive"] }
-env_logger = "0.11"
-log = "0.4"
-safetensors = "0.7"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tokio = { version = "1.49", features = [
-    "rt-multi-thread",
-    "macros",
-    "io-util",
-    "io-std",
-    "net",
-    "signal",
-    "fs",
-    "time",
-] }
+bytemuck = { workspace = true }
+clap = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
+safetensors = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["io-util", "io-std", "net", "signal", "fs", "time"] }
 toml = "0.8"
-wgpu = { version = "28", default-features = false, optional = true }
+wgpu = { workspace = true, optional = true }
 
 [features]
 default = ["barracuda"]
@@ -69,4 +53,4 @@ name = "neuralspring_compute_probe"
 path = "src/bin/neuralspring_compute_probe.rs"
 
 [dev-dependencies]
-temp-env = "0.3.6"
+temp-env = { workspace = true }

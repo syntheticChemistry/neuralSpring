@@ -21,7 +21,11 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Foundation Thread 5 seeded** — new `thread05_ml_surrogates.toml` (15 sources) and `thread05_ml_surrogates_targets.toml` (12 targets) in `gardens/foundation/data/`. Covers LSTM, ESN, transport surrogates, evolutionary dynamics, LTEE B1.
 - **Foundation Thread 7 expanded** — 6 neuralSpring targets added to `thread07_anderson_targets.toml` (nS-01..06 + Evoformer spectral). Total thread 7 targets: 18→24.
 - **CHECKSUMS regenerated** — updated for Cargo.toml, rng.rs, validation/composition.rs.
-- **Quality gates** — 1,299 lib (692 IPC-first) + 73 forge + 80 playGround = 1,452 workspace tests + 19 certification tests. Zero warnings.
+- **`capabilities` module** — new `src/capabilities.rs` with 31 named constants for all JSON-RPC method strings. IPC submodules, niche, and config share one source of truth instead of scattered literals.
+- **`primal_names::display` completed** — 20 display-name constants covering all primals and springs (was 13, missing BearDog, Songbird, rhizoCrypt, loamSpine, sweetGrass, healthSpring, ludoSpring).
+- **`config` named constants** — `ENV_BIOMEOS_SOCKET_DIR`, `DEFAULT_FAMILY_ID` extracted from inline strings. `SPRING_NAME` in certification/guidestone now references `config::PRIMAL_DISPLAY_NAME`.
+- **`[workspace.dependencies]`** — 12 shared deps (`barracuda`, `serde`, `tokio`, `wgpu`, etc.) centralized in workspace table. Root crate and playGround both use `{ workspace = true }`. Eliminates version drift between workspace members.
+- **Quality gates** — 1,300 lib (693 IPC-first) + 73 forge + 80 playGround = 1,453 workspace tests + 19 certification tests. Zero warnings.
 
 ### 2026-05-11 — Session S200b (doc reconciliation, upstream gap analysis, V151 handoff)
 
