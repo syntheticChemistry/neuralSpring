@@ -54,11 +54,18 @@ pub fn level_spacing_ratio(eigenvalues: &[f64]) -> f64 {
 /// random matrices with aspect ratio γ = m/n.
 ///
 /// Returns the MP bounds (λ_min, λ_max) for singular values squared.
-///
-/// Delegates to `barracuda::stats::marchenko_pastur_bounds` (absorbed S54, M-012).
+#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn marchenko_pastur_bounds(gamma: f64) -> (f64, f64) {
     barracuda::stats::marchenko_pastur_bounds(gamma)
+}
+
+/// CPU fallback: MP bounds are `((1 - sqrt(γ))², (1 + sqrt(γ))²)`.
+#[cfg(not(feature = "barracuda"))]
+#[must_use]
+pub fn marchenko_pastur_bounds(gamma: f64) -> (f64, f64) {
+    let sg = gamma.sqrt();
+    ((1.0 - sg).powi(2), (1.0 + sg).powi(2))
 }
 
 /// Fraction of eigenvalues outside the Marchenko-Pastur bulk.

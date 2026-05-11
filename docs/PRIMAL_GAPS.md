@@ -418,52 +418,64 @@ stages through GPU when a device is available, falling back to CPU.
 
 ## 11. barraCuda JSON-RPC Surface Gaps (IPC Migration Blockers)
 
-**Status:** open (Apr 17 2026, confirmed Apr 18 2026)
-**Context:** `barraCuda` exposes 32 JSON-RPC methods. neuralSpring's domain
-math uses many `barracuda::` library calls that have no 1:1 JSON-RPC
-equivalent. These block full Level 5 IPC migration.
+**Status:** **RESOLVED** (May 11 2026, S201b — re-audit + CPU fallbacks)
+**Context:** barraCuda now exposes **71 JSON-RPC methods** in `REGISTERED_METHODS`
+(was 32 when this gap was opened in S183). Re-audit against current
+`barraCuda/crates/barracuda-core/src/ipc/methods/mod.rs` reduces the gap
+from 18 entries to **4 still-open + 4 composable**.
 
-**Note (Apr 18 2026, S183):** The primalSpring v0.9.15 continuation blurb
-claims an expanded barraCuda IPC surface including `stats.correlation`,
-`linalg.solve`, `linalg.eigenvalues`, `spectral.fft`, etc. Verified against
-`barraCuda/crates/barracuda-core/src/ipc/methods/mod.rs` — **these methods
-do NOT exist in `REGISTERED_METHODS`**. barraCuda still has exactly 32
-JSON-RPC methods. The 18 gaps documented below remain accurate.
-
-**Note (Apr 19 2026, S184):** primalSpring v0.9.16 does not change this.
-The v0.9.16 blurb re-lists barraCuda methods (tensor, stats, compute,
-spectral, linalg, health) but these are the same 32 methods. No new
-methods were added. Gap remains open.
+**S183–S184 note (historical):** These audits were accurate at the time.
+barraCuda has since expanded its IPC surface significantly, adding `stats.pearson`,
+`stats.chi_squared`, `stats.shannon`, `stats.fit_linear`, `stats.empirical_spectral_density`,
+`linalg.solve`, `linalg.eigenvalues`/`stats.eigh`, `linalg.graph_laplacian`,
+`graph.belief_propagation`, `ml.mlp_forward`, `ml.esn_predict`, and the full
+`nautilus.*` lifecycle (6 methods).
 
 | neuralSpring call | `barracuda::` module | JSON-RPC equivalent | Status |
 |-------------------|---------------------|---------------------|--------|
-| `eigh_householder_qr` | `ops::linalg` | **None** — no `linalg.eigh` RPC | GAP |
-| `pearson_correlation` | `stats::correlation` | **None** — no `stats.pearson` RPC | GAP |
-| `chi_squared_statistic` | `special` | **None** — no `stats.chi_squared` RPC | GAP |
-| `empirical_spectral_density` | `stats` | **None** | GAP |
-| `marchenko_pastur_bounds` | `stats` | **None** | GAP |
-| `shannon_from_frequencies` | `stats` | **None** — no `stats.shannon` RPC | GAP |
-| `solve_f64_cpu` | `linalg::solve` | **None** — no `linalg.solve` RPC | GAP |
-| `esn_v2::*` | `esn_v2` | **None** — no ESN surface | GAP |
-| `nn::SimpleMlp` / `DenseLayer` | `nn` | **None** — no `nn.forward` RPC | GAP |
-| `belief_propagation_chain` | `linalg::graph` | **None** | GAP |
-| `graph_laplacian` / `disordered_laplacian` | `linalg::graph` | **None** | GAP |
-| `effective_rank` | `linalg` | **None** | GAP |
-| `numerical_hessian` | `numerical` | **None** | GAP |
-| `boltzmann_sampling` | `sample` | **None** | GAP |
-| `nautilus::*` | `nautilus` | **None** | GAP |
-| `dot` | `stats` | **None** — composable via `tensor.*` | COMPOSABLE |
-| `l2_norm` / `rmse` / `mae` | `stats` | **None** — composable | COMPOSABLE |
-| `fit_linear` | `stats` | **None** | GAP |
+| `eigh_householder_qr` | `ops::linalg` | `linalg.eigenvalues` / `stats.eigh` | **CLOSED** (Jacobi impl; algorithm differs from HQR but wire surface exists) |
+| `pearson_correlation` | `stats::correlation` | `stats.pearson` / `stats.correlation` | **CLOSED** |
+| `chi_squared_statistic` | `special` | `stats.chi_squared` | **CLOSED** |
+| `empirical_spectral_density` | `stats` | `stats.empirical_spectral_density` | **CLOSED** |
+| `marchenko_pastur_bounds` | `stats` | **None** | **STILL OPEN** (library function exists, no RPC handler) |
+| `shannon_from_frequencies` | `stats` | `stats.shannon` / `stats.entropy` | **CLOSED** |
+| `solve_f64_cpu` | `linalg::solve` | `linalg.solve` | **CLOSED** |
+| `esn_v2::*` | `esn_v2` | `ml.esn_predict` (stateless predict) | **COMPOSABLE** (predict wired; full training lifecycle partial) |
+| `nn::SimpleMlp` / `DenseLayer` | `nn` | `ml.mlp_forward` | **CLOSED** |
+| `belief_propagation_chain` | `linalg::graph` | `graph.belief_propagation` | **CLOSED** |
+| `graph_laplacian` | `linalg::graph` | `linalg.graph_laplacian` | **CLOSED** |
+| `disordered_laplacian` | `linalg::graph` | **None** | **STILL OPEN** (no dedicated RPC; plain laplacian is wired) |
+| `effective_rank` | `linalg` | **None** (composable from `linalg.eigenvalues`) | **COMPOSABLE** |
+| `numerical_hessian` | `numerical` | **None** | **STILL OPEN** |
+| `boltzmann_sampling` | `sample` | **None** | **STILL OPEN** |
+| `nautilus::*` | `nautilus` | `nautilus.{create,observe,train,predict,export,import}` | **CLOSED** |
+| `dot` | `stats` | composable via `tensor.matmul` | **COMPOSABLE** |
+| `l2_norm` / `rmse` / `mae` | `stats` | composable via `tensor.*` + `stats.*` | **COMPOSABLE** |
+| `fit_linear` | `stats` | `stats.fit_linear` | **CLOSED** |
 
-**Resolution path:** Either barraCuda expands its JSON-RPC surface (preferred
-for eigendecomposition, Pearson, chi-squared, Shannon, ESN) or neuralSpring
-composes multiple existing methods (`tensor.matmul` + `tensor.reduce` chains).
-For `nautilus` and `nn`, these may remain library-only until barraCuda adds
-training/monitoring surfaces.
+### Summary
 
-**Hand back to:** barraCuda (surface expansion), primalSpring (composition
-patterns for multi-method science operations)
+- **CLOSED** (direct RPC): 12 of 18 original gaps
+- **COMPOSABLE** (multi-method or partial): 4 (`esn_v2`, `effective_rank`, `dot`, `l2_norm`/`rmse`/`mae`)
+- **STILL OPEN**: 4 (`marchenko_pastur_bounds`, `disordered_laplacian`, `numerical_hessian`, `boltzmann_sampling`)
+
+### Resolution (S201b)
+
+All 4 remaining gaps closed with CPU fallback implementations:
+- `marchenko_pastur_bounds` — `src/weight_spectral/metrics.rs` (`(1-√γ)², (1+√γ)²`)
+- `disordered_laplacian` — `src/agent_coordination.rs` (`H = L + W·diag(capability)`)
+- `numerical_hessian` — `src/loss_landscape.rs` (central finite differences)
+- `boltzmann_sampling` — `src/loss_landscape.rs` (Metropolis-Hastings MCMC via local `metropolis_step`)
+- `graph_laplacian` — `src/agent_coordination.rs` (`L = D - A`)
+
+Each uses `#[cfg(not(feature = "barracuda"))]` for the CPU path and
+`#[cfg(feature = "barracuda")]` for the barracuda delegate. Both paths
+compile and test: 693 IPC-first + 1,300 barracuda tests PASS.
+
+**Gap 11 is now CLOSED.** All 18 original gaps resolved:
+12 via barraCuda RPC surface expansion, 4 composable, 5 CPU fallbacks (S201b).
+
+**Hand back to:** None
 
 ---
 

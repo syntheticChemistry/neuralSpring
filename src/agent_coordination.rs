@@ -88,6 +88,21 @@ pub fn graph_laplacian(adjacency: &[f64], n: usize) -> Vec<f64> {
     barracuda::linalg::graph::graph_laplacian(adjacency, n)
 }
 
+/// CPU fallback: L = D - A.
+#[cfg(not(feature = "barracuda"))]
+#[must_use]
+pub fn graph_laplacian(adjacency: &[f64], n: usize) -> Vec<f64> {
+    let mut laplacian = vec![0.0; n * n];
+    for i in 0..n {
+        let degree: f64 = (0..n).map(|j| adjacency[i * n + j]).sum();
+        for j in 0..n {
+            laplacian[i * n + j] = -adjacency[i * n + j];
+        }
+        laplacian[i * n + i] = degree;
+    }
+    laplacian
+}
+
 /// Add disorder from agent heterogeneity to the Laplacian.
 ///
 /// Returns H = L + W * diag(heterogeneity), where heterogeneity
@@ -102,6 +117,22 @@ pub fn disordered_laplacian(
 ) -> Vec<f64> {
     let heterogeneity: Vec<f64> = agents.iter().map(|a| a.capability).collect();
     barracuda::linalg::graph::disordered_laplacian(laplacian, n, &heterogeneity, disorder_strength)
+}
+
+/// CPU fallback: H = L + W * diag(capability).
+#[cfg(not(feature = "barracuda"))]
+#[must_use]
+pub fn disordered_laplacian(
+    laplacian: &[f64],
+    n: usize,
+    agents: &[Agent],
+    disorder_strength: f64,
+) -> Vec<f64> {
+    let mut h = laplacian.to_vec();
+    for i in 0..n {
+        h[i * n + i] += disorder_strength * agents[i].capability;
+    }
+    h
 }
 
 /// Coordination analysis via Anderson localization on the interaction graph.

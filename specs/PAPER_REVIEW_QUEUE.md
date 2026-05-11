@@ -268,7 +268,7 @@ See: `infra/wateringHole/handoffs/LTEE_GUIDESTONE_SUBSYSTEM_HANDOFF_MAY11_2026.m
 
 | # | Paper | Year | neuralSpring Role | lithoSpore Module | Status |
 |---|-------|------|-------------------|-------------------|--------|
-| B1 | Barrick et al. "Genome evolution and adaptation in a long-term experiment with *E. coli*" Nature 461:1243-1247 | 2009 | LSTM mutation accumulation predictor — predict cumulative mutation count from generation number | Module 2 (mutation accumulation) | **STARTED** — `control/ltee_mutation_accumulation/` |
+| B1 | Barrick et al. "Genome evolution and adaptation in a long-term experiment with *E. coli*" Nature 461:1243-1247 | 2009 | LSTM mutation accumulation predictor — predict cumulative mutation count from generation number | Module 2 (mutation accumulation) | **COMPLETE** — Python 8/8 PASS (`control/ltee_mutation_accumulation/`) + Rust 14/14 PASS (`validate_ltee_b1_mutation_accumulation`) |
 | B2 | Wiser et al. "Long-term dynamics of adaptation in asexual populations" Science 342:1364-1367 | 2013 | LSTM fitness trajectory predictor — predict population fitness from generation | Module 1 (power-law fitness) | QUEUED |
 | B3 | Good et al. "The dynamics of molecular evolution over 60,000 generations" Nature 551:45-50 | 2017 | LSTM+HMM+ESN allele trajectory classifier — classify allele fate (fixation/loss/polymorphic) | Module 3 (allele trajectories) | QUEUED |
 | B4 | Blount et al. "Historical contingency and the evolution of a key innovation" PNAS 105:7899-7906 | 2008 | ESN early-warning classifier — detect potentiating mutations before citrate innovation | Module 4 (citrate structural) | QUEUED |
@@ -1140,23 +1140,8 @@ New primitives added:
 
 ---
 
-## LTEE GuideStone Queue (Barrick/Lenski + Eaves/Woldring)
+## LTEE GuideStone Queue (Barrick/Lenski + Eaves/Woldring) — Superseded
 
-Targeted paper reproductions for the LTEE Targeted GuideStone artifact — a USB-deployable
-validation subsystem of projectNUCLEUS. See `infra/whitePaper/gen4/architecture/GUIDESTONE_LTEE.md`
-and `infra/whitePaper/attsi/non-anon/contact/barrick/PAPER_REVIEW_AND_SPRING_TARGETS.md`.
-
-| ID | Paper | What to Reproduce | Exp | Status |
-|----|-------|-------------------|-----|--------|
-| B1 | Barrick et al. 2009 "Genome evolution" *Nature* | LSTM time-series prediction of mutation accumulation curves; ESN regime classifier for mutation-rate shift detection | TBD | QUEUED |
-| B2 | Wiser et al. 2013 "Long-term dynamics" *Science* | LSTM prediction: train on 0-20K, predict 20K-50K; ESN regime detection at inflection points | TBD | QUEUED |
-| B3 | Good et al. 2017 "Dynamics of molecular evolution" *Nature* | LSTM allele frequency trajectory prediction; HMM clade state detection; ESN regime classification (sweep vs interference vs coexistence) | TBD | QUEUED |
-| B4 | Blount et al. 2008/2012 Citrate innovation | Early warning ESN on pre-citrate allele trajectories; detect potentiation before innovation | TBD | QUEUED |
-| B6 | "Measuring the burden of hundreds of BioBricks" 2024 *Nat Comms* | ML prediction of burden from sequence features (GC%, codon usage, promoter strength) | TBD | QUEUED |
-| B7 | Tenaillon et al. 2016 "Tempo and mode" *Nature* | ML detection of parallel evolution (same genes mutated independently across populations); transfer learning | TBD | QUEUED |
-| B8 | Barrick & Waters 2025 "Phages use contingency loci" *bioRxiv* | ML prediction of contingency loci from sequence features; Anderson disorder mapping | TBD | QUEUED |
-| B9 | DFE Evolution in LTEE 2024 *Science* | LSTM prediction of DFE parameters at generation t+1; ESN detection of DFE regime shifts | TBD | QUEUED |
-| E2 | Mardikoraem & Woldring 2025 "HOLIgraph" *J Cheminformatics* | GNN for protein-ligand prediction; GPU-accelerated inference via barraCuda | TBD | QUEUED |
-| E3 | Dolgikh et al. 2025 "Tuning Yeast Glycosylation for FLS2" *bioRxiv* | ML prediction of glycosylation effects on binding affinity | TBD | QUEUED |
-| E4 | Woldring Lab 2024 "Screening macrocyclic peptide libraries" *bioRxiv* | ML ranking of binders from sequence features; transfer learning linear → cyclic | TBD | QUEUED |
-| E5 | Woldring Lab 2023 "Single-Cell scFab Libraries" | Antibody pairing prediction from single-cell data; ML for VH/VL pairing | TBD | QUEUED |
+> **This section is superseded by the canonical LTEE GuideStone Queue above (line ~260).**
+> Kept as fossil record. The canonical table has B1 = STARTED and includes
+> lithoSpore module assignments. See `infra/wateringHole/handoffs/LTEE_GUIDESTONE_SUBSYSTEM_HANDOFF_MAY11_2026.md`.

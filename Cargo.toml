@@ -1028,6 +1028,10 @@ path = "src/bin/validate_loss_landscape.rs"
 required-features = ["barracuda"]
 
 [[bin]]
+name = "validate_ltee_b1_mutation_accumulation"
+path = "src/bin/validate_ltee_b1_mutation_accumulation.rs"
+
+[[bin]]
 name = "validate_neural_pgm"
 path = "src/bin/validate_neural_pgm.rs"
 required-features = ["barracuda"]
