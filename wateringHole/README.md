@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V149 — Sessions S198–S199 (Deep Debt Sweep III)
+### V150 — Session S200 (guideStone L5 + plasmidBin)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V149** | `handoffs/NEURALSPRING_V149_DEEP_DEBT_III_HANDOFF_MAY11_2026.md` | May 11, 2026 | Inference stubs→JSON-RPC errors (no mocks in production). Bench unwrap()→expect(). Deprecated API isolation. CI cross-sync 413. `compute.dispatch` capability (34 total). UniBin rename (underscore). Foundation seeding manifest. FOUNDATION_SEEDING.md paths corrected. All living docs → S199. 1,450 workspace tests + 13 cert. V149 handoff. |
+| **V150** | `handoffs/NEURALSPRING_V150_GUIDESTONE_L5_HANDOFF_MAY11_2026.md` | May 11, 2026 | guideStone L3→L5 (L4 NUCLEUS composition + L5 cross-spring). 19 certification tests (was 13). plasmidBin release binary (2.8M). Tier 4 IPC-first gap documented. Upstream audit response. 1,450 workspace tests + 19 cert. V150 handoff. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V147 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V149 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

@@ -5,7 +5,20 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-11 (Session 199: Deep Debt Sweep III)
+## [Unreleased] — 2026-05-11 (Session 200: guideStone L5 + plasmidBin)
+
+### 2026-05-11 — Session S200 (guideStone L3→L5, plasmidBin release, upstream audit response)
+
+- **guideStone L4 (NUCLEUS Composition)** — new `certification::composition` module: validates deploy graph presence (4 graphs), capability registry structural integrity (≥30 methods), and live composition calls across tensor/security/compute/ai families. `MAX_LAYER` 3→5.
+- **guideStone L5 (Cross-Spring)** — new `certification::cross_spring` module: validates frozen ecosystem artifacts (gap-status.json, validation-state.json, PRIMAL_GAPS.md, FOUNDATION_SEEDING.md, CHECKSUMS), live cross-spring protocol liveness (4 family pings), and BLAKE3 hash determinism.
+- **CLI default layer** — `neuralspring_unibin certify` now defaults to `--layer 5` (was 3). Help text updated for L0-L5.
+- **6 new certification tests** — composition: 3 tests (registry ≥30, deploy graph exists, integration). cross_spring: 3 tests (frozen artifacts, checksums, foundation manifest).
+- **plasmidBin release binary** — `cargo build --release --bin neuralspring_unibin --features guidestone` produces 2.8M stripped ELF. Verified with `version`, `validate` (21/21), `certify` (29/29).
+- **CHECKSUMS regenerated** — updated for new certification modules.
+- **Tier 4 IPC-first gap documented** — 115 ungated barraCuda imports prevent `--no-default-features` build. Systematic `#[cfg(feature = "barracuda")]` wrapping needed (maps to wetSpring's `primal-proof` pattern).
+- **Quality gates** — 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 19 certification tests (guidestone, was 13). 34 capabilities. Zero clippy warnings.
+
+## 2026-05-11 (Session 199: Deep Debt Sweep III)
 
 ### 2026-05-11 — Session S199 (stub→error, bench unwrap, deprecated isolation, path drift)
 

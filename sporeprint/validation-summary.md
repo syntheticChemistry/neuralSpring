@@ -12,7 +12,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S199 | **Date:** May 11, 2026 | **Version:** 0.1.0
+> **Session:** S200 | **Date:** May 11, 2026 | **Version:** 0.1.0
 > **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 
 ---
@@ -156,4 +156,4 @@ Remaining batches: 19 papers across 4 additional faculties.
 
 ---
 
-**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S199
+**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S200

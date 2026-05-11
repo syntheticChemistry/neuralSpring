@@ -3,24 +3,28 @@
 //! Certification organelle — neuralSpring's eukaryotic self-validation.
 //!
 //! Absorbed from `neuralspring_guidestone` binary during the interstadial
-//! eukaryotic evolution (May 2026). Four layers, each additive:
+//! eukaryotic evolution (May 2026). Six layers, each additive:
 //!
-//! | Layer | Module         | Requires primals? | Description |
-//! |-------|----------------|-------------------|-------------|
-//! | L0    | [`bare`]       | No                | 5 certified properties |
-//! | L1    | [`discovery`]  | Yes               | `CompositionContext` liveness |
-//! | L2    | [`parity`]     | Yes               | Domain science parity (7 capabilities) |
-//! | L3    | [`nucleus`]    | Yes               | Additive NUCLEUS (signing, discovery) |
+//! | Layer | Module           | Requires primals? | Description |
+//! |-------|------------------|-------------------|-------------|
+//! | L0    | [`bare`]         | No                | 5 certified properties |
+//! | L1    | [`discovery`]    | Yes               | `CompositionContext` liveness |
+//! | L2    | [`parity`]       | Yes               | Domain science parity (7 capabilities) |
+//! | L3    | [`nucleus`]      | Yes               | Additive NUCLEUS (signing, discovery) |
+//! | L4    | [`composition`]  | Yes               | NUCLEUS composition (graphs, registry, families) |
+//! | L5    | [`cross_spring`] | Yes               | Cross-spring validation (artifacts, ping, determinism) |
 //!
 //! ## Usage
 //!
 //! ```ignore
 //! use neural_spring::certification;
-//! let result = certification::certify(3); // run all layers
+//! let result = certification::certify(5); // run all layers
 //! std::process::exit(result.exit_code_skip_aware());
 //! ```
 
 pub mod bare;
+pub mod composition;
+pub mod cross_spring;
 pub mod discovery;
 pub mod nucleus;
 pub mod parity;
@@ -29,17 +33,19 @@ use log::{info, warn};
 use primalspring::validation::ValidationResult;
 
 /// Maximum supported certification layer.
-pub const MAX_LAYER: u8 = 3;
+pub const MAX_LAYER: u8 = 5;
 
 const SPRING_NAME: &str = "neuralSpring";
 const GUIDESTONE_VERSION: &str = "0.4.0";
 
-/// Run certification up to `max_layer` (0-3) and return a [`ValidationResult`].
+/// Run certification up to `max_layer` (0-5) and return a [`ValidationResult`].
 ///
 /// - L0: bare properties (determinism, traceability, checksums, env-agnostic, tolerances)
 /// - L1: primal discovery + liveness
 /// - L2: domain science parity (7 capabilities)
 /// - L3: additive NUCLEUS (BearDog signing, Songbird discovery)
+/// - L4: NUCLEUS composition (deploy graphs, capability registry, family calls)
+/// - L5: cross-spring validation (frozen artifacts, protocol liveness, hash determinism)
 ///
 /// Early-exits when `max_layer` is reached or when L1 discovers zero primals.
 pub fn certify(max_layer: u8) -> ValidationResult {
@@ -87,6 +93,24 @@ pub fn certify(max_layer: u8) -> ValidationResult {
     v.section("Layer 3: Additive NUCLEUS");
     nucleus::validate(&mut ctx, &mut v);
 
+    if layer == 3 {
+        v.finish();
+        return v;
+    }
+
+    // L4: NUCLEUS Composition
+    v.section("Layer 4: NUCLEUS Composition");
+    composition::validate(&mut ctx, &mut v);
+
+    if layer == 4 {
+        v.finish();
+        return v;
+    }
+
+    // L5: Cross-Spring Validation
+    v.section("Layer 5: Cross-Spring Validation");
+    cross_spring::validate(&mut ctx, &mut v);
+
     v.finish();
 
     let code = v.exit_code_skip_aware();
@@ -106,7 +130,7 @@ mod tests {
 
     #[test]
     fn max_layer_constant() {
-        assert_eq!(MAX_LAYER, 3);
+        assert_eq!(MAX_LAYER, 5);
     }
 
     #[test]

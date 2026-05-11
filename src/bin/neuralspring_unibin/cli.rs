@@ -20,10 +20,10 @@ pub struct Cli {
 /// Available subcommands.
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Run certification layers (L0-L3).
+    /// Run certification layers (L0-L5).
     Certify {
-        /// Maximum certification layer (0=bare, 1=discovery, 2=parity, 3=nucleus).
-        #[arg(long, default_value_t = 3)]
+        /// Maximum certification layer (0=bare, 1=discovery, 2=parity, 3=nucleus, 4=composition, 5=cross-spring).
+        #[arg(long, default_value_t = 5)]
         layer: u8,
 
         /// Run only bare properties (alias for --layer 0).

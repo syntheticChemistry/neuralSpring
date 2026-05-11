@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 # neuralSpring — Foundation Seeding Manifest
 
-**Status**: Ready for contribution | **Session**: S199 | **Date**: May 11, 2026
+**Status**: Ready for contribution | **Session**: S200 | **Date**: May 11, 2026
 
 neuralSpring contributes validated science to two foundation threads:
 
@@ -68,4 +68,4 @@ integration.
    dynamics validation results
 4. Register BLAKE3 hashes via sweetGrass braid + NestGate content pipeline
 
-*neuralSpring V149 | Session S199 | AGPL-3.0-or-later*
+*neuralSpring V150 | Session S200 | AGPL-3.0-or-later*
