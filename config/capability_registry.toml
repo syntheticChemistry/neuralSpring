@@ -121,6 +121,10 @@ description = "Discover niche capabilities and primal composition"
 method = "capability.list"
 description = "List all capabilities this niche exposes to biomeOS"
 
+[capabilities.compute_dispatch]
+method = "compute.dispatch"
+description = "toadStool-mediated compute dispatch for spectral science workloads"
+
 [capabilities.compute_offload]
 method = "compute.offload"
 description = "Node Atomic compute offload via dispatcher (GPU/CPU routing)"

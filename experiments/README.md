@@ -1,13 +1,13 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S197)**: 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 13 certification tests (guidestone). 68+ modules, 269 binaries, 521+ `.rs` files, 0 clippy, 0 fmt, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→UniBin→NUCLEUS validation stack. Eukaryotic evolution: certification organelle (4 layers, 13 tests), IPC tree (6 per-primal modules, all `&Path` idiomatic), validation scenarios (6), UniBin binary (5 subcommands), 3 fossilized patterns. 11 barracuda-gated modules. 33 capabilities. skunkBat JH-5 wired. CI cross-sync 403 methods. guideStone Level 3 (29/29 PASS, CHECKSUMS valid). barraCuda optional (IPC-first). 8 paper notebooks (72/72 checks, 2 faculties). sporePrint Tier 2. 4 deploy graphs. exp094 NUCLEUS composition parity. primalSpring v0.9.25+. Edition 2024. MSRV 1.87. barraCuda v0.3.13. V147 handoff. May 10, 2026.
+**Current state (Session S197)**: 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 13 certification tests (guidestone). 68+ modules, 269 binaries, 521+ `.rs` files, 0 clippy, 0 fmt, 0 unsafe, 0 doc warnings, 0 `#[allow()]`. Python→Rust→UniBin→NUCLEUS validation stack. Eukaryotic evolution: certification organelle (4 layers, 13 tests), IPC tree (6 per-primal modules, all `&Path` idiomatic), validation scenarios (6), UniBin binary (5 subcommands), 3 fossilized patterns. 11 barracuda-gated modules. 34 capabilities. skunkBat JH-5 wired. CI cross-sync 413 methods. guideStone Level 3 (29/29 PASS, CHECKSUMS valid). barraCuda optional (IPC-first). 8 paper notebooks (72/72 checks, 2 faculties). sporePrint Tier 2. 4 deploy graphs. exp094 NUCLEUS composition parity. primalSpring v0.9.25+. Edition 2024. MSRV 1.87. barraCuda v0.3.13. V147 handoff. May 10, 2026.
 
 ### Session S193 — 2026-05-09 (Interstadial Eukaryotic Evolution)
 
 - **IPC tree graduation**: `src/ipc_dispatch.rs` (401 lines) graduated to `src/ipc/` tree with 5 per-primal modules (barracuda, toadstool, beardog, squirrel, coralreef). Unified `IpcMathClient` facade preserved.
 - **Certification organelle**: `src/certification/` with 4 layers (bare, discovery, parity, nucleus). `certify(max_layer)` public API.
 - **Validation scenarios**: `src/validation/scenarios/` with 6 absorbed scenarios, `ScenarioMeta` provenance, `ScenarioRegistry`, two-tier execution.
-- **UniBin binary**: `neuralspring-unibin` with certify/validate/serve/status/version subcommands.
+- **UniBin binary**: `neuralspring_unibin` with certify/validate/serve/status/version subcommands.
 - **Fossilization**: 3 pre-extinction patterns in `fossilRecord/` with provenance READMEs.
 - **Deprecated migrations**: `PrimalClient`, `discover_primal()`, `discover_by_capability()` annotated with `#[deprecated]`.
 - **8 new tests** (scenario registry + IPC module).

@@ -1,7 +1,7 @@
 {
   "spring": "neuralSpring",
   "version": "0.1.0",
-  "session": "S197",
+  "session": "S198",
   "date": "2026-05-10",
   "tests": {
     "lib": 1297,
@@ -20,7 +20,7 @@
     "other": 7
   },
   "capabilities": {
-    "total": 33,
+    "total": 34,
     "science": 14,
     "health": 3,
     "inference": 3,
@@ -40,7 +40,7 @@
   },
   "deploy_graph": {
     "nodes": 15,
-    "capabilities_provided": 33,
+    "capabilities_provided": 34,
     "bond_type": "Metallic",
     "trust_model": "InternalNucleus",
     "fragments": ["tower_atomic", "node_atomic", "meta_tier"],

@@ -1263,7 +1263,7 @@ path = "src/bin/validate_proto_nucleate_capabilities.rs"
 # ── guideStone (Level 5 self-validating deployable) ─────────────────
 
 [[bin]]
-name = "neuralspring-unibin"
+name = "neuralspring_unibin"
 path = "src/bin/neuralspring_unibin/main.rs"
 required-features = ["guidestone"]
 

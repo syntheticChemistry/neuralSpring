@@ -10,7 +10,7 @@ use clap::{Parser, Subcommand};
 /// binary exposing certification, validation, serve, status, and
 /// version subcommands.
 #[derive(Parser)]
-#[command(name = "neuralspring-unibin", version, about)]
+#[command(name = "neuralspring_unibin", version, about)]
 pub struct Cli {
     /// Subcommand to execute.
     #[command(subcommand)]

@@ -334,6 +334,18 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
             input_schema: json!({ "type": "object", "properties": {} }),
         },
         McpToolDef {
+            name: "compute.dispatch",
+            description: "toadStool-mediated compute dispatch for spectral science workloads.",
+            domain: "compute",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "operation": { "type": "string", "description": "Dispatch operation (probe, submit, status)" },
+                    "params": { "type": "object", "description": "Operation-specific parameters" }
+                }
+            }),
+        },
+        McpToolDef {
             name: "compute.offload",
             description: "Node Atomic compute offload: reports GPU dispatcher readiness and \
                           routes compute workloads through the neuralSpring Dispatcher.",
@@ -426,7 +438,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 33);
+        assert_eq!(tools.len(), 34);
     }
 
     #[test]

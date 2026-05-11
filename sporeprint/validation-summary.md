@@ -29,7 +29,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 | **Binaries** | 269 (244 validate, 18 bench, 7 other) |
 | **Experiments** | 134 across 11 domains |
 | **Papers reproduced** | 27 (6 faculties) |
-| **Capabilities** | 33 (12 domains) |
+| **Capabilities** | 34 (12 domains) |
 | **Named tolerances** | 233 |
 | **guideStone** | Level 3 — 29/29 bare ALL PASS (P1-P5) |
 | **BTSP** | 13/13 mandatory |

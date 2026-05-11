@@ -11,7 +11,7 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 
 ## Architecture (Eukaryotic — post-interstadial May 2026)
 
-- **UniBin**: Single `neuralspring-unibin` binary with `certify`, `validate`, `serve`, `status`, `version` subcommands
+- **UniBin**: Single `neuralspring_unibin` binary with `certify`, `validate`, `serve`, `status`, `version` subcommands
 - **IPC tree**: `src/ipc/` with 6 per-primal modules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`) + `IpcMathClient` facade
 - **Certification organelle**: `src/certification/` — 4-layer guidestone (bare/discovery/parity/nucleus)
 - **Validation scenarios**: `src/validation/scenarios/` — 6 absorbed scenarios with `ScenarioMeta`, `ScenarioRegistry`, tiered execution
@@ -37,13 +37,13 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 
 ## Key Capabilities (JSON-RPC)
 
-Thirty-three capabilities (`domain.verb`) when composed in biomeOS:
+Thirty-four capabilities (`domain.verb`) when composed in biomeOS:
 
 - **Science (14):** `science.spectral_analysis`, `science.anderson_localization`, `science.hessian_eigen`, `science.agent_coordination`, `science.ipr`, `science.disorder_sweep`, `science.training_trajectory`, `science.evoformer_block`, `science.structure_module`, `science.folding_health`, `science.gpu_dispatch`, `science.cross_spring_provenance`, `science.cross_spring_benchmark`, `science.precision_routing`
 - **Health (3):** `health.liveness`, `health.readiness`, `health.check`
 - **Inference (3):** `inference.complete`, `inference.embed`, `inference.models`
 - **Provenance (4):** `provenance.begin`, `provenance.record`, `provenance.complete`, `provenance.status`
-- **Routing (6):** `primal.forward`, `primal.discover`, `capability.list`, `identity.get`, `mcp.tools.list`, `compute.offload`
+- **Routing (7):** `primal.forward`, `primal.discover`, `capability.list`, `identity.get`, `mcp.tools.list`, `compute.dispatch`, `compute.offload`
 - **Composition (2):** `composition.status`, `method.register` (biomeOS v3.51)
 - **Security (1):** `security.audit_log` (skunkBat JH-5 forwarding)
 

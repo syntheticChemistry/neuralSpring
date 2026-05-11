@@ -200,7 +200,8 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "primal.discover",
     // Niche deployment surface
     "capability.list",
-    // Compute offload (Node Atomic)
+    // Compute dispatch + offload (toadStool, Node Atomic)
+    "compute.dispatch",
     "compute.offload",
     // Identity + MCP (T4 discovery, composition pattern)
     "identity.get",
@@ -286,7 +287,7 @@ mod tests {
     }
 
     /// Cross-sync: verify neuralSpring's shared methods appear in
-    /// primalSpring's canonical 403-method capability registry.
+    /// primalSpring's canonical 413-method capability registry.
     ///
     /// Methods prefixed with `science.` are neuralSpring-only (niche
     /// capabilities not in the canonical registry). Same for

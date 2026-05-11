@@ -1,5 +1,5 @@
 # neuralSpring guideStone CHECKSUMS — BLAKE3
-# Generated: 2026-05-10
+# Generated: 2026-05-11
 # Files: 15
 #
 # Verify: primalspring::checksums::verify_manifest()
@@ -15,6 +15,6 @@ d9590bd21ce6a6ba4585647e64a8751f3899054255bc23e3206949e978371819  src/provenance
 624e112e5f617ee6011f03886ec0b8fd8306d3798d4db549173e3bd6dcec94f2  src/validation/mod.rs
 48add3cf40bdc09460370afd327ce4ef587b4d8e7f55986f6f2dbc34891f9650  src/validation/composition.rs
 d5bb0e4d201f798096e65a805e1c2c378d24c5252d09b8263e6985d5a3e7e786  src/rng.rs
-839c431cbc8a1615e271f7a792b82e9be71d8bc0183641dd2f066c31a77f8d63  config/capability_registry.toml
+fe3491d34ed3230e152465db4a9d70b89d35089bd24d7f83c7535bc4c43624b1  config/capability_registry.toml
 0288dbc479b2349bfa13c213a617f49a4e92f1ed667e4cee3cc7b9a08ba56c01  control/tolerances.py
-a8828f217aa595eb032f926688ef025e12c80ab1c9cf1bee36f40e1a2102a6ae  Cargo.toml
+7aebda1f347918283f1d720cd1a38a2da1d0a24650864295ffe399ee24770c33  Cargo.toml

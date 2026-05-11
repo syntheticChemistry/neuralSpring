@@ -96,7 +96,8 @@ pub const CAPABILITIES: &[&str] = &[
     "primal.discover",
     // ── Niche deployment (biomeOS graph composition) ──
     "capability.list",
-    // ── Compute offload (Node Atomic) ──
+    // ── Compute dispatch + offload (toadStool, Node Atomic) ──
+    "compute.dispatch",
     "compute.offload",
     // ── Identity + MCP (T4 discovery, composition pattern) ──
     "identity.get",
@@ -141,6 +142,7 @@ pub fn operation_dependencies() -> serde_json::Value {
         "primal.forward":      ["capability", "params"],
         "primal.discover":     [],
         "capability.list":     [],
+        "compute.dispatch":    ["operation", "params"],
         "compute.offload":     ["operation", "tensors"],
         "health.check":        [],
         "identity.get":        [],
@@ -180,6 +182,7 @@ pub fn cost_estimates() -> serde_json::Value {
         "primal.forward":      { "latency_ms": 10.0, "cpu": "low", "memory_bytes": 2048 },
         "primal.discover":     { "latency_ms": 1.0,  "cpu": "none", "memory_bytes": 512 },
         "capability.list":     { "latency_ms": 0.1,  "cpu": "none", "memory_bytes": 256 },
+        "compute.dispatch":    { "latency_ms": 5.0,  "cpu": "low", "gpu": "preferred", "memory_bytes": 4096 },
         "compute.offload":     { "latency_ms": 5.0,  "cpu": "low", "gpu": "preferred", "memory_bytes": 4096 },
         "health.check":        { "latency_ms": 0.2,  "cpu": "none", "memory_bytes": 128 },
         "identity.get":        { "latency_ms": 0.1,  "cpu": "none", "memory_bytes": 256 },

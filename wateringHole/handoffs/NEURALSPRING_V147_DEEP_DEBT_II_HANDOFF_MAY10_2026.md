@@ -54,7 +54,7 @@ Session S197 completes a deep debt sweep focused on idiomatic Rust evolution, ce
 |--------|-------|
 | Workspace tests | 1,450 (1,297 lib + 73 forge + 80 playGround) |
 | Certification tests | 13 (guidestone feature) |
-| Capabilities | 33 (14 science + 3 health + 3 inference + 3 gpu + 3 compute + 2 cross_spring + 1 identity + 1 mcp + 1 composition + 1 method + 1 security) |
+| Capabilities | 34 (14 science + 3 health + 3 inference + 4 provenance + 2 cross_primal + 2 compute + 1 capability + 1 identity + 1 mcp + 1 composition + 1 method + 1 security) |
 | IPC modules | 6 (barracuda, toadstool, beardog, squirrel, coralreef, skunkbat) |
 | Deploy graphs | 4 TOMLs |
 | Clippy warnings | 0 |
@@ -64,7 +64,7 @@ Session S197 completes a deep debt sweep focused on idiomatic Rust evolution, ce
 | Papers | 27 implemented |
 | Named tolerances | 233+ |
 | barraCuda | v0.3.13 (optional, IPC-first) |
-| CI cross-sync | 403 canonical methods |
+| CI cross-sync | 413 canonical methods |
 | Edition | 2024, MSRV 1.87 |
 
 ## 4. Primal Evolution & Use Review

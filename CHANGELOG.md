@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-10 (Session 197: Deep Debt Sweep II + Doc Reconciliation)
+## [Unreleased] — 2026-05-11 (Session 198: Post-Interstadial Audit Response II)
+
+### 2026-05-11 — Session S198 (CI cross-sync 413, compute.dispatch, UniBin rename, foundation seeding)
+
+- **CI cross-sync 403→413** — primalSpring canonical registry expanded to 413 methods; comment and doc references updated across all living docs.
+- **`compute.dispatch` capability** — added to `ALL_CAPABILITIES`, `niche::CAPABILITIES`, `capability_registry.toml`, and playGround MCP tools. Fixes `dispatch:rust:registry_has_compute` validation check (was FAIL, now PASS). 34 capabilities total (was 33).
+- **UniBin binary rename** — `neuralspring-unibin` (hyphen) → `neuralspring_unibin` (underscore) in `Cargo.toml` and `cli.rs`. Aligns with projectNUCLEUS workload TOML expectations (`neuralspring_unibin validate`/`certify`).
+- **CHECKSUMS regenerated** — updated for `Cargo.toml` and `capability_registry.toml` changes; L0 29/29 PASS.
+- **Foundation seeding manifest** — `docs/FOUNDATION_SEEDING.md`: neuralSpring contributes to Thread 5 (LTEE: 5 Dolson papers, NK/MODES/eco/directed/swarm) and Thread 7 (Anderson Math: spectral, IPR, level spacing, Evoformer).
+- **UniBin release build** — `cargo build --release --bin neuralspring_unibin --features guidestone` verified. `validate` 21/21 ALL PASS, `certify` 29/29 ALL PASS.
+- **Quality gates** — 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests. 34 capabilities. Zero clippy warnings. All checksums valid.
+
+## 2026-05-10 (Session 197: Deep Debt Sweep II + Doc Reconciliation)
 
 ### 2026-05-10 — Session S197b (Doc reconciliation, V147 handoff, archive sweep)
 

@@ -1,6 +1,6 @@
 # neuralSpring Specifications
 
-**Last Updated**: May 10, 2026 (Sessions 44–197 — S197: Deep debt II + doc reconciliation. 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 13 certification (guidestone). 269 binaries, 521+ `.rs` files. 33 capabilities. barraCuda v0.3.13, ToadStool S146+, coralReef Iter 49. V147 handoff)
+**Last Updated**: May 10, 2026 (Sessions 44–197 — S197: Deep debt II + doc reconciliation. 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 13 certification (guidestone). 269 binaries, 521+ `.rs` files. 34 capabilities. barraCuda v0.3.13, ToadStool S146+, coralReef Iter 49. V147 handoff)
 **Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 266 binaries (243 validate + 18 bench + 5 other), 1,229 lib tests, Python→Rust→IPC three-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
