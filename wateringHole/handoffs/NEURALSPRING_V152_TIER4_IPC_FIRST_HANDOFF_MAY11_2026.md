@@ -2,7 +2,7 @@
 
 # neuralSpring V152 — Tier 4 IPC-First + LTEE B1 + Foundation Seeding
 
-**Session**: S201 | **Date**: May 11, 2026 | **Handoff**: V152
+**Session**: S201b | **Date**: May 11, 2026 | **Handoff**: V152
 
 ---
 
@@ -28,7 +28,7 @@ LTEE B1 baseline started. Foundation Threads 5+7 seeded.
   - `primitives::{sigmoid, gelu, relu, relu_vec, hill_activation, hill_repression, shannon_entropy, shannon_equitability, shannon_entropy_from_counts, pearson_r}`
   - `metrics::{r_squared, rmse, mae, nse}`
 - UniBin builds without barracuda: `cargo build --no-default-features --features guidestone --bin neuralspring_unibin`
-- 692 tests pass IPC-first (no barracuda), 1,299 pass with `--features barracuda`
+- 693 tests pass IPC-first (no barracuda), 1,300 pass with `--features barracuda`
 - 19 certification tests pass
 
 ### Deep Debt Cleanup
@@ -62,12 +62,12 @@ Foundation now at 7/10 threads (was 5/10).
 
 | Metric | Value |
 |--------|-------|
-| Lib tests (barracuda) | 1,299 PASS |
-| Lib tests (IPC-first) | 692 PASS |
+| Lib tests (barracuda) | 1,300 PASS |
+| Lib tests (IPC-first) | 693 PASS |
 | Certification tests | 19 PASS (L0-L5) |
 | Forge tests | 73 PASS |
 | playGround tests | 80 PASS |
-| Total workspace | 1,452 |
+| Total workspace | 1,453 |
 | Workspace warnings | Zero |
 | `forbid(unsafe_code)` | Enforced |
 | Files > 800L | None |
@@ -99,4 +99,4 @@ Foundation now at 7/10 threads (was 5/10).
 2. **Foundation Thread 5+7 review** — neuralSpring seeded both. Review
    source/target quality for sweetGrass braid integration.
 
-*neuralSpring V152 | Session S201 | AGPL-3.0-or-later*
+*neuralSpring V152 | Session S201b | AGPL-3.0-or-later*

@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 269 binaries, **Python→Rust→UniBin→NUCLEUS validation stack**. guideStone Level 5: `neuralspring_guidestone` v0.3.0 — 19 certification tests ALL PASS (L0-L5: bare, structural, parity, nucleus composition, cross-spring). BLAKE3 CHECKSUMS valid. primalSpring v0.9.25+. `validate_proto_nucleate_capabilities` + `IpcMathClient` retained as validation window. coralForge unified. 233+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 19 certification (guidestone L5). 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.13, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 34 capabilities, deployment health triad, MCP parity, Squirrel routing, Tower discovery. Stadial `deny.toml` bans enforced. ecoBin compliant. Eukaryotic UniBin + IPC tree (6 per-primal modules) + validation scenarios. skunkBat JH-5 wired. CI cross-sync 413 methods.
-**Date**: May 11, 2026 (Sessions 40–200b — S200b: doc reconciliation, deep debt IV. 521+ `.rs` files, 68 modules. barraCuda v0.3.13, toadStool S146+, coralReef Iter 49. V151 handoff)
+**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, ~97% GPU promotion, CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 269 binaries (241 require-features gated), **Python→Rust→UniBin→NUCLEUS validation stack**. guideStone Level 5: `neuralspring_guidestone` v0.3.0 — 19 certification tests ALL PASS (L0-L5: bare, structural, parity, nucleus composition, cross-spring). BLAKE3 CHECKSUMS valid. primalSpring v0.9.25+. `validate_proto_nucleate_capabilities` + `IpcMathClient` retained as validation window. coralForge unified. 233+ named tolerances (centralized registry), zero debt, 0 clippy pedantic+nursery+cast deny warnings, 0 doc warnings. 1,300 lib (693 IPC-first) + 73 forge + 80 playGround = 1,453 workspace tests + 19 certification (guidestone L5). 46 upstream rewires, 250+ barracuda import files, 68 modules. barraCuda v0.3.13, wgpu 28. `ValidationSink` pattern. Provenance integrity tests. IPC resilience wired. Edition 2024, 34 capabilities, deployment health triad, MCP parity, Squirrel routing, Tower discovery. Stadial `deny.toml` bans enforced. ecoBin compliant. Eukaryotic UniBin + IPC tree (6 per-primal modules) + validation scenarios. skunkBat JH-5 wired. CI cross-sync 413 methods.
+**Date**: May 11, 2026 (Sessions 40–201b — S201b: doc/header sync. 521+ `.rs` files, 68 modules. barraCuda v0.3.13, toadStool S146+, coralReef Iter 49. V152 handoff)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–123+, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V147 handoff (Session S197 — Deep debt II, certification tests, CHECKSUMS, IPC `&Path`, primalSpring v0.9.25+) |
+| `wateringHole/handoffs/` | Cross-project | V152 handoff (Session S201b — IPC-first Tier 4, IpcError, capabilities, workspace deps, 19 cert L5) |
 
 ---
 
@@ -314,7 +314,7 @@ Full handoff: `wateringHole/handoffs/`
 pip install -r control/requirements.txt
 bash scripts/run_all_baselines.sh
 
-# Rust validation (1152 lib + 70 playGround + 73 forge tests + 260 binaries)
+# Rust validation (1,300 lib + 80 playGround + 73 forge = 1,453 workspace tests)
 cargo test
 cargo run --release --bin validate_all
 
@@ -358,5 +358,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 19 certification (guidestone L5). 397 Python + 4500+ Rust/GPU = 4900+ total checks.
-Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 269 binaries, 521+ `.rs` files, 34 capabilities, Python→Rust→UniBin→NUCLEUS validation stack. guideStone Level 3: 29/29 bare ALL PASS + certification organelle (13 tests). IPC tree (6 per-primal modules). Stadial `deny.toml` bans. 0 clippy, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V147 handoff. primalSpring v0.9.25+, genomeBin v5.1. barraCuda v0.3.13, toadStool S146+, coralReef Iter 49. CI cross-sync 413 methods. skunkBat JH-5 wired.*
+*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 1,300 lib (693 IPC-first) + 73 forge + 80 playGround = 1,453 workspace tests + 19 certification (guidestone L5). 397 Python + 4500+ Rust/GPU = 4900+ total checks.
+Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 269 binaries (241 require-features gated), 521+ `.rs` files, 34 capabilities, 31 capability constants, Python→Rust→UniBin→NUCLEUS validation stack. guideStone Level 5: 19 certification tests (L0–L5: bare/discovery/parity/nucleus/composition/cross-spring). IPC tree (6 per-primal modules). IPC-first (`default = []`). Stadial `deny.toml` bans. 0 clippy, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V152 handoff. primalSpring v0.9.25+, genomeBin v5.1. barraCuda v0.3.13, toadStool S146+, coralReef Iter 49. CI cross-sync 413 methods. skunkBat JH-5 wired.*

@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: May 11, 2026 (Session S200b — doc reconciliation + V151 handoff. guideStone Level 5, 19 certification tests. plasmidBin release binary (2.8M). 1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests + 19 certification (guidestone). 269 binaries, 521+ `.rs` files. 0 warnings. Cast lints denied. barraCuda v0.3.13. 34 capabilities. V151 handoff.)
+**Last updated**: May 11, 2026 (Session S201b — doc reconciliation + V152 handoff. guideStone Level 5, 19 certification tests. plasmidBin release binary (2.8M). 1,300 lib + 73 forge + 80 playGround = 1,453 workspace tests + 19 certification (guidestone). 269 binaries, 521+ `.rs` files. 0 warnings. Cast lints denied. barraCuda v0.3.13. 34 capabilities. V152 handoff.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

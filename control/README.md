@@ -63,8 +63,9 @@ python3 control/surrogate/surrogate_validation.py
 | `shared/` | Open-Meteo ERA5 fetch/cache | CC BY 4.0 | — |
 | `ml_inference/` | Benchmark + baseline generation | Scaling analysis | — |
 | `immunological_anderson/` | nS-06: Immunological Anderson | Gonzales, Fajgenbaum, McCandless | 48 |
+| `ltee_mutation_accumulation/` | LTEE B1: Mutation accumulation | Barrick et al. 2009 | 8 |
 
-**Total: 417/417 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 27 WDM + 106 coralForge + 48 nS-06)
+**Total: 425/425 PASS** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 30 pub exp + 27 WDM + 106 coralForge + 48 nS-06 + 8 LTEE B1)
 
 ## Data Sources
 

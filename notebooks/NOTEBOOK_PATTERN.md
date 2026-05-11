@@ -3,7 +3,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
 > Adapted from primalSpring/wetSpring sporePrint pattern for neuralSpring.
-> Date: May 11, 2026 | Session: S200b
+> Date: May 11, 2026 | Session: S201b
 
 ## Purpose
 

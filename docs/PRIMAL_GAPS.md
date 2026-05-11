@@ -6,7 +6,7 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-11 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S200b — doc reconciliation, V151 handoff (May 11, 2026).
+> **Session:** S201b — doc/header sync, V152 handoff (May 11, 2026).
 > Prior: S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---
@@ -60,14 +60,14 @@ enabling IPC-first sovereign deployment. GPU-centric library modules are
 gated behind `#[cfg(feature = "barracuda")]`. exp094 validates `stats.mean`
 parity over IPC via `validate_parity()`.
 
-**Current state:** Direct import retained for Tier 1/2 validation (default
-feature). IPC path via `IpcMathClient` in playGround. exp094 validates
-Node Atomic parity (`tensor_stats_mean` check). 18 barraCuda IPC surface
-gaps remain (gap 11) — tracked upstream.
+**Current state (S201b):** `default = []` — barracuda is no longer linked by default.
+48 files feature-gated. 241 `required-features` bins. CPU fallbacks for 12 functions.
+`IpcError` typed hierarchy replaces `Result<_, String>` across IPC tree (`src/ipc/`).
+693 tests pass IPC-first (no barracuda), 1,300 with `--features barracuda`.
+18 barraCuda IPC surface gaps remain (gap 11) — tracked upstream.
 
 **Evolution path:**
-- Full module gating for `--no-default-features` (IPC-only build)
-- Feature-split: `composed` for IPC paths vs direct lib calls
+- barraCuda surface expansion (gap 11: 18 methods) for full L5 domain parity
 
 **Hand back to:** barraCuda (18 remaining IPC surface methods)
 
@@ -476,15 +476,17 @@ patterns for multi-method science operations)
 `BearDog` for `crypto.hash`, `Squirrel` for `inference.*`), discovers the
 socket, calls via IPC, and validates parity. Exit codes 0/1/2.
 
-### CE4. IPC Math Client (`ipc_dispatch.rs`)
+### CE4. IPC Tree (`src/ipc/`)
 
-**Status:** implemented (Apr 17 2026)
-**Details:** New `ipc_dispatch::IpcMathClient` provides the Level 5 counterpart
-to `gpu_dispatch::Dispatcher`. Wraps `stats.mean`, `stats.std_dev`,
-`stats.weighted_mean`, `tensor.matmul`, `tensor.create`, `compute.dispatch`,
-`crypto.hash`, `inference.complete`, `inference.embed` as typed Rust methods
-routing through JSON-RPC IPC. Discovery-based (env-driven sockets, no
-hardcoded paths).
+**Status:** implemented (Apr 17 2026 → S201b: `ipc_dispatch` removed, per-primal tree)
+**Details:** The per-primal `src/ipc/` tree (6 modules: barracuda, toadstool, beardog,
+squirrel, coralreef, skunkbat) provides the IPC counterpart to `gpu_dispatch::Dispatcher`.
+Wraps `stats.mean`, `stats.std_dev`, `stats.weighted_mean`, `tensor.matmul`,
+`tensor.create`, `compute.dispatch`, `crypto.hash`, `inference.complete`,
+`inference.embed` as typed Rust methods routing through JSON-RPC IPC. Discovery-based
+(env-driven sockets, no hardcoded paths). Returns `Result<_, IpcError>` with typed
+error variants (`NotDiscovered`, `Transport`, `Protocol`). Capability constants
+centralized in `src/capabilities.rs` (31 constants).
 
 ### CE5. Stadial `deny.toml` Enforcement
 

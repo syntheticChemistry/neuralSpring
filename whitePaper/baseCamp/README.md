@@ -1,7 +1,7 @@
 # neuralSpring — baseCamp: Per-Faculty Research Briefings & Cross-Domain Extensions
 
-**Last Updated**: May 11, 2026 (Session S200b)
-**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 269 binaries, 521+ `.rs` files, **1,297 lib + 73 forge + 80 playGround = 1,450 workspace tests** + 19 certification tests (guidestone), 68+ modules, **233+** named tolerances, 24 proptest properties. Zero clippy, fmt, doc warnings, unsafe, `#[allow()]`, mocks. **Python→Rust→UniBin→NUCLEUS validation stack**. **8 paper notebooks** (72/72 checks, Dolson + Liu faculties). **guideStone Level 5**: 19 certification tests ALL PASS (L0-L5). barraCuda optional (IPC-first). 11 modules feature-gated behind `barracuda`. 34 capabilities. primalSpring v0.9.25+. Edition 2024, MSRV 1.87. **V151 handoff**. Eukaryotic UniBin + IPC tree (6 modules, `&Path` idiomatic) + validation scenarios. skunkBat JH-5 wired. CI cross-sync 413 methods. barraCuda v0.3.13, toadStool S146+, coralReef Iter 49.
+**Last Updated**: May 11, 2026 (Session S201b)
+**Status**: **27 papers** (full queue complete) + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 5 novel compositions + playGround (Squirrel MCP + Model Lab + compute triangle), **4,900+ checks**, ~97% GPU promotion, 269 binaries (241 require-features gated), 521+ `.rs` files, **1,300 lib (693 IPC-first) + 73 forge + 80 playGround = 1,453 workspace tests** + 19 certification tests (guidestone), 68+ modules, **233+** named tolerances, 24 proptest properties. Zero clippy, fmt, doc warnings, unsafe, `#[allow()]`, mocks. **397/397 Python baselines PASS. Python→Rust→UniBin→NUCLEUS validation stack**. **8 paper notebooks** (72/72 checks, Dolson + Liu faculties). **guideStone Level 5**: 19 certification tests ALL PASS (L0-L5). barraCuda optional (IPC-first, `default = []`). 11 modules feature-gated behind `barracuda`. 34 capabilities. primalSpring v0.9.25+. Edition 2024, MSRV 1.87. **V152 handoff**. Eukaryotic UniBin + IPC tree (6 modules, `&Path` idiomatic) + validation scenarios. skunkBat JH-5 wired. CI cross-sync 413 methods. barraCuda v0.3.13, toadStool S146+, coralReef Iter 49.
 
 - **S181 (Apr 11, 2026)**: Full composition evolution — 30-capability surface (health.check, identity.get, mcp.tools.list added to ALL_CAPABILITIES), Squirrel inference routing (try_squirrel_route fallback), Tower Atomic startup discovery (BearDog + Songbird probes), Tier 3 `validate_composition_evolution` validator, `composed` feature gate, ToadStool discovery fix, tolerance forensics, deploy graph V131/S181. V131 handoff.
 - **S180 (Apr 11, 2026)**: Composition evolution — deployment health triad (`health.check`), T4 discovery (`identity.get`), `mcp.tools.list` on primal, iterative method normalization, 27/27 MCP tool definitions, deploy graph `nest_atomic`, primalSpring graph reconciliation, plasmidBin metadata refresh. V130 handoff.
@@ -34,8 +34,10 @@ Python baseline (peer-reviewed science, documented provenance)
     → BarraCUDA CPU → GPU Tensor → metalForge WGSL → pipeline
     → cross-dispatch → multi-GPU (~97% GPU promotion)
     → Primal composition (IPC round-trip parity against NUCLEUS primals)
-    → guideStone (self-validating bare: 29/29 PASS, 5 properties certified)
-    → NUCLEUS deployment (plasmidBin ecobins on clean machine) [Level 4+]
+    → guideStone (L0 bare: 29/29 PASS, 5 properties certified)
+    → guideStone L4 composition (deploy graphs, registry, families)
+    → guideStone L5 cross-spring (frozen artifacts, protocol liveness, hash determinism)
+    → NUCLEUS deployment (plasmidBin ecobins on clean machine)
 ```
 
 Each briefing maps this chain per-paper. Extension proposals identify where

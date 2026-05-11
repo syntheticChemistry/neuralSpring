@@ -2,17 +2,26 @@
 
 **Standard**: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
 **Binary**: `neuralspring_guidestone` v0.3.0 (feature-gated: `guidestone`)
-**Level**: 3 (bare ALL PASS — all 5 properties certified without primals)
-**Date**: April 27, 2026 — Session S186 (Phase 45c BTSP default auto-absorbed via path dep)
+**Level**: 5 (6-layer certification: bare + discovery + parity + nucleus + composition + cross-spring)
+**Date**: May 11, 2026 — Session S201b (deep debt sweep, IPC-first Tier 4, 19 certification tests)
 
 ---
 
 ## Overview
 
 A guideStone carries 5 certified properties that hold **without any primals running**
-(bare guideStone). When a NUCLEUS is deployed, additive layers activate — primal
-discovery, domain science parity via IPC, and BearDog signing — but physics and
-science output is IDENTICAL either way. NUCLEUS adds metadata, not math.
+(bare guideStone, L0). Six additive layers validate increasingly complex composition:
+
+| Layer | Module           | Requires primals? | Description |
+|-------|------------------|-------------------|-------------|
+| L0    | `bare`           | No                | 5 certified properties (P1–P5) |
+| L1    | `discovery`      | Yes               | `CompositionContext` liveness probes |
+| L2    | `parity`         | Yes               | Domain science parity (7 capabilities via IPC) |
+| L3    | `nucleus`        | Yes               | Additive NUCLEUS (BearDog signing, Songbird discovery) |
+| L4    | `composition`    | Yes               | NUCLEUS composition (deploy graphs, registry, families) |
+| L5    | `cross_spring`   | Yes               | Cross-spring validation (frozen artifacts, protocol liveness, hash determinism) |
+
+Physics and science output is IDENTICAL either way. NUCLEUS adds metadata, not math.
 
 ---
 
@@ -69,7 +78,7 @@ in Rust constants but the guideStone does not emit a structured provenance manif
 | Manifest generation | `examples/gen_checksums.rs` generates manifest (feature-gated) |
 | ValidationHarness | Every validation binary uses `check_abs` / `check_rel` / `check_bool` |
 | Parity checks | 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` validated against baselines |
-| Domain integrity | 1,234+ lib tests with `#![forbid(unsafe_code)]` |
+| Domain integrity | 1,300 lib tests with `#![forbid(unsafe_code)]` |
 
 **Checksummed files**: guideStone binary, tolerances (5 modules), provenance (3 modules),
 validation (2 modules), RNG, capability registry, Python baseline tolerances, Cargo.toml.
@@ -120,16 +129,21 @@ A structured `ToleranceDerivation` type with paper DOIs would strengthen this fo
 
 ## Readiness Matrix
 
-| Level | Description | Status |
-|-------|-------------|--------|
-| 0 | Not started | -- |
-| 1 | Validation exists (IpcMathClient, validate_proto_nucleate_capabilities) | DONE |
-| 2 | Properties documented (this file) | DONE |
-| 3 | Bare guideStone works (29/29 pass, P1-P5 certified without primals) | DONE |
-| 4 | NUCLEUS guideStone works (validates against live NUCLEUS) | PENDING |
-| 5 | Certified (all 5 properties hold, cross-substrate parity) | PENDING |
+| Level | Module         | Description | Status |
+|-------|----------------|-------------|--------|
+| L0    | `bare`         | 5 properties certified without primals (29/29 checks) | DONE |
+| L1    | `discovery`    | CompositionContext liveness probes | DONE |
+| L2    | `parity`       | Domain science parity via IPC (7 capabilities) | DONE |
+| L3    | `nucleus`      | Additive NUCLEUS (BearDog signing, Songbird discovery) | DONE |
+| L4    | `composition`  | NUCLEUS composition (deploy graphs, capability registry, family calls) | DONE |
+| L5    | `cross_spring` | Cross-spring validation (frozen artifacts, protocol liveness, hash determinism) | DONE |
 
-### Level 3 Evidence (S184 → S185)
+**19 certification tests** across 6 layers. Run via:
+```
+cargo test --features barracuda,guidestone -p neural-spring --lib certification
+```
+
+### L0 Evidence (S184 → S185)
 
 - `neuralspring_guidestone` v0.3.0: 29/29 bare checks PASS (4 SKIP for missing NUCLEUS)
 - P3 BLAKE3 CHECKSUMS: 15 files verified via `primalspring::checksums::verify_manifest()`
@@ -139,18 +153,21 @@ A structured `ToleranceDerivation` type with paper DOIs would strengthen this fo
 - Exit code 2 correctly returned for bare-only mode
 - S185: absorbed `primalspring::composition::is_skip_error` — replaces 7 manual error arms
 
-### Level 4 Requirements
+### L1–L3 Evidence (S193 → S197)
 
-- Live NUCLEUS deployed from `plasmidBin/` ecobins (12 primals)
-- `primalspring_guidestone` passes (exit 0) as base certification
-- All 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` return PASS (not SKIP)
+- Discovery: `CompositionContext` liveness probes for all 12 primals
+- Parity: 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES` validated via IPC against baselines
+- NUCLEUS: BearDog signing + Songbird discovery integrated
+- 13 certification tests across 4 layers
 
-### Level 5 Requirements
+### L4–L5 Evidence (S200 → S201b)
 
-- All Level 4 requirements met
-- Cross-substrate parity: Python / CPU / GPU / IPC all within tolerances
-- barraCuda surface gaps (Gap 11: 18 methods) resolved upstream
-- BearDog signing receipt validates end-to-end
+- Composition: deploy graphs validated, capability registry cross-sync (34 capabilities)
+- Cross-spring: frozen artifact hashes, protocol liveness, deterministic hash comparison
+- 19 certification tests across 6 layers
+- IPC-first defaults (`default = []`) — all validation runs without GPU by default
+- `IpcError` typed hierarchy replaces stringly-typed errors
+- 241 `required-features` bins ensure GPU-dependent binaries only build with `barracuda`
 
 ---
 

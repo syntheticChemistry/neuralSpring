@@ -1,8 +1,8 @@
 {
   "spring": "neuralSpring",
-  "session": "S200b",
+  "session": "S201b",
   "date": "2026-05-11",
-  "audit_response": "S200b: Doc reconciliation + V151 handoff. S200: guideStone L5 (19 cert tests), plasmidBin release. S199: stubs→errors, bench evolve. V151",
+  "audit_response": "S201b: Deep debt sweep — capabilities module (31 constants), primal_names::display (20 entries), IpcError typed hierarchy, [workspace.dependencies], config named constants, ipc_dispatch removed (400 LOC), 241 required-features bins. Tier 4 IPC-first (default = []). V152",
   "summary": {
     "total_main_gaps": 14,
     "resolved_main": 2,
