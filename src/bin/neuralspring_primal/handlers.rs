@@ -259,7 +259,7 @@ pub fn handle_primal_discover(id: serde_json::Value) -> JsonRpcResponse {
 /// Discover Squirrel's socket and forward an inference request.
 ///
 /// Returns `None` if Squirrel is not running or the call fails, allowing
-/// the caller to fall back to a stub response.
+/// the caller to return a `SERVICE_UNAVAILABLE` error.
 fn try_squirrel_route(method: &str, params: &serde_json::Value) -> Option<serde_json::Value> {
     use neural_spring::primal_names;
     use neural_spring::validation::composition;

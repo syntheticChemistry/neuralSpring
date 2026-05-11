@@ -9,7 +9,7 @@
 //! - CPU modules properly ungated from `#[cfg(feature = "gpu")]`
 //! - `gpu_helpers` split into `buffers`, `bind_group_layouts`, `pipelines`
 //! - `BarracudaError::is_device_lost()` + `gpu_ctx()` additions
-//! - `async-trait` reclassified from TODO→NOTE (architectural choice)
+//! - `async-trait` reclassified as NOTE (architectural choice, not actionable)
 //! - FHE shader fixes (NTT/INTT/`pointwise_mul` `u64_mod_simple`)
 //! - Unsafe audit: 60+ sites documented with `// SAFETY:`
 //!

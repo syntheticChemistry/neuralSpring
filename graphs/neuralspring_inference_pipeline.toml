@@ -10,7 +10,7 @@
 #   - Weight retrieval from NestGate
 #   - Provenance tracking for inference sessions
 #
-# STATUS: V140 / S190 (May 8, 2026)
+# STATUS: V150 / S200 (May 11, 2026)
 # Run: biomeos deploy graphs/neuralspring_inference_pipeline.toml
 
 [graph]
@@ -19,7 +19,7 @@ description = "Inference composition: model routing, tensor compute, weight retr
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S190"
+neuralspring_version = "S200"
 domain = "inference"
 composition_model = "nucleated"
 bond_type = "Metallic"

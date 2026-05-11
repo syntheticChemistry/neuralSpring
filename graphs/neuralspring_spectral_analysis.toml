@@ -14,7 +14,7 @@
 #   - science.hessian_eigen (loss landscape Hessian)
 #   - science.ipr (inverse participation ratio)
 #
-# STATUS: V140 / S190 (May 8, 2026)
+# STATUS: V150 / S200 (May 11, 2026)
 # Run: biomeos deploy graphs/neuralspring_spectral_analysis.toml
 
 [graph]
@@ -23,7 +23,7 @@ description = "Weight matrix spectral analysis pipeline: eigendecomp, IPR, Ander
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S190"
+neuralspring_version = "S200"
 domain = "science"
 composition_model = "nucleated"
 bond_type = "Metallic"

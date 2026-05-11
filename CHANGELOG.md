@@ -5,7 +5,17 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-11 (Session 200: guideStone L5 + plasmidBin)
+## [Unreleased] — 2026-05-11 (Session 200b: deep debt sweep IV)
+
+### 2026-05-11 — Session S200b (stale graph TOMLs, comment alignment, deep audit)
+
+- **Deploy graph version sync** — 3 stale graphs (`neuralspring_inference_pipeline.toml`, `neuralspring_spectral_analysis.toml`, `composition/neuralspring_math_pipeline.toml`) updated V140/S190 → V150/S200.
+- **Handler comment alignment** — `handlers.rs` doc comment corrected from "stub response" to "`SERVICE_UNAVAILABLE` error" to match S199 implementation.
+- **Validator doc cleanup** — `validate_toadstool_s87_sync.rs` `TODO→NOTE` phrasing cleaned to avoid grep noise.
+- **Zero >800L files confirmed** — all `.rs` files under 800 lines.
+- **Full audit** — no production unwraps, no hardcoded paths, no mocks in production, zero TODO/FIXME in production code, zero dead_code suppressions outside fossil record. Paper queue 27/27 closed (Py + Rust + GPU + notebooks for all).
+
+## 2026-05-11 (Session 200: guideStone L5 + plasmidBin)
 
 ### 2026-05-11 — Session S200 (guideStone L3→L5, plasmidBin release, upstream audit response)
 
