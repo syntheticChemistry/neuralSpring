@@ -43,3 +43,30 @@ pub fn shader_capabilities(socket: &Path, timeout: Duration) -> Result<serde_jso
         timeout,
     )?)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use std::time::Duration;
+
+    const TIMEOUT: Duration = Duration::from_millis(100);
+    const FAKE_SOCKET: &str = "/nonexistent/coralreef.sock";
+
+    #[test]
+    fn shader_compile_wgsl_returns_err_for_nonexistent_socket() {
+        let result = shader_compile_wgsl(
+            Path::new(FAKE_SOCKET),
+            "@vertex fn main() -> @builtin(position) vec4f { return vec4f(); }",
+            "test.wgsl",
+            TIMEOUT,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn shader_capabilities_returns_err_for_nonexistent_socket() {
+        let result = shader_capabilities(Path::new(FAKE_SOCKET), TIMEOUT);
+        assert!(result.is_err());
+    }
+}

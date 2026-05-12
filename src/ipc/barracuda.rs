@@ -122,3 +122,54 @@ pub fn tensor_create(
         timeout,
     )?)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use std::time::Duration;
+
+    const TIMEOUT: Duration = Duration::from_millis(100);
+    const FAKE_SOCKET: &str = "/nonexistent/barracuda.sock";
+
+    #[test]
+    fn stats_mean_returns_err_for_nonexistent_socket() {
+        let result = stats_mean(Path::new(FAKE_SOCKET), &[1.0, 2.0, 3.0], TIMEOUT);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn stats_std_dev_returns_err_for_nonexistent_socket() {
+        let result = stats_std_dev(Path::new(FAKE_SOCKET), &[1.0, 2.0, 3.0], TIMEOUT);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn stats_weighted_mean_returns_err_for_nonexistent_socket() {
+        let result = stats_weighted_mean(
+            Path::new(FAKE_SOCKET),
+            &[1.0, 2.0],
+            &[0.5, 0.5],
+            TIMEOUT,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn tensor_matmul_returns_err_for_nonexistent_socket() {
+        let result = tensor_matmul(
+            Path::new(FAKE_SOCKET),
+            &[1.0, 0.0, 0.0, 1.0],
+            &[1.0, 2.0, 3.0, 4.0],
+            2, 2, 2,
+            TIMEOUT,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn tensor_create_returns_err_for_nonexistent_socket() {
+        let result = tensor_create(Path::new(FAKE_SOCKET), &[2, 3], "zeros", TIMEOUT);
+        assert!(result.is_err());
+    }
+}

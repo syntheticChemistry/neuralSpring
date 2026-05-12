@@ -39,3 +39,21 @@ pub fn crypto_hash(
             reason: "response missing hash string".into(),
         })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use std::time::Duration;
+
+    #[test]
+    fn crypto_hash_returns_err_for_nonexistent_socket() {
+        let result = crypto_hash(
+            Path::new("/nonexistent/beardog.sock"),
+            "blake3",
+            "hello world",
+            Duration::from_millis(100),
+        );
+        assert!(result.is_err());
+    }
+}

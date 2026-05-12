@@ -23,3 +23,20 @@ pub fn compute_dispatch(
 ) -> Result<serde_json::Value, IpcError> {
     Ok(call_capability(socket, capabilities::COMPUTE_DISPATCH, params, timeout)?)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use std::time::Duration;
+
+    #[test]
+    fn compute_dispatch_returns_err_for_nonexistent_socket() {
+        let result = compute_dispatch(
+            Path::new("/nonexistent/toadstool.sock"),
+            &serde_json::json!({"workload": "test"}),
+            Duration::from_millis(100),
+        );
+        assert!(result.is_err());
+    }
+}

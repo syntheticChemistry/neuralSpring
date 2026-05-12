@@ -144,3 +144,75 @@ pub struct ContentGetResult {
     /// MIME content type if set during `content.put`.
     pub content_type: Option<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use std::time::Duration;
+
+    const TIMEOUT: Duration = Duration::from_millis(100);
+    const FAKE_SOCKET: &str = "/nonexistent/nestgate.sock";
+
+    #[test]
+    fn content_put_returns_err_for_nonexistent_socket() {
+        let result = content_put(Path::new(FAKE_SOCKET), "dGVzdA==", None, TIMEOUT);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn content_put_with_content_type_returns_err_for_nonexistent_socket() {
+        let result = content_put(
+            Path::new(FAKE_SOCKET),
+            "dGVzdA==",
+            Some("application/octet-stream"),
+            TIMEOUT,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn content_get_returns_err_for_nonexistent_socket() {
+        let result = content_get(
+            Path::new(FAKE_SOCKET),
+            "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+            TIMEOUT,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn content_exists_returns_err_for_nonexistent_socket() {
+        let result = content_exists(
+            Path::new(FAKE_SOCKET),
+            "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+            TIMEOUT,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn content_put_result_debug_and_clone() {
+        let r = ContentPutResult {
+            hash: "abc123".into(),
+            size: 42,
+            deduplicated: true,
+        };
+        let cloned = r.clone();
+        assert_eq!(format!("{r:?}"), format!("{cloned:?}"));
+        assert!(cloned.deduplicated);
+    }
+
+    #[test]
+    fn content_get_result_debug_and_clone() {
+        let r = ContentGetResult {
+            data: "dGVzdA==".into(),
+            hash: "abc123".into(),
+            size: 4,
+            content_type: Some("text/plain".into()),
+        };
+        let cloned = r.clone();
+        assert_eq!(cloned.content_type.as_deref(), Some("text/plain"));
+        assert_eq!(format!("{r:?}"), format!("{cloned:?}"));
+    }
+}

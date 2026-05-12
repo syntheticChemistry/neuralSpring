@@ -46,3 +46,27 @@ fn chrono_timestamp() -> String {
         .as_secs();
     format!("{now}")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn timestamp_is_numeric_and_recent() {
+        let ts = chrono_timestamp();
+        let secs: u64 = ts.parse().expect("timestamp must be numeric");
+        assert!(secs > 1_700_000_000, "timestamp should be post-2023");
+    }
+
+    #[test]
+    fn audit_log_returns_err_for_nonexistent_socket() {
+        let result = audit_log(
+            Path::new("/nonexistent/skunkbat.sock"),
+            "test_event",
+            "neuralspring",
+            &serde_json::json!({"key": "value"}),
+            Duration::from_millis(100),
+        );
+        assert!(result.is_err());
+    }
+}

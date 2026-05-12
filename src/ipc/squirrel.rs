@@ -45,3 +45,39 @@ pub fn inference_embed(
 pub fn inference_models(socket: &Path, timeout: Duration) -> Result<serde_json::Value, IpcError> {
     Ok(call_capability(socket, capabilities::INFERENCE_MODELS, &serde_json::json!({}), timeout)?)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use std::time::Duration;
+
+    const TIMEOUT: Duration = Duration::from_millis(100);
+    const FAKE_SOCKET: &str = "/nonexistent/squirrel.sock";
+
+    #[test]
+    fn inference_complete_returns_err_for_nonexistent_socket() {
+        let result = inference_complete(
+            Path::new(FAKE_SOCKET),
+            &serde_json::json!({"prompt": "test"}),
+            TIMEOUT,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn inference_embed_returns_err_for_nonexistent_socket() {
+        let result = inference_embed(
+            Path::new(FAKE_SOCKET),
+            &serde_json::json!({"text": "test"}),
+            TIMEOUT,
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn inference_models_returns_err_for_nonexistent_socket() {
+        let result = inference_models(Path::new(FAKE_SOCKET), TIMEOUT);
+        assert!(result.is_err());
+    }
+}
