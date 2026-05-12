@@ -5,13 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-12 (Session 202c: Tier 2 wiring)
+## [Unreleased] — 2026-05-12 (Session 202c: Tier 2 wiring + deep debt sweep)
 
-### 2026-05-12 — Session S202c (Ecosystem Wave Sync: Tier 2 toadStool wiring)
+### 2026-05-12 — Session S202c (Ecosystem Wave Sync: Tier 2 wiring + comprehensive debt audit)
 
 - **Tier 2 `toadstool.validate` wired** — `src/ipc/toadstool.rs` expanded from 1 to 3 methods: `compute_dispatch` (existing), `validate` (new), `list_workloads` (new). `ValidateResult` struct parses the pre-flight response: `valid`, `gpu_available`, `precision_tier`, `estimated_dispatch_time_ms`, `warnings`, `required_capabilities`. `IpcMathClient` facade: `validate_workload`, `list_workloads`.
 - **Tier 2 capability constants** — `capabilities.rs` gains `TOADSTOOL_VALIDATE` and `TOADSTOOL_LIST_WORKLOADS`. `CAPABILITY_HINTS` expanded from 17 to 19 entries (2 toadStool Tier 2 methods).
 - **`barracuda.precision.route`** — documented as **blocked upstream** (not implemented in barraCuda per `LIVE_SCIENCE_API.md`). Will wire when upstream implements.
+- **Deep debt audit (comprehensive sweep)** — zero files >800L (max 776L), zero unsafe blocks (`unsafe_code = "forbid"` workspace-wide), zero production mocks (all in `#[cfg(test)]`), zero production `panic!` (all in tests), zero `TODO`/`FIXME`/`HACK`/`todo!()`/`unimplemented!()`, zero C dependencies (all pure Rust except GPU crates), paper queue 27/27 closed, all dependencies in `[workspace.dependencies]`.
+- **projectNUCLEUS B1 workload** — new `neuralspring-ltee-b1-mutation.toml` added to `projectNUCLEUS/workloads/neuralspring/` for LTEE B1 validation via `validate_ltee_b1_mutation_accumulation --format json`.
+- **Foundation THREAD_INDEX** — Thread 5 entry expanded with `ml_expression`, `ml_data_sources`, `ml_data_targets` fields pointing to `ML_SURROGATES.md` and `thread05_ml_surrogates*.toml`.
 - **primalSpring Layer 3 still stale** — Gap 11 still listed as open for neuralSpring in `primalSpring/docs/PRIMAL_GAPS.md`. Re-flagged.
 - **Quality gates** — 728 lib + 11 integration + 73 forge + 80 playGround = 892 workspace tests. Zero failures. Zero new clippy warnings.
 
