@@ -6,7 +6,7 @@
 # Copy this file to your spring and fill in the domain hooks.
 # The library handles all NUCLEUS wiring; you handle domain logic.
 #
-# See tools/ttt_composition.sh for a complete reference implementation.
+# See tools/neural_composition.sh for a complete reference implementation.
 #
 # Usage:
 #   COMPOSITION_NAME=myspring FAMILY_ID=myspring ./composition_template.sh

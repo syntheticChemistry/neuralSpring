@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-11 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S201b — doc/header sync, V152 handoff (May 11, 2026).
-> Prior: S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
+> **Date:** 2026-05-12 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
+> **Session:** S202 — River Delta downstream seeding, `--format json` for Tier 2 (May 12, 2026).
+> Prior: S201b doc/header sync + V152 handoff, S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---
 
@@ -585,7 +585,7 @@ Uses `primalspring::composition` API directly:
 
 ### Level 5 Blockers
 
-- **Gap 11**: 18 barraCuda IPC surface gaps block full domain science parity
+- ~~**Gap 11**: 18 barraCuda IPC surface gaps~~ — **RESOLVED** (S201b: 12 RPC, 4 composable, 5 CPU fallback)
 - Cross-substrate parity: Python / CPU / GPU / IPC all within tolerances
 - `BearDog` signing receipt validates end-to-end
 

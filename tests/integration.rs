@@ -243,6 +243,7 @@ fn cross_module_softmax_matches_provenance() {
 }
 
 #[test]
+#[cfg(feature = "barracuda")]
 fn cross_module_gelu_matches_provenance() {
     use neural_spring::transformer::gelu;
 

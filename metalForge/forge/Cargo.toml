@@ -16,22 +16,12 @@ default = []
 coralreef = ["dep:coral-reef"]
 
 [dependencies]
-barracuda = { path = "../../../../primals/barraCuda/crates/barracuda", default-features = false, features = [
-    "gpu",
-    "domain-nn",
-    "domain-esn",
-    "domain-genomics",
-    "domain-timeseries",
-    "domain-lattice",
-] }
-bytemuck = { version = "1.21", features = ["derive"] }
+barracuda = { workspace = true }
+bytemuck = { workspace = true }
 coral-reef = { path = "../../../../primals/coralReef/crates/coral-reef", optional = true }
-pollster = "0.4"
-serde_json = "1"
-wgpu = { version = "28", default-features = false, features = [
-    "wgsl",
-    "vulkan-portability",
-] }
+pollster = { workspace = true }
+serde_json = { workspace = true }
+wgpu = { workspace = true }
 
 [dev-dependencies]
-tokio = { version = "1.49", features = ["rt-multi-thread", "macros"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

@@ -5,7 +5,21 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-11 (Session 201: Tier 4 IPC-first + deep debt + LTEE B1 + foundation seeding)
+## [Unreleased] — 2026-05-12 (Session 202: River Delta downstream seeding)
+
+### 2026-05-12 — Session S202 (River Delta downstream seeding, `--format json` for Tier 2 projectNUCLEUS)
+
+- **`--format json` for all validation binaries** — `ValidationHarness::finish()` now checks for `--format json`, `--format=json`, or `NEURALSPRING_JSON=1` before emitting output. JSON mode uses `JsonSink` (single structured JSON object with suite/passed/total/all_passed/checks[]). Human-readable `[PASS]`/`[FAIL]` lines remain the default. Enables Tier 2 projectNUCLEUS ingestion for `validate_ltee_b1_mutation_accumulation` and all future validation binaries. No binary-level changes required — any binary calling `h.finish()` gets structured output for free.
+- **Foundation Thread 5 expression authored** — `gardens/foundation/expressions/ML_SURROGATES.md` created. Covers 4 pillars (LSTM, ESN, WDM surrogates, evolutionary biology), 6 ML architectures, 12 validated targets, LTEE B1 bridge, primal composition, and projectNUCLEUS workloads. Thread 5 elevated from "mapped" to "active".
+- **THREAD_INDEX.toml thread 5 wired** — expression, data_sources, data_targets fields populated. Springs updated to [neuralSpring, groundSpring, wetSpring]. Contacts expanded with Barrick. Status changed from "mapped" to "active".
+- **PRIMAL_GAPS L5 blocker corrected** — Gap 11 reference in guideStone L5 blockers updated from open to resolved (was already resolved in S201b but blocker text was stale).
+- **Capability-based IPC routing** — `IpcMathClient` evolved from hardcoded 6-primal struct to `CapabilityRouter`-backed facade. Each method call resolves through `CAPABILITY_HINTS` (14 capability→primal mappings) with socket-level deduplication. Public API unchanged — all existing callers work without modification. Follows the ecoPrimals self-knowledge principle: a spring only knows *what* it needs, not *who* provides it.
+- **Workspace dependency consolidation** — `tarpc` (0.37), `toml` (0.8), `pollster` (0.4) hoisted to `[workspace.dependencies]`. `metalForge/forge/Cargo.toml` aligned from pinned versions to `{ workspace = true }` for `barracuda`, `bytemuck`, `wgpu`, `serde_json`, `pollster`, `tokio`.
+- **Integration test fix** — `cross_module_gelu_matches_provenance` gated behind `#[cfg(feature = "barracuda")]`. Was failing on IPC-first builds (gelu function lives behind barracuda feature gate).
+- **Metrics CPU fallback tests** — `metrics::tests` evolved from `#[cfg(all(test, feature = "barracuda"))]` to `#[cfg(test)]` (10 tests). CPU fallback `r_squared` now guards against constant `y_true` (zero `ss_tot`) instead of producing NaN.
+- **NUCLEUS workload JSON** — `neuralspring-ml-validation.toml` and `neuralspring-certification.toml` now set `PRIMALSPRING_JSON=1` in `[execution.env]` for Tier 2 structured output.
+- **Foundation expressions README** — updated active expressions table (was listing only 1 of 5 active expressions).
+- **Quality gates** — 703 lib + 11 integration + 73 forge + 80 playGround = 867 workspace tests. Zero failures. Zero clippy warnings.
 
 ### 2026-05-11 — Session S201 (Tier 4 IPC-first defaults, deep debt cleanup, LTEE B1 baseline, foundation seeding)
 

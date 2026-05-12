@@ -15,8 +15,15 @@
 //! | [`coralreef`] | coralReef   | `shader.compile.*` |
 //! | [`skunkbat`]  | skunkBat    | `security.audit_log` |
 //!
-//! The [`IpcMathClient`] facade provides unified discovery and
-//! delegates to per-primal functions.
+//! ## Capability-Based Discovery
+//!
+//! [`IpcMathClient`] discovers primals by **capability hint** with primal
+//! name as fallback. Each capability declares which primal is expected to
+//! provide it, but the discovery mechanism resolves sockets by scanning
+//! the biomeOS runtime directory — the client never hardcodes socket paths.
+//!
+//! This follows the ecoPrimals self-knowledge principle: a spring only
+//! knows *what* it needs (a capability), not *where* to find it.
 
 pub mod barracuda;
 pub mod beardog;
@@ -25,44 +32,117 @@ pub mod skunkbat;
 pub mod squirrel;
 pub mod toadstool;
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
+use crate::capabilities;
 use crate::error::IpcError;
 use crate::primal_names;
 use crate::validation::composition::{DiscoveryResult, discover_primal_socket, probe_liveness};
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(10);
 
+/// Capability-to-primal hint: which primal is expected to provide each
+/// capability. Used as fallback when runtime `capability.list` probing
+/// is not available.
+const CAPABILITY_HINTS: &[(&str, &str)] = &[
+    (capabilities::STATS_MEAN, primal_names::BARRACUDA),
+    (capabilities::STATS_STD_DEV, primal_names::BARRACUDA),
+    (capabilities::STATS_WEIGHTED_MEAN, primal_names::BARRACUDA),
+    (capabilities::TENSOR_MATMUL, primal_names::BARRACUDA),
+    (capabilities::TENSOR_CREATE, primal_names::BARRACUDA),
+    (capabilities::COMPUTE_DISPATCH, primal_names::TOADSTOOL),
+    (capabilities::COMPUTE_OFFLOAD, primal_names::TOADSTOOL),
+    (capabilities::CRYPTO_HASH, primal_names::BEARDOG),
+    (capabilities::INFERENCE_COMPLETE, primal_names::SQUIRREL),
+    (capabilities::INFERENCE_EMBED, primal_names::SQUIRREL),
+    (capabilities::INFERENCE_MODELS, primal_names::SQUIRREL),
+    (capabilities::SHADER_COMPILE_WGSL, primal_names::CORALREEF),
+    (capabilities::SHADER_COMPILE_CAPABILITIES, primal_names::CORALREEF),
+    (capabilities::SECURITY_AUDIT_LOG, primal_names::SKUNKBAT),
+];
+
+/// Routes capability requests to discovered primal sockets.
+///
+/// Populated at construction time via name-based discovery with
+/// capability hints. The router maps capability strings (e.g.
+/// `"stats.mean"`) to socket paths, deduplicating when multiple
+/// capabilities resolve to the same primal.
+pub struct CapabilityRouter {
+    routes: HashMap<&'static str, PathBuf>,
+}
+
+impl CapabilityRouter {
+    /// Build a router by resolving each known capability hint.
+    #[must_use]
+    fn from_hints() -> Self {
+        let mut primal_cache: HashMap<&str, Option<PathBuf>> = HashMap::new();
+        let mut routes = HashMap::new();
+
+        for &(capability, hint_primal) in CAPABILITY_HINTS {
+            let socket = primal_cache
+                .entry(hint_primal)
+                .or_insert_with(|| resolve(hint_primal))
+                .clone();
+            if let Some(path) = socket {
+                routes.insert(capability, path);
+            }
+        }
+
+        Self { routes }
+    }
+
+    /// Look up the socket for a capability.
+    fn get(&self, capability: &str) -> Option<&PathBuf> {
+        self.routes.get(capability)
+    }
+
+    /// Require a socket for a capability, returning a typed error.
+    fn require(&self, capability: &str) -> Result<&PathBuf, IpcError> {
+        self.get(capability)
+            .ok_or_else(|| {
+                let primal = CAPABILITY_HINTS
+                    .iter()
+                    .find(|&&(c, _)| c == capability)
+                    .map_or("unknown", |&(_, p)| p);
+                IpcError::NotDiscovered { primal }
+            })
+    }
+
+    /// All unique primal sockets discovered.
+    fn discovered_primals(&self) -> Vec<&PathBuf> {
+        let mut seen = Vec::new();
+        for path in self.routes.values() {
+            if !seen.iter().any(|p: &&PathBuf| *p == path) {
+                seen.push(path);
+            }
+        }
+        seen
+    }
+}
+
 /// Discovered primal socket paths for IPC dispatch.
 ///
-/// Unified facade over per-primal IPC modules. Discovers all
-/// math-relevant primals at construction time; missing primals
-/// produce `Err` at call time with an honest discovery message.
+/// Unified facade over per-primal IPC modules. Uses capability-based
+/// routing: each method call resolves through the [`CapabilityRouter`]
+/// rather than a fixed primal name. Missing primals produce `Err` at
+/// call time with an honest discovery message.
 pub struct IpcMathClient {
-    barracuda_socket: Option<PathBuf>,
-    toadstool_socket: Option<PathBuf>,
-    beardog_socket: Option<PathBuf>,
-    squirrel_socket: Option<PathBuf>,
-    coralreef_socket: Option<PathBuf>,
-    skunkbat_socket: Option<PathBuf>,
+    router: CapabilityRouter,
     timeout: Duration,
 }
 
 impl IpcMathClient {
     /// Discover all math-relevant primals and return a connected client.
     ///
-    /// Missing primals are recorded as `None` — calls to their methods will
-    /// return `Err` with an honest "not discovered" message.
+    /// Missing primals are recorded in the capability router — calls to
+    /// their methods will return `Err` with an honest "not discovered"
+    /// message.
     #[must_use]
     pub fn discover() -> Self {
         Self {
-            barracuda_socket: resolve(primal_names::BARRACUDA),
-            toadstool_socket: resolve(primal_names::TOADSTOOL),
-            beardog_socket: resolve(primal_names::BEARDOG),
-            squirrel_socket: resolve(primal_names::SQUIRREL),
-            coralreef_socket: resolve(primal_names::CORALREEF),
-            skunkbat_socket: resolve(primal_names::SKUNKBAT),
+            router: CapabilityRouter::from_hints(),
             timeout: DEFAULT_TIMEOUT,
         }
     }
@@ -76,84 +156,87 @@ impl IpcMathClient {
 
     /// Whether the barraCuda primal was discovered.
     #[must_use]
-    pub const fn has_barracuda(&self) -> bool {
-        self.barracuda_socket.is_some()
+    pub fn has_barracuda(&self) -> bool {
+        self.router.get(capabilities::STATS_MEAN).is_some()
     }
 
     /// Whether the toadStool primal was discovered.
     #[must_use]
-    pub const fn has_toadstool(&self) -> bool {
-        self.toadstool_socket.is_some()
+    pub fn has_toadstool(&self) -> bool {
+        self.router.get(capabilities::COMPUTE_DISPATCH).is_some()
     }
 
     /// Whether the `BearDog` primal was discovered.
     #[must_use]
-    pub const fn has_beardog(&self) -> bool {
-        self.beardog_socket.is_some()
+    pub fn has_beardog(&self) -> bool {
+        self.router.get(capabilities::CRYPTO_HASH).is_some()
     }
 
     /// Whether the coralReef primal was discovered.
     #[must_use]
-    pub const fn has_coralreef(&self) -> bool {
-        self.coralreef_socket.is_some()
+    pub fn has_coralreef(&self) -> bool {
+        self.router.get(capabilities::SHADER_COMPILE_WGSL).is_some()
     }
 
     /// Probe liveness of all discovered primals.
     #[must_use]
     pub fn probe_all(&self) -> IpcLivenessReport {
-        let check = |socket: &Option<PathBuf>| {
-            socket
-                .as_ref()
+        let cap_check = |cap: &str| {
+            self.router
+                .get(cap)
                 .is_some_and(|p| probe_liveness(p, self.timeout).is_ok())
         };
         IpcLivenessReport {
             alive: [
-                check(&self.barracuda_socket),
-                check(&self.toadstool_socket),
-                check(&self.beardog_socket),
-                check(&self.squirrel_socket),
-                check(&self.coralreef_socket),
-                check(&self.skunkbat_socket),
+                cap_check(capabilities::STATS_MEAN),
+                cap_check(capabilities::COMPUTE_DISPATCH),
+                cap_check(capabilities::CRYPTO_HASH),
+                cap_check(capabilities::INFERENCE_COMPLETE),
+                cap_check(capabilities::SHADER_COMPILE_WGSL),
+                cap_check(capabilities::SECURITY_AUDIT_LOG),
             ],
         }
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // barraCuda surface
+    // barraCuda surface (routed via stats.*/tensor.* capabilities)
     // ═══════════════════════════════════════════════════════════════
 
-    /// `stats.mean` via barraCuda IPC.
+    /// `stats.mean` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if barraCuda is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides `stats.mean` or the call fails.
     pub fn stats_mean(&self, data: &[f64]) -> Result<f64, IpcError> {
-        barracuda::stats_mean(self.require_barracuda()?, data, self.timeout)
+        barracuda::stats_mean(self.router.require(capabilities::STATS_MEAN)?, data, self.timeout)
     }
 
-    /// `stats.std_dev` via barraCuda IPC.
+    /// `stats.std_dev` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if barraCuda is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides `stats.std_dev` or the call fails.
     pub fn stats_std_dev(&self, data: &[f64]) -> Result<f64, IpcError> {
-        barracuda::stats_std_dev(self.require_barracuda()?, data, self.timeout)
+        barracuda::stats_std_dev(self.router.require(capabilities::STATS_STD_DEV)?, data, self.timeout)
     }
 
-    /// `stats.weighted_mean` via barraCuda IPC.
+    /// `stats.weighted_mean` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if barraCuda is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn stats_weighted_mean(&self, data: &[f64], weights: &[f64]) -> Result<f64, IpcError> {
-        barracuda::stats_weighted_mean(self.require_barracuda()?, data, weights, self.timeout)
+        barracuda::stats_weighted_mean(
+            self.router.require(capabilities::STATS_WEIGHTED_MEAN)?,
+            data, weights, self.timeout,
+        )
     }
 
-    /// `tensor.matmul` via barraCuda IPC.
+    /// `tensor.matmul` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if barraCuda is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn tensor_matmul(
         &self,
         a: &[f64],
@@ -163,114 +246,109 @@ impl IpcMathClient {
         cols_b: usize,
     ) -> Result<Vec<f64>, IpcError> {
         barracuda::tensor_matmul(
-            self.require_barracuda()?,
-            a,
-            b,
-            rows_a,
-            cols_a,
-            cols_b,
-            self.timeout,
+            self.router.require(capabilities::TENSOR_MATMUL)?,
+            a, b, rows_a, cols_a, cols_b, self.timeout,
         )
     }
 
-    /// `tensor.create` via barraCuda IPC.
+    /// `tensor.create` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if barraCuda is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn tensor_create(&self, shape: &[usize], fill: &str) -> Result<serde_json::Value, IpcError> {
-        barracuda::tensor_create(self.require_barracuda()?, shape, fill, self.timeout)
+        barracuda::tensor_create(self.router.require(capabilities::TENSOR_CREATE)?, shape, fill, self.timeout)
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // toadStool surface
+    // toadStool surface (routed via compute.dispatch)
     // ═══════════════════════════════════════════════════════════════
 
-    /// `compute.dispatch` via toadStool IPC.
+    /// `compute.dispatch` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if toadStool is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn compute_dispatch(
         &self,
         params: &serde_json::Value,
     ) -> Result<serde_json::Value, IpcError> {
-        toadstool::compute_dispatch(self.require_toadstool()?, params, self.timeout)
+        toadstool::compute_dispatch(self.router.require(capabilities::COMPUTE_DISPATCH)?, params, self.timeout)
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // BearDog surface
+    // BearDog surface (routed via crypto.hash)
     // ═══════════════════════════════════════════════════════════════
 
-    /// `crypto.hash` via `BearDog` IPC.
+    /// `crypto.hash` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if `BearDog` is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn crypto_hash(&self, algorithm: &str, data: &str) -> Result<String, IpcError> {
-        beardog::crypto_hash(self.require_beardog()?, algorithm, data, self.timeout)
+        beardog::crypto_hash(self.router.require(capabilities::CRYPTO_HASH)?, algorithm, data, self.timeout)
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // Squirrel surface
+    // Squirrel surface (routed via inference.*)
     // ═══════════════════════════════════════════════════════════════
 
-    /// `inference.complete` via Squirrel IPC.
+    /// `inference.complete` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if Squirrel is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn inference_complete(
         &self,
         params: &serde_json::Value,
     ) -> Result<serde_json::Value, IpcError> {
-        squirrel::inference_complete(self.require_squirrel()?, params, self.timeout)
+        squirrel::inference_complete(self.router.require(capabilities::INFERENCE_COMPLETE)?, params, self.timeout)
     }
 
-    /// `inference.embed` via Squirrel IPC.
+    /// `inference.embed` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if Squirrel is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn inference_embed(&self, params: &serde_json::Value) -> Result<serde_json::Value, IpcError> {
-        squirrel::inference_embed(self.require_squirrel()?, params, self.timeout)
+        squirrel::inference_embed(self.router.require(capabilities::INFERENCE_EMBED)?, params, self.timeout)
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // coralReef surface
+    // coralReef surface (routed via shader.compile.*)
     // ═══════════════════════════════════════════════════════════════
 
-    /// `shader.compile.wgsl` via coralReef IPC.
+    /// `shader.compile.wgsl` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if coralReef is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn shader_compile_wgsl(
         &self,
         source: &str,
         label: &str,
     ) -> Result<serde_json::Value, IpcError> {
-        coralreef::shader_compile_wgsl(self.require_coralreef()?, source, label, self.timeout)
+        coralreef::shader_compile_wgsl(self.router.require(capabilities::SHADER_COMPILE_WGSL)?, source, label, self.timeout)
     }
 
-    /// `shader.compile.capabilities` via coralReef IPC.
+    /// `shader.compile.capabilities` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if coralReef is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn shader_capabilities(&self) -> Result<serde_json::Value, IpcError> {
-        coralreef::shader_capabilities(self.require_coralreef()?, self.timeout)
+        coralreef::shader_capabilities(self.router.require(capabilities::SHADER_COMPILE_CAPABILITIES)?, self.timeout)
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // skunkBat surface
+    // skunkBat surface (routed via security.audit_log)
     // ═══════════════════════════════════════════════════════════════
 
-    /// `security.audit_log` via skunkBat IPC.
+    /// `security.audit_log` — routed to whichever primal provides it.
     ///
     /// # Errors
     ///
-    /// Returns an error if skunkBat is not discovered or the IPC call fails.
+    /// Returns an error if no primal provides this capability or the call fails.
     pub fn audit_log(
         &self,
         event_type: &str,
@@ -278,58 +356,21 @@ impl IpcMathClient {
         payload: &serde_json::Value,
     ) -> Result<serde_json::Value, IpcError> {
         skunkbat::audit_log(
-            self.require_skunkbat()?,
-            event_type,
-            source,
-            payload,
-            self.timeout,
+            self.router.require(capabilities::SECURITY_AUDIT_LOG)?,
+            event_type, source, payload, self.timeout,
         )
     }
 
     /// Whether the skunkBat primal was discovered.
     #[must_use]
-    pub const fn has_skunkbat(&self) -> bool {
-        self.skunkbat_socket.is_some()
+    pub fn has_skunkbat(&self) -> bool {
+        self.router.get(capabilities::SECURITY_AUDIT_LOG).is_some()
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Internal helpers
-    // ═══════════════════════════════════════════════════════════════
-
-    fn require_barracuda(&self) -> Result<&PathBuf, IpcError> {
-        self.barracuda_socket
-            .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::BARRACUDA })
-    }
-
-    fn require_toadstool(&self) -> Result<&PathBuf, IpcError> {
-        self.toadstool_socket
-            .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::TOADSTOOL })
-    }
-
-    fn require_beardog(&self) -> Result<&PathBuf, IpcError> {
-        self.beardog_socket
-            .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::BEARDOG })
-    }
-
-    fn require_squirrel(&self) -> Result<&PathBuf, IpcError> {
-        self.squirrel_socket
-            .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::SQUIRREL })
-    }
-
-    fn require_coralreef(&self) -> Result<&PathBuf, IpcError> {
-        self.coralreef_socket
-            .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::CORALREEF })
-    }
-
-    fn require_skunkbat(&self) -> Result<&PathBuf, IpcError> {
-        self.skunkbat_socket
-            .as_ref()
-            .ok_or(IpcError::NotDiscovered { primal: primal_names::display::SKUNKBAT })
+    /// Number of unique primals discovered.
+    #[must_use]
+    pub fn discovered_count(&self) -> usize {
+        self.router.discovered_primals().len()
     }
 }
 

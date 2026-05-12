@@ -316,22 +316,47 @@ impl ValidationHarness {
 
     /// Print summary and exit with appropriate code.
     pub fn finish(&self) -> ! {
-        let mut stdout_sink = StdoutSink;
-        log::info!("");
-        self.emit_to_sink(&mut stdout_sink);
+        if Self::wants_json() {
+            self.emit_json(std::io::stdout());
+        } else {
+            let mut stdout_sink = StdoutSink;
+            log::info!("");
+            self.emit_to_sink(&mut stdout_sink);
+        }
 
         if self.all_passed() {
             process::exit(0);
         } else {
-            let failed: Vec<&str> = self
-                .checks
-                .iter()
-                .filter(|c| !c.passed)
-                .map(|c| c.label.as_ref())
-                .collect();
-            log::error!("FAILED: {}", failed.join(", "));
+            if !Self::wants_json() {
+                let failed: Vec<&str> = self
+                    .checks
+                    .iter()
+                    .filter(|c| !c.passed)
+                    .map(|c| c.label.as_ref())
+                    .collect();
+                log::error!("FAILED: {}", failed.join(", "));
+            }
             process::exit(1);
         }
+    }
+
+    /// Returns true if `--format json` or `--format=json` was passed on
+    /// the command line, or if `NEURALSPRING_JSON=1` is set.
+    fn wants_json() -> bool {
+        if std::env::var("NEURALSPRING_JSON").is_ok_and(|v| v == "1") {
+            return true;
+        }
+        let args: Vec<String> = std::env::args().collect();
+        for (i, arg) in args.iter().enumerate() {
+            if arg == "--format" {
+                if args.get(i + 1).is_some_and(|v| v == "json") {
+                    return true;
+                }
+            } else if arg == "--format=json" {
+                return true;
+            }
+        }
+        false
     }
 }
 

@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 11, 2026 (Session S201b — Deep debt sweep: `capabilities` module (31 constants), `primal_names::display` complete (20 entries), `IpcError` typed hierarchy, `[workspace.dependencies]`, `config` named constants. 1,300 lib (693 IPC-first) + 73 forge + 80 playGround = 1,453 workspace tests. Zero warnings. V152 handoff).
+**Last updated**: May 12, 2026 (Session S202 — River Delta downstream seeding: `--format json` for all validation binaries (Tier 2 projectNUCLEUS), `CapabilityRouter` IPC evolution, foundation Thread 5 expression authored, workspace deps consolidated, metrics CPU fallback tests. 703 lib (IPC-first) + 11 integration + 73 forge + 80 playGround = 867 workspace tests. Zero warnings. V153 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

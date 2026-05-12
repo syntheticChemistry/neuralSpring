@@ -28,6 +28,9 @@ wgpu = { version = "28", default-features = false, features = ["wgsl", "vulkan-p
 anyhow = "1"
 clap = { version = "4.5", features = ["derive"] }
 env_logger = "0.11"
+tarpc = { version = "0.37", features = ["tokio1", "serde-transport"] }
+toml = "0.8"
+pollster = "0.4"
 temp-env = "0.3"
 
 [workspace.lints.rust]
@@ -67,7 +70,7 @@ wgpu = { workspace = true, optional = true }
 anyhow = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
 env_logger = { workspace = true, optional = true }
-tarpc = { version = "0.37", features = ["tokio1", "serde-transport"], optional = true }
+tarpc = { workspace = true, optional = true }
 primalspring = { path = "../primalSpring/ecoPrimal", optional = true }
 
 [features]
