@@ -14,6 +14,7 @@
 //! | [`squirrel`]  | Squirrel    | `inference.*` |
 //! | [`coralreef`] | coralReef   | `shader.compile.*` |
 //! | [`skunkbat`]  | skunkBat    | `security.audit_log` |
+//! | [`nestgate`]  | NestGate    | `content.put`, `content.get` |
 //!
 //! ## Capability-Based Discovery
 //!
@@ -28,6 +29,7 @@
 pub mod barracuda;
 pub mod beardog;
 pub mod coralreef;
+pub mod nestgate;
 pub mod skunkbat;
 pub mod squirrel;
 pub mod toadstool;
@@ -61,6 +63,9 @@ const CAPABILITY_HINTS: &[(&str, &str)] = &[
     (capabilities::SHADER_COMPILE_WGSL, primal_names::CORALREEF),
     (capabilities::SHADER_COMPILE_CAPABILITIES, primal_names::CORALREEF),
     (capabilities::SECURITY_AUDIT_LOG, primal_names::SKUNKBAT),
+    (capabilities::CONTENT_PUT, primal_names::NESTGATE),
+    (capabilities::CONTENT_GET, primal_names::NESTGATE),
+    (capabilities::CONTENT_EXISTS, primal_names::NESTGATE),
 ];
 
 /// Routes capability requests to discovered primal sockets.
@@ -194,6 +199,7 @@ impl IpcMathClient {
                 cap_check(capabilities::INFERENCE_COMPLETE),
                 cap_check(capabilities::SHADER_COMPILE_WGSL),
                 cap_check(capabilities::SECURITY_AUDIT_LOG),
+                cap_check(capabilities::CONTENT_PUT),
             ],
         }
     }
@@ -367,6 +373,62 @@ impl IpcMathClient {
         self.router.get(capabilities::SECURITY_AUDIT_LOG).is_some()
     }
 
+    /// Whether the NestGate primal was discovered.
+    #[must_use]
+    pub fn has_nestgate(&self) -> bool {
+        self.router.get(capabilities::CONTENT_PUT).is_some()
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // NestGate surface (routed via content.*)
+    // ═══════════════════════════════════════════════════════════════
+
+    /// `content.put` — store content-addressed data via NestGate.
+    ///
+    /// Returns the BLAKE3 hash and metadata on success.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no primal provides `content.put` or the call fails.
+    pub fn content_put(
+        &self,
+        data_base64: &str,
+        content_type: Option<&str>,
+    ) -> Result<nestgate::ContentPutResult, IpcError> {
+        nestgate::content_put(
+            self.router.require(capabilities::CONTENT_PUT)?,
+            data_base64,
+            content_type,
+            self.timeout,
+        )
+    }
+
+    /// `content.get` — retrieve content-addressed data by BLAKE3 hash.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no primal provides `content.get` or the call fails.
+    pub fn content_get(&self, hash: &str) -> Result<nestgate::ContentGetResult, IpcError> {
+        nestgate::content_get(
+            self.router.require(capabilities::CONTENT_GET)?,
+            hash,
+            self.timeout,
+        )
+    }
+
+    /// `content.exists` — check whether content-addressed data exists.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no primal provides `content.exists` or the call fails.
+    pub fn content_exists(&self, hash: &str) -> Result<bool, IpcError> {
+        nestgate::content_exists(
+            self.router.require(capabilities::CONTENT_EXISTS)?,
+            hash,
+            self.timeout,
+        )
+    }
+
     /// Number of unique primals discovered.
     #[must_use]
     pub fn discovered_count(&self) -> usize {
@@ -374,11 +436,11 @@ impl IpcMathClient {
     }
 }
 
-/// Liveness status for all math-relevant primals.
+/// Liveness status for all IPC-relevant primals.
 ///
-/// Indexed by [`PrimalSlot`] to avoid a flat struct with > 3 bools.
+/// Indexed by [`PrimalSlot`] to avoid a flat struct with many bools.
 pub struct IpcLivenessReport {
-    alive: [bool; 6],
+    alive: [bool; 7],
 }
 
 /// Index into [`IpcLivenessReport`].
@@ -397,6 +459,8 @@ pub enum PrimalSlot {
     Coralreef = 4,
     /// skunkBat.
     Skunkbat = 5,
+    /// NestGate.
+    Nestgate = 6,
 }
 
 impl IpcLivenessReport {
@@ -503,6 +567,9 @@ mod tests {
                 .audit_log("test", "neuralspring", &serde_json::json!({}))
                 .is_err()
         );
+        assert!(client.content_put("dGVzdA==", None).is_err());
+        assert!(client.content_get("deadbeef").is_err());
+        assert!(client.content_exists("deadbeef").is_err());
     }
 
     #[test]
@@ -519,6 +586,7 @@ mod tests {
         assert_eq!(PrimalSlot::Squirrel as usize, 3);
         assert_eq!(PrimalSlot::Coralreef as usize, 4);
         assert_eq!(PrimalSlot::Skunkbat as usize, 5);
+        assert_eq!(PrimalSlot::Nestgate as usize, 6);
     }
 
     #[test]
@@ -528,8 +596,14 @@ mod tests {
     }
 
     #[test]
+    fn has_nestgate_false_when_absent() {
+        let client = IpcMathClient::discover();
+        assert!(!client.has_nestgate());
+    }
+
+    #[test]
     fn liveness_report_zero_on_no_primals() {
-        let report = IpcLivenessReport { alive: [false; 6] };
+        let report = IpcLivenessReport { alive: [false; 7] };
         assert_eq!(report.alive_count(), 0);
         for slot in [
             PrimalSlot::Barracuda,
@@ -538,6 +612,7 @@ mod tests {
             PrimalSlot::Squirrel,
             PrimalSlot::Coralreef,
             PrimalSlot::Skunkbat,
+            PrimalSlot::Nestgate,
         ] {
             assert!(!report.is_alive(slot));
         }
@@ -546,12 +621,13 @@ mod tests {
     #[test]
     fn liveness_report_partial() {
         let report = IpcLivenessReport {
-            alive: [true, false, true, false, false, false],
+            alive: [true, false, true, false, false, false, false],
         };
         assert_eq!(report.alive_count(), 2);
         assert!(report.is_alive(PrimalSlot::Barracuda));
         assert!(!report.is_alive(PrimalSlot::Toadstool));
         assert!(report.is_alive(PrimalSlot::Beardog));
         assert!(!report.is_alive(PrimalSlot::Skunkbat));
+        assert!(!report.is_alive(PrimalSlot::Nestgate));
     }
 }

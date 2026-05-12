@@ -6,7 +6,7 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-12 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S202 — River Delta downstream seeding, `--format json` for Tier 2 (May 12, 2026).
+> **Session:** S202b — River Delta downstream audit response: NestGate IPC wired, Gap 11 upstream drift flagged (May 12, 2026).
 > Prior: S201b doc/header sync + V152 handoff, S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---
@@ -118,20 +118,30 @@ default path.
 
 ## 5. NestGate Weight Storage
 
-**Status:** open (spring-deploy only — NOT in proto-nucleate)
+**Status:** wip (S202b — IPC client wired, weight loader integration pending)
 **Note:** NestGate is NOT in the proto-nucleate `depends_on`. It appears in
 the richer `spring_deploy_manifest.toml` graph. This gap tracks the
 spring-deploy integration, not the primal proof.
-**Current state:** Weight loading uses `safetensors` from local filesystem
-(`src/weight_loader.rs`). No NestGate integration.
+**Current state (S202b):** `src/ipc/nestgate.rs` created with `content.put`,
+`content.get`, and `content.exists` methods. `CAPABILITY_HINTS` and
+`CapabilityRouter` expanded with 3 NestGate entries (`content.put`,
+`content.get`, `content.exists`). `IpcMathClient` facade methods wired.
+`PrimalSlot::Nestgate` added to liveness report. NestGate S60 transport
+parity confirmed upstream — `content.put` API is implemented and ready.
 
-**What is needed:**
-- IPC client for `storage.retrieve` to load model weights from NestGate
-- Fallback to local filesystem when NestGate unavailable
+**What was done (S202b):**
+- `src/ipc/nestgate.rs` — `content_put`, `content_get`, `content_exists`
+- `src/capabilities.rs` — `CONTENT_PUT`, `CONTENT_GET`, `CONTENT_EXISTS`
+- `src/ipc/mod.rs` — NestGate in `CAPABILITY_HINTS`, `PrimalSlot`, facade
+
+**What remains:**
+- `weight_loader.rs`: Add NestGate-backed load path (content-addressed by
+  BLAKE3 hash) with filesystem fallback
 - Weight provenance tracking via NestGate metadata
+- Streaming upload/download for weights > 4 MiB (NestGate `storage.store_stream`)
 
-**Hand back to:** NestGate (weight tensor storage API), primalSpring (if
-NestGate should be added to proto-nucleate `depends_on` for the primal proof)
+**Hand back to:** primalSpring (if NestGate should be added to proto-nucleate
+`depends_on` for the primal proof)
 
 ---
 
@@ -475,7 +485,11 @@ compile and test: 693 IPC-first + 1,300 barracuda tests PASS.
 **Gap 11 is now CLOSED.** All 18 original gaps resolved:
 12 via barraCuda RPC surface expansion, 4 composable, 5 CPU fallbacks (S201b).
 
-**Hand back to:** None
+**Upstream registry drift (S202b):** `primalSpring/docs/PRIMAL_GAPS.md` Layer 3
+table still lists neuralSpring as "Gap 11 (18 RPC methods)" open. This is stale —
+Gap 11 was resolved in S201b. Flagged for upstream correction in V153 handoff.
+
+**Hand back to:** primalSpring (update Layer 3 table to reflect Gap 11 CLOSED)
 
 ---
 

@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-12 (Session 202: River Delta downstream seeding)
+## [Unreleased] — 2026-05-12 (Session 202b: River Delta audit response)
+
+### 2026-05-12 — Session S202b (River Delta audit response: NestGate IPC, LTEE handoff, upstream drift)
+
+- **NestGate IPC surface wired** — `src/ipc/nestgate.rs` created with `content_put`, `content_get`, `content_exists` methods. Follows the same `call_capability` + typed result pattern as the other 6 IPC modules. `CAPABILITY_HINTS` expanded from 14 to 17 entries (3 NestGate capabilities). `PrimalSlot::Nestgate` added (slot 6), `IpcLivenessReport` grown to 7-element array. `IpcMathClient` facade methods: `content_put`, `content_get`, `content_exists`. Gap 5 status updated from "open" to "wip".
+- **NestGate capability constants** — `capabilities::CONTENT_PUT`, `CONTENT_GET`, `CONTENT_EXISTS` added to `src/capabilities.rs`.
+- **LTEE B1 lithoSpore README** — `control/ltee_mutation_accumulation/README.md` created documenting the Python→Rust validation pipeline, artifact inventory, PRNG differences, and lithoSpore module mapping.
+- **Gap 11 upstream drift flagged** — `primalSpring/docs/PRIMAL_GAPS.md` Layer 3 table still shows Gap 11 as open. Local Gap 11 was resolved S201b (12 RPC, 4 composable, 5 CPU fallback). Flagged in V153 handoff for upstream correction.
+- **PRIMAL_GAPS.md updated** — Gap 5 section rewritten for S202b NestGate wiring progress. Gap 11 upstream note added.
+- **Quality gates** — 704 lib + 11 integration + 73 forge + 80 playGround = 868 workspace tests. Zero failures. Zero clippy warnings.
 
 ### 2026-05-12 — Session S202 (River Delta downstream seeding, `--format json` for Tier 2 projectNUCLEUS)
 

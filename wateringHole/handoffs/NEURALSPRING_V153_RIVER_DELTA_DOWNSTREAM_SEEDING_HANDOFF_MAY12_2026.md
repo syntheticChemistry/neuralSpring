@@ -34,6 +34,10 @@ items from the blurb are complete:
 | `metrics.rs` CPU fallback: `r_squared` guards `ss_tot ≈ 0` | No more NaN on constant `y_true` edge case |
 | `metrics::tests` ungated from `barracuda`-only to `#[cfg(test)]` | +10 tests, CPU path now covered |
 | `tests/integration.rs`: `gelu` test gated `#[cfg(feature = "barracuda")]` | `cargo test --workspace` passes IPC-first |
+| `src/ipc/nestgate.rs`: NestGate IPC module | `content_put`, `content_get`, `content_exists` — content-addressed storage |
+| `src/capabilities.rs`: 3 NestGate constants | `CONTENT_PUT`, `CONTENT_GET`, `CONTENT_EXISTS` |
+| `src/ipc/mod.rs`: NestGate in `CAPABILITY_HINTS` | 17 hints (was 14); `PrimalSlot::Nestgate`; facade methods |
+| `control/ltee_mutation_accumulation/README.md` | lithoSpore handoff: pipeline, artifacts, PRNG notes |
 
 ### Foundation (gardens/)
 
@@ -60,7 +64,7 @@ whitePaper/README, baseCamp/README, experiments/README, sporeprint/validation-su
 
 ## Quality Gates
 
-- **867 workspace tests** (703 lib + 11 integration + 73 forge + 80 playGround) — 0 failures
+- **868 workspace tests** (704 lib + 11 integration + 73 forge + 80 playGround) — 0 failures
 - **19 certification tests** (guidestone L5) — all PASS
 - **0 clippy warnings** (pedantic + nursery + cast deny)
 - **0 unsafe code** — `unsafe_code = "forbid"` workspace-wide
@@ -76,7 +80,7 @@ whitePaper/README, baseCamp/README, experiments/README, sporeprint/validation-su
 
 | Gap | Primal | Status | What neuralSpring needs |
 |-----|--------|--------|------------------------|
-| Gap 5 | NestGate | **open** | `storage.retrieve` for weight loading; IPC client not yet wired |
+| Gap 5 | NestGate | **wip** | `content.put/get/exists` IPC wired (S202b); weight_loader integration pending |
 | Gap 6 | BearDog | **wip** | BTSP session establishment for composed-mode IPC |
 | Gap 9 | barraCuda | **open** | `plasma_dispersion` unconditionally imports `domain-lattice`; feature-gate belongs upstream |
 | Gap 10 | barraCuda / coralReef | **tracking** | 25 shader absorption candidates (WGSL → upstream `ops/`/`stats/`) |
@@ -158,7 +162,7 @@ node addressing:
 | coralReef | IPC + forge bridge | runtime discovery |
 | Squirrel | IPC (inference) | runtime discovery |
 | skunkBat | IPC (audit log) | runtime discovery |
-| nestGate | Deploy graph only | **Gap 5**: no IPC client |
+| nestGate | IPC (`content.put/get/exists`) + deploy graph | **Gap 5 wip**: IPC wired, weight_loader pending |
 | loamSpine | Deploy graph germination | provenance trio |
 | sweetGrass | Deploy graph provenance | provenance trio |
 | rhizoCrypt | Deploy graph DAG | provenance trio |
@@ -181,7 +185,13 @@ node addressing:
 4. **LTEE queue**: 11 papers queued (B2–B9, E2–E5). B1 complete. This is
    planned roadmap, not debt.
 
-5. **`tools/composition_template.sh`**: References missing `ttt_composition.sh`.
+5. **`tools/composition_template.sh`**: Fixed — was referencing missing
+   `ttt_composition.sh`, now points to `neural_composition.sh`.
+
+6. **Upstream registry drift**: `primalSpring/docs/PRIMAL_GAPS.md` Layer 3
+   table still lists neuralSpring as "Gap 11 (18 RPC methods)" open.
+   **Gap 11 was resolved in S201b** (12 RPC + 4 composable + 5 CPU fallback).
+   Request primalSpring update their Layer 3 table.
 
 ---
 

@@ -49,6 +49,14 @@ pub const SHADER_COMPILE_CAPABILITIES: &str = "shader.compile.capabilities";
 /// Audit event logging.
 pub const SECURITY_AUDIT_LOG: &str = "security.audit_log";
 
+// ─── NestGate surface (storage + content) ───────────────────────
+/// Store content-addressed data (BLAKE3 hash-as-key).
+pub const CONTENT_PUT: &str = "content.put";
+/// Retrieve content-addressed data by BLAKE3 hash.
+pub const CONTENT_GET: &str = "content.get";
+/// Check whether content-addressed data exists.
+pub const CONTENT_EXISTS: &str = "content.exists";
+
 // ─── petalTongue surface (visualization) ────────────────────────
 /// Render a visualization frame.
 pub const VISUALIZATION_RENDER: &str = "visualization.render";
@@ -105,6 +113,7 @@ mod tests {
             INFERENCE_COMPLETE, INFERENCE_EMBED, INFERENCE_MODELS,
             SHADER_COMPILE_WGSL, SHADER_COMPILE_CAPABILITIES,
             SECURITY_AUDIT_LOG,
+            CONTENT_PUT, CONTENT_GET, CONTENT_EXISTS,
             VISUALIZATION_RENDER, VISUALIZATION_RENDER_STREAM, VISUALIZATION_CAPABILITIES,
             HEALTH_LIVENESS, HEALTH_READINESS, HEALTH_CHECK,
             CAPABILITY_LIST, IDENTITY_GET, MCP_TOOLS_LIST,
