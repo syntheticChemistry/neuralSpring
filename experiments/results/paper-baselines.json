@@ -1,6 +1,6 @@
 {
   "spring": "neuralSpring",
-  "session": "S202b",
+  "session": "S202c",
   "date": "2026-05-12",
   "description": "Publishable paper baseline notebooks — full inline Python/NumPy implementations of peer-reviewed science, serving as the math validation base for Rust, GPU, and primal IPC layers.",
   "total_notebooks": 8,

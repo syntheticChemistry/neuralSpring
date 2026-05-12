@@ -5,18 +5,24 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
+### V154 — Session S202c (Tier 2 Wiring + Deep Debt Audit)
+
+| Version | File | Date | Scope |
+|---------|------|------|-------|
+| **V154** | `handoffs/NEURALSPRING_V154_TIER2_DEEP_DEBT_HANDOFF_MAY12_2026.md` | May 12, 2026 | Tier 2 convergence: `toadstool.validate` + `toadstool.list_workloads` wired. Deep debt audit all-clear (zero unsafe, zero mocks, zero panics, zero TODO). B1 NUCLEUS workload TOML. Foundation Thread 5 ML_SURROGATES wired. 892 IPC-first workspace tests. 36 capabilities. |
+
 ### V153 — Sessions S202–S202b (River Delta Downstream Seeding + Audit Response)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V153** | `handoffs/NEURALSPRING_V153_RIVER_DELTA_DOWNSTREAM_SEEDING_HANDOFF_MAY12_2026.md` | May 12, 2026 | River Delta downstream seeding: `--format json` all validation binaries (Tier 2 projectNUCLEUS), `CapabilityRouter` IPC evolution, foundation Thread 5 expression, workspace deps consolidated, metrics CPU fallback fix, NUCLEUS workload `PRIMALSPRING_JSON=1`. 867 IPC-first workspace tests. V153 handoff. |
+| **V153** | `handoffs/NEURALSPRING_V153_RIVER_DELTA_DOWNSTREAM_SEEDING_HANDOFF_MAY12_2026.md` | May 12, 2026 | River Delta downstream seeding: `--format json` all validation binaries, `CapabilityRouter` IPC, foundation Thread 5, NestGate IPC, Gap 11 drift flagged. 888 IPC-first workspace tests. |
 
-### V152 — Session S201b (Tier 4 IPC-first + deep debt + LTEE B1 + foundation seeding)
+### V152 (archived)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V152** | `handoffs/archive/NEURALSPRING_V152_TIER4_IPC_FIRST_HANDOFF_MAY11_2026.md` | May 11, 2026 | Tier 4 IPC-first (`default = []`). 48 files feature-gated. 241 require-features bins. CPU fallbacks for 12 primitives. `IpcError` typed hierarchy. V152 handoff. |
-| **V152** (companion) | `handoffs/archive/NEURALSPRING_V152_PRIMAL_EVOLUTION_UPSTREAM_HANDOFF_MAY11_2026.md` | May 11, 2026 | Upstream handoff for primal and spring teams: IPC architecture, capability contracts, NUCLEUS composition patterns. |
+| **V152** | `handoffs/archive/NEURALSPRING_V152_TIER4_IPC_FIRST_HANDOFF_MAY11_2026.md` | May 11, 2026 | Tier 4 IPC-first, V152 handoff. |
+| **V152** (companion) | `handoffs/archive/NEURALSPRING_V152_PRIMAL_EVOLUTION_UPSTREAM_HANDOFF_MAY11_2026.md` | May 11, 2026 | Upstream primal handoff. |
 
 ### Central wateringHole Copies
 
