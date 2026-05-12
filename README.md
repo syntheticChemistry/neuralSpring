@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 12, 2026 (Session S202b — River Delta audit response: NestGate IPC wired, `CapabilityRouter` IPC discovery, `--format json` for Tier 2 projectNUCLEUS, Foundation Thread 5, 7 IPC submodule test suites, Gap 11 resolved locally, LTEE B1 lithoSpore README. 724 lib + 11 integration + 73 forge + 80 playGround = 888 workspace tests (IPC-first). Zero warnings. V153 handoff).
+**Last updated**: May 12, 2026 (Session S202c — Tier 2 wiring: `toadstool.validate` + `toadstool.list_workloads` IPC wired, `ValidateResult` typed response. 728 lib + 11 integration + 73 forge + 80 playGround = 892 workspace tests (IPC-first). Zero warnings. V153 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

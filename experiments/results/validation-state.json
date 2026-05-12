@@ -1,14 +1,14 @@
 {
   "spring": "neuralSpring",
   "version": "0.1.0",
-  "session": "S202b",
+  "session": "S202c",
   "date": "2026-05-12",
   "tests": {
-    "lib": 724,
+    "lib": 728,
     "integration": 11,
     "forge": 73,
     "playground": 80,
-    "total_workspace": 888,
+    "total_workspace": 892,
     "total_workspace_barracuda": 1453,
     "proptest_properties": 24,
     "python_baselines": 397,

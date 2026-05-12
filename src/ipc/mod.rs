@@ -9,7 +9,7 @@
 //! | Module       | Primal       | Capabilities |
 //! |--------------|--------------|--------------|
 //! | [`barracuda`] | barraCuda   | `stats.*`, `tensor.*` |
-//! | [`toadstool`] | toadStool   | `compute.dispatch` |
+//! | [`toadstool`] | toadStool   | `compute.dispatch`, `toadstool.validate`, `toadstool.list_workloads` |
 //! | [`beardog`]   | `BearDog`   | `crypto.hash` |
 //! | [`squirrel`]  | Squirrel    | `inference.*` |
 //! | [`coralreef`] | coralReef   | `shader.compile.*` |
@@ -56,6 +56,8 @@ const CAPABILITY_HINTS: &[(&str, &str)] = &[
     (capabilities::TENSOR_CREATE, primal_names::BARRACUDA),
     (capabilities::COMPUTE_DISPATCH, primal_names::TOADSTOOL),
     (capabilities::COMPUTE_OFFLOAD, primal_names::TOADSTOOL),
+    (capabilities::TOADSTOOL_VALIDATE, primal_names::TOADSTOOL),
+    (capabilities::TOADSTOOL_LIST_WORKLOADS, primal_names::TOADSTOOL),
     (capabilities::CRYPTO_HASH, primal_names::BEARDOG),
     (capabilities::INFERENCE_COMPLETE, primal_names::SQUIRREL),
     (capabilities::INFERENCE_EMBED, primal_names::SQUIRREL),
@@ -280,6 +282,40 @@ impl IpcMathClient {
         params: &serde_json::Value,
     ) -> Result<serde_json::Value, IpcError> {
         toadstool::compute_dispatch(self.router.require(capabilities::COMPUTE_DISPATCH)?, params, self.timeout)
+    }
+
+    /// `toadstool.validate` — Tier 2 workload pre-flight validation.
+    ///
+    /// Validates a workload TOML before dispatch. Returns a structured
+    /// result with validity, GPU availability, precision tier, estimated
+    /// dispatch time, warnings, and required capabilities.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if toadStool is not discovered or the call fails.
+    pub fn validate_workload(
+        &self,
+        workload_path: &str,
+        dry_run: bool,
+    ) -> Result<toadstool::ValidateResult, IpcError> {
+        toadstool::validate(
+            self.router.require(capabilities::TOADSTOOL_VALIDATE)?,
+            workload_path,
+            dry_run,
+            self.timeout,
+        )
+    }
+
+    /// `toadstool.list_workloads` — list available workloads.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if toadStool is not discovered or the call fails.
+    pub fn list_workloads(&self) -> Result<serde_json::Value, IpcError> {
+        toadstool::list_workloads(
+            self.router.require(capabilities::TOADSTOOL_LIST_WORKLOADS)?,
+            self.timeout,
+        )
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -570,6 +606,8 @@ mod tests {
         assert!(client.content_put("dGVzdA==", None).is_err());
         assert!(client.content_get("deadbeef").is_err());
         assert!(client.content_exists("deadbeef").is_err());
+        assert!(client.validate_workload("/tmp/test.toml", true).is_err());
+        assert!(client.list_workloads().is_err());
     }
 
     #[test]

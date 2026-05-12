@@ -21,11 +21,15 @@ pub const TENSOR_MATMUL: &str = "tensor.matmul";
 /// Tensor creation.
 pub const TENSOR_CREATE: &str = "tensor.create";
 
-// ─── toadStool surface (compute) ────────────────────────────────
+// ─── toadStool surface (compute + workload) ─────────────────────
 /// General compute dispatch.
 pub const COMPUTE_DISPATCH: &str = "compute.dispatch";
 /// Compute offload.
 pub const COMPUTE_OFFLOAD: &str = "compute.offload";
+/// Workload pre-flight validation (Tier 2 Science API).
+pub const TOADSTOOL_VALIDATE: &str = "toadstool.validate";
+/// List available workloads.
+pub const TOADSTOOL_LIST_WORKLOADS: &str = "toadstool.list_workloads";
 
 // ─── BearDog surface (crypto) ───────────────────────────────────
 /// Cryptographic hashing.
@@ -108,7 +112,7 @@ mod tests {
         let caps = [
             STATS_MEAN, STATS_STD_DEV, STATS_WEIGHTED_MEAN,
             TENSOR_MATMUL, TENSOR_CREATE,
-            COMPUTE_DISPATCH, COMPUTE_OFFLOAD,
+            COMPUTE_DISPATCH, COMPUTE_OFFLOAD, TOADSTOOL_VALIDATE, TOADSTOOL_LIST_WORKLOADS,
             CRYPTO_HASH,
             INFERENCE_COMPLETE, INFERENCE_EMBED, INFERENCE_MODELS,
             SHADER_COMPILE_WGSL, SHADER_COMPILE_CAPABILITIES,

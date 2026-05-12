@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-12 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S202b — River Delta downstream audit response: NestGate IPC wired, Gap 11 upstream drift flagged (May 12, 2026).
-> Prior: S201b doc/header sync + V152 handoff, S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
+> **Session:** S202c — Tier 2 wiring: `toadstool.validate` + `toadstool.list_workloads` IPC wired. `barracuda.precision.route` blocked upstream (not implemented in barraCuda). Wave sync absorption.
+> Prior: S202b NestGate IPC + Gap 11 upstream drift flagged, S201b doc/header sync + V152 handoff, S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---
 
