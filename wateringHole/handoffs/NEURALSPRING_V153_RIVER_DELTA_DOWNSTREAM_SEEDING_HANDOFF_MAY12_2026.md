@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 # neuralSpring V153 — River Delta Downstream Seeding Handoff
 
-**Session**: S202 | **Date**: May 12, 2026 | **Handoff**: V153
+**Session**: S202–S202b | **Date**: May 12, 2026 | **Handoff**: V153
 **Prior**: V152 (S201b, May 11, 2026 — Tier 4 IPC-first + LTEE B1 + foundation seeding)
 
 ---
@@ -195,4 +195,4 @@ node addressing:
 
 ---
 
-*neuralSpring V153 | Session S202 | May 12, 2026*
+*neuralSpring V153 | Sessions S202–S202b | May 12, 2026*

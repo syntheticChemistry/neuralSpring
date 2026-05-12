@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: May 12, 2026 (Session S202 — River Delta downstream seeding. `--format json` all validation binaries. `CapabilityRouter` IPC. guideStone Level 5, 19 certification tests. 703 lib (IPC-first) + 11 integration + 73 forge + 80 playGround = 867 workspace tests + 19 certification. 0 warnings. Cast lints denied. barraCuda v0.3.13. 34 capabilities. V153 handoff.)
+**Last updated**: May 12, 2026 (Session S202b — River Delta audit response. NestGate IPC wired. `--format json` all validation binaries. `CapabilityRouter` IPC. 7 IPC submodule test suites. guideStone Level 5, 19 certification tests. 724 lib + 11 integration + 73 forge + 80 playGround = 888 workspace tests (IPC-first) + 19 certification. 0 warnings. Cast lints denied. barraCuda v0.3.13. 34 capabilities. V153 handoff.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

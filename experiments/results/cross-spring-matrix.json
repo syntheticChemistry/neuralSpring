@@ -1,12 +1,12 @@
 {
   "spring": "neuralSpring",
-  "session": "S188",
-  "date": "2026-05-07",
+  "session": "S202b",
+  "date": "2026-05-12",
   "consumption": {
     "barracuda": {
       "role": "GPU compute engine",
-      "integration": "compile-time path dependency",
-      "version": "v0.3.12",
+      "integration": "optional feature (IPC-first, default = [])",
+      "version": "v0.3.13",
       "usage": {
         "tensor_ops": ["matmul", "create", "reduce", "transpose"],
         "stats": ["mean", "std_dev", "weighted_mean", "correlation", "chi_squared"],

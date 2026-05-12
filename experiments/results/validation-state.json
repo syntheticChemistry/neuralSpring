@@ -1,13 +1,15 @@
 {
   "spring": "neuralSpring",
   "version": "0.1.0",
-  "session": "S201b",
-  "date": "2026-05-11",
+  "session": "S202b",
+  "date": "2026-05-12",
   "tests": {
-    "lib": 1300,
+    "lib": 724,
+    "integration": 11,
     "forge": 73,
     "playground": 80,
-    "total_workspace": 1453,
+    "total_workspace": 888,
+    "total_workspace_barracuda": 1453,
     "proptest_properties": 24,
     "python_baselines": 397,
     "rust_gpu_checks": 4500,
@@ -75,7 +77,7 @@
     "experiments": 134
   },
   "ipc_tree": {
-    "modules": 6,
-    "primals": ["barracuda", "toadstool", "beardog", "squirrel", "coralreef", "skunkbat"]
+    "modules": 7,
+    "primals": ["barracuda", "toadstool", "beardog", "squirrel", "coralreef", "skunkbat", "nestgate"]
   }
 }

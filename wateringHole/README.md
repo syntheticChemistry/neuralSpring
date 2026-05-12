@@ -5,7 +5,7 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V153 — Session S202 (River Delta Downstream Seeding)
+### V153 — Sessions S202–S202b (River Delta Downstream Seeding + Audit Response)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|

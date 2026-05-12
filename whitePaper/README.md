@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–123+, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V152 handoff (Session S201b — IPC-first Tier 4, IpcError, capabilities, workspace deps, 19 cert L5) |
+| `wateringHole/handoffs/` | Cross-project | V153 handoff (Session S202b — River Delta audit, CapabilityRouter IPC, NestGate, `--format json`, Thread 5) |
 
 ---
 
@@ -358,5 +358,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 1,300 lib (693 IPC-first) + 73 forge + 80 playGround = 1,453 workspace tests + 19 certification (guidestone L5). 397 Python + 4500+ Rust/GPU = 4900+ total checks.
-Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 269 binaries (241 require-features gated), 521+ `.rs` files, 34 capabilities, 31 capability constants, Python→Rust→UniBin→NUCLEUS validation stack. guideStone Level 5: 19 certification tests (L0–L5: bare/discovery/parity/nucleus/composition/cross-spring). IPC tree (6 per-primal modules). IPC-first (`default = []`). Stadial `deny.toml` bans. 0 clippy, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V152 handoff. primalSpring v0.9.25+, genomeBin v5.1. barraCuda v0.3.13, toadStool S146+, coralReef Iter 49. CI cross-sync 413 methods. skunkBat JH-5 wired.*
+*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 724 lib + 11 integration + 73 forge + 80 playGround = 888 workspace tests (IPC-first) + 19 certification (guidestone L5). 397 Python + 4500+ Rust/GPU = 4900+ total checks.
+Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 269 binaries (241 require-features gated), 521+ `.rs` files, 34 capabilities, 34 capability constants, Python→Rust→UniBin→NUCLEUS validation stack. guideStone Level 5: 19 certification tests (L0–L5: bare/discovery/parity/nucleus/composition/cross-spring). IPC tree (7 per-primal modules). IPC-first (`default = []`). Stadial `deny.toml` bans. 0 clippy, 0 doc warnings, 0 unsafe, 0 mocks, 0 unused deps. V153 handoff. NestGate IPC wired. CapabilityRouter IPC discovery. primalSpring v0.9.25+, genomeBin v5.1. barraCuda v0.3.13, toadStool S146+, coralReef Iter 49. CI cross-sync 413 methods. skunkBat JH-5 wired.*

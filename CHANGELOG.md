@@ -14,7 +14,10 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **LTEE B1 lithoSpore README** — `control/ltee_mutation_accumulation/README.md` created documenting the Python→Rust validation pipeline, artifact inventory, PRNG differences, and lithoSpore module mapping.
 - **Gap 11 upstream drift flagged** — `primalSpring/docs/PRIMAL_GAPS.md` Layer 3 table still shows Gap 11 as open. Local Gap 11 was resolved S201b (12 RPC, 4 composable, 5 CPU fallback). Flagged in V153 handoff for upstream correction.
 - **PRIMAL_GAPS.md updated** — Gap 5 section rewritten for S202b NestGate wiring progress. Gap 11 upstream note added.
-- **Quality gates** — 704 lib + 11 integration + 73 forge + 80 playGround = 868 workspace tests. Zero failures. Zero clippy warnings.
+- **IPC submodule tests** — All 7 IPC submodules (`barracuda`, `beardog`, `coralreef`, `nestgate`, `skunkbat`, `squirrel`, `toadstool`) now have `#[cfg(test)] mod tests` blocks covering socket-absent error paths, helper functions, and type construction. +20 tests.
+- **projectNUCLEUS graph fix** — `ionic_capability_share.toml` referenced `neuralspring_primal` (source directory name); corrected to `neuralspring` (actual binary name from `Cargo.toml`).
+- **lithoSpore cloned** — `gardens/lithoSpore/` now available locally. Confirmed B1 ingestion contract: `ltee-mutations` expects LSTM prediction, `ltee-alleles` T06 target (HMM/ESN ≥95% accuracy).
+- **Quality gates** — 724 lib + 11 integration + 73 forge + 80 playGround = 888 workspace tests. Zero failures. Zero clippy warnings.
 
 ### 2026-05-12 — Session S202 (River Delta downstream seeding, `--format json` for Tier 2 projectNUCLEUS)
 
