@@ -5,23 +5,29 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
+### V155 — Sessions S203–S203b (Tier 2 Convergence + Deep Debt)
+
+| Version | File | Date | Scope |
+|---------|------|------|-------|
+| **V155** | `handoffs/NEURALSPRING_V155_TIER2_CONVERGENCE_HANDOFF_MAY13_2026.md` | May 13, 2026 | Tier 2 complete: `barracuda.precision.route` wired (v0.4.0). 7 stale lint expects pruned. LTEE B1 tolerances.toml. 907 IPC-first tests. 37 capabilities. 20 CAPABILITY_HINTS. |
+
 ### V154 — Session S202c (Tier 2 Wiring + Deep Debt Audit)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V154** | `handoffs/NEURALSPRING_V154_TIER2_DEEP_DEBT_HANDOFF_MAY12_2026.md` | May 12, 2026 | Tier 2 convergence: `toadstool.validate` + `toadstool.list_workloads` wired. Deep debt audit all-clear (zero unsafe, zero mocks, zero panics, zero TODO). B1 NUCLEUS workload TOML. Foundation Thread 5 ML_SURROGATES wired. 892 IPC-first workspace tests. 36 capabilities. |
+| **V154** | `handoffs/NEURALSPRING_V154_TIER2_DEEP_DEBT_HANDOFF_MAY12_2026.md` | May 12, 2026 | `toadstool.validate` + `toadstool.list_workloads` wired. Deep debt audit all-clear. B1 NUCLEUS workload. 892 tests. 36 capabilities. |
 
-### V153 — Sessions S202–S202b (River Delta Downstream Seeding + Audit Response)
+### V153 — Sessions S202–S202b (River Delta Downstream Seeding)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V153** | `handoffs/NEURALSPRING_V153_RIVER_DELTA_DOWNSTREAM_SEEDING_HANDOFF_MAY12_2026.md` | May 12, 2026 | River Delta downstream seeding: `--format json` all validation binaries, `CapabilityRouter` IPC, foundation Thread 5, NestGate IPC, Gap 11 drift flagged. 888 IPC-first workspace tests. |
+| **V153** | `handoffs/NEURALSPRING_V153_RIVER_DELTA_DOWNSTREAM_SEEDING_HANDOFF_MAY12_2026.md` | May 12, 2026 | `--format json`, CapabilityRouter, Thread 5, NestGate. 888 tests. |
 
 ### V152 (archived)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V152** | `handoffs/archive/NEURALSPRING_V152_TIER4_IPC_FIRST_HANDOFF_MAY11_2026.md` | May 11, 2026 | Tier 4 IPC-first, V152 handoff. |
+| **V152** | `handoffs/archive/NEURALSPRING_V152_TIER4_IPC_FIRST_HANDOFF_MAY11_2026.md` | May 11, 2026 | Tier 4 IPC-first. |
 | **V152** (companion) | `handoffs/archive/NEURALSPRING_V152_PRIMAL_EVOLUTION_UPSTREAM_HANDOFF_MAY11_2026.md` | May 11, 2026 | Upstream primal handoff. |
 
 ### Central wateringHole Copies

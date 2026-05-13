@@ -1,7 +1,7 @@
 {
   "spring": "neuralSpring",
-  "session": "S202c",
-  "date": "2026-05-12",
+  "session": "S203",
+  "date": "2026-05-13",
   "rust_vs_python": {
     "geomean_speedup": 83.6,
     "domains_measured": 11,

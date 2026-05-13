@@ -12,7 +12,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S202c | **Date:** May 12, 2026 | **Version:** 0.1.0
+> **Session:** S203 | **Date:** May 13, 2026 | **Version:** 0.1.0
 > **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 
 ---
@@ -21,7 +21,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 | Metric | Value |
 |--------|-------|
-| **Workspace tests (IPC-first)** | 892 (728 lib + 11 integration + 73 forge + 80 playGround) |
+| **Workspace tests (IPC-first)** | 907 (731 lib + 11 integration + 73 forge + 80 playGround + 12 exp094) |
 | **Proptest properties** | 24 |
 | **Python baselines** | 397/397 PASS |
 | **Rust+GPU checks** | 4,500+ |
@@ -29,7 +29,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 | **Binaries** | 269 (244 validate, 18 bench, 7 other) |
 | **Experiments** | 134 across 11 domains |
 | **Papers reproduced** | 27 (6 faculties) |
-| **Capabilities** | 34 (12 domains) |
+| **Capabilities** | 37 (12 domains) |
 | **Named tolerances** | 233 |
 | **guideStone** | Level 5 — 19 certification tests ALL PASS (L0-L5) |
 | **BTSP** | 13/13 mandatory |
@@ -138,7 +138,7 @@ Remaining batches: 19 papers across 4 additional faculties.
 
 - **Edition**: 2024
 - **MSRV**: 1.87
-- **barraCuda**: v0.3.13
+- **barraCuda**: v0.4.0
 - **primalSpring**: v0.9.25+
 - **genomeBin**: v5.1 (46 binaries, 6 target triples)
 - **Bond type**: Metallic
@@ -156,4 +156,4 @@ Remaining batches: 19 papers across 4 additional faculties.
 
 ---
 
-**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S202c
+**Provenance:** [primals.eco](https://primals.eco) | neuralSpring Session S203

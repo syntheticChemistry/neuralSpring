@@ -5,7 +5,7 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-12 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
+> **Date:** 2026-05-13 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
 > **Session:** S203 — Tier 2 convergence: `barracuda.precision.route` wired (was blocked in S202c, now implemented with 649 tests upstream). `toadstool.validate` + `toadstool.list_workloads` already wired (S202c). LTEE B1 tolerances.toml added. Deep debt audit all-clear (S202c). barraCuda v0.4.0.
 > Prior: S202b NestGate IPC + Gap 11 upstream drift flagged, S201b doc/header sync + V152 handoff, S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 

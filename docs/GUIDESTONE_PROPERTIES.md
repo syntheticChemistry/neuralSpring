@@ -3,7 +3,7 @@
 **Standard**: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
 **Binary**: `neuralspring_guidestone` v0.3.0 (feature-gated: `guidestone`)
 **Level**: 5 (6-layer certification: bare + discovery + parity + nucleus + composition + cross-spring)
-**Date**: May 12, 2026 — Session S202c (Tier 2 toadStool wiring, deep debt audit, 19 certification tests)
+**Date**: May 13, 2026 — Session S203 (Tier 2 complete: toadStool + barraCuda precision.route wired, deep debt all-clear, 19 certification tests)
 
 ---
 
@@ -162,7 +162,7 @@ cargo test --features barracuda,guidestone -p neural-spring --lib certification
 
 ### L4–L5 Evidence (S200 → S201b)
 
-- Composition: deploy graphs validated, capability registry cross-sync (34 capabilities)
+- Composition: deploy graphs validated, capability registry cross-sync (37 capabilities)
 - Cross-spring: frozen artifact hashes, protocol liveness, deterministic hash comparison
 - 19 certification tests across 6 layers
 - IPC-first defaults (`default = []`) — all validation runs without GPU by default

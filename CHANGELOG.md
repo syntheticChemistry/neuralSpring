@@ -15,6 +15,14 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **PRIMAL_GAPS updated** — `barracuda.precision.route` retracted from "blocked upstream" to "wired" (S203). CE4 IPC tree updated to 7 modules, 37 capability constants, 20 hints.
 - **Quality gates** — 731 lib + 11 integration + 73 forge + 80 playGround + 12 exp094 = 907 workspace tests. Zero failures. Zero new clippy warnings.
 
+### 2026-05-13 — Session S203b (Deep debt: stale lint expects + workspace deps)
+
+- **7 stale `#[expect]` annotations pruned** — `cast_precision_loss` removed from `attention_anderson`, `isomorphic_reservoir`, `wdm_ensemble_qs` (lib.rs), `digester_anderson`. `too_many_arguments` removed from `agent_coordination`. `cast_possible_truncation`, `cast_sign_loss`, `too_many_lines` removed from `glucose_prediction/experiment.rs`. `cast_possible_truncation` retained where still triggered (3 modules).
+- **exp094 `serde_json`** — inline `"1"` changed to `{ workspace = true }`.
+- **V155 handoff** — `NEURALSPRING_V155_TIER2_CONVERGENCE_HANDOFF_MAY13_2026.md` covers Tier 2 completion, deep debt S203b findings, LTEE B1 lithoSpore packaging, upstream gaps (primalSpring Gap 11 stale, LIVE_SCIENCE_API.md precision.route stale).
+- **Doc sweep** — all root docs, whitePaper, baseCamp, experiments, specs, sporeprint aligned to S203/V155. infra/wateringHole updated for 907 tests, 37 capabilities, barraCuda v0.4.0.
+- **Quality gates** — 907 workspace tests. Zero failures. Zero unfulfilled lint expectations.
+
 ### 2026-05-12 — Session S202c (Ecosystem Wave Sync: Tier 2 wiring + comprehensive debt audit)
 
 - **Tier 2 `toadstool.validate` wired** — `src/ipc/toadstool.rs` expanded from 1 to 3 methods: `compute_dispatch` (existing), `validate` (new), `list_workloads` (new). `ValidateResult` struct parses the pre-flight response: `valid`, `gpu_available`, `precision_tier`, `estimated_dispatch_time_ms`, `warnings`, `required_capabilities`. `IpcMathClient` facade: `validate_workload`, `list_workloads`.

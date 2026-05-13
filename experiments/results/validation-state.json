@@ -1,14 +1,15 @@
 {
   "spring": "neuralSpring",
   "version": "0.1.0",
-  "session": "S202c",
-  "date": "2026-05-12",
+  "session": "S203",
+  "date": "2026-05-13",
   "tests": {
-    "lib": 728,
+    "lib": 731,
     "integration": 11,
     "forge": 73,
     "playground": 80,
-    "total_workspace": 892,
+    "exp094": 12,
+    "total_workspace": 907,
     "total_workspace_barracuda": 1453,
     "proptest_properties": 24,
     "python_baselines": 397,
@@ -22,7 +23,7 @@
     "other": 7
   },
   "capabilities": {
-    "total": 34,
+    "total": 37,
     "science": 14,
     "health": 3,
     "inference": 3,
