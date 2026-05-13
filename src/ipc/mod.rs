@@ -8,7 +8,7 @@
 //!
 //! | Module       | Primal       | Capabilities |
 //! |--------------|--------------|--------------|
-//! | [`barracuda`] | barraCuda   | `stats.*`, `tensor.*` |
+//! | [`barracuda`] | barraCuda   | `stats.*`, `tensor.*`, `barracuda.precision.route` |
 //! | [`toadstool`] | toadStool   | `compute.dispatch`, `toadstool.validate`, `toadstool.list_workloads` |
 //! | [`beardog`]   | `BearDog`   | `crypto.hash` |
 //! | [`squirrel`]  | Squirrel    | `inference.*` |
@@ -54,6 +54,7 @@ const CAPABILITY_HINTS: &[(&str, &str)] = &[
     (capabilities::STATS_WEIGHTED_MEAN, primal_names::BARRACUDA),
     (capabilities::TENSOR_MATMUL, primal_names::BARRACUDA),
     (capabilities::TENSOR_CREATE, primal_names::BARRACUDA),
+    (capabilities::PRECISION_ROUTE, primal_names::BARRACUDA),
     (capabilities::COMPUTE_DISPATCH, primal_names::TOADSTOOL),
     (capabilities::COMPUTE_OFFLOAD, primal_names::TOADSTOOL),
     (capabilities::TOADSTOOL_VALIDATE, primal_names::TOADSTOOL),
@@ -121,7 +122,7 @@ impl CapabilityRouter {
     fn discovered_primals(&self) -> Vec<&PathBuf> {
         let mut seen = Vec::new();
         for path in self.routes.values() {
-            if !seen.iter().any(|p: &&PathBuf| *p == path) {
+            if !seen.contains(&path) {
                 seen.push(path);
             }
         }
@@ -266,6 +267,28 @@ impl IpcMathClient {
     /// Returns an error if no primal provides this capability or the call fails.
     pub fn tensor_create(&self, shape: &[usize], fill: &str) -> Result<serde_json::Value, IpcError> {
         barracuda::tensor_create(self.router.require(capabilities::TENSOR_CREATE)?, shape, fill, self.timeout)
+    }
+
+    /// `barracuda.precision.route` — query optimal precision strategy
+    /// for a domain operation.
+    ///
+    /// Returns the recommended precision tier (f32/f64/DF64/mixed),
+    /// FMA safety, sovereign compiler requirement, and optional rationale.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if barraCuda is not discovered or the call fails.
+    pub fn precision_route(
+        &self,
+        domain: &str,
+        hardware_hint: Option<&str>,
+    ) -> Result<barracuda::PrecisionRouteResult, IpcError> {
+        barracuda::precision_route(
+            self.router.require(capabilities::PRECISION_ROUTE)?,
+            domain,
+            hardware_hint,
+            self.timeout,
+        )
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -608,6 +631,7 @@ mod tests {
         assert!(client.content_exists("deadbeef").is_err());
         assert!(client.validate_workload("/tmp/test.toml", true).is_err());
         assert!(client.list_workloads().is_err());
+        assert!(client.precision_route("lattice_qcd", None).is_err());
     }
 
     #[test]

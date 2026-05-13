@@ -5,7 +5,15 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-12 (Session 202c: Tier 2 wiring + deep debt sweep)
+## [Unreleased] — 2026-05-13 (Session 203: Tier 2 convergence wave)
+
+### 2026-05-13 — Session S203 (Tier 2 convergence: precision.route + lithoSpore tightening)
+
+- **`barracuda.precision.route` wired** — `src/ipc/barracuda.rs` gains `precision_route()` function and `PrecisionRouteResult` struct parsing `recommended_tier`, `fma_safe`, `requires_compiler`, `hardware_hint`, and `rationale`. `capabilities::PRECISION_ROUTE` constant added. `CAPABILITY_HINTS` expanded from 19 to 20 entries. `IpcMathClient::precision_route()` facade method added. Was blocked upstream in S202c — now unblocked (barraCuda 649 tests). barraCuda v0.4.0.
+- **Clippy fix** — `discovered_primals()` refactored from `iter().any()` to `contains()` (clippy `manual_contains`).
+- **LTEE B1 tolerances** — `control/ltee_mutation_accumulation/tolerances.toml` added with cross-language (1e-10), neutral model (15% relative), mutation rate bounds, and power-law exponent constraints. Completes lithoSpore module packaging.
+- **PRIMAL_GAPS updated** — `barracuda.precision.route` retracted from "blocked upstream" to "wired" (S203). CE4 IPC tree updated to 7 modules, 37 capability constants, 20 hints.
+- **Quality gates** — 731 lib + 11 integration + 73 forge + 80 playGround + 12 exp094 = 907 workspace tests. Zero failures. Zero new clippy warnings.
 
 ### 2026-05-12 — Session S202c (Ecosystem Wave Sync: Tier 2 wiring + comprehensive debt audit)
 

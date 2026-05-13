@@ -9,7 +9,7 @@
 //! neuralSpring only knows *what* it needs (a capability), not *who*
 //! provides it. Discovery handles the routing.
 
-// ─── barraCuda surface (stats + tensor) ──────────────────────────
+// ─── barraCuda surface (stats + tensor + precision) ─────────────
 /// Statistical mean.
 pub const STATS_MEAN: &str = "stats.mean";
 /// Standard deviation.
@@ -20,6 +20,8 @@ pub const STATS_WEIGHTED_MEAN: &str = "stats.weighted_mean";
 pub const TENSOR_MATMUL: &str = "tensor.matmul";
 /// Tensor creation.
 pub const TENSOR_CREATE: &str = "tensor.create";
+/// Domain-specific precision routing (Tier 2 Science API).
+pub const PRECISION_ROUTE: &str = "barracuda.precision.route";
 
 // ─── toadStool surface (compute + workload) ─────────────────────
 /// General compute dispatch.
@@ -111,7 +113,7 @@ mod tests {
     fn all_capabilities_are_dotted() {
         let caps = [
             STATS_MEAN, STATS_STD_DEV, STATS_WEIGHTED_MEAN,
-            TENSOR_MATMUL, TENSOR_CREATE,
+            TENSOR_MATMUL, TENSOR_CREATE, PRECISION_ROUTE,
             COMPUTE_DISPATCH, COMPUTE_OFFLOAD, TOADSTOOL_VALIDATE, TOADSTOOL_LIST_WORKLOADS,
             CRYPTO_HASH,
             INFERENCE_COMPLETE, INFERENCE_EMBED, INFERENCE_MODELS,

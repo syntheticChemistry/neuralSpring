@@ -6,7 +6,7 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-12 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S202c — Tier 2 wiring: `toadstool.validate` + `toadstool.list_workloads` IPC wired. `barracuda.precision.route` blocked upstream (not implemented in barraCuda). Wave sync absorption.
+> **Session:** S203 — Tier 2 convergence: `barracuda.precision.route` wired (was blocked in S202c, now implemented with 649 tests upstream). `toadstool.validate` + `toadstool.list_workloads` already wired (S202c). LTEE B1 tolerances.toml added. Deep debt audit all-clear (S202c). barraCuda v0.4.0.
 > Prior: S202b NestGate IPC + Gap 11 upstream drift flagged, S201b doc/header sync + V152 handoff, S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
 
 ---
@@ -60,16 +60,17 @@ enabling IPC-first sovereign deployment. GPU-centric library modules are
 gated behind `#[cfg(feature = "barracuda")]`. exp094 validates `stats.mean`
 parity over IPC via `validate_parity()`.
 
-**Current state (S201b):** `default = []` — barracuda is no longer linked by default.
+**Current state (S203):** `default = []` — barracuda is no longer linked by default.
 48 files feature-gated. 241 `required-features` bins. CPU fallbacks for 12 functions.
 `IpcError` typed hierarchy replaces `Result<_, String>` across IPC tree (`src/ipc/`).
-693 tests pass IPC-first (no barracuda), 1,300 with `--features barracuda`.
-18 barraCuda IPC surface gaps remain (gap 11) — tracked upstream.
+731 lib tests pass IPC-first (no barracuda). Gap 11 CLOSED (S201b).
+`barracuda.precision.route` wired (S203) — domain-specific precision routing
+via IPC replaces hardcoded precision choices. `PrecisionRouteResult` typed response.
 
 **Evolution path:**
-- barraCuda surface expansion (gap 11: 18 methods) for full L5 domain parity
+- Full inference pipeline via WGSL shader composition (coralReef + barraCuda + toadStool)
 
-**Hand back to:** barraCuda (18 remaining IPC surface methods)
+**Hand back to:** N/A — all barraCuda IPC gaps closed
 
 ---
 
@@ -505,14 +506,16 @@ socket, calls via IPC, and validates parity. Exit codes 0/1/2.
 ### CE4. IPC Tree (`src/ipc/`)
 
 **Status:** implemented (Apr 17 2026 → S201b: `ipc_dispatch` removed, per-primal tree)
-**Details:** The per-primal `src/ipc/` tree (6 modules: barracuda, toadstool, beardog,
-squirrel, coralreef, skunkbat) provides the IPC counterpart to `gpu_dispatch::Dispatcher`.
+**Details:** The per-primal `src/ipc/` tree (7 modules: barracuda, toadstool, beardog,
+squirrel, coralreef, skunkbat, nestgate) provides the IPC counterpart to `gpu_dispatch::Dispatcher`.
 Wraps `stats.mean`, `stats.std_dev`, `stats.weighted_mean`, `tensor.matmul`,
-`tensor.create`, `compute.dispatch`, `crypto.hash`, `inference.complete`,
-`inference.embed` as typed Rust methods routing through JSON-RPC IPC. Discovery-based
-(env-driven sockets, no hardcoded paths). Returns `Result<_, IpcError>` with typed
-error variants (`NotDiscovered`, `Transport`, `Protocol`). Capability constants
-centralized in `src/capabilities.rs` (31 constants).
+`tensor.create`, `barracuda.precision.route`, `compute.dispatch`, `toadstool.validate`,
+`toadstool.list_workloads`, `crypto.hash`, `inference.complete`, `inference.embed`,
+`content.put`, `content.get`, `content.exists` as typed Rust methods routing through
+JSON-RPC IPC. Discovery-based (env-driven sockets, no hardcoded paths). Returns
+`Result<_, IpcError>` with typed error variants (`NotDiscovered`, `Transport`,
+`Protocol`). Capability constants centralized in `src/capabilities.rs` (37 constants).
+`CapabilityRouter` maps 20 capability hints to 7 primals.
 
 ### CE5. Stadial `deny.toml` Enforcement
 

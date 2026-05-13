@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# neuralSpring — LTEE B1 mutation accumulation tolerances
+#
+# Cross-language tolerance for Python→Rust numeric parity.
+# Used by validate_ltee_b1_mutation_accumulation checks.
+
+[cross_language]
+# Python float64 → Rust f64 parity (IEEE 754 deterministic).
+absolute = 1e-10
+description = "Strict cross-language parity for IEEE 754 f64 operations"
+
+[neutral_model]
+# Residual between neutral-model prediction and observed mutation count.
+relative = 0.15
+description = "Neutral-model fit allows ≤15% relative residual per time point"
+
+[mutation_rate]
+# Biologically plausible mutation rate bounds (per genome per generation).
+lower = 1e-5
+upper = 1e-1
+description = "Barrick 2009 Table S1 plausible range"
+
+[power_law_exponent]
+# Mutation accumulation exponent must be sublinear (< 1.0).
+upper = 1.0
+description = "Sublinear accumulation expected for non-mutator strain"

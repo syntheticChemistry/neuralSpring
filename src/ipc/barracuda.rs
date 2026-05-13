@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! barraCuda IPC surface — tensor lifecycle, core math, and ML ops.
+//! barraCuda IPC surface — tensor lifecycle, core math, ML ops, and
+//! precision routing.
 //!
 //! Methods: `stats.mean`, `stats.std_dev`, `stats.weighted_mean`,
-//! `tensor.matmul`, `tensor.create`.
+//! `tensor.matmul`, `tensor.create`, `barracuda.precision.route`.
 
 use std::path::Path;
 use std::time::Duration;
@@ -123,6 +124,78 @@ pub fn tensor_create(
     )?)
 }
 
+/// Parsed result from `barracuda.precision.route`.
+#[derive(Debug)]
+pub struct PrecisionRouteResult {
+    /// Recommended precision tier (e.g. `"f32"`, `"f64"`, `"DF64"`).
+    pub recommended_tier: String,
+    /// Whether fused multiply-add is safe for this domain.
+    pub fma_safe: bool,
+    /// Whether the sovereign shader compiler is required.
+    pub requires_compiler: bool,
+    /// Hardware hint echoed back (advisory).
+    pub hardware_hint: String,
+    /// Human-readable rationale for the recommendation.
+    pub rationale: Option<String>,
+}
+
+impl PrecisionRouteResult {
+    fn from_value(v: &serde_json::Value) -> Self {
+        Self {
+            recommended_tier: v
+                .get("recommended_tier")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("f64")
+                .to_owned(),
+            fma_safe: v
+                .get("fma_safe")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
+            requires_compiler: v
+                .get("requires_compiler")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
+            hardware_hint: v
+                .get("hardware_hint")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("")
+                .to_owned(),
+            rationale: v
+                .get("rationale")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned),
+        }
+    }
+}
+
+/// `barracuda.precision.route` via barraCuda IPC.
+///
+/// Queries the optimal precision strategy for a given domain operation.
+/// Returns the recommended tier, FMA safety, compiler requirement, and
+/// optional rationale.
+///
+/// # Errors
+///
+/// Returns an error if barraCuda is not reachable or the response is malformed.
+pub fn precision_route(
+    socket: &Path,
+    domain: &str,
+    hardware_hint: Option<&str>,
+    timeout: Duration,
+) -> Result<PrecisionRouteResult, IpcError> {
+    let mut params = serde_json::json!({ "domain": domain });
+    if let Some(hint) = hardware_hint {
+        params["hardware_hint"] = serde_json::Value::String(hint.to_owned());
+    }
+    let result = call_capability(
+        socket,
+        capabilities::PRECISION_ROUTE,
+        &params,
+        timeout,
+    )?;
+    Ok(PrecisionRouteResult::from_value(&result))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -171,5 +244,39 @@ mod tests {
     fn tensor_create_returns_err_for_nonexistent_socket() {
         let result = tensor_create(Path::new(FAKE_SOCKET), &[2, 3], "zeros", TIMEOUT);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn precision_route_returns_err_for_nonexistent_socket() {
+        let result = precision_route(Path::new(FAKE_SOCKET), "lattice_qcd", None, TIMEOUT);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn precision_route_result_from_value_defaults() {
+        let v = serde_json::json!({});
+        let r = PrecisionRouteResult::from_value(&v);
+        assert_eq!(r.recommended_tier, "f64");
+        assert!(!r.fma_safe);
+        assert!(!r.requires_compiler);
+        assert_eq!(r.hardware_hint, "");
+        assert!(r.rationale.is_none());
+    }
+
+    #[test]
+    fn precision_route_result_from_value_full() {
+        let v = serde_json::json!({
+            "recommended_tier": "DF64",
+            "fma_safe": true,
+            "requires_compiler": true,
+            "hardware_hint": "compute",
+            "rationale": "lattice QCD needs double-float precision"
+        });
+        let r = PrecisionRouteResult::from_value(&v);
+        assert_eq!(r.recommended_tier, "DF64");
+        assert!(r.fma_safe);
+        assert!(r.requires_compiler);
+        assert_eq!(r.hardware_hint, "compute");
+        assert_eq!(r.rationale.as_deref(), Some("lattice QCD needs double-float precision"));
     }
 }
