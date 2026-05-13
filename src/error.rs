@@ -144,6 +144,11 @@ pub enum IpcError {
         /// What was wrong with the response.
         reason: String,
     },
+
+    /// A general IPC-related error that doesn't fit other variants
+    /// (e.g. encoding failures, file I/O during weight persistence).
+    #[error("ipc: {0}")]
+    Other(String),
 }
 
 /// Top-level library error type.

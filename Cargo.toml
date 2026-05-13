@@ -33,6 +33,7 @@ toml = "0.8"
 pollster = "0.4"
 temp-env = "0.3"
 approx = "0.5"
+base64 = "0.22"
 proptest = "1"
 serial_test = "3"
 
@@ -62,6 +63,7 @@ repository = "https://github.com/ecoPrimals/neuralSpring"
 [dependencies]
 barracuda = { workspace = true, optional = true }
 neural-spring-forge = { path = "metalForge/forge", optional = true }
+base64 = { workspace = true }
 bytemuck = { workspace = true }
 safetensors = { workspace = true }
 serde = { workspace = true }

@@ -186,6 +186,12 @@ impl IpcMathClient {
         self.router.get(capabilities::SHADER_COMPILE_WGSL).is_some()
     }
 
+    /// Whether the Squirrel primal was discovered.
+    #[must_use]
+    pub fn has_squirrel(&self) -> bool {
+        self.router.get(capabilities::INFERENCE_COMPLETE).is_some()
+    }
+
     /// Probe liveness of all discovered primals.
     #[must_use]
     pub fn probe_all(&self) -> IpcLivenessReport {
@@ -377,6 +383,15 @@ impl IpcMathClient {
     /// Returns an error if no primal provides this capability or the call fails.
     pub fn inference_embed(&self, params: &serde_json::Value) -> Result<serde_json::Value, IpcError> {
         squirrel::inference_embed(self.router.require(capabilities::INFERENCE_EMBED)?, params, self.timeout)
+    }
+
+    /// `inference.models` — list available models via Squirrel.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no primal provides this capability or the call fails.
+    pub fn inference_models(&self) -> Result<serde_json::Value, IpcError> {
+        squirrel::inference_models(self.router.require(capabilities::INFERENCE_MODELS)?, self.timeout)
     }
 
     // ═══════════════════════════════════════════════════════════════

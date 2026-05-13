@@ -5,7 +5,13 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V156 — Session S204 (Deep Debt Resolution + Evolution Sprint)
+### V157 — Session S205 (Niche Convergence → Atomic Deployment)
+
+| Version | File | Date | Scope |
+|---------|------|------|-------|
+| **V157** | `handoffs/NEURALSPRING_V157_NICHE_CONVERGENCE_ATOMIC_DEPLOYMENT_HANDOFF_MAY13_2026.md` | May 13, 2026 | NestGate weight persistence wired (store/load safetensors via BLAKE3). Squirrel inference_models + has_squirrel. Wire hygiene verified. plasmidBin ready. 910 tests. |
+
+### V156 — Session S204b (Deep Debt Resolution + Evolution Sprint)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|

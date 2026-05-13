@@ -5,7 +5,18 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-13 (Sessions 203–204: Tier 2 convergence + niche atomic + deep debt)
+## [Unreleased] — 2026-05-13 (Sessions 203–205: Tier 2 convergence + niche atomic + deployment)
+
+### 2026-05-13 — Session S205 (Niche convergence → atomic deployment)
+
+- **NestGate weight persistence** — `weight_loader.rs` gains `store_to_nestgate`, `load_safetensors_from_nestgate`, `load_safetensors_layer_from_nestgate`. Model artifacts are now round-trippable through NestGate content-addressed storage via BLAKE3 hash-as-key. `base64` dependency added for encode/decode.
+- **Squirrel inference pipeline completed** — `IpcMathClient::inference_models()` facade added (was missing). `has_squirrel()` discovery convenience method. Full inference composition scenario exercises `complete`, `embed`, `models`, and round-trip.
+- **`IpcError::Other`** — new variant for general IPC errors (encoding, file I/O during weight persistence).
+- **Wire name hygiene verified** — `crypto.hash` (BearDog) and `security.audit_log` (skunkBat) confirmed correct across all IPC call sites.
+- **plasmidBin verified** — `harvest_ecobin.sh`, `manifest.toml` niche, and checksums all deployment-ready.
+- **Foundation threads** — Threads 4, 9, 10 confirmed with expressions. neuralSpring's domain threads (3, 5, 7) fully covered.
+- **V157 handoff** — niche convergence handoff per primalSpring atomic deployment directive.
+- **Quality gates** — 910 workspace tests (IPC-first). Zero failures. Clippy clean.
 
 ### 2026-05-13 — Session S204b (Deep debt resolution + evolution sprint)
 

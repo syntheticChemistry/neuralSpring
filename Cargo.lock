@@ -1105,6 +1105,7 @@ dependencies = [
  "anyhow",
  "approx",
  "barracuda",
+ "base64",
  "bytemuck",
  "clap",
  "env_logger",
