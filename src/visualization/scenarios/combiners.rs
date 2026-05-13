@@ -25,6 +25,23 @@ use super::{
     training_study, wdm_ensemble_qs_study, wdm_study,
 };
 
+fn merge_tracks(
+    scenario: &mut NeuralScenario,
+    tracks: Vec<(NeuralScenario, Vec<ScenarioEdge>)>,
+    offsets: &[(f64, f64)],
+) -> Vec<ScenarioEdge> {
+    let mut all_edges = Vec::new();
+    for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
+        for mut n in track.ecosystem.primals {
+            n.position.x += offset.0;
+            n.position.y += offset.1;
+            scenario.ecosystem.primals.push(n);
+        }
+        all_edges.append(&mut edges);
+    }
+    all_edges
+}
+
 /// Build a combined all-tracks scenario for the complete neuralSpring study.
 ///
 /// Merges all 21 tracks into a single graph with cross-track edges: the
@@ -64,39 +81,15 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         );
 
         let offsets: [(f64, f64); 21] = [
-            (0.0, 0.0),
-            (0.0, 500.0),
-            (600.0, 0.0),
-            (600.0, 500.0),
-            (300.0, 800.0),
-            (900.0, 0.0),
-            (900.0, 500.0),
-            (1200.0, 0.0),
-            (1200.0, 500.0),
-            (1500.0, 0.0),
-            (1500.0, 500.0),
-            (300.0, 1200.0),
-            (1800.0, 0.0),
-            (1800.0, 500.0),
-            (2100.0, 0.0),
-            (2100.0, 500.0),
-            (0.0, 1600.0),
-            (600.0, 1600.0),
-            (1200.0, 1600.0),
-            (1800.0, 1600.0),
-            (2400.0, 1600.0),
+            (0.0, 0.0), (0.0, 500.0), (600.0, 0.0), (600.0, 500.0),
+            (300.0, 800.0), (900.0, 0.0), (900.0, 500.0), (1200.0, 0.0),
+            (1200.0, 500.0), (1500.0, 0.0), (1500.0, 500.0), (300.0, 1200.0),
+            (1800.0, 0.0), (1800.0, 500.0), (2100.0, 0.0), (2100.0, 500.0),
+            (0.0, 1600.0), (600.0, 1600.0), (1200.0, 1600.0),
+            (1800.0, 1600.0), (2400.0, 1600.0),
         ];
 
-        let mut all_edges = Vec::new();
-        for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
-            for mut n in track.ecosystem.primals {
-                n.position.x += offset.0;
-                n.position.y += offset.1;
-                s.ecosystem.primals.push(n);
-            }
-            all_edges.append(&mut edges);
-        }
-
+        let mut all_edges = merge_tracks(&mut s, tracks, &offsets);
         all_edges.extend(cross_track_edges());
 
         return (s, all_edges);
@@ -123,27 +116,12 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         );
 
         let offsets: [(f64, f64); 9] = [
-            (300.0, 800.0),
-            (900.0, 0.0),
-            (900.0, 500.0),
-            (1500.0, 0.0),
-            (1500.0, 500.0),
-            (1800.0, 0.0),
-            (1800.0, 500.0),
-            (2100.0, 0.0),
-            (2100.0, 500.0),
+            (300.0, 800.0), (900.0, 0.0), (900.0, 500.0),
+            (1500.0, 0.0), (1500.0, 500.0), (1800.0, 0.0),
+            (1800.0, 500.0), (2100.0, 0.0), (2100.0, 500.0),
         ];
 
-        let mut all_edges = Vec::new();
-        for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
-            for mut n in track.ecosystem.primals {
-                n.position.x += offset.0;
-                n.position.y += offset.1;
-                s.ecosystem.primals.push(n);
-            }
-            all_edges.append(&mut edges);
-        }
-
+        let all_edges = merge_tracks(&mut s, tracks, &offsets);
         (s, all_edges)
     }
 }
@@ -179,16 +157,7 @@ pub fn composition_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
             (600.0, 600.0),
         ];
 
-        let mut all_edges = Vec::new();
-        for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
-            for mut n in track.ecosystem.primals {
-                n.position.x += offset.0;
-                n.position.y += offset.1;
-                s.ecosystem.primals.push(n);
-            }
-            all_edges.append(&mut edges);
-        }
-
+        let mut all_edges = merge_tracks(&mut s, tracks, &offsets);
         all_edges.extend(composition_cross_edges());
 
         return (s, all_edges);
@@ -202,18 +171,7 @@ pub fn composition_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
             "Subset of composition tracks available without BarraCUDA: introgression NN only.",
         );
 
-        let offsets = [(0.0, 0.0)];
-
-        let mut all_edges = Vec::new();
-        for ((track, mut edges), offset) in tracks.into_iter().zip(offsets) {
-            for mut n in track.ecosystem.primals {
-                n.position.x += offset.0;
-                n.position.y += offset.1;
-                s.ecosystem.primals.push(n);
-            }
-            all_edges.append(&mut edges);
-        }
-
+        let all_edges = merge_tracks(&mut s, tracks, &[(0.0, 0.0)]);
         (s, all_edges)
     }
 }

@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 13, 2026 (Session S203 — Tier 2 convergence: `barracuda.precision.route` wired (was blocked, now 649 tests upstream). `PrecisionRouteResult` typed response. LTEE B1 `tolerances.toml` for lithoSpore. barraCuda v0.4.0. 731 lib + 11 integration + 73 forge + 80 playGround + 12 exp094 = 907 workspace tests (IPC-first). Zero warnings. V155 handoff).
+**Last updated**: May 13, 2026 (Session S204 — Upstream clear: all 13 primals shipped glacial debt. `relu` const fn, LTEE B1 `mul_add` evolution, `merge_tracks` extract, doc backtick sweep. barraCuda v0.4.0 (72 REGISTERED_METHODS, LAMMPS+SciPy+Kokkos parity). 907 workspace tests (IPC-first). Clippy clean. V155 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

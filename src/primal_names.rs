@@ -47,7 +47,7 @@ pub const BARRACUDA: &str = "barracuda";
 /// Defensive network security primal (metadata-only reconnaissance, threat detection).
 pub const SKUNKBAT: &str = "skunkbat";
 
-/// biomeOS orchestrator.
+/// `biomeOS` orchestrator.
 pub const BIOMEOS: &str = "biomeos";
 
 /// Display names for presentation contexts (dashboards, reports, handoffs).
@@ -57,29 +57,29 @@ pub const BIOMEOS: &str = "biomeos";
 pub mod display {
     /// Display name for the `barraCuda` primal.
     pub const BARRACUDA: &str = "barraCuda";
-    /// Display name for the toadStool primal.
+    /// Display name for the `toadStool` primal.
     pub const TOADSTOOL: &str = "toadStool";
-    /// Display name for the coralReef primal.
+    /// Display name for the `coralReef` primal.
     pub const CORALREEF: &str = "coralReef";
-    /// Display name for the BearDog primal.
+    /// Display name for the `BearDog` primal.
     pub const BEARDOG: &str = "BearDog";
-    /// Display name for the Songbird primal.
+    /// Display name for the `Songbird` primal.
     pub const SONGBIRD: &str = "Songbird";
-    /// Display name for the Squirrel primal.
+    /// Display name for the `Squirrel` primal.
     pub const SQUIRREL: &str = "Squirrel";
-    /// Display name for the petalTongue primal.
+    /// Display name for the `petalTongue` primal.
     pub const PETALTONGUE: &str = "petalTongue";
-    /// Display name for the biomeOS orchestrator.
+    /// Display name for the `biomeOS` orchestrator.
     pub const BIOMEOS: &str = "biomeOS";
-    /// Display name for the NestGate primal.
+    /// Display name for the `NestGate` primal.
     pub const NESTGATE: &str = "NestGate";
-    /// Display name for the skunkBat primal.
+    /// Display name for the `skunkBat` primal.
     pub const SKUNKBAT: &str = "skunkBat";
-    /// Display name for the rhizoCrypt primal.
+    /// Display name for the `rhizoCrypt` primal.
     pub const RHIZOCRYPT: &str = "rhizoCrypt";
-    /// Display name for the loamSpine primal.
+    /// Display name for the `loamSpine` primal.
     pub const LOAMSPINE: &str = "loamSpine";
-    /// Display name for the sweetGrass primal.
+    /// Display name for the `sweetGrass` primal.
     pub const SWEETGRASS: &str = "sweetGrass";
 
     /// Display name for the neuralSpring spring.
@@ -100,13 +100,13 @@ pub mod display {
 
 /// Provenance trio capability domains (used in `capability.call`).
 pub mod domains {
-    /// rhizoCrypt DAG session domain.
+    /// `rhizoCrypt` DAG session domain.
     pub const DAG: &str = "dag";
-    /// loamSpine commit/certificate domain.
+    /// `loamSpine` commit/certificate domain.
     pub const COMMIT: &str = "commit";
-    /// sweetGrass provenance/attribution domain.
+    /// `sweetGrass` provenance/attribution domain.
     pub const PROVENANCE: &str = "provenance";
-    /// toadStool compute dispatch domain.
+    /// `toadStool` compute dispatch domain.
     pub const COMPUTE: &str = "compute";
 }
 

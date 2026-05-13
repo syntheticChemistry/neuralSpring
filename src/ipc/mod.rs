@@ -14,7 +14,7 @@
 //! | [`squirrel`]  | Squirrel    | `inference.*` |
 //! | [`coralreef`] | coralReef   | `shader.compile.*` |
 //! | [`skunkbat`]  | skunkBat    | `security.audit_log` |
-//! | [`nestgate`]  | NestGate    | `content.put`, `content.get` |
+//! | [`nestgate`]  | `NestGate`  | `content.put`, `content.get` |
 //!
 //! ## Capability-Based Discovery
 //!
@@ -432,7 +432,7 @@ impl IpcMathClient {
         self.router.get(capabilities::SECURITY_AUDIT_LOG).is_some()
     }
 
-    /// Whether the NestGate primal was discovered.
+    /// Whether the `NestGate` primal was discovered.
     #[must_use]
     pub fn has_nestgate(&self) -> bool {
         self.router.get(capabilities::CONTENT_PUT).is_some()
@@ -442,7 +442,7 @@ impl IpcMathClient {
     // NestGate surface (routed via content.*)
     // ═══════════════════════════════════════════════════════════════
 
-    /// `content.put` — store content-addressed data via NestGate.
+    /// `content.put` — store content-addressed data via `NestGate`.
     ///
     /// Returns the BLAKE3 hash and metadata on success.
     ///
@@ -518,7 +518,7 @@ pub enum PrimalSlot {
     Coralreef = 4,
     /// skunkBat.
     Skunkbat = 5,
-    /// NestGate.
+    /// `NestGate`.
     Nestgate = 6,
 }
 

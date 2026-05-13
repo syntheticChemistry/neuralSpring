@@ -346,8 +346,8 @@ pub fn softmax(x: &[f64]) -> Vec<f64> {
 /// |----------------|-------|
 /// | `Tensor::relu()` | GPU elementwise |
 #[must_use]
-pub fn relu(x: f64) -> f64 {
-    x.max(0.0)
+pub const fn relu(x: f64) -> f64 {
+    if x > 0.0 { x } else { 0.0 }
 }
 
 /// Scalar f32 `ReLU` for GPU validation.

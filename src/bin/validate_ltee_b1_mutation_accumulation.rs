@@ -45,9 +45,9 @@ fn polyfit_1(x: &[f64], y: &[f64]) -> (f64, f64) {
     let sy: f64 = y.iter().sum();
     let sxx: f64 = x.iter().map(|&v| v * v).sum();
     let sxy: f64 = x.iter().zip(y).map(|(&xi, &yi)| xi * yi).sum();
-    let denom = n * sxx - sx * sx;
-    let slope = (n * sxy - sx * sy) / denom;
-    let intercept = (sy - slope * sx) / n;
+    let denom = n.mul_add(sxx, -(sx * sx));
+    let slope = n.mul_add(sxy, -(sx * sy)) / denom;
+    let intercept = slope.mul_add(-sx, sy) / n;
     (slope, intercept)
 }
 
@@ -61,7 +61,7 @@ fn interp_linear(xp: &[f64], fp: &[f64], x: f64) -> f64 {
     for i in 0..xp.len() - 1 {
         if x >= xp[i] && x <= xp[i + 1] {
             let t = (x - xp[i]) / (xp[i + 1] - xp[i]);
-            return fp[i] + t * (fp[i + 1] - fp[i]);
+            return t.mul_add(fp[i + 1] - fp[i], fp[i]);
         }
     }
     fp[fp.len() - 1]
@@ -109,27 +109,21 @@ fn lstm_forward(gen_norm: &[f64], seed: u64) -> Vec<f64> {
     predictions
 }
 
-fn main() {
-    log::set_max_level(log::LevelFilter::Info);
-    // ValidationHarness uses log::info! — set a simple logger for standalone binaries
-    struct SimpleLogger;
-    impl log::Log for SimpleLogger {
-        fn enabled(&self, metadata: &log::Metadata<'_>) -> bool {
-            metadata.level() <= log::Level::Info
-        }
-        fn log(&self, record: &log::Record<'_>) {
-            if self.enabled(record.metadata()) {
-                eprintln!("{}", record.args());
-            }
-        }
-        fn flush(&self) {}
+struct SimpleLogger;
+impl log::Log for SimpleLogger {
+    fn enabled(&self, metadata: &log::Metadata<'_>) -> bool {
+        metadata.level() <= log::Level::Info
     }
-    static LOGGER: SimpleLogger = SimpleLogger;
-    let _ = log::set_logger(&LOGGER);
-    log::set_max_level(log::LevelFilter::Info);
+    fn log(&self, record: &log::Record<'_>) {
+        if self.enabled(record.metadata()) {
+            eprintln!("{}", record.args());
+        }
+    }
+    fn flush(&self) {}
+}
+static LOGGER: SimpleLogger = SimpleLogger;
 
-    let mut h = ValidationHarness::new("LTEE B1: Mutation Accumulation (Barrick 2009)");
-
+fn run_checks(h: &mut ValidationHarness) {
     let total = total_mutations();
 
     // ── Check 1: Data monotonicity ──────────────────────────────────
@@ -183,7 +177,7 @@ fn main() {
     let max_residual = GENERATIONS
         .iter()
         .zip(total.iter())
-        .map(|(&g, &m)| (m - (rate * g + intercept)).abs())
+        .map(|(&g, &m)| (m - rate.mul_add(g, intercept)).abs())
         .fold(0.0_f64, f64::max);
     let relative_residual = max_residual / total[5];
 
@@ -235,5 +229,13 @@ fn main() {
         (1e-4..1e-2).contains(&rate),
     );
 
+}
+
+fn main() {
+    let _ = log::set_logger(&LOGGER);
+    log::set_max_level(log::LevelFilter::Info);
+
+    let mut h = ValidationHarness::new("LTEE B1: Mutation Accumulation (Barrick 2009)");
+    run_checks(&mut h);
     h.finish();
 }

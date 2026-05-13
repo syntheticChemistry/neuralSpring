@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! NestGate IPC surface — content-addressed storage for model weights.
+//! `NestGate` IPC surface — content-addressed storage for model weights.
 //!
 //! Methods: `content.put`, `content.get`, `content.exists`.
 //!
-//! NestGate provides content-addressed storage with BLAKE3 hash-as-key
+//! `NestGate` provides content-addressed storage with BLAKE3 hash-as-key
 //! and automatic deduplication. Model weights are stored as base64-encoded
 //! blobs; the returned hash serves as a stable identifier for retrieval
 //! across sessions and springs.
@@ -15,14 +15,14 @@ use std::time::Duration;
 use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
-/// Store content-addressed data via NestGate `content.put`.
+/// Store content-addressed data via `NestGate` `content.put`.
 ///
-/// The payload is base64-encoded before sending. NestGate returns a
+/// The payload is base64-encoded before sending. `NestGate` returns a
 /// BLAKE3 hash (64-char hex) that serves as the retrieval key.
 ///
 /// # Errors
 ///
-/// Returns an error if the IPC call to NestGate fails or times out.
+/// Returns an error if the IPC call to `NestGate` fails or times out.
 pub fn content_put(
     socket: &Path,
     data_base64: &str,
@@ -59,7 +59,7 @@ pub fn content_put(
     })
 }
 
-/// Retrieve content-addressed data via NestGate `content.get`.
+/// Retrieve content-addressed data via `NestGate` `content.get`.
 ///
 /// Takes a BLAKE3 hash (64-char hex) and returns the base64-encoded payload.
 ///
@@ -99,7 +99,7 @@ pub fn content_get(
     })
 }
 
-/// Check whether content exists via NestGate `content.exists`.
+/// Check whether content exists via `NestGate` `content.exists`.
 ///
 /// # Errors
 ///

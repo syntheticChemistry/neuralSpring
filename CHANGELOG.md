@@ -5,7 +5,17 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-13 (Session 203: Tier 2 convergence wave)
+## [Unreleased] — 2026-05-13 (Sessions 203–204: Tier 2 convergence + niche atomic)
+
+### 2026-05-13 — Session S204 (Niche atomic convergence: upstream clear + clippy evolution)
+
+- **Upstream pull** — all 13 primals shipped glacial debt responses. barraCuda `REGISTERED_METHODS` now 72 (LAMMPS + SciPy + Kokkos parity benchmarks). ludoSpring Tower atomic 6/6 live-validated. coralReef major refactor (coral-driver removed). GAP-36 provenance trio wire aliases RESOLVED.
+- **`relu` const fn** — `primitives::relu` evolved to `const fn` with branch instead of `f64::max` (clippy `missing_const_for_fn`).
+- **LTEE B1 `mul_add` evolution** — `polyfit_1`, `interp_linear`, and neutral model residual in `validate_ltee_b1_mutation_accumulation` refactored from `a * b + c` to `a.mul_add(b, c)` (clippy `suboptimal_flops`). Logger struct extracted to module level (`items_after_statements`). Main body extracted to `run_checks()` (`too_many_lines`).
+- **`merge_tracks` extract** — `visualization/scenarios/combiners.rs` gains `merge_tracks()` helper, reducing `full_study` from 105 to <100 lines and DRYing `composition_study`.
+- **Doc backtick sweep** — all primal name references in doc comments backtick-escaped across `primal_names.rs` (14 names), `ipc/nestgate.rs` (6 refs), `ipc/mod.rs` (3 refs). Zero doc backtick warnings remaining.
+- **Unneeded return** — `composition.rs` `ipr_results` branch: bare `return` removed in `#[cfg(not(feature = "barracuda"))]`.
+- **Quality gates** — 907 workspace tests (IPC-first). Zero failures. Only pre-existing `cast_precision_loss` warnings remain (under `#[expect]`).
 
 ### 2026-05-13 — Session S203 (Tier 2 convergence: precision.route + lithoSpore tightening)
 

@@ -429,7 +429,7 @@ pub fn science_baselines() -> Vec<ScienceBaseline> {
 
     #[cfg(not(feature = "barracuda"))]
     {
-        return vec![ipr_uniform];
+        vec![ipr_uniform]
     }
 
     #[cfg(feature = "barracuda")]

@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-13 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S203 — Tier 2 convergence: `barracuda.precision.route` wired (was blocked in S202c, now implemented with 649 tests upstream). `toadstool.validate` + `toadstool.list_workloads` already wired (S202c). LTEE B1 tolerances.toml added. Deep debt audit all-clear (S202c). barraCuda v0.4.0.
-> Prior: S202b NestGate IPC + Gap 11 upstream drift flagged, S201b doc/header sync + V152 handoff, S200 guideStone L5 + plasmidBin, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution, S192 doc cleanup, S191 full sweep, S190 cross-spring parity.
+> **Session:** S204 — Upstream clear (all 13 primals shipped glacial debt). barraCuda REGISTERED_METHODS now 72 (LAMMPS + SciPy + Kokkos parity benchmarks shipped). ludoSpring Tower atomic 6/6 live-validated. neuralSpring: `relu` const fn, LTEE B1 `mul_add` evolution, `merge_tracks` extract (combiners), all doc backticks fixed (primal names), logger refactored out of main. 907 tests pass, clippy clean (only pre-existing `cast_precision_loss`). Gap 11 still stale upstream in primalSpring Layer 3 table.
+> Prior: S203 precision.route wired, S202c toadStool wired, S202b NestGate IPC, S201b Gap 11 closed, S200 guideStone L5, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution.
 
 ---
 
