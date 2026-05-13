@@ -85,9 +85,8 @@ pub mod agent_coordination;
 pub mod anderson_localization;
 pub mod capabilities;
 #[expect(
-    clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    reason = "attention matrix dimension casts and f64 statistics"
+    reason = "JSON u64 → usize casts for matrix dimensions (n ≤ 512)"
 )]
 pub mod attention_anderson;
 #[cfg(feature = "barracuda")]
@@ -130,9 +129,8 @@ pub mod introgression_nn;
 pub mod ipc;
 pub mod ipc_resilience;
 #[expect(
-    clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    reason = "matrix dimension casts (n ≤ 512) and f64 statistics"
+    reason = "JSON u64 → usize cast for reservoir dimensions (n ≤ 512)"
 )]
 pub mod isomorphic_reservoir;
 pub mod lenet;
@@ -171,9 +169,8 @@ pub mod transformer;
 pub mod validation;
 pub mod visualization;
 #[expect(
-    clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    reason = "grid dimension casts (n ≤ 1024) and f64 statistics"
+    reason = "JSON u64 → usize casts for grid dimensions (n ≤ 1024)"
 )]
 pub mod wdm_ensemble_qs;
 #[cfg(feature = "barracuda")]

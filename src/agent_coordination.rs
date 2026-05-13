@@ -24,8 +24,7 @@
 
 #![expect(
     clippy::cast_precision_loss,
-    clippy::too_many_arguments,
-    reason = "lattice coordination model uses usize→f64 casts for metrics and multi-parameter experiment configs"
+    reason = "lattice coordination model uses usize→f64 casts for metrics"
 )]
 
 #[cfg(feature = "barracuda")]

@@ -18,7 +18,6 @@
 //! The ESN predicts yield worse for high-W communities: Pearson r(W, R²) < 0.
 
 #![expect(
-    clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
     clippy::suboptimal_flops,
     clippy::many_single_char_names,
