@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-13 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S205 — Niche convergence → atomic deployment. NestGate weight persistence wired into `weight_loader.rs` (`store_to_nestgate`, `load_safetensors_from_nestgate`, `load_safetensors_layer_from_nestgate`). `IpcMathClient::inference_models()` facade added. `has_squirrel()` discovery method. `IpcError::Other` variant. `base64` dependency. 910 tests pass, clippy clean. Gap 11 CLOSED upstream (primalSpring confirmed).
-> Prior: S204b deep debt audit zero-debt, S204 niche atomic, S203 precision.route wired, S202c toadStool wired, S202b NestGate IPC, S201b Gap 11 closed, S200 guideStone L5, S199 deep debt III, S197 deep debt II, S194 deep debt, S193 eukaryotic evolution.
+> **Session:** S205b — Deep debt re-audit per primalSpring directive. All 7 priority areas confirmed zero-debt after S205 code additions (NestGate weight persistence, Squirrel facade, IpcError::Other, base64). 910 tests, clippy clean, zero unfulfilled `#[expect]`. Answers all 5 audit questions (baselines, benchmarks, unimplemented, papers, datasets). V158 handoff.
+> Prior: S205 NestGate weights + Squirrel pipeline, S204b deep debt zero-debt, S204 niche atomic, S203 precision.route, S202c toadStool, S202b NestGate IPC, S201b Gap 11 closed, S200 guideStone L5.
 
 ---
 

@@ -7,6 +7,12 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] — 2026-05-13 (Sessions 203–205: Tier 2 convergence + niche atomic + deployment)
 
+### 2026-05-13 — Session S205b (Deep debt re-audit + evolution sprint)
+
+- **Full deep debt re-audit** — all 7 priority areas from primalSpring directive re-audited after S205 code additions. Confirmed zero-debt: 0 TODO/FIXME/HACK, 0 unsafe, 0 production mocks, 0 panics outside tests, 0 `#[allow()]`, 0 files >800L, 0 unfulfilled `#[expect]`, 0 clippy warnings.
+- **Audit questions answered** — Python baselines (20 bench scripts, 84 total scripts, 397/397 assertions, 15 domains at 38.6× geomean). Kokkos partial (estimated baselines, not matched-hardware). 27/27 papers reproduced. Remaining: Squirrel provider registration, WGSL tokenization pipeline, coralReef shader.compile.wgsl live. Datasets: NOAA GHCND, LTEE frozen fossil archive, UniProt/AlphaFold for structure predictions.
+- **V158 handoff** — comprehensive deep debt confirmation handoff per primalSpring directive.
+
 ### 2026-05-13 — Session S205 (Niche convergence → atomic deployment)
 
 - **NestGate weight persistence** — `weight_loader.rs` gains `store_to_nestgate`, `load_safetensors_from_nestgate`, `load_safetensors_layer_from_nestgate`. Model artifacts are now round-trippable through NestGate content-addressed storage via BLAKE3 hash-as-key. `base64` dependency added for encode/decode.

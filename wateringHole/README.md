@@ -5,6 +5,12 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
+### V158 — Session S205b (Deep Debt Re-Audit + Evolution Sprint)
+
+| Version | File | Date | Scope |
+|---------|------|------|-------|
+| **V158** | `handoffs/NEURALSPRING_V158_DEEP_DEBT_REAUDIT_HANDOFF_MAY13_2026.md` | May 13, 2026 | Full deep debt re-audit: 0 across all 7 categories. Answers all 5 audit questions. 20 bench scripts, 397/397 baselines, 27/27 papers, 15 domains. 910 tests. |
+
 ### V157 — Session S205 (Niche Convergence → Atomic Deployment)
 
 | Version | File | Date | Scope |
