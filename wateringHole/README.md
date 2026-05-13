@@ -5,6 +5,12 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
+### V159 — Session S205c (Primal Evolution + Composition Patterns Upstream)
+
+| Version | File | Date | Scope |
+|---------|------|------|-------|
+| **V159** | `handoffs/NEURALSPRING_V159_PRIMAL_EVOLUTION_UPSTREAM_HANDOFF_MAY13_2026.md` | May 13, 2026 | Primal usage map (7 IPC modules, 37 caps), composition patterns (CapabilityRouter, NestGate weights, Squirrel pipeline, agent-driven), evolution opportunities for upstream primal teams, NUCLEUS deployment patterns, learnings. |
+
 ### V158 — Session S205b (Deep Debt Re-Audit + Evolution Sprint)
 
 | Version | File | Date | Scope |
@@ -23,38 +29,13 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 |---------|------|------|-------|
 | **V156** | `handoffs/NEURALSPRING_V156_DEEP_DEBT_RESOLUTION_HANDOFF_MAY13_2026.md` | May 13, 2026 | Full deep debt audit: 0 TODO/unsafe/mocks/panics/allow/files>800L. `relu` const fn, LTEE B1 mul_add, merge_tracks DRY, allow(deprecated) removed, dev-deps workspace-inherited. 15/15 CPU baselines, 27/27 papers. 907 tests. |
 
-### V155 — Sessions S203–S203b (Tier 2 Convergence + Deep Debt)
-
-| Version | File | Date | Scope |
-|---------|------|------|-------|
-| **V155** | `handoffs/NEURALSPRING_V155_TIER2_CONVERGENCE_HANDOFF_MAY13_2026.md` | May 13, 2026 | Tier 2 complete: precision.route wired. 7 lint expects pruned. LTEE B1 tolerances. 907 tests. 37 capabilities. |
-
-### V154 — Session S202c (Tier 2 Wiring + Deep Debt Audit)
-
-| Version | File | Date | Scope |
-|---------|------|------|-------|
-| **V154** | `handoffs/NEURALSPRING_V154_TIER2_DEEP_DEBT_HANDOFF_MAY12_2026.md` | May 12, 2026 | `toadstool.validate` + `toadstool.list_workloads` wired. Deep debt audit all-clear. B1 NUCLEUS workload. 892 tests. 36 capabilities. |
-
-### V153 — Sessions S202–S202b (River Delta Downstream Seeding)
-
-| Version | File | Date | Scope |
-|---------|------|------|-------|
-| **V153** | `handoffs/NEURALSPRING_V153_RIVER_DELTA_DOWNSTREAM_SEEDING_HANDOFF_MAY12_2026.md` | May 12, 2026 | `--format json`, CapabilityRouter, Thread 5, NestGate. 888 tests. |
-
-### V152 (archived)
-
-| Version | File | Date | Scope |
-|---------|------|------|-------|
-| **V152** | `handoffs/archive/NEURALSPRING_V152_TIER4_IPC_FIRST_HANDOFF_MAY11_2026.md` | May 11, 2026 | Tier 4 IPC-first. |
-| **V152** (companion) | `handoffs/archive/NEURALSPRING_V152_PRIMAL_EVOLUTION_UPSTREAM_HANDOFF_MAY11_2026.md` | May 11, 2026 | Upstream primal handoff. |
-
 ### Central wateringHole Copies
 
 Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-project visibility.
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V151 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V155 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

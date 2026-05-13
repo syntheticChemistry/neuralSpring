@@ -12,7 +12,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S203 | **Date:** May 13, 2026 | **Version:** 0.1.0
+> **Session:** S205b | **Date:** May 13, 2026 | **Version:** 0.1.0
 > **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 
 ---
@@ -21,7 +21,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 | Metric | Value |
 |--------|-------|
-| **Workspace tests (IPC-first)** | 907 (731 lib + 11 integration + 73 forge + 80 playGround + 12 exp094) |
+| **Workspace tests (IPC-first)** | 910 (734 lib + 11 integration + 73 forge + 80 playGround + 12 exp094) |
 | **Proptest properties** | 24 |
 | **Python baselines** | 397/397 PASS |
 | **Rust+GPU checks** | 4,500+ |

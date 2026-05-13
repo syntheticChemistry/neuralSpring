@@ -67,4 +67,4 @@ integration.
 Foundation now at 7/10 threads with sources (was 5/10). neuralSpring
 contributed Thread 5 (new) and expanded Thread 7.
 
-*neuralSpring V155 | Session S203 | AGPL-3.0-or-later*
+*neuralSpring V158 | Session S205b | AGPL-3.0-or-later*

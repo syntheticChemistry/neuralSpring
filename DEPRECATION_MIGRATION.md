@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: May 13, 2026 (Sessions 44–203)
-**barraCuda**: v0.4.0 (optional, IPC-first `default = []`). ToadStool S250+, coralReef Iter 49.
-**Status**: Migration complete — deprecated modules fossilized, gpu_dispatch active (47 ops, ~97% GPU). `ipc_dispatch` removed (400 LOC, replaced by `IpcError` typed hierarchy). 269 binaries (241 require-features gated), 731 lib (IPC-first) + 11 integration + 73 forge + 80 playGround + 12 exp094 = 907 workspace tests, 0 clippy (pedantic+nursery+cast deny), 0 fmt diffs. `#![forbid(unsafe_code)]` workspace-wide, zero `#[allow()]`, zero production mocks, zero C deps. 4-tier validation (Python→Rust→Primal→guideStone L5). NestGate IPC wired (S202b). Tier 2 toadStool wired (S202c). `barracuda.precision.route` wired (S203). barraCuda v0.4.0. V155 handoff.
+**Date**: May 13, 2026 (Sessions 44–205b)
+**barraCuda**: v0.4.0 (optional, IPC-first `default = []`).
+**Status**: Migration complete — deprecated modules fossilized, gpu_dispatch active (47 ops, ~97% GPU). `ipc_dispatch` removed (400 LOC, replaced by `IpcError` typed hierarchy). 269 binaries (241 require-features gated), 734 lib (IPC-first) + 11 integration + 73 forge + 80 playGround + 12 exp094 = 910 workspace tests, 0 clippy. NestGate weight persistence wired. Squirrel inference pipeline complete. Deep debt zero-debt (4 audits). V158 handoff.
 **S130**: `PrecisionRoutingAdvice` wired, fused GPU regression gated, coralNAK→coralReef rename.
 **S121**: `MlpLayer` struct removed from `wdm_surrogate.rs` and `wdm_transport.rs` — replaced by `barracuda::nn::SimpleMlp` with `DenseLayer` format. `hmm_viterbi_chain_gpu` per-step f32 Tensor loop replaced by single f64 `barracuda::ops::bio::hmm_viterbi` dispatch.
 

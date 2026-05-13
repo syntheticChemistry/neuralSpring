@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-13 (Sessions 203–205: Tier 2 convergence + niche atomic + deployment)
+## [Unreleased] — 2026-05-13 (Sessions 203–205c: Tier 2 convergence + niche atomic + deployment)
+
+### 2026-05-13 — Session S205c (Doc reconciliation + primal evolution handoff)
+
+- **Root docs reconciliation**: README, whitePaper/README, whitePaper/baseCamp/README, EVOLUTION_READINESS, CONTROL_EXPERIMENT_STATUS, DEPRECATION_MIGRATION, CONTEXT, specs/README, sporeprint/validation-summary, docs/FOUNDATION_SEEDING, docs/GUIDESTONE_PROPERTIES, notebooks/NOTEBOOK_PATTERN — all synchronized to S205b/V158/910 tests/734 lib
+- **Stale reference cleanup**: All V155/S203/907/731 references in living docs updated to current state
+- **CONTEXT.md**: IPC tree corrected to 7 modules (was 6, missing NestGate); certification organelle corrected to 6 layers (was 4); fossilRecord pointer corrected (migrated to ecoPrimals/)
+- **infra/wateringHole**: SPRING_NUCLEUS_AUDIT, NUCLEUS_SPRING_ALIGNMENT updated to V158
+- **V159 primal evolution handoff**: Comprehensive upstream handoff documenting 7-primal IPC usage map, composition patterns (CapabilityRouter, NestGate weight persistence, Squirrel inference pipeline, agent-driven composition), evolution opportunities for all primal teams, NUCLEUS deployment patterns, and cross-spring learnings
+- **Quality**: 910 workspace tests, 0 clippy, 0 fmt. V159 handoff
 
 ### 2026-05-13 — Session S205b (Deep debt re-audit + evolution sprint)
 
