@@ -308,7 +308,7 @@ Pure GPU pipeline (scalar-only readback, Session 74: 10/10 PASS)
 
 | Baseline | Location | Status | Domains |
 |----------|----------|--------|---------|
-| Python/NumPy vs BarraCUDA CPU | neuralSpring `control/*/bench_*.py` (15 scripts) | **Complete** | 14 domains, 38.6× geomean |
+| Python/NumPy vs BarraCUDA CPU | neuralSpring `control/*/bench_*.py` (15 scripts) | **Complete** | 15 domains, 38.6× geomean |
 | BarraCUDA CPU vs GPU | neuralSpring `validate_cpu_gpu_parity` (17 checks) | **Complete** | MatMul, ReLU, Sigmoid, Tanh, Sum |
 | 3-way scaling (Py/CPU/GPU) | neuralSpring `metalForge/fossils/bench/bench_scaling.{py,rs}` | **Complete** | MLP 5 scales, Transformer 5 scales |
 | Dispatch tier overhead | `bench_dispatch_tiers` | **Complete** | 10 ops, ≤1.04× overhead 9/10 |
@@ -319,7 +319,7 @@ Pure GPU pipeline (scalar-only readback, Session 74: 10/10 PASS)
 
 | Framework | Scope | Status | Owner |
 |-----------|-------|--------|-------|
-| **Kokkos** (Sandia/DOE) | CUDA ↔ BarraCUDA WGSL kernel parity | **NOT PRESENT** — referenced doc does not exist | ToadStool/BarraCUDA team |
+| **Kokkos** (Sandia/DOE) | CUDA ↔ BarraCUDA WGSL kernel parity | **Partial** — `bench_kokkos_parity` with estimated baselines (not matched-hardware). barraCuda upstream shipped LAMMPS+SciPy+Kokkos bench scaffolds (S204). | ToadStool/BarraCUDA team |
 | **cuBLAS/cuDNN/cuFFT** | Dense linear algebra, convolution, FFT | **PRESENT** — `bench_industry_gpu_parity` (BarraCUDA WGSL vs PyTorch/CUDA) | neuralSpring |
 | **Galaxy** (bioinformatics) | Genomics pipeline throughput | **NOT APPLICABLE** — Galaxy is a workflow engine, not a compute kernel | N/A |
 | **Polybench** | Computational kernel suite (BLAS, stencils) | **NOT PRESENT** — standardized benchmark suite not yet run | ToadStool/BarraCUDA team |

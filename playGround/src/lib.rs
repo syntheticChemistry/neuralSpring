@@ -24,7 +24,6 @@
     clippy::missing_errors_doc,
     reason = "playground — evolving API surface"
 )]
-#![allow(deprecated)]
 
 pub mod biomeos_client;
 pub mod coralreef_client;

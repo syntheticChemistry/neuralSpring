@@ -47,9 +47,9 @@ impl DiscoveryResult {
 ///
 /// 1. `$BIOMEOS_ORCHESTRATOR_SOCKET` env override
 /// 2. `$XDG_RUNTIME_DIR/biomeos/{primal}*.sock`
-/// 3. `/tmp/biomeos/{primal}*.sock`
+/// 3. `{temp_dir}/biomeos/{primal}*.sock`
 /// 4. `$XDG_RUNTIME_DIR/{primal}/*.sock` (legacy)
-/// 5. `/tmp/{primal}-*.sock` (legacy)
+/// 5. `{temp_dir}/{primal}-*.sock` (legacy)
 ///
 /// Socket matching uses both the niche name (e.g. `neuralspring`) and the
 /// hyphenated `CARGO_PKG_NAME` form (e.g. `neural-spring`) to handle springs

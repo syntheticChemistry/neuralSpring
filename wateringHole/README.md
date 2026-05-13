@@ -5,11 +5,17 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
+### V156 — Session S204 (Deep Debt Resolution + Evolution Sprint)
+
+| Version | File | Date | Scope |
+|---------|------|------|-------|
+| **V156** | `handoffs/NEURALSPRING_V156_DEEP_DEBT_RESOLUTION_HANDOFF_MAY13_2026.md` | May 13, 2026 | Full deep debt audit: 0 TODO/unsafe/mocks/panics/allow/files>800L. `relu` const fn, LTEE B1 mul_add, merge_tracks DRY, allow(deprecated) removed, dev-deps workspace-inherited. 15/15 CPU baselines, 27/27 papers. 907 tests. |
+
 ### V155 — Sessions S203–S203b (Tier 2 Convergence + Deep Debt)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V155** | `handoffs/NEURALSPRING_V155_TIER2_CONVERGENCE_HANDOFF_MAY13_2026.md` | May 13, 2026 | Tier 2 complete: `barracuda.precision.route` wired (v0.4.0). 7 stale lint expects pruned. LTEE B1 tolerances.toml. 907 IPC-first tests. 37 capabilities. 20 CAPABILITY_HINTS. |
+| **V155** | `handoffs/NEURALSPRING_V155_TIER2_CONVERGENCE_HANDOFF_MAY13_2026.md` | May 13, 2026 | Tier 2 complete: precision.route wired. 7 lint expects pruned. LTEE B1 tolerances. 907 tests. 37 capabilities. |
 
 ### V154 — Session S202c (Tier 2 Wiring + Deep Debt Audit)
 

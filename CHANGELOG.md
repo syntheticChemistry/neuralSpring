@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-13 (Sessions 203–204: Tier 2 convergence + niche atomic)
+## [Unreleased] — 2026-05-13 (Sessions 203–204: Tier 2 convergence + niche atomic + deep debt)
+
+### 2026-05-13 — Session S204b (Deep debt resolution + evolution sprint)
+
+- **Full deep debt audit** — all 7 priority areas from primalSpring directive audited. Zero actionable items in: TODO/FIXME/HACK, unsafe, production mocks, production panics, files >800L. Codebase confirmed clean.
+- **`#![allow(deprecated)]` removed** — `playGround/src/lib.rs` was suppressing nothing (no deprecated API usage).
+- **Dev-deps workspace-inherited** — `approx`, `proptest`, `serial_test` moved from inline version pins to `[workspace.dependencies]`. 100% workspace inheritance achieved.
+- **Discovery doc aligned** — `composition.rs` discovery doc tiers 3/5 aligned with `std::env::temp_dir()` implementation (was `/tmp/` literal).
+- **`BENCHMARK_ANALYSIS.md` fixed** — 14→15 domains count corrected. Kokkos status corrected from "NOT PRESENT" to "Partial" reflecting `bench_kokkos_parity` + upstream barraCuda scaffolds.
+- **V156 handoff** — comprehensive deep debt resolution handoff per primalSpring directive. Answers all audit questions (baselines, benchmarks, coverage, papers, datasets).
 
 ### 2026-05-13 — Session S204 (Niche atomic convergence: upstream clear + clippy evolution)
 
