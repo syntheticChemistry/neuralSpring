@@ -19,7 +19,7 @@
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# STATUS: V151 / S200b (May 11, 2026)
+# STATUS: V159 / S206 (May 14, 2026) — skunkBat triple-first Tower verified
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -29,7 +29,7 @@ description = "neuralSpring ML/spectral science + inference provider atop NUCLEU
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S200b"
+neuralspring_version = "S206"
 domain = "science"
 target_node = "eastgate"
 composition_model = "nucleated"
@@ -199,10 +199,10 @@ fallback = "skip"
 id = "germinate_nestgate"
 depends_on = ["germinate_songbird"]
 output = "nestgate_genesis"
-capabilities = ["storage", "data"]
+capabilities = ["storage", "content", "data"]
 
 [nodes.primal]
-by_capability = "storage.retrieve"
+by_capability = "content.get"
 
 [nodes.operation]
 name = "start"

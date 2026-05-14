@@ -14,7 +14,7 @@
 #   - science.hessian_eigen (loss landscape Hessian)
 #   - science.ipr (inverse participation ratio)
 #
-# STATUS: V151 / S200b (May 11, 2026)
+# STATUS: V159 / S206 (May 14, 2026) — skunkBat triple-first Tower
 # Run: biomeos deploy graphs/neuralspring_spectral_analysis.toml
 
 [graph]
@@ -23,7 +23,7 @@ description = "Weight matrix spectral analysis pipeline: eigendecomp, IPR, Ander
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S200b"
+neuralspring_version = "S206"
 domain = "science"
 composition_model = "nucleated"
 bond_type = "Metallic"
@@ -45,6 +45,24 @@ capability = "security"
 method = "health.check"
 params = {}
 
+[[nodes]]
+id = "tower_discovery"
+output = "discovery_genesis"
+primal = "songbird"
+capability = "discovery"
+method = "rpc.discover"
+params = {}
+depends_on = ["tower_auth"]
+
+[[nodes]]
+id = "tower_defense"
+output = "defense_genesis"
+primal = "skunkbat"
+capability = "defense"
+method = "health.check"
+params = {}
+depends_on = ["tower_auth", "tower_discovery"]
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 2: NODE — Compute substrate for eigendecomposition
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -56,7 +74,7 @@ primal = "barracuda"
 capability = "tensor"
 method = "health.check"
 params = {}
-depends_on = ["tower_auth"]
+depends_on = ["tower_discovery"]
 
 [[nodes]]
 id = "coralreef_shaders"
@@ -65,7 +83,7 @@ primal = "coralreef"
 capability = "shader"
 method = "shader.compile.capabilities"
 params = {}
-depends_on = ["tower_auth"]
+depends_on = ["tower_discovery"]
 fallback = "skip"
 
 # ═══════════════════════════════════════════════════════════════════════════════

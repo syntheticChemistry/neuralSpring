@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-13 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S205b — Deep debt re-audit per primalSpring directive. All 7 priority areas confirmed zero-debt after S205 code additions (NestGate weight persistence, Squirrel facade, IpcError::Other, base64). 910 tests, clippy clean, zero unfulfilled `#[expect]`. Answers all 5 audit questions (baselines, benchmarks, unimplemented, papers, datasets). V158 handoff.
-> Prior: S205 NestGate weights + Squirrel pipeline, S204b deep debt zero-debt, S204 niche atomic, S203 precision.route, S202c toadStool, S202b NestGate IPC, S201b Gap 11 closed, S200 guideStone L5.
+> **Date:** 2026-05-14 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
+> **Session:** S206 — Upstream audit absorption (May 14 plasmidBin evolution). Deploy graphs: skunkBat triple-first Tower wired (inference, spectral, deploy). NestGate `by_capability` → `content.get` (Wave 7). Gap 5 RESOLVED. Proto-nucleate vs spring-deploy Nest split documented as design decision. Cell graph skunkBat hand-back noted. 910 tests, clippy clean. V160 handoff.
+> Prior: S205b deep debt re-audit, S205 NestGate weights + Squirrel pipeline, S204b deep debt, S203 precision.route, S202b NestGate IPC, S201b Gap 11 closed, S200 guideStone L5.
 
 ---
 
@@ -90,9 +90,13 @@ availability. Direct `wgpu` compilation remains as local fallback.
 
 **Remaining evolution:**
 - Route `compile_shader_universal` through coralReef IPC when available
+  (unblocked by coralReef v0.1.0 release — Blackwell support, naga::Module
+  ingest, dual-vendor GPU coverage. strandGate owns hardware validation)
 - Honest skip in validation binaries when coralReef unavailable
 
-**Hand back to:** coralReef (wire contract alignment)
+**Hand back to:** coralReef (wire contract alignment). Compute trio wave
+(May 14 2026) makes this actionable — coralReef v0.1.0 released back for
+spring absorption.
 
 ---
 
@@ -119,30 +123,27 @@ default path.
 
 ## 5. NestGate Weight Storage
 
-**Status:** wip (S202b — IPC client wired, weight loader integration pending)
+**Status:** wip → **RESOLVED** (S205 — full weight persistence wired)
 **Note:** NestGate is NOT in the proto-nucleate `depends_on`. It appears in
-the richer `spring_deploy_manifest.toml` graph. This gap tracks the
-spring-deploy integration, not the primal proof.
-**Current state (S202b):** `src/ipc/nestgate.rs` created with `content.put`,
-`content.get`, and `content.exists` methods. `CAPABILITY_HINTS` and
-`CapabilityRouter` expanded with 3 NestGate entries (`content.put`,
-`content.get`, `content.exists`). `IpcMathClient` facade methods wired.
-`PrimalSlot::Nestgate` added to liveness report. NestGate S60 transport
-parity confirmed upstream — `content.put` API is implemented and ready.
+the richer spring-deploy graph. This is a **design decision** (see Gap 7):
+proto-nucleate is the pure primal composition for certification; the spring
+deploy graph is the richer integration graph. NestGate belongs in spring-deploy
+for weight storage, not in proto-nucleate.
 
-**What was done (S202b):**
+**What was done (S202b → S205):**
 - `src/ipc/nestgate.rs` — `content_put`, `content_get`, `content_exists`
 - `src/capabilities.rs` — `CONTENT_PUT`, `CONTENT_GET`, `CONTENT_EXISTS`
 - `src/ipc/mod.rs` — NestGate in `CAPABILITY_HINTS`, `PrimalSlot`, facade
+- `weight_loader.rs` (S205): `store_to_nestgate()`, `load_safetensors_from_nestgate()`,
+  `load_safetensors_layer_from_nestgate()` — content-addressed by BLAKE3 hash,
+  base64 encoded, with error-path tests
 
-**What remains:**
-- `weight_loader.rs`: Add NestGate-backed load path (content-addressed by
-  BLAKE3 hash) with filesystem fallback
-- Weight provenance tracking via NestGate metadata
+**Future evolution (not blocking):**
 - Streaming upload/download for weights > 4 MiB (NestGate `storage.store_stream`)
+- Weight provenance tracking via NestGate metadata
 
-**Hand back to:** primalSpring (if NestGate should be added to proto-nucleate
-`depends_on` for the primal proof)
+**Hand back to:** N/A — resolved. Deploy graph `by_capability` updated to
+`"content.get"` (Wave 7 alignment, S206).
 
 ---
 
@@ -167,25 +168,32 @@ primalSpring (Tower Atomic validation)
 
 ---
 
-## 7. Proto-nucleate vs Spring-Deploy Fragment Mismatch
+## 7. Proto-nucleate vs Spring-Deploy Fragment Mismatch — DESIGN DECISION
 
-**Status:** resolved (Apr 17 2026 — clarified as design, not a bug)
-**Details:** The proto-nucleate entry in `downstream_manifest.toml` declares
-`fragments = ["tower_atomic", "node_atomic", "meta_tier"]` — no `nest_atomic`.
-The local deploy graph (`neuralspring_deploy.toml`) includes `nest_atomic`,
-NestGate, and provenance trio nodes. This is CORRECT — the two graphs serve
-different purposes:
-- **Proto-nucleate** (Level 5, primal proof): pure primal NUCLEUS, no spring
-  binary. The spring validates AGAINST this. primalSpring validates it.
-- **Spring deploy** (Level 2+): spring binary + NUCLEUS primals for integration.
-  Richer node set including NestGate for weight storage.
+**Status:** resolved (Apr 17 2026 — documented as design decision per parity scorecard)
 
-`inference_proto_nucleate_nodes()` now matches the upstream `depends_on` exactly.
-The deploy graph header now documents the distinction.
+**Design Decision (documented May 14 2026 per CROSS_SPRING_PARITY_SCORECARD):**
 
-**Hand back to:** If `nest_atomic` is genuinely needed in the proto-nucleate
-(e.g. for `storage.retrieve` weight loading), file a hand-back to primalSpring
-with the justification.
+The two-graph architecture is **intentional**, not an accidental mismatch:
+
+| Graph | Purpose | Fragments | NestGate? | skunkBat? |
+|-------|---------|-----------|-----------|-----------|
+| **Proto-nucleate** (Level 5) | Pure primal NUCLEUS — spring validates AGAINST this | `tower_atomic`, `node_atomic`, `meta_tier` | **No** | No (implied in Tower) |
+| **Spring deploy** (Level 2+) | Spring binary + NUCLEUS for integration | `tower_atomic`, `node_atomic`, `nest_atomic`, `meta_tier` | **Yes** (weight storage) | **Yes** (triple-first Tower) |
+
+**Rationale:** The proto-nucleate is the minimal primal composition that
+primalSpring certifies. NestGate weight storage is a spring-level concern
+(model artifacts), not a primal proof requirement. The proto-nucleate
+`depends_on` list (`beardog, songbird, coralreef, toadstool, barracuda, squirrel`)
+represents the primals the spring VALIDATES against; it doesn't need to
+include every primal the spring USES in production.
+
+`inference_proto_nucleate_nodes()` matches the upstream `depends_on` exactly.
+The deploy graph extends it with Nest Atomic (NestGate, provenance trio) for
+production weight persistence and session tracking.
+
+**Hand back to:** N/A — resolved as design decision. If `nest_atomic` is
+ever needed in proto-nucleate, file hand-back to primalSpring with justification.
 
 ---
 
@@ -204,11 +212,15 @@ also uses `neuralspring`. All three are consistent.
 
 ## 9. barraCuda Feature-Gate Bug (`special::plasma_dispersion`)
 
-**Status:** open (workaround applied)
+**Status:** open (workaround applied) — re-verified May 14 2026 with barraCuda v0.4.0
 **Details:** barraCuda's `special/plasma_dispersion.rs` unconditionally
 imports from `ops::lattice::cpu_complex::Complex64`, but `ops::lattice` is
 gated behind `#[cfg(feature = "domain-lattice")]`. neuralSpring works around
 this by enabling `domain-lattice`, but the fix belongs upstream.
+
+**Re-check (S206):** Still present in barraCuda v0.4.0 — `plasma_dispersion.rs`
+line 23: `use crate::ops::lattice::cpu_complex::Complex64;` without feature gate.
+Compute trio wave makes this a good time for barraCuda to fix.
 
 **Hand back to:** barraCuda (feature-gate `plasma_dispersion` or make
 `Complex64` available without `domain-lattice`)

@@ -83,12 +83,21 @@ pub fn run_glucose_experiment(
         let (inputs, targets) = create_sequences(&glucose_norm, seq_len, horizon);
 
         let n = inputs.len();
+        #[expect(
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "test_fraction ∈ [0,1] and n is small → product is non-negative and fits usize"
+        )]
         let n_test = (n as f64 * test_fraction).max(1.0) as usize;
 
         let mut rng_split = crate::rng::Rng::new(seed + horizon as u64);
         let mut perm: Vec<usize> = (0..n).collect();
         for i in (1..n).rev() {
-            let j = rng_split.next_u64() as usize % (i + 1);
+            #[expect(
+                clippy::cast_possible_truncation,
+                reason = "modulus i+1 fits usize since i comes from a Vec index"
+            )]
+            let j = (rng_split.next_u64() % (i as u64 + 1)) as usize;
             perm.swap(i, j);
         }
 
@@ -169,6 +178,11 @@ pub fn run_glucose_experiment(
 
         results.push(HorizonResult {
             horizon_steps: horizon,
+            #[expect(
+                clippy::cast_possible_truncation,
+                clippy::cast_sign_loss,
+                reason = "DT_MINUTES is 5.0 — fits usize"
+            )]
             horizon_minutes: horizon * DT_MINUTES as usize,
             r2_lstm,
             rmse_lstm,

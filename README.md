@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 13, 2026 (Session S205b — Deep debt re-audit zero-debt across all 7 categories. NestGate weight persistence wired (`store_to_nestgate`, `load_safetensors_from_nestgate`). Squirrel inference pipeline complete (`inference_models` facade, `has_squirrel` discovery). 910 workspace tests (IPC-first). Clippy clean. V158 handoff).
+**Last updated**: May 14, 2026 (Session S206 — Upstream audit absorption. Deploy graphs: skunkBat triple-first Tower wired across all domain graphs. NestGate Wave 7 (`content.get`). Gap 5 RESOLVED, Gap 7 design decision documented. Clippy cast fixes (Rust 1.94). 910 workspace tests (IPC-first). V160 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

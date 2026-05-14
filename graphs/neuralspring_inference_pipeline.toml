@@ -10,7 +10,7 @@
 #   - Weight retrieval from NestGate
 #   - Provenance tracking for inference sessions
 #
-# STATUS: V151 / S200b (May 11, 2026)
+# STATUS: V159 / S206 (May 14, 2026) — skunkBat triple-first Tower
 # Run: biomeos deploy graphs/neuralspring_inference_pipeline.toml
 
 [graph]
@@ -19,7 +19,7 @@ description = "Inference composition: model routing, tensor compute, weight retr
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S200b"
+neuralspring_version = "S206"
 domain = "inference"
 composition_model = "nucleated"
 bond_type = "Metallic"
@@ -49,6 +49,15 @@ capability = "discovery"
 method = "rpc.discover"
 params = {}
 depends_on = ["tower_security"]
+
+[[nodes]]
+id = "tower_defense"
+output = "defense_genesis"
+primal = "skunkbat"
+capability = "defense"
+method = "health.check"
+params = {}
+depends_on = ["tower_security", "tower_discovery"]
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 2: NODE — Compute Triangle

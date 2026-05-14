@@ -5,7 +5,23 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-13 (Sessions 203–205c: Tier 2 convergence + niche atomic + deployment)
+## [Unreleased] — 2026-05-14 (Sessions 203–206: Tier 2 convergence + niche atomic + deployment + compute trio)
+
+### 2026-05-14 — Session S206 (Upstream audit absorption — plasmidBin + compute trio wave)
+
+- **Deploy graphs: skunkBat triple-first Tower** — All 3 domain graphs now include skunkBat in Tower phase per atomic model (Tower = bearDog + songBird + skunkBat):
+  - `neuralspring_inference_pipeline.toml`: Added `tower_defense` (skunkBat) node
+  - `neuralspring_spectral_analysis.toml`: Added `tower_discovery` (songBird) + `tower_defense` (skunkBat) nodes, updated downstream dependencies from `tower_auth` to `tower_discovery`
+  - `neuralspring_deploy.toml`: Already had skunkBat — confirmed compliant
+  - All 4 graph version stamps updated S200b → S206
+- **NestGate Wave 7 alignment**: Deploy graph NestGate `by_capability` updated from `"storage.retrieve"` to `"content.get"` per Wave 7 guidance
+- **PRIMAL_GAPS.md Gap 5 → RESOLVED**: NestGate weight persistence fully wired (was stale "wip" despite S205 completion)
+- **Gap 7 design decision documented**: Proto-nucleate vs spring-deploy Nest split explicitly documented as design decision per CROSS_SPRING_PARITY_SCORECARD
+- **Gap 9 re-verified**: barraCuda `plasma_dispersion` feature-gate bug still present in v0.4.0 — flagged for compute trio wave fix
+- **Gap 3 coralReef**: v0.1.0 release noted as unblocking `compile_shader_universal` routing
+- **Clippy cast fixes**: 5 cast safety errors in `glucose_prediction/experiment.rs` fixed (`cast_possible_truncation`, `cast_sign_loss` — new with Rust 1.94 stricter lints)
+- **Cell graph skunkBat**: plasmidBin `neuralspring_cell.toml` missing skunkBat — noted for upstream hand-back
+- **Quality**: 910 workspace tests, 0 clippy errors, 0 fmt. V160 handoff
 
 ### 2026-05-13 — Session S205c (Doc reconciliation + primal evolution handoff)
 
