@@ -5,7 +5,14 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-16 (Sessions 203–207b: Tier 2 convergence + niche atomic + deployment + Wave 17 + deep debt)
+## [Unreleased] — 2026-05-16 (Sessions 203–207c: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution)
+
+### 2026-05-16 — Session S207c (Documentation evolution + upstream primal handoff)
+
+- **18-file doc reconciliation** — all version/session/handoff references synced from stale S205b/V158 → S207b/V162: README, EVOLUTION_READINESS, CONTROL_EXPERIMENT_STATUS, DEPRECATION_MIGRATION, CONTEXT, CONTRIBUTING, GUIDESTONE_PROPERTIES, FOUNDATION_SEEDING, whitePaper (README, STUDY, METHODOLOGY, BARRACUDA_EVOLUTION, CROSS_SPRING_SHADER_LINEAGE), baseCamp (README, extensions, EXTENSION_PLAN, PAPER_OUTLINES), experiments/README, specs/README, sporeprint/validation-summary, notebooks/NOTEBOOK_PATTERN.
+- **Capability count corrected** — stale 37 → actual 35 across all docs.
+- **Upstream primal handoff** — V163: hand-backs to barraCuda (Gap 9, benchmarks), coralReef (Gap 3), nestGate (Gap 5 RESOLVED + nest.store), toadStool (Tier 2), squirrel (provider registration), primalSpring (Wave 17 adoption).
+- **Debris review** — zero archivable debris found: 0 `.bak`/`.old`/`.tmp` files, fossils documented, scripts active, Python purpose-built.
 
 ### 2026-05-16 — Session S207b (Deep debt re-audit — 3rd pass, zero-debt confirmed)
 

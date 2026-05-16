@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: April 17, 2026 (Sessions 40–181+ — S181+: 3-tier validation (Python→Rust→IPC parity), manifest reconciliation, GpuPreferred dispatch. S181: Full composition evolution, 30-capability surface. *Workspace metrics in this line are from April 17, 2026.* 266 binaries, 1,230 lib + 73 forge + 80 playGround tests. barraCuda v0.3.12, 25 absorbed workloads, V132 handoff)
+**Date**: May 16, 2026 (Sessions 40–207b — S207b: Deep debt zero-debt, Wave 17 signal API. 269 binaries, 910 workspace tests (IPC-first). barraCuda v0.4.0, 25 absorbed workloads, V162 handoff)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK)
 **Methodology**: Python control → Rust validation → WGSL shader evolution → multi-GPU portability
 

@@ -236,7 +236,7 @@ GPU error handling.
 | 0 | Python/PyTorch baselines (48 checks) | Science correctness | **COMPLETE** |
 | 0+ | Scholarly reproductions (31 checks) | Published result fidelity | **COMPLETE** |
 | 0++ | Paper reproductions (127 checks) | 15 papers, 4 faculty | **COMPLETE** |
-| 1a | neuralSpring Rust validation (580 lib + 9 integration tests) | Cross-language agreement | **COMPLETE** |
+| 1a | neuralSpring Rust validation (910 workspace tests, IPC-first) | Cross-language agreement | **COMPLETE** |
 | 1b | BarraCUDA validation (275+ checks) | WGSL shader correctness | **COMPLETE** |
 | 1c | Fused ToadStool pipeline | Single-encoder dispatch | **COMPLETE** |
 | 1d | 3-way benchmark + evolved shaders | Double-buffered, 4-tier routing | **COMPLETE** |

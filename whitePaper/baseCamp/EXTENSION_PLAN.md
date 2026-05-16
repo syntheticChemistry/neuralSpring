@@ -1,8 +1,8 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: April 17, 2026 (Session S181+)
+**Date**: May 16, 2026 (Session S207b)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. **Python→Rust→Primal three-tier validation stack** — proto-nucleate aligned to upstream `downstream_manifest.toml` (7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES`). playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **~1,400+ tests** (1,230 lib + 73 forge + 80 playGround + 12 integration), **266 binaries**, **520+ `.rs` files**. S181+: proto-nucleate alignment, V132 handoff. barraCuda v0.3.12.
+**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. **Python→Rust→Primal three-tier validation stack** — proto-nucleate aligned to upstream `downstream_manifest.toml`. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **910 workspace tests** (IPC-first), **269 binaries**, **521+ `.rs` files**. Wave 17 signal API (`primal.announce` + `nest.store`). 35 capabilities, 7 validation scenarios. V162 handoff. barraCuda v0.4.0.
 **S151–S152 update**: Deep audit + deep debt execution — ecoBin compliance, 15+ tolerance literals centralized, capability-based primal discovery, coralReef bridge capability-first, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), V103 handoff.
 **S148–S150 update**: playGround evolution — Squirrel MCP adapter (14 tool definitions), HuggingFace Model Lab (GPT-2 inference on barraCuda), compute triangle (ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks: 7–45× pipeline reuse, 8–22× PyTorch/CUDA gap). 63 playGround unit + 13 integration tests. Live ToadStool verified. V101 handoff.
 **S147 update**: Deep debt — zero inline magic numbers, zero duplicate math, capability-based discovery. V100 handoff.

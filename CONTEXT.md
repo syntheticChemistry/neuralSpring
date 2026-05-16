@@ -12,7 +12,7 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 ## Architecture (Eukaryotic — post-interstadial May 2026)
 
 - **UniBin**: Single `neuralspring_unibin` binary with `certify`, `validate`, `serve`, `status`, `version` subcommands
-- **IPC tree**: `src/ipc/` with 7 per-primal modules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`, `nestgate`) + `IpcMathClient` facade + `CapabilityRouter` (20 hints, 37 capabilities)
+- **IPC tree**: `src/ipc/` with 7 per-primal modules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`, `nestgate`) + `IpcMathClient` facade + `CapabilityRouter` (20 hints, 35 capabilities)
 - **Certification organelle**: `src/certification/` — 6-layer guidestone (bare/discovery/parity/nucleus/composition/cross-spring)
 - **Validation scenarios**: `src/validation/scenarios/` — 6 absorbed scenarios with `ScenarioMeta`, `ScenarioRegistry`, tiered execution
 - **Fossilized patterns**: Migrated to `ecoPrimals/fossilRecord/` (stub README remains)

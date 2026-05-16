@@ -6,8 +6,8 @@
 
 | Field | Value |
 |-------|-------|
-| ToadStool HEAD | `2dc26792` (Sessions 60–119, S117: cross-spring shader evolution 42/42 + 15/15 bench. Mar 2, 2026) |
-| Last updated | March 2, 2026 (Sessions 40–119) |
+| ToadStool HEAD | `751b3849` (Sessions 60–146+). S146: VRAM-aware routing, 719+ WGSL shaders. Shader lineage stable. |
+| Last updated | May 16, 2026 (Session S207b — header refreshed; shader lineage narrative unchanged) |
 | BarraCUDA shader count | 844+ WGSL (f64 canonical, universal precision, S70+++) |
 | Shaders absorbed | 21/21 — all neuralSpring production WGSL now upstream |
 | Modern rewires (S88+) | `pairwise_l2_matrix_gpu` → `PairwiseL2Gpu`, `geographic_distance_matrix_gpu` → `PairwiseL2Gpu`, `disorder_sweep_gpu` IPR → `BatchIprGpu`, `compile_shader_f64_hybrid` → `compile_shader_df64` |

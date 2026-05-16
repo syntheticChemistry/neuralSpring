@@ -77,6 +77,6 @@ socket path, or capability set. Discover at runtime via:
 ```bash
 just check          # clippy + fmt + doc
 just test           # Python + Rust tests
-just validate-all   # all 264 validation/composition binaries
+just validate-all   # all 269 validation/composition binaries
 just coverage       # llvm-cov with 90% gate
 ```

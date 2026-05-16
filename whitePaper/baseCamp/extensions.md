@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: April 17, 2026 (Sessions 49–181+ — S181+: Proto-nucleate aligned to upstream primalSpring-validated composition. Python→Rust→Primal 3-tier validation of peer-reviewed science. V132 handoff. 1,230 lib tests, 91.66% coverage. **266 binaries**, zero clippy, 4,900+ checks, 46 upstream rewires. barraCuda v0.3.12)
+**Date**: May 16, 2026 (Sessions 49–207b — S207b: Deep debt zero-debt (5 audits). Wave 17 signal API. Python→Rust→Primal 3-tier validation of peer-reviewed science. V162 handoff. 910 workspace tests (IPC-first). **269 binaries**, zero clippy, 4,900+ checks. barraCuda v0.4.0)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
