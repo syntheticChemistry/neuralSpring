@@ -173,6 +173,136 @@ pub fn execute_graph_gpu(
     })
 }
 
+/// Execute a `PipelineGraph` via live IPC through `CompositionContext`.
+///
+/// Each stage's `capability` is routed through `ctx.call()` for direct
+/// primal methods or `ctx.dispatch()` for composed signals. biomeOS
+/// manages primal discovery and pipeline orchestration.
+///
+/// Falls back to local execution for stages whose capabilities are not
+/// resolvable via composition (i.e., the local `dispatch_capability`
+/// path acts as a safety net).
+///
+/// Provenance records are maintained identically to the local executor
+/// so that `PipelineReport` consumers see a uniform interface regardless
+/// of execution substrate.
+///
+/// # Errors
+///
+/// Returns [`PipelineError::CyclicGraph`] if topological sort fails, or
+/// [`PipelineError::MissingStage`] if a stage ID from the order is absent.
+#[cfg(feature = "primalspring")]
+pub fn execute_graph_live(
+    graph: &PipelineGraph,
+    ctx: &mut primalspring::composition::CompositionContext,
+) -> Result<PipelineReport, PipelineError> {
+    let order = graph
+        .execute_order()
+        .ok_or_else(|| PipelineError::CyclicGraph {
+            pipeline: graph.name.clone(),
+        })?;
+
+    let mut exec = PipelineExecution::new(&graph.name);
+    let mut live_count = 0_usize;
+    let mut local_count = 0_usize;
+
+    for stage_id in &order {
+        let stage = graph
+            .stage(stage_id)
+            .ok_or_else(|| PipelineError::MissingStage {
+                stage_id: stage_id.clone(),
+                pipeline: graph.name.clone(),
+            })?;
+
+        let start = std::time::Instant::now();
+        let (success, output, was_live) = match dispatch_capability_live(&stage.capability, ctx) {
+            Some((s, o)) => (s, o, true),
+            None => {
+                let (s, o) = dispatch_capability(&stage.capability);
+                (s, o, false)
+            }
+        };
+        let elapsed_us = start.elapsed().as_secs_f64() * 1_000_000.0;
+
+        if was_live {
+            live_count += 1;
+        } else {
+            local_count += 1;
+        }
+
+        exec.record(StageResult {
+            stage_id: stage_id.clone(),
+            success,
+            elapsed_us,
+            actual_substrate: stage.substrate,
+            output,
+        });
+    }
+
+    let substrate_label = if live_count > 0 && local_count > 0 {
+        format!("Live-IPC (live:{live_count} local:{local_count})")
+    } else if live_count > 0 {
+        "Live-IPC".to_string()
+    } else {
+        "CPU (local fallback)".to_string()
+    };
+
+    Ok(PipelineReport {
+        pipeline_name: graph.name.clone(),
+        substrate_used: substrate_label,
+        total_stages: order.len(),
+        gpu_stages: live_count,
+        cpu_stages: local_count,
+        execution: exec,
+    })
+}
+
+/// Try to dispatch a capability via live IPC through `CompositionContext`.
+///
+/// Returns `None` if the capability is not a known composed signal (caller
+/// should fall back to local dispatch). Returns `Some((success, output))`
+/// when the IPC call completes (whether it succeeds or fails).
+#[cfg(feature = "primalspring")]
+fn dispatch_capability_live(
+    capability: &str,
+    ctx: &mut primalspring::composition::CompositionContext,
+) -> Option<(bool, StageOutput)> {
+    let (domain, _method) = capability.split_once('.')?;
+
+    let result = ctx.call(
+        domain,
+        capability,
+        serde_json::json!({"mode": "pipeline", "source": "neuralspring"}),
+    );
+
+    match result {
+        Ok(value) => {
+            let mut map = std::collections::HashMap::new();
+            if let Some(obj) = value.as_object() {
+                for (k, v) in obj {
+                    if let Some(n) = v.as_f64() {
+                        map.insert(k.clone(), n);
+                    }
+                }
+            }
+            if map.is_empty() {
+                map.insert("result".to_string(), 1.0);
+            }
+            Some((true, StageOutput::Map(map)))
+        }
+        Err(e) => {
+            let is_skip = primalspring::composition::is_skip_error(&e);
+            if is_skip {
+                None
+            } else {
+                let mut map = std::collections::HashMap::new();
+                map.insert("error".to_string(), 0.0);
+                Some((false, StageOutput::Map(map)))
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 #[expect(
     clippy::expect_used,

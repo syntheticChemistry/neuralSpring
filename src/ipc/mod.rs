@@ -313,6 +313,32 @@ impl IpcMathClient {
         toadstool::compute_dispatch(self.router.require(capabilities::COMPUTE_DISPATCH)?, params, self.timeout)
     }
 
+    /// `node.compute` — composed compute pipeline via signal dispatch.
+    ///
+    /// Sends a `node.compute` signal through biomeOS, which decomposes
+    /// into: `toadStool.compute.dispatch → coralReef.shader.compile.wgsl → barraCuda.tensor.matmul`.
+    /// biomeOS manages the graph sequencing and error handling.
+    ///
+    /// Prefer this over [`compute_dispatch`](Self::compute_dispatch) when
+    /// running inside a biomeOS composition for full pipeline orchestration.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if signal dispatch fails or biomeOS is unavailable.
+    #[cfg(feature = "primalspring")]
+    pub fn dispatch_compute_signal(
+        ctx: &mut primalspring::composition::CompositionContext,
+        workload: &serde_json::Value,
+        shader: Option<&str>,
+    ) -> Result<serde_json::Value, IpcError> {
+        let mut params = serde_json::json!({ "workload": workload });
+        if let Some(s) = shader {
+            params["shader"] = serde_json::Value::String(s.to_owned());
+        }
+        ctx.dispatch("node.compute", params)
+            .map_err(|e| IpcError::Other(format!("node.compute dispatch: {e}")))
+    }
+
     /// `toadstool.validate` — Tier 2 workload pre-flight validation.
     ///
     /// Validates a workload TOML before dispatch. Returns a structured

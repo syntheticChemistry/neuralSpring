@@ -5,7 +5,17 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-16 (Sessions 203–208: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20)
+## [Unreleased] — 2026-05-16 (Sessions 203–209: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition)
+
+### 2026-05-16 — Session S209 (Live Composition + Live Data Chains evolution)
+
+- **`nest.commit` signal dispatch** — `commit_session_signal()` wired in `weight_loader.rs`. Dispatches session finalization through biomeOS graph: `rhizoCrypt.event.append → bearDog.crypto.sign → nestGate.content.put → loamSpine.session.commit → sweetGrass.braid.create`.
+- **Science result provenance** — `store_science_result()` wraps science computation results (e.g. spectral analysis, inference) in `nest.store` provenance with method/domain metadata.
+- **`node.compute` signal dispatch** — `IpcMathClient::dispatch_compute_signal()` routes GPU compute workloads through biomeOS-managed `node.compute` signal (toadStool → coralReef → barraCuda pipeline), gated behind `#[cfg(feature = "primalspring")]`.
+- **Live IPC pipeline executor** — `execute_graph_live()` in `nucleus_pipeline/executor.rs` dispatches pipeline stages through `CompositionContext` with fallback to local execution. Provenance recording uniform with local executor.
+- **Nest commit provenance scenario** — `s_nest_commit` validation scenario (scenario 8/9): structural checks for signal graph awareness + live `nest.store`/`nest.commit` dispatch probes + `store_science_result()` exercise.
+- **Schema standard scenario** — `s_schema_standard` validation scenario (scenario 9/9): structural checks for `capability.list` envelope compliance (count/primal/capabilities fields) + live `primal.list` and `capability.list` probes.
+- **Scenario count** — 7 → 9. PRIMAL_GAPS updated: Gaps 15–18 resolved. V165 handoff.
 
 ### 2026-05-16 — Session S208 (Wave 20 schema standardization — capability.list canonical envelope)
 

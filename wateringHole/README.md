@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V164 — Session S208 (Wave 20 Schema Standardization)
+### V165 — Session S209 (Live Composition + Live Data Chains)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V164** | `handoffs/NEURALSPRING_V164_WAVE20_SCHEMA_STANDARDIZATION_MAY16_2026.md` | May 16, 2026 | `capability.list` canonical envelope (`count` added). Registry doc 452. `primal.list` biomeOS-served. `nest.commit` + schema scenario as glacial candidates. |
+| **V165** | `handoffs/NEURALSPRING_V165_LIVE_COMPOSITION_MAY16_2026.md` | May 16, 2026 | `nest.commit` + `store_science_result()` provenance chain. `node.compute` signal dispatch. `execute_graph_live()` live IPC pipeline. 2 new validation scenarios (9 total). Gaps 15–18 resolved. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V163 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V164 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

@@ -365,6 +365,66 @@ pub fn store_to_nestgate_signal(
     .map_err(|e| IpcError::Other(format!("nest.store dispatch: {e}")))
 }
 
+/// Commit a provenance session via `nest.commit` signal dispatch.
+///
+/// Finalizes a rhizoCrypt session: dehydrates the DAG, signs via bearDog,
+/// optionally stores via NestGate, commits to loamSpine ledger, and
+/// creates a sweetGrass attribution braid. biomeOS manages the graph:
+/// `rhizoCrypt.event.append → bearDog.crypto.sign → nestGate.content.put → loamSpine.session.commit → sweetGrass.braid.create`
+///
+/// Use after one or more `nest.store` dispatches to seal a training or
+/// experiment session into permanent provenance.
+///
+/// # Errors
+///
+/// Returns an error if signal dispatch fails or biomeOS is unavailable.
+#[cfg(feature = "primalspring")]
+pub fn commit_session_signal(
+    ctx: &mut primalspring::composition::CompositionContext,
+    session_id: &str,
+) -> Result<serde_json::Value, IpcError> {
+    ctx.dispatch(
+        "nest.commit",
+        serde_json::json!({ "session_id": session_id }),
+    )
+    .map_err(|e| IpcError::Other(format!("nest.commit dispatch: {e}")))
+}
+
+/// Store a science computation result with provenance via `nest.store`.
+///
+/// Wraps a JSON result from a science method (e.g. `science.spectral_analysis`)
+/// in the full provenance chain. biomeOS decomposes into:
+/// `NestGate.content.put → rhizoCrypt.dag.event.append → loamSpine.spine.seal → sweetGrass.braid.create`
+///
+/// # Errors
+///
+/// Returns an error if signal dispatch fails or biomeOS is unavailable.
+#[cfg(feature = "primalspring")]
+pub fn store_science_result(
+    ctx: &mut primalspring::composition::CompositionContext,
+    method: &str,
+    result: &serde_json::Value,
+    author: &str,
+) -> Result<serde_json::Value, IpcError> {
+    let content = serde_json::to_string(result)
+        .map_err(|e| IpcError::Other(format!("serialize science result: {e}")))?;
+
+    ctx.dispatch(
+        "nest.store",
+        serde_json::json!({
+            "content": content,
+            "content_type": "application/json",
+            "author": author,
+            "metadata": {
+                "method": method,
+                "domain": "science",
+                "spring": "neuralSpring",
+            },
+        }),
+    )
+    .map_err(|e| IpcError::Other(format!("nest.store science result: {e}")))
+}
+
 /// Load a safetensors model from `NestGate` by BLAKE3 hash.
 ///
 /// Retrieves the base64-encoded payload via `content.get`, decodes it,

@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: May 16, 2026 (Session S207b — Deep debt zero-debt (5 audits). Wave 17 signal API: `primal.announce` + `nest.store`. 7 validation scenarios. 35 capabilities. 910 workspace tests (IPC-first). V162 handoff.)
+**Last updated**: May 16, 2026 (Session S209 — Live Composition + Live Data Chains. `nest.commit`/`nest.store`/`node.compute` signal dispatch. 9 validation scenarios. 35 capabilities. 910 workspace tests (IPC-first). V165 handoff.)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

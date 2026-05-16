@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-16 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 20, 452 methods)
-> **Session:** S208 — Wave 20 schema standardization. `capability.list` canonical envelope: `count` field added. Registry cross-test doc updated to 452. `primal.list` is biomeOS-served (not spring-side). `nest.commit` documented as glacial candidate. 910 tests, clippy clean. V164 handoff.
-> Prior: S207c doc evolution, S207b deep debt, S207 Wave 17 signal, S206 compute trio, S205b deep debt, S205 NestGate.
+> **Session:** S209 — Live Composition + Live Data Chains evolution. `nest.commit` signal dispatch WIRED. `store_science_result()` provenance wrapper added. `node.compute` signal dispatch WIRED. `execute_graph_live()` live IPC pipeline executor added. 2 new validation scenarios (nest_commit_provenance, schema_standard). 9 scenarios total. V165 handoff.
+> Prior: S208 Wave 20 schema, S207c doc evolution, S207b deep debt, S207 Wave 17 signal, S206 compute trio, S205b deep debt, S205 NestGate.
 
 ---
 
@@ -708,38 +708,45 @@ EXTRA_PRIMALS="squirrel" COMPOSITION_NAME=neuralspring ./composition_nucleus.sh 
 lib enhancements for AI lane, Squirrel in default/optional PRIMAL_LIST),
 loamSpine (braid query performance), rhizoCrypt (DAG session for agent comps)
 
-## 15. `nest.commit` Signal Dispatch — Glacial Candidate (S208)
+## 15. `nest.commit` Signal Dispatch (S208 → S209)
 
-**Status**: `candidate` | **Priority**: low | **Blocked by**: none
+**Status**: `candidate` → **RESOLVED** | **Priority**: low → done | **Blocked by**: none
 
-neuralSpring currently stores model weights via `nest.store` signal dispatch
-(`weight_loader::store_to_nestgate_signal`). The `nest.commit` signal collapses
-`event.append → crypto.sign → content.put → session.commit → braid.create` into
-a single dispatch for session finalization.
+neuralSpring now has full provenance chain dispatch:
+- `commit_session_signal()` in `weight_loader.rs` — dispatches `nest.commit` to finalize sessions
+- `store_science_result()` in `weight_loader.rs` — wraps science computation results in `nest.store` provenance
+- `s_nest_commit` validation scenario — structural + live checks for the full provenance chain
 
-**Use case**: Training sessions producing multiple weight checkpoints could benefit
-from `nest.commit` to finalize the session provenance chain — commit all events,
-sign the ledger, and seal the braid in one dispatch.
+**Resolved in S209**: Training session finalization, science result provenance, and
+live validation all wired. biomeOS decomposes `nest.commit` into:
+`rhizoCrypt.event.append → bearDog.crypto.sign → nestGate.content.put → loamSpine.session.commit → sweetGrass.braid.create`.
 
-**Current state**: neuralSpring's weight persistence is single-shot (`nest.store`),
-not session-oriented. `nest.commit` becomes relevant when training loop support
-matures or when multi-checkpoint provenance is needed.
+## 16. Schema Validation Scenario (S208 → S209)
 
-**primalSpring reference**: `s_nest_commit_live` scenario validates the full E2E
-pipeline. `graphs/signals/nest_commit.toml` defines the signal graph.
+**Status**: `candidate` → **RESOLVED** | **Priority**: low → done | **Blocked by**: none
 
-**Action**: Adopt when neuralSpring implements training loop orchestration or
-session-level provenance. Not a Wave 20 blocker.
+`s_schema_standard` validation scenario implemented:
+- Tier 1: verifies `capability.list` handler includes `count`, `primal`, and `capabilities` fields
+- Tier 1: validates `ALL_CAPABILITIES` naming convention and `primal.list` in local registry
+- Tier 2: live probe of `primal.list` and `capability.list` response shapes
 
-## 16. Schema Validation Scenario — Optional (S208)
+**Resolved in S209**: Schema drift detection is now covered by validation scenario 9/9.
 
-**Status**: `candidate` | **Priority**: low | **Blocked by**: none
+## 17. `node.compute` Signal Dispatch — WIRED (S209)
 
-primalSpring Wave 20 introduced `s_schema_standard` to validate canonical response
-shapes (`capability.list` envelope, `primal.list` schema). neuralSpring could adopt
-a similar scenario to catch biomeOS schema drift.
+**Status**: **RESOLVED** | **Priority**: medium | **Blocked by**: none
 
-**Current state**: `capability.list` now returns canonical envelope (`capabilities`
-array + `count` + `primal`). No validation scenario tests response shape.
+`IpcMathClient::dispatch_compute_signal()` wired behind `#[cfg(feature = "primalspring")]`.
+Dispatches `node.compute` signal through biomeOS, which decomposes into:
+`toadStool.compute.dispatch → coralReef.shader.compile.wgsl → barraCuda.tensor.matmul`.
 
-**Action**: Optional — add when CI schema drift becomes a concern.
+Existing `compute_dispatch()` (direct toadStool IPC) retained for non-composed mode.
+
+## 18. Live IPC Pipeline Executor — WIRED (S209)
+
+**Status**: **RESOLVED** | **Priority**: medium | **Blocked by**: none
+
+`execute_graph_live()` in `nucleus_pipeline/executor.rs` — routes pipeline stages
+through `CompositionContext` instead of local function calls. Falls back to local
+dispatch when capabilities are not resolvable via composition. Provenance recording
+is identical to the local executor for uniform `PipelineReport` output.

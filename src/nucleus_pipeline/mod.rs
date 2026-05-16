@@ -27,4 +27,6 @@ pub use executor::{
     execute_composition_pipeline, execute_composition_pipeline_gpu, execute_graph,
     execute_graph_gpu,
 };
+#[cfg(feature = "primalspring")]
+pub use executor::execute_graph_live;
 pub use report::PipelineReport;

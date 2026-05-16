@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 16, 2026 (Session S208 — Wave 20 schema standardization: `capability.list` canonical envelope with `count`. Registry doc 452. `nest.commit` glacial candidate. 35 capabilities, 7 scenarios, 910 tests. V164 handoff).
+**Last updated**: May 16, 2026 (Session S209 — Live Composition + Live Data Chains: `nest.commit` signal dispatch WIRED, `store_science_result()` provenance, `node.compute` signal dispatch, `execute_graph_live()` live IPC pipeline. 35 capabilities, 9 scenarios, 910 tests. V165 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
