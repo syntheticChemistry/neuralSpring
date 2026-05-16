@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 16, 2026 (Session S207 — Wave 17 signal API adoption. `primal.announce` replaces multi-call registration. `nest.store` dispatch wired for provenance-tracked weight persistence. 35 capabilities, 7 validation scenarios, 910 tests. V161 handoff).
+**Last updated**: May 16, 2026 (Session S207b — Deep debt re-audit: zero-debt across all 7 categories. 20 bench scripts, 15 CPU domains (38.6× geomean), 27/27 papers, Kokkos harness, 0 files >800L. 35 capabilities, 7 scenarios, 910 tests. V162 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

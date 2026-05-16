@@ -5,7 +5,22 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-16 (Sessions 203–207: Tier 2 convergence + niche atomic + deployment + Wave 17 signals)
+## [Unreleased] — 2026-05-16 (Sessions 203–207b: Tier 2 convergence + niche atomic + deployment + Wave 17 + deep debt)
+
+### 2026-05-16 — Session S207b (Deep debt re-audit — 3rd pass, zero-debt confirmed)
+
+- **Deep debt audit** — comprehensive re-audit across all 7 priority areas:
+  - TODO/FIXME/HACK/STUB: **0** actionable markers in `src/**/*.rs`
+  - unsafe code: **0** — workspace enforces `#![forbid(unsafe_code)]`
+  - `#[allow(…)]`: **0** — all lint overrides use modern `#[expect(…)]`
+  - `unimplemented!()`/`todo!()`/`unreachable!()`: **0** in production code
+  - `panic!()`: **0** outside `#[cfg(test)]` modules
+  - `.unwrap()`: **0** in library production code; 36 in benchmark binary (intentional `#[expect]`), 12 in fossils diagnostics (archived)
+  - Files >800 lines: **0** (largest: `tolerances/mod.rs` at 776)
+  - External deps: all modern (Rust 2024, MSRV 1.87, `wgpu 28`, `tokio 1.49`)
+  - Mocks/stubs: coralReef bridge feature-gated stub is correct Tier 4 IPC-first design
+  - Hardcoding: config.rs centralizes all runtime resolution with env-var fallbacks
+- **Audit answers documented** — Python CPU parity (15 domains, 38.6× geomean), Kokkos harness + industry GPU, 27/27 papers closed, dataset roadmap, coverage gaps characterized. V162 handoff.
 
 ### 2026-05-16 — Session S207 (Wave 17 signal API adoption — primal.announce + nest.store)
 

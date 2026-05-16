@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-16 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 17, 451 methods)
-> **Session:** S207 — Wave 17 signal API adoption. `primal.announce` replaces multi-call registration. `nest.store` dispatch wired. 35 capabilities. `s_signal_dispatch` validation scenario. GAP-GS-015 verified. 910 tests, clippy clean. V161 handoff.
-> Prior: S206 compute trio wave + skunkBat triple-first, S205b deep debt re-audit, S205 NestGate weights, S203 precision.route, S201b Gap 11 closed, S200 guideStone L5.
+> **Session:** S207b — Deep debt re-audit (3rd pass). All 7 priority areas confirmed zero-debt. Answers all 5 audit questions with evidence. 20 bench scripts, 84 baseline scripts, 397/397 assertions, 15 CPU domains (38.6× geomean), 27/27 papers CLOSED, Kokkos harness + industry GPU parity wired. 910 tests, clippy clean, zero files >800L. V162 handoff.
+> Prior: S207 Wave 17 signal, S206 compute trio, S205b deep debt, S205 NestGate, S201b Gap 11 closed, S200 guideStone L5.
 
 ---
 
