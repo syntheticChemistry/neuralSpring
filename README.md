@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 16, 2026 (Session S207c — 18-file doc reconciliation (S205b→S207b). Upstream primal handoff V163. Debris review: zero archivable debris. 35 capabilities, 7 scenarios, 910 tests).
+**Last updated**: May 16, 2026 (Session S208 — Wave 20 schema standardization: `capability.list` canonical envelope with `count`. Registry doc 452. `nest.commit` glacial candidate. 35 capabilities, 7 scenarios, 910 tests. V164 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

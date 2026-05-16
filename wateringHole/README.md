@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V163 — Session S207c (Documentation Evolution + Primal Handoff)
+### V164 — Session S208 (Wave 20 Schema Standardization)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V163** | `handoffs/NEURALSPRING_V163_DOC_EVOLUTION_PRIMAL_HANDOFF_MAY16_2026.md` | May 16, 2026 | 18-file doc reconciliation (S205b→S207b). Upstream primal handoff: barraCuda, coralReef, nestGate, toadStool, squirrel, primalSpring. Wave 17 adoption. Composition patterns. Debris review. |
+| **V164** | `handoffs/NEURALSPRING_V164_WAVE20_SCHEMA_STANDARDIZATION_MAY16_2026.md` | May 16, 2026 | `capability.list` canonical envelope (`count` added). Registry doc 452. `primal.list` biomeOS-served. `nest.commit` + schema scenario as glacial candidates. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V162 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V163 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-16 (Sessions 203–207c: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution)
+## [Unreleased] — 2026-05-16 (Sessions 203–208: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20)
+
+### 2026-05-16 — Session S208 (Wave 20 schema standardization — capability.list canonical envelope)
+
+- **`capability.list` canonical envelope** — added `"count": ALL_CAPABILITIES.len()` to response, completing the canonical `{ "capabilities": [...], "count": N, "primal": "..." }` shape required by projectNUCLEUS and projectFOUNDATION.
+- **Registry cross-test doc** — updated stale "413-method" comment to "452-method" for primalSpring canonical registry.
+- **`primal.list`** — biomeOS-served method (not spring-side). No neuralSpring capability addition needed. Registry cross-test is substring-based, will pass when primalSpring adds to TOML.
+- **`nest.commit` glacial candidate** — documented in PRIMAL_GAPS.md Gap 15. Training session finalization signal. Not a Wave 20 blocker.
+- **Schema validation scenario** — documented in PRIMAL_GAPS.md Gap 16 as optional candidate.
+- **V164 handoff**.
 
 ### 2026-05-16 — Session S207c (Documentation evolution + upstream primal handoff)
 

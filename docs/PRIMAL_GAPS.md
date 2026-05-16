@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-16 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 17, 451 methods)
-> **Session:** S207b — Deep debt re-audit (3rd pass). All 7 priority areas confirmed zero-debt. Answers all 5 audit questions with evidence. 20 bench scripts, 84 baseline scripts, 397/397 assertions, 15 CPU domains (38.6× geomean), 27/27 papers CLOSED, Kokkos harness + industry GPU parity wired. 910 tests, clippy clean, zero files >800L. V162 handoff.
-> Prior: S207 Wave 17 signal, S206 compute trio, S205b deep debt, S205 NestGate, S201b Gap 11 closed, S200 guideStone L5.
+> **Date:** 2026-05-16 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 20, 452 methods)
+> **Session:** S208 — Wave 20 schema standardization. `capability.list` canonical envelope: `count` field added. Registry cross-test doc updated to 452. `primal.list` is biomeOS-served (not spring-side). `nest.commit` documented as glacial candidate. 910 tests, clippy clean. V164 handoff.
+> Prior: S207c doc evolution, S207b deep debt, S207 Wave 17 signal, S206 compute trio, S205b deep debt, S205 NestGate.
 
 ---
 
@@ -707,3 +707,39 @@ EXTRA_PRIMALS="squirrel" COMPOSITION_NAME=neuralspring ./composition_nucleus.sh 
 **Hand back to:** Squirrel (provider registration), primalSpring (composition
 lib enhancements for AI lane, Squirrel in default/optional PRIMAL_LIST),
 loamSpine (braid query performance), rhizoCrypt (DAG session for agent comps)
+
+## 15. `nest.commit` Signal Dispatch — Glacial Candidate (S208)
+
+**Status**: `candidate` | **Priority**: low | **Blocked by**: none
+
+neuralSpring currently stores model weights via `nest.store` signal dispatch
+(`weight_loader::store_to_nestgate_signal`). The `nest.commit` signal collapses
+`event.append → crypto.sign → content.put → session.commit → braid.create` into
+a single dispatch for session finalization.
+
+**Use case**: Training sessions producing multiple weight checkpoints could benefit
+from `nest.commit` to finalize the session provenance chain — commit all events,
+sign the ledger, and seal the braid in one dispatch.
+
+**Current state**: neuralSpring's weight persistence is single-shot (`nest.store`),
+not session-oriented. `nest.commit` becomes relevant when training loop support
+matures or when multi-checkpoint provenance is needed.
+
+**primalSpring reference**: `s_nest_commit_live` scenario validates the full E2E
+pipeline. `graphs/signals/nest_commit.toml` defines the signal graph.
+
+**Action**: Adopt when neuralSpring implements training loop orchestration or
+session-level provenance. Not a Wave 20 blocker.
+
+## 16. Schema Validation Scenario — Optional (S208)
+
+**Status**: `candidate` | **Priority**: low | **Blocked by**: none
+
+primalSpring Wave 20 introduced `s_schema_standard` to validate canonical response
+shapes (`capability.list` envelope, `primal.list` schema). neuralSpring could adopt
+a similar scenario to catch biomeOS schema drift.
+
+**Current state**: `capability.list` now returns canonical envelope (`capabilities`
+array + `count` + `primal`). No validation scenario tests response shape.
+
+**Action**: Optional — add when CI schema drift becomes a concern.

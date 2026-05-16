@@ -115,6 +115,7 @@ pub fn handle_capability_list(id: serde_json::Value) -> JsonRpcResponse {
         serde_json::json!({
             "primal": PRIMAL_NAME,
             "capabilities": ALL_CAPABILITIES,
+            "count": ALL_CAPABILITIES.len(),
         }),
     )
 }
