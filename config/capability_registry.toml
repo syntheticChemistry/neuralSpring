@@ -149,6 +149,10 @@ description = "biomeOS v3.51 composition status: active_users, primal_health, re
 method = "method.register"
 description = "biomeOS v3.51 dynamic method registration: register spring-specific methods without manual config"
 
+[capabilities.primal_announce]
+method = "primal.announce"
+description = "Wave 17 signal API: single-call primal announcement replacing nucleus.register + capability.register"
+
 [capabilities.security_audit_log]
 method = "security.audit_log"
 description = "skunkBat JH-5 audit log forwarding: cross-primal audit events to rhizoCrypt DAG + sweetGrass braid"

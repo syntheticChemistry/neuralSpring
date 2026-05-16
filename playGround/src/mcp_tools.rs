@@ -402,6 +402,24 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
                 }
             }),
         },
+        // ── Wave 17 signal API ───────────────────────────────────────
+        McpToolDef {
+            name: "primal.announce",
+            description: "Wave 17 signal API: single-call primal announcement replacing \
+                          nucleus.register + capability.register. Announces identity, \
+                          capabilities, and socket to biomeOS with automatic fallback.",
+            domain: "primal",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "primal_id": { "type": "string", "description": "Primal identity name" },
+                    "methods": { "type": "array", "items": { "type": "string" }, "description": "Advertised method names" },
+                    "transport": { "type": "string", "description": "Socket path" },
+                    "signal_tiers": { "type": "array", "items": { "type": "string" }, "description": "Signal tiers this primal participates in" }
+                },
+                "required": ["primal_id", "methods", "transport"]
+            }),
+        },
         // ── Security audit (skunkBat JH-5) ───────────────────────────
         McpToolDef {
             name: "security.audit_log",
@@ -438,7 +456,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 34);
+        assert_eq!(tools.len(), 35);
     }
 
     #[test]

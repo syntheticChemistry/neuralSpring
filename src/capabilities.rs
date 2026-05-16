@@ -86,8 +86,10 @@ pub const IDENTITY_GET: &str = "identity.get";
 pub const MCP_TOOLS_LIST: &str = "mcp.tools.list";
 /// Composition status.
 pub const COMPOSITION_STATUS: &str = "composition.status";
-/// Method registration.
+/// Method registration (legacy).
 pub const METHOD_REGISTER: &str = "method.register";
+/// Primal announcement (Wave 17 signal API — replaces multi-call registration).
+pub const PRIMAL_ANNOUNCE: &str = "primal.announce";
 
 // ─── Provenance trio ────────────────────────────────────────────
 /// Begin provenance session.

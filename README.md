@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 14, 2026 (Session S206 — Upstream audit absorption. Deploy graphs: skunkBat triple-first Tower wired across all domain graphs. NestGate Wave 7 (`content.get`). Gap 5 RESOLVED, Gap 7 design decision documented. Clippy cast fixes (Rust 1.94). 910 workspace tests (IPC-first). V160 handoff).
+**Last updated**: May 16, 2026 (Session S207 — Wave 17 signal API adoption. `primal.announce` replaces multi-call registration. `nest.store` dispatch wired for provenance-tracked weight persistence. 35 capabilities, 7 validation scenarios, 910 tests. V161 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

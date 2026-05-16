@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! biomeOS lifecycle management: registration, deregistration, heartbeat.
+//!
+//! Registration uses `primal.announce` (Wave 17 signal API) with automatic
+//! fallback to `nucleus.register` + `capability.register` for pre-v3.57 biomeOS.
 
 use std::path::PathBuf;
 
@@ -17,6 +20,34 @@ pub async fn register_with_biomeos(our_socket: &std::path::Path) {
         return;
     }
 
+    let announce_result = forward_to_primal_raw(
+        &biomeos_socket,
+        "primal.announce",
+        &serde_json::json!({
+            "primal_id": PRIMAL_NAME,
+            "transport": our_socket.to_string_lossy(),
+            "methods": ALL_CAPABILITIES,
+            "lifecycle": { "state": "running" },
+            "pid": std::process::id(),
+            "signal_tiers": ["node", "nest", "meta"],
+            "version": env!("CARGO_PKG_VERSION"),
+        }),
+    )
+    .await;
+
+    match announce_result {
+        Ok(_) => {
+            log::info!(
+                "Announced {} capabilities via primal.announce",
+                ALL_CAPABILITIES.len()
+            );
+            return;
+        }
+        Err(e) => {
+            log::info!("primal.announce unavailable ({e}), falling back to legacy registration");
+        }
+    }
+
     let reg_result = forward_to_primal_raw(
         &biomeos_socket,
         "nucleus.register",
@@ -29,7 +60,7 @@ pub async fn register_with_biomeos(our_socket: &std::path::Path) {
     .await;
 
     match reg_result {
-        Ok(_) => log::info!("Registered with biomeOS NUCLEUS"),
+        Ok(_) => log::info!("Registered with biomeOS NUCLEUS (legacy)"),
         Err(e) => log::warn!("nucleus.register failed (non-fatal): {e}"),
     }
 
@@ -51,7 +82,7 @@ pub async fn register_with_biomeos(our_socket: &std::path::Path) {
     }
 
     log::info!(
-        "All {} capabilities registered with biomeOS",
+        "All {} capabilities registered with biomeOS (legacy)",
         ALL_CAPABILITIES.len()
     );
 }

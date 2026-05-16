@@ -5,7 +5,19 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-14 (Sessions 203–206: Tier 2 convergence + niche atomic + deployment + compute trio)
+## [Unreleased] — 2026-05-16 (Sessions 203–207: Tier 2 convergence + niche atomic + deployment + Wave 17 signals)
+
+### 2026-05-16 — Session S207 (Wave 17 signal API adoption — primal.announce + nest.store)
+
+- **primal.announce adoption**: Registration in `biomeos.rs` now uses single `primal.announce` call (Wave 17) with automatic fallback to legacy `nucleus.register` + N × `capability.register`. Playground `BiomeOsClient` gains `announce()` method.
+- **nest.store signal dispatch**: New `store_to_nestgate_signal()` in `weight_loader.rs` — dispatches via `ctx.dispatch("nest.store", ...)` so biomeOS manages the full provenance graph (NestGate.put → rhizoCrypt.append → loamSpine.seal → sweetGrass.braid). Direct `content.put` path retained as fallback.
+- **primal.announce capability**: Added to `ALL_CAPABILITIES` (35 entries), `niche::CAPABILITIES`, `capabilities.rs` constant, `capability_registry.toml`, and `mcp_tools.rs` tool definition.
+- **RPC handlers**: Added `primal.announce`, `composition.status`, `method.register`, `compute.dispatch`, `security.audit_log` handlers to primal dispatch table.
+- **Signal validation scenario**: New `s_signal_dispatch` scenario (Track::Signal) validates primal.announce in registry/niche/ALL_CAPABILITIES, skunkBat triple-first in deploy graphs, and live dispatch of `nest.store` + `primal.info`.
+- **Scenario registry**: 7 scenarios (was 6). Signal track added to validation.
+- **GAP-GS-015 verified**: `cargo check --workspace` passes against primalSpring HEAD (451 methods).
+- **Registry sync**: `registry_methods_in_primalspring_canonical` test passes against 451-method registry.
+- **Quality**: 910 workspace tests (2 env-dependent skips with live primal sockets), 0 clippy errors. V161 handoff.
 
 ### 2026-05-14 — Session S206 (Upstream audit absorption — plasmidBin + compute trio wave)
 

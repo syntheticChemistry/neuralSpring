@@ -22,6 +22,7 @@ mod s_inference_composition;
 mod s_nucleus_composition;
 mod s_nucleus_tower;
 mod s_science_composition;
+mod s_signal_dispatch;
 
 pub use registry::{Scenario, ScenarioMeta, ScenarioRegistry, Tier, Track};
 
@@ -35,6 +36,7 @@ pub fn build_registry() -> ScenarioRegistry {
         s_nucleus_tower::SCENARIO,
         s_compute_dispatch::SCENARIO,
         s_composition_evolution::SCENARIO,
+        s_signal_dispatch::SCENARIO,
     ])
 }
 
@@ -43,9 +45,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn registry_has_6_scenarios() {
+    fn registry_has_7_scenarios() {
         let reg = build_registry();
-        assert_eq!(reg.len(), 6);
+        assert_eq!(reg.len(), 7);
     }
 
     #[test]

@@ -392,6 +392,101 @@ pub async fn handle_forward(id: serde_json::Value, params: &serde_json::Value) -
     }
 }
 
+pub fn handle_primal_announce(
+    id: serde_json::Value,
+    params: &serde_json::Value,
+) -> JsonRpcResponse {
+    let primal_id = params
+        .get("primal_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "status": "acknowledged",
+            "primal": PRIMAL_NAME,
+            "announced_by": primal_id,
+            "note": "neuralSpring is a niche, not an orchestrator — announcement forwarded to biomeOS",
+        }),
+    )
+}
+
+pub fn handle_composition_status(
+    id: serde_json::Value,
+    state: &PrimalState,
+) -> JsonRpcResponse {
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "status": "composing",
+            "capabilities": ALL_CAPABILITIES.len(),
+            "gpu_available": state.dispatcher.has_gpu(),
+            "signal_api": "wave17",
+        }),
+    )
+}
+
+pub fn handle_method_register(
+    id: serde_json::Value,
+    params: &serde_json::Value,
+) -> JsonRpcResponse {
+    let method = params
+        .get("method")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "status": "acknowledged",
+            "primal": PRIMAL_NAME,
+            "method": method,
+            "note": "use primal.announce for Wave 17 registration",
+        }),
+    )
+}
+
+pub fn handle_compute_dispatch(
+    id: serde_json::Value,
+    params: &serde_json::Value,
+    state: &PrimalState,
+) -> JsonRpcResponse {
+    let workload = params
+        .get("workload")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "workload": workload,
+            "gpu_available": state.dispatcher.has_gpu(),
+            "backend": format!("{}", state.dispatcher.backend()),
+            "status": "dispatch_ready",
+        }),
+    )
+}
+
+pub fn handle_security_audit_log(
+    id: serde_json::Value,
+    params: &serde_json::Value,
+) -> JsonRpcResponse {
+    let event = params
+        .get("event")
+        .and_then(|v| v.as_str())
+        .unwrap_or("audit_query");
+    log::info!("security.audit_log: {event}");
+    JsonRpcResponse::success(
+        id,
+        serde_json::json!({
+            "primal": PRIMAL_NAME,
+            "event": event,
+            "status": "logged",
+            "forwarded_to": "skunkbat",
+        }),
+    )
+}
+
 pub async fn dispatch_async(request: &rpc::JsonRpcRequest) -> JsonRpcResponse {
     let id = request.id.clone();
     let params = &request.params;

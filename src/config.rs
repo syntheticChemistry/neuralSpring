@@ -212,9 +212,10 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     // Identity + MCP (T4 discovery, composition pattern)
     "identity.get",
     "mcp.tools.list",
-    // biomeOS v3.51 composition surface
+    // biomeOS composition surface (v3.51 + Wave 17 signal API)
     "composition.status",
     "method.register",
+    "primal.announce",
     // Security audit (skunkBat JH-5 forwarding)
     "security.audit_log",
 ];

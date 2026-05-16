@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-14 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25
-> **Session:** S206 — Upstream audit absorption (May 14 plasmidBin evolution). Deploy graphs: skunkBat triple-first Tower wired (inference, spectral, deploy). NestGate `by_capability` → `content.get` (Wave 7). Gap 5 RESOLVED. Proto-nucleate vs spring-deploy Nest split documented as design decision. Cell graph skunkBat hand-back noted. 910 tests, clippy clean. V160 handoff.
-> Prior: S205b deep debt re-audit, S205 NestGate weights + Squirrel pipeline, S204b deep debt, S203 precision.route, S202b NestGate IPC, S201b Gap 11 closed, S200 guideStone L5.
+> **Date:** 2026-05-16 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 17, 451 methods)
+> **Session:** S207 — Wave 17 signal API adoption. `primal.announce` replaces multi-call registration. `nest.store` dispatch wired. 35 capabilities. `s_signal_dispatch` validation scenario. GAP-GS-015 verified. 910 tests, clippy clean. V161 handoff.
+> Prior: S206 compute trio wave + skunkBat triple-first, S205b deep debt re-audit, S205 NestGate weights, S203 precision.route, S201b Gap 11 closed, S200 guideStone L5.
 
 ---
 

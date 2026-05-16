@@ -43,6 +43,8 @@ pub enum Track {
     CrossSpring,
     /// Provenance and lineage.
     Provenance,
+    /// Signal API adoption (Wave 17).
+    Signal,
 }
 
 impl fmt::Display for Track {
@@ -54,6 +56,7 @@ impl fmt::Display for Track {
             Self::GpuParity => write!(f, "gpu-parity"),
             Self::CrossSpring => write!(f, "cross-spring"),
             Self::Provenance => write!(f, "provenance"),
+            Self::Signal => write!(f, "signal"),
         }
     }
 }

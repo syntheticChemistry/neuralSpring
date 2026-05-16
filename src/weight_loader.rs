@@ -305,6 +305,11 @@ const fn bf16_to_f32(bits: u16) -> f32 {
 /// data. Returns the BLAKE3 hash that can be used to retrieve the weights
 /// in future sessions or from other springs.
 ///
+/// Uses `nest.store` signal dispatch when a [`CompositionContext`] is
+/// available (Wave 17 — biomeOS manages DAG + spine + braid provenance).
+/// Falls back to direct `content.put` via [`ipc::IpcMathClient`] when
+/// running standalone or when signal dispatch is unavailable.
+///
 /// # Errors
 ///
 /// Returns an error if the file cannot be read, the [`ipc::IpcMathClient`]
@@ -323,6 +328,41 @@ pub fn store_to_nestgate(
     let ct = content_type.unwrap_or("application/x-safetensors");
     let result = client.content_put(&encoded, Some(ct))?;
     Ok(result.hash)
+}
+
+/// Store model weights via `nest.store` signal dispatch (Wave 17).
+///
+/// When running inside a biomeOS composition, this sends a single
+/// `nest.store` signal that biomeOS decomposes into:
+/// `NestGate.content.put → rhizoCrypt.dag.event.append → loamSpine.spine.seal → sweetGrass.braid.create`
+///
+/// Returns the composed result including provenance artifacts.
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be read or signal dispatch fails.
+#[cfg(feature = "primalspring")]
+pub fn store_to_nestgate_signal(
+    path: &Path,
+    ctx: &mut primalspring::composition::CompositionContext,
+    author: &str,
+) -> Result<serde_json::Value, IpcError> {
+    use base64::Engine;
+
+    let raw = std::fs::read(path)
+        .map_err(|e| IpcError::Other(format!("read {}: {e}", path.display())))?;
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&raw);
+
+    ctx.dispatch(
+        "nest.store",
+        serde_json::json!({
+            "content": encoded,
+            "content_type": "application/x-safetensors",
+            "author": author,
+            "filename": path.file_name().and_then(|n| n.to_str()).unwrap_or("weights.safetensors"),
+        }),
+    )
+    .map_err(|e| IpcError::Other(format!("nest.store dispatch: {e}")))
 }
 
 /// Load a safetensors model from `NestGate` by BLAKE3 hash.

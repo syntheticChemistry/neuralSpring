@@ -102,9 +102,10 @@ pub const CAPABILITIES: &[&str] = &[
     // ── Identity + MCP (T4 discovery, composition pattern) ──
     "identity.get",
     "mcp.tools.list",
-    // ── biomeOS v3.51 composition surface ──
+    // ── biomeOS composition surface (v3.51 + Wave 17) ──
     "composition.status",
     "method.register",
+    "primal.announce",
     // ── Security audit (skunkBat JH-5 forwarding) ──
     "security.audit_log",
 ];
@@ -328,6 +329,10 @@ mod tests {
         assert!(
             CAPABILITIES.contains(&"method.register"),
             "niche must advertise method.register (biomeOS v3.51)"
+        );
+        assert!(
+            CAPABILITIES.contains(&"primal.announce"),
+            "niche must advertise primal.announce (Wave 17 signal API)"
         );
         assert!(
             CAPABILITIES.contains(&"security.audit_log"),

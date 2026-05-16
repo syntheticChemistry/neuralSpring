@@ -3,7 +3,8 @@
 //! Typed client for the biomeOS orchestrator.
 //!
 //! Wraps [`crate::ipc_client`] with biomeOS lifecycle methods:
-//! `nucleus.register`, `nucleus.deregister`, `nucleus.heartbeat`,
+//! `primal.announce` (Wave 17, preferred), `nucleus.register`,
+//! `nucleus.deregister`, `nucleus.heartbeat`,
 //! `capability.register`, and `capability.resolve`.
 //!
 //! Replaces ad-hoc `forward_to_primal_raw` calls with a proper typed
@@ -64,7 +65,38 @@ impl BiomeOsClient {
         }
     }
 
-    /// Register this primal with the NUCLEUS orchestrator.
+    /// Announce this primal to the NUCLEUS orchestrator (Wave 17 signal API).
+    ///
+    /// Uses `primal.announce` to register primal identity, capabilities, and
+    /// socket in a single call. Falls back to legacy `nucleus.register` if
+    /// the orchestrator doesn't support announce.
+    pub async fn announce(
+        &self,
+        primal_name: &str,
+        methods: &[&str],
+        our_socket: &Path,
+    ) -> Result<serde_json::Value> {
+        let result = ipc_client::call(
+            &self.socket,
+            "primal.announce",
+            &serde_json::json!({
+                "primal_id": primal_name,
+                "transport": our_socket.to_string_lossy(),
+                "methods": methods,
+                "lifecycle": { "state": "running" },
+                "pid": std::process::id(),
+            }),
+            self.timeout,
+        )
+        .await;
+
+        match result {
+            Ok(v) => Ok(v),
+            Err(_) => self.register(primal_name, our_socket).await,
+        }
+    }
+
+    /// Register this primal with the NUCLEUS orchestrator (legacy pattern).
     pub async fn register(
         &self,
         primal_name: &str,

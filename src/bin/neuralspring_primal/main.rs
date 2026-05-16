@@ -22,7 +22,8 @@
 //! ## biomeOS integration
 //!
 //! On startup, probes for a biomeOS orchestrator socket and registers
-//! capabilities via `nucleus.register` + `capability.register`.
+//! via `primal.announce` (Wave 17 signal API, single call) with automatic
+//! fallback to `nucleus.register` + `capability.register` for older biomeOS.
 //! Sends heartbeats every 30s via `nucleus.heartbeat`.
 //! Deregisters on SIGINT/SIGTERM via `nucleus.deregister`.
 //!
@@ -180,7 +181,12 @@ fn dispatch_sync(request: &rpc::JsonRpcRequest, state: &PrimalState) -> Option<J
             handlers::handle_provenance(id, method, params)
         }
         "primal.discover" => handlers::handle_primal_discover(id),
+        "primal.announce" => handlers::handle_primal_announce(id, params),
         "compute.offload" => handlers::handle_compute_offload(id, params, state),
+        "compute.dispatch" => handlers::handle_compute_dispatch(id, params, state),
+        "composition.status" => handlers::handle_composition_status(id, state),
+        "method.register" => handlers::handle_method_register(id, params),
+        "security.audit_log" => handlers::handle_security_audit_log(id, params),
         "primal.forward" | "data.ncbi_search" | "data.ncbi_fetch" | "data.pdb_search"
         | "data.pdb_fetch" => return None,
         _ => JsonRpcResponse::error(
