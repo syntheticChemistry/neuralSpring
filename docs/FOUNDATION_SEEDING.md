@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 # neuralSpring — Foundation Seeding Manifest
 
-**Status**: Thread 5 active (expression + ML_SURROGATES wired), Thread 7 seeded | **Session**: S207b | **Date**: May 16, 2026
+**Status**: Thread 5 active (expression + ML_SURROGATES wired), Thread 7 seeded | **Session**: S209 | **Date**: May 16, 2026
 
 neuralSpring contributes validated science to two foundation threads:
 
@@ -67,4 +67,4 @@ integration.
 Foundation now at 7/10 threads with sources (was 5/10). neuralSpring
 contributed Thread 5 (new) and expanded Thread 7.
 
-*neuralSpring V162 | Session S207b | AGPL-3.0-or-later*
+*neuralSpring V165 | Session S209 | AGPL-3.0-or-later*

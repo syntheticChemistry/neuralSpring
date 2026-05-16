@@ -165,7 +165,7 @@ CPU f64 reference with calibrated tolerances.
 | S-16 | 2D transpose dispatches wrong workgroup count (256 vs 16) | High | **RESOLVED** upstream (`a4996b34` S39: Transpose dispatch fixed) |
 
 Full diagnosis and reproduction steps: `wateringHole/handoffs/archive/NEURALSPRING_V6_BARRACUDA_GPU_HANDOFF_FEB22_2026.md`
-Current handoff: `wateringHole/handoffs/NEURALSPRING_V129_DEPLOY_GRAPH_PROTO_NUCLEATE_ALIGNMENT_HANDOFF_APR11_2026.md`
+Current handoff: `wateringHole/handoffs/NEURALSPRING_V165_LIVE_COMPOSITION_MAY16_2026.md`
 
 ### Session 68 — BarraCUDA Usage Audit
 

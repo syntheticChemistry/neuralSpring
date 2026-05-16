@@ -14,14 +14,14 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 - **UniBin**: Single `neuralspring_unibin` binary with `certify`, `validate`, `serve`, `status`, `version` subcommands
 - **IPC tree**: `src/ipc/` with 7 per-primal modules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`, `nestgate`) + `IpcMathClient` facade + `CapabilityRouter` (20 hints, 35 capabilities)
 - **Certification organelle**: `src/certification/` — 6-layer guidestone (bare/discovery/parity/nucleus/composition/cross-spring)
-- **Validation scenarios**: `src/validation/scenarios/` — 6 absorbed scenarios with `ScenarioMeta`, `ScenarioRegistry`, tiered execution
+- **Validation scenarios**: `src/validation/scenarios/` — 9 scenarios with `ScenarioMeta`, `ScenarioRegistry`, tiered execution (Rust + Live)
 - **Fossilized patterns**: Migrated to `ecoPrimals/fossilRecord/` (stub README remains)
 
 ## Technical Facts
 
 - **Language:** Rust 2024 edition, `rust-version` **1.87**
 - **License:** AGPL-3.0-or-later (scyBorg: AGPL code + ORC mechanics + CC-BY-SA creative)
-- **Workspace:** 3 crates — `neural-spring` (library), `neural-spring-forge`, `neuralspring-playground`
+- **Workspace:** 4 crates — `neural-spring` (library), `neural-spring-forge`, `neuralspring-playground`, `neuralspring-exp094`
 - **Scale:** 520+ Rust source files; every file under 800 lines
 - **Safety:** zero `unsafe` (`#![forbid(unsafe_code)]` workspace-wide); cast lints (`cast_possible_truncation`, `cast_sign_loss`) denied
 - **Linting:** Clippy pedantic + nursery, zero warnings, zero `#[allow()]` (all `#[expect(reason)]`)

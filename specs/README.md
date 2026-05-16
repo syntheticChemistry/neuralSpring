@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: May 16, 2026 (Sessions 44–207b — S207b: Deep debt zero-debt (5 audits). Wave 17 signal API. 910 workspace tests (IPC-first). 35 capabilities. 7 validation scenarios. barraCuda v0.4.0. V162 handoff)
-**Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 269 binaries, 910 workspace tests, Python→Rust→IPC three-tier validation stack
+**Last Updated**: May 16, 2026 (Sessions 44–209 — S209: Live composition + data chains. 910 workspace tests (IPC-first). 35 capabilities. 9 validation scenarios. barraCuda v0.4.0. V165 handoff)
+**Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 269 binaries, 910 workspace tests, Python→Rust→IPC→Live Composition four-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V159 handoff (current, Session S205c — primal evolution, composition patterns, doc reconciliation) |
+| wateringHole/handoffs/ | `../wateringHole/` | V165 handoff (current, Session S209 — live composition + data chains, primal evolution) |
 
 ---
 

@@ -1,6 +1,6 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S207b)**: 910 workspace tests (IPC-first) + 19 certification tests (guidestone L5). 68+ modules, 269 binaries, 521+ `.rs` files, 0 clippy, 0 unsafe, 0 `#[allow()]`, 0 production panics, 0 TODO/FIXME/HACK. Wave 17 signal API (`primal.announce` + `nest.store`). 35 capabilities, 7 validation scenarios, 7 IPC modules. 27/27 papers reproduced, 397/397 Python baselines, 20 bench scripts across 15 domains. Deep debt zero-debt (5 audits: S199, S202c, S204b, S205b, S207b). Edition 2024. MSRV 1.87. barraCuda v0.4.0. V162 handoff. May 16, 2026.
+**Current state (Session S209)**: 910 workspace tests (IPC-first) + 19 certification tests (guidestone L5). 68+ modules, 269 binaries, 521+ `.rs` files, 0 clippy, 0 unsafe, 0 `#[allow()]`, 0 production panics, 0 TODO/FIXME/HACK. Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). 35 capabilities, 9 validation scenarios, 7 IPC modules. Live composition via `execute_graph_live()`. 27/27 papers reproduced, 397/397 Python baselines, 20 bench scripts across 15 domains. Deep debt zero-debt (5 audits: S199, S202c, S204b, S205b, S207b). Edition 2024. MSRV 1.87. barraCuda v0.4.0. V165 handoff. May 16, 2026.
 
 ### Session S193 — 2026-05-09 (Interstadial Eukaryotic Evolution)
 

@@ -83,6 +83,64 @@ neuralSpring evolves from structural/validation-only composition to **live compo
 ### nestGate / rhizoCrypt / loamSpine / sweetGrass
 - `nest.commit` dispatch now exercised from neuralSpring; live scenario probes the full chain
 
+## neuralSpring Primal Use & Evolution Summary
+
+### Current Primal Surface (7 IPC modules, 35 capabilities)
+
+| Primal | Module | Capabilities | Status |
+|--------|--------|-------------|--------|
+| **barraCuda** | `src/ipc/barracuda.rs` | `stats.*`, `tensor.*`, `barracuda.precision.route` | Tier 2 complete, v0.4.0, `optional = true` |
+| **toadStool** | `src/ipc/toadstool.rs` | `compute.dispatch`, `toadstool.validate`, `toadstool.list_workloads` | Tier 2 complete |
+| **bearDog** | `src/ipc/beardog.rs` | `crypto.hash` | Wired, Tower Atomic |
+| **squirrel** | `src/ipc/squirrel.rs` | `inference.complete`, `inference.embed`, `inference.models` | Pipeline complete |
+| **coralReef** | `src/ipc/coralreef.rs` | `shader.compile.*` | v0.1.0, IPC wired |
+| **skunkBat** | `src/ipc/skunkbat.rs` | `security.audit_log` | JH-5, Tower Atomic |
+| **nestGate** | `src/ipc/nestgate.rs` | `content.put`, `content.get`, `content.exists` | Weight persistence + provenance |
+
+### Signal API Adoption (Wave 17 + Wave 20)
+
+| Signal | Function | Graph |
+|--------|----------|-------|
+| `nest.store` | `store_to_nestgate_signal()` | NestGate → rhizoCrypt → loamSpine → sweetGrass |
+| `nest.store` | `store_science_result()` | Same graph, JSON science results |
+| `nest.commit` | `commit_session_signal()` | rhizoCrypt → bearDog → nestGate → loamSpine → sweetGrass |
+| `node.compute` | `dispatch_compute_signal()` | toadStool → coralReef → barraCuda |
+| `primal.announce` | `register_with_biomeos()` | Direct to biomeOS (with legacy fallback) |
+
+### Composition Patterns for NUCLEUS
+
+neuralSpring demonstrates a **four-tier validation stack** that other springs can adopt:
+
+1. **Python baselines** — 397 checks across 27 papers, establishing ground truth
+2. **Rust validation** — 734 lib tests, pure Rust reimplementation of all science
+3. **NUCLEUS composition** — `nucleus_pipeline` with 6-stage DAG, `PipelineGraph`/`PipelineExecution`/`PipelineReport` provenance
+4. **Live composition** — `execute_graph_live()` routes through `CompositionContext`, biomeOS manages primal graph
+
+The `nucleus_pipeline` executor pattern:
+- `execute_graph()` — CPU-only local execution
+- `execute_graph_gpu()` — mixed CPU/GPU via `Dispatcher`
+- `execute_graph_live()` — live IPC through `CompositionContext` with local fallback
+
+Each returns uniform `PipelineReport` with per-stage provenance (substrate, timing, outputs).
+
+### Deployment via neuralAPI from biomeOS
+
+neuralSpring deploys as a biomeOS-managed primal via 4 deploy graphs:
+- `neuralspring_deploy.toml` — main deployment (skunkBat triple-first Tower)
+- `neuralspring_inference_pipeline.toml` — Squirrel-mediated inference chain
+- `neuralspring_spectral_analysis.toml` — spectral analysis DAG
+- `composition/neuralspring_math_pipeline.toml` — math pipeline composition
+
+Registration uses `primal.announce` (Wave 17) with legacy `nucleus.register` + `capability.register` fallback. Health triad (`health.check`, `health.liveness`, `health.readiness`), `identity.get`, and `mcp.tools.list` all implemented.
+
+### Learnings for Other Springs
+
+1. **Feature gating works** — all composition code behind `#[cfg(feature = "primalspring")]`, all GPU code behind `#[cfg(feature = "barracuda")]`. Zero-dependency binary size stays small.
+2. **Skip-tolerant validation** — every live validation check handles missing primals with honest SKIP messages. Exit code 2 = honest skip (not failure).
+3. **Signal dispatch over direct IPC** — `ctx.dispatch("signal", params)` is cleaner than multi-call orchestration. biomeOS owns the graph sequencing. Springs only need to know signal names, not primal graph topology.
+4. **`CapabilityRouter` pattern** — 20 capability hints map capabilities to primal names. Discovery is by capability, not by primal name. Follows self-knowledge principle.
+5. **Provenance is free with signals** — `nest.store` + `nest.commit` give full provenance chains without spring-side orchestration. Science results automatically get rhizoCrypt DAG events, bearDog signatures, loamSpine ledger entries, and sweetGrass braids.
+
 ## Quality
 
 - `cargo check --workspace` — clean
