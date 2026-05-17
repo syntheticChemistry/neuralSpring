@@ -150,6 +150,7 @@ pub mod pinn;
 pub mod primal_names;
 pub mod primitives;
 pub mod provenance;
+pub mod provenance_dispatch;
 pub mod quantized;
 pub mod regulatory_network;
 pub mod rng;

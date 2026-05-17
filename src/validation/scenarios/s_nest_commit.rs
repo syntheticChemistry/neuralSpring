@@ -48,16 +48,16 @@ fn run_rust(v: &mut ValidationResult) {
         "security.audit_log in capabilities (skunkBat provenance)",
     );
 
-    let weight_loader_src = include_str!("../../weight_loader.rs");
+    let provenance_src = include_str!("../../provenance_dispatch.rs");
     v.check_bool(
         "provenance:rust:commit_session_signal_wired",
-        weight_loader_src.contains("nest.commit"),
-        "nest.commit dispatch wired in weight_loader",
+        provenance_src.contains("nest.commit"),
+        "nest.commit dispatch wired in provenance_dispatch",
     );
     v.check_bool(
         "provenance:rust:store_science_result_wired",
-        weight_loader_src.contains("store_science_result"),
-        "store_science_result provenance wrapper in weight_loader",
+        provenance_src.contains("store_science_result"),
+        "store_science_result provenance wrapper exists",
     );
 
     let deploy = include_str!("../../../graphs/neuralspring_deploy.toml");
@@ -150,7 +150,7 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
         }
     }
 
-    match crate::weight_loader::store_science_result(
+    match crate::provenance_dispatch::store_science_result(
         ctx,
         "validation.provenance_check",
         &serde_json::json!({"check": "science_result_provenance", "status": "pass"}),

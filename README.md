@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 16, 2026 (Session S209 — Live Composition + Live Data Chains: `nest.commit` signal dispatch WIRED, `store_science_result()` provenance, `node.compute` signal dispatch, `execute_graph_live()` live IPC pipeline. 35 capabilities, 9 scenarios, 910 tests. V165 handoff).
+**Last updated**: May 17, 2026 (Session S210 — Deep debt 6th pass: zero-debt confirmed. LOC policy fix: `weight_loader.rs` 805→710 via `provenance_dispatch.rs` extraction. Upstream Wave 20 audit: clean. 35 capabilities, 9 scenarios, 910 tests. V166 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

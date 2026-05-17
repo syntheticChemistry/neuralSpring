@@ -5,7 +5,14 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-16 (Sessions 203–209: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition)
+## [Unreleased] — 2026-05-17 (Sessions 203–210: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th)
+
+### 2026-05-17 — Session S210 (Deep debt re-audit — 6th pass, zero-debt confirmed)
+
+- **LOC policy fix** — `weight_loader.rs` (805 LOC, 5 over limit) refactored: extracted `provenance_dispatch.rs` (107 LOC) for `store_to_nestgate_signal()`, `commit_session_signal()`, `store_science_result()`. `weight_loader.rs` now 710 LOC. All files ≤800 LOC restored.
+- **Upstream Wave 20 audit** — primalSpring confirmed zero code debt for neuralSpring. Clean across all 7 priority areas.
+- **6th deep debt audit** — zero TODO/FIXME/HACK, zero unsafe, zero production mocks, zero hardcoding, all deps workspace-managed via semver + `Cargo.lock` + `cargo-deny`.
+- **V166 handoff** — audit answers documented for 5 questions (benchmarks, industry GPU parity, unimplemented items, paper queue, datasets).
 
 ### 2026-05-16 — Session S209 (Live Composition + Live Data Chains evolution)
 

@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-16 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 20, 452 methods)
-> **Session:** S209 — Live Composition + Live Data Chains evolution. `nest.commit` signal dispatch WIRED. `store_science_result()` provenance wrapper added. `node.compute` signal dispatch WIRED. `execute_graph_live()` live IPC pipeline executor added. 2 new validation scenarios (nest_commit_provenance, schema_standard). 9 scenarios total. V165 handoff.
-> Prior: S208 Wave 20 schema, S207c doc evolution, S207b deep debt, S207 Wave 17 signal, S206 compute trio, S205b deep debt, S205 NestGate.
+> **Date:** 2026-05-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 20, 452 methods)
+> **Session:** S210 — Deep debt re-audit (6th pass): zero-debt confirmed. `weight_loader.rs` LOC policy violation fixed (805→710) by extracting `provenance_dispatch.rs`. Upstream Wave 20 audit: zero code debt. V166 handoff.
+> Prior: S209 live composition, S208 Wave 20 schema, S207c doc evolution, S207b deep debt, S207 Wave 17 signal, S206 compute trio, S205b deep debt, S205 NestGate.
 
 ---
 
