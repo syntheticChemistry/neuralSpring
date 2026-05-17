@@ -19,7 +19,7 @@
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# STATUS: V167 / S211 (May 17, 2026) — 6/6 GPU dispatch, PCIe P2P, mixed substrates
+# STATUS: V168 / S212 (May 17, 2026) — stability tiers annotated, degradation documented
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -29,7 +29,7 @@ description = "neuralSpring ML/spectral science + inference provider atop NUCLEU
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S211"
+neuralspring_version = "S212"
 domain = "science"
 target_node = "eastgate"
 composition_model = "nucleated"

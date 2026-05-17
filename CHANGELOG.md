@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-17 (Sessions 203–211: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity)
+## [Unreleased] — 2026-05-17 (Sessions 203–212: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit absorption)
+
+### 2026-05-17 — Session S212 (lithoSpore Audit Absorption & Ecosystem Evolution)
+
+- **Stability tier annotations** — All 37 capabilities in `config/capability_registry.toml` now carry `stability = "stable"` or `stability = "evolving"`. 14 science.* niche methods = stable, health/provenance/inference/primal/identity/capability = stable (upstream canonical), compute/composition/method/security = evolving (toadStool/biomeOS absorption in progress). Tier definitions documented in file header.
+- **Degradation behavior** — Created `docs/DEGRADATION_BEHAVIOR.md` documenting per-primal unreachable behavior (all 11 primals), GPU-dependent path fallbacks (6 paths), provenance trio partial completion (4 states), and IPC error classification. Principle: science logic never gated behind primal availability.
+- **Cross-tier parity framing** — GPU parity framed as substrate-level cross-tier parity (CPU = Tier 2a, GPU = Tier 2b). Mirrors lithoSpore's Python vs Rust parity at the compute substrate level. `s_gpu_parity` scenario validates structural coverage.
+- **Trio transaction semantics** — `provenance_dispatch.rs` doc comments updated with trio semantics annotations per `PROVENANCE_TRIO_INTEGRATION_GUIDE.md`. All three dispatch functions document non-atomic partial completion rules. Callers confirmed to treat errors as non-fatal.
+- **B3/B4 surrogate status** — Assessed: QUEUED in `PAPER_REVIEW_QUEUE.md`. B3 (Good et al. 2017, LSTM+HMM+ESN allele classifier → lithoSpore Module 3) and B4 (Blount et al. 2008, ESN citrate early-warning → lithoSpore Module 4) await ML implementation. Infrastructure (GPU dispatch, NUCLEUS composition, typed toadStool) is ready.
+- **PRIMAL_GAPS** — Gaps 24–27 RESOLVED, Gap 28 OPEN (B3/B4 implementation). V168.
 
 ### 2026-05-17 — Session S211 (GPU Parity + Compute Dispatch Evolution)
 

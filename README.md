@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 17, 2026 (Session S211 — GPU Parity + Compute Dispatch Evolution: 6/6 science stages GPU-dispatchable. 4 stages promoted CpuOnly→GpuPreferred. PCIe P2P in Dispatcher. Typed toadStool workload submission. s_gpu_parity scenario 10/10. node.compute signal in live executor. 35 capabilities, 10 scenarios, 739 tests. V167 handoff).
+**Last updated**: May 17, 2026 (Session S212 — lithoSpore Audit Absorption: stability tiers on all 37 capabilities, degradation behavior documented, cross-tier parity framing, trio semantics reviewed. B3/B4 surrogates assessed. 37 capabilities, 10 scenarios, 739 tests. V168 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -46,15 +46,15 @@ neuralSpring validates these primitives in Python, then hands off to the BarraCU
 
 ## Current Status: 397/397 Python PASS + 4500+ Rust+GPU PASS = **4900+ total validation checks**
 
-**S211 (May 17, 2026): GPU Parity + Compute Dispatch Evolution — 6/6 science pipeline stages GPU-dispatchable. 4 stages promoted CpuOnly→GpuPreferred (digester_anderson, isomorphic_reservoir, wdm_ensemble_qs, introgression_nn). PCIe P2P in Dispatcher. Typed toadStool workload submission. `s_gpu_parity` scenario (10/10). `node.compute` signal in live executor. 739 tests (737 pass, 2 env-dependent skips). V167 handoff.**
+**S212 (May 17, 2026): lithoSpore Audit Absorption — stability tier annotations on all 37 capabilities, degradation behavior documented (`docs/DEGRADATION_BEHAVIOR.md`), GPU parity framed as cross-tier parity, trio semantics reviewed in `provenance_dispatch.rs`. B3/B4 ML surrogates assessed (QUEUED). V168 handoff.**
+
+**S211 (May 17, 2026): GPU Parity + Compute Dispatch Evolution — 6/6 science pipeline stages GPU-dispatchable. 4 stages promoted CpuOnly→GpuPreferred. PCIe P2P in Dispatcher. Typed toadStool workload submission. `s_gpu_parity` scenario (10/10). `node.compute` signal in live executor. 739 tests. V167 handoff.**
 
 **S210 (May 17, 2026): Deep debt 6th pass — zero-debt confirmed. LOC policy fix (`weight_loader.rs` 805→710 via `provenance_dispatch.rs`). Upstream Wave 20 audit: clean. V166 handoff.**
 
 **S209 (May 16, 2026): Live Composition + Live Data Chains evolution — `nest.commit` signal, `store_science_result()` provenance, `node.compute` dispatch, `execute_graph_live()`, `s_nest_commit` + `s_schema_standard` scenarios (9/9). V165 handoff.**
 
 **S208 (May 16, 2026): Wave 20 schema standardization — `capability.list` canonical envelope (`count` field). Registry sync 452 methods. V164 handoff.**
-
-**S207 (May 16, 2026): Wave 17 Signal API adoption — `primal.announce`, `nest.store` dispatch, `s_signal_dispatch` scenario. V161 handoff. S207b: deep debt re-audit (zero-debt). S207c: doc evolution (18 files). V162–V163.**
 
 **S183 (Apr 18 2026): guideStone evolution. `neuralspring_guidestone` binary (feature-gated: `guidestone`) — uses `primalspring::composition` API for 4-phase validation: bare properties, discovery + liveness, domain science parity, additive NUCLEUS. 5 guideStone properties documented. `primalspring` optional dep. Readiness Level 1 → 2. Gap 11 confirmed still open (18 barraCuda surface gaps). 268 binaries. V134 handoff.**
 
@@ -134,7 +134,7 @@ Multi-GPU RTX 4070 + TITAN V (NVK): 384/384 bit-identical | CPU↔Python parity 
 Cross-spring rewire: 41/41 (`validate_cross_spring_rewire`) | modern bench 28/28 (`bench_cross_spring_modern`).
 S121 rewire: 80/80 (`validate_barracuda_s121_rewire`) — SimpleMlp EOS/Transport + HMM Viterbi/forward dispatcher parity.
 **Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe (`#![forbid(unsafe_code)]` on all 3 crates) | zero inline magic numbers | zero `#[allow()]` (all `#[expect(reason)]`) | zero unfulfilled expectations | zero C dependencies (Tower Atomic) | 100% SPDX headers | zero mocks in production | all files ≤800 LOC | `deny.toml` supply-chain hygiene | `OrExit<T>` zero-panic binaries | structured logging (`log::info!/warn!/debug!`) | `temp-env` safe env testing (Rust 2024 ready) | zero `eprintln!` workspace-wide | `safe_cast` module (checked GPU dispatch params) | `resilient_call()` circuit breaker | `DispatchOutcome` RPC classification | 4-format `parse_capability_list()` | `discover_primal()` generic socket discovery | Rust Edition 2024 | proptest property-based testing | MSRV pinned (`rust-version = "1.87"`) | `solve_symmetric` → `barracuda::linalg::solve` | barraCuda `optional = true` (IPC-first sovereign deployment) | 11 modules feature-gated behind `barracuda` | centralized `config::resolve_family_id()` | 35 capabilities | NestGate weight persistence | Squirrel inference pipeline | skunkBat JH-5 wired | CI cross-sync 452 methods | 6/6 GPU dispatch (GpuOnly + GpuPreferred) | PCIe P2P bridge | 739 tests (737 pass, 2 env-dependent skips) + 73 forge + 80 playGround + 12 exp094.
-See `wateringHole/handoffs/` for active handoffs (V167, Session S211).
+See `wateringHole/handoffs/` for active handoffs (V168, Session S212).
 
 ### Phase 0 — Synthetic Baselines (48/48)
 
@@ -648,7 +648,7 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_V167_*.md # Current handoff (V167/S211)
+│   │   ├── NEURALSPRING_V168_*.md # Current handoff (V168/S212)
 │   │   └── archive/           #   Superseded handoffs (V1–V166 + NestGate/biomeOS/Songbird V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-123+)
@@ -693,8 +693,8 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal primal team handoffs (V167 current: Session S211) |
-| `experiments/README.md` | Experiment journals (Sessions 40–211, hotSpring pattern) |
+| `wateringHole/handoffs/` | Formal primal team handoffs (V168 current: Session S212) |
+| `experiments/README.md` | Experiment journals (Sessions 40–212, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
 ## License
@@ -715,4 +715,4 @@ documentation and standards.
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–211: May 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 pub experiments | 397 Python + 4,500+ Rust+GPU + 8 composition validators = 4,900+ total validation checks | 739 workspace tests (IPC-first) + 19 certification | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 269 binaries (241 require-features gated), 521+ `.rs` files, 42 WGSL shaders | 233+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(`, 0 unfulfilled lint expectations | barraCuda v0.4.0 (optional, IPC-first, `default = []`) | 11 barracuda-gated modules | V167 handoff | guideStone Level 5 (L0–L5: bare/discovery/parity/nucleus/composition/cross-spring) | 8 paper notebooks (72/72 checks, 2 faculties) | 4 deploy graphs | exp094 NUCLEUS composition parity | NestGate weight persistence wired | Squirrel inference pipeline complete | IPC tree (7 per-primal modules) | 10 validation scenarios | 35 capabilities | 35 capability constants | Tier 2 fully wired (toadStool + barraCuda precision.route) | Wave 17 + Wave 20 signal API (primal.announce + nest.store + nest.commit + node.compute) | Live composition (execute\_graph\_live) | 6/6 GPU dispatch (PCIe P2P bridge) | Deep debt zero-debt (6 audits: S199, S202c, S204b, S205b, S207b, S210) | Python→Rust→Primal→guideStone validation stack*
+*Initialized: February 16, 2026 | Sessions 40–212: May 17, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 pub experiments | 397 Python + 4,500+ Rust+GPU + 8 composition validators = 4,900+ total validation checks | 739 workspace tests (IPC-first) + 19 certification | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 269 binaries (241 require-features gated), 521+ `.rs` files, 42 WGSL shaders | 233+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(`, 0 unfulfilled lint expectations | barraCuda v0.4.0 (optional, IPC-first, `default = []`) | 11 barracuda-gated modules | V168 handoff | guideStone Level 5 (L0–L5: bare/discovery/parity/nucleus/composition/cross-spring) | 8 paper notebooks (72/72 checks, 2 faculties) | 4 deploy graphs | exp094 NUCLEUS composition parity | NestGate weight persistence wired | Squirrel inference pipeline complete | IPC tree (7 per-primal modules) | 10 validation scenarios | 37 capabilities (stability tiers annotated) | 37 capability constants | Tier 2 fully wired (toadStool + barraCuda precision.route) | Wave 17 + Wave 20 signal API (primal.announce + nest.store + nest.commit + node.compute) | Live composition (execute\_graph\_live) | 6/6 GPU dispatch (PCIe P2P bridge) | Deep debt zero-debt (6 audits: S199, S202c, S204b, S205b, S207b, S210) | Degradation behavior documented | Stability tiers absorbed | Python→Rust→Primal→guideStone validation stack*

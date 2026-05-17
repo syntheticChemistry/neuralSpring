@@ -1,8 +1,8 @@
 # neuralSpring baseCamp: Publication Candidate Outlines
 
-**Date**: May 17, 2026 (Session S211 — originated Session 85, refreshed S211)
+**Date**: May 17, 2026 (Session S212 — originated Session 85, refreshed S212)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: DRAFT — outlines for the 4 strongest publication candidates. Validation stack now at 739 workspace tests, 35 capabilities, 10 validation scenarios, Wave 17+20 signal API, barraCuda v0.4.0. 6/6 GPU dispatch.
+**Status**: DRAFT — outlines for the 4 strongest publication candidates. Validation stack now at 739 workspace tests, 37 capabilities, 10 validation scenarios, Wave 17+20 signal API, barraCuda v0.4.0. 6/6 GPU dispatch.
 
 ---
 

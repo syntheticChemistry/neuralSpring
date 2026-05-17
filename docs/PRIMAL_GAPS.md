@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 20, 452 methods)
-> **Session:** S211 — GPU Parity + Compute Dispatch Evolution: promoted 4 CPU-only stages to GpuPreferred (digester_anderson, isomorphic_reservoir, wdm_ensemble_qs, introgression_nn). 6/6 science stages now GPU-dispatchable. PCIe P2P wired into Dispatcher. Typed toadStool workload submission. s_gpu_parity scenario (10/10). node.compute signal dispatch in live executor. V167 handoff.
-> Prior: S210 deep debt 6th pass, S209 live composition, S208 Wave 20 schema, S207c doc evolution, S207b deep debt, S207 Wave 17 signal, S206 compute trio.
+> **Session:** S212 — lithoSpore Audit Absorption: stability tier annotations on all 37 capabilities, degradation behavior documented, cross-tier parity framing (GPU = CPU vs GPU), trio semantics reviewed, B3/B4 surrogate status assessed.
+> Prior: S211 GPU Parity + Compute Dispatch Evolution, S210 deep debt 6th pass, S209 live composition, S208 Wave 20 schema, S207c doc evolution.
 
 ---
 
@@ -793,3 +793,57 @@ Deploy graph (`graphs/neuralspring_deploy.toml`) updated with substrate metadata
 
 `execute_graph_live()` now prefers `node.compute` signal dispatch for `GpuOnly`/`GpuPreferred`
 stages when `CompositionContext` is available, falling back to `ctx.call()` then local dispatch.
+
+## 24. Stability Tier Annotations (S212)
+
+**Status**: **RESOLVED** | **Priority**: high | **Blocked by**: none
+
+All 37 capabilities in `config/capability_registry.toml` now carry `stability`
+annotations (`stable` / `evolving`). 14 science.* niche methods = `stable`.
+Health, provenance, inference, primal, identity, capability = `stable` (upstream
+canonical names). Compute (toadStool absorption), composition, method.register,
+security = `evolving`. Section headers added for readability. Stability tier
+documentation block added to file header per primalSpring Wave 20 PM.
+
+## 25. Degradation Behavior Documentation (S212)
+
+**Status**: **RESOLVED** | **Priority**: high | **Blocked by**: none
+
+Created `docs/DEGRADATION_BEHAVIOR.md` documenting per-primal unreachable behavior
+(all 11 primals), GPU-dependent path fallbacks (6 paths), provenance trio partial
+completion (4 states), and IPC error classification. Principle: science logic is
+never gated behind primal availability. Pattern: `has_capability()` before `call()`.
+
+## 26. Cross-Tier Parity — GPU as Parity (S212)
+
+**Status**: **RESOLVED** | **Priority**: medium | **Blocked by**: none
+
+GPU parity framed as cross-tier parity: CPU reference implementation = Tier 2a,
+GPU accelerated implementation = Tier 2b. Both must agree within documented
+tolerances. `s_gpu_parity` scenario validates structural coverage (6/6 GPU stages,
+all routed in `dispatch_capability_gpu`). Numerical agreement is enforced by
+`Dispatcher::gpu_or_cpu()` which runs both paths when parity checking is enabled.
+This mirrors lithoSpore's Python vs Rust parity but at the substrate level.
+
+## 27. Trio Transaction Semantics Review (S212)
+
+**Status**: **RESOLVED** | **Priority**: medium | **Blocked by**: none
+
+Reviewed `provenance_dispatch.rs` against `PROVENANCE_TRIO_INTEGRATION_GUIDE.md`.
+All three provenance dispatch functions (`store_to_nestgate_signal`,
+`commit_session_signal`, `store_science_result`) return `Result<_, IpcError>`.
+Callers (validation scenarios, live executor) treat trio errors as non-fatal:
+logged and skipped, never blocking science. Deploy graph uses `fallback = "skip"`
+for all trio primal nodes. Partial completion is valid per upstream rules.
+
+## 28. B3/B4 ML Surrogate Status (S212)
+
+**Status**: **OPEN** | **Priority**: medium | **Blocked by**: none
+
+B3 (Good et al. 2017 — allele trajectory classifier, LSTM+HMM+ESN) and
+B4 (Blount et al. 2008 — ESN early-warning classifier for citrate innovation)
+are QUEUED in `specs/PAPER_REVIEW_QUEUE.md`. These map to lithoSpore modules 3
+(allele trajectories) and 4 (citrate structural) as additive ML enrichment.
+Infrastructure exists: `s_gpu_parity` covers GPU dispatch, NUCLEUS composition
+is live, typed toadStool wiring is ready. Remaining work: implement the ML
+surrogates themselves (science code, not composition plumbing).

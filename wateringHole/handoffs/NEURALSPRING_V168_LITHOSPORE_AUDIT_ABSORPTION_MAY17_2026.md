@@ -1,20 +1,39 @@
-# neuralSpring V167 — GPU Parity + Compute Dispatch Evolution
+# neuralSpring V168 — lithoSpore Audit Absorption & Ecosystem Evolution
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-**From:** neuralSpring (S211)
+**From:** neuralSpring (S212)
 **To:** primalSpring, toadStool, barraCuda, coralReef teams
 **Date:** 2026-05-17
-**Version:** V167
+**Version:** V168
 
 ---
 
 ## Summary
 
-neuralSpring's 6-stage science pipeline is now **fully GPU-dispatchable**. 4 stages
-promoted from `CpuOnly` to `GpuPreferred`, PCIe P2P bridge wired into `Dispatcher`,
-typed toadStool workload submission added, and `node.compute` signal dispatch
-integrated into the live pipeline executor.
+Session **S212** extends the substrate stack with lithoSpore-aligned audit absorption: **`stability`** annotations on **all 37 capabilities** in `config/capability_registry.toml`, degradation paths documented in `docs/DEGRADATION_BEHAVIOR.md`, cross-tier parity framing for CPU versus GPU substrates, trio transaction semantics called out in `provenance_dispatch.rs`, and B3/B4 ML surrogate status assessed (**QUEUED**). Deploy graph `graphs/neuralspring_deploy.toml` is aligned to **V168/S212**.
+
+Session **S211** (retained narrative below): **GPU Parity + Compute Dispatch Evolution** — the 6-stage science pipeline is fully GPU-dispatchable; four stages promoted `CpuOnly`→`GpuPreferred`; PCIe P2P bridge wired into `Dispatcher`; typed ToadStool workload submission and `node.compute` live executor integration delivered V167-scope engineering.
+
+---
+
+## Session S212 — lithoSpore Audit Absorption
+
+See `CHANGELOG.md` (Session S212) for the authoritative bullet list.
+
+- Stability tier annotations on every capability entry (`stable` / `evolving`); tier definitions documented in registry header.
+
+- **`docs/DEGRADATION_BEHAVIOR.md`** — per-primal unreachable behavior, GPU-dependent fallbacks, provenance trio partial completion, IPC error taxonomy.
+
+- **Cross-tier parity** — GPU parity described as parity between compute substrates (`s_gpu_parity` scenario remains structural coverage).
+
+- **`provenance_dispatch.rs`** doc comments annotate non-atomic partial completion semantics for `nest.store` / `nest.commit` / braid-adjacent paths.
+
+---
+
+## Session S211 — GPU Parity + Compute Dispatch Evolution
+
+Following sections retain the Session S211 / V167 technical narrative unchanged.
 
 ## Changes
 

@@ -19,9 +19,16 @@ use crate::error::IpcError;
 ///
 /// Returns the composed result including provenance artifacts.
 ///
+/// # Trio semantics
+///
+/// The provenance trio commit is **not atomic**. Partial completion
+/// (e.g. DAG without braid) is valid. Callers MUST treat errors as
+/// non-fatal — science logic must never fail due to provenance.
+///
 /// # Errors
 ///
 /// Returns an error if the file cannot be read or signal dispatch fails.
+/// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
 pub fn store_to_nestgate_signal(
     path: &std::path::Path,
@@ -56,9 +63,16 @@ pub fn store_to_nestgate_signal(
 /// Use after one or more `nest.store` dispatches to seal a training or
 /// experiment session into permanent provenance.
 ///
+/// # Trio semantics
+///
+/// Not atomic — DAG sessions are append-only with no rollback.
+/// Partial state (DAG without spine/braid) is valid provenance.
+/// Callers MUST treat errors as non-fatal.
+///
 /// # Errors
 ///
 /// Returns an error if signal dispatch fails or biomeOS is unavailable.
+/// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
 pub fn commit_session_signal(
     ctx: &mut primalspring::composition::CompositionContext,
@@ -77,9 +91,16 @@ pub fn commit_session_signal(
 /// in the full provenance chain. biomeOS decomposes into:
 /// `NestGate.content.put → rhizoCrypt.dag.event.append → loamSpine.spine.seal → sweetGrass.braid.create`
 ///
+/// # Trio semantics
+///
+/// Partial trio completion is valid — see `PROVENANCE_TRIO_INTEGRATION_GUIDE.md`.
+/// Callers MUST treat errors as non-fatal; science results are valid
+/// regardless of provenance recording success.
+///
 /// # Errors
 ///
 /// Returns an error if signal dispatch fails or biomeOS is unavailable.
+/// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
 pub fn store_science_result(
     ctx: &mut primalspring::composition::CompositionContext,

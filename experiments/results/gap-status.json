@@ -1,14 +1,14 @@
 {
   "spring": "neuralSpring",
-  "session": "S211",
+  "session": "S212",
   "date": "2026-05-17",
-  "audit_response": "S211: GPU Parity + Compute Dispatch Evolution. 6/6 GPU dispatch (GpuOnly + GpuPreferred). PCIe P2P bridge. Typed toadStool workloads. 10 validation scenarios. 739 workspace tests. Deep debt zero-debt (6 audits). V167 handoff.",
+  "audit_response": "S212: lithoSpore Audit Absorption. Stability tiers on all 37 capabilities. Degradation behavior documented. Cross-tier parity framing. Trio semantics reviewed. B3/B4 assessed (QUEUED). 10 validation scenarios. 739 workspace tests. V168 handoff.",
   "summary": {
-    "total_main_gaps": 23,
-    "resolved_main": 23,
+    "total_main_gaps": 28,
+    "resolved_main": 27,
     "implemented": 0,
     "wip": 0,
-    "open": 0,
+    "open": 1,
     "tracking": 0,
     "partial": 0,
     "explored": 0,
@@ -38,7 +38,12 @@
     {"id": 20, "title": "GPU Parity Validation Scenario", "status": "resolved", "resolution": "S211: s_gpu_parity scenario 10/10"},
     {"id": 21, "title": "ToadStool Typed Workload Submission", "status": "resolved", "resolution": "S211: ComputeWorkload/WorkloadResult structs"},
     {"id": 22, "title": "PCIe P2P Bridge in Dispatcher", "status": "resolved", "resolution": "S211: PcieBridge wired into Dispatcher construction"},
-    {"id": 23, "title": "node.compute in Live Executor", "status": "resolved", "resolution": "S211: execute_graph_live() prefers node.compute for GPU stages"}
+    {"id": 23, "title": "node.compute in Live Executor", "status": "resolved", "resolution": "S211: execute_graph_live() prefers node.compute for GPU stages"},
+    {"id": 24, "title": "Stability Tier Annotations", "status": "resolved", "resolution": "S212: All 37 capabilities annotated with stability tiers (stable/evolving)"},
+    {"id": 25, "title": "Degradation Behavior Documentation", "status": "resolved", "resolution": "S212: docs/DEGRADATION_BEHAVIOR.md — per-primal, GPU-dependent, trio partial completion"},
+    {"id": 26, "title": "Cross-Tier Parity — GPU as Parity", "status": "resolved", "resolution": "S212: GPU parity framed as substrate-level cross-tier parity (CPU=Tier2a, GPU=Tier2b)"},
+    {"id": 27, "title": "Trio Transaction Semantics Review", "status": "resolved", "resolution": "S212: provenance_dispatch.rs doc comments updated with trio semantics annotations"},
+    {"id": 28, "title": "B3/B4 ML Surrogates for lithoSpore", "status": "open", "resolution": "S212: Assessed — QUEUED in PAPER_REVIEW_QUEUE.md. Infrastructure ready, ML implementation pending"}
   ],
   "resolved_appendix": [
     {"id": "R1", "title": "Binary Name Reconciliation", "session": "S178"},

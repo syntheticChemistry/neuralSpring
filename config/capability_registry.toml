@@ -7,6 +7,11 @@
 # Mirrors src/config.rs::ALL_CAPABILITIES — keep in sync or generate from
 # this file at build time.
 #
+# Stability tiers (from primalSpring Wave 20 PM):
+#   stable   — deployed consumers depend on this name; do not rename
+#   evolving — name may change between major waves; notify downstream
+#   internal — test fixture or internal-only; no stability guarantee
+#
 # See: wateringHole/SPRING_AS_NICHE_DEPLOYMENT_STANDARD.md
 
 [primal]
@@ -17,142 +22,191 @@ version = "0.1.0"
 
 [capabilities]
 
+# ── science.* (niche domain — neuralSpring owns these names) ──
+
 [capabilities.spectral_analysis]
 method = "science.spectral_analysis"
 description = "Weight matrix spectral analysis (eigenvalues, IPR, level spacing)"
+stability = "stable"
 
 [capabilities.anderson_localization]
 method = "science.anderson_localization"
 description = "Anderson localization regime classification and disorder sweeps"
+stability = "stable"
 
 [capabilities.hessian_eigen]
 method = "science.hessian_eigen"
 description = "Loss landscape Hessian eigendecomposition and saddle index"
+stability = "stable"
 
 [capabilities.agent_coordination]
 method = "science.agent_coordination"
 description = "Multi-agent quorum sensing coordination metrics"
+stability = "stable"
 
 [capabilities.ipr]
 method = "science.ipr"
 description = "Inverse participation ratio computation for localization"
+stability = "stable"
 
 [capabilities.disorder_sweep]
 method = "science.disorder_sweep"
 description = "Parametric disorder sweep with spectral observables"
+stability = "stable"
 
 [capabilities.training_trajectory]
 method = "science.training_trajectory"
 description = "Training monitor FSM with drift detection and early stopping"
+stability = "stable"
 
 [capabilities.evoformer_block]
 method = "science.evoformer_block"
 description = "AlphaFold2 Evoformer MSA+pair representation update"
+stability = "stable"
 
 [capabilities.structure_module]
 method = "science.structure_module"
 description = "AlphaFold2/3 structure module (IPA, backbone update)"
+stability = "stable"
 
 [capabilities.folding_health]
 method = "science.folding_health"
 description = "Protein folding confidence metrics (pLDDT, PAE, pTM)"
+stability = "stable"
 
 [capabilities.gpu_dispatch]
 method = "science.gpu_dispatch"
 description = "Capability-based GPU/CPU dispatch for numerical operations"
+stability = "stable"
 
 [capabilities.cross_spring_provenance]
 method = "science.cross_spring_provenance"
 description = "Cross-spring validation provenance chain queries"
+stability = "stable"
 
 [capabilities.cross_spring_benchmark]
 method = "science.cross_spring_benchmark"
 description = "Cross-spring benchmark execution and comparison"
+stability = "stable"
 
 [capabilities.precision_routing]
 method = "science.precision_routing"
 description = "f32/f64/emulated-f64 precision tier routing"
+stability = "stable"
+
+# ── health.* (upstream stable — primalSpring canonical) ──
 
 [capabilities.health_liveness]
 method = "health.liveness"
 description = "Liveness probe (is the primal running?)"
+stability = "stable"
 
 [capabilities.health_readiness]
 method = "health.readiness"
 description = "Readiness probe (is the primal ready to accept work?)"
-
-[capabilities.inference_complete]
-method = "inference.complete"
-description = "Text completion via Squirrel → provider chain (Ollama fallback until native WGSL inference)"
-
-[capabilities.inference_embed]
-method = "inference.embed"
-description = "Text embedding via Squirrel → provider chain"
-
-[capabilities.inference_models]
-method = "inference.models"
-description = "List available inference models and their capabilities"
-
-[capabilities.provenance_begin]
-method = "provenance.begin"
-description = "Begin a provenance tracking session for an experiment"
-
-[capabilities.provenance_record]
-method = "provenance.record"
-description = "Record a step in an active provenance session"
-
-[capabilities.provenance_complete]
-method = "provenance.complete"
-description = "Complete and finalize a provenance session"
-
-[capabilities.provenance_status]
-method = "provenance.status"
-description = "Query status of provenance sessions"
-
-[capabilities.primal_forward]
-method = "primal.forward"
-description = "Forward a request to another primal via capability routing"
-
-[capabilities.primal_discover]
-method = "primal.discover"
-description = "Discover niche capabilities and primal composition"
-
-[capabilities.capability_list]
-method = "capability.list"
-description = "List all capabilities this niche exposes to biomeOS"
-
-[capabilities.compute_dispatch]
-method = "compute.dispatch"
-description = "toadStool-mediated compute dispatch for spectral science workloads"
-
-[capabilities.compute_offload]
-method = "compute.offload"
-description = "Node Atomic compute offload via dispatcher (GPU/CPU routing)"
+stability = "stable"
 
 [capabilities.health_check]
 method = "health.check"
 description = "Combined health triad check (liveness + readiness in one call)"
+stability = "stable"
 
-[capabilities.identity_get]
-method = "identity.get"
-description = "T4 primal identity: name, niche, version, domain, license, capabilities"
+# ── inference.* (upstream stable — squirrel) ──
 
-[capabilities.mcp_tools_list]
-method = "mcp.tools.list"
-description = "MCP tool registry: all capabilities as discoverable tools with schemas"
+[capabilities.inference_complete]
+method = "inference.complete"
+description = "Text completion via Squirrel → provider chain (Ollama fallback until native WGSL inference)"
+stability = "stable"
 
-[capabilities.composition_status]
-method = "composition.status"
-description = "biomeOS v3.51 composition status: active_users, primal_health, resource_pressure"
+[capabilities.inference_embed]
+method = "inference.embed"
+description = "Text embedding via Squirrel → provider chain"
+stability = "stable"
 
-[capabilities.method_register]
-method = "method.register"
-description = "biomeOS v3.51 dynamic method registration: register spring-specific methods without manual config"
+[capabilities.inference_models]
+method = "inference.models"
+description = "List available inference models and their capabilities"
+stability = "stable"
+
+# ── provenance.* (neuralSpring niche provenance surface) ──
+
+[capabilities.provenance_begin]
+method = "provenance.begin"
+description = "Begin a provenance tracking session for an experiment"
+stability = "stable"
+
+[capabilities.provenance_record]
+method = "provenance.record"
+description = "Record a step in an active provenance session"
+stability = "stable"
+
+[capabilities.provenance_complete]
+method = "provenance.complete"
+description = "Complete and finalize a provenance session"
+stability = "stable"
+
+[capabilities.provenance_status]
+method = "provenance.status"
+description = "Query status of provenance sessions"
+stability = "stable"
+
+# ── primal.* / capability.* / identity.* (upstream stable) ──
+
+[capabilities.primal_forward]
+method = "primal.forward"
+description = "Forward a request to another primal via capability routing"
+stability = "stable"
+
+[capabilities.primal_discover]
+method = "primal.discover"
+description = "Discover niche capabilities and primal composition"
+stability = "stable"
 
 [capabilities.primal_announce]
 method = "primal.announce"
 description = "Wave 17 signal API: single-call primal announcement replacing nucleus.register + capability.register"
+stability = "stable"
+
+[capabilities.capability_list]
+method = "capability.list"
+description = "List all capabilities this niche exposes to biomeOS"
+stability = "stable"
+
+[capabilities.identity_get]
+method = "identity.get"
+description = "T4 primal identity: name, niche, version, domain, license, capabilities"
+stability = "stable"
+
+[capabilities.mcp_tools_list]
+method = "mcp.tools.list"
+description = "MCP tool registry: all capabilities as discoverable tools with schemas"
+stability = "stable"
+
+# ── compute.* (evolving — toadStool absorption in progress) ──
+
+[capabilities.compute_dispatch]
+method = "compute.dispatch"
+description = "toadStool-mediated compute dispatch for spectral science workloads"
+stability = "evolving"
+
+[capabilities.compute_offload]
+method = "compute.offload"
+description = "Node Atomic compute offload via dispatcher (GPU/CPU routing)"
+stability = "evolving"
+
+# ── composition / method / security (evolving — biomeOS v3.51) ──
+
+[capabilities.composition_status]
+method = "composition.status"
+description = "biomeOS v3.51 composition status: active_users, primal_health, resource_pressure"
+stability = "evolving"
+
+[capabilities.method_register]
+method = "method.register"
+description = "biomeOS v3.51 dynamic method registration: register spring-specific methods without manual config"
+stability = "evolving"
 
 [capabilities.security_audit_log]
 method = "security.audit_log"
 description = "skunkBat JH-5 audit log forwarding: cross-primal audit events to rhizoCrypt DAG + sweetGrass braid"
+stability = "evolving"

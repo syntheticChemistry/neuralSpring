@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V167 — Session S211 (GPU Parity + Compute Dispatch Evolution)
+### V168 — Session S212 (lithoSpore Audit Absorption & Ecosystem Evolution)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V167** | `handoffs/NEURALSPRING_V167_GPU_PARITY_EVOLUTION_MAY17_2026.md` | May 17, 2026 | 6/6 GPU dispatch (4 stages CpuOnly→GpuPreferred). PCIe P2P in Dispatcher. Typed toadStool workload submission. s_gpu_parity scenario 10/10. node.compute in live executor. |
+| **V168** | `handoffs/NEURALSPRING_V168_LITHOSPORE_AUDIT_ABSORPTION_MAY17_2026.md` | May 17, 2026 | Stability tiers on all 37 capabilities; `docs/DEGRADATION_BEHAVIOR.md`; cross-tier (CPU/GPU) parity framing; trio semantics reviewed in provenance dispatch; B3/B4 surrogates QUEUED. 6/6 GPU dispatch. 10 scenarios, 739 tests. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V166 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V167 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 
