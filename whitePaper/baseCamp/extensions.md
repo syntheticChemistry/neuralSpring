@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: May 16, 2026 (Sessions 49–209 — S209: Live composition + data chains. Python→Rust→Primal→Live Composition 4-tier validation of peer-reviewed science. V165 handoff. 910 workspace tests (IPC-first). **269 binaries**, zero clippy, 4,900+ checks. 9 validation scenarios. barraCuda v0.4.0)
+**Date**: May 17, 2026 (Sessions 49–211 — S211: GPU Parity + Compute Dispatch Evolution. Python→Rust→Primal→Live Composition 4-tier validation of peer-reviewed science. V167 handoff. 739 workspace tests (IPC-first). **269 binaries**, zero clippy, 4,900+ checks. 10 validation scenarios. 6/6 GPU dispatch. barraCuda v0.4.0)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---

@@ -99,6 +99,47 @@ stages when `CompositionContext` is available.
 - **All springs**: `node.compute` signal dispatch pattern in `execute_graph_live()`
   is reusable for any spring that needs GPU-aware live composition.
 
+## Primal Use & Evolution — neuralSpring's NUCLEUS Composition Patterns
+
+### Current Primal Integration (7 IPC modules)
+
+| Primal | Module | Capabilities Used | Signal API |
+|--------|--------|-------------------|------------|
+| **barraCuda** | `src/ipc/barracuda.rs` | `tensor.*`, `stats.*`, `precision.route` | `node.compute` dispatch |
+| **toadStool** | `src/ipc/toadstool.rs` | `compute.dispatch`, `toadstool.validate`, `toadstool.list_workloads` | `node.compute` dispatch |
+| **coralReef** | `src/ipc/coralreef.rs` | `shader.compile.wgsl` | — |
+| **bearDog** | `src/ipc/beardog.rs` | `security`, `crypto`, `identity` | — |
+| **squirrel** | `src/ipc/squirrel.rs` | `ai.query`, `inference.*` | — |
+| **skunkBat** | `src/ipc/skunkbat.rs` | `defense`, `threat`, `metadata` | `security.audit_log` |
+| **nestGate** | `src/ipc/nestgate.rs` | `content.put/get/exists` | `nest.store`, `nest.commit` |
+
+### NUCLEUS Composition Patterns Learned
+
+1. **Signal dispatch hierarchy**: `node.compute` for GPU workloads → `ctx.call()` for direct primal methods → local fallback. This three-tier cascade in `execute_graph_live()` gives maximum flexibility.
+
+2. **Substrate-aware routing**: `GpuPreferred` stages try GPU first, fall back to CPU. `GpuOnly` stages require GPU or fail. This pattern (implemented in `dispatch_capability_gpu`) is reusable for any spring with mixed compute needs.
+
+3. **Typed workload protocol**: `ComputeWorkload { capability, data, substrate_hint }` → `WorkloadResult { success, actual_substrate, output, elapsed_us }` — structured enough for provenance but flexible enough for any science domain.
+
+4. **PCIe topology awareness**: Probing IOMMU groups at `Dispatcher` construction gives P2P transfer cost estimates without runtime overhead. Other springs with cross-device dispatch should adopt this pattern.
+
+5. **Provenance chain**: `nest.store` (content) → `nest.commit` (session) → provenance braid. Science results get content-addressed storage with full audit trail. `store_science_result()` wraps this for any computation output.
+
+6. **Deploy graph as substrate contract**: The `[nodes.substrate]` section in `neuralspring_deploy.toml` declares what hardware capabilities the spring advertises. biomeOS can use this for intelligent niche placement.
+
+### biomeOS / neuralAPI Deployment Insights
+
+- **`primal.announce`** with fallback to legacy `nucleus.register` + `capability.register` — ensures backward compatibility during ecosystem-wide signal API adoption.
+- **`CompositionContext::dispatch()`** vs `ctx.call()` — dispatch for composed signals (multi-primal chains like `nest.store`), call for direct primal methods.
+- **Health triad** (`health.liveness`, `health.readiness`, `health.check`) — already wired. biomeOS can probe these for niche health without domain knowledge.
+- **Feature gating** — `barracuda`, `primalspring`, `guidestone`, `composed` features keep the binary lean. IPC-first (`default = []`) means the primal binary works without any optional primals.
+
+### Recommendations for Other Springs
+
+- **groundSpring / ludoSpring**: If you have CPU-only compute stages, adopt the `GpuPreferred` substrate pattern with `Dispatcher::gpu_or_cpu()` fallback. neuralSpring's `stage_*_gpu()` functions show the pattern.
+- **airSpring / hotSpring**: The `ComputeWorkload` typed protocol is ready for adoption — submit structured workloads to toadStool instead of raw JSON.
+- **All springs**: Consider `execute_graph_live()` as a template for live IPC pipeline execution. The `dispatch_compute_signal()` → `dispatch_capability_live()` → `dispatch_capability()` cascade handles offline primals gracefully.
+
 ## Quality Gates
 
 - `cargo check --workspace` — clean

@@ -7,7 +7,7 @@ ten experiments spanning function approximation, transformer attention, sequence
 forecasting, transfer learning, cross-domain architecture analysis, physics-informed
 neural networks, operator learning, convolutional networks, real-data LSTM, and
 quantized inference. All **223 quantitative checks pass** (48 Phase 0 + 31 Phase 0+ + 127 Phase 0++ + 17 Phase papers).
-Phase 1–5h+ Rust validation adds **4,700+ Rust+GPU checks** (910 workspace tests + 269 validation/benchmark binaries across 68 modules). coralForge adds sovereign structure prediction (AlphaFold2/3, 154 checks). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
+Phase 1–5h+ Rust validation adds **4,700+ Rust+GPU checks** (739 workspace tests + 269 validation/benchmark binaries across 68 modules). coralForge adds sovereign structure prediction (AlphaFold2/3, 154 checks). The fused ToadStool pipeline achieves 46–78× speedup over per-op dispatch.
 The 3-way benchmark (Python vs CPU vs GPU) with double-buffered evolved shaders
 achieves **GPU 104× faster** than Python at 103M FLOPs and **CPU 3.9× faster**
 at the same scale. 38.6× geometric mean speedup across 15 CPU benchmark domains.
