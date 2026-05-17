@@ -87,6 +87,7 @@ pub struct Dispatcher {
     gpu: Option<Gpu>,
     prefer_gpu: bool,
     device_caps: Option<DeviceCapabilities>,
+    pcie_p2p: Option<neural_spring_forge::pcie_bridge::PcieBridge>,
 }
 
 impl Dispatcher {
@@ -98,8 +99,13 @@ impl Dispatcher {
             Ok(gpu) => {
                 let caps = DeviceCapabilities::from_device(gpu.wgpu_device());
                 let tier = BandwidthTier::detect_from_adapter_name(&gpu.adapter_name);
+                let bridge = neural_spring_forge::pcie_bridge::PcieBridge::new(
+                    &gpu.adapter_name,
+                    "NPU",
+                );
+                let p2p = bridge.can_p2p();
                 log::info!(
-                    "GPU available: {} ({:?}, {:?}, f64={:?}, pcie={tier:?})",
+                    "GPU available: {} ({:?}, {:?}, f64={:?}, pcie={tier:?}, p2p={p2p})",
                     gpu.adapter_name,
                     gpu.device_type,
                     gpu.backend,
@@ -109,6 +115,7 @@ impl Dispatcher {
                     gpu: Some(gpu),
                     prefer_gpu: true,
                     device_caps: Some(caps),
+                    pcie_p2p: Some(bridge),
                 }
             }
             Err(e) => {
@@ -117,6 +124,7 @@ impl Dispatcher {
                     gpu: None,
                     prefer_gpu: false,
                     device_caps: None,
+                    pcie_p2p: None,
                 }
             }
         }
@@ -129,6 +137,7 @@ impl Dispatcher {
             gpu: None,
             prefer_gpu: false,
             device_caps: None,
+            pcie_p2p: None,
         }
     }
 
@@ -136,10 +145,15 @@ impl Dispatcher {
     #[must_use]
     pub fn from_gpu(gpu: Gpu) -> Self {
         let caps = DeviceCapabilities::from_device(gpu.wgpu_device());
+        let bridge = neural_spring_forge::pcie_bridge::PcieBridge::new(
+            &gpu.adapter_name,
+            "NPU",
+        );
         Self {
             gpu: Some(gpu),
             prefer_gpu: true,
             device_caps: Some(caps),
+            pcie_p2p: Some(bridge),
         }
     }
 
@@ -277,6 +291,18 @@ impl Dispatcher {
     #[must_use]
     pub fn shared_memory_f64_safe(&self) -> bool {
         matches!(self.precision_routing(), PrecisionRoutingAdvice::F64Native)
+    }
+
+    /// Whether PCIe peer-to-peer DMA is available between GPU and NPU.
+    #[must_use]
+    pub fn pcie_p2p_available(&self) -> bool {
+        self.pcie_p2p.as_ref().is_some_and(|b| b.can_p2p())
+    }
+
+    /// Transfer cost estimate for moving `bytes` across the PCIe bridge.
+    #[must_use]
+    pub fn pcie_transfer_cost(&self, bytes: u64) -> Option<neural_spring_forge::mixed::TransferCost> {
+        self.pcie_p2p.as_ref().map(|b| b.transfer_cost(bytes))
     }
 
     /// `PCIe` bandwidth tier detected from the GPU adapter name.

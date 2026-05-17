@@ -5,7 +5,18 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-17 (Sessions 203–210: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th)
+## [Unreleased] — 2026-05-17 (Sessions 203–211: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity)
+
+### 2026-05-17 — Session S211 (GPU Parity + Compute Dispatch Evolution)
+
+- **4 stages promoted to GpuPreferred** — `digester_anderson` (GPU eigensolve + disorder sweep), `isomorphic_reservoir` (GPU eigensolve per reservoir), `wdm_ensemble_qs` (GPU replicator dynamics), `introgression_nn` (GPU HMM Viterbi chain). All 6/6 science pipeline stages now GPU-dispatchable.
+- **Composition graph substrates** — 4 stages `CpuOnly` → `GpuPreferred` in `metalForge/forge/src/graph.rs`. `PipelineGraph::stages()` accessor added.
+- **`s_gpu_parity` validation scenario** — scenario 10/10: structural checks for GPU dispatch coverage (GPU functions exist + routed in `dispatch_capability_gpu`). Track: `GpuParity`.
+- **ToadStool typed workload submission** — `ComputeWorkload`/`WorkloadResult` structs in `src/ipc/toadstool.rs`. `compute_dispatch_workload()` and `compute_dispatch_pipeline()` for structured compute dispatch.
+- **`node.compute` in live executor** — `execute_graph_live()` prefers `node.compute` signal dispatch for `GpuOnly`/`GpuPreferred` stages, falling back to `ctx.call()` then local dispatch.
+- **PCIe P2P bridge in Dispatcher** — `PcieBridge` wired into `Dispatcher` construction (sysfs IOMMU probe at init). `pcie_p2p_available()` and `pcie_transfer_cost()` accessors.
+- **Deploy graph** — `graphs/neuralspring_deploy.toml` updated with substrate metadata (6/6 GPU stages, PCIe P2P detection, `node.compute` signal). V167.
+- **Test count** — 739 tests (737 pass, 2 pre-existing environment-dependent skips).
 
 ### 2026-05-17 — Session S210 (Deep debt re-audit — 6th pass, zero-debt confirmed)
 

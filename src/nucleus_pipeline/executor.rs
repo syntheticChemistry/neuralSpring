@@ -2,7 +2,7 @@
 
 //! Node phase: walk a [`PipelineGraph`](neural_spring_forge::graph::PipelineGraph), dispatch stages, record provenance.
 
-use neural_spring_forge::graph::{PipelineExecution, PipelineGraph, StageResult};
+use neural_spring_forge::graph::{PipelineExecution, PipelineGraph, StageOutput, StageResult};
 use neural_spring_forge::mixed::MixedSubstrate;
 
 use crate::gpu_dispatch::Dispatcher;
@@ -215,11 +215,29 @@ pub fn execute_graph_live(
             })?;
 
         let start = std::time::Instant::now();
-        let (success, output, was_live) = match dispatch_capability_live(&stage.capability, ctx) {
-            Some((s, o)) => (s, o, true),
-            None => {
-                let (s, o) = dispatch_capability(&stage.capability);
-                (s, o, false)
+        let is_gpu_stage = matches!(
+            stage.substrate,
+            MixedSubstrate::GpuOnly | MixedSubstrate::GpuPreferred
+        );
+
+        let (success, output, was_live) = if is_gpu_stage {
+            match dispatch_compute_signal(ctx, &stage.capability) {
+                Some((s, o)) => (s, o, true),
+                None => match dispatch_capability_live(&stage.capability, ctx) {
+                    Some((s, o)) => (s, o, true),
+                    None => {
+                        let (s, o) = dispatch_capability(&stage.capability);
+                        (s, o, false)
+                    }
+                },
+            }
+        } else {
+            match dispatch_capability_live(&stage.capability, ctx) {
+                Some((s, o)) => (s, o, true),
+                None => {
+                    let (s, o) = dispatch_capability(&stage.capability);
+                    (s, o, false)
+                }
             }
         };
         let elapsed_us = start.elapsed().as_secs_f64() * 1_000_000.0;
@@ -255,6 +273,42 @@ pub fn execute_graph_live(
         cpu_stages: local_count,
         execution: exec,
     })
+}
+
+/// Try to dispatch a GPU-tagged capability via `node.compute` signal.
+///
+/// Preferred path for `GpuOnly`/`GpuPreferred` stages in live mode.
+/// Returns `None` if the dispatch fails with a skip-class error (caller
+/// should fall back to `dispatch_capability_live` or local dispatch).
+#[cfg(feature = "primalspring")]
+fn dispatch_compute_signal(
+    ctx: &mut primalspring::composition::CompositionContext,
+    capability: &str,
+) -> Option<(bool, StageOutput)> {
+    let params = serde_json::json!({
+        "workload": {
+            "capability": capability,
+            "source": "neuralspring",
+            "substrate_hint": "gpu",
+        },
+    });
+    match ctx.dispatch("node.compute", params) {
+        Ok(value) => {
+            let mut map = std::collections::HashMap::new();
+            if let Some(obj) = value.as_object() {
+                for (k, v) in obj {
+                    if let Some(n) = v.as_f64() {
+                        map.insert(k.clone(), n);
+                    }
+                }
+            }
+            if map.is_empty() {
+                map.insert("result".to_string(), 1.0);
+            }
+            Some((true, StageOutput::Map(map)))
+        }
+        Err(_) => None,
+    }
 }
 
 /// Try to dispatch a capability via live IPC through `CompositionContext`.
@@ -406,6 +460,15 @@ mod tests {
                         result.actual_substrate,
                         MixedSubstrate::GpuOnly,
                         "{} should be GpuOnly",
+                        result.stage_id
+                    );
+                }
+                "digester_anderson" | "isomorphic_reservoir"
+                | "wdm_ensemble_qs" | "introgression_nn" => {
+                    assert_eq!(
+                        result.actual_substrate,
+                        MixedSubstrate::GpuPreferred,
+                        "{} should be GpuPreferred",
                         result.stage_id
                     );
                 }

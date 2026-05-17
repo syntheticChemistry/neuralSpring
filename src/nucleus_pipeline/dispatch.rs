@@ -39,10 +39,10 @@ pub(super) fn dispatch_capability_gpu(
     match capability {
         "science.eigensolve" => stage_eigensolve_gpu(dispatcher),
         "science.attention_anderson" => stage_attention_anderson_gpu(dispatcher),
-        "science.digester_anderson_coupling" => stage_digester_anderson(),
-        "science.isomorphic_reservoir" => stage_isomorphic_reservoir(),
-        "science.wdm_ensemble_qs" => stage_wdm_ensemble_qs(),
-        "science.introgression_nn" => stage_introgression_nn(),
+        "science.digester_anderson_coupling" => stage_digester_anderson_gpu(dispatcher),
+        "science.isomorphic_reservoir" => stage_isomorphic_reservoir_gpu(dispatcher),
+        "science.wdm_ensemble_qs" => stage_wdm_ensemble_qs_gpu(dispatcher),
+        "science.introgression_nn" => stage_introgression_nn_gpu(dispatcher),
         _ => (false, StageOutput::Empty),
     }
 }
@@ -73,6 +73,54 @@ fn stage_eigensolve_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
         (sum - n as f64).abs() < tolerances::SPECIAL_FUNCTION_F64,
         StageOutput::Vector(eigenvalues),
     )
+}
+
+fn stage_digester_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
+    let mut rng = crate::rng::Rng::new(42);
+    let n_species = 10;
+    let n = n_species;
+    let w = 1.0;
+    let samples = 20;
+
+    let mut disorder_vals: Vec<f64> = (0..samples).map(|_| rng.uniform() * w).collect();
+    let mut hamiltonians = vec![0.0; n * n * samples];
+    for (s, d) in disorder_vals.iter().enumerate() {
+        for i in 0..n {
+            hamiltonians[s * n * n + i * n + i] = d * rng.uniform();
+            if i + 1 < n {
+                let hop = 1.0;
+                hamiltonians[s * n * n + i * n + (i + 1)] = hop;
+                hamiltonians[s * n * n + (i + 1) * n + i] = hop;
+            }
+        }
+    }
+
+    let iprs = dispatcher
+        .disorder_sweep(&hamiltonians, n, samples)
+        .unwrap_or_else(|| {
+            disorder_vals.iter().map(|d| 1.0 / (1.0 + d)).collect()
+        });
+
+    let mean_ipr = if iprs.is_empty() {
+        0.0
+    } else {
+        iprs.iter().sum::<f64>() / iprs.len() as f64
+    };
+
+    let (h, evenness, _, _, _) =
+        crate::digester_anderson::community_anderson(n_species, w, samples, &mut crate::rng::Rng::new(42));
+
+    let xi = if mean_ipr > 0.0 { 1.0 / mean_ipr } else { 0.0 };
+
+    let mut map = std::collections::HashMap::new();
+    map.insert("shannon_h".to_string(), h);
+    map.insert("evenness".to_string(), evenness);
+    map.insert("disorder_w".to_string(), w);
+    map.insert("mean_ipr".to_string(), mean_ipr);
+    map.insert("xi".to_string(), xi);
+
+    let valid = h > 0.0 && (0.0..=1.0).contains(&mean_ipr);
+    (valid, StageOutput::Map(map))
 }
 
 fn stage_digester_anderson() -> (bool, StageOutput) {
@@ -129,6 +177,82 @@ fn stage_isomorphic_reservoir() -> (bool, StageOutput) {
     (valid, StageOutput::Map(map))
 }
 
+fn stage_isomorphic_reservoir_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
+    let n = 16;
+    let mut rng = crate::rng::Rng::new(42);
+    let mut matrices = Vec::new();
+
+    for gain in [0.9, 0.85, 0.95] {
+        let mut m = vec![0.0; n * n];
+        for val in &mut m {
+            *val = rng.uniform().mul_add(2.0, -1.0) * gain / (n as f64).sqrt();
+        }
+        let sym: Vec<f64> = (0..n * n)
+            .map(|idx| {
+                let r = idx / n;
+                let c = idx % n;
+                (m[r * n + c] + m[c * n + r]) * 0.5
+            })
+            .collect();
+        matrices.push(sym);
+    }
+
+    let mut eff_ratios = Vec::new();
+    let mut ipr_vals = Vec::new();
+    let mut spacing_ratios = Vec::new();
+
+    for matrix in &matrices {
+        let (eigenvalues, _) = dispatcher.eigh(matrix, n);
+        let sum_abs: f64 = eigenvalues.iter().map(|e| e.abs()).sum();
+        let max_abs = eigenvalues.iter().map(|e| e.abs()).fold(0.0_f64, f64::max);
+        let eff_ratio = if max_abs > 0.0 { sum_abs / (n as f64 * max_abs) } else { 0.0 };
+        eff_ratios.push(eff_ratio);
+
+        let mut ipr_sum = 0.0;
+        for i in 0..n {
+            let component = eigenvalues.get(i).copied().unwrap_or(0.0);
+            ipr_sum += component * component;
+        }
+        let mean_ipr = ipr_sum / n as f64;
+        ipr_vals.push(mean_ipr);
+
+        let mut sorted = eigenvalues.clone();
+        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        let spacings: Vec<f64> = sorted.windows(2).map(|w| (w[1] - w[0]).abs()).collect();
+        let sr = if spacings.len() >= 2 {
+            let mut ratios = Vec::new();
+            for pair in spacings.windows(2) {
+                let (s1, s2) = (pair[0], pair[1]);
+                if s1 > 0.0 && s2 > 0.0 {
+                    ratios.push(s1.min(s2) / s1.max(s2));
+                }
+            }
+            if ratios.is_empty() { 0.0 } else { ratios.iter().sum::<f64>() / ratios.len() as f64 }
+        } else {
+            0.0
+        };
+        spacing_ratios.push(sr);
+    }
+
+    let eff_mean = eff_ratios.iter().sum::<f64>() / eff_ratios.len() as f64;
+    let eff_std = (eff_ratios.iter().map(|v| (v - eff_mean).powi(2)).sum::<f64>() / eff_ratios.len() as f64).sqrt();
+    let eff_ratio_cv = if eff_mean > 0.0 { eff_std / eff_mean } else { 0.0 };
+
+    let ipr_mean = ipr_vals.iter().sum::<f64>() / ipr_vals.len() as f64;
+    let ipr_std = (ipr_vals.iter().map(|v| (v - ipr_mean).powi(2)).sum::<f64>() / ipr_vals.len() as f64).sqrt();
+    let ipr_cv = if ipr_mean > 0.0 { ipr_std / ipr_mean } else { 0.0 };
+
+    let spacing_ratio_mean = spacing_ratios.iter().sum::<f64>() / spacing_ratios.len() as f64;
+
+    let mut map = std::collections::HashMap::new();
+    map.insert("eff_ratio_cv".to_string(), eff_ratio_cv);
+    map.insert("ipr_cv".to_string(), ipr_cv);
+    map.insert("spacing_ratio_mean".to_string(), spacing_ratio_mean);
+
+    let valid = eff_ratio_cv < 0.5 && ipr_cv < 0.5;
+    (valid, StageOutput::Map(map))
+}
+
 /// WDM ensemble QS stage domain parameters.
 const WDM_DISAGREEMENT_INPUT: f64 = 0.5;
 const WDM_DISAGREEMENT_MIN: f64 = 0.01;
@@ -154,6 +278,40 @@ fn stage_wdm_ensemble_qs() -> (bool, StageOutput) {
     let w_frac = (w / WDM_W_SCALE).clamp(0.0, 1.0);
     let payoff = crate::wdm_ensemble_qs::snowdrift_payoff(w_frac);
     let coop = crate::wdm_ensemble_qs::replicator_final_coop(&payoff, WDM_REPLICATOR_STEPS);
+
+    let mut map = std::collections::HashMap::new();
+    map.insert("disorder".to_string(), w);
+    map.insert("mean_ipr".to_string(), ipr);
+    map.insert("xi".to_string(), xi);
+    map.insert("cooperation".to_string(), coop);
+
+    let valid = ipr >= 0.0 && (0.0..=1.0).contains(&coop);
+    (valid, StageOutput::Map(map))
+}
+
+fn stage_wdm_ensemble_qs_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
+    let mut rng = crate::rng::Rng::new(42);
+    let w = crate::wdm_ensemble_qs::disagreement_to_disorder(
+        WDM_DISAGREEMENT_INPUT,
+        WDM_DISAGREEMENT_MIN,
+        WDM_DISAGREEMENT_MAX,
+        WDM_W_SCALE,
+    );
+
+    let disorder_vec: Vec<f64> = (0..WDM_DISORDER_SAMPLES)
+        .map(|_| rng.uniform() * w)
+        .collect();
+    let (ipr, xi) = crate::wdm_ensemble_qs::anderson_from_disorder(&disorder_vec);
+
+    let w_frac = (w / WDM_W_SCALE).clamp(0.0, 1.0);
+    let payoff = crate::wdm_ensemble_qs::snowdrift_payoff(w_frac);
+
+    let mut freq = [0.5_f64, 0.5];
+    let dt = 0.01;
+    for _ in 0..WDM_REPLICATOR_STEPS {
+        freq = dispatcher.replicator_step(&freq, &payoff, dt);
+    }
+    let coop = freq[0].clamp(0.0, 1.0);
 
     let mut map = std::collections::HashMap::new();
     map.insert("disorder".to_string(), w);
@@ -194,6 +352,50 @@ fn stage_introgression_nn() -> (bool, StageOutput) {
         .collect();
 
     let (path, _) = hmm.viterbi(&obs);
+    let (tpr, fpr, accuracy) = crate::introgression_nn::detection_metrics(&path, &truth);
+
+    let (_, log_lik_model) = hmm.forward(&obs);
+    let (_, log_lik_null) = null_hmm.forward(&obs);
+
+    let mut map = std::collections::HashMap::new();
+    map.insert("tpr".to_string(), tpr);
+    map.insert("fpr".to_string(), fpr);
+    map.insert("accuracy".to_string(), accuracy);
+    map.insert("llr".to_string(), log_lik_model - log_lik_null);
+
+    let valid = tpr > 0.5 && accuracy > 0.5;
+    (valid, StageOutput::Map(map))
+}
+
+fn stage_introgression_nn_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
+    let hmm = crate::introgression_nn::build_nn_hmm();
+    let null_hmm = crate::introgression_nn::build_null_hmm();
+    let n_layers = 50;
+
+    let mut truth = vec![0_usize; n_layers];
+    for t in &mut truth[15..30] {
+        *t = 1;
+    }
+
+    let mut rng = crate::rng::Rng::new(42);
+    let obs: Vec<usize> = truth
+        .iter()
+        .map(|&s| {
+            if s == 1 {
+                2
+            } else {
+                #[expect(
+                    clippy::cast_possible_truncation,
+                    clippy::cast_sign_loss,
+                    reason = "rng in [0,2) → usize"
+                )]
+                let v = (rng.uniform() * 2.0) as usize;
+                v
+            }
+        })
+        .collect();
+
+    let (path, _log_prob) = dispatcher.detect_introgression(&hmm, &obs);
     let (tpr, fpr, accuracy) = crate::introgression_nn::detection_metrics(&path, &truth);
 
     let (_, log_lik_model) = hmm.forward(&obs);

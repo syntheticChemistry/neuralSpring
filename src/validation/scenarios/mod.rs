@@ -25,6 +25,7 @@ mod s_nucleus_tower;
 mod s_schema_standard;
 mod s_science_composition;
 mod s_signal_dispatch;
+mod s_gpu_parity;
 
 pub use registry::{Scenario, ScenarioMeta, ScenarioRegistry, Tier, Track};
 
@@ -41,6 +42,7 @@ pub fn build_registry() -> ScenarioRegistry {
         s_signal_dispatch::SCENARIO,
         s_nest_commit::SCENARIO,
         s_schema_standard::SCENARIO,
+        s_gpu_parity::SCENARIO,
     ])
 }
 
@@ -49,9 +51,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn registry_has_9_scenarios() {
+    fn registry_has_10_scenarios() {
         let reg = build_registry();
-        assert_eq!(reg.len(), 9);
+        assert_eq!(reg.len(), 10);
     }
 
     #[test]

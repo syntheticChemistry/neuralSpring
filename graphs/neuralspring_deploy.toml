@@ -19,7 +19,7 @@
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# STATUS: V159 / S206 (May 14, 2026) — skunkBat triple-first Tower verified
+# STATUS: V167 / S211 (May 17, 2026) — 6/6 GPU dispatch, PCIe P2P, mixed substrates
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -29,7 +29,7 @@ description = "neuralSpring ML/spectral science + inference provider atop NUCLEU
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S206"
+neuralspring_version = "S211"
 domain = "science"
 target_node = "eastgate"
 composition_model = "nucleated"
@@ -166,6 +166,23 @@ FAMILY_ID = "${FAMILY_ID}"
 [nodes.constraints]
 timeout_ms = 30000
 fallback = "skip"
+
+[nodes.substrate]
+# 6/6 science pipeline stages are GPU-dispatchable (S211):
+#   eigensolve, attention_anderson         → GpuOnly  (always GPU when present)
+#   digester_anderson, isomorphic_reservoir,
+#   wdm_ensemble_qs, introgression_nn      → GpuPreferred (GPU with CPU fallback)
+#
+# Mixed hardware routing:
+#   - PCIe P2P detection at Dispatcher construction (sysfs IOMMU probe)
+#   - NpuToGpuP2P substrate when P2P DMA available (bypass CPU roundtrip)
+#   - CpuStaged transfer when no P2P (GPU→host→GPU)
+#   - node.compute signal dispatch preferred in live composition mode
+gpu_stages = 6
+gpu_only_stages = ["eigensolve", "attention_anderson"]
+gpu_preferred_stages = ["digester_anderson", "isomorphic_reservoir", "wdm_ensemble_qs", "introgression_nn"]
+pcie_p2p_detection = true
+node_compute_signal = true
 
 [[nodes]]
 id = "germinate_barracuda"

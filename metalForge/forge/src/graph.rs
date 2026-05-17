@@ -99,6 +99,12 @@ impl PipelineGraph {
         self.edges.push((from.to_string(), to.to_string()));
     }
 
+    /// All stages in insertion order.
+    #[must_use]
+    pub fn stages(&self) -> &[StageNode] {
+        &self.stages
+    }
+
     /// Number of stages.
     #[must_use]
     pub const fn stage_count(&self) -> usize {
@@ -398,26 +404,26 @@ pub fn composition_pipeline() -> PipelineGraph {
     g.add_stage(StageNode {
         id: "digester_anderson".to_string(),
         capability: "science.digester_anderson_coupling".to_string(),
-        substrate: MixedSubstrate::CpuOnly,
-        label: "Digester × Anderson Coupling".to_string(),
+        substrate: MixedSubstrate::GpuPreferred,
+        label: "Digester × Anderson Coupling (GPU eigensolve + disorder sweep)".to_string(),
     });
     g.add_stage(StageNode {
         id: "isomorphic_reservoir".to_string(),
         capability: "science.isomorphic_reservoir".to_string(),
-        substrate: MixedSubstrate::CpuOnly,
-        label: "Isomorphic Reservoir Ensemble".to_string(),
+        substrate: MixedSubstrate::GpuPreferred,
+        label: "Isomorphic Reservoir Ensemble (GPU eigensolve per reservoir)".to_string(),
     });
     g.add_stage(StageNode {
         id: "wdm_ensemble_qs".to_string(),
         capability: "science.wdm_ensemble_qs".to_string(),
-        substrate: MixedSubstrate::CpuOnly,
-        label: "WDM Ensemble Quorum Sensing".to_string(),
+        substrate: MixedSubstrate::GpuPreferred,
+        label: "WDM Ensemble Quorum Sensing (GPU replicator dynamics)".to_string(),
     });
     g.add_stage(StageNode {
         id: "introgression_nn".to_string(),
         capability: "science.introgression_nn".to_string(),
-        substrate: MixedSubstrate::CpuOnly,
-        label: "HMM Introgression on NN Layers".to_string(),
+        substrate: MixedSubstrate::GpuPreferred,
+        label: "HMM Introgression on NN Layers (GPU Viterbi chain)".to_string(),
     });
     g.add_stage(StageNode {
         id: "attention_anderson".to_string(),

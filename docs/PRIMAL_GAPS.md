@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 20, 452 methods)
-> **Session:** S210 — Deep debt re-audit (6th pass): zero-debt confirmed. `weight_loader.rs` LOC policy violation fixed (805→710) by extracting `provenance_dispatch.rs`. Upstream Wave 20 audit: zero code debt. V166 handoff.
-> Prior: S209 live composition, S208 Wave 20 schema, S207c doc evolution, S207b deep debt, S207 Wave 17 signal, S206 compute trio, S205b deep debt, S205 NestGate.
+> **Session:** S211 — GPU Parity + Compute Dispatch Evolution: promoted 4 CPU-only stages to GpuPreferred (digester_anderson, isomorphic_reservoir, wdm_ensemble_qs, introgression_nn). 6/6 science stages now GPU-dispatchable. PCIe P2P wired into Dispatcher. Typed toadStool workload submission. s_gpu_parity scenario (10/10). node.compute signal dispatch in live executor. V167 handoff.
+> Prior: S210 deep debt 6th pass, S209 live composition, S208 Wave 20 schema, S207c doc evolution, S207b deep debt, S207 Wave 17 signal, S206 compute trio.
 
 ---
 
@@ -750,3 +750,46 @@ Existing `compute_dispatch()` (direct toadStool IPC) retained for non-composed m
 through `CompositionContext` instead of local function calls. Falls back to local
 dispatch when capabilities are not resolvable via composition. Provenance recording
 is identical to the local executor for uniform `PipelineReport` output.
+
+## 19. GPU Parity — 6/6 Stages GPU-Dispatchable (S211)
+
+**Status**: **RESOLVED** | **Priority**: high | **Blocked by**: none
+
+Promoted 4 CPU-only science pipeline stages to `GpuPreferred` dispatch:
+- `digester_anderson` — GPU eigensolve + disorder sweep via `Dispatcher`
+- `isomorphic_reservoir` — GPU eigensolve per reservoir matrix
+- `wdm_ensemble_qs` — GPU replicator dynamics via `Dispatcher::replicator_step()`
+- `introgression_nn` — GPU HMM Viterbi chain via `Dispatcher::detect_introgression()`
+
+All 6 stages now have GPU dispatch arms in `dispatch_capability_gpu()`.
+Composition graph updated: 4 stages `CpuOnly` → `GpuPreferred` in `metalForge/forge/src/graph.rs`.
+
+## 20. GPU Parity Validation Scenario — `s_gpu_parity` (S211)
+
+**Status**: **RESOLVED** | **Priority**: medium | **Blocked by**: none
+
+Scenario 10/10: structural checks for GPU dispatch coverage (all 6 stages have
+GPU functions and are routed in `dispatch_capability_gpu`). Track: `GpuParity`.
+
+## 21. ToadStool Typed Workload Submission (S211)
+
+**Status**: **RESOLVED** | **Priority**: medium | **Blocked by**: none
+
+`ComputeWorkload` / `WorkloadResult` typed structs in `src/ipc/toadstool.rs`.
+`compute_dispatch_workload()` — submit structured workload (capability, data, substrate hint).
+`compute_dispatch_pipeline()` — submit entire pipeline graph for remote execution.
+
+## 22. PCIe P2P Bridge in Dispatcher (S211)
+
+**Status**: **RESOLVED** | **Priority**: medium | **Blocked by**: none
+
+`PcieBridge` wired into `Dispatcher` construction — probes sysfs IOMMU groups
+at init. `pcie_p2p_available()` and `pcie_transfer_cost()` accessors added.
+Deploy graph (`graphs/neuralspring_deploy.toml`) updated with substrate metadata.
+
+## 23. `node.compute` in Live Executor (S211)
+
+**Status**: **RESOLVED** | **Priority**: medium | **Blocked by**: none
+
+`execute_graph_live()` now prefers `node.compute` signal dispatch for `GpuOnly`/`GpuPreferred`
+stages when `CompositionContext` is available, falling back to `ctx.call()` then local dispatch.

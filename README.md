@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 17, 2026 (Session S210 — Deep debt 6th pass: zero-debt confirmed. LOC policy fix: `weight_loader.rs` 805→710 via `provenance_dispatch.rs` extraction. Upstream Wave 20 audit: clean. 35 capabilities, 9 scenarios, 910 tests. V166 handoff).
+**Last updated**: May 17, 2026 (Session S211 — GPU Parity + Compute Dispatch Evolution: 6/6 science stages GPU-dispatchable. 4 stages promoted CpuOnly→GpuPreferred. PCIe P2P in Dispatcher. Typed toadStool workload submission. s_gpu_parity scenario 10/10. node.compute signal in live executor. 35 capabilities, 10 scenarios, 739 tests. V167 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
