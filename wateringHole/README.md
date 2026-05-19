@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V168 — Session S212 (lithoSpore Audit Absorption & Ecosystem Evolution)
+### V169 — Session S213 (B3/B4 ML Surrogates for lithoSpore Modules 3+4)
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V168** | `handoffs/NEURALSPRING_V168_LITHOSPORE_AUDIT_ABSORPTION_MAY17_2026.md` | May 17, 2026 | Stability tiers on all 37 capabilities; `docs/DEGRADATION_BEHAVIOR.md`; cross-tier (CPU/GPU) parity framing; trio semantics reviewed in provenance dispatch; B3/B4 surrogates QUEUED. 6/6 GPU dispatch. 10 scenarios, 739 tests. |
+| **V169** | `handoffs/NEURALSPRING_V169_B3_B4_ML_SURROGATES_MAY19_2026.md` | May 19, 2026 | B3 LSTM+HMM+ESN allele trajectory classifier (Good 2017, 100% accuracy) + B4 ESN citrate early-warning (Blount 2008, 94.3%). 32 new checks (16+16). 39 capabilities. 754 tests. Pipeline integrated. |
 
 ### Central wateringHole Copies
 

@@ -1,8 +1,8 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: May 17, 2026 (Session S212)
+**Date**: May 19, 2026 (Session S213)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. **Python→Rust→Primal→Live Composition four-tier validation stack** — proto-nucleate aligned to upstream `downstream_manifest.toml`. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **739 workspace tests** (IPC-first), **269 binaries**, **521+ `.rs` files**. Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). 37 capabilities, 10 validation scenarios. 6/6 GPU dispatch. V168 handoff. barraCuda v0.4.0.
+**Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. **Python→Rust→Primal→Live Composition four-tier validation stack** — proto-nucleate aligned to upstream `downstream_manifest.toml`. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **754 workspace tests** (IPC-first), **269 binaries**, **521+ `.rs` files**. Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). 39 capabilities, 10 validation scenarios. 6/6 GPU dispatch. V169 handoff. barraCuda v0.4.0.
 **S151–S152 update**: Deep audit + deep debt execution — ecoBin compliance, 15+ tolerance literals centralized, capability-based primal discovery, coralReef bridge capability-first, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), V103 handoff.
 **S148–S150 update**: playGround evolution — Squirrel MCP adapter (14 tool definitions), HuggingFace Model Lab (GPT-2 inference on barraCuda), compute triangle (ToadStool/coralReef IPC clients, hot/cold dispatch benchmarks: 7–45× pipeline reuse, 8–22× PyTorch/CUDA gap). 63 playGround unit + 13 integration tests. Live ToadStool verified. V101 handoff.
 **S147 update**: Deep debt — zero inline magic numbers, zero duplicate math, capability-based discovery. V100 handoff.

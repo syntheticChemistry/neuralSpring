@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 20, 452 methods)
-> **Session:** S212 — lithoSpore Audit Absorption: stability tier annotations on all 37 capabilities, degradation behavior documented, cross-tier parity framing (GPU = CPU vs GPU), trio semantics reviewed, B3/B4 surrogate status assessed.
-> Prior: S211 GPU Parity + Compute Dispatch Evolution, S210 deep debt 6th pass, S209 live composition, S208 Wave 20 schema, S207c doc evolution.
+> **Session:** S213 — B3/B4 ML Surrogates: implemented LSTM+HMM+ESN allele trajectory classifier (B3, Good 2017) and ESN citrate early-warning (B4, Blount 2008) for lithoSpore modules 3+4. 39 capabilities, 32 checks (B3: 16/16, B4: 16/16). Pipeline integration, capability registry wired.
+> Prior: S212 lithoSpore Audit Absorption, S211 GPU Parity + Compute Dispatch, S210 deep debt 6th pass, S209 live composition, S208 Wave 20 schema.
 
 ---
 
@@ -836,14 +836,29 @@ Callers (validation scenarios, live executor) treat trio errors as non-fatal:
 logged and skipped, never blocking science. Deploy graph uses `fallback = "skip"`
 for all trio primal nodes. Partial completion is valid per upstream rules.
 
-## 28. B3/B4 ML Surrogate Status (S212)
+## 28. B3/B4 ML Surrogate Status (S212 → S213)
 
-**Status**: **OPEN** | **Priority**: medium | **Blocked by**: none
+**Status**: **RESOLVED** (S213) | **Priority**: medium | **Blocked by**: none
 
-B3 (Good et al. 2017 — allele trajectory classifier, LSTM+HMM+ESN) and
-B4 (Blount et al. 2008 — ESN early-warning classifier for citrate innovation)
-are QUEUED in `specs/PAPER_REVIEW_QUEUE.md`. These map to lithoSpore modules 3
-(allele trajectories) and 4 (citrate structural) as additive ML enrichment.
-Infrastructure exists: `s_gpu_parity` covers GPU dispatch, NUCLEUS composition
-is live, typed toadStool wiring is ready. Remaining work: implement the ML
-surrogates themselves (science code, not composition plumbing).
+B3 (Good et al. 2017 — LSTM+HMM+ESN allele trajectory classifier) and
+B4 (Blount et al. 2008 — ESN citrate early-warning classifier) implemented
+in S213. Both follow the established B1 pattern: Python control baseline →
+`expected_values.json` → Rust module → validator binary.
+
+**B4 (Blount 2008):**
+- `control/ltee_citrate_esn/` — Python baseline (seed=42, 200 trajectories)
+- `src/ltee_citrate_esn.rs` — `CitrateEsnPredictor` (ESN reservoir=256, 2-step)
+- `src/bin/validate_ltee_b4_citrate_esn.rs` — 16/16 checks PASS
+- Test accuracy: 94.3%, Rust-Python score parity: 3.35e-14
+
+**B3 (Good 2017):**
+- `control/ltee_allele_trajectory/` — Python baseline (seed=42, 300 alleles)
+- `src/ltee_allele_trajectory.rs` — LSTM(h=32)+HMM(3 states)+ESN(128) fusion
+- `src/bin/validate_ltee_b3_allele_trajectory.rs` — 16/16 checks PASS
+- Test accuracy: 100% (T06 target: ≥95%), LSTM parity: 5.2e-18
+
+**Pipeline integration:**
+- `metalForge/forge/src/graph.rs` — 2 new stages (8 total, 8 edges)
+- `src/nucleus_pipeline/dispatch.rs` — match arms for both capabilities
+- `config/capability_registry.toml` — 2 new `evolving` capabilities (39 total)
+- `src/config.rs` + `src/niche.rs` — synchronized

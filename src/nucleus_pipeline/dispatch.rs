@@ -24,6 +24,8 @@ pub(super) fn dispatch_capability(capability: &str) -> (bool, StageOutput) {
         "science.wdm_ensemble_qs" => stage_wdm_ensemble_qs(),
         "science.introgression_nn" => stage_introgression_nn(),
         "science.attention_anderson" => stage_attention_anderson(),
+        "science.ltee_allele_classifier" => stage_ltee_allele_classifier(),
+        "science.ltee_citrate_esn" => stage_ltee_citrate_esn(),
         _ => (false, StageOutput::Empty),
     }
 }
@@ -43,6 +45,8 @@ pub(super) fn dispatch_capability_gpu(
         "science.isomorphic_reservoir" => stage_isomorphic_reservoir_gpu(dispatcher),
         "science.wdm_ensemble_qs" => stage_wdm_ensemble_qs_gpu(dispatcher),
         "science.introgression_nn" => stage_introgression_nn_gpu(dispatcher),
+        "science.ltee_allele_classifier" => stage_ltee_allele_classifier_gpu(dispatcher),
+        "science.ltee_citrate_esn" => stage_ltee_citrate_esn(),
         _ => (false, StageOutput::Empty),
     }
 }
@@ -474,6 +478,95 @@ fn stage_attention_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) 
 
     let valid = spectral_radius > 0.0 && participation > 0.0;
     (valid, StageOutput::Map(map))
+}
+
+fn stage_ltee_citrate_esn() -> (bool, StageOutput) {
+    let json_str = include_str!("../../control/ltee_citrate_esn/expected_values.json");
+    let baseline = match crate::ltee_citrate_esn::load_citrate_esn_from_json(json_str) {
+        Ok(b) => b,
+        Err(_) => return (false, StageOutput::Empty),
+    };
+
+    let mut rng = crate::rng::Rng::new(baseline.seed);
+    let (features, labels) = crate::ltee_citrate_esn::generate_trajectory(&mut rng, true);
+
+    let states = baseline
+        .predictor
+        .reservoir_drive(&features, baseline.n_generations);
+    let (preds, _) = baseline
+        .predictor
+        .classify(&states, baseline.n_generations, 0.5);
+    let metrics = crate::ltee_citrate_esn::early_warning_metrics(&preds, &labels);
+
+    let mut map = std::collections::HashMap::new();
+    map.insert("accuracy".to_string(), metrics.accuracy);
+    map.insert("tpr".to_string(), metrics.tpr);
+    map.insert("fpr".to_string(), metrics.fpr);
+    map.insert("baseline_test_accuracy".to_string(), baseline.test_accuracy);
+
+    let valid = baseline.test_accuracy > 0.85;
+    (valid, StageOutput::Map(map))
+}
+
+fn stage_ltee_allele_classifier() -> (bool, StageOutput) {
+    let json_str = include_str!("../../control/ltee_allele_trajectory/expected_values.json");
+    let bl = match crate::ltee_allele_trajectory::load_allele_baseline_from_json(json_str) {
+        Ok(b) => b,
+        Err(_) => return (false, StageOutput::Empty),
+    };
+
+    let states = crate::ltee_allele_trajectory::lstm_forward(
+        &bl.first_trajectory,
+        &bl.lstm_w_x,
+        &bl.lstm_w_h,
+        crate::ltee_allele_trajectory::LSTM_HIDDEN,
+    );
+    let lstm_feats = crate::ltee_allele_trajectory::pool_features(
+        &states,
+        bl.first_trajectory.len(),
+        crate::ltee_allele_trajectory::LSTM_HIDDEN,
+    );
+    let obs = crate::ltee_allele_trajectory::discretize_trajectory(
+        &bl.first_trajectory,
+        crate::ltee_allele_trajectory::HMM_N_SYMBOLS,
+    );
+    let posterior = crate::ltee_allele_trajectory::hmm_forward_posterior(
+        &obs,
+        &bl.hmm_transition,
+        &bl.hmm_emission,
+        &bl.hmm_initial,
+        crate::ltee_allele_trajectory::HMM_N_STATES,
+        crate::ltee_allele_trajectory::HMM_N_SYMBOLS,
+    );
+    let mut combined = lstm_feats;
+    combined.extend_from_slice(&posterior);
+
+    let esn_state = crate::ltee_allele_trajectory::esn_reservoir_step(
+        &combined,
+        &bl.esn_w_in,
+        &bl.esn_w_res,
+        &bl.esn_b_res,
+        crate::ltee_allele_trajectory::ESN_RESERVOIR,
+    );
+    let (pred, _) = crate::ltee_allele_trajectory::classify_allele_fate(
+        &esn_state,
+        &bl.esn_w_out,
+        crate::ltee_allele_trajectory::N_CLASSES,
+    );
+
+    let mut map = std::collections::HashMap::new();
+    map.insert("prediction".to_string(), pred as f64);
+    map.insert("expected".to_string(), bl.first_prediction as f64);
+    map.insert("test_accuracy".to_string(), bl.test_accuracy);
+    map.insert("train_accuracy".to_string(), bl.train_accuracy);
+
+    let valid = bl.test_accuracy >= 0.95 && pred == bl.first_prediction;
+    (valid, StageOutput::Map(map))
+}
+
+fn stage_ltee_allele_classifier_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
+    let _ = dispatcher;
+    stage_ltee_allele_classifier()
 }
 
 #[cfg(test)]

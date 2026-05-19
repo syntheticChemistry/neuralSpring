@@ -78,6 +78,8 @@ pub const CAPABILITIES: &[&str] = &[
     "science.cross_spring_provenance",
     "science.cross_spring_benchmark",
     "science.precision_routing",
+    "science.ltee_allele_classifier",
+    "science.ltee_citrate_esn",
     // ── Health probes (DEPLOYMENT_VALIDATION_STANDARD triad) ──
     "health.liveness",
     "health.readiness",
@@ -212,6 +214,8 @@ pub fn science_semantic_mappings() -> serde_json::Value {
         "cross_spring_provenance": "science.cross_spring_provenance",
         "cross_spring_benchmark":  "science.cross_spring_benchmark",
         "precision_routing":       "science.precision_routing",
+        "ltee_allele_classifier":  "science.ltee_allele_classifier",
+        "ltee_citrate_esn":        "science.ltee_citrate_esn",
     })
 }
 

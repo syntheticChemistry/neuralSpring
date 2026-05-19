@@ -432,12 +432,28 @@ pub fn composition_pipeline() -> PipelineGraph {
         label: "Attention Anderson Spectral".to_string(),
     });
 
+    g.add_stage(StageNode {
+        id: "ltee_allele_classifier".to_string(),
+        capability: "science.ltee_allele_classifier".to_string(),
+        substrate: MixedSubstrate::GpuPreferred,
+        label: "B3 Allele Trajectory LSTM+HMM+ESN".to_string(),
+    });
+
+    g.add_stage(StageNode {
+        id: "ltee_citrate_esn".to_string(),
+        capability: "science.ltee_citrate_esn".to_string(),
+        substrate: MixedSubstrate::CpuOnly,
+        label: "B4 Citrate ESN Early-Warning".to_string(),
+    });
+
     g.add_edge("eigensolve", "digester_anderson");
     g.add_edge("eigensolve", "isomorphic_reservoir");
     g.add_edge("eigensolve", "attention_anderson");
     g.add_edge("digester_anderson", "wdm_ensemble_qs");
     g.add_edge("wdm_ensemble_qs", "introgression_nn");
     g.add_edge("isomorphic_reservoir", "attention_anderson");
+    g.add_edge("introgression_nn", "ltee_allele_classifier");
+    g.add_edge("introgression_nn", "ltee_citrate_esn");
 
     g
 }
@@ -646,15 +662,15 @@ mod tests {
     fn composition_pipeline_is_valid() {
         let g = composition_pipeline();
         assert!(g.validate().is_ok());
-        assert_eq!(g.stage_count(), 6);
-        assert_eq!(g.edge_count(), 6);
+        assert_eq!(g.stage_count(), 8);
+        assert_eq!(g.edge_count(), 8);
     }
 
     #[test]
     fn composition_pipeline_topo_order() {
         let g = composition_pipeline();
         let order = g.execute_order().expect("DAG should have valid topo order");
-        assert_eq!(order.len(), 6);
+        assert_eq!(order.len(), 8);
         assert_eq!(order[0], "eigensolve", "eigensolve is the root");
         assert!(
             order

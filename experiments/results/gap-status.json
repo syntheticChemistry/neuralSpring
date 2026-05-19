@@ -1,14 +1,14 @@
 {
   "spring": "neuralSpring",
-  "session": "S212",
-  "date": "2026-05-17",
-  "audit_response": "S212: lithoSpore Audit Absorption. Stability tiers on all 37 capabilities. Degradation behavior documented. Cross-tier parity framing. Trio semantics reviewed. B3/B4 assessed (QUEUED). 10 validation scenarios. 739 workspace tests. V168 handoff.",
+  "session": "S213",
+  "date": "2026-05-19",
+  "audit_response": "S213: B3/B4 ML Surrogates for lithoSpore modules 3+4. LSTM+HMM+ESN allele trajectory (Good 2017, 100% test accuracy) + ESN citrate early-warning (Blount 2008, 94.3%). 39 capabilities, 754 tests. V169 handoff.",
   "summary": {
     "total_main_gaps": 28,
-    "resolved_main": 27,
+    "resolved_main": 28,
     "implemented": 0,
     "wip": 0,
-    "open": 1,
+    "open": 0,
     "tracking": 0,
     "partial": 0,
     "explored": 0,
@@ -43,7 +43,7 @@
     {"id": 25, "title": "Degradation Behavior Documentation", "status": "resolved", "resolution": "S212: docs/DEGRADATION_BEHAVIOR.md — per-primal, GPU-dependent, trio partial completion"},
     {"id": 26, "title": "Cross-Tier Parity — GPU as Parity", "status": "resolved", "resolution": "S212: GPU parity framed as substrate-level cross-tier parity (CPU=Tier2a, GPU=Tier2b)"},
     {"id": 27, "title": "Trio Transaction Semantics Review", "status": "resolved", "resolution": "S212: provenance_dispatch.rs doc comments updated with trio semantics annotations"},
-    {"id": 28, "title": "B3/B4 ML Surrogates for lithoSpore", "status": "open", "resolution": "S212: Assessed — QUEUED in PAPER_REVIEW_QUEUE.md. Infrastructure ready, ML implementation pending"}
+    {"id": 28, "title": "B3/B4 ML Surrogates for lithoSpore", "status": "resolved", "resolution": "S213: B3 LSTM+HMM+ESN allele classifier (16/16, 100%) + B4 ESN citrate early-warning (16/16, 94.3%). Pipeline integrated, 39 capabilities."}
   ],
   "resolved_appendix": [
     {"id": "R1", "title": "Binary Name Reconciliation", "session": "S178"},
@@ -82,6 +82,6 @@
     "deny_clean": true,
     "gpu_stages": "6/6",
     "validation_scenarios": 10,
-    "workspace_tests": 739
+    "workspace_tests": 754
   }
 }

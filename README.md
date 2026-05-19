@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 17, 2026 (Session S212 — lithoSpore Audit Absorption: stability tiers on all 37 capabilities, degradation behavior documented, cross-tier parity framing, trio semantics reviewed. B3/B4 surrogates assessed. 37 capabilities, 10 scenarios, 739 tests. V168 handoff).
+**Last updated**: May 19, 2026 (Session S213 — B3/B4 ML Surrogates: LSTM+HMM+ESN allele trajectory classifier (Good 2017, 100% accuracy) + ESN citrate early-warning (Blount 2008, 94.3% accuracy) for lithoSpore modules 3+4. 39 capabilities, 10 scenarios, 754 tests. V169 handoff).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

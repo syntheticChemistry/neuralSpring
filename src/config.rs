@@ -188,6 +188,8 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "science.cross_spring_provenance",
     "science.cross_spring_benchmark",
     "science.precision_routing",
+    "science.ltee_allele_classifier",
+    "science.ltee_citrate_esn",
     // Health probes (DEPLOYMENT_VALIDATION_STANDARD triad)
     "health.liveness",
     "health.readiness",

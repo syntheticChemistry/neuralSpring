@@ -136,6 +136,8 @@ pub mod isomorphic_reservoir;
 pub mod lenet;
 #[cfg(feature = "barracuda")]
 pub mod loss_landscape;
+pub mod ltee_allele_trajectory;
+pub mod ltee_citrate_esn;
 pub mod meta_population;
 pub mod metrics;
 pub mod modes;

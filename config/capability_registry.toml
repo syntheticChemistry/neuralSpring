@@ -94,6 +94,16 @@ method = "science.precision_routing"
 description = "f32/f64/emulated-f64 precision tier routing"
 stability = "stable"
 
+[capabilities.ltee_allele_classifier]
+method = "science.ltee_allele_classifier"
+description = "B3 LSTM+HMM+ESN allele trajectory classifier (Good 2017, lithoSpore Module 3)"
+stability = "evolving"
+
+[capabilities.ltee_citrate_esn]
+method = "science.ltee_citrate_esn"
+description = "B4 ESN citrate early-warning classifier (Blount 2008, lithoSpore Module 4)"
+stability = "evolving"
+
 # ── health.* (upstream stable — primalSpring canonical) ──
 
 [capabilities.health_liveness]

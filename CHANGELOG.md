@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-17 (Sessions 203–212: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit absorption)
+## [Unreleased] — 2026-05-19 (Sessions 203–213: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates)
+
+### 2026-05-19 — Session S213 (B3/B4 ML Surrogates for lithoSpore Modules 3+4)
+
+- **B4: ESN citrate early-warning classifier (Blount et al. 2008)** — `control/ltee_citrate_esn/` Python baseline + `expected_values.json` (seed=42, 200 trajectories, ESN reservoir=256). `src/ltee_citrate_esn.rs`: `CitrateEsnPredictor` with 2-step tanh reservoir + ridge readout. `src/bin/validate_ltee_b4_citrate_esn.rs`: 16/16 checks PASS. Test accuracy 94.3%, Rust-Python score parity 3.35e-14. Additive enrichment for lithoSpore Module 4 (T07 early-warning detection).
+- **B3: LSTM+HMM+ESN allele trajectory classifier (Good et al. 2017)** — `control/ltee_allele_trajectory/` Python baseline + `expected_values.json` (seed=42, 300 alleles, 3-class). `src/ltee_allele_trajectory.rs`: LSTM encoder (h=32) → pool [mean, std, last] → HMM regime decoder (3 states) → ESN classifier (128). `src/bin/validate_ltee_b3_allele_trajectory.rs`: 16/16 checks PASS. Test accuracy 100% (T06 target: ≥95%), LSTM parity 5.2e-18, HMM parity 6.9e-18. Additive enrichment for lithoSpore Module 3.
+- **Pipeline integration** — 2 new `StageNode` entries in `metalForge/forge/src/graph.rs`: `ltee_allele_classifier` (GpuPreferred), `ltee_citrate_esn` (CpuOnly). 8 stages, 8 edges. Dispatch match arms in `dispatch_capability()` and `dispatch_capability_gpu()`.
+- **Capability registry** — 39 capabilities (37 → 39): `science.ltee_allele_classifier` (evolving), `science.ltee_citrate_esn` (evolving). Updated `config/capability_registry.toml`, `src/config.rs`, `src/niche.rs`.
+- **PRIMAL_GAPS** — Gap 28 RESOLVED (B3/B4 implemented). V169.
+- **Test count** — 754 tests (750 pass, 4 pre-existing environment-dependent).
 
 ### 2026-05-17 — Session S212 (lithoSpore Audit Absorption & Ecosystem Evolution)
 
