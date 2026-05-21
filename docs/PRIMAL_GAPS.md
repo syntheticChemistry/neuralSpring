@@ -5,7 +5,7 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 20, 452 methods)
+> **Date:** 2026-05-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 35, 445 methods)
 > **Session:** S213 — B3/B4 ML Surrogates: implemented LSTM+HMM+ESN allele trajectory classifier (B3, Good 2017) and ESN citrate early-warning (B4, Blount 2008) for lithoSpore modules 3+4. 39 capabilities, 32 checks (B3: 16/16, B4: 16/16). Pipeline integration, capability registry wired.
 > Prior: S212 lithoSpore Audit Absorption, S211 GPU Parity + Compute Dispatch, S210 deep debt 6th pass, S209 live composition, S208 Wave 20 schema.
 
@@ -609,7 +609,7 @@ Uses `primalspring::composition` API directly:
 ### Level 4 Blockers
 
 - **Live NUCLEUS**: Requires `plasmidBin/` ecobins deployed via `nucleus_launcher.sh`
-- **`primalspring_guidestone`**: Must pass (exit 0) as base certification layer
+- **`primalspring certify`**: Must pass (exit 0) as base certification layer
 - **All 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES`**: Must return PASS (not SKIP)
 
 ### Level 5 Blockers

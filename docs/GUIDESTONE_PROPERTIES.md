@@ -178,4 +178,4 @@ cargo test --features barracuda,guidestone -p neural-spring --lib certification
 - Downstream Manifest: `primalSpring/graphs/downstream/downstream_manifest.toml`
 - plasmidBin Depot: `primalSpring/wateringHole/PLASMINBIN_DEPOT_PATTERN.md`
 - hotSpring reference: `hotSpring-guideStone-v0.7.0` (Level 5 certified)
-- primalSpring reference: `primalspring_guidestone` (Level 4 — 67/67 live NUCLEUS checks)
+- primalSpring reference: `primalspring certify` (Level 8 — live NUCLEUS certification, absorbed as UniBin organelle)
