@@ -2,7 +2,7 @@
 
 **Date**: May 19, 2026 (Session S213 — originated Session 85, refreshed S213)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
-**Status**: DRAFT — outlines for the 4 strongest publication candidates. Validation stack now at 754 workspace tests, 39 capabilities, 10 validation scenarios, Wave 17+20 signal API, barraCuda v0.4.0. 6/6 GPU dispatch.
+**Status**: DRAFT — outlines for the 4 strongest publication candidates. Validation stack now at 754 workspace tests, 45 capabilities, 10 validation scenarios, Wave 17+20 signal API, barraCuda v0.4.0. 6/6 GPU dispatch.
 
 ---
 

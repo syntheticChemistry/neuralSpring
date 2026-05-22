@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-17 | **Spring version:** 0.1.0 | **primalSpring:** v0.9.25 (Wave 35, 445 methods)
-> **Session:** S213 — B3/B4 ML Surrogates: implemented LSTM+HMM+ESN allele trajectory classifier (B3, Good 2017) and ESN citrate early-warning (B4, Blount 2008) for lithoSpore modules 3+4. 39 capabilities, 32 checks (B3: 16/16, B4: 16/16). Pipeline integration, capability registry wired.
-> Prior: S212 lithoSpore Audit Absorption, S211 GPU Parity + Compute Dispatch, S210 deep debt 6th pass, S209 live composition, S208 Wave 20 schema.
+> **Date:** 2026-05-22 | **Spring version:** 0.1.0 | **primalSpring:** Wave 38 (445 methods)
+> **Session:** S214 — Deep Debt Evolution Sprint: 6 pipeline capabilities advertised (39→45), IPC error typing evolved to `IpcError`, discovery standardized on `capability.list` with dual-probe fallback, redundant feature gates removed, HashMap insert chains → iterator collect, O(n²) dedup → HashSet, silent IPC fallback logging added. Zero regressions, 754 tests.
+> Prior: S213 B3/B4 ML Surrogates, S212 lithoSpore Audit Absorption, S211 GPU Parity + Compute Dispatch, S210 deep debt 6th pass, S209 live composition.
 
 ---
 

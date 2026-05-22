@@ -80,6 +80,13 @@ pub const CAPABILITIES: &[&str] = &[
     "science.precision_routing",
     "science.ltee_allele_classifier",
     "science.ltee_citrate_esn",
+    // ── Science pipeline stages (NUCLEUS composition graph) ──
+    "science.eigensolve",
+    "science.digester_anderson_coupling",
+    "science.isomorphic_reservoir",
+    "science.wdm_ensemble_qs",
+    "science.introgression_nn",
+    "science.attention_anderson",
     // ── Health probes (DEPLOYMENT_VALIDATION_STANDARD triad) ──
     "health.liveness",
     "health.readiness",
@@ -216,6 +223,12 @@ pub fn science_semantic_mappings() -> serde_json::Value {
         "precision_routing":       "science.precision_routing",
         "ltee_allele_classifier":  "science.ltee_allele_classifier",
         "ltee_citrate_esn":        "science.ltee_citrate_esn",
+        "eigensolve":              "science.eigensolve",
+        "digester_anderson_coupling": "science.digester_anderson_coupling",
+        "isomorphic_reservoir":    "science.isomorphic_reservoir",
+        "wdm_ensemble_qs":         "science.wdm_ensemble_qs",
+        "introgression_nn":        "science.introgression_nn",
+        "attention_anderson":      "science.attention_anderson",
     })
 }
 

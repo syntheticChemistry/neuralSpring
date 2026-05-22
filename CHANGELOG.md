@@ -5,7 +5,18 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-19 (Sessions 203–213: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates)
+## [Unreleased] — 2026-05-22 (Sessions 203–214: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint)
+
+### 2026-05-22 — Session S214 (Deep Debt Evolution Sprint)
+
+- **Registry alignment** — 6 pipeline capabilities (`science.eigensolve`, `science.digester_anderson_coupling`, `science.isomorphic_reservoir`, `science.wdm_ensemble_qs`, `science.introgression_nn`, `science.attention_anderson`) now advertised via `capability.list`. Previously exercised in NUCLEUS dispatch but never registered. 45 capabilities (39 → 45).
+- **Hardcode elimination** — `"skunkbat"` string literal in `handlers.rs` replaced with `primal_names::SKUNKBAT` constant. Zero hardcoded primal names remaining.
+- **Discovery standardization** — `probe_capabilities()` now uses canonical `capability.list` with dual-probe fallback to `capabilities.list` (plural) for older primals. IPC discovery doc updated to describe hint-then-probe model.
+- **Feature gate cleanup** — Documented `composed` feature alias in `Cargo.toml`. Removed 4 redundant `#[cfg(feature = "barracuda")]` annotations and dead `#[cfg(not(feature = "barracuda"))]` fallback branches in `loss_landscape.rs` and `weight_spectral/metrics.rs` (modules already gated at `lib.rs` level).
+- **IPC error typing** — `validation/composition.rs` IPC helpers evolved from `Result<_, String>` to `Result<_, IpcError>` with structured `Transport`/`Protocol` variants. Silent IPC fallback in `executor.rs` now logs via `log::warn!`.
+- **Rust idiom improvements** — 12 `HashMap::insert` chains in `dispatch.rs` converted to `[].into_iter().collect()`. O(n²) `Vec::contains` dedup in `discovered_primals()` replaced with `HashSet`. `inter_population_af_variance` generalized from `&[Vec<f64>]` to `&[impl AsRef<[f64]>]`, eliminating unnecessary `to_vec()` allocation in CPU fallback.
+- **Paper queue sync** — B3 (Good 2017) and B4 (Blount 2008) status updated from QUEUED to COMPLETE in `PAPER_REVIEW_QUEUE.md`.
+- **Test count** — 754 tests, zero regressions.
 
 ### 2026-05-19 — Session S213 (B3/B4 ML Surrogates for lithoSpore Modules 3+4)
 

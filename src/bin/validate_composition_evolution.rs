@@ -28,7 +28,7 @@
 //! ## Provenance
 //!
 //! Proto-nucleate: `primalSpring/graphs/downstream/downstream_manifest.toml` `[[downstream]]` `spring_name` = "neuralspring"
-//! Deploy graph: `graphs/neuralspring_deploy.toml` V169/S213
+//! Deploy graph: `graphs/neuralspring_deploy.toml` V170/S214
 
 use neural_spring::config;
 use neural_spring::niche;
@@ -193,7 +193,7 @@ fn validate_proto_nucleate_wiring(
                 *discovered += 1;
                 h.check_bool(&format!("{}: socket discovered", node.name), true);
 
-                if composition::probe_liveness(&path, IPC_TIMEOUT) == Ok(()) {
+                if composition::probe_liveness(&path, IPC_TIMEOUT).is_ok() {
                     h.check_bool(&format!("{}: health.liveness responds", node.name), true);
 
                     if let Ok(caps) = composition::probe_capabilities(&path, IPC_TIMEOUT) {

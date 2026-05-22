@@ -16,15 +16,23 @@
 //! | [`skunkbat`]  | skunkBat    | `security.audit_log` |
 //! | [`nestgate`]  | `NestGate`  | `content.put`, `content.get` |
 //!
-//! ## Capability-Based Discovery
+//! ## Discovery Model
 //!
-//! [`IpcMathClient`] discovers primals by **capability hint** with primal
-//! name as fallback. Each capability declares which primal is expected to
-//! provide it, but the discovery mechanism resolves sockets by scanning
-//! the biomeOS runtime directory — the client never hardcodes socket paths.
+//! [`IpcMathClient`] discovers primals via a **hint-then-probe** model:
+//!
+//! 1. **Hint**: [`CAPABILITY_HINTS`] maps each capability to its expected
+//!    primal (e.g. `stats.mean` → `barracuda`). The primal name is used
+//!    to locate sockets via biomeOS directory scanning — no socket paths
+//!    are hardcoded.
+//! 2. **Probe**: Once a socket is found, the primal binary's async
+//!    discovery layer (`neuralspring_primal/discovery.rs`) can verify
+//!    the primal actually advertises the capability via `capability.list`.
 //!
 //! This follows the ecoPrimals self-knowledge principle: a spring only
-//! knows *what* it needs (a capability), not *where* to find it.
+//! knows *what* it needs (a capability), not *where* to find it. The
+//! hint table is a compile-time optimization for fast startup; runtime
+//! capability probing via [`crate::validation::composition::probe_capabilities`]
+//! provides full dynamic verification.
 
 pub mod barracuda;
 pub mod beardog;
@@ -120,13 +128,8 @@ impl CapabilityRouter {
 
     /// All unique primal sockets discovered.
     fn discovered_primals(&self) -> Vec<&PathBuf> {
-        let mut seen = Vec::new();
-        for path in self.routes.values() {
-            if !seen.contains(&path) {
-                seen.push(path);
-            }
-        }
-        seen
+        let seen: std::collections::HashSet<_> = self.routes.values().collect();
+        seen.into_iter().collect()
     }
 }
 

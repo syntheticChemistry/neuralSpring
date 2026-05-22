@@ -116,12 +116,10 @@ fn stage_digester_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
 
     let xi = if mean_ipr > 0.0 { 1.0 / mean_ipr } else { 0.0 };
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("shannon_h".to_string(), h);
-    map.insert("evenness".to_string(), evenness);
-    map.insert("disorder_w".to_string(), w);
-    map.insert("mean_ipr".to_string(), mean_ipr);
-    map.insert("xi".to_string(), xi);
+    let map = [
+        ("shannon_h", h), ("evenness", evenness), ("disorder_w", w),
+        ("mean_ipr", mean_ipr), ("xi", xi),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = h > 0.0 && (0.0..=1.0).contains(&mean_ipr);
     (valid, StageOutput::Map(map))
@@ -133,12 +131,10 @@ fn stage_digester_anderson() -> (bool, StageOutput) {
     let (h, evenness, w, ipr, xi) =
         crate::digester_anderson::community_anderson(n_species, 1.0, 20, &mut rng);
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("shannon_h".to_string(), h);
-    map.insert("evenness".to_string(), evenness);
-    map.insert("disorder_w".to_string(), w);
-    map.insert("mean_ipr".to_string(), ipr);
-    map.insert("xi".to_string(), xi);
+    let map = [
+        ("shannon_h", h), ("evenness", evenness), ("disorder_w", w),
+        ("mean_ipr", ipr), ("xi", xi),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = h > 0.0 && (0.0..=1.0).contains(&ipr);
     (valid, StageOutput::Map(map))
@@ -172,10 +168,10 @@ fn stage_isomorphic_reservoir() -> (bool, StageOutput) {
 
     let cdm = crate::isomorphic_reservoir::cross_domain_metrics(&profiles);
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("eff_ratio_cv".to_string(), cdm.eff_ratio_cv);
-    map.insert("ipr_cv".to_string(), cdm.ipr_cv);
-    map.insert("spacing_ratio_mean".to_string(), cdm.spacing_ratio_mean);
+    let map = [
+        ("eff_ratio_cv", cdm.eff_ratio_cv), ("ipr_cv", cdm.ipr_cv),
+        ("spacing_ratio_mean", cdm.spacing_ratio_mean),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = cdm.eff_ratio_cv < 0.5 && cdm.ipr_cv < 0.5;
     (valid, StageOutput::Map(map))
@@ -248,10 +244,10 @@ fn stage_isomorphic_reservoir_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput
 
     let spacing_ratio_mean = spacing_ratios.iter().sum::<f64>() / spacing_ratios.len() as f64;
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("eff_ratio_cv".to_string(), eff_ratio_cv);
-    map.insert("ipr_cv".to_string(), ipr_cv);
-    map.insert("spacing_ratio_mean".to_string(), spacing_ratio_mean);
+    let map = [
+        ("eff_ratio_cv", eff_ratio_cv), ("ipr_cv", ipr_cv),
+        ("spacing_ratio_mean", spacing_ratio_mean),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = eff_ratio_cv < 0.5 && ipr_cv < 0.5;
     (valid, StageOutput::Map(map))
@@ -283,11 +279,9 @@ fn stage_wdm_ensemble_qs() -> (bool, StageOutput) {
     let payoff = crate::wdm_ensemble_qs::snowdrift_payoff(w_frac);
     let coop = crate::wdm_ensemble_qs::replicator_final_coop(&payoff, WDM_REPLICATOR_STEPS);
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("disorder".to_string(), w);
-    map.insert("mean_ipr".to_string(), ipr);
-    map.insert("xi".to_string(), xi);
-    map.insert("cooperation".to_string(), coop);
+    let map = [
+        ("disorder", w), ("mean_ipr", ipr), ("xi", xi), ("cooperation", coop),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = ipr >= 0.0 && (0.0..=1.0).contains(&coop);
     (valid, StageOutput::Map(map))
@@ -317,11 +311,9 @@ fn stage_wdm_ensemble_qs_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
     }
     let coop = freq[0].clamp(0.0, 1.0);
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("disorder".to_string(), w);
-    map.insert("mean_ipr".to_string(), ipr);
-    map.insert("xi".to_string(), xi);
-    map.insert("cooperation".to_string(), coop);
+    let map = [
+        ("disorder", w), ("mean_ipr", ipr), ("xi", xi), ("cooperation", coop),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = ipr >= 0.0 && (0.0..=1.0).contains(&coop);
     (valid, StageOutput::Map(map))
@@ -361,11 +353,10 @@ fn stage_introgression_nn() -> (bool, StageOutput) {
     let (_, log_lik_model) = hmm.forward(&obs);
     let (_, log_lik_null) = null_hmm.forward(&obs);
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("tpr".to_string(), tpr);
-    map.insert("fpr".to_string(), fpr);
-    map.insert("accuracy".to_string(), accuracy);
-    map.insert("llr".to_string(), log_lik_model - log_lik_null);
+    let map = [
+        ("tpr", tpr), ("fpr", fpr), ("accuracy", accuracy),
+        ("llr", log_lik_model - log_lik_null),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = tpr > 0.5 && accuracy > 0.5;
     (valid, StageOutput::Map(map))
@@ -405,11 +396,10 @@ fn stage_introgression_nn_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
     let (_, log_lik_model) = hmm.forward(&obs);
     let (_, log_lik_null) = null_hmm.forward(&obs);
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("tpr".to_string(), tpr);
-    map.insert("fpr".to_string(), fpr);
-    map.insert("accuracy".to_string(), accuracy);
-    map.insert("llr".to_string(), log_lik_model - log_lik_null);
+    let map = [
+        ("tpr", tpr), ("fpr", fpr), ("accuracy", accuracy),
+        ("llr", log_lik_model - log_lik_null),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = tpr > 0.5 && accuracy > 0.5;
     (valid, StageOutput::Map(map))
@@ -444,12 +434,11 @@ fn stage_attention_anderson() -> (bool, StageOutput) {
     let sym = build_attention_matrix(n);
     let result = crate::attention_anderson::attention_spectral(&sym, n);
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("quality".to_string(), result.quality);
-    map.insert("entropy".to_string(), result.entropy);
-    map.insert("mean_ipr".to_string(), result.mean_ipr);
-    map.insert("spectral_radius".to_string(), result.spectral_radius);
-    map.insert("participation".to_string(), result.participation);
+    let map = [
+        ("quality", result.quality), ("entropy", result.entropy),
+        ("mean_ipr", result.mean_ipr), ("spectral_radius", result.spectral_radius),
+        ("participation", result.participation),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = result.spectral_radius > 0.0 && result.participation > 0.0;
     (valid, StageOutput::Map(map))
@@ -470,11 +459,10 @@ fn stage_attention_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) 
         .fold(0.0_f64, f64::max);
     let participation = if mean_ipr > 0.0 { 1.0 / mean_ipr } else { 0.0 };
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("mean_ipr".to_string(), mean_ipr);
-    map.insert("spectral_radius".to_string(), spectral_radius);
-    map.insert("participation".to_string(), participation);
-    map.insert("level_spacing_ratio".to_string(), lsr);
+    let map = [
+        ("mean_ipr", mean_ipr), ("spectral_radius", spectral_radius),
+        ("participation", participation), ("level_spacing_ratio", lsr),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = spectral_radius > 0.0 && participation > 0.0;
     (valid, StageOutput::Map(map))
@@ -498,11 +486,10 @@ fn stage_ltee_citrate_esn() -> (bool, StageOutput) {
         .classify(&states, baseline.n_generations, 0.5);
     let metrics = crate::ltee_citrate_esn::early_warning_metrics(&preds, &labels);
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("accuracy".to_string(), metrics.accuracy);
-    map.insert("tpr".to_string(), metrics.tpr);
-    map.insert("fpr".to_string(), metrics.fpr);
-    map.insert("baseline_test_accuracy".to_string(), baseline.test_accuracy);
+    let map = [
+        ("accuracy", metrics.accuracy), ("tpr", metrics.tpr),
+        ("fpr", metrics.fpr), ("baseline_test_accuracy", baseline.test_accuracy),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = baseline.test_accuracy > 0.85;
     (valid, StageOutput::Map(map))
@@ -554,11 +541,10 @@ fn stage_ltee_allele_classifier() -> (bool, StageOutput) {
         crate::ltee_allele_trajectory::N_CLASSES,
     );
 
-    let mut map = std::collections::HashMap::new();
-    map.insert("prediction".to_string(), pred as f64);
-    map.insert("expected".to_string(), bl.first_prediction as f64);
-    map.insert("test_accuracy".to_string(), bl.test_accuracy);
-    map.insert("train_accuracy".to_string(), bl.train_accuracy);
+    let map = [
+        ("prediction", pred as f64), ("expected", bl.first_prediction as f64),
+        ("test_accuracy", bl.test_accuracy), ("train_accuracy", bl.train_accuracy),
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
 
     let valid = bl.test_accuracy >= 0.95 && pred == bl.first_prediction;
     (valid, StageOutput::Map(map))

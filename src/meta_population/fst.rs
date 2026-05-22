@@ -229,14 +229,14 @@ pub fn global_fst_variance_decomposition(
 /// Mean allele frequency variance across populations (inter-population).
 #[must_use]
 pub fn inter_population_af_variance(
-    populations: &[Vec<f64>],
+    populations: &[impl AsRef<[f64]>],
     n_individuals: &[usize],
     n_loci: usize,
 ) -> f64 {
     let all_freqs: Vec<Vec<f64>> = populations
         .iter()
         .zip(n_individuals.iter())
-        .map(|(pop, &n)| allele_frequencies(pop, n, n_loci))
+        .map(|(pop, &n)| allele_frequencies(pop.as_ref(), n, n_loci))
         .collect();
 
     let n_pops = all_freqs.len() as f64;

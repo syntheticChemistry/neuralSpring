@@ -74,8 +74,7 @@ impl Dispatcher {
                 )
             },
             || {
-                let vecs: Vec<Vec<f64>> = populations.iter().map(|s| s.to_vec()).collect();
-                crate::meta_population::inter_population_af_variance(&vecs, n_individuals, n_loci)
+                crate::meta_population::inter_population_af_variance(populations, n_individuals, n_loci)
             },
         )
     }

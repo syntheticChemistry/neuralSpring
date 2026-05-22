@@ -472,6 +472,7 @@ pub fn handle_security_audit_log(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
+    use neural_spring::primal_names;
     let event = params
         .get("event")
         .and_then(|v| v.as_str())
@@ -483,7 +484,7 @@ pub fn handle_security_audit_log(
             "primal": PRIMAL_NAME,
             "event": event,
             "status": "logged",
-            "forwarded_to": "skunkbat",
+            "forwarded_to": primal_names::SKUNKBAT,
         }),
     )
 }

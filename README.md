@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 19, 2026 (Session S213 — B3/B4 ML Surrogates: LSTM+HMM+ESN allele trajectory classifier (Good 2017, 100% accuracy) + ESN citrate early-warning (Blount 2008, 94.3% accuracy) for lithoSpore modules 3+4. 39 capabilities, 10 scenarios, 754 tests. V169 handoff).
+**Last updated**: May 22, 2026 (Session S214 — Deep Debt Evolution Sprint: registry alignment (39→45 capabilities), IPC error typing, discovery standardization, feature gate cleanup, Rust idiom improvements. 45 capabilities, 10 scenarios, 754 tests. V170).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

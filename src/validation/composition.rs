@@ -19,6 +19,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use crate::config;
+use crate::error::IpcError;
 use crate::primal_names;
 
 /// Result of attempting to discover a primal's Unix socket.
@@ -158,24 +159,29 @@ pub fn json_rpc_call(
     method: &str,
     params: &serde_json::Value,
     timeout: Duration,
-) -> Result<serde_json::Value, String> {
-    let stream =
-        UnixStream::connect(socket).map_err(|e| format!("connect {}: {e}", socket.display()))?;
-    stream
-        .set_read_timeout(Some(timeout))
-        .map_err(|e| format!("set_read_timeout: {e}"))?;
-    stream
-        .set_write_timeout(Some(timeout))
-        .map_err(|e| format!("set_write_timeout: {e}"))?;
+) -> Result<serde_json::Value, IpcError> {
+    let method_owned = method.to_owned();
+    let stream = UnixStream::connect(socket).map_err(|e| IpcError::Transport {
+        capability: method_owned.clone(),
+        reason: format!("connect {}: {e}", socket.display()),
+    })?;
+    stream.set_read_timeout(Some(timeout)).map_err(|e| IpcError::Transport {
+        capability: method_owned.clone(),
+        reason: format!("set_read_timeout: {e}"),
+    })?;
+    stream.set_write_timeout(Some(timeout)).map_err(|e| IpcError::Transport {
+        capability: method_owned.clone(),
+        reason: format!("set_write_timeout: {e}"),
+    })?;
 
-    json_rpc_on_stream(stream, method, params)
+    json_rpc_on_stream(stream, &method_owned, params)
 }
 
 fn json_rpc_on_stream(
     mut stream: UnixStream,
     method: &str,
     params: &serde_json::Value,
-) -> Result<serde_json::Value, String> {
+) -> Result<serde_json::Value, IpcError> {
     let request = serde_json::json!({
         "jsonrpc": "2.0",
         "method": method,
@@ -183,30 +189,46 @@ fn json_rpc_on_stream(
         "id": 1
     });
 
-    let mut payload = serde_json::to_vec(&request).map_err(|e| format!("serialize: {e}"))?;
+    let method_owned = method.to_owned();
+    let mut payload = serde_json::to_vec(&request).map_err(|e| IpcError::Protocol {
+        capability: method_owned.clone(),
+        reason: format!("serialize: {e}"),
+    })?;
     payload.push(b'\n');
 
-    stream
-        .write_all(&payload)
-        .map_err(|e| format!("write: {e}"))?;
-    stream.flush().map_err(|e| format!("flush: {e}"))?;
+    stream.write_all(&payload).map_err(|e| IpcError::Transport {
+        capability: method_owned.clone(),
+        reason: format!("write: {e}"),
+    })?;
+    stream.flush().map_err(|e| IpcError::Transport {
+        capability: method_owned.clone(),
+        reason: format!("flush: {e}"),
+    })?;
 
     let mut reader = BufReader::new(stream);
     let mut line = String::new();
-    reader
-        .read_line(&mut line)
-        .map_err(|e| format!("read: {e}"))?;
+    reader.read_line(&mut line).map_err(|e| IpcError::Transport {
+        capability: method_owned.clone(),
+        reason: format!("read: {e}"),
+    })?;
 
     let resp: serde_json::Value =
-        serde_json::from_str(line.trim()).map_err(|e| format!("parse: {e}"))?;
+        serde_json::from_str(line.trim()).map_err(|e| IpcError::Protocol {
+            capability: method_owned.clone(),
+            reason: format!("parse: {e}"),
+        })?;
 
     if let Some(err) = resp.get("error") {
-        return Err(format!("RPC error: {err}"));
+        return Err(IpcError::Protocol {
+            capability: method_owned,
+            reason: format!("RPC error: {err}"),
+        });
     }
 
-    resp.get("result")
-        .cloned()
-        .ok_or_else(|| "response missing 'result' field".to_string())
+    resp.get("result").cloned().ok_or_else(|| IpcError::Protocol {
+        capability: method_owned,
+        reason: "response missing 'result' field".into(),
+    })
 }
 
 /// Probe a primal's `health.liveness` endpoint.
@@ -216,20 +238,22 @@ fn json_rpc_on_stream(
 /// # Errors
 ///
 /// Returns an error if the primal is unreachable or responds with an error.
-pub fn probe_liveness(socket: &Path, timeout: Duration) -> Result<(), String> {
+pub fn probe_liveness(socket: &Path, timeout: Duration) -> Result<(), IpcError> {
     json_rpc_call(socket, "health.liveness", &serde_json::json!({}), timeout)?;
     Ok(())
 }
 
-/// Probe a primal's `capabilities.list` endpoint.
+/// Probe a primal's `capability.list` endpoint.
 ///
-/// Returns the list of capability strings the primal advertises.
+/// Tries canonical `capability.list` first, then falls back to
+/// legacy `capabilities.list` (plural) for older primals.
 ///
 /// # Errors
 ///
 /// Returns an error if the primal is unreachable or doesn't advertise.
-pub fn probe_capabilities(socket: &Path, timeout: Duration) -> Result<Vec<String>, String> {
-    let result = json_rpc_call(socket, "capabilities.list", &serde_json::json!({}), timeout)?;
+pub fn probe_capabilities(socket: &Path, timeout: Duration) -> Result<Vec<String>, IpcError> {
+    let result = json_rpc_call(socket, crate::capabilities::CAPABILITY_LIST, &serde_json::json!({}), timeout)
+        .or_else(|_| json_rpc_call(socket, "capabilities.list", &serde_json::json!({}), timeout))?;
 
     let caps = result
         .get("capabilities")
@@ -254,7 +278,7 @@ pub fn call_capability(
     capability: &str,
     params: &serde_json::Value,
     timeout: Duration,
-) -> Result<serde_json::Value, String> {
+) -> Result<serde_json::Value, IpcError> {
     json_rpc_call(socket, capability, params, timeout)
 }
 

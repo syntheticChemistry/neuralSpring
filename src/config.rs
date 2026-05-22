@@ -190,6 +190,13 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "science.precision_routing",
     "science.ltee_allele_classifier",
     "science.ltee_citrate_esn",
+    // Science pipeline stages (NUCLEUS composition graph)
+    "science.eigensolve",
+    "science.digester_anderson_coupling",
+    "science.isomorphic_reservoir",
+    "science.wdm_ensemble_qs",
+    "science.introgression_nn",
+    "science.attention_anderson",
     // Health probes (DEPLOYMENT_VALIDATION_STANDARD triad)
     "health.liveness",
     "health.readiness",
@@ -296,7 +303,7 @@ mod tests {
     }
 
     /// Cross-sync: verify neuralSpring's shared methods appear in
-    /// primalSpring's canonical 452-method capability registry.
+    /// primalSpring's canonical 445-method capability registry.
     ///
     /// Methods prefixed with `science.` are neuralSpring-only (niche
     /// capabilities not in the canonical registry). Same for

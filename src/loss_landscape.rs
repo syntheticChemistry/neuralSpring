@@ -43,16 +43,7 @@ use crate::eigh::eigh_householder_qr;
 use crate::primitives::LOG_GUARD;
 use crate::rng::Rng;
 
-#[cfg(feature = "barracuda")]
 pub use barracuda::sample::BoltzmannResult;
-
-#[cfg(not(feature = "barracuda"))]
-#[derive(Debug, Clone)]
-pub struct BoltzmannResult {
-    pub samples: Vec<Vec<f64>>,
-    pub losses: Vec<f64>,
-    pub acceptance_rate: f64,
-}
 
 /// Compute numerical Hessian of a loss function at given parameters.
 ///
@@ -60,7 +51,6 @@ pub struct BoltzmannResult {
 /// `H(i,j) ≈ (f(x+ei+ej) - f(x+ei-ej) - f(x-ei+ej) + f(x-ei-ej)) / (4ε²)`.
 ///
 /// Returns flat row-major n×n Hessian matrix.
-#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn numerical_hessian(
     loss_fn: &dyn Fn(&[f64]) -> f64,
@@ -68,35 +58,6 @@ pub fn numerical_hessian(
     epsilon: f64,
 ) -> Vec<f64> {
     barracuda::numerical::numerical_hessian(loss_fn, params, epsilon)
-}
-
-/// CPU fallback: central finite differences.
-#[cfg(not(feature = "barracuda"))]
-#[must_use]
-pub fn numerical_hessian(
-    loss_fn: &dyn Fn(&[f64]) -> f64,
-    params: &[f64],
-    epsilon: f64,
-) -> Vec<f64> {
-    let n = params.len();
-    let mut hessian = vec![0.0; n * n];
-    let inv_4eps2 = 1.0 / (4.0 * epsilon * epsilon);
-    for i in 0..n {
-        for j in i..n {
-            let mut pp = params.to_vec();
-            let mut pm = params.to_vec();
-            let mut mp = params.to_vec();
-            let mut mm = params.to_vec();
-            pp[i] += epsilon; pp[j] += epsilon;
-            pm[i] += epsilon; pm[j] -= epsilon;
-            mp[i] -= epsilon; mp[j] += epsilon;
-            mm[i] -= epsilon; mm[j] -= epsilon;
-            let val = (loss_fn(&pp) - loss_fn(&pm) - loss_fn(&mp) + loss_fn(&mm)) * inv_4eps2;
-            hessian[i * n + j] = val;
-            hessian[j * n + i] = val;
-        }
-    }
-    hessian
 }
 
 /// Compute eigenvalues of the Hessian matrix.
@@ -184,7 +145,6 @@ pub fn metropolis_step(
 }
 
 /// Run Boltzmann sampling: MCMC chain at given temperature.
-#[cfg(feature = "barracuda")]
 #[must_use]
 pub fn boltzmann_sampling(
     loss_fn: &dyn Fn(&[f64]) -> f64,
@@ -202,41 +162,6 @@ pub fn boltzmann_sampling(
         n_steps,
         seed,
     )
-}
-
-/// CPU fallback: Metropolis-Hastings MCMC using local `metropolis_step`.
-#[cfg(not(feature = "barracuda"))]
-#[must_use]
-pub fn boltzmann_sampling(
-    loss_fn: &dyn Fn(&[f64]) -> f64,
-    initial_params: &[f64],
-    temperature: f64,
-    step_size: f64,
-    n_steps: usize,
-    seed: u64,
-) -> BoltzmannResult {
-    let mut rng = Rng::new(seed);
-    let mut current = initial_params.to_vec();
-    let mut current_loss = loss_fn(&current);
-    let mut samples = Vec::with_capacity(n_steps);
-    let mut losses = Vec::with_capacity(n_steps);
-    let mut accepted = 0_usize;
-    for _ in 0..n_steps {
-        let (next, did_accept) =
-            metropolis_step(loss_fn, &current, current_loss, temperature, step_size, &mut rng);
-        if did_accept {
-            current_loss = loss_fn(&next);
-            current = next;
-            accepted += 1;
-        }
-        samples.push(current.clone());
-        losses.push(current_loss);
-    }
-    BoltzmannResult {
-        samples,
-        losses,
-        acceptance_rate: if n_steps > 0 { accepted as f64 / n_steps as f64 } else { 0.0 },
-    }
 }
 
 /// Transition barrier estimate between two minima.

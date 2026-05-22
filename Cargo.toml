@@ -85,8 +85,12 @@ default = []
 # barraCuda library linking — enables GPU validation, tensor ops, and all
 # barracuda-dependent modules.
 barracuda = ["dep:barracuda", "dep:neural-spring-forge", "dep:wgpu"]
+# JSON-RPC primal binary dependencies (CLI, async runtime, RPC framework).
 primal = ["anyhow", "clap", "env_logger", "tarpc"]
+# Semantic alias: primal with biomeOS composition context. Currently
+# equivalent to `primal`; will diverge when composition-specific deps land.
 composed = ["primal"]
+# guideStone certification: primal + primalSpring ecoPrimal integration.
 guidestone = ["primalspring", "primal"]
 
 [dev-dependencies]

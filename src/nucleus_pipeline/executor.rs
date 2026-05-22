@@ -307,7 +307,10 @@ fn dispatch_compute_signal(
             }
             Some((true, StageOutput::Map(map)))
         }
-        Err(_) => None,
+        Err(e) => {
+            log::warn!("node.compute dispatch failed, falling back to local: {e}");
+            None
+        }
     }
 }
 

@@ -104,6 +104,38 @@ method = "science.ltee_citrate_esn"
 description = "B4 ESN citrate early-warning classifier (Blount 2008, lithoSpore Module 4)"
 stability = "evolving"
 
+# ── science.* pipeline stages (NUCLEUS composition graph) ──
+
+[capabilities.eigensolve]
+method = "science.eigensolve"
+description = "Eigendecomposition via Householder QR (spectral pipeline root stage)"
+stability = "stable"
+
+[capabilities.digester_anderson_coupling]
+method = "science.digester_anderson_coupling"
+description = "Digester-Anderson disorder coupling (bioprocess × spectral)"
+stability = "stable"
+
+[capabilities.isomorphic_reservoir]
+method = "science.isomorphic_reservoir"
+description = "Isomorphic ESN reservoir spectral analysis across domains"
+stability = "stable"
+
+[capabilities.wdm_ensemble_qs]
+method = "science.wdm_ensemble_qs"
+description = "WDM ensemble quorum sensing (disorder × game theory)"
+stability = "stable"
+
+[capabilities.introgression_nn]
+method = "science.introgression_nn"
+description = "HMM introgression detection on neural network weight layers"
+stability = "stable"
+
+[capabilities.attention_anderson]
+method = "science.attention_anderson"
+description = "Attention mechanism spectral analysis (Anderson localization in transformers)"
+stability = "stable"
+
 # ── health.* (upstream stable — primalSpring canonical) ──
 
 [capabilities.health_liveness]
