@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-22 (Sessions 203–214: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint)
+## [Unreleased] — 2026-05-23 (Sessions 203–215: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption)
+
+### 2026-05-23 — Session S215 (Wave 46 Absorption Sprint)
+
+- **Registry sync** — primalSpring registry count updated from 445 (Wave 38) to 458 (Wave 46, v0.9.27). Doc comment in `src/config.rs` and all living documentation synced. Cross-sync test (`registry_methods_in_primalspring_canonical`) continues to pass — substring-based, count-agnostic.
+- **sporePrint refresh** — `sporeprint/validation-summary.md` updated from S209/37-cap/910-test to S215/45-cap/754-test. Performance geomean corrected to 38.6x (15 domains). Gap status synced to 28/28 resolved. B3/B4 validation binaries added. primalSpring version updated to v0.9.27+.
+- **BLAKE3 graph backfill** — All 4 deploy/graph TOMLs (`neuralspring_deploy.toml`, `neuralspring_spectral_analysis.toml`, `neuralspring_inference_pipeline.toml`, `neuralspring_math_pipeline.toml`) now carry `blake3_hash` content hashes in `[graph.metadata]`. Aligns with upstream FN-1 (BLAKE3 backfill).
+- **guideStone version reconciliation** — Binary `neuralspring_guidestone.rs` version bumped from 0.3.0 to 0.4.0, matching the certification organelle SSoT in `src/certification/mod.rs`.
+- **Graph version sync** — All 4 graph TOMLs updated to S215 in `neuralspring_version` field.
+- **Test count** — 754 tests, zero regressions.
 
 ### 2026-05-22 — Session S214 (Deep Debt Evolution Sprint)
 

@@ -23,9 +23,10 @@ description = "Weight matrix spectral analysis pipeline: eigendecomp, IPR, Ander
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S206"
+neuralspring_version = "S215"
 domain = "science"
 composition_model = "nucleated"
+blake3_hash = "ecc1fa68e1349f6bb438f3995f59570e3c324d58531d2e08b5460a7f1f289d63"
 bond_type = "Metallic"
 trust_model = "InternalNucleus"
 transport = "uds"

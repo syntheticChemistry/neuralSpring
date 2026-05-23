@@ -16,9 +16,10 @@ description = "Minimal compute chain: tensor create → stats mean → dispatch"
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S206"
+neuralspring_version = "S215"
 domain = "compute"
 composition_model = "nucleated"
+blake3_hash = "c1fc43efdd5937dd0293bd523de9f1cf836b3b36d895d424ba3337d611412fa4"
 bond_type = "Metallic"
 trust_model = "InternalNucleus"
 transport = "uds"

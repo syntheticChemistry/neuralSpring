@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-22 | **Spring version:** 0.1.0 | **primalSpring:** Wave 38 (445 methods)
-> **Session:** S214 — Deep Debt Evolution Sprint: 6 pipeline capabilities advertised (39→45), IPC error typing evolved to `IpcError`, discovery standardized on `capability.list` with dual-probe fallback, redundant feature gates removed, HashMap insert chains → iterator collect, O(n²) dedup → HashSet, silent IPC fallback logging added. Zero regressions, 754 tests.
-> Prior: S213 B3/B4 ML Surrogates, S212 lithoSpore Audit Absorption, S211 GPU Parity + Compute Dispatch, S210 deep debt 6th pass, S209 live composition.
+> **Date:** 2026-05-23 | **Spring version:** 0.1.0 | **primalSpring:** Wave 46 (458 methods)
+> **Session:** S215 — Wave 46 Absorption Sprint: registry sync (445→458 methods, Wave 38→46), sporePrint refreshed (S209→S215, 37→45 caps), BLAKE3 graph backfill (4/4 TOMLs hashed, FN-1 alignment), guideStone version reconciled (0.3.0→0.4.0). 45 capabilities, 754 tests. V171.
+> Prior: S214 Deep Debt Evolution Sprint, S213 B3/B4 ML Surrogates, S212 lithoSpore Audit Absorption, S211 GPU Parity + Compute Dispatch.
 
 ---
 

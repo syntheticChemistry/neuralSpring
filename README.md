@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 22, 2026 (Session S214 — Deep Debt Evolution Sprint: registry alignment (39→45 capabilities), IPC error typing, discovery standardization, feature gate cleanup, Rust idiom improvements. 45 capabilities, 10 scenarios, 754 tests. V170).
+**Last updated**: May 23, 2026 (Session S215 — Wave 46 Absorption: registry sync (458 methods), BLAKE3 graph backfill, sporePrint refresh, guideStone v0.4.0. 45 capabilities, 10 scenarios, 754 tests. V171).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

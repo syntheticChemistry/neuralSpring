@@ -1,8 +1,8 @@
 {
   "spring": "neuralSpring",
-  "session": "S214",
-  "date": "2026-05-22",
-  "audit_response": "S214: Deep Debt Evolution Sprint. Registry alignment (39→45 capabilities), IPC error typing (Result<_,String> → IpcError), discovery standardization (capability.list dual-probe), feature gate cleanup (4 redundant gates removed), Rust idiom improvements (HashMap chains → iterator collect, HashSet dedup, generalized inter_population_af_variance). 45 capabilities, 754 tests. V170.",
+  "session": "S215",
+  "date": "2026-05-23",
+  "audit_response": "S215: Wave 46 Absorption Sprint. Registry sync (458 methods), BLAKE3 graph backfill (4/4), sporePrint refresh, guideStone v0.4.0. 45 capabilities, 754 tests. V171.",
   "summary": {
     "total_main_gaps": 28,
     "resolved_main": 28,

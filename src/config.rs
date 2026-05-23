@@ -303,7 +303,7 @@ mod tests {
     }
 
     /// Cross-sync: verify neuralSpring's shared methods appear in
-    /// primalSpring's canonical 445-method capability registry.
+    /// primalSpring's canonical 458-method capability registry (Wave 46).
     ///
     /// Methods prefixed with `science.` are neuralSpring-only (niche
     /// capabilities not in the canonical registry). Same for

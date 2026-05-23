@@ -2,7 +2,7 @@
 
 #![forbid(unsafe_code)]
 
-//! neuralSpring guideStone v0.3.0 — self-validating NUCLEUS deployable.
+//! neuralSpring guideStone v0.4.0 — self-validating NUCLEUS deployable.
 //!
 //! A guideStone carries 5 certified properties:
 //!
@@ -75,7 +75,7 @@ use primalspring::tolerances;
 use primalspring::validation::ValidationResult;
 
 const SPRING_NAME: &str = neural_spring::config::PRIMAL_DISPLAY_NAME;
-const GUIDESTONE_VERSION: &str = "0.3.0";
+const GUIDESTONE_VERSION: &str = "0.4.0";
 
 fn main() {
     env_logger::init();
