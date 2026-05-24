@@ -5,7 +5,14 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-23 (Sessions 203–215: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption)
+## [Unreleased] — 2026-05-23 (Sessions 203–216: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + post-primordial covalent gate deployment)
+
+### 2026-05-23 — Session S216 (Post-Primordial Covalent Gate Deployment on eastGate)
+
+- **Live NUCLEUS deployment** — First post-primordial covalent gate deployment on eastGate. 9/13 primals reachable via UDS; guideStone 30/37 PASS.
+- **composition_nucleus.sh expansion** — Primordial stack expanded from 8 to 13 primals: added biomeOS, skunkBat, coralReef, NestGate, Squirrel with correct socket naming, env wiring, and dependency ordering.
+- **CHECKSUMS refresh** — 5 files refreshed for live deployment artifacts.
+- **Gaps discovered** — loamSpine double-runtime panic, Squirrel abstract socket (not file-discoverable), toadStool `health.liveness` -32601, barraCuda `tensor.matmul` API evolution (`lhs_id` lifecycle). Gap 29 documented in `docs/PRIMAL_GAPS.md`. V172.
 
 ### 2026-05-23 — Session S215 (Wave 46 Absorption Sprint)
 

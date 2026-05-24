@@ -1,11 +1,11 @@
 {
   "spring": "neuralSpring",
-  "session": "S215",
+  "session": "S216",
   "date": "2026-05-23",
-  "audit_response": "S215: Wave 46 Absorption Sprint. Registry sync (458 methods), BLAKE3 graph backfill (4/4), sporePrint refresh, guideStone v0.4.0. 45 capabilities, 754 tests. V171.",
+  "audit_response": "S216: Post-Primordial Covalent Gate Deployment on eastGate. composition_nucleus.sh 8→13 primals, live NUCLEUS 9/13 UDS, guideStone 30/37 PASS, CHECKSUMS refreshed (5 files). Gap 29 deployment documented. 45 capabilities, 754 tests. V172.",
   "summary": {
-    "total_main_gaps": 28,
-    "resolved_main": 28,
+    "total_main_gaps": 29,
+    "resolved_main": 29,
     "implemented": 0,
     "wip": 0,
     "open": 0,
@@ -43,7 +43,8 @@
     {"id": 25, "title": "Degradation Behavior Documentation", "status": "resolved", "resolution": "S212: docs/DEGRADATION_BEHAVIOR.md — per-primal, GPU-dependent, trio partial completion"},
     {"id": 26, "title": "Cross-Tier Parity — GPU as Parity", "status": "resolved", "resolution": "S212: GPU parity framed as substrate-level cross-tier parity (CPU=Tier2a, GPU=Tier2b)"},
     {"id": 27, "title": "Trio Transaction Semantics Review", "status": "resolved", "resolution": "S212: provenance_dispatch.rs doc comments updated with trio semantics annotations"},
-    {"id": 28, "title": "B3/B4 ML Surrogates for lithoSpore", "status": "resolved", "resolution": "S213: B3 LSTM+HMM+ESN allele classifier (16/16, 100%) + B4 ESN citrate early-warning (16/16, 94.3%). Pipeline integrated. S214: 45 capabilities (39→45)."}
+    {"id": 28, "title": "B3/B4 ML Surrogates for lithoSpore", "status": "resolved", "resolution": "S213: B3 LSTM+HMM+ESN allele classifier (16/16, 100%) + B4 ESN citrate early-warning (16/16, 94.3%). Pipeline integrated. S214: 45 capabilities (39→45)."},
+    {"id": 29, "title": "Post-Primordial Gate Deployment — eastGate", "status": "resolved", "resolution": "S216: First live NUCLEUS deployment on eastGate. composition_nucleus.sh expanded 8→13 primals. 9/13 UDS, guideStone 30/37 PASS. Upstream gaps documented: loamSpine double-runtime, Squirrel abstract socket, toadStool health.liveness, barraCuda tensor.matmul API."}
   ],
   "resolved_appendix": [
     {"id": "R1", "title": "Binary Name Reconciliation", "session": "S178"},

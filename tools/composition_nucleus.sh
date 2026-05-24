@@ -33,7 +33,7 @@ PLASMID_BIN="${ECOPRIMALS_PLASMID_BIN:-$ECO_ROOT/infra/plasmidBin}"
 BIN_DIR="$PLASMID_BIN/primals"
 
 PETALTONGUE_LIVE="${PETALTONGUE_LIVE:-true}"
-PRIMAL_LIST="${PRIMAL_LIST:-beardog songbird toadstool barracuda rhizocrypt loamspine sweetgrass petaltongue}"
+PRIMAL_LIST="${PRIMAL_LIST:-biomeos beardog songbird skunkbat toadstool barracuda coralreef nestgate squirrel rhizocrypt loamspine sweetgrass petaltongue}"
 
 export FAMILY_ID
 export BEARDOG_FAMILY_SEED="${BEARDOG_FAMILY_SEED:-$(head -c 32 /dev/urandom | xxd -p | tr -d '\n')}"
@@ -118,10 +118,38 @@ cmd_start() {
     log "============================================"
     mkdir -p "$SOCKET_DIR"
 
+    # Clean stale sockets from prior runs (prevents EADDRINUSE)
+    for stale in "$SOCKET_DIR"/*-${FAMILY_ID}.sock "$SOCKET_DIR"/*-${FAMILY_ID}-tarpc.sock \
+                 "$SOCKET_DIR"/*-${FAMILY_ID}.jsonrpc.sock "$SOCKET_DIR"/neural-api-${FAMILY_ID}.sock; do
+        [[ -S "$stale" ]] && rm -f "$stale" 2>/dev/null || true
+    done
+
     echo "$BEARDOG_FAMILY_SEED" > "$SOCKET_DIR/.family.seed"
     chmod 600 "$SOCKET_DIR/.family.seed"
 
-    # ── Phase 1: Tower Atomic (BearDog + Songbird) ──
+    # ── Phase 0: biomeOS Neural API (cleartext bootstrap) ──
+    if wants_primal biomeos; then
+        log "── Phase 0: biomeOS Neural API ──"
+        local biomeos_bin
+        biomeos_bin="$(find_binary biomeos)"
+        if [[ -n "$biomeos_bin" ]]; then
+            local neural_sock="$SOCKET_DIR/neural-api-${FAMILY_ID}.sock"
+            local biomeos_logfile="/tmp/nucleus-${COMPOSITION_NAME}-biomeos.log"
+            setsid env -u FAMILY_ID -u FAMILY_SEED -u BEARDOG_FAMILY_SEED \
+                BIOMEOS_BTSP_ENFORCE=0 \
+                "$biomeos_bin" neural-api --socket "$neural_sock" \
+                    --family-id default > "$biomeos_logfile" 2>&1 &
+            local bm_pid=$!
+            disown "$bm_pid" 2>/dev/null || true
+            save_pid biomeos "$bm_pid"
+            log "biomeos starting (pid=$bm_pid)"
+            wait_for_socket "$neural_sock" 10 || err "biomeos socket timeout"
+        else
+            log "WARN: biomeos binary not found"
+        fi
+    fi
+
+    # ── Phase 1: Tower Atomic (BearDog + Songbird + skunkBat) ──
     if wants_primal beardog; then
         log "── Phase 1: Tower Atomic ──"
         local beardog_bin
@@ -140,9 +168,14 @@ cmd_start() {
         local songbird_bin
         songbird_bin="$(find_binary songbird)"
         if [[ -n "$songbird_bin" ]]; then
-            SONGBIRD_SECURITY_PROVIDER="$(sock beardog)" \
+            SONGBIRD_SECURITY_PROVIDER="beardog" \
+            BEARDOG_SOCKET="$(sock beardog)" \
+            SECURITY_ENDPOINT="$(sock beardog)" \
+            BEARDOG_MODE="direct" \
             SONGBIRD_DISCOVERY_MODE="disabled" \
             BTSP_PROVIDER_SOCKET="$(sock beardog)" \
+            FAMILY_ID="$FAMILY_ID" \
+            FAMILY_SEED="$BEARDOG_FAMILY_SEED" \
                 start_primal songbird "$songbird_bin" server \
                     --socket "$(sock songbird)" \
                     --beardog-socket "$(sock beardog)" || { err "songbird required"; return 1; }
@@ -152,8 +185,22 @@ cmd_start() {
         fi
     fi
 
-    # ── Phase 2: Compute ──
-    if wants_primal toadstool || wants_primal barracuda; then
+    if wants_primal skunkbat; then
+        local skunkbat_bin
+        skunkbat_bin="$(find_binary skunkbat)"
+        if [[ -n "$skunkbat_bin" ]]; then
+            SKUNKBAT_FAMILY_ID="$FAMILY_ID" \
+            BEARDOG_SOCKET="$(sock beardog)" \
+            BIOMEOS_SOCKET_DIR="$SOCKET_DIR" \
+                start_primal skunkbat "$skunkbat_bin" server --no-uds || log "WARN: skunkbat failed"
+            # skunkBat may not create a family-suffixed UDS; skip socket wait
+        else
+            log "WARN: skunkbat binary not found"
+        fi
+    fi
+
+    # ── Phase 2: Compute + Storage + AI ──
+    if wants_primal toadstool || wants_primal barracuda || wants_primal coralreef; then
         log "── Phase 2: Compute Services ──"
     fi
 
@@ -188,6 +235,68 @@ cmd_start() {
             fi
         else
             log "WARN: barracuda binary not found"
+        fi
+    fi
+
+    if wants_primal coralreef; then
+        local coralreef_bin
+        coralreef_bin="$(find_binary coralreef)"
+        if [[ -n "$coralreef_bin" ]]; then
+            CORALREEF_FAMILY_ID="$FAMILY_ID" \
+            BIOMEOS_FAMILY_ID="$FAMILY_ID" \
+            CORALREEF_SOCKET="$(sock coralreef)" \
+            BEARDOG_SOCKET="$(sock beardog)" \
+            SONGBIRD_SOCKET="$(sock songbird)" \
+                start_primal coralreef "$coralreef_bin" server || log "WARN: coralreef failed"
+            # coralReef binds as coralreef-core-{family}.sock; alias to canonical name
+            local cr_core="$SOCKET_DIR/coralreef-core-${FAMILY_ID}.sock"
+            wait_for_socket "$cr_core" 8 || \
+                wait_for_socket "$(sock coralreef)" 4 || \
+                log "WARN: coralreef socket not ready"
+            if [[ -S "$cr_core" && ! -e "$(sock coralreef)" ]]; then
+                ln -sf "coralreef-core-${FAMILY_ID}.sock" "$(sock coralreef)" 2>/dev/null || true
+            fi
+        else
+            log "WARN: coralreef binary not found"
+        fi
+    fi
+
+    if wants_primal nestgate; then
+        local nestgate_bin
+        nestgate_bin="$(find_binary nestgate)"
+        if [[ -n "$nestgate_bin" ]]; then
+            NESTGATE_JWT_SECRET="${NESTGATE_JWT_SECRET:-dev-only-neuralspring-jwt-override}" \
+            NESTGATE_SOCKET="$(sock nestgate)" \
+            NESTGATE_FAMILY_ID="$FAMILY_ID" \
+                start_primal nestgate "$nestgate_bin" daemon --socket-only --dev || log "WARN: nestgate failed"
+            wait_for_socket "$(sock nestgate)" 8 || log "WARN: nestgate socket not ready"
+        else
+            log "WARN: nestgate binary not found"
+        fi
+    fi
+
+    if wants_primal squirrel; then
+        local squirrel_bin
+        squirrel_bin="$(find_binary squirrel)"
+        if [[ -n "$squirrel_bin" ]]; then
+            local squirrel_logfile="/tmp/nucleus-${COMPOSITION_NAME}-squirrel.log"
+            log "starting squirrel..."
+            setsid env \
+                LOCAL_AI_ENDPOINT="${OLLAMA_ENDPOINT:-http://localhost:11434}" \
+                OLLAMA_ENDPOINT="${OLLAMA_ENDPOINT:-http://localhost:11434}" \
+                MCP_DEFAULT_MODEL="${MCP_DEFAULT_MODEL:-llama3.2:3b}" \
+                SQUIRREL_SOCKET="$(sock squirrel)" \
+                BEARDOG_SOCKET="$(sock beardog)" \
+                SONGBIRD_SOCKET="$(sock songbird)" \
+                NESTGATE_SOCKET="$(sock nestgate)" \
+                "$squirrel_bin" server --socket "$(sock squirrel)" > "$squirrel_logfile" 2>&1 &
+            local sq_pid=$!
+            disown "$sq_pid" 2>/dev/null || true
+            save_pid squirrel "$sq_pid"
+            log "squirrel started (pid=$sq_pid)"
+            wait_for_socket "$(sock squirrel)" 8 || log "WARN: squirrel socket not ready"
+        else
+            log "WARN: squirrel binary not found"
         fi
     fi
 
@@ -273,8 +382,7 @@ cmd_start() {
                 FAMILY_ID="$FAMILY_ID" \
                 BEARDOG_FAMILY_SEED="$BEARDOG_FAMILY_SEED" \
                 AWAKENING_ENABLED=false \
-                    start_primal petaltongue "$petaltongue_bin" server \
-                        --socket "$(sock petaltongue)" || { err "petaltongue failed"; return 1; }
+                    start_primal petaltongue "$petaltongue_bin" server || log "WARN: petaltongue failed"
             fi
 
             if [[ "$pt_mode" = "live" ]]; then
@@ -286,7 +394,7 @@ cmd_start() {
             fi
             wait_for_socket "$(sock petaltongue)" 10 || err "petaltongue socket timeout"
         else
-            err "petaltongue binary not found"; return 1
+            log "WARN: petaltongue binary not found"
         fi
     fi
 
@@ -300,11 +408,16 @@ cmd_start() {
         [compute]="toadstool-${FAMILY_ID}.sock"
         [tensor]="barracuda-${FAMILY_ID}.sock"
         [math]="barracuda-${FAMILY_ID}.sock"
+        [shader]="coralreef-${FAMILY_ID}.sock"
+        [storage]="nestgate-${FAMILY_ID}.sock"
+        [ai]="squirrel-${FAMILY_ID}.sock"
+        [inference]="squirrel-${FAMILY_ID}.sock"
         [provenance]="rhizocrypt-${FAMILY_ID}.sock"
         [dag]="rhizocrypt-${FAMILY_ID}.sock"
         [ledger]="loamspine-${FAMILY_ID}.sock"
         [attribution]="sweetgrass-${FAMILY_ID}.sock"
         [visualization]="petaltongue-${FAMILY_ID}.sock"
+        [orchestration]="neural-api-${FAMILY_ID}.sock"
     )
     for domain in "${!domain_map[@]}"; do
         local target="${domain_map[$domain]}"
@@ -344,7 +457,7 @@ cmd_start() {
 cmd_stop() {
     log "Stopping NUCLEUS $COMPOSITION_NAME..."
     local stop_order=""
-    for name in petaltongue sweetgrass loamspine rhizocrypt barracuda toadstool songbird beardog; do
+    for name in petaltongue sweetgrass loamspine rhizocrypt squirrel nestgate coralreef barracuda toadstool skunkbat songbird beardog biomeos; do
         wants_primal "$name" && stop_order="$stop_order $name"
     done
     for name in $stop_order; do

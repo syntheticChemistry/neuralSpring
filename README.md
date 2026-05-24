@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 23, 2026 (Session S215 — Wave 46 Absorption: registry sync (458 methods), BLAKE3 graph backfill, sporePrint refresh, guideStone v0.4.0. 45 capabilities, 10 scenarios, 754 tests. V171).
+**Last updated**: May 23, 2026 (Session S216 — Post-Primordial Covalent Gate Deployment on eastGate: composition_nucleus.sh 8→13 primals, live NUCLEUS 9/13 UDS, guideStone 30/37 PASS. 45 capabilities, 10 scenarios, 754 tests. V172).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

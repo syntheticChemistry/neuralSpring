@@ -6,8 +6,8 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-23 | **Spring version:** 0.1.0 | **primalSpring:** Wave 46 (458 methods)
-> **Session:** S215 — Wave 46 Absorption Sprint: registry sync (445→458 methods, Wave 38→46), sporePrint refreshed (S209→S215, 37→45 caps), BLAKE3 graph backfill (4/4 TOMLs hashed, FN-1 alignment), guideStone version reconciled (0.3.0→0.4.0). 45 capabilities, 754 tests. V171.
-> Prior: S214 Deep Debt Evolution Sprint, S213 B3/B4 ML Surrogates, S212 lithoSpore Audit Absorption, S211 GPU Parity + Compute Dispatch.
+> **Session:** S216 — Post-Primordial Covalent Gate Deployment: eastGate live NUCLEUS deployment (9/13 UDS, 2 TCP/abstract, 2 failed upstream), composition_nucleus.sh expanded to full 13-primal stack, CHECKSUMS refreshed, guideStone 30/37 PASS. V172.
+> Prior: S215 Wave 46 Absorption, S214 Deep Debt Evolution Sprint, S213 B3/B4 ML Surrogates, S212 lithoSpore Audit Absorption.
 
 ---
 
@@ -606,17 +606,55 @@ Uses `primalspring::composition` API directly:
 - **Manifest note**: `downstream_manifest.toml` shows `guidestone_readiness = 2`
   for neuralSpring; actual status is Level 5 (manifest is upstream's responsibility)
 
-### Level 4 Blockers
+### Level 4 Status — PARTIALLY ACHIEVED (S216)
 
-- **Live NUCLEUS**: Requires `plasmidBin/` ecobins deployed via `nucleus_launcher.sh`
-- **`primalspring certify`**: Must pass (exit 0) as base certification layer
-- **All 7 `PROTO_NUCLEATE_VALIDATION_CAPABILITIES`**: Must return PASS (not SKIP)
+Live NUCLEUS deployed on eastGate (May 23 2026). 9/13 primals accessible via UDS.
+`composition_nucleus.sh` expanded from 8 to 13 primals.
+
+**Proto-nucleate validation results (7 capabilities):**
+
+| Capability | Primal | Result | Detail |
+|-----------|--------|--------|--------|
+| `stats.mean` | barraCuda | **PASS** | composition=3, local=3, diff=0.00e0 |
+| `tensor.create` | barraCuda | **PASS** | shape=[2,3], dtype=f32 |
+| `tensor.matmul` | barraCuda | **FAIL** | API evolution: `lhs_id` now required (tensor lifecycle) |
+| `compute.dispatch` | toadStool | **FAIL** | `health.liveness` returns `-32601 Method not found` |
+| `crypto.hash` | BearDog | **PASS** | BLAKE3 hash len=44, deterministic |
+| `inference.complete` | Squirrel | **SKIP** | abstract socket only, not file-discoverable |
+| `inference.embed` | Squirrel | **SKIP** | same as above |
+
+**guideStone results: 30/37 PASS, 6 SKIP, 1 FAIL** (after CHECKSUMS refresh).
+BearDog signing receipt PASS. Songbird discovery SKIP (discovery.register unknown).
+
+**Deployment state:**
+
+| Primal | UDS Socket | Status |
+|--------|-----------|--------|
+| biomeOS | neural-api-eastgate.sock | UP |
+| BearDog | beardog-eastgate.sock | UP |
+| Songbird | songbird-eastgate.sock | UP |
+| toadStool | toadstool-eastgate.sock | UP |
+| barraCuda | math-eastgate.sock (symlinked) | UP |
+| coralReef | coralreef-core-eastgate.sock (symlinked) | UP |
+| NestGate | nestgate-eastgate.sock | UP |
+| sweetGrass | sweetgrass-eastgate.sock | UP |
+| petalTongue | petaltongue-eastgate.sock | UP |
+| Squirrel | abstract @squirrel | UP (not file-discoverable) |
+| rhizoCrypt | TCP 9400/9401 only | UP (no UDS) |
+| loamSpine | — | CRASHED (upstream Tokio double-runtime bug) |
+| skunkBat | — | TCP-only (no UDS listener) |
+
+**Remaining Level 4 blockers:**
+- barraCuda `tensor.matmul` API evolution: now requires tensor IDs (create → compute → release lifecycle)
+- toadStool `health.liveness` not implemented (returns -32601)
+- Squirrel file-based UDS socket: uses abstract socket, not discoverable via filesystem scan
+- loamSpine double-runtime panic in `infant_discovery.rs:233`
 
 ### Level 5 Blockers
 
 - ~~**Gap 11**: 18 barraCuda IPC surface gaps~~ — **RESOLVED** (S201b: 12 RPC, 4 composable, 5 CPU fallback)
 - Cross-substrate parity: Python / CPU / GPU / IPC all within tolerances
-- `BearDog` signing receipt validates end-to-end
+- `BearDog` signing receipt validates end-to-end — **PASS** (S216)
 
 ### Validation Window
 
@@ -625,8 +663,8 @@ as the "validation window" (per guideStone standard §"The Validation Window"). 
 temporary tools prove math works through NUCLEUS before the guideStone binary takes
 over as the certified artifact.
 
-**Hand back to:** primalSpring (Level 4 testing once NUCLEUS deployable),
-barraCuda (Gap 11 surface expansion), biomeOS (plasmidBin deployment tooling)
+**Hand back to:** barraCuda (tensor lifecycle API docs), toadStool (`health.liveness`),
+Squirrel (file-based UDS socket), loamSpine (double-runtime fix)
 
 ---
 
@@ -675,7 +713,7 @@ lane: **Agent-Driven Composition + AI Feedback Loops**.
 
 | Finding | Impact | Hand back to |
 |---------|--------|--------------|
-| Squirrel not in default `PRIMAL_LIST` in `composition_nucleus.sh` | Must manually add for AI compositions | primalSpring (consider `squirrel` in extended PRIMAL_LIST) |
+| ~~Squirrel not in default `PRIMAL_LIST`~~ | **RESOLVED S216**: all 13 primals now in default list | — |
 | `inference.register_provider` wire unknown | neuralSpring cannot self-register as inference backend | Squirrel |
 | No `inference.models` via composition lib | Cannot enumerate available models pre-inference | Squirrel |
 | DAG session requires `dag` capability (rhizoCrypt) | Full Nest atomic needed for provenance | primalSpring (clarify Nest requirement for agent compositions) |
@@ -862,3 +900,47 @@ in S213. Both follow the established B1 pattern: Python control baseline →
 - `src/nucleus_pipeline/dispatch.rs` — match arms for both capabilities
 - `config/capability_registry.toml` — 2 new `evolving` capabilities (39 total)
 - `src/config.rs` + `src/niche.rs` — synchronized
+
+## 29. Post-Primordial Gate Deployment — eastGate (S216)
+
+**Status**: **DEPLOYED** | **Priority**: high | **Blocked by**: upstream primal gaps
+
+First live NUCLEUS deployment on eastGate (i9-12900, RTX 4070, 32 GB DDR4).
+`composition_nucleus.sh` expanded from 8 to 13 primals: added biomeOS (Phase 0),
+skunkBat (Phase 1 Tower), coralReef + NestGate + Squirrel (Phase 2), with correct
+socket naming, env wiring, and dependency ordering matching upstream
+`nucleus_launcher.sh` patterns.
+
+### Deployment Findings
+
+1. **coralReef socket naming**: Binds as `coralreef-core-{family}.sock`, not
+   `coralreef-{family}.sock`. Launcher creates symlink. Discovery works.
+2. **toadStool socket naming**: Creates both `toadstool-{family}.sock` and
+   `toadstool-{family}.jsonrpc.sock`. Proto-nucleate validator discovers via `.jsonrpc.sock`.
+3. **Songbird security provider**: Must set `SONGBIRD_SECURITY_PROVIDER=beardog`
+   (the name), not the socket path. Plus `BEARDOG_SOCKET`, `SECURITY_ENDPOINT`,
+   `BEARDOG_MODE=direct`.
+4. **skunkBat**: No UDS `--socket` flag; TCP-only via `--port`/`--bind`. Defense
+   primal, not in proto-nucleate `depends_on`.
+5. **Squirrel**: Binds to Linux abstract socket `@squirrel`, not a file-based UDS.
+   Validators using filesystem-based discovery cannot find it.
+6. **rhizoCrypt**: Ignores `RHIZOCRYPT_SOCKET` env; binds TCP only (9400/9401).
+   No UDS listener.
+7. **loamSpine**: Panics with "Cannot start a runtime from within a runtime" in
+   `infant_discovery.rs:233`. Upstream Tokio double-runtime bug.
+8. **petalTongue**: `server` mode accepts no CLI args (no `--socket`). Socket
+   path configured via `PETALTONGUE_SOCKET` env.
+9. **BTSP**: Raw `socat` health checks fail (expected) — primals require BTSP
+   handshake. `CompositionContext` handles this correctly.
+
+### Upstream Hand-backs
+
+| Finding | Owner | Priority |
+|---------|-------|----------|
+| `tensor.matmul` requires `lhs_id` (tensor lifecycle API) | barraCuda | HIGH |
+| `health.liveness` returns -32601 Method not found | toadStool | HIGH |
+| Squirrel abstract socket — not file-discoverable | Squirrel | MEDIUM |
+| rhizoCrypt no UDS listener | rhizoCrypt | MEDIUM |
+| loamSpine double-runtime panic | loamSpine | MEDIUM |
+| `discovery.register` unknown method on Songbird | Songbird | LOW |
+| skunkBat no UDS `--socket` flag | skunkBat | LOW |
