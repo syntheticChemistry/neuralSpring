@@ -18,7 +18,7 @@
 //! - **Date**: 2026-02-26
 //! - **Command**: `python3 control/hessian_eigenanalysis/hessian_eigenanalysis.py`
 //! - **Environment**: Python 3.12, `PyTorch` 2.9.0+cu128, `NumPy`, seed=42
-//! - **Hardware**: Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)
+//! - **Hardware**: southGate (Ryzen 7 5800X3D, 128GB DDR4, Pop!_OS 22.04)
 //! - **Provenance record**: `provenance::HESSIAN_EIGENANALYSIS_PROVENANCE`
 
 #![expect(

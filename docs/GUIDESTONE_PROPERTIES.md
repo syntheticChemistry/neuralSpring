@@ -1,9 +1,9 @@
 # neuralSpring guideStone — Certified Properties
 
 **Standard**: `primalSpring/wateringHole/GUIDESTONE_COMPOSITION_STANDARD.md` v1.2.0
-**Binary**: `neuralspring_guidestone` v0.3.0 (feature-gated: `guidestone`)
+**Binary**: `neuralspring_guidestone` v0.4.0 (feature-gated: `guidestone`)
 **Level**: 5 (6-layer certification: bare + discovery + parity + nucleus + composition + cross-spring)
-**Date**: May 16, 2026 — Session S209 (live composition + data chains, 9 validation scenarios, Wave 17+20 signal API, 910 tests, V165 handoff)
+**Date**: May 23, 2026 — Session S216 (live southGate deployment, 30/37 PASS, 45 capabilities, 754 tests, V172 handoff)
 
 ---
 

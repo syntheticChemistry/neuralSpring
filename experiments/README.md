@@ -1,6 +1,15 @@
 # neuralSpring — Experiment Journal
 
-**Current state (Session S215)**: 754 workspace tests (IPC-first) + 19 certification tests (guidestone L5). 68+ modules, 269 binaries, 521+ `.rs` files, 0 clippy, 0 unsafe, 0 `#[allow()]`, 0 production panics, 0 TODO/FIXME/HACK. Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). 45 capabilities (stability tiers annotated), 10 validation scenarios, 7 IPC modules. Live composition via `execute_graph_live()`. 6/6 science pipeline stages GPU-dispatchable (GpuOnly + GpuPreferred). Degradation behavior documented. Trio semantics reviewed. 27/27 papers reproduced, 397/397 Python baselines, 20 bench scripts across 15 domains. Deep debt zero-debt (6 audits: S199, S202c, S204b, S205b, S207b, S210). Edition 2024. MSRV 1.87. barraCuda v0.4.0. V171 handoff. May 23, 2026.
+**Current state (Session S216)**: 754 workspace tests (IPC-first) + 19 certification tests (guidestone L5). 68+ modules, 269 binaries, 521+ `.rs` files, 0 clippy, 0 unsafe, 0 `#[allow()]`, 0 production panics, 0 TODO/FIXME/HACK. Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). 45 capabilities (stability tiers annotated), 10 validation scenarios, 7 IPC modules. Live composition via `execute_graph_live()`. 6/6 science pipeline stages GPU-dispatchable (GpuOnly + GpuPreferred). Degradation behavior documented. Trio semantics reviewed. 27/27 papers reproduced, 397/397 Python baselines, 20 bench scripts across 15 domains. Deep debt zero-debt (6 audits: S199, S202c, S204b, S205b, S207b, S210). Edition 2024. MSRV 1.87. barraCuda v0.4.0. V172 handoff. southGate deployment. May 23, 2026.
+
+### Session S216 — 2026-05-23 (Post-Primordial Covalent Gate Deployment — southGate)
+
+- **Live NUCLEUS deployment**: Full 13-primal NUCLEUS deployed on southGate (Ryzen 7 5800X3D, 128GB DDR4). 9/13 UDS, 2 TCP/abstract (skunkBat, rhizoCrypt), 2 upstream failures (loamSpine double-runtime, Squirrel abstract socket).
+- **composition_nucleus.sh**: Expanded 8→13 primals with phased startup (Phase 0–4), stale socket cleanup, domain aliases, coralReef symlink fix.
+- **Proto-nucleate validation**: `validate_proto_nucleate_capabilities` 2 PASS / 5 FAIL (toadStool missing `health.liveness`, Squirrel abstract socket, barraCuda `tensor.matmul` API evolution).
+- **guideStone**: 30/37 PASS (6 SKIP for offline primals, 1 upstream). CHECKSUMS refreshed for 5 modified files.
+- **Gap 29**: 7 upstream hand-backs documented (barraCuda API, toadStool health, Squirrel socket, rhizoCrypt TCP, loamSpine Tokio, Songbird discovery, skunkBat UDS).
+- **Gate correction**: Deployment gate corrected from eastGate to southGate across all active docs.
 
 ### Session S193 — 2026-05-09 (Interstadial Eukaryotic Evolution)
 

@@ -1,12 +1,12 @@
-# neuralSpring — eastGate Covalent Gate Deployment
+# neuralSpring — southGate Covalent Gate Deployment
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
 **Date:** May 23, 2026
 **Session:** S216 — Post-Primordial Covalent Gate Deployment
 **Version:** V172
-**Gate:** eastGate
-**Hardware:** i9-12900, RTX 4070 12GB, 32 GB DDR4, AKD1000 NPU
+**Gate:** southGate
+**Hardware:** Ryzen 7 5800X3D, 128GB DDR4, Pop!_OS 22.04
 **Directive:** primalSpring Wave 46+ — Post-Primordial Covalent Gate Deployment
 
 ---
@@ -22,13 +22,13 @@ binaries present and executable.
 
 | Gate | Springs | Hardware |
 |------|---------|----------|
-| **eastGate** | primalSpring (coord), **neuralSpring** | i9-12900, RTX 4070, Akida NPU |
+| **southGate** | primalSpring (coord), **neuralSpring** | Ryzen 7 5800X3D, 128GB DDR4 |
 
 ### Deployment Command
 
 ```bash
-COMPOSITION_NAME=eastgate FAMILY_ID=eastgate \
-PETALTONGUE_LIVE=false NODE_ID=eastgate \
+COMPOSITION_NAME=southgate FAMILY_ID=southgate \
+PETALTONGUE_LIVE=false NODE_ID=southgate \
   ./tools/composition_nucleus.sh start
 ```
 
@@ -38,19 +38,19 @@ PETALTONGUE_LIVE=false NODE_ID=eastgate \
 
 | Primal | Phase | UDS Socket | Status | Notes |
 |--------|-------|-----------|--------|-------|
-| biomeOS | 0 | neural-api-eastgate.sock | **UP** | cleartext bootstrap |
-| BearDog | 1 | beardog-eastgate.sock | **UP** | BTSP crypto root |
-| Songbird | 1 | songbird-eastgate.sock | **UP** | discovery.register unknown |
+| biomeOS | 0 | neural-api-southgate.sock | **UP** | cleartext bootstrap |
+| BearDog | 1 | beardog-southgate.sock | **UP** | BTSP crypto root |
+| Songbird | 1 | songbird-southgate.sock | **UP** | discovery.register unknown |
 | skunkBat | 1 | — | **SKIPPED** | TCP-only, no UDS `--socket` flag |
-| toadStool | 2 | toadstool-eastgate.sock | **UP** | .jsonrpc.sock also created |
-| barraCuda | 2 | math-eastgate.sock (symlinked) | **UP** | barracuda-eastgate.sock alias |
-| coralReef | 2 | coralreef-core-eastgate.sock (symlinked) | **UP** | coralreef-eastgate.sock alias |
-| NestGate | 2 | nestgate-eastgate.sock | **UP** | JWT dev-mode |
+| toadStool | 2 | toadstool-southgate.sock | **UP** | .jsonrpc.sock also created |
+| barraCuda | 2 | math-southgate.sock (symlinked) | **UP** | barracuda-southgate.sock alias |
+| coralReef | 2 | coralreef-core-southgate.sock (symlinked) | **UP** | coralreef-southgate.sock alias |
+| NestGate | 2 | nestgate-southgate.sock | **UP** | JWT dev-mode |
 | Squirrel | 2 | abstract @squirrel | **UP** | not file-discoverable |
 | rhizoCrypt | 3 | — (TCP 9400/9401) | **UP** | ignores RHIZOCRYPT_SOCKET env |
 | loamSpine | 3 | — | **CRASHED** | upstream Tokio double-runtime bug |
-| sweetGrass | 3 | sweetgrass-eastgate.sock | **UP** | |
-| petalTongue | 4 | petaltongue-eastgate.sock | **UP** | server mode, no CLI socket arg |
+| sweetGrass | 3 | sweetgrass-southgate.sock | **UP** | |
+| petalTongue | 4 | petaltongue-southgate.sock | **UP** | server mode, no CLI socket arg |
 
 **Result: 9/13 primals accessible via UDS, 2 TCP/abstract only, 2 non-functional**
 
@@ -157,12 +157,12 @@ Additional fixes:
    use `compute.dispatch` probe as liveness equivalent
 3. **Squirrel**: File hand-back requesting file-based UDS socket option
 4. **loamSpine**: File hand-back for double-runtime fix
-5. **Multi-domain validation**: Run alongside primalSpring on eastGate to test
+5. **Multi-domain validation**: Run alongside primalSpring on southGate to test
    socket contention and capability collision scenarios
 
 ---
 
 **Filed to:** `infra/wateringHole/handoffs/` (cross-referenced)
 **Spring:** neuralSpring V172 / S216
-**Gate:** eastGate (confirmed)
-**Mesh status:** 1/5 gates deployed (eastGate)
+**Gate:** southGate (confirmed)
+**Mesh status:** 1/5 gates deployed (southGate)

@@ -6,7 +6,7 @@
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
 > **Date:** 2026-05-23 | **Spring version:** 0.1.0 | **primalSpring:** Wave 46 (458 methods)
-> **Session:** S216 — Post-Primordial Covalent Gate Deployment: eastGate live NUCLEUS deployment (9/13 UDS, 2 TCP/abstract, 2 failed upstream), composition_nucleus.sh expanded to full 13-primal stack, CHECKSUMS refreshed, guideStone 30/37 PASS. V172.
+> **Session:** S216 — Post-Primordial Covalent Gate Deployment: southGate live NUCLEUS deployment (9/13 UDS, 2 TCP/abstract, 2 failed upstream), composition_nucleus.sh expanded to full 13-primal stack, CHECKSUMS refreshed, guideStone 30/37 PASS. V172.
 > Prior: S215 Wave 46 Absorption, S214 Deep Debt Evolution Sprint, S213 B3/B4 ML Surrogates, S212 lithoSpore Audit Absorption.
 
 ---
@@ -608,7 +608,7 @@ Uses `primalspring::composition` API directly:
 
 ### Level 4 Status — PARTIALLY ACHIEVED (S216)
 
-Live NUCLEUS deployed on eastGate (May 23 2026). 9/13 primals accessible via UDS.
+Live NUCLEUS deployed on southGate (May 23 2026). 9/13 primals accessible via UDS.
 `composition_nucleus.sh` expanded from 8 to 13 primals.
 
 **Proto-nucleate validation results (7 capabilities):**
@@ -630,15 +630,15 @@ BearDog signing receipt PASS. Songbird discovery SKIP (discovery.register unknow
 
 | Primal | UDS Socket | Status |
 |--------|-----------|--------|
-| biomeOS | neural-api-eastgate.sock | UP |
-| BearDog | beardog-eastgate.sock | UP |
-| Songbird | songbird-eastgate.sock | UP |
-| toadStool | toadstool-eastgate.sock | UP |
-| barraCuda | math-eastgate.sock (symlinked) | UP |
-| coralReef | coralreef-core-eastgate.sock (symlinked) | UP |
-| NestGate | nestgate-eastgate.sock | UP |
-| sweetGrass | sweetgrass-eastgate.sock | UP |
-| petalTongue | petaltongue-eastgate.sock | UP |
+| biomeOS | neural-api-southgate.sock | UP |
+| BearDog | beardog-southgate.sock | UP |
+| Songbird | songbird-southgate.sock | UP |
+| toadStool | toadstool-southgate.sock | UP |
+| barraCuda | math-southgate.sock (symlinked) | UP |
+| coralReef | coralreef-core-southgate.sock (symlinked) | UP |
+| NestGate | nestgate-southgate.sock | UP |
+| sweetGrass | sweetgrass-southgate.sock | UP |
+| petalTongue | petaltongue-southgate.sock | UP |
 | Squirrel | abstract @squirrel | UP (not file-discoverable) |
 | rhizoCrypt | TCP 9400/9401 only | UP (no UDS) |
 | loamSpine | — | CRASHED (upstream Tokio double-runtime bug) |
@@ -901,11 +901,11 @@ in S213. Both follow the established B1 pattern: Python control baseline →
 - `config/capability_registry.toml` — 2 new `evolving` capabilities (39 total)
 - `src/config.rs` + `src/niche.rs` — synchronized
 
-## 29. Post-Primordial Gate Deployment — eastGate (S216)
+## 29. Post-Primordial Gate Deployment — southGate (S216)
 
 **Status**: **DEPLOYED** | **Priority**: high | **Blocked by**: upstream primal gaps
 
-First live NUCLEUS deployment on eastGate (i9-12900, RTX 4070, 32 GB DDR4).
+First live NUCLEUS deployment on southGate (Ryzen 7 5800X3D, 128GB DDR4, Pop!_OS 22.04).
 `composition_nucleus.sh` expanded from 8 to 13 primals: added biomeOS (Phase 0),
 skunkBat (Phase 1 Tower), coralReef + NestGate + Squirrel (Phase 2), with correct
 socket naming, env wiring, and dependency ordering matching upstream

@@ -1,5 +1,7 @@
 # ToadStool Handoff — neuralSpring Local Evolutions
 
+> **Historical — all 17 shortcomings resolved as of S216/V172.** barraCuda v0.4.0, guideStone v0.4.0, 754 lib tests (930 workspace). southGate deployment. Body preserved as migration record.
+
 This document catalogues `BarraCUDA` / `ToadStool` shortcomings that
 `neuralSpring` evolved around locally, following the `hotSpring` pattern.
 

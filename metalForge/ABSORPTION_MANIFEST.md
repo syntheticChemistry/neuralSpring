@@ -181,7 +181,7 @@ ToadStool absorption.
 | Module | LOC | Issue | Status | Path to Absorption |
 |--------|-----|-------|--------|-------------------|
 | `evolved::mha` | 182 | S-03b: native projection shaders hang | Active in `src/evolved/` | ToadStool: matmul + head_split/head_concat WGSL |
-| `evolved::hmm_forward_gpu` | 270 | No `barracuda::ops::hmm` | Active in `src/evolved/` | ToadStool: new `ops::hmm` op |
+| `evolved::hmm_forward_gpu` | 270 | No `barracuda::ops::hmm` | Fossilized in `metalForge/fossils/evolved_hmm_forward_gpu/` | ToadStool: new `ops::hmm` op |
 
 ---
 

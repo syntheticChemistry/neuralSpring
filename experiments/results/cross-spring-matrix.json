@@ -1,7 +1,7 @@
 {
   "spring": "neuralSpring",
-  "session": "S205",
-  "date": "2026-05-13",
+  "session": "S216",
+  "date": "2026-05-23",
   "consumption": {
     "barracuda": {
       "role": "GPU compute engine",
@@ -82,8 +82,9 @@
       "inference.complete",
       "inference.embed"
     ],
-    "depends_on": ["beardog", "songbird", "coralreef", "toadstool", "barracuda", "squirrel"],
-    "fragments": ["tower_atomic", "node_atomic", "meta_tier"]
+    "depends_on": ["biomeos", "beardog", "songbird", "skunkbat", "coralreef", "toadstool", "barracuda", "nestgate", "squirrel", "rhizocrypt", "loamspine", "sweetgrass", "petaltongue"],
+    "fragments": ["tower_atomic", "node_atomic", "meta_tier"],
+    "deployment": {"gate": "southgate", "live_uds": 9, "total": 13}
   },
   "production_flow": {
     "upstream": ["barracuda (GPU ops)", "primalspring (composition)"],

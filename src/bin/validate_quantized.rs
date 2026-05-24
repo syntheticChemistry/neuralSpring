@@ -7,7 +7,7 @@
 //! ## Provenance
 //!
 //! Python baseline: `control/quantized/quantized_inference.py`
-//! Run: 2026-02-16, Eastgate, Python 3.10, `PyTorch` 2.9.0+cu128, seed=42
+//! Run: 2026-02-16, southGate (Ryzen 7 5800X3D), Python 3.10, `PyTorch` 2.9.0+cu128, seed=42
 //! Command: `python3 control/quantized/quantized_inference.py`
 //!
 //! Validates INT8 and INT4 quantization, dequantization, quantized GEMV,

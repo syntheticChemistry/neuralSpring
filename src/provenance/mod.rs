@@ -183,7 +183,7 @@ impl BaselineProvenance {
 pub const ENVIRONMENT: &str = "Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3";
 
 /// Hardware for all control runs (frozen at baseline time).
-pub const HARDWARE: &str = "Eastgate (i9-12900K, RTX 4070 12GB, Pop!_OS 22.04)";
+pub const HARDWARE: &str = "southGate (Ryzen 7 5800X3D, 128GB DDR4, Pop!_OS 22.04)";
 
 /// Pinned commit for baseline results (Phase 0+: 75/75 PASS).
 pub const BASELINE_COMMIT: &str = "f9ad0268917a335dce2b1175ea0d77add271b25b";

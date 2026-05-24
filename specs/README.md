@@ -1,7 +1,7 @@
 # neuralSpring Specifications
 
-**Last Updated**: May 16, 2026 (Sessions 44–209 — S209: Live composition + data chains. 910 workspace tests (IPC-first). 35 capabilities. 9 validation scenarios. barraCuda v0.4.0. V165 handoff)
-**Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 269 binaries, 910 workspace tests, Python→Rust→IPC→Live Composition four-tier validation stack
+**Last Updated**: May 23, 2026 (Sessions 44–S216 — S216: Post-Primordial Covalent Gate Deployment on southGate. 930 workspace tests (754 lib, IPC-first). 45 capabilities. 10 validation scenarios. barraCuda v0.4.0. guideStone v0.4.0. V172 handoff)
+**Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 269 binaries, 930 workspace tests (754 lib), Python→Rust→IPC→Live Composition four-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +13,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 910 workspace tests (734 lib + 73 forge + 80 playGround + 12 exp094 + 11 integration, IPC-first) PASS — 269 binaries, 68+ modules |
+| Rust native validation | 930 workspace tests (754 lib + 73 forge + 80 playGround + 12 exp094 + 11 integration, IPC-first) PASS — 269 binaries, 68+ modules |
 | BarraCUDA CPU (bC) | 24/27 papers (89%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/27 papers (85%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/27 papers, 17 shaders, 108 checks | ALL PASS |
@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V165 handoff (current, Session S209 — live composition + data chains, primal evolution) |
+| wateringHole/handoffs/ | `../wateringHole/` | V172 handoff (current, Session S216 — southGate deployment, post-primordial covalent gate) |
 
 ---
 

@@ -85,7 +85,7 @@ includes five fields, all captured in `src/provenance/`:
 |-------|-------|
 | **Commit** | `f9ad0268917a335dce2b1175ea0d77add271b25b` |
 | **Date** | 2026-02-16 |
-| **Hardware** | Eastgate (i9-12900K, RTX 4070 12 GB, Pop!_OS 22.04) |
+| **Hardware** | southGate (Ryzen 7 5800X3D, 128GB DDR4, Pop!_OS 22.04) |
 | **Environment** | Python 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3 |
 | **Command** | `python3 control/<subdir>/<script>.py` |
 

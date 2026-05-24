@@ -12,9 +12,9 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 ## Architecture (Eukaryotic — post-interstadial May 2026)
 
 - **UniBin**: Single `neuralspring_unibin` binary with `certify`, `validate`, `serve`, `status`, `version` subcommands
-- **IPC tree**: `src/ipc/` with 7 per-primal modules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`, `nestgate`) + `IpcMathClient` facade + `CapabilityRouter` (20 hints, 35 capabilities)
+- **IPC tree**: `src/ipc/` with 7 per-primal modules (`barracuda`, `toadstool`, `beardog`, `squirrel`, `coralreef`, `skunkbat`, `nestgate`) + `IpcMathClient` facade + `CapabilityRouter` (20 hints, 45 capabilities)
 - **Certification organelle**: `src/certification/` — 6-layer guidestone (bare/discovery/parity/nucleus/composition/cross-spring)
-- **Validation scenarios**: `src/validation/scenarios/` — 9 scenarios with `ScenarioMeta`, `ScenarioRegistry`, tiered execution (Rust + Live)
+- **Validation scenarios**: `src/validation/scenarios/` — 10 scenarios with `ScenarioMeta`, `ScenarioRegistry`, tiered execution (Rust + Live)
 - **Fossilized patterns**: Migrated to `ecoPrimals/fossilRecord/` (stub README remains)
 
 ## Technical Facts
@@ -37,7 +37,7 @@ neuralSpring is a **spring** (niche validation domain), **not** a primal. It val
 
 ## Key Capabilities (JSON-RPC)
 
-Thirty-seven capabilities (`domain.verb`) when composed in biomeOS:
+Forty-five capabilities (`domain.verb`) when composed in biomeOS:
 
 - **Science (14):** `science.spectral_analysis`, `science.anderson_localization`, `science.hessian_eigen`, `science.agent_coordination`, `science.ipr`, `science.disorder_sweep`, `science.training_trajectory`, `science.evoformer_block`, `science.structure_module`, `science.folding_health`, `science.gpu_dispatch`, `science.cross_spring_provenance`, `science.cross_spring_benchmark`, `science.precision_routing`
 - **Health (3):** `health.liveness`, `health.readiness`, `health.check`
@@ -57,7 +57,7 @@ Thirty-seven capabilities (`domain.verb`) when composed in biomeOS:
 
 ## Test Coverage
 
-CI-enforced **~92%** line coverage (`llvm-cov`). **734 lib + 11 integration + 73 forge + 80 playGround + 12 exp094 = 910 workspace tests (IPC-first)** + 19 certification tests (guidestone feature). Suite includes unit tests, property tests (24 proptest), determinism tests, doc tests, integration tests, provenance integrity tests, and 8 composition validators. `ValidationSink` for machine-readable CI output. **guideStone Level 5** (29/29 bare ALL PASS, L4 composition + L5 cross-spring when NUCLEUS live). 8 paper notebooks (72/72 checks, 2 faculties). 233+ named tolerances.
+CI-enforced **~92%** line coverage (`llvm-cov`). **754 lib + 11 integration + 73 forge + 80 playGround + 12 exp094 = 930 workspace tests (IPC-first)** + 19 certification tests (guidestone feature). Suite includes unit tests, property tests (24 proptest), determinism tests, doc tests, integration tests, provenance integrity tests, and 8 composition validators. `ValidationSink` for machine-readable CI output. **guideStone Level 5** (29/29 bare ALL PASS, L4 composition + L5 cross-spring when NUCLEUS live). 8 paper notebooks (72/72 checks, 2 faculties). 233+ named tolerances. Session S216 (May 23, 2026).
 
 ## What This Does NOT Do
 

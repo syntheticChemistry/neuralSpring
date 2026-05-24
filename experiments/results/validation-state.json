@@ -1,16 +1,16 @@
 {
   "spring": "neuralSpring",
   "version": "0.1.0",
-  "session": "S205",
-  "date": "2026-05-13",
+  "session": "S216",
+  "date": "2026-05-23",
   "tests": {
-    "lib": 734,
+    "lib": 754,
     "integration": 11,
     "forge": 73,
     "playground": 80,
     "exp094": 12,
-    "total_workspace": 910,
-    "total_workspace_barracuda": 1453,
+    "total_workspace": 930,
+    "total_workspace_barracuda": 1473,
     "proptest_properties": 24,
     "python_baselines": 397,
     "rust_gpu_checks": 4500,
@@ -23,7 +23,7 @@
     "other": 7
   },
   "capabilities": {
-    "total": 37,
+    "total": 45,
     "science": 14,
     "health": 3,
     "inference": 3,
@@ -34,7 +34,9 @@
     "identity": 1,
     "mcp": 1,
     "composition": 2,
-    "security": 1
+    "security": 1,
+    "litho_surrogate": 4,
+    "ipc_typed": 8
   },
   "tolerances": {
     "named_constants": 233,
@@ -43,20 +45,21 @@
   },
   "deploy_graph": {
     "nodes": 15,
-    "capabilities_provided": 34,
+    "capabilities_provided": 45,
     "bond_type": "Metallic",
     "trust_model": "InternalNucleus",
     "fragments": ["tower_atomic", "node_atomic", "meta_tier"],
-    "primals": ["beardog", "songbird", "skunkbat", "coralreef", "toadstool", "barracuda", "nestgate", "squirrel"]
+    "primals": ["biomeos", "beardog", "songbird", "skunkbat", "coralreef", "toadstool", "barracuda", "nestgate", "squirrel", "rhizocrypt", "loamspine", "sweetgrass", "petaltongue"],
+    "target_node": "southgate"
   },
   "guidestone": {
-    "version": "v0.3.0",
+    "version": "v0.4.0",
     "level": 5,
-    "bare_checks": "29/29",
+    "bare_checks": "30/37",
     "certification_tests": 19,
     "properties_certified": ["P1_Deterministic", "P2_Traceable", "P3_SelfVerifying", "P4_EnvironmentAgnostic", "P5_ToleranceDocumented"],
-    "level4_status": "PASS",
-    "level5_status": "PASS"
+    "level4_status": "PARTIAL",
+    "level5_status": "PARTIAL"
   },
   "code_quality": {
     "clippy_warnings": 0,
@@ -79,6 +82,13 @@
   },
   "ipc_tree": {
     "modules": 7,
-    "primals": ["barracuda", "toadstool", "beardog", "squirrel", "coralreef", "skunkbat", "nestgate"]
+    "primals": ["barracuda", "toadstool", "beardog", "squirrel", "coralreef", "skunkbat", "nestgate"],
+    "live_deployment": {
+      "gate": "southgate",
+      "uds_healthy": 9,
+      "tcp_abstract": 2,
+      "upstream_failed": 2,
+      "total": 13
+    }
   }
 }

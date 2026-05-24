@@ -64,7 +64,7 @@
   },
   "_provenance": {
     "baseline_date": "2026-02-16",
-    "hardware": "Eastgate i9-12900K, 32GB DDR5, RTX 4070 12GB",
+    "hardware": "southGate Ryzen 7 5800X3D, 128GB DDR4",
     "os": "Pop!_OS 22.04",
     "python": "3.10",
     "pytorch": "2.9.0+cu128",

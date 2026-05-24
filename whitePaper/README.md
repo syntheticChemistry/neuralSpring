@@ -2,8 +2,8 @@
 
 ## The Isomorphic Learning Engine
 
-**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, 6/6 GPU dispatch (GpuOnly + GpuPreferred), CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 269 binaries (241 require-features gated), **Python→Rust→UniBin→NUCLEUS→Live Composition validation stack**. guideStone Level 5: 19 certification tests ALL PASS (L0-L5). primalSpring v0.9.27+. 233+ named tolerances, zero debt (6 audits), 0 clippy. 754 IPC-first workspace tests + 19 certification. 68 modules. barraCuda v0.4.0. NestGate weight persistence wired. Squirrel inference pipeline complete. Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). Live composition via `execute_graph_live()`. 45 capabilities. 10 validation scenarios. IPC tree (7 per-primal modules). Edition 2024. PCIe P2P bridge. Typed toadStool workloads.
-**Date**: May 23, 2026 (Sessions 40–215 — S215: Wave 46 Absorption Sprint). 6/6 GPU, 10 scenarios, 754 tests. V171 handoff)
+**Status**: Phase 5h+ — **4900+ total checks** (Python + Rust + GPU + composition), ALL GREEN, 6/6 GPU dispatch (GpuOnly + GpuPreferred), CPU↔Python parity 41/41, 38.6× faster than Python (15 domains, honest geomean), 269 binaries (241 require-features gated), **Python→Rust→UniBin→NUCLEUS→Live Composition validation stack**. guideStone Level 5: 19 certification tests ALL PASS (L0-L5). guideStone v0.4.0. primalSpring v0.9.27+. 233+ named tolerances, zero debt (6 audits), 0 clippy. 754 lib tests (930 workspace, IPC-first) + 19 certification. 68 modules. barraCuda v0.4.0. southGate deployment. NestGate weight persistence wired. Squirrel inference pipeline complete. Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). Live composition via `execute_graph_live()`. 45 capabilities. 10 validation scenarios. IPC tree (7 per-primal modules). Edition 2024. PCIe P2P bridge. Typed toadStool workloads.
+**Date**: May 23, 2026 (Sessions 40–216 — S216: Post-Primordial Covalent Gate Deployment on southGate). 6/6 GPU, 10 scenarios, 754 lib tests (930 workspace). V172 handoff)
 **License**: AGPL-3.0-or-later
 
 ---
@@ -22,7 +22,7 @@
 | `specs/PURE_GPU_ROADMAP.md` | Engineering | Pure GPU roadmap — Phase A+B+C complete (44 ops, ~97% GPU coverage) |
 | `specs/EVOLUTION_MAPPING.md` | Engineering | Tier A/B/C module-by-module GPU promotion map |
 | `experiments/README.md` | Engineering | Experiment journals (001–123+, hotSpring pattern) |
-| `wateringHole/handoffs/` | Cross-project | V168 handoff (Session S212 — lithoSpore audit absorption; 37 capabilities, 10 scenarios, 739 tests) |
+| `wateringHole/handoffs/` | Cross-project | V172 handoff (Session S216 — southGate deployment; 45 capabilities, 10 scenarios, 754 lib tests) |
 
 ---
 
@@ -358,5 +358,5 @@ See `metalForge/README.md` for the development workflow and absorption tracker.
 
 ---
 
-*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 754 workspace tests (IPC-first) + 19 certification (guidestone L5). 397 Python + 4500+ Rust/GPU = 4900+ total checks.
-Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 269 binaries (241 require-features gated), 521+ `.rs` files, 45 capabilities, Python→Rust→UniBin→NUCLEUS→Live Composition validation stack. Tier 2 COMPLETE. guideStone Level 5: 19 certification tests (L0–L5). IPC tree (7 per-primal modules). IPC-first (`default = []`). Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). Live composition (`execute_graph_live`). 6/6 GPU dispatch (GpuOnly + GpuPreferred). PCIe P2P bridge. 10 validation scenarios. Deep debt zero-debt (6 audits). V171 handoff. barraCuda v0.4.0. 0 clippy, 0 unsafe, 0 mocks, 0 production panics.*
+*27 papers + 5 studies + 6 baseCamp sub-theses + WDM surrogates + coralForge (nF-01/02/03) + 3 pub experiments + playGround. 5 disciplines. 4 faculty. 68 modules. 754 lib tests (930 workspace, IPC-first) + 19 certification (guidestone L5). 397 Python + 4500+ Rust/GPU = 4900+ total checks.
+Phase 5h+: ALL GREEN — bC 24/27 (89%) · gT 23/27 (85%) · xD 15/15 (100%) · uP 13/13 · mG 384/384 · pG 10/10 · cS 46/46 · xSE 55/55 · sfGPU 37/37 coralForge. 47 CPU→GPU promotions, 46 upstream rewires, 250+ barracuda import files. 269 binaries (241 require-features gated), 521+ `.rs` files, 45 capabilities, Python→Rust→UniBin→NUCLEUS→Live Composition validation stack. Tier 2 COMPLETE. guideStone Level 5: 19 certification tests (L0–L5). IPC tree (7 per-primal modules). IPC-first (`default = []`). Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). Live composition (`execute_graph_live`). 6/6 GPU dispatch (GpuOnly + GpuPreferred). PCIe P2P bridge. 10 validation scenarios. Deep debt zero-debt (6 audits). V172 handoff. barraCuda v0.4.0. guideStone v0.4.0. southGate deployment. 0 clippy, 0 unsafe, 0 mocks, 0 production panics.*

@@ -1,7 +1,7 @@
 {
   "spring": "neuralSpring",
-  "session": "S205",
-  "date": "2026-05-13",
+  "session": "S216",
+  "date": "2026-05-23",
   "rust_vs_python": {
     "geomean_speedup": 83.6,
     "domains_measured": 11,
@@ -37,7 +37,7 @@
   },
   "multi_gpu": {
     "parity": "bit-identical",
-    "devices_tested": ["RTX 4070", "TITAN V NVK"],
+    "devices_tested": ["RTX 4070", "TITAN V NVK", "Ryzen 7 5800X3D (CPU)"],
     "titan_v_checks": {
       "pass": 384,
       "total": 384,
@@ -51,7 +51,7 @@
     {"tier": "Cross-dispatch", "checks": "9/10 <=1.04x", "status": "pass"},
     {"tier": "Multi-GPU", "checks": "384/384", "status": "bit-identical"},
     {"tier": "Primal IPC", "checks": "6 validators", "status": "wip"},
-    {"tier": "guideStone", "checks": "29/29", "status": "Level 3 (bare)"}
+    {"tier": "guideStone", "checks": "30/37", "status": "Level 5 partial (live deployment)"}
   ],
   "isomorphic_primitives": [
     {"primitive": "MatMul (GEMM/GEMV)", "role": "universal workhorse"},

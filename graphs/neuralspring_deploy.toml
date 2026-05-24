@@ -19,7 +19,7 @@
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# STATUS: V172 / S216 (May 23, 2026) — Post-Primordial Covalent Gate Deployment on eastGate: live NUCLEUS 9/13 UDS, guideStone 30/37 PASS
+# STATUS: V172 / S216 (May 23, 2026) — Post-Primordial Covalent Gate Deployment on southGate: live NUCLEUS 9/13 UDS, guideStone 30/37 PASS
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -31,7 +31,7 @@ coordination = "Sequential"
 [graph.metadata]
 neuralspring_version = "S216"
 domain = "science"
-target_node = "eastgate"
+target_node = "southgate"
 blake3_hash = "2e4356464bdfa97c882f5c4239a11fbccc298725eb42eda0fb25273b63bdb198"
 composition_model = "nucleated"
 bond_type = "Metallic"
