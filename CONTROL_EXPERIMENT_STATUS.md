@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: May 25, 2026 (Session S217 — Post-Primordial Covalent Gate Deployment on southGate. Live NUCLEUS 9/13 UDS, guideStone 30/37 PASS. 10 validation scenarios. 45 capabilities. 754 lib tests (930 workspace). guideStone v0.4.0. V173 handoff.)
+**Last updated**: May 25, 2026 (Session S218 — Post-Primordial Covalent Gate Deployment on southGate. Live NUCLEUS 9/13 UDS, guideStone 30/37 PASS. 10 validation scenarios. 45 capabilities. 754 lib tests (930 workspace). guideStone v0.4.0. V174 handoff.)
 **Gate**: southGate (Ryzen 7 5800X3D, 128GB DDR4, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-25 | **Spring version:** 0.1.0 | **primalSpring:** Wave 48 (covalent mesh)
-> **Session:** S217 — Wave 48 Covalent Spring Mesh: southGate sound-off, Songbird TCP federation port 7700 operational, upstream `dispatch()` API sync (Value→&Value, 8 sites), Songbird sled database corruption resolved, cell deployment functional. V173.
-> Prior: S216 southGate deployment (9/13 UDS), S215 Wave 46, S214 Deep Debt, S213 B3/B4 ML Surrogates, S212 lithoSpore Audit.
+> **Date:** 2026-05-25 | **Spring version:** 0.1.0 | **primalSpring:** Wave 49 (post-primordial + covalent mesh)
+> **Session:** S218 — Wave 49 Post-Primordial Deployment: primordial fallbacks cut (no `target/release/`, no `which`), plasmidBin auto-detect, federation bind `0.0.0.0:7700`, cross-gate subnet gap identified. V174.
+> Prior: S217 Wave 48 mesh, S216 southGate deployment, S215 Wave 46, S214 Deep Debt, S213 B3/B4 ML Surrogates.
 
 ---
 
@@ -983,3 +983,41 @@ federation, cell deployment graphs, `cell_launcher.sh`, cross-gate
   `plasmidBin/nucleus_launcher.sh` (which uses `ports.env` model).
 - Songbird sled corruption: upstream should add cleanup on startup
   or switch to a more crash-resilient embedded DB.
+
+---
+
+## Gap 31: Wave 49 Post-Primordial Deployment (S218)
+
+**Status:** RESOLVED
+**Session:** S218 (May 25, 2026)
+**Wave:** 49
+
+### What happened
+
+primalSpring Wave 49 mandated post-primordial binary sourcing: all primal
+binaries from plasmidBin only, no `target/release/`, no `which` fallback,
+no `~/.local/bin/` stubs. Also shipped `SONGBIRD_FEDERATION_BIND` for
+all-interface binding and confirmed 8/8 gate roster.
+
+### neuralSpring response
+
+1. **`find_binary()` rewritten**: Errors hard if binary not in plasmidBin.
+   Three primordial fallbacks removed: `target/release/` scan, CamelCase
+   primal directory scan, `which` PATH lookup.
+2. **`detect_bin_dir()` + `detect_host_triple()`**: Auto-detects plasmidBin
+   git checkout with triple subdir, matching upstream nucleus_launcher.sh.
+3. **PATH stubs removed**: 5 stale echo-only stubs in `~/.local/bin/`.
+4. **`--bind` feature guard**: Conditionally passes `--bind` flag only if
+   Songbird supports it (v0.2.1 does not; guard prevents startup failure).
+5. **Cross-gate mesh**: southGate at `192.168.4.29`, eastGate at
+   `192.168.1.144` — different subnets. Direct mesh requires routing
+   or cellMembrane relay.
+
+### Upstream notes
+
+- Songbird v0.2.1 does not support `--bind`. primalSpring launcher uses
+  `--bind 0.0.0.0` but this requires a newer Songbird release. Current
+  v0.2.1 `--port` already binds to `*` (all interfaces).
+- southGate and eastGate are on different subnets (`192.168.4.x` vs
+  `192.168.1.x`). Cross-gate mesh requires either subnet routing or
+  cellMembrane TURN relay.

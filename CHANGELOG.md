@@ -5,7 +5,15 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-25 (Sessions 203–217: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh)
+## [Unreleased] — 2026-05-25 (Sessions 203–218: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial)
+
+### 2026-05-25 — Session S218 (Wave 49 Post-Primordial Deployment)
+
+- **Primordial patterns cut** — `composition_nucleus.sh` `find_binary()` now errors hard if binary not in plasmidBin. Removed `target/release/` fallback, CamelCase source directory scan, and `which` PATH lookup. Aligns with primalSpring post-primordial standard.
+- **plasmidBin auto-detect** — `detect_bin_dir()` + `detect_host_triple()` added. Searches git checkout triple subdir, git checkout root, then XDG fallback. Matches primalSpring `nucleus_launcher.sh` pattern.
+- **Federation bind** — `SONGBIRD_FEDERATION_BIND` env var documented; `--bind` flag conditionally passed (feature-detected, v0.2.1 lacks it). Port 7700 binds to `*:7700` (all interfaces) by default.
+- **Stale PATH stubs removed** — 5 echo-only stubs in `~/.local/bin/` (beardog, songbird, toadstool, nestgate, squirrel) removed.
+- **Cross-gate mesh** — southGate on `192.168.4.29`, eastGate on `192.168.1.144` (different subnets). Direct LAN mesh requires same-subnet routing or cellMembrane relay. Local federation verified operational. V174.
 
 ### 2026-05-25 — Session S217 (Wave 48 Covalent Spring Mesh — southGate Sound-Off)
 

@@ -17,8 +17,9 @@
 #   FAMILY_ID         — socket namespace (default: $COMPOSITION_NAME)
 #   PRIMAL_LIST       — space-separated primals to start (default: all)
 #   PETALTONGUE_LIVE  — "true" to start petalTongue in live GUI mode (default: true)
-#   ECOPRIMALS_PLASMID_BIN — path to plasmidBin (default: auto-detect)
+#   ECOPRIMALS_PLASMID_BIN — path to plasmidBin (default: auto-detect from git checkout)
 #   SONGBIRD_FEDERATION_PORT — opt-in TCP port for LAN mesh federation (unset = UDS-only)
+#   SONGBIRD_FEDERATION_BIND — bind address for federation (default: 0.0.0.0 = all interfaces)
 
 set -euo pipefail
 
@@ -30,8 +31,41 @@ COMPOSITION_NAME="${COMPOSITION_NAME:-composition}"
 FAMILY_ID="${FAMILY_ID:-$COMPOSITION_NAME}"
 SOCKET_DIR="${XDG_RUNTIME_DIR:-/tmp}/biomeos"
 PID_DIR="/tmp/nucleus-${COMPOSITION_NAME}-pids"
-PLASMID_BIN="${ECOPRIMALS_PLASMID_BIN:-$ECO_ROOT/infra/plasmidBin}"
-BIN_DIR="$PLASMID_BIN/primals"
+detect_host_triple() {
+    local machine kernel
+    machine=$(uname -m); kernel=$(uname -s | tr '[:upper:]' '[:lower:]')
+    case "$kernel" in
+        linux)  echo "${machine}-unknown-linux-musl" ;;
+        darwin) [[ "$machine" = "arm64" ]] && echo "aarch64-apple-darwin" || echo "${machine}-apple-darwin" ;;
+        *)      echo "${machine}-unknown-${kernel}" ;;
+    esac
+}
+
+detect_bin_dir() {
+    local triple
+    triple="$(detect_host_triple)"
+    local git_plasmid="$ECO_ROOT/infra/plasmidBin/primals"
+    if [[ -d "$git_plasmid/$triple" ]]; then
+        echo "$(cd "$git_plasmid/$triple" && pwd)"
+        return
+    fi
+    if [[ -d "$git_plasmid" ]]; then
+        echo "$(cd "$git_plasmid" && pwd)"
+        return
+    fi
+    local xdg_plasmid="${ECOPRIMALS_PLASMID_BIN:-${XDG_DATA_HOME:-$HOME/.local/share}/ecoPrimals/plasmidBin}/primals"
+    if [[ -d "$xdg_plasmid/$triple" ]]; then
+        echo "$xdg_plasmid/$triple"
+        return
+    fi
+    if [[ -d "$xdg_plasmid" ]]; then
+        echo "$xdg_plasmid"
+        return
+    fi
+    echo ""
+}
+
+BIN_DIR="$(detect_bin_dir)"
 
 PETALTONGUE_LIVE="${PETALTONGUE_LIVE:-true}"
 PRIMAL_LIST="${PRIMAL_LIST:-biomeos beardog songbird skunkbat toadstool barracuda coralreef nestgate squirrel rhizocrypt loamspine sweetgrass petaltongue}"
@@ -73,22 +107,11 @@ save_pid() {
 
 find_binary() {
     local name="$1"
-    if [[ -x "$BIN_DIR/$name" ]]; then
+    if [[ -n "$BIN_DIR" && -x "$BIN_DIR/$name" ]]; then
         echo "$BIN_DIR/$name"
         return
     fi
-    local release="$ECO_ROOT/primals/$name/target/release/$name"
-    [[ -x "$release" ]] && echo "$release" && return
-    # CamelCase variant (e.g. petalTongue/target/release/petaltongue)
-    for d in "$ECO_ROOT/primals"/*/; do
-        local lc
-        lc=$(basename "$d" | tr '[:upper:]' '[:lower:]')
-        if [[ "$lc" = "$name" ]] && [[ -x "$d/target/release/$name" ]]; then
-            echo "$d/target/release/$name"
-            return
-        fi
-    done
-    which "$name" 2>/dev/null || true
+    err "$name not found in plasmidBin (bin_dir=$BIN_DIR). Run springs/primalSpring/tools/fetch_primals.sh or set ECOPRIMALS_PLASMID_BIN."
 }
 
 start_primal() {
@@ -177,7 +200,10 @@ cmd_start() {
             local songbird_args=(server --socket "$(sock songbird)" --beardog-socket "$(sock beardog)")
             if [[ -n "${SONGBIRD_FEDERATION_PORT:-}" ]]; then
                 songbird_args+=(--port "$SONGBIRD_FEDERATION_PORT")
-                log "  Songbird: TCP federation on port $SONGBIRD_FEDERATION_PORT"
+                if "$songbird_bin" server --help 2>&1 | grep -q -- '--bind'; then
+                    songbird_args+=(--bind "${SONGBIRD_FEDERATION_BIND:-0.0.0.0}")
+                fi
+                log "  Songbird: TCP federation on ${SONGBIRD_FEDERATION_BIND:-0.0.0.0}:$SONGBIRD_FEDERATION_PORT"
             fi
             SONGBIRD_SECURITY_PROVIDER="beardog" \
             BEARDOG_SOCKET="$(sock beardog)" \
