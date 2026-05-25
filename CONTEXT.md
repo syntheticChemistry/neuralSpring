@@ -83,6 +83,18 @@ Layer 4: NUCLEUS composition (biomeOS deploy) → sovereign deployment (plasmidB
 Layer 5: Eukaryotic UniBin → certification organelle → validation scenarios → fossilization
 ```
 
+## Gate Deployment
+
+| Field | Value |
+|-------|-------|
+| **Gate** | pending — declare your gate |
+| **Composition** | Node Atomic (7 primals incl. skunkBat) |
+| **NUCLEUS status** | pending |
+| **Songbird federation** | port 7700 |
+| **LAN mesh** | ready when NUCLEUS deployed |
+| **Cell graph** | `plasmidBin/cells/neuralspring_cell.toml` |
+| **Launch** | `SONGBIRD_FEDERATION_PORT=7700 ./tools/nucleus_launcher.sh start` then `./tools/cell_launcher.sh neuralspring start` |
+
 ## Design Philosophy
 
 Built with AI-assisted constrained evolution: Rust's ownership and type system narrow the search space; springs prove numerical and protocol fidelity before GPU promotion. Primals remain capability-local; graphs compose behavior at runtime. Code evolves through fossilization (old patterns archived with provenance) rather than deletion.
