@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-23 | **Spring version:** 0.1.0 | **primalSpring:** Wave 46 (458 methods)
-> **Session:** S216 — Post-Primordial Covalent Gate Deployment: southGate live NUCLEUS deployment (9/13 UDS, 2 TCP/abstract, 2 failed upstream), composition_nucleus.sh expanded to full 13-primal stack, CHECKSUMS refreshed, guideStone 30/37 PASS. V172.
-> Prior: S215 Wave 46 Absorption, S214 Deep Debt Evolution Sprint, S213 B3/B4 ML Surrogates, S212 lithoSpore Audit Absorption.
+> **Date:** 2026-05-25 | **Spring version:** 0.1.0 | **primalSpring:** Wave 48 (covalent mesh)
+> **Session:** S217 — Wave 48 Covalent Spring Mesh: southGate sound-off, Songbird TCP federation port 7700 operational, upstream `dispatch()` API sync (Value→&Value, 8 sites), Songbird sled database corruption resolved, cell deployment functional. V173.
+> Prior: S216 southGate deployment (9/13 UDS), S215 Wave 46, S214 Deep Debt, S213 B3/B4 ML Surrogates, S212 lithoSpore Audit.
 
 ---
 
@@ -944,3 +944,42 @@ socket naming, env wiring, and dependency ordering matching upstream
 | loamSpine double-runtime panic | loamSpine | MEDIUM |
 | `discovery.register` unknown method on Songbird | Songbird | LOW |
 | skunkBat no UDS `--socket` flag | skunkBat | LOW |
+
+---
+
+## Gap 30: Wave 48 Covalent Spring Mesh — southGate (S217)
+
+**Status:** RESOLVED
+**Session:** S217 (May 25, 2026)
+**Wave:** 48
+
+### What happened
+
+primalSpring Wave 48 shipped the complete covalent mesh stack: Songbird TCP
+federation, cell deployment graphs, `cell_launcher.sh`, cross-gate
+`capability.call` routing via biomeOS v3.75, and toadStool S274 GPU yield.
+
+### neuralSpring response
+
+1. **Gate sound-off**: southGate declared (Ryzen 7 5800X3D, 128GB DDR4).
+   Gate Deployment section added to CONTEXT.md.
+2. **Federation wiring**: `composition_nucleus.sh` upgraded with
+   `SONGBIRD_FEDERATION_PORT` support. Port 7700 verified operational
+   (health.liveness healthy, discovery.peers ready).
+3. **Upstream API sync**: `CompositionContext::dispatch()` changed from
+   `Value` to `&Value`. 8 call sites fixed in `ipc/mod.rs`,
+   `executor.rs`, `provenance_dispatch.rs`, `s_nest_commit.rs`,
+   `s_signal_dispatch.rs`.
+4. **Songbird sled database**: Corrupted `task_lifecycle` sled DB from
+   prior unclean shutdowns caused startup failure. Fix: clean
+   `~/.local/share/songbird/task_lifecycle*`.
+
+### Upstream notes
+
+- Songbird JSON-RPC on TCP is at path `/jsonrpc`, not root `/`.
+  Wave 48 `curl` examples should be updated.
+- `SONGBIRD_FEDERATION_PORT` only implemented in
+  `primalSpring/tools/nucleus_launcher.sh`, not in
+  `plasmidBin/nucleus_launcher.sh` (which uses `ports.env` model).
+- Songbird sled corruption: upstream should add cleanup on startup
+  or switch to a more crash-resilient embedded DB.
