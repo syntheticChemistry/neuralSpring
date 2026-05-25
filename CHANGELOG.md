@@ -5,7 +5,14 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-25 (Sessions 203–218: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial)
+## [Unreleased] — 2026-05-25 (Sessions 203–219: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC)
+
+### 2026-05-25 — Session S219 (Wave 50 Covalent HPC — Post-Primordial Absorption)
+
+- **petalTongue primordial hardcode fixed** — `composition_nucleus.sh:396` `target/release/petaltongue` hardcode removed; now uses `find_binary petaltongue` (plasmidBin-only). This was the last primordial path in the script.
+- **SONGBIRD_PEERS wired** — Cross-gate mesh peer seeding via `mesh.init` JSON-RPC, matching primalSpring `nucleus_launcher.sh` pattern. Env var `SONGBIRD_PEERS` accepts comma-separated `host:port` addresses. Seeded `192.168.1.144:7700` (eastGate) — mesh.init returned `{"initialized":true}`.
+- **Cross-gate mesh verified** — southGate (`192.168.4.29:7700`) ↔ eastGate (`192.168.1.144:7700`) bidirectional TCP reachable. `health.liveness` responds `{"status":"alive"}` cross-subnet. `discovery.peers` returns empty (Songbird v0.2.1 feature gap — mesh.init initializes but peer list not yet populated).
+- **NUCLEUS 12/13 ALIVE** — All primals from plasmidBin. loamSpine: upstream Tokio runtime-in-runtime panic (known). rhizocrypt initially reported EADDRINUSE on UDS but recovered to TCP (9400/9401). V175.
 
 ### 2026-05-25 — Session S218 (Wave 49 Post-Primordial Deployment)
 

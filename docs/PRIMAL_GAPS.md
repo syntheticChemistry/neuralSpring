@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-25 | **Spring version:** 0.1.0 | **primalSpring:** Wave 49 (post-primordial + covalent mesh)
-> **Session:** S218 — Wave 49 Post-Primordial Deployment: primordial fallbacks cut (no `target/release/`, no `which`), plasmidBin auto-detect, federation bind `0.0.0.0:7700`, cross-gate subnet gap identified. V174.
-> Prior: S217 Wave 48 mesh, S216 southGate deployment, S215 Wave 46, S214 Deep Debt, S213 B3/B4 ML Surrogates.
+> **Date:** 2026-05-25 | **Spring version:** 0.1.0 | **primalSpring:** Wave 50 (covalent HPC)
+> **Session:** S219 — Wave 50 Covalent HPC: petalTongue primordial hardcode fixed, SONGBIRD_PEERS wired, cross-gate mesh verified (southGate↔eastGate), NUCLEUS 12/13 ALIVE. V175.
+> Prior: S218 Wave 49 post-primordial, S217 Wave 48 mesh, S216 southGate deployment, S215 Wave 46, S214 Deep Debt.
 
 ---
 
@@ -1021,3 +1021,45 @@ all-interface binding and confirmed 8/8 gate roster.
 - southGate and eastGate are on different subnets (`192.168.4.x` vs
   `192.168.1.x`). Cross-gate mesh requires either subnet routing or
   cellMembrane TURN relay.
+
+---
+
+## Gap 32: Wave 50 Covalent HPC — Post-Primordial Absorption (S219)
+
+**Status:** RESOLVED
+**Session:** S219 (May 25, 2026)
+**Wave:** 50
+
+### What happened
+
+primalSpring Wave 50 mandated: fix remaining `target/release/` hardcodes,
+wire `SONGBIRD_PEERS` for cross-gate mesh seeding, launch NUCLEUS 12/12,
+and begin covalent HPC evolution.
+
+### neuralSpring response
+
+1. **petalTongue hardcode fixed**: `composition_nucleus.sh:396` hardcoded
+   `$ECO_ROOT/primals/petalTongue/target/release/petaltongue` with
+   `find_binary` fallback. Now uses `find_binary petaltongue` exclusively.
+   Last primordial path in the script — zero `target/release` remaining.
+2. **SONGBIRD_PEERS wired**: After Songbird starts, if `SONGBIRD_PEERS` is
+   set, sends `mesh.init` JSON-RPC with `bootstrap_peers` array. Matches
+   primalSpring's pattern. Documented in script header.
+3. **Cross-gate mesh**: southGate ↔ eastGate bidirectional TCP reachable
+   across subnets (192.168.4.29 ↔ 192.168.1.144). `mesh.init` returns
+   `{"initialized":true}`. `discovery.peers` returns empty — Songbird
+   v0.2.1 initializes mesh state but does not populate the peer list
+   (feature gap in current release).
+4. **NUCLEUS 12/13**: All from plasmidBin. loamSpine: upstream Tokio panic.
+   rhizocrypt: EADDRINUSE on UDS, recovered to TCP 9400/9401.
+
+### Upstream notes
+
+- Songbird v0.2.1 `mesh.init` succeeds but `discovery.peers` returns
+  empty. Peer list population likely requires a newer Songbird release
+  or the `mesh.heartbeat` background task (not yet implemented).
+- loamSpine Tokio runtime-in-runtime panic persists — upstream bug.
+- rhizocrypt occasionally fails UDS bind if stale socket exists; falls
+  back to TCP. Consider adding stale-socket cleanup to rhizocrypt startup.
+- `socat` not installed on southGate; UDS peer seeding requires either
+  installing socat or using HTTP-based seeding (which worked).

@@ -20,6 +20,8 @@
 #   ECOPRIMALS_PLASMID_BIN — path to plasmidBin (default: auto-detect from git checkout)
 #   SONGBIRD_FEDERATION_PORT — opt-in TCP port for LAN mesh federation (unset = UDS-only)
 #   SONGBIRD_FEDERATION_BIND — bind address for federation (default: 0.0.0.0 = all interfaces)
+#   SONGBIRD_PEERS  — comma-separated peer addresses for cross-gate mesh
+#                     (e.g. "192.168.1.144:7700,192.168.1.238:7700")
 
 set -euo pipefail
 
@@ -144,6 +146,9 @@ cmd_start() {
     else
         log "  federation: disabled (UDS-only)"
     fi
+    if [[ -n "${SONGBIRD_PEERS:-}" ]]; then
+        log "  peers:      $SONGBIRD_PEERS"
+    fi
     log "============================================"
     mkdir -p "$SOCKET_DIR"
 
@@ -215,6 +220,24 @@ cmd_start() {
             FAMILY_SEED="$BEARDOG_FAMILY_SEED" \
                 start_primal songbird "$songbird_bin" "${songbird_args[@]}" || { err "songbird required"; return 1; }
             wait_for_socket "$(sock songbird)" 10 || err "songbird socket timeout"
+
+            if [[ -n "${SONGBIRD_PEERS:-}" && -S "$(sock songbird)" ]]; then
+                log "  Songbird: seeding peers from SONGBIRD_PEERS"
+                IFS=',' read -ra peer_list <<< "$SONGBIRD_PEERS"
+                local bootstrap_json=""
+                for peer_addr in "${peer_list[@]}"; do
+                    peer_addr="$(echo "$peer_addr" | xargs)"
+                    [[ -z "$peer_addr" ]] && continue
+                    [[ -n "$bootstrap_json" ]] && bootstrap_json+=","
+                    bootstrap_json+="\"$peer_addr\""
+                done
+                if [[ -n "$bootstrap_json" ]]; then
+                    local seed_payload="{\"jsonrpc\":\"2.0\",\"method\":\"mesh.init\",\"params\":{\"node_id\":\"${NODE_ID}\",\"bootstrap_peers\":[$bootstrap_json]},\"id\":2}"
+                    echo "$seed_payload" | timeout 3 socat - "UNIX-CONNECT:$(sock songbird)" >/dev/null 2>&1 && \
+                        log "  Songbird: seeded ${#peer_list[@]} peer(s)" || \
+                        log "  WARN: peer seeding failed (Songbird may need direct TCP seeding)"
+                fi
+            fi
         else
             err "songbird binary not found"; return 1
         fi
@@ -393,8 +416,7 @@ cmd_start() {
     if wants_primal petaltongue; then
         log "── Phase 4: petalTongue ──"
         local petaltongue_bin
-        petaltongue_bin="$ECO_ROOT/primals/petalTongue/target/release/petaltongue"
-        [[ -x "$petaltongue_bin" ]] || petaltongue_bin="$(find_binary petaltongue)"
+        petaltongue_bin="$(find_binary petaltongue)"
 
         if [[ -x "$petaltongue_bin" ]]; then
             local pt_logfile="/tmp/nucleus-${COMPOSITION_NAME}-petaltongue.log"

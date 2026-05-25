@@ -1,11 +1,11 @@
 {
   "spring": "neuralSpring",
-  "session": "S218",
+  "session": "S219",
   "date": "2026-05-25",
-  "audit_response": "S218: Wave 49 Post-Primordial Deployment — primordial fallbacks cut, plasmidBin auto-detect, federation 0.0.0.0:7700, cross-gate subnet gap documented. 45 capabilities, 754 tests. V174.",
+  "audit_response": "S219: Wave 50 Covalent HPC — petalTongue hardcode fixed, SONGBIRD_PEERS wired, cross-gate mesh verified, 12/13 ALIVE. 45 capabilities, 754 tests. V175.",
   "summary": {
-    "total_main_gaps": 31,
-    "resolved_main": 31,
+    "total_main_gaps": 32,
+    "resolved_main": 32,
     "implemented": 0,
     "wip": 0,
     "open": 0,
@@ -46,7 +46,8 @@
     {"id": 28, "title": "B3/B4 ML Surrogates for lithoSpore", "status": "resolved", "resolution": "S213: B3 LSTM+HMM+ESN allele classifier (16/16, 100%) + B4 ESN citrate early-warning (16/16, 94.3%). Pipeline integrated. S214: 45 capabilities (39→45)."},
     {"id": 29, "title": "Post-Primordial Gate Deployment — southGate", "status": "resolved", "resolution": "S216: First live NUCLEUS deployment on southGate. composition_nucleus.sh expanded 8→13 primals. 9/13 UDS, guideStone 30/37 PASS. Upstream gaps documented: loamSpine double-runtime, Squirrel abstract socket, toadStool health.liveness, barraCuda tensor.matmul API."},
     {"id": 30, "title": "Wave 48 Covalent Spring Mesh — southGate", "status": "resolved", "resolution": "S217: southGate sound-off, Songbird TCP federation port 7700 operational, dispatch API sync (Value→&Value, 8 sites), cell deployment functional, sled database corruption resolved."},
-    {"id": 31, "title": "Wave 49 Post-Primordial Deployment", "status": "resolved", "resolution": "S218: Primordial fallbacks cut (find_binary errors hard), plasmidBin auto-detect with host triple, federation 0.0.0.0:7700 bind, PATH stubs removed, cross-gate subnet gap documented."}
+    {"id": 31, "title": "Wave 49 Post-Primordial Deployment", "status": "resolved", "resolution": "S218: Primordial fallbacks cut (find_binary errors hard), plasmidBin auto-detect with host triple, federation 0.0.0.0:7700 bind, PATH stubs removed, cross-gate subnet gap documented."},
+    {"id": 32, "title": "Wave 50 Covalent HPC — Post-Primordial Absorption", "status": "resolved", "resolution": "S219: petalTongue target/release hardcode fixed, SONGBIRD_PEERS wired (mesh.init), cross-gate mesh verified (southGate↔eastGate bidirectional TCP), discovery.peers empty (Songbird v0.2.1 feature gap), 12/13 ALIVE."}
   ],
   "resolved_appendix": [
     {"id": "R1", "title": "Binary Name Reconciliation", "session": "S178"},
