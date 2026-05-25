@@ -85,15 +85,18 @@ Layer 5: Eukaryotic UniBin → certification organelle → validation scenarios 
 
 ## Gate Deployment
 
-| Field | Value |
-|-------|-------|
-| **Gate** | pending — declare your gate |
-| **Composition** | Node Atomic (7 primals incl. skunkBat) |
-| **NUCLEUS status** | pending |
-| **Songbird federation** | port 7700 |
-| **LAN mesh** | ready when NUCLEUS deployed |
+| Property | Value |
+|----------|-------|
+| **Gate** | southGate |
+| **Hardware** | AMD Ryzen 7 5800X3D (8-core), 128GB DDR4 |
+| **OS** | Pop!_OS 22.04 (Linux 6.17) |
+| **Composition** | Full NUCLEUS (13 primals), Node Atomic profile |
+| **Federation** | Songbird TCP port 7700 (opt-in via `SONGBIRD_FEDERATION_PORT`) |
+| **Co-tenants** | wetSpring |
+| **NUCLEUS launcher** | `./tools/composition_nucleus.sh start` |
 | **Cell graph** | `plasmidBin/cells/neuralspring_cell.toml` |
-| **Launch** | `SONGBIRD_FEDERATION_PORT=7700 ./tools/nucleus_launcher.sh start` then `./tools/cell_launcher.sh neuralspring start` |
+| **Deployment status** | Operational — 9/13 UDS, 2 TCP/abstract, 2 upstream failures (S216) |
+| **Launch** | `SONGBIRD_FEDERATION_PORT=7700 ./tools/composition_nucleus.sh start` then `./tools/cell_launcher.sh neuralspring start` |
 
 ## Design Philosophy
 

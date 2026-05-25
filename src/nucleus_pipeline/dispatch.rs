@@ -86,7 +86,7 @@ fn stage_digester_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
     let w = 1.0;
     let samples = 20;
 
-    let mut disorder_vals: Vec<f64> = (0..samples).map(|_| rng.uniform() * w).collect();
+    let disorder_vals: Vec<f64> = (0..samples).map(|_| rng.uniform() * w).collect();
     let mut hamiltonians = vec![0.0; n * n * samples];
     for (s, d) in disorder_vals.iter().enumerate() {
         for i in 0..n {

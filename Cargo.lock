@@ -863,6 +863,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hostname"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "617aaa3557aef3810a6369d0a99fac8a080891b68bd9f9812a1eeda0c0730cbd"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "windows-link",
+]
+
+[[package]]
 name = "humantime"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1401,7 +1412,7 @@ dependencies = [
 
 [[package]]
 name = "primalspring"
-version = "0.9.27"
+version = "0.9.28"
 dependencies = [
  "base64",
  "blake3",
@@ -1410,6 +1421,7 @@ dependencies = [
  "getrandom 0.4.2",
  "hkdf",
  "hmac",
+ "hostname",
  "serde",
  "serde_json",
  "sha2",
@@ -1926,7 +1938,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",

@@ -18,6 +18,7 @@
 #   PRIMAL_LIST       — space-separated primals to start (default: all)
 #   PETALTONGUE_LIVE  — "true" to start petalTongue in live GUI mode (default: true)
 #   ECOPRIMALS_PLASMID_BIN — path to plasmidBin (default: auto-detect)
+#   SONGBIRD_FEDERATION_PORT — opt-in TCP port for LAN mesh federation (unset = UDS-only)
 
 set -euo pipefail
 
@@ -115,6 +116,11 @@ cmd_start() {
     log "  socket_dir: $SOCKET_DIR"
     log "  bin_dir:    $BIN_DIR"
     log "  primals:    $PRIMAL_LIST"
+    if [[ -n "${SONGBIRD_FEDERATION_PORT:-}" ]]; then
+        log "  federation: Songbird TCP port $SONGBIRD_FEDERATION_PORT"
+    else
+        log "  federation: disabled (UDS-only)"
+    fi
     log "============================================"
     mkdir -p "$SOCKET_DIR"
 
@@ -168,6 +174,11 @@ cmd_start() {
         local songbird_bin
         songbird_bin="$(find_binary songbird)"
         if [[ -n "$songbird_bin" ]]; then
+            local songbird_args=(server --socket "$(sock songbird)" --beardog-socket "$(sock beardog)")
+            if [[ -n "${SONGBIRD_FEDERATION_PORT:-}" ]]; then
+                songbird_args+=(--port "$SONGBIRD_FEDERATION_PORT")
+                log "  Songbird: TCP federation on port $SONGBIRD_FEDERATION_PORT"
+            fi
             SONGBIRD_SECURITY_PROVIDER="beardog" \
             BEARDOG_SOCKET="$(sock beardog)" \
             SECURITY_ENDPOINT="$(sock beardog)" \
@@ -176,9 +187,7 @@ cmd_start() {
             BTSP_PROVIDER_SOCKET="$(sock beardog)" \
             FAMILY_ID="$FAMILY_ID" \
             FAMILY_SEED="$BEARDOG_FAMILY_SEED" \
-                start_primal songbird "$songbird_bin" server \
-                    --socket "$(sock songbird)" \
-                    --beardog-socket "$(sock beardog)" || { err "songbird required"; return 1; }
+                start_primal songbird "$songbird_bin" "${songbird_args[@]}" || { err "songbird required"; return 1; }
             wait_for_socket "$(sock songbird)" 10 || err "songbird socket timeout"
         else
             err "songbird binary not found"; return 1

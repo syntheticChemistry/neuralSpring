@@ -73,7 +73,7 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
 
     match ctx.dispatch(
         "nest.store",
-        serde_json::json!({
+        &serde_json::json!({
             "content": "eyJzY2VuYXJpbyI6InByb3ZlbmFuY2VfdGVzdCJ9",
             "content_type": "application/json",
             "author": "neuralspring:provenance_validation",
@@ -99,7 +99,7 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
 
             match ctx.dispatch(
                 "nest.commit",
-                serde_json::json!({ "session_id": session_id }),
+                &serde_json::json!({ "session_id": session_id }),
             ) {
                 Ok(commit_result) => {
                     v.check_bool(

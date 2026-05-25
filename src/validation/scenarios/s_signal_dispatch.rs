@@ -104,7 +104,7 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
 
     match ctx.dispatch(
         "nest.store",
-        serde_json::json!({
+        &serde_json::json!({
             "content": "dGVzdA==",
             "content_type": "text/plain",
             "author": "neuralspring:signal_validation",

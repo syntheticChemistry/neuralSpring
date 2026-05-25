@@ -292,7 +292,7 @@ fn dispatch_compute_signal(
             "substrate_hint": "gpu",
         },
     });
-    match ctx.dispatch("node.compute", params) {
+    match ctx.dispatch("node.compute", &params) {
         Ok(value) => {
             let mut map = std::collections::HashMap::new();
             if let Some(obj) = value.as_object() {

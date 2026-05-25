@@ -5,7 +5,14 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-23 (Sessions 203–216: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + post-primordial covalent gate deployment)
+## [Unreleased] — 2026-05-25 (Sessions 203–217: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh)
+
+### 2026-05-25 — Session S217 (Wave 48 Covalent Spring Mesh — southGate Sound-Off)
+
+- **Gate declaration** — neuralSpring sounds off on southGate (Ryzen 7 5800X3D, 128GB DDR4). Gate Deployment section added to CONTEXT.md.
+- **Federation support** — `composition_nucleus.sh` upgraded: `SONGBIRD_FEDERATION_PORT` env var wires Songbird TCP for cross-gate LAN discovery. Port 7700 operational — `health.liveness` responds healthy, `discovery.peers` ready for mesh.
+- **Upstream API sync** — `CompositionContext::dispatch()` signature change absorbed (`Value` → `&Value`): 8 call sites in `ipc/mod.rs`, `executor.rs`, `provenance_dispatch.rs`, `s_nest_commit.rs`, `s_signal_dispatch.rs`. Zero warnings.
+- **Songbird sled cleanup** — Corrupted task lifecycle database from prior sessions cleaned; root cause: unclean shutdowns left sled locks. V173.
 
 ### 2026-05-23 — Session S216 (Post-Primordial Covalent Gate Deployment on southGate)
 

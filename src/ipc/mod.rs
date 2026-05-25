@@ -338,7 +338,7 @@ impl IpcMathClient {
         if let Some(s) = shader {
             params["shader"] = serde_json::Value::String(s.to_owned());
         }
-        ctx.dispatch("node.compute", params)
+        ctx.dispatch("node.compute", &params)
             .map_err(|e| IpcError::Other(format!("node.compute dispatch: {e}")))
     }
 

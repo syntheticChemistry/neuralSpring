@@ -43,7 +43,7 @@ pub fn store_to_nestgate_signal(
 
     ctx.dispatch(
         "nest.store",
-        serde_json::json!({
+        &serde_json::json!({
             "content": encoded,
             "content_type": "application/x-safetensors",
             "author": author,
@@ -80,7 +80,7 @@ pub fn commit_session_signal(
 ) -> Result<serde_json::Value, IpcError> {
     ctx.dispatch(
         "nest.commit",
-        serde_json::json!({ "session_id": session_id }),
+        &serde_json::json!({ "session_id": session_id }),
     )
     .map_err(|e| IpcError::Other(format!("nest.commit dispatch: {e}")))
 }
@@ -113,7 +113,7 @@ pub fn store_science_result(
 
     ctx.dispatch(
         "nest.store",
-        serde_json::json!({
+        &serde_json::json!({
             "content": content,
             "content_type": "application/json",
             "author": author,
