@@ -18,7 +18,23 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+ECO_ROOT="$(cd "$PROJECT_ROOT/../.." && pwd)"
 SCENARIO_DIR="$PROJECT_ROOT/sandbox/scenarios"
+
+find_petaltongue() {
+    local triple machine kernel
+    machine=$(uname -m); kernel=$(uname -s | tr '[:upper:]' '[:lower:]')
+    case "$kernel" in
+        linux)  triple="${machine}-unknown-linux-musl" ;;
+        darwin) [[ "$machine" = "arm64" ]] && triple="aarch64-apple-darwin" || triple="${machine}-apple-darwin" ;;
+        *)      triple="${machine}-unknown-${kernel}" ;;
+    esac
+    local git_plasmid="$ECO_ROOT/infra/plasmidBin/primals"
+    for dir in "$git_plasmid/$triple" "$git_plasmid"; do
+        [[ -x "$dir/petaltongue" ]] && echo "$dir/petaltongue" && return
+    done
+    echo ""
+}
 
 MODE="${1:-dump}"
 
@@ -62,11 +78,12 @@ case "$MODE" in
     --compositions)
         dump_scenarios
         COMP="$SCENARIO_DIR/neuralspring-compositions.json"
-        if command -v petaltongue &>/dev/null; then
+        PT_BIN="$(find_petaltongue)"
+        if [[ -n "$PT_BIN" ]]; then
             echo "Launching petalTongue on composition study..."
-            petaltongue ui --scenario "$COMP"
+            "$PT_BIN" ui --scenario "$COMP"
         else
-            echo "petalTongue not found in PATH."
+            echo "petalTongue not found in plasmidBin."
             echo "Render manually: petaltongue ui --scenario $COMP"
         fi
         ;;
@@ -74,11 +91,12 @@ case "$MODE" in
     --render)
         dump_scenarios
         COMPLETE="$SCENARIO_DIR/neuralspring-complete-study.json"
-        if command -v petaltongue &>/dev/null; then
+        PT_BIN="$(find_petaltongue)"
+        if [[ -n "$PT_BIN" ]]; then
             echo "Launching petalTongue..."
-            petaltongue ui --scenario "$COMPLETE"
+            "$PT_BIN" ui --scenario "$COMPLETE"
         else
-            echo "petalTongue not found in PATH."
+            echo "petalTongue not found in plasmidBin."
             echo "Render manually: petaltongue ui --scenario $COMPLETE"
         fi
         ;;

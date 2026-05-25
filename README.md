@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 25, 2026 (Session S219 — Post-Primordial Covalent Gate Deployment on southGate: composition_nucleus.sh 8→13 primals, live NUCLEUS 9/13 UDS, guideStone 30/37 PASS. 45 capabilities, 10 scenarios, 754 lib tests (930 workspace). barraCuda v0.4.0, guideStone v0.4.0. V175).
+**Last updated**: May 25, 2026 (Session S219 — Wave 50 Covalent HPC on southGate: NUCLEUS 12/13 ALIVE from plasmidBin, Songbird federation *:7700, cross-gate mesh verified, SONGBIRD_PEERS wired. 45 capabilities, 10 scenarios, 754 lib tests. V175).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
