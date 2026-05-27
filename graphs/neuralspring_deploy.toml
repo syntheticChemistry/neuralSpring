@@ -19,7 +19,7 @@
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# STATUS: V175 / S219 (May 25, 2026) — Wave 50 covalent HPC: petalTongue hardcode fixed, SONGBIRD_PEERS wired, cross-gate mesh verified, 12/13 ALIVE
+# STATUS: V176 / S220 (May 27, 2026) — Wave 55 southGate redeploy: hardened plasmidBin, 13/13 started (loamSpine Tokio fix), 12/13 steady (barracuda GPU-less auto-exit)
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -29,7 +29,7 @@ description = "neuralSpring ML/spectral science + inference provider atop NUCLEU
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S219"
+neuralspring_version = "S220"
 domain = "science"
 target_node = "southgate"
 blake3_hash = "2e4356464bdfa97c882f5c4239a11fbccc298725eb42eda0fb25273b63bdb198"

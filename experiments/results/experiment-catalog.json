@@ -1,7 +1,7 @@
 {
   "spring": "neuralSpring",
-  "session": "S219",
-  "date": "2026-05-25",
+  "session": "S220",
+  "date": "2026-05-27",
   "total_experiments": 134,
   "domains": [
     "evolutionary_computation",

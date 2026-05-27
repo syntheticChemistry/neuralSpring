@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 25, 2026 (Session S219 — Wave 50 Covalent HPC on southGate: NUCLEUS 12/13 ALIVE from plasmidBin, Songbird federation *:7700, cross-gate mesh verified, SONGBIRD_PEERS wired. 45 capabilities, 10 scenarios, 754 lib tests. V175).
+**Last updated**: May 27, 2026 (Session S220 — Wave 55 southGate redeploy: NUCLEUS 13/13 started (loamSpine fix), 12/13 steady (barracuda GPU-less), hardened plasmidBin. 45 capabilities, 10 scenarios, 754 lib tests. V176).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-25 | **Spring version:** 0.1.0 | **primalSpring:** Wave 50 (covalent HPC)
-> **Session:** S219 — Wave 50 Covalent HPC: petalTongue primordial hardcode fixed, SONGBIRD_PEERS wired, cross-gate mesh verified (southGate↔eastGate), NUCLEUS 12/13 ALIVE. V175.
-> Prior: S218 Wave 49 post-primordial, S217 Wave 48 mesh, S216 southGate deployment, S215 Wave 46, S214 Deep Debt.
+> **Date:** 2026-05-27 | **Spring version:** 0.1.0 | **primalSpring:** Wave 55 (southGate redeploy)
+> **Session:** S220 — Wave 55 southGate Redeploy: hardened plasmidBin v2026.05.27, Songbird socket fix absorbed, NUCLEUS 13/13 started (loamSpine Tokio crash resolved), barracuda GPU-less auto-exit (12/13 steady state). V176.
+> Prior: S219 Wave 50, S218 Wave 49, S217 Wave 48, S216 southGate deployment, S215 Wave 46.
 
 ---
 
@@ -1063,3 +1063,44 @@ and begin covalent HPC evolution.
   back to TCP. Consider adding stale-socket cleanup to rhizocrypt startup.
 - `socat` not installed on southGate; UDS peer seeding requires either
   installing socat or using HTTP-based seeding (which worked).
+
+---
+
+## Gap 33: Wave 55 southGate Redeploy — Songbird Socket Hardening (S220)
+
+**Status:** RESOLVED
+**Session:** S220 (May 27, 2026)
+**Wave:** 55
+
+### What happened
+
+primalSpring Wave 53 shipped Songbird stale socket crash fix. Wave 55
+directed southGate to redeploy NUCLEUS with hardened plasmidBin binaries
+to achieve 13/13 healthy.
+
+### neuralSpring response
+
+1. **Hardened fetch**: All 13 primals force-fetched from plasmidBin
+   v2026.05.27. Killed stale NUCLEUS processes from prior sessions
+   (wetSpring co-resident), cleaned sockets, copied to git checkout.
+2. **13/13 started**: First time all 13 primals start on southGate.
+   loamSpine v0.9.16 `infant_discovery` path now gracefully falls back
+   instead of panicking with "Cannot start a runtime from within a
+   runtime." Clean `STOPPED → STARTING → READY → RUNNING` lifecycle.
+3. **barracuda auto-exit**: Exits ~34s after startup when no GPU is
+   available (headless terminal). Creates `math-southgate.sock` and
+   announces to Neural API before shutting down. Upstream environmental
+   limitation. Steady state: 12/13 ALIVE.
+4. **Health sweep**: beardog, songbird, coralreef, nestgate, loamspine,
+   sweetgrass, neural-api all respond to `health.liveness`. toadstool,
+   squirrel, rhizocrypt, petaltongue have sockets but use different
+   health probe protocols (BTSP-first).
+
+### Upstream notes
+
+- loamSpine Tokio crash: **RESOLVED** in v0.9.16. Gap 30 and Gap 31
+  previously documented this as persistent upstream — now closed.
+- barracuda GPU-less auto-exit: upstream should add `--no-gpu-exit=false`
+  or `BARRACUDA_KEEP_ALIVE=true` for headless compositions.
+- Songbird `discovery.peers` still returns empty after `mesh.init` —
+  Songbird v0.2.1 feature gap persists.

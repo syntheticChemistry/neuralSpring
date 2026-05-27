@@ -5,7 +5,14 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-05-25 (Sessions 203–219: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC)
+## [Unreleased] — 2026-05-27 (Sessions 203–220: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy)
+
+### 2026-05-27 — Session S220 (Wave 55 southGate Redeploy — Songbird Socket Hardening)
+
+- **Hardened plasmidBin fetch** — All 13 primal binaries force-fetched from plasmidBin v2026.05.27 release. Songbird stale socket crash fix (Wave 53) absorbed.
+- **NUCLEUS 13/13 started** — First time all 13 primals start successfully on southGate. loamSpine v0.9.16 Tokio runtime-in-runtime panic **resolved upstream** — `infant_discovery` now gracefully falls back when no discovery service is configured. `STOPPED → STARTING → READY → RUNNING` clean lifecycle.
+- **barracuda degraded auto-exit** — barracuda exits ~34s after startup when no GPU is available (headless terminal session). Creates `math-southgate.sock`, announces to Neural API, then auto-shuts down. Upstream environmental limitation, not a software bug. Steady state: 12/13 ALIVE.
+- **Cross-gate mesh** — eastGate (`192.168.1.144:7700`) reachable, `mesh.init` returns `{"initialized":true}`. 32 UDS sockets (primaries + capability aliases). V176.
 
 ### 2026-05-25 — Session S219 (Wave 50 Covalent HPC — Post-Primordial Absorption)
 
