@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
+# FOSSILIZED: Wave 63 (2026-05-30)
+# Superseded by: infra/plasmidBin/nucleus_launcher.sh
+# Reason: plasmidBin is the canonical launcher for all gates.
+#
 # composition_nucleus.sh — Launch a NUCLEUS composition for any domain
 #
 # Starts primals from plasmidBin in dependency order with correct socket

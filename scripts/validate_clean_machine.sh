@@ -93,12 +93,18 @@ echo "── Step 4: Validation tiers ──"
 run_validator() {
     local name="$1"
     local bin_name="$2"
-    local binary="${PROJECT_DIR}/target/release/${bin_name}"
-
-    if [ ! -f "${binary}" ]; then
+    local binary
+    binary="$(command -v "$bin_name" 2>/dev/null || true)"
+    if [ -z "$binary" ] && [ -f "${ECOPRIMALS_ROOT:-$PROJECT_DIR/../..}/infra/plasmidBin/bin/${bin_name}" ]; then
+        binary="${ECOPRIMALS_ROOT:-$PROJECT_DIR/../..}/infra/plasmidBin/bin/${bin_name}"
+    fi
+    if [ -z "$binary" ] && [ -f "${PROJECT_DIR}/target/release/${bin_name}" ]; then
+        binary="${PROJECT_DIR}/target/release/${bin_name}"
+    fi
+    if [ -z "$binary" ] && [ -f "${PROJECT_DIR}/target/debug/${bin_name}" ]; then
         binary="${PROJECT_DIR}/target/debug/${bin_name}"
     fi
-    if [ ! -f "${binary}" ]; then
+    if [ -z "$binary" ]; then
         echo "  SKIP ${name}: binary not found (${bin_name})"
         SKIP=$((SKIP + 1))
         return

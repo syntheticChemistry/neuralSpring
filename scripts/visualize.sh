@@ -18,6 +18,16 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Binary discovery: prefer plasmidBin/PATH, fall back to target/release/
+find_binary() {
+    local name="$1"
+    local bin
+    bin="$(command -v "$name" 2>/dev/null || true)"
+    [ -n "$bin" ] && echo "$bin" && return
+    [ -f "${ECOPRIMALS_ROOT:-$PROJECT_ROOT/../..}/infra/plasmidBin/bin/$name" ] && echo "${ECOPRIMALS_ROOT:-$PROJECT_ROOT/../..}/infra/plasmidBin/bin/$name" && return
+    echo "$PROJECT_ROOT/target/release/$name"
+}
 ECO_ROOT="$(cd "$PROJECT_ROOT/../.." && pwd)"
 SCENARIO_DIR="$PROJECT_ROOT/sandbox/scenarios"
 
@@ -51,7 +61,7 @@ build_live() {
 dump_scenarios() {
     build_dump
     echo ""
-    "$PROJECT_ROOT/target/release/dump_neuralspring_scenarios"
+    "$(find_binary dump_neuralspring_scenarios)"
     echo ""
     echo "Scenarios ready in $SCENARIO_DIR/"
 }
@@ -65,14 +75,14 @@ case "$MODE" in
         build_live
         echo ""
         EPOCHS="${EPOCHS:-100}" INTERVAL_MS="${INTERVAL_MS:-50}" \
-            "$PROJECT_ROOT/target/release/neuralspring_live_dashboard"
+            "$(find_binary neuralspring_live_dashboard)"
         ;;
 
     --ecosystem)
         echo "Building neuralspring_ecosystem_dashboard..."
         cargo build --release --bin neuralspring_ecosystem_dashboard --manifest-path "$PROJECT_ROOT/Cargo.toml"
         echo ""
-        "$PROJECT_ROOT/target/release/neuralspring_ecosystem_dashboard"
+        "$(find_binary neuralspring_ecosystem_dashboard)"
         ;;
 
     --compositions)
