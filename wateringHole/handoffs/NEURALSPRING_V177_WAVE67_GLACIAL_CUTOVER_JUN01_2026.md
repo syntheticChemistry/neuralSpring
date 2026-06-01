@@ -64,11 +64,17 @@ schedule the formal 7-day shadow validation window.
 | Item | Value |
 |------|-------|
 | Launcher | `plasmidBin/nucleus_launcher.sh` (canonical) |
-| Composition | `nucleus` (10 primals) |
-| Started | 10/10 |
+| Composition | `nucleus` (10 primals) + biomeOS neural-api |
+| Started | 10/10 + biomeOS neural-api |
 | Healthy | 6/10 (beardog, songbird, toadstool, coralreef, nestgate, loamspine) |
-| Peers | `--peers 192.168.1.144:7700` (eastGate) |
-| Federation port | Songbird :9200 TCP (federation port not bound in this session — `--port` only) |
+| Peers | `--peers east-gate@192.168.1.144:7700` |
+| Federation port | Songbird :7700 (`SONGBIRD_PORT=7700`) |
+| Node ID | `south-gate` |
+| biomeOS capabilities | 1733 capabilities from 17 primals |
+| Build method | `plasmidbin install` from local source |
+| Songbird commit | eb913612 (security socket fix) |
+| biomeOS commit | c1e4c2f4 (capability.call fix) |
+| bearDog commit | 5e6b5a5e (S4 auth config) |
 
 ---
 
@@ -102,20 +108,33 @@ southGate is ready for Phase 1 mesh validation:
 
 ---
 
+## P0 Fix Verification
+
+| P0 | Fix Commit | Status | Evidence |
+|----|-----------|--------|----------|
+| Songbird security socket | eb913612 | **DEPLOYED** | Built via `plasmidbin install`, running on :7700 |
+| biomeOS capability.call | c1e4c2f4 | **CONFIRMED** | Returns -32603 (routing) not -32601 (method not found). 1733 capabilities discovered |
+| bearDog S4 auth | 5e6b5a5e | **DEPLOYED** | Healthy on :9100 (0.0.0.0). ironGate formal gate pending |
+
 ## Upstream Notes for primalSpring
 
-1. **Songbird**: Source fix in `songbird_http_client` — must honor
-   `--security-socket` / env var chain. New plasmidBin binary needed.
-2. **biomeOS**: Proxy code exists but is unreachable via TCP due to BTSP
-   enforcement. Either (a) add `--allow-local-rpc` for inter-primal TCP,
-   or (b) ensure the async dispatch is used for all transports.
-3. **bearDog S4**: Ready for formal 7-day gate. ironGate should schedule.
-4. **`discovery.peers`**: Still empty in Songbird v0.2.1 after `mesh.init`.
-   Separate from the security socket fix — peer list population is a
-   feature gap.
-5. **Canonical launcher**: `composition_nucleus.sh` fossilized in Wave 63.
-   All southGate deployments now use `plasmidBin/nucleus_launcher.sh`.
+1. **Songbird**: Fix deployed. Binds `127.0.0.1:7700` — for LAN
+   reachability needs `--bind 0.0.0.0` or equivalent env var.
+2. **biomeOS**: `capability.call` works but neural-api hardcodes
+   `/run/biomeos-<family>/` for socket discovery while
+   `nucleus_launcher.sh` creates sockets at `$XDG_RUNTIME_DIR/biomeos/`.
+   Needs config alignment or `BIOMEOS_SOCKET_DIR` env var.
+3. **bearDog S4**: Deployed and healthy. ironGate should schedule formal
+   7-day shadow validation against `southgate:9100`.
+4. **Cross-subnet**: eastGate (192.168.1.x) has no route to southGate
+   (192.168.4.x). Eero cross-subnet routing needed, or use strandGate
+   (192.168.1.132, same subnet as eastGate) for initial validation.
+5. **`discovery.peers`**: Returns empty (0 peers) after `mesh.init`.
+   Cross-gate peer population requires network reachability.
+6. **`plasmidbin install`**: New workflow validated — builds from local
+   source, strips, generates BLAKE3 checksum + provenance sidecar.
+   Keeps `.prev` rollback binary.
 
 ---
 
-*V177. Wave 67. Glacial blockers investigated — ready for upstream fixes.*
+*V177. Wave 67. P0 fixes deployed and confirmed. Cross-gate mesh partner ready.*

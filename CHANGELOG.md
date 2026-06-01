@@ -9,9 +9,9 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 2026-06-01 — Session S221 (Wave 67 Glacial Cutover Plan — P0 Investigation)
 
-- **Glacial cutover P0 investigation** — Three critical-path primal blockers investigated on southGate: Songbird security socket fix (internal client hardcodes `/tmp/neural-api-*.sock`; `--security-socket` CLI flag exists but not honored internally), biomeOS `capability.call` RPC (-32601 because BTSP enforcement blocks TCP path; proxy code exists in `unix_server.rs` but bypassed on sync dispatch), bearDog S4 auth config (deployment ready, ironGate formal 7-day gate pending). All three are primal-source or deployment-config fixes.
-- **Canonical launcher** — `composition_nucleus.sh` fossilized in Wave 63. NUCLEUS now deployed exclusively via `plasmidBin/nucleus_launcher.sh`. southGate deployed 10-primal `nucleus` composition (6/10 HEALTHY via TCP probe).
-- **Cross-gate mesh readiness** — neuralSpring capability routing (`niche.rs` semantic mappings, `primal_names.rs` domains) ready for `capability.call` once biomeOS proxy is operational. southGate confirmed as Phase 1 mesh partner for eastGate `discovery.peers` smoke test. V177.
+- **P0 fixes deployed** — All three glacial-critical P0 fix commits built from local source via `plasmidbin install`: Songbird security socket fix (eb913612), biomeOS `capability.call` (c1e4c2f4), bearDog S4 config (5e6b5a5e). Installed to `~/.local/bin/` with BLAKE3 provenance. `capability.call` confirmed working — returns -32603 (routing to target primal) instead of -32601 (method not found). biomeOS neural-api discovers 1733 capabilities from 17 primals.
+- **NUCLEUS redeployed on :7700** — Songbird federation port 7700, `mesh.init` with `east-gate@192.168.1.144:7700` confirmed `{"initialized":true}`. 10/10 started, 6/10 HEALTHY (nucleus composition). `discovery.peers` returns 0 — cross-subnet routing not yet configured.
+- **Canonical launcher** — `composition_nucleus.sh` fossilized in Wave 63. NUCLEUS deployed exclusively via `plasmidBin/nucleus_launcher.sh`. `plasmidbin install` replaces manual binary copying. V177.
 
 ### 2026-05-27 — Session S220 (Wave 55 southGate Redeploy — Songbird Socket Hardening)
 

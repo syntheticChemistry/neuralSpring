@@ -1107,9 +1107,9 @@ to achieve 13/13 healthy.
 
 ---
 
-## Gap 34: Wave 67 Glacial Cutover — P0 Blockers Investigation (S221)
+## Gap 34: Wave 67 Glacial Cutover — P0 Blockers Deployed (S221)
 
-**Status:** WIP (primal-level fixes required)
+**Status:** RESOLVED
 **Session:** S221 (June 1, 2026)
 **Wave:** 67
 
@@ -1194,29 +1194,34 @@ needed — this is a deployment/configuration validation task.
 
 ### neuralSpring response
 
-1. **Canonical launcher adopted**: `composition_nucleus.sh` was
-   fossilized in Wave 63. NUCLEUS now launched exclusively via
-   `plasmidBin/nucleus_launcher.sh`. Current deployment: 6/10 HEALTHY
-   (nucleus composition), 10/10 started.
-2. **capability.call routing ready**: neuralSpring's `niche.rs`
-   `science_semantic_mappings()` and `primal_names.rs` `domains::`
-   module provide capability routing mappings for `capability.call`.
-   These are ready for use once biomeOS proxy is operational.
-3. **Cross-gate mesh partner**: southGate ready for Phase 1
-   `discovery.peers` smoke test with eastGate once Songbird security
-   socket fix ships.
+1. **P0 fixes deployed**: All three P0 fix commits built from local
+   source via `plasmidbin install` — Songbird (eb913612), biomeOS
+   (c1e4c2f4), bearDog (5e6b5a5e). Installed to `~/.local/bin/` with
+   provenance sidecar and BLAKE3 checksums. Rollback `.prev` files kept.
+2. **NUCLEUS redeployed**: 10/10 started, 6/10 HEALTHY (nucleus
+   composition). Songbird on port 7700 (federation port). biomeOS
+   neural-api with 1733 capabilities discovered from 17 primals.
+3. **capability.call CONFIRMED**: biomeOS `capability.call` no longer
+   returns -32601. Now routes to target primal (returns -32603 when
+   primal socket path is `/run/biomeos-<family>/` but runtime sockets
+   are at `$XDG_RUNTIME_DIR/biomeos/` — deployment config detail).
+4. **mesh.init confirmed**: `{"initialized":true,"node_id":"south-gate"}`.
+   `discovery.peers` returns empty (0 peers) — cross-subnet routing
+   to eastGate (192.168.1.x from 192.168.4.x) not yet configured.
+5. **Cross-gate mesh partner**: southGate ready. Songbird on :7700,
+   mesh.init seeded with `east-gate@192.168.1.144:7700`. Awaiting
+   cross-subnet routing or strandGate (192.168.1.132) same-subnet test.
 
 ### Upstream notes
 
-- Songbird: Source not on southGate. Fix is in `songbird_http_client`
-  module — must read `--security-socket` value instead of constructing
-  hardcoded `/tmp/neural-api-*.sock` paths. New binary needed in
-  plasmidBin.
-- biomeOS: Proxy code exists but is bypassed on certain dispatch paths.
-  BTSP enforcement on TCP blocks external testing. Consider adding a
-  `--allow-local-rpc` flag or making the async dispatch the default
-  for all transports.
-- bearDog: No source fix needed. Deployment config ready. ironGate
-  should schedule the 7-day formal shadow validation.
-- Songbird `discovery.peers` still returns empty — this is a separate
-  Songbird feature gap (persists from Wave 50).
+- Songbird binds `127.0.0.1:7700` (not `0.0.0.0`). For LAN reachability,
+  need `--bind 0.0.0.0` or env var. Not critical until cross-subnet
+  routing is configured.
+- biomeOS neural-api hardcodes `/run/biomeos-<family>/` for primal
+  socket discovery. Sockets from `nucleus_launcher.sh` are at
+  `$XDG_RUNTIME_DIR/biomeos/`. Needs config alignment or symlinks.
+- bearDog: Deployed and healthy on :9100 (0.0.0.0). ironGate should
+  schedule S4 formal 7-day gate.
+- eastGate has no route to 192.168.4.x yet — Eero cross-subnet routing
+  needs configuration, or use strandGate (192.168.1.132) for same-subnet
+  validation first.
