@@ -5,7 +5,7 @@
 > Per primalSpring Wave 20 PM (lithoSpore R1): documents what happens when
 > each dependency is unreachable. Science never fails due to primal absence.
 
-**Date**: 2026-05-27 | **Session**: S220 | **Pattern**: `has_capability()` before `call()`
+**Date**: 2026-06-01 | **Session**: S221 | **Pattern**: `has_capability()` before `call()`
 
 ---
 

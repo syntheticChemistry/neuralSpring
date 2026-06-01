@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V176 — Session S220
+### V177 — Session S221
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V176** | `handoffs/NEURALSPRING_V176_WAVE55_SOUTHGATE_REDEPLOY_MAY27_2026.md` | May 27, 2026 | Wave 55 southGate redeploy: hardened plasmidBin, NUCLEUS 13/13 started, loamSpine Tokio fix resolved, barracuda GPU-less auto-exit (12/13 steady). V176. |
+| **V177** | `handoffs/NEURALSPRING_V177_WAVE67_GLACIAL_CUTOVER_JUN01_2026.md` | Jun 1, 2026 | Wave 67 glacial cutover: P0 blockers investigated (Songbird security socket, biomeOS capability.call, bearDog S4). plasmidBin canonical launcher adopted. V177. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V175 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V176 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

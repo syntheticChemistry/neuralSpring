@@ -1,13 +1,13 @@
 {
   "spring": "neuralSpring",
-  "session": "S220",
-  "date": "2026-05-27",
+  "session": "S221",
+  "date": "2026-06-01",
   "btsp": {
     "status": "default",
     "capabilities_covered": "13/13",
     "phase": "45c",
     "note": "BTSP mandatory for all capabilities; cleartext connections FAIL",
-    "session_establishment": "deferred — pending BearDog crypto.btsp_handshake"
+    "session_establishment": "deferred \u2014 pending BearDog crypto.btsp_handshake"
   },
   "unsafe_code": {
     "forbid_unsafe": true,
@@ -18,8 +18,19 @@
   },
   "cargo_deny": {
     "status": "clean",
-    "banned_crates": ["ring", "openssl-sys", "openssl", "async-trait", "rustls", "ed25519-dalek", "cmake", "cc"],
-    "exemptions": ["blake3 (cc wrapper)"],
+    "banned_crates": [
+      "ring",
+      "openssl-sys",
+      "openssl",
+      "async-trait",
+      "rustls",
+      "ed25519-dalek",
+      "cmake",
+      "cc"
+    ],
+    "exemptions": [
+      "blake3 (cc wrapper)"
+    ],
     "advisory_check": "pass",
     "license_check": "pass",
     "source_check": "pass"
@@ -32,10 +43,22 @@
     "doc_warnings": 0
   },
   "encryption_tiers": {
-    "tower": {"tier": "full", "description": "Full BTSP encryption"},
-    "node": {"tier": "tower_delegated", "description": "Delegated to Tower"},
-    "nest": {"tier": "tower_delegated", "description": "Delegated to Tower"},
-    "meta": {"tier": "tower_delegated", "description": "Delegated to Tower"}
+    "tower": {
+      "tier": "full",
+      "description": "Full BTSP encryption"
+    },
+    "node": {
+      "tier": "tower_delegated",
+      "description": "Delegated to Tower"
+    },
+    "nest": {
+      "tier": "tower_delegated",
+      "description": "Delegated to Tower"
+    },
+    "meta": {
+      "tier": "tower_delegated",
+      "description": "Delegated to Tower"
+    }
   },
   "composition_security": {
     "bond_type": "Metallic",
@@ -64,7 +87,7 @@
   "guidestone_security": {
     "p1_deterministic": "seeded RNG triple-match, bitwise equality",
     "p2_traceable": "49 provenance records, all labelled/scripted/committed",
-    "p3_self_verifying": "BLAKE3 CHECKSUMS — 15 files verified",
+    "p3_self_verifying": "BLAKE3 CHECKSUMS \u2014 15 files verified",
     "p4_environment_agnostic": "ecoBin, forbid(unsafe_code), no network",
     "p5_tolerance_documented": "233+ named tolerances, all finite/named/categorized"
   }

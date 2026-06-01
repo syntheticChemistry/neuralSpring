@@ -1,22 +1,42 @@
 {
   "spring": "neuralSpring",
-  "session": "S220",
-  "date": "2026-05-27",
-  "description": "Publishable paper baseline notebooks — full inline Python/NumPy implementations of peer-reviewed science, serving as the math validation base for Rust, GPU, and primal IPC layers.",
+  "session": "S221",
+  "date": "2026-06-01",
+  "description": "Publishable paper baseline notebooks \u2014 full inline Python/NumPy implementations of peer-reviewed science, serving as the math validation base for Rust, GPU, and primal IPC layers.",
   "total_notebooks": 8,
   "total_checks": 72,
   "total_passed": 72,
   "total_source_lines": 3337,
   "faculties": [
-    {"name": "Emily Dolson", "institution": "Michigan State University", "track": "Evolutionary Computation", "papers": ["011", "012", "013", "014", "015"]},
-    {"name": "Kevin Liu", "institution": "Michigan State University", "track": "HMM & Phylogenetic Inference", "papers": ["016", "017", "018"]}
+    {
+      "name": "Emily Dolson",
+      "institution": "Michigan State University",
+      "track": "Evolutionary Computation",
+      "papers": [
+        "011",
+        "012",
+        "013",
+        "014",
+        "015"
+      ]
+    },
+    {
+      "name": "Kevin Liu",
+      "institution": "Michigan State University",
+      "track": "HMM & Phylogenetic Inference",
+      "papers": [
+        "016",
+        "017",
+        "018"
+      ]
+    }
   ],
   "notebooks": [
     {
       "id": "011",
       "file": "paper-011-counterdiabatic-evolution.ipynb",
       "title": "Counterdiabatic Driving of Evolution",
-      "citation": "Iram, Dolson, Chiel, Hu, Nicholson, Ponce, Butts, Raman, Ohno (2020) Nature Physics 17:135–142",
+      "citation": "Iram, Dolson, Chiel, Hu, Nicholson, Ponce, Butts, Raman, Ohno (2020) Nature Physics 17:135\u2013142",
       "doi": "10.1038/s41567-020-0989-3",
       "checks": 11,
       "passed": 11,
@@ -25,14 +45,22 @@
       "provenance_const": "COUNTERDIABATIC_PROVENANCE",
       "domain": "NK_fitness",
       "key_result": "CD protocol outperforms naive linear schedule on NK landscapes (K=2,3,4)",
-      "visualizations": ["CD vs naive schedule plot", "Distance to target bar chart", "KL divergence traces"],
-      "barracuda_mapping": ["gemm_f64.wgsl (batch fitness)", "softmax.wgsl (Boltzmann sampling)", "reduce ops (Fisher information)"]
+      "visualizations": [
+        "CD vs naive schedule plot",
+        "Distance to target bar chart",
+        "KL divergence traces"
+      ],
+      "barracuda_mapping": [
+        "gemm_f64.wgsl (batch fitness)",
+        "softmax.wgsl (Boltzmann sampling)",
+        "reduce ops (Fisher information)"
+      ]
     },
     {
       "id": "012",
       "file": "paper-012-modes-toolbox.ipynb",
       "title": "MODES Toolbox: Metrics of Open-Ended Evolution",
-      "citation": "Dolson, Vostinar, Wiser, Ofria (2019) Artificial Life 25(1):50–73",
+      "citation": "Dolson, Vostinar, Wiser, Ofria (2019) Artificial Life 25(1):50\u201373",
       "doi": "10.1162/artl_a_00280",
       "checks": 9,
       "passed": 9,
@@ -41,14 +69,21 @@
       "provenance_const": "MODES_PROVENANCE",
       "domain": "MODES",
       "key_result": "All four MODES metrics discriminate open-ended from closed systems; NK intermediate",
-      "visualizations": ["MODES metric comparison bar chart", "Complexity trajectories"],
-      "barracuda_mapping": ["elementwise_sub + reduce_sum (distance)", "log + elementwise_mul + reduce_sum (Shannon)", "gemm_f64 (complexity regression)"]
+      "visualizations": [
+        "MODES metric comparison bar chart",
+        "Complexity trajectories"
+      ],
+      "barracuda_mapping": [
+        "elementwise_sub + reduce_sum (distance)",
+        "log + elementwise_mul + reduce_sum (Shannon)",
+        "gemm_f64 (complexity regression)"
+      ]
     },
     {
       "id": "013",
       "file": "paper-013-eco-dynamics.ipynb",
       "title": "Ecological Theory in Evolutionary Computation",
-      "citation": "Dolson & Ofria (2018) GECCO '18 Companion, pp 105–106",
+      "citation": "Dolson & Ofria (2018) GECCO '18 Companion, pp 105\u2013106",
       "doi": null,
       "checks": 7,
       "passed": 7,
@@ -57,8 +92,15 @@
       "provenance_const": "ECO_DYNAMICS_PROVENANCE",
       "domain": "eco_dynamics",
       "key_result": "Competitive exclusion, niche differentiation, and frequency-dependent selection all validated",
-      "visualizations": ["Diversity over generations", "Productivity-diversity relationship"],
-      "barracuda_mapping": ["batch GEMM (fitness matrix × population)", "softmax.wgsl / tournament", "reduce_sum + log (Shannon entropy)"]
+      "visualizations": [
+        "Diversity over generations",
+        "Productivity-diversity relationship"
+      ],
+      "barracuda_mapping": [
+        "batch GEMM (fitness matrix \u00d7 population)",
+        "softmax.wgsl / tournament",
+        "reduce_sum + log (Shannon entropy)"
+      ]
     },
     {
       "id": "014",
@@ -73,8 +115,15 @@
       "provenance_const": "DIRECTED_EVOLUTION_PROVENANCE",
       "domain": "directed_evolution",
       "key_result": "Lexicase selection preserves diversity while all structured algorithms beat random",
-      "visualizations": ["Algorithm comparison grouped bars", "Fitness over generations"],
-      "barracuda_mapping": ["batch GEMM (per-case fitness)", "reduce_max + index (lexicase filter)", "comparison ops (Pareto dominance)"]
+      "visualizations": [
+        "Algorithm comparison grouped bars",
+        "Fitness over generations"
+      ],
+      "barracuda_mapping": [
+        "batch GEMM (per-case fitness)",
+        "reduce_max + index (lexicase filter)",
+        "comparison ops (Pareto dominance)"
+      ]
     },
     {
       "id": "015",
@@ -89,8 +138,16 @@
       "provenance_const": "SWARM_ROBOTICS_PROVENANCE",
       "domain": "swarm_robotics",
       "key_result": "Heterogeneous controllers maintain higher diversity than homogeneous; both improve fitness",
-      "visualizations": ["Fitness over generations", "Diversity comparison", "Controller type performance"],
-      "barracuda_mapping": ["GEMM + sigmoid (NeuralNet forward)", "threshold ops (BehaviorTree/RuleBased)", "buffer management (population)"]
+      "visualizations": [
+        "Fitness over generations",
+        "Diversity comparison",
+        "Controller type performance"
+      ],
+      "barracuda_mapping": [
+        "GEMM + sigmoid (NeuralNet forward)",
+        "threshold ops (BehaviorTree/RuleBased)",
+        "buffer management (population)"
+      ]
     },
     {
       "id": "016",
@@ -105,8 +162,15 @@
       "provenance_const": "HMM_PROVENANCE",
       "domain": "HMM_phylo",
       "key_result": "Forward/backward/Viterbi/Baum-Welch all validated; EM log-likelihood non-decreasing",
-      "visualizations": ["State probability heatmap", "EM convergence curve"],
-      "barracuda_mapping": ["gemm_f64.wgsl (transition × emission × state)", "reduce_max.wgsl + argmax (Viterbi)", "outer products via gemm_f64.wgsl (Baum-Welch)"]
+      "visualizations": [
+        "State probability heatmap",
+        "EM convergence curve"
+      ],
+      "barracuda_mapping": [
+        "gemm_f64.wgsl (transition \u00d7 emission \u00d7 state)",
+        "reduce_max.wgsl + argmax (Viterbi)",
+        "outer products via gemm_f64.wgsl (Baum-Welch)"
+      ]
     },
     {
       "id": "017",
@@ -121,8 +185,15 @@
       "provenance_const": "SATE_ALIGNMENT_PROVENANCE",
       "domain": "sate_alignment",
       "key_result": "NJ tree reconstruction, progressive alignment, iterative refinement all validated",
-      "visualizations": ["Distance matrix heatmap", "Alignment score vs iteration"],
-      "barracuda_mapping": ["gemm_f64 (N×N pairwise distance)", "reduction + argmin (NJ)", "affine-gap recurrence (alignment)"]
+      "visualizations": [
+        "Distance matrix heatmap",
+        "Alignment score vs iteration"
+      ],
+      "barracuda_mapping": [
+        "gemm_f64 (N\u00d7N pairwise distance)",
+        "reduction + argmin (NJ)",
+        "affine-gap recurrence (alignment)"
+      ]
     },
     {
       "id": "018",
@@ -137,16 +208,77 @@
       "provenance_const": "INTROGRESSION_PROVENANCE",
       "domain": "introgression",
       "key_result": "PhyloNet-HMM detects introgression regions; Viterbi path matches ground truth",
-      "visualizations": ["Posterior probability heatmap", "Introgression region plot", "Topology bar chart"],
-      "barracuda_mapping": ["gemm_f64.wgsl (transition × emission × state)", "reduce_max.wgsl + argmax (Viterbi)", "same HMM primitives as Paper 016"]
+      "visualizations": [
+        "Posterior probability heatmap",
+        "Introgression region plot",
+        "Topology bar chart"
+      ],
+      "barracuda_mapping": [
+        "gemm_f64.wgsl (transition \u00d7 emission \u00d7 state)",
+        "reduce_max.wgsl + argmax (Viterbi)",
+        "same HMM primitives as Paper 016"
+      ]
     }
   ],
   "future_batches": [
-    {"batch": 3, "faculty": "Waters", "papers": ["019", "020", "021"], "scope": "Game theory, Regulatory, Signal"},
-    {"batch": 4, "faculty": "Kachkovskiy", "papers": ["022", "023"], "scope": "Spectral, Anderson"},
-    {"batch": 5, "faculty": "Anderson/Campbell", "papers": ["024", "025"], "scope": "Pangenome, Meta-population"},
-    {"batch": 6, "faculty": "Liao/Wang", "papers": ["026", "027"], "scope": "Glucose LSTM, Digestion ESN"},
-    {"batch": 7, "scope": "Phase 0 (Exp 001-005)", "papers": ["001", "002", "003", "004", "005"]},
-    {"batch": 8, "scope": "Phase 0+ (Study 001-005)", "papers": ["006", "007", "008", "009", "010"]}
+    {
+      "batch": 3,
+      "faculty": "Waters",
+      "papers": [
+        "019",
+        "020",
+        "021"
+      ],
+      "scope": "Game theory, Regulatory, Signal"
+    },
+    {
+      "batch": 4,
+      "faculty": "Kachkovskiy",
+      "papers": [
+        "022",
+        "023"
+      ],
+      "scope": "Spectral, Anderson"
+    },
+    {
+      "batch": 5,
+      "faculty": "Anderson/Campbell",
+      "papers": [
+        "024",
+        "025"
+      ],
+      "scope": "Pangenome, Meta-population"
+    },
+    {
+      "batch": 6,
+      "faculty": "Liao/Wang",
+      "papers": [
+        "026",
+        "027"
+      ],
+      "scope": "Glucose LSTM, Digestion ESN"
+    },
+    {
+      "batch": 7,
+      "scope": "Phase 0 (Exp 001-005)",
+      "papers": [
+        "001",
+        "002",
+        "003",
+        "004",
+        "005"
+      ]
+    },
+    {
+      "batch": 8,
+      "scope": "Phase 0+ (Study 001-005)",
+      "papers": [
+        "006",
+        "007",
+        "008",
+        "009",
+        "010"
+      ]
+    }
   ]
 }

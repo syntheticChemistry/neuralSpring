@@ -1,6 +1,6 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: May 27, 2026 (Sessions 44–S220)
+**Date**: Jun 1, 2026 (Sessions 44–S221)
 **barraCuda**: v0.4.0 (optional, IPC-first `default = []`).
 **Status**: Migration complete — deprecated modules fossilized, gpu_dispatch active (47 ops, ~97% GPU). `ipc_dispatch` removed (400 LOC, replaced by `IpcError` typed hierarchy). 269 binaries (241 require-features gated), 930 workspace tests (754 lib, IPC-first), 0 clippy. Wave 17 + Wave 20 signal API adopted (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). Live composition via `execute_graph_live()`. Deep debt zero-debt (6 audits). V176 handoff.
 **S130**: `PrecisionRoutingAdvice` wired, fused GPU regression gated, coralNAK→coralReef rename.

@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: May 27, 2026 (Session S220 — Wave 55 southGate redeploy: NUCLEUS 13/13 started (loamSpine fix), 12/13 steady (barracuda GPU-less), hardened plasmidBin. 45 capabilities, 10 scenarios, 754 lib tests. V176).
+**Last updated**: Jun 1, 2026 (Session S221 — Wave 67 glacial cutover: P0 blockers investigated (Songbird security socket, biomeOS capability.call, bearDog S4). plasmidBin canonical launcher. 45 capabilities, 10 scenarios, 754 lib tests. V177).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -654,11 +654,8 @@ neuralSpring/
 │   └── README.md              #   Journal index (001-123+)
 ├── whitePaper/                 # Study documentation
 │   ├── baseCamp/              #   Per-faculty research briefings
-├── tools/                      # Phase 46 composition tooling
-│   ├── nucleus_composition_lib.sh  #  41-function NUCLEUS composition library (from primalSpring)
-│   ├── composition_template.sh     #  Reference starter (hook pattern)
-│   ├── composition_nucleus.sh      #  Parameterized NUCLEUS launcher (plasmidBin or local)
-│   └── neural_composition.sh       #  Agent-driven composition: Squirrel inference, DAG, braids, feedback
+├── tools/                      # Composition tooling (fossilized — use plasmidBin/nucleus_launcher.sh)
+│   └── archive/                    #  Fossilized scripts (composition_nucleus.sh, neural_composition.sh, etc.)
 ├── scripts/
 │   ├── run_all_baselines.sh    #   Orchestrates all 39 Python runs (25 papers + 5 WDM + ML inference + 5 coralForge + 3 pub + 2 nS-06)
 │   ├── download_pretrained.py  #   Download pretrained models for nS-01 Paper A (safetensors)

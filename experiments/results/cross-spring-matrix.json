@@ -1,20 +1,53 @@
 {
   "spring": "neuralSpring",
-  "session": "S220",
-  "date": "2026-05-27",
+  "session": "S221",
+  "date": "2026-06-01",
   "consumption": {
     "barracuda": {
       "role": "GPU compute engine",
       "integration": "optional feature (IPC-first, default = [])",
       "version": "v0.4.0",
       "usage": {
-        "tensor_ops": ["matmul", "create", "reduce", "transpose"],
-        "stats": ["mean", "std_dev", "weighted_mean", "correlation", "chi_squared"],
-        "nn": ["SimpleMlp", "DenseLayer", "softmax", "gelu", "sigmoid"],
-        "linalg": ["eigh_householder_qr", "solve_f64_cpu", "graph_laplacian", "effective_rank"],
-        "dispatch": ["Dispatcher", "MixedSubstrate", "gpu_or_cpu"],
-        "special": ["plasma_dispersion", "esn_v2"],
-        "bio": ["hmm", "wright_fisher", "belief_propagation"]
+        "tensor_ops": [
+          "matmul",
+          "create",
+          "reduce",
+          "transpose"
+        ],
+        "stats": [
+          "mean",
+          "std_dev",
+          "weighted_mean",
+          "correlation",
+          "chi_squared"
+        ],
+        "nn": [
+          "SimpleMlp",
+          "DenseLayer",
+          "softmax",
+          "gelu",
+          "sigmoid"
+        ],
+        "linalg": [
+          "eigh_householder_qr",
+          "solve_f64_cpu",
+          "graph_laplacian",
+          "effective_rank"
+        ],
+        "dispatch": [
+          "Dispatcher",
+          "MixedSubstrate",
+          "gpu_or_cpu"
+        ],
+        "special": [
+          "plasma_dispersion",
+          "esn_v2"
+        ],
+        "bio": [
+          "hmm",
+          "wright_fisher",
+          "belief_propagation"
+        ]
       },
       "ipc_surface": "32 JSON-RPC methods (18 gaps documented)",
       "shaders_used": "806+",
@@ -26,50 +59,85 @@
       "integration": "optional path dependency (feature: guidestone)",
       "version": "v0.9.17+",
       "usage": {
-        "composition": ["CompositionContext", "validate_liveness", "validate_parity", "is_skip_error", "resolve_capability"],
-        "checksums": ["verify_manifest"],
-        "validation": ["ValidationResult", "section"],
-        "deployment": ["FAMILY_ID", "PRIMALSPRING_JSON"]
+        "composition": [
+          "CompositionContext",
+          "validate_liveness",
+          "validate_parity",
+          "is_skip_error",
+          "resolve_capability"
+        ],
+        "checksums": [
+          "verify_manifest"
+        ],
+        "validation": [
+          "ValidationResult",
+          "section"
+        ],
+        "deployment": [
+          "FAMILY_ID",
+          "PRIMALSPRING_JSON"
+        ]
       }
     },
     "coralreef": {
       "role": "Shader compilation",
       "integration": "feature-gated (metalForge/forge coralreef feature)",
-      "status": "open — Gap 3",
-      "planned": ["shader.compile.wgsl via IPC"]
+      "status": "open \u2014 Gap 3",
+      "planned": [
+        "shader.compile.wgsl via IPC"
+      ]
     },
     "toadstool": {
       "role": "Compute dispatch",
       "integration": "playGround client",
-      "status": "open — Gap 4",
-      "planned": ["compute.dispatch.submit via IPC"]
+      "status": "open \u2014 Gap 4",
+      "planned": [
+        "compute.dispatch.submit via IPC"
+      ]
     },
     "beardog": {
       "role": "Tower security (crypto/BTSP)",
       "integration": "discovery probing at startup",
-      "status": "wip — Gap 6",
-      "capabilities_probed": ["security", "crypto.btsp_handshake"],
-      "env_required": ["BEARDOG_FAMILY_SEED"]
+      "status": "wip \u2014 Gap 6",
+      "capabilities_probed": [
+        "security",
+        "crypto.btsp_handshake"
+      ],
+      "env_required": [
+        "BEARDOG_FAMILY_SEED"
+      ]
     },
     "songbird": {
       "role": "Tower discovery mesh",
       "integration": "discovery probing at startup",
-      "status": "wip — Gap 6",
-      "capabilities_probed": ["discovery.mesh.join"],
-      "env_required": ["SONGBIRD_SECURITY_PROVIDER"]
+      "status": "wip \u2014 Gap 6",
+      "capabilities_probed": [
+        "discovery.mesh.join"
+      ],
+      "env_required": [
+        "SONGBIRD_SECURITY_PROVIDER"
+      ]
     },
     "squirrel": {
       "role": "Inference routing",
       "integration": "try_squirrel_route dynamic fallback",
-      "status": "wip — Gap 1",
-      "capabilities_routed": ["inference.complete", "inference.embed", "inference.models"]
+      "status": "wip \u2014 Gap 1",
+      "capabilities_routed": [
+        "inference.complete",
+        "inference.embed",
+        "inference.models"
+      ]
     },
     "nestgate": {
       "role": "Weight storage (spring-deploy only)",
       "integration": "not wired",
-      "status": "open — Gap 5",
-      "planned": ["storage.retrieve via IPC"],
-      "env_required": ["NESTGATE_JWT_SECRET"]
+      "status": "open \u2014 Gap 5",
+      "planned": [
+        "storage.retrieve via IPC"
+      ],
+      "env_required": [
+        "NESTGATE_JWT_SECRET"
+      ]
     }
   },
   "proto_nucleate": {
@@ -82,14 +150,48 @@
       "inference.complete",
       "inference.embed"
     ],
-    "depends_on": ["biomeos", "beardog", "songbird", "skunkbat", "coralreef", "toadstool", "barracuda", "nestgate", "squirrel", "rhizocrypt", "loamspine", "sweetgrass", "petaltongue"],
-    "fragments": ["tower_atomic", "node_atomic", "meta_tier"],
-    "deployment": {"gate": "southgate", "live_uds": 9, "total": 13}
+    "depends_on": [
+      "biomeos",
+      "beardog",
+      "songbird",
+      "skunkbat",
+      "coralreef",
+      "toadstool",
+      "barracuda",
+      "nestgate",
+      "squirrel",
+      "rhizocrypt",
+      "loamspine",
+      "sweetgrass",
+      "petaltongue"
+    ],
+    "fragments": [
+      "tower_atomic",
+      "node_atomic",
+      "meta_tier"
+    ],
+    "deployment": {
+      "gate": "southgate",
+      "live_uds": 9,
+      "total": 13
+    }
   },
   "production_flow": {
-    "upstream": ["barracuda (GPU ops)", "primalspring (composition)"],
-    "lateral": ["coralreef (shaders)", "toadstool (dispatch)", "squirrel (inference)"],
-    "tower": ["beardog (crypto)", "songbird (discovery)"],
-    "storage": ["nestgate (weights)"]
+    "upstream": [
+      "barracuda (GPU ops)",
+      "primalspring (composition)"
+    ],
+    "lateral": [
+      "coralreef (shaders)",
+      "toadstool (dispatch)",
+      "squirrel (inference)"
+    ],
+    "tower": [
+      "beardog (crypto)",
+      "songbird (discovery)"
+    ],
+    "storage": [
+      "nestgate (weights)"
+    ]
   }
 }

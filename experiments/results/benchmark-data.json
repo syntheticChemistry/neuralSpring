@@ -1,7 +1,7 @@
 {
   "spring": "neuralSpring",
-  "session": "S220",
-  "date": "2026-05-27",
+  "session": "S221",
+  "date": "2026-06-01",
   "rust_vs_python": {
     "geomean_speedup": 83.6,
     "domains_measured": 11,
@@ -13,17 +13,50 @@
       "tolerance": "1e-10 cross-language"
     },
     "domain_speedups": [
-      {"domain": "Multi-objective (MODES)", "speedup": 1104.0},
-      {"domain": "Swarm robotics", "speedup": 500.0},
-      {"domain": "Directed evolution", "speedup": 200.0},
-      {"domain": "NK fitness landscape", "speedup": 150.0},
-      {"domain": "Game theory (Nash)", "speedup": 100.0},
-      {"domain": "HMM Viterbi", "speedup": 80.0},
-      {"domain": "Anderson localization", "speedup": 60.0},
-      {"domain": "Population genetics", "speedup": 45.0},
-      {"domain": "ESN reservoir", "speedup": 30.0},
-      {"domain": "Spectral analysis", "speedup": 25.0},
-      {"domain": "Regulatory network", "speedup": 15.0}
+      {
+        "domain": "Multi-objective (MODES)",
+        "speedup": 1104.0
+      },
+      {
+        "domain": "Swarm robotics",
+        "speedup": 500.0
+      },
+      {
+        "domain": "Directed evolution",
+        "speedup": 200.0
+      },
+      {
+        "domain": "NK fitness landscape",
+        "speedup": 150.0
+      },
+      {
+        "domain": "Game theory (Nash)",
+        "speedup": 100.0
+      },
+      {
+        "domain": "HMM Viterbi",
+        "speedup": 80.0
+      },
+      {
+        "domain": "Anderson localization",
+        "speedup": 60.0
+      },
+      {
+        "domain": "Population genetics",
+        "speedup": 45.0
+      },
+      {
+        "domain": "ESN reservoir",
+        "speedup": 30.0
+      },
+      {
+        "domain": "Spectral analysis",
+        "speedup": 25.0
+      },
+      {
+        "domain": "Regulatory network",
+        "speedup": 15.0
+      }
     ]
   },
   "gpu_performance": {
@@ -37,7 +70,11 @@
   },
   "multi_gpu": {
     "parity": "bit-identical",
-    "devices_tested": ["RTX 4070", "TITAN V NVK", "Ryzen 7 5800X3D (CPU)"],
+    "devices_tested": [
+      "RTX 4070",
+      "TITAN V NVK",
+      "Ryzen 7 5800X3D (CPU)"
+    ],
     "titan_v_checks": {
       "pass": 384,
       "total": 384,
@@ -45,21 +82,67 @@
     }
   },
   "validation_chain_tiers": [
-    {"tier": "Python baseline", "checks": 397, "status": "all pass"},
-    {"tier": "Rust CPU", "checks": 1387, "status": "all pass"},
-    {"tier": "GPU Tensor (WGSL)", "checks": 4500, "status": "all pass"},
-    {"tier": "Cross-dispatch", "checks": "9/10 <=1.04x", "status": "pass"},
-    {"tier": "Multi-GPU", "checks": "384/384", "status": "bit-identical"},
-    {"tier": "Primal IPC", "checks": "6 validators", "status": "wip"},
-    {"tier": "guideStone", "checks": "30/37", "status": "Level 5 partial (live deployment)"}
+    {
+      "tier": "Python baseline",
+      "checks": 397,
+      "status": "all pass"
+    },
+    {
+      "tier": "Rust CPU",
+      "checks": 1387,
+      "status": "all pass"
+    },
+    {
+      "tier": "GPU Tensor (WGSL)",
+      "checks": 4500,
+      "status": "all pass"
+    },
+    {
+      "tier": "Cross-dispatch",
+      "checks": "9/10 <=1.04x",
+      "status": "pass"
+    },
+    {
+      "tier": "Multi-GPU",
+      "checks": "384/384",
+      "status": "bit-identical"
+    },
+    {
+      "tier": "Primal IPC",
+      "checks": "6 validators",
+      "status": "wip"
+    },
+    {
+      "tier": "guideStone",
+      "checks": "30/37",
+      "status": "Level 5 partial (live deployment)"
+    }
   ],
   "isomorphic_primitives": [
-    {"primitive": "MatMul (GEMM/GEMV)", "role": "universal workhorse"},
-    {"primitive": "Attention (SDPA)", "role": "weighted information routing"},
-    {"primitive": "Normalization (LayerNorm)", "role": "scale stabilization"},
-    {"primitive": "Nonlinearity (GELU/SiLU)", "role": "feature carving"},
-    {"primitive": "Reduction (sum/mean/max)", "role": "aggregation"},
-    {"primitive": "Quantization (Q4/Q8/FP16)", "role": "deployment compression"}
+    {
+      "primitive": "MatMul (GEMM/GEMV)",
+      "role": "universal workhorse"
+    },
+    {
+      "primitive": "Attention (SDPA)",
+      "role": "weighted information routing"
+    },
+    {
+      "primitive": "Normalization (LayerNorm)",
+      "role": "scale stabilization"
+    },
+    {
+      "primitive": "Nonlinearity (GELU/SiLU)",
+      "role": "feature carving"
+    },
+    {
+      "primitive": "Reduction (sum/mean/max)",
+      "role": "aggregation"
+    },
+    {
+      "primitive": "Quantization (Q4/Q8/FP16)",
+      "role": "deployment compression"
+    }
   ],
   "guidestone_phases": {
     "phase1_bare": "P1-P5 certified (deterministic, traceable, self-verifying, env-agnostic, tolerance-documented)",

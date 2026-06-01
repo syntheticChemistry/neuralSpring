@@ -12,7 +12,7 @@ springs = ["neuralspring", "hotspring", "wetspring", "groundspring"]
 
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 
-> **Session:** S220 | **Date:** May 27, 2026 | **Version:** 0.1.0 | **Handoff:** V176
+> **Session:** S221 | **Date:** Jun 1, 2026 | **Version:** 0.1.0 | **Handoff:** V177
 > **Gate:** southGate | **Live validation:** 9/13 primals via UDS
 > **Tier:** 2 (sporePrint: frozen data + notebooks + paper baselines)
 

@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-05-27 | **Spring version:** 0.1.0 | **primalSpring:** Wave 55 (southGate redeploy)
-> **Session:** S220 — Wave 55 southGate Redeploy: hardened plasmidBin v2026.05.27, Songbird socket fix absorbed, NUCLEUS 13/13 started (loamSpine Tokio crash resolved), barracuda GPU-less auto-exit (12/13 steady state). V176.
-> Prior: S219 Wave 50, S218 Wave 49, S217 Wave 48, S216 southGate deployment, S215 Wave 46.
+> **Date:** 2026-06-01 | **Spring version:** 0.1.0 | **primalSpring:** Wave 67 (Glacial Cutover)
+> **Session:** S221 — Wave 67 Glacial Cutover Plan: Songbird security socket, biomeOS capability.call, bearDog S4 auth investigated. plasmidBin canonical launcher adopted. V177.
+> Prior: S220 Wave 55, S219 Wave 50, S218 Wave 49, S217 Wave 48, S216 southGate deployment, S215 Wave 46.
 
 ---
 
@@ -1104,3 +1104,119 @@ to achieve 13/13 healthy.
   or `BARRACUDA_KEEP_ALIVE=true` for headless compositions.
 - Songbird `discovery.peers` still returns empty after `mesh.init` —
   Songbird v0.2.1 feature gap persists.
+
+---
+
+## Gap 34: Wave 67 Glacial Cutover — P0 Blockers Investigation (S221)
+
+**Status:** WIP (primal-level fixes required)
+**Session:** S221 (June 1, 2026)
+**Wave:** 67
+
+### What happened
+
+primalSpring published the Glacial Cutover Plan. southGate owns the three
+primals on the glacial critical path. neuralSpring investigated all three
+P0 blockers on our running NUCLEUS deployment.
+
+### Investigation findings
+
+#### P0-1: Songbird security socket fix (BLOCKER)
+
+**Issue**: `songbird_http_client` hardcodes `/tmp/neural-api-*.sock`
+instead of honoring `--security-socket` / `BEARDOG_SOCKET`. Blocks
+federation TLS and cross-gate `capability.call` routing.
+
+**Investigation**: Songbird v0.2.1 binary already exposes
+`--security-socket` CLI flag with capability discovery chain:
+1. `$SECURITY_PROVIDER_SOCKET` env var
+2. `$XDG_RUNTIME_DIR/biomeos/security.sock` (capability symlink)
+3. `$BEARDOG_SOCKET` (legacy)
+
+The flag exists in the CLI parser but the internal `songbird_http_client`
+module does not use it — it constructs socket paths from a hardcoded
+`/tmp/neural-api-*.sock` pattern. Fix is in Songbird source (not cloned
+on southGate). New plasmidBin binary required after upstream fix.
+
+**Current launcher state**: `plasmidBin/nucleus_launcher.sh` does not
+pass `--security-socket` to Songbird. The flag will need to be wired
+once the internal client respects it.
+
+#### P0-2: biomeOS `capability.call` RPC (BLOCKER)
+
+**Issue**: `capability.call` JSON-RPC method returns -32601 (Method
+not found).
+
+**Investigation**: biomeOS source at
+`crates/biomeos-api/src/unix_server.rs` already has the proxy code:
+- `NEURAL_API_PROXY_METHODS` const includes `capability.call` (line 169)
+- `dispatch_jsonrpc_line_async()` routes it to `proxy_to_neural_api()`
+- `proxy_to_neural_api()` discovers the Neural API socket via
+  `NeuralApiClient::discover_socket(&family_id)` and forwards
+
+The -32601 occurs because:
+1. **TCP path**: biomeOS enforces BTSP authentication on TCP connections,
+   rejecting raw JSON-RPC with "BTSP enforced: rejecting unauthenticated
+   connection". This blocks direct TCP testing.
+2. **UDS path**: The async dispatch (`dispatch_jsonrpc_line_async`) has
+   the proxy, but the sync fallback (`dispatch_jsonrpc_line`) returns
+   -32601 for unknown methods. If the UDS handler uses the sync path,
+   `capability.call` will fail.
+3. **Neural API socket dependency**: The proxy requires a running
+   `biomeos neural-api` process with a discoverable socket. Without it,
+   returns -32002 ("Neural API not running").
+
+**Fix path**: Ensure biomeOS TCP handler uses the async dispatch, or
+configure BTSP to allow inter-primal JSON-RPC on TCP. Alternatively,
+ensure the `biomeos neural-api` subprocess runs alongside the main
+biomeOS server. Source-level fix in biomeOS.
+
+#### P0-3: bearDog S4 auth config
+
+**Issue**: BTSP auth services must be configured for ironGate to begin
+the formal 7-day shadow validation.
+
+**Investigation**: bearDog v0.9.0 on southGate (:9100 on 0.0.0.0) starts
+and passes Phase 4 health sweep. `configs/production.toml` has full
+sovereignty-compliant configuration (Ed25519 auth, strict password policy,
+MFA required, JSON audit logging). `SOVEREIGNTY_COMPLIANT_CONFIG_GUIDE.md`
+documents the zero-hardcoded-knowledge principle.
+
+bearDog TCP port rejects raw JSON-RPC (BTSP handshake required). The
+S4 shadow track shows "Shadow live — formal 7-day gate pending". The
+config infrastructure exists; ironGate needs to begin the formal
+validation window against bearDog on southGate.
+
+**Action needed**: Confirm bearDog's BTSP auth services are reachable
+from ironGate at `southgate:9100`. Ensure `BEARDOG_SOCKET` UDS is
+accessible for local inter-primal auth delegation. No source code fix
+needed — this is a deployment/configuration validation task.
+
+### neuralSpring response
+
+1. **Canonical launcher adopted**: `composition_nucleus.sh` was
+   fossilized in Wave 63. NUCLEUS now launched exclusively via
+   `plasmidBin/nucleus_launcher.sh`. Current deployment: 6/10 HEALTHY
+   (nucleus composition), 10/10 started.
+2. **capability.call routing ready**: neuralSpring's `niche.rs`
+   `science_semantic_mappings()` and `primal_names.rs` `domains::`
+   module provide capability routing mappings for `capability.call`.
+   These are ready for use once biomeOS proxy is operational.
+3. **Cross-gate mesh partner**: southGate ready for Phase 1
+   `discovery.peers` smoke test with eastGate once Songbird security
+   socket fix ships.
+
+### Upstream notes
+
+- Songbird: Source not on southGate. Fix is in `songbird_http_client`
+  module — must read `--security-socket` value instead of constructing
+  hardcoded `/tmp/neural-api-*.sock` paths. New binary needed in
+  plasmidBin.
+- biomeOS: Proxy code exists but is bypassed on certain dispatch paths.
+  BTSP enforcement on TCP blocks external testing. Consider adding a
+  `--allow-local-rpc` flag or making the async dispatch the default
+  for all transports.
+- bearDog: No source fix needed. Deployment config ready. ironGate
+  should schedule the 7-day formal shadow validation.
+- Songbird `discovery.peers` still returns empty — this is a separate
+  Songbird feature gap (persists from Wave 50).

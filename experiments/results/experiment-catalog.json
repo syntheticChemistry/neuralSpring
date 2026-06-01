@@ -1,7 +1,7 @@
 {
   "spring": "neuralSpring",
-  "session": "S220",
-  "date": "2026-05-27",
+  "session": "S221",
+  "date": "2026-06-01",
   "total_experiments": 134,
   "domains": [
     "evolutionary_computation",
@@ -21,66 +21,175 @@
       "name": "Emily Dolson",
       "institution": "Michigan State",
       "track": "Evolutionary Computation",
-      "papers": ["011", "012", "013", "014", "015"],
+      "papers": [
+        "011",
+        "012",
+        "013",
+        "014",
+        "015"
+      ],
       "checks": 50,
-      "domains": ["NK_fitness", "MODES", "eco_dynamics", "directed_evolution", "swarm_robotics"]
+      "domains": [
+        "NK_fitness",
+        "MODES",
+        "eco_dynamics",
+        "directed_evolution",
+        "swarm_robotics"
+      ]
     },
     {
       "name": "Kevin Liu",
       "institution": "Michigan State",
       "track": "Phylogenetics / HMM",
-      "papers": ["016", "017", "018"],
+      "papers": [
+        "016",
+        "017",
+        "018"
+      ],
       "checks": 38,
-      "domains": ["HMM_forward_backward_viterbi", "SATe_alignment", "introgression_detection"]
+      "domains": [
+        "HMM_forward_backward_viterbi",
+        "SATe_alignment",
+        "introgression_detection"
+      ]
     },
     {
       "name": "Chris Waters",
       "institution": "Michigan",
       "track": "Microbial Cooperation",
-      "papers": ["019", "020", "021"],
+      "papers": [
+        "019",
+        "020",
+        "021"
+      ],
       "checks": 21,
-      "domains": ["game_theory", "regulatory_networks", "signal_integration"]
+      "domains": [
+        "game_theory",
+        "regulatory_networks",
+        "signal_integration"
+      ]
     },
     {
       "name": "Ilya Kachkovskiy",
       "institution": "Michigan State",
       "track": "Spectral Theory",
-      "papers": ["022", "023"],
+      "papers": [
+        "022",
+        "023"
+      ],
       "checks": 16,
-      "domains": ["spectral_commutativity", "anderson_localization"]
+      "domains": [
+        "spectral_commutativity",
+        "anderson_localization"
+      ]
     },
     {
       "name": "Anderson / Campbell",
       "institution": "Various",
       "track": "Population Genetics",
-      "papers": ["024", "025"],
+      "papers": [
+        "024",
+        "025"
+      ],
       "checks": 16,
-      "domains": ["pangenome_selection", "meta_population_dynamics"]
+      "domains": [
+        "pangenome_selection",
+        "meta_population_dynamics"
+      ]
     },
     {
       "name": "Wei Liao (Wang et al.)",
       "institution": "Michigan State (BAE/ADREC)",
       "track": "Bioprocess Engineering",
-      "papers": ["027"],
+      "papers": [
+        "027"
+      ],
       "checks": 59,
-      "domains": ["ESN_digestion_prediction", "methane_yield", "gpu_dispatch"]
+      "domains": [
+        "ESN_digestion_prediction",
+        "methane_yield",
+        "gpu_dispatch"
+      ]
     }
   ],
   "milestone_experiments": [
-    {"id": "Exp 001-010", "scope": "Foundation — Python baselines, Rust ports, initial GPU"},
-    {"id": "Exp 011-027", "scope": "Phase 0++ — 27 papers across 6 faculties, 200+ checks"},
-    {"id": "Exp 028-050", "scope": "GPU evolution — WGSL shaders, metalForge, dispatch parity"},
-    {"id": "Exp 051-080", "scope": "Deep compute — multi-GPU, fused pipelines, cross-substrate"},
-    {"id": "Exp 081-100", "scope": "Composition — primal IPC, NUCLEUS validators, capability wiring"},
-    {"id": "Exp 101-120", "scope": "Ecosystem absorption — primalSpring API, Tower, guideStone"},
-    {"id": "Exp 121-130", "scope": "Deployment — genomeBin, ecoBin, clean machine validation"},
-    {"id": "Exp 131-134", "scope": "Maturity — guideStone Level 3, deep debt cleanup, composition explorer"}
+    {
+      "id": "Exp 001-010",
+      "scope": "Foundation \u2014 Python baselines, Rust ports, initial GPU"
+    },
+    {
+      "id": "Exp 011-027",
+      "scope": "Phase 0++ \u2014 27 papers across 6 faculties, 200+ checks"
+    },
+    {
+      "id": "Exp 028-050",
+      "scope": "GPU evolution \u2014 WGSL shaders, metalForge, dispatch parity"
+    },
+    {
+      "id": "Exp 051-080",
+      "scope": "Deep compute \u2014 multi-GPU, fused pipelines, cross-substrate"
+    },
+    {
+      "id": "Exp 081-100",
+      "scope": "Composition \u2014 primal IPC, NUCLEUS validators, capability wiring"
+    },
+    {
+      "id": "Exp 101-120",
+      "scope": "Ecosystem absorption \u2014 primalSpring API, Tower, guideStone"
+    },
+    {
+      "id": "Exp 121-130",
+      "scope": "Deployment \u2014 genomeBin, ecoBin, clean machine validation"
+    },
+    {
+      "id": "Exp 131-134",
+      "scope": "Maturity \u2014 guideStone Level 3, deep debt cleanup, composition explorer"
+    }
   ],
   "validation_tiers": [
-    {"tier": 1, "name": "Python baseline", "status": "complete", "checks": 397},
-    {"tier": 2, "name": "Rust CPU proof", "status": "complete", "checks": 1387},
-    {"tier": 3, "name": "GPU/WGSL parity", "status": "complete", "checks": 4500},
-    {"tier": 4, "name": "Primal IPC composition", "status": "wip", "checks": "8 validators (160 checks, 11 skip-when-offline)", "validators": ["validate_nucleus_composition (22 checks, 2 skip)", "validate_inference_composition (16 checks, 3 skip)", "validate_science_composition (9 checks, 2 skip)", "validate_composition_evolution (30 checks, 4 skip)", "validate_nucleus_tower (47 checks)", "validate_nucleus_compute_dispatch (36 checks)", "validate_mixed_composition_pipeline", "validate_nucleus_pcie_mixed_pipeline"]},
-    {"tier": 5, "name": "guideStone certified", "status": "Level 3 (bare)", "checks": "29/29", "blockers": ["live NUCLEUS deployment (Level 4)", "18 barraCuda IPC surface gaps (Level 5)"]}
+    {
+      "tier": 1,
+      "name": "Python baseline",
+      "status": "complete",
+      "checks": 397
+    },
+    {
+      "tier": 2,
+      "name": "Rust CPU proof",
+      "status": "complete",
+      "checks": 1387
+    },
+    {
+      "tier": 3,
+      "name": "GPU/WGSL parity",
+      "status": "complete",
+      "checks": 4500
+    },
+    {
+      "tier": 4,
+      "name": "Primal IPC composition",
+      "status": "wip",
+      "checks": "8 validators (160 checks, 11 skip-when-offline)",
+      "validators": [
+        "validate_nucleus_composition (22 checks, 2 skip)",
+        "validate_inference_composition (16 checks, 3 skip)",
+        "validate_science_composition (9 checks, 2 skip)",
+        "validate_composition_evolution (30 checks, 4 skip)",
+        "validate_nucleus_tower (47 checks)",
+        "validate_nucleus_compute_dispatch (36 checks)",
+        "validate_mixed_composition_pipeline",
+        "validate_nucleus_pcie_mixed_pipeline"
+      ]
+    },
+    {
+      "tier": 5,
+      "name": "guideStone certified",
+      "status": "Level 3 (bare)",
+      "checks": "29/29",
+      "blockers": [
+        "live NUCLEUS deployment (Level 4)",
+        "18 barraCuda IPC surface gaps (Level 5)"
+      ]
+    }
   ]
 }
