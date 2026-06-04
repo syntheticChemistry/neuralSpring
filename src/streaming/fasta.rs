@@ -119,6 +119,15 @@ pub enum FastaError {
     InvalidHeader(String),
 }
 
+impl std::error::Error for FastaError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidHeader(_) => None,
+        }
+    }
+}
+
 impl std::fmt::Display for FastaError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -127,8 +136,6 @@ impl std::fmt::Display for FastaError {
         }
     }
 }
-
-impl std::error::Error for FastaError {}
 
 impl From<std::io::Error> for FastaError {
     fn from(e: std::io::Error) -> Self {

@@ -12,6 +12,11 @@
 //!
 //! Expected values: `control/ltee_citrate_esn/expected_values.json`
 
+#![expect(
+    clippy::expect_used,
+    clippy::unwrap_used,
+    reason = "validation binary — expect/unwrap are idiomatic for test fixtures"
+)]
 
 use neural_spring::ltee_citrate_esn::{
     self, early_warning_metrics, load_citrate_esn_from_json,

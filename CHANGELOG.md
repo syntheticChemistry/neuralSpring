@@ -5,7 +5,17 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-06-03 (Sessions 203–222: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment)
+## [Unreleased] — 2026-06-03 (Sessions 203–223: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment + deep debt evolution)
+
+### 2026-06-03 — Session S223 (Deep Debt Evolution — Production Stubs, Capability Discovery, Error Typing, Visibility)
+
+- **Dead code removed** — Orphan `inference.rs` (129 lines of stub handlers, not wired to `main.rs`) deleted. Zero dead code in production.
+- **Production stubs → real IPC** — Evolved 4 handler stubs in `handlers.rs` to capability-based IPC forwarding with graceful fallback: `handle_provenance` (→ biomeOS/rhizocrypt), `handle_compute_offload` (→ toadStool), `handle_security_audit_log` (→ skunkBat), `handle_method_register` (→ biomeOS). All forward via unified `try_discover_and_call()` with timeout, fall back to local acknowledgment.
+- **Tower → capability-first discovery** — `tower.rs` rewritten from name-only `discover_primal_socket(BEARDOG/SONGBIRD)` to capability probing (`crypto.btsp_handshake`, `discovery.peers`) with name-hint fallback. Socket directory scanned for capability advertisements before falling back to name-based resolution.
+- **Error type evolution** — `weight_loader.rs` migrated from `Result<T, String>` to `crate::error::Result<T>` (5 public functions). Proper `source()` chains added to `FastaError`, `FastqError`, `VcfError`, `PushError`, `PipelineError`.
+- **Visibility tightened** — 15 modules narrowed from `pub` to `pub(crate)`: `gpu`, `gpu_dispatch`, `gpu_ops`, `gpu_shader_validation`, `bench`, `evolved`, `loss_landscape`, `nautilus_bridge`, `training_monitor`, `wdm_esn`, `wdm_sqw`, `wdm_surrogate`, `wdm_transport`, `weight_spectral`, `nucleus_pipeline`, `provenance_dispatch`, `certification`, `rpc_service`. All are crate-internal (consumed only by `src/bin/` validation binaries).
+- **Clippy zero warnings** — Addressed wildcard-single-variant in `FastaError::source()`, added `#[expect]` for validation binary lint patterns (`too_many_lines`, `expect_used`, `unwrap_used`).
+- **930 tests, 0 failures, 0 warnings, 0 clippy warnings.**
 
 ### 2026-06-03 — Session S222 (Wave 76 Parity Alignment — FRAGO wave76-parity-sprint-springs)
 

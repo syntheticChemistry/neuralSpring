@@ -29,7 +29,7 @@ description = "neuralSpring ML/spectral science + inference provider atop NUCLEU
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S222"
+neuralspring_version = "S223"
 domain = "science"
 target_node = "southgate"
 blake3_hash = "2e4356464bdfa97c882f5c4239a11fbccc298725eb42eda0fb25273b63bdb198"

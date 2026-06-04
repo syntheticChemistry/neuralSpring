@@ -37,7 +37,11 @@ impl fmt::Display for PipelineError {
     }
 }
 
-impl std::error::Error for PipelineError {}
+impl std::error::Error for PipelineError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
+    }
+}
 
 #[cfg(test)]
 mod tests {

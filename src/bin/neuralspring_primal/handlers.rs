@@ -228,19 +228,36 @@ pub fn handle_cross_spring_benchmark(
 }
 
 /// biomeOS provenance trio RPC surface (begin / record / complete / status).
-/// Acknowledges the call on this niche; full DAG lifecycle is composed via biomeOS graphs.
+///
+/// Forwards to the biomeOS orchestrator via capability-based discovery. Falls
+/// back to a local acknowledgment when biomeOS is not running.
 pub fn handle_provenance(
     id: serde_json::Value,
     method: &str,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
+    use neural_spring::validation::composition;
+    use std::time::Duration;
+
+    let orchestrator = try_discover_and_call("biomeos", method, params, Duration::from_secs(5));
+    if let Some(result) = orchestrator {
+        return JsonRpcResponse::success(id, result);
+    }
+
+    let rhizocrypt = try_discover_and_call("rhizocrypt", method, params, Duration::from_secs(5));
+    if let Some(result) = rhizocrypt {
+        return JsonRpcResponse::success(id, result);
+    }
+
+    log::debug!("{method}: no provenance primal discovered — local acknowledgment");
     JsonRpcResponse::success(
         id,
         serde_json::json!({
             "primal": PRIMAL_NAME,
             "niche": niche::NICHE_NAME,
             "method": method,
-            "params": params,
+            "status": "acknowledged_locally",
+            "note": "provenance primals not discovered — DAG lifecycle deferred",
         }),
     )
 }
@@ -257,20 +274,23 @@ pub fn handle_primal_discover(id: serde_json::Value) -> JsonRpcResponse {
     )
 }
 
-/// Discover Squirrel's socket and forward an inference request.
+/// Discover a primal by name and forward a JSON-RPC call.
 ///
-/// Returns `None` if Squirrel is not running or the call fails, allowing
-/// the caller to return a `SERVICE_UNAVAILABLE` error.
-fn try_squirrel_route(method: &str, params: &serde_json::Value) -> Option<serde_json::Value> {
-    use neural_spring::primal_names;
+/// Returns `None` if the primal is not running or the call fails, allowing
+/// the caller to fall back gracefully.
+fn try_discover_and_call(
+    primal_name: &str,
+    method: &str,
+    params: &serde_json::Value,
+    timeout: std::time::Duration,
+) -> Option<serde_json::Value> {
     use neural_spring::validation::composition;
-    use std::time::Duration;
 
-    let socket = match composition::discover_primal_socket(primal_names::SQUIRREL) {
+    let socket = match composition::discover_primal_socket(primal_name) {
         composition::DiscoveryResult::Found(path) => path,
         composition::DiscoveryResult::NotFound { .. } => return None,
     };
-    composition::json_rpc_call(&socket, method, params, Duration::from_secs(30)).ok()
+    composition::json_rpc_call(&socket, method, params, timeout).ok()
 }
 
 /// Inference completion — routes through Squirrel when available.
@@ -278,7 +298,12 @@ pub fn handle_inference_complete(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
-    if let Some(result) = try_squirrel_route("inference.complete", params) {
+    use neural_spring::primal_names;
+    use std::time::Duration;
+
+    if let Some(result) =
+        try_discover_and_call(primal_names::SQUIRREL, "inference.complete", params, Duration::from_secs(30))
+    {
         return JsonRpcResponse::success(id, result);
     }
 
@@ -296,7 +321,12 @@ pub fn handle_inference_embed(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
-    if let Some(result) = try_squirrel_route("inference.embed", params) {
+    use neural_spring::primal_names;
+    use std::time::Duration;
+
+    if let Some(result) =
+        try_discover_and_call(primal_names::SQUIRREL, "inference.embed", params, Duration::from_secs(30))
+    {
         return JsonRpcResponse::success(id, result);
     }
 
@@ -311,7 +341,15 @@ pub fn handle_inference_embed(
 
 /// List available inference models — routes through Squirrel when available.
 pub fn handle_inference_models(id: serde_json::Value) -> JsonRpcResponse {
-    if let Some(result) = try_squirrel_route("inference.models", &serde_json::json!({})) {
+    use neural_spring::primal_names;
+    use std::time::Duration;
+
+    if let Some(result) = try_discover_and_call(
+        primal_names::SQUIRREL,
+        "inference.models",
+        &serde_json::json!({}),
+        Duration::from_secs(30),
+    ) {
         return JsonRpcResponse::success(id, result);
     }
 
@@ -324,20 +362,37 @@ pub fn handle_inference_models(id: serde_json::Value) -> JsonRpcResponse {
     )
 }
 
-/// Node Atomic compute offload hook: reports dispatcher readiness and echoes request params.
+/// Node Atomic compute offload — forwards to toadStool when available.
+///
+/// If toadStool is running, the workload is forwarded for distributed
+/// dispatch. Otherwise, reports local dispatcher readiness.
 pub fn handle_compute_offload(
     id: serde_json::Value,
     params: &serde_json::Value,
     state: &PrimalState,
 ) -> JsonRpcResponse {
+    use neural_spring::primal_names;
+    use std::time::Duration;
+
+    if let Some(result) = try_discover_and_call(
+        primal_names::TOADSTOOL,
+        "compute.dispatch.submit",
+        params,
+        Duration::from_secs(10),
+    ) {
+        return JsonRpcResponse::success(id, result);
+    }
+
+    log::debug!("compute.offload: toadStool not discovered — local dispatch info");
     JsonRpcResponse::success(
         id,
         serde_json::json!({
             "primal": PRIMAL_NAME,
             "niche": niche::NICHE_NAME,
-            "params": params,
+            "status": "local_dispatch",
             "gpu_available": state.dispatcher.has_gpu(),
             "backend": format!("{}", state.dispatcher.backend()),
+            "note": "toadStool not discovered — workload handled locally",
         }),
     )
 }
@@ -428,21 +483,43 @@ pub fn handle_composition_status(
     )
 }
 
+/// Method registration — forwards to biomeOS orchestrator when available.
+///
+/// neuralSpring is a niche, not an orchestrator. Registration requests are
+/// forwarded to biomeOS for the canonical method registry.
 pub fn handle_method_register(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
+    use std::time::Duration;
+
     let method = params
         .get("method")
         .and_then(|v| v.as_str())
         .unwrap_or("unknown");
+
+    if let Some(result) =
+        try_discover_and_call("biomeos", "method.register", params, Duration::from_secs(5))
+    {
+        return JsonRpcResponse::success(
+            id,
+            serde_json::json!({
+                "status": "forwarded",
+                "primal": PRIMAL_NAME,
+                "method": method,
+                "upstream_result": result,
+            }),
+        );
+    }
+
+    log::debug!("method.register: biomeOS not discovered — local acknowledgment only");
     JsonRpcResponse::success(
         id,
         serde_json::json!({
-            "status": "acknowledged",
+            "status": "acknowledged_locally",
             "primal": PRIMAL_NAME,
             "method": method,
-            "note": "use primal.announce for Wave 17 registration",
+            "note": "biomeOS not discovered — use primal.announce for Wave 17 registration",
         }),
     )
 }
@@ -468,23 +545,50 @@ pub fn handle_compute_dispatch(
     )
 }
 
+/// Security audit log — forwards to skunkBat when available.
+///
+/// Logs the event locally, then attempts to forward to skunkBat for
+/// centralized audit trail. Falls back to local-only logging when
+/// skunkBat is not discovered.
 pub fn handle_security_audit_log(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
     use neural_spring::primal_names;
+    use std::time::Duration;
+
     let event = params
         .get("event")
         .and_then(|v| v.as_str())
         .unwrap_or("audit_query");
     log::info!("security.audit_log: {event}");
+
+    if let Some(result) = try_discover_and_call(
+        primal_names::SKUNKBAT,
+        "security.audit_log",
+        params,
+        Duration::from_secs(5),
+    ) {
+        return JsonRpcResponse::success(
+            id,
+            serde_json::json!({
+                "primal": PRIMAL_NAME,
+                "event": event,
+                "status": "forwarded",
+                "forwarded_to": primal_names::SKUNKBAT,
+                "upstream_result": result,
+            }),
+        );
+    }
+
+    log::debug!("security.audit_log: skunkBat not discovered — local-only");
     JsonRpcResponse::success(
         id,
         serde_json::json!({
             "primal": PRIMAL_NAME,
             "event": event,
-            "status": "logged",
-            "forwarded_to": primal_names::SKUNKBAT,
+            "status": "logged_locally",
+            "note": "skunkBat not discovered — audit stored locally only",
         }),
     )
 }

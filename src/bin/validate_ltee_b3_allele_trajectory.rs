@@ -11,6 +11,7 @@
 //!
 //! Expected values: `control/ltee_allele_trajectory/expected_values.json`
 
+#![expect(clippy::expect_used, reason = "validation binary — expect is idiomatic for test fixtures")]
 
 use neural_spring::ltee_allele_trajectory::{
     self, classify_allele_fate, discretize_trajectory, esn_reservoir_step,
@@ -33,6 +34,7 @@ impl log::Log for SimpleLogger {
 }
 static LOGGER: SimpleLogger = SimpleLogger;
 
+#[expect(clippy::too_many_lines, reason = "validation harness — sequential checks")]
 fn run_checks(h: &mut ValidationHarness) {
     let json_str = include_str!("../../control/ltee_allele_trajectory/expected_values.json");
     let bl = load_allele_baseline_from_json(json_str).expect("parse baseline JSON");

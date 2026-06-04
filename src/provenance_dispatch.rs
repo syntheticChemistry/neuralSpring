@@ -31,7 +31,7 @@ use crate::error::IpcError;
 /// Returns an error if the file cannot be read or signal dispatch fails.
 /// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
-pub fn store_to_nestgate_signal(
+pub(crate) fn store_to_nestgate_signal(
     path: &std::path::Path,
     ctx: &mut primalspring::composition::CompositionContext,
     author: &str,
@@ -75,7 +75,7 @@ pub fn store_to_nestgate_signal(
 /// Returns an error if signal dispatch fails or biomeOS is unavailable.
 /// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
-pub fn commit_session_signal(
+pub(crate) fn commit_session_signal(
     ctx: &mut primalspring::composition::CompositionContext,
     session_id: &str,
 ) -> Result<serde_json::Value, IpcError> {
@@ -103,7 +103,7 @@ pub fn commit_session_signal(
 /// Returns an error if signal dispatch fails or biomeOS is unavailable.
 /// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
-pub fn store_science_result(
+pub(crate) fn store_science_result(
     ctx: &mut primalspring::composition::CompositionContext,
     method: &str,
     result: &serde_json::Value,

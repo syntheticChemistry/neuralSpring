@@ -89,7 +89,7 @@ pub struct WeightBaseline {
 /// # Errors
 ///
 /// Returns `Err` if the file cannot be read or is not valid safetensors.
-pub fn list_safetensors(path: &Path) -> Result<Vec<(String, Vec<usize>, String)>, String> {
+pub fn list_safetensors(path: &Path) -> crate::error::Result<Vec<(String, Vec<usize>, String)>> {
     let data = std::fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
     let tensors =
         safetensors::SafeTensors::deserialize(&data).map_err(|e| format!("parse: {e}"))?;
@@ -117,7 +117,7 @@ pub fn list_safetensors(path: &Path) -> Result<Vec<(String, Vec<usize>, String)>
 ///
 /// Returns `Err` if the file cannot be read, the tensor name is not found,
 /// or the dtype is unsupported.
-pub fn load_safetensors_layer(path: &Path, tensor_name: &str) -> Result<WeightTensor, String> {
+pub fn load_safetensors_layer(path: &Path, tensor_name: &str) -> crate::error::Result<WeightTensor> {
     let raw = std::fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
     let tensors = safetensors::SafeTensors::deserialize(&raw).map_err(|e| format!("parse: {e}"))?;
 
@@ -159,7 +159,7 @@ pub fn load_safetensors_layer(path: &Path, tensor_name: &str) -> Result<WeightTe
 ///
 /// Returns `Err` if the file cannot be read, is not valid safetensors,
 /// or any tensor has an unsupported dtype.
-pub fn load_all_weight_matrices(path: &Path) -> Result<ModelWeights, String> {
+pub fn load_all_weight_matrices(path: &Path) -> crate::error::Result<ModelWeights> {
     let raw = std::fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
     let tensors = safetensors::SafeTensors::deserialize(&raw).map_err(|e| format!("parse: {e}"))?;
 
@@ -204,13 +204,14 @@ pub fn load_all_weight_matrices(path: &Path) -> Result<ModelWeights, String> {
 /// # Errors
 ///
 /// Returns `Err` if the file cannot be opened or the JSON is malformed.
-pub fn load_json_weights(path: &Path) -> Result<WeightBaseline, String> {
+pub fn load_json_weights(path: &Path) -> crate::error::Result<WeightBaseline> {
     let file = std::fs::File::open(path).map_err(|e| format!("open {}: {e}", path.display()))?;
     let reader = std::io::BufReader::new(file);
-    serde_json::from_reader(reader).map_err(|e| format!("parse JSON: {e}"))
+    Ok(serde_json::from_reader(reader).map_err(|e| format!("parse JSON: {e}"))?)
+
 }
 
-fn upcast_to_f64(view: &safetensors::tensor::TensorView<'_>) -> Result<Vec<f64>, String> {
+fn upcast_to_f64(view: &safetensors::tensor::TensorView<'_>) -> crate::error::Result<Vec<f64>> {
     use safetensors::Dtype;
 
     let bytes = view.data();
@@ -258,7 +259,7 @@ fn upcast_to_f64(view: &safetensors::tensor::TensorView<'_>) -> Result<Vec<f64>,
                 })
                 .collect())
         }
-        other => Err(format!("unsupported dtype: {other:?}")),
+        other => Err(format!("unsupported dtype: {other:?}").into()),
     }
 }
 

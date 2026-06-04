@@ -90,9 +90,9 @@ pub mod capabilities;
 )]
 pub mod attention_anderson;
 #[cfg(feature = "barracuda")]
-pub mod bench;
+pub(crate) mod bench;
 #[cfg(feature = "guidestone")]
-pub mod certification;
+pub(crate) mod certification;
 pub mod config;
 pub mod coral_forge;
 pub mod counterdiabatic;
@@ -104,18 +104,18 @@ pub mod eco_dynamics;
 pub mod eigh;
 pub mod error;
 #[cfg(feature = "barracuda")]
-pub mod evolved;
+pub(crate) mod evolved;
 pub mod fft;
 pub mod game_theory;
 pub mod glucose_prediction;
 #[cfg(feature = "barracuda")]
-pub mod gpu;
+pub(crate) mod gpu;
 #[cfg(feature = "barracuda")]
-pub mod gpu_dispatch;
+pub(crate) mod gpu_dispatch;
 #[cfg(feature = "barracuda")]
-pub mod gpu_ops;
+pub(crate) mod gpu_ops;
 #[cfg(feature = "barracuda")]
-pub mod gpu_shader_validation;
+pub(crate) mod gpu_shader_validation;
 pub mod hmm;
 pub mod immunological_anderson;
 pub mod information_flow;
@@ -135,7 +135,7 @@ pub mod ipc_resilience;
 pub mod isomorphic_reservoir;
 pub mod lenet;
 #[cfg(feature = "barracuda")]
-pub mod loss_landscape;
+pub(crate) mod loss_landscape;
 pub mod ltee_allele_trajectory;
 pub mod ltee_citrate_esn;
 pub mod meta_population;
@@ -146,17 +146,17 @@ pub mod meta_population;
 pub mod metrics;
 pub mod modes;
 #[cfg(feature = "barracuda")]
-pub mod nautilus_bridge;
+pub(crate) mod nautilus_bridge;
 pub mod neural_pgm;
 pub mod niche;
 #[cfg(feature = "barracuda")]
-pub mod nucleus_pipeline;
+pub(crate) mod nucleus_pipeline;
 pub mod pangenome_selection;
 pub mod pinn;
 pub mod primal_names;
 pub mod primitives;
 pub mod provenance;
-pub mod provenance_dispatch;
+pub(crate) mod provenance_dispatch;
 pub mod quantized;
 pub mod regulatory_network;
 pub mod rng;
@@ -171,7 +171,7 @@ pub mod surrogate;
 pub mod swarm_robotics;
 pub mod tolerances;
 #[cfg(feature = "barracuda")]
-pub mod training_monitor;
+pub(crate) mod training_monitor;
 pub mod transformer;
 pub mod validation;
 pub mod visualization;
@@ -181,16 +181,16 @@ pub mod visualization;
 )]
 pub mod wdm_ensemble_qs;
 #[cfg(feature = "barracuda")]
-pub mod wdm_esn;
+pub(crate) mod wdm_esn;
 #[cfg(feature = "barracuda")]
-pub mod wdm_sqw;
+pub(crate) mod wdm_sqw;
 #[cfg(feature = "barracuda")]
-pub mod wdm_surrogate;
+pub(crate) mod wdm_surrogate;
 #[cfg(feature = "barracuda")]
-pub mod wdm_transport;
+pub(crate) mod wdm_transport;
 pub mod weight_loader;
 #[cfg(feature = "barracuda")]
-pub mod weight_spectral;
+pub(crate) mod weight_spectral;
 
 #[cfg(feature = "primal")]
-pub mod rpc_service;
+pub(crate) mod rpc_service;

@@ -57,7 +57,14 @@ impl std::fmt::Display for PushError {
     }
 }
 
-impl std::error::Error for PushError {}
+impl std::error::Error for PushError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::ConnectionFailed(e) => Some(e),
+            _ => None,
+        }
+    }
+}
 
 /// Build JSON-RPC params for `visualization.render` (testable without socket).
 fn build_render_params(

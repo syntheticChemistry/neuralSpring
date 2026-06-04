@@ -202,6 +202,15 @@ pub enum VcfError {
     },
 }
 
+impl std::error::Error for VcfError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
 impl std::fmt::Display for VcfError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -221,8 +230,6 @@ impl std::fmt::Display for VcfError {
         }
     }
 }
-
-impl std::error::Error for VcfError {}
 
 impl From<std::io::Error> for VcfError {
     fn from(e: std::io::Error) -> Self {
