@@ -12,7 +12,6 @@
 //!
 //! Expected values: `control/ltee_citrate_esn/expected_values.json`
 
-#![expect(clippy::cast_precision_loss, reason = "LTEE data indexing")]
 
 use neural_spring::ltee_citrate_esn::{
     self, early_warning_metrics, load_citrate_esn_from_json,

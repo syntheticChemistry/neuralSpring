@@ -309,7 +309,7 @@ impl RuntimeEnvironment {
     #[must_use]
     pub fn discover() -> Self {
         Self {
-            rust_version: format!("rustc {}", env!("CARGO_PKG_RUST_VERSION", "unknown"),),
+            rust_version: format!("rustc {}", env!("CARGO_PKG_RUST_VERSION", "unknown")),
             os: std::env::consts::OS.to_owned(),
             arch: std::env::consts::ARCH.to_owned(),
             neuralspring_version: env!("CARGO_PKG_VERSION").to_owned(),

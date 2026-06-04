@@ -35,6 +35,7 @@ pub struct PrimalClient {
     timeout: Duration,
 }
 
+#[allow(deprecated)]
 impl PrimalClient {
     /// Connect to neuralSpring via capability-based socket discovery.
     ///

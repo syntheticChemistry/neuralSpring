@@ -94,6 +94,7 @@ impl CoralReefClient {
     /// `shader.compile.wgsl` capability on all sockets in the biomeOS
     /// directory.  Falls back to name-based discovery (`coralreef`) if no
     /// capability probe succeeds.
+    #[allow(deprecated)]
     pub fn discover() -> Result<Self> {
         let socket = ipc_client::discover_by_capability(
             "shader.compile.wgsl",

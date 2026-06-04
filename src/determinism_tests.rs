@@ -20,11 +20,14 @@ use crate::introgression;
 use crate::meta_population;
 use crate::pangenome_selection;
 
+#[cfg(feature = "barracuda")]
 use crate::regulatory_network::{GrnParams, integrate_grn};
 use crate::rng::Rng;
 use crate::sate_alignment;
+#[cfg(feature = "barracuda")]
 use crate::signal_integration::{OdeParams, OdeState, integrate_ode};
 use crate::spectral_commutativity;
+#[cfg(feature = "barracuda")]
 use crate::swarm_robotics;
 
 #[test]

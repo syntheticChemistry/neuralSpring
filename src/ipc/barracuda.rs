@@ -116,12 +116,12 @@ pub fn tensor_create(
     fill: &str,
     timeout: Duration,
 ) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(
+    call_capability(
         socket,
         capabilities::TENSOR_CREATE,
         &serde_json::json!({ "shape": shape, "fill": fill }),
         timeout,
-    )?)
+    )
 }
 
 /// Parsed result from `barracuda.precision.route`.

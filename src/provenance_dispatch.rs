@@ -9,6 +9,7 @@
 //!
 //! All functions are gated behind `#[cfg(feature = "primalspring")]`.
 
+#[cfg(feature = "primalspring")]
 use crate::error::IpcError;
 
 /// Store model weights via `nest.store` signal dispatch (Wave 17).

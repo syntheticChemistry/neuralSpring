@@ -11,7 +11,6 @@
 //!
 //! Expected values: `control/ltee_allele_trajectory/expected_values.json`
 
-#![expect(clippy::cast_precision_loss, reason = "LTEE data indexing")]
 
 use neural_spring::ltee_allele_trajectory::{
     self, classify_allele_fate, discretize_trajectory, esn_reservoir_step,

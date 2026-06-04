@@ -26,7 +26,7 @@ pub fn audit_log(
     payload: &serde_json::Value,
     timeout: Duration,
 ) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(
+    call_capability(
         socket,
         capabilities::SECURITY_AUDIT_LOG,
         &serde_json::json!({
@@ -36,7 +36,7 @@ pub fn audit_log(
             "timestamp": chrono_timestamp(),
         }),
         timeout,
-    )?)
+    )
 }
 
 fn chrono_timestamp() -> String {

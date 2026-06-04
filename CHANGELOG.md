@@ -5,7 +5,14 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-06-01 (Sessions 203–221: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover)
+## [Unreleased] — 2026-06-03 (Sessions 203–222: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment)
+
+### 2026-06-03 — Session S222 (Wave 76 Parity Alignment — FRAGO wave76-parity-sprint-springs)
+
+- **Parity verified** — `cargo test --workspace` passes: 848 tests (754 lib + 73 playground + 11 forge + 10 doc), 0 failures, 0 warnings. Songbird w75 push-model capability propagation absorbed — neuralSpring compositions are compatible (uses `CompositionContext::from_live_discovery_with_fallback()`, no pull-model dependencies).
+- **MCP tool parity 43/43** — Added 8 missing tool definitions to `playGround/src/mcp_tools.rs`: `science.ltee_allele_classifier`, `science.ltee_citrate_esn`, `science.eigensolve`, `science.digester_anderson_coupling`, `science.isomorphic_reservoir`, `science.wdm_ensemble_qs`, `science.introgression_nn`, `science.attention_anderson`. `tool_count_matches_capabilities` and `tool_names_match_capabilities` tests now pass.
+- **Deep debt: IPC clippy sweep** — Removed 10 `Ok(expr?)` → `expr` patterns across `ipc/{squirrel,coralreef,toadstool,skunkbat,barracuda}.rs`. Fixed `cast_sign_loss` in `ltee_allele_trajectory::discretize_trajectory`. Fixed doc backticks in LTEE struct fields. Removed unfulfilled `#[expect]` attributes from validator binaries. Fixed `sort_by_key` in forge pipeline. Resolved feature-gated import warnings (`tolerances`, `Rng`, `scenarios`, `test_gpu_lock`). Suppressed deprecated API warnings in playGround discovery clients with `#[allow(deprecated)]`.
+- **Zero `cargo test` warnings** — All unused imports feature-gated (`barracuda`, `primalspring`). `test_gpu_lock` gated behind `all(test, feature = "barracuda")`.
 
 ### 2026-06-01 — Session S221 (Wave 67 Glacial Cutover Plan — P0 Investigation)
 

@@ -22,12 +22,12 @@ pub fn shader_compile_wgsl(
     label: &str,
     timeout: Duration,
 ) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(
+    call_capability(
         socket,
         capabilities::SHADER_COMPILE_WGSL,
         &serde_json::json!({ "source": source, "label": label }),
         timeout,
-    )?)
+    )
 }
 
 /// `shader.compile.capabilities` via coralReef IPC.
@@ -36,12 +36,12 @@ pub fn shader_compile_wgsl(
 ///
 /// Returns an error if coralReef is not reachable or the IPC call fails.
 pub fn shader_capabilities(socket: &Path, timeout: Duration) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(
+    call_capability(
         socket,
         capabilities::SHADER_COMPILE_CAPABILITIES,
         &serde_json::json!({}),
         timeout,
-    )?)
+    )
 }
 
 #[cfg(test)]

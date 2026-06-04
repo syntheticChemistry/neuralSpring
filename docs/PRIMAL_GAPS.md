@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-06-01 | **Spring version:** 0.1.0 | **primalSpring:** Wave 67 (Glacial Cutover)
-> **Session:** S221 — Wave 67 Glacial Cutover Plan: Songbird security socket, biomeOS capability.call, bearDog S4 auth investigated. plasmidBin canonical launcher adopted. V177.
-> Prior: S220 Wave 55, S219 Wave 50, S218 Wave 49, S217 Wave 48, S216 southGate deployment, S215 Wave 46.
+> **Date:** 2026-06-03 | **Spring version:** 0.1.0 | **primalSpring:** Wave 76 (Parity Alignment)
+> **Session:** S222 — Wave 76 parity alignment: FRAGO wave76-parity-sprint-springs. 848 tests, 0 warnings, 0 failures. MCP 43/43. Songbird w75 push-model compatible. Deep debt sweep. V178.
+> Prior: S221 Wave 67, S220 Wave 55, S219 Wave 50, S218 Wave 49, S217 Wave 48, S216 southGate deployment, S215 Wave 46.
 
 ---
 

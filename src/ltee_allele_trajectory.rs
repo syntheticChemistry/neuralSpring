@@ -162,8 +162,8 @@ pub fn pool_features(states: &[f64], seq_len: usize, hidden_size: usize) -> Vec<
     let n = seq_len as f64;
     let mut features = Vec::with_capacity(hidden_size * 3);
 
-    for i in 0..hidden_size {
-        features.push(mean[i] / n);
+    for m_val in &mean {
+        features.push(m_val / n);
     }
     for i in 0..hidden_size {
         let m = mean[i] / n;
@@ -180,11 +180,16 @@ pub fn pool_features(states: &[f64], seq_len: usize, hidden_size: usize) -> Vec<
 
 /// Discretize a frequency trajectory into HMM observation symbols.
 #[must_use]
+#[expect(
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation,
+    reason = "f is clamped to [0, n_symbols) so the cast is safe"
+)]
 pub fn discretize_trajectory(freqs: &[f64], n_symbols: usize) -> Vec<usize> {
     freqs
         .iter()
         .map(|&f| {
-            let bin = (f * n_symbols as f64) as usize;
+            let bin = (f * n_symbols as f64).max(0.0) as usize;
             bin.min(n_symbols - 1)
         })
         .collect()
@@ -211,7 +216,7 @@ pub fn hmm_forward_posterior(
     }
     let scale: f64 = alpha[..n_states].iter().sum();
     if scale > 0.0 {
-        for a in alpha[..n_states].iter_mut() {
+        for a in &mut alpha[..n_states] {
             *a /= scale;
         }
     }
@@ -226,7 +231,7 @@ pub fn hmm_forward_posterior(
         }
         let scale: f64 = alpha[t * n_states..(t + 1) * n_states].iter().sum();
         if scale > 0.0 {
-            for a in alpha[t * n_states..(t + 1) * n_states].iter_mut() {
+            for a in &mut alpha[t * n_states..(t + 1) * n_states] {
                 *a /= scale;
             }
         }
@@ -334,23 +339,23 @@ pub fn classification_metrics(predictions: &[usize], labels: &[usize], n_classes
 /// Loaded B3 baseline with all model weights and expected values.
 #[derive(Debug, Clone)]
 pub struct AlleleTrajectoryBaseline {
-    /// LSTM input-to-hidden weights (hidden_size).
+    /// LSTM input-to-hidden weights (`hidden_size`).
     pub lstm_w_x: Vec<f64>,
-    /// LSTM hidden-to-hidden weights (hidden_size × hidden_size, row-major).
+    /// LSTM hidden-to-hidden weights (`hidden_size` x `hidden_size`, row-major).
     pub lstm_w_h: Vec<f64>,
-    /// HMM transition matrix (n_states × n_states, row-major).
+    /// HMM transition matrix (`n_states` x `n_states`, row-major).
     pub hmm_transition: Vec<f64>,
-    /// HMM emission matrix (n_states × n_symbols, row-major).
+    /// HMM emission matrix (`n_states` x `n_symbols`, row-major).
     pub hmm_emission: Vec<f64>,
     /// HMM initial state distribution.
     pub hmm_initial: Vec<f64>,
-    /// ESN input-to-reservoir weights (reservoir × input_dim, row-major).
+    /// ESN input-to-reservoir weights (`reservoir` x `input_dim`, row-major).
     pub esn_w_in: Vec<f64>,
-    /// ESN reservoir weights (reservoir × reservoir, row-major).
+    /// ESN reservoir weights (`reservoir` x `reservoir`, row-major).
     pub esn_w_res: Vec<f64>,
     /// ESN reservoir bias.
     pub esn_b_res: Vec<f64>,
-    /// ESN readout weights (reservoir × n_classes, row-major).
+    /// ESN readout weights (`reservoir` x `n_classes`, row-major).
     pub esn_w_out: Vec<f64>,
     /// Python train accuracy.
     pub train_accuracy: f64,

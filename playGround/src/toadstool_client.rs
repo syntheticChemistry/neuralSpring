@@ -127,6 +127,7 @@ impl ToadStoolClient {
     /// `compute.dispatch.submit` capability on all sockets in the biomeOS
     /// directory. Falls back to name-based discovery (`toadstool`) if no
     /// capability probe succeeds.
+    #[allow(deprecated)]
     pub fn discover() -> Result<Self> {
         let socket = ipc_client::discover_by_capability(
             "compute.dispatch.submit",

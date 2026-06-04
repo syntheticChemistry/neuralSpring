@@ -348,6 +348,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn discover_primal_falls_back_to_socket_dir() {
         let missing = std::env::temp_dir().join("ns_nonexistent_biomeos_test_dir");
         let missing_str = missing.to_str().expect("temp_dir is valid UTF-8");

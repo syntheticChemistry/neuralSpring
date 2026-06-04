@@ -153,6 +153,7 @@ pub fn thermal_diversity_correlation(pi_values: &[f64], temperatures: &[f64]) ->
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "barracuda")]
     use crate::tolerances;
 
     #[test]

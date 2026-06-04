@@ -25,7 +25,7 @@ pub struct McpToolDef {
 
 /// All neuralSpring capabilities as MCP tool definitions.
 #[must_use]
-#[expect(clippy::too_many_lines, reason = "27 tool definitions in one registry")]
+#[expect(clippy::too_many_lines, reason = "43 tool definitions in one registry")]
 pub fn tool_definitions() -> Vec<McpToolDef> {
     vec![
         McpToolDef {
@@ -199,6 +199,122 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
                           current GPU hardware profile",
             domain: "science",
             input_schema: json!({ "type": "object", "properties": {} }),
+        },
+        McpToolDef {
+            name: "science.ltee_allele_classifier",
+            description: "B3 LSTM+HMM+ESN allele classifier for LTEE citrate utilization \
+                          mutation detection across 75k generations",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "sequences": { "type": "array", "description": "Allele sequences to classify" },
+                    "generation": { "type": "integer", "description": "Optional generation context" }
+                },
+                "required": ["sequences"]
+            }),
+        },
+        McpToolDef {
+            name: "science.ltee_citrate_esn",
+            description: "B4 ESN citrate early-warning system: echo state network for \
+                          predicting citrate utilization onset from population dynamics",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "time_series": { "type": "array", "description": "Population dynamics time series" },
+                    "horizon": { "type": "integer", "description": "Prediction horizon (generations)" }
+                },
+                "required": ["time_series"]
+            }),
+        },
+        McpToolDef {
+            name: "science.eigensolve",
+            description: "GPU-accelerated eigenvalue decomposition for spectral science \
+                          pipeline: symmetric matrices via barraCuda dispatch",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "matrix": { "type": "array", "description": "Flat symmetric matrix (row-major)" },
+                    "size": { "type": "integer", "description": "Matrix dimension" }
+                },
+                "required": ["matrix", "size"]
+            }),
+        },
+        McpToolDef {
+            name: "science.digester_anderson_coupling",
+            description: "Anderson coupling digester: disorder-driven localization analysis \
+                          with configurable coupling strength for spectral pipeline",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "size": { "type": "integer", "description": "System size" },
+                    "disorder": { "type": "number", "description": "Disorder strength" },
+                    "coupling": { "type": "number", "description": "Coupling constant" }
+                },
+                "required": ["size", "disorder"]
+            }),
+        },
+        McpToolDef {
+            name: "science.isomorphic_reservoir",
+            description: "Isomorphic reservoir computing: echo state network with \
+                          topology-preserving input mapping for cross-domain transfer",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "input": { "type": "array", "description": "Input time series" },
+                    "reservoir_size": { "type": "integer", "description": "Reservoir nodes" },
+                    "spectral_radius": { "type": "number", "description": "Reservoir spectral radius" }
+                },
+                "required": ["input"]
+            }),
+        },
+        McpToolDef {
+            name: "science.wdm_ensemble_qs",
+            description: "WDM ensemble quasi-species: wavelength-division multiplexing \
+                          ensemble model for quasi-species population dynamics",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "population": { "type": "array", "description": "Initial population state" },
+                    "mutation_rate": { "type": "number", "description": "Per-site mutation rate" },
+                    "generations": { "type": "integer", "description": "Generations to simulate" }
+                },
+                "required": ["population"]
+            }),
+        },
+        McpToolDef {
+            name: "science.introgression_nn",
+            description: "Introgression neural network: detect introgressed genomic segments \
+                          using a trained classifier on population genetic features",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "features": { "type": "array", "description": "Population genetic feature vectors" },
+                    "threshold": { "type": "number", "description": "Detection threshold (0-1)" }
+                },
+                "required": ["features"]
+            }),
+        },
+        McpToolDef {
+            name: "science.attention_anderson",
+            description: "Attention-Anderson hybrid: self-attention mechanism applied to \
+                          Anderson localization eigenstates for enhanced spectral analysis",
+            domain: "science",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "eigenstates": { "type": "array", "description": "Eigenstate vectors" },
+                    "disorder": { "type": "number", "description": "Disorder strength" },
+                    "heads": { "type": "integer", "description": "Number of attention heads" }
+                },
+                "required": ["eigenstates"]
+            }),
         },
         McpToolDef {
             name: "health.liveness",
@@ -456,7 +572,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 35);
+        assert_eq!(tools.len(), 43);
     }
 
     #[test]

@@ -70,7 +70,7 @@ mod property_tests;
 /// wgpu's Vulkan backend races when multiple tests submit to the same
 /// driver concurrently. All GPU-touching tests must hold this lock.
 /// Recovers from poisoning so one GPU test panic doesn't cascade.
-#[cfg(test)]
+#[cfg(all(test, feature = "barracuda"))]
 pub(crate) mod test_gpu_lock {
     use std::sync::{Mutex, MutexGuard, OnceLock};
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -139,6 +139,10 @@ pub mod loss_landscape;
 pub mod ltee_allele_trajectory;
 pub mod ltee_citrate_esn;
 pub mod meta_population;
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "array lengths are always far below 2^52"
+)]
 pub mod metrics;
 pub mod modes;
 #[cfg(feature = "barracuda")]

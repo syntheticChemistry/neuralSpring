@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 
+#[allow(deprecated)]
 pub use crate::discovery::{
     address_env_var, discover_by_capability, discover_primal, discover_socket, ipc_timeout,
     parse_capability_list, resolve_socket_dir, socket_env_var,

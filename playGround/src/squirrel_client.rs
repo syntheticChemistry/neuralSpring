@@ -61,6 +61,7 @@ const SQUIRREL_CAPABILITY: &str = "ai.query";
 
 impl SquirrelClient {
     /// Connect to Squirrel via capability-based discovery with name fallback.
+    #[allow(deprecated)]
     pub fn discover() -> Result<Self> {
         let socket = ipc_client::discover_by_capability(
             SQUIRREL_CAPABILITY,

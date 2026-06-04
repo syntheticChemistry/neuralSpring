@@ -233,6 +233,7 @@ pub fn gru_forward(sequence: &[Vec<f64>], w: &GruWeights<'_>) -> Vec<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "barracuda")]
     use crate::tolerances;
     use approx::assert_relative_eq;
 

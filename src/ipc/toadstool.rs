@@ -21,7 +21,7 @@ pub fn compute_dispatch(
     params: &serde_json::Value,
     timeout: Duration,
 ) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(socket, capabilities::COMPUTE_DISPATCH, params, timeout)?)
+    call_capability(socket, capabilities::COMPUTE_DISPATCH, params, timeout)
 }
 
 /// Pre-flight validation result from `toadstool.validate`.
@@ -97,7 +97,7 @@ pub fn list_workloads(
     socket: &Path,
     timeout: Duration,
 ) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(socket, capabilities::TOADSTOOL_LIST_WORKLOADS, &serde_json::json!({}), timeout)?)
+    call_capability(socket, capabilities::TOADSTOOL_LIST_WORKLOADS, &serde_json::json!({}), timeout)
 }
 
 /// Structured workload for typed compute dispatch.
@@ -175,7 +175,7 @@ pub fn compute_dispatch_pipeline(
             .collect::<Vec<_>>(),
         "mode": "pipeline_batch",
     });
-    Ok(call_capability(socket, capabilities::COMPUTE_DISPATCH, &params, timeout)?)
+    call_capability(socket, capabilities::COMPUTE_DISPATCH, &params, timeout)
 }
 
 #[cfg(test)]

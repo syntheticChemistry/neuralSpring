@@ -30,6 +30,7 @@ pub struct SongbirdHttp {
 
 impl SongbirdHttp {
     /// Discover Songbird via capability-based resolution.
+    #[allow(deprecated)]
     pub fn discover() -> Result<Self> {
         let socket = ipc_client::discover_by_capability(HTTP_CAPABILITY, primal_names::SONGBIRD)
             .context("discovering Songbird (http.request capability)")?;

@@ -169,9 +169,9 @@ pub fn generate_trajectory(rng: &mut Rng, has_potentiation: bool) -> (Vec<f64>, 
 /// ESN predictor for citrate early-warning detection.
 #[derive(Debug, Clone)]
 pub struct CitrateEsnPredictor {
-    /// Input-to-reservoir weight matrix (reservoir_size × input_dim, flattened).
+    /// Input-to-reservoir weight matrix (`reservoir_size` x `input_dim`, flattened).
     pub w_in: Vec<f64>,
-    /// Reservoir recurrent weight matrix (reservoir_size × reservoir_size, flattened).
+    /// Reservoir recurrent weight matrix (`reservoir_size` x `reservoir_size`, flattened).
     pub w_res: Vec<f64>,
     /// Reservoir bias vector.
     pub b_res: Vec<f64>,

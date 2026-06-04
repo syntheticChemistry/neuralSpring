@@ -389,6 +389,7 @@ impl PetalTonguePushClient {
 #[expect(clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;
+    #[cfg(feature = "barracuda")]
     use crate::visualization::scenarios;
 
     #[test]

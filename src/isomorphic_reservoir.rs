@@ -279,6 +279,7 @@ pub fn load_isomorphic_from_json(json_str: &str) -> Result<IsomorphicBaseline, S
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "barracuda")]
     use super::*;
 
     #[test]

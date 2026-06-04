@@ -82,6 +82,7 @@ pub fn mantel_test(
 )]
 mod tests {
     use super::*;
+    #[cfg(feature = "barracuda")]
     use crate::rng::Rng;
     use crate::tolerances;
 

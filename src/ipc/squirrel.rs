@@ -21,7 +21,7 @@ pub fn inference_complete(
     params: &serde_json::Value,
     timeout: Duration,
 ) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(socket, capabilities::INFERENCE_COMPLETE, params, timeout)?)
+    call_capability(socket, capabilities::INFERENCE_COMPLETE, params, timeout)
 }
 
 /// `inference.embed` via Squirrel IPC.
@@ -34,7 +34,7 @@ pub fn inference_embed(
     params: &serde_json::Value,
     timeout: Duration,
 ) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(socket, capabilities::INFERENCE_EMBED, params, timeout)?)
+    call_capability(socket, capabilities::INFERENCE_EMBED, params, timeout)
 }
 
 /// `inference.models` via Squirrel IPC.
@@ -43,7 +43,7 @@ pub fn inference_embed(
 ///
 /// Returns an error if Squirrel is not reachable or the IPC call fails.
 pub fn inference_models(socket: &Path, timeout: Duration) -> Result<serde_json::Value, IpcError> {
-    Ok(call_capability(socket, capabilities::INFERENCE_MODELS, &serde_json::json!({}), timeout)?)
+    call_capability(socket, capabilities::INFERENCE_MODELS, &serde_json::json!({}), timeout)
 }
 
 #[cfg(test)]

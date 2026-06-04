@@ -327,7 +327,7 @@ impl WorkloadQueue {
             return;
         }
 
-        self.workloads.sort_by(|a, b| b.priority.cmp(&a.priority));
+        self.workloads.sort_by_key(|w| std::cmp::Reverse(w.priority));
 
         let raw = self.device.device();
         let mut encoder = raw.create_command_encoder(&wgpu::CommandEncoderDescriptor {
