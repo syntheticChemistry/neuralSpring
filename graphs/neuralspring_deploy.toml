@@ -433,7 +433,7 @@ name = "capability_call"
 
 [nodes.operation.params]
 capability = "provenance.session_create"
-params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S200b", family_id = "neuralspring" }
+params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S224", family_id = "neuralspring" }
 
 [nodes.constraints]
 timeout_ms = 10000

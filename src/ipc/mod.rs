@@ -8,9 +8,9 @@
 //!
 //! | Module       | Primal       | Capabilities |
 //! |--------------|--------------|--------------|
-//! | [`barracuda`] | barraCuda   | `stats.*`, `tensor.*`, `barracuda.precision.route` |
+//! | [`barracuda`] | barraCuda   | `stats.*`, `tensor.*`, `barracuda.precision.route`, `ml.mlp_infer` |
 //! | [`toadstool`] | toadStool   | `compute.dispatch`, `toadstool.validate`, `toadstool.list_workloads` |
-//! | [`beardog`]   | `BearDog`   | `crypto.hash` |
+//! | [`beardog`]   | `BearDog`   | `crypto.hash`, `crypto.btsp_handshake` |
 //! | [`squirrel`]  | Squirrel    | `inference.*` |
 //! | [`coralreef`] | coralReef   | `shader.compile.*` |
 //! | [`skunkbat`]  | skunkBat    | `security.audit_log` |
@@ -77,6 +77,10 @@ const CAPABILITY_HINTS: &[(&str, &str)] = &[
     (capabilities::CONTENT_PUT, primal_names::NESTGATE),
     (capabilities::CONTENT_GET, primal_names::NESTGATE),
     (capabilities::CONTENT_EXISTS, primal_names::NESTGATE),
+    (capabilities::ML_MLP_INFER, primal_names::BARRACUDA),
+    (capabilities::DISCOVERY_PEERS, primal_names::SONGBIRD),
+    (capabilities::MESH_INIT, primal_names::SONGBIRD),
+    (capabilities::CRYPTO_BTSP_HANDSHAKE, primal_names::BEARDOG),
 ];
 
 /// Routes capability requests to discovered primal sockets.
