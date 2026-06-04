@@ -252,3 +252,25 @@ stability = "evolving"
 method = "security.audit_log"
 description = "skunkBat JH-5 audit log forwarding: cross-primal audit events to rhizoCrypt DAG + sweetGrass braid"
 stability = "evolving"
+
+# ── cross-gate dispatch (Wave 77 — mesh + trust + ML routing) ──
+
+[capabilities.ml_mlp_infer]
+method = "ml.mlp_infer"
+description = "barraCuda MLP forward inference via IPC — supports cross-gate dispatch through Songbird mesh"
+stability = "experimental"
+
+[capabilities.discovery_peers]
+method = "discovery.peers"
+description = "Songbird mesh peer discovery: query known peers and cross-gate topology"
+stability = "experimental"
+
+[capabilities.mesh_init]
+method = "mesh.init"
+description = "Songbird mesh initialization: join or create mesh network with bootstrap peers"
+stability = "experimental"
+
+[capabilities.crypto_btsp_handshake]
+method = "crypto.btsp_handshake"
+description = "BearDog BTSP cross-gate trust handshake: Ed25519 challenge-response verification"
+stability = "experimental"

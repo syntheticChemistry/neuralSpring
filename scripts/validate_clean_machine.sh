@@ -98,11 +98,8 @@ run_validator() {
     if [ -z "$binary" ] && [ -f "${ECOPRIMALS_ROOT:-$PROJECT_DIR/../..}/infra/plasmidBin/bin/${bin_name}" ]; then
         binary="${ECOPRIMALS_ROOT:-$PROJECT_DIR/../..}/infra/plasmidBin/bin/${bin_name}"
     fi
-    if [ -z "$binary" ] && [ -f "${PROJECT_DIR}/target/release/${bin_name}" ]; then
-        binary="${PROJECT_DIR}/target/release/${bin_name}"
-    fi
-    if [ -z "$binary" ] && [ -f "${PROJECT_DIR}/target/debug/${bin_name}" ]; then
-        binary="${PROJECT_DIR}/target/debug/${bin_name}"
+    if [ -z "$binary" ]; then
+        echo >&2 "  WARN: '$bin_name' not in PATH or plasmidBin — run: plasmidbin install $bin_name"
     fi
     if [ -z "$binary" ]; then
         echo "  SKIP ${name}: binary not found (${bin_name})"

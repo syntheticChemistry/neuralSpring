@@ -18,6 +18,7 @@
 pub mod registry;
 mod s_composition_evolution;
 mod s_compute_dispatch;
+mod s_cross_gate_dispatch;
 mod s_inference_composition;
 mod s_nest_commit;
 mod s_nucleus_composition;
@@ -43,6 +44,7 @@ pub fn build_registry() -> ScenarioRegistry {
         s_nest_commit::SCENARIO,
         s_schema_standard::SCENARIO,
         s_gpu_parity::SCENARIO,
+        s_cross_gate_dispatch::SCENARIO,
     ])
 }
 
@@ -51,9 +53,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn registry_has_10_scenarios() {
+    fn registry_has_11_scenarios() {
         let reg = build_registry();
-        assert_eq!(reg.len(), 10);
+        assert_eq!(reg.len(), 11);
     }
 
     #[test]
@@ -80,6 +82,8 @@ mod tests {
             nucleus.len() >= 2,
             "should have nucleus_composition + nucleus_tower + compute_dispatch"
         );
+        let cross_gate = reg.by_track(Track::CrossGate);
+        assert_eq!(cross_gate.len(), 1, "should have cross_gate_dispatch");
     }
 
     #[test]

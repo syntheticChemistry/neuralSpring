@@ -101,6 +101,20 @@ pub const PROVENANCE_COMPLETE: &str = "provenance.complete";
 /// Provenance status query.
 pub const PROVENANCE_STATUS: &str = "provenance.status";
 
+// ─── barraCuda ML pipeline (cross-gate dispatch) ────────────────
+/// MLP inference via barraCuda IPC.
+pub const ML_MLP_INFER: &str = "ml.mlp_infer";
+
+// ─── Songbird mesh surface ──────────────────────────────────────
+/// Mesh peer discovery (Songbird).
+pub const DISCOVERY_PEERS: &str = "discovery.peers";
+/// Mesh initialization (Songbird).
+pub const MESH_INIT: &str = "mesh.init";
+
+// ─── BearDog trust surface ──────────────────────────────────────
+/// BTSP trust handshake.
+pub const CRYPTO_BTSP_HANDSHAKE: &str = "crypto.btsp_handshake";
+
 // ─── Cross-primal ───────────────────────────────────────────────
 /// Forward a request to another primal.
 pub const PRIMAL_FORWARD: &str = "primal.forward";
@@ -128,6 +142,9 @@ mod tests {
             COMPOSITION_STATUS, METHOD_REGISTER,
             PROVENANCE_BEGIN, PROVENANCE_RECORD, PROVENANCE_COMPLETE, PROVENANCE_STATUS,
             PRIMAL_FORWARD, PRIMAL_DISCOVER,
+            ML_MLP_INFER,
+            DISCOVERY_PEERS, MESH_INIT,
+            CRYPTO_BTSP_HANDSHAKE,
         ];
         for cap in caps {
             assert!(cap.contains('.'), "{cap} must use dotted notation");

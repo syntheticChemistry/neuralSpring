@@ -62,7 +62,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V172 handoff (current, Session S216 — southGate deployment, post-primordial covalent gate) |
+| wateringHole/handoffs/ | `../wateringHole/` | V179 handoff (current, Session S223 — deep debt evolution, capability-first discovery) |
 
 ---
 

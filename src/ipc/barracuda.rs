@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! barraCuda IPC surface — tensor lifecycle, core math, ML ops, and
-//! precision routing.
+//! barraCuda IPC surface — tensor lifecycle, core math, ML inference,
+//! and precision routing.
 //!
 //! Methods: `stats.mean`, `stats.std_dev`, `stats.weighted_mean`,
-//! `tensor.matmul`, `tensor.create`, `barracuda.precision.route`.
+//! `tensor.matmul`, `tensor.create`, `barracuda.precision.route`,
+//! `ml.mlp_infer`.
 
 use std::path::Path;
 use std::time::Duration;
@@ -196,6 +197,43 @@ pub fn precision_route(
     Ok(PrecisionRouteResult::from_value(&result))
 }
 
+/// `ml.mlp_infer` via barraCuda IPC — MLP forward pass.
+///
+/// Sends input data and layer specifications (weights, biases, dimensions)
+/// to barraCuda for a full MLP forward inference. This capability enables
+/// cross-gate dispatch: a neuralSpring on one gate can route MLP inference
+/// to a barraCuda instance on another gate via Songbird mesh.
+///
+/// # Errors
+///
+/// Returns an error if barraCuda is not reachable or the response is malformed.
+pub fn ml_mlp_infer(
+    socket: &Path,
+    input: &[f64],
+    input_dim: usize,
+    hidden_dims: &[usize],
+    output_dim: usize,
+    timeout: Duration,
+) -> Result<Vec<f64>, IpcError> {
+    let result = call_capability(
+        socket,
+        capabilities::ML_MLP_INFER,
+        &serde_json::json!({
+            "input": input,
+            "input_dim": input_dim,
+            "hidden_dims": hidden_dims,
+            "output_dim": output_dim,
+        }),
+        timeout,
+    )?;
+    super::extract_f64_array(&result, &["output", "data", "result"]).ok_or_else(|| {
+        IpcError::Protocol {
+            capability: capabilities::ML_MLP_INFER.into(),
+            reason: "response missing output array".into(),
+        }
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -261,6 +299,19 @@ mod tests {
         assert!(!r.requires_compiler);
         assert_eq!(r.hardware_hint, "");
         assert!(r.rationale.is_none());
+    }
+
+    #[test]
+    fn ml_mlp_infer_returns_err_for_nonexistent_socket() {
+        let result = ml_mlp_infer(
+            Path::new(FAKE_SOCKET),
+            &[1.0, 2.0, 3.0],
+            3,
+            &[4],
+            2,
+            TIMEOUT,
+        );
+        assert!(result.is_err());
     }
 
     #[test]

@@ -227,6 +227,13 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "primal.announce",
     // Security audit (skunkBat JH-5 forwarding)
     "security.audit_log",
+    // barraCuda ML pipeline (cross-gate dispatch)
+    "ml.mlp_infer",
+    // Songbird mesh surface (cross-gate topology)
+    "discovery.peers",
+    "mesh.init",
+    // BearDog trust surface (cross-gate BTSP)
+    "crypto.btsp_handshake",
 ];
 
 #[cfg(test)]
@@ -325,6 +332,10 @@ mod tests {
             "primal.discover",
             "composition.status",
             "method.register",
+            "ml.",
+            "discovery.",
+            "mesh.",
+            "crypto.btsp",
         ];
 
         let mut shared_count = 0u32;

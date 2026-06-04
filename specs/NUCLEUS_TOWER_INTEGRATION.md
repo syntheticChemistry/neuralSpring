@@ -155,7 +155,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=%h/Development/ecoPrimals/neuralSpring/target/release/neuralspring_primal
+ExecStart=%h/.local/bin/neuralspring_primal
 Environment=RUST_LOG=info
 Environment=FAMILY_ID=eastgate
 Restart=on-failure

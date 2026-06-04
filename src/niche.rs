@@ -117,6 +117,11 @@ pub const CAPABILITIES: &[&str] = &[
     "primal.announce",
     // ── Security audit (skunkBat JH-5 forwarding) ──
     "security.audit_log",
+    // ── Cross-gate dispatch (Wave 77 — ML, mesh, trust) ──
+    "ml.mlp_infer",
+    "discovery.peers",
+    "mesh.init",
+    "crypto.btsp_handshake",
 ];
 
 /// Operation dependency hints for biomeOS Pathway Learner parallelization.
@@ -157,6 +162,10 @@ pub fn operation_dependencies() -> serde_json::Value {
         "health.check":        [],
         "identity.get":        [],
         "mcp.tools.list":      [],
+        "ml.mlp_infer":        ["input", "input_dim", "hidden_dims", "output_dim"],
+        "discovery.peers":     [],
+        "mesh.init":           ["node_id"],
+        "crypto.btsp_handshake": ["peer_id", "challenge"],
     })
 }
 

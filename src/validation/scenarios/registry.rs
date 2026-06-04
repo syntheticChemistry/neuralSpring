@@ -41,6 +41,8 @@ pub enum Track {
     GpuParity,
     /// Cross-spring integration.
     CrossSpring,
+    /// Cross-gate dispatch (mesh, trust, remote capability routing).
+    CrossGate,
     /// Provenance and lineage.
     Provenance,
     /// Signal API adoption (Wave 17).
@@ -55,6 +57,7 @@ impl fmt::Display for Track {
             Self::InferencePipeline => write!(f, "inference-pipeline"),
             Self::GpuParity => write!(f, "gpu-parity"),
             Self::CrossSpring => write!(f, "cross-spring"),
+            Self::CrossGate => write!(f, "cross-gate"),
             Self::Provenance => write!(f, "provenance"),
             Self::Signal => write!(f, "signal"),
         }
@@ -174,6 +177,7 @@ mod tests {
             format!("{}", Track::NucleusComposition),
             "nucleus-composition"
         );
+        assert_eq!(format!("{}", Track::CrossGate), "cross-gate");
     }
 
     #[test]

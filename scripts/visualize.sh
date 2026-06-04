@@ -19,14 +19,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Binary discovery: prefer plasmidBin/PATH, fall back to target/release/
+# Binary discovery: PATH then plasmidBin — no target/release fallback.
 find_binary() {
     local name="$1"
     local bin
     bin="$(command -v "$name" 2>/dev/null || true)"
     [ -n "$bin" ] && echo "$bin" && return
-    [ -f "${ECOPRIMALS_ROOT:-$PROJECT_ROOT/../..}/infra/plasmidBin/bin/$name" ] && echo "${ECOPRIMALS_ROOT:-$PROJECT_ROOT/../..}/infra/plasmidBin/bin/$name" && return
-    echo "$PROJECT_ROOT/target/release/$name"
+    local pb="${ECOPRIMALS_ROOT:-$PROJECT_ROOT/../..}/infra/plasmidBin/bin/$name"
+    [ -f "$pb" ] && echo "$pb" && return
+    echo >&2 "ERROR: binary '$name' not found in PATH or plasmidBin. Run: plasmidbin install $name"
+    return 1
 }
 ECO_ROOT="$(cd "$PROJECT_ROOT/../.." && pwd)"
 SCENARIO_DIR="$PROJECT_ROOT/sandbox/scenarios"

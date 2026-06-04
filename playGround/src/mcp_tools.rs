@@ -551,6 +551,67 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
                 }
             }),
         },
+        // ── barraCuda ML pipeline (cross-gate dispatch) ──────────────
+        McpToolDef {
+            name: "ml.mlp_infer",
+            description: "barraCuda MLP forward inference: routes input through a multi-layer \
+                          perceptron via IPC. Supports cross-gate dispatch through Songbird mesh \
+                          capability routing.",
+            domain: "ml",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "input": { "type": "array", "items": { "type": "number" }, "description": "Input vector" },
+                    "input_dim": { "type": "integer", "description": "Input dimension" },
+                    "hidden_dims": { "type": "array", "items": { "type": "integer" }, "description": "Hidden layer dimensions" },
+                    "output_dim": { "type": "integer", "description": "Output dimension" }
+                },
+                "required": ["input", "input_dim", "hidden_dims", "output_dim"]
+            }),
+        },
+        // ── Songbird mesh (cross-gate topology) ──────────────────────
+        McpToolDef {
+            name: "discovery.peers",
+            description: "Songbird mesh peer discovery: query the mesh for known peers, their \
+                          capabilities, and connectivity status. Enables cross-gate dispatch routing.",
+            domain: "discovery",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "filter": { "type": "string", "description": "Optional capability filter (e.g. 'ml.*')" }
+                }
+            }),
+        },
+        McpToolDef {
+            name: "mesh.init",
+            description: "Songbird mesh initialization: join or create a mesh network with \
+                          bootstrap peers. Required for cross-gate capability routing.",
+            domain: "mesh",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "node_id": { "type": "string", "description": "This node's mesh identity" },
+                    "bootstrap_peers": { "type": "array", "items": { "type": "string" }, "description": "Peer addresses (name@host:port)" },
+                    "dry_run": { "type": "boolean", "description": "If true, validate config without joining" }
+                },
+                "required": ["node_id"]
+            }),
+        },
+        // ── BearDog trust (cross-gate BTSP) ──────────────────────────
+        McpToolDef {
+            name: "crypto.btsp_handshake",
+            description: "BearDog BTSP trust handshake: initiate or respond to a cross-gate \
+                          trust verification using the BTSP protocol (Ed25519 + challenge-response).",
+            domain: "crypto",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "peer_id": { "type": "string", "description": "Remote gate/primal identity" },
+                    "challenge": { "type": "string", "description": "Challenge nonce for verification" }
+                },
+                "required": ["peer_id", "challenge"]
+            }),
+        },
     ]
 }
 
@@ -572,7 +633,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 43);
+        assert_eq!(tools.len(), 47);
     }
 
     #[test]
@@ -602,6 +663,10 @@ mod tests {
             "composition",
             "method",
             "security",
+            "ml",
+            "discovery",
+            "mesh",
+            "crypto",
         ];
         for tool in tool_definitions() {
             assert!(

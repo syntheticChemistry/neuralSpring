@@ -5,7 +5,18 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-06-03 (Sessions 203–223: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment + deep debt evolution)
+## [Unreleased] — 2026-06-04 (Sessions 203–224: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment + deep debt evolution + forward evolution)
+
+### 2026-06-04 — Session S224 (Forward Evolution — Cross-Gate Dispatch, MCP Expansion, ML IPC, Deep Debt)
+
+- **Cross-gate dispatch scenario** — New `s_cross_gate_dispatch` validation scenario (12 checks): mesh discovery, BTSP trust handshake, ML capability routing via Songbird. `CrossGate` track added. 11 scenarios total.
+- **ML IPC wiring** — `ml.mlp_infer` capability added to barraCuda IPC surface with `ml_mlp_infer()` function for cross-gate MLP forward inference.
+- **Mesh + trust IPC** — `discovery.peers`, `mesh.init` (Songbird), `crypto.btsp_handshake` (BearDog) wired into capability hints and IPC router (24 hints total).
+- **MCP tools expanded** — 43→47 MCP tool definitions: `ml.mlp_infer`, `discovery.peers`, `mesh.init`, `crypto.btsp_handshake`. 4 new domains (ml, discovery, mesh, crypto).
+- **Capability surface expanded** — 43→47 capabilities in `ALL_CAPABILITIES`, niche, and `capability_registry.toml`. New capabilities marked `experimental` stability.
+- **target/release hardcodes eliminated** — `scripts/visualize.sh` and `scripts/validate_clean_machine.sh` no longer fall back to `target/release/` or `target/debug/`. Error with plasmidBin install guidance. `specs/NUCLEUS_TOWER_INTEGRATION.md` systemd example updated.
+- **Session stamps reconciled** — 10+ remaining docs updated from stale S209-S216 stamps to S224 (whitePaper/*, notebooks/*, docs/FOUNDATION_SEEDING, sporeprint footer, deploy graph provenance).
+- 932 workspace tests (756 lib + 11 integration + 73 forge + 80 playGround + 12 exp094), 0 failures, 0 clippy warnings.
 
 ### 2026-06-03 — Session S223 (Deep Debt Evolution — Production Stubs, Capability Discovery, Error Typing, Visibility)
 
