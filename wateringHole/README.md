@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V178 — Session S222
+### V179 — Session S223
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V178** | `handoffs/NEURALSPRING_V178_WAVE76_PARITY_ALIGNMENT_JUN03_2026.md` | Jun 3, 2026 | Wave 76 parity alignment: FRAGO wave76-parity-sprint-springs. 848 tests, 0 warnings, 0 failures. MCP 43/43. Songbird w75 push-model compatible. Deep debt sweep. V178. |
+| **V179** | `handoffs/NEURALSPRING_V179_DEEP_DEBT_EVOLUTION_JUN03_2026.md` | Jun 3, 2026 | Deep debt evolution: production stubs → real IPC, capability-first discovery, error typing, visibility tightening, dead code removal. 930 tests, 0 warnings. V179. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V177 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V178 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

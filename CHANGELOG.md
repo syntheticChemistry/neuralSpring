@@ -767,7 +767,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - 0 clippy warnings (pedantic+nursery+cast lints, workspace-wide)
 - 0 fmt diffs, 0 doc warnings, 0 unsafe, 0 C deps
 
-## [Unreleased] — 2026-03-18 (Session 168: Deep Debt Execution + Ecosystem Handoff)
+## [V120] — 2026-03-18 (Session 168: Deep Debt Execution + Ecosystem Handoff)
 
 ### Added
 
@@ -811,7 +811,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - 0 clippy warnings (pedantic+nursery, workspace-wide including tests)
 - 0 fmt diffs, 0 doc warnings, 0 unsafe, 0 C deps
 
-## [Unreleased] — 2026-03-18 (Session 167: Deep Audit + Ecosystem Evolution)
+## [V119] — 2026-03-18 (Session 167: Deep Audit + Ecosystem Evolution)
 
 ### Added
 
@@ -848,7 +848,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - 0 fmt diffs, 0 doc warnings
 - All pre-existing CI gates green
 
-## [Unreleased] — Session 166 (March 17, 2026)
+## [V117] — Session 166 (March 17, 2026)
 
 ### Session 166 — Doc Evolution, V117 Handoff, Archive Sweep (2026-03-17)
 

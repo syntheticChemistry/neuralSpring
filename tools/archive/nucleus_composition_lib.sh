@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
+# FOSSIL: Superseded by infra/plasmidBin/nucleus_launcher.sh (Wave 63+)
 # nucleus_composition_lib.sh — Reusable NUCLEUS composition wiring
 #
 # Source this library from a domain-specific composition script to get:

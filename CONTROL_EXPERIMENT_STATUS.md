@@ -1,6 +1,6 @@
 # neuralSpring — Control Experiment Status
 
-**Last updated**: Jun 1, 2026 (Session S221 — Wave 67 glacial cutover P0 investigation. plasmidBin canonical launcher. 10 validation scenarios. 45 capabilities. 754 lib tests. guideStone 30/37 PASS. V177 handoff.)
+**Last updated**: Jun 3, 2026 (Session S223 — Deep debt evolution: production stubs → real IPC, capability-first discovery, error typing, visibility. 930 workspace tests. V179 handoff.)
 **Gate**: southGate (Ryzen 7 5800X3D, 128GB DDR4, Pop!_OS 22.04)
 **Python**: 3.10.12, PyTorch 2.9.0+cu128, NumPy 2.2.6, SciPy 1.15.3
 **Rust**: Edition 2024 (MSRV 1.87), clippy pedantic + nursery, unsafe_code=forbid

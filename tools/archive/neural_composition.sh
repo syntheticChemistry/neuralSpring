@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
+# FOSSIL: Superseded by infra/plasmidBin/nucleus_launcher.sh (Wave 63+)
 # neural_composition.sh — Agent-Driven Composition + AI Feedback Loops
 #
 # neuralSpring's assigned exploration lane (Phase 46): Squirrel-mediated

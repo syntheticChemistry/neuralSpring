@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
+# FOSSIL: Superseded by infra/plasmidBin/nucleus_launcher.sh (Wave 63+)
 # composition_template.sh — Minimal NUCLEUS composition starter
 #
 # Copy this file to your spring and fill in the domain hooks.

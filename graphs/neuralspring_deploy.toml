@@ -19,7 +19,7 @@
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# STATUS: V177 / S221 (Jun 1, 2026) — Wave 67 glacial cutover: P0 blockers investigated (Songbird security socket, biomeOS capability.call, bearDog S4). plasmidBin canonical launcher adopted.
+# STATUS: V179 / S223 (Jun 3, 2026) — Deep debt evolution: production stubs → real IPC, capability-first discovery, error typing, visibility tightening, dead code removal. 930 workspace tests.
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 

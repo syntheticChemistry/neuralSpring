@@ -1,8 +1,8 @@
 # neuralSpring — Deprecation & Migration Guide
 
-**Date**: Jun 1, 2026 (Sessions 44–S221)
+**Date**: Jun 3, 2026 (Sessions 44–S223)
 **barraCuda**: v0.4.0 (optional, IPC-first `default = []`).
-**Status**: Migration complete — deprecated modules fossilized, gpu_dispatch active (47 ops, ~97% GPU). `ipc_dispatch` removed (400 LOC, replaced by `IpcError` typed hierarchy). 269 binaries (241 require-features gated), 930 workspace tests (754 lib, IPC-first), 0 clippy. Wave 17 + Wave 20 signal API adopted (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). Live composition via `execute_graph_live()`. Deep debt zero-debt (6 audits). V176 handoff.
+**Status**: Migration complete — deprecated modules fossilized, gpu_dispatch active (47 ops, ~97% GPU). `ipc_dispatch` removed (400 LOC, replaced by `IpcError` typed hierarchy). 269 binaries (241 require-features gated), 930 workspace tests (754 lib, IPC-first), 0 clippy. Wave 17 + Wave 20 signal API adopted (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). Live composition via `execute_graph_live()`. Deep debt zero-debt (7 audits). V179 handoff.
 **S130**: `PrecisionRoutingAdvice` wired, fused GPU regression gated, coralNAK→coralReef rename.
 **S121**: `MlpLayer` struct removed from `wdm_surrogate.rs` and `wdm_transport.rs` — replaced by `barracuda::nn::SimpleMlp` with `DenseLayer` format. `hmm_viterbi_chain_gpu` per-step f32 Tensor loop replaced by single f64 `barracuda::ops::bio::hmm_viterbi` dispatch.
 
