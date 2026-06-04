@@ -57,7 +57,7 @@ Forty-five capabilities (`domain.verb`) when composed in biomeOS:
 
 ## Test Coverage
 
-CI-enforced **~92%** line coverage (`llvm-cov`). **754 lib + 11 integration + 73 forge + 80 playGround + 12 exp094 = 930 workspace tests (IPC-first)** + 19 certification tests (guidestone feature). Suite includes unit tests, property tests (24 proptest), determinism tests, doc tests, integration tests, provenance integrity tests, and 8 composition validators. `ValidationSink` for machine-readable CI output. **guideStone Level 5** (29/29 bare ALL PASS, L4 composition + L5 cross-spring when NUCLEUS live). 8 paper notebooks (72/72 checks, 2 faculties). 233+ named tolerances. Session S223 (Jun 3, 2026).
+CI-enforced **~92%** line coverage (`llvm-cov`). **754 lib + 11 integration + 73 forge + 80 playGround + 12 exp094 = 930 workspace tests (IPC-first)** + 19 certification tests (guidestone feature). Suite includes unit tests, property tests (24 proptest), determinism tests, doc tests, integration tests, provenance integrity tests, and 8 composition validators. `ValidationSink` for machine-readable CI output. **guideStone Level 5** (29/29 bare ALL PASS, L4 composition + L5 cross-spring when NUCLEUS live). 8 paper notebooks (72/72 checks, 2 faculties). 233+ named tolerances. Session S218 (May 25, 2026).
 
 ## What This Does NOT Do
 
@@ -93,10 +93,10 @@ Layer 5: Eukaryotic UniBin → certification organelle → validation scenarios 
 | **Composition** | Full NUCLEUS (13 primals), Node Atomic profile |
 | **Federation** | Songbird TCP port 7700 (opt-in via `SONGBIRD_FEDERATION_PORT`) |
 | **Co-tenants** | wetSpring |
-| **NUCLEUS launcher** | `plasmidBin/nucleus_launcher.sh --family-id southgate --peers <eastGate>:7700` |
+| **NUCLEUS launcher** | `./tools/composition_nucleus.sh start` |
 | **Cell graph** | `plasmidBin/cells/neuralspring_cell.toml` |
-| **Deployment status** | Operational — 10/10 started, 6/10 HEALTHY (nucleus composition). P0 blockers deployed (S221), deep debt evolution (S223) |
-| **Launch** | `cd plasmidBin && ./nucleus_launcher.sh --family-id southgate --composition nucleus --peers 192.168.1.144:7700` |
+| **Deployment status** | Operational — 9/13 UDS, 2 TCP/abstract, 2 upstream failures (S218) |
+| **Launch** | `SONGBIRD_FEDERATION_PORT=7700 ./tools/composition_nucleus.sh start` then `./tools/cell_launcher.sh neuralspring start` |
 
 ## Design Philosophy
 
