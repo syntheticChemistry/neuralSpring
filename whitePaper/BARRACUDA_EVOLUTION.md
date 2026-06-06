@@ -1,6 +1,6 @@
 # BarraCUDA Shader Evolution for ML Inference
 
-**Date**: May 19, 2026 (Sessions 40–213 — S213: lithoSpore Audit Absorption; GPU parity framing as cross-tier parity. 6/6 GPU dispatch. 269 binaries, 754 workspace tests (IPC-first). barraCuda v0.4.0, 25 absorbed workloads, V169 handoff)
+**Date**: May 19, 2026 (Sessions 40–225 — S225: Wave 82c, domain profile, 47-cap surface. 6/6 GPU dispatch. 932 workspace tests (IPC-first). barraCuda v0.4.0, 25 absorbed workloads)
 **Gate**: Eastgate (i9-12900K, 32 GB DDR5, RTX 4070 12 GB + TITAN V 12 GB NVK)
 **Methodology**: Python control → Rust validation → WGSL shader evolution → multi-GPU portability
 

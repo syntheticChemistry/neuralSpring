@@ -1,10 +1,10 @@
 # NUCLEUS Tower Mode Integration Plan
 
-**Date**: February 28, 2026 (updated March 8, 2026 — S132)
+**Date**: February 28, 2026 (updated Jun 6, 2026 — S225)
 **Purpose**: Wire neuralSpring into biomeOS NUCLEUS local Tower mode
-**Current State**: `neuralspring_primal/` (multi-file binary) with **14 science capabilities**,
-JSON-RPC 2.0 over Unix sockets, biomeOS 5-tier socket resolution, live on Eastgate
-RTX 4070 (NVIDIA Vulkan, Hybrid f64, PCIe 4.0 x16)
+**Current State**: `neuralspring_primal/` (multi-file binary) with **47 capabilities**,
+JSON-RPC 2.0 over Unix sockets, biomeOS 5-tier socket resolution, capability-first
+discovery, 13/13 VPS-ready
 **Target**: Full Tower mode on Eastgate — automated startup, health monitoring,
 capability registration with biomeOS discovery, cross-primal communication
 
@@ -24,7 +24,7 @@ capability registration with biomeOS discovery, cross-primal communication
 | Family ID support | Implemented | `FAMILY_ID` / `BIOMEOS_FAMILY_ID` |
 | Feature gate | Implemented | `--features primal` |
 
-### Current Capabilities (14 methods — S132)
+### Current Capabilities (47 methods — S225; original 14 science methods shown below)
 
 | Method | Module | Compute Profile |
 |--------|--------|----------------|

@@ -1,6 +1,6 @@
 # Ecosystem Leverage Guide — neuralSpring
 
-**Last Updated**: March 24, 2026 (Session S175 — deep audit execution; barraCuda pin v0.3.7)
+**Last Updated**: Jun 6, 2026 (Session S225 — Wave 82c, capability-first discovery, 47-cap surface; barraCuda v0.4.0)
 **Purpose**: Map what neuralSpring absorbs from the ecoPrimals ecosystem and how other
 components can compose with neuralSpring.
 

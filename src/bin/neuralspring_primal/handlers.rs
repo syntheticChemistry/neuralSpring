@@ -8,6 +8,7 @@ use super::{PRIMAL_NAME, PrimalState};
 
 use neural_spring::config::ALL_CAPABILITIES;
 use neural_spring::niche;
+use neural_spring::primal_names;
 
 /// Kubernetes-style liveness probe: is the process alive and able to
 /// handle requests?  Returns `{"status": "alive"}` per Semantic Method
@@ -239,12 +240,14 @@ pub fn handle_provenance(
     use neural_spring::validation::composition;
     use std::time::Duration;
 
-    let orchestrator = try_discover_and_call("biomeos", method, params, Duration::from_secs(5));
+    let orchestrator =
+        try_discover_and_call(primal_names::BIOMEOS, method, params, Duration::from_secs(5));
     if let Some(result) = orchestrator {
         return JsonRpcResponse::success(id, result);
     }
 
-    let rhizocrypt = try_discover_and_call("rhizocrypt", method, params, Duration::from_secs(5));
+    let rhizocrypt =
+        try_discover_and_call(primal_names::RHIZOCRYPT, method, params, Duration::from_secs(5));
     if let Some(result) = rhizocrypt {
         return JsonRpcResponse::success(id, result);
     }
@@ -499,7 +502,7 @@ pub fn handle_method_register(
         .unwrap_or("unknown");
 
     if let Some(result) =
-        try_discover_and_call("biomeos", "method.register", params, Duration::from_secs(5))
+        try_discover_and_call(primal_names::BIOMEOS, "method.register", params, Duration::from_secs(5))
     {
         return JsonRpcResponse::success(
             id,

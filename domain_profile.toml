@@ -1,0 +1,210 @@
+# Domain Profile: neuralSpring — ML Surrogates & Isomorphic Computation
+# Covers neural network surrogates, transfer learning, scholarly paper
+# reproductions (27 papers), biophysical AI interpretability (baseCamp),
+# warm dense matter ML (5 WDM surrogates), and cross-domain isomorphic
+# pattern validation.
+
+[profile]
+id = "neuralspring-ml-isomorphic"
+version = "1.0.0"
+domain = "computational-science"
+subdomain = [
+    "ml-surrogates",
+    "transfer-learning",
+    "scholarly-reproduction",
+    "biophysical-ai",
+    "warm-dense-matter",
+    "isomorphic-patterns",
+]
+tools = ["Rust", "WGSL (barraCuda)", "Python (PyTorch baselines)"]
+methods = [
+    "mlp-surrogate",
+    "transformer-attention",
+    "lstm-forecasting",
+    "transfer-learning",
+    "echo-state-network",
+    "counterdiabatic-evolution",
+    "hmm-phylogenetics",
+    "anderson-localization",
+    "reservoir-computing",
+    "pinn-burgers",
+    "deeponet-operator",
+    "game-theory-replicator",
+    "swarm-controller-ea",
+    "regulatory-ode",
+    "spectral-commutativity",
+]
+
+[translation]
+
+[[translation.entity_groups]]
+name = "neural_surrogates"
+domain_description = "MLP and RBF surrogates for function approximation and physics-informed prediction"
+computation = "MatMul → Activation → Normalization → Output (barraCuda SimpleMlp)"
+modules = ["surrogate", "pinn", "deeponet", "wdm_surrogate", "wdm_transport"]
+
+[[translation.entity_groups]]
+name = "transformer_inference"
+domain_description = "Self-attention, multi-head attention, and language model inference patterns"
+computation = "Embed → Q/K/V projection → ScaledDotProduct → FFN → LayerNorm"
+modules = ["transformer", "evolved/mha"]
+
+[[translation.entity_groups]]
+name = "sequence_forecasting"
+domain_description = "LSTM/GRU time series prediction on real ERA5 weather data"
+computation = "Input gate → Forget gate → Cell update → Output gate → Decode"
+modules = ["sequence"]
+
+[[translation.entity_groups]]
+name = "evolutionary_computation"
+domain_description = "Counterdiabatic driving, MODES open-endedness, directed evolution, ecological dynamics"
+computation = "Fitness evaluation → Selection → Mutation → Population dynamics"
+modules = ["counterdiabatic", "modes", "eco_dynamics", "directed_evolution"]
+
+[[translation.entity_groups]]
+name = "phylogenetics_hmm"
+domain_description = "HMM forward/backward/Viterbi for phylogenetic inference and introgression detection"
+computation = "Forward → Backward → Posterior → Viterbi (flat row-major GPU-ready)"
+modules = ["hmm", "sate_alignment", "introgression"]
+
+[[translation.entity_groups]]
+name = "spectral_analysis"
+domain_description = "Anderson localization, spectral commutativity, weight matrix spectral analysis"
+computation = "Hamiltonian construction → Eigendecomposition → IPR → Level spacing"
+modules = ["anderson_localization", "spectral_commutativity", "weight_spectral", "eigh"]
+
+[[translation.entity_groups]]
+name = "biophysical_ai"
+domain_description = "baseCamp: 6 sub-theses applying physics/biology primitives to AI interpretability"
+computation = "Weight ESD → Information flow → Loss landscape → Neural PGM → Agent coordination → Immunological Anderson"
+modules = ["weight_spectral", "information_flow", "loss_landscape", "neural_pgm", "agent_coordination", "immunological_anderson"]
+
+[[translation.entity_groups]]
+name = "wdm_surrogates"
+domain_description = "Warm dense matter ML: EOS, transport coefficients, S(q,w), transfer learning, ESN regime classification"
+computation = "MLP/LSTM/ESN trained on MD/DFT data → Surrogate prediction"
+modules = ["wdm_surrogate", "wdm_transport", "wdm_sqw", "wdm_esn"]
+
+[[translation.entity_groups]]
+name = "game_theory_signaling"
+domain_description = "Game theory, quorum sensing, regulatory networks, signal integration"
+computation = "Replicator dynamics → QS signaling → GRN ODE → Hill logic gates"
+modules = ["game_theory", "regulatory_network", "signal_integration"]
+
+[[translation.entity_groups]]
+name = "swarm_pangenome"
+domain_description = "Swarm robotics controllers, pangenome selection dynamics, meta-population genetics"
+computation = "EA controller optimization → FST differentiation → Isolation-by-distance"
+modules = ["swarm_robotics", "pangenome_selection", "meta_population"]
+
+[derivation]
+
+[[derivation.pipeline]]
+name = "python_baselines"
+description = "397 Python/PyTorch baselines across 27 papers + 5 WDM + coralForge + pub experiments"
+input = "Paper-specific datasets (ERA5, LTEE, synthetic)"
+output = "Golden values with provenance headers (baseline_*.json)"
+tool = "Python 3.10 + PyTorch 2.9 + NumPy + SciPy"
+
+[[derivation.pipeline]]
+name = "rust_validation"
+description = "930 workspace tests: lib (756) + integration (11) + forge (73) + playGround (80) + exp094 (12)"
+input = "Python golden values + analytical references"
+output = "ValidationHarness results (named tolerances, pass/fail exit codes)"
+tool = "neuralSpring Rust (Edition 2024, MSRV 1.87)"
+
+[[derivation.pipeline]]
+name = "gpu_parity"
+description = "CPU vs GPU parity across 6 science pipeline stages (GpuOnly + GpuPreferred)"
+input = "CPU reference outputs"
+output = "Bit-identical or tolerance-bounded GPU outputs"
+tool = "barraCuda v0.4.0 (wgpu + WGSL shaders)"
+
+[[derivation.pipeline]]
+name = "cross_gate_dispatch"
+description = "Capability-routed MLP inference and mesh topology via Songbird"
+input = "MLP parameters + mesh peer config"
+output = "Remote inference results + peer discovery"
+tool = "neuralSpring IPC (ml.mlp_infer, discovery.peers, mesh.init)"
+
+[audit]
+
+[[audit.checks]]
+name = "python_rust_parity"
+description = "Rust output matches Python baselines within named tolerances (233+ constants)"
+applies_to = "all"
+
+[[audit.checks]]
+name = "gpu_cpu_parity"
+description = "barraCuda GPU path produces identical results to CPU reference (6/6 dispatch stages)"
+applies_to = ["spectral_analysis", "neural_surrogates", "evolutionary_computation", "phylogenetics_hmm", "wdm_surrogates"]
+
+[[audit.checks]]
+name = "cross_spring_integration"
+description = "41/41 cross-spring rewire checks + 80/80 barraCuda S121 rewire"
+applies_to = ["transformer_inference", "phylogenetics_hmm"]
+
+[[audit.checks]]
+name = "composition_parity"
+description = "IPC-routed results match in-process Rust within IPC round-trip tolerance"
+applies_to = ["neural_surrogates", "spectral_analysis"]
+
+[[audit.checks]]
+name = "guidestone_certification"
+description = "guideStone Level 5: 19 certification tests (L0-L5: bare/discovery/parity/nucleus/composition/cross-spring)"
+applies_to = "all"
+
+[[audit.checks]]
+name = "provenance_integrity"
+description = "All 49+ provenance records have valid commit, command, and environment metadata"
+applies_to = "all"
+
+[[audit.checks]]
+name = "zero_debt"
+description = "0 clippy (pedantic+nursery), 0 fmt, 0 unsafe, 0 allow, 0 TODO/FIXME, all files ≤800 LOC"
+applies_to = "all"
+
+[figures]
+auto_generate = false
+
+[[figures.plot]]
+name = "isomorphic_speedup"
+module = "bench_phase0pp_kernels"
+type = "bar"
+x_axis = "Kernel"
+y_axis = "Speedup (Rust/Python)"
+
+[[figures.plot]]
+name = "mlp_surrogate_loss"
+module = "surrogate"
+type = "1d_line"
+x_axis = "Training epoch"
+y_axis = "MSE loss"
+
+[[figures.plot]]
+name = "anderson_ipr"
+module = "anderson_localization"
+type = "1d_line"
+x_axis = "Disorder strength (W/t)"
+y_axis = "Inverse Participation Ratio"
+
+[[figures.plot]]
+name = "wdm_eos_surface"
+module = "wdm_surrogate"
+type = "heatmap"
+x_axis = "Density (g/cm³)"
+y_axis = "Temperature (eV)"
+
+[[figures.plot]]
+name = "hmm_forward_convergence"
+module = "hmm"
+type = "1d_line"
+x_axis = "Sequence position"
+y_axis = "Log-likelihood"
+
+[[figures.plot]]
+name = "weight_spectral_esd"
+module = "weight_spectral"
+type = "histogram"
+x_axis = "Eigenvalue"
+y_axis = "Density"

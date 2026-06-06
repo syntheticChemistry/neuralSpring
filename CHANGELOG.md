@@ -5,7 +5,14 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-06-04 (Sessions 203–224: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment + deep debt evolution + forward evolution)
+## [Unreleased] — 2026-06-06 (Sessions 203–225: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment + deep debt evolution + forward evolution + Wave 82c domain profile)
+
+### 2026-06-06 — Session S225 (Wave 82c — Domain Profile, Doc Reconciliation, Primal Name Hygiene)
+
+- **domain_profile.toml created** — Root `domain_profile.toml` for `litho emit-pseudospore` and ecosystem classification. 10 entity groups covering ML surrogates, transformer inference, sequence forecasting, evolutionary computation, phylogenetics/HMM, spectral analysis, biophysical AI (baseCamp), WDM surrogates, game theory/signaling, and swarm/pangenome. 4 derivation pipelines, 7 audit checks, 6 figures.
+- **Primal name constants** — 3 raw-string discovery hints (`"biomeos"`, `"rhizocrypt"`) in `handlers.rs` migrated to `primal_names::BIOMEOS` / `primal_names::RHIZOCRYPT` constants.
+- **Stale session refs reconciled** — CONTEXT.md (S218→S225), BARRACUDA_EVOLUTION.md (S213→S225), baseCamp/extensions.md (S215→S225), NUCLEUS_TOWER_INTEGRATION.md (S132→S225, 14→47 capabilities), BARRACUDA_USAGE.md (S181→S225), ECOSYSTEM_LEVERAGE_GUIDE.md (S175→S225), sporeprint header (S223→S225). CONTEXT.md deployment status updated: 9/13 → 13/13 VPS-ready.
+- 932 workspace tests (756 lib + 11 integration + 73 forge + 80 playGround + 12 exp094), 0 failures, 0 clippy warnings.
 
 ### 2026-06-04 — Session S224 (Forward Evolution — Cross-Gate Dispatch, MCP Expansion, ML IPC, Deep Debt)
 

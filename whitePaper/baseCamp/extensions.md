@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Biophysical AI Interpretability
 
-**Date**: May 23, 2026 (Sessions 49–215 — S215: Wave 46 Absorption Sprint (45 capabilities with stability tiers). Python→Rust→Primal→Live Composition 4-tier validation of peer-reviewed science. V171 handoff. 754 workspace tests (IPC-first). **269 binaries**, zero clippy, 4,900+ checks. 10 validation scenarios. 6/6 GPU dispatch. barraCuda v0.4.0)
+**Date**: May 23, 2026 (Sessions 49–225 — S225: Wave 82c domain profile, doc reconciliation. 47 capabilities, 932 workspace tests (IPC-first), 11 validation scenarios, 6/6 GPU dispatch. barraCuda v0.4.0)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 
 ---
