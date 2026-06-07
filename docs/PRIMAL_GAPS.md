@@ -5,9 +5,9 @@
 > Living gap log for neuralSpring's proto-nucleate composition.
 > Reviewed against `primalSpring/graphs/downstream/downstream_manifest.toml` neuralspring entry.
 >
-> **Date:** 2026-06-03 | **Spring version:** 0.1.0 | **primalSpring:** Wave 76 (Deep Debt Evolution)
-> **Session:** S223 — Deep debt evolution: production stubs → real IPC, capability-first tower discovery, error type evolution, 15-module visibility tightening, dead code removal. 930 tests, 0 warnings, 0 clippy warnings. V179.
-> Prior: S222 Wave 76, S221 Wave 67, S220 Wave 55, S219 Wave 50, S218 Wave 49, S217 Wave 48, S216 southGate deployment.
+> **Date:** 2026-06-06 | **Spring version:** 0.1.0 | **primalSpring:** Wave 86 (Deployment Gaps)
+> **Session:** S225 — Wave 82c: domain profile, doc reconciliation, primal name hygiene. 47 capabilities, 11 scenarios, 932 tests, 0 warnings, 0 clippy. V181.
+> Prior: S224 forward evolution, S223 deep debt, S222 Wave 76, S221 Wave 67, S220 Wave 55, S219 Wave 50, S218 Wave 49, S217 Wave 48, S216 southGate deployment.
 
 ---
 

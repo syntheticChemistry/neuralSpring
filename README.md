@@ -1,6 +1,6 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: Jun 3, 2026 (Session S223 — Deep debt evolution: production stubs → real IPC, capability-first tower discovery, error type evolution, 15-module visibility tightening, dead code removal. 45 capabilities, 10 scenarios, 930 workspace tests. V179).
+**Last updated**: Jun 6, 2026 (Session S225 — Wave 82c: domain_profile.toml, doc reconciliation, primal name hygiene. 47 capabilities, 11 scenarios, 932 workspace tests. V181).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 

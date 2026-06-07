@@ -19,7 +19,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Binary discovery: PATH then plasmidBin — no target/release fallback.
+# Binary discovery: PATH → plasmidBin → local build output.
+# Local build output is checked last so installed binaries take precedence.
 find_binary() {
     local name="$1"
     local bin
@@ -27,7 +28,9 @@ find_binary() {
     [ -n "$bin" ] && echo "$bin" && return
     local pb="${ECOPRIMALS_ROOT:-$PROJECT_ROOT/../..}/infra/plasmidBin/bin/$name"
     [ -f "$pb" ] && echo "$pb" && return
-    echo >&2 "ERROR: binary '$name' not found in PATH or plasmidBin. Run: plasmidbin install $name"
+    local built="$PROJECT_ROOT/target/release/$name"
+    [ -x "$built" ] && echo "$built" && return
+    echo >&2 "ERROR: binary '$name' not found in PATH, plasmidBin, or target/release/. Run: plasmidbin install $name"
     return 1
 }
 ECO_ROOT="$(cd "$PROJECT_ROOT/../.." && pwd)"

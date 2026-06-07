@@ -19,7 +19,7 @@
 # Fragments: tower_atomic, node_atomic, nest_atomic, meta_tier (superset of proto-nucleate)
 # Bonding:   Metallic (InternalNucleus, UDS-only, BTSP at Tower)
 #
-# STATUS: V179 / S223 (Jun 3, 2026) — Deep debt evolution: production stubs → real IPC, capability-first discovery, error typing, visibility tightening, dead code removal. 930 workspace tests.
+# STATUS: V181 / S225 (Jun 6, 2026) — Wave 82c: domain profile, doc reconciliation, primal name hygiene. 47 capabilities, 11 scenarios, 932 workspace tests.
 # Run: biomeos deploy graphs/neuralspring_deploy.toml
 #      biomeos niche deploy neuralspring-science
 
@@ -29,7 +29,7 @@ description = "neuralSpring ML/spectral science + inference provider atop NUCLEU
 coordination = "Sequential"
 
 [graph.metadata]
-neuralspring_version = "S223"
+neuralspring_version = "S225"
 domain = "science"
 target_node = "southgate"
 blake3_hash = "2e4356464bdfa97c882f5c4239a11fbccc298725eb42eda0fb25273b63bdb198"
@@ -433,7 +433,7 @@ name = "capability_call"
 
 [nodes.operation.params]
 capability = "provenance.session_create"
-params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S224", family_id = "neuralspring" }
+params = { agent = "neuralspring", experiment_id = "niche_deploy", version = "S225", family_id = "neuralspring" }
 
 [nodes.constraints]
 timeout_ms = 10000

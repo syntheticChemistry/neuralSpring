@@ -1,6 +1,6 @@
 # neuralSpring baseCamp: Extension Plan — From Validated Science to Discovery
 
-**Date**: Jun 4, 2026 (Session S224)
+**Date**: Jun 6, 2026 (Session S225)
 **Author**: Kevin Mok (BS Microbiology, MSU 2018; MS Data Science, MSU 2025)
 **Status**: ACTIVE — Axis 2 compositions complete. GPU dispatch evolution complete. **Python→Rust→Primal→Live Composition four-tier validation stack** — proto-nucleate aligned to upstream `downstream_manifest.toml`. playGround: compute triangle + Squirrel MCP + HuggingFace Model Lab. **754 workspace tests** (IPC-first), **269 binaries**, **521+ `.rs` files**. Wave 17+20 signal API (`primal.announce` + `nest.store` + `nest.commit` + `node.compute`). 45 capabilities, 10 validation scenarios. 6/6 GPU dispatch. V171 handoff. barraCuda v0.4.0.
 **S151–S152 update**: Deep audit + deep debt execution — ecoBin compliance, 15+ tolerance literals centralized, capability-based primal discovery, coralReef bridge capability-first, shared validation infrastructure (`validate_tensor_binary`, `gen_test_f64`), V103 handoff.
