@@ -70,8 +70,8 @@ fn run_rust(v: &mut ValidationResult) {
 
     let cap_count = all_caps.len();
     v.check_bool(
-        "crossgate:rust:capability_count_47",
-        cap_count == 47,
+        "crossgate:rust:capability_count_51",
+        cap_count == 51,
         &format!("got {cap_count}"),
     );
 }

@@ -253,6 +253,30 @@ method = "security.audit_log"
 description = "skunkBat JH-5 audit log forwarding: cross-primal audit events to rhizoCrypt DAG + sweetGrass braid"
 stability = "evolving"
 
+# ── inference provider lifecycle (Squirrel — Wave 107) ──
+
+[capabilities.inference_register_provider]
+method = "inference.register_provider"
+description = "Register neuralSpring as an inference provider with Squirrel: provider_id, socket path, supported capabilities"
+stability = "experimental"
+
+[capabilities.inference_unregister_provider]
+method = "inference.unregister_provider"
+description = "Unregister neuralSpring as an inference provider from Squirrel"
+stability = "experimental"
+
+# ── NestGate signal surface (biomeOS-decomposed) ──
+
+[capabilities.nest_store]
+method = "nest.store"
+description = "Store data via biomeOS signal dispatch: decomposes to NestGate content.put + provenance trio"
+stability = "experimental"
+
+[capabilities.nest_commit]
+method = "nest.commit"
+description = "Commit a provenance session via biomeOS signal dispatch"
+stability = "experimental"
+
 # ── cross-gate dispatch (Wave 77 — mesh + trust + ML routing) ──
 
 [capabilities.ml_mlp_infer]

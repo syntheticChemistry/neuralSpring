@@ -5,7 +5,16 @@ All notable changes to neuralSpring are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — 2026-06-06 (Sessions 203–225: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment + deep debt evolution + forward evolution + Wave 82c domain profile)
+## [Unreleased] — 2026-06-10 (Sessions 203–226: Tier 2 convergence + niche atomic + Wave 17 + deep debt + doc evolution + Wave 20 + live composition + deep debt 6th + GPU parity + lithoSpore audit + B3/B4 ML surrogates + deep debt evolution sprint + Wave 46 absorption + covalent gate deployment + Wave 48 mesh + Wave 49 post-primordial + Wave 50 covalent HPC + Wave 55 southGate redeploy + Wave 67 glacial cutover + Wave 76 parity alignment + deep debt evolution + forward evolution + Wave 82c domain profile + Wave 107 inference provider + nest signals)
+
+### 2026-06-10 — Session S226 (Wave 107 — Squirrel Provider Registration, NestGate Signal Constants)
+
+- **Squirrel `inference.register_provider`** — Wired `register_provider()` and `unregister_provider()` in `src/ipc/squirrel.rs` to match upstream Squirrel's fully-tested provider lifecycle API. neuralSpring can now register itself as an inference provider, advertising its UDS socket and supported capabilities (completion, embedding).
+- **`IpcMathClient` provider methods** — Added `register_as_provider()` and `unregister_provider()` to the `IpcMathClient` facade, routed via `CapabilityRouter`.
+- **Capability hints expanded** — 24→26 hints: `inference.register_provider` → Squirrel, `inference.unregister_provider` → Squirrel.
+- **`nest.store` / `nest.commit` constants** — Promoted string literals in `provenance_dispatch.rs` to `capabilities::NEST_STORE` and `capabilities::NEST_COMMIT`. Signal dispatch now uses typed constants instead of raw strings.
+- **Capability surface expanded** — 47→51 capabilities: `inference.register_provider`, `inference.unregister_provider`, `nest.store`, `nest.commit`. All synced across `ALL_CAPABILITIES`, `niche::CAPABILITIES`, `capability_registry.toml`, and MCP tools (51 tools, `nest` domain added).
+- 934 workspace tests (758 lib + 11 integration + 73 forge + 80 playGround + 12 exp094), 0 failures, 0 clippy warnings.
 
 ### 2026-06-06 — Session S225 (Wave 82c — Domain Profile, Doc Reconciliation, Primal Name Hygiene)
 

@@ -11,7 +11,7 @@
 //! | [`barracuda`] | barraCuda   | `stats.*`, `tensor.*`, `barracuda.precision.route`, `ml.mlp_infer` |
 //! | [`toadstool`] | toadStool   | `compute.dispatch`, `toadstool.validate`, `toadstool.list_workloads` |
 //! | [`beardog`]   | `BearDog`   | `crypto.hash`, `crypto.btsp_handshake` |
-//! | [`squirrel`]  | Squirrel    | `inference.*` |
+//! | [`squirrel`]  | Squirrel    | `inference.*` (incl. `register_provider`, `unregister_provider`) |
 //! | [`coralreef`] | coralReef   | `shader.compile.*` |
 //! | [`skunkbat`]  | skunkBat    | `security.audit_log` |
 //! | [`nestgate`]  | `NestGate`  | `content.put`, `content.get` |
@@ -71,6 +71,8 @@ const CAPABILITY_HINTS: &[(&str, &str)] = &[
     (capabilities::INFERENCE_COMPLETE, primal_names::SQUIRREL),
     (capabilities::INFERENCE_EMBED, primal_names::SQUIRREL),
     (capabilities::INFERENCE_MODELS, primal_names::SQUIRREL),
+    (capabilities::INFERENCE_REGISTER_PROVIDER, primal_names::SQUIRREL),
+    (capabilities::INFERENCE_UNREGISTER_PROVIDER, primal_names::SQUIRREL),
     (capabilities::SHADER_COMPILE_WGSL, primal_names::CORALREEF),
     (capabilities::SHADER_COMPILE_CAPABILITIES, primal_names::CORALREEF),
     (capabilities::SECURITY_AUDIT_LOG, primal_names::SKUNKBAT),
@@ -425,6 +427,42 @@ impl IpcMathClient {
     /// Returns an error if no primal provides this capability or the call fails.
     pub fn inference_models(&self) -> Result<serde_json::Value, IpcError> {
         squirrel::inference_models(self.router.require(capabilities::INFERENCE_MODELS)?, self.timeout)
+    }
+
+    /// Register this spring as an inference provider with Squirrel.
+    ///
+    /// After registration, Squirrel routes matching inference requests
+    /// back to `socket_path` for this provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if Squirrel is not discovered or registration fails.
+    pub fn register_as_provider(
+        &self,
+        provider_id: &str,
+        socket_path: &str,
+        supported_capabilities: &[&str],
+    ) -> Result<serde_json::Value, IpcError> {
+        squirrel::register_provider(
+            self.router.require(capabilities::INFERENCE_REGISTER_PROVIDER)?,
+            provider_id,
+            socket_path,
+            supported_capabilities,
+            self.timeout,
+        )
+    }
+
+    /// Unregister this spring as an inference provider from Squirrel.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if Squirrel is not discovered or unregistration fails.
+    pub fn unregister_provider(&self, provider_id: &str) -> Result<serde_json::Value, IpcError> {
+        squirrel::unregister_provider(
+            self.router.require(capabilities::INFERENCE_UNREGISTER_PROVIDER)?,
+            provider_id,
+            self.timeout,
+        )
     }
 
     // ═══════════════════════════════════════════════════════════════

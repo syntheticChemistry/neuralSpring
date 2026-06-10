@@ -100,6 +100,8 @@ pub const CAPABILITIES: &[&str] = &[
     "inference.complete",
     "inference.embed",
     "inference.models",
+    "inference.register_provider",
+    "inference.unregister_provider",
     // ── Cross-primal ──
     "primal.forward",
     "primal.discover",
@@ -117,6 +119,9 @@ pub const CAPABILITIES: &[&str] = &[
     "primal.announce",
     // ── Security audit (skunkBat JH-5 forwarding) ──
     "security.audit_log",
+    // ── NestGate signal surface (biomeOS-decomposed) ──
+    "nest.store",
+    "nest.commit",
     // ── Cross-gate dispatch (Wave 77 — ML, mesh, trust) ──
     "ml.mlp_infer",
     "discovery.peers",
@@ -148,6 +153,8 @@ pub fn operation_dependencies() -> serde_json::Value {
         "inference.complete":          ["prompt", "max_tokens", "temperature"],
         "inference.embed":             ["text"],
         "inference.models":            [],
+        "inference.register_provider": ["provider_id", "socket"],
+        "inference.unregister_provider": ["provider_id"],
         "health.liveness":             [],
         "health.readiness":            [],
         "provenance.begin":    ["experiment_name"],
@@ -166,6 +173,8 @@ pub fn operation_dependencies() -> serde_json::Value {
         "discovery.peers":     [],
         "mesh.init":           ["node_id"],
         "crypto.btsp_handshake": ["peer_id", "challenge"],
+        "nest.store":            ["content", "content_type"],
+        "nest.commit":           ["session_id"],
     })
 }
 

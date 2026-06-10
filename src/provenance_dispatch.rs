@@ -10,6 +10,8 @@
 //! All functions are gated behind `#[cfg(feature = "primalspring")]`.
 
 #[cfg(feature = "primalspring")]
+use crate::capabilities;
+#[cfg(feature = "primalspring")]
 use crate::error::IpcError;
 
 /// Store model weights via `nest.store` signal dispatch (Wave 17).
@@ -43,7 +45,7 @@ pub(crate) fn store_to_nestgate_signal(
     let encoded = base64::engine::general_purpose::STANDARD.encode(&raw);
 
     ctx.dispatch(
-        "nest.store",
+        capabilities::NEST_STORE,
         &serde_json::json!({
             "content": encoded,
             "content_type": "application/x-safetensors",
@@ -80,7 +82,7 @@ pub(crate) fn commit_session_signal(
     session_id: &str,
 ) -> Result<serde_json::Value, IpcError> {
     ctx.dispatch(
-        "nest.commit",
+        capabilities::NEST_COMMIT,
         &serde_json::json!({ "session_id": session_id }),
     )
     .map_err(|e| IpcError::Other(format!("nest.commit dispatch: {e}")))
@@ -113,7 +115,7 @@ pub(crate) fn store_science_result(
         .map_err(|e| IpcError::Other(format!("serialize science result: {e}")))?;
 
     ctx.dispatch(
-        "nest.store",
+        capabilities::NEST_STORE,
         &serde_json::json!({
             "content": content,
             "content_type": "application/json",

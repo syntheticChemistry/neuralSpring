@@ -44,6 +44,10 @@ pub const INFERENCE_COMPLETE: &str = "inference.complete";
 pub const INFERENCE_EMBED: &str = "inference.embed";
 /// List available models.
 pub const INFERENCE_MODELS: &str = "inference.models";
+/// Register as an inference provider with Squirrel.
+pub const INFERENCE_REGISTER_PROVIDER: &str = "inference.register_provider";
+/// Unregister an inference provider from Squirrel.
+pub const INFERENCE_UNREGISTER_PROVIDER: &str = "inference.unregister_provider";
 
 // ─── coralReef surface (shader compilation) ─────────────────────
 /// Compile WGSL shader source.
@@ -62,6 +66,12 @@ pub const CONTENT_PUT: &str = "content.put";
 pub const CONTENT_GET: &str = "content.get";
 /// Check whether content-addressed data exists.
 pub const CONTENT_EXISTS: &str = "content.exists";
+
+// ─── NestGate signal surface (biomeOS-decomposed) ───────────────
+/// Store data via biomeOS signal dispatch (decomposes to `NestGate` + provenance trio).
+pub const NEST_STORE: &str = "nest.store";
+/// Commit a provenance session via biomeOS signal dispatch.
+pub const NEST_COMMIT: &str = "nest.commit";
 
 // ─── petalTongue surface (visualization) ────────────────────────
 /// Render a visualization frame.
@@ -133,9 +143,11 @@ mod tests {
             COMPUTE_DISPATCH, COMPUTE_OFFLOAD, TOADSTOOL_VALIDATE, TOADSTOOL_LIST_WORKLOADS,
             CRYPTO_HASH,
             INFERENCE_COMPLETE, INFERENCE_EMBED, INFERENCE_MODELS,
+            INFERENCE_REGISTER_PROVIDER, INFERENCE_UNREGISTER_PROVIDER,
             SHADER_COMPILE_WGSL, SHADER_COMPILE_CAPABILITIES,
             SECURITY_AUDIT_LOG,
             CONTENT_PUT, CONTENT_GET, CONTENT_EXISTS,
+            NEST_STORE, NEST_COMMIT,
             VISUALIZATION_RENDER, VISUALIZATION_RENDER_STREAM, VISUALIZATION_CAPABILITIES,
             HEALTH_LIVENESS, HEALTH_READINESS, HEALTH_CHECK,
             CAPABILITY_LIST, IDENTITY_GET, MCP_TOOLS_LIST,

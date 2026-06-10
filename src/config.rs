@@ -205,6 +205,8 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "inference.complete",
     "inference.embed",
     "inference.models",
+    "inference.register_provider",
+    "inference.unregister_provider",
     // Provenance tracking
     "provenance.begin",
     "provenance.record",
@@ -234,6 +236,9 @@ pub const ALL_CAPABILITIES: &[&str] = &[
     "mesh.init",
     // BearDog trust surface (cross-gate BTSP)
     "crypto.btsp_handshake",
+    // NestGate signal surface (biomeOS-decomposed)
+    "nest.store",
+    "nest.commit",
 ];
 
 #[cfg(test)]
@@ -336,6 +341,9 @@ mod tests {
             "discovery.",
             "mesh.",
             "crypto.btsp",
+            "inference.register",
+            "inference.unregister",
+            "nest.",
         ];
 
         let mut shared_count = 0u32;

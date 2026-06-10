@@ -612,6 +612,64 @@ pub fn tool_definitions() -> Vec<McpToolDef> {
                 "required": ["peer_id", "challenge"]
             }),
         },
+        // ── Squirrel inference provider lifecycle ────────────────────
+        McpToolDef {
+            name: "inference.register_provider",
+            description: "Register as an inference provider with Squirrel: advertise socket \
+                          path and supported capabilities (completion, embedding).",
+            domain: "inference",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "provider_id": { "type": "string", "description": "Unique provider identity (e.g. 'neuralspring')" },
+                    "socket": { "type": "string", "description": "UDS path where Squirrel can reach this provider" },
+                    "capabilities": { "type": "object", "description": "Supported tasks and models" }
+                },
+                "required": ["provider_id", "socket"]
+            }),
+        },
+        McpToolDef {
+            name: "inference.unregister_provider",
+            description: "Unregister an inference provider from Squirrel by provider ID.",
+            domain: "inference",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "provider_id": { "type": "string", "description": "Provider identity to unregister" }
+                },
+                "required": ["provider_id"]
+            }),
+        },
+        // ── NestGate signal surface (biomeOS-decomposed) ────────────
+        McpToolDef {
+            name: "nest.store",
+            description: "Store data via biomeOS signal dispatch. Decomposes to NestGate \
+                          content.put with provenance trio (rhizoCrypt DAG + sweetGrass braid).",
+            domain: "nest",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "content": { "type": "string", "description": "Base64-encoded data to store" },
+                    "content_type": { "type": "string", "description": "MIME type (e.g. 'application/octet-stream')" },
+                    "author": { "type": "string", "description": "Provenance author" },
+                    "filename": { "type": "string", "description": "Original filename for metadata" }
+                },
+                "required": ["content"]
+            }),
+        },
+        McpToolDef {
+            name: "nest.commit",
+            description: "Commit a provenance session via biomeOS signal dispatch. \
+                          Finalizes the session DAG and braid in rhizoCrypt/sweetGrass.",
+            domain: "nest",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "session_id": { "type": "string", "description": "Provenance session to commit" }
+                },
+                "required": ["session_id"]
+            }),
+        },
     ]
 }
 
@@ -633,7 +691,7 @@ mod tests {
             ALL_CAPABILITIES.len(),
             "tool_definitions() and ALL_CAPABILITIES must have same count"
         );
-        assert_eq!(tools.len(), 47);
+        assert_eq!(tools.len(), 51);
     }
 
     #[test]
@@ -667,6 +725,7 @@ mod tests {
             "discovery",
             "mesh",
             "crypto",
+            "nest",
         ];
         for tool in tool_definitions() {
             assert!(
