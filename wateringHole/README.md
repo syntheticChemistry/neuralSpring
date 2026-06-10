@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V181 — Session S225
+### V182 — Session S226
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V181** | `handoffs/NEURALSPRING_V181_WAVE82C_DOMAIN_PROFILE_JUN06_2026.md` | Jun 6, 2026 | Wave 82c: domain_profile.toml, 7-doc session reconciliation (S132–S218→S225), primal name constant migration. 932 tests. V181. |
+| **V182** | `handoffs/NEURALSPRING_V182_WAVE107_INFERENCE_PROVIDER_JUN10_2026.md` | Jun 10, 2026 | Wave 107: Squirrel register_provider + unregister_provider wired, nest.store/nest.commit constants, 47→51 capabilities. 934 tests. V182. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V180 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V181 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 
