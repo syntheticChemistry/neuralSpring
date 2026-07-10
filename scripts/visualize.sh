@@ -19,18 +19,25 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Binary discovery: PATH → plasmidBin → local build output.
-# Local build output is checked last so installed binaries take precedence.
+# Post-primordial binary discovery: plasmidBin depot is the sole source.
 find_binary() {
     local name="$1"
+    local eco="${ECOPRIMALS_ROOT:-$PROJECT_ROOT/../..}"
+    local triple machine kernel
+    machine=$(uname -m); kernel=$(uname -s | tr '[:upper:]' '[:lower:]')
+    case "$kernel" in
+        linux)  triple="${machine}-unknown-linux-musl" ;;
+        darwin) [[ "$machine" = "arm64" ]] && triple="aarch64-apple-darwin" || triple="${machine}-apple-darwin" ;;
+        *)      triple="${machine}-unknown-${kernel}" ;;
+    esac
+    local pb="$eco/infra/plasmidBin/primals/$triple/$name"
+    [ -x "$pb" ] && echo "$pb" && return
+    local flat="$eco/infra/plasmidBin/primals/$name"
+    [ -x "$flat" ] && echo "$flat" && return
     local bin
     bin="$(command -v "$name" 2>/dev/null || true)"
     [ -n "$bin" ] && echo "$bin" && return
-    local pb="${ECOPRIMALS_ROOT:-$PROJECT_ROOT/../..}/infra/plasmidBin/bin/$name"
-    [ -f "$pb" ] && echo "$pb" && return
-    local built="$PROJECT_ROOT/target/release/$name"
-    [ -x "$built" ] && echo "$built" && return
-    echo >&2 "ERROR: binary '$name' not found in PATH, plasmidBin, or target/release/. Run: plasmidbin install $name"
+    echo >&2 "ERROR: binary '$name' not found in plasmidBin or PATH. Run: membrane plasmid.harvest"
     return 1
 }
 ECO_ROOT="$(cd "$PROJECT_ROOT/../.." && pwd)"
