@@ -74,7 +74,11 @@ impl Dispatcher {
                 )
             },
             || {
-                crate::meta_population::inter_population_af_variance(populations, n_individuals, n_loci)
+                crate::meta_population::inter_population_af_variance(
+                    populations,
+                    n_individuals,
+                    n_loci,
+                )
             },
         )
     }

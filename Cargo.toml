@@ -30,7 +30,6 @@ clap = { version = "4.5", features = ["derive"] }
 env_logger = "0.11"
 tarpc = { version = "0.37", features = ["tokio1", "serde-transport"] }
 toml = "0.8"
-pollster = "0.4"
 temp-env = "0.3"
 approx = "0.5"
 base64 = "0.22"

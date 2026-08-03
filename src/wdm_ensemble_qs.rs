@@ -98,6 +98,10 @@ pub fn replicator_final_coop(payoff: &[[f64; 2]; 2], n_steps: usize) -> f64 {
 /// Returns `(mean_ipr, localization_length)`.
 #[cfg(feature = "barracuda")]
 #[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "disorder lattice dimension n ≤ 512 fits in f64 mantissa"
+)]
 pub fn anderson_from_disorder(disorder: &[f64]) -> (f64, f64) {
     let n = disorder.len();
     let t_hop = 1.0;
@@ -105,8 +109,8 @@ pub fn anderson_from_disorder(disorder: &[f64]) -> (f64, f64) {
     let h = anderson_localization::anderson_hamiltonian_random(n, t_hop, 0.0, &mut rng);
 
     let mut h_with_disorder = h;
-    for i in 0..n {
-        h_with_disorder[i * n + i] = disorder[i];
+    for (i, &d) in disorder.iter().enumerate() {
+        h_with_disorder[i * n + i] = d;
     }
 
     let result = crate::eigh::eigh_householder_qr(&h_with_disorder, n);
@@ -177,6 +181,7 @@ pub fn load_ensemble_from_json(json_str: &str) -> Result<EnsembleBaseline, Strin
 }
 
 #[cfg(test)]
+#[expect(clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;
 
@@ -219,12 +224,59 @@ mod tests {
         let n = 32;
         let low: Vec<f64> = (0..n).map(|_| rng.uniform() * 0.5).collect();
         let high: Vec<f64> = (0..n).map(|_| rng.uniform() * 15.0).collect();
-        let (ipr_low, _) = anderson_from_disorder(&low);
-        let (ipr_high, _) = anderson_from_disorder(&high);
+        let (ipr_low, xi_low) = anderson_from_disorder(&low);
+        let (ipr_high, xi_high) = anderson_from_disorder(&high);
 
         assert!(
             ipr_high > ipr_low,
             "strong disorder → higher IPR (more localized): low={ipr_low:.4}, high={ipr_high:.4}"
         );
+        assert!(xi_low > 0.0 && xi_high > 0.0);
+        assert!(xi_high < xi_low, "strong disorder → shorter ξ");
+    }
+
+    #[test]
+    fn test_disagreement_to_disorder_degenerate_range() {
+        use crate::tolerances::CROSS_LANGUAGE;
+        let w = disagreement_to_disorder(1.0, 1.0, 1.0, 20.0);
+        assert!(w.is_finite());
+        assert!(
+            (w - 0.0).abs() < CROSS_LANGUAGE,
+            "zero range → zero W when d == d_min"
+        );
+    }
+
+    #[test]
+    fn test_snowdrift_payoff_high_disorder() {
+        let p = snowdrift_payoff(1.0);
+        assert!((p[0][0] - 0.5).abs() < tolerances::CROSS_LANGUAGE);
+        assert!((p[0][1] - (-2.0)).abs() < tolerances::CROSS_LANGUAGE);
+        assert!((p[1][0] - 3.0).abs() < tolerances::CROSS_LANGUAGE);
+    }
+
+    #[test]
+    fn test_replicator_final_coop_clamped() {
+        let p = snowdrift_payoff(1.0);
+        let fc = replicator_final_coop(&p, 5000);
+        assert!((0.0..=1.0).contains(&fc));
+    }
+
+    #[test]
+    fn test_load_ensemble_from_json() {
+        let json = include_str!("../control/wdm_ensemble_qs/wdm_ensemble_qs_baseline.json");
+        let baseline = load_ensemble_from_json(json).expect("parse baseline");
+        assert_eq!(baseline.n_rho, 32);
+        assert_eq!(baseline.n_temp, 32);
+        assert_eq!(baseline.n_surrogates, 5);
+        assert_eq!(baseline.slices.len(), 32);
+        assert_eq!(baseline.reference_disorder.len(), 10);
+        assert!(baseline.mean_coop_low_w > baseline.mean_coop_high_w);
+        assert!(baseline.r_w_xi < 0.0);
+    }
+
+    #[test]
+    fn test_load_ensemble_from_json_errors() {
+        assert!(load_ensemble_from_json("{").is_err());
+        assert!(load_ensemble_from_json(r#"{"grid":{}}"#).is_err());
     }
 }

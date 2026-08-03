@@ -53,8 +53,7 @@ fn run_rust(v: &mut ValidationResult) {
 
     let gpu_dispatch_section = dispatch_src
         .find("dispatch_capability_gpu")
-        .map(|start| &dispatch_src[start..])
-        .unwrap_or("");
+        .map_or("", |start| &dispatch_src[start..]);
 
     for cap in &GPU_STAGE_CAPABILITIES {
         let routed = gpu_dispatch_section.contains(&format!("\"{cap}\""));

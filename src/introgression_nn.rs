@@ -76,8 +76,8 @@ pub fn introgression_fraction(path: &[usize]) -> f64 {
 pub fn detection_metrics(path: &[usize], truth: &[usize]) -> (f64, f64, f64) {
     let n = path.len();
     let (mut tp, mut fp, mut tn, mut fn_) = (0usize, 0usize, 0usize, 0usize);
-    for i in 0..n {
-        match (path[i], truth[i]) {
+    for (&p, &t) in path.iter().zip(truth.iter()) {
+        match (p, t) {
             (1, 1) => tp += 1,
             (1, 0) => fp += 1,
             (0, 0) => tn += 1,
@@ -171,6 +171,7 @@ fn parse_usize_array(v: &serde_json::Value, key: &str) -> Result<Vec<usize>, Str
 }
 
 #[cfg(test)]
+#[expect(clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;
 
@@ -201,5 +202,61 @@ mod tests {
     fn test_introgression_fraction() {
         assert!((introgression_fraction(&[0, 0, 1, 0]) - 0.25).abs() < 1e-10);
         assert!((introgression_fraction(&[0, 0, 0, 0]) - 0.0).abs() < 1e-10);
+        assert!((introgression_fraction(&[]) - 0.0).abs() < 1e-10);
+        assert!((introgression_fraction(&[1, 1, 1, 1]) - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_build_null_hmm() {
+        let hmm = build_null_hmm();
+        assert_eq!(hmm.num_states(), 1);
+        let obs = vec![0, 1, 2, 0, 1];
+        let (path, log_prob) = hmm.viterbi(&obs);
+        assert_eq!(path, vec![0; obs.len()]);
+        assert!(log_prob.is_finite());
+    }
+
+    #[test]
+    fn test_build_nn_hmm_matches_baseline_structure() {
+        let hmm = build_nn_hmm();
+        assert_eq!(hmm.num_states(), 2);
+        let (_, ll) = hmm.forward(&[0, 0, 2, 2, 0]);
+        assert!(ll.is_finite() && ll < 0.0);
+    }
+
+    #[test]
+    fn test_detection_metrics_perfect_and_all_negative() {
+        let path = vec![0, 0, 0, 0];
+        let truth = vec![0, 0, 0, 0];
+        let (tpr, fpr, acc) = detection_metrics(&path, &truth);
+        assert!((tpr - 0.0).abs() < 1e-10);
+        assert!((fpr - 0.0).abs() < 1e-10);
+        assert!((acc - 1.0).abs() < 1e-10);
+
+        let path2 = vec![1, 1, 1];
+        let truth2 = vec![1, 1, 1];
+        let (tpr2, fpr2, acc2) = detection_metrics(&path2, &truth2);
+        assert!((tpr2 - 1.0).abs() < 1e-10);
+        assert!((fpr2 - 0.0).abs() < 1e-10);
+        assert!((acc2 - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_load_introgression_nn_from_json() {
+        let json = include_str!("../control/introgression_nn/introgression_nn_baseline.json");
+        let baseline = load_introgression_nn_from_json(json).expect("parse baseline");
+        assert_eq!(baseline.n_layers, 100);
+        assert_eq!(baseline.n_introgressed, 29);
+        assert_eq!(baseline.observations.len(), baseline.n_layers);
+        assert_eq!(baseline.viterbi_path.len(), baseline.n_layers);
+        assert!(baseline.tpr > 0.9);
+        assert!((baseline.introgression_fraction - 0.28).abs() < 1e-10);
+        assert!(baseline.llr > 0.0);
+    }
+
+    #[test]
+    fn test_load_introgression_nn_from_json_errors() {
+        assert!(load_introgression_nn_from_json("{").is_err());
+        assert!(load_introgression_nn_from_json(r#"{"hmm":{}}"#).is_err());
     }
 }

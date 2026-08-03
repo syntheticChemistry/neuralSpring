@@ -59,27 +59,18 @@ const SHADER_COMPILER_SOCKET_HINTS: &[&str] = &[CORALREEF_NAME, "coral-reef", "s
 pub type CoralResult<T> = Result<T, CoralError>;
 
 /// Errors from coralReef compilation or discovery.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum CoralError {
     /// coralReef feature not enabled at compile time.
+    #[error("coralReef feature not enabled")]
     NotAvailable,
     /// Compilation failed.
+    #[error("coralReef compile: {0}")]
     CompileFailed(String),
     /// Socket discovery failed.
+    #[error("coralReef socket not found")]
     SocketNotFound,
 }
-
-impl std::fmt::Display for CoralError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotAvailable => write!(f, "coralReef feature not enabled"),
-            Self::CompileFailed(e) => write!(f, "coralReef compile: {e}"),
-            Self::SocketNotFound => write!(f, "coralReef socket not found"),
-        }
-    }
-}
-
-impl std::error::Error for CoralError {}
 
 /// Compiled shader binary from coralReef.
 #[derive(Debug)]

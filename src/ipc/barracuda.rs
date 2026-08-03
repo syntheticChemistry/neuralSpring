@@ -44,11 +44,9 @@ pub fn stats_std_dev(socket: &Path, data: &[f64], timeout: Duration) -> Result<f
         &serde_json::json!({ "data": data }),
         timeout,
     )?;
-    super::extract_f64(&result, &["std_dev", "result", "value"]).ok_or_else(|| {
-        IpcError::Protocol {
-            capability: capabilities::STATS_STD_DEV.into(),
-            reason: "response missing numeric result".into(),
-        }
+    super::extract_f64(&result, &["std_dev", "result", "value"]).ok_or_else(|| IpcError::Protocol {
+        capability: capabilities::STATS_STD_DEV.into(),
+        reason: "response missing numeric result".into(),
     })
 }
 
@@ -188,12 +186,7 @@ pub fn precision_route(
     if let Some(hint) = hardware_hint {
         params["hardware_hint"] = serde_json::Value::String(hint.to_owned());
     }
-    let result = call_capability(
-        socket,
-        capabilities::PRECISION_ROUTE,
-        &params,
-        timeout,
-    )?;
+    let result = call_capability(socket, capabilities::PRECISION_ROUTE, &params, timeout)?;
     Ok(PrecisionRouteResult::from_value(&result))
 }
 
@@ -257,12 +250,7 @@ mod tests {
 
     #[test]
     fn stats_weighted_mean_returns_err_for_nonexistent_socket() {
-        let result = stats_weighted_mean(
-            Path::new(FAKE_SOCKET),
-            &[1.0, 2.0],
-            &[0.5, 0.5],
-            TIMEOUT,
-        );
+        let result = stats_weighted_mean(Path::new(FAKE_SOCKET), &[1.0, 2.0], &[0.5, 0.5], TIMEOUT);
         assert!(result.is_err());
     }
 
@@ -272,7 +260,9 @@ mod tests {
             Path::new(FAKE_SOCKET),
             &[1.0, 0.0, 0.0, 1.0],
             &[1.0, 2.0, 3.0, 4.0],
-            2, 2, 2,
+            2,
+            2,
+            2,
             TIMEOUT,
         );
         assert!(result.is_err());
@@ -328,6 +318,9 @@ mod tests {
         assert!(r.fma_safe);
         assert!(r.requires_compiler);
         assert_eq!(r.hardware_hint, "compute");
-        assert_eq!(r.rationale.as_deref(), Some("lattice QCD needs double-float precision"));
+        assert_eq!(
+            r.rationale.as_deref(),
+            Some("lattice QCD needs double-float precision")
+        );
     }
 }

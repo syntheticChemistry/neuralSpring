@@ -1,7 +1,10 @@
 # neuralSpring Specifications
 
-**Last Updated**: Jun 6, 2026 (Sessions 44–S225 — S225: Wave 82c domain profile. 932 workspace tests (756 lib, IPC-first). 47 capabilities. 11 validation scenarios. barraCuda v0.4.0. guideStone v0.4.0. V181 handoff)
-**Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 269 binaries, 930 workspace tests (754 lib), Python→Rust→IPC→Live Composition four-tier validation stack
+**Last Updated**: Aug 3, 2026 (Wave 155 — deep debt evolution: ipc/, weight_loader/,
+validation/composition splits. 1518+ workspace tests. 48 capabilities. 87.25%
+line coverage. 11 validation scenarios. barraCuda v0.4.0. guideStone v0.4.0.
+V183 handoff)
+**Status**: Phase 5h+ — 397/397 Python + 4500+ Rust+GPU + 4 composition = **4900+ total checks**, ~97% GPU, 41/41 CPU↔Python parity, 38.6× speedup (15 domains), 269 binaries, 1518+ workspace tests (IPC-first), 87.25% line coverage, Python→Rust→IPC→Live Composition four-tier validation stack
 **Domain**: ML primitives, transfer learning, surrogates, isomorphic patterns, scholarly reproduction
 
 ---
@@ -13,7 +16,7 @@
 | Phase 0 (Synthetic) | 48/48 PASS — surrogate, transformer, LSTM, transfer, isomorphic catalog |
 | Phase 0+ (Scholarly) | 31/31 PASS — PINN Burgers, DeepONet, LeNet-5, LSTM ERA5, quantized inference |
 | Phase 0++ (Papers) | 127/127 PASS — 15 papers across Dolson, Liu, Waters, Kachkovskiy, Anderson |
-| Rust native validation | 930 workspace tests (754 lib + 73 forge + 80 playGround + 12 exp094 + 11 integration, IPC-first) PASS — 269 binaries, 68+ modules |
+| Rust native validation | 1518+ workspace tests (IPC-first) PASS — 269 binaries, 68+ modules, 87.25% line coverage |
 | BarraCUDA CPU (bC) | 24/27 papers (89%), 203 checks | ALL GREEN |
 | BarraCUDA GPU Tensor (gT) | 23/27 papers (85%), 98+ checks | ALL GREEN |
 | metalForge WGSL (mF) | 15/27 papers, 17 shaders, 108 checks | ALL PASS |
@@ -62,7 +65,7 @@
 | whitePaper/METHODOLOGY.md | `../whitePaper/` | Validation framework |
 | metalForge/CROSS_SYSTEM_DISPATCH.md | `../metalForge/` | GPU → CPU → NPU dispatch strategy |
 | metalForge/shaders/ABSORPTION_TRACKER.md | `../metalForge/` | Shader lifecycle tracker |
-| wateringHole/handoffs/ | `../wateringHole/` | V179 handoff (current, Session S223 — deep debt evolution, capability-first discovery) |
+| wateringHole/handoffs/ | `../wateringHole/` | V183 handoff (current, Wave 155 — deep debt evolution, capability-based discovery) |
 
 ---
 
@@ -124,7 +127,6 @@ and time series simultaneously. All 6 validated across 27 papers from 5 discipli
 
 ## License
 
-**AGPL-3.0-or-later** — GNU Affero General Public License v3.0
-
-All neuralSpring code, data, and documentation are aggressively open science.
-See `../LICENSE` for full text.
+scyBorg triple-license: **AGPL-3.0-or-later** (code) + **ORC** (mechanics) +
+**CC-BY-SA** (creative). See `../LICENSE`, `../LICENSE-ORC`, and
+`../LICENSE-CC-BY-SA` for full text.

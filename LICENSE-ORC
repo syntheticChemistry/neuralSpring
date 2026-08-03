@@ -1,0 +1,35 @@
+Open RPG Creative License (ORC) Notice — neuralSpring
+======================================================
+
+This file is part of the ecoPrimals scyBorg Provenance Trio.
+
+scyBorg = AGPL-3.0 (code) + ORC (game mechanics) + CC-BY-SA 4.0 (creative content)
+
+ORC License: https://azoralaw.com/orclicense/
+Governing body: Open RPG Creative Foundation (nonprofit)
+
+ORC Licensed Material
+---------------------
+Any game mechanics, rules, stat blocks, progression systems, encounter
+math, or similar mechanical content contained in this repository is
+licensed under the Open RPG Creative License (ORC).
+
+The ORC license is irrevocable and perpetual. No single entity can
+revoke it.
+
+Reserved Material
+-----------------
+The following are NOT licensed under ORC and remain reserved:
+- ecoPrimals project name and branding
+- neuralSpring name and identity
+- Individual primal names (BearDog, Songbird, NestGate, ToadStool,
+  coralReef, rhizoCrypt, loamSpine, sweetGrass, petalTongue,
+  skunkBat, Squirrel, barraCuda, biomeOS, cellMembrane)
+- Gate names and deployment-specific configuration
+
+Attribution
+-----------
+  neuralSpring — ecoPrimals Project
+  Copyright (c) 2025-2026 ecoPrimals contributors
+  Licensed under AGPL-3.0-or-later (code), ORC (mechanics),
+  CC-BY-SA 4.0 (creative content)

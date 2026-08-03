@@ -40,7 +40,10 @@ fn probe_gpus_inner() -> Vec<Substrate> {
         ..Default::default()
     });
 
-    let adapters = pollster::block_on(instance.enumerate_adapters(wgpu::Backends::all()));
+    let Ok(rt) = tokio::runtime::Runtime::new() else {
+        return Vec::new();
+    };
+    let adapters = rt.block_on(instance.enumerate_adapters(wgpu::Backends::all()));
     let mut gpus = Vec::new();
 
     for (idx, adapter) in adapters.into_iter().enumerate() {

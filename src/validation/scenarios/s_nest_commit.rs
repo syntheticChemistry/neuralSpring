@@ -29,16 +29,16 @@ pub const SCENARIO: Scenario = Scenario {
 fn run_rust(v: &mut ValidationResult) {
     v.section("Nest Commit Provenance — Tier 1 (Rust structural)");
 
-    let signal_tools = include_str!("../../../../primalSpring/config/signal_tools.toml");
+    let composition_tools = include_str!("../../../../primalSpring/config/composition_tools.toml");
     v.check_bool(
         "provenance:rust:nest_store_signal_exists",
-        signal_tools.contains("nest.store"),
-        "nest.store signal defined in primalSpring signal_tools.toml",
+        composition_tools.contains("nest.store"),
+        "nest.store signal defined in primalSpring composition_tools.toml",
     );
     v.check_bool(
         "provenance:rust:nest_commit_signal_exists",
-        signal_tools.contains("nest.commit"),
-        "nest.commit signal defined in primalSpring signal_tools.toml",
+        composition_tools.contains("nest.commit"),
+        "nest.commit signal defined in primalSpring composition_tools.toml",
     );
 
     let caps = crate::config::ALL_CAPABILITIES;
@@ -68,6 +68,10 @@ fn run_rust(v: &mut ValidationResult) {
     );
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "live nest.commit provenance chain exercised end-to-end in one validation pass"
+)]
 fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     v.section("Nest Commit Provenance — Tier 2 (Live)");
 
@@ -163,10 +167,14 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
                 "store_science_result() dispatched successfully",
             );
         }
-        Err(ref e) if {
-            let msg = format!("{e}");
-            msg.contains("SocketNotFound") || msg.contains("not available") || msg.contains("Connection refused")
-        } => {
+        Err(ref e)
+            if {
+                let msg = format!("{e}");
+                msg.contains("SocketNotFound")
+                    || msg.contains("not available")
+                    || msg.contains("Connection refused")
+            } =>
+        {
             v.check_bool(
                 "provenance:live:science_result_store",
                 true,

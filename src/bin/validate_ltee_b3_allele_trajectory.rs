@@ -11,11 +11,14 @@
 //!
 //! Expected values: `control/ltee_allele_trajectory/expected_values.json`
 
-#![expect(clippy::expect_used, reason = "validation binary — expect is idiomatic for test fixtures")]
+#![expect(
+    clippy::expect_used,
+    reason = "validation binary — expect is idiomatic for test fixtures"
+)]
 
 use neural_spring::ltee_allele_trajectory::{
-    self, classify_allele_fate, discretize_trajectory, esn_reservoir_step,
-    hmm_forward_posterior, load_allele_baseline_from_json, lstm_forward, pool_features,
+    self, classify_allele_fate, discretize_trajectory, esn_reservoir_step, hmm_forward_posterior,
+    load_allele_baseline_from_json, lstm_forward, pool_features,
 };
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -34,7 +37,10 @@ impl log::Log for SimpleLogger {
 }
 static LOGGER: SimpleLogger = SimpleLogger;
 
-#[expect(clippy::too_many_lines, reason = "validation harness — sequential checks")]
+#[expect(
+    clippy::too_many_lines,
+    reason = "validation harness — sequential checks"
+)]
 fn run_checks(h: &mut ValidationHarness) {
     let json_str = include_str!("../../control/ltee_allele_trajectory/expected_values.json");
     let bl = load_allele_baseline_from_json(json_str).expect("parse baseline JSON");
@@ -94,10 +100,7 @@ fn run_checks(h: &mut ValidationHarness) {
     );
 
     // ── Check 4: HMM posterior parity ───────────────────────────────
-    let obs = discretize_trajectory(
-        &bl.first_trajectory,
-        ltee_allele_trajectory::HMM_N_SYMBOLS,
-    );
+    let obs = discretize_trajectory(&bl.first_trajectory, ltee_allele_trajectory::HMM_N_SYMBOLS);
     let posterior = hmm_forward_posterior(
         &obs,
         &bl.hmm_transition,
@@ -121,7 +124,12 @@ fn run_checks(h: &mut ValidationHarness) {
     );
 
     let posterior_sum: f64 = posterior.iter().sum();
-    h.check_abs("B3-008: HMM posterior sums to 1.0", posterior_sum, 1.0, 1e-10);
+    h.check_abs(
+        "B3-008: HMM posterior sums to 1.0",
+        posterior_sum,
+        1.0,
+        1e-10,
+    );
 
     // ── Check 5: ESN state parity ───────────────────────────────────
     let mut combined = lstm_feats;
@@ -154,11 +162,8 @@ fn run_checks(h: &mut ValidationHarness) {
     );
 
     // ── Check 6: Classification parity ──────────────────────────────
-    let (pred, scores) = classify_allele_fate(
-        &esn_state,
-        &bl.esn_w_out,
-        ltee_allele_trajectory::N_CLASSES,
-    );
+    let (pred, scores) =
+        classify_allele_fate(&esn_state, &bl.esn_w_out, ltee_allele_trajectory::N_CLASSES);
 
     let score_max_diff: f64 = scores
         .iter()

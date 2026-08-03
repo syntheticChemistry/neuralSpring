@@ -12,6 +12,7 @@
 use std::path::Path;
 use std::time::Duration;
 
+use crate::capabilities;
 use crate::error::IpcError;
 use crate::validation::composition::call_capability;
 
@@ -36,7 +37,7 @@ pub fn content_put(
         params["content_type"] = serde_json::Value::String(ct.to_owned());
     }
 
-    let resp = call_capability(socket, "content.put", &params, timeout)?;
+    let resp = call_capability(socket, capabilities::CONTENT_PUT, &params, timeout)?;
 
     let hash = resp
         .get("hash")
@@ -75,7 +76,7 @@ pub fn content_get(
         "hash": hash,
     });
 
-    let resp = call_capability(socket, "content.get", &params, timeout)?;
+    let resp = call_capability(socket, capabilities::CONTENT_GET, &params, timeout)?;
 
     let data = resp
         .get("data")
@@ -104,16 +105,12 @@ pub fn content_get(
 /// # Errors
 ///
 /// Returns an error if the IPC call fails.
-pub fn content_exists(
-    socket: &Path,
-    hash: &str,
-    timeout: Duration,
-) -> Result<bool, IpcError> {
+pub fn content_exists(socket: &Path, hash: &str, timeout: Duration) -> Result<bool, IpcError> {
     let params = serde_json::json!({
         "hash": hash,
     });
 
-    let resp = call_capability(socket, "content.exists", &params, timeout)?;
+    let resp = call_capability(socket, capabilities::CONTENT_EXISTS, &params, timeout)?;
 
     Ok(resp
         .get("exists")

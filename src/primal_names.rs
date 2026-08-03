@@ -33,9 +33,13 @@ pub const CORALREEF: &str = "coralreef";
 pub const RHIZOCRYPT: &str = "rhizocrypt";
 
 /// Immutable ledger / certificate primal (provenance trio).
+///
+/// Reserved for future provenance trio wiring — no active IPC routing yet.
 pub const LOAMSPINE: &str = "loamspine";
 
 /// Provenance braids / attribution primal (provenance trio).
+///
+/// Reserved for future provenance trio wiring — no active IPC routing yet.
 pub const SWEETGRASS: &str = "sweetgrass";
 
 /// Visualization / interactive exploration primal.

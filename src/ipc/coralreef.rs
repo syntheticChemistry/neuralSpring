@@ -35,7 +35,10 @@ pub fn shader_compile_wgsl(
 /// # Errors
 ///
 /// Returns an error if coralReef is not reachable or the IPC call fails.
-pub fn shader_capabilities(socket: &Path, timeout: Duration) -> Result<serde_json::Value, IpcError> {
+pub fn shader_capabilities(
+    socket: &Path,
+    timeout: Duration,
+) -> Result<serde_json::Value, IpcError> {
     call_capability(
         socket,
         capabilities::SHADER_COMPILE_CAPABILITIES,

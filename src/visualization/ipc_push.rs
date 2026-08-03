@@ -29,41 +29,25 @@ pub struct PetalTonguePushClient {
 pub type PushResult<T> = Result<T, PushError>;
 
 /// Error type for push operations.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum PushError {
     /// petalTongue socket not found.
+    #[error("petalTongue not found: {0}")]
     NotFound(String),
     /// Connection failed.
-    ConnectionFailed(std::io::Error),
+    #[error("connection failed: {0}")]
+    ConnectionFailed(#[source] std::io::Error),
     /// JSON serialization error.
+    #[error("serialization error: {0}")]
     SerializationError(String),
     /// RPC error response.
+    #[error("RPC error {code}: {message}")]
     RpcError {
         /// JSON-RPC error code from the peer.
         code: i64,
         /// Human-readable error message from the peer.
         message: String,
     },
-}
-
-impl std::fmt::Display for PushError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::NotFound(msg) => write!(f, "petalTongue not found: {msg}"),
-            Self::ConnectionFailed(e) => write!(f, "connection failed: {e}"),
-            Self::SerializationError(e) => write!(f, "serialization error: {e}"),
-            Self::RpcError { code, message } => write!(f, "RPC error {code}: {message}"),
-        }
-    }
-}
-
-impl std::error::Error for PushError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::ConnectionFailed(e) => Some(e),
-            _ => None,
-        }
-    }
 }
 
 /// Build JSON-RPC params for `visualization.render` (testable without socket).
@@ -144,6 +128,7 @@ fn build_replace_params(
 /// consecutive connection failures, cooldown for 10 seconds.
 const BREAKER_THRESHOLD: u32 = 3;
 const BREAKER_COOLDOWN: std::time::Duration = std::time::Duration::from_secs(10);
+const SOCKET_READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 
 impl PetalTonguePushClient {
     /// Discover petalTongue socket at runtime.
@@ -358,7 +343,7 @@ impl PetalTonguePushClient {
         let mut stream =
             UnixStream::connect(&self.socket_path).map_err(PushError::ConnectionFailed)?;
         stream
-            .set_read_timeout(Some(std::time::Duration::from_secs(5)))
+            .set_read_timeout(Some(SOCKET_READ_TIMEOUT))
             .map_err(PushError::ConnectionFailed)?;
         stream
             .write_all(payload)

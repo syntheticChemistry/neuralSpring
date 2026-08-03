@@ -1,6 +1,8 @@
 # neuralSpring — Learning, Surrogates, and Isomorphic Patterns
 
-**Last updated**: Jun 6, 2026 (Session S225 — Wave 82c: domain_profile.toml, doc reconciliation, primal name hygiene. 47 capabilities, 11 scenarios, 932 workspace tests. V181).
+**Last updated**: Aug 3, 2026 (Wave 155 — deep debt evolution: ipc/, weight_loader/,
+validation/composition splits, capability-based discovery. 48 capabilities, 11
+scenarios, 1518+ workspace tests, 87.25% line coverage. V183).
 
 **The learning layer: ML surrogates, transfer learning, scholarly reproduction, and the shared computational DNA across domains.**
 
@@ -133,8 +135,8 @@ WDM+coralForge CPU↔GPU parity 39/39 | metalForge WDM+coralForge NUCLEUS 41/41 
 Multi-GPU RTX 4070 + TITAN V (NVK): 384/384 bit-identical | CPU↔Python parity 39/39 (1e-10).
 Cross-spring rewire: 41/41 (`validate_cross_spring_rewire`) | modern bench 28/28 (`bench_cross_spring_modern`).
 S121 rewire: 80/80 (`validate_barracuda_s121_rewire`) — SimpleMlp EOS/Transport + HMM Viterbi/forward dispatcher parity.
-**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe (`#![forbid(unsafe_code)]` on all 3 crates) | zero inline magic numbers | zero `#[allow()]` (all `#[expect(reason)]`) | zero unfulfilled expectations | zero C dependencies (Tower Atomic) | 100% SPDX headers | zero mocks in production | all files ≤800 LOC | `deny.toml` supply-chain hygiene | `OrExit<T>` zero-panic binaries | structured logging (`log::info!/warn!/debug!`) | `temp-env` safe env testing (Rust 2024 ready) | zero `eprintln!` workspace-wide | `safe_cast` module (checked GPU dispatch params) | `resilient_call()` circuit breaker | `DispatchOutcome` RPC classification | 4-format `parse_capability_list()` | `discover_primal()` generic socket discovery | Rust Edition 2024 | proptest property-based testing | MSRV pinned (`rust-version = "1.87"`) | `solve_symmetric` → `barracuda::linalg::solve` | barraCuda `optional = true` (IPC-first sovereign deployment) | 11 modules feature-gated behind `barracuda` | centralized `config::resolve_family_id()` | 45 capabilities | NestGate weight persistence | Squirrel inference pipeline | skunkBat JH-5 wired | CI cross-sync 445 methods | 6/6 GPU dispatch (GpuOnly + GpuPreferred) | PCIe P2P bridge | 754 lib tests (930 workspace, IPC-first) + 73 forge + 80 playGround + 12 exp094.
-See `wateringHole/handoffs/` for active handoffs (V179, Session S223).
+**Debt**: Zero TODO/FIXME/MOCK/STUB | zero unsafe (`#![forbid(unsafe_code)]` on all 3 crates) | zero inline magic numbers | zero `#[allow()]` (all `#[expect(reason)]`) | zero unfulfilled expectations | zero C dependencies (Tower Atomic) | 100% SPDX headers | zero mocks in production | all files ≤800 LOC | `deny.toml` supply-chain hygiene | `OrExit<T>` zero-panic binaries | structured logging (`log::info!/warn!/debug!`) | `temp-env` safe env testing (Rust 2024 ready) | zero `eprintln!` workspace-wide | `safe_cast` module (checked GPU dispatch params) | `resilient_call()` circuit breaker | `DispatchOutcome` RPC classification | 4-format `parse_capability_list()` | capability-based discovery with name-hint fallback | Rust Edition 2024 | proptest property-based testing | MSRV pinned (`rust-version = "1.87"`) | `solve_symmetric` → `barracuda::linalg::solve` | barraCuda `optional = true` (IPC-first sovereign deployment) | 11 modules feature-gated behind `barracuda` | centralized `config::resolve_family_id()` | 48 capabilities (incl. `compute.dispatch.submit`) | NestGate weight persistence | Squirrel inference pipeline | skunkBat JH-5 wired | CI cross-sync 445 methods | 6/6 GPU dispatch (GpuOnly + GpuPreferred) | PCIe P2P bridge | 1518+ workspace tests (IPC-first) + 73 forge + 80 playGround + 12 exp094 | `thiserror` for all error types | pollster removed.
+See `wateringHole/handoffs/` for active handoffs (V183, Wave 155).
 
 ### Phase 0 — Synthetic Baselines (48/48)
 
@@ -327,7 +329,7 @@ bash control/check_drift.sh        # drift detection (re-runs baselines)
 pip install pytest
 python3 -m pytest tests/ -v
 
-# Rust validation (930 workspace tests, 754 lib, IPC-first)
+# Rust validation (1518+ workspace tests, IPC-first)
 cargo test --lib --test integration
 cargo run --release --bin validate_all   # all validation binaries
 
@@ -443,7 +445,7 @@ Lifecycle tracker: `metalForge/shaders/ABSORPTION_TRACKER.md`
 ## Evolution Roadmap
 
 - **Phase 0**: Python/PyTorch baselines — validate the science **COMPLETE** (397/397 — 27 papers + 5 WDM + baseCamp + coralForge + pub experiments)
-- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (930 workspace tests, 754 lib, IPC-first), 269 binaries, 68 modules + gpu_ops/ + gpu_dispatch/)
+- **Phase 1a**: neuralSpring Rust validation **COMPLETE** (1518+ workspace tests, IPC-first), 269 binaries, 68 modules + gpu_ops/ + gpu_dispatch/)
 - **Phase 1b**: BarraCUDA validation **COMPLETE** (272 checks — 12 domains incl. ML inference, FFT f32/f64/Rfft, LogSumExp)
 - **Phase 1c**: Fused `ToadStool` pipeline **COMPLETE** (46–78× speedup via single-encoder dispatch)
 - **Phase 1d**: 3-way benchmark + double-buffered shaders **COMPLETE** (GPU 80× CPU, CPU beats Py at crossover)
@@ -507,9 +509,9 @@ See `specs/EVOLUTION_MAPPING.md` for the Tier A/B/C module-by-module mapping.
 | Python format | `ruff format --check control/ tests/` | clean |
 | Python unit tests | `python3 -m pytest tests/ -v` | 48/48 PASS |
 | Python baselines | `bash scripts/run_all_baselines.sh` | 397/397 PASS |
-| Rust tests | `cargo test --workspace` | 930 PASS (754 lib, IPC-first) |
+| Rust tests | `cargo test --workspace` | 1518+ PASS (IPC-first) |
 | Rust clippy | `cargo clippy -- -D warnings` | 0 warnings (pedantic+nursery), 0 `#[allow(` in production code |
-| Rust coverage | `cargo llvm-cov --lib` | ~92% line coverage |
+| Rust coverage | `cargo llvm-cov --lib` | 87.25% line coverage |
 | Rust format | `cargo fmt --check` | clean |
 | Rust doc | `cargo doc --no-deps` | clean |
 | neuralSpring validate | `cargo run --release --bin validate_all` | 233+ binaries PASS |
@@ -597,6 +599,9 @@ neuralSpring/
 │   ├── gpu.rs                   #   GPU device wrapper (Gpu::new(), NEURALSPRING_BACKEND)
 │   ├── gpu_ops/                 #   41 GPU-accelerated ops (6 submodules: linalg, activation, reduction, bio, population, eigensolver)
 │   ├── gpu_dispatch/            #   Capability-based GPU/CPU dispatch (Dispatcher)
+│   ├── ipc/                     #   Per-primal IPC: mod.rs + client.rs + router.rs + health.rs + 7 primal modules
+│   ├── weight_loader/           #   Safetensors I/O: mod.rs + safetensors.rs + nestgate.rs + dtype.rs
+│   ├── validation/              #   Harness + composition (discovery.rs, json_rpc.rs, proto_nucleate.rs)
 │   └── bin/                    #   269 binaries (validate + bench)
 │       ├── validate_surrogate.rs           # 15 checks
 │       ├── validate_transformer.rs         # 18 checks
@@ -648,7 +653,7 @@ neuralSpring/
 ├── wateringHole/               # Cross-project handoffs (ToadStool/BarraCUDA)
 │   ├── README.md              #   Active handoffs index (following wetSpring pattern)
 │   ├── handoffs/              #   Formal handoff documents
-│   │   ├── NEURALSPRING_V179_*.md # Current handoff (V179/S223)
+│   │   ├── NEURALSPRING_V183_*.md # Current handoff (V183/Wave 155)
 │   │   └── archive/           #   Superseded handoffs (V1–V178 + NestGate/biomeOS/Songbird V1)
 ├── experiments/                # Experiment journals (hotSpring pattern)
 │   └── README.md              #   Journal index (001-123+)
@@ -671,7 +676,7 @@ neuralSpring/
 ├── justfile                    # Task runner alt (just)
 ├── CONTROL_EXPERIMENT_STATUS.md
 ├── README.md
-└── LICENSE                     # AGPL-3.0-or-later
+└── LICENSE                     # AGPL-3.0-or-later (scyBorg: + LICENSE-ORC + LICENSE-CC-BY-SA)
 ```
 
 ## Specifications
@@ -690,13 +695,14 @@ neuralSpring/
 | `metalForge/CROSS_SYSTEM_DISPATCH.md` | GPU → CPU → NPU dispatch strategy and validated paths |
 | `metalForge/shaders/ABSORPTION_TRACKER.md` | Shader lifecycle (evolve → validate → absorb → retire) |
 | `whitePaper/baseCamp/` | Per-faculty research briefings (5 groups, 15 papers) |
-| `wateringHole/handoffs/` | Formal primal team handoffs (V179 current: Session S223) |
+| `wateringHole/handoffs/` | Formal primal team handoffs (V183 current: Wave 155) |
 | `experiments/README.md` | Experiment journals (Sessions 40–223, hotSpring pattern) |
 | `CHANGELOG.md` | Release history and session-level changes |
 
 ## License
 
-AGPL-3.0-or-later
+scyBorg triple-license: **AGPL-3.0-or-later** (code) + **ORC** (mechanics,
+`LICENSE-ORC`) + **CC-BY-SA** (creative, `LICENSE-CC-BY-SA`).
 
 ---
 
@@ -712,4 +718,4 @@ documentation and standards.
 
 ---
 
-*Initialized: February 16, 2026 | Sessions 40–223: Jun 3, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 pub experiments | 397 Python + 4,500+ Rust+GPU + 8 composition validators = 4,900+ total validation checks | 930 workspace tests (754 lib, IPC-first) + 19 certification | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 269 binaries (241 require-features gated), 521+ `.rs` files, 42 WGSL shaders | 233+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(`, 0 unfulfilled lint expectations | barraCuda v0.4.0 (optional, IPC-first, `default = []`) | guideStone v0.4.0 | 11 barracuda-gated modules | V179 handoff | southGate deployment | guideStone Level 5 (L0–L5: bare/discovery/parity/nucleus/composition/cross-spring) | 8 paper notebooks (72/72 checks, 2 faculties) | 4 deploy graphs | exp094 NUCLEUS composition parity | NestGate weight persistence wired | Squirrel inference pipeline complete | IPC tree (7 per-primal modules) | 10 validation scenarios | 45 capabilities (stability tiers annotated) | 45 capability constants | Tier 2 fully wired (toadStool + barraCuda precision.route) | Wave 17 + Wave 20 signal API (primal.announce + nest.store + nest.commit + node.compute) | Live composition (execute\_graph\_live) | 6/6 GPU dispatch (PCIe P2P bridge) | Deep debt zero-debt (7 audits: S199, S202c, S204b, S205b, S207b, S210, S223) | Degradation behavior documented | Stability tiers absorbed | 15 modules tightened pub(crate) | Production stubs → real IPC forwarding | Capability-first tower discovery | Python→Rust→Primal→guideStone validation stack*
+*Initialized: February 16, 2026 | Wave 155: Aug 3, 2026 | 27 papers + 5 novel compositions + 6 baseCamp sub-theses + 5 WDM surrogates + coralForge + 3 pub experiments | 397 Python + 4,500+ Rust+GPU + 8 composition validators = 4,900+ total validation checks | 1518+ workspace tests (IPC-first) + 19 certification | 87.25% line coverage | ALL 17 shortcomings RESOLVED upstream (S-01–S-17) | 68 modules, 269 binaries (241 require-features gated), 521+ `.rs` files, 42 WGSL shaders | 233+ named tolerances, 0 clippy (pedantic+nursery+cast deny, all-features), 0 fmt, 0 doc warnings, 100% SPDX, 0 `#[allow(`, 0 unfulfilled lint expectations | barraCuda v0.4.0 (optional, IPC-first, `default = []`) | guideStone v0.4.0 | 11 barracuda-gated modules | V183 handoff | strandGate deployment | guideStone Level 5 (L0–L5: bare/discovery/parity/nucleus/composition/cross-spring) | 8 paper notebooks (72/72 checks, 2 faculties) | 4 deploy graphs | exp094 NUCLEUS composition parity | NestGate weight persistence wired | Squirrel inference pipeline complete | IPC modularized (client/router/health + 7 per-primal modules) | weight_loader/ + validation/composition splits | 11 validation scenarios | 48 capabilities (incl. `compute.dispatch.submit`) | Tier 2 fully wired (toadStool + barraCuda precision.route) | Wave 17 + Wave 20 signal API (primal.announce + nest.store + nest.commit + node.compute) | Live composition (execute\_graph\_live) | 6/6 GPU dispatch (PCIe P2P bridge) | Deep debt zero-debt (Wave 155 audit) | Degradation behavior documented | Stability tiers absorbed | Production stubs → real IPC forwarding | Capability-based discovery with name-hint fallback | thiserror for all error types, pollster removed | scyBorg triple-license | Python→Rust→Primal→guideStone validation stack*

@@ -93,8 +93,8 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
         Ok(result) => {
             let value = result
                 .get("result")
-                .or(result.get("mean"))
-                .and_then(|v| v.as_f64());
+                .or_else(|| result.get("mean"))
+                .and_then(serde_json::Value::as_f64);
             if let Some(val) = value {
                 v.check_bool(
                     "tower:live:stats_mean_20",

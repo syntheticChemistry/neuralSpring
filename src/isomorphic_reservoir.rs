@@ -12,7 +12,6 @@
 //! - [`crate::eigh`] — eigendecomposition
 //! - `crate::metrics` — R², RMSE
 
-
 /// Spectral properties of a weight matrix.
 #[derive(Debug, Clone)]
 pub struct SpectralProfile {
@@ -278,8 +277,8 @@ pub fn load_isomorphic_from_json(json_str: &str) -> Result<IsomorphicBaseline, S
 }
 
 #[cfg(test)]
+#[expect(clippy::unwrap_used, clippy::expect_used, reason = "test assertions")]
 mod tests {
-    #[cfg(feature = "barracuda")]
     use super::*;
 
     #[test]
@@ -290,15 +289,20 @@ mod tests {
     }
 
     #[cfg(feature = "barracuda")]
+    fn make_identity(n: usize) -> Vec<f64> {
+        let mut m = vec![0.0; n * n];
+        for i in 0..n {
+            m[i * n + i] = 1.0;
+        }
+        m
+    }
+
+    #[cfg(feature = "barracuda")]
     mod spectral {
         use super::*;
 
         fn make_identity(n: usize) -> Vec<f64> {
-            let mut m = vec![0.0; n * n];
-            for i in 0..n {
-                m[i * n + i] = 1.0;
-            }
-            m
+            super::make_identity(n)
         }
 
         #[test]
@@ -409,5 +413,330 @@ mod tests {
                 }
             }
         }
+    }
+
+    fn minimal_isomorphic_json() -> String {
+        r#"{
+  "spectra": {
+    "digester_esn": {
+      "size": 2,
+      "spectral_radius": 1.0,
+      "eigenvalue_mean": 0.5,
+      "eigenvalue_std": 0.5,
+      "eigenvalue_min": 0.0,
+      "eigenvalue_max": 1.0,
+      "mean_spacing_ratio": 0.5,
+      "mean_ipr": 0.5,
+      "effective_dimension": 2.0,
+      "effective_ratio": 1.0
+    }
+  },
+  "cross_domain": {
+    "eff_ratio_mean": 1.0,
+    "eff_ratio_std": 0.0,
+    "eff_ratio_cv": 0.0,
+    "ipr_mean": 0.5,
+    "ipr_std": 0.0,
+    "ipr_cv": 0.0,
+    "spacing_ratio_mean": 0.5,
+    "spacing_ratio_std": 0.0
+  },
+  "domains": {
+    "digester": { "w_res_sym": [[1.0, 0.0], [0.0, 1.0]] },
+    "glucose": { "w_hh_sym": [[2.0, 0.0], [0.0, 2.0]] },
+    "weather": { "w_hh_sym": [[3.0, 0.0], [0.0, 3.0]] }
+  },
+  "reference_sums": {
+    "digester_w_out_head": 1.0,
+    "glucose_w_out_head": 2.0,
+    "weather_w_out_head": 3.0
+  }
+}"#
+        .to_string()
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_minimal() {
+        let baseline = load_isomorphic_from_json(&minimal_isomorphic_json()).expect("parse");
+        assert_eq!(baseline.spectra.len(), 1);
+        assert_eq!(baseline.spectra[0].name, "digester_esn");
+        assert_eq!(baseline.domain_matrices.len(), 3);
+        assert_eq!(baseline.reference_sums.len(), 3);
+        assert!((baseline.cross_domain.eff_ratio_mean - 1.0).abs() < crate::tolerances::EXACT_F64);
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_parse_error() {
+        let err = load_isomorphic_from_json("{not json").unwrap_err();
+        assert!(err.contains("JSON parse error"));
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_missing_spectra() {
+        let err = load_isomorphic_from_json(r#"{"cross_domain":{}}"#).unwrap_err();
+        assert_eq!(err, "missing spectra");
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_missing_matrix_field() {
+        let json = r#"{
+  "spectra": {"a": {
+    "size": 2, "spectral_radius": 1.0, "eigenvalue_mean": 0.0,
+    "eigenvalue_std": 0.0, "eigenvalue_min": 0.0, "eigenvalue_max": 1.0,
+    "mean_spacing_ratio": 0.0, "mean_ipr": 1.0, "effective_dimension": 1.0,
+    "effective_ratio": 0.5
+  }},
+  "cross_domain": {
+    "eff_ratio_mean": 0.0, "eff_ratio_std": 0.0, "eff_ratio_cv": 0.0,
+    "ipr_mean": 0.0, "ipr_std": 0.0, "ipr_cv": 0.0,
+    "spacing_ratio_mean": 0.0, "spacing_ratio_std": 0.0
+  },
+  "domains": {"digester": {}},
+  "reference_sums": {
+    "digester_w_out_head": 0.0, "glucose_w_out_head": 0.0, "weather_w_out_head": 0.0
+  }
+}"#;
+        let err = load_isomorphic_from_json(json).unwrap_err();
+        assert_eq!(err, "missing matrix");
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_matrix_keys_by_domain() {
+        let baseline = load_isomorphic_from_json(&minimal_isomorphic_json()).expect("parse");
+        let digester = baseline
+            .domain_matrices
+            .iter()
+            .find(|(name, _, _)| name == "digester")
+            .expect("digester domain");
+        assert_eq!(digester.2, 2);
+        assert!((digester.1[0] - 1.0).abs() < crate::tolerances::EXACT_F64);
+
+        let glucose = baseline
+            .domain_matrices
+            .iter()
+            .find(|(name, _, _)| name == "glucose")
+            .expect("glucose domain");
+        assert!((glucose.1[0] - 2.0).abs() < crate::tolerances::EXACT_F64);
+    }
+
+    #[cfg(feature = "barracuda")]
+    #[test]
+    fn cross_domain_metrics_single_profile() {
+        let m = make_identity(4);
+        let sp = spectral_properties(&m, 4, "solo");
+        let cd = cross_domain_metrics(&[sp]);
+        assert!((cd.eff_ratio_cv - 0.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+        assert!((cd.ipr_cv - 0.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+    }
+
+    #[cfg(feature = "barracuda")]
+    #[test]
+    fn spectral_properties_spacing_zero_for_two_eigenvalues() {
+        let m = make_identity(2);
+        let sp = spectral_properties(&m, 2, "tiny");
+        assert!(
+            sp.mean_spacing_ratio.abs() < crate::tolerances::CROSS_LANGUAGE,
+            "n=2 → one gap → spacing ratio branch returns 0"
+        );
+    }
+
+    #[cfg(feature = "barracuda")]
+    #[test]
+    fn cross_domain_metrics_diverse_profiles_have_positive_cv() {
+        let sp1 = spectral_properties(&make_identity(4), 4, "a");
+        let mut diag = vec![0.0; 16];
+        for i in 0..4 {
+            diag[i * 4 + i] = (i + 1) as f64;
+        }
+        let sp2 = spectral_properties(&diag, 4, "b");
+        let cd = cross_domain_metrics(&[sp1, sp2]);
+        assert!(cd.eff_ratio_std >= 0.0);
+        assert!(cd.ipr_std >= 0.0);
+        assert!(cd.spacing_ratio_std >= 0.0);
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_missing_cross_domain() {
+        let json = r#"{
+  "spectra": {"a": {
+    "size": 2, "spectral_radius": 1.0, "eigenvalue_mean": 0.0,
+    "eigenvalue_std": 0.0, "eigenvalue_min": 0.0, "eigenvalue_max": 1.0,
+    "mean_spacing_ratio": 0.0, "mean_ipr": 1.0, "effective_dimension": 1.0,
+    "effective_ratio": 0.5
+  }}
+}"#;
+        let err = load_isomorphic_from_json(json).unwrap_err();
+        assert_eq!(err, "missing eff_ratio_mean");
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_missing_spectra_size() {
+        let json = r#"{
+  "spectra": {"a": {"spectral_radius": 1.0}},
+  "cross_domain": {
+    "eff_ratio_mean": 0.0, "eff_ratio_std": 0.0, "eff_ratio_cv": 0.0,
+    "ipr_mean": 0.0, "ipr_std": 0.0, "ipr_cv": 0.0,
+    "spacing_ratio_mean": 0.0, "spacing_ratio_std": 0.0
+  },
+  "domains": {},
+  "reference_sums": {
+    "digester_w_out_head": 0.0, "glucose_w_out_head": 0.0, "weather_w_out_head": 0.0
+  }
+}"#;
+        let err = load_isomorphic_from_json(json).unwrap_err();
+        assert_eq!(err, "missing size");
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_multiple_spectra() {
+        let json = r#"{
+  "spectra": {
+    "digester_esn": {
+      "size": 2, "spectral_radius": 1.0, "eigenvalue_mean": 0.5,
+      "eigenvalue_std": 0.5, "eigenvalue_min": 0.0, "eigenvalue_max": 1.0,
+      "mean_spacing_ratio": 0.5, "mean_ipr": 0.5, "effective_dimension": 2.0,
+      "effective_ratio": 1.0
+    },
+    "glucose_lstm": {
+      "size": 4, "spectral_radius": 2.0, "eigenvalue_mean": 1.0,
+      "eigenvalue_std": 0.25, "eigenvalue_min": 0.5, "eigenvalue_max": 2.0,
+      "mean_spacing_ratio": 0.3, "mean_ipr": 0.25, "effective_dimension": 4.0,
+      "effective_ratio": 1.0
+    }
+  },
+  "cross_domain": {
+    "eff_ratio_mean": 1.0, "eff_ratio_std": 0.0, "eff_ratio_cv": 0.0,
+    "ipr_mean": 0.5, "ipr_std": 0.0, "ipr_cv": 0.0,
+    "spacing_ratio_mean": 0.5, "spacing_ratio_std": 0.0
+  },
+  "domains": {
+    "digester": { "w_res_sym": [[1.0, 0.0], [0.0, 1.0]] },
+    "glucose": { "w_hh_sym": [[2.0, 0.0], [0.0, 2.0]] },
+    "weather": { "w_hh_sym": [[3.0, 0.0], [0.0, 3.0]] }
+  },
+  "reference_sums": {
+    "digester_w_out_head": 1.0, "glucose_w_out_head": 2.0, "weather_w_out_head": 3.0
+  }
+}"#;
+        let baseline = load_isomorphic_from_json(json).expect("parse");
+        assert_eq!(baseline.spectra.len(), 2);
+        let names: Vec<&str> = baseline.spectra.iter().map(|s| s.name.as_str()).collect();
+        assert!(names.contains(&"digester_esn"));
+        assert!(names.contains(&"glucose_lstm"));
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_missing_domains() {
+        let json = r#"{
+  "spectra": {"a": {
+    "size": 2, "spectral_radius": 1.0, "eigenvalue_mean": 0.0,
+    "eigenvalue_std": 0.0, "eigenvalue_min": 0.0, "eigenvalue_max": 1.0,
+    "mean_spacing_ratio": 0.0, "mean_ipr": 1.0, "effective_dimension": 1.0,
+    "effective_ratio": 0.5
+  }},
+  "cross_domain": {
+    "eff_ratio_mean": 0.0, "eff_ratio_std": 0.0, "eff_ratio_cv": 0.0,
+    "ipr_mean": 0.0, "ipr_std": 0.0, "ipr_cv": 0.0,
+    "spacing_ratio_mean": 0.0, "spacing_ratio_std": 0.0
+  },
+  "reference_sums": {
+    "digester_w_out_head": 0.0, "glucose_w_out_head": 0.0, "weather_w_out_head": 0.0
+  }
+}"#;
+        let err = load_isomorphic_from_json(json).unwrap_err();
+        assert_eq!(err, "missing domains");
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_missing_reference_sum() {
+        let json = r#"{
+  "spectra": {"a": {
+    "size": 2, "spectral_radius": 1.0, "eigenvalue_mean": 0.0,
+    "eigenvalue_std": 0.0, "eigenvalue_min": 0.0, "eigenvalue_max": 1.0,
+    "mean_spacing_ratio": 0.0, "mean_ipr": 1.0, "effective_dimension": 1.0,
+    "effective_ratio": 0.5
+  }},
+  "cross_domain": {
+    "eff_ratio_mean": 0.0, "eff_ratio_std": 0.0, "eff_ratio_cv": 0.0,
+    "ipr_mean": 0.0, "ipr_std": 0.0, "ipr_cv": 0.0,
+    "spacing_ratio_mean": 0.0, "spacing_ratio_std": 0.0
+  },
+  "domains": {"digester": { "w_res_sym": [[1.0, 0.0], [0.0, 1.0]] }},
+  "reference_sums": {}
+}"#;
+        let err = load_isomorphic_from_json(json).unwrap_err();
+        assert_eq!(err, "missing ref");
+    }
+
+    #[test]
+    fn load_isomorphic_from_json_matrix_not_2d() {
+        let json = r#"{
+  "spectra": {"a": {
+    "size": 2, "spectral_radius": 1.0, "eigenvalue_mean": 0.0,
+    "eigenvalue_std": 0.0, "eigenvalue_min": 0.0, "eigenvalue_max": 1.0,
+    "mean_spacing_ratio": 0.0, "mean_ipr": 1.0, "effective_dimension": 1.0,
+    "effective_ratio": 0.5
+  }},
+  "cross_domain": {
+    "eff_ratio_mean": 0.0, "eff_ratio_std": 0.0, "eff_ratio_cv": 0.0,
+    "ipr_mean": 0.0, "ipr_std": 0.0, "ipr_cv": 0.0,
+    "spacing_ratio_mean": 0.0, "spacing_ratio_std": 0.0
+  },
+  "domains": {"digester": { "w_res_sym": [1.0, 0.0] }},
+  "reference_sums": {
+    "digester_w_out_head": 0.0, "glucose_w_out_head": 0.0, "weather_w_out_head": 0.0
+  }
+}"#;
+        let err = load_isomorphic_from_json(json).unwrap_err();
+        assert_eq!(err, "expected 2D");
+    }
+
+    #[cfg(feature = "barracuda")]
+    #[test]
+    fn spectral_properties_effective_ratio_in_unit_interval() {
+        use crate::rng::Rng as PrimalRng;
+
+        let mut rng = PrimalRng::new(99);
+        let n = 6;
+        let mut m = vec![0.0; n * n];
+        for i in 0..n {
+            for j in i..n {
+                let v = 2.0f64.mul_add(rng.uniform(), -1.0);
+                m[i * n + j] = v;
+                m[j * n + i] = v;
+            }
+        }
+        let sp = spectral_properties(&m, n, "random");
+        assert!(sp.effective_ratio > 0.0);
+        assert!(sp.effective_ratio <= 1.0 + crate::tolerances::CROSS_LANGUAGE);
+        assert!(sp.spectral_radius >= sp.eigenvalue_min.abs());
+    }
+
+    #[cfg(feature = "barracuda")]
+    #[test]
+    fn cross_domain_metrics_three_profiles() {
+        let profiles: Vec<SpectralProfile> = (0..3)
+            .map(|i| {
+                let n = 4;
+                let mut m = make_identity(n);
+                m[0] = f64::from(i + 1);
+                spectral_properties(&m, n, &format!("p{i}"))
+            })
+            .collect();
+        let cd = cross_domain_metrics(&profiles);
+        assert!(cd.eff_ratio_mean.is_finite());
+        assert!(cd.ipr_mean.is_finite());
+        assert!(cd.spacing_ratio_mean.is_finite());
+        assert!(cd.eff_ratio_cv.is_finite());
+    }
+
+    #[cfg(feature = "barracuda")]
+    #[test]
+    fn spectral_properties_constant_matrix_zero_spacing() {
+        let n = 4;
+        let m = vec![1.0; n * n];
+        let sp = spectral_properties(&m, n, "constant");
+        assert!(sp.eigenvalue_std >= 0.0);
+        assert!(sp.mean_spacing_ratio.is_finite());
     }
 }

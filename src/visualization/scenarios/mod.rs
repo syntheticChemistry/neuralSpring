@@ -76,12 +76,11 @@ pub use wdm::wdm_study;
 pub use wdm_ensemble_qs::wdm_ensemble_qs_study;
 
 // Re-export scaffold helpers for sub-modules.
-pub(crate) use scaffold::{
-    bar, distribution, edge, gauge, heatmap, node, scaffold, scatter3d, spectrum,
-    timeseries,
-};
 #[cfg(feature = "barracuda")]
 pub(crate) use scaffold::fieldmap;
+pub(crate) use scaffold::{
+    bar, distribution, edge, gauge, heatmap, node, scaffold, scatter3d, spectrum, timeseries,
+};
 
 #[cfg(all(test, feature = "barracuda"))]
 #[expect(clippy::expect_used, reason = "test assertions")]

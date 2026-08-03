@@ -2,13 +2,28 @@
 
 //! JSON-RPC method handlers for neuralSpring primal capabilities.
 
-use super::discovery::{discover_data_primal_and_forward, forward_to_primal};
-use super::rpc::{self, error_code, JsonRpcResponse};
+use super::discovery::{
+    discover_by_capability, discover_data_primal_and_forward, forward_to_primal,
+};
+use super::rpc::{self, JsonRpcResponse, error_code};
 use super::{PRIMAL_NAME, PrimalState};
 
+use neural_spring::capabilities;
 use neural_spring::config::ALL_CAPABILITIES;
 use neural_spring::niche;
+use neural_spring::nucleus_pipeline::{
+    PIPELINE_CAPABILITIES, dispatch_capability, dispatch_capability_gpu, is_pipeline_capability,
+};
 use neural_spring::primal_names;
+use neural_spring_forge::graph::StageOutput;
+
+use std::time::{Duration, Instant};
+
+const PROBE_TIMEOUT: Duration = Duration::from_secs(2);
+const PROVENANCE_TIMEOUT: Duration = Duration::from_secs(5);
+const INFERENCE_TIMEOUT: Duration = Duration::from_secs(30);
+const COMPUTE_DISPATCH_TIMEOUT: Duration = Duration::from_secs(10);
+const REGISTRATION_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Kubernetes-style liveness probe: is the process alive and able to
 /// handle requests?  Returns `{"status": "alive"}` per Semantic Method
@@ -27,10 +42,9 @@ pub fn handle_liveness(id: serde_json::Value) -> JsonRpcResponse {
 /// and ready to serve science requests?  Checks that the GPU dispatcher
 /// is constructed (it initializes asynchronously at startup).
 pub fn handle_readiness(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
-    let gpu_ready = state.dispatcher.has_gpu() || {
-        // CPU-only mode is also "ready" — GPU is optional
-        true
-    };
+    // Ready when GPU is available, or when CPU-only mode is acceptable
+    // (GPU is optional unless REQUIRE_GPU / NEURALSPRING_REQUIRE_GPU is set).
+    let gpu_ready = state.dispatcher.has_gpu() || !neural_spring::validation::gpu_required();
     let uptime = state.start_time.elapsed().as_secs();
     JsonRpcResponse::success(
         id,
@@ -41,6 +55,7 @@ pub fn handle_readiness(id: serde_json::Value, state: &PrimalState) -> JsonRpcRe
             "subsystems": {
                 "dispatcher": true,
                 "gpu": state.dispatcher.has_gpu(),
+                "gpu_required": neural_spring::validation::gpu_required(),
                 "backend": format!("{}", state.dispatcher.backend()),
             },
             "uptime_seconds": uptime,
@@ -237,17 +252,14 @@ pub fn handle_provenance(
     method: &str,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
-    use neural_spring::validation::composition;
-    use std::time::Duration;
-
     let orchestrator =
-        try_discover_and_call(primal_names::BIOMEOS, method, params, Duration::from_secs(5));
+        try_discover_and_call(primal_names::BIOMEOS, method, params, PROVENANCE_TIMEOUT);
     if let Some(result) = orchestrator {
         return JsonRpcResponse::success(id, result);
     }
 
     let rhizocrypt =
-        try_discover_and_call(primal_names::RHIZOCRYPT, method, params, Duration::from_secs(5));
+        try_discover_and_call(primal_names::RHIZOCRYPT, method, params, PROVENANCE_TIMEOUT);
     if let Some(result) = rhizocrypt {
         return JsonRpcResponse::success(id, result);
     }
@@ -296,62 +308,32 @@ fn try_discover_and_call(
     composition::json_rpc_call(&socket, method, params, timeout).ok()
 }
 
-/// Inference completion — routes through Squirrel when available.
+/// Discover a primal by capability and forward a JSON-RPC call.
+///
+/// Probes live sockets for the requested capability, falling back to
+/// compile-time name hints when no socket advertises it.
+fn try_discover_and_call_capability(
+    capability: &str,
+    method: &str,
+    params: &serde_json::Value,
+    timeout: Duration,
+) -> Option<serde_json::Value> {
+    use neural_spring::validation::composition;
+
+    let socket = discover_by_capability(capability, PROBE_TIMEOUT)?;
+    composition::json_rpc_call(&socket, method, params, timeout).ok()
+}
+
+/// Inference completion — routes to whichever primal advertises inference.
 pub fn handle_inference_complete(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
-    use neural_spring::primal_names;
-    use std::time::Duration;
-
-    if let Some(result) =
-        try_discover_and_call(primal_names::SQUIRREL, "inference.complete", params, Duration::from_secs(30))
-    {
-        return JsonRpcResponse::success(id, result);
-    }
-
-    JsonRpcResponse::error(
-        id,
-        error_code::SERVICE_UNAVAILABLE,
-        "inference.complete: Squirrel primal not discovered — \
-         no inference provider available"
-            .to_string(),
-    )
-}
-
-/// Inference embedding — routes through Squirrel when available.
-pub fn handle_inference_embed(
-    id: serde_json::Value,
-    params: &serde_json::Value,
-) -> JsonRpcResponse {
-    use neural_spring::primal_names;
-    use std::time::Duration;
-
-    if let Some(result) =
-        try_discover_and_call(primal_names::SQUIRREL, "inference.embed", params, Duration::from_secs(30))
-    {
-        return JsonRpcResponse::success(id, result);
-    }
-
-    JsonRpcResponse::error(
-        id,
-        error_code::SERVICE_UNAVAILABLE,
-        "inference.embed: Squirrel primal not discovered — \
-         no embedding provider available"
-            .to_string(),
-    )
-}
-
-/// List available inference models — routes through Squirrel when available.
-pub fn handle_inference_models(id: serde_json::Value) -> JsonRpcResponse {
-    use neural_spring::primal_names;
-    use std::time::Duration;
-
-    if let Some(result) = try_discover_and_call(
-        primal_names::SQUIRREL,
-        "inference.models",
-        &serde_json::json!({}),
-        Duration::from_secs(30),
+    if let Some(result) = try_discover_and_call_capability(
+        capabilities::INFERENCE_COMPLETE,
+        capabilities::INFERENCE_COMPLETE,
+        params,
+        INFERENCE_TIMEOUT,
     ) {
         return JsonRpcResponse::success(id, result);
     }
@@ -359,34 +341,77 @@ pub fn handle_inference_models(id: serde_json::Value) -> JsonRpcResponse {
     JsonRpcResponse::error(
         id,
         error_code::SERVICE_UNAVAILABLE,
-        "inference.models: Squirrel primal not discovered — \
-         no inference provider available"
-            .to_string(),
+        format!(
+            "{}: no inference provider discovered",
+            capabilities::INFERENCE_COMPLETE
+        ),
     )
 }
 
-/// Node Atomic compute offload — forwards to toadStool when available.
+/// Inference embedding — routes to whichever primal advertises embedding.
+pub fn handle_inference_embed(
+    id: serde_json::Value,
+    params: &serde_json::Value,
+) -> JsonRpcResponse {
+    if let Some(result) = try_discover_and_call_capability(
+        capabilities::INFERENCE_EMBED,
+        capabilities::INFERENCE_EMBED,
+        params,
+        INFERENCE_TIMEOUT,
+    ) {
+        return JsonRpcResponse::success(id, result);
+    }
+
+    JsonRpcResponse::error(
+        id,
+        error_code::SERVICE_UNAVAILABLE,
+        format!(
+            "{}: no embedding provider discovered",
+            capabilities::INFERENCE_EMBED
+        ),
+    )
+}
+
+/// List available inference models — routes to whichever primal advertises models.
+pub fn handle_inference_models(id: serde_json::Value) -> JsonRpcResponse {
+    if let Some(result) = try_discover_and_call_capability(
+        capabilities::INFERENCE_MODELS,
+        capabilities::INFERENCE_MODELS,
+        &serde_json::json!({}),
+        INFERENCE_TIMEOUT,
+    ) {
+        return JsonRpcResponse::success(id, result);
+    }
+
+    JsonRpcResponse::error(
+        id,
+        error_code::SERVICE_UNAVAILABLE,
+        format!(
+            "{}: no inference provider discovered",
+            capabilities::INFERENCE_MODELS
+        ),
+    )
+}
+
+/// Node Atomic compute offload — forwards to whichever primal advertises dispatch.
 ///
-/// If toadStool is running, the workload is forwarded for distributed
-/// dispatch. Otherwise, reports local dispatcher readiness.
+/// If a compute dispatch provider is running, the workload is forwarded for
+/// distributed dispatch. Otherwise, reports local dispatcher readiness.
 pub fn handle_compute_offload(
     id: serde_json::Value,
     params: &serde_json::Value,
     state: &PrimalState,
 ) -> JsonRpcResponse {
-    use neural_spring::primal_names;
-    use std::time::Duration;
-
-    if let Some(result) = try_discover_and_call(
-        primal_names::TOADSTOOL,
-        "compute.dispatch.submit",
+    if let Some(result) = try_discover_and_call_capability(
+        capabilities::COMPUTE_DISPATCH_SUBMIT,
+        capabilities::COMPUTE_DISPATCH_SUBMIT,
         params,
-        Duration::from_secs(10),
+        COMPUTE_DISPATCH_TIMEOUT,
     ) {
         return JsonRpcResponse::success(id, result);
     }
 
-    log::debug!("compute.offload: toadStool not discovered — local dispatch info");
+    log::debug!("compute.offload: no dispatch provider discovered — local dispatch info");
     JsonRpcResponse::success(
         id,
         serde_json::json!({
@@ -395,7 +420,7 @@ pub fn handle_compute_offload(
             "status": "local_dispatch",
             "gpu_available": state.dispatcher.has_gpu(),
             "backend": format!("{}", state.dispatcher.backend()),
-            "note": "toadStool not discovered — workload handled locally",
+            "note": "no compute dispatch provider discovered — workload handled locally",
         }),
     )
 }
@@ -459,28 +484,64 @@ pub fn handle_primal_announce(
         .get("primal_id")
         .and_then(|v| v.as_str())
         .unwrap_or("unknown");
+
+    if let Some(result) = try_discover_and_call(
+        primal_names::BIOMEOS,
+        "primal.announce",
+        params,
+        PROVENANCE_TIMEOUT,
+    ) {
+        return JsonRpcResponse::success(
+            id,
+            serde_json::json!({
+                "status": "forwarded",
+                "primal": PRIMAL_NAME,
+                "announced_by": primal_id,
+                "upstream_result": result,
+            }),
+        );
+    }
+
+    log::debug!("primal.announce: biomeOS not discovered — local acknowledgment");
     JsonRpcResponse::success(
         id,
         serde_json::json!({
-            "status": "acknowledged",
+            "status": "acknowledged_locally",
             "primal": PRIMAL_NAME,
             "announced_by": primal_id,
-            "note": "neuralSpring is a niche, not an orchestrator — announcement forwarded to biomeOS",
+            "note": "biomeOS not discovered — announcement stored locally",
         }),
     )
 }
 
-pub fn handle_composition_status(
-    id: serde_json::Value,
-    state: &PrimalState,
-) -> JsonRpcResponse {
+pub fn handle_composition_status(id: serde_json::Value, state: &PrimalState) -> JsonRpcResponse {
+    let science_capabilities = ALL_CAPABILITIES
+        .iter()
+        .filter(|cap| cap.starts_with("science."))
+        .count();
+    let pipeline_registered = PIPELINE_CAPABILITIES
+        .iter()
+        .filter(|cap| ALL_CAPABILITIES.contains(cap))
+        .count();
+    let gpu_available = state.dispatcher.has_gpu();
+    let gpu_required = neural_spring::validation::gpu_required();
+    let ready = gpu_available || !gpu_required;
+    let status = if ready { "ready" } else { "degraded" };
+
     JsonRpcResponse::success(
         id,
         serde_json::json!({
             "primal": PRIMAL_NAME,
-            "status": "composing",
-            "capabilities": ALL_CAPABILITIES.len(),
-            "gpu_available": state.dispatcher.has_gpu(),
+            "status": status,
+            "nucleus_atomic": "Tower",
+            "composition_layer": "L4",
+            "capabilities_total": ALL_CAPABILITIES.len(),
+            "science_capabilities": science_capabilities,
+            "pipeline_stages": PIPELINE_CAPABILITIES.len(),
+            "pipeline_stages_registered": pipeline_registered,
+            "gpu_available": gpu_available,
+            "gpu_required": gpu_required,
+            "backend": format!("{}", state.dispatcher.backend()),
             "signal_api": "wave17",
         }),
     )
@@ -494,16 +555,17 @@ pub fn handle_method_register(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
-    use std::time::Duration;
-
     let method = params
         .get("method")
         .and_then(|v| v.as_str())
         .unwrap_or("unknown");
 
-    if let Some(result) =
-        try_discover_and_call(primal_names::BIOMEOS, "method.register", params, Duration::from_secs(5))
-    {
+    if let Some(result) = try_discover_and_call(
+        primal_names::BIOMEOS,
+        "method.register",
+        params,
+        REGISTRATION_TIMEOUT,
+    ) {
         return JsonRpcResponse::success(
             id,
             serde_json::json!({
@@ -532,45 +594,134 @@ pub fn handle_compute_dispatch(
     params: &serde_json::Value,
     state: &PrimalState,
 ) -> JsonRpcResponse {
+    if let Some(op) = params.get("operation").and_then(|v| v.as_str()) {
+        return match op {
+            "probe" => JsonRpcResponse::success(
+                id,
+                serde_json::json!({
+                    "primal": PRIMAL_NAME,
+                    "status": "dispatch_ready",
+                    "gpu_available": state.dispatcher.has_gpu(),
+                    "backend": format!("{}", state.dispatcher.backend()),
+                    "pipeline_stages": PIPELINE_CAPABILITIES.len(),
+                }),
+            ),
+            "status" => JsonRpcResponse::success(
+                id,
+                serde_json::json!({
+                    "primal": PRIMAL_NAME,
+                    "status": "ok",
+                    "gpu_available": state.dispatcher.has_gpu(),
+                    "gpu_required": neural_spring::validation::gpu_required(),
+                    "backend": format!("{}", state.dispatcher.backend()),
+                    "adapter": state.dispatcher.adapter_name(),
+                    "pipeline_capabilities": PIPELINE_CAPABILITIES,
+                }),
+            ),
+            _ => JsonRpcResponse::error(
+                id,
+                error_code::INVALID_PARAMS,
+                format!("Unknown compute.dispatch operation: {op}"),
+            ),
+        };
+    }
+
     let workload = params
         .get("workload")
+        .or_else(|| params.get("capability"))
+        .and_then(|v| v.as_str());
+
+    let Some(workload) = workload else {
+        return JsonRpcResponse::error(
+            id,
+            error_code::INVALID_PARAMS,
+            "Missing 'workload' or 'capability' parameter (expected science capability)"
+                .to_string(),
+        );
+    };
+
+    if !is_pipeline_capability(workload) {
+        return JsonRpcResponse::error(
+            id,
+            error_code::INVALID_PARAMS,
+            format!("Unknown workload capability: {workload}"),
+        );
+    }
+
+    let substrate_hint = params
+        .get("substrate_hint")
         .and_then(|v| v.as_str())
-        .unwrap_or("unknown");
+        .unwrap_or("auto");
+    let use_gpu = substrate_hint != "cpu" && state.dispatcher.has_gpu();
+    let actual_backend = if use_gpu {
+        format!("{}", state.dispatcher.backend())
+    } else {
+        "CPU".to_string()
+    };
+
+    let t0 = Instant::now();
+    let (success, output) = if use_gpu {
+        dispatch_capability_gpu(workload, &state.dispatcher)
+    } else {
+        dispatch_capability(workload)
+    };
+    let elapsed_us = t0.elapsed().as_micros();
+
+    if !success {
+        return JsonRpcResponse::error(
+            id,
+            error_code::INTERNAL_ERROR,
+            format!("Dispatch failed for workload: {workload}"),
+        );
+    }
+
     JsonRpcResponse::success(
         id,
         serde_json::json!({
             "primal": PRIMAL_NAME,
             "workload": workload,
+            "status": "dispatched",
+            "success": success,
             "gpu_available": state.dispatcher.has_gpu(),
-            "backend": format!("{}", state.dispatcher.backend()),
-            "status": "dispatch_ready",
+            "substrate_hint": substrate_hint,
+            "actual_substrate": actual_backend,
+            "elapsed_us": elapsed_us,
+            "output_summary": stage_output_summary(&output),
         }),
     )
 }
 
-/// Security audit log — forwards to skunkBat when available.
+fn stage_output_summary(output: &StageOutput) -> serde_json::Value {
+    match output {
+        StageOutput::Scalar(v) => serde_json::json!({ "kind": "scalar", "value": v }),
+        StageOutput::Vector(v) => serde_json::json!({ "kind": "vector", "len": v.len() }),
+        StageOutput::Map(m) => {
+            serde_json::json!({ "kind": "map", "keys": m.keys().collect::<Vec<_>>() })
+        }
+        StageOutput::Empty => serde_json::json!({ "kind": "empty" }),
+    }
+}
+
+/// Security audit log — forwards to whichever primal advertises audit logging.
 ///
-/// Logs the event locally, then attempts to forward to skunkBat for
-/// centralized audit trail. Falls back to local-only logging when
-/// skunkBat is not discovered.
+/// Logs the event locally, then attempts to forward to a discovered provider
+/// for centralized audit trail. Falls back to local-only logging when no
+/// provider is discovered.
 pub fn handle_security_audit_log(
     id: serde_json::Value,
     params: &serde_json::Value,
 ) -> JsonRpcResponse {
-    use neural_spring::primal_names;
-    use std::time::Duration;
-
     let event = params
         .get("event")
         .and_then(|v| v.as_str())
         .unwrap_or("audit_query");
     log::info!("security.audit_log: {event}");
 
-    if let Some(result) = try_discover_and_call(
-        primal_names::SKUNKBAT,
-        "security.audit_log",
+    if let Some(result) = try_discover_and_call_capability(
+        capabilities::SECURITY_AUDIT_LOG,
+        capabilities::SECURITY_AUDIT_LOG,
         params,
-        Duration::from_secs(5),
+        PROVENANCE_TIMEOUT,
     ) {
         return JsonRpcResponse::success(
             id,
@@ -578,20 +729,19 @@ pub fn handle_security_audit_log(
                 "primal": PRIMAL_NAME,
                 "event": event,
                 "status": "forwarded",
-                "forwarded_to": primal_names::SKUNKBAT,
                 "upstream_result": result,
             }),
         );
     }
 
-    log::debug!("security.audit_log: skunkBat not discovered — local-only");
+    log::debug!("security.audit_log: no audit provider discovered — local-only");
     JsonRpcResponse::success(
         id,
         serde_json::json!({
             "primal": PRIMAL_NAME,
             "event": event,
             "status": "logged_locally",
-            "note": "skunkBat not discovered — audit stored locally only",
+            "note": "no audit provider discovered — audit stored locally only",
         }),
     )
 }

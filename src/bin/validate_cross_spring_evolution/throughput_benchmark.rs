@@ -4,9 +4,59 @@
 
 use crate::helpers::gen_f64_vec;
 use neural_spring::gpu_dispatch::Dispatcher;
+use neural_spring::nucleus_pipeline::{dispatch_capability, dispatch_capability_gpu};
 use std::time::Instant;
 
-pub const fn benchmark_s72_throughput(_dispatcher: &Dispatcher, _cpu: &Dispatcher) {}
+pub fn benchmark_s72_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {
+    const ITERATIONS: u32 = 20;
+
+    println!("\n--- S72 Composition Pipeline Throughput ---\n");
+
+    let capability = "science.eigensolve";
+    let start = Instant::now();
+    for _ in 0..ITERATIONS {
+        std::hint::black_box(dispatch_capability_gpu(capability, dispatcher));
+    }
+    let gpu_elapsed = start.elapsed().as_secs_f64();
+    let gpu_ops = f64::from(ITERATIONS) / gpu_elapsed;
+
+    let start = Instant::now();
+    for _ in 0..ITERATIONS {
+        std::hint::black_box(dispatch_capability(capability));
+    }
+    let cpu_elapsed = start.elapsed().as_secs_f64();
+    let cpu_ops = f64::from(ITERATIONS) / cpu_elapsed;
+
+    println!(
+        "  {capability} ({ITERATIONS} iter): gpu {gpu_ops:>8.1} ops/s  cpu {cpu_ops:>8.1} ops/s  ratio {:.2}x",
+        cpu_ops / gpu_ops
+    );
+
+    for &(rows, cols) in &[(4, 64), (16, 128)] {
+        let matrix: Vec<f64> = (0..rows * cols)
+            .map(|i| (i as f64 - 128.0) * 0.01)
+            .collect();
+
+        let start = Instant::now();
+        for _ in 0..ITERATIONS {
+            std::hint::black_box(dispatcher.softmax_row_wise(&matrix, rows, cols));
+        }
+        let upstream_ops = f64::from(ITERATIONS) / start.elapsed().as_secs_f64();
+
+        let start = Instant::now();
+        for _ in 0..ITERATIONS {
+            std::hint::black_box(cpu.softmax_row_wise(&matrix, rows, cols));
+        }
+        let cpu_ref_ops = f64::from(ITERATIONS) / start.elapsed().as_secs_f64();
+
+        println!(
+            "  softmax_row({rows:>3}x{cols:>3}): upstream {upstream_ops:>8.1} ops/s  cpu {cpu_ref_ops:>8.1} ops/s  ratio {:.2}x",
+            cpu_ref_ops / upstream_ops
+        );
+    }
+
+    println!();
+}
 
 #[expect(clippy::too_many_lines, reason = "validation binary")]
 pub fn benchmark_throughput(dispatcher: &Dispatcher, cpu: &Dispatcher) {

@@ -92,10 +92,10 @@ pub fn graph_laplacian(adjacency: &[f64], n: usize) -> Vec<f64> {
 #[must_use]
 pub fn graph_laplacian(adjacency: &[f64], n: usize) -> Vec<f64> {
     let mut laplacian = vec![0.0; n * n];
-    for i in 0..n {
-        let degree: f64 = (0..n).map(|j| adjacency[i * n + j]).sum();
-        for j in 0..n {
-            laplacian[i * n + j] = -adjacency[i * n + j];
+    for (i, row) in adjacency.chunks(n).enumerate().take(n) {
+        let degree: f64 = row.iter().sum();
+        for (j, &weight) in row.iter().enumerate() {
+            laplacian[i * n + j] = -weight;
         }
         laplacian[i * n + i] = degree;
     }
@@ -273,6 +273,10 @@ pub fn generate_lattice_agents(
 /// for each dimension after `n_steps` QS signaling steps.
 #[cfg(feature = "barracuda")]
 #[must_use]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "dimensional sweep exposes all lattice/QS parameters for experiment parity"
+)]
 pub fn dimensional_coordination_sweep(
     n_per_side: usize,
     capability_variance: f64,
@@ -356,8 +360,8 @@ mod tests {
         let adj = interaction_graph(&agents, 2.0);
         let n = agents.len();
         let lap = graph_laplacian(&adj, n);
-        for i in 0..n {
-            let row_sum: f64 = (0..n).map(|j| lap[i * n + j]).sum();
+        for (i, row) in lap.chunks(n).enumerate().take(n) {
+            let row_sum: f64 = row.iter().sum();
             assert!(
                 row_sum.abs() < tolerances::CROSS_LANGUAGE,
                 "Laplacian row {i} sums to {row_sum}, not 0"

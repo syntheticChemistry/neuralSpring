@@ -7,15 +7,10 @@
 //! [`scenario_with_edges_json`] serializes any scenario + edges to JSON.
 
 use super::super::types::{NeuralScenario, ScenarioEdge};
-#[cfg(feature = "barracuda")]
-use super::scaffold::{edge, scaffold};
 #[cfg(not(feature = "barracuda"))]
 use super::scaffold::scaffold;
-#[cfg(not(feature = "barracuda"))]
-use super::{
-    folding_study, game_theory_study, hmm_study, immunological_study, industry_coverage_study,
-    introgression_nn_study, kokkos_parity_study, population_study, search_study, streaming_io_study,
-};
+#[cfg(feature = "barracuda")]
+use super::scaffold::{edge, scaffold};
 #[cfg(feature = "barracuda")]
 use super::{
     attention_anderson_study, coordination_study, digester_anderson_study, folding_study,
@@ -23,6 +18,12 @@ use super::{
     introgression_nn_study, isomorphic_reservoir_study, kokkos_parity_study, loss_landscape_study,
     population_study, provenance_study, search_study, spectral_study, streaming_io_study,
     training_study, wdm_ensemble_qs_study, wdm_study,
+};
+#[cfg(not(feature = "barracuda"))]
+use super::{
+    folding_study, game_theory_study, hmm_study, immunological_study, industry_coverage_study,
+    introgression_nn_study, kokkos_parity_study, population_study, search_study,
+    streaming_io_study,
 };
 
 fn merge_tracks(
@@ -81,18 +82,33 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         );
 
         let offsets: [(f64, f64); 21] = [
-            (0.0, 0.0), (0.0, 500.0), (600.0, 0.0), (600.0, 500.0),
-            (300.0, 800.0), (900.0, 0.0), (900.0, 500.0), (1200.0, 0.0),
-            (1200.0, 500.0), (1500.0, 0.0), (1500.0, 500.0), (300.0, 1200.0),
-            (1800.0, 0.0), (1800.0, 500.0), (2100.0, 0.0), (2100.0, 500.0),
-            (0.0, 1600.0), (600.0, 1600.0), (1200.0, 1600.0),
-            (1800.0, 1600.0), (2400.0, 1600.0),
+            (0.0, 0.0),
+            (0.0, 500.0),
+            (600.0, 0.0),
+            (600.0, 500.0),
+            (300.0, 800.0),
+            (900.0, 0.0),
+            (900.0, 500.0),
+            (1200.0, 0.0),
+            (1200.0, 500.0),
+            (1500.0, 0.0),
+            (1500.0, 500.0),
+            (300.0, 1200.0),
+            (1800.0, 0.0),
+            (1800.0, 500.0),
+            (2100.0, 0.0),
+            (2100.0, 500.0),
+            (0.0, 1600.0),
+            (600.0, 1600.0),
+            (1200.0, 1600.0),
+            (1800.0, 1600.0),
+            (2400.0, 1600.0),
         ];
 
         let mut all_edges = merge_tracks(&mut s, tracks, &offsets);
         all_edges.extend(cross_track_edges());
 
-        return (s, all_edges);
+        (s, all_edges)
     }
 
     #[cfg(not(feature = "barracuda"))]
@@ -116,9 +132,15 @@ pub fn full_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         );
 
         let offsets: [(f64, f64); 9] = [
-            (300.0, 800.0), (900.0, 0.0), (900.0, 500.0),
-            (1500.0, 0.0), (1500.0, 500.0), (1800.0, 0.0),
-            (1800.0, 500.0), (2100.0, 0.0), (2100.0, 500.0),
+            (300.0, 800.0),
+            (900.0, 0.0),
+            (900.0, 500.0),
+            (1500.0, 0.0),
+            (1500.0, 500.0),
+            (1800.0, 0.0),
+            (1800.0, 500.0),
+            (2100.0, 0.0),
+            (2100.0, 500.0),
         ];
 
         let all_edges = merge_tracks(&mut s, tracks, &offsets);
@@ -160,7 +182,7 @@ pub fn composition_study() -> (NeuralScenario, Vec<ScenarioEdge>) {
         let mut all_edges = merge_tracks(&mut s, tracks, &offsets);
         all_edges.extend(composition_cross_edges());
 
-        return (s, all_edges);
+        (s, all_edges)
     }
 
     #[cfg(not(feature = "barracuda"))]

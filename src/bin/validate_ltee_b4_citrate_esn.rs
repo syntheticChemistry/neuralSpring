@@ -18,9 +18,7 @@
     reason = "validation binary — expect/unwrap are idiomatic for test fixtures"
 )]
 
-use neural_spring::ltee_citrate_esn::{
-    self, early_warning_metrics, load_citrate_esn_from_json,
-};
+use neural_spring::ltee_citrate_esn::{self, early_warning_metrics, load_citrate_esn_from_json};
 use neural_spring::rng::Rng;
 use neural_spring::tolerances;
 use neural_spring::validation::ValidationHarness;
@@ -86,12 +84,7 @@ fn run_checks(h: &mut ValidationHarness) {
         .as_array()
         .unwrap()
         .iter()
-        .flat_map(|row| {
-            row.as_array()
-                .unwrap()
-                .iter()
-                .map(|x| x.as_f64().unwrap())
-        })
+        .flat_map(|row| row.as_array().unwrap().iter().map(|x| x.as_f64().unwrap()))
         .collect();
 
     let n_gens = baseline.n_generations;
@@ -128,8 +121,7 @@ fn run_checks(h: &mut ValidationHarness) {
 
     // ── Check 6: Trajectory generation parity ───────────────────────
     let mut rng = Rng::new(baseline.seed);
-    let (traj_features, traj_labels) =
-        ltee_citrate_esn::generate_trajectory(&mut rng, true);
+    let (traj_features, traj_labels) = ltee_citrate_esn::generate_trajectory(&mut rng, true);
 
     h.check_bool(
         "B4-012: generated trajectory has correct feature count",

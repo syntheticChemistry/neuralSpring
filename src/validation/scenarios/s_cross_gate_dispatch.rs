@@ -30,23 +30,23 @@ fn run_rust(v: &mut ValidationResult) {
 
     v.check_bool(
         "crossgate:rust:capability_constants",
-        !neural_spring::capabilities::ML_MLP_INFER.is_empty()
-            && !neural_spring::capabilities::DISCOVERY_PEERS.is_empty()
-            && !neural_spring::capabilities::MESH_INIT.is_empty()
-            && !neural_spring::capabilities::CRYPTO_BTSP_HANDSHAKE.is_empty(),
+        !crate::capabilities::ML_MLP_INFER.is_empty()
+            && !crate::capabilities::DISCOVERY_PEERS.is_empty()
+            && !crate::capabilities::MESH_INIT.is_empty()
+            && !crate::capabilities::CRYPTO_BTSP_HANDSHAKE.is_empty(),
         "ml.mlp_infer + discovery.peers + mesh.init + crypto.btsp_handshake defined",
     );
 
     v.check_bool(
         "crossgate:rust:dotted_notation",
-        neural_spring::capabilities::ML_MLP_INFER.contains('.')
-            && neural_spring::capabilities::DISCOVERY_PEERS.contains('.')
-            && neural_spring::capabilities::MESH_INIT.contains('.')
-            && neural_spring::capabilities::CRYPTO_BTSP_HANDSHAKE.contains('.'),
+        crate::capabilities::ML_MLP_INFER.contains('.')
+            && crate::capabilities::DISCOVERY_PEERS.contains('.')
+            && crate::capabilities::MESH_INIT.contains('.')
+            && crate::capabilities::CRYPTO_BTSP_HANDSHAKE.contains('.'),
         "all cross-gate capabilities use dotted notation",
     );
 
-    let all_caps = neural_spring::config::ALL_CAPABILITIES;
+    let all_caps = crate::config::ALL_CAPABILITIES;
     v.check_bool(
         "crossgate:rust:ml_mlp_infer_in_registry",
         all_caps.contains(&"ml.mlp_infer"),
@@ -76,15 +76,23 @@ fn run_rust(v: &mut ValidationResult) {
     );
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "live cross-gate dispatch probes exercise full capability graph in one pass"
+)]
 fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     v.section("Cross-Gate Dispatch — Tier 2 (Live)");
 
-    match ctx.call("tensor", "ml.mlp_infer", serde_json::json!({
-        "input": [1.0, 0.5, -0.3],
-        "input_dim": 3,
-        "hidden_dims": [4],
-        "output_dim": 2,
-    })) {
+    match ctx.call(
+        "tensor",
+        "ml.mlp_infer",
+        serde_json::json!({
+            "input": [1.0, 0.5, -0.3],
+            "input_dim": 3,
+            "hidden_dims": [4],
+            "output_dim": 2,
+        }),
+    ) {
         Ok(result) => {
             let has_output = result.get("output").is_some()
                 || result.get("data").is_some()
@@ -109,10 +117,14 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
         }
     }
 
-    match ctx.call("security", "crypto.btsp_handshake", serde_json::json!({
-        "peer_id": "south-gate",
-        "challenge": "scenario-validation-nonce",
-    })) {
+    match ctx.call(
+        "security",
+        "crypto.btsp_handshake",
+        serde_json::json!({
+            "peer_id": "south-gate",
+            "challenge": "scenario-validation-nonce",
+        }),
+    ) {
         Ok(_result) => {
             v.check_bool(
                 "crossgate:live:btsp_handshake",
@@ -139,7 +151,7 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
             let peer_count = result
                 .get("peers")
                 .and_then(|v| v.as_array())
-                .map_or(0, |a| a.len());
+                .map_or(0, Vec::len);
             v.check_bool(
                 "crossgate:live:discovery_peers",
                 true,
@@ -160,10 +172,14 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
         }
     }
 
-    match ctx.call("ai", "mesh.init", serde_json::json!({
-        "node_id": "south-gate",
-        "dry_run": true,
-    })) {
+    match ctx.call(
+        "ai",
+        "mesh.init",
+        serde_json::json!({
+            "node_id": "south-gate",
+            "dry_run": true,
+        }),
+    ) {
         Ok(_result) => {
             v.check_bool(
                 "crossgate:live:mesh_init",

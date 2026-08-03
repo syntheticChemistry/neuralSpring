@@ -119,12 +119,7 @@ pub fn generate_allele_trajectory(rng: &mut Rng, fate: usize, seq_len: usize) ->
 ///
 /// Returns hidden states `seq_len × hidden_size` (flattened row-major).
 #[must_use]
-pub fn lstm_forward(
-    sequence: &[f64],
-    w_x: &[f64],
-    w_h: &[f64],
-    hidden_size: usize,
-) -> Vec<f64> {
+pub fn lstm_forward(sequence: &[f64], w_x: &[f64], w_h: &[f64], hidden_size: usize) -> Vec<f64> {
     let seq_len = sequence.len();
     let mut states = vec![0.0; seq_len * hidden_size];
     let mut h = vec![0.0; hidden_size];
@@ -151,9 +146,8 @@ pub fn pool_features(states: &[f64], seq_len: usize, hidden_size: usize) -> Vec<
     let mut mean = vec![0.0; hidden_size];
     let mut sq_mean = vec![0.0; hidden_size];
 
-    for t in 0..seq_len {
-        for i in 0..hidden_size {
-            let v = states[t * hidden_size + i];
+    for row in states.chunks(hidden_size).take(seq_len) {
+        for (i, &v) in row.iter().enumerate() {
             mean[i] += v;
             sq_mean[i] += v * v;
         }
@@ -170,10 +164,7 @@ pub fn pool_features(states: &[f64], seq_len: usize, hidden_size: usize) -> Vec<
         let var = (sq_mean[i] / n - m * m).max(0.0);
         features.push(var.sqrt());
     }
-    let last_offset = (seq_len - 1) * hidden_size;
-    for i in 0..hidden_size {
-        features.push(states[last_offset + i]);
-    }
+    features.extend_from_slice(&states[(seq_len - 1) * hidden_size..seq_len * hidden_size]);
 
     features
 }
@@ -318,7 +309,11 @@ pub struct ClassificationMetrics {
 
 /// Compute multi-class classification metrics.
 #[must_use]
-pub fn classification_metrics(predictions: &[usize], labels: &[usize], n_classes: usize) -> ClassificationMetrics {
+pub fn classification_metrics(
+    predictions: &[usize],
+    labels: &[usize],
+    n_classes: usize,
+) -> ClassificationMetrics {
     let n = predictions.len();
     let mut confusion = vec![vec![0usize; n_classes]; n_classes];
     let mut correct = 0usize;
@@ -403,7 +398,9 @@ pub fn load_allele_baseline_from_json(json_str: &str) -> Result<AlleleTrajectory
         first_hmm_posterior: parse_f64_array(&v["first_allele"], "hmm_posterior")?,
         first_esn_state: parse_f64_array(&v["first_allele"], "esn_state")?,
         first_class_scores: parse_f64_array(&v["first_allele"], "class_scores")?,
-        first_prediction: v["first_allele"]["prediction"].as_u64().ok_or("first pred")? as usize,
+        first_prediction: v["first_allele"]["prediction"]
+            .as_u64()
+            .ok_or("first pred")? as usize,
     })
 }
 
@@ -422,14 +419,25 @@ fn parse_f64_2d_flat(v: &serde_json::Value, key: &str) -> Result<Vec<f64>, Strin
         .ok_or_else(|| format!("{key} not array"))?;
     let mut flat = Vec::new();
     for row in rows {
-        for val in row.as_array().ok_or_else(|| format!("{key} row not array"))? {
-            flat.push(val.as_f64().ok_or_else(|| format!("{key} element not f64"))?);
+        for val in row
+            .as_array()
+            .ok_or_else(|| format!("{key} row not array"))?
+        {
+            flat.push(
+                val.as_f64()
+                    .ok_or_else(|| format!("{key} element not f64"))?,
+            );
         }
     }
     Ok(flat)
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::expect_used,
+    clippy::unwrap_used,
+    reason = "test assertions on control JSON fixtures"
+)]
 mod tests {
     use super::*;
 
@@ -524,7 +532,12 @@ mod tests {
         let json_str = include_str!("../control/ltee_allele_trajectory/expected_values.json");
         let bl = load_allele_baseline_from_json(json_str).expect("parse");
 
-        let states = lstm_forward(&bl.first_trajectory, &bl.lstm_w_x, &bl.lstm_w_h, LSTM_HIDDEN);
+        let states = lstm_forward(
+            &bl.first_trajectory,
+            &bl.lstm_w_x,
+            &bl.lstm_w_h,
+            LSTM_HIDDEN,
+        );
         let lstm_feats = pool_features(&states, bl.first_trajectory.len(), LSTM_HIDDEN);
 
         for (i, (&r, &p)) in lstm_feats.iter().zip(&bl.first_lstm_features).enumerate() {

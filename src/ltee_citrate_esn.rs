@@ -118,13 +118,7 @@ pub fn generate_trajectory(rng: &mut Rng, has_potentiation: bool) -> (Vec<f64>, 
         let freqs = dirichlet(rng, n_alleles);
         entropy[g] = -freqs
             .iter()
-            .map(|&f| {
-                if f > 1e-10 {
-                    f * (f + 1e-10).ln()
-                } else {
-                    0.0
-                }
-            })
+            .map(|&f| if f > 1e-10 { f * (f + 1e-10).ln() } else { 0.0 })
             .sum::<f64>();
         delta_f[g] = rng.normal() * 0.01;
     }
@@ -390,6 +384,12 @@ fn parse_u8_array(v: &serde_json::Value, key: &str) -> Result<Vec<u8>, String> {
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::cast_sign_loss,
+    clippy::expect_used,
+    clippy::unwrap_used,
+    reason = "test fixtures use small non-negative class labels; control JSON parsing"
+)]
 mod tests {
     use super::*;
 
@@ -435,10 +435,7 @@ mod tests {
     fn metrics_computation() {
         let preds = [1, 1, 0, 0, 1, 0];
         let truth = [1, 0, 0, 1, 1, 0];
-        let m = early_warning_metrics(
-            &preds.map(|x| x as u8),
-            &truth.map(|x| x as u8),
-        );
+        let m = early_warning_metrics(&preds.map(|x| x as u8), &truth.map(|x| x as u8));
         assert_eq!(m.confusion, (2, 1, 2, 1));
         assert!((m.accuracy - 4.0 / 6.0).abs() < 1e-10);
         assert!((m.tpr - 2.0 / 3.0).abs() < 1e-10);
@@ -464,26 +461,22 @@ mod tests {
         let json_str = include_str!("../control/ltee_citrate_esn/expected_values.json");
         let baseline = load_citrate_esn_from_json(json_str).expect("parse baseline");
 
-        let v: serde_json::Value =
-            serde_json::from_str(json_str).expect("parse raw json");
+        let v: serde_json::Value = serde_json::from_str(json_str).expect("parse raw json");
         let features: Vec<f64> = v["first_trajectory"]["features"]
             .as_array()
             .unwrap()
             .iter()
-            .flat_map(|row| {
-                row.as_array()
-                    .unwrap()
-                    .iter()
-                    .map(|x| x.as_f64().unwrap())
-            })
+            .flat_map(|row| row.as_array().unwrap().iter().map(|x| x.as_f64().unwrap()))
             .collect();
 
         let n_gens = baseline.n_generations;
         let states = baseline.predictor.reservoir_drive(&features, n_gens);
         let (preds, scores) = baseline.predictor.classify(&states, n_gens, 0.5);
 
-        for (i, (&rust_score, &py_score)) in
-            scores.iter().zip(&baseline.first_trajectory_scores).enumerate()
+        for (i, (&rust_score, &py_score)) in scores
+            .iter()
+            .zip(&baseline.first_trajectory_scores)
+            .enumerate()
         {
             let diff = (rust_score - py_score).abs();
             assert!(

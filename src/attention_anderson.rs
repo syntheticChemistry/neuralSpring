@@ -62,6 +62,10 @@ pub struct AttentionAndersonBaseline {
 /// Input: flat row-major `n x n` symmetric matrix.
 #[cfg(feature = "barracuda")]
 #[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "attention matrix dimension n ≤ 512 fits in f64 mantissa"
+)]
 pub fn attention_spectral(matrix: &[f64], n: usize) -> AttentionSpectralResult {
     let result = crate::eigh::eigh_householder_qr(matrix, n);
     let mut evals = result.eigenvalues.clone();
@@ -153,6 +157,12 @@ pub fn load_attention_anderson_from_json(
 }
 
 #[cfg(all(test, feature = "barracuda"))]
+#[expect(
+    clippy::cast_precision_loss,
+    clippy::float_cmp,
+    clippy::expect_used,
+    reason = "test matrix dimension n = 8 fits in f64 mantissa; diagonal matrix yields exact 0.0"
+)]
 mod tests {
     use super::*;
 
@@ -182,5 +192,65 @@ mod tests {
         let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let r = pearson_r(&x, &x);
         assert!((r - 1.0).abs() < crate::tolerances::CROSS_LANGUAGE);
+    }
+
+    #[test]
+    fn test_pearson_anti_correlation() {
+        let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let y = vec![5.0, 4.0, 3.0, 2.0, 1.0];
+        let r = pearson_r(&x, &y);
+        assert!((r - (-1.0)).abs() < crate::tolerances::CROSS_LANGUAGE);
+    }
+
+    #[test]
+    fn test_attention_spectral_diagonal() {
+        let n = 4;
+        let mut m = vec![0.0; n * n];
+        for i in 0..n {
+            m[i * n + i] = (i + 1) as f64;
+        }
+        let sp = attention_spectral(&m, n);
+        assert!(sp.spectral_radius > 0.0);
+        assert!(sp.eigenvalue_spread > 0.0);
+        assert!(sp.participation > 0.0);
+        assert!((0.0..=1.0).contains(&sp.xi));
+        assert_eq!(sp.quality, 0.0);
+        assert_eq!(sp.entropy, 0.0);
+    }
+
+    #[test]
+    fn test_load_attention_anderson_from_json() {
+        let json = include_str!("../control/attention_anderson/attention_anderson_baseline.json");
+        let baseline = load_attention_anderson_from_json(json).expect("parse baseline");
+        assert_eq!(baseline.seq_len, 32);
+        assert_eq!(baseline.n_configs, 20);
+        assert_eq!(baseline.results.len(), 20);
+        assert_eq!(
+            baseline.reference_matrix.len(),
+            baseline.reference_n * baseline.reference_n
+        );
+        assert!(baseline.r_quality_entropy.is_finite());
+    }
+
+    #[test]
+    fn test_load_attention_anderson_from_json_errors() {
+        assert!(load_attention_anderson_from_json("{").is_err());
+        assert!(load_attention_anderson_from_json(r#"{"results":[]}"#).is_err());
+    }
+
+    #[test]
+    fn test_attention_spectral_reference_matrix() {
+        let json = include_str!("../control/attention_anderson/attention_anderson_baseline.json");
+        let baseline = load_attention_anderson_from_json(json).expect("parse baseline");
+        let n = baseline.reference_n;
+        let sp = attention_spectral(&baseline.reference_matrix, n);
+        let ref_result = &baseline.results[0];
+        assert!(
+            (sp.mean_ipr - ref_result.mean_ipr).abs() < 0.05,
+            "Rust IPR near baseline: rust={}, ref={}",
+            sp.mean_ipr,
+            ref_result.mean_ipr
+        );
+        assert!(sp.spectral_radius.is_finite());
     }
 }

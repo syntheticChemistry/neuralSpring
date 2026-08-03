@@ -41,6 +41,12 @@ pub(crate) fn trim_end_newlines_in_place(s: &mut String) {
     }
 }
 
+const _: () = {
+    assert!(LINE_BUF_CAPACITY >= 128);
+    assert!(LINE_BUF_CAPACITY <= 1024);
+    assert!(VCF_LINE_BUF_CAPACITY > LINE_BUF_CAPACITY);
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,16 +91,5 @@ mod tests {
         let mut s = String::from("\r\n\r\n");
         trim_end_newlines_in_place(&mut s);
         assert!(s.is_empty());
-    }
-
-    #[test]
-    fn line_buf_capacity_reasonable() {
-        assert!(LINE_BUF_CAPACITY >= 128);
-        assert!(LINE_BUF_CAPACITY <= 1024);
-    }
-
-    #[test]
-    fn vcf_buf_larger_than_default() {
-        assert!(VCF_LINE_BUF_CAPACITY > LINE_BUF_CAPACITY);
     }
 }

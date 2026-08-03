@@ -8,10 +8,10 @@
 
 #[cfg(feature = "barracuda")]
 use crate::anderson_localization;
-#[cfg(feature = "barracuda")]
-use crate::counterdiabatic::{NkLandscape, compute_cd_schedule};
 #[cfg(not(feature = "barracuda"))]
 use crate::counterdiabatic::NkLandscape;
+#[cfg(feature = "barracuda")]
+use crate::counterdiabatic::{NkLandscape, compute_cd_schedule};
 use crate::directed_evolution::{lexicase_selection, run_selection_experiment};
 use crate::eco_dynamics::{self, MultiNicheLandscape};
 use crate::game_theory::{QsConfig, qs_cooperation_model};

@@ -83,16 +83,16 @@ pub(crate) mod test_gpu_lock {
 
 pub mod agent_coordination;
 pub mod anderson_localization;
-pub mod capabilities;
 #[expect(
     clippy::cast_possible_truncation,
     reason = "JSON u64 → usize casts for matrix dimensions (n ≤ 512)"
 )]
 pub mod attention_anderson;
 #[cfg(feature = "barracuda")]
-pub(crate) mod bench;
+pub mod bench;
+pub mod capabilities;
 #[cfg(feature = "guidestone")]
-pub(crate) mod certification;
+pub mod certification;
 pub mod config;
 pub mod coral_forge;
 pub mod counterdiabatic;
@@ -104,18 +104,18 @@ pub mod eco_dynamics;
 pub mod eigh;
 pub mod error;
 #[cfg(feature = "barracuda")]
-pub(crate) mod evolved;
+pub mod evolved;
 pub mod fft;
 pub mod game_theory;
 pub mod glucose_prediction;
 #[cfg(feature = "barracuda")]
-pub(crate) mod gpu;
+pub mod gpu;
 #[cfg(feature = "barracuda")]
-pub(crate) mod gpu_dispatch;
+pub mod gpu_dispatch;
 #[cfg(feature = "barracuda")]
-pub(crate) mod gpu_ops;
+pub mod gpu_ops;
 #[cfg(feature = "barracuda")]
-pub(crate) mod gpu_shader_validation;
+pub mod gpu_shader_validation;
 pub mod hmm;
 pub mod immunological_anderson;
 pub mod information_flow;
@@ -129,28 +129,25 @@ pub mod introgression_nn;
 pub mod ipc;
 pub mod ipc_resilience;
 #[expect(
+    clippy::cast_precision_loss,
     clippy::cast_possible_truncation,
-    reason = "JSON u64 → usize cast for reservoir dimensions (n ≤ 512)"
+    reason = "reservoir dimensions n ≤ 512 fit in f64 mantissa; JSON u64 → usize"
 )]
 pub mod isomorphic_reservoir;
 pub mod lenet;
 #[cfg(feature = "barracuda")]
-pub(crate) mod loss_landscape;
+pub mod loss_landscape;
 pub mod ltee_allele_trajectory;
 pub mod ltee_citrate_esn;
 pub mod meta_population;
-#[expect(
-    clippy::cast_precision_loss,
-    reason = "array lengths are always far below 2^52"
-)]
 pub mod metrics;
 pub mod modes;
 #[cfg(feature = "barracuda")]
-pub(crate) mod nautilus_bridge;
+pub mod nautilus_bridge;
 pub mod neural_pgm;
 pub mod niche;
 #[cfg(feature = "barracuda")]
-pub(crate) mod nucleus_pipeline;
+pub mod nucleus_pipeline;
 pub mod pangenome_selection;
 pub mod pinn;
 pub mod primal_names;
@@ -171,7 +168,7 @@ pub mod surrogate;
 pub mod swarm_robotics;
 pub mod tolerances;
 #[cfg(feature = "barracuda")]
-pub(crate) mod training_monitor;
+pub mod training_monitor;
 pub mod transformer;
 pub mod validation;
 pub mod visualization;
@@ -181,16 +178,16 @@ pub mod visualization;
 )]
 pub mod wdm_ensemble_qs;
 #[cfg(feature = "barracuda")]
-pub(crate) mod wdm_esn;
+pub mod wdm_esn;
 #[cfg(feature = "barracuda")]
-pub(crate) mod wdm_sqw;
+pub mod wdm_sqw;
 #[cfg(feature = "barracuda")]
-pub(crate) mod wdm_surrogate;
+pub mod wdm_surrogate;
 #[cfg(feature = "barracuda")]
-pub(crate) mod wdm_transport;
+pub mod wdm_transport;
 pub mod weight_loader;
 #[cfg(feature = "barracuda")]
-pub(crate) mod weight_spectral;
+pub mod weight_spectral;
 
 #[cfg(feature = "primal")]
 pub(crate) mod rpc_service;

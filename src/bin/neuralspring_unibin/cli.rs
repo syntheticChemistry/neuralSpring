@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! CLI definition for the neuralSpring UniBin.
+//! CLI definition for the neuralSpring `UniBin`.
 
 use clap::{Parser, Subcommand};
 
-/// neuralSpring UniBin — eukaryotic single-binary deployment.
+/// neuralSpring `UniBin` — eukaryotic single-binary deployment.
 ///
 /// Replaces the prokaryotic multi-binary topology with a single
 /// binary exposing certification, validation, serve, status, and

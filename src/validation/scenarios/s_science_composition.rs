@@ -28,6 +28,10 @@ fn run_rust(v: &mut ValidationResult) {
     v.section("Science Composition — Tier 1 (Rust)");
 
     let data = [1.0, 2.0, 3.0, 4.0, 5.0];
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "fixed 5-element sample fits in f64 mantissa"
+    )]
     let mean: f64 = data.iter().sum::<f64>() / data.len() as f64;
     v.check_bool(
         "science:rust:mean_correct",
@@ -35,6 +39,10 @@ fn run_rust(v: &mut ValidationResult) {
         &format!("mean={mean}"),
     );
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "fixed 5-element sample fits in f64 mantissa"
+    )]
     let variance: f64 = data.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / data.len() as f64;
     let std_dev = variance.sqrt();
     v.check_bool(
@@ -45,8 +53,8 @@ fn run_rust(v: &mut ValidationResult) {
 
     let a: [f64; 4] = [1.0, 2.0, 3.0, 4.0];
     let b: [f64; 4] = [5.0, 6.0, 7.0, 8.0];
-    let c00 = a[0] * b[0] + a[1] * b[2];
-    let c01 = a[0] * b[1] + a[1] * b[3];
+    let c00 = a[0].mul_add(b[0], a[1] * b[2]);
+    let c01 = a[0].mul_add(b[1], a[1] * b[3]);
     v.check_bool(
         "science:rust:matmul_2x2_c00",
         (c00 - 19.0).abs() < 1e-12,

@@ -44,7 +44,12 @@ pub fn inference_embed(
 ///
 /// Returns an error if Squirrel is not reachable or the IPC call fails.
 pub fn inference_models(socket: &Path, timeout: Duration) -> Result<serde_json::Value, IpcError> {
-    call_capability(socket, capabilities::INFERENCE_MODELS, &serde_json::json!({}), timeout)
+    call_capability(
+        socket,
+        capabilities::INFERENCE_MODELS,
+        &serde_json::json!({}),
+        timeout,
+    )
 }
 
 /// Register as an inference provider with Squirrel.
@@ -71,7 +76,12 @@ pub fn register_provider(
             "supported_tasks": supported_capabilities,
         },
     });
-    call_capability(socket, capabilities::INFERENCE_REGISTER_PROVIDER, &params, timeout)
+    call_capability(
+        socket,
+        capabilities::INFERENCE_REGISTER_PROVIDER,
+        &params,
+        timeout,
+    )
 }
 
 /// Unregister an inference provider from Squirrel.
@@ -85,7 +95,12 @@ pub fn unregister_provider(
     timeout: Duration,
 ) -> Result<serde_json::Value, IpcError> {
     let params = serde_json::json!({ "provider_id": provider_id });
-    call_capability(socket, capabilities::INFERENCE_UNREGISTER_PROVIDER, &params, timeout)
+    call_capability(
+        socket,
+        capabilities::INFERENCE_UNREGISTER_PROVIDER,
+        &params,
+        timeout,
+    )
 }
 
 #[cfg(test)]

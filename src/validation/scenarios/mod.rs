@@ -19,6 +19,7 @@ pub mod registry;
 mod s_composition_evolution;
 mod s_compute_dispatch;
 mod s_cross_gate_dispatch;
+mod s_gpu_parity;
 mod s_inference_composition;
 mod s_nest_commit;
 mod s_nucleus_composition;
@@ -26,7 +27,6 @@ mod s_nucleus_tower;
 mod s_schema_standard;
 mod s_science_composition;
 mod s_signal_dispatch;
-mod s_gpu_parity;
 
 pub use registry::{Scenario, ScenarioMeta, ScenarioRegistry, Tier, Track};
 
@@ -49,6 +49,7 @@ pub fn build_registry() -> ScenarioRegistry {
 }
 
 #[cfg(test)]
+#[expect(clippy::unwrap_used, reason = "test assertions")]
 mod tests {
     use super::*;
 

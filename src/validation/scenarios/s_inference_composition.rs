@@ -114,7 +114,7 @@ fn inference_round_trip(ctx: &mut CompositionContext, v: &mut ValidationResult) 
         Ok(result) => {
             let non_empty = result
                 .get("text")
-                .or(result.get("completion"))
+                .or_else(|| result.get("completion"))
                 .and_then(|v| v.as_str())
                 .is_some_and(|s| !s.is_empty());
             v.check_bool(

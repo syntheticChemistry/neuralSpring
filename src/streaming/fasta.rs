@@ -111,36 +111,14 @@ impl FastaRecord {
 }
 
 /// Parse error for malformed FASTA records.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum FastaError {
     /// Underlying I/O failure.
-    Io(std::io::Error),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
     /// First non-blank line does not start with `>`.
+    #[error("header does not start with '>': {0:?}")]
     InvalidHeader(String),
-}
-
-impl std::error::Error for FastaError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Io(e) => Some(e),
-            Self::InvalidHeader(_) => None,
-        }
-    }
-}
-
-impl std::fmt::Display for FastaError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Io(e) => write!(f, "I/O error: {e}"),
-            Self::InvalidHeader(h) => write!(f, "header does not start with '>': {h:?}"),
-        }
-    }
-}
-
-impl From<std::io::Error> for FastaError {
-    fn from(e: std::io::Error) -> Self {
-        Self::Io(e)
-    }
 }
 
 /// Streaming FASTA reader — yields one [`FastaRecord`] per iteration.

@@ -314,14 +314,12 @@ impl MultiHeadWdmClassifier {
 }
 
 #[cfg(test)]
-#[expect(
-    clippy::expect_used,
-    reason = "test assertions use expect for clear messages"
-)]
+#[expect(clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;
     use crate::wdm_esn::classifier::EsnNormalization;
     use approx::assert_relative_eq;
+    use barracuda::esn_v2::dequantize_affine_i8_f64;
     use serial_test::serial;
 
     #[test]
@@ -334,6 +332,70 @@ mod tests {
             HeadGroup::Steering
         );
         assert_eq!(heads[wdm_heads::CONFIDENCE].output_size, 1);
+    }
+
+    #[test]
+    fn wdm_head_configs_all_heads_for_five_classes() {
+        let heads = wdm_head_configs(5);
+        assert_eq!(heads.len(), wdm_heads::COUNT);
+        assert_eq!(heads[wdm_heads::REGIME_LABEL].output_size, 5);
+        assert_eq!(heads[wdm_heads::REGIME_LABEL].group, HeadGroup::Anderson);
+        assert_eq!(
+            heads[wdm_heads::SPECTRAL_BANDWIDTH].label,
+            "spectral_bandwidth"
+        );
+        assert_eq!(heads[wdm_heads::SPECTRAL_BANDWIDTH].output_size, 1);
+        assert_eq!(heads[wdm_heads::CONFIDENCE].label, "confidence");
+        assert_eq!(heads[wdm_heads::CONFIDENCE].group, HeadGroup::Meta);
+    }
+
+    #[test]
+    fn wdm_heads_constants_ordered() {
+        assert_eq!(wdm_heads::REGIME_LABEL, 0);
+        assert_eq!(wdm_heads::SPECTRAL_BANDWIDTH, 1);
+        assert_eq!(wdm_heads::CONFIDENCE, 2);
+        assert_eq!(wdm_heads::COUNT, 3);
+    }
+
+    #[test]
+    fn multi_head_result_clone_and_debug() {
+        let result = MultiHeadResult {
+            label: 1,
+            scores: vec![0.1, 0.8, 0.1],
+            disagreement: 0.42,
+        };
+        let cloned = result.clone();
+        assert_eq!(cloned.label, 1);
+        assert_eq!(cloned.scores, result.scores);
+        assert_relative_eq!(cloned.disagreement, 0.42);
+        let debug = format!("{result:?}");
+        assert!(debug.contains("label: 1"));
+        assert!(debug.contains("disagreement"));
+    }
+
+    #[test]
+    fn quantize_affine_i8_f64_round_trip() {
+        let values: Vec<f64> = (0..16).map(|i| f64::from(i).mul_add(0.25, -2.0)).collect();
+        let (quantized, scale, zero_point) = quantize_affine_i8_f64(&values);
+        assert_eq!(quantized.len(), values.len());
+        let restored = dequantize_affine_i8_f64(&quantized, scale, zero_point);
+        let min_val = values.iter().copied().fold(f64::INFINITY, f64::min);
+        let max_val = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        let range = max_val - min_val;
+        let max_err = values
+            .iter()
+            .zip(restored.iter())
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0_f64, f64::max);
+        assert!(max_err <= 0.02 * range.max(1.0));
+    }
+
+    #[test]
+    fn quantize_affine_i8_f64_empty_input() {
+        let (quantized, scale, zero_point) = quantize_affine_i8_f64(&[]);
+        assert!(quantized.is_empty());
+        assert_relative_eq!(scale, 1.0);
+        assert_eq!(zero_point, 0);
     }
 
     #[tokio::test]
@@ -365,6 +427,11 @@ mod tests {
         assert!(c.train_head(99, &[0.0; 8], &[0.0; 3], 1e-3).is_err());
         assert!(c.train_head(0, &[], &[0.0; 3], 1e-3).is_err());
         assert!(c.train_head(0, &[0.0; 8], &[0.0; 3], -1.0).is_err());
+        assert!(c.train_head(0, &[0.0; 8], &[0.0, 0.0], 1e-3).is_err());
+        assert!(c.train_head(1, &[0.0; 8], &[0.0, 0.0], 1e-3).is_err());
+
+        let exported = c.export_weights().expect("reservoir export without heads");
+        assert!(exported.w_out.is_none());
 
         let _ = c.wgpu_device();
     }

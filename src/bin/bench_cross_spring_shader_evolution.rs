@@ -32,10 +32,10 @@
 #![expect(
     clippy::cast_precision_loss,
     clippy::cast_lossless,
-    clippy::unwrap_used,
+    clippy::expect_used,
     clippy::suboptimal_flops,
     clippy::similar_names,
-    reason = "benchmark binary: unwrap inside timing loops avoids error-handling overhead; casts are small known constants"
+    reason = "benchmark binary: expect inside timing loops avoids error-handling overhead; casts are small known constants"
 )]
 
 use neural_spring::gpu::Gpu;

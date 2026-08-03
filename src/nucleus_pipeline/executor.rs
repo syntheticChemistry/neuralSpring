@@ -13,8 +13,8 @@ use super::report::PipelineReport;
 
 /// Execute the composition pipeline locally (CPU path).
 ///
-/// Runs the 6-stage composition pipeline DAG:
-/// `eigensolve` → `digester_anderson` / `isomorphic_reservoir` → ... → `attention_anderson`
+/// Runs the 8-stage composition pipeline DAG:
+/// `eigensolve` → `digester_anderson` / `isomorphic_reservoir` → ... → `ltee_allele_classifier` / `ltee_citrate_esn`
 ///
 /// Each stage calls the real neuralSpring module and records timing + outputs.
 ///
@@ -223,22 +223,20 @@ pub fn execute_graph_live(
         let (success, output, was_live) = if is_gpu_stage {
             match dispatch_compute_signal(ctx, &stage.capability) {
                 Some((s, o)) => (s, o, true),
-                None => match dispatch_capability_live(&stage.capability, ctx) {
-                    Some((s, o)) => (s, o, true),
-                    None => {
+                None => {
+                    if let Some((s, o)) = dispatch_capability_live(&stage.capability, ctx) {
+                        (s, o, true)
+                    } else {
                         let (s, o) = dispatch_capability(&stage.capability);
                         (s, o, false)
                     }
-                },
-            }
-        } else {
-            match dispatch_capability_live(&stage.capability, ctx) {
-                Some((s, o)) => (s, o, true),
-                None => {
-                    let (s, o) = dispatch_capability(&stage.capability);
-                    (s, o, false)
                 }
             }
+        } else if let Some((s, o)) = dispatch_capability_live(&stage.capability, ctx) {
+            (s, o, true)
+        } else {
+            let (s, o) = dispatch_capability(&stage.capability);
+            (s, o, false)
         };
         let elapsed_us = start.elapsed().as_secs_f64() * 1_000_000.0;
 
@@ -387,7 +385,7 @@ mod tests {
                 .map(|r| &r.stage_id)
                 .collect::<Vec<_>>()
         );
-        assert_eq!(report.total_stages, 6);
+        assert_eq!(report.total_stages, 8);
     }
 
     #[test]
@@ -421,6 +419,14 @@ mod tests {
         assert!(
             pos("digester_anderson") < pos("wdm_ensemble_qs"),
             "digester before wdm_qs"
+        );
+        assert!(
+            pos("introgression_nn") < pos("ltee_allele_classifier"),
+            "introgression before ltee_allele"
+        );
+        assert!(
+            pos("introgression_nn") < pos("ltee_citrate_esn"),
+            "introgression before ltee_citrate"
         );
     }
 
@@ -466,8 +472,11 @@ mod tests {
                         result.stage_id
                     );
                 }
-                "digester_anderson" | "isomorphic_reservoir"
-                | "wdm_ensemble_qs" | "introgression_nn" => {
+                "digester_anderson"
+                | "isomorphic_reservoir"
+                | "wdm_ensemble_qs"
+                | "introgression_nn"
+                | "ltee_allele_classifier" => {
                     assert_eq!(
                         result.actual_substrate,
                         MixedSubstrate::GpuPreferred,
@@ -475,11 +484,17 @@ mod tests {
                         result.stage_id
                     );
                 }
-                _ => {
+                "ltee_citrate_esn" => {
                     assert_eq!(
                         result.actual_substrate,
                         MixedSubstrate::CpuOnly,
                         "{} should be CpuOnly",
+                        result.stage_id
+                    );
+                }
+                _ => {
+                    panic!(
+                        "unexpected stage '{}' in composition pipeline",
                         result.stage_id
                     );
                 }
@@ -492,9 +507,9 @@ mod tests {
         let dispatcher = Dispatcher::cpu_only();
         let report = execute_composition_pipeline_gpu(&dispatcher).expect("gpu pipeline");
         assert!(report.all_passed(), "all stages pass on CPU fallback");
-        assert_eq!(report.total_stages, 6);
+        assert_eq!(report.total_stages, 8);
         assert_eq!(report.gpu_stages, 0, "CPU-only dispatcher → no GPU stages");
-        assert_eq!(report.cpu_stages, 6);
+        assert_eq!(report.cpu_stages, 8);
         assert_eq!(report.substrate_used, "CPU");
     }
 
@@ -592,6 +607,199 @@ mod tests {
         assert!(
             matches!(err, PipelineError::CyclicGraph { .. }),
             "expected CyclicGraph, got {err:?}"
+        );
+    }
+
+    #[test]
+    fn execute_graph_gpu_empty_runs_zero_stages() {
+        let graph = PipelineGraph::new("empty-gpu");
+        let dispatcher = Dispatcher::cpu_only();
+        let report = execute_graph_gpu(&graph, &dispatcher).expect("empty gpu graph");
+        assert_eq!(report.total_stages, 0);
+        assert_eq!(report.gpu_stages, 0);
+        assert_eq!(report.cpu_stages, 0);
+        assert_eq!(report.substrate_used, "CPU");
+    }
+
+    #[test]
+    fn execute_graph_gpu_cyclic_returns_error() {
+        let mut graph = PipelineGraph::new("cycle-gpu");
+        graph.add_stage(StageNode {
+            id: "a".to_string(),
+            capability: "science.eigensolve".to_string(),
+            substrate: MixedSubstrate::GpuOnly,
+            label: "a".to_string(),
+        });
+        graph.add_stage(StageNode {
+            id: "b".to_string(),
+            capability: "science.eigensolve".to_string(),
+            substrate: MixedSubstrate::GpuOnly,
+            label: "b".to_string(),
+        });
+        graph.add_edge("a", "b");
+        graph.add_edge("b", "a");
+        let dispatcher = Dispatcher::cpu_only();
+        let err = execute_graph_gpu(&graph, &dispatcher).expect_err("cycle");
+        assert!(matches!(err, PipelineError::CyclicGraph { .. }));
+    }
+
+    #[test]
+    fn execute_graph_gpu_cpu_fallback_records_cpu_substrate() {
+        let mut graph = PipelineGraph::new("gpu-fallback-substrate");
+        graph.add_stage(StageNode {
+            id: "eig".to_string(),
+            capability: "science.eigensolve".to_string(),
+            substrate: MixedSubstrate::GpuOnly,
+            label: "eigensolve".to_string(),
+        });
+        let dispatcher = Dispatcher::cpu_only();
+        let report = execute_graph_gpu(&graph, &dispatcher).expect("fallback");
+        assert!(report.all_passed());
+        assert_eq!(report.gpu_stages, 0);
+        assert_eq!(report.cpu_stages, 1);
+        assert_eq!(report.substrate_used, "CPU");
+        assert_eq!(
+            report.execution.results[0].actual_substrate,
+            MixedSubstrate::CpuOnly,
+            "GPU stage without device records CpuOnly provenance"
+        );
+    }
+
+    #[test]
+    fn execute_graph_gpu_mixed_graph_cpu_only_dispatcher() {
+        let mut graph = PipelineGraph::new("mixed-cpu-fallback");
+        graph.add_stage(StageNode {
+            id: "eig".to_string(),
+            capability: "science.eigensolve".to_string(),
+            substrate: MixedSubstrate::GpuOnly,
+            label: "eigensolve".to_string(),
+        });
+        graph.add_stage(StageNode {
+            id: "ipr".to_string(),
+            capability: "science.ltee_citrate_esn".to_string(),
+            substrate: MixedSubstrate::CpuOnly,
+            label: "ltee_citrate".to_string(),
+        });
+        graph.add_edge("eig", "ipr");
+        let dispatcher = Dispatcher::cpu_only();
+        let report = execute_graph_gpu(&graph, &dispatcher).expect("mixed fallback");
+        assert!(report.all_passed());
+        assert_eq!(report.total_stages, 2);
+        assert_eq!(report.gpu_stages, 0);
+        assert_eq!(report.cpu_stages, 2);
+        assert_eq!(report.substrate_used, "CPU");
+    }
+
+    #[test]
+    fn execute_composition_pipeline_matches_execute_graph() {
+        let cpu_report = execute_composition_pipeline().expect("cpu pipeline");
+        let graph = neural_spring_forge::graph::composition_pipeline();
+        let graph_report = execute_graph(&graph).expect("graph exec");
+        assert_eq!(cpu_report.total_stages, graph_report.total_stages);
+        assert_eq!(cpu_report.substrate_used, graph_report.substrate_used);
+    }
+
+    #[cfg(feature = "primalspring")]
+    #[test]
+    fn execute_graph_live_falls_back_to_local_without_primals() {
+        let mut ctx =
+            primalspring::composition::CompositionContext::from_live_discovery_with_fallback();
+        let mut graph = PipelineGraph::new("live-local-fallback");
+        graph.add_stage(StageNode {
+            id: "ipr".to_string(),
+            capability: "science.ltee_citrate_esn".to_string(),
+            substrate: MixedSubstrate::CpuOnly,
+            label: "ltee_citrate".to_string(),
+        });
+        let report = execute_graph_live(&graph, &mut ctx).expect("live fallback");
+        assert!(report.all_passed());
+        assert_eq!(report.total_stages, 1);
+        assert_eq!(report.substrate_used, "CPU (local fallback)");
+        assert_eq!(report.cpu_stages, 1);
+        assert_eq!(report.gpu_stages, 0);
+    }
+
+    #[test]
+    fn execute_graph_gpu_gpu_preferred_cpu_fallback() {
+        let mut graph = PipelineGraph::new("gpu-preferred-fallback");
+        graph.add_stage(StageNode {
+            id: "dig".to_string(),
+            capability: "science.digester_anderson_coupling".to_string(),
+            substrate: MixedSubstrate::GpuPreferred,
+            label: "digester".to_string(),
+        });
+        let dispatcher = Dispatcher::cpu_only();
+        let report = execute_graph_gpu(&graph, &dispatcher).expect("gpu preferred fallback");
+        assert!(report.all_passed());
+        assert_eq!(report.gpu_stages, 0);
+        assert_eq!(report.cpu_stages, 1);
+        assert_eq!(
+            report.execution.results[0].actual_substrate,
+            MixedSubstrate::CpuOnly
+        );
+    }
+
+    #[test]
+    fn execute_graph_gpu_unknown_capability_marks_failure() {
+        let mut graph = PipelineGraph::new("gpu-bad-cap");
+        graph.add_stage(StageNode {
+            id: "bad".to_string(),
+            capability: "science.not_a_real_capability".to_string(),
+            substrate: MixedSubstrate::GpuOnly,
+            label: "bad".to_string(),
+        });
+        let dispatcher = Dispatcher::cpu_only();
+        let report = execute_graph_gpu(&graph, &dispatcher).expect("gpu bad cap");
+        assert!(!report.all_passed());
+        assert_eq!(report.cpu_stages, 1);
+    }
+
+    #[test]
+    fn execute_composition_pipeline_gpu_cpu_only_matches_stages() {
+        let dispatcher = Dispatcher::cpu_only();
+        let report = execute_composition_pipeline_gpu(&dispatcher).expect("gpu pipeline cpu");
+        assert_eq!(report.total_stages, 8);
+        assert_eq!(report.gpu_stages, 0);
+        assert_eq!(report.cpu_stages, 8);
+        for result in &report.execution.results {
+            if matches!(
+                result.stage_id.as_str(),
+                "eigensolve"
+                    | "attention_anderson"
+                    | "digester_anderson"
+                    | "isomorphic_reservoir"
+                    | "wdm_ensemble_qs"
+                    | "introgression_nn"
+                    | "ltee_allele_classifier"
+            ) {
+                assert_eq!(
+                    result.actual_substrate,
+                    MixedSubstrate::CpuOnly,
+                    "{} should record CpuOnly on CPU fallback",
+                    result.stage_id
+                );
+            }
+        }
+    }
+
+    #[cfg(feature = "primalspring")]
+    #[test]
+    fn execute_graph_live_gpu_stage_falls_back_locally() {
+        let mut ctx =
+            primalspring::composition::CompositionContext::from_live_discovery_with_fallback();
+        let mut graph = PipelineGraph::new("live-gpu-fallback");
+        graph.add_stage(StageNode {
+            id: "eig".to_string(),
+            capability: "science.eigensolve".to_string(),
+            substrate: MixedSubstrate::GpuOnly,
+            label: "eigensolve".to_string(),
+        });
+        let report = execute_graph_live(&graph, &mut ctx).expect("live gpu fallback");
+        assert!(report.all_passed());
+        assert_eq!(report.total_stages, 1);
+        assert!(
+            report.substrate_used.contains("local fallback")
+                || report.substrate_used.contains("Live-IPC")
         );
     }
 }

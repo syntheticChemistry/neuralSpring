@@ -44,22 +44,40 @@ pub struct ValidateResult {
 impl ValidateResult {
     fn from_json(v: &serde_json::Value) -> Self {
         Self {
-            valid: v.get("valid").and_then(serde_json::Value::as_bool).unwrap_or(false),
-            gpu_available: v.get("gpu_available").and_then(serde_json::Value::as_bool).unwrap_or(false),
-            precision_tier: v.get("precision_tier")
+            valid: v
+                .get("valid")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
+            gpu_available: v
+                .get("gpu_available")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
+            precision_tier: v
+                .get("precision_tier")
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or("none")
                 .to_owned(),
-            estimated_dispatch_time_ms: v.get("estimated_dispatch_time_ms")
+            estimated_dispatch_time_ms: v
+                .get("estimated_dispatch_time_ms")
                 .and_then(serde_json::Value::as_u64)
                 .unwrap_or(0),
-            warnings: v.get("warnings")
+            warnings: v
+                .get("warnings")
                 .and_then(serde_json::Value::as_array)
-                .map(|arr| arr.iter().filter_map(|w| w.as_str().map(String::from)).collect())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|w| w.as_str().map(String::from))
+                        .collect()
+                })
                 .unwrap_or_default(),
-            required_capabilities: v.get("required_capabilities")
+            required_capabilities: v
+                .get("required_capabilities")
                 .and_then(serde_json::Value::as_array)
-                .map(|arr| arr.iter().filter_map(|c| c.as_str().map(String::from)).collect())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|c| c.as_str().map(String::from))
+                        .collect()
+                })
                 .unwrap_or_default(),
         }
     }
@@ -93,11 +111,13 @@ pub fn validate(
 /// # Errors
 ///
 /// Returns an error if toadStool is not reachable or the IPC call fails.
-pub fn list_workloads(
-    socket: &Path,
-    timeout: Duration,
-) -> Result<serde_json::Value, IpcError> {
-    call_capability(socket, capabilities::TOADSTOOL_LIST_WORKLOADS, &serde_json::json!({}), timeout)
+pub fn list_workloads(socket: &Path, timeout: Duration) -> Result<serde_json::Value, IpcError> {
+    call_capability(
+        socket,
+        capabilities::TOADSTOOL_LIST_WORKLOADS,
+        &serde_json::json!({}),
+        timeout,
+    )
 }
 
 /// Structured workload for typed compute dispatch.
@@ -127,14 +147,20 @@ pub struct WorkloadResult {
 impl WorkloadResult {
     fn from_json(v: &serde_json::Value) -> Self {
         Self {
-            success: v.get("success").and_then(serde_json::Value::as_bool).unwrap_or(false),
+            success: v
+                .get("success")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
             actual_substrate: v
                 .get("actual_substrate")
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or("unknown")
                 .to_owned(),
             output: v.get("output").cloned().unwrap_or(serde_json::Value::Null),
-            elapsed_us: v.get("elapsed_us").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
+            elapsed_us: v
+                .get("elapsed_us")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(0.0),
         }
     }
 }
@@ -179,6 +205,7 @@ pub fn compute_dispatch_pipeline(
 }
 
 #[cfg(test)]
+#[expect(clippy::unwrap_used, reason = "test assertions")]
 mod tests {
     use super::*;
     use std::path::Path;
@@ -231,7 +258,10 @@ mod tests {
         assert_eq!(result.precision_tier, "DF64");
         assert_eq!(result.estimated_dispatch_time_ms, 100);
         assert_eq!(result.warnings, vec!["experimental workload"]);
-        assert_eq!(result.required_capabilities, vec!["compute.dispatch", "precision.routing"]);
+        assert_eq!(
+            result.required_capabilities,
+            vec!["compute.dispatch", "precision.routing"]
+        );
     }
 
     #[test]
@@ -297,13 +327,11 @@ mod tests {
 
     #[test]
     fn compute_dispatch_pipeline_returns_err_for_nonexistent_socket() {
-        let stages = vec![
-            ComputeWorkload {
-                capability: "science.eigensolve".to_string(),
-                data: serde_json::json!({}),
-                substrate_hint: "gpu".to_string(),
-            },
-        ];
+        let stages = vec![ComputeWorkload {
+            capability: "science.eigensolve".to_string(),
+            data: serde_json::json!({}),
+            substrate_hint: "gpu".to_string(),
+        }];
         let result = compute_dispatch_pipeline(
             Path::new("/nonexistent/toadstool.sock"),
             "test_pipeline",

@@ -4,7 +4,7 @@
 //!
 //! Validates that neuralSpring's signal adoption is structurally correct:
 //! - `primal.announce` capability advertised
-//! - `nest.store` signal dispatch path wired in weight_loader
+//! - `nest.store` signal dispatch path wired in `weight_loader`
 //! - Registration uses `primal.announce` with fallback
 //! - Deploy graphs include signal tier metadata
 

@@ -109,6 +109,10 @@ pub const TRANSFORMER_REFS: &str = "NumPy 2.2.6 transformer_inference.py (softma
 pub const METRICS_REFS: &str = "Analytical (pure arithmetic on known arrays)";
 
 #[cfg(test)]
+#[expect(
+    clippy::float_cmp,
+    reason = "reference tables store exact analytical values from NumPy"
+)]
 mod tests {
     use super::*;
 

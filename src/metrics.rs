@@ -22,11 +22,17 @@
 #[must_use]
 pub fn r_squared(y_true: &[f64], y_pred: &[f64]) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::stats::r_squared(y_true, y_pred) }
+    {
+        barracuda::stats::r_squared(y_true, y_pred)
+    }
     #[cfg(not(feature = "barracuda"))]
     {
         let mean: f64 = y_true.iter().sum::<f64>() / y_true.len() as f64;
-        let ss_res: f64 = y_true.iter().zip(y_pred).map(|(t, p)| (t - p).powi(2)).sum();
+        let ss_res: f64 = y_true
+            .iter()
+            .zip(y_pred)
+            .map(|(t, p)| (t - p).powi(2))
+            .sum();
         let ss_tot: f64 = y_true.iter().map(|t| (t - mean).powi(2)).sum();
         if ss_tot < f64::EPSILON {
             if ss_res < f64::EPSILON { 1.0 } else { 0.0 }
@@ -44,11 +50,17 @@ pub fn r_squared(y_true: &[f64], y_pred: &[f64]) -> f64 {
 #[must_use]
 pub fn rmse(y_true: &[f64], y_pred: &[f64]) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::stats::rmse(y_true, y_pred) }
+    {
+        barracuda::stats::rmse(y_true, y_pred)
+    }
     #[cfg(not(feature = "barracuda"))]
     {
-        let mse: f64 = y_true.iter().zip(y_pred)
-            .map(|(t, p)| (t - p).powi(2)).sum::<f64>() / y_true.len() as f64;
+        let mse: f64 = y_true
+            .iter()
+            .zip(y_pred)
+            .map(|(t, p)| (t - p).powi(2))
+            .sum::<f64>()
+            / y_true.len() as f64;
         mse.sqrt()
     }
 }
@@ -61,11 +73,17 @@ pub fn rmse(y_true: &[f64], y_pred: &[f64]) -> f64 {
 #[must_use]
 pub fn mae(y_true: &[f64], y_pred: &[f64]) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::stats::mae(y_true, y_pred) }
+    {
+        barracuda::stats::mae(y_true, y_pred)
+    }
     #[cfg(not(feature = "barracuda"))]
     {
-        y_true.iter().zip(y_pred)
-            .map(|(t, p)| (t - p).abs()).sum::<f64>() / y_true.len() as f64
+        y_true
+            .iter()
+            .zip(y_pred)
+            .map(|(t, p)| (t - p).abs())
+            .sum::<f64>()
+            / y_true.len() as f64
     }
 }
 
@@ -73,9 +91,13 @@ pub fn mae(y_true: &[f64], y_pred: &[f64]) -> f64 {
 #[must_use]
 pub fn nse(y_true: &[f64], y_pred: &[f64]) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::stats::nash_sutcliffe(y_true, y_pred) }
+    {
+        barracuda::stats::nash_sutcliffe(y_true, y_pred)
+    }
     #[cfg(not(feature = "barracuda"))]
-    { r_squared(y_true, y_pred) }
+    {
+        r_squared(y_true, y_pred)
+    }
 }
 
 #[cfg(test)]

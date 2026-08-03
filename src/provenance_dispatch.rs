@@ -33,7 +33,11 @@ use crate::error::IpcError;
 /// Returns an error if the file cannot be read or signal dispatch fails.
 /// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
-pub(crate) fn store_to_nestgate_signal(
+#[expect(
+    dead_code,
+    reason = "wired for live composition dispatch — called by biomeOS graph executor"
+)]
+pub fn store_to_nestgate_signal(
     path: &std::path::Path,
     ctx: &mut primalspring::composition::CompositionContext,
     author: &str,
@@ -59,7 +63,7 @@ pub(crate) fn store_to_nestgate_signal(
 /// Commit a provenance session via `nest.commit` signal dispatch.
 ///
 /// Finalizes a rhizoCrypt session: dehydrates the DAG, signs via bearDog,
-/// optionally stores via NestGate, commits to loamSpine ledger, and
+/// optionally stores via `NestGate`, commits to loamSpine ledger, and
 /// creates a sweetGrass attribution braid. biomeOS manages the graph:
 /// `rhizoCrypt.event.append → bearDog.crypto.sign → nestGate.content.put → loamSpine.session.commit → sweetGrass.braid.create`
 ///
@@ -77,7 +81,11 @@ pub(crate) fn store_to_nestgate_signal(
 /// Returns an error if signal dispatch fails or biomeOS is unavailable.
 /// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
-pub(crate) fn commit_session_signal(
+#[expect(
+    dead_code,
+    reason = "wired for live composition dispatch — called by biomeOS graph executor"
+)]
+pub fn commit_session_signal(
     ctx: &mut primalspring::composition::CompositionContext,
     session_id: &str,
 ) -> Result<serde_json::Value, IpcError> {
@@ -105,7 +113,7 @@ pub(crate) fn commit_session_signal(
 /// Returns an error if signal dispatch fails or biomeOS is unavailable.
 /// Callers should handle this gracefully (log and continue).
 #[cfg(feature = "primalspring")]
-pub(crate) fn store_science_result(
+pub fn store_science_result(
     ctx: &mut primalspring::composition::CompositionContext,
     method: &str,
     result: &serde_json::Value,

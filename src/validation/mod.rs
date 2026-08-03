@@ -16,9 +16,12 @@
 pub mod composition;
 /// CPU-side benchmark validation helpers shared by `validate_*` binaries.
 pub mod cpu_bench;
+mod discovery;
 mod env;
 #[cfg(feature = "barracuda")]
 mod gpu;
+mod json_rpc;
+mod proto_nucleate;
 /// Eukaryotic validation scenarios — absorbed from `validate_*` binaries.
 #[cfg(feature = "guidestone")]
 pub mod scenarios;

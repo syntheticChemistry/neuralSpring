@@ -43,11 +43,12 @@ const GUIDESTONE_VERSION: &str = "0.4.0";
 /// - L0: bare properties (determinism, traceability, checksums, env-agnostic, tolerances)
 /// - L1: primal discovery + liveness
 /// - L2: domain science parity (7 capabilities)
-/// - L3: additive NUCLEUS (BearDog signing, Songbird discovery)
+/// - L3: additive NUCLEUS (`BearDog` signing, Songbird discovery)
 /// - L4: NUCLEUS composition (deploy graphs, capability registry, family calls)
 /// - L5: cross-spring validation (frozen artifacts, protocol liveness, hash determinism)
 ///
 /// Early-exits when `max_layer` is reached or when L1 discovers zero primals.
+#[must_use]
 pub fn certify(max_layer: u8) -> ValidationResult {
     let layer = max_layer.min(MAX_LAYER);
 
@@ -127,6 +128,7 @@ pub fn certify(max_layer: u8) -> ValidationResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primalspring::validation::CheckOutcome;
 
     #[test]
     fn max_layer_constant() {
@@ -148,5 +150,76 @@ mod tests {
         let result = certify(255);
         let code = result.exit_code_skip_aware();
         assert!(code <= 2, "exit code must be 0, 1, or 2, got {code}");
+    }
+
+    #[test]
+    fn certify_l0_runs_bare_property_checks_only() {
+        let result = certify(0);
+        assert!(
+            result.experiment.contains("neuralSpring"),
+            "experiment name should identify the spring"
+        );
+        assert!(
+            result.experiment.contains("guideStone"),
+            "experiment name should identify guideStone"
+        );
+        assert!(
+            result.checks.iter().any(|c| c.name.starts_with("P1:")),
+            "L0 must include deterministic RNG checks"
+        );
+        assert!(
+            result.checks.iter().any(|c| c.name.starts_with("P2:")),
+            "L0 must include provenance checks"
+        );
+        assert!(
+            result.checks.iter().all(|c| !c.name.ends_with(".liveness")),
+            "L0 must not run primal liveness checks"
+        );
+    }
+
+    #[test]
+    fn certify_l0_passes_when_checksums_valid() {
+        let result = certify(0);
+        if result.failed == 0 {
+            assert!(result.all_passed());
+            assert_eq!(result.exit_code_skip_aware(), 0);
+        }
+    }
+
+    #[test]
+    fn certify_without_primals_exits_after_discovery() {
+        let l0 = certify(0);
+        let l1 = certify(1);
+        assert!(
+            l1.checks.len() >= l0.checks.len(),
+            "L1 should add discovery/liveness checks on top of L0"
+        );
+        let liveness_checks: Vec<_> = l1
+            .checks
+            .iter()
+            .filter(|c| c.name.ends_with(".liveness"))
+            .collect();
+        assert!(
+            !liveness_checks.is_empty(),
+            "L1 should record liveness checks even without primals"
+        );
+        assert!(
+            liveness_checks
+                .iter()
+                .any(|c| matches!(c.outcome, CheckOutcome::Skip)),
+            "unreachable primals should be recorded as skips, not failures"
+        );
+        assert!(l1.exit_code_skip_aware() <= 2);
+    }
+
+    #[test]
+    fn certify_layer_clamp_matches_max_layer() {
+        let at_max = certify(MAX_LAYER);
+        let above_max = certify(MAX_LAYER + 1);
+        assert_eq!(
+            at_max.exit_code_skip_aware(),
+            above_max.exit_code_skip_aware(),
+            "layers above MAX_LAYER should clamp to MAX_LAYER"
+        );
     }
 }

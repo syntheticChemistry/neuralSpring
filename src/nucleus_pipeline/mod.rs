@@ -22,11 +22,14 @@ mod error;
 mod executor;
 mod report;
 
+pub use dispatch::{
+    PIPELINE_CAPABILITIES, dispatch_capability, dispatch_capability_gpu, is_pipeline_capability,
+};
 pub use error::PipelineError;
+#[cfg(feature = "primalspring")]
+pub use executor::execute_graph_live;
 pub use executor::{
     execute_composition_pipeline, execute_composition_pipeline_gpu, execute_graph,
     execute_graph_gpu,
 };
-#[cfg(feature = "primalspring")]
-pub use executor::execute_graph_live;
 pub use report::PipelineReport;

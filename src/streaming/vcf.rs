@@ -175,18 +175,22 @@ impl VcfRecord {
 }
 
 /// Parse error for malformed VCF data.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum VcfError {
     /// Underlying I/O failure.
-    Io(std::io::Error),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
     /// Missing `#CHROM` header line.
+    #[error("missing #CHROM header line")]
     MissingHeader,
     /// Data line has fewer than 8 required fields.
+    #[error("fewer than 8 fields: {line_preview:?}")]
     TooFewFields {
         /// Truncated preview of the malformed line.
         line_preview: String,
     },
     /// Position field is not a valid integer.
+    #[error("invalid POS in {line_preview:?}: {detail}")]
     InvalidPosition {
         /// Truncated preview of the malformed line.
         line_preview: String,
@@ -194,47 +198,13 @@ pub enum VcfError {
         detail: String,
     },
     /// Quality field is not a valid float or `.`.
+    #[error("invalid QUAL in {line_preview:?}: {detail}")]
     InvalidQuality {
         /// Truncated preview of the malformed line.
         line_preview: String,
         /// Parser error message for the quality field.
         detail: String,
     },
-}
-
-impl std::error::Error for VcfError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Io(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl std::fmt::Display for VcfError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Io(e) => write!(f, "I/O error: {e}"),
-            Self::MissingHeader => write!(f, "missing #CHROM header line"),
-            Self::TooFewFields { line_preview } => {
-                write!(f, "fewer than 8 fields: {line_preview:?}")
-            }
-            Self::InvalidPosition {
-                line_preview,
-                detail,
-            } => write!(f, "invalid POS in {line_preview:?}: {detail}"),
-            Self::InvalidQuality {
-                line_preview,
-                detail,
-            } => write!(f, "invalid QUAL in {line_preview:?}: {detail}"),
-        }
-    }
-}
-
-impl From<std::io::Error> for VcfError {
-    fn from(e: std::io::Error) -> Self {
-        Self::Io(e)
-    }
 }
 
 /// Streaming VCF reader — parses header once, then yields [`VcfRecord`] per iteration.

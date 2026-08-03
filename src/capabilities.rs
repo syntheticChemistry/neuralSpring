@@ -26,6 +26,8 @@ pub const PRECISION_ROUTE: &str = "barracuda.precision.route";
 // ─── toadStool surface (compute + workload) ─────────────────────
 /// General compute dispatch.
 pub const COMPUTE_DISPATCH: &str = "compute.dispatch";
+/// Submit a workload for distributed dispatch (Node Atomic).
+pub const COMPUTE_DISPATCH_SUBMIT: &str = "compute.dispatch.submit";
 /// Compute offload.
 pub const COMPUTE_OFFLOAD: &str = "compute.offload";
 /// Workload pre-flight validation (Tier 2 Science API).
@@ -138,24 +140,51 @@ mod tests {
     #[test]
     fn all_capabilities_are_dotted() {
         let caps = [
-            STATS_MEAN, STATS_STD_DEV, STATS_WEIGHTED_MEAN,
-            TENSOR_MATMUL, TENSOR_CREATE, PRECISION_ROUTE,
-            COMPUTE_DISPATCH, COMPUTE_OFFLOAD, TOADSTOOL_VALIDATE, TOADSTOOL_LIST_WORKLOADS,
+            STATS_MEAN,
+            STATS_STD_DEV,
+            STATS_WEIGHTED_MEAN,
+            TENSOR_MATMUL,
+            TENSOR_CREATE,
+            PRECISION_ROUTE,
+            COMPUTE_DISPATCH,
+            COMPUTE_DISPATCH_SUBMIT,
+            COMPUTE_OFFLOAD,
+            TOADSTOOL_VALIDATE,
+            TOADSTOOL_LIST_WORKLOADS,
             CRYPTO_HASH,
-            INFERENCE_COMPLETE, INFERENCE_EMBED, INFERENCE_MODELS,
-            INFERENCE_REGISTER_PROVIDER, INFERENCE_UNREGISTER_PROVIDER,
-            SHADER_COMPILE_WGSL, SHADER_COMPILE_CAPABILITIES,
+            INFERENCE_COMPLETE,
+            INFERENCE_EMBED,
+            INFERENCE_MODELS,
+            INFERENCE_REGISTER_PROVIDER,
+            INFERENCE_UNREGISTER_PROVIDER,
+            SHADER_COMPILE_WGSL,
+            SHADER_COMPILE_CAPABILITIES,
             SECURITY_AUDIT_LOG,
-            CONTENT_PUT, CONTENT_GET, CONTENT_EXISTS,
-            NEST_STORE, NEST_COMMIT,
-            VISUALIZATION_RENDER, VISUALIZATION_RENDER_STREAM, VISUALIZATION_CAPABILITIES,
-            HEALTH_LIVENESS, HEALTH_READINESS, HEALTH_CHECK,
-            CAPABILITY_LIST, IDENTITY_GET, MCP_TOOLS_LIST,
-            COMPOSITION_STATUS, METHOD_REGISTER,
-            PROVENANCE_BEGIN, PROVENANCE_RECORD, PROVENANCE_COMPLETE, PROVENANCE_STATUS,
-            PRIMAL_FORWARD, PRIMAL_DISCOVER,
+            CONTENT_PUT,
+            CONTENT_GET,
+            CONTENT_EXISTS,
+            NEST_STORE,
+            NEST_COMMIT,
+            VISUALIZATION_RENDER,
+            VISUALIZATION_RENDER_STREAM,
+            VISUALIZATION_CAPABILITIES,
+            HEALTH_LIVENESS,
+            HEALTH_READINESS,
+            HEALTH_CHECK,
+            CAPABILITY_LIST,
+            IDENTITY_GET,
+            MCP_TOOLS_LIST,
+            COMPOSITION_STATUS,
+            METHOD_REGISTER,
+            PROVENANCE_BEGIN,
+            PROVENANCE_RECORD,
+            PROVENANCE_COMPLETE,
+            PROVENANCE_STATUS,
+            PRIMAL_FORWARD,
+            PRIMAL_DISCOVER,
             ML_MLP_INFER,
-            DISCOVERY_PEERS, MESH_INIT,
+            DISCOVERY_PEERS,
+            MESH_INIT,
             CRYPTO_BTSP_HANDSHAKE,
         ];
         for cap in caps {

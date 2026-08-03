@@ -3,7 +3,7 @@
 //! Layer 3 (NUCLEUS) — additive NUCLEUS capabilities.
 //!
 //! Validates capabilities that only exist in a fully deployed NUCLEUS:
-//! - BearDog signing receipt (crypto round-trip)
+//! - `BearDog` signing receipt (crypto round-trip)
 //! - Songbird capability discovery resolution
 
 use primalspring::composition::{CompositionContext, is_skip_error};
@@ -40,14 +40,6 @@ fn beardog_signing(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn nucleus_layer_validates_two_capabilities() {
-        assert_eq!(2, 2, "L3 validates BearDog signing + Songbird discovery");
-    }
-}
-
 fn songbird_discovery(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     match ctx.resolve_capability("tensor") {
         Ok(result) => {
@@ -75,5 +67,13 @@ fn songbird_discovery(ctx: &mut CompositionContext, v: &mut ValidationResult) {
                 &format!("resolve gap (graceful skip): {e}"),
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn nucleus_layer_validates_two_capabilities() {
+        assert_eq!(2, 2, "L3 validates BearDog signing + Songbird discovery");
     }
 }

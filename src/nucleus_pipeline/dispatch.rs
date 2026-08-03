@@ -12,11 +12,30 @@ use neural_spring_forge::graph::StageOutput;
 use crate::gpu_dispatch::Dispatcher;
 use crate::tolerances;
 
+/// NUCLEUS composition pipeline stages resolvable via [`dispatch_capability`].
+pub const PIPELINE_CAPABILITIES: &[&str] = &[
+    "science.eigensolve",
+    "science.digester_anderson_coupling",
+    "science.isomorphic_reservoir",
+    "science.wdm_ensemble_qs",
+    "science.introgression_nn",
+    "science.attention_anderson",
+    "science.ltee_allele_classifier",
+    "science.ltee_citrate_esn",
+];
+
+/// Whether `capability` is a known NUCLEUS pipeline stage.
+#[must_use]
+pub fn is_pipeline_capability(capability: &str) -> bool {
+    PIPELINE_CAPABILITIES.contains(&capability)
+}
+
 /// Tower: resolve a capability string to a local computation function (CPU path).
 ///
 /// Returns `(success, output)`. Each capability maps to a real neuralSpring
 /// module function. Unknown capabilities return `(false, Empty)`.
-pub(super) fn dispatch_capability(capability: &str) -> (bool, StageOutput) {
+#[must_use]
+pub fn dispatch_capability(capability: &str) -> (bool, StageOutput) {
     match capability {
         "science.eigensolve" => stage_eigensolve(),
         "science.digester_anderson_coupling" => stage_digester_anderson(),
@@ -34,10 +53,8 @@ pub(super) fn dispatch_capability(capability: &str) -> (bool, StageOutput) {
 ///
 /// GPU stages use the `Dispatcher` for eigensolve and spectral ops.
 /// Non-GPU stages fall through to the CPU path.
-pub(super) fn dispatch_capability_gpu(
-    capability: &str,
-    dispatcher: &Dispatcher,
-) -> (bool, StageOutput) {
+#[must_use]
+pub fn dispatch_capability_gpu(capability: &str, dispatcher: &Dispatcher) -> (bool, StageOutput) {
     match capability {
         "science.eigensolve" => stage_eigensolve_gpu(dispatcher),
         "science.attention_anderson" => stage_attention_anderson_gpu(dispatcher),
@@ -101,9 +118,7 @@ fn stage_digester_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
 
     let iprs = dispatcher
         .disorder_sweep(&hamiltonians, n, samples)
-        .unwrap_or_else(|| {
-            disorder_vals.iter().map(|d| 1.0 / (1.0 + d)).collect()
-        });
+        .unwrap_or_else(|| disorder_vals.iter().map(|d| 1.0 / (1.0 + d)).collect());
 
     let mean_ipr = if iprs.is_empty() {
         0.0
@@ -111,15 +126,25 @@ fn stage_digester_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
         iprs.iter().sum::<f64>() / iprs.len() as f64
     };
 
-    let (h, evenness, _, _, _) =
-        crate::digester_anderson::community_anderson(n_species, w, samples, &mut crate::rng::Rng::new(42));
+    let (h, evenness, _, _, _) = crate::digester_anderson::community_anderson(
+        n_species,
+        w,
+        samples,
+        &mut crate::rng::Rng::new(42),
+    );
 
     let xi = if mean_ipr > 0.0 { 1.0 / mean_ipr } else { 0.0 };
 
     let map = [
-        ("shannon_h", h), ("evenness", evenness), ("disorder_w", w),
-        ("mean_ipr", mean_ipr), ("xi", xi),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        ("shannon_h", h),
+        ("evenness", evenness),
+        ("disorder_w", w),
+        ("mean_ipr", mean_ipr),
+        ("xi", xi),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = h > 0.0 && (0.0..=1.0).contains(&mean_ipr);
     (valid, StageOutput::Map(map))
@@ -132,9 +157,15 @@ fn stage_digester_anderson() -> (bool, StageOutput) {
         crate::digester_anderson::community_anderson(n_species, 1.0, 20, &mut rng);
 
     let map = [
-        ("shannon_h", h), ("evenness", evenness), ("disorder_w", w),
-        ("mean_ipr", ipr), ("xi", xi),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        ("shannon_h", h),
+        ("evenness", evenness),
+        ("disorder_w", w),
+        ("mean_ipr", ipr),
+        ("xi", xi),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = h > 0.0 && (0.0..=1.0).contains(&ipr);
     (valid, StageOutput::Map(map))
@@ -169,9 +200,13 @@ fn stage_isomorphic_reservoir() -> (bool, StageOutput) {
     let cdm = crate::isomorphic_reservoir::cross_domain_metrics(&profiles);
 
     let map = [
-        ("eff_ratio_cv", cdm.eff_ratio_cv), ("ipr_cv", cdm.ipr_cv),
+        ("eff_ratio_cv", cdm.eff_ratio_cv),
+        ("ipr_cv", cdm.ipr_cv),
         ("spacing_ratio_mean", cdm.spacing_ratio_mean),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = cdm.eff_ratio_cv < 0.5 && cdm.ipr_cv < 0.5;
     (valid, StageOutput::Map(map))
@@ -205,7 +240,11 @@ fn stage_isomorphic_reservoir_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput
         let (eigenvalues, _) = dispatcher.eigh(matrix, n);
         let sum_abs: f64 = eigenvalues.iter().map(|e| e.abs()).sum();
         let max_abs = eigenvalues.iter().map(|e| e.abs()).fold(0.0_f64, f64::max);
-        let eff_ratio = if max_abs > 0.0 { sum_abs / (n as f64 * max_abs) } else { 0.0 };
+        let eff_ratio = if max_abs > 0.0 {
+            sum_abs / (n as f64 * max_abs)
+        } else {
+            0.0
+        };
         eff_ratios.push(eff_ratio);
 
         let mut ipr_sum = 0.0;
@@ -227,7 +266,11 @@ fn stage_isomorphic_reservoir_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput
                     ratios.push(s1.min(s2) / s1.max(s2));
                 }
             }
-            if ratios.is_empty() { 0.0 } else { ratios.iter().sum::<f64>() / ratios.len() as f64 }
+            if ratios.is_empty() {
+                0.0
+            } else {
+                ratios.iter().sum::<f64>() / ratios.len() as f64
+            }
         } else {
             0.0
         };
@@ -235,19 +278,38 @@ fn stage_isomorphic_reservoir_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput
     }
 
     let eff_mean = eff_ratios.iter().sum::<f64>() / eff_ratios.len() as f64;
-    let eff_std = (eff_ratios.iter().map(|v| (v - eff_mean).powi(2)).sum::<f64>() / eff_ratios.len() as f64).sqrt();
-    let eff_ratio_cv = if eff_mean > 0.0 { eff_std / eff_mean } else { 0.0 };
+    let eff_std = (eff_ratios
+        .iter()
+        .map(|v| (v - eff_mean).powi(2))
+        .sum::<f64>()
+        / eff_ratios.len() as f64)
+        .sqrt();
+    let eff_ratio_cv = if eff_mean > 0.0 {
+        eff_std / eff_mean
+    } else {
+        0.0
+    };
 
     let ipr_mean = ipr_vals.iter().sum::<f64>() / ipr_vals.len() as f64;
-    let ipr_std = (ipr_vals.iter().map(|v| (v - ipr_mean).powi(2)).sum::<f64>() / ipr_vals.len() as f64).sqrt();
-    let ipr_cv = if ipr_mean > 0.0 { ipr_std / ipr_mean } else { 0.0 };
+    let ipr_std = (ipr_vals.iter().map(|v| (v - ipr_mean).powi(2)).sum::<f64>()
+        / ipr_vals.len() as f64)
+        .sqrt();
+    let ipr_cv = if ipr_mean > 0.0 {
+        ipr_std / ipr_mean
+    } else {
+        0.0
+    };
 
     let spacing_ratio_mean = spacing_ratios.iter().sum::<f64>() / spacing_ratios.len() as f64;
 
     let map = [
-        ("eff_ratio_cv", eff_ratio_cv), ("ipr_cv", ipr_cv),
+        ("eff_ratio_cv", eff_ratio_cv),
+        ("ipr_cv", ipr_cv),
         ("spacing_ratio_mean", spacing_ratio_mean),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = eff_ratio_cv < 0.5 && ipr_cv < 0.5;
     (valid, StageOutput::Map(map))
@@ -280,8 +342,14 @@ fn stage_wdm_ensemble_qs() -> (bool, StageOutput) {
     let coop = crate::wdm_ensemble_qs::replicator_final_coop(&payoff, WDM_REPLICATOR_STEPS);
 
     let map = [
-        ("disorder", w), ("mean_ipr", ipr), ("xi", xi), ("cooperation", coop),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        ("disorder", w),
+        ("mean_ipr", ipr),
+        ("xi", xi),
+        ("cooperation", coop),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = ipr >= 0.0 && (0.0..=1.0).contains(&coop);
     (valid, StageOutput::Map(map))
@@ -312,8 +380,14 @@ fn stage_wdm_ensemble_qs_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
     let coop = freq[0].clamp(0.0, 1.0);
 
     let map = [
-        ("disorder", w), ("mean_ipr", ipr), ("xi", xi), ("cooperation", coop),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        ("disorder", w),
+        ("mean_ipr", ipr),
+        ("xi", xi),
+        ("cooperation", coop),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = ipr >= 0.0 && (0.0..=1.0).contains(&coop);
     (valid, StageOutput::Map(map))
@@ -354,9 +428,14 @@ fn stage_introgression_nn() -> (bool, StageOutput) {
     let (_, log_lik_null) = null_hmm.forward(&obs);
 
     let map = [
-        ("tpr", tpr), ("fpr", fpr), ("accuracy", accuracy),
+        ("tpr", tpr),
+        ("fpr", fpr),
+        ("accuracy", accuracy),
         ("llr", log_lik_model - log_lik_null),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = tpr > 0.5 && accuracy > 0.5;
     (valid, StageOutput::Map(map))
@@ -397,9 +476,14 @@ fn stage_introgression_nn_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
     let (_, log_lik_null) = null_hmm.forward(&obs);
 
     let map = [
-        ("tpr", tpr), ("fpr", fpr), ("accuracy", accuracy),
+        ("tpr", tpr),
+        ("fpr", fpr),
+        ("accuracy", accuracy),
         ("llr", log_lik_model - log_lik_null),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = tpr > 0.5 && accuracy > 0.5;
     (valid, StageOutput::Map(map))
@@ -435,10 +519,15 @@ fn stage_attention_anderson() -> (bool, StageOutput) {
     let result = crate::attention_anderson::attention_spectral(&sym, n);
 
     let map = [
-        ("quality", result.quality), ("entropy", result.entropy),
-        ("mean_ipr", result.mean_ipr), ("spectral_radius", result.spectral_radius),
+        ("quality", result.quality),
+        ("entropy", result.entropy),
+        ("mean_ipr", result.mean_ipr),
+        ("spectral_radius", result.spectral_radius),
         ("participation", result.participation),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = result.spectral_radius > 0.0 && result.participation > 0.0;
     (valid, StageOutput::Map(map))
@@ -460,9 +549,14 @@ fn stage_attention_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) 
     let participation = if mean_ipr > 0.0 { 1.0 / mean_ipr } else { 0.0 };
 
     let map = [
-        ("mean_ipr", mean_ipr), ("spectral_radius", spectral_radius),
-        ("participation", participation), ("level_spacing_ratio", lsr),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        ("mean_ipr", mean_ipr),
+        ("spectral_radius", spectral_radius),
+        ("participation", participation),
+        ("level_spacing_ratio", lsr),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = spectral_radius > 0.0 && participation > 0.0;
     (valid, StageOutput::Map(map))
@@ -470,9 +564,8 @@ fn stage_attention_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) 
 
 fn stage_ltee_citrate_esn() -> (bool, StageOutput) {
     let json_str = include_str!("../../control/ltee_citrate_esn/expected_values.json");
-    let baseline = match crate::ltee_citrate_esn::load_citrate_esn_from_json(json_str) {
-        Ok(b) => b,
-        Err(_) => return (false, StageOutput::Empty),
+    let Ok(baseline) = crate::ltee_citrate_esn::load_citrate_esn_from_json(json_str) else {
+        return (false, StageOutput::Empty);
     };
 
     let mut rng = crate::rng::Rng::new(baseline.seed);
@@ -487,9 +580,14 @@ fn stage_ltee_citrate_esn() -> (bool, StageOutput) {
     let metrics = crate::ltee_citrate_esn::early_warning_metrics(&preds, &labels);
 
     let map = [
-        ("accuracy", metrics.accuracy), ("tpr", metrics.tpr),
-        ("fpr", metrics.fpr), ("baseline_test_accuracy", baseline.test_accuracy),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        ("accuracy", metrics.accuracy),
+        ("tpr", metrics.tpr),
+        ("fpr", metrics.fpr),
+        ("baseline_test_accuracy", baseline.test_accuracy),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = baseline.test_accuracy > 0.85;
     (valid, StageOutput::Map(map))
@@ -497,9 +595,8 @@ fn stage_ltee_citrate_esn() -> (bool, StageOutput) {
 
 fn stage_ltee_allele_classifier() -> (bool, StageOutput) {
     let json_str = include_str!("../../control/ltee_allele_trajectory/expected_values.json");
-    let bl = match crate::ltee_allele_trajectory::load_allele_baseline_from_json(json_str) {
-        Ok(b) => b,
-        Err(_) => return (false, StageOutput::Empty),
+    let Ok(bl) = crate::ltee_allele_trajectory::load_allele_baseline_from_json(json_str) else {
+        return (false, StageOutput::Empty);
     };
 
     let states = crate::ltee_allele_trajectory::lstm_forward(
@@ -542,9 +639,14 @@ fn stage_ltee_allele_classifier() -> (bool, StageOutput) {
     );
 
     let map = [
-        ("prediction", pred as f64), ("expected", bl.first_prediction as f64),
-        ("test_accuracy", bl.test_accuracy), ("train_accuracy", bl.train_accuracy),
-    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        ("prediction", pred as f64),
+        ("expected", bl.first_prediction as f64),
+        ("test_accuracy", bl.test_accuracy),
+        ("train_accuracy", bl.train_accuracy),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect();
 
     let valid = bl.test_accuracy >= 0.95 && pred == bl.first_prediction;
     (valid, StageOutput::Map(map))

@@ -16,12 +16,15 @@
 
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
 
 use anyhow::{Context, Result};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixStream;
 
 use neural_spring::config;
+use neural_spring::ipc::router::hint_primal_for_capability;
+use neural_spring::validation::composition::{self, DiscoveryResult};
 
 use super::{PRIMAL_NAME, ipc_response_timeout_secs, orchestrator_socket};
 
@@ -83,6 +86,42 @@ pub fn discover_primal_socket(primal_name: &str) -> Result<PathBuf> {
     anyhow::bail!(
         "No socket found for primal '{primal_name}' in {}",
         socket_dir.display()
+    )
+}
+
+/// Discover a primal socket by advertised capability.
+///
+/// Scans the biomeOS socket directory, probes each live socket with
+/// `capabilities.list` / `capability.list`, and returns the first socket
+/// that advertises `capability`. Falls back to the compile-time
+/// [`hint_primal_for_capability`] name hint when no socket advertises it.
+#[must_use]
+pub fn discover_by_capability(capability: &str, probe_timeout: Duration) -> Option<PathBuf> {
+    let socket_dir = resolve_socket_dir();
+
+    if let Ok(entries) = std::fs::read_dir(&socket_dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+            if !name_str.ends_with(".sock") || name_str.starts_with(PRIMAL_NAME) {
+                continue;
+            }
+            let socket_path = entry.path();
+            if let Ok(caps) = composition::probe_capabilities(&socket_path, probe_timeout)
+                && caps
+                    .iter()
+                    .any(|c| c == capability || capability.starts_with(c.as_str()))
+            {
+                return Some(socket_path);
+            }
+        }
+    }
+
+    hint_primal_for_capability(capability).and_then(
+        |hint| match composition::discover_primal_socket(hint) {
+            DiscoveryResult::Found(path) => Some(path),
+            DiscoveryResult::NotFound { .. } => None,
+        },
     )
 }
 

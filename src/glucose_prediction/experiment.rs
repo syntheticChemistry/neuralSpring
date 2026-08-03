@@ -14,18 +14,22 @@ use crate::sequence::{LstmWeights, lstm_cell};
 use crate::tolerances;
 
 #[cfg(feature = "barracuda")]
-use super::cgm::{DT_MINUTES, WASHOUT, create_sequences, generate_synthetic_cgm};
-#[cfg(feature = "barracuda")]
 use super::analysis::{r2_score, rmse};
 #[cfg(feature = "barracuda")]
-use super::{HorizonResult, RIDGE_ALPHA};
+use super::cgm::{DT_MINUTES, WASHOUT, create_sequences, generate_synthetic_cgm};
 use super::{GlucosePredictor, GlucoseReadout};
+#[cfg(feature = "barracuda")]
+use super::{HorizonResult, RIDGE_ALPHA};
 
 /// Run the full glucose prediction experiment at multiple horizons.
 ///
 /// Returns per-horizon results and the trained predictor model.
 #[cfg(feature = "barracuda")]
 #[must_use]
+#[expect(
+    clippy::too_many_lines,
+    reason = "multi-horizon LSTM experiment loop kept intact for Python baseline parity"
+)]
 pub fn run_glucose_experiment(
     n_days: usize,
     hidden_size: usize,

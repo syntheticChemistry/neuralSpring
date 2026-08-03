@@ -255,6 +255,10 @@ pub fn shannon_diversity(abundances: &[f64]) -> f64 {
 /// Generate a community's Anderson properties.
 #[cfg(feature = "barracuda")]
 #[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "species count and lattice size ≤ 512 fit in f64 mantissa"
+)]
 pub fn community_anderson(
     n_species: usize,
     alpha: f64,
@@ -457,8 +461,27 @@ fn flatten_1d(arr: &[serde_json::Value]) -> Result<Vec<f64>, String> {
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::cast_precision_loss,
+    clippy::expect_used,
+    reason = "test species count n = 10 fits in f64 mantissa; test assertions"
+)]
 mod tests {
     use super::*;
+
+    fn minimal_coupling_predictor() -> CouplingPredictor {
+        CouplingPredictor {
+            reservoir_size: 2,
+            w_in: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.5, 0.4, 0.3, 0.2, 0.1],
+            w_res: vec![0.1, 0.2, 0.3, 0.4],
+            b_res: vec![0.0, 0.1],
+            w_out: vec![0.5, -0.5],
+            x_mean: [30.0, 7.0, 4.0, 20.0, 70.0],
+            x_std: [10.0, 1.0, 2.0, 10.0, 10.0],
+            y_mean: 280.0,
+            y_std: 20.0,
+        }
+    }
 
     #[test]
     fn test_evenness_to_disorder_boundaries() {
@@ -572,5 +595,119 @@ mod tests {
             let v = gamma_variate(*alpha, &mut rng);
             assert!(v > 0.0, "Gamma variate positive for α={alpha}");
         }
+    }
+
+    #[test]
+    fn test_noise_from_xi_floor() {
+        let capped = noise_from_xi(0.0);
+        assert!(
+            (capped - 15.0).abs() < tolerances::CROSS_LANGUAGE,
+            "xi=0 uses floor and cap"
+        );
+        let at_floor = noise_from_xi(0.005);
+        assert!(at_floor <= 15.0);
+    }
+
+    #[test]
+    fn test_coupling_predictor_predict_and_reservoir_state() {
+        let pred = minimal_coupling_predictor();
+        let y = pred.predict(35.0, 7.2, 3.0, 20.0, 75.0);
+        assert!(y.is_finite());
+
+        let state = pred.reservoir_state(35.0, 7.2, 3.0, 20.0, 75.0);
+        assert_eq!(state.len(), pred.reservoir_size);
+        for &h in &state {
+            assert!(h.is_finite() && h.abs() <= 1.0);
+        }
+
+        let y_from_state: f64 = state
+            .iter()
+            .zip(&pred.w_out)
+            .map(|(&hi, &wi)| hi * wi)
+            .sum::<f64>()
+            .mul_add(pred.y_std, pred.y_mean);
+        assert!(
+            (y - y_from_state).abs() < tolerances::CROSS_LANGUAGE,
+            "predict matches manual readout"
+        );
+    }
+
+    #[test]
+    fn test_generate_community_data_deterministic() {
+        let mut rng1 = Rng::new(7);
+        let mut rng2 = Rng::new(7);
+        let d1 = generate_community_data(20, 3.0, &mut rng1);
+        let d2 = generate_community_data(20, 3.0, &mut rng2);
+        for (a, b) in d1.iter().zip(&d2) {
+            assert!((a.5 - b.5).abs() < tolerances::EXACT_F64);
+        }
+    }
+
+    #[test]
+    fn test_generate_community_data_yields_non_negative() {
+        let mut rng = Rng::new(11);
+        let data = generate_community_data(50, 20.0, &mut rng);
+        for &(t, ph, olr, hrt, vs_ts, y_obs) in &data {
+            assert!((20.0..=60.0).contains(&t));
+            assert!((5.5..=8.5).contains(&ph));
+            assert!(y_obs >= 0.0);
+            let y_true = digestion_prediction::biogas_yield(t, ph, olr, hrt, vs_ts);
+            assert!(y_obs <= y_true + 100.0, "noise bounded for typical draws");
+        }
+    }
+
+    #[test]
+    fn test_load_coupling_from_json_minimal() {
+        let json = r#"{
+            "lattice_size": 8,
+            "esn": {
+                "reservoir_size": 2,
+                "w_in": [[0.1, 0.2, 0.3, 0.4, 0.5], [0.5, 0.4, 0.3, 0.2, 0.1]],
+                "w_res": [[0.1, 0.2], [0.3, 0.4]],
+                "b_res": [0.0, 0.1],
+                "w_out": [0.5, -0.5],
+                "x_mean": [30.0, 7.0, 4.0, 20.0, 70.0],
+                "x_std": [10.0, 1.0, 2.0, 10.0, 10.0],
+                "y_mean": 280.0,
+                "y_std": 20.0
+            },
+            "coupling": {
+                "pearson_w_r2": -0.5,
+                "pearson_xi_r2": 0.9,
+                "pearson_ipr_r2": -0.6,
+                "pooled_r2_test": 0.64
+            },
+            "communities": [{
+                "id": 0,
+                "alpha": 0.1,
+                "n_species": 5,
+                "shannon_h": 1.0,
+                "evenness": 0.5,
+                "disorder_w": 10.0,
+                "mean_ipr": 0.5,
+                "loc_length_xi": 0.1,
+                "noise_std": 5.0,
+                "r2_test": 0.6,
+                "rmse_test": 10.0
+            }],
+            "reference_predictions": [{
+                "input": [35.0, 7.2, 3.0, 20.0, 75.0],
+                "esn_yield": 300.0,
+                "analytical_yield": 332.0
+            }]
+        }"#;
+        let baseline = load_coupling_from_json(json).expect("parse minimal coupling");
+        assert_eq!(baseline.lattice_size, 8);
+        assert_eq!(baseline.predictor.reservoir_size, 2);
+        assert_eq!(baseline.communities.len(), 1);
+        assert!((baseline.metrics.pearson_w_r2 - (-0.5)).abs() < tolerances::EXACT_F64);
+        let y = baseline.predictor.predict(35.0, 7.2, 3.0, 20.0, 75.0);
+        assert!(y.is_finite());
+    }
+
+    #[test]
+    fn test_load_coupling_from_json_errors() {
+        assert!(load_coupling_from_json("{").is_err());
+        assert!(load_coupling_from_json(r#"{"esn":{}}"#).is_err());
     }
 }

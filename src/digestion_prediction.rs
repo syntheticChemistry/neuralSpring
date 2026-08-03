@@ -457,9 +457,26 @@ pub fn load_digestion_from_json(json_str: &str) -> Result<DigestionBaseline, Str
 // ═══════════════════════════════════════════════════════════════════
 
 #[cfg(test)]
+#[expect(clippy::expect_used, reason = "test assertions")]
 mod tests {
     use super::*;
     use crate::tolerances;
+
+    fn minimal_predictor() -> DigestionPredictor {
+        DigestionPredictor {
+            reservoir_size: 2,
+            w_in: vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.5, 0.4, 0.3, 0.2, 0.1],
+            w_res: vec![0.1, 0.2, 0.3, 0.4],
+            b_res: vec![0.0, 0.1],
+            w_out: vec![0.5, -0.5],
+            norm: DigestionNormalization {
+                x_mean: [30.0, 7.0, 4.0, 20.0, 70.0],
+                x_std: [10.0, 1.0, 2.0, 10.0, 10.0],
+                y_mean: 280.0,
+                y_std: 20.0,
+            },
+        }
+    }
 
     #[test]
     fn test_temperature_response_mesophilic_peak() {
@@ -545,5 +562,105 @@ mod tests {
         let y = vec![1.0, 2.0, 3.0];
         let e = rmse(&y, &y);
         assert!(e < tolerances::EXACT_F64);
+    }
+
+    #[test]
+    fn test_r2_score_imperfect() {
+        let y_true = vec![1.0, 2.0, 3.0, 4.0];
+        let y_pred = vec![1.5, 2.5, 2.5, 4.5];
+        let r2 = r2_score(&y_true, &y_pred);
+        assert!(r2 < 1.0 && r2.is_finite());
+    }
+
+    #[test]
+    fn test_rmse_nonzero() {
+        let y_true = vec![0.0, 0.0, 0.0];
+        let y_pred = vec![3.0, 4.0, 0.0];
+        let e = rmse(&y_true, &y_pred);
+        let expected = (25.0_f64 / 3.0).sqrt();
+        assert!((e - expected).abs() < tolerances::EXACT_F64);
+    }
+
+    #[test]
+    fn test_predictor_predict_and_reservoir_state() {
+        let pred = minimal_predictor();
+        let y = pred.predict(35.0, 7.2, 3.0, 20.0, 75.0);
+        assert!(y.is_finite(), "predict should return finite yield");
+
+        let state = pred.reservoir_state(35.0, 7.2, 3.0, 20.0, 75.0);
+        assert_eq!(state.len(), pred.reservoir_size);
+        for &h in &state {
+            assert!(h.is_finite() && h.abs() <= 1.0, "tanh state in [-1, 1]");
+        }
+
+        let y_from_state: f64 = state
+            .iter()
+            .zip(&pred.w_out)
+            .map(|(&hi, &wi)| hi * wi)
+            .sum::<f64>()
+            .mul_add(pred.norm.y_std, pred.norm.y_mean);
+        assert!(
+            (y - y_from_state).abs() < tolerances::CROSS_LANGUAGE,
+            "predict matches manual readout"
+        );
+    }
+
+    #[test]
+    fn test_generate_dataset_sample_fields() {
+        let samples = generate_dataset(5, 99);
+        assert_eq!(samples.len(), 5);
+        for s in &samples {
+            assert!((20.0..=60.0).contains(&s.temperature));
+            assert!((5.5..=8.5).contains(&s.ph));
+            assert!(s.yield_observed >= 0.0);
+            assert!(
+                (s.yield_true - biogas_yield(s.temperature, s.ph, s.olr, s.hrt, s.vs_ts)).abs()
+                    < tolerances::EXACT_F64
+            );
+        }
+    }
+
+    #[test]
+    fn test_load_digestion_from_json_minimal() {
+        let json = r#"{
+            "normalization": {
+                "x_mean": [30.0, 7.0, 4.0, 20.0, 70.0],
+                "x_std": [10.0, 1.0, 2.0, 10.0, 10.0],
+                "y_mean": 280.0,
+                "y_std": 20.0
+            },
+            "esn_config": { "reservoir_size": 2 },
+            "weights": {
+                "W_in": [0.1, 0.2, 0.3, 0.4, 0.5, 0.5, 0.4, 0.3, 0.2, 0.1],
+                "W_res": [0.1, 0.2, 0.3, 0.4],
+                "b_res": [0.0, 0.1],
+                "w_out": [0.5, -0.5]
+            },
+            "metrics": {
+                "r2_train": 0.92,
+                "r2_test": 0.85,
+                "rmse_train": 5.77,
+                "rmse_test": 8.37
+            },
+            "reference_predictions": [{
+                "desc": "optimum",
+                "inputs": [35.0, 7.2, 3.0, 20.0, 75.0],
+                "predicted": 300.0,
+                "analytical": 332.0,
+                "reservoir_state": [0.1, -0.2]
+            }]
+        }"#;
+        let baseline = load_digestion_from_json(json).expect("parse minimal baseline");
+        assert_eq!(baseline.predictor.reservoir_size, 2);
+        assert_eq!(baseline.predictor.w_in.len(), 10);
+        assert!((baseline.r2_train - 0.92).abs() < tolerances::EXACT_F64);
+        assert_eq!(baseline.reference_predictions.len(), 1);
+        assert_eq!(baseline.reference_predictions[0].desc, "optimum");
+    }
+
+    #[test]
+    fn test_load_digestion_from_json_errors() {
+        assert!(load_digestion_from_json("{").is_err());
+        assert!(load_digestion_from_json(r#"{"normalization":{}}"#).is_err());
     }
 }

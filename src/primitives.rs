@@ -131,10 +131,13 @@ pub const RATIO_GUARD: f64 = 1e-300;
 #[must_use]
 pub fn shannon_entropy(frequencies: &[f64]) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::stats::shannon_from_frequencies(frequencies) }
+    {
+        barracuda::stats::shannon_from_frequencies(frequencies)
+    }
     #[cfg(not(feature = "barracuda"))]
     {
-        frequencies.iter()
+        frequencies
+            .iter()
             .filter(|&&p| p > 0.0)
             .map(|&p| -p * p.ln())
             .sum()
@@ -165,11 +168,15 @@ pub fn shannon_equitability(frequencies: &[f64]) -> f64 {
 #[must_use]
 pub fn shannon_entropy_from_counts(counts: &[f64]) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::stats::shannon(counts) }
+    {
+        barracuda::stats::shannon(counts)
+    }
     #[cfg(not(feature = "barracuda"))]
     {
         let total: f64 = counts.iter().sum();
-        if total <= 0.0 { return 0.0; }
+        if total <= 0.0 {
+            return 0.0;
+        }
         let freqs: Vec<f64> = counts.iter().map(|&c| c / total).collect();
         shannon_entropy(&freqs)
     }
@@ -191,9 +198,13 @@ pub fn hill_activation(x: f64, amplitude: f64, k: f64, n: f64) -> f64 {
         return 0.0;
     }
     #[cfg(feature = "barracuda")]
-    { amplitude * barracuda::stats::hill(x, k, n) }
+    {
+        amplitude * barracuda::stats::hill(x, k, n)
+    }
     #[cfg(not(feature = "barracuda"))]
-    { amplitude * x.powf(n) / (k.powf(n) + x.powf(n)) }
+    {
+        amplitude * x.powf(n) / (k.powf(n) + x.powf(n))
+    }
 }
 
 /// Hill repression: `a * K^n / (K^n + x^n)`.
@@ -207,9 +218,13 @@ pub fn hill_repression(x: f64, amplitude: f64, k: f64, n: f64) -> f64 {
         return amplitude;
     }
     #[cfg(feature = "barracuda")]
-    { amplitude * (1.0 - barracuda::stats::hill(x, k, n)) }
+    {
+        amplitude * (1.0 - barracuda::stats::hill(x, k, n))
+    }
     #[cfg(not(feature = "barracuda"))]
-    { amplitude * k.powf(n) / (k.powf(n) + x.powf(n)) }
+    {
+        amplitude * k.powf(n) / (k.powf(n) + x.powf(n))
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -222,11 +237,17 @@ pub fn hill_repression(x: f64, amplitude: f64, k: f64, n: f64) -> f64 {
 #[must_use]
 pub fn sigmoid(x: f64) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::activations::sigmoid(x) }
+    {
+        barracuda::activations::sigmoid(x)
+    }
     #[cfg(not(feature = "barracuda"))]
     {
-        if x >= 0.0 { 1.0 / (1.0 + (-x).exp()) }
-        else { let ex = x.exp(); ex / (1.0 + ex) }
+        if x >= 0.0 {
+            1.0 / (1.0 + (-x).exp())
+        } else {
+            let ex = x.exp();
+            ex / (1.0 + ex)
+        }
     }
 }
 
@@ -244,11 +265,15 @@ pub fn sigmoid(x: f64) -> f64 {
 #[must_use]
 pub fn pearson_r(x: &[f64], y: &[f64]) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::stats::correlation::pearson_correlation(x, y).unwrap_or(0.0) }
+    {
+        barracuda::stats::correlation::pearson_correlation(x, y).unwrap_or(0.0)
+    }
     #[cfg(not(feature = "barracuda"))]
     {
         let n = x.len();
-        if n < 2 { return 0.0; }
+        if n < 2 {
+            return 0.0;
+        }
         let n_f = n as f64;
         let mx: f64 = x.iter().sum::<f64>() / n_f;
         let my: f64 = y.iter().sum::<f64>() / n_f;
@@ -293,7 +318,9 @@ pub fn sigmoid_f32(x: f32) -> f32 {
 #[must_use]
 pub fn gelu(x: f64) -> f64 {
     #[cfg(feature = "barracuda")]
-    { barracuda::activations::gelu(x) }
+    {
+        barracuda::activations::gelu(x)
+    }
     #[cfg(not(feature = "barracuda"))]
     {
         use std::f64::consts::PI;
@@ -595,10 +622,6 @@ mod tests {
 }
 
 #[cfg(test)]
-#[expect(
-    clippy::float_cmp,
-    reason = "relu returns exact 0.0 or identity — bitwise comparison is correct"
-)]
 mod proptests {
     use super::*;
     use crate::tolerances;

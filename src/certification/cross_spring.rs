@@ -79,7 +79,11 @@ fn validate_live_tier(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     for family in &families {
         match ctx.call(family, &format!("{family}.ping"), serde_json::json!({})) {
             Ok(_) => {
-                v.check_bool(&format!("cross_spring:live:ping:{family}"), true, "responded");
+                v.check_bool(
+                    &format!("cross_spring:live:ping:{family}"),
+                    true,
+                    "responded",
+                );
             }
             Err(e) if is_skip_error(&e) => {
                 v.check_skip(

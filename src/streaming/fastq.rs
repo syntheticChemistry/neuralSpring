@@ -121,15 +121,19 @@ impl FastqRecord {
 }
 
 /// Parse error for malformed FASTQ records.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum FastqError {
     /// Underlying I/O failure.
-    Io(std::io::Error),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
     /// Header line does not start with `@`.
+    #[error("header does not start with '@': {0:?}")]
     InvalidHeader(String),
     /// Missing sequence, separator, or quality line.
+    #[error("truncated record after header: {0:?}")]
     TruncatedRecord(String),
     /// Quality line length does not match sequence length.
+    #[error("quality length ({qual_len}) != sequence length ({seq_len}) for {header:?}")]
     LengthMismatch {
         /// Record header (without the leading `@`).
         header: String,
@@ -139,41 +143,8 @@ pub enum FastqError {
         qual_len: usize,
     },
     /// Separator line does not start with `+`.
+    #[error("separator does not start with '+': {0:?}")]
     InvalidSeparator(String),
-}
-
-impl std::error::Error for FastqError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Io(e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl std::fmt::Display for FastqError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Io(e) => write!(f, "I/O error: {e}"),
-            Self::InvalidHeader(h) => write!(f, "header does not start with '@': {h:?}"),
-            Self::TruncatedRecord(h) => write!(f, "truncated record after header: {h:?}"),
-            Self::LengthMismatch {
-                header,
-                seq_len,
-                qual_len,
-            } => write!(
-                f,
-                "quality length ({qual_len}) != sequence length ({seq_len}) for {header:?}"
-            ),
-            Self::InvalidSeparator(s) => write!(f, "separator does not start with '+': {s:?}"),
-        }
-    }
-}
-
-impl From<std::io::Error> for FastqError {
-    fn from(e: std::io::Error) -> Self {
-        Self::Io(e)
-    }
 }
 
 /// Streaming FASTQ reader — yields one [`FastqRecord`] per iteration.

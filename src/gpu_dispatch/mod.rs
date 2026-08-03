@@ -99,10 +99,8 @@ impl Dispatcher {
             Ok(gpu) => {
                 let caps = DeviceCapabilities::from_device(gpu.wgpu_device());
                 let tier = BandwidthTier::detect_from_adapter_name(&gpu.adapter_name);
-                let bridge = neural_spring_forge::pcie_bridge::PcieBridge::new(
-                    &gpu.adapter_name,
-                    "NPU",
-                );
+                let bridge =
+                    neural_spring_forge::pcie_bridge::PcieBridge::new(&gpu.adapter_name, "NPU");
                 let p2p = bridge.can_p2p();
                 log::info!(
                     "GPU available: {} ({:?}, {:?}, f64={:?}, pcie={tier:?}, p2p={p2p})",
@@ -145,10 +143,7 @@ impl Dispatcher {
     #[must_use]
     pub fn from_gpu(gpu: Gpu) -> Self {
         let caps = DeviceCapabilities::from_device(gpu.wgpu_device());
-        let bridge = neural_spring_forge::pcie_bridge::PcieBridge::new(
-            &gpu.adapter_name,
-            "NPU",
-        );
+        let bridge = neural_spring_forge::pcie_bridge::PcieBridge::new(&gpu.adapter_name, "NPU");
         Self {
             gpu: Some(gpu),
             prefer_gpu: true,
@@ -293,15 +288,20 @@ impl Dispatcher {
         matches!(self.precision_routing(), PrecisionRoutingAdvice::F64Native)
     }
 
-    /// Whether PCIe peer-to-peer DMA is available between GPU and NPU.
+    /// Whether `PCIe` peer-to-peer DMA is available between GPU and NPU.
     #[must_use]
     pub fn pcie_p2p_available(&self) -> bool {
-        self.pcie_p2p.as_ref().is_some_and(|b| b.can_p2p())
+        self.pcie_p2p
+            .as_ref()
+            .is_some_and(neural_spring_forge::pcie_bridge::PcieBridge::can_p2p)
     }
 
-    /// Transfer cost estimate for moving `bytes` across the PCIe bridge.
+    /// Transfer cost estimate for moving `bytes` across the `PCIe` bridge.
     #[must_use]
-    pub fn pcie_transfer_cost(&self, bytes: u64) -> Option<neural_spring_forge::mixed::TransferCost> {
+    pub fn pcie_transfer_cost(
+        &self,
+        bytes: u64,
+    ) -> Option<neural_spring_forge::mixed::TransferCost> {
         self.pcie_p2p.as_ref().map(|b| b.transfer_cost(bytes))
     }
 

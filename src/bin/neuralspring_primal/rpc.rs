@@ -40,11 +40,14 @@ impl JsonRpcResponse {
         }
     }
 
-    pub const fn error(id: serde_json::Value, code: i32, message: String) -> Self {
+    pub fn error(id: serde_json::Value, code: i32, message: impl Into<String>) -> Self {
         Self {
             jsonrpc: "2.0",
             result: None,
-            error: Some(JsonRpcError { code, message }),
+            error: Some(JsonRpcError {
+                code,
+                message: message.into(),
+            }),
             id,
         }
     }

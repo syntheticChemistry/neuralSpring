@@ -5,11 +5,11 @@ Following the wetSpring/hotSpring pattern: unidirectional Spring → primal flow
 
 ## Active Handoffs
 
-### V182 — Session S226
+### V183 — Wave 155 Deep Debt Evolution
 
 | Version | File | Date | Scope |
 |---------|------|------|-------|
-| **V182** | `handoffs/NEURALSPRING_V182_WAVE107_INFERENCE_PROVIDER_JUN10_2026.md` | Jun 10, 2026 | Wave 107: Squirrel register_provider + unregister_provider wired, nest.store/nest.commit constants, 47→51 capabilities. 934 tests. V182. |
+| **V183** | `handoffs/NEURALSPRING_V183_WAVE155_DEEP_DEBT_EVOLUTION_AUG03_2026.md` | Aug 3, 2026 | Wave 155: deep debt evolution — module splits (ipc, weight_loader, validation/composition), capability-based discovery, production stub completion, +128 tests (1518+), 87.25% coverage. Phase 5 mesh-blocked. |
 
 ### Central wateringHole Copies
 
@@ -17,7 +17,7 @@ Active handoffs also published to `ecoPrimals/wateringHole/handoffs/` for cross-
 
 ## Archive
 
-Superseded handoffs: `handoffs/archive/` (V1–V181 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
+Superseded handoffs: `handoffs/archive/` (V1–V182 + NestGate V1 + biomeOS V1 + Songbird V1 + barraCuda evolution requests).
 
 ## Conventions
 

@@ -128,7 +128,10 @@ fn run_checks(h: &mut ValidationHarness) {
 
     // ── Check 1: Data monotonicity ──────────────────────────────────
     let monotonic = total.windows(2).all(|w| w[0] <= w[1]);
-    h.check_bool("B1-001: total mutations monotonically increasing", monotonic);
+    h.check_bool(
+        "B1-001: total mutations monotonically increasing",
+        monotonic,
+    );
 
     // ── Check 2: Mutation rate estimation ───────────────────────────
     let (rate, intercept) = polyfit_1(&GENERATIONS, &total);
@@ -228,7 +231,6 @@ fn run_checks(h: &mut ValidationHarness) {
         "B1-014: rate in biological range [1e-4, 1e-2]",
         (1e-4..1e-2).contains(&rate),
     );
-
 }
 
 fn main() {

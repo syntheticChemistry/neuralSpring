@@ -72,11 +72,7 @@ fn run_rust(v: &mut ValidationResult) {
 fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
     v.section("Schema Standard — Tier 2 (Live)");
 
-    match ctx.call(
-        "orchestration",
-        "primal.list",
-        serde_json::json!({}),
-    ) {
+    match ctx.call("orchestration", "primal.list", serde_json::json!({})) {
         Ok(result) => {
             let has_primals_key = result.get("primals").is_some()
                 || result.get("primal_ids").is_some()
@@ -128,7 +124,13 @@ fn run_live(ctx: &mut CompositionContext, v: &mut ValidationResult) {
             v.check_bool(
                 "schema:live:capability_list_has_count",
                 has_count,
-                &format!("capability.list count={}", result.get("count").and_then(|v| v.as_u64()).unwrap_or(0)),
+                &format!(
+                    "capability.list count={}",
+                    result
+                        .get("count")
+                        .and_then(serde_json::Value::as_u64)
+                        .unwrap_or(0)
+                ),
             );
         }
         Err(e) if is_skip_error(&e) => {
@@ -152,7 +154,13 @@ fn summarize_keys(v: &serde_json::Value) -> String {
     match v {
         serde_json::Value::Object(map) => {
             let keys: Vec<&String> = map.keys().take(5).collect();
-            format!("keys: [{}]", keys.iter().map(|k| k.as_str()).collect::<Vec<_>>().join(", "))
+            format!(
+                "keys: [{}]",
+                keys.iter()
+                    .map(|k| k.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
         }
         serde_json::Value::Array(arr) => format!("array[{}]", arr.len()),
         other => format!("{other}"),

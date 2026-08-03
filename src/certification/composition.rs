@@ -95,11 +95,7 @@ fn validate_composition_security(ctx: &mut CompositionContext, v: &mut Validatio
             );
         }
         Err(e) => {
-            v.check_bool(
-                "composition:security:crypto.hash",
-                false,
-                &format!("{e}"),
-            );
+            v.check_bool("composition:security:crypto.hash", false, &format!("{e}"));
         }
     }
 }
@@ -111,7 +107,11 @@ fn validate_composition_compute(ctx: &mut CompositionContext, v: &mut Validation
         serde_json::json!({"op": "probe", "tier": "certification"}),
     ) {
         Ok(_result) => {
-            v.check_bool("composition:compute:dispatch", true, "dispatch acknowledged");
+            v.check_bool(
+                "composition:compute:dispatch",
+                true,
+                "dispatch acknowledged",
+            );
         }
         Err(e) if is_skip_error(&e) => {
             v.check_skip(
@@ -156,14 +156,6 @@ fn validate_composition_ai(ctx: &mut CompositionContext, v: &mut ValidationResul
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn composition_validates_deploy_graphs_and_families() {
-        assert!(
-            true,
-            "L4 validates 4 graphs + registry + tensor + security + compute + ai"
-        );
-    }
-
     #[test]
     fn composition_registry_has_capabilities() {
         let registry = include_str!("../../config/capability_registry.toml");

@@ -162,3 +162,258 @@ fn build_synthetic(log_rhos: &[f64], log_ts: &[f64]) -> ScatterData {
     }
     (d_stars, scatter_rho, scatter_t, scatter_d, scatter_labels)
 }
+
+#[cfg(test)]
+#[expect(clippy::expect_used, reason = "test assertions")]
+mod tests {
+    use super::*;
+    use crate::visualization::types::DataChannel;
+
+    #[test]
+    fn wdm_study_has_two_nodes_and_edge() {
+        let (scenario, edges) = wdm_study();
+        assert_eq!(scenario.ecosystem.primals.len(), 2);
+        let ids: Vec<&str> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .map(|n| n.id.as_str())
+            .collect();
+        assert!(ids.contains(&"wdm_transport"));
+        assert!(ids.contains(&"wdm_phase"));
+        assert_eq!(edges.len(), 1);
+        assert_eq!(edges[0].from, "wdm_transport");
+        assert_eq!(edges[0].to, "wdm_phase");
+    }
+
+    #[test]
+    fn wdm_study_channels_include_timeseries_scatter_gauge() {
+        let (scenario, _) = wdm_study();
+        let channels: Vec<&DataChannel> = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .flat_map(|n| n.data_channels.iter())
+            .collect();
+        assert!(
+            channels
+                .iter()
+                .any(|c| matches!(c, DataChannel::TimeSeries { .. })),
+            "expected TimeSeries for D* vs T"
+        );
+        assert!(
+            channels
+                .iter()
+                .any(|c| matches!(c, DataChannel::Scatter3D { .. })),
+            "expected Scatter3D phase diagram"
+        );
+        assert!(
+            channels
+                .iter()
+                .any(|c| matches!(c, DataChannel::Gauge { .. })),
+            "expected grid-point gauge"
+        );
+    }
+
+    #[test]
+    fn wdm_study_grid_point_gauge_matches_phase_space_size() {
+        let (scenario, _) = wdm_study();
+        let transport = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .find(|n| n.id == "wdm_transport")
+            .expect("transport node");
+        let gauge = transport
+            .data_channels
+            .iter()
+            .find_map(|c| {
+                if let DataChannel::Gauge { value, .. } = c {
+                    Some(*value)
+                } else {
+                    None
+                }
+            })
+            .expect("grid gauge");
+        assert!((gauge - 70.0).abs() < f64::EPSILON, "7×10 grid points");
+    }
+
+    #[test]
+    fn wdm_study_synthetic_fallback_is_deterministic() {
+        let (s1, _) = wdm_study();
+        let (s2, _) = wdm_study();
+        let scatter_values = |scenario: &crate::visualization::types::NeuralScenario| {
+            scenario
+                .ecosystem
+                .primals
+                .iter()
+                .find(|n| n.id == "wdm_phase")
+                .and_then(|n| {
+                    n.data_channels.iter().find_map(|c| {
+                        if let DataChannel::Scatter3D { z, .. } = c {
+                            Some(z.clone())
+                        } else {
+                            None
+                        }
+                    })
+                })
+        };
+        let z1 = scatter_values(&s1).expect("scatter z");
+        let z2 = scatter_values(&s2).expect("scatter z");
+        assert_eq!(z1.len(), 70);
+        assert_eq!(z1, z2, "seeded synthetic path must be reproducible");
+    }
+
+    #[test]
+    fn wdm_study_scenario_metadata() {
+        let (scenario, _) = wdm_study();
+        assert_eq!(scenario.name, "Warm Dense Matter Surrogates");
+        assert!(scenario.description.contains("Transport coefficients"));
+    }
+
+    #[test]
+    fn wdm_study_timeseries_has_ten_points() {
+        let (scenario, _) = wdm_study();
+        let transport = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .find(|n| n.id == "wdm_transport")
+            .expect("transport node");
+        let ts = transport
+            .data_channels
+            .iter()
+            .find_map(|c| {
+                if let DataChannel::TimeSeries { y_values, .. } = c {
+                    Some(y_values.len())
+                } else {
+                    None
+                }
+            })
+            .expect("timeseries");
+        assert_eq!(ts, 10, "log_T grid has 10 temperature points");
+    }
+
+    #[test]
+    fn wdm_study_scatter_labels_contain_rho_and_temp() {
+        let (scenario, _) = wdm_study();
+        let phase = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .find(|n| n.id == "wdm_phase")
+            .expect("phase node");
+        let labels = phase
+            .data_channels
+            .iter()
+            .find_map(|c| {
+                if let DataChannel::Scatter3D { point_labels, .. } = c {
+                    Some(point_labels.clone())
+                } else {
+                    None
+                }
+            })
+            .expect("scatter labels");
+        assert_eq!(labels.len(), 70);
+        assert!(labels[0].starts_with("ρ="));
+        assert!(labels[0].contains("T="));
+    }
+
+    #[test]
+    fn wdm_study_scatter_d_values_finite_and_positive() {
+        let (scenario, _) = wdm_study();
+        let z = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .find(|n| n.id == "wdm_phase")
+            .and_then(|n| {
+                n.data_channels.iter().find_map(|c| {
+                    if let DataChannel::Scatter3D { z, .. } = c {
+                        Some(z.clone())
+                    } else {
+                        None
+                    }
+                })
+            })
+            .expect("scatter z");
+        assert!(z.iter().all(|v| v.is_finite() && *v > 0.0));
+    }
+
+    #[test]
+    fn wdm_study_node_capabilities() {
+        let (scenario, _) = wdm_study();
+        let transport = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .find(|n| n.id == "wdm_transport")
+            .expect("transport");
+        assert!(
+            transport
+                .capabilities
+                .iter()
+                .any(|c| c == "science.wdm_transport")
+        );
+        let phase = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .find(|n| n.id == "wdm_phase")
+            .expect("phase");
+        assert!(
+            phase
+                .capabilities
+                .iter()
+                .any(|c| c == "science.wdm_phase_diagram")
+        );
+    }
+
+    #[test]
+    fn wdm_study_edge_label() {
+        let (_, edges) = wdm_study();
+        assert_eq!(edges[0].label, "sweep → phase diagram");
+    }
+
+    #[test]
+    fn wdm_study_surrogate_path_when_baseline_present() {
+        let baseline =
+            crate::validation::baseline_path("control/wdm/transport_surrogate_baseline.json");
+        if !baseline.exists() {
+            return;
+        }
+        let (scenario, _) = wdm_study();
+        let z = scenario
+            .ecosystem
+            .primals
+            .iter()
+            .find(|n| n.id == "wdm_phase")
+            .and_then(|n| {
+                n.data_channels.iter().find_map(|c| {
+                    if let DataChannel::Scatter3D { z, .. } = c {
+                        Some(z.clone())
+                    } else {
+                        None
+                    }
+                })
+            })
+            .expect("scatter");
+        let (scenario2, _) = wdm_study();
+        let z2 = scenario2
+            .ecosystem
+            .primals
+            .iter()
+            .find(|n| n.id == "wdm_phase")
+            .and_then(|n| {
+                n.data_channels.iter().find_map(|c| {
+                    if let DataChannel::Scatter3D { z, .. } = c {
+                        Some(z.clone())
+                    } else {
+                        None
+                    }
+                })
+            })
+            .expect("scatter2");
+        assert_eq!(z, z2, "surrogate path must be deterministic");
+    }
+}

@@ -188,6 +188,7 @@ pub trait NeuralSpring {
 }
 
 #[cfg(test)]
+#[expect(clippy::expect_used, reason = "test serialization roundtrips")]
 mod tests {
     use super::*;
 

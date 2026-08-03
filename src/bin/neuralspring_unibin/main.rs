@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! neuralSpring UniBin — eukaryotic single-binary deployment.
+//! neuralSpring `UniBin` — eukaryotic single-binary deployment.
 //!
 //! Consolidates certification, validation, serve, status, and version
 //! into a single binary with clap subcommands.
@@ -35,7 +35,7 @@ fn main() {
             scenario,
             tier,
             list,
-        } => cmd_validate(track, scenario, tier, list),
+        } => cmd_validate(track.as_ref(), scenario.as_ref(), tier.as_ref(), list),
         Commands::Serve => cmd_serve(),
         Commands::Status => cmd_status(),
         Commands::Version => cmd_version(),
@@ -48,9 +48,9 @@ fn cmd_certify(max_layer: u8) {
 }
 
 fn cmd_validate(
-    track_filter: Option<String>,
-    scenario_id: Option<String>,
-    tier_filter: Option<String>,
+    track_filter: Option<&String>,
+    scenario_id: Option<&String>,
+    tier_filter: Option<&String>,
     list: bool,
 ) {
     let registry = scenarios::build_registry();
@@ -75,7 +75,7 @@ fn cmd_validate(
 
     let mut ran = 0;
     for s in registry.all() {
-        if let Some(ref sid) = scenario_id {
+        if let Some(sid) = scenario_id {
             if s.meta.id != sid.as_str() {
                 continue;
             }
@@ -94,16 +94,12 @@ fn cmd_validate(
         info!("Running scenario: {} ({})", s.meta.id, s.meta.track);
 
         if let Some(run_rust) = s.run_rust {
-            if tier_match.is_none()
-                || matches!(tier_match, Some(Some(Tier::Rust)) | Some(Some(Tier::Both)))
-            {
+            if tier_match.is_none() || matches!(tier_match, Some(Some(Tier::Rust | Tier::Both))) {
                 run_rust(&mut v);
             }
         }
         if let Some(run_live) = s.run_live {
-            if tier_match.is_none()
-                || matches!(tier_match, Some(Some(Tier::Live)) | Some(Some(Tier::Both)))
-            {
+            if tier_match.is_none() || matches!(tier_match, Some(Some(Tier::Live | Tier::Both))) {
                 run_live(&mut ctx, &mut v);
             }
         }
@@ -164,7 +160,7 @@ fn cmd_version() {
     println!("neuralspring {VERSION}");
 }
 
-fn status_icon(alive: bool) -> &'static str {
+const fn status_icon(alive: bool) -> &'static str {
     if alive { "ONLINE" } else { "offline" }
 }
 

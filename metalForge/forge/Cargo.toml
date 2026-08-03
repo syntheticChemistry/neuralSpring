@@ -19,8 +19,9 @@ coralreef = ["dep:coral-reef"]
 barracuda = { workspace = true }
 bytemuck = { workspace = true }
 coral-reef = { path = "../../../../primals/coralReef/crates/coral-reef", optional = true }
-pollster = { workspace = true }
 serde_json = { workspace = true }
+tokio = { workspace = true, features = ["rt"] }
+thiserror = { workspace = true }
 wgpu = { workspace = true }
 
 [dev-dependencies]

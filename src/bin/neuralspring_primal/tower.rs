@@ -69,13 +69,19 @@ fn probe_tower_primal(
     absent_reason: &str,
 ) -> bool {
     if let Some(path) = discover_by_capability(required_capabilities) {
-        log::info!("Tower: {display_name} discovered via capability at {}", path.display());
+        log::info!(
+            "Tower: {display_name} discovered via capability at {}",
+            path.display()
+        );
         return probe_liveness_and_log(&path, display_name);
     }
 
     match composition::discover_primal_socket(name_hint) {
         DiscoveryResult::Found(path) => {
-            log::info!("Tower: {display_name} discovered via name at {}", path.display());
+            log::info!(
+                "Tower: {display_name} discovered via name at {}",
+                path.display()
+            );
             probe_liveness_and_log(&path, display_name)
         }
         DiscoveryResult::NotFound { .. } => {
