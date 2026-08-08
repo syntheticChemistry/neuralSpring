@@ -1,0 +1,23 @@
+# neuralSpring — certification organelle (guideStone layers)
+# Runs the 29-file CHECKSUMS verification + certification layer checks
+# 13 certification tests across bare/discovery/parity/nucleus modules
+
+[metadata]
+name = "neuralspring-certification"
+description = "Certification organelle — CHECKSUMS integrity, layer validation, BLAKE3 provenance"
+version = "0.1.0"
+
+[execution]
+type = "native"
+command = "$SPRINGS_ROOT/neuralSpring/target/release/neuralspring_unibin certify"
+working_dir = "$SPRINGS_ROOT/neuralSpring"
+
+[execution.env]
+PRIMALSPRING_JSON = "1"
+
+[resources]
+max_memory_bytes = 2147483648
+max_cpu_percent = 50.0
+
+[security]
+isolation_level = "None"

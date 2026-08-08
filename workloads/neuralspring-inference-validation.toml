@@ -1,0 +1,34 @@
+# neuralSpring — Neural inference pipeline validation
+# Validates model loading, tokenization, inference dispatch, and
+# result scoring against known baselines across supported model families.
+#
+# Compute ladder:
+#   Tier 0 (CPU): Tokenization + baseline scoring
+#   Tier 1 (GPU): Full inference dispatch via toadStool/squirrel
+#
+# Feeds foundation Thread 6 (neural systems).
+
+[metadata]
+name = "neuralspring-inference-validation"
+description = "Neural inference: model load, tokenize, dispatch, score vs baselines"
+version = "0.1.0"
+spring = "neuralSpring"
+compute_tier = "cpu"
+domain = "neural-inference"
+
+[execution]
+type = "native"
+command = "$SPRINGS_ROOT/neuralSpring/target/release/neuralspring_unibin"
+args = ["validate", "--scenario", "inference-validation", "--format", "json"]
+working_dir = "$SPRINGS_ROOT/neuralSpring"
+
+[output]
+format = "json"
+schema = "toadstool-validate-v1"
+
+[resources]
+max_memory_bytes = 8589934592
+max_cpu_percent = 80.0
+
+[security]
+isolation_level = "None"

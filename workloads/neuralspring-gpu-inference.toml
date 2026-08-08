@@ -1,0 +1,34 @@
+# neuralSpring — GPU inference dispatch
+# Full model inference on GPU hardware via squirrel coordination:
+# model loading → attention computation → token generation.
+#
+# Compute ladder:
+#   Tier 1 (GPU): Model weights loaded into VRAM, inference dispatched
+#                 via toadStool with squirrel orchestrating multi-model routing.
+#
+# Prerequisites: Node Atomic Compute running
+
+[metadata]
+name = "neuralspring-gpu-inference"
+description = "GPU neural inference: attention, token generation via squirrel + toadStool"
+version = "0.1.0"
+spring = "neuralSpring"
+compute_tier = "gpu"
+domain = "gpu-inference"
+
+[execution]
+type = "gpu"
+kernel = "transformer_attention"
+shader_path = "$SPRINGS_ROOT/neuralSpring/shaders/attention.wgsl"
+dispatch_size = [512, 1, 1]
+
+[output]
+format = "json"
+schema = "toadstool-validate-v1"
+
+[resources]
+max_memory_bytes = 17179869184
+max_gpu_percent = 95.0
+
+[security]
+isolation_level = "None"

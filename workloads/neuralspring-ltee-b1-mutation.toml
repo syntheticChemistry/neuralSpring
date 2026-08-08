@@ -1,0 +1,28 @@
+# neuralSpring — LTEE B1 mutation accumulation validation
+# Validates Python→Rust parity for ML surrogate predictions (LSTM MSE,
+# ESN MSE, allele frequency metrics) against expected_values.json.
+# Tier 2: structured JSON output for lithoSpore ingestion.
+
+[metadata]
+name = "neuralspring-ltee-b1-mutation"
+description = "LTEE B1 mutation accumulation — ML surrogate validation (LSTM, ESN, HMM)"
+version = "0.1.0"
+
+[execution]
+type = "native"
+command = "$SPRINGS_ROOT/neuralSpring/target/release/validate_ltee_b1_mutation_accumulation --format json"
+working_dir = "$SPRINGS_ROOT/neuralSpring"
+
+[execution.env]
+NEURALSPRING_JSON = "1"
+
+[output]
+format = "json"
+schema = "toadstool-validate-v1"
+
+[resources]
+max_memory_bytes = 4294967296
+max_cpu_percent = 80.0
+
+[security]
+isolation_level = "None"
