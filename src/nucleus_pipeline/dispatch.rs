@@ -58,7 +58,7 @@ pub fn dispatch_capability_gpu(capability: &str, dispatcher: &Dispatcher) -> (bo
     match capability {
         "science.eigensolve" => stage_eigensolve_gpu(dispatcher),
         "science.attention_anderson" => stage_attention_anderson_gpu(dispatcher),
-        "science.digester_anderson_coupling" => stage_digester_anderson_gpu(dispatcher),
+        "science.digester_anderson_coupling" => stage_digester_anderson_coupling_gpu(dispatcher),
         "science.isomorphic_reservoir" => stage_isomorphic_reservoir_gpu(dispatcher),
         "science.wdm_ensemble_qs" => stage_wdm_ensemble_qs_gpu(dispatcher),
         "science.introgression_nn" => stage_introgression_nn_gpu(dispatcher),
@@ -96,7 +96,7 @@ fn stage_eigensolve_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
     )
 }
 
-fn stage_digester_anderson_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
+fn stage_digester_anderson_coupling_gpu(dispatcher: &Dispatcher) -> (bool, StageOutput) {
     let mut rng = crate::rng::Rng::new(42);
     let n_species = 10;
     let n = n_species;
